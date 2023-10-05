@@ -19,7 +19,8 @@
     "node": ">=20.5.1",
     "npm": ">=10.1.0"
   },
-  "packageManager": "npm",
+  "type": "module",
+  "packageManager": "npm@10.2.0",
   "browserslist": [
     "> 1%",
     "not IE 11"
@@ -28,32 +29,44 @@
     "build": "astro build",
     "build:sync": "astro sync",
     "build:check": "astro check",
+    "clean": "rimraf dist",
     "dev": "astro dev",
     "lint": "npm run lint:format && npm run lint:style && npm run lint:code",
     "lint:code": "eslint \"src/**/*.{ts,tsx,astro}\"",
     "lint:format": "prettier --write . --plugin=prettier-plugin-astro",
     "lint:style": "npx stylelint \"src/**/*.{css,astro,ts,tsx}\"",
-    "preview": "astro preview",
-    "start": "astro dev"
+    "preview": "astro build && astro preview",
+    "start": "astro dev",
+    "test:e2e": "npx playwright test",
+    "test:unit": "vitest"
   },
   "dependencies": {
     "@astrojs/check": "0.2.0",
+    "@astrojs/mdx": "1.1.0",
     "@astrojs/tailwind": "5.0.0",
     "astro": "^3.2.2",
-    "tailwindcss": "3.3.3",
-    "typescript": "5.2.2"
+    "sass": "1.68.0",
+    "tailwindcss": "3.3.3"
   },
   "devDependencies": {
+    "@playwright/test": "1.38.1",
+    "@types/node": "20.8.2",
+    "@typescript-eslint/eslint-plugin": "6.7.4",
     "@typescript-eslint/parser": "6.7.4",
     "@untile/stylelint-config-react": "2.0.1",
+    "dotenv": "16.3.1",
     "eslint": "8.50.0",
     "eslint-plugin-astro": "0.29.1",
+    "eslint-plugin-jsx-a11y": "6.7.1",
     "postcss-html": "1.5.0",
     "prettier": "3.0.3",
     "prettier-plugin-astro": "0.12.0",
+    "rimraf": "5.0.5",
     "stylelint": "15.10.3",
     "stylelint-config-html": "1.1.0",
     "stylelint-config-standard": "34.0.0",
-    "stylelint-config-standard-scss": "11.0.0"
+    "stylelint-config-standard-scss": "11.0.0",
+    "typescript": "5.2.2",
+    "vitest": "0.34.6"
   }
 }
