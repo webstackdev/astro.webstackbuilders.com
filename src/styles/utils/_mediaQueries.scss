@@ -1,0 +1,37 @@
+/**
+ * Prints a mobile first media query based on the name given. All rules outside of
+ * @media queries apply to devices from 0px to breakpoint variable value.
+ *
+ * @param {String} $name - Breakpoint name, enumerated as keys in $breakpoints map
+ * @require $breakpoints - List of breakpoints and pixel values keyed by name
+ * @return {String} media query for the breakpoint name provided, using passed attributes
+ */
+@mixin media-query-min-width($name) {
+  @if map-has-key($breakpoints, $name) {
+    @media only screen and (min-width: map-get($breakpoints, $name)) {
+      @content;
+    }
+  } @else {
+    @error "Breakpoint name `#{$name}` not set in SCSS variables."
+        + "Available breakpoints are: #{map-keys($breakpoints)}.";
+  }
+}
+
+/**
+ * Prints a desktop first media query based on the name given. All rules outside of
+ * @media queries apply to devices at breakpoint variable value and above.
+ *
+ * @param {String} $name - Breakpoint name, enumerated as keys in $breakpoints map
+ * @require $breakpoints - List of breakpoints and pixel values keyed by name
+ * @return {String} media query for the breakpoint name provided, using passed attributes
+ */
+@mixin media-query-max-width($name) {
+  @if map-has-key($breakpoints, $name) {
+    @media only screen and (max-width: (map-get($breakpoints, $name) - 0.1rem)) {
+      @content;
+    }
+  } @else {
+    @error "Breakpoint name `#{$name}` not set in SCSS variables."
+        + "Available breakpoints are: #{map-keys($breakpoints)}.";
+  }
+}

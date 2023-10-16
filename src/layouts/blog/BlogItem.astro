@@ -1,0 +1,93 @@
+---
+layout: layouts/base.njk
+---
+<article
+  id="article"
+  class="article"
+  itemscope
+  itemtype="http://schema.org/BlogPosting"
+  aria-labelledby="article-title"
+>
+  <header class="article__header">
+    {#- Article Cover Image -#}
+    {% if not alt %}
+      {% set alt = ['Cover image for article ', title] | join %}
+    {% endif %}
+    <div class="article__cover-image" itemtype="image">
+      {% asyncImageHandler cover, alt %}
+    </div>
+    {#- Article Title -#}
+    <h1
+      id="article-title"
+      class="article__title"
+      itemprop="headline"
+    >
+      {{ title }}
+    </h1>
+    {#- Article Meta Data Container -#}
+    <div class="article__meta">
+      {#- Article Date -#}
+      <time
+        class="article__date"
+        itemprop="datePublished"
+        datetime="{{ page.date | dateToISO }}"
+      >
+        {{ page.date | readableDate }}
+      </time>
+      {#- Article Time to Read -#}
+      <p class="article__time-to-read">It will take {{ content | timeToRead }} to read this</p>
+      {#- Article Tags -#}
+      {% if tags %}
+        <span aria-label="in category">&sdot;</span>
+        <span class="article__tags">
+          {{ tags | join(', ') }}
+        </span>
+      {% endif %}
+      {#- Article Draft Status -#}
+      {% if draft %}
+        <span aria-hidden="true">&sdot;</span>
+        <span class="article__status">(Draft)</span>
+      {% endif %}
+    </div>
+  </header>
+  {#- Article Content -#}
+  <div class="article__content content" itemprop="articleBody">
+    {{ content | safe }}
+  </div>
+  {#- Article Other Articles Card -#}
+  <div class="suggested-articles">
+    <header class="suggested-articles__header">
+      <h3>Other things I've written</h3>
+    </header>
+    {% include '../../modules/suggestedArticles.njk' %}
+  </div>
+  {#- Article Footer wrapper -#}
+  <footer class="article__footer">
+    {#- Article Author Card -#}
+    <div hidden class="article__author-card" itemprop="author">
+      <a href="{{ page.url | absoluteUrl }}">{{ title }}</a>
+      <p>
+        <a rel="author" href="{{ site.baseUrl }}">{{ author.name }}</a>
+        <span class="article__author-avatar">
+          {% asyncImageHandler author.avatar, "Site author's avatar image" %}
+        </span>
+      </p>
+    </div>
+    {#- Article Tags -#}
+    <p class="article__info" itemprop="keywords">
+      Published in [{{ tags | join(', ') }}] &sdot; {{ page.date | readableDate }} <br/>
+    </p>
+    {#- Article Twitter Social Icon -#}
+    <span class="article__twitter-follow" itemprop="sharedContent">
+      <a
+        href="https://twitter.com/intent/follow?screen_name={{ author.social.twitter.name }}"
+        target="_blank"
+        rel="noopener noreferrer"
+        title="Follow {{ author.name }} on Twitter"
+        class="btn btn--twitter"
+      >
+        {% icon "twitter" %} Follow @{{ author.social.twitter.name }}
+      </a>
+    </span>
+  </footer>
+</article>

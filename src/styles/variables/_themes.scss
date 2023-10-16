@@ -1,0 +1,102 @@
+@use "sass:map";
+@import '../variables/colors';
+
+/**
+ * @NOTE: See `src/assets/scss/utils/_themes.scss` and `src/__tests__/_data.themes.spec.ts`
+ * Getting errors with the sass-extract renderSync method in script, but works in SCSS compile
+ */
+
+/**
+ * SASS variables used for colors so they can be read by Javascript and used in the 11ty build
+ * process. If the colors are changed here, updated them in `src/assets/scss/socialImages.scss`.
+ *
+ * Offset colors are used to adjust another color on interactions like hover.
+ */
+$light: (
+  id: 'default',
+  name: 'Light',
+  backgroundColor: $color-gray-1,
+  backgroundOffsetColor: $color-gray-2,
+  textColor: $color-gray-5,
+  textOffsetColor: $color-gray-3,
+  borderColor: $color-blue-1,
+  primaryColor: $color-blue-4,
+  primaryOffsetColor: $color-blue-5,
+  secondaryColor: $color-yellow-2,
+  secondaryColorOffset: $color-yellow-3,
+  modalBackground: $color-gray-1,
+  successColor: $color-green-4,
+  successColorOffset: $color-green-3,
+  infoColor: $color-cyan-4,
+  warningColor: $color-yellow-4,
+  warningColorOffset: $color-yellow-3,
+  dangerColor:  $color-red-4,
+  twitterColor: #1da1f2,
+);
+
+$dark: (
+  id: 'dark',
+  name: 'Dark',
+  backgroundColor: $color-blue-6,
+  backgroundOffsetColor: $color-blue-5,
+  textColor: $color-gray-1,
+  textOffsetColor: $color-gray-2,
+  borderColor: $color-gray-6,
+  primaryColor: $color-gray-1,
+  primaryOffsetColor: $color-gray-2,
+  secondaryColor: $color-yellow-2,
+  secondaryColorOffset: $color-yellow-3,
+  modalBackground: $color-gray-1,
+  successColor: $color-green-4,
+  successColorOffset: $color-green-3,
+  infoColor: $color-cyan-4,
+  warningColor: $color-yellow-4,
+  warningColorOffset: $color-yellow-3,
+  dangerColor:  $color-red-4,
+  twitterColor: #1da1f2,
+);
+
+$themes: $light, $dark;
+
+@function get-var($theme, $prop) {
+  $value: map.get($theme, $prop);
+  @return $value;
+}
+
+@mixin css-vars($theme) {
+  --color-bg: #{get-var($theme, "backgroundColor")};
+  --color-bg-offset: #{get-var($theme, "backgroundOffsetColor")};
+  --color-text: #{get-var($theme, "textColor")};
+  --color-text-offset: #{get-var($theme, "textOffsetColor")};
+  --color-border: #{get-var($theme, "borderColor")};
+  --color-primary: #{get-var($theme, "primaryColor")};
+  --color-primary-offset: #{get-var($theme, "primaryOffsetColor")};
+  --color-secondary: #{get-var($theme, "secondaryColor")};
+  --color-secondary-offset: #{get-var($theme, "secondaryColorOffset")};
+  --color-modal-background: #{get-var($theme, "modalBackground")};
+  --color-success: #{get-var($theme, "successColor")};
+  --color-success-offset: #{get-var($theme, "successColorOffset")};
+  --color-info: #{get-var($theme, "infoColor")};
+  --color-warning: #{get-var($theme, "warningColor")};
+  --color-warning-offset: #{get-var($theme, "warningColorOffset")};
+  --color-danger: #{get-var($theme, "dangerColor")};
+  --color-twitter: #{get-var($theme, "twitterColor")};
+}
+
+:root {
+
+  @include css-vars($light);
+}
+
+@media(prefers-color-scheme: dark) {
+  :root {
+    @include css-vars($dark);
+  }
+}
+
+@each $theme in $themes {
+  $dataTheme: get-var($theme, "id");
+  [data-theme="#{$dataTheme}"] {
+    @include css-vars($theme);
+  }
+}

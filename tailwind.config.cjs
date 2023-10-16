@@ -1,8 +1,18 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}"],
+  /* Use our own global reset based on Tailwind Preflight */
+  corePlugins: {
+    preflight: false,
+  },
+  content: ['./src/**/*.{astro,ts,tsx,md,mdx}'],
   theme: {
     extend: {},
   },
-  plugins: [],
-};
+  plugins: [
+    require('@tailwindcss/typography'),
+    require('@tailwindcss/forms')({
+      strategy: 'base',
+    }),
+  ],
+}

@@ -1,0 +1,23 @@
+<script>
+{#- Run this as early as possible to avoid "flash of unthemed styling"        #}
+{#- 11ty global data like storage not available when rendering individual     #}
+{#- templates in tests, so this is conditionally checked for the availability #}
+{#- of 'storage' #}
+const themeStorageKey = "{{ storage.THEME_STORAGE_KEY }}"
+if (themeStorageKey) {
+  document.documentElement.setAttribute(
+    'data-theme',
+    localStorage.getItem(themeStorageKey)
+  )
+}
+
+{#- Used to update the <meta name="theme-color" content="VALID_COLOR"> element when -#}
+{#- the theme is changed, that tag sets the color for e.g. the browser title bar    -#}
+(function() {
+  window.metaColors = {
+    {%- for theme in themes -%}
+      '{{ theme.id }}':'{{ theme.colors.backgroundOffset }}'{% if not loop.last %},{% endif %}
+    {%- endfor -%}
+  }
+})()
+</script>

@@ -1,0 +1,13 @@
+{% set navPages = collections.all | eleventyNavigation %}
+{/* IF THIS CHANGES update navigationHtml.ts fixture in navigation script folder */}
+<nav id="main-nav" class="main-nav" role="navigation"  aria-label="Main">
+  <ul class="main-nav__menu" tabindex="-1" aria-label="main navigation">
+    {%- for menuEntry in navPages %}
+    <li class="main-nav__item{% if menuEntry.url == page.url %} main-nav__item--active{% endif %}">
+      <a href="{{ menuEntry.url }}" class="main-nav__link">
+        {{ menuEntry.title }}
+      </a>
+    </li>
+    {%- endfor %}
+  </ul>
+</nav>

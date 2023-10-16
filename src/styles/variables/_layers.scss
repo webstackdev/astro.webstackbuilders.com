@@ -1,0 +1,27 @@
+/**
+ * Z-Index Stack: control the order of layers in the application, allows
+ * consolidating values in one place.
+ */
+$z-layers: (
+  // Used for PWA titlebar in stand-alone desktop app display mode
+  'titlebar': 9999,
+  // Modal floats above navigation and overlays
+  'modal': 999,
+  // Navigation floats above main content
+  'nav': 100,
+  // Content overlay is for elements like spinners
+  'content-overlay': 30
+);
+
+/**
+ * Get numeric value for Z-index layering by name
+ *
+ * @param {String} $layerName - Z-index name, e.g. 'titlebar'
+ * @return {String}
+ */
+@function getZIndexValue($layerName) {
+  @if map-has-key($z-layers, $layerName) == false {
+    @warn "No layer found for `#{$layerName}` in $z-layers map variable. Property omitted.";
+  }
+  @return map-get($z-layers, $layerName);
+}

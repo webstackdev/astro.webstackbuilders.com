@@ -1,0 +1,174 @@
+/**
+ * CSS reset rules. Tailwind base includes modern-normalize rules:
+ * https://github.com/sindresorhus/modern-normalize/blob/main/modern-normalize.css
+ */
+
+ /** Variables SCSS */
+// @import 'variables/animations';
+// @import 'variables/breakpoints';
+// @import 'variables/colors';
+// @import 'variables/layers';
+// @import 'variables/themes'; // must be after `colors`
+// @import 'variables/typography';
+
+/** Reset comes first once SASS variables are set */
+// @import 'base/reset';
+
+/** Utility SCSS comes before production SCSS stylings */
+// @import 'utils/mediaQueries';
+// @import 'utils/mixins';
+
+/** Animations SCSS */
+// @import 'animations/spinner';
+
+/** Base SCSS */
+// @import 'base/accessibility';
+// @import 'base/animation';
+// @import 'base/classes';
+// @import 'base/focus';
+// @import 'base/fonts';
+// @import 'base/print';
+// @import 'base/pwa';
+// @import 'base/typography';
+
+/** Element SCSS */
+//// @import 'elements/alert';
+// @import 'elements/button';
+// @import 'elements/icon';
+
+/** Layout SCSS */
+// @import 'layout/base';
+// @import 'layout/footer';
+// @import 'layout/header';
+
+/** Components SCSS */
+// @import 'components/callout';
+// @import 'components/content';
+// @import 'components/form';
+// @import 'components/brand';
+// @import 'components/responsiveImage';
+//// @import 'components/sharer';
+//// @import 'components/signup';
+
+/** Navigation Components SCSS */
+// @import 'components/navigation/icon';
+// @import 'components/navigation/menu';
+// @import 'components/navigation/splash';
+
+/** Theme Components SCSS */
+// @import 'components/theme/icon';
+// @import 'components/theme/picker';
+
+/** Modals SCSS */
+// @import 'modals/cookieConsent';
+// @import 'modals/cookieCustomize';
+
+/** Modules SCSS */
+// @import 'modules/hero';
+// @import 'modules/cta_featured';
+// @import 'modules/about';
+// @import 'modules/suggestedArticles';
+// @import 'modules/suggestedCaseStudies';
+// @import 'modules/suggestedServices';
+// @import 'modules/testimonials';
+
+/** Page SCSS */
+// @import 'pages/about';
+// @import 'pages/articles/featured';
+// @import 'pages/articles/item';
+// @import 'pages/articles/list';
+// @import 'pages/articles/other';
+// @import 'pages/case_studies/item';
+// @import 'pages/case_studies/list';
+// @import 'pages/contact';
+// @import 'pages/home';
+// @import 'pages/services/item';
+// @import 'pages/services/list';
+// @import 'pages/404';
+
+/** Vendor SCSS */
+// @import 'vendor/codetab';
+// @import 'vendor/expandable';
+// @import 'vendor/namedCodeBlock';
+// @import 'vendor/shareHighlight';
+//// @import 'vendor/uppy/index';
+
+ /*
+In Tailwind Preflight:
+font-family: Use the user's configured `sans` font-family by default.
+font-feature-settings:. Use the user's configured `sans` font-feature-settings by default.
+6. Use the user's configured `sans` font-variation-settings by default.
+html {
+  font-family: theme('fontFamily.sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji");
+  font-feature-settings: theme('fontFamily.sans[1].fontFeatureSettings', normal);
+  font-variation-settings: theme('fontFamily.sans[1].fontVariationSettings', normal); 
+ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  @font-face {
+    font-family: Proxima Nova;
+    font-weight: 400;
+    src: url(/fonts/proxima-nova/400-regular.woff) format("woff");
+  }
+
+  @font-face {
+    font-family: Proxima Nova;
+    font-weight: 500;
+    src: url(/fonts/proxima-nova/500-medium.woff) format("woff");
+  }
+
+  /* Prevent font size inflation */
+  html {
+    -moz-text-size-adjust: none;
+    -webkit-text-size-adjust: none;
+    text-size-adjust: none;
+  }
+
+  /* Set core body defaults */
+  body {
+    @apply min-h-screen;
+  }
+
+  /* Set shorter line heights on headings and interactive elements */
+  h1, h2, h3, h4,
+  button, input, label {
+    @apply leading-[1.1];
+  }
+
+  /* Balance text wrapping on headings */
+  h1, h2,
+  h3, h4 {
+    text-wrap: balance;
+  }
+
+  /* Anchor elements that don't have a class get default styles */
+  a:not([class]) {
+    text-decoration-skip-ink: auto;
+    @apply text-current;
+  }
+
+  /* Make responsive images easier to work with */
+  picture {
+    @apply max-w-full;
+  }
+
+  /* Make sure textareas without a rows attribute are not tiny */
+  textarea:not([rows]) {
+    @apply min-h-[10em];
+  }
+
+  /* Remove list styles on ul, ol elements with a list role, which suggests default styling will be removed */
+  ul[role='list'],
+  ol[role='list'] {
+    @apply list-none;
+  }
+
+  /* Anything that has been anchored to should have extra scroll margin */
+  :target {
+    scroll-margin-block: 5ex;
+  }
+}

@@ -1,0 +1,43 @@
+---
+breadcrumbOptions:
+  #
+  # Menu list wrapper
+  #
+  # Change the top level tag
+  listElement: "ul",
+  # Add a class to the top level tag
+  listClass: "breadcrumbs__menu",
+
+  #
+  # Menu list item
+  #
+  # Change the menu list item tag
+  listItemElement: "li",
+  # Add a class to every menu list item
+  listItemClass: "breadcrumbs__item",
+  # Add a class to the menu list item if the item has children
+  listItemHasChildrenClass: "",
+  # Add a class to the anchor within the menu list item tag
+  anchorClass: "breadcrumbs__link",
+
+  #
+  # Active item handling
+  #
+  # If matched, `activeListItemClass` and `activeAnchorClass` will be added
+  activeKey: eleventyNavigation.key
+  # Add a class to the current page menu list item
+  activeListItemClass: "breadcrumbs__item--active",
+  # Add a class to the current page menu list anchor
+  activeAnchorClass: "breadcrumbs__link--active",
+
+  #
+  # Other options
+  #
+  # Allow missing pages (nodes) in breadcrumbs
+  allowMissing: false
+  # Include the current page in breadcrumb results
+  includeSelf: true
+  # Show excerpts if they have been added in Navigation Plugin frontmatter metadata
+  showExcerpt: false
+---
+{% collections.all | eleventyNavigationBreadcrumb(eleventyNavigation.key) | eleventyNavigationToHtml(breadcrumbOptions) | safe }}
