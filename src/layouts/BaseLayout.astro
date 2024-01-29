@@ -1,46 +1,25 @@
 ---
-import '@styles/index.css'
-import Meta from '@components/site/head/Meta.astro'
-
-//navigationOptions:
-// Show excerpts if they have been added in Navigation Plugin frontmatter metadata
-//  showExcerpt: false
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import "../styles/global.css";
+const { pageTitle } = Astro.props;
 ---
-<!DOCTYPE html>
+
 <html lang="en">
   <head>
-    {/* Site <meta> tags, Open Graph social tags, and favicon, PWA manifest, RSS, canonical, pingback, and webmention links */}
-    <Meta />
-    {/* Site main CSS preload */}
-    <link rel="stylesheet" href="{{ '/css/index.css' | url }}" />
-    {/* Font preloads, should be after style sheet */}
-    {%- include "../components/head/fonts.njk" -%}
-    {/* Script tag with background colors keyed to theme names for setting initial */}
-    {/* bg color and to set data-theme attribute on <html> element early           */}
-    {%- include "../components/themePicker/script.njk" -%}
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{pageTitle}</title>
   </head>
   <body>
-    <a href="#main" class="sr-skip-link">skip to main content</a>
-    {/* Layered sprite SVG */}
-    <div hidden>
-      {%- include "../images/sprites.njk" -%}
-    </div>
-    {/* Sets Window Controls Overlay API for PWA title bar */}
-    {%- include "../components/pwaTitleBar.njk" -%}
-    {/* Page layout #}
-    <div class="layout" role="document">
-      {/* Page Header */}
-      {%- include "../components/header.njk" -%}
-      {/* Main Content Area */}
-      <main id="main" class="main" role="main" tabindex="-1">
-        {{ content | safe }}
-      </main>
-      {/* Page Footer */}
-      {%- include "../components/footer.njk" -%}
-    </div>
-    {/* Cookie Consent Overlay */}
-    {%- include "../modals/cookieConsent.njk" -%}
-    {/* Main JS Bundle */}
-    <script src="{{ '/js/index.js' | url }}?{{ cacheBust.mainJs }}" defer></script>
+    <Header />
+    <h1>{pageTitle}</h1>
+    <slot />
+    <Footer />
+    <script>
+      import "../scripts/menu.js";
+    </script>
   </body>
 </html>

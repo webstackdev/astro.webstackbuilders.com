@@ -11,7 +11,7 @@ import 'dotenv/config'
  */
 export default defineConfig({
   /* Look for test files in the "tests" directory, relative to this configuration file. */
-  testDir: './tests',
+  testDir: './tests/e2e',
   /* Glob patterns or regular expressions that match test files. */
   testMatch: '*.spec.ts',
   /* Run tests in files in parallel */
@@ -78,7 +78,7 @@ export default defineConfig({
   },
 
   // Folder for test artifacts such as screenshots, videos, traces, etc.
-  //outputDir: 'test-results',
+  outputDir: '.playwright-output',
 
   // path to the global setup files.
   //globalSetup: require.resolve('./global-setup'),
