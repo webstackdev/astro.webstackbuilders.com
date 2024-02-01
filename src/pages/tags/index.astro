@@ -1,7 +1,11 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro"
 import { getCollection } from "astro:content"
-const allArticles = await getCollection("articles")
+
+const allArticles = await getCollection("articles", ({ data }) => {
+  return import.meta.env.PROD ? data.isDraft !== true : true;
+})
+
 const tags = [...new Set(allArticles.map((article) => article.data.tags).flat())]
 const pageTitle = "Tag Index"
 ---

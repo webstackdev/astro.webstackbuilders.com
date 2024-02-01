@@ -4,7 +4,9 @@ import BaseLayout from "../../layouts/BaseLayout.astro"
 import ArticlePost from "../../components/ArticlePost.astro"
 
 const pageTitle = "My Astro Learning Blog"
-const allArticles = await getCollection("articles")
+const allArticles = await getCollection("articles", ({ data }) => {
+  return import.meta.env.PROD ? data.isDraft !== true : true;
+})
 ---
 
 <BaseLayout pageTitle={pageTitle}>
