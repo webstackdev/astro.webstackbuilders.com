@@ -1,14 +1,16 @@
-import { defineConfig } from 'astro/config';
-import mdx from '@astrojs/mdx';
-import preact from "@astrojs/preact";
-import prefetch from "@astrojs/prefetch";
-import purgecss from "astro-purgecss";
-import svgSprite from "astro-svg-sprite";
-import tailwind from '@astrojs/tailwind';
+import { defineConfig } from 'astro/config'
+//import netlify from '@astrojs/netlify'
+import mdx from '@astrojs/mdx'
+import preact from "@astrojs/preact"
+import prefetch from "@astrojs/prefetch"
+import purgecss from "astro-purgecss"
+import svgSprite from "astro-svg-sprite"
+import tailwind from '@astrojs/tailwind'
 
 // https://astro.build/config
 export default defineConfig({
   site: 'https://example.com',
+  //adapter: netlify(),
   integrations: [
     mdx(),
     preact(),

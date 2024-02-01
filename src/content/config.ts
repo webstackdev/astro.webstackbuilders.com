@@ -15,10 +15,9 @@ const articlesCollection = defineCollection({
       })
       .optional(),
     publishDate: z.date(),
-    isDraft: z.boolean(),
+    isDraft: z.boolean().default(false),
   }),
 })
-
 
 export const collections = {
   articles: articlesCollection,

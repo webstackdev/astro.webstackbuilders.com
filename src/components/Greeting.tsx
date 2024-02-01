@@ -1,6 +1,6 @@
-import { useState } from 'preact/hooks';
+import { useState } from 'preact/hooks'
 
-const Greeting = ({ messages }: { messages: string }) => {
+const Greeting = ({ messages }: { messages: string[] }) => {
   const randomMessage = () => messages[Math.floor(Math.random() * messages.length)]
   const [greeting, setGreeting] = useState(messages[0])
 

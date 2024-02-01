@@ -1,35 +1,36 @@
 ---
-import BaseLayout from "../../layouts/BaseLayout.astro";
-import BlogPost from "../../components/BlogPost.astro";
+import { getCollection } from "astro:content"
+import BaseLayout from "../../layouts/BaseLayout.astro"
+import ArticlePost from "../../components/ArticlePost.astro"
 
 export async function getStaticPaths() {
-  const allPosts = await Astro.glob("../posts/*.md");
+  const allArticles = await getCollection("articles")
 
   const uniqueTags = [
-    ...new Set(allPosts.map((post) => post.frontmatter.tags).flat()),
-  ];
+    ...new Set(allArticles.map((article) => article.data.tags).flat()),
+  ]
 
   return uniqueTags.map((tag) => {
-    const filteredPosts = allPosts.filter((post) =>
-      post.frontmatter.tags.includes(tag)
-    );
+    const filteredArticles = allArticles.filter((article) =>
+      article.data.tags.includes(tag)
+    )
     return {
       params: { tag },
-      props: { posts: filteredPosts },
-    };
-  });
+      props: { articles: filteredArticles },
+    }
+  })
 }
 
-const { tag } = Astro.params;
-const { posts } = Astro.props;
+const { tag } = Astro.params
+const { articles } = Astro.props
 ---
 
 <BaseLayout pageTitle={tag}>
-  <p>Posts tagged with {tag}</p>
+  <p>Articles tagged with {tag}</p>
   <ul>
     {
-      posts.map((post) => (
-        <BlogPost url={post.url} title={post.frontmatter.title} />
+      articles.map((article) => (
+        <ArticlePost url={`/articles/${article.slug}/`} title={article.data.title} />
       ))
     }
   </ul>

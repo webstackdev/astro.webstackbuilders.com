@@ -1,8 +1,9 @@
 ---
-import BaseLayout from "../../layouts/BaseLayout.astro";
-const allPosts = await Astro.glob("../posts/*.md");
-const tags = [...new Set(allPosts.map((post) => post.frontmatter.tags).flat())];
-const pageTitle = "Tag Index";
+import BaseLayout from "../../layouts/BaseLayout.astro"
+import { getCollection } from "astro:content"
+const allArticles = await getCollection("articles")
+const tags = [...new Set(allArticles.map((article) => article.data.tags).flat())]
+const pageTitle = "Tag Index"
 ---
 
 <BaseLayout pageTitle={pageTitle}>
