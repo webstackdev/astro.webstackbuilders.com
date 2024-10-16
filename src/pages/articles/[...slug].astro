@@ -1,9 +1,10 @@
 ---
 import { getCollection } from 'astro:content'
-import MarkdownPostLayout from '../../layouts/MarkdownPostLayout.astro'
+import BaseLayout from "@layouts/BaseLayout.astro"
 
 export async function getStaticPaths() {
   const articleEntries = await getCollection('articles')
+  // return import.meta.env.PROD ? data.draft !== true : true;
   return articleEntries.map(article => ({
     params: { slug: article.slug }, props: { article },
   }))
@@ -12,6 +13,10 @@ export async function getStaticPaths() {
 const { article } = Astro.props
 const { Content } = await article.render()
 ---
-<MarkdownPostLayout frontmatter={article.data}>
+<BaseLayout pageTitle={article.data.title}>
+  <p>{article.data.publishDate.toString().slice(0, 10)}</p>
+  <p><em>{article.data.description}</em></p>
+  <p>Written by: {article.data.author}</p>
+  <img src={article.data.image.src} width="300" alt={article.data.image.alt} />
   <Content />
-</MarkdownPostLayout>
+</BaseLayout>

@@ -1,0 +1,139 @@
+// @TODO: Is this used? How?
+
+.featuredarticles {
+  --gradient-bottom: linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.15) 50%,
+    rgba(0, 0, 0, 0.4) 100%
+  );
+
+  --gradient-full: linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.5) 0%,
+    rgba(0, 0, 0, 0.4) 100%
+  );
+
+  &__list {
+    display: grid;
+    grid-gap: 3em;
+    grid-template-columns: repeat(auto-fill, minmax(245px, 1fr));
+    margin: 2em 0;
+  }
+
+  &__footer {
+    text-align: right;
+  }
+
+  &__see-all {
+    display: inline-flex;
+    align-items: center;
+
+    .icon {
+      margin-left: 0.25em;
+      transform: translateX(0);
+      transition: transform 0.2s;
+    }
+
+    &:hover,
+    &:focus {
+      .icon {
+        transform: translateX(30%);
+      }
+    }
+  }
+}
+
+.featuredarticle {
+  background-color: var(--color-bg-offset);
+  border-radius: 0.5em;
+  box-shadow: 14px 14px 60px -10px rgba(0, 0, 0, 0.3);
+  display: block;
+  height: 300px;
+  overflow: hidden;
+  position: relative;
+
+  &__image {
+    @include coverall;
+    display: block;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    width: 100%;
+  }
+
+  &__inner {
+    @include coverall;
+    background-image: var(--gradient-full);
+    border-radius: 0.5em;
+    color: var(--color-text);
+    overflow: hidden;
+    padding: 1em;
+  }
+
+  &__link {
+    color: var(--color-text) !important;
+    display: block;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 1;
+    }
+  }
+
+  &__title {
+    margin-bottom: 0.5em;
+  }
+
+  &__likecount {
+    align-items: center;
+    bottom: 1em;
+    display: flex;
+    left: 1em;
+    position: absolute;
+
+    .icon {
+      margin-right: 0.25em;
+    }
+  }
+}
+
+@media (pointer: fine) {
+  .featuredarticle {
+    &__inner {
+      background-image: var(--gradient-bottom);
+    }
+
+    &:hover &__inner,
+    &:focus-within &__inner {
+      background-image: var(--gradient-full);
+    }
+
+    &__description {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(10px);
+      transition: opacity 0.2s $animation-curve-default, transform 0.2s $animation-curve-default;
+    }
+
+    &:hover &__description,
+    &__link:focus + &__description {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    &:hover &__likecount,
+    &__link:focus ~ &__likecount {
+      display: none;
+    }
+
+    &__image {
+        -position: center top;
+    }
+  }
+}

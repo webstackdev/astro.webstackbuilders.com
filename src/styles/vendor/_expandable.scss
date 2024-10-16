@@ -1,0 +1,30 @@
+/**
+ * Stylings for  Markdown-it plugin to add accordian panel using <details> and <summary> elements
+ */
+details > summary:first-of-type {
+  list-style-type: none;
+}
+
+::-webkit-details-marker {
+  display: none;
+}
+
+summary {
+  outline: none;
+  /** Not supported by Safari on iOS */
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: pointer;
+}
+
+details > summary .details-marker:before {
+  content: '\25BA';
+}
+
+details[open] > summary .details-marker:before {
+  content: '\25BC';
+}
+
+details > *:not(summary) {
+  padding-left: 1.25em;
+}

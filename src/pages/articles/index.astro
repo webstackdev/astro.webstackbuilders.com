@@ -1,17 +1,18 @@
 ---
 import { getCollection } from "astro:content"
-import BaseLayout from "../../layouts/BaseLayout.astro"
-import ArticlePost from "../../components/ArticlePost.astro"
+import BaseLayout from "@layouts/BaseLayout.astro"
 
 const pageTitle = "My Astro Learning Blog"
+
 const allArticles = await getCollection("articles", ({ data }) => {
   return import.meta.env.PROD ? data.isDraft !== true : true;
 })
+debugger
 ---
 
 <BaseLayout pageTitle={pageTitle}>
   <p>Useful Stuff</p>
   <ul>
-    {allArticles.map((article) => <ArticlePost url={`/articles/${article.slug}/`} title={article.data.title} />)}
+    {allArticles.map((article) => <li><a href={`/articles/${article.id}`}>{article.data.title}</a></li>)}
   </ul>
 </BaseLayout>

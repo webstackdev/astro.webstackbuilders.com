@@ -1,0 +1,47 @@
+/**
+ * Stylings for Shiki Textmate-based Code Highlighter using VS Code templates
+ */
+
+/*
+each line is wrapped in a <span class='line'> so line number
+can be done like this, here with a different starting number:
+<code style="--start: 13;">...</code>
+*/
+code {
+	counter-reset: step;
+	counter-increment: step calc(var(--start, 1) - 1);
+}
+
+code .line::before {
+  content: counter(step);
+  counter-increment: step;
+  width: 1rem;
+  margin-right: 1.5rem;
+  display: inline-block;
+  text-align: right;
+  color: rgba(115,138,148,.4)
+}
+
+/* Query based dark mode */
+
+@media (prefers-color-scheme: dark) {
+  .shiki-light {
+    display: none;
+  }
+}
+
+@media (prefers-color-scheme: light), (prefers-color-scheme: no-preference) {
+  .shiki-dark {
+    display: none;
+  }
+}
+
+/* Class based dark mode */
+
+html.dark .shiki-light {
+  display: none;
+}
+
+html:not(.dark) .shiki-dark {
+  display: none;
+}

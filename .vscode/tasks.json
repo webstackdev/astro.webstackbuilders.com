@@ -1,0 +1,45 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "run-astro-dev",
+      "command": "${workspaceFolder}/.vscode/dev-server-cli.mjs",
+      "args": ["start"],
+      "isBackground": true,
+      "presentation": {
+        "clear": true,
+        "panel": "shared"
+      },
+      "problemMatcher": {
+        "owner": "custom",
+        "pattern": {
+          "regexp": "^(.+)$",
+          "message": 1,
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "Running Dev Command.+astro dev",
+          "endsPattern": "Ready! Available at"
+        }
+      },
+      "type": "shell"
+    },
+    {
+      "label": "stop-astro-dev",
+      "command": "${workspaceFolder}/.vscode/dev-server-cli.mjs",
+      "args": ["stop"],
+      "isBackground": false,
+      "presentation": {
+        "panel": "shared"
+      },
+      "problemMatcher": {
+        "owner": "custom",
+        "pattern": {
+          "regexp": "^(.+)$",
+          "message": 1
+        }
+      },
+      "type": "shell"
+    },
+  ],
+}

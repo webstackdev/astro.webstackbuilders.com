@@ -1,20 +1,121 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "extends": "astro/tsconfigs/strictest",
+  "include": [".astro/types.d.ts", "**/*"],
+  "exclude": ["dist", ".vercel"],
   "compilerOptions": {
+    /** Allow JavaScript files to be imported inside the project */
     "allowJs": true,
+    /** Allow using default import syntax instead of `import * as MyModule` syntax */
+    "allowSyntheticDefaultImports": true,
+    /** Parse in strict mode and emit "use strict" for each source file. */
+    "alwaysStrict": true,
+    /** baseUrl must be set for paths object */
+    "baseUrl": ".",
+    /** Report errors in JavaScript files. */
+    "checkJs": true,
+    /** Include a shim to ensure compatibility between ESM and CJS in the emitted JavaScript */
+    //"esModuleInterop": true,
+    /**
+     * Force case sensitivity for file names on all file systems instead of using the
+     * file system's rules
+     */
+    "forceConsistentCasingInFileNames": true,
+    /**
+     * Import helper functions from `tslib` once per project instead of
+     * inlining them per-file. Requires installing `tslib` as a dependency.
+     */
+    "importHelpers": true,
+    /**
+     * Warn on code that can not be correctly interpreted by a single-file transpilation
+     * process like Babel
+     */
+    "isolatedModules": false,
+    /** Type declaration files to include. */
+    //"lib": ["DOM", "ESNext", "WebWorker"],
+    /** Module code to generate as output.  */
+    //"module": "ESNext",
+    /** Specify what JSX code is generated. */
     "jsx": "react-jsx",
+    /** Specify the JSX factory function to use. */
     "jsxImportSource": "preact",
+    /** Type declaration files to include. */
+    "lib": ["DOM", "ESNext", "WebWorker"],
+    /** Module code to generate as output.  */
+    "module": "ESNext",
+    /**
+     * 'node' for Node.js CommonJS implementation, 'node12' or 'nodenext' for Node.js
+     * ECMAScript Module Support from TypeScript 4.5 onwards. Note that tsconfig JSON
+     * Schema doesn't support ESM options yet so it errors.
+     */
+    //"moduleResolution": "node",
+    /** Unix EOL */
+    "newLine": "lf",
+    /** Do not truncate error messages.  */
+    "noErrorTruncation": true,
+    /** Report errors for fallthrough cases in switch statement. */
+    "noFallthroughCasesInSwitch": true,
+    /** Ensure overriding members in derived classes are marked with an 'override' modifier. */
+    "noImplicitOverride": true,
+    /** Report error when not all code paths in function return a value. */
+    "noImplicitReturns": true,
+    /** Require undeclared properties from index signatures to use element accesses. */
+    "noPropertyAccessFromIndexSignature": true,
+    /** Include 'undefined' in index signature results */
+    "noUncheckedIndexedAccess": true,
+    /** Report errors on unused locals. */
+    "noUnusedLocals": true,
+    /** Report errors on unused parameters. */
+    "noUnusedParameters": true,
+    /** Import aliases */
+    "paths": {
+      "@assets/*": ["src/assets/*"],
+      "@components/*": ["src/components/*"],
+      "@content/*": ["src/content/*"],
+      "@data/*": ["src/data/*"],
+      "@layouts/*": ["src/layouts/*"],
+      "@lib/*": ["src/lib/*"],
+      "@styles/*": ["src/styles/*"]
+    },
+    /** Strip all comments from TypeScript files when converting into JavaScript */
+    "removeComments": true,
+    /**
+     * Using Node >=17.1 or LTS with `--experimental-json-modules` flag enabled
+     * Requires use of an import assertion: `import jsonContent from "./file.json" assert { type: "json" }`
+     */
+    "resolveJsonModule": true,
+    /**
+     * Skip type checking of all declaration files in `node_modules`, only doing so on explicit imports.
+     */
+    "skipLibCheck": true,
+    /** Generate source maps */
+    "sourceMap": true,
+    /**
+     * Enable all of the strict mode family options: `alwaysStrict`, `strictNullChecks`,
+     * `strictBindCallApply`, `strictFunctionTypes`, `strictPropertyInitialization`,
+     * `noImplicitAny`, `noImplicitThis`, and `useUnknownInCatchVariables`.
+     */
+    "strict": true,
+    /**
+     * Changes which JS features are downleveled and which are left intact. Choosing
+     * an unnecessarily low target will cause the bundle size to bloat with polyfills.
+     * Webhint will read this and `browserslist` in `package.json`, and give warnings
+     if they get out of sync.
+     */
+    //"target": "ES2017",
+    /**
+     * Specify a list of roots whose contents are expected to merge at run-time
+     * https://github.com/microsoft/TypeScript/issues/22217#issuecomment-370019383
+     * https://www.typescriptlang.org/docs/handbook/module-resolution.html#path-mapping
+     * This avoids needing for ts-node to include a top-level key of: "ts-node": {  "files": true }
+     */
+    //"typeRoots": ["./@types/**/*.d.ts", "./node_modules/@types/**/*.d.ts"],
+    /** switches to the upcoming ECMA runtime behavior instead of TypeScript's legacy behavior. */
+    "useDefineForClassFields": true,
+    /**
+     * Do not transform or elide any imports or exports not marked as type-only, ensuring they
+     * are written in the output file's format based on the 'module' setting.
+     */
     "verbatimModuleSyntax": true,
-  },
-  "baseUrl": ".",
-  "paths": {
-    "@assets/*": ["src/assets/*"],
-    "@components/*": ["src/components/*"],
-    "@content/*": ["src/content/*"],
-    "@data/*": ["src/data/*"],
-    "@layouts/*": ["src/layouts/*"],
-    "@lib/*": ["src/lib/*"],
-    "@styles/*": ["src/assets/styles/*"]
   }
 }

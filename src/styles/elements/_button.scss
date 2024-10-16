@@ -1,0 +1,92 @@
+/**
+ * Base class for buttons
+ */
+.btn {
+  align-items: center;
+  border-radius: 0.25em;
+  border: 2px solid var(--color-bg);
+  display: inline-flex;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-heavier);
+  justify-content: center;
+  letter-spacing: var(--letter-spacing-xs);
+  padding: 0.75em 1.5em;
+  text-align: center;
+  text-transform: uppercase;
+  transition: all 0.2s ease-in-out;
+  /** Not supported by Safari on iOS */
+  -webkit-user-select: none;
+  user-select: none;
+  vertical-align: middle;
+  white-space: nowrap;
+
+  &:disabled {
+    cursor: not-allowed;
+    pointer-events: none;
+    opacity: 0.65;
+  }
+}
+
+/**
+ * Primary button class to use along with `.btn`
+ */
+.btn--primary {
+  background-color: var(--color-primary);
+  border-color: transparent;
+  box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
+  color: var(--color-text);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  transform: translateY(0);
+  transition: all 0.15s ease;
+
+  &:hover,
+  &:focus {
+    background-color: var(--color-primary-offset);
+    box-shadow: 0 7px 14px rgba(50, 50, 50, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
+    color: var(--color-text);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    background-color: var(--color-primary-offset);
+    box-shadow: 0 3px 12px -2px inset rgba(50, 50, 50, 0.25);
+    transform: translateY(1px);
+  }
+}
+
+/**
+ * Secondary button class to use along with `.btn`
+ */
+.btn--secondary {
+  @extend .btn--primary;
+  background-color: var(--color-secondary);
+
+  &:hover,
+  &:focus {
+    background-color: var(--color-secondary-offset);
+    color: var(--color-text);
+  }
+
+  &:active {
+    background-color: var(--color-secondary-offset);
+  }
+}
+
+/**
+ * Twitter button class to use along with `.btn`
+ */
+.btn--twitter {
+  background-color: var(--twitter-brand-primary);
+  border-color: var(--twitter-brand-primary);
+  color: var(--color-text);
+
+  .icon {
+    transform: translateX(-50%);
+  }
+
+  &:hover,
+  &:focus {
+    color: var(--twitter-brand-primary);
+    background-color: transparent;
+  }
+}

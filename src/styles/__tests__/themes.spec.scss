@@ -1,0 +1,36 @@
+@import 'true';
+@import '../utils/themes';
+
+$test-color: #f6f6f6;
+$testTheme: (
+  id: 'test',
+  name: 'Test',
+  backgroundColor: $test-color,
+  backgroundOffsetColor: $test-color,
+  textColor: $test-color,
+  textOffsetColor: $test-color,
+  borderColor: $test-color,
+  primaryColor: $test-color,
+  primaryOffsetColor: $test-color,
+  secondaryColor: $test-color
+);
+
+@include describe('Themes SCSS works') {
+  @include test('css-vars() mixin works') {
+    @include assert {
+      @include output {
+        @include css-vars($testTheme);
+      }
+      @include expect {
+        --color-bg: #f6f6f6;
+        --color-bg-offset: #f6f6f6;
+        --color-text: #f6f6f6;
+        --color-text-offset: #f6f6f6;
+        --color-border: #f6f6f6;
+        --color-primary: #f6f6f6;
+        --color-primary-offset: #f6f6f6;
+        --color-secondary: #f6f6f6;
+      }
+    }
+  }
+}

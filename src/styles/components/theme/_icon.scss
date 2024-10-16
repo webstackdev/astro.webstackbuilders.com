@@ -1,0 +1,63 @@
+/**
+ * Button to toggle the theme picker modal, has `icon-btn` class
+ */
+.themepicker-toggle {
+  /** Theme picker toggle <button> */
+  &__toggle-btn {
+    background-color: var(--color-primary-offset);
+    border-radius: 50%;
+    border-width: 0;
+    transition: 0.15s linear;
+
+    /** Override height and width set in `icon-btn` class */
+    height: var(--header-icon-size);
+    width: var(--header-icon-size);
+
+    &:hover,
+    &:focus {
+      background-color: var(--color-primary);
+      outline-width: 0;
+    }
+
+    /** SVG icon */
+    .icon--theme {
+      transform: rotate(0deg);
+      transition: 0.3s cubic-bezier(0.165, 0.840, 0.440, 1.000);
+
+      height: var(--header-icon-size);
+      width: var(--header-icon-size);
+    }
+  }
+
+  /** SVG path for brush icon */
+  &__path {
+    fill: var(--color-bg);
+  }
+
+  /** Icon <svg> child elements */
+  &__circle {
+    fill: none;
+    stroke-dasharray: var(--circle-stroke);
+    stroke-dashoffset: var(--circle-stroke);
+    stroke-linecap: round;
+    stroke-width: 0.3rem;
+    /** property name | duration | easing function | delay */
+    transition: stroke-dashoffset 0.3s linear .1s;
+  }
+}
+
+/**
+ * Animate the theme picker icon
+ */
+.nav-icon__toggle-btn[aria-expanded="true"] {
+  .nav-icon {
+    &__svg {
+      fill: var(--color-bg);
+      transform: rotate(180deg);
+    }
+
+    &__circle {
+      stroke-dashoffset: 0;
+    }
+  }
+}

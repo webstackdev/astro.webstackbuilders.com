@@ -2,10 +2,80 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "command": "./node_modules/.bin/astro dev",
-      "name": "Development server",
+      "name": "Astro Dev",
+      "type": "node-terminal",
+      "command": "${workspaceFolder}/node_modules/.bin/astro dev",
       "request": "launch",
-      "type": "node-terminal"
+      "smartStep": true
+    },
+    {
+      "name": "Astro Build",
+      "type": "node-terminal",
+      "command": "${workspaceFolder}/node_modules/.bin/astro build",
+      "request": "launch",
+      "smartStep": true
+    },
+    {
+      "name": "Chrome Browser",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "preLaunchTask": "run-astro-dev",
+      "postDebugTask": "stop-astro-dev",
+      "smartStep": true
+    },
+    {
+      "name": "MS Edge Browser",
+      "type": "msedge",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "preLaunchTask": "run-astro-dev",
+      "postDebugTask": "stop-astro-dev",
+      "smartStep": true
+    },
+    {
+      "name": "Current Test File",
+      "type": "node",
+      "args": ["run", "${relativeFile}"],
+      "autoAttachChildProcesses": true,
+      "console": "integratedTerminal",
+      "program": "${workspaceRoot}/node_modules/vitest/vitest.mjs",
+      "request": "launch",
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+      "smartStep": true
+    },
+    {
+      "name": "App Test Files",
+      "type": "node",
+      "args": ["src"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "program": "${workspaceRoot}/node_modules/vitest/vitest.mjs",
+      "request": "launch",
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+      "smartStep": true
+    },
+    {
+      "name": "Script Test Files",
+      "type": "node",
+      "args": ["script"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "program": "${workspaceRoot}/node_modules/vitest/vitest.mjs",
+      "request": "launch",
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+      "smartStep": true
+    },
+    {
+      "name": "Action Test Files",
+      "type": "node",
+      "args": [".github/workflows"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "program": "${workspaceRoot}/node_modules/vitest/vitest.mjs",
+      "request": "launch",
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+      "smartStep": true
     }
   ]
 }

@@ -1,0 +1,422 @@
+$sidebar-font-size: var(--font-size-2xl);
+
+.contact {
+  /**
+   * Contact page header with map to office and callout
+   */
+
+  &__map {
+    padding-top: 1em;
+  }
+
+  /**
+   * Callout with company name and an "about" text block
+   */
+
+  &__callout {
+    display: none;
+  }
+
+  /**
+   * Leadin with "what to expect" bullet list
+   */
+
+  &__leadin-expect-intro {
+    font-style: italic;
+    padding-bottom: 0.3em;
+  }
+
+  /** Unordered list using list role */
+  &__leadin-expect__list {
+    margin-left: 0.4em;
+    list-style: none;
+  }
+
+  /** Unordered list using list role */
+  &__leadin-expect__item {
+    display: flex;
+  }
+
+  &__leadin-expect__item + &__leadin-expect__item {
+    margin-top: 0.5em
+  }
+
+  &__leadin-expect__item-icon svg {
+    $contact-expect-icon-size: 1.5em;
+    height: $contact-expect-icon-size;
+    width: $contact-expect-icon-size;
+  }
+
+  &__leadin-expect__item-text {
+    align-self: center;
+    margin-left: 0.4em;
+  }
+
+  /**
+   * The "Contact Us" form with inputs
+   */
+
+  &__form {
+    padding-top: 1em;
+  }
+
+  &__form-error {
+    background-color: var(--color-bg-offset);
+    margin: 1em 0;
+    padding: 1em;
+  }
+
+  &__form-input-group {
+    padding-bottom: 1em;
+    position: relative;
+  }
+
+  &__form-input-label {
+    color: var(--color-text);
+    left: 0.5em;
+    opacity: 0.5;
+    position: absolute;
+    top: 0.4em;
+  }
+
+  &__form-input-element {
+    border: none;
+    padding: 0.4em 0.5em 0.6em 0.5em;
+    width: 100%;
+
+    &:hover, &:focus {
+      outline: 2px solid var(--color-secondary);
+    }
+  }
+
+  &__form-validation-error {
+    &.warning {
+      color: white;
+      background-color: yellow;
+    }
+
+    &.error {
+      color: white;
+      background-color: red;
+    }
+  }
+
+  &__form-message {
+    padding-bottom: 1.4em;
+
+    textarea {
+      line-height: var(--line-height-default);
+    }
+  }
+
+  /**
+   * The file upload widget for the input form for senders to add documents to message
+   */
+
+  &__form-upload {
+    border-color: var(--color-secondary);
+    border-width: 3px;
+    //display: flex;
+  }
+
+  &__form-upload-dropzone-label {
+    display: flex;
+  }
+
+  /**
+   * Submit message button
+   */
+  &__form-submit-btn {
+    background-color: var(--color-text-offset);
+    border: 0;
+    color: var(--color-bg);
+    font-size: var(--font-size-xl);
+    justify-content: space-between;
+    padding: 0.4em 1.25em;
+    text-transform: none;
+
+    &:hover, &:focus {
+      background-color: var(--color-text);
+      .icon {
+        fill: var(--color-text);
+      }
+    }
+  }
+
+  &__form-submit-label + &__form-submit-circle {
+    margin-left: 0.5em;
+  }
+
+  /** Circle behind the right arrow on the submit button */
+  &__form-submit-circle {
+    $contact-form-submit-btn-base-height: 0.6em;
+    $contact-form-submit-btn-circle-diameter: 0.4em;
+    align-items: center;
+    background-color: var(--color-bg);
+    border-radius: 50%;
+    display: flex;
+    height: $contact-form-submit-btn-base-height + $contact-form-submit-btn-circle-diameter;
+    justify-content: center;
+    width: $contact-form-submit-btn-base-height + $contact-form-submit-btn-circle-diameter;
+
+    .icon {
+      height: $contact-form-submit-btn-base-height;
+      fill: var(--color-text-offset);
+      transition: all 0.2s ease-in-out;
+      width: $contact-form-submit-btn-base-height;
+    }
+  }
+
+  /**
+   * "Skills" unordered list
+   */
+
+  &__skills {
+    display: none;
+  }
+
+  /**
+   * Social media icons
+   */
+
+  &__form + &__channels {
+    margin-top: 1em;
+  }
+
+  &__channels-title {
+    font-size: $sidebar-font-size;
+  }
+
+  &__channels-title + &__channels-detail {
+    margin-top: 0.25em;
+  }
+
+  &__channels-email,
+  &__channels-toll-free,
+  &__channels-local {
+    font-size: var(--font-size-default);
+    /** Don't hyphenate email address */
+    hyphens: none;
+
+    a {
+      color: var(--color-text);
+      text-decoration: none;
+    }
+
+    a:hover, a:focus {
+      text-decoration: underline dotted var(--color-text) 0.1em;
+    }
+  }
+
+  &__channels-social-icons {
+    display: flex;
+    justify-content: space-between;
+    margin: 0.75em 0 1.5em 0;
+    width: 50%;
+
+    & .icon {
+      $social-icons-size: 2em;
+      fill: var(--color-text);
+      height: $social-icons-size;
+      stroke: var(--color-text);
+      width: $social-icons-size;
+
+      &:hover, &:focus {
+        fill: var(--color-text-offset);
+        stroke: var(--color-text-offset);
+      }
+    }
+  }
+}
+
+@include media-query-min-width(md) {
+  .contact {
+    /**
+    * Callout with company name and an "about" text block
+    */
+
+    &__hero {
+      position: relative;
+    }
+
+    &__callout {
+      align-items: center;
+      display: flex; // overriding display: none; on mobile
+      inset: 2em 1em 1em 65%;
+      position: absolute;
+    }
+
+    /** Callout block with info about company */
+    &__callout-flex {
+      background-color: var(--color-primary);
+      border-radius: 5px;
+      display: flex;
+      flex-direction: column;
+      padding: 1em 1.5em;
+
+      p {
+        color: var(--color-bg);
+        font-size: var(--font-size-default)
+      }
+    }
+
+    &__callout-text-intro {
+      display: none;
+    }
+
+    /** Span wrapping company name in callout block */
+    &__callout-name {
+      font-weight: var(--font-weight-bold)
+    }
+
+    /**
+    * Grid layout
+    */
+    $contact-grid-spacing: 2em;
+
+    &__hero + &__grid {
+      margin-top: $contact-grid-spacing;
+    }
+
+    &__grid {
+      display: grid;
+      gap: 1em 1em;
+      grid-template-columns: 4fr 3fr;
+      grid-template-rows: auto;
+      grid-template-areas:
+        "form leadin"
+        "form channels"
+        "form skills";
+      margin-bottom: $contact-grid-spacing;
+    }
+
+    &__grid-sidebar-item {
+      background-color: var(--color-bg-offset);
+      border-radius: 5px;
+      padding: 1em;
+      width: 100%;
+    }
+
+    &__form + &__channels {
+      margin-top: 0;
+    }
+
+    &__form {
+      grid-area: form;
+      padding-top: 0;
+    }
+
+    &__form-wrapper {
+      background-color: var(--color-bg-offset);
+      border-radius: 5px;
+      padding: 2em;
+    }
+
+    &__form-upload {
+
+    }
+
+    &__leadin {
+      grid-area: leadin;
+      place-self: center;
+    }
+
+    &__leadin-header {
+      font-size: $sidebar-font-size;
+    }
+
+    &__leadin-header + &__leadin-expect {
+      margin-top: 0.3em;
+    }
+
+    &__leadin-expect + &__leadin-expect__list {
+      margin-top: 0.5em;
+    }
+
+    &__leadin-expect__item + &__leadin-expect__item {
+      margin-top: 0.3em;
+    }
+
+    &__channels {
+      grid-area: channels;
+      place-self: center;
+    }
+
+    &__channels-social-icons {
+      margin-bottom: 0;
+      width: 12em;
+    }
+
+    &__skills {
+      display: block;
+      grid-area: skills;
+      place-self: center;
+    }
+
+    &__skills-header {
+      font-size: $sidebar-font-size;
+    }
+
+    &__skills-header + &__skills-list-wrapper {
+      margin-top: 0.75em;
+    }
+
+    &__skills-list {
+      list-style-type: "\2605";
+      margin-left: 1em;
+      text-align: left;
+
+      span {
+        margin-left: 0.2em;
+      }
+    }
+
+    &__skills-list-item + &__skills-list-item {
+      margin-top: 0.5em;
+    }
+
+    &__skills-list-item {
+      a {
+        color: var(--color-text);
+        text-decoration: none;
+      }
+
+      a:hover, a:focus {
+        text-decoration: underline dotted var(--color-text) 0.1em;
+      }
+    }
+  }
+}
+
+@include media-query-min-width(lg) {
+  .contact {
+    &__callout {
+      inset: 2em 1em 1em 70%;
+      padding-right: 1.5em;
+    }
+
+    &__callout-flex {
+      background-color: var(--color-primary);
+      border-radius: 5px;
+      display: flex;
+      flex-direction: column;
+      padding: 1em 1.5em;
+
+      p + p {
+        margin-top: 0.5em;
+      }
+    }
+
+    &__callout-text-intro {
+      display: block;
+    }
+
+    &__form-input-widget {
+      width: 85%;
+    }
+
+    &__grid-sidebar-item {
+      padding: 1em 1.5em;
+    }
+  }
+}

@@ -1,0 +1,39 @@
+/**
+* Circular splash background, animates to full screen as backdrop for mobile menu
+*/
+#mobile-splash {
+  height: 1px;
+  position: absolute;
+  right: 40px;
+  top: 40px;
+  width: 1px;
+
+  &::after {
+    background-color: var(--color-primary-offset);
+    border-radius: 50%;
+    content: "";
+    display: block;
+    position: absolute;
+    z-index: getZIndexValue('nav');
+
+    // screen diameter can be 142vmax at most,
+    // circle needs to be twice that size to cover it
+    height: 284vmax;
+    left: -142vmax;
+    top: -142vmax;
+    width: 284vmax;
+
+    transform-origin: 50% 50%;
+    transform: scale(0);
+    transition: transform .5s cubic-bezier(0.755, 0.050, 0.855, 0.060);
+    /** will-change tells the browser we plan to animate this property in the near future */
+    will-change: transform;
+  }
+}
+
+/** Mobile menu open state */
+#header.aria-expanded-true {
+  .mobile-splash::after {
+    transform: scale(1);
+  }
+}

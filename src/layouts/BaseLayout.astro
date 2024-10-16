@@ -1,7 +1,14 @@
 ---
-import Header from "../components/Header.astro"
-import Footer from "../components/Footer.astro"
-import "../styles/global.css"
+import Header from "@layouts/Header.astro"
+import Footer from "@layouts/Footer.astro"
+import GeneratedSprites from "@components/GeneratedSprites.astro"
+import "@styles/global.scss"
+
+interface Props {
+  pageTitle: string,
+  children: any, // enforce child passed to slot
+}
+
 const { pageTitle } = Astro.props
 ---
 
@@ -14,12 +21,10 @@ const { pageTitle } = Astro.props
     <title>{pageTitle}</title>
   </head>
   <body>
+    <GeneratedSprites />
     <Header />
     <h1>{pageTitle}</h1>
     <slot />
     <Footer />
-    <script>
-      import "../scripts/menu.js"
-    </script>
   </body>
 </html>

@@ -7,7 +7,14 @@ module.exports = {
   },
   content: ['./src/**/*.{astro,ts,tsx,md,mdx}'],
   theme: {
-    extend: {},
+    colors: {
+      transparent: 'transparent',
+      current: 'currentColor',
+      white: '#ffffff',
+      brandPrimary: '#00539f',
+      'slate-100': '#f8fcfd',
+      'slate-300': '#a1a1a1',
+    },
   },
   plugins: [
     require('@tailwindcss/typography'),

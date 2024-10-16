@@ -1,5 +1,5 @@
 ---
-import BaseLayout from "../../layouts/BaseLayout.astro"
+import BaseLayout from "@layouts/BaseLayout.astro"
 import { getCollection } from "astro:content"
 
 const allArticles = await getCollection("articles", ({ data }) => {
@@ -11,33 +11,13 @@ const pageTitle = "Tag Index"
 ---
 
 <BaseLayout pageTitle={pageTitle}>
-  <div class="tags">
+  <div class="flex flex-wrap m-auto">
     {
       tags.map((tag) => (
-        <p class="tag">
-          <a href={`/tags/${tag}`}>{tag}</a>
+        <p class="m-1 rounded-lg border-solid border-[1px] border-slate-300 py-2 px-4 text-lg bg-slate-100">
+          <a class="text-brandPrimary" href={`/tags/${tag}`}>{tag}</a>
         </p>
       ))
     }
   </div>
 </BaseLayout>
-<style>
-  a {
-    color: #00539f;
-  }
-
-  .tags {
-    display: flex;
-    flex-wrap: wrap;
-    margin: 0 auto;
-  }
-
-  .tag {
-    margin: 0.25em;
-    border: dotted 1px #a1a1a1;
-    border-radius: 0.5em;
-    padding: 0.5em 1em;
-    font-size: 1.15em;
-    background-color: #f8fcfd;
-  }
-</style>

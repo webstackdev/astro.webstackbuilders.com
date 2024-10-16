@@ -1,0 +1,71 @@
+// logo height: 86.394562px
+// logo width: 88.360085px
+
+  /** <a> wrapper around the company logo and name */
+.brand {
+  /** Top-level anchor wrapper that includes all brand-related elements */
+  &__anchor {
+    align-items: stretch;
+    display: flex;
+
+    &:hover, &:focus {
+      .brand__logo .logo-block-outer {
+        filter: brightness(70%);
+      }
+
+      .brand__logo .logo-block-inner {
+        filter: brightness(70%);
+      }
+
+      .brand__wordmark .wordmark__svg-path {
+        filter: brightness(50%);
+      }
+    }
+  }
+
+  /** Wrapper <span> for logo SVG element */
+  &__logo {
+    /** Logo SVG element */
+    .logo {
+      height: var(--header-icon-size);
+      width: var(--header-icon-size);
+    }
+
+    /** Top and bottom row of blocks in SVG logo, three blocks per row */
+    .logo-block-outer {
+      fill: var(--color-primary-offset);
+    }
+
+    /** Middle row of blocks in logo, two blocks in the row */
+    .logo-block-inner {
+      fill: var(--color-primary);
+    }
+  }
+
+  /** Vectorized company name */
+  &__wordmark {
+    align-items: center; // `center`, `flex-start`, or `flex-end`
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    margin-left: 0.5em;
+
+    /** SVG element nested in outer `brand__wordmark` <span> */
+    .wordmark {
+      &__svg {
+        height: calc(var(--header-icon-size) / 2 - 0.3em);
+      }
+
+      /** Each path in the wordmark SVGs is an individual character of the word */
+      &__svg-path {
+        fill: var(--color-primary-offset);
+      }
+    }
+  }
+}
+
+@include media-query-min-width(sm) {
+  .brand__wordmark {
+    margin-left: 0.7em;
+  }
+}
