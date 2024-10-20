@@ -1,0 +1,97 @@
+@import "../../styles/variables/_breakpoints.scss";
+/**
+ * Hamburger-style menu icon shown on mobile to open full screen menu with animation.
+ * header__nav-icon is a <span> wrapper for the nav icon <button> and its nested <svg>
+ * element.
+ *
+ * Icon is absolutely positioned in _header.scss using header__nav-icon class.
+ */
+.nav-icon {
+  /** No top-level properties here, they belong on header__nav-icon */
+
+  /** Mobile menu toggle <button> */
+  &__toggle-btn {
+    background-color: var(--color-primary-offset);
+    border-radius: 50%;
+    border-width: 0;
+    transition: 0.15s linear;
+
+    /** Override height and width set in `icon-btn` class */
+    height: var(--header-icon-size);
+    width: var(--header-icon-size);
+
+    &:hover,
+    &:focus {
+      background-color: var(--color-primary);
+      outline-width: 0;
+    }
+
+    /** SVG icon */
+    .icon--menu {
+      transform: rotate(0deg);
+      transition: 0.3s cubic-bezier(0.165, 0.840, 0.440, 1.000);
+
+      height: var(--header-icon-size);
+      width: var(--header-icon-size);
+    }
+  }
+
+  /** Icon <svg> child elements */
+  &__bar,
+  &__circle {
+    fill: none;
+    stroke-linecap: round;
+    stroke-width: 0.3rem;
+    stroke: var(--color-bg);
+  }
+
+  &__bar {
+    transform: rotate(0deg);
+    transform-origin: 50% 50%;
+    /** property name | duration | easing function */
+    transition: transform 0.25s ease-in-out;
+  }
+
+  &__circle {
+    stroke-dasharray: var(--circle-stroke);
+    stroke-dashoffset: var(--circle-stroke);
+    /** property name | duration | easing function | delay */
+    transition: stroke-dashoffset 0.3s linear .1s;
+  }
+}
+
+/**
+ * Animate the menu icon for the mobile menu active state
+ */
+.nav-icon__toggle-btn[aria-expanded="true"] {
+  .nav-icon {
+    &__svg {
+      color: white;
+      transform: rotate(180deg);
+    }
+
+    &__bar:nth-child(1),
+    &__bar:nth-child(4) {
+      opacity: 0;
+    }
+
+    &__bar:nth-child(2) {
+      transform: rotate(45deg);
+    }
+
+    &__bar:nth-child(3) {
+      transform: rotate(-45deg);
+    }
+
+    &__circle {
+      stroke-dashoffset: 0;
+    }
+  }
+}
+
+/** Don't display hamburger nav icon on desktop */
+@include media-query-min-width(lg) {
+  .nav-icon__toggle-btn {
+    display: none;
+  }
+}

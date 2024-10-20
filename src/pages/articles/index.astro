@@ -7,10 +7,9 @@ const pageTitle = "My Astro Learning Blog"
 const allArticles = await getCollection("articles", ({ data }) => {
   return import.meta.env.PROD ? data.isDraft !== true : true;
 })
-debugger
 ---
 
-<BaseLayout pageTitle={pageTitle}>
+<BaseLayout pageTitle={pageTitle} path={`articles`}>
   <p>Useful Stuff</p>
   <ul>
     {allArticles.map((article) => <li><a href={`/articles/${article.id}`}>{article.data.title}</a></li>)}

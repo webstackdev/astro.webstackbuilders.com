@@ -8,7 +8,7 @@ import header from "gulp-header"
 import svgSprite from "gulp-svg-sprite"
 import type { Config } from "svg-sprite"
 
-const spritesInputDir = `src/assets/icons`
+const spritesInputDir = `src/assets/images/sprite`
 const spritesOutputDir = `src/components`
 
 const spriterConfig: Config = {

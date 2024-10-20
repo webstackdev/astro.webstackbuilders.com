@@ -1,0 +1,40 @@
+---
+import Brand from "@components/Brand.astro"
+import Menu from "@components/Navigation/Menu.astro"
+import NavToggle from "@components/Navigation/NavToggle.astro"
+import Themes from "@components/ThemePicker/Themes.astro"
+import ThemeButton from "@components/ThemePicker/ThemeButton.astro"
+
+import "./Header.scss"
+
+export interface Props {
+  /** The URL path component e.g. 'articles/my-article' */
+  path: string,
+}
+
+const { path } = Astro.props
+---
+
+{/* Hidden modal shown when theme picker icon selected */}
+<Themes />
+{/* Header for all pages */}
+<header id="header" class="header" role="banner">
+  {/*- Element for animated background behind mobile navigation menu -*/}
+  <div id="mobile-splash" class="mobile-splash"></div>
+  {/* Logo and wordmark */}
+  <span id="header__brand" class="header__brand">
+    <Brand />
+  </span>
+  {/* Main Navigation Menu */}
+  <span id="header__main-nav" class="header__main-nav">
+    <Menu path={path} />
+  </span>
+  {/* Theme picker toggle button to show modal */}
+  <span id="header__theme-icon" class="header__theme-icon">
+    <ThemeButton />
+  </span>
+  {/* Mobile navigation toggle button to show menu on full-page splash screen */}
+  <span id="header__nav-icon" class="header__nav-icon">
+    <NavToggle />
+  </span>
+</header>

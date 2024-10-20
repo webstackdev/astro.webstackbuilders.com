@@ -1,0 +1,135 @@
+---
+import { Image } from 'astro:assets'
+import company from "@data/company"
+import { absoluteUrl, formatPhoneNumber } from "@lib/helpers"
+import Sprite from "@components/Sprite.astro"
+import AuthorAvatar from "./src/assets/images/avatars/kevin-brown.webp"
+
+import "./Footer.scss"
+
+const year = new Date().getFullYear();
+---
+
+<hr class="page-footer__hr" />
+<footer class="page-footer" role="contentinfo">
+  {/* Page footer company contact */}
+  <div class="page-footer__contact">
+    <div class="page-footer__contact-avatar">
+      <Image src={AuthorAvatar} alt="Site author's avatar image" />
+    </div>
+    <address class="page-footer__contact-details">
+      <h2 class="page-footer__contact-name">{company.name}</h2>
+      <div  class="page-footer__contact-address">
+        <p>{company.address}</p>
+        <p>{company.city}, {company.state} {company.index}</p>
+      </div>
+      <p class="page-footer__contact-email">
+        <a href=`mailto:${company.email}`>{company.email}</a>
+      </p>
+      <p class="page-footer__contact-toll-free" itemprop="telephone">
+        <a href=`tel:${company.telephoneTollFree}` rel="nofollow">
+          Toll Free {formatPhoneNumber(company.telephoneTollFree)}
+        </a>
+      </p>
+      <p class="page-footer__contact-local" itemprop="telephone">
+        <a href=`tel:${company.telephoneLocal}` rel="nofollow">
+          Local {formatPhoneNumber(company.telephoneLocal)}
+        </a>
+      </p>
+    </address>
+  </div>
+  {/* "Hire Me" block with current month and year set by script */}
+  <div class="page-footer__hire-me">
+    <a
+      href="/contact"
+      id="page-footer__hire-me-anchor"
+      class="page-footer__hire-me-anchor"
+    ></a>
+  </div>
+  {/* Page footer Social Share links */}
+  <div class="page-footer__social">
+    <div class="page-footer__social-channel">
+      <a href={company.social.twitter.url} title="Twitter" rel="me">
+        <span class="page-footer__social-icon"><Sprite name="twitter" /></span>
+        <span class="page-footer__social-platform">Twitter</span>
+      </a>
+      <div class="page-footer__social-channel-blurb">
+        Follow for interesting info and opinions on development
+      </div>
+    </div>
+    <div class="page-footer__social-channel">
+      <a href={company.social.linkedin.url} title="Linkedin" rel="me">
+        <span class="page-footer__social-icon"><Sprite name="linkedin" /></span>
+        <span class="page-footer__social-platform">Linkedin</span>
+      </a>
+      <div class="page-footer__social-channel-blurb">
+        Let's connect on LinkedIn
+      </div>
+    </div>
+    <div class="page-footer__social-channel">
+      <a href={company.social.github.url} title="Github" rel="me">
+        <span class="page-footer__social-icon"><Sprite name="github" /></span>
+        <span class="page-footer__social-platform">Github</span>
+      </a>
+      <div class="page-footer__social-channel-blurb">
+        Follow our open-source projects including Butterfly and Eleventy plugins
+      </div>
+    </div>
+    <div class="page-footer__social-channel">
+      <a href={company.social.codepen.url} title="Codepen" rel="me">
+        <span class="page-footer__social-icon"><Sprite name="codepen" /></span>
+        <span class="page-footer__social-platform">Codepen</span>
+      </a>
+      <div class="page-footer__social-channel-blurb">
+        Share and modify our front-end test cases and code snippets
+      </div>
+    </div>
+  </div>
+  <div class="page-footer__bottom-row">
+    {/* Page footer Subscribe link */}
+    <span class="page-footer__site-pages">
+      <a href="/mailinglist"  class="page-footer__subscribe-anchor">
+        <div class="page-footer__subscribe-lead">Subscribe to</div>
+        <span class="page-footer__site-pages-title">Mailing List</span>
+        <span class="page-footer__site-pages-desc">
+          Sign up to stay in touch and get great content
+        </span>
+      </a>
+    </span>
+    {/* Page footer Privacy Policy links */}
+    <span class="page-footer__site-pages">
+      <span class="page-footer__site-pages-cookies">
+        <a href="/cookies/">
+          <span class="page-footer__site-pages-title">Cookies</span>
+          <span class="page-footer__site-pages-desc">
+            Manage how we use cookies for you on our site
+          </span>
+        </a>
+      </span>
+      <span class="page-footer__site-pages-privacy">
+        <a href="/privacy/">
+          <span class="page-footer__site-pages-title">Privacy Policy</span>
+          <span class="page-footer__site-pages-desc">
+            Learn what data we collect and how we use it
+          </span>
+        </a>
+      </span>
+    </span>
+    {/* Page footer RSS link */}
+    <span class="page-footer__feed">
+      <a href={absoluteUrl('/feed.xml', Astro.site)} title="RSS Feed">
+        <span class="sr-only">RSS Feed</span>
+        <span class="page-footer__feed-icon"><Sprite name="feed" /></span>
+      </a>
+    </span>
+  </div>
+  {/* Page footer Author link and Date */}
+  <div class="page-footer__copyright">
+    <span class="page-footer__copyright-date">
+      &copy; 2018&ndash;{year}
+    </span>
+    <span class="page-footer__copyright-author">
+      <a rel="me" href={absoluteUrl('/', Astro.site)}>{company.name}</a>
+    </span>
+  </div>
+</footer>

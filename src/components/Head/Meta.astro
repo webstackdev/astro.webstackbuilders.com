@@ -1,0 +1,46 @@
+---
+import company from "@data/company"
+import themes from "@data/themes.json"
+import { absoluteUrl, pageTitle as pageTitleFormatter } from "@lib/helpers"
+import Seo from "./Seo.astro"
+import Social from "./Social.astro"
+
+export interface Props {
+  pageTitle: string,
+  path: string,
+}
+
+const { pageTitle, path } = Astro.props
+
+const defaultTheme = themes.find((theme) => theme.id === 'default')!
+---
+
+<title>{pageTitleFormatter(pageTitle, Astro.site?.href ?? `https://webstackbuilders.com`)}</title>
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="description" content="{% pageDescription description %}" />
+<meta name="author" content="{{ author.name }}">
+<Seo path={path} />
+{/* Open Graph meta tags for Twitter and Facebook social shares */}
+<Social />
+{/* Used to sets the color of the surrounding user interface for e.g. the */}
+{/* browser title bar. It is updated by script when the theme changes.    */}
+<meta name="theme-color" content={defaultTheme.colors.backgroundOffset}>
+{/* Favicon links */}
+<link rel="icon" href="/favicon.ico">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+{/* Web manifest file for Progressive Web Application app usage */}
+<link rel="manifest" href={absoluteUrl('manifest.json', Astro.site)}>
+{/* RSS Feed */}
+<link
+  type="application/rss+xml"
+  rel="alternate"
+  href={absoluteUrl('rss.xml', Astro.site)}
+  title={`RSS Feed for ${company.name}`}
+>
+{/* Webmentions */}
+<link rel="pingback" href={`https://webmention.io/${Astro.site!.hostname}/xmlrpc`}>
+<link rel="webmention" href={`https://webmention.io/${Astro.site!.hostname}/webmention`}>
+<link rel="canonical" href={Astro.url.href}>

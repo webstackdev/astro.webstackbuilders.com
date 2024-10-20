@@ -1,15 +1,17 @@
 ---
 /**
- * Sprite component. Place sprite SVG files in `src/assets/images/sprites` to use.
+ * Sprite component. Place sprite SVG files in `src/assets/images/sprite` to use.
  */
+import classNames from 'classnames'
+
 export interface props {
-  class: string,
+  class?: string,
   name: string,
 }
 
 const { class:className, name } = Astro.props
 ---
 
-<svg class={className}>
-  <use xlink:href=`${Astro.site}assets/images/sprite.svg#${name}`></use>
+<svg class={classNames(`icon`, `icon--${name}`, className)} role="img" aria-hidden="true" width="24" height="24">
+  <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href={`#icon-${name}`}></use>
 </svg>

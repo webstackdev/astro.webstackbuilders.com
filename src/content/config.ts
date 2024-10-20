@@ -2,23 +2,27 @@ import { defineCollection, reference, z } from 'astro:content'
 import { glob, file } from 'astro/loaders'
 import { validTags } from './tagList'
 
+const articlesCollectionSchema = z.object({
+  title: z.string(),
+  description: z.string(),
+  // Reference a single author from the `authors` collection by `id`
+  author: reference('authors'),
+  tags: z.array(z.enum(validTags)),
+  image: z
+    .object({
+      src: z.string(),
+      alt: z.string(),
+    }),
+  // In YAML, dates written without quotes around them are interpreted as Date objects
+  publishDate: z.date(),
+  isDraft: z.boolean().default(false),
+})
+
+export type ArticlesCollectionSchema = z.infer<typeof articlesCollectionSchema>
+
 const articlesCollection = defineCollection({
   loader: glob({ pattern: '**\/[^_]*.{md,mdx}', base: './src/content/articles' }),
-  schema: () => z.object({
-    title: z.string(),
-    description: z.string(),
-    // Reference a single author from the `authors` collection by `id`
-    author: reference('authors'),
-    tags: z.array(z.enum(validTags)),
-    image: z
-      .object({
-        src: z.string(),
-        alt: z.string(),
-      }),
-    // In YAML, dates written without quotes around them are interpreted as Date objects
-    publishDate: z.date(),
-    isDraft: z.boolean().default(false),
-  }),
+  schema: () => articlesCollectionSchema,
 })
 
 const authorsCollection = defineCollection({

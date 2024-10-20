@@ -1,3 +1,4 @@
+// @TODO: See scripts/build/favicon.ts
 /**
  * Convert the logo SVG file to PNG favicons for use in the PWA manifest.njk
  */

@@ -1,30 +1,62 @@
 ---
-import Header from "@layouts/Header.astro"
-import Footer from "@layouts/Footer.astro"
+import CookieConsent from "@components/CookieConsent/CookieConsent.astro"
+import Head from "@components/Head/Head.astro"
+import Header from "@components/Header/Header.astro"
+import Footer from "@components/Footer/Footer.astro"
 import GeneratedSprites from "@components/GeneratedSprites.astro"
-import "@styles/global.scss"
+import PwaTitleBar from "@components/PwaTitleBar.astro"
 
-interface Props {
+import "@styles/global.scss"
+import "./BaseLayout.scss"
+
+export interface Props {
   pageTitle: string,
-  children: any, // enforce child passed to slot
+  /** The URL path component e.g. 'articles/my-article' */
+  path: string,
+  /** Enforce that child is passed to slot */
+  children: any,
 }
 
-const { pageTitle } = Astro.props
+const { pageTitle, path } = Astro.props
 ---
 
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width" />
-    <meta name="generator" content={Astro.generator} />
-    <title>{pageTitle}</title>
-  </head>
+  <Head pageTitle={pageTitle} path={path} />
   <body>
-    <GeneratedSprites />
-    <Header />
-    <h1>{pageTitle}</h1>
-    <slot />
-    <Footer />
+    <a href="#main" class="sr-skip-link">skip to main content</a>
+    <div hidden>
+      <GeneratedSprites />
+    </div>
+    {/* Sets Window Controls Overlay API for PWA title bar */}
+    <PwaTitleBar />
+    {/* Site header and main content */}
+    <div class="layout" role="document">
+      <Header path={path} />
+      <main id="main" class="main" role="main" tabindex="-1">
+        <slot />
+      </main>
+      <Footer />
+    </div>
+    {/* Cookie Consent Overlay */}
+    <CookieConsent />
+    <script>
+      {/* Add global unhandled exception and unhandled rejection handlers */}
+      import { addErrorEventListeners } from "@lib/utils/errorListeners"
+      addErrorEventListeners()
+      {/* Site script. All scripts to include in the site must be included here. */}
+      {/** Client scripts */}
+      {/* import { heroSvgAnimation } from './animations' */}
+      {/* import { initImagesLazyLoad } from './modules/lazyload' */}
+      {/* import { registerShareHighlight } from './modules/share-highlight' */}
+      {/* import { registerServiceWorker } from './modules/serviceWorker/registerer' */}
+      {/* import { contactInit } from './pages/contact' */}
+      {/*  @TODO: Are there any tasks that we need to pause using visibility API like animations when user leaves page? See modules/visibility.ts */}
+      {/* Scripts that will be execute on first user interaction with the site */}
+      {/* or after a delay (default 5 seconds), whichever occurs first. */}
+      import { addDelayedExecutionScripts } from "@lib/utils/delayedLoader"
+      import { showCookieConsentModal } from "@components/CookieConsent/handlers"
+      addDelayedExecutionScripts([showCookieConsentModal])
+    </script>
   </body>
 </html>

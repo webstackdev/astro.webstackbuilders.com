@@ -3,7 +3,7 @@ import mdx from '@astrojs/mdx'
 import preact from "@astrojs/preact"
 import prefetch from "@astrojs/prefetch"
 import purgecss from "astro-purgecss"
-import svgSprite from "astro-svg-sprite"
+//import svgSprite from "astro-svg-sprite"
 import tailwind from '@astrojs/tailwind'
 // import remarkToc from 'remark-toc'
 // import { rehypeAccessibleEmojis } from 'rehype-accessible-emojis'
@@ -22,9 +22,12 @@ export default defineConfig({
     }*/),
     preact(),
     prefetch(), // Prefetch page links when the link becomes visible on screen
+    /*
+    // Could use astro-svg-sprite instead of Gulp with svg-sprite
     svgSprite({
       include: ['./src/assets/images/sprites'],
     }),
+    */
     tailwind({
       // don't autogenerate base style sheet and inject it, and use project
       // base.css that has @tailwind base, components, and utilities directives

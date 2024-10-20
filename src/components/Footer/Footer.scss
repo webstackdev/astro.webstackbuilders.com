@@ -1,0 +1,320 @@
+@import "../../styles/utils/_mediaQueries.scss";
+@import "../../styles/variables/_typography.scss";
+
+$page-footer-feed-icon-size-expanded: 2.5em * 1.2;
+$page-footer-feed-icon-size: 2.5em;
+$page-footer-hover-decoration: underline dotted var(--color-bg) 0.15em;
+$page-footer-padding: 0.75em;
+
+.page-footer {
+  background-color: var(--color-text);
+  color: var(--color-bg);
+  display: flex;
+  flex-direction: column;
+  margin-top: 0;
+  padding: 0 $page-footer-padding $page-footer-padding;
+
+  a, button {
+    color: var(--color-bg);
+    text-decoration: none;
+  }
+
+  /**
+   * Decorative horizontal rule spacing off the footer
+   */
+
+  &__hr {
+    border-color: var(--color-primary);
+    border-width: 1em 0 0 0;
+    height: 0;
+  }
+
+  /**
+   * Contact information block
+   */
+
+  &__contact {
+    /** Position the avatar in the middle vertically of contact detail block */
+    align-items: center;
+    display: flex;
+    margin-top: $page-footer-padding;
+  }
+
+  &__contact-avatar {
+    align-self: start;
+    margin-right: $page-footer-padding + 0.25em;
+    margin-top: calc(var(--font-size-2xl) + 1.3em);
+    width: clamp(5em, 25%, 8em);
+  }
+
+  &__contact-details {
+    p {
+      font-size: var(--font-size-default);
+    }
+  }
+
+  &__contact-name {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+  }
+
+  &__contact-name + &__contact-address {
+    margin-top: 0.5em;
+  }
+
+  &__contact-address {
+    margin-left: 0.2em;
+  }
+
+  &__contact-email {
+    /** Don't hyphenate email address */
+    hyphens: none;
+  }
+
+  &__contact-email,
+  &__contact-toll-free,
+  &__contact-local {
+    a:hover, a:focus {
+      text-decoration: $page-footer-hover-decoration;
+    }
+  }
+
+  /**
+   * "Hire Me" block with current month and year set by script
+   */
+
+  &__hire-me-anchor {
+    display: none;
+    text-transform: uppercase;
+
+    &::after {
+      content: ">";
+      display: inline-block;
+    }
+
+    @keyframes arrowBounce {
+      100% {
+        transform: translate(1.5em);
+      }
+    }
+
+    &:hover::after, &:focus::after {
+      animation: arrowBounce 1s alternate;
+    }
+  }
+
+  /**
+   * Social media contact information block
+   */
+
+  &__social-channel {
+    a {
+      align-items: baseline;
+      display: flex;
+      text-transform: uppercase;
+    }
+
+    &:hover,
+    &:focus {
+      .page-footer__social-platform {
+        color: var(--color-bg-offset);
+        text-decoration: $page-footer-hover-decoration;
+      }
+
+      .page-footer__social-channel-blurb {
+        color: var(--color-bg-offset);
+      }
+
+      .icon {
+        fill: var(--color-bg-offset);
+        stroke: var(--color-bg-offset);
+      }
+    }
+  }
+
+  &__social-icon {
+    $page-footer-social-icon-size: 1em;
+    .icon {
+      fill: var(--color-bg);
+      height: $page-footer-social-icon-size;
+      stroke: var(--color-bg);
+      width: $page-footer-social-icon-size;
+    }
+  }
+
+  &__social-icon + &__social-platform {
+    margin-top: 1em;
+  }
+
+  &__social-platform {
+    margin-left: 0.5em;
+  }
+
+  &__social-channel-blurb {
+    font-family: $font-family-serif;
+    line-height: var(--line-height-sm);
+  }
+
+  /**
+   * Grab-bag row of links
+   */
+
+  &__bottom-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 1em 0.2em 0.75em;
+  }
+
+  &__site-pages {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    a:hover, a:focus {
+      color: var(--color-bg-offset);
+      text-decoration: $page-footer-hover-decoration;
+    }
+  }
+
+  &__site-pages-desc {
+    display: none;
+  }
+
+  &__feed {
+    align-items: center;
+    display: flex;
+    width: $page-footer-feed-icon-size-expanded;
+
+    .icon {
+      fill: var(--color-bg);
+      height: $page-footer-feed-icon-size;
+      stroke: var(--color-bg);
+      width: $page-footer-feed-icon-size;
+    }
+
+    a:hover, a:focus {
+      .icon {
+        height: $page-footer-feed-icon-size-expanded;
+        width: $page-footer-feed-icon-size-expanded;
+      }
+    }
+  }
+
+  &__copyright {
+    display: flex;
+    justify-content: center;
+    padding: 1em 0;
+  }
+
+  &__copyright-date +  &__copyright-author {
+    margin-left: 1rem;
+  }
+}
+
+@include media-query-min-width(sm) {
+  .page-footer + .page-footer__contact {
+    margin-top: 2em;
+  }
+
+  .page-footer {
+    display: grid;
+    gap: 0.5em 1em;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto;
+    grid-template-areas:
+      "contact social" /** hire-me */
+      "contact channels"
+      "bottom-row bottom-row"
+      "copyright copyright";
+
+    &__contact {
+      grid-area: contact;
+    }
+
+    &__contact-avatar {
+      margin-top: calc(var(--font-size-2xl) + 1.5em);
+    }
+
+    &__contact-details {
+      align-self: start;
+      margin-top: 0.5em;
+    }
+
+    &__hire-me {
+      grid-area: hire-me;
+      display: none;
+    }
+
+    &__social {
+      grid-area: social;
+    }
+
+    &__bottom-row {
+      grid-area: bottom-row;
+      justify-content: space-evenly;
+      padding: 0 0.2em 0;
+    }
+
+    &__copyright {
+      grid-area: copyright;
+      padding: 0;
+    }
+  }
+}
+
+@include media-query-min-width(lg) {
+  $page-footer-padding-desktop: 1.5em;
+  .page-footer {
+    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-rows: 2rem auto auto;
+    grid-template-areas:
+      "hire-me social bottom-row" /** hire-me */
+      "contact social bottom-row"
+      "copyright copyright copyright";
+    padding-left: $page-footer-padding-desktop;
+    padding-right: $page-footer-padding-desktop;
+
+    &__contact-avatar {
+      margin-top: 1em;
+    }
+
+    &__bottom-row {
+      flex-direction: column;
+      padding-left: 2em;
+    }
+
+    &__subscribe-lead {
+      display: none;
+    }
+
+    &__site-pages {
+      padding-top: 0.7em;
+      a:hover, a:focus {
+        text-decoration: none;
+      }
+    }
+
+    &__site-pages-title {
+      font-weight: var(--font-weight-bold);
+      text-transform: uppercase;
+
+      &:hover, &:focus {
+        color: var(--color-bg-offset);
+        text-decoration: $page-footer-hover-decoration;
+      }
+    }
+
+    &__site-pages-desc {
+      display: block;
+    }
+
+    &__feed {
+      height: $page-footer-feed-icon-size-expanded;
+      width: $page-footer-feed-icon-size-expanded;
+    }
+
+    &__copyright {
+      margin-top: 0.5em;
+    }
+  }
+}

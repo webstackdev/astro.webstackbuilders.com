@@ -1,0 +1,43 @@
+---
+/**
+ * IF THIS CHANGES update navigationHtml.ts fixture in navigation script folder
+ */
+import classNames from 'classnames'
+import "./Menu.scss"
+import "./MenuSplash.scss"
+
+export interface Props {
+  path: string,
+}
+
+const { path } = Astro.props
+
+// Create an array with (nested) navigation objects
+const navigationItems = [
+  { url: "/about", title: "About" },
+  { url: "/articles", title: "Articles" },
+  { url: "/case-studies", title: "Case Studies" },
+  { url: "/services", title: "Services" },
+  { url: "/contact", title: "Contact" },
+]
+
+const activeMenuItem = (url: string) => {
+  return path === url ? "main-nav__item--active" : ""
+}
+---
+
+<nav id="main-nav" class="main-nav" role="navigation"  aria-label="Main">
+  <ul class="main-nav__menu" tabindex="-1" aria-label="main navigation">
+    {navigationItems.forEach((navItem) => (
+      <li class={classNames(`main-nav__item`, activeMenuItem(navItem.url))}>
+        <a href={navItem.url} class="main-nav__link">
+          {navItem.title}
+        </a>
+      </li>
+    ))}
+  </ul>
+</nav>
+<script>
+  import {setupNavigation } from './navigation'
+  setupNavigation()
+</script>

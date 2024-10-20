@@ -1,6 +1,6 @@
 /**
- * Names for local and session storage keys that are reference both in
- * client script and Nunjucks templates, and need to stay in sync.
+ * Names for local and session storage keys that are referenced in both client script
+ * and Astro templates, and that need to stay in sync.
  */
 const storage = {
   THEME_STORAGE_KEY: 'theme',

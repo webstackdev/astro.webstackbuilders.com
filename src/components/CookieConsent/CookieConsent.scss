@@ -1,0 +1,137 @@
+@use "sass:math";
+@import "../../styles/utils/_mediaQueries.scss";
+
+/** Stylings for the cookie consent pop-up modal dialog */
+
+/** @TODO: need to refactor from desktop-first to mobile-first */
+
+.cookie-modal {
+  background-color: var(--color-modal-background);
+  border-radius: 0.5em;
+  bottom: 0;
+  display: flex;
+  flex-flow: row nowrap;
+  left: 0;
+  margin: 0 1em 1em;
+  position: fixed;
+  right: 0;
+
+  &__close-btn {
+    background-color: transparent;
+    border: 0;
+    color: var(--color-primary);
+    outline: none;
+    position: absolute;
+    right: 0;
+    top: 0;
+
+    &:hover,
+    &:focus {
+      color: var(--color-success-offset);
+    }
+  }
+
+  $cookie-icon-dimension: 48px;
+  $cookie-icon-padding: 12px;
+  $cookie-container-dimension: $cookie-icon-dimension + ($cookie-icon-padding * 2);
+  $cookie-container-half-dimension: math.div($cookie-container-dimension, 2);
+
+  &__icon-container {
+    background-color: var(--color-modal-background);
+    clip-path: circle(50%);
+    height: $cookie-container-dimension;
+    left: 0;
+    margin-left: auto;
+    margin-right: auto;
+    position: absolute;
+    right: 0;
+    top: -$cookie-container-half-dimension;
+    width: $cookie-container-dimension;
+
+    svg {
+      height: $cookie-icon-dimension;
+      margin: $cookie-icon-padding;
+      width: $cookie-icon-dimension;
+    }
+  }
+
+  $cookie-main-horizontal-padding: $cookie-container-half-dimension + 5px;
+
+  &__content {
+    padding: $cookie-container-half-dimension 0 1em 2em;
+  }
+
+  &__btn-group {
+    align-items: center;
+    display: flex;
+    padding: $cookie-container-half-dimension 2em 1em 1em;
+
+    > li {
+      list-style-type: none;
+    }
+
+    button {
+      border: 0;
+    }
+  }
+
+  &__btn-allow {
+    background-color: var(--color-success);
+
+    &:hover,
+    &:focus {
+      background: var(--color-success-offset);
+    }
+  }
+
+  &__btn-customize {
+    background-color: var(--color-warning);
+
+    &:hover,
+    &:focus {
+      background: var(--color-warning-offset);
+    }
+  }
+
+  &__btn-spacer {
+    width: 1.5em;
+  }
+}
+
+/**
+  * Mobile Version (portrait tablet and down)
+  */
+@include media-query-max-width(md) {
+  $mobile-cookie-icon-dimension: 3.6em;
+  $mobile-cookie-icon-padding: 0.6em;
+  $mobile-cookie-container-dimension: $mobile-cookie-icon-dimension + ($mobile-cookie-icon-padding * 2);
+  $mobile-cookie-container-half-dimension: math.div($mobile-cookie-container-dimension, 2);
+
+  .cookie-modal {
+    flex-flow: column wrap;
+
+    &__icon-container {
+      height: $mobile-cookie-container-dimension;
+      top: -$mobile-cookie-container-half-dimension;
+      width: $mobile-cookie-container-dimension;
+
+      svg {
+        height: $mobile-cookie-icon-dimension;
+        margin: $mobile-cookie-icon-padding;
+        width: $mobile-cookie-icon-dimension;
+      }
+    }
+
+    &__content {
+      padding: $mobile-cookie-container-half-dimension 0 1em 2em;
+    }
+
+    &__addl-content {
+      display: none;
+    }
+
+    &__btn-group {
+      padding: 0 2em 1em 1em;
+    }
+  }
+}

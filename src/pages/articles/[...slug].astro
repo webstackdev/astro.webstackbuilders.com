@@ -13,7 +13,8 @@ export async function getStaticPaths() {
 const { article } = Astro.props
 const { Content } = await article.render()
 ---
-<BaseLayout pageTitle={article.data.title}>
+
+<BaseLayout pageTitle={article.data.title} path={path}>
   <p>{article.data.publishDate.toString().slice(0, 10)}</p>
   <p><em>{article.data.description}</em></p>
   <p>Written by: {article.data.author}</p>

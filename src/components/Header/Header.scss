@@ -1,0 +1,147 @@
+@import "../../styles/utils/_mediaQueries.scss";
+@import "../../styles/variables/_themes.scss";
+
+/**
+ * Sizes for the header control box that contains the hamburger menu icon and
+ * theme picker icon.
+ */
+
+$pi: 3.141592653;
+
+/**
+ * Used for:
+ *  - _brand.scss, logo and wordmarks set to button-size
+ *  - _themePickerIcon.scss, themepicker button and svg icon
+ *  - _navigationIcon.scss, navigation button and svg icon
+ */
+$header-icon-size-base: 3.5em;
+
+/**
+ * Header icon size is scaled by this factor to get the height and width of SVG icons.
+ * Icon is centered in its <button> or <a> using flex, so padding is accounted for in
+ * this factor.
+ */
+$header-icons-svg-scale-factor: 0.7;
+
+:root {
+  --header-icon-size: calc(#{$header-icon-size-base} * 0.75);
+  --header-icon-svg-size: calc(var(--header-icon-size) * #{$header-icons-svg-scale-factor});
+  --circle-stroke: calc(var(--header-icon-size) * 2 * #{$pi});
+}
+
+@include media-query-min-width(sm) {
+  :root {
+    --header-icon-size: calc(#{$header-icon-size-base} * 0.85);
+  }
+}
+
+@include media-query-min-width(lg) {
+  :root {
+    --header-icon-size: calc(#{$header-icon-size-base});
+  }
+}
+
+/** Spacer between hamburger menu icon and theme picker icon on mobile. */
+$controls-icons-gap: 0.5em;
+
+/** Duration for the animation on mobile hamburger menu and theme picker icon. */
+$header-icon-transition-duration: 0.3s;
+
+#header {
+  /** Put all extra space in the row between the elements on the cross axis */
+  align-content: space-between;
+  background-color: $color-gray-2; // @TODO: need a css var for this so themes switch, also this color is the same as the background color for the theme modal panel in light theme: --color-bg-offset
+  /** Alignment of items on the cross axis */
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  /** Put all extra space in the row between the elements on the main axis */
+  justify-content: space-between;
+  padding: 0.5em 0;
+  position: relative; // for absolutely positioned icons
+
+  /** Extend the background color to the full width of the screen and into the padding */
+  &:after{
+    content: "";
+    display: block;
+    position: absolute;
+    left: 52%;
+    top: 0;
+    height: 100%;
+    width: 102vw;
+    transform: translateX(-52%);
+    z-index: -1;
+    box-sizing: border-box;
+    background-color: var(--color-bg-offset);
+  }
+
+  /** <span> wrapper around the company logo and name */
+  &__brand {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  /** <span> wrapper around the menu <ul> */
+  &__main-nav {
+    z-index: getZIndexValue('nav') + 1;
+  }
+
+  /**
+   * Wrapper for the theme switcher icon on mobile
+   */
+  &__theme-icon {
+    /** Menu hamburger icon is absolutely positioned on mobile, so just leaving space for it */
+    width: calc(var(--header-icon-size) * 2 + #{$controls-icons-gap});
+  }
+
+  /**
+   * Absolutely-positioned hamburger-style menu icon shown on mobile to open full
+   * screen menu with animation.
+   */
+  &__nav-icon {
+    display: inline-block;
+    position: absolute;
+    z-index: getZIndexValue('nav') + 1;
+    right: 0;
+  }
+}
+
+#header.aria-expanded-true {
+  margin-left: 0;
+  margin-right: 0;
+  width: 100%;
+
+  #header {
+    // no top-level properties here
+    &__main-nav {
+      width: 100%;
+    }
+
+    &__brand {
+      display: none;
+    }
+
+    &__theme-icon {
+      display: none;
+    }
+  }
+}
+
+/** Laptop and desktop hides the menu hamburger icon */
+@include media-query-min-width(lg) {
+  #header {
+    padding: 0.75em 0;
+
+    &__theme-icon {
+      margin-right: 1em;
+      /** Don't leave space for the menu hamburger icon */
+      width: var(--header-icon-size);
+    }
+
+    &__nav-icon {
+      /** Tablet shows the menu hamburger icon */
+      display: none;
+    }
+  }
+}

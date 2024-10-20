@@ -1,0 +1,46 @@
+---
+import { Image } from 'astro:assets'
+import Sprite from "@components/Sprite.astro"
+import CookieSvg from "@assets/images/site/cookie.svg"
+import "./CookieConsent.scss"
+---
+
+<div
+  id="cookie-modal-id"
+  class="cookie-modal"
+  style="display:none;"
+  role="dialog"
+  aria-label="cookie consent dialog"
+  aria-describedby="cookie-modal__content"
+  tabindex="0"
+>
+  <button
+    type="button"
+    aria-label="close cookie consent dialog"
+    class="cookie-modal__close-btn"
+  >
+    <Sprite name="close" />
+  </button>
+  <div class="cookie-modal__icon-container">
+    <Image src={CookieSvg} alt="Cookie icon." />
+  </div>
+  <p id="cookie-modal__content" class="cookie-modal__content">
+    This site use cookies. Learn more in our <a href="/cookies">Cookies Policy</a> and <a href="/privacy">Privacy Policy</a>. <span class="cookie-modal__addl-content">Our site needs a single cookie to remember your theme preferences, and you can <a class="cookie-modal__link-customize" href="javascript:void(0)">customize</a> the other cookies we use to help provide you a great experience here. Or let us know you're okay with our cookie use by clicking <a class="cookie-modal__link-allow" href="javascript:void(0)">Allow All</a>.</span>
+  </p>
+  <menu class="cookie-modal__btn-group">
+    <li>
+      <button type="button" class="btn btn--primary cookie-modal__btn-allow">
+        Allow All
+      </button>
+    </li>
+    <li class="cookie-modal__btn-spacer"></li>
+    <li>
+      <button
+        type="button"
+        class="btn btn--secondary cookie-modal__btn-customize"
+      >
+        Customize
+      </button>
+    </li>
+  </menu>
+</div>
