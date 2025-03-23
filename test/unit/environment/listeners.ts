@@ -1,6 +1,5 @@
-/// <reference path="../@types/global.jsdom.d.ts" />
-import { getState } from '../environment/state'
-import type JSDomTscompileEnvironment from '../environment/browser-env'
+import { getState } from "./state"
+import type JSDomTscompileEnvironment from "./browser-env"
 
 /**
  * Default behavior for error events if client error handler not provided.

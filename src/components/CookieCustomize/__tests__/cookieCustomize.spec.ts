@@ -4,7 +4,7 @@
  * Tests for cookies customize modal
  */
 //import { resolve } from 'path'
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from "vitest"
 /*
 import {
   getCurriedFixturePath,

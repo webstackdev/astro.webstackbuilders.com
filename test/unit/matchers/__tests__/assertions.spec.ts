@@ -1,7 +1,7 @@
 /**
  * Tests for custom matchers
  */
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 import {
   isConstructible,
   isObject,

@@ -1,9 +1,9 @@
-import { readFileSync } from 'fs'
-import { resolve } from 'path'
-import { AbortablePromise, JSDOM, ResourceLoader, type FetchOptions } from 'jsdom'
-import { version } from '../../../package.json'
-import { getVirtualConsole } from './virtualConsole'
-import { devServer } from '../jest.config.jsdom'
+import { readFileSync } from "fs"
+import { resolve } from "path"
+import { type AbortablePromise, JSDOM, ResourceLoader, type FetchOptions } from "jsdom"
+import { version } from "../../../package.json"
+import { getVirtualConsole } from "./virtualConsole"
+import { devServer } from "../vitest.config.jsdom"
 
 export interface EnvOptions {
   html?: string

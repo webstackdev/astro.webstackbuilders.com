@@ -1,1 +1,1 @@
-export { cleanup, tsCompile, loadHtmlTemplate } from './tasks'
+export { cleanup, tsCompile, loadHtmlTemplate } from "./tasks"

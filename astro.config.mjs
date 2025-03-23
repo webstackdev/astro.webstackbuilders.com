@@ -8,8 +8,8 @@ import tailwind from '@astrojs/tailwind'
 // import remarkToc from 'remark-toc'
 // import { rehypeAccessibleEmojis } from 'rehype-accessible-emojis'
 
-// https://astro.build/config
 export default defineConfig({
+  /** Available at import.meta.env.SITE */
   site: 'https://webstackbuilders.com',
   integrations: [
     mdx(/*{

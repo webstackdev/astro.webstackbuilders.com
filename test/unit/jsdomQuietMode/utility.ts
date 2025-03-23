@@ -1,10 +1,10 @@
-import type { EnvironmentContext } from '@jest/environment'
+import type { Environment } from 'vitest'
 
 /**
  * Extracts the JSDOM_QUIET_MODE pragma setting useable in test files to quiet
  * verbose output from JSDOM console. Useful in Jest custom environments.
  */
-export const getJsdomQuietModeFlag = (context: EnvironmentContext): boolean => {
+export const getJsdomQuietModeFlag = (context: Environment): boolean => {
   const environmentOptions = context.docblockPragmas[`jest-environment-options`]
 
   let EnvOptionsObj: Record<string, string> & { JSDOM_QUIET_MODE?: boolean } = {}

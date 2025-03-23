@@ -4,6 +4,14 @@ import { getViteConfig } from 'astro/config'
 // @TODO: Should set up `reporters` for CI to create an artifact on failed runs with `outputFIle`
 
 export default getViteConfig({
+  /** Root directory that Jest should scan for tests and modules within */
+  rootDir: './',
+  /** To place configuration elsewhere, point to the path of the config file in projects */
+  // @TODO: This is for Jest
+  projects: [
+    '<rootDir>/test/unit/vitest.config.jsdom.ts',
+    '<rootDir>/test/unit/vitest.config.node.ts'
+  ],
   // @ts-expect-error - `test` is not a valid Vite config option
   test: {
     include: ['src/**/*.spec.ts?(x)'],
@@ -20,4 +28,6 @@ export default getViteConfig({
     },
     */
   },
+  /** Timeout set to 30 seconds for all tests */
+  testTimeout: 30 * 1000
 });

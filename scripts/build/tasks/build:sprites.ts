@@ -2,7 +2,7 @@
  * Build an svg sprite image based on the svg image files in
  * src/assets/icons and save it as public/images/site/icons.sprite.svg
  */
-import { log } from "../../../src/lib/logger"
+import { log } from "@lib/logger"
 import { dest, src, type TaskFunction } from "gulp"
 import header from "gulp-header"
 import svgSprite from "gulp-svg-sprite"

@@ -1,0 +1,17 @@
+---
+permalink: "{{ buildPaths.tmpDir }}/pages.json"
+eleventyExcludeFromCollections: true
+---
+{# social images data used in _generate/socialtemplate.njk by the CLI script #}
+[{% for pages in collections.all %}
+	{
+    "title":"{% if pages.data.title %}{{ pages.data.title | addNbsp | safe }}{% else %}{{ meta.siteName }}{% endif %}",
+    "imgName":"{% if pages.data.title %}{{ pages.data.title | slug}}{% else %}home{% endif %}",
+    "variables": {
+      "postdate": "{{ pages.data.postdate }}"
+      {%- if pages.data.description %},
+      "description": "{{ pages.data.description }}"
+      {% endif %}
+    }
+	}{% if loop.last == false %},{% endif %}
+{% endfor %}]

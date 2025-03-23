@@ -1,0 +1,18 @@
+{#- This is the home page module for testimonials #}
+<div class="mod-testimonials">
+  @TODO: Consider using Glide for carousels: A dependency-free JavaScript ES6 slider and carousel.
+  https://glidejs.com/https://glidejs.com/
+  <h1 class="mod-testimonials__header">Testimonial</h1>
+  <ul class="mod-testimonials__items-container">
+  {% for testimonial in collections.testimonials %}
+    <li class="mod-testimonials__item">
+      <div class="mod-testimonials__item-name">{{ testimonial.data.name }}</div>
+      <div class="mod-testimonials__item-organization">{{ testimonial.data.organization }}</div>
+      <div class="mod-testimonials__item-content">{{ testimonial.templateContent | safe }}</div>
+      {% set src = ["avatars/", testimonial.data.avatar] | join %}
+      {% set alt = ["Photo of ", testimonial.data.name] | join %}
+      <div class="mod-testimonials__item-avatar">{% asyncImageHandler src, alt %}</div>
+    </li>
+  {% endfor %}
+  </ul>
+</div>

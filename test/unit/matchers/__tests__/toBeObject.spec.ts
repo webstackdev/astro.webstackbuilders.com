@@ -1,8 +1,7 @@
-/// <reference path="../../../../@types/@jest/globals/expect.d.ts" />
 /**
  * From 'jest-extended', but that library does not compile due to bad typings
  */
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from "vitest"
 
 describe('.toBeObject', () => {
   test('passes when given an object', () => {

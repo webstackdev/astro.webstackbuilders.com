@@ -1,10 +1,10 @@
 /**
  * Helpers for custom Jest environment class
  */
-import { LegacyFakeTimers, ModernFakeTimers } from '@jest/fake-timers'
-import type { ModuleMocker } from 'jest-mock'
-import type { Config } from '@jest/types'
-import { isString } from '../../../src/assets/script/utils/assertions'
+import { LegacyFakeTimers, ModernFakeTimers } from "@jest/fake-timers"
+import type { ModuleMocker } from "jest-mock"
+import type { Config } from "@jest/types"
+import { isString } from "../matchers/assertions"
 
 export const getLegacyFakeTimers = (
   globalObject: typeof globalThis,

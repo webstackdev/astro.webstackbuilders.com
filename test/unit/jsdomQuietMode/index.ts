@@ -3,5 +3,5 @@
  *
  * @jest-environment-options {"JSDOM_QUIET_MODE": true}
  */
-export { getJsdomQuietModeFlag } from './utility'
-export { setQuietMode, unsetQuietMode } from './setters'
+export { getJsdomQuietModeFlag } from "./utility"
+export { setQuietMode, unsetQuietMode } from "./setters"

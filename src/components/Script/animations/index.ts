@@ -1,0 +1,1 @@
+export { heroSvgAnimation } from './hero'

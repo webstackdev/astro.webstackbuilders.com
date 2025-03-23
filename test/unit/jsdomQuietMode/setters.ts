@@ -1,22 +1,22 @@
 /**
- * Setters to quiet the console output from JSDOM in a custom Jest environment
+ * Setters to quiet the console output from JSDOM in a custom Vitest environment
  */
-import type { jest as Jest } from '@jest/globals'
+import { type vi as Vi } from "vitest"
 
 export interface quietModeHandlerParam {
   isQuietMode: boolean | undefined
 }
-export const setQuietMode = ({ isQuietMode }: quietModeHandlerParam, jest: typeof Jest) => {
+export const setQuietMode = ({ isQuietMode }: quietModeHandlerParam, vi: typeof Vi) => {
   if (isQuietMode) {
-    jest.spyOn(console, 'error')
-    // @ts-ignore jest.spyOn adds this functionality
+    vi.spyOn(console, 'error')
+    // @ts-ignore vi.spyOn adds this functionality
     console.error.mockImplementation(() => undefined)
   }
 }
 
 export const unsetQuietMode = ({ isQuietMode }: quietModeHandlerParam) => {
   if (isQuietMode) {
-    // @ts-ignore jest.spyOn adds this functionality
+    // @ts-ignore vi.spyOn adds this functionality
     console.error.mockRestore()
   }
 }

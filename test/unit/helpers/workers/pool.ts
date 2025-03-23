@@ -1,9 +1,9 @@
 /**
- * Provide a worker pool for tasks that are ran inside a Jest JSDOM environment
+ * Provide a worker pool for tasks that are ran inside a Vitest JSDOM environment
  * but need an isolated Node environment, like Webpack and programmatic Eleventy
  */
-import { resolve } from 'path'
-import { StaticPool } from 'node-worker-threads-pool'
+import { resolve } from "path"
+import { StaticPool } from "node-worker-threads-pool"
 
 export type OrchestratorType = 'tsCompile' | 'loadHtmlTemplate'
 export type OrchestratorParamType<T> = {

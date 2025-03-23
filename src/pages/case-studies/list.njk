@@ -1,0 +1,53 @@
+---
+layout: layouts/base.njk
+---
+<article
+  id="{{ title | slug }}"
+  class="case-studies"
+  itemscope
+  itemtype="http://schema.org/Review"
+  aria-labelledby="{{ title | slug }}-title"
+>
+  {#- "Case Studies" Header -#}
+  <header class="case-studies__header">
+    <h1 itemprop="headline">{{ title }}</h1>
+  </header>
+  {%- set casestudieslist = collections.casestudies -%}
+  <ol
+    class="case-studies"
+    itemtype="http://schema.org/Review"
+    reversed
+    start="{{ casestudieslist.length }}"
+  >
+    {% for casestudy in casestudieslist | reverse %}
+      <li class="case-studies__item">
+        {#- Case Study Title -#}
+        <h2 class="case-studies__item-title" itemprop="headline">
+          <a
+            href="{{ casestudy.url | url }}"
+            class="case-studies__item-link"
+            rel="bookmark"
+          >
+            {{ casestudy.data.title }}
+          </a>
+        </h2>
+        {#- Case Study Excerpt -#}
+        <p class="case-studies__item-excerpt" itemprop="abstract">
+          {% if casestudy.data.description %}
+            {{ casestudy.data.description }}
+            {% set hasDescription = true %}
+          {% endif %}
+          {%- if casestudy.data.page.excerpt and (hasDescription !== true) -%}
+            {% renderTemplate "md" %}
+              {{ casestudy.data.page.excerpt }}
+            {% endrenderTemplate %}
+            {% set hasExcerpt = true %}
+          {%- endif -%}
+          {%- if (hasExcerpt !== true) and (hasDescription !== true) -%}
+            <p>Should throw an error, if reached here it's because the page has no description set in the front matter and no excerpt separator set in the content body.</p>
+          {%- endif -%}
+        </p>
+      </li>
+    {% endfor %}
+  </ol>
+</article>

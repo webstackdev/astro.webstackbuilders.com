@@ -1,5 +1,5 @@
-import type { MatcherFunction } from 'expect'
-import { isConstructible, type Constructor } from './assertions'
+import { type RawMatcherFn } from "@vitest/expect"
+import { isConstructible, type Constructor } from "./assertions"
 
 export const inProtoChain = (BaseFn: Constructor, TestFn: Constructor) => {
   /* eslint-disable-next-line @typescript-eslint/ban-types */
@@ -7,13 +7,12 @@ export const inProtoChain = (BaseFn: Constructor, TestFn: Constructor) => {
 }
 
 /**
- * Jest symmetric matcher to test if expected is in the prototype
- * chain of given constructor functions.
+ * Symmetric matcher to test if expected is in the prototype chain of given constructor functions.
  *
  * @param expected - The constructor function to test its prototype chain for matches
  * @param chain - The constructor functions to check if they are in expected's prototype chain
  */
-export const toHaveInProtoChain: MatcherFunction = function (expected: unknown, ...chain: unknown[]) {
+export const toHaveInProtoChain: RawMatcherFn = function (expected: unknown, ...chain: unknown[]) {
   const errMssg = `Actual and all parameters to toHaveInProtoChain must be constructors`
   if (!isConstructible(expected)) throw new Error(errMssg)
   let pass = true

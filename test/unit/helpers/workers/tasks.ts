@@ -1,7 +1,7 @@
 /**
  * This file is called from within a worker thread when a task is executed
  */
-import { getWorkerPool } from './pool'
+import { getWorkerPool } from "./pool"
 
 export const tsCompile = async (entryFile: string) => {
   return (await getWorkerPool().getStaticPool().exec({

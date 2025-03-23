@@ -1,9 +1,9 @@
 /**
  * From 'jest-extended', but that library does not compile due to bad typings
  */
-import type { MatcherFunction } from 'expect'
+import { type RawMatcherFn } from "@vitest/expect"
 
-export const toBeNil: MatcherFunction = function (actual: unknown) {
+export const toBeNil: RawMatcherFn = function (actual: unknown) {
   const { printReceived, matcherHint } = this.utils
 
   const passHint = matcherHint('.not.toBeNil', 'received', '')

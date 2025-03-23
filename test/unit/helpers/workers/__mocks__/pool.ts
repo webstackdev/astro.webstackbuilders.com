@@ -1,4 +1,7 @@
-const originalPoolModule = jest.requireActual<typeof import('../pool')>('../pool')
+import { vi } from "vitest"
+
+const originalPoolModule = await vi.importActual<typeof import('../pool')>('../pool')
+
 export const { isWorkerPoolInstance, WorkerPool } = originalPoolModule
 
 let poolInstance: typeof WorkerPool

@@ -1,10 +1,8 @@
-/// <reference path="../../../../@types/@jest/globals/expect.d.ts" />
 /**
  * Tests for custom matchers
  */
-import { describe, expect, test } from '@jest/globals'
-import { inProtoChain } from '../toHaveInProtoChain'
-//import { isSyncExpectationResult, type SyncExpectationResult } from '../assertions'
+import { describe, expect, test } from "vitest"
+import { inProtoChain } from "../toHaveInProtoChain"
 
 describe(`inProtoChain helper method works`, () => {
   test(`inProtoChain returns true for child class`, () => {

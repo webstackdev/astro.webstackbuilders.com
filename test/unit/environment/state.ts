@@ -8,7 +8,7 @@ export type NodeName = keyof NodeMapper
 export type EventListenerRecord = {
   type: string
   listener: EventListenerOrEventListenerObject
-  options?: boolean | AddEventListenerOptions
+  options?: boolean | AddEventListenerOptions | undefined
 }
 
 export type removalCb = ({ type, listener, options }: EventListenerRecord) => void
@@ -53,12 +53,12 @@ export class ListenerState {
     this.instanceToken = true
   }
 
-  /** Enable instanceof checks across realms and into Jest's VM for object instances */
+  /** Enable instanceof checks across realms and into VM for object instances */
   static [Symbol.hasInstance](instance: unknown) {
     return (
-      instance &&
+      !!instance &&
       typeof instance === 'object' &&
-      (instance as ListenerState)['instanceToken' as keyof ListenerState]
+      !!(instance as Record<string, boolean>)['instanceToken']
     )
   }
 
@@ -74,7 +74,7 @@ export class ListenerState {
     this.errorListenerCount++
   }
 
-  /** Store listener referencewhen added so it can be removed during reset */
+  /** Store listener reference when added so it can be removed during reset */
   addEventListenerToTracking = (
     type: string,
     listener: EventListenerOrEventListenerObject,

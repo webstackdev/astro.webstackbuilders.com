@@ -1,0 +1,37 @@
+{% set otherServices = collections.services | excludeItemFromCollection(page) | slice(-10) %}
+<ol>
+  {% for service in otherServices | reverse %}
+    <li class="other-services__item">
+      <a href="{{ service.url | url }}" class="other-services__link">
+        <span
+          class="other-services__title"
+          itemprop="headline"
+        >
+          {{ service.data.title }}
+        </span>
+        {#- Article Excerpt -#}
+        <p class="other-services__item-excerpt" itemprop="abstract">
+          {#- Article Description -#}
+          {% if post.data.description %}
+            {{ post.data.description }}
+            {% set hasDescription = true %}
+          {% endif %}
+          {#- Article Excerpt -#}
+          {%- if post.data.page.excerpt and (hasDescription !== true) -%}
+            {% renderTemplate "md" %}
+              {{ post.data.page.excerpt }}
+            {% endrenderTemplate %}
+            {% set hasExcerpt = true %}
+          {%- endif -%}
+          {%- if (hasExcerpt !== true) and (hasDescription !== true) -%}
+            <p>Should throw an error, if reached here it's because the page has no description set in the front matter and no excerpt separator set in the content body.</p>
+          {%- endif -%}
+        </p>
+        {#- Article Time To Read -#}
+        <p class="other-services__item-time-to-read" itemprop="wordCount">
+          It will take {{ post.templateContent | timeToRead }} to read this
+        </p>
+      </a>
+    </li>
+  {% endfor %}
+</ol>

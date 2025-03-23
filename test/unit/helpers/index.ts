@@ -1,4 +1,4 @@
-export { loadHtmlTemplate, tsCompile } from './workers'
+export { loadHtmlTemplate, tsCompile } from "./workers"
 export {
   addScript,
   attachScript,
@@ -6,4 +6,4 @@ export {
   getCurriedFixturePath,
   loadDom,
   loadDomWithScript,
-} from './utilities'
+} from "./utilities"

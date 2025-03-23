@@ -1,7 +1,7 @@
 /**
  * Virtual console provided to JSDOM constructor
  */
-import { VirtualConsole } from 'jsdom'
+import { VirtualConsole } from "jsdom"
 
 /*
  @TODO: should also be able to configure this maybe with widening the globalThis.JSDOM_QUIET_MODE property so that you can capture the virtual console output in a test to assert against error or other console output.
@@ -21,7 +21,7 @@ virtualConsole.on('dir', () => { ... })
 export const getVirtualConsole = (console: Console) => {
   const virtualConsole = new VirtualConsole()
   virtualConsole.sendTo(console, { omitJSDOMErrors: true })
-  virtualConsole.on('jsdomError', error => {
+  virtualConsole.on('jsdomError', (error: Error) => {
     console.error(error)
   })
   return virtualConsole

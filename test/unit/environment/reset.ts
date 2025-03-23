@@ -1,7 +1,7 @@
 /**
- * Utilities for use in Jest setup script `beforeEach` and similar functions
+ * Utilities for use in Vitest setup script `beforeEach` and similar functions
  */
-import { getState, type removalCb } from './state'
+import { getState, type removalCb } from "./state"
 
 /**
  * Remove tracked global listeners from both state and the DOM

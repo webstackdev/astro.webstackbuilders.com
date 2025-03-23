@@ -1,0 +1,169 @@
+---
+layout: layouts/base.njk
+---
+<article
+  id="contact"
+  class="contact"
+  itemscope
+  itemtype="http://schema.org/ContactPage"
+  aria-labelledby="contact-title"
+>
+  <header class="contact__hero">
+    <div class="contact__map">
+      {% asyncImageHandler '/map.webp', "Map to office" %}
+    </div>
+    <div class="contact__callout">
+      <div class="contact__callout-flex">
+        <p class="contact__callout-text-intro">
+          <span class="contact__callout-name">Webstack Builders</span> is a solo software development agency offering a wide scope of backend and front end engineering services in multiple languages and frameworks.
+        </p>
+        <p class="contact__callout-text-cta">
+          If you need a reliable partner to augment your team or take the lead on a project for your business, I'd love to discuss working together.
+        </p>
+      </div>
+    </div>
+  </header>
+  <div class="contact__grid">
+    <div class="contact__leadin contact__grid-sidebar-item">
+      <h2 class="contact__leadin-header">
+        Get in Touch
+      </h2>
+      <p class="contact__leadin-expect-intro">What to Expect When Reaching Out:</p>
+      <div class="contact__leadin-expect__list" role="list">
+        <div class="contact__leadin-expect__item" role="listitem">
+          <span class="contact__leadin-expect__item-icon">{% icon "alarm-clock" %}</span>
+          <span class="contact__leadin-expect__item-text">Less than 12 hour response</span>
+        </div>
+        <div class="contact__leadin-expect__item" role="listitem">
+          <span class="contact__leadin-expect__item-icon">{% icon "award" %}</span>
+          <span class="contact__leadin-expect__item-text">Thoroughness and expertise</span>
+        </div>
+        <div class="contact__leadin-expect__item" role="listitem">
+          <span class="contact__leadin-expect__item-icon">{% icon "paper-and-pencil" %}</span>
+          <span class="contact__leadin-expect__item-text">Plan of Action in a follow up email</span>
+        </div>
+      </div>
+    </div>
+    <form id="contact__form" class="contact__form">
+      <div class="contact__form-wrapper">
+        <div class="contact__form-error"></div>
+        <div class="contact__form-name contact__form-input-widget">
+          <div class="contact__form-validation-error"></div>
+          <div class="contact__form-input-group">
+            <label
+              for="name"
+              class="contact__form-input-label"
+            >
+              Name
+            </label>
+            <input
+              class="contact__form-input-element"
+              type="text"
+              maxlength="50"
+              name="name"
+            >
+          </div>
+        </div>
+        <div class="contact__form-email contact__form-input-widget">
+          <div class="contact__form-validation-error" ></div>
+          <div class="contact__form-input-group">
+            <label
+              for="contact__form-email"
+              class="contact__form-input-label"
+            >
+              Your email address
+            </label>
+            <input
+              class="contact__form-input-element"
+              type="email"
+              maxlength="64"
+              minlength="6"
+              name="contact__form-email"
+              value=""
+              required
+            >
+          </div>
+        </div>
+        <div class="contact__form-message contact__form-input-widget">
+          <div class="contact__form-validation-error" ></div>
+          <div class="contact__form-input-group">
+            <label
+              for="message"
+              class="contact__form-input-label"
+            >
+              Message
+            </label>
+            <textarea
+              name="message"
+              class="contact__form-input-element"
+              maxlength="2000"
+              minlength="7"
+              required
+              rows="6"
+            ></textarea>
+          </div>
+        </div>
+        <div class="contact__form-upload contact__form-input-widget">
+          <div class="contact__form-upload-dropzone" tabindex="0"></div>
+          <div id="contact__form-upload-previews"></div>
+        </div>
+        <button type="submit" class="btn contact__form-submit-btn">
+          <span class="contact__form-submit-label">Send</span>
+          <span class="contact__form-submit-circle">{% icon "arrow-right" %}</span>
+        </button>
+      </div>
+    </form>
+    <div class="contact__channels contact__grid-sidebar-item">
+      <h2 class="contact__channels-title">Connect With Us</h2>
+      <address class="contact__channels-detail">
+        <p class="contact__channels-email">
+          <a href="mailto:{{ company.email }}">{{ company.email }}</a>
+        </p>
+        <p class="contact__channels-toll-free" itemprop="telephone" rel="nofollow">
+          <a href="tel:{{ company.telephoneTollFree }}">
+            Toll Free {% formatPhoneNumber company.telephoneTollFree %}
+          </a>
+        </p>
+        <p class="contact__channels-local" itemprop="telephone" rel="nofollow">
+          <a href="tel:{{ company.telephoneLocal }}">
+            Local {% formatPhoneNumber company.telephoneLocal %}
+          </a>
+        </p>
+        <div class="contact__channels-social-icons">
+          <span>
+            <a href="{{ company.social.twitter.url }}" title="Twitter" rel="me">
+              {% icon "twitter" %}
+            </a>
+          </span>
+          <span>
+            <a href="{{ company.social.linkedin.url }}" title="Linkedin" rel="me">
+              {% icon "linkedin" %}
+            </a>
+          </span>
+          <span>
+            <a href="{{ company.social.github.url }}" title="Github" rel="me">
+              {% icon "github" %}
+            </a>
+          </span>
+          <span>
+            <a href="{{ company.social.codepen.url }}" title="Codepen" rel="me">
+              {% icon "codepen" %}
+            </a>
+          </span>
+        </div>
+      </address>
+    </div>
+    <div class="contact__skills contact__grid-sidebar-item">
+      <h2 class="contact__skills-header">
+        Specializing In
+      </h2>
+      <div class="contact__skills-list-wrapper">
+        <ul class="contact__skills-list">
+          <li class="contact__skills-list-item">
+            <span>{% conditionalTagLink collections.all, "site" %}</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</article>

@@ -1,7 +1,7 @@
 /**
  * Assertions for custom Jest matchers
  */
-import type { ExpectationResult } from 'expect'
+import type { ExpectationResult } from "@vitest/expect"
 
 export function isObject(input: unknown): input is object {
   /* eslint-disable-next-line no-null/no-null */

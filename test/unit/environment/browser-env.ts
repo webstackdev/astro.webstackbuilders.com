@@ -1,33 +1,32 @@
-/// <reference path="../@types/global.jsdom.d.ts" />
 /**
  * Custom Jest environment to add globals. Environment setup/teardown methods here
  *  are executed before/after every test file in its own environment. Added as a
  * testEnvironment in test/jest/jest.config.jsdom.ts
  */
-import { clearImmediate, setImmediate } from 'timers'
-import { TextDecoder, TextEncoder } from 'util'
-import { Event as CircusEvent, State as CircusState } from 'jest-circus'
-import { ModuleMocker } from 'jest-mock'
-import { installCommonGlobals } from 'jest-util'
-import { JSDOM } from 'jsdom'
-import type { Context } from 'vm'
+import { clearImmediate, setImmediate } from "timers"
+import { TextDecoder, TextEncoder } from "util"
+import { Event as CircusEvent, State as CircusState } from "jest-circus"
+import { ModuleMocker } from "jest-mock"
+import { installCommonGlobals } from "jest-util"
+import { JSDOM } from "jsdom"
+import type { Context } from "vm"
 import type {
   EnvironmentContext,
   JestEnvironment,
   JestEnvironmentConfig
-} from '@jest/environment'
-import type { LegacyFakeTimers, ModernFakeTimers } from '@jest/fake-timers'
-import type { Global } from '@jest/types'
-import { getJsdomQuietModeFlag } from '../jsdomQuietMode'
-import { getJsdomInstance } from './jsdomEnv'
+} from "@jest/environment"
+import type { LegacyFakeTimers, ModernFakeTimers } from "@jest/fake-timers"
+import type { Global } from "@jest/types"
+import { getJsdomQuietModeFlag } from "../jsdomQuietMode"
+import { getJsdomInstance } from "./jsdomEnv"
 import {
   getCustomExportConditions,
   getLegacyFakeTimers,
   getModernFakeTimers
-} from './helpers'
-import * as listeners from './listeners'
-import { ListenerState } from './state'
-import { WorkerPool } from '../helpers/workers/pool'
+} from "./helpers"
+import * as listeners from "./listeners"
+import { ListenerState } from "./state"
+import { WorkerPool } from "../helpers/workers/pool"
 
 export const isJsdomSetOnGlobal = () => {
   /* eslint-disable-next-line no-null/no-null */

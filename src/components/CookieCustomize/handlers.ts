@@ -2,27 +2,28 @@
 // plus focus trap and set opaque on rest of site
 
 
-export const openCity = (evt: Event, cityName: string) => {
-  // Declare all variables
-  let tabcontent, tablinks
-  let i
-
-
+export const openCity = (event: Event, cityName: string) => {
   // Get all elements with class="tabcontent" and hide them
-  tabcontent = document.getElementsByClassName('tabcontent')
-  for (i = 0; i < tabcontent.length; i++) {
-    tabcontent[i].style.display = 'none'
-  }
+  const tabcontent = document.getElementsByClassName('tabcontent') as HTMLCollectionOf<HTMLElement>
+  const tabcontentArray = Array.from(tabcontent);
+  tabcontentArray.forEach(tabcontent => {
+    tabcontent.style.display = 'none'
+  });
 
   // Get all elements with class="tablinks" and remove the class "active"
-  tablinks = document.getElementsByClassName('tablinks')
-  for (i = 0; i < tablinks.length; i++) {
-    tablinks[i].className = tablinks[i].className.replace(' active', '')
-  }
+  const tablinks = document.getElementsByClassName('tablinks') as HTMLCollectionOf<HTMLElement>
+  const tablinksArray = Array.from(tabcontent);
+  tablinksArray.forEach(tablinks => {
+    tablinks.className.replace(' active', '')
+  });
+
 
   // Show the current tab, and add an "active" class to the button that opened the tab
-  document.getElementById(cityName).style.display = 'block'
-  evt.currentTarget.className += ' active'
+  const currentTab = document.getElementById(cityName)
+  if (currentTab) currentTab.style.display = 'block'
+
+  const target = event.currentTarget as HTMLElement
+  if (target) target.className += ' active'
 }
 
 /*

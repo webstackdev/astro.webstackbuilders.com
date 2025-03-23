@@ -1,6 +1,6 @@
-const { parentPort } = require('worker_threads')
-const tsCompile = require('./compileTs')
-const loadHtmlTemplate = require('./loadHtmlTemplate')
+const { parentPort } = require("worker_threads")
+const tsCompile = require("./compileTs")
+const loadHtmlTemplate = require("./loadHtmlTemplate")
 
 /**
  * Orchestrator is ran inside a worker thread and is responsible for executing the helper task

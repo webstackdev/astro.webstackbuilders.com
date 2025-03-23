@@ -1,0 +1,32 @@
+---
+permalink: "{{ buildPaths.tmpDir }}/template.html"
+eleventyExcludeFromCollections: true
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      {% raw %}{{ style }}{% endraw %}
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>
+        {# Empty <h1> element is required as a hook for the script to replace #}
+        <h1></h1>
+        {# Custom template variables added as data-* attributes on elements to swap #}
+        <p data-description></p>
+        <p>
+          <em>Published on</em>&nbsp;&nbsp;<strong>{{ meta.siteName }}</strong> <small data-postdate></small>
+        </p>
+      </div>
+    </header>
+  </body>
+</html>

@@ -1,10 +1,10 @@
 /**
  * From 'jest-extended', but that library does not compile due to bad typings
  */
-import type { MatcherFunction } from 'expect'
-import { getType } from 'jest-get-type'
+import { type RawMatcherFn } from "@vitest/expect"
+import { getType } from "@test/unit/utils/getType"
 
-export const toBeObject: MatcherFunction = function (actual: unknown) {
+export const toBeObject: RawMatcherFn = function (actual: unknown) {
   const { printReceived, matcherHint } = this.utils
 
   const passHint = matcherHint('.not.toBeObject', 'received', '')

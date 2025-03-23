@@ -1,0 +1,45 @@
+{% set suggestedArticles = collections.articles | excludeItemFromCollection(page) | slice(-10) %}
+<ol>
+  {% for article in suggestedArticles | reverse %}
+    <li class="suggested-articles__item">
+      <a href="{{ article.url | url }}" class="suggested-articles__link">
+        <span
+          class="suggested-articles__title"
+          itemprop="headline"
+        >
+          {{ article.data.title }}
+        </span>
+        <time
+          class="suggested-articles__date"
+          itemprop="datePublished"
+          datetime="{{ article.date | dateToISO }}"
+          aria-label=", written {{ article.date | readableDate }}"
+        >
+          {{ article.date | readableDate }}
+        </time>
+        {#- Article Excerpt -#}
+        <p class="suggested-articles__item-excerpt" itemprop="abstract">
+          {#- Article Description -#}
+          {% if post.data.description %}
+            {{ post.data.description }}
+            {% set hasDescription = true %}
+          {% endif %}
+          {#- Article Excerpt -#}
+          {%- if post.data.page.excerpt and (hasDescription !== true) -%}
+            {% renderTemplate "md" %}
+              {{ post.data.page.excerpt }}
+            {% endrenderTemplate %}
+            {% set hasExcerpt = true %}
+          {%- endif -%}
+          {%- if (hasExcerpt !== true) and (hasDescription !== true) -%}
+            <p>Should throw an error, if reached here it's because the page has no description set in the front matter and no excerpt separator set in the content body.</p>
+          {%- endif -%}
+        </p>
+        {#- Article Time To Read -#}
+        <p class="suggested-articles__item-time-to-read" itemprop="wordCount">
+          It will take {{ post.templateContent | timeToRead }} to read this
+        </p>
+      </a>
+    </li>
+  {% endfor %}
+</ol>
