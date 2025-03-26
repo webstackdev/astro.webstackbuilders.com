@@ -1,6 +1,7 @@
 import { defineConfig/*, envField*/ } from 'astro/config'
 import mdx from '@astrojs/mdx'
 import preact from "@astrojs/preact"
+import tailwindcss from '@tailwindcss/vite';
 // import svgSprite from "astro-svg-sprite"
 // import remarkToc from 'remark-toc'
 // import { rehypeAccessibleEmojis } from 'rehype-accessible-emojis'
@@ -8,6 +9,7 @@ import preact from "@astrojs/preact"
 export default defineConfig({
   /** Site name accessible using import.meta.env.SITE */
   site: 'https://webstackbuilders.com',
+
   integrations: [
     mdx(/*{
       syntaxHighlight: 'shiki', // 'prism'
@@ -25,6 +27,7 @@ export default defineConfig({
     }),
     */
   ],
+
   /**
    * Env var usage:
    *
@@ -57,5 +60,9 @@ export default defineConfig({
        */
     }
   },
+
   prefetch: true,
+  vite: {
+    plugins: [tailwindcss()],
+  },
 })
