@@ -7,32 +7,15 @@
 export type Props = Record<string, never>
 ```
 
-
-
 ## Editor / CMS
 
 - TinaCMS
 
 Has an opinionated approach to collections.
 
-
-
-
 ## Using SCSS preprocessor
 
 Use `<style lang="scss">` in `.astro` files.
-
-
-
-## Avoiding PurgeCSS Removing In-Use Classes
-
-Don't dynamically build class names, generate whole class names:
-
-```react
-<div class="{{ error ? 'text-red-600' : 'text-green-600' }}"></div>
-```
-
-
 
 ## Markdown styling
 

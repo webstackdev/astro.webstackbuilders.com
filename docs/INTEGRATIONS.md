@@ -34,7 +34,7 @@ Adds `target="_blank" rel="noreferrer"` to all external links
 
 Accessible emoji shortcode and filter. Usage:
 
-``` {% emoji "⚙️", "settings gear" %} or {{ "⚙️" | emoji: "settings gear" }}```
+```{% emoji "⚙️", "settings gear" %} or {{ "⚙️" | emoji: "settings gear" }}```
 
 - **`eleventy-plugin-nesting-toc`**
 
@@ -91,26 +91,17 @@ Adds filter for analyzing content input into the filter and returning a time-to-
   }
 ```
 
-
-
 ## Analytics
 
 ### [Astro Analytics](https://www.npmjs.com/package/astro-analytics)
 
 Adds code snippets for popular analytics services, including GA.
 
-
-
 ## Build System
 
-### [Critters](https://github.com/GoogleChromeLabs/critters) Critical CSS inliner by Google.
+### [Critters](https://github.com/GoogleChromeLabs/critters) Critical CSS inliner by Google
 
 Designed for SSG. SSR doesn't use.
-
-### [PurgeCSS](https://www.npmjs.com/package/astro-purgecss) (**`installed`**)
-
-  1. See notes on setting up for SSR
-  1. Might need to whitelist classes that are applied to Markdown content since PurgeCSS might not be able to match the class and element like for code blocks. Tailwind's setup preserves all basic HTML element styles in your CSS, not sure if that's default behavior for PurgeCSS.
 
 ### [astro-svg-sprite](https://www.npmjs.com/package/astro-svg-sprite) (**`installed`**)
 
@@ -127,12 +118,7 @@ import Sprite from 'components/Sprite.astro'
 
 ### [Tailwind](https://docs.astro.build/en/guides/integrations-guide/tailwind/) (**`installed`**)
 
-
-
 ## Comments
-
-
-
 
 ## Compression
 
@@ -143,8 +129,6 @@ Runs Sharp to compress images, Terser for HTML minification, CSSO for CSS minifi
 ### [`astro-compressor`](https://www.npmjs.com/package/astro-compressor)
 
 Gzip and Brotli file compressor for static builds. SSR compression requires setting up middleware (notes on project page). Handles CSS, HTML, JS, SVGs, XML, and others.
-
-
 
 ## Components
 
@@ -177,8 +161,6 @@ import "astro-breadcrumbs/breadcrumbs.css";
 <Breadcrumbs />
 ```
 
-
-
 ### [`clipboard-copy`](https://github.com/BryceRussell/astro-github-elements/tree/main/packages/clipboard-copy#astro-github-elementsclipboard-copy)
 
 Astro wrapper for the `@github/clipboard-copy-element` web component. Copies element text content or input values to the clipboard.
@@ -195,8 +177,6 @@ Astro wrapper for GitHub's relative time web component. Translates dates to past
 
 Display text in a circular layout.
 
-
-
 ## Images
 
 ### [Astro - ImageKit integration + component](https://www.npmjs.com/package/astro-imagekit)
@@ -206,8 +186,6 @@ Imagekit is a SaaS video and image optimization service, DAM, and CDN.
 ### [astro-mapped-images](https://github.com/techaurelian/astro-mapped-images#astro-mapped-images)
 
 An Astro image component that handles both local and external images and includes the correct width and height attributes using pre-generated  image maps.
-
-
 
 ## Markdown
 
@@ -229,8 +207,6 @@ Maintained by Astro project, marked experimental. Created by Stripe for their pu
 
 > Markdoc allows you to enhance your Markdown with Astro components. If you have existing content authored in Markdoc, this integration  allows you to bring those files to your Astro project using content  collections.
 
-
-
 ## Miscellaneous
 
 ### [`astro-auto-import`](https://www.npmjs.com/package/astro-auto-import)
@@ -251,7 +227,6 @@ Adds some custom directives:
 | client:hover  | element mouseover event                |
 | client:scroll | window scroll event                    |
 
-
 ### [Prefetch](https://www.npmjs.com/package/@astrojs/prefetch) (**`installed`**)
 
 1. Add `rel="prefetch"` to any `<a />` tags to prefetch when visible
@@ -261,15 +236,11 @@ Adds some custom directives:
 
 Allows any Mastodon instance to discover your Mastodon profile directly from your own domain.
 
-
-
 ## Nativation
 
 ### [`astro-navigation`](https://www.npmjs.com/package/@prosellen/astro-navigation)
 
 Create a navigation structure from a JSON object.
-
-
 
 ## Search
 
@@ -279,14 +250,7 @@ Lunr is a JS search library using an inverted index. Client-side search for stat
 
 ### [`@siverv/astro-lunr`](https://www.npmjs.com/package/@siverv/astro-lunr)
 
-
-
-
 ## SEO
-
-
-
-
 
 ## Sitemap
 
@@ -295,8 +259,6 @@ Astrolib's version automatically creates a link to the sitemap in the `<head>` s
 ### [`@astrojs/sitemap`](https://docs.astro.build/en/guides/integrations-guide/sitemap/)
 
 Generates a sitemap based on your pages when you build your Astro project.
-
-
 
 ## Site Pages (robots)
 
@@ -316,13 +278,9 @@ Generates a web application manifest for a Progressive Web App (PWA), favicon, i
 
 Cookie Consent modal and handler.
 
-
-
 ## Social Share
 
 ### [astro-social-share](https://github.com/silent1mezzo/astro-social-share#readme)
-
-
 
 ## Social Media Preview Generators
 

@@ -12,7 +12,6 @@ export default getViteConfig({
     '<rootDir>/test/unit/vitest.config.jsdom.ts',
     '<rootDir>/test/unit/vitest.config.node.ts'
   ],
-  // @ts-expect-error - `test` is not a valid Vite config option
   test: {
     include: ['src/**/*.spec.ts?(x)'],
     environmentMatchGlobs: [
