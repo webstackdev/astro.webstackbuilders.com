@@ -1,7 +1,6 @@
 ---
 id: "philosophy"
 title: "Philosophy"
-tags: ["site", "about", "philosophy"]
 ---
 
 - I strive to keep my development process efficient and fully transparent, allowing us to deliver your software product on time and on budget.

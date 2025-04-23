@@ -1,7 +1,6 @@
 ---
 id: "backend"
 title: "Back-End Work"
-tags: ["site", "about", "backend"]
 ---
 
 I admit - I love database technology. Normalization, procedures, triggers, indexes, and the math of graph traversal all interest me. I'm handy with vanilla SQL (PostgreSQL/MySQL),  NoSQL (document, key/value, graph), and ORMs (data mapper and active record). I'm good at troubleshooting data layer problems.

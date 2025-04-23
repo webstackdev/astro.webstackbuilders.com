@@ -1,5 +1,6 @@
 /**
- * List of tags to use for validation
+ * List of tags to use for validation. These can't be an Astro Collection because
+ * they're used to validate that other Astro Collections have valid tags.
  */
 type ZodEnumType = [string, ...string[]]
 
@@ -49,7 +50,7 @@ export const validTags: ZodEnumType = [
   ...serviceOfferingsTags,
 ]
 
-/** Allow normalizing non-camelCased tag names */
+/** List of normalizations for tag names that can be used in UI */
 export const exceptions = {
   apiDesign: `API Design`,
   aws: `AWS`,

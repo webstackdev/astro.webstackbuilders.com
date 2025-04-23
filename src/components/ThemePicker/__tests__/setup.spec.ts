@@ -11,7 +11,7 @@ import {
   vi,
 } from "vitest"
 import { loadHtmlTemplate } from "@test/unit/helpers/workers"
-import storage from "@data/storage"
+import storage from "@content/_storage"
 import { getThemePickerItemCard } from "./testHelper"
 import { SELECTORS } from "../selectors"
 import { CLASSES, setupThemePicker, ThemePicker, type ThemeIds } from "../setup"

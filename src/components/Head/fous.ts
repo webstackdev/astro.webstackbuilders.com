@@ -1,7 +1,7 @@
 /**
  * This is ran from <head> in a base layout to avoid a "flash of un-themed styling"
  */
-import storage from "@data/storage"
+import storage from "@content/_storage"
 import themes from "@data/themes.json"
 
 export const themeSetup = () => {

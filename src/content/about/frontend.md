@@ -1,7 +1,6 @@
 ---
 id: "frontend"
 title: "Front-End Work"
-tags: ["site", "about", "frontend"]
 ---
 
 I've had a long journey client side, starting with EmberJS and JQuery. These days I focus on React, vanilla CRA, and the frameworks that have grown up around it - NextJS, Gatsby, Redwood, and the headless CMS platforms like Sanity and Contentful. I have a fairly deep knowledge of browser native APIs, the browser rendering pipeline, and CSS3. I'm competent with a variety of styling systems, including design tokens, SASS, CSS-in-JS, BEM, and Tailwind.

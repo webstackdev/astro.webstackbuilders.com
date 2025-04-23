@@ -1,7 +1,6 @@
 ---
 id: "intro"
 title: "Introduction"
-tags: ["site", "about", "intro"]
 ---
 
 Webstack Builders is my solo software development agency.

@@ -1,9 +1,7 @@
 ---
 title: "Services Overview"
-slug: services-overview
-date: 2021-03-31
+publishDate: 2021-03-31
 tags: services
-active: true
 ---
 
 ## Consulting
