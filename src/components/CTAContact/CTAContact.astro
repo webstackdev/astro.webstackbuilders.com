@@ -1,0 +1,40 @@
+---
+// Contact CTA component for contact calls-to-action
+export interface Props {
+  title?: string
+  description?: string
+  primaryLink?: {
+    href: string
+    text: string
+  }
+  secondaryLink?: {
+    href: string
+    text: string
+  }
+}
+
+const {
+  title = "Ready to Start Your Project?",
+  description = "Let's discuss your goals and create something amazing together.",
+  primaryLink = { href: "/contact", text: "Get In Touch" },
+  secondaryLink = { href: "/services", text: "View Services" }
+} = Astro.props
+---
+
+<section class="cta-contact">
+  <div class="cta-contact__inner">
+    <h2 class="cta-contact__title">{title}</h2>
+    <p class="cta-contact__description">{description}</p>
+
+    <div class="cta-contact__actions">
+      <a href={primaryLink.href} class="cta-contact__button cta-contact__button--primary">
+        {primaryLink.text}
+      </a>
+      {secondaryLink && (
+        <a href={secondaryLink.href} class="cta-contact__button cta-contact__button--secondary">
+          {secondaryLink.text}
+        </a>
+      )}
+    </div>
+  </div>
+</section>

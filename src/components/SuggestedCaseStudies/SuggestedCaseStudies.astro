@@ -1,0 +1,77 @@
+---
+// SuggestedCaseStudies component for displaying related case studies
+import { getCollection } from 'astro:content'
+import { formatDate, toISODate } from '../../lib/utils/date'
+
+export interface Props {
+  currentSlug?: string
+  limit?: number
+  title?: string
+}
+
+const {
+  currentSlug,
+  limit = 6,
+  title = "Related Case Studies"
+} = Astro.props
+
+// Get all case studies from content collection
+const allCaseStudies = await getCollection('caseStudies')
+
+// Filter out current case study and get latest case studies
+const suggestedCaseStudies = allCaseStudies
+  .filter(caseStudy => caseStudy.id !== currentSlug)
+  .sort((a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime())
+  .slice(0, limit)
+---
+
+{suggestedCaseStudies.length > 0 && (
+  <section class="suggested-case-studies">
+    <h2 class="suggested-case-studies__title">{title}</h2>
+    <div class="suggested-case-studies__grid">
+      {suggestedCaseStudies.map((caseStudy) => (
+        <article class="suggested-case-studies__item">
+          <a href={`/case-studies/${caseStudy.id}/`} class="suggested-case-studies__link">
+            {caseStudy.data.image && (
+              <div class="suggested-case-studies__image">
+                <img
+                  src={caseStudy.data.image.src}
+                  alt={caseStudy.data.image.alt}
+                  loading="lazy"
+                />
+              </div>
+            )}
+
+            <div class="suggested-case-studies__content">
+              <h3 class="suggested-case-studies__item-title" itemprop="headline">
+                {caseStudy.data.title}
+              </h3>
+
+              {caseStudy.data.description && (
+                <p class="suggested-case-studies__item-description" itemprop="abstract">
+                  {caseStudy.data.description}
+                </p>
+              )}
+
+              <time
+                class="suggested-case-studies__date"
+                itemprop="datePublished"
+                datetime={toISODate(caseStudy.data.publishDate)}
+              >
+                {formatDate(caseStudy.data.publishDate, 'MMMM yyyy')}
+              </time>
+
+              {caseStudy.data.tags && (
+                <div class="suggested-case-studies__tags">
+                  {caseStudy.data.tags.slice(0, 3).map(tag => (
+                    <span class="suggested-case-studies__tag">{tag}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </a>
+        </article>
+      ))}
+    </div>
+  </section>
+)}

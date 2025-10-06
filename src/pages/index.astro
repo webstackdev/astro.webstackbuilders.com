@@ -1,12 +1,25 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro'
+import Hero from '@components/Hero/Hero.astro'
+import Testimonials from '@components/Testimonials/Testimonials.astro'
+import Services from '@components/Services/Services.astro'
+import heroSvg from '@assets/images/site/hero.svg'
 
-const pageTitle = "Home Page"
+const pageTitle = "Web Development & Digital Solutions - Webstack Builders"
+const path = "/"
 ---
 <BaseLayout pageTitle={pageTitle} path={path}>
-  <h2>My awesome blog Home Page</h2>
-</BaseLayout>
+  <Hero>
+    <img
+      slot="hero-image"
+      src={heroSvg.src}
+      alt="Web development illustration"
+      class="hero__svg"
+    />
+  </Hero>
 
-sudo openstack endpoint create --region RegionOne network public http://192.168.50.168:9696
-b2bda2d06de84cbe8aa496f260a52ee5
+  <Services title="Featured Services" featured={true} limit={3} />
+
+  <Testimonials limit={3} />
+</BaseLayout>
 

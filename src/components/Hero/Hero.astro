@@ -1,0 +1,67 @@
+---
+// Hero component for the landing page
+import Sprite from "@components/Sprite.astro"
+
+export interface Props {
+  pretitle?: string
+  title?: string
+  benefits?: Array<{
+    text: string
+    highlight: string
+  }>
+  primaryLink?: {
+    href: string
+    text: string
+  }
+  secondaryLink?: {
+    href: string
+    text: string
+  }
+}
+
+const {
+  pretitle = "Client-Focused Web Application Developer",
+  title = "",
+  benefits = [
+    { text: "increase in sales", highlight: "57%" },
+    { text: "ROI for every $1", highlight: "$114" },
+    { text: "conversion", highlight: "Up to 400%" }
+  ],
+  primaryLink = { href: "/services/web-development", text: "Improve Your Product" },
+  secondaryLink = { href: "/services/consulting", text: "Start from scratch" }
+} = Astro.props
+---
+
+<section class="hero">
+  <div class="hero__inner">
+    <span class="hero__pretitle">{pretitle}</span>
+    <h1 class="hero__title">{title}</h1>
+    <div class="hero__content">
+      <div class="hero__cta_badge">Up to:</div>
+      <ul class="hero__cta_list">
+        {benefits.map(benefit => (
+          <li class="hero__cta_points">
+            <span class="hero__icon">
+              <Sprite name="check" />
+            </span>
+            <span class="hero__cta_lead">
+              <strong>{benefit.highlight}</strong> {benefit.text};
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+    <a class="hero__link" href={primaryLink.href}>
+      {primaryLink.text}
+    </a>
+    <a class="hero__link" href={secondaryLink.href}>
+      {secondaryLink.text}
+    </a>
+  </div>
+  <div class="hero__image">
+    <slot name="hero-image">
+      <!-- Default hero image or SVG goes here -->
+      <div class="hero__placeholder">Hero Image</div>
+    </slot>
+  </div>
+</section>

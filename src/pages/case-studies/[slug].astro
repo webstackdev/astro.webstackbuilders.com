@@ -1,0 +1,31 @@
+---
+import { getCollection } from 'astro:content'
+import CaseStudyLayout from "../../layouts/CaseStudyLayout.astro"
+import SuggestedCaseStudies from "../../components/SuggestedCaseStudies/SuggestedCaseStudies.astro"
+
+export async function getStaticPaths() {
+  const caseStudyEntries = await getCollection('caseStudies')
+  return caseStudyEntries.map(caseStudy => ({
+    params: { slug: caseStudy.id }, props: { caseStudy },
+  }))
+}
+
+const { caseStudy } = Astro.props
+const path = `/case-studies/${caseStudy.id}/`
+---
+
+<CaseStudyLayout
+  pageTitle={caseStudy.data.title}
+  path={path}
+  cover={caseStudy.data.image ? { src: caseStudy.data.image, alt: caseStudy.data.title } : undefined}
+  meta={{
+    date: caseStudy.data.publishDate,
+    client: caseStudy.data.client,
+    technologies: caseStudy.data.tags,
+    draft: caseStudy.data.isDraft || false
+  }}
+>
+  <div set:html={caseStudy.rendered?.html || ''} />
+
+  <SuggestedCaseStudies currentSlug={caseStudy.id} limit={4} slot="suggested-content" />
+</CaseStudyLayout>

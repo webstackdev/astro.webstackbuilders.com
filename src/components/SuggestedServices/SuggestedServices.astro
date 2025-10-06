@@ -1,0 +1,68 @@
+---
+// SuggestedServices component for displaying related services
+import { getCollection } from 'astro:content'
+
+export interface Props {
+  currentSlug?: string
+  limit?: number
+  title?: string
+}
+
+const {
+  currentSlug,
+  limit = 4,
+  title = "Related Services"
+} = Astro.props
+
+// Get all services from content collection
+const allServices = await getCollection('services')
+
+// Filter out current service and get latest services
+const suggestedServices = allServices
+  .filter(service => service.id !== currentSlug)
+  .sort((a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime())
+  .slice(0, limit)
+---
+
+{suggestedServices.length > 0 && (
+  <section class="suggested-services">
+    <h2 class="suggested-services__title">{title}</h2>
+    <div class="suggested-services__grid">
+      {suggestedServices.map((service) => (
+        <article class="suggested-services__item">
+          <a href={`/services/${service.id}/`} class="suggested-services__link">
+            {service.data.icon && (
+              <div class="suggested-services__icon">
+                <img
+                  src={service.data.icon}
+                  alt=""
+                  loading="lazy"
+                />
+              </div>
+            )}
+
+            <div class="suggested-services__content">
+              <h3 class="suggested-services__item-title" itemprop="headline">
+                {service.data.title}
+              </h3>
+
+              {service.data.description && (
+                <p class="suggested-services__item-description" itemprop="abstract">
+                  {service.data.description}
+                </p>
+              )}
+
+              {service.data.tags && (
+                <div class="suggested-services__tags">
+                  {service.data.tags.slice(0, 2).map(tag => (
+                    <span class="suggested-services__tag">{tag}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </a>
+        </article>
+      ))}
+    </div>
+  </section>
+)}

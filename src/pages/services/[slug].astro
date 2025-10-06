@@ -1,0 +1,29 @@
+---
+import { getCollection } from 'astro:content'
+import ServiceLayout from "../../layouts/ServiceLayout.astro"
+import SuggestedServices from "../../components/SuggestedServices/SuggestedServices.astro"
+
+export async function getStaticPaths() {
+  const serviceEntries = await getCollection('services')
+  return serviceEntries.map(service => ({
+    params: { slug: service.id }, props: { service },
+  }))
+}
+
+const { service } = Astro.props
+const path = `/services/${service.id}/`
+---
+
+<ServiceLayout
+  pageTitle={service.data.title}
+  path={path}
+  meta={{
+    category: service.data.category,
+    technologies: service.data.tags,
+    draft: service.data.isDraft || false
+  }}
+>
+  <div set:html={service.rendered?.html || ''} />
+
+  <SuggestedServices currentSlug={service.id} limit={4} slot="suggested-content" />
+</ServiceLayout>

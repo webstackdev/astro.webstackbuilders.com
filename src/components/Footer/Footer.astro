@@ -1,9 +1,10 @@
 ---
 import { Image } from 'astro:assets'
 import company from "@content/company"
+import contactData from "@content/contact.json"
 import { absoluteUrl, formatPhoneNumber } from "@lib/helpers"
 import Sprite from "@components/Sprite.astro"
-import AuthorAvatar from "./src/assets/images/avatars/kevin-brown.webp"
+import AuthorAvatar from "../../assets/images/avatars/kevin-brown.webp"
 
 import "./Footer.scss"
 
@@ -20,20 +21,20 @@ const year = new Date().getFullYear();
     <address class="page-footer__contact-details">
       <h2 class="page-footer__contact-name">{company.name}</h2>
       <div  class="page-footer__contact-address">
-        <p>{company.address}</p>
-        <p>{company.city}, {company.state} {company.index}</p>
+        <p>{contactData.company.address}</p>
+        <p>{contactData.company.city}, {contactData.company.state} {contactData.company.index}</p>
       </div>
       <p class="page-footer__contact-email">
-        <a href=`mailto:${company.email}`>{company.email}</a>
+        <a href=`mailto:${contactData.company.email}`>{contactData.company.email}</a>
       </p>
       <p class="page-footer__contact-toll-free" itemprop="telephone">
-        <a href=`tel:${company.telephoneTollFree}` rel="nofollow">
-          Toll Free {formatPhoneNumber(company.telephoneTollFree)}
+        <a href=`tel:${contactData.company.telephoneTollFree}` rel="nofollow">
+          Toll Free {formatPhoneNumber(contactData.company.telephoneTollFree)}
         </a>
       </p>
       <p class="page-footer__contact-local" itemprop="telephone">
-        <a href=`tel:${company.telephoneLocal}` rel="nofollow">
-          Local {formatPhoneNumber(company.telephoneLocal)}
+        <a href=`tel:${contactData.company.telephoneLocal}` rel="nofollow">
+          Local {formatPhoneNumber(contactData.company.telephoneLocal)}
         </a>
       </p>
     </address>
@@ -48,42 +49,50 @@ const year = new Date().getFullYear();
   </div>
   {/* Page footer Social Share links */}
   <div class="page-footer__social">
-    <div class="page-footer__social-channel">
-      <a href={company.social.twitter.url} title="Twitter" rel="me">
-        <span class="page-footer__social-icon"><Sprite name="twitter" /></span>
-        <span class="page-footer__social-platform">Twitter</span>
-      </a>
-      <div class="page-footer__social-channel-blurb">
-        Follow for interesting info and opinions on development
+    {contactData.company.social.filter(s => s.network === 'x').map((social) => (
+      <div class="page-footer__social-channel">
+        <a href={social.url} title="Twitter" rel="me">
+          <span class="page-footer__social-icon"><Sprite name="twitter" /></span>
+          <span class="page-footer__social-platform">Twitter</span>
+        </a>
+        <div class="page-footer__social-channel-blurb">
+          Follow for interesting info and opinions on development
+        </div>
       </div>
-    </div>
-    <div class="page-footer__social-channel">
-      <a href={company.social.linkedin.url} title="Linkedin" rel="me">
-        <span class="page-footer__social-icon"><Sprite name="linkedin" /></span>
-        <span class="page-footer__social-platform">Linkedin</span>
-      </a>
-      <div class="page-footer__social-channel-blurb">
-        Let's connect on LinkedIn
+    ))}
+    {contactData.company.social.filter(s => s.network === 'linkedin').map((social) => (
+      <div class="page-footer__social-channel">
+        <a href={social.url} title="Linkedin" rel="me">
+          <span class="page-footer__social-icon"><Sprite name="linkedin" /></span>
+          <span class="page-footer__social-platform">Linkedin</span>
+        </a>
+        <div class="page-footer__social-channel-blurb">
+          Let's connect on LinkedIn
+        </div>
       </div>
-    </div>
-    <div class="page-footer__social-channel">
-      <a href={company.social.github.url} title="Github" rel="me">
-        <span class="page-footer__social-icon"><Sprite name="github" /></span>
-        <span class="page-footer__social-platform">Github</span>
-      </a>
-      <div class="page-footer__social-channel-blurb">
-        Follow our open-source projects including Butterfly and Eleventy plugins
+    ))}
+    {contactData.company.social.filter(s => s.network === 'github').map((social) => (
+      <div class="page-footer__social-channel">
+        <a href={social.url} title="Github" rel="me">
+          <span class="page-footer__social-icon"><Sprite name="github" /></span>
+          <span class="page-footer__social-platform">Github</span>
+        </a>
+        <div class="page-footer__social-channel-blurb">
+          Follow our open-source projects including Butterfly and Eleventy plugins
+        </div>
       </div>
-    </div>
-    <div class="page-footer__social-channel">
-      <a href={company.social.codepen.url} title="Codepen" rel="me">
-        <span class="page-footer__social-icon"><Sprite name="codepen" /></span>
-        <span class="page-footer__social-platform">Codepen</span>
-      </a>
-      <div class="page-footer__social-channel-blurb">
-        Share and modify our front-end test cases and code snippets
+    ))}
+    {contactData.company.social.filter(s => s.network === 'codepen').map((social) => (
+      <div class="page-footer__social-channel">
+        <a href={social.url} title="Codepen" rel="me">
+          <span class="page-footer__social-icon"><Sprite name="codepen" /></span>
+          <span class="page-footer__social-platform">Codepen</span>
+        </a>
+        <div class="page-footer__social-channel-blurb">
+          Share and modify our front-end test cases and code snippets
+        </div>
       </div>
-    </div>
+    ))}
   </div>
   <div class="page-footer__bottom-row">
     {/* Page footer Subscribe link */}

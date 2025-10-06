@@ -1,5 +1,4 @@
 import { addButtonEventListeners } from '@lib/utils/elementListeners'
-import storage from '@content/_storage'
 import { getNavToggleBtnElement } from '@components/Navigation/selectors'
 import {
   getThemePickerToggleButton,
@@ -8,7 +7,7 @@ import {
   getThemePickerSelectButtons,
 } from './selectors'
 
-const { THEME_STORAGE_KEY } = storage
+const THEME_STORAGE_KEY = 'theme'
 export const CLASSES = {
   isOpen: `is-open`,
   active: `is-active`,
@@ -135,9 +134,10 @@ export class ThemePicker {
      *     Used to set the color of the surrounding user interface for e.g. the
      *     browser title bar. It is updated by script when the theme changes.
      */
-    if (!!document.querySelector(`meta[name="theme-color"]`) && window.metaColors) {
+    if (!!document.querySelector(`meta[name="theme-color"]`) && (window as any).metaColors) {
+      const metaColors = (window as any).metaColors;
       const metaColor =
-        'themeId' in window.metaColors ? (window.metaColors[themeId] as string) : `default`
+        themeId in metaColors ? (metaColors[themeId] as string) : `#e2e2e2`
       const metaTag = document.querySelector(`meta[name="theme-color"]`)
       if (metaTag) {
         metaTag.setAttribute(`content`, metaColor)

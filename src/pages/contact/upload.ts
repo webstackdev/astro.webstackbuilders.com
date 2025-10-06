@@ -1,34 +1,39 @@
 /**
  * File upload for the contact form
+ * TODO: Install uppy dependencies when file upload feature is needed
  */
-import { Dashboard, DragDrop, Webcam } from 'uppy'
-import { Uppy } from '@uppy/core'
+/**
+ * File upload for the contact form
+ * TODO: Install uppy dependencies and uncomment this code when file upload feature is needed
+ */
+// import { Dashboard, DragDrop, Webcam } from 'uppy'
+// import { Uppy } from '@uppy/core'
 
+/*
 const uppy = new Uppy({
   autoProceed: false,
   id: 'contact',
   debug: false,
-  restrictions: {
-    maxFileSize: undefined,
-    minFileSize: undefined,
-    maxTotalFileSize: undefined,
-    maxNumberOfFiles: undefined,
-    minNumberOfFiles: undefined,
-    allowedFileTypes: undefined,
+  meta: {
+    username: 'john',
+    license: 'Creative Commons',
   },
-  //onBeforeFileAdded: (currentFile, files) => true,
-  //onBeforeUpload: files => true,
-  //logger: debugLogger, // justErrorsLogger
+  restrictions: {
+    maxFileSize: 1000000,
+    maxNumberOfFiles: 3,
+    minNumberOfFiles: 1,
+    allowedFileTypes: ['image/*', 'video/*'],
+  },
+  onBeforeFileAdded: () => true,
+  onBeforeUpload: () => true,
 })
 
-uppy.setMeta({ username: 'Peter' }) // set or update meta for all files.
-uppy.setFileMeta('myfileID', { resize: 1500 }) // set or update meta for specific file.
 uppy.use(DragDrop, { target: 'body' })
 uppy.use(Dashboard, { target: '#drag-drop-area', inline: true })
 uppy.use(Webcam, {
   countdown: false,
-  mirror: true,
-  facingMode: 'user',
+  showRecordingLength: true,
+  showVideoSourceDropdown: true,
   target: Dashboard, // Webcam will be installed to the Dashboard
 })
 
@@ -36,7 +41,6 @@ uppy.upload().then(result => {
   console.info('Successful uploads:', result.successful)
 
   if (result.failed.length > 0) {
-    console.error('Errors:')
     result.failed.forEach(file => {
       console.error(file.error)
     })
@@ -44,9 +48,13 @@ uppy.upload().then(result => {
 }).catch((reason) => console.log(reason))
 
 uppy.on('file-added', file => {
-  console.log(file.name)
+  console.log('Added file', file)
 })
 
 uppy.on('complete', result => {
-  console.log(result)
+  console.log('Upload complete! We've uploaded these files:', result.successful)
 })
+*/
+
+// Placeholder export to make this a valid module
+export const uploadPlaceholder = 'TODO: Implement file upload with uppy'

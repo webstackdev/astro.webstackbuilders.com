@@ -1,23 +1,35 @@
 ---
 import { getCollection } from 'astro:content'
-import BaseLayout from "@layouts/BaseLayout.astro"
+import ArticleLayout from "@layouts/ArticleLayout.astro"
+import SuggestedArticles from "@components/SuggestedArticles/SuggestedArticles.astro"
 
 export async function getStaticPaths() {
-  const articleEntries = await getCollection('articles')
-  // return import.meta.env.PROD ? data.draft !== true : true;
+  const articleEntries = await getCollection('articles', ({ data }) => {
+    return import.meta.env.PROD ? data.isDraft !== true : true;
+  })
   return articleEntries.map(article => ({
-    params: { slug: article.slug }, props: { article },
+    params: { slug: article.id }, props: { article },
   }))
 }
 
 const { article } = Astro.props
-const { Content } = await article.render()
+// Use the rendered content directly from the article
+const renderedContent = article.rendered?.html || article.body || 'Content not available';
+const path = `/articles/${article.id}/`
 ---
 
-<BaseLayout pageTitle={article.data.title} path={path}>
-  <p>{article.data.publishDate.toString().slice(0, 10)}</p>
-  <p><em>{article.data.description}</em></p>
-  <p>Written by: {article.data.author}</p>
-  <img src={article.data.image.src} width="300" alt={article.data.image.alt} />
-  <Content />
-</BaseLayout>
+<ArticleLayout
+  pageTitle={article.data.title}
+  path={path}
+  cover={article.data.image}
+  meta={{
+    date: article.data.publishDate,
+    author: (article.data.author as any).id || String(article.data.author),
+    tags: article.data.tags,
+    draft: article.data.isDraft
+  }}
+>
+  <div set:html={renderedContent} />
+
+  <SuggestedArticles currentSlug={article.id} limit={5} slot="suggested-content" />
+</ArticleLayout>

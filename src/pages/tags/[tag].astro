@@ -24,6 +24,7 @@ export async function getStaticPaths() {
 
 const { tag } = Astro.params
 const { articles } = Astro.props
+const path = `/tags/${tag}/`
 ---
 
 <BaseLayout pageTitle={tag} path={path}>
@@ -31,7 +32,7 @@ const { articles } = Astro.props
   <ul>
     {
       articles.map((article) => (
-        <li><a href={`/articles/${article.slug}/`}>{article.data.title}</a></li>
+        <li><a href={`/articles/${article.id}/`}>{article.data.title}</a></li>
       ))
     }
   </ul>

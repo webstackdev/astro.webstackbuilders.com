@@ -1,0 +1,105 @@
+---
+import BaseLayout from "./BaseLayout.astro"
+
+export interface Props {
+  pageTitle: string
+  /** The URL path component e.g. 'case-studies/my-project' */
+  path: string
+  /** Case study cover image */
+  cover?: {
+    src: string
+    alt: string
+  }
+  /** Case study metadata */
+  meta: {
+    date: Date
+    client?: string
+    industry?: string
+    technologies?: string[]
+    projectType?: string
+    duration?: string
+    draft?: boolean
+  }
+}
+
+const { pageTitle, path, cover, meta } = Astro.props
+---
+
+<BaseLayout pageTitle={pageTitle} path={path}>
+  <article
+    id="case-study"
+    class="case-study"
+    itemscope
+    itemtype="http://schema.org/CreativeWork"
+    aria-labelledby="case-study-title"
+  >
+    <header class="case-study__header">
+      {cover && (
+        <div class="case-study__cover-image" itemtype="image">
+          <img
+            src={cover.src}
+            alt={cover.alt}
+            loading="eager"
+          />
+        </div>
+      )}
+      <h1
+        id="case-study-title"
+        class="case-study__title"
+        itemprop="headline"
+      >
+        {pageTitle}
+      </h1>
+      <div class="case-study__meta">
+        <time
+          class="case-study__date"
+          itemprop="datePublished"
+          datetime={meta.date.toISOString()}
+        >
+          {meta.date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          })}
+        </time>
+        {meta.client && (
+          <div class="case-study__client">
+            <strong>Client:</strong> {meta.client}
+          </div>
+        )}
+        {meta.industry && (
+          <div class="case-study__industry">
+            <strong>Industry:</strong> {meta.industry}
+          </div>
+        )}
+        {meta.projectType && (
+          <div class="case-study__project-type">
+            <strong>Project Type:</strong> {meta.projectType}
+          </div>
+        )}
+        {meta.duration && (
+          <div class="case-study__duration">
+            <strong>Duration:</strong> {meta.duration}
+          </div>
+        )}
+        {meta.technologies && meta.technologies.length > 0 && (
+          <div class="case-study__technologies">
+            <strong>Technologies:</strong> {meta.technologies.join(', ')}
+          </div>
+        )}
+        {meta.draft && (
+          <div class="case-study__status">(Draft)</div>
+        )}
+      </div>
+    </header>
+    <div class="case-study__content content" itemprop="text">
+      <slot />
+    </div>
+    <div class="suggested-case-studies">
+      <header class="suggested-case-studies__header">
+        <h3>Other projects I've worked on</h3>
+      </header>
+      <slot name="suggested-case-studies" />
+    </div>
+  </article>
+</BaseLayout>

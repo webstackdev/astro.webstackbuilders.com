@@ -1,7 +1,7 @@
 ---
 title: "Services Overview"
 publishDate: 2021-03-31
-tags: services
+tags: ["services"]
 ---
 
 ## Consulting

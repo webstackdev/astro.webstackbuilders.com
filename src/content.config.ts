@@ -84,6 +84,10 @@ const caseStudiesSchema = z.object({
   publishDate: z.date(),
   isDraft: z.boolean().default(false),
   isFeatured: z.boolean().default(false),
+  // Optional fields that may exist in some case studies
+  image: z.string().optional(),
+  client: z.string().optional(),
+  author: reference('authors').optional(),
 })
 
 const caseStudiesCollection = defineCollection({
@@ -104,9 +108,9 @@ const contactDataSocialItemSchema = z.object({
 const contactDataSchema = z.object({
   name: z.string(),
   email: z.string().email(),
-  address: z.string().length(2),
+  address: z.string(),
   city: z.string(),
-  state: z.string(),
+  state: z.string().length(2),
   index: z.string(),
   telephoneLocal: z.string(),
   telephoneMobile: z.string(),
@@ -115,7 +119,7 @@ const contactDataSchema = z.object({
 })
 
 const contactDataCollection = defineCollection({
-  loader: file('./content/contact.json'),
+  loader: file('./src/content/contact.json'),
   schema: contactDataSchema,
 })
 
@@ -141,13 +145,12 @@ const cookiesEntrySchema = z.object({
 })
 
 const cookiesSchema = z.object({
-  "essential-website-cookies": z.array(cookiesEntrySchema),
-  "performance-and-functionality-cookies": z.array(cookiesEntrySchema),
-  "analytics-and-customization-cookies": z.array(cookiesEntrySchema),
+  category: z.string(),
+  cookies: z.array(cookiesEntrySchema),
 })
 
 const cookiesCollection = defineCollection({
-  loader: file('./content/cookies.json'),
+  loader: file('./src/content/cookies.json'),
   schema: cookiesSchema,
 })
 
@@ -180,6 +183,7 @@ const servicesSchema = z.object({
   // In YAML, dates written without quotes around them are interpreted as Date objects
   publishDate: z.date(),
   isDraft: z.boolean().default(false),
+  category: z.string().optional(),
 })
 
 const servicesCollection = defineCollection({
@@ -208,12 +212,13 @@ const sitePagesCollection = defineCollection({
  * and Astro templates, and that need to stay in sync.
  */
 const storageSchema = z.object({
-  THEME_STORAGE_KEY: z.string(),
-}).and(z.record(z.string(), z.string()))
+  key: z.string(),
+  value: z.string(),
+})
 
 const storageCollection = defineCollection({
-  loader: glob({ pattern, base: './src/content/services' }),
-  schema: () => storageSchema,
+  loader: file('./src/content/storage.json'),
+  schema: storageSchema,
 })
 
 /**
@@ -248,18 +253,16 @@ const testimonialCollection = defineCollection({
  */
 
 /** @NOTE: These need to be kept in sync with `src/assets/scss/variables/_themes.scss` */
-const themesSchema = z.array(
-  z.object({
-    id: z.enum(['default', 'dark']),
-    name: z.enum(['Light', 'Dark']),
-    colors: z.object({
-      backgroundOffset: z.string(),
-    })
+const themesSchema = z.object({
+  id: z.enum(['default', 'dark']),
+  name: z.enum(['Light', 'Dark']),
+  colors: z.object({
+    backgroundOffset: z.string(),
   })
-)
+})
 
 const themesCollection = defineCollection({
-  loader: file('./content/themes.json'),
+  loader: file('./src/content/themes.json'),
   schema: themesSchema,
 })
 

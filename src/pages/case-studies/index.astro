@@ -1,0 +1,66 @@
+---
+import { getCollection } from 'astro:content'
+import PageLayout from "../../layouts/PageLayout.astro"
+
+const allCaseStudies = await getCollection('caseStudies')
+const path = "/case-studies/"
+
+// Sort by publish date (newest first)
+const sortedCaseStudies = allCaseStudies
+  .sort((a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime())
+---
+
+<PageLayout
+  pageTitle="Case Studies"
+  path={path}
+  subtitle="Explore our successful projects and client outcomes"
+>
+  <section class="case-studies-grid">
+    {sortedCaseStudies.map((caseStudy) => (
+      <article class="case-study-card">
+        <a href={`/case-studies/${caseStudy.id}/`} class="case-study-link">
+          {caseStudy.data.image && (
+            <div class="case-study-image">
+              <img
+                src={caseStudy.data.image.src}
+                alt={caseStudy.data.image.alt}
+                loading="lazy"
+              />
+            </div>
+          )}
+
+          <div class="case-study-content">
+            <h2 class="case-study-title">{caseStudy.data.title}</h2>
+
+            {caseStudy.data.description && (
+              <p class="case-study-description">
+                {caseStudy.data.description}
+              </p>
+            )}
+
+            <div class="case-study-meta">
+              {caseStudy.data.client && (
+                <span class="case-study-client">Client: {caseStudy.data.client}</span>
+              )}
+
+              <time class="case-study-date">
+                {caseStudy.data.publishDate.toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long'
+                })}
+              </time>
+            </div>
+
+            {caseStudy.data.tags && (
+              <div class="case-study-tags">
+                {caseStudy.data.tags.slice(0, 3).map(tag => (
+                  <span class="case-study-tag">{tag}</span>
+                ))}
+              </div>
+            )}
+          </div>
+        </a>
+      </article>
+    ))}
+  </section>
+</PageLayout>

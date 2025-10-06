@@ -8,6 +8,6 @@
 /** @type {import('postcss-load-config').Config} */
 export default {
   plugins: {
-    ...(import.meta.env.PROD ? { cssnano: {} } : {}),
+    ...(process.env['NODE_ENV'] === 'production' ? { cssnano: {} } : {}),
   }
 }

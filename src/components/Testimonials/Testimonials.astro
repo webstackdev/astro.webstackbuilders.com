@@ -1,0 +1,47 @@
+---
+// Testimonials component for displaying client testimonials
+import { getCollection } from 'astro:content'
+
+export interface Props {
+  title?: string
+  limit?: number
+}
+
+const {
+  title = "Testimonials",
+  limit
+} = Astro.props
+
+// Get all testimonials from content collection
+const allTestimonials = await getCollection('testimonials')
+
+// Sort by publishDate (newest first) and apply limit if specified
+const testimonials = allTestimonials
+  .sort((a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime())
+  .slice(0, limit || allTestimonials.length)
+---
+
+<div class="mod-testimonials">
+  <!-- TODO: Consider using Glide for carousels: A dependency-free JavaScript ES6 slider and carousel. -->
+  <!-- https://glidejs.com/ -->
+  <h1 class="mod-testimonials__header">{title}</h1>
+  <ul class="mod-testimonials__items-container">
+    {testimonials.map((testimonial) => {
+      const avatarSrc = `avatars/${testimonial.data.avatar.src}`
+      const avatarAlt = `Photo of ${testimonial.data.name}`
+
+      return (
+        <li class="mod-testimonials__item">
+          <div class="mod-testimonials__item-name">{testimonial.data.name}</div>
+          <div class="mod-testimonials__item-organization">{testimonial.data.organization}</div>
+          <div class="mod-testimonials__item-content">
+            {testimonial.body}
+          </div>
+          <div class="mod-testimonials__item-avatar">
+            <img src={avatarSrc} alt={avatarAlt} loading="lazy" />
+          </div>
+        </li>
+      )
+    })}
+  </ul>
+</div>

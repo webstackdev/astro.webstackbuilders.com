@@ -1,0 +1,94 @@
+---
+import BaseLayout from "./BaseLayout.astro"
+
+export interface Props {
+  pageTitle: string
+  /** The URL path component e.g. 'articles/my-article' */
+  path: string
+  /** Article cover image */
+  cover?: {
+    src: string
+    alt: string
+  }
+  /** Article metadata */
+  meta: {
+    date: Date
+    author?: string
+    tags?: string[]
+    readingTime?: string
+    draft?: boolean
+  }
+}
+
+const { pageTitle, path, cover, meta } = Astro.props
+---
+
+<BaseLayout pageTitle={pageTitle} path={path}>
+  <article
+    id="article"
+    class="article"
+    itemscope
+    itemtype="http://schema.org/BlogPosting"
+    aria-labelledby="article-title"
+  >
+    <header class="article__header">
+      {cover && (
+        <div class="article__cover-image" itemtype="image">
+          <img
+            src={cover.src}
+            alt={cover.alt}
+            loading="eager"
+          />
+        </div>
+      )}
+      <h1
+        id="article-title"
+        class="article__title"
+        itemprop="headline"
+      >
+        {pageTitle}
+      </h1>
+      <div class="article__meta">
+        <time
+          class="article__date"
+          itemprop="datePublished"
+          datetime={meta.date.toISOString()}
+        >
+          {meta.date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          })}
+        </time>
+        {meta.readingTime && (
+          <p class="article__time-to-read">
+            It will take {meta.readingTime} to read this
+          </p>
+        )}
+        {meta.tags && meta.tags.length > 0 && (
+          <>
+            <span aria-label="in category">&sdot;</span>
+            <span class="article__tags">
+              {meta.tags.join(', ')}
+            </span>
+          </>
+        )}
+        {meta.draft && (
+          <>
+            <span aria-hidden="true">&sdot;</span>
+            <span class="article__status">(Draft)</span>
+          </>
+        )}
+      </div>
+    </header>
+    <div class="article__content content" itemprop="articleBody">
+      <slot />
+    </div>
+    <div class="suggested-articles">
+      <header class="suggested-articles__header">
+        <h3>Other things I've written</h3>
+      </header>
+      <slot name="suggested-articles" />
+    </div>
+  </article>
+</BaseLayout>

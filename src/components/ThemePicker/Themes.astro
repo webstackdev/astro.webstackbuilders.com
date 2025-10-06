@@ -1,5 +1,7 @@
 ---
-import themes from "@data/themes.json"
+import { getCollection } from "astro:content"
+
+const themes = await getCollection("themes")
 import Sprite from "@components/Sprite.astro"
 import "./Themes.scss"
 ---
@@ -10,10 +12,10 @@ import "./Themes.scss"
       <li class="themepicker__item">
         <button
           class="themepicker__selectBtn"
-          aria-label={`select color theme ${theme.name}`}
-          data-theme={theme.id}
+          aria-label={`select color theme ${theme.data.name}`}
+          data-theme={theme.data.id}
         >
-          <span class="themepicker__name">{theme.name}</span>
+          <span class="themepicker__name">{theme.data.name}</span>
           <span class="themepicker__palette">
             <span class="themepicker__hue themepicker__hue--primary"></span>
             <span class="themepicker__hue themepicker__hue--secondary"></span>

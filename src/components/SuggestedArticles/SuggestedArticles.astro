@@ -1,0 +1,63 @@
+---
+// SuggestedArticles component for displaying related articles
+import { getCollection } from 'astro:content'
+import { formatDate, toISODate } from '../../lib/utils/date'
+
+export interface Props {
+  currentSlug?: string
+  limit?: number
+  title?: string
+}
+
+const {
+  currentSlug,
+  limit = 10,
+  title = "Suggested Articles"
+} = Astro.props
+
+// Get all articles from content collection
+const allArticles = await getCollection('articles')
+
+// Filter out current article and get latest articles
+const suggestedArticles = allArticles
+  .filter(article => article.id !== currentSlug)
+  .sort((a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime())
+  .slice(0, limit)
+---
+
+{suggestedArticles.length > 0 && (
+  <section class="suggested-articles">
+    <h2 class="suggested-articles__title">{title}</h2>
+    <ol class="suggested-articles__list">
+      {suggestedArticles.map((article) => (
+        <li class="suggested-articles__item">
+          <a href={`/articles/${article.id}/`} class="suggested-articles__link">
+            <span class="suggested-articles__title" itemprop="headline">
+              {article.data.title}
+            </span>
+            <time
+              class="suggested-articles__date"
+              itemprop="datePublished"
+              datetime={toISODate(article.data.publishDate)}
+              aria-label={`, written ${formatDate(article.data.publishDate, 'MMMM d, yyyy')}`}
+            >
+              {formatDate(article.data.publishDate, 'MMMM d, yyyy')}
+            </time>
+
+            {/* Article Description/Excerpt */}
+            {article.data.description && (
+              <p class="suggested-articles__item-excerpt" itemprop="abstract">
+                {article.data.description}
+              </p>
+            )}
+
+            {/* Reading Time - TODO: Implement reading time calculation */}
+            <p class="suggested-articles__item-time-to-read" itemprop="wordCount">
+              Reading time: ~5 min
+            </p>
+          </a>
+        </li>
+      ))}
+    </ol>
+  </section>
+)}

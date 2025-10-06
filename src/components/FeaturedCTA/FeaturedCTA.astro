@@ -1,0 +1,55 @@
+---
+// Featured CTA component for promotional content
+export interface Props {
+  title?: string
+  description?: string
+  link?: {
+    href: string
+    text: string
+  }
+  image?: {
+    src: string
+    alt: string
+  }
+  audience?: string
+}
+
+const {
+  title = "Featured Content",
+  description = "Discover more content and resources.",
+  link = { href: "/", text: "Learn More" },
+  image,
+  audience = "all"
+} = Astro.props
+---
+
+<div class="featured-cta-container" data-audience={audience}>
+  <aside class="featured-cta">
+    <div class="featured-cta-left-col">
+      <div class="featured-cta-description">
+        <h3 class="featured-cta__title">{title}</h3>
+        <p class="featured-cta__description">
+          {description}
+        </p>
+        <a
+          href={link.href}
+          class="btn btn--green btn--large featured-cta__button"
+        >
+          {link.text}
+        </a>
+      </div>
+    </div>
+    {image && (
+      <div class="featured-cta-right-col">
+        <a href={link.href}>
+          <img
+            src={image.src}
+            alt={image.alt}
+            class="featured-cta__image"
+            loading="lazy"
+          />
+        </a>
+      </div>
+    )}
+  </aside>
+</div>

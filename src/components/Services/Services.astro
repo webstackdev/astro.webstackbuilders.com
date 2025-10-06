@@ -1,0 +1,58 @@
+---
+// Services component for displaying service offerings
+import { getCollection } from 'astro:content'
+
+export interface Props {
+  title?: string
+  limit?: number
+  featured?: boolean
+}
+
+const {
+  title = "Our Services",
+  limit,
+  featured = false
+} = Astro.props
+
+// Get all services from content collection
+const allServices = await getCollection('services')
+
+// Filter and sort services
+let services = allServices
+  .sort((a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime())
+
+// Apply limit if specified
+if (limit) {
+  services = services.slice(0, limit)
+}
+
+// Filter for featured services if requested
+if (featured) {
+  services = services.filter(service => service.data.featured === true)
+}
+---
+
+{services.length > 0 && (
+  <section class="mod-services">
+    <h2 class="mod-services__header">{title}</h2>
+    <ul class="mod-services__items-container">
+      {services.map((service) => (
+        <li class="mod-services__item">
+          <a href={`/services/${service.id}/`} class="mod-services__link">
+            <h3 class="mod-services__item-title">{service.data.title}</h3>
+            {service.data.description && (
+              <p class="mod-services__item-description">
+                {service.data.description}
+              </p>
+            )}
+            {service.data.icon && (
+              <div class="mod-services__item-icon">
+                <img src={service.data.icon} alt="" loading="lazy" />
+              </div>
+            )}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+)}

@@ -1,0 +1,98 @@
+---
+import BaseLayout from "./BaseLayout.astro"
+
+export interface Props {
+  pageTitle: string
+  /** The URL path component e.g. 'services/web-development' */
+  path: string
+  /** Service icon or image */
+  icon?: {
+    src: string
+    alt: string
+  }
+  /** Service metadata */
+  meta: {
+    category?: string
+    pricing?: string
+    duration?: string
+    deliverables?: string[]
+    technologies?: string[]
+    draft?: boolean
+  }
+}
+
+const { pageTitle, path, icon, meta } = Astro.props
+---
+
+<BaseLayout pageTitle={pageTitle} path={path}>
+  <article
+    id="service"
+    class="service"
+    itemscope
+    itemtype="http://schema.org/Service"
+    aria-labelledby="service-title"
+  >
+    <header class="service__header">
+      {icon && (
+        <div class="service__icon" itemtype="image">
+          <img
+            src={icon.src}
+            alt={icon.alt}
+            loading="eager"
+          />
+        </div>
+      )}
+      <h1
+        id="service-title"
+        class="service__title"
+        itemprop="name"
+      >
+        {pageTitle}
+      </h1>
+      <div class="service__meta">
+        {meta.category && (
+          <div class="service__category">
+            <strong>Category:</strong> {meta.category}
+          </div>
+        )}
+        {meta.pricing && (
+          <div class="service__pricing" itemprop="offers">
+            <strong>Pricing:</strong> {meta.pricing}
+          </div>
+        )}
+        {meta.duration && (
+          <div class="service__duration">
+            <strong>Typical Duration:</strong> {meta.duration}
+          </div>
+        )}
+        {meta.technologies && meta.technologies.length > 0 && (
+          <div class="service__technologies">
+            <strong>Technologies:</strong> {meta.technologies.join(', ')}
+          </div>
+        )}
+        {meta.deliverables && meta.deliverables.length > 0 && (
+          <div class="service__deliverables">
+            <strong>Deliverables:</strong>
+            <ul>
+              {meta.deliverables.map(deliverable => (
+                <li>{deliverable}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {meta.draft && (
+          <div class="service__status">(Draft)</div>
+        )}
+      </div>
+    </header>
+    <div class="service__content content" itemprop="description">
+      <slot />
+    </div>
+    <div class="suggested-services">
+      <header class="suggested-services__header">
+        <h3>Other services I offer</h3>
+      </header>
+      <slot name="suggested-services" />
+    </div>
+  </article>
+</BaseLayout>
