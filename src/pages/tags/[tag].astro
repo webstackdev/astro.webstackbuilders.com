@@ -1,39 +1,232 @@
 ---
 import { getCollection } from "astro:content"
 import BaseLayout from "@layouts/BaseLayout.astro"
+import { exceptions } from "../../content/_tagList"
 
 export async function getStaticPaths() {
+  // Get all content collections with tags
   const allArticles = await getCollection("articles", ({ data }) => {
-    return import.meta.env.PROD ? data.isDraft !== true : true;
+    return process.env['NODE_ENV'] === 'production' ? data.isDraft !== true : true;
   })
 
-  const uniqueTags = [
-    ...new Set(allArticles.map((article) => article.data.tags).flat()),
+  const allCaseStudies = await getCollection("caseStudies")
+  const allServices = await getCollection("services")
+
+  // Combine all content and extract unique tags
+  const allContent = [
+    ...allArticles.map(item => ({ ...item, type: 'article' })),
+    ...allCaseStudies.map(item => ({ ...item, type: 'case-study' })),
+    ...allServices.map(item => ({ ...item, type: 'service' }))
   ]
 
+  const uniqueTags = [...new Set(allContent.map((item) => item.data.tags).flat())]
+
   return uniqueTags.map((tag) => {
-    const filteredArticles = allArticles.filter((article) =>
-      article.data.tags.includes(tag)
+    const filteredContent = allContent.filter((item) =>
+      item.data.tags.includes(tag)
     )
     return {
       params: { tag },
-      props: { articles: filteredArticles },
+      props: { content: filteredContent },
     }
   })
 }
 
 const { tag } = Astro.params
-const { articles } = Astro.props
+const { content: allTagContent } = Astro.props
+
+// Pagination setup
+const ITEMS_PER_PAGE = 12
+const currentPage = parseInt(Astro.url.searchParams.get('page') || '1')
+const totalItems = allTagContent.length
+const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE)
+const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
+const endIndex = startIndex + ITEMS_PER_PAGE
+
+// Sort by publish date (newest first) and paginate
+const sortedContent = allTagContent
+  .sort((a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime())
+
+const paginatedContent = sortedContent.slice(startIndex, endIndex)
+
+// Function to get display name for tags
+const getTagDisplayName = (tag: string) => {
+  return exceptions[tag as keyof typeof exceptions] || tag
+}
+
+const displayName = getTagDisplayName(tag)
 const path = `/tags/${tag}/`
 ---
 
-<BaseLayout pageTitle={tag} path={path}>
-  <p>Articles tagged with {tag}</p>
-  <ul>
-    {
-      articles.map((article) => (
-        <li><a href={`/articles/${article.id}/`}>{article.data.title}</a></li>
-      ))
-    }
-  </ul>
+<BaseLayout pageTitle={`${displayName} - Tag`} path={path}>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <header class="text-center mb-12">
+      <h1 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
+        {displayName}
+      </h1>
+      <p class="text-xl text-gray-600 dark:text-gray-300">
+        {totalItems} item{totalItems !== 1 ? 's' : ''} tagged with {displayName.toLowerCase()}
+      </p>
+      <nav class="mt-4">
+        <a href="/tags/" class="text-blue-600 dark:text-blue-400 hover:underline">
+          ← Browse all tags
+        </a>
+      </nav>
+    </header>
+
+    {paginatedContent.length > 0 ? (
+      <>
+        <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12 mb-12">
+          {paginatedContent.map((item) => (
+            <article class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
+              <a href={`/${item.type === 'case-study' ? 'case-studies' : item.type === 'service' ? 'services' : 'articles'}/${item.id}/`} class="block h-full">
+                {item.data.image && (
+                  <div class="aspect-video overflow-hidden">
+                    <img
+                      src={typeof item.data.image === 'string' ? item.data.image : item.data.image.src}
+                      alt={typeof item.data.image === 'string' ? item.data.title : item.data.image.alt}
+                      loading="lazy"
+                      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                )}
+
+                <div class="p-6 space-y-4">
+                  <div class="flex items-center gap-3 text-sm">
+                    <span class={`px-3 py-1 rounded-full text-white font-medium ${
+                      item.type === 'article' ? 'bg-blue-600' :
+                      item.type === 'case-study' ? 'bg-green-600' : 'bg-purple-600'
+                    }`}>
+                      {item.type === 'case-study' ? 'Case Study' : item.type.charAt(0).toUpperCase() + item.type.slice(1)}
+                    </span>
+                    <time class="text-gray-500 dark:text-gray-400">
+                      {item.data.publishDate.toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </time>
+                  </div>
+
+                  <h2 class="text-xl font-semibold text-gray-900 dark:text-white leading-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
+                    {item.data.title}
+                  </h2>
+
+                  {item.data.description && (
+                    <p class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed line-clamp-3">
+                      {item.data.description}
+                    </p>
+                  )}
+
+                  <div class="space-y-3 pt-2">
+                    {/* Client or Author info */}
+                    {item.data.client && (
+                      <span class="inline-block text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 px-3 py-1 rounded-full">
+                        Client: {item.data.client}
+                      </span>
+                    )}
+
+                    {/* Additional tags */}
+                    {item.data.tags && item.data.tags.length > 1 && (
+                      <div class="flex flex-wrap gap-2">
+                        {item.data.tags.filter((t: string) => t !== tag).slice(0, 3).map((relatedTag: string) => (
+                          <a href={`/tags/${relatedTag}/`} class="text-xs font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 px-2 py-1 rounded-full transition-colors duration-200">
+                            {getTagDisplayName(relatedTag)}
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </a>
+            </article>
+          ))}
+        </section>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <nav class="flex flex-wrap justify-center items-center gap-2" aria-label="Pagination">
+            {currentPage > 1 && (
+              <a
+                href={currentPage === 2 ? path : `${path}?page=${currentPage - 1}`}
+                class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+              >
+                ← Previous
+              </a>
+            )}
+
+            {/* Show first page */}
+            {currentPage > 3 && (
+              <>
+                <a
+                  href={path}
+                  class="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+                >
+                  1
+                </a>
+                {currentPage > 4 && (
+                  <span class="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">…</span>
+                )}
+              </>
+            )}
+
+            {/* Show pages around current page */}
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              const startPage = Math.max(1, Math.min(currentPage - 2, totalPages - 4))
+              const page = startPage + i
+              if (page > totalPages) return null
+
+              const isCurrentPage = page === currentPage
+              return (
+                <a
+                  href={page === 1 ? path : `${path}?page=${page}`}
+                  class={`px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 ${
+                    isCurrentPage
+                      ? 'bg-blue-600 text-white'
+                      : 'text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  }`}
+                  aria-current={isCurrentPage ? 'page' : undefined}
+                >
+                  {page}
+                </a>
+              )
+            })}
+
+            {/* Show last page */}
+            {currentPage < totalPages - 2 && (
+              <>
+                {currentPage < totalPages - 3 && (
+                  <span class="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">…</span>
+                )}
+                <a
+                  href={`${path}?page=${totalPages}`}
+                  class="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+                >
+                  {totalPages}
+                </a>
+              </>
+            )}
+
+            {currentPage < totalPages && (
+              <a
+                href={`${path}?page=${currentPage + 1}`}
+                class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+              >
+                Next →
+              </a>
+            )}
+          </nav>
+        )}
+      </>
+    ) : (
+      <div class="text-center py-12">
+        <p class="text-xl text-gray-600 dark:text-gray-300 mb-4">
+          No content found for this tag.
+        </p>
+        <a href="/tags/" class="text-blue-600 dark:text-blue-400 hover:underline">
+          Browse other tags
+        </a>
+      </div>
+    )}
+  </div>
 </BaseLayout>

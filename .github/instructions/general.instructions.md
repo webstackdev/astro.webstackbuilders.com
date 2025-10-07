@@ -3,6 +3,7 @@ applyTo: "**"
 ---
 
 # General coding standards
+
 - Use camelCase for function and variable names.
 - Always include clear, concise comments for complex functions.
 - Add error handling for all network requests.

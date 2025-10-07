@@ -3,6 +3,7 @@ applyTo: "docs/**/*.md"
 ---
 
 # Documentation standards
+
 - Use clear and concise language.
 - Ensure headings follow a consistent hierarchy.
 - Use sentence case for all headings and titles.
