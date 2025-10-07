@@ -155,25 +155,6 @@ const cookiesCollection = defineCollection({
 })
 
 /**
- * Global Data from package.json entries
- */
-const globalDataSchema = z.object({
-  author: z.string(),
-  description: z.string(),
-  domain: z.string().url(),
-  email: z.string().email(),
-  lang: z.string().length(2),
-  locale: z.string().includes('_').length(5),
-  organization: z.string(),
-  title: z.string(),
-})
-
-const globalDataCollection = defineCollection({
-  loader: file('../package.json'),
-  schema: globalDataSchema,
-})
-
-/**
  * Services
  */
 const servicesSchema = z.object({
@@ -277,7 +258,6 @@ export const collections = {
   caseStudies: caseStudiesCollection,
   contactData: contactDataCollection,
   cookies: cookiesCollection,
-  globalData: globalDataCollection,
   services: servicesCollection,
   sitePages: sitePagesCollection,
   storage: storageCollection,
