@@ -1,6 +1,14 @@
 // Vercel API function for contact form
+import { Resend } from 'resend';
+
+// Initialize Resend
+const resend = new Resend(process.env.RESEND_API_KEY);
+
 // Simple in-memory rate limiting (use Redis in production)
 const rateLimitStore = new Map();
+
+// File upload configuration
+const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024; // 10MB in bytes
 
 // Rate limiting check
 function checkRateLimit(ip) {
@@ -66,10 +74,10 @@ function validateInput(body) {
 }
 
 // Generate email content
-function generateEmailContent(data) {
+function generateEmailContent(data, files = []) {
   const { name, email, company, phone, project_type, budget, timeline, message } = data;
 
-  return `
+  let emailBody = `
 New contact form submission from Webstack Builders website:
 
 Name: ${name}
@@ -88,17 +96,50 @@ Submitted: ${new Date().toISOString()}
 IP: ${data.ip || 'Unknown'}
 User Agent: ${data.userAgent || 'Unknown'}
 `;
+
+  // Add file information if files are attached
+  if (files && files.length > 0) {
+    emailBody += `\n\nAttached Files (${files.length}):\n`;
+    files.forEach((file, index) => {
+      emailBody += `${index + 1}. ${file.name} (${file.type}, ${(file.size / 1024).toFixed(2)}KB)\n`;
+    });
+  }
+
+  return emailBody;
 }
 
-// Send email (placeholder - integrate with actual email service)
-async function sendEmail(emailData) {
-  // In production, integrate with Gmail API, SendGrid, or similar service
-  console.log('Email would be sent:', emailData);
+// Send email with attachments using Resend
+async function sendEmail(emailData, files = []) {
+  try {
+    // Prepare email options
+    const emailOptions = {
+      from: 'contact@webstackbuilders.com', // Use your verified domain
+      to: 'kevin@webstackbuilders.com',
+      replyTo: emailData.from,
+      subject: emailData.subject,
+      text: emailData.text,
+      attachments: files && files.length > 0 ? files.map(file => ({
+        filename: file.name,
+        content: file.buffer || file.data, // Use buffer or data depending on multipart parser
+        contentType: file.type
+      })) : []
+    };
 
-  return {
-    messageId: `demo-${Date.now()}`,
-    success: true
-  };
+    // Send email via Resend
+    const response = await resend.emails.send(emailOptions);
+
+    console.log('Email sent successfully via Resend:', response.data?.id);
+    return {
+      messageId: response.data?.id || 'unknown',
+      success: true,
+      attachments: files.length
+    };
+
+  } catch (error) {
+    console.error('Resend email error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`Failed to send email: ${errorMessage}`);
+  }
 }
 
 // Main Vercel API handler
@@ -126,9 +167,53 @@ export default async function handler(req, res) {
     // Check rate limit
     checkRateLimit(ip);
 
+    // Parse form data (handle both JSON and multipart)
+    let formData = {};
+    let files = [];
+
+    if (req.headers['content-type']?.includes('multipart/form-data')) {
+      // Handle multipart form data with files
+      // In a real implementation, you'd use a library like 'multiparty' or 'formidable'
+      // For now, assume files are parsed and available in req.files
+      formData = req.body || {};
+      files = req.files || [];
+
+      // Validate file types and sizes
+      if (files.length > 0) {
+        for (const file of files) {
+          // Check file size
+          if (file.size > MAX_ATTACHMENT_SIZE) {
+            throw new Error(`File "${file.name}" exceeds ${MAX_ATTACHMENT_SIZE / (1024 * 1024)}MB limit`);
+          }
+
+          // Check file type
+          const allowedTypes = [
+            'application/pdf', 'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+            'audio/mpeg', 'audio/wav', 'audio/mp4',
+            'video/mp4', 'video/mpeg', 'video/quicktime',
+            'application/zip', 'text/plain'
+          ];
+
+          if (!allowedTypes.includes(file.type)) {
+            throw new Error(`File type "${file.type}" is not allowed`);
+          }
+        }
+
+        // Limit number of files
+        if (files.length > 5) {
+          throw new Error('Maximum 5 files allowed');
+        }
+      }
+    } else {
+      // Handle regular JSON data
+      formData = req.body || {};
+    }
+
     // Add request metadata
     const requestData = {
-      ...req.body,
+      ...formData,
       ip: ip,
       userAgent: req.headers['user-agent'] || 'Unknown'
     };
@@ -136,10 +221,10 @@ export default async function handler(req, res) {
     // Validate input
     const validatedData = validateInput(requestData);
 
-    // Generate email content
-    const emailContent = generateEmailContent(validatedData);
+    // Generate email content (include file info)
+    const emailContent = generateEmailContent(validatedData, files);
 
-    // Send email (implement actual email service in production)
+    // Send email with attachments (implement actual email service in production)
     const emailResult = await sendEmail({
       to: 'kevin@webstackbuilders.com',
       from: validatedData.email,

@@ -1,5 +1,6 @@
-// Test script for the contact form API
-// Run with: node test-contact-api.js
+// Test script for the contact form API with Resend integration
+// Run with: node api/contact.spec.js
+// Requires RESEND_API_KEY environment variable to be set
 
 const testContactAPI = async () => {
   const testData = {
@@ -17,7 +18,7 @@ const testContactAPI = async () => {
     console.log('Testing contact form API...');
     console.log('Test data:', testData);
 
-    const response = await fetch('http://localhost:4321/api/contact', {
+    const response = await fetch('http://localhost:4322/api/contact', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -53,7 +54,7 @@ const testRateLimit = async () => {
 
   for (let i = 1; i <= 7; i++) {
     try {
-      const response = await fetch('http://localhost:4321/api/contact', {
+      const response = await fetch('http://localhost:4322/api/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -91,7 +92,7 @@ const testValidation = async () => {
 
   for (let i = 0; i < invalidData.length; i++) {
     try {
-      const response = await fetch('http://localhost:4321/api/contact', {
+      const response = await fetch('http://localhost:4322/api/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -122,12 +123,12 @@ const runAllTests = async () => {
   console.log('\nNote: In development mode, emails are logged to console instead of being sent.');
 };
 
-// Check if running directly
-if (require.main === module) {
+// Check if running directly (ES modules)
+if (import.meta.url === `file://${process.argv[1]}`) {
   runAllTests().catch(console.error);
 }
 
-module.exports = {
+export {
   testContactAPI,
   testRateLimit,
   testValidation,

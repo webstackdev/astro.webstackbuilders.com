@@ -1,19 +1,11 @@
 ---
-import BaseLayout from "@layouts/BaseLayout.astro"
-import contactData from "@content/contact.json"
+import BaseLayout from "../../layouts/BaseLayout.astro";
 
-const pageTitle = "Contact"
-const path = "/contact"
+const pageTitle = "Contact Us - Webstack Builders";
+const path = "/contact";
 ---
 
----
-import Layout from "../../layouts/BaseLayout.astro";
-import contact from "../../content/contact.json";
-
-const { seo } = contact;
----
-
-<Layout {seo}>
+<BaseLayout pageTitle={pageTitle} path={path}>
   <main class="main" id="main">
     <!-- Contact Hero Section -->
     <section class="contact-hero">
@@ -180,16 +172,6 @@ const { seo } = contact;
                 </div>
               </div>
 
-              <!-- CAPTCHA Placeholder -->
-              <div class="form-section">
-                <div class="captcha-container">
-                  <div class="captcha-placeholder">
-                    <input type="checkbox" id="notRobot" name="notRobot" required>
-                    <label for="notRobot">I'm not a robot (CAPTCHA would go here in production)</label>
-                  </div>
-                </div>
-              </div>
-
               <div class="form-actions">
                 <button type="submit" class="btn btn-primary" id="submitBtn">
                   <span class="btn-text">Send Project Details</span>
@@ -298,7 +280,7 @@ const { seo } = contact;
       </div>
     </section>
   </main>
-</Layout>
+</BaseLayout>
 
 <style>
   /* Hero Section */
@@ -476,26 +458,6 @@ const { seo } = contact;
     margin: 0.25rem 0;
     font-size: 0.85rem;
     color: var(--color-gray);
-  }
-
-  /* CAPTCHA */
-  .captcha-container {
-    background: #f8fafc;
-    padding: 1.5rem;
-    border-radius: 10px;
-    border: 1px solid #e2e8f0;
-  }
-
-  .captcha-placeholder {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-
-  .captcha-placeholder input[type="checkbox"] {
-    width: 1.25rem;
-    height: 1.25rem;
-    margin: 0;
   }
 
   /* Form Actions */
