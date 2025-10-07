@@ -26,34 +26,38 @@ const { pageTitle, path, cover, meta } = Astro.props
 <BaseLayout pageTitle={pageTitle} path={path}>
   <article
     id="article"
-    class="article"
+    class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8"
     itemscope
     itemtype="http://schema.org/BlogPosting"
     aria-labelledby="article-title"
   >
-    <header class="article__header">
+    <header class="py-8 md:py-16 lg:py-20 text-center space-y-6">
       {cover && (
-        <div class="article__cover-image" itemtype="image">
+        <div class="aspect-video max-w-3xl mx-auto rounded-2xl overflow-hidden shadow-lg" itemtype="image">
           <img
             src={cover.src}
             alt={cover.alt}
             loading="eager"
+            class="w-full h-full object-cover"
           />
         </div>
       )}
       <h1
         id="article-title"
-        class="article__title"
+        class="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white leading-tight"
         itemprop="headline"
       >
         {pageTitle}
       </h1>
-      <div class="article__meta">
+      <div class="flex flex-wrap items-center justify-center gap-4 text-gray-600 dark:text-gray-400">
         <time
-          class="article__date"
+          class="flex items-center gap-2 text-lg"
           itemprop="datePublished"
           datetime={meta.date.toISOString()}
         >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
           {meta.date.toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'long',
@@ -61,32 +65,35 @@ const { pageTitle, path, cover, meta } = Astro.props
           })}
         </time>
         {meta.readingTime && (
-          <p class="article__time-to-read">
-            It will take {meta.readingTime} to read this
+          <p class="flex items-center gap-2 text-lg">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {meta.readingTime} read
           </p>
         )}
         {meta.tags && meta.tags.length > 0 && (
-          <>
-            <span aria-label="in category">&sdot;</span>
-            <span class="article__tags">
-              {meta.tags.join(', ')}
-            </span>
-          </>
+          <div class="flex flex-wrap gap-2">
+            {meta.tags.map((tag: string) => (
+              <span class="text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 px-3 py-1 rounded-full uppercase tracking-wide">
+                {tag}
+              </span>
+            ))}
+          </div>
         )}
         {meta.draft && (
-          <>
-            <span aria-hidden="true">&sdot;</span>
-            <span class="article__status">(Draft)</span>
-          </>
+          <span class="inline-block bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 px-4 py-2 rounded-full text-sm font-medium uppercase tracking-wide">
+            Draft
+          </span>
         )}
       </div>
     </header>
-    <div class="article__content content" itemprop="articleBody">
+    <div class="prose prose-lg dark:prose-invert max-w-none py-8" itemprop="articleBody">
       <slot />
     </div>
-    <div class="suggested-articles">
-      <header class="suggested-articles__header">
-        <h3>Other things I've written</h3>
+    <div class="border-t border-gray-200 dark:border-gray-700 pt-8 mt-12">
+      <header class="mb-8">
+        <h3 class="text-2xl font-bold text-gray-900 dark:text-white">Other things I've written</h3>
       </header>
       <slot name="suggested-articles" />
     </div>

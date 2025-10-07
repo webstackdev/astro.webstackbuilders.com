@@ -28,31 +28,32 @@ const { pageTitle, path, cover, meta } = Astro.props
 <BaseLayout pageTitle={pageTitle} path={path}>
   <article
     id="case-study"
-    class="case-study"
+    class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8"
     itemscope
     itemtype="http://schema.org/CreativeWork"
     aria-labelledby="case-study-title"
   >
-    <header class="case-study__header">
+    <header class="py-8 md:py-16 lg:py-20 text-center space-y-6">
       {cover && (
-        <div class="case-study__cover-image" itemtype="image">
+        <div class="aspect-video max-w-3xl mx-auto rounded-2xl overflow-hidden shadow-lg" itemtype="image">
           <img
             src={cover.src}
             alt={cover.alt}
             loading="eager"
+            class="w-full h-full object-cover"
           />
         </div>
       )}
       <h1
         id="case-study-title"
-        class="case-study__title"
+        class="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white leading-tight"
         itemprop="headline"
       >
         {pageTitle}
       </h1>
-      <div class="case-study__meta">
+      <div class="space-y-4 max-w-2xl mx-auto">
         <time
-          class="case-study__date"
+          class="block text-lg text-gray-600 dark:text-gray-400"
           itemprop="datePublished"
           datetime={meta.date.toISOString()}
         >
@@ -62,42 +63,60 @@ const { pageTitle, path, cover, meta } = Astro.props
             day: 'numeric'
           })}
         </time>
-        {meta.client && (
-          <div class="case-study__client">
-            <strong>Client:</strong> {meta.client}
-          </div>
-        )}
-        {meta.industry && (
-          <div class="case-study__industry">
-            <strong>Industry:</strong> {meta.industry}
-          </div>
-        )}
-        {meta.projectType && (
-          <div class="case-study__project-type">
-            <strong>Project Type:</strong> {meta.projectType}
-          </div>
-        )}
-        {meta.duration && (
-          <div class="case-study__duration">
-            <strong>Duration:</strong> {meta.duration}
-          </div>
-        )}
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+          {meta.client && (
+            <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-xl">
+              <span class="font-semibold text-gray-900 dark:text-white">Client:</span>
+              <span class="ml-2 text-gray-600 dark:text-gray-300">{meta.client}</span>
+            </div>
+          )}
+          {meta.industry && (
+            <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-xl">
+              <span class="font-semibold text-gray-900 dark:text-white">Industry:</span>
+              <span class="ml-2 text-gray-600 dark:text-gray-300">{meta.industry}</span>
+            </div>
+          )}
+          {meta.projectType && (
+            <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-xl">
+              <span class="font-semibold text-gray-900 dark:text-white">Project Type:</span>
+              <span class="ml-2 text-gray-600 dark:text-gray-300">{meta.projectType}</span>
+            </div>
+          )}
+          {meta.duration && (
+            <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-xl">
+              <span class="font-semibold text-gray-900 dark:text-white">Duration:</span>
+              <span class="ml-2 text-gray-600 dark:text-gray-300">{meta.duration}</span>
+            </div>
+          )}
+        </div>
+
         {meta.technologies && meta.technologies.length > 0 && (
-          <div class="case-study__technologies">
-            <strong>Technologies:</strong> {meta.technologies.join(', ')}
+          <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-xl">
+            <span class="font-semibold text-gray-900 dark:text-white block mb-3">Technologies:</span>
+            <div class="flex flex-wrap gap-2">
+              {meta.technologies.map((tech: string) => (
+                <span class="text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 px-3 py-1 rounded-full">
+                  {tech}
+                </span>
+              ))}
+            </div>
           </div>
         )}
+
         {meta.draft && (
-          <div class="case-study__status">(Draft)</div>
+          <div class="inline-block bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 px-4 py-2 rounded-full text-sm font-medium">
+            (Draft)
+          </div>
         )}
       </div>
     </header>
-    <div class="case-study__content content" itemprop="text">
+    <div class="prose prose-lg dark:prose-invert max-w-none py-8" itemprop="text">
       <slot />
     </div>
-    <div class="suggested-case-studies">
-      <header class="suggested-case-studies__header">
-        <h3>Other projects I've worked on</h3>
+    <div class="border-t border-gray-200 dark:border-gray-700 pt-8 mt-12">
+      <header class="mb-8">
+        <h3 class="text-2xl font-bold text-gray-900 dark:text-white">Other projects I've worked on</h3>
       </header>
       <slot name="suggested-case-studies" />
     </div>

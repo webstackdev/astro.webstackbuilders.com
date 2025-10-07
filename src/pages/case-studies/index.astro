@@ -15,35 +15,40 @@ const sortedCaseStudies = allCaseStudies
   path={path}
   subtitle="Explore our successful projects and client outcomes"
 >
-  <section class="case-studies-grid">
+  <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12">
     {sortedCaseStudies.map((caseStudy) => (
-      <article class="case-study-card">
-        <a href={`/case-studies/${caseStudy.id}/`} class="case-study-link">
+      <article class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
+        <a href={`/case-studies/${caseStudy.id}/`} class="block h-full">
           {caseStudy.data.image && (
-            <div class="case-study-image">
+            <div class="aspect-video overflow-hidden">
               <img
                 src={caseStudy.data.image.src}
                 alt={caseStudy.data.image.alt}
                 loading="lazy"
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
             </div>
           )}
 
-          <div class="case-study-content">
-            <h2 class="case-study-title">{caseStudy.data.title}</h2>
+          <div class="p-6 space-y-4">
+            <h2 class="text-xl font-semibold text-gray-900 dark:text-white leading-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
+              {caseStudy.data.title}
+            </h2>
 
             {caseStudy.data.description && (
-              <p class="case-study-description">
+              <p class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed line-clamp-3">
                 {caseStudy.data.description}
               </p>
             )}
 
-            <div class="case-study-meta">
+            <div class="space-y-3">
               {caseStudy.data.client && (
-                <span class="case-study-client">Client: {caseStudy.data.client}</span>
+                <span class="inline-block text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 px-3 py-1 rounded-full">
+                  Client: {caseStudy.data.client}
+                </span>
               )}
 
-              <time class="case-study-date">
+              <time class="block text-sm text-gray-500 dark:text-gray-400">
                 {caseStudy.data.publishDate.toLocaleDateString('en-US', {
                   year: 'numeric',
                   month: 'long'
@@ -52,9 +57,11 @@ const sortedCaseStudies = allCaseStudies
             </div>
 
             {caseStudy.data.tags && (
-              <div class="case-study-tags">
-                {caseStudy.data.tags.slice(0, 3).map(tag => (
-                  <span class="case-study-tag">{tag}</span>
+              <div class="flex flex-wrap gap-2 pt-2">
+                {caseStudy.data.tags.slice(0, 3).map((tag: string) => (
+                  <span class="text-xs font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">
+                    {tag}
+                  </span>
                 ))}
               </div>
             )}

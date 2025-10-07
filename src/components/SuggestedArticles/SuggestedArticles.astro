@@ -26,38 +26,55 @@ const suggestedArticles = allArticles
 ---
 
 {suggestedArticles.length > 0 && (
-  <section class="suggested-articles">
-    <h2 class="suggested-articles__title">{title}</h2>
-    <ol class="suggested-articles__list">
+  <section>
+    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-8">{title}</h2>
+    <div class="space-y-6">
       {suggestedArticles.map((article) => (
-        <li class="suggested-articles__item">
-          <a href={`/articles/${article.id}/`} class="suggested-articles__link">
-            <span class="suggested-articles__title" itemprop="headline">
-              {article.data.title}
-            </span>
-            <time
-              class="suggested-articles__date"
-              itemprop="datePublished"
-              datetime={toISODate(article.data.publishDate)}
-              aria-label={`, written ${formatDate(article.data.publishDate, 'MMMM d, yyyy')}`}
-            >
-              {formatDate(article.data.publishDate, 'MMMM d, yyyy')}
-            </time>
+        <article class="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
+          <a href={`/articles/${article.id}/`} class="block p-6 space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white leading-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300" itemprop="headline">
+                {article.data.title}
+              </h3>
+              <svg class="w-5 h-5 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:translate-x-1 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
 
-            {/* Article Description/Excerpt */}
+            <div class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+              <time
+                itemprop="datePublished"
+                datetime={toISODate(article.data.publishDate)}
+                aria-label={`, written ${formatDate(article.data.publishDate, 'MMMM d, yyyy')}`}
+              >
+                {formatDate(article.data.publishDate, 'MMMM d, yyyy')}
+              </time>
+              <span class="flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                ~5 min read
+              </span>
+            </div>
+
             {article.data.description && (
-              <p class="suggested-articles__item-excerpt" itemprop="abstract">
+              <p class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed line-clamp-2" itemprop="abstract">
                 {article.data.description}
               </p>
             )}
 
-            {/* Reading Time - TODO: Implement reading time calculation */}
-            <p class="suggested-articles__item-time-to-read" itemprop="wordCount">
-              Reading time: ~5 min
-            </p>
+            {article.data.tags && article.data.tags.length > 0 && (
+              <div class="flex flex-wrap gap-2 pt-2">
+                {article.data.tags.slice(0, 3).map((tag: string) => (
+                  <span class="text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 px-2 py-1 rounded-full uppercase tracking-wide">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
           </a>
-        </li>
+        </article>
       ))}
-    </ol>
+    </div>
   </section>
 )}

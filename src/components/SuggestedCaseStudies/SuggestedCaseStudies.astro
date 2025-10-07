@@ -26,35 +26,36 @@ const suggestedCaseStudies = allCaseStudies
 ---
 
 {suggestedCaseStudies.length > 0 && (
-  <section class="suggested-case-studies">
-    <h2 class="suggested-case-studies__title">{title}</h2>
-    <div class="suggested-case-studies__grid">
+  <section>
+    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-8">{title}</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {suggestedCaseStudies.map((caseStudy) => (
-        <article class="suggested-case-studies__item">
-          <a href={`/case-studies/${caseStudy.id}/`} class="suggested-case-studies__link">
+        <article class="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
+          <a href={`/case-studies/${caseStudy.id}/`} class="block h-full">
             {caseStudy.data.image && (
-              <div class="suggested-case-studies__image">
+              <div class="aspect-video overflow-hidden">
                 <img
                   src={caseStudy.data.image.src}
                   alt={caseStudy.data.image.alt}
                   loading="lazy"
+                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
             )}
 
-            <div class="suggested-case-studies__content">
-              <h3 class="suggested-case-studies__item-title" itemprop="headline">
+            <div class="p-4 space-y-3">
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white leading-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300" itemprop="headline">
                 {caseStudy.data.title}
               </h3>
 
               {caseStudy.data.description && (
-                <p class="suggested-case-studies__item-description" itemprop="abstract">
+                <p class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed line-clamp-2" itemprop="abstract">
                   {caseStudy.data.description}
                 </p>
               )}
 
               <time
-                class="suggested-case-studies__date"
+                class="block text-sm text-gray-500 dark:text-gray-400"
                 itemprop="datePublished"
                 datetime={toISODate(caseStudy.data.publishDate)}
               >
@@ -62,9 +63,11 @@ const suggestedCaseStudies = allCaseStudies
               </time>
 
               {caseStudy.data.tags && (
-                <div class="suggested-case-studies__tags">
-                  {caseStudy.data.tags.slice(0, 3).map(tag => (
-                    <span class="suggested-case-studies__tag">{tag}</span>
+                <div class="flex flex-wrap gap-1 pt-1">
+                  {caseStudy.data.tags.slice(0, 3).map((tag: string) => (
+                    <span class="text-xs font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">
+                      {tag}
+                    </span>
                   ))}
                 </div>
               )}
