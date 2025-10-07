@@ -1,0 +1,1054 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro"
+import contactData from "@content/contact.json"
+
+const pageTitle = "Contact"
+const path = "/contact"
+---
+
+---
+import Layout from "../../layouts/BaseLayout.astro";
+import contact from "../../content/contact.json";
+
+const { seo } = contact;
+---
+
+<Layout {seo}>
+  <main class="main" id="main">
+    <!-- Contact Hero Section -->
+    <section class="contact-hero">
+      <div class="container">
+        <div class="hero-content">
+          <h1>Let's Build Something Amazing</h1>
+          <p class="hero-description">
+            Ready to transform your digital presence? Share your project details and let's create something extraordinary together.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact Form Section -->
+    <section class="contact-form-section">
+      <div class="container">
+        <div class="contact-grid">
+          <!-- Contact Form -->
+          <div class="form-container">
+            <div class="form-header">
+              <h2>Tell us about your project</h2>
+              <p>We'll get back to you within 24 hours with a detailed proposal.</p>
+            </div>
+
+            <form class="contact-form" id="contactForm" method="post" enctype="multipart/form-data">
+              <!-- Personal Information -->
+              <div class="form-section">
+                <h3 class="section-title">Contact Information</h3>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="name" class="form-label">Full Name *</label>
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      class="form-input"
+                      required
+                      placeholder="Your full name"
+                      minlength="2"
+                      maxlength="100"
+                    />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="email" class="form-label">Email Address *</label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      class="form-input"
+                      required
+                      placeholder="your.email@example.com"
+                    />
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="company" class="form-label">Company Name</label>
+                    <input
+                      type="text"
+                      id="company"
+                      name="company"
+                      class="form-input"
+                      placeholder="Your company name"
+                      maxlength="100"
+                    />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="phone" class="form-label">Phone Number</label>
+                    <input
+                      type="tel"
+                      id="phone"
+                      name="phone"
+                      class="form-input"
+                      placeholder="+1 (555) 123-4567"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Project Information -->
+              <div class="form-section">
+                <h3 class="section-title">Project Details</h3>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="project_type" class="form-label">Project Type</label>
+                    <select id="project_type" name="project_type" class="form-select">
+                      <option value="">Select project type</option>
+                      <option value="website">New Website</option>
+                      <option value="redesign">Website Redesign</option>
+                      <option value="ecommerce">E-commerce Store</option>
+                      <option value="webapp">Web Application</option>
+                      <option value="mobile">Mobile App</option>
+                      <option value="api">API Development</option>
+                      <option value="consulting">Consulting</option>
+                      <option value="maintenance">Maintenance & Support</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="budget" class="form-label">Budget Range</label>
+                    <select id="budget" name="budget" class="form-select">
+                      <option value="">Select budget range</option>
+                      <option value="under-5k">Under $5,000</option>
+                      <option value="5k-10k">$5,000 - $10,000</option>
+                      <option value="10k-25k">$10,000 - $25,000</option>
+                      <option value="25k-50k">$25,000 - $50,000</option>
+                      <option value="50k-100k">$50,000 - $100,000</option>
+                      <option value="over-100k">$100,000+</option>
+                      <option value="discuss">Let's discuss</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="timeline" class="form-label">Timeline</label>
+                  <select id="timeline" name="timeline" class="form-select">
+                    <option value="">Select timeline</option>
+                    <option value="asap">ASAP</option>
+                    <option value="1-month">Within 1 month</option>
+                    <option value="2-3-months">2-3 months</option>
+                    <option value="3-6-months">3-6 months</option>
+                    <option value="6-months-plus">6+ months</option>
+                    <option value="flexible">Flexible</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="message" class="form-label">Project Description *</label>
+                  <textarea
+                    id="message"
+                    name="message"
+                    class="form-textarea"
+                    rows="6"
+                    required
+                    placeholder="Describe your project, goals, target audience, and any specific requirements..."
+                    minlength="10"
+                    maxlength="2000"
+                  ></textarea>
+                  <div class="character-count">
+                    <span id="charCount">0</span>/2000 characters
+                  </div>
+                </div>
+              </div>
+
+              <!-- File Upload Section -->
+              <div class="form-section">
+                <h3 class="section-title">Project Files (Optional)</h3>
+                <p class="section-description">
+                  Upload any relevant files like mockups, specifications, existing designs, or reference materials.
+                </p>
+
+                <div class="file-upload-container">
+                  <div id="uppyContainer"></div>
+                  <div class="upload-info">
+                    <p><strong>Supported formats:</strong> PDF, DOC, DOCX, JPG, PNG, GIF, WebP, MP3, WAV, MP4, MOV, ZIP, TXT</p>
+                    <p><strong>Max file size:</strong> 10MB per file • <strong>Max files:</strong> 5</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- CAPTCHA Placeholder -->
+              <div class="form-section">
+                <div class="captcha-container">
+                  <div class="captcha-placeholder">
+                    <input type="checkbox" id="notRobot" name="notRobot" required>
+                    <label for="notRobot">I'm not a robot (CAPTCHA would go here in production)</label>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary" id="submitBtn">
+                  <span class="btn-text">Send Project Details</span>
+                  <span class="btn-loading" style="display: none;">
+                    <svg class="spinner" width="20" height="20" viewBox="0 0 24 24">
+                      <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2" opacity="0.3"/>
+                      <path d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" fill="currentColor"/>
+                    </svg>
+                    Sending...
+                  </span>
+                </button>
+              </div>
+            </form>
+
+            <!-- Form Messages -->
+            <div id="formMessages" class="form-messages" style="display: none;">
+              <div class="message-success" style="display: none;">
+                <div class="message-icon">✓</div>
+                <div class="message-content">
+                  <h3>Thank you!</h3>
+                  <p>Your project details have been sent successfully. We'll review everything and get back to you within 24 hours with a detailed proposal.</p>
+                </div>
+              </div>
+              <div class="message-error" style="display: none;">
+                <div class="message-icon">⚠</div>
+                <div class="message-content">
+                  <h3>Oops!</h3>
+                  <p id="errorMessage">Something went wrong. Please try again later.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contact Information -->
+          <div class="contact-info">
+            <div class="info-section">
+              <h3>Get In Touch</h3>
+
+              <div class="info-item">
+                <div class="info-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                    <polyline points="22,6 12,13 2,6"></polyline>
+                  </svg>
+                </div>
+                <div class="info-content">
+                  <h4>Email</h4>
+                  <p>kevin@webstackbuilders.com</p>
+                </div>
+              </div>
+
+              <div class="info-item">
+                <div class="info-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                  </svg>
+                </div>
+                <div class="info-content">
+                  <h4>Location</h4>
+                  <p>Remote • Worldwide</p>
+                </div>
+              </div>
+
+              <div class="info-item">
+                <div class="info-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12,6 12,12 16,14"></polyline>
+                  </svg>
+                </div>
+                <div class="info-content">
+                  <h4>Response Time</h4>
+                  <p>Within 24 hours</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="info-section">
+              <h3>Our Expertise</h3>
+              <ul class="services-list">
+                <li>Custom Web Development</li>
+                <li>E-commerce Solutions</li>
+                <li>Progressive Web Apps</li>
+                <li>API Development & Integration</li>
+                <li>Database Design & Optimization</li>
+                <li>Performance & SEO Optimization</li>
+                <li>Maintenance & Support</li>
+                <li>Technical Consulting</li>
+              </ul>
+            </div>
+
+            <div class="info-section">
+              <h3>Why Choose Us?</h3>
+              <ul class="benefits-list">
+                <li>15+ years of experience</li>
+                <li>Modern tech stack</li>
+                <li>Performance-focused</li>
+                <li>SEO optimized</li>
+                <li>Mobile-first approach</li>
+                <li>Ongoing support</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</Layout>
+
+<style>
+  /* Hero Section */
+  .contact-hero {
+    padding: 4rem 0 2rem;
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+    color: white;
+    text-align: center;
+  }
+
+  .hero-content h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+
+  .hero-description {
+    font-size: 1.25rem;
+    opacity: 0.9;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  /* Main Form Section */
+  .contact-form-section {
+    padding: 4rem 0;
+    background: #f8fafc;
+  }
+
+  .contact-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 3rem;
+    align-items: start;
+  }
+
+  /* Form Container */
+  .form-container {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08);
+  }
+
+  .form-header {
+    margin-bottom: 2.5rem;
+  }
+
+  .form-header h2 {
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--color-dark);
+  }
+
+  .form-header p {
+    color: var(--color-gray);
+    font-size: 1.1rem;
+  }
+
+  /* Form Sections */
+  .form-section {
+    margin-bottom: 2.5rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .form-section:last-of-type {
+    border-bottom: none;
+    margin-bottom: 0;
+  }
+
+  .section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--color-dark);
+    display: flex;
+    align-items: center;
+  }
+
+  .section-title::before {
+    content: '';
+    width: 4px;
+    height: 20px;
+    background: var(--color-primary);
+    margin-right: 0.75rem;
+    border-radius: 2px;
+  }
+
+  .section-description {
+    color: var(--color-gray);
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+  }
+
+  /* Form Layout */
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .form-label {
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--color-dark);
+    font-size: 0.95rem;
+  }
+
+  /* Form Inputs */
+  .form-input,
+  .form-select,
+  .form-textarea {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    background: white;
+  }
+
+  .form-input:focus,
+  .form-select:focus,
+  .form-textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  }
+
+  .form-textarea {
+    resize: vertical;
+    min-height: 120px;
+    font-family: inherit;
+  }
+
+  .form-select {
+    cursor: pointer;
+  }
+
+  .character-count {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--color-gray);
+    text-align: right;
+  }
+
+  /* File Upload */
+  .file-upload-container {
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    background: #f8fafc;
+    transition: all 0.2s ease;
+  }
+
+  .file-upload-container:hover {
+    border-color: var(--color-primary);
+    background: #f0f4ff;
+  }
+
+  .upload-info {
+    margin-top: 1rem;
+  }
+
+  .upload-info p {
+    margin: 0.25rem 0;
+    font-size: 0.85rem;
+    color: var(--color-gray);
+  }
+
+  /* CAPTCHA */
+  .captcha-container {
+    background: #f8fafc;
+    padding: 1.5rem;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+  }
+
+  .captcha-placeholder {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .captcha-placeholder input[type="checkbox"] {
+    width: 1.25rem;
+    height: 1.25rem;
+    margin: 0;
+  }
+
+  /* Form Actions */
+  .form-actions {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem 2.5rem;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 200px;
+  }
+
+  .btn-primary {
+    background: var(--color-primary);
+    color: white;
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    background: var(--color-primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .spinner {
+    animation: spin 1s linear infinite;
+    margin-right: 0.5rem;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  /* Form Messages */
+  .form-messages {
+    margin-top: 2rem;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .message-success,
+  .message-error {
+    display: flex;
+    align-items: flex-start;
+    padding: 1.5rem;
+    gap: 1rem;
+  }
+
+  .message-success {
+    background: #ecfdf5;
+    border: 1px solid #10b981;
+    color: #065f46;
+  }
+
+  .message-error {
+    background: #fef2f2;
+    border: 1px solid #ef4444;
+    color: #991b1b;
+  }
+
+  .message-icon {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1rem;
+  }
+
+  .message-success .message-icon {
+    background: #10b981;
+    color: white;
+  }
+
+  .message-error .message-icon {
+    background: #ef4444;
+    color: white;
+  }
+
+  .message-content h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  .message-content p {
+    margin: 0;
+  }
+
+  /* Contact Information Sidebar */
+  .contact-info {
+    background: white;
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08);
+    height: fit-content;
+    position: sticky;
+    top: 2rem;
+  }
+
+  .info-section {
+    margin-bottom: 2.5rem;
+  }
+
+  .info-section:last-child {
+    margin-bottom: 0;
+  }
+
+  .info-section h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: var(--color-dark);
+  }
+
+  .info-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+  }
+
+  .info-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .info-icon {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    color: white;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+  }
+
+  .info-content h4 {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: var(--color-dark);
+  }
+
+  .info-content p {
+    color: var(--color-gray);
+    margin: 0;
+  }
+
+  .services-list,
+  .benefits-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .services-list li,
+  .benefits-list li {
+    padding: 0.75rem 0;
+    color: var(--color-gray);
+    border-bottom: 1px solid #f1f5f9;
+    position: relative;
+    padding-left: 1.5rem;
+  }
+
+  .services-list li:last-child,
+  .benefits-list li:last-child {
+    border-bottom: none;
+  }
+
+  .services-list li::before,
+  .benefits-list li::before {
+    content: '•';
+    color: var(--color-primary);
+    font-weight: bold;
+    position: absolute;
+    left: 0;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 1024px) {
+    .contact-grid {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+
+    .contact-info {
+      position: static;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .hero-content h1 {
+      font-size: 2.25rem;
+    }
+
+    .hero-description {
+      font-size: 1.1rem;
+    }
+
+    .form-container,
+    .contact-info {
+      padding: 1.5rem;
+    }
+
+    .form-row {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    .form-section {
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+    }
+
+    .btn {
+      width: 100%;
+    }
+
+    .form-actions {
+      justify-content: stretch;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .contact-form-section {
+      padding: 2rem 0;
+    }
+
+    .hero-content h1 {
+      font-size: 1.75rem;
+    }
+
+    .form-header h2 {
+      font-size: 1.5rem;
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('contactForm') as HTMLFormElement;
+    const messages = document.getElementById('formMessages') as HTMLElement;
+    const successMessage = messages.querySelector('.message-success') as HTMLElement;
+    const errorMessage = messages.querySelector('.message-error') as HTMLElement;
+    const errorText = document.getElementById('errorMessage') as HTMLElement;
+    const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
+    const btnText = submitBtn.querySelector('.btn-text') as HTMLElement;
+    const btnLoading = submitBtn.querySelector('.btn-loading') as HTMLElement;
+    const messageTextarea = document.getElementById('message') as HTMLTextAreaElement;
+    const charCount = document.getElementById('charCount') as HTMLElement;
+
+    // Character counter for message textarea
+    messageTextarea.addEventListener('input', function() {
+      const count = this.value.length;
+      charCount.textContent = count.toString();
+
+      if (count > 1800) {
+        charCount.style.color = '#ef4444';
+      } else if (count > 1500) {
+        charCount.style.color = '#f59e0b';
+      } else {
+        charCount.style.color = '#6b7280';
+      }
+    });
+
+    // File upload placeholder (in production, integrate with Uppy.js)
+    const uppyContainer = document.getElementById('uppyContainer');
+    if (uppyContainer) {
+      uppyContainer.innerHTML = `
+        <div style="padding: 2rem; text-align: center; color: #6b7280;">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="margin-bottom: 1rem; opacity: 0.5;">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14,2 14,8 20,8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10,9 9,9 8,9"></polyline>
+          </svg>
+          <p style="margin: 0; font-size: 1rem; font-weight: 500;">File Upload Coming Soon</p>
+          <p style="margin: 0.5rem 0 0 0; font-size: 0.85rem;">In production, this would integrate with Uppy.js for drag-and-drop file uploads</p>
+        </div>
+      `;
+    }
+
+    // Form submission handler
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      // Show loading state
+      submitBtn.disabled = true;
+      btnText.style.display = 'none';
+      btnLoading.style.display = 'flex';
+      messages.style.display = 'none';
+
+      try {
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+
+        const response = await fetch('/api/contact', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+          // Show success message
+          messages.style.display = 'block';
+          successMessage.style.display = 'flex';
+          errorMessage.style.display = 'none';
+          form.reset();
+          charCount.textContent = '0';
+        } else {
+          throw new Error(result.error || 'Failed to send message');
+        }
+
+      } catch (error) {
+        // Show error message
+        messages.style.display = 'block';
+        successMessage.style.display = 'none';
+        errorMessage.style.display = 'flex';
+        errorText.textContent = (error as Error).message || 'Something went wrong. Please try again later.';
+      } finally {
+        // Reset button state
+        submitBtn.disabled = false;
+        btnText.style.display = 'inline';
+        btnLoading.style.display = 'none';
+      }
+    });
+
+    // Form validation enhancements
+    const inputs = form.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+      input.addEventListener('blur', function() {
+        validateField(this as HTMLInputElement);
+      });
+
+      input.addEventListener('input', function() {
+        if (this.classList.contains('error')) {
+          validateField(this as HTMLInputElement);
+        }
+      });
+    });
+
+    function validateField(field: HTMLInputElement) {
+      const value = field.value.trim();
+      let isValid = true;
+      let errorMessage = '';
+
+      // Remove previous error styling
+      field.classList.remove('error');
+      const existingError = field.parentNode?.querySelector('.field-error');
+      if (existingError) {
+        existingError.remove();
+      }
+
+      // Required field validation
+      if (field.hasAttribute('required') && !value) {
+        isValid = false;
+        errorMessage = 'This field is required';
+      }
+
+      // Email validation
+      else if (field.type === 'email' && value) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(value)) {
+          isValid = false;
+          errorMessage = 'Please enter a valid email address';
+        }
+      }
+
+      // Length validation
+      else if (field.hasAttribute('minlength') && value.length < parseInt(field.getAttribute('minlength') || '0')) {
+        isValid = false;
+        errorMessage = `Minimum ${field.getAttribute('minlength')} characters required`;
+      }
+
+      else if (field.hasAttribute('maxlength') && value.length > parseInt(field.getAttribute('maxlength') || '0')) {
+        isValid = false;
+        errorMessage = `Maximum ${field.getAttribute('maxlength')} characters allowed`;
+      }
+
+      if (!isValid) {
+        field.classList.add('error');
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'field-error';
+        errorDiv.textContent = errorMessage;
+        errorDiv.style.cssText = 'color: #ef4444; font-size: 0.85rem; margin-top: 0.25rem;';
+        field.parentNode?.appendChild(errorDiv);
+      }
+
+      return isValid;
+    }
+
+    // Add error styles
+    const style = document.createElement('style');
+    style.textContent = `
+      .form-input.error,
+      .form-select.error,
+      .form-textarea.error {
+        border-color: #ef4444;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+      }
+    `;
+    document.head.appendChild(style);
+  });
+</script>
+
+<style>
+  .contact {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .contact__header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .contact__title {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: var(--color-primary);
+  }
+
+  .contact__description {
+    font-size: 1.2rem;
+    color: var(--color-text-secondary);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .contact__content {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 3rem;
+    align-items: start;
+  }
+
+  .contact__form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .contact__form-name,
+  .contact__form-email,
+  .contact__form-message {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .contact__form-input-label {
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .contact__form-input-element {
+    padding: 1rem;
+    border: 2px solid var(--color-border);
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+  }
+
+  .contact__form-input-element:focus {
+    outline: none;
+    border-color: var(--color-primary);
+  }
+
+  .contact__form-submit-btn {
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 4px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .contact__form-submit-btn:hover {
+    background: var(--color-primary-offset);
+  }
+
+  .contact__form-error,
+  .contact__form-validation-error {
+    color: var(--color-error, #dc3545);
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+  }
+
+  .contact__info h2 {
+    margin-bottom: 1.5rem;
+    color: var(--color-primary);
+  }
+
+  .contact__details {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .contact__detail {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .contact__detail strong {
+    color: var(--color-text);
+  }
+
+  .contact__detail a {
+    color: var(--color-primary);
+    text-decoration: none;
+  }
+
+  .contact__detail a:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 768px) {
+    .contact__content {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+  }
+</style>
