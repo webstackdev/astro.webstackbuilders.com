@@ -1,9 +1,9 @@
 import { loadEnv } from "vite"
-
 import { defineConfig, envField } from 'astro/config'
+import AstroPWA from '@vite-pwa/astro'
 import mdx from '@astrojs/mdx'
 import preact from "@astrojs/preact"
-import tailwindcss from '@tailwindcss/vite';
+// TailwindCSS v4 using CSS imports instead of Vite plugin (to avoid type conflicts)
 // import svgSprite from "astro-svg-sprite"
 // import remarkToc from 'remark-toc'
 // import { rehypeAccessibleEmojis } from 'rehype-accessible-emojis'
@@ -39,6 +39,30 @@ export default defineConfig({
   /** Site name accessible using import.meta.env.SITE */
   site: getSiteUrl(),
   integrations: [
+    AstroPWA({
+      mode: 'production',
+      base: '/',
+      scope: '/',
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+      registerType: 'autoUpdate',
+      manifest: {
+        name: 'Webstack Builders',
+        short_name: 'WSB',
+        theme_color: '#ffffff',
+        icons: [
+          {
+            src: 'pwa-192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
+          },
+          // ... more icons
+        ]
+      },
+      workbox: {
+        navigateFallback: '/404',
+        globPatterns: ['**/*.{css,js,html,svg,png,ico,txt}']
+      }
+    }),
     mdx(/*{
       syntaxHighlight: 'shiki', // 'prism'
       shikiConfig: { theme: 'dracula' },
@@ -48,12 +72,6 @@ export default defineConfig({
       gfm: false, // default is true
     }*/),
     preact(),
-    /*
-    // Could use astro-svg-sprite instead of Gulp with svg-sprite
-    svgSprite({
-      include: ['./src/assets/images/sprites'],
-    }),
-    */
   ],
   /**
    * Env var usage:
@@ -84,7 +102,4 @@ export default defineConfig({
     }
   },
   prefetch: true,
-  vite: {
-    plugins: [tailwindcss()],
-  },
 })

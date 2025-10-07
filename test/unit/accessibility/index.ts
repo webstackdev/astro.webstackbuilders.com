@@ -1,1 +1,0 @@
-export { axe } from "./accessibility"

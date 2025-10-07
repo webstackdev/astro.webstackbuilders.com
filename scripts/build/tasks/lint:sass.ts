@@ -2,18 +2,17 @@
 /**
  * Lint SCSS Stylesheets
  */
-import { log, withError } from '../utils'
+import { log, withError } from '../utils.ts'
 import { src } from 'gulp'
 import gulpStylelint from 'gulp-stylelint'
 import lazypipe from 'lazypipe'
 import type { TaskFunction } from 'gulp'
-import { scssWatchGlob } from '../paths'
-import stylelintConfig from '../../../.stylelintrc.js'
+import { scssWatchGlob } from '../paths.ts'
 
 export const lintSassTask = lazypipe()
   // stylelint --fix 'src/assets/scss/**/*.scss' --custom-syntax postcss-scss
   .pipe(() => gulpStylelint({
-    config: stylelintConfig,
+    configFile: '../../../stylelint.config.mjs',
     debug: false,
     /** Autofix with fixes applied to the gulp stream */
     fix: false,

@@ -3,8 +3,8 @@ import { src } from 'gulp'
 import gulpESLintNew from 'gulp-eslint-new'
 import lazypipe from 'lazypipe'
 import type { TaskFunction } from 'gulp'
-import { log, withError } from '../utils'
-import { scriptSourceGlobs } from '../paths'
+import { log, withError } from '../utils.ts'
+import { scriptSourceGlobs } from '../paths.ts'
 
 /**
  * Lint Javascript and Typescript

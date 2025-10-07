@@ -2,7 +2,7 @@
 /**
  * Lint JSON
  */
-import { log } from '../utils'
+import { log } from '../utils.ts'
 import type { TaskFunction } from 'gulp'
 import { dest, src } from 'gulp'
 import lazypipe from 'lazypipe'

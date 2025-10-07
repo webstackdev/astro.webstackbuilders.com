@@ -2,18 +2,16 @@
 /**
  * Lint and write back fixes to SCSS Stylesheets
  */
-import { log } from '../utils'
+import { log } from '../utils.ts'
 import { src, dest } from 'gulp'
 import gulpStylelint from 'gulp-stylelint'
 import lazypipe from 'lazypipe'
 import type { TaskFunction } from 'gulp'
-import { scssSourceDir, scssWatchGlob } from '../paths'
-import stylelintConfig from '../../../.stylelintrc'
-import type { Config } from 'stylelint'
+import { scssSourceDir, scssWatchGlob } from '../paths.ts'
 
 export const formatSassTask = lazypipe()
   .pipe(() => gulpStylelint({
-    config: (stylelintConfig as unknown as Config),
+    configFile: '../../../stylelint.config.mjs',
     debug: false,
     /** Autofix with fixes applied to the gulp stream */
     fix: true,

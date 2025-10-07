@@ -1,1 +1,0 @@
-export { registerServiceWorker } from './registerer'
