@@ -134,4 +134,3 @@ This document tracks the progress of converting Eleventy/Nunjucks layouts to Ast
 - Added proper Schema.org structured data markup
 - Utility functions replicate Eleventy filter functionality
 - Layouts support slots for flexible content insertion
-

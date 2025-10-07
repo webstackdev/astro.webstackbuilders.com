@@ -1,14 +1,14 @@
 ---
 import { getCollection } from "astro:content"
-
-const themes = await getCollection("themes")
 import Sprite from "@components/Sprite.astro"
 import "./Themes.scss"
+
+const themes = await getCollection("themes")
 ---
 
 <div class="themepicker" data-nosnippet hidden>
   <ul id="theme-menu" class="themepicker__list">
-    {themes.forEach((theme) => {(
+    {themes.map((theme) => (
       <li class="themepicker__item">
         <button
           class="themepicker__selectBtn"
@@ -25,7 +25,7 @@ import "./Themes.scss"
           </span>
         </button>
       </li>
-    )})}
+    ))}
     </ul>
   <button
     class="themepicker__closeBtn"
@@ -37,5 +37,11 @@ import "./Themes.scss"
 </div>
 <script>
   import { setupThemePicker } from './setup'
-  setupThemePicker()
+
+  // Wait for DOM to be ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupThemePicker)
+  } else {
+    setupThemePicker()
+  }
 </script>

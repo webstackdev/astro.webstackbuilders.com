@@ -28,12 +28,41 @@ export class ThemePicker {
   themeSelectBtns: NodeListOf<HTMLButtonElement>
 
   constructor() {
+    console.log('ThemePicker constructor called');
     this.isModalOpen = false
     this.activeTheme = this.getInitialActiveTheme()
-    this.pickerModal = getThemePickerModalWrapper()
-    this.toggleBtn = getThemePickerToggleButton()
-    this.closeBtn = getThemePickerCloseButton()
-    this.themeSelectBtns = getThemePickerSelectButtons()
+
+    try {
+      this.pickerModal = getThemePickerModalWrapper()
+      console.log('Found picker modal:', this.pickerModal);
+    } catch (error) {
+      console.error('Error getting picker modal:', error);
+      throw error;
+    }
+
+    try {
+      this.toggleBtn = getThemePickerToggleButton()
+      console.log('Found toggle button:', this.toggleBtn);
+    } catch (error) {
+      console.error('Error getting toggle button:', error);
+      throw error;
+    }
+
+    try {
+      this.closeBtn = getThemePickerCloseButton()
+      console.log('Found close button:', this.closeBtn);
+    } catch (error) {
+      console.error('Error getting close button:', error);
+      throw error;
+    }
+
+    try {
+      this.themeSelectBtns = getThemePickerSelectButtons()
+      console.log('Found theme select buttons:', this.themeSelectBtns.length);
+    } catch (error) {
+      console.error('Error getting theme select buttons:', error);
+      throw error;
+    }
   }
 
   init() {
@@ -193,9 +222,19 @@ export class ThemePicker {
 }
 
 export const setupThemePicker = () => {
+  console.log('setupThemePicker called');
+
   if (CSS.supports(`color`, `var(--fake-var)`)) {
-    const picker = new ThemePicker()
-    picker.init()
+    console.log('CSS custom properties supported, initializing theme picker...');
+    try {
+      const picker = new ThemePicker()
+      picker.init()
+      console.log('Theme picker initialized successfully');
+    } catch (error) {
+      console.error('Error initializing theme picker:', error);
+    }
+  } else {
+    console.log('CSS custom properties not supported, theme picker disabled');
   }
 }
 
