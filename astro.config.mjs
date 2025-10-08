@@ -68,7 +68,7 @@ export default defineConfig({
         // add an unconditional call to skipWaiting() to the generated service worker
         skipWaiting: true,
         // fallback for navigation requests
-        navigateFallback: '/404',
+        navigateFallback: '/offline',
         // track and cache all files that match this glob pattern
         globPatterns: ['**/*.{js,html,css,png,jpg,gif,woff2,svg,ico,txt}'],
         // caching strategy configuration
@@ -85,6 +85,13 @@ export default defineConfig({
             handler: 'CacheFirst',
             options: {
               cacheName: 'webstackbuilders-cache',
+            },
+          },
+          {
+            urlPattern: /^.*\/offline\/?$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'webstackbuilders-offline-page',
             },
           },
         ],

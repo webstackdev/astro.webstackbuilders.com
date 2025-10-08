@@ -7,7 +7,6 @@ import GeneratedSprites from "@components/GeneratedSprites.astro"
 import PwaTitleBar from "@components/PwaTitleBar.astro"
 
 import "@styles/global.scss"
-import "./BaseLayout.scss"
 
 export interface Props {
   pageTitle: string,
@@ -17,8 +16,24 @@ export interface Props {
   children: any,
 }
 
+// Define container styles that match SCSS variables
+// $container-max-width: 75em (1200px at 16px font-size)
+// $container-width--mobile: 90%
+
 const { pageTitle, path } = Astro.props
 ---
+
+<style>
+  /* Container constraints for header and footer elements */
+  .layout :global(.header),
+  .layout :global(.footer) {
+    flex: none;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 75rem; /* 1200px at 16px font-size */
+    width: 90%;
+  }
+</style>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -31,9 +46,9 @@ const { pageTitle, path } = Astro.props
     {/* Sets Window Controls Overlay API for PWA title bar */}
     <PwaTitleBar />
     {/* Site header and main content */}
-    <div class="layout" role="document">
+    <div class="layout flex flex-col min-h-screen relative transition-transform duration-300 ease-[cubic-bezier(0.25,0.46,0.45,0.94)]" role="document">
       <Header path={path} />
-      <main id="main" class="main" role="main" tabindex="-1">
+      <main id="main" class="flex flex-col flex-[0_1_auto] mx-auto max-w-[75rem] w-[90%]" role="main" tabindex="-1">
         <slot />
       </main>
       <Footer />

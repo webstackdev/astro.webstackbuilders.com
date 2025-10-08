@@ -18,9 +18,23 @@ const allContent = [
   ...allServices.map(item => ({ ...item, type: 'service' }))
 ].sort((a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime())
 
+// Extract all unique tags from all content
+const allTags = Array.from(
+  new Set(
+    allContent.flatMap(item => item.data.tags || [])
+  )
+).filter(tag => tag) // Remove any undefined/null tags
+
 // Function to get display name for tags
 const getTagDisplayName = (tag: string) => {
   return exceptions[tag as keyof typeof exceptions] || tag
+}
+
+// Function to get content preview for a specific tag
+const getContentPreviewForTag = (tag: string, limit: number = 4) => {
+  return allContent
+    .filter(item => item.data.tags && item.data.tags.includes(tag))
+    .slice(0, limit)
 }
 
 const pageTitle = "Tags"

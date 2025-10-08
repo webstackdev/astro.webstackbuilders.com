@@ -1,0 +1,47 @@
+---
+export interface Props {
+  type?: 'warning' | 'action' | 'tip' | 'info' | 'note';
+  icon?: string;
+}
+
+const { type = 'info', icon } = Astro.props;
+
+// Map callout types to their color CSS custom properties
+const getCalloutColor = (calloutType: string) => {
+  switch (calloutType) {
+    case 'warning':
+    case 'action':
+      return 'var(--color-primary)';
+    case 'tip':
+    case 'info':
+    case 'note':
+    default:
+      return 'var(--color-secondary)';
+  }
+};
+
+const calloutColor = getCalloutColor(type);
+---
+
+<style define:vars={{ calloutColor }}>
+  .callout {
+    --callout-color: var(--calloutColor);
+  }
+
+  /* Spacing for nested elements */
+  .callout__content > * + * {
+    margin-top: 2rem;
+  }
+</style>
+
+<div class="callout bg-[var(--color-bg-offset)] border border-[var(--color-border)] border-l-0 rounded-r-lg relative">
+  {icon && (
+    <div class="callout__icon bg-[var(--color-bg)] rounded-full text-[var(--callout-color)] absolute left-0 top-0 ml-0.5 p-1 -translate-x-1/2 -translate-y-1/2">
+      {/* Icon implementation would go here - could use a Sprite component */}
+    </div>
+  )}
+
+  <div class="callout__content border-l-4 border-[var(--callout-color)] p-4 md:pl-8">
+    <slot />
+  </div>
+</div>
