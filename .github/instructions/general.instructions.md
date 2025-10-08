@@ -16,3 +16,4 @@ applyTo: "**"
 - Include unit tests for all new functions and components.
 - Do not leave trailing spaces on lines.
 - Do not use run-astro-dev, always use "npm run dev".
+- Always create TypeScript files, not JavaScript files.
