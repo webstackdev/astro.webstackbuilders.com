@@ -27,21 +27,21 @@ const suggestedArticles = allArticles
 
 {suggestedArticles.length > 0 && (
   <section>
-    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-8">{title}</h2>
+    <h2 class="text-2xl font-bold text-[color:var(--color-text)] mb-8">{title}</h2>
     <div class="space-y-6">
       {suggestedArticles.map((article) => (
-        <article class="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
+        <article class="bg-[color:var(--color-bg)] rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
           <a href={`/articles/${article.id}/`} class="block p-6 space-y-3">
             <div class="flex items-center justify-between">
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white leading-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300" itemprop="headline">
+              <h3 class="text-lg font-semibold text-[color:var(--color-text)] leading-tight group-hover:text-[color:var(--color-primary)] transition-colors duration-300" itemprop="headline">
                 {article.data.title}
               </h3>
-              <svg class="w-5 h-5 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:translate-x-1 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-5 h-5 text-[color:var(--color-text-offset)] group-hover:text-[color:var(--color-primary)] group-hover:translate-x-1 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
               </svg>
             </div>
 
-            <div class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+            <div class="flex items-center gap-4 text-sm text-[color:var(--color-text-offset)]">
               <time
                 itemprop="datePublished"
                 datetime={toISODate(article.data.publishDate)}
@@ -58,7 +58,7 @@ const suggestedArticles = allArticles
             </div>
 
             {article.data.description && (
-              <p class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed line-clamp-2" itemprop="abstract">
+              <p class="text-[color:var(--color-text-offset)] text-sm leading-relaxed line-clamp-2" itemprop="abstract">
                 {article.data.description}
               </p>
             )}
@@ -66,7 +66,7 @@ const suggestedArticles = allArticles
             {article.data.tags && article.data.tags.length > 0 && (
               <div class="flex flex-wrap gap-2 pt-2">
                 {article.data.tags.slice(0, 3).map((tag: string) => (
-                  <span class="text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 px-2 py-1 rounded-full uppercase tracking-wide">
+                  <span class="text-xs font-medium text-[color:var(--color-primary)] bg-[color:var(--color-primary)] bg-opacity-10 px-2 py-1 rounded-full uppercase tracking-wide">
                     {tag}
                   </span>
                 ))}
