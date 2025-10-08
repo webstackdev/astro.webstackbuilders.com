@@ -25,190 +25,82 @@ const {
   preview = false
 } = Astro.props
 
+// Base container classes with Tailwind utilities
 const containerClasses = [
-  'social-card',
-  preview ? 'social-card--preview' : 'social-card--full',
+  // Base social card styles
+  'relative flex flex-col justify-center items-center overflow-hidden rounded-xl text-white font-sans box-border',
+  // Background gradient
+  'bg-gradient-to-br from-slate-900 to-blue-600',
+  // Size and padding based on preview mode
+  preview
+    ? 'w-[600px] h-[315px] p-8 max-w-full aspect-[600/315] xl:w-full sm:p-5'
+    : 'w-[1200px] h-[630px] p-16 max-w-full aspect-[1200/630] xl:w-full',
   additionalClasses
 ].filter(Boolean).join(' ')
+
+// Content max-width based on preview mode
+const contentClasses = [
+  'text-center z-[2]',
+  preview ? 'max-w-[500px]' : 'max-w-[1000px]'
+].join(' ')
+
+// Title classes based on preview mode
+const titleClasses = [
+  'font-medium text-white leading-tight',
+  'drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]',
+  preview
+    ? 'text-2xl mb-4 sm:text-xl'
+    : 'text-6xl mb-8'
+].join(' ')
+
+// Description classes based on preview mode
+const descriptionClasses = [
+  'leading-relaxed opacity-90',
+  'drop-shadow-[0_1px_2px_rgba(0,0,0,0.2)]',
+  preview
+    ? 'text-base mb-2 sm:text-sm'
+    : 'text-2xl mb-4'
+].join(' ')
+
+// Date classes based on preview mode
+const dateClasses = [
+  'opacity-80 italic',
+  preview
+    ? 'text-xs sm:text-xs'
+    : 'text-xl'
+].join(' ')
+
+// Brand classes based on preview mode
+const brandClasses = [
+  'absolute font-bold opacity-80 z-[2]',
+  'drop-shadow-[0_1px_2px_rgba(0,0,0,0.2)]',
+  preview
+    ? 'bottom-5 right-5 text-sm'
+    : 'bottom-10 right-10 text-3xl'
+].join(' ')
 ---
 
 <div class={containerClasses}>
-  <div class="social-card__decorations">
-    <div class="social-card__decoration social-card__decoration--1"></div>
-    <div class="social-card__decoration social-card__decoration--2"></div>
+  <!-- Decorative elements -->
+  <div class="absolute inset-0 pointer-events-none">
+    <!-- Decoration 1 -->
+    <div class={`absolute rounded-full bg-white/10 ${preview ? 'w-24 h-24 -top-12 -left-12' : 'w-48 h-48 -top-24 -left-24'}`}></div>
+    <!-- Decoration 2 -->
+    <div class={`absolute rounded-full bg-white/5 ${preview ? 'w-20 h-20 -bottom-10 -right-10' : 'w-36 h-36 -bottom-16 -right-16'}`}></div>
   </div>
 
-  <div class="social-card__content">
-    <h1 class="social-card__title">{title}</h1>
+  <!-- Content -->
+  <div class={contentClasses}>
+    <h1 class={titleClasses}>{title}</h1>
     {description && (
-      <p class="social-card__description">{description}</p>
+      <p class={descriptionClasses}>{description}</p>
     )}
     {date && (
-      <div class="social-card__date">Published on {date}</div>
+      <div class={dateClasses}>Published on {date}</div>
     )}
   </div>
 
-  <div class="social-card__brand">Webstack Builders</div>
+  <!-- Brand -->
+  <div class={brandClasses}>Webstack Builders</div>
 </div>
 
-<style>
-  /* Social card styles matching the API generated cards */
-  .social-card {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 60px;
-    background: linear-gradient(135deg, #001a39 0%, #006dca 100%);
-    color: white;
-    font-family: "Baloo 2", "Onest Regular", sans-serif;
-    box-sizing: border-box;
-    overflow: hidden;
-    border-radius: 12px;
-  }
-
-  .social-card--full {
-    width: 1200px;
-    height: 630px;
-  }
-
-  .social-card--preview {
-    width: 600px;
-    height: 315px;
-    padding: 30px;
-  }
-
-  .social-card__decorations {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-  }
-
-  .social-card__decoration {
-    position: absolute;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.1);
-  }
-
-  .social-card__decoration--1 {
-    width: 200px;
-    height: 200px;
-    top: -100px;
-    left: -100px;
-  }
-
-  .social-card__decoration--2 {
-    width: 150px;
-    height: 150px;
-    bottom: -75px;
-    right: -75px;
-    background: rgba(255, 255, 255, 0.05);
-  }
-
-  .social-card--preview .social-card__decoration--1 {
-    width: 100px;
-    height: 100px;
-    top: -50px;
-    left: -50px;
-  }
-
-  .social-card--preview .social-card__decoration--2 {
-    width: 75px;
-    height: 75px;
-    bottom: -37px;
-    right: -37px;
-  }
-
-  .social-card__content {
-    text-align: center;
-    max-width: 1000px;
-    z-index: 2;
-  }
-
-  .social-card--preview .social-card__content {
-    max-width: 500px;
-  }
-
-  .social-card__title {
-    font-size: 4rem;
-    margin-bottom: 2rem;
-    line-height: 1.1;
-    font-weight: 500;
-    color: white;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  }
-
-  .social-card--preview .social-card__title {
-    font-size: 2rem;
-    margin-bottom: 1rem;
-  }
-
-  .social-card__description {
-    font-size: 2rem;
-    line-height: 1.4;
-    margin-bottom: 1rem;
-    opacity: 0.9;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-  }
-
-  .social-card--preview .social-card__description {
-    font-size: 1rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .social-card__date {
-    font-size: 1.5rem;
-    opacity: 0.8;
-    font-style: italic;
-  }
-
-  .social-card--preview .social-card__date {
-    font-size: 0.8rem;
-  }
-
-  .social-card__brand {
-    position: absolute;
-    bottom: 40px;
-    right: 40px;
-    font-size: 1.8rem;
-    font-weight: bold;
-    opacity: 0.8;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-    z-index: 2;
-  }
-
-  .social-card--preview .social-card__brand {
-    bottom: 20px;
-    right: 20px;
-    font-size: 0.9rem;
-  }
-
-  /* Responsive adjustments */
-  @media (max-width: 1240px) {
-    .social-card--full {
-      width: 100%;
-      max-width: 1200px;
-      height: auto;
-      aspect-ratio: 1200 / 630;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .social-card--preview {
-      width: 100%;
-      max-width: 600px;
-      height: auto;
-      aspect-ratio: 600 / 315;
-      padding: 20px;
-    }
-
-    .social-card--preview .social-card__title {
-      font-size: 1.5rem;
-    }
-
-    .social-card--preview .social-card__description {
-      font-size: 0.9rem;
-    }
-  }
-</style>
