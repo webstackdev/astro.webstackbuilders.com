@@ -1,10 +1,10 @@
-/// <reference path='../../../@types/gulp-stylelint.d.ts' />
+/// <reference path='../../../@types/gulp-stylelint-esm.d.ts' />
 /**
  * Lint and write back fixes to SCSS Stylesheets
  */
 import { log } from '../utils.ts'
 import { src, dest } from 'gulp'
-import gulpStylelint from 'gulp-stylelint'
+import gulpStylelint from 'gulp-stylelint-esm'
 import lazypipe from 'lazypipe'
 import type { TaskFunction } from 'gulp'
 import { scssSourceDir, scssWatchGlob } from '../paths.ts'

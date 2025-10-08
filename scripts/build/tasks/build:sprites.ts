@@ -23,7 +23,7 @@ const spriterConfig: Config = {
     /** Create a sprite svg image that uses <symbol> tags for each individual icon */
     symbol: {
       /**
-       * SVG sprite file name and path. By defaults, creates and places the file in a directory named 'symbol'.
+       * SVG sprite file name and path.
        */
       sprite: '../GeneratedSprites.astro',
     },

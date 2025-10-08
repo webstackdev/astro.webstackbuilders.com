@@ -1,4 +1,4 @@
-declare module 'gulp-stylelint' {
+declare module 'gulp-stylelint-esm' {
   import type { LinterOptions } from 'stylelint'
   type StylelintOptions = LinterOptions & {
     /** Common path for all reporters */
