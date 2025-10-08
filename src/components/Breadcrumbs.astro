@@ -1,44 +1,131 @@
 ---
-// breadcrumbOptions:
-  //
-  // Menu list wrapper
-  //
-  // Change the top level tag
-  // listElement: "ul",
-  // Add a class to the top level tag
-  // listClass: "breadcrumbs__menu",
+export interface Props {
+  /** The current URL path */
+  path: string;
+  /** Optional page title override */
+  pageTitle?: string;
+}
 
-  //
-  // Menu list item
-  //
-  // Change the menu list item tag
-  // listItemElement: "li",
-  // Add a class to every menu list item
-  // listItemClass: "breadcrumbs__item",
-  // Add a class to the menu list item if the item has children
-  // listItemHasChildrenClass: "",
-  // Add a class to the anchor within the menu list item tag
-  // anchorClass: "breadcrumbs__link",
+interface BreadcrumbItem {
+  label: string;
+  href: string;
+  isCurrentPage: boolean;
+}
 
-  //
-  // Active item handling
-  //
-  // If matched, `activeListItemClass` and `activeAnchorClass` will be added
-  // activeKey: eleventyNavigation.key
-  // Add a class to the current page menu list item
-  // activeListItemClass: "breadcrumbs__item--active",
-  // Add a class to the current page menu list anchor
-  // activeAnchorClass: "breadcrumbs__link--active",
+const { path, pageTitle } = Astro.props;
 
-  //
-  // Other options
-  //
-  // Allow missing pages (nodes) in breadcrumbs
-  // allowMissing: false
-  // Include the current page in breadcrumb results
-  // includeSelf: true
-  // Show excerpts if they have been added in Navigation Plugin frontmatter metadata
-  // showExcerpt: false
+// Don't show breadcrumbs on home page
+if (path === '/' || path === '') {
+  return null;
+}
+
+/**
+ * Generate breadcrumb items from the current path
+ */
+function generateBreadcrumbs(currentPath: string, currentPageTitle?: string): BreadcrumbItem[] {
+  const breadcrumbs: BreadcrumbItem[] = [];
+
+  // Always start with Home
+  breadcrumbs.push({
+    label: 'Home',
+    href: '/',
+    isCurrentPage: false
+  });
+
+  // Clean up the path and split into segments
+  const cleanPath = currentPath.replace(/^\/+|\/+$/g, ''); // Remove leading/trailing slashes
+  if (!cleanPath) return breadcrumbs; // If empty after cleanup, just return Home
+
+  const segments = cleanPath.split('/').filter(segment => segment !== '');
+
+  // Build breadcrumbs for each segment
+  let accumulatedPath = '';
+  segments.forEach((segment, index) => {
+    accumulatedPath += '/' + segment;
+    const isLast = index === segments.length - 1;
+
+    // Generate human-readable labels for common paths
+    let label = generateBreadcrumbLabel(segment, accumulatedPath, isLast ? currentPageTitle : undefined);
+
+    breadcrumbs.push({
+      label,
+      href: accumulatedPath,
+      isCurrentPage: isLast
+    });
+  });
+
+  return breadcrumbs;
+}
+
+/**
+ * Generate human-readable labels for breadcrumb segments
+ */
+function generateBreadcrumbLabel(segment: string, fullPath: string, pageTitle?: string): string {
+  // If we have a specific page title for the current page, use it
+  if (pageTitle) {
+    return pageTitle;
+  }
+
+  // Handle specific known paths
+  const pathMappings: Record<string, string> = {
+    '/about': 'About',
+    '/services': 'Services',
+    '/articles': 'Articles',
+    '/case-studies': 'Case Studies',
+    '/contact': 'Contact',
+    '/privacy': 'Privacy Policy',
+    '/cookies': 'Cookie Policy',
+    '/tags': 'Tags',
+  };
+
+  if (pathMappings[fullPath]) {
+    return pathMappings[fullPath];
+  }
+
+  // Convert segment to title case and handle common patterns
+  return segment
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+const breadcrumbs = generateBreadcrumbs(path, pageTitle);
 ---
 
-{/* collections.all | eleventyNavigationBreadcrumb(eleventyNavigation.key) | eleventyNavigationToHtml(breadcrumbOptions) | safe } */}
+{breadcrumbs.length > 1 && (
+  <nav aria-label="Breadcrumb" class="breadcrumbs">
+    <ol class="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-300">
+      {breadcrumbs.map((item, index) => (
+        <li class="flex items-center">
+          {index > 0 && (
+            <svg
+              class="w-4 h-4 mx-2 text-gray-400 dark:text-gray-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          )}
+
+          {item.isCurrentPage ? (
+            <span
+              class="text-gray-900 dark:text-gray-100 font-medium"
+              aria-current="page"
+            >
+              {item.label}
+            </span>
+          ) : (
+            <a
+              href={item.href}
+              class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline transition-colors duration-200"
+            >
+              {item.label}
+            </a>
+          )}
+        </li>
+      ))}
+    </ol>
+  </nav>
+)}

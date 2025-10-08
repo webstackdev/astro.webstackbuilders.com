@@ -5,6 +5,7 @@ import Header from "@components/Header/Header.astro"
 import Footer from "@components/Footer/Footer.astro"
 import GeneratedSprites from "@components/GeneratedSprites.astro"
 import PwaTitleBar from "@components/PwaTitleBar.astro"
+import Breadcrumbs from "@components/Breadcrumbs.astro"
 
 import "@styles/global.scss"
 
@@ -15,10 +16,6 @@ export interface Props {
   /** Enforce that child is passed to slot */
   children: any,
 }
-
-// Define container styles that match SCSS variables
-// $container-max-width: 75em (1200px at 16px font-size)
-// $container-width--mobile: 90%
 
 const { pageTitle, path } = Astro.props
 ---
@@ -48,6 +45,9 @@ const { pageTitle, path } = Astro.props
     {/* Site header and main content */}
     <div class="layout flex flex-col min-h-screen relative transition-transform duration-300 ease-[cubic-bezier(0.25,0.46,0.45,0.94)]" role="document">
       <Header path={path} />
+      <div class="mx-auto max-w-[75rem] w-[90%] mt-4">
+        <Breadcrumbs path={path} pageTitle={pageTitle} />
+      </div>
       <main id="main" class="flex flex-col flex-[0_1_auto] mx-auto max-w-[75rem] w-[90%]" role="main" tabindex="-1">
         <slot />
       </main>
