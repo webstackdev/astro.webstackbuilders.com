@@ -100,7 +100,12 @@ export default defineConfig({
     }),
     mdx({
       syntaxHighlight: 'shiki',
-      shikiConfig: { theme: 'dracula' },
+      shikiConfig: {
+        themes: {
+          light: 'github-light',
+          dark: 'github-dark'
+        }
+      },
       remarkPlugins: [
         [remarkToc, { heading: "contents" }]
       ],
