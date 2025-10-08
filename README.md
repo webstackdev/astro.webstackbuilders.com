@@ -69,6 +69,102 @@ import X from '../components/Tweet/X.astro';
 <X id="1234567890123456789" author="example" content="Check out this amazing post!" />
 ```
 
+## Markdown Content Styling
+
+The project uses a Rehype plugin (`src/lib/markdown/rehype-tailwind-classes.ts`) to automatically apply Tailwind CSS classes to rendered Markdown content. This replaces the previous SCSS-based content styling system.
+
+### Supported Markdown Elements
+
+All standard Markdown elements are automatically styled with appropriate Tailwind classes:
+
+- **Paragraphs**: Proper spacing, readable font size, and line height
+- **Headings**: Typography hierarchy with serif fonts for h1-h3
+- **Links**: Underline effects with hover states
+- **Images/Videos**: Responsive sizing, centering, and shadows
+- **Lists**: Proper indentation and spacing
+- **Code**: Inline code highlighting and block code formatting
+- **Tables**: Full styling with borders and hover effects
+- **Blockquotes**: Left border accent with serif typography
+
+### Vendor Plugin Support
+
+The Rehype plugin also handles specialized Markdown-it plugins:
+
+#### Code Tabs (`code-tabs`)
+
+For tabbed code blocks created by markdown-it plugins:
+
+```markdown
+<!-- This would be processed by a markdown-it plugin -->
+::: code-tabs
+@tab JavaScript
+
+```js
+console.log('Hello, World!')
+```
+
+@tab TypeScript
+
+```ts
+const message: string = 'Hello, World!'
+console.log(message)
+```
+
+:::
+```
+
+**Auto-applied classes**: Tab navigation, content panels, active states
+
+#### Expandable Details (`<details>`)
+
+For collapsible content sections:
+
+```markdown
+<details>
+<summary>Click to expand</summary>
+
+This content will be collapsible with proper styling.
+
+</details>
+```
+
+**Auto-applied classes**: Cursor pointer, remove default markers, content indentation
+
+#### Named Code Blocks
+
+For code blocks with filename labels:
+
+````markdown
+```js filename="example.js"
+const example = true
+```
+````
+
+**Auto-applied classes**: Filename positioning, background styling, opacity effects
+
+#### Share Highlight (`<share-highlight>`)
+
+For text selection sharing functionality:
+
+```html
+<share-highlight>
+Select this text to see sharing options
+</share-highlight>
+```
+
+**Auto-applied classes**: CSS custom properties for theming and interaction states
+
+### Migration from SCSS
+
+This system replaces the previous `_content.scss` and vendor SCSS files:
+
+- `src/styles/vendor/_codetab.scss` → Integrated into Rehype plugin
+- `src/styles/vendor/_expandable.scss` → Integrated into Rehype plugin
+- `src/styles/vendor/_namedCodeBlock.scss` → Integrated into Rehype plugin
+- `src/styles/vendor/_shareHighlight.scss` → Integrated into Rehype plugin
+
+The styling is now applied automatically to all rendered Markdown content without needing to import or reference any CSS classes.
+
 ## CSS Fixes
 
 - Make sure a fixed height header doesn't cover title text on page navigation

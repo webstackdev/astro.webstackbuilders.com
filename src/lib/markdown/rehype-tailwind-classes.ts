@@ -175,6 +175,109 @@ export function rehypeTailwindClasses() {
           'bg-gray-900', 'text-gray-100', 'rounded-lg', 'my-8',
           'lg:px-12'
         ])
+
+        // Handle named code blocks (from _namedCodeBlock.scss)
+        const parentHasNamedFence = hasClass(node, 'named-fence-block') ||
+          (node.properties?.['data-filename'] as string)
+
+        if (parentHasNamedFence) {
+          node.properties['className'] = (node.properties['className'] as string[] || []).concat([
+            'relative', 'pt-8'
+          ])
+        }
+      }
+
+      // Handle vendor-specific markdown elements
+
+      // Code tabs (from _codetab.scss) - container
+      if (hasClass(node, 'code-tabs')) {
+        node.properties = node.properties || {}
+        node.properties['className'] = (node.properties['className'] as string[] || []).concat([
+          'border', 'border-gray-200', 'rounded-md', 'overflow-hidden'
+        ])
+      }
+
+      // Code tabs - hide inputs and pre elements by default
+      if (node.tagName === 'input' && isWithinCodeTabs(node)) {
+        node.properties = node.properties || {}
+        node.properties['className'] = (node.properties['className'] as string[] || []).concat([
+          'hidden'
+        ])
+      }
+
+      // Code tabs - show pre when input is checked (handled via CSS)
+      if (node.tagName === 'pre' && isWithinCodeTabs(node)) {
+        node.properties = node.properties || {}
+        node.properties['className'] = (node.properties['className'] as string[] || []).concat([
+          'hidden', 'peer-checked:block'
+        ])
+      }
+
+      // Code tabs - tab navigation list
+      if (node.tagName === 'ul' && isWithinCodeTabs(node)) {
+        node.properties = node.properties || {}
+        node.properties['className'] = (node.properties['className'] as string[] || []).concat([
+          'p-0', 'whitespace-nowrap', 'overflow-auto', 'select-none',
+          'border-b', 'border-gray-200', 'bg-gray-50'
+        ])
+      }
+
+      // Code tabs - individual tab items
+      if (node.tagName === 'li' && isWithinCodeTabs(node)) {
+        node.properties = node.properties || {}
+        node.properties['className'] = (node.properties['className'] as string[] || []).concat([
+          'list-none', 'inline-block', 'relative'
+        ])
+      }
+
+      // Code tabs - tab labels
+      if (node.tagName === 'label' && isWithinCodeTabs(node)) {
+        node.properties = node.properties || {}
+        node.properties['className'] = (node.properties['className'] as string[] || []).concat([
+          'cursor-pointer', 'select-none', 'inline-block',
+          'px-2', 'py-1', 'm-2', 'text-gray-400',
+          'hover:text-gray-600', 'peer-checked:text-gray-900'
+        ])
+      }
+
+      // Expandable details/summary (from _expandable.scss)
+      if (node.tagName === 'summary') {
+        node.properties = node.properties || {}
+        node.properties['className'] = (node.properties['className'] as string[] || []).concat([
+          'outline-none', 'select-none', 'cursor-pointer',
+          'list-none', 'marker:hidden'
+        ])
+      }
+
+      // Details content padding
+      if (node.tagName === 'details') {
+        node.properties = node.properties || {}
+        node.properties['className'] = (node.properties['className'] as string[] || []).concat([
+          '[&>*:not(summary)]:pl-5'
+        ])
+      }
+
+      // Named code block filename (from _namedCodeBlock.scss)
+      if (hasClass(node, 'named-fence-filename')) {
+        node.properties = node.properties || {}
+        node.properties['className'] = (node.properties['className'] as string[] || []).concat([
+          'absolute', 'top-0', 'left-0', 'px-1',
+          'font-bold', 'text-black', 'bg-gray-300',
+          'opacity-60', 'text-xs'
+        ])
+      }
+
+      // Share highlight custom element (from _shareHighlight.scss)
+      if (node.tagName === 'share-highlight') {
+        node.properties = node.properties || {}
+        node.properties['className'] = (node.properties['className'] as string[] || []).concat([
+          '[--share-highlight-text-color:theme(colors.gray.900)]',
+          '[--share-highlight-bg-color:theme(colors.gray.200)]',
+          '[--share-highlight-text-color-active:theme(colors.white)]',
+          '[--share-highlight-bg-color-active:theme(colors.blue.600)]',
+          '[--share-highlight-tooltip-text-color:theme(colors.white)]',
+          '[--share-highlight-tooltip-bg-color:theme(colors.gray.900)]'
+        ])
       }
 
       // Add classes to tables
@@ -220,5 +323,19 @@ function hasClass(node: Element, className: string): boolean {
 function isWithinPre(_node: Element): boolean {
   // This is a simplified check - in a real implementation you'd need to traverse up the tree
   // For now, we'll rely on the pre > code selector being handled separately
+  return false
+}
+
+// Helper function to check if an element is within a code-tabs container
+function isWithinCodeTabs(node: Element): boolean {
+  // Check if the element has code-tabs related classes or data attributes
+  const classes = node.properties?.['className'] as string[] | string | undefined
+  if (Array.isArray(classes)) {
+    return classes.some(cls => cls.includes('code-tab'))
+  }
+  if (typeof classes === 'string') {
+    return classes.includes('code-tab')
+  }
+  // Could also check parent elements in a more complete implementation
   return false
 }
