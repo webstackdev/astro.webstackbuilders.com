@@ -1,0 +1,99 @@
+---
+/**
+ * Newsletter Signup Component
+ * A stylish newsletter signup form for use in MDX content
+ *
+ * Usage in MDX:
+ * <Signup
+ *   title="Stay Updated"
+ *   description="Get the latest articles and insights delivered to your inbox."
+ *   buttonText="Subscribe"
+ *   placeholder="Enter your email"
+ * />
+ */
+
+interface Props {
+  title?: string
+  description?: string
+  buttonText?: string
+  placeholder?: string
+  className?: string
+}
+
+const {
+  title = "Newsletter Signup",
+  description = "Subscribe to get the latest updates and insights.",
+  buttonText = "Subscribe",
+  placeholder = "Enter your email address",
+  className = ""
+} = Astro.props
+---
+
+<div class={`bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900 rounded-xl p-8 my-8 shadow-lg border border-gray-200 dark:border-gray-700 ${className}`}>
+  <div class="max-w-md mx-auto text-center">
+    <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+      {title}
+    </h3>
+
+    <p class="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
+      {description}
+    </p>
+
+    <form
+      action="#"
+      method="POST"
+      class="space-y-4"
+      onsubmit="event.preventDefault(); handleSignup(this);"
+    >
+      <div class="relative">
+        <input
+          type="email"
+          name="email"
+          required
+          placeholder={placeholder}
+          class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 shadow-sm"
+        />
+      </div>
+
+      <button
+        type="submit"
+        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 transform hover:scale-105 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none shadow-md"
+      >
+        {buttonText}
+      </button>
+    </form>
+
+    <p class="text-xs text-gray-500 dark:text-gray-400 mt-4">
+      We respect your privacy. Unsubscribe at any time.
+    </p>
+  </div>
+</div>
+
+<script>
+  function handleSignup(form) {
+    const email = form.email.value;
+    const button = form.querySelector('button[type="submit"]');
+    const originalText = button.textContent;
+
+    // Show loading state
+    button.textContent = 'Subscribing...';
+    button.disabled = true;
+
+    // Here you would typically send the email to your newsletter service
+    // For now, we'll simulate success after a short delay
+    setTimeout(() => {
+      button.textContent = 'Subscribed!';
+      button.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+      button.classList.add('bg-green-600');
+
+      // Reset after 3 seconds
+      setTimeout(() => {
+        button.textContent = originalText;
+        button.disabled = false;
+        button.classList.remove('bg-green-600');
+        button.classList.add('bg-blue-600', 'hover:bg-blue-700');
+        form.reset();
+      }, 3000);
+    }, 1000);
+  }
+</script>

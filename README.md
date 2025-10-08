@@ -4,6 +4,71 @@
 
 @TODO: See here for utility components like shortcodes: https://docs.astro.build/en/reference/api-reference/#astroslotsrender
 
+## MDX Components
+
+The project includes custom components that can be used in MDX files for enhanced content:
+
+### Newsletter Signup Component
+
+Use the `<Signup>` component to add a newsletter signup form to your MDX content:
+
+```mdx
+<Signup
+  title="Stay Updated"
+  description="Get the latest articles and insights delivered to your inbox."
+  buttonText="Subscribe"
+  placeholder="Enter your email"
+/>
+```
+
+**Props:**
+
+- `title` (optional): Heading text for the signup form (default: "Newsletter Signup")
+- `description` (optional): Description text below the title (default: "Subscribe to get the latest updates and insights.")
+- `buttonText` (optional): Text for the submit button (default: "Subscribe")
+- `placeholder` (optional): Placeholder text for the email input (default: "Enter your email address")
+- `className` (optional): Additional CSS classes to apply
+
+### Tweet Embed Component
+
+Use the `<X>` component to embed tweets in your MDX content:
+
+```mdx
+<X
+  id="1234567890123456789"
+  author="username"
+  content="This is the tweet content..."
+  date="2024-01-15"
+  avatar="/path/to/avatar.jpg"
+/>
+```
+
+**Props:**
+
+- `id` (required): The tweet ID from the Twitter/X URL
+- `author` (optional): Twitter username (default: "Twitter User")
+- `content` (optional): Tweet text content (default: "Loading tweet...")
+- `date` (optional): Tweet date in YYYY-MM-DD format (default: current date)
+- `avatar` (optional): URL to user's avatar image (default: "/assets/images/default-avatar.png")
+- `className` (optional): Additional CSS classes to apply
+
+**Note:** To use these components in MDX files, make sure to import them at the top of your MDX file:
+
+```mdx
+---
+# Your frontmatter here
+---
+
+import Signup from '../components/Newsletter/Signup.astro';
+import X from '../components/Tweet/X.astro';
+
+# Your Content
+
+<Signup title="Join Our Newsletter" />
+
+<X id="1234567890123456789" author="example" content="Check out this amazing post!" />
+```
+
 ## CSS Fixes
 
 - Make sure a fixed height header doesn't cover title text on page navigation

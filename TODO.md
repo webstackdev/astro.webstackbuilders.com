@@ -6,7 +6,6 @@
 - Make the MDX plugins commented out in astro.config.mjs work
 - update the package.json scripts files to whatever we actually use
 - are we validating front matter?
-- are we Importing @tailwind base, components, utilities in your main CSS file?
 - src/components/Script/visibility.ts - Only mentioned in TODO comment
 - src/components/Script/share-highlight.ts - Only referenced in commented-out import
 - src/components/Script/Script/animations/ directory (all files) - Only referenced in commented-out import

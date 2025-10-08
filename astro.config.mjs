@@ -3,10 +3,11 @@ import { defineConfig, envField } from 'astro/config'
 import AstroPWA from '@vite-pwa/astro'
 import mdx from '@astrojs/mdx'
 import preact from "@astrojs/preact"
+import { rehypeTailwindClasses } from './src/lib/markdown/rehype-tailwind-classes.ts'
+import remarkToc from 'remark-toc'
+import { rehypeAccessibleEmojis } from 'rehype-accessible-emojis'
 // TailwindCSS v4 using CSS imports instead of Vite plugin (to avoid type conflicts)
 // import svgSprite from "astro-svg-sprite"
-// import remarkToc from 'remark-toc'
-// import { rehypeAccessibleEmojis } from 'rehype-accessible-emojis'
 
 const { DEV_SERVER_PORT, PREVIEW_SERVER_PORT } = loadEnv('production', process.cwd(), "")
 
@@ -97,14 +98,23 @@ export default defineConfig({
         ],
       }
     }),
-    mdx(/*{
-      syntaxHighlight: 'shiki', // 'prism'
+    mdx({
+      syntaxHighlight: 'shiki',
       shikiConfig: { theme: 'dracula' },
-      remarkPlugins: [ [remarkToc, { heading: "contents"} ] ],
-      rehypePlugins: [rehypeAccessibleEmojis],
-      remarkRehype: { footnoteLabel: 'Footnotes', footnoteBackLabel: "Back to reference 1" },
-      gfm: false, // default is true
-    }*/),
+      remarkPlugins: [
+        [remarkToc, { heading: "contents" }]
+      ],
+      rehypePlugins: [
+        // Automatically add Tailwind classes to markdown elements
+        rehypeTailwindClasses,
+        [rehypeAccessibleEmojis, { emoticon: true }]
+      ],
+      remarkRehype: {
+        footnoteLabel: 'Footnotes',
+        footnoteBackLabel: "Back to reference 1"
+      },
+      gfm: true, // GitHub Flavored Markdown
+    }),
     preact(),
   ],
   /**
