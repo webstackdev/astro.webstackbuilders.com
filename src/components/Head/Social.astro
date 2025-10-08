@@ -1,7 +1,39 @@
-{/* Facebook share metadata */}
-<meta name="image" content="FIXME {{ pageUrl }}{{ image }}">
-<meta property="og:image" content="FIXME {% pageSocialImg fileSlug %}" />
-{/* Twitter share metadata */}
-<meta name="twitter:card" content="FIXME {% if isPost */}summary_large_image{% else %}summary{% endif %}" />
-<meta name="twitter:site" content="FIXME {{ author.social.twitter.url }}">
-<meta name="twitter:creator" content="FIXME {{ author.social.twitter.name }}" />
+---
+import company from "@content/company"
+import { getSocialMetadata } from "@lib/utils/seo"
+
+export interface Props {
+  title?: string
+  description?: string
+  slug?: string
+  image?: string
+}
+
+const { title, description, slug, image } = Astro.props
+
+const socialMetadata = getSocialMetadata({
+  title,
+  description,
+  slug,
+  image,
+  url: Astro.url.href
+})
+---
+
+{/* Open Graph / Facebook metadata */}
+<meta property="og:type" content="website" />
+<meta property="og:title" content={socialMetadata.ogTitle} />
+<meta property="og:description" content={socialMetadata.ogDescription} />
+<meta property="og:image" content={socialMetadata.ogImage} />
+<meta property="og:image:alt" content={socialMetadata.ogImageAlt} />
+<meta property="og:url" content={socialMetadata.ogUrl} />
+<meta property="og:site_name" content={company.name} />
+
+{/* Twitter metadata */}
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:site" content="@webstackdev" />
+<meta name="twitter:creator" content="@webstackdev" />
+<meta name="twitter:title" content={socialMetadata.twitterTitle} />
+<meta name="twitter:description" content={socialMetadata.twitterDescription} />
+<meta name="twitter:image" content={socialMetadata.twitterImage} />
+<meta name="twitter:image:alt" content={socialMetadata.twitterImageAlt} />

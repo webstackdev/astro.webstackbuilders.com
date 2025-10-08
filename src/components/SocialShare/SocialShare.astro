@@ -1,0 +1,162 @@
+---
+/**
+ * Social media sharing component with buttons for various platforms
+ */
+import Sprite from '../Sprite.astro'
+
+export interface Props {
+  /** Page URL to share */
+  url: string
+  /** Page title to share */
+  title: string
+  /** Page description to share */
+  description?: string
+  /** Social image URL */
+  image?: string
+  /** Additional CSS classes */
+  class?: string
+  /** Show as horizontal or vertical layout */
+  layout?: 'horizontal' | 'vertical'
+  /** Which platforms to show */
+  platforms?: ('twitter' | 'facebook' | 'linkedin' | 'bluesky')[]
+}
+
+const {
+  url,
+  title,
+  description = '',
+  image,
+  class: additionalClasses = '',
+  layout = 'horizontal',
+  platforms = ['twitter', 'facebook', 'linkedin', 'bluesky']
+} = Astro.props
+
+// Encode parameters for URLs
+const encodedUrl = encodeURIComponent(url)
+const encodedTitle = encodeURIComponent(title)
+const encodedDescription = encodeURIComponent(description)
+const encodedImage = image ? encodeURIComponent(image) : ''
+
+// Social sharing URLs
+const shareUrls = {
+  twitter: `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}${description ? `%20-%20${encodedDescription}` : ''}`,
+  facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+  linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}&title=${encodedTitle}&summary=${encodedDescription}`,
+  bluesky: `https://bsky.app/intent/compose?text=${encodedTitle}%20${encodedUrl}`
+}
+
+// Platform configurations
+const platformConfig = {
+  twitter: {
+    name: 'X (Twitter)',
+    icon: 'twitter',
+    color: 'bg-[#1DA1F2] hover:bg-[#1a91da]'
+  },
+  facebook: {
+    name: 'Facebook',
+    icon: 'facebook',
+    color: 'bg-[#4267B2] hover:bg-[#365899]'
+  },
+  linkedin: {
+    name: 'LinkedIn',
+    icon: 'linkedin',
+    color: 'bg-[#0077b5] hover:bg-[#005885]'
+  },
+  bluesky: {
+    name: 'Bluesky',
+    icon: 'bluesky',
+    color: 'bg-[#00A8E8] hover:bg-[#0087bd]'
+  }
+}
+
+const containerClasses = [
+  'social-share',
+  layout === 'horizontal' ? 'flex flex-wrap gap-3' : 'flex flex-col gap-2',
+  additionalClasses
+].filter(Boolean).join(' ')
+---
+
+<div class={containerClasses} role="group" aria-label="Share this content">
+  <span class="social-share__label text-sm font-semibold text-gray-600 mr-2 self-center">
+    Share:
+  </span>
+
+  {platforms.map((platform) => {
+    const config = platformConfig[platform]
+    const shareUrl = shareUrls[platform]
+
+    return (
+      <a
+        href={shareUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        class={`social-share__button inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white font-medium transition-colors ${config.color} hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
+        aria-label={`Share on ${config.name}`}
+      >
+        <Sprite name={config.icon} class="h-4 w-4 fill-current" />
+        <span class="hidden sm:inline">{config.name}</span>
+      </a>
+    )
+  })}
+</div>
+
+<script>
+  // Add click tracking for analytics
+  document.addEventListener('DOMContentLoaded', () => {
+    const shareButtons = document.querySelectorAll('.social-share__button')
+
+    shareButtons.forEach((button) => {
+      button.addEventListener('click', (event: Event) => {
+        const target = event.currentTarget as HTMLElement
+        if (!target) return
+
+        const platform = target.getAttribute('aria-label')?.replace('Share on ', '').toLowerCase()
+
+        // Track sharing event (integrate with your analytics)
+        if (typeof (window as any).gtag !== 'undefined') {
+          (window as any).gtag('event', 'share', {
+            method: platform,
+            content_type: 'article',
+            content_id: window.location.pathname
+          })
+        }
+
+        // Optional: Use Web Share API if available for native sharing
+        const mouseEvent = event as MouseEvent
+        if (navigator.share && mouseEvent.shiftKey) {
+          event.preventDefault()
+          const metaDescription = document.querySelector('meta[name="description"]') as HTMLMetaElement
+          navigator.share({
+            title: document.title,
+            text: metaDescription?.content || '',
+            url: window.location.href
+          }).catch(err => console.log('Error sharing:', err))
+        }
+      })
+    })
+  })
+</script>
+
+<style>
+  /* Additional styling for social share component */
+  .social-share__button:hover {
+    transform: translateY(-1px);
+  }
+
+  .social-share__button:active {
+    transform: translateY(0);
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 640px) {
+    .social-share {
+      justify-content: center;
+    }
+
+    .social-share__label {
+      width: 100%;
+      text-align: center;
+      margin-bottom: 0.5rem;
+    }
+  }
+</style>

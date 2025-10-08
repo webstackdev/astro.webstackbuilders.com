@@ -9,11 +9,13 @@ export interface Props {
   pageTitle: string,
   path: string,
   description?: string,
+  image?: string,
 }
 
-const { pageTitle, path, description } = Astro.props
+const { pageTitle, path, description, image } = Astro.props
 
 const defaultTheme = themes.default
+const slug = path.replace(/^\//, '').replace(/\/$/, '') || 'home'
 ---
 
 <title>{pageTitleFormatter(pageTitle, Astro.site?.href ?? `https://webstackbuilders.com`)}</title>
@@ -24,7 +26,12 @@ const defaultTheme = themes.default
 <meta name="author" content={company.author.name}>
 <Seo path={path} />
 {/* Open Graph meta tags for Twitter and Facebook social shares */}
-<Social />
+<Social
+  title={pageTitle}
+  description={description || company.description}
+  slug={slug}
+  image={image}
+/>
 {/* Used to sets the color of the surrounding user interface for e.g. the */}
 {/* browser title bar. It is updated by script when the theme changes.    */}
 <meta name="theme-color" content={defaultTheme.colors.backgroundOffset}>

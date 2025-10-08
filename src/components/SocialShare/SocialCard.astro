@@ -1,0 +1,214 @@
+---
+/**
+ * Social Card Preview Component
+ * Shows a preview of what the social media card will look like
+ */
+
+export interface Props {
+  /** Card title */
+  title: string
+  /** Card description */
+  description?: string
+  /** Publication date */
+  date?: string
+  /** Additional CSS classes */
+  class?: string
+  /** Preview mode - shows a smaller version */
+  preview?: boolean
+}
+
+const {
+  title,
+  description,
+  date,
+  class: additionalClasses = '',
+  preview = false
+} = Astro.props
+
+const containerClasses = [
+  'social-card',
+  preview ? 'social-card--preview' : 'social-card--full',
+  additionalClasses
+].filter(Boolean).join(' ')
+---
+
+<div class={containerClasses}>
+  <div class="social-card__decorations">
+    <div class="social-card__decoration social-card__decoration--1"></div>
+    <div class="social-card__decoration social-card__decoration--2"></div>
+  </div>
+
+  <div class="social-card__content">
+    <h1 class="social-card__title">{title}</h1>
+    {description && (
+      <p class="social-card__description">{description}</p>
+    )}
+    {date && (
+      <div class="social-card__date">Published on {date}</div>
+    )}
+  </div>
+
+  <div class="social-card__brand">Webstack Builders</div>
+</div>
+
+<style>
+  /* Social card styles matching the API generated cards */
+  .social-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 60px;
+    background: linear-gradient(135deg, #001a39 0%, #006dca 100%);
+    color: white;
+    font-family: "Baloo 2", "Onest Regular", sans-serif;
+    box-sizing: border-box;
+    overflow: hidden;
+    border-radius: 12px;
+  }
+
+  .social-card--full {
+    width: 1200px;
+    height: 630px;
+  }
+
+  .social-card--preview {
+    width: 600px;
+    height: 315px;
+    padding: 30px;
+  }
+
+  .social-card__decorations {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .social-card__decoration {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .social-card__decoration--1 {
+    width: 200px;
+    height: 200px;
+    top: -100px;
+    left: -100px;
+  }
+
+  .social-card__decoration--2 {
+    width: 150px;
+    height: 150px;
+    bottom: -75px;
+    right: -75px;
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .social-card--preview .social-card__decoration--1 {
+    width: 100px;
+    height: 100px;
+    top: -50px;
+    left: -50px;
+  }
+
+  .social-card--preview .social-card__decoration--2 {
+    width: 75px;
+    height: 75px;
+    bottom: -37px;
+    right: -37px;
+  }
+
+  .social-card__content {
+    text-align: center;
+    max-width: 1000px;
+    z-index: 2;
+  }
+
+  .social-card--preview .social-card__content {
+    max-width: 500px;
+  }
+
+  .social-card__title {
+    font-size: 4rem;
+    margin-bottom: 2rem;
+    line-height: 1.1;
+    font-weight: 500;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  .social-card--preview .social-card__title {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .social-card__description {
+    font-size: 2rem;
+    line-height: 1.4;
+    margin-bottom: 1rem;
+    opacity: 0.9;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+
+  .social-card--preview .social-card__description {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .social-card__date {
+    font-size: 1.5rem;
+    opacity: 0.8;
+    font-style: italic;
+  }
+
+  .social-card--preview .social-card__date {
+    font-size: 0.8rem;
+  }
+
+  .social-card__brand {
+    position: absolute;
+    bottom: 40px;
+    right: 40px;
+    font-size: 1.8rem;
+    font-weight: bold;
+    opacity: 0.8;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    z-index: 2;
+  }
+
+  .social-card--preview .social-card__brand {
+    bottom: 20px;
+    right: 20px;
+    font-size: 0.9rem;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 1240px) {
+    .social-card--full {
+      width: 100%;
+      max-width: 1200px;
+      height: auto;
+      aspect-ratio: 1200 / 630;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .social-card--preview {
+      width: 100%;
+      max-width: 600px;
+      height: auto;
+      aspect-ratio: 600 / 315;
+      padding: 20px;
+    }
+
+    .social-card--preview .social-card__title {
+      font-size: 1.5rem;
+    }
+
+    .social-card--preview .social-card__description {
+      font-size: 0.9rem;
+    }
+  }
+</style>

@@ -4,15 +4,17 @@ import Meta from "@components/Head/Meta.astro"
 export interface Props {
   pageTitle: string,
   path: string,
+  description?: string,
+  image?: string,
 }
 
-const { pageTitle, path } = Astro.props
+const { pageTitle, path, description, image } = Astro.props
 ---
 
 <head>
   <title>{pageTitle}</title>
   {/* Site <meta> tags, Open Graph social tags, and favicon, PWA manifest, RSS, canonical, pingback, and webmention links */}
-  <Meta pageTitle={pageTitle} path={path} />
+  <Meta pageTitle={pageTitle} path={path} description={description} image={image} />
   {/* Script tag with background colors keyed to theme names for setting initial */}
   {/* bg color and to set data-theme attribute on <html> element early           */}
   <script>
