@@ -23,3 +23,17 @@ Next Steps Available:
 
 Future Cleaner Import (using barrel file):
 import { initializeCookiePreferences, CookiePreferencesManager } from '@lib/cookies'
+
+17:16:51 [WARN] [vite]
+../fonts/OnestRegular1602-hint.woff2 referenced in ../fonts/OnestRegular1602-hint.woff2 didn't resolve at build time, it will remain unchanged to be resolved at runtime
+17:16:51 [WARN] [vite]
+../fonts/Lora-Regular.woff2 referenced in ../fonts/Lora-Regular.woff2 didn't resolve at build time, it will remain unchanged to be resolved at runtime
+17:16:51 [WARN] [vite]
+../fonts/IBMPlexMono-Regular.woff2 referenced in ../fonts/IBMPlexMono-Regular.woff2 didn't resolve at build time, it will remain unchanged to be resolved at runtime
+17:16:51 [WARN] [vite] [esbuild css minify]
+▲ [WARNING] Expected ";" but found "}" [css-syntax-error]
+
+    <stdin>:1:33808:
+      1 │ ...er utilities{@tailwind utilities}@source "../src *.{astro,ts,tsx...
+        │                                    ^
+        ╵                                    ;

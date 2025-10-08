@@ -112,7 +112,7 @@ export default defineConfig({
       rehypePlugins: [
         // Automatically add Tailwind classes to markdown elements
         rehypeTailwindClasses,
-        [rehypeAccessibleEmojis, { emoticon: true }]
+        rehypeAccessibleEmojis
       ],
       remarkRehype: {
         footnoteLabel: 'Footnotes',

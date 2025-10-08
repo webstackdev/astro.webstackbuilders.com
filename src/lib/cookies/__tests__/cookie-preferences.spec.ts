@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import CookiePreferencesManager from './cookie-preferences'
+import CookiePreferencesManager from '../cookie-preferences'
 
 // Mock document.cookie
 Object.defineProperty(document, 'cookie', {
