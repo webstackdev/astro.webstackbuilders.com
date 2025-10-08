@@ -1,6 +1,6 @@
 ---
 import { getCollection } from 'astro:content'
-import ServiceLayout from "../../layouts/ServiceLayout.astro"
+import BaseLayout from "../../layouts/BaseLayout.astro"
 import SuggestedServices from "../../components/SuggestedServices/SuggestedServices.astro"
 
 export async function getStaticPaths() {
@@ -12,18 +12,115 @@ export async function getStaticPaths() {
 
 const { service } = Astro.props
 const path = `/services/${service.id}/`
+const pageTitle = service.data.title
+const icon = service.data.icon ? { src: service.data.icon, alt: service.data.title } : undefined
+const meta = {
+  category: service.data.category,
+  pricing: service.data.pricing,
+  duration: service.data.duration,
+  deliverables: service.data.deliverables,
+  technologies: service.data.tags,
+  draft: service.data.isDraft || false
+}
 ---
 
-<ServiceLayout
-  pageTitle={service.data.title}
-  path={path}
-  meta={{
-    category: service.data.category,
-    technologies: service.data.tags,
-    draft: service.data.isDraft || false
-  }}
->
-  <div set:html={service.rendered?.html || ''} />
+<BaseLayout pageTitle={pageTitle} path={path}>
+  <article
+    id="service"
+    class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8"
+    itemscope
+    itemtype="http://schema.org/Service"
+    aria-labelledby="service-title"
+  >
+    <header class="py-8 md:py-16 lg:py-20 text-center border-b border-[var(--color-theme-border)]">
+      {icon && (
+        <div class="w-20 h-20 mx-auto mb-6 bg-[var(--color-theme-primary-offset)] rounded-xl flex items-center justify-center" itemtype="image">
+          <img
+            src={icon.src}
+            alt={icon.alt}
+            loading="eager"
+            class="w-10 h-10"
+          />
+        </div>
+      )}
+      <h1
+        id="service-title"
+        class="text-3xl md:text-4xl lg:text-5xl font-bold text-[var(--color-theme-text)] mb-8"
+        itemprop="name"
+      >
+        {pageTitle}
+      </h1>
 
-  <SuggestedServices currentSlug={service.id} limit={4} slot="suggested-content" />
-</ServiceLayout>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-3xl mx-auto text-left">
+        {meta.category && (
+          <div class="bg-[var(--color-theme-bg-offset)] rounded-lg p-4">
+            <div class="text-sm font-semibold text-[var(--color-theme-text-offset)] uppercase tracking-wide mb-1">Category</div>
+            <div class="text-[var(--color-theme-text)]">{meta.category}</div>
+          </div>
+        )}
+        {meta.pricing && (
+          <div class="bg-[var(--color-theme-bg-offset)] rounded-lg p-4" itemprop="offers">
+            <div class="text-sm font-semibold text-[var(--color-theme-text-offset)] uppercase tracking-wide mb-1">Pricing</div>
+            <div class="text-[var(--color-theme-text)]">{meta.pricing}</div>
+          </div>
+        )}
+        {meta.duration && (
+          <div class="bg-[var(--color-theme-bg-offset)] rounded-lg p-4">
+            <div class="text-sm font-semibold text-[var(--color-theme-text-offset)] uppercase tracking-wide mb-1">Typical Duration</div>
+            <div class="text-[var(--color-theme-text)]">{meta.duration}</div>
+          </div>
+        )}
+        {meta.technologies && meta.technologies.length > 0 && (
+          <div class="bg-[var(--color-theme-bg-offset)] rounded-lg p-4 md:col-span-2 lg:col-span-3">
+            <div class="text-sm font-semibold text-[var(--color-theme-text-offset)] uppercase tracking-wide mb-3">Technologies</div>
+            <div class="flex flex-wrap gap-2">
+              {meta.technologies.map((tech: string) => (
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[var(--color-theme-primary-offset)] text-[var(--color-theme-primary)]">
+                  {tech}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+        {meta.deliverables && meta.deliverables.length > 0 && (
+          <div class="bg-[var(--color-theme-bg-offset)] rounded-lg p-4 md:col-span-2 lg:col-span-3">
+            <div class="text-sm font-semibold text-[var(--color-theme-text-offset)] uppercase tracking-wide mb-3">Deliverables</div>
+            <ul class="space-y-2">
+              {meta.deliverables.map((deliverable: string) => (
+                <li class="flex items-start">
+                  <svg class="w-5 h-5 text-[var(--color-theme-success)] mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                  </svg>
+                  <span class="text-[var(--color-theme-text-offset)]">{deliverable}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {meta.draft && (
+          <div class="bg-[var(--color-theme-secondary-offset)] border border-[var(--color-theme-secondary)] rounded-lg p-4 md:col-span-2 lg:col-span-3">
+            <div class="flex items-center">
+              <svg class="w-5 h-5 text-[var(--color-theme-secondary)] mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+              </svg>
+              <span class="text-[var(--color-theme-secondary)] font-medium">Draft Service</span>
+            </div>
+          </div>
+        )}
+      </div>
+    </header>
+
+    <div class="py-12 prose prose-lg max-w-none text-[var(--color-theme-text)]" itemprop="description">
+      <div set:html={service.rendered?.html || ''} />
+    </div>
+
+    <div class="border-t border-[var(--color-theme-border)] pt-12">
+      <header class="text-center mb-8">
+        <h3 class="text-2xl md:text-3xl font-bold text-[var(--color-theme-text)] uppercase tracking-wide">
+          Other Services I Offer
+        </h3>
+      </header>
+      <SuggestedServices currentSlug={service.id} limit={4} />
+    </div>
+  </article>
+</BaseLayout>

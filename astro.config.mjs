@@ -6,7 +6,7 @@ import preact from "@astrojs/preact"
 import { rehypeTailwindClasses } from './src/lib/markdown/rehype-tailwind-classes.ts'
 import remarkToc from 'remark-toc'
 import { rehypeAccessibleEmojis } from 'rehype-accessible-emojis'
-// TailwindCSS v4 using CSS imports instead of Vite plugin (to avoid type conflicts)
+import tailwindcss from '@tailwindcss/vite';
 // import svgSprite from "astro-svg-sprite"
 
 const { DEV_SERVER_PORT, PREVIEW_SERVER_PORT } = loadEnv('production', process.cwd(), "")
@@ -39,6 +39,7 @@ const getSiteUrl = () => {
 export default defineConfig({
   /** Site name accessible using import.meta.env.SITE */
   site: getSiteUrl(),
+  trailingSlash: 'never',
   integrations: [
     AstroPWA({
       mode: 'production',
@@ -151,4 +152,7 @@ export default defineConfig({
     }
   },
   prefetch: true,
+  vite: {
+    plugins: [/** @type {any} */ (tailwindcss())]
+  }
 })

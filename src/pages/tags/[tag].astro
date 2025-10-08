@@ -61,14 +61,14 @@ const path = `/tags/${tag}/`
 <BaseLayout pageTitle={`${displayName} - Tag`} path={path}>
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <header class="text-center mb-12">
-      <h1 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
+      <h1 class="text-4xl md:text-5xl font-bold text-[var(--color-theme-text)] mb-4">
         {displayName}
       </h1>
-      <p class="text-xl text-gray-600 dark:text-gray-300">
+      <p class="text-xl text-[var(--color-theme-text-muted)]">
         {totalItems} item{totalItems !== 1 ? 's' : ''} tagged with {displayName.toLowerCase()}
       </p>
       <nav class="mt-4">
-        <a href="/tags/" class="text-blue-600 dark:text-blue-400 hover:underline">
+        <a href="/tags/" class="text-[var(--color-theme-primary)] hover:underline">
           ← Browse all tags
         </a>
       </nav>
@@ -78,7 +78,7 @@ const path = `/tags/${tag}/`
       <>
         <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12 mb-12">
           {paginatedContent.map((item) => (
-            <article class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
+            <article class="bg-[var(--color-theme-bg)] rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
               <a href={`/${item.type === 'case-study' ? 'case-studies' : item.type === 'service' ? 'services' : 'articles'}/${item.id}/`} class="block h-full">
                 {item.data.image && (
                   <div class="aspect-video overflow-hidden">
@@ -94,12 +94,12 @@ const path = `/tags/${tag}/`
                 <div class="p-6 space-y-4">
                   <div class="flex items-center gap-3 text-sm">
                     <span class={`px-3 py-1 rounded-full text-white font-medium ${
-                      item.type === 'article' ? 'bg-blue-600' :
-                      item.type === 'case-study' ? 'bg-green-600' : 'bg-purple-600'
+                      item.type === 'article' ? 'bg-[var(--color-theme-primary)]' :
+                      item.type === 'case-study' ? 'bg-[var(--color-theme-success)]' : 'bg-[var(--color-theme-accent)]'
                     }`}>
                       {item.type === 'case-study' ? 'Case Study' : item.type.charAt(0).toUpperCase() + item.type.slice(1)}
                     </span>
-                    <time class="text-gray-500 dark:text-gray-400">
+                    <time class="text-[var(--color-theme-text-muted)]">
                       {item.data.publishDate.toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'long',
@@ -108,12 +108,12 @@ const path = `/tags/${tag}/`
                     </time>
                   </div>
 
-                  <h2 class="text-xl font-semibold text-gray-900 dark:text-white leading-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
+                  <h2 class="text-xl font-semibold text-[var(--color-theme-text)] leading-tight group-hover:text-[var(--color-theme-primary)] transition-colors duration-300">
                     {item.data.title}
                   </h2>
 
                   {item.data.description && (
-                    <p class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed line-clamp-3">
+                    <p class="text-[var(--color-theme-text-muted)] text-sm leading-relaxed line-clamp-3">
                       {item.data.description}
                     </p>
                   )}
@@ -121,7 +121,7 @@ const path = `/tags/${tag}/`
                   <div class="space-y-3 pt-2">
                     {/* Client or Author info */}
                     {item.data.client && (
-                      <span class="inline-block text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 px-3 py-1 rounded-full">
+                      <span class="inline-block text-sm font-medium text-[var(--color-theme-primary)] bg-[var(--color-theme-primary-bg)] px-3 py-1 rounded-full">
                         Client: {item.data.client}
                       </span>
                     )}
@@ -130,7 +130,7 @@ const path = `/tags/${tag}/`
                     {item.data.tags && item.data.tags.length > 1 && (
                       <div class="flex flex-wrap gap-2">
                         {item.data.tags.filter((t: string) => t !== tag).slice(0, 3).map((relatedTag: string) => (
-                          <a href={`/tags/${relatedTag}/`} class="text-xs font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 px-2 py-1 rounded-full transition-colors duration-200">
+                          <a href={`/tags/${relatedTag}/`} class="text-xs font-medium text-[var(--color-theme-text-muted)] bg-[var(--color-theme-bg-offset)] hover:bg-[var(--color-theme-border)] px-2 py-1 rounded-full transition-colors duration-200">
                             {getTagDisplayName(relatedTag)}
                           </a>
                         ))}
@@ -149,7 +149,7 @@ const path = `/tags/${tag}/`
             {currentPage > 1 && (
               <a
                 href={currentPage === 2 ? path : `${path}?page=${currentPage - 1}`}
-                class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+                class="px-4 py-2 text-sm font-medium text-[var(--color-theme-text)] bg-[var(--color-theme-bg)] border border-[var(--color-theme-border)] rounded-lg hover:bg-[var(--color-theme-bg-offset)] transition-colors duration-200"
               >
                 ← Previous
               </a>
@@ -160,12 +160,12 @@ const path = `/tags/${tag}/`
               <>
                 <a
                   href={path}
-                  class="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+                  class="px-3 py-2 text-sm font-medium text-[var(--color-theme-text)] bg-[var(--color-theme-bg)] border border-[var(--color-theme-border)] rounded-lg hover:bg-[var(--color-theme-bg-offset)] transition-colors duration-200"
                 >
                   1
                 </a>
                 {currentPage > 4 && (
-                  <span class="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">…</span>
+                  <span class="px-3 py-2 text-sm text-[var(--color-theme-text-muted)]">…</span>
                 )}
               </>
             )}
@@ -182,8 +182,8 @@ const path = `/tags/${tag}/`
                   href={page === 1 ? path : `${path}?page=${page}`}
                   class={`px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 ${
                     isCurrentPage
-                      ? 'bg-blue-600 text-white'
-                      : 'text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                      ? 'bg-[var(--color-theme-primary)] text-white'
+                      : 'text-[var(--color-theme-text)] bg-[var(--color-theme-bg)] border border-[var(--color-theme-border)] hover:bg-[var(--color-theme-bg-offset)]'
                   }`}
                   aria-current={isCurrentPage ? 'page' : undefined}
                 >
@@ -196,11 +196,11 @@ const path = `/tags/${tag}/`
             {currentPage < totalPages - 2 && (
               <>
                 {currentPage < totalPages - 3 && (
-                  <span class="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">…</span>
+                  <span class="px-3 py-2 text-sm text-[var(--color-theme-text-muted)]">…</span>
                 )}
                 <a
                   href={`${path}?page=${totalPages}`}
-                  class="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+                  class="px-3 py-2 text-sm font-medium text-[var(--color-theme-text)] bg-[var(--color-theme-bg)] border border-[var(--color-theme-border)] rounded-lg hover:bg-[var(--color-theme-bg-offset)] transition-colors duration-200"
                 >
                   {totalPages}
                 </a>
@@ -210,7 +210,7 @@ const path = `/tags/${tag}/`
             {currentPage < totalPages && (
               <a
                 href={`${path}?page=${currentPage + 1}`}
-                class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+                class="px-4 py-2 text-sm font-medium text-[var(--color-theme-text)] bg-[var(--color-theme-bg)] border border-[var(--color-theme-border)] rounded-lg hover:bg-[var(--color-theme-bg-offset)] transition-colors duration-200"
               >
                 Next →
               </a>
@@ -220,10 +220,10 @@ const path = `/tags/${tag}/`
       </>
     ) : (
       <div class="text-center py-12">
-        <p class="text-xl text-gray-600 dark:text-gray-300 mb-4">
+        <p class="text-xl text-[var(--color-theme-text-muted)] mb-4">
           No content found for this tag.
         </p>
-        <a href="/tags/" class="text-blue-600 dark:text-blue-400 hover:underline">
+        <a href="/tags/" class="text-[var(--color-theme-primary)] hover:underline">
           Browse other tags
         </a>
       </div>

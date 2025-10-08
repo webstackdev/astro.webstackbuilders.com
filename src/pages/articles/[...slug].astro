@@ -1,11 +1,12 @@
 ---
 import { getCollection } from 'astro:content'
-import ArticleLayout from "@layouts/ArticleLayout.astro"
+import BaseLayout from "@layouts/BaseLayout.astro"
+import { SocialShare } from "@components/SocialShare"
 import SuggestedArticles from "@components/SuggestedArticles/SuggestedArticles.astro"
 
 export async function getStaticPaths() {
   const articleEntries = await getCollection('articles', ({ data }) => {
-    return import.meta.env.PROD ? data.isDraft !== true : true;
+    return process.env['NODE_ENV'] !== 'production' || data.isDraft !== true;
   })
   return articleEntries.map(article => ({
     params: { slug: article.id }, props: { article },
@@ -16,20 +17,111 @@ const { article } = Astro.props
 // Use the rendered content directly from the article
 const renderedContent = article.rendered?.html || article.body || 'Content not available';
 const path = `/articles/${article.id}/`
+const pageTitle = article.data.title
+const cover = article.data.image
+const meta = {
+  date: article.data.publishDate,
+  author: (article.data.author as any).id || String(article.data.author),
+  tags: article.data.tags,
+  readingTime: article.data.readingTime,
+  draft: article.data.isDraft
+}
 ---
 
-<ArticleLayout
-  pageTitle={article.data.title}
-  path={path}
-  cover={article.data.image}
-  meta={{
-    date: article.data.publishDate,
-    author: (article.data.author as any).id || String(article.data.author),
-    tags: article.data.tags,
-    draft: article.data.isDraft
-  }}
->
-  <div set:html={renderedContent} />
+<BaseLayout pageTitle={pageTitle} path={path}>
+  <article
+    id="article"
+    class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8"
+    itemscope
+    itemtype="http://schema.org/BlogPosting"
+    aria-labelledby="article-title"
+  >
+    <header class="py-8 md:py-16 lg:py-20 text-center space-y-6">
+      {cover && (
+        <div class="aspect-video max-w-3xl mx-auto rounded-2xl overflow-hidden shadow-lg" itemtype="image">
+          <img
+            src={cover.src}
+            alt={cover.alt}
+            loading="eager"
+            class="w-full h-full object-cover"
+          />
+        </div>
+      )}
+      <h1
+        id="article-title"
+        class="text-3xl md:text-4xl lg:text-5xl font-bold text-[var(--color-theme-text)] leading-tight"
+        itemprop="headline"
+      >
+        {pageTitle}
+      </h1>
+      <div class="flex flex-wrap items-center justify-center gap-4 text-[var(--color-theme-text-offset)]">
+        <time
+          class="flex items-center gap-2 text-lg"
+          itemprop="datePublished"
+          datetime={meta.date.toISOString()}
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          {meta.date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          })}
+        </time>
+        {meta.readingTime && (
+          <p class="flex items-center gap-2 text-lg">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {meta.readingTime} read
+          </p>
+        )}
+        {meta.tags && meta.tags.length > 0 && (
+          <div class="flex flex-wrap gap-2">
+            {meta.tags.map((tag: string) => (
+              <span class="text-sm font-medium text-[var(--color-theme-primary)] bg-[var(--color-theme-primary-offset)] px-3 py-1 rounded-full uppercase tracking-wide">
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+        {meta.draft && (
+          <span class="inline-block bg-[var(--color-theme-secondary-offset)] text-[var(--color-theme-secondary)] px-4 py-2 rounded-full text-sm font-medium uppercase tracking-wide">
+            Draft
+          </span>
+        )}
+      </div>
+    </header>
+    <div class="prose prose-lg max-w-none py-8 text-[var(--color-theme-text)]" itemprop="articleBody">
+      <div set:html={renderedContent} />
+    </div>
 
-  <SuggestedArticles currentSlug={article.id} limit={5} slot="suggested-content" />
-</ArticleLayout>
+    <!-- Social sharing section -->
+    <div class="border-t border-[var(--color-theme-border)] pt-8 mt-12">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div>
+          <h3 class="text-lg font-semibold text-[var(--color-theme-text)] mb-2">
+            Share this article
+          </h3>
+          <p class="text-[var(--color-theme-text-offset)] text-sm">
+            Found this helpful? Share it with others who might benefit.
+          </p>
+        </div>
+        <SocialShare
+          url={`https://webstackbuilders.com${path}`}
+          title={pageTitle}
+          description={`Read "${pageTitle}" on Webstack Builders`}
+          class="flex-shrink-0"
+        />
+      </div>
+    </div>
+
+    <div class="border-t border-[var(--color-theme-border)] pt-8 mt-12">
+      <header class="mb-8">
+        <h3 class="text-2xl font-bold text-[var(--color-theme-text)]">Other things I've written</h3>
+      </header>
+      <SuggestedArticles currentSlug={article.id} limit={5} />
+    </div>
+  </article>
+</BaseLayout>

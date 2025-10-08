@@ -44,10 +44,10 @@ const path = "/tags/"
 <BaseLayout pageTitle={pageTitle} path={path}>
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <header class="text-center mb-16">
-      <h1 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
+      <h1 class="text-4xl md:text-5xl font-bold text-[var(--color-theme-text)] mb-4">
         Browse by Tag
       </h1>
-      <p class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+      <p class="text-xl text-[var(--color-theme-text-muted)] max-w-3xl mx-auto">
         Explore our content organized by topics and technologies
       </p>
     </header>
@@ -58,18 +58,18 @@ const path = "/tags/"
         const displayName = getTagDisplayName(tag)
 
         return (
-          <section class="border-b border-gray-200 dark:border-gray-700 pb-12 last:border-b-0">
+          <section class="border-b border-[var(--color-theme-border)] pb-12 last:border-b-0">
             <header class="mb-6">
-              <h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                <a href={`/tags/${tag}/`} class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-300">
+              <h2 class="text-2xl md:text-3xl font-bold text-[var(--color-theme-text)] mb-2">
+                <a href={`/tags/${tag}/`} class="hover:text-[var(--color-theme-primary)] transition-colors duration-300">
                   {displayName}
                 </a>
               </h2>
-              <p class="text-gray-600 dark:text-gray-300">
+              <p class="text-[var(--color-theme-text-muted)]">
                 {contentPreview.length} item{contentPreview.length !== 1 ? 's' : ''}
                 {contentPreview.length >= 4 && (
                   <span class="ml-2">
-                    <a href={`/tags/${tag}/`} class="text-blue-600 dark:text-blue-400 hover:underline">
+                    <a href={`/tags/${tag}/`} class="text-[var(--color-theme-primary)] hover:underline">
                       View all →
                     </a>
                   </span>
@@ -80,7 +80,7 @@ const path = "/tags/"
             {/* Desktop: Show 3-4 cards in grid */}
             <div class="hidden md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {contentPreview.map((item) => (
-                <article class="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
+                <article class="bg-[var(--color-theme-bg)] rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
                   <a href={`/${item.type === 'case-study' ? 'case-studies' : item.type === 'service' ? 'services' : 'articles'}/${item.id}/`} class="block h-full">
                     {item.data.image && (
                       <div class="aspect-video overflow-hidden">
@@ -96,22 +96,22 @@ const path = "/tags/"
                     <div class="p-4 space-y-3">
                       <div class="flex items-center gap-2 text-xs">
                         <span class={`px-2 py-1 rounded-full text-white font-medium ${
-                          item.type === 'article' ? 'bg-blue-600' :
-                          item.type === 'case-study' ? 'bg-green-600' : 'bg-purple-600'
+                          item.type === 'article' ? 'bg-[var(--color-theme-primary)]' :
+                          item.type === 'case-study' ? 'bg-[var(--color-theme-success)]' : 'bg-[var(--color-theme-accent)]'
                         }`}>
                           {item.type === 'case-study' ? 'Case Study' : item.type.charAt(0).toUpperCase() + item.type.slice(1)}
                         </span>
-                        <time class="text-gray-500 dark:text-gray-400">
+                        <time class="text-[var(--color-theme-text-muted)]">
                           {item.data.publishDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
                         </time>
                       </div>
 
-                      <h3 class="font-semibold text-gray-900 dark:text-white leading-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300 line-clamp-2">
+                      <h3 class="font-semibold text-[var(--color-theme-text)] leading-tight group-hover:text-[var(--color-theme-primary)] transition-colors duration-300 line-clamp-2">
                         {item.data.title}
                       </h3>
 
                       {item.data.description && (
-                        <p class="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
+                        <p class="text-sm text-[var(--color-theme-text-muted)] line-clamp-2">
                           {item.data.description}
                         </p>
                       )}
@@ -124,7 +124,7 @@ const path = "/tags/"
             {/* Mobile: Show single card */}
             <div class="md:hidden">
               {contentPreview.slice(0, 1).map((item) => (
-                <article class="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
+                <article class="bg-[var(--color-theme-bg)] rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
                   <a href={`/${item.type === 'case-study' ? 'case-studies' : item.type === 'service' ? 'services' : 'articles'}/${item.id}/`} class="block">
                     {item.data.image && (
                       <div class="aspect-video overflow-hidden">
@@ -140,28 +140,28 @@ const path = "/tags/"
                     <div class="p-6 space-y-3">
                       <div class="flex items-center gap-2 text-sm">
                         <span class={`px-3 py-1 rounded-full text-white font-medium ${
-                          item.type === 'article' ? 'bg-blue-600' :
-                          item.type === 'case-study' ? 'bg-green-600' : 'bg-purple-600'
+                          item.type === 'article' ? 'bg-[var(--color-theme-primary)]' :
+                          item.type === 'case-study' ? 'bg-[var(--color-theme-success)]' : 'bg-[var(--color-theme-accent)]'
                         }`}>
                           {item.type === 'case-study' ? 'Case Study' : item.type.charAt(0).toUpperCase() + item.type.slice(1)}
                         </span>
-                        <time class="text-gray-500 dark:text-gray-400">
+                        <time class="text-[var(--color-theme-text-muted)]">
                           {item.data.publishDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                         </time>
                       </div>
 
-                      <h3 class="text-lg font-semibold text-gray-900 dark:text-white leading-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
+                      <h3 class="text-lg font-semibold text-[var(--color-theme-text)] leading-tight group-hover:text-[var(--color-theme-primary)] transition-colors duration-300">
                         {item.data.title}
                       </h3>
 
                       {item.data.description && (
-                        <p class="text-gray-600 dark:text-gray-300 line-clamp-3">
+                        <p class="text-[var(--color-theme-text-muted)] line-clamp-3">
                           {item.data.description}
                         </p>
                       )}
 
                       <div class="pt-2">
-                        <span class="inline-flex items-center text-blue-600 dark:text-blue-400 font-medium text-sm">
+                        <span class="inline-flex items-center text-[var(--color-theme-primary)] font-medium text-sm">
                           View {contentPreview.length > 1 ? `all ${contentPreview.length} items` : 'details'}
                           <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
