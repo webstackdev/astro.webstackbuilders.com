@@ -2,9 +2,8 @@
 export default {
   extends: [
     'stylelint-config-html',
-    'stylelint-config-standard-scss'
+    'stylelint-config-standard'
   ],
-  customSyntax: 'postcss-scss',
   overrides: [
     {
       files: ['**/*.astro'],
@@ -14,7 +13,6 @@ export default {
   'plugins': [
     'stylelint-declaration-block-no-ignored-properties',
     'stylelint-order',
-    'stylelint-scss',
   ],
   rules: {
     'alpha-value-notation': [
@@ -23,7 +21,7 @@ export default {
         exceptProperties: ['opacity'],
       },
     ],
-    // Disallow '@extend' in scss as it can change selector precedence
+    // Disallow '@extend' as it can change selector precedence
     'at-rule-disallowed-list': ['extend'],
     'at-rule-empty-line-before': [
       'always',
@@ -279,15 +277,5 @@ export default {
      */
     'order/properties-alphabetical-order': true,
     'plugin/declaration-block-no-ignored-properties': true,
-    // Since mixins are explicit (`@include`) and parens are unnecessary for argument-less mixins, they can be omitted.
-    'scss/at-else-closing-brace-newline-after': 'always-last-in-chain',
-    'scss/at-else-closing-brace-space-after': 'always-intermediate',
-    'scss/at-else-empty-line-before': 'never',
-    'scss/at-if-closing-brace-newline-after': 'always-last-in-chain',
-    'scss/at-if-closing-brace-space-after': 'always-intermediate',
-    // Since leading underscores are not needed, they can be omitted
-    'scss/at-import-no-partial-leading-underscore': true,
-    // Prevents unneeded nesting selectors
-    'scss/selector-no-redundant-nesting-selector': true,
   },
 }

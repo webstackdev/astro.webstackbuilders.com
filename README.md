@@ -78,7 +78,7 @@ The project uses a modern CSS custom properties-based theme system that supports
 The theme system consists of two main files that must be kept in sync:
 
 1. **`src/styles/themes.css`** - Pure CSS file containing all theme definitions using CSS custom properties
-2. **`src/lib/themes.js`** - JavaScript registry defining available themes for the theme picker component
+2. **`src/lib/themes.ts`** - TypeScript registry defining available themes for the theme picker component
 
 ### Adding a New Theme
 
@@ -139,7 +139,7 @@ Add a new CSS rule with your theme's custom properties:
 }
 ```
 
-#### 2. Register Theme in `src/lib/themes.js`
+#### 2. Register Theme in `src/lib/themes.ts`
 
 Add your theme to the themes array:
 
