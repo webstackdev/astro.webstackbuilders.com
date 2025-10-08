@@ -2,6 +2,9 @@
  * Main utils index file - exports all utility functions
  */
 
+// Avatar utilities
+export * from './avatars'
+
 // Date utilities
 export * from './date'
 

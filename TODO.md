@@ -20,3 +20,6 @@ Next Steps Available:
 - Advanced Features: Add cookie expiration management, preference export/import
 - Compliance: Add GDPR compliance features like data deletion requests
 - Testing: Verify the cookie preferences work correctly across different browsers
+
+Future Cleaner Import (using barrel file):
+import { initializeCookiePreferences, CookiePreferencesManager } from '@lib/cookies'
