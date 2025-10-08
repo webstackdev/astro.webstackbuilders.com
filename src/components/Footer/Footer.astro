@@ -6,33 +6,113 @@ import { absoluteUrl, formatPhoneNumber } from "@lib/helpers"
 import Sprite from "@components/Sprite.astro"
 import AuthorAvatar from "../../assets/images/avatars/kevin-brown.webp"
 
-import "./Footer.scss"
-
 const year = new Date().getFullYear();
 ---
 
-<hr class="page-footer__hr" />
-<footer class="page-footer" role="contentinfo">
+<style>
+  /* Footer component - global anchor styles */
+  footer a, footer button {
+    color: var(--color-bg);
+    text-decoration: none;
+  }
+
+  /* Hire me anchor animation */
+  .footer-hire-me-anchor::after {
+    content: ">";
+    display: inline-block;
+  }
+
+  @keyframes arrowBounce {
+    100% {
+      transform: translate(1.5em);
+    }
+  }
+
+  .footer-hire-me-anchor:hover::after,
+  .footer-hire-me-anchor:focus::after {
+    animation: arrowBounce 1s alternate;
+  }
+
+  /* Social channel hover effects */
+  .footer-social-channel:hover .footer-social-platform,
+  .footer-social-channel:focus .footer-social-platform {
+    color: var(--color-bg-offset);
+    text-decoration: underline dotted var(--color-bg) 0.15em;
+  }
+
+  .footer-social-channel:hover .footer-social-blurb,
+  .footer-social-channel:focus .footer-social-blurb {
+    color: var(--color-bg-offset);
+  }
+
+  .footer-social-channel:hover .icon,
+  .footer-social-channel:focus .icon {
+    fill: var(--color-bg-offset);
+    stroke: var(--color-bg-offset);
+  }
+
+  /* RSS feed icon hover effect */
+  .footer-feed-icon:hover .icon,
+  .footer-feed-icon:focus .icon {
+    height: 3em;
+    width: 3em;
+  }
+
+  /* Grid areas for responsive layout */
+  @media (min-width: 640px) {
+    .footer-grid {
+      display: grid;
+      gap: 0.5rem 1rem;
+      grid-template-columns: 1fr 1fr;
+      grid-template-areas:
+        "contact social"
+        "contact channels"
+        "bottom-row bottom-row"
+        "copyright copyright";
+    }
+
+    .footer-contact { grid-area: contact; }
+    .footer-social { grid-area: social; }
+    .footer-bottom-row { grid-area: bottom-row; }
+    .footer-copyright { grid-area: copyright; }
+  }
+
+  @media (min-width: 1024px) {
+    .footer-grid {
+      grid-template-columns: 2fr 1fr 1fr;
+      grid-template-rows: 2rem auto auto;
+      grid-template-areas:
+        "hire-me social bottom-row"  
+        "contact social bottom-row"
+        "copyright copyright copyright";
+    }
+
+    .footer-hire-me { grid-area: hire-me; }
+  }
+</style>
+
+<hr class="border-t-4 border-primary h-0" />
+<footer class="bg-text text-bg flex flex-col mt-0 px-3 pb-3 footer-grid lg:px-6" role="contentinfo">
   {/* Page footer company contact */}
-  <div class="page-footer__contact">
-    <div class="page-footer__contact-avatar">
+  <div class="footer-contact flex items-center mt-3 sm:mt-8">
+    <div class="self-start mr-4 mt-[calc(var(--font-size-2xl)+1.3em)] sm:mt-[calc(var(--font-size-2xl)+1.5em)] lg:mt-4 w-[clamp(5em,25%,8em)]">
       <Image src={AuthorAvatar} alt="Site author's avatar image" />
     </div>
-    <address class="page-footer__contact-details">
-      <h2 class="page-footer__contact-name">{company.name}</h2>
-      <div  class="page-footer__contact-address">
+    <address class="text-base">
+      <h2 class="text-2xl font-bold">{company.name}</h2>
+      <div class="mt-2 ml-1">
         <p>{contactData.company.address}</p>
         <p>{contactData.company.city}, {contactData.company.state} {contactData.company.index}</p>
       </div>
-      <p class="page-footer__contact-email">
+      <p class="hyphens-none [&_a:hover]:underline [&_a:hover]:decoration-dotted [&_a:hover]:decoration-bg [&_a:hover]:underline-offset-4 [&_a:focus]:underline [&_a:focus]:decoration-dotted [&_a:focus]:decoration-bg [&_a:focus]:underline-offset-4">
         <a href=`mailto:${contactData.company.email}`>{contactData.company.email}</a>
       </p>
-      <p class="page-footer__contact-toll-free" itemprop="telephone">
+      <p class="[&_a:hover]:underline [&_a:hover]:decoration-dotted [&_a:hover]:decoration-bg [&_a:hover]:underline-offset-4 [&_a:focus]:underline [&_a:focus]:decoration-dotted [&_a:focus]:decoration-bg [&_a:focus]:underline-offset-4" itemprop="telephone">
         <a href=`tel:${contactData.company.telephoneTollFree}` rel="nofollow">
           Toll Free {formatPhoneNumber(contactData.company.telephoneTollFree)}
         </a>
       </p>
-      <p class="page-footer__contact-local" itemprop="telephone">
+      <p class="[&_a:hover]:underline [&_a:hover]:decoration-dotted [&_a:hover]:decoration-bg [&_a:hover]:underline-offset-4 [&_a:focus]:underline [&_a:focus]:decoration-dotted [&_a:focus]:decoration-bg [&_a:focus]:underline-offset-4" itemprop="telephone">
         <a href=`tel:${contactData.company.telephoneLocal}` rel="nofollow">
           Local {formatPhoneNumber(contactData.company.telephoneLocal)}
         </a>
@@ -40,104 +120,104 @@ const year = new Date().getFullYear();
     </address>
   </div>
   {/* "Hire Me" block with current month and year set by script */}
-  <div class="page-footer__hire-me">
+  <div class="footer-hire-me hidden lg:block">
     <a
       href="/contact"
       id="page-footer__hire-me-anchor"
-      class="page-footer__hire-me-anchor"
+      class="footer-hire-me-anchor hidden uppercase"
     ></a>
   </div>
   {/* Page footer Social Share links */}
-  <div class="page-footer__social">
+  <div class="footer-social">
     {contactData.company.social.filter(s => s.network === 'x').map((social) => (
-      <div class="page-footer__social-channel">
-        <a href={social.url} title="Twitter" rel="me">
-          <span class="page-footer__social-icon"><Sprite name="twitter" /></span>
-          <span class="page-footer__social-platform">Twitter</span>
+      <div class="footer-social-channel">
+        <a href={social.url} title="Twitter" rel="me" class="flex items-baseline uppercase">
+          <span class="[&_.icon]:fill-bg [&_.icon]:stroke-bg [&_.icon]:h-4 [&_.icon]:w-4"><Sprite name="twitter" /></span>
+          <span class="footer-social-platform ml-2 mt-4">Twitter</span>
         </a>
-        <div class="page-footer__social-channel-blurb">
+        <div class="footer-social-blurb font-serif leading-tight">
           Follow for interesting info and opinions on development
         </div>
       </div>
     ))}
     {contactData.company.social.filter(s => s.network === 'linkedin').map((social) => (
-      <div class="page-footer__social-channel">
-        <a href={social.url} title="Linkedin" rel="me">
-          <span class="page-footer__social-icon"><Sprite name="linkedin" /></span>
-          <span class="page-footer__social-platform">Linkedin</span>
+      <div class="footer-social-channel">
+        <a href={social.url} title="Linkedin" rel="me" class="flex items-baseline uppercase">
+          <span class="[&_.icon]:fill-bg [&_.icon]:stroke-bg [&_.icon]:h-4 [&_.icon]:w-4"><Sprite name="linkedin" /></span>
+          <span class="footer-social-platform ml-2 mt-4">Linkedin</span>
         </a>
-        <div class="page-footer__social-channel-blurb">
+        <div class="footer-social-blurb font-serif leading-tight">
           Let's connect on LinkedIn
         </div>
       </div>
     ))}
     {contactData.company.social.filter(s => s.network === 'github').map((social) => (
-      <div class="page-footer__social-channel">
-        <a href={social.url} title="Github" rel="me">
-          <span class="page-footer__social-icon"><Sprite name="github" /></span>
-          <span class="page-footer__social-platform">Github</span>
+      <div class="footer-social-channel">
+        <a href={social.url} title="Github" rel="me" class="flex items-baseline uppercase">
+          <span class="[&_.icon]:fill-bg [&_.icon]:stroke-bg [&_.icon]:h-4 [&_.icon]:w-4"><Sprite name="github" /></span>
+          <span class="footer-social-platform ml-2 mt-4">Github</span>
         </a>
-        <div class="page-footer__social-channel-blurb">
+        <div class="footer-social-blurb font-serif leading-tight">
           Follow our open-source projects including Butterfly and Eleventy plugins
         </div>
       </div>
     ))}
     {contactData.company.social.filter(s => s.network === 'codepen').map((social) => (
-      <div class="page-footer__social-channel">
-        <a href={social.url} title="Codepen" rel="me">
-          <span class="page-footer__social-icon"><Sprite name="codepen" /></span>
-          <span class="page-footer__social-platform">Codepen</span>
+      <div class="footer-social-channel">
+        <a href={social.url} title="Codepen" rel="me" class="flex items-baseline uppercase">
+          <span class="[&_.icon]:fill-bg [&_.icon]:stroke-bg [&_.icon]:h-4 [&_.icon]:w-4"><Sprite name="codepen" /></span>
+          <span class="footer-social-platform ml-2 mt-4">Codepen</span>
         </a>
-        <div class="page-footer__social-channel-blurb">
+        <div class="footer-social-blurb font-serif leading-tight">
           Share and modify our front-end test cases and code snippets
         </div>
       </div>
     ))}
   </div>
-  <div class="page-footer__bottom-row">
+  <div class="footer-bottom-row flex justify-between sm:justify-evenly lg:flex-col px-1 pt-4 pb-3 sm:p-0 lg:pl-8">
     {/* Page footer Subscribe link */}
-    <span class="page-footer__site-pages">
-      <a href="/mailinglist"  class="page-footer__subscribe-anchor">
-        <div class="page-footer__subscribe-lead">Subscribe to</div>
-        <span class="page-footer__site-pages-title">Mailing List</span>
-        <span class="page-footer__site-pages-desc">
+    <span class="flex flex-col justify-center lg:pt-3 [&_a:hover]:text-bg-offset [&_a:hover]:underline [&_a:hover]:decoration-dotted [&_a:hover]:decoration-bg [&_a:hover]:underline-offset-4 [&_a:focus]:text-bg-offset [&_a:focus]:underline [&_a:focus]:decoration-dotted [&_a:focus]:decoration-bg [&_a:focus]:underline-offset-4">
+      <a href="/mailinglist" class="lg:[&:hover]:no-underline lg:[&:focus]:no-underline">
+        <div class="lg:hidden">Subscribe to</div>
+        <span class="lg:font-bold lg:uppercase lg:[&:hover]:text-bg-offset lg:[&:hover]:underline lg:[&:hover]:decoration-dotted lg:[&:hover]:decoration-bg lg:[&:hover]:underline-offset-4 lg:[&:focus]:text-bg-offset lg:[&:focus]:underline lg:[&:focus]:decoration-dotted lg:[&:focus]:decoration-bg lg:[&:focus]:underline-offset-4">Mailing List</span>
+        <span class="hidden lg:block">
           Sign up to stay in touch and get great content
         </span>
       </a>
     </span>
     {/* Page footer Privacy Policy links */}
-    <span class="page-footer__site-pages">
-      <span class="page-footer__site-pages-cookies">
+    <span class="flex flex-col justify-center lg:pt-3 [&_a:hover]:text-bg-offset [&_a:hover]:underline [&_a:hover]:decoration-dotted [&_a:hover]:decoration-bg [&_a:hover]:underline-offset-4 [&_a:focus]:text-bg-offset [&_a:focus]:underline [&_a:focus]:decoration-dotted [&_a:focus]:decoration-bg [&_a:focus]:underline-offset-4">
+      <span class="lg:[&_a:hover]:no-underline lg:[&_a:focus]:no-underline">
         <a href="/cookies/">
-          <span class="page-footer__site-pages-title">Cookies</span>
-          <span class="page-footer__site-pages-desc">
+          <span class="lg:font-bold lg:uppercase lg:[&:hover]:text-bg-offset lg:[&:hover]:underline lg:[&:hover]:decoration-dotted lg:[&:hover]:decoration-bg lg:[&:hover]:underline-offset-4 lg:[&:focus]:text-bg-offset lg:[&:focus]:underline lg:[&:focus]:decoration-dotted lg:[&:focus]:decoration-bg lg:[&:focus]:underline-offset-4">Cookies</span>
+          <span class="hidden lg:block">
             Manage how we use cookies for you on our site
           </span>
         </a>
       </span>
-      <span class="page-footer__site-pages-privacy">
+      <span class="lg:[&_a:hover]:no-underline lg:[&_a:focus]:no-underline">
         <a href="/privacy/">
-          <span class="page-footer__site-pages-title">Privacy Policy</span>
-          <span class="page-footer__site-pages-desc">
+          <span class="lg:font-bold lg:uppercase lg:[&:hover]:text-bg-offset lg:[&:hover]:underline lg:[&:hover]:decoration-dotted lg:[&:hover]:decoration-bg lg:[&:hover]:underline-offset-4 lg:[&:focus]:text-bg-offset lg:[&:focus]:underline lg:[&:focus]:decoration-dotted lg:[&:focus]:decoration-bg lg:[&:focus]:underline-offset-4">Privacy Policy</span>
+          <span class="hidden lg:block">
             Learn what data we collect and how we use it
           </span>
         </a>
       </span>
     </span>
     {/* Page footer RSS link */}
-    <span class="page-footer__feed">
+    <span class="footer-feed-icon flex items-center w-12 lg:h-12 lg:w-12 [&_.icon]:fill-bg [&_.icon]:stroke-bg [&_.icon]:h-10 [&_.icon]:w-10">
       <a href={absoluteUrl('/feed.xml', Astro.site)} title="RSS Feed">
         <span class="sr-only">RSS Feed</span>
-        <span class="page-footer__feed-icon"><Sprite name="feed" /></span>
+        <span><Sprite name="feed" /></span>
       </a>
     </span>
   </div>
   {/* Page footer Author link and Date */}
-  <div class="page-footer__copyright">
-    <span class="page-footer__copyright-date">
+  <div class="footer-copyright flex justify-center py-4 sm:p-0 lg:mt-2">
+    <span>
       &copy; 2018&ndash;{year}
     </span>
-    <span class="page-footer__copyright-author">
+    <span class="ml-4">
       <a rel="me" href={absoluteUrl('/', Astro.site)}>{company.name}</a>
     </span>
   </div>

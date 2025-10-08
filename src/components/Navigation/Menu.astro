@@ -3,8 +3,6 @@
  * IF THIS CHANGES update navigationHtml.ts fixture in navigation script folder
  */
 import classNames from 'classnames'
-import "./Menu.scss"
-import "./MenuSplash.scss"
 
 export interface Props {
   path: string,
@@ -22,15 +20,97 @@ const navigationItems = [
 ]
 
 const activeMenuItem = (url: string) => {
-  return path === url ? "main-nav__item--active" : ""
+  return path === url ? "nav-item-active" : ""
 }
 ---
 
-<nav id="main-nav" class="main-nav" role="navigation"  aria-label="Main">
-  <ul class="main-nav__menu" tabindex="-1" aria-label="main navigation">
+<style>
+  /* Mobile splash background animation */
+  #mobile-splash {
+    height: 1px;
+    position: absolute;
+    right: 40px;
+    top: 40px;
+    width: 1px;
+  }
+
+  #mobile-splash::after {
+    background-color: var(--color-primary-offset);
+    border-radius: 50%;
+    content: "";
+    display: block;
+    position: absolute;
+    z-index: var(--z-nav);
+    height: 284vmax;
+    left: -142vmax;
+    top: -142vmax;
+    width: 284vmax;
+    transform-origin: 50% 50%;
+    transform: scale(0);
+    transition: transform .5s cubic-bezier(0.755, 0.050, 0.855, 0.060);
+    will-change: transform;
+  }
+
+  /* Mobile menu open state splash */
+  #header.aria-expanded-true #mobile-splash::after {
+    transform: scale(1);
+  }
+
+  /* Mobile menu open state display */
+  #header.aria-expanded-true .main-nav-menu {
+    display: flex;
+    height: 100vh;
+    transform: scale(1);
+  }
+
+  #header.aria-expanded-true .main-nav-item {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Desktop navigation item underline effects */
+  @media (min-width: 1024px) {
+    .main-nav-item::after {
+      background-color: var(--color-border);
+      bottom: -.25rem;
+      content: '';
+      display: block;
+      height: .25rem;
+      left: 1.25rem;
+      position: absolute;
+      right: 1.25rem;
+      transform-origin: 0 50%;
+      transform: scaleX(0);
+      transition: transform 0.3s cubic-bezier(0.86, 0, 0.07, 1);
+    }
+
+    .main-nav-item:hover::after {
+      background-color: var(--color-primary);
+      transform: scaleX(1);
+    }
+
+    .nav-item-active::after {
+      background-color: var(--color-primary-offset);
+      transform: none;
+    }
+
+    .nav-item-active:hover::after {
+      background-color: var(--color-primary);
+    }
+  }
+</style>
+
+<nav id="main-nav" class="main-nav" role="navigation" aria-label="Main">
+  <ul class="main-nav-menu flex flex-row justify-center relative lg:items-center lg:flex-row" tabindex="-1" aria-label="main navigation">
     {navigationItems.map((navItem) => (
-      <li class={classNames(`main-nav__item`, activeMenuItem(navItem.url))}>
-        <a href={navItem.url} class="main-nav__link">
+      <li class={classNames(
+        "main-nav-item opacity-100 lg:relative",
+        activeMenuItem(navItem.url)
+      )}>
+        <a
+          href={navItem.url}
+          class="block text-primary text-xl lg:text-lg font-bold tracking-[5px] lg:tracking-normal p-4 lg:px-5 lg:py-3 text-center uppercase lg:lowercase no-underline hover:text-bg-offset hover:bg-primary lg:hover:bg-inherit lg:hover:text-primary focus:text-bg-offset focus:bg-primary lg:focus:bg-inherit lg:focus:text-primary focus:outline-0 lg:flex lg:items-center lg:text-primary-offset lg:relative lg:transition-colors lg:duration-200 lg:whitespace-nowrap lg:z-10"
+        >
           {navItem.title}
         </a>
       </li>

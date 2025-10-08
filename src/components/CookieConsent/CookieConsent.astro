@@ -2,12 +2,63 @@
 import { Image } from 'astro:assets'
 import Sprite from "@components/Sprite.astro"
 import CookieSvg from "@assets/images/site/cookie.svg"
-import "./CookieConsent.scss"
 ---
+
+<style>
+  /* Cookie icon positioning calculations */
+  .cookie-modal__icon-container {
+    /* Desktop: 48px + (12px * 2) = 72px container, half = 36px */
+    height: 72px;
+    width: 72px;
+    top: -36px;
+  }
+
+  .cookie-modal__icon-container svg {
+    height: 48px;
+    width: 48px;
+    margin: 12px;
+  }
+
+  .cookie-modal__content {
+    padding: 36px 0 1em 2em;
+  }
+
+  .cookie-modal__btn-group {
+    padding: 36px 2em 1em 1em;
+  }
+
+  /* Mobile responsive adjustments */
+  @media (max-width: 768px) {
+    .cookie-modal__icon-container {
+      /* Mobile: 3.6em + (0.6em * 2) = 4.8em container, half = 2.4em */
+      height: 4.8em;
+      width: 4.8em;
+      top: -2.4em;
+    }
+
+    .cookie-modal__icon-container svg {
+      height: 3.6em;
+      width: 3.6em;
+      margin: 0.6em;
+    }
+
+    .cookie-modal__content {
+      padding: 2.4em 0 1em 2em;
+    }
+
+    .cookie-modal__btn-group {
+      padding: 0 2em 1em 1em;
+    }
+
+    .cookie-modal__addl-content {
+      display: none;
+    }
+  }
+</style>
 
 <div
   id="cookie-modal-id"
-  class="cookie-modal"
+  class="bg-[var(--color-modal-background)] rounded-lg bottom-0 flex flex-row md:flex-col flex-nowrap md:flex-wrap left-0 mx-4 mb-4 fixed right-0"
   style="display:none;"
   role="dialog"
   aria-label="cookie consent dialog"
@@ -17,27 +68,27 @@ import "./CookieConsent.scss"
   <button
     type="button"
     aria-label="close cookie consent dialog"
-    class="cookie-modal__close-btn"
+    class="bg-transparent border-0 text-[var(--color-primary)] outline-none absolute right-0 top-0 hover:text-[var(--color-success-offset)] focus:text-[var(--color-success-offset)]"
   >
     <Sprite name="close" />
   </button>
-  <div class="cookie-modal__icon-container">
+  <div class="cookie-modal__icon-container bg-[var(--color-modal-background)] rounded-full absolute left-0 right-0 mx-auto">
     <Image src={CookieSvg} alt="Cookie icon." />
   </div>
   <p id="cookie-modal__content" class="cookie-modal__content">
     This site uses cookies. Learn more in our <a href="/cookies">Cookie Policy</a> and <a href="/privacy">Privacy Policy</a>. <span class="cookie-modal__addl-content">Our site needs a single cookie to remember your theme preferences, and you can <a class="cookie-modal__link-customize" href="/cookies">customize</a> the other cookies we use to help provide you a great experience here. Or let us know you're okay with our cookie use by clicking <a class="cookie-modal__link-allow" href="javascript:void(0)">Allow All</a>.</span>
   </p>
-  <menu class="cookie-modal__btn-group">
-    <li>
-      <button type="button" class="btn btn--primary cookie-modal__btn-allow">
+  <menu class="cookie-modal__btn-group flex items-center">
+    <li class="list-none">
+      <button type="button" class="btn btn--primary border-0 bg-[var(--color-success)] hover:bg-[var(--color-success-offset)] focus:bg-[var(--color-success-offset)]">
         Allow All
       </button>
     </li>
-    <li class="cookie-modal__btn-spacer"></li>
-    <li>
+    <li class="w-6"></li>
+    <li class="list-none">
       <a
         href="/cookies"
-        class="btn btn--secondary cookie-modal__btn-customize"
+        class="btn btn--secondary bg-[var(--color-warning)] hover:bg-[var(--color-warning-offset)] focus:bg-[var(--color-warning-offset)]"
       >
         Customize
       </a>
