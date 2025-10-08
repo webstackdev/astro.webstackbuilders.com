@@ -69,6 +69,151 @@ import X from '../components/Tweet/X.astro';
 <X id="1234567890123456789" author="example" content="Check out this amazing post!" />
 ```
 
+## Theme System
+
+The project uses a modern CSS custom properties-based theme system that supports light and dark themes, with extensibility for additional themes like seasonal variations.
+
+### Architecture
+
+The theme system consists of two main files that must be kept in sync:
+
+1. **`src/styles/themes.css`** - Pure CSS file containing all theme definitions using CSS custom properties
+2. **`src/lib/themes.js`** - JavaScript registry defining available themes for the theme picker component
+
+### Adding a New Theme
+
+To add a new theme (e.g., a holiday theme), follow these steps:
+
+#### 1. Add CSS Variables in `src/styles/themes.css`
+
+Add a new CSS rule with your theme's custom properties:
+
+```css
+/* Holiday Theme Example */
+[data-theme="holiday"] {
+  /* Background Colors */
+  --color-bg: #0f172a;
+  --color-bg-offset: #1e293b;
+
+  /* Text Colors */
+  --color-text: #f1f5f9;
+  --color-text-offset: #cbd5e1;
+
+  /* Primary Brand Colors */
+  --color-primary: #dc2626;
+  --color-primary-offset: #991b1b;
+  --color-primary-bg: #7f1d1d;
+  --color-primary-bg-hover: #991b1b;
+  --color-primary-hover: #b91c1c;
+
+  /* Secondary Colors */
+  --color-secondary: #16a34a;
+  --color-secondary-offset: #15803d;
+  --color-secondary-bg: #052e16;
+
+  /* Status Colors */
+  --color-success: #16a34a;
+  --color-success-offset: #22c55e;
+  --color-success-bg: #052e16;
+
+  --color-info: #0891b2;
+  --color-info-bg: #164e63;
+
+  --color-warning: #a16207;
+  --color-warning-offset: #ca8a04;
+  --color-warning-bg: #451a03;
+
+  --color-danger: #dc2626;
+  --color-danger-bg: #7f1d1d;
+
+  /* Special Colors */
+  --color-twitter: #1da1f2;
+  --color-modal-background: #0f172a;
+
+  /* Accent Colors */
+  --color-accent: #fbbf24;
+  --color-accent-bg: #451a03;
+
+  /* Syntax Highlighting */
+  --shiki-theme: 'github-dark';
+}
+```
+
+#### 2. Register Theme in `src/lib/themes.js`
+
+Add your theme to the themes array:
+
+```javascript
+export const themes = [
+  {
+    id: 'default',
+    name: 'Light',
+    description: 'Clean light theme with blue accents',
+    category: 'core'
+  },
+  {
+    id: 'dark',
+    name: 'Dark',
+    description: 'Dark theme with navy background',
+    category: 'core'
+  },
+  {
+    id: 'holiday',
+    name: 'Holiday',
+    description: 'Festive red and green theme for the holidays',
+    category: 'seasonal',
+    seasonal: true
+  }
+];
+```
+
+#### 3. Theme Properties
+
+Each theme object supports these properties:
+
+- **`id`** (required): Unique identifier used in the `data-theme` attribute
+- **`name`** (required): Display name shown in the theme picker
+- **`description`** (optional): Tooltip description for the theme
+- **`category`** (optional): Used for grouping themes ('core', 'seasonal', etc.)
+- **`seasonal`** (optional): Boolean flag marking temporary/seasonal themes
+
+### CSS Variable Reference
+
+The theme system provides these CSS custom properties:
+
+#### Core Variables
+
+- `--color-bg` / `--color-bg-offset` - Background colors
+- `--color-text` / `--color-text-offset` - Text colors
+- `--color-border` - Border color
+
+#### Brand Variables
+
+- `--color-primary` / `--color-primary-offset` - Primary brand colors
+- `--color-secondary` / `--color-secondary-offset` - Secondary colors
+
+#### Status Variables
+
+- `--color-success` / `--color-danger` / `--color-warning` / `--color-info` - Status colors
+- Background variants available with `-bg` suffix
+
+#### Special Variables
+
+- `--color-accent` - Purple accent color for highlights
+- `--color-twitter` - Twitter brand color
+- `--color-modal-background` - Modal overlay background
+- `--shiki-theme` - Syntax highlighting theme name
+
+### Theme Switching
+
+Themes are applied by setting the `data-theme` attribute on the document element:
+
+```javascript
+document.documentElement.setAttribute('data-theme', 'holiday');
+```
+
+The system also respects the user's system preference with `@media (prefers-color-scheme: dark)` for users who haven't explicitly chosen a theme.
+
 ## Markdown Content Styling
 
 The project uses a Rehype plugin (`src/lib/markdown/rehype-tailwind-classes.ts`) to automatically apply Tailwind CSS classes to rendered Markdown content. This replaces the previous SCSS-based content styling system.
@@ -111,7 +256,6 @@ console.log(message)
 ```
 
 :::
-```
 
 **Auto-applied classes**: Tab navigation, content panels, active states
 

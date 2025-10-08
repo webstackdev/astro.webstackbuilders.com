@@ -1,0 +1,241 @@
+/**
+ * Theme System - Pure CSS Implementation
+ *
+ * This file defines all available themes using CSS custom properties.
+ * Each theme is applied via data attributes on the document element.
+ *
+ * IMPORTANT: When adding a new theme here, you must also update:
+ * - src/lib/themes.js (add theme to registry)
+ * - README.md (update theme documentation if needed)
+ *
+ * Theme Structure:
+ * - Light theme: Default theme, applied to :root
+ * - Dark theme: Applied via [data-theme="dark"] and @media(prefers-color-scheme: dark)
+ * - Additional themes: Applied via [data-theme="theme-name"]
+ *
+ * Color Variables follow this naming convention:
+ * --color-{purpose}: Main color
+ * --color-{purpose}-offset: Hover/interaction variant
+ * --color-{purpose}-bg: Background variant (for badges, etc.)
+ */
+
+/* =============================================================================
+   DEFAULT THEME (Light)
+   ============================================================================= */
+:root {
+  /* Background Colors */
+  --color-bg: #f3f4f6;
+  --color-bg-offset: #e5e7eb;
+
+  /* Text Colors */
+  --color-text: #374151;
+  --color-text-offset: #9ca3af;
+
+  /* Border Colors */
+  --color-border: #f0f4ff;
+
+  /* Primary Brand Colors */
+  --color-primary: #006dca;
+  --color-primary-offset: #00386d;
+  --color-primary-bg: #dbeafe;
+  --color-primary-bg-hover: #bfdbfe;
+  --color-primary-hover: #0056a3;
+
+  /* Secondary Colors */
+  --color-secondary: #facc15;
+  --color-secondary-offset: #ca8a04;
+  --color-secondary-bg: #fef3c7;
+
+  /* Status Colors */
+  --color-success: #16a34a;
+  --color-success-offset: #22c55e;
+  --color-success-bg: #dcfce7;
+
+  --color-info: #0891b2;
+  --color-info-bg: #cffafe;
+
+  --color-warning: #a16207;
+  --color-warning-offset: #ca8a04;
+  --color-warning-bg: #fef3c7;
+
+  --color-danger: #dc2626;
+  --color-danger-bg: #fecaca;
+
+  /* Special Colors */
+  --color-twitter: #1da1f2;
+  --color-modal-background: #f3f4f6;
+
+  /* Accent Colors (for purple elements) */
+  --color-accent: #7c3aed;
+  --color-accent-bg: #ede9fe;
+
+  /* Syntax Highlighting */
+  --shiki-theme: 'github-light';
+
+  /* Semantic Aliases (matching your existing CSS variable system) */
+  --color-theme-text: var(--color-text);
+  --color-theme-text-muted: var(--color-text-offset);
+  --color-theme-bg: var(--color-bg);
+  --color-theme-bg-offset: var(--color-bg-offset);
+  --color-theme-border: var(--color-border);
+  --color-theme-primary: var(--color-primary);
+  --color-theme-primary-hover: var(--color-primary-hover);
+  --color-theme-primary-bg: var(--color-primary-bg);
+  --color-theme-primary-bg-hover: var(--color-primary-bg-hover);
+  --color-theme-secondary: var(--color-secondary);
+  --color-theme-secondary-bg: var(--color-secondary-bg);
+  --color-theme-success: var(--color-success);
+  --color-theme-success-bg: var(--color-success-bg);
+  --color-theme-warning: var(--color-warning);
+  --color-theme-warning-bg: var(--color-warning-bg);
+  --color-theme-accent: var(--color-accent);
+  --color-theme-accent-bg: var(--color-accent-bg);
+}
+
+/* =============================================================================
+   DARK THEME
+   ============================================================================= */
+[data-theme="dark"] {
+  /* Background Colors */
+  --color-bg: #001a39;
+  --color-bg-offset: #00386d;
+
+  /* Text Colors */
+  --color-text: #f3f4f6;
+  --color-text-offset: #e5e7eb;
+
+  /* Border Colors */
+  --color-border: #222222;
+
+  /* Primary Brand Colors - Inverted for dark mode */
+  --color-primary: #f3f4f6;
+  --color-primary-offset: #e5e7eb;
+  --color-primary-bg: #1e293b;
+  --color-primary-bg-hover: #334155;
+  --color-primary-hover: #d1d5db;
+
+  /* Secondary Colors */
+  --color-secondary: #facc15;
+  --color-secondary-offset: #ca8a04;
+  --color-secondary-bg: #451a03;
+
+  /* Status Colors */
+  --color-success: #16a34a;
+  --color-success-offset: #22c55e;
+  --color-success-bg: #052e16;
+
+  --color-info: #0891b2;
+  --color-info-bg: #164e63;
+
+  --color-warning: #a16207;
+  --color-warning-offset: #ca8a04;
+  --color-warning-bg: #451a03;
+
+  --color-danger: #dc2626;
+  --color-danger-bg: #7f1d1d;
+
+  /* Special Colors */
+  --color-twitter: #1da1f2;
+  --color-modal-background: #f3f4f6;
+
+  /* Accent Colors */
+  --color-accent: #8b5cf6;
+  --color-accent-bg: #2e1065;
+
+  /* Syntax Highlighting */
+  --shiki-theme: 'github-dark';
+}
+
+/* =============================================================================
+   SYSTEM PREFERENCE SUPPORT
+   Apply dark theme when user prefers dark mode and no explicit theme is set
+   ============================================================================= */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    /* Background Colors */
+    --color-bg: #001a39;
+    --color-bg-offset: #00386d;
+
+    /* Text Colors */
+    --color-text: #f3f4f6;
+    --color-text-offset: #e5e7eb;
+
+    /* Border Colors */
+    --color-border: #222222;
+
+    /* Primary Brand Colors */
+    --color-primary: #f3f4f6;
+    --color-primary-offset: #e5e7eb;
+    --color-primary-bg: #1e293b;
+    --color-primary-bg-hover: #334155;
+    --color-primary-hover: #d1d5db;
+
+    /* Secondary Colors */
+    --color-secondary: #facc15;
+    --color-secondary-offset: #ca8a04;
+    --color-secondary-bg: #451a03;
+
+    /* Status Colors */
+    --color-success: #16a34a;
+    --color-success-offset: #22c55e;
+    --color-success-bg: #052e16;
+
+    --color-info: #0891b2;
+    --color-info-bg: #164e63;
+
+    --color-warning: #a16207;
+    --color-warning-offset: #ca8a04;
+    --color-warning-bg: #451a03;
+
+    --color-danger: #dc2626;
+    --color-danger-bg: #7f1d1d;
+
+    /* Special Colors */
+    --color-twitter: #1da1f2;
+    --color-modal-background: #f3f4f6;
+
+    /* Accent Colors */
+    --color-accent: #8b5cf6;
+    --color-accent-bg: #2e1065;
+
+    /* Syntax Highlighting */
+    --shiki-theme: 'github-dark';
+  }
+}
+
+/* =============================================================================
+   EXAMPLE: HOLIDAY THEME
+   Uncomment and customize for seasonal themes
+   ============================================================================= */
+/*
+[data-theme="holiday"] {
+  --color-bg: #0f172a;
+  --color-bg-offset: #1e293b;
+  --color-text: #f1f5f9;
+  --color-text-offset: #cbd5e1;
+  --color-border: #334155;
+  --color-primary: #dc2626;
+  --color-primary-offset: #991b1b;
+  --color-primary-bg: #7f1d1d;
+  --color-primary-bg-hover: #991b1b;
+  --color-primary-hover: #b91c1c;
+  --color-secondary: #16a34a;
+  --color-secondary-offset: #15803d;
+  --color-secondary-bg: #052e16;
+  --color-success: #16a34a;
+  --color-success-offset: #22c55e;
+  --color-success-bg: #052e16;
+  --color-info: #0891b2;
+  --color-info-bg: #164e63;
+  --color-warning: #a16207;
+  --color-warning-offset: #ca8a04;
+  --color-warning-bg: #451a03;
+  --color-danger: #dc2626;
+  --color-danger-bg: #7f1d1d;
+  --color-twitter: #1da1f2;
+  --color-modal-background: #0f172a;
+  --color-accent: #fbbf24;
+  --color-accent-bg: #451a03;
+  --shiki-theme: 'github-dark';
+}
+*/

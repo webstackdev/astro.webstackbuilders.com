@@ -233,7 +233,7 @@ const testimonialCollection = defineCollection({
  * - The `components/themePicker/initial.njk` to set the window.metaColors global variable that"s used to swap out the previous <meta> element when the theme is changed (`id` and `colors.backgroundOffset` properties only)
  */
 
-/** @NOTE: These need to be kept in sync with `src/assets/scss/variables/_themes.scss` */
+/** @NOTE: These need to be kept in sync with `src/styles/themes.css` and `src/lib/themes.js` */
 const themesSchema = z.object({
   id: z.enum(['default', 'dark']),
   name: z.enum(['Light', 'Dark']),

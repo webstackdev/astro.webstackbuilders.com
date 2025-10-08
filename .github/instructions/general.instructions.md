@@ -15,3 +15,4 @@ applyTo: "**"
 - Write modular code; separate concerns into different files or modules.
 - Include unit tests for all new functions and components.
 - Do not leave trailing spaces on lines.
+- Do not use run-astro-dev, always use "npm run dev".
