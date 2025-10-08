@@ -1,27 +1,12 @@
 /**
- * CSS Reset and Normalization
+ * CSS Reset Extensions
+ * Additional reset styles beyond Tailwind's Preflight
+ * Only includes custom enhancements not covered by Tailwind
  */
-
-/**
- * Use a more intuitive box sizing model than default
- */
-html {
-  box-sizing: border-box;
-}
-
-*, *::before, *::after {
-  box-sizing: inherit;
-}
-
-/**
- * Remove all default margins using low-specificity wildcard selector
- */
-* {
-  margin: 0;
-}
 
 /**
  * Allow percentage-based heights in the application
+ * (Not included in Tailwind Preflight)
  */
 html, body {
   height: 100%;
@@ -30,19 +15,17 @@ html, body {
 html {
   overflow-x: hidden;
   overflow-y: scroll;
-  /** Change the default tap highlight to be completely transparent in Safari */
-  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
 
 /**
- * Set core body defaults
+ * Set core body defaults with custom variables
  */
 body {
   background-color: var(--color-bg);
   color: var(--color-text);
   /** Create a new block formatting context on the <body> element */
   display: flow-root;
-  /** Meet WCAG criteria, browsers vary but usually have a default of 1.2 */
+  /** Meet WCAG criteria, use custom line-height variable */
   line-height: var(--line-height-default);
   min-height: 100vh;
   /**
@@ -51,19 +34,11 @@ body {
    */
   overflow-x: hidden;
   transition: color 0.15s, background-color 0.15s;
-  /**
-   * Normalize Safari and Chrome behavior to the MacOS default, subpixel rendering
-   * looks worse on Retina displays.
-   */
-  -webkit-font-smoothing: antialiased;
-  /**
-   * Prevent iOS text size adjust after device orientation change without disabling user zoom.
-   */
-  -webkit-text-size-adjust: 100%;
 }
 
 /**
  * Appearance of selected DOM nodes
+ * (Custom selection styling)
  */
 ::selection {
   background: var(--color-primary-offset);
@@ -71,22 +46,11 @@ body {
 }
 
 /**
- * Remove all animations and transitions for people that prefer not to see them.
- * Very short durations means JavaScript that relies on events still works.
+ * Custom link styling with dotted underlines
+ * (Enhanced beyond Tailwind's default)
  */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
 a {
   color: var(--color-text);
-  //outline-width: 0;
   text-decoration: underline dotted var(--color-primary);
 
   &:hover,
@@ -95,9 +59,9 @@ a {
   }
 }
 
-
 /**
  * Abbreviations and acronyms
+ * (Enhancement not in Tailwind Preflight)
  */
 abbr[title] {
   cursor: help;
@@ -106,6 +70,7 @@ abbr[title] {
 /**
  * Prevent modern browsers from displaying `audio` without controls.
  * Remove excess height in iOS 5 devices.
+ * (Enhancement not in Tailwind Preflight)
  */
 audio:not([controls]) {
   display: none;
@@ -114,164 +79,15 @@ audio:not([controls]) {
 
 /**
  * Margin not present in Safari. Overridden in page footer.
+ * (Custom enhancement)
  */
 footer {
   margin-top: 1rem;
 }
 
 /**
- * Normalize differences between Firefox and other browsers.
- */
-hr {
-  box-sizing: content-box;
-  /** Height is a non-standard property for hr element */
-  height: 1px;
-}
-
-/**
- * By default, Chrome and Safari on OS X allow very limited styling of
- * `select`, unless a `border` property is set.
- * 1. iOS adds rounded borders by default.
- * 2. Correct color not being inherited. Affects color of disabled elements.
- * 3. Correct font properties not being inherited.
- */
-button,
-input,
-optgroup,
-select,
-textarea {
-  border-radius: 0; // 1
-  color: inherit; // 2
-  font: inherit; // 3
-}
-
-/**
- * Address inconsistent `text-transform` inheritance for `button` and `select`.
- * All other form control elements do not inherit `text-transform` values.
- * Correct `button` and `select` style inheritance in Firefox.
- */
-button,
-select {
-  text-transform: none;
-}
-
-/**
- * 1. Correct inability to style clickable `input` types in iOS.
- * 2. Improve usability and consistency of cursor style between image-type `input` and others.
- */
-button,
-input[type="reset"],
-input[type="submit"] {
-  -webkit-appearance: button; // 1
-  cursor: pointer; // 2
-}
-
-/**
- * Re-set default cursor for disabled elements.
-*/
-button[disabled],
-html input[disabled] {
-  cursor: default;
-}
-
-/**
- * Remove inner padding and border in Firefox.
-*/
-button::-moz-focus-inner,
-input::-moz-focus-inner {
-  border: 0;
-  padding: 0;
-}
-
-/**
- * Fixes Safari "clickability" issue involving the firing of events such as focus
- * as well as for traditionally non-focusable elements with role="button"
- */
-[role='button'] {
-  cursor: pointer;
-}
-
-/**
- * Chrome and Firefox set a `min-width: min-content;` on fieldsets, reset
- * here to ensure it behaves more like a standard block element.
- */
-fieldset {
-  border: 0;
-  min-width: 0;
-  padding: 0;
-}
-
-/**
- * Media defaults, max-width is to keep large images from overflowing if they're
- * placed in a container that isn't wide enough to contain them.
- */
-img, picture, video, canvas, svg {
-  display: block;
-  max-width: 100%;
-}
-
-/**
- * Ensure image aspect ratio is maintained.
- */
-img, video {
-  width: 100%;
-  height: auto;
-}
-
-/**
- * Fix the cursor style for Chrome's increment/decrement buttons. For certain
- * `font-size` values of the `input`, it causes the cursor style of the
- * decrement button to change from `default` to `text`.
- */
-input[type='number']::-webkit-inner-spin-button,
-input[type='number']::-webkit-outer-spin-button {
-  height: auto;
-}
-
-/**
- * 1. Override the extra rounded corners on search inputs in iOS
- * 2. `box-sizing` is set to `border-box` in Safari and Chrome.
- */
-input[type='search'] {
-  -webkit-appearance: none; // 1
-  box-sizing: content-box; //2
-}
-
-/**
- * Remove inner padding and search cancel button in Safari and Chrome on OS X.
- * Safari (but not Chrome) clips the cancel button when the search input has
- * padding (and `textfield` appearance).
- */
-input[type='search']::-webkit-search-cancel-button,
-input[type='search']::-webkit-search-decoration {
-  -webkit-appearance: none;
-}
-
-/**
- * Allow labels to use `margin` for spacing.
- */
-label {
-  display: inline-block;
-}
-
-/**
- * Reset the entire legend element to match the `fieldset`
- */
-legend {
-  border: 0;
-  display: block;
-  margin-bottom: 0.5rem;
-  padding: 0;
-  width: 100%;
-}
-
-ol, ul, dl {
-  list-style-type: none;
-  padding: 0;
-}
-
-/**
  * Help prevent overflow of long words/names/URLs
+ * (Enhancement not in Tailwind Preflight)
  */
 p, li, h1, h2, h3, h4, h5, h6 {
   overflow-wrap: break-word;
@@ -282,6 +98,7 @@ p, li, h1, h2, h3, h4, h5, h6 {
 
 /**
  * Contain overflow in all browsers.
+ * (Enhancement not in Tailwind Preflight)
  */
 pre {
   overflow: auto;
@@ -289,6 +106,7 @@ pre {
 
 /**
  * Normalize vertical alignment of `progress` in Chrome, Firefox, and Opera.
+ * (Enhancement not in Tailwind Preflight)
  */
 progress {
   vertical-align: baseline;
@@ -297,6 +115,7 @@ progress {
 /**
  * Prevent `sub` and `sup` affecting `line-height` in all browsers.
  * Font-size set to 75% and line-height to 0 in typography.
+ * (Positioning enhancement)
  */
 sup {
   top: -0.5em;
@@ -308,19 +127,16 @@ sub {
 
 /**
  * Resize textarea vertically so they don't break their horizontal containers.
+ * (Enhancement not in Tailwind Preflight)
  */
 textarea {
   resize: vertical;
 }
 
 /**
- * Remove most spacing between table cells.
+ * Table cell padding reset
+ * (Enhancement beyond Tailwind's border-collapse)
  */
-table {
-  border-collapse: collapse;
-  border-spacing: 0;
-}
-
 td,
 th {
   padding: 0;
