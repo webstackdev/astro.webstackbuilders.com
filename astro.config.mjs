@@ -11,6 +11,7 @@ import { loadEnv } from "vite"
 import { rehypeTailwindClasses } from './src/lib/markdown/rehype-tailwind-classes.ts'
 // import svgSprite from "astro-svg-sprite"
 
+/* eslint-disable no-undef */
 const { DEV_SERVER_PORT, PREVIEW_SERVER_PORT } = loadEnv('production', process.cwd(), "")
 
 const getSiteUrl = () => {
@@ -95,7 +96,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       manifest: {
         name: 'Webstack Builders',
+        // eslint-disable-next-line camelcase
         short_name: 'WSB',
+        // eslint-disable-next-line camelcase
         theme_color: '#ffffff',
         icons: [
           {
@@ -173,8 +176,8 @@ export default defineConfig({
   /**
    * Env var usage:
    *
-   *   import { SERVER_API_URL } from "astro:env/server";
-   *   <script>import { API_URL } from "astro:env/client";</script>
+   * import { SERVER_API_URL } from "astro:env/server";
+   * <script>import { API_URL } from "astro:env/client";</script>
    */
   env: {
     schema: {
@@ -199,6 +202,7 @@ export default defineConfig({
     }
   },
   vite: {
-    plugins: [/** @type {any} */ (tailwindcss())]
+    // @ts-expect-error - tailwindcss plugin type compatibility
+    plugins: [tailwindcss()]
   }
 })
