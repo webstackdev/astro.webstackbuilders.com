@@ -42,13 +42,13 @@ src/components/                src/components/
 ├── _about.njk                ├── About/About.astro
 ├── _services.njk             ├── Services/Services.astro
 ├── _articles.njk             ├── Articles/Articles.astro
-├── _cta_contact.njk          ├── CTA/Contact.astro
-├── _cta_featured.njk         ├── CTA/Featured.astro
-├── _cta_newsletter.njk       ├── CTA/Newsletter.astro
+├── _cta_contact.njk          ├── CTAContact/index.astro
+├── _cta_featured.njk         ├── CTAFeatured/index.astro
+├── _cta_newsletter.njk       ├── CTANewsletter/index.astro
 ├── _suggestedArticles.njk    ├── Suggested/Articles.astro
 ├── _suggestedCaseStudies.njk ├── Suggested/CaseStudies.astro
 ├── _suggestedServices.njk    ├── Suggested/Services.astro
-├── callout.js                ├── Callout/Callout.astro
+├── callout.js                ├── Callout/index.astro
 ├── signup.js                 ├── Signup/Signup.astro
 ├── youtube.js                ├── YouTube/YouTube.astro
 └── pageSocialImg.js          └── SocialImg/SocialImg.astro
@@ -115,9 +115,9 @@ src/content/ ✅               src/content/ ✅
 
 | Nunjucks Component | Astro Component | Purpose |
 |-------------------|-----------------|---------|
-| `_cta_contact.njk` | `CTA/Contact.astro` | Contact call-to-action |
-| `_cta_featured.njk` | `CTA/Featured.astro` | Featured content CTA |
-| `_cta_newsletter.njk` | `CTA/Newsletter.astro` | Newsletter signup |
+| `_cta_contact.njk` | `CTAContact/index.astro` | Contact call-to-action |
+| `_cta_featured.njk` | `CTAFeatured/index.astro` | Featured content CTA |
+| `_cta_newsletter.njk` | `CTANewsletter/index.astro` | Newsletter signup |
 
 ### Suggested Content Components
 

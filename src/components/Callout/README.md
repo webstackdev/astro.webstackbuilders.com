@@ -6,7 +6,7 @@ The Callout component replaces the previous SCSS-based callout styles with a mod
 
 ```astro
 ---
-import Callout from '@components/Callout/Callout.astro';
+import Callout from '@components/Callout/index.astro';
 ---
 
 <!-- Default info callout -->
