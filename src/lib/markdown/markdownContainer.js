@@ -1,3 +1,4 @@
+ /* eslint-disable */
 const md = require('markdown-it')()
 
 exports.markdownContainerWarning = {

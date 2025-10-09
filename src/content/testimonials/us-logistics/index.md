@@ -1,9 +1,6 @@
 ---
 name: Dru Sellers
 organization: us-logistics
-avatar:
-  src: "dru-sellers"
-  alt: "Dru Sellers"
 publishDate: 2021-03-31
 tags: ["testimonials"]
 ---

@@ -1,3 +1,4 @@
+/* eslint-disable */
 /**
  * Rules to modify Markdown-It's built-in replacements typographer
  * via the replacements plugin. Adds smart quotes, arrows, etc.

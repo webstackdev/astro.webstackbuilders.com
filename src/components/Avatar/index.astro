@@ -1,0 +1,67 @@
+---
+/**
+ * Avatar Component
+ *
+ * Displays an avatar image for a person. If the avatar image exists, it renders
+ * the image. If not, it renders a placeholder with the person's initial.
+ * The name is automatically normalized (e.g., "Chris Southam" becomes "chris-southam").
+ * @example
+ * ```astro
+ * <Avatar name="Kevin Brown" />
+ * <Avatar name="Chris Southam" class="custom-class" />
+ * ```
+ */
+// eslint-disable-next-line import/no-unresolved
+import { getAvatarImage } from './avatars.ts'
+
+export interface Props {
+  /** The person's name (will be normalized for filename lookup) */
+  name: string
+  /** Optional: Additional CSS classes */
+  class?: string
+}
+
+const { name, class: className = '' } = Astro.props
+
+/**
+ * Normalize a person's name to a filename format
+ * "Chris Southam" -> "chris-southam"
+ */
+const normalizeNameToFilename = (personName: string): string => {
+  return personName
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-') // Replace spaces with hyphens
+    .replace(/[^a-z0-9-]/g, '') // Remove non-alphanumeric chars except hyphens
+}
+
+const normalizedFilename = normalizeNameToFilename(name)
+
+// Get the avatar image if it exists
+const avatarImage = getAvatarImage(normalizedFilename)
+
+// If no avatar image and no name for fallback, render nothing
+if (!avatarImage && !name) {
+  return null
+}
+
+const avatarAlt = `Photo of ${name}`
+const fallbackInitial = name.charAt(0).toUpperCase()
+---
+
+<div class:list={['avatar-container', className]}>
+  {avatarImage ? (
+    <img
+      src={avatarImage.src}
+      alt={avatarAlt}
+      loading="lazy"
+      class="avatar-image"
+      width={avatarImage.width}
+      height={avatarImage.height}
+    />
+  ) : (
+    <div class="avatar-placeholder bg-[color:var(--color-bg-offset)] w-16 h-16 rounded-full flex items-center justify-center text-[color:var(--color-text-offset)]">
+      {fallbackInitial}
+    </div>
+  )}
+</div>

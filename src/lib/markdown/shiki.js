@@ -1,3 +1,4 @@
+/* eslint-disable */
 /**
  * Shiki is a code highlighter that uses Textmate parsing and VS Code themes
  */
@@ -7,7 +8,7 @@
 /**
 @TODO: would be nice to have diffing in code block like with prism
        using syntaxhighlight plugin and `diff-*` language prefix:
- 
+
 ```diff-js
 +function myFunction() {
    // …

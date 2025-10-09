@@ -1,9 +1,6 @@
 ---
 name: Chris Southam
 organization: division-15
-avatar:
-  src: "chris-southam"
-  alt: "Chris Southam"
 publishDate: 2021-03-31
 tags: ["testimonials"]
 ---

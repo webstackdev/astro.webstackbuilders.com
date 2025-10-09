@@ -1,9 +1,6 @@
 ---
 name: Sara King
 organization: labcorp
-avatar:
-  src: "sara-king"
-  alt: "Sara King"
 publishDate: 2021-03-31
 tags: ["testimonials"]
 ---

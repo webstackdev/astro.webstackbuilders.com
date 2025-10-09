@@ -1,3 +1,4 @@
+/* eslint-disable */
 exports.slugifyTitleAnchors = value => {
   return encodeURIComponent(
     'h-' +

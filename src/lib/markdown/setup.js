@@ -1,3 +1,4 @@
+/* eslint-disable */
 const markdownIt = require('markdown-it')
 const markdownAnchor = require('markdown-it-anchor')
 

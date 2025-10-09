@@ -1,9 +1,6 @@
 ---
 name: Brian Bristol
 organization: english-first
-avatar:
-  src: "brian-bristol"
-  alt: "Brian Bristol"
 publishDate: 2021-03-31
 tags: ["testimonials"]
 ---
