@@ -19,6 +19,14 @@ export default [
   securityPlugin.configs.recommended,
   ...ymlPlugin.configs['flat/recommended'],
   {
+    settings: {
+      'import/resolver': {
+        typescript: {
+          alwaysTryTypes: true,
+          project: './tsconfig.json',
+        },
+      },
+    },
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
@@ -53,7 +61,14 @@ export default [
       'arrow-body-style': 'off',
       camelcase: [level],
       curly: [level, 'all'],
-      'import/no-unresolved': level,
+      'import/no-unresolved': [
+        level,
+        {
+          ignore: [
+            '^astro:.*',  // Ignore Astro virtual modules
+          ],
+        },
+      ],
       'import/no-webpack-loader-syntax': level,
       'import/order': 'off',
       'jsdoc/check-indentation': level,
