@@ -82,11 +82,11 @@ const path = "/tags/"
               {contentPreview.map((item) => (
                 <article class="bg-[var(--color-theme-bg)] rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
                   <a href={`/${item.type === 'case-study' ? 'case-studies' : item.type === 'service' ? 'services' : 'articles'}/${item.id}/`} class="block h-full">
-                    {item.data.image && (
+                    {('image' in item.data && item.data.image) && (
                       <div class="aspect-video overflow-hidden">
                         <img
-                          src={typeof item.data.image === 'string' ? item.data.image : item.data.image.src}
-                          alt={typeof item.data.image === 'string' ? item.data.title : item.data.image.alt}
+                          src={typeof item.data.image === 'string' ? item.data.image : (item.data.image as any)?.src || item.data.image}
+                          alt={typeof item.data.image === 'string' ? item.data.title : (item.data.image as any)?.alt || item.data.title}
                           loading="lazy"
                           class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />
@@ -126,11 +126,11 @@ const path = "/tags/"
               {contentPreview.slice(0, 1).map((item) => (
                 <article class="bg-[var(--color-theme-bg)] rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
                   <a href={`/${item.type === 'case-study' ? 'case-studies' : item.type === 'service' ? 'services' : 'articles'}/${item.id}/`} class="block">
-                    {item.data.image && (
+                    {('image' in item.data && item.data.image) && (
                       <div class="aspect-video overflow-hidden">
                         <img
-                          src={typeof item.data.image === 'string' ? item.data.image : item.data.image.src}
-                          alt={typeof item.data.image === 'string' ? item.data.title : item.data.image.alt}
+                          src={typeof item.data.image === 'string' ? item.data.image : (item.data.image as any)?.src || item.data.image}
+                          alt={typeof item.data.image === 'string' ? item.data.title : (item.data.image as any)?.alt || item.data.title}
                           loading="lazy"
                           class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />

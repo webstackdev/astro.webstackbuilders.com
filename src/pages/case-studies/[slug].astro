@@ -13,7 +13,11 @@ export async function getStaticPaths() {
 const { caseStudy } = Astro.props
 const path = `/case-studies/${caseStudy.id}/`
 const pageTitle = caseStudy.data.title
-const cover = caseStudy.data.image ? { src: caseStudy.data.image, alt: caseStudy.data.title } : undefined
+const cover = caseStudy.data.image ? (
+  typeof caseStudy.data.image === 'string'
+    ? { src: caseStudy.data.image, alt: caseStudy.data.title }
+    : caseStudy.data.image
+) : undefined
 const meta = {
   date: caseStudy.data.publishDate,
   client: caseStudy.data.client,

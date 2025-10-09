@@ -15,6 +15,6 @@ declare module 'gulp-stylelint-esm' {
     debug?: boolean
   }
   // Returns object stream usable in Gulp pipes
-  function gulpStylelint(options: StylelintOptions): NodeJS.ReadWriteStream
+  declare function gulpStylelint(options: StylelintOptions): NodeJS.ReadWriteStream
   export default gulpStylelint
 }

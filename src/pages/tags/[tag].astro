@@ -80,11 +80,11 @@ const path = `/tags/${tag}/`
           {paginatedContent.map((item) => (
             <article class="bg-[var(--color-theme-bg)] rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
               <a href={`/${item.type === 'case-study' ? 'case-studies' : item.type === 'service' ? 'services' : 'articles'}/${item.id}/`} class="block h-full">
-                {item.data.image && (
+                {('image' in item.data && item.data.image) && (
                   <div class="aspect-video overflow-hidden">
                     <img
-                      src={typeof item.data.image === 'string' ? item.data.image : item.data.image.src}
-                      alt={typeof item.data.image === 'string' ? item.data.title : item.data.image.alt}
+                      src={typeof item.data.image === 'string' ? item.data.image : (item.data.image as any)?.src || item.data.image}
+                      alt={typeof item.data.image === 'string' ? item.data.title : (item.data.image as any)?.alt || item.data.title}
                       loading="lazy"
                       class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
@@ -120,9 +120,9 @@ const path = `/tags/${tag}/`
 
                   <div class="space-y-3 pt-2">
                     {/* Client or Author info */}
-                    {item.data.client && (
+                    {('client' in item.data && item.data.client) && (
                       <span class="inline-block text-sm font-medium text-[var(--color-theme-primary)] bg-[var(--color-theme-primary-bg)] px-3 py-1 rounded-full">
-                        Client: {item.data.client}
+                        Client: {(item.data as any).client}
                       </span>
                     )}
 

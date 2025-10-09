@@ -38,7 +38,7 @@ const testContactAPI = async () => {
     }
 
   } catch (error) {
-    console.error('❌ Test error:', error.message);
+    console.error('❌ Test error:', error instanceof Error ? error.message : String(error));
   }
 };
 
@@ -74,7 +74,7 @@ const testRateLimit = async () => {
       await new Promise(resolve => setTimeout(resolve, 500));
 
     } catch (error) {
-      console.error(`Request ${i} error:`, error.message);
+      console.error(`Request ${i} error:`, error instanceof Error ? error.message : 'Unknown error');
     }
   }
 };
@@ -104,7 +104,7 @@ const testValidation = async () => {
       console.log(`Validation test ${i + 1}: ${result.error || 'Unexpected success'}`);
 
     } catch (error) {
-      console.error(`Validation test ${i + 1} error:`, error.message);
+      console.error(`Validation test ${i + 1} error:`, error instanceof Error ? error.message : 'Unknown error');
     }
   }
 

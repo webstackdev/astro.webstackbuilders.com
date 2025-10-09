@@ -11,13 +11,14 @@ export interface Props {
 
 const { title, description, slug, image } = Astro.props
 
-const socialMetadata = getSocialMetadata({
-  title,
-  description,
-  slug,
-  image,
-  url: Astro.url.href
-})
+// Filter out undefined values to work with exactOptionalPropertyTypes
+const options: any = { url: Astro.url.href }
+if (title !== undefined) options.title = title
+if (description !== undefined) options.description = description
+if (slug !== undefined) options.slug = slug
+if (image !== undefined) options.image = image
+
+const socialMetadata = getSocialMetadata(options)
 ---
 
 {/* Open Graph / Facebook metadata */}

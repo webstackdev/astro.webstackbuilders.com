@@ -9,7 +9,7 @@ import lazypipe from 'lazypipe'
 import prettier from 'gulp-prettier'
 
 export const formatJsonTask = lazypipe()
-  .pipe(prettier)
+  .pipe(prettier, { parser: 'json' })
 
 const task: TaskFunction = () => {
   log(`Linting script source code`)

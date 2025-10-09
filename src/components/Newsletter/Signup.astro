@@ -12,6 +12,11 @@
  * />
  */
 
+// Global function declaration
+declare global {
+  function handleSignup(form: any): void;
+}
+
 interface Props {
   title?: string
   description?: string
@@ -43,7 +48,7 @@ const {
       action="#"
       method="POST"
       class="space-y-4"
-      onsubmit="event.preventDefault(); handleSignup(this);"
+      onsubmit="event?.preventDefault(); handleSignup(this);"
     >
       <div class="relative">
         <input
@@ -70,8 +75,8 @@ const {
 </div>
 
 <script>
-  function handleSignup(form) {
-    const email = form.email.value;
+  (window as any).handleSignup = function handleSignup(form: any) {
+    // const email = form.email.value; // Commented out as it's not used
     const button = form.querySelector('button[type="submit"]');
     const originalText = button.textContent;
 

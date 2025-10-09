@@ -14,6 +14,9 @@ applyTo: "**/*.md"
 - Ensure all inline code blocks are surrounded by backticks (`MD046`).
 - Bullet lists should be consistent (e.g., use `*` or `-`, but not both) (`MD044`).
 - Files should end with a single newline character (`MD047`).
+- Bare URLs should be wrapped in angle brackets (`MD034`). For example, use `<https://example.com>` instead of `https://example.com`.
+- Headings should not have trailing punctuation (`MD026`). Remove colons, periods, or other punctuation from the end of headings.
+- No multiple consecutive blank lines (`MD012`)
 
 ## How to Apply These Rules
 

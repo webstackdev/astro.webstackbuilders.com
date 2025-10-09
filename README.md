@@ -2,7 +2,7 @@
 
 @TODO: See NOTES.md, this file is split between here and there. Consider using Nightwatch instead of Playwright for e2e testing.
 
-@TODO: See here for utility components like shortcodes: https://docs.astro.build/en/reference/api-reference/#astroslotsrender
+@TODO: See here for utility components like shortcodes: <https://docs.astro.build/en/reference/api-reference/#astroslotsrender>
 
 ## MDX Components
 
@@ -386,7 +386,7 @@ Astro uses standard HTML anchor elements to navigate between pages (also called 
 
 ## Layouts
 
-The <slot> element in an included layout will render any child elements between the <Layout> element used in pages
+The `<slot>` element in an included layout will render any child elements between the `<Layout>` element used in pages
 
 ## Get Markdown Frontmatter in a Layout
 
@@ -476,13 +476,13 @@ const { posts } = Astro.props;
 </BaseLayout>
 ```
 
-## Get the currently focused element on the page in the console:
+## Get the currently focused element on the page in the console
 
 ```bash
 document.activeElement
 ```
 
-## Testing HTML with `html-validate` in Braid UI:
+## Testing HTML with `html-validate` in Braid UI
 
 ```typescript
 import '@testing-library/jest-dom';
@@ -508,37 +508,37 @@ describe('Button', () => {
 });
 ```
 
-## Run a single test:
+## Run a single test
 
 ```bash
 clear && TS_NODE_PROJECT="tsconfig.jest.json" yarn jest eleventy/nunjucksAsyncShortcodes/asyncImageHandler/utils.spec.js --projects test/jest/jest.config.node.ts
 ```
 
-## Snippet to search for string in project with exclude directories:
+## Snippet to search for string in project with exclude directories
 
 ```bash
 clear && egrep -rnw './' --exclude-dir=node_modules --exclude-dir=.yarn --exclude-dir=yarn.lock --exclude-dir=public --exclude-dir=.cache -e 'searchString'
 ```
 
-## Clear Jest's cache:
+## Clear Jest's cache
 
 ```bash
 npx jest --clearCache
 ```
 
-## For install errors that report error installing sharp, recommended install. See `jest.setup.jsdom.ts`:
+## For install errors that report error installing sharp, recommended install. See `jest.setup.jsdom.ts`
 
 ```bash
 npm install --platform=linux --arch=x64 sharp
 ```
 
-## Check if a CSS selector is valid in the browser console:
+## Check if a CSS selector is valid in the browser console
 
 ```bash
 document.querySelector('.contact___callout-flex')
 ```
 
-## Test the value of a CSS variable when using `calc()` in the browser console:
+## Test the value of a CSS variable when using `calc()` in the browser console
 
 ```bash
 document.getElementById('header__theme-icon').getBoundingClientRect().width

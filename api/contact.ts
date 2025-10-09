@@ -1,17 +1,46 @@
 // Vercel API function for contact form
 import { Resend } from 'resend';
 
+// Types
+interface ContactFormData {
+  name: string;
+  email: string;
+  company?: string;
+  phone?: string;
+  project_type?: string;
+  budget?: string;
+  timeline?: string;
+  message: string;
+  ip?: string;
+  userAgent?: string;
+}
+
+interface EmailData {
+  from: string;
+  to: string;
+  subject: string;
+  text: string;
+}
+
+interface FileData {
+  name: string;
+  type: string;
+  size: number;
+  buffer?: Buffer;
+  data?: Buffer;
+}
+
 // Initialize Resend
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = new Resend(process.env['RESEND_API_KEY']);
 
 // Simple in-memory rate limiting (use Redis in production)
-const rateLimitStore = new Map();
+const rateLimitStore = new Map<string, number[]>();
 
 // File upload configuration
 const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024; // 10MB in bytes
 
 // Rate limiting check
-function checkRateLimit(ip) {
+function checkRateLimit(ip: string): boolean {
   const now = Date.now();
   const windowMs = 15 * 60 * 1000; // 15 minutes
   const maxRequests = 5;
@@ -31,7 +60,7 @@ function checkRateLimit(ip) {
 }
 
 // Validate form input
-function validateInput(body) {
+function validateInput(body: ContactFormData): ContactFormData {
   const { name, email, company, phone, project_type, budget, timeline, message } = body;
 
   // Required fields
@@ -74,7 +103,7 @@ function validateInput(body) {
 }
 
 // Generate email content
-function generateEmailContent(data, files = []) {
+function generateEmailContent(data: ContactFormData, files: FileData[] = []): string {
   const { name, email, company, phone, project_type, budget, timeline, message } = data;
 
   let emailBody = `
@@ -109,7 +138,7 @@ User Agent: ${data.userAgent || 'Unknown'}
 }
 
 // Send email with attachments using Resend
-async function sendEmail(emailData, files = []) {
+async function sendEmail(emailData: EmailData, files: FileData[] = []): Promise<any> {
   try {
     // Prepare email options
     const emailOptions = {
@@ -120,7 +149,7 @@ async function sendEmail(emailData, files = []) {
       text: emailData.text,
       attachments: files && files.length > 0 ? files.map(file => ({
         filename: file.name,
-        content: file.buffer || file.data, // Use buffer or data depending on multipart parser
+        content: file.buffer || file.data || Buffer.from(''), // Use buffer or data depending on multipart parser
         contentType: file.type
       })) : []
     };
@@ -143,7 +172,7 @@ async function sendEmail(emailData, files = []) {
 }
 
 // Main Vercel API handler
-export default async function handler(req, res) {
+export default async function handler(req: any, res: any): Promise<void> {
   // CORS headers
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -216,7 +245,7 @@ export default async function handler(req, res) {
       ...formData,
       ip: ip,
       userAgent: req.headers['user-agent'] || 'Unknown'
-    };
+    } as ContactFormData;
 
     // Validate input
     const validatedData = validateInput(requestData);

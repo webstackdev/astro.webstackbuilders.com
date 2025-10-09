@@ -37,6 +37,7 @@ const articlesSchema = z.object({
   publishDate: z.date(),
   isDraft: z.boolean().default(false),
   isFeatured: z.boolean().default(false),
+  readingTime: z.string().optional(),
 })
 
 const articlesCollection = defineCollection({
@@ -85,9 +86,18 @@ const caseStudiesSchema = z.object({
   isDraft: z.boolean().default(false),
   isFeatured: z.boolean().default(false),
   // Optional fields that may exist in some case studies
-  image: z.string().optional(),
+  image: z.union([
+    z.string(),
+    z.object({
+      src: z.string(),
+      alt: z.string(),
+    })
+  ]).optional(),
   client: z.string().optional(),
   author: reference('authors').optional(),
+  industry: z.string().optional(),
+  projectType: z.string().optional(),
+  duration: z.string().optional(),
 })
 
 const caseStudiesCollection = defineCollection({
@@ -165,6 +175,11 @@ const servicesSchema = z.object({
   publishDate: z.date(),
   isDraft: z.boolean().default(false),
   category: z.string().optional(),
+  icon: z.string().optional(),
+  featured: z.boolean().optional(),
+  pricing: z.string().optional(),
+  duration: z.string().optional(),
+  deliverables: z.array(z.string()).optional(),
 })
 
 const servicesCollection = defineCollection({
