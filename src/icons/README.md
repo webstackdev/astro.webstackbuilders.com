@@ -20,10 +20,10 @@ Place your SVG file in this directory (`src/icons/`). Use kebab-case naming (e.g
 
 ### 2. Update TypeScript definitions
 
-After adding a new SVG file, you **must** update the `src/@types/icons.ts` file to include the new icon name in the `IconName` union type:
+After adding a new SVG file, you **must** update the `src/components/Sprite/sprites.ts` file to include the new icon name in the `SpriteName` union type:
 
 ```typescript
-export type IconName =
+export type SpriteName =
   | 'alarm-clock'
   | 'arrow-down'
   // ... existing icons
@@ -42,14 +42,19 @@ Import and use the `Sprite` component:
 import Sprite from '@components/Sprite.astro'
 ---
 
-<Sprite name="my-new-icon" class="h-6 w-6" />
+```astro
+---
+import Sprite from '@components/Sprite/index.astro'
+---
+
+<Sprite name="new-icon-name" />
 ```
 
 ## Icon Usage
 
 The `Sprite` component accepts these props:
 
-- `name` (required): The icon name (must match a file in `src/icons/` and be defined in `IconName` type)
+- `name` (required): The icon name (must match a file in `src/icons/` and be defined in `SpriteName` type)
 - `class`: CSS classes to apply
 - `size`: Icon size (defaults to 24)
 
