@@ -514,6 +514,82 @@ describe('Button', () => {
 clear && TS_NODE_PROJECT="tsconfig.jest.json" yarn jest eleventy/nunjucksAsyncShortcodes/asyncImageHandler/utils.spec.js --projects test/jest/jest.config.node.ts
 ```
 
+## Testing
+
+The project uses a dual testing setup:
+
+- **Unit Tests**: Vitest for testing individual functions and components
+- **E2E Tests**: Playwright for end-to-end browser testing
+
+### Running Tests
+
+**Run all tests (unit + e2e):**
+
+```bash
+npm test
+```
+
+**Run only unit tests:**
+
+```bash
+npm run test:unit
+```
+
+**Run only e2e tests:**
+
+```bash
+npm run test:e2e
+```
+
+**Run tests with coverage report:**
+
+```bash
+npm run test:coverage
+```
+
+### Code Coverage
+
+The project uses Vitest with the v8 coverage provider to generate comprehensive test coverage reports.
+
+**Viewing Coverage Reports:**
+
+After running `npm run test:coverage`, coverage reports are generated in multiple formats:
+
+1. **Console Output** - Summary displayed in terminal
+2. **HTML Report** - Interactive browsable report at `./coverage/index.html`
+3. **JSON Report** - Machine-readable at `./coverage/coverage-final.json`
+4. **LCOV Report** - Standard format for CI/CD tools at `./coverage/lcov.info`
+
+**To view the HTML coverage report in your browser:**
+
+```bash
+# After running coverage
+open coverage/index.html        # macOS
+xdg-open coverage/index.html    # Linux
+start coverage/index.html       # Windows
+```
+
+**Coverage Report Locations:**
+
+- All coverage reports are stored in the `./coverage` directory
+- The directory is automatically cleaned before each coverage run
+- Coverage includes: `src/**/*.{ts,tsx,astro}` and `scripts/**/*.ts`
+- Excludes: test files, type definitions, and test directories
+
+**Note:** The `coverage/` directory should be added to `.gitignore` to avoid committing generated reports.
+
+### Unit Test Structure
+
+Unit tests are located alongside their source files:
+
+- `src/**/*.spec.ts` - Component and library tests
+- `scripts/**/__tests__/*.spec.ts` - Build script tests
+
+Example test file locations:
+
+- `src/lib/helpers/formatDate.spec.ts`
+- `scripts/build/__tests__/favicon.spec.ts`
+
 ## Snippet to search for string in project with exclude directories
 
 ```bash

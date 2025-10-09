@@ -1,32 +1,36 @@
 /// <reference types="vitest" />
-import { getViteConfig } from 'astro/config'
+import { defineConfig } from 'vite'
 
 // @TODO: Should set up `reporters` for CI to create an artifact on failed runs with `outputFIle`
 
-export default getViteConfig({
-  /** Root directory that Jest should scan for tests and modules within */
-  rootDir: './',
-  /** To place configuration elsewhere, point to the path of the config file in projects */
-  // @TODO: This is for Jest
-  projects: [
-    '<rootDir>/test/unit/vitest.config.jsdom.ts',
-    '<rootDir>/test/unit/vitest.config.node.ts'
-  ],
+export default defineConfig({
   test: {
-    include: ['src/**/*.spec.ts?(x)'],
+    include: ['src/**/*.spec.ts?(x)', 'scripts/**/*.spec.ts'],
     environmentMatchGlobs: [
       ['src/**', 'jsdom'],
       ['src/lib/**', 'node'],
+      ['scripts/**', 'node'],
     ],
+    /** Timeout set to 30 seconds for all tests */
+    testTimeout: 30 * 1000,
     // globalSetup: '',
     // setupFiles: '',
-    /*
     coverage: {
-      enabled: false,
-      extension: ['.ts', '.tsx', '.astro'],
+      provider: 'v8',
+      reporter: ['text', 'json', 'html', 'lcov'],
+      reportsDirectory: './coverage',
+      include: ['src/**/*.{ts,tsx,astro}', 'scripts/**/*.ts'],
+      exclude: [
+        'src/**/*.spec.ts',
+        'scripts/**/*.spec.ts',
+        'src/**/__tests__/**',
+        'scripts/**/__tests__/**',
+        'src/@types/**',
+        '@types/**',
+        '**/*.d.ts',
+      ],
+      all: true,
+      clean: true,
     },
-    */
   },
-  /** Timeout set to 30 seconds for all tests */
-  testTimeout: 30 * 1000
 });
