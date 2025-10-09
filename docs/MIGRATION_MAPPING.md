@@ -163,9 +163,9 @@ src/content/ ✅               src/content/ ✅
 ```bash
 src/layouts/
 ├── BaseLayout.astro          # Root layout (HTML structure, head, body)
-│   ├── Head/Head.astro      # Meta tags, title, etc.
-│   ├── Header/Header.astro  # Site navigation
-│   └── Footer/Footer.astro  # Site footer
+│   ├── Head/index.astro      # Meta tags, title, etc.
+│   ├── Header/index.astro    # Site navigation
+│   └── Footer/index.astro    # Site footer
 ├── PageLayout.astro         # Standard page layout (extends BaseLayout)
 ├── ArticleLayout.astro      # Article-specific layout
 ├── CaseStudyLayout.astro    # Case study layout

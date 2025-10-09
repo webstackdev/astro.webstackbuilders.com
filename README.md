@@ -60,7 +60,7 @@ Use the `<X>` component to embed tweets in your MDX content:
 ---
 
 import Signup from '../components/Newsletter/Signup.astro';
-import X from '../components/Tweet/X.astro';
+import X from '../components/Tweet/index.astro';
 
 # Your Content
 
