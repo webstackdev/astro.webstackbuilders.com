@@ -1,1 +1,0 @@
-export { showCookieCustomizeModal } from './handlers'
