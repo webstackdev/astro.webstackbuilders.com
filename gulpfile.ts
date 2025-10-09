@@ -3,12 +3,6 @@ import { task } from 'gulp'
 /**
  * Build tasks
  */
-import buildLambda from './scripts/build/tasks/build:lambda.ts'
-import buildSprites from './scripts/build/tasks/build:sprites.ts'
-
-
-task(`build:lambda`, buildLambda)
-task(`build:sprites`, buildSprites)
 
 
 /**

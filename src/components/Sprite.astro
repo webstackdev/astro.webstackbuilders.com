@@ -1,17 +1,23 @@
 ---
 /**
- * Sprite component. Place sprite SVG files in `src/assets/images/sprite` to use.
+ * Sprite component using astro-icon. SVG files are in `src/icons/` directory.
  */
+import { Icon } from 'astro-icon/components'
+import type { IconName } from '../@types/icons'
 import classNames from 'classnames'
 
-export interface props {
+export interface Props {
   class?: string,
-  name: string,
+  name: IconName,
+  size?: number | string,
 }
 
-const { class:className, name } = Astro.props
+const { class: className, name, size = 24 } = Astro.props
 ---
 
-<svg class={classNames('h-6 w-6', `icon--${name}`, className)} role="img" aria-hidden="true" width="24" height="24">
-  <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href={`#icon-${name}`}></use>
-</svg>
+<Icon
+  name={name}
+  class={classNames('sprite-icon', `icon--${name}`, className)}
+  size={size}
+  aria-hidden="true"
+/>
