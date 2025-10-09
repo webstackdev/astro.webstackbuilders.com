@@ -5,58 +5,6 @@ import Button from '@components/Button/Button.astro'
 import CookieSvg from "@assets/images/site/cookie.svg"
 ---
 
-<style>
-  /* Cookie icon positioning calculations */
-  .cookie-modal__icon-container {
-    /* Desktop: 48px + (12px * 2) = 72px container, half = 36px */
-    height: 72px;
-    width: 72px;
-    top: -36px;
-  }
-
-  .cookie-modal__icon-container svg {
-    height: 48px;
-    width: 48px;
-    margin: 12px;
-  }
-
-  .cookie-modal__content {
-    padding: 36px 0 1em 2em;
-  }
-
-  .cookie-modal__btn-group {
-    padding: 36px 2em 1em 1em;
-  }
-
-  /* Mobile responsive adjustments */
-  @media (max-width: 768px) {
-    .cookie-modal__icon-container {
-      /* Mobile: 3.6em + (0.6em * 2) = 4.8em container, half = 2.4em */
-      height: 4.8em;
-      width: 4.8em;
-      top: -2.4em;
-    }
-
-    .cookie-modal__icon-container svg {
-      height: 3.6em;
-      width: 3.6em;
-      margin: 0.6em;
-    }
-
-    .cookie-modal__content {
-      padding: 2.4em 0 1em 2em;
-    }
-
-    .cookie-modal__btn-group {
-      padding: 0 2em 1em 1em;
-    }
-
-    .cookie-modal__addl-content {
-      display: none;
-    }
-  }
-</style>
-
 <div
   id="cookie-modal-id"
   class="bg-[var(--color-modal-background)] rounded-lg bottom-0 flex flex-row md:flex-col flex-nowrap md:flex-wrap left-0 mx-4 mb-4 fixed right-0"
@@ -72,13 +20,14 @@ import CookieSvg from "@assets/images/site/cookie.svg"
   >
     <Sprite name="close" />
   </button>
-  <div class="cookie-modal__icon-container bg-[var(--color-modal-background)] rounded-full absolute left-0 right-0 mx-auto">
+  {/* Desktop: 48px + (12px * 2) = 72px container, half = 36px. Mobile: 3.6em + (0.6em * 2) = 4.8em container, half = 2.4em */}
+  <div class="h-[72px] w-[72px] -top-[36px] md:h-[4.8em] md:w-[4.8em] md:-top-[2.4em] bg-[var(--color-modal-background)] rounded-full absolute left-0 right-0 mx-auto [&_svg]:h-12 [&_svg]:w-12 [&_svg]:m-3 md:[&_svg]:h-[3.6em] md:[&_svg]:w-[3.6em] md:[&_svg]:m-[0.6em]">
     <Image src={CookieSvg} alt="Cookie icon." />
   </div>
-  <p id="cookie-modal__content" class="cookie-modal__content">
-    This site uses cookies. Learn more in our <a href="/cookies">Cookie Policy</a> and <a href="/privacy">Privacy Policy</a>. <span class="cookie-modal__addl-content">Our site needs a single cookie to remember your theme preferences, and you can <a class="cookie-modal__link-customize" href="/cookies">customize</a> the other cookies we use to help provide you a great experience here. Or let us know you're okay with our cookie use by clicking <a class="cookie-modal__link-allow" href="javascript:void(0)">Allow All</a>.</span>
+  <p id="cookie-modal__content" class="pt-9 pb-4 pl-8 md:pt-[2.4em] md:pb-4 md:pl-8">
+    This site uses cookies. Learn more in our <a href="/cookies">Cookie Policy</a> and <a href="/privacy">Privacy Policy</a>. <span class="md:hidden">Our site needs a single cookie to remember your theme preferences, and you can <a class="cookie-modal__link-customize" href="/cookies">customize</a> the other cookies we use to help provide you a great experience here. Or let us know you're okay with our cookie use by clicking <a class="cookie-modal__link-allow" href="javascript:void(0)">Allow All</a>.</span>
   </p>
-  <menu class="cookie-modal__btn-group flex items-center">
+  <menu class="pt-9 pr-8 pb-4 pl-4 md:pt-0 md:pr-8 md:pb-4 md:pl-4 flex items-center">
     <li class="list-none">
       <Button
         text="Allow All"
