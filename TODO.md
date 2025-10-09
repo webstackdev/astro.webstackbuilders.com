@@ -18,7 +18,7 @@ Next Steps Available:
 - Testing: Verify the cookie preferences work correctly across different browsers
 
 Future Cleaner Import (using barrel file):
-import { initializeCookiePreferences, CookiePreferencesManager } from '@lib/cookies'
+import { initializeCookiePreferences, CookiePreferencesManager } from '@components/CookieCustomize/cookie-preferences'
 
 02:57:47 [WARN] [vite] Generated an empty chunk: "Signup.astro_astro_type_script_index_0_lang".
 
