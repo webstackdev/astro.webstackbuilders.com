@@ -5,6 +5,7 @@ import tailwindcss from '@tailwindcss/vite'
 import AstroPWA from '@vite-pwa/astro'
 import { defineConfig, envField } from 'astro/config'
 import { rehypeAccessibleEmojis } from 'rehype-accessible-emojis'
+import remarkEmoji from 'remark-emoji'
 import remarkToc from 'remark-toc'
 import { loadEnv } from "vite"
 import { rehypeTailwindClasses } from './src/lib/markdown/rehype-tailwind-classes.ts'
@@ -153,6 +154,7 @@ export default defineConfig({
         }
       },
       remarkPlugins: [
+        remarkEmoji,
         [remarkToc, { heading: "contents" }]
       ],
       rehypePlugins: [
