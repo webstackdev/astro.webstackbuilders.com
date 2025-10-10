@@ -14,16 +14,16 @@ The plugin allows to provide an attribution for a quotation:
 > — Neil Armstrong (1969, July 21)
 ```
 
-The generated markup is not only accessible for screen readers but allows you to style the attribution line however you like:
+When used with Astro's MDX and the `rehype-tailwind-classes` plugin, the output includes comprehensive styling:
 
 ```html
-<figure class="c-blockquote">
-  <blockquote>
-    <p>
+<figure class="c-blockquote relative my-12 px-8 py-6 rounded-lg bg-gray-100 dark:bg-gray-800 border-l-4 border-[var(--color-primary)] before:content-['"'] before:absolute before:top-2 before:left-2 before:text-6xl before:font-serif before:leading-none before:text-[var(--color-primary)] before:opacity-30">
+  <blockquote class="relative z-10 pl-8 border-0 my-0 font-serif text-xl italic text-[var(--color-text)]">
+    <p class="mb-8 text-lg leading-relaxed">
       That's one small step for [a] man, one giant leap for mankind.
     </p>
   </blockquote>
-  <figcaption class="c-blockquote__attribution">
+  <figcaption class="c-blockquote__attribution mt-4 pt-4 border-t border-gray-300 dark:border-gray-600 text-sm font-sans italic text-[var(--color-text-offset)] before:content-['—_'] before:text-[var(--color-primary)]">
     Neil Armstrong (1969, July 21)
   </figcaption>
 </figure>

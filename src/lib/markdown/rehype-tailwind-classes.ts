@@ -161,9 +161,53 @@ export function rehypeTailwindClasses() {
       // Add classes to blockquotes (migrated from .content blockquote)
       if (node.tagName === 'blockquote') {
         node.properties = node.properties || {}
+        // Check if parent might be a c-blockquote figure (will be styled differently)
+        const existingClasses = (node.properties['className'] as string[] || [])
+        const isAttributionQuote = existingClasses.length === 0 // Attribution quotes won't have classes yet
+
+        if (!isAttributionQuote) {
+          node.properties['className'] = existingClasses.concat([
+            'border-l-4', 'border-blue-600', 'my-8', 'pl-14', '-ml-14',
+            'font-serif', 'text-2xl', 'italic'
+          ])
+        }
+      }
+
+      // Add classes to figure elements with c-blockquote class (attribution blockquotes)
+      if (node.tagName === 'figure' && hasClass(node, 'c-blockquote')) {
+        node.properties = node.properties || {}
         node.properties['className'] = (node.properties['className'] as string[] || []).concat([
-          'border-l-4', 'border-blue-600', 'my-8', 'pl-14', '-ml-14',
-          'font-serif', 'text-2xl', 'italic'
+          'relative', 'my-12', 'px-8', 'py-6', 'rounded-lg',
+          'bg-gray-100', 'dark:bg-gray-800',
+          'border-l-4', 'border-[var(--color-primary)]',
+          // Opening quote decoration
+          'before:content-["""]', 'before:absolute', 'before:top-2', 'before:left-2',
+          'before:text-6xl', 'before:font-serif', 'before:leading-none',
+          'before:text-[var(--color-primary)]', 'before:opacity-30'
+        ])
+
+        // Style the blockquote child within the figure
+        if (node.children) {
+          visit(node, 'element', (child: Element) => {
+            if (child.tagName === 'blockquote') {
+              child.properties = child.properties || {}
+              child.properties['className'] = [
+                'relative', 'z-10', 'pl-8', 'border-0', 'my-0',
+                'font-serif', 'text-xl', 'italic', 'text-[var(--color-text)]'
+              ]
+            }
+          })
+        }
+      }
+
+      // Add classes to figcaption with c-blockquote__attribution class
+      if (node.tagName === 'figcaption' && hasClass(node, 'c-blockquote__attribution')) {
+        node.properties = node.properties || {}
+        node.properties['className'] = (node.properties['className'] as string[] || []).concat([
+          'mt-4', 'pt-4', 'border-t', 'border-gray-300', 'dark:border-gray-600',
+          'text-sm', 'font-sans', 'italic', 'text-[var(--color-text-offset)]',
+          // Em dash before attribution
+          'before:content-["—_"]', 'before:text-[var(--color-primary)]'
         ])
       }
 
