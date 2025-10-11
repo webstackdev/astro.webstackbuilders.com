@@ -10,7 +10,7 @@ import {
   markdownConfig,
   serviceWorkerConfig,
   vercelConfig,
-} from './src/lib/config/index.mjs'
+} from './src/lib/config/index.ts'
 
 export default defineConfig({
   /** Site name accessible using import.meta.env.SITE */

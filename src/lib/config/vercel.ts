@@ -1,8 +1,6 @@
-// @ts-check
+import type { VercelServerlessConfig } from '@astrojs/vercel'
 
-/** @typedef {import('@astrojs/vercel').VercelServerlessConfig} VercelServerlessConfig */
-/** @type { VercelServerlessConfig } */
-export const vercelConfig = {
+export const vercelConfig: VercelServerlessConfig = {
   /** Whether to use Vercel's image service */
   //imageService: true,
   /** Image service used to optimize images in dev environment */

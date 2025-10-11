@@ -1,36 +1,27 @@
-// @ts-check
-/**
- * @typedef {import('mdast').Root} Root
- * @typedef {import('mdast').Blockquote} Blockquote
- * @typedef {import('mdast').Paragraph} Paragraph
- * @typedef {import('mdast').Text} Text
- * @typedef {import('mdast').PhrasingContent} PhrasingContent
- * @typedef {import('mdast').Parent} Parent
- * @typedef {import('unist').Node} Node
- */
-
-/**
- * @typedef AttributionOptions
- * @property {string} [classNameContainer='c-blockquote'] - HTML class added to the container of the blockquote
- * @property {string} [classNameAttribution='c-blockquote__attribution'] - HTML class added to the attribution line
- * @property {string} [marker='—'] - Characters used to identify the beginning of an attribution line
- * @property {boolean} [removeMarker=true] - Whether the attribution marker will be included in the generated markup
- */
-
+import type { Root, Blockquote, Paragraph, Parent } from 'mdast'
 import { visit } from 'unist-util-visit'
+
+export interface AttributionOptions {
+  /** HTML class added to the container of the blockquote */
+  classNameContainer?: string
+  /** HTML class added to the attribution line */
+  classNameAttribution?: string
+  /** Characters used to identify the beginning of an attribution line */
+  marker?: string
+  /** Whether the attribution marker will be included in the generated markup */
+  removeMarker?: boolean
+}
 
 /**
  * A regular expression matching common URL patterns.
  * @see {@link https://mathiasbynens.be/demo/url-regex}
- * @type {RegExp}
  */
 const REGEX_URL = /https?:\/\/[^\s/$.?#()].[^\s()]*/i
 
 /**
  * Default options for the attribution plugin.
- * @type {AttributionOptions}
  */
-const defaultOptions = {
+const defaultOptions: AttributionOptions = {
   classNameContainer: 'c-blockquote',
   classNameAttribution: 'c-blockquote__attribution',
   marker: '—', // EM dash
@@ -39,31 +30,31 @@ const defaultOptions = {
 
 /**
  * Extract a URL from the given string.
- * @param {string} str - The string to extract a URL from
- * @returns {string | null} The extracted URL or null
+ * @param str - The string to extract a URL from
+ * @returns The extracted URL or null
  */
-function extractUrl(str) {
+function extractUrl(str: string): string | null {
   const matches = str.match(REGEX_URL)
   return matches !== null ? matches[0] : null
 }
 
 /**
  * Determine whether a string is empty.
- * @param {string | null | undefined} str - The string to inspect
- * @returns {boolean} True if empty
+ * @param str - The string to inspect
+ * @returns True if empty
  */
-function isEmpty(str) {
+function isEmpty(str: string | null | undefined): boolean {
   return !str || str.trim().length === 0
 }
 
 /**
  * Find the position of an attribution marker in a string.
  * The marker must be at the start of the string or after a newline.
- * @param {string} str - The string to search
- * @param {string} marker - The marker to find
- * @returns {number} The position of the marker, or -1 if not found
+ * @param str - The string to search
+ * @param marker - The marker to find
+ * @returns The position of the marker, or -1 if not found
  */
-function findMarker(str, marker) {
+function findMarker(str: string, marker: string): number {
   // Check if paragraph starts with the marker
   if (str.startsWith(marker)) {
     return 0
@@ -75,21 +66,64 @@ function findMarker(str, marker) {
 }
 
 /**
- * Check if a paragraph contains an attribution line.
- * @param {Paragraph} paragraph - The paragraph node to check
- * @param {string} marker - The attribution marker
- * @returns {{ hasAttribution: boolean, markerIndex: number, text: string | null }} Attribution info
+ * Extract all text content from a paragraph node recursively.
+ * This handles cases where formatting (like GFM bold/strikethrough) splits text into multiple nodes.
+ * @param node - The node to extract text from
+ * @returns Combined text content
  */
-function checkForAttribution(paragraph, marker) {
-  // Get all text content from the paragraph
-  let text = null
+function extractAllText(node: Parent | Paragraph): string {
+  let text = ''
 
-  for (const child of paragraph.children) {
+  for (const child of node.children) {
     if (child.type === 'text') {
-      text = child.value
-      break
+      text += child.value
+    } else if ('children' in child) {
+      // Recursively extract text from nested nodes (strong, emphasis, delete, etc.)
+      text += extractAllText(child as Parent)
     }
   }
+
+  return text
+}
+
+/**
+ * Update the last text node in a paragraph (recursively finds the last text node).
+ * This is used to remove the attribution marker from the paragraph.
+ * @param node - The node to search
+ * @param newValue - The new text value
+ * @returns True if a text node was found and updated
+ */
+function updateLastTextNode(node: Parent | Paragraph, newValue: string): boolean {
+  // Search children in reverse to find the last text node
+  for (let i = node.children.length - 1; i >= 0; i--) {
+    const child = node.children[i]
+
+    if (child.type === 'text') {
+      child.value = newValue
+      return true
+    } else if ('children' in child && (child as Parent).children.length > 0) {
+      // Recursively search nested nodes
+      if (updateLastTextNode(child as Parent, newValue)) {
+        return true
+      }
+    }
+  }
+
+  return false
+}
+
+/**
+ * Check if a paragraph contains an attribution line.
+ * @param paragraph - The paragraph node to check
+ * @param marker - The attribution marker
+ * @returns Attribution info
+ */
+function checkForAttribution(
+  paragraph: Paragraph,
+  marker: string
+): { hasAttribution: boolean; markerIndex: number; text: string | null } {
+  // Get all text content from the paragraph (including from nested formatting nodes)
+  const text = extractAllText(paragraph)
 
   if (!text) {
     return { hasAttribution: false, markerIndex: -1, text: null }
@@ -105,13 +139,18 @@ function checkForAttribution(paragraph, marker) {
 
 /**
  * Split text content at the attribution marker.
- * @param {string} text - The text to split
- * @param {number} markerIndex - The position of the marker
- * @param {string} marker - The marker string
- * @param {boolean} removeMarker - Whether to remove the marker from the attribution
- * @returns {{ content: string | null, attribution: string }} The split content
+ * @param text - The text to split
+ * @param markerIndex - The position of the marker
+ * @param marker - The marker string
+ * @param removeMarker - Whether to remove the marker from the attribution
+ * @returns The split content
  */
-function splitAtMarker(text, markerIndex, marker, removeMarker) {
+function splitAtMarker(
+  text: string,
+  markerIndex: number,
+  marker: string,
+  removeMarker: boolean
+): { content: string | null; attribution: string } {
   const content = markerIndex > 0 ? text.slice(0, markerIndex).trimEnd() : null
   let attribution = markerIndex > 0 ? text.slice(markerIndex) : text
 
@@ -125,12 +164,12 @@ function splitAtMarker(text, markerIndex, marker, removeMarker) {
 /**
  * A remark plugin that generates accessible markup for block quotes with attribution lines.
  * The generated output follows WHATWG HTML standards for blockquote elements with proper attribution.
- * @param {Partial<AttributionOptions>} [options] - Plugin options
- * @returns {(tree: Root) => undefined} Transform function
+ * @param options - Plugin options
+ * @returns Transform function
  * @example
  * ```js
  * import { remark } from 'remark'
- * import remarkAttribution from './remark-attribution/index.mjs'
+ * import remarkAttribution from './remark-attribution/index.ts'
  *
  * const processor = remark()
  *   .use(remarkAttribution, {
@@ -139,22 +178,16 @@ function splitAtMarker(text, markerIndex, marker, removeMarker) {
  *   })
  * ```
  */
-export default function remarkAttribution(options) {
+export default function remarkAttribution(options?: Partial<AttributionOptions>) {
   const settings = { ...defaultOptions, ...options }
 
-  /**
-   * Transform the tree.
-   * @param {Root} tree - The mdast tree
-   * @returns {undefined} Nothing
-   */
-  return function (tree) {
+  return function (tree: Root): void {
     visit(tree, 'blockquote', (node, index, parent) => {
       if (!parent || index === null || index === undefined) {
         return
       }
 
-      // @ts-ignore - TypeScript doesn't narrow the type correctly
-      const blockquote = /** @type {Blockquote} */ (node)
+      const blockquote = node as Blockquote
 
       // Find the last paragraph in the blockquote
       const children = blockquote.children
@@ -168,7 +201,7 @@ export default function remarkAttribution(options) {
         return
       }
 
-      const paragraph = /** @type {Paragraph} */ (lastChild)
+      const paragraph = lastChild as Paragraph
       const marker = settings.marker
       if (!marker) {
         return
@@ -191,11 +224,9 @@ export default function remarkAttribution(options) {
         // Remove the paragraph entirely if no content remains
         children.pop()
       } else if (content !== null) {
-        // Update the text node with the remaining content
-        const textNode = paragraph.children.find(child => child.type === 'text')
-        if (textNode && textNode.type === 'text') {
-          textNode.value = content
-        }
+        // Update the last text node with the remaining content
+        // This finds the last text node recursively, handling nested formatting nodes
+        updateLastTextNode(paragraph, content)
       }
 
       // Add cite attribute to blockquote if URL found
@@ -206,8 +237,7 @@ export default function remarkAttribution(options) {
       }
 
       // Create the figcaption node for attribution
-      /** @type {Paragraph} */
-      const figcaption = {
+      const figcaption: Paragraph = {
         type: 'paragraph',
         data: {
           hName: 'figcaption',
@@ -224,9 +254,9 @@ export default function remarkAttribution(options) {
       }
 
       // Wrap blockquote and figcaption in a figure element
-      // Using 'unknown' type because we're creating custom hName/hProperties for rehype
-      /** @type {unknown} */
-      const figure = {
+      // Using unknown type because we're creating custom hName/hProperties for rehype
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const figure: any = {
         type: 'paragraph', // Use paragraph as the base type
         data: {
           hName: 'figure',
@@ -241,8 +271,7 @@ export default function remarkAttribution(options) {
       }
 
       // Replace the blockquote with the figure in the parent
-      // @ts-ignore - Custom hName for rehype transformation
-      parent.children[index] = figure
+      ;(parent as Parent).children[index] = figure
     })
   }
 }

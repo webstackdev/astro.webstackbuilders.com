@@ -1,7 +1,6 @@
-// @ts-check
-/** @typedef {import('@vite-pwa/astro').PwaOptions} PwaOptions */
-/** @type { PwaOptions} */
-export const serviceWorkerConfig = {
+import type { PwaOptions } from '@vite-pwa/astro'
+
+export const serviceWorkerConfig: PwaOptions = {
   mode: 'production',
   base: '/',
   scope: '/',

@@ -1,6 +1,126 @@
 # TODO
 
-- Move on to updating and running the test cases?
+## 🚀 CURRENT WORK: Markdown Plugin Testing - Layer 2 Complete! 🎉
+
+**Date**: October 11, 2025
+**Status**: Layer 2 at 93% (55/59 passing) - Major breakthrough achieved!
+
+### ✅ COMPLETED (Layers 1 & 2)
+
+#### Test Organization
+- ✅ Reorganized tests into clean structure:
+  - `__tests__/isolated_unit_tests/` - Layer 1 tests (minimal pipeline)
+  - `__tests__/astro_pipeline/` - Layer 2 tests (with GFM + Astro settings)
+  - Plugin-specific folders (e.g., `remark-abbr/__tests__/`) - Comprehensive Layer 1 tests
+
+#### Plugin Refactoring
+- ✅ **remark-abbr**: Refactored to TypeScript - 31/31 tests passing (100%)
+- ✅ **remark-attr**: Refactored to TypeScript - 46/46 tests passing (100%)
+- ✅ **remark-attribution**: Refactored to TypeScript - 17/17 Layer 1 passing
+
+#### Critical Bug Fixes
+
+1. ✅ **remark-linkify-regex**: Fixed factory function call pattern
+   - Changed from `processIsolated(md, remarkLinkifyRegex, urlRegex)`
+   - To: `processIsolated(md, remarkLinkifyRegex(urlRegex))`
+   - Result: 7/7 Layer 1 + 6/6 Layer 2 = **13/13 passing (100%)**
+
+2. ✅ **rehype-autolink-headings**: Added missing `rehype-slug` dependency
+   - Headings need `id` attributes before anchor links can be added
+   - Updated test helper to include `rehype-slug` before `rehype-autolink-headings`
+   - Result: **7/7 Layer 2 passing (100%)**
+
+3. ✅ **remark-attribution**: Fixed GFM compatibility (MAJOR FIX!)
+   - **Root Cause**: Original code only checked first text node for attribution marker
+   - When GFM adds formatting (`~~strikethrough~~`, `**bold**`), it creates nested nodes
+   - Attribution marker ends up in a later text node, never detected
+   - **Solution**: Added recursive text extraction functions:
+     - `extractAllText()`: Recursively concatenates all text from nested nodes
+     - `updateLastTextNode()`: Finds and updates last text node recursively
+   - **Test Fix**: Table attribution test needed blank line separator
+   - Result: 0/5 → **5/5 Layer 2 passing (100%)**
+
+#### Current Test Status
+**Layer 1 (Isolated)**: 120/120 passing (100%) ✅
+**Layer 2 (Astro Pipeline)**: 52/59 passing (88%) ⚠️
+
+### 🔧 IN PROGRESS: remark-attribution Bug Fix
+
+**Issue**: Layer 2 tests failing (0/5 passing) despite Layer 1 working perfectly
+
+**Root Cause Identified**:
+The `checkForAttribution()` function in `src/lib/markdown/remark-attribution/index.ts` only checks the FIRST text node in a paragraph for the attribution marker `—`. When GFM processes formatting like `~~strikethrough~~` or `**bold**`, it creates intermediate nodes (delete, strong) that split the paragraph into multiple text nodes. The attribution marker ends up in a LATER text node that the plugin never checks.
+
+**Evidence**:
+```typescript
+// Test without GFM formatting - WORKS ✅
+> Plain quote text
+> — Author Name
+
+// Test with GFM formatting - FAILS ❌
+> That's ~~not~~ **definitely** one small step.
+> — Neil Armstrong
+// Attribution marker is in a later text node after delete/strong nodes
+```
+
+**Solution Required**:
+Update `checkForAttribution()` function (lines ~73-99 in `index.ts`) to:
+1. Use `mdast-util-to-string` or similar to concatenate ALL text content from paragraph
+2. Search for attribution marker in the complete text
+3. Handle text node splitting when removing/updating attribution content
+
+**Files to Update**:
+- `/src/lib/markdown/remark-attribution/index.ts` - Fix `checkForAttribution()` function
+
+### ⏳ REMAINING WORK
+
+#### Layer 2 Minor Failures (7 tests)
+1. **remark-attribution**: 0/5 (needs fix above)
+2. **remark-emoji**: 5/6 (`:check_mark:` not converting to ✔)
+3. **remark-breaks**: 4/5 (line breaks breaking GFM table syntax)
+4. **remark-attr**: 5/6 (attributes not applying to GFM tables)
+5. **rehype-tailwind-classes**: 7/8 (likely false positive)
+
+#### Layer 3 (Integration)
+- Create `integration/full-pipeline.spec.ts`
+- Test all plugins together in complete Astro pipeline
+- Verify no conflicts between plugins
+
+#### Layer 4 (E2E)
+- Existing tests in `test/e2e/` directory
+- Validate build output and browser rendering
+
+### 📝 Technical Notes
+
+**Plugin Order in Astro Pipeline**:
+```typescript
+// remarkPlugins order (from markdown.ts):
+1. remarkAbbr
+2. remarkAttr
+3. remarkAttribution
+4. remarkBreaks
+5. remarkEmoji
+6. remarkLinkifyRegex(regex)
+7. remarkToc
+
+// GFM is added automatically by Astro (gfm: true) at the beginning
+```
+
+**Test Helper Insights**:
+- `processIsolated()` - Minimal pipeline, no GFM
+- `processWithAstroSettings()` - Includes GFM + Astro's remarkRehype config
+- `processWithFullPipeline()` - All plugins together (Layer 3)
+
+**Key Dependencies**:
+- `rehype-slug` must come before `rehype-autolink-headings`
+- `remarkLinkifyRegex` must be called as factory function with regex parameter
+- GFM processing can affect how other plugins see the AST
+
+---
+
+## Previous TODOs
+
+- Move on to updating and running the test cases? ✅ IN PROGRESS
 - are we validating front matter?
 - src/components/Script/visibility.ts - Only mentioned in TODO comment
 - src/components/Script/share-highlight.ts - Only referenced in commented-out import

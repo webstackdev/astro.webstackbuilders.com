@@ -37,7 +37,7 @@ By default an `em dash` is used as the marker for an attribution line. Note that
 import { remark } from 'remark';
 import remarkRehype from 'remark-rehype';
 import rehypeStringify from 'rehype-stringify';
-import remarkAttribution from './index.mjs';
+import remarkAttribution from './index.ts';
 
 const processor = remark()
   .use(remarkAttribution)
@@ -59,7 +59,7 @@ console.log(String(html));
 // astro.config.mjs
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
-import remarkAttribution from './src/lib/config/remark-attribution/index.mjs';
+import remarkAttribution from './src/lib/markdown/remark-attribution/index.ts';
 
 export default defineConfig({
   integrations: [mdx()],
@@ -86,7 +86,7 @@ You can customize the plugin behavior by providing custom options when you regis
 import { remark } from 'remark';
 import remarkRehype from 'remark-rehype';
 import rehypeStringify from 'rehype-stringify';
-import remarkAttribution from './index.mjs';
+import remarkAttribution from './index.ts';
 
 const processor = remark()
   .use(remarkAttribution, {
@@ -103,10 +103,10 @@ const html = await processor.process('…');
 
 List of available options:
 
-- `[classNameContainer='c-blockquote']` - Select the HTML class added to the container of the `blockquote`.
-- `[classNameAttribution='c-blockquote__attribution']` - Select the HTML class added to the container of an attribution line.
-- `[marker='—']` - Select the characters used to identify the beginning of an attribution line.
-- `[removeMarker=true]` - Determines whether the attribution marker will be included in the generated markup.
+* `[classNameContainer='c-blockquote']` - Select the HTML class added to the container of the `blockquote`.
+* `[classNameAttribution='c-blockquote__attribution']` - Select the HTML class added to the container of an attribution line.
+* `[marker='—']` - Select the characters used to identify the beginning of an attribution line.
+* `[removeMarker=true]` - Determines whether the attribution marker will be included in the generated markup.
 
 ### Customization
 

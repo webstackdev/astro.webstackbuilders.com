@@ -1,16 +1,14 @@
-// @ts-check
 import { envField } from 'astro/config'
+import type { AstroUserConfig } from 'astro'
 
 /**
  * Env var usage:
  *
- * import { SERVER_API_URL } from "astro:env/server";
+ * import { SERVER_API_URL} from "astro:env/server";
  * <script>import { API_URL } from "astro:env/client";</script>
  */
 
-/** @typedef {import('astro/env/schema').EnvSchema} EnvSchema */
-/** @type { EnvSchema } */
-export const environmentalVariablesConfig = {
+export const environmentalVariablesConfig: AstroUserConfig['env'] = {
   schema: {
     /**
      * Public client variables end up in both the final client and server bundles, and can

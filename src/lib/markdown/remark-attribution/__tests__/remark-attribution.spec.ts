@@ -2,14 +2,21 @@ import { describe, it, expect } from 'vitest'
 import { remark } from 'remark'
 import remarkRehype from 'remark-rehype'
 import rehypeStringify from 'rehype-stringify'
-import remarkAttribution from '../index.mjs'
+import remarkAttribution, { type AttributionOptions } from '../index.ts'
 
 /**
  * Helper function to process markdown through the attribution plugin
  */
-async function process(markdown: string, options?: Parameters<typeof remarkAttribution>[0]): Promise<string> {
-  const result = await remark()
-    .use(remarkAttribution, options)
+async function process(markdown: string, options?: Partial<AttributionOptions>): Promise<string> {
+  const processor = remark()
+
+  if (options) {
+    processor.use(remarkAttribution, options)
+  } else {
+    processor.use(remarkAttribution)
+  }
+
+  const result = await processor
     .use(remarkRehype)
     .use(rehypeStringify)
     .process(markdown)

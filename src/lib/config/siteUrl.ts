@@ -1,9 +1,8 @@
-/* eslint-disable no-undef */
 import { loadEnv } from "vite"
 
 const { DEV_SERVER_PORT, PREVIEW_SERVER_PORT } = loadEnv('production', process.cwd(), "")
 
-export const getSiteUrl = () => {
+export const getSiteUrl = (): string => {
   switch (process.env['NODE_ENV']) {
     case 'production':
       console.log(

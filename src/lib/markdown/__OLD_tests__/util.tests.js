@@ -1,5 +1,5 @@
 const { describe, expect, test } = require('@jest/globals')
-const { slugifyTitleAnchors } = require('../util')
+const { slugifyTitleAnchors } = require('../UNUSED/util')
 
 describe(`Title anchors are properly slugified`, () => {
   test(`spaces are converted to dashes and the text string is lowercased`, () => {

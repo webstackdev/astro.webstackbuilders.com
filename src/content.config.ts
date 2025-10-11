@@ -228,7 +228,8 @@ const testimonialSchema = z.object({
     .object({
       src: z.string(),
       alt: z.string(),
-    }),
+    })
+    .optional(),
   // In YAML, dates written without quotes around them are interpreted as Date objects
   publishDate: z.date(),
   active: z.boolean().default(false),
