@@ -1,3 +1,7 @@
+Components intended for use in *.mdx files:
+
+* Avatar
+
 /**
  * Add accessible name to section in footnotes plugin
  */
@@ -303,11 +307,37 @@ export function myAccessibleListPlugin() {
 └─────────────────────────────────────────────────┘
                      ↓
 ┌─────────────────────────────────────────────────┐
-│  Layer 4: E2E Tests (Build Output)              │
-│  • Test actual built pages in browser           │
-│  • Real-world rendering validation              │
-│  • Purpose: Validate production behavior        │
-│  • Speed: Minutes                               │
-│  • Run: CI/CD only                              │
-│  • Tools: Playwright                            │
+│  Layer 4: E2E Component Rendering Tests        │
+│  • Test markdown rendering through Astro        │
+│  • Component-based validation with fixtures     │
+│  • Purpose: E2E validation with accessibility   │
+│  • Speed: Seconds                               │
+│  • Run: Before commits / CI                     │
+│  • Tools: Vitest + Testing Library + Axe        │
+│                                                 │
+│  Test Architecture:                             │
+│  • Fixtures → Test Component (Astro) →          │
+│    Full Pipeline → HTML → Accessibility Check   │
+│                                                 │
+│  Test Component (src/components/Test):          │
+│  • Accepts markdown content as prop             │
+│  • Processes through production pipeline        │
+│  • Returns rendered HTML                        │
+│                                                 │
+│  Accessibility Testing (vitest-axe):            │
+│  ✅ Every test validates with Axe library       │
+│  ✅ Ensures WCAG compliance                     │
+│  ✅ Validates ARIA attributes                   │
+│  ✅ Checks semantic HTML structure              │
+│                                                 │
+│  Test Coverage (11 tests):                      │
+│  • Abbreviations with accessibility             │
+│  • Custom attributes on elements                │
+│  • Blockquote attributions semantic HTML        │
+│  • Emojis with ARIA attributes                  │
+│  • Full pipeline integration (3 tests)          │
+│  • Accessibility compliance (4 tests)           │
+│                                                 │
+│  Example: markdown-rendering.spec.tsx           │
+│  Run: npx vitest run src/lib/markdown/__tests__/e2e/
 └─────────────────────────────────────────────────┘

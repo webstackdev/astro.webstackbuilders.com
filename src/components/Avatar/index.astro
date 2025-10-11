@@ -11,7 +11,8 @@
  * <Avatar name="Chris Southam" class="custom-class" />
  * ```
  */
-// eslint-disable-next-line import/no-unresolved
+
+import { Image } from 'astro:assets'
 import { getAvatarImage } from './avatars.ts'
 
 export interface Props {
@@ -51,8 +52,8 @@ const fallbackInitial = name.charAt(0).toUpperCase()
 
 <div class:list={['avatar-container', className]}>
   {avatarImage ? (
-    <img
-      src={avatarImage.src}
+    <Image
+      src={avatarImage}
       alt={avatarAlt}
       loading="lazy"
       class="avatar-image"
