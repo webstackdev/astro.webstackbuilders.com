@@ -13,7 +13,7 @@
  */
 
 import { Image } from 'astro:assets'
-import { getAvatarImage } from './avatars.ts'
+import { AvatarManager, normalizeNameToFilename } from './avatars.ts'
 
 export interface Props {
   /** The person's name (will be normalized for filename lookup) */
@@ -24,22 +24,10 @@ export interface Props {
 
 const { name, class: className = '' } = Astro.props
 
-/**
- * Normalize a person's name to a filename format
- * "Chris Southam" -> "chris-southam"
- */
-const normalizeNameToFilename = (personName: string): string => {
-  return personName
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, '-') // Replace spaces with hyphens
-    .replace(/[^a-z0-9-]/g, '') // Remove non-alphanumeric chars except hyphens
-}
-
 const normalizedFilename = normalizeNameToFilename(name)
 
 // Get the avatar image if it exists
-const avatarImage = getAvatarImage(normalizedFilename)
+const avatarImage = AvatarManager.getInstance().getAvatar(normalizedFilename)
 
 // If no avatar image and no name for fallback, render nothing
 if (!avatarImage && !name) {

@@ -6,10 +6,11 @@
  * the import.meta.glob operation only runs once during the module initialization.
  * @example
  * ```typescript
- * import { AvatarManager } from '@components/Avatar/avatars'
+ * import { AvatarManager, normalizeNameToFilename } from '@components/Avatar/avatars'
  *
  * const avatar = AvatarManager.getInstance().getAvatar('kevin-brown')
  * const allAvatars = AvatarManager.getInstance().getAll()
+ * const filename = normalizeNameToFilename('Chris Southam') // 'chris-southam'
  * ```
  */
 
@@ -21,6 +22,24 @@ type ImageMetadata = {
 }
 
 type AvatarMap = Record<string, ImageMetadata>
+
+/**
+ * Normalize a person's name to a filename format
+ * @param name - The person's name (e.g., "Chris Southam")
+ * @returns The normalized filename (e.g., "chris-southam")
+ * @example
+ * ```typescript
+ * normalizeNameToFilename('Chris Southam') // 'chris-southam'
+ * normalizeNameToFilename('Kevin Brown') // 'kevin-brown'
+ * ```
+ */
+export function normalizeNameToFilename(name: string): string {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-') // Replace spaces with hyphens
+    .replace(/[^a-z0-9-]/g, '') // Remove non-alphanumeric chars except hyphens
+}
 
 class AvatarManagerClass {
   private static instance: AvatarManagerClass
@@ -111,26 +130,3 @@ class AvatarManagerClass {
 // Export singleton instance
 export const AvatarManager = AvatarManagerClass
 
-// Backward-compatible exports for existing code
-const instance = AvatarManager.getInstance()
-
-/**
- * @deprecated Use AvatarManager.getInstance().getAll() instead
- */
-export const avatarMap = instance.getAll()
-
-/**
- * Get avatar image by filename
- * @deprecated Use AvatarManager.getInstance().getAvatar() instead
- */
-export function getAvatarImage(filename: string): ImageMetadata | undefined {
-  return instance.getAvatar(filename)
-}
-
-/**
- * Get all available avatar filenames
- * @deprecated Use AvatarManager.getInstance().getAvailableAvatars() instead
- */
-export function getAvailableAvatars(): readonly string[] {
-  return instance.getAvailableAvatars()
-}
