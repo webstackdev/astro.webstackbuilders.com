@@ -14,7 +14,7 @@ export default defineConfig({
     /** Timeout set to 30 seconds for all tests */
     testTimeout: 30 * 1000,
     // globalSetup: '',
-    // setupFiles: '',
+    setupFiles: ['./vitest.setup.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],

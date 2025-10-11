@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import remarkToc from 'remark-toc'
 import { processIsolated } from '../../helpers/test-utils'
-import { remarkTocConfig } from '../../config/markdown.ts'
+import { remarkTocConfig } from '../../../config/markdown.ts'
 
 describe('remark-toc (Layer 1: Isolated)', () => {
   describe('basic TOC generation', () => {

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { remark } from 'remark'
 import remarkRehype from 'remark-rehype'
-import { rehypeTailwindClasses } from '../rehype-tailwind-classes.ts'
+import { rehypeTailwindClasses } from '../../rehype-tailwind-classes.ts'
 import rehypeStringify from 'rehype-stringify'
 
 /**
@@ -123,7 +123,8 @@ describe('rehype-tailwind-classes (Layer 1: Isolated)', () => {
 
       const html = await processRehype(markdown)
 
-      expect(html).toBeTruthy()
+      // Empty markdown produces empty output, which is correct behavior
+      expect(html).toBe('')
     })
 
     it('should handle mixed content', async () => {

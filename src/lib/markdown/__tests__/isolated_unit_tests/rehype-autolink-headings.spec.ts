@@ -1,16 +1,19 @@
 import { describe, it, expect } from 'vitest'
 import { remark } from 'remark'
 import remarkRehype from 'remark-rehype'
+import rehypeSlug from 'rehype-slug'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 import rehypeStringify from 'rehype-stringify'
-import { rehypeAutolinkHeadingsConfig } from '../../config/markdown.ts'
+import { rehypeAutolinkHeadingsConfig } from '../../../config/markdown.ts'
 
 /**
  * Helper for testing rehype-autolink-headings
+ * Note: rehype-slug must run BEFORE rehype-autolink-headings
  */
 async function processRehype(markdown: string): Promise<string> {
   const result = await remark()
     .use(remarkRehype)
+    .use(rehypeSlug) // Generate IDs first
     .use(rehypeAutolinkHeadings, rehypeAutolinkHeadingsConfig)
     .use(rehypeStringify)
     .process(markdown)

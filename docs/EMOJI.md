@@ -14,6 +14,22 @@ This renders as: I ❤️ Astro! 🚀
 
 The emojis are automatically made accessible with proper `role` and `aria-label` attributes.
 
+## Common Issues
+
+**Important**: Not all emoji names work with `remark-emoji`. The plugin uses [gemoji](https://github.com/github/gemoji) shortcodes. Some common mistakes:
+
+### Incorrect vs. Correct Emoji Names
+
+| ❌ Incorrect | ✅ Correct | Emoji | Notes |
+| --- | --- | --- | --- |
+| `:check_mark:` | `:heavy_check_mark:` | ✔️ | For a heavy check mark |
+| `:check_mark:` | `:white_check_mark:` | ✅ | For a white check mark in green box |
+| `:thumbs_up:` | `:+1:` | 👍 | `:thumbs_up:` doesn't work, use `:+1:` |
+| `:thumbs_down:` | `:-1:` | 👎 | `:thumbs_down:` doesn't work, use `:-1:` |
+| `:checkmark:` | `:heavy_check_mark:` | ✔️ | No underscore version doesn't exist |
+
+**Tip**: If an emoji doesn't convert, check the [gemoji cheat sheet](https://github.com/ikatyang/emoji-cheat-sheet) or the reference tables below for the correct shortcode.
+
 ## Configuration
 
 In `astro.config.mjs`:

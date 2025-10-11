@@ -67,17 +67,18 @@ export async function processWithAstroSettings(
  * Includes all remark and rehype plugins in the correct order
  */
 export async function processWithFullPipeline(markdown: string): Promise<string> {
-  // Import all plugins
-  const remarkAbbr = (await import('remark-abbr')).default
-  const remarkAttr = (await import('remark-attr')).default
-  const remarkAttribution = (await import('../remark-attribution/index.ts')).default
+  // Import all plugins - using our TypeScript versions (modern API)
+  const remarkAbbr = (await import('../remark-abbr/index.js')).default
+  const remarkAttr = (await import('../remark-attr/index.js')).default
+  const remarkAttribution = (await import('../remark-attribution/index.js')).default
   const remarkBreaks = (await import('remark-breaks')).default
   const remarkEmoji = (await import('remark-emoji')).default
   const remarkLinkifyRegex = (await import('remark-linkify-regex')).default
   const remarkToc = (await import('remark-toc')).default
   const { rehypeAccessibleEmojis } = await import('rehype-accessible-emojis')
   const rehypeAutolinkHeadings = (await import('rehype-autolink-headings')).default
-  const { rehypeTailwindClasses } = await import('../rehype-tailwind-classes.ts')
+  const rehypeSlug = (await import('rehype-slug')).default
+  const { rehypeTailwindClasses } = await import('../rehype-tailwind-classes.js')
 
   // Import configurations
   const {
@@ -86,9 +87,10 @@ export async function processWithFullPipeline(markdown: string): Promise<string>
     rehypeAutolinkHeadingsConfig,
   } = await import('../../config/markdown.ts')
 
-  const processor = remark()
-    // Enable GFM (matches gfm: true)
-    .use(remarkGfm)
+  try {
+    const processor = remark()
+      // Enable GFM (matches gfm: true)
+      .use(remarkGfm)
 
     // Add all remark plugins in the same order as Astro
     .use(remarkAbbr)
@@ -97,21 +99,24 @@ export async function processWithFullPipeline(markdown: string): Promise<string>
     .use(remarkAttribution)
     .use(remarkBreaks)
     .use(remarkEmoji)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .use(remarkLinkifyRegex as any, /^(https?:\/\/[^\s$.?#].[^\s]*)$/i)
-    .use(remarkToc, remarkTocConfig)
+    // remarkLinkifyRegex is a factory function - call it with the regex first
+    .use(remarkLinkifyRegex(/^(https?:\/\/[^\s$.?#].[^\s]*)$/i))
+    .use(remarkToc, remarkTocConfig)      // Convert to rehype with Astro's options
+      .use(remarkRehype, remarkRehypeConfig)
 
-    // Convert to rehype with Astro's options
-    .use(remarkRehype, remarkRehypeConfig)
+      // Add all rehype plugins in the same order as Astro
+      .use(rehypeSlug) // Must come before rehypeAutolinkHeadings
+      .use(rehypeAccessibleEmojis)
+      .use(rehypeAutolinkHeadings, rehypeAutolinkHeadingsConfig)
+      .use(rehypeTailwindClasses)
 
-    // Add all rehype plugins in the same order as Astro
-    .use(rehypeAccessibleEmojis)
-    .use(rehypeAutolinkHeadings, rehypeAutolinkHeadingsConfig)
-    .use(rehypeTailwindClasses)
+      // Convert to HTML string
+      .use(rehypeStringify)
 
-    // Convert to HTML string
-    .use(rehypeStringify)
-
-  const result = await processor.process(markdown)
-  return String(result)
+    const result = await processor.process(markdown)
+    return String(result)
+  } catch (error) {
+    console.error('ERROR in processWithFullPipeline:', error)
+    throw error
+  }
 }

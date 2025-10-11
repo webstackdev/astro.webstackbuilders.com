@@ -24,13 +24,13 @@ describe('remark-emoji (Layer 1: Isolated)', () => {
       expect(html).not.toContain(':rocket:')
     })
 
-    it('should handle emojis with underscores', async () => {
-      const markdown = 'Thumbs up :thumbs_up:'
+    it('should handle emojis with plus sign', async () => {
+      const markdown = 'Thumbs up :+1:'
 
       const html = await processIsolated(markdown, remarkEmoji)
 
       expect(html).toContain('👍')
-      expect(html).not.toContain(':thumbs_up:')
+      expect(html).not.toContain(':+1:')
     })
   })
 
