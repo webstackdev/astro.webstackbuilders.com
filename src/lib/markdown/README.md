@@ -1,7 +1,11 @@
+<!-- markdownlint-disable -->
 Components intended for use in *.mdx files:
 
 * Avatar
 * Callout
+* CallToActions/Contact
+* CallToActions/Featured
+* CallToActions/Newsletter
 
 /**
  * Add accessible name to section in footnotes plugin
