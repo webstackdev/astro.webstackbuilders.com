@@ -19,7 +19,7 @@ export interface Props {
   /** Show as horizontal or vertical layout */
   layout?: 'horizontal' | 'vertical'
   /** Which platforms to show */
-  platforms?: ('twitter' | 'facebook' | 'linkedin' | 'bluesky')[]
+  platforms?: ('twitter' | 'linkedin' | 'bluesky' | 'mastodon')[]
 }
 
 const {
@@ -29,7 +29,7 @@ const {
   // image, // Unused parameter
   class: additionalClasses = '',
   layout = 'horizontal',
-  platforms = ['twitter', 'facebook', 'linkedin', 'bluesky']
+  platforms = ['twitter', 'linkedin', 'bluesky', 'mastodon']
 } = Astro.props
 
 // Encode parameters for URLs
@@ -41,9 +41,9 @@ const encodedDescription = encodeURIComponent(description)
 // Social sharing URLs
 const shareUrls = {
   twitter: `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}${description ? `%20-%20${encodedDescription}` : ''}`,
-  facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
   linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}&title=${encodedTitle}&summary=${encodedDescription}`,
-  bluesky: `https://bsky.app/intent/compose?text=${encodedTitle}%20${encodedUrl}`
+  bluesky: `https://bsky.app/intent/compose?text=${encodedTitle}%20${encodedUrl}`,
+  mastodon: `https://k8s.social/share?text=${encodedTitle}%20${encodedUrl}`
 }
 
 // Platform configurations
@@ -52,11 +52,6 @@ const platformConfig = {
     name: 'X (Twitter)',
     icon: 'twitter',
     color: 'bg-[#1DA1F2] hover:bg-[#1a91da]'
-  },
-  facebook: {
-    name: 'Facebook',
-    icon: 'facebook',
-    color: 'bg-[#4267B2] hover:bg-[#365899]'
   },
   linkedin: {
     name: 'LinkedIn',
@@ -67,6 +62,11 @@ const platformConfig = {
     name: 'Bluesky',
     icon: 'bluesky',
     color: 'bg-[#00A8E8] hover:bg-[#0087bd]'
+  },
+  mastodon: {
+    name: 'Mastodon',
+    icon: 'mastodon',
+    color: 'bg-[#6364FF] hover:bg-[#4547d9]'
   }
 }
 

@@ -60,7 +60,7 @@ export default [
       '@typescript-eslint/triple-slash-reference': 'off',
       'arrow-body-style': 'off',
       camelcase: [level],
-      curly: [level, 'all'],
+      curly: 'off',
       'import/no-unresolved': [
         level,
         {

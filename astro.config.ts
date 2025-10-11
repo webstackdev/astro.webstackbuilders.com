@@ -3,6 +3,7 @@ import preact from "@astrojs/preact"
 import vercelStatic from '@astrojs/vercel/static'
 import tailwindcss from '@tailwindcss/vite'
 import AstroPWA from '@vite-pwa/astro'
+import icon from 'astro-icon'
 import { defineConfig } from 'astro/config'
 import {
   environmentalVariablesConfig,
@@ -21,6 +22,7 @@ export default defineConfig({
   prefetch: true,
   integrations: [
     AstroPWA(serviceWorkerConfig),
+    icon(),
     mdx(markdownConfig),
     preact(),
   ],

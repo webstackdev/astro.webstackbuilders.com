@@ -14,11 +14,10 @@ const markdownFootnoteBlockOpen = () =>
 // markdown-it-container'), 'warning', markdownContainerWarning)
 // const { markdownContainerWarning } = require('./markdownContainer')
 
-/**
- * Code tabs plugin so Javascript and Typescript examples can both be show. There can only
- * be white space between two code blocks. Display name is set by `tabName` and can only
- * contain characters in [A-Za-z0-9_]. Syntax for the first line of the code block is:
- * ```js [group:tabName]
+* Code tabs plugin so Javascript and Typescript examples can both be show. There can only
+* be white space between two code blocks. Display name is set by `tabName` and can only
+* contain characters in [A-Za-z0-9_]. Syntax for the first line of the code block is:
+* ```js [group:tabName]
  */
 // markdown-it-codetabs//
 
