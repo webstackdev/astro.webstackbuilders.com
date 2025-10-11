@@ -1,6 +1,7 @@
 Components intended for use in *.mdx files:
 
 * Avatar
+* Callout
 
 /**
  * Add accessible name to section in footnotes plugin
@@ -9,10 +10,6 @@ const markdownFootnoteBlockOpen = () =>
   '<hr className="footnotes-sep">\n' +
   '<section class="footnotes" aria-label="footnotes">\n' +
   '<ol class="footnotes-list">\n'
-
-/** Create block containers like a warning block - ::: warning my content ::: */
-// markdown-it-container'), 'warning', markdownContainerWarning)
-// const { markdownContainerWarning } = require('./markdownContainer')
 
 * Code tabs plugin so Javascript and Typescript examples can both be show. There can only
 * be white space between two code blocks. Display name is set by `tabName` and can only
