@@ -5,16 +5,16 @@ import type { Options as RehypeAutolinkHeadingsOptions } from 'rehype-autolink-h
 import { rehypeAccessibleEmojis } from 'rehype-accessible-emojis'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 // Use our TypeScript implementations (modern Remark API)
-import remarkAbbr from '../markdown/remark-abbr/index.js'
-import remarkAttr from '../markdown/remark-attr/index.js'
-import remarkAttribution from '../markdown/remark-attribution/index.js'
+import remarkAbbr from '../markdown/remark-abbr/index'
+import remarkAttr from '../markdown/remark-attr/index'
+import remarkAttribution from '../markdown/remark-attribution/index'
 // These plugins are from npm (no custom implementation)
 import remarkBreaks from 'remark-breaks'
 import remarkEmoji from 'remark-emoji'
 import remarkLinkifyRegex from 'remark-linkify-regex'
 import remarkToc from 'remark-toc'
 /** Add custom CSS classes to Markdown-generated elements in this file */
-import { rehypeTailwindClasses } from '../markdown/rehype-tailwind-classes.ts'
+import { rehypeTailwindClasses } from '../markdown/rehype-tailwind-classes'
 
 /** Configuration for remark-attr plugin */
 export const remarkAttrConfig = { scope: 'permissive' } as const

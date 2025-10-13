@@ -2,7 +2,7 @@ import { remark } from 'remark'
 import remarkGfm from 'remark-gfm'
 import remarkRehype from 'remark-rehype'
 import rehypeStringify from 'rehype-stringify'
-import { remarkRehypeConfig } from '../../config/markdown.ts'
+import { remarkRehypeConfig } from '../../config/markdown'
 
 /**
  * Process markdown through a minimal pipeline with a single plugin (Layer 1)
@@ -68,9 +68,9 @@ export async function processWithAstroSettings(
  */
 export async function processWithFullPipeline(markdown: string): Promise<string> {
   // Import all plugins - using our TypeScript versions (modern API)
-  const remarkAbbr = (await import('../remark-abbr/index.js')).default
-  const remarkAttr = (await import('../remark-attr/index.js')).default
-  const remarkAttribution = (await import('../remark-attribution/index.js')).default
+  const remarkAbbr = (await import('../remark-abbr/index')).default
+  const remarkAttr = (await import('../remark-attr/index')).default
+  const remarkAttribution = (await import('../remark-attribution/index')).default
   const remarkBreaks = (await import('remark-breaks')).default
   const remarkEmoji = (await import('remark-emoji')).default
   const remarkLinkifyRegex = (await import('remark-linkify-regex')).default
@@ -78,14 +78,14 @@ export async function processWithFullPipeline(markdown: string): Promise<string>
   const { rehypeAccessibleEmojis } = await import('rehype-accessible-emojis')
   const rehypeAutolinkHeadings = (await import('rehype-autolink-headings')).default
   const rehypeSlug = (await import('rehype-slug')).default
-  const { rehypeTailwindClasses } = await import('../rehype-tailwind-classes.js')
+  const { rehypeTailwindClasses } = await import('../rehype-tailwind-classes')
 
   // Import configurations
   const {
     remarkAttrConfig,
     remarkTocConfig,
     rehypeAutolinkHeadingsConfig,
-  } = await import('../../config/markdown.ts')
+  } = await import('../../config/markdown')
 
   try {
     const processor = remark()
