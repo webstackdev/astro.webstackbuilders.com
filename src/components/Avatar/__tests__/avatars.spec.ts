@@ -32,7 +32,7 @@ describe('AvatarManager', () => {
 
     // Import the module
     // eslint-disable-next-line import/no-unresolved
-    const module = await import('../avatars.ts')
+    const module = await import('../avatars')
     AvatarManager = module.AvatarManager
     getAvatarImage = module.getAvatarImage
     avatarMap = module.avatarMap

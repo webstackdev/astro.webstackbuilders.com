@@ -4,7 +4,7 @@ import remarkRehype from 'remark-rehype'
 import rehypeSlug from 'rehype-slug'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 import rehypeStringify from 'rehype-stringify'
-import { rehypeAutolinkHeadingsConfig } from '../../../config/markdown.ts'
+import { rehypeAutolinkHeadingsConfig } from '../../../config/markdown'
 
 /**
  * Helper for testing rehype-autolink-headings
