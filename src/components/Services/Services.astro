@@ -33,44 +33,83 @@ if (limit) {
     <header class="text-center mb-12">
       <h2 class="text-3xl md:text-4xl font-bold text-[color:var(--color-text)]">{title}</h2>
     </header>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      {services.map((service) => (
-        <article class="group">
-          <a
-            href={`/services/${service.id}/`}
-            class="block h-full bg-[color:var(--color-bg)] rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-[color:var(--color-border)] hover:border-[color:var(--color-primary)] transform hover:-translate-y-2"
-          >
-            {service.data.icon && (
-              <div class="p-6 pb-4">
-                <div class="w-12 h-12 bg-[color:var(--color-bg-offset)] rounded-lg flex items-center justify-center group-hover:bg-[color:var(--color-primary)] group-hover:bg-opacity-20 transition-colors">
-                  <img
-                    src={service.data.icon}
-                    alt=""
-                    loading="lazy"
-                    class="w-6 h-6"
-                  />
-                </div>
-              </div>
-            )}
-            <div class="p-6 pt-2">
-              <h3 class="text-xl font-semibold text-[color:var(--color-text)] mb-3 group-hover:text-[color:var(--color-primary)] transition-colors">
-                {service.data.title}
-              </h3>
-              {service.data.description && (
-                <p class="text-[color:var(--color-text-offset)] leading-relaxed text-sm">
-                  {service.data.description}
-                </p>
-              )}
-              <div class="mt-4 flex items-center text-[color:var(--color-primary)] text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                <span>Learn more</span>
-                <svg class="ml-1 w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
-                </svg>
-              </div>
+
+    {/* Embla Carousel */}
+    <div class="embla relative">
+      <div class="embla__viewport overflow-hidden">
+        <div class="embla__container flex gap-4 md:gap-6">
+          {services.map((service) => (
+            <div class="embla__slide flex-[0_0_100%] md:flex-[0_0_50%] lg:flex-[0_0_33.333%] min-w-0">
+              <article class="group h-full">
+                <a
+                  href={`/services/${service.id}/`}
+                  class="block h-full bg-[color:var(--color-bg)] rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-[color:var(--color-border)] hover:border-[color:var(--color-primary)] transform hover:-translate-y-2"
+                >
+                  {service.data.icon && (
+                    <div class="p-6 pb-4">
+                      <div class="w-12 h-12 bg-[color:var(--color-bg-offset)] rounded-lg flex items-center justify-center group-hover:bg-[color:var(--color-primary)] group-hover:bg-opacity-20 transition-colors">
+                        <img
+                          src={service.data.icon}
+                          alt=""
+                          loading="lazy"
+                          class="w-6 h-6"
+                        />
+                      </div>
+                    </div>
+                  )}
+                  <div class="p-6 pt-2">
+                    <h3 class="text-xl font-semibold text-[color:var(--color-text)] mb-3 group-hover:text-[color:var(--color-primary)] transition-colors">
+                      {service.data.title}
+                    </h3>
+                    {service.data.description && (
+                      <p class="text-[color:var(--color-text-offset)] leading-relaxed text-sm">
+                        {service.data.description}
+                      </p>
+                    )}
+                    <div class="mt-4 flex items-center text-[color:var(--color-primary)] text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span>Learn more</span>
+                      <svg class="ml-1 w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                      </svg>
+                    </div>
+                  </div>
+                </a>
+              </article>
             </div>
-          </a>
-        </article>
-      ))}
+          ))}
+        </div>
+      </div>
+
+      {/* Navigation Buttons */}
+      <button
+        type="button"
+        class="embla__button embla__button--prev absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-12 h-12 rounded-full bg-[color:var(--color-bg)] border-2 border-[color:var(--color-border)] shadow-lg hover:bg-[color:var(--color-primary)] hover:border-[color:var(--color-primary)] transition-all duration-300 flex items-center justify-center z-10 disabled:opacity-30 disabled:cursor-not-allowed"
+        aria-label="Previous slide"
+      >
+        <svg class="w-6 h-6 text-[color:var(--color-text)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+      </button>
+
+      <button
+        type="button"
+        class="embla__button embla__button--next absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-12 h-12 rounded-full bg-[color:var(--color-bg)] border-2 border-[color:var(--color-border)] shadow-lg hover:bg-[color:var(--color-primary)] hover:border-[color:var(--color-primary)] transition-all duration-300 flex items-center justify-center z-10 disabled:opacity-30 disabled:cursor-not-allowed"
+        aria-label="Next slide"
+      >
+        <svg class="w-6 h-6 text-[color:var(--color-text)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+        </svg>
+      </button>
+
+            {/* Dots Navigation */}
+      <div class="embla__dots flex gap-2 justify-center mt-8" role="tablist" aria-label="Carousel navigation"></div>
     </div>
   </section>
 )}
+
+<script>
+  import { addDelayedExecutionScripts } from '@lib/utils/delayedLoader'
+  import { setupServicesCarousel } from './index'
+
+  addDelayedExecutionScripts([setupServicesCarousel])
+</script>
