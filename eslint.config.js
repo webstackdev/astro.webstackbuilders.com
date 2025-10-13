@@ -24,6 +24,7 @@ export default [
         typescript: {
           alwaysTryTypes: true,
           project: './tsconfig.json',
+          extensions: ['.ts', '.tsx', '.js', '.jsx', '.astro'],
         },
       },
     },
@@ -66,10 +67,21 @@ export default [
         {
           ignore: [
             '^astro:.*',  // Ignore Astro virtual modules
+            '^\\./.*',    // Ignore relative imports (let TypeScript handle these)
           ],
         },
       ],
       'import/no-webpack-loader-syntax': level,
+      'import/extensions': [
+        level,
+        'ignorePackages',
+        {
+          ts: 'never',
+          tsx: 'never',
+          js: 'never',
+          jsx: 'never',
+        },
+      ],
       'import/order': 'off',
       'jsdoc/check-indentation': level,
       'jsdoc/check-line-alignment': level,
