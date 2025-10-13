@@ -1,6 +1,6 @@
 ---
 import company from "@content/company"
-import { getSocialMetadata } from "@lib/utils/seo"
+import { getSocialMetadata, type SocialMetadataOptions } from "@lib/utils/seo"
 
 export interface Props {
   title?: string
@@ -12,7 +12,7 @@ export interface Props {
 const { title, description, slug, image } = Astro.props
 
 // Filter out undefined values to work with exactOptionalPropertyTypes
-const options: any = { url: Astro.url.href }
+const options: SocialMetadataOptions = { url: Astro.url.href }
 if (title !== undefined) options.title = title
 if (description !== undefined) options.description = description
 if (slug !== undefined) options.slug = slug
