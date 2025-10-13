@@ -26,7 +26,7 @@ import {
   allowAllConsentCookies
 } from "@lib/state/cookies/consent"
 
-import { showCookieCustomizeModal } from "@components/CookieCustomize/handlers"
+import { showCookieCustomizeModal } from "@components/Cookies/Customize/handlers"
 
 export const initCookieModal = () => {
   getCookieConsentWrapper().style.display = `block`
