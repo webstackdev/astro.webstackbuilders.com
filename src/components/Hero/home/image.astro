@@ -1,0 +1,30 @@
+---
+/**
+ * Hero Image Column - Home Variant
+ */
+import heroSvg from '@assets/images/site/hero.svg?raw'
+---
+
+{/* Image Column */}
+<div class="order-1 lg:order-2 flex justify-center items-center">
+  <div class="w-full max-w-lg mx-auto">
+    <div
+      class="w-full h-auto rounded-2xl"
+      set:html={heroSvg}
+    />
+  </div>
+</div>
+
+<script>
+  import { heroSvgAnimation } from './animation'
+
+  // Initialize animation when the DOM is ready
+  document.addEventListener('DOMContentLoaded', () => {
+    heroSvgAnimation()
+  })
+
+  // Also run on navigation for SPA behavior
+  document.addEventListener('astro:page-load', () => {
+    heroSvgAnimation()
+  })
+</script>
