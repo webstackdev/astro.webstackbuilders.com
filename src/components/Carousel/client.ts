@@ -1,27 +1,27 @@
 /**
- * Services Carousel Setup
- * Initializes Embla Carousel for the services component
+ * Generic Carousel Setup
+ * Initializes Embla Carousel for content display
  */
 
 import EmblaCarousel, { type EmblaOptionsType } from 'embla-carousel'
 import Autoplay from 'embla-carousel-autoplay'
 
 /**
- * Setup the services carousel with Embla Carousel
+ * Setup the carousel with Embla Carousel
  * Uses autoplay plugin for automatic sliding
  */
-export const setupServicesCarousel = (): void => {
+export const setupCarousel = (): void => {
   const emblaNode = document.querySelector<HTMLElement>('.embla')
 
   if (!emblaNode) {
-    console.warn('Services carousel container not found')
+    console.warn('Carousel container not found')
     return
   }
 
   const viewportNode = emblaNode.querySelector<HTMLElement>('.embla__viewport')
 
   if (!viewportNode) {
-    console.warn('Services carousel viewport not found')
+    console.warn('Carousel viewport not found')
     return
   }
 
@@ -123,5 +123,5 @@ export const setupServicesCarousel = (): void => {
   }
 
   // Log initialization
-  console.log('Services carousel initialized with autoplay')
+  console.log('Carousel initialized with autoplay')
 }

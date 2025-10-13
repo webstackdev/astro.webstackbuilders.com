@@ -2,7 +2,7 @@
 import { getCollection } from 'astro:content'
 import BaseLayout from "@layouts/BaseLayout.astro"
 import { SocialShare } from "@components/SocialShare"
-import SuggestedArticles from "@components/SuggestedArticles/index.astro"
+import Carousel from "@components/Carousel/index.astro"
 
 export async function getStaticPaths() {
   const articleEntries = await getCollection('articles', ({ data }) => {
@@ -121,7 +121,7 @@ const meta = {
       <header class="mb-8">
         <h3 class="text-2xl font-bold text-[var(--color-theme-text)]">Other things I've written</h3>
       </header>
-      <SuggestedArticles currentSlug={article.id} limit={5} />
+      <Carousel title="" variant="suggested" currentSlug={article.id} limit={5} type="articles" />
     </div>
   </article>
 </BaseLayout>

@@ -6,6 +6,8 @@ Components intended for use in *.mdx files:
 * CallToActions/Contact
 * CallToActions/Featured
 * CallToActions/Newsletter
+- Carousel with choice of collection to display and filters
+
 
 /**
  * Add accessible name to section in footnotes plugin

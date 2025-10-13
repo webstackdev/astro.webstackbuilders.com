@@ -1,6 +1,6 @@
 /**
- * Unit tests for Services carousel functionality
- * Tests the setupServicesCarousel function and Embla Carousel integration
+ * Unit tests for generic carousel functionality
+ * Tests the setupCarousel function and Embla Carousel integration
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
@@ -25,7 +25,7 @@ vi.mock('embla-carousel-autoplay', () => ({
   default: vi.fn(() => ({})),
 }))
 
-describe('Services Carousel', () => {
+describe('Generic Carousel', () => {
   beforeEach(() => {
     // Clear all mocks before each test
     vi.clearAllMocks()
@@ -33,11 +33,11 @@ describe('Services Carousel', () => {
     setupCarouselDOM()
   })
 
-  describe('setupServicesCarousel', () => {
+  describe('setupCarousel', () => {
     it('should find carousel container and viewport', async () => {
-      const { setupServicesCarousel } = await import('../index')
+      const { setupCarousel } = await import('../client')
 
-      setupServicesCarousel()
+      setupCarousel()
 
       const emblaContainer = document.querySelector('.embla')
       const viewport = document.querySelector('.embla__viewport')
@@ -50,10 +50,10 @@ describe('Services Carousel', () => {
       const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
       document.body.innerHTML = '<div></div>'
 
-      const { setupServicesCarousel } = await import('../index')
-      setupServicesCarousel()
+      const { setupCarousel } = await import('../client')
+      setupCarousel()
 
-      expect(consoleSpy).toHaveBeenCalledWith('Services carousel container not found')
+      expect(consoleSpy).toHaveBeenCalledWith('Carousel container not found')
       consoleSpy.mockRestore()
     })
 
@@ -61,18 +61,18 @@ describe('Services Carousel', () => {
       const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
       document.body.innerHTML = '<div class="embla"></div>'
 
-      const { setupServicesCarousel } = await import('../index')
-      setupServicesCarousel()
+      const { setupCarousel } = await import('../client')
+      setupCarousel()
 
-      expect(consoleSpy).toHaveBeenCalledWith('Services carousel viewport not found')
+      expect(consoleSpy).toHaveBeenCalledWith('Carousel viewport not found')
       consoleSpy.mockRestore()
     })
 
     it('should initialize Embla Carousel with correct options', async () => {
       const EmblaCarousel = (await import('embla-carousel')).default
-      const { setupServicesCarousel } = await import('../index')
+      const { setupCarousel } = await import('../client')
 
-      setupServicesCarousel()
+      setupCarousel()
 
       expect(EmblaCarousel).toHaveBeenCalled()
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -89,9 +89,9 @@ describe('Services Carousel', () => {
 
     it('should initialize with Autoplay plugin', async () => {
       const Autoplay = (await import('embla-carousel-autoplay')).default
-      const { setupServicesCarousel } = await import('../index')
+      const { setupCarousel } = await import('../client')
 
-      setupServicesCarousel()
+      setupCarousel()
 
       expect(Autoplay).toHaveBeenCalledWith({
         delay: 4000,
@@ -103,10 +103,10 @@ describe('Services Carousel', () => {
 
   describe('Navigation Buttons', () => {
     it('should setup prev and next button click handlers', async () => {
-      const { setupServicesCarousel } = await import('../index')
+      const { setupCarousel } = await import('../client')
       const EmblaCarousel = (await import('embla-carousel')).default
 
-      setupServicesCarousel()
+      setupCarousel()
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const mockApi = (EmblaCarousel as any).mock.results[0].value
@@ -124,10 +124,10 @@ describe('Services Carousel', () => {
     })
 
     it('should update button states based on scroll position', async () => {
-      const { setupServicesCarousel } = await import('../index')
+      const { setupCarousel } = await import('../client')
       const EmblaCarousel = (await import('embla-carousel')).default
 
-      setupServicesCarousel()
+      setupCarousel()
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const mockApi = (EmblaCarousel as any).mock.results[0].value
@@ -138,7 +138,7 @@ describe('Services Carousel', () => {
     })
 
     it('should disable prev button when cannot scroll prev', async () => {
-      const { setupServicesCarousel } = await import('../index')
+      const { setupCarousel } = await import('../client')
       const EmblaCarousel = (await import('embla-carousel')).default
 
       // Mock canScrollPrev to return false
@@ -161,7 +161,7 @@ describe('Services Carousel', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ;(EmblaCarousel as any).mockReturnValueOnce(mockApi)
 
-      setupServicesCarousel()
+      setupCarousel()
 
       const prevBtn = document.querySelector('.embla__button--prev') as HTMLButtonElement
 
@@ -173,19 +173,19 @@ describe('Services Carousel', () => {
 
   describe('Dot Navigation', () => {
     it('should create dot buttons for each slide', async () => {
-      const { setupServicesCarousel } = await import('../index')
+      const { setupCarousel } = await import('../client')
 
-      setupServicesCarousel()
+      setupCarousel()
 
       const dots = document.querySelectorAll('.embla__dot')
       expect(dots.length).toBe(3) // 3 slides from mockServices
     })
 
     it('should add click handlers to dots', async () => {
-      const { setupServicesCarousel } = await import('../index')
+      const { setupCarousel } = await import('../client')
       const EmblaCarousel = (await import('embla-carousel')).default
 
-      setupServicesCarousel()
+      setupCarousel()
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const mockApi = (EmblaCarousel as any).mock.results[0].value
@@ -198,9 +198,9 @@ describe('Services Carousel', () => {
     })
 
     it('should set correct aria-label for each dot', async () => {
-      const { setupServicesCarousel } = await import('../index')
+      const { setupCarousel } = await import('../client')
 
-      setupServicesCarousel()
+      setupCarousel()
 
       const dots = document.querySelectorAll('.embla__dot')
 
@@ -210,7 +210,7 @@ describe('Services Carousel', () => {
     })
 
     it('should update dot styles based on selected slide', async () => {
-      const { setupServicesCarousel } = await import('../index')
+      const { setupCarousel } = await import('../client')
       const EmblaCarousel = (await import('embla-carousel')).default
 
       const mockApi = {
@@ -231,7 +231,7 @@ describe('Services Carousel', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ;(EmblaCarousel as any).mockReturnValueOnce(mockApi)
 
-      setupServicesCarousel()
+      setupCarousel()
 
       const dots = document.querySelectorAll<HTMLElement>('.embla__dot')
 
@@ -245,7 +245,7 @@ describe('Services Carousel', () => {
     })
 
     it('should update dot styles based on selected slide', async () => {
-      const { setupServicesCarousel } = await import('../index')
+      const { setupCarousel } = await import('../client')
       const EmblaCarousel = (await import('embla-carousel')).default
 
       const mockApi = {
@@ -266,7 +266,7 @@ describe('Services Carousel', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ;(EmblaCarousel as any).mockReturnValueOnce(mockApi)
 
-      setupServicesCarousel()
+      setupCarousel()
 
       const dots = document.querySelectorAll<HTMLElement>('.embla__dot')
 
@@ -280,10 +280,10 @@ describe('Services Carousel', () => {
     })
 
     it('should register event listeners for dot updates', async () => {
-      const { setupServicesCarousel } = await import('../index')
+      const { setupCarousel } = await import('../client')
       const EmblaCarousel = (await import('embla-carousel')).default
 
-      setupServicesCarousel()
+      setupCarousel()
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const mockApi = (EmblaCarousel as any).mock.results[0].value
@@ -326,10 +326,10 @@ describe('Services Carousel', () => {
     it('should log successful initialization', async () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
-      const { setupServicesCarousel } = await import('../index')
-      setupServicesCarousel()
+      const { setupCarousel } = await import('../client')
+      setupCarousel()
 
-      expect(consoleSpy).toHaveBeenCalledWith('Services carousel initialized with autoplay')
+      expect(consoleSpy).toHaveBeenCalledWith('Carousel initialized with autoplay')
       consoleSpy.mockRestore()
     })
   })

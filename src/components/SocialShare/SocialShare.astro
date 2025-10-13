@@ -18,25 +18,23 @@ export interface Props {
   class?: string
   /** Show as horizontal or vertical layout */
   layout?: 'horizontal' | 'vertical'
-  /** Which platforms to show */
-  platforms?: ('twitter' | 'linkedin' | 'bluesky' | 'mastodon')[]
+  /** Which social networks to show */
+  socialNetworks?: ('twitter' | 'linkedin' | 'bluesky' | 'mastodon')[]
 }
 
 const {
   url,
   title,
   description = '',
-  // image, // Unused parameter
   class: additionalClasses = '',
   layout = 'horizontal',
-  platforms = ['twitter', 'linkedin', 'bluesky', 'mastodon']
+  socialNetworks = ['twitter', 'linkedin', 'bluesky', 'mastodon']
 } = Astro.props
 
 // Encode parameters for URLs
 const encodedUrl = encodeURIComponent(url)
 const encodedTitle = encodeURIComponent(title)
 const encodedDescription = encodeURIComponent(description)
-// const encodedImage = image ? encodeURIComponent(image) : '' // Unused variable
 
 // Social sharing URLs
 const shareUrls = {
@@ -46,8 +44,8 @@ const shareUrls = {
   mastodon: `https://k8s.social/share?text=${encodedTitle}%20${encodedUrl}`
 }
 
-// Platform configurations
-const platformConfig = {
+// Social network configurations
+const socialNetworkConfig = {
   twitter: {
     name: 'X (Twitter)',
     icon: 'twitter',
@@ -76,68 +74,6 @@ const containerClasses = [
   additionalClasses
 ].filter(Boolean).join(' ')
 ---
-
-<div class={containerClasses} role="group" aria-label="Share this content">
-  <span class="social-share__label text-sm font-semibold text-[color:var(--color-text-offset)] mr-2 self-center">
-    Share:
-  </span>
-
-  {platforms.map((platform) => {
-    const config = platformConfig[platform]
-    const shareUrl = shareUrls[platform]
-
-    return (
-      <a
-        href={shareUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        class={`social-share__button inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white font-medium transition-colors ${config.color} hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
-        aria-label={`Share on ${config.name}`}
-      >
-        <Sprite name={config.icon as SpriteName} class="h-4 w-4 fill-current" />
-        <span class="hidden sm:inline">{config.name}</span>
-      </a>
-    )
-  })}
-</div>
-
-<script>
-  // Add click tracking for analytics
-  document.addEventListener('DOMContentLoaded', () => {
-    const shareButtons = document.querySelectorAll('.social-share__button')
-
-    shareButtons.forEach((button) => {
-      button.addEventListener('click', (event: Event) => {
-        const target = event.currentTarget as HTMLElement
-        if (!target) return
-
-        const platform = target.getAttribute('aria-label')?.replace('Share on ', '').toLowerCase()
-
-        // Track sharing event (integrate with your analytics)
-        if (typeof (window as any).gtag !== 'undefined') {
-          (window as any).gtag('event', 'share', {
-            method: platform,
-            content_type: 'article',
-            content_id: window.location.pathname
-          })
-        }
-
-        // Optional: Use Web Share API if available for native sharing
-        const mouseEvent = event as MouseEvent
-        if (navigator.share && mouseEvent.shiftKey) {
-          event.preventDefault()
-          const metaDescription = document.querySelector('meta[name="description"]') as HTMLMetaElement
-          navigator.share({
-            title: document.title,
-            text: metaDescription?.content || '',
-            url: window.location.href
-          }).catch(err => console.log('Error sharing:', err))
-        }
-      })
-    })
-  })
-</script>
-
 <style>
   /* Additional styling for social share component */
   .social-share__button:hover {
@@ -161,3 +97,33 @@ const containerClasses = [
     }
   }
 </style>
+
+<div class={containerClasses} role="group" aria-label="Share this content">
+  <span class="social-share__label text-sm font-semibold text-[color:var(--color-text-offset)] mr-2 self-center">
+    Share:
+  </span>
+
+  {socialNetworks.map((socialNetwork) => {
+    const config = socialNetworkConfig[socialNetwork]
+    const shareUrl = shareUrls[socialNetwork]
+
+    return (
+      <a
+        href={shareUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        class={`social-share__button inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white font-medium transition-colors ${config.color} hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
+        aria-label={`Share on ${config.name}`}
+      >
+        <Sprite name={config.icon as SpriteName} class="h-4 w-4 fill-current" />
+        <span class="hidden sm:inline">{config.name}</span>
+      </a>
+    )
+  })}
+</div>
+
+<script>
+  import { setupSocialShare } from './client'
+
+  document.addEventListener('DOMContentLoaded', setupSocialShare)
+</script>

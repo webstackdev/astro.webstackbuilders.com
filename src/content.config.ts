@@ -36,7 +36,7 @@ const articlesSchema = z.object({
   // In YAML, dates written without quotes around them are interpreted as Date objects
   publishDate: z.date(),
   isDraft: z.boolean().default(false),
-  isFeatured: z.boolean().default(false),
+  featured: z.boolean().default(false),
   readingTime: z.string().optional(),
 })
 
@@ -84,7 +84,7 @@ const caseStudiesSchema = z.object({
   // In YAML, dates written without quotes around them are interpreted as Date objects
   publishDate: z.date(),
   isDraft: z.boolean().default(false),
-  isFeatured: z.boolean().default(false),
+  featured: z.boolean().default(false),
   // Optional fields that may exist in some case studies
   image: z.union([
     z.string(),
@@ -176,7 +176,7 @@ const servicesSchema = z.object({
   isDraft: z.boolean().default(false),
   category: z.string().optional(),
   icon: z.string().optional(),
-  featured: z.boolean().optional(),
+  featured: z.boolean().default(false),
   pricing: z.string().optional(),
   duration: z.string().optional(),
   deliverables: z.array(z.string()).optional(),
