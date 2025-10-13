@@ -1,5 +1,6 @@
 /**
  * Tests for HTML element selectors
+ * @vitest-environment jsdom
  */
 import { describe, expect, test } from "vitest"
 import {
@@ -17,11 +18,11 @@ import {
   getNavToggleWrapperElement,
   getNavWrapperElement,
 } from "../selectors"
-import { navHtml } from "../__fixtures__/navigationHtml"
+import { setupNavigationDOM } from "./testHelper"
 
 describe('getHeaderElement selector works', () => {
-  test(' works with element in DOM', () => {
-    document.body.innerHTML = navHtml
+  test(' works with element in DOM', async () => {
+    setupNavigationDOM()
     const sut = isHeaderElement(getHeaderElement())
     expect(sut).toBeTruthy()
   })
@@ -33,8 +34,8 @@ describe('getHeaderElement selector works', () => {
 })
 
 describe('getMobileSplashElement selector works', () => {
-  test(' works with element in DOM', () => {
-    document.body.innerHTML = navHtml
+  test(' works with element in DOM', async () => {
+    setupNavigationDOM()
     const sut = isDivElement(getMobileSplashElement())
     expect(sut).toBeTruthy()
   })
@@ -46,8 +47,8 @@ describe('getMobileSplashElement selector works', () => {
 })
 
 describe('getNavWrapperElement selector works', () => {
-  test(' works with element in DOM', () => {
-    document.body.innerHTML = navHtml
+  test(' works with element in DOM', async () => {
+    setupNavigationDOM()
     const sut = isSpanElement(getNavWrapperElement())
     expect(sut).toBeTruthy()
   })
@@ -59,8 +60,8 @@ describe('getNavWrapperElement selector works', () => {
 })
 
 describe('getNavMenuElement selector works', () => {
-  test('getNavElement works with element in DOM', () => {
-    document.body.innerHTML = navHtml
+  test('getNavElement works with element in DOM', async () => {
+    setupNavigationDOM()
     const sut = getNavMenuElement()
     expect(isUlElement(sut)).toBeTruthy()
   })
@@ -72,8 +73,8 @@ describe('getNavMenuElement selector works', () => {
 })
 
 describe('getNavToggleWrapperElement selector works', () => {
-  test('getNavToggleWrapperElement works with element in DOM', () => {
-    document.body.innerHTML = navHtml
+  test('getNavToggleWrapperElement works with element in DOM', async () => {
+    setupNavigationDOM()
     const sut = getNavToggleWrapperElement()
     expect(isSpanElement(sut)).toBeTruthy()
   })
@@ -85,8 +86,8 @@ describe('getNavToggleWrapperElement selector works', () => {
 })
 
 describe('getNavToggleBtnElement selector works', () => {
-  test('getNavToggleBtnElement works with element in DOM', () => {
-    document.body.innerHTML = navHtml
+  test('getNavToggleBtnElement works with element in DOM', async () => {
+    setupNavigationDOM()
     const sut = getNavToggleBtnElement()
     expect(isButtonElement(sut)).toBeTruthy()
   })

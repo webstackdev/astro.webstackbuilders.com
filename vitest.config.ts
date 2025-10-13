@@ -1,9 +1,22 @@
 /// <reference types="vitest" />
 import { defineConfig } from 'vite'
+import path from 'path'
 
 // @TODO: Should set up `reporters` for CI to create an artifact on failed runs with `outputFIle`
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      '@assets': path.resolve(__dirname, './src/assets'),
+      '@components': path.resolve(__dirname, './src/components'),
+      '@content': path.resolve(__dirname, './src/content'),
+      '@data': path.resolve(__dirname, './src/data'),
+      '@layouts': path.resolve(__dirname, './src/layouts'),
+      '@lib': path.resolve(__dirname, './src/lib'),
+      '@styles': path.resolve(__dirname, './src/styles'),
+      '@test': path.resolve(__dirname, './test'),
+    },
+  },
   test: {
     include: ['src/**/*.spec.ts?(x)', 'scripts/**/*.spec.ts'],
     environmentMatchGlobs: [

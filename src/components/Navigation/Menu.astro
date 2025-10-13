@@ -1,7 +1,4 @@
 ---
-/**
- * IF THIS CHANGES update navigationHtml.ts fixture in navigation script folder
- */
 import classNames from 'classnames'
 
 export interface Props {
@@ -123,6 +120,8 @@ const activeMenuItem = (url: string) => {
   </ul>
 </nav>
 <script>
-  import {setupNavigation } from './navigation'
-  setupNavigation()
+  import { addDelayedExecutionScripts } from '@lib/utils/delayedLoader'
+  import { setupNavigation } from './navigation'
+
+  addDelayedExecutionScripts([setupNavigation])
 </script>

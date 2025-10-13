@@ -97,7 +97,7 @@ export class Navigation {
   }
 }
 
-export const setupNavigation: typeof ScriptInit = () => {
+export const setupNavigation = (): void => {
   const navigation = new Navigation()
   navigation.bindEvents()
 }

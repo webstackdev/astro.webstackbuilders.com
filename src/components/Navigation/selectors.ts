@@ -17,11 +17,11 @@ export const SELECTORS = {
   /** <nav> element wrapping the main menu list */
   nav: '.main-nav',
   /** <ul> element */
-  menu: '.main-nav__menu',
+  menu: '.main-nav-menu',
   /** Mobile menu toggle button <span> wrapper */
   toggleWrapper: '#header__nav-icon',
   /** Mobile menu toggle <button> */
-  toggleBtn: '.nav-icon__toggle-btn',
+  toggleBtn: '.nav-toggle-btn',
   /** Mobile splash <div> */
   splash: '#mobile-splash',
 }
