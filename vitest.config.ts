@@ -18,11 +18,12 @@ export default defineConfig({
     },
   },
   test: {
-    include: ['src/**/*.spec.ts?(x)', 'scripts/**/*.spec.ts'],
+    include: ['src/**/*.spec.ts?(x)', 'scripts/**/*.spec.ts', 'api/**/*.spec.ts'],
     environmentMatchGlobs: [
       ['src/**', 'jsdom'],
       ['src/lib/**', 'node'],
       ['scripts/**', 'node'],
+      ['api/**', 'node'],
     ],
     /** Timeout set to 30 seconds for all tests */
     testTimeout: 30 * 1000,
