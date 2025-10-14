@@ -10,6 +10,26 @@ import {
   isClientScriptError
 } from "./assertions"
 
+/**
+ * Helper function to create ClientScriptErrorParams without undefined values
+ */
+function createErrorParams(params: {
+  message: string
+  stack?: string | undefined
+  cause?: unknown
+  fileName?: string | undefined
+  columnNumber?: string | undefined
+  lineNumber?: string | undefined
+}): ClientScriptErrorParams {
+  const result: ClientScriptErrorParams = { message: params.message }
+  if (params.stack !== undefined) result.stack = params.stack
+  if (params.cause !== undefined) result.cause = params.cause
+  if (params.fileName !== undefined) result.fileName = params.fileName
+  if (params.columnNumber !== undefined) result.columnNumber = params.columnNumber
+  if (params.lineNumber !== undefined) result.lineNumber = params.lineNumber
+  return result
+}
+
 export const normalizeMessage = (message: unknown): ClientScriptErrorParams => {
   if (isClientScriptError(message)) {
     return convertFromClientScriptError(message)
@@ -25,9 +45,9 @@ export const normalizeMessage = (message: unknown): ClientScriptErrorParams => {
 }
 
 export interface stackMetadata {
-  fileName?: string
-  lineNumber?: string
-  columnNumber?: string
+  fileName?: string | undefined
+  lineNumber?: string | undefined
+  columnNumber?: string | undefined
 }
 
 export const extractMetadaFromStackTrace = (stack: string | undefined): stackMetadata => {
@@ -61,61 +81,66 @@ export const extractMetadaFromStackTrace = (stack: string | undefined): stackMet
   }
 }
 
-export const convertFromError = (input: Error): ClientScriptErrorParams => {
-  const { fileName, lineNumber, columnNumber } = extractMetadaFromStackTrace(input['stack'])
-  return {
-    message: input.message,
-    stack: input?.stack ? input.stack : undefined,
-    cause: input,
+/**
+ * Convert Error to ClientScriptErrorParams
+ */
+export function convertFromError(error: Error): ClientScriptErrorParams {
+  const { fileName, lineNumber, columnNumber } = extractMetadaFromStackTrace(error.stack)
+  return createErrorParams({
+    message: error.message || "Unknown error",
+    stack: error.stack,
+    cause: error.cause,
     fileName,
     columnNumber,
-    lineNumber,
-  }
+    lineNumber
+  })
 }
 
+/**
+ * Convert ClientScriptError to ClientScriptErrorParams
+ */
 export const convertFromClientScriptError = (input: ClientScriptError): ClientScriptErrorParams => {
   const { fileName, lineNumber, columnNumber } = extractMetadaFromStackTrace(input['stack'])
-  return {
+  return createErrorParams({
     message: input.message,
-    stack: input?.stack ? input.stack : undefined,
+    stack: input.stack,
     cause: input,
     fileName,
     columnNumber,
-    lineNumber,
-  }
+    lineNumber
+  })
 }
 
+/**
+ * Convert ErrorEvent to ClientScriptErrorParams
+ */
 export const convertFromErrorEvent = (input: ErrorEvent): ClientScriptErrorParams => {
-  return {
+  return createErrorParams({
     message: input.message,
-    stack: undefined,
     cause: input.error,
-    fileName: input.filename ?? undefined,
+    fileName: input.filename || undefined,
     columnNumber: input.colno ? String(input.colno) : undefined,
-    lineNumber: input.lineno ? String(input.lineno) : undefined,
-  }
+    lineNumber: input.lineno ? String(input.lineno) : undefined
+  })
 }
 
+/**
+ * Convert PromiseRejectionEvent to ClientScriptErrorParams
+ */
 export const convertFromPromiseRejectionEvent = (
   input: PromiseRejectionEvent
 ): ClientScriptErrorParams => {
-  return {
+  return createErrorParams({
     message: input.reason,
-    stack: undefined,
-    cause: input.promise,
-    fileName: undefined,
-    columnNumber: undefined,
-    lineNumber: undefined,
-  }
+    cause: input.promise
+  })
 }
 
+/**
+ * Convert primitive value to ClientScriptErrorParams
+ */
 export const convertFromPrimitive = (input: unknown): ClientScriptErrorParams => {
-  return {
-    message: input ? String(input) : '',
-    stack: undefined,
-    cause: undefined,
-    fileName: undefined,
-    columnNumber: undefined,
-    lineNumber: undefined,
-  }
+  return createErrorParams({
+    message: input ? String(input) : ''
+  })
 }

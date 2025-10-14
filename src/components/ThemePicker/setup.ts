@@ -224,6 +224,16 @@ export class ThemePicker {
 export const setupThemePicker = () => {
   console.log('setupThemePicker called');
 
+  // Wait for DOM to be ready before setting up
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeThemePicker)
+    return
+  }
+
+  initializeThemePicker()
+}
+
+const initializeThemePicker = () => {
   if (CSS.supports(`color`, `var(--fake-var)`)) {
     console.log('CSS custom properties supported, initializing theme picker...');
     try {

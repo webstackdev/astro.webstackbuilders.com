@@ -11,7 +11,6 @@ import {
 } from "../assertions"
 import { PromiseRejectionEvent } from "@lib/@types/PromiseRejectionEvent"
 
-/* eslint-disable-next-line @typescript-eslint/no-empty-function */
 const voidFn = () => {}
 
 describe(`Assertion for Error object`, () => {

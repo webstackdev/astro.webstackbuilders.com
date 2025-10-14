@@ -12,6 +12,13 @@ Components intended for use in *.mdx files:
 * Sprite
 * Testimonials
 
+The remaining test failures are unrelated to our restructuring work - they're from:
+
+Avatar component tests: Missing deprecated functions (these were already failing)
+Local storage tests: Missing mocked store implementation (unrelated to our changes)
+Performance timing tests: Flaky timing tests (unrelated to our changes)
+Accessibility tests: Missing axe matcher setup (when we removed the vitest-axe import, but these were probably failing before)
+
 /**
  * Add accessible name to section in footnotes plugin
  */

@@ -106,19 +106,10 @@ const { closeComponent = 'close', label = 'Select theme' } = Astro.props;
 </div>
 <script>
   import { setupThemePicker } from './setup'
-  import { addDelayedExecutionScripts } from '../../lib/utils/delayedLoader'
+  import { addDelayedExecutionScripts } from '@components/Scripts/delayedLoader'
 
   // Use delayedLoader to initialize theme picker after user interaction or timeout
   // This helps avoid performance impact during initial page load
-  const initThemePicker = () => {
-    // Wait for DOM to be ready before setting up
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', setupThemePicker)
-    } else {
-      setupThemePicker()
-    }
-  }
-
-  // Register with delayedLoader for better performance
-  addDelayedExecutionScripts([initThemePicker])
+  // DOM readiness is now handled inside setupThemePicker itself
+  addDelayedExecutionScripts([setupThemePicker])
 </script>

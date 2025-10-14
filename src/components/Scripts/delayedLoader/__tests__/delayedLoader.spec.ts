@@ -7,7 +7,7 @@ import {
   resetDelayedLoader,
   eventList,
   autoLoadDuration,
-} from '../delayedLoader.ts'
+} from '../index'
 
 describe('delayedLoader', () => {
   beforeEach(() => {

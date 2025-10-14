@@ -15,7 +15,8 @@ interface CustomMatchers<R = unknown> {
 declare module 'vitest' {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   interface Assertion<T = any> extends CustomMatchers<T> {
-    // Extending existing Assertion interface with custom matchers
+    // Add placeholder property to satisfy TypeScript interface requirements
+    readonly __customMatchers: true
   }
   interface AsymmetricMatchersContaining extends CustomMatchers {
     // Extending existing AsymmetricMatchersContaining interface with custom matchers

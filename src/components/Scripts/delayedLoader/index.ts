@@ -2,6 +2,12 @@
  * Waits for user interaction by pressing the key, moving a mouse or touching
  * the screen. Useful for cookie consent banners to avoid LCP hit on Lighthouse.
  * If no user interaction occurs within the auto load duration, triggers action.
+ *
+ * An "LCP hit" on Lighthouse refers to the Largest Contentful Paint (LCP) time,
+ * which measures when the largest image or text block is rendered within the
+ * user's viewport. A poor LCP score indicates that the main content of a webpage
+ * is taking too long to load, negatively impacting user experience and potentially
+ * search rankings.
  */
 
 /** The events that qualify as user interaction and should trigger executing the action. */

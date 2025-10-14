@@ -5,11 +5,11 @@ import { normalizeMessage } from "./converters"
 
 export interface ClientScriptErrorParams {
   message: string
-  stack?: string
+  stack?: string | undefined
   cause?: unknown
-  fileName?: string
-  columnNumber?: string
-  lineNumber?: string
+  fileName?: string | undefined
+  columnNumber?: string | undefined
+  lineNumber?: string | undefined
 }
 
 export class ClientScriptError extends Error {

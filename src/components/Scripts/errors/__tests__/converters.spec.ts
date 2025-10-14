@@ -40,13 +40,13 @@ describe(`Converts from Error`, () => {
       expect.objectContaining({
         message: `test error`,
         stack: expect.any(String),
-        cause: expect.any(Object),
         fileName: expect.any(String),
         lineNumber: expect.any(String),
         columnNumber: expect.any(String),
       })
     )
-    expect(sut.cause).toBeInstanceOf(Error)
+    // Error does not have a cause by default, so it shouldn't be included
+    expect(sut.cause).toBeUndefined()
     expect(sut.fileName).toEqual(expect.stringContaining(`converters.spec.ts`))
   })
 })
@@ -75,11 +75,7 @@ describe(`Converts from convertFromErrorEvent`, () => {
     expect(sut).toMatchInlineSnapshot(`
       {
         "cause": null,
-        "columnNumber": undefined,
-        "fileName": "",
-        "lineNumber": undefined,
         "message": "",
-        "stack": undefined,
       }
     `)
   })
