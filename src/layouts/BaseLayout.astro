@@ -5,6 +5,7 @@ import Header from "@components/Header/index.astro"
 import Footer from "@components/Footer/index.astro"
 import PwaTitleBar from "@components/PwaTitleBar/index.astro"
 import Breadcrumbs from "@components/Breadcrumbs/index.astro"
+import Scripts from "@components/Scripts/index.astro"
 
 import "@styles/index.css"
 import "@styles/sprites.css"
@@ -52,26 +53,6 @@ const { pageTitle, path } = Astro.props
     </div>
     {/* Cookie Consent Overlay */}
     <CookieConsent />
-    <script>
-      {/* Add global unhandled exception and unhandled rejection handlers */}
-      import { addErrorEventListeners } from "@lib/utils/errorListeners"
-      addErrorEventListeners()
-      {/* Site script. All scripts to include in the site must be included here. */}
-      {/** Client scripts */}
-      {/* import { registerShareHighlight } from './modules/share-highlight' */}
-      {/*  @TODO: Are there any tasks that we need to pause using visibility API like animations when user leaves page? See modules/visibility.ts */}
-      {/*
-        Example: Scripts that will be executed on first user interaction with the site
-        or after a delay (default 5 seconds), whichever occurs first.
-
-        Usage in component scripts:
-        import { addDelayedExecutionScripts } from "@lib/utils/delayedLoader"
-        import { yourInitFunction } from "./yourModule"
-        addDelayedExecutionScripts([yourInitFunction])
-
-        The singleton pattern ensures multiple components can register scripts safely
-        without creating duplicate event listeners or race conditions.
-      */}
-    </script>
+    <Scripts />
   </body>
 </html>

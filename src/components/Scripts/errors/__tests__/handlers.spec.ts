@@ -2,7 +2,7 @@
  * Tests for error handling routines
  */
 import { describe, expect, test } from "vitest"
-import { PromiseRejectionEvent } from "../../@types/PromiseRejectionEvent"
+import { PromiseRejectionEvent } from "@lib/@types/PromiseRejectionEvent"
 import { ClientScriptError } from "../ClientScriptError"
 import {
   unhandledExceptionHandler,

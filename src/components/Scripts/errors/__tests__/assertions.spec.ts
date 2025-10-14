@@ -9,7 +9,7 @@ import {
   isPromiseRejectionEvent,
   isClientScriptError,
 } from "../assertions"
-import { PromiseRejectionEvent } from "../../@types/PromiseRejectionEvent"
+import { PromiseRejectionEvent } from "@lib/@types/PromiseRejectionEvent"
 
 /* eslint-disable-next-line @typescript-eslint/no-empty-function */
 const voidFn = () => {}

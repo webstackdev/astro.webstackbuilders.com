@@ -1,7 +1,7 @@
 /**
  * Error and exception handlers for site script.
  */
-import { unhandledExceptionHandler, unhandledRejectionHandler } from '@lib/errors/handlers'
+import { unhandledExceptionHandler, unhandledRejectionHandler } from './handlers'
 
 /**
  * The `error` event is fired on a Window object when a resource failed to load or couldn't be used — for example if a script has an execution error. This event is not cancelable and does not bubble.

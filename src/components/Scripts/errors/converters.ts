@@ -1,7 +1,7 @@
 /**
  * Convert various errors to ClientScriptError
  */
-import { isString } from "../utils/assertions/primitives"
+import { isString } from "@lib/utils/assertions/primitives"
 import { ClientScriptError, type ClientScriptErrorParams } from "./ClientScriptError"
 import {
   isError,
@@ -50,7 +50,10 @@ export const extractMetadaFromStackTrace = (stack: string | undefined): stackMet
 
   if (!isString(poppedStackArr[0])) throw new Error()
 
-  const match = /\((.*):(\d+):(\d+)\)$/.exec(poppedStackArr.shift() as string)
+  const stackLine = poppedStackArr.shift() as string
+  // Try to match both formats: (path:line:col) and "at path:line:col"
+  const match = /\((.*):(\d+):(\d+)\)$/.exec(stackLine) ||
+                /at\s+(.+):(\d+):(\d+)/.exec(stackLine)
   return {
     fileName: match && isString(match[1]) ? match[1] : undefined,
     lineNumber: match && isString(match[2]) ? match[2] : undefined,

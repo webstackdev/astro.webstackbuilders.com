@@ -12,8 +12,8 @@ import {
   extractMetadaFromStackTrace,
   normalizeMessage,
 } from "../converters"
-import { isString } from "../../utils/assertions/primitives"
-import { PromiseRejectionEvent } from "../../@types/PromiseRejectionEvent"
+import { isString } from "@lib/utils/assertions/primitives"
+import { PromiseRejectionEvent } from "@lib/@types/PromiseRejectionEvent"
 
 const voidFn = () => {}
 

@@ -2,7 +2,7 @@
  * Event handlers for the cookie customize modal
  */
 import { isDivElement, isButtonElement } from "@lib/utils/assertions/elements"
-import { ClientScriptError } from "@lib/errors/ClientScriptError"
+import { ClientScriptError } from "@components/Scripts/errors/ClientScriptError"
 import { addButtonEventListeners } from "@lib/utils/elementListeners"
 
 /** Gets the HTMLDivElement wrapping the cookie customize modal */
