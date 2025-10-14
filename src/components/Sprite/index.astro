@@ -5,7 +5,6 @@
  */
 import { Icon } from 'astro-icon/components'
 import type { SpriteName } from './sprites'
-import classNames from 'classnames'
 
 export interface Props {
   class?: string,
@@ -25,14 +24,16 @@ const colorClasses = {
   warning: 'text-[color:var(--color-theme-warning)] fill-[color:var(--color-theme-warning)]',
   inherit: 'text-inherit fill-inherit'
 }
-
-// Base classes for the icon
-const baseClasses = 'inline-block align-middle'
 ---
 
 <Icon
   name={name}
-  class={classNames(baseClasses, colorClasses[variant], `icon--${name}`, className)}
+  class:list={[
+    'inline-block align-middle',
+    colorClasses[variant],
+    `icon--${name}`,
+    className
+  ]}
   size={size}
   aria-hidden="true"
 />

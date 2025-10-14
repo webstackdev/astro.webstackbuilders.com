@@ -1,25 +1,6 @@
 /**
- * SEO and metadata utility functions
+ * Social metadata utility functions for Head component
  */
-
-/**
- * Build page title with site title
- * Usage: buildPageTitle(title, siteName)
- */
-export function buildPageTitle(pageTitle?: string, siteTitle?: string): string {
-  if (!pageTitle) return siteTitle || 'Webstack Builders'
-  if (!siteTitle) return pageTitle
-  return `${pageTitle} | ${siteTitle}`
-}
-
-/**
- * Get canonical URL for a page
- * Usage: getCanonicalURL(page, baseUrl)
- */
-export function getCanonicalURL(page: { url: string }, baseUrl: string): string {
-  const cleanUrl = page.url.replace(/\/+$/, '') || '/'
-  return `${baseUrl.replace(/\/+$/, '')}${cleanUrl}`
-}
 
 /**
  * Get social share image URL using dynamic generation
@@ -91,16 +72,4 @@ export function getSocialMetadata(options: SocialMetadataOptions): SocialMetadat
     twitterImage: socialImage,
     twitterImageAlt: imageAlt
   }
-}
-
-/**
- * Generate page description for meta tags
- * Usage: getPageDescription(description, autoDescription, siteDescription)
- */
-export function getPageDescription(
-  description?: string,
-  autoDescription?: string,
-  siteDescription?: string
-): string {
-  return description || autoDescription || siteDescription || 'Webstack Builders - Professional Web Development Services'
 }

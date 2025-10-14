@@ -6,7 +6,7 @@ import {
   isBodyElement,
   isHtmlElement,
   isType1Element,
-} from "../assertions/elements"
+} from "../../../lib/utils/assertions/elements"
 import {
   getBodyElement,
   getHtmlElement,

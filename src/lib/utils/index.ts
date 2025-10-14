@@ -7,6 +7,3 @@ export * from './date'
 
 // Format utilities
 export * from './format'
-
-// SEO utilities
-export * from './seo'

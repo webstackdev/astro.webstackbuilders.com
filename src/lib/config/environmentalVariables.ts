@@ -22,11 +22,36 @@ export const environmentalVariablesConfig: AstroUserConfig['env'] = {
       optional: true,
       default: 4321,
     }),
+    CONVERTKIT_API_KEY: envField.string({
+      context: "server",
+      access: "secret",
+      optional: false,
+    }),
+    CONVERTKIT_FORM_ID: envField.number({
+      context: "server",
+      access: "secret",
+      optional: false,
+    }),
     PREVIEW_SERVER_PORT: envField.number({
       context: "server",
       access: "public",
       optional: true,
       default: 4321,
+    }),
+    RESEND_API_KEY: envField.string({
+      context: "server",
+      access: "public",
+      optional: false,
+    }),
+    SENTRY_AUTH_TOKEN: envField.string({
+      context: "server",
+      access: "secret",
+      optional: false,
+    }),
+    PUBLIC_SENTRY_DSN: envField.string({
+      context: "client",
+      access: "public",
+      optional: false,
     }),
   }
 }

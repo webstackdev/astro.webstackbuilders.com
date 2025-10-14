@@ -34,10 +34,10 @@ import Avatar from '@components/Avatar/index.astro'
 
 ## Props
 
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| `name` | `string` | Yes | The person's name (automatically normalized for filename lookup) |
-| `class` | `string` | No | Additional CSS classes to apply to the container |
+| Prop    | Type     | Required | Description                                                      |
+|---------|----------|----------|------------------------------------------------------------------|
+| `name`  | `string` | Yes      | The person's name (automatically normalized for filename lookup) |
+| `class` | `string` | No       | Additional CSS classes to apply to the container                 |
 
 ## Name Normalization
 
@@ -61,42 +61,6 @@ src/components/Avatar/
 ├── index.astro        # Main Avatar component
 ├── avatars.ts         # Avatar Manager singleton for loading images
 └── README.md          # This file
-```
-
-## Avatar Manager
-
-The `avatars.ts` file contains a singleton class that manages all avatar images:
-
-```typescript
-import { AvatarManager } from '@components/Avatar/avatars'
-
-// Get avatar instance
-const manager = AvatarManager.getInstance()
-
-// Get specific avatar
-const avatar = manager.getAvatar('kevin-brown')
-
-// Check if avatar exists
-if (manager.hasAvatar('jane-doe')) {
-  // ...
-}
-
-// Get all available avatars
-const allAvatars = manager.getAvailableAvatars()
-
-// Get count
-console.log(`Total avatars: ${manager.count}`)
-```
-
-## Backward Compatibility
-
-For existing code, the following functions are still exported but deprecated:
-
-```typescript
-import { getAvatarImage, avatarMap, getAvailableAvatars } from '@components/Avatar/avatars'
-
-// These still work but are marked as deprecated
-const avatar = getAvatarImage('kevin-brown')
 ```
 
 ## Adding New Avatars
@@ -123,35 +87,6 @@ The component renders with the following structure:
 ```
 
 You can style these classes in your CSS or pass custom Tailwind classes via the `class` prop.
-
-## Migration from Testimonials
-
-Previously, avatar rendering was inline in the Testimonials component:
-
-```astro
-<!-- Old approach (before component extraction) -->
-{avatarImage ? (
-  <img src={avatarImage.src} alt={avatarAlt} loading="lazy" />
-) : (
-  <div class="avatar-placeholder">
-    {testimonial.data.name.charAt(0)}
-  </div>
-)}
-
-<!-- New approach (current) -->
-<Avatar
-  name={testimonial.data.name}
-  class="mod-testimonials__item-avatar"
-/>
-```
-
-**Benefits of the new approach:**
-
-- ✅ Single `name` prop instead of separate `avatarName` and `personName`
-- ✅ Automatic normalization (no need to pre-format names)
-- ✅ Cleaner testimonial frontmatter (no `avatar:` field needed)
-- ✅ Better separation of concerns
-- ✅ Easier to use and maintain
 
 ## Performance
 

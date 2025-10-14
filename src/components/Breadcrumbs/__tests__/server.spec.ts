@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect } from 'vitest'
-import { generateBreadcrumbs, generateBreadcrumbLabel } from '../generateBreadcrumbs'
+import { generateBreadcrumbs, generateBreadcrumbLabel } from '../server'
 
 describe('generateBreadcrumbLabel', () => {
   describe('Page Title Override', () => {

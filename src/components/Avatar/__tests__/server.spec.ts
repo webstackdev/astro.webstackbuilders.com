@@ -31,12 +31,14 @@ describe('AvatarManager', () => {
     vi.spyOn(console, 'warn').mockImplementation(() => {})
 
     // Import the module
-    // eslint-disable-next-line import/no-unresolved
-    const module = await import('../avatars')
+    const module = await import('../server')
     AvatarManager = module.AvatarManager
-    getAvatarImage = module.getAvatarImage
-    avatarMap = module.avatarMap
-    getAvailableAvatars = module.getAvailableAvatars
+
+    // Get the singleton instance and extract methods for backward compatibility
+    const instance = AvatarManager.getInstance()
+    getAvatarImage = instance.getAvatar.bind(instance)
+    avatarMap = instance.getAll()
+    getAvailableAvatars = instance.getAvailableAvatars.bind(instance)
   })
 
   afterEach(() => {

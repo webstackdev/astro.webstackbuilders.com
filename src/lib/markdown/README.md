@@ -19,6 +19,47 @@ Local storage tests: Missing mocked store implementation (unrelated to our chang
 Performance timing tests: Flaky timing tests (unrelated to our changes)
 Accessibility tests: Missing axe matcher setup (when we removed the vitest-axe import, but these were probably failing before)
 
+If you are using a third-party service like Sentry to get readable stack traces in production, you'll need to configure both the source map generation and the upload process.
+
+- you must never include a SENTRY_AUTH_TOKEN in your client-side browser bundle. Doing so creates a major security vulnerability, as the token would be publicly exposed and could be misused. For browser-based applications, Sentry uses a Data Source Name (DSN) for configuration instead.
+- You cannot safely include your ConvertKit API key directly in your client-side code, such as in a JavaScript bundle. This is a major security risk that could lead to unauthorized access and potential misuse of your account.
+- You cannot safely include your RESEND_API_KEY in a client-side bundle for the browser. Resend explicitly states this in its documentation and other API key security best practices confirm it. An API key included in a front-end bundle is visible to anyone using the browser's developer tools.
+
+Sentry.captureException(err)
+Sentry.captureMessage("Something went wrong");
+// optionally specify the severity level:
+// "fatal" | "error" | "warning" | "log" | "debug" | "info" (default)
+Sentry.captureMessage("Something went wrong", "warning")
+
+I copied an eleventy plugin into the src/components/Highlighter directory. There is a README.md file explaining what the component is supposed to do. I want to refactor this plugin to function as an Astro component and add comprehensive testing.
+- The code can be completely refactored if necessary. I prefer a function-based design instead of a class-based design with a constructor, unless the class design makes more sense.
+- Create an astro template named index.astro and add the styles in an html tag in it. It should use a slot element to render passed-in content since it will be used in MDX pages.
+- I'm not sure what the feed.njk template was supposed to do. What's is your opinion on its purpose?
+- I moved a selectors.ts file and a test for it into the Highlighter folder. It was used in a previous iteration of this plugin before the site was refactored from eleventy. Use this approach and refactor any selector necessary or add a selector in the code file, for example to select the shadow root.\
+
+
+**Refactor DelayedLoader**
+* Right now we're probably including script that doesn't need DelayedLoader as they don't affect layout, causing a bad Lighthouse LCP score
+* Astro dedupe script processes and bundles imports, but this is an automatic feature that happens when you use standard `<script>` tags. If you add is:inline to a script tag, you are telling Astro to not process or deduplicate it and to render it as a static block of HTML.
+* Is there is an issue with using the same script multiple times, like the carousel?
+* We need a single place to launch script so it can be wrapped in a unified error handler and reported to Sentry
+
+
+**E2E Testing**
+* We need to add Lighthouse testing
+
+
+**Env Vars**
+```typescript
+import { API_URL } from "astro:env/client"
+import { API_SECRET_TOKEN } from "astro:env/server"
+```
+
+**Add Vercel Analytics SDK**
+npm i @vercel/analytics
+import Analytics from '@vercel/analytics/astro'
+https://vercel.com/docs/analytics/quickstart#add-the-analytics-component-to-your-app
+
 /**
  * Add accessible name to section in footnotes plugin
  */

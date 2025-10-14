@@ -14,12 +14,7 @@
  * ```
  */
 
-type ImageMetadata = {
-  src: string
-  width: number
-  height: number
-  format: string
-}
+import type { ImageMetadata } from 'astro'
 
 type AvatarMap = Record<string, ImageMetadata>
 

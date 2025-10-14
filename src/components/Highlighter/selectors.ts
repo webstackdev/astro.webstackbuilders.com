@@ -6,12 +6,11 @@ import {
   isDivElement,
   isHtmlElement,
   isSlotElement,
-} from './assertions/elements'
+} from '../../lib/utils/assertions/elements'
 
 
 export const queryDocument = (selector: string): Element => {
   const element = document.querySelector(selector)
-  /* eslint-disable-next-line no-null/no-null */
   if (element === null)
     throw new Error(`Could not find document element for query selector ${selector}`)
   return element
