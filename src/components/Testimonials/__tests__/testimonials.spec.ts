@@ -4,9 +4,9 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { 
-  setupTestimonialsCarouselDOM, 
-  cleanupTestimonialsCarouselDOM, 
+import {
+  setupTestimonialsCarouselDOM,
+  cleanupTestimonialsCarouselDOM,
   mockTestimonials,
   getDOMElements,
   userInteractions
@@ -68,7 +68,7 @@ describe('Testimonials Carousel', () => {
 
     it('should warn if carousel container is not found', async () => {
       const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
-      
+
       // Remove the carousel container
       document.body.innerHTML = '<div>No carousel here</div>'
 
@@ -76,13 +76,13 @@ describe('Testimonials Carousel', () => {
       setupTestimonialsCarousel()
 
       expect(consoleSpy).toHaveBeenCalledWith('Testimonials carousel container not found')
-      
+
       consoleSpy.mockRestore()
     })
 
     it('should warn if viewport is not found', async () => {
       const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
-      
+
       // Set up container without viewport
       document.body.innerHTML = '<div class="testimonials-embla">No viewport</div>'
 
@@ -90,7 +90,7 @@ describe('Testimonials Carousel', () => {
       setupTestimonialsCarousel()
 
       expect(consoleSpy).toHaveBeenCalledWith('Testimonials carousel viewport not found')
-      
+
       consoleSpy.mockRestore()
     })
 
@@ -132,7 +132,7 @@ describe('Testimonials Carousel', () => {
       setupTestimonialsCarousel()
 
       expect(consoleSpy).toHaveBeenCalledWith('Testimonials carousel initialized with autoplay')
-      
+
       consoleSpy.mockRestore()
     })
   })
@@ -270,12 +270,12 @@ describe('Testimonials Carousel', () => {
       }
 
       const dots = elements.dotsContainer?.querySelectorAll('.embla__dot')
-      
+
       // First dot should not be active
       expect(dots).toBeDefined()
       expect(dots![0]?.classList.contains('bg-[color:var(--color-primary)]')).toBe(false)
       expect(dots![0]?.classList.contains('w-6')).toBe(false)
-      
+
       // Second dot should be active
       expect(dots![1]?.classList.contains('bg-[color:var(--color-primary)]')).toBe(true)
       expect(dots![1]?.classList.contains('w-6')).toBe(true)
@@ -299,7 +299,7 @@ describe('Testimonials Carousel', () => {
       elements.nextButton?.remove()
 
       const { setupTestimonialsCarousel } = await import('../client')
-      
+
       // Should not throw error
       expect(() => setupTestimonialsCarousel()).not.toThrow()
     })
@@ -310,7 +310,7 @@ describe('Testimonials Carousel', () => {
       elements.dotsContainer?.remove()
 
       const { setupTestimonialsCarousel } = await import('../client')
-      
+
       // Should not throw error
       expect(() => setupTestimonialsCarousel()).not.toThrow()
     })
@@ -329,7 +329,7 @@ describe('Testimonials Carousel', () => {
       mockScrollSnapList.mockReturnValue([]) // No slides
 
       const { setupTestimonialsCarousel } = await import('../client')
-      
+
       // Should not throw error
       expect(() => setupTestimonialsCarousel()).not.toThrow()
 

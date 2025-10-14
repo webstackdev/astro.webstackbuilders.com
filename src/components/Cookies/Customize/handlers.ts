@@ -3,7 +3,7 @@
  */
 import { isDivElement, isButtonElement } from "@lib/utils/assertions/elements"
 import { ClientScriptError } from "@components/Scripts/errors/ClientScriptError"
-import { addButtonEventListeners } from "@lib/utils/elementListeners"
+import { addButtonEventListeners } from "@components/Scripts/elementListeners"
 
 /** Gets the HTMLDivElement wrapping the cookie customize modal */
 export const getCookieCustomizeModal = () => {

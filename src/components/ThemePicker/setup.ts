@@ -1,4 +1,4 @@
-import { addButtonEventListeners } from '@lib/utils/elementListeners'
+import { addButtonEventListeners } from '@components/Scripts/elementListeners'
 import { getNavToggleBtnElement } from '@components/Navigation/selectors'
 import {
   getThemePickerToggleButton,

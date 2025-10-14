@@ -1,9 +1,14 @@
 /**
- * Cookie consent modal event listeners
+ * Element event listeners utility
+ * Provides standardized event listener attachment with accessibility support
  */
-type eventHandler = (event: Event) => void
+type eventHandler = (_event: Event) => void
 
 const getClickEventListener = (handler: eventHandler) => {
+  /**
+   * Click event listener wrapper
+   * @param event - Mouse event
+   */
   function clickListener (event: MouseEvent) {
     if (event.type === `click`) handler(event)
   }
@@ -11,6 +16,10 @@ const getClickEventListener = (handler: eventHandler) => {
 }
 
 const getEnterKeyEventListener = (handler: eventHandler) => {
+  /**
+   * Enter key event listener wrapper
+   * @param event - Keyboard event
+   */
   function keypressListener (event: KeyboardEvent) {
     /**
      * isComposing indicates that an Input-Method Editor is composing text, such as
@@ -25,6 +34,10 @@ const getEnterKeyEventListener = (handler: eventHandler) => {
 }
 
 const getTouchendEventListener = (handler: eventHandler) => {
+  /**
+   * Touch end event listener wrapper
+   * @param event - Touch event
+   */
   function touchendEventHandler (event: TouchEvent) {
     if (event.type === `touchend`) handler(event)
   }
@@ -32,6 +45,10 @@ const getTouchendEventListener = (handler: eventHandler) => {
 }
 
 const getEscapeKeyEventListener = (handler: eventHandler) => {
+  /**
+   * Escape key event listener wrapper
+   * @param event - Keyboard event
+   */
   function keypressListener(event: KeyboardEvent) {
     /**
      * isComposing indicates that an Input-Method Editor is composing text, such as
@@ -60,3 +77,6 @@ export const addLinkEventListeners = (element: HTMLAnchorElement, handler: event
 export const addWrapperEventListeners = (element: HTMLDivElement, handler: eventHandler) => {
   element.addEventListener(`keyup`, getEscapeKeyEventListener(handler))
 }
+
+// Export the type for external use
+export type { eventHandler }
