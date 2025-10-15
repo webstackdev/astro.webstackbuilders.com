@@ -31,6 +31,23 @@ Sentry.captureMessage("Something went wrong");
 // "fatal" | "error" | "warning" | "log" | "debug" | "info" (default)
 Sentry.captureMessage("Something went wrong", "warning")
 
+```typescript
+import { registerScript, LoadableScript, TriggerEvent } from './loader'
+
+class MyScript implements LoadableScript {
+  getEventType(): TriggerEvent {
+    return 'delayed'
+  }
+
+  init(): void {
+    // Implementation
+  }
+
+  pause(): void { /* Future */ }
+  resume(): void { /* Future */ }
+}
+```
+
 I copied an eleventy plugin into the src/components/Highlighter directory. There is a README.md file explaining what the component is supposed to do. I want to refactor this plugin to function as an Astro component and add comprehensive testing.
 - The code can be completely refactored if necessary. I prefer a function-based design instead of a class-based design with a constructor, unless the class design makes more sense.
 - Create an astro template named index.astro and add the styles in an html tag in it. It should use a slot element to render passed-in content since it will be used in MDX pages.
