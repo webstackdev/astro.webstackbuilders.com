@@ -94,9 +94,6 @@ class Loader {
    */
   private initializeDOMEventListeners(): void {
     const domEvents: TriggerEvent[] = [
-      'DOMContentLoaded',
-      'load',
-      'beforeunload',
       'astro:before-preparation',
       'astro:after-preparation',
       'astro:before-swap',
@@ -106,20 +103,7 @@ class Loader {
 
     domEvents.forEach(eventType => {
       const listener = () => this.executeEvent(eventType)
-
-      if (eventType.startsWith('astro:')) {
-        document.addEventListener(eventType, listener, { once: true })
-      } else {
-        if (eventType === 'DOMContentLoaded' && document.readyState !== 'loading') {
-          // DOM already loaded
-          this.executeEvent(eventType)
-        } else if (eventType === 'load' && document.readyState === 'complete') {
-          // Page already loaded
-          this.executeEvent(eventType)
-        } else {
-          document.addEventListener(eventType, listener, { once: true })
-        }
-      }
+      document.addEventListener(eventType, listener, { once: true })
     })
   }
 

@@ -86,24 +86,17 @@ describe('Generic Script Loader', () => {
       expect(script.executed).toBe(true)
     })
 
-    it('should handle DOM lifecycle events when document is loading', () => {
+    it('should handle Astro View Transition events', () => {
       const mockInit = vi.fn()
-      const script = new MockLoadableScript('DOMContentLoaded', mockInit)
-
-      // Mock document.readyState as loading
-      Object.defineProperty(document, 'readyState', {
-        value: 'loading',
-        writable: true,
-        configurable: true
-      })
+      const script = new MockLoadableScript('astro:before-preparation', mockInit)
 
       registerScript(script)
 
-      // Script should not execute immediately since DOM is still loading
+      // Script should not execute immediately
       expect(mockInit).not.toHaveBeenCalled()
 
-      // Simulate DOMContentLoaded event
-      document.dispatchEvent(new Event('DOMContentLoaded'))
+      // Simulate Astro view transition event
+      document.dispatchEvent(new Event('astro:before-preparation'))
       expect(mockInit).toHaveBeenCalled()
     })
 
@@ -120,36 +113,29 @@ describe('Generic Script Loader', () => {
 
     it('should handle multiple event types correctly', () => {
       const delayedInit = vi.fn()
-      const domInit = vi.fn()
+      const beforePrepInit = vi.fn()
       const astroInit = vi.fn()
 
       const delayedScript = new MockLoadableScript('delayed', delayedInit)
-      const domScript = new MockLoadableScript('DOMContentLoaded', domInit)
+      const beforePrepScript = new MockLoadableScript('astro:before-preparation', beforePrepInit)
       const astroScript = new MockLoadableScript('astro:page-load', astroInit)
 
-      // Mock document.readyState as loading
-      Object.defineProperty(document, 'readyState', {
-        value: 'loading',
-        writable: true,
-        configurable: true
-      })
-
       registerScript(delayedScript)
-      registerScript(domScript)
+      registerScript(beforePrepScript)
       registerScript(astroScript)
 
       // Trigger user interaction (should only execute delayed script)
       document.dispatchEvent(new KeyboardEvent('keydown'))
       expect(delayedInit).toHaveBeenCalledTimes(1)
-      expect(domInit).not.toHaveBeenCalled()
+      expect(beforePrepInit).not.toHaveBeenCalled()
       expect(astroInit).not.toHaveBeenCalled()
 
-      // Trigger DOM event
-      document.dispatchEvent(new Event('DOMContentLoaded'))
-      expect(domInit).toHaveBeenCalledTimes(1)
+      // Trigger Astro before-preparation event
+      document.dispatchEvent(new Event('astro:before-preparation'))
+      expect(beforePrepInit).toHaveBeenCalledTimes(1)
       expect(astroInit).not.toHaveBeenCalled()
 
-      // Trigger Astro event
+      // Trigger Astro page-load event
       document.dispatchEvent(new Event('astro:page-load'))
       expect(astroInit).toHaveBeenCalledTimes(1)
     })
@@ -157,11 +143,11 @@ describe('Generic Script Loader', () => {
 
   describe('pause/resume functionality', () => {
     it('should pause executed scripts when page becomes hidden', () => {
-      const script = new MockLoadableScript('DOMContentLoaded')
+      const script = new MockLoadableScript('astro:page-load')
 
       // Execute script first by triggering its event
       registerScript(script)
-      document.dispatchEvent(new Event('DOMContentLoaded'))
+      document.dispatchEvent(new Event('astro:page-load'))
 
       expect(script.executed).toBe(true)
 
@@ -177,11 +163,11 @@ describe('Generic Script Loader', () => {
     })
 
     it('should resume executed scripts when page becomes visible', () => {
-      const script = new MockLoadableScript('DOMContentLoaded')
+      const script = new MockLoadableScript('astro:page-load')
 
       // Execute script first
       registerScript(script)
-      document.dispatchEvent(new Event('DOMContentLoaded'))
+      document.dispatchEvent(new Event('astro:page-load'))
 
       expect(script.executed).toBe(true)
 

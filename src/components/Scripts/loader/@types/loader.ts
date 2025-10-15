@@ -8,9 +8,6 @@ export type UserInteractionEvent = 'keydown' | 'mousemove' | 'wheel' | 'touchmov
 
 /** All supported trigger events for script execution */
 export type TriggerEvent =
-  | "DOMContentLoaded"
-  | "load"
-  | "beforeunload"
   | "delayed"
   | "astro:before-preparation"
   | "astro:after-preparation"
