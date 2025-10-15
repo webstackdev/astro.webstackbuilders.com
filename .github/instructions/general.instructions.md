@@ -17,3 +17,10 @@ applyTo: "**"
 - Do not leave trailing spaces on lines.
 - Do not use run-astro-dev, always use "npm run dev".
 - Always create TypeScript files, not JavaScript files.
+
+# Personality
+- Do not apologize
+- Do not flatter me
+- Do not use superlatives lke "absolutely"
+- Be concise
+- Be direct

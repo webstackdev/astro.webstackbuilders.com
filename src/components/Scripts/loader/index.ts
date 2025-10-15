@@ -165,7 +165,7 @@ class Loader {
           try {
             script.resume()
           } catch (error) {
-            console.error(`Error resuming script ${script.name}:`, error)
+            console.error(`Error resuming script ${script.scriptName}:`, error)
           }
         })
       } else {
@@ -174,7 +174,7 @@ class Loader {
           try {
             script.pause()
           } catch (error) {
-            console.error(`Error pausing script ${script.name}:`, error)
+            console.error(`Error pausing script ${script.scriptName}:`, error)
           }
         })
       }
@@ -217,9 +217,9 @@ class Loader {
       script.init()
       // Track executed scripts for pause/resume functionality
       this.executedScripts.add(script)
-      console.log(`Script initialized: ${script.name}`)
+      console.log(`Script initialized: ${script.scriptName}`)
     } catch (error) {
-      console.error(`Error initializing script ${script.name}:`, error)
+      console.error(`Error initializing script ${script.scriptName}:`, error)
       // TODO: Add Sentry error reporting here
     }
   }

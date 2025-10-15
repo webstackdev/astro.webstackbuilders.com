@@ -18,7 +18,7 @@ export type TriggerEvent =
 /** Abstract class for scripts that can be loaded by the Loader */
 export abstract class LoadableScript {
   /** Name identifier for the script */
-  public static name: string;
+  public static scriptName: string;
   /** The event that should trigger this script's initialization */
   public static eventType: TriggerEvent;
 

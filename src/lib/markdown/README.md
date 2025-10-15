@@ -15,15 +15,6 @@
 
 ## Scripts Loader System
 
-Current issues with using multiple instances of a component in the loader:
-
-- **Global Event Listeners**: If each component instance registers global event listeners, you get duplicate handlers
-- **Singleton Conflicts**: Components assuming they're the only instance on the page
-- **ID Conflicts**: Multiple components using the same DOM IDs
-- **Performance**: Redundant script initialization and event binding
-
-Suggested Solutions:
-
 - **Option 1**: Instance-Specific LoadableScript (Recommended)
 
 This approach passes unique identifiers to each script instance, ensuring no conflicts between multiple components. Each carousel component creates its own LoadableScript instance with a unique ID.
@@ -31,6 +22,12 @@ This approach passes unique identifiers to each script instance, ensuring no con
 - **Option 2**: Auto-Discovery Pattern
 
 Uses a single LoadableScript that automatically discovers all carousel elements on the page using data-carousel attributes
+
+Ask GPT 5.0:
+
+node_modules/@types/mdx/types.d.ts:47:28 - error TS2503: Cannot find namespace 'JSX'.
+
+47     ? new(props: Props) => JSX.ElementClass
 
 ## Implement Astro View Transitions
 
