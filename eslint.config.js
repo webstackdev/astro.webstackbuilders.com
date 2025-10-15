@@ -117,6 +117,7 @@ export default [
       'security/detect-non-literal-fs-filename': 'off',
       'security/detect-object-injection': 'off',
       'security/detect-unsafe-regex': 'off',
+      semi: ['error', 'never'],
     }
   }
 ]

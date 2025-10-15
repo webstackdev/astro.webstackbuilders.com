@@ -1,22 +1,22 @@
 /// <reference types="vitest" />
-import { defineConfig } from 'vite'
-import path from 'path'
+import { getViteConfig } from 'astro/config'
+import { resolve } from 'path'
 
 // @TODO: Should set up `reporters` for CI to create an artifact on failed runs with `outputFIle`
 
-export default defineConfig({
+export default getViteConfig({
   resolve: {
     alias: {
-      '@assets': path.resolve(__dirname, './src/assets'),
-      '@components': path.resolve(__dirname, './src/components'),
-      '@content': path.resolve(__dirname, './src/content'),
-      '@data': path.resolve(__dirname, './src/data'),
-      '@layouts': path.resolve(__dirname, './src/layouts'),
-      '@lib': path.resolve(__dirname, './src/lib'),
-      '@styles': path.resolve(__dirname, './src/styles'),
-      '@test': path.resolve(__dirname, './test'),
-      'astro:transitions/client': path.resolve(__dirname, './test/__mocks__/astro:transitions/client.ts'),
-      'focus-trap': path.resolve(__dirname, './test/__mocks__/focus-trap.ts'),
+      '@assets': resolve(__dirname, './src/assets'),
+      '@components': resolve(__dirname, './src/components'),
+      '@content': resolve(__dirname, './src/content'),
+      '@data': resolve(__dirname, './src/data'),
+      '@layouts': resolve(__dirname, './src/layouts'),
+      '@lib': resolve(__dirname, './src/lib'),
+      '@styles': resolve(__dirname, './src/styles'),
+      '@test': resolve(__dirname, './test'),
+      'astro:transitions/client': resolve(__dirname, './test/__mocks__/astro:transitions/client.ts'),
+      'focus-trap': resolve(__dirname, './test/__mocks__/focus-trap.ts'),
     },
   },
   test: {
@@ -27,9 +27,7 @@ export default defineConfig({
       ['scripts/**', 'node'],
       ['api/**', 'node'],
     ],
-    /** Timeout set to 30 seconds for all tests */
     testTimeout: 30 * 1000,
-    // globalSetup: '',
     setupFiles: ['./vitest.setup.ts'],
     coverage: {
       provider: 'v8',
@@ -49,4 +47,5 @@ export default defineConfig({
       clean: true,
     },
   },
-});
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+} as any)

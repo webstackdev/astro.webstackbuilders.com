@@ -17,6 +17,22 @@ applyTo: "**"
 - Do not leave trailing spaces on lines.
 - Do not use run-astro-dev, always use "npm run dev".
 - Always create TypeScript files, not JavaScript files.
+- Prefer destructured imports over namespace imports when importing specific functions from modules (e.g., `import { resolve } from 'path'` instead of `import * as path from 'path'`).
+
+# Testing Standards
+
+- NEVER use manual HTML strings in test files. They get out of sync with templates and are worse than no test at all.
+- Always use Astro's Container API to create fixtures from actual .astro templates.
+- Reference the working example in src/components/Test/container.astro and its test file.
+- Use experimental_AstroContainer.create() to instantiate the container.
+- Use container.renderToString(Component) to get rendered HTML from actual Astro components.
+- For DOM unit testing with Container API: use `// @vitest-environment happy-dom` for better DOM compatibility than jsdom or node.
+- Configure Vitest with getViteConfig() from 'astro/config' to support Astro Container API.
+- Test files should follow a client.spec.ts naming pattern or similar.
+- Use `// @vitest-environment happy-dom` as the first line of test files that need DOM support with Container API. Never include Vitest directives inside JSDoc comments.
+- happy-dom provides proper document, window, and localStorage globals without manual mocking.
+- JavaScript loading warnings from happy-dom are silenced in vitest.setup.ts for clean test output.
+- A working example test using the Container API is available at /home/kevin/Repos/Webstack Builders/Corporate Website/astro.webstackbuilders.com/src/components/Test/container.spec.ts
 
 # Personality
 - Do not apologize

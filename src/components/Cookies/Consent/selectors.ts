@@ -1,12 +1,12 @@
 /**
- * Getters for the cookie consent modal
+ * Selectors for the cookie consent modal elements
  */
-import { isAnchorElement, isButtonElement, isDivElement } from "@lib/utils/assertions/elements"
-import { ClientScriptError } from "@components/Scripts/errors/ClientScriptError"
+import { isAnchorElement, isButtonElement, isDivElement } from '@lib/utils/assertions/elements'
+import { ClientScriptError } from '@components/Scripts/errors/ClientScriptError'
 
 /** Gets the HTMLDivElement wrapping the cookie consent modal */
 export const getCookieConsentWrapper = () => {
-  const wrapper = document.getElementById(`cookie-modal-id`)
+  const wrapper = document.getElementById('cookie-modal-id')
   if (!isDivElement(wrapper)) {
     throw new ClientScriptError(`Cookie consent modal wrapper with id 'cookie-modal-id' not found`)
   }
@@ -14,7 +14,7 @@ export const getCookieConsentWrapper = () => {
 }
 
 export const getCookieConsentCloseBtn = () => {
-  const closeBtn = document.querySelector(`.cookie-modal__close-btn`)
+  const closeBtn = document.querySelector('.cookie-modal__close-btn')
   if (!isButtonElement(closeBtn)) {
     throw new ClientScriptError(
       `Cookie consent close button with class 'cookie-modal__close-btn' not found`
@@ -24,8 +24,8 @@ export const getCookieConsentCloseBtn = () => {
 }
 
 export const getCookieConsentAllowLink = () => {
-  const allowLink = document.querySelector(`.cookie-modal__link-allow`)
-  if (!isAnchorElement(allowLink)) {
+  const allowLink = document.querySelector('.cookie-modal__link-allow')
+  if (!isButtonElement(allowLink)) {
     throw new ClientScriptError(
       `Cookie consent 'Allow All' link with class 'cookie-modal__link-allow' not found`
     )
@@ -34,7 +34,7 @@ export const getCookieConsentAllowLink = () => {
 }
 
 export const getCookieConsentAllowBtn = () => {
-  const allowBtn = document.querySelector(`.cookie-modal__btn-allow`)
+  const allowBtn = document.querySelector('.cookie-modal__btn-allow')
   if (!isButtonElement(allowBtn)) {
     throw new ClientScriptError(
       `Cookie consent 'Allow All' button with class 'cookie-modal__btn-allow' not found`
@@ -44,7 +44,7 @@ export const getCookieConsentAllowBtn = () => {
 }
 
 export const getCookieConsentCustomizeLink = () => {
-  const customizeLink = document.querySelector(`.cookie-modal__link-customize`)
+  const customizeLink = document.querySelector('.cookie-modal__link-customize')
   if (!isAnchorElement(customizeLink)) {
     throw new ClientScriptError(
       `Cookie consent 'Customize' link with class 'cookie-modal__link-customize' not found`
@@ -54,7 +54,7 @@ export const getCookieConsentCustomizeLink = () => {
 }
 
 export const getCookieConsentCustomizeBtn = () => {
-  const customizeBtn = document.querySelector(`.cookie-modal__btn-customize`)
+  const customizeBtn = document.querySelector('.cookie-modal__btn-customize')
   if (!isButtonElement(customizeBtn)) {
     throw new ClientScriptError(
       `Cookie consent 'Customize' button with class 'cookie-modal__btn-customize' not found`

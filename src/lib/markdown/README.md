@@ -23,13 +23,23 @@ This approach passes unique identifiers to each script instance, ensuring no con
 
 Uses a single LoadableScript that automatically discovers all carousel elements on the page using data-carousel attributes
 
-1. Refactor  to use the new /home/kevin/Repos/Webstack Builders/Corporate Website/astro.webstackbuilders.com/src/components/Scripts/loader setup.
+1. Refactor the Cookies Consent component to use the new /home/kevin/Repos/Webstack Builders/Corporate Website/astro.webstackbuilders.com/src/components/Scripts/loader setup.
 2. Use Option 1 Instance-Specific LoadableScript singleton approach like the Navigation component.
 3. Use a single class that extends LoadableScript. Refactor any existing functions into class methods.
+4. The file containing the export that is imported in the component's .astro template should be named client.ts - rename it if necessary and delete the old file.
+5. Make sure unit tests pass.
+6. Fix any TypeScript errors except for JSX errors in node_modules files and path errors like @lib
 
-1. Refactor  to use the new /home/kevin/Repos/Webstack Builders/Corporate Website/astro.webstackbuilders.com/src/components/Scripts/loader setup.
+1. Refactor  component to use the new /home/kevin/Repos/Webstack Builders/Corporate Website/astro.webstackbuilders.com/src/components/Scripts/loader setup.
 2. Use Option 2 Auto-Discovery Pattern approach like the Carousel component.
 3. Use a Manager class that extends LoadableScript, and an Instance class. Refactor any existing functions into class methods.
+4. The file containing the export that is imported in the component's .astro template should be named client.ts - rename it if necessary and delete the old file.
+5. Make sure unit tests pass.
+6. Fix any TypeScript errors except for JSX errors in node_modules files and path errors like @lib
+
+The JSDOM approach would likely cause the same esbuild TextEncoder invariant issues we encountered earlier. Let me look at how we can test this differently.
+
+Remove jsdom from package.json
 
 Ask GPT 5.0:
 

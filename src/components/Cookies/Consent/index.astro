@@ -16,7 +16,7 @@ import CookieSvg from "@assets/images/site/cookie.svg"
   <button
     type="button"
     aria-label="close cookie consent dialog"
-    class="bg-transparent border-0 text-[var(--color-primary)] outline-none absolute right-0 top-0 hover:text-[var(--color-success-offset)] focus:text-[var(--color-success-offset)]"
+    class="cookie-modal__close-btn bg-transparent border-0 text-[var(--color-primary)] outline-none absolute right-0 top-0 hover:text-[var(--color-success-offset)] focus:text-[var(--color-success-offset)]"
   >
     <Sprite name="close" />
   </button>
@@ -33,7 +33,7 @@ import CookieSvg from "@assets/images/site/cookie.svg"
         text="Allow All"
         variant="success"
         type="button"
-        class="border-0"
+        class="cookie-modal__btn-allow border-0"
       />
     </li>
     <li class="w-6"></li>
@@ -42,6 +42,7 @@ import CookieSvg from "@assets/images/site/cookie.svg"
         <Button
           text="Customize"
           variant="warning"
+          class="cookie-modal__btn-customize"
         />
       </a>
     </li>
@@ -49,7 +50,7 @@ import CookieSvg from "@assets/images/site/cookie.svg"
 </div>
 
 <script>
-  import { addDelayedExecutionScripts } from "@components/Scripts/delayedLoader"
-  import { showCookieConsentModal } from "./handlers"
-  addDelayedExecutionScripts([showCookieConsentModal])
+  import { registerScript } from "@components/Scripts/loader"
+  import { CookieConsent } from "./client"
+  registerScript(CookieConsent)
 </script>
