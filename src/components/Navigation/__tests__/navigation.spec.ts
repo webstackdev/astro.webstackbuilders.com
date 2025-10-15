@@ -4,7 +4,7 @@
  */
 import { beforeAll, describe, expect, test, vi } from "vitest"
 import { getNavToggleBtnElement } from "../selectors"
-import { Navigation, setupNavigation } from "../navigation"
+import { Navigation, setupNavigation, NavigationScript } from "../navigation"
 import { setupNavigationDOM } from "./testHelper"
 
 // Mock focus-trap to work in jsdom environment
@@ -19,6 +19,13 @@ vi.mock('focus-trap', () => {
       active: false,
       paused: false,
     }),
+  }
+})
+
+// Mock Astro transitions client
+vi.mock('astro:transitions/client', () => {
+  return {
+    navigate: vi.fn().mockResolvedValue(undefined),
   }
 })
 
@@ -131,5 +138,28 @@ describe(`Toggle button works`, () => {
     button.focus()
     button.click() // Enter triggers click on type="button"
     expect(sut.isMenuOpen).toBeFalsy()
+  })
+})
+
+describe('NavigationScript LoadableScript implementation', () => {
+  test('should return correct event type', () => {
+    const navigationScript = new NavigationScript()
+    expect(navigationScript.getEventType()).toBe('astro:page-load')
+  })
+
+  test('should initialize navigation when init is called', () => {
+    setupNavigationDOM()
+    const navigationScript = new NavigationScript()
+
+    // This should not throw
+    expect(() => navigationScript.init()).not.toThrow()
+  })
+
+  test('should have pause and resume methods', () => {
+    const navigationScript = new NavigationScript()
+
+    // These methods should exist and not throw
+    expect(() => navigationScript.pause()).not.toThrow()
+    expect(() => navigationScript.resume()).not.toThrow()
   })
 })

@@ -118,8 +118,9 @@ const activeMenuItem = (url: string) => {
   </ul>
 </nav>
 <script>
-  import { addDelayedExecutionScripts } from '@components/Scripts/delayedLoader'
-  import { setupNavigation } from './navigation'
+  import { registerScript } from '@components/Scripts/loader'
+  import { NavigationScript } from './navigation'
 
-  addDelayedExecutionScripts([setupNavigation])
+  // Register navigation script to initialize with Astro View Transitions
+  registerScript(new NavigationScript())
 </script>

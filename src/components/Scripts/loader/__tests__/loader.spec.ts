@@ -9,33 +9,37 @@ import {
   userInteractionEvents,
   autoLoadDuration,
 } from '../index'
-import type { LoadableScript, TriggerEvent } from '../@types/loader'
+import type { TriggerEvent } from '../@types/loader'
 
-// Mock LoadableScript implementation for testing
-class MockLoadableScript implements LoadableScript {
-  public paused = false
-  public executed = false
+/**
+ * Helper function to create mock LoadableScript classes for testing
+ */
+function createMockScript(eventType: TriggerEvent, name = 'MockScript') {
+  return class {
+    static name = name
+    static eventType = eventType
+    static paused = false
+    static executed = false
+    static mockInit = vi.fn()
 
-  constructor(
-    private _eventType: TriggerEvent,
-    private _mockInit = vi.fn()
-  ) {}
+    static init(): void {
+      this.executed = true
+      this.mockInit()
+    }
 
-  init(): void {
-    this.executed = true
-    this._mockInit()
-  }
+    static pause(): void {
+      this.paused = true
+    }
 
-  getEventType(): TriggerEvent {
-    return this._eventType
-  }
+    static resume(): void {
+      this.paused = false
+    }
 
-  pause(): void {
-    this.paused = true
-  }
-
-  resume(): void {
-    this.paused = false
+    static reset(): void {
+      this.paused = false
+      this.executed = false
+      this.mockInit.mockClear()
+    }
   }
 }
 
@@ -51,8 +55,7 @@ describe('Generic Script Loader', () => {
 
   describe('registerScript with LoadableScript interface', () => {
     it('should register and execute delayed scripts after timeout', async () => {
-      const mockInit = vi.fn()
-      const script = new MockLoadableScript('delayed', mockInit)
+      const DelayedScript = createMockScript('delayed', 'DelayedScript')
 
       // Mock setTimeout and clearTimeout
       const mockSetTimeout = vi.spyOn(global, 'setTimeout')
@@ -63,168 +66,160 @@ describe('Generic Script Loader', () => {
         return 1 as unknown as NodeJS.Timeout
       })
 
-      registerScript(script)
+      registerScript(DelayedScript)
 
       expect(mockSetTimeout).toHaveBeenCalledWith(expect.any(Function), autoLoadDuration)
-      expect(mockInit).toHaveBeenCalled()
-      expect(script.executed).toBe(true)
+      expect(DelayedScript.mockInit).toHaveBeenCalled()
+      expect(DelayedScript.executed).toBe(true)
 
       mockSetTimeout.mockRestore()
       mockClearTimeout.mockRestore()
     })
 
     it('should execute delayed scripts on user interaction', () => {
-      const mockInit = vi.fn()
-      const script = new MockLoadableScript('delayed', mockInit)
+      const DelayedScript = createMockScript('delayed', 'DelayedScript')
 
-      registerScript(script)
+      registerScript(DelayedScript)
 
       // Simulate user interaction
       document.dispatchEvent(new KeyboardEvent('keydown'))
 
-      expect(mockInit).toHaveBeenCalled()
-      expect(script.executed).toBe(true)
+      expect(DelayedScript.mockInit).toHaveBeenCalled()
+      expect(DelayedScript.executed).toBe(true)
     })
 
     it('should handle Astro View Transition events', () => {
-      const mockInit = vi.fn()
-      const script = new MockLoadableScript('astro:before-preparation', mockInit)
+      const BeforePrepScript = createMockScript('astro:before-preparation', 'BeforePrepScript')
 
-      registerScript(script)
+      registerScript(BeforePrepScript)
 
       // Script should not execute immediately
-      expect(mockInit).not.toHaveBeenCalled()
+      expect(BeforePrepScript.mockInit).not.toHaveBeenCalled()
 
       // Simulate Astro view transition event
       document.dispatchEvent(new Event('astro:before-preparation'))
-      expect(mockInit).toHaveBeenCalled()
+      expect(BeforePrepScript.mockInit).toHaveBeenCalled()
     })
 
     it('should handle Astro lifecycle events', () => {
-      const mockInit = vi.fn()
-      const script = new MockLoadableScript('astro:page-load', mockInit)
+      const PageLoadScript = createMockScript('astro:page-load', 'PageLoadScript')
 
-      registerScript(script)
-      expect(mockInit).not.toHaveBeenCalled()
+      registerScript(PageLoadScript)
+
+      // Script should not execute immediately
+      expect(PageLoadScript.mockInit).not.toHaveBeenCalled()
 
       document.dispatchEvent(new Event('astro:page-load'))
-      expect(mockInit).toHaveBeenCalled()
+      expect(PageLoadScript.mockInit).toHaveBeenCalled()
     })
 
     it('should handle multiple event types correctly', () => {
-      const delayedInit = vi.fn()
-      const beforePrepInit = vi.fn()
-      const astroInit = vi.fn()
+      const DelayedScript = createMockScript('delayed', 'DelayedScript')
+      const BeforePrepScript = createMockScript('astro:before-preparation', 'BeforePrepScript')
+      const PageLoadScript = createMockScript('astro:page-load', 'PageLoadScript')
 
-      const delayedScript = new MockLoadableScript('delayed', delayedInit)
-      const beforePrepScript = new MockLoadableScript('astro:before-preparation', beforePrepInit)
-      const astroScript = new MockLoadableScript('astro:page-load', astroInit)
-
-      registerScript(delayedScript)
-      registerScript(beforePrepScript)
-      registerScript(astroScript)
+      registerScript(DelayedScript)
+      registerScript(BeforePrepScript)
+      registerScript(PageLoadScript)
 
       // Trigger user interaction (should only execute delayed script)
       document.dispatchEvent(new KeyboardEvent('keydown'))
-      expect(delayedInit).toHaveBeenCalledTimes(1)
-      expect(beforePrepInit).not.toHaveBeenCalled()
-      expect(astroInit).not.toHaveBeenCalled()
+      expect(DelayedScript.mockInit).toHaveBeenCalledTimes(1)
+      expect(BeforePrepScript.mockInit).not.toHaveBeenCalled()
+      expect(PageLoadScript.mockInit).not.toHaveBeenCalled()
 
-      // Trigger Astro before-preparation event
+      // Trigger before-preparation (should execute beforePrep script)
       document.dispatchEvent(new Event('astro:before-preparation'))
-      expect(beforePrepInit).toHaveBeenCalledTimes(1)
-      expect(astroInit).not.toHaveBeenCalled()
+      expect(BeforePrepScript.mockInit).toHaveBeenCalledTimes(1)
+      expect(PageLoadScript.mockInit).not.toHaveBeenCalled()
 
-      // Trigger Astro page-load event
+      // Trigger page-load (should execute page load script)
       document.dispatchEvent(new Event('astro:page-load'))
-      expect(astroInit).toHaveBeenCalledTimes(1)
+      expect(PageLoadScript.mockInit).toHaveBeenCalledTimes(1)
     })
   })
 
   describe('pause/resume functionality', () => {
     it('should pause executed scripts when page becomes hidden', () => {
-      const script = new MockLoadableScript('astro:page-load')
+      const PageLoadScript = createMockScript('astro:page-load', 'PageLoadScript')
 
-      // Execute script first by triggering its event
-      registerScript(script)
+      registerScript(PageLoadScript)
+
+      // Execute the script first
       document.dispatchEvent(new Event('astro:page-load'))
 
-      expect(script.executed).toBe(true)
+      expect(PageLoadScript.executed).toBe(true)
 
-      // Simulate page becoming hidden
-      Object.defineProperty(document, 'visibilityState', {
-        value: 'hidden',
-        writable: true,
-        configurable: true
-      })
+      // Create a spy to verify pause was called
+      const pauseSpy = vi.spyOn(PageLoadScript, 'pause')
+
+      // Simulate page becoming hidden using visibilityState
+      Object.defineProperty(document, 'visibilityState', { value: 'hidden', writable: true })
       document.dispatchEvent(new Event('visibilitychange'))
 
-      expect(script.paused).toBe(true)
+      expect(pauseSpy).toHaveBeenCalled()
     })
 
     it('should resume executed scripts when page becomes visible', () => {
-      const script = new MockLoadableScript('astro:page-load')
+      const PageLoadScript = createMockScript('astro:page-load', 'PageLoadScript')
 
-      // Execute script first
-      registerScript(script)
+      registerScript(PageLoadScript)
+
+      // Execute the script first
       document.dispatchEvent(new Event('astro:page-load'))
 
-      expect(script.executed).toBe(true)
+      expect(PageLoadScript.executed).toBe(true)
+
+      // Create spies to verify methods were called
+      const pauseSpy = vi.spyOn(PageLoadScript, 'pause')
+      const resumeSpy = vi.spyOn(PageLoadScript, 'resume')
 
       // Pause first
-      Object.defineProperty(document, 'visibilityState', {
-        value: 'hidden',
-        writable: true,
-        configurable: true
-      })
+      Object.defineProperty(document, 'visibilityState', { value: 'hidden', writable: true })
       document.dispatchEvent(new Event('visibilitychange'))
-      expect(script.paused).toBe(true)
+      expect(pauseSpy).toHaveBeenCalled()
 
-      // Resume
-      Object.defineProperty(document, 'visibilityState', {
-        value: 'visible',
-        writable: true,
-        configurable: true
-      })
+      // Then resume
+      Object.defineProperty(document, 'visibilityState', { value: 'visible', writable: true })
       document.dispatchEvent(new Event('visibilitychange'))
-      expect(script.paused).toBe(false)
+
+      expect(resumeSpy).toHaveBeenCalled()
     })
   })
 
   describe('resetDelayedLoader', () => {
     it('should reset the singleton instance', () => {
-      const script1 = new MockLoadableScript('delayed')
-      const script2 = new MockLoadableScript('delayed')
+      const DelayedScript1 = createMockScript('delayed', 'DelayedScript1')
+      const DelayedScript2 = createMockScript('delayed', 'DelayedScript2')
 
-      registerScript(script1)
+      // Register and trigger first script
+      registerScript(DelayedScript1)
+      document.dispatchEvent(new KeyboardEvent('keydown'))
+      expect(DelayedScript1.mockInit).toHaveBeenCalledTimes(1)
+
+      // Reset the loader
       resetDelayedLoader()
-      registerScript(script2)
 
-      // Should not throw any errors
-      expect(() => {
-        document.dispatchEvent(new KeyboardEvent('keydown'))
-      }).not.toThrow()
+      // Register second script after reset
+      registerScript(DelayedScript2)
+      document.dispatchEvent(new KeyboardEvent('keydown'))
+      expect(DelayedScript2.mockInit).toHaveBeenCalledTimes(1)
     })
 
     it('should handle reset when no instance exists', () => {
+      // Should not throw an error
       expect(() => resetDelayedLoader()).not.toThrow()
     })
   })
 
   describe('userInteractionEvents constant', () => {
     it('should contain all expected event types', () => {
-      const expectedEvents = [
-        'keydown',
-        'mousemove',
-        'wheel',
-        'touchmove',
-        'touchstart',
-        'touchend'
-      ]
-
-      expectedEvents.forEach(event => {
-        expect(userInteractionEvents).toContain(event)
-      })
+      expect(userInteractionEvents).toContain('keydown')
+      expect(userInteractionEvents).toContain('mousemove')
+      expect(userInteractionEvents).toContain('wheel')
+      expect(userInteractionEvents).toContain('touchmove')
+      expect(userInteractionEvents).toContain('touchstart')
+      expect(userInteractionEvents).toContain('touchend')
     })
 
     it('should have correct length', () => {

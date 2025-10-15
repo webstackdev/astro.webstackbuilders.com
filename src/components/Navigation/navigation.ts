@@ -1,5 +1,7 @@
 import { createFocusTrap } from 'focus-trap'
 import type { FocusTrap } from 'focus-trap'
+import { navigate } from 'astro:transitions/client'
+import type { LoadableScript, TriggerEvent } from '@components/Scripts/loader/@types/loader'
 import {
   getHeaderElement,
   getMobileSplashElement,
@@ -62,6 +64,33 @@ export class Navigation {
     //  if (event.key === 'Enter') this.toggleMenu()
     //})
     window.addEventListener('resize', this.setTogglePosition)
+
+    // Set up View Transitions navigation for all nav links
+    this.setupViewTransitions()
+  }
+
+  /**
+   * Set up View Transitions navigation using Astro's navigate API
+   */
+  setupViewTransitions() {
+    const navLinks = this.menu.querySelectorAll('a[href]')
+
+    navLinks.forEach((link) => {
+      link.addEventListener('click', (event) => {
+        event.preventDefault()
+        const href = link.getAttribute('href')
+
+        if (href) {
+          // Close mobile menu if it's open before navigating
+          if (this.isMenuOpen) {
+            this.toggleMenu(false)
+          }
+
+          // Use Astro's View Transitions navigation
+          navigate(href)
+        }
+      })
+    })
   }
 
   toggleMenu(force?: boolean) {
@@ -100,4 +129,36 @@ export class Navigation {
 export const setupNavigation = (): void => {
   const navigation = new Navigation()
   navigation.bindEvents()
+}
+
+/**
+ * Navigation script that implements the LoadableScript interface
+ * Uses Astro View Transitions for navigation
+ */
+export class NavigationScript implements LoadableScript {
+  private navigation?: Navigation
+  private static initialized = false
+
+  getEventType(): TriggerEvent {
+    return 'astro:page-load'
+  }
+
+  init(): void {
+    // Prevent multiple navigation instances on the same page
+    if (NavigationScript.initialized) {
+      return
+    }
+
+    NavigationScript.initialized = true
+    this.navigation = new Navigation()
+    this.navigation.bindEvents()
+  }
+
+  pause(): void {
+    // Navigation doesn't need pause functionality
+  }
+
+  resume(): void {
+    // Navigation doesn't need resume functionality
+  }
 }

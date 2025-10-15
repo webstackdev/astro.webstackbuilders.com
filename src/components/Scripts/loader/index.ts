@@ -39,9 +39,9 @@ export type { UserInteractionEvent, TriggerEvent, LoadableScript }
  */
 class Loader {
   private static instance: Loader | null = null
-  private eventQueues: Map<TriggerEvent, Array<LoadableScript>> = new Map()
+  private eventQueues: Map<TriggerEvent, Array<typeof LoadableScript>> = new Map()
   private executedEvents: Set<TriggerEvent> = new Set()
-  private executedScripts: Set<LoadableScript> = new Set()
+  private executedScripts: Set<typeof LoadableScript> = new Set()
   private timeoutID: number | null = null
   private isDelayedInitialized = false
   private isVisibilityListenerInitialized = false
@@ -68,8 +68,8 @@ class Loader {
    * Register a script to be executed when its trigger event occurs
    * @param script - The script to register
    */
-  public registerScript(script: LoadableScript): void {
-    const eventType = script.getEventType()
+  public registerScript(script: typeof LoadableScript): void {
+    const eventType = script.eventType
 
     if (this.executedEvents.has(eventType)) {
       // Event already fired, execute immediately
@@ -165,7 +165,7 @@ class Loader {
           try {
             script.resume()
           } catch (error) {
-            console.error(`Error resuming script ${script.constructor.name}:`, error)
+            console.error(`Error resuming script ${script.name}:`, error)
           }
         })
       } else {
@@ -174,7 +174,7 @@ class Loader {
           try {
             script.pause()
           } catch (error) {
-            console.error(`Error pausing script ${script.constructor.name}:`, error)
+            console.error(`Error pausing script ${script.name}:`, error)
           }
         })
       }
@@ -212,14 +212,14 @@ class Loader {
    * Execute a script with error handling and logging
    * @param script - The script to execute
    */
-  private executeScript(script: LoadableScript): void {
+  private executeScript(script: typeof LoadableScript): void {
     try {
       script.init()
       // Track executed scripts for pause/resume functionality
       this.executedScripts.add(script)
-      console.log(`Script initialized: ${script.constructor.name}`)
+      console.log(`Script initialized: ${script.name}`)
     } catch (error) {
-      console.error(`Error initializing script ${script.constructor.name}:`, error)
+      console.error(`Error initializing script ${script.name}:`, error)
       // TODO: Add Sentry error reporting here
     }
   }
@@ -243,7 +243,7 @@ class Loader {
  * Register a script to be executed when its trigger event occurs
  * @param script - The script to register
  */
-export const registerScript = (script: LoadableScript): void => {
+export const registerScript = (script: typeof LoadableScript): void => {
   const loader = Loader.getInstance()
   loader.registerScript(script)
 }

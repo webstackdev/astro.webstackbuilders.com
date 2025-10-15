@@ -1,0 +1,76 @@
+---
+const { slides = [], autoplay = true, id } = Astro.props
+// Use provided ID or generate one
+const carouselId = id || `carousel-${Math.random().toString(36).substr(2, 9)}`
+---
+
+<div
+  id={carouselId}
+  class="carousel"
+  data-carousel
+  data-autoplay={autoplay}
+>
+  <div class="carousel-viewport">
+    <div class="carousel-container">
+      {slides.map((slide, index) => (
+        <div class="carousel-slide" data-slide-index={index}>
+          {slide}
+        </div>
+      ))}
+    </div>
+  </div>
+  <button class="carousel-prev" data-carousel-prev>Previous</button>
+  <button class="carousel-next" data-carousel-next>Next</button>
+  <div class="carousel-dots" data-carousel-dots></div>
+</div>
+
+<!-- Register the static reference directly - no "new" operator needed -->
+<script>
+  import { registerScript } from '@components/Scripts/loader'
+  import { CarouselManager } from './carousel-variant'
+
+  // Clean registration - just pass the class reference
+  registerScript(CarouselManager)
+</script>
+
+<style>
+  .carousel {
+    position: relative;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .carousel-viewport {
+    overflow: hidden;
+  }
+
+  .carousel-container {
+    display: flex;
+    transition: transform 0.3s ease;
+  }
+
+  .carousel-slide {
+    min-width: 100%;
+    flex-shrink: 0;
+  }
+
+  .carousel-prev,
+  .carousel-next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    padding: 0.5rem;
+    cursor: pointer;
+  }
+
+  .carousel-prev {
+    left: 1rem;
+  }
+
+  .carousel-next {
+    right: 1rem;
+  }
+</style>

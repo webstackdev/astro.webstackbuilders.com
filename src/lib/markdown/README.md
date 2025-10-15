@@ -13,7 +13,44 @@
 * Sprite
 * Testimonials
 
+## Scripts Loader System
+
+Current issues with using multiple instances of a component in the loader:
+
+- **Global Event Listeners**: If each component instance registers global event listeners, you get duplicate handlers
+- **Singleton Conflicts**: Components assuming they're the only instance on the page
+- **ID Conflicts**: Multiple components using the same DOM IDs
+- **Performance**: Redundant script initialization and event binding
+
+Suggested Solutions:
+
+- **Option 1**: Instance-Specific LoadableScript (Recommended)
+
+This approach passes unique identifiers to each script instance, ensuring no conflicts between multiple components. Each carousel component creates its own LoadableScript instance with a unique ID.
+
+- **Option 2**: Auto-Discovery Pattern
+
+Uses a single LoadableScript that automatically discovers all carousel elements on the page using data-carousel attributes
+
 ## Implement Astro View Transitions
+
+- Script re-execution
+
+Bundled module scripts, which are the default scripts in Astro, are only ever executed once. After initial execution they will be ignored, even if the script exists on the new page after a transition.
+
+Unlike bundled module scripts, inline scripts have the potential to be re-executed during a user's visit to a site if they exist on a page that is visited multiple times. Inline scripts might also re-execute when a visitor navigates to a page without the script, and then back to one with the script.
+
+With view transitions, some scripts may no longer re-run after page navigation like they do with full-page browser refreshes. There are several events during client-side routing that you can listen for, and fire events when they occur. You can wrap an existing script in an event listener to ensure it runs at the proper time in the navigation cycle.
+
+The following example wraps a script for a mobile hamburger menu in an event listener for astro:page-load which runs at the end of page navigation to make the menu responsive to being clicked after navigating to a new page:
+
+```tyepscript
+document.addEventListener("astro:page-load", () => {
+  document.querySelector(".hamburger").addEventListener("click", () => {
+    document.querySelector(".nav-links").classList.toggle("expanded")
+  })
+})
+```
 
 - Need to add special handling to Navigation
 

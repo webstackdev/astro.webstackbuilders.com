@@ -1,0 +1,27 @@
+---
+// Generate unique ID for this carousel instance
+const carouselId = `carousel-${Math.random().toString(36).substr(2, 9)}`
+const { slides = [], autoplay = true } = Astro.props
+---
+
+<div id={carouselId} class="carousel" data-carousel>
+  <div class="carousel-viewport">
+    <div class="carousel-container">
+      {slides.map((slide, index) => (
+        <div class="carousel-slide" key={index}>
+          {slide}
+        </div>
+      ))}
+    </div>
+  </div>
+  <button class="carousel-prev" data-carousel-prev>Previous</button>
+  <button class="carousel-next" data-carousel-next>Next</button>
+</div>
+
+<script define:vars={{ carouselId }}>
+  import { registerScript } from '@components/Scripts/loader'
+  import { CarouselScript } from './carousel'
+
+  // Each carousel gets its own script instance with unique ID
+  registerScript(new CarouselScript(carouselId))
+</script>

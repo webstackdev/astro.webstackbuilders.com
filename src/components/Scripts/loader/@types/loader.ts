@@ -15,14 +15,19 @@ export type TriggerEvent =
   | "astro:after-swap"
   | "astro:page-load";
 
-/** Interface for scripts that can be loaded by the Loader */
-export interface LoadableScript {
-  /** Initialize the script */
-  init(): void;
+/** Abstract class for scripts that can be loaded by the Loader */
+export abstract class LoadableScript {
+  /** Name identifier for the script */
+  public static name: string;
   /** The event that should trigger this script's initialization */
-  getEventType(): TriggerEvent;
-  /** Pause script execution (reserved for future use) */
-  pause(): void;
-  /** Resume script execution (reserved for future use) */
-  resume(): void;
+  public static eventType: TriggerEvent;
+
+  /** Initialize the script */
+  public static init(): void { throw new Error("Init method not implemented.") }
+  /** Pause script execution */
+  public static pause(): void { throw new Error("Pause method not implemented.") }
+  /** Resume script execution */
+  public static resume(): void { throw new Error("Resume method not implemented.") }
+  /** Reset script execution for use on SPA page navigation */
+  public static reset(): void { throw new Error("Reset method not implemented.") }
 }
