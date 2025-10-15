@@ -27,18 +27,18 @@ export const SELECTORS = {
 }
 
 /**
- * Getter for the header <span> HTML element that wraps the menu
+ * Getter for the header <header> HTML element
  */
 export const getHeaderElement = (): HTMLElement => {
   const header = document.querySelector(SELECTORS.header)
   if (!isHeaderElement(header)) {
     throw new Error(`Site main <header> is missing in document, selector: ${SELECTORS.header}`)
   }
-  return header
+  return header as HTMLElement
 }
 
 /**
- * Getter for the header <span> HTML element that wraps the menu
+ * Getter for the mobile splash <div> HTML element
  */
 export const getMobileSplashElement = (): HTMLDivElement => {
   const splash = document.querySelector(SELECTORS.splash)
@@ -47,11 +47,11 @@ export const getMobileSplashElement = (): HTMLDivElement => {
       `Mobile nav splash <div> is missing in document, selector: ${SELECTORS.splash}`
     )
   }
-  return splash
+  return splash as HTMLDivElement
 }
 
 /**
- * Getter for the header <span> HTML element that wraps the menu
+ * Getter for the nav wrapper <span> HTML element that wraps the menu
  */
 export const getNavWrapperElement = (): HTMLSpanElement => {
   const navWrapper = document.querySelector(SELECTORS.navWrapper)
@@ -60,7 +60,7 @@ export const getNavWrapperElement = (): HTMLSpanElement => {
       `Main nav menu <span> wrapper is missing in document, selector: ${SELECTORS.navWrapper}`
     )
   }
-  return navWrapper
+  return navWrapper as HTMLSpanElement
 }
 
 /**
@@ -70,9 +70,9 @@ export const getNavMenuElement = (): HTMLUListElement => {
   const navWrapper = getNavWrapperElement()
   const menu = navWrapper.querySelector(SELECTORS.menu)
   if (!isUlElement(menu)) {
-    throw new Error(`<ul> element is missing under <nav> element in document, class: ${SELECTORS.nav}`)
+    throw new Error(`<ul> element is missing under <nav> element in document, class: ${SELECTORS.menu}`)
   }
-  return menu
+  return menu as HTMLUListElement
 }
 
 /**
@@ -83,7 +83,7 @@ export const getNavToggleWrapperElement = (): HTMLSpanElement => {
   if (!isSpanElement(toggleWrapper)) {
     throw new Error(`<span> element with class ${SELECTORS.toggleWrapper} is missing in document`)
   }
-  return toggleWrapper
+  return toggleWrapper as HTMLSpanElement
 }
 
 /**
@@ -95,5 +95,5 @@ export const getNavToggleBtnElement = (): HTMLButtonElement => {
   if (!isButtonElement(toggleBtn)) {
     throw new Error(`<button> element with class ${SELECTORS.toggleBtn} is missing in document`)
   }
-  return toggleBtn
+  return toggleBtn as HTMLButtonElement
 }

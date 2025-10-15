@@ -4,7 +4,7 @@
  */
 import { beforeAll, describe, expect, test, vi } from "vitest"
 import { getNavToggleBtnElement } from "../selectors"
-import { Navigation, setupNavigation, NavigationScript } from "../navigation"
+import { Navigation } from "../navigation"
 import { setupNavigationDOM } from "./testHelper"
 
 // Mock focus-trap to work in jsdom environment
@@ -34,9 +34,9 @@ beforeAll(() => {
 })
 
 describe(`Navigation class works`, () => {
-  test(`Setup initializes`, () => {
+  test(`LoadableScript init initializes`, () => {
     setupNavigationDOM()
-    expect(() => setupNavigation()).not.toThrow()
+    expect(() => Navigation.init()).not.toThrow()
   })
 })
 
@@ -141,25 +141,23 @@ describe(`Toggle button works`, () => {
   })
 })
 
-describe('NavigationScript LoadableScript implementation', () => {
-  test('should return correct event type', () => {
-    const navigationScript = new NavigationScript()
-    expect(navigationScript.getEventType()).toBe('astro:page-load')
+describe('Navigation LoadableScript implementation', () => {
+  test('should have correct static properties', () => {
+    expect(Navigation.scriptName).toBe('Navigation')
+    expect(Navigation.eventType).toBe('astro:page-load')
   })
 
-  test('should initialize navigation when init is called', () => {
+  test('should initialize navigation when static init is called', () => {
     setupNavigationDOM()
-    const navigationScript = new NavigationScript()
 
     // This should not throw
-    expect(() => navigationScript.init()).not.toThrow()
+    expect(() => Navigation.init()).not.toThrow()
   })
 
-  test('should have pause and resume methods', () => {
-    const navigationScript = new NavigationScript()
-
+  test('should have static pause, resume, and reset methods', () => {
     // These methods should exist and not throw
-    expect(() => navigationScript.pause()).not.toThrow()
-    expect(() => navigationScript.resume()).not.toThrow()
+    expect(() => Navigation.pause()).not.toThrow()
+    expect(() => Navigation.resume()).not.toThrow()
+    expect(() => Navigation.reset()).not.toThrow()
   })
 })

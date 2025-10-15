@@ -23,6 +23,14 @@ This approach passes unique identifiers to each script instance, ensuring no con
 
 Uses a single LoadableScript that automatically discovers all carousel elements on the page using data-carousel attributes
 
+1. Refactor  to use the new /home/kevin/Repos/Webstack Builders/Corporate Website/astro.webstackbuilders.com/src/components/Scripts/loader setup.
+2. Use Option 1 Instance-Specific LoadableScript singleton approach like the Navigation component.
+3. Use a single class that extends LoadableScript. Refactor any existing functions into class methods.
+
+1. Refactor  to use the new /home/kevin/Repos/Webstack Builders/Corporate Website/astro.webstackbuilders.com/src/components/Scripts/loader setup.
+2. Use Option 2 Auto-Discovery Pattern approach like the Carousel component.
+3. Use a Manager class that extends LoadableScript, and an Instance class. Refactor any existing functions into class methods.
+
 Ask GPT 5.0:
 
 node_modules/@types/mdx/types.d.ts:47:28 - error TS2503: Cannot find namespace 'JSX'.

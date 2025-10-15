@@ -15,6 +15,8 @@ export default defineConfig({
       '@lib': path.resolve(__dirname, './src/lib'),
       '@styles': path.resolve(__dirname, './src/styles'),
       '@test': path.resolve(__dirname, './test'),
+      'astro:transitions/client': path.resolve(__dirname, './test/__mocks__/astro:transitions/client.ts'),
+      'focus-trap': path.resolve(__dirname, './test/__mocks__/focus-trap.ts'),
     },
   },
   test: {

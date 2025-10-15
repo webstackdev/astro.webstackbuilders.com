@@ -1,7 +1,7 @@
 import { createFocusTrap } from 'focus-trap'
 import type { FocusTrap } from 'focus-trap'
 import { navigate } from 'astro:transitions/client'
-import type { LoadableScript, TriggerEvent } from '@components/Scripts/loader/@types/loader'
+import { LoadableScript, type TriggerEvent } from '../Scripts/loader/@types/loader'
 import {
   getHeaderElement,
   getMobileSplashElement,
@@ -16,7 +16,14 @@ export const CLASSES = {
   // active: `main-nav__item--active`,
 }
 
-export class Navigation {
+/**
+ * Navigation component using LoadableScript pattern with instance-specific approach
+ * Uses Astro View Transitions for navigation
+ */
+export class Navigation extends LoadableScript {
+  static override scriptName = 'Navigation'
+  static override eventType: TriggerEvent = 'astro:page-load'
+
   focusTrap: FocusTrap
   isMenuOpen: boolean
   /** <header> element with id '#header' */
@@ -32,6 +39,7 @@ export class Navigation {
   togglePosition!: DOMRect
 
   constructor() {
+    super()
     this.isMenuOpen = false
     /** Set references to menu elements */
     this.header = getHeaderElement()
@@ -124,41 +132,25 @@ export class Navigation {
       this.focusTrap.deactivate()
     }
   }
-}
 
-export const setupNavigation = (): void => {
-  const navigation = new Navigation()
-  navigation.bindEvents()
-}
-
-/**
- * Navigation script that implements the LoadableScript interface
- * Uses Astro View Transitions for navigation
- */
-export class NavigationScript implements LoadableScript {
-  private navigation?: Navigation
-  private static initialized = false
-
-  getEventType(): TriggerEvent {
-    return 'astro:page-load'
+  /**
+   * LoadableScript static methods
+   */
+  static override init(): void {
+    const navigation = new Navigation()
+    navigation.bindEvents()
   }
 
-  init(): void {
-    // Prevent multiple navigation instances on the same page
-    if (NavigationScript.initialized) {
-      return
-    }
-
-    NavigationScript.initialized = true
-    this.navigation = new Navigation()
-    this.navigation.bindEvents()
+  static override pause(): void {
+    // Navigation doesn't need pause functionality during visibility changes
   }
 
-  pause(): void {
-    // Navigation doesn't need pause functionality
+  static override resume(): void {
+    // Navigation doesn't need resume functionality during visibility changes
   }
 
-  resume(): void {
-    // Navigation doesn't need resume functionality
+  static override reset(): void {
+    // Clean up any global state if needed for View Transitions
+    // Remove any event listeners or reset focus traps if necessary
   }
 }
