@@ -7,7 +7,7 @@ import {
   initCookieModalVisibility,
 } from "../localStorage/consentModal"
 
-const getMockedStoreValue = () => localStorage['__STORE__'][consentModalStateKey]
+const getMockedStoreValue = () => localStorage.getItem(consentModalStateKey)
 
 describe(`local storage getters / setters for visibility work`, () => {
   test(`isVisibilityObject type guard returns true with valid input`, () => {

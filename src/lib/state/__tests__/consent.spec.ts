@@ -32,6 +32,8 @@ describe(`Consent cookies handlers work`, () => {
   })
 
   test(`initializes consent cookies and returns true if not already set`, () => {
+    // Clear all existing cookies first
+    removeConsentCookies()
     const sut = initConsentCookies()
     expect(sut).toBeTruthy()
     expect(document.cookie).toMatch(

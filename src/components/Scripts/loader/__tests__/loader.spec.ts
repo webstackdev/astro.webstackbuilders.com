@@ -17,17 +17,17 @@ class MockLoadableScript implements LoadableScript {
   public executed = false
 
   constructor(
-    private eventType: TriggerEvent,
-    private mockInit = vi.fn()
+    private _eventType: TriggerEvent,
+    private _mockInit = vi.fn()
   ) {}
 
   init(): void {
     this.executed = true
-    this.mockInit()
+    this._mockInit()
   }
 
   getEventType(): TriggerEvent {
-    return this.eventType
+    return this._eventType
   }
 
   pause(): void {
@@ -57,14 +57,14 @@ describe('Generic Script Loader', () => {
       // Mock setTimeout and clearTimeout
       const mockSetTimeout = vi.spyOn(global, 'setTimeout')
       const mockClearTimeout = vi.spyOn(global, 'clearTimeout')
-      
+
       mockSetTimeout.mockImplementation((callback: () => void) => {
         callback()
-        return 1 as any
+        return 1 as unknown as NodeJS.Timeout
       })
 
       registerScript(script)
-      
+
       expect(mockSetTimeout).toHaveBeenCalledWith(expect.any(Function), autoLoadDuration)
       expect(mockInit).toHaveBeenCalled()
       expect(script.executed).toBe(true)
@@ -78,10 +78,10 @@ describe('Generic Script Loader', () => {
       const script = new MockLoadableScript('delayed', mockInit)
 
       registerScript(script)
-      
+
       // Simulate user interaction
       document.dispatchEvent(new KeyboardEvent('keydown'))
-      
+
       expect(mockInit).toHaveBeenCalled()
       expect(script.executed).toBe(true)
     })
@@ -96,7 +96,7 @@ describe('Generic Script Loader', () => {
         writable: true,
         configurable: true
       })
-      
+
       registerScript(script)
 
       // Script should not execute immediately since DOM is still loading
@@ -158,13 +158,13 @@ describe('Generic Script Loader', () => {
   describe('pause/resume functionality', () => {
     it('should pause executed scripts when page becomes hidden', () => {
       const script = new MockLoadableScript('DOMContentLoaded')
-      
+
       // Execute script first by triggering its event
       registerScript(script)
       document.dispatchEvent(new Event('DOMContentLoaded'))
-      
+
       expect(script.executed).toBe(true)
-      
+
       // Simulate page becoming hidden
       Object.defineProperty(document, 'visibilityState', {
         value: 'hidden',
@@ -178,16 +178,16 @@ describe('Generic Script Loader', () => {
 
     it('should resume executed scripts when page becomes visible', () => {
       const script = new MockLoadableScript('DOMContentLoaded')
-      
+
       // Execute script first
       registerScript(script)
       document.dispatchEvent(new Event('DOMContentLoaded'))
-      
+
       expect(script.executed).toBe(true)
-      
+
       // Pause first
       Object.defineProperty(document, 'visibilityState', {
-        value: 'hidden', 
+        value: 'hidden',
         writable: true,
         configurable: true
       })
@@ -229,7 +229,7 @@ describe('Generic Script Loader', () => {
     it('should contain all expected event types', () => {
       const expectedEvents = [
         'keydown',
-        'mousemove', 
+        'mousemove',
         'wheel',
         'touchmove',
         'touchstart',
