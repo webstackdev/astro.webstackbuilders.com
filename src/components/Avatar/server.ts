@@ -55,7 +55,8 @@ class AvatarManagerClass {
       const filename = path.split('/').pop()?.replace(/\.(webp|jpg|png)$/i, '')
 
       if (filename && imageData) {
-        map[filename] = imageData
+        // Deep freeze the image metadata to prevent modifications
+        map[filename] = Object.freeze({ ...imageData })
       } else if (process.env['NODE_ENV'] === 'development') {
         console.warn(`[AvatarManager] Failed to process avatar at path: ${path}`)
       }
