@@ -24,7 +24,7 @@ describe('Message Validation', () => {
     mockSelector = {
       messageInputElement: messageInput,
       messageValidationError: errorContainer,
-    } as ContactFormSelectors
+    } as unknown as ContactFormSelectors
   })
 
   describe('initMssgLengthHandler', () => {
