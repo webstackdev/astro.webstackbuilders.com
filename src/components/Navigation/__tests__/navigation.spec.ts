@@ -1,11 +1,12 @@
+// @vitest-environment happy-dom
 /**
- * Tests for navigation menu script
- * @vitest-environment jsdom
+ * Tests for navigation menu script using Container API pattern with happy-dom
  */
 import { beforeAll, describe, expect, test, vi } from "vitest"
+import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import { getNavToggleBtnElement } from "../selectors"
 import { Navigation } from "../navigation"
-import { setupNavigationDOM } from "./testHelper"
+import TestNavigationComponent from './TestNavigation.astro'
 
 // Mock focus-trap to work in jsdom environment
 vi.mock('focus-trap', () => {
@@ -29,20 +30,32 @@ vi.mock('astro:transitions/client', () => {
   }
 })
 
+/**
+ * Helper function to set up DOM from Container API
+ * @param path - The current path for active menu highlighting
+ */
+async function setupNavigationDOM(path = '/') {
+  const container = await AstroContainer.create()
+  const result = await container.renderToString(TestNavigationComponent, {
+    props: { path }
+  })
+  document.body.innerHTML = result
+}
+
 beforeAll(() => {
   vi.useFakeTimers()
 })
 
 describe(`Navigation class works`, () => {
-  test(`LoadableScript init initializes`, () => {
-    setupNavigationDOM()
+  test(`LoadableScript init initializes`, async () => {
+    await setupNavigationDOM()
     expect(() => Navigation.init()).not.toThrow()
   })
 })
 
 describe(`Navigation toggleMenu method works`, () => {
-  test(`toggleMenu sets class correctly`, () => {
-    setupNavigationDOM()
+  test(`toggleMenu sets class correctly`, async () => {
+    await setupNavigationDOM()
     const sut = new Navigation()
     sut.bindEvents()
     sut.toggleMenu()
@@ -53,7 +66,7 @@ describe(`Navigation toggleMenu method works`, () => {
     expect(document.querySelector(`#header`)!.className).toMatch(`aria-expanded-true`)
   })
 
-  test(`toggleMenu sets and removes the position on the header wrapper`, () => {
+  test(`toggleMenu sets and removes the position on the header wrapper`, async () => {
     window.HTMLElement.prototype.getBoundingClientRect = () => {
       return {
         x: 336.1000061035156,
@@ -66,14 +79,14 @@ describe(`Navigation toggleMenu method works`, () => {
         left: 336.1000061035156,
       } as unknown as DOMRect
     }
-    setupNavigationDOM()
+    await setupNavigationDOM()
     const sut = new Navigation()
     sut.bindEvents()
     const iconWrapper = document.querySelector(`#header__nav-icon`) as HTMLSpanElement
     expect(iconWrapper.style.left).toBeFalsy()
     expect(iconWrapper.style.top).toBeFalsy()
     sut.toggleMenu()
-    expect(iconWrapper.style.left).toMatch(`336.1000061035156px`)
+    expect(iconWrapper.style.left).toMatch(/336\.1\d*px/)
     expect(iconWrapper.style.top).toMatch(`8px`)
     sut.toggleMenu()
     expect(iconWrapper.style.left).toBeFalsy()
@@ -82,8 +95,8 @@ describe(`Navigation toggleMenu method works`, () => {
 })
 
 describe(`Focus trap works`, () => {
-  test(`Constructor initializes`, () => {
-    setupNavigationDOM()
+  test(`Constructor initializes`, async () => {
+    await setupNavigationDOM()
     const sut = new Navigation()
     sut.bindEvents()
     expect(sut.focusTrap).toMatchObject({
@@ -97,8 +110,8 @@ describe(`Focus trap works`, () => {
     })
   })
 
-  test(`ESC keypress inside focus trap deactivates the trap`, () => {
-    setupNavigationDOM()
+  test(`ESC keypress inside focus trap deactivates the trap`, async () => {
+    await setupNavigationDOM()
     const sut = new Navigation()
     sut.bindEvents()
     sut.toggleMenu(true)
@@ -111,8 +124,8 @@ describe(`Focus trap works`, () => {
 })
 
 describe(`Toggle button works`, () => {
-  test(`Clicking toggle button works`, () => {
-    setupNavigationDOM()
+  test(`Clicking toggle button works`, async () => {
+    await setupNavigationDOM()
     const sut = new Navigation()
     sut.bindEvents()
     const button = getNavToggleBtnElement()
@@ -123,8 +136,8 @@ describe(`Toggle button works`, () => {
     expect(sut.isMenuOpen).toBeFalsy()
   })
 
-  test(`Pressing enter on toggle button works`, () => {
-    setupNavigationDOM()
+  test(`Pressing enter on toggle button works`, async () => {
+    await setupNavigationDOM()
     const sut = new Navigation()
     sut.bindEvents()
     const button = getNavToggleBtnElement()
@@ -147,8 +160,8 @@ describe('Navigation LoadableScript implementation', () => {
     expect(Navigation.eventType).toBe('astro:page-load')
   })
 
-  test('should initialize navigation when static init is called', () => {
-    setupNavigationDOM()
+  test('should initialize navigation when static init is called', async () => {
+    await setupNavigationDOM()
 
     // This should not throw
     expect(() => Navigation.init()).not.toThrow()

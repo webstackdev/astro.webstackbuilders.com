@@ -1,8 +1,9 @@
+// @vitest-environment happy-dom
 /**
- * Tests for HTML element selectors
- * @vitest-environment jsdom
+ * Tests for HTML element selectors using Container API pattern with happy-dom
  */
 import { describe, expect, test } from "vitest"
+import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import {
   isButtonElement,
   isDivElement,
@@ -18,11 +19,23 @@ import {
   getNavToggleWrapperElement,
   getNavWrapperElement,
 } from "../selectors"
-import { setupNavigationDOM } from "./testHelper"
+import TestNavigationComponent from './TestNavigation.astro'
+
+/**
+ * Helper function to set up DOM from Container API
+ * @param path - The current path for active menu highlighting
+ */
+async function setupNavigationDOM(path = '/') {
+  const container = await AstroContainer.create()
+  const result = await container.renderToString(TestNavigationComponent, {
+    props: { path }
+  })
+  document.body.innerHTML = result
+}
 
 describe('getHeaderElement selector works', () => {
   test(' works with element in DOM', async () => {
-    setupNavigationDOM()
+    await setupNavigationDOM()
     const sut = isHeaderElement(getHeaderElement())
     expect(sut).toBeTruthy()
   })
@@ -35,7 +48,7 @@ describe('getHeaderElement selector works', () => {
 
 describe('getMobileSplashElement selector works', () => {
   test(' works with element in DOM', async () => {
-    setupNavigationDOM()
+    await setupNavigationDOM()
     const sut = isDivElement(getMobileSplashElement())
     expect(sut).toBeTruthy()
   })
@@ -48,7 +61,7 @@ describe('getMobileSplashElement selector works', () => {
 
 describe('getNavWrapperElement selector works', () => {
   test(' works with element in DOM', async () => {
-    setupNavigationDOM()
+    await setupNavigationDOM()
     const sut = isSpanElement(getNavWrapperElement())
     expect(sut).toBeTruthy()
   })
@@ -61,7 +74,7 @@ describe('getNavWrapperElement selector works', () => {
 
 describe('getNavMenuElement selector works', () => {
   test('getNavElement works with element in DOM', async () => {
-    setupNavigationDOM()
+    await setupNavigationDOM()
     const sut = getNavMenuElement()
     expect(isUlElement(sut)).toBeTruthy()
   })
@@ -74,7 +87,7 @@ describe('getNavMenuElement selector works', () => {
 
 describe('getNavToggleWrapperElement selector works', () => {
   test('getNavToggleWrapperElement works with element in DOM', async () => {
-    setupNavigationDOM()
+    await setupNavigationDOM()
     const sut = getNavToggleWrapperElement()
     expect(isSpanElement(sut)).toBeTruthy()
   })
@@ -87,7 +100,7 @@ describe('getNavToggleWrapperElement selector works', () => {
 
 describe('getNavToggleBtnElement selector works', () => {
   test('getNavToggleBtnElement works with element in DOM', async () => {
-    setupNavigationDOM()
+    await setupNavigationDOM()
     const sut = getNavToggleBtnElement()
     expect(isButtonElement(sut)).toBeTruthy()
   })
