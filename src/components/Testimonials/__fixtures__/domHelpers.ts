@@ -1,46 +1,9 @@
 /**
- * Test helper utilities for setting up Testimonials carousel DOM in tests
+ * DOM utilities for testimonials component testing
  * Creates minimal DOM structure needed for testing testimonials carousel JavaScript behavior
  */
 
-interface TestimonialData {
-  id: string
-  content: string
-  author: string
-  role: string
-  company?: string
-  avatar?: string
-}
-
-/**
- * Mock testimonial data for testing
- */
-const mockTestimonials: TestimonialData[] = [
-  {
-    id: 'testimonial-1',
-    content: 'Outstanding work on our website redesign. The team delivered beyond expectations.',
-    author: 'Sarah Johnson',
-    role: 'CEO',
-    company: 'Tech Innovations Inc.',
-    avatar: '/avatars/sarah.jpg',
-  },
-  {
-    id: 'testimonial-2',
-    content: 'Professional, reliable, and creative. They transformed our digital presence.',
-    author: 'Mike Chen',
-    role: 'Marketing Director',
-    company: 'Growth Solutions',
-    avatar: '/avatars/mike.jpg',
-  },
-  {
-    id: 'testimonial-3',
-    content: 'Exceptional quality and attention to detail. Highly recommended for any project.',
-    author: 'Emma Rodriguez',
-    role: 'Founder',
-    company: 'Creative Studio',
-    avatar: '/avatars/emma.jpg',
-  },
-]
+import { mockTestimonials, type TestimonialData } from './mockData'
 
 /**
  * Generates a single testimonial card HTML
@@ -133,11 +96,6 @@ export function setupTestimonialsCarouselDOM(): void {
 export function cleanupTestimonialsCarouselDOM(): void {
   document.body.innerHTML = ''
 }
-
-/**
- * Get mock testimonials data for testing
- */
-export { mockTestimonials }
 
 /**
  * Helper to get specific DOM elements for testing
