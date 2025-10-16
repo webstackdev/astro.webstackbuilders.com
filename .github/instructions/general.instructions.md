@@ -29,6 +29,7 @@ applyTo: "**"
 - For DOM unit testing with Container API: use `// @vitest-environment happy-dom` for better DOM compatibility than jsdom or node.
 - Configure Vitest with getViteConfig() from 'astro/config' to support Astro Container API.
 - Test files should follow a client.spec.ts naming pattern or similar.
+- Fixture files should follow a componentName.fixture.ts naming pattern (e.g., newsletter.fixture.ts).
 - Use `// @vitest-environment happy-dom` as the first line of test files that need DOM support with Container API. Never include Vitest directives inside JSDoc comments.
 - happy-dom provides proper document, window, and localStorage globals without manual mocking.
 - JavaScript loading warnings from happy-dom are silenced in vitest.setup.ts for clean test output.
