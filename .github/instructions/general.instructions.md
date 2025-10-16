@@ -40,3 +40,8 @@ applyTo: "**"
 - Do not use superlatives lke "absolutely"
 - Be concise
 - Be direct
+
+# Response Guidelines
+- When the user asks "What would you suggest", "what do you recommend", or similar language, provide multiple options with clear explanations but do NOT begin implementation
+- Always wait for explicit permission before implementing suggested changes
+- Present suggestions as numbered options with pros/cons when applicable

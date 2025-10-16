@@ -4,9 +4,9 @@
 
 * Avatar
 * Callout
-* CallToActions/Contact
-* CallToActions/Featured
-* CallToActions/Newsletter
+* CallToAction/Contact
+* CallToAction/Featured
+* CallToAction/Newsletter
 * Carousel with choice of collection to display and filters
 * Social/Share
 * Social/Embed
@@ -31,17 +31,17 @@ Uses a single LoadableScript that automatically discovers all carousel elements 
 6. Fix any TypeScript errors except for JSX errors in node_modules files and path errors like @lib
 7. Unit tests should be in a __tests__ directory in the component folder. Fixtures should be in a __fixtures__ directory in the component folder.
 
-1. Refactor the Avatar component to use the new /home/kevin/Repos/Webstack Builders/Corporate Website/astro.webstackbuilders.com/src/components/Scripts/loader setup.
+1. Refactor the Newsletter component to use the new /home/kevin/Repos/Webstack Builders/Corporate Website/astro.webstackbuilders.com/src/components/Scripts/loader setup.
 2. Use Option 2 Auto-Discovery Pattern approach like the Carousel component.
 3. Use a Manager class that extends LoadableScript, and an Instance class. Refactor any existing functions into class methods.
 4. The file containing the export that is imported in the component's .astro template should be named client.ts - rename it if necessary and delete the old file.
 5. Make sure unit tests pass.
 6. Fix any TypeScript errors except for JSX errors in node_modules files and path errors like @lib
+7. Unit tests should be in a __tests__ directory in the component folder. Fixtures should be in a __fixtures__ directory in the component folder.
 
-
-The JSDOM approach would likely cause the same esbuild TextEncoder invariant issues we encountered earlier. Let me look at how we can test this differently.
-
-Remove jsdom from package.json
+ ❯ src/lib/markdown/__tests__/plugin-order-test.spec.ts 4/4
+stderr | src/lib/markdown/__tests__/e2e/markdown-rendering.spec.tsx > Layer 4: E2E Markdown Rendering > Emoji Feature > should render emojis with accessibility attributes
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
 
 Ask GPT 5.0:
 

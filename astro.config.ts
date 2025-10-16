@@ -13,6 +13,7 @@ import {
   serviceWorkerConfig,
   vercelConfig,
 } from './src/lib/config'
+import { callToActionValidator } from './src/integrations/CtaValidator/call-to-action-validator'
 
 // Type guard for required environment variables (only in CI)
 const IS_CI = process.env['CI'] === 'true'
@@ -29,6 +30,9 @@ export default defineConfig({
     icon(),
     mdx(markdownConfig),
     preact(),
+    callToActionValidator({
+      debug: true // Enable debug logging to see validation details
+    }),
     // Only include Sentry integration in CI environments
     ...(IS_CI && SENTRY_AUTH_TOKEN ? [sentry({
       project: "webstack-builders-corporate-website",
@@ -45,6 +49,9 @@ export default defineConfig({
       sourcemap: true, // Source map generation must be turned on
     },
     // @ts-expect-error - tailwindcss plugin type compatibility
-    plugins: [tailwindcss()]
+    plugins: [tailwindcss()],
+    // Note: The "astro:transitions sourcemap" warning is cosmetic and can be safely ignored
+    // It occurs because the transitions plugin transforms code without generating sourcemaps
+    // This doesn't affect build functionality, runtime performance, or debugging capabilities
   }
 })
