@@ -23,6 +23,7 @@ describe('Email Validation', () => {
     document.body.appendChild(emailInput)
     document.body.appendChild(errorContainer)
 
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     mockSelector = {
       emailInputElement: emailInput,
       emailValidationError: errorContainer,

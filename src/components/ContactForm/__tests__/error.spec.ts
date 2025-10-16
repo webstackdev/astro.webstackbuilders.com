@@ -156,6 +156,7 @@ describe('Error Messages and Validation', () => {
 
     describe('maxLengthEmailAddressText', () => {
       it('should return message with max length and actual length', () => {
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         const mockInput = {
           maxLength: 100,
           value: 'a'.repeat(110) + '@example.com',
@@ -170,6 +171,7 @@ describe('Error Messages and Validation', () => {
 
     describe('minLengthEmailAddressText', () => {
       it('should return message with min length and actual length', () => {
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         const mockInput = {
           minLength: 5,
           value: 'a@b',

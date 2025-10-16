@@ -22,6 +22,7 @@ describe('Name Validation', () => {
     document.body.appendChild(nameInput)
     document.body.appendChild(errorContainer)
 
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     mockSelector = {
       nameInputElement: nameInput,
       nameValidationError: errorContainer,
