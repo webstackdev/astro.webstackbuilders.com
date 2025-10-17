@@ -7,7 +7,7 @@ import {
   isFormElement,
   isInputElement,
   isLabelElement,
-} from '../../lib/utils/assertions/elements'
+} from '@components/Scripts/assertions/elements'
 
 export const SELECTORS = {
   emailGroup: '.contact__form-email',

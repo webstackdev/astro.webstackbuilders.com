@@ -5,7 +5,7 @@ import {
   isButtonElement,
   isDivElement,
   isSpanElement
-} from '@lib/utils/assertions/elements'
+} from '@components/Scripts/assertions/elements'
 
 export const SELECTORS = {
   /** <span> wrapper for the theme picker toggle button */

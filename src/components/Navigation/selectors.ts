@@ -7,7 +7,7 @@ import {
   isHeaderElement,
   isSpanElement,
   isUlElement,
-} from '@lib/utils/assertions/elements'
+} from '@components/Scripts/assertions/elements'
 
 export const SELECTORS = {
   /** Site main <header> */

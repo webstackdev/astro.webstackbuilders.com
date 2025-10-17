@@ -6,7 +6,7 @@ import {
   isDivElement,
   isHtmlElement,
   isSlotElement,
-} from '../../lib/utils/assertions/elements'
+} from '@components/Scripts/assertions/elements'
 
 
 export const queryDocument = (selector: string): Element => {

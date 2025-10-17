@@ -4,7 +4,7 @@
  */
 
 import { LoadableScript, type TriggerEvent } from '../../Scripts/loader/@types/loader'
-import { isDivElement, isButtonElement } from '@lib/utils/assertions/elements'
+import { isDivElement, isButtonElement } from '@components/Scripts/assertions/elements'
 import { ClientScriptError } from '@components/Scripts/errors/ClientScriptError'
 import { addButtonEventListeners } from '@components/Scripts/elementListeners'
 

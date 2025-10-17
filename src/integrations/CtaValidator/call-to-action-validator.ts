@@ -117,13 +117,15 @@ export function callToActionValidator(options: CallToActionValidatorOptions = {}
   let astroConfig: AstroConfig
   let projectRoot: string
   let callToActionComponents: CallToActionComponent[] = []
+  let commandName: string | undefined
 
   return {
     name: 'call-to-action-validator',
     hooks: {
-      'astro:config:setup': ({ config: cfg, logger }) => {
+      'astro:config:setup': ({ config: cfg, logger, command }) => {
         astroConfig = cfg
         projectRoot = fileURLToPath(cfg.root)
+        commandName = command
 
         if (config.debug) {
           logger.info('CallToAction Validator: Integration initialized')
@@ -140,7 +142,8 @@ export function callToActionValidator(options: CallToActionValidatorOptions = {}
             config.debug
           )
 
-          if (config.debug) {
+          // Only log discovery messages during build commands, not during sync
+          if (config.debug && commandName !== 'sync') {
             logger.info(`CallToAction Validator: Discovered ${callToActionComponents.length} components: ${
               callToActionComponents.map(c => c.name).join(', ')
             }`)
@@ -495,7 +498,9 @@ async function buildContentMapping(projectRoot: string): Promise<Map<string, str
   }
 
   return contentMapping
-}/**
+}
+
+/**
  * Validate individual content entries against their dynamic route templates
  */
 async function validateContentEntries(
