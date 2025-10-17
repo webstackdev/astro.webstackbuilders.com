@@ -16,9 +16,29 @@ export interface Props {
   path: string,
   /** Enforce that child is passed to slot */
   children: any,
+  /** Optional metadata for articles */
+  contentType?: 'article' | 'website',
+  publishDate?: Date,
+  modifiedDate?: Date,
+  author?: string,
+  section?: string,
+  tags?: string[],
+  description?: string,
+  image?: string,
 }
 
-const { pageTitle, path } = Astro.props
+const {
+  pageTitle,
+  path,
+  contentType,
+  publishDate,
+  modifiedDate,
+  author,
+  section,
+  tags,
+  description,
+  image
+} = Astro.props
 ---
 
 <style>
@@ -35,7 +55,18 @@ const { pageTitle, path } = Astro.props
 
 <!DOCTYPE html>
 <html lang="en">
-  <Head pageTitle={pageTitle} path={path} />
+  <Head
+    pageTitle={pageTitle}
+    path={path}
+    {...(contentType && { contentType })}
+    {...(publishDate && { publishDate })}
+    {...(modifiedDate && { modifiedDate })}
+    {...(author && { author })}
+    {...(section && { section })}
+    {...(tags && { tags })}
+    {...(description && { description })}
+    {...(image && { image })}
+  />
   <body>
     <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-1/2 focus:-translate-x-1/2 focus:px-6 focus:py-4 focus:outline-none focus:z-50 focus:bg-blue-600 focus:text-white focus:rounded">skip to main content</a>
     {/* Sets Window Controls Overlay API for PWA title bar */}

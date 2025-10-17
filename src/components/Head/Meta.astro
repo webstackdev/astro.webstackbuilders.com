@@ -10,9 +10,26 @@ export interface Props {
   path: string,
   description?: string,
   image?: string,
+  contentType?: 'article' | 'website',
+  publishDate?: Date,
+  modifiedDate?: Date,
+  author?: string,
+  section?: string,
+  tags?: string[],
 }
 
-const { pageTitle, path, description, image } = Astro.props
+const {
+  pageTitle,
+  path,
+  description,
+  image,
+  contentType,
+  publishDate,
+  modifiedDate,
+  author,
+  section,
+  tags
+} = Astro.props
 
 const defaultTheme = themes.default
 const slug = path.replace(/^\//, '').replace(/\/$/, '') || 'home'
@@ -24,7 +41,15 @@ const slug = path.replace(/^\//, '').replace(/\/$/, '') || 'home'
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="description" content={description || company.description} />
 <meta name="author" content={company.author.name}>
-<Seo path={path} />
+<Seo
+  path={path}
+  {...(contentType && { contentType })}
+  {...(publishDate && { publishDate })}
+  {...(modifiedDate && { modifiedDate })}
+  {...(author && { author })}
+  {...(section && { section })}
+  {...(tags && { tags })}
+/>
 {/* Open Graph meta tags for Twitter and Facebook social shares */}
 <Social
   title={pageTitle}

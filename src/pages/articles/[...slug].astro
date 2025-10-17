@@ -6,7 +6,7 @@ import Carousel from "@components/Carousel/index.astro"
 
 export async function getStaticPaths() {
   const articleEntries = await getCollection('articles', ({ data }) => {
-    return process.env['NODE_ENV'] !== 'production' || data.isDraft !== true;
+    return process.env['NODE_ENV'] !== 'production' || data.isDraft !== true
   })
   return articleEntries.map(article => ({
     params: { slug: article.id }, props: { article },
@@ -15,20 +15,34 @@ export async function getStaticPaths() {
 
 const { article } = Astro.props
 // Use the rendered content directly from the article
-const renderedContent = article.rendered?.html || article.body || 'Content not available';
+const renderedContent = article.rendered?.html || article.body || 'Content not available'
 const path = `/articles/${article.id}/`
 const pageTitle = article.data.title
 const cover = article.data.image
+// Author can be either a resolved entry object with id or a string reference
+const authorId = typeof article.data.author === 'string'
+  ? article.data.author
+  : article.data.author.id
 const meta = {
   date: article.data.publishDate,
-  author: (article.data.author as any).id || String(article.data.author),
+  author: authorId,
   tags: article.data.tags,
   readingTime: article.data.readingTime,
   draft: article.data.isDraft
 }
 ---
 
-<BaseLayout pageTitle={pageTitle} path={path}>
+<BaseLayout
+  pageTitle={pageTitle}
+  path={path}
+  contentType="article"
+  publishDate={article.data.publishDate}
+  author={meta.author}
+  section="Technology"
+  tags={article.data.tags}
+  description={article.data.description}
+  image={cover.src}
+>
   <article
     id="article"
     class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8"
