@@ -2,7 +2,7 @@ import { LoadableScript, type TriggerEvent } from '@components/Scripts/loader/@t
 import { addButtonEventListeners, addLinkEventListeners, addWrapperEventListeners } from '@components/Scripts/elementListeners'
 import { setCookieModalVisibility, initCookieModalVisibility } from '@lib/state/localStorage/consentModal'
 import { initConsentCookies, allowAllConsentCookies } from '@lib/state/cookies/consent'
-import { showCookieCustomizeModal } from '../Customize/handlers'
+import { showCookieCustomizeModal } from '../Customize/client'
 import {
   getCookieConsentAllowBtn,
   getCookieConsentAllowLink,

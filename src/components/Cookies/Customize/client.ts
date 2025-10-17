@@ -1,7 +1,12 @@
 /**
- * Cookie Preferences Management
- * Handles the interactive cookie preference functionality for the cookies page
+ * Cookie Preferences Management using LoadableScript pattern
+ * Handles cookie preference functionality and modal interactions
  */
+
+import { LoadableScript, type TriggerEvent } from '../../Scripts/loader/@types/loader'
+import { isDivElement, isButtonElement } from '@lib/utils/assertions/elements'
+import { ClientScriptError } from '@components/Scripts/errors/ClientScriptError'
+import { addButtonEventListeners } from '@components/Scripts/elementListeners'
 
 export interface CookiePreferences {
   necessary: boolean
@@ -11,31 +16,68 @@ export interface CookiePreferences {
   timestamp: string
 }
 
-export class CookiePreferencesManager {
+/**
+ * Cookie Preferences component using LoadableScript pattern
+ */
+export class CookieCustomize extends LoadableScript {
+  static override scriptName = 'CookieCustomize'
+  static override eventType: TriggerEvent = 'astro:page-load'
+
   private cookiePrefix = 'webstack-'
   private consentCookie = 'cookie-consent'
+  private modal: HTMLDivElement
+  private closeBtn: HTMLButtonElement
+  private allowAllBtn: HTMLButtonElement | null
+  private saveBtn: HTMLButtonElement | null
 
   constructor() {
-    this.init()
+    super()
+    this.modal = this.getCookieCustomizeModal()
+    this.closeBtn = this.getCookieCustomizeCloseBtn()
+    this.allowAllBtn = document.getElementById('cookie-allow-all') as HTMLButtonElement
+    this.saveBtn = document.getElementById('cookie-save-preferences') as HTMLButtonElement
   }
 
-  init(): void {
-    // Load current preferences
-    this.loadPreferences()
-
-    // Set up event listeners
-    this.setupEventListeners()
-  }
-
-  private setupEventListeners(): void {
-    const allowAllBtn = document.getElementById('cookie-allow-all')
-    const saveBtn = document.getElementById('cookie-save-preferences')
-
-    if (allowAllBtn) {
-      allowAllBtn.addEventListener('click', () => this.allowAll())
+  /** Gets the HTMLDivElement wrapping the cookie customize modal */
+  private getCookieCustomizeModal(): HTMLDivElement {
+    const modal = document.getElementById('cookie-customize-modal-id')
+    if (!isDivElement(modal)) {
+      throw new ClientScriptError(`Cookie customize modal with id 'cookie-customize-modal-id' not found`)
     }
-    if (saveBtn) {
-      saveBtn.addEventListener('click', () => this.savePreferences())
+    return modal
+  }
+
+  /** Gets the close button for the cookie customize modal */
+  private getCookieCustomizeCloseBtn(): HTMLButtonElement {
+    const closeBtn = document.querySelector('.cookie-modal__close-btn')
+    if (!isButtonElement(closeBtn)) {
+      throw new ClientScriptError(`Cookie customize close button with class 'cookie-modal__close-btn' not found`)
+    }
+    return closeBtn
+  }
+
+  /** Show the cookie customize modal */
+  showModal(): void {
+    this.modal.style.display = 'flex'
+  }
+
+  /** Hide the cookie customize modal */
+  hideModal = (): void => {
+    this.modal.style.display = 'none'
+  }
+
+  bindEvents(): void {
+    // Close button
+    addButtonEventListeners(this.closeBtn, this.hideModal)
+
+    // Allow all button
+    if (this.allowAllBtn) {
+      this.allowAllBtn.addEventListener('click', () => this.allowAll())
+    }
+
+    // Save preferences button
+    if (this.saveBtn) {
+      this.saveBtn.addEventListener('click', () => this.savePreferences())
     }
   }
 
@@ -114,31 +156,25 @@ export class CookiePreferencesManager {
     // This would integrate with your analytics, functional, and advertising scripts
 
     if (preferences.analytics) {
-      // Enable analytics cookies (e.g., Google Analytics)
       console.log('Analytics cookies enabled')
       this.enableAnalytics()
     } else {
-      // Disable analytics cookies
       console.log('Analytics cookies disabled')
       this.disableAnalytics()
     }
 
     if (preferences.functional) {
-      // Enable functional cookies
       console.log('Functional cookies enabled')
       this.enableFunctional()
     } else {
-      // Disable functional cookies
       console.log('Functional cookies disabled')
       this.disableFunctional()
     }
 
     if (preferences.advertising) {
-      // Enable advertising cookies
       console.log('Advertising cookies enabled')
       this.enableAdvertising()
     } else {
-      // Disable advertising cookies
       console.log('Advertising cookies disabled')
       this.disableAdvertising()
     }
@@ -213,14 +249,36 @@ export class CookiePreferencesManager {
       }, 300)
     }, 3000)
   }
+
+  /**
+   * LoadableScript static methods
+   */
+  static override init(): void {
+    const cookieCustomize = new CookieCustomize()
+    cookieCustomize.bindEvents()
+    cookieCustomize.loadPreferences()
+  }
+
+  static override pause(): void {
+    // Cookie preferences don't need pause functionality
+  }
+
+  static override resume(): void {
+    // Cookie preferences don't need resume functionality
+  }
+
+  static override reset(): void {
+    // Clean up any global state if needed for View Transitions
+  }
 }
 
-// Initialize cookie manager when DOM is loaded
-export const initializeCookiePreferences = (): void => {
-  document.addEventListener('DOMContentLoaded', () => {
-    new CookiePreferencesManager()
-  })
+/**
+ * Helper function to show the cookie customize modal
+ * Used by the CookieConsent component
+ */
+export const showCookieCustomizeModal = (): void => {
+  const modal = document.getElementById('cookie-customize-modal-id') as HTMLDivElement
+  if (modal) {
+    modal.style.display = 'flex'
+  }
 }
-
-// Default export for easy importing
-export default CookiePreferencesManager

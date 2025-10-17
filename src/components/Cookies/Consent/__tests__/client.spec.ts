@@ -24,8 +24,9 @@ vi.mock('@lib/state/cookies/consent', () => ({
   allowAllConsentCookies: vi.fn(),
 }))
 
-vi.mock('@components/Cookies/Customize/handlers', () => ({
+vi.mock('@components/Cookies/Customize/client', () => ({
   showCookieCustomizeModal: vi.fn(),
+  CookieCustomize: class MockCookieCustomize {},
 }))
 
 beforeEach(() => {
@@ -113,7 +114,7 @@ describe('CookieConsent modal functionality', () => {
     const container = await AstroContainer.create()
     const result = await container.renderToString(CookieConsentComponent)
     document.body.innerHTML = result
-    const { showCookieCustomizeModal } = await import('@components/Cookies/Customize/handlers')
+    const { showCookieCustomizeModal } = await import('@components/Cookies/Customize/client')
     const cookieConsent = new CookieConsent()
 
     cookieConsent.handleCustomizeCookies()
@@ -155,7 +156,7 @@ describe('CookieConsent event handling', () => {
     const container = await AstroContainer.create()
     const result = await container.renderToString(CookieConsentComponent)
     document.body.innerHTML = result
-    const { showCookieCustomizeModal } = await import('@components/Cookies/Customize/handlers')
+    const { showCookieCustomizeModal } = await import('@components/Cookies/Customize/client')
     const cookieConsent = new CookieConsent()
     cookieConsent.bindEvents()
 
