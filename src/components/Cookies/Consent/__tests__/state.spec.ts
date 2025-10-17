@@ -5,7 +5,7 @@ import {
   getCookieModalVisibility,
   setCookieModalVisibility,
   initCookieModalVisibility,
-} from "../localStorage/consentModal"
+} from "../state"
 
 const getMockedStoreValue = () => localStorage.getItem(consentModalStateKey)
 

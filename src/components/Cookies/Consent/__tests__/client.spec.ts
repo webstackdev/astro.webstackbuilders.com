@@ -14,12 +14,12 @@ beforeEach(() => {
 })
 
 // Mock the cookie and localStorage modules
-vi.mock('@lib/state/localStorage/consentModal', () => ({
+vi.mock('../state', () => ({
   setCookieModalVisibility: vi.fn(),
   initCookieModalVisibility: vi.fn(),
 }))
 
-vi.mock('@lib/state/cookies/consent', () => ({
+vi.mock('../cookies', () => ({
   initConsentCookies: vi.fn().mockReturnValue(true), // Default to showing modal
   allowAllConsentCookies: vi.fn(),
 }))
@@ -100,7 +100,7 @@ describe('CookieConsent modal functionality', () => {
     const container = await AstroContainer.create()
     const result = await container.renderToString(CookieConsentComponent)
     document.body.innerHTML = result
-    const { allowAllConsentCookies } = await import('@lib/state/cookies/consent')
+    const { allowAllConsentCookies } = await import('../cookies')
     const cookieConsent = new CookieConsent()
     cookieConsent.wrapper.style.display = 'block'
 
@@ -141,7 +141,7 @@ describe('CookieConsent event handling', () => {
     const container = await AstroContainer.create()
     const result = await container.renderToString(CookieConsentComponent)
     document.body.innerHTML = result
-    const { allowAllConsentCookies } = await import('@lib/state/cookies/consent')
+    const { allowAllConsentCookies } = await import('../cookies')
     const cookieConsent = new CookieConsent()
     cookieConsent.wrapper.style.display = 'block'
     cookieConsent.bindEvents()
@@ -171,7 +171,7 @@ describe('CookieConsent showModal logic', () => {
     const container = await AstroContainer.create()
     const result = await container.renderToString(CookieConsentComponent)
     document.body.innerHTML = result
-    const { initConsentCookies } = await import('@lib/state/cookies/consent')
+    const { initConsentCookies } = await import('../cookies')
     vi.mocked(initConsentCookies).mockReturnValue(false) // User already consented
 
     const cookieConsent = new CookieConsent()
@@ -187,7 +187,7 @@ describe('CookieConsent showModal logic', () => {
     const container = await AstroContainer.create()
     const result = await container.renderToString(CookieConsentComponent)
     document.body.innerHTML = result
-    const { initConsentCookies } = await import('@lib/state/cookies/consent')
+    const { initConsentCookies } = await import('../cookies')
     vi.mocked(initConsentCookies).mockReturnValue(true) // User needs to consent
 
     const cookieConsent = new CookieConsent()
@@ -216,7 +216,7 @@ describe('CookieConsent LoadableScript implementation', () => {
     const container = await AstroContainer.create()
     const result = await container.renderToString(CookieConsentComponent)
     document.body.innerHTML = result
-    const { initConsentCookies } = await import('@lib/state/cookies/consent')
+    const { initConsentCookies } = await import('../cookies')
     vi.mocked(initConsentCookies).mockReturnValue(true)
 
     const focusSpy = vi.fn()

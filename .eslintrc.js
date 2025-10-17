@@ -7,6 +7,7 @@ import ymlPlugin from "eslint-plugin-yml"
 import tsPlugin from "typescript-eslint"
 import restrictedGlobals from "confusing-browser-globals"
 
+// eslint-disable-next-line no-undef
 const level = process.env["NODE_ENV"] === "production" ? "error" : "warn"
 
 export default [
@@ -74,10 +75,10 @@ export default [
       'import/no-unresolved': level,
       'import/no-webpack-loader-syntax': level,
       'import/order': 'off',
+      /** eslint-plugin-jsdoc */
       'jsdoc/check-indentation': level,
       'jsdoc/check-line-alignment': level,
       'jsdoc/check-syntax': level,
-      /** eslint-plugin-jsdoc */
       'jsdoc/check-tag-names': [
         level,
         {
@@ -90,6 +91,7 @@ export default [
       'jsdoc/no-bad-blocks': level,
       'jsdoc/no-defaults': level,
       'jsdoc/no-types': 'off',
+      'jsdoc/require-jsdoc': 'off',
       'jsdoc/require-param': 'off',
       'jsdoc/require-param-type': 'off',
       'jsdoc/require-returns': 'off',
@@ -111,7 +113,7 @@ export default [
       'security/detect-object-injection': 'off',
       'security/detect-unsafe-regex': 'off',
       /** Too many false positives from using @TODO and no way to add add'l tags to rule */
-      'tsdoc/syntax': 'off', // tsdoc-characters-after-block-tag
+      'tsdoc/syntax': 'off', // eslint-disable-line jsdoc/escape-inline-tags
     }
   }
 ]

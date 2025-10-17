@@ -2,7 +2,7 @@
 /**
  * State management for cookie consent
  */
-import { getCookie, setCookie, removeCookie } from "./utility"
+import { getCookie, setCookie, removeCookie } from "@components/Scripts/state"
 
 type Preference = `granted` | `refused` | `unknown`
 

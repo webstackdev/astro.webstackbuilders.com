@@ -5,7 +5,7 @@ import {
   prefixConsentCookie,
   removeConsentCookies,
   setConsentCookie,
-} from "../cookies/consent"
+} from "../cookies"
 
 describe(`Consent cookies handlers work`, () => {
   const setAllConsentCookies = () => {

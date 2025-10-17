@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest"
-import { getCookie, setCookie, removeCookie } from "../cookies/utility"
+import { getCookie, setCookie, removeCookie } from "../utility"
 
 const expiresInDays = 60 * 60 * 24 * 180
 
