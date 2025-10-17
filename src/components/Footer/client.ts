@@ -20,7 +20,7 @@ class Footer extends LoadableScript {
     const month = Footer.getMonthName(date)
     const year = date.getFullYear()
     anchor.innerHTML = `Available ${month}, ${year}. Hire Me Now`
-    anchor.style.display = 'block'
+    anchor.style.display = 'inline-block'
   }
 
   static override pause(): void {

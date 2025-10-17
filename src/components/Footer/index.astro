@@ -5,91 +5,10 @@ import contactData from "@content/contact.json"
 import { absoluteUrl, formatPhoneNumber } from "@components/Scripts/helpers"
 import Sprite from "@components/Sprite/index.astro"
 import AuthorAvatar from "../../assets/images/avatars/kevin-brown.webp"
+import './footer.scss'
 
 const year = new Date().getFullYear();
 ---
-
-<style>
-  /* Footer component - global anchor styles */
-  footer a, footer button {
-    color: var(--color-bg);
-    text-decoration: none;
-  }
-
-  /* Hire me anchor animation */
-  .footer-hire-me-anchor::after {
-    content: ">";
-    display: inline-block;
-  }
-
-  @keyframes arrowBounce {
-    100% {
-      transform: translate(1.5em);
-    }
-  }
-
-  .footer-hire-me-anchor:hover::after,
-  .footer-hire-me-anchor:focus::after {
-    animation: arrowBounce 1s alternate;
-  }
-
-  /* Social channel hover effects */
-  .footer-social-channel:hover .footer-social-platform,
-  .footer-social-channel:focus .footer-social-platform {
-    color: var(--color-bg-offset);
-    text-decoration: underline dotted var(--color-bg) 0.15em;
-  }
-
-  .footer-social-channel:hover .footer-social-blurb,
-  .footer-social-channel:focus .footer-social-blurb {
-    color: var(--color-bg-offset);
-  }
-
-  .footer-social-channel:hover .icon,
-  .footer-social-channel:focus .icon {
-    fill: var(--color-bg-offset);
-    stroke: var(--color-bg-offset);
-  }
-
-  /* RSS feed icon hover effect */
-  .footer-feed-icon:hover .icon,
-  .footer-feed-icon:focus .icon {
-    height: 3em;
-    width: 3em;
-  }
-
-  /* Grid areas for responsive layout */
-  @media (min-width: 640px) {
-    .footer-grid {
-      display: grid;
-      gap: 0.5rem 1rem;
-      grid-template-columns: 1fr 1fr;
-      grid-template-areas:
-        "contact social"
-        "contact channels"
-        "bottom-row bottom-row"
-        "copyright copyright";
-    }
-
-    .footer-contact { grid-area: contact; }
-    .footer-social { grid-area: social; }
-    .footer-bottom-row { grid-area: bottom-row; }
-    .footer-copyright { grid-area: copyright; }
-  }
-
-  @media (min-width: 1024px) {
-    .footer-grid {
-      grid-template-columns: 2fr 1fr 1fr;
-      grid-template-rows: 2rem auto auto;
-      grid-template-areas:
-        "hire-me social bottom-row"
-        "contact social bottom-row"
-        "copyright copyright copyright";
-    }
-
-    .footer-hire-me { grid-area: hire-me; }
-  }
-</style>
 
 <hr class="border-t-4 border-primary h-0" />
 <footer class="bg-text text-bg flex flex-col mt-0 px-3 pb-3 footer-grid lg:px-6" role="contentinfo">
@@ -105,15 +24,25 @@ const year = new Date().getFullYear();
         <p>{contactData.company.city}, {contactData.company.state} {contactData.company.index}</p>
       </div>
       <p class="hyphens-none [&_a:hover]:underline [&_a:hover]:decoration-dotted [&_a:hover]:decoration-bg [&_a:hover]:underline-offset-4 [&_a:focus]:underline [&_a:focus]:decoration-dotted [&_a:focus]:decoration-bg [&_a:focus]:underline-offset-4">
-        <a href=`mailto:${contactData.company.email}`>{contactData.company.email}</a>
+        <a href=`mailto:${contactData.company.email}` class="text-color-bg no-underline">
+          {contactData.company.email}
+        </a>
       </p>
       <p class="[&_a:hover]:underline [&_a:hover]:decoration-dotted [&_a:hover]:decoration-bg [&_a:hover]:underline-offset-4 [&_a:focus]:underline [&_a:focus]:decoration-dotted [&_a:focus]:decoration-bg [&_a:focus]:underline-offset-4" itemprop="telephone">
-        <a href=`tel:${contactData.company.telephoneTollFree}` rel="nofollow">
+        <a
+          href=`tel:${contactData.company.telephoneTollFree}`
+          rel="nofollow"
+          class="text-color-bg no-underline"
+        >
           Toll Free {formatPhoneNumber(contactData.company.telephoneTollFree)}
         </a>
       </p>
       <p class="[&_a:hover]:underline [&_a:hover]:decoration-dotted [&_a:hover]:decoration-bg [&_a:hover]:underline-offset-4 [&_a:focus]:underline [&_a:focus]:decoration-dotted [&_a:focus]:decoration-bg [&_a:focus]:underline-offset-4" itemprop="telephone">
-        <a href=`tel:${contactData.company.telephoneLocal}` rel="nofollow">
+        <a
+          href=`tel:${contactData.company.telephoneLocal}`
+          rel="nofollow"
+          class="text-color-bg no-underline"
+        >
           Local {formatPhoneNumber(contactData.company.telephoneLocal)}
         </a>
       </p>
@@ -124,7 +53,7 @@ const year = new Date().getFullYear();
     <a
       href="/contact"
       id="page-footer__hire-me-anchor"
-      class="footer-hire-me-anchor hidden uppercase"
+      class="footer-hire-me-anchor hidden uppercase text-color-bg no-underline after:content-['>']"
       aria-label="Available for hire, contact me"
     >
       Available Now. Hire Me
@@ -134,7 +63,12 @@ const year = new Date().getFullYear();
   <div class="footer-social">
     {contactData.company.social.filter(s => s.network === 'x').map((social) => (
       <div class="footer-social-channel">
-        <a href={social.url} title="Twitter" rel="me" class="flex items-baseline uppercase">
+        <a
+          href={social.url}
+          title="Twitter"
+          rel="me"
+          class="flex items-baseline uppercase text-color-bg no-underline"
+        >
           <span class="[&_.icon]:fill-bg [&_.icon]:stroke-bg [&_.icon]:h-4 [&_.icon]:w-4"><Sprite name="twitter" /></span>
           <span class="footer-social-platform ml-2 mt-4">Twitter</span>
         </a>
@@ -145,7 +79,12 @@ const year = new Date().getFullYear();
     ))}
     {contactData.company.social.filter(s => s.network === 'linkedin').map((social) => (
       <div class="footer-social-channel">
-        <a href={social.url} title="Linkedin" rel="me" class="flex items-baseline uppercase">
+        <a
+          href={social.url}
+          title="Linkedin"
+          rel="me"
+          class="flex items-baseline uppercase text-color-bg no-underline"
+        >
           <span class="[&_.icon]:fill-bg [&_.icon]:stroke-bg [&_.icon]:h-4 [&_.icon]:w-4"><Sprite name="linkedin" /></span>
           <span class="footer-social-platform ml-2 mt-4">Linkedin</span>
         </a>
@@ -156,7 +95,12 @@ const year = new Date().getFullYear();
     ))}
     {contactData.company.social.filter(s => s.network === 'github').map((social) => (
       <div class="footer-social-channel">
-        <a href={social.url} title="Github" rel="me" class="flex items-baseline uppercase">
+        <a
+          href={social.url}
+          title="Github"
+          rel="me"
+          class="flex items-baseline uppercase text-color-bg no-underline"
+        >
           <span class="[&_.icon]:fill-bg [&_.icon]:stroke-bg [&_.icon]:h-4 [&_.icon]:w-4"><Sprite name="github" /></span>
           <span class="footer-social-platform ml-2 mt-4">Github</span>
         </a>
@@ -167,7 +111,12 @@ const year = new Date().getFullYear();
     ))}
     {contactData.company.social.filter(s => s.network === 'codepen').map((social) => (
       <div class="footer-social-channel">
-        <a href={social.url} title="Codepen" rel="me" class="flex items-baseline uppercase">
+        <a
+          href={social.url}
+          title="Codepen"
+          rel="me"
+          class="flex items-baseline uppercase text-color-bg no-underline"
+        >
           <span class="[&_.icon]:fill-bg [&_.icon]:stroke-bg [&_.icon]:h-4 [&_.icon]:w-4"><Sprite name="codepen" /></span>
           <span class="footer-social-platform ml-2 mt-4">Codepen</span>
         </a>
@@ -180,7 +129,10 @@ const year = new Date().getFullYear();
   <div class="footer-bottom-row flex justify-between sm:justify-evenly lg:flex-col px-1 pt-4 pb-3 sm:p-0 lg:pl-8">
     {/* Page footer Subscribe link */}
     <span class="flex flex-col justify-center lg:pt-3 [&_a:hover]:text-bg-offset [&_a:hover]:underline [&_a:hover]:decoration-dotted [&_a:hover]:decoration-bg [&_a:hover]:underline-offset-4 [&_a:focus]:text-bg-offset [&_a:focus]:underline [&_a:focus]:decoration-dotted [&_a:focus]:decoration-bg [&_a:focus]:underline-offset-4">
-      <a href="/mailinglist" class="lg:[&:hover]:no-underline lg:[&:focus]:no-underline">
+      <a
+        href="/mailinglist"
+        class="lg:[&:hover]:no-underline lg:[&:focus]:no-underline text-color-bg no-underline"
+      >
         <div class="lg:hidden">Subscribe to</div>
         <span class="lg:font-bold lg:uppercase lg:[&:hover]:text-bg-offset lg:[&:hover]:underline lg:[&:hover]:decoration-dotted lg:[&:hover]:decoration-bg lg:[&:hover]:underline-offset-4 lg:[&:focus]:text-bg-offset lg:[&:focus]:underline lg:[&:focus]:decoration-dotted lg:[&:focus]:decoration-bg lg:[&:focus]:underline-offset-4">Mailing List</span>
         <span class="hidden lg:block">
@@ -191,7 +143,7 @@ const year = new Date().getFullYear();
     {/* Page footer Privacy Policy links */}
     <span class="flex flex-col justify-center lg:pt-3 [&_a:hover]:text-bg-offset [&_a:hover]:underline [&_a:hover]:decoration-dotted [&_a:hover]:decoration-bg [&_a:hover]:underline-offset-4 [&_a:focus]:text-bg-offset [&_a:focus]:underline [&_a:focus]:decoration-dotted [&_a:focus]:decoration-bg [&_a:focus]:underline-offset-4">
       <span class="lg:[&_a:hover]:no-underline lg:[&_a:focus]:no-underline">
-        <a href="/cookies/">
+        <a href="/cookies/" class="text-color-bg no-underline">
           <span class="lg:font-bold lg:uppercase lg:[&:hover]:text-bg-offset lg:[&:hover]:underline lg:[&:hover]:decoration-dotted lg:[&:hover]:decoration-bg lg:[&:hover]:underline-offset-4 lg:[&:focus]:text-bg-offset lg:[&:focus]:underline lg:[&:focus]:decoration-dotted lg:[&:focus]:decoration-bg lg:[&:focus]:underline-offset-4">Cookies</span>
           <span class="hidden lg:block">
             Manage how we use cookies for you on our site
@@ -199,7 +151,7 @@ const year = new Date().getFullYear();
         </a>
       </span>
       <span class="lg:[&_a:hover]:no-underline lg:[&_a:focus]:no-underline">
-        <a href="/privacy/">
+        <a href="/privacy/" class="text-color-bg no-underline">
           <span class="lg:font-bold lg:uppercase lg:[&:hover]:text-bg-offset lg:[&:hover]:underline lg:[&:hover]:decoration-dotted lg:[&:hover]:decoration-bg lg:[&:hover]:underline-offset-4 lg:[&:focus]:text-bg-offset lg:[&:focus]:underline lg:[&:focus]:decoration-dotted lg:[&:focus]:decoration-bg lg:[&:focus]:underline-offset-4">Privacy Policy</span>
           <span class="hidden lg:block">
             Learn what data we collect and how we use it
@@ -209,7 +161,7 @@ const year = new Date().getFullYear();
     </span>
     {/* Page footer RSS link */}
     <span class="footer-feed-icon flex items-center w-12 lg:h-12 lg:w-12 [&_.icon]:fill-bg [&_.icon]:stroke-bg [&_.icon]:h-10 [&_.icon]:w-10">
-      <a href={absoluteUrl('/feed.xml', Astro.site)} title="RSS Feed">
+      <a href={absoluteUrl('/feed.xml', Astro.site)} title="RSS Feed" class="text-color-bg no-underline">
         <span class="sr-only">RSS Feed</span>
         <span><Sprite name="feed" /></span>
       </a>
@@ -221,7 +173,9 @@ const year = new Date().getFullYear();
       &copy; 2018&ndash;{year}
     </span>
     <span class="ml-4">
-      <a rel="me" href={absoluteUrl('/', Astro.site)}>{company.name}</a>
+      <a rel="me" href={absoluteUrl('/', Astro.site)} class="text-color-bg no-underline">
+        {company.name}
+      </a>
     </span>
   </div>
 </footer>

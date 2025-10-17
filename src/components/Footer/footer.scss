@@ -1,0 +1,70 @@
+/* Footer component - global anchor styles */
+
+/* Hire me anchor animation */
+@keyframes arrowBounce {
+  100% {
+    transform: translate(1.5em);
+  }
+}
+
+/* Grid areas for responsive layout */
+@media (min-width: 640px) {
+  .footer-grid {
+    display: grid;
+    gap: 0.5rem 1rem;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "contact social"
+      "contact channels"
+      "bottom-row bottom-row"
+      "copyright copyright";
+  }
+
+  .footer-contact { grid-area: contact; }
+  .footer-social { grid-area: social; }
+  .footer-bottom-row { grid-area: bottom-row; }
+  .footer-copyright { grid-area: copyright; }
+}
+
+@media (min-width: 1024px) {
+  .footer-grid {
+    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-rows: 2rem auto auto;
+    grid-template-areas:
+      "hire-me social bottom-row"
+      "contact social bottom-row"
+      "copyright copyright copyright";
+  }
+
+  .footer-hire-me { grid-area: hire-me; }
+}
+
+.footer-hire-me-anchor:hover::after,
+.footer-hire-me-anchor:focus::after {
+  animation: arrowBounce 1s alternate;
+}
+
+/* Social channel hover effects */
+.footer-social-channel:hover .footer-social-platform,
+.footer-social-channel:focus .footer-social-platform {
+  color: var(--color-bg-offset);
+  text-decoration: underline dotted var(--color-bg) 0.15em;
+}
+
+.footer-social-channel:hover .footer-social-blurb,
+.footer-social-channel:focus .footer-social-blurb {
+  color: var(--color-bg-offset);
+}
+
+.footer-social-channel:hover .icon,
+.footer-social-channel:focus .icon {
+  fill: var(--color-bg-offset);
+  stroke: var(--color-bg-offset);
+}
+
+/* RSS feed icon hover effect */
+.footer-feed-icon:hover .icon,
+.footer-feed-icon:focus .icon {
+  height: 3em;
+  width: 3em;
+}
