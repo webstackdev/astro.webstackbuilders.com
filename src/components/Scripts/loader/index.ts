@@ -9,7 +9,8 @@
  * - Singleton pattern for centralized script management
  */
 
-import type { UserInteractionEvent, TriggerEvent, LoadableScript } from './@types/loader'
+import { LoadableScript } from './@types/loader'
+import type { UserInteractionEvent, TriggerEvent } from './@types/loader'
 
 export const userInteractionEvents: UserInteractionEvent[] = [
   'keydown',
@@ -30,8 +31,9 @@ export const autoLoadDuration = 5000
 /** @deprecated Use userInteractionEvents instead */
 export const eventList = userInteractionEvents
 
-// Re-export types for convenience
-export type { UserInteractionEvent, TriggerEvent, LoadableScript }
+// Re-export types and the LoadableScript class for convenience
+export type { UserInteractionEvent, TriggerEvent }
+export { LoadableScript }
 
 /**
  * Generic singleton class that manages component script execution based on various trigger events.

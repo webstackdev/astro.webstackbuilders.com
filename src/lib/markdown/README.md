@@ -1,5 +1,12 @@
 <!-- markdownlint-disable -->
 
+## LLMs
+
+- qwen3-coder-30b-a3b-instruct
+- xAI: Grok 4 Fast
+- Z.AI: GLM 4.6
+- Google: Gemini 2.5 Flash Preview 09-2025
+
 ## Components intended for use in *.mdx files:
 
 * Avatar
@@ -23,8 +30,8 @@ This approach passes unique identifiers to each script instance, ensuring no con
 
 Uses a single LoadableScript that automatically discovers all carousel elements on the page using data-carousel attributes
 
-1. Refactor the Cookies/Customize component to use the new /home/kevin/Repos/Webstack Builders/Corporate Website/astro.webstackbuilders.com/src/components/Scripts/loader setup.
-2. Use Option 1 Instance-Specific LoadableScript singleton approach like the Navigation component.
+1. Refactor the Hero component to use the new /home/kevin/Repos/Webstack Builders/Corporate Website/astro.webstackbuilders.com/src/components/Scripts/loader setup.
+2. Use Instance-Specific LoadableScript singleton approach like the Navigation component.
 3. Use a single class that extends LoadableScript. Refactor any existing functions into class methods.
 4. The file containing the export that is imported in the component's .astro template should be named client.ts - rename it if necessary and delete the old file.
 5. Make sure unit tests pass. The test should be named client.spec.ts - delete testHelper.ts and testimonials.spec.ts after the refactoring. Migrate any useful tests in those files to client.spec.ts
