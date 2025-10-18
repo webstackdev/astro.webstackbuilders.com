@@ -22,8 +22,6 @@
 * Testimonials
 * Webmentions
 
-npm warn deprecated astro-svg-sprite@1.1.0: This package is deprecated. Please migrate to astro-svgs: https://www.npmjs.com/package/astro-svgs
-
 ### Mastodon Shares
 
 https://github.com/kytta/share2fedi

@@ -417,18 +417,9 @@ Adds code snippets for popular analytics services, including GA.
 
 Designed for SSG. SSR doesn't use.
 
-### [astro-svg-sprite](https://www.npmjs.com/package/astro-svg-sprite) (**`installed`**)
+### [astro-icon](https://www.astroicon.dev/) (**`installed`**)
 
-Bundle directories of SVG images up into a single sprite file and provide a custom `<Sprite />` component to access them.
-
-Usage:
-
-```react
----
-import Sprite from 'components/Sprite.astro'
----
-<Sprite name="fileName" class="customClassName"/>
-```
+Icon component for loading SVG icons. SVG files are stored in `src/icons/` directory.
 
 ### [Tailwind](https://docs.astro.build/en/guides/integrations-guide/tailwind/) (**`installed`**)
 
