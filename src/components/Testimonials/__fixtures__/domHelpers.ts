@@ -16,7 +16,9 @@ function getTestimonialCardHTML(testimonial: TestimonialData): string {
           "${testimonial.content}"
         </blockquote>
         <footer class="flex items-center gap-4">
-          ${testimonial.avatar ? `
+          ${
+            testimonial.avatar
+              ? `
           <div class="w-12 h-12 rounded-full overflow-hidden bg-[color:var(--color-bg-offset)]">
             <img
               src="${testimonial.avatar}"
@@ -25,7 +27,9 @@ function getTestimonialCardHTML(testimonial: TestimonialData): string {
               loading="lazy"
             />
           </div>
-          ` : ''}
+          `
+              : ''
+          }
           <div>
             <cite class="not-italic font-semibold text-[color:var(--color-text)]">
               ${testimonial.author}

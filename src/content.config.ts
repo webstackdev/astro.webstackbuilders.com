@@ -28,11 +28,10 @@ const articlesSchema = z.object({
   // Reference a single author from the `authors` collection by `id`
   author: reference('authors'),
   tags: z.array(z.enum(validTags)),
-  image: z
-    .object({
-      src: z.string(),
-      alt: z.string(),
-    }),
+  image: z.object({
+    src: z.string(),
+    alt: z.string(),
+  }),
   // In YAML, dates written without quotes around them are interpreted as Date objects
   publishDate: z.date(),
   isDraft: z.boolean().default(false),
@@ -66,7 +65,7 @@ const authorsSchema = z.object({
       name: z.string(),
       url: z.string().url(),
     }),
-  })
+  }),
 })
 
 const authorsCollection = defineCollection({
@@ -86,13 +85,15 @@ const caseStudiesSchema = z.object({
   isDraft: z.boolean().default(false),
   featured: z.boolean().default(false),
   // Optional fields that may exist in some case studies
-  image: z.union([
-    z.string(),
-    z.object({
-      src: z.string(),
-      alt: z.string(),
-    })
-  ]).optional(),
+  image: z
+    .union([
+      z.string(),
+      z.object({
+        src: z.string(),
+        alt: z.string(),
+      }),
+    ])
+    .optional(),
   client: z.string().optional(),
   author: reference('authors').optional(),
   industry: z.string().optional(),
@@ -148,10 +149,10 @@ const cookiesEntrySchema = z.object({
   purpose: z.string(),
   provider: z.string().url(),
   service: z.string(),
-  "service-privacy-policy-url": z.string().url(),
+  'service-privacy-policy-url': z.string().url(),
   country: z.string().includes('_').length(5),
   type: z.string(),
-  "expires-in": z.string(),
+  'expires-in': z.string(),
 })
 
 const cookiesSchema = z.object({
@@ -255,7 +256,7 @@ const themesSchema = z.object({
   name: z.enum(['Light', 'Dark']),
   colors: z.object({
     backgroundOffset: z.string(),
-  })
+  }),
 })
 
 const themesCollection = defineCollection({

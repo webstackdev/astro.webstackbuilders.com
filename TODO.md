@@ -1,149 +1,5 @@
 # TODO
 
-## 🚀 CURRENT WORK: Markdown Plugin Testing - Layer 2 Complete! 🎉
-
-**Date**: October 11, 2025
-**Status**: Layer 2 at 93% (55/59 passing) - Major breakthrough achieved!
-
-### ✅ COMPLETED (Layers 1 & 2)
-
-#### Test Organization
-- ✅ Reorganized tests into clean structure:
-  - `__tests__/isolated_unit_tests/` - Layer 1 tests (minimal pipeline)
-  - `__tests__/astro_pipeline/` - Layer 2 tests (with GFM + Astro settings)
-  - Plugin-specific folders (e.g., `remark-abbr/__tests__/`) - Comprehensive Layer 1 tests
-
-#### Plugin Refactoring
-- ✅ **remark-abbr**: Refactored to TypeScript - 31/31 tests passing (100%)
-- ✅ **remark-attr**: Refactored to TypeScript - 46/46 tests passing (100%)
-- ✅ **remark-attribution**: Refactored to TypeScript - 17/17 Layer 1 passing
-
-#### Critical Bug Fixes
-
-1. ✅ **remark-linkify-regex**: Fixed factory function call pattern
-   - Changed from `processIsolated(md, remarkLinkifyRegex, urlRegex)`
-   - To: `processIsolated(md, remarkLinkifyRegex(urlRegex))`
-   - Result: 7/7 Layer 1 + 6/6 Layer 2 = **13/13 passing (100%)**
-
-2. ✅ **rehype-autolink-headings**: Added missing `rehype-slug` dependency
-   - Headings need `id` attributes before anchor links can be added
-   - Updated test helper to include `rehype-slug` before `rehype-autolink-headings`
-   - Result: **7/7 Layer 2 passing (100%)**
-
-3. ✅ **remark-attribution**: Fixed GFM compatibility (MAJOR FIX!)
-   - **Root Cause**: Original code only checked first text node for attribution marker
-   - When GFM adds formatting (`~~strikethrough~~`, `**bold**`), it creates nested nodes
-   - Attribution marker ends up in a later text node, never detected
-   - **Solution**: Added recursive text extraction functions:
-     - `extractAllText()`: Recursively concatenates all text from nested nodes
-     - `updateLastTextNode()`: Finds and updates last text node recursively
-   - **Test Fix**: Table attribution test needed blank line separator
-   - Result: 0/5 → **5/5 Layer 2 passing (100%)**
-
-#### Current Test Status
-**Layer 1 (Isolated)**: 120/120 passing (100%) ✅
-**Layer 2 (Astro Pipeline)**: 52/59 passing (88%) ⚠️
-
-### 🔧 IN PROGRESS: remark-attribution Bug Fix
-
-**Issue**: Layer 2 tests failing (0/5 passing) despite Layer 1 working perfectly
-
-**Root Cause Identified**:
-The `checkForAttribution()` function in `src/lib/markdown/remark-attribution/index.ts` only checks the FIRST text node in a paragraph for the attribution marker `—`. When GFM processes formatting like `~~strikethrough~~` or `**bold**`, it creates intermediate nodes (delete, strong) that split the paragraph into multiple text nodes. The attribution marker ends up in a LATER text node that the plugin never checks.
-
-**Evidence**:
-```typescript
-// Test without GFM formatting - WORKS ✅
-> Plain quote text
-> — Author Name
-
-// Test with GFM formatting - FAILS ❌
-> That's ~~not~~ **definitely** one small step.
-> — Neil Armstrong
-// Attribution marker is in a later text node after delete/strong nodes
-```
-
-**Solution Required**:
-Update `checkForAttribution()` function (lines ~73-99 in `index.ts`) to:
-1. Use `mdast-util-to-string` or similar to concatenate ALL text content from paragraph
-2. Search for attribution marker in the complete text
-3. Handle text node splitting when removing/updating attribution content
-
-**Files to Update**:
-- `/src/lib/markdown/remark-attribution/index.ts` - Fix `checkForAttribution()` function
-
-### ⏳ REMAINING WORK
-
-#### Layer 2 Minor Failures (7 tests)
-1. **remark-attribution**: 0/5 (needs fix above)
-2. **remark-emoji**: 5/6 (`:check_mark:` not converting to ✔)
-3. **remark-breaks**: 4/5 (line breaks breaking GFM table syntax)
-4. **remark-attr**: 5/6 (attributes not applying to GFM tables)
-5. **rehype-tailwind-classes**: 7/8 (likely false positive)
-
-#### Layer 3 (Integration)
-- Create `integration/full-pipeline.spec.ts`
-- Test all plugins together in complete Astro pipeline
-- Verify no conflicts between plugins
-
-#### Layer 4 (E2E)
-- Existing tests in `test/e2e/` directory
-- Validate build output and browser rendering
-
-### 📝 Technical Notes
-
-**Plugin Order in Astro Pipeline**:
-```typescript
-// remarkPlugins order (from markdown.ts):
-1. remarkAbbr
-2. remarkAttr
-3. remarkAttribution
-4. remarkBreaks
-5. remarkEmoji
-6. remarkLinkifyRegex(regex)
-7. remarkToc
-
-// GFM is added automatically by Astro (gfm: true) at the beginning
-```
-
-**Test Helper Insights**:
-- `processIsolated()` - Minimal pipeline, no GFM
-- `processWithAstroSettings()` - Includes GFM + Astro's remarkRehype config
-- `processWithFullPipeline()` - All plugins together (Layer 3)
-
-**Key Dependencies**:
-- `rehype-slug` must come before `rehype-autolink-headings`
-- `remarkLinkifyRegex` must be called as factory function with regex parameter
-- GFM processing can affect how other plugins see the AST
-
----
-
-## Previous TODOs
-
-- Move on to updating and running the test cases? ✅ IN PROGRESS
-- are we validating front matter?
-- src/components/Script/visibility.ts - Only mentioned in TODO comment
-- src/components/Script/share-highlight.ts - Only referenced in commented-out import
-- src/components/Script/Script/animations/ directory (all files) - Only referenced in commented-out import
-- src/components/Footer/index.ts - footerInit() function for dynamic "Hire Me" text
-- Revamp tags list in src/content/_tagList.ts and add list to README
-
-## Cookie Customize page
-
-Next Steps Available:
-
-- Analytics Integration: Connect the analytics toggle to your actual Google Analytics or other tracking services
-- Advanced Features: Add cookie expiration management, preference export/import
-- Compliance: Add GDPR compliance features like data deletion requests
-- Testing: Verify the cookie preferences work correctly across different browsers
-
-Future Cleaner Import (using barrel file):
-import { initializeCookiePreferences, CookiePreferencesManager } from '@components/Cookies/Customize/cookie-preferences'
-
-02:57:47 [WARN] [vite] Generated an empty chunk: "Signup.astro_astro_type_script_index_0_lang".
-
-# Todos
-
 ## @TODO: Use Confetti on CTA forms
 
 `canvas-confetti`
@@ -405,25 +261,6 @@ Adds filter for analyzing content input into the filter and returning a time-to-
   }
 ```
 
-## Analytics
-
-### [Astro Analytics](https://www.npmjs.com/package/astro-analytics)
-
-Adds code snippets for popular analytics services, including GA.
-
-## Build System
-
-### [Critters](https://github.com/GoogleChromeLabs/critters) Critical CSS inliner by Google
-
-Designed for SSG. SSR doesn't use.
-
-### [astro-icon](https://www.astroicon.dev/) (**`installed`**)
-
-Icon component for loading SVG icons. SVG files are stored in `src/icons/` directory.
-
-### [Tailwind](https://docs.astro.build/en/guides/integrations-guide/tailwind/) (**`installed`**)
-
-## Comments
 
 ## Compression
 
@@ -470,10 +307,6 @@ import "astro-breadcrumbs/breadcrumbs.css";
 
 Astro wrapper for the `@github/clipboard-copy-element` web component. Copies element text content or input values to the clipboard.
 
-### [Flow](https://github.com/astro-community/flow)
-
-Components for control like `<For>`, `<When>` with two conditions, and `<switch>` and `<Case>`.
-
 ### [Relative Time](https://github.com/BryceRussell/astro-github-elements/tree/main/packages/time#readme)
 
 Astro wrapper for GitHub's relative time web component. Translates dates to past or future time phrases, like "*4 hours from now*" or "*20 days ago*".
@@ -481,16 +314,6 @@ Astro wrapper for GitHub's relative time web component. Translates dates to past
 ### [TextCircle](https://github.com/LoStisWorld/astro-textcircle#astro-textcircle)
 
 Display text in a circular layout.
-
-## Images
-
-### [Astro - ImageKit integration + component](https://www.npmjs.com/package/astro-imagekit)
-
-Imagekit is a SaaS video and image optimization service, DAM, and CDN.
-
-### [astro-mapped-images](https://github.com/techaurelian/astro-mapped-images#astro-mapped-images)
-
-An Astro image component that handles both local and external images and includes the correct width and height attributes using pre-generated  image maps.
 
 ## Markdown
 
@@ -501,16 +324,6 @@ Custom version of the code block integration from Astro Docs. "Beautiful code bl
 ### [MDX](https://docs.astro.build/en/guides/integrations-guide/mdx/) (**`installed`**)
 
 Allows importing `.mdx` files in `.astro` files or collections.
-
-### [Markdoc](https://www.npmjs.com/package/@astrojs/markdoc)
-
-Maintained by Astro project, marked experimental. Created by Stripe for their public docs. Adds shortcodes to Markdown:
-
-```markdown
-{% callout type="note" %}
-```
-
-> Markdoc allows you to enhance your Markdown with Astro components. If you have existing content authored in Markdoc, this integration  allows you to bring those files to your Astro project using content  collections.
 
 ## Miscellaneous
 
@@ -543,10 +356,6 @@ Allows any Mastodon instance to discover your Mastodon profile directly from you
 
 ## Nativation
 
-### [`astro-navigation`](https://www.npmjs.com/package/@prosellen/astro-navigation)
-
-Create a navigation structure from a JSON object.
-
 ## Search
 
 Lunr is a JS search library using an inverted index. Client-side search for statically hosted pages.
@@ -578,14 +387,6 @@ Generates a `robots.txt` for your Astro project during build.
 ### [`astro-webmanifest`](https://www.npmjs.com/package/astro-webmanifest)
 
 Generates a web application manifest for a Progressive Web App (PWA), favicon, icons and inserts appropriate html into `<head>` section for your Astro project during build.
-
-### [`vanilla-cookieconent + Astro Integration`](https://www.npmjs.com/package/@jop-software/astro-cookieconsent)
-
-Cookie Consent modal and handler.
-
-## Social Share
-
-### [astro-social-share](https://github.com/silent1mezzo/astro-social-share#readme)
 
 ## Social Media Preview Generators
 

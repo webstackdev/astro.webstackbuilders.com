@@ -8,7 +8,6 @@ import {
   isSlotElement,
 } from '@components/Scripts/assertions/elements'
 
-
 export const queryDocument = (selector: string): Element => {
   const element = document.querySelector(selector)
   if (element === null)

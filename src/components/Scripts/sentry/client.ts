@@ -7,8 +7,8 @@ import {
   globalHandlersIntegration,
   makeFetchTransport,
   linkedErrorsIntegration,
-} from "@sentry/browser";
-import { PUBLIC_SENTRY_DSN } from "astro:env/client"
+} from '@sentry/browser'
+import { PUBLIC_SENTRY_DSN } from 'astro:env/client'
 
 /**
  * The DSN is a public key that identifies your Sentry project and allows

@@ -25,8 +25,8 @@ describe('Container API Reference Implementation', () => {
     const result = await container.renderToString(ContainerComponent, {
       props: {
         title: 'Test Title',
-        message: 'Test Message'
-      }
+        message: 'Test Message',
+      },
     })
 
     expect(result).toContain('Test Title')
@@ -46,8 +46,8 @@ describe('Container API Reference Implementation', () => {
     const result = await container.renderToString(ContainerComponent, {
       props: {
         title: 'Interactive Test',
-        message: 'Click the button'
-      }
+        message: 'Click the button',
+      },
     })
 
     // Create JSDOM instance for DOM testing in node environment

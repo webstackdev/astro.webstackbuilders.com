@@ -45,7 +45,9 @@ class HighlighterElement extends HTMLElement {
       <slot></slot>
       <div class="share-dialog" role="dialog" aria-label="${this.label}" aria-hidden="true">
         <div class="share-dialog__buttons">
-          ${platforms.map(platform => `
+          ${platforms
+            .map(
+              platform => `
             <button
               type="button"
               class="share-button"
@@ -57,7 +59,9 @@ class HighlighterElement extends HTMLElement {
                 <use href="/sprite.svg#${platform.icon}"></use>
               </svg>
             </button>
-          `).join('')}
+          `
+            )
+            .join('')}
           <button
             type="button"
             class="share-button copy-button"
@@ -212,7 +216,7 @@ class HighlighterElement extends HTMLElement {
     this.addEventListener('focusout', () => this.hideDialog())
 
     // Keyboard navigation
-    this.addEventListener('keydown', (e) => {
+    this.addEventListener('keydown', e => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault()
         this.showDialog()
@@ -225,7 +229,7 @@ class HighlighterElement extends HTMLElement {
     // Share button clicks
     const buttons = this.shadowRoot.querySelectorAll<HTMLButtonElement>('.share-button')
     buttons.forEach(button => {
-      button.addEventListener('click', (e) => {
+      button.addEventListener('click', e => {
         e.stopPropagation()
         const platformId = button.dataset['platform']
         if (platformId) {
@@ -275,7 +279,7 @@ class HighlighterElement extends HTMLElement {
     return {
       text: `"${text}"`,
       url: window.location.href,
-      title: document.title
+      title: document.title,
     }
   }
 
@@ -289,6 +293,18 @@ class HighlighterElement extends HTMLElement {
       const success = await copyToClipboard(`${data.text} ${data.url}`)
       if (success) {
         this.showCopyFeedback()
+        this.emitShareEvent(platformId, data)
+      }
+      return
+    }
+
+    // Handle Mastodon modal
+    if (platformId === 'mastodon') {
+      const mastodonModal = (window as Window & { openMastodonModal?: (_text: string) => void })
+        .openMastodonModal
+      if (typeof mastodonModal === 'function') {
+        mastodonModal(`${data.text} ${data.url}`)
+        this.hideDialog()
         this.emitShareEvent(platformId, data)
       }
       return
@@ -337,7 +353,7 @@ class HighlighterElement extends HTMLElement {
     const event = new CustomEvent('highlighter:share', {
       detail: { platform, data },
       bubbles: true,
-      composed: true
+      composed: true,
     })
     this.dispatchEvent(event)
   }

@@ -16,10 +16,7 @@ async function process(markdown: string, options?: Partial<AttributionOptions>):
     processor.use(remarkAttribution)
   }
 
-  const result = await processor
-    .use(remarkRehype)
-    .use(rehypeStringify)
-    .process(markdown)
+  const result = await processor.use(remarkRehype).use(rehypeStringify).process(markdown)
 
   return String(result)
 }
@@ -56,10 +53,11 @@ describe('remark-attribution', () => {
     })
 
     it('should handle multi-line quotations', async () => {
-      const input = '> That\'s one small step for [a] man,\n> one giant leap for mankind.\n> — Neil Armstrong (1969, July 21)'
+      const input =
+        "> That's one small step for [a] man,\n> one giant leap for mankind.\n> — Neil Armstrong (1969, July 21)"
       const output = await process(input)
 
-      expect(output).toContain('That\'s one small step')
+      expect(output).toContain("That's one small step")
       expect(output).toContain('one giant leap')
       expect(output).toContain('Neil Armstrong')
     })
@@ -123,7 +121,7 @@ describe('remark-attribution', () => {
       const input = '> Quotation\n> — Attribution'
       const output = await process(input, {
         classNameContainer: '',
-        classNameAttribution: ''
+        classNameAttribution: '',
       })
 
       expect(output).toContain('<figure>')
@@ -185,7 +183,7 @@ describe('remark-attribution', () => {
         classNameContainer: 'my-quote',
         classNameAttribution: 'my-quote__author',
         marker: '**',
-        removeMarker: false
+        removeMarker: false,
       })
 
       expect(output).toContain('<figure class="my-quote">')

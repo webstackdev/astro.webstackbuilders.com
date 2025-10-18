@@ -1,12 +1,12 @@
 /**
  * Unit tests for formatPhoneNumber helper
  */
-import { describe, expect, test, vi } from "vitest"
-import { formatPhoneNumber } from "../formatPhoneNumber"
+import { describe, expect, test, vi } from 'vitest'
+import { formatPhoneNumber } from '../formatPhoneNumber'
 
 // Mock the logger
 vi.mock('@lib/logger', () => ({
-  log: vi.fn()
+  log: vi.fn(),
 }))
 
 describe(`formatPhoneNumber helper`, () => {

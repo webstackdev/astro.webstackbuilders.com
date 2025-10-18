@@ -3,18 +3,22 @@ import { PromiseRejectionEvent } from '@lib/@types/PromiseRejectionEvent'
 import {
   addUnhandledExceptionEventListeners,
   addUnhandledRejectionEventListeners,
-  addErrorEventListeners
+  addErrorEventListeners,
 } from '../errorListeners'
 import { unhandledExceptionHandler, unhandledRejectionHandler } from '../handlers'
 
 // Mock the handlers
 vi.mock('../handlers', () => ({
   unhandledExceptionHandler: vi.fn(),
-  unhandledRejectionHandler: vi.fn()
+  unhandledRejectionHandler: vi.fn(),
 }))
 
-const mockedUnhandledExceptionHandler = unhandledExceptionHandler as MockedFunction<typeof unhandledExceptionHandler>
-const mockedUnhandledRejectionHandler = unhandledRejectionHandler as MockedFunction<typeof unhandledRejectionHandler>
+const mockedUnhandledExceptionHandler = unhandledExceptionHandler as MockedFunction<
+  typeof unhandledExceptionHandler
+>
+const mockedUnhandledRejectionHandler = unhandledRejectionHandler as MockedFunction<
+  typeof unhandledRejectionHandler
+>
 
 describe('Error Listeners', () => {
   let originalAddEventListener: typeof window.addEventListener
@@ -58,7 +62,7 @@ describe('Error Listeners', () => {
         filename: 'test.js',
         lineno: 42,
         colno: 10,
-        error: new Error('Test error')
+        error: new Error('Test error'),
       })
 
       // Simulate the event being fired
@@ -90,13 +94,15 @@ describe('Error Listeners', () => {
       addUnhandledRejectionEventListeners()
 
       // Get the event handler that was registered
-      const rejectionHandler = mockAddEventListener.mock.calls[0]?.[1] as (_event: PromiseRejectionEvent) => void
+      const rejectionHandler = mockAddEventListener.mock.calls[0]?.[1] as (
+        _event: PromiseRejectionEvent
+      ) => void
 
       // Create a test promise rejection event
       const mockPromise: Promise<unknown> = {} as Promise<unknown> // eslint-disable-line @typescript-eslint/consistent-type-assertions
       const testRejectionEvent = new PromiseRejectionEvent('unhandledrejection', {
         promise: mockPromise,
-        reason: 'Test rejection reason'
+        reason: 'Test rejection reason',
       })
 
       // Simulate the event being fired
@@ -111,8 +117,16 @@ describe('Error Listeners', () => {
       addUnhandledRejectionEventListeners()
 
       expect(mockAddEventListener).toHaveBeenCalledTimes(2)
-      expect(mockAddEventListener).toHaveBeenNthCalledWith(1, 'unhandledrejection', expect.any(Function))
-      expect(mockAddEventListener).toHaveBeenNthCalledWith(2, 'unhandledrejection', expect.any(Function))
+      expect(mockAddEventListener).toHaveBeenNthCalledWith(
+        1,
+        'unhandledrejection',
+        expect.any(Function)
+      )
+      expect(mockAddEventListener).toHaveBeenNthCalledWith(
+        2,
+        'unhandledrejection',
+        expect.any(Function)
+      )
     })
   })
 
@@ -122,7 +136,11 @@ describe('Error Listeners', () => {
 
       expect(mockAddEventListener).toHaveBeenCalledTimes(2)
       expect(mockAddEventListener).toHaveBeenNthCalledWith(1, 'error', expect.any(Function))
-      expect(mockAddEventListener).toHaveBeenNthCalledWith(2, 'unhandledrejection', expect.any(Function))
+      expect(mockAddEventListener).toHaveBeenNthCalledWith(
+        2,
+        'unhandledrejection',
+        expect.any(Function)
+      )
     })
 
     it('should set up handlers that can process both types of events', () => {
@@ -130,12 +148,14 @@ describe('Error Listeners', () => {
 
       // Get both handlers
       const errorHandler = mockAddEventListener.mock.calls[0]?.[1] as (_event: ErrorEvent) => void
-      const rejectionHandler = mockAddEventListener.mock.calls[1]?.[1] as (_event: PromiseRejectionEvent) => void
+      const rejectionHandler = mockAddEventListener.mock.calls[1]?.[1] as (
+        _event: PromiseRejectionEvent
+      ) => void
 
       // Test error handler
       const testErrorEvent = new ErrorEvent('error', {
         message: 'Test error',
-        error: new Error('Test error')
+        error: new Error('Test error'),
       })
       errorHandler(testErrorEvent)
 
@@ -143,7 +163,7 @@ describe('Error Listeners', () => {
       const mockPromise2: Promise<unknown> = {} as Promise<unknown> // eslint-disable-line @typescript-eslint/consistent-type-assertions
       const testRejectionEvent = new PromiseRejectionEvent('unhandledrejection', {
         promise: mockPromise2,
-        reason: 'Test rejection'
+        reason: 'Test rejection',
       })
       rejectionHandler(testRejectionEvent)
 
@@ -168,7 +188,7 @@ describe('Error Listeners', () => {
       const mockPromise: Promise<unknown> = {} as Promise<unknown> // eslint-disable-line @typescript-eslint/consistent-type-assertions
       const rejectionEvent = new PromiseRejectionEvent('unhandledrejection', {
         promise: mockPromise,
-        reason: 'Test unhandled rejection'
+        reason: 'Test unhandled rejection',
       })
 
       // Dispatch the event using real dispatchEvent
@@ -187,7 +207,7 @@ describe('Error Listeners', () => {
         filename: 'test-file.js',
         lineno: 10,
         colno: 5,
-        error: new Error('Test unhandled exception')
+        error: new Error('Test unhandled exception'),
       })
 
       // Dispatch the event using real dispatchEvent
@@ -203,7 +223,7 @@ describe('Error Listeners', () => {
       const mockPromise: Promise<unknown> = {} as Promise<unknown> // eslint-disable-line @typescript-eslint/consistent-type-assertions
       const rejectionEvent = new PromiseRejectionEvent('unhandledrejection', {
         promise: mockPromise,
-        reason: errorObject
+        reason: errorObject,
       })
 
       window.dispatchEvent(rejectionEvent)
@@ -218,7 +238,7 @@ describe('Error Listeners', () => {
       const mockPromise: Promise<unknown> = {} as Promise<unknown> // eslint-disable-line @typescript-eslint/consistent-type-assertions
       const rejectionEvent = new PromiseRejectionEvent('unhandledrejection', {
         promise: mockPromise,
-        reason: rejectionReason
+        reason: rejectionReason,
       })
 
       window.dispatchEvent(rejectionEvent)
@@ -232,7 +252,7 @@ describe('Error Listeners', () => {
       const thrownError = new Error('Test unhandled exception')
       const errorEvent = new ErrorEvent('error', {
         message: thrownError.message,
-        error: thrownError
+        error: thrownError,
       })
 
       window.dispatchEvent(errorEvent)

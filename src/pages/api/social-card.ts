@@ -17,21 +17,24 @@ export const GET: APIRoute = async ({ request }) => {
   if (format === 'og') {
     const imageUrl = `${url.origin}/api/social-card?slug=${encodeURIComponent(slug)}&title=${encodeURIComponent(title)}&description=${encodeURIComponent(description)}&format=html`
 
-    return new Response(JSON.stringify({
-      'og:title': title,
-      'og:description': description,
-      'og:image': imageUrl,
-      'og:url': `${url.origin}/${slug}`,
-      'twitter:card': 'summary_large_image',
-      'twitter:title': title,
-      'twitter:description': description,
-      'twitter:image': imageUrl
-    }), {
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'public, max-age=3600'
+    return new Response(
+      JSON.stringify({
+        'og:title': title,
+        'og:description': description,
+        'og:image': imageUrl,
+        'og:url': `${url.origin}/${slug}`,
+        'twitter:card': 'summary_large_image',
+        'twitter:title': title,
+        'twitter:description': description,
+        'twitter:image': imageUrl,
+      }),
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'public, max-age=3600',
+        },
       }
-    })
+    )
   }
 
   // HTML template for social card (can be screenshot by external services)
@@ -141,7 +144,7 @@ export const GET: APIRoute = async ({ request }) => {
   return new Response(htmlTemplate, {
     headers: {
       'Content-Type': 'text/html',
-      'Cache-Control': 'public, max-age=3600'
-    }
+      'Cache-Control': 'public, max-age=3600',
+    },
   })
 }

@@ -1,5 +1,5 @@
-import type { Root } from 'mdast';
-import type { Plugin } from 'unified';
+import type { Root } from 'mdast'
+import type { Plugin } from 'unified'
 
 /**
  * Configuration options for the remark-abbr plugin.
@@ -13,7 +13,7 @@ export interface RemarkAbbrOptions {
    *
    * @default false
    */
-  expandFirst?: boolean;
+  expandFirst?: boolean
 }
 
 /**
@@ -22,9 +22,9 @@ export interface RemarkAbbrOptions {
  */
 export interface AbbrDefinition {
   /** The abbreviation text (e.g., "HTML") */
-  abbr: string;
+  abbr: string
   /** The full expansion/definition (e.g., "Hyper Text Markup Language") */
-  reference: string;
+  reference: string
 }
 
 /**
@@ -33,21 +33,21 @@ export interface AbbrDefinition {
  * be rendered as <abbr> elements.
  */
 export interface AbbrNode {
-  type: 'abbr';
+  type: 'abbr'
   /** The abbreviation text */
-  abbr: string;
+  abbr: string
   /** The full expansion/definition */
-  reference: string;
+  reference: string
   /** The text content to display */
-  value: string;
+  value: string
   /** Optional data for additional properties */
   data?: {
-    hName?: string;
-    hProperties?: Record<string, string>;
-  };
+    hName?: string
+    hProperties?: Record<string, string>
+  }
 }
 
 /**
  * The remark-abbr plugin type.
  */
-export type RemarkAbbr = Plugin<[RemarkAbbrOptions?], Root>;
+export type RemarkAbbr = Plugin<[RemarkAbbrOptions?], Root>

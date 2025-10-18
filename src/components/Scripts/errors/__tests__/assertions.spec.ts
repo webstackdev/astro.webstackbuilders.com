@@ -1,15 +1,10 @@
 /**
  * Tests for error assertions
  */
-import { describe, expect, test } from "vitest"
-import { ClientScriptError } from "../ClientScriptError"
-import {
-  isError,
-  isErrorEvent,
-  isPromiseRejectionEvent,
-  isClientScriptError,
-} from "../assertions"
-import { PromiseRejectionEvent } from "@lib/@types/PromiseRejectionEvent"
+import { describe, expect, test } from 'vitest'
+import { ClientScriptError } from '../ClientScriptError'
+import { isError, isErrorEvent, isPromiseRejectionEvent, isClientScriptError } from '../assertions'
+import { PromiseRejectionEvent } from '@lib/@types/PromiseRejectionEvent'
 
 const voidFn = () => {}
 

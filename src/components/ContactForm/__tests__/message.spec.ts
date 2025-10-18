@@ -121,7 +121,7 @@ describe('Message Validation', () => {
     it('should accept messages at various valid lengths', () => {
       const validLengths = [10, 100, 500, 1000, 1500, 1799]
 
-      validLengths.forEach((length) => {
+      validLengths.forEach(length => {
         errorContainer.className = 'message-error'
         errorContainer.innerText = ''
 

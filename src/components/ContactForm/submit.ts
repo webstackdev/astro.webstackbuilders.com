@@ -7,7 +7,7 @@ import type { ContactFormSelectors } from './selectors'
 const url = 'https://{id}.execute-api.{region}.amazonaws.com/{stage}/email/send'
 
 export const initSubmitHandler = (selector: ContactFormSelectors) => {
-  selector.contactForm.addEventListener('submit', (event) => {
+  selector.contactForm.addEventListener('submit', event => {
     event.preventDefault()
     const isEmailInvalid = !selector.emailInputElement.checkValidity()
     const isMessageInvalid = !selector.messageInputElement.checkValidity()

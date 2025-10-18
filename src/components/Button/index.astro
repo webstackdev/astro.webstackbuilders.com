@@ -22,12 +22,9 @@ const {
 } = Astro.props
 
 // Combine all classes
-const buttonClasses = [
-  baseClasses,
-  sizeClasses[size],
-  variantClasses[variant],
-  additionalClasses,
-].filter(Boolean).join(' ')
+const buttonClasses = [baseClasses, sizeClasses[size], variantClasses[variant], additionalClasses]
+  .filter(Boolean)
+  .join(' ')
 
 // Determine icon size based on button size if not specified
 const defaultIconSize = iconSize || (size === 'small' ? 16 : size === 'large' ? 24 : 20)
@@ -42,12 +39,12 @@ const defaultIconSize = iconSize || (size === 'small' ? 16 : size === 'large' ? 
   onclick={onClick}
   {...rest}
 >
-  {icon && (iconPosition === 'left' || iconPosition === 'only') && (
-    <Sprite name={icon} size={defaultIconSize} class={text ? 'mr-2' : ''} />
-  )}
+  {
+    icon && (iconPosition === 'left' || iconPosition === 'only') && (
+      <Sprite name={icon} size={defaultIconSize} class={text ? 'mr-2' : ''} />
+    )
+  }
   {text && <span>{text}</span>}
-  {icon && iconPosition === 'right' && (
-    <Sprite name={icon} size={defaultIconSize} class="ml-2" />
-  )}
+  {icon && iconPosition === 'right' && <Sprite name={icon} size={defaultIconSize} class="ml-2" />}
   <slot />
 </button>

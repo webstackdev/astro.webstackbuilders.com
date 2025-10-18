@@ -1,46 +1,43 @@
-import { describe, it, expect, test } from 'vitest';
-import dedent from 'dedent';
-import { unified } from 'unified';
-import remarkParse from 'remark-parse';
-import stringify from 'rehype-stringify';
-import remark2rehype from 'remark-rehype';
-import remarkStringify from 'remark-stringify';
+import { describe, it, expect, test } from 'vitest'
+import dedent from 'dedent'
+import { unified } from 'unified'
+import remarkParse from 'remark-parse'
+import stringify from 'rehype-stringify'
+import remark2rehype from 'remark-rehype'
+import remarkStringify from 'remark-stringify'
 
-import type { RemarkAbbrOptions } from '../types';
-import remarkAbbr from '../index';
+import type { RemarkAbbrOptions } from '../types'
+import remarkAbbr from '../index'
 
 const render = async (text: string, config?: RemarkAbbrOptions) => {
-  const processor = unified().use(remarkParse);
+  const processor = unified().use(remarkParse)
 
   if (config !== undefined) {
-    processor.use(remarkAbbr, config);
+    processor.use(remarkAbbr, config)
   } else {
-    processor.use(remarkAbbr);
+    processor.use(remarkAbbr)
   }
 
-  return processor
-    .use(remark2rehype)
-    .use(stringify)
-    .process(text);
-};
+  return processor.use(remark2rehype).use(stringify).process(text)
+}
 
 const renderToMarkdown = async (text: string, config?: RemarkAbbrOptions) => {
-  const processor = unified().use(remarkParse).use(remarkStringify);
+  const processor = unified().use(remarkParse).use(remarkStringify)
 
   if (config !== undefined) {
-    processor.use(remarkAbbr, config);
+    processor.use(remarkAbbr, config)
   } else {
-    processor.use(remarkAbbr);
+    processor.use(remarkAbbr)
   }
 
-  return processor.process(text);
-};
+  return processor.process(text)
+}
 
 const configToTest: Record<string, RemarkAbbrOptions | undefined> = {
   'no-config': undefined,
   'empty object': {},
   expandFirst: { expandFirst: true },
-};
+}
 
 for (const [configName, config] of Object.entries(configToTest)) {
   describe(configName, () => {
@@ -58,10 +55,10 @@ for (const [configName, config] of Object.entries(configToTest)) {
       *[FOO]: Reference
     `,
         config
-      );
+      )
 
-      expect(value).toMatchSnapshot();
-    });
+      expect(value).toMatchSnapshot()
+    })
 
     it('passes the first regression test', async () => {
       const { value } = await render(
@@ -75,10 +72,10 @@ for (const [configName, config] of Object.entries(configToTest)) {
       *[W3C]:  World Wide Web Consortium
     `,
         config
-      );
+      )
 
-      expect(value).toMatchSnapshot();
-    });
+      expect(value).toMatchSnapshot()
+    })
 
     it('passes the second regression test', async () => {
       const { value } = await render(
@@ -92,10 +89,10 @@ for (const [configName, config] of Object.entries(configToTest)) {
       *[W3C]:  World Wide Web Consortium
     `,
         config
-      );
+      )
 
-      expect(value).toMatchSnapshot();
-    });
+      expect(value).toMatchSnapshot()
+    })
 
     it('passes the retro test', async () => {
       const input = dedent`
@@ -108,14 +105,14 @@ for (const [configName, config] of Object.entries(configToTest)) {
       *[ABBR]: Abbreviation
       *[HTML]: Hyper Text Markup Language
       *[W3C]:  World Wide Web Consortium
-    `;
+    `
 
-      const { value: html } = await render(input);
-      expect(html).toMatchSnapshot();
+      const { value: html } = await render(input)
+      expect(html).toMatchSnapshot()
 
-      const { value: markdown } = await renderToMarkdown(input);
-      expect(markdown).toMatchSnapshot();
-    });
+      const { value: markdown } = await renderToMarkdown(input)
+      expect(markdown).toMatchSnapshot()
+    })
 
     it('no reference', async () => {
       const { value } = await render(
@@ -123,10 +120,10 @@ for (const [configName, config] of Object.entries(configToTest)) {
       No reference!
     `,
         config
-      );
+      )
 
-      expect(value).toMatchSnapshot();
-    });
+      expect(value).toMatchSnapshot()
+    })
 
     it('handles abbreviations ending with a period', async () => {
       const { value } = await render(
@@ -137,11 +134,11 @@ for (const [configName, config] of Object.entries(configToTest)) {
       *[C-D%F.]: ref2
     `,
         config
-      );
+      )
 
-      expect(value).toContain(`<abbr title="ref1">A.B.C.</abbr>`);
-      expect(value).toContain(`<abbr title="ref2">C-D%F.</abbr>`);
-    });
+      expect(value).toContain(`<abbr title="ref1">A.B.C.</abbr>`)
+      expect(value).toContain(`<abbr title="ref2">C-D%F.</abbr>`)
+    })
 
     it('does not parse words starting with abbr', async () => {
       const { value } = await render(
@@ -151,10 +148,10 @@ for (const [configName, config] of Object.entries(configToTest)) {
       *[AB]: ref1
     `,
         config
-      );
+      )
 
-      expect(value).not.toContain('<abbr');
-    });
+      expect(value).not.toContain('<abbr')
+    })
 
     it('does not parse words ending with abbr', async () => {
       const { value } = await render(
@@ -164,10 +161,10 @@ for (const [configName, config] of Object.entries(configToTest)) {
       *[BC]: ref1
     `,
         config
-      );
+      )
 
-      expect(value).not.toContain('<abbr');
-    });
+      expect(value).not.toContain('<abbr')
+    })
 
     it('does not parse words containing abbr', async () => {
       const { value } = await render(
@@ -177,10 +174,10 @@ for (const [configName, config] of Object.entries(configToTest)) {
       *[B]: ref1
     `,
         config
-      );
+      )
 
-      expect(value).not.toContain('<abbr');
-    });
+      expect(value).not.toContain('<abbr')
+    })
 
     it('does not break with references in their own paragraphs', async () => {
       const { value } = await render(
@@ -192,11 +189,11 @@ for (const [configName, config] of Object.entries(configToTest)) {
       *[def]: D E F
     `,
         config
-      );
+      )
 
-      expect(value).toMatchSnapshot();
-    });
-  });
+      expect(value).toMatchSnapshot()
+    })
+  })
 }
 
 test('compiles to markdown', async () => {
@@ -208,12 +205,12 @@ test('compiles to markdown', async () => {
       *[abbr]: abbreviation
       *[noabbr]: explanation that does not match
       *[HTML]: HyperText Markup Language
-    `;
-  const { value } = await renderToMarkdown(md);
-  expect(value).toMatchSnapshot();
+    `
+  const { value } = await renderToMarkdown(md)
+  expect(value).toMatchSnapshot()
 
-  const value1 = (await renderToMarkdown(md)).value;
-  const value2 = (await renderToMarkdown(value1.toString())).value;
+  const value1 = (await renderToMarkdown(md)).value
+  const value2 = (await renderToMarkdown(value1.toString())).value
 
-  expect(value1).toBe(value2);
-});
+  expect(value1).toBe(value2)
+})

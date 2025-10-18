@@ -1,8 +1,8 @@
 ---
 import { Image } from 'astro:assets'
-import Sprite from "@components/Sprite/index.astro"
+import Sprite from '@components/Sprite/index.astro'
 import Button from '@components/Button/index.astro'
-import CookieSvg from "@assets/images/site/cookie.svg"
+import CookieSvg from '@assets/images/site/cookie.svg'
 ---
 
 <div
@@ -20,12 +20,28 @@ import CookieSvg from "@assets/images/site/cookie.svg"
   >
     <Sprite name="close" />
   </button>
-  {/* Desktop: 48px + (12px * 2) = 72px container, half = 36px. Mobile: 3.6em + (0.6em * 2) = 4.8em container, half = 2.4em */}
-  <div class="h-[72px] w-[72px] -top-[36px] md:h-[4.8em] md:w-[4.8em] md:-top-[2.4em] bg-[var(--color-modal-background)] rounded-full absolute left-0 right-0 mx-auto [&_svg]:h-12 [&_svg]:w-12 [&_svg]:m-3 md:[&_svg]:h-[3.6em] md:[&_svg]:w-[3.6em] md:[&_svg]:m-[0.6em]">
+  {
+    /* Desktop: 48px + (12px * 2) = 72px container, half = 36px. Mobile: 3.6em + (0.6em * 2) = 4.8em container, half = 2.4em */
+  }
+  <div
+    class="h-[72px] w-[72px] -top-[36px] md:h-[4.8em] md:w-[4.8em] md:-top-[2.4em] bg-[var(--color-modal-background)] rounded-full absolute left-0 right-0 mx-auto [&_svg]:h-12 [&_svg]:w-12 [&_svg]:m-3 md:[&_svg]:h-[3.6em] md:[&_svg]:w-[3.6em] md:[&_svg]:m-[0.6em]"
+  >
     <Image src={CookieSvg} alt="Cookie icon." />
   </div>
   <p id="cookie-modal__content" class="pt-9 pb-4 pl-8 md:pt-[2.4em] md:pb-4 md:pl-8">
-    This site uses cookies. Learn more in our <a href="/cookies">Cookie Policy</a> and <a href="/privacy">Privacy Policy</a>. <span class="md:hidden">Our site needs a single cookie to remember your theme preferences, and you can <a class="cookie-modal__link-customize" href="/cookies">customize</a> the other cookies we use to help provide you a great experience here. Or let us know you're okay with our cookie use by clicking <button type="button" class="cookie-modal__link-allow bg-transparent border-0 text-[var(--color-primary)] underline cursor-pointer hover:text-[var(--color-primary-offset)] focus:text-[var(--color-primary-offset)] p-0">Allow All</button>.</span>
+    This site uses cookies. Learn more in our <a href="/cookies">Cookie Policy</a> and <a
+      href="/privacy">Privacy Policy</a
+    >. <span class="md:hidden"
+      >Our site needs a single cookie to remember your theme preferences, and you can <a
+        class="cookie-modal__link-customize"
+        href="/cookies">customize</a
+      > the other cookies we use to help provide you a great experience here. Or let us know you're okay
+      with our cookie use by clicking <button
+        type="button"
+        class="cookie-modal__link-allow bg-transparent border-0 text-[var(--color-primary)] underline cursor-pointer hover:text-[var(--color-primary-offset)] focus:text-[var(--color-primary-offset)] p-0"
+        >Allow All</button
+      >.</span
+    >
   </p>
   <menu class="pt-9 pr-8 pb-4 pl-4 md:pt-0 md:pr-8 md:pb-4 md:pl-4 flex items-center">
     <li class="list-none">
@@ -39,18 +55,14 @@ import CookieSvg from "@assets/images/site/cookie.svg"
     <li class="w-6"></li>
     <li class="list-none">
       <a href="/cookies">
-        <Button
-          text="Customize"
-          variant="warning"
-          class="cookie-modal__btn-customize"
-        />
+        <Button text="Customize" variant="warning" class="cookie-modal__btn-customize" />
       </a>
     </li>
   </menu>
 </div>
 
 <script>
-  import { registerScript } from "@components/Scripts/loader"
-  import { CookieConsent } from "./client"
+  import { registerScript } from '@components/Scripts/loader'
+  import { CookieConsent } from './client'
   registerScript(CookieConsent)
 </script>

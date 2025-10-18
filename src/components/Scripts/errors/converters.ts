@@ -1,14 +1,9 @@
 /**
  * Convert various errors to ClientScriptError
  */
-import { isString } from "@components/Scripts/assertions/primitives"
-import { ClientScriptError, type ClientScriptErrorParams } from "./ClientScriptError"
-import {
-  isError,
-  isErrorEvent,
-  isPromiseRejectionEvent,
-  isClientScriptError
-} from "./assertions"
+import { isString } from '@components/Scripts/assertions/primitives'
+import { ClientScriptError, type ClientScriptErrorParams } from './ClientScriptError'
+import { isError, isErrorEvent, isPromiseRejectionEvent, isClientScriptError } from './assertions'
 
 /**
  * Helper function to create ClientScriptErrorParams without undefined values
@@ -72,8 +67,7 @@ export const extractMetadaFromStackTrace = (stack: string | undefined): stackMet
 
   const stackLine = poppedStackArr.shift() as string
   // Try to match both formats: (path:line:col) and "at path:line:col"
-  const match = /\((.*):(\d+):(\d+)\)$/.exec(stackLine) ||
-                /at\s+(.+):(\d+):(\d+)/.exec(stackLine)
+  const match = /\((.*):(\d+):(\d+)\)$/.exec(stackLine) || /at\s+(.+):(\d+):(\d+)/.exec(stackLine)
   return {
     fileName: match && isString(match[1]) ? match[1] : undefined,
     lineNumber: match && isString(match[2]) ? match[2] : undefined,
@@ -87,12 +81,12 @@ export const extractMetadaFromStackTrace = (stack: string | undefined): stackMet
 export function convertFromError(error: Error): ClientScriptErrorParams {
   const { fileName, lineNumber, columnNumber } = extractMetadaFromStackTrace(error.stack)
   return createErrorParams({
-    message: error.message || "Unknown error",
+    message: error.message || 'Unknown error',
     stack: error.stack,
     cause: error.cause,
     fileName,
     columnNumber,
-    lineNumber
+    lineNumber,
   })
 }
 
@@ -107,7 +101,7 @@ export const convertFromClientScriptError = (input: ClientScriptError): ClientSc
     cause: input,
     fileName,
     columnNumber,
-    lineNumber
+    lineNumber,
   })
 }
 
@@ -120,7 +114,7 @@ export const convertFromErrorEvent = (input: ErrorEvent): ClientScriptErrorParam
     cause: input.error,
     fileName: input.filename || undefined,
     columnNumber: input.colno ? String(input.colno) : undefined,
-    lineNumber: input.lineno ? String(input.lineno) : undefined
+    lineNumber: input.lineno ? String(input.lineno) : undefined,
   })
 }
 
@@ -132,7 +126,7 @@ export const convertFromPromiseRejectionEvent = (
 ): ClientScriptErrorParams => {
   return createErrorParams({
     message: input.reason,
-    cause: input.promise
+    cause: input.promise,
   })
 }
 
@@ -141,6 +135,6 @@ export const convertFromPromiseRejectionEvent = (
  */
 export const convertFromPrimitive = (input: unknown): ClientScriptErrorParams => {
   return createErrorParams({
-    message: input ? String(input) : ''
+    message: input ? String(input) : '',
   })
 }

@@ -1,7 +1,11 @@
 /**
  * Selectors for the cookie consent modal elements
  */
-import { isAnchorElement, isButtonElement, isDivElement } from '@components/Scripts/assertions/elements'
+import {
+  isAnchorElement,
+  isButtonElement,
+  isDivElement,
+} from '@components/Scripts/assertions/elements'
 import { ClientScriptError } from '@components/Scripts/errors/ClientScriptError'
 
 /** Gets the HTMLDivElement wrapping the cookie consent modal */

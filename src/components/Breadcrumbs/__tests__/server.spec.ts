@@ -124,30 +124,22 @@ describe('generateBreadcrumbs', () => {
   describe('Home Page / Root Path', () => {
     it('should return only Home breadcrumb for root path', () => {
       const result = generateBreadcrumbs('/')
-      expect(result).toEqual([
-        { label: 'Home', href: '/', isCurrentPage: false },
-      ])
+      expect(result).toEqual([{ label: 'Home', href: '/', isCurrentPage: false }])
     })
 
     it('should return only Home breadcrumb for empty path', () => {
       const result = generateBreadcrumbs('')
-      expect(result).toEqual([
-        { label: 'Home', href: '/', isCurrentPage: false },
-      ])
+      expect(result).toEqual([{ label: 'Home', href: '/', isCurrentPage: false }])
     })
 
     it('should handle multiple leading slashes', () => {
       const result = generateBreadcrumbs('///')
-      expect(result).toEqual([
-        { label: 'Home', href: '/', isCurrentPage: false },
-      ])
+      expect(result).toEqual([{ label: 'Home', href: '/', isCurrentPage: false }])
     })
 
     it('should handle multiple trailing slashes', () => {
       const result = generateBreadcrumbs('///')
-      expect(result).toEqual([
-        { label: 'Home', href: '/', isCurrentPage: false },
-      ])
+      expect(result).toEqual([{ label: 'Home', href: '/', isCurrentPage: false }])
     })
   })
 
@@ -318,14 +310,15 @@ describe('generateBreadcrumbs', () => {
     })
 
     it('should handle case study path', () => {
-      const result = generateBreadcrumbs(
-        '/case-studies/acme-corp',
-        'ACME Corp Website Redesign'
-      )
+      const result = generateBreadcrumbs('/case-studies/acme-corp', 'ACME Corp Website Redesign')
       expect(result).toEqual([
         { label: 'Home', href: '/', isCurrentPage: false },
         { label: 'Case Studies', href: '/case-studies', isCurrentPage: false },
-        { label: 'ACME Corp Website Redesign', href: '/case-studies/acme-corp', isCurrentPage: true },
+        {
+          label: 'ACME Corp Website Redesign',
+          href: '/case-studies/acme-corp',
+          isCurrentPage: true,
+        },
       ])
     })
 

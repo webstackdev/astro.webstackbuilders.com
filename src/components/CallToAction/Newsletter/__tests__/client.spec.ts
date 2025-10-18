@@ -2,8 +2,8 @@
 /**
  * Tests for Newsletter form component using Container API pattern with happy-dom
  */
-import { beforeAll, beforeEach, describe, expect, test, vi, afterEach } from "vitest"
-import { NewsletterForm } from "../client"
+import { beforeAll, beforeEach, describe, expect, test, vi, afterEach } from 'vitest'
+import { NewsletterForm } from '../client'
 import { setupNewsletterDOM, getFormElements } from '../__fixtures__/newsletter.fixture'
 
 // Mock fetch for API testing
@@ -138,7 +138,7 @@ describe('NewsletterForm class works', () => {
     // Mock successful API response
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: () => Promise.resolve({ success: true, message: 'Subscribed successfully!' })
+      json: () => Promise.resolve({ success: true, message: 'Subscribed successfully!' }),
     })
 
     const newsletter = new NewsletterForm()
@@ -168,7 +168,7 @@ describe('NewsletterForm class works', () => {
     // Mock error API response
     mockFetch.mockResolvedValueOnce({
       ok: false,
-      json: () => Promise.resolve({ success: false, error: 'Subscription failed' })
+      json: () => Promise.resolve({ success: false, error: 'Subscription failed' }),
     })
 
     const newsletter = new NewsletterForm()

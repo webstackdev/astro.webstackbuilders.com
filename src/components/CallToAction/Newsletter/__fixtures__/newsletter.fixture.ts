@@ -21,16 +21,16 @@ export async function createNewsletterDOM(props: NewsletterProps = {}): Promise<
   const container = await AstroContainer.create()
 
   const defaultProps: NewsletterProps = {
-    title: "Test Newsletter",
-    description: "Test description for newsletter signup",
-    placeholder: "test@example.com",
-    buttonText: "Subscribe"
+    title: 'Test Newsletter',
+    description: 'Test description for newsletter signup',
+    placeholder: 'test@example.com',
+    buttonText: 'Subscribe',
   }
 
   const finalProps = { ...defaultProps, ...props }
 
   return await container.renderToString(NewsletterComponent, {
-    props: finalProps
+    props: finalProps,
   })
 }
 
@@ -54,6 +54,6 @@ export function getFormElements() {
     buttonText: document.getElementById('button-text') as HTMLSpanElement,
     buttonArrow: document.getElementById('button-arrow') as unknown as SVGSVGElement,
     buttonSpinner: document.getElementById('button-spinner') as unknown as SVGSVGElement,
-    message: document.getElementById('newsletter-message') as HTMLParagraphElement
+    message: document.getElementById('newsletter-message') as HTMLParagraphElement,
   }
 }

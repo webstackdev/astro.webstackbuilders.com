@@ -103,7 +103,7 @@ interface CallToActionComponent {
 const DEFAULT_OPTIONS: Required<CallToActionValidatorOptions> = {
   componentPath: 'src/components/CallToAction',
   debug: false,
-  additionalPatterns: []
+  additionalPatterns: [],
 }
 
 /**
@@ -112,7 +112,9 @@ const DEFAULT_OPTIONS: Required<CallToActionValidatorOptions> = {
  * This integration scans all pages during build time and ensures that only one
  * instance of each CallToAction component appears per page.
  */
-export function callToActionValidator(options: CallToActionValidatorOptions = {}): AstroIntegration {
+export function callToActionValidator(
+  options: CallToActionValidatorOptions = {}
+): AstroIntegration {
   const config = { ...DEFAULT_OPTIONS, ...options }
   let astroConfig: AstroConfig
   let projectRoot: string
@@ -144,9 +146,11 @@ export function callToActionValidator(options: CallToActionValidatorOptions = {}
 
           // Only log discovery messages during build commands, not during sync
           if (config.debug && commandName !== 'sync') {
-            logger.info(`CallToAction Validator: Discovered ${callToActionComponents.length} components: ${
-              callToActionComponents.map(c => c.name).join(', ')
-            }`)
+            logger.info(
+              `CallToAction Validator: Discovered ${callToActionComponents.length} components: ${callToActionComponents
+                .map(c => c.name)
+                .join(', ')}`
+            )
           }
         } catch (error) {
           logger.error(`CallToAction Validator: Failed to discover components: ${error}`)
@@ -180,7 +184,9 @@ export function callToActionValidator(options: CallToActionValidatorOptions = {}
 
           // Log summary of CTA warnings
           if (ctaWarnings.length > 0) {
-            logger.warn(`CallToAction Validator: Found ${ctaWarnings.length} CTA requirement warning(s)`)
+            logger.warn(
+              `CallToAction Validator: Found ${ctaWarnings.length} CTA requirement warning(s)`
+            )
           } else if (config.debug) {
             logger.info('CallToAction Validator: All content pages have proper CTA setup')
           }
@@ -209,14 +215,18 @@ export function callToActionValidator(options: CallToActionValidatorOptions = {}
 
             // Use Astro's standard error approach for build failures
             const errorMessage = `CallToAction validation failed: Found multiple component instances on ${pagesWithErrors.length} page(s). Each CallToAction component should only appear once per page.`
-            logger.error(`💡 Fix: Remove duplicate component instances or use different CallToAction component types.`)
+            logger.error(
+              `💡 Fix: Remove duplicate component instances or use different CallToAction component types.`
+            )
             logger.error('')
 
             throw new Error(errorMessage)
           }
 
           if (config.debug) {
-            logger.info(`CallToAction Validator: Validation successful! Checked ${validationResults.length} pages.`)
+            logger.info(
+              `CallToAction Validator: Validation successful! Checked ${validationResults.length} pages.`
+            )
           }
         } catch (error) {
           if (error instanceof Error && error.message.includes('CallToAction validation failed')) {
@@ -225,8 +235,8 @@ export function callToActionValidator(options: CallToActionValidatorOptions = {}
           logger.error(`CallToAction Validator: Validation error: ${error}`)
           throw new Error(`CallToAction validation failed: ${error}`)
         }
-      }
-    }
+      },
+    },
   }
 }
 
@@ -262,22 +272,28 @@ async function discoverCallToActionComponents(
           components.push({
             name: componentName,
             path: indexPath,
-            importPatterns
+            importPatterns,
           })
 
           if (debug) {
-            logger.info(`CallToAction Validator: Found component '${componentName}' with patterns: ${importPatterns.join(', ')}`)
+            logger.info(
+              `CallToAction Validator: Found component '${componentName}' with patterns: ${importPatterns.join(', ')}`
+            )
           }
         } catch {
           // index.astro doesn't exist, skip this directory
           if (debug) {
-            logger.warn(`CallToAction Validator: Skipping '${componentName}' - no index.astro found`)
+            logger.warn(
+              `CallToAction Validator: Skipping '${componentName}' - no index.astro found`
+            )
           }
         }
       }
     }
   } catch (error) {
-    throw new Error(`Failed to read CallToAction components directory '${fullComponentPath}': ${error}`)
+    throw new Error(
+      `Failed to read CallToAction components directory '${fullComponentPath}': ${error}`
+    )
   }
 
   return components
@@ -331,7 +347,11 @@ async function validateAllPages(
 /**
  * Get all page files that need validation
  */
-async function getPageFiles(projectRoot: string, _astroConfig: AstroConfig, _debug: boolean): Promise<string[]> {
+async function getPageFiles(
+  projectRoot: string,
+  _astroConfig: AstroConfig,
+  _debug: boolean
+): Promise<string[]> {
   const pageFiles: string[] = []
 
   // Check pages directory
@@ -383,7 +403,7 @@ async function validatePageFile(
   const result: PageValidationResult = {
     pagePath: relativePath,
     errors: [],
-    componentUsages: []
+    componentUsages: [],
   }
 
   try {
@@ -400,7 +420,7 @@ async function validatePageFile(
         result.errors.push({
           componentName: component.name,
           message: `Multiple instances of ${component.name} found (${usages.length} times). Only one instance per page is allowed.`,
-          locations: usages
+          locations: usages,
         })
       }
     }
@@ -430,7 +450,7 @@ function findComponentUsages(
           componentName: component.name,
           filePath,
           lineNumber: i + 1,
-          content: line
+          content: line,
         })
       }
     }
@@ -553,7 +573,6 @@ async function validateContentEntries(
           logger.warn(`⚠️  ${warning.message}`)
         }
       }
-
     } catch (error) {
       if (debug) {
         logger.info(`CallToAction Validator: Error validating ${contentType} entries: ${error}`)
@@ -565,19 +584,21 @@ async function validateContentEntries(
 /**
  * Find the dynamic route template for a content type
  */
-async function findDynamicRouteTemplate(pagesDir: string, contentType: string): Promise<string | null> {
+async function findDynamicRouteTemplate(
+  pagesDir: string,
+  contentType: string
+): Promise<string | null> {
   const contentTypeDir = join(pagesDir, contentType)
 
   try {
     const files = await findAstroFiles(contentTypeDir)
 
     // Look for dynamic route patterns
-    const dynamicRoutes = files.filter(file =>
-      (file.includes('[slug]') || file.includes('[...slug]')) &&
-      file.endsWith('.astro')
+    const dynamicRoutes = files.filter(
+      file => (file.includes('[slug]') || file.includes('[...slug]')) && file.endsWith('.astro')
     )
 
-    return dynamicRoutes.length > 0 ? (dynamicRoutes[0] || null) : null
+    return dynamicRoutes.length > 0 ? dynamicRoutes[0] || null : null
   } catch {
     return null
   }
@@ -626,7 +647,9 @@ async function analyzeContentEntry(
   }
 
   if (debug && ctaComponents.length > 0) {
-    logger.info(`CallToAction Validator: Content ${contentFilePath} would have CTAs: ${ctaComponents.join(', ')}`)
+    logger.info(
+      `CallToAction Validator: Content ${contentFilePath} would have CTAs: ${ctaComponents.join(', ')}`
+    )
   }
 
   // Extract slug from content file path
@@ -644,7 +667,7 @@ async function analyzeContentEntry(
     slug,
     collectionName: contentType,
     isDynamicRoute: true,
-    contentFilePath
+    contentFilePath,
   }
 }
 
@@ -676,16 +699,11 @@ async function validateCtaRequirements(
     warnings,
     logger,
     debug
-  )  // Also validate static index pages
+  ) // Also validate static index pages
   for (const pagePath of contentPages) {
     // Only process index pages (static pages), skip dynamic routes here
     if (!pagePath.includes('[') || !pagePath.includes(']')) {
-      const analysis = await analyzePageCtas(
-        pagePath,
-        callToActionComponents,
-        debug,
-        logger
-      )
+      const analysis = await analyzePageCtas(pagePath, callToActionComponents, debug, logger)
 
       // Skip validation based on frontmatter setting
       if (analysis.frontmatter.callToActionMode === 'none') {
@@ -750,9 +768,8 @@ async function findContentPages(
       const files = await findAstroFiles(contentDir)
 
       // Filter for item view pages (not index pages)
-      const itemPages = files.filter((file: string) =>
-        !file.endsWith('/index.astro') &&
-        file.includes(`/${contentType}/`)
+      const itemPages = files.filter(
+        (file: string) => !file.endsWith('/index.astro') && file.includes(`/${contentType}/`)
       )
 
       contentPages.push(...itemPages)
@@ -833,7 +850,7 @@ async function analyzePageCtas(
     slug,
     collectionName,
     isDynamicRoute,
-    contentFilePath
+    contentFilePath,
   }
 }
 
@@ -851,7 +868,9 @@ function parseFrontmatter(content: string): PageFrontmatter {
     return {}
   }
 
-  const callToActionModeMatch = frontmatterText.match(/callToActionMode:\s*["']?(none|primary-only|default|many)["']?/)
+  const callToActionModeMatch = frontmatterText.match(
+    /callToActionMode:\s*["']?(none|primary-only|default|many)["']?/
+  )
 
   const result: PageFrontmatter = {}
   if (callToActionModeMatch) {
@@ -875,17 +894,18 @@ function getContentTypeFromPath(pagePath: string): ValidatedContentType | null {
  * Get the first component (primary) alphabetically
  */
 function getFirstComponent(components: CallToActionComponent[]): string {
-  return components
-    .map(c => c.name)
-    .sort()[0] || ''
+  return components.map(c => c.name).sort()[0] || ''
 }
 
 /**
  * Extract slug, collection name, and determine if page is dynamic from file path
  */
-function extractSlugAndCollection(pagePath: string, contentType: ValidatedContentType | null): {
-  slug?: string,
-  collectionName?: string,
+function extractSlugAndCollection(
+  pagePath: string,
+  contentType: ValidatedContentType | null
+): {
+  slug?: string
+  collectionName?: string
   isDynamicRoute?: boolean
 } {
   if (!contentType) {
@@ -900,7 +920,7 @@ function extractSlugAndCollection(pagePath: string, contentType: ValidatedConten
     // Return the content type as collection name
     return {
       collectionName: contentType,
-      isDynamicRoute: true
+      isDynamicRoute: true,
     }
   }
 
@@ -911,7 +931,7 @@ function extractSlugAndCollection(pagePath: string, contentType: ValidatedConten
   if (!fileName) {
     return {
       collectionName: contentType,
-      isDynamicRoute: false
+      isDynamicRoute: false,
     }
   }
 
@@ -925,14 +945,17 @@ function extractSlugAndCollection(pagePath: string, contentType: ValidatedConten
   return {
     slug,
     collectionName: contentType,
-    isDynamicRoute: false
+    isDynamicRoute: false,
   }
 }
 
 /**
  * Validate CTA requirements for a page
  */
-function validatePageCtaRequirements(analysis: PageAnalysis, mode: CallToActionMode): WarningIssue[] {
+function validatePageCtaRequirements(
+  analysis: PageAnalysis,
+  mode: CallToActionMode
+): WarningIssue[] {
   const warnings: WarningIssue[] = []
 
   if (mode === 'none') {
@@ -960,7 +983,7 @@ function validatePageCtaRequirements(analysis: PageAnalysis, mode: CallToActionM
     warnings.push({
       type: 'missing-primary',
       message: `Missing primary Call-to-Action component on ${pageIdentifier}. ${hint}`,
-      pagePath: analysis.path
+      pagePath: analysis.path,
     })
   }
 
@@ -970,7 +993,7 @@ function validatePageCtaRequirements(analysis: PageAnalysis, mode: CallToActionM
     warnings.push({
       type: 'missing-secondary',
       message: `Missing secondary Call-to-Action component on ${pageIdentifier}. ${hint}`,
-      pagePath: analysis.path
+      pagePath: analysis.path,
     })
   }
 
@@ -980,7 +1003,7 @@ function validatePageCtaRequirements(analysis: PageAnalysis, mode: CallToActionM
     warnings.push({
       type: 'missing-secondary',
       message: `Mode "many" requires 3+ Call-to-Action components on ${pageIdentifier} (found ${ctaCount}). ${hint}`,
-      pagePath: analysis.path
+      pagePath: analysis.path,
     })
   }
 

@@ -26,7 +26,7 @@ export type SpriteName =
   | 'question'
   | 'repost'
   | 'twitter'
-  | 'warning';
+  | 'warning'
 
 // Re-export for easier imports
-export type { SpriteName as default };
+export type { SpriteName as default }

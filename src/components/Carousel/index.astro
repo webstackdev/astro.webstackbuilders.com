@@ -5,9 +5,9 @@ import type { CollectionEntry } from 'astro:content'
 
 // Type mapping from prop values to actual collection keys
 type CollectionKeyMap = {
-  "services": "services"
-  "case-studies": "caseStudies"
-  "articles": "articles"
+  services: 'services'
+  'case-studies': 'caseStudies'
+  articles: 'articles'
 }
 
 // Type-safe union of valid collection prop names
@@ -17,24 +17,24 @@ type CollectionPropName = keyof CollectionKeyMap
 export interface Props<T extends CollectionPropName = CollectionPropName> {
   title?: string
   limit?: number
-  variant?: "featured" | "suggested" | "random"
+  variant?: 'featured' | 'suggested' | 'random'
   currentSlug: string
   type: T
 }
 
 const {
-  title = "Featured Content",
+  title = 'Featured Content',
   limit = 3,
-  variant = "featured",
+  variant = 'featured',
   currentSlug,
-  type
+  type,
 } = Astro.props
 
 // Map the prop type to the actual collection key with proper typing
 const collectionKey = {
-  "services": "services",
-  "case-studies": "caseStudies",
-  "articles": "articles"
+  services: 'services',
+  'case-studies': 'caseStudies',
+  articles: 'articles',
 }[type] as CollectionKeyMap[typeof type]
 
 // Get all content from the specified collection with proper typing
@@ -45,7 +45,7 @@ type ItemType = CollectionEntry<CollectionKeyMap[typeof type]>
 let items: ItemType[] = allItems
 
 switch (variant) {
-  case "featured":
+  case 'featured':
     // Show only featured items, excluding current item
     items = allItems
       .filter((item: ItemType) => {
@@ -53,17 +53,23 @@ switch (variant) {
         // All collection types now use the consistent "featured" field
         return item.data.featured === true
       })
-      .sort((a: ItemType, b: ItemType) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime())
+      .sort(
+        (a: ItemType, b: ItemType) =>
+          new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime()
+      )
     break
 
-  case "suggested":
+  case 'suggested':
     // Filter out current item and get latest items (suggested mode)
     items = allItems
       .filter((item: ItemType) => item.id !== currentSlug)
-      .sort((a: ItemType, b: ItemType) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime())
+      .sort(
+        (a: ItemType, b: ItemType) =>
+          new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime()
+      )
     break
 
-  case "random":
+  case 'random':
     // Show all items excluding current one in random order
     items = allItems
       .filter((item: ItemType) => item.id !== currentSlug)
@@ -77,84 +83,115 @@ if (limit) {
 }
 ---
 
-{items.length > 0 && (
-  <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-    <header class="text-center mb-12">
-      <h2 class="text-3xl md:text-4xl font-bold text-[color:var(--color-text)]">{title}</h2>
-    </header>
+{
+  items.length > 0 && (
+    <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <header class="text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-bold text-[color:var(--color-text)]">{title}</h2>
+      </header>
 
-    {/* Embla Carousel */}
-    <div class="embla relative">
-      <div class="embla__viewport overflow-hidden">
-        <div class="embla__container flex gap-4 md:gap-6">
-          {items.map((item: ItemType) => (
-            <div class="embla__slide flex-[0_0_100%] md:flex-[0_0_50%] lg:flex-[0_0_33.333%] min-w-0">
-              <article class="group h-full">
-                <a
-                  href={`/${type}/${item.id}/`}
-                  class="block h-full bg-[color:var(--color-bg)] rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-[color:var(--color-border)] hover:border-[color:var(--color-primary)] transform hover:-translate-y-2"
-                >
-                  {'icon' in item.data && item.data.icon && (
-                    <div class="p-6 pb-4">
-                      <div class="w-12 h-12 bg-[color:var(--color-bg-offset)] rounded-lg flex items-center justify-center group-hover:bg-[color:var(--color-primary)] group-hover:bg-opacity-20 transition-colors">
-                        <img
-                          src={item.data.icon}
-                          alt=""
-                          loading="lazy"
-                          class="w-6 h-6"
-                        />
+      {/* Embla Carousel */}
+      <div class="embla relative">
+        <div class="embla__viewport overflow-hidden">
+          <div class="embla__container flex gap-4 md:gap-6">
+            {items.map((item: ItemType) => (
+              <div class="embla__slide flex-[0_0_100%] md:flex-[0_0_50%] lg:flex-[0_0_33.333%] min-w-0">
+                <article class="group h-full">
+                  <a
+                    href={`/${type}/${item.id}/`}
+                    class="block h-full bg-[color:var(--color-bg)] rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-[color:var(--color-border)] hover:border-[color:var(--color-primary)] transform hover:-translate-y-2"
+                  >
+                    {'icon' in item.data && item.data.icon && (
+                      <div class="p-6 pb-4">
+                        <div class="w-12 h-12 bg-[color:var(--color-bg-offset)] rounded-lg flex items-center justify-center group-hover:bg-[color:var(--color-primary)] group-hover:bg-opacity-20 transition-colors">
+                          <img src={item.data.icon} alt="" loading="lazy" class="w-6 h-6" />
+                        </div>
+                      </div>
+                    )}
+                    <div class="p-6 pt-2">
+                      <h3 class="text-xl font-semibold text-[color:var(--color-text)] mb-3 group-hover:text-[color:var(--color-primary)] transition-colors">
+                        {item.data.title}
+                      </h3>
+                      {item.data.description && (
+                        <p class="text-[color:var(--color-text-offset)] leading-relaxed text-sm">
+                          {item.data.description}
+                        </p>
+                      )}
+                      <div class="mt-4 flex items-center text-[color:var(--color-primary)] text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span>Learn more</span>
+                        <svg
+                          class="ml-1 w-4 h-4 transform group-hover:translate-x-1 transition-transform"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M17 8l4 4m0 0l-4 4m4-4H3"
+                          />
+                        </svg>
                       </div>
                     </div>
-                  )}
-                  <div class="p-6 pt-2">
-                    <h3 class="text-xl font-semibold text-[color:var(--color-text)] mb-3 group-hover:text-[color:var(--color-primary)] transition-colors">
-                      {item.data.title}
-                    </h3>
-                    {item.data.description && (
-                      <p class="text-[color:var(--color-text-offset)] leading-relaxed text-sm">
-                        {item.data.description}
-                      </p>
-                    )}
-                    <div class="mt-4 flex items-center text-[color:var(--color-primary)] text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                      <span>Learn more</span>
-                      <svg class="ml-1 w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
-                      </svg>
-                    </div>
-                  </div>
-                </a>
-              </article>
-            </div>
-          ))}
+                  </a>
+                </article>
+              </div>
+            ))}
+          </div>
         </div>
+
+        {/* Navigation Buttons */}
+        <button
+          type="button"
+          class="embla__button embla__button--prev absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-12 h-12 rounded-full bg-[color:var(--color-bg)] border-2 border-[color:var(--color-border)] shadow-lg hover:bg-[color:var(--color-primary)] hover:border-[color:var(--color-primary)] transition-all duration-300 flex items-center justify-center z-10 disabled:opacity-30 disabled:cursor-not-allowed"
+          aria-label="Previous slide"
+        >
+          <svg
+            class="w-6 h-6 text-[color:var(--color-text)]"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
+        </button>
+
+        <button
+          type="button"
+          class="embla__button embla__button--next absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-12 h-12 rounded-full bg-[color:var(--color-bg)] border-2 border-[color:var(--color-border)] shadow-lg hover:bg-[color:var(--color-primary)] hover:border-[color:var(--color-primary)] transition-all duration-300 flex items-center justify-center z-10 disabled:opacity-30 disabled:cursor-not-allowed"
+          aria-label="Next slide"
+        >
+          <svg
+            class="w-6 h-6 text-[color:var(--color-text)]"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
+        </button>
+
+        {/* Dots Navigation */}
+        <div
+          class="embla__dots flex gap-2 justify-center mt-8"
+          role="tablist"
+          aria-label="Carousel navigation"
+        />
       </div>
-
-      {/* Navigation Buttons */}
-      <button
-        type="button"
-        class="embla__button embla__button--prev absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-12 h-12 rounded-full bg-[color:var(--color-bg)] border-2 border-[color:var(--color-border)] shadow-lg hover:bg-[color:var(--color-primary)] hover:border-[color:var(--color-primary)] transition-all duration-300 flex items-center justify-center z-10 disabled:opacity-30 disabled:cursor-not-allowed"
-        aria-label="Previous slide"
-      >
-        <svg class="w-6 h-6 text-[color:var(--color-text)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-        </svg>
-      </button>
-
-      <button
-        type="button"
-        class="embla__button embla__button--next absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-12 h-12 rounded-full bg-[color:var(--color-bg)] border-2 border-[color:var(--color-border)] shadow-lg hover:bg-[color:var(--color-primary)] hover:border-[color:var(--color-primary)] transition-all duration-300 flex items-center justify-center z-10 disabled:opacity-30 disabled:cursor-not-allowed"
-        aria-label="Next slide"
-      >
-        <svg class="w-6 h-6 text-[color:var(--color-text)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-        </svg>
-      </button>
-
-            {/* Dots Navigation */}
-      <div class="embla__dots flex gap-2 justify-center mt-8" role="tablist" aria-label="Carousel navigation"></div>
-    </div>
-  </section>
-)}
+    </section>
+  )
+}
 
 <script>
   import { registerScript } from '@components/Scripts/loader'

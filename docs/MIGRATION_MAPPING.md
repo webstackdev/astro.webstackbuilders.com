@@ -174,60 +174,11 @@ src/layouts/
 
 ## Data Handling
 
-### Data Files Migration
-
-| Current Data | New Location | Notes |
-|-------------|--------------|-------|
-| `site.11tydata.js` | `src/lib/data/site.ts` | Site metadata |
-| `contact.json` | `src/content/data/contact.json` | Contact info |
-| `themes.json` | `src/content/data/themes.json` | Theme data |
-| `storage.json` | `src/content/data/storage.json` | Storage config |
-
-### Content Collections (Already Migrated ✅)
-
-- Articles: `src/content/articles/`
-- Case Studies: `src/content/case-studies/`
-- Services: `src/content/services/`
-- Testimonials: `src/content/testimonials/`
-- Authors: `src/content/authors/`
-
-## Implementation Priority
-
-### Phase 1: Core Structure
-
-1. Create base layouts (`BaseLayout.astro`, `PageLayout.astro`)
-2. Migrate utility functions to `src/lib/utils/`
-3. Create core components (`Hero`, `Navigation`, `Footer`)
-
-### Phase 2: Static Pages
-
-1. `index.astro` (home page) with Hero and Testimonials
-2. `about.astro`
-3. `contact.astro`
-4. `privacy.astro`, `cookies.astro`, `404.astro`
-
-### Phase 3: Dynamic Pages
-
-1. Articles collection pages
-2. Case studies collection pages
-3. Services collection pages
-
 ### Phase 4: Generated Content
 
 1. `sitemap.xml.ts`
 2. `robots.txt.ts`
-3. Social share image generation
 
 ### Phase 5: Advanced Features
 
 1. Search functionality
-2. Theme switching
-3. Service worker integration
-
-## Notes
-
-- ✅ = Already implemented
-- Components should use TypeScript (.astro extension)
-- Maintain existing URL structure for SEO
-- Preserve all meta tags and structured data
-- Keep existing CSS classes and styles

@@ -7,7 +7,18 @@
  * Original: https://github.com/zestedesavoir/zmarkdown/tree/master/packages/remark-attr
  */
 
-import type { Root, Code, Emphasis, Strong, Delete, InlineCode, Link, Heading, Text, Parent } from 'mdast'
+import type {
+  Root,
+  Code,
+  Emphasis,
+  Strong,
+  Delete,
+  InlineCode,
+  Link,
+  Heading,
+  Text,
+  Parent,
+} from 'mdast'
 import type { Plugin } from 'unified'
 import { visit, SKIP } from 'unist-util-visit'
 // @ts-expect-error - No types available for md-attr-parser
@@ -123,9 +134,9 @@ function filterAttributes(
       /^aria-[a-z][a-z.\-_\d]*$/.test(p) ||
       /^data-[a-z][a-z_.\-\d]*$/i.test(p)
     )
-  }  // Combine scope checkers
-  const orFunc = (fun1: (_x: string) => boolean, fun2: (_x: string) => boolean) =>
-    (x: string) => fun1(x) || fun2(x)
+  } // Combine scope checkers
+  const orFunc = (fun1: (_x: string) => boolean, fun2: (_x: string) => boolean) => (x: string) =>
+    fun1(x) || fun2(x)
 
   let inScope: (_p: string) => boolean = (_p: string) => false
 
@@ -139,12 +150,12 @@ function filterAttributes(
       if (allowDangerousDOMEventHandlers) {
         inScope = () => true
       } else {
-        inScope = (x) => !isDangerous(x)
+        inScope = x => !isDangerous(x)
       }
       break
 
     case 'extended': {
-      inScope = (p) => {
+      inScope = p => {
         const hasExtended =
           (extendTag && htmlTag in extendTag && extendTag[htmlTag]?.includes(p)) ||
           ('*' in extendTag && extendTag['*']?.includes(p))
@@ -452,7 +463,11 @@ const remarkAttr: Plugin<[RemarkAttrOptions?], Root> = (userConfig = {}) => {
     })
 
     // Process headings with inline attributes
-    if (!config.disableBlockElements && config.enableAtxHeaderInline && config.elements.has('atxHeading')) {
+    if (
+      !config.disableBlockElements &&
+      config.enableAtxHeaderInline &&
+      config.elements.has('atxHeading')
+    ) {
       visit(tree, 'heading', node => {
         processHeadingInline(node, config)
       })

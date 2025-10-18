@@ -10,7 +10,7 @@ type logColor = `red` | `green` | `yellow` | `blue` | `magenta` | `cyan` | `whit
 
 export const log = (message: string | string[], color: logColor = `magenta`) => {
   if (message instanceof Array) {
-    message.forEach((item) => {
+    message.forEach(item => {
       fancyLog(colors[color](item))
     })
   } else {

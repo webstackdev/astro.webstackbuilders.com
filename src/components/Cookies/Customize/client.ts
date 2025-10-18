@@ -42,7 +42,9 @@ export class CookieCustomize extends LoadableScript {
   private getCookieCustomizeModal(): HTMLDivElement {
     const modal = document.getElementById('cookie-customize-modal-id')
     if (!isDivElement(modal)) {
-      throw new ClientScriptError(`Cookie customize modal with id 'cookie-customize-modal-id' not found`)
+      throw new ClientScriptError(
+        `Cookie customize modal with id 'cookie-customize-modal-id' not found`
+      )
     }
     return modal
   }
@@ -51,7 +53,9 @@ export class CookieCustomize extends LoadableScript {
   private getCookieCustomizeCloseBtn(): HTMLButtonElement {
     const closeBtn = document.querySelector('.cookie-modal__close-btn')
     if (!isButtonElement(closeBtn)) {
-      throw new ClientScriptError(`Cookie customize close button with class 'cookie-modal__close-btn' not found`)
+      throw new ClientScriptError(
+        `Cookie customize close button with class 'cookie-modal__close-btn' not found`
+      )
     }
     return closeBtn
   }
@@ -124,7 +128,7 @@ export class CookieCustomize extends LoadableScript {
       analytics: true,
       functional: true,
       advertising: true,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     }
 
     // Update checkboxes
@@ -147,7 +151,7 @@ export class CookieCustomize extends LoadableScript {
       analytics: analyticsCheckbox ? analyticsCheckbox.checked : false,
       functional: functionalCheckbox ? functionalCheckbox.checked : false,
       advertising: advertisingCheckbox ? advertisingCheckbox.checked : false,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     }
   }
 
@@ -213,7 +217,7 @@ export class CookieCustomize extends LoadableScript {
 
   private setCookie(name: string, value: string, days: number): void {
     const expires = new Date()
-    expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000))
+    expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000)
     document.cookie = `${this.cookiePrefix}${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Strict`
   }
 
@@ -233,7 +237,8 @@ export class CookieCustomize extends LoadableScript {
   showNotification(message: string): void {
     // Create a simple notification
     const notification = document.createElement('div')
-    notification.className = 'fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300'
+    notification.className =
+      'fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300'
     notification.textContent = message
 
     document.body.appendChild(notification)

@@ -1,30 +1,28 @@
 ---
-import { getCollection } from "astro:content"
-import BaseLayout from "@layouts/BaseLayout.astro"
-import { exceptions } from "../../content/_tagList"
+import { getCollection } from 'astro:content'
+import BaseLayout from '@layouts/BaseLayout.astro'
+import { exceptions } from '../../content/_tagList'
 
 export async function getStaticPaths() {
   // Get all content collections with tags
-  const allArticles = await getCollection("articles", ({ data }) => {
-    return process.env['NODE_ENV'] === 'production' ? data.isDraft !== true : true;
+  const allArticles = await getCollection('articles', ({ data }) => {
+    return process.env['NODE_ENV'] === 'production' ? data.isDraft !== true : true
   })
 
-  const allCaseStudies = await getCollection("caseStudies")
-  const allServices = await getCollection("services")
+  const allCaseStudies = await getCollection('caseStudies')
+  const allServices = await getCollection('services')
 
   // Combine all content and extract unique tags
   const allContent = [
     ...allArticles.map(item => ({ ...item, type: 'article' })),
     ...allCaseStudies.map(item => ({ ...item, type: 'case-study' })),
-    ...allServices.map(item => ({ ...item, type: 'service' }))
+    ...allServices.map(item => ({ ...item, type: 'service' })),
   ]
 
-  const uniqueTags = [...new Set(allContent.map((item) => item.data.tags).flat())]
+  const uniqueTags = [...new Set(allContent.map(item => item.data.tags).flat())]
 
-  return uniqueTags.map((tag) => {
-    const filteredContent = allContent.filter((item) =>
-      item.data.tags.includes(tag)
-    )
+  return uniqueTags.map(tag => {
+    const filteredContent = allContent.filter(item => item.data.tags.includes(tag))
     return {
       params: { tag },
       props: { content: filteredContent },
@@ -44,8 +42,9 @@ const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
 const endIndex = startIndex + ITEMS_PER_PAGE
 
 // Sort by publish date (newest first) and paginate
-const sortedContent = allTagContent
-  .sort((a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime())
+const sortedContent = allTagContent.sort(
+  (a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime()
+)
 
 const paginatedContent = sortedContent.slice(startIndex, endIndex)
 
@@ -74,159 +73,185 @@ const path = `/tags/${tag}/`
       </nav>
     </header>
 
-    {paginatedContent.length > 0 ? (
-      <>
-        <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12 mb-12">
-          {paginatedContent.map((item) => (
-            <article class="bg-[var(--color-theme-bg)] rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
-              <a href={`/${item.type === 'case-study' ? 'case-studies' : item.type === 'service' ? 'services' : 'articles'}/${item.id}/`} class="block h-full">
-                {('image' in item.data && item.data.image) && (
-                  <div class="aspect-video overflow-hidden">
-                    <img
-                      src={typeof item.data.image === 'string' ? item.data.image : (item.data.image as any)?.src || item.data.image}
-                      alt={typeof item.data.image === 'string' ? item.data.title : (item.data.image as any)?.alt || item.data.title}
-                      loading="lazy"
-                      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                )}
-
-                <div class="p-6 space-y-4">
-                  <div class="flex items-center gap-3 text-sm">
-                    <span class={`px-3 py-1 rounded-full text-white font-medium ${
-                      item.type === 'article' ? 'bg-[var(--color-theme-primary)]' :
-                      item.type === 'case-study' ? 'bg-[var(--color-theme-success)]' : 'bg-[var(--color-theme-accent)]'
-                    }`}>
-                      {item.type === 'case-study' ? 'Case Study' : item.type.charAt(0).toUpperCase() + item.type.slice(1)}
-                    </span>
-                    <time class="text-[var(--color-theme-text-muted)]">
-                      {item.data.publishDate.toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
-                    </time>
-                  </div>
-
-                  <h2 class="text-xl font-semibold text-[var(--color-theme-text)] leading-tight group-hover:text-[var(--color-theme-primary)] transition-colors duration-300">
-                    {item.data.title}
-                  </h2>
-
-                  {item.data.description && (
-                    <p class="text-[var(--color-theme-text-muted)] text-sm leading-relaxed line-clamp-3">
-                      {item.data.description}
-                    </p>
+    {
+      paginatedContent.length > 0 ? (
+        <>
+          <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12 mb-12">
+            {paginatedContent.map(item => (
+              <article class="bg-[var(--color-theme-bg)] rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
+                <a
+                  href={`/${item.type === 'case-study' ? 'case-studies' : item.type === 'service' ? 'services' : 'articles'}/${item.id}/`}
+                  class="block h-full"
+                >
+                  {'image' in item.data && item.data.image && (
+                    <div class="aspect-video overflow-hidden">
+                      <img
+                        src={
+                          typeof item.data.image === 'string'
+                            ? item.data.image
+                            : (item.data.image as any)?.src || item.data.image
+                        }
+                        alt={
+                          typeof item.data.image === 'string'
+                            ? item.data.title
+                            : (item.data.image as any)?.alt || item.data.title
+                        }
+                        loading="lazy"
+                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
                   )}
 
-                  <div class="space-y-3 pt-2">
-                    {/* Client or Author info */}
-                    {('client' in item.data && item.data.client) && (
-                      <span class="inline-block text-sm font-medium text-[var(--color-theme-primary)] bg-[var(--color-theme-primary-bg)] px-3 py-1 rounded-full">
-                        Client: {(item.data as any).client}
+                  <div class="p-6 space-y-4">
+                    <div class="flex items-center gap-3 text-sm">
+                      <span
+                        class={`px-3 py-1 rounded-full text-white font-medium ${
+                          item.type === 'article'
+                            ? 'bg-[var(--color-theme-primary)]'
+                            : item.type === 'case-study'
+                              ? 'bg-[var(--color-theme-success)]'
+                              : 'bg-[var(--color-theme-accent)]'
+                        }`}
+                      >
+                        {item.type === 'case-study'
+                          ? 'Case Study'
+                          : item.type.charAt(0).toUpperCase() + item.type.slice(1)}
                       </span>
+                      <time class="text-[var(--color-theme-text-muted)]">
+                        {item.data.publishDate.toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                        })}
+                      </time>
+                    </div>
+
+                    <h2 class="text-xl font-semibold text-[var(--color-theme-text)] leading-tight group-hover:text-[var(--color-theme-primary)] transition-colors duration-300">
+                      {item.data.title}
+                    </h2>
+
+                    {item.data.description && (
+                      <p class="text-[var(--color-theme-text-muted)] text-sm leading-relaxed line-clamp-3">
+                        {item.data.description}
+                      </p>
                     )}
 
-                    {/* Additional tags */}
-                    {item.data.tags && item.data.tags.length > 1 && (
-                      <div class="flex flex-wrap gap-2">
-                        {item.data.tags.filter((t: string) => t !== tag).slice(0, 3).map((relatedTag: string) => (
-                          <a href={`/tags/${relatedTag}/`} class="text-xs font-medium text-[var(--color-theme-text-muted)] bg-[var(--color-theme-bg-offset)] hover:bg-[var(--color-theme-border)] px-2 py-1 rounded-full transition-colors duration-200">
-                            {getTagDisplayName(relatedTag)}
-                          </a>
-                        ))}
-                      </div>
-                    )}
+                    <div class="space-y-3 pt-2">
+                      {/* Client or Author info */}
+                      {'client' in item.data && item.data.client && (
+                        <span class="inline-block text-sm font-medium text-[var(--color-theme-primary)] bg-[var(--color-theme-primary-bg)] px-3 py-1 rounded-full">
+                          Client: {(item.data as any).client}
+                        </span>
+                      )}
+
+                      {/* Additional tags */}
+                      {item.data.tags && item.data.tags.length > 1 && (
+                        <div class="flex flex-wrap gap-2">
+                          {item.data.tags
+                            .filter((t: string) => t !== tag)
+                            .slice(0, 3)
+                            .map((relatedTag: string) => (
+                              <a
+                                href={`/tags/${relatedTag}/`}
+                                class="text-xs font-medium text-[var(--color-theme-text-muted)] bg-[var(--color-theme-bg-offset)] hover:bg-[var(--color-theme-border)] px-2 py-1 rounded-full transition-colors duration-200"
+                              >
+                                {getTagDisplayName(relatedTag)}
+                              </a>
+                            ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </a>
-            </article>
-          ))}
-        </section>
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <nav class="flex flex-wrap justify-center items-center gap-2" aria-label="Pagination">
-            {currentPage > 1 && (
-              <a
-                href={currentPage === 2 ? path : `${path}?page=${currentPage - 1}`}
-                class="px-4 py-2 text-sm font-medium text-[var(--color-theme-text)] bg-[var(--color-theme-bg)] border border-[var(--color-theme-border)] rounded-lg hover:bg-[var(--color-theme-bg-offset)] transition-colors duration-200"
-              >
-                ← Previous
-              </a>
-            )}
-
-            {/* Show first page */}
-            {currentPage > 3 && (
-              <>
-                <a
-                  href={path}
-                  class="px-3 py-2 text-sm font-medium text-[var(--color-theme-text)] bg-[var(--color-theme-bg)] border border-[var(--color-theme-border)] rounded-lg hover:bg-[var(--color-theme-bg-offset)] transition-colors duration-200"
-                >
-                  1
                 </a>
-                {currentPage > 4 && (
-                  <span class="px-3 py-2 text-sm text-[var(--color-theme-text-muted)]">…</span>
-                )}
-              </>
-            )}
+              </article>
+            ))}
+          </section>
 
-            {/* Show pages around current page */}
-            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-              const startPage = Math.max(1, Math.min(currentPage - 2, totalPages - 4))
-              const page = startPage + i
-              if (page > totalPages) return null
-
-              const isCurrentPage = page === currentPage
-              return (
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <nav class="flex flex-wrap justify-center items-center gap-2" aria-label="Pagination">
+              {currentPage > 1 && (
                 <a
-                  href={page === 1 ? path : `${path}?page=${page}`}
-                  class={`px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 ${
-                    isCurrentPage
-                      ? 'bg-[var(--color-theme-primary)] text-white'
-                      : 'text-[var(--color-theme-text)] bg-[var(--color-theme-bg)] border border-[var(--color-theme-border)] hover:bg-[var(--color-theme-bg-offset)]'
-                  }`}
-                  aria-current={isCurrentPage ? 'page' : undefined}
+                  href={currentPage === 2 ? path : `${path}?page=${currentPage - 1}`}
+                  class="px-4 py-2 text-sm font-medium text-[var(--color-theme-text)] bg-[var(--color-theme-bg)] border border-[var(--color-theme-border)] rounded-lg hover:bg-[var(--color-theme-bg-offset)] transition-colors duration-200"
                 >
-                  {page}
+                  ← Previous
                 </a>
-              )
-            })}
+              )}
 
-            {/* Show last page */}
-            {currentPage < totalPages - 2 && (
-              <>
-                {currentPage < totalPages - 3 && (
-                  <span class="px-3 py-2 text-sm text-[var(--color-theme-text-muted)]">…</span>
-                )}
+              {/* Show first page */}
+              {currentPage > 3 && (
+                <>
+                  <a
+                    href={path}
+                    class="px-3 py-2 text-sm font-medium text-[var(--color-theme-text)] bg-[var(--color-theme-bg)] border border-[var(--color-theme-border)] rounded-lg hover:bg-[var(--color-theme-bg-offset)] transition-colors duration-200"
+                  >
+                    1
+                  </a>
+                  {currentPage > 4 && (
+                    <span class="px-3 py-2 text-sm text-[var(--color-theme-text-muted)]">…</span>
+                  )}
+                </>
+              )}
+
+              {/* Show pages around current page */}
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                const startPage = Math.max(1, Math.min(currentPage - 2, totalPages - 4))
+                const page = startPage + i
+                if (page > totalPages) return null
+
+                const isCurrentPage = page === currentPage
+                return (
+                  <a
+                    href={page === 1 ? path : `${path}?page=${page}`}
+                    class={`px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 ${
+                      isCurrentPage
+                        ? 'bg-[var(--color-theme-primary)] text-white'
+                        : 'text-[var(--color-theme-text)] bg-[var(--color-theme-bg)] border border-[var(--color-theme-border)] hover:bg-[var(--color-theme-bg-offset)]'
+                    }`}
+                    aria-current={isCurrentPage ? 'page' : undefined}
+                  >
+                    {page}
+                  </a>
+                )
+              })}
+
+              {/* Show last page */}
+              {currentPage < totalPages - 2 && (
+                <>
+                  {currentPage < totalPages - 3 && (
+                    <span class="px-3 py-2 text-sm text-[var(--color-theme-text-muted)]">…</span>
+                  )}
+                  <a
+                    href={`${path}?page=${totalPages}`}
+                    class="px-3 py-2 text-sm font-medium text-[var(--color-theme-text)] bg-[var(--color-theme-bg)] border border-[var(--color-theme-border)] rounded-lg hover:bg-[var(--color-theme-bg-offset)] transition-colors duration-200"
+                  >
+                    {totalPages}
+                  </a>
+                </>
+              )}
+
+              {currentPage < totalPages && (
                 <a
-                  href={`${path}?page=${totalPages}`}
-                  class="px-3 py-2 text-sm font-medium text-[var(--color-theme-text)] bg-[var(--color-theme-bg)] border border-[var(--color-theme-border)] rounded-lg hover:bg-[var(--color-theme-bg-offset)] transition-colors duration-200"
+                  href={`${path}?page=${currentPage + 1}`}
+                  class="px-4 py-2 text-sm font-medium text-[var(--color-theme-text)] bg-[var(--color-theme-bg)] border border-[var(--color-theme-border)] rounded-lg hover:bg-[var(--color-theme-bg-offset)] transition-colors duration-200"
                 >
-                  {totalPages}
+                  Next →
                 </a>
-              </>
-            )}
-
-            {currentPage < totalPages && (
-              <a
-                href={`${path}?page=${currentPage + 1}`}
-                class="px-4 py-2 text-sm font-medium text-[var(--color-theme-text)] bg-[var(--color-theme-bg)] border border-[var(--color-theme-border)] rounded-lg hover:bg-[var(--color-theme-bg-offset)] transition-colors duration-200"
-              >
-                Next →
-              </a>
-            )}
-          </nav>
-        )}
-      </>
-    ) : (
-      <div class="text-center py-12">
-        <p class="text-xl text-[var(--color-theme-text-muted)] mb-4">
-          No content found for this tag.
-        </p>
-        <a href="/tags/" class="text-[var(--color-theme-primary)] hover:underline">
-          Browse other tags
-        </a>
-      </div>
-    )}
+              )}
+            </nav>
+          )}
+        </>
+      ) : (
+        <div class="text-center py-12">
+          <p class="text-xl text-[var(--color-theme-text-muted)] mb-4">
+            No content found for this tag.
+          </p>
+          <a href="/tags/" class="text-[var(--color-theme-primary)] hover:underline">
+            Browse other tags
+          </a>
+        </div>
+      )
+    }
   </div>
 </BaseLayout>

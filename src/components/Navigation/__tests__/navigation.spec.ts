@@ -2,10 +2,10 @@
 /**
  * Tests for navigation menu script using Container API pattern with happy-dom
  */
-import { beforeAll, describe, expect, test, vi } from "vitest"
+import { beforeAll, describe, expect, test, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
-import { getNavToggleBtnElement } from "../selectors"
-import { Navigation } from "../navigation"
+import { getNavToggleBtnElement } from '../selectors'
+import { Navigation } from '../navigation'
 import TestNavigationComponent from './TestNavigation.astro'
 
 // Mock focus-trap to work in jsdom environment
@@ -37,7 +37,7 @@ vi.mock('astro:transitions/client', () => {
 async function setupNavigationDOM(path = '/') {
   const container = await AstroContainer.create()
   const result = await container.renderToString(TestNavigationComponent, {
-    props: { path }
+    props: { path },
   })
   document.body.innerHTML = result
 }
@@ -60,9 +60,7 @@ describe(`Navigation toggleMenu method works`, () => {
     sut.bindEvents()
     sut.toggleMenu()
     expect(document.querySelector(`body`)!.className).toMatch(`no-scroll`)
-    expect(
-      document.querySelector(`.nav-toggle-btn`)!.getAttribute(`aria-expanded`)
-    ).toBeTruthy()
+    expect(document.querySelector(`.nav-toggle-btn`)!.getAttribute(`aria-expanded`)).toBeTruthy()
     expect(document.querySelector(`#header`)!.className).toMatch(`aria-expanded-true`)
   })
 

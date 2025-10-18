@@ -11,15 +11,10 @@ const pageTags: ZodEnumType = [
   `home`,
   `services`,
   `site`,
-  `testimonials`
+  `testimonials`,
 ]
 
-const blogTopicTags: ZodEnumType = [
-  `cms`,
-  `code`,
-  `Joomla!`,
-  `online-learning`,
-]
+const blogTopicTags: ZodEnumType = [`cms`, `code`, `Joomla!`, `online-learning`]
 
 const serviceOfferingsTags: ZodEnumType = [
   `adTech`,
@@ -44,11 +39,7 @@ const serviceOfferingsTags: ZodEnumType = [
   `typescript`,
 ]
 
-export const validTags: ZodEnumType = [
-  ...blogTopicTags,
-  ...pageTags,
-  ...serviceOfferingsTags,
-]
+export const validTags: ZodEnumType = [...blogTopicTags, ...pageTags, ...serviceOfferingsTags]
 
 /** List of normalizations for tag names that can be used in UI */
 export const exceptions = {

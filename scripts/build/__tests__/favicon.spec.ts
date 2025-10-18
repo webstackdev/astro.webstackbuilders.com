@@ -84,7 +84,7 @@ describe('favicon.ts', () => {
       const { width, height, density } = mockMetadata
 
       await Promise.all(
-        faviconDimensions.map((dimension) => {
+        faviconDimensions.map(dimension => {
           const expectedDensity = (dimension / Math.max(width, height)) * density
           sharp('src/assets/favicon.svg', { density: expectedDensity })
           return { dimension }
@@ -243,10 +243,10 @@ describe('favicon.ts', () => {
       await faviconModule.buildFavicons()
 
       // Wait for async operations to complete
-      await new Promise((resolve) => setTimeout(resolve, 100))
+      await new Promise(resolve => setTimeout(resolve, 100))
 
       // Verify files would be written to correct paths
-      expectedPaths.forEach((path) => {
+      expectedPaths.forEach(path => {
         expect(path).toContain('/public/images/')
       })
     })

@@ -19,7 +19,7 @@ export const serviceWorkerConfig: PwaOptions = {
         type: 'image/png',
       },
       // ... more icons
-    ]
+    ],
   },
   workbox: {
     // ID to be prepended to cache names
@@ -58,5 +58,5 @@ export const serviceWorkerConfig: PwaOptions = {
         },
       },
     ],
-  }
+  },
 }

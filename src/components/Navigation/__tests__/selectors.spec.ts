@@ -2,7 +2,7 @@
 /**
  * Tests for HTML element selectors using Container API pattern with happy-dom
  */
-import { describe, expect, test } from "vitest"
+import { describe, expect, test } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import {
   isButtonElement,
@@ -10,7 +10,7 @@ import {
   isHeaderElement,
   isSpanElement,
   isUlElement,
-} from "@components/Scripts/assertions/elements"
+} from '@components/Scripts/assertions/elements'
 import {
   getHeaderElement,
   getMobileSplashElement,
@@ -18,7 +18,7 @@ import {
   getNavToggleBtnElement,
   getNavToggleWrapperElement,
   getNavWrapperElement,
-} from "../selectors"
+} from '../selectors'
 import TestNavigationComponent from './TestNavigation.astro'
 
 /**
@@ -28,7 +28,7 @@ import TestNavigationComponent from './TestNavigation.astro'
 async function setupNavigationDOM(path = '/') {
   const container = await AstroContainer.create()
   const result = await container.renderToString(TestNavigationComponent, {
-    props: { path }
+    props: { path },
   })
   document.body.innerHTML = result
 }

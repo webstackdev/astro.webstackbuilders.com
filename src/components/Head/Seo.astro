@@ -9,14 +9,7 @@ export interface Props {
   tags?: string[]
 }
 
-const {
-  contentType = 'website',
-  publishDate,
-  modifiedDate,
-  author,
-  section,
-  tags
-} = Astro.props
+const { contentType = 'website', publishDate, modifiedDate, author, section, tags } = Astro.props
 
 const locale = 'en_US'
 ---
@@ -26,20 +19,16 @@ const locale = 'en_US'
 <meta property="og:locale" content={locale} />
 
 {/* Article-specific metadata */}
-{contentType === 'article' && publishDate && (
-  <>
-    <meta property="article:published_time" content={publishDate.toISOString()} />
-    {modifiedDate && (
-      <meta property="article:modified_time" content={modifiedDate.toISOString()} />
-    )}
-    {author && (
-      <meta property="article:author" content={author} />
-    )}
-    {section && (
-      <meta property="article:section" content={section} />
-    )}
-    {tags && tags.map((tag) => (
-      <meta property="article:tag" content={tag} />
-    ))}
-  </>
-)}
+{
+  contentType === 'article' && publishDate && (
+    <>
+      <meta property="article:published_time" content={publishDate.toISOString()} />
+      {modifiedDate && (
+        <meta property="article:modified_time" content={modifiedDate.toISOString()} />
+      )}
+      {author && <meta property="article:author" content={author} />}
+      {section && <meta property="article:section" content={section} />}
+      {tags && tags.map(tag => <meta property="article:tag" content={tag} />)}
+    </>
+  )
+}

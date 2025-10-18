@@ -54,56 +54,57 @@ console.log(test);
       const html = await processWithFullPipeline(markdown)
 
       // Verify remark-abbr worked
-      expect(html, 'remarkAbbr should convert MDAST abbreviation')
-        .toContain('<abbr title="Markdown Abstract Syntax Tree">MDAST</abbr>')
+      expect(html, 'remarkAbbr should convert MDAST abbreviation').toContain(
+        '<abbr title="Markdown Abstract Syntax Tree">MDAST</abbr>'
+      )
 
-      expect(html, 'remarkAbbr should convert AST abbreviation')
-        .toContain('<abbr title="Abstract Syntax Tree">AST</abbr>')
+      expect(html, 'remarkAbbr should convert AST abbreviation').toContain(
+        '<abbr title="Abstract Syntax Tree">AST</abbr>'
+      )
 
       // Verify remark-attr worked
-      expect(html, 'remarkAttr should add custom class to link')
-        .toContain('class="highlight"')
+      expect(html, 'remarkAttr should add custom class to link').toContain('class="highlight"')
 
-      expect(html, 'remarkAttr should add attributes to links')
-        .toContain('target="_blank"')
+      expect(html, 'remarkAttr should add attributes to links').toContain('target="_blank"')
 
       // Verify remark-attribution worked
-      expect(html, 'remarkAttribution should wrap quote in figure element')
-        .toMatch(/<figure[^>]*class="[^"]*c-blockquote/)
+      expect(html, 'remarkAttribution should wrap quote in figure element').toMatch(
+        /<figure[^>]*class="[^"]*c-blockquote/
+      )
 
-      expect(html, 'remarkAttribution should create figcaption with attribution')
-        .toMatch(/<figcaption[^>]*class="[^"]*c-blockquote__attribution[^"]*">Neil Armstrong<\/figcaption>/)
+      expect(html, 'remarkAttribution should create figcaption with attribution').toMatch(
+        /<figcaption[^>]*class="[^"]*c-blockquote__attribution[^"]*">Neil Armstrong<\/figcaption>/
+      )
 
       // Verify remark-emoji worked
-      expect(html, 'remarkEmoji should convert :heart: to emoji')
-        .toContain('❤️')
+      expect(html, 'remarkEmoji should convert :heart: to emoji').toContain('❤️')
 
-      expect(html, 'remarkEmoji should convert :rocket: to emoji')
-        .toContain('🚀')
+      expect(html, 'remarkEmoji should convert :rocket: to emoji').toContain('🚀')
 
       // Verify remark-linkify-regex worked
-      expect(html, 'remarkLinkifyRegex should auto-convert URLs to links')
-        .toMatch(/href="https:\/\/webstackbuilders\.com"/)
-
+      expect(html, 'remarkLinkifyRegex should auto-convert URLs to links').toMatch(
+        /href="https:\/\/webstackbuilders\.com"/
+      )
 
       // Verify GFM tables worked
-      expect(html, 'GFM should render markdown tables')
-        .toMatch(/<table[^>]*>/)
+      expect(html, 'GFM should render markdown tables').toMatch(/<table[^>]*>/)
 
-      expect(html, 'GFM tables should have proper structure')
-        .toMatch(/<thead[^>]*>/)
+      expect(html, 'GFM tables should have proper structure').toMatch(/<thead[^>]*>/)
 
       // Verify rehype-accessible-emojis worked
-      expect(html, 'rehypeAccessibleEmojis should add ARIA attributes to emojis')
-        .toContain('role="img"')
+      expect(html, 'rehypeAccessibleEmojis should add ARIA attributes to emojis').toContain(
+        'role="img"'
+      )
 
       // Verify rehype-autolink-headings worked
-      expect(html, 'rehypeAutolinkHeadings should add anchor links to headings')
-        .toContain('class="anchor-link"')
+      expect(html, 'rehypeAutolinkHeadings should add anchor links to headings').toContain(
+        'class="anchor-link"'
+      )
 
       // Verify rehype-tailwind-classes worked
-      expect(html, 'rehypeTailwindClasses should add classes to elements')
-        .toMatch(/class="[^"]*w-full/)
+      expect(html, 'rehypeTailwindClasses should add classes to elements').toMatch(
+        /class="[^"]*w-full/
+      )
     })
 
     it('should handle plugins interacting with formatted text', async () => {
@@ -267,7 +268,9 @@ Ellipsis...
   describe('performance and stress tests', () => {
     it('should handle large documents efficiently', async () => {
       // Generate a document with many features
-      const sections = Array.from({ length: 10 }, (_, i) => `
+      const sections = Array.from(
+        { length: 10 },
+        (_, i) => `
 ## Section ${i + 1}
 
 Content with :heart: emoji and https://example${i}.com
@@ -280,7 +283,8 @@ Content with :heart: emoji and https://example${i}.com
 | Data ${i}A | Data ${i}B |
 
 *[SEC${i}]: Section ${i} Abbreviation
-      `).join('\n')
+      `
+      ).join('\n')
 
       const markdown = sections.trim()
 

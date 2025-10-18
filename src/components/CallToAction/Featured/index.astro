@@ -42,52 +42,54 @@ export interface Props {
 }
 
 const {
-  title = "Featured Content",
-  description = "Discover more content and resources.",
-  link = { href: "/", text: "Learn More" },
+  title = 'Featured Content',
+  description = 'Discover more content and resources.',
+  link = { href: '/', text: 'Learn More' },
   image,
-  audience = "all"
+  audience = 'all',
 } = Astro.props
 ---
 
 <div class="py-8 md:py-12" data-audience={audience}>
   <aside class="container mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="bg-gradient-to-br from-[var(--color-success-bg)] to-[var(--color-info-bg)] rounded-2xl shadow-xl overflow-hidden">
+    <div
+      class="bg-gradient-to-br from-[var(--color-success-bg)] to-[var(--color-info-bg)] rounded-2xl shadow-xl overflow-hidden"
+    >
       <div class={`grid gap-8 ${image ? 'lg:grid-cols-2' : 'lg:grid-cols-1'} items-center`}>
         <!-- Content Column -->
         <div class="p-8 md:p-12 lg:p-16">
           <div class="max-w-xl">
-            <h3 class="text-2xl md:text-3xl lg:text-4xl font-bold text-[var(--color-text)] mb-4 leading-tight">
+            <h3
+              class="text-2xl md:text-3xl lg:text-4xl font-bold text-[var(--color-text)] mb-4 leading-tight"
+            >
               {title}
             </h3>
             <p class="text-base md:text-lg text-[var(--color-text-offset)] mb-8 leading-relaxed">
               {description}
             </p>
             <a href={link.href} class="inline-block">
-              <Button
-                text={link.text}
-                variant="success"
-                size="large"
-              />
+              <Button text={link.text} variant="success" size="large" />
             </a>
           </div>
         </div>
 
         <!-- Image Column (if image provided) -->
-        {image && (
-          <div class="relative lg:h-full min-h-[300px] lg:min-h-[400px]">
-            <a href={link.href} class="block h-full">
-              <Image
-                src={image.src}
-                alt={image.alt}
-                class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                loading="lazy"
-                widths={[400, 600, 800]}
-                sizes="(max-width: 768px) 100vw, 50vw"
-              />
-            </a>
-          </div>
-        )}
+        {
+          image && (
+            <div class="relative lg:h-full min-h-[300px] lg:min-h-[400px]">
+              <a href={link.href} class="block h-full">
+                <Image
+                  src={image.src}
+                  alt={image.alt}
+                  class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                  loading="lazy"
+                  widths={[400, 600, 800]}
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                />
+              </a>
+            </div>
+          )
+        }
       </div>
     </div>
   </aside>

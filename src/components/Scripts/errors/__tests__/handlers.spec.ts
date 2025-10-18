@@ -1,14 +1,14 @@
 /**
  * Tests for error handling routines
  */
-import { describe, expect, test } from "vitest"
-import { PromiseRejectionEvent } from "@lib/@types/PromiseRejectionEvent"
-import { ClientScriptError } from "../ClientScriptError"
+import { describe, expect, test } from 'vitest'
+import { PromiseRejectionEvent } from '@lib/@types/PromiseRejectionEvent'
+import { ClientScriptError } from '../ClientScriptError'
 import {
   unhandledExceptionHandler,
   unhandledRejectionHandler,
-  promiseErrorHandler
-} from "../handlers"
+  promiseErrorHandler,
+} from '../handlers'
 
 const voidFn = () => {}
 

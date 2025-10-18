@@ -1,8 +1,8 @@
 /**
  * Unit tests for pageTitle helper
  */
-import { describe, expect, test } from "vitest"
-import { pageTitle } from "../pageTitle"
+import { describe, expect, test } from 'vitest'
+import { pageTitle } from '../pageTitle'
 
 describe(`pageTitle helper`, () => {
   test(`returns formatted page title with separator`, () => {
@@ -42,17 +42,23 @@ describe(`pageTitle helper`, () => {
 
   test(`throws error when title is not a string`, () => {
     // @ts-expect-error Testing invalid input
-    expect(() => pageTitle(123, 'My Site')).toThrow('Title passed to pageTitle formatter is not a string')
+    expect(() => pageTitle(123, 'My Site')).toThrow(
+      'Title passed to pageTitle formatter is not a string'
+    )
   })
 
   test(`throws error when title is null`, () => {
     // @ts-expect-error Testing invalid input
-    expect(() => pageTitle(null, 'My Site')).toThrow('Title passed to pageTitle formatter is not a string')
+    expect(() => pageTitle(null, 'My Site')).toThrow(
+      'Title passed to pageTitle formatter is not a string'
+    )
   })
 
   test(`throws error when title is undefined`, () => {
     // @ts-expect-error Testing invalid input
-    expect(() => pageTitle(undefined, 'My Site')).toThrow('Title passed to pageTitle formatter is not a string')
+    expect(() => pageTitle(undefined, 'My Site')).toThrow(
+      'Title passed to pageTitle formatter is not a string'
+    )
   })
 
   test(`handles special characters in title`, () => {

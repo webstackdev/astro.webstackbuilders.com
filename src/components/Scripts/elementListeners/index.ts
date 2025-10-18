@@ -9,7 +9,7 @@ const getClickEventListener = (handler: eventHandler) => {
    * Click event listener wrapper
    * @param event - Mouse event
    */
-  function clickListener (event: MouseEvent) {
+  function clickListener(event: MouseEvent) {
     if (event.type === `click`) handler(event)
   }
   return clickListener
@@ -20,7 +20,7 @@ const getEnterKeyEventListener = (handler: eventHandler) => {
    * Enter key event listener wrapper
    * @param event - Keyboard event
    */
-  function keypressListener (event: KeyboardEvent) {
+  function keypressListener(event: KeyboardEvent) {
     /**
      * isComposing indicates that an Input-Method Editor is composing text, such as
      * when a CMYK character is being composed or a virtual keyboard is accepting
@@ -38,7 +38,7 @@ const getTouchendEventListener = (handler: eventHandler) => {
    * Touch end event listener wrapper
    * @param event - Touch event
    */
-  function touchendEventHandler (event: TouchEvent) {
+  function touchendEventHandler(event: TouchEvent) {
     if (event.type === `touchend`) handler(event)
   }
   return touchendEventHandler

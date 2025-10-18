@@ -1,17 +1,18 @@
 ---
-import { getCollection } from "astro:content"
-import PageLayout from "@layouts/PageLayout.astro"
+import { getCollection } from 'astro:content'
+import PageLayout from '@layouts/PageLayout.astro'
 
-const pageTitle = "Articles"
-const path = "/articles/"
+const pageTitle = 'Articles'
+const path = '/articles/'
 
-const allArticles = await getCollection("articles", ({ data }) => {
-  return process.env['NODE_ENV'] === 'production' ? data.isDraft !== true : true;
+const allArticles = await getCollection('articles', ({ data }) => {
+  return process.env['NODE_ENV'] === 'production' ? data.isDraft !== true : true
 })
 
 // Sort by publish date (newest first)
-const sortedArticles = allArticles
-  .sort((a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime())
+const sortedArticles = allArticles.sort(
+  (a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime()
+)
 ---
 
 <PageLayout
@@ -20,78 +21,100 @@ const sortedArticles = allArticles
   subtitle="Insights, tutorials, and thoughts on web development"
 >
   <section class="space-y-12">
-    {sortedArticles.map((article) => (
-      <article class="bg-[var(--color-theme-bg)] rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
-        <a href={`/articles/${article.id}/`} class="block">
-          {article.data.image && (
-            <div class="aspect-video overflow-hidden">
-              <img
-                src={article.data.image.src}
-                alt={article.data.image.alt}
-                loading="lazy"
-                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              />
-            </div>
-          )}
-
-          <div class="p-6 md:p-8 space-y-4">
-            <div class="flex flex-wrap items-center gap-3 text-sm text-[var(--color-theme-text-muted)]">
-              <time class="flex items-center gap-1">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                {article.data.publishDate.toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
-              </time>
-
-              {article.data.tags && article.data.tags.length > 0 && (
-                <div class="flex flex-wrap gap-2">
-                  {article.data.tags.slice(0, 3).map((tag: string) => (
-                    <span class="text-xs font-medium text-[var(--color-theme-primary)] bg-[var(--color-theme-primary-bg)] px-2 py-1 rounded-full uppercase tracking-wide">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              {article.data.isDraft && (
-                <span class="inline-block bg-[var(--color-theme-secondary-bg)] text-[var(--color-theme-secondary)] px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wide">
-                  Draft
-                </span>
-              )}
-            </div>
-
-            <h2 class="text-2xl md:text-3xl font-bold text-[var(--color-theme-text)] leading-tight group-hover:text-[var(--color-theme-primary)] transition-colors duration-300">
-              {article.data.title}
-            </h2>
-
-            {article.data.description && (
-              <p class="text-[var(--color-theme-text-muted)] leading-relaxed line-clamp-3">
-                {article.data.description}
-              </p>
+    {
+      sortedArticles.map(article => (
+        <article class="bg-[var(--color-theme-bg)] rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
+          <a href={`/articles/${article.id}/`} class="block">
+            {article.data.image && (
+              <div class="aspect-video overflow-hidden">
+                <img
+                  src={article.data.image.src}
+                  alt={article.data.image.alt}
+                  loading="lazy"
+                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+              </div>
             )}
 
-            <div class="flex items-center justify-between pt-4">
-              <div class="flex items-center gap-2 text-sm text-[var(--color-theme-text-muted)]">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                ~5 min read
+            <div class="p-6 md:p-8 space-y-4">
+              <div class="flex flex-wrap items-center gap-3 text-sm text-[var(--color-theme-text-muted)]">
+                <time class="flex items-center gap-1">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                  {article.data.publishDate.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })}
+                </time>
+
+                {article.data.tags && article.data.tags.length > 0 && (
+                  <div class="flex flex-wrap gap-2">
+                    {article.data.tags.slice(0, 3).map((tag: string) => (
+                      <span class="text-xs font-medium text-[var(--color-theme-primary)] bg-[var(--color-theme-primary-bg)] px-2 py-1 rounded-full uppercase tracking-wide">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {article.data.isDraft && (
+                  <span class="inline-block bg-[var(--color-theme-secondary-bg)] text-[var(--color-theme-secondary)] px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wide">
+                    Draft
+                  </span>
+                )}
               </div>
 
-              <div class="flex items-center text-[var(--color-theme-primary)] font-medium group-hover:text-[var(--color-theme-primary-hover)] transition-colors duration-300">
-                Read more
-                <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
+              <h2 class="text-2xl md:text-3xl font-bold text-[var(--color-theme-text)] leading-tight group-hover:text-[var(--color-theme-primary)] transition-colors duration-300">
+                {article.data.title}
+              </h2>
+
+              {article.data.description && (
+                <p class="text-[var(--color-theme-text-muted)] leading-relaxed line-clamp-3">
+                  {article.data.description}
+                </p>
+              )}
+
+              <div class="flex items-center justify-between pt-4">
+                <div class="flex items-center gap-2 text-sm text-[var(--color-theme-text-muted)]">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  ~5 min read
+                </div>
+
+                <div class="flex items-center text-[var(--color-theme-primary)] font-medium group-hover:text-[var(--color-theme-primary-hover)] transition-colors duration-300">
+                  Read more
+                  <svg
+                    class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform duration-300"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </div>
               </div>
             </div>
-          </div>
-        </a>
-      </article>
-    ))}
+          </a>
+        </article>
+      ))
+    }
   </section>
 </PageLayout>

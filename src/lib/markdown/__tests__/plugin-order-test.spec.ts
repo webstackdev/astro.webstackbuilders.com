@@ -13,7 +13,10 @@ describe('Attribution Plugin Order Test', () => {
     console.log('\n=== Markdown String ===')
     console.log(JSON.stringify(markdown))
     console.log('Contains newline?', markdown.includes('\n'))
-    console.log('Newline positions:', [...markdown].map((c, i) => c === '\n' ? i : null).filter(x => x !== null))
+    console.log(
+      'Newline positions:',
+      [...markdown].map((c, i) => (c === '\n' ? i : null)).filter(x => x !== null)
+    )
   })
 
   it('Test 1: GFM BEFORE Attribution (current setup)', async () => {
@@ -37,7 +40,7 @@ describe('Attribution Plugin Order Test', () => {
 
   it('Test 2: Attribution BEFORE GFM (proposed fix)', async () => {
     const result = await remark()
-      .use(remarkAttribution)  // MOVED BEFORE GFM
+      .use(remarkAttribution) // MOVED BEFORE GFM
       .use(remarkGfm)
       .use(remarkRehype)
       .use(rehypeStringify)

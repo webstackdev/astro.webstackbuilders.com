@@ -44,7 +44,7 @@ class AvatarManagerClass {
     // Eagerly import all avatar images during initialization
     const avatarModules = import.meta.glob('../../assets/images/avatars/*.{webp,jpg,png}', {
       eager: true,
-      import: 'default'
+      import: 'default',
     }) as Record<string, ImageMetadata>
 
     // Build the avatar mapping
@@ -52,7 +52,10 @@ class AvatarManagerClass {
 
     for (const [path, imageData] of Object.entries(avatarModules)) {
       // Extract filename without extension from path
-      const filename = path.split('/').pop()?.replace(/\.(webp|jpg|png)$/i, '')
+      const filename = path
+        .split('/')
+        .pop()
+        ?.replace(/\.(webp|jpg|png)$/i, '')
 
       if (filename && imageData) {
         // Deep freeze the image metadata to prevent modifications
@@ -125,4 +128,3 @@ class AvatarManagerClass {
 
 // Export singleton instance
 export const AvatarManager = AvatarManagerClass
-

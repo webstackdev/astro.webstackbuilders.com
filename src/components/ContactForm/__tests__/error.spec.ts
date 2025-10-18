@@ -78,7 +78,7 @@ describe('Error Messages and Validation', () => {
       it('should calculate remaining characters correctly', () => {
         const lengths = [1801, 1850, 1900, 1950, 1999]
 
-        lengths.forEach((length) => {
+        lengths.forEach(length => {
           const message = 'a'.repeat(length)
           const text = mssgLengthWarningText(message)
           const remaining = length - messageMaxLength
@@ -121,7 +121,7 @@ describe('Error Messages and Validation', () => {
 
       it('should return false for short names', () => {
         const names = ['Jo', 'Jane', 'John Doe']
-        names.forEach((name) => {
+        names.forEach(name => {
           expect(isNameLengthError(name)).toBe(false)
         })
       })

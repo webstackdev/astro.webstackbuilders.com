@@ -1,8 +1,8 @@
 /**
  * Tests for error converters to ClientScriptError
  */
-import { describe, expect, test } from "vitest"
-import { ClientScriptError } from "../ClientScriptError"
+import { describe, expect, test } from 'vitest'
+import { ClientScriptError } from '../ClientScriptError'
 import {
   convertFromError,
   convertFromClientScriptError,
@@ -11,9 +11,9 @@ import {
   convertFromPrimitive,
   extractMetadaFromStackTrace,
   normalizeMessage,
-} from "../converters"
-import { isString } from "@components/Scripts/assertions/primitives"
-import { PromiseRejectionEvent } from "@lib/@types/PromiseRejectionEvent"
+} from '../converters'
+import { isString } from '@components/Scripts/assertions/primitives'
+import { PromiseRejectionEvent } from '@lib/@types/PromiseRejectionEvent'
 
 const voidFn = () => {}
 

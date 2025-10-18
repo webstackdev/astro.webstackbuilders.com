@@ -66,11 +66,11 @@ export const DOMEventHandlers: readonly string[] = [
   'ontoggle',
   'onvolumechange',
   'onwaiting',
-] as const;
+] as const
 
 /**
  * Type guard to check if a property name is a DOM event handler
  */
 export function isDOMEventHandler(prop: string): boolean {
-  return (DOMEventHandlers as readonly string[]).includes(prop);
+  return (DOMEventHandlers as readonly string[]).includes(prop)
 }

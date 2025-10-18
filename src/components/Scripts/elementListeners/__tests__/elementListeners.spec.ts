@@ -3,7 +3,7 @@ import {
   addButtonEventListeners,
   addLinkEventListeners,
   addWrapperEventListeners,
-  type eventHandler
+  type eventHandler,
 } from '../index'
 
 describe('Element Listeners', () => {
@@ -29,9 +29,11 @@ describe('Element Listeners', () => {
       button.click()
 
       expect(mockHandler).toHaveBeenCalledOnce()
-      expect(mockHandler).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'click'
-      }))
+      expect(mockHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'click',
+        })
+      )
     })
 
     it('should attach keyup event listener for Enter key', () => {
@@ -58,7 +60,7 @@ describe('Element Listeners', () => {
 
       const composingEvent = new KeyboardEvent('keyup', {
         key: 'Enter',
-        isComposing: true
+        isComposing: true,
       })
       button.dispatchEvent(composingEvent)
 
@@ -70,7 +72,7 @@ describe('Element Listeners', () => {
 
       const repeatEvent = new KeyboardEvent('keyup', {
         key: 'Enter',
-        repeat: true
+        repeat: true,
       })
       button.dispatchEvent(repeatEvent)
 
@@ -83,7 +85,7 @@ describe('Element Listeners', () => {
       const touchEvent = new TouchEvent('touchend', {
         touches: [],
         targetTouches: [],
-        changedTouches: []
+        changedTouches: [],
       })
       button.dispatchEvent(touchEvent)
 
@@ -105,7 +107,7 @@ describe('Element Listeners', () => {
       const touchEvent = new TouchEvent('touchend', {
         touches: [],
         targetTouches: [],
-        changedTouches: []
+        changedTouches: [],
       })
       button.dispatchEvent(touchEvent)
 
@@ -129,9 +131,11 @@ describe('Element Listeners', () => {
       link.click()
 
       expect(mockHandler).toHaveBeenCalledOnce()
-      expect(mockHandler).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'click'
-      }))
+      expect(mockHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'click',
+        })
+      )
     })
 
     it('should attach keyup event listener for Enter key', () => {
@@ -159,7 +163,7 @@ describe('Element Listeners', () => {
       const touchEvent = new TouchEvent('touchend', {
         touches: [],
         targetTouches: [],
-        changedTouches: []
+        changedTouches: [],
       })
       link.dispatchEvent(touchEvent)
 
@@ -181,7 +185,7 @@ describe('Element Listeners', () => {
       const touchEvent = new TouchEvent('touchend', {
         touches: [],
         targetTouches: [],
-        changedTouches: []
+        changedTouches: [],
       })
       link.dispatchEvent(touchEvent)
 
@@ -222,7 +226,7 @@ describe('Element Listeners', () => {
 
       const composingEvent = new KeyboardEvent('keyup', {
         key: 'Escape',
-        isComposing: true
+        isComposing: true,
       })
       wrapper.dispatchEvent(composingEvent)
 
@@ -234,7 +238,7 @@ describe('Element Listeners', () => {
 
       const repeatEvent = new KeyboardEvent('keyup', {
         key: 'Escape',
-        repeat: true
+        repeat: true,
       })
       wrapper.dispatchEvent(repeatEvent)
 
@@ -251,7 +255,7 @@ describe('Element Listeners', () => {
 
       const clickEvent = new MouseEvent('click', {
         bubbles: true,
-        cancelable: true
+        cancelable: true,
       })
       button.dispatchEvent(clickEvent)
 
@@ -326,7 +330,7 @@ describe('Element Listeners', () => {
       const touchEvent = new TouchEvent('touchend', {
         touches: [],
         targetTouches: [],
-        changedTouches: []
+        changedTouches: [],
       })
 
       button.dispatchEvent(touchEvent)

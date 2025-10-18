@@ -87,7 +87,9 @@ Use HTML/CSS here.
 
       const html = await processIsolated(markdown, remarkAbbr)
 
-      expect(html).toContain('<abbr title="HyperText Markup Language and Cascading Style Sheets">HTML/CSS</abbr>')
+      expect(html).toContain(
+        '<abbr title="HyperText Markup Language and Cascading Style Sheets">HTML/CSS</abbr>'
+      )
     })
   })
 })

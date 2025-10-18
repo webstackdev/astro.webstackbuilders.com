@@ -1,10 +1,10 @@
 /**
  * Tests for error handling routines and custom errors
  */
-import { describe, expect, test } from "vitest"
-import type { Constructor } from "@test/unit/matchers/assertions"
-import { ClientScriptError } from "../ClientScriptError"
-import { isClientScriptError } from "../assertions"
+import { describe, expect, test } from 'vitest'
+import type { Constructor } from '@test/unit/matchers/assertions'
+import { ClientScriptError } from '../ClientScriptError'
+import { isClientScriptError } from '../assertions'
 
 describe(`ClientScriptError class is constructible`, () => {
   test(`Class is properly constructed`, () => {
@@ -45,7 +45,10 @@ describe(`ClientScriptError has proper inheritance and props set`, () => {
 
   test(`Extended with constructor`, () => {
     class HttpError extends ClientScriptError {
-      constructor(public code: number, message?: string) {
+      constructor(
+        public code: number,
+        message?: string
+      ) {
         super(message)
       }
     }

@@ -9,12 +9,13 @@ Object.defineProperty(document, 'cookie', {
 })
 
 // Mock DOM elements
-const mockElement = (id: string, checked = false) => ({
-  id,
-  checked,
-  addEventListener: vi.fn(),
-  style: {},
-}) as unknown as HTMLInputElement
+const mockElement = (id: string, checked = false) =>
+  ({
+    id,
+    checked,
+    addEventListener: vi.fn(),
+    style: {},
+  }) as unknown as HTMLInputElement
 
 const mockButton = (id: string): HTMLButtonElement => {
   const button = document.createElement('button')
@@ -193,7 +194,7 @@ describe('CookieCustomize', () => {
           analytics: true,
           functional: false,
           advertising: true,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         }
 
         // Set up cookie

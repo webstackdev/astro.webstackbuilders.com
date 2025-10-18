@@ -69,12 +69,8 @@ async function renderMarkdown(content: string) {
 
   // Import configs
   const configModule = await import('../../../config/markdown')
-  const {
-    remarkAttrConfig,
-    remarkTocConfig,
-    rehypeAutolinkHeadingsConfig,
-    remarkRehypeConfig
-  } = configModule
+  const { remarkAttrConfig, remarkTocConfig, rehypeAutolinkHeadingsConfig, remarkRehypeConfig } =
+    configModule
 
   // Process markdown through the full pipeline
   const processor = remark()
@@ -302,8 +298,8 @@ describe('Layer 4: E2E Markdown Rendering', () => {
       // Find anchor links - these are <a> tags inside headings that contain .anchor-link spans
       // Query for headings that contain anchor links
       const headings = container.querySelectorAll('h1, h2, h3, h4, h5, h6')
-      const headingsWithAnchors = Array.from(headings).filter(h =>
-        h.querySelector('.anchor-link') !== null
+      const headingsWithAnchors = Array.from(headings).filter(
+        h => h.querySelector('.anchor-link') !== null
       )
 
       expect(headingsWithAnchors.length).toBeGreaterThan(0)

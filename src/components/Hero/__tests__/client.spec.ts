@@ -108,12 +108,18 @@ describe('HeroLoader', () => {
 
     it('should set transform origins correctly', () => {
       HeroLoader.init()
-      expect(gsapMock.set).toHaveBeenCalledWith('.monitorBottom', expect.objectContaining({
-        transformOrigin: '50% 100%',
-      }))
-      expect(gsapMock.set).toHaveBeenCalledWith(['.monitorStand', '.laptopBase', '.tabletScreen'], expect.objectContaining({
-        transformOrigin: '50% 0%',
-      }))
+      expect(gsapMock.set).toHaveBeenCalledWith(
+        '.monitorBottom',
+        expect.objectContaining({
+          transformOrigin: '50% 100%',
+        })
+      )
+      expect(gsapMock.set).toHaveBeenCalledWith(
+        ['.monitorStand', '.laptopBase', '.tabletScreen'],
+        expect.objectContaining({
+          transformOrigin: '50% 0%',
+        })
+      )
     })
 
     it('should create timeline with correct configuration', () => {
@@ -130,10 +136,13 @@ describe('HeroLoader', () => {
 
     it('should include monitor animation sequence', () => {
       HeroLoader.init()
-      expect(timelineMock.from).toHaveBeenCalledWith('.monitorBottom', expect.objectContaining({
-        scaleY: 0,
-        ease: 'power1',
-      }))
+      expect(timelineMock.from).toHaveBeenCalledWith(
+        '.monitorBottom',
+        expect.objectContaining({
+          scaleY: 0,
+          ease: 'power1',
+        })
+      )
     })
 
     it('should use staggered animations for content groups', () => {

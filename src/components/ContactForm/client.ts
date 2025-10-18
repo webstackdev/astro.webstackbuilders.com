@@ -7,35 +7,35 @@
 import { LoadableScript, type TriggerEvent } from '../Scripts/loader/@types/loader'
 
 export interface ContactFormElements {
-  form: HTMLFormElement;
-  messages: HTMLElement;
-  successMessage: HTMLElement;
-  errorMessage: HTMLElement;
-  errorText: HTMLElement;
-  submitBtn: HTMLButtonElement;
-  btnText: HTMLElement;
-  btnLoading: HTMLElement;
-  messageTextarea: HTMLTextAreaElement;
-  charCount: HTMLElement;
-  uppyContainer: HTMLElement | null;
+  form: HTMLFormElement
+  messages: HTMLElement
+  successMessage: HTMLElement
+  errorMessage: HTMLElement
+  errorText: HTMLElement
+  submitBtn: HTMLButtonElement
+  btnText: HTMLElement
+  btnLoading: HTMLElement
+  messageTextarea: HTMLTextAreaElement
+  charCount: HTMLElement
+  uppyContainer: HTMLElement | null
 }
 
 export interface ContactFormData {
-  name: string;
-  email: string;
-  company?: string;
-  phone?: string;
-  project_type?: string;
-  budget?: string;
-  timeline?: string;
-  message: string;
+  name: string
+  email: string
+  company?: string
+  phone?: string
+  project_type?: string
+  budget?: string
+  timeline?: string
+  message: string
 }
 
 export interface ContactFormConfig {
-  maxCharacters: number;
-  warningThreshold: number;
-  errorThreshold: number;
-  apiEndpoint: string;
+  maxCharacters: number
+  warningThreshold: number
+  errorThreshold: number
+  apiEndpoint: string
 }
 
 /**
@@ -77,8 +77,17 @@ export class ContactForm extends LoadableScript {
     const charCount = document.getElementById('charCount') as HTMLElement
     const uppyContainer = document.getElementById('uppyContainer')
 
-    if (!messages || !successMessage || !errorMessage || !errorText ||
-        !submitBtn || !btnText || !btnLoading || !messageTextarea || !charCount) {
+    if (
+      !messages ||
+      !successMessage ||
+      !errorMessage ||
+      !errorText ||
+      !submitBtn ||
+      !btnText ||
+      !btnLoading ||
+      !messageTextarea ||
+      !charCount
+    ) {
       console.warn('ContactForm: Some required DOM elements not found')
       return false
     }
@@ -149,7 +158,7 @@ export class ContactForm extends LoadableScript {
   private setupFormSubmission(): void {
     if (!this.elements) return
 
-    this.elements.form.addEventListener('submit', async (e) => {
+    this.elements.form.addEventListener('submit', async e => {
       e.preventDefault()
       await this.handleFormSubmission()
     })
@@ -235,7 +244,7 @@ export class ContactForm extends LoadableScript {
     if (!this.elements) return
 
     const inputs = this.elements.form.querySelectorAll('input, select, textarea')
-    inputs.forEach((input) => {
+    inputs.forEach(input => {
       input.addEventListener('blur', () => {
         this.validateField(input as HTMLInputElement)
       })
@@ -298,10 +307,16 @@ export class ContactForm extends LoadableScript {
       }
     }
     // Length validation
-    else if (field.hasAttribute('minlength') && value.length < parseInt(field.getAttribute('minlength') || '0')) {
+    else if (
+      field.hasAttribute('minlength') &&
+      value.length < parseInt(field.getAttribute('minlength') || '0')
+    ) {
       isValid = false
       errorMessage = `Minimum ${field.getAttribute('minlength')} characters required`
-    } else if (field.hasAttribute('maxlength') && value.length > parseInt(field.getAttribute('maxlength') || '0')) {
+    } else if (
+      field.hasAttribute('maxlength') &&
+      value.length > parseInt(field.getAttribute('maxlength') || '0')
+    ) {
       isValid = false
       errorMessage = `Maximum ${field.getAttribute('maxlength')} characters allowed`
     }
@@ -311,7 +326,8 @@ export class ContactForm extends LoadableScript {
       const errorDiv = document.createElement('div')
       errorDiv.className = 'field-error'
       errorDiv.textContent = errorMessage
-      errorDiv.style.cssText = 'color: var(--color-danger); font-size: 0.85rem; margin-top: 0.25rem;'
+      errorDiv.style.cssText =
+        'color: var(--color-danger); font-size: 0.85rem; margin-top: 0.25rem;'
       field.parentNode?.appendChild(errorDiv)
     }
 

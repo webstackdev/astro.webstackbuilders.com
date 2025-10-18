@@ -15,6 +15,8 @@ export interface SharePlatform {
   icon: string
   /** Tailwind color classes for the button */
   colorClasses: string
+  /** If true, uses modal instead of direct link */
+  useModal?: boolean
 }
 
 export interface ShareData {
@@ -27,7 +29,7 @@ export interface ShareData {
 }
 
 /**
- * Platform configurations in priority order: X → LinkedIn → Bluesky → Reddit
+ * Platform configurations in priority order: X → LinkedIn → Bluesky → Reddit → Mastodon
  */
 export const platforms: SharePlatform[] = [
   {
@@ -37,7 +39,7 @@ export const platforms: SharePlatform[] = [
       `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
     ariaLabel: 'Share on X (Twitter)',
     icon: 'twitter',
-    colorClasses: 'bg-[#1DA1F2] hover:bg-[#1a91da] text-white'
+    colorClasses: 'bg-[#1DA1F2] hover:bg-[#1a91da] text-white',
   },
   {
     name: 'LinkedIn',
@@ -46,7 +48,7 @@ export const platforms: SharePlatform[] = [
       `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
     ariaLabel: 'Share on LinkedIn',
     icon: 'linkedin',
-    colorClasses: 'bg-[#0077b5] hover:bg-[#005885] text-white'
+    colorClasses: 'bg-[#0077b5] hover:bg-[#005885] text-white',
   },
   {
     name: 'Bluesky',
@@ -55,7 +57,7 @@ export const platforms: SharePlatform[] = [
       `https://bsky.app/intent/compose?text=${encodeURIComponent(`${text} ${url}`)}`,
     ariaLabel: 'Share on Bluesky',
     icon: 'bluesky',
-    colorClasses: 'bg-[#00A8E8] hover:bg-[#0087bd] text-white'
+    colorClasses: 'bg-[#00A8E8] hover:bg-[#0087bd] text-white',
   },
   {
     name: 'Reddit',
@@ -64,8 +66,17 @@ export const platforms: SharePlatform[] = [
       `https://reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`,
     ariaLabel: 'Share on Reddit',
     icon: 'reddit',
-    colorClasses: 'bg-[#FF4500] hover:bg-[#e03d00] text-white'
-  }
+    colorClasses: 'bg-[#FF4500] hover:bg-[#e03d00] text-white',
+  },
+  {
+    name: 'Mastodon',
+    id: 'mastodon',
+    getShareUrl: () => '', // Modal handles URL generation
+    ariaLabel: 'Share on Mastodon',
+    icon: 'mastodon',
+    colorClasses: 'bg-[#6364FF] hover:bg-[#5557e6] text-white',
+    useModal: true,
+  },
 ]
 
 /**
@@ -100,7 +111,7 @@ export async function nativeShare(data: ShareData): Promise<boolean> {
     await navigator.share({
       title: data.title,
       text: data.text,
-      url: data.url
+      url: data.url,
     })
     return true
   } catch (err) {

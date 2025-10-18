@@ -23,10 +23,7 @@ export async function processIsolated(
     processor.use(plugin)
   }
 
-  const result = await processor
-    .use(remarkRehype)
-    .use(rehypeStringify)
-    .process(markdown)
+  const result = await processor.use(remarkRehype).use(rehypeStringify).process(markdown)
 
   return String(result)
 }
@@ -81,27 +78,25 @@ export async function processWithFullPipeline(markdown: string): Promise<string>
   const { rehypeTailwindClasses } = await import('../rehype-tailwind-classes')
 
   // Import configurations
-  const {
-    remarkAttrConfig,
-    remarkTocConfig,
-    rehypeAutolinkHeadingsConfig,
-  } = await import('../../config/markdown')
+  const { remarkAttrConfig, remarkTocConfig, rehypeAutolinkHeadingsConfig } = await import(
+    '../../config/markdown'
+  )
 
   try {
     const processor = remark()
       // Enable GFM (matches gfm: true)
       .use(remarkGfm)
 
-    // Add all remark plugins in the same order as Astro
-    .use(remarkAbbr)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .use(remarkAttr, remarkAttrConfig as any)
-    .use(remarkAttribution)
-    .use(remarkBreaks)
-    .use(remarkEmoji)
-    // remarkLinkifyRegex is a factory function - call it with the regex first
-    .use(remarkLinkifyRegex(/^(https?:\/\/[^\s$.?#].[^\s]*)$/i))
-    .use(remarkToc, remarkTocConfig)      // Convert to rehype with Astro's options
+      // Add all remark plugins in the same order as Astro
+      .use(remarkAbbr)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .use(remarkAttr, remarkAttrConfig as any)
+      .use(remarkAttribution)
+      .use(remarkBreaks)
+      .use(remarkEmoji)
+      // remarkLinkifyRegex is a factory function - call it with the regex first
+      .use(remarkLinkifyRegex(/^(https?:\/\/[^\s$.?#].[^\s]*)$/i))
+      .use(remarkToc, remarkTocConfig) // Convert to rehype with Astro's options
       .use(remarkRehype, remarkRehypeConfig)
 
       // Add all rehype plugins in the same order as Astro

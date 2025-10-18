@@ -242,5 +242,5 @@ export const variantClasses: Record<ButtonVariant, string> = {
 
     // Active states
     'active:bg-[var(--color-bg-offset)]',
-  ].join(' ')
+  ].join(' '),
 }

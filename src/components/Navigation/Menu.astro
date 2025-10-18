@@ -1,21 +1,21 @@
 ---
 export interface Props {
-  path: string,
+  path: string
 }
 
 const { path } = Astro.props
 
 // Create an array with (nested) navigation objects
 const navigationItems = [
-  { url: "/about", title: "About" },
-  { url: "/articles", title: "Articles" },
-  { url: "/case-studies", title: "Case Studies" },
-  { url: "/services", title: "Services" },
-  { url: "/contact", title: "Contact" },
+  { url: '/about', title: 'About' },
+  { url: '/articles', title: 'Articles' },
+  { url: '/case-studies', title: 'Case Studies' },
+  { url: '/services', title: 'Services' },
+  { url: '/contact', title: 'Contact' },
 ]
 
 const activeMenuItem = (url: string) => {
-  return path === url ? "nav-item-active" : ""
+  return path === url ? 'nav-item-active' : ''
 }
 ---
 
@@ -37,7 +37,7 @@ const activeMenuItem = (url: string) => {
   #mobile-splash::after {
     background-color: var(--color-primary-offset);
     border-radius: 50%;
-    content: "";
+    content: '';
     display: block;
     position: absolute;
     z-index: var(--z-nav);
@@ -47,7 +47,7 @@ const activeMenuItem = (url: string) => {
     width: 284vmax;
     transform-origin: 50% 50%;
     transform: scale(0);
-    transition: transform .5s cubic-bezier(0.755, 0.050, 0.855, 0.060);
+    transition: transform 0.5s cubic-bezier(0.755, 0.05, 0.855, 0.06);
     will-change: transform;
   }
 
@@ -72,10 +72,10 @@ const activeMenuItem = (url: string) => {
   @media (min-width: 1024px) {
     .main-nav-item::after {
       background-color: var(--color-border);
-      bottom: -.25rem;
+      bottom: -0.25rem;
       content: '';
       display: block;
-      height: .25rem;
+      height: 0.25rem;
       left: 1.25rem;
       position: absolute;
       right: 1.25rem;
@@ -101,20 +101,23 @@ const activeMenuItem = (url: string) => {
 </style>
 
 <nav id="main-nav" class="main-nav" role="navigation" aria-label="Main">
-  <ul class="main-nav-menu flex flex-row justify-center relative lg:items-center lg:flex-row" tabindex="-1" aria-label="main navigation">
-    {navigationItems.map((navItem) => (
-      <li class:list={[
-        "main-nav-item opacity-100 lg:relative",
-        activeMenuItem(navItem.url)
-      ]}>
-        <a
-          href={navItem.url}
-          class="block text-primary text-xl lg:text-lg font-bold tracking-[5px] lg:tracking-normal p-4 lg:px-5 lg:py-3 text-center uppercase lg:lowercase no-underline hover:text-bg-offset hover:bg-primary lg:hover:bg-inherit lg:hover:text-primary focus:text-bg-offset focus:bg-primary lg:focus:bg-inherit lg:focus:text-primary focus:outline-0 lg:flex lg:items-center lg:text-primary-offset lg:relative lg:transition-colors lg:duration-200 lg:whitespace-nowrap lg:z-10"
-        >
-          {navItem.title}
-        </a>
-      </li>
-    ))}
+  <ul
+    class="main-nav-menu flex flex-row justify-center relative lg:items-center lg:flex-row"
+    tabindex="-1"
+    aria-label="main navigation"
+  >
+    {
+      navigationItems.map(navItem => (
+        <li class:list={['main-nav-item opacity-100 lg:relative', activeMenuItem(navItem.url)]}>
+          <a
+            href={navItem.url}
+            class="block text-primary text-xl lg:text-lg font-bold tracking-[5px] lg:tracking-normal p-4 lg:px-5 lg:py-3 text-center uppercase lg:lowercase no-underline hover:text-bg-offset hover:bg-primary lg:hover:bg-inherit lg:hover:text-primary focus:text-bg-offset focus:bg-primary lg:focus:bg-inherit lg:focus:text-primary focus:outline-0 lg:flex lg:items-center lg:text-primary-offset lg:relative lg:transition-colors lg:duration-200 lg:whitespace-nowrap lg:z-10"
+          >
+            {navItem.title}
+          </a>
+        </li>
+      ))
+    }
   </ul>
 </nav>
 <script>

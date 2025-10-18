@@ -9,7 +9,7 @@ const cnst = () => {
 }
 
 const Anticipate = {
-  out (p: number) {
+  out(p: number) {
     return (p *= 2) < 1
       ? 0.5 * p * p * ((cnst() + 1) * p - cnst())
       : 0.5 * (2 - Math.pow(2, -10 * (p - 1)))
@@ -19,7 +19,7 @@ const Anticipate = {
       ? 0.5 * (Math.pow(2, 10 * (p - 1)) - 0.001)
       : 0.5 * ((p -= 2) * p * ((cnst() + 1) * p + cnst()) + 2)
   },
-  inOut (p: number) {
+  inOut(p: number) {
     return (p *= 2) < 1
       ? 0.5 * p * p * ((cnst() + 1) * p - cnst())
       : 0.5 * ((p -= 2) * p * ((cnst() + 1) * p + cnst()) + 2)
@@ -33,12 +33,12 @@ export class HeroLoader extends LoadableScript {
   private static instance: HeroLoader | null = null
   private timeline?: Timeline
 
-  constructor () {
+  constructor() {
     super()
     HeroLoader.instance = this
   }
 
-  private startAnimation () {
+  private startAnimation() {
     if (document.getElementById('heroAnimation') == undefined) return
 
     if (this.timeline) {
@@ -53,24 +53,27 @@ export class HeroLoader extends LoadableScript {
       transformOrigin: '50% 0%',
     })
 
-    gsap.set([
-      '.monitorLogo',
-      '.monitorScreen',
-      '.laptopScreen',
-      '.laptopTrackpad',
-      '.tabletGroup',
-      '.laptopGroup',
-      '.tabletButton',
-      '.tabletCamera',
-      '.tabletContentGroup',
-      '.phoneButton',
-      '.phoneCamera',
-      '.phoneSpeaker',
-      '.laptopContentGroup',
-      '.phoneGroup',
-    ], {
-      transformOrigin: '50% 50%',
-    })
+    gsap.set(
+      [
+        '.monitorLogo',
+        '.monitorScreen',
+        '.laptopScreen',
+        '.laptopTrackpad',
+        '.tabletGroup',
+        '.laptopGroup',
+        '.tabletButton',
+        '.tabletCamera',
+        '.tabletContentGroup',
+        '.phoneButton',
+        '.phoneCamera',
+        '.phoneSpeaker',
+        '.laptopContentGroup',
+        '.phoneGroup',
+      ],
+      {
+        transformOrigin: '50% 50%',
+      }
+    )
 
     gsap.set(['.laptopEdgeLeft', '.laptopEdgeRight'], {
       transformOrigin: '0% 100%',
@@ -84,13 +87,15 @@ export class HeroLoader extends LoadableScript {
       visibility: 'visible',
     })
 
-    this.timeline = gsap.timeline({
-      defaults: { duration: 1 },
-      delay: 1,
-      paused: false,
-      repeat: -1,
-      yoyo: false,
-    }).timeScale(3)
+    this.timeline = gsap
+      .timeline({
+        defaults: { duration: 1 },
+        delay: 1,
+        paused: false,
+        repeat: -1,
+        yoyo: false,
+      })
+      .timeScale(3)
       .from('.monitorBottom', {
         scaleY: 0,
         ease: 'power1',
@@ -382,26 +387,26 @@ export class HeroLoader extends LoadableScript {
       })
   }
 
-  static override init () {
+  static override init() {
     if (!HeroLoader.instance) {
       HeroLoader.instance = new HeroLoader()
     }
     HeroLoader.instance.startAnimation()
   }
 
-  static override pause () {
+  static override pause() {
     if (HeroLoader.instance?.timeline) {
       HeroLoader.instance.timeline.pause()
     }
   }
 
-  static override resume () {
+  static override resume() {
     if (HeroLoader.instance?.timeline) {
       HeroLoader.instance.timeline.play()
     }
   }
 
-  static override reset () {
+  static override reset() {
     if (HeroLoader.instance?.timeline) {
       HeroLoader.instance.timeline.restart()
     }

@@ -1,7 +1,7 @@
 /**
  * Custom error for client-side script
  */
-import { normalizeMessage } from "./converters"
+import { normalizeMessage } from './converters'
 
 export interface ClientScriptErrorParams {
   message: string

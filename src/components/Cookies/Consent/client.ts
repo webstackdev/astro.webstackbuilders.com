@@ -1,5 +1,9 @@
 import { LoadableScript, type TriggerEvent } from '@components/Scripts/loader/@types/loader'
-import { addButtonEventListeners, addLinkEventListeners, addWrapperEventListeners } from '@components/Scripts/elementListeners'
+import {
+  addButtonEventListeners,
+  addLinkEventListeners,
+  addWrapperEventListeners,
+} from '@components/Scripts/elementListeners'
 import { setCookieModalVisibility, initCookieModalVisibility } from './state'
 import { initConsentCookies, allowAllConsentCookies } from './cookies'
 import { showCookieCustomizeModal } from '../Customize/client'

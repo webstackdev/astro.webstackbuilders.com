@@ -83,8 +83,8 @@ export class Navigation extends LoadableScript {
   setupViewTransitions() {
     const navLinks = this.menu.querySelectorAll('a[href]')
 
-    navLinks.forEach((link) => {
-      link.addEventListener('click', (event) => {
+    navLinks.forEach(link => {
+      link.addEventListener('click', event => {
         event.preventDefault()
         const href = link.getAttribute('href')
 

@@ -9,7 +9,7 @@ import {
   setupTestimonialsCarouselDOM,
   cleanupTestimonialsCarouselDOM,
   getDOMElements,
-  userInteractions
+  userInteractions,
 } from '../__fixtures__/domHelpers'
 import { mockTestimonials } from '../__fixtures__/mockData'
 

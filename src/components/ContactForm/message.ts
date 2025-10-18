@@ -6,7 +6,7 @@ import {
   isMssgLengthWarning,
   isMssgLengthError,
   mssgLengthWarningText,
-  mssgLengthErrorText
+  mssgLengthErrorText,
 } from './error'
 import type { ContactFormSelectors } from './selectors'
 
@@ -14,10 +14,7 @@ import type { ContactFormSelectors } from './selectors'
 // @TODO: Prevent text beyond max length being added to box. This can be done with e.preventDefault(), but it needs to account for paste actions and add the amount of text in the selection being pasted up to the max length and add that text.
 
 export const initMssgLengthHandler = (selector: ContactFormSelectors) => {
-  selector.messageInputElement.addEventListener(
-    `input`,
-    messageInputElementValidator(selector)
-  )
+  selector.messageInputElement.addEventListener(`input`, messageInputElementValidator(selector))
 }
 
 /**

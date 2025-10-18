@@ -18,30 +18,32 @@
  *
  * { "src": "/icon-mask.png", "type": "image/png", "sizes": "512x512", "purpose": "maskable" },
  */
-import sharp, { type Metadata } from "sharp"
-import toIco from "to-ico"
-import { writeFile } from "fs/promises"
+import sharp, { type Metadata } from 'sharp'
+import toIco from 'to-ico'
+import { writeFile } from 'fs/promises'
 
 type IconGenerator = (options: Metadata) => Promise<Buffer>
 
 const faviconPath = `src/assets/favicon.svg`
 const generateIcoFavicon: IconGenerator = ({ width, height, density }) => {
-  if (!width || !height || !density) throw new Error(`Required option not passed to generateIcoFavicon`)
+  if (!width || !height || !density)
+    throw new Error(`Required option not passed to generateIcoFavicon`)
   const faviconDimensions = [32, 64]
   // Create buffer for each size
   return Promise.all(
-    faviconDimensions.map((dimension) =>
+    faviconDimensions.map(dimension =>
       sharp(faviconPath, {
         density: (dimension / Math.max(width, height)) * density,
       })
         .resize(dimension, dimension)
         .toBuffer()
     )
-  ).then((buffers) => toIco(buffers))
+  ).then(buffers => toIco(buffers))
 }
 
 const generatePngFavicon: IconGenerator = ({ density, width, height }) => {
-  if (!width || !height || !density) throw new Error(`Required option not passed to generatePngFavicon`)
+  if (!width || !height || !density)
+    throw new Error(`Required option not passed to generatePngFavicon`)
   return sharp(faviconPath, {
     density: (180 / Math.max(width, height)) * density,
   })
@@ -57,16 +59,14 @@ const saveFile = (destination: string) => {
 }
 
 const faviconTypes: Array<[string, IconGenerator]> = [
-  ["favicon.ico", generateIcoFavicon],
-  ["apple-touch-icon.png", generatePngFavicon],
+  ['favicon.ico', generateIcoFavicon],
+  ['apple-touch-icon.png', generatePngFavicon],
 ]
 
 export const buildFavicons = async () => {
   const metadata = await sharp(faviconPath).metadata()
 
   faviconTypes.forEach(([name, generator]) =>
-    generator(metadata).then(
-      saveFile(`${process.cwd()}/public/images/${name}`)
-    )
+    generator(metadata).then(saveFile(`${process.cwd()}/public/images/${name}`))
   )
 }

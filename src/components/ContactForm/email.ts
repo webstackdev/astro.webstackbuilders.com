@@ -35,7 +35,7 @@ const getEmailErrorText = (emailInputElement: HTMLInputElement) => {
   } else if (emailInputElement.validity.tooShort) {
     /** If the data is too short, display the following error message */
     return minLengthEmailAddressText(emailInputElement)
-    } else if (emailInputElement.validity.tooLong) {
+  } else if (emailInputElement.validity.tooLong) {
     /** If the data is too long, display the following error message */
     return maxLengthEmailAddressText(emailInputElement)
   } else {

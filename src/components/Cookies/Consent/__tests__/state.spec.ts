@@ -1,11 +1,11 @@
-import { describe, expect, test, vi } from "vitest"
+import { describe, expect, test, vi } from 'vitest'
 import {
   consentModalStateKey,
   isVisibilityObject,
   getCookieModalVisibility,
   setCookieModalVisibility,
   initCookieModalVisibility,
-} from "../state"
+} from '../state'
 
 const getMockedStoreValue = () => localStorage.getItem(consentModalStateKey)
 

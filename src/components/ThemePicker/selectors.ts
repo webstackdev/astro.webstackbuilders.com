@@ -4,7 +4,7 @@
 import {
   isButtonElement,
   isDivElement,
-  isSpanElement
+  isSpanElement,
 } from '@components/Scripts/assertions/elements'
 
 export const SELECTORS = {
@@ -68,10 +68,10 @@ export const getThemePickerCloseButton = (): HTMLButtonElement => {
  */
 export const getThemePickerSelectButtons = (): NodeListOf<HTMLButtonElement> => {
   const selectBtns = document.querySelectorAll(SELECTORS.themeSelectBtns)
-  if (!selectBtns.length) throw new Error(`No theme item card select <button> elements found in theme picker modal`)
-  selectBtns.forEach((button) => {
-    if (!isButtonElement(button))
-      throw new Error(`Theme select button class applied to non-button`)
+  if (!selectBtns.length)
+    throw new Error(`No theme item card select <button> elements found in theme picker modal`)
+  selectBtns.forEach(button => {
+    if (!isButtonElement(button)) throw new Error(`Theme select button class applied to non-button`)
   })
 
   return selectBtns as NodeListOf<HTMLButtonElement>

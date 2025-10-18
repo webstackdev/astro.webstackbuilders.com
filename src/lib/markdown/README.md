@@ -14,65 +14,20 @@
 * CallToAction/Contact
 * CallToAction/Featured
 * CallToAction/Newsletter
-* Carousel with choice of collection to display and filters
+* Carousel
 * Social/Embed
 * Social/Highlighter
 * Social/Share
 * Sprite
 * Testimonials
-* Webmentions
 
-### Mastodon Shares
+src/layouts/MarkdownLayout.astro
 
-https://github.com/kytta/share2fedi
+### Phase 4: Generated Content
 
-**Option B: Integrate into Your Astro Site (Better UX)**
-
-Since both projects use Astro, you could integrate Share2Fedi directly.
-
-Pros:
-
-- Single deployment
-- Same domain (no CORS issues)
-- Can customize UI to match your branding
-- Full control over the flow
-
-Cons:
-
-- More maintenance
-- Need to keep up with Share2Fedi updates
-- Adds dependencies to your project
-
-Implementation approach:
-
-- Add Share2Fedi as a git submodule or npm workspace
-- Create route at /share-to-mastodon
-- Copy/adapt Share2Fedi's Astro pages
-- Customize styling to match your theme
-
-**Option C: Hybrid - Embedded Modal (Best UX)**
-
-Instead of opening a new tab, embed the instance selector in your page.
-
-User flow:
-
-- Click Mastodon icon in highlight tooltip
-- Modal opens on your page (not new tab)
-- User enters instance URL (or uses saved one)
-- Modal redirects to Mastodon instance share intent
-- User completes post on their instance
-
-Pros:
-
-- No page navigation away from content
-- Better UX than external redirect
-- Still leverages Share2Fedi's instance validation logic
-- Can customize modal to match site design
-
-Cons:
-
-- More complex implementation
-- Need to extract Share2Fedi's instance handling logic
+1. `sitemap.xml.ts`
+2. `robots.txt.ts`
+3. Search functionality
 
 ## Implement Astro View Transitions
 
@@ -159,6 +114,13 @@ Sentry.captureMessage("Something went wrong", "warning")
 
 - Highlighter component
 - Social Shares component
+
+## Cookie Consent
+
+- Analytics Integration: Connect the analytics toggle to your actual Google Analytics or other tracking services
+- Advanced Features: Add cookie expiration management, preference export/import
+- Compliance: Add GDPR compliance features like data deletion requests
+- Testing: Verify the cookie preferences work correctly across different browsers
 
 npm i @vercel/analytics
 import Analytics from '@vercel/analytics/astro'

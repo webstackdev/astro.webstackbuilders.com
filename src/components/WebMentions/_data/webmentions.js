@@ -63,7 +63,7 @@ function writeToCache(data) {
     fs.mkdirSync(CACHE_DIR)
   }
   // write data to cache json file
-  fs.writeFile(filePath, fileContent, err => {
+  fs.writeFile(filePath, fileContent, (err) => {
     if (err) throw err
     console.log(`webmentions cached to ${filePath}`)
   })
@@ -83,7 +83,7 @@ function readFromCache() {
   }
 }
 
-module.exports = async function() {
+module.exports = async function () {
   const cache = readFromCache()
   const { lastFetched } = cache
 

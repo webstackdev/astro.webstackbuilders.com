@@ -4,11 +4,12 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 
 // Mock the common utilities BEFORE importing
 vi.mock('../../common/platforms', async () => {
-  const actual = await vi.importActual<typeof import('../../common/platforms')>('../../common/platforms')
+  const actual =
+    await vi.importActual<typeof import('../../common/platforms')>('../../common/platforms')
   return {
     ...actual,
     copyToClipboard: vi.fn().mockResolvedValue(true),
-    nativeShare: vi.fn().mockResolvedValue(false)
+    nativeShare: vi.fn().mockResolvedValue(false),
   }
 })
 
@@ -98,7 +99,7 @@ describe('HighlighterElement', () => {
 
     it('should render all platform buttons', () => {
       const buttons = highlighter.shadowRoot?.querySelectorAll('.share-button')
-      expect(buttons).toHaveLength(5) // 4 platforms + copy button
+      expect(buttons).toHaveLength(6) // 5 platforms + copy button
     })
 
     it('should render platform buttons in correct order', () => {
@@ -139,11 +140,15 @@ describe('HighlighterElement', () => {
     it('should hide dialog on mouseleave', async () => {
       // Show dialog first
       highlighter.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }))
-      expect(highlighter.shadowRoot?.querySelector('.share-dialog')?.getAttribute('aria-hidden')).toBe('false')
+      expect(
+        highlighter.shadowRoot?.querySelector('.share-dialog')?.getAttribute('aria-hidden')
+      ).toBe('false')
 
       // Hide dialog
       highlighter.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }))
-      expect(highlighter.shadowRoot?.querySelector('.share-dialog')?.getAttribute('aria-hidden')).toBe('true')
+      expect(
+        highlighter.shadowRoot?.querySelector('.share-dialog')?.getAttribute('aria-hidden')
+      ).toBe('true')
     })
 
     it('should show dialog on focus', async () => {
@@ -157,11 +162,15 @@ describe('HighlighterElement', () => {
     it('should hide dialog on blur', async () => {
       // Show dialog first
       highlighter.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
-      expect(highlighter.shadowRoot?.querySelector('.share-dialog')?.getAttribute('aria-hidden')).toBe('false')
+      expect(
+        highlighter.shadowRoot?.querySelector('.share-dialog')?.getAttribute('aria-hidden')
+      ).toBe('false')
 
       // Hide dialog
       highlighter.dispatchEvent(new FocusEvent('focusout', { bubbles: true }))
-      expect(highlighter.shadowRoot?.querySelector('.share-dialog')?.getAttribute('aria-hidden')).toBe('true')
+      expect(
+        highlighter.shadowRoot?.querySelector('.share-dialog')?.getAttribute('aria-hidden')
+      ).toBe('true')
     })
   })
 
@@ -187,7 +196,9 @@ describe('HighlighterElement', () => {
     it('should hide dialog on Escape key', async () => {
       // Show dialog first
       highlighter.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }))
-      expect(highlighter.shadowRoot?.querySelector('.share-dialog')?.getAttribute('aria-hidden')).toBe('false')
+      expect(
+        highlighter.shadowRoot?.querySelector('.share-dialog')?.getAttribute('aria-hidden')
+      ).toBe('false')
 
       // Trigger Escape key
       const event = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })
@@ -230,9 +241,9 @@ describe('HighlighterElement', () => {
           href: 'https://example.com/test-page',
           protocol: 'https:',
           host: 'example.com',
-          pathname: '/test-page'
+          pathname: '/test-page',
         },
-        writable: true
+        writable: true,
       })
 
       // Mock window.open
@@ -241,12 +252,14 @@ describe('HighlighterElement', () => {
       // Mock document.title
       Object.defineProperty(document, 'title', {
         value: 'Test Page Title',
-        writable: true
+        writable: true,
       })
     })
 
     it('should open Twitter share URL', async () => {
-      const twitterButton = highlighter.shadowRoot?.querySelector('[data-platform="twitter"]') as HTMLButtonElement
+      const twitterButton = highlighter.shadowRoot?.querySelector(
+        '[data-platform="twitter"]'
+      ) as HTMLButtonElement
       expect(twitterButton).toBeTruthy()
 
       twitterButton.click()
@@ -259,7 +272,9 @@ describe('HighlighterElement', () => {
     })
 
     it('should open LinkedIn share URL', async () => {
-      const linkedinButton = highlighter.shadowRoot?.querySelector('[data-platform="linkedin"]') as HTMLButtonElement
+      const linkedinButton = highlighter.shadowRoot?.querySelector(
+        '[data-platform="linkedin"]'
+      ) as HTMLButtonElement
       expect(linkedinButton).toBeTruthy()
 
       linkedinButton.click()
@@ -272,7 +287,9 @@ describe('HighlighterElement', () => {
     })
 
     it('should open Bluesky share URL', async () => {
-      const blueskyButton = highlighter.shadowRoot?.querySelector('[data-platform="bluesky"]') as HTMLButtonElement
+      const blueskyButton = highlighter.shadowRoot?.querySelector(
+        '[data-platform="bluesky"]'
+      ) as HTMLButtonElement
       expect(blueskyButton).toBeTruthy()
 
       blueskyButton.click()
@@ -285,7 +302,9 @@ describe('HighlighterElement', () => {
     })
 
     it('should open Reddit share URL', async () => {
-      const redditButton = highlighter.shadowRoot?.querySelector('[data-platform="reddit"]') as HTMLButtonElement
+      const redditButton = highlighter.shadowRoot?.querySelector(
+        '[data-platform="reddit"]'
+      ) as HTMLButtonElement
       expect(redditButton).toBeTruthy()
 
       redditButton.click()
@@ -304,7 +323,9 @@ describe('HighlighterElement', () => {
 
       await new Promise(resolve => setTimeout(resolve, 0))
 
-      const twitterButton = specialHighlighter.shadowRoot?.querySelector('[data-platform="twitter"]') as HTMLButtonElement
+      const twitterButton = specialHighlighter.shadowRoot?.querySelector(
+        '[data-platform="twitter"]'
+      ) as HTMLButtonElement
       twitterButton?.click()
 
       expect(window.open).toHaveBeenCalledWith(
@@ -317,19 +338,25 @@ describe('HighlighterElement', () => {
 
   describe('Copy to Clipboard', () => {
     it('should call copyToClipboard with text and URL', async () => {
-      const copyButton = highlighter.shadowRoot?.querySelector('[data-platform="copy"]') as HTMLButtonElement
+      const copyButton = highlighter.shadowRoot?.querySelector(
+        '[data-platform="copy"]'
+      ) as HTMLButtonElement
       expect(copyButton).toBeTruthy()
 
       await copyButton.click()
 
       // Copy button shares text + URL
-      expect(mockCopyToClipboard).toHaveBeenCalledWith('"Test shareable content" https://example.com/test-page')
+      expect(mockCopyToClipboard).toHaveBeenCalledWith(
+        '"Test shareable content" https://example.com/test-page'
+      )
     })
 
     it('should show visual feedback after successful copy', async () => {
       mockCopyToClipboard.mockResolvedValueOnce(true)
 
-      const copyButton = highlighter.shadowRoot?.querySelector('[data-platform="copy"]') as HTMLButtonElement
+      const copyButton = highlighter.shadowRoot?.querySelector(
+        '[data-platform="copy"]'
+      ) as HTMLButtonElement
 
       await copyButton.click()
 
@@ -348,12 +375,14 @@ describe('HighlighterElement', () => {
       Object.defineProperty(navigator, 'share', {
         value: mockNavigatorShare,
         writable: true,
-        configurable: true
+        configurable: true,
       })
 
       mockNativeShare.mockResolvedValueOnce(true)
 
-      const twitterButton = highlighter.shadowRoot?.querySelector('[data-platform="twitter"]') as HTMLButtonElement
+      const twitterButton = highlighter.shadowRoot?.querySelector(
+        '[data-platform="twitter"]'
+      ) as HTMLButtonElement
       await twitterButton.click()
 
       // Should have tried native share
@@ -364,7 +393,9 @@ describe('HighlighterElement', () => {
       // Mock native share as unavailable/failed
       mockNativeShare.mockResolvedValueOnce(false)
 
-      const twitterButton = highlighter.shadowRoot?.querySelector('[data-platform="twitter"]') as HTMLButtonElement
+      const twitterButton = highlighter.shadowRoot?.querySelector(
+        '[data-platform="twitter"]'
+      ) as HTMLButtonElement
       await twitterButton.click()
 
       // Should fall back to window.open
@@ -377,7 +408,9 @@ describe('HighlighterElement', () => {
       const eventListener = vi.fn()
       highlighter.addEventListener('highlighter:share', eventListener)
 
-      const twitterButton = highlighter.shadowRoot?.querySelector('[data-platform="twitter"]') as HTMLButtonElement
+      const twitterButton = highlighter.shadowRoot?.querySelector(
+        '[data-platform="twitter"]'
+      ) as HTMLButtonElement
       await twitterButton.click()
 
       expect(eventListener).toHaveBeenCalled()
@@ -388,8 +421,8 @@ describe('HighlighterElement', () => {
         data: {
           text: expect.any(String),
           url: expect.any(String),
-          title: expect.any(String)
-        }
+          title: expect.any(String),
+        },
       })
 
       highlighter.removeEventListener('highlighter:share', eventListener)
@@ -401,7 +434,9 @@ describe('HighlighterElement', () => {
 
       mockCopyToClipboard.mockResolvedValueOnce(true)
 
-      const copyButton = highlighter.shadowRoot?.querySelector('[data-platform="copy"]') as HTMLButtonElement
+      const copyButton = highlighter.shadowRoot?.querySelector(
+        '[data-platform="copy"]'
+      ) as HTMLButtonElement
       await copyButton.click()
 
       expect(eventListener).toHaveBeenCalled()

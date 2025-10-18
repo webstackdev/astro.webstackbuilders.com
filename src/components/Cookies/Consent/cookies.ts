@@ -2,7 +2,7 @@
 /**
  * State management for cookie consent
  */
-import { getCookie, setCookie, removeCookie } from "@components/Scripts/state"
+import { getCookie, setCookie, removeCookie } from '@components/Scripts/state'
 
 type Preference = `granted` | `refused` | `unknown`
 
@@ -15,12 +15,7 @@ interface Consent {
 
 type Categories = keyof Consent
 
-export const consentCookies: Categories[] = [
-  `necessary`,
-  `analytics`,
-  `advertising`,
-  `functional`,
-]
+export const consentCookies: Categories[] = [`necessary`, `analytics`, `advertising`, `functional`]
 
 export const prefixConsentCookie = (name: string) => {
   return `consent_${name}`

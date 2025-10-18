@@ -29,21 +29,37 @@ export const getSocialShareHTML = (
     twitter: `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}${description ? `%20-%20${encodedDescription}` : ''}`,
     linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}&title=${encodedTitle}&summary=${encodedDescription}`,
     bluesky: `https://bsky.app/intent/compose?text=${encodedTitle}%20${encodedUrl}`,
-    mastodon: `https://k8s.social/share?text=${encodedTitle}%20${encodedUrl}`
+    mastodon: `https://k8s.social/share?text=${encodedTitle}%20${encodedUrl}`,
   }
 
   const socialNetworkConfig = {
     twitter: { name: 'X (Twitter)', icon: 'twitter' },
     linkedin: { name: 'LinkedIn', icon: 'linkedin' },
     bluesky: { name: 'Bluesky', icon: 'bluesky' },
-    mastodon: { name: 'Mastodon', icon: 'mastodon' }
+    mastodon: { name: 'Mastodon', icon: 'mastodon' },
   }
 
-  const buttonsHTML = mockSocialNetworks.map((network) => {
-    const config = socialNetworkConfig[network]
-    const shareUrl = shareUrls[network]
+  const buttonsHTML = mockSocialNetworks
+    .map(network => {
+      const config = socialNetworkConfig[network]
+      const shareUrl = shareUrls[network]
 
-    return `
+      // Mastodon uses button with data attributes instead of anchor
+      if (network === 'mastodon') {
+        return `
+      <button
+        type="button"
+        data-platform="mastodon"
+        data-share-text="${description} https://example.com/test"
+        class="social-share__button inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white font-medium"
+        aria-label="Share on ${config.name}"
+      >
+        <span class="hidden sm:inline">${config.name}</span>
+      </button>
+    `
+      }
+
+      return `
       <a
         href="${shareUrl}"
         target="_blank"
@@ -54,7 +70,8 @@ export const getSocialShareHTML = (
         <span class="hidden sm:inline">${config.name}</span>
       </a>
     `
-  }).join('')
+    })
+    .join('')
 
   return `
     <div class="social-share flex flex-wrap gap-3" role="group" aria-label="Share this content">

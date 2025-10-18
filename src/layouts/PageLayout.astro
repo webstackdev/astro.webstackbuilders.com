@@ -1,5 +1,5 @@
 ---
-import BaseLayout from "./BaseLayout.astro"
+import BaseLayout from './BaseLayout.astro'
 
 export interface Props {
   pageTitle: string
@@ -19,69 +19,50 @@ export interface Props {
   }
 }
 
-const {
-  pageTitle,
-  path,
-  subtitle,
-  schemaType = "http://schema.org/WebPage",
-  meta
-} = Astro.props
+const { pageTitle, path, subtitle, schemaType = 'http://schema.org/WebPage', meta } = Astro.props
 ---
 
 <BaseLayout pageTitle={pageTitle} path={path}>
-  <article
-    class="page-content"
-    itemscope
-    itemtype={schemaType}
-    aria-labelledby="page-title"
-  >
+  <article class="page-content" itemscope itemtype={schemaType} aria-labelledby="page-title">
     <header class="page-content__header">
-      <h1
-        id="page-title"
-        class="page-content__title"
-        itemprop="headline"
-      >
+      <h1 id="page-title" class="page-content__title" itemprop="headline">
         {pageTitle}
       </h1>
-      {subtitle && (
-        <p class="page-content__subtitle">{subtitle}</p>
-      )}
-      {meta && (
-        <div class="page-content__meta">
-          {meta.date && (
-            <time
-              class="page-content__date"
-              itemprop="datePublished"
-              datetime={meta.date.toISOString()}
-            >
-              {meta.date.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}
-            </time>
-          )}
-          {meta.readingTime && (
-            <p class="page-content__reading-time">
-              {meta.readingTime} to read
-            </p>
-          )}
-          {meta.tags && meta.tags.length > 0 && (
-            <div class="page-content__tags">
-              <span aria-label="in category">&sdot;</span>
-              <span class="page-content__tag-list">
-                {meta.tags.join(', ')}
-              </span>
-            </div>
-          )}
-          {meta.draft && (
-            <>
-              <span aria-hidden="true">&sdot;</span>
-              <span class="page-content__status">(Draft)</span>
-            </>
-          )}
-        </div>
-      )}
+      {subtitle && <p class="page-content__subtitle">{subtitle}</p>}
+      {
+        meta && (
+          <div class="page-content__meta">
+            {meta.date && (
+              <time
+                class="page-content__date"
+                itemprop="datePublished"
+                datetime={meta.date.toISOString()}
+              >
+                {meta.date.toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
+              </time>
+            )}
+            {meta.readingTime && (
+              <p class="page-content__reading-time">{meta.readingTime} to read</p>
+            )}
+            {meta.tags && meta.tags.length > 0 && (
+              <div class="page-content__tags">
+                <span aria-label="in category">&sdot;</span>
+                <span class="page-content__tag-list">{meta.tags.join(', ')}</span>
+              </div>
+            )}
+            {meta.draft && (
+              <>
+                <span aria-hidden="true">&sdot;</span>
+                <span class="page-content__status">(Draft)</span>
+              </>
+            )}
+          </div>
+        )
+      }
     </header>
     <div class="page-content__body content" itemprop="articleBody">
       <slot />

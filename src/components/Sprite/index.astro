@@ -7,11 +7,11 @@ import { Icon } from 'astro-icon/components'
 import type { SpriteName } from './sprites'
 
 export interface Props {
-  class?: string,
-  name: SpriteName,
-  size?: number | string,
+  class?: string
+  name: SpriteName
+  size?: number | string
   /** Color variant for the icon */
-  variant?: 'default' | 'muted' | 'success' | 'warning' | 'inherit',
+  variant?: 'default' | 'muted' | 'success' | 'warning' | 'inherit'
 }
 
 const { class: className, name, size = 24, variant = 'default' } = Astro.props
@@ -22,18 +22,13 @@ const colorClasses = {
   muted: 'text-[color:var(--color-theme-text-muted)] fill-[color:var(--color-theme-text-muted)]',
   success: 'text-[color:var(--color-theme-success)] fill-[color:var(--color-theme-success)]',
   warning: 'text-[color:var(--color-theme-warning)] fill-[color:var(--color-theme-warning)]',
-  inherit: 'text-inherit fill-inherit'
+  inherit: 'text-inherit fill-inherit',
 }
 ---
 
 <Icon
   name={name}
-  class:list={[
-    'inline-block align-middle',
-    colorClasses[variant],
-    `icon--${name}`,
-    className
-  ]}
+  class:list={['inline-block align-middle', colorClasses[variant], `icon--${name}`, className]}
   size={size}
   aria-hidden="true"
 />

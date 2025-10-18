@@ -1,8 +1,8 @@
 /**
  * Error-related assertions
  */
-import { ClientScriptError } from "./ClientScriptError"
-import type { PromiseRejectionEvent } from "../@types/PromiseRejectionEvent"
+import { ClientScriptError } from './ClientScriptError'
+import type { PromiseRejectionEvent } from '../@types/PromiseRejectionEvent'
 
 export function isError(error: unknown): error is Error {
   if (typeof error === 'object' && (error as Error).name === 'Error') return true

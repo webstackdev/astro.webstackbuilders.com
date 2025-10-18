@@ -1,8 +1,8 @@
 /**
  * Error handlers for client-side script
  */
-import { ClientScriptError } from "./ClientScriptError"
-import { logError } from "./logger"
+import { ClientScriptError } from './ClientScriptError'
+import { logError } from './logger'
 /**
  * Unhandled exception handler
  */

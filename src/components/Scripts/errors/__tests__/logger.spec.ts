@@ -1,9 +1,9 @@
 /**
  * Tests for error handling routines and custom errors
  */
-import { afterEach, describe, expect, test, vi } from "vitest"
-import { type ClientScriptErrorParams } from "../ClientScriptError"
-import { logError } from "../logger"
+import { afterEach, describe, expect, test, vi } from 'vitest'
+import { type ClientScriptErrorParams } from '../ClientScriptError'
+import { logError } from '../logger'
 
 describe('Logger outputs to console', () => {
   const errorParamFixture: ClientScriptErrorParams = {

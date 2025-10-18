@@ -9,10 +9,7 @@ export const themeSetup = () => {
    * Set an attribute named data-theme on the <html> element and
    * set it to the value of the theme key in localstorage.
    */
-  document.documentElement.setAttribute(
-    'data-theme',
-    localStorage.getItem('theme') ?? 'default'
-  )
+  document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') ?? 'default')
 
   /**
    * Used to update the <meta name="theme-color" content="VALID_COLOR"> element when
@@ -20,14 +17,14 @@ export const themeSetup = () => {
    */
   const themes = [
     { id: 'default', colors: { backgroundOffset: '#e2e2e2' } },
-    { id: 'dark', colors: { backgroundOffset: '#00386d' } }
-  ];
+    { id: 'dark', colors: { backgroundOffset: '#00386d' } },
+  ]
 
   // Initialize metaColors on window if it doesn't exist
   if (typeof window !== 'undefined') {
-    (window as any).metaColors = (window as any).metaColors || {};
-    themes.forEach((theme) => {
-      (window as any).metaColors[theme.id] = theme.colors.backgroundOffset;
-    });
+    ;(window as any).metaColors = (window as any).metaColors || {}
+    themes.forEach(theme => {
+      ;(window as any).metaColors[theme.id] = theme.colors.backgroundOffset
+    })
   }
 }

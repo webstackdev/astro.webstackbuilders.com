@@ -1,11 +1,11 @@
-import { describe, expect, test } from "vitest"
+import { describe, expect, test } from 'vitest'
 import {
   getConsentCookie,
   initConsentCookies,
   prefixConsentCookie,
   removeConsentCookies,
   setConsentCookie,
-} from "../cookies"
+} from '../cookies'
 
 describe(`Consent cookies handlers work`, () => {
   const setAllConsentCookies = () => {

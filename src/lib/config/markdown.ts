@@ -20,7 +20,7 @@ import { rehypeTailwindClasses } from '../markdown/rehype-tailwind-classes'
 export const remarkAttrConfig = { scope: 'permissive' } as const
 
 /** Configuration for remark-toc plugin */
-export const remarkTocConfig: RemarkTocOptions = { heading: "contents" }
+export const remarkTocConfig: RemarkTocOptions = { heading: 'contents' }
 
 /** Configuration for rehype-autolink-headings plugin */
 export const rehypeAutolinkHeadingsConfig: RehypeAutolinkHeadingsOptions = {
@@ -41,35 +41,35 @@ export const rehypeAutolinkHeadingsConfig: RehypeAutolinkHeadingsOptions = {
 }
 
 export const shikiConfigOptions: ShikiConfig = {
-    // Alternatively, provide multiple themes
-    // See note below for using dual light/dark themes
-    themes: {
-      light: 'github-light',
-      dark: 'github-dark',
-    },
-    // Disable the default colors
-    // https://shiki.style/guide/dual-themes#without-default-color
-    // (Added in v4.12.0)
-    defaultColor: 'light',
-    // Add custom aliases for languages
-    // Map an alias to a Shiki language ID: https://shiki.style/languages#bundled-languages
-    // https://shiki.style/guide/load-lang#custom-language-aliases
-    langAlias: {
-      js: "javascript",
-      ts: "typescript",
-      md: "markdown",
-    },
-    // Enable word wrap to prevent horizontal scrolling
-    wrap: true,
-    // Add custom transformers: https://shiki.style/guide/transformers
-    // Find common transformers: https://shiki.style/packages/transformers
-    transformers: [],
-  }
+  // Alternatively, provide multiple themes
+  // See note below for using dual light/dark themes
+  themes: {
+    light: 'github-light',
+    dark: 'github-dark',
+  },
+  // Disable the default colors
+  // https://shiki.style/guide/dual-themes#without-default-color
+  // (Added in v4.12.0)
+  defaultColor: 'light',
+  // Add custom aliases for languages
+  // Map an alias to a Shiki language ID: https://shiki.style/languages#bundled-languages
+  // https://shiki.style/guide/load-lang#custom-language-aliases
+  langAlias: {
+    js: 'javascript',
+    ts: 'typescript',
+    md: 'markdown',
+  },
+  // Enable word wrap to prevent horizontal scrolling
+  wrap: true,
+  // Add custom transformers: https://shiki.style/guide/transformers
+  // Find common transformers: https://shiki.style/packages/transformers
+  transformers: [],
+}
 
 /** Configuration for remark-rehype plugin (conversion from markdown to HTML AST) */
 export const remarkRehypeConfig = {
   /** Footnote label displayed to return to reference */
-  footnoteBackLabel: "Back to reference 1",
+  footnoteBackLabel: 'Back to reference 1',
   /** Footnote label displayed at start of footnote section */
   footnoteLabel: 'Footnotes',
 } as const

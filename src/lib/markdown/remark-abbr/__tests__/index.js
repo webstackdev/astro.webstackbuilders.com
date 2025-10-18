@@ -7,28 +7,22 @@ import remarkStringify from 'remark-stringify'
 
 import remarkAbbr from '../src/'
 
-const render = (text, config) => unified()
-  .use(reParse)
-  .use(remarkAbbr, config)
-  .use(remark2rehype)
-  .use(stringify)
-  .processSync(text)
+const render = (text, config) =>
+  unified().use(reParse).use(remarkAbbr, config).use(remark2rehype).use(stringify).processSync(text)
 
-const renderToMarkdown = (text, config) => unified()
-  .use(reParse)
-  .use(remarkStringify)
-  .use(remarkAbbr, config)
-  .processSync(text)
+const renderToMarkdown = (text, config) =>
+  unified().use(reParse).use(remarkStringify).use(remarkAbbr, config).processSync(text)
 
 const configToTest = {
   'no-config': undefined,
   'empty object': {},
-  expandFirst: {expandFirst: true},
+  expandFirst: { expandFirst: true },
 }
 
 for (const [configName, config] of Object.entries(configToTest)) {
   it(`${configName} renders references`, () => {
-    const {contents} = render(dedent`
+    const { contents } = render(
+      dedent`
       This is an abbreviation: REF.
       ref and REFERENCE should be ignored.
 
@@ -38,14 +32,16 @@ for (const [configName, config] of Object.entries(configToTest)) {
 
       *[REF]: Reference
       *[FOO]: Reference
-    `, config)
+    `,
+      config
+    )
 
     expect(contents).toMatchSnapshot()
   })
 
-
   it(`${configName} passes the first regression test`, () => {
-    const {contents} = render(dedent`
+    const { contents } = render(
+      dedent`
       The HTML specification is maintained by the W3C:\
       [link](https://w3c.github.io/html/), this line had an abbr before link.
 
@@ -53,13 +49,16 @@ for (const [configName, config] of Object.entries(configToTest)) {
 
       *[HTML]: Hyper Text Markup Language
       *[W3C]:  World Wide Web Consortium
-    `, config)
+    `,
+      config
+    )
 
     expect(contents).toMatchSnapshot()
   })
 
   it(`${configName} passes the second regression test`, () => {
-    const {contents} = render(dedent`
+    const { contents } = render(
+      dedent`
       The HTML specification is maintained by the W3C:\
       [link](https://w3c.github.io/html/), this line had an abbr before **link** HTML.
 
@@ -67,7 +66,9 @@ for (const [configName, config] of Object.entries(configToTest)) {
 
       *[HTML]: Hyper Text Markup Language
       *[W3C]:  World Wide Web Consortium
-    `, config)
+    `,
+      config
+    )
 
     expect(contents).toMatchSnapshot()
   })
@@ -85,17 +86,20 @@ for (const [configName, config] of Object.entries(configToTest)) {
       *[W3C]:  World Wide Web Consortium
     `
 
-    const {contents: html} = render(input)
+    const { contents: html } = render(input)
     expect(html).toMatchSnapshot()
 
-    const {contents: markdown} = renderToMarkdown(input)
+    const { contents: markdown } = renderToMarkdown(input)
     expect(markdown).toMatchSnapshot()
   })
 
   it(`${configName} no reference`, () => {
-    const {contents} = render(dedent`
+    const { contents } = render(
+      dedent`
       No reference!
-    `, config)
+    `,
+      config
+    )
 
     expect(contents).toMatchSnapshot()
   })
@@ -110,7 +114,7 @@ for (const [configName, config] of Object.entries(configToTest)) {
       *[noabbr]: explanation that does not match
       *[HTML]: HyperText Markup Language
     `
-    const {contents} = renderToMarkdown(md)
+    const { contents } = renderToMarkdown(md)
     expect(contents).toMatchSnapshot()
 
     const contents1 = renderToMarkdown(md).contents
@@ -120,55 +124,70 @@ for (const [configName, config] of Object.entries(configToTest)) {
   })
 
   it(`${configName} handles abbreviations ending with a period`, () => {
-    const {contents} = render(dedent`
+    const { contents } = render(
+      dedent`
       A.B.C. and C-D%F. foo
 
       *[A.B.C.]: ref1
       *[C-D%F.]: ref2
-    `, config)
+    `,
+      config
+    )
 
     expect(contents).toContain(`<abbr title="ref1">A.B.C.</abbr>`)
     expect(contents).toContain(`<abbr title="ref2">C-D%F.</abbr>`)
   })
 
   it(`${configName} does not parse words starting with abbr`, () => {
-    const {contents} = render(dedent`
+    const { contents } = render(
+      dedent`
       ABC ABC ABC
 
       *[AB]: ref1
-    `, config)
+    `,
+      config
+    )
 
     expect(contents).not.toContain('<abbr')
   })
 
   it(`${configName} does not parse words ending with abbr`, () => {
-    const {contents} = render(dedent`
+    const { contents } = render(
+      dedent`
       ABC ABC ABC
 
       *[BC]: ref1
-    `, config)
+    `,
+      config
+    )
 
     expect(contents).not.toContain('<abbr')
   })
 
   it(`${configName} does not parse words containing abbr`, () => {
-    const {contents} = render(dedent`
+    const { contents } = render(
+      dedent`
       ABC ABC ABC
 
       *[B]: ref1
-    `, config)
+    `,
+      config
+    )
 
     expect(contents).not.toContain('<abbr')
   })
 
   it(`${configName} does not break with references in their own paragraphs`, () => {
-    const {contents} = render(dedent`
+    const { contents } = render(
+      dedent`
       Here is a test featuring abc and def
 
       *[abc]: A B C
 
       *[def]: D E F
-    `, config)
+    `,
+      config
+    )
 
     expect(contents).toMatchSnapshot()
   })

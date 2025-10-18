@@ -1,4 +1,4 @@
-import { type ClientScriptErrorParams } from "./ClientScriptError"
+import { type ClientScriptErrorParams } from './ClientScriptError'
 
 /**
  * Log an error that has been normalized to a ClientScriptError

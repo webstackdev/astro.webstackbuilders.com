@@ -1,8 +1,8 @@
 /**
  * Unit tests for absoluteUrl helper
  */
-import { describe, expect, test } from "vitest"
-import { absoluteUrl } from "../absoluteUrl"
+import { describe, expect, test } from 'vitest'
+import { absoluteUrl } from '../absoluteUrl'
 
 describe(`absoluteUrl helper`, () => {
   test(`returns fully qualified URL when given valid route and site`, () => {
@@ -43,16 +43,22 @@ describe(`absoluteUrl helper`, () => {
 
   test(`throws error when route is not provided`, () => {
     const site = new URL('https://example.com')
-    expect(() => absoluteUrl('', site)).toThrow('absoluteUrl helper called but either route or site not passed')
+    expect(() => absoluteUrl('', site)).toThrow(
+      'absoluteUrl helper called but either route or site not passed'
+    )
   })
 
   test(`throws error when site is not a URL instance`, () => {
-    expect(() => absoluteUrl('/about', undefined)).toThrow('absoluteUrl helper called but either route or site not passed')
+    expect(() => absoluteUrl('/about', undefined)).toThrow(
+      'absoluteUrl helper called but either route or site not passed'
+    )
   })
 
   test(`throws error when site is not a URL instance (string passed)`, () => {
     // @ts-expect-error Testing invalid input
-    expect(() => absoluteUrl('/about', 'https://example.com')).toThrow('absoluteUrl helper called but either route or site not passed')
+    expect(() => absoluteUrl('/about', 'https://example.com')).toThrow(
+      'absoluteUrl helper called but either route or site not passed'
+    )
   })
 
   test(`normalizes relative paths`, () => {

@@ -18,7 +18,7 @@ export const userInteractionEvents: UserInteractionEvent[] = [
   'wheel',
   'touchmove',
   'touchstart',
-  'touchend'
+  'touchend',
 ]
 
 /**
@@ -100,7 +100,7 @@ class Loader {
       'astro:after-preparation',
       'astro:before-swap',
       'astro:after-swap',
-      'astro:page-load'
+      'astro:page-load',
     ]
 
     domEvents.forEach(eventType => {
@@ -138,12 +138,12 @@ class Loader {
    * @param skipEvent - Optional event type to skip removal
    */
   private removeUserInteractionListeners(skipEvent?: UserInteractionEvent): void {
-  userInteractionEvents
-    .filter(_eventName => _eventName !== skipEvent)
-    .forEach(_eventName => {
-      // Note: We can't remove the exact listener without a reference, but since
-      // we use { once: true }, they'll be automatically removed after firing
-    })    // Clear timeout if it exists
+    userInteractionEvents
+      .filter(_eventName => _eventName !== skipEvent)
+      .forEach(_eventName => {
+        // Note: We can't remove the exact listener without a reference, but since
+        // we use { once: true }, they'll be automatically removed after firing
+      }) // Clear timeout if it exists
     if (this.timeoutID !== null) {
       clearTimeout(this.timeoutID)
       this.timeoutID = null

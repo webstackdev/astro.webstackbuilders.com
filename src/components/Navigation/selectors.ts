@@ -43,9 +43,7 @@ export const getHeaderElement = (): HTMLElement => {
 export const getMobileSplashElement = (): HTMLDivElement => {
   const splash = document.querySelector(SELECTORS.splash)
   if (!isDivElement(splash)) {
-    throw new Error(
-      `Mobile nav splash <div> is missing in document, selector: ${SELECTORS.splash}`
-    )
+    throw new Error(`Mobile nav splash <div> is missing in document, selector: ${SELECTORS.splash}`)
   }
   return splash as HTMLDivElement
 }
@@ -70,7 +68,9 @@ export const getNavMenuElement = (): HTMLUListElement => {
   const navWrapper = getNavWrapperElement()
   const menu = navWrapper.querySelector(SELECTORS.menu)
   if (!isUlElement(menu)) {
-    throw new Error(`<ul> element is missing under <nav> element in document, class: ${SELECTORS.menu}`)
+    throw new Error(
+      `<ul> element is missing under <nav> element in document, class: ${SELECTORS.menu}`
+    )
   }
   return menu as HTMLUListElement
 }

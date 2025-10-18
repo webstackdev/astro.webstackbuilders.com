@@ -14,7 +14,9 @@ export function getSocialImage(
 ): string {
   const baseURL = baseUrl || 'https://webstackbuilders.com'
   const encodedTitle = encodeURIComponent(title || 'Webstack Builders')
-  const encodedDescription = encodeURIComponent(description || 'Professional Web Development Services')
+  const encodedDescription = encodeURIComponent(
+    description || 'Professional Web Development Services'
+  )
   const encodedSlug = encodeURIComponent(slug || 'home')
 
   // For development, you can use a service like htmlcsstoimage.com or similar
@@ -54,7 +56,7 @@ export function getSocialMetadata(options: SocialMetadataOptions): SocialMetadat
     slug = 'home',
     image,
     url,
-    baseUrl = 'https://webstackbuilders.com'
+    baseUrl = 'https://webstackbuilders.com',
   } = options
 
   const socialImage = image || getSocialImage(slug, baseUrl)
@@ -70,6 +72,6 @@ export function getSocialMetadata(options: SocialMetadataOptions): SocialMetadat
     twitterTitle: title,
     twitterDescription: description,
     twitterImage: socialImage,
-    twitterImageAlt: imageAlt
+    twitterImageAlt: imageAlt,
   }
 }

@@ -17,10 +17,7 @@ async function process(markdown: string, options?: RemarkAttrOptions): Promise<s
     processor.use(remarkAttr)
   }
 
-  const result = await processor
-    .use(remarkRehype)
-    .use(rehypeStringify)
-    .process(markdown)
+  const result = await processor.use(remarkRehype).use(rehypeStringify).process(markdown)
 
   return String(result)
 }
@@ -28,7 +25,10 @@ async function process(markdown: string, options?: RemarkAttrOptions): Promise<s
 /**
  * Helper function with permissive scope (allows most attributes)
  */
-async function processPermissive(markdown: string, options?: Partial<RemarkAttrOptions>): Promise<string> {
+async function processPermissive(
+  markdown: string,
+  options?: Partial<RemarkAttrOptions>
+): Promise<string> {
   return process(markdown, {
     allowDangerousDOMEventHandlers: false,
     scope: 'permissive',
@@ -67,7 +67,8 @@ describe('remark-attr (Layer 1: Isolated)', () => {
     })
 
     it('should handle multiple inline attributes in one paragraph', async () => {
-      const input = 'Inline *test*{style="em:4"} paragraph. Use **multiple**{style="color:pink"} inline tag. Line `tagCode`{style="color:yellow"}.'
+      const input =
+        'Inline *test*{style="em:4"} paragraph. Use **multiple**{style="color:pink"} inline tag. Line `tagCode`{style="color:yellow"}.'
       const output = await process(input)
 
       expect(output).toContain('<em style="em:4">test</em>')
@@ -78,7 +79,8 @@ describe('remark-attr (Layer 1: Isolated)', () => {
 
   describe('link elements', () => {
     it('should add attributes to links', async () => {
-      const input = 'This is a link :[Test link](https://ache.one){ping="https://ache.one/big.brother"}'
+      const input =
+        'This is a link :[Test link](https://ache.one){ping="https://ache.one/big.brother"}'
       const output = await processPermissive(input)
 
       expect(output).toContain('href="https://ache.one"')
@@ -194,7 +196,8 @@ describe('remark-attr (Layer 1: Isolated)', () => {
 
   describe('combined elements', () => {
     it('should handle emphasis and strong with attributes', async () => {
-      const input = 'Hey ! *That looks cool*{style="color: blue;"} ! No, that\'s **not**{class="not"} !'
+      const input =
+        'Hey ! *That looks cool*{style="color: blue;"} ! No, that\'s **not**{class="not"} !'
       const output = await process(input)
 
       expect(output).toContain('<em style="color: blue;">That looks cool</em>')

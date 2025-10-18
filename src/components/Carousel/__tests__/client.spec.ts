@@ -16,21 +16,21 @@ const mockEmblaApi = {
   on: vi.fn(),
   off: vi.fn(),
   destroy: vi.fn(),
-  reInit: vi.fn()
+  reInit: vi.fn(),
 }
 
 const mockAutoplay = vi.fn(() => ({
   play: vi.fn(),
   stop: vi.fn(),
-  reset: vi.fn()
+  reset: vi.fn(),
 }))
 
 vi.mock('embla-carousel', () => ({
-  default: vi.fn(() => mockEmblaApi)
+  default: vi.fn(() => mockEmblaApi),
 }))
 
 vi.mock('embla-carousel-autoplay', () => ({
-  default: mockAutoplay
+  default: mockAutoplay,
 }))
 
 // Import CarouselManager after mocking
@@ -172,15 +172,13 @@ describe('CarouselManager', () => {
       // Change the mock to return index 1
       mockEmblaApi.selectedScrollSnap.mockReturnValue(1)
 
-
-
       // Find and trigger the select event callback that was registered
       const selectCalls = mockEmblaApi.on.mock.calls.filter(call => call[0] === 'select')
-      expect(selectCalls.length).toBeGreaterThan(0)      // Trigger all select callbacks since there might be multiple (buttons + dots)
+      expect(selectCalls.length).toBeGreaterThan(0) // Trigger all select callbacks since there might be multiple (buttons + dots)
       selectCalls.forEach(([event, callback]) => {
         expect(event).toBe('select')
-        expect(typeof callback).toBe('function');
-        (callback as () => void)()
+        expect(typeof callback).toBe('function')
+        ;(callback as () => void)()
       })
 
       // After triggering the callback, the second dot should be active

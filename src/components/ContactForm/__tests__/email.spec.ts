@@ -68,7 +68,7 @@ describe('Email Validation', () => {
       // Need to manually set validity for testing
       Object.defineProperty(emailInput, 'validity', {
         writable: true,
-        value: { valid: false, tooShort: true }
+        value: { valid: false, tooShort: true },
       })
 
       const validator = emailInputElementValidator(mockSelector)
@@ -83,7 +83,7 @@ describe('Email Validation', () => {
       // Need to manually set validity for testing
       Object.defineProperty(emailInput, 'validity', {
         writable: true,
-        value: { valid: false, tooLong: true }
+        value: { valid: false, tooLong: true },
       })
 
       const validator = emailInputElementValidator(mockSelector)
@@ -117,7 +117,7 @@ describe('Email Validation', () => {
         'test123@sub.example.com',
       ]
 
-      validEmails.forEach((email) => {
+      validEmails.forEach(email => {
         errorContainer.classList.remove('error')
         errorContainer.innerText = ''
 

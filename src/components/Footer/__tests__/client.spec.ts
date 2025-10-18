@@ -14,8 +14,8 @@ describe('Footer', () => {
   const mockAnchor = {
     innerHTML: '',
     style: {
-      display: ''
-    }
+      display: '',
+    },
   }
 
   beforeEach(() => {
@@ -30,14 +30,18 @@ describe('Footer', () => {
   })
 
   it('should update hire me anchor with current date on init', () => {
-    const anchor = { ...mockAnchor, innerHTML: 'Old text', style: { ...mockAnchor.style, display: 'none' } }
+    const anchor = {
+      ...mockAnchor,
+      innerHTML: 'Old text',
+      style: { ...mockAnchor.style, display: 'none' },
+    }
 
     ;(getHireMeAnchorElement as any).mockReturnValue(anchor)
 
     Footer.init()
 
     expect(anchor.innerHTML).toBe('Available September, 2024. Hire Me Now')
-    expect(anchor.style.display).toBe('block')
+    expect(anchor.style.display).toBe('inline-block')
   })
 
   it('should handle pause', () => {

@@ -41,7 +41,7 @@ export function generateBreadcrumbs(
   const cleanPath = currentPath.replace(/^\/+|\/+$/g, '') // Remove leading/trailing slashes
   if (!cleanPath) return breadcrumbs // If empty after cleanup, just return Home
 
-  const segments = cleanPath.split('/').filter((segment) => segment !== '')
+  const segments = cleanPath.split('/').filter(segment => segment !== '')
 
   // Build breadcrumbs for each segment
   let accumulatedPath = ''
@@ -113,6 +113,6 @@ export function generateBreadcrumbLabel(
   // Convert segment to title case and handle common patterns
   return segment
     .split('-')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ')
 }

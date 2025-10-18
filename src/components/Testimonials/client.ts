@@ -65,9 +65,7 @@ export class TestimonialsCarousel extends LoadableScript {
     }
 
     // Initialize Embla Carousel with Autoplay plugin
-    this.emblaApi = EmblaCarousel(this.viewportNode, options, [
-      Autoplay(autoplayOptions),
-    ])
+    this.emblaApi = EmblaCarousel(this.viewportNode, options, [Autoplay(autoplayOptions)])
 
     this.setupNavigationButtons()
     this.setupDotsNavigation()
@@ -136,7 +134,8 @@ export class TestimonialsCarousel extends LoadableScript {
       scrollSnaps.forEach((_: unknown, index: number) => {
         const dot = document.createElement('button')
         dot.type = 'button'
-        dot.className = 'embla__dot w-3 h-3 rounded-full bg-[color:var(--color-text-offset)] transition-all duration-300 hover:bg-[color:var(--color-primary)]'
+        dot.className =
+          'embla__dot w-3 h-3 rounded-full bg-[color:var(--color-text-offset)] transition-all duration-300 hover:bg-[color:var(--color-primary)]'
         dot.setAttribute('aria-label', `Go to testimonial ${index + 1}`)
 
         dot.addEventListener('click', () => {

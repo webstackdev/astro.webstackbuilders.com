@@ -1,21 +1,21 @@
 ---
-import company from "@content/company"
-import themes from "@content/themes.json"
-import { absoluteUrl, pageTitle as pageTitleFormatter } from "@components/Scripts/helpers"
-import Seo from "./Seo.astro"
-import Social from "./Social.astro"
+import company from '@content/company'
+import themes from '@content/themes.json'
+import { absoluteUrl, pageTitle as pageTitleFormatter } from '@components/Scripts/helpers'
+import Seo from './Seo.astro'
+import Social from './Social.astro'
 
 export interface Props {
-  pageTitle: string,
-  path: string,
-  description?: string,
-  image?: string,
-  contentType?: 'article' | 'website',
-  publishDate?: Date,
-  modifiedDate?: Date,
-  author?: string,
-  section?: string,
-  tags?: string[],
+  pageTitle: string
+  path: string
+  description?: string
+  image?: string
+  contentType?: 'article' | 'website'
+  publishDate?: Date
+  modifiedDate?: Date
+  author?: string
+  section?: string
+  tags?: string[]
 }
 
 const {
@@ -28,7 +28,7 @@ const {
   modifiedDate,
   author,
   section,
-  tags
+  tags,
 } = Astro.props
 
 const defaultTheme = themes.default
@@ -37,43 +37,43 @@ const slug = path.replace(/^\//, '').replace(/\/$/, '') || 'home'
 
 <title>{pageTitleFormatter(pageTitle, Astro.site?.href ?? `https://webstackbuilders.com`)}</title>
 <meta charset="UTF-8" />
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="description" content={description || company.description} />
-<meta name="author" content={company.author.name}>
+<meta name="author" content={company.author.name} />
 <Seo
   path={path}
-  {...(contentType && { contentType })}
-  {...(publishDate && { publishDate })}
-  {...(modifiedDate && { modifiedDate })}
-  {...(author && { author })}
-  {...(section && { section })}
-  {...(tags && { tags })}
+  {...contentType && { contentType }}
+  {...publishDate && { publishDate }}
+  {...modifiedDate && { modifiedDate }}
+  {...author && { author }}
+  {...section && { section }}
+  {...tags && { tags }}
 />
 {/* Open Graph meta tags for Twitter and Facebook social shares */}
 <Social
   title={pageTitle}
   description={description || company.description}
   slug={slug}
-  {...(image && { image })}
+  {...image && { image }}
 />
 {/* Used to sets the color of the surrounding user interface for e.g. the */}
 {/* browser title bar. It is updated by script when the theme changes.    */}
-<meta name="theme-color" content={defaultTheme.colors.backgroundOffset}>
+<meta name="theme-color" content={defaultTheme.colors.backgroundOffset} />
 {/* Favicon links */}
-<link rel="icon" href="/favicon.ico">
-<link rel="icon" type="image/svg+xml" href="/favicon.svg">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" href="/favicon.ico" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 {/* Web manifest file for Progressive Web Application app usage */}
-<link rel="manifest" href={absoluteUrl('manifest.json', Astro.site)}>
+<link rel="manifest" href={absoluteUrl('manifest.json', Astro.site)} />
 {/* RSS Feed */}
 <link
   type="application/rss+xml"
   rel="alternate"
   href={absoluteUrl('rss.xml', Astro.site)}
   title={`RSS Feed for ${company.name}`}
->
+/>
 {/* Webmentions */}
-<link rel="pingback" href={`https://webmention.io/${Astro.site!.hostname}/xmlrpc`}>
-<link rel="webmention" href={`https://webmention.io/${Astro.site!.hostname}/webmention`}>
-<link rel="canonical" href={Astro.url.href}>
+<link rel="pingback" href={`https://webmention.io/${Astro.site!.hostname}/xmlrpc`} />
+<link rel="webmention" href={`https://webmention.io/${Astro.site!.hostname}/webmention`} />
+<link rel="canonical" href={Astro.url.href} />

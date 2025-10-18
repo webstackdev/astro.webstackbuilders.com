@@ -8,6 +8,6 @@ export function GET() {
     JSON.stringify({
       timestamp: Date(),
       env: import.meta.env.MODE,
-      }),
-  );
+    })
+  )
 }

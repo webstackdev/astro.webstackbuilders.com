@@ -25,7 +25,7 @@ const defaultOptions: AttributionOptions = {
   classNameContainer: 'c-blockquote',
   classNameAttribution: 'c-blockquote__attribution',
   marker: '—', // EM dash
-  removeMarker: true
+  removeMarker: true,
 }
 
 /**
@@ -133,7 +133,7 @@ function checkForAttribution(
   return {
     hasAttribution: markerIndex !== -1,
     markerIndex,
-    text
+    text,
   }
 }
 
@@ -214,7 +214,12 @@ export default function remarkAttribution(options?: Partial<AttributionOptions>)
       }
 
       // Split the content at the marker
-      const { content, attribution } = splitAtMarker(text, markerIndex, marker, settings.removeMarker || false)
+      const { content, attribution } = splitAtMarker(
+        text,
+        markerIndex,
+        marker,
+        settings.removeMarker || false
+      )
 
       // Extract URL from attribution if present
       const url = extractUrl(attribution)
@@ -243,14 +248,14 @@ export default function remarkAttribution(options?: Partial<AttributionOptions>)
           hName: 'figcaption',
           hProperties: settings.classNameAttribution
             ? { className: [settings.classNameAttribution] }
-            : {}
+            : {},
         },
         children: [
           {
             type: 'text',
-            value: attribution
-          }
-        ]
+            value: attribution,
+          },
+        ],
       }
 
       // Wrap blockquote and figcaption in a figure element
@@ -262,12 +267,9 @@ export default function remarkAttribution(options?: Partial<AttributionOptions>)
           hName: 'figure',
           hProperties: settings.classNameContainer
             ? { className: [settings.classNameContainer] }
-            : {}
+            : {},
         },
-        children: [
-          blockquote,
-          figcaption
-        ]
+        children: [blockquote, figcaption],
       }
 
       // Replace the blockquote with the figure in the parent

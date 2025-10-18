@@ -85,7 +85,7 @@ describe('Name Validation', () => {
         'a'.repeat(49), // Just under max
       ]
 
-      validNames.forEach((name) => {
+      validNames.forEach(name => {
         errorContainer.classList.remove('error')
         errorContainer.innerText = ''
 

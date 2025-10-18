@@ -125,10 +125,7 @@ class CarouselInstance {
   private viewport: HTMLElement | null
   private dotsContainer: HTMLElement | null
 
-  constructor(
-    container: HTMLElement,
-    _instanceId: number
-  ) {
+  constructor(container: HTMLElement, _instanceId: number) {
     this.prevBtn = container.querySelector('.embla__button--prev')
     this.nextBtn = container.querySelector('.embla__button--next')
     this.viewport = container.querySelector('.embla__viewport')
@@ -209,7 +206,8 @@ class CarouselInstance {
     scrollSnaps.forEach((_, index) => {
       const dot = document.createElement('button')
       dot.type = 'button'
-      dot.className = 'embla__dot w-2 h-2 rounded-full bg-[color:var(--color-text-offset)] transition-all duration-300 hover:bg-[color:var(--color-primary)]'
+      dot.className =
+        'embla__dot w-2 h-2 rounded-full bg-[color:var(--color-text-offset)] transition-all duration-300 hover:bg-[color:var(--color-primary)]'
       dot.setAttribute('aria-label', `Go to slide ${index + 1}`)
 
       dot.addEventListener('click', () => {
@@ -277,7 +275,5 @@ class CarouselInstance {
  */
 if (typeof window !== 'undefined') {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (window as any).__CarouselManager = CarouselManager
+  ;(window as any).__CarouselManager = CarouselManager
 }
-
-

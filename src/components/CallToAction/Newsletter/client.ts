@@ -42,8 +42,15 @@ export class NewsletterForm extends LoadableScript {
     this.buttonSpinner = document.getElementById('button-spinner') as SVGSVGElement | null
     this.message = document.getElementById('newsletter-message') as HTMLParagraphElement | null
 
-    if (!this.form || !this.emailInput || !this.submitButton || !this.buttonText ||
-        !this.buttonArrow || !this.buttonSpinner || !this.message) {
+    if (
+      !this.form ||
+      !this.emailInput ||
+      !this.submitButton ||
+      !this.buttonText ||
+      !this.buttonArrow ||
+      !this.buttonSpinner ||
+      !this.message
+    ) {
       console.warn('Newsletter form: Some DOM elements not found')
       return
     }

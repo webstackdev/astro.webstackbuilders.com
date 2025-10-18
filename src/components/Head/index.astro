@@ -1,12 +1,12 @@
 ---
-import { ClientRouter } from "astro:transitions"
-import Meta from "@components/Head/Meta.astro"
+import { ClientRouter } from 'astro:transitions'
+import Meta from '@components/Head/Meta.astro'
 
 export interface Props {
-  pageTitle: string,
-  path: string,
-  description?: string,
-  image?: string,
+  pageTitle: string
+  path: string
+  description?: string
+  image?: string
 }
 
 const { pageTitle, path, description, image } = Astro.props
@@ -14,13 +14,22 @@ const { pageTitle, path, description, image } = Astro.props
 
 <head>
   <title>{pageTitle}</title>
-  {/* Site <meta> tags, Open Graph social tags, and favicon, PWA manifest, RSS, canonical, pingback, and webmention links */}
-  <Meta pageTitle={pageTitle} path={path} {...(description && { description })} {...(image && { image })} />
+  {
+    /* Site <meta> tags, Open Graph social tags, and favicon, PWA manifest, RSS, canonical, pingback, and webmention links */
+  }
+  <Meta
+    pageTitle={pageTitle}
+    path={path}
+    {...description && { description }}
+    {...image && { image }}
+  />
   {/* Script tag with background colors keyed to theme names for setting initial */}
   {/* bg color and to set data-theme attribute on <html> element early           */}
   <script>
-    {/* Set theme name on <html> element from storage early to prevent flash of unstyled content */}
-    import { themeSetup } from "./fous"
+    {
+      /* Set theme name on <html> element from storage early to prevent flash of unstyled content */
+    }
+    import { themeSetup } from './fous'
     themeSetup()
   </script>
   {/* Client-side router for Astro pages (enables partial page reloads) */}
