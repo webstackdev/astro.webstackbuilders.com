@@ -1,0 +1,52 @@
+---
+/**
+ * Highlighter Component
+ *
+ * Creates a shareable text highlight with a hover dialog showing social share options.
+ * Users can share selected text to X, LinkedIn, Bluesky, Reddit, or copy a link.
+ *
+ * @example MDX Usage
+ * ```mdx
+ * import { Highlighter } from '@components/Social/Highlighter'
+ *
+ * This is <Highlighter>shareable text</Highlighter> that shows share options on hover.
+ * ```
+ *
+ * @example With Custom Label
+ * ```mdx
+ * <Highlighter ariaLabel="Share this insight">important insight</Highlighter>
+ * ```
+ */
+
+import Scripts from '@components/Scripts/index.astro'
+
+interface Props {
+  /**
+   * Custom aria-label for accessibility
+   * @default 'Share this'
+   */
+  ariaLabel?: string
+
+  /**
+   * Additional CSS classes
+   */
+  class?: string
+}
+
+const { ariaLabel, class: className } = Astro.props
+---
+
+<highlighter-element
+  aria-label={ariaLabel}
+  class={className}
+>
+  <slot />
+</highlighter-element>
+
+<Scripts>
+  <script>
+    import { registerScript } from '../../Scripts/loader/index'
+    import { Highlighter } from './client'
+    registerScript(Highlighter)
+  </script>
+</Scripts>

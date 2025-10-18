@@ -15,46 +15,66 @@
 * CallToAction/Featured
 * CallToAction/Newsletter
 * Carousel with choice of collection to display and filters
-* Social/Share
 * Social/Embed
+* Social/Highlighter
+* Social/Share
 * Sprite
 * Testimonials
+* Webmentions
 
-## Scripts Loader System
+npm warn deprecated astro-svg-sprite@1.1.0: This package is deprecated. Please migrate to astro-svgs: https://www.npmjs.com/package/astro-svgs
 
-- **Option 1**: Instance-Specific LoadableScript (Recommended)
+### Mastodon Shares
 
-This approach passes unique identifiers to each script instance, ensuring no conflicts between multiple components. Each carousel component creates its own LoadableScript instance with a unique ID.
+https://github.com/kytta/share2fedi
 
-- **Option 2**: Auto-Discovery Pattern
+**Option B: Integrate into Your Astro Site (Better UX)**
 
-Uses a single LoadableScript that automatically discovers all carousel elements on the page using data-carousel attributes
+Since both projects use Astro, you could integrate Share2Fedi directly.
 
-1. Refactor the Hero component to use the new /home/kevin/Repos/Webstack Builders/Corporate Website/astro.webstackbuilders.com/src/components/Scripts/loader setup.
-2. Use Instance-Specific LoadableScript singleton approach like the Navigation component.
-3. Use a single class that extends LoadableScript. Refactor any existing functions into class methods.
-4. The file containing the export that is imported in the component's .astro template should be named client.ts - rename it if necessary and delete the old file.
-5. Make sure unit tests pass. The test should be named client.spec.ts - delete testHelper.ts and testimonials.spec.ts after the refactoring. Migrate any useful tests in those files to client.spec.ts
-6. Fix any TypeScript errors except for JSX errors in node_modules files and path errors like @lib
-7. Unit tests should be in a __tests__ directory in the component folder. Fixtures should be in a __fixtures__ directory in the component folder.
+Pros:
 
-1. Refactor the Newsletter component to use the new /home/kevin/Repos/Webstack Builders/Corporate Website/astro.webstackbuilders.com/src/components/Scripts/loader setup.
-2. Use Option 2 Auto-Discovery Pattern approach like the Carousel component.
-3. Use a Manager class that extends LoadableScript, and an Instance class. Refactor any existing functions into class methods.
-4. The file containing the export that is imported in the component's .astro template should be named client.ts - rename it if necessary and delete the old file.
-5. Make sure unit tests pass.
-6. Fix any TypeScript errors except for JSX errors in node_modules files and path errors like @lib
-7. Unit tests should be in a __tests__ directory in the component folder. Fixtures should be in a __fixtures__ directory in the component folder.
+- Single deployment
+- Same domain (no CORS issues)
+- Can customize UI to match your branding
+- Full control over the flow
 
- ❯ src/lib/markdown/__tests__/plugin-order-test.spec.ts 4/4
-stderr | src/lib/markdown/__tests__/e2e/markdown-rendering.spec.tsx > Layer 4: E2E Markdown Rendering > Emoji Feature > should render emojis with accessibility attributes
-Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+Cons:
 
-Ask GPT 5.0:
+- More maintenance
+- Need to keep up with Share2Fedi updates
+- Adds dependencies to your project
 
-node_modules/@types/mdx/types.d.ts:47:28 - error TS2503: Cannot find namespace 'JSX'.
+Implementation approach:
 
-47     ? new(props: Props) => JSX.ElementClass
+- Add Share2Fedi as a git submodule or npm workspace
+- Create route at /share-to-mastodon
+- Copy/adapt Share2Fedi's Astro pages
+- Customize styling to match your theme
+
+**Option C: Hybrid - Embedded Modal (Best UX)**
+
+Instead of opening a new tab, embed the instance selector in your page.
+
+User flow:
+
+- Click Mastodon icon in highlight tooltip
+- Modal opens on your page (not new tab)
+- User enters instance URL (or uses saved one)
+- Modal redirects to Mastodon instance share intent
+- User completes post on their instance
+
+Pros:
+
+- No page navigation away from content
+- Better UX than external redirect
+- Still leverages Share2Fedi's instance validation logic
+- Can customize modal to match site design
+
+Cons:
+
+- More complex implementation
+- Need to extract Share2Fedi's instance handling logic
 
 ## Implement Astro View Transitions
 
@@ -122,45 +142,25 @@ Sentry.captureMessage("Something went wrong");
 // "fatal" | "error" | "warning" | "log" | "debug" | "info" (default)
 Sentry.captureMessage("Something went wrong", "warning")
 
-## Boilerplate for refactor to Loader
 
-```typescript
-import { registerScript, LoadableScript, TriggerEvent } from './loader'
+## E2E Tests to Implement
 
-class MyScript implements LoadableScript {
-  getEventType(): TriggerEvent {
-    return 'delayed'
-  }
+* E2E Tests (test/e2e/highlighter.spec.ts):
 
-  init(): void {
-    // Implementation
-  }
-
-  pause(): void { /* Future */ }
-  resume(): void { /* Future */ }
-}
-```
-
-## Env Vars imports boilerplate
-
-```typescript
-import { API_URL } from "astro:env/client"
-import { API_SECRET_TOKEN } from "astro:env/server"
-```
-
-## Highlighter Refactor
-
-I copied an eleventy plugin into the src/components/Highlighter directory. There is a README.md file explaining what the component is supposed to do. I want to refactor this plugin to function as an Astro component and add comprehensive testing.
-- The code can be completely refactored if necessary. I prefer a function-based design instead of a class-based design with a constructor, unless the class design makes more sense.
-- Create an astro template named index.astro and add the styles in an html tag in it. It should use a slot element to render passed-in content since it will be used in MDX pages.
-- I'm not sure what the feed.njk template was supposed to do. What's is your opinion on its purpose?
-- I moved a selectors.ts file and a test for it into the Highlighter folder. It was used in a previous iteration of this plugin before the site was refactored from eleventy. Use this approach and refactor any selector necessary or add a selector in the code file, for example to select the shadow root.\
-
-## E2E Testing
+  - Visual regression
+  - Hover interactions
+  - Click behavior (mock window.open)
+  - Keyboard navigation
+  - Mobile touch interactions
+  - Accessibility compliance
 
 * We need to add Lighthouse testing
+* Axe accessibility testing
 
-## Add Vercel Analytics SDK
+## Vercel Analytics
+
+- Highlighter component
+- Social Shares component
 
 npm i @vercel/analytics
 import Analytics from '@vercel/analytics/astro'
