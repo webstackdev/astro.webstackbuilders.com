@@ -192,10 +192,6 @@ Generates images as headers for use in social shares
 
 Provides a shortcode to generate a JSON-LD script per-page including the `<script>` tag.
 
-- **`eleventy-plugin-sitemap`**
-
-Provides a shortcode to generate a sitemap.xml file using _generate/sitemap.njk
-
 - **`eleventy-plugin-external-links`**
 
 Adds `target="_blank" rel="noreferrer"` to all external links
@@ -374,7 +370,16 @@ Astrolib's version automatically creates a link to the sitemap in the `<head>` s
 
 Generates a sitemap based on your pages when you build your Astro project.
 
+
+- **`eleventy-plugin-sitemap`**
+
+Provides a shortcode to generate a sitemap.xml file using _generate/sitemap.njk
+
+- downloads content pages should not be added to the sitemap
+
 ## Site Pages (robots)
+
+Downloads site pages should not be indexed by search engines
 
 ### [`astro-robots`](https://www.npmjs.com/package/astro-robots#astro-robots)
 

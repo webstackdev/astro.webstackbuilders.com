@@ -1,0 +1,146 @@
+---
+import type { CollectionEntry } from 'astro:content'
+import { getCollection } from 'astro:content'
+import MarkdownLayout from '@layouts/MarkdownLayout.astro'
+import DownloadForm from '@components/Forms/Download/index.astro'
+
+interface Props {
+  download: CollectionEntry<'downloads'>
+}
+
+/** Generate static paths for all downloads */
+export async function getStaticPaths() {
+  const downloadEntries = await getCollection('downloads', ({ data }) => {
+    return process.env['NODE_ENV'] !== 'production' || data.isDraft !== true
+  })
+  return downloadEntries.map(download => ({
+    params: { slug: download.id },
+    props: { download },
+  }))
+}
+
+const { download } = Astro.props
+const renderedContent = download.rendered?.html || download.body || 'Content not available'
+const path = `/downloads/${download.id}/`
+const pageTitle = download.data.title
+const cover = download.data.image
+const authorId =
+  typeof download.data.author === 'string'
+    ? download.data.author
+    : download.data.author?.id || 'webstack-builders'
+---
+
+<MarkdownLayout
+  pageTitle={pageTitle}
+  path={path}
+  contentType="article"
+  publishDate={download.data.publishDate}
+  author={authorId}
+  section="Resources"
+  tags={download.data.tags}
+  description={download.data.description}
+  {...(cover?.src && { image: cover.src })}
+  {...(download.data.readingTime && { readingTime: download.data.readingTime })}
+  showToc={false}
+>
+  {
+    cover && (
+      <div
+        class="aspect-video max-w-3xl mx-auto rounded-2xl overflow-hidden shadow-lg mb-8"
+        slot="hero-image"
+      >
+        <img src={cover.src} alt={cover.alt} loading="eager" class="w-full h-full object-cover" />
+      </div>
+    )
+  }
+
+  <!-- Resource Meta Information -->
+  <div
+    class="flex flex-wrap gap-4 mb-8 p-4 bg-[var(--color-bg-offset)] rounded-xl border border-[var(--color-border)]"
+  >
+    <div class="flex items-center gap-2">
+      <svg
+        class="w-5 h-5 text-[var(--color-text-offset)]"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+        ></path>
+      </svg>
+      <span class="text-sm font-medium text-[var(--color-text)]">{download.data.fileType}</span>
+    </div>
+    {
+      download.data.fileSize && (
+        <div class="flex items-center gap-2">
+          <svg
+            class="w-5 h-5 text-[var(--color-text-offset)]"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
+            />
+          </svg>
+          <span class="text-sm text-[var(--color-text-offset)]">{download.data.fileSize}</span>
+        </div>
+      )
+    }
+    {
+      download.data.pages && (
+        <div class="flex items-center gap-2">
+          <svg
+            class="w-5 h-5 text-[var(--color-text-offset)]"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+            />
+          </svg>
+          <span class="text-sm text-[var(--color-text-offset)]">{download.data.pages} pages</span>
+        </div>
+      )
+    }
+    {
+      download.data.readingTime && (
+        <div class="flex items-center gap-2">
+          <svg
+            class="w-5 h-5 text-[var(--color-text-offset)]"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <span class="text-sm text-[var(--color-text-offset)]">{download.data.readingTime}</span>
+        </div>
+      )
+    }
+  </div>
+
+  <!-- Main Content -->
+  <div set:html={renderedContent} />
+
+  <!-- Download Form -->
+  <div class="border-t border-[var(--color-theme-border)] pt-12 mt-12" slot="after-content">
+    <DownloadForm title={pageTitle} fileName={download.data.fileName} fileType={download.data.fileType} />
+  </div>
+</MarkdownLayout>

@@ -7,6 +7,18 @@
 - Z.AI: GLM 4.6
 - Google: Gemini 2.5 Flash Preview 09-2025
 
+## Download Form component
+
+**API Integration**: The submit endpoint currently only logs to console. Integration with CRM/email service required for production use.
+
+## GDPR Compliance Module
+
+- Explicit consent checkboxes
+- Double opt-in flow
+- Right to erasure handling
+- **Component needed**: `<GDPRConsent />` checkbox group
+- Downloads, Cookie Consent
+
 ### Phase 4: Generated Content
 
 1. `sitemap.xml.ts`
@@ -25,7 +37,7 @@ With view transitions, some scripts may no longer re-run after page navigation l
 
 The following example wraps a script for a mobile hamburger menu in an event listener for astro:page-load which runs at the end of page navigation to make the menu responsive to being clicked after navigating to a new page:
 
-```tyepscript
+```typescript
 document.addEventListener("astro:page-load", () => {
   document.querySelector(".hamburger").addEventListener("click", () => {
     document.querySelector(".nav-links").classList.toggle("expanded")
@@ -94,23 +106,24 @@ Sentry.captureMessage("Something went wrong", "warning")
 * We need to add Lighthouse testing
 * Axe accessibility testing
 * Test Social Embeds with real embeds from social networks
+* Verify the cookie consent preferences work correctly across different browsers
 
 ## Vercel Analytics
 
 - Highlighter component
 - Social Shares component
 - Social Embeds: Track embed interactions
-
-## Cookie Consent
-
-- Analytics Integration: Connect the analytics toggle to your actual Google Analytics or other tracking services
-- Advanced Features: Add cookie expiration management, preference export/import
-- Compliance: Add GDPR compliance features like data deletion requests
-- Testing: Verify the cookie preferences work correctly across different browsers
+- Cookie Consent
+- Download Form component
 
 npm i @vercel/analytics
 import Analytics from '@vercel/analytics/astro'
 https://vercel.com/docs/analytics/quickstart#add-the-analytics-component-to-your-app
+
+## Cookie Consent
+
+- Advanced Features: Add cookie expiration management, preference export/import
+- Compliance: Add GDPR compliance features like data deletion requests
 
 ## Markdown Config Updates
 
@@ -361,86 +374,6 @@ export function myAccessibleListPlugin() {
     });
   };
 }
-
-## Social Embeds future work
-
-Platform-Specific oEmbed Endpoints (No Auth):
-
-Twitter/X: https://publish.twitter.com/oembed
-YouTube: https://www.youtube.com/oembed
-Reddit: https://www.reddit.com/oembed
-CodePen: https://codepen.io/api/oembed
-
-
-Which Platforms DON'T Support oEmbed:
-
-LinkedIn - No public oEmbed (requires scraping or manual embed)
-Bluesky - No oEmbed yet (new platform)
-Mastodon - No standardized oEmbed (decentralized, each instance different)
-
-This is to allow statically rendering embeds at build time, instead of using oEmbed:
-
-Rich Media Enhancement Would Add:
-
-1. Embedded Images
-
-Display images that are part of the social media post:
-
-```astro
-<SocialEmbed   url="https://twitter.com/user/status/123"  media={[    { type: 'image', url: '/tweet-image.jpg', alt: 'Screenshot' }  ]}/>
-```
-
-The embed would show the image(s) in the post, similar to how Twitter displays photo attachments.
-
-2. Embedded Videos
-
-Display videos from the post:
-
-```astro
-<SocialEmbed
-  url="https://twitter.com/user/status/123"
-  media={[    {       type: 'video',       url: '/video.mp4',       thumbnail: '/thumb.jpg',      duration: '2:30'    }  ]}
-/>
-```
-
-3. Multiple Media Items
-
-Handle posts with multiple images/videos (like Twitter's 4-image grid):
-
-```astro
-media: [  { type: 'image', url: 'img1.jpg' },  { type: 'image', url: 'img2.jpg' },  { type: 'image', url: 'img3.jpg' },  { type: 'image', url: 'img4.jpg' }]
-```
-
-4. GIFs and Animations
-
-Properly handle animated GIFs and short video loops.
-
-5. Image Galleries
-
-Create proper galleries with:
-
-Lightbox functionality
-Swipe/navigation for mobile
-Proper aspect ratio handling
-Lazy loading
-
-6. Video Players
-
-Implement custom video players with:
-
-Play/pause controls
-Volume control
-Fullscreen option
-Accessibility features (captions, keyboard controls)
-Implementation Challenges:
-This is listed as a "future enhancement" because it requires:
-
-Storage: Where to host the media files (CDN, local assets)
-Fetching: How to get media from platform APIs (requires API keys/auth)
-Performance: Lazy loading, responsive images, video optimization
-Accessibility: Alt text, captions, keyboard navigation
-Responsive Design: Different layouts for mobile vs desktop
-Legal: Copyright/licensing considerations when caching media
 
 ## Markdown Pipeline Testing Strategy
 

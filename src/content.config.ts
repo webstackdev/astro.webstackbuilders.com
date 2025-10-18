@@ -140,7 +140,7 @@ const contactDataCollection = defineCollection({
  * This is the categories of cookies used on the website for the cookie consent
  * manager to use in informing users and offering opt-out:
  * - "essential-website-cookies" Cannot be opted out of and are necessary for
- *                               the site to function.
+ * the site to function.
  * - "performance-and-functionality-cookies" Search widget, weather update, etc.
  * - "analytics-and-customization-cookies" Google Analytics, theme cookie
  */
@@ -265,6 +265,33 @@ const themesCollection = defineCollection({
 })
 
 /**
+ * Downloads
+ */
+const downloadsSchema = z.object({
+  title: z.string(),
+  description: z.string(),
+  author: reference('authors').optional(),
+  tags: z.array(z.enum(validTags)),
+  image: z.object({
+    src: z.string(),
+    alt: z.string(),
+  }),
+  publishDate: z.date(),
+  isDraft: z.boolean().default(false),
+  featured: z.boolean().default(false),
+  fileType: z.enum(['PDF', 'eBook', 'Whitepaper', 'Guide', 'Report', 'Template']),
+  fileSize: z.string().optional(),
+  pages: z.number().optional(),
+  readingTime: z.string().optional(),
+  fileName: z.string(), // Filename in public/downloads directory
+})
+
+const downloadsCollection = defineCollection({
+  loader: glob({ pattern, base: './src/content/downloads' }),
+  schema: () => downloadsSchema,
+})
+
+/**
  * Contact data
  */
 
@@ -275,6 +302,7 @@ export const collections = {
   caseStudies: caseStudiesCollection,
   contactData: contactDataCollection,
   cookies: cookiesCollection,
+  downloads: downloadsCollection,
   services: servicesCollection,
   sitePages: sitePagesCollection,
   storage: storageCollection,
