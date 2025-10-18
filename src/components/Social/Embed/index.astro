@@ -1,166 +1,254 @@
 ---
 /**
- * X (Twitter) Tweet Embed Component
- * A component to embed tweets in MDX content with fallback styling
+ * Social Media Embed Component
+ * Supports multiple platforms with lazy loading and oEmbed integration
+ *
+ * Supported platforms:
+ * - X (Twitter)
+ * - LinkedIn (requires embed code from post menu)
+ * - Bluesky (requires explicit platform prop)
+ * - Mastodon
+ * - Reddit
+ * - YouTube
+ * - GitHub Gist
+ * - CodePen
  *
  * Usage in MDX:
- * <X
- *   id="1234567890123456789"
- *   author="username"
- *   content="This is the tweet content..."
- *   date="2024-01-15"
- *   avatar="/path/to/avatar.jpg"
- * />
+ *
+ * Auto-detection (X, Reddit, YouTube, GitHub Gist, CodePen, Mastodon):
+ * <Embed url="https://twitter.com/user/status/123456789" />
+ *
+ * Explicit platform (Bluesky):
+ * <Embed url="https://bsky.app/profile/user.bsky.social/post/123abc" platform="bluesky" />
+ *
+ * LinkedIn (paste embed code from post's "Embed this post" option):
+ * <Embed platform="linkedin" url="https://www.linkedin.com/embed/feed/update/...">
+ * <iframe src="https://www.linkedin.com/embed/feed/update/..." height="593" width="504" frameborder="0" allowfullscreen="" title="Embedded post"></iframe>
+ * </Embed>
  */
 
+import type { EmbedPlatform } from './client'
+
 interface Props {
-  id: string
-  author?: string
-  content?: string
-  date?: string
-  avatar?: string
+  url: string
+  platform?: EmbedPlatform
   className?: string
 }
 
-const {
-  id,
-  author = 'Twitter User',
-  content = 'Loading tweet...',
-  date = new Date().toLocaleDateString(),
-  avatar = '/assets/images/default-avatar.png',
-  className = '',
-} = Astro.props
+const { url, platform, className = '' } = Astro.props
 
-// Format the date nicely
-const formattedDate = new Date(date).toLocaleDateString('en-US', {
-  year: 'numeric',
-  month: 'short',
-  day: 'numeric',
-})
+// Determine the platform for placeholder styling
+const detectedPlatform = platform || 'x' // Default to X for auto-detection
 ---
 
 <div
-  class={`border border-[color:var(--color-border)] rounded-xl block mx-auto my-8 max-w-2xl p-6 bg-[color:var(--color-bg)] shadow-sm hover:shadow-md transition-shadow duration-200 ${className}`}
-  data-tweet-id={id}
+  class={`embed-container ${className}`}
+  data-embed
+  data-embed-url={url}
+  data-embed-platform={platform}
 >
-  <!-- Tweet Header -->
-  <div class="flex items-center mb-3">
-    <img
-      src={avatar}
-      alt={`${author} avatar`}
-      class="w-12 h-12 rounded-full mr-3 border-2 border-[color:var(--color-border)]"
-      loading="lazy"
-    />
-    <div class="flex-1">
-      <div class="flex items-center space-x-2">
-        <h4 class="font-bold text-[color:var(--color-text)] text-base m-0">
-          @{author}
-        </h4>
-        <svg
-          class="w-5 h-5 text-[color:var(--color-primary)]"
-          fill="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            d="M22.46 6c-.85.38-1.78.64-2.75.76 1-.6 1.76-1.55 2.12-2.68-.93.55-1.96.95-3.06 1.17-.88-.94-2.13-1.53-3.51-1.53-2.66 0-4.81 2.16-4.81 4.81 0 .38.04.75.13 1.1-4-.2-7.57-2.11-9.96-5.02-.42.72-.66 1.55-.66 2.44 0 1.67.85 3.14 2.14 4-.79-.02-1.53-.24-2.18-.6v.06c0 2.33 1.66 4.27 3.86 4.71-.4.11-.83.17-1.27.17-.31 0-.62-.03-.92-.08.62 1.94 2.43 3.35 4.58 3.39-1.68 1.32-3.8 2.1-6.1 2.1-.4 0-.79-.02-1.17-.07 2.18 1.4 4.77 2.21 7.55 2.21 9.06 0 14.01-7.5 14.01-14.01 0-.21 0-.42-.01-.63.96-.69 1.8-1.56 2.46-2.55z"
-          ></path>
-        </svg>
+  {
+    platform === 'linkedin' ? (
+      // LinkedIn: slot the provided iframe
+      <slot />
+    ) : (
+      // Other platforms: show placeholder that will be replaced
+      <div data-embed-placeholder class={`embed-placeholder embed-placeholder--${detectedPlatform}`}>
+        <div class="embed-placeholder__header">
+          <div class="embed-placeholder__avatar"></div>
+          <div class="embed-placeholder__author">
+            <div class="embed-placeholder__name"></div>
+            <div class="embed-placeholder__handle"></div>
+          </div>
+        </div>
+        <div class="embed-placeholder__content">
+          <div class="embed-placeholder__text-line"></div>
+          <div class="embed-placeholder__text-line"></div>
+          <div class="embed-placeholder__text-line embed-placeholder__text-line--short"></div>
+        </div>
+        {detectedPlatform === 'youtube' || detectedPlatform === 'codepen' ? (
+          <div class="embed-placeholder__media"></div>
+        ) : null}
+        <div class="embed-placeholder__footer">
+          <div class="embed-placeholder__action"></div>
+          <div class="embed-placeholder__action"></div>
+          <div class="embed-placeholder__action"></div>
+        </div>
       </div>
-      <p class="text-[color:var(--color-text-offset)] text-sm m-0">
-        {formattedDate}
-      </p>
-    </div>
-  </div>
-
-  <!-- Tweet Content -->
-  <div class="mb-4">
-    <p class="text-[color:var(--color-text)] text-base leading-relaxed m-0">
-      {content}
-    </p>
-  </div>
-
-  <!-- Tweet Actions/Footer -->
-  <div class="flex items-center justify-between pt-3 border-t border-[color:var(--color-border)]">
-    <a
-      href={`https://twitter.com/intent/tweet?in_reply_to=${id}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      class="flex items-center space-x-1 text-[color:var(--color-text-offset)] hover:text-[color:var(--color-primary)] transition-colors text-sm border-0 shadow-none hover:shadow-none"
-    >
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-        ></path>
-      </svg>
-      <span>Reply</span>
-    </a>
-
-    <a
-      href={`https://twitter.com/intent/retweet?tweet_id=${id}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      class="flex items-center space-x-1 text-[color:var(--color-text-offset)] hover:text-[color:var(--color-success)] transition-colors text-sm border-0 shadow-none hover:shadow-none"
-    >
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-        ></path>
-      </svg>
-      <span>Retweet</span>
-    </a>
-
-    <a
-      href={`https://twitter.com/intent/like?tweet_id=${id}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      class="flex items-center space-x-1 text-[color:var(--color-text-offset)] hover:text-[color:var(--color-danger)] transition-colors text-sm border-0 shadow-none hover:shadow-none"
-    >
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-        ></path>
-      </svg>
-      <span>Like</span>
-    </a>
-
-    <a
-      href={`https://twitter.com/twitter/status/${id}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      class="text-[color:var(--color-text-offset)] hover:text-[color:var(--color-primary)] transition-colors text-sm border-0 shadow-none hover:shadow-none"
-    >
-      View on X
-    </a>
-  </div>
+    )
+  }
 </div>
 
+<style>
+  .embed-container {
+    margin: 2rem auto;
+    max-width: 550px;
+  }
+
+  .embed-placeholder {
+    border: 1px solid var(--color-border, theme('colors.gray.200'));
+    border-radius: 0.75rem;
+    padding: 1rem;
+    background: var(--color-bg, theme('colors.white'));
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
+    }
+  }
+
+  .embed-placeholder__header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .embed-placeholder__avatar {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 9999px;
+    background: var(--color-text-offset, theme('colors.gray.300'));
+    flex-shrink: 0;
+  }
+
+  .embed-placeholder__author {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .embed-placeholder__name {
+    height: 1rem;
+    width: 8rem;
+    background: var(--color-text-offset, theme('colors.gray.300'));
+    border-radius: 0.25rem;
+  }
+
+  .embed-placeholder__handle {
+    height: 0.875rem;
+    width: 6rem;
+    background: var(--color-text-offset, theme('colors.gray.200'));
+    border-radius: 0.25rem;
+  }
+
+  .embed-placeholder__content {
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .embed-placeholder__text-line {
+    height: 0.875rem;
+    background: var(--color-text-offset, theme('colors.gray.300'));
+    border-radius: 0.25rem;
+  }
+
+  .embed-placeholder__text-line--short {
+    width: 70%;
+  }
+
+  .embed-placeholder__media {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: var(--color-text-offset, theme('colors.gray.300'));
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .embed-placeholder__footer {
+    display: flex;
+    gap: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--color-border, theme('colors.gray.200'));
+  }
+
+  .embed-placeholder__action {
+    height: 1rem;
+    width: 4rem;
+    background: var(--color-text-offset, theme('colors.gray.200'));
+    border-radius: 0.25rem;
+  }
+
+  /* Platform-specific adjustments */
+  .embed-placeholder--youtube,
+  .embed-placeholder--codepen {
+    max-width: 640px;
+  }
+
+  .embed-placeholder--reddit {
+    max-width: 800px;
+  }
+
+  .embed-placeholder--github-gist {
+    max-width: 100%;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+
+  /* LinkedIn responsive wrapper */
+  :global(.embed-linkedin-wrapper) {
+    position: relative;
+    width: 100%;
+    padding-bottom: 117.86%;
+    max-width: 504px;
+    margin: 0 auto;
+  }
+
+  :global(.embed-linkedin-wrapper iframe) {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Embed content styling */
+  :global(.embed-content) {
+    width: 100%;
+  }
+
+  :global(.embed-content iframe) {
+    max-width: 100%;
+  }
+
+  /* Dark mode adjustments */
+  @media (prefers-color-scheme: dark) {
+    .embed-placeholder {
+      background: var(--color-bg, theme('colors.gray.800'));
+      border-color: var(--color-border, theme('colors.gray.700'));
+    }
+
+    .embed-placeholder__avatar,
+    .embed-placeholder__name,
+    .embed-placeholder__text-line,
+    .embed-placeholder__media {
+      background: var(--color-text-offset, theme('colors.gray.600'));
+    }
+
+    .embed-placeholder__handle,
+    .embed-placeholder__action {
+      background: var(--color-text-offset, theme('colors.gray.700'));
+    }
+
+    .embed-placeholder__footer {
+      border-color: var(--color-border, theme('colors.gray.700'));
+    }
+  }
+</style>
+
 <script>
-  // Enhanced functionality could be added here:
-  // - Load actual tweet data from Twitter API
-  // - Handle real-time interaction counts
-  // - Add proper loading states
+  import { registerScript } from '../../Scripts/loader'
+  import { EmbedManager } from './client'
 
-  document.addEventListener('DOMContentLoaded', function () {
-    const tweetElements = document.querySelectorAll('[data-tweet-id]')
-
-    tweetElements.forEach(element => {
-      // Add hover effect
-      element.addEventListener('mouseenter', function (this: HTMLElement) {
-        this.classList.add('scale-[1.02]')
-      })
-
-      element.addEventListener('mouseleave', function (this: HTMLElement) {
-        this.classList.remove('scale-[1.02]')
-      })
-    })
-  })
+  // Register the embed manager with the delayed loader
+  registerScript(EmbedManager)
 </script>

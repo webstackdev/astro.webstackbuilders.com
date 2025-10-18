@@ -13,37 +13,6 @@
 2. `robots.txt.ts`
 3. Search functionality
 
--
-
-✅ X (Twitter) - Already implemented
-✅ LinkedIn - Professional network, good for B2B content
-✅ Bluesky - Emerging Twitter alternative
-✅ Mastodon - Decentralized, you already have Mastodon integration
-✅ Reddit - High engagement, good for technical discussions
-✅ YouTube - Video embeds are common in articles
-✅ GitHub Gist - Code snippets (relevant for technical content)
-✅ CodePen - Interactive demos
-
-Which Platforms DON'T Support oEmbed:
-
-- LinkedIn - No public oEmbed (requires scraping or manual embed)
-
-- Bluesky - No oEmbed yet (new platform)
-https://docs.bsky.app/docs/advanced-guides/oembed
-
-- Mastodon - No standardized oEmbed (decentralized, each instance different)
-OEmbed info as JSON: https://docs.joinmastodon.org/methods/oembed/
-
-Future Enhancements:
-
-- API Integration: Fetch live data from platform APIs
-- oEmbed Support: Use oEmbed protocol where available
-- Cache Layer: Cache fetched embed data
-- Dark Mode: Platform-specific dark mode themes
-- Rich Media: Better support for images/videos in embeds
-- Analytics: Track embed interactions
-- A11y: Enhanced keyboard navigation
-
 ## Implement Astro View Transitions
 
 - Script re-execution
@@ -124,6 +93,7 @@ Sentry.captureMessage("Something went wrong", "warning")
 
 * We need to add Lighthouse testing
 * Axe accessibility testing
+* Test Social Embeds with real embeds from social networks
 
 ## Vercel Analytics
 
