@@ -1,5 +1,5 @@
 import parsePhoneNumber from 'libphonenumber-js'
-import { log } from '@lib/logger'
+import { log } from '../logger'
 
 /**
  * Format a phone number in standard format

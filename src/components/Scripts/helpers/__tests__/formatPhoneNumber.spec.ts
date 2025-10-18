@@ -5,7 +5,7 @@ import { describe, expect, test, vi } from 'vitest'
 import { formatPhoneNumber } from '../formatPhoneNumber'
 
 // Mock the logger
-vi.mock('@lib/logger', () => ({
+vi.mock('../../logger', () => ({
   log: vi.fn(),
 }))
 
