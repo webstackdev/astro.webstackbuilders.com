@@ -1,0 +1,212 @@
+---
+/**
+ * Layout for Markdown/MDX content files
+ *
+ * Components automatically available in MDX:
+ *
+ * - Avatar: Author avatars
+ * - Callout: Highlighted info boxes
+ * - Contact: Contact call-to-action
+ * - Featured: Featured content blocks
+ * - Newsletter: Newsletter signup
+ * - Carousel: Image/content carousels
+ * - Tweet: Embedded tweets
+ * - Highlighter: Text highlighting
+ * - Shares: Social share buttons
+ * - Sprite: SVG sprites
+ * - Testimonials: Testimonial blocks
+ */
+import BaseLayout from './BaseLayout.astro'
+import Avatar from '@components/Avatar/index.astro'
+import Callout from '@components/Callout/index.astro'
+import Contact from '@components/CallToAction/Contact/index.astro'
+import Featured from '@components/CallToAction/Featured/index.astro'
+import Newsletter from '@components/CallToAction/Newsletter/index.astro'
+import Carousel from '@components/Carousel/index.astro'
+import Tweet from '@components/Social/Tweet/index.astro'
+import Highlighter from '@components/Social/Highlighter/Highlighter.astro'
+import Shares from '@components/Social/Shares/Shares.astro'
+import Sprite from '@components/Sprite/index.astro'
+import Testimonials from '@components/Testimonials/index.astro'
+
+// Export components for use in MDX
+export { Avatar, Callout, Contact, Featured, Newsletter, Carousel, Tweet, Highlighter, Shares, Sprite, Testimonials }
+
+export interface Props {
+  /** Page title shown in <title> and H1 */
+  pageTitle: string
+  /** URL path component e.g. 'articles/my-article' */
+  path: string
+  /** Optional page subtitle or excerpt */
+  subtitle?: string
+  /** Content type for OpenGraph metadata */
+  contentType?: 'article' | 'website'
+  /** Publication date for articles */
+  publishDate?: Date
+  /** Last modified date */
+  modifiedDate?: Date
+  /** Author name */
+  author?: string
+  /** Article section/category */
+  section?: string
+  /** Article tags */
+  tags?: string[]
+  /** Meta description */
+  description?: string
+  /** Social share image */
+  image?: string
+  /** Estimated reading time */
+  readingTime?: string
+  /** Whether to show table of contents */
+  showToc?: boolean
+  /** Custom CSS class for content wrapper */
+  contentClass?: string
+}
+
+const {
+  pageTitle,
+  path,
+  subtitle,
+  contentType = 'article',
+  publishDate,
+  modifiedDate,
+  author,
+  section,
+  tags,
+  description,
+  image,
+  readingTime,
+  showToc = true,
+  contentClass = '',
+} = Astro.props
+
+// Schema.org itemtype based on content type
+const schemaType =
+  contentType === 'article'
+    ? 'http://schema.org/Article'
+    : 'http://schema.org/WebPage'
+
+// Build BaseLayout props object with only defined values
+const baseLayoutProps = {
+  pageTitle,
+  path,
+  contentType,
+  ...(publishDate && { publishDate }),
+  ...(modifiedDate && { modifiedDate }),
+  ...(author && { author }),
+  ...(section && { section }),
+  ...(tags && { tags }),
+  ...(description && { description }),
+  ...(image && { image }),
+}
+---
+
+<BaseLayout {...baseLayoutProps}>
+  <article
+    class={`max-w-[75ch] mx-auto py-8 px-4 ${contentClass}`}
+    itemscope
+    itemtype={schemaType}
+    aria-labelledby="article-title"
+  >
+    <header class="mb-8">
+      <h1 id="article-title" class="text-3xl font-bold leading-tight mb-4" itemprop="headline">
+        {pageTitle}
+      </h1>
+
+      {subtitle && <p class="text-lg text-[var(--color-text-muted)] leading-relaxed" itemprop="description">{subtitle}</p>}
+
+      {
+        (publishDate || author || readingTime || tags) && (
+          <div class="flex flex-wrap gap-2 items-center text-sm text-[var(--color-text-muted)] mt-4 pt-4 border-t border-[var(--color-border)]">
+            {publishDate && (
+              <time
+                class="inline-flex items-center gap-1 before:content-['📅']"
+                itemprop="datePublished"
+                datetime={publishDate.toISOString()}
+              >
+                {publishDate.toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
+              </time>
+            )}
+
+            {modifiedDate && modifiedDate !== publishDate && (
+              <time
+                class="inline-flex items-center gap-1 before:content-['🔄']"
+                itemprop="dateModified"
+                datetime={modifiedDate.toISOString()}
+              >
+                Updated{' '}
+                {modifiedDate.toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
+              </time>
+            )}
+
+            {author && (
+              <span class="inline-flex items-center gap-1 before:content-['✍️']" itemprop="author" itemscope itemtype="http://schema.org/Person">
+                <span itemprop="name">{author}</span>
+              </span>
+            )}
+
+            {readingTime && <span class="inline-flex items-center gap-1 before:content-['⏱️']">{readingTime}</span>}
+
+            {tags && tags.length > 0 && (
+              <ul class="flex flex-wrap gap-1 list-none p-0 m-0" aria-label="Article tags">
+                {tags.map((tag) => (
+                  <li>
+                    <a
+                      href={`/tags/${tag}`}
+                      rel="tag"
+                      itemprop="keywords"
+                      class="inline-block px-2 py-0.5 bg-[var(--color-surface-raised)] rounded text-xs no-underline transition-colors hover:bg-[var(--color-primary)] hover:text-[var(--color-on-primary)] focus:bg-[var(--color-primary)] focus:text-[var(--color-on-primary)]"
+                    >
+                      {tag}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )
+      }
+    </header>
+
+    <slot name="hero-image" />
+
+    <div class="grid gap-8 lg:grid-cols-[250px_1fr] lg:gap-16" itemprop="articleBody">
+      {
+        showToc && (
+          <aside class="p-4 bg-[var(--color-surface-raised)] rounded-lg border border-[var(--color-border)] lg:sticky lg:top-4 lg:self-start lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto" aria-labelledby="toc-heading">
+            <h2 id="toc-heading" class="text-base font-semibold mb-2">Table of Contents</h2>
+            <nav class="toc-nav">
+              {/* TOC will be automatically generated by remark-toc plugin */}
+            </nav>
+          </aside>
+        )
+      }
+
+      <div class="markdown-content__prose leading-relaxed">
+        <slot />
+      </div>
+    </div>
+
+    <slot name="after-content" />
+
+    {
+      section && (
+        <footer class="mt-16 pt-8 border-t border-[var(--color-border)] text-sm text-[var(--color-text-muted)]">
+          <p class="markdown-content__section">
+            Filed under: <a href={`/sections/${section}`} class="text-[var(--color-primary)] no-underline hover:underline focus:underline">{section}</a>
+          </p>
+        </footer>
+      )
+    }
+  </article>
+
+  <slot name="related-content" />
+</BaseLayout>

@@ -7,22 +7,6 @@
 - Z.AI: GLM 4.6
 - Google: Gemini 2.5 Flash Preview 09-2025
 
-## Components intended for use in *.mdx files:
-
-* Avatar
-* Callout
-* CallToAction/Contact
-* CallToAction/Featured
-* CallToAction/Newsletter
-* Carousel
-* Social/Embed
-* Social/Highlighter
-* Social/Share
-* Sprite
-* Testimonials
-
-src/layouts/MarkdownLayout.astro
-
 ### Phase 4: Generated Content
 
 1. `sitemap.xml.ts`

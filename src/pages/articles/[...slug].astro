@@ -1,9 +1,8 @@
 ---
 import { getCollection } from 'astro:content'
-import BaseLayout from '@layouts/BaseLayout.astro'
-import { Shares } from '@components/Social/Shares'
-import Carousel from '@components/Carousel/index.astro'
+import MarkdownLayout, { Shares, Carousel } from '@layouts/MarkdownLayout.astro'
 
+/** Generate static paths for all articles */
 export async function getStaticPaths() {
   const articleEntries = await getCollection('articles', ({ data }) => {
     return process.env['NODE_ENV'] !== 'production' || data.isDraft !== true
@@ -15,155 +14,63 @@ export async function getStaticPaths() {
 }
 
 const { article } = Astro.props
-// Use the rendered content directly from the article
 const renderedContent = article.rendered?.html || article.body || 'Content not available'
 const path = `/articles/${article.id}/`
 const pageTitle = article.data.title
 const cover = article.data.image
-// Author can be either a resolved entry object with id or a string reference
 const authorId =
   typeof article.data.author === 'string' ? article.data.author : article.data.author.id
-const meta = {
-  date: article.data.publishDate,
-  author: authorId,
-  tags: article.data.tags,
-  readingTime: article.data.readingTime,
-  draft: article.data.isDraft,
-}
 ---
 
-<BaseLayout
+<MarkdownLayout
   pageTitle={pageTitle}
   path={path}
   contentType="article"
   publishDate={article.data.publishDate}
-  author={meta.author}
+  author={authorId}
   section="Technology"
   tags={article.data.tags}
   description={article.data.description}
-  image={cover.src}
+  {...(cover?.src && { image: cover.src })}
+  {...(article.data.readingTime && { readingTime: article.data.readingTime })}
+  showToc={false}
 >
-  <article
-    id="article"
-    class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8"
-    itemscope
-    itemtype="http://schema.org/BlogPosting"
-    aria-labelledby="article-title"
-  >
-    <header class="py-8 md:py-16 lg:py-20 text-center space-y-6">
-      {
-        cover && (
-          <div
-            class="aspect-video max-w-3xl mx-auto rounded-2xl overflow-hidden shadow-lg"
-            itemtype="image"
-          >
-            <img
-              src={cover.src}
-              alt={cover.alt}
-              loading="eager"
-              class="w-full h-full object-cover"
-            />
-          </div>
-        )
-      }
-      <h1
-        id="article-title"
-        class="text-3xl md:text-4xl lg:text-5xl font-bold text-[var(--color-theme-text)] leading-tight"
-        itemprop="headline"
-      >
-        {pageTitle}
-      </h1>
+  {
+    cover && (
       <div
-        class="flex flex-wrap items-center justify-center gap-4 text-[var(--color-theme-text-offset)]"
+        class="aspect-video max-w-3xl mx-auto rounded-2xl overflow-hidden shadow-lg mb-8"
+        slot="hero-image"
       >
-        <time
-          class="flex items-center gap-2 text-lg"
-          itemprop="datePublished"
-          datetime={meta.date.toISOString()}
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-            ></path>
-          </svg>
-          {
-            meta.date.toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-            })
-          }
-        </time>
-        {
-          meta.readingTime && (
-            <p class="flex items-center gap-2 text-lg">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              {meta.readingTime} read
-            </p>
-          )
-        }
-        {
-          meta.tags && meta.tags.length > 0 && (
-            <div class="flex flex-wrap gap-2">
-              {meta.tags.map((tag: string) => (
-                <span class="text-sm font-medium text-[var(--color-theme-primary)] bg-[var(--color-theme-primary-offset)] px-3 py-1 rounded-full uppercase tracking-wide">
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )
-        }
-        {
-          meta.draft && (
-            <span class="inline-block bg-[var(--color-theme-secondary-offset)] text-[var(--color-theme-secondary)] px-4 py-2 rounded-full text-sm font-medium uppercase tracking-wide">
-              Draft
-            </span>
-          )
-        }
+        <img src={cover.src} alt={cover.alt} loading="eager" class="w-full h-full object-cover" />
       </div>
+    )
+  }
+
+  <div set:html={renderedContent} />
+
+  <div class="border-t border-[var(--color-theme-border)] pt-8 mt-12" slot="after-content">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+      <div>
+        <h3 class="text-lg font-semibold text-[var(--color-theme-text)] mb-2">
+          Share this article
+        </h3>
+        <p class="text-[var(--color-theme-text-offset)] text-sm">
+          Found this helpful? Share it with others who might benefit.
+        </p>
+      </div>
+      <Shares
+        url={`https://webstackbuilders.com${path}`}
+        title={pageTitle}
+        description={`Read "${pageTitle}" on Webstack Builders`}
+        class="flex-shrink-0"
+      />
+    </div>
+  </div>
+
+  <div class="border-t border-[var(--color-theme-border)] pt-8 mt-12" slot="related-content">
+    <header class="mb-8">
+      <h3 class="text-2xl font-bold text-[var(--color-theme-text)]">Other things I've written</h3>
     </header>
-    <div
-      class="prose prose-lg max-w-none py-8 text-[var(--color-theme-text)]"
-      itemprop="articleBody"
-    >
-      <div set:html={renderedContent} />
-    </div>
-
-    <!-- Social sharing section -->
-    <div class="border-t border-[var(--color-theme-border)] pt-8 mt-12">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-        <div>
-          <h3 class="text-lg font-semibold text-[var(--color-theme-text)] mb-2">
-            Share this article
-          </h3>
-          <p class="text-[var(--color-theme-text-offset)] text-sm">
-            Found this helpful? Share it with others who might benefit.
-          </p>
-        </div>
-        <Shares
-          url={`https://webstackbuilders.com${path}`}
-          title={pageTitle}
-          description={`Read "${pageTitle}" on Webstack Builders`}
-          class="flex-shrink-0"
-        />
-      </div>
-    </div>
-
-    <div class="border-t border-[var(--color-theme-border)] pt-8 mt-12">
-      <header class="mb-8">
-        <h3 class="text-2xl font-bold text-[var(--color-theme-text)]">Other things I've written</h3>
-      </header>
-      <Carousel title="" variant="suggested" currentSlug={article.id} limit={5} type="articles" />
-    </div>
-  </article>
-</BaseLayout>
+    <Carousel title="" variant="suggested" currentSlug={article.id} limit={5} type="articles" />
+  </div>
+</MarkdownLayout>
