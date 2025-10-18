@@ -1,0 +1,159 @@
+---
+/**
+ * Download Call-to-Action Component
+ *
+ * A prominent call-to-action section encouraging users to download a resource.
+ * Navigates to a download landing page where users fill out a form to access the resource.
+ *
+ * @example
+ * ```astro
+ * <Download resource="ransomware-recovery-kit" />
+ * <Download
+ *   resource="api-tool-consolidation-whitepaper"
+ *   title="Download Our API Consolidation Guide"
+ *   description="Learn how to streamline your API tooling and boost developer productivity."
+ * />
+ * ```
+ */
+
+export interface Props {
+  /** Name of the download resource (matches the folder name in content/downloads) */
+  resource: string
+  /** Main heading for the CTA */
+  title?: string
+  /** Supporting description text */
+  description?: string
+  /** Download button text */
+  buttonText?: string
+  /** Optional secondary action button */
+  secondaryLink?: {
+    href: string
+    text: string
+  }
+}
+
+const {
+  resource,
+  title = 'Download Our Free Resource',
+  description = 'Get instant access to expert insights and actionable strategies.',
+  buttonText = 'Download Now',
+  secondaryLink,
+} = Astro.props
+
+// Validate that resource is provided
+if (!resource) {
+  throw new Error('Download CTA component requires a "resource" prop')
+}
+
+// Construct the download landing page URL
+const downloadUrl = `/downloads/${resource}`
+---
+
+<section
+  class="py-16 md:py-24 bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-accent)] relative overflow-hidden"
+>
+  <!-- Decorative background elements -->
+  <div class="absolute inset-0 opacity-10">
+    <div
+      class="absolute top-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"
+    >
+    </div>
+    <div
+      class="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl translate-x-1/2 translate-y-1/2"
+    >
+    </div>
+  </div>
+
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+    <div class="max-w-4xl mx-auto text-center">
+      <!-- Icon -->
+      <div
+        class="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full mb-8"
+      >
+        <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+          ></path>
+        </svg>
+      </div>
+
+      <h2 class="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight">
+        {title}
+      </h2>
+      <p class="text-lg md:text-xl text-white/90 mb-10 max-w-2xl mx-auto leading-relaxed">
+        {description}
+      </p>
+
+      <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+        <a
+          href={downloadUrl}
+          class="inline-flex items-center justify-center px-8 py-4 bg-white text-[var(--color-primary)] font-semibold rounded-xl hover:bg-white/90 transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5 min-w-[200px] text-center group"
+        >
+          <svg
+            class="w-5 h-5 mr-2 transition-transform duration-200 group-hover:translate-y-0.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            ></path>
+          </svg>
+          {buttonText}
+        </a>
+        {
+          secondaryLink && (
+            <a
+              href={secondaryLink.href}
+              class="inline-flex items-center justify-center px-8 py-4 bg-transparent border-2 border-white text-white font-semibold rounded-xl hover:bg-white hover:text-[var(--color-primary)] transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5 min-w-[200px] text-center"
+            >
+              {secondaryLink.text}
+            </a>
+          )
+        }
+      </div>
+
+      <!-- Trust indicators -->
+      <div class="mt-12 flex flex-wrap items-center justify-center gap-6 text-white/80 text-sm">
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <span>Instant Access</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+            ></path>
+          </svg>
+          <span>No Credit Card Required</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
+            ></path>
+          </svg>
+          <span>Expert Insights</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
