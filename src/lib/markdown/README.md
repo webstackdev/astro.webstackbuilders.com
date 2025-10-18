@@ -13,6 +13,37 @@
 2. `robots.txt.ts`
 3. Search functionality
 
+-
+
+✅ X (Twitter) - Already implemented
+✅ LinkedIn - Professional network, good for B2B content
+✅ Bluesky - Emerging Twitter alternative
+✅ Mastodon - Decentralized, you already have Mastodon integration
+✅ Reddit - High engagement, good for technical discussions
+✅ YouTube - Video embeds are common in articles
+✅ GitHub Gist - Code snippets (relevant for technical content)
+✅ CodePen - Interactive demos
+
+Which Platforms DON'T Support oEmbed:
+
+- LinkedIn - No public oEmbed (requires scraping or manual embed)
+
+- Bluesky - No oEmbed yet (new platform)
+https://docs.bsky.app/docs/advanced-guides/oembed
+
+- Mastodon - No standardized oEmbed (decentralized, each instance different)
+OEmbed info as JSON: https://docs.joinmastodon.org/methods/oembed/
+
+Future Enhancements:
+
+- API Integration: Fetch live data from platform APIs
+- oEmbed Support: Use oEmbed protocol where available
+- Cache Layer: Cache fetched embed data
+- Dark Mode: Platform-specific dark mode themes
+- Rich Media: Better support for images/videos in embeds
+- Analytics: Track embed interactions
+- A11y: Enhanced keyboard navigation
+
 ## Implement Astro View Transitions
 
 - Script re-execution
@@ -98,6 +129,7 @@ Sentry.captureMessage("Something went wrong", "warning")
 
 - Highlighter component
 - Social Shares component
+- Social Embeds: Track embed interactions
 
 ## Cookie Consent
 
@@ -359,6 +391,86 @@ export function myAccessibleListPlugin() {
     });
   };
 }
+
+## Social Embeds future work
+
+Platform-Specific oEmbed Endpoints (No Auth):
+
+Twitter/X: https://publish.twitter.com/oembed
+YouTube: https://www.youtube.com/oembed
+Reddit: https://www.reddit.com/oembed
+CodePen: https://codepen.io/api/oembed
+
+
+Which Platforms DON'T Support oEmbed:
+
+LinkedIn - No public oEmbed (requires scraping or manual embed)
+Bluesky - No oEmbed yet (new platform)
+Mastodon - No standardized oEmbed (decentralized, each instance different)
+
+This is to allow statically rendering embeds at build time, instead of using oEmbed:
+
+Rich Media Enhancement Would Add:
+
+1. Embedded Images
+
+Display images that are part of the social media post:
+
+```astro
+<SocialEmbed   url="https://twitter.com/user/status/123"  media={[    { type: 'image', url: '/tweet-image.jpg', alt: 'Screenshot' }  ]}/>
+```
+
+The embed would show the image(s) in the post, similar to how Twitter displays photo attachments.
+
+2. Embedded Videos
+
+Display videos from the post:
+
+```astro
+<SocialEmbed
+  url="https://twitter.com/user/status/123"
+  media={[    {       type: 'video',       url: '/video.mp4',       thumbnail: '/thumb.jpg',      duration: '2:30'    }  ]}
+/>
+```
+
+3. Multiple Media Items
+
+Handle posts with multiple images/videos (like Twitter's 4-image grid):
+
+```astro
+media: [  { type: 'image', url: 'img1.jpg' },  { type: 'image', url: 'img2.jpg' },  { type: 'image', url: 'img3.jpg' },  { type: 'image', url: 'img4.jpg' }]
+```
+
+4. GIFs and Animations
+
+Properly handle animated GIFs and short video loops.
+
+5. Image Galleries
+
+Create proper galleries with:
+
+Lightbox functionality
+Swipe/navigation for mobile
+Proper aspect ratio handling
+Lazy loading
+
+6. Video Players
+
+Implement custom video players with:
+
+Play/pause controls
+Volume control
+Fullscreen option
+Accessibility features (captions, keyboard controls)
+Implementation Challenges:
+This is listed as a "future enhancement" because it requires:
+
+Storage: Where to host the media files (CDN, local assets)
+Fetching: How to get media from platform APIs (requires API keys/auth)
+Performance: Lazy loading, responsive images, video optimization
+Accessibility: Alt text, captions, keyboard navigation
+Responsive Design: Different layouts for mobile vs desktop
+Legal: Copyright/licensing considerations when caching media
 
 ## Markdown Pipeline Testing Strategy
 

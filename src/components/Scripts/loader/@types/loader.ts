@@ -15,6 +15,7 @@ export type UserInteractionEvent =
 /** All supported trigger events for script execution */
 export type TriggerEvent =
   | 'delayed'
+  | 'visible'
   | 'astro:before-preparation'
   | 'astro:after-preparation'
   | 'astro:before-swap'
@@ -27,6 +28,8 @@ export abstract class LoadableScript {
   public static scriptName: string
   /** The event that should trigger this script's initialization */
   public static eventType: TriggerEvent
+  /** Target element selector for 'visible' event type (optional) */
+  public static targetSelector?: string
 
   /** Initialize the script */
   public static init(): void {

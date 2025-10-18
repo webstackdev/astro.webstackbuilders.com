@@ -45,3 +45,30 @@ A lifecycle event in the Astro framework that is dispatched after the contents o
 ## delayed
 
 This is a virtual event that waits for the first user interaction or five seconds to pass. It is intended for scripts that result in a layout shift and should be delayed in execution so as not to affect LCF layout in Lightouse.
+
+## visible
+
+This is a virtual event that triggers when an element scrolls into or near the viewport, using the Intersection Observer API. It fires when the target element is 500px below the viewport (before it becomes visible to the user), allowing for preloading or lazy initialization of components.
+
+**Configuration:**
+
+- **Root:** `document.body` - Observes relative to the document body
+- **Root Margin:** `0px 0px 500px 0px` - Triggers 500px before element enters viewport
+- **Threshold:** `0.01` - Triggers when 1% of element is visible
+- **Delay:** `100ms` - Throttles observer callbacks to once per 100ms
+
+**Usage:**
+
+Scripts using the 'visible' event type must either:
+
+1. Provide a `targetSelector` property pointing to the element(s) to observe
+2. Or ensure elements in the DOM have a `data-script` attribute matching the script name
+
+This event is ideal for:
+
+- Lazy loading social media embeds (fetch oEmbed data before visible)
+- Deferring heavy component initialization
+- Preloading content just before user sees it
+- Optimizing initial page load performance
+
+**Browser Support:** Requires IntersectionObserver API (95%+ browsers, IE11 needs polyfill)
