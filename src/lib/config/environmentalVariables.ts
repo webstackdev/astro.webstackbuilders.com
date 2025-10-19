@@ -53,5 +53,10 @@ export const environmentalVariablesConfig: AstroUserConfig['env'] = {
       access: 'public',
       optional: true, // Optional - Sentry only enabled if provided
     }),
+    WEBMENTION_IO_TOKEN: envField.string({
+      context: 'server',
+      access: 'secret',
+      optional: true, // Optional - WebMentions only fetched if provided
+    }),
   },
 }

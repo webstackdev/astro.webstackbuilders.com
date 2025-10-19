@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content'
 import MarkdownLayout, { Shares, Carousel } from '@layouts/MarkdownLayout.astro'
+import { WebMentions } from '@components/WebMentions'
 
 /** Generate static paths for all articles */
 export async function getStaticPaths() {
@@ -65,6 +66,9 @@ const authorId =
         class="flex-shrink-0"
       />
     </div>
+
+    {/* WebMentions - shows mentions, likes, and reposts from across the web */}
+    <WebMentions url={`https://webstackbuilders.com${path}`} />
   </div>
 
   <div class="border-t border-[var(--color-theme-border)] pt-8 mt-12" slot="related-content">

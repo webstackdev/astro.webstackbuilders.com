@@ -1,0 +1,82 @@
+---
+/**
+ * Individual WebMention item display
+ */
+import type { Webmention } from './webmentions'
+
+interface Props {
+  mention: Webmention
+}
+
+const { mention } = Astro.props
+
+// Format date
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString)
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date)
+}
+---
+
+<article
+  class="p-4 bg-[var(--color-theme-bg-offset)] rounded-lg border border-[var(--color-theme-border)] h-cite"
+  id={`webmention-${mention['wm-id']}`}
+>
+  <div
+    class="flex items-start justify-between gap-4 mb-3 flex-wrap flex-col sm:flex-nowrap sm:flex-row sm:items-center"
+  >
+    {
+      mention.author ? (
+        <a
+          class="inline-flex items-center gap-3 no-underline text-[var(--color-theme-text)] transition-colors hover:text-[var(--color-theme-link-hover)] p-author h-card u-url"
+          href={mention.author.url || mention['wm-source']}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <img
+            class="w-10 h-10 rounded-full object-cover border-2 border-[var(--color-theme-border)] u-photo"
+            src={mention.author.photo || '/assets/images/webmention-avatar-default.svg'}
+            alt={mention.author.name || 'Anonymous'}
+            loading="lazy"
+          />
+          <strong class="font-semibold p-name">{mention.author.name}</strong>
+        </a>
+      ) : (
+        <span class="inline-flex items-center gap-3">
+          <img
+            class="w-10 h-10 rounded-full object-cover border-2 border-[var(--color-theme-border)]"
+            src="/assets/images/webmention-avatar-default.svg"
+            alt="Anonymous"
+            loading="lazy"
+          />
+          <strong class="font-semibold">Anonymous</strong>
+        </span>
+      )
+    }
+
+    {
+      mention.published && (
+        <time
+          class="text-[var(--color-theme-text-offset)] text-sm whitespace-nowrap dt-published"
+          datetime={mention.published}
+        >
+          {formatDate(mention.published)}
+        </time>
+      )
+    }
+  </div>
+
+  {
+    mention.content?.value && (
+      <div
+        class="text-[var(--color-theme-text)] leading-relaxed break-words [&_p]:my-2 [&_a]:text-[var(--color-theme-link)] [&_a]:underline [&_a:hover]:text-[var(--color-theme-link-hover)] p-content"
+        set:html={mention.content.value}
+      />
+    )
+  }
+</article>

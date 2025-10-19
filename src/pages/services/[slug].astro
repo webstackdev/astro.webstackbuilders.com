@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content'
 import MarkdownLayout, { Carousel } from '@layouts/MarkdownLayout.astro'
+import { WebMentions } from '@components/WebMentions'
 
 /** Generate static paths for all services */
 export async function getStaticPaths() {
@@ -100,6 +101,11 @@ const icon = service.data.icon ? { src: service.data.icon, alt: service.data.tit
   </div>
 
   <div set:html={service.rendered?.html || ''} />
+
+  <div slot="after-content">
+    {/* WebMentions - shows testimonials, mentions, likes, and reposts */}
+    <WebMentions url={`https://webstackbuilders.com${path}`} />
+  </div>
 
   <div class="border-t border-[var(--color-theme-border)] pt-8 mt-12" slot="related-content">
     <header class="mb-8">
