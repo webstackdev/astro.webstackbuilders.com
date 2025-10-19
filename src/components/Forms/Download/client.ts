@@ -1,5 +1,5 @@
 import { LoadableScript, type TriggerEvent } from '@components/Scripts/loader/@types/loader'
-import { log } from '@components/Scripts/logger'
+import { logger } from '@lib/logger'
 import {
   getDownloadFormElement,
   getDownloadSubmitButton,
@@ -77,8 +77,7 @@ export class DownloadForm extends LoadableScript {
       // Reset form
       this.form.reset()
     } catch (error) {
-      log('Error submitting download form:', 'red')
-      console.error(error)
+      logger.error('Error submitting download form', error)
       this.showStatus('error', 'There was an error processing your request. Please try again.')
     } finally {
       // Re-enable submit button (in case of error)

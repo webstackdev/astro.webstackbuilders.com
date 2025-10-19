@@ -7,6 +7,8 @@
 - Z.AI: GLM 4.6
 - Google: Gemini 2.5 Flash Preview 09-2025
 
+1. Delete logger and replace with simple console wrapper
+
 ## Download Form component
 
 **API Integration**: The submit endpoint currently only logs to console. Integration with CRM/email service required for production use.

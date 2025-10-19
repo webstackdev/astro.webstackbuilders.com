@@ -6,20 +6,18 @@
 
 <script>
   {
-    /* Add global unhandled exception and unhandled rejection handlers */
+    /**
+     * Initialize error handlers
+     * - Production: Sentry handles all errors with replay, breadcrumbs, and remote tracking
+     * - Development: Custom handlers log errors to console for debugging
+     */
   }
-  import { addErrorEventListeners } from './errors/errorListeners'
-  addErrorEventListeners()
-  {
-    /* Site script. All scripts to include in the site must be included here. */
-  }
-  {
-    /** Client scripts */
-  }
-  {
-    /** import { registerShareHighlight } from './modules/share-highlight' */
-  }
-  {
-    /** @TODO: Are there any tasks that we need to pause using visibility API like animations when user leaves page? See modules/visibility.ts */
+  const isProd = import.meta.env.PROD
+  if (isProd) {
+    await import('./sentry/client')
+  } else {
+    // Development: Use custom error handlers with console logging
+    const { addErrorEventListeners } = await import('./errors/errorListeners')
+    addErrorEventListeners()
   }
 </script>

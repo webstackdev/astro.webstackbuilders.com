@@ -72,35 +72,6 @@ The `resource` prop must match the folder name of a download in `src/content/dow
 
 The component will construct the URL as `/downloads/{resource}` and navigate to that landing page when the button is clicked.
 
-## Available Downloads
-
-Current downloads in the system:
-
-1. **API Tool Consolidation Whitepaper**
-   - Resource: `api-tool-consolidation-whitepaper`
-   - Type: Whitepaper
-   - Pages: 24
-
-2. **Lakehouse Analytics Guide**
-   - Resource: `lakehouse-analytics-guide`
-   - Type: Guide
-   - Pages: 52
-
-3. **Ransomware Recovery Kit**
-   - Resource: `ransomware-recovery-kit`
-   - Type: Guide
-   - Pages: 36
-
-4. **Identity Security for Dummies**
-   - Resource: `identity-security-for-dummies`
-   - Type: eBook
-   - Pages: 42
-
-5. **End-to-End Observability Benefits**
-   - Resource: `observability-benefits-guide`
-   - Type: eBook
-   - Pages: 48
-
 ## Design Elements
 
 ### Visual Features

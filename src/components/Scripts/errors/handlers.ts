@@ -1,13 +1,22 @@
 /**
  * Error handlers for client-side script
+ * These are only used in development mode. In production, Sentry handles errors.
  */
+import { logger } from '@lib/logger'
 import { ClientScriptError } from './ClientScriptError'
-import { logError } from './logger'
+
 /**
  * Unhandled exception handler
  */
 export const unhandledExceptionHandler = (error: ErrorEvent): true => {
-  logError(new ClientScriptError(error))
+  const scriptError = new ClientScriptError(error)
+  logger.error('Unhandled exception:', {
+    message: scriptError.message,
+    stack: scriptError.stack,
+    fileName: scriptError.fileName,
+    lineNumber: scriptError.lineNumber,
+    columnNumber: scriptError.columnNumber,
+  })
   /** Prevent the firing of the default event handler */
   return true
 }
@@ -16,7 +25,14 @@ export const unhandledExceptionHandler = (error: ErrorEvent): true => {
  * Unhandled rejection handler
  */
 export const unhandledRejectionHandler = ({ reason }: PromiseRejectionEvent): true => {
-  logError(new ClientScriptError(reason))
+  const scriptError = new ClientScriptError(reason)
+  logger.error('Unhandled promise rejection:', {
+    message: scriptError.message,
+    stack: scriptError.stack,
+    fileName: scriptError.fileName,
+    lineNumber: scriptError.lineNumber,
+    columnNumber: scriptError.columnNumber,
+  })
   /** Prevent the firing of the default event handler */
   return true
 }

@@ -1,5 +1,5 @@
 import parsePhoneNumber from 'libphonenumber-js'
-import { log } from '../logger'
+import { logger } from '@lib/logger'
 
 /**
  * Format a phone number in standard format
@@ -10,7 +10,7 @@ import { log } from '../logger'
 export const formatPhoneNumber = (phoneNumber: string) => {
   const parsedPhoneNumber = parsePhoneNumber(phoneNumber)
   if (!parsedPhoneNumber) {
-    log(`[5548] Trying to format invalid phone number: ${phoneNumber}`)
+    logger.warn(`Trying to format invalid phone number: ${phoneNumber}`)
     return
   }
   return parsedPhoneNumber.format('NATIONAL')
