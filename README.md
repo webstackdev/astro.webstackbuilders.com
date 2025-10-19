@@ -300,12 +300,12 @@ Select this text to see sharing options
 
 ### Migration from SCSS
 
-This system replaces the previous `_content.scss` and vendor SCSS files:
+This system replaces the previous `_content.css` and vendor SCSS files:
 
-- `src/styles/vendor/_codetab.scss` → Integrated into Rehype plugin
-- `src/styles/vendor/_expandable.scss` → Integrated into Rehype plugin
-- `src/styles/vendor/_namedCodeBlock.scss` → Integrated into Rehype plugin
-- `src/styles/vendor/_shareHighlight.scss` → Integrated into Rehype plugin
+- `src/styles/vendor/_codetab.css` → Integrated into Rehype plugin
+- `src/styles/vendor/_expandable.css` → Integrated into Rehype plugin
+- `src/styles/vendor/_namedCodeBlock.css` → Integrated into Rehype plugin
+- `src/styles/vendor/_shareHighlight.css` → Integrated into Rehype plugin
 
 The styling is now applied automatically to all rendered Markdown content without needing to import or reference any CSS classes.
 

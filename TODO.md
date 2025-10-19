@@ -291,9 +291,6 @@ Usage:
 import { Breadcrumbs } from "astro-breadcrumbs";
 
 import "astro-breadcrumbs/breadcrumbs.css";
-
-// or import the scss file
-// import "astro-breadcrumbs/breadcrumbs.scss";
 ---
 
 <Breadcrumbs />

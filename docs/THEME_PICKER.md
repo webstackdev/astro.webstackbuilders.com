@@ -22,7 +22,7 @@ The theme picker works by setting CSS attribute matchers for the `data-theme` at
 
 ### Set CSS variables like `--color-bg`
 
-`src/assets/scss/variables/_themes.scss`.
+`src/assets/scss/variables/_themes.css`.
 
 ## Places theme state is stashed away
 

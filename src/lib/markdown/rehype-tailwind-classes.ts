@@ -1,6 +1,5 @@
 /**
  * Rehype plugin to automatically add Tailwind classes to markdown-generated HTML elements
- * Migrated from _content.scss to provide automatic styling for rendered markdown content
  */
 import { visit } from 'unist-util-visit'
 import type { Root, Element } from 'hast'
@@ -25,10 +24,10 @@ export function rehypeTailwindClasses() {
           'border-current',
           'shadow-[inset_0_-2px_0_0_currentColor]',
           'hover:border-blue-600',
-          'hover:shadow-[inset_0_-2px_0_0_theme(colors.blue.600)]',
+          'hover:shadow-[inset_0_-2px_0_0_var(--color-link-shadow)]',
           'hover:text-gray-900',
           'focus:border-blue-600',
-          'focus:shadow-[inset_0_-2px_0_0_theme(colors.blue.600)]',
+          'focus:shadow-[inset_0_-2px_0_0_var(--color-link-shadow)]',
           'focus:text-gray-900',
           'focus:outline-none',
           'transition-colors',
@@ -336,7 +335,6 @@ export function rehypeTailwindClasses() {
           'lg:px-12',
         ])
 
-        // Handle named code blocks (from _namedCodeBlock.scss)
         const parentHasNamedFence =
           hasClass(node, 'named-fence-block') || (node.properties?.['data-filename'] as string)
 
@@ -350,7 +348,7 @@ export function rehypeTailwindClasses() {
 
       // Handle vendor-specific markdown elements
 
-      // Code tabs (from _codetab.scss) - container
+      // Code tabs - container
       if (hasClass(node, 'code-tabs')) {
         node.properties = node.properties || {}
         node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
@@ -418,7 +416,7 @@ export function rehypeTailwindClasses() {
         ])
       }
 
-      // Expandable details/summary (from _expandable.scss)
+      // Expandable details/summary
       if (node.tagName === 'summary') {
         node.properties = node.properties || {}
         node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
@@ -438,7 +436,7 @@ export function rehypeTailwindClasses() {
         ])
       }
 
-      // Named code block filename (from _namedCodeBlock.scss)
+      // Named code block filename
       if (hasClass(node, 'named-fence-filename')) {
         node.properties = node.properties || {}
         node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
@@ -454,16 +452,16 @@ export function rehypeTailwindClasses() {
         ])
       }
 
-      // Share highlight custom element (from _shareHighlight.scss)
+      // Share highlight custom element
       if (node.tagName === 'share-highlight') {
         node.properties = node.properties || {}
         node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          '[--share-highlight-text-color:theme(colors.gray.900)]',
-          '[--share-highlight-bg-color:theme(colors.gray.200)]',
-          '[--share-highlight-text-color-active:theme(colors.white)]',
-          '[--share-highlight-bg-color-active:theme(colors.blue.600)]',
-          '[--share-highlight-tooltip-text-color:theme(colors.white)]',
-          '[--share-highlight-tooltip-bg-color:theme(colors.gray.900)]',
+          '[--share-highlight-text-color:var(--color-share-highlight-text)]',
+          '[--share-highlight-bg-color:var(--color-share-highlight-bg)]',
+          '[--share-highlight-text-color-active:var(--color-share-highlight-text-active)]',
+          '[--share-highlight-bg-color-active:var(--color-share-highlight-bg-active)]',
+          '[--share-highlight-tooltip-text-color:var(--color-share-highlight-tooltip-text)]',
+          '[--share-highlight-tooltip-bg-color:var(--color-share-highlight-tooltip-bg)]',
         ])
       }
 
