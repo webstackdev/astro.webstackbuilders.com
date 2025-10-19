@@ -1,0 +1,91 @@
+---
+/**
+ * NetworkStatus Component
+ *
+ * Monitors network connectivity and displays toast notifications when
+ * connection status changes. Uses the LoadableScript pattern to integrate
+ * with Astro View Transitions.
+ *
+ * @example
+ * ```astro
+ * <NetworkStatus />
+ * ```
+ */
+---
+
+<!-- Toast notification container -->
+<div
+  id="network-status-toast"
+  class="fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300 hidden"
+  data-type="success"
+  role="alert"
+  aria-live="polite"
+>
+  <div class="flex items-center space-x-2">
+    <!-- Success icon -->
+    <svg
+      class="w-5 h-5 success-icon"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+    </svg>
+    <!-- Error icon -->
+    <svg
+      class="w-5 h-5 error-icon hidden"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+    </svg>
+    <span class="toast-message">Connection restored!</span>
+  </div>
+</div>
+
+<style>
+  #network-status-toast[data-type='success'] {
+    background-color: var(--color-theme-success);
+    color: var(--color-theme-success-bg);
+  }
+
+  #network-status-toast[data-type='error'] {
+    background-color: var(--color-theme-danger);
+    color: var(--color-theme-danger-bg);
+  }
+
+  #network-status-toast[data-type='success'] .success-icon {
+    display: block;
+  }
+
+  #network-status-toast[data-type='success'] .error-icon {
+    display: none;
+  }
+
+  #network-status-toast[data-type='error'] .success-icon {
+    display: none;
+  }
+
+  #network-status-toast[data-type='error'] .error-icon {
+    display: block;
+  }
+</style>
+
+<script>
+  import { registerScript } from '@components/Scripts/loader'
+  import { NetworkStatus } from './client'
+
+  // Register NetworkStatus script to initialize with Astro View Transitions
+  registerScript(NetworkStatus)
+</script>

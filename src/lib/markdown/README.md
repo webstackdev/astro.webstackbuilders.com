@@ -7,24 +7,35 @@
 - Z.AI: GLM 4.6
 - Google: Gemini 2.5 Flash Preview 09-2025
 
-Next Steps:
+Violation 3: Helper files not in server.ts or client.ts (Invariant #4)
 
-Get API token from webmention.io
-Add WEBMENTION_IO_TOKEN to .env
-Add webmention endpoints to <head>
-Add component to content pages
-(Optional) Set up Bridgy for social media
-Test with sample webmentions
+Location: Mastodon
+
+These files exist outside of server.ts or client.ts:
+
+config.ts
+detector.ts
+store.ts
+
+While they may be used by the Mastodon components, they're not organized into either server.ts or client.ts files as your invariant requires.
+
 
 Notify me if any of these invariants are not true:
 
-1. Astro templates in src/layouts and src/pages should not include client script. This means no HTML script tags in the template.
-2. Astro templates in src/components should only import a client.ts file in the HTML script tag if they have client script, and no other file name.
-3. Script files named server.ts in src/components are for code used in the build process and are imported in the frontmatter of a template only.
-4. All other filenames in component folders, except for tests and fixtures, should only be included in files named either server.ts or client.ts
-5. All client script should be executed by the loader system in the Scripts component, not directly in other component files by adding it to DOM listeners or executed immediately.
-6. There should be no client script besides an import for client.ts file and the loader logic in component templates in the HTML template files.
+Astro templates in src/layouts and src/pages should not include client script. This means no HTML script tags in the template.
+Astro templates in src/components should only import a client.ts file in the HTML script tag if they have client script, and no other file name.
+Script files named server.ts in src/components are for code used in the build process and are imported in the frontmatter of a template only.
+All other filenames in component folders, except for tests and fixtures, should only be included in files named either server.ts or client.ts
+All client script should be executed by the loader system in the Scripts component, not directly in other component files by adding it to DOM listeners or executed immediately.
+There should be no client script besides an import for client.ts file and the loader logic in component templates in the HTML template files.
 
+
+## Webmention Component Next Steps:
+
+Get API token from webmention.io
+Add WEBMENTION_IO_TOKEN to .env
+(Optional) Set up Bridgy for social media
+Test with sample webmentions
 
 ## Download Form component
 

@@ -6,8 +6,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import InstanceSelector from './InstanceSelector.astro'
-
 interface Props {
   id?: string
 }
@@ -17,17 +15,23 @@ const { id = 'mastodon-modal' } = Astro.props
 
 <div
   id={id}
-  class="mastodon-modal"
+  class="fixed inset-0 z-[9999] flex items-center justify-center p-4"
   role="dialog"
   aria-modal="true"
   aria-labelledby="modal-title"
   hidden
 >
-  <div class="modal-backdrop"></div>
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2 id="modal-title">Share to Mastodon</h2>
-      <button type="button" class="modal-close" aria-label="Close modal">
+  <div class="modal-backdrop absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+  <div
+    class="modal-content relative w-full max-w-2xl max-h-[90vh] overflow-auto bg-[var(--color-bg)] rounded-lg shadow-2xl"
+  >
+    <div class="flex items-center justify-between p-6 border-b border-[var(--color-border)]">
+      <h2 id="modal-title" class="m-0 text-xl font-semibold">Share to Mastodon</h2>
+      <button
+        type="button"
+        class="modal-close flex items-center justify-center w-8 h-8 p-0 border-0 bg-transparent rounded text-[var(--color-text-muted)] cursor-pointer transition-all duration-150 hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-text)]"
+        aria-label="Close modal"
+      >
         <svg
           width="24"
           height="24"
@@ -41,173 +45,99 @@ const { id = 'mastodon-modal' } = Astro.props
       </button>
     </div>
 
-    <form id="mastodon-share-form" class="modal-body">
-      <div class="share-text-wrapper">
-        <label for="share-text">Text to share</label>
-        <textarea id="share-text" name="text" rows="4" readonly class="share-text"></textarea>
+    <form id="mastodon-share-form" class="flex flex-col gap-6 p-6">
+      <!-- Share Text -->
+      <div class="flex flex-col gap-2">
+        <label for="share-text" class="font-medium">Text to share</label>
+        <textarea
+          id="share-text"
+          name="text"
+          rows="4"
+          readonly
+          class="w-full p-3 border border-[var(--color-border)] rounded-md bg-[var(--color-bg-muted)] font-[inherit] text-sm leading-6 resize-y focus:outline-2 focus:outline-[var(--color-primary)] focus:outline-offset-2"
+        ></textarea>
       </div>
 
-      <InstanceSelector />
+      <!-- Instance Selector (inlined from InstanceSelector.astro) -->
+      <div class="flex flex-col gap-4">
+        <label for="mastodon-instance" class="flex flex-col gap-2 font-medium">
+          <span>Mastodon Instance</span>
+          <div
+            class="flex items-stretch border border-[var(--color-border)] rounded-md overflow-hidden bg-[var(--color-bg-input)] focus-within:outline-2 focus-within:outline-[var(--color-primary)] focus-within:outline-offset-2"
+          >
+            <span
+              class="flex items-center px-3 py-2 bg-[var(--color-bg-muted)] text-[var(--color-text-muted)] text-sm select-none"
+              aria-label="https prefix"
+              id="instance-prefix"
+            >
+              https://
+            </span>
+            <input
+              type="text"
+              id="mastodon-instance"
+              name="instance"
+              placeholder="mastodon.social"
+              required
+              aria-describedby="instance-prefix"
+              class="flex-1 min-w-0 px-3 py-2 border-0 bg-transparent text-base text-[var(--color-text)] focus:outline-none"
+            />
+          </div>
+        </label>
 
-      <div class="modal-actions">
-        <button type="button" class="btn-secondary modal-cancel">Cancel</button>
-        <button type="submit" class="btn-primary">Share</button>
+        <!-- Saved Instances -->
+        <div id="saved-instances" class="flex flex-col gap-2" style="display: none;">
+          <p class="m-0 text-sm font-medium text-[var(--color-text-muted)]">Previously used:</p>
+          <div class="saved-list flex flex-wrap gap-2"></div>
+        </div>
+
+        <!-- Remember Instance Checkbox -->
+        <label for="remember-instance" class="flex items-center gap-2 text-sm cursor-pointer">
+          <input type="checkbox" id="remember-instance" name="remember" class="w-4 h-4 cursor-pointer" />
+          <span>Remember this instance</span>
+        </label>
       </div>
 
-      <p class="modal-status" role="status" aria-live="polite"></p>
+      <!-- Action Buttons -->
+      <div class="flex gap-3 justify-end">
+        <button
+          type="button"
+          class="btn-secondary modal-cancel px-4 py-2 border border-[var(--color-border)] rounded-md font-medium cursor-pointer transition-all duration-150 bg-transparent text-[var(--color-text)] hover:bg-[var(--color-bg-muted)]"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="btn-primary px-4 py-2 border-0 rounded-md font-medium cursor-pointer transition-all duration-150 bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-dark)] disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Share
+        </button>
+      </div>
+
+      <!-- Status Message -->
+      <p class="modal-status m-0 text-sm text-center" role="status" aria-live="polite"></p>
     </form>
   </div>
 </div>
 
 <style>
-  .mastodon-modal {
-    position: fixed;
-    inset: 0;
-    z-index: 9999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-  }
-
-  .mastodon-modal[hidden] {
-    display: none;
-  }
-
-  .modal-backdrop {
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
-  }
-
-  .modal-content {
-    position: relative;
-    width: 100%;
-    max-width: 32rem;
-    max-height: 90vh;
-    overflow: auto;
-    background: var(--color-bg);
-    border-radius: 0.5rem;
-    box-shadow:
-      0 20px 25px -5px rgba(0, 0, 0, 0.1),
-      0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  }
-
-  .modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1.5rem;
-    border-bottom: 1px solid var(--color-border);
-  }
-
-  .modal-header h2 {
-    margin: 0;
-    font-size: 1.25rem;
-    font-weight: 600;
-  }
-
-  .modal-close {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 2rem;
-    height: 2rem;
-    padding: 0;
-    border: none;
-    background: transparent;
+  /* Additional styles for saved instance buttons (created dynamically) */
+  .saved-list :global(.saved-instance) {
+    padding: 0.25rem 0.5rem;
+    background: var(--color-bg-muted);
+    border: 1px solid var(--color-border);
     border-radius: 0.25rem;
-    color: var(--color-text-muted);
-    cursor: pointer;
-    transition: all 0.15s ease;
-  }
-
-  .modal-close:hover {
-    background: var(--color-bg-muted);
-    color: var(--color-text);
-  }
-
-  .modal-body {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    padding: 1.5rem;
-  }
-
-  .share-text-wrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .share-text-wrapper label {
-    font-weight: 500;
-  }
-
-  .share-text {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid var(--color-border);
-    border-radius: 0.375rem;
-    background: var(--color-bg-muted);
-    font-family: inherit;
     font-size: 0.875rem;
-    line-height: 1.5;
-    resize: vertical;
-  }
-
-  .share-text:focus {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 2px;
-  }
-
-  .modal-actions {
-    display: flex;
-    gap: 0.75rem;
-    justify-content: flex-end;
-  }
-
-  .btn-primary,
-  .btn-secondary {
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 0.375rem;
-    font-weight: 500;
+    color: var(--color-primary);
     cursor: pointer;
     transition: all 0.15s ease;
   }
 
-  .btn-primary {
+  .saved-list :global(.saved-instance:hover) {
     background: var(--color-primary);
-    color: white;
+    color: var(--color-bg);
   }
 
-  .btn-primary:hover {
-    background: var(--color-primary-dark);
-  }
-
-  .btn-primary:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .btn-secondary {
-    background: transparent;
-    color: var(--color-text);
-    border: 1px solid var(--color-border);
-  }
-
-  .btn-secondary:hover {
-    background: var(--color-bg-muted);
-  }
-
-  .modal-status {
-    margin: 0;
-    font-size: 0.875rem;
-    text-align: center;
-  }
-
+  /* Status message states */
   .modal-status.error {
     color: var(--color-error);
   }
@@ -218,166 +148,8 @@ const { id = 'mastodon-modal' } = Astro.props
 </style>
 
 <script>
-  import { createFocusTrap } from 'focus-trap'
-  import type { FocusTrap } from 'focus-trap'
-  import { isMastodonInstance } from './detector'
-  import { buildShareUrl } from './config'
-  import { $currentInstance } from './store'
+  import { registerScript } from '@components/Scripts/loader'
+  import { MastodonModal } from './client'
 
-  interface WindowWithMastodon extends Window {
-    mastodonSaveInstance?: (_instance: string, _remember: boolean) => void
-  }
-
-  const modal = document.querySelector('#mastodon-modal') as HTMLDivElement
-  const backdrop = modal?.querySelector('.modal-backdrop') as HTMLDivElement
-  const closeButton = modal?.querySelector('.modal-close') as HTMLButtonElement
-  const cancelButton = modal?.querySelector('.modal-cancel') as HTMLButtonElement
-  const form = modal?.querySelector('#mastodon-share-form') as HTMLFormElement
-  const textarea = modal?.querySelector('#share-text') as HTMLTextAreaElement
-  const instanceInput = modal?.querySelector('#mastodon-instance') as HTMLInputElement
-  const rememberCheckbox = modal?.querySelector('#remember-instance') as HTMLInputElement
-  const submitButton = form?.querySelector('button[type="submit"]') as HTMLButtonElement
-  const statusElement = modal?.querySelector('.modal-status') as HTMLParagraphElement
-
-  let focusTrap: FocusTrap | null = null
-  let shareText = ''
-
-  // Initialize focus trap
-  if (modal) {
-    focusTrap = createFocusTrap(modal, {
-      escapeDeactivates: true,
-      clickOutsideDeactivates: true,
-      onDeactivate: closeModal,
-    })
-  }
-
-  /** Opens the modal with the given share text */
-  function openModal(text: string) {
-    shareText = text
-    if (textarea) {
-      textarea.value = text
-    }
-
-    // Restore last used instance
-    const lastInstance = $currentInstance.get()
-    if (lastInstance && instanceInput) {
-      instanceInput.value = lastInstance
-    }
-
-    modal?.removeAttribute('hidden')
-    focusTrap?.activate()
-
-    // Emit custom event for analytics
-    window.dispatchEvent(
-      new CustomEvent('mastodon:modal-open', {
-        detail: { text },
-      })
-    )
-  }
-
-  /** Closes the modal and deactivates focus trap */
-  function closeModal() {
-    modal?.setAttribute('hidden', '')
-    focusTrap?.deactivate()
-    resetForm()
-
-    // Emit custom event for analytics
-    window.dispatchEvent(new CustomEvent('mastodon:modal-close'))
-  }
-
-  /** Resets the form to initial state */
-  function resetForm() {
-    if (form) {
-      form.reset()
-    }
-    if (statusElement) {
-      statusElement.textContent = ''
-      statusElement.className = 'modal-status'
-    }
-    if (submitButton) {
-      submitButton.disabled = false
-    }
-  }
-
-  /** Shows a status message to the user */
-  function showStatus(message: string, type: 'error' | 'success' = 'error') {
-    if (statusElement) {
-      statusElement.textContent = message
-      statusElement.className = `modal-status ${type}`
-    }
-  }
-
-  /** Handles form submission and shares to Mastodon */
-  async function handleSubmit(event: Event) {
-    event.preventDefault()
-
-    const instance = instanceInput?.value?.trim()
-    if (!instance) {
-      showStatus('Please enter a Mastodon instance')
-      return
-    }
-
-    submitButton.disabled = true
-    showStatus('Detecting instance...', 'success')
-
-    try {
-      // Verify it's a Mastodon instance
-      const isMastodon = await isMastodonInstance(instance)
-      if (!isMastodon) {
-        showStatus('This does not appear to be a Mastodon instance')
-        submitButton.disabled = false
-        return
-      }
-
-      // Save instance if remember is checked
-      const remember = rememberCheckbox?.checked || false
-      if (remember && (window as WindowWithMastodon).mastodonSaveInstance) {
-        ;(window as WindowWithMastodon).mastodonSaveInstance?.(instance, remember)
-      }
-
-      // Store current instance
-      $currentInstance.set(instance)
-
-      // Build share URL and redirect
-      const shareUrl = buildShareUrl(instance, shareText)
-
-      // Emit custom event for analytics
-      window.dispatchEvent(
-        new CustomEvent('mastodon:share', {
-          detail: { instance, text: shareText, url: shareUrl },
-        })
-      )
-
-      // Open in new tab
-      window.open(shareUrl, '_blank', 'noopener,noreferrer')
-
-      // Close modal after short delay
-      showStatus('Opening Mastodon...', 'success')
-      setTimeout(closeModal, 1000)
-    } catch (error) {
-      console.error('Mastodon share error:', error)
-      showStatus('Failed to verify instance. Please try again.')
-      submitButton.disabled = false
-    }
-  }
-
-  // Event listeners
-  closeButton?.addEventListener('click', closeModal)
-  cancelButton?.addEventListener('click', closeModal)
-  backdrop?.addEventListener('click', closeModal)
-  form?.addEventListener('submit', handleSubmit)
-
-  // Global function to open modal
-  interface WindowWithModal extends Window {
-    openMastodonModal?: (_text: string) => void
-  }
-
-  ;(window as WindowWithModal).openMastodonModal = openModal
-
-  // Listen for ESC key
-  document.addEventListener('keydown', (event: KeyboardEvent) => {
-    if (event.key === 'Escape' && !modal?.hasAttribute('hidden')) {
-      closeModal()
-    }
-  })
+  registerScript(MastodonModal)
 </script>

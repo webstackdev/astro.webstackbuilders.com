@@ -7,6 +7,7 @@
 import { LoadableScript } from '@components/Scripts/loader'
 import type { ShareData } from '@components/Social/common'
 import { platforms, copyToClipboard, nativeShare } from '@components/Social/common'
+import { MastodonModal } from '@components/Social/Mastodon/client'
 import { getSlotElement } from './selectors'
 
 /**
@@ -300,13 +301,9 @@ class HighlighterElement extends HTMLElement {
 
     // Handle Mastodon modal
     if (platformId === 'mastodon') {
-      const mastodonModal = (window as Window & { openMastodonModal?: (_text: string) => void })
-        .openMastodonModal
-      if (typeof mastodonModal === 'function') {
-        mastodonModal(`${data.text} ${data.url}`)
-        this.hideDialog()
-        this.emitShareEvent(platformId, data)
-      }
+      MastodonModal.openModal(`${data.text} ${data.url}`)
+      this.hideDialog()
+      this.emitShareEvent(platformId, data)
       return
     }
 

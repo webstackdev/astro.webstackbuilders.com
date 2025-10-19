@@ -5,8 +5,10 @@ import { describe, expect, test, vi } from 'vitest'
 import { formatPhoneNumber } from '../formatPhoneNumber'
 
 // Mock the logger
-vi.mock('../../logger', () => ({
-  log: vi.fn(),
+vi.mock('@lib/logger', () => ({
+  logger: {
+    warn: vi.fn(),
+  },
 }))
 
 describe(`formatPhoneNumber helper`, () => {

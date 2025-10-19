@@ -1,8 +1,12 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro'
+import NetworkStatus from '../../components/Toasts/NetworkStatus/index.astro'
 ---
 
 <BaseLayout pageTitle="Offline - Webstack Builders" path="offline">
+  <!-- Network status monitoring -->
+  <NetworkStatus />
+
   <main
     class="offline-page min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center px-4"
   >
@@ -239,45 +243,4 @@ import BaseLayout from '../../layouts/BaseLayout.astro'
       </div>
     </div>
   </main>
-
-  <script>
-    // Add some interactivity when back online
-    window.addEventListener('online', () => {
-      // Show a toast or notification that connection is restored
-      const notification = document.createElement('div')
-      notification.innerHTML = `
-        <div class="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300">
-          <div class="flex items-center space-x-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            <span>Connection restored!</span>
-          </div>
-        </div>
-      `
-      document.body.appendChild(notification)
-
-      // Auto-remove notification after 3 seconds
-      setTimeout(() => {
-        notification.remove()
-      }, 3000)
-    })
-
-    // Update connection status
-    function updateConnectionStatus() {
-      const isOnline = navigator.onLine
-      const statusIndicator = document.querySelector('.connection-status')
-      if (statusIndicator) {
-        statusIndicator.textContent = isOnline ? 'Online' : 'Offline'
-        statusIndicator.className = `connection-status ${isOnline ? 'text-green-600' : 'text-red-600'}`
-      }
-    }
-
-    // Listen for connection changes
-    window.addEventListener('online', updateConnectionStatus)
-    window.addEventListener('offline', updateConnectionStatus)
-
-    // Initial status check
-    updateConnectionStatus()
-  </script>
 </BaseLayout>
