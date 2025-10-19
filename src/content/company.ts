@@ -12,6 +12,10 @@ export default {
     name: 'Kevin Brown',
     email: 'kevin@webstackbuilders.com',
   },
+  dataProtectionOfficer: {
+    name: 'Kevin Brown',
+    email: 'kevin@webstackbuilders.com',
+  },
   social: {
     linkedin: 'https://www.linkedin.com/company/webstack-builders',
     github: 'https://github.com/webstackdev',

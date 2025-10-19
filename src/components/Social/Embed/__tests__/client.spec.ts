@@ -2,7 +2,7 @@
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { EmbedManager } from '../client'
-import { AppBootstrap } from '@components/Scripts/bootstrap/client'
+import { AppBootstrap } from '@components/Scripts/state/bootstrap'
 import { $embedCache, updateConsent, clearEmbedCache } from '@components/Scripts/state'
 
 /**

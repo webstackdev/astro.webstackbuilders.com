@@ -3,7 +3,7 @@
  * Now uses centralized state store from Scripts/state
  */
 import { beforeEach, describe, expect, test } from 'vitest'
-import { AppBootstrap } from '@components/Scripts/bootstrap/client'
+import { AppBootstrap } from '@components/Scripts/state/bootstrap'
 import { $cookieModalVisible } from '../state'
 
 describe(`Cookie modal visibility using state store`, () => {

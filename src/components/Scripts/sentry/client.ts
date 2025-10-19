@@ -1,7 +1,6 @@
 import {
   BrowserClient,
   breadcrumbsIntegration,
-  browserTracingIntegration,
   dedupeIntegration,
   defaultStackParser,
   feedbackIntegration,
@@ -10,7 +9,6 @@ import {
   httpClientIntegration,
   makeFetchTransport,
   linkedErrorsIntegration,
-  replayIntegration,
 } from '@sentry/browser'
 import { PUBLIC_SENTRY_DSN } from 'astro:env/client'
 
@@ -26,114 +24,97 @@ import { PUBLIC_SENTRY_DSN } from 'astro:env/client'
  * This must be loaded early (non-lazy) to catch initialization errors.
  */
 
-const isProd = import.meta.env.PROD
-const isDev = import.meta.env.DEV
+export class SentryBootstrap {
+  static init(): void {
+    // Skip initialization if DSN is not configured
+    if (!PUBLIC_SENTRY_DSN) {
+      console.warn('⚠️ Sentry DSN not configured, skipping initialization')
+      return
+    }
 
-// Only initialize Sentry in production with valid DSN
-if (isProd && PUBLIC_SENTRY_DSN) {
-  const client = new BrowserClient({
-    dsn: PUBLIC_SENTRY_DSN,
+    const client = new BrowserClient({
+      dsn: PUBLIC_SENTRY_DSN,
 
-    integrations: [
-      // Core integrations
-      breadcrumbsIntegration({
-        console: true, // Log console messages as breadcrumbs
-        dom: true, // Log DOM events as breadcrumbs
-        fetch: true, // Log fetch requests as breadcrumbs
-        history: true, // Log navigation as breadcrumbs
-        xhr: true, // Log XHR requests as breadcrumbs
-      }),
-      globalHandlersIntegration({
-        onerror: true, // Catch unhandled errors
-        onunhandledrejection: true, // Catch unhandled promise rejections
-      }),
-      linkedErrorsIntegration(), // Link related errors together
-      dedupeIntegration(), // Prevent duplicate error reports
+      integrations: [
+        // Core integrations
+        breadcrumbsIntegration({
+          console: true, // Log console messages as breadcrumbs
+          dom: true, // Log DOM events as breadcrumbs
+          fetch: true, // Log fetch requests as breadcrumbs
+          history: true, // Log navigation as breadcrumbs
+          xhr: true, // Log XHR requests as breadcrumbs
+        }),
+        globalHandlersIntegration({
+          onerror: true, // Catch unhandled errors
+          onunhandledrejection: true, // Catch unhandled promise rejections
+        }),
+        linkedErrorsIntegration(), // Link related errors together
+        dedupeIntegration(), // Prevent duplicate error reports
 
-      // HTTP monitoring
-      httpClientIntegration({
-        failedRequestStatusCodes: [[400, 599]], // Track failed HTTP requests
-      }),
+        // HTTP monitoring
+        httpClientIntegration({
+          failedRequestStatusCodes: [[400, 599]], // Track failed HTTP requests
+        }),
 
-      // Performance monitoring
-      browserTracingIntegration({
-        // Track page loads and navigation timing
-        enableInp: true, // Enable Interaction to Next Paint monitoring
-        enableLongAnimationFrame: true, // Monitor long animation frames
-      }),
+        // User Feedback - allow users to report issues
+        // @TODO: Implement a component for this
+        feedbackIntegration({
+          colorScheme: 'system', // Match user's color scheme
+          showBranding: false, // Hide Sentry branding
+        }),
+      ],
 
-      // Session Replay - visual reproduction of user sessions
-      replayIntegration({
-        maskAllText: false, // Mask sensitive text (set to true if needed)
-        blockAllMedia: false, // Block media elements (set to true if needed)
-        maskAllInputs: true, // Mask form inputs by default
-      }),
+      /** Release name to track regressions between releases */
+      release: import.meta.env['npm_package_name'] + '@' + import.meta.env['npm_package_version'],
 
-      // User Feedback - allow users to report issues
-      feedbackIntegration({
-        colorScheme: 'system', // Match user's color scheme
-        showBranding: false, // Hide Sentry branding
-      }),
-    ],
+      /** Environment name for filtering in Sentry */
+      environment: 'production',
 
-    /** Release name to track regressions between releases */
-    release: import.meta.env['npm_package_name'] + '@' + import.meta.env['npm_package_version'],
+      /** Stack trace parser */
+      stackParser: defaultStackParser,
 
-    /** Environment name for filtering in Sentry */
-    environment: 'production',
+      /** Transport mechanism (uses fetch API) */
+      transport: makeFetchTransport,
 
-    /**
-     * Session Replay sampling rates
-     * - replaysSessionSampleRate: % of normal sessions to record (10%)
-     * - replaysOnErrorSampleRate: % of sessions with errors to record (100%)
-     */
-    replaysSessionSampleRate: 0.1,
-    replaysOnErrorSampleRate: 1.0,
+      /** Attach stack traces to all messages */
+      attachStacktrace: true,
 
-    /**
-     * Performance monitoring sample rate
-     * Set to 1.0 to capture 100% of transactions
-     * Lower in production to reduce quota usage (e.g., 0.1 for 10%)
-     */
-    tracesSampleRate: 1.0,
+      /** Send PII (personally identifiable information) like IP and user agent */
+      sendDefaultPii: true,
 
-    /** Send PII (personally identifiable information) like IP and user agent */
-    sendDefaultPii: true,
+      /**
+       * Max breadcrumbs to keep (default is 100). Breadcrumbs are a trail of events
+       * that occurred just before an error or exception, similar to logs but with
+       * more structured data. They provide critical context for debugging by
+       * automatically capturing user interactions like clicks, key presses, and
+       * network requests, as well as manually recorded events like user authentication
+       * or state changes. This allows developers to see the sequence of actions
+       * leading to a bug without having to reproduce it manually.
+       */
+      maxBreadcrumbs: 100,
 
-    /** Stack trace parser */
-    stackParser: defaultStackParser,
+      /**
+       * Before sending events, you can modify or drop them
+       * Useful for filtering sensitive data
+       */
+      beforeSend(event, _hint) {
+        // Don't send errors in development
+        if (import.meta.env.DEV) {
+          return null
+        }
 
-    /** Transport mechanism (uses fetch API) */
-    transport: makeFetchTransport,
+        // Filter out specific errors if needed
+        // if (event.exception?.values?.[0]?.value?.includes('ResizeObserver')) {
+        //   return null
+        // }
 
-    /** Attach stack traces to all messages */
-    attachStacktrace: true,
+        return event
+      },
+    })
 
-    /** Max breadcrumbs to keep (default is 100) */
-    maxBreadcrumbs: 100,
+    getCurrentScope().setClient(client)
+    client.init()
 
-    /**
-     * Before sending events, you can modify or drop them
-     * Useful for filtering sensitive data
-     */
-    beforeSend(event, _hint) {
-      // Don't send errors in development
-      if (isDev) {
-        return null
-      }
-
-      // Filter out specific errors if needed
-      // if (event.exception?.values?.[0]?.value?.includes('ResizeObserver')) {
-      //   return null
-      // }
-
-      return event
-    },
-  })
-
-  getCurrentScope().setClient(client)
-  client.init()
-} else if (isDev) {
-  // Development: Log that Sentry is disabled
-  console.info('🔧 Sentry disabled in development mode')
+    console.log('✅ Sentry monitoring initialized')
+  }
 }

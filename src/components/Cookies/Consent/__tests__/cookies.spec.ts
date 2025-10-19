@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from 'vitest'
-import { AppBootstrap } from '@components/Scripts/bootstrap/client'
+import { AppBootstrap } from '@components/Scripts/state/bootstrap'
 import {
   getConsentCookie,
   initConsentCookies,
