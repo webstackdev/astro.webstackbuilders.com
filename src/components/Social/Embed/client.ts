@@ -1,5 +1,5 @@
 import { LoadableScript, type TriggerEvent } from '../../Scripts/loader/@types/loader'
-import { cacheEmbed, getCachedEmbed } from '@lib/state'
+import { cacheEmbed, getCachedEmbed } from '@components/Scripts/state'
 
 /**
  * Platform types supported by the Embed component

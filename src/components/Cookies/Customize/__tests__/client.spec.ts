@@ -2,7 +2,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { CookieCustomize } from '../client'
 import { AppBootstrap } from '@components/Scripts/bootstrap/client'
-import { $consent } from '@lib/state'
+import { $consent } from '@components/Scripts/state'
 
 // Mock document.cookie with proper getter/setter behavior
 let cookieStorage: string[] = []

@@ -4,7 +4,7 @@ import {
   addLinkEventListeners,
   addWrapperEventListeners,
 } from '@components/Scripts/elementListeners'
-import { setCookieModalVisibility, initCookieModalVisibility } from './state'
+import { $cookieModalVisible } from './state'
 import { initConsentCookies, allowAllConsentCookies } from './cookies'
 import { showCookieCustomizeModal } from '../Customize/client'
 import {
@@ -53,7 +53,7 @@ export class CookieConsent extends LoadableScript {
   initModal() {
     this.wrapper.style.display = 'block'
     this.allowBtn.focus()
-    initCookieModalVisibility()
+    $cookieModalVisible.set(true)
   }
 
   /**
@@ -61,7 +61,7 @@ export class CookieConsent extends LoadableScript {
    */
   handleDismissModal = () => {
     this.wrapper.style.display = 'none'
-    setCookieModalVisibility(false)
+    $cookieModalVisible.set(false)
   }
 
   /**

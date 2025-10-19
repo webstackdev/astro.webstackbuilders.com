@@ -6,7 +6,7 @@
 import { addButtonEventListeners } from '@components/Scripts/elementListeners'
 import { getNavToggleBtnElement } from '@components/Navigation/selectors'
 import { LoadableScript, type TriggerEvent } from '../Scripts/loader/@types/loader'
-import { $theme, setTheme } from '@lib/state'
+import { $theme, setTheme } from '@components/Scripts/state'
 import {
   getThemePickerToggleButton,
   getThemePickerModalWrapper,

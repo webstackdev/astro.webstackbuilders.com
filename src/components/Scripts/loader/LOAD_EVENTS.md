@@ -87,14 +87,6 @@ class AnalyticsScript extends LoadableScript {
 }
 ```
 
-**Planned Features:**
-
-- Check `consent_*` cookies before script execution
-- Skip execution if consent is denied
-- Execute immediately if consent is granted
-- Listen for consent change events to dynamically load scripts
-- Integration with cookie consent system
-
 **Use Cases:**
 
 - Analytics and tracking scripts (Google Analytics, Plausible, etc.)
@@ -102,5 +94,3 @@ class AnalyticsScript extends LoadableScript {
 - Third-party embeds that collect user data
 - Error monitoring with PII collection (Sentry with Session Replay)
 - Any script that processes personal data under GDPR
-
-**GDPR Compliance:** This event type helps ensure compliance with GDPR Article 6 (lawful basis for processing) and Article 7 (conditions for consent) by preventing data collection scripts from executing without explicit user consent.

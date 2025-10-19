@@ -3,7 +3,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { EmbedManager } from '../client'
 import { AppBootstrap } from '@components/Scripts/bootstrap/client'
-import { $embedCache, updateConsent } from '@lib/state'
+import { $embedCache, updateConsent, clearEmbedCache } from '@components/Scripts/state'
 
 /**
  * Unit tests for Social Embed component
@@ -20,6 +20,9 @@ describe('EmbedManager', () => {
 
     // Grant functional consent for caching
     updateConsent('functional', true)
+
+    // Clear embed cache from previous tests
+    clearEmbedCache()
 
     // Reset DOM
     document.body.innerHTML = ''

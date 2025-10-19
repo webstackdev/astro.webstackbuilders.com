@@ -15,8 +15,10 @@ beforeEach(() => {
 
 // Mock the cookie and localStorage modules
 vi.mock('../state', () => ({
-  setCookieModalVisibility: vi.fn(),
-  initCookieModalVisibility: vi.fn(),
+  $cookieModalVisible: {
+    set: vi.fn(),
+    get: vi.fn(() => false),
+  },
 }))
 
 vi.mock('../cookies', () => ({

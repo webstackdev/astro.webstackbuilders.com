@@ -1,49 +1,48 @@
 /**
  * State tests for cookie consent modal visibility
- * Now uses centralized state store from lib/state
+ * Now uses centralized state store from Scripts/state
  */
 import { beforeEach, describe, expect, test } from 'vitest'
 import { AppBootstrap } from '@components/Scripts/bootstrap/client'
-import {
-  consentModalStateKey,
-  getCookieModalVisibility,
-  setCookieModalVisibility,
-  initCookieModalVisibility,
-} from '../state'
+import { $cookieModalVisible } from '../state'
 
 describe(`Cookie modal visibility using state store`, () => {
   beforeEach(() => {
     // Initialize state management before each test
     AppBootstrap.init()
+    // Reset modal visibility to default
+    $cookieModalVisible.set(false)
   })
 
   test(`returns false from state store by default`, () => {
     // State store initializes with false
-    expect(getCookieModalVisibility()).toBe(false)
+    expect($cookieModalVisible.get()).toBe(false)
   })
 
   test(`returns true from state store when set to true`, () => {
-    setCookieModalVisibility(true)
-    expect(getCookieModalVisibility()).toBe(true)
+    $cookieModalVisible.set(true)
+    expect($cookieModalVisible.get()).toBe(true)
   })
 
   test(`returns false from state store when set to false`, () => {
-    setCookieModalVisibility(true)
-    setCookieModalVisibility(false)
-    expect(getCookieModalVisibility()).toBe(false)
+    $cookieModalVisible.set(true)
+    $cookieModalVisible.set(false)
+    expect($cookieModalVisible.get()).toBe(false)
   })
 
   test(`sets state store value`, () => {
-    setCookieModalVisibility(true)
-    expect(getCookieModalVisibility()).toBe(true)
+    $cookieModalVisible.set(true)
+    expect($cookieModalVisible.get()).toBe(true)
   })
 
   test(`initializes state store to true`, () => {
-    initCookieModalVisibility()
-    expect(getCookieModalVisibility()).toBe(true)
+    $cookieModalVisible.set(true)
+    expect($cookieModalVisible.get()).toBe(true)
   })
 
-  test(`state key constant is preserved for backwards compatibility`, () => {
-    expect(consentModalStateKey).toBe(`COOKIE_MODAL_VISIBLE`)
+  test(`state is managed by centralized store`, () => {
+    // Verify we're using the Nanostore atom
+    expect($cookieModalVisible.set).toBeDefined()
+    expect($cookieModalVisible.get).toBeDefined()
   })
 })

@@ -27,19 +27,6 @@ const { pageTitle, path, description, image } = Astro.props
   <script is:inline>
     document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') ?? 'default')
   </script>
-
-  <script>
-    import { registerScript } from '@components/Scripts/loader'
-    import { AppBootstrap } from '@components/Scripts/bootstrap/client'
-    import { HeadThemeSetup } from './client'
-
-    // Register AppBootstrap FIRST - initializes state management
-    // MUST run before any scripts that depend on state
-    registerScript(AppBootstrap)
-
-    // Register HeadThemeSetup to initialize meta colors on page load
-    registerScript(HeadThemeSetup)
-  </script>
   {/* Client-side router for Astro pages (enables partial page reloads) */}
   {/* Must be placed at the end of the <head> to avoid blocking page rendering */}
   <ClientRouter />

@@ -4,7 +4,7 @@
  * This MUST run before any other scripts that depend on state
  */
 import { LoadableScript, type TriggerEvent } from '../loader/@types/loader'
-import { initConsentFromCookies, initStateSideEffects } from '@lib/state'
+import { initConsentFromCookies, initStateSideEffects } from '@components/Scripts/state'
 
 export class AppBootstrap extends LoadableScript {
   static override scriptName = 'AppBootstrap'

@@ -8,7 +8,7 @@
 import { beforeEach, describe, expect, it, vi, afterEach } from 'vitest'
 import { ThemePicker } from '../client'
 import { AppBootstrap } from '@components/Scripts/bootstrap/client'
-import { $theme } from '@lib/state'
+import { $theme } from '@components/Scripts/state'
 import { mockMetaColors } from '../__fixtures__/mockData'
 import {
   setupThemePickerDOM,

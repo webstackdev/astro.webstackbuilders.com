@@ -14,10 +14,10 @@ import { LoadableScript } from './@types/loader'
 import type { UserInteractionEvent, TriggerEvent, ConsentMetadata } from './@types/loader'
 import {
   $hasAnalyticsConsent,
-  $hasFunctionalConsent,
   $hasAdvertisingConsent,
-} from '@lib/state'
-import type { ConsentCategory } from '@lib/state'
+  $hasFunctionalConsent,
+} from '@components/Scripts/state'
+import type { ConsentCategory } from '@components/Scripts/state'
 
 export const userInteractionEvents: UserInteractionEvent[] = [
   'keydown',

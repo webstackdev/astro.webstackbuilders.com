@@ -16,7 +16,7 @@ import {
   $currentMastodonInstance,
   $mastodonInstances,
   saveMastodonInstance,
-} from '@lib/state'
+} from '@components/Scripts/state'
 import {
   getModalElement,
   getBackdropElement,
