@@ -1,4 +1,5 @@
 import { LoadableScript, type TriggerEvent } from '../../Scripts/loader/@types/loader'
+import { cacheEmbed, getCachedEmbed } from '@lib/state'
 
 /**
  * Platform types supported by the Embed component
@@ -31,15 +32,6 @@ interface OEmbedResponse {
   thumbnail_height?: number
   version?: string
   type?: string
-}
-
-/**
- * Cache entry structure for localStorage
- */
-interface CacheEntry {
-  data: OEmbedResponse
-  timestamp: number
-  ttl: number
 }
 
 /**
@@ -428,38 +420,13 @@ class EmbedInstance {
   }
 
   private getCachedData(): OEmbedResponse | null {
-    try {
-      const cached = localStorage.getItem(this.getCacheKey())
-      if (!cached) return null
-
-      const entry: CacheEntry = JSON.parse(cached)
-      const now = Date.now()
-
-      // Check if cache is still valid
-      if (now - entry.timestamp > entry.ttl) {
-        localStorage.removeItem(this.getCacheKey())
-        return null
-      }
-
-      return entry.data
-    } catch (error) {
-      console.error('Error reading cache:', error)
-      return null
-    }
+    const cached = getCachedEmbed(this.getCacheKey())
+    return cached as OEmbedResponse | null
   }
 
   private cacheData(data: OEmbedResponse): void {
-    try {
-      const entry: CacheEntry = {
-        data,
-        timestamp: Date.now(),
-        ttl: data.cache_age ? data.cache_age * 1000 : EmbedInstance.DEFAULT_TTL,
-      }
-
-      localStorage.setItem(this.getCacheKey(), JSON.stringify(entry))
-    } catch (error) {
-      console.error('Error writing cache:', error)
-    }
+    const ttl = data.cache_age ? data.cache_age * 1000 : EmbedInstance.DEFAULT_TTL
+    cacheEmbed(this.getCacheKey(), data, ttl)
   }
 
   pause(): void {

@@ -2,6 +2,8 @@
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { EmbedManager } from '../client'
+import { AppBootstrap } from '@components/Scripts/bootstrap/client'
+import { $embedCache, updateConsent } from '@lib/state'
 
 /**
  * Unit tests for Social Embed component
@@ -13,6 +15,12 @@ describe('EmbedManager', () => {
   let mockIntersectionObserver: any
 
   beforeEach(() => {
+    // Initialize state management
+    AppBootstrap.init()
+
+    // Grant functional consent for caching
+    updateConsent('functional', true)
+
     // Reset DOM
     document.body.innerHTML = ''
 
@@ -320,7 +328,7 @@ describe('EmbedManager', () => {
   })
 
   describe('Caching', () => {
-    it('should cache oEmbed responses in localStorage', async () => {
+    it('should cache oEmbed responses in state store', async () => {
       const embedElement = document.createElement('div')
       embedElement.setAttribute('data-embed', '')
       embedElement.setAttribute('data-embed-url', 'https://twitter.com/user/status/123')
@@ -341,27 +349,28 @@ describe('EmbedManager', () => {
       }
       await new Promise(resolve => setTimeout(resolve, 0))
 
-      // Check localStorage for cached data
-      const cacheKey = Object.keys(localStorage).find(key => key.startsWith('embed_cache_x_'))
+      // Check state store for cached data
+      const cache = $embedCache.get()
+      const cacheKey = Object.keys(cache).find(key => key.startsWith('embed_cache_x_'))
       expect(cacheKey).toBeTruthy()
 
       if (cacheKey) {
-        const cached = JSON.parse(localStorage.getItem(cacheKey)!)
-        expect(cached.data).toEqual(mockOEmbedData)
-        expect(cached.timestamp).toBeDefined()
-        expect(cached.ttl).toBeDefined()
+        const cached = cache[cacheKey]
+        expect(cached).toBeDefined()
+        expect(cached?.data).toEqual(mockOEmbedData)
+        expect(cached?.timestamp).toBeDefined()
+        expect(cached?.ttl).toBeDefined()
       }
     })
 
     it('should use cached data when available', async () => {
-      // Pre-populate cache
+      // Pre-populate cache in state store
       const cacheKey = 'embed_cache_x_aHR0cHM6Ly90d2l0dGVyLmNvbS91c2VyL3N0YXR1cy8xMjM='
-      const cachedData = {
+      $embedCache.setKey(cacheKey, {
         data: { html: '<blockquote>Cached Tweet</blockquote>' },
         timestamp: Date.now(),
         ttl: 24 * 60 * 60 * 1000, // 24 hours
-      }
-      localStorage.setItem(cacheKey, JSON.stringify(cachedData))
+      })
 
       const embedElement = document.createElement('div')
       embedElement.setAttribute('data-embed', '')
@@ -381,14 +390,13 @@ describe('EmbedManager', () => {
     })
 
     it('should invalidate expired cache entries', async () => {
-      // Pre-populate cache with expired data
+      // Pre-populate cache with expired data in state store
       const cacheKey = 'embed_cache_x_aHR0cHM6Ly90d2l0dGVyLmNvbS91c2VyL3N0YXR1cy8xMjM='
-      const expiredData = {
+      $embedCache.setKey(cacheKey, {
         data: { html: '<blockquote>Old Tweet</blockquote>' },
         timestamp: Date.now() - 25 * 60 * 60 * 1000, // 25 hours ago
         ttl: 24 * 60 * 60 * 1000, // 24 hour TTL
-      }
-      localStorage.setItem(cacheKey, JSON.stringify(expiredData))
+      })
 
       const embedElement = document.createElement('div')
       embedElement.setAttribute('data-embed', '')
@@ -438,10 +446,11 @@ describe('EmbedManager', () => {
       }
       await new Promise(resolve => setTimeout(resolve, 0))
 
-      const cacheKey = Object.keys(localStorage).find(key => key.startsWith('embed_cache_x_'))
+      const cache = $embedCache.get()
+      const cacheKey = Object.keys(cache).find(key => key.startsWith('embed_cache_x_'))
       if (cacheKey) {
-        const cached = JSON.parse(localStorage.getItem(cacheKey)!)
-        expect(cached.ttl).toBe(customCacheAge * 1000) // Converted to ms
+        const cached = cache[cacheKey]
+        expect(cached?.ttl).toBe(customCacheAge * 1000) // Converted to ms
       }
     })
   })

@@ -5,14 +5,14 @@
 ---
 
 <script>
-  {
-    /**
-     * Initialize error handlers
-     * - Production: Sentry handles all errors with replay, breadcrumbs, and remote tracking
-     * - Development: Custom handlers log errors to console for debugging
-     */
-  }
+  import { registerScript } from '@components/Scripts/loader'
+  import { AppBootstrap } from '@components/Scripts/bootstrap/client'
+
+  {/* Initialize error handlers */}
+  {/* Production: Sentry handles errors with replay, breadcrumbs, and remote tracking */}
+  {/* Development: Custom handlers log errors to console for debugging */}
   const isProd = import.meta.env.PROD
+
   if (isProd) {
     await import('./sentry/client')
   } else {
@@ -20,4 +20,8 @@
     const { addErrorEventListeners } = await import('./errors/errorListeners')
     addErrorEventListeners()
   }
+
+  // Initialize AppBootstrap FIRST - initializes state management
+  // MUST run before any scripts that depend on state
+  registerScript(AppBootstrap)
 </script>
