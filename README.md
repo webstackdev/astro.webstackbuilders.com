@@ -4,6 +4,31 @@
 
 @TODO: See here for utility components like shortcodes: <https://docs.astro.build/en/reference/api-reference/#astroslotsrender>
 
+## Coding Standards
+
+### Component Architecture
+
+**Script Organization:**
+
+- Layouts (`src/layouts`) and pages (`src/pages`) must not contain `<script>` tags
+- Components must use `client.ts` for client-side code and `server.ts` for build-time code
+- Helper files in component folders must only be imported via `server.ts` or `client.ts`
+- The `src/lib` directory is exclusively for server-side code
+
+**Client-Side Execution:**
+
+- All client scripts must use the LoadableScript pattern and register with the loader system
+- No direct event listeners or immediate script execution in component templates
+- Component `<script>` tags should only import `client.ts` and call `registerScript()`
+
+**Build-Time Code:**
+
+- `server.ts` files contain functions used during the build process
+- Imports from `src/lib/helpers` are allowed in frontmatter
+- Node modules can be imported for build-time operations
+
+**Exception:** The inline theme script in `src/components/Head/index.astro` intentionally violates these rules to prevent flash of unstyled content (FOUS).
+
 ## MDX Components
 
 The project includes custom components that can be used in MDX files for enhanced content:

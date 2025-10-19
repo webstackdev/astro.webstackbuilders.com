@@ -7,17 +7,6 @@
 - Z.AI: GLM 4.6
 - Google: Gemini 2.5 Flash Preview 09-2025
 
-## Invariants
-
-- Astro templates in src/layouts and src/pages should not include client script. This means no HTML script tags in the template.
-- Astro templates in src/components should only import a client.ts file in the HTML script tag if they have client script, and no other file name.
-- Script files named server.ts in src/components are for code used in the build process and are imported in the frontmatter of a template only.
-- Components in src/components can import code for the build process that are imported in the frontmatter of a template from src/lib/helpers, in addition to using a script.ts file in their directory. No other local files in the project should be directly included. Importing packages that are installed in node_modules for the build process are okay.
-- All other filenames in component folders, except for tests and fixtures, should only be included in files named either server.ts or client.ts
-- All client script should be executed by the loader system in the Scripts component, not directly in other component files by adding it to DOM listeners or executed immediately.
-- There should be no client script besides an import for client.ts file and the loader logic in component templates in the HTML template files.
-- The src/lib directory is only for server side code used in the build process or other server side responsibilities like config. There should be no client side code importing from this directory.
-
 ## Webmention Component Next Steps:
 
 Get API token from webmention.io
