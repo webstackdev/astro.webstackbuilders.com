@@ -24,7 +24,7 @@ Test with sample webmentions
 - Double opt-in flow
 - Right to erasure handling
 - **Component needed**: `<GDPRConsent />` checkbox group
-- Downloads, Cookie Consent
+- Downloads, Cookie Consent, newsletter
 
 ### Phase 4: Generated Content
 

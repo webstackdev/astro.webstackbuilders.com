@@ -5,7 +5,7 @@
 import { beforeAll, describe, expect, test, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import { getNavToggleBtnElement } from '../selectors'
-import { Navigation } from '../navigation'
+import { Navigation } from '../client'
 import TestNavigationComponent from './TestNavigation.astro'
 
 // Mock focus-trap to work in jsdom environment

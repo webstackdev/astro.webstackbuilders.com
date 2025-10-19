@@ -10,7 +10,7 @@
  */
 
 import { LoadableScript } from './@types/loader'
-import type { UserInteractionEvent, TriggerEvent } from './@types/loader'
+import type { UserInteractionEvent, TriggerEvent, ConsentMetadata } from './@types/loader'
 
 export const userInteractionEvents: UserInteractionEvent[] = [
   'keydown',
@@ -32,7 +32,7 @@ export const autoLoadDuration = 5000
 export const eventList = userInteractionEvents
 
 // Re-export types and the LoadableScript class for convenience
-export type { UserInteractionEvent, TriggerEvent }
+export type { UserInteractionEvent, TriggerEvent, ConsentMetadata }
 export { LoadableScript }
 
 /**
@@ -97,6 +97,11 @@ class Loader {
     if (eventType === 'visible') {
       this.initializeVisibleEvent(script)
     }
+
+    // Special handling for consent-gated scripts
+    if (eventType === 'consent-gated') {
+      this.initializeConsentGatedExecution(script)
+    }
   }
 
   /**
@@ -115,6 +120,83 @@ class Loader {
       const listener = () => this.executeEvent(eventType)
       document.addEventListener(eventType, listener, { once: true })
     })
+  }
+
+  /**
+   * Remove user interaction event listeners
+   * @param skipEvent - Optional event type to skip removal
+   */
+  private removeUserInteractionListeners(skipEvent?: UserInteractionEvent): void {
+    userInteractionEvents
+      .filter(_eventName => _eventName !== skipEvent)
+      .forEach(_eventName => {
+        // Note: We can't remove the exact listener without a reference, but since
+        // we use { once: true }, they'll be automatically removed after firing
+      }) // Clear timeout if it exists
+    if (this.timeoutID !== null) {
+      clearTimeout(this.timeoutID)
+      this.timeoutID = null
+    }
+  }
+
+  /**
+   * Execute all scripts registered for a specific event
+   * @param eventType - The event type to execute
+   */
+  private executeEvent(eventType: TriggerEvent): void {
+    if (this.executedEvents.has(eventType)) {
+      return // Already executed
+    }
+
+    this.executedEvents.add(eventType)
+
+    const queue = this.eventQueues.get(eventType)
+    if (!queue || queue.length === 0) {
+      return
+    }
+
+    // Execute all scripts in the queue
+    queue.forEach(script => {
+      this.executeScript(script)
+    })
+
+    // Clear the queue
+    this.eventQueues.delete(eventType)
+  }
+
+  /**
+   * Execute a script with error handling and logging
+   * @param script - The script to execute
+   */
+  private executeScript(script: typeof LoadableScript): void {
+    try {
+      script.init()
+      // Track executed scripts for pause/resume functionality
+      this.executedScripts.add(script)
+      console.log(`Script initialized: ${script.scriptName}`)
+    } catch (error) {
+      console.error(`Error initializing script ${script.scriptName}:`, error)
+      // TODO: Add Sentry error reporting here
+    }
+  }
+
+  /**
+   * Reset the singleton instance (useful for testing)
+   */
+  public static reset(): void {
+    if (Loader.instance) {
+      if (Loader.instance.timeoutID !== null) {
+        clearTimeout(Loader.instance.timeoutID)
+      }
+      // Disconnect intersection observer
+      if (Loader.instance.intersectionObserver) {
+        Loader.instance.intersectionObserver.disconnect()
+      }
+      // Clear executed scripts tracking
+      Loader.instance.executedScripts.clear()
+      Loader.instance.observedElements.clear()
+      Loader.instance = null
+    }
   }
 
   /**
@@ -139,23 +221,6 @@ class Loader {
     userInteractionEvents.forEach(eventName => {
       document.addEventListener(eventName, userInteractionListener, listenerOptions)
     })
-  }
-
-  /**
-   * Remove user interaction event listeners
-   * @param skipEvent - Optional event type to skip removal
-   */
-  private removeUserInteractionListeners(skipEvent?: UserInteractionEvent): void {
-    userInteractionEvents
-      .filter(_eventName => _eventName !== skipEvent)
-      .forEach(_eventName => {
-        // Note: We can't remove the exact listener without a reference, but since
-        // we use { once: true }, they'll be automatically removed after firing
-      }) // Clear timeout if it exists
-    if (this.timeoutID !== null) {
-      clearTimeout(this.timeoutID)
-      this.timeoutID = null
-    }
   }
 
   /**
@@ -254,63 +319,33 @@ class Loader {
   }
 
   /**
-   * Execute all scripts registered for a specific event
-   * @param eventType - The event type to execute
+   * Initialize consent-gated execution for a specific script
+   * @param script - The script to initialize consent-gated execution for
+   *
+   * @TODO: Implement actual consent checking logic
+   * - Check script.meta.consentCategory against cookie consent state
+   * - Execute script immediately if consent is granted
+   * - Skip execution if consent is denied or not yet determined
+   * - Consider listening for consent change events to dynamically load scripts
+   * - Integration with src/components/Cookies/Consent/cookies utilities
    */
-  private executeEvent(eventType: TriggerEvent): void {
-    if (this.executedEvents.has(eventType)) {
-      return // Already executed
+  private initializeConsentGatedExecution(script: typeof LoadableScript): void {
+    // Temporary implementation: treat as astro:page-load event
+    // This will be replaced with actual consent checking
+    const consentCategory = script.meta?.consentCategory
+
+    if (!consentCategory) {
+      console.warn(
+        `Script ${script.scriptName} is consent-gated but missing meta.consentCategory. Defaulting to astro:page-load.`
+      )
     }
 
-    this.executedEvents.add(eventType)
-
-    const queue = this.eventQueues.get(eventType)
-    if (!queue || queue.length === 0) {
-      return
+    // For now, register as astro:page-load
+    // This will be replaced with consent checking logic
+    if (!this.eventQueues.has('astro:page-load')) {
+      this.eventQueues.set('astro:page-load', [])
     }
-
-    // Execute all scripts in the queue
-    queue.forEach(script => {
-      this.executeScript(script)
-    })
-
-    // Clear the queue
-    this.eventQueues.delete(eventType)
-  }
-
-  /**
-   * Execute a script with error handling and logging
-   * @param script - The script to execute
-   */
-  private executeScript(script: typeof LoadableScript): void {
-    try {
-      script.init()
-      // Track executed scripts for pause/resume functionality
-      this.executedScripts.add(script)
-      console.log(`Script initialized: ${script.scriptName}`)
-    } catch (error) {
-      console.error(`Error initializing script ${script.scriptName}:`, error)
-      // TODO: Add Sentry error reporting here
-    }
-  }
-
-  /**
-   * Reset the singleton instance (useful for testing)
-   */
-  public static reset(): void {
-    if (Loader.instance) {
-      if (Loader.instance.timeoutID !== null) {
-        clearTimeout(Loader.instance.timeoutID)
-      }
-      // Disconnect intersection observer
-      if (Loader.instance.intersectionObserver) {
-        Loader.instance.intersectionObserver.disconnect()
-      }
-      // Clear executed scripts tracking
-      Loader.instance.executedScripts.clear()
-      Loader.instance.observedElements.clear()
-      Loader.instance = null
-    }
+    this.eventQueues.get('astro:page-load')!.push(script)
   }
 }
 

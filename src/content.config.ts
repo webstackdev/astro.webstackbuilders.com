@@ -247,7 +247,7 @@ const testimonialCollection = defineCollection({
  *
  * - The `components/themePicker/themes.njk` template that generates the theme card modal and items (`id` and `name` properties only)
  * - The `components/head/meta.njk` to set the <meta name="theme-color" content="CSS_COLOR" /> tag used for outside-the-page UI elements by the browser (`id` and `colors.backgroundOffset` properties only)
- * - The `components/themePicker/initial.njk` to set the window.metaColors global variable that"s used to swap out the previous <meta> element when the theme is changed (`id` and `colors.backgroundOffset` properties only)
+ * - The `components/Head/client.ts` to set the window.metaColors global variable that iss used to swap out the previous <meta> element when the theme is changed (`id` and `colors.backgroundOffset` properties only)
  */
 
 /** @NOTE: These need to be kept in sync with `src/styles/themes.css` and `src/lib/themes.ts` */

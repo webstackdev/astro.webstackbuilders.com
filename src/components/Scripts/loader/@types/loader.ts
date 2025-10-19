@@ -16,11 +16,20 @@ export type UserInteractionEvent =
 export type TriggerEvent =
   | 'delayed'
   | 'visible'
+  | 'consent-gated'
   | 'astro:before-preparation'
   | 'astro:after-preparation'
   | 'astro:before-swap'
   | 'astro:after-swap'
   | 'astro:page-load'
+
+/** Metadata for consent-gated scripts */
+export type ConsentMetadata = {
+  /** The consent category required for this script to execute */
+  consentCategory?: 'necessary' | 'analytics' | 'advertising' | 'functional'
+  /** Additional metadata for future extensibility */
+  [key: string]: unknown
+}
 
 /** Abstract class for scripts that can be loaded by the Loader */
 export abstract class LoadableScript {
@@ -30,6 +39,8 @@ export abstract class LoadableScript {
   public static eventType: TriggerEvent
   /** Target element selector for 'visible' event type (optional) */
   public static targetSelector?: string
+  /** Metadata for conditional script loading (e.g., consent requirements) */
+  public static meta: ConsentMetadata = {}
 
   /** Initialize the script */
   public static init(): void {
