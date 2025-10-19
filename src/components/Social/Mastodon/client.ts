@@ -10,9 +10,13 @@
 
 import { createFocusTrap, type FocusTrap } from 'focus-trap'
 import { LoadableScript, type TriggerEvent } from '@components/Scripts/loader/@types/loader'
-import { isMastodonInstance, normalizeURL } from './detector'
+import { isMastodonInstance, normalizeURL, getUrlDomain } from './detector'
 import { buildShareUrl } from './config'
-import { $currentInstance, $savedInstances, saveInstance } from './store'
+import {
+  $currentMastodonInstance,
+  $mastodonInstances,
+  saveMastodonInstance,
+} from '@lib/state'
 import {
   getModalElement,
   getBackdropElement,
@@ -127,7 +131,7 @@ export class MastodonModal extends LoadableScript {
       window.addEventListener('mastodon:open-modal', this.handleOpenModalEvent)
 
       // Subscribe to saved instances changes
-      this.unsubscribeSavedInstances = $savedInstances.subscribe((instances) => {
+      this.unsubscribeSavedInstances = $mastodonInstances.subscribe((instances) => {
         this.updateSavedInstancesUI(instances)
       })
     } catch (error) {
@@ -204,7 +208,7 @@ export class MastodonModal extends LoadableScript {
     }
 
     // Restore last used instance
-    const lastInstance = $currentInstance.get()
+    const lastInstance = $currentMastodonInstance.get()
     if (lastInstance && this.instanceInput) {
       this.instanceInput.value = lastInstance
     }
@@ -289,11 +293,12 @@ export class MastodonModal extends LoadableScript {
       // Save instance if remember is checked
       const remember = this.rememberCheckbox?.checked || false
       if (remember) {
-        saveInstance(normalizeURL(instance))
+        const domain = getUrlDomain(normalizeURL(instance))
+        saveMastodonInstance(domain)
       }
 
       // Store current instance
-      $currentInstance.set(instance)
+      $currentMastodonInstance.set(instance)
 
       // Build share URL and redirect
       const shareUrl = buildShareUrl(instance, this.shareText)
