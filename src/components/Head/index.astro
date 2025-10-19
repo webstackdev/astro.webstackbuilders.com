@@ -25,7 +25,10 @@ const { pageTitle, path, description, image } = Astro.props
   {/* Set theme name on <html> element from storage early to prevent flash of  */}
   {/* unstyled content. IMPORTANT: This violates invariant rules and is intentional. */}
   <script is:inline>
-    document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') ?? 'default')
+    const storedTheme = localStorage.getItem('theme')
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const theme = storedTheme ?? (prefersDark ? 'dark' : 'default')
+    document.documentElement.setAttribute('data-theme', theme)
   </script>
 
   <script>
