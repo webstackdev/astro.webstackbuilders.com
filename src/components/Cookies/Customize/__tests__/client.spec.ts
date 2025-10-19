@@ -1,11 +1,32 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { CookieCustomize } from '../client'
+import { AppBootstrap } from '@components/Scripts/bootstrap/client'
+import { $consent } from '@lib/state'
 
-// Mock document.cookie
+// Mock document.cookie with proper getter/setter behavior
+let cookieStorage: string[] = []
+
 Object.defineProperty(document, 'cookie', {
-  writable: true,
-  value: '',
+  get() {
+    return cookieStorage.join('; ')
+  },
+  set(value: string) {
+    // Parse the cookie string (name=value; options...)
+    const parts = value.split(';')
+    const nameValue = parts[0]
+    if (!nameValue) return
+
+    const [name] = nameValue.split('=')
+    if (!name) return
+
+    // Remove existing cookie with same name
+    cookieStorage = cookieStorage.filter(cookie => !cookie.startsWith(`${name}=`))
+
+    // Add new cookie
+    cookieStorage.push(nameValue)
+  },
+  configurable: true,
 })
 
 // Mock DOM elements
@@ -32,11 +53,14 @@ const mockDiv = (id: string): HTMLDivElement => {
 
 describe('CookieCustomize', () => {
   beforeEach(() => {
+    // Initialize state management
+    AppBootstrap.init()
+
     // Reset mocks
     vi.clearAllMocks()
 
-    // Reset document.cookie
-    document.cookie = ''
+    // Reset cookies
+    cookieStorage = []
 
     // Clear document body
     document.body.innerHTML = ''
@@ -145,8 +169,9 @@ describe('CookieCustomize', () => {
 
         instance.savePreferences()
 
-        // Check that cookie was set
-        expect(document.cookie).toContain('webstack-cookie-consent=')
+        // Check that consent was updated in state store (which updates cookies automatically)
+        expect(document.cookie).toContain('consent_analytics=true')
+        expect(document.cookie).toContain('consent_advertising=true')
 
         // Cleanup
         document.body.removeChild(analyticsCheckbox)
@@ -188,28 +213,35 @@ describe('CookieCustomize', () => {
         document.body.removeChild(advertisingCheckbox)
       })
 
-      it('should load preferences from cookie if available', () => {
-        const testPreferences = {
+      it('should load preferences from state store', () => {
+        // Set consent in state store
+        $consent.set({
           necessary: true,
           analytics: true,
           functional: false,
           advertising: true,
-          timestamp: new Date().toISOString(),
-        }
-
-        // Set up cookie
-        document.cookie = `webstack-cookie-consent=${JSON.stringify(testPreferences)}`
+        })
 
         const result = instance.loadPreferences()
 
-        expect(result).toEqual(testPreferences)
+        expect(result).toMatchObject({
+          necessary: true,
+          analytics: true,
+          functional: false,
+          advertising: true,
+        })
       })
 
-      it('should return null if no preferences cookie exists', () => {
-        document.cookie = ''
+      it('should return preferences object even if no custom preferences exist', () => {
+        // State store always has default values
         const result = instance.loadPreferences()
 
-        expect(result).toBeNull()
+        expect(result).toMatchObject({
+          necessary: true,
+          analytics: expect.any(Boolean),
+          functional: expect.any(Boolean),
+          advertising: expect.any(Boolean),
+        })
       })
     })
 

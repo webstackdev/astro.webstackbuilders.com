@@ -1,12 +1,14 @@
 /**
  * Cookie Preferences Management using LoadableScript pattern
  * Handles cookie preference functionality and modal interactions
+ * Now uses centralized state management from lib/state
  */
 
 import { LoadableScript, type TriggerEvent } from '../../Scripts/loader/@types/loader'
 import { isDivElement, isButtonElement } from '@components/Scripts/assertions/elements'
 import { ClientScriptError } from '@components/Scripts/errors/ClientScriptError'
 import { addButtonEventListeners } from '@components/Scripts/elementListeners'
+import { updateConsent, $consent } from '@lib/state'
 
 export interface CookiePreferences {
   necessary: boolean
@@ -23,8 +25,6 @@ export class CookieCustomize extends LoadableScript {
   static override scriptName = 'CookieCustomize'
   static override eventType: TriggerEvent = 'astro:page-load'
 
-  private cookiePrefix = 'webstack-'
-  private consentCookie = 'cookie-consent'
   private modal: HTMLDivElement
   private closeBtn: HTMLButtonElement
   private allowAllBtn: HTMLButtonElement | null
@@ -86,20 +86,21 @@ export class CookieCustomize extends LoadableScript {
   }
 
   loadPreferences(): CookiePreferences | null {
-    const consent = this.getCookie(this.consentCookie)
-    if (consent) {
-      try {
-        const preferences = JSON.parse(consent) as CookiePreferences
+    // Load from centralized state store
+    const consent = $consent.get()
 
-        // Update checkboxes to match saved preferences
-        this.updateCheckboxes(preferences)
-
-        return preferences
-      } catch (e) {
-        console.warn('Could not parse cookie preferences:', e)
-      }
+    const preferences: CookiePreferences = {
+      necessary: consent.necessary,
+      analytics: consent.analytics,
+      functional: consent.functional,
+      advertising: consent.advertising,
+      timestamp: new Date().toISOString(),
     }
-    return null
+
+    // Update checkboxes to match current state
+    this.updateCheckboxes(preferences)
+
+    return preferences
   }
 
   private updateCheckboxes(preferences: CookiePreferences): void {
@@ -115,7 +116,11 @@ export class CookieCustomize extends LoadableScript {
   savePreferences(): void {
     const preferences = this.getCurrentPreferences()
 
-    this.setCookie(this.consentCookie, JSON.stringify(preferences), 365)
+    // Update state store - automatically updates cookies
+    updateConsent('analytics', preferences.analytics)
+    updateConsent('functional', preferences.functional)
+    updateConsent('advertising', preferences.advertising)
+
     this.applyPreferences(preferences)
 
     // Show confirmation
@@ -134,7 +139,11 @@ export class CookieCustomize extends LoadableScript {
     // Update checkboxes
     this.updateCheckboxes(preferences)
 
-    this.setCookie(this.consentCookie, JSON.stringify(preferences), 365)
+    // Update state store - automatically updates cookies
+    updateConsent('analytics', true)
+    updateConsent('functional', true)
+    updateConsent('advertising', true)
+
     this.applyPreferences(preferences)
 
     // Show confirmation
@@ -213,25 +222,6 @@ export class CookieCustomize extends LoadableScript {
   private disableAdvertising(): void {
     // Implement advertising cookie disabling logic
     // Example: Clear advertising cookies
-  }
-
-  private setCookie(name: string, value: string, days: number): void {
-    const expires = new Date()
-    expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000)
-    document.cookie = `${this.cookiePrefix}${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Strict`
-  }
-
-  private getCookie(name: string): string | null {
-    const nameEQ = `${this.cookiePrefix}${name}=`
-    const ca = document.cookie.split(';')
-    for (let i = 0; i < ca.length; i++) {
-      let c = ca[i]
-      if (c) {
-        while (c.charAt(0) === ' ') c = c.substring(1, c.length)
-        if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length)
-      }
-    }
-    return null
   }
 
   showNotification(message: string): void {

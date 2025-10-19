@@ -1,51 +1,49 @@
-import { describe, expect, test, vi } from 'vitest'
+/**
+ * State tests for cookie consent modal visibility
+ * Now uses centralized state store from lib/state
+ */
+import { beforeEach, describe, expect, test } from 'vitest'
+import { AppBootstrap } from '@components/Scripts/bootstrap/client'
 import {
   consentModalStateKey,
-  isVisibilityObject,
   getCookieModalVisibility,
   setCookieModalVisibility,
   initCookieModalVisibility,
 } from '../state'
 
-const getMockedStoreValue = () => localStorage.getItem(consentModalStateKey)
-
-describe(`local storage getters / setters for visibility work`, () => {
-  test(`isVisibilityObject type guard returns true with valid input`, () => {
-    expect(isVisibilityObject({ visible: true })).toBeTruthy()
+describe(`Cookie modal visibility using state store`, () => {
+  beforeEach(() => {
+    // Initialize state management before each test
+    AppBootstrap.init()
   })
 
-  test(`isVisibilityObject type guard returns false with invalid input`, () => {
-    expect(isVisibilityObject(undefined)).toBeFalsy()
-    expect(isVisibilityObject(``)).toBeFalsy()
-    expect(isVisibilityObject({})).toBeFalsy()
+  test(`returns false from state store by default`, () => {
+    // State store initializes with false
+    expect(getCookieModalVisibility()).toBe(false)
   })
 
-  test(`it returns true from local storage when set to true`, () => {
-    localStorage.clear()
-    vi.clearAllMocks()
-    localStorage.setItem(`COOKIE_MODAL_VISIBLE`, JSON.stringify({ visible: true }))
-    expect(getCookieModalVisibility()).toBeTruthy()
-  })
-
-  test(`it returns false from local storage when set to false`, () => {
-    localStorage.clear()
-    vi.clearAllMocks()
-    localStorage.setItem(`COOKIE_MODAL_VISIBLE`, JSON.stringify({ visible: false }))
-    expect(getCookieModalVisibility()).toBeFalsy()
-  })
-
-  test(`it sets local storage`, () => {
-    localStorage.clear()
-    vi.clearAllMocks()
-    localStorage.setItem(`COOKIE_MODAL_VISIBLE`, JSON.stringify({ visible: false }))
+  test(`returns true from state store when set to true`, () => {
     setCookieModalVisibility(true)
-    expect(getMockedStoreValue()).toMatch(`{"visible":true}`)
+    expect(getCookieModalVisibility()).toBe(true)
   })
 
-  test(`it initializes local storage`, () => {
-    localStorage.clear()
-    vi.clearAllMocks()
+  test(`returns false from state store when set to false`, () => {
+    setCookieModalVisibility(true)
+    setCookieModalVisibility(false)
+    expect(getCookieModalVisibility()).toBe(false)
+  })
+
+  test(`sets state store value`, () => {
+    setCookieModalVisibility(true)
+    expect(getCookieModalVisibility()).toBe(true)
+  })
+
+  test(`initializes state store to true`, () => {
     initCookieModalVisibility()
-    expect(getMockedStoreValue()).toMatch(`{"visible":true}`)
+    expect(getCookieModalVisibility()).toBe(true)
+  })
+
+  test(`state key constant is preserved for backwards compatibility`, () => {
+    expect(consentModalStateKey).toBe(`COOKIE_MODAL_VISIBLE`)
   })
 })

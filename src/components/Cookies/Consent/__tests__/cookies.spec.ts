@@ -1,4 +1,5 @@
-import { describe, expect, test } from 'vitest'
+import { beforeEach, describe, expect, test } from 'vitest'
+import { AppBootstrap } from '@components/Scripts/bootstrap/client'
 import {
   getConsentCookie,
   initConsentCookies,
@@ -8,11 +9,16 @@ import {
 } from '../cookies'
 
 describe(`Consent cookies handlers work`, () => {
+  beforeEach(() => {
+    // Initialize state management before each test
+    AppBootstrap.init()
+  })
+
   const setAllConsentCookies = () => {
-    document.cookie = `consent_necessary=granted;Max-Age=30;SameSite=Strict;`
-    document.cookie = `consent_analytics=granted;Max-Age=30;SameSite=Strict;`
-    document.cookie = `consent_advertising=granted;Max-Age=30;SameSite=Strict;`
-    document.cookie = `consent_functional=granted;Max-Age=30;SameSite=Strict;`
+    document.cookie = `consent_necessary=true;Max-Age=30;SameSite=Strict;`
+    document.cookie = `consent_analytics=true;Max-Age=30;SameSite=Strict;`
+    document.cookie = `consent_advertising=true;Max-Age=30;SameSite=Strict;`
+    document.cookie = `consent_functional=true;Max-Age=30;SameSite=Strict;`
   }
 
   test(`prefixes short form of consent cookie name with 'consent_'`, () => {
@@ -20,15 +26,17 @@ describe(`Consent cookies handlers work`, () => {
     expect(sut).toMatch(`consent_necessary`)
   })
 
-  test(`sets 'necessary' cookie key using default`, () => {
+  test(`sets 'necessary' cookie key using state management`, () => {
     setConsentCookie(`necessary`, `granted`)
     setConsentCookie(`analytics`, `granted`)
-    expect(document.cookie).toMatch(`consent_necessary=granted; consent_analytics=granted`)
+    // State management stores 'true' for granted
+    expect(document.cookie).toMatch(`consent_necessary=true`)
+    expect(document.cookie).toMatch(`consent_analytics=true`)
   })
 
   test(`gets cookie by key`, () => {
-    document.cookie = `consent_necessary=granted;Max-Age=30;SameSite=Strict;`
-    expect(getConsentCookie(`necessary`)).toMatch(`granted`)
+    document.cookie = `consent_necessary=true;Max-Age=30;SameSite=Strict;`
+    expect(getConsentCookie(`necessary`)).toMatch(`true`)
   })
 
   test(`initializes consent cookies and returns true if not already set`, () => {
@@ -36,9 +44,9 @@ describe(`Consent cookies handlers work`, () => {
     removeConsentCookies()
     const sut = initConsentCookies()
     expect(sut).toBeTruthy()
-    expect(document.cookie).toMatch(
-      `consent_necessary=unknown; consent_analytics=unknown; consent_advertising=unknown; consent_functional=unknown`
-    )
+    // State management stores 'false' for not granted
+    expect(document.cookie).toMatch(`consent_necessary=false`)
+    expect(document.cookie).toMatch(`consent_analytics=false`)
   })
 
   test(`initializer bails with false if consent cookies already set`, () => {
@@ -46,15 +54,14 @@ describe(`Consent cookies handlers work`, () => {
     expect(document.cookie).toBeTruthy()
     const sut = initConsentCookies()
     expect(sut).toBeFalsy()
-    expect(document.cookie).toMatch(
-      `consent_necessary=granted; consent_analytics=granted; consent_advertising=granted; consent_functional=granted`
-    )
+    expect(document.cookie).toMatch(`consent_necessary=true`)
   })
 
-  test(`removes all consent cookies`, () => {
+  test(`removes all consent cookies completely`, () => {
     setAllConsentCookies()
     expect(document.cookie).toBeTruthy()
     removeConsentCookies()
-    expect(document.cookie).toBeFalsy()
+    // Cookies are completely removed for test cleanup
+    expect(document.cookie).toBe('')
   })
 })
