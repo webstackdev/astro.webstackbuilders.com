@@ -29,8 +29,11 @@ const { pageTitle, path, description, image } = Astro.props
   </script>
 
   <script>
-    import { themeSetup } from './fous'
-    themeSetup()
+    import { registerScript } from '@components/Scripts/loader'
+    import { HeadThemeSetup } from './client'
+
+    // Register HeadThemeSetup to initialize meta colors on page load
+    registerScript(HeadThemeSetup)
   </script>
   {/* Client-side router for Astro pages (enables partial page reloads) */}
   {/* Must be placed at the end of the <head> to avoid blocking page rendering */}
