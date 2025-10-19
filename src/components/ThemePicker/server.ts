@@ -1,4 +1,7 @@
 /**
+ * Server-side utilities for ThemePicker component
+ * Functions and data used during build process in Astro frontmatter
+ *
  * Theme Registry - TypeScript Configuration
  *
  * This file defines the available themes for the theme picker component.

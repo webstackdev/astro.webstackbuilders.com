@@ -1,3 +1,8 @@
+/**
+ * Server-side utilities for Footer component
+ * Functions used during build process in Astro frontmatter
+ */
+
 import parsePhoneNumber from 'libphonenumber-js'
 
 /**

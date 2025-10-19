@@ -14,21 +14,21 @@ const { pageTitle, path, description, image } = Astro.props
 
 <head>
   <title>{pageTitle}</title>
-  {
-    /* Site <meta> tags, Open Graph social tags, and favicon, PWA manifest, RSS, canonical, pingback, and webmention links */
-  }
+  {/* Site <meta> tags, Open Graph social tags, and favicon, PWA manifest, */}
+  {/* RSS, canonical, pingback, and webmention links  */}
   <Meta
     pageTitle={pageTitle}
     path={path}
     {...description && { description }}
     {...image && { image }}
   />
-  {/* Script tag with background colors keyed to theme names for setting initial */}
-  {/* bg color and to set data-theme attribute on <html> element early           */}
+  {/* Set theme name on <html> element from storage early to prevent flash of  */}
+  {/* unstyled content. IMPORTANT: This violates invariant rules and is intentional. */}
+  <script is:inline>
+    document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') ?? 'default')
+  </script>
+
   <script>
-    {
-      /* Set theme name on <html> element from storage early to prevent flash of unstyled content */
-    }
     import { themeSetup } from './fous'
     themeSetup()
   </script>

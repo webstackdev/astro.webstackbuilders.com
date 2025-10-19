@@ -1,5 +1,6 @@
 /**
- * Social metadata utility functions for Head component
+ * Server-side utilities for Head component
+ * Functions used during build process in Astro frontmatter
  */
 
 /**

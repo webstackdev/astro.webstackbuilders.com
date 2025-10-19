@@ -1,16 +1,8 @@
 /**
  * This is ran from <head> in a base layout to avoid a "flash of un-themed styling"
  */
-// Note: This file runs in the browser, so we can't import content collections directly
-// Instead, we'll use the storage keys directly since this is client-side code
 
 export const themeSetup = () => {
-  /**
-   * Set an attribute named data-theme on the <html> element and
-   * set it to the value of the theme key in localstorage.
-   */
-  document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') ?? 'default')
-
   /**
    * Used to update the <meta name="theme-color" content="VALID_COLOR"> element when
    * the theme is changed, that tag sets the color for e.g. the browser title bar
@@ -20,7 +12,11 @@ export const themeSetup = () => {
     { id: 'dark', colors: { backgroundOffset: '#00386d' } },
   ]
 
-  // Initialize metaColors on window if it doesn't exist
+  /**
+   * The `window.metaColors` global variable is used to set the color on the
+   * `<meta name="theme-color" content="CSS_VAR">` when the theme changes. This
+   * element is  used by the browser for UI surrounding the page like title bars.
+   */
   if (typeof window !== 'undefined') {
     ;(window as any).metaColors = (window as any).metaColors || {}
     themes.forEach(theme => {

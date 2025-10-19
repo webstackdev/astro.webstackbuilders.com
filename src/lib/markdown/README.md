@@ -7,19 +7,6 @@
 - Z.AI: GLM 4.6
 - Google: Gemini 2.5 Flash Preview 09-2025
 
-Violation 3: Helper files not in server.ts or client.ts (Invariant #4)
-
-Location: Mastodon
-
-These files exist outside of server.ts or client.ts:
-
-config.ts
-detector.ts
-store.ts
-
-While they may be used by the Mastodon components, they're not organized into either server.ts or client.ts files as your invariant requires.
-
-
 Notify me if any of these invariants are not true:
 
 - Astro templates in src/layouts and src/pages should not include client script. This means no HTML script tags in the template.

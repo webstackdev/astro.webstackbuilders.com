@@ -11,4 +11,4 @@ export {
   type Webmention,
   type WebmentionAuthor,
   type WebmentionContent
-} from './webmentions'
+} from './server'

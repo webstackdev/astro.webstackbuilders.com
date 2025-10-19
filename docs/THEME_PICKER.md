@@ -18,7 +18,7 @@ The theme picker works by setting CSS attribute matchers for the `data-theme` at
 
 ### Generate `<script>` HTML tag for the document head
 
-`src/_layouts/components/themePicker/initial.njk` sets the `window.metaColors` global variable that is used to set a changed theme on the `<meta name="theme-color" content="CSS_VAR">` element used by the browser for UI surrounding the page like title bars.
+The `window.metaColors` global variable is used to set the color on the `<meta name="theme-color" content="CSS_VAR">` when the theme changes. This element is  used by the browser for UI surrounding the page like title bars.
 
 ### Set CSS variables like `--color-bg`
 
