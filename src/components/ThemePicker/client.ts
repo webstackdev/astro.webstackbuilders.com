@@ -6,6 +6,7 @@
 import { addButtonEventListeners } from '@components/Scripts/elementListeners'
 import { getNavToggleBtnElement } from '@components/Navigation/selectors'
 import { LoadableScript, type TriggerEvent } from '../Scripts/loader/@types/loader'
+import { $theme, setTheme } from '@lib/state'
 import {
   getThemePickerToggleButton,
   getThemePickerModalWrapper,
@@ -13,7 +14,6 @@ import {
   getThemePickerSelectButtons,
 } from './selectors'
 
-const THEME_STORAGE_KEY = 'theme'
 export const CLASSES = {
   isOpen: 'is-open',
   active: 'is-active',
@@ -92,13 +92,6 @@ export class ThemePicker extends LoadableScript {
   }
 
   /**
-   * Check if localStorage is available
-   */
-  private hasLocalStorage(): boolean {
-    return typeof Storage !== 'undefined'
-  }
-
-  /**
    * Get the initial theme based on stored preference or system preference
    */
   private getInitialActiveTheme(): ThemeIds {
@@ -115,15 +108,11 @@ export class ThemePicker extends LoadableScript {
   }
 
   /**
-   * Get theme preference from localStorage
+   * Get theme preference from state store
    */
   private getStoredPreference(): ThemeIds | false {
-    if (!this.hasLocalStorage()) {
-      return false
-    }
-
-    const storedPreference = localStorage.getItem(THEME_STORAGE_KEY) as ThemeIds
-    return storedPreference ?? false
+    const storedTheme = $theme.get() as ThemeIds
+    return storedTheme && storedTheme !== 'default' ? storedTheme : false
   }
 
   /**
@@ -193,8 +182,8 @@ export class ThemePicker extends LoadableScript {
     this.activeTheme = themeId
     /** 2. Document body element has the theme name as an attribute: <body data-theme="default"> */
     document.documentElement.setAttribute('data-theme', themeId)
-    /** 3. Update the theme name in local storage, used for persistence between site visits */
-    if (this.hasLocalStorage()) localStorage.setItem(THEME_STORAGE_KEY, themeId)
+    /** 3. Update state store - automatically handles persistence */
+    setTheme(themeId)
 
     /**
      * 4. Update the meta element set for theme-color:

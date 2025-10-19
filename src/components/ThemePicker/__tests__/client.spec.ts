@@ -7,6 +7,8 @@
 
 import { beforeEach, describe, expect, it, vi, afterEach } from 'vitest'
 import { ThemePicker } from '../client'
+import { AppBootstrap } from '@components/Scripts/bootstrap/client'
+import { $theme } from '@lib/state'
 import { mockMetaColors } from '../__fixtures__/mockData'
 import {
   setupThemePickerDOM,
@@ -43,6 +45,9 @@ describe('ThemePicker LoadableScript Implementation', () => {
     setupThemePickerDOM()
     setupLocalStorageMock()
     setupMatchMediaMock()
+
+    // Initialize AppBootstrap to setup state management
+    AppBootstrap.init()
 
     // Setup global metaColors
     window.metaColors = { ...mockMetaColors }
@@ -82,19 +87,23 @@ describe('ThemePicker LoadableScript Implementation', () => {
 
   describe('Component Initialization', () => {
     it('should initialize with default theme when no stored theme', () => {
-      vi.mocked(localStorage.getItem).mockReturnValue(null)
+      // State store will return 'default' when no theme is set
+      $theme.set('default')
 
       ThemePicker.init()
 
-      expect(localStorage.getItem).toHaveBeenCalledWith('theme')
+      // Verify theme is read from state store
+      expect($theme.get()).toBe('default')
     })
 
     it('should initialize with stored theme when available', () => {
-      vi.mocked(localStorage.getItem).mockReturnValue('dark')
+      // Set theme in state store
+      $theme.set('dark')
 
       ThemePicker.init()
 
-      expect(localStorage.getItem).toHaveBeenCalledWith('theme')
+      // Verify theme is read from state store
+      expect($theme.get()).toBe('dark')
     })
 
     it('should find and cache DOM elements', () => {
@@ -136,12 +145,14 @@ describe('ThemePicker LoadableScript Implementation', () => {
       expect(elements.themeSelectBtns.length).toBeGreaterThan(0)
     })
 
-    it('should check localStorage for stored theme on initialization', () => {
-      vi.mocked(localStorage.getItem).mockReturnValue('dark')
+    it('should read theme from state store on initialization', () => {
+      // Set theme in state store
+      $theme.set('dark')
 
       ThemePicker.init()
 
-      expect(localStorage.getItem).toHaveBeenCalledWith('theme')
+      // Verify theme is read from state store
+      expect($theme.get()).toBe('dark')
     })
 
     it('should initialize without CSS support checks throwing errors', () => {
@@ -250,12 +261,16 @@ describe('ThemePicker LoadableScript Implementation', () => {
       expect(() => ThemePicker.init()).not.toThrow()
     })
 
-    it('should handle theme persistence check on initialization', () => {
-      vi.mocked(localStorage.getItem).mockReturnValue('dark')
+    it('should handle theme persistence using state store', () => {
+      // Set theme in state store
+      $theme.set('dark')
 
       ThemePicker.init()
 
-      expect(localStorage.getItem).toHaveBeenCalledWith('theme')
+      // Verify theme is read from state store and synced to localStorage
+      expect($theme.get()).toBe('dark')
+      // The side effect should have synced to localStorage
+      expect(localStorage.setItem).toHaveBeenCalledWith('theme', 'dark')
     })
 
     it('should complete initialization with valid DOM structure', () => {

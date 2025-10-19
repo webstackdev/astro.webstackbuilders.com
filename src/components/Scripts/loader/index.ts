@@ -7,10 +7,17 @@
  * - Automatic pause/resume based on document visibility changes
  * - Event-driven script execution (DOM ready, user interaction, etc.)
  * - Singleton pattern for centralized script management
+ * - Consent-gated script loading with automatic reload on consent change
  */
 
 import { LoadableScript } from './@types/loader'
 import type { UserInteractionEvent, TriggerEvent, ConsentMetadata } from './@types/loader'
+import {
+  $hasAnalyticsConsent,
+  $hasFunctionalConsent,
+  $hasAdvertisingConsent,
+} from '@lib/state'
+import type { ConsentCategory } from '@lib/state'
 
 export const userInteractionEvents: UserInteractionEvent[] = [
   'keydown',
@@ -49,6 +56,8 @@ class Loader {
   private isVisibilityListenerInitialized = false
   private intersectionObserver: IntersectionObserver | null = null
   private observedElements: Map<Element, Array<typeof LoadableScript>> = new Map()
+  private consentUnsubscribers: Map<string, () => void> = new Map()
+  private consentGatedScripts: Map<ConsentCategory, Set<typeof LoadableScript>> = new Map()
 
   /**
    * Private constructor to enforce singleton pattern
@@ -192,9 +201,13 @@ class Loader {
       if (Loader.instance.intersectionObserver) {
         Loader.instance.intersectionObserver.disconnect()
       }
+      // Unsubscribe from all consent listeners
+      Loader.instance.consentUnsubscribers.forEach(unsubscribe => unsubscribe())
+      Loader.instance.consentUnsubscribers.clear()
       // Clear executed scripts tracking
       Loader.instance.executedScripts.clear()
       Loader.instance.observedElements.clear()
+      Loader.instance.consentGatedScripts.clear()
       Loader.instance = null
     }
   }
@@ -320,32 +333,84 @@ class Loader {
 
   /**
    * Initialize consent-gated execution for a specific script
+   * Subscribes to consent changes and automatically loads/unloads scripts
    * @param script - The script to initialize consent-gated execution for
-   *
-   * @TODO: Implement actual consent checking logic
-   * - Check script.meta.consentCategory against cookie consent state
-   * - Execute script immediately if consent is granted
-   * - Skip execution if consent is denied or not yet determined
-   * - Consider listening for consent change events to dynamically load scripts
-   * - Integration with src/components/Cookies/Consent/cookies utilities
    */
   private initializeConsentGatedExecution(script: typeof LoadableScript): void {
-    // Temporary implementation: treat as astro:page-load event
-    // This will be replaced with actual consent checking
-    const consentCategory = script.meta?.consentCategory
+    const consentCategory = script.meta?.consentCategory as ConsentCategory | undefined
 
     if (!consentCategory) {
       console.warn(
-        `Script ${script.scriptName} is consent-gated but missing meta.consentCategory. Defaulting to astro:page-load.`
+        `Script ${script.scriptName} is consent-gated but missing meta.consentCategory. Skipping.`
       )
+      return
     }
 
-    // For now, register as astro:page-load
-    // This will be replaced with consent checking logic
-    if (!this.eventQueues.has('astro:page-load')) {
-      this.eventQueues.set('astro:page-load', [])
+    // Track this script for the consent category
+    if (!this.consentGatedScripts.has(consentCategory)) {
+      this.consentGatedScripts.set(consentCategory, new Set())
     }
-    this.eventQueues.get('astro:page-load')!.push(script)
+    this.consentGatedScripts.get(consentCategory)!.add(script)
+
+    // Get the appropriate consent store
+    const consentStore = this.getConsentStore(consentCategory)
+
+    // Subscribe to consent changes
+    const unsubscribe = consentStore.subscribe(hasConsent => {
+      if (hasConsent) {
+        // Consent granted - load script if not already executed
+        if (!this.executedScripts.has(script)) {
+          console.log(
+            `✅ Consent granted for ${consentCategory}, loading ${script.scriptName}`
+          )
+          this.executeScript(script)
+        }
+      } else {
+        // Consent revoked - pause script if it's running
+        if (this.executedScripts.has(script)) {
+          console.log(
+            `⛔ Consent revoked for ${consentCategory}, pausing ${script.scriptName}`
+          )
+          try {
+            script.pause()
+            // Optionally remove from executed set if you want it to be able to restart
+            // this.executedScripts.delete(script)
+          } catch (error) {
+            console.error(`Error pausing script ${script.scriptName}:`, error)
+          }
+        }
+      }
+    })
+
+    // Store unsubscribe function for cleanup
+    this.consentUnsubscribers.set(`${consentCategory}-${script.scriptName}`, unsubscribe)
+  }
+
+  /**
+   * Get the appropriate consent store for a category
+   * @param category - The consent category
+   * @returns The consent store for the category
+   */
+  private getConsentStore(category: ConsentCategory) {
+    switch (category) {
+      case 'analytics':
+        return $hasAnalyticsConsent
+      case 'functional':
+        return $hasFunctionalConsent
+      case 'advertising':
+        return $hasAdvertisingConsent
+      case 'necessary':
+        // Necessary scripts don't need consent - return a store that's always true
+        return {
+          subscribe: (callback: (_value: boolean) => void) => {
+            callback(true)
+            return () => {} // No-op unsubscribe
+          },
+          get: () => true,
+        }
+      default:
+        throw new Error(`Unknown consent category: ${category}`)
+    }
   }
 }
 
