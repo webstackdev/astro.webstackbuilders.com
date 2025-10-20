@@ -1,9 +1,15 @@
 // Vercel API function for ConvertKit newsletter subscription
+// Implements GDPR-compliant double opt-in flow
+
+import { createPendingSubscription } from './token'
+import { sendConfirmationEmail } from './email'
+import { recordConsent } from '../shared/consent-log'
 
 // Types
 interface NewsletterFormData {
-  email: string;
-  firstName?: string;
+  email: string
+  firstName?: string
+  consentGiven?: boolean
 }
 
 interface ConvertKitSubscriber {
@@ -76,10 +82,11 @@ function validateEmail(email: string): string {
 
 /**
  * Subscribe email to ConvertKit
+ * NOTE: This function will be called from the confirmation page after email verification
  * @param data - Newsletter form data
  * @returns ConvertKit API response
  */
-async function subscribeToConvertKit(data: NewsletterFormData): Promise<ConvertKitResponse> {
+export async function subscribeToConvertKit(data: NewsletterFormData): Promise<ConvertKitResponse> {
   const apiKey = process.env['CONVERTKIT_API_KEY'];
 
   if (!apiKey) {
@@ -140,19 +147,20 @@ async function subscribeToConvertKit(data: NewsletterFormData): Promise<ConvertK
 
 /**
  * Main API handler for newsletter subscriptions
+ * Implements GDPR-compliant double opt-in flow
  * @param req - Vercel request object
  * @param res - Vercel response object
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default async function handler(req: any, res: any): Promise<void> {
   // CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
 
   // Handle OPTIONS for CORS preflight
   if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+    return res.status(200).end()
   }
 
   // Only allow POST
@@ -160,56 +168,76 @@ export default async function handler(req: any, res: any): Promise<void> {
     return res.status(405).json({
       success: false,
       error: 'Method not allowed',
-    });
+    })
   }
 
   try {
-    // Get client IP for rate limiting
+    // Get client IP and user agent for audit trail
     const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0] ||
                req.socket.remoteAddress ||
-               'unknown';
+               'unknown'
+    const userAgent = req.headers['user-agent'] || 'unknown'
 
     // Check rate limit
     if (!checkRateLimit(ip)) {
       return res.status(429).json({
         success: false,
         error: 'Too many subscription requests. Please try again later.',
-      });
+      })
     }
 
     // Parse and validate input
-    const { email, firstName } = req.body as NewsletterFormData;
-    const validatedEmail = validateEmail(email);
+    const { email, firstName, consentGiven } = req.body as NewsletterFormData
+    const validatedEmail = validateEmail(email)
 
-    // Subscribe to ConvertKit
-    const result = await subscribeToConvertKit({
+    // Validate GDPR consent
+    if (!consentGiven) {
+      return res.status(400).json({
+        success: false,
+        error: 'You must consent to receive marketing emails to subscribe.',
+      })
+    }
+
+    // Record initial (unverified) consent
+    await recordConsent({
+      email: validatedEmail,
+      purposes: ['marketing'],
+      source: 'newsletter_form',
+      userAgent,
+      ...(ip !== 'unknown' && { ipAddress: ip }),
+      verified: false, // Will be set to true after email confirmation
+    })
+
+    // Create pending subscription with token
+    const token = await createPendingSubscription({
       email: validatedEmail,
       ...(firstName && { firstName }),
-    });
+      userAgent,
+      ...(ip !== 'unknown' && { ipAddress: ip }),
+      source: 'newsletter_form',
+    })
 
-    // Return success response
+    // Send confirmation email
+    await sendConfirmationEmail(validatedEmail, token, firstName)
+
+    // Return success response asking user to check email
     return res.status(200).json({
       success: true,
-      message: result.subscriber.id
-        ? 'Successfully subscribed to newsletter!'
-        : 'Thank you for subscribing!',
-      subscriber: {
-        email: result.subscriber.email_address,
-        firstName: result.subscriber.first_name,
-      },
-    });
+      message: 'Please check your email to confirm your subscription.',
+      requiresConfirmation: true,
+    })
 
   } catch (error) {
-    console.error('Newsletter subscription error:', error);
+    console.error('Newsletter subscription error:', error)
 
     // Return user-friendly error
     const errorMessage = error instanceof Error
       ? error.message
-      : 'An unexpected error occurred. Please try again.';
+      : 'An unexpected error occurred. Please try again.'
 
     return res.status(400).json({
       success: false,
       error: errorMessage,
-    });
+    })
   }
 }

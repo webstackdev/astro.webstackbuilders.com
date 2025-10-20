@@ -1,13 +1,14 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 
 /**
- * Unit tests for Newsletter API Handler
+ * Unit tests for Newsletter API Handler (Double Opt-in Flow)
  *
  * Tests cover:
  * - HTTP method validation
  * - CORS headers
  * - Input validation
- * - Success responses
+ * - GDPR consent validation
+ * - Double opt-in flow (token + email)
  * - Error handling
  * - Rate limiting
  *
@@ -15,9 +16,18 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
  * with comprehensive mocking of external dependencies.
  */
 
-// Mock fetch globally
-const mockFetch = vi.fn()
-global.fetch = mockFetch
+// Mock the new dependencies for double opt-in flow
+vi.mock('../token', () => ({
+  createPendingSubscription: vi.fn(),
+}))
+
+vi.mock('../email', () => ({
+  sendConfirmationEmail: vi.fn(),
+}))
+
+vi.mock('../../shared/consent-log', () => ({
+  recordConsent: vi.fn(),
+}))
 
 // Mock console methods
 vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -26,6 +36,12 @@ vi.spyOn(console, 'log').mockImplementation(() => {})
 describe('Newsletter API Handler', () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let handler: any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let createPendingSubscription: any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let sendConfirmationEmail: any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let recordConsent: any
   const originalEnv = process.env
 
   beforeEach(async () => {
@@ -34,6 +50,22 @@ describe('Newsletter API Handler', () => {
     // Set up test environment
     process.env = { ...originalEnv }
     process.env['CONVERTKIT_API_KEY'] = 'test-api-key'
+    process.env['RESEND_API_KEY'] = 'test-resend-key'
+    process.env['SITE_URL'] = 'http://localhost:4321'
+
+    // Import the mocked modules
+    const tokenModule = await import('../token')
+    const emailModule = await import('../email')
+    const consentModule = await import('../../shared/consent-log')
+
+    createPendingSubscription = tokenModule.createPendingSubscription
+    sendConfirmationEmail = emailModule.sendConfirmationEmail
+    recordConsent = consentModule.recordConsent
+
+    // Set up default mock implementations
+    createPendingSubscription.mockResolvedValue('test-token-123')
+    sendConfirmationEmail.mockResolvedValue(undefined)
+    recordConsent.mockResolvedValue(undefined)
 
     // Import the handler
     const module = await import('../newsletter')
@@ -85,9 +117,9 @@ describe('Newsletter API Handler', () => {
     it('should set proper CORS headers', async () => {
       const mockReq = {
         method: 'POST',
-        headers: {},
+        headers: { 'user-agent': 'test-agent' },
         socket: { remoteAddress: '127.0.0.1' },
-        body: { email: 'test@example.com' },
+        body: { email: 'test@example.com', consentGiven: true },
       }
       const mockRes = {
         setHeader: vi.fn(),
@@ -95,23 +127,6 @@ describe('Newsletter API Handler', () => {
         json: vi.fn(() => mockRes),
         end: vi.fn(() => mockRes),
       }
-
-      // Mock successful ConvertKit response
-      mockFetch.mockResolvedValueOnce({
-        status: 201,
-        json: () => Promise.resolve({
-          /* eslint-disable camelcase */
-          subscriber: {
-            id: 123,
-            first_name: null,
-            email_address: 'test@example.com',
-            state: 'active',
-            created_at: '2023-01-01T00:00:00Z',
-            fields: {},
-          },
-          /* eslint-enable camelcase */
-        }),
-      })
 
       await handler(mockReq, mockRes)
 
@@ -169,13 +184,13 @@ describe('Newsletter API Handler', () => {
     })
   })
 
-  describe('Successful Subscriptions', () => {
-    it('should handle successful subscription with email only', async () => {
+  describe('Successful Subscriptions (Double Opt-in)', () => {
+    it('should require GDPR consent', async () => {
       const mockReq = {
         method: 'POST',
-        headers: {},
+        headers: { 'user-agent': 'test-agent' },
         socket: { remoteAddress: '127.0.0.1' },
-        body: { email: 'test@example.com' },
+        body: { email: 'test@example.com', consentGiven: false },
       }
       const mockRes = {
         setHeader: vi.fn(),
@@ -184,41 +199,69 @@ describe('Newsletter API Handler', () => {
         end: vi.fn(() => mockRes),
       }
 
-      mockFetch.mockResolvedValueOnce({
-        status: 201,
-        json: () => Promise.resolve({
-          /* eslint-disable camelcase */
-          subscriber: {
-            id: 123,
-            first_name: null,
-            email_address: 'test@example.com',
-            state: 'active',
-            created_at: '2023-01-01T00:00:00Z',
-            fields: {},
-          },
-          /* eslint-enable camelcase */
-        }),
+      await handler(mockReq, mockRes)
+
+      expect(mockRes.status).toHaveBeenCalledWith(400)
+      expect(mockRes.json).toHaveBeenCalledWith({
+        success: false,
+        error: 'You must consent to receive marketing emails to subscribe.',
       })
+      expect(createPendingSubscription).not.toHaveBeenCalled()
+      expect(sendConfirmationEmail).not.toHaveBeenCalled()
+    })
+
+    it('should handle successful double opt-in initiation with email only', async () => {
+      const mockReq = {
+        method: 'POST',
+        headers: { 'user-agent': 'test-agent' },
+        socket: { remoteAddress: '127.0.0.1' },
+        body: { email: 'test@example.com', consentGiven: true },
+      }
+      const mockRes = {
+        setHeader: vi.fn(),
+        status: vi.fn(() => mockRes),
+        json: vi.fn(() => mockRes),
+        end: vi.fn(() => mockRes),
+      }
 
       await handler(mockReq, mockRes)
+
+      expect(recordConsent).toHaveBeenCalledWith({
+        email: 'test@example.com',
+        purposes: ['marketing'],
+        source: 'newsletter_form',
+        userAgent: 'test-agent',
+        ipAddress: '127.0.0.1',
+        verified: false,
+      })
+
+      expect(createPendingSubscription).toHaveBeenCalledWith({
+        email: 'test@example.com',
+        userAgent: 'test-agent',
+        ipAddress: '127.0.0.1',
+        source: 'newsletter_form',
+      })
+
+      expect(sendConfirmationEmail).toHaveBeenCalledWith(
+        'test@example.com',
+        'test-token-123',
+        undefined
+      )
 
       expect(mockRes.status).toHaveBeenCalledWith(200)
       expect(mockRes.json).toHaveBeenCalledWith({
         success: true,
-        message: 'Successfully subscribed to newsletter!',
-        subscriber: {
-          email: 'test@example.com',
-          firstName: null,
-        },
+        message: 'Please check your email to confirm your subscription.',
+        requiresConfirmation: true,
       })
     })
 
-    it('should handle successful subscription with email and name', async () => {
+    it('should handle successful double opt-in initiation with email and name', async () => {
       const mockReq = {
         method: 'POST',
-        headers: {},
+        headers: { 'user-agent': 'test-agent' },
         socket: { remoteAddress: '127.0.0.1' },
-        body: { email: 'jane@example.com', firstName: 'Jane' },
+        body: { email: 'jane@example.com', firstName: 'Jane', consentGiven: true },
       }
       const mockRes = {
         setHeader: vi.fn(),
@@ -227,43 +270,47 @@ describe('Newsletter API Handler', () => {
         end: vi.fn(() => mockRes),
       }
 
-      mockFetch.mockResolvedValueOnce({
-        status: 200,
-        json: () => Promise.resolve({
-          /* eslint-disable camelcase */
-          subscriber: {
-            id: 456,
-            first_name: 'Jane',
-            email_address: 'jane@example.com',
-            state: 'active',
-            created_at: '2023-01-01T00:00:00Z',
-            fields: {},
-          },
-          /* eslint-enable camelcase */
-        }),
+      await handler(mockReq, mockRes)
+
+      expect(recordConsent).toHaveBeenCalledWith({
+        email: 'jane@example.com',
+        purposes: ['marketing'],
+        source: 'newsletter_form',
+        userAgent: 'test-agent',
+        ipAddress: '127.0.0.1',
+        verified: false,
       })
 
-      await handler(mockReq, mockRes)
+      expect(createPendingSubscription).toHaveBeenCalledWith({
+        email: 'jane@example.com',
+        firstName: 'Jane',
+        userAgent: 'test-agent',
+        ipAddress: '127.0.0.1',
+        source: 'newsletter_form',
+      })
+
+      expect(sendConfirmationEmail).toHaveBeenCalledWith(
+        'jane@example.com',
+        'test-token-123',
+        'Jane'
+      )
 
       expect(mockRes.status).toHaveBeenCalledWith(200)
       expect(mockRes.json).toHaveBeenCalledWith({
         success: true,
-        message: 'Successfully subscribed to newsletter!',
-        subscriber: {
-          email: 'jane@example.com',
-          firstName: 'Jane',
-        },
+        message: 'Please check your email to confirm your subscription.',
+        requiresConfirmation: true,
       })
     })
   })
 
   describe('Error Handling', () => {
-    it('should handle ConvertKit API errors', async () => {
+    it('should handle email sending errors', async () => {
       const mockReq = {
         method: 'POST',
-        headers: {},
+        headers: { 'user-agent': 'test-agent' },
         socket: { remoteAddress: '127.0.0.1' },
-        body: { email: 'test@example.com' },
+        body: { email: 'test@example.com', consentGiven: true },
       }
       const mockRes = {
         setHeader: vi.fn(),
@@ -272,28 +319,23 @@ describe('Newsletter API Handler', () => {
         end: vi.fn(() => mockRes),
       }
 
-      mockFetch.mockResolvedValueOnce({
-        status: 422,
-        json: () => Promise.resolve({ errors: ['Email already exists'] }),
-      })
+      sendConfirmationEmail.mockRejectedValueOnce(new Error('Email service error'))
 
       await handler(mockReq, mockRes)
 
       expect(mockRes.status).toHaveBeenCalledWith(400)
       expect(mockRes.json).toHaveBeenCalledWith({
         success: false,
-        error: 'Email already exists',
+        error: 'Email service error',
       })
     })
 
-    it('should handle missing API key', async () => {
-      delete process.env['CONVERTKIT_API_KEY']
-
+    it('should handle token creation errors', async () => {
       const mockReq = {
         method: 'POST',
-        headers: {},
+        headers: { 'user-agent': 'test-agent' },
         socket: { remoteAddress: '127.0.0.1' },
-        body: { email: 'test@example.com' },
+        body: { email: 'test@example.com', consentGiven: true },
       }
       const mockRes = {
         setHeader: vi.fn(),
@@ -302,21 +344,23 @@ describe('Newsletter API Handler', () => {
         end: vi.fn(() => mockRes),
       }
 
+      createPendingSubscription.mockRejectedValueOnce(new Error('Token generation failed'))
+
       await handler(mockReq, mockRes)
 
       expect(mockRes.status).toHaveBeenCalledWith(400)
       expect(mockRes.json).toHaveBeenCalledWith({
         success: false,
-        error: 'ConvertKit API key is not configured.',
+        error: 'Token generation failed',
       })
     })
 
-    it('should handle network errors', async () => {
+    it('should handle consent recording errors', async () => {
       const mockReq = {
         method: 'POST',
-        headers: {},
+        headers: { 'user-agent': 'test-agent' },
         socket: { remoteAddress: '127.0.0.1' },
-        body: { email: 'test@example.com' },
+        body: { email: 'test@example.com', consentGiven: true },
       }
       const mockRes = {
         setHeader: vi.fn(),
@@ -325,14 +369,14 @@ describe('Newsletter API Handler', () => {
         end: vi.fn(() => mockRes),
       }
 
-      mockFetch.mockRejectedValueOnce(new Error('Network error'))
+      recordConsent.mockRejectedValueOnce(new Error('Database error'))
 
       await handler(mockReq, mockRes)
 
       expect(mockRes.status).toHaveBeenCalledWith(400)
       expect(mockRes.json).toHaveBeenCalledWith({
         success: false,
-        error: 'Network error',
+        error: 'Database error',
       })
     })
   })
@@ -341,9 +385,9 @@ describe('Newsletter API Handler', () => {
     it('should enforce rate limits', async () => {
       const mockReq = {
         method: 'POST',
-        headers: {},
+        headers: { 'user-agent': 'test-agent' },
         socket: { remoteAddress: '192.168.1.100' },
-        body: { email: 'test@example.com' },
+        body: { email: 'test@example.com', consentGiven: true },
       }
       const mockRes = {
         setHeader: vi.fn(),
@@ -351,23 +395,6 @@ describe('Newsletter API Handler', () => {
         json: vi.fn(() => mockRes),
         end: vi.fn(() => mockRes),
       }
-
-      // Mock successful responses
-      mockFetch.mockResolvedValue({
-        status: 201,
-        json: () => Promise.resolve({
-          /* eslint-disable camelcase */
-          subscriber: {
-            id: 999,
-            first_name: null,
-            email_address: 'test@example.com',
-            state: 'active',
-            created_at: '2023-01-01T00:00:00Z',
-            fields: {},
-          },
-          /* eslint-enable camelcase */
-        }),
-      })
 
       // Make 10 requests (should succeed)
       for (let i = 0; i < 10; i++) {
@@ -391,9 +418,12 @@ describe('Newsletter API Handler', () => {
     it('should extract IP from x-forwarded-for header', async () => {
       const mockReq = {
         method: 'POST',
-        headers: { 'x-forwarded-for': '203.0.113.1, 10.0.0.1' },
+        headers: {
+          'x-forwarded-for': '203.0.113.1, 10.0.0.1',
+          'user-agent': 'test-agent',
+        },
         socket: { remoteAddress: '127.0.0.1' },
-        body: { email: 'test@example.com' },
+        body: { email: 'test@example.com', consentGiven: true },
       }
       const mockRes = {
         setHeader: vi.fn(),
@@ -402,23 +432,17 @@ describe('Newsletter API Handler', () => {
         end: vi.fn(() => mockRes),
       }
 
-      mockFetch.mockResolvedValueOnce({
-        status: 201,
-        json: () => Promise.resolve({
-          /* eslint-disable camelcase */
-          subscriber: {
-            id: 123,
-            first_name: null,
-            email_address: 'test@example.com',
-            state: 'active',
-            created_at: '2023-01-01T00:00:00Z',
-            fields: {},
-          },
-          /* eslint-enable camelcase */
-        }),
-      })
-
       await handler(mockReq, mockRes)
+
+      // Should use IP from x-forwarded-for header (203.0.113.1)
+      expect(recordConsent).toHaveBeenCalledWith({
+        email: 'test@example.com',
+        purposes: ['marketing'],
+        source: 'newsletter_form',
+        userAgent: 'test-agent',
+        ipAddress: '203.0.113.1',
+        verified: false,
+      })
 
       expect(mockRes.status).toHaveBeenCalledWith(200)
     })

@@ -1,5 +1,7 @@
 # E2E Tests to Implement
 
+- That og: events from components/Head/Social.astro are filled out and have valid values
+
 ## Event Conflict Analysis
 
 ### ⚠️ CONFLICT IDENTIFIED: `touchend` Event
