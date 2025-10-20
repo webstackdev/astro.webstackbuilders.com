@@ -15,6 +15,8 @@ import {
   getCookieConsentCustomizeLink,
   getCookieConsentWrapper,
 } from './selectors'
+import { ClientScriptError } from '@components/Scripts/errors/ClientScriptError'
+import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
 
 /**
  * Cookie Consent component using LoadableScript pattern with instance-specific approach
@@ -39,21 +41,35 @@ export class CookieConsent extends LoadableScript {
 
   constructor() {
     super()
-    this.wrapper = getCookieConsentWrapper()
-    this.closeBtn = getCookieConsentCloseBtn()
-    this.allowBtn = getCookieConsentAllowBtn()
-    this.allowLink = getCookieConsentAllowLink()
-    this.customizeBtn = getCookieConsentCustomizeBtn()
-    this.customizeLink = getCookieConsentCustomizeLink()
+
+    try {
+      this.wrapper = getCookieConsentWrapper()
+      this.closeBtn = getCookieConsentCloseBtn()
+      this.allowBtn = getCookieConsentAllowBtn()
+      this.allowLink = getCookieConsentAllowLink()
+      this.customizeBtn = getCookieConsentCustomizeBtn()
+      this.customizeLink = getCookieConsentCustomizeLink()
+    } catch (error) {
+      throw new ClientScriptError(
+        `CookieConsent: Failed to find required DOM elements - ${error instanceof Error ? error.message : 'Unknown error'}. Cookie consent is a legal requirement and cannot function without these elements.`
+      )
+    }
   }
 
   /**
    * Initialize the cookie consent modal
    */
   initModal() {
-    this.wrapper.style.display = 'block'
-    this.allowBtn.focus()
-    $cookieModalVisible.set(true)
+    const context = { scriptName: CookieConsent.scriptName, operation: 'initModal' }
+    addScriptBreadcrumb(context)
+
+    try {
+      this.wrapper.style.display = 'block'
+      this.allowBtn.focus()
+      $cookieModalVisible.set(true)
+    } catch (error) {
+      handleScriptError(error, context)
+    }
   }
 
   /**
@@ -76,41 +92,69 @@ export class CookieConsent extends LoadableScript {
    * Allow All button event handlers
    */
   handleAllowAllCookies = () => {
-    allowAllConsentCookies()
-    this.handleDismissModal()
+    const context = { scriptName: CookieConsent.scriptName, operation: 'allowAllCookies' }
+    addScriptBreadcrumb(context)
+
+    try {
+      allowAllConsentCookies()
+      this.handleDismissModal()
+    } catch (error) {
+      handleScriptError(error, context)
+    }
   }
 
   /**
    * Customize Cookies button event handlers
    */
   handleCustomizeCookies = () => {
-    showCookieCustomizeModal()
+    const context = { scriptName: CookieConsent.scriptName, operation: 'customizeCookies' }
+    addScriptBreadcrumb(context)
+
+    try {
+      showCookieCustomizeModal()
+    } catch (error) {
+      handleScriptError(error, context)
+    }
   }
 
   /**
    * Bind all event listeners
    */
   bindEvents() {
-    /** Listener for 'Escape' keyup event when focus is in modal */
-    addWrapperEventListeners(this.wrapper, this.handleWrapperDismissModal)
-    /** Listeners for 'click', 'Enter' keyup, and 'touchend' events */
-    addButtonEventListeners(this.closeBtn, this.handleDismissModal)
-    /** 'Allow All' button listeners */
-    addButtonEventListeners(this.allowBtn, this.handleAllowAllCookies)
-    addButtonEventListeners(this.allowLink, this.handleAllowAllCookies)
-    /** 'Customize' button listeners */
-    addButtonEventListeners(this.customizeBtn, this.handleCustomizeCookies)
-    addLinkEventListeners(this.customizeLink, this.handleCustomizeCookies)
+    const context = { scriptName: CookieConsent.scriptName, operation: 'bindEvents' }
+    addScriptBreadcrumb(context)
+
+    try {
+      /** Listener for 'Escape' keyup event when focus is in modal */
+      addWrapperEventListeners(this.wrapper, this.handleWrapperDismissModal)
+      /** Listeners for 'click', 'Enter' keyup, and 'touchend' events */
+      addButtonEventListeners(this.closeBtn, this.handleDismissModal)
+      /** 'Allow All' button listeners */
+      addButtonEventListeners(this.allowBtn, this.handleAllowAllCookies)
+      addButtonEventListeners(this.allowLink, this.handleAllowAllCookies)
+      /** 'Customize' button listeners */
+      addButtonEventListeners(this.customizeBtn, this.handleCustomizeCookies)
+      addLinkEventListeners(this.customizeLink, this.handleCustomizeCookies)
+    } catch (error) {
+      handleScriptError(error, context)
+    }
   }
 
   /**
    * Show the cookie consent modal if user hasn't consented yet
    */
   showModal() {
-    /** Skip modal if user has already consented */
-    if (!initConsentCookies()) return
-    this.initModal()
-    this.bindEvents()
+    const context = { scriptName: CookieConsent.scriptName, operation: 'showModal' }
+    addScriptBreadcrumb(context)
+
+    try {
+      /** Skip modal if user has already consented */
+      if (!initConsentCookies()) return
+      this.initModal()
+      this.bindEvents()
+    } catch (error) {
+      handleScriptError(error, context)
+    }
   }
 
   /**

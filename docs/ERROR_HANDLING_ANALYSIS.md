@@ -127,7 +127,7 @@
 
 ### Phase 1: Critical Components (Legal/Navigation)
 1. Cookie Consent
-2. GDPR Consent  
+2. GDPR Consent
 3. Navigation
 4. Newsletter (GDPR-related)
 
@@ -163,7 +163,7 @@ static override init(): void {
 private setupOptionalFeature(): void {
   const context = { scriptName: ComponentName.scriptName, operation: 'setupFeature' }
   addScriptBreadcrumb(context)
-  
+
   try {
     // Feature code
   } catch (error) {
@@ -178,7 +178,7 @@ private setupOptionalFeature(): void {
 private async handleSubmission(): Promise<void> {
   const context = { scriptName: ComponentName.scriptName, operation: 'submit' }
   addScriptBreadcrumb(context)
-  
+
   try {
     const response = await fetch(url, options)
     if (!response.ok) throw new Error('Submission failed')

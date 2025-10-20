@@ -9,6 +9,8 @@ import {
   getNavToggleBtnElement,
   getNavToggleWrapperElement,
 } from './selectors'
+import { ClientScriptError } from '@components/Scripts/errors/ClientScriptError'
+import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
 
 export const CLASSES = {
   navOpen: 'aria-expanded-true',
@@ -41,26 +43,53 @@ export class Navigation extends LoadableScript {
   constructor() {
     super()
     this.isMenuOpen = false
-    /** Set references to menu elements */
-    this.header = getHeaderElement()
-    this.mobileSplash = getMobileSplashElement()
-    this.menu = getNavMenuElement()
-    this.toggleWrapper = getNavToggleWrapperElement()
-    this.toggleBtn = getNavToggleBtnElement()
-    this.setTogglePosition()
-    /**
-     * Set the focus trap on the menu <ul> so navigating past the last item wraps to the first.
-     */
-    this.focusTrap = createFocusTrap([this.toggleBtn, this.menu], {
-      initialFocus: () => this.toggleBtn,
-      /** Close the nav menu if the focus trap is exited by user pressing ESC */
-      onDeactivate: () => this.toggleMenu(false),
-    })
+    
+    try {
+      /** Set references to menu elements */
+      this.header = getHeaderElement()
+      this.mobileSplash = getMobileSplashElement()
+      this.menu = getNavMenuElement()
+      this.toggleWrapper = getNavToggleWrapperElement()
+      this.toggleBtn = getNavToggleBtnElement()
+    } catch (error) {
+      throw new ClientScriptError(
+        `Navigation: Failed to find required DOM elements - ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
+    }
+
+    try {
+      this.setTogglePosition()
+    } catch (error) {
+      // Non-critical: positioning can fail but navigation still works
+      const context = { scriptName: Navigation.scriptName, operation: 'setTogglePosition' }
+      handleScriptError(error, context)
+    }
+
+    try {
+      /**
+       * Set the focus trap on the menu <ul> so navigating past the last item wraps to the first.
+       */
+      this.focusTrap = createFocusTrap([this.toggleBtn, this.menu], {
+        initialFocus: () => this.toggleBtn,
+        /** Close the nav menu if the focus trap is exited by user pressing ESC */
+        onDeactivate: () => this.toggleMenu(false),
+      })
+    } catch (error) {
+      throw new ClientScriptError(
+        `Navigation: Failed to create focus trap - ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
+    }
   }
 
   setTogglePosition = () => {
-    // @TODO: There's a bug here. When the menu is expanded and the splash screen showing, and the device screen is resized, the bounding rectangle doesn't change.
-    this.togglePosition = this.toggleBtn.getBoundingClientRect()
+    const context = { scriptName: Navigation.scriptName, operation: 'setTogglePosition' }
+    
+    try {
+      // @TODO: There's a bug here. When the menu is expanded and the splash screen showing, and the device screen is resized, the bounding rectangle doesn't change.
+      this.togglePosition = this.toggleBtn.getBoundingClientRect()
+    } catch (error) {
+      handleScriptError(error, context)
+    }
   }
 
   bindEvents() {
@@ -81,24 +110,39 @@ export class Navigation extends LoadableScript {
    * Set up View Transitions navigation using Astro's navigate API
    */
   setupViewTransitions() {
-    const navLinks = this.menu.querySelectorAll('a[href]')
+    const context = { scriptName: Navigation.scriptName, operation: 'setupViewTransitions' }
+    addScriptBreadcrumb(context)
 
-    navLinks.forEach(link => {
-      link.addEventListener('click', event => {
-        event.preventDefault()
-        const href = link.getAttribute('href')
+    try {
+      const navLinks = this.menu.querySelectorAll('a[href]')
 
-        if (href) {
-          // Close mobile menu if it's open before navigating
-          if (this.isMenuOpen) {
-            this.toggleMenu(false)
-          }
+      navLinks.forEach(link => {
+        try {
+          link.addEventListener('click', event => {
+            event.preventDefault()
+            const href = link.getAttribute('href')
 
-          // Use Astro's View Transitions navigation
-          navigate(href)
+            if (href) {
+              // Close mobile menu if it's open before navigating
+              if (this.isMenuOpen) {
+                this.toggleMenu(false)
+              }
+
+              // Use Astro's View Transitions navigation
+              navigate(href)
+            }
+          })
+        } catch (error) {
+          // Individual link failure shouldn't break all navigation
+          handleScriptError(error, { 
+            scriptName: Navigation.scriptName, 
+            operation: 'setupNavigationLink' 
+          })
         }
       })
-    })
+    } catch (error) {
+      handleScriptError(error, context)
+    }
   }
 
   toggleMenu(force?: boolean) {
