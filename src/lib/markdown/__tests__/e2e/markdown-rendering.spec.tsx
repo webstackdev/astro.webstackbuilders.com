@@ -64,7 +64,7 @@ async function renderMarkdown(content: string) {
   const { rehypeAccessibleEmojis } = await import('rehype-accessible-emojis')
   const { default: rehypeAutolinkHeadings } = await import('rehype-autolink-headings')
 
-  const rehypeTailwindModule = await import('../../rehype-tailwind-classes')
+  const rehypeTailwindModule = await import('../../plugins/rehype-tailwind')
   const { rehypeTailwindClasses } = rehypeTailwindModule
 
   // Import configs

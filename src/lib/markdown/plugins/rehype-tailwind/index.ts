@@ -509,7 +509,9 @@ export function rehypeTailwindClasses() {
   }
 }
 
-// Helper function to check if an element has a specific class
+/**
+ * Helper function to check if an element has a specific class
+ */
 function hasClass(node: Element, className: string): boolean {
   const classes = node.properties?.['className'] as string[] | string | undefined
   if (Array.isArray(classes)) {
@@ -521,14 +523,18 @@ function hasClass(node: Element, className: string): boolean {
   return false
 }
 
-// Helper function to check if a code element is within a pre element
+/**
+ * Helper function to check if a code element is within a pre element
+ */
 function isWithinPre(_node: Element): boolean {
   // This is a simplified check - in a real implementation you'd need to traverse up the tree
   // For now, we'll rely on the pre > code selector being handled separately
   return false
 }
 
-// Helper function to check if an element is within a code-tabs container
+/**
+ * Helper function to check if an element is within a code-tabs container
+ */
 function isWithinCodeTabs(node: Element): boolean {
   // Check if the element has code-tabs related classes or data attributes
   const classes = node.properties?.['className'] as string[] | string | undefined

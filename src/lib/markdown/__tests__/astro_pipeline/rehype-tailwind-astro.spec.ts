@@ -2,12 +2,12 @@ import { describe, it, expect } from 'vitest'
 import { remark } from 'remark'
 import remarkGfm from 'remark-gfm'
 import remarkRehype from 'remark-rehype'
-import { rehypeTailwindClasses } from '../../rehype-tailwind-classes'
+import { rehypeTailwindClasses } from '../../plugins/rehype-tailwind'
 import rehypeStringify from 'rehype-stringify'
 import { remarkRehypeConfig } from '../../../config/markdown'
 
 /**
- * Helper for testing rehype-tailwind-classes with Astro settings
+ * Helper for testing rehype-tailwind with Astro settings
  */
 async function processWithAstroSettings(markdown: string): Promise<string> {
   const result = await remark()

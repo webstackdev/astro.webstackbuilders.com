@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { remark } from 'remark'
 import remarkRehype from 'remark-rehype'
-import { rehypeTailwindClasses } from '../../rehype-tailwind-classes'
+import { rehypeTailwindClasses } from '../../plugins/rehype-tailwind'
 import rehypeStringify from 'rehype-stringify'
 
 /**

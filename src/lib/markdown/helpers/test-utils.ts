@@ -75,7 +75,7 @@ export async function processWithFullPipeline(markdown: string): Promise<string>
   const { rehypeAccessibleEmojis } = await import('rehype-accessible-emojis')
   const rehypeAutolinkHeadings = (await import('rehype-autolink-headings')).default
   const rehypeSlug = (await import('rehype-slug')).default
-  const { rehypeTailwindClasses } = await import('../rehype-tailwind-classes')
+  const { rehypeTailwindClasses } = await import('../plugins/rehype-tailwind')
 
   // Import configurations
   const { remarkAttrConfig, remarkTocConfig, rehypeAutolinkHeadingsConfig } = await import(

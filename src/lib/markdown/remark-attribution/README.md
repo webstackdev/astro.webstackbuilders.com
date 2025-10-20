@@ -14,7 +14,7 @@ The plugin allows to provide an attribution for a quotation:
 > — Neil Armstrong (1969, July 21)
 ```
 
-When used with Astro's MDX and the `rehype-tailwind-classes` plugin, the output includes comprehensive styling:
+When used with Astro's MDX and the `rehype-tailwind` Markdown plugin, the output includes comprehensive styling:
 
 ```html
 <figure class="c-blockquote relative my-12 px-8 py-6 rounded-lg bg-gray-100 dark:bg-gray-800 border-l-4 border-[var(--color-primary)] before:content-['"'] before:absolute before:top-2 before:left-2 before:text-6xl before:font-serif before:leading-none before:text-[var(--color-primary)] before:opacity-30">

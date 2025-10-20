@@ -14,7 +14,7 @@ import remarkEmoji from 'remark-emoji'
 import remarkLinkifyRegex from 'remark-linkify-regex'
 import remarkToc from 'remark-toc'
 /** Add custom CSS classes to Markdown-generated elements in this file */
-import { rehypeTailwindClasses } from '../markdown/rehype-tailwind-classes'
+import { rehypeTailwindClasses } from '../markdown/plugins/rehype-tailwind'
 
 /** Configuration for remark-attr plugin */
 export const remarkAttrConfig = { scope: 'permissive' } as const

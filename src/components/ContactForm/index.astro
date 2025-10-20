@@ -1,5 +1,6 @@
 ---
 // ContactForm.astro - Reusable contact form component
+import GDPRConsent from '@components/GDPR/Consent/index.astro'
 ---
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 items-start">
@@ -199,6 +200,20 @@
             </p>
           </div>
         </div>
+      </div>
+
+      <!-- GDPR Consent -->
+      <GDPRConsent
+        purposes={['contact']}
+        required={true}
+        formId="contact-form"
+        id="contact-gdpr-consent"
+      />
+
+      <!-- Data Retention Notice -->
+      <div class="text-sm text-[var(--color-text-offset)] space-y-2 bg-[var(--color-bg-offset)] p-4 rounded-lg border border-[var(--color-border)]">
+        <p><strong>Data Retention:</strong> Your contact information will be stored for 90 days to respond to your inquiry.</p>
+        <p><strong>Your Rights:</strong> You can request access, correction, or deletion of your data at any time by contacting <a href="mailto:kevin@webstackbuilders.com" class="text-[var(--color-primary)] hover:underline">kevin@webstackbuilders.com</a>.</p>
       </div>
 
       <div class="flex justify-end">

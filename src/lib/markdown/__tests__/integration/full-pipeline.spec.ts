@@ -101,7 +101,7 @@ console.log(test);
         'class="anchor-link"'
       )
 
-      // Verify rehype-tailwind-classes worked
+      // Verify rehype-tailwind worked
       expect(html, 'rehypeTailwindClasses should add classes to elements').toMatch(
         /class="[^"]*w-full/
       )
