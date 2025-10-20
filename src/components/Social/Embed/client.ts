@@ -1,5 +1,6 @@
 import { LoadableScript, type TriggerEvent } from '../../Scripts/loader/@types/loader'
 import { cacheEmbed, getCachedEmbed } from '@components/Scripts/state'
+import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
 
 /**
  * Platform types supported by the Embed component
@@ -47,16 +48,24 @@ export class EmbedManager extends LoadableScript {
   static override eventType: TriggerEvent = 'delayed'
 
   static override init(): void {
-    const instance = EmbedManager.getInstance()
+    const context = { scriptName: EmbedManager.scriptName, operation: 'init' }
+    addScriptBreadcrumb(context)
 
-    if (instance.initialized) {
+    try {
+      const instance = EmbedManager.getInstance()
+
+      if (instance.initialized) {
+        instance.discoverNewEmbeds()
+        return
+      }
+
+      console.log('Initializing EmbedManager...')
       instance.discoverNewEmbeds()
-      return
+      instance.initialized = true
+    } catch (error) {
+      // Embeds are optional enhancements
+      handleScriptError(error, context)
     }
-
-    console.log('Initializing EmbedManager...')
-    instance.discoverNewEmbeds()
-    instance.initialized = true
   }
 
   static override pause(): void {
@@ -79,53 +88,102 @@ export class EmbedManager extends LoadableScript {
   }
 
   private discoverNewEmbeds(): void {
-    const embedElements = document.querySelectorAll('[data-embed]:not([data-embed-managed])')
+    const context = { scriptName: EmbedManager.scriptName, operation: 'discoverEmbeds' }
+    addScriptBreadcrumb(context)
 
-    embedElements.forEach((element, index) => {
-      try {
-        const htmlElement = element as HTMLElement
-        const platform = htmlElement.dataset['embedPlatform'] as EmbedPlatform | undefined
-        const url = htmlElement.dataset['embedUrl']
+    try {
+      const embedElements = document.querySelectorAll('[data-embed]:not([data-embed-managed])')
 
-        if (!url) {
-          console.warn('Embed element missing data-embed-url attribute')
-          return
+      embedElements.forEach((element, index) => {
+        try {
+          const htmlElement = element as HTMLElement
+          const platform = htmlElement.dataset['embedPlatform'] as EmbedPlatform | undefined
+          const url = htmlElement.dataset['embedUrl']
+
+          if (!url) {
+            console.warn('Embed element missing data-embed-url attribute')
+            return
+          }
+
+          const embed = new EmbedInstance(htmlElement, url, platform, this.embeds.size + index)
+          embed.initialize()
+
+          this.embeds.set(htmlElement, embed)
+          htmlElement.setAttribute('data-embed-managed', 'true')
+
+          console.log(`Embed ${this.embeds.size} initialized for ${platform || 'auto-detected'} platform`)
+        } catch (error) {
+          // One embed failing shouldn't break all embeds
+          handleScriptError(error, { scriptName: EmbedManager.scriptName, operation: 'initEmbed' })
         }
-
-        const embed = new EmbedInstance(htmlElement, url, platform, this.embeds.size + index)
-        embed.initialize()
-
-        this.embeds.set(htmlElement, embed)
-        htmlElement.setAttribute('data-embed-managed', 'true')
-
-        console.log(`Embed ${this.embeds.size} initialized for ${platform || 'auto-detected'} platform`)
-      } catch (error) {
-        console.error(`Failed to initialize embed:`, error)
-      }
-    })
+      })
+    } catch (error) {
+      handleScriptError(error, context)
+    }
   }
 
   private pauseAll(): void {
-    this.embeds.forEach(embed => embed.pause())
+    const context = { scriptName: EmbedManager.scriptName, operation: 'pauseAll' }
+    addScriptBreadcrumb(context)
+
+    try {
+      this.embeds.forEach(embed => {
+        try {
+          embed.pause()
+        } catch (error) {
+          handleScriptError(error, { scriptName: EmbedManager.scriptName, operation: 'pauseEmbed' })
+        }
+      })
+    } catch (error) {
+      handleScriptError(error, context)
+    }
   }
 
   private resumeAll(): void {
-    this.embeds.forEach(embed => embed.resume())
+    const context = { scriptName: EmbedManager.scriptName, operation: 'resumeAll' }
+    addScriptBreadcrumb(context)
+
+    try {
+      this.embeds.forEach(embed => {
+        try {
+          embed.resume()
+        } catch (error) {
+          handleScriptError(error, { scriptName: EmbedManager.scriptName, operation: 'resumeEmbed' })
+        }
+      })
+    } catch (error) {
+      handleScriptError(error, context)
+    }
   }
 
   private cleanup(): void {
-    const toRemove: HTMLElement[] = []
+    const context = { scriptName: EmbedManager.scriptName, operation: 'cleanup' }
+    addScriptBreadcrumb(context)
 
-    this.embeds.forEach((embed, element) => {
-      if (!document.contains(element)) {
-        embed.destroy()
-        toRemove.push(element)
-      }
-    })
+    try {
+      const toRemove: HTMLElement[] = []
 
-    toRemove.forEach(element => {
-      this.embeds.delete(element)
-    })
+      this.embeds.forEach((embed, element) => {
+        try {
+          if (!document.contains(element)) {
+            embed.destroy()
+            toRemove.push(element)
+          }
+        } catch (error) {
+          handleScriptError(error, { scriptName: EmbedManager.scriptName, operation: 'checkStaleEmbed' })
+        }
+      })
+
+      toRemove.forEach(element => {
+        try {
+          this.embeds.delete(element)
+        } catch (error) {
+          handleScriptError(error, { scriptName: EmbedManager.scriptName, operation: 'deleteEmbed' })
+        }
+      })
+    } catch (error) {
+      handleScriptError(error, context)
+    }
   }
 
   static override reset(): void {
@@ -159,14 +217,21 @@ class EmbedInstance {
   }
 
   initialize(): void {
-    // LinkedIn embeds are already complete HTML, no need for intersection observer
-    if (this.platform === 'linkedin') {
-      this.handleLinkedInEmbed()
-      return
-    }
+    const context = { scriptName: 'EmbedInstance', operation: 'initialize' }
+    addScriptBreadcrumb(context)
 
-    // Setup intersection observer for lazy loading
-    this.setupIntersectionObserver()
+    try {
+      // LinkedIn embeds are already complete HTML, no need for intersection observer
+      if (this.platform === 'linkedin') {
+        this.handleLinkedInEmbed()
+        return
+      }
+
+      // Setup intersection observer for lazy loading
+      this.setupIntersectionObserver()
+    } catch (error) {
+      handleScriptError(error, context)
+    }
   }
 
   private detectPlatform(url: string): EmbedPlatform {
@@ -202,76 +267,110 @@ class EmbedInstance {
   }
 
   private setupIntersectionObserver(): void {
-    if (typeof IntersectionObserver === 'undefined') {
-      console.warn('IntersectionObserver not supported, loading embed immediately')
-      this.loadEmbed()
-      return
-    }
-
-    this.observer = new IntersectionObserver(
-      entries => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting && !this.loaded && !this.paused) {
-            this.loadEmbed()
-            this.observer?.unobserve(this.container)
-          }
-        })
-      },
-      {
-        root: document.body,
-        rootMargin: '0px 0px 500px 0px',
-        threshold: 0.01,
-      }
-    )
-
-    this.observer.observe(this.container)
-  }
-
-  private async loadEmbed(): Promise<void> {
-    if (this.loaded) return
-
-    this.loaded = true
+    const context = { scriptName: 'EmbedInstance', operation: 'setupIntersectionObserver' }
+    addScriptBreadcrumb(context)
 
     try {
-      // Check cache first
-      const cached = this.getCachedData()
-      if (cached) {
-        console.log(`Loading ${this.platform} embed from cache`)
-        this.renderEmbed(cached)
+      if (typeof IntersectionObserver === 'undefined') {
+        console.warn('IntersectionObserver not supported, loading embed immediately')
+        this.loadEmbed()
         return
       }
 
-      // Fetch fresh data
-      console.log(`Fetching ${this.platform} embed from oEmbed API`)
-      const oembedData = await this.fetchOEmbed()
+      this.observer = new IntersectionObserver(
+        entries => {
+          try {
+            entries.forEach(entry => {
+              try {
+                if (entry.isIntersecting && !this.loaded && !this.paused) {
+                  this.loadEmbed()
+                  this.observer?.unobserve(this.container)
+                }
+              } catch (error) {
+                handleScriptError(error, { scriptName: 'EmbedInstance', operation: 'observerCallback' })
+              }
+            })
+          } catch (error) {
+            handleScriptError(error, { scriptName: 'EmbedInstance', operation: 'observerEntries' })
+          }
+        },
+        {
+          root: document.body,
+          rootMargin: '0px 0px 500px 0px',
+          threshold: 0.01,
+        }
+      )
 
-      if (oembedData) {
-        this.cacheData(oembedData)
-        this.renderEmbed(oembedData)
-      } else {
-        console.error(`Failed to fetch oEmbed data for ${this.platform}`)
+      this.observer.observe(this.container)
+    } catch (error) {
+      // Fallback: load immediately if observer fails
+      handleScriptError(error, context)
+      this.loadEmbed()
+    }
+  }
+
+  private async loadEmbed(): Promise<void> {
+    const context = { scriptName: 'EmbedInstance', operation: 'loadEmbed' }
+    addScriptBreadcrumb(context)
+
+    try {
+      if (this.loaded) return
+
+      this.loaded = true
+
+      try {
+        // Check cache first
+        const cached = this.getCachedData()
+        if (cached) {
+          console.log(`Loading ${this.platform} embed from cache`)
+          this.renderEmbed(cached)
+          return
+        }
+
+        // Fetch fresh data
+        console.log(`Fetching ${this.platform} embed from oEmbed API`)
+        const oembedData = await this.fetchOEmbed()
+
+        if (oembedData) {
+          this.cacheData(oembedData)
+          this.renderEmbed(oembedData)
+        } else {
+          console.error(`Failed to fetch oEmbed data for ${this.platform}`)
+        }
+      } catch (error) {
+        handleScriptError(error, { scriptName: 'EmbedInstance', operation: 'fetchOrRender' })
       }
     } catch (error) {
-      console.error(`Error loading ${this.platform} embed:`, error)
+      handleScriptError(error, context)
     }
   }
 
   private async fetchOEmbed(): Promise<OEmbedResponse | null> {
-    const endpoint = this.getOEmbedEndpoint()
-    if (!endpoint) {
-      console.error(`No oEmbed endpoint configured for platform: ${this.platform}`)
-      return null
-    }
+    const context = { scriptName: 'EmbedInstance', operation: 'fetchOEmbed' }
+    addScriptBreadcrumb(context)
 
     try {
-      const response = await fetch(endpoint)
-      if (!response.ok) {
-        throw new Error(`oEmbed fetch failed: ${response.status} ${response.statusText}`)
+      const endpoint = this.getOEmbedEndpoint()
+      if (!endpoint) {
+        console.error(`No oEmbed endpoint found for platform: ${this.platform}`)
+        return null
       }
 
-      return await response.json()
+      try {
+        const response = await fetch(endpoint)
+        if (!response.ok) {
+          console.error(`oEmbed API error: ${response.status} ${response.statusText}`)
+          return null
+        }
+
+        const data = (await response.json()) as OEmbedResponse
+        return data
+      } catch (error) {
+        handleScriptError(error, { scriptName: 'EmbedInstance', operation: 'fetchRequest' })
+        return null
+      }
     } catch (error) {
-      console.error(`Failed to fetch oEmbed data:`, error)
+      handleScriptError(error, context)
       return null
     }
   }
@@ -327,28 +426,35 @@ class EmbedInstance {
   }
 
   private renderEmbed(data: OEmbedResponse): void {
-    const placeholder = this.container.querySelector('[data-embed-placeholder]')
-    if (!placeholder) {
-      console.warn('Placeholder not found in embed container')
-      return
+    const context = { scriptName: 'EmbedInstance', operation: 'renderEmbed' }
+    addScriptBreadcrumb(context)
+
+    try {
+      const placeholder = this.container.querySelector('[data-embed-placeholder]')
+      if (!placeholder) {
+        console.warn('Placeholder not found in embed container')
+        return
+      }
+
+      // Create a wrapper for the embed HTML
+      const wrapper = document.createElement('div')
+      wrapper.className = 'embed-content'
+      wrapper.innerHTML = data.html
+
+      // Handle GitHub Gist specially (no oEmbed support)
+      if (this.platform === 'github-gist') {
+        this.renderGitHubGist(wrapper)
+        return
+      }
+
+      // Replace placeholder with actual embed
+      placeholder.replaceWith(wrapper)
+
+      // Execute any scripts in the embed HTML
+      this.executeScripts(wrapper)
+    } catch (error) {
+      handleScriptError(error, context)
     }
-
-    // Create a wrapper for the embed HTML
-    const wrapper = document.createElement('div')
-    wrapper.className = 'embed-content'
-    wrapper.innerHTML = data.html
-
-    // Handle GitHub Gist specially (no oEmbed support)
-    if (this.platform === 'github-gist') {
-      this.renderGitHubGist(wrapper)
-      return
-    }
-
-    // Replace placeholder with actual embed
-    placeholder.replaceWith(wrapper)
-
-    // Execute any scripts in the embed HTML
-    this.executeScripts(wrapper)
   }
 
   private renderGitHubGist(wrapper: HTMLElement): void {
@@ -380,39 +486,46 @@ class EmbedInstance {
   }
 
   private handleLinkedInEmbed(): void {
-    // LinkedIn embeds are already complete iframes slotted into the component
-    // We just need to make them responsive
-    const iframe = this.container.querySelector('iframe')
-    if (!iframe) {
-      console.warn('LinkedIn iframe not found')
-      return
+    const context = { scriptName: 'EmbedInstance', operation: 'handleLinkedInEmbed' }
+    addScriptBreadcrumb(context)
+
+    try {
+      // LinkedIn embeds are already complete iframes slotted into the component
+      // We just need to make them responsive
+      const iframe = this.container.querySelector('iframe')
+      if (!iframe) {
+        console.warn('LinkedIn iframe not found')
+        return
+      }
+
+      // Wrap the iframe in a responsive container
+      const wrapper = document.createElement('div')
+      wrapper.className = 'embed-linkedin-wrapper'
+      wrapper.style.position = 'relative'
+      wrapper.style.width = '100%'
+      wrapper.style.paddingBottom = '117.86%' // 593/504 = 1.1786 aspect ratio
+      wrapper.style.maxWidth = '504px'
+      wrapper.style.margin = '0 auto'
+
+      // Style the iframe for responsive behavior
+      iframe.style.position = 'absolute'
+      iframe.style.top = '0'
+      iframe.style.left = '0'
+      iframe.style.width = '100%'
+      iframe.style.height = '100%'
+      iframe.setAttribute('frameborder', '0')
+
+      // Wrap the iframe
+      const parent = iframe.parentNode
+      if (parent) {
+        parent.insertBefore(wrapper, iframe)
+        wrapper.appendChild(iframe)
+      }
+
+      console.log('LinkedIn embed made responsive')
+    } catch (error) {
+      handleScriptError(error, context)
     }
-
-    // Wrap the iframe in a responsive container
-    const wrapper = document.createElement('div')
-    wrapper.className = 'embed-linkedin-wrapper'
-    wrapper.style.position = 'relative'
-    wrapper.style.width = '100%'
-    wrapper.style.paddingBottom = '117.86%' // 593/504 = 1.1786 aspect ratio
-    wrapper.style.maxWidth = '504px'
-    wrapper.style.margin = '0 auto'
-
-    // Style the iframe for responsive behavior
-    iframe.style.position = 'absolute'
-    iframe.style.top = '0'
-    iframe.style.left = '0'
-    iframe.style.width = '100%'
-    iframe.style.height = '100%'
-    iframe.setAttribute('frameborder', '0')
-
-    // Wrap the iframe
-    const parent = iframe.parentNode
-    if (parent) {
-      parent.insertBefore(wrapper, iframe)
-      wrapper.appendChild(iframe)
-    }
-
-    console.log('LinkedIn embed made responsive')
   }
 
   private getCacheKey(): string {

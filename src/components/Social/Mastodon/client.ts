@@ -31,6 +31,7 @@ import {
   getSavedInstancesContainer,
   getSavedInstancesList,
 } from './selectors'
+import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
 
 /**
  * Custom event detail for modal open
@@ -96,6 +97,9 @@ export class MastodonModal extends LoadableScript {
    * Initialize the modal and set up event listeners
    */
   bindEvents(): void {
+    const context = { scriptName: MastodonModal.scriptName, operation: 'bindEvents' }
+    addScriptBreadcrumb(context)
+
     try {
       // Get DOM elements using type-safe selectors
       this.modal = getModalElement()
@@ -135,7 +139,8 @@ export class MastodonModal extends LoadableScript {
         this.updateSavedInstancesUI(instances)
       })
     } catch (error) {
-      console.error('Failed to initialize Mastodon modal:', error)
+      // Mastodon modal is optional enhancement
+      handleScriptError(error, context)
     }
   }
 
@@ -201,27 +206,34 @@ export class MastodonModal extends LoadableScript {
    * Opens the modal with the given share text
    */
   private openModal(text: string): void {
-    this.shareText = text
+    const context = { scriptName: MastodonModal.scriptName, operation: 'openModal' }
+    addScriptBreadcrumb(context)
 
-    if (this.textarea) {
-      this.textarea.value = text
+    try {
+      this.shareText = text
+
+      if (this.textarea) {
+        this.textarea.value = text
+      }
+
+      // Restore last used instance
+      const lastInstance = $currentMastodonInstance.get()
+      if (lastInstance && this.instanceInput) {
+        this.instanceInput.value = lastInstance
+      }
+
+      this.modal?.removeAttribute('hidden')
+      this.focusTrap?.activate()
+
+      // Emit custom event for analytics
+      window.dispatchEvent(
+        new CustomEvent('mastodon:modal-open', {
+          detail: { text },
+        })
+      )
+    } catch (error) {
+      handleScriptError(error, context)
     }
-
-    // Restore last used instance
-    const lastInstance = $currentMastodonInstance.get()
-    if (lastInstance && this.instanceInput) {
-      this.instanceInput.value = lastInstance
-    }
-
-    this.modal?.removeAttribute('hidden')
-    this.focusTrap?.activate()
-
-    // Emit custom event for analytics
-    window.dispatchEvent(
-      new CustomEvent('mastodon:modal-open', {
-        detail: { text },
-      })
-    )
   }
 
   /**
@@ -266,33 +278,37 @@ export class MastodonModal extends LoadableScript {
    * Handles form submission and shares to Mastodon
    */
   private async handleSubmit(event: Event): Promise<void> {
-    event.preventDefault()
-
-    const instance = this.instanceInput?.value?.trim()
-    if (!instance) {
-      this.showStatus('Please enter a Mastodon instance')
-      return
-    }
-
-    if (this.submitButton) {
-      this.submitButton.disabled = true
-    }
-    this.showStatus('Detecting instance...', 'success')
+    const context = { scriptName: MastodonModal.scriptName, operation: 'handleSubmit' }
+    addScriptBreadcrumb(context)
 
     try {
-      // Verify it's a Mastodon instance
-      const isMastodon = await isMastodonInstance(instance)
-      if (!isMastodon) {
-        this.showStatus('This does not appear to be a Mastodon instance')
-        if (this.submitButton) {
-          this.submitButton.disabled = false
-        }
+      event.preventDefault()
+
+      const instance = this.instanceInput?.value?.trim()
+      if (!instance) {
+        this.showStatus('Please enter a Mastodon instance')
         return
       }
 
-      // Save instance if remember is checked
-      const remember = this.rememberCheckbox?.checked || false
-      if (remember) {
+      if (this.submitButton) {
+        this.submitButton.disabled = true
+      }
+      this.showStatus('Detecting instance...', 'success')
+
+      try {
+        // Verify it's a Mastodon instance
+        const isMastodon = await isMastodonInstance(instance)
+        if (!isMastodon) {
+          this.showStatus('This does not appear to be a Mastodon instance')
+          if (this.submitButton) {
+            this.submitButton.disabled = false
+          }
+          return
+        }
+
+        // Save instance if remember is checked
+        const remember = this.rememberCheckbox?.checked || false
+        if (remember) {
         const domain = getUrlDomain(normalizeURL(instance))
         saveMastodonInstance(domain)
       }
@@ -316,12 +332,15 @@ export class MastodonModal extends LoadableScript {
       // Close modal after short delay
       this.showStatus('Opening Mastodon...', 'success')
       setTimeout(() => this.closeModal(), 1000)
-    } catch (error) {
-      console.error('Mastodon share error:', error)
-      this.showStatus('Failed to verify instance. Please try again.')
-      if (this.submitButton) {
-        this.submitButton.disabled = false
+      } catch (error) {
+        handleScriptError(error, { scriptName: MastodonModal.scriptName, operation: 'verifyInstance' })
+        this.showStatus('Failed to verify instance. Please try again.')
+        if (this.submitButton) {
+          this.submitButton.disabled = false
+        }
       }
+    } catch (error) {
+      handleScriptError(error, context)
     }
   }
 
@@ -329,20 +348,27 @@ export class MastodonModal extends LoadableScript {
    * Pause the script (remove event listeners)
    */
   pause(): void {
-    document.removeEventListener('keydown', this.handleKeyDown)
-    window.removeEventListener('mastodon:open-modal', this.handleOpenModalEvent)
+    const context = { scriptName: MastodonModal.scriptName, operation: 'pause' }
+    addScriptBreadcrumb(context)
 
-    if (this.closeButton) {
-      this.closeButton.removeEventListener('click', () => this.closeModal())
-    }
-    if (this.cancelButton) {
-      this.cancelButton.removeEventListener('click', () => this.closeModal())
-    }
-    if (this.backdrop) {
-      this.backdrop.removeEventListener('click', () => this.closeModal())
-    }
-    if (this.form) {
-      this.form.removeEventListener('submit', (e) => this.handleSubmit(e))
+    try {
+      document.removeEventListener('keydown', this.handleKeyDown)
+      window.removeEventListener('mastodon:open-modal', this.handleOpenModalEvent)
+
+      if (this.closeButton) {
+        this.closeButton.removeEventListener('click', () => this.closeModal())
+      }
+      if (this.cancelButton) {
+        this.cancelButton.removeEventListener('click', () => this.closeModal())
+      }
+      if (this.backdrop) {
+        this.backdrop.removeEventListener('click', () => this.closeModal())
+      }
+      if (this.form) {
+        this.form.removeEventListener('submit', (e) => this.handleSubmit(e))
+      }
+    } catch (error) {
+      handleScriptError(error, context)
     }
   }
 
@@ -357,8 +383,16 @@ export class MastodonModal extends LoadableScript {
    * LoadableScript static methods
    */
   static override init(): void {
-    MastodonModal.instance = new MastodonModal()
-    MastodonModal.instance.bindEvents()
+    const context = { scriptName: MastodonModal.scriptName, operation: 'init' }
+    addScriptBreadcrumb(context)
+
+    try {
+      MastodonModal.instance = new MastodonModal()
+      MastodonModal.instance.bindEvents()
+    } catch (error) {
+      // Mastodon modal is optional enhancement
+      handleScriptError(error, context)
+    }
   }
 
   static override pause(): void {

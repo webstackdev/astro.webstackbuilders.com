@@ -9,6 +9,7 @@ import type { ShareData } from '@components/Social/common'
 import { platforms, copyToClipboard, nativeShare } from '@components/Social/common'
 import { MastodonModal } from '@components/Social/Mastodon/client'
 import { getSlotElement } from './selectors'
+import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
 
 /**
  * Highlighter element that creates a shareable text highlight
@@ -208,36 +209,51 @@ class HighlighterElement extends HTMLElement {
    * Setup event listeners for interaction
    */
   private setupEventListeners(): void {
-    // Show dialog on hover/focus
-    this.addEventListener('mouseenter', () => this.showDialog())
-    this.addEventListener('focusin', () => this.showDialog())
+    const context = { scriptName: 'Highlighter', operation: 'setupEventListeners' }
+    addScriptBreadcrumb(context)
 
-    // Hide dialog on mouse leave/blur
-    this.addEventListener('mouseleave', () => this.hideDialog())
-    this.addEventListener('focusout', () => this.hideDialog())
+    try {
+      // Show dialog on hover/focus
+      this.addEventListener('mouseenter', () => this.showDialog())
+      this.addEventListener('focusin', () => this.showDialog())
 
-    // Keyboard navigation
-    this.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault()
-        this.showDialog()
-      } else if (e.key === 'Escape') {
-        this.hideDialog()
-        this.blur()
-      }
-    })
+      // Hide dialog on mouse leave/blur
+      this.addEventListener('mouseleave', () => this.hideDialog())
+      this.addEventListener('focusout', () => this.hideDialog())
 
-    // Share button clicks
-    const buttons = this.shadowRoot.querySelectorAll<HTMLButtonElement>('.share-button')
-    buttons.forEach(button => {
-      button.addEventListener('click', e => {
-        e.stopPropagation()
-        const platformId = button.dataset['platform']
-        if (platformId) {
-          this.handleShare(platformId)
+      // Keyboard navigation
+      this.addEventListener('keydown', e => {
+        try {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            this.showDialog()
+          } else if (e.key === 'Escape') {
+            this.hideDialog()
+            this.blur()
+          }
+        } catch (error) {
+          handleScriptError(error, { scriptName: 'Highlighter', operation: 'keydown' })
         }
       })
-    })
+
+      // Share button clicks
+      const buttons = this.shadowRoot.querySelectorAll<HTMLButtonElement>('.share-button')
+      buttons.forEach(button => {
+        button.addEventListener('click', e => {
+          try {
+            e.stopPropagation()
+            const platformId = button.dataset['platform']
+            if (platformId) {
+              this.handleShare(platformId)
+            }
+          } catch (error) {
+            handleScriptError(error, { scriptName: 'Highlighter', operation: 'shareClick' })
+          }
+        })
+      })
+    } catch (error) {
+      handleScriptError(error, context)
+    }
   }
 
   /**
@@ -288,40 +304,47 @@ class HighlighterElement extends HTMLElement {
    * Handle share action for a specific platform
    */
   private async handleShare(platformId: string): Promise<void> {
-    const data = this.getShareData()
+    const context = { scriptName: 'Highlighter', operation: 'handleShare' }
+    addScriptBreadcrumb(context)
 
-    if (platformId === 'copy') {
-      const success = await copyToClipboard(`${data.text} ${data.url}`)
-      if (success) {
-        this.showCopyFeedback()
-        this.emitShareEvent(platformId, data)
+    try {
+      const data = this.getShareData()
+
+      if (platformId === 'copy') {
+        const success = await copyToClipboard(`${data.text} ${data.url}`)
+        if (success) {
+          this.showCopyFeedback()
+          this.emitShareEvent(platformId, data)
+        }
+        return
       }
-      return
-    }
 
-    // Handle Mastodon modal
-    if (platformId === 'mastodon') {
-      MastodonModal.openModal(`${data.text} ${data.url}`)
-      this.hideDialog()
-      this.emitShareEvent(platformId, data)
-      return
-    }
-
-    // Try native share first on mobile
-    if (typeof navigator.share === 'function') {
-      const shared = await nativeShare(data)
-      if (shared) {
+      // Handle Mastodon modal
+      if (platformId === 'mastodon') {
+        MastodonModal.openModal(`${data.text} ${data.url}`)
+        this.hideDialog()
         this.emitShareEvent(platformId, data)
         return
       }
-    }
 
-    // Fallback to platform-specific URL
-    const platform = platforms.find(p => p.id === platformId)
-    if (platform) {
-      const shareUrl = platform.getShareUrl(data)
-      window.open(shareUrl, '_blank', 'noopener,noreferrer')
-      this.emitShareEvent(platformId, data)
+      // Try native share first on mobile
+      if (typeof navigator.share === 'function') {
+        const shared = await nativeShare(data)
+        if (shared) {
+          this.emitShareEvent(platformId, data)
+          return
+        }
+      }
+
+      // Fallback to platform-specific URL
+      const platform = platforms.find(p => p.id === platformId)
+      if (platform) {
+        const shareUrl = platform.getShareUrl(data)
+        window.open(shareUrl, '_blank', 'noopener,noreferrer')
+        this.emitShareEvent(platformId, data)
+      }
+    } catch (error) {
+      handleScriptError(error, context)
     }
   }
 
@@ -364,9 +387,17 @@ export class Highlighter extends LoadableScript {
   static override eventType = 'delayed' as const
 
   static override init(): void {
-    // Register custom element if not already registered
-    if (!customElements.get('highlighter-element')) {
-      customElements.define('highlighter-element', HighlighterElement)
+    const context = { scriptName: Highlighter.scriptName, operation: 'init' }
+    addScriptBreadcrumb(context)
+
+    try {
+      // Register custom element if not already registered
+      if (!customElements.get('highlighter-element')) {
+        customElements.define('highlighter-element', HighlighterElement)
+      }
+    } catch (error) {
+      // Highlighter is optional enhancement
+      handleScriptError(error, context)
     }
   }
 

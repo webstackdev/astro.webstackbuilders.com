@@ -7,6 +7,7 @@
 import EmblaCarousel, { type EmblaOptionsType, type EmblaCarouselType } from 'embla-carousel'
 import Autoplay from 'embla-carousel-autoplay'
 import { LoadableScript, type TriggerEvent } from '../Scripts/loader/@types/loader'
+import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
 
 /**
  * Testimonials carousel using LoadableScript pattern with instance-specific approach
@@ -39,39 +40,47 @@ export class TestimonialsCarousel extends LoadableScript {
    * Initialize the Embla Carousel
    */
   private initializeCarousel(): void {
-    if (!this.emblaNode) {
-      console.warn('Testimonials carousel container not found')
-      return
+    const context = { scriptName: TestimonialsCarousel.scriptName, operation: 'initializeCarousel' }
+    addScriptBreadcrumb(context)
+
+    try {
+      if (!this.emblaNode) {
+        console.warn('Testimonials carousel container not found')
+        return
+      }
+
+      if (!this.viewportNode) {
+        console.warn('Testimonials carousel viewport not found')
+        return
+      }
+
+      // Embla carousel options optimized for testimonials
+      const options: EmblaOptionsType = {
+        loop: true,
+        align: 'center',
+        skipSnaps: false,
+        dragFree: false,
+      }
+
+      // Autoplay plugin configuration - slower for testimonials
+      const autoplayOptions = {
+        delay: 6000, // Longer delay for reading testimonials
+        stopOnInteraction: true,
+        stopOnMouseEnter: true,
+      }
+
+      // Initialize Embla Carousel with Autoplay plugin
+      this.emblaApi = EmblaCarousel(this.viewportNode, options, [Autoplay(autoplayOptions)])
+
+      this.setupNavigationButtons()
+      this.setupDotsNavigation()
+
+      // Log initialization
+      console.log('Testimonials carousel initialized with autoplay')
+    } catch (error) {
+      // Testimonials carousel is optional enhancement
+      handleScriptError(error, context)
     }
-
-    if (!this.viewportNode) {
-      console.warn('Testimonials carousel viewport not found')
-      return
-    }
-
-    // Embla carousel options optimized for testimonials
-    const options: EmblaOptionsType = {
-      loop: true,
-      align: 'center',
-      skipSnaps: false,
-      dragFree: false,
-    }
-
-    // Autoplay plugin configuration - slower for testimonials
-    const autoplayOptions = {
-      delay: 6000, // Longer delay for reading testimonials
-      stopOnInteraction: true,
-      stopOnMouseEnter: true,
-    }
-
-    // Initialize Embla Carousel with Autoplay plugin
-    this.emblaApi = EmblaCarousel(this.viewportNode, options, [Autoplay(autoplayOptions)])
-
-    this.setupNavigationButtons()
-    this.setupDotsNavigation()
-
-    // Log initialization
-    console.log('Testimonials carousel initialized with autoplay')
   }
 
   /**
@@ -172,8 +181,16 @@ export class TestimonialsCarousel extends LoadableScript {
    * LoadableScript static methods
    */
   static override init(): void {
-    const testimonialsCarousel = new TestimonialsCarousel()
-    testimonialsCarousel.initializeCarousel()
+    const context = { scriptName: TestimonialsCarousel.scriptName, operation: 'init' }
+    addScriptBreadcrumb(context)
+
+    try {
+      const testimonialsCarousel = new TestimonialsCarousel()
+      testimonialsCarousel.initializeCarousel()
+    } catch (error) {
+      // Testimonials carousel is optional enhancement
+      handleScriptError(error, context)
+    }
   }
 
   static override pause(): void {

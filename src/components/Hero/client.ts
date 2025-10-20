@@ -1,5 +1,6 @@
 import { LoadableScript, type TriggerEvent } from '../Scripts/loader'
 import { gsap } from 'gsap'
+import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
 
 type Timeline = ReturnType<typeof gsap.timeline>
 
@@ -39,15 +40,19 @@ export class HeroLoader extends LoadableScript {
   }
 
   private startAnimation() {
-    if (document.getElementById('heroAnimation') == undefined) return
+    const context = { scriptName: HeroLoader.scriptName, operation: 'startAnimation' }
+    addScriptBreadcrumb(context)
 
-    if (this.timeline) {
-      return
-    }
+    try {
+      if (document.getElementById('heroAnimation') == undefined) return
 
-    gsap.set('.monitorBottom', {
-      transformOrigin: '50% 100%',
-    })
+      if (this.timeline) {
+        return
+      }
+
+      gsap.set('.monitorBottom', {
+        transformOrigin: '50% 100%',
+      })
 
     gsap.set(['.monitorStand', '.laptopBase', '.tabletScreen'], {
       transformOrigin: '50% 0%',
@@ -385,30 +390,63 @@ export class HeroLoader extends LoadableScript {
         delay: 2,
         ease: 'back.in(2)',
       })
+    } catch (error) {
+      // Animation is optional enhancement - handle gracefully
+      handleScriptError(error, context)
+    }
   }
 
   static override init() {
-    if (!HeroLoader.instance) {
-      HeroLoader.instance = new HeroLoader()
+    const context = { scriptName: HeroLoader.scriptName, operation: 'init' }
+    addScriptBreadcrumb(context)
+
+    try {
+      if (!HeroLoader.instance) {
+        HeroLoader.instance = new HeroLoader()
+      }
+      HeroLoader.instance.startAnimation()
+    } catch (error) {
+      // Animation is optional - page still works without it
+      handleScriptError(error, context)
     }
-    HeroLoader.instance.startAnimation()
   }
 
   static override pause() {
-    if (HeroLoader.instance?.timeline) {
-      HeroLoader.instance.timeline.pause()
+    const context = { scriptName: HeroLoader.scriptName, operation: 'pause' }
+    addScriptBreadcrumb(context)
+
+    try {
+      if (HeroLoader.instance?.timeline) {
+        HeroLoader.instance.timeline.pause()
+      }
+    } catch (error) {
+      handleScriptError(error, context)
     }
   }
 
   static override resume() {
-    if (HeroLoader.instance?.timeline) {
-      HeroLoader.instance.timeline.play()
+    const context = { scriptName: HeroLoader.scriptName, operation: 'resume' }
+    addScriptBreadcrumb(context)
+
+    try {
+      if (HeroLoader.instance?.timeline) {
+        HeroLoader.instance.timeline.play()
+      }
+    } catch (error) {
+      handleScriptError(error, context)
     }
   }
 
   static override reset() {
-    if (HeroLoader.instance?.timeline) {
-      HeroLoader.instance.timeline.restart()
+    const context = { scriptName: HeroLoader.scriptName, operation: 'reset' }
+    addScriptBreadcrumb(context)
+
+    try {
+      if (HeroLoader.instance?.timeline) {
+        HeroLoader.instance.timeline.restart()
+      }
+    } catch (error) {
+      handleScriptError(error, context)
     }
   }
 }

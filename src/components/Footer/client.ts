@@ -3,6 +3,7 @@
  */
 import { LoadableScript, type TriggerEvent } from '../Scripts/loader/@types/loader'
 import { getHireMeAnchorElement } from './selectors'
+import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
 
 class Footer extends LoadableScript {
   static override scriptName = 'Footer'
@@ -15,12 +16,20 @@ class Footer extends LoadableScript {
   }
 
   static override init(): void {
-    const anchor = getHireMeAnchorElement()
-    const date = new Date()
-    const month = Footer.getMonthName(date)
-    const year = date.getFullYear()
-    anchor.innerHTML = `Available ${month}, ${year}. Hire Me Now`
-    anchor.style.display = 'inline-block'
+    const context = { scriptName: Footer.scriptName, operation: 'init' }
+    addScriptBreadcrumb(context)
+
+    try {
+      const anchor = getHireMeAnchorElement()
+      const date = new Date()
+      const month = Footer.getMonthName(date)
+      const year = date.getFullYear()
+      anchor.innerHTML = `Available ${month}, ${year}. Hire Me Now`
+      anchor.style.display = 'inline-block'
+    } catch (error) {
+      // Footer date is optional enhancement
+      handleScriptError(error, context)
+    }
   }
 
   static override pause(): void {
