@@ -51,7 +51,7 @@ export const GET: APIRoute = async ({ url }) => {
       purposes: ['marketing'],
       source: 'newsletter_form',
       userAgent: subscription.userAgent,
-      ipAddress: subscription.ipAddress,
+      ...(subscription.ipAddress ? { ipAddress: subscription.ipAddress } : {}),
       verified: true,
     })
 
@@ -63,12 +63,17 @@ export const GET: APIRoute = async ({ url }) => {
       // Continue anyway - subscription is confirmed
     }
 
-    // TODO: Add to ConvertKit with consent timestamp
-    // const { subscribeToConvertKit } = await import('../../../../api/newsletter/newsletter')
-    // await subscribeToConvertKit({
-    //   email: subscription.email,
-    //   firstName: subscription.firstName,
-    // })
+    // Add to ConvertKit with verified status
+    try {
+      const { subscribeToConvertKit } = await import('../../../../api/newsletter/newsletter')
+      await subscribeToConvertKit({
+        email: subscription.email,
+        ...(subscription.firstName ? { firstName: subscription.firstName } : {}),
+      })
+    } catch (convertKitError) {
+      console.error('Failed to add to ConvertKit:', convertKitError)
+      // Continue anyway - we have the consent and can retry later
+    }
 
     return new Response(
       JSON.stringify({
