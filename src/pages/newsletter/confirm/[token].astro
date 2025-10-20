@@ -1,0 +1,229 @@
+---
+/**
+ * Newsletter Confirmation Page
+ * Handles double opt-in confirmation link from email
+ * GDPR-compliant newsletter subscription verification
+ */
+import PageLayout from '@layouts/PageLayout.astro'
+import { confirmSubscription } from '../../../api/newsletter/token.ts'
+import { recordConsent } from '../../../api/shared/consent-log.ts'
+
+const { token } = Astro.params
+
+let status: 'success' | 'expired' | 'invalid' | 'error' = 'invalid'
+let email = ''
+let errorMessage = ''
+
+if (token) {
+  try {
+    // Validate and confirm the subscription
+    const subscription = await confirmSubscription(token)
+
+    if (subscription) {
+      email = subscription.email
+
+      // Record verified consent in audit trail
+      await recordConsent({
+        email: subscription.email,
+        purposes: ['marketing'],
+        source: 'newsletter_form',
+        userAgent: subscription.userAgent,
+        ipAddress: subscription.ipAddress,
+        verified: true,
+      })
+
+      // TODO: Add to ConvertKit with consent timestamp
+      // await addToConvertKit({
+      //   email: subscription.email,
+      //   firstName: subscription.firstName,
+      //   consentDate: subscription.consentTimestamp,
+      // })
+
+      status = 'success'
+    } else {
+      status = 'expired'
+    }
+  } catch (error) {
+    console.error('Newsletter confirmation error:', error)
+    status = 'error'
+    errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+  }
+}
+
+const pageTitle = status === 'success'
+  ? 'Subscription Confirmed!'
+  : status === 'expired'
+  ? 'Confirmation Link Expired'
+  : status === 'error'
+  ? 'Confirmation Error'
+  : 'Invalid Confirmation Link'
+
+const subtitle = status === 'success'
+  ? `Welcome to the Webstack Builders newsletter!`
+  : 'Newsletter subscription confirmation'
+---
+
+<PageLayout pageTitle={pageTitle} path="newsletter/confirm" subtitle={subtitle}>
+  <div class="container mx-auto px-4 py-16 max-w-2xl">
+    <div class="bg-base border border-offset rounded-lg p-8 shadow-sm">
+
+      {status === 'success' && (
+        <div>
+          <div class="text-center mb-6">
+            <svg
+              class="w-16 h-16 mx-auto text-green-500 mb-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linecap="round"
+                stroke-width="2"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <h1 class="text-3xl font-bold text-text mb-2">
+              Subscription Confirmed!
+            </h1>
+          </div>
+
+          <div class="prose prose-invert max-w-none">
+            <p class="text-lg text-text-offset mb-4">
+              Thank you for confirming your subscription, <strong>{email}</strong>!
+            </p>
+
+            <p class="text-text-offset mb-4">
+              You're now subscribed to our newsletter and will receive:
+            </p>
+
+            <ul class="text-text-offset mb-6">
+              <li>Web development insights and best practices</li>
+              <li>Updates about new articles and case studies</li>
+              <li>Exclusive Webstack Builders news</li>
+            </ul>
+
+            <div class="bg-offset border border-offset rounded p-4 text-sm text-text-offset mb-6">
+              <p class="font-semibold mb-2">Your Rights:</p>
+              <p>
+                You can unsubscribe at any time using the link in any email we send.
+                See our <a href="/privacy/" class="text-accent hover:underline">Privacy Policy</a>
+                for details about how we handle your data.
+              </p>
+            </div>
+
+            <div class="text-center">
+              <a
+                href="/articles/"
+                class="inline-block bg-accent text-text-inverse px-6 py-3 rounded-lg hover:bg-accent-hover transition-colors font-semibold"
+              >
+                Browse Our Articles
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {status === 'expired' && (
+        <div>
+          <div class="text-center mb-6">
+            <svg
+              class="w-16 h-16 mx-auto text-yellow-500 mb-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linecap="round"
+                stroke-width="2"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <h1 class="text-3xl font-bold text-text mb-2">
+              Confirmation Link Expired
+            </h1>
+          </div>
+
+          <div class="prose prose-invert max-w-none">
+            <p class="text-lg text-text-offset mb-4">
+              This confirmation link has expired or has already been used.
+            </p>
+
+            <p class="text-text-offset mb-6">
+              Confirmation links are valid for 24 hours for security reasons.
+              If you'd like to subscribe, please sign up again below.
+            </p>
+
+            <div class="text-center">
+              <a
+                href="/#newsletter"
+                class="inline-block bg-accent text-text-inverse px-6 py-3 rounded-lg hover:bg-accent-hover transition-colors font-semibold"
+              >
+                Sign Up Again
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {(status === 'invalid' || status === 'error') && (
+        <div>
+          <div class="text-center mb-6">
+            <svg
+              class="w-16 h-16 mx-auto text-red-500 mb-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linecap="round"
+                stroke-width="2"
+                d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <h1 class="text-3xl font-bold text-text mb-2">
+              {status === 'invalid' ? 'Invalid Link' : 'Confirmation Error'}
+            </h1>
+          </div>
+
+          <div class="prose prose-invert max-w-none">
+            <p class="text-lg text-text-offset mb-4">
+              {status === 'invalid'
+                ? 'This confirmation link is invalid or malformed.'
+                : 'An error occurred while confirming your subscription.'}
+            </p>
+
+            {errorMessage && (
+              <p class="text-sm text-red-400 mb-6">
+                Error details: {errorMessage}
+              </p>
+            )}
+
+            <p class="text-text-offset mb-6">
+              If you believe this is an error, please try signing up again or
+              <a href="/contact/" class="text-accent hover:underline">contact us</a> for assistance.
+            </p>
+
+            <div class="text-center">
+              <a
+                href="/#newsletter"
+                class="inline-block bg-accent text-text-inverse px-6 py-3 rounded-lg hover:bg-accent-hover transition-colors font-semibold mr-4"
+              >
+                Sign Up
+              </a>
+              <a
+                href="/contact/"
+                class="inline-block bg-offset text-text px-6 py-3 rounded-lg hover:bg-offset-hover transition-colors font-semibold"
+              >
+                Get Help
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
+    </div>
+  </div>
+</PageLayout>
