@@ -13,6 +13,8 @@ import {
   getThemePickerCloseButton,
   getThemePickerSelectButtons,
 } from './selectors'
+import { ClientScriptError } from '@components/Scripts/errors/ClientScriptError'
+import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
 
 export const CLASSES = {
   isOpen: 'is-open',
@@ -66,14 +68,18 @@ export class ThemePicker extends LoadableScript {
    * Find and cache DOM elements
    */
   private findElements(): void {
+    const context = { scriptName: ThemePicker.scriptName, operation: 'findElements' }
+    addScriptBreadcrumb(context)
+
     try {
       this.pickerModal = getThemePickerModalWrapper()
       this.toggleBtn = getThemePickerToggleButton()
       this.closeBtn = getThemePickerCloseButton()
       this.themeSelectBtns = getThemePickerSelectButtons()
     } catch (error) {
-      console.error('ThemePicker: Error finding DOM elements:', error)
-      throw error
+      throw new ClientScriptError(
+        `ThemePicker: Failed to find required DOM elements - ${error instanceof Error ? error.message : 'Unknown error'}. Theme picker cannot function without these elements.`
+      )
     }
   }
 
@@ -81,28 +87,43 @@ export class ThemePicker extends LoadableScript {
    * Initialize the theme picker
    */
   private initializeThemePicker(): void {
-    if (!CSS.supports('color', 'var(--fake-var)')) {
-      console.log('ThemePicker: CSS custom properties not supported, theme picker disabled')
-      return
-    }
+    const context = { scriptName: ThemePicker.scriptName, operation: 'initialize' }
+    addScriptBreadcrumb(context)
 
-    this.setActiveItem()
-    this.bindEvents()
-    console.log('ThemePicker: initialized successfully')
+    try {
+      if (!CSS.supports('color', 'var(--fake-var)')) {
+        console.log('ThemePicker: CSS custom properties not supported, theme picker disabled')
+        return
+      }
+
+      this.setActiveItem()
+      this.bindEvents()
+      console.log('ThemePicker: initialized successfully')
+    } catch (error) {
+      handleScriptError(error, context)
+    }
   }
 
   /**
    * Get the initial theme based on stored preference or system preference
    */
   private getInitialActiveTheme(): ThemeIds {
-    const storedPreference = this.getStoredPreference()
-    const systemPreference = this.getSystemPreference()
+    const context = { scriptName: ThemePicker.scriptName, operation: 'getInitialTheme' }
+    addScriptBreadcrumb(context)
 
-    if (storedPreference) {
-      return storedPreference
-    } else if (systemPreference) {
-      return systemPreference
-    } else {
+    try {
+      const storedPreference = this.getStoredPreference()
+      const systemPreference = this.getSystemPreference()
+
+      if (storedPreference) {
+        return storedPreference
+      } else if (systemPreference) {
+        return systemPreference
+      } else {
+        return 'default'
+      }
+    } catch (error) {
+      handleScriptError(error, context)
       return 'default'
     }
   }
@@ -111,51 +132,85 @@ export class ThemePicker extends LoadableScript {
    * Get theme preference from state store
    */
   private getStoredPreference(): ThemeIds | false {
-    const storedTheme = $theme.get() as ThemeIds
-    return storedTheme && storedTheme !== 'default' ? storedTheme : false
+    const context = { scriptName: ThemePicker.scriptName, operation: 'getStoredPreference' }
+    addScriptBreadcrumb(context)
+
+    try {
+      const storedTheme = $theme.get() as ThemeIds
+      return storedTheme && storedTheme !== 'default' ? storedTheme : false
+    } catch (error) {
+      handleScriptError(error, context)
+      return false
+    }
   }
 
   /**
    * Get system theme preference
    */
   private getSystemPreference(): ThemeIds | false {
-    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return 'dark'
+    const context = { scriptName: ThemePicker.scriptName, operation: 'getSystemPreference' }
+    addScriptBreadcrumb(context)
+
+    try {
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        return 'dark'
+      }
+      return false
+    } catch (error) {
+      handleScriptError(error, context)
+      return false
     }
-    return false
   }
 
   /**
    * Bind event listeners
    */
   private bindEvents(): void {
-    addButtonEventListeners(this.toggleBtn, () => this.togglePicker())
-    addButtonEventListeners(this.closeBtn, () => this.togglePicker(false))
+    const context = { scriptName: ThemePicker.scriptName, operation: 'bindEvents' }
+    addScriptBreadcrumb(context)
 
-    /**
-     * Theme picker modal on mobile should close if it is open and the hamburger menu
-     * icon is clicked or pressed.
-     */
-    addButtonEventListeners(getNavToggleBtnElement(), () => {
-      if (this.isModalOpen) {
-        this.togglePicker(false)
+    try {
+      addButtonEventListeners(this.toggleBtn, () => this.togglePicker())
+      addButtonEventListeners(this.closeBtn, () => this.togglePicker(false))
+
+      /**
+       * Theme picker modal on mobile should close if it is open and the hamburger menu
+       * icon is clicked or pressed.
+       */
+      try {
+        addButtonEventListeners(getNavToggleBtnElement(), () => {
+          if (this.isModalOpen) {
+            this.togglePicker(false)
+          }
+        })
+      } catch (error) {
+        // Navigation button not found - acceptable, theme picker still works
+        handleScriptError(error, { scriptName: ThemePicker.scriptName, operation: 'bindNavToggle' })
       }
-    })
 
-    /**
-     * Add event handlers to each button wrapping a theme item card to set
-     * the current theme when activated.
-     */
-    this.themeSelectBtns.forEach(button => {
-      /** Get data-theme attribute value from button wrapping theme item card */
-      if (!('theme' in button.dataset))
-        throw new Error(`Theme item ${button.name} is missing the 'data-theme' attribute`)
+      /**
+       * Add event handlers to each button wrapping a theme item card to set
+       * the current theme when activated.
+       */
+      this.themeSelectBtns.forEach(button => {
+        try {
+          /** Get data-theme attribute value from button wrapping theme item card */
+          if (!('theme' in button.dataset)) {
+            throw new Error(`Theme item ${button.name} is missing the 'data-theme' attribute`)
+          }
 
-      const themeId = button.dataset['theme'] as ThemeIds
-      if (themeId) {
-        addButtonEventListeners(button, () => this.setTheme(themeId))
-      }
-    })
+          const themeId = button.dataset['theme'] as ThemeIds
+          if (themeId) {
+            addButtonEventListeners(button, () => this.setTheme(themeId))
+          }
+        } catch (error) {
+          // One theme button failing shouldn't break all theme buttons
+          handleScriptError(error, { scriptName: ThemePicker.scriptName, operation: 'bindThemeButton' })
+        }
+      })
+    } catch (error) {
+      handleScriptError(error, context)
+    }
   }
 
   /**
@@ -163,55 +218,82 @@ export class ThemePicker extends LoadableScript {
    * its theme is the current theme in use on the site.
    */
   private setActiveItem(): void {
-    this.themeSelectBtns.forEach(button => {
-      button.parentElement?.classList.remove(CLASSES.active)
-      button.removeAttribute('aria-checked')
+    const context = { scriptName: ThemePicker.scriptName, operation: 'setActiveItem' }
+    addScriptBreadcrumb(context)
 
-      if ('theme' in button.dataset && button.dataset['theme'] === this.activeTheme) {
-        button.parentElement?.classList.add(CLASSES.active)
-        button.setAttribute('aria-checked', 'true')
-      }
-    })
+    try {
+      this.themeSelectBtns.forEach(button => {
+        try {
+          button.parentElement?.classList.remove(CLASSES.active)
+          button.removeAttribute('aria-checked')
+
+          if ('theme' in button.dataset && button.dataset['theme'] === this.activeTheme) {
+            button.parentElement?.classList.add(CLASSES.active)
+            button.setAttribute('aria-checked', 'true')
+          }
+        } catch (error) {
+          // One button failing shouldn't break all buttons
+          handleScriptError(error, { scriptName: ThemePicker.scriptName, operation: 'setActiveButton' })
+        }
+      })
+    } catch (error) {
+      handleScriptError(error, context)
+    }
   }
 
   /**
    * Set the active theme
    */
   private setTheme(themeId: ThemeIds): void {
-    /** 1. Update class state with new theme */
-    this.activeTheme = themeId
-    /** 2. Document body element has the theme name as an attribute: <body data-theme="default"> */
-    document.documentElement.setAttribute('data-theme', themeId)
-    /** 3. Update state store - automatically handles persistence */
-    setTheme(themeId)
+    const context = { scriptName: ThemePicker.scriptName, operation: 'setTheme' }
+    addScriptBreadcrumb(context)
 
-    /**
-     * 4. Update the meta element set for theme-color:
-     * <meta name="theme-color" content="#FFFFFF">
-     * Used to set the color of the surrounding user interface for e.g. the
-     * browser title bar. It is updated by script when the theme changes.
-     */
-    this.updateMetaThemeColor(themeId)
+    try {
+      /** 1. Update class state with new theme */
+      this.activeTheme = themeId
+      /** 2. Document body element has the theme name as an attribute: <body data-theme="default"> */
+      document.documentElement.setAttribute('data-theme', themeId)
+      /** 3. Update state store - automatically handles persistence */
+      setTheme(themeId)
 
-    /**
-     * 5. Add attribute to the theme item card when its theme is the current site theme for styling
-     */
-    this.setActiveItem()
+      /**
+       * 4. Update the meta element set for theme-color:
+       * <meta name="theme-color" content="#FFFFFF">
+       * Used to set the color of the surrounding user interface for e.g. the
+       * browser title bar. It is updated by script when the theme changes.
+       */
+      this.updateMetaThemeColor(themeId)
+
+      /**
+       * 5. Add attribute to the theme item card when its theme is the current site theme for styling
+       */
+      this.setActiveItem()
+    } catch (error) {
+      handleScriptError(error, context)
+    }
   }
 
   /**
    * Update the meta theme-color element
    */
   private updateMetaThemeColor(themeId: ThemeIds): void {
-    const metaElement = document.querySelector('meta[name="theme-color"]')
-    if (!metaElement) return
+    const context = { scriptName: ThemePicker.scriptName, operation: 'updateMetaThemeColor' }
+    addScriptBreadcrumb(context)
 
-    // Check if metaColors is available on window
-    const metaColors = window.metaColors
-    if (!metaColors) return
+    try {
+      const metaElement = document.querySelector('meta[name="theme-color"]')
+      if (!metaElement) return
 
-    const metaColor = themeId in metaColors ? (metaColors[themeId] as string) : '#e2e2e2'
-    metaElement.setAttribute('content', metaColor)
+      // Check if metaColors is available on window
+      const metaColors = window.metaColors
+      if (!metaColors) return
+
+      const metaColor = themeId in metaColors ? (metaColors[themeId] as string) : '#e2e2e2'
+      metaElement.setAttribute('content', metaColor)
+    } catch (error) {
+      // Meta theme color is optional enhancement
+      handleScriptError(error, context)
+    }
   }
 
   /**
@@ -225,37 +307,62 @@ export class ThemePicker extends LoadableScript {
    * Toggle the theme picker modal
    */
   private togglePicker(forceOpen?: boolean): void {
-    this.isModalOpen = this.shouldOpen(forceOpen)
+    const context = { scriptName: ThemePicker.scriptName, operation: 'togglePicker' }
+    addScriptBreadcrumb(context)
 
-    /** 1. Set the aria-expanded attribute on the toggle button */
-    this.toggleBtn.setAttribute('aria-expanded', String(this.isModalOpen))
+    try {
+      this.isModalOpen = this.shouldOpen(forceOpen)
 
-    /** Change to open */
-    if (this.isModalOpen) {
-      /** 2. Remove the hidden property from the theme picker modal */
-      this.pickerModal.removeAttribute('hidden')
-      /**
-       * 3. Add the `is-open` class to the theme picker modal and trigger CSS transition.
-       * `setTimeout()` used because it follows removing the element's `display: none;`
-       * property, which is treated as if the initial state had never occurred and
-       * the element was always in its final state for transitions.
-       */
-      window.setTimeout(() => {
-        this.pickerModal.classList.add(CLASSES.isOpen)
-      }, 1)
+      /** 1. Set the aria-expanded attribute on the toggle button */
+      this.toggleBtn.setAttribute('aria-expanded', String(this.isModalOpen))
 
-      /** 4. Set focus to the currently selected theme item in the modal */
-      if (this.themeSelectBtns.length) {
-        this.themeSelectBtns.item(0).focus()
+      /** Change to open */
+      if (this.isModalOpen) {
+        /** 2. Remove the hidden property from the theme picker modal */
+        this.pickerModal.removeAttribute('hidden')
+        /**
+         * 3. Add the `is-open` class to the theme picker modal and trigger CSS transition.
+         * `setTimeout()` used because it follows removing the element's `display: none;`
+         * property, which is treated as if the initial state had never occurred and
+         * the element was always in its final state for transitions.
+         */
+        window.setTimeout(() => {
+          try {
+            this.pickerModal.classList.add(CLASSES.isOpen)
+          } catch (error) {
+            handleScriptError(error, { scriptName: ThemePicker.scriptName, operation: 'addOpenClass' })
+          }
+        }, 1)
+
+        /** 4. Set focus to the currently selected theme item in the modal */
+        try {
+          if (this.themeSelectBtns.length) {
+            this.themeSelectBtns.item(0).focus()
+          }
+        } catch (error) {
+          handleScriptError(error, { scriptName: ThemePicker.scriptName, operation: 'focusFirstButton' })
+        }
+      } else {
+        /** 2. Set the theme picker modal to hidden when the CSS transition has completed */
+        try {
+          const transitionHandler = () => this.pickerModal.setAttribute('hidden', 'true')
+          this.pickerModal.addEventListener('transitionend', transitionHandler, { once: true })
+        } catch (error) {
+          // Fallback: set hidden immediately if transition fails
+          handleScriptError(error, { scriptName: ThemePicker.scriptName, operation: 'transitionHandler' })
+          this.pickerModal.setAttribute('hidden', 'true')
+        }
+        /** 3. Remove the is-open class from the theme picker modal */
+        this.pickerModal.classList.remove(CLASSES.isOpen)
+        /** 4. Set focus to the toggle button */
+        try {
+          this.toggleBtn.focus()
+        } catch (error) {
+          handleScriptError(error, { scriptName: ThemePicker.scriptName, operation: 'focusToggleButton' })
+        }
       }
-    } else {
-      /** 2. Set the theme picker modal to hidden when the CSS transition has completed */
-      const transitionHandler = () => this.pickerModal.setAttribute('hidden', 'true')
-      this.pickerModal.addEventListener('transitionend', transitionHandler, { once: true })
-      /** 3. Remove the is-open class from the theme picker modal */
-      this.pickerModal.classList.remove(CLASSES.isOpen)
-      /** 4. Set focus to the toggle button */
-      this.toggleBtn.focus()
+    } catch (error) {
+      handleScriptError(error, context)
     }
   }
 
@@ -263,8 +370,15 @@ export class ThemePicker extends LoadableScript {
    * LoadableScript static methods
    */
   static override init(): void {
-    const themePicker = new ThemePicker()
-    themePicker.initializeThemePicker()
+    const context = { scriptName: ThemePicker.scriptName, operation: 'init' }
+    addScriptBreadcrumb(context)
+
+    try {
+      const themePicker = new ThemePicker()
+      themePicker.initializeThemePicker()
+    } catch (error) {
+      handleScriptError(error, context)
+    }
   }
 
   static override pause(): void {
