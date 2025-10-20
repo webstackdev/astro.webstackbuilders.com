@@ -18,6 +18,7 @@ import {
   $hasFunctionalConsent,
 } from '@components/Scripts/state'
 import type { ConsentCategory } from '@components/Scripts/state'
+import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
 
 export const userInteractionEvents: UserInteractionEvent[] = [
   'keydown',
@@ -178,14 +179,16 @@ class Loader {
    * @param script - The script to execute
    */
   private executeScript(script: typeof LoadableScript): void {
+    const context = { scriptName: script.scriptName, operation: 'init' }
+    addScriptBreadcrumb(context)
+
     try {
       script.init()
       // Track executed scripts for pause/resume functionality
       this.executedScripts.add(script)
       console.log(`Script initialized: ${script.scriptName}`)
     } catch (error) {
-      console.error(`Error initializing script ${script.scriptName}:`, error)
-      // TODO: Add Sentry error reporting here
+      handleScriptError(error, context)
     }
   }
 
