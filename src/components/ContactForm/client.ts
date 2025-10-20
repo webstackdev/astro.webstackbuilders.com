@@ -5,6 +5,8 @@
  */
 
 import { LoadableScript, type TriggerEvent } from '../Scripts/loader/@types/loader'
+import { ClientScriptError } from '@components/Scripts/errors/ClientScriptError'
+import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
 
 export interface ContactFormElements {
   form: HTMLFormElement
@@ -63,208 +65,329 @@ export class ContactForm extends LoadableScript {
    * Discover and cache DOM elements
    */
   private discoverElements(): boolean {
-    const form = document.getElementById('contactForm') as HTMLFormElement
-    if (!form) return false
+    const context = { scriptName: ContactForm.scriptName, operation: 'discoverElements' }
+    addScriptBreadcrumb(context)
 
-    const messages = document.getElementById('formMessages') as HTMLElement
-    const successMessage = messages?.querySelector('.message-success') as HTMLElement
-    const errorMessage = messages?.querySelector('.message-error') as HTMLElement
-    const errorText = document.getElementById('errorMessage') as HTMLElement
-    const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement
-    const btnText = submitBtn?.querySelector('.btn-text') as HTMLElement
-    const btnLoading = submitBtn?.querySelector('.btn-loading') as HTMLElement
-    const messageTextarea = document.getElementById('message') as HTMLTextAreaElement
-    const charCount = document.getElementById('charCount') as HTMLElement
-    const uppyContainer = document.getElementById('uppyContainer')
+    try {
+      const form = document.getElementById('contactForm') as HTMLFormElement
+      if (!form) {
+        throw new ClientScriptError('ContactForm: Form element not found. Contact form cannot function without the form element.')
+      }
 
-    if (
-      !messages ||
-      !successMessage ||
-      !errorMessage ||
-      !errorText ||
-      !submitBtn ||
-      !btnText ||
-      !btnLoading ||
-      !messageTextarea ||
-      !charCount
-    ) {
-      console.warn('ContactForm: Some required DOM elements not found')
+      const messages = document.getElementById('formMessages') as HTMLElement
+      const successMessage = messages?.querySelector('.message-success') as HTMLElement
+      const errorMessage = messages?.querySelector('.message-error') as HTMLElement
+      const errorText = document.getElementById('errorMessage') as HTMLElement
+      const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement
+      const btnText = submitBtn?.querySelector('.btn-text') as HTMLElement
+      const btnLoading = submitBtn?.querySelector('.btn-loading') as HTMLElement
+      const messageTextarea = document.getElementById('message') as HTMLTextAreaElement
+      const charCount = document.getElementById('charCount') as HTMLElement
+      const uppyContainer = document.getElementById('uppyContainer')
+
+      if (
+        !messages ||
+        !successMessage ||
+        !errorMessage ||
+        !errorText ||
+        !submitBtn ||
+        !btnText ||
+        !btnLoading ||
+        !messageTextarea ||
+        !charCount
+      ) {
+        throw new ClientScriptError('ContactForm: Required DOM elements not found. Form requires all elements to function.')
+      }
+
+      this.elements = {
+        form,
+        messages,
+        successMessage,
+        errorMessage,
+        errorText,
+        submitBtn,
+        btnText,
+        btnLoading,
+        messageTextarea,
+        charCount,
+        uppyContainer,
+      }
+
+      return true
+    } catch (error) {
+      if (error instanceof ClientScriptError) {
+        throw error
+      }
+      handleScriptError(error, context)
       return false
     }
-
-    this.elements = {
-      form,
-      messages,
-      successMessage,
-      errorMessage,
-      errorText,
-      submitBtn,
-      btnText,
-      btnLoading,
-      messageTextarea,
-      charCount,
-      uppyContainer,
-    }
-
-    return true
   }
 
   private initializeForm(): void {
-    if (!this.elements) return
+    const context = { scriptName: ContactForm.scriptName, operation: 'initializeForm' }
+    addScriptBreadcrumb(context)
 
-    this.setupCharacterCounter()
-    this.setupFileUploadPlaceholder()
-    this.setupFormSubmission()
-    this.setupFormValidation()
-    this.addErrorStyles()
+    try {
+      if (!this.elements) return
+
+      this.setupCharacterCounter()
+      this.setupFileUploadPlaceholder()
+      this.setupFormSubmission()
+      this.setupFormValidation()
+      this.addErrorStyles()
+    } catch (error) {
+      handleScriptError(error, context)
+    }
   }
 
   private setupCharacterCounter(): void {
-    if (!this.elements) return
+    const context = { scriptName: ContactForm.scriptName, operation: 'setupCharacterCounter' }
+    addScriptBreadcrumb(context)
 
-    this.elements.messageTextarea.addEventListener('input', () => {
+    try {
       if (!this.elements) return
-      const count = this.elements.messageTextarea.value.length
-      this.elements.charCount.textContent = count.toString()
 
-      if (count > this.config.errorThreshold) {
-        this.elements.charCount.style.color = 'var(--color-danger)'
-      } else if (count > this.config.warningThreshold) {
-        this.elements.charCount.style.color = 'var(--color-warning)'
-      } else {
-        this.elements.charCount.style.color = 'var(--color-text-offset)'
-      }
-    })
+      this.elements.messageTextarea.addEventListener('input', () => {
+        try {
+          if (!this.elements) return
+          const count = this.elements.messageTextarea.value.length
+          this.elements.charCount.textContent = count.toString()
+
+          if (count > this.config.errorThreshold) {
+            this.elements.charCount.style.color = 'var(--color-danger)'
+          } else if (count > this.config.warningThreshold) {
+            this.elements.charCount.style.color = 'var(--color-warning)'
+          } else {
+            this.elements.charCount.style.color = 'var(--color-text-offset)'
+          }
+        } catch (error) {
+          handleScriptError(error, { scriptName: ContactForm.scriptName, operation: 'characterCountUpdate' })
+        }
+      })
+    } catch (error) {
+      handleScriptError(error, context)
+    }
   }
 
   private setupFileUploadPlaceholder(): void {
-    if (!this.elements || !this.elements.uppyContainer) return
+    const context = { scriptName: ContactForm.scriptName, operation: 'setupFileUploadPlaceholder' }
+    addScriptBreadcrumb(context)
 
-    this.elements.uppyContainer.innerHTML = `
-      <div style="padding: 2rem; text-align: center; color: var(--color-text-offset);">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="margin-bottom: 1rem; opacity: 0.5;">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-          <polyline points="14,2 14,8 20,8"></polyline>
-          <line x1="16" y1="13" x2="8" y2="13"></line>
-          <line x1="16" y1="17" x2="8" y2="17"></line>
-          <polyline points="10,9 9,9 8,9"></polyline>
-        </svg>
-        <p style="margin: 0; font-size: 1rem; font-weight: 500;">File Upload Coming Soon</p>
-        <p style="margin: 0.5rem 0 0 0; font-size: 0.85rem;">In production, this would integrate with Uppy.js for drag-and-drop file uploads</p>
-      </div>
-    `
+    try {
+      if (!this.elements || !this.elements.uppyContainer) return
+
+      this.elements.uppyContainer.innerHTML = `
+        <div style="padding: 2rem; text-align: center; color: var(--color-text-offset);">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="margin-bottom: 1rem; opacity: 0.5;">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14,2 14,8 20,8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10,9 9,9 8,9"></polyline>
+          </svg>
+          <p style="margin: 0; font-size: 1rem; font-weight: 500;">File Upload Coming Soon</p>
+          <p style="margin: 0.5rem 0 0 0; font-size: 0.85rem;">In production, this would integrate with Uppy.js for drag-and-drop file uploads</p>
+        </div>
+      `
+    } catch (error) {
+      // File upload placeholder is optional
+      handleScriptError(error, context)
+    }
   }
 
   private setupFormSubmission(): void {
-    if (!this.elements) return
+    const context = { scriptName: ContactForm.scriptName, operation: 'setupFormSubmission' }
+    addScriptBreadcrumb(context)
 
-    this.elements.form.addEventListener('submit', async e => {
-      e.preventDefault()
-      await this.handleFormSubmission()
-    })
+    try {
+      if (!this.elements) return
+
+      this.elements.form.addEventListener('submit', async e => {
+        try {
+          e.preventDefault()
+          await this.handleFormSubmission()
+        } catch (error) {
+          handleScriptError(error, { scriptName: ContactForm.scriptName, operation: 'formSubmit' })
+          this.showErrorMessage('An error occurred. Please try again.')
+          this.setLoading(false)
+        }
+      })
+    } catch (error) {
+      handleScriptError(error, context)
+    }
   }
 
   private async handleFormSubmission(): Promise<void> {
-    if (!this.elements) return
-
-    this.setLoading(true)
-    this.hideMessages()
+    const context = { scriptName: ContactForm.scriptName, operation: 'handleFormSubmission' }
+    addScriptBreadcrumb(context)
 
     try {
-      const formData = new FormData(this.elements.form)
-      const response = await fetch(this.config.apiEndpoint, {
-        method: 'POST',
-        body: formData,
-      })
+      if (!this.elements) return
 
-      const result = await response.json()
+      this.setLoading(true)
+      this.hideMessages()
 
-      if (response.ok && result.success) {
-        this.showSuccessMessage()
-        this.resetForm()
-      } else {
-        this.showErrorMessage(result.message || 'An error occurred while sending your message.')
+      try {
+        const formData = new FormData(this.elements.form)
+        const response = await fetch(this.config.apiEndpoint, {
+          method: 'POST',
+          body: formData,
+        })
+
+        const result = await response.json()
+
+        if (response.ok && result.success) {
+          this.showSuccessMessage()
+          this.resetForm()
+        } else {
+          this.showErrorMessage(result.message || 'An error occurred while sending your message.')
+        }
+      } catch (error) {
+        handleScriptError(error, { scriptName: ContactForm.scriptName, operation: 'apiSubmission' })
+        this.showErrorMessage('Unable to send message. Please try again later.')
+      } finally {
+        this.setLoading(false)
       }
     } catch (error) {
-      console.error('ContactForm: Form submission error:', error)
-      this.showErrorMessage('Unable to send message. Please try again later.')
-    } finally {
+      handleScriptError(error, context)
       this.setLoading(false)
     }
   }
 
   private setLoading(loading: boolean): void {
-    if (!this.elements) return
+    const context = { scriptName: ContactForm.scriptName, operation: 'setLoading' }
+    addScriptBreadcrumb(context)
 
-    this.elements.submitBtn.disabled = loading
+    try {
+      if (!this.elements) return
 
-    if (loading) {
-      this.elements.btnText.style.display = 'none'
-      this.elements.btnLoading.classList.remove('hidden')
-      this.elements.btnLoading.style.display = 'flex'
-    } else {
-      this.elements.btnText.style.display = 'inline'
-      this.elements.btnLoading.classList.add('hidden')
-      this.elements.btnLoading.style.display = 'none'
+      this.elements.submitBtn.disabled = loading
+
+      if (loading) {
+        this.elements.btnText.style.display = 'none'
+        this.elements.btnLoading.classList.remove('hidden')
+        this.elements.btnLoading.style.display = 'flex'
+      } else {
+        this.elements.btnText.style.display = 'inline'
+        this.elements.btnLoading.classList.add('hidden')
+        this.elements.btnLoading.style.display = 'none'
+      }
+    } catch (error) {
+      handleScriptError(error, context)
     }
   }
 
   private showSuccessMessage(): void {
-    if (!this.elements) return
+    const context = { scriptName: ContactForm.scriptName, operation: 'showSuccessMessage' }
+    addScriptBreadcrumb(context)
 
-    this.elements.messages.style.display = 'block'
-    this.elements.successMessage.classList.remove('hidden')
-    this.elements.errorMessage.classList.add('hidden')
+    try {
+      if (!this.elements) return
+
+      this.elements.messages.style.display = 'block'
+      this.elements.successMessage.classList.remove('hidden')
+      this.elements.errorMessage.classList.add('hidden')
+    } catch (error) {
+      handleScriptError(error, context)
+    }
   }
 
   private showErrorMessage(message: string): void {
-    if (!this.elements) return
+    const context = { scriptName: ContactForm.scriptName, operation: 'showErrorMessage' }
+    addScriptBreadcrumb(context)
 
-    this.elements.messages.style.display = 'block'
-    this.elements.successMessage.classList.add('hidden')
-    this.elements.errorMessage.classList.remove('hidden')
-    this.elements.errorMessage.style.display = 'flex'
-    this.elements.errorText.textContent = message
+    try {
+      if (!this.elements) return
+
+      this.elements.messages.style.display = 'block'
+      this.elements.successMessage.classList.add('hidden')
+      this.elements.errorMessage.classList.remove('hidden')
+      this.elements.errorMessage.style.display = 'flex'
+      this.elements.errorText.textContent = message
+    } catch (error) {
+      handleScriptError(error, context)
+    }
   }
 
   private hideMessages(): void {
-    if (!this.elements) return
+    const context = { scriptName: ContactForm.scriptName, operation: 'hideMessages' }
+    addScriptBreadcrumb(context)
 
-    this.elements.messages.style.display = 'none'
+    try {
+      if (!this.elements) return
+
+      this.elements.messages.style.display = 'none'
+    } catch (error) {
+      handleScriptError(error, context)
+    }
   }
 
   private resetForm(): void {
-    if (!this.elements) return
+    const context = { scriptName: ContactForm.scriptName, operation: 'resetForm' }
+    addScriptBreadcrumb(context)
 
-    this.elements.form.reset()
-    this.elements.charCount.textContent = '0'
+    try {
+      if (!this.elements) return
+
+      this.elements.form.reset()
+      this.elements.charCount.textContent = '0'
+    } catch (error) {
+      handleScriptError(error, context)
+    }
   }
 
   private setupFormValidation(): void {
-    if (!this.elements) return
+    const context = { scriptName: ContactForm.scriptName, operation: 'setupFormValidation' }
+    addScriptBreadcrumb(context)
 
-    const inputs = this.elements.form.querySelectorAll('input, select, textarea')
-    inputs.forEach(input => {
-      input.addEventListener('blur', () => {
-        this.validateField(input as HTMLInputElement)
-      })
+    try {
+      if (!this.elements) return
 
-      input.addEventListener('input', () => {
-        if (input.classList.contains('error')) {
-          this.validateField(input as HTMLInputElement)
+      const inputs = this.elements.form.querySelectorAll('input, select, textarea')
+      inputs.forEach(input => {
+        try {
+          input.addEventListener('blur', () => {
+            try {
+              this.validateField(input as HTMLInputElement)
+            } catch (error) {
+              handleScriptError(error, { scriptName: ContactForm.scriptName, operation: 'validateOnBlur' })
+            }
+          })
+
+          input.addEventListener('input', () => {
+            try {
+              if (input.classList.contains('error')) {
+                this.validateField(input as HTMLInputElement)
+              }
+            } catch (error) {
+              handleScriptError(error, { scriptName: ContactForm.scriptName, operation: 'validateOnInput' })
+            }
+          })
+        } catch (error) {
+          // One field failing shouldn't break all validation
+          handleScriptError(error, { scriptName: ContactForm.scriptName, operation: 'setupFieldValidation' })
         }
       })
-    })
+    } catch (error) {
+      handleScriptError(error, context)
+    }
   }
 
   /**
    * LoadableScript static methods
    */
   static override init(): void {
-    // Create instance and discover elements
-    const instance = new ContactForm()
-    if (instance.discoverElements()) {
-      instance.initializeForm()
+    const context = { scriptName: ContactForm.scriptName, operation: 'init' }
+    addScriptBreadcrumb(context)
+
+    try {
+      // Create instance and discover elements
+      const instance = new ContactForm()
+      if (instance.discoverElements()) {
+        instance.initializeForm()
+      }
+    } catch (error) {
+      handleScriptError(error, context)
     }
   }
 
@@ -282,67 +405,83 @@ export class ContactForm extends LoadableScript {
   }
 
   public validateField(field: HTMLInputElement): boolean {
-    const value = field.value.trim()
-    let isValid = true
-    let errorMessage = ''
+    const context = { scriptName: ContactForm.scriptName, operation: 'validateField' }
+    addScriptBreadcrumb(context)
 
-    // Remove previous error styling
-    field.classList.remove('error')
-    const existingError = field.parentNode?.querySelector('.field-error')
-    if (existingError) {
-      existingError.remove()
-    }
+    try {
+      const value = field.value.trim()
+      let isValid = true
+      let errorMessage = ''
 
-    // Required field validation
-    if (field.hasAttribute('required') && !value) {
-      isValid = false
-      errorMessage = 'This field is required'
-    }
-    // Email validation
-    else if (field.type === 'email' && value) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-      if (!emailRegex.test(value)) {
-        isValid = false
-        errorMessage = 'Please enter a valid email address'
+      // Remove previous error styling
+      field.classList.remove('error')
+      const existingError = field.parentNode?.querySelector('.field-error')
+      if (existingError) {
+        existingError.remove()
       }
-    }
-    // Length validation
-    else if (
-      field.hasAttribute('minlength') &&
-      value.length < parseInt(field.getAttribute('minlength') || '0')
-    ) {
-      isValid = false
-      errorMessage = `Minimum ${field.getAttribute('minlength')} characters required`
-    } else if (
-      field.hasAttribute('maxlength') &&
-      value.length > parseInt(field.getAttribute('maxlength') || '0')
-    ) {
-      isValid = false
-      errorMessage = `Maximum ${field.getAttribute('maxlength')} characters allowed`
-    }
 
-    if (!isValid) {
-      field.classList.add('error')
-      const errorDiv = document.createElement('div')
-      errorDiv.className = 'field-error'
-      errorDiv.textContent = errorMessage
-      errorDiv.style.cssText =
-        'color: var(--color-danger); font-size: 0.85rem; margin-top: 0.25rem;'
-      field.parentNode?.appendChild(errorDiv)
-    }
+      // Required field validation
+      if (field.hasAttribute('required') && !value) {
+        isValid = false
+        errorMessage = 'This field is required'
+      }
+      // Email validation
+      else if (field.type === 'email' && value) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if (!emailRegex.test(value)) {
+          isValid = false
+          errorMessage = 'Please enter a valid email address'
+        }
+      }
+      // Length validation
+      else if (
+        field.hasAttribute('minlength') &&
+        value.length < parseInt(field.getAttribute('minlength') || '0')
+      ) {
+        isValid = false
+        errorMessage = `Minimum ${field.getAttribute('minlength')} characters required`
+      } else if (
+        field.hasAttribute('maxlength') &&
+        value.length > parseInt(field.getAttribute('maxlength') || '0')
+      ) {
+        isValid = false
+        errorMessage = `Maximum ${field.getAttribute('maxlength')} characters allowed`
+      }
 
-    return isValid
+      if (!isValid) {
+        field.classList.add('error')
+        const errorDiv = document.createElement('div')
+        errorDiv.className = 'field-error'
+        errorDiv.textContent = errorMessage
+        errorDiv.style.cssText =
+          'color: var(--color-danger); font-size: 0.85rem; margin-top: 0.25rem;'
+        field.parentNode?.appendChild(errorDiv)
+      }
+
+      return isValid
+    } catch (error) {
+      handleScriptError(error, context)
+      return false
+    }
   }
 
   private addErrorStyles(): void {
-    const style = document.createElement('style')
-    style.textContent = `
-      .form-input.error,
-      .form-select.error,
-      .form-textarea.error {
-        border-color: var(--color-danger);
-      }
-    `
-    document.head.appendChild(style)
+    const context = { scriptName: ContactForm.scriptName, operation: 'addErrorStyles' }
+    addScriptBreadcrumb(context)
+
+    try {
+      const style = document.createElement('style')
+      style.textContent = `
+        .form-input.error,
+        .form-select.error,
+        .form-textarea.error {
+          border-color: var(--color-danger);
+        }
+      `
+      document.head.appendChild(style)
+    } catch (error) {
+      // Error styles are optional enhancement
+      handleScriptError(error, context)
+    }
   }
 }
