@@ -50,6 +50,7 @@ export function getFormElements() {
   return {
     form: document.getElementById('newsletter-form') as HTMLFormElement,
     emailInput: document.getElementById('newsletter-email') as HTMLInputElement,
+    consentCheckbox: document.getElementById('newsletter-gdpr-consent') as HTMLInputElement,
     submitButton: document.getElementById('newsletter-submit') as HTMLButtonElement,
     buttonText: document.getElementById('button-text') as HTMLSpanElement,
     buttonArrow: document.getElementById('button-arrow') as unknown as SVGSVGElement,

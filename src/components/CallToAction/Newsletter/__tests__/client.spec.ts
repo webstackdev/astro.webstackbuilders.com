@@ -145,8 +145,9 @@ describe('NewsletterForm class works', () => {
     newsletter.bindEvents()
     const elements = getFormElements()
 
-    // Enter valid email and submit
+    // Enter valid email, check consent, and submit
     elements.emailInput.value = 'test@example.com'
+    elements.consentCheckbox.checked = true
     const submitEvent = new Event('submit')
     await elements.form.dispatchEvent(submitEvent)
 
@@ -158,7 +159,7 @@ describe('NewsletterForm class works', () => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email: 'test@example.com' }),
+      body: JSON.stringify({ email: 'test@example.com', consentGiven: true }),
     })
   })
 
@@ -175,8 +176,9 @@ describe('NewsletterForm class works', () => {
     newsletter.bindEvents()
     const elements = getFormElements()
 
-    // Enter valid email and submit
+    // Enter valid email, check consent, and submit
     elements.emailInput.value = 'test@example.com'
+    elements.consentCheckbox.checked = true
     const submitEvent = new Event('submit')
     await elements.form.dispatchEvent(submitEvent)
 
@@ -196,8 +198,9 @@ describe('NewsletterForm class works', () => {
     newsletter.bindEvents()
     const elements = getFormElements()
 
-    // Enter valid email and submit
+    // Enter valid email, check consent, and submit
     elements.emailInput.value = 'test@example.com'
+    elements.consentCheckbox.checked = true
     const submitEvent = new Event('submit')
     await elements.form.dispatchEvent(submitEvent)
 
@@ -226,7 +229,7 @@ describe('NewsletterForm class works', () => {
     elements.emailInput.value = 'test@example.com'
     elements.emailInput.dispatchEvent(blurEvent)
 
-    expect(elements.message.textContent).toBe('We respect your privacy. Unsubscribe at any time.')
+    expect(elements.message.textContent).toBe("You'll receive a confirmation email. Click the link to complete your subscription.")
     expect(elements.message.classList.contains('text-[var(--color-text-offset)]')).toBe(true)
   })
 
@@ -275,18 +278,19 @@ describe('NewsletterForm LoadableScript implementation', () => {
 })
 
 describe('Edge cases and error handling', () => {
-  test('handles missing DOM elements gracefully', () => {
+  test('throws error for missing DOM elements', () => {
     // Set up DOM without required elements
     document.body.innerHTML = '<div>No newsletter form</div>'
 
-    expect(() => NewsletterForm.init()).not.toThrow()
-    expect(() => new NewsletterForm()).not.toThrow()
+    // Newsletter is a critical component (Phase 1), should throw when instantiated
+    expect(() => new NewsletterForm()).toThrow('NewsletterForm: Required DOM elements not found')
   })
 
-  test('handles form submission without required elements', async () => {
+  test('throws error for partially missing elements', async () => {
+    // Form exists but missing required input
     document.body.innerHTML = '<form id="newsletter-form"></form>'
 
-    const newsletter = new NewsletterForm()
-    expect(() => newsletter.bindEvents()).not.toThrow()
+    // Missing email input and other required elements should throw
+    expect(() => new NewsletterForm()).toThrow('NewsletterForm: Required DOM elements not found')
   })
 })

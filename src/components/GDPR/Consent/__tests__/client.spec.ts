@@ -171,11 +171,11 @@ describe('initGDPRConsent', () => {
     expect(focusSpy).toHaveBeenCalled()
   })
 
-  test('handles missing checkbox gracefully', () => {
+  test('throws error for missing checkbox', () => {
     document.body.innerHTML = '<div></div>'
 
-    // Should not throw, just log error
-    expect(() => initGDPRConsent('missing', ['contact'])).not.toThrow()
+    // GDPR is a critical component (Phase 1), should throw
+    expect(() => initGDPRConsent('missing', ['contact'])).toThrow('GDPR consent checkbox not found')
   })
 
   test('works without form element', () => {
