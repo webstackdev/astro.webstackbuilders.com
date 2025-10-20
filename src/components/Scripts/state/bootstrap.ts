@@ -7,12 +7,28 @@ import { initConsentFromCookies, initStateSideEffects } from '@components/Script
 
 export class AppBootstrap {
   static init(): void {
-    // 1. Load consent from cookies into store
-    initConsentFromCookies()
+    let hasErrors = false
 
-    // 2. Setup side effects (runs once per page load)
-    initStateSideEffects()
+    try {
+      // 1. Load consent from cookies into store
+      initConsentFromCookies()
+    } catch (error) {
+      console.error('❌ Failed to initialize consent from cookies:', error)
+      hasErrors = true
+    }
 
-    console.log('✅ App state initialized')
+    try {
+      // 2. Setup side effects (runs once per page load)
+      initStateSideEffects()
+    } catch (error) {
+      console.error('❌ Failed to initialize state side effects:', error)
+      hasErrors = true
+    }
+
+    if (hasErrors) {
+      console.error('❌ App state initialized with errors')
+    } else {
+      console.log('✅ App state initialized')
+    }
   }
 }

@@ -55,7 +55,16 @@ export const $consent = map<ConsentState>({
  */
 export const $theme = persistentAtom<ThemeId>('theme', 'default', {
   encode: JSON.stringify,
-  decode: JSON.parse,
+  decode: (value: string) => {
+    try {
+      return JSON.parse(value)
+    } catch {
+      // Handle plain string values from legacy storage or manual setting
+      // If it's a valid ThemeId, return it, otherwise return default
+      const validThemes: ThemeId[] = ['default', 'dark', 'holiday']
+      return validThemes.includes(value as ThemeId) ? (value as ThemeId) : 'default'
+    }
+  },
 })
 
 /**
@@ -71,7 +80,14 @@ export const $cookieModalVisible = atom<boolean>(false)
  */
 export const $mastodonInstances = persistentAtom<Set<string>>('mastodonInstances', new Set(), {
   encode: (set: Set<string>) => JSON.stringify([...set]),
-  decode: (value: string) => new Set(JSON.parse(value) as string[]),
+  decode: (value: string) => {
+    try {
+      return new Set(JSON.parse(value) as string[])
+    } catch {
+      // Handle invalid JSON - return empty set
+      return new Set()
+    }
+  },
 })
 
 /**

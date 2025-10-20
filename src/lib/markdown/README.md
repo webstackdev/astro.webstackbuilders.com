@@ -32,89 +32,6 @@ Test with sample webmentions
 2. `robots.txt.ts`
 3. Search functionality
 
-## Implement Astro View Transitions
-
-- Script re-execution
-
-Bundled module scripts, which are the default scripts in Astro, are only ever executed once. After initial execution they will be ignored, even if the script exists on the new page after a transition.
-
-Unlike bundled module scripts, inline scripts have the potential to be re-executed during a user's visit to a site if they exist on a page that is visited multiple times. Inline scripts might also re-execute when a visitor navigates to a page without the script, and then back to one with the script.
-
-With view transitions, some scripts may no longer re-run after page navigation like they do with full-page browser refreshes. There are several events during client-side routing that you can listen for, and fire events when they occur. You can wrap an existing script in an event listener to ensure it runs at the proper time in the navigation cycle.
-
-The following example wraps a script for a mobile hamburger menu in an event listener for astro:page-load which runs at the end of page navigation to make the menu responsive to being clicked after navigating to a new page:
-
-```typescript
-document.addEventListener("astro:page-load", () => {
-  document.querySelector(".hamburger").addEventListener("click", () => {
-    document.querySelector(".nav-links").classList.toggle("expanded")
-  })
-})
-```
-
-- Need to add special handling to Navigation
-
-```astro
-<script>
-  import { navigate } from "astro:transitions/client";
-
-  // Navigate to the selected option automatically.
-  document.querySelector("select").onchange = (event) => {
-    let href = event.target.value;
-    navigate(href);
-  };
-</script>
-<select>
-  <option value="/play">Play</option>
-  <option value="/blog">Blog</option>
-  <option value="/about">About</option>
-  <option value="/contact">Contact</option>
-</select>
-```
-
-- `client:load`: (`DOMContentLoaded`) load and hydrate a component's JavaScript immediately when the page loads.
-
-This is useful for interactive components that need to be ready right away, such as a navigation menu, and it ensures the component is fully functional as soon as the HTML has loaded.
-
-- `client:idle`: Loads JavaScript when the browser is idle, after the initial page load.
-
-Uses the browser's requestIdleCallback() method to schedule the hydration of a component when the browser has a moment of idle time.
-
-- `client:visible`: Loads JavaScript only when the component scrolls into the viewport.
-
-Uses Intersection Observer API to load and execute when a component enters the user's viewport.
-
-- `client:media`: Loads JavaScript when a CSS media query is met.
-
-Functionally equivalent to the native DOM change event on a MediaQueryList object. Achieved in standard JavaScript by using window.matchMedia() to create a MediaQueryList object, and then attaching a change event listener to it.
-
-- `client:only`: Renders and hydrates the component only on the client, skipping server rendering entirely (behaves similarly to client:load but with no server-rendered HTML content).
-
-## Sentry manual error capture
-
-Sentry.captureException(err)
-Sentry.captureMessage("Something went wrong");
-// optionally specify the severity level:
-// "fatal" | "error" | "warning" | "log" | "debug" | "info" (default)
-Sentry.captureMessage("Something went wrong", "warning")
-
-
-## E2E Tests to Implement
-
-* E2E Tests (test/e2e/highlighter.spec.ts):
-
-  - Visual regression
-  - Hover interactions
-  - Click behavior (mock window.open)
-  - Keyboard navigation
-  - Mobile touch interactions
-  - Accessibility compliance
-
-* We need to add Lighthouse testing
-* Axe accessibility testing
-* Test Social Embeds with real embeds from social networks
-* Verify the cookie consent preferences work correctly across different browsers
-
 ## Vercel Analytics
 
 - Highlighter component
@@ -127,10 +44,17 @@ npm i @vercel/analytics
 import Analytics from '@vercel/analytics/astro'
 https://vercel.com/docs/analytics/quickstart#add-the-analytics-component-to-your-app
 
-## Cookie Consent
+### ✅ Compatible Plugins:
 
-- Advanced Features: Add cookie expiration management, preference export/import
-- Compliance: Add GDPR compliance features like data deletion requests
+Working plugins that pass all tests:
+- remark-attribution (custom plugin - 17/17 tests passing)
+- remark-breaks
+- remark-emoji
+- remark-linkify-regex
+- remark-toc
+- rehype-accessible-emojis
+- rehype-autolink-headings
+- rehype-tailwind-classes
 
 ## Markdown Config Updates
 

@@ -8,6 +8,7 @@ import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 import remarkAbbr from '../markdown/plugins/remark-abbr/index'
 import remarkAttr from '../markdown/plugins/remark-attr/index'
 import remarkAttribution from '../markdown/plugins/remark-attribution/index'
+import remarkReplacements from '../markdown/plugins/remark-replacements/index'
 // These plugins are from npm (no custom implementation)
 import remarkBreaks from 'remark-breaks'
 import remarkEmoji from 'remark-emoji'
@@ -99,6 +100,12 @@ export const markdownConfig: Partial<MdxOptions> = {
     remarkEmoji,
     /** Automatically convert URL-like text to links */
     remarkLinkifyRegex(/^(https?:\/\/[^\s$.?#].[^\s]*)$/i),
+    /**
+     * Typographic replacements for arrows, fractions, and math symbols
+     * Complements smartypants (which handles quotes, dashes, ellipsis)
+     * Converts: -->, <--, <=>, 1/2, 2 x 4, +-, etc.
+     */
+    remarkReplacements,
     /** Generate a table of contents from Markdown content */
     [remarkToc, remarkTocConfig],
   ],
