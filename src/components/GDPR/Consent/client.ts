@@ -5,6 +5,8 @@
  */
 import { recordFormConsent, clearFormConsent, type ConsentPurpose } from './state'
 import { getConsentCheckbox, getConsentError } from './selectors'
+import { ClientScriptError } from '@components/Scripts/errors/ClientScriptError'
+import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
 
 /**
  * Initialize GDPR consent checkbox
@@ -18,32 +20,63 @@ export function initGDPRConsent(
   purposes: ConsentPurpose[],
   formId?: string
 ): void {
-  try {
-    const checkbox = getConsentCheckbox(checkboxId)
-    const errorElement = getConsentError(checkboxId)
+  const context = { scriptName: 'GDPRConsent', operation: 'init' }
+  addScriptBreadcrumb(context)
 
-    // Handle checkbox change
+  let checkbox: HTMLInputElement
+  let errorElement: HTMLDivElement
+
+  // Critical: Must find checkbox and error elements (GDPR legal requirement)
+  try {
+    checkbox = getConsentCheckbox(checkboxId)
+    errorElement = getConsentError(checkboxId)
+  } catch (error) {
+    throw new ClientScriptError(
+      `GDPRConsent: Failed to find required elements for checkbox '${checkboxId}' - ${error instanceof Error ? error.message : 'Unknown error'}. GDPR consent is a legal requirement and cannot function without these elements.`
+    )
+  }
+
+  // Recoverable: Handle checkbox change events
+  try {
     checkbox.addEventListener('change', () => {
-      if (checkbox.checked) {
-        recordFormConsent(purposes, formId)
-        clearError(errorElement)
-      } else {
-        clearFormConsent()
+      const changeContext = { scriptName: 'GDPRConsent', operation: 'handleChange' }
+      addScriptBreadcrumb(changeContext)
+      try {
+        if (checkbox.checked) {
+          recordFormConsent(purposes, formId)
+          clearError(errorElement)
+        } else {
+          clearFormConsent()
+        }
+      } catch (error) {
+        handleScriptError(error, changeContext)
       }
     })
+  } catch (error) {
+    handleScriptError(error, { scriptName: 'GDPRConsent', operation: 'bindChangeEvent' })
+  }
 
-    // Handle form submission validation
+  // Recoverable: Handle form submission validation
+  try {
     const form = checkbox.closest('form')
     if (form) {
       form.addEventListener('submit', (event) => {
-        if (!validateConsent(checkbox, errorElement)) {
+        const submitContext = { scriptName: 'GDPRConsent', operation: 'handleSubmit' }
+        addScriptBreadcrumb(submitContext)
+        try {
+          if (!validateConsent(checkbox, errorElement)) {
+            event.preventDefault()
+            checkbox.focus()
+          }
+        } catch (error) {
+          handleScriptError(error, submitContext)
+          // Prevent form submission on validation error
           event.preventDefault()
-          checkbox.focus()
         }
       })
     }
   } catch (error) {
-    console.error('Failed to initialize GDPR consent:', error)
+    handleScriptError(error, { scriptName: 'GDPRConsent', operation: 'bindSubmitEvent' })
   }
 }
 
@@ -58,16 +91,30 @@ export function validateConsent(
   checkbox: HTMLInputElement,
   errorElement: HTMLDivElement
 ): boolean {
-  if (!checkbox.checked) {
-    showError(
-      errorElement,
-      'You must consent to data processing to submit this form.'
-    )
+  const context = { scriptName: 'GDPRConsent', operation: 'validateConsent' }
+  addScriptBreadcrumb(context)
+
+  try {
+    if (!checkbox.checked) {
+      showError(
+        errorElement,
+        'You must consent to data processing to submit this form.'
+      )
+      return false
+    }
+
+    clearError(errorElement)
+    return true
+  } catch (error) {
+    handleScriptError(error, context)
+    // On error, assume invalid and show generic error
+    try {
+      showError(errorElement, 'Unable to validate consent. Please try again.')
+    } catch {
+      // Silently fail if can't show error
+    }
     return false
   }
-
-  clearError(errorElement)
-  return true
 }
 
 /**
@@ -77,9 +124,16 @@ export function validateConsent(
  * @param message - Error message to display
  */
 function showError(errorElement: HTMLDivElement, message: string): void {
-  errorElement.textContent = message
-  errorElement.style.display = 'block'
-  errorElement.setAttribute('role', 'alert')
+  const context = { scriptName: 'GDPRConsent', operation: 'showError' }
+  addScriptBreadcrumb(context)
+
+  try {
+    errorElement.textContent = message
+    errorElement.style.display = 'block'
+    errorElement.setAttribute('role', 'alert')
+  } catch (error) {
+    handleScriptError(error, context)
+  }
 }
 
 /**
@@ -88,9 +142,16 @@ function showError(errorElement: HTMLDivElement, message: string): void {
  * @param errorElement - Error message element
  */
 function clearError(errorElement: HTMLDivElement): void {
-  errorElement.textContent = ''
-  errorElement.style.display = 'none'
-  errorElement.removeAttribute('role')
+  const context = { scriptName: 'GDPRConsent', operation: 'clearError' }
+  addScriptBreadcrumb(context)
+
+  try {
+    errorElement.textContent = ''
+    errorElement.style.display = 'none'
+    errorElement.removeAttribute('role')
+  } catch (error) {
+    handleScriptError(error, context)
+  }
 }
 
 /**
@@ -100,10 +161,14 @@ function clearError(errorElement: HTMLDivElement): void {
  * @returns true if checkbox is checked
  */
 export function isConsentValid(checkboxId: string): boolean {
+  const context = { scriptName: 'GDPRConsent', operation: 'isConsentValid' }
+  addScriptBreadcrumb(context)
+
   try {
     const checkbox = getConsentCheckbox(checkboxId)
     return checkbox.checked
-  } catch {
+  } catch (error) {
+    handleScriptError(error, context)
     return false
   }
 }

@@ -43,7 +43,7 @@ export class Navigation extends LoadableScript {
   constructor() {
     super()
     this.isMenuOpen = false
-    
+
     try {
       /** Set references to menu elements */
       this.header = getHeaderElement()
@@ -83,7 +83,7 @@ export class Navigation extends LoadableScript {
 
   setTogglePosition = () => {
     const context = { scriptName: Navigation.scriptName, operation: 'setTogglePosition' }
-    
+
     try {
       // @TODO: There's a bug here. When the menu is expanded and the splash screen showing, and the device screen is resized, the bounding rectangle doesn't change.
       this.togglePosition = this.toggleBtn.getBoundingClientRect()
@@ -134,9 +134,9 @@ export class Navigation extends LoadableScript {
           })
         } catch (error) {
           // Individual link failure shouldn't break all navigation
-          handleScriptError(error, { 
-            scriptName: Navigation.scriptName, 
-            operation: 'setupNavigationLink' 
+          handleScriptError(error, {
+            scriptName: Navigation.scriptName,
+            operation: 'setupNavigationLink'
           })
         }
       })
