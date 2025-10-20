@@ -2,8 +2,8 @@
 /**
  * Newsletter Call-to-Action Component
  *
- * A ConvertKit newsletter subscription form with client-side validation
- * and attractive theme-aware styling.
+ * A ConvertKit newsletter subscription form with client-side validation,
+ * GDPR compliance, and double opt-in confirmation.
  *
  * @example
  * ```astro
@@ -14,6 +14,8 @@
  * />
  * ```
  */
+
+import GDPRConsent from '@components/GDPR/Consent/index.astro'
 
 export interface Props {
   /** Main heading for the newsletter signup */
@@ -64,65 +66,81 @@ const {
         </div>
 
         <form id="newsletter-form" class="max-w-xl mx-auto">
-          <div class="flex flex-col sm:flex-row gap-3">
-            <input
-              type="email"
-              id="newsletter-email"
-              name="email"
-              placeholder={placeholder}
-              class="flex-1 px-6 py-4 border-2 border-[var(--color-border)] rounded-xl bg-[var(--color-bg)] text-[var(--color-text)] placeholder:text-[var(--color-text-offset)] focus:border-[var(--color-primary)] focus:ring-0 focus:outline-none transition-colors duration-200"
-              required
-              aria-label="Email address for newsletter subscription"
-              aria-describedby="newsletter-message"
-            />
-            <button
-              type="submit"
-              id="newsletter-submit"
-              class="px-8 py-4 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white font-semibold rounded-xl transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-            >
-              <span id="button-text">{buttonText}</span>
-              <svg
-                id="button-arrow"
-                class="inline-block w-5 h-5 ml-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+          <div class="space-y-4">
+            <!-- Email Input -->
+            <div class="flex flex-col sm:flex-row gap-3">
+              <input
+                type="email"
+                id="newsletter-email"
+                name="email"
+                placeholder={placeholder}
+                class="flex-1 px-6 py-4 border-2 border-[var(--color-border)] rounded-xl bg-[var(--color-bg)] text-[var(--color-text)] placeholder:text-[var(--color-text-offset)] focus:border-[var(--color-primary)] focus:ring-0 focus:outline-none transition-colors duration-200"
+                required
+                aria-label="Email address for newsletter subscription"
+                aria-describedby="newsletter-message"
+              />
+              <button
+                type="submit"
+                id="newsletter-submit"
+                class="px-8 py-4 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white font-semibold rounded-xl transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
               >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-              </svg>
-              <svg
-                id="button-spinner"
-                class="hidden w-5 h-5 ml-2 animate-spin"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  class="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
+                <span id="button-text">{buttonText}</span>
+                <svg
+                  id="button-arrow"
+                  class="inline-block w-5 h-5 ml-2"
+                  fill="none"
                   stroke="currentColor"
-                  stroke-width="4"></circle>
-                <path
-                  class="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
-            </button>
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                </svg>
+                <svg
+                  id="button-spinner"
+                  class="hidden w-5 h-5 ml-2 animate-spin"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"></circle>
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+              </button>
+            </div>
+
+            <!-- GDPR Consent -->
+            <div class="px-2">
+              <GDPRConsent
+                purposes={['marketing']}
+                required={true}
+                id="newsletter-gdpr-consent"
+                name="consent"
+                formId="newsletter_form"
+              />
+            </div>
+
+            <!-- Status Message -->
+            <p
+              id="newsletter-message"
+              class="text-sm text-[var(--color-text-offset)] text-center"
+              role="status"
+              aria-live="polite"
+            >
+              You'll receive a confirmation email. Click the link to complete your subscription.
+            </p>
           </div>
-          <p
-            id="newsletter-message"
-            class="mt-4 text-sm text-[var(--color-text-offset)] text-center"
-            role="status"
-            aria-live="polite"
-          >
-            We respect your privacy. Unsubscribe at any time.
-          </p>
         </form>
       </div>
     </div>

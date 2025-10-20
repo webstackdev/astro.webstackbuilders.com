@@ -18,6 +18,7 @@ export class NewsletterForm extends LoadableScript {
   // DOM elements
   private form: HTMLFormElement | null = null
   private emailInput: HTMLInputElement | null = null
+  private consentCheckbox: HTMLInputElement | null = null
   private submitButton: HTMLButtonElement | null = null
   private buttonText: HTMLSpanElement | null = null
   private buttonArrow: SVGSVGElement | null = null
@@ -36,6 +37,7 @@ export class NewsletterForm extends LoadableScript {
   private initializeElements(): void {
     this.form = document.getElementById('newsletter-form') as HTMLFormElement | null
     this.emailInput = document.getElementById('newsletter-email') as HTMLInputElement | null
+    this.consentCheckbox = document.getElementById('newsletter-gdpr-consent') as HTMLInputElement | null
     this.submitButton = document.getElementById('newsletter-submit') as HTMLButtonElement | null
     this.buttonText = document.getElementById('button-text') as HTMLSpanElement | null
     this.buttonArrow = document.getElementById('button-arrow') as SVGSVGElement | null
@@ -45,6 +47,7 @@ export class NewsletterForm extends LoadableScript {
     if (
       !this.form ||
       !this.emailInput ||
+      !this.consentCheckbox ||
       !this.submitButton ||
       !this.buttonText ||
       !this.buttonArrow ||
@@ -116,9 +119,10 @@ export class NewsletterForm extends LoadableScript {
   private handleSubmit = async (e: Event): Promise<void> => {
     e.preventDefault()
 
-    if (!this.emailInput) return
+    if (!this.emailInput || !this.consentCheckbox) return
 
     const email = this.emailInput.value.trim()
+    const consentGiven = this.consentCheckbox.checked
 
     // Client-side validation
     if (!email) {
@@ -133,9 +137,15 @@ export class NewsletterForm extends LoadableScript {
       return
     }
 
+    if (!consentGiven) {
+      this.showMessage('Please consent to receive marketing communications.', 'error')
+      this.consentCheckbox.focus()
+      return
+    }
+
     // Submit to API
     this.setLoading(true)
-    this.showMessage('Subscribing...', 'info')
+    this.showMessage('Sending confirmation email...', 'info')
 
     try {
       const response = await fetch('/api/newsletter', {
@@ -143,13 +153,19 @@ export class NewsletterForm extends LoadableScript {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({
+          email,
+          consentGiven
+        }),
       })
 
       const data = await response.json()
 
       if (response.ok && data.success) {
-        this.showMessage(data.message || 'Successfully subscribed! Check your email.', 'success')
+        this.showMessage(
+          data.message || 'Check your email! Click the confirmation link to complete your subscription.',
+          'success'
+        )
         this.form?.reset()
       } else {
         this.showMessage(data.error || 'Failed to subscribe. Please try again.', 'error')
@@ -173,7 +189,7 @@ export class NewsletterForm extends LoadableScript {
     if (email && !this.validateEmail(email)) {
       this.showMessage('Please enter a valid email address.', 'error')
     } else if (email) {
-      this.showMessage('We respect your privacy. Unsubscribe at any time.', 'info')
+      this.showMessage("You'll receive a confirmation email. Click the link to complete your subscription.", 'info')
     }
   }
 
