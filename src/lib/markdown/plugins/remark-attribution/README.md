@@ -59,7 +59,7 @@ console.log(String(html));
 // astro.config.mjs
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
-import remarkAttribution from './src/lib/markdown/remark-attribution/index.ts';
+import remarkAttribution from './src/lib/markdown/plugins/remark-attribution/index.ts';
 
 export default defineConfig({
   integrations: [mdx()],

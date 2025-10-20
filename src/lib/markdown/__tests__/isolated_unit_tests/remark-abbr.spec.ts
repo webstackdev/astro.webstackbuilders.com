@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import remarkAbbr from '../../remark-abbr/index'
+import remarkAbbr from '../../plugins/remark-abbr/index'
 import { processIsolated } from '../../helpers/test-utils'
 
 describe('remark-abbr (Layer 1: Isolated)', () => {

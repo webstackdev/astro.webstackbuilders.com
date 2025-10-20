@@ -65,9 +65,9 @@ export async function processWithAstroSettings(
  */
 export async function processWithFullPipeline(markdown: string): Promise<string> {
   // Import all plugins - using our TypeScript versions (modern API)
-  const remarkAbbr = (await import('../remark-abbr/index')).default
-  const remarkAttr = (await import('../remark-attr/index')).default
-  const remarkAttribution = (await import('../remark-attribution/index')).default
+  const remarkAbbr = (await import('../plugins/remark-abbr/index')).default
+  const remarkAttr = (await import('../plugins/remark-attr/index')).default
+  const remarkAttribution = (await import('../plugins/remark-attribution/index')).default
   const remarkBreaks = (await import('remark-breaks')).default
   const remarkEmoji = (await import('remark-emoji')).default
   const remarkLinkifyRegex = (await import('remark-linkify-regex')).default

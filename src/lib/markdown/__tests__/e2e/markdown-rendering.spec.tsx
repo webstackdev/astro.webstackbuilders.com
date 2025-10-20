@@ -45,13 +45,13 @@ async function renderMarkdown(content: string) {
   const { default: rehypeSlug } = await import('rehype-slug')
 
   // Import custom plugins
-  const remarkAbbrModule = await import('../../remark-abbr')
+  const remarkAbbrModule = await import('../../plugins/remark-abbr')
   const remarkAbbr = remarkAbbrModule.default
 
-  const remarkAttrModule = await import('../../remark-attr')
+  const remarkAttrModule = await import('../../plugins/remark-attr')
   const remarkAttr = remarkAttrModule.default
 
-  const remarkAttributionModule = await import('../../remark-attribution')
+  const remarkAttributionModule = await import('../../plugins/remark-attribution')
   const remarkAttribution = remarkAttributionModule.default
 
   const { default: remarkBreaks } = await import('remark-breaks')

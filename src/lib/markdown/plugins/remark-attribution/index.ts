@@ -169,7 +169,7 @@ function splitAtMarker(
  * @example
  * ```js
  * import { remark } from 'remark'
- * import remarkAttribution from './remark-attribution/index.ts'
+ * import remarkAttribution from './plugins/remark-attribution/index.ts'
  *
  * const processor = remark()
  *   .use(remarkAttribution, {

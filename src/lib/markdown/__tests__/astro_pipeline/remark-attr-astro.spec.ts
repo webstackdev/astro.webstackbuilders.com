@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import remarkAttr from '../../remark-attr/index'
+import remarkAttr from '../../plugins/remark-attr/index'
 import { processWithAstroSettings } from '../../helpers/test-utils'
 import { remarkAttrConfig } from '../../../config/markdown'
 

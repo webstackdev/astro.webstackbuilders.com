@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import remarkAttribution from '../../remark-attribution/index'
+import remarkAttribution from '../../plugins/remark-attribution/index'
 import { processWithAstroSettings } from '../../helpers/test-utils'
 
 describe('remark-attribution (Layer 2: With Astro Pipeline)', () => {

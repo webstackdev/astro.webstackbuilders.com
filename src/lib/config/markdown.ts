@@ -5,9 +5,9 @@ import type { Options as RehypeAutolinkHeadingsOptions } from 'rehype-autolink-h
 import { rehypeAccessibleEmojis } from 'rehype-accessible-emojis'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 // Use our TypeScript implementations (modern Remark API)
-import remarkAbbr from '../markdown/remark-abbr/index'
-import remarkAttr from '../markdown/remark-attr/index'
-import remarkAttribution from '../markdown/remark-attribution/index'
+import remarkAbbr from '../markdown/plugins/remark-abbr/index'
+import remarkAttr from '../markdown/plugins/remark-attr/index'
+import remarkAttribution from '../markdown/plugins/remark-attribution/index'
 // These plugins are from npm (no custom implementation)
 import remarkBreaks from 'remark-breaks'
 import remarkEmoji from 'remark-emoji'

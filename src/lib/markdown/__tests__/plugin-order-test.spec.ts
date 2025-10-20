@@ -3,7 +3,7 @@ import { remark } from 'remark'
 import remarkGfm from 'remark-gfm'
 import remarkRehype from 'remark-rehype'
 import rehypeStringify from 'rehype-stringify'
-import remarkAttribution from '../remark-attribution/index'
+import remarkAttribution from '../plugins/remark-attribution/index'
 
 describe('Attribution Plugin Order Test', () => {
   const markdown = `> That's ~~not~~ **definitely** one small step.
