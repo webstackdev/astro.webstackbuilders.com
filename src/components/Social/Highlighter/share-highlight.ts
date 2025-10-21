@@ -1,10 +1,18 @@
+interface HighlightShareData {
+  url: string
+  title: string
+  text: string
+}
+
 class ShareHighlight extends HTMLElement {
+  private label: string
+
   constructor() {
     super()
     this.label = this.getAttribute('aria-label') || 'Share this'
 
     this.attachShadow({ mode: 'open' })
-    this.shadowRoot.appendChild(this.template.content.cloneNode(true))
+    this.shadowRoot!.appendChild(this.template.content.cloneNode(true))
   }
 
   get template() {
@@ -55,8 +63,8 @@ class ShareHighlight extends HTMLElement {
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                width: 0; 
-                height: 0; 
+                width: 0;
+                height: 0;
                 border-left: .5em solid transparent;
                 border-right: .5em solid transparent;
                 border-top: .5em solid var(--share-highlight-tooltip-bg-color, #000);
@@ -112,10 +120,10 @@ class ShareHighlight extends HTMLElement {
   }
 
   shareData() {
-    const text = this.shadowRoot
-      .querySelector('slot')
+    const text = this.shadowRoot!
+      .querySelector('slot')!
       .assignedNodes({ flatten: true })
-      .map(node => node.textContent.trim())
+      .map(node => (node.textContent || '').trim())
       .join(' ')
 
     return {
@@ -133,7 +141,7 @@ class ShareHighlight extends HTMLElement {
         await navigator.share(data)
         this.emitEvent('shared', data)
       } catch (error) {
-        if (error.name === 'AbortError') {
+        if (error instanceof Error && error.name === 'AbortError') {
           this.emitEvent('cancelled', data)
         }
       }
@@ -149,7 +157,7 @@ class ShareHighlight extends HTMLElement {
     }
   }
 
-  emitEvent(eventName, data) {
+  emitEvent(eventName: string, data: HighlightShareData) {
     const event = new CustomEvent(eventName, {
       detail: data,
       bubbles: true,

@@ -8,5 +8,5 @@ export interface ImageProps {
   image?: {
     src: ImageMetadata
     alt: string
-  }
+  } | undefined
 }

@@ -19,6 +19,7 @@ function createMockScript(eventType: TriggerEvent, name = 'MockScript') {
     static name = name
     static scriptName = name
     static eventType = eventType
+    static meta = {}
     static paused = false
     static executed = false
     static mockInit = vi.fn()

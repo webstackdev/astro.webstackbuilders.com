@@ -25,7 +25,7 @@ import { writeFile } from 'fs/promises'
 type IconGenerator = (options: Metadata) => Promise<Buffer>
 
 const faviconPath = `src/assets/favicon.svg`
-const generateIcoFavicon: IconGenerator = ({ width, height, density }) => {
+const generateIcoFavicon: IconGenerator = async ({ width, height, density }) => {
   if (!width || !height || !density)
     throw new Error(`Required option not passed to generateIcoFavicon`)
   const faviconDimensions = [32, 64]

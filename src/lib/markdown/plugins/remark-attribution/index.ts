@@ -97,6 +97,7 @@ function updateLastTextNode(node: Parent | Paragraph, newValue: string): boolean
   // Search children in reverse to find the last text node
   for (let i = node.children.length - 1; i >= 0; i--) {
     const child = node.children[i]
+    if (!child) continue
 
     if (child.type === 'text') {
       child.value = newValue

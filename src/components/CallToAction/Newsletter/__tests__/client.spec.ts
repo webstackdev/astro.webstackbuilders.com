@@ -149,7 +149,7 @@ describe('NewsletterForm class works', () => {
     elements.emailInput.value = 'test@example.com'
     elements.consentCheckbox.checked = true
     const submitEvent = new Event('submit')
-    await elements.form.dispatchEvent(submitEvent)
+    elements.form.dispatchEvent(submitEvent)
 
     // Wait for async operations
     await vi.runAllTimersAsync()
@@ -180,7 +180,7 @@ describe('NewsletterForm class works', () => {
     elements.emailInput.value = 'test@example.com'
     elements.consentCheckbox.checked = true
     const submitEvent = new Event('submit')
-    await elements.form.dispatchEvent(submitEvent)
+    elements.form.dispatchEvent(submitEvent)
 
     // Wait for async operations
     await vi.runAllTimersAsync()
@@ -202,7 +202,7 @@ describe('NewsletterForm class works', () => {
     elements.emailInput.value = 'test@example.com'
     elements.consentCheckbox.checked = true
     const submitEvent = new Event('submit')
-    await elements.form.dispatchEvent(submitEvent)
+    elements.form.dispatchEvent(submitEvent)
 
     // Wait for async operations
     await vi.runAllTimersAsync()

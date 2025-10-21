@@ -23,7 +23,7 @@ export interface ReplacementRule {
   /** Regular expression to match */
   re: RegExp
   /** Replacement string or function */
-  sub: string | ((match: string, ...args: any[]) => string)
+  sub: string | ((_match: string, ..._args: string[]) => string)
 }
 
 /**
@@ -65,7 +65,7 @@ export const defaultReplacements: ReplacementRule[] = [
   {
     name: 'multiplication',
     re: /\b(\d+)\s*x\s*(\d+)\b/gi,
-    sub: (match: string, a: string, b: string) => `${a} × ${b}`,
+    sub: (_match: string, a: string, b: string) => `${a} × ${b}`,
   },
 ]
 

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi, afterEach, type Mock } from 'vitest'
 import { JSDOM } from 'jsdom'
 import { readFileSync } from 'fs'
 import { resolve } from 'path'
@@ -82,7 +82,7 @@ describe('HeroLoader', () => {
     })
 
     it('should register with loader', () => {
-      ;(registerScript as vi.Mock).mockClear()
+      ;(registerScript as Mock).mockClear()
       registerScript(HeroLoader)
       expect(registerScript).toHaveBeenCalledWith(HeroLoader)
     })

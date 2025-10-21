@@ -138,13 +138,13 @@ export class HeroLoader extends LoadableScript {
         },
         '-=1'
       )
-      .staggerFrom(
+      .from(
         '.monitorContentGroup path',
-        1,
         {
+          duration: 1,
           scaleX: 0,
-        },
-        0.1
+          stagger: 0.1,
+        }
       )
       .from('.monitorLogo', {
         scale: 0,
@@ -248,13 +248,13 @@ export class HeroLoader extends LoadableScript {
         },
         '-=2'
       )
-      .staggerFrom(
+      .from(
         '.laptopContentGroup path',
-        1,
         {
+          duration: 1,
           scaleX: 0,
-        },
-        0.1
+          stagger: 0.1,
+        }
       )
       .to('.laptopTrackpad', {
         duration: 0.3,
@@ -322,12 +322,13 @@ export class HeroLoader extends LoadableScript {
         delay: 2,
         ease: Anticipate.out,
       })
-      .staggerFrom(
+      .from(
         ['.tabletButton', '.tabletCamera'],
-        0.5,
         {
+          duration: 0.5,
           scale: 0,
           ease: 'back',
+          stagger: 0,
         },
         '-=1'
       )
@@ -375,14 +376,14 @@ export class HeroLoader extends LoadableScript {
       .set(['.tabletGroup', '.tabletContentGroup'], {
         alpha: 0,
       })
-      .staggerFrom(
+      .from(
         ['.phoneButton', '.phoneCamera', '.phoneSpeaker'],
-        1,
         {
+          duration: 1,
           scale: 0,
           ease: 'back',
-        },
-        0.1
+          stagger: 0.1,
+        }
       )
       .to('.phoneGroup', {
         duration: 2,

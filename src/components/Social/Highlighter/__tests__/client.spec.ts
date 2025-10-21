@@ -343,7 +343,7 @@ describe('HighlighterElement', () => {
       ) as HTMLButtonElement
       expect(copyButton).toBeTruthy()
 
-      await copyButton.click()
+      copyButton.click()
 
       // Copy button shares text + URL
       expect(mockCopyToClipboard).toHaveBeenCalledWith(
@@ -358,7 +358,7 @@ describe('HighlighterElement', () => {
         '[data-platform="copy"]'
       ) as HTMLButtonElement
 
-      await copyButton.click()
+      copyButton.click()
 
       // Wait for feedback animation
       await new Promise(resolve => setTimeout(resolve, 10))
@@ -383,7 +383,7 @@ describe('HighlighterElement', () => {
       const twitterButton = highlighter.shadowRoot?.querySelector(
         '[data-platform="twitter"]'
       ) as HTMLButtonElement
-      await twitterButton.click()
+      twitterButton.click()
 
       // Should have tried native share
       expect(mockNativeShare).toHaveBeenCalled()
@@ -396,7 +396,7 @@ describe('HighlighterElement', () => {
       const twitterButton = highlighter.shadowRoot?.querySelector(
         '[data-platform="twitter"]'
       ) as HTMLButtonElement
-      await twitterButton.click()
+      twitterButton.click()
 
       // Should fall back to window.open
       expect(window.open).toHaveBeenCalled()
@@ -411,7 +411,7 @@ describe('HighlighterElement', () => {
       const twitterButton = highlighter.shadowRoot?.querySelector(
         '[data-platform="twitter"]'
       ) as HTMLButtonElement
-      await twitterButton.click()
+      twitterButton.click()
 
       expect(eventListener).toHaveBeenCalled()
 
@@ -437,7 +437,7 @@ describe('HighlighterElement', () => {
       const copyButton = highlighter.shadowRoot?.querySelector(
         '[data-platform="copy"]'
       ) as HTMLButtonElement
-      await copyButton.click()
+      copyButton.click()
 
       expect(eventListener).toHaveBeenCalled()
 
