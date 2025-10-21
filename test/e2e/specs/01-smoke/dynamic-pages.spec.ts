@@ -117,6 +117,50 @@ test.describe('Dynamic Pages @smoke', () => {
     expect(Array.isArray(manifest.icons)).toBe(true)
   })
 
+  test('@ready dynamic pages have no 404 errors', async ({ page }) => {
+    // Test article page
+    await page.goto('/articles')
+    await page.waitForLoadState('networkidle')
+
+    const firstArticleLink = page.locator('a[href*="/articles/"]').first()
+    const articleUrl = await firstArticleLink.getAttribute('href')
+
+    if (articleUrl) {
+      const articleChecker = setupConsoleErrorChecker(page)
+      await page.goto(articleUrl)
+      await page.waitForLoadState('networkidle')
+      expect(articleChecker.failed404s).toHaveLength(0)
+    }
+
+    // Test service page
+    await page.goto('/services')
+    await page.waitForLoadState('networkidle')
+
+    const firstServiceLink = page.locator('a[href*="/services/"]').first()
+    const serviceUrl = await firstServiceLink.getAttribute('href')
+
+    if (serviceUrl) {
+      const serviceChecker = setupConsoleErrorChecker(page)
+      await page.goto(serviceUrl)
+      await page.waitForLoadState('networkidle')
+      expect(serviceChecker.failed404s).toHaveLength(0)
+    }
+
+    // Test case study page
+    await page.goto('/case-studies')
+    await page.waitForLoadState('networkidle')
+
+    const firstCaseStudyLink = page.locator('a[href*="/case-studies/"]').first()
+    const caseStudyUrl = await firstCaseStudyLink.getAttribute('href')
+
+    if (caseStudyUrl) {
+      const caseStudyChecker = setupConsoleErrorChecker(page)
+      await page.goto(caseStudyUrl)
+      await page.waitForLoadState('networkidle')
+      expect(caseStudyChecker.failed404s).toHaveLength(0)
+    }
+  })
+
   test('@ready dynamic pages have no console errors', async ({ page }) => {
     // First, get actual article URL
     await page.goto('/articles')

@@ -6,6 +6,7 @@
 import { test, expect } from '@playwright/test'
 import { TEST_URLS } from '@test/e2e/fixtures/test-data'
 import { setupConsoleErrorChecker, logConsoleErrors } from '@test/e2e/helpers/console-errors'
+import { clearConsentCookies } from '@test/e2e/helpers/browser-state'
 
 test.describe('Critical Paths @smoke', () => {
   test('@ready all main pages are accessible', async ({ page }) => {
@@ -94,12 +95,36 @@ test.describe('Critical Paths @smoke', () => {
     await expect(page.locator('button[aria-label="toggle theme switcher"]')).toBeVisible()
   })
 
-  test.skip('@blocked cookie consent banner appears', async ({ page }) => {
-    // Blocked by: Need to clear cookies/localStorage first
-    // Need to implement helper to reset browser state
+  test('@ready cookie consent banner appears', async ({ page, context }) => {
+    // Clear consent cookies to force banner to appear
+    await clearConsentCookies(context)
 
     await page.goto(TEST_URLS.home)
-    await expect(page.locator('#cookie-consent-banner')).toBeVisible()
+    await page.waitForLoadState('networkidle')
+
+    // Cookie modal should be visible
+    await expect(page.locator('#cookie-modal-id')).toBeVisible()
+  })
+
+  test('@ready main pages have no 404 errors', async ({ page }) => {
+    const mainPages = [
+      TEST_URLS.home,
+      TEST_URLS.about,
+      TEST_URLS.articles,
+      TEST_URLS.services,
+      TEST_URLS.caseStudies,
+      TEST_URLS.contact,
+    ]
+
+    for (const path of mainPages) {
+      const errorChecker = setupConsoleErrorChecker(page)
+
+      await page.goto(path)
+      await page.waitForLoadState('networkidle')
+
+      // Should have zero 404s (not filtered, actual count)
+      expect(errorChecker.failed404s).toHaveLength(0)
+    }
   })
 
   test('@ready main pages have no console errors', async ({ page }) => {
