@@ -31,7 +31,7 @@ test.describe('Dynamic Pages @smoke', () => {
     expect(page.url()).toMatch(/\/articles\/.+/)
   })
 
-  test('@wip service detail page loads', async ({ page }) => {
+  test('@ready service detail page loads', async ({ page }) => {
     // Visit services list to get an actual service link
     await page.goto('/services')
     await page.waitForLoadState('networkidle')
@@ -57,7 +57,7 @@ test.describe('Dynamic Pages @smoke', () => {
     expect(page.url()).toMatch(/\/services\/.+/)
   })
 
-  test('@wip case study detail page loads', async ({ page }) => {
+  test('@ready case study detail page loads', async ({ page }) => {
     // Visit case studies list to get an actual case study link
     await page.goto('/case-studies')
     await page.waitForLoadState('networkidle')
@@ -91,7 +91,8 @@ test.describe('Dynamic Pages @smoke', () => {
     const contentType = response?.headers()['content-type']
     expect(contentType).toMatch(/xml/)
 
-    const content = await page.content()
+    // Get raw response text, not browser-rendered HTML
+    const content = await response!.text()
     expect(content).toContain('<?xml')
     expect(content).toContain('<rss')
   })
@@ -104,7 +105,8 @@ test.describe('Dynamic Pages @smoke', () => {
     const contentType = response?.headers()['content-type']
     expect(contentType).toMatch(/json/)
 
-    const content = await page.content()
+    // Get raw response text, not browser-rendered HTML
+    const content = await response!.text()
     const manifest = JSON.parse(content)
 
     // Verify required manifest fields

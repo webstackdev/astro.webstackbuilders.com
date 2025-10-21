@@ -25,7 +25,7 @@ test.describe('Critical Paths @smoke', () => {
     }
   })
 
-  test.skip('@wip navigation works across all pages', async ({ page }) => {
+  test('@ready navigation works across all pages', async ({ page }) => {
     // Issue: Need to verify - mobile nav may have issues
     // Expected: Can navigate between all main pages via nav menu
     // Actual: Unknown - needs testing
@@ -58,7 +58,7 @@ test.describe('Critical Paths @smoke', () => {
     }
   })
 
-  test.skip('@wip contact form loads and is visible', async ({ page }) => {
+  test('@ready contact form loads and is visible', async ({ page }) => {
     // Expected: Contact form should be visible with all required fields
     // Actual: Unknown - needs testing
 
@@ -69,7 +69,7 @@ test.describe('Critical Paths @smoke', () => {
     await expect(page.locator('#message')).toBeVisible()
   })
 
-  test.skip('@wip newsletter form is present on homepage', async ({ page }) => {
+  test('@ready newsletter form is present on homepage', async ({ page }) => {
     // Expected: Newsletter form should be visible on homepage
     // Actual: Unknown - needs testing
 
@@ -86,12 +86,12 @@ test.describe('Critical Paths @smoke', () => {
     await expect(page.locator('h1')).toContainText(/404|Not Found/i)
   })
 
-  test.skip('@wip theme picker is accessible', async ({ page }) => {
+  test('@ready theme picker is accessible', async ({ page }) => {
     // Expected: Theme picker button should be visible and clickable
     // Actual: Unknown - needs testing
 
     await page.goto(TEST_URLS.home)
-    await expect(page.locator('#theme-picker')).toBeVisible()
+    await expect(page.locator('button[aria-label="toggle theme switcher"]')).toBeVisible()
   })
 
   test.skip('@blocked cookie consent banner appears', async ({ page }) => {

@@ -55,16 +55,44 @@ export function setupConsoleErrorChecker(page: Page): ConsoleErrorChecker {
     consoleErrors,
     failed404s,
     // Filter out ONLY known acceptable issues - computed lazily
-    getFilteredErrors: () =>
-      consoleErrors.filter(
-        (error) =>
-          !error.includes('ResizeObserver loop completed') // Known browser quirk
-      ),
+    getFilteredErrors: () => {
+      // Get list of acceptable 404 URLs (strip resource type suffix)
+      const acceptable404Urls = failed404s.filter((url) => {
+        const urlWithoutType = url.split(' (')[0]
+        return url.includes('favicon.ico') || urlWithoutType?.endsWith('/')
+      })
+
+      return consoleErrors.filter((error) => {
+        // Filter known browser quirks
+        if (error.includes('ResizeObserver loop completed')) return false
+
+        // Filter generic "Failed to load resource: 404" errors if we have acceptable 404s
+        // These console errors don't include the URL, so if we filtered out 404s,
+        // we should also filter out the corresponding console errors
+        if (
+          error.includes('Failed to load resource') &&
+          error.includes('404') &&
+          acceptable404Urls.length > 0 &&
+          failed404s.every((url) => acceptable404Urls.includes(url))
+        ) {
+          return false
+        }
+
+        return true
+      })
+    },
     getFiltered404s: () =>
-      failed404s.filter(
-        (url) =>
-          !url.includes('favicon.ico') // favicon 404s are acceptable in dev
-      ),
+      failed404s.filter((url) => {
+        // favicon 404s are acceptable in dev
+        if (url.includes('favicon.ico')) return false
+
+        // Trailing slash 404s are expected (astro config: trailingSlash: 'never')
+        // URL format is: "http://localhost:4321/path/ (resourceType)"
+        const urlWithoutType = url.split(' (')[0]
+        if (urlWithoutType?.endsWith('/')) return false
+
+        return true
+      }),
   }
 }
 

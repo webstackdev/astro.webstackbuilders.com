@@ -15,7 +15,7 @@ function getTestimonialCardHTML(testimonial: TestimonialData): string {
         <blockquote class="text-lg text-[color:var(--color-text)] mb-6 leading-relaxed">
           "${testimonial.content}"
         </blockquote>
-        <footer class="flex items-center gap-4">
+        <div class="flex items-center gap-4">
           ${
             testimonial.avatar
               ? `
@@ -38,7 +38,7 @@ function getTestimonialCardHTML(testimonial: TestimonialData): string {
               ${testimonial.role}${testimonial.company ? ` at ${testimonial.company}` : ''}
             </div>
           </div>
-        </footer>
+        </div>
       </article>
     </div>
   `
