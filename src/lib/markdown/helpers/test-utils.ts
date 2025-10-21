@@ -23,7 +23,10 @@ export async function processIsolated(
     processor.use(plugin)
   }
 
-  const result = await processor.use(remarkRehype).use(rehypeStringify).process(markdown)
+  const result = await processor
+    .use(remarkRehype)
+    .use(rehypeStringify)
+    .process(markdown)
 
   return String(result)
 }

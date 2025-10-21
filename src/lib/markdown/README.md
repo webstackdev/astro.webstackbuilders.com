@@ -71,6 +71,8 @@ Working plugins that pass all tests:
 - rehype-autolink-headings
 - rehype-tailwind-classes
 
+### Rehype Tailwind Classes
+
 Conditional elements (have checks):
 
 - a (checks for .btn and .heading-anchor)
@@ -80,6 +82,45 @@ Conditional elements (have checks):
 - pre
 - iframe
 - various special cases
+
+### Duplicate test code across units, units_with_default_astro, and e2e
+
+- rehypeAccessibleEmojis.spec.tsx
+
+Summary: What Should Change
+
+Remove:
+
+Layer 2: "should use custom footnote labels from Astro config" test (doesn't test emojis)
+
+Add to Layer 2 (Astro):
+
+Test emoji shortcodes (:heart:) in addition to Unicode
+"Text without emojis" edge case
+DOM-based validation with axe (optional, but valuable)
+Empty aria-label verification
+
+Add to Layer 4 (E2E):
+
+Unicode emoji tests in addition to shortcodes
+"Text without emojis" edge case
+Expand emoji.md fixture to include more edge cases
+
+Keep Layer 1 (Units) as-is:
+
+It's focused and tests the isolated plugin correctly
+Uses Unicode emojis which is appropriate
+Has good edge case coverage
+
+Fixture Enhancement Needed
+
+The emoji.md fixture should include:
+
+Unicode emojis (not just shortcodes)
+Text without emojis
+Emoji in headings
+Emoji in various list types
+More diverse emoji types
 
 ## Markdown Config Updates
 

@@ -1,12 +1,12 @@
 import { describe, expect, test } from 'vitest'
 import type { Element } from 'hast'
-import type { ElementConfig } from '../@types/index.js'
+import type { ElementConfig } from '../@types/index'
 import {
   htmlElements,
   applyHtmlElementClasses,
   isSimpleHtmlElement,
   getElementConfig,
-} from '../visitors/simple.js'
+} from '../visitors/simple'
 
 describe('htmlElements configuration', () => {
   test('contains expected number of element configurations', () => {

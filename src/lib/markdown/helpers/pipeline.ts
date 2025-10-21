@@ -13,7 +13,7 @@ import remarkGfm from 'remark-gfm'
 import remarkRehype from 'remark-rehype'
 import rehypeStringify from 'rehype-stringify'
 import rehypeSlug from 'rehype-slug'
-import { markdownConfig } from '../../config/markdown'
+import { markdownConfig } from '@lib/config/markdown'
 
 /**
  * Renders markdown content through the complete Astro pipeline
