@@ -24,8 +24,8 @@ test.describe('Dynamic Pages @smoke', () => {
     await page.waitForLoadState('networkidle')
 
     // Verify article page loaded with expected elements
-    await expect(page.locator('article, main')).toBeVisible()
-    await expect(page.locator('h1')).toBeVisible()
+    await expect(page.locator('main#main')).toBeVisible()
+    await expect(page.locator('h1[id="article-title"]')).toBeVisible()
 
     // Verify we're on an article page (URL should match pattern)
     expect(page.url()).toMatch(/\/articles\/.+/)
@@ -50,8 +50,8 @@ test.describe('Dynamic Pages @smoke', () => {
     await page.waitForLoadState('networkidle')
 
     // Verify service page loaded
-    await expect(page.locator('main')).toBeVisible()
-    await expect(page.locator('h1')).toBeVisible()
+    await expect(page.locator('main#main')).toBeVisible()
+    await expect(page.locator('h1[id="article-title"]')).toBeVisible()
 
     // Verify we're on a service page
     expect(page.url()).toMatch(/\/services\/.+/)
@@ -76,8 +76,8 @@ test.describe('Dynamic Pages @smoke', () => {
     await page.waitForLoadState('networkidle')
 
     // Verify case study page loaded
-    await expect(page.locator('main')).toBeVisible()
-    await expect(page.locator('h1')).toBeVisible()
+    await expect(page.locator('main#main')).toBeVisible()
+    await expect(page.locator('h1[id="article-title"]')).toBeVisible()
 
     // Verify we're on a case study page
     expect(page.url()).toMatch(/\/case-studies\/.+/)

@@ -1,5 +1,14 @@
 # TODO
 
+From the error output, the article page has:
+
+<h1 id="article-title"> - the actual article title (correct)
+<h1 id="create-custom-font-sets-use-font-forge"> - from markdown content (wrong!)
+<h1>No islands detected.</h1> - from some debug/dev tool
+<h1>Audit</h1> - from some debug/dev tool
+<h1>No accessibility or performance issues detected.</h1> - from debug/dev tool
+<h1>Settings</h1> - from debug/dev tool
+
 ## @TODO: Use Confetti on CTA forms
 
 `canvas-confetti`

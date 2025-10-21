@@ -24,6 +24,9 @@ if (IS_CI && !SENTRY_AUTH_TOKEN) {
 
 export default defineConfig({
   adapter: vercelStatic(vercelConfig),
+  devToolbar: {
+    enabled: false,
+  },
   env: environmentalVariablesConfig,
   integrations: [
     AstroPWA(serviceWorkerConfig),
