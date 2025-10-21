@@ -1,6 +1,6 @@
 import mdx from '@astrojs/mdx'
 import preact from "@astrojs/preact"
-import vercelStatic from '@astrojs/vercel/static'
+import vercelStatic from '@astrojs/vercel'
 import sentry from "@sentry/astro"
 import tailwindcss from '@tailwindcss/vite'
 import AstroPWA from '@vite-pwa/astro'

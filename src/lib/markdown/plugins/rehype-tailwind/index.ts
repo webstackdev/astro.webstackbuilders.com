@@ -3,18 +3,21 @@
  */
 import { visit } from 'unist-util-visit'
 import type { Root, Element } from 'hast'
+import { applyHtmlElementClasses, getElementConfig } from './visitors/simple.js'
+import { hasClass } from './utilities/index.js'
 
+/**
+ * Rehype plugin that adds Tailwind CSS classes to HTML elements
+ * @returns Transformer function for rehype
+ */
 export function rehypeTailwindClasses() {
   return (tree: Root) => {
     visit(tree, 'element', (node: Element) => {
-      // Add classes to paragraphs with spacing and link styling
-      if (node.tagName === 'p') {
-        node.properties = node.properties || {}
-        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          'mb-8',
-          'text-lg',
-          'leading-relaxed',
-        ])
+      // Check if this is a simple HTML element from our configuration
+      const elementConfig = getElementConfig(node.tagName)
+      if (elementConfig) {
+        applyHtmlElementClasses(node, elementConfig)
+        return // Skip to next node
       }
 
       // Add classes to links within paragraphs, list items, and blockquotes
@@ -31,76 +34,6 @@ export function rehypeTailwindClasses() {
           'focus:text-gray-900',
           'focus:outline-none',
           'transition-colors',
-        ])
-      }
-
-      // Add classes to images with responsive behavior and centering
-      if (node.tagName === 'img') {
-        node.properties = node.properties || {}
-        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          'block',
-          'mx-auto',
-          'mb-8',
-          'max-w-full',
-          'h-auto',
-          'rounded-lg',
-          'shadow-md',
-          'text-gray-500',
-          'italic',
-          'text-center',
-        ])
-      }
-
-      // Add classes to videos with responsive behavior and centering
-      if (node.tagName === 'video') {
-        node.properties = node.properties || {}
-        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          'block',
-          'mx-auto',
-          'mb-8',
-          'max-w-full',
-          'h-auto',
-          'rounded-lg',
-          'shadow-md',
-          'text-gray-500',
-          'italic',
-          'text-center',
-        ])
-      }
-
-      // Add classes to figures
-      if (node.tagName === 'figure') {
-        node.properties = node.properties || {}
-        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          'my-8',
-          'mx-auto',
-          'max-w-none',
-          'text-center',
-        ])
-      }
-
-      // Add classes to figcaptions
-      if (node.tagName === 'figcaption') {
-        node.properties = node.properties || {}
-        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          'text-base',
-          'italic',
-          'pt-3',
-        ])
-      }
-
-      // Add classes to horizontal rules
-      if (node.tagName === 'hr') {
-        node.properties = node.properties || {}
-        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          'bg-gray-300',
-          'border-0',
-          'border-gray-300',
-          'my-16',
-          'mx-auto',
-          'text-center',
-          'w-96',
-          'h-px',
         ])
       }
 
@@ -140,37 +73,6 @@ export function rehypeTailwindClasses() {
         ])
       }
 
-      // Add classes to unordered lists
-      if (node.tagName === 'ul') {
-        node.properties = node.properties || {}
-        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          'list-disc',
-          'list-outside',
-          'pl-4',
-          'mb-8',
-        ])
-      }
-
-      // Add classes to ordered lists
-      if (node.tagName === 'ol') {
-        node.properties = node.properties || {}
-        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          'list-decimal',
-          'list-outside',
-          'pl-4',
-          'mb-8',
-        ])
-      }
-
-      // Add classes to list items with spacing
-      if (node.tagName === 'li') {
-        node.properties = node.properties || {}
-        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          'mb-1',
-          'last:mb-0',
-        ])
-      }
-
       // Add classes to inline code
       if (node.tagName === 'code' && !isWithinPre(node)) {
         node.properties = node.properties || {}
@@ -185,15 +87,6 @@ export function rehypeTailwindClasses() {
           'mx-1',
           'px-2',
           'py-1',
-        ])
-      }
-
-      // Add classes to mark elements
-      if (node.tagName === 'mark') {
-        node.properties = node.properties || {}
-        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          'bg-gray-300',
-          'text-gray-900',
         ])
       }
 
@@ -416,26 +309,6 @@ export function rehypeTailwindClasses() {
         ])
       }
 
-      // Expandable details/summary
-      if (node.tagName === 'summary') {
-        node.properties = node.properties || {}
-        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          'outline-none',
-          'select-none',
-          'cursor-pointer',
-          'list-none',
-          'marker:hidden',
-        ])
-      }
-
-      // Details content padding
-      if (node.tagName === 'details') {
-        node.properties = node.properties || {}
-        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          '[&>*:not(summary)]:pl-5',
-        ])
-      }
-
       // Named code block filename
       if (hasClass(node, 'named-fence-filename')) {
         node.properties = node.properties || {}
@@ -464,63 +337,8 @@ export function rehypeTailwindClasses() {
           '[--share-highlight-tooltip-bg-color:var(--color-share-highlight-tooltip-bg)]',
         ])
       }
-
-      // Add classes to tables
-      if (node.tagName === 'table') {
-        node.properties = node.properties || {}
-        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          'w-full',
-          'border-collapse',
-          'border',
-          'border-gray-300',
-          'dark:border-gray-600',
-          'my-6',
-          'rounded-lg',
-          'overflow-hidden',
-        ])
-      }
-
-      if (node.tagName === 'th') {
-        node.properties = node.properties || {}
-        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          'bg-gray-100',
-          'dark:bg-gray-700',
-          'px-4',
-          'py-2',
-          'text-left',
-          'font-semibold',
-          'border-b',
-          'border-gray-300',
-          'dark:border-gray-600',
-        ])
-      }
-
-      if (node.tagName === 'td') {
-        node.properties = node.properties || {}
-        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          'px-4',
-          'py-2',
-          'border-b',
-          'border-gray-200',
-          'dark:border-gray-700',
-        ])
-      }
     })
   }
-}
-
-/**
- * Helper function to check if an element has a specific class
- */
-function hasClass(node: Element, className: string): boolean {
-  const classes = node.properties?.['className'] as string[] | string | undefined
-  if (Array.isArray(classes)) {
-    return classes.includes(className)
-  }
-  if (typeof classes === 'string') {
-    return classes.split(' ').includes(className)
-  }
-  return false
 }
 
 /**

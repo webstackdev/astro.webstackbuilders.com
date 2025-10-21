@@ -4,6 +4,21 @@
 
 Layer 4 provides end-to-end testing of markdown rendering through the complete Astro pipeline with comprehensive accessibility validation using the Axe library.
 
+## Integration vs E2E Tests
+
+Both layers test the complete pipeline, but with different approaches:
+
+| Aspect | **Layer 3: Integration** | **Layer 4: E2E** |
+|--------|--------------------------|------------------|
+| **Focus** | Plugin interactions via inline markdown | Full production rendering with external fixtures |
+| **Test Input** | Inline markdown strings in test files | External `.md` fixture files |
+| **Test Method** | Direct string matching on HTML output | React component rendering + Testing Library queries |
+| **Validation** | String contains/equals assertions | Accessibility checks via vitest-axe |
+| **Speed** | ⚡ Fast (seconds) | 🐢 Slower (renders full Astro components) |
+| **Coverage** | Pipeline transformation logic | End-user experience + accessibility |
+| **Debugging** | Easy to pinpoint exact transformation issue | Shows real-world rendering problems |
+| **Best For** | Catching plugin conflicts and ordering issues | Validating final output quality and a11y |
+
 ## Architecture
 
 ```bash
@@ -28,7 +43,7 @@ Located at `src/components/Test/index.astro`, this component:
 
 ## Test Strategy
 
-### Fixtures (`__fixtures__/markdown/`)
+### Fixtures (`__fixtures__/`)
 
 Five comprehensive fixtures testing different features:
 

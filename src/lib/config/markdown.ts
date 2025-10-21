@@ -1,24 +1,57 @@
+/**
+ * Markdown Configuration
+ *
+ * Overrides of function names is to provide for better debugging
+ */
+
 import type { MdxOptions } from '@astrojs/mdx'
 import type { ShikiConfig } from 'astro/'
-import type { Options as RemarkTocOptions } from 'remark-toc'
-import type { Options as RehypeAutolinkHeadingsOptions } from 'rehype-autolink-headings'
+// import { transformerNotationDiff } from '@shiki/transformers'
+
+/** Rehype plugins */
+
 import { rehypeAccessibleEmojis } from 'rehype-accessible-emojis'
+Object.defineProperty(rehypeAccessibleEmojis, 'name', { value: 'rehypeAccessibleEmojis' })
+
+import type { Options as RehypeAutolinkHeadingsOptions } from 'rehype-autolink-headings'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
-// Use our TypeScript implementations (modern Remark API)
-import remarkAbbr from '../markdown/plugins/remark-abbr/index'
-import remarkAttr from '../markdown/plugins/remark-attr/index'
-import remarkAttribution from '../markdown/plugins/remark-attribution/index'
-import remarkReplacements from '../markdown/plugins/remark-replacements/index'
-// These plugins are from npm (no custom implementation)
+Object.defineProperty(rehypeAutolinkHeadings, 'name', { value: 'rehypeAutolinkHeadings' })
+
+/** Remark plugins */
 import remarkBreaks from 'remark-breaks'
 import remarkEmoji from 'remark-emoji'
 import remarkLinkifyRegex from 'remark-linkify-regex'
+import type { Options as RemarkTocOptions } from 'remark-toc'
 import remarkToc from 'remark-toc'
+
+// Override function names for better debugging
+Object.defineProperty(remarkBreaks, 'name', { value: 'remarkBreaks' })
+Object.defineProperty(remarkEmoji, 'name', { value: 'remarkEmoji' })
+Object.defineProperty(remarkLinkifyRegex, 'name', { value: 'remarkLinkifyRegex' })
+Object.defineProperty(remarkToc, 'name', { value: 'remarkToc' })
+
+// Create a named instance of remarkLinkifyRegex for URL auto-linking
+const remarkLinkifyRegexUrls = remarkLinkifyRegex(/^(https?:\/\/[^\s$.?#].[^\s]*)$/i)
+Object.defineProperty(remarkLinkifyRegexUrls, 'name', { value: 'remarkLinkifyRegex' })
+
+// Use our TypeScript implementations (modern Remark API)
+import remarkAbbreviations from '../markdown/plugins/remark-abbr/index'
+import remarkAttributes from '../markdown/plugins/remark-attr/index'
+import remarkAttribution from '../markdown/plugins/remark-attribution/index'
+import remarkReplacements from '../markdown/plugins/remark-replacements/index'
+
 /** Add custom CSS classes to Markdown-generated elements in this file */
 import { rehypeTailwindClasses } from '../markdown/plugins/rehype-tailwind'
 
+// Override function names for better debugging
+Object.defineProperty(remarkAbbreviations, 'name', { value: 'remarkAbbreviations' })
+Object.defineProperty(remarkAttributes, 'name', { value: 'remarkAttributes' })
+Object.defineProperty(remarkAttribution, 'name', { value: 'remarkAttribution' })
+Object.defineProperty(remarkReplacements, 'name', { value: 'remarkReplacements' })
+Object.defineProperty(rehypeTailwindClasses, 'name', { value: 'rehypeTailwindClasses' })
+
 /** Configuration for remark-attr plugin */
-export const remarkAttrConfig = { scope: 'permissive' } as const
+export const remarkAttributesConfig = { scope: 'permissive' } as const
 
 /** Configuration for remark-toc plugin */
 export const remarkTocConfig: RemarkTocOptions = { heading: 'contents' }
@@ -64,7 +97,9 @@ export const shikiConfigOptions: ShikiConfig = {
   wrap: true,
   // Add custom transformers: https://shiki.style/guide/transformers
   // Find common transformers: https://shiki.style/packages/transformers
-  transformers: [],
+  // transformers: [
+  //   transformerNotationDiff,
+  // ],
 }
 
 /** Configuration for remark-rehype plugin (conversion from markdown to HTML AST) */
@@ -85,13 +120,13 @@ export const markdownConfig: Partial<MdxOptions> = {
   shikiConfig: shikiConfigOptions,
   remarkPlugins: [
     /** Define abbreviations at bottom file, and wraps their usage in <abbr> tags */
-    remarkAbbr,
+    remarkAbbreviations,
     /**
      * Add HTML attributes to elements using {.class #id key=value} syntax
      * Supports: headings, links, images, code blocks, lists, and bracketed spans
      * Example: [text content]{.class #id attr=value} creates <span> with attributes
      */
-    [remarkAttr, remarkAttrConfig],
+    [remarkAttributes, remarkAttributesConfig],
     /** Wrap blockquotes with attribution in semantic figure/figcaption markup */
     remarkAttribution,
     /** Add <br/> tag to single line breaks */
@@ -99,7 +134,7 @@ export const markdownConfig: Partial<MdxOptions> = {
     /** Convert emoji syntax like :heart: to emoji images */
     remarkEmoji,
     /** Automatically convert URL-like text to links */
-    remarkLinkifyRegex(/^(https?:\/\/[^\s$.?#].[^\s]*)$/i),
+    remarkLinkifyRegexUrls,
     /**
      * Typographic replacements for arrows, fractions, and math symbols
      * Complements smartypants (which handles quotes, dashes, ellipsis)

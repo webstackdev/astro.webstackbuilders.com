@@ -44,9 +44,25 @@ npm i @vercel/analytics
 import Analytics from '@vercel/analytics/astro'
 https://vercel.com/docs/analytics/quickstart#add-the-analytics-component-to-your-app
 
+## Difference between Integration and E2E Tests
+
+| Aspect        | Integration             | E2E |
+| ---- | ---- | ---- |
+| Test Layer    | Layer 3                 | Layer 4 |
+| Purpose       | Plugin interactions     | Production rendering |
+| Test Data     | Inline markdown strings | External fixture files |
+| Rendering     | String processing       | React component rendering |
+| Validation    | String matching         | DOM queries + Axe a11y |
+| Accessibility | ❌ Not tested            | ✅ Comprehensive (axe) |
+| Test Count    | 10 tests                | 11 tests |
+| Dependencies  | Vitest only             | Vitest + Testing Library + vitest-axe |
+
+The integration tests ensure plugins work together correctly, while the e2e tests ensure the final output is accessible and semantically correct for users.
+
 ### ✅ Compatible Plugins:
 
 Working plugins that pass all tests:
+
 - remark-attribution (custom plugin - 17/17 tests passing)
 - remark-breaks
 - remark-emoji
@@ -56,46 +72,65 @@ Working plugins that pass all tests:
 - rehype-autolink-headings
 - rehype-tailwind-classes
 
+Conditional elements (have checks):
+
+- a (checks for .btn and .heading-anchor)
+- code (checks if within pre)
+- h2/h3/h4
+- blockquote (attribution check)
+- pre
+- iframe
+- various special cases
+
 ## Markdown Config Updates
+
+Details/Summary elements - These HTML elements aren't being processed by remarkGfm (they need to be raw HTML)
+
+Inline code - The test shows inline code is working (it has the proper classes), but the assertion was looking for just <code> instead of the full classes
+
+/** Add ==highlighted== syntax */
+
+1. add remark-mark plugin
+2. Remove skip from integration test in
 
 /**
  * Add accessible name to section in footnotes plugin
  */
-const markdownFootnoteBlockOpen = () =>
-  '<hr className="footnotes-sep">\n' +
-  '<section class="footnotes" aria-label="footnotes">\n' +
-  '<ol class="footnotes-list">\n'
+    const markdownFootnoteBlockOpen = () =>
+    '<hr className="footnotes-sep">\n' +
+    '<section class="footnotes" aria-label="footnotes">\n' +
+    '<ol class="footnotes-list">\n'
 
 * Code tabs plugin so Javascript and Typescript examples can both be show. There can only
 * be white space between two code blocks. Display name is set by `tabName` and can only
 * contain characters in [A-Za-z0-9_]. Syntax for the first line of the code block is:
 * ```js [group:tabName]
  */
-// markdown-it-codetabs//
+  // markdown-it-codetabs//
 
 /** Add copy button to code blocks */
 // markdown-it-copy'), markdownCodeCopyConfig)
 /**
  * Options for "copy" button added to code blocks
  */
-// const markdownCodeCopyConfig = {
-  /** Text shown on copy button */
-  // btnText: `Copy`,
-  /** Text shown on copy failure */
-  // failText: `Copy Failed`,
-  /** Text shown on copy success */
-  // successText: `Success!`, // 'copy success' | copy-success text
-  /** Amount of time to show success message */
-  // successTextDelay: 2000,
-  /** An HTML fragment included before <button> */
-  // extraHtmlBeforeBtn: ``,
-  /** An HTML fragment included after <button> */
-  // extraHtmlAfterBtn: ``,
-  /** Whether to show code language before the copy button */
-  // showCodeLanguage: false,
-  /** Test to append after the copied text like a copyright notice */
-  // attachText: ``,
-// }
+    // const markdownCodeCopyConfig = {
+    /** Text shown on copy button */
+    // btnText: `Copy`,
+    /** Text shown on copy failure */
+    // failText: `Copy Failed`,
+    /** Text shown on copy success */
+    // successText: `Success!`, // 'copy success' | copy-success text
+    /** Amount of time to show success message */
+    // successTextDelay: 2000,
+    /** An HTML fragment included before <button> */
+    // extraHtmlBeforeBtn: ``,
+    /** An HTML fragment included after <button> */
+    // extraHtmlAfterBtn: ``,
+    /** Whether to show code language before the copy button */
+    // showCodeLanguage: false,
+    /** Test to append after the copied text like a copyright notice */
+    // attachText: ``,
+    // }
 
 /** Definition lists, using indented ~ for definitions under definition header */
 // markdown-it-deflist//
@@ -112,12 +147,12 @@ const markdownFootnoteBlockOpen = () =>
 /**
  * Mark external, absolute links with appropriate rel & target attributes
  */
-// const markdownExternalAnchorConfig = {
-  /** The domain that is considered an internal link */
-  // domain: domain,
-  /** A class name added to anchors */
-  // class: 'external-link',
-// }
+    // const markdownExternalAnchorConfig = {
+    /** The domain that is considered an internal link */
+    // domain: domain,
+    /** A class name added to anchors */
+    // class: 'external-link',
+    // }
 
 /** es, GFM footnotes are supported in Astro, and they are enabled by using the remark-gfm plugin. This plugin allows you to use the standard footnote syntax, where you define a footnote reference inline (e.g., [^1]) and the footnote content at the bottom of the document (e.g., [^1]: This is my footnote).  */
 
@@ -136,13 +171,13 @@ const markdownFootnoteBlockOpen = () =>
  * Options object including parse function for content generated
  * by mentions plugin using `@twittername` syntax.
  */
-// const markdownMentionsConfig = {
-  // parseURL: username => {
+    // const markdownMentionsConfig = {
+    // parseURL: username => {
     // return `https://twitter.com/@${username}`
-  // },
-  /** adds a target="_blank" attribute if it's true and target="_self" if it's false */
-  // external: true,
-// }
+    // },
+    /** adds a target="_blank" attribute if it's true and target="_self" if it's false */
+    // external: true,
+    // }
 
 /** Mermaid JavaScript based diagramming and charting tool */
 // @TODO: uses ES Modules, needs Jest config adjusted. See note in spec file.
@@ -150,24 +185,24 @@ const markdownFootnoteBlockOpen = () =>
 /**
  * Mermaid JavaScript based diagramming and charting tool
  */
-/*const markdownMermaidConfig = {
-  startOnLoad: false,
-  securityLevel: true,
-  theme: 'default',
-  flowchart: {
+    /*const markdownMermaidConfig = {
+    startOnLoad: false,
+    securityLevel: true,
+    theme: 'default',
+    flowchart: {
     htmlLabels: false,
     useMaxWidth: true,
-  },
-  dictionary: {
+    },
+    dictionary: {
     token: 'mermaid',
     graph: 'graph',
     sequenceDiagram: 'sequenceDiagram',
-  },
-  // ...or any other options
-}*/
-markdown.syntaxHighlight.excludeLangs
-Type: Array<string>
-Default: ['math']
+    },
+    // ...or any other options
+    }*/
+    markdown.syntaxHighlight.excludeLangs
+    Type: Array<string>
+    Default: ['math']
 
 Added in: astro@5.5.0
 An array of languages to exclude from the default syntax highlighting specified in markdown.syntaxHighlight.type. This can be useful when using tools that create diagrams from Markdown code blocks, such as Mermaid.js and D2.
@@ -207,22 +242,22 @@ export default defineConfig({
 /**
  * TeX rendering using KaTeX for math symbols
  */
-/*const markdownTexmathConfig = {
-  engine: require('katex'),
-  delimiters: 'dollars',
-  katexOptions: { macros: { '\\RR': '\\mathbb{R}' } },
-}*/
-/*
-remark-math: A Remark plugin that parses LaTeX syntax within your Markdown files.
-rehype-katex or rehype-mathjax: Rehype plugins that convert the parsed LaTeX into rendered HTML using either KaTeX or MathJax, respectively. KaTeX is often preferred for its performance and ability to allow text selection.
-To implement this:
-Install the necessary packages.
-Code
+    /*const markdownTexmathConfig = {
+    engine: require('katex'),
+    delimiters: 'dollars',
+    katexOptions: { macros: { '\\RR': '\\mathbb{R}' } },
+    }*/
+    /*
+    remark-math: A Remark plugin that parses LaTeX syntax within your Markdown files.
+    rehype-katex or rehype-mathjax: Rehype plugins that convert the parsed LaTeX into rendered HTML using either KaTeX or MathJax, respectively. KaTeX is often preferred for its performance and ability to allow text selection.
+    To implement this:
+    Install the necessary packages.
+    Code
 
     npm install remark-math rehype-katex katex
-(or rehype-mathjax if you prefer MathJax).
-Configure Astro: In your astro.config.mjs (or astro.config.ts), add remarkMath and rehypeKatex to your Markdown configuration:
-*/
+    (or rehype-mathjax if you prefer MathJax).
+    Configure Astro: In your astro.config.mjs (or astro.config.ts), add remarkMath and rehypeKatex to your Markdown configuration:
+    */
 
 /** Adds underline to markdown like _underline_ */
 // @TODO: conflicts with built-in markup for italics: _italics_ _underline_, change one
@@ -310,12 +345,20 @@ export function myAccessibleListPlugin() {
 
 ┌─────────────────────────────────────────────────┐
 │  Layer 1: Isolated Plugin Unit Tests            │
+│  • NPM PACKAGES ONLY (upstream regression tests)│
 │  • Test ONE plugin at a time                    │
 │  • Minimal pipeline (no GFM, no Astro settings) │
-│  • Purpose: Verify plugin logic works           │
+│  • Purpose: Catch breaking changes from upgrades│
+│  • Location: __tests__/isolated_unit_tests/     │
 │  • Speed: Milliseconds                          │
 │  • Run: On every save                           │
-│  • Example: remark-attribution.spec.ts          │
+│  • Example: remark-emoji.spec.ts                │
+│                                                 │
+│  Custom Plugins Tested in Plugin Directories:   │
+│  • remark-abbr → plugins/remark-abbr/__tests__  │
+│  • remark-attr → plugins/remark-attr/__tests__  │
+│  • remark-attribution → plugins/remark-attr...  │
+│  • rehype-tailwind → plugins/rehype-tailwind... │
 └─────────────────────────────────────────────────┘
                      ↓
 ┌─────────────────────────────────────────────────┐
