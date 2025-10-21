@@ -19,15 +19,15 @@ Object.defineProperty(rehypeAutolinkHeadings, 'name', { value: 'rehypeAutolinkHe
 
 /** Remark plugins */
 import remarkBreaks from 'remark-breaks'
+Object.defineProperty(remarkBreaks, 'name', { value: 'remarkBreaks' })
+
 import remarkEmoji from 'remark-emoji'
+Object.defineProperty(remarkEmoji, 'name', { value: 'remarkEmoji' })
+
 import remarkLinkifyRegex from 'remark-linkify-regex'
+
 import type { Options as RemarkTocOptions } from 'remark-toc'
 import remarkToc from 'remark-toc'
-
-// Override function names for better debugging
-Object.defineProperty(remarkBreaks, 'name', { value: 'remarkBreaks' })
-Object.defineProperty(remarkEmoji, 'name', { value: 'remarkEmoji' })
-Object.defineProperty(remarkLinkifyRegex, 'name', { value: 'remarkLinkifyRegex' })
 Object.defineProperty(remarkToc, 'name', { value: 'remarkToc' })
 
 // Create a named instance of remarkLinkifyRegex for URL auto-linking
@@ -36,18 +36,19 @@ Object.defineProperty(remarkLinkifyRegexUrls, 'name', { value: 'remarkLinkifyReg
 
 // Use our TypeScript implementations (modern Remark API)
 import remarkAbbreviations from '../markdown/plugins/remark-abbr/index'
+Object.defineProperty(remarkAbbreviations, 'name', { value: 'remarkAbbreviations' })
+
 import remarkAttributes from '../markdown/plugins/remark-attr/index'
+Object.defineProperty(remarkAttributes, 'name', { value: 'remarkAttributes' })
+
 import remarkAttribution from '../markdown/plugins/remark-attribution/index'
+Object.defineProperty(remarkAttribution, 'name', { value: 'remarkAttribution' })
+
 import remarkReplacements from '../markdown/plugins/remark-replacements/index'
+Object.defineProperty(remarkReplacements, 'name', { value: 'remarkReplacements' })
 
 /** Add custom CSS classes to Markdown-generated elements in this file */
 import { rehypeTailwindClasses } from '../markdown/plugins/rehype-tailwind'
-
-// Override function names for better debugging
-Object.defineProperty(remarkAbbreviations, 'name', { value: 'remarkAbbreviations' })
-Object.defineProperty(remarkAttributes, 'name', { value: 'remarkAttributes' })
-Object.defineProperty(remarkAttribution, 'name', { value: 'remarkAttribution' })
-Object.defineProperty(remarkReplacements, 'name', { value: 'remarkReplacements' })
 Object.defineProperty(rehypeTailwindClasses, 'name', { value: 'rehypeTailwindClasses' })
 
 /** Configuration for remark-attr plugin */
