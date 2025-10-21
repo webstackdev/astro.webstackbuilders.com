@@ -79,102 +79,76 @@ beforeAll(() => {
   }
 })
 
+/**
+ * Build test cases for each plugin
+ */
+function buildPluginTestCases(pluginType: 'remark' | 'rehype') {
+  const plugins = pluginType === 'remark' ? markdownConfig.remarkPlugins || [] : markdownConfig.rehypePlugins || []
+  const testCases: Array<{ pluginName: string; pluginNameKebab: string; isLocal: boolean }> = []
+
+  for (let index = 0; index < plugins.length; index++) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const pluginEntry = plugins[index] as any
+    const plugin = Array.isArray(pluginEntry) ? pluginEntry[0] : pluginEntry
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const pluginName = (plugin as any).name || `plugin-${index}`
+    const pluginNameKebab = toKebabCase(pluginName)
+    const isLocal = LOCAL_PLUGINS.has(pluginName)
+
+    testCases.push({ pluginName, pluginNameKebab, isLocal })
+  }
+
+  return testCases
+}
+
 describe('Markdown Plugin Test Coverage', () => {
   describe('remarkPlugins', () => {
-    it('should have tests in all appropriate locations', () => {
-      const plugins = markdownConfig.remarkPlugins || []
-      const missingTests: string[] = []
+    const remarkPlugins = buildPluginTestCases('remark')
 
-      for (let index = 0; index < plugins.length; index++) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const pluginEntry = plugins[index] as any
-        const plugin = Array.isArray(pluginEntry) ? pluginEntry[0] : pluginEntry
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const pluginName = (plugin as any).name || `plugin-${index}`
-        const pluginNameKebab = toKebabCase(pluginName)
-        const isLocal = LOCAL_PLUGINS.has(pluginName)
-
-        // Check required test locations based on plugin type
-        if (isLocal) {
-          // Local plugins: units_with_default_astro/, e2e/ only
-          // (skip plugins/{name}/__tests__/ and units/ - assume they exist)
-          if (!testFiles.unitsWithAstro.has(pluginNameKebab)) {
-            missingTests.push(
-              `❌ ${pluginName} (local): Missing test in units_with_default_astro/${pluginNameKebab}-astro.spec.ts`
-            )
-          }
-          if (!testFiles.e2e.has(pluginName)) {
-            missingTests.push(`❌ ${pluginName} (local): Missing test in e2e/unifiedPlugins/${pluginName}.spec.tsx`)
-          }
-        } else {
-          // External plugins: units/, units_with_default_astro/, e2e/
-          if (!testFiles.units.has(pluginNameKebab)) {
-            missingTests.push(`❌ ${pluginName} (npm): Missing test in units/${pluginNameKebab}.spec.ts`)
-          }
-          if (!testFiles.unitsWithAstro.has(pluginNameKebab)) {
-            missingTests.push(`❌ ${pluginName} (npm): Missing test in units_with_default_astro/${pluginNameKebab}-astro.spec.ts`)
-          }
-          if (!testFiles.e2e.has(pluginName)) {
-            missingTests.push(`❌ ${pluginName} (npm): Missing test in e2e/unifiedPlugins/${pluginName}.spec.tsx`)
-          }
-        }
+    it.each(remarkPlugins)(
+      'should have units_with_default_astro test for $pluginName',
+      ({ pluginNameKebab }) => {
+        expect(
+          testFiles.unitsWithAstro.has(pluginNameKebab),
+          `Missing test in units_with_default_astro/${pluginNameKebab}-astro.spec.ts`
+        ).toBe(true)
       }
+    )
 
-      if (missingTests.length > 0) {
-        console.error('\nMissing remark plugin tests:')
-        missingTests.forEach(msg => console.error(msg))
-      }
-
-      expect(missingTests).toHaveLength(0)
+    it.each(remarkPlugins)('should have e2e test for $pluginName', ({ pluginName }) => {
+      expect(testFiles.e2e.has(pluginName), `Missing test in e2e/unifiedPlugins/${pluginName}.spec.tsx`).toBe(true)
     })
+
+    it.each(remarkPlugins.filter(p => !p.isLocal))(
+      'should have units test for $pluginName (external plugin)',
+      ({ pluginNameKebab }) => {
+        expect(testFiles.units.has(pluginNameKebab), `Missing test in units/${pluginNameKebab}.spec.ts`).toBe(true)
+      }
+    )
   })
 
   describe('rehypePlugins', () => {
-    it('should have tests in all appropriate locations', () => {
-      const plugins = markdownConfig.rehypePlugins || []
-      const missingTests: string[] = []
+    const rehypePlugins = buildPluginTestCases('rehype')
 
-      for (let index = 0; index < plugins.length; index++) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const pluginEntry = plugins[index] as any
-        const plugin = Array.isArray(pluginEntry) ? pluginEntry[0] : pluginEntry
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const pluginName = (plugin as any).name || `plugin-${index}`
-        const pluginNameKebab = toKebabCase(pluginName)
-        const isLocal = LOCAL_PLUGINS.has(pluginName)
-
-        // Check required test locations based on plugin type
-        if (isLocal) {
-          // Local plugins: units_with_default_astro/, e2e/ only
-          // (skip plugins/{name}/__tests__/ and units/ - assume they exist)
-          if (!testFiles.unitsWithAstro.has(pluginNameKebab)) {
-            missingTests.push(
-              `❌ ${pluginName} (local): Missing test in units_with_default_astro/${pluginNameKebab}-astro.spec.ts`
-            )
-          }
-          if (!testFiles.e2e.has(pluginName)) {
-            missingTests.push(`❌ ${pluginName} (local): Missing test in e2e/unifiedPlugins/${pluginName}.spec.tsx`)
-          }
-        } else {
-          // External plugins: units/, units_with_default_astro/, e2e/
-          if (!testFiles.units.has(pluginNameKebab)) {
-            missingTests.push(`❌ ${pluginName} (npm): Missing test in units/${pluginNameKebab}.spec.ts`)
-          }
-          if (!testFiles.unitsWithAstro.has(pluginNameKebab)) {
-            missingTests.push(`❌ ${pluginName} (npm): Missing test in units_with_default_astro/${pluginNameKebab}-astro.spec.ts`)
-          }
-          if (!testFiles.e2e.has(pluginName)) {
-            missingTests.push(`❌ ${pluginName} (npm): Missing test in e2e/unifiedPlugins/${pluginName}.spec.tsx`)
-          }
-        }
+    it.each(rehypePlugins)(
+      'should have units_with_default_astro test for $pluginName',
+      ({ pluginNameKebab }) => {
+        expect(
+          testFiles.unitsWithAstro.has(pluginNameKebab),
+          `Missing test in units_with_default_astro/${pluginNameKebab}-astro.spec.ts`
+        ).toBe(true)
       }
+    )
 
-      if (missingTests.length > 0) {
-        console.error('\nMissing rehype plugin tests:')
-        missingTests.forEach(msg => console.error(msg))
-      }
-
-      expect(missingTests).toHaveLength(0)
+    it.each(rehypePlugins)('should have e2e test for $pluginName', ({ pluginName }) => {
+      expect(testFiles.e2e.has(pluginName), `Missing test in e2e/unifiedPlugins/${pluginName}.spec.tsx`).toBe(true)
     })
+
+    it.each(rehypePlugins.filter(p => !p.isLocal))(
+      'should have units test for $pluginName (external plugin)',
+      ({ pluginNameKebab }) => {
+        expect(testFiles.units.has(pluginNameKebab), `Missing test in units/${pluginNameKebab}.spec.ts`).toBe(true)
+      }
+    )
   })
 })
