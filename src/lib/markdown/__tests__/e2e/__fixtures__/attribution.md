@@ -9,3 +9,6 @@ title: Attribution Test
 
 > The best way to predict the future is to invent it.
 > — Alan Kay
+
+> That's ~~not~~ **definitely** one small step for man.
+> — Neil Armstrong (with GFM formatting)

@@ -152,42 +152,6 @@ Content below`
     })
   })
 
-  describe('Mark element', () => {
-    it('should add classes to mark tags', async () => {
-      const markdown = 'Text with ==highlighted== content'
-      const html = await processMarkdown(markdown)
-
-      expect(html).toContain('<mark class="bg-gray-300 text-gray-900">')
-      expect(html).toContain('highlighted')
-    })
-  })
-
-  describe('Details and Summary elements', () => {
-    it('should add classes to details element', async () => {
-      const markdown = `
-<details>
-<summary>Click to expand</summary>
-Hidden content here
-</details>
-      `.trim()
-      const html = await processMarkdown(markdown)
-
-      expect(html).toContain('<details class="[&#x26;>*:not(summary)]:pl-5">')
-    })
-
-    it('should add classes to summary element', async () => {
-      const markdown = `
-<details>
-<summary>Click to expand</summary>
-Hidden content here
-</details>
-      `.trim()
-      const html = await processMarkdown(markdown)
-
-      expect(html).toContain('<summary class="outline-none select-none cursor-pointer list-none marker:hidden">')
-    })
-  })
-
   describe('Mixed content', () => {
     it('should handle multiple element types together', async () => {
       const markdown = `

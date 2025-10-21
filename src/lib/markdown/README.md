@@ -85,8 +85,6 @@ Conditional elements (have checks):
 
 Details/Summary elements - These HTML elements aren't being processed by remarkGfm (they need to be raw HTML)
 
-Inline code - The test shows inline code is working (it has the proper classes), but the assertion was looking for just <code> instead of the full classes
-
 /** Add ==highlighted== syntax */
 
 1. add remark-mark plugin
