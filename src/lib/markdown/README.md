@@ -93,6 +93,12 @@ Remove:
 
 Layer 2: "should use custom footnote labels from Astro config" test (doesn't test emojis)
 
+Recommendation:
+
+"Text without emojis" should be tested in all three layers
+GFM-specific tests (tables, strikethrough, task lists) are appropriate for Layer 2 only
+Empty aria-label verification from E2E could be added to Layer 2
+
 Add to Layer 2 (Astro):
 
 Test emoji shortcodes (:heart:) in addition to Unicode
