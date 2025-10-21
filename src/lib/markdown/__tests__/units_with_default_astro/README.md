@@ -73,14 +73,14 @@ Add tests to this directory when:
 ## Running Tests
 
 ```bash
-# Run all Layer 2 tests
-npm test -- src/lib/markdown/__tests__/layer_2_astro_pipeline
+# Run all unit tests with Astro defaults
+npm test -- src/lib/markdown/__tests__/units_with_default_astro
 
 # Run specific plugin test
-npm test -- src/lib/markdown/__tests__/layer_2_astro_pipeline/remark-abbr-astro.spec.ts
+npm test -- src/lib/markdown/__tests__/units_with_default_astro/remark-abbr-astro.spec.ts
 
 # Watch mode for development
-npm test -- --watch src/lib/markdown/__tests__/layer_2_astro_pipeline
+npm test -- --watch src/lib/markdown/__tests__/units_with_default_astro
 ```
 
 ## Difference from Other Layers

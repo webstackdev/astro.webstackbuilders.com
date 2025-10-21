@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import remarkAbbr from '../../plugins/remark-abbr/index'
+import remarkAbbreviations from '../../plugins/remark-abbreviations/index'
 import { processWithAstroSettings } from '../../helpers/test-utils'
 
-describe('remark-abbr (Layer 2: With Astro Pipeline)', () => {
+describe('remark-abbreviations (Layer 2: With Astro Pipeline)', () => {
   describe('abbreviations with GFM', () => {
     it('should work with GitHub Flavored Markdown features', async () => {
       const markdown = `
@@ -11,7 +11,7 @@ This uses MDAST with ~~strikethrough~~ text.
 *[MDAST]: Markdown Abstract Syntax Tree
       `.trim()
 
-      const html = await processWithAstroSettings(markdown, remarkAbbr)
+      const html = await processWithAstroSettings(markdown, remarkAbbreviations)
 
       // Should have abbreviation
       expect(html).toContain('<abbr title="Markdown Abstract Syntax Tree">MDAST</abbr>')
@@ -28,7 +28,7 @@ This uses MDAST with ~~strikethrough~~ text.
 *[MDAST]: Markdown Abstract Syntax Tree
       `.trim()
 
-      const html = await processWithAstroSettings(markdown, remarkAbbr)
+      const html = await processWithAstroSettings(markdown, remarkAbbreviations)
 
       expect(html).toContain('<table')
       expect(html).toContain('<abbr title="Markdown Abstract Syntax Tree">MDAST</abbr>')
@@ -41,7 +41,7 @@ Check https://example.com for MDAST info.
 *[MDAST]: Markdown Abstract Syntax Tree
       `.trim()
 
-      const html = await processWithAstroSettings(markdown, remarkAbbr)
+      const html = await processWithAstroSettings(markdown, remarkAbbreviations)
 
       expect(html).toContain('<abbr')
       expect(html).toContain('https://example.com')
@@ -58,7 +58,7 @@ This uses MDAST[^1].
 *[MDAST]: Markdown Abstract Syntax Tree
       `.trim()
 
-      const html = await processWithAstroSettings(markdown, remarkAbbr)
+      const html = await processWithAstroSettings(markdown, remarkAbbreviations)
 
       expect(html).toContain('<abbr title="Markdown Abstract Syntax Tree">MDAST</abbr>')
       // Footnote reference should be present
@@ -74,7 +74,7 @@ The "MDAST" format is great.
 *[MDAST]: Markdown Abstract Syntax Tree
       `.trim()
 
-      const html = await processWithAstroSettings(markdown, remarkAbbr)
+      const html = await processWithAstroSettings(markdown, remarkAbbreviations)
 
       expect(html).toContain('<abbr title="Markdown Abstract Syntax Tree">MDAST</abbr>')
       // Note: smartypants is handled by Astro's internal processing, not in our test pipeline

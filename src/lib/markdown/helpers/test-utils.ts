@@ -65,8 +65,8 @@ export async function processWithAstroSettings(
  */
 export async function processWithFullPipeline(markdown: string): Promise<string> {
   // Import all plugins - using our TypeScript versions (modern API)
-  const remarkAbbr = (await import('../plugins/remark-abbr/index')).default
-  const remarkAttr = (await import('../plugins/remark-attr/index')).default
+  const remarkAbbreviations = (await import('../plugins/remark-abbreviations/index')).default
+  const remarkAttributes = (await import('../plugins/remark-attributes/index')).default
   const remarkAttribution = (await import('../plugins/remark-attribution/index')).default
   const remarkBreaks = (await import('remark-breaks')).default
   const remarkEmoji = (await import('remark-emoji')).default
@@ -78,7 +78,7 @@ export async function processWithFullPipeline(markdown: string): Promise<string>
   const { rehypeTailwindClasses } = await import('../plugins/rehype-tailwind')
 
   // Import configurations
-  const { remarkAttrConfig, remarkTocConfig, rehypeAutolinkHeadingsConfig } = await import(
+  const { remarkAttributesConfig, remarkTocConfig, rehypeAutolinkHeadingsConfig } = await import(
     '../../config/markdown'
   )
 
@@ -88,9 +88,9 @@ export async function processWithFullPipeline(markdown: string): Promise<string>
       .use(remarkGfm)
 
       // Add all remark plugins in the same order as Astro
-      .use(remarkAbbr)
+      .use(remarkAbbreviations)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .use(remarkAttr, remarkAttrConfig as any)
+      .use(remarkAttributes, remarkAttributesConfig as any)
       .use(remarkAttribution)
       .use(remarkBreaks)
       .use(remarkEmoji)

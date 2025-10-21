@@ -23,11 +23,11 @@ const { Content } = await (async () => {
   const { default: rehypeSlug } = await import('rehype-slug')
 
   // Import custom plugins (without .ts extensions for Astro)
-  const remarkAbbrModule = await import('../../lib/markdown/plugins/remark-abbr')
-  const remarkAbbr = remarkAbbrModule.default
+  const remarkAbbrModule = await import('../../lib/markdown/plugins/remark-abbreviations')
+  const remarkAbbreviations = remarkAbbrModule.default
 
-  const remarkAttrModule = await import('../../lib/markdown/plugins/remark-attr')
-  const remarkAttr = remarkAttrModule.default
+  const remarkAttrModule = await import('../../lib/markdown/plugins/remark-attributes')
+  const remarkAttributes = remarkAttrModule.default
 
   const remarkAttributionModule = await import('../../lib/markdown/plugins/remark-attribution')
   const remarkAttribution = remarkAttributionModule.default
@@ -47,14 +47,14 @@ const { Content } = await (async () => {
 
   // Import configs
   const configModule = await import('../../lib/config/markdown')
-  const { remarkAttrConfig, remarkTocConfig, rehypeAutolinkHeadingsConfig, remarkRehypeConfig } =
+  const { remarkAttributesConfig, remarkTocConfig, rehypeAutolinkHeadingsConfig, remarkRehypeConfig } =
     configModule
 
   // Process markdown through the full pipeline
   const processor = remark()
     .use(remarkGfm)
-    .use(remarkAbbr)
-    .use(remarkAttr, remarkAttrConfig)
+    .use(remarkAbbreviations)
+    .use(remarkAttributes, remarkAttributesConfig)
     .use(remarkAttribution)
     .use(remarkBreaks)
     .use(remarkEmoji)

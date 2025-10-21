@@ -44,20 +44,19 @@ npm i @vercel/analytics
 import Analytics from '@vercel/analytics/astro'
 https://vercel.com/docs/analytics/quickstart#add-the-analytics-component-to-your-app
 
-## Difference between Integration and E2E Tests
+## Test Structure Overview
 
-| Aspect        | Integration             | E2E |
-| ---- | ---- | ---- |
-| Test Layer    | Layer 3                 | Layer 4 |
-| Purpose       | Plugin interactions     | Production rendering |
-| Test Data     | Inline markdown strings | External fixture files |
-| Rendering     | String processing       | React component rendering |
-| Validation    | String matching         | DOM queries + Axe a11y |
-| Accessibility | ❌ Not tested            | ✅ Comprehensive (axe) |
-| Test Count    | 10 tests                | 11 tests |
-| Dependencies  | Vitest only             | Vitest + Testing Library + vitest-axe |
+| Aspect        | Unit Tests              | Unit + Astro Defaults | E2E Tests |
+| ---- | ---- | ---- | ---- |
+| Purpose       | Upstream regression     | Plugin + Astro compatibility | Production rendering |
+| Test Data     | Inline markdown         | Inline markdown strings | External fixture files |
+| Pipeline      | Minimal (single plugin) | Astro defaults + plugin | Full production pipeline |
+| Rendering     | String processing       | String processing    | React component rendering |
+| Validation    | String matching         | String matching      | DOM queries + Axe a11y |
+| Accessibility | ❌ Not tested            | ❌ Not tested         | ✅ Comprehensive (axe) |
+| Dependencies  | Vitest only             | Vitest only          | Vitest + Testing Library + vitest-axe |
 
-The integration tests ensure plugins work together correctly, while the e2e tests ensure the final output is accessible and semantically correct for users.
+Unit tests catch upstream breaking changes, unit tests with Astro defaults verify compatibility, and E2E tests ensure the final output is accessible and semantically correct for users.
 
 ### ✅ Compatible Plugins:
 
@@ -344,28 +343,29 @@ export function myAccessibleListPlugin() {
 ## Markdown Pipeline Testing Strategy
 
 ┌─────────────────────────────────────────────────┐
-│  Layer 1: Isolated Plugin Unit Tests            │
+│  Unit Tests (Isolated)                          │
 │  • NPM PACKAGES ONLY (upstream regression tests)│
 │  • Test ONE plugin at a time                    │
 │  • Minimal pipeline (no GFM, no Astro settings) │
 │  • Purpose: Catch breaking changes from upgrades│
-│  • Location: __tests__/isolated_unit_tests/     │
+│  • Location: __tests__/units/                   │
 │  • Speed: Milliseconds                          │
 │  • Run: On every save                           │
 │  • Example: remark-emoji.spec.ts                │
 │                                                 │
 │  Custom Plugins Tested in Plugin Directories:   │
-│  • remark-abbr → plugins/remark-abbr/__tests__  │
-│  • remark-attr → plugins/remark-attr/__tests__  │
+│  • remark-abbreviations → plugins/remark-abbr...│
+│  • remark-attributes → plugins/remark-attr...   │
 │  • remark-attribution → plugins/remark-attr...  │
 │  • rehype-tailwind → plugins/rehype-tailwind... │
 └─────────────────────────────────────────────────┘
                      ↓
 ┌─────────────────────────────────────────────────┐
-│  Layer 2: Individual Plugin + Astro Pipeline    │
+│  Unit Tests with Astro Defaults                 │
 │  • Test ONE plugin at a time                    │
 │  • Full Astro settings (GFM + smartypants)      │
 │  • Purpose: Verify plugin works with Astro      │
+│  • Location: __tests__/units_with_default_astro/│
 │  • Speed: Seconds                               │
 │  • Run: Before commits                          │
 │  • Fail-fast: Identifies WHICH plugin breaks    │
@@ -375,38 +375,18 @@ export function myAccessibleListPlugin() {
 │  remarkRehype(config) → rehypeStringify         │
 │                                                 │
 │  Import from markdown.ts:                       │
-│  • remarkAttrConfig                             │
+│  • remarkAttributesConfig                       │
 │  • remarkTocConfig                              │
 │  • rehypeAutolinkHeadingsConfig                 │
 │  • remarkRehypeConfig                           │
 └─────────────────────────────────────────────────┘
                      ↓
 ┌─────────────────────────────────────────────────┐
-│  Layer 3: Full Integration Tests                │
-│  • Test ALL plugins together                    │
-│  • Complete pipeline with all interactions      │
-│  • Purpose: Verify plugins don't conflict       │
-│  • Speed: Seconds                               │
-│  • Run: Before commits / CI                     │
-│  • Debugging: Descriptive assertions + snapshots│
-│                                                 │
-│  Complete Pipeline:                             │
-│  remark → GFM → [all 7 remark plugins] →        │
-│  remarkRehype(config) → [all 3 rehype plugins] →│
-│  rehypeStringify                                │
-│                                                 │
-│  Debugging Strategies:                          │
-│  ✅ Descriptive test names per feature          │
-│  ✅ Snapshot testing for regression detection   │
-│  ✅ Pipeline debugger helper (DEBUG=1)          │
-│  ✅ Individual feature assertions with messages │
-└─────────────────────────────────────────────────┘
-                     ↓
-┌─────────────────────────────────────────────────┐
-│  Layer 4: E2E Component Rendering Tests        │
+│  E2E Component Rendering Tests                  │
 │  • Test markdown rendering through Astro        │
 │  • Component-based validation with fixtures     │
 │  • Purpose: E2E validation with accessibility   │
+│  • Location: __tests__/e2e/                     │
 │  • Speed: Seconds                               │
 │  • Run: Before commits / CI                     │
 │  • Tools: Vitest + Testing Library + Axe        │

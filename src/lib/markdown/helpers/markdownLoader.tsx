@@ -11,7 +11,7 @@ import { render } from '@testing-library/preact'
 import { renderMarkdown } from './pipeline'
 
 // Get the directory path for fixtures relative to the e2e test directory
-const fixturesDir = join(__dirname, '../__tests__/layer_4_e2e/__fixtures__')
+const fixturesDir = join(__dirname, '../__tests__/e2e/__fixtures__')
 
 /**
  * Loads a markdown fixture file and strips any frontmatter

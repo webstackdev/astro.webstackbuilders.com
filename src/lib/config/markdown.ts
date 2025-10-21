@@ -35,10 +35,10 @@ const remarkLinkifyRegexUrls = remarkLinkifyRegex(/^(https?:\/\/[^\s$.?#].[^\s]*
 Object.defineProperty(remarkLinkifyRegexUrls, 'name', { value: 'remarkLinkifyRegex' })
 
 // Use our TypeScript implementations (modern Remark API)
-import remarkAbbreviations from '../markdown/plugins/remark-abbr/index'
+import remarkAbbreviations from '../markdown/plugins/remark-abbreviations/index'
 Object.defineProperty(remarkAbbreviations, 'name', { value: 'remarkAbbreviations' })
 
-import remarkAttributes from '../markdown/plugins/remark-attr/index'
+import remarkAttributes from '../markdown/plugins/remark-attributes/index'
 Object.defineProperty(remarkAttributes, 'name', { value: 'remarkAttributes' })
 
 import remarkAttribution from '../markdown/plugins/remark-attribution/index'
@@ -51,7 +51,7 @@ Object.defineProperty(remarkReplacements, 'name', { value: 'remarkReplacements' 
 import { rehypeTailwindClasses } from '../markdown/plugins/rehype-tailwind'
 Object.defineProperty(rehypeTailwindClasses, 'name', { value: 'rehypeTailwindClasses' })
 
-/** Configuration for remark-attr plugin */
+/** Configuration for remark-attributes plugin */
 export const remarkAttributesConfig = { scope: 'permissive' } as const
 
 /** Configuration for remark-toc plugin */
