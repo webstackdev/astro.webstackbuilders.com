@@ -4,6 +4,7 @@
  * Uses API to fetch actual content IDs to ensure tests work even if content changes
  */
 import { test, expect } from '@playwright/test'
+import { setupConsoleErrorChecker, logConsoleErrors } from '@test/e2e/helpers/console-errors'
 
 test.describe('Dynamic Pages @smoke', () => {
   test('@ready article detail page loads', async ({ page }) => {
@@ -112,5 +113,31 @@ test.describe('Dynamic Pages @smoke', () => {
     expect(manifest.start_url).toBeTruthy()
     expect(manifest.icons).toBeTruthy()
     expect(Array.isArray(manifest.icons)).toBe(true)
+  })
+
+  test('@ready dynamic pages have no console errors', async ({ page }) => {
+    // First, get actual article URL
+    await page.goto('/articles')
+    await page.waitForLoadState('networkidle')
+
+    const firstArticleLink = page.locator('a[href*="/articles/"]').first()
+    const articleUrl = await firstArticleLink.getAttribute('href')
+
+    if (!articleUrl) {
+      test.skip()
+      return
+    }
+
+    // Test article detail page for errors
+    const errorChecker = setupConsoleErrorChecker(page)
+
+    await page.goto(articleUrl)
+    await page.waitForLoadState('networkidle')
+
+    logConsoleErrors(errorChecker)
+
+    // Fail if there are any unexpected 404s or errors
+    expect(errorChecker.getFilteredErrors()).toHaveLength(0)
+    expect(errorChecker.getFiltered404s()).toHaveLength(0)
   })
 })

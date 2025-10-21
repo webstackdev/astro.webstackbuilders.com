@@ -3,7 +3,8 @@
  * Dedicated test for homepage basic functionality and app initialization
  */
 import { test, expect } from '@playwright/test'
-import { TEST_URLS } from '../../fixtures/test-data'
+import { TEST_URLS } from '@test/e2e/fixtures/test-data'
+import { setupConsoleErrorChecker, logConsoleErrors } from '@test/e2e/helpers/console-errors'
 
 test.describe('Homepage @smoke', () => {
   // Clear localStorage before each test to avoid stale data issues
@@ -16,6 +17,7 @@ test.describe('Homepage @smoke', () => {
 
   test('@ready homepage loads successfully', async ({ page }) => {
     // Listen for console messages to check app initialization
+    // IMPORTANT: Register listener BEFORE navigation to catch early messages
     const consoleMessages: string[] = []
     page.on('console', (msg) => {
       consoleMessages.push(msg.text())
@@ -29,6 +31,9 @@ test.describe('Homepage @smoke', () => {
     // Verify main content is visible
     await expect(page.locator('h1')).toBeVisible()
     await expect(page.locator('main')).toBeVisible()
+
+    // Wait a moment for all console messages to be captured
+    await page.waitForTimeout(500)
 
     // Debug: log all console messages
     console.log('All console messages:', consoleMessages)
@@ -44,58 +49,39 @@ test.describe('Homepage @smoke', () => {
   })
 
   test('@ready homepage has no console errors', async ({ page }) => {
-    const consoleErrors: string[] = []
-    const failed404s: string[] = []
+    const errorChecker = setupConsoleErrorChecker(page)
+    const allMessages: Array<{ type: string; text: string }> = []
 
-    // Capture 404 responses with full details
-    page.on('response', (response) => {
-      if (response.status() === 404) {
-        const url = response.url()
-        const requestType = response.request().resourceType()
-        failed404s.push(`${url} (${requestType})`)
-      }
-    })
-
-    // Capture console errors
+    // Capture ALL console messages for debugging
     page.on('console', (msg) => {
-      if (msg.type() === 'error') {
-        consoleErrors.push(msg.text())
-      }
+      allMessages.push({ type: msg.type(), text: msg.text() })
     })
 
     await page.goto(TEST_URLS.home)
     await page.waitForLoadState('networkidle')
 
-    // Always log what we found for debugging
-    if (failed404s.length > 0) {
-      console.log('\n🔍 404 Resources:')
-      failed404s.forEach((url) => console.log(`  - ${url}`))
-    }
-    if (consoleErrors.length > 0) {
-      console.log('\n❌ Console Errors:')
-      consoleErrors.forEach((error) => console.log(`  - ${error}`))
+    // Trigger user interaction to execute delayed scripts
+    await page.mouse.move(100, 100)
+
+    // Wait for delayed scripts to execute
+    await page.waitForTimeout(1000)
+
+    // Debug: log all messages
+    console.log('\nAll console messages by type:')
+    console.log('Errors:', allMessages.filter(m => m.type === 'error').length)
+    console.log('Warnings:', allMessages.filter(m => m.type === 'warning').length)
+    console.log('Info:', allMessages.filter(m => m.type === 'info').length)
+    console.log('Log:', allMessages.filter(m => m.type === 'log').length)
+
+    if (allMessages.filter(m => m.type === 'error').length > 0) {
+      console.log('\nError messages:')
+      allMessages.filter(m => m.type === 'error').forEach(m => console.log(`  - ${m.text}`))
     }
 
-    // Filter out ONLY known acceptable issues
-    const filtered404s = failed404s.filter(
-      (url) =>
-        !url.includes('favicon.ico') // favicon 404s are acceptable in dev
-    )
-
-    const filteredErrors = consoleErrors.filter(
-      (error) =>
-        !error.includes('ResizeObserver loop completed') // Known browser quirk
-    )
+    logConsoleErrors(errorChecker)
 
     // Fail if there are any unexpected 404s or errors
-    if (filtered404s.length > 0) {
-      console.error('\n💥 Unexpected 404 resources found!')
-    }
-    if (filteredErrors.length > 0) {
-      console.error('\n💥 Unexpected console errors found!')
-    }
-
-    expect(filteredErrors).toHaveLength(0)
-    expect(filtered404s).toHaveLength(0)
+    expect(errorChecker.getFilteredErrors()).toHaveLength(0)
+    expect(errorChecker.getFiltered404s()).toHaveLength(0)
   })
 })

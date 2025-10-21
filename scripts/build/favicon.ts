@@ -20,9 +20,9 @@
  */
 import sharp, { type Metadata } from 'sharp'
 import toIco from 'to-ico'
-import { writeFile } from 'fs/promises'
+import { writeFile, mkdir } from 'fs/promises'
 
-type IconGenerator = (options: Metadata) => Promise<Buffer>
+type IconGenerator = (_options: Metadata) => Promise<Buffer>
 
 const faviconPath = `src/assets/favicon.svg`
 const generateIcoFavicon: IconGenerator = async ({ width, height, density }) => {
@@ -52,6 +52,17 @@ const generatePngFavicon: IconGenerator = ({ density, width, height }) => {
     .toBuffer()
 }
 
+const generatePwaIcon = (size: number): IconGenerator => ({ density, width, height }) => {
+  if (!width || !height || !density)
+    throw new Error(`Required option not passed to generatePwaIcon`)
+  return sharp(faviconPath, {
+    density: (size / Math.max(width, height)) * density,
+  })
+    .resize(size, size)
+    .png()
+    .toBuffer()
+}
+
 const saveFile = (destination: string) => {
   return async (buffer: Buffer) => {
     return await writeFile(destination, buffer)
@@ -61,12 +72,30 @@ const saveFile = (destination: string) => {
 const faviconTypes: Array<[string, IconGenerator]> = [
   ['favicon.ico', generateIcoFavicon],
   ['apple-touch-icon.png', generatePngFavicon],
+  ['icon-192.png', generatePwaIcon(192)],
+  ['icon-512.png', generatePwaIcon(512)],
+  ['icon-mask.png', generatePwaIcon(512)],
 ]
 
 export const buildFavicons = async () => {
   const metadata = await sharp(faviconPath).metadata()
+  const outputDir = `${process.cwd()}/public`
 
-  faviconTypes.forEach(([name, generator]) =>
-    generator(metadata).then(saveFile(`${process.cwd()}/public/images/${name}`))
+  // Ensure output directory exists
+  await mkdir(outputDir, { recursive: true })
+
+  // Generate all favicons
+  await Promise.all(
+    faviconTypes.map(([name, generator]) =>
+      generator(metadata).then(saveFile(`${outputDir}/${name}`))
+    )
   )
+
+  console.log('✅ Favicons and PWA icons generated successfully')
 }
+
+// Execute when run directly (ES module)
+buildFavicons().catch((error) => {
+  console.error('❌ Failed to generate favicons:', error)
+  process.exit(1)
+})

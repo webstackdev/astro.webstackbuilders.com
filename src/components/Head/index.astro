@@ -37,21 +37,26 @@ const { pageTitle, path, description, image } = Astro.props
     {/* Development: Custom handlers log errors to console for debugging */}
     import { SentryBootstrap } from '@components/Scripts/sentry/client'
     import { PUBLIC_SENTRY_DSN } from 'astro:env/client'
-
-    if ( import.meta.env.PROD && PUBLIC_SENTRY_DSN) {
-      SentryBootstrap.init()
-    } else {
-      // Development: Use custom error handlers with console logging
-      const { addErrorEventListeners } = await import('@components/Scripts/errors/errorListeners')
-      addErrorEventListeners()
-      console.info('🔧 Sentry disabled in development mode')
-    }
-
-    // Initialize AppBootstrap FIRST - initializes state management
-    // MUST run before any scripts that depend on state
     import { AppBootstrap } from '@components/Scripts/state/bootstrap'
 
-    AppBootstrap.init()
+    if (import.meta.env.PROD && PUBLIC_SENTRY_DSN) {
+      SentryBootstrap.init()
+      AppBootstrap.init()
+    } else {
+      // Development: Use custom error handlers with console logging
+      import('@components/Scripts/errors/errorListeners')
+        .then(({ addErrorEventListeners }) => {
+          addErrorEventListeners()
+          console.info('🔧 Sentry disabled in development mode')
+          // Initialize AppBootstrap after error handlers
+          AppBootstrap.init()
+        })
+        .catch((error) => {
+          console.error('❌ Failed to initialize error listeners:', error)
+          // Still try to initialize AppBootstrap even if error listeners fail
+          AppBootstrap.init()
+        })
+    }
   </script>
   {/* Client-side router for Astro pages (enables partial page reloads) */}
   {/* Must be placed at the end of the <head> to avoid blocking page rendering */}

@@ -10,8 +10,8 @@ import 'dotenv/config'
  * See https://playwright.dev/docs/test-configuration.
  */
 
-/** Debug mode - set DEBUG=true to run only chromium with no HTML report */
-const isDebugMode = process.env['DEBUG'] === 'true'
+/** Debug mode - set DEBUG=1 or DEBUG=true to run only chromium with no HTML report */
+const isDebugMode = Boolean(process.env['DEBUG'] && process.env['DEBUG'] !== 'false' && process.env['DEBUG'] !== '0')
 
 export default defineConfig({
   /* Look for test files in the "tests" directory, relative to this configuration file. */
@@ -112,13 +112,18 @@ export default defineConfig({
       ],
 
   /* Run your local dev server before starting the tests */
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:4321',
-    /** How long to wait for the process to start up and be available in milliseconds. */
-    timeout: 120 * 1000,
-    reuseExistingServer: !process.env['CI'],
-  },
+  /* In debug mode, assume server is already running */
+  ...(isDebugMode
+    ? {}
+    : {
+        webServer: {
+          command: 'npm run dev',
+          url: 'http://localhost:4321',
+          /** How long to wait for the process to start up and be available in milliseconds. */
+          timeout: 120 * 1000,
+          reuseExistingServer: !process.env['CI'],
+        },
+      }),
 
   // path to the global setup files.
   //globalSetup: require.resolve('./global-setup'),

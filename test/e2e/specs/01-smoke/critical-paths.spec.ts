@@ -4,7 +4,8 @@
  * They should always pass and run quickly.
  */
 import { test, expect } from '@playwright/test'
-import { TEST_URLS } from '../../fixtures/test-data'
+import { TEST_URLS } from '@test/e2e/fixtures/test-data'
+import { setupConsoleErrorChecker, logConsoleErrors } from '@test/e2e/helpers/console-errors'
 
 test.describe('Critical Paths @smoke', () => {
   test('@ready all main pages are accessible', async ({ page }) => {
@@ -99,5 +100,22 @@ test.describe('Critical Paths @smoke', () => {
 
     await page.goto(TEST_URLS.home)
     await expect(page.locator('#cookie-consent-banner')).toBeVisible()
+  })
+
+  test('@ready main pages have no console errors', async ({ page }) => {
+    const mainPages = [TEST_URLS.home, TEST_URLS.about, TEST_URLS.articles, TEST_URLS.contact]
+
+    for (const path of mainPages) {
+      const errorChecker = setupConsoleErrorChecker(page)
+
+      await page.goto(path)
+      await page.waitForLoadState('networkidle')
+
+      logConsoleErrors(errorChecker)
+
+      // Fail if there are any unexpected 404s or errors
+      expect(errorChecker.getFilteredErrors()).toHaveLength(0)
+      expect(errorChecker.getFiltered404s()).toHaveLength(0)
+    }
   })
 })

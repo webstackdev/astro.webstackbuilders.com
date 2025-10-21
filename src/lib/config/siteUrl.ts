@@ -9,10 +9,10 @@ export const getSiteUrl = (): string => {
       return 'https://webstackbuilders.com'
     case 'development':
       console.log(`Using development environment on port ${DEV_SERVER_PORT ?? 4321}.`)
-      return `https://localhost:${DEV_SERVER_PORT ?? 4321}`
+      return `http://localhost:${DEV_SERVER_PORT ?? 4321}`
     case 'test':
       console.log(`Using test environment on port ${DEV_SERVER_PORT ?? 4321}.`)
-      return `https://localhost:${PREVIEW_SERVER_PORT ?? 4321}`
+      return `http://localhost:${PREVIEW_SERVER_PORT ?? 4321}`
     default:
       console.log(`The NODE_ENV environment variable is not set, using "production".`)
       return 'https://webstackbuilders.com'

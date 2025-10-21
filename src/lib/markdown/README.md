@@ -7,6 +7,10 @@
 - Z.AI: GLM 4.6
 - Google: Gemini 2.5 Flash Preview 09-2025
 
+## Misc ToDo Checklist
+
+- manifest icons are 404
+
 ## Webmention Component Next Steps:
 
 Get API token from webmention.io
