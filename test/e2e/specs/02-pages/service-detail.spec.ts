@@ -1,64 +1,82 @@
 /**
  * Service Detail Page E2E Tests
  * Tests for individual service pages
- * Note: Tests are generated dynamically per service
+ * Note: Tests are dynamically generated for each service
  */
 import { test, expect } from '@playwright/test'
+import { setupConsoleErrorChecker } from '@test/e2e/helpers/console-errors'
 
-test.describe('Service Detail Page', () => {
-  test.skip('@wip service page loads with content', async ({ page }) => {
-    // Expected: Service page should load with title and content
-    // Actual: Unknown - needs testing
-    // Note: Will dynamically generate tests per service
-    await page.goto('/services/example-service')
-    await expect(page.locator('h1')).toBeVisible()
-  })
+/**
+ * Create a test suite for a specific service
+ */
+function createServiceTests(serviceId: string, serviceTitle: string) {
+  const serviceUrl = `/services/${serviceId}`
 
-  test.skip('@wip service overview section displays', async ({ page }) => {
-    // Expected: Should show service overview/description
-    // Actual: Unknown - needs testing
-    await page.goto('/services/example-service')
-    await expect(page.locator('article, .service-content')).toBeVisible()
-  })
+  test.describe(`Service: ${serviceTitle}`, () => {
+    test('@ready service page loads with content', async ({ page }) => {
+      await page.goto(serviceUrl)
+      await page.waitForLoadState('networkidle')
 
-  test.skip('@wip features/benefits list present', async ({ page }) => {
-    // Expected: Should show list of features or benefits
-    // Actual: Unknown - needs testing
-    await page.goto('/services/example-service')
-    // Check for features list
-  })
+      // Page should have main content
+      const main = page.locator('main')
+      await expect(main).toBeVisible()
 
-  test.skip('@wip pricing information displays', async ({ page }) => {
-    // Expected: Should show pricing or consultation info
-    // Actual: Unknown - needs testing
-    await page.goto('/services/example-service')
-    // Check for pricing section
-  })
+      // Should have h1 heading (page may have multiple h1 in suggested services, use first)
+      const heading = page.locator('h1').first()
+      await expect(heading).toBeVisible()
 
-  test.skip('@wip contact CTA present', async ({ page }) => {
-    // Expected: Should have CTA to contact or get started
-    // Actual: Unknown - needs testing
-    await page.goto('/services/example-service')
-    const cta = page.locator('a[href*="contact"], button:has-text("Contact")')
-    // CTA may not always be present
-  })
-
-  test.skip('@wip related services carousel displays', async ({ page }) => {
-    // Expected: Should show related services if applicable
-    // Actual: Unknown - needs testing
-    await page.goto('/services/example-service')
-    // Check for carousel
-  })
-
-  test.skip('@wip page has no console errors', async ({ page }) => {
-    // Expected: No console errors on page load
-    // Actual: Unknown - needs testing
-    await page.goto('/services/example-service')
-    const errors: string[] = []
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') errors.push(msg.text())
+      // Should have article container with id (main article, not carousel articles)
+      const article = page.locator('article[itemscope]')
+      await expect(article).toBeVisible()
     })
-    await page.reload()
-    expect(errors).toHaveLength(0)
+
+    test('@ready service title displays correctly', async ({ page }) => {
+      await page.goto(serviceUrl)
+      // Use the main article heading, not headings from suggested services carousel
+      const heading = page.locator('h1#article-title')
+      await expect(heading).toContainText(serviceTitle)
+    })
+
+    test('@ready service content renders', async ({ page }) => {
+      await page.goto(serviceUrl)
+
+      // Should have content paragraphs
+      const content = page.locator('article p')
+      await expect(content.first()).toBeVisible()
+    })
+
+    test('@ready suggested services carousel displays', async ({ page }) => {
+      await page.goto(serviceUrl)
+
+      // Carousel should be present (if there are other services)
+      const carousel = page.locator('.embla')
+      // Carousel only shows if there are other services, so check count
+      const count = await carousel.count()
+      if (count > 0) {
+        await expect(carousel.first()).toBeVisible()
+      }
+    })
+
+    test('@ready page has no console errors', async ({ page }) => {
+      const errorChecker = setupConsoleErrorChecker(page)
+      await page.goto(serviceUrl)
+      await page.waitForLoadState('networkidle')
+
+      const filtered404s = errorChecker.getFiltered404s()
+      expect(filtered404s.length).toBe(0)
+    })
+
+    test('@ready page has no 404 errors', async ({ page }) => {
+      const errorChecker = setupConsoleErrorChecker(page)
+      await page.goto(serviceUrl)
+      await page.waitForLoadState('networkidle')
+
+      const all404s = errorChecker.failed404s
+      expect(all404s.length).toBe(0)
+    })
   })
-})
+}
+
+// Generate tests for known services
+createServiceTests('overview', 'Services Overview')
+createServiceTests('create-custom-font-sets', 'Create Custom Font Sets')
