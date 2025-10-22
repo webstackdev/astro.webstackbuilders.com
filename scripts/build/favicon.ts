@@ -94,8 +94,10 @@ export const buildFavicons = async () => {
   console.log('✅ Favicons and PWA icons generated successfully')
 }
 
-// Execute when run directly (ES module)
-buildFavicons().catch((error) => {
-  console.error('❌ Failed to generate favicons:', error)
-  process.exit(1)
-})
+// Execute when run directly (ES module), but not during tests
+if (process.env['NODE_ENV'] !== 'test') {
+  buildFavicons().catch((error) => {
+    console.error('❌ Failed to generate favicons:', error)
+    process.exit(1)
+  })
+}

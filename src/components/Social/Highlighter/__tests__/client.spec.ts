@@ -398,8 +398,10 @@ describe('HighlighterElement', () => {
       ) as HTMLButtonElement
       twitterButton.click()
 
-      // Should fall back to window.open
-      expect(window.open).toHaveBeenCalled()
+      // Wait for async operations
+      await vi.waitFor(() => {
+        expect(window.open).toHaveBeenCalled()
+      })
     })
   })
 
@@ -413,7 +415,10 @@ describe('HighlighterElement', () => {
       ) as HTMLButtonElement
       twitterButton.click()
 
-      expect(eventListener).toHaveBeenCalled()
+      // Wait for async share operation
+      await vi.waitFor(() => {
+        expect(eventListener).toHaveBeenCalled()
+      })
 
       const event = eventListener.mock.calls[0]?.[0] as CustomEvent
       expect(event.detail).toMatchObject({
@@ -439,7 +444,10 @@ describe('HighlighterElement', () => {
       ) as HTMLButtonElement
       copyButton.click()
 
-      expect(eventListener).toHaveBeenCalled()
+      // Wait for async copy operation
+      await vi.waitFor(() => {
+        expect(eventListener).toHaveBeenCalled()
+      })
 
       const event = eventListener.mock.calls[0]?.[0] as CustomEvent
       expect(event.detail.platform).toBe('copy')

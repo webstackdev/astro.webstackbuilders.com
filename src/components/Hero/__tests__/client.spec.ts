@@ -147,11 +147,13 @@ describe('HeroLoader', () => {
 
     it('should use staggered animations for content groups', () => {
       HeroLoader.init()
-      expect(timelineMock.staggerFrom).toHaveBeenCalledWith(
+      expect(timelineMock.from).toHaveBeenCalledWith(
         '.monitorContentGroup path',
-        1,
-        { scaleX: 0 },
-        0.1
+        expect.objectContaining({
+          duration: 1,
+          scaleX: 0,
+          stagger: 0.1,
+        })
       )
     })
   })
