@@ -488,3 +488,88 @@ Preload fonts:
 
 TTI (Time to Interactive) measures time from when the page is painted until it becomes usefully interactive.
 Interactive can only have two in-flight network requests.
+
+## Stuff from ZMarkdown, a prepackaged Unified config
+
+Repo is in root of Corporate Websites
+
+* [**mdast-util-split-by-heading**][mdast-util-split-by-heading]
+
+  A MDAST tool to split a markdown tree into list of subtrees representing the chapters. It relies on heading depth.
+
+* [**rebber**][rebber]
+
+  transformation of MDAST into `latex` code. This code must be included inside a custom latex to be compiled.
+  Have a look at `https://github.com/zestedesavoir/latex-template/blob/master/zmdocument.cls` to get a working example.
+
+* [**remark-abbr**][remark-abbr]
+
+  This plugin parses `*[ABBR]: abbr definition` and then replace all ABBR instance in text with a new MDAST node so that `rehype` can parse it into `abbr` html tag.
+
+* [**rehype-footnotes-title**][rehype-footnotes-title]
+
+  This plugin adds a `title` attribute to the footnote links, mainly for accessibility purpose.
+
+* [**rehype-html-blocks**][rehype-html-blocks]
+
+  This plugin wraps (multi-line) raw HTML in `p`.
+
+* [**remark-align**][remark-align]
+
+  This plugin parses custom Markdown syntax to center- or right-align elements.
+
+* [**remark-captions**][remark-captions]
+
+  Allow to add caption to such element as image, table or blockquote.
+
+* [**remark-comments**][remark-comments]
+
+  This plugin parses custom Markdown syntax for Markdown source comments.
+
+* [**remark-custom-blocks**][remark-custom-blocks]
+
+  This plugin parses custom Markdown syntax to create new custom blocks.
+
+* [**remark-emoticons**][remark-emoticons]
+
+  This plugins replaces ASCII emoticons with associated image. Compatible with [rehype][rehype]
+
+* [**remark-escape-escaped**][remark-escape-escaped]
+
+  This plugin escapes HTML entities from Markdown input.
+
+* [**remark-grid-tables**][remark-grid-tables]
+
+  This plugin parses custom Markdown syntax to describe tables.
+
+* [**remark-heading-shift**][remark-heading-shift]
+
+  Allows to shift heading to custimize the way you will integrate the generated tree inside your application.
+
+* [**remark-heading-trailing-spaces**][remark-heading-trailing-spaces]
+
+  This plugin removes trailing spaces from Markdown headers.
+
+* [**remark-iframes**][remark-iframes]
+
+  Allows to add `iframe` inclusion through `!(url)` code.
+
+* [**remark-kbd**][remark-kbd]
+
+  This plugin parses custom Markdown syntax to handle keyboard keys.
+
+* [**remark-numbered-footnotes**][remark-numbered-footnotes]
+
+  This plugin changes how [mdast][mdast] footnotes are displayed by using sequential numbers as footnote references instead of user-specified strings.
+
+* [**remark-sub-super**][remark-sub-super]
+
+  This plugin parses custom Markdown syntax to handle subscript and superscript.
+
+* [**typographic-colon**][typographic-colon]
+
+  Micro module to fix a common typographic issue that is hard to fix with most keyboard layouts.
+
+* [**typographic-permille**][typographic-permille]
+
+  Micro module to replace `%o` with `‰` and optionally replace the preceding space.

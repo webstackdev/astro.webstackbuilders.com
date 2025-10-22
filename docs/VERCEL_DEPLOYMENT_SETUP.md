@@ -89,14 +89,10 @@ You must disable Vercel's automatic GitHub deployments to rely exclusively on th
 
 This option gives you complete control — only the GitHub Action will trigger deployments.
 
-1. Go to your Vercel project dashboard
-2. Navigate to **Settings** → **Git**
-3. Find the **Git Integration** section
-4. Locate the setting for **Automatically deploy on Git push**
-5. **Uncheck** or toggle OFF the automatic deployment option
-6. Save changes
+To disable all automatic deployments from Git, you can set the deploymentEnabled option to false in your vercel.json configuration file. This will prevent future Git pushes from triggering deployments.
 
 With this configuration:
+
 - Vercel will NOT deploy on every push
 - Only the `deploy-to-vercel` GitHub Action job will trigger deployments
 - Deployments only happen when CI passes on `main` branch
