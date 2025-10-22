@@ -10,7 +10,8 @@
 - [ ] 🔥 Hot fix (hotfix/*)
 - [ ] ✨ New feature (feature/*)
 - [ ] 🏗️ Infrastructure (infrastructure/*)
-- [ ] 📝 Content update (content/*)
+- [ ] � Maintenance (maintenance/*)
+- [ ] �📝 Content update (content/*)
 - [ ] 📚 Documentation
 - [ ] 🎨 Style/UI change
 - [ ] ♻️ Code refactoring

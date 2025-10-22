@@ -27,6 +27,7 @@ git push -u origin feature/your-feature-name
 - `bugfix/*` - Bug fixes
 - `hotfix/*` - Critical production fixes
 - `infrastructure/*` - DevOps/CI/CD changes
+- `maintenance/*` - Dependency updates, refactoring
 - `content/*` - Content updates
 
 **Pre-commit Checks:**

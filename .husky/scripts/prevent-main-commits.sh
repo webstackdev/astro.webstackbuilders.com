@@ -16,7 +16,7 @@ if [ "$branch" = "main" ]; then
   echo "  3. Push your branch and create a Pull Request:"
   echo "     git push -u origin feature/your-feature-name"
   echo ""
-  echo "Valid branch prefixes: bugfix/, hotfix/, feature/, infrastructure/, content/"
+  echo "Valid branch prefixes: bugfix/, hotfix/, feature/, infrastructure/, maintenance/, content/"
   echo ""
   exit 1
 fi

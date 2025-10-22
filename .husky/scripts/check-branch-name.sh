@@ -4,7 +4,7 @@
 branch=$(git symbolic-ref --short HEAD)
 
 # Define valid branch name patterns
-valid_patterns="^(bugfix|hotfix|feature|infrastructure|content)\/[a-z0-9-]+$"
+valid_patterns="^(bugfix|hotfix|feature|infrastructure|content|maintenance)\/[a-z0-9-]+$"
 
 # Allow main and develop branches (for merges)
 if [ "$branch" = "main" ] || [ "$branch" = "develop" ]; then
@@ -20,6 +20,7 @@ if ! echo "$branch" | grep -Eq "$valid_patterns"; then
   echo "  - hotfix/<description>     (e.g., hotfix/critical-security-patch)"
   echo "  - feature/<description>    (e.g., feature/add-contact-form)"
   echo "  - infrastructure/<desc>    (e.g., infrastructure/setup-ci)"
+  echo "  - maintenance/<desc>       (e.g., maintenance/update-dependencies)"
   echo "  - content/<description>    (e.g., content/update-about-page)"
   echo ""
   echo "Use lowercase letters, numbers, and hyphens only."

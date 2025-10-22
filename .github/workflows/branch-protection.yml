@@ -13,8 +13,8 @@ jobs:
         run: |
           BRANCH_NAME="${{ github.head_ref }}"
 
-          # Valid patterns: bugfix/, hotfix/, feature/, infrastructure/, content/
-          if [[ ! $BRANCH_NAME =~ ^(bugfix|hotfix|feature|infrastructure|content)/[a-z0-9-]+$ ]]; then
+          # Valid patterns: bugfix/, hotfix/, feature/, infrastructure/, maintenance/, content/
+          if [[ ! $BRANCH_NAME =~ ^(bugfix|hotfix|feature|infrastructure|maintenance|content)/[a-z0-9-]+$ ]]; then
             echo "❌ Invalid branch name: $BRANCH_NAME"
             echo ""
             echo "Branch names must follow one of these patterns:"
@@ -22,6 +22,7 @@ jobs:
             echo "  - hotfix/<description>     (e.g., hotfix/critical-security-patch)"
             echo "  - feature/<description>    (e.g., feature/add-contact-form)"
             echo "  - infrastructure/<desc>    (e.g., infrastructure/setup-ci)"
+            echo "  - maintenance/<desc>       (e.g., maintenance/update-dependencies)"
             echo "  - content/<description>    (e.g., content/update-about-page)"
             echo ""
             echo "Use lowercase letters, numbers, and hyphens only."
