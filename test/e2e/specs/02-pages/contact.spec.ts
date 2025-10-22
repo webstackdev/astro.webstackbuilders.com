@@ -3,76 +3,100 @@
  * Tests for the contact page and form
  */
 import { test, expect } from '@playwright/test'
-import { TEST_URLS } from '../../fixtures/test-data'
+import { TEST_URLS } from '@test/e2e/fixtures/test-data'
+import { setupConsoleErrorChecker } from '@test/e2e/helpers/console-errors'
 
 test.describe('Contact Page', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(TEST_URLS.contact)
   })
 
-  test.skip('@wip page loads with correct title', async ({ page }) => {
-    // Expected: Page title should include "Contact"
-    // Actual: Unknown - needs testing
+  test('@ready page loads with correct title', async ({ page }) => {
     await expect(page).toHaveTitle(/Contact/)
   })
 
-  test.skip('@wip hero section displays', async ({ page }) => {
-    // Expected: Should show hero with heading and description
-    // Actual: Unknown - needs testing
-    await expect(page.locator('h1')).toContainText(/Let's Build Something Amazing/)
+  test('@ready hero section displays', async ({ page }) => {
+    const heroHeading = page.locator('h1')
+    await expect(heroHeading).toContainText(/Let's Build Something Amazing/)
   })
 
-  test.skip('@wip contact form is visible', async ({ page }) => {
-    // Expected: Form should be visible with all fields
-    // Actual: Unknown - needs testing
-    await expect(page.locator('#contactForm')).toBeVisible()
+  test('@ready contact form is visible', async ({ page }) => {
+    const form = page.locator('#contactForm')
+    await expect(form).toBeVisible()
   })
 
-  test.skip('@wip all form fields are present', async ({ page }) => {
-    // Expected: Should have name, email, company, phone, etc.
-    // Actual: Unknown - needs testing
+  test('@ready required form fields are present', async ({ page }) => {
+    // Required fields: name, email, message
     await expect(page.locator('#name')).toBeVisible()
     await expect(page.locator('#email')).toBeVisible()
-    await expect(page.locator('#company')).toBeVisible()
-    await expect(page.locator('#phone')).toBeVisible()
-    await expect(page.locator('#subject')).toBeVisible()
     await expect(page.locator('#message')).toBeVisible()
   })
 
-  test.skip('@wip GDPR consent checkbox present', async ({ page }) => {
-    // Expected: Should have required GDPR consent checkbox
-    // Actual: Unknown - needs testing
-    await expect(page.locator('#gdpr-consent')).toBeVisible()
+  test('@ready optional form fields are present', async ({ page }) => {
+    // Optional fields: company, phone, project type, budget, timeline
+    await expect(page.locator('#company')).toBeVisible()
+    await expect(page.locator('#phone')).toBeVisible()
+    await expect(page.locator('#project_type')).toBeVisible()
+    await expect(page.locator('#budget')).toBeVisible()
+    await expect(page.locator('#timeline')).toBeVisible()
   })
 
-  test.skip('@wip contact information sidebar displays', async ({ page }) => {
-    // Expected: Should show response time and expertise info
-    // Actual: Unknown - needs testing
-    await expect(page.locator('text=Response Time')).toBeVisible()
-    await expect(page.locator('text=Our Expertise')).toBeVisible()
+  test('@ready GDPR consent checkbox present', async ({ page }) => {
+    // Contact form uses id="contact-gdpr-consent"
+    const gdprConsent = page.locator('#contact-gdpr-consent')
+    await expect(gdprConsent).toBeVisible()
   })
 
-  test.skip('@wip submit button is present', async ({ page }) => {
-    // Expected: Submit button should be visible
-    // Actual: Unknown - needs testing
-    await expect(page.locator('button[type="submit"]')).toBeVisible()
+  test('@ready contact information sidebar displays', async ({ page }) => {
+    // The sidebar has "Get In Touch" heading
+    const sidebar = page.locator('text=Get In Touch')
+    await expect(sidebar).toBeVisible()
   })
 
-  test.skip('@wip form has proper labels and accessibility', async ({ page }) => {
-    // Expected: All inputs should have associated labels
-    // Actual: Unknown - needs testing
-    const nameInput = page.locator('#name')
-    const label = await nameInput.evaluate((el) => {
-      const id = el.getAttribute('id')
-      return document.querySelector(`label[for="${id}"]`)?.textContent
-    })
-    expect(label).toBeTruthy()
+  test('@ready submit button is present', async ({ page }) => {
+    const submitButton = page.locator('button[type="submit"]')
+    await expect(submitButton).toBeVisible()
+    await expect(submitButton).toContainText(/Send Project Details/)
   })
 
-  test.skip('@wip responsive: mobile view renders correctly', async ({ page }) => {
-    // Expected: Contact page should be fully functional on mobile
-    // Actual: Unknown - needs testing
+  test('@ready form has proper labels and accessibility', async ({ page }) => {
+    // Check that required inputs have associated labels
+    const nameLabel = page.locator('label[for="name"]')
+    await expect(nameLabel).toBeVisible()
+    await expect(nameLabel).toContainText(/Full Name/)
+
+    const emailLabel = page.locator('label[for="email"]')
+    await expect(emailLabel).toBeVisible()
+    await expect(emailLabel).toContainText(/Email/)
+
+    const messageLabel = page.locator('label[for="message"]')
+    await expect(messageLabel).toBeVisible()
+    await expect(messageLabel).toContainText(/Project Description/)
+  })
+
+  test('@ready form sections are properly organized', async ({ page }) => {
+    // Check for section headings - use h3 selector to avoid matching text in paragraphs
+    await expect(page.locator('h3').filter({ hasText: 'Contact Information' })).toBeVisible()
+    await expect(page.locator('h3').filter({ hasText: 'Project Details' })).toBeVisible()
+    await expect(page.locator('h3').filter({ hasText: 'Project Files' })).toBeVisible()
+  })
+
+  test('@ready data retention notice is displayed', async ({ page }) => {
+    // Check for GDPR-compliant data retention notice
+    await expect(page.locator('text=Data Retention')).toBeVisible()
+    await expect(page.locator('text=Your Rights')).toBeVisible()
+  })
+
+  test('@ready responsive: mobile view renders correctly', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 })
     await expect(page.locator('#contactForm')).toBeVisible()
+    await expect(page.locator('h1')).toBeVisible()
+  })
+
+  test('@ready page has no console errors', async ({ page }) => {
+    const errorChecker = setupConsoleErrorChecker(page)
+    await page.goto(TEST_URLS.contact)
+    await page.waitForLoadState('networkidle')
+    expect(errorChecker.getFiltered404s().length).toBe(0)
   })
 })
