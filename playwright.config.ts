@@ -20,6 +20,8 @@ export default defineConfig({
   testMatch: '**/*.spec.ts',
   /** Folder for test artifacts such as screenshots, videos, traces, etc. */
   outputDir: `.cache/playwright/output/`,
+  /** Tracked by Git LFS */
+  snapshotPathTemplate: './test/e2e/__screenshots__/{testFilePath}/{arg}{ext}',
   /** Maximum time one test can run for. */
   timeout: 30 * 1000,
   expect: {
