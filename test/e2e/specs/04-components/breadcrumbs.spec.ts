@@ -8,21 +8,30 @@ import { test, expect } from '@playwright/test'
 
 test.describe('Breadcrumbs Component', () => {
   test('@ready breadcrumbs display on article pages', async ({ page }) => {
-    await page.goto('/articles/typescript-best-practices')
+    await page.goto('/articles')
+    const firstArticle = page.locator('a[href*="/articles/"]').first()
+    await firstArticle.click()
+    await page.waitForLoadState('networkidle')
 
     const breadcrumbs = page.locator('nav[aria-label="Breadcrumb"]')
     await expect(breadcrumbs).toBeVisible()
   })
 
   test('@ready breadcrumbs display on service pages', async ({ page }) => {
-    await page.goto('/services/overview')
+    await page.goto('/services')
+    const firstService = page.locator('a[href*="/services/"]').first()
+    await firstService.click()
+    await page.waitForLoadState('networkidle')
 
     const breadcrumbs = page.locator('nav[aria-label="Breadcrumb"]')
     await expect(breadcrumbs).toBeVisible()
   })
 
   test('@ready breadcrumbs show correct path', async ({ page }) => {
-    await page.goto('/articles/typescript-best-practices')
+    await page.goto('/articles')
+    const firstArticle = page.locator('a[href*="/articles/"]').first()
+    await firstArticle.click()
+    await page.waitForLoadState('networkidle')
 
     const breadcrumbs = page.locator('nav[aria-label="Breadcrumb"]')
     const links = breadcrumbs.locator('a')
@@ -37,7 +46,10 @@ test.describe('Breadcrumbs Component', () => {
   })
 
   test('@ready breadcrumb links are clickable', async ({ page }) => {
-    await page.goto('/articles/typescript-best-practices')
+    await page.goto('/articles')
+    const firstArticle = page.locator('a[href*="/articles/"]').first()
+    await firstArticle.click()
+    await page.waitForLoadState('networkidle')
 
     const breadcrumbs = page.locator('nav[aria-label="Breadcrumb"]')
     const homeLink = breadcrumbs.locator('a').first()
@@ -49,7 +61,10 @@ test.describe('Breadcrumbs Component', () => {
   })
 
   test('@ready current page is not a link', async ({ page }) => {
-    await page.goto('/articles/typescript-best-practices')
+    await page.goto('/articles')
+    const firstArticle = page.locator('a[href*="/articles/"]').first()
+    await firstArticle.click()
+    await page.waitForLoadState('networkidle')
 
     const breadcrumbs = page.locator('nav[aria-label="Breadcrumb"]')
     const items = breadcrumbs.locator('li')
@@ -65,7 +80,10 @@ test.describe('Breadcrumbs Component', () => {
   })
 
   test('@ready breadcrumbs have proper separators', async ({ page }) => {
-    await page.goto('/articles/typescript-best-practices')
+    await page.goto('/articles')
+    const firstArticle = page.locator('a[href*="/articles/"]').first()
+    await firstArticle.click()
+    await page.waitForLoadState('networkidle')
 
     const breadcrumbs = page.locator('nav[aria-label="Breadcrumb"]')
     const items = breadcrumbs.locator('li')
@@ -80,7 +98,10 @@ test.describe('Breadcrumbs Component', () => {
   })
 
   test('@ready breadcrumbs use proper ARIA', async ({ page }) => {
-    await page.goto('/articles/typescript-best-practices')
+    await page.goto('/articles')
+    const firstArticle = page.locator('a[href*="/articles/"]').first()
+    await firstArticle.click()
+    await page.waitForLoadState('networkidle')
 
     const breadcrumbs = page.locator('nav[aria-label="Breadcrumb"]')
     await expect(breadcrumbs).toBeVisible()
@@ -92,7 +113,11 @@ test.describe('Breadcrumbs Component', () => {
 
   test('@ready breadcrumbs are responsive', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 })
-    await page.goto('/articles/typescript-best-practices')
+    await page.goto('/articles')
+
+    const firstArticle = page.locator('a[href*="/articles/"]').first()
+    await firstArticle.click({ force: true }) // Bypass cookie dialog overlay
+    await page.waitForLoadState('networkidle')
 
     const breadcrumbs = page.locator('nav[aria-label="Breadcrumb"]')
     await expect(breadcrumbs).toBeVisible()
@@ -100,7 +125,10 @@ test.describe('Breadcrumbs Component', () => {
 
   test.skip('@wip breadcrumbs have structured data', async ({ page }) => {
     // Expected: Should include JSON-LD BreadcrumbList schema
-    await page.goto('/articles/typescript-best-practices')
+    await page.goto('/articles')
+    const firstArticle = page.locator('a[href*="/articles/"]').first()
+    await firstArticle.click()
+    await page.waitForLoadState('networkidle')
 
     const jsonLd = await page.locator('script[type="application/ld+json"]').allTextContents()
     const hasBreadcrumbSchema = jsonLd.some((json) => json.includes('BreadcrumbList'))
@@ -109,7 +137,10 @@ test.describe('Breadcrumbs Component', () => {
   })
 
   test('@ready breadcrumbs truncate long titles', async ({ page }) => {
-    await page.goto('/articles/typescript-best-practices')
+    await page.goto('/articles')
+    const firstArticle = page.locator('a[href*="/articles/"]').first()
+    await firstArticle.click()
+    await page.waitForLoadState('networkidle')
 
     const breadcrumbs = page.locator('nav[aria-label="Breadcrumb"]')
     const lastItem = breadcrumbs.locator('li').last()

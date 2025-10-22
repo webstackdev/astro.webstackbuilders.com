@@ -5,86 +5,62 @@
  */
 
 import { test, expect } from '@playwright/test'
-import { TEST_URLS } from '../../fixtures/test-data'
 
 test.describe('Footer Component', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
   })
 
-  test.skip('@wip footer is visible on all pages', async ({ page }) => {
-    // Expected: Footer should appear on every page
-    const footer = page.locator('footer')
+  test('@ready footer is visible on all pages', async ({ page }) => {
+    const footer = page.locator('footer[role="contentinfo"]')
     await expect(footer).toBeVisible()
 
     // Check on another page
-    await page.goto(TEST_URLS.about)
+    await page.goto('/about')
     await expect(footer).toBeVisible()
   })
 
-  test.skip('@wip footer contains company name/branding', async ({ page }) => {
-    // Expected: Footer should display company name or logo
-    const footer = page.locator('footer')
-    const brand = footer.locator('[data-brand], .brand')
+  test('@ready footer contains company name/branding', async ({ page }) => {
+    const footer = page.locator('footer[role="contentinfo"]')
+    const companyName = footer.getByText('Webstack Builders')
 
-    await expect(brand.first()).toBeVisible()
-
-    const brandText = await brand.first().textContent()
-    expect(brandText?.trim().length).toBeGreaterThan(0)
+    await expect(companyName.first()).toBeVisible()
   })
 
-  test.skip('@wip footer has copyright notice', async ({ page }) => {
-    // Expected: Footer should include copyright
-    const footer = page.locator('footer')
+  test('@ready footer has copyright notice', async ({ page }) => {
+    const footer = page.locator('footer[role="contentinfo"]')
     const footerText = await footer.textContent()
 
     expect(footerText).toContain('©')
     expect(footerText).toMatch(/20\d{2}/) // Year pattern
   })
 
-  test.skip('@wip footer has navigation links', async ({ page }) => {
-    // Expected: Footer should have links to main pages
-    const footer = page.locator('footer')
+  test('@ready footer has navigation links', async ({ page }) => {
+    const footer = page.locator('footer[role="contentinfo"]')
     const links = footer.locator('a[href]')
 
     const count = await links.count()
     expect(count).toBeGreaterThan(0)
-
-    // Common footer links
-    const footerText = await footer.textContent()
-    const hasCommonLinks =
-      footerText?.includes('About') ||
-      footerText?.includes('Services') ||
-      footerText?.includes('Contact')
-
-    expect(hasCommonLinks).toBe(true)
   })
 
-  test.skip('@wip footer has legal links', async ({ page }) => {
-    // Expected: Footer should have privacy policy, terms, etc.
-    const footer = page.locator('footer')
+  test('@ready footer has legal links', async ({ page }) => {
+    const footer = page.locator('footer[role="contentinfo"]')
 
     const privacyLink = footer.locator('a[href*="privacy"]')
     const cookieLink = footer.locator('a[href*="cookie"]')
 
-    // At least one legal link should exist
-    const hasLegalLink = (await privacyLink.count()) > 0 || (await cookieLink.count()) > 0
-    expect(hasLegalLink).toBe(true)
+    await expect(privacyLink).toBeVisible()
+    await expect(cookieLink).toBeVisible()
   })
 
-  test.skip('@wip footer links are functional', async ({ page }) => {
-    // Expected: Footer links should navigate correctly
-    const footer = page.locator('footer')
-    const aboutLink = footer.locator('a[href*="/about"]').first()
+  test('@ready footer links are functional', async ({ page }) => {
+    const footer = page.locator('footer[role="contentinfo"]')
+    const privacyLink = footer.locator('a[href*="/privacy"]').first()
 
-    if ((await aboutLink.count()) === 0) {
-      test.skip()
-    }
-
-    await aboutLink.click()
+    await privacyLink.click()
     await page.waitForLoadState('networkidle')
 
-    expect(page.url()).toContain('/about')
+    expect(page.url()).toContain('/privacy')
   })
 
   test.skip('@wip footer has social media links', async ({ page }) => {

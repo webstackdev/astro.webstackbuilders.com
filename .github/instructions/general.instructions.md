@@ -34,6 +34,7 @@ applyTo: "**"
 - happy-dom provides proper document, window, and localStorage globals without manual mocking.
 - JavaScript loading warnings from happy-dom are silenced in vitest.setup.ts for clean test output.
 - A working example test using the Container API is available at /home/kevin/Repos/Webstack Builders/Corporate Website/astro.webstackbuilders.com/src/components/Test/container.spec.ts
+- **NEVER hard-code content slugs in e2e tests** (e.g., `/articles/typescript-best-practices`, `/services/web-development`). Content can be deleted or renamed. Always dynamically fetch the first available item from listing pages (articles, services, case-studies, etc.) and navigate to it. This prevents test breakage when content changes.
 
 # Personality
 - Do not apologize
