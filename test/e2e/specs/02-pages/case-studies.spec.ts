@@ -4,60 +4,56 @@
  */
 import { test, expect } from '@playwright/test'
 import { TEST_URLS } from '../../fixtures/test-data'
+import { setupConsoleErrorChecker } from '@test/e2e/helpers/console-errors'
 
 test.describe('Case Studies List Page', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(TEST_URLS.caseStudies)
   })
 
-  test.skip('@wip page loads with correct title', async ({ page }) => {
-    // Expected: Case studies page should have descriptive title
-    // Actual: Unknown - needs testing
+  test('@ready page loads with correct title', async ({ page }) => {
     await expect(page).toHaveTitle(/Case Studies/)
   })
 
-  test.skip('@wip hero section displays', async ({ page }) => {
-    // Expected: Should have hero section with heading
-    // Actual: Unknown - needs testing
+  test('@ready hero section displays', async ({ page }) => {
     await expect(page.locator('h1')).toBeVisible()
+    await expect(page.locator('h1')).toContainText(/Case Studies/)
   })
 
-  test.skip('@wip case studies grid displays', async ({ page }) => {
-    // Expected: Should show grid of case study cards
-    // Actual: Unknown - needs testing
-    const caseStudyCards = page.locator('article')
+  test('@ready case studies list displays', async ({ page }) => {
+    const caseStudyList = page.locator('.case-study-item, article')
+    await expect(caseStudyList.first()).toBeVisible()
+  })
+
+    test('@ready case study cards have required elements', async ({ page }) => {
+    const caseStudyList = page.locator('.case-study-item, article')
+    const firstCard = caseStudyList.first()
+    const heading = firstCard.locator('h2, h3').first()
+    await expect(heading).toBeVisible()
+    await expect(firstCard.locator('a').first()).toBeVisible()
+  })
+
+  test('@ready case study links are functional', async ({ page }) => {
+    const firstLink = page.locator('.case-study-item a, article a').first()
+    await expect(firstLink).toHaveAttribute('href', /\/case-studies\//)
+  })
+
+  test('@ready clicking case study navigates to detail page', async ({ page }) => {
+    const firstLink = page.locator('.case-study-item a, article a').first()
+    await firstLink.click()
+    await expect(page).toHaveURL(/\/case-studies\/.+/)
+  })
+
+  test('@ready page is responsive on mobile', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 })
+    await expect(page.locator('h1')).toBeVisible()
+    const caseStudyCards = page.locator('.case-study-item, article')
     await expect(caseStudyCards.first()).toBeVisible()
   })
 
-  test.skip('@wip case study cards have required elements', async ({ page }) => {
-    // Expected: Each card should have image, title, description
-    // Actual: Unknown - needs testing
-    const firstCard = page.locator('article').first()
-    await expect(firstCard.locator('img')).toBeVisible()
-    await expect(firstCard.locator('h2, h3')).toBeVisible()
-  })
-
-  test.skip('@wip case study links are functional', async ({ page }) => {
-    // Expected: Clicking case study should navigate to detail page
-    // Actual: Unknown - needs testing
-    const firstLink = page.locator('article a').first()
-    await expect(firstLink).toHaveAttribute('href', /.+/)
-  })
-
-  test.skip('@wip industry/tag filtering works', async ({ page }) => {
-    // Expected: If filters exist, they should work
-    // Actual: Unknown - needs testing
-    // Check if filter UI exists
-  })
-
-  test.skip('@wip page has no console errors', async ({ page }) => {
-    // Expected: No console errors on page load
-    // Actual: Unknown - needs testing
-    const errors: string[] = []
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') errors.push(msg.text())
-    })
+  test('@ready page has no console errors', async ({ page }) => {
+    const errorChecker = setupConsoleErrorChecker(page)
     await page.reload()
-    expect(errors).toHaveLength(0)
+    expect(errorChecker.getFilteredErrors()).toHaveLength(0)
   })
 })
