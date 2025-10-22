@@ -1,0 +1,46 @@
+name: Branch Protection
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  check-branch-name:
+    name: Validate Branch Name
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check branch naming convention
+        run: |
+          BRANCH_NAME="${{ github.head_ref }}"
+
+          # Valid patterns: bugfix/, hotfix/, feature/, infrastructure/, content/
+          if [[ ! $BRANCH_NAME =~ ^(bugfix|hotfix|feature|infrastructure|content)/[a-z0-9-]+$ ]]; then
+            echo "❌ Invalid branch name: $BRANCH_NAME"
+            echo ""
+            echo "Branch names must follow one of these patterns:"
+            echo "  - bugfix/<description>     (e.g., bugfix/fix-navigation-menu)"
+            echo "  - hotfix/<description>     (e.g., hotfix/critical-security-patch)"
+            echo "  - feature/<description>    (e.g., feature/add-contact-form)"
+            echo "  - infrastructure/<desc>    (e.g., infrastructure/setup-ci)"
+            echo "  - content/<description>    (e.g., content/update-about-page)"
+            echo ""
+            echo "Use lowercase letters, numbers, and hyphens only."
+            exit 1
+          fi
+
+          echo "✅ Branch name is valid: $BRANCH_NAME"
+
+  check-pr-target:
+    name: Verify PR Target
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ensure PR targets main
+        run: |
+          TARGET_BRANCH="${{ github.base_ref }}"
+
+          if [[ "$TARGET_BRANCH" != "main" ]]; then
+            echo "⚠️  Warning: PR is targeting '$TARGET_BRANCH' instead of 'main'"
+            echo "This is allowed, but make sure this is intentional."
+          else
+            echo "✅ PR correctly targets 'main' branch"
+          fi

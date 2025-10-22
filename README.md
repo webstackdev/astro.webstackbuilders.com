@@ -4,6 +4,37 @@
 
 @TODO: See here for utility components like shortcodes: <https://docs.astro.build/en/reference/api-reference/#astroslotsrender>
 
+## Contributing & Git Workflow
+
+This repository uses branch protection and automated quality checks. See [docs/GIT_WORKFLOW.md](./docs/GIT_WORKFLOW.md) for complete details.
+
+**Quick Start:**
+
+```bash
+# Create a feature branch (required - cannot commit to main)
+git checkout -b feature/your-feature-name
+
+# Make changes and commit (hooks will run automatically)
+git commit -m "Your message"
+
+# Push and create a Pull Request
+git push -u origin feature/your-feature-name
+```
+
+**Branch Naming:**
+
+- `feature/*` - New features
+- `bugfix/*` - Bug fixes
+- `hotfix/*` - Critical production fixes
+- `infrastructure/*` - DevOps/CI/CD changes
+- `content/*` - Content updates
+
+**Pre-commit Checks:**
+
+- Unit tests must pass
+- Branch name must follow conventions
+- Cannot commit directly to main
+
 ## Coding Standards
 
 ### Component Architecture
