@@ -126,11 +126,13 @@ If you want Vercel to remain connected but wait for CI:
 
 1. Make a small change to a file (e.g., update a comment)
 2. Commit and push to `main`:
+
    ```bash
    git add .
    git commit -m "Test CI-gated deployment"
    git push origin main
    ```
+
 3. Go to GitHub **Actions** tab
 4. Watch the workflow run:
    - `build-and-test` should run first (lint, tests, build, E2E)
