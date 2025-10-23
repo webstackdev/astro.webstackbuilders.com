@@ -2,12 +2,11 @@
  * Site-wide Smoke Tests
  * Tests for site-level functionality (RSS, manifest, 404 pages)
  */
-import { test, expect } from '@playwright/test'
-import { TEST_URLS } from '@test/e2e/fixtures/test-data'
+import { test, expect } from '@test/e2e/helpers'
 
 test.describe('Site-wide Features @smoke', () => {
   test('@ready 404 page displays for invalid routes', async ({ page }) => {
-    await page.goto(TEST_URLS.notFound)
+    await page.goto('/does-not-exist')
 
     // Should show 404 content
     await expect(page.locator('h1')).toContainText(/404|Not Found/i)
@@ -27,7 +26,7 @@ test.describe('Site-wide Features @smoke', () => {
     expect(content).toContain('<rss')
   })
 
-  test('@ready manifest.json is accessible', async ({ page, request }) => {
+  test('@ready manifest.json is accessible', async ({ request }) => {
     // PWA manifest should be accessible and valid JSON
     // Use request API instead of page.goto to avoid download issues in Firefox
     const response = await request.get('/manifest.json')

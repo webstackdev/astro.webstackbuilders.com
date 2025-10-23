@@ -2,14 +2,17 @@
  * Homepage Smoke Test
  * Dedicated test for homepage basic functionality and app initialization
  */
-import { test, expect } from '@playwright/test'
-import { TEST_URLS } from '@test/e2e/fixtures/test-data'
-import { setupConsoleErrorChecker, logConsoleErrors } from '@test/e2e/helpers/console-errors'
+import {
+  test,
+  expect,
+  setupConsoleErrorChecker,
+  logConsoleErrors,
+} from '@test/e2e/helpers'
 
 test.describe('Homepage @smoke', () => {
   // Clear localStorage before each test to avoid stale data issues
   test.beforeEach(async ({ page }) => {
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
     await page.evaluate(() => {
       localStorage.clear()
     })
@@ -23,7 +26,7 @@ test.describe('Homepage @smoke', () => {
       consoleMessages.push(msg.text())
     })
 
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     // Verify page loaded
     await expect(page).toHaveTitle(/Webstack Builders/)
@@ -57,7 +60,7 @@ test.describe('Homepage @smoke', () => {
       allMessages.push({ type: msg.type(), text: msg.text() })
     })
 
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
     await page.waitForLoadState('networkidle')
 
     // Trigger user interaction to execute delayed scripts
