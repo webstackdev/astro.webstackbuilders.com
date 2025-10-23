@@ -20,12 +20,20 @@ export default getViteConfig({
     },
   },
   test: {
-    include: ['src/**/*.spec.ts?(x)', 'scripts/**/*.spec.ts', 'api/**/*.spec.ts'],
+    include: [
+      'src/**/*.spec.ts?(x)',
+      'scripts/**/*.spec.ts',
+      'api/**/*.spec.ts',
+      'test/unit/**/*.spec.ts',
+      'test/e2e/helpers/__tests__/**/*.spec.ts',
+    ],
     environmentMatchGlobs: [
       ['src/**', 'jsdom'],
       ['src/lib/**', 'node'],
       ['scripts/**', 'node'],
       ['api/**', 'node'],
+      ['test/unit/**', 'node'],
+      ['test/e2e/helpers/__tests__/**', 'node'],
     ],
     testTimeout: 30 * 1000,
     setupFiles: ['./vitest.setup.ts'],

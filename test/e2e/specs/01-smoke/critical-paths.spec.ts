@@ -3,20 +3,23 @@
  * These tests verify the most essential functionality of the site.
  * They should always pass and run quickly.
  */
-import { test, expect } from '@playwright/test'
-import { TEST_URLS } from '@test/e2e/fixtures/test-data'
-import { setupConsoleErrorChecker, logConsoleErrors } from '@test/e2e/helpers/console-errors'
-import { clearConsentCookies } from '@test/e2e/helpers/browser-state'
+import {
+  test,
+  expect,
+  setupConsoleErrorChecker,
+  logConsoleErrors,
+  clearConsentCookies,
+} from '@test/e2e/helpers'
 
 test.describe('Critical Paths @smoke', () => {
   test('@ready all main pages are accessible', async ({ page }) => {
     const mainPages = [
-      { path: TEST_URLS.home, title: /Webstack Builders/ },
-      { path: TEST_URLS.about, title: /About/ },
-      { path: TEST_URLS.articles, title: /Articles/ },
-      { path: TEST_URLS.services, title: /Services/ },
-      { path: TEST_URLS.caseStudies, title: /Case Studies/ },
-      { path: TEST_URLS.contact, title: /Contact/ },
+      { path: '/', title: /Webstack Builders/ },
+      { path: '/about', title: /About/ },
+      { path: '/articles', title: /Articles/ },
+      { path: '/services', title: /Services/ },
+      { path: '/case-studies', title: /Case Studies/ },
+      { path: '/contact', title: /Contact/ },
     ]
 
     for (const { path, title } of mainPages) {
@@ -31,7 +34,7 @@ test.describe('Critical Paths @smoke', () => {
     // Expected: Can navigate between all main pages via nav menu
     // Actual: Unknown - needs testing
 
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     // Click About link
     await page.click('a[href="/about"]')
@@ -51,7 +54,7 @@ test.describe('Critical Paths @smoke', () => {
   })
 
   test('@ready footer is present on all pages', async ({ page }) => {
-    const pages = [TEST_URLS.home, TEST_URLS.about, TEST_URLS.contact]
+    const pages = ['/', '/about', '/contact']
 
     for (const path of pages) {
       await page.goto(path)
@@ -63,7 +66,7 @@ test.describe('Critical Paths @smoke', () => {
     // Expected: Contact form should be visible with all required fields
     // Actual: Unknown - needs testing
 
-    await page.goto(TEST_URLS.contact)
+    await page.goto('/contact')
     await expect(page.locator('#contactForm')).toBeVisible()
     await expect(page.locator('#name')).toBeVisible()
     await expect(page.locator('#email')).toBeVisible()
@@ -74,14 +77,14 @@ test.describe('Critical Paths @smoke', () => {
     // Expected: Newsletter form should be visible on homepage
     // Actual: Unknown - needs testing
 
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
     await expect(page.locator('#newsletter-form')).toBeVisible()
     await expect(page.locator('#newsletter-email')).toBeVisible()
     await expect(page.locator('#newsletter-gdpr-consent')).toBeVisible()
   })
 
   test('@ready 404 page displays for invalid routes', async ({ page }) => {
-    await page.goto(TEST_URLS.notFound)
+    await page.goto('/this-page-does-not-exist')
 
     // Should show 404 content
     await expect(page.locator('h1')).toContainText(/404|Not Found/i)
@@ -91,7 +94,7 @@ test.describe('Critical Paths @smoke', () => {
     // Expected: Theme picker button should be visible and clickable
     // Actual: Unknown - needs testing
 
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
     await expect(page.locator('button[aria-label="toggle theme switcher"]')).toBeVisible()
   })
 
@@ -99,7 +102,7 @@ test.describe('Critical Paths @smoke', () => {
     // Clear consent cookies to force banner to appear
     await clearConsentCookies(context)
 
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
     await page.waitForLoadState('networkidle')
 
     // Cookie modal should be visible
@@ -107,14 +110,7 @@ test.describe('Critical Paths @smoke', () => {
   })
 
   test('@ready main pages have no 404 errors', async ({ page }) => {
-    const mainPages = [
-      TEST_URLS.home,
-      TEST_URLS.about,
-      TEST_URLS.articles,
-      TEST_URLS.services,
-      TEST_URLS.caseStudies,
-      TEST_URLS.contact,
-    ]
+    const mainPages = ['/', '/about', '/articles', '/services', '/case-studies', '/contact']
 
     for (const path of mainPages) {
       const errorChecker = setupConsoleErrorChecker(page)
@@ -128,7 +124,7 @@ test.describe('Critical Paths @smoke', () => {
   })
 
   test('@ready main pages have no console errors', async ({ page }) => {
-    const mainPages = [TEST_URLS.home, TEST_URLS.about, TEST_URLS.articles, TEST_URLS.contact]
+    const mainPages = ['/', '/about', '/articles', '/contact']
 
     for (const path of mainPages) {
       const errorChecker = setupConsoleErrorChecker(page)

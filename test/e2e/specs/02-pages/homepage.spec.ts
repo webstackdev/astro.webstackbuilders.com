@@ -4,7 +4,7 @@
  */
 import { test, expect } from '@playwright/test'
 import { TEST_URLS } from '@test/e2e/fixtures/test-data'
-import { setupConsoleErrorChecker } from '@test/e2e/helpers/console-errors'
+import { setupConsoleErrorChecker } from '@test/e2e/helpers/consoleErrors'
 
 test.describe('Homepage', () => {
   test.beforeEach(async ({ page }) => {

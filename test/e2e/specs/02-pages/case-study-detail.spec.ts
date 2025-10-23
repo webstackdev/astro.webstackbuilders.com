@@ -4,7 +4,7 @@
  * Note: Tests are generated dynamically per case study
  */
 import { test, expect } from '@playwright/test'
-import { setupConsoleErrorChecker } from '@test/e2e/helpers/console-errors'
+import { setupConsoleErrorChecker } from '@test/e2e/helpers/consoleErrors'
 
 /**
  * Generate test suite for a specific case study
