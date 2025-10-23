@@ -3,7 +3,7 @@
  * Tests for /tags index and individual tag pages
  */
 import { test, expect } from '@playwright/test'
-import { setupConsoleErrorChecker } from '@test/e2e/helpers/console-errors'
+import { setupConsoleErrorChecker } from '@test/e2e/helpers/consoleErrors'
 
 test.describe('Tags Index Page', () => {
   test('@ready tags index page loads', async ({ page }) => {

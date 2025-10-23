@@ -1,5 +1,6 @@
 import mdx from '@astrojs/mdx'
-import preact from "@astrojs/preact"
+import preact from '@astrojs/preact'
+import sitemap from '@astrojs/sitemap'
 import vercelStatic from '@astrojs/vercel'
 import sentry from "@sentry/astro"
 import tailwindcss from '@tailwindcss/vite'
@@ -14,6 +15,7 @@ import {
   vercelConfig,
 } from './src/lib/config'
 import { callToActionValidator } from './src/integrations/CtaValidator/call-to-action-validator'
+import { serializeSitemapItem, writePagesJson } from './src/lib/config/sitemap-serialize'
 
 // Type guard for required environment variables (only in CI)
 const IS_CI = process.env['CI'] === 'true'
@@ -42,6 +44,19 @@ export default defineConfig({
       org: "webstack-builders",
       authToken: SENTRY_AUTH_TOKEN,
     })] : []),
+    sitemap({
+      lastmod: new Date(),
+      serialize: serializeSitemapItem,
+    }),
+    // Custom integration to write pages.json after build
+    {
+      name: 'pages-json-writer',
+      hooks: {
+        'astro:build:done': () => {
+          writePagesJson()
+        },
+      },
+    },
   ],
   output: 'static',
   prefetch: true,

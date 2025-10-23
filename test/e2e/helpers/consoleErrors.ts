@@ -66,6 +66,9 @@ export function setupConsoleErrorChecker(page: Page): ConsoleErrorChecker {
         // Filter known browser quirks
         if (error.includes('ResizeObserver loop completed')) return false
 
+        // Filter Vite dev server 504 errors (Outdated Optimize Dep)
+        if (error.includes('504') && error.includes('Outdated Optimize Dep')) return false
+
         // Filter generic "Failed to load resource: 404" errors if we have acceptable 404s
         // These console errors don't include the URL, so if we filtered out 404s,
         // we should also filter out the corresponding console errors

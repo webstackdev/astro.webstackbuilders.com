@@ -4,7 +4,7 @@
  * Note: Tests are dynamically generated for each service
  */
 import { test, expect } from '@playwright/test'
-import { setupConsoleErrorChecker } from '@test/e2e/helpers/console-errors'
+import { setupConsoleErrorChecker } from '@test/e2e/helpers/consoleErrors'
 
 /**
  * Create a test suite for a specific service

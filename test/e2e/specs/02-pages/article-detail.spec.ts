@@ -4,7 +4,7 @@
  * Note: Tests are dynamically generated for each article
  */
 import { test, expect } from '@playwright/test'
-import { setupConsoleErrorChecker } from '@test/e2e/helpers/console-errors'
+import { setupConsoleErrorChecker } from '@test/e2e/helpers/consoleErrors'
 import { fetchArticles } from '@test/e2e/helpers/content-fetchers'
 
 // Shared article data

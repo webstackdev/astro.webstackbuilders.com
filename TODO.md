@@ -36,6 +36,11 @@ https://github.com/modernweb-dev/rocket/tree/main/packages/check-html-links
 
 "Scaling/zooming animations are problematic for accessibility, as they are a common trigger for certain types of migraine. If you need to include such animations on your website, you should provide a control to allow users to turn off animations, preferably site-wide.  Also, consider making use of the prefers-reduced-motion media feature — use it to write a media query that will turn off animations if the user has reduced animation specified in their system preferences. "
 
+## Fix offline page
+
+- It should look like any other page, but have interactivity like navigation and other links disabled.
+- The test cases should check for if they're on the offline page, and return passed for an inverse. Like the smoke test that makes sure navigation is available, it would return true if navigation is present but disabled in the same test case.
+
 ## @TODO: Handle `@media (prefers-reduced-motion: reduce)`
 
 Stop the Hero Greensocks animation when `@media (prefers-reduced-motion: reduce)`, using `window.mediaQuery()`. Handle user preference for reduced motion on animations, doing this also with a listener like for browser theme preference
@@ -573,3 +578,27 @@ Repo is in root of Corporate Websites
 * [**typographic-permille**][typographic-permille]
 
   Micro module to replace `%o` with `‰` and optionally replace the preceding space.
+
+## Tests
+
+```typescript
+test('Critical Paths @smoke', async ({ context, page, allPaths }) => {
+  for (const path of allPaths) {
+    await test.step('@ready all main pages are accessible', async () => {
+      await page.goto(path)
+      await expect(page.locator('main')).toBeVisible()
+    })
+
+    await test.step('@ready cookie consent banner appears', async () => {
+      // Clear consent cookies to force banner to appear
+      await clearConsentCookies(context)
+
+      await page.goto(path)
+      await page.waitForLoadState('networkidle')
+
+      // Cookie modal should be visible
+      await expect(page.locator('#cookie-modal-id')).toBeVisible()
+    })
+  }
+})
+```
