@@ -4,8 +4,7 @@
  * @see public/manifest.json
  */
 
-import { test, expect } from '@playwright/test'
-import { TEST_URLS } from '../../fixtures/test-data'
+import { test, expect } from '@test/e2e/helpers'
 
 test.describe('PWA Manifest', () => {
   test.skip('@wip manifest file is accessible', async ({ page }) => {
@@ -19,7 +18,7 @@ test.describe('PWA Manifest', () => {
 
   test.skip('@wip manifest is linked in HTML', async ({ page }) => {
     // Expected: HTML should have link to manifest
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     const manifestLink = page.locator('link[rel="manifest"]')
     await expect(manifestLink).toHaveCount(1)
@@ -104,7 +103,7 @@ test.describe('PWA Manifest', () => {
     const manifestResponse = await page.goto('/manifest.json')
     const manifest = await manifestResponse?.json()
 
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
     const themeColorMeta = page.locator('meta[name="theme-color"]')
     const metaContent = await themeColorMeta.getAttribute('content')
 

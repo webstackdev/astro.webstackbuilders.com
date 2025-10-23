@@ -2,13 +2,11 @@
  * Homepage E2E Tests
  * Tests for the main landing page functionality
  */
-import { test, expect } from '@playwright/test'
-import { TEST_URLS } from '@test/e2e/fixtures/test-data'
-import { setupConsoleErrorChecker } from '@test/e2e/helpers/consoleErrors'
+import { test, expect, setupConsoleErrorChecker } from '@test/e2e/helpers'
 
 test.describe('Homepage', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
   })
 
   test('@ready page loads with correct title', async ({ page }) => {
@@ -83,7 +81,7 @@ test.describe('Homepage', () => {
 
   test('@ready page has no console errors', async ({ page }) => {
     const errorChecker = setupConsoleErrorChecker(page)
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
     await page.waitForLoadState('networkidle')
 
     const errors = errorChecker.getFilteredErrors()

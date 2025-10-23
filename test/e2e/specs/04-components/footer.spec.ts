@@ -4,7 +4,7 @@
  * @see src/components/Footer/
  */
 
-import { test, expect } from '@playwright/test'
+import { test, expect } from '@test/e2e/helpers'
 
 test.describe('Footer Component', () => {
   test.beforeEach(async ({ page }) => {

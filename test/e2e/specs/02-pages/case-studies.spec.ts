@@ -2,13 +2,11 @@
  * Case Studies List Page E2E Tests
  * Tests for /case-studies index page
  */
-import { test, expect } from '@playwright/test'
-import { TEST_URLS } from '../../fixtures/test-data'
-import { setupConsoleErrorChecker } from '@test/e2e/helpers/consoleErrors'
+import { test, expect, setupConsoleErrorChecker } from '@test/e2e/helpers'
 
 test.describe('Case Studies List Page', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(TEST_URLS.caseStudies)
+    await page.goto('/case-studies')
   })
 
   test('@ready page loads with correct title', async ({ page }) => {

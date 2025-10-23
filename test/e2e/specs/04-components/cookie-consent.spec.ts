@@ -4,14 +4,14 @@
  * @see src/components/Cookies/
  */
 
-import { test, expect } from '@playwright/test'
-import { TEST_URLS } from '../../fixtures/test-data'
+import { test, expect } from '@test/e2e/helpers'
+
 
 test.describe('Cookie Consent Banner', () => {
   test.beforeEach(async ({ page, context }) => {
     // Clear all cookies and storage before each test
     await context.clearCookies()
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
     await page.evaluate(() => {
       localStorage.clear()
       sessionStorage.clear()
@@ -95,7 +95,7 @@ test.describe('Cookie Consent Banner', () => {
     await acceptButton.click()
     await page.waitForTimeout(500)
 
-    await page.goto(TEST_URLS.about)
+    await page.goto('/about')
     await page.waitForTimeout(500)
 
     await expect(cookieBanner).not.toBeVisible()

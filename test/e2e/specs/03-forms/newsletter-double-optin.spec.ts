@@ -2,8 +2,8 @@
  * Newsletter Double Opt-In Flow E2E Tests
  * Tests for complete newsletter subscription flow including email confirmation
  */
-import { test, expect } from '@playwright/test'
-import { TEST_EMAILS, TEST_URLS } from '../../fixtures/test-data'
+import { test, expect } from '@test/e2e/helpers'
+import { TEST_EMAILS } from '@test/e2e/fixtures/test-data'
 
 test.describe('Newsletter Double Opt-In Flow', () => {
   test.skip('@blocked complete double opt-in flow', async ({ page }) => {
@@ -12,7 +12,7 @@ test.describe('Newsletter Double Opt-In Flow', () => {
     // Actual: Cannot test without email service
 
     // Step 1: Subscribe
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
     await page.fill('#newsletter-email', TEST_EMAILS.valid)
     await page.check('#newsletter-gdpr-consent')
     await page.click('#newsletter-submit')

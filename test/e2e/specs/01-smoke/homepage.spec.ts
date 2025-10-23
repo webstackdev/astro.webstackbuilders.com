@@ -10,14 +10,6 @@ import {
 } from '@test/e2e/helpers'
 
 test.describe('Homepage @smoke', () => {
-  // Clear localStorage before each test to avoid stale data issues
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/')
-    await page.evaluate(() => {
-      localStorage.clear()
-    })
-  })
-
   test('@ready homepage loads successfully', async ({ page }) => {
     // Listen for console messages to check app initialization
     // IMPORTANT: Register listener BEFORE navigation to catch early messages
@@ -38,9 +30,6 @@ test.describe('Homepage @smoke', () => {
     // Wait a moment for all console messages to be captured
     await page.waitForTimeout(500)
 
-    // Debug: log all console messages
-    console.log('All console messages:', consoleMessages)
-
     // Verify app state initialized without errors
     const hasInitMessage = consoleMessages.some((msg) => msg.includes('App state initialized'))
     const hasErrorMessage = consoleMessages.some((msg) =>
@@ -49,6 +38,29 @@ test.describe('Homepage @smoke', () => {
 
     expect(hasInitMessage).toBe(true)
     expect(hasErrorMessage).toBe(false)
+
+    const themeKey = await page.evaluate(() => localStorage.getItem('theme'))
+    expect(themeKey).toBe('default')
+
+/*
+    // 1. Start waiting for the 'console' event.
+    const consoleMessagePromise = page.waitForEvent('console', {
+      predicate: msg => msg.text().includes('Hello from the browser!'),
+      timeout: 5000, // Wait for a maximum of 5 seconds
+    })
+
+    // 2. Trigger the action that causes the log.
+    await page.evaluate(() => {
+      console.log('Hello from the browser!')
+    })
+
+    // 3. Await the promise to ensure the event was captured.
+    const message = await consoleMessagePromise
+    expect(message.text()).toBe('Hello from the browser!')
+
+    // The test will wait for 5 seconds before failing with a TimeoutError
+    await expect(consoleMessagePromise).rejects.toThrow('Timeout')
+*/
   })
 
   test('@ready homepage has no console errors', async ({ page }) => {
@@ -68,13 +80,6 @@ test.describe('Homepage @smoke', () => {
 
     // Wait for delayed scripts to execute
     await page.waitForTimeout(1000)
-
-    // Debug: log all messages
-    console.log('\nAll console messages by type:')
-    console.log('Errors:', allMessages.filter(m => m.type === 'error').length)
-    console.log('Warnings:', allMessages.filter(m => m.type === 'warning').length)
-    console.log('Info:', allMessages.filter(m => m.type === 'info').length)
-    console.log('Log:', allMessages.filter(m => m.type === 'log').length)
 
     if (allMessages.filter(m => m.type === 'error').length > 0) {
       console.log('\nError messages:')

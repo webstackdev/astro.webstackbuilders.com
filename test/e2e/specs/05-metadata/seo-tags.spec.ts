@@ -4,18 +4,17 @@
  * @see src/components/Head/
  */
 
-import { test, expect } from '@playwright/test'
-import { TEST_URLS } from '../../fixtures/test-data'
+import { test, expect } from '@test/e2e/helpers'
 
 test.describe('SEO Meta Tags', () => {
   test.skip('@wip all pages have meta description', async ({ page }) => {
     // Expected: Every page should have a meta description
     const pages = [
-      TEST_URLS.home,
-      TEST_URLS.about,
-      TEST_URLS.services,
-      TEST_URLS.caseStudies,
-      TEST_URLS.contact,
+      "/",
+      "/about",
+      "/services",
+      "/case-studies",
+      "/contact",
     ]
 
     for (const url of pages) {
@@ -31,7 +30,7 @@ test.describe('SEO Meta Tags', () => {
 
   test.skip('@wip meta descriptions are unique per page', async ({ page }) => {
     // Expected: Each page should have unique description
-    const pages = [TEST_URLS.home, TEST_URLS.about, TEST_URLS.services]
+    const pages = ["/", "/about", "/services"]
     const descriptions = new Set()
 
     for (const url of pages) {
@@ -46,7 +45,7 @@ test.describe('SEO Meta Tags', () => {
 
   test.skip('@wip all pages have canonical URL', async ({ page }) => {
     // Expected: Every page should have a canonical link
-    await page.goto(TEST_URLS.about)
+    await page.goto("/about")
 
     const canonical = page.locator('link[rel="canonical"]')
     await expect(canonical).toHaveCount(1)
@@ -57,7 +56,7 @@ test.describe('SEO Meta Tags', () => {
 
   test.skip('@wip canonical URL matches current page', async ({ page }) => {
     // Expected: Canonical should match the actual URL (without query params)
-    await page.goto(TEST_URLS.services)
+    await page.goto("/services")
 
     const canonical = page.locator('link[rel="canonical"]')
     const href = await canonical.getAttribute('href')
@@ -67,7 +66,7 @@ test.describe('SEO Meta Tags', () => {
 
   test.skip('@wip pages have viewport meta tag', async ({ page }) => {
     // Expected: Should have responsive viewport meta tag
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     const viewport = page.locator('meta[name="viewport"]')
     await expect(viewport).toHaveCount(1)
@@ -78,7 +77,7 @@ test.describe('SEO Meta Tags', () => {
 
   test.skip('@wip pages have charset meta tag', async ({ page }) => {
     // Expected: Should declare UTF-8 charset
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     const charset = page.locator('meta[charset], meta[http-equiv="Content-Type"]')
     const count = await charset.count()
@@ -88,7 +87,7 @@ test.describe('SEO Meta Tags', () => {
 
   test.skip('@wip pages have robots meta tag', async ({ page }) => {
     // Expected: Should have robots meta tag for indexing control
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     const robots = page.locator('meta[name="robots"]')
     const count = await robots.count()
@@ -101,7 +100,7 @@ test.describe('SEO Meta Tags', () => {
 
   test.skip('@wip 404 page has noindex', async ({ page }) => {
     // Expected: 404 page should not be indexed
-    await page.goto(TEST_URLS.notFound)
+    await page.goto("/404")
 
     const robots = page.locator('meta[name="robots"]')
     const content = await robots.getAttribute('content')
@@ -111,7 +110,7 @@ test.describe('SEO Meta Tags', () => {
 
   test.skip('@wip pages have author meta tag', async ({ page }) => {
     // Expected: Should declare site author
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     const author = page.locator('meta[name="author"]')
     const count = await author.count()
@@ -124,7 +123,7 @@ test.describe('SEO Meta Tags', () => {
 
   test.skip('@wip article pages have author', async ({ page }) => {
     // Expected: Articles should have author meta tag
-    await page.goto(TEST_URLS.articles)
+    await page.goto("/articles")
     const firstArticle = page.locator('a[href*="/articles/"]').first()
     await firstArticle.click()
     await page.waitForLoadState('networkidle')
@@ -137,7 +136,7 @@ test.describe('SEO Meta Tags', () => {
 
   test.skip('@wip pages have theme-color meta tag', async ({ page }) => {
     // Expected: Should have theme color for mobile browsers
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     const themeColor = page.locator('meta[name="theme-color"]')
     const count = await themeColor.count()
@@ -150,7 +149,7 @@ test.describe('SEO Meta Tags', () => {
 
   test.skip('@wip pages have title tag', async ({ page }) => {
     // Expected: Every page should have a title
-    const pages = [TEST_URLS.home, TEST_URLS.about, TEST_URLS.services]
+    const pages = ["/", "/about", "/services"]
 
     for (const url of pages) {
       await page.goto(url)
@@ -163,7 +162,7 @@ test.describe('SEO Meta Tags', () => {
 
   test.skip('@wip titles are unique per page', async ({ page }) => {
     // Expected: Each page should have unique title
-    const pages = [TEST_URLS.home, TEST_URLS.about, TEST_URLS.services]
+    const pages = ["/", "/about", "/services"]
     const titles = new Set()
 
     for (const url of pages) {
@@ -177,7 +176,7 @@ test.describe('SEO Meta Tags', () => {
 
   test.skip('@wip pages have language attribute', async ({ page }) => {
     // Expected: HTML tag should have lang attribute
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     const html = page.locator('html')
     const lang = await html.getAttribute('lang')

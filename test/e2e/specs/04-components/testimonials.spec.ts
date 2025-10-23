@@ -4,12 +4,12 @@
  * @see src/components/Testimonials/
  */
 
-import { test, expect } from '@playwright/test'
-import { TEST_URLS } from '../../fixtures/test-data'
+import { test, expect } from '@test/e2e/helpers'
+
 
 test.describe('Testimonials Component', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
   })
 
   test.skip('@wip testimonials section is visible', async ({ page }) => {
@@ -178,7 +178,7 @@ test.describe('Testimonials Component', () => {
   test.skip('@wip testimonials are responsive', async ({ page }) => {
     // Expected: Testimonials should display well on mobile
     await page.setViewportSize({ width: 375, height: 667 })
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     const testimonials = page.locator('[data-testimonials]')
     await expect(testimonials).toBeVisible()

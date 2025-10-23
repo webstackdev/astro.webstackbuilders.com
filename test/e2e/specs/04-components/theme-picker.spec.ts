@@ -4,13 +4,13 @@
  * @see src/components/ThemePicker/
  */
 
-import { test, expect } from '@playwright/test'
-import { TEST_URLS } from '../../fixtures/test-data'
+import { test, expect } from '@test/e2e/helpers'
+
 
 test.describe('Theme Picker Component', () => {
   test.beforeEach(async ({ page }) => {
     // Clear localStorage before each test
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
     await page.evaluate(() => localStorage.clear())
     await page.reload()
   })
@@ -79,7 +79,7 @@ test.describe('Theme Picker Component', () => {
     await page.waitForTimeout(300)
 
     // Navigate to another page
-    await page.goto(TEST_URLS.about)
+    await page.goto('/about')
     await page.waitForTimeout(300)
 
     // Verify dark theme persisted
@@ -120,7 +120,7 @@ test.describe('Theme Picker Component', () => {
     await page.emulateMedia({ colorScheme: 'dark' })
 
     // Visit site for "first time" (localStorage cleared in beforeEach)
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
     await page.waitForTimeout(300)
 
     const htmlElement = page.locator('html')
@@ -132,7 +132,7 @@ test.describe('Theme Picker Component', () => {
   test.skip('@wip manual selection overrides system preference', async ({ page }) => {
     // Expected: User selection should override system preference
     await page.emulateMedia({ colorScheme: 'dark' })
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
     await page.waitForTimeout(300)
 
     // Manually switch to light theme

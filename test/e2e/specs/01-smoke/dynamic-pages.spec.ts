@@ -3,8 +3,12 @@
  * Tests dynamically generated pages (articles, services, case studies)
  * Uses API to fetch actual content IDs to ensure tests work even if content changes
  */
-import { test, expect } from '@playwright/test'
-import { setupConsoleErrorChecker, logConsoleErrors } from '@test/e2e/helpers/console-errors'
+import {
+  test,
+  expect,
+  setupConsoleErrorChecker,
+  logConsoleErrors,
+} from '@test/e2e/helpers'
 
 test.describe('Dynamic Pages @smoke', () => {
   test('@ready article detail page loads', async ({ page }) => {

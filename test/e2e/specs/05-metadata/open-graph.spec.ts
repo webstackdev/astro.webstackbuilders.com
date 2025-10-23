@@ -4,13 +4,13 @@
  * @see src/components/Head/
  */
 
-import { test, expect } from '@playwright/test'
-import { TEST_URLS, REQUIRED_META_TAGS } from '../../fixtures/test-data'
+import { test, expect } from '@test/e2e/helpers'
+const REQUIRED_META_TAGS = ['description', 'og:title', 'og:description']
 
 test.describe('Open Graph Metadata', () => {
   test.skip('@wip homepage has required OG tags', async ({ page }) => {
     // Expected: Homepage should have all required Open Graph tags
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     for (const tag of REQUIRED_META_TAGS) {
       const meta = page.locator(`meta[property="${tag}"]`)
@@ -23,7 +23,7 @@ test.describe('Open Graph Metadata', () => {
 
   test.skip('@wip article pages have OG type article', async ({ page }) => {
     // Expected: Article pages should have og:type="article"
-    await page.goto(TEST_URLS.articles)
+    await page.goto("/articles")
     const firstArticle = page.locator('a[href*="/articles/"]').first()
     await firstArticle.click()
     await page.waitForLoadState('networkidle')
@@ -36,7 +36,7 @@ test.describe('Open Graph Metadata', () => {
 
   test.skip('@wip OG title matches page title', async ({ page }) => {
     // Expected: og:title should match or be similar to <title>
-    await page.goto(TEST_URLS.about)
+    await page.goto("/about")
 
     const pageTitle = await page.title()
     const ogTitle = page.locator('meta[property="og:title"]')
@@ -49,7 +49,7 @@ test.describe('Open Graph Metadata', () => {
 
   test.skip('@wip OG URL matches current page', async ({ page }) => {
     // Expected: og:url should match the canonical URL
-    await page.goto(TEST_URLS.about)
+    await page.goto("/about")
 
     const ogUrl = page.locator('meta[property="og:url"]')
     const ogUrlContent = await ogUrl.getAttribute('content')
@@ -59,7 +59,7 @@ test.describe('Open Graph Metadata', () => {
 
   test.skip('@wip OG image is valid URL', async ({ page }) => {
     // Expected: og:image should be a full URL to an image
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     const ogImage = page.locator('meta[property="og:image"]')
     const imageUrl = await ogImage.getAttribute('content')
@@ -70,7 +70,7 @@ test.describe('Open Graph Metadata', () => {
 
   test.skip('@wip OG image has dimensions', async ({ page }) => {
     // Expected: Should have og:image:width and og:image:height
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     const imageWidth = page.locator('meta[property="og:image:width"]')
     const imageHeight = page.locator('meta[property="og:image:height"]')
@@ -91,7 +91,7 @@ test.describe('Open Graph Metadata', () => {
 
   test.skip('@wip Twitter Card tags are present', async ({ page }) => {
     // Expected: Should have twitter:card meta tags
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     const twitterCard = page.locator('meta[name="twitter:card"]')
     await expect(twitterCard).toHaveCount(1)
@@ -102,7 +102,7 @@ test.describe('Open Graph Metadata', () => {
 
   test.skip('@wip Twitter title is present', async ({ page }) => {
     // Expected: Should have twitter:title
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     const twitterTitle = page.locator('meta[name="twitter:title"]')
     const content = await twitterTitle.getAttribute('content')
@@ -112,7 +112,7 @@ test.describe('Open Graph Metadata', () => {
 
   test.skip('@wip Twitter description is present', async ({ page }) => {
     // Expected: Should have twitter:description
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     const twitterDesc = page.locator('meta[name="twitter:description"]')
     const content = await twitterDesc.getAttribute('content')
@@ -122,7 +122,7 @@ test.describe('Open Graph Metadata', () => {
 
   test.skip('@wip Twitter image is present', async ({ page }) => {
     // Expected: Should have twitter:image
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     const twitterImage = page.locator('meta[name="twitter:image"]')
     const imageUrl = await twitterImage.getAttribute('content')
@@ -132,7 +132,7 @@ test.describe('Open Graph Metadata', () => {
 
   test.skip('@wip all pages have unique OG descriptions', async ({ page }) => {
     // Expected: Each page should have unique description
-    const pages = [TEST_URLS.home, TEST_URLS.about, TEST_URLS.services]
+    const pages = ["/", "/about", "/services"]
     const descriptions = new Set()
 
     for (const url of pages) {
@@ -148,7 +148,7 @@ test.describe('Open Graph Metadata', () => {
 
   test.skip('@wip OG locale is set', async ({ page }) => {
     // Expected: Should have og:locale for language
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     const ogLocale = page.locator('meta[property="og:locale"]')
     const count = await ogLocale.count()
@@ -161,7 +161,7 @@ test.describe('Open Graph Metadata', () => {
 
   test.skip('@wip OG site name is set', async ({ page }) => {
     // Expected: Should have og:site_name
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     const ogSiteName = page.locator('meta[property="og:site_name"]')
     const siteName = await ogSiteName.getAttribute('content')
@@ -171,7 +171,7 @@ test.describe('Open Graph Metadata', () => {
 
   test.skip('@wip article pages have article metadata', async ({ page }) => {
     // Expected: Article pages should have article:published_time, etc.
-    await page.goto(TEST_URLS.articles)
+    await page.goto("/articles")
     const firstArticle = page.locator('a[href*="/articles/"]').first()
     await firstArticle.click()
     await page.waitForLoadState('networkidle')

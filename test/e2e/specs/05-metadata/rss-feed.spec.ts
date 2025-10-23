@@ -4,7 +4,7 @@
  * @see src/pages/rss.xml.ts
  */
 
-import { test, expect } from '@playwright/test'
+import { test, expect } from '@test/e2e/helpers'
 
 test.describe('RSS Feed', () => {
   test.skip('@wip RSS feed is accessible', async ({ page }) => {

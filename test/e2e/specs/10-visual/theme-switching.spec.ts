@@ -3,14 +3,13 @@
  * Visual regression tests for light/dark theme switching
  */
 
-import { test, expect } from '@playwright/test'
-import { TEST_URLS } from '../../fixtures/test-data'
+import { test, expect } from '@test/e2e/helpers'
 
 test.describe('Theme Switching Visuals', () => {
   test.skip('@blocked light theme screenshot baseline', async ({ page }) => {
     // Blocked by: Need visual regression testing setup (e.g., Percy, Chromatic)
     // Expected: Capture baseline screenshot of light theme
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     await page.evaluate(() => {
       document.documentElement.setAttribute('data-theme', 'light')
@@ -25,7 +24,7 @@ test.describe('Theme Switching Visuals', () => {
   test.skip('@blocked dark theme screenshot baseline', async ({ page }) => {
     // Blocked by: Need visual regression testing setup
     // Expected: Capture baseline screenshot of dark theme
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     await page.evaluate(() => {
       document.documentElement.setAttribute('data-theme', 'dark')
@@ -39,7 +38,7 @@ test.describe('Theme Switching Visuals', () => {
 
   test.skip('@wip theme colors are applied correctly', async ({ page }) => {
     // Expected: Theme switch should change CSS variables
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     // Get light theme colors
     const lightColors = await page.evaluate(() => {
@@ -71,7 +70,7 @@ test.describe('Theme Switching Visuals', () => {
   test.skip('@blocked compare light vs dark theme visually', async ({ page }) => {
     // Blocked by: Need visual regression testing
     // Expected: Should detect visual differences between themes
-    await page.goto(TEST_URLS.about)
+    await page.goto("/about")
 
     // Light theme
     await page.evaluate(() => {
@@ -93,7 +92,7 @@ test.describe('Theme Switching Visuals', () => {
     const themes = ['light', 'dark']
 
     for (const theme of themes) {
-      await page.goto(TEST_URLS.home)
+      await page.goto("/")
 
       await page.evaluate((t) => {
         document.documentElement.setAttribute('data-theme', t)
@@ -112,7 +111,7 @@ test.describe('Theme Switching Visuals', () => {
 
   test.skip('@wip text remains readable in both themes', async ({ page }) => {
     // Expected: Text should have sufficient contrast in both themes
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     const themes = ['light', 'dark']
 
@@ -140,7 +139,7 @@ test.describe('Theme Switching Visuals', () => {
   test.skip('@blocked article page theme comparison', async ({ page }) => {
     // Blocked by: Need visual regression testing
     // Expected: Articles should look good in both themes
-    await page.goto(TEST_URLS.articles)
+    await page.goto("/articles")
     const firstArticle = page.locator('a[href*="/articles/"]').first()
     await firstArticle.click()
     await page.waitForLoadState('networkidle')
@@ -162,7 +161,7 @@ test.describe('Theme Switching Visuals', () => {
 
   test.skip('@wip theme transition is smooth', async ({ page }) => {
     // Expected: Theme switch should have smooth transition
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     const hasTransition = await page.evaluate(() => {
       const html = document.documentElement
@@ -177,7 +176,7 @@ test.describe('Theme Switching Visuals', () => {
     // Expected: Should not show wrong theme before switching
     // This tests the theme loading script
 
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     // Check that theme is set before render
     const themeSetEarly = await page.evaluate(() => {

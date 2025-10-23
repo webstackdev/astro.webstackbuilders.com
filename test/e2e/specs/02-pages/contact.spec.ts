@@ -2,13 +2,11 @@
  * Contact Page E2E Tests
  * Tests for the contact page and form
  */
-import { test, expect } from '@playwright/test'
-import { TEST_URLS } from '@test/e2e/fixtures/test-data'
-import { setupConsoleErrorChecker } from '@test/e2e/helpers/consoleErrors'
+import { test, expect, setupConsoleErrorChecker } from '@test/e2e/helpers'
 
 test.describe('Contact Page', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(TEST_URLS.contact)
+    await page.goto('/contact')
   })
 
   test('@ready page loads with correct title', async ({ page }) => {
@@ -95,7 +93,7 @@ test.describe('Contact Page', () => {
 
   test('@ready page has no console errors', async ({ page }) => {
     const errorChecker = setupConsoleErrorChecker(page)
-    await page.goto(TEST_URLS.contact)
+    await page.goto('/contact')
     await page.waitForLoadState('networkidle')
     expect(errorChecker.getFiltered404s().length).toBe(0)
   })

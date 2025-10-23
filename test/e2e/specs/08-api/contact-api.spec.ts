@@ -4,7 +4,7 @@
  * @see api/contact/
  */
 
-import { test, expect } from '@playwright/test'
+import { test, expect } from '@test/e2e/helpers'
 
 test.describe('Contact Form API', () => {
   test.skip('@wip contact endpoint accepts POST', async ({ request }) => {

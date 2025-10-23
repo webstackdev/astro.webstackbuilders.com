@@ -3,13 +3,13 @@
  * Tests for keyboard accessibility including tab order and focus management
  */
 
-import { test, expect } from '@playwright/test'
-import { TEST_URLS } from '../../fixtures/test-data'
+import { test, expect } from '@test/e2e/helpers'
+
 
 test.describe('Keyboard Navigation', () => {
   test.skip('@wip can tab through all interactive elements', async ({ page }) => {
     // Expected: All interactive elements should be reachable via Tab
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     let focusableCount = 0
     const maxTabs = 50
@@ -27,7 +27,7 @@ test.describe('Keyboard Navigation', () => {
 
   test.skip('@wip skip to main content link works', async ({ page }) => {
     // Expected: Should have skip link that jumps to main content
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     // Tab to first element (should be skip link)
     await page.keyboard.press('Tab')
@@ -45,7 +45,7 @@ test.describe('Keyboard Navigation', () => {
 
   test.skip('@wip focus indicators are visible', async ({ page }) => {
     // Expected: Focused elements should have visible outline
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     // Tab to first interactive element
     await page.keyboard.press('Tab')
@@ -74,7 +74,7 @@ test.describe('Keyboard Navigation', () => {
 
   test.skip('@wip tab order follows visual layout', async ({ page }) => {
     // Expected: Tab order should be logical (top to bottom, left to right)
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     const positions = []
 
@@ -98,7 +98,7 @@ test.describe('Keyboard Navigation', () => {
 
   test.skip('@wip can navigate menu with keyboard', async ({ page }) => {
     // Expected: Navigation menu should be keyboard accessible
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     // Tab to navigation
     for (let i = 0; i < 5; i++) {
@@ -111,12 +111,12 @@ test.describe('Keyboard Navigation', () => {
 
     // Should have navigated
     const url = page.url()
-    expect(url).not.toBe(TEST_URLS.home)
+    expect(url).not.toBe('/')
   })
 
   test.skip('@wip can close modals with Escape', async ({ page }) => {
     // Expected: Modal dialogs should close with Escape key
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     // Open a modal (if available)
     const modalTrigger = page.locator('[data-modal-trigger], [data-dialog-trigger]').first()
@@ -140,7 +140,7 @@ test.describe('Keyboard Navigation', () => {
 
   test.skip('@wip form inputs are keyboard accessible', async ({ page }) => {
     // Expected: Can fill form using only keyboard
-    await page.goto(TEST_URLS.contact)
+    await page.goto('/contact')
 
     // Tab to email input
     let emailFocused = false
@@ -165,7 +165,7 @@ test.describe('Keyboard Navigation', () => {
 
   test.skip('@wip can submit form with Enter key', async ({ page }) => {
     // Expected: Pressing Enter in form should submit
-    await page.goto(TEST_URLS.contact)
+    await page.goto('/contact')
 
     const emailInput = page.locator('input[type="email"]').first()
     await emailInput.fill('test@example.com')
@@ -187,7 +187,7 @@ test.describe('Keyboard Navigation', () => {
 
   test.skip('@wip dropdowns work with arrow keys', async ({ page }) => {
     // Expected: Select dropdowns should work with arrow keys
-    await page.goto(TEST_URLS.contact)
+    await page.goto('/contact')
 
     const select = page.locator('select').first()
 
@@ -205,7 +205,7 @@ test.describe('Keyboard Navigation', () => {
 
   test.skip('@wip links are activatable with Enter', async ({ page }) => {
     // Expected: Links should activate with Enter key
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     // Tab to first link
     for (let i = 0; i < 3; i++) {
@@ -223,7 +223,7 @@ test.describe('Keyboard Navigation', () => {
 
   test.skip('@wip carousel is keyboard navigable', async ({ page }) => {
     // Expected: Carousel should work with arrow keys
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     const carousel = page.locator('[data-carousel]').first()
     await carousel.focus()
@@ -244,7 +244,7 @@ test.describe('Keyboard Navigation', () => {
 
   test.skip('@wip can tab backwards with Shift+Tab', async ({ page }) => {
     // Expected: Shift+Tab should move focus backwards
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     // Tab forward a few times
     for (let i = 0; i < 5; i++) {
@@ -264,7 +264,7 @@ test.describe('Keyboard Navigation', () => {
 
   test.skip('@wip checkboxes toggle with Space', async ({ page }) => {
     // Expected: Checkboxes should toggle with Space key
-    await page.goto(TEST_URLS.contact)
+    await page.goto('/contact')
 
     const checkbox = page.locator('input[type="checkbox"]').first()
     await checkbox.focus()

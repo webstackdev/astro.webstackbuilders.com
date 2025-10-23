@@ -4,12 +4,11 @@
  * @see src/components/Navigation/
  */
 
-import { test, expect } from '@playwright/test'
-import { VIEWPORTS } from '../../fixtures/test-data'
+import { test, expect } from '@test/e2e/helpers'
 
 test.describe('Mobile Navigation', () => {
   test.beforeEach(async ({ page }) => {
-    await page.setViewportSize(VIEWPORTS.mobile)
+    await page.setViewportSize({ width: 375, height: 667 })
     await page.goto('/')
   })
 

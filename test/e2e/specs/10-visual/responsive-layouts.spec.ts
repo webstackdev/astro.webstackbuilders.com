@@ -3,15 +3,21 @@
  * Visual regression tests for responsive layouts across viewports
  */
 
-import { test, expect } from '@playwright/test'
-import { TEST_URLS, VIEWPORTS } from '../../fixtures/test-data'
+import { test, expect } from '@test/e2e/helpers'
+
+const VIEWPORTS = {
+  mobile: { width: 375, height: 667 },
+  tablet: { width: 768, height: 1024 },
+  desktop: { width: 1280, height: 720 },
+  wide: { width: 1920, height: 1080 },
+}
 
 test.describe('Responsive Layout Visuals', () => {
   test.skip('@blocked mobile viewport screenshot', async ({ page }) => {
     // Blocked by: Need visual regression testing setup
     // Expected: Capture mobile layout
     await page.setViewportSize(VIEWPORTS.mobile)
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     // TODO: Visual testing
     // await percySnapshot(page, 'Homepage - Mobile')
@@ -21,7 +27,7 @@ test.describe('Responsive Layout Visuals', () => {
     // Blocked by: Need visual regression testing setup
     // Expected: Capture tablet layout
     await page.setViewportSize(VIEWPORTS.tablet)
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     // TODO: Visual testing
     // await percySnapshot(page, 'Homepage - Tablet')
@@ -31,7 +37,7 @@ test.describe('Responsive Layout Visuals', () => {
     // Blocked by: Need visual regression testing setup
     // Expected: Capture desktop layout
     await page.setViewportSize(VIEWPORTS.desktop)
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     // TODO: Visual testing
     // await percySnapshot(page, 'Homepage - Desktop')
@@ -41,7 +47,7 @@ test.describe('Responsive Layout Visuals', () => {
     // Blocked by: Need visual regression testing setup
     // Expected: Capture wide desktop layout
     await page.setViewportSize(VIEWPORTS.wide)
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     // TODO: Visual testing
     // await percySnapshot(page, 'Homepage - Wide')
@@ -50,7 +56,7 @@ test.describe('Responsive Layout Visuals', () => {
   test.skip('@wip no horizontal scroll on mobile', async ({ page }) => {
     // Expected: Content should not cause horizontal scroll
     await page.setViewportSize(VIEWPORTS.mobile)
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     const hasHorizontalScroll = await page.evaluate(() => {
       return document.documentElement.scrollWidth > window.innerWidth
@@ -62,7 +68,7 @@ test.describe('Responsive Layout Visuals', () => {
   test.skip('@wip no horizontal scroll on tablet', async ({ page }) => {
     // Expected: No horizontal overflow on tablet
     await page.setViewportSize(VIEWPORTS.tablet)
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     const hasHorizontalScroll = await page.evaluate(() => {
       return document.documentElement.scrollWidth > window.innerWidth
@@ -74,7 +80,7 @@ test.describe('Responsive Layout Visuals', () => {
   test.skip('@wip images scale correctly on mobile', async ({ page }) => {
     // Expected: Images should not overflow container
     await page.setViewportSize(VIEWPORTS.mobile)
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     const oversizedImages = await page.evaluate(() => {
       const images = Array.from(document.querySelectorAll('img'))
@@ -87,7 +93,7 @@ test.describe('Responsive Layout Visuals', () => {
   test.skip('@wip mobile navigation works', async ({ page }) => {
     // Expected: Mobile menu should be functional
     await page.setViewportSize(VIEWPORTS.mobile)
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     const hamburger = page.locator('[data-nav-toggle]')
     await expect(hamburger).toBeVisible()
@@ -102,7 +108,7 @@ test.describe('Responsive Layout Visuals', () => {
   test.skip('@wip desktop navigation shows all items', async ({ page }) => {
     // Expected: Desktop nav should show all links inline
     await page.setViewportSize(VIEWPORTS.desktop)
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     const nav = page.locator('nav[data-nav-desktop]')
     await expect(nav).toBeVisible()
@@ -114,7 +120,7 @@ test.describe('Responsive Layout Visuals', () => {
   test.skip('@blocked article page responsive comparison', async ({ page }) => {
     // Blocked by: Need visual regression testing
     // Expected: Article should look good at all sizes
-    await page.goto(TEST_URLS.articles)
+    await page.goto("/articles")
     const firstArticle = page.locator('a[href*="/articles/"]').first()
     await firstArticle.click()
     await page.waitForLoadState('networkidle')
@@ -129,7 +135,7 @@ test.describe('Responsive Layout Visuals', () => {
   test.skip('@wip footer stacks correctly on mobile', async ({ page }) => {
     // Expected: Footer content should stack vertically on mobile
     await page.setViewportSize(VIEWPORTS.mobile)
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     const footer = page.locator('footer')
     const footerHeight = await footer.evaluate((el) => (el as HTMLElement).offsetHeight)
@@ -144,7 +150,7 @@ test.describe('Responsive Layout Visuals', () => {
 
     for (const viewport of viewports) {
       await page.setViewportSize(viewport)
-      await page.goto(TEST_URLS.home)
+      await page.goto("/")
 
       const fontSize = await page.evaluate(() => {
         const body = document.body
@@ -160,7 +166,7 @@ test.describe('Responsive Layout Visuals', () => {
   test.skip('@wip touch targets are appropriately sized on mobile', async ({ page }) => {
     // Expected: Interactive elements should be at least 44x44px on mobile
     await page.setViewportSize(VIEWPORTS.mobile)
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     const buttons = page.locator('button, a')
     const count = await buttons.count()
@@ -179,7 +185,7 @@ test.describe('Responsive Layout Visuals', () => {
   test.skip('@wip forms are usable on mobile', async ({ page }) => {
     // Expected: Form fields should be appropriately sized for touch
     await page.setViewportSize(VIEWPORTS.mobile)
-    await page.goto(TEST_URLS.contact)
+    await page.goto("/contact")
 
     const emailInput = page.locator('input[type="email"]').first()
     const box = await emailInput.boundingBox()

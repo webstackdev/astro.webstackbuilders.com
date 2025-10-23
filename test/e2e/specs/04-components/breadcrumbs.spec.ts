@@ -4,7 +4,7 @@
  * @see src/components/Breadcrumbs/
  */
 
-import { test, expect } from '@playwright/test'
+import { test, expect } from '@test/e2e/helpers'
 
 test.describe('Breadcrumbs Component', () => {
   test('@ready breadcrumbs display on article pages', async ({ page }) => {

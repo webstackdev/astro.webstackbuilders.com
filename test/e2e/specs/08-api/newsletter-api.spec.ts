@@ -4,7 +4,7 @@
  * @see api/newsletter/
  */
 
-import { test, expect } from '@playwright/test'
+import { test, expect } from '@test/e2e/helpers'
 
 test.describe('Newsletter API', () => {
   test.skip('@wip newsletter endpoint accepts POST', async ({ request }) => {

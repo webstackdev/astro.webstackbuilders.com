@@ -3,14 +3,14 @@
  * Tests for Web Content Accessibility Guidelines compliance
  */
 
-import { test, expect } from '@playwright/test'
-import { TEST_URLS } from '../../fixtures/test-data'
+import { test, expect } from '@test/e2e/helpers'
+
 
 test.describe('WCAG Compliance', () => {
   test.skip('@blocked run axe accessibility audit on homepage', async ({ page }) => {
     // Blocked by: Need to integrate @axe-core/playwright
     // Expected: No WCAG violations should be found
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     // TODO: Integrate axe-core
     // const accessibilityScanResults = await new AxeBuilder({ page }).analyze()
@@ -21,11 +21,11 @@ test.describe('WCAG Compliance', () => {
     // Blocked by: Need to integrate @axe-core/playwright
     // Expected: All pages should pass accessibility audit
     const pages = [
-      TEST_URLS.home,
-      TEST_URLS.about,
-      TEST_URLS.services,
-      TEST_URLS.articles,
-      TEST_URLS.contact,
+      '/',
+      '/about',
+      '/services',
+      '/articles',
+      '/contact',
     ]
 
     for (const url of pages) {
@@ -38,7 +38,7 @@ test.describe('WCAG Compliance', () => {
 
   test.skip('@wip text has sufficient color contrast', async ({ page }) => {
     // Expected: Text should meet WCAG AA contrast ratio (4.5:1 for normal text)
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     // Sample a few text elements
     const paragraphs = page.locator('p').first()
@@ -61,7 +61,7 @@ test.describe('WCAG Compliance', () => {
 
   test.skip('@wip focus indicators meet contrast requirements', async ({ page }) => {
     // Expected: Focus indicators should have 3:1 contrast ratio
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     await page.keyboard.press('Tab')
     await page.keyboard.press('Tab')
@@ -84,7 +84,7 @@ test.describe('WCAG Compliance', () => {
 
   test.skip('@wip touch targets are at least 44x44 pixels', async ({ page }) => {
     // Expected: Interactive elements should meet minimum size (WCAG 2.5.5)
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     const buttons = page.locator('button, a')
     const count = await buttons.count()
@@ -103,7 +103,7 @@ test.describe('WCAG Compliance', () => {
 
   test.skip('@wip page can be zoomed to 200%', async ({ page }) => {
     // Expected: Page should be usable when zoomed (WCAG 1.4.4)
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     // Zoom in
     await page.evaluate(() => {
@@ -127,7 +127,7 @@ test.describe('WCAG Compliance', () => {
 
   test.skip('@wip links are distinguishable from text', async ({ page }) => {
     // Expected: Links should be visually distinct (not just color)
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     const link = page.locator('a[href]').first()
     const styles = await link.evaluate((el) => {
@@ -148,7 +148,7 @@ test.describe('WCAG Compliance', () => {
 
   test.skip('@wip no content flashes more than 3 times per second', async ({ page }) => {
     // Expected: No seizure-inducing flashing content (WCAG 2.3.1)
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     // Check for animations
     const animations = await page.evaluate(() => {
@@ -175,7 +175,7 @@ test.describe('WCAG Compliance', () => {
   test.skip('@wip page is usable without motion', async ({ page }) => {
     // Expected: Should respect prefers-reduced-motion
     await page.emulateMedia({ reducedMotion: 'reduce' })
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     // Check that animations are disabled/reduced
     const hasReducedMotion = await page.evaluate(() => {
@@ -191,7 +191,7 @@ test.describe('WCAG Compliance', () => {
 
   test.skip('@wip form errors are clearly identified', async ({ page }) => {
     // Expected: Error messages should be clear and associated with inputs
-    await page.goto(TEST_URLS.contact)
+    await page.goto('/contact')
 
     const submitButton = page.locator('button[type="submit"]').first()
     await submitButton.click()
@@ -210,7 +210,7 @@ test.describe('WCAG Compliance', () => {
   test.skip('@wip time limits can be extended', async ({ page }) => {
     // Expected: Any time limits should be adjustable (WCAG 2.2.1)
     // Most sites don't have time limits, so this may not apply
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     // Check for timers or session warnings
     const timer = page.locator('[data-timer], [data-timeout]')

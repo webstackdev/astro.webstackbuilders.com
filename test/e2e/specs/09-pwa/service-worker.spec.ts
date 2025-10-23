@@ -3,8 +3,8 @@
  * Tests for service worker installation and functionality
  */
 
-import { test, expect } from '@playwright/test'
-import { TEST_URLS } from '../../fixtures/test-data'
+import { test, expect } from '@test/e2e/helpers'
+
 
 test.describe('Service Worker', () => {
   test.skip('@wip service worker file is accessible', async ({ page }) => {
@@ -32,7 +32,7 @@ test.describe('Service Worker', () => {
 
   test.skip('@wip service worker installs on first visit', async ({ page }) => {
     // Expected: SW should install when visiting site
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     const installed = await page.evaluate(async () => {
       if ('serviceWorker' in navigator) {
@@ -51,7 +51,7 @@ test.describe('Service Worker', () => {
 
   test.skip('@wip service worker handles fetch events', async ({ page }) => {
     // Expected: SW should intercept and handle fetch requests
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
     await page.waitForTimeout(2000)
 
     // Make a request that should be handled by SW
@@ -68,7 +68,7 @@ test.describe('Service Worker', () => {
 
   test.skip('@wip service worker caches navigation requests', async ({ page }) => {
     // Expected: HTML pages should be cached
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
     await page.waitForTimeout(2000)
 
     const cachedPages = await page.evaluate(async () => {
@@ -91,7 +91,7 @@ test.describe('Service Worker', () => {
 
   test.skip('@wip service worker caches static assets', async ({ page }) => {
     // Expected: CSS, JS, images should be cached
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
     await page.waitForTimeout(2000)
 
     const cachedAssets = await page.evaluate(async () => {
@@ -122,7 +122,7 @@ test.describe('Service Worker', () => {
     context,
   }) => {
     // Expected: SW should serve cached resources when offline
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(2000)
 
@@ -140,7 +140,7 @@ test.describe('Service Worker', () => {
 
   test.skip('@wip service worker implements cache versioning', async ({ page }) => {
     // Expected: SW should version its caches
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
     await page.waitForTimeout(2000)
 
     const cacheNames = await page.evaluate(async () => {
@@ -162,7 +162,7 @@ test.describe('Service Worker', () => {
 
   test.skip('@wip service worker cleans up old caches', async ({ page }) => {
     // Expected: Old cache versions should be deleted
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
     await page.waitForTimeout(2000)
 
     // Activate should trigger cache cleanup
@@ -180,7 +180,7 @@ test.describe('Service Worker', () => {
 
   test.skip('@wip service worker has proper scope', async ({ page }) => {
     // Expected: SW scope should be root /
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     const scope = await page.evaluate(async () => {
       if ('serviceWorker' in navigator) {

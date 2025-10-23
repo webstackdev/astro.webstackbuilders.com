@@ -4,12 +4,11 @@
  * @see src/components/Navigation/
  */
 
-import { test, expect } from '@playwright/test'
-import { VIEWPORTS } from '../../fixtures/test-data'
+import { test, expect } from '@test/e2e/helpers'
 
 test.describe('Desktop Navigation', () => {
   test.beforeEach(async ({ page }) => {
-    await page.setViewportSize(VIEWPORTS.desktop)
+    await page.setViewportSize({ width: 1280, height: 720 })
     await page.goto('/')
   })
 

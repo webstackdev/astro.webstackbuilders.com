@@ -2,12 +2,12 @@
  * Newsletter Subscription Form E2E Tests
  * Tests for newsletter signup functionality
  */
-import { test, expect } from '@playwright/test'
-import { TEST_EMAILS, TEST_URLS, SUCCESS_MESSAGES, ERROR_MESSAGES } from '../../fixtures/test-data'
+import { test, expect } from '@test/e2e/helpers'
+import { TEST_EMAILS, SUCCESS_MESSAGES, ERROR_MESSAGES } from '@test/e2e/fixtures/test-data'
 
 test.describe('Newsletter Subscription Form', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
   })
 
   test.skip('@wip form accepts valid email', async ({ page }) => {

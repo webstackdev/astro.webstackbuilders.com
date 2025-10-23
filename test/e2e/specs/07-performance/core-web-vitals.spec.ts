@@ -3,13 +3,13 @@
  * Tests for Core Web Vitals metrics (LCP, FID, CLS)
  */
 
-import { test, expect } from '@playwright/test'
-import { TEST_URLS } from '../../fixtures/test-data'
+import { test, expect } from '@test/e2e/helpers'
+
 
 test.describe('Core Web Vitals', () => {
   test.skip('@wip Largest Contentful Paint under 2.5s', async ({ page }) => {
     // Expected: LCP should be under 2.5 seconds (good)
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     const lcp = await page.evaluate(() => {
       return new Promise((resolve) => {
@@ -30,7 +30,7 @@ test.describe('Core Web Vitals', () => {
 
   test.skip('@wip First Input Delay simulation', async ({ page }) => {
     // Expected: Page should respond quickly to first interaction
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     const startTime = Date.now()
 
@@ -46,7 +46,7 @@ test.describe('Core Web Vitals', () => {
 
   test.skip('@wip Cumulative Layout Shift under 0.1', async ({ page }) => {
     // Expected: CLS should be under 0.1 (good)
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     // Wait for page to settle
     await page.waitForTimeout(3000)
@@ -79,7 +79,7 @@ test.describe('Core Web Vitals', () => {
 
   test.skip('@wip Time to Interactive under 3.8s', async ({ page }) => {
     // Expected: TTI should be under 3.8s (good)
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     const tti = await page.evaluate(() => {
       return new Promise((resolve) => {
@@ -98,7 +98,7 @@ test.describe('Core Web Vitals', () => {
 
   test.skip('@wip First Contentful Paint under 1.8s', async ({ page }) => {
     // Expected: FCP should be under 1.8s (good)
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     const fcp = await page.evaluate(() => {
       return new Promise((resolve) => {
@@ -120,7 +120,7 @@ test.describe('Core Web Vitals', () => {
 
   test.skip('@wip Total Blocking Time under 200ms', async ({ page }) => {
     // Expected: TBT should be under 200ms (good)
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     // Wait for page to fully load
     await page.waitForLoadState('networkidle')
@@ -153,7 +153,7 @@ test.describe('Core Web Vitals', () => {
 
   test.skip('@wip Speed Index under 3.4s', async ({ page }) => {
     // Expected: Speed Index should be under 3.4s (good)
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     const speedIndex = await page.evaluate(() => {
       return new Promise((resolve) => {
@@ -174,7 +174,7 @@ test.describe('Core Web Vitals', () => {
     // Expected: Full page load should be under 3 seconds
     const startTime = Date.now()
 
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
     await page.waitForLoadState('load')
 
     const endTime = Date.now()
@@ -185,7 +185,7 @@ test.describe('Core Web Vitals', () => {
 
   test.skip('@wip images load efficiently', async ({ page }) => {
     // Expected: Images should use modern formats and be optimized
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     const images = await page.locator('img').evaluateAll((imgs) => {
       return imgs.map((img) => {
@@ -213,7 +213,7 @@ test.describe('Core Web Vitals', () => {
 
   test.skip('@wip no render-blocking resources', async ({ page }) => {
     // Expected: Critical resources should not block rendering
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     const renderBlocking = await page.evaluate(() => {
       const stylesheets = Array.from(document.querySelectorAll('link[rel="stylesheet"]'))

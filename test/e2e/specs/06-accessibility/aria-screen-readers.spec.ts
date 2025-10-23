@@ -3,13 +3,13 @@
  * Tests for ARIA attributes and screen reader accessibility
  */
 
-import { test, expect } from '@playwright/test'
-import { TEST_URLS } from '../../fixtures/test-data'
+import { test, expect } from '@test/e2e/helpers'
+
 
 test.describe('ARIA and Screen Readers', () => {
   test.skip('@wip page has main landmark', async ({ page }) => {
     // Expected: Page should have <main> element or role="main"
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     const main = page.locator('main, [role="main"]')
     await expect(main).toHaveCount(1)
@@ -17,7 +17,7 @@ test.describe('ARIA and Screen Readers', () => {
 
   test.skip('@wip page has navigation landmark', async ({ page }) => {
     // Expected: Page should have <nav> or role="navigation"
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     const nav = page.locator('nav, [role="navigation"]')
     const count = await nav.count()
@@ -26,7 +26,7 @@ test.describe('ARIA and Screen Readers', () => {
 
   test.skip('@wip buttons have accessible labels', async ({ page }) => {
     // Expected: All buttons should have text or aria-label
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     const buttons = page.locator('button')
     const count = await buttons.count()
@@ -43,7 +43,7 @@ test.describe('ARIA and Screen Readers', () => {
 
   test.skip('@wip links have meaningful text', async ({ page }) => {
     // Expected: Links should not just say "click here" or "read more"
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     const links = page.locator('a[href]')
     const count = await links.count()
@@ -64,7 +64,7 @@ test.describe('ARIA and Screen Readers', () => {
 
   test.skip('@wip images have alt text', async ({ page }) => {
     // Expected: All images should have alt attribute
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     const images = page.locator('img')
     const count = await images.count()
@@ -80,7 +80,7 @@ test.describe('ARIA and Screen Readers', () => {
 
   test.skip('@wip form inputs have labels', async ({ page }) => {
     // Expected: All form inputs should have associated labels
-    await page.goto(TEST_URLS.contact)
+    await page.goto('/contact')
 
     const inputs = page.locator('input[type="text"], input[type="email"], textarea')
     const count = await inputs.count()
@@ -101,7 +101,7 @@ test.describe('ARIA and Screen Readers', () => {
 
   test.skip('@wip headings are hierarchical', async ({ page }) => {
     // Expected: Heading levels should not skip (h1, then h2, not h1 then h3)
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     const headings = await page.locator('h1, h2, h3, h4, h5, h6').evaluateAll((elements) => {
       return elements.map((el) => parseInt(el.tagName.charAt(1)))
@@ -123,7 +123,7 @@ test.describe('ARIA and Screen Readers', () => {
 
   test.skip('@wip page has exactly one h1', async ({ page }) => {
     // Expected: Page should have one and only one h1
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     const h1 = page.locator('h1')
     await expect(h1).toHaveCount(1)
@@ -134,7 +134,7 @@ test.describe('ARIA and Screen Readers', () => {
 
   test.skip('@wip required fields are marked', async ({ page }) => {
     // Expected: Required inputs should have aria-required or required attribute
-    await page.goto(TEST_URLS.contact)
+    await page.goto('/contact')
 
     const emailInput = page.locator('input[type="email"]').first()
     const isRequired = await emailInput.getAttribute('required')
@@ -145,7 +145,7 @@ test.describe('ARIA and Screen Readers', () => {
 
   test.skip('@wip error messages are announced', async ({ page }) => {
     // Expected: Error messages should be in aria-live region or linked to input
-    await page.goto(TEST_URLS.contact)
+    await page.goto('/contact')
 
     const submitButton = page.locator('button[type="submit"]').first()
     await submitButton.click()
@@ -163,7 +163,7 @@ test.describe('ARIA and Screen Readers', () => {
 
   test.skip('@wip modals have proper ARIA', async ({ page }) => {
     // Expected: Modals should have role="dialog" and aria-modal="true"
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     const modalTrigger = page.locator('[data-modal-trigger]').first()
 
@@ -187,7 +187,7 @@ test.describe('ARIA and Screen Readers', () => {
 
   test.skip('@wip loading states are announced', async ({ page }) => {
     // Expected: Loading indicators should have aria-live or role="status"
-    await page.goto(TEST_URLS.contact)
+    await page.goto('/contact')
 
     const form = page.locator('form').first()
     const emailInput = form.locator('input[type="email"]').first()
@@ -211,7 +211,7 @@ test.describe('ARIA and Screen Readers', () => {
 
   test.skip('@wip lists use proper markup', async ({ page }) => {
     // Expected: Lists should use <ul>, <ol>, or role="list"
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     const lists = page.locator('ul, ol, [role="list"]')
     const count = await lists.count()
@@ -230,7 +230,7 @@ test.describe('ARIA and Screen Readers', () => {
 
   test.skip('@wip skip link is first focusable element', async ({ page }) => {
     // Expected: Skip link should be first in tab order
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     await page.keyboard.press('Tab')
 
@@ -243,7 +243,7 @@ test.describe('ARIA and Screen Readers', () => {
 
   test.skip('@wip expandable sections have aria-expanded', async ({ page }) => {
     // Expected: Accordions/collapsibles should use aria-expanded
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     const expandable = page.locator('[aria-expanded]').first()
 

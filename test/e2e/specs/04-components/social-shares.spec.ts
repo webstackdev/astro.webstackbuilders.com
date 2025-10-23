@@ -4,13 +4,13 @@
  * @see src/components/Social/
  */
 
-import { test, expect } from '@playwright/test'
-import { TEST_URLS } from '../../fixtures/test-data'
+import { test, expect } from '@test/e2e/helpers'
+
 
 test.describe('Social Shares Component', () => {
   test.beforeEach(async ({ page }) => {
     // Go to an article page (social shares usually appear on articles)
-    await page.goto(TEST_URLS.articles)
+    await page.goto('/articles')
     // Click first article
     const firstArticle = page.locator('a[href*="/articles/"]').first()
     await firstArticle.click()

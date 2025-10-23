@@ -4,13 +4,13 @@
  * @see src/pages/offline/
  */
 
-import { test, expect } from '@playwright/test'
-import { TEST_URLS } from '../../fixtures/test-data'
+import { test, expect } from '@test/e2e/helpers'
+
 
 test.describe('PWA Offline Mode', () => {
   test.skip('@wip service worker registers successfully', async ({ page }) => {
     // Expected: Service worker should register on page load
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     const swRegistered = await page.evaluate(async () => {
       if ('serviceWorker' in navigator) {
@@ -39,7 +39,7 @@ test.describe('PWA Offline Mode', () => {
 
   test.skip('@wip site works offline after initial visit', async ({ page, context }) => {
     // Expected: After visiting once, core pages should work offline
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
     await page.waitForLoadState('networkidle')
 
     // Wait for service worker to cache resources
@@ -49,7 +49,7 @@ test.describe('PWA Offline Mode', () => {
     await context.setOffline(true)
 
     // Navigate to homepage again
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     // Should show cached version or offline page
     const content = await page.textContent('body')
@@ -58,7 +58,7 @@ test.describe('PWA Offline Mode', () => {
 
   test.skip('@wip service worker caches critical assets', async ({ page }) => {
     // Expected: SW should cache important resources
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
     await page.waitForTimeout(2000)
 
     const cachedAssets = await page.evaluate(async () => {
@@ -76,13 +76,13 @@ test.describe('PWA Offline Mode', () => {
 
   test.skip('@wip offline fallback for dynamic content', async ({ page, context }) => {
     // Expected: Dynamic pages should show offline message when unavailable
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
     await page.waitForTimeout(2000)
 
     await context.setOffline(true)
 
     // Try to navigate to article that might not be cached
-    const response = await page.goto(TEST_URLS.articles).catch(() => null)
+    const response = await page.goto('/articles').catch(() => null)
 
     // Should either show cached version or offline page
     if (response) {
@@ -93,7 +93,7 @@ test.describe('PWA Offline Mode', () => {
 
   test.skip('@wip online indicator updates correctly', async ({ page, context }) => {
     // Expected: Site should detect online/offline status changes
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     // Listen for online/offline events
     const onlineStatus = await page.evaluate(() => {
@@ -115,7 +115,7 @@ test.describe('PWA Offline Mode', () => {
 
   test.skip('@wip service worker updates when new version available', async ({ page }) => {
     // Expected: SW should update when site is updated
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     const swStatus = await page.evaluate(async () => {
       if ('serviceWorker' in navigator) {
@@ -144,7 +144,7 @@ test.describe('PWA Offline Mode', () => {
 
   test.skip('@wip service worker skip waiting', async ({ page }) => {
     // Expected: New SW should activate without waiting for tabs to close
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     const swBehavior = await page.evaluate(async () => {
       if ('serviceWorker' in navigator) {
