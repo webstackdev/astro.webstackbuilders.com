@@ -347,7 +347,7 @@ export function initStateSideEffects(): void {
 
   // Side Effect 6: Show/hide cookie modal
   $cookieModalVisible.subscribe(visible => {
-    const modal = document.getElementById('cookie-consent-modal-id')
+    const modal = document.getElementById('cookie-modal-id')
     if (modal) {
       modal.style.display = visible ? 'flex' : 'none'
     }

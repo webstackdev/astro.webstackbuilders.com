@@ -24,7 +24,7 @@ import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/erro
  */
 export class CookieConsent extends LoadableScript {
   static override scriptName = 'CookieConsent'
-  static override eventType: TriggerEvent = 'delayed'
+  static override eventType: TriggerEvent = 'astro:page-load'
 
   /** Modal wrapper element */
   wrapper: HTMLDivElement

@@ -98,17 +98,15 @@ test.describe('Critical Paths @smoke', () => {
     await expect(page.locator('button[aria-label="toggle theme switcher"]')).toBeVisible()
   })
 
-  test.skip('@ready cookie consent banner appears', async ({ page, context }) => {
-    // FIXME: Cookie modal exists in DOM but is CSS hidden - appears to be an application bug
-    // The modal doesn't show even after clearing cookies
+  test('@ready cookie consent banner appears', async ({ page, context }) => {
     // Clear consent cookies to force banner to appear
     await clearConsentCookies(context)
 
     await page.goto('/')
     await page.waitForLoadState('networkidle')
 
-    // Cookie modal should be visible (wait for animation/JS to show it)
-    await expect(page.locator('#cookie-modal-id')).toBeVisible({ timeout: 10000 })
+    // Cookie modal should be visible
+    await expect(page.locator('#cookie-modal-id')).toBeVisible()
   })
 
   test('@ready main pages have no 404 errors', async ({ page }) => {
