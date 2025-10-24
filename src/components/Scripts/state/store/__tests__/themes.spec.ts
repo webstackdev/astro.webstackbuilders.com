@@ -43,7 +43,7 @@ describe('Theme Management', () => {
     setTheme('dark')
 
     expect($theme.get()).toBe('dark')
-    expect(localStorage.getItem('theme')).toBe('"dark"')
+    expect(localStorage.getItem('theme')).toBe('dark')
   })
 
   it('should not persist theme when functional consent is denied', () => {

@@ -16,16 +16,19 @@ import { handleScriptError } from '@components/Scripts/errors'
  * Requires functional consent to persist
  */
 export const $theme = persistentAtom<ThemeId>('theme', 'default', {
-  encode: JSON.stringify,
+  encode: (value) => value,
   decode: (value: string) => {
-    try {
-      return JSON.parse(value)
-    } catch {
-      // Handle plain string values from legacy storage or manual setting
-      // If it's a valid ThemeId, return it, otherwise return default
-      const validThemes: ThemeId[] = ['default', 'dark', 'holiday']
-      return validThemes.includes(value as ThemeId) ? (value as ThemeId) : 'default'
+    // Handle both JSON-stringified values (for backwards compatibility) and plain strings
+    if (value.startsWith('"') && value.endsWith('"')) {
+      try {
+        return JSON.parse(value)
+      } catch {
+        return 'default'
+      }
     }
+    // Handle plain string values
+    const validThemes: ThemeId[] = ['default', 'dark', 'holiday']
+    return validThemes.includes(value as ThemeId) ? (value as ThemeId) : 'default'
   },
 })
 
