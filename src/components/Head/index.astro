@@ -43,7 +43,6 @@ const { pageTitle, path, description, image } = Astro.props
 
     if (import.meta.env.PROD && PUBLIC_SENTRY_DSN) {
       SentryBootstrap.init()
-      AppBootstrap.init()
     } else {
       // Development: Use custom error handlers with console logging
       try {
@@ -53,8 +52,8 @@ const { pageTitle, path, description, image } = Astro.props
         console.error('❌ Failed to initialize error listeners:', error)
         throw new Error(error instanceof Error ? error.message : String(error))
       }
-      AppBootstrap.init()
     }
+    AppBootstrap.init()
   </script>
   {/* Client-side router for Astro pages (enables partial page reloads) */}
   {/* Must be placed at the end of the <head> to avoid blocking page rendering */}
