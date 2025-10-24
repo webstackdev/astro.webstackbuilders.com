@@ -5,11 +5,24 @@
 import { logger } from '@lib/logger'
 import { ClientScriptError } from './ClientScriptError'
 
+declare global {
+  interface Window {
+    _error?: Array<ClientScriptError>
+    _isError: boolean
+  }
+}
+
 /**
  * Unhandled exception handler
  */
 export const unhandledExceptionHandler = (error: ErrorEvent): true => {
   const scriptError = new ClientScriptError(error)
+  window._isError = true
+  if (window._error) {
+    window._error.push(scriptError)
+  } else {
+    window._error = [scriptError]
+  }
   logger.error('Unhandled exception:', {
     message: scriptError.message,
     stack: scriptError.stack,
@@ -26,6 +39,12 @@ export const unhandledExceptionHandler = (error: ErrorEvent): true => {
  */
 export const unhandledRejectionHandler = ({ reason }: PromiseRejectionEvent): true => {
   const scriptError = new ClientScriptError(reason)
+  window._isError = true
+  if (window._error) {
+    window._error.push(scriptError)
+  } else {
+    window._error = [scriptError]
+  }
   logger.error('Unhandled promise rejection:', {
     message: scriptError.message,
     stack: scriptError.stack,
@@ -35,12 +54,4 @@ export const unhandledRejectionHandler = ({ reason }: PromiseRejectionEvent): tr
   })
   /** Prevent the firing of the default event handler */
   return true
-}
-
-/**
- * Error handler for use in .catch() clause on promises
- */
-// (reason: any) => PromiseLike<never>
-export const promiseErrorHandler = (reason: unknown) => {
-  throw new ClientScriptError(reason)
 }
