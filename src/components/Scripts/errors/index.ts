@@ -7,7 +7,7 @@ export interface ScriptErrorContext {
 }
 
 /**
- * Error boundary for script execution errors
+ * Error boundary for script execution errors for non-fatal exceptions
  *
  * Transforms any error into a ClientScriptError, logs in development,
  * and reports to Sentry in production (via beforeSend filter).
@@ -52,17 +52,17 @@ export function handleScriptError(
 }
 
 /**
- * Add a breadcrumb before attempting a script operation
+ * Add a breadcrumb before attempting a script operation or Sentry tracking
  *
  * @param context - Script name and operation context
  *
  * @example
  * ```typescript
- * addScriptBreadcrumb({ scriptName: script.scriptName, operation: 'init' })
+ * addScriptBreadcrumb({ scriptName: 'ComponentName', operation: 'functionName' })
  * try {
  *   script.init()
  * } catch (error) {
- *   handleScriptError(error, { scriptName: script.scriptName, operation: 'init' })
+ *   handleScriptError(error, { scriptName: 'ComponentName', operation: 'functionName' })
  * }
  * ```
  */
