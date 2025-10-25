@@ -1,0 +1,350 @@
+/**
+ * Unit tests for contact form API endpoint
+ */
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { POST, OPTIONS } from '../index'
+
+// Mock Resend before importing the module
+const mockSend = vi.fn().mockResolvedValue({ data: { id: 'test-email-id' } })
+
+vi.mock('resend', () => {
+	return {
+		Resend: class MockResend {
+			emails = {
+				send: mockSend,
+			}
+		},
+	}
+})
+
+// Mock dependencies
+vi.mock('../../../../../api/shared/consent-log', () => ({
+	recordConsent: vi.fn(),
+}))
+
+const { recordConsent } = await import('../../../../../api/shared/consent-log')
+
+describe('Contact API - POST /api/contact', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+		mockSend.mockResolvedValue({ data: { id: 'test-email-id' } })
+		vi.mocked(recordConsent).mockResolvedValue({
+			id: 'test-consent-id',
+			email: 'test@example.com',
+			purposes: ['contact'],
+			timestamp: new Date().toISOString(),
+			source: 'contact_form' as const,
+			userAgent: 'Test Browser',
+			privacyPolicyVersion: '2025-10-20',
+			verified: true,
+		})
+
+		// Set mock env var for Resend
+		vi.stubEnv('RESEND_API_KEY', 'test-api-key')
+	})
+
+	afterEach(() => {
+		vi.clearAllMocks()
+		vi.unstubAllEnvs()
+	})
+
+	it('should accept valid contact form submission', async () => {
+		const request = new Request('http://localhost/api/contact', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'x-forwarded-for': '192.168.1.1',
+				'user-agent': 'Test Browser',
+			},
+			body: JSON.stringify({
+				name: 'John Doe',
+				email: 'john@example.com',
+				message: 'This is a test message with sufficient length',
+				consent: true,
+			}),
+		})
+
+		const response = await POST({ request } as any)
+		const data = await response.json()
+
+		expect(response.status).toBe(200)
+		expect(data.success).toBe(true)
+		expect(data.message).toContain('Thank you')
+	})
+
+	it('should reject submission without name', async () => {
+		const request = new Request('http://localhost/api/contact', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'x-forwarded-for': '10.0.0.2', // Unique IP to avoid rate limiting
+			},
+			body: JSON.stringify({
+				email: 'test@example.com',
+				message: 'Test message with enough content',
+			}),
+		})
+
+		const response = await POST({ request } as any)
+		const data = await response.json()
+
+		expect(response.status).toBe(400)
+		expect(data.success).toBe(false)
+		expect(data.error).toContain('Name is required')
+	})
+
+	it('should reject submission with short name', async () => {
+		const request = new Request('http://localhost/api/contact', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'x-forwarded-for': '10.0.0.3', // Unique IP to avoid rate limiting
+			},
+			body: JSON.stringify({
+				name: 'A',
+				email: 'test@example.com',
+				message: 'Test message with enough content',
+			}),
+		})
+
+		const response = await POST({ request } as any)
+		const data = await response.json()
+
+		expect(response.status).toBe(400)
+		expect(data.success).toBe(false)
+		expect(data.error).toContain('at least 2 characters')
+	})
+
+	it('should reject submission without email', async () => {
+		const request = new Request('http://localhost/api/contact', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'x-forwarded-for': '10.0.0.4', // Unique IP to avoid rate limiting
+			},
+			body: JSON.stringify({
+				name: 'John Doe',
+				message: 'Test message with enough content',
+			}),
+		})
+
+		const response = await POST({ request } as any)
+		const data = await response.json()
+
+		expect(response.status).toBe(400)
+		expect(data.success).toBe(false)
+		expect(data.error).toContain('Email is required')
+	})
+
+	it('should reject submission with invalid email', async () => {
+		const request = new Request('http://localhost/api/contact', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'x-forwarded-for': '10.0.0.5', // Unique IP to avoid rate limiting
+			},
+			body: JSON.stringify({
+				name: 'John Doe',
+				email: 'invalid-email',
+				message: 'Test message with enough content',
+			}),
+		})
+
+		const response = await POST({ request } as any)
+		const data = await response.json()
+
+		expect(response.status).toBe(400)
+		expect(data.success).toBe(false)
+		expect(data.error).toContain('Invalid email')
+	})
+
+	it('should reject submission without message', async () => {
+		const request = new Request('http://localhost/api/contact', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'x-forwarded-for': '10.0.0.6', // Unique IP to avoid rate limiting
+			},
+			body: JSON.stringify({
+				name: 'John Doe',
+				email: 'test@example.com',
+			}),
+		})
+
+		const response = await POST({ request } as any)
+		const data = await response.json()
+
+		expect(response.status).toBe(400)
+		expect(data.success).toBe(false)
+		expect(data.error).toContain('Message is required')
+	})
+
+	it('should reject submission with short message', async () => {
+		const request = new Request('http://localhost/api/contact', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'x-forwarded-for': '10.0.0.7', // Unique IP to avoid rate limiting
+			},
+			body: JSON.stringify({
+				name: 'John Doe',
+				email: 'test@example.com',
+				message: 'Too short',
+			}),
+		})
+
+		const response = await POST({ request } as any)
+		const data = await response.json()
+
+		expect(response.status).toBe(400)
+		expect(data.success).toBe(false)
+		expect(data.error).toContain('at least 10 characters')
+	})
+
+	it('should reject submission with spam content', async () => {
+		const request = new Request('http://localhost/api/contact', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'x-forwarded-for': '10.0.0.8', // Unique IP to avoid rate limiting
+			},
+			body: JSON.stringify({
+				name: 'John Doe',
+				email: 'test@example.com',
+				message: 'Click here to win the casino lottery with viagra',
+			}),
+		})
+
+		const response = await POST({ request } as any)
+		const data = await response.json()
+
+		expect(response.status).toBe(400)
+		expect(data.success).toBe(false)
+		expect(data.error).toContain('spam')
+	})
+
+	it('should handle rate limiting', async () => {
+		const ip = '192.168.1.unique-for-ratelimit-test'
+		const headers = {
+			'Content-Type': 'application/json',
+			'x-forwarded-for': ip,
+		}
+
+		// Make 5 requests (the limit)
+		for (let i = 0; i < 5; i++) {
+			const request = new Request('http://localhost/api/contact', {
+				method: 'POST',
+				headers,
+				body: JSON.stringify({
+					name: 'John Doe',
+					email: `test${i}@example.com`,
+					message: `Test message number ${i} with sufficient length`,
+				}),
+			})
+			const response = await POST({ request } as any)
+			expect(response.status).toBe(200)
+		}
+
+		// 6th request should be rate limited
+		const request = new Request('http://localhost/api/contact', {
+			method: 'POST',
+			headers,
+			body: JSON.stringify({
+				name: 'John Doe',
+				email: 'test6@example.com',
+				message: 'This should be rate limited message content',
+			}),
+		})
+
+		const response = await POST({ request } as any)
+		const data = await response.json()
+
+		expect(response.status).toBe(429)
+		expect(data.success).toBe(false)
+		expect(data.error).toContain('Too many')
+	})
+
+	it('should handle optional fields correctly', async () => {
+		const request = new Request('http://localhost/api/contact', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'x-forwarded-for': '10.0.0.9', // Unique IP to avoid rate limiting
+			},
+			body: JSON.stringify({
+				name: 'John Doe',
+				email: 'test@example.com',
+				message: 'Test message with enough content',
+				phone: '555-1234',
+				service: 'Web Development',
+				budget: '$10k-$50k',
+				timeline: '3 months',
+				website: 'https://example.com',
+			}),
+		})
+
+		const response = await POST({ request } as any)
+		const data = await response.json()
+
+		expect(response.status).toBe(200)
+		expect(data.success).toBe(true)
+	})
+
+	it('should record consent when provided', async () => {
+		const request = new Request('http://localhost/api/contact', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'x-forwarded-for': '192.168.1.1',
+				'user-agent': 'Test Browser',
+			},
+			body: JSON.stringify({
+				name: 'John Doe',
+				email: 'test@example.com',
+				message: 'Test message with enough content',
+				consent: true,
+			}),
+		})
+
+		await POST({ request } as any)
+
+		expect(recordConsent).toHaveBeenCalledWith(
+			expect.objectContaining({
+				email: 'test@example.com',
+				purposes: ['contact'],
+				source: 'contact_form',
+				verified: true,
+			}),
+		)
+	})
+
+	it('should not record consent when not provided', async () => {
+		const request = new Request('http://localhost/api/contact', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'x-forwarded-for': '10.0.0.10', // Unique IP to avoid rate limiting
+			},
+			body: JSON.stringify({
+				name: 'John Doe',
+				email: 'test@example.com',
+				message: 'Test message with enough content',
+			}),
+		})
+
+		await POST({ request } as any)
+
+		expect(recordConsent).not.toHaveBeenCalled()
+	})
+})
+
+describe('Contact API - OPTIONS /api/contact', () => {
+	it('should return CORS headers', async () => {
+		const response = await OPTIONS({} as any)
+
+		expect(response.status).toBe(200)
+		expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*')
+		expect(response.headers.get('Access-Control-Allow-Methods')).toContain('POST')
+		expect(response.headers.get('Access-Control-Allow-Headers')).toContain('Content-Type')
+	})
+})

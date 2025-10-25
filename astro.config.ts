@@ -58,7 +58,7 @@ export default defineConfig({
       },
     },
   ],
-  output: 'static',
+  output: 'static', // Most pages are static; API routes will be marked for SSR
   prefetch: true,
   site: getSiteUrl(), // Change URL between development and production environments
   trailingSlash: 'never',
