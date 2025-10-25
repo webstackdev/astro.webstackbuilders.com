@@ -2,87 +2,85 @@
  * Case Study Detail Page E2E Tests
  * Tests for individual case study pages using baseTest fixtures
  */
-import { test, expect, setupConsoleErrorChecker } from '@test/e2e/helpers'
+import { BasePage, test, expect } from '@test/e2e/helpers'
 
 test.describe('Case Study Detail Pages @ready', () => {
-  test('first case study page loads with content', async ({ page, caseStudyPaths }) => {
+  test('first case study page loads with content', async ({ page: playwrightPage, caseStudyPaths }) => {
     const firstCaseStudy = caseStudyPaths[0]
     if (!firstCaseStudy) {
       test.skip()
       return
     }
 
+    const page = new BasePage(playwrightPage)
     await page.goto(firstCaseStudy)
     // Verify case study loaded by checking for main article content
-    await expect(page.locator('article[itemtype="http://schema.org/Article"]')).toBeVisible()
+    await page.expectElementVisible('article[itemtype="http://schema.org/Article"]')
     // Case study titles vary, just check the page has a title
-    const title = await page.title()
+    const title = await page.getTitle()
     expect(title.length).toBeGreaterThan(0)
   })
 
-  test('first case study heading displays correctly', async ({ page, caseStudyPaths }) => {
+  test('first case study heading displays correctly', async ({ page: playwrightPage, caseStudyPaths }) => {
     const firstCaseStudy = caseStudyPaths[0]
     if (!firstCaseStudy) {
       test.skip()
       return
     }
 
+    const page = new BasePage(playwrightPage)
     await page.goto(firstCaseStudy)
-    const h1 = page.locator('h1#article-title, h1').first()
-    await expect(h1).toBeVisible()
-    await expect(h1).not.toBeEmpty()
+    await page.expectElementVisible('h1#article-title, h1')
+    await page.expectElementNotEmpty('h1#article-title, h1')
   })
 
-  test('first case study content article renders', async ({ page, caseStudyPaths }) => {
+  test('first case study content article renders', async ({ page: playwrightPage, caseStudyPaths }) => {
     const firstCaseStudy = caseStudyPaths[0]
     if (!firstCaseStudy) {
       test.skip()
       return
     }
 
+    const page = new BasePage(playwrightPage)
     await page.goto(firstCaseStudy)
-    const article = page.locator('article[itemscope], article').first()
-    await expect(article).toBeVisible()
-    const paragraphs = article.locator('p')
-    const count = await paragraphs.count()
+    await page.expectElementVisible('article[itemscope], article')
+    const count = await page.countElements('article p, article[itemscope] p')
     expect(count).toBeGreaterThan(0)
   })
 
-  test('first case study metadata displays', async ({ page, caseStudyPaths }) => {
+  test('first case study metadata displays', async ({ page: playwrightPage, caseStudyPaths }) => {
     const firstCaseStudy = caseStudyPaths[0]
     if (!firstCaseStudy) {
       test.skip()
       return
     }
 
+    const page = new BasePage(playwrightPage)
     await page.goto(firstCaseStudy)
-    const article = page.locator('article[itemscope], article').first()
-    await expect(article).toBeVisible()
+    await page.expectElementVisible('article[itemscope], article')
   })
 
-  test('first case study page has no console errors', async ({ page, caseStudyPaths }) => {
+  test('first case study page has no console errors', async ({ page: playwrightPage, caseStudyPaths }) => {
     const firstCaseStudy = caseStudyPaths[0]
     if (!firstCaseStudy) {
       test.skip()
       return
     }
 
-    const errorChecker = setupConsoleErrorChecker(page)
+    const page = new BasePage(playwrightPage)
     await page.goto(firstCaseStudy)
-    await page.waitForLoadState('networkidle')
-    expect(errorChecker.getFilteredErrors()).toHaveLength(0)
+    await page.expectNoErrors()
   })
 
-  test('first case study page has no 404 errors', async ({ page, caseStudyPaths }) => {
+  test('first case study page has no 404 errors', async ({ page: playwrightPage, caseStudyPaths }) => {
     const firstCaseStudy = caseStudyPaths[0]
     if (!firstCaseStudy) {
       test.skip()
       return
     }
 
-    const errorChecker = setupConsoleErrorChecker(page)
+    const page = new BasePage(playwrightPage)
     await page.goto(firstCaseStudy)
-    await page.waitForLoadState('networkidle')
-    expect(errorChecker.getFiltered404s()).toHaveLength(0)
+    await page.expectNoErrors()
   })
 })

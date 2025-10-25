@@ -2,41 +2,41 @@
  * Tags Pages E2E Tests
  * Tests for /tags index and individual tag pages
  */
-import { test, expect, setupConsoleErrorChecker } from '@test/e2e/helpers'
+import { BasePage, test } from '@test/e2e/helpers'
 
 test.describe('Tags Index Page', () => {
-  test('@ready tags index page loads', async ({ page }) => {
+  test('@ready tags index page loads', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     await page.goto('/tags')
-    const heading = page.locator('h1')
-    await expect(heading).toBeVisible()
-    await expect(heading).toContainText(/Browse by Tag/)
+    await page.expectHeading()
+    await page.expectTextContains('h1', /Browse by Tag/)
   })
 
-  test('@ready tag list displays', async ({ page }) => {
+  test('@ready tag list displays', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     await page.goto('/tags')
     // Tags are shown as h2 headings linking to tag pages
-    const tagLinks = page.locator('h2 a[href^="/tags/"]')
-    await expect(tagLinks.first()).toBeVisible()
+    await page.expectElementVisible('h2 a[href^="/tags/"]')
   })
 
-  test('@ready tag counts display', async ({ page }) => {
+  test('@ready tag counts display', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     await page.goto('/tags')
     // Each tag should show count like "5 items"
-    const countText = page.locator('text=/\\d+ item/')
-    await expect(countText.first()).toBeVisible()
+    await page.expectTextVisible(/\d+ item/)
   })
 
-  test('@ready responsive: mobile view renders correctly', async ({ page }) => {
-    await page.setViewportSize({ width: 375, height: 667 })
+  test('@ready responsive: mobile view renders correctly', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.setViewport(375, 667)
     await page.goto('/tags')
-    await expect(page.locator('h1')).toBeVisible()
+    await page.expectHeading()
   })
 
-  test('@ready page has no console errors', async ({ page }) => {
-    const errorChecker = setupConsoleErrorChecker(page)
+  test('@ready page has no console errors', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     await page.goto('/tags')
-    await page.waitForLoadState('networkidle')
-    expect(errorChecker.getFiltered404s().length).toBe(0)
+    await page.expectNoErrors()
   })
 })
 

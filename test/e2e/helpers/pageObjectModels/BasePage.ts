@@ -158,6 +158,13 @@ export class BasePage {
   }
 
   /**
+   * Wait for load state
+   */
+  async waitForLoadState(state?: 'load' | 'domcontentloaded' | 'networkidle'): Promise<void> {
+    await this._page.waitForLoadState(state)
+  }
+
+  /**
    * ================================================================
    *
    * Browser and Head Methods
@@ -235,7 +242,7 @@ export class BasePage {
    * Verify <h1> element is present and visible
    */
   async expectHeading(): Promise<void> {
-    await expect(this._page.locator('h1')).toBeVisible()
+    await expect(this._page.locator('h1').first()).toBeVisible()
   }
 
   /**
@@ -244,7 +251,7 @@ export class BasePage {
   async expectHasHeading(text: string | RegExp): Promise<void> {
     // eslint-disable-next-line security/detect-non-literal-regexp
     const textRegEx = text instanceof RegExp ? text : new RegExp(text)
-    await expect(this._page.locator('h1, h2, h3').filter({ hasText: textRegEx })).toBeVisible()
+    await expect(this._page.locator('h1, h2, h3').filter({ hasText: textRegEx }).first()).toBeVisible()
   }
 
   /**
@@ -523,5 +530,162 @@ export class BasePage {
       },
       timeout,
     })
+  }
+
+  /**
+   * ================================================================
+   *
+   * CoPilot-Added Methods
+   *
+   * ================================================================
+   */
+
+  /**
+   * Verify hero section is present and visible
+   */
+  async expectHeroSection(): Promise<void> {
+    const hero = this._page.locator('[data-component="hero"], section').first()
+    await expect(hero).toBeVisible()
+  }
+
+  /**
+   * Verify text is visible on the page
+   */
+  async expectTextVisible(text: string | RegExp): Promise<void> {
+    const pattern = typeof text === 'string' ? text : text
+    await expect(this._page.locator(`text=${pattern}`).first()).toBeVisible()
+  }
+
+  /**
+   * Verify CTA button is present and enabled
+   */
+  async expectCtaButton(): Promise<void> {
+    const ctaButton = this._page.locator('a[href*="contact"], button:has-text("Contact")').first()
+    const count = await ctaButton.count()
+    if (count > 0) {
+      await expect(ctaButton).toBeVisible()
+      await expect(ctaButton).toBeEnabled()
+    }
+  }
+
+  /**
+   * Count elements matching selector
+   */
+  async countElements(selector: string): Promise<number> {
+    return await this._page.locator(selector).count()
+  }
+
+  /**
+   * Verify element is visible
+   */
+  async expectElementVisible(selector: string): Promise<void> {
+    await expect(this._page.locator(selector).first()).toBeVisible()
+  }
+
+  /**
+   * Verify element is not empty
+   */
+  async expectElementNotEmpty(selector: string): Promise<void> {
+    await expect(this._page.locator(selector).first()).not.toBeEmpty()
+  }
+
+  /**
+   * Verify element has attribute
+   */
+  async expectAttribute(selector: string, attribute: string): Promise<void> {
+    await expect(this._page.locator(selector).first()).toHaveAttribute(attribute)
+  }
+
+  /**
+   * Verify article card has required elements
+   */
+  async expectArticleCard(): Promise<void> {
+    const firstArticle = this._page.locator('article').first()
+
+    // Should have heading (h2 or h3 or h4)
+    const heading = firstArticle.locator('h2, h3, h4').first()
+    await expect(heading).toBeVisible()
+
+    // Should have image
+    const image = firstArticle.locator('img').first()
+    await expect(image).toBeVisible()
+
+    // Should have description/excerpt text
+    const description = firstArticle.locator('p').first()
+    await expect(description).toBeVisible()
+  }
+
+  /**
+   * Verify element contains text matching pattern
+   */
+  async expectTextContains(selector: string, pattern: string | RegExp): Promise<void> {
+    const element = this._page.locator(selector).first()
+    await expect(element).toContainText(pattern)
+  }
+
+  /**
+   * Verify service card has required elements
+   */
+  async expectServiceCard(): Promise<void> {
+    const firstCard = this._page.locator('.service-item').first()
+
+    // Each service should have h3 title
+    await expect(firstCard.locator('h3')).toBeVisible()
+
+    // Should have a link to the service detail page
+    await expect(firstCard.locator('a')).toBeVisible()
+  }
+
+  /**
+   * Get attribute value from element
+   */
+  async getAttribute(selector: string, attribute: string): Promise<string | null> {
+    return await this._page.locator(selector).first().getAttribute(attribute)
+  }
+
+  /**
+   * Verify URL contains text
+   */
+  async expectUrlContains(text: string): Promise<void> {
+    const url = this._page.url()
+    expect(url).toContain(text)
+  }
+
+  /**
+   * Verify case study card has required elements
+   */
+  async expectCaseStudyCard(): Promise<void> {
+    const caseStudyList = this._page.locator('.case-study-item, article')
+    const firstCard = caseStudyList.first()
+    const heading = firstCard.locator('h2, h3').first()
+    await expect(heading).toBeVisible()
+    await expect(firstCard.locator('a').first()).toBeVisible()
+  }
+
+  /**
+   * Get page title
+   */
+  async getTitle(): Promise<string> {
+    return await this._page.title()
+  }
+
+  /**
+   * Verify submit button is present and contains text
+   */
+  async expectSubmitButton(text?: string): Promise<void> {
+    const submitButton = this._page.locator('button[type="submit"]')
+    await expect(submitButton).toBeVisible()
+    if (text) {
+      await expect(submitButton).toContainText(text)
+    }
+  }
+
+  /**
+   * Verify label exists for input and contains text
+   */
+  async expectLabelFor(forId: string, pattern: string | RegExp): Promise<void> {
+    const label = this._page.locator(`label[for="${forId}"]`)
+    await expect(label).toBeVisible()
+    await expect(label).toContainText(pattern)
   }
 }
