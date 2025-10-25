@@ -165,6 +165,13 @@ export class BasePage {
   }
 
   /**
+   * Wait for specified timeout in milliseconds
+   */
+  async wait(timeout: number): Promise<void> {
+    await this._page.waitForTimeout(timeout)
+  }
+
+  /**
    * ================================================================
    *
    * Browser and Head Methods
@@ -214,6 +221,13 @@ export class BasePage {
       // eslint-disable-next-line security/detect-non-literal-regexp
       expectedTitle instanceof RegExp ? expectedTitle : new RegExp(expectedTitle)
     )
+  }
+
+  /**
+   * Get text content of first matching element
+   */
+  async getTextContent(selector: string): Promise<string | null> {
+    return await this._page.locator(selector).first().textContent()
   }
 
   /**
@@ -580,6 +594,13 @@ export class BasePage {
    */
   async expectElementVisible(selector: string): Promise<void> {
     await expect(this._page.locator(selector).first()).toBeVisible()
+  }
+
+  /**
+   * Verify element is hidden/not visible
+   */
+  async expectElementHidden(selector: string): Promise<void> {
+    await expect(this._page.locator(selector).first()).not.toBeVisible()
   }
 
   /**

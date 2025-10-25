@@ -100,6 +100,14 @@ export class Navigation extends LoadableScript {
     //this.toggleBtn.addEventListener('keyup', event => {
     //  if (event.key === 'Enter') this.toggleMenu()
     //})
+
+    // Handle Escape key to close menu
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && this.isMenuOpen) {
+        this.toggleMenu(false)
+      }
+    })
+
     window.addEventListener('resize', this.setTogglePosition)
 
     // Set up View Transitions navigation for all nav links
