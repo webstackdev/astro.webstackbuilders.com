@@ -34,24 +34,14 @@ const { pageTitle, path, description, image } = Astro.props
 
   <script>
     {/* Be careful adding script here. It runs before any script tags in components. */}
-    {/* Production: Sentry handles errors with replay, breadcrumbs, and remote tracking */}
-    {/* Development: Custom handlers log errors to console for debugging */}
     import { SentryBootstrap } from '@components/Scripts/sentry/client'
     import { PUBLIC_SENTRY_DSN } from 'astro:env/client'
     import { AppBootstrap } from '@components/Scripts/state/bootstrap'
-    import { addErrorEventListeners } from '@components/Scripts/errors/errorListeners'
 
     if (import.meta.env.PROD && PUBLIC_SENTRY_DSN) {
       SentryBootstrap.init()
     } else {
-      // Development: Use custom error handlers with console logging
-      try {
-        console.info('🔧 Sentry disabled in development mode')
-        addErrorEventListeners()
-      } catch (error: unknown) {
-        console.error('❌ Failed to initialize error listeners:', error)
-        throw new Error(error instanceof Error ? error.message : String(error))
-      }
+      console.info('🔧 Sentry disabled in development mode')
     }
     AppBootstrap.init()
   </script>

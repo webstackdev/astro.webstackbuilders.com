@@ -6,7 +6,7 @@ import type { SitemapItem } from '@astrojs/sitemap'
 const pagesData: Record<string, string[] | true> = {}
 
 /**
- * Serialize function for sitemap that also collects page data
+ * Serialize function for sitemap that also collects page data and outputs it for e2e testing
  */
 export function serializeSitemapItem(item: SitemapItem): SitemapItem | undefined {
   const urlObject = new URL(item.url)
@@ -50,7 +50,7 @@ export function serializeSitemapItem(item: SitemapItem): SitemapItem | undefined
 }
 
 /**
- * Write the collected pages data to .cache/pages.json
+ * Write the collected pages data to .cache/pages.json for e2e testing
  */
 export function writePagesJson(): void {
   const cacheDir = join(process.cwd(), '.cache')

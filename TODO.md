@@ -9,6 +9,43 @@ From the error output, the article page has:
 <h1>No accessibility or performance issues detected.</h1> - from debug/dev tool
 <h1>Settings</h1> - from debug/dev tool
 
+## E2E data-* attributes
+
+```html
+<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
+  Submit
+</button>
+<div class="modal" tabindex="-1" role="dialog" data-qa="modal">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Confirm</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Really submit?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary">Submit</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+```
+
+Playwright `getByTestId` uses `data-testid` as its selector. You can change it in config, but only one at a time.
+
+```html
+<button data-testid="directions">Itinéraire</button>
+```
+
+```typescript
+await page.getByTestId('directions').click()
+```
+
 ## @TODO: Use Confetti on CTA forms
 
 `canvas-confetti`

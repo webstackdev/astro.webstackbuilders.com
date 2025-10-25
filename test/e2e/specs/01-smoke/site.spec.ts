@@ -2,17 +2,20 @@
  * Site-wide Smoke Tests
  * Tests for site-level functionality (RSS, manifest, 404 pages)
  */
-import { test, expect } from '@test/e2e/helpers'
+import { BasePage, test, expect } from '@test/e2e/helpers'
 
 test.describe('Site-wide Features @smoke', () => {
-  test('@ready 404 page displays for invalid routes', async ({ page }) => {
-    await page.goto('/does-not-exist')
-
-    // Should show 404 content
-    await expect(page.locator('h1')).toContainText(/404|Not Found/i)
+  test('@ready 404 page displays for invalid routes', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    const response = await page.goto('/does-not-exist')
+    expect(response?.status()).toBe(404)
+    // Verify main content is visible
+    await page.expectMainElement()
+    await page.expectHeading()
   })
 
-  test('@ready RSS feed is accessible', async ({ page }) => {
+  test('@ready RSS feed is accessible', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     // RSS feed should be accessible and valid XML
     const response = await page.goto('/rss.xml')
     expect(response?.status()).toBe(200)
@@ -45,5 +48,20 @@ test.describe('Site-wide Features @smoke', () => {
     expect(manifest.start_url).toBeTruthy()
     expect(manifest.icons).toBeTruthy()
     expect(Array.isArray(manifest.icons)).toBe(true)
+  })
+
+  test('@ready robots.txt is accessible', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    // robots.txt should be accessible and contain directives
+    const response = await page.goto('/robots.txt')
+    expect(response?.status()).toBe(200)
+
+    const contentType = response?.headers()['content-type']
+    expect(contentType).toMatch(/text\/plain/)
+
+    // Get raw response text
+    const content = await response!.text()
+    expect(content).toContain('User-agent:')
+    expect(content).toContain('Sitemap:')
   })
 })
