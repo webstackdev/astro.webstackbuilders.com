@@ -183,7 +183,7 @@ test.describe('Mobile Navigation', () => {
     await page.wait(500)
 
     // Menu should be open
-    let hasExpandedClass = await playwrightPage.locator('#header').evaluate((el) => {
+    const hasExpandedClass = await playwrightPage.locator('#header').evaluate((el) => {
       return el.classList.contains('aria-expanded-true')
     })
     expect(hasExpandedClass).toBe(true)
@@ -263,20 +263,5 @@ test.describe('Mobile Navigation', () => {
       return el.classList.contains('aria-expanded-true')
     })
     expect(hasExpandedClassAfter).toBe(false)
-  })
-
-  test.skip('@wip mobile submenu expands correctly', async ({ page: _playwrightPage }) => {
-    // No submenus in current navigation
-    test.skip()
-  })
-
-  test.skip('@wip mobile menu animates smoothly', async ({ page: _playwrightPage }) => {
-    // Animation testing not critical for functional tests
-    test.skip()
-  })
-
-  test.skip('@wip mobile menu works on landscape orientation', async ({ page: _playwrightPage }) => {
-    // Covered by responsive viewport testing
-    test.skip()
   })
 })

@@ -73,11 +73,6 @@ test.describe('Desktop Navigation', () => {
     expect(menuAriaLabel).toBe('main navigation')
   })
 
-  test.skip('@wip hovering parent item shows submenu', async ({ page: _playwrightPage }) => {
-    // Navigation doesn't have submenus - this test is not applicable
-    test.skip()
-  })
-
   test('@ready navigation links have hover states', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
     await page.setViewport(1280, 720)

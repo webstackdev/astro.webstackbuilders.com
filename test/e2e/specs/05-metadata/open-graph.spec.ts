@@ -4,141 +4,123 @@
  * @see src/components/Head/
  */
 
-import { test, expect } from '@test/e2e/helpers'
-const REQUIRED_META_TAGS = ['description', 'og:title', 'og:description']
+import { BasePage, test, expect } from '@test/e2e/helpers'
+
+const REQUIRED_META_TAGS = ['og:title', 'og:description']
 
 test.describe('Open Graph Metadata', () => {
-  test.skip('@wip homepage has required OG tags', async ({ page }) => {
-    // Expected: Homepage should have all required Open Graph tags
-    await page.goto("/")
+  test('@ready homepage has required OG tags', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.goto('/')
 
     for (const tag of REQUIRED_META_TAGS) {
-      const meta = page.locator(`meta[property="${tag}"]`)
-      await expect(meta).toHaveCount(1)
-
-      const content = await meta.getAttribute('content')
+      await page.expectAttribute(`meta[property="${tag}"]`, 'content')
+      const content = await page.getAttribute(`meta[property="${tag}"]`, 'content')
       expect(content?.trim().length).toBeGreaterThan(0)
     }
   })
 
-  test.skip('@wip article pages have OG type article', async ({ page }) => {
-    // Expected: Article pages should have og:type="article"
-    await page.goto("/articles")
-    const firstArticle = page.locator('a[href*="/articles/"]').first()
-    await firstArticle.click()
+  test('@ready article pages have OG type article', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.goto('/articles')
+    await page.click('a[href*="/articles/"]')
     await page.waitForLoadState('networkidle')
 
-    const ogType = page.locator('meta[property="og:type"]')
-    const content = await ogType.getAttribute('content')
-
+    const content = await page.getAttribute('meta[property="og:type"]', 'content')
     expect(content).toBe('article')
   })
 
-  test.skip('@wip OG title matches page title', async ({ page }) => {
-    // Expected: og:title should match or be similar to <title>
-    await page.goto("/about")
+  test('@ready OG title matches page title', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.goto('/about')
 
-    const pageTitle = await page.title()
-    const ogTitle = page.locator('meta[property="og:title"]')
-    const ogTitleContent = await ogTitle.getAttribute('content')
+    const pageTitle = await page.getTitle()
+    const ogTitleContent = await page.getAttribute('meta[property="og:title"]', 'content')
 
     expect(ogTitleContent).toBeTruthy()
     // May not be exact match (page title might have site name suffix)
     expect(pageTitle).toContain(ogTitleContent || '')
   })
 
-  test.skip('@wip OG URL matches current page', async ({ page }) => {
-    // Expected: og:url should match the canonical URL
-    await page.goto("/about")
+  test('@ready OG URL matches current page', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.goto('/about')
 
-    const ogUrl = page.locator('meta[property="og:url"]')
-    const ogUrlContent = await ogUrl.getAttribute('content')
-
+    const ogUrlContent = await page.getAttribute('meta[property="og:url"]', 'content')
     expect(ogUrlContent).toContain('/about')
   })
 
-  test.skip('@wip OG image is valid URL', async ({ page }) => {
-    // Expected: og:image should be a full URL to an image
-    await page.goto("/")
+  test('@ready OG image is valid URL', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.goto('/')
 
-    const ogImage = page.locator('meta[property="og:image"]')
-    const imageUrl = await ogImage.getAttribute('content')
-
+    const imageUrl = await page.getAttribute('meta[property="og:image"]', 'content')
     expect(imageUrl).toMatch(/^https?:\/\//)
-    expect(imageUrl).toMatch(/\.(jpg|jpeg|png|webp|gif)$/i)
+    // Accept both static images and dynamic social card URLs
+    const isStaticImage = /\.(jpg|jpeg|png|webp|gif)$/i.test(imageUrl || '')
+    const isDynamicCard = /\/api\/social-card\?/.test(imageUrl || '')
+    expect(isStaticImage || isDynamicCard).toBe(true)
   })
 
-  test.skip('@wip OG image has dimensions', async ({ page }) => {
-    // Expected: Should have og:image:width and og:image:height
-    await page.goto("/")
+  test('@ready OG image has dimensions', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.goto('/')
 
-    const imageWidth = page.locator('meta[property="og:image:width"]')
-    const imageHeight = page.locator('meta[property="og:image:height"]')
-
-    const widthCount = await imageWidth.count()
-    const heightCount = await imageHeight.count()
+    const widthCount = await page.countElements('meta[property="og:image:width"]')
+    const heightCount = await page.countElements('meta[property="og:image:height"]')
 
     if (widthCount > 0) {
-      const width = await imageWidth.getAttribute('content')
+      const width = await page.getAttribute('meta[property="og:image:width"]', 'content')
       expect(parseInt(width || '0')).toBeGreaterThan(0)
     }
 
     if (heightCount > 0) {
-      const height = await imageHeight.getAttribute('content')
+      const height = await page.getAttribute('meta[property="og:image:height"]', 'content')
       expect(parseInt(height || '0')).toBeGreaterThan(0)
     }
   })
 
-  test.skip('@wip Twitter Card tags are present', async ({ page }) => {
-    // Expected: Should have twitter:card meta tags
-    await page.goto("/")
+  test('@ready Twitter Card tags are present', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.goto('/')
 
-    const twitterCard = page.locator('meta[name="twitter:card"]')
-    await expect(twitterCard).toHaveCount(1)
-
-    const cardType = await twitterCard.getAttribute('content')
+    await page.expectAttribute('meta[name="twitter:card"]', 'content')
+    const cardType = await page.getAttribute('meta[name="twitter:card"]', 'content')
     expect(['summary', 'summary_large_image']).toContain(cardType)
   })
 
-  test.skip('@wip Twitter title is present', async ({ page }) => {
-    // Expected: Should have twitter:title
-    await page.goto("/")
+  test('@ready Twitter title is present', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.goto('/')
 
-    const twitterTitle = page.locator('meta[name="twitter:title"]')
-    const content = await twitterTitle.getAttribute('content')
-
+    const content = await page.getAttribute('meta[name="twitter:title"]', 'content')
     expect(content?.trim().length).toBeGreaterThan(0)
   })
 
-  test.skip('@wip Twitter description is present', async ({ page }) => {
-    // Expected: Should have twitter:description
-    await page.goto("/")
+  test('@ready Twitter description is present', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.goto('/')
 
-    const twitterDesc = page.locator('meta[name="twitter:description"]')
-    const content = await twitterDesc.getAttribute('content')
-
+    const content = await page.getAttribute('meta[name="twitter:description"]', 'content')
     expect(content?.trim().length).toBeGreaterThan(0)
   })
 
-  test.skip('@wip Twitter image is present', async ({ page }) => {
-    // Expected: Should have twitter:image
-    await page.goto("/")
+  test('@ready Twitter image is present', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.goto('/')
 
-    const twitterImage = page.locator('meta[name="twitter:image"]')
-    const imageUrl = await twitterImage.getAttribute('content')
-
+    const imageUrl = await page.getAttribute('meta[name="twitter:image"]', 'content')
     expect(imageUrl).toMatch(/^https?:\/\//)
   })
 
-  test.skip('@wip all pages have unique OG descriptions', async ({ page }) => {
-    // Expected: Each page should have unique description
-    const pages = ["/", "/about", "/services"]
+  test('@ready all pages have unique OG descriptions', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    const pages = ['/', '/about', '/services']
     const descriptions = new Set()
 
     for (const url of pages) {
       await page.goto(url)
-      const ogDesc = page.locator('meta[property="og:description"]')
-      const content = await ogDesc.getAttribute('content')
+      const content = await page.getAttribute('meta[property="og:description"]', 'content')
       descriptions.add(content)
     }
 
@@ -146,41 +128,37 @@ test.describe('Open Graph Metadata', () => {
     expect(descriptions.size).toBeGreaterThanOrEqual(2)
   })
 
-  test.skip('@wip OG locale is set', async ({ page }) => {
-    // Expected: Should have og:locale for language
-    await page.goto("/")
+  test('@ready OG locale is set', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.goto('/')
 
-    const ogLocale = page.locator('meta[property="og:locale"]')
-    const count = await ogLocale.count()
+    const count = await page.countElements('meta[property="og:locale"]')
 
     if (count > 0) {
-      const locale = await ogLocale.getAttribute('content')
+      const locale = await page.getAttribute('meta[property="og:locale"]', 'content')
       expect(locale).toMatch(/^[a-z]{2}_[A-Z]{2}$/) // e.g., en_US
     }
   })
 
-  test.skip('@wip OG site name is set', async ({ page }) => {
-    // Expected: Should have og:site_name
-    await page.goto("/")
+  test('@ready OG site name is set', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.goto('/')
 
-    const ogSiteName = page.locator('meta[property="og:site_name"]')
-    const siteName = await ogSiteName.getAttribute('content')
-
+    const siteName = await page.getAttribute('meta[property="og:site_name"]', 'content')
     expect(siteName?.trim().length).toBeGreaterThan(0)
   })
 
-  test.skip('@wip article pages have article metadata', async ({ page }) => {
-    // Expected: Article pages should have article:published_time, etc.
-    await page.goto("/articles")
-    const firstArticle = page.locator('a[href*="/articles/"]').first()
-    await firstArticle.click()
+  test('@ready article pages have article metadata', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.goto('/articles')
+    await page.click('a[href*="/articles/"]')
     await page.waitForLoadState('networkidle')
 
-    const publishedTime = page.locator('meta[property="article:published_time"]')
-    const author = page.locator('meta[property="article:author"]')
+    const publishedTimeCount = await page.countElements('meta[property="article:published_time"]')
+    const authorCount = await page.countElements('meta[property="article:author"]')
 
     // At least one should be present
-    const hasArticleMeta = (await publishedTime.count()) > 0 || (await author.count()) > 0
+    const hasArticleMeta = publishedTimeCount > 0 || authorCount > 0
     expect(hasArticleMeta).toBe(true)
   })
 })

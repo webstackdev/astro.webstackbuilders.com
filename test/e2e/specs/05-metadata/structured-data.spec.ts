@@ -4,14 +4,16 @@
  * @see src/components/Head/
  */
 
-import { test, expect } from '@test/e2e/helpers'
+import { BasePage, test, expect } from '@test/e2e/helpers'
 
 test.describe('Structured Data', () => {
-  test.skip('@wip homepage has Organization schema', async ({ page }) => {
-    // Expected: Homepage should have Organization JSON-LD
-    await page.goto("/")
+  test('@ready homepage has Organization schema', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.goto('/')
 
-    const jsonLdScripts = await page.locator('script[type="application/ld+json"]').allTextContents()
+    const jsonLdScripts = await playwrightPage
+      .locator('script[type="application/ld+json"]')
+      .allTextContents()
     const hasOrgSchema = jsonLdScripts.some((json) => {
       try {
         const data = JSON.parse(json)
@@ -24,11 +26,13 @@ test.describe('Structured Data', () => {
     expect(hasOrgSchema).toBe(true)
   })
 
-  test.skip('@wip Organization schema has required fields', async ({ page }) => {
-    // Expected: Organization should have name, url, logo
-    await page.goto("/")
+  test('@ready Organization schema has required fields', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.goto('/')
 
-    const jsonLdScripts = await page.locator('script[type="application/ld+json"]').allTextContents()
+    const jsonLdScripts = await playwrightPage
+      .locator('script[type="application/ld+json"]')
+      .allTextContents()
     const orgSchema = jsonLdScripts
       .map((json) => {
         try {
@@ -44,14 +48,15 @@ test.describe('Structured Data', () => {
     expect(orgSchema?.url).toBeTruthy()
   })
 
-  test.skip('@wip article pages have Article schema', async ({ page }) => {
-    // Expected: Articles should have Article or BlogPosting schema
-    await page.goto("/articles")
-    const firstArticle = page.locator('a[href*="/articles/"]').first()
-    await firstArticle.click()
+  test('@ready article pages have Article schema', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.goto('/articles')
+    await page.click('a[href*="/articles/"]')
     await page.waitForLoadState('networkidle')
 
-    const jsonLdScripts = await page.locator('script[type="application/ld+json"]').allTextContents()
+    const jsonLdScripts = await playwrightPage
+      .locator('script[type="application/ld+json"]')
+      .allTextContents()
     const hasArticleSchema = jsonLdScripts.some((json) => {
       try {
         const data = JSON.parse(json)
@@ -68,14 +73,15 @@ test.describe('Structured Data', () => {
     expect(hasArticleSchema).toBe(true)
   })
 
-  test.skip('@wip Article schema has required fields', async ({ page }) => {
-    // Expected: Article should have headline, author, datePublished
-    await page.goto("/articles")
-    const firstArticle = page.locator('a[href*="/articles/"]').first()
-    await firstArticle.click()
+  test('@ready Article schema has required fields', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.goto('/articles')
+    await page.click('a[href*="/articles/"]')
     await page.waitForLoadState('networkidle')
 
-    const jsonLdScripts = await page.locator('script[type="application/ld+json"]').allTextContents()
+    const jsonLdScripts = await playwrightPage
+      .locator('script[type="application/ld+json"]')
+      .allTextContents()
     const articleSchema = jsonLdScripts
       .map((json) => {
         try {
@@ -91,11 +97,13 @@ test.describe('Structured Data', () => {
     expect(articleSchema?.datePublished).toBeTruthy()
   })
 
-  test.skip('@wip homepage has WebSite schema', async ({ page }) => {
-    // Expected: Should have WebSite schema with search action
-    await page.goto("/")
+  test('@ready homepage has WebSite schema', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.goto('/')
 
-    const jsonLdScripts = await page.locator('script[type="application/ld+json"]').allTextContents()
+    const jsonLdScripts = await playwrightPage
+      .locator('script[type="application/ld+json"]')
+      .allTextContents()
     const hasWebSiteSchema = jsonLdScripts.some((json) => {
       try {
         const data = JSON.parse(json)
@@ -108,14 +116,15 @@ test.describe('Structured Data', () => {
     expect(hasWebSiteSchema).toBe(true)
   })
 
-  test.skip('@wip BreadcrumbList schema on deep pages', async ({ page }) => {
-    // Expected: Article pages should have BreadcrumbList
-    await page.goto("/articles")
-    const firstArticle = page.locator('a[href*="/articles/"]').first()
-    await firstArticle.click()
+  test('@ready BreadcrumbList schema on deep pages', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.goto('/articles')
+    await page.click('a[href*="/articles/"]')
     await page.waitForLoadState('networkidle')
 
-    const jsonLdScripts = await page.locator('script[type="application/ld+json"]').allTextContents()
+    const jsonLdScripts = await playwrightPage
+      .locator('script[type="application/ld+json"]')
+      .allTextContents()
     const hasBreadcrumbSchema = jsonLdScripts.some((json) => {
       try {
         const data = JSON.parse(json)
@@ -128,11 +137,13 @@ test.describe('Structured Data', () => {
     expect(hasBreadcrumbSchema).toBe(true)
   })
 
-  test.skip('@wip all schemas have @context', async ({ page }) => {
-    // Expected: All JSON-LD should have @context
-    await page.goto("/")
+  test('@ready all schemas have @context', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.goto('/')
 
-    const jsonLdScripts = await page.locator('script[type="application/ld+json"]').allTextContents()
+    const jsonLdScripts = await playwrightPage
+      .locator('script[type="application/ld+json"]')
+      .allTextContents()
 
     for (const json of jsonLdScripts) {
       try {
@@ -145,30 +156,34 @@ test.describe('Structured Data', () => {
     }
   })
 
-  test.skip('@wip schemas are valid JSON', async ({ page }) => {
-    // Expected: All JSON-LD should parse without errors
-    await page.goto("/")
+  test('@ready schemas are valid JSON', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.goto('/')
 
-    const jsonLdScripts = await page.locator('script[type="application/ld+json"]').allTextContents()
+    const jsonLdScripts = await playwrightPage
+      .locator('script[type="application/ld+json"]')
+      .allTextContents()
 
     for (const json of jsonLdScripts) {
       expect(() => JSON.parse(json)).not.toThrow()
     }
   })
 
-  test.skip('@wip service pages have Service schema', async ({ page }) => {
-    // Expected: Service pages should have Service or Product schema
-    await page.goto("/services")
-    const firstService = page.locator('a[href*="/services/"]').first()
+  test('@ready service pages have Service schema', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.goto('/services')
 
-    if ((await firstService.count()) === 0) {
+    const firstServiceCount = await page.countElements('a[href*="/services/"]')
+    if (firstServiceCount === 0) {
       test.skip()
     }
 
-    await firstService.click()
+    await page.click('a[href*="/services/"]')
     await page.waitForLoadState('networkidle')
 
-    const jsonLdScripts = await page.locator('script[type="application/ld+json"]').allTextContents()
+    const jsonLdScripts = await playwrightPage
+      .locator('script[type="application/ld+json"]')
+      .allTextContents()
     const hasServiceSchema = jsonLdScripts.some((json) => {
       try {
         const data = JSON.parse(json)
@@ -181,11 +196,13 @@ test.describe('Structured Data', () => {
     expect(hasServiceSchema).toBe(true)
   })
 
-  test.skip('@wip contact page has ContactPage schema', async ({ page }) => {
-    // Expected: Contact page may have ContactPage schema
-    await page.goto("/contact")
+  test('@ready contact page has ContactPage schema', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.goto('/contact')
 
-    const jsonLdScripts = await page.locator('script[type="application/ld+json"]').allTextContents()
+    const jsonLdScripts = await playwrightPage
+      .locator('script[type="application/ld+json"]')
+      .allTextContents()
     const hasContactSchema = jsonLdScripts.some((json) => {
       try {
         const data = JSON.parse(json)
