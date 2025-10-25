@@ -3,18 +3,21 @@
  * Returns the web app manifest for progressive web app functionality
  */
 import company from '@content/company'
+import themes from '@content/themes.json'
 
 /**
  * GET endpoint for the web app manifest
  * @returns Response with manifest JSON
  */
 export function GET() {
+  const defaultTheme = themes.default
   /* eslint-disable camelcase */
   const manifest = {
     lang: 'en_US',
     dir: 'ltr',
     name: company.name,
     short_name: company.name,
+    description: company.description,
     icons: [
       /** Mobile */
       {
@@ -48,7 +51,7 @@ export function GET() {
      * the PWA. Sets color on elements like the status bar on mobile devices, or the
      * title bar of a standalone app window on desktop operating systems.
      */
-    theme_color: '#00386d',
+    theme_color: defaultTheme.colors.backgroundOffset,
     /**
      * Initial background color for the web application. Appears in the application
      * window before the application's stylesheets have loaded, providing a smooth

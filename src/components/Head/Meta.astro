@@ -1,9 +1,10 @@
 ---
 import company from '@content/company'
 import themes from '@content/themes.json'
-import { absoluteUrl, pageTitle as pageTitleFormatter } from '@lib/helpers'
+import { absoluteUrl } from '@lib/helpers'
 import Seo from './Seo.astro'
 import Social from './Social.astro'
+import StructuredData from './StructuredData.astro'
 
 export interface Props {
   pageTitle: string
@@ -16,6 +17,7 @@ export interface Props {
   author?: string
   section?: string
   tags?: string[]
+  noindex?: boolean
 }
 
 const {
@@ -29,18 +31,18 @@ const {
   author,
   section,
   tags,
+  noindex = false,
 } = Astro.props
 
 const defaultTheme = themes.default
 const slug = path.replace(/^\//, '').replace(/\/$/, '') || 'home'
 ---
 
-<title>{pageTitleFormatter(pageTitle, Astro.site?.href ?? `https://webstackbuilders.com`)}</title>
-<meta charset="UTF-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="description" content={description || company.description} />
 <meta name="author" content={company.author.name} />
+<meta name="robots" content={noindex ? 'noindex, nofollow' : 'index, follow'} />
 <Seo
   path={path}
   {...contentType && { contentType }}
@@ -56,6 +58,17 @@ const slug = path.replace(/^\//, '').replace(/\/$/, '') || 'home'
   description={description || company.description}
   slug={slug}
   {...image && { image }}
+/>
+{/* JSON-LD Structured Data for search engines */}
+<StructuredData
+  path={path}
+  pageTitle={pageTitle}
+  {...description && { description }}
+  {...image && { image }}
+  {...contentType && { contentType }}
+  {...publishDate && { publishDate }}
+  {...modifiedDate && { modifiedDate }}
+  {...author && { author }}
 />
 {/* Used to sets the color of the surrounding user interface for e.g. the */}
 {/* browser title bar. It is updated by script when the theme changes.    */}

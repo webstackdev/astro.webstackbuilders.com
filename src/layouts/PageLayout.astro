@@ -7,6 +7,8 @@ export interface Props {
   path: string
   /** Optional page subtitle */
   subtitle?: string
+  /** Optional page description for meta tags */
+  description?: string
   /** Schema.org itemtype for structured data */
   schemaType?: string
   /** Article metadata for blog posts */
@@ -19,10 +21,17 @@ export interface Props {
   }
 }
 
-const { pageTitle, path, subtitle, schemaType = 'http://schema.org/WebPage', meta } = Astro.props
+const {
+  pageTitle,
+  path,
+  subtitle,
+  description,
+  schemaType = 'http://schema.org/WebPage',
+  meta,
+} = Astro.props
 ---
 
-<BaseLayout pageTitle={pageTitle} path={path}>
+<BaseLayout pageTitle={pageTitle} path={path} {...description && { description }}>
   <article class="page-content" itemscope itemtype={schemaType} aria-labelledby="page-title">
     <header class="page-content__header">
       <h1 id="page-title" class="page-content__title" itemprop="headline">
