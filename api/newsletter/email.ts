@@ -202,6 +202,14 @@ export async function sendConfirmationEmail(
   token: string,
   firstName?: string
 ): Promise<void> {
+  // Skip actual email sending in dev/test environments
+  const isDevOrTest = process.env['NODE_ENV'] === 'development' || process.env['NODE_ENV'] === 'test' || process.env['CI'] === 'true'
+
+  if (isDevOrTest) {
+    console.log('[DEV/TEST MODE] Newsletter confirmation email would be sent:', { email, token })
+    return
+  }
+
   const resend = getResendClient()
   const siteUrl = getSiteUrl()
   const confirmUrl = `${siteUrl}/newsletter/confirm/${token}`
@@ -247,6 +255,14 @@ export async function sendWelcomeEmail(
   email: string,
   firstName?: string
 ): Promise<void> {
+  // Skip actual email sending in dev/test environments
+  const isDevOrTest = process.env['NODE_ENV'] === 'development' || process.env['NODE_ENV'] === 'test' || process.env['CI'] === 'true'
+
+  if (isDevOrTest) {
+    console.log('[DEV/TEST MODE] Newsletter welcome email would be sent:', { email })
+    return
+  }
+
   const resend = getResendClient()
   const greeting = firstName ? `Hi ${firstName}` : 'Hello'
 

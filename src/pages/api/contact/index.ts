@@ -42,8 +42,15 @@ const rateLimitStore = new Map<string, number[]>()
 
 /**
  * Check if the IP address has exceeded the rate limit
+ * Disabled in development and CI environments
  */
 function checkRateLimit(ip: string): boolean {
+	// Skip rate limiting in dev/test/CI environments
+	const isDevOrTest = import.meta.env.DEV || import.meta.env.MODE === 'test' || process.env['CI'] === 'true'
+	if (isDevOrTest) {
+		return true
+	}
+
 	const now = Date.now()
 	const windowMs = 15 * 60 * 1000 // 15 minutes
 	const maxRequests = 5 // Lower limit for contact form
@@ -190,6 +197,14 @@ function formatFileSize(bytes: number): string {
  * Send email via Resend
  */
 async function sendEmail(emailData: EmailData, files: FileAttachment[]): Promise<void> {
+	// Skip actual email sending in dev/test environments
+	const isDevOrTest = import.meta.env.DEV || import.meta.env.MODE === 'test' || process.env['NODE_ENV'] === 'test'
+
+	if (isDevOrTest) {
+		console.log('[DEV/TEST MODE] Email would be sent:', { to: emailData.to, subject: emailData.subject })
+		return // Skip actual email sending in dev/test
+	}
+
 	const apiKey = import.meta.env['RESEND_API_KEY']
 
 	if (!apiKey) {

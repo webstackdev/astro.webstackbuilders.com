@@ -45,8 +45,15 @@ const rateLimitStore = new Map<string, number[]>()
 
 /**
  * Check if the IP address has exceeded the rate limit
+ * Disabled in development and CI environments
  */
 function checkRateLimit(ip: string): boolean {
+  // Skip rate limiting in dev/test/CI environments
+  const isDevOrTest = import.meta.env.DEV || import.meta.env.MODE === 'test' || process.env['CI'] === 'true'
+  if (isDevOrTest) {
+    return true
+  }
+
   const now = Date.now()
   const windowMs = 15 * 60 * 1000 // 15 minutes
   const maxRequests = 10
@@ -65,11 +72,16 @@ function checkRateLimit(ip: string): boolean {
 }
 
 /**
- * Validate email address format
+ * Validate email address format and length
  */
 function validateEmail(email: string): string {
   if (!email) {
     throw new Error('Email address is required.')
+  }
+
+  // RFC 5321 specifies max email length of 254 characters
+  if (email.length > 254) {
+    throw new Error('Email address is too long')
   }
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -86,6 +98,24 @@ function validateEmail(email: string): string {
 export async function subscribeToConvertKit(
   data: NewsletterFormData
 ): Promise<ConvertKitResponse> {
+  // Skip actual ConvertKit API call in dev/test environments
+  const isDevOrTest = import.meta.env.DEV || import.meta.env.MODE === 'test' || process.env['NODE_ENV'] === 'test'
+
+  if (isDevOrTest) {
+    console.log('[DEV/TEST MODE] Newsletter subscription would be created:', { email: data.email })
+    // Return mock success response
+    return {
+      subscriber: {
+        id: 999999,
+        state: 'active',
+        email_address: data.email,
+        first_name: data.firstName || null,
+        created_at: new Date().toISOString(),
+        fields: {},
+      },
+    }
+  }
+
   const apiKey = import.meta.env['CONVERTKIT_API_KEY']
 
   if (!apiKey) {

@@ -37,6 +37,47 @@ Playwright `getByTestId` uses `data-testid` as its selector. You can change it i
 await page.getByTestId('directions').click()
 ```
 
+## Social Media Preview Cards
+
+Looking at the social-card endpoint implementation, it's designed to work with third-party screenshot services, not the social networks themselves.
+
+Here's how it works:
+
+The Two Formats
+HTML format (format=html or default): Returns a full HTML page with inline CSS styled as a 1200x630px card - the standard Open Graph image dimensions.
+
+OG format (format=og): Returns JSON with Open Graph meta tags, where the og:image URL points back to the HTML version of the card.
+
+How Social Networks Actually Work
+Social networks like Twitter, Facebook, LinkedIn, etc. don't screenshot HTML pages. They expect:
+
+- Direct image URLs (PNG, JPEG, etc.)
+- Standard dimensions (1200x630px for most platforms)
+
+The Intended Workflow
+
+This endpoint is designed to integrate with screenshot services like:
+
+- Puppeteer or Playwright - Run your own screenshot service
+- Vercel OG Image Generation - Vercel's built-in service
+- Cloudinary - Can fetch and screenshot URLs
+- ScreenshotOne or ApiFlash - Dedicated screenshot APIs
+- Satori - Convert HTML/CSS to SVG/PNG
+
+Current Limitation
+
+As implemented, this endpoint would need an additional step to be useful for social sharing:
+
+Your endpoint → Screenshot service → Image file → Social networks
+
+Better Approaches
+
+For a production Astro site, you'd typically:
+
+- Use @vercel/og or Satori to generate actual images server-side
+- Pre-generate images at build time for static content
+- Use a screenshot service that can be called from your endpoint to return actual images
+
 ## @TODO: Use Confetti on CTA forms
 
 `canvas-confetti`
