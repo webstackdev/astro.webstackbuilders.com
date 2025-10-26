@@ -6,6 +6,12 @@
 import { BasePage, test, expect } from '@test/e2e/helpers'
 
 test.describe('ARIA and Screen Readers', () => {
+  /**
+   * Axe checks for a main landmark in a few ways: it verifies that there is
+   * exactly one main landmark, that the main landmark is not nested inside
+   * another landmark, and that all page content is contained within a landmark
+   * region.
+   */
   test('@ready page has main landmark', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
     await page.goto('/')
@@ -13,6 +19,13 @@ test.describe('ARIA and Screen Readers', () => {
     await page.expectMainElement()
   })
 
+  /**
+   * Axe checks for navigation landmarks by using rules like region to ensure all content
+   * is inside a landmark, and landmark-one-main to verify that there is only one main
+   * landmark for the page's primary content. It also checks for duplicate landmarks
+   * (like a banner landmark) and ensures the main landmark is at the top level and not
+   * nested inside other landmarks.
+   */
   test('@ready page has navigation landmark', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
     await page.goto('/')
@@ -22,6 +35,12 @@ test.describe('ARIA and Screen Readers', () => {
     expect(count).toBeGreaterThan(0)
   })
 
+  /**
+   * Axe checks that buttons have accessible labels, specifically through the button-name
+   * rule which is a critical accessibility issue. This rule ensures that all buttons have
+   * a discernible name so that screen reader users can understand their purpose, even if
+   * the button is an icon without visible text.
+  */
   test('@ready buttons have accessible labels', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
     await page.goto('/')
@@ -40,6 +59,13 @@ test.describe('ARIA and Screen Readers', () => {
     }
   })
 
+  /**
+   * Axe checks that links have accessible labels and sufficient, discernible text.
+   * Its link-name rule ensures that all links, including those with images, have an
+   * accessible name that screen readers can use to describe the link's purpose. This
+   * includes checking for things like empty links or links that are unclear to
+   * assistive technologies.
+   */
   test('@ready links have meaningful text', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
     await page.goto('/')
@@ -64,6 +90,9 @@ test.describe('ARIA and Screen Readers', () => {
     }
   })
 
+  /**
+   * Axe automatically checks that images have alt text and flags missing alt text
+   */
   test('@ready images have alt text', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
     await page.goto('/')
@@ -80,6 +109,9 @@ test.describe('ARIA and Screen Readers', () => {
     }
   })
 
+  /**
+   * Axe checks that form inputs have labels
+   */
   test('@ready form inputs have labels', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
     await page.goto('/contact')
@@ -104,6 +136,18 @@ test.describe('ARIA and Screen Readers', () => {
     }
   })
 
+  /**
+   * Axe does not have a rule that checks for exactly one <h1> per page, and it explicitly
+   * avoids flagging multiple <h1> elements as a violation. The developers have determined
+   * that there are valid use cases for having multiple <h1> headings on a single page
+   * like modals and iframes. Axe does have a rule, page-has-heading-one, that verifies
+   * a page contains at least one <h1> element. This helps ensure that screen reader users
+   * can quickly navigate to the page's main content. Axe checks that heading levels are
+   * not skipped (e.g., jumping from an <h1> directly to an <h3>). This ensures a logical
+   * and hierarchical document structure for assistive technology users. Axe will report
+   * an issue if a heading element (<h1> through <h6>) is empty or hidden from assistive
+   * technologies.
+   */
   test('@ready page has exactly one h1', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
     await page.goto('/')
@@ -115,6 +159,12 @@ test.describe('ARIA and Screen Readers', () => {
     expect(h1Text?.trim().length).toBeGreaterThan(0)
   })
 
+  /**
+   * Axe checks that required fields are marked, but only if they are programmatically
+   * identified with the aria-required="true" attribute. It does not automatically check
+   * for visual indicators like asterisks or the word "required" unless they are also
+   * programmatically associated with the field.
+   */
   test('@ready required fields are marked', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
     await page.goto('/contact')
@@ -126,6 +176,11 @@ test.describe('ARIA and Screen Readers', () => {
     expect(isRequired !== null || ariaRequired === 'true').toBe(true)
   })
 
+  /**
+   * Axe checks that lists use proper markup. It enforces several rules to ensure lists
+   * are structured correctly and semantically, which helps assistive technologies like
+   * screen readers interpret them properly.
+ */
   test('@ready lists use proper markup', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
     await page.goto('/')

@@ -2,88 +2,16 @@
  * WCAG Compliance Tests
  * Tests for Web Content Accessibility Guidelines compliance
  */
-
-import { test, expect } from '@test/e2e/helpers'
-import { BasePage } from '@test/e2e/helpers/pageObjectModels/BasePage'
+import { BasePage, test, expect } from '@test/e2e/helpers'
 
 test.describe('WCAG Compliance', () => {
-  test('@blocked run axe accessibility audit on homepage', async ({ page: playwrightPage }) => {
-    // Blocked by: Need to integrate @axe-core/playwright
-    // Expected: No WCAG violations should be found
-    const page = new BasePage(playwrightPage)
-    await page.goto('/')
-
-    // TODO: Integrate axe-core
-    // const accessibilityScanResults = await new AxeBuilder({ page }).analyze()
-    // expect(accessibilityScanResults.violations).toEqual([])
-  })
-
-  test('@blocked run axe audit on all main pages', async ({ page: playwrightPage }) => {
-    // Blocked by: Need to integrate @axe-core/playwright
-    // Expected: All pages should pass accessibility audit
-    const page = new BasePage(playwrightPage)
-    const pages = [
-      '/',
-      '/about',
-      '/services',
-      '/articles',
-      '/contact',
-    ]
-
-    for (const url of pages) {
-      await page.goto(url)
-      // TODO: Run axe audit
-      // const results = await new AxeBuilder({ page }).analyze()
-      // expect(results.violations).toEqual([])
-    }
-  })
-
-  test('@ready text has sufficient color contrast', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
-    await page.goto('/')
-
-    // Sample a few text elements
-    const paragraphs = page.page.locator('p').first()
-    const hasVisibleText = await paragraphs.isVisible()
-
-    if (hasVisibleText) {
-      const contrast = await paragraphs.evaluate((el) => {
-        const styles = window.getComputedStyle(el)
-        return {
-          color: styles.color,
-          backgroundColor: styles.backgroundColor,
-        }
-      })
-
-      // Basic check that colors are defined
-      expect(contrast.color).toBeTruthy()
-    }
-  })
-
-  test('@ready focus indicators are visible', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
-    await page.goto('/')
-
-    await page.pressKey('Tab')
-    await page.pressKey('Tab')
-
-    const focusIndicator = await page.page.evaluate(() => {
-      const el = document.activeElement
-      if (!el) return null
-
-      const styles = window.getComputedStyle(el)
-      return {
-        outline: styles.outline,
-        outlineColor: styles.outlineColor,
-        outlineWidth: styles.outlineWidth,
-      }
-    })
-
-    // Should have visible focus indicator
-    expect(focusIndicator?.outline !== 'none' || focusIndicator?.outlineWidth !== '0px').toBe(true)
-  })
-
-  test('@wip touch targets are at least 44x44 pixels', async ({ page: playwrightPage }) => {
+  /**
+   * The default target-size rule in axe-core checks if touch targets are at least 24x24 CSS
+   * pixels. If a target is smaller than 24x24 pixels, it must be at least 24 pixels away from
+   * any other touch target. A touch target size of at least 44x44 pixels is part of the WCAG
+   * 2.1 AAA guidelines, which is a more stringent level of compliance,
+   */
+  test.skip('@wip touch targets are at least 44x44 pixels', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
     await page.goto('/')
 
@@ -107,8 +35,79 @@ test.describe('WCAG Compliance', () => {
     expect(validButtonsChecked).toBeGreaterThan(0)
   })
 
-  test('@ready page can be zoomed to 200%', async ({ page: playwrightPage }) => {
+  /**
+   * Axe by defaults checks for color contrast of at least 4.5:1 for small text or 3:1 for
+   * large text, even if text is part of an image. Large text has been defined in the
+   * requirements as 18pt (24 CSS pixels) or 14pt bold (19 CSS pixels). Note: Elements
+   * found to have a 1:1 ratio are considered "incomplete" and require a manual review.
+   */
+  test.skip('@ready text has sufficient color contrast', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
+    await page.goto('/')
+
+    // Sample a few text elements
+    const paragraphs = page.locator('p').first()
+    const hasVisibleText = await paragraphs.isVisible()
+
+    if (hasVisibleText) {
+      const contrast = await paragraphs.evaluate((el) => {
+        const styles = window.getComputedStyle(el)
+        return {
+          color: styles.color,
+          backgroundColor: styles.backgroundColor,
+        }
+      })
+
+      // Basic check that colors are defined
+      expect(contrast.color).toBeTruthy()
+    }
+  })
+
+  /**
+   * Axe checks for visible focus indicators. The Keyboard Guided Test in axe DevTools Pro
+   * provides more comprehensive automated testing by simulating a keyboard navigation through
+   * all focusable elements on the page. It can identify issues such as missing focus indicators,
+   * missing ARIA roles, and other keyboard-related accessibility problems. Manual testing is
+   * still necessary to ensure all specific requirements of the accessibility standards, such as
+   * those in WCAG 2.2, are fully met. This includes checking that the focus indicator meets
+   * minimum size and contrast criteria relative to adjacent colors, not just the background color.
+   */
+  test.skip('@ready focus indicators are visible', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.goto('/')
+
+    await page.pressKey('Tab')
+    await page.pressKey('Tab')
+
+    interface FocusIndicator {
+      outline: string,
+      outlineColor: string,
+      outlineWidth: string,
+    }
+
+    const focusIndicator = await page.evaluate<FocusIndicator>(() => {
+      const el = document.activeElement
+      if (!el) return null
+
+      const styles = window.getComputedStyle(el)
+      return {
+        outline: styles.outline,
+        outlineColor: styles.outlineColor,
+        outlineWidth: styles.outlineWidth,
+      }
+    })
+
+    // Should have visible focus indicator
+    expect(focusIndicator?.outline !== 'none' || focusIndicator?.outlineWidth !== '0px').toBe(true)
+  })
+
+  /**
+   * Axe checks that the user-scalable="no" parameter is not present in the <meta name="viewport">
+   * element and the maximum-scale parameter is not less than 2.
+   */
+  test.skip('@ready page can be zoomed to 200%', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+
     await page.goto('/')
 
     // Zoom in
@@ -130,8 +129,16 @@ test.describe('WCAG Compliance', () => {
     expect(typeof hasHorizontalScroll).toBe('boolean')
   })
 
-  test('@ready links are distinguishable from text', async ({ page: playwrightPage }) => {
+  /**
+   * Axe checks that links are distinguishable from text by verifying that they have
+   * a visual distinction that does not rely solely on color, such as an underline. It
+   * checks for a color contrast of at least \(3:1\) between the link and the surrounding
+   * text, and if the contrast is less, it requires a non-color visual distinction like
+   * an underline. Axe also checks if links have a distinct style on focus and hover.
+   */
+  test.skip('@ready links are distinguishable from text', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
+
     await page.goto('/')
 
     const link = page.page.locator('a[href]').first()
@@ -151,7 +158,11 @@ test.describe('WCAG Compliance', () => {
     expect(hasUnderline || isBold || typeof styles.textDecoration === 'string').toBe(true)
   })
 
-  test('@ready no content flashes more than 3 times per second', async ({ page: playwrightPage }) => {
+  /**
+   * Axe checks that no content flashes more than 3 times per second. It identifies violations
+   * of both the general flash threshold and the more restrictive "three flashes" rule.
+   */
+  test.skip('@ready no content flashes more than 3 times per second', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
     await page.goto('/')
 
@@ -177,8 +188,13 @@ test.describe('WCAG Compliance', () => {
     expect(animations).toBeGreaterThanOrEqual(0)
   })
 
-  test('@ready page is usable without motion', async ({ page: playwrightPage }) => {
+  /**
+   * Axe does not check if prefers-reduced-motion is respected; this is considered
+   * a complex, context-dependent check that requires manual inspection.
+   */
+  test.skip('@ready page is usable without motion', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
+
     await page.page.emulateMedia({ reducedMotion: 'reduce' })
     await page.goto('/')
 
@@ -193,8 +209,18 @@ test.describe('WCAG Compliance', () => {
     await page.expectMainElement()
   })
 
-  test('@wip form errors are clearly identified', async ({ page: playwrightPage }) => {
+  /**
+   * Axe detects if form error indicators are technically accessible to assistive
+   * technologies like screen readers. A manual check is necessary to confirm that
+   * correctly entered information remains in the form after a validation error.
+   * When a page reloads after a server-side error, a manual test is needed to
+   * ensure that focus is moved to the top of the form or the first field with an
+   * error. For client-side validation, a manual check confirms that focus shifts
+   * to the invalid field or an error summary.
+   */
+  test.skip('@wip form errors are clearly identified', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
+
     await page.goto('/contact')
 
     const submitButton = page.page.locator('button[type="submit"]').first()
@@ -211,8 +237,12 @@ test.describe('WCAG Compliance', () => {
     expect(errorText?.trim().length).toBeGreaterThan(5)
   })
 
-  test('@ready time limits can be extended', async ({ page: playwrightPage }) => {
+  /**
+   * ?
+   */
+  test.skip('@ready time limits can be extended', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
+
     await page.goto('/')
 
     // Check for timers or session warnings

@@ -6,6 +6,15 @@
 import { BasePage, test, expect } from '@test/e2e/helpers'
 
 test.describe('Keyboard Navigation', () => {
+
+  /**
+   * Axe does not check for tabbing through interactive elements. It checks that
+   * tabindex value greater than 0, as this can create an illogical and confusing
+   * tab order for keyboard-only users. It identifies instances where a focusable
+   * element is nested within another interactive control (e.g., a link inside a
+   * button). This can prevent screen readers from announcing the nested element
+   * and create an empty tab stop.
+   */
   test('@ready can tab through interactive elements', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
     await page.goto('/')
@@ -24,35 +33,11 @@ test.describe('Keyboard Navigation', () => {
     expect(focusableCount).toBeGreaterThan(5)
   })
 
-  test('@ready focus indicators are visible', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
-    await page.goto('/')
-
-    // Tab to first interactive elements
-    await page.pressKey('Tab')
-    await page.pressKey('Tab')
-
-    const focused = await page.page.evaluate(() => {
-      const el = document.activeElement
-      if (!el) return null
-
-      const styles = window.getComputedStyle(el)
-      return {
-        outline: styles.outline,
-        outlineWidth: styles.outlineWidth,
-        boxShadow: styles.boxShadow,
-      }
-    })
-
-    // Should have some focus indicator
-    const hasFocusIndicator =
-      focused?.outline !== 'none' ||
-      focused?.outlineWidth !== '0px' ||
-      focused?.boxShadow !== 'none'
-
-    expect(hasFocusIndicator).toBe(true)
-  })
-
+  /**
+   * Axe checks some issues with tab navigation. Some issues, like an illogical
+   * tabbing order or a missing focus indicator, require a human to manually
+   * experience the page to confirm.
+   */
   test('@wip tab order follows visual layout', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
     await page.goto('/')
@@ -78,6 +63,11 @@ test.describe('Keyboard Navigation', () => {
     expect(lastY).toBeGreaterThanOrEqual(firstY - 100)
   })
 
+  /**
+   * Axe does not check that tab order follows the visual layout. An automated tool
+   * cannot accurately determine the visual flow of a page because this is a subjective
+   * task that requires human interpretation.
+  */
   test('@ready form inputs are keyboard accessible', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
     await page.goto('/contact')

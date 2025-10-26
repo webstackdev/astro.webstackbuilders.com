@@ -6,10 +6,12 @@ import {
   type BrowserContext,
   type ConsoleMessage,
   type JSHandle,
+  type Locator,
   type Page,
   type Response,
-  expect
+  expect,
 } from '@playwright/test'
+import { type PageFunction } from 'playwright-core/types/struct.d.ts'
 import { navigationItems } from '@components/Navigation/server'
 import { clearConsentCookies } from '@test/e2e/helpers'
 
@@ -46,6 +48,28 @@ export class BasePage {
       timeout: 5000,
       waitUntil: 'domcontentloaded',
     })
+  }
+
+  /**
+   * Evaluate JS script in the browser
+   */
+  async evaluate<R>(
+    pageFunction: PageFunction<void, R>,
+    arg?: unknown
+  ): Promise<R> {
+    return await this._page.evaluate(pageFunction, arg)
+  }
+
+  /**
+   * Check if element is visible
+   */
+  locator(selector: string, options?: {
+    has?: Locator;
+    hasNot?: Locator;
+    hasNotText?: string | RegExp;
+    hasText?: string | RegExp;
+}): Locator {
+    return this._page.locator(selector, options)
   }
 
   /**
