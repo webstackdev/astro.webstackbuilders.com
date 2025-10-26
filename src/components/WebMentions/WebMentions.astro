@@ -38,19 +38,19 @@ const hasInteractions = likes.length > 0 || reposts.length > 0
 
 {
   (hasMentions || hasInteractions) && (
-    <section class="mt-12 pt-8 border-t border-[var(--color-theme-border)]" id="webmentions">
+    <section class="mt-12 pt-8 border-t border-[var(--color-border)]" id="webmentions">
       <header class="flex items-start justify-between mb-6 flex-wrap gap-4 flex-col sm:flex-row sm:items-center">
-        <h3 class="text-2xl font-bold text-[var(--color-theme-text)] m-0">Webmentions</h3>
+        <h3 class="text-2xl font-bold text-[var(--color-text)] m-0">Webmentions</h3>
 
         {hasInteractions && (
           <div class="flex gap-6 items-center w-full sm:w-auto justify-start">
             {likes.length > 0 && (
               <span
-                class="inline-flex items-center gap-1.5 text-[var(--color-theme-text-offset)] text-sm font-medium"
+                class="inline-flex items-center gap-1.5 text-[var(--color-text-offset)] text-sm font-medium"
                 title={`${likes.length} like${likes.length !== 1 ? 's' : ''}`}
               >
                 <svg
-                  class="w-5 h-5 text-[var(--color-theme-text-lighter)]"
+                  class="w-5 h-5 text-[var(--color-text-lighter)]"
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
                   fill="currentColor"
@@ -63,11 +63,11 @@ const hasInteractions = likes.length > 0 || reposts.length > 0
             )}
             {reposts.length > 0 && (
               <span
-                class="inline-flex items-center gap-1.5 text-[var(--color-theme-text-offset)] text-sm font-medium"
+                class="inline-flex items-center gap-1.5 text-[var(--color-text-offset)] text-sm font-medium"
                 title={`${reposts.length} repost${reposts.length !== 1 ? 's' : ''}`}
               >
                 <svg
-                  class="w-5 h-5 text-[var(--color-theme-text-lighter)]"
+                  class="w-5 h-5 text-[var(--color-text-lighter)]"
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
                   fill="currentColor"
@@ -85,7 +85,7 @@ const hasInteractions = likes.length > 0 || reposts.length > 0
       {hasMentions ? (
         <>
           {showFacepile && displayMentions.length > 0 && (
-            <div class="flex items-center gap-2 mb-6 p-4 bg-[var(--color-theme-bg-offset)] rounded-lg">
+            <div class="flex items-center gap-2 mb-6 p-4 bg-[var(--color-bg-offset)] rounded-lg">
               {displayMentions
                 .slice(0, facepileLimit)
                 .reverse()
@@ -94,12 +94,12 @@ const hasInteractions = likes.length > 0 || reposts.length > 0
                     src={mention.author?.photo || '/assets/images/webmention-avatar-default.svg'}
                     alt={mention.author?.name || 'Anonymous'}
                     title={mention.author?.name || 'Anonymous'}
-                    class="w-10 h-10 rounded-full border-2 border-[var(--color-theme-bg)] object-cover transition-transform hover:scale-110 hover:z-10"
+                    class="w-10 h-10 rounded-full border-2 border-[var(--color-bg)] object-cover transition-transform hover:scale-110 hover:z-10"
                     loading="lazy"
                   />
                 ))}
               {displayMentions.length > facepileLimit && (
-                <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[var(--color-theme-text-lighter)] text-[var(--color-theme-bg)] text-xs font-semibold">
+                <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[var(--color-text-lighter)] text-[var(--color-bg)] text-xs font-semibold">
                   +{displayMentions.length - facepileLimit}
                 </span>
               )}
@@ -115,7 +115,7 @@ const hasInteractions = likes.length > 0 || reposts.length > 0
           </ol>
         </>
       ) : (
-        <p class="text-[var(--color-theme-text-offset)] italic my-8">No mentions yet.</p>
+        <p class="text-[var(--color-text-offset)] italic my-8">No mentions yet.</p>
       )}
     </section>
   )

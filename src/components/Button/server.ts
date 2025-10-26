@@ -86,27 +86,27 @@ export const variantClasses: Record<ButtonVariant, string> = {
     'border-transparent',
 
     // Shadow & transform effects
-    'shadow-[0_4px_6px_rgba(50,50,93,0.11),0_1px_3px_rgba(0,0,0,0.08)]',
-    'text-shadow-[0_1px_3px_rgba(0,0,0,0.15)]',
+    'shadow-[var(--shadow-sm)]',
+    'text-shadow-[var(--shadow-text)]',
     'transform',
     'translate-y-0',
 
     // Hover states
     'hover:bg-[var(--color-primary-offset)]',
     'hover:text-[var(--color-text)]',
-    'hover:shadow-[0_7px_14px_rgba(50,50,50,0.1),0_3px_6px_rgba(0,0,0,0.08)]',
+    'hover:shadow-[var(--shadow-hover)]',
     'hover:-translate-y-px',
 
     // Focus states
     'focus:bg-[var(--color-primary-offset)]',
     'focus:text-[var(--color-text)]',
-    'focus:shadow-[0_7px_14px_rgba(50,50,50,0.1),0_3px_6px_rgba(0,0,0,0.08)]',
+    'focus:shadow-[var(--shadow-hover)]',
     'focus:-translate-y-px',
     'focus:outline-none',
 
     // Active states
     'active:bg-[var(--color-primary-offset)]',
-    'active:shadow-[0_3px_12px_-2px_inset_rgba(50,50,50,0.25)]',
+    'active:shadow-[var(--shadow-active)]',
     'active:translate-y-px',
   ].join(' '),
 
@@ -117,27 +117,27 @@ export const variantClasses: Record<ButtonVariant, string> = {
     'border-transparent',
 
     // Shadow & transform effects
-    'shadow-[0_4px_6px_rgba(50,50,93,0.11),0_1px_3px_rgba(0,0,0,0.08)]',
-    'text-shadow-[0_1px_3px_rgba(0,0,0,0.15)]',
+    'shadow-[var(--shadow-sm)]',
+    'text-shadow-[var(--shadow-text)]',
     'transform',
     'translate-y-0',
 
     // Hover states
     'hover:bg-[var(--color-secondary-offset)]',
     'hover:text-[var(--color-text)]',
-    'hover:shadow-[0_7px_14px_rgba(50,50,50,0.1),0_3px_6px_rgba(0,0,0,0.08)]',
+    'hover:shadow-[var(--shadow-hover)]',
     'hover:-translate-y-px',
 
     // Focus states
     'focus:bg-[var(--color-secondary-offset)]',
     'focus:text-[var(--color-text)]',
-    'focus:shadow-[0_7px_14px_rgba(50,50,50,0.1),0_3px_6px_rgba(0,0,0,0.08)]',
+    'focus:shadow-[var(--shadow-hover)]',
     'focus:-translate-y-px',
     'focus:outline-none',
 
     // Active states
     'active:bg-[var(--color-secondary-offset)]',
-    'active:shadow-[0_3px_12px_-2px_inset_rgba(50,50,50,0.25)]',
+    'active:shadow-[var(--shadow-active)]',
     'active:translate-y-px',
   ].join(' '),
 
@@ -164,27 +164,27 @@ export const variantClasses: Record<ButtonVariant, string> = {
     'border-transparent',
 
     // Shadow & transform effects
-    'shadow-[0_4px_6px_rgba(50,50,93,0.11),0_1px_3px_rgba(0,0,0,0.08)]',
-    'text-shadow-[0_1px_3px_rgba(0,0,0,0.15)]',
+    'shadow-[var(--shadow-sm)]',
+    'text-shadow-[var(--shadow-text)]',
     'transform',
     'translate-y-0',
 
     // Hover states
     'hover:bg-[var(--color-success-offset)]',
     'hover:text-white',
-    'hover:shadow-[0_7px_14px_rgba(50,50,50,0.1),0_3px_6px_rgba(0,0,0,0.08)]',
+    'hover:shadow-[var(--shadow-hover)]',
     'hover:-translate-y-px',
 
     // Focus states
     'focus:bg-[var(--color-success-offset)]',
     'focus:text-white',
-    'focus:shadow-[0_7px_14px_rgba(50,50,50,0.1),0_3px_6px_rgba(0,0,0,0.08)]',
+    'focus:shadow-[var(--shadow-hover)]',
     'focus:-translate-y-px',
     'focus:outline-none',
 
     // Active states
     'active:bg-[var(--color-success-offset)]',
-    'active:shadow-[0_3px_12px_-2px_inset_rgba(50,50,50,0.25)]',
+    'active:shadow-[var(--shadow-active)]',
     'active:translate-y-px',
   ].join(' '),
 
@@ -195,27 +195,27 @@ export const variantClasses: Record<ButtonVariant, string> = {
     'border-transparent',
 
     // Shadow & transform effects
-    'shadow-[0_4px_6px_rgba(50,50,93,0.11),0_1px_3px_rgba(0,0,0,0.08)]',
-    'text-shadow-[0_1px_3px_rgba(0,0,0,0.15)]',
+    'shadow-[var(--shadow-sm)]',
+    'text-shadow-[var(--shadow-text)]',
     'transform',
     'translate-y-0',
 
     // Hover states
     'hover:bg-[var(--color-warning-offset)]',
     'hover:text-[var(--color-text)]',
-    'hover:shadow-[0_7px_14px_rgba(50,50,50,0.1),0_3px_6px_rgba(0,0,0,0.08)]',
+    'hover:shadow-[var(--shadow-hover)]',
     'hover:-translate-y-px',
 
     // Focus states
     'focus:bg-[var(--color-warning-offset)]',
     'focus:text-[var(--color-text)]',
-    'focus:shadow-[0_7px_14px_rgba(50,50,50,0.1),0_3px_6px_rgba(0,0,0,0.08)]',
+    'focus:shadow-[var(--shadow-hover)]',
     'focus:-translate-y-px',
     'focus:outline-none',
 
     // Active states
     'active:bg-[var(--color-warning-offset)]',
-    'active:shadow-[0_3px_12px_-2px_inset_rgba(50,50,50,0.25)]',
+    'active:shadow-[var(--shadow-active)]',
     'active:translate-y-px',
   ].join(' '),
 
