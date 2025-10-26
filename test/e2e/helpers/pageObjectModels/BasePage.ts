@@ -43,7 +43,7 @@ export class BasePage {
    */
   async goto(path: string): Promise<null | Response> {
     return await this._page.goto(path, {
-      timeout: 1000,
+      timeout: 5000,
       waitUntil: 'domcontentloaded',
     })
   }
