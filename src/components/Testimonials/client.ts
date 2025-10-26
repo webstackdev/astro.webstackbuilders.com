@@ -164,9 +164,11 @@ export class TestimonialsCarousel extends LoadableScript {
           if (index === selectedIndex) {
             dot.classList.add('bg-[color:var(--color-primary)]', 'w-6')
             dot.classList.remove('bg-[color:var(--color-text-offset)]', 'w-3')
+            dot.setAttribute('aria-current', 'true')
           } else {
             dot.classList.remove('bg-[color:var(--color-primary)]', 'w-6')
             dot.classList.add('bg-[color:var(--color-text-offset)]', 'w-3')
+            dot.removeAttribute('aria-current')
           }
         })
       }

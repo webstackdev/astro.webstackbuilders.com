@@ -6,10 +6,12 @@ import { BasePage, test, expect } from '@test/e2e/helpers'
 
 test.describe('WCAG Compliance', () => {
   /**
-   * The default target-size rule in axe-core checks if touch targets are at least 24x24 CSS
-   * pixels. If a target is smaller than 24x24 pixels, it must be at least 24 pixels away from
-   * any other touch target. A touch target size of at least 44x44 pixels is part of the WCAG
-   * 2.1 AAA guidelines, which is a more stringent level of compliance,
+   * target-size rule is disabled in Axe by default!!
+   *
+   * Axe can checks if touch targets are at least 24x24 CSS pixels. If a target is smaller
+   * than 24x24 pixels, it must be at least 24 pixels away from any other touch target.
+   * A touch target size of at least 44x44 pixels is part of the WCAG 2.1 AAA guidelines,
+   * which is a more stringent level of compliance,
    */
   test.skip('@wip touch targets are at least 44x44 pixels', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
