@@ -1,3 +1,4 @@
+// @vitest-environment happy-dom
 /**
  * Unit tests for TestimonialsCarousel LoadableScript class
  * Tests the carousel functionality and LoadableScript integration

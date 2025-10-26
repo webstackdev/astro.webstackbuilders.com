@@ -65,7 +65,7 @@ export const GET: APIRoute = async ({ url }) => {
 
     // Add to ConvertKit with verified status
     try {
-      const { subscribeToConvertKit } = await import('../../../../api/newsletter/newsletter')
+      const { subscribeToConvertKit } = await import('./index')
       await subscribeToConvertKit({
         email: subscription.email,
         ...(subscription.firstName ? { firstName: subscription.firstName } : {}),

@@ -92,18 +92,24 @@ describe('AppBootstrap', () => {
       expect(successEvent?.[0].detail.eventName).toContain('App state initialized')
     })
 
-    it('should log success message in non-production environment', () => {
+    it('should add breadcrumbs for successful initialization', () => {
       vi.mocked(initConsentFromCookies).mockReturnValue(undefined)
       vi.mocked(initStateSideEffects).mockReturnValue(undefined)
 
       AppBootstrap.init()
 
-      expect(consoleInfoSpy).toHaveBeenCalledWith(
-        expect.stringContaining('✅')
-      )
-      expect(consoleInfoSpy).toHaveBeenCalledWith(
-        expect.stringContaining('App state initialized')
-      )
+      expect(addScriptBreadcrumb).toHaveBeenCalledWith({
+        scriptName: 'AppBootstrap',
+        operation: 'init'
+      })
+      expect(addScriptBreadcrumb).toHaveBeenCalledWith({
+        scriptName: 'AppBootstrap',
+        operation: 'initConsentFromCookies'
+      })
+      expect(addScriptBreadcrumb).toHaveBeenCalledWith({
+        scriptName: 'AppBootstrap',
+        operation: 'initStateSideEffects'
+      })
     })
 
     it('should not throw error when both functions succeed', () => {
@@ -115,16 +121,14 @@ describe('AppBootstrap', () => {
   })
 
   describe('Error handling - initConsentFromCookies fails', () => {
-    it('should not throw in DEV when initConsentFromCookies throws', () => {
+    it('should throw ClientScriptError when initConsentFromCookies throws', () => {
       const testError = new Error('Cookie initialization failed')
       vi.mocked(initConsentFromCookies).mockImplementation(() => {
         throw testError
       })
 
-      expect(() => AppBootstrap.init()).not.toThrow()
-      expect(window._isBootstrapped).toBe(true)
-      expect(window._bootstrapError).toBeDefined()
-      expect(window._bootstrapError?.message).toBe('Cookie initialization failed')
+      expect(() => AppBootstrap.init()).toThrow(ClientScriptError)
+      expect(() => AppBootstrap.init()).toThrow('Cookie initialization failed')
     })
 
     it.skip('should dispatch error event when initConsentFromCookies fails', () => {
@@ -148,69 +152,9 @@ describe('AppBootstrap', () => {
       expect(errorEvent?.[0].detail.errorMessage).toBe('Cookie initialization failed')
     })
 
-    it('should log error when initConsentFromCookies fails', () => {
+    it('should add breadcrumb before throwing error', () => {
       const testError = new Error('Cookie initialization failed')
       vi.mocked(initConsentFromCookies).mockImplementation(() => {
-        throw testError
-      })
-
-      AppBootstrap.init()
-
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        '❌ [12374] Failed to initialize consent from cookies:',
-        expect.any(Object)
-      )
-    })
-
-    it('should still call initStateSideEffects when initConsentFromCookies fails in DEV', () => {
-      vi.mocked(initConsentFromCookies).mockImplementation(() => {
-        throw new Error('Cookie initialization failed')
-      })
-      vi.mocked(initStateSideEffects).mockReturnValue(undefined)
-
-      AppBootstrap.init()
-
-      // In DEV mode, execution continues even after first error
-      expect(initStateSideEffects).toHaveBeenCalled()
-    })
-
-    it('should handle non-Error objects thrown by initConsentFromCookies', () => {
-      vi.mocked(initConsentFromCookies).mockImplementation(() => {
-        throw 'String error'
-      })
-
-      expect(() => AppBootstrap.init()).not.toThrow()
-      expect(window._bootstrapError?.message).toBe('String error')
-    })
-
-    it('should handle objects thrown by initConsentFromCookies', () => {
-      vi.mocked(initConsentFromCookies).mockImplementation(() => {
-        throw { message: 'Object error' }
-      })
-
-      expect(() => AppBootstrap.init()).not.toThrow()
-      expect(window._bootstrapError?.message).toBe('[object Object]')
-    })
-  })
-
-  describe('Error handling - initStateSideEffects fails', () => {
-    it('should not throw in DEV when initStateSideEffects throws', () => {
-      vi.mocked(initConsentFromCookies).mockReturnValue(undefined)
-      const testError = new Error('State side effects failed')
-      vi.mocked(initStateSideEffects).mockImplementation(() => {
-        throw testError
-      })
-
-      expect(() => AppBootstrap.init()).not.toThrow()
-      expect(window._isBootstrapped).toBe(true)
-      expect(window._bootstrapError).toBeDefined()
-      expect(window._bootstrapError?.message).toBe('State side effects failed')
-    })
-
-    it.skip('should dispatch error event when initStateSideEffects fails', () => {
-      vi.mocked(initConsentFromCookies).mockReturnValue(undefined)
-      const testError = new Error('State side effects failed')
-      vi.mocked(initStateSideEffects).mockImplementation(() => {
         throw testError
       })
 
@@ -220,28 +164,75 @@ describe('AppBootstrap', () => {
         // Expected to throw
       }
 
-      const errorEvent = eventListenerSpy.mock.calls.find(
-        (call) => call[0].type === 'appStateInitErrorEvent'
-      )
-      expect(errorEvent).toBeDefined()
-      expect(errorEvent?.[0].detail.eventName).toContain('Failed to initialize state side effects')
-      expect(errorEvent?.[0].detail.errorName).toBe('Error')
-      expect(errorEvent?.[0].detail.errorMessage).toBe('State side effects failed')
+      expect(addScriptBreadcrumb).toHaveBeenCalledWith({
+        scriptName: 'AppBootstrap',
+        operation: 'init'
+      })
+      expect(addScriptBreadcrumb).toHaveBeenCalledWith({
+        scriptName: 'AppBootstrap',
+        operation: 'initConsentFromCookies'
+      })
     })
 
-    it('should log error when initStateSideEffects fails', () => {
+    it('should not call initStateSideEffects when initConsentFromCookies fails', () => {
+      vi.mocked(initConsentFromCookies).mockImplementation(() => {
+        throw new Error('Cookie initialization failed')
+      })
+      vi.mocked(initStateSideEffects).mockReturnValue(undefined)
+
+      try {
+        AppBootstrap.init()
+      } catch {
+        // Expected to throw
+      }
+
+      expect(initStateSideEffects).not.toHaveBeenCalled()
+    })
+
+    it('should wrap non-Error objects in ClientScriptError', () => {
+      vi.mocked(initConsentFromCookies).mockImplementation(() => {
+        throw 'String error'
+      })
+
+      expect(() => AppBootstrap.init()).toThrow(ClientScriptError)
+      try {
+        AppBootstrap.init()
+      } catch (error) {
+        expect(error).toBeInstanceOf(ClientScriptError)
+        expect((error as ClientScriptError).message).toBe('String error')
+      }
+    })
+
+    it('should handle objects thrown by initConsentFromCookies', () => {
+      vi.mocked(initConsentFromCookies).mockImplementation(() => {
+        throw { message: 'Object error' }
+      })
+
+      expect(() => AppBootstrap.init()).toThrow(ClientScriptError)
+      try {
+        AppBootstrap.init()
+      } catch (error) {
+        expect(error).toBeInstanceOf(ClientScriptError)
+      }
+    })
+  })
+
+  describe('Error handling - initStateSideEffects fails', () => {
+    it('should throw ClientScriptError when initStateSideEffects throws', () => {
       vi.mocked(initConsentFromCookies).mockReturnValue(undefined)
       const testError = new Error('State side effects failed')
       vi.mocked(initStateSideEffects).mockImplementation(() => {
         throw testError
       })
 
-      AppBootstrap.init()
+      expect(() => AppBootstrap.init()).toThrow(ClientScriptError)
+      expect(() => AppBootstrap.init()).toThrow('State side effects failed')
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        '❌ [38088] Failed to initialize state side effects',
-        expect.any(Object)
-      )
+      // Should have added breadcrumbs for init, initConsentFromCookies, and initStateSideEffects
+      expect(addScriptBreadcrumb).toHaveBeenCalledWith({
+        scriptName: 'AppBootstrap',
+        operation: 'initStateSideEffects',
+      })
     })
 
     it('should have called initConsentFromCookies before initStateSideEffects fails', () => {
@@ -250,7 +241,7 @@ describe('AppBootstrap', () => {
         throw new Error('State side effects failed')
       })
 
-      AppBootstrap.init()
+      expect(() => AppBootstrap.init()).toThrow()
 
       expect(initConsentFromCookies).toHaveBeenCalledTimes(1)
     })
@@ -261,19 +252,19 @@ describe('AppBootstrap', () => {
         throw new Error('State side effects failed')
       })
 
-      AppBootstrap.init()
+      expect(() => AppBootstrap.init()).toThrow()
 
       expect(consoleInfoSpy).not.toHaveBeenCalled()
     })
 
-    it('should handle non-Error objects thrown by initStateSideEffects', () => {
+    it('should throw ClientScriptError when initStateSideEffects throws a string', () => {
       vi.mocked(initConsentFromCookies).mockReturnValue(undefined)
       vi.mocked(initStateSideEffects).mockImplementation(() => {
         throw 'String error'
       })
 
-      expect(() => AppBootstrap.init()).not.toThrow()
-      expect(window._bootstrapError?.message).toBe('String error')
+      expect(() => AppBootstrap.init()).toThrow(ClientScriptError)
+      expect(() => AppBootstrap.init()).toThrow('String error')
     })
   })
 
@@ -352,10 +343,9 @@ describe('AppBootstrap', () => {
         throw new Error('Second call failed')
       })
 
-      // In DEV mode, doesn't throw
-      expect(() => AppBootstrap.init()).not.toThrow()
-      expect(initConsentFromCookies).toHaveBeenCalledTimes(2)
-      expect(window._bootstrapError?.message).toBe('Second call failed')
+      expect(() => AppBootstrap.init()).toThrow(ClientScriptError)
+      expect(() => AppBootstrap.init()).toThrow('Second call failed')
+      expect(initConsentFromCookies).toHaveBeenCalledTimes(3) // 1 from first call, 2 from two toThrow assertions
     })
   })
 })

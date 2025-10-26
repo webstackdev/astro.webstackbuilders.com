@@ -1,3 +1,4 @@
+// @vitest-environment happy-dom
 import { describe, it, expect, beforeEach, vi, type MockedFunction } from 'vitest'
 import {
   addButtonEventListeners,

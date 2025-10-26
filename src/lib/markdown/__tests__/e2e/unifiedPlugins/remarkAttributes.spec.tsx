@@ -1,3 +1,4 @@
+// @vitest-environment happy-dom
 /**
  * Layer 4: E2E Tests - Attributes Feature
  *
