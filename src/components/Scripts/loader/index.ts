@@ -127,7 +127,17 @@ class Loader {
     ]
 
     domEvents.forEach(eventType => {
-      const listener = () => this.executeEvent(eventType)
+      const listener = () => {
+        this.executeEvent(eventType)
+        // Re-register listeners for View Transitions support
+        // astro:page-load should fire on every navigation
+        if (eventType === 'astro:page-load' || eventType === 'astro:after-swap') {
+          // Remove this event from executedEvents so it can run again
+          this.executedEvents.delete(eventType)
+          // Re-register this specific listener
+          document.addEventListener(eventType, listener, { once: true })
+        }
+      }
       document.addEventListener(eventType, listener, { once: true })
     })
   }
@@ -170,8 +180,11 @@ class Loader {
       this.executeScript(script)
     })
 
-    // Clear the queue
-    this.eventQueues.delete(eventType)
+    // For View Transitions: Keep the queue and allow re-execution for these events
+    if (eventType !== 'astro:page-load' && eventType !== 'astro:after-swap') {
+      // Clear the queue for one-time events
+      this.eventQueues.delete(eventType)
+    }
   }
 
   /**

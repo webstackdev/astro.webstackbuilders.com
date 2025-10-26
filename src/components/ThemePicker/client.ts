@@ -45,7 +45,7 @@ declare global {
  */
 export class ThemePicker extends LoadableScript {
   static override scriptName = 'ThemePicker'
-  static override eventType: TriggerEvent = 'delayed'
+  static override eventType: TriggerEvent = 'astro:page-load'
 
   private isModalOpen: boolean = false
   private activeTheme: ThemeIds
