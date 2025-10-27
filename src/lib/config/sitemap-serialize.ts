@@ -42,7 +42,11 @@ export function serializeSitemapItem(item: SitemapItem): SitemapItem | undefined
   }
 
   // Skip excluded paths from sitemap
-  if (topLevelPath === 'downloads' || topLevelPath === 'social-shares') {
+  if (
+    topLevelPath === 'downloads' ||
+    topLevelPath === 'social-shares' ||
+    item.url.includes('/articles/demo')
+  ) {
     return undefined
   }
 
