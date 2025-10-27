@@ -46,24 +46,6 @@ const { path } = Astro.props
     box-sizing: border-box;
     background-color: var(--color-bg-offset);
   }
-
-  #header.aria-expanded-true {
-    margin-left: 0;
-    margin-right: 0;
-    width: 100%;
-  }
-
-  #header.aria-expanded-true #header__main-nav {
-    width: 100%;
-  }
-
-  #header.aria-expanded-true #header__brand {
-    display: none;
-  }
-
-  #header.aria-expanded-true #header__theme-icon {
-    display: none;
-  }
 </style>
 
 {/* Hidden modal shown when theme picker icon selected */}
@@ -77,24 +59,24 @@ const { path } = Astro.props
   {/*- Element for animated background behind mobile navigation menu -*/}
   <div id="mobile-splash" class="mobile-splash"></div>
   {/* Logo and wordmark */}
-  <span id="header__brand" class="flex items-center justify-between">
+  <span id="header__brand" class="flex items-center justify-between relative z-[var(--z-content-overlay)]">
     <Brand />
   </span>
   {/* Main Navigation Menu */}
-  <span id="header__main-nav" class="z-[calc(var(--z-nav)+1)] lg:flex-1 lg:mx-8">
+  <span id="header__main-nav" class="z-[var(--z-nav)] lg:flex-1 lg:mx-8">
     <Menu path={path} />
   </span>
   {/* Theme picker toggle button to show modal */}
   <span
     id="header__theme-icon"
-    class="w-[calc(var(--header-icon-size)*2+0.5em)] lg:w-[var(--header-icon-size)]"
+    class="w-[calc(var(--header-icon-size)*2+0.5em)] lg:w-[var(--header-icon-size)] relative z-[var(--z-content-overlay)]"
   >
     <ThemeButton />
   </span>
   {/* Mobile navigation toggle button to show menu on full-page splash screen */}
   <span
     id="header__nav-icon"
-    class="inline-block absolute right-0 z-[calc(var(--z-nav)+1)] lg:hidden"
+    class="block fixed right-4 sm:right-6 top-2 z-[var(--z-mobile-close-btn)] lg:hidden"
   >
     <NavToggle />
   </span>
