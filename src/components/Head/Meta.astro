@@ -1,5 +1,5 @@
 ---
-import company from '@content/company'
+import contactData from '@content/contact.json'
 import themes from '@content/themes.json'
 import { absoluteUrl } from '@lib/helpers'
 import Seo from './Seo.astro'
@@ -40,8 +40,8 @@ const slug = path.replace(/^\//, '').replace(/\/$/, '') || 'home'
 
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="description" content={description || company.description} />
-<meta name="author" content={company.author.name} />
+<meta name="description" content={description || contactData.company.description} />
+<meta name="author" content={contactData.company.author.name} />
 <meta name="robots" content={noindex ? 'noindex, nofollow' : 'index, follow'} />
 <Seo
   path={path}
@@ -55,7 +55,7 @@ const slug = path.replace(/^\//, '').replace(/\/$/, '') || 'home'
 {/* Open Graph meta tags for Twitter and Facebook social shares */}
 <Social
   title={pageTitle}
-  description={description || company.description}
+  description={description || contactData.company.description}
   slug={slug}
   {...image && { image }}
 />
@@ -89,7 +89,7 @@ const slug = path.replace(/^\//, '').replace(/\/$/, '') || 'home'
   type="application/rss+xml"
   rel="alternate"
   href={absoluteUrl('rss.xml', Astro.site)}
-  title={`RSS Feed for ${company.name}`}
+  title={`RSS Feed for ${contactData.company.name}`}
 />
 {/* Webmentions */}
 <link rel="pingback" href={`https://webmention.io/${Astro.site!.hostname}/xmlrpc`} />

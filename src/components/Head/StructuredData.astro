@@ -1,5 +1,5 @@
 ---
-import company from '@content/company'
+import contactData from '@content/contact.json'
 import { absoluteUrl } from '@lib/helpers/absoluteUrl'
 
 export interface Props {
@@ -27,37 +27,34 @@ const {
 const baseUrl = Astro.site?.href ?? 'https://webstackbuilders.com'
 const currentUrl = absoluteUrl(path, Astro.site)
 
-// Organization schema - always include on homepage
-const organizationSchema = path === '/' || path === '' ? {
+// Organization schema - always included
+const organizationSchema = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
-  'name': company.name,
-  'url': company.url,
-  'logo': absoluteUrl('icon-512.png', Astro.site),
-  'description': company.description,
-  'email': company.email,
+  'name': contactData.company.name,
+  'url': contactData.company.url,
+  'logo': absoluteUrl('/public/images/logos/company-card.png', Astro.site),
+  'description': contactData.company.description,
+  'email': contactData.company.email,
   'address': {
     '@type': 'PostalAddress',
-    'addressLocality': company.address.city,
-    'addressRegion': company.address.state,
-    'addressCountry': company.address.country,
+    'addressLocality': contactData.company.city,
+    'addressRegion': contactData.company.state,
+    'addressCountry': contactData.company.country,
   },
-  'sameAs': [
-    company.social.linkedin,
-    company.social.github,
-  ],
-} : null
+  'sameAs': contactData.company.social.map(social => social.url),
+}
 
 // WebSite schema - include on homepage
 const webSiteSchema = path === '/' || path === '' ? {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
-  'name': company.name,
-  'url': company.url,
-  'description': company.description,
+  'name': contactData.company.name,
+  'url': contactData.company.url,
+  'description': contactData.company.description,
   'publisher': {
     '@type': 'Organization',
-    'name': company.name,
+    'name': contactData.company.name,
     'logo': {
       '@type': 'ImageObject',
       'url': absoluteUrl('icon-512.png', Astro.site),
@@ -70,16 +67,16 @@ const articleSchema = contentType === 'article' && publishDate ? {
   '@context': 'https://schema.org',
   '@type': 'Article',
   'headline': pageTitle,
-  'description': description || company.description,
+  'description': description || contactData.company.description,
   'datePublished': publishDate.toISOString(),
   'dateModified': modifiedDate?.toISOString() || publishDate.toISOString(),
   'author': {
     '@type': 'Person',
-    'name': author || company.author.name,
+    'name': author || contactData.company.author.name,
   },
   'publisher': {
     '@type': 'Organization',
-    'name': company.name,
+    'name': contactData.company.name,
     'logo': {
       '@type': 'ImageObject',
       'url': absoluteUrl('icon-512.png', Astro.site),
@@ -115,11 +112,11 @@ const serviceSchema = path.startsWith('/services/') && path !== '/services' && p
   '@context': 'https://schema.org',
   '@type': 'Service',
   'name': pageTitle,
-  'description': description || company.description,
+  'description': description || contactData.company.description,
   'provider': {
     '@type': 'Organization',
-    'name': company.name,
-    'url': company.url,
+    'name': contactData.company.name,
+    'url': contactData.company.url,
   },
   'url': currentUrl,
 } : null
@@ -129,13 +126,13 @@ const contactPageSchema = path === '/contact' || path === '/contact/' ? {
   '@context': 'https://schema.org',
   '@type': 'ContactPage',
   'name': pageTitle,
-  'description': description || company.description,
+  'description': description || contactData.company.description,
   'url': currentUrl,
   'mainEntity': {
     '@type': 'Organization',
-    'name': company.name,
-    'email': company.email,
-    'url': company.url,
+    'name': contactData.company.name,
+    'email': contactData.company.email,
+    'url': contactData.company.url,
   },
 } : null
 

@@ -2,7 +2,7 @@
  * PWA Manifest
  * Returns the web app manifest for progressive web app functionality
  */
-import company from '@content/company'
+import contactData from '@content/contact.json'
 import themes from '@content/themes.json'
 
 /**
@@ -15,9 +15,9 @@ export function GET() {
   const manifest = {
     lang: 'en_US',
     dir: 'ltr',
-    name: company.name,
-    short_name: company.name,
-    description: company.description,
+    name: contactData.company.name,
+    short_name: contactData.company.name,
+    description: contactData.company.description,
     icons: [
       /** Mobile */
       {
