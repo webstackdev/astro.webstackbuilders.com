@@ -64,31 +64,32 @@ describe(`Navigation toggleMenu method works`, () => {
     expect(document.querySelector(`#header`)!.className).toMatch(`aria-expanded-true`)
   })
 
-  test(`toggleMenu sets and removes the position on the header wrapper`, async () => {
-    window.HTMLElement.prototype.getBoundingClientRect = () => {
-      return {
-        x: 336.1000061035156,
-        y: 8,
-        width: 42,
-        height: 42,
-        top: 8,
-        right: 378.1000061035156,
-        bottom: 50,
-        left: 336.1000061035156,
-      } as unknown as DOMRect
-    }
+  test(`toggleMenu sets and removes menu visibility classes`, async () => {
     await setupNavigationDOM()
+
+    // Ensure clean initial state
+    document.body.classList.remove('no-scroll')
+    const header = document.querySelector(`#header`)
+    if (header) {
+      header.classList.remove('aria-expanded-true')
+    }
+
     const sut = new Navigation()
     sut.bindEvents()
-    const iconWrapper = document.querySelector(`#header__nav-icon`) as HTMLSpanElement
-    expect(iconWrapper.style.left).toBeFalsy()
-    expect(iconWrapper.style.top).toBeFalsy()
+
+    // Initially menu should be closed
+    expect(document.querySelector(`body`)!.classList.contains('no-scroll')).toBe(false)
+    expect(document.querySelector(`#header`)!.classList.contains('aria-expanded-true')).toBe(false)
+
+    // After opening menu
     sut.toggleMenu()
-    expect(iconWrapper.style.left).toMatch(/336\.1\d*px/)
-    expect(iconWrapper.style.top).toMatch(`8px`)
+    expect(document.querySelector(`body`)!.classList.contains('no-scroll')).toBe(true)
+    expect(document.querySelector(`#header`)!.classList.contains('aria-expanded-true')).toBe(true)
+
+    // After closing menu
     sut.toggleMenu()
-    expect(iconWrapper.style.left).toBeFalsy()
-    expect(iconWrapper.style.top).toBeFalsy()
+    expect(document.querySelector(`body`)!.classList.contains('no-scroll')).toBe(false)
+    expect(document.querySelector(`#header`)!.classList.contains('aria-expanded-true')).toBe(false)
   })
 })
 

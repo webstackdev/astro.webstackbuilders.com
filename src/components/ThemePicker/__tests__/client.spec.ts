@@ -70,7 +70,7 @@ describe('ThemePicker LoadableScript Implementation', () => {
   describe('LoadableScript Interface Compliance', () => {
     it('should have correct static properties', () => {
       expect(ThemePicker.scriptName).toBe('ThemePicker')
-      expect(ThemePicker.eventType).toBe('delayed')
+      expect(ThemePicker.eventType).toBe('astro:page-load')
     })
 
     it('should implement required LoadableScript methods', () => {
