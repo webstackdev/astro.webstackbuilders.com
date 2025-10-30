@@ -26,7 +26,7 @@ const activeMenuItem = (url: string) => {
   .main-nav-item {
     opacity: 0;
     transform: translateY(-1rem);
-    transition: opacity 0.2s ease, transform 0.2s ease;
+    transition: opacity 0.4s ease, transform 0.4s ease;
   }
 
   /* Desktop menu - visible */
@@ -41,25 +41,47 @@ const activeMenuItem = (url: string) => {
     }
   }
 
-  /* Staggered animation delays for mobile menu items - start after splash completes (0.5s) */
+  /* Staggered animation delays for mobile menu items - start after splash completes */
   @media (max-width: 1023px) {
-    #header.aria-expanded-true .main-nav-item:nth-child(1) {
-      transition-delay: 0.5s;
+    :global(#header.aria-expanded-true) .main-nav-menu.menu-visible .main-nav-item:nth-child(1) {
+      transition-delay: 0.1s !important;
     }
-    #header.aria-expanded-true .main-nav-item:nth-child(2) {
-      transition-delay: 0.6s;
+    :global(#header.aria-expanded-true) .main-nav-menu.menu-visible .main-nav-item:nth-child(2) {
+      transition-delay: 0.2s !important;
     }
-    #header.aria-expanded-true .main-nav-item:nth-child(3) {
-      transition-delay: 0.7s;
+    :global(#header.aria-expanded-true) .main-nav-menu.menu-visible .main-nav-item:nth-child(3) {
+      transition-delay: 0.3s !important;
     }
-    #header.aria-expanded-true .main-nav-item:nth-child(4) {
-      transition-delay: 0.8s;
+    :global(#header.aria-expanded-true) .main-nav-menu.menu-visible .main-nav-item:nth-child(4) {
+      transition-delay: 0.4s !important;
     }
-    #header.aria-expanded-true .main-nav-item:nth-child(5) {
-      transition-delay: 0.9s;
+    :global(#header.aria-expanded-true) .main-nav-menu.menu-visible .main-nav-item:nth-child(5) {
+      transition-delay: 0.5s !important;
     }
-    #header.aria-expanded-true .main-nav-item:nth-child(6) {
-      transition-delay: 1s;
+    :global(#header.aria-expanded-true) .main-nav-menu.menu-visible .main-nav-item:nth-child(6) {
+      transition-delay: 0.6s !important;
+    }
+
+    /* Mobile menu items - remove desktop underlines */
+    :global(#header.aria-expanded-true) .main-nav-item a {
+      text-decoration: none !important;
+    }
+
+    /* Mobile menu item - remove focus outline */
+    :global(#header.aria-expanded-true) .main-nav-item a:focus {
+      outline: none !important;
+    }
+
+    /* Mobile menu item hover/focus/active underline effects */
+    :global(#header.aria-expanded-true) .main-nav-item a:hover,
+    :global(#header.aria-expanded-true) .main-nav-item a:focus,
+    :global(#header.aria-expanded-true) .main-nav-item a:active {
+      text-decoration: underline !important;
+      text-decoration-style: dotted !important;
+      text-decoration-color: var(--color-bg) !important;
+      text-underline-offset: 8px !important;
+      text-decoration-thickness: 2px !important;
+      outline: none !important;
     }
   }
 
@@ -111,7 +133,16 @@ const activeMenuItem = (url: string) => {
   }
 
   /* Mobile menu open state display */
+  :global(#header.aria-expanded-true) .main-nav {
+    /* ensure menu items sit above the splash (120 > 110) */
+    z-index: var(--z-mobile-menu);
+  }
+
   :global(#header.aria-expanded-true) .main-nav-menu {
+    /* When open, make the menu full-screen and center items. We keep this
+       in CSS because it's only applied when the header has the expanded
+       class and relies on fixed positioning and z-index coordination.
+    */
     display: flex;
     flex-direction: column;
     position: fixed;
@@ -121,25 +152,29 @@ const activeMenuItem = (url: string) => {
     height: 100vh;
     justify-content: center;
     align-items: center;
-    /* ensure menu items sit above the splash (120 > 110) */
-    z-index: var(--z-mobile-menu);
     /* Delay menu appearance until splash covers viewport */
     opacity: 0;
-    transition: opacity 0.3s ease 0.5;
+    /* ensure menu items sit above the splash (120 > 110) */
+    z-index: var(--z-mobile-menu);
+    transition: opacity 0.3s ease 0.5s;
   }
 
   :global(#header.aria-expanded-true) .main-nav-menu.menu-visible {
     opacity: 1;
   }
 
-  :global(#header.aria-expanded-true) .main-nav-item {
+  :global(#header.aria-expanded-true) .main-nav-menu.menu-visible .main-nav-item {
     opacity: 1;
+    /* ensure menu items sit above the splash (120 > 110) */
+    z-index: var(--z-mobile-menu);
     transform: translateY(0);
   }
 
   :global(#header.aria-expanded-true) .main-nav-item a {
     color: var(--color-bg) !important;
     opacity: 1;
+    /* ensure menu items sit above the splash (120 > 110) */
+    z-index: var(--z-mobile-menu-item) !important;
   }
 
   /* Desktop navigation item underline effects */
@@ -149,7 +184,8 @@ const activeMenuItem = (url: string) => {
       text-decoration: underline;
       text-decoration-style: dotted;
       text-decoration-color: var(--color-primary-offset);
-      text-underline-offset: 5px;
+      text-underline-offset: 8px;
+      text-decoration-thickness: 2px;
       transition: color 0.2s, text-decoration-color 0.2s;
     }
 
@@ -204,10 +240,10 @@ const activeMenuItem = (url: string) => {
   >
     {
       navigationItems.map(navItem => (
-        <li class:list={['main-nav-item opacity-100 lg:relative', activeMenuItem(navItem.url)]}>
+          <li class:list={['main-nav-item lg:relative', activeMenuItem(navItem.url)]}>
           <a
             href={navItem.url}
-            class="block text-primary text-xl lg:text-lg font-bold tracking-[5px] lg:tracking-normal p-4 lg:px-5 lg:py-3 text-center uppercase lg:lowercase no-underline hover:text-bg-offset hover:bg-primary lg:hover:bg-inherit focus:text-bg-offset focus:bg-primary lg:focus:bg-inherit focus:outline-0 lg:flex lg:items-center lg:relative lg:whitespace-nowrap lg:z-10"
+            class="block text-primary text-xl lg:text-lg font-bold tracking-[5px] lg:tracking-normal p-4 lg:px-5 lg:py-3 text-center uppercase lg:lowercase no-underline lg:hover:text-bg-offset lg:hover:bg-inherit lg:focus:text-bg-offset lg:focus:bg-inherit focus:outline-0 lg:flex lg:items-center lg:relative lg:whitespace-nowrap lg:z-10"
           >
             {navItem.title}
           </a>
