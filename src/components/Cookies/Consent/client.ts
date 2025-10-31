@@ -1,7 +1,6 @@
 import { LoadableScript, type TriggerEvent } from '@components/Scripts/loader/@types/loader'
 import {
   addButtonEventListeners,
-  addLinkEventListeners,
   addWrapperEventListeners,
 } from '@components/Scripts/elementListeners'
 import { $cookieModalVisible } from './state'
@@ -9,10 +8,8 @@ import { initConsentCookies, allowAllConsentCookies } from './cookies'
 import { showCookieCustomizeModal } from '../Customize/client'
 import {
   getCookieConsentAllowBtn,
-  getCookieConsentAllowLink,
   getCookieConsentCloseBtn,
   getCookieConsentCustomizeBtn,
-  getCookieConsentCustomizeLink,
   getCookieConsentWrapper,
 } from './selectors'
 import { ClientScriptError } from '@components/Scripts/errors/ClientScriptError'
@@ -32,12 +29,8 @@ export class CookieConsent extends LoadableScript {
   closeBtn: HTMLButtonElement
   /** Allow All button element */
   allowBtn: HTMLButtonElement
-  /** Allow All link element */
-  allowLink: HTMLButtonElement
   /** Customize button element */
   customizeBtn: HTMLButtonElement
-  /** Customize link element */
-  customizeLink: HTMLAnchorElement
   /** Static reference to track modal visibility across View Transitions */
   private static isModalCurrentlyVisible = false
   /** Flag to ensure View Transitions handlers are only set up once */
@@ -50,9 +43,7 @@ export class CookieConsent extends LoadableScript {
       this.wrapper = getCookieConsentWrapper()
       this.closeBtn = getCookieConsentCloseBtn()
       this.allowBtn = getCookieConsentAllowBtn()
-      this.allowLink = getCookieConsentAllowLink()
       this.customizeBtn = getCookieConsentCustomizeBtn()
-      this.customizeLink = getCookieConsentCustomizeLink()
 
       // Set up View Transitions event listeners for modal persistence (only once)
       if (!CookieConsent.viewTransitionsSetup) {
@@ -182,10 +173,8 @@ export class CookieConsent extends LoadableScript {
       addButtonEventListeners(this.closeBtn, this.handleDismissModal)
       /** 'Allow All' button listeners */
       addButtonEventListeners(this.allowBtn, this.handleAllowAllCookies)
-      addButtonEventListeners(this.allowLink, this.handleAllowAllCookies)
       /** 'Customize' button listeners */
       addButtonEventListeners(this.customizeBtn, this.handleCustomizeCookies)
-      addLinkEventListeners(this.customizeLink, this.handleCustomizeCookies)
     } catch (error) {
       handleScriptError(error, context)
     }

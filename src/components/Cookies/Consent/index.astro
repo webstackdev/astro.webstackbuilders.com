@@ -23,49 +23,41 @@ import CookieSvg from '@assets/images/site/cookie.svg'
   </button>
 
   <!-- Modal content container with page column constraints -->
-  <div class="rounded-lg mx-auto max-w-[75rem] w-[90%] px-4 sm:px-6 lg:px-8 mb-4 flex flex-row md:flex-col flex-nowrap md:flex-wrap relative">
+  <div class="rounded-lg mx-auto max-w-[75rem] w-[90%] px-4 sm:px-6 lg:px-8 mb-4 flex flex-col relative">
     {
-      /* Desktop: 48px + (12px * 2) = 72px container, half = 36px. Mobile: 3.6em + (0.6em * 2) = 4.8em container, half = 2.4em */
+      /* Mobile: 36px + (8px * 2) = 52px container, half = 26px. Desktop: 48px + (12px * 2) = 72px container, half = 36px */
     }
     <div
-      class="h-[72px] w-[72px] -top-[36px] md:h-[4.8em] md:w-[4.8em] md:-top-[2.4em] bg-[var(--color-bg-offset)] rounded-full absolute left-0 right-0 mx-auto flex items-center justify-center p-3 md:p-[0.6em]"
+      class="h-[52px] w-[52px] -top-[26px] md:h-[72px] md:w-[72px] md:-top-[36px] bg-[var(--color-bg-offset)] rounded-full absolute left-0 right-0 mx-auto flex items-center justify-center p-2 md:p-3"
     >
-      <Image src={CookieSvg} alt="Cookie icon." class="h-12 w-12 md:h-[3.6em] md:w-[3.6em]" />
+      <Image src={CookieSvg} alt="Cookie icon." class="h-6 w-6 md:h-12 md:w-12" />
     </div>
-    <div class="pt-9 pb-4 pl-8 pr-8 md:pt-[2.4em] md:pb-4 md:pl-8 md:pr-8 flex flex-wrap items-center gap-4">
-      <!-- Buttons first (before text) -->
-      <menu class="flex items-center gap-6 order-1">
-        <li class="list-none">
-          <Button
-            text="Allow All"
-            variant="success"
-            type="button"
-            class="cookie-modal__btn-allow !border-0 !border-transparent !shadow-none !text-shadow-none hover:!shadow-none focus:!shadow-none active:!shadow-none !transform-none hover:!transform-none focus:!transform-none active:!transform-none hover:!bg-[var(--color-success-offset)] focus:!bg-[var(--color-success-offset)]"
-          />
-        </li>
-        <li class="list-none">
-          <a href="/cookies">
-            <Button text="Customize" variant="warning" class="cookie-modal__btn-customize !shadow-none !text-shadow-none hover:!shadow-none focus:!shadow-none active:!shadow-none !transform-none hover:!transform-none focus:!transform-none active:!transform-none !text-white hover:!text-white focus:!text-white" />
-          </a>
-        </li>
-      </menu>
+    <div class="pt-7 pb-4 pl-4 pr-4 md:pt-9 md:pb-4 md:pl-8 md:pr-8">
 
-      <!-- Text content second (after buttons) -->
-      <p id="cookie-modal__content" class="order-2 flex-1 min-w-0">
-        This site uses cookies. Learn more in our <a href="/cookies">Cookie Policy</a> and <a
-          href="/privacy">Privacy Policy</a
-        >. <span class="md:hidden"
-          >Our site needs a single cookie to remember your theme preferences, and you can <a
-            class="cookie-modal__link-customize"
-            href="/cookies">customize</a
-          > the other cookies we use to help provide you a great experience here. Or let us know you're okay
-          with our cookie use by clicking <button
-            type="button"
-            class="cookie-modal__link-allow bg-transparent border-0 text-[var(--color-primary)] underline cursor-pointer hover:text-[var(--color-primary-offset)] focus:text-[var(--color-primary-offset)] p-0"
-            >Allow All</button
-          >.</span
-        >
-      </p>
+      <!-- Unified responsive container using CSS Grid -->
+      <div class="grid gap-4 grid-cols-1 md:grid-cols-[auto_1fr] md:items-center">
+        <!-- Buttons: centered on mobile, left-aligned on desktop -->
+        <menu class="flex items-center gap-4 justify-center md:justify-start md:gap-6 order-2 md:order-1">
+          <li class="list-none">
+            <Button
+              text="Allow All"
+              variant="success"
+              type="button"
+              class="cookie-modal__btn-allow !border-0 !border-transparent !shadow-none !text-shadow-none hover:!shadow-none focus:!shadow-none active:!shadow-none !transform-none hover:!transform-none focus:!transform-none active:!transform-none hover:!bg-[var(--color-success-offset)] focus:!bg-[var(--color-success-offset)] !text-sm !px-3 !py-2 md:!text-base md:!px-4 md:!py-2"
+            />
+          </li>
+          <li class="list-none">
+            <a href="/cookies">
+              <Button text="Customize" variant="warning" class="cookie-modal__btn-customize !shadow-none !text-shadow-none hover:!shadow-none focus:!shadow-none active:!shadow-none !transform-none hover:!transform-none focus:!transform-none active:!transform-none !text-white hover:!text-white focus:!text-white !text-sm !px-3 !py-2 md:!text-base md:!px-4 md:!py-2" />
+            </a>
+          </li>
+        </menu>
+
+        <!-- Unified text content: centered small on mobile, left-aligned base on desktop -->
+        <p id="cookie-modal__content" class="text-center text-sm md:text-left md:text-base order-1 md:order-2">
+          This site uses cookies. Learn more in our <a href="/cookies">Cookie Policy</a> and <a href="/privacy">Privacy Policy</a>.
+        </p>
+      </div>
     </div>
   </div>
 </div>
