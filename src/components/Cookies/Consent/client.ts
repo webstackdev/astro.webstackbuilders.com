@@ -20,7 +20,7 @@ import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/erro
 
 /**
  * Cookie Consent component using LoadableScript pattern with instance-specific approach
- * Manages the cookie consent modal display and user interactions
+ * Manages the cookie consent modal display and user interactions across View Transitions
  */
 export class CookieConsent extends LoadableScript {
   static override scriptName = 'CookieConsent'
@@ -38,6 +38,10 @@ export class CookieConsent extends LoadableScript {
   customizeBtn: HTMLButtonElement
   /** Customize link element */
   customizeLink: HTMLAnchorElement
+  /** Static reference to track modal visibility across View Transitions */
+  private static isModalCurrentlyVisible = false
+  /** Flag to ensure View Transitions handlers are only set up once */
+  private static viewTransitionsSetup = false
 
   constructor() {
     super()
@@ -49,10 +53,45 @@ export class CookieConsent extends LoadableScript {
       this.allowLink = getCookieConsentAllowLink()
       this.customizeBtn = getCookieConsentCustomizeBtn()
       this.customizeLink = getCookieConsentCustomizeLink()
+
+      // Set up View Transitions event listeners for modal persistence (only once)
+      if (!CookieConsent.viewTransitionsSetup) {
+        this.setupViewTransitionsHandlers()
+        CookieConsent.viewTransitionsSetup = true
+      }
     } catch (error) {
       throw new ClientScriptError(
         `CookieConsent: Failed to find required DOM elements - ${error instanceof Error ? error.message : 'Unknown error'}. Cookie consent is a legal requirement and cannot function without these elements.`
       )
+    }
+  }
+
+  /**
+   * Set up View Transitions event handlers to preserve modal state
+   */
+  setupViewTransitionsHandlers() {
+    const context = { scriptName: CookieConsent.scriptName, operation: 'setupViewTransitionsHandlers' }
+    addScriptBreadcrumb(context)
+
+    try {
+      // Before page swap, save the current modal visibility state
+      document.addEventListener('astro:before-swap', () => {
+        if (this.wrapper && this.wrapper.style.display === 'block') {
+          CookieConsent.isModalCurrentlyVisible = true
+          sessionStorage.setItem('cookie-modal-visible', 'true')
+        } else {
+          CookieConsent.isModalCurrentlyVisible = false
+          sessionStorage.removeItem('cookie-modal-visible')
+        }
+      })
+
+      // After page swap, restore modal state if needed
+      document.addEventListener('astro:after-swap', () => {
+        // The modal will be re-initialized by the new page's script
+        // The showModal method will check the static state and session storage
+      })
+    } catch (error) {
+      handleScriptError(error, context)
     }
   }
 
@@ -67,6 +106,7 @@ export class CookieConsent extends LoadableScript {
       this.wrapper.style.display = 'block'
       this.allowBtn.focus()
       $cookieModalVisible.set(true)
+      CookieConsent.isModalCurrentlyVisible = true
     } catch (error) {
       handleScriptError(error, context)
     }
@@ -76,8 +116,13 @@ export class CookieConsent extends LoadableScript {
    * Close button and Escape key press event handler
    */
   handleDismissModal = () => {
+    console.log('🍪 Modal dismissed by user')
     this.wrapper.style.display = 'none'
     $cookieModalVisible.set(false)
+    CookieConsent.isModalCurrentlyVisible = false
+    /** Clear session storage so modal won't appear again in this session */
+    sessionStorage.removeItem('cookie-consent-modal-shown')
+    sessionStorage.removeItem('cookie-modal-visible')
   }
 
   /**
@@ -96,8 +141,14 @@ export class CookieConsent extends LoadableScript {
     addScriptBreadcrumb(context)
 
     try {
+      console.log('🍪 User accepted all cookies')
       allowAllConsentCookies()
-      this.handleDismissModal()
+      /** Clear session storage so modal won't persist after consent */
+      sessionStorage.removeItem('cookie-consent-modal-shown')
+      sessionStorage.removeItem('cookie-modal-visible')
+      this.wrapper.style.display = 'none'
+      $cookieModalVisible.set(false)
+      CookieConsent.isModalCurrentlyVisible = false
     } catch (error) {
       handleScriptError(error, context)
     }
@@ -148,10 +199,48 @@ export class CookieConsent extends LoadableScript {
     addScriptBreadcrumb(context)
 
     try {
+      // Check if modal was already visible from previous page (before any other logic)
+      const wasVisible = this.wrapper.style.display === 'block' || this.wrapper.style.display === 'flex'
+      console.log('🍪 Cookie Modal Debug:', {
+        wasVisible,
+        wrapperDisplay: this.wrapper.style.display,
+        sessionVisible: sessionStorage.getItem('cookie-modal-visible'),
+        sessionShown: sessionStorage.getItem('cookie-consent-modal-shown'),
+        staticVisible: CookieConsent.isModalCurrentlyVisible
+      })
+
+      /** Check if modal should be visible (multiple sources) */
+      const shouldBeVisible = wasVisible ||
+        CookieConsent.isModalCurrentlyVisible ||
+        sessionStorage.getItem('cookie-modal-visible') === 'true'
+
+      if (shouldBeVisible) {
+        console.log('🍪 Restoring modal from previous navigation')
+        // Modal was visible before navigation, restore it
+        this.initModal()
+        this.bindEvents()
+        // Ensure session storage is set
+        sessionStorage.setItem('cookie-modal-visible', 'true')
+        sessionStorage.setItem('cookie-consent-modal-shown', 'true')
+        return
+      }
+
       /** Skip modal if user has already consented */
-      if (!initConsentCookies()) return
-      this.initModal()
-      this.bindEvents()
+      if (!initConsentCookies()) {
+        console.log('🍪 User already consented, skipping modal')
+        return
+      }
+
+      /** Show modal for first time if not shown yet */
+      if (sessionStorage.getItem('cookie-consent-modal-shown') !== 'true') {
+        console.log('🍪 Showing modal for first time')
+        this.initModal()
+        this.bindEvents()
+
+        /** Mark modal as shown and visible for this session */
+        sessionStorage.setItem('cookie-consent-modal-shown', 'true')
+        sessionStorage.setItem('cookie-modal-visible', 'true')
+      }
     } catch (error) {
       handleScriptError(error, context)
     }
@@ -174,7 +263,17 @@ export class CookieConsent extends LoadableScript {
   }
 
   static override reset(): void {
-    // Clean up any global state if needed for View Transitions
-    // Modal state is managed by local/session storage
+    // Preserve modal visibility state during View Transitions
+    // This method is called before View Transitions swap content
+    const currentModal = document.getElementById('cookie-modal-id')
+    if (currentModal && currentModal.style.display === 'block') {
+      sessionStorage.setItem('cookie-modal-visible', 'true')
+      CookieConsent.isModalCurrentlyVisible = true
+    } else {
+      // Only remove if modal was explicitly closed, not just hidden during transition
+      if (!CookieConsent.isModalCurrentlyVisible) {
+        sessionStorage.removeItem('cookie-modal-visible')
+      }
+    }
   }
 }
