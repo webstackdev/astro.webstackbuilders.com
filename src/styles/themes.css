@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 /**
  * Theme System - Pure CSS Implementation
  *
@@ -15,58 +17,40 @@
  * --color-{purpose}-bg: Background variant (for badges, etc.)
  */
 
-/* =============================================================================
-   DEFAULT THEME (Light)
-   ============================================================================= */
-:root {
-  /* Background Colors */
+/**
+ * =============================================================================
+ *  DEFAULT THEME (Light) - Tailwind adds @theme to both theme vars and :root
+ * =============================================================================
+ */
+@theme inline {
   --color-bg: #f3f4f6;
   --color-bg-offset: #e5e7eb;
   --color-bg-inverse: #001a39;
-
-  /* Text Colors */
   --color-text: #374151;
   --color-text-offset: #9ca3af;
-
-  /* Border Colors */
   --color-border: #f0f4ff;
-
-  /* Primary Brand Colors */
   --color-primary: #006dca;
   --color-primary-offset: #00386d;
   --color-primary-bg: #dbeafe;
   --color-primary-bg-hover: #bfdbfe;
   --color-primary-hover: #0056a3;
-
-  /* Secondary Colors */
   --color-secondary: #facc15;
   --color-secondary-offset: #ca8a04;
   --color-secondary-bg: #fef3c7;
-
-  /* Status Colors */
   --color-success: #16a34a;
   --color-success-offset: #22c55e;
   --color-success-bg: #dcfce7;
-
   --color-info: #0891b2;
   --color-info-bg: #cffafe;
-
   --color-warning: #a16207;
   --color-warning-offset: #ca8a04;
   --color-warning-bg: #fef3c7;
-
   --color-danger: #dc2626;
   --color-danger-bg: #fecaca;
-
-  /* Special Colors */
   --color-twitter: #1da1f2;
   --color-modal-background: #f3f4f6;
-
-  /* Accent Colors (for purple elements) */
   --color-accent: #7c3aed;
   --color-accent-bg: #ede9fe;
-
-  /* Markdown Content Colors */
   --color-link-shadow: #2563eb; /* blue-600 for link underline shadow */
   --color-share-highlight-text: #111827; /* gray-900 */
   --color-share-highlight-bg: #e5e7eb; /* gray-200 */
@@ -74,82 +58,58 @@
   --color-share-highlight-bg-active: #2563eb; /* blue-600 */
   --color-share-highlight-tooltip-text: #ffffff; /* white */
   --color-share-highlight-tooltip-bg: #111827; /* gray-900 */
-
-  /* Syntax Highlighting */
   --shiki-theme: 'github-light';
-
-  /* Shadow Variables */
   --shadow-sm: 0 2px 16px #000026;
   --shadow-md: 0 4px 6px #32325d1c, 0 1px 3px #000014;
   --shadow-hover: 0 7px 14px #3232321a, 0 3px 6px #000014;
   --shadow-active: 0 3px 12px -2px inset #32323240;
   --shadow-text: 0 1px 3px #000026;
+}
 
-  /* =============================================================================
-     DARK THEME DEFINITIONS
-     These are defined at :root level and referenced by both [data-theme="dark"]
-     and @media (prefers-color-scheme: dark) to maintain a single source of truth
-     ============================================================================= */
-  /* Background Colors */
+/**
+ * =============================================================================
+ *  DARK THEME DEFINITIONS
+ *  These are defined at :root level and referenced by both [data-theme="dark"]
+ *  and @media (prefers-color-scheme: dark) to maintain a single source of truth
+ * =============================================================================
+ */
+:root {
   --dark-color-bg: #001a39;
   --dark-color-bg-offset: #00386d;
   --dark-color-bg-inverse: #f3f4f6;
-
-  /* Text Colors */
   --dark-color-text: #f3f4f6;
   --dark-color-text-offset: #e5e7eb;
-
-  /* Border Colors */
   --dark-color-border: #222222;
-
-  /* Primary Brand Colors - Inverted for dark mode */
   --dark-color-primary: #f3f4f6;
   --dark-color-primary-offset: #e5e7eb;
   --dark-color-primary-bg: #1e293b;
   --dark-color-primary-bg-hover: #334155;
   --dark-color-primary-hover: #d1d5db;
-
-  /* Secondary Colors */
   --dark-color-secondary: #facc15;
   --dark-color-secondary-offset: #ca8a04;
   --dark-color-secondary-bg: #451a03;
-
-  /* Status Colors */
   --dark-color-success: #16a34a;
   --dark-color-success-offset: #22c55e;
   --dark-color-success-bg: #052e16;
-
   --dark-color-info: #0891b2;
   --dark-color-info-bg: #164e63;
-
   --dark-color-warning: #a16207;
   --dark-color-warning-offset: #ca8a04;
   --dark-color-warning-bg: #451a03;
-
   --dark-color-danger: #dc2626;
   --dark-color-danger-bg: #7f1d1d;
-
-  /* Special Colors */
   --dark-color-twitter: #1da1f2;
   --dark-color-modal-background: #f3f4f6;
-
-  /* Accent Colors */
   --dark-color-accent: #8b5cf6;
   --dark-color-accent-bg: #2e1065;
-
-  /* Markdown Content Colors */
-  --dark-color-link-shadow: #60a5fa; /* blue-400 for dark mode link underline */
-  --dark-color-share-highlight-text: #f3f4f6; /* gray-100 */
-  --dark-color-share-highlight-bg: #374151; /* gray-700 */
-  --dark-color-share-highlight-text-active: #111827; /* gray-900 */
-  --dark-color-share-highlight-bg-active: #60a5fa; /* blue-400 */
-  --dark-color-share-highlight-tooltip-text: #111827; /* gray-900 */
-  --dark-color-share-highlight-tooltip-bg: #f3f4f6; /* gray-100 */
-
-  /* Syntax Highlighting */
+  --dark-color-link-shadow: #60a5fa;
+  --dark-color-share-highlight-text: #f3f4f6;
+  --dark-color-share-highlight-bg: #374151;
+  --dark-color-share-highlight-text-active: #111827;
+  --dark-color-share-highlight-bg-active: #60a5fa;
+  --dark-color-share-highlight-tooltip-text: #111827;
+  --dark-color-share-highlight-tooltip-bg: #f3f4f6;
   --dark-shiki-theme: 'github-dark';
-
-  /* Shadow Variables - Dark Theme */
   --dark-shadow-sm: 0 2px 16px #00004d;
   --dark-shadow-md: 0 4px 6px #00004d, 0 1px 3px #000033;
   --dark-shadow-hover: 0 7px 14px #000066, 0 3px 6px #000033;
@@ -157,10 +117,12 @@
   --dark-shadow-text: 0 1px 3px #00004d;
 }
 
-/* =============================================================================
-   DARK THEME - Explicit Selection
-   Applied when user explicitly selects dark theme
-   ============================================================================= */
+/**
+ * =============================================================================
+ *  DARK THEME - Explicit Selection
+ *  Applied when user explicitly selects dark theme
+ * =============================================================================
+ */
 [data-theme="dark"] {
   --color-bg: var(--dark-color-bg);
   --color-bg-offset: var(--dark-color-bg-offset);
@@ -205,10 +167,61 @@
   --shadow-text: var(--dark-shadow-text);
 }
 
-/* =============================================================================
-   SYSTEM PREFERENCE SUPPORT
-   Apply dark theme when user prefers dark mode and no explicit theme is set
-   ============================================================================= */
+/**
+ * =============================================================================
+ *   HOLIDAY THEME
+ * =============================================================================
+ */
+[data-theme="holiday"] {
+  --color-bg: #0f172a;
+  --color-bg-offset: #1e293b;
+  --color-text: #f1f5f9;
+  --color-text-offset: #cbd5e1;
+  --color-border: #334155;
+  --color-primary: #dc2626;
+  --color-primary-offset: #991b1b;
+  --color-primary-bg: #7f1d1d;
+  --color-primary-bg-hover: #991b1b;
+  --color-primary-hover: #b91c1c;
+  --color-secondary: #16a34a;
+  --color-secondary-offset: #15803d;
+  --color-secondary-bg: #052e16;
+  --color-success: #16a34a;
+  --color-success-offset: #22c55e;
+  --color-success-bg: #052e16;
+  --color-info: #0891b2;
+  --color-info-bg: #164e63;
+  --color-warning: #a16207;
+  --color-warning-offset: #ca8a04;
+  --color-warning-bg: #451a03;
+  --color-danger: #dc2626;
+  --color-danger-bg: #7f1d1d;
+  --color-twitter: #1da1f2;
+  --color-modal-background: #0f172a;
+  --color-accent: #fbbf24;
+  --color-accent-bg: #451a03;
+  --color-link-shadow: #2563eb; /* blue-600 for link underline shadow */
+  --color-share-highlight-text: #111827; /* gray-900 */
+  --color-share-highlight-bg: #e5e7eb; /* gray-200 */
+  --color-share-highlight-text-active: #ffffff; /* white */
+  --color-share-highlight-bg-active: #2563eb; /* blue-600 */
+  --color-share-highlight-tooltip-text: #ffffff; /* white */
+  --color-share-highlight-tooltip-bg: #111827; /* gray-900 */
+  --shiki-theme: 'github-light';
+  --shadow-sm: 0 2px 16px #000026;
+  --shadow-md: 0 4px 6px #32325d1c, 0 1px 3px #000014;
+  --shadow-hover: 0 7px 14px #3232321a, 0 3px 6px #000014;
+  --shadow-active: 0 3px 12px -2px inset #32323240;
+  --shadow-text: 0 1px 3px #000026;
+}
+
+
+/**
+ * =============================================================================
+ *  SYSTEM PREFERENCE SUPPORT
+ *  Apply dark theme when user prefers dark mode and no explicit theme is set
+ * =============================================================================
+ */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
     --color-bg: var(--dark-color-bg);
@@ -254,40 +267,3 @@
     --shadow-text: var(--dark-shadow-text);
   }
 }
-
-/* =============================================================================
-   EXAMPLE: HOLIDAY THEME
-   Uncomment and customize for seasonal themes
-   ============================================================================= */
-/*
-[data-theme="holiday"] {
-  --color-bg: #0f172a;
-  --color-bg-offset: #1e293b;
-  --color-text: #f1f5f9;
-  --color-text-offset: #cbd5e1;
-  --color-border: #334155;
-  --color-primary: #dc2626;
-  --color-primary-offset: #991b1b;
-  --color-primary-bg: #7f1d1d;
-  --color-primary-bg-hover: #991b1b;
-  --color-primary-hover: #b91c1c;
-  --color-secondary: #16a34a;
-  --color-secondary-offset: #15803d;
-  --color-secondary-bg: #052e16;
-  --color-success: #16a34a;
-  --color-success-offset: #22c55e;
-  --color-success-bg: #052e16;
-  --color-info: #0891b2;
-  --color-info-bg: #164e63;
-  --color-warning: #a16207;
-  --color-warning-offset: #ca8a04;
-  --color-warning-bg: #451a03;
-  --color-danger: #dc2626;
-  --color-danger-bg: #7f1d1d;
-  --color-twitter: #1da1f2;
-  --color-modal-background: #0f172a;
-  --color-accent: #fbbf24;
-  --color-accent-bg: #451a03;
-  --shiki-theme: 'github-dark';
-}
-*/
