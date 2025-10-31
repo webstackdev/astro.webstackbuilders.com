@@ -1,0 +1,288 @@
+---
+import { getCollection, getEntry, render } from 'astro:content'
+import Head from '@components/Head/index.astro'
+
+/**
+ * Generate static paths for all component stories
+ */
+export async function getStaticPaths() {
+  const stories = await getCollection('stories')
+  return stories.map(story => ({
+    params: { slug: story.id },
+  }))
+}
+
+const { slug } = Astro.params
+const story = await getEntry('stories', slug!)
+
+if (!story) {
+  throw new Error(`Story not found: ${slug}`)
+}
+
+// Get all stories for navigation
+const stories = await getCollection('stories')
+
+// Group stories by category
+const categorizedStories = stories.reduce((acc, story) => {
+  const category = story.data.category || 'UI'
+  if (!acc[category]) {
+    acc[category] = []
+  }
+  acc[category].push(story)
+  return acc
+}, {} as Record<string, typeof stories>)
+
+// Sort categories and stories within each category
+const sortedCategories = Object.keys(categorizedStories).sort()
+sortedCategories.forEach(category => {
+  const categoryStories = categorizedStories[category]
+  if (categoryStories) {
+    categoryStories.sort((a, b) => a.data.title.localeCompare(b.data.title))
+  }
+})
+
+const { Content } = await render(story)
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <Head
+    pageTitle={`${story.data.title} - Component Stories`}
+    path={`/stories/${story.id}`}
+    description={story.data.description || `Story for ${story.data.component} component`}
+    noindex={true}
+  />
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 0;
+      background: var(--color-bg);
+      color: var(--color-text);
+    }
+
+    .storybook-container {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      height: 100vh;
+    }
+
+    .sidebar {
+      background: var(--color-bg-offset);
+      border-right: 1px solid var(--color-border);
+      overflow-y: auto;
+      padding: 1rem;
+    }
+
+    .sidebar h2 {
+      margin: 0 0 1rem 0;
+      font-size: 1.25rem;
+      color: var(--color-primary);
+    }
+
+    .category {
+      margin-bottom: 1.5rem;
+    }
+
+    .category h3 {
+      margin: 0 0 0.5rem 0;
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-text-muted);
+      font-weight: 600;
+    }
+
+    .story-link {
+      display: block;
+      padding: 0.5rem;
+      margin-bottom: 0.25rem;
+      text-decoration: none;
+      color: var(--color-text);
+      border-radius: 0.25rem;
+      font-size: 0.875rem;
+      transition: background-color 0.2s;
+    }
+
+    .story-link:hover {
+      background: var(--color-surface-raised);
+    }
+
+    .story-link.active {
+      background: var(--color-primary);
+      color: var(--color-on-primary);
+    }
+
+    .main-content {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .content-area {
+      flex: 1;
+      overflow: auto;
+      padding: 2rem;
+    }
+
+    .story-header {
+      border-bottom: 1px solid var(--color-border);
+      padding-bottom: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .story-header h1 {
+      margin: 0 0 0.5rem 0;
+      color: var(--color-primary);
+      font-size: 1.5rem;
+    }
+
+    .story-header .component-name {
+      font-family: monospace;
+      background: var(--color-surface-raised);
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+      font-size: 0.875rem;
+      margin-bottom: 0.5rem;
+      display: inline-block;
+    }
+
+    .story-header .description {
+      color: var(--color-text-muted);
+      margin: 0;
+    }
+
+    .story-content {
+      line-height: 1.6;
+    }
+
+    .theme-controls {
+      background: var(--color-bg-offset);
+      border-top: 1px solid var(--color-border);
+      padding: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .theme-option {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+    }
+
+    .theme-option input[type="radio"] {
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="storybook-container">
+    <!-- Sidebar with story navigation -->
+    <nav class="sidebar">
+      <h2>Component Stories</h2>
+
+      {sortedCategories.map(category => {
+        const categoryStories = categorizedStories[category]
+        if (!categoryStories) return null
+
+        return (
+          <div class="category">
+            <h3>{category}</h3>
+            {categoryStories.map(storyItem => (
+              <a
+                href={`/stories/${storyItem.id}`}
+                class="story-link"
+                data-story-id={storyItem.id}
+              >
+                {storyItem.data.title}
+              </a>
+            ))}
+          </div>
+        )
+      })}
+    </nav>
+
+    <!-- Main content area -->
+    <main class="main-content">
+      <div class="content-area">
+        <div class="story-header">
+          <h1>{story.data.title}</h1>
+          <div class="component-name">{story.data.component}</div>
+          {story.data.description && (
+            <p class="description">{story.data.description}</p>
+          )}
+        </div>
+
+        <div class="story-content">
+          <Content />
+        </div>
+      </div>
+
+      <!-- Theme controls -->
+      <div class="theme-controls">
+        <span style="font-size: 0.875rem; font-weight: 600; color: var(--color-text-muted);">Theme:</span>
+        <label class="theme-option">
+          <input type="radio" name="theme" value="system" checked />
+          <span>System</span>
+        </label>
+        <label class="theme-option">
+          <input type="radio" name="theme" value="light" />
+          <span>Light</span>
+        </label>
+        <label class="theme-option">
+          <input type="radio" name="theme" value="dark" />
+          <span>Dark</span>
+        </label>
+        <label class="theme-option">
+          <input type="radio" name="theme" value="colorful" />
+          <span>Colorful</span>
+        </label>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Theme switching functionality
+    const themeRadios = document.querySelectorAll('input[name="theme"]')
+    const html = document.documentElement
+
+    themeRadios.forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        const target = e.target as HTMLInputElement
+        if (!target) return
+
+        const theme = target.value
+
+        if (theme === 'system') {
+          html.removeAttribute('data-theme')
+        } else {
+          html.setAttribute('data-theme', theme)
+        }
+
+        // Store theme preference
+        localStorage.setItem('storybook-theme', theme)
+      })
+    })
+
+    // Restore theme preference
+    const savedTheme = localStorage.getItem('storybook-theme') || 'system'
+    const themeRadio = document.querySelector(`input[name="theme"][value="${savedTheme}"]`) as HTMLInputElement
+    if (themeRadio) {
+      themeRadio.checked = true
+      if (savedTheme !== 'system') {
+        html.setAttribute('data-theme', savedTheme)
+      }
+    }
+
+    // Highlight active story link
+    const currentPath = window.location.pathname
+    const storyLinks = document.querySelectorAll('.story-link')
+    storyLinks.forEach(link => {
+      if (link.getAttribute('href') === currentPath) {
+        link.classList.add('active')
+      }
+    })
+  </script>
+</body>
+</html>

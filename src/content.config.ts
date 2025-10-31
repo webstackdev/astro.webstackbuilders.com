@@ -292,6 +292,22 @@ const downloadsCollection = defineCollection({
 })
 
 /**
+ * Stories (Component Storybook)
+ */
+const storiesSchema = z.object({
+  title: z.string(),
+  component: z.string(), // Component name
+  description: z.string().optional(),
+  category: z.enum(['UI', 'Layout', 'Form', 'Navigation', 'Content', 'Interactive']).default('UI'),
+  props: z.record(z.any()).optional(), // Component props as key-value pairs
+})
+
+const storiesCollection = defineCollection({
+  loader: glob({ pattern: '**/*.{md,mdx,tsx}', base: './src/content/stories' }),
+  schema: () => storiesSchema,
+})
+
+/**
  * Contact data
  */
 
@@ -306,6 +322,7 @@ export const collections = {
   services: servicesCollection,
   sitePages: sitePagesCollection,
   storage: storageCollection,
+  stories: storiesCollection,
   testimonials: testimonialCollection,
   themes: themesCollection,
 }
