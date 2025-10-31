@@ -189,7 +189,7 @@ describe('favicon.ts', () => {
       const save = saveFile(destination)
       await save(mockBuffer)
 
-      expect(mockWriteFile).toHaveBeenCalledWith(destination, mockBuffer)
+      expect(mockWriteFile).toHaveBeenCalledWith(destination, new Uint8Array(mockBuffer))
     })
   })
 
