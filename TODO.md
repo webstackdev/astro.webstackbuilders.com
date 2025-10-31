@@ -37,6 +37,8 @@ Playwright `getByTestId` uses `data-testid` as its selector. You can change it i
 await page.getByTestId('directions').click()
 ```
 
+\[color:var\(--color-(.*?)\)\]
+
 ## Axe tags
 
 cat.aria: Rules related to Accessible Rich Internet Applications (ARIA) attributes and roles.
