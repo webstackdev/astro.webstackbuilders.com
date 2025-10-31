@@ -9,7 +9,7 @@ vi.mock('to-ico')
 vi.mock('fs/promises')
 
 // Import the module after mocking
-const faviconModule = await import('../favicon.ts')
+const faviconModule = await import('../favicon')
 
 describe('favicon.ts', () => {
   const mockMetadata = {
@@ -168,15 +168,15 @@ describe('favicon.ts', () => {
 
       ;(writeFile as Mock).mockImplementation(mockWriteFile)
 
-      await writeFile(destination, mockBuffer)
+      await writeFile(destination, new Uint8Array(mockBuffer))
 
-      expect(mockWriteFile).toHaveBeenCalledWith(destination, mockBuffer)
+      expect(mockWriteFile).toHaveBeenCalledWith(destination, new Uint8Array(mockBuffer))
     })
 
     it('should handle curried function pattern', async () => {
       const saveFile = (destination: string) => {
         return async (buffer: Buffer) => {
-          return await writeFile(destination, buffer)
+          return await writeFile(destination, new Uint8Array(buffer))
         }
       }
 

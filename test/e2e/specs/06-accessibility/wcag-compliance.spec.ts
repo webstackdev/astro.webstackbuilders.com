@@ -87,7 +87,7 @@ test.describe('WCAG Compliance', () => {
       outlineWidth: string,
     }
 
-    const focusIndicator = await page.evaluate<FocusIndicator>(() => {
+    const focusIndicator = await page.evaluate<FocusIndicator | null>(() => {
       const el = document.activeElement
       if (!el) return null
 

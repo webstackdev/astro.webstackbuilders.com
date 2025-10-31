@@ -26,7 +26,16 @@ describe('Newsletter API - POST /api/newsletter', () => {
 		vi.clearAllMocks()
 		vi.mocked(createPendingSubscription).mockResolvedValue('test-token-123')
 		vi.mocked(sendConfirmationEmail).mockResolvedValue(undefined)
-		vi.mocked(recordConsent).mockResolvedValue(undefined)
+		vi.mocked(recordConsent).mockResolvedValue({
+			id: 'test-consent-id',
+			email: 'test@example.com',
+			purposes: ['marketing'],
+			timestamp: '2025-10-31T00:00:00.000Z',
+			source: 'newsletter_form',
+			userAgent: 'test-agent',
+			privacyPolicyVersion: '2025-10-20',
+			verified: false
+		})
 	})
 
 	afterEach(() => {

@@ -12,9 +12,7 @@ export class NewsletterPage extends BasePage {
   private readonly submitButtonSelector = '#newsletter-submit'
   private readonly gdprConsentSelector = '#newsletter-gdpr-consent'
   private readonly messageSelector = '#newsletter-message'
-  private readonly buttonTextSelector = '#button-text'
   private readonly buttonSpinnerSelector = '#button-spinner'
-  private readonly buttonArrowSelector = '#button-arrow'
 
   constructor(page: Page) {
     super(page)
@@ -193,7 +191,7 @@ export class NewsletterPage extends BasePage {
   /**
    * Wait for API response and get JSON data
    */
-  async getApiResponse(): Promise<any> {
+  async getApiResponse(): Promise<unknown> {
     const responsePromise = this.page.waitForResponse('/api/newsletter')
     await this.submitForm()
     const response = await responsePromise

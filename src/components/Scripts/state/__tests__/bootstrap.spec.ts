@@ -33,7 +33,7 @@ describe('AppBootstrap', () => {
     vi.clearAllMocks()
 
     // Clear window globals
-    window._isBootstrapped = false
+    ;(window as Window & { _isBootstrapped?: boolean })._isBootstrapped = false
     if ('_bootstrapError' in window) {
       delete (window as {_bootstrapError?: unknown})._bootstrapError
     }

@@ -1,4 +1,5 @@
 import { addBreadcrumb } from '@sentry/browser'
+import type { ScriptErrorContext } from './handler'
 
 /**
  * Add a breadcrumb before attempting a script operation or Sentry tracking

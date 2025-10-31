@@ -33,7 +33,7 @@ export function generateConfirmationToken(): string {
   // Generate 32 random bytes and encode as base64url (URL-safe)
   const array = new Uint8Array(32)
   crypto.getRandomValues(array)
-  return btoa(String.fromCharCode(...array))
+  return Buffer.from(array).toString('base64')
     .replace(/\+/g, '-')
     .replace(/\//g, '_')
     .replace(/=/g, '')

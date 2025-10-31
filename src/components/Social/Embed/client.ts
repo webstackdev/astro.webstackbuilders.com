@@ -529,7 +529,7 @@ class EmbedInstance {
   }
 
   private getCacheKey(): string {
-    return `${EmbedInstance.CACHE_PREFIX}${this.platform}_${btoa(this.url).substring(0, 50)}`
+    return `${EmbedInstance.CACHE_PREFIX}${this.platform}_${Buffer.from(this.url, 'utf8').toString('base64').substring(0, 50)}`
   }
 
   private getCachedData(): OEmbedResponse | null {

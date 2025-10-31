@@ -143,7 +143,7 @@ export class PwaPage extends BasePage {
         const cacheNames = await caches.keys()
         if (cacheNames.length === 0) return 0
 
-        const cache = await caches.open(cacheNames[0])
+        const cache = await caches.open(cacheNames[0]!)
         const cachedRequests = await cache.keys()
         return cachedRequests.length
       }

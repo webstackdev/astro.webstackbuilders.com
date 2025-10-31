@@ -11,7 +11,6 @@ import {
   type Response,
   expect,
 } from '@playwright/test'
-import { type PageFunction } from 'playwright-core/types/struct.d.ts'
 import { navigationItems } from '@components/Navigation/server'
 import { clearConsentCookies } from '@test/e2e/helpers'
 
@@ -54,7 +53,7 @@ export class BasePage {
    * Evaluate JS script in the browser
    */
   async evaluate<R>(
-    pageFunction: PageFunction<void, R>,
+    pageFunction: () => R | Promise<R>,
     arg?: unknown
   ): Promise<R> {
     return await this._page.evaluate(pageFunction, arg)
