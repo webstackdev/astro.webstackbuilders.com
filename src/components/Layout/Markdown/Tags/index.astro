@@ -1,0 +1,22 @@
+---
+export interface Props {
+  tags: string[]
+}
+
+const { tags } = Astro.props
+---
+
+<ul class="flex flex-wrap gap-1 list-none p-0 m-0" aria-label="Article tags">
+  {tags.map((tag) => (
+    <li>
+      <a
+        href={`/tags/${tag}`}
+        rel="tag"
+        itemprop="keywords"
+        class="inline-block px-2 py-0.5 bg-[var(--color-surface-raised)] rounded text-xs no-underline transition-colors hover:bg-[var(--color-primary)] hover:text-[var(--color-on-primary)] focus:bg-[var(--color-primary)] focus:text-[var(--color-on-primary)]"
+      >
+        {tag}
+      </a>
+    </li>
+  ))}
+</ul>

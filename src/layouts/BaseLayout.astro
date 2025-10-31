@@ -1,10 +1,13 @@
 ---
+import Breadcrumbs from '@components/Breadcrumbs/index.astro'
+import Container from '@components/Layout/Container/index.astro'
 import CookieConsent from '@components/Cookies/Consent/index.astro'
+import Footer from '@components/Footer/index.astro'
 import HeadContent from '@components/Head/index.astro'
 import Header from '@components/Header/index.astro'
-import Footer from '@components/Footer/index.astro'
+import Content from '@components/Layout/Content/index.astro'
 import PwaTitleBar from '@components/PwaTitleBar/index.astro'
-import Breadcrumbs from '@components/Breadcrumbs/index.astro'
+import Skip from '@components/Layout/Skip/index.astro'
 import ThemePicker from '@components/ThemePicker/Themes.astro'
 
 import '@styles/index.css'
@@ -43,17 +46,6 @@ const {
 } = Astro.props
 ---
 
-<style>
-  /* Container constraints for header and footer elements */
-  .layout :global(.header),
-  .layout :global(.footer) {
-    flex: none;
-    margin-left: auto;
-    margin-right: auto;
-    max-width: 75rem; /* 1200px at 16px font-size */
-    width: 90%;
-  }
-</style>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -72,33 +64,21 @@ const {
     />
   </head>
   <body>
-    <a
-      href="#main"
-      class="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-1/2 focus:-translate-x-1/2 focus:px-6 focus:py-4 focus:outline-none focus:z-50 focus:bg-blue-600 focus:text-white focus:rounded"
-      >skip to main content</a
-    >
+    {/* Skip to main content link for accessibility */}
+    <Skip />
     {/* Sets Window Controls Overlay API for PWA title bar */}
     <PwaTitleBar />
     {/* Site header and main content */}
-    <div
-      class="flex flex-col min-h-screen relative transition-transform duration-300 ease-[cubic-bezier(0.25,0.46,0.45,0.94)]"
-      role="document"
-      style="padding-top: env(titlebar-area-height, 0);"
-    >
+    <Container>
       <Header path={path} />
-      <div class="mx-auto max-w-[75rem] w-[90%] mt-4">
-        <Breadcrumbs path={path} pageTitle={pageTitle} />
-      </div>
-      <main
-        id="main"
-        class="flex flex-col flex-[0_1_auto] mx-auto max-w-[75rem] w-[90%]"
-        role="main"
-        tabindex="-1"
-      >
+      <Breadcrumbs path={path} pageTitle={pageTitle} />
+      {/* Main page content */}
+      <Content>
         <slot />
-      </main>
+      </Content>
+      {/* Site footer */}
       <Footer />
-    </div>
+    </Container>
     {/* Cookie Consent Overlay */}
     <CookieConsent />
     {/* Theme Picker Modal */}
