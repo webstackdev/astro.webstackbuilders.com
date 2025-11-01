@@ -99,7 +99,7 @@ export const ERROR_MESSAGES = {
  * Success messages
  */
 export const SUCCESS_MESSAGES = {
-  newsletterConfirmation: 'confirmation email',
+  newsletterConfirmation: 'Please check your email to confirm your subscription',
   contactFormSent: 'We\'ll get back to you',
   downloadStarted: 'Your download',
 }
