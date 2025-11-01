@@ -34,20 +34,35 @@ test.describe('Newsletter Subscription Form', () => {
     await newsletterPage.expectMessageContains(ERROR_MESSAGES.emailInvalid)
   })
 
-  test('@wip form requires GDPR consent', async () => {
-    // Note: This test is inconsistent because client-side JS validation
-    // may not be attached before the test runs. The validation works in production
-    // but is difficult to reliably test in this E2E environment.
-    // TODO: Find a reliable way to wait for client-side form validation to load
+  test('@ready form requires GDPR consent', async ({ page }) => {
+    let apiCallMade = false
+
+    // Monitor API calls to ensure client-side validation prevents submission
+    await page.route('/api/newsletter', (route) => {
+      apiCallMade = true
+      route.abort() // Don't actually process it
+    })
+
+    // Wait for page to be fully loaded with scripts
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(500) // Give scripts time to initialize
 
     await newsletterPage.fillEmail(TEST_EMAILS.valid)
-    // Don't check GDPR consent
+    // Don't check GDPR consent - leave it unchecked
     await newsletterPage.submitForm()
 
-    // Wait for validation message
-    await newsletterPage.wait(200)
+    // Wait for client-side validation to show error message
+    await page.waitForFunction(() => {
+      const message = document.getElementById('newsletter-message')
+      return message && message.textContent && message.textContent.includes('consent')
+    }, { timeout: 3000 })
 
-    // Should show consent required error
+    // Verify that no API call was made (client-side validation prevented it)
+    if (apiCallMade) {
+      throw new Error('API call was made - client-side validation failed to prevent submission')
+    }
+
+    // Should show consent required error message
     await newsletterPage.expectMessageContains('Please consent to receive marketing communications')
   })
 
