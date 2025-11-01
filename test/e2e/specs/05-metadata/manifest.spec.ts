@@ -7,6 +7,9 @@
 import { BasePage, test, expect } from '@test/e2e/helpers'
 
 test.describe('PWA Manifest', () => {
+  // Skip Firefox tests as it downloads manifest.json instead of loading it as page content
+  test.skip(({ browserName }) => browserName === 'firefox', 'Firefox downloads manifest.json instead of loading it')
+
   test('@ready manifest file is accessible', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
     const response = await page.goto('/manifest.json')
