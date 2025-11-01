@@ -196,43 +196,45 @@ test.describe('Mobile Navigation', () => {
     const page = new BasePage(playwrightPage)
     await page.setViewport(375, 667)
 
-    // Install fake timers before going to the page
-    await playwrightPage.clock.install()
     await page.goto('/')
 
     // Open mobile menu first
     await page.click('button[aria-label="toggle menu"]')
 
-    // Use clock manipulation to speed through animations
-    await waitForMobileMenuAnimation(playwrightPage)
+    // Wait for mobile menu animation with real timers for WebKit compatibility
+    await playwrightPage.waitForTimeout(600) // Wait for 550ms animation + buffer
 
     // Now navigation links should be visible and clickable
     await page.click('nav#main-nav a[href="/about"]')
 
-    await page.waitForLoadState('networkidle')
-    await page.expectUrlContains('/about')
+    // Wait for navigation to complete and check for About page content instead of URL
+    await playwrightPage.waitForSelector('text=Building Developer-First Infrastructure', { timeout: 5000 })
+
+    // Verify we're on the About page by checking breadcrumbs (using proper Playwright selector)
+    await expect(playwrightPage.locator('nav[aria-label="Breadcrumb"]').getByText('About')).toBeVisible()
   })
 
   test('@ready can navigate using keyboard Enter on focused link', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
     await page.setViewport(375, 667)
 
-    // Install fake timers before going to the page
-    await playwrightPage.clock.install()
     await page.goto('/')
 
     // Open mobile menu first
     await page.click('button[aria-label="toggle menu"]')
 
-    // Use clock manipulation to speed through animations
-    await waitForMobileMenuAnimation(playwrightPage)
+    // Wait for mobile menu animation with real timers for WebKit compatibility
+    await playwrightPage.waitForTimeout(600) // Wait for 550ms animation + buffer
 
     // Focus on a navigation link and press Enter
     await playwrightPage.locator('nav#main-nav a[href="/about"]').focus()
     await playwrightPage.keyboard.press('Enter')
 
-    await page.waitForLoadState('networkidle')
-    await page.expectUrlContains('/about')
+    // Wait for navigation to complete and check for About page content instead of URL
+    await playwrightPage.waitForSelector('text=Building Developer-First Infrastructure', { timeout: 5000 })
+
+    // Verify we're on the About page by checking breadcrumbs (using proper Playwright selector)
+    await expect(playwrightPage.locator('nav[aria-label="Breadcrumb"]').getByText('About')).toBeVisible()
   })
 
   test('@ready mobile menu has proper ARIA attributes', async ({ page: playwrightPage }) => {
