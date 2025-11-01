@@ -67,10 +67,28 @@ test.describe('Keyboard Navigation', () => {
    * Axe does not check that tab order follows the visual layout. An automated tool
    * cannot accurately determine the visual flow of a page because this is a subjective
    * task that requires human interpretation.
-  */
+   */
   test('@ready form inputs are keyboard accessible', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
     await page.goto('/contact')
+
+    // Dismiss cookie modal if it's open (common in test environments)
+    const cookieModalVisible = await page.page.evaluate(() => {
+      const modal = document.getElementById('cookie-modal-id')
+      return modal ? window.getComputedStyle(modal).display !== 'none' : false
+    })
+
+    if (cookieModalVisible) {
+      // Click the "Allow All" button to dismiss the modal
+      await page.page.click('.cookie-modal__btn-allow')
+      // Wait for modal to close and main content to be restored
+      await page.page.waitForFunction(() => {
+        const modal = document.getElementById('cookie-modal-id')
+        const main = document.getElementById('main-content')
+        return modal && window.getComputedStyle(modal).display === 'none' &&
+               main && !main.hasAttribute('inert')
+      })
+    }
 
     // Tab to email input
     let emailFocused = false
@@ -83,9 +101,7 @@ test.describe('Keyboard Navigation', () => {
       }
     }
 
-    expect(emailFocused).toBe(true)
-
-    // Type in email
+    expect(emailFocused).toBe(true)    // Type in email
     await page.page.keyboard.type('test@example.com')
 
     const emailInput = page.page.locator('input[type="email"]').first()

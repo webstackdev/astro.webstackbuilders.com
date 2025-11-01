@@ -31,6 +31,8 @@ export class CookieConsent extends LoadableScript {
   allowBtn: HTMLButtonElement
   /** Customize button element */
   customizeBtn: HTMLButtonElement
+  /** Focus trap handler reference for proper cleanup */
+  private trapFocusHandler: ((_event: KeyboardEvent) => void) | null = null
   /** Static reference to track modal visibility across View Transitions */
   private static isModalCurrentlyVisible = false
   /** Flag to ensure View Transitions handlers are only set up once */
@@ -95,7 +97,16 @@ export class CookieConsent extends LoadableScript {
 
     try {
       this.wrapper.style.display = 'block'
+
+      // Make main content inert while modal is open
+      this.setMainContentInert(true)
+
+      // Set up focus trap
+      this.setupFocusTrap()
+
+      // Focus the first focusable element (allow button)
       this.allowBtn.focus()
+
       $cookieModalVisible.set(true)
       CookieConsent.isModalCurrentlyVisible = true
     } catch (error) {
@@ -106,14 +117,20 @@ export class CookieConsent extends LoadableScript {
   /**
    * Close button and Escape key press event handler
    */
-  handleDismissModal = () => {
+    handleDismissModal = () => {
     console.log('🍪 Modal dismissed by user')
+
+    // Remove focus trap and restore main content
+    this.removeFocusTrap()
+    this.setMainContentInert(false)
+
     this.wrapper.style.display = 'none'
     $cookieModalVisible.set(false)
     CookieConsent.isModalCurrentlyVisible = false
-    /** Clear session storage so modal won't appear again in this session */
-    sessionStorage.removeItem('cookie-consent-modal-shown')
+
+    // Clear session storage flags when user dismisses
     sessionStorage.removeItem('cookie-modal-visible')
+    sessionStorage.removeItem('cookie-consent-modal-shown')
   }
 
   /**
@@ -134,6 +151,11 @@ export class CookieConsent extends LoadableScript {
     try {
       console.log('🍪 User accepted all cookies')
       allowAllConsentCookies()
+
+      // Remove focus trap and restore main content
+      this.removeFocusTrap()
+      this.setMainContentInert(false)
+
       /** Clear session storage so modal won't persist after consent */
       sessionStorage.removeItem('cookie-consent-modal-shown')
       sessionStorage.removeItem('cookie-modal-visible')
@@ -229,6 +251,155 @@ export class CookieConsent extends LoadableScript {
         /** Mark modal as shown and visible for this session */
         sessionStorage.setItem('cookie-consent-modal-shown', 'true')
         sessionStorage.setItem('cookie-modal-visible', 'true')
+      }
+    } catch (error) {
+      handleScriptError(error, context)
+    }
+  }
+
+  /**
+   * Set main content as inert when modal is open
+   */
+  private setMainContentInert(inert: boolean) {
+    const context = { scriptName: CookieConsent.scriptName, operation: 'setMainContentInert' }
+    addScriptBreadcrumb(context)
+
+    try {
+      const mainContent = document.getElementById('main-content')
+
+      if (mainContent) {
+        if (inert) {
+          this.setElementInert(mainContent, true)
+          mainContent.setAttribute('aria-hidden', 'true')
+        } else {
+          this.setElementInert(mainContent, false)
+          mainContent.removeAttribute('aria-hidden')
+        }
+      }
+
+      // Also handle skip link and PWA title bar
+      const skipLink = document.querySelector('a[href="#main"]')
+      const pwaTitleBar = document.querySelector('[data-component="pwa-title-bar"]')
+
+      if (skipLink) {
+        if (inert) {
+          skipLink.setAttribute('tabindex', '-1')
+        } else {
+          skipLink.removeAttribute('tabindex')
+        }
+      }
+
+      if (pwaTitleBar) {
+        this.setElementInert(pwaTitleBar as HTMLElement, inert)
+      }
+    } catch (error) {
+      handleScriptError(error, context)
+    }
+  }
+
+  /**
+   * Set element inert with polyfill for browsers that don't support it
+   */
+  private setElementInert(element: HTMLElement, inert: boolean) {
+    const context = { scriptName: CookieConsent.scriptName, operation: 'setElementInert' }
+    addScriptBreadcrumb(context)
+
+    try {
+      if (inert) {
+        element.setAttribute('inert', '')
+
+        // Polyfill: disable all focusable elements if inert is not natively supported
+        if (!('inert' in HTMLElement.prototype)) {
+          const focusableElements = element.querySelectorAll(
+            'a[href], button, input, textarea, select, [tabindex]:not([tabindex="-1"])'
+          )
+
+          focusableElements.forEach((el) => {
+            const htmlEl = el as HTMLElement
+            // Store original tabindex
+            const originalTabindex = htmlEl.getAttribute('tabindex')
+            htmlEl.setAttribute('data-original-tabindex', originalTabindex || 'none')
+            htmlEl.setAttribute('tabindex', '-1')
+          })
+        }
+      } else {
+        element.removeAttribute('inert')
+
+        // Polyfill: restore focusable elements
+        if (!('inert' in HTMLElement.prototype)) {
+          const focusableElements = element.querySelectorAll('[data-original-tabindex]')
+
+          focusableElements.forEach((el) => {
+            const htmlEl = el as HTMLElement
+            const originalTabindex = htmlEl.getAttribute('data-original-tabindex')
+
+            if (originalTabindex === 'none') {
+              htmlEl.removeAttribute('tabindex')
+            } else if (originalTabindex) {
+              htmlEl.setAttribute('tabindex', originalTabindex)
+            }
+
+            htmlEl.removeAttribute('data-original-tabindex')
+          })
+        }
+      }
+    } catch (error) {
+      handleScriptError(error, context)
+    }
+  }
+
+  /**
+   * Set up focus trap within the modal
+   */
+  private setupFocusTrap() {
+    const context = { scriptName: CookieConsent.scriptName, operation: 'setupFocusTrap' }
+    addScriptBreadcrumb(context)
+
+    try {
+      // Get all focusable elements within the modal
+      const focusableElements = this.wrapper.querySelectorAll(
+        'a[href], button, textarea, input[type="text"], input[type="radio"], input[type="checkbox"], select, [tabindex]:not([tabindex="-1"])'
+      )
+
+      if (focusableElements.length === 0) return
+
+      const firstFocusable = focusableElements[0] as HTMLElement
+      const lastFocusable = focusableElements[focusableElements.length - 1] as HTMLElement
+
+      // Handle Tab key navigation within modal
+      this.trapFocusHandler = (e: KeyboardEvent) => {
+        if (e.key === 'Tab') {
+          if (e.shiftKey) { // Shift + Tab
+            if (document.activeElement === firstFocusable) {
+              e.preventDefault()
+              lastFocusable.focus()
+            }
+          } else { // Tab
+            if (document.activeElement === lastFocusable) {
+              e.preventDefault()
+              firstFocusable.focus()
+            }
+          }
+        }
+      }
+
+      this.wrapper.addEventListener('keydown', this.trapFocusHandler)
+    } catch (error) {
+      handleScriptError(error, context)
+    }
+  }
+
+  /**
+   * Remove focus trap
+   */
+  private removeFocusTrap() {
+    const context = { scriptName: CookieConsent.scriptName, operation: 'removeFocusTrap' }
+    addScriptBreadcrumb(context)
+
+    try {
+      if (this.trapFocusHandler) {
+        this.wrapper.removeEventListener('keydown', this.trapFocusHandler)
+        this.trapFocusHandler = null
       }
     } catch (error) {
       handleScriptError(error, context)
