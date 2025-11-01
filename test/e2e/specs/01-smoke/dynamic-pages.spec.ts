@@ -96,7 +96,10 @@ test.describe('Dynamic Pages @smoke', () => {
     expect(content).toContain('<rss')
   })
 
-  test('@ready manifest.json is accessible', async ({ page }) => {
+  test('@ready manifest.json is accessible', async ({ page }, testInfo) => {
+    // Skip Firefox due to manifest download behavior difference
+    test.skip(testInfo.project.name === 'firefox', 'Firefox treats manifest.json as download')
+
     // PWA manifest should be accessible and valid JSON
     const response = await page.goto('/manifest.json')
     expect(response?.status()).toBe(200)
