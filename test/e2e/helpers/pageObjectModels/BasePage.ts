@@ -374,6 +374,27 @@ export class BasePage {
   }
 
   /**
+   * Dismiss/clear the cookie consent dialog if it's visible
+   * This method handles the cookie dialog that may appear and block interactions
+   *
+   * @example
+   * await page.clearCookieDialog()
+   * // Continue with test that requires clicking on page elements
+   */
+  async clearCookieDialog(): Promise<void> {
+    const cookieDialog = this._page.locator('#cookie-modal-id')
+
+    // Check if cookie dialog is visible
+    if (await cookieDialog.isVisible()) {
+      // Click "Allow All" button to dismiss the dialog
+      await this._page.click('.cookie-modal__btn-allow')
+
+      // Wait for the dialog to be hidden
+      await this._page.waitForSelector('#cookie-modal-id', { state: 'hidden' })
+    }
+  }
+
+  /**
    * ================================================================
    *
    * Newsletter Form Methods

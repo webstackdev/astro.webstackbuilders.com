@@ -21,7 +21,10 @@ test.describe('Footer Component', () => {
     const page = new BasePage(playwrightPage)
     await page.goto('/')
     await page.expectElementVisible('footer[role="contentinfo"]')
-    await page.expectTextVisible('Webstack Builders')
+
+    // Look for company name specifically within the footer, not the entire page
+    const footerText = await page.getTextContent('footer[role="contentinfo"]')
+    expect(footerText).toContain('Webstack Builders')
   })
 
   test('@ready footer has copyright notice', async ({ page: playwrightPage }) => {
@@ -47,13 +50,16 @@ test.describe('Footer Component', () => {
     await page.expectElementVisible('footer[role="contentinfo"] a[href*="cookie"]')
   })
 
-  test.skip('@wip footer links are functional', async ({ page: playwrightPage }) => {
-    // TODO: Cookie dialog blocks this test
+  test('@ready footer links are functional', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
     await page.goto('/')
+
+    // Dismiss cookie dialog if present
+    await page.clearCookieDialog()
+
+    // Test privacy link navigation
     await page.click('footer[role="contentinfo"] a[href*="/privacy"]')
     await page.waitForLoadState('networkidle')
-
     await page.expectUrlContains('/privacy')
   })
 
