@@ -5,6 +5,7 @@
  */
 
 import { BasePage, test, expect } from '@test/e2e/helpers'
+import { setupTestPage } from '../../helpers/cookieHelper'
 
 test.describe('Desktop Navigation', () => {
   test('@ready navigation is visible on desktop', async ({ page: playwrightPage }) => {
@@ -39,7 +40,7 @@ test.describe('Desktop Navigation', () => {
   test('@ready can navigate to pages from desktop nav', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
     await page.setViewport(1280, 720)
-    await page.goto('/')
+    await setupTestPage(playwrightPage, '/')
 
     await page.click('nav#main-nav a[href*="/about"]')
     await page.waitForLoadState('networkidle')
@@ -76,7 +77,7 @@ test.describe('Desktop Navigation', () => {
   test('@ready navigation links have hover states', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
     await page.setViewport(1280, 720)
-    await page.goto('/')
+    await setupTestPage(playwrightPage, '/')
 
     // Hover and check that hover styles apply
     await page.hover('nav#main-nav a')

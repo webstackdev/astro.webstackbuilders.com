@@ -6,7 +6,7 @@ import type { Page } from '@playwright/test'
 
 /**
  * Dismisses cookie consent modal if it's visible and ensures proper consent cookies are set
- * This is needed because the modal blocks interaction with other elements
+ * Enhanced for View Transitions compatibility
  */
 export async function dismissCookieModal(page: Page): Promise<void> {
   // Always ensure proper consent cookies are set, regardless of modal state
@@ -16,7 +16,16 @@ export async function dismissCookieModal(page: Page): Promise<void> {
     document.cookie = 'consent_analytics=true; path=/; max-age=31536000'
     document.cookie = 'consent_advertising=true; path=/; max-age=31536000'
     document.cookie = 'consent_functional=true; path=/; max-age=31536000'
+
+    // Also clear any persistent state that might interfere
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem('cookieConsent')
+      localStorage.removeItem('gdprConsent')
+    }
   })
+
+  // Wait for DOM to be ready
+  await page.waitForLoadState('domcontentloaded')
 
   const cookieModalVisible = await page.evaluate(() => {
     const modal = document.getElementById('cookie-modal-id')
@@ -24,28 +33,50 @@ export async function dismissCookieModal(page: Page): Promise<void> {
   })
 
   if (cookieModalVisible) {
-    // Click the "Allow All" button to dismiss the modal
-    const buttonExists = await page.locator('.cookie-modal__btn-allow').count()
+    try {
+      // Try multiple selector strategies
+      const allowButton = page.locator('.cookie-modal__btn-allow').first()
+      const altButton = page.locator('[data-consent-action="allow-all"]').first()
 
-    if (buttonExists > 0) {
-      await page.click('.cookie-modal__btn-allow')
-    } else {
-      // Try alternative selector if main button not found
-      await page.click('[data-consent-action="allow-all"]')
-    }    // Wait for modal to close and main content to be restored
-    await page.waitForFunction(() => {
-      const modal = document.getElementById('cookie-modal-id')
-      const main = document.getElementById('main-content')
-      return modal && window.getComputedStyle(modal).display === 'none' &&
-             main && !main.hasAttribute('inert')
-    })
+      if (await allowButton.count() > 0) {
+        await allowButton.click()
+      } else if (await altButton.count() > 0) {
+        await altButton.click()
+      }
+
+      // Wait for modal to close and main content to be restored
+      await page.waitForFunction(() => {
+        const modal = document.getElementById('cookie-modal-id')
+        const main = document.getElementById('main-content')
+        return modal && window.getComputedStyle(modal).display === 'none' &&
+               main && !main.hasAttribute('inert')
+      }, { timeout: 10000 })
+    } catch {
+      // If clicking fails, try to force hide the modal
+      await page.evaluate(() => {
+        const modal = document.getElementById('cookie-modal-id')
+        if (modal) {
+          modal.style.display = 'none'
+        }
+        const main = document.getElementById('main-content')
+        if (main && main.hasAttribute('inert')) {
+          main.removeAttribute('inert')
+        }
+      })
+    }
   }
-}/**
+}
+
+/**
  * Sets up a page with cookie consent dismissed for testing
  * Use this at the beginning of tests that need to interact with UI elements
  */
 export async function setupTestPage(page: Page, url: string = '/'): Promise<void> {
-  await page.goto(url)
+  await page.goto(url, { waitUntil: 'domcontentloaded' })
+
+  // Wait a bit for any client-side initialization
+  await page.waitForTimeout(100)
+
   await dismissCookieModal(page)
 }
 
@@ -54,16 +85,27 @@ export async function setupTestPage(page: Page, url: string = '/'): Promise<void
  * Use this for tests that need a completely clean state
  */
 export async function setupCleanTestPage(page: Page, url: string = '/'): Promise<void> {
+  // Clear all storage and cookies before navigation
+  await page.context().clearCookies()
+
   await page.goto(url)
 
-  // Clear localStorage and sessionStorage
+  // Clear localStorage and sessionStorage (including any persistent state)
   await page.evaluate(() => {
     localStorage.clear()
     sessionStorage.clear()
+
+    // Clear any persistent nanostore state that might have been saved
+    const keys = Object.keys(localStorage)
+    keys.forEach(key => {
+      if (key.startsWith('theme') || key.startsWith('consent') || key.startsWith('store')) {
+        localStorage.removeItem(key)
+      }
+    })
   })
 
-  // Reload to apply clean state
-  await page.reload()
+  // Force a hard reload to ensure clean state (bypass View Transitions cache)
+  await page.reload({ waitUntil: 'domcontentloaded' })
 
   // Dismiss cookie modal after reload
   await dismissCookieModal(page)

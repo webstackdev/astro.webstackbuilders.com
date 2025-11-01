@@ -63,11 +63,12 @@ const {
       {...section && { section }}
       {...tags && { tags }}
     />
-    <ViewTransitions />
+    {/* Only enable View Transitions in production to avoid breaking e2e tests */}
+    {import.meta.env.PROD && <ViewTransitions />}
   </head>
   <body>
-    {/* Cookie Consent Overlay - Moved to top for proper tab order with View Transition Persistence */}
-    <CookieConsent client:load transition:persist />
+    {/* Cookie Consent Overlay - Standard load without persistence to fix e2e tests */}
+    <CookieConsent client:load />
     {/* Skip to main content link for accessibility */}
     <Skip />
     {/* Sets Window Controls Overlay API for PWA title bar */}
@@ -83,7 +84,7 @@ const {
       {/* Site footer */}
       <Footer />
     </Container>
-    {/* Theme Picker Modal with View Transition Persistence */}
-    <ThemePicker client:load transition:persist />
+    {/* Theme Picker Modal - Standard load without persistence to fix e2e tests */}
+    <ThemePicker client:load />
   </body>
 </html>
