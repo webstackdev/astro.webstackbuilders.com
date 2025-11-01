@@ -15,10 +15,43 @@ test.describe('Critical Paths @smoke', () => {
     }
   })
 
-  test('@ready navigation works across main pages', async ({ page: playwrightPage }) => {
+  test('@ready desktop navigation works across main pages', async ({ page: playwrightPage }) => {
+    // Skip if mobile viewport
+    const viewport = playwrightPage.viewportSize()
+    const isMobile = viewport ? viewport.width < 768 : false
+    test.skip(isMobile, 'Desktop navigation test - skipping on mobile viewport')
+
     const page = new BasePage(playwrightPage)
     await page.goto('/')
+
     for (const { url: path } of page.navigationItems) {
+      await page.click(`a[href="${path}"]`)
+      // eslint-disable-next-line security/detect-non-literal-regexp
+      await page.expectUrl(new RegExp(path))
+    }
+  })
+
+  test('@ready mobile navigation works across main pages', async ({ page: playwrightPage }) => {
+    // Skip if desktop viewport
+    const viewport = playwrightPage.viewportSize()
+    const isMobile = viewport ? viewport.width < 768 : false
+    test.skip(!isMobile, 'Mobile navigation test - skipping on desktop viewport')
+
+    const page = new BasePage(playwrightPage)
+    await page.goto('/')
+
+    const navItems = page.navigationItems
+    for (let i = 0; i < navItems.length; i++) {
+      const item = navItems[i]
+      if (!item) continue
+
+      const { url: path } = item
+
+      // Open mobile menu before each navigation
+      await page.click('button[aria-label="toggle menu"]')
+      await playwrightPage.waitForTimeout(600) // Wait for mobile menu animation
+
+      // Click navigation link
       await page.click(`a[href="${path}"]`)
       // eslint-disable-next-line security/detect-non-literal-regexp
       await page.expectUrl(new RegExp(path))

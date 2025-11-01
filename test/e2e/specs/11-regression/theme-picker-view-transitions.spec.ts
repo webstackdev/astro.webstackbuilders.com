@@ -11,6 +11,37 @@
 
 import { test, expect } from '@test/e2e/helpers'
 
+/**
+ * Helper function to handle mobile navigation
+ */
+async function navigateWithMobileSupport(page: import('@playwright/test').Page, selector: string) {
+  const viewport = page.viewportSize()
+  const isMobile = viewport && viewport.width < 768
+
+  if (isMobile) {
+    // Open mobile menu first
+    await page.locator('button[aria-label="toggle menu"]').click()
+    await page.waitForTimeout(600) // Wait for mobile menu animation
+  }
+
+  // Click the first navigation link
+  await page.locator(selector).first().click()
+
+  // Wait for navigation to complete
+  await page.waitForLoadState('networkidle')
+
+  // On mobile, the menu should automatically close after navigation
+  // But let's ensure it's closed by checking and closing if needed
+  if (isMobile) {
+    const menuToggle = page.locator('button[aria-label="toggle menu"]')
+    const isExpanded = await menuToggle.getAttribute('aria-expanded')
+    if (isExpanded === 'true') {
+      await menuToggle.click()
+      await page.waitForTimeout(600) // Wait for close animation
+    }
+  }
+}
+
 test.describe('Theme Picker - View Transitions Regression', () => {
   test.beforeEach(async ({ page }) => {
     // Clear localStorage before each test
@@ -34,12 +65,8 @@ test.describe('Theme Picker - View Transitions Regression', () => {
     await expect(themeToggleBtn).toHaveAttribute('aria-expanded', 'false')
 
     // 2. Navigate to another page using an internal link
-    // Get the first navigation link
-    const navLink = page.locator('.main-nav-item a').first()
-    await navLink.click()
-
-    // Wait for View Transition to complete
-    await page.waitForLoadState('networkidle')
+    // Navigate using mobile-aware helper
+    await navigateWithMobileSupport(page, '.main-nav-item a')
 
     // 3. Verify theme picker button still works after navigation
     const themeToggleBtnAfterNav = page.locator('.theme-toggle-btn').first()
@@ -55,10 +82,8 @@ test.describe('Theme Picker - View Transitions Regression', () => {
   })
 
   test('theme picker can select themes after View Transition navigation', async ({ page }) => {
-    // 1. Navigate to another page first
-    const navLink = page.locator('.main-nav-item a').first()
-    await navLink.click()
-    await page.waitForLoadState('networkidle')
+    // Navigate to another page first using mobile-aware helper
+    await navigateWithMobileSupport(page, '.main-nav-item a')
 
     // 2. Open theme picker
     const themeToggleBtn = page.locator('.theme-toggle-btn').first()
@@ -87,9 +112,8 @@ test.describe('Theme Picker - View Transitions Regression', () => {
     const navigationsToTest = Math.min(3, linkCount)
 
     for (let i = 0; i < navigationsToTest; i++) {
-      // Click a navigation link
-      await navLinks.nth(i).click()
-      await page.waitForLoadState('networkidle')
+      // Use mobile-aware navigation helper
+      await navigateWithMobileSupport(page, `.main-nav-item a >> nth=${i}`)
 
       // Verify theme picker still works
       const themeToggleBtn = page.locator('.theme-toggle-btn').first()
@@ -97,9 +121,8 @@ test.describe('Theme Picker - View Transitions Regression', () => {
       await themeToggleBtn.click()
       await expect(themeToggleBtn).toHaveAttribute('aria-expanded', 'true')
 
-      // Close it before next iteration
-      const closeBtn = page.locator('.themepicker__closeBtn').first()
-      await closeBtn.click()
+      // Close it before next iteration - click outside to close theme picker
+      await page.click('body', { position: { x: 10, y: 10 } })
       await expect(themeToggleBtn).toHaveAttribute('aria-expanded', 'false')
     }
   })
@@ -115,10 +138,8 @@ test.describe('Theme Picker - View Transitions Regression', () => {
     // Wait for theme to be applied and picker to close
     await page.waitForTimeout(500)
 
-    // 2. Navigate to another page
-    const navLink = page.locator('.main-nav-item a').first()
-    await navLink.click()
-    await page.waitForLoadState('networkidle')
+    // 2. Navigate to another page using mobile-aware helper
+    await navigateWithMobileSupport(page, '.main-nav-item a')
 
     // 3. Verify dark theme is still applied
     const htmlElement = page.locator('html')
