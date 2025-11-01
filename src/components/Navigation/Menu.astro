@@ -118,8 +118,8 @@ const activeMenuItem = (url: string) => {
     width: 300vmax;
     height: 300vmax;
     /* keep the splash slightly translucent so page chrome is visible under it */
-    background-color: var(--color-primary-offset);
-    opacity: 0.94;
+    background-color: var(--color-bg-inverse);
+    opacity: 1;
     will-change: transform, opacity;
     transition: transform 0.55s cubic-bezier(0.755, 0.05, 0.855, 0.06);
     /* place the splash above everything except nav menu items and close button */
@@ -131,6 +131,8 @@ const activeMenuItem = (url: string) => {
   :global(#header.aria-expanded-true #mobile-splash::after) {
     transform: translate(50%, -50%) scale(1);
   }
+
+  /* Keep splash backdrop non-interactive */
 
   /* Mobile menu open state display */
   :global(#header.aria-expanded-true) .main-nav {
@@ -228,9 +230,6 @@ const activeMenuItem = (url: string) => {
     }
   }
 </style>
-
-<!-- Mobile menu splash background animation -->
-<div id="mobile-splash" aria-hidden="true"></div>
 
 <nav id="main-nav" class="main-nav" role="navigation" aria-label="Main">
   <ul

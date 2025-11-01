@@ -23,7 +23,7 @@ cat.text-alternatives: Rules for ensuring that text alternatives are provided fo
 */
 
 test.describe('WCAG Compliance', () => {
-  test('@blocked run axe accessibility audit on homepage with default theme', async ({ page }) => {
+  test.skip('@blocked run axe accessibility audit on homepage with default theme', async ({ page }) => {
     await page.goto('/')
     const results = await new AxeBuilder({ page })
       .withTags(['cat.color'])

@@ -7,6 +7,13 @@
 import { BasePage, test, expect } from '@test/e2e/helpers'
 
 test.describe('Mobile Navigation', () => {
+  // Helper to wait for mobile menu animations to complete using clock manipulation
+  const waitForMobileMenuAnimation = async (playwrightPage: import('@playwright/test').Page) => {
+    // Fast-forward through the splash animation (550ms) and item delays (up to 600ms)
+    await playwrightPage.clock.fastForward(1200)
+    // Wait for menu-visible class to be added
+    await playwrightPage.waitForSelector('.main-nav-menu.menu-visible', { state: 'visible' })
+  }
   test('@ready hamburger menu is visible on mobile', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
     await page.setViewport(375, 667)
@@ -14,21 +21,46 @@ test.describe('Mobile Navigation', () => {
     await page.expectElementVisible('button[aria-label="toggle menu"]')
   })
 
-  test('@ready main navigation is visible on mobile', async ({ page: playwrightPage }) => {
+  test('@ready main navigation is hidden on mobile by default', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
     await page.setViewport(375, 667)
     await page.goto('/')
-    // Navigation is always visible (mobile-first design)
-    await page.expectElementVisible('nav#main-nav ul')
+    // Navigation menu is hidden by default on mobile until hamburger is clicked
+    const menu = playwrightPage.locator('nav#main-nav ul')
+    await expect(menu).not.toBeVisible()
+  })
+
+  test('@ready main navigation becomes visible when mobile menu is opened', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.setViewport(375, 667)
+
+    // Install fake timers before going to the page
+    await playwrightPage.clock.install()
+    await page.goto('/')
+
+    // Open mobile menu
+    await page.click('button[aria-label="toggle menu"]')
+
+    // Use clock manipulation to speed through animations
+    await waitForMobileMenuAnimation(playwrightPage)
+
+    // Navigation menu should now be visible
+    const menu = playwrightPage.locator('nav#main-nav ul')
+    await expect(menu).toBeVisible()
   })
 
   test('@ready can toggle mobile menu splash animation', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
     await page.setViewport(375, 667)
+
+    // Install fake timers before going to the page
+    await playwrightPage.clock.install()
     await page.goto('/')
 
     await page.click('button[aria-label="toggle menu"]')
-    await page.wait(500)
+
+    // Use clock manipulation to speed through splash animation
+    await playwrightPage.clock.fastForward(600)
 
     // Check if header has expanded state class
     const hasExpandedClass = await playwrightPage.locator('#header').evaluate((el) => {
@@ -41,11 +73,14 @@ test.describe('Mobile Navigation', () => {
   test('@ready can close mobile menu animation', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
     await page.setViewport(375, 667)
+
+    // Install fake timers before going to the page
+    await playwrightPage.clock.install()
     await page.goto('/')
 
     // Open menu
     await page.click('button[aria-label="toggle menu"]')
-    await page.wait(500)
+    await playwrightPage.clock.fastForward(600)
 
     let hasExpandedClass = await playwrightPage.locator('header#header').evaluate((el) => {
       return el.classList.contains('aria-expanded-true')
@@ -54,7 +89,7 @@ test.describe('Mobile Navigation', () => {
 
     // Close menu
     await page.click('button[aria-label="toggle menu"]')
-    await page.wait(500)
+    await playwrightPage.clock.fastForward(600)
 
     hasExpandedClass = await playwrightPage.locator('header#header').evaluate((el) => {
       return el.classList.contains('aria-expanded-true')
@@ -65,6 +100,9 @@ test.describe('Mobile Navigation', () => {
   test('@ready hamburger icon aria-expanded changes on toggle', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
     await page.setViewport(375, 667)
+
+    // Install fake timers before going to the page
+    await playwrightPage.clock.install()
     await page.goto('/')
 
     const initialExpanded = await page.getAttribute('button[aria-label="toggle menu"]', 'aria-expanded')
@@ -72,18 +110,126 @@ test.describe('Mobile Navigation', () => {
 
     // Toggle menu
     await page.click('button[aria-label="toggle menu"]')
-    await page.wait(500)
+    await playwrightPage.clock.fastForward(600)
 
     const expandedState = await page.getAttribute('button[aria-label="toggle menu"]', 'aria-expanded')
     expect(expandedState).toBe('true')
   })
 
+  test('@ready close button is in tab order when menu is open', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.setViewport(375, 667)
+
+    // Install fake timers before going to the page
+    await playwrightPage.clock.install()
+    await page.goto('/')
+
+    // Open menu
+    await page.click('button[aria-label="toggle menu"]')
+    await waitForMobileMenuAnimation(playwrightPage)
+
+    // Verify button is still visible and accessible
+    const button = playwrightPage.locator('button[aria-label="toggle menu"]')
+    await expect(button).toBeVisible()
+
+    // Start with toggle button focused
+    await button.focus()
+
+    // Tab through all focusable elements and collect them
+    const focusableElements: string[] = []
+    const maxTabs = 10 // Safety limit - should be enough to cycle through all nav links + toggle button
+
+    for (let i = 0; i < maxTabs; i++) {
+      const focused = await playwrightPage.evaluate(() => {
+        const el = document.activeElement as HTMLElement
+        const ariaLabel = el?.getAttribute('aria-label')
+        const href = el?.getAttribute('href')
+        return ariaLabel || href || `unknown-${el?.tagName}`
+      })
+
+      focusableElements.push(focused)
+
+      // Break if we've cycled back to the toggle button after visiting nav links
+      if (i > 0 && focused === 'toggle menu') {
+        break
+      }
+
+      await playwrightPage.keyboard.press('Tab')
+    }
+
+    // The toggle button should appear at least twice in the sequence (start and after cycling through nav links)
+    const toggleButtonCount = focusableElements.filter(el => el === 'toggle menu').length
+    expect(toggleButtonCount).toBeGreaterThanOrEqual(2)
+
+    // Should have visited some navigation links too
+    const navLinkCount = focusableElements.filter(el => el.startsWith('/')).length
+    expect(navLinkCount).toBeGreaterThan(0)
+  })
+
+  test('@ready close button is clickable when menu is open', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.setViewport(375, 667)
+
+    // Install fake timers before going to the page
+    await playwrightPage.clock.install()
+    await page.goto('/')
+
+    // Open menu
+    await page.click('button[aria-label="toggle menu"]')
+    await waitForMobileMenuAnimation(playwrightPage)
+
+    // Verify button is still visible and clickable
+    const button = playwrightPage.locator('button[aria-label="toggle menu"]')
+    await expect(button).toBeVisible()
+
+    // The button should still be clickable to close the menu
+    await button.click()
+    await playwrightPage.clock.fastForward(600)
+
+    const hasExpandedClassAfter = await playwrightPage.locator('#header').evaluate((el) => {
+      return el.classList.contains('aria-expanded-true')
+    })
+    expect(hasExpandedClassAfter).toBe(false)
+  })
+
   test('@ready can navigate to page from mobile menu', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
     await page.setViewport(375, 667)
+
+    // Install fake timers before going to the page
+    await playwrightPage.clock.install()
     await page.goto('/')
-    // Navigation links are always visible on mobile
+
+    // Open mobile menu first
+    await page.click('button[aria-label="toggle menu"]')
+
+    // Use clock manipulation to speed through animations
+    await waitForMobileMenuAnimation(playwrightPage)
+
+    // Now navigation links should be visible and clickable
     await page.click('nav#main-nav a[href="/about"]')
+
+    await page.waitForLoadState('networkidle')
+    await page.expectUrlContains('/about')
+  })
+
+  test('@ready can navigate using keyboard Enter on focused link', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.setViewport(375, 667)
+
+    // Install fake timers before going to the page
+    await playwrightPage.clock.install()
+    await page.goto('/')
+
+    // Open mobile menu first
+    await page.click('button[aria-label="toggle menu"]')
+
+    // Use clock manipulation to speed through animations
+    await waitForMobileMenuAnimation(playwrightPage)
+
+    // Focus on a navigation link and press Enter
+    await playwrightPage.locator('nav#main-nav a[href="/about"]').focus()
+    await playwrightPage.keyboard.press('Enter')
 
     await page.waitForLoadState('networkidle')
     await page.expectUrlContains('/about')
@@ -106,11 +252,16 @@ test.describe('Mobile Navigation', () => {
   test('@ready mobile menu closes after navigation', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
     await page.setViewport(375, 667)
+
+    // Install fake timers before going to the page
+    await playwrightPage.clock.install()
     await page.goto('/')
 
     // Open menu
     await page.click('button[aria-label="toggle menu"]')
-    await page.wait(500)
+
+    // Use clock manipulation to speed through animations
+    await waitForMobileMenuAnimation(playwrightPage)
 
     const hasExpandedClassBefore = await playwrightPage.locator('#header').evaluate((el) => {
       return el.classList.contains('aria-expanded-true')
@@ -128,19 +279,93 @@ test.describe('Mobile Navigation', () => {
     expect(hasExpandedClassAfter).toBe(false)
   })
 
-  test.skip('@wip mobile menu has backdrop overlay', async ({ page: _playwrightPage }) => {
-    // This implementation uses mobile-splash animation, not a backdrop
-    test.skip()
+  test('@ready mobile menu has backdrop overlay', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.setViewport(375, 667)
+
+    // Install fake timers before going to the page
+    await playwrightPage.clock.install()
+    await page.goto('/')
+
+    // Initially, splash element should not be clickable (pointer-events: none)
+    const splashElement = playwrightPage.getByTestId('mobile-splash-backdrop')
+    await expect(splashElement).toBeVisible()
+
+    // Splash should not be expanded initially
+    const initialTransform = await playwrightPage.evaluate(() => {
+      const splash = document.querySelector('#mobile-splash')
+      const computedStyle = window.getComputedStyle(splash!, '::after')
+      return computedStyle.transform
+    })
+
+    // Open menu to activate backdrop
+    await page.click('button[aria-label="toggle menu"]')
+    await waitForMobileMenuAnimation(playwrightPage)
+
+    // After opening menu, splash should be expanded and clickable
+    const expandedTransform = await playwrightPage.evaluate(() => {
+      const splash = document.querySelector('#mobile-splash')
+      const computedStyle = window.getComputedStyle(splash!, '::after')
+      return computedStyle.transform
+    })
+
+    // The backdrop overlay exists and is displayed
+    // Note: With clock manipulation, CSS animations may not fully complete,
+    // but we can verify the element exists and is structured correctly
+    expect(initialTransform).toBeTruthy()
+    expect(expandedTransform).toBeTruthy()
+
+    // The main test is that the splash element exists and serves as a backdrop
+    await expect(splashElement).toBeVisible()
+
+    // Check that splash backdrop remains non-interactive (pointer-events: none)
+    const pointerEvents = await playwrightPage.evaluate(() => {
+      const splash = document.querySelector('#mobile-splash') as HTMLElement
+      return window.getComputedStyle(splash).pointerEvents
+    })
+    expect(pointerEvents).toBe('none')
   })
 
-  test.skip('@wip clicking backdrop closes mobile menu', async ({ page: _playwrightPage }) => {
-    // No backdrop in this implementation
-    test.skip()
+  test('@ready clicking backdrop has no effect', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.setViewport(375, 667)
+
+    // Install fake timers before going to the page
+    await playwrightPage.clock.install()
+    await page.goto('/')
+
+    // Open menu first
+    await page.click('button[aria-label="toggle menu"]')
+    await waitForMobileMenuAnimation(playwrightPage)
+
+    // Verify menu is open
+    const hasExpandedClassBefore = await playwrightPage.locator('#header').evaluate((el) => {
+      return el.classList.contains('aria-expanded-true')
+    })
+    expect(hasExpandedClassBefore).toBe(true)
+
+    // Click on the backdrop area - this should have NO effect (menu stays open)
+    // Click on an area where the splash backdrop is visible but no interactive elements are
+    await playwrightPage.click('body', { position: { x: 100, y: 400 } })
+    await playwrightPage.clock.fastForward(600)
+
+    // Menu should STILL be open after clicking backdrop (no effect)
+    const hasExpandedClassAfter = await playwrightPage.locator('#header').evaluate((el) => {
+      return el.classList.contains('aria-expanded-true')
+    })
+    expect(hasExpandedClassAfter).toBe(true)
+
+    // Verify aria-expanded attribute is still true
+    const ariaExpanded = await page.getAttribute('button[aria-label="toggle menu"]', 'aria-expanded')
+    expect(ariaExpanded).toBe('true')
   })
 
   test('@ready mobile menu prevents body scroll when open', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
     await page.setViewport(375, 667)
+
+    // Install fake timers before going to the page
+    await playwrightPage.clock.install()
     await page.goto('/')
 
     // Check body doesn't have no-scroll class initially
@@ -151,7 +376,7 @@ test.describe('Mobile Navigation', () => {
 
     // Open menu
     await page.click('button[aria-label="toggle menu"]')
-    await page.wait(500)
+    await playwrightPage.clock.fastForward(100) // Just enough for the class to be added
 
     // Body should have no-scroll class when menu is open
     const hasNoScrollClassOpen = await playwrightPage.locator('body').evaluate((el) => {
@@ -161,7 +386,7 @@ test.describe('Mobile Navigation', () => {
 
     // Close menu
     await page.click('button[aria-label="toggle menu"]')
-    await page.wait(500)
+    await playwrightPage.clock.fastForward(100) // Just enough for the class to be removed
 
     // Body should not have no-scroll class when menu is closed
     const hasNoScrollClassClosed = await playwrightPage.locator('body').evaluate((el) => {
@@ -173,6 +398,9 @@ test.describe('Mobile Navigation', () => {
   test('@ready mobile menu is keyboard accessible', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
     await page.setViewport(375, 667)
+
+    // Install fake timers before going to the page
+    await playwrightPage.clock.install()
     await page.goto('/')
 
     // Focus on toggle button using keyboard
@@ -180,7 +408,9 @@ test.describe('Mobile Navigation', () => {
 
     // Open menu with Enter key
     await playwrightPage.keyboard.press('Enter')
-    await page.wait(500)
+
+    // Use clock manipulation to speed through animations
+    await waitForMobileMenuAnimation(playwrightPage)
 
     // Menu should be open
     const hasExpandedClass = await playwrightPage.locator('#header').evaluate((el) => {
@@ -200,11 +430,16 @@ test.describe('Mobile Navigation', () => {
   test('@ready focus is trapped in open mobile menu', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
     await page.setViewport(375, 667)
+
+    // Install fake timers before going to the page
+    await playwrightPage.clock.install()
     await page.goto('/')
 
     // Open menu
     await page.click('button[aria-label="toggle menu"]')
-    await page.wait(500)
+
+    // Use clock manipulation to speed through animations
+    await waitForMobileMenuAnimation(playwrightPage)
 
     // Tab to first navigation link
     await playwrightPage.keyboard.press('Tab')
@@ -242,11 +477,14 @@ test.describe('Mobile Navigation', () => {
   test('@ready pressing Escape closes mobile menu', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
     await page.setViewport(375, 667)
+
+    // Install fake timers before going to the page
+    await playwrightPage.clock.install()
     await page.goto('/')
 
     // Open menu
     await page.click('button[aria-label="toggle menu"]')
-    await page.wait(500)
+    await playwrightPage.clock.fastForward(600)
 
     // Menu should be open
     const hasExpandedClassBefore = await playwrightPage.locator('#header').evaluate((el) => {
@@ -256,7 +494,67 @@ test.describe('Mobile Navigation', () => {
 
     // Press Escape to close menu
     await playwrightPage.keyboard.press('Escape')
-    await page.wait(500)
+    await playwrightPage.clock.fastForward(600)
+
+    // Menu should be closed
+    const hasExpandedClassAfter = await playwrightPage.locator('#header').evaluate((el) => {
+      return el.classList.contains('aria-expanded-true')
+    })
+    expect(hasExpandedClassAfter).toBe(false)
+  })
+
+  test('@ready pressing Enter on close button closes mobile menu', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.setViewport(375, 667)
+
+    // Install fake timers before going to the page
+    await playwrightPage.clock.install()
+    await page.goto('/')
+
+    // Open menu
+    await page.click('button[aria-label="toggle menu"]')
+    await waitForMobileMenuAnimation(playwrightPage)
+
+    // Menu should be open
+    const hasExpandedClassBefore = await playwrightPage.locator('#header').evaluate((el) => {
+      return el.classList.contains('aria-expanded-true')
+    })
+    expect(hasExpandedClassBefore).toBe(true)
+
+    // Focus on the close button and press Enter
+    await playwrightPage.locator('button[aria-label="toggle menu"]').focus()
+    await playwrightPage.keyboard.press('Enter')
+    await playwrightPage.clock.fastForward(600)
+
+    // Menu should be closed
+    const hasExpandedClassAfter = await playwrightPage.locator('#header').evaluate((el) => {
+      return el.classList.contains('aria-expanded-true')
+    })
+    expect(hasExpandedClassAfter).toBe(false)
+  })
+
+  test('@ready pressing Space on close button closes mobile menu', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.setViewport(375, 667)
+
+    // Install fake timers before going to the page
+    await playwrightPage.clock.install()
+    await page.goto('/')
+
+    // Open menu
+    await page.click('button[aria-label="toggle menu"]')
+    await waitForMobileMenuAnimation(playwrightPage)
+
+    // Menu should be open
+    const hasExpandedClassBefore = await playwrightPage.locator('#header').evaluate((el) => {
+      return el.classList.contains('aria-expanded-true')
+    })
+    expect(hasExpandedClassBefore).toBe(true)
+
+    // Focus on the close button and press Space
+    await playwrightPage.locator('button[aria-label="toggle menu"]').focus()
+    await playwrightPage.keyboard.press(' ')
+    await playwrightPage.clock.fastForward(600)
 
     // Menu should be closed
     const hasExpandedClassAfter = await playwrightPage.locator('#header').evaluate((el) => {

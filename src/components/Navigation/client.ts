@@ -8,6 +8,7 @@ import {
   getNavMenuElement,
   getNavToggleBtnElement,
   getNavToggleWrapperElement,
+  getMobileNavFocusContainer,
 } from './selectors'
 import { ClientScriptError } from '@components/Scripts/errors/ClientScriptError'
 import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
@@ -39,6 +40,8 @@ export class Navigation extends LoadableScript {
   toggleWrapper: HTMLSpanElement
   /** <button> element with class 'nav-icon__toggle-btn' */
   toggleBtn: HTMLButtonElement
+  /** <div> element with id '#mobile-nav-focus-container' for focus trap */
+  focusContainer: HTMLDivElement
   togglePosition!: DOMRect
 
   constructor() {
@@ -52,6 +55,7 @@ export class Navigation extends LoadableScript {
       this.menu = getNavMenuElement()
       this.toggleWrapper = getNavToggleWrapperElement()
       this.toggleBtn = getNavToggleBtnElement()
+      this.focusContainer = getMobileNavFocusContainer()
     } catch (error) {
       throw new ClientScriptError(
         `Navigation: Failed to find required DOM elements - ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -68,9 +72,10 @@ export class Navigation extends LoadableScript {
 
     try {
       /**
-       * Set the focus trap on the menu <ul> so navigating past the last item wraps to the first.
+       * Set the focus trap on the focus container which contains both the toggle button and menu.
+       * This ensures proper tab order between the toggle button and navigation links.
        */
-      this.focusTrap = createFocusTrap([this.toggleBtn, this.menu], {
+      this.focusTrap = createFocusTrap(this.focusContainer, {
         initialFocus: () => this.toggleBtn,
         /** Close the nav menu if the focus trap is exited by user pressing ESC */
         onDeactivate: () => this.toggleMenu(false),
