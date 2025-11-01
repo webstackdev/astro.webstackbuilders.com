@@ -5,14 +5,13 @@
  */
 
 import { test, expect } from '@test/e2e/helpers'
+import { setupCleanTestPage, setupTestPage, selectTheme } from '../../helpers/cookieHelper'
 
 
 test.describe('Theme Picker Component', () => {
   test.beforeEach(async ({ page }) => {
-    // Clear localStorage before each test
-    await page.goto('/')
-    await page.evaluate(() => localStorage.clear())
-    await page.reload()
+    // Most tests need clean state - individual tests can override this
+    await setupCleanTestPage(page)
   })
 
   test.skip('@wip theme picker is visible', async ({ page }) => {
@@ -70,13 +69,14 @@ test.describe('Theme Picker Component', () => {
     expect(dataTheme).toBe('dark')
   })
 
-  test.skip('@wip theme preference persists across navigation', async ({ page }) => {
+  test('@wip theme preference persists across navigation', async ({ page }) => {
     // Expected: Theme should persist when navigating between pages
-    const themePicker = page.locator('[data-theme-picker]')
 
-    // Toggle to dark theme
-    await themePicker.click()
-    await page.waitForTimeout(300)
+    // This test needs its own setup without localStorage clearing
+    await setupTestPage(page)
+
+    // Select dark theme using helper
+    await selectTheme(page, 'dark')
 
     // Navigate to another page
     await page.goto('/about')
@@ -91,7 +91,7 @@ test.describe('Theme Picker Component', () => {
 
   test.skip('@wip theme picker has accessible label', async ({ page }) => {
     // Expected: Theme picker button should have appropriate ARIA label
-    const themePicker = page.locator('[data-theme-picker]')
+    const themePicker = page.locator('.themepicker-toggle__toggle-btn')
 
     const ariaLabel = await themePicker.getAttribute('aria-label')
     expect(ariaLabel).toBeTruthy()

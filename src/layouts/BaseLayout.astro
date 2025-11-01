@@ -8,7 +8,8 @@ import Header from '@components/Header/index.astro'
 import Content from '@components/Layout/Content/index.astro'
 import PwaTitleBar from '@components/PwaTitleBar/index.astro'
 import Skip from '@components/Layout/Skip/index.astro'
-import ThemePicker from '@components/ThemePicker/Themes.astro'
+import ThemePicker from '@components/ThemePicker/index.astro'
+import { ViewTransitions } from 'astro:transitions'
 
 import '@styles/index.css'
 import '@styles/sprites.css'
@@ -62,10 +63,11 @@ const {
       {...section && { section }}
       {...tags && { tags }}
     />
+    <ViewTransitions />
   </head>
   <body>
-    {/* Cookie Consent Overlay - Moved to top for proper tab order */}
-    <CookieConsent />
+    {/* Cookie Consent Overlay - Moved to top for proper tab order with View Transition Persistence */}
+    <CookieConsent client:load transition:persist />
     {/* Skip to main content link for accessibility */}
     <Skip />
     {/* Sets Window Controls Overlay API for PWA title bar */}
@@ -81,7 +83,7 @@ const {
       {/* Site footer */}
       <Footer />
     </Container>
-    {/* Theme Picker Modal */}
-    <ThemePicker />
+    {/* Theme Picker Modal with View Transition Persistence */}
+    <ThemePicker client:load transition:persist />
   </body>
 </html>
