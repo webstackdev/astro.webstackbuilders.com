@@ -201,7 +201,6 @@ async function sendEmail(emailData: EmailData, files: FileAttachment[]): Promise
 	const isDevOrTest = import.meta.env.DEV || import.meta.env.MODE === 'test' || process.env['NODE_ENV'] === 'test'
 
 	if (isDevOrTest) {
-		console.log('[DEV/TEST MODE] Email would be sent:', { to: emailData.to, subject: emailData.subject })
 		return // Skip actual email sending in dev/test
 	}
 
