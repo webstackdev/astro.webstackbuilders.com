@@ -18,6 +18,11 @@ describe('EmbedManager', () => {
     // Initialize state management
     AppBootstrap.init()
 
+    // Suppress console output
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+
     // Grant functional consent for caching
     updateConsent('functional', true)
 
@@ -52,7 +57,9 @@ describe('EmbedManager', () => {
     global.fetch = vi.fn()
   })
 
-  afterEach(() => {
+  afterEach(async () => {
+    // Wait for any pending async operations to complete
+    await vi.waitFor(() => {}, { timeout: 100 }).catch(() => {})
     vi.restoreAllMocks()
   })
 
