@@ -48,6 +48,10 @@ describe('TestimonialsCarousel LoadableScript', () => {
   beforeEach(() => {
     // Clear all mocks before each test
     vi.clearAllMocks()
+    // Suppress console output
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
     // Setup fresh DOM for each test
     setupTestimonialsCarouselDOM()
   })
