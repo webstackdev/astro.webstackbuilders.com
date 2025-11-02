@@ -7,6 +7,16 @@ import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import { DownloadForm } from '../client'
 import DownloadFormComponent from '../index.astro'
 
+// Mock the logger to suppress error output in tests
+vi.mock('@lib/logger', () => ({
+  logger: {
+    error: vi.fn(),
+    warn: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
+  },
+}))
+
 /**
  * Helper function to set up DOM from Container API
  */
