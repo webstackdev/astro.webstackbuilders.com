@@ -3,13 +3,13 @@
  *
  * Issue: Theme picker button stopped working after navigating to another page
  * Root Cause: Scripts using 'delayed' eventType didn't reinitialize on View Transitions
- * Fix: Changed eventType to 'astro:page-load' and modified loader to support re-execution
+ * Fix: Migrated to Web Component pattern with connectedCallback/disconnectedCallback lifecycle
  *
- * @see src/components/ThemePicker/client.ts
- * @see src/components/Scripts/loader/index.ts
+ * @see src/components/ThemePicker/theme-picker-element.ts
  */
 
 import { test, expect } from '@test/e2e/helpers'
+import { setupTestPage } from '@test/e2e/helpers/cookieHelper'
 
 /**
  * Helper function to handle mobile navigation
@@ -44,8 +44,8 @@ async function navigateWithMobileSupport(page: import('@playwright/test').Page, 
 
 test.describe('Theme Picker - View Transitions Regression', () => {
   test.beforeEach(async ({ page }) => {
-    // Clear localStorage before each test
-    await page.goto('/')
+    // Clear localStorage and dismiss cookie modal before each test
+    await setupTestPage(page, '/')
     await page.evaluate(() => localStorage.clear())
     await page.reload()
   })

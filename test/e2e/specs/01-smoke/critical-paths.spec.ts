@@ -22,7 +22,10 @@ test.describe('Critical Paths @smoke', () => {
     test.skip(isMobile, 'Desktop navigation test - skipping on mobile viewport')
 
     const page = new BasePage(playwrightPage)
-    await page.goto('/')
+
+    // Import setupTestPage here to avoid unused import warnings on other tests
+    const { setupTestPage } = await import('../../helpers/cookieHelper')
+    await setupTestPage(playwrightPage, '/')
 
     for (const { url: path } of page.navigationItems) {
       await page.click(`a[href="${path}"]`)
@@ -97,7 +100,7 @@ test.describe('Critical Paths @smoke', () => {
     const page = new BasePage(playwrightPage)
     // Clear consent cookies to force banner to appear
     await page.clearConsentCookies(context)
-    await page.goto('/')
+    await page.goto('/', { skipCookieDismiss: true })
     await page.expectCookiesContactForm()
   })
 

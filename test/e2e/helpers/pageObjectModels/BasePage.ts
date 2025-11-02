@@ -41,15 +41,57 @@ export class BasePage {
    * Navigate to a specific path. Wait for page to be fully loaded.
    * Module and deferred scripts have executed. Images, subframes,
    * and async scripts may not have finished loading.
+   * Automatically dismisses cookie consent modal unless skipCookieDismiss is true.
    */
-  async goto(path: string): Promise<null | Response> {
-    return await this._page.goto(path, {
+  async goto(path: string, options?: { skipCookieDismiss?: boolean }): Promise<null | Response> {
+    const response = await this._page.goto(path, {
       timeout: 5000,
       waitUntil: 'domcontentloaded',
     })
-  }
 
-  /**
+    // Dismiss cookie modal to prevent it from blocking clicks (unless opted out)
+    if (!options?.skipCookieDismiss) {
+      await this.dismissCookieModal()
+    }
+
+    return response
+  }  /**
+   * Dismiss cookie consent modal if it's visible
+   */
+  private async dismissCookieModal(): Promise<void> {
+    try {
+      // Set consent cookies
+      await this._page.evaluate(() => {
+        document.cookie = 'consent_necessary=true; path=/; max-age=31536000'
+        document.cookie = 'consent_analytics=true; path=/; max-age=31536000'
+        document.cookie = 'consent_advertising=true; path=/; max-age=31536000'
+        document.cookie = 'consent_functional=true; path=/; max-age=31536000'
+
+        // Clear localStorage
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem('cookieConsent')
+          localStorage.removeItem('gdprConsent')
+        }
+      })
+
+      // Force hide the modal
+      await this._page.evaluate(() => {
+        const modal = document.getElementById('cookie-modal-id')
+        if (modal) {
+          modal.style.display = 'none'
+        }
+        const main = document.getElementById('main-content')
+        if (main && main.hasAttribute('inert')) {
+          main.removeAttribute('inert')
+        }
+      })
+
+      // Small delay to ensure changes are applied
+      await this._page.waitForTimeout(50)
+    } catch {
+      // Ignore errors - modal might not exist on all pages
+    }
+  }  /**
    * Evaluate JS script in the browser
    */
   async evaluate<R>(

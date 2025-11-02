@@ -5,11 +5,12 @@
  */
 
 import { BasePage, test, expect } from '@test/e2e/helpers'
+import { setupTestPage } from '@test/e2e/helpers/cookieHelper'
 
 test.describe('Breadcrumbs Component', () => {
   test('@ready breadcrumbs display on article pages', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
-    await page.goto('/articles')
+    await setupTestPage(playwrightPage, '/articles')
     await page.click('a[href*="/articles/"]')
     await page.waitForLoadState('networkidle')
 
@@ -18,7 +19,7 @@ test.describe('Breadcrumbs Component', () => {
 
   test('@ready breadcrumbs display on service pages', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
-    await page.goto('/services')
+    await setupTestPage(playwrightPage, '/services')
     await page.click('a[href*="/services/"]')
     await page.waitForLoadState('networkidle')
 
@@ -27,7 +28,7 @@ test.describe('Breadcrumbs Component', () => {
 
   test('@ready breadcrumbs show correct path', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
-    await page.goto('/articles')
+    await setupTestPage(playwrightPage, '/articles')
     await page.click('a[href*="/articles/"]')
     await page.waitForLoadState('networkidle')
 
@@ -41,7 +42,7 @@ test.describe('Breadcrumbs Component', () => {
 
   test('@ready breadcrumb links are clickable', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
-    await page.goto('/articles')
+    await setupTestPage(playwrightPage, '/articles')
     await page.click('a[href*="/articles/"]')
     await page.waitForLoadState('networkidle')
 
@@ -53,7 +54,7 @@ test.describe('Breadcrumbs Component', () => {
 
   test('@ready current page is not a link', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
-    await page.goto('/articles')
+    await setupTestPage(playwrightPage, '/articles')
     await page.click('a[href*="/articles/"]')
     await page.waitForLoadState('networkidle')
 
@@ -67,7 +68,7 @@ test.describe('Breadcrumbs Component', () => {
 
   test('@ready breadcrumbs have proper separators', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
-    await page.goto('/articles')
+    await setupTestPage(playwrightPage, '/articles')
     await page.click('a[href*="/articles/"]')
     await page.waitForLoadState('networkidle')
 
@@ -81,7 +82,7 @@ test.describe('Breadcrumbs Component', () => {
 
   test('@ready breadcrumbs use proper ARIA', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
-    await page.goto('/articles')
+    await setupTestPage(playwrightPage, '/articles')
     await page.click('a[href*="/articles/"]')
     await page.waitForLoadState('networkidle')
 
@@ -94,7 +95,7 @@ test.describe('Breadcrumbs Component', () => {
   test('@ready breadcrumbs are responsive', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
     await page.setViewport(375, 667)
-    await page.goto('/articles')
+    await setupTestPage(playwrightPage, '/articles')
 
     await page.click('a[href*="/articles/"]', { force: true }) // Bypass cookie dialog overlay
     await page.waitForLoadState('networkidle')
@@ -105,7 +106,7 @@ test.describe('Breadcrumbs Component', () => {
   test.skip('@wip breadcrumbs have structured data', async ({ page: playwrightPage }) => {
     // Expected: Should include JSON-LD BreadcrumbList schema
     const page = new BasePage(playwrightPage)
-    await page.goto('/articles')
+    await setupTestPage(playwrightPage, '/articles')
     await page.click('a[href*="/articles/"]')
     await page.waitForLoadState('networkidle')
 
@@ -117,7 +118,7 @@ test.describe('Breadcrumbs Component', () => {
 
   test('@ready breadcrumbs truncate long titles', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
-    await page.goto('/articles')
+    await setupTestPage(playwrightPage, '/articles')
     await page.click('a[href*="/articles/"]')
     await page.waitForLoadState('networkidle')
 

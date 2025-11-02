@@ -5,6 +5,7 @@
  */
 
 import { BasePage, test, expect } from '@test/e2e/helpers'
+import { setupTestPage } from '@test/e2e/helpers/cookieHelper'
 
 test.describe('Mobile Navigation', () => {
   // Helper to wait for mobile menu animations to complete using clock manipulation
@@ -17,14 +18,14 @@ test.describe('Mobile Navigation', () => {
   test('@ready hamburger menu is visible on mobile', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
     await page.setViewport(375, 667)
-    await page.goto('/')
+    await setupTestPage(playwrightPage, '/')
     await page.expectElementVisible('button[aria-label="toggle menu"]')
   })
 
   test('@ready main navigation is hidden on mobile by default', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
     await page.setViewport(375, 667)
-    await page.goto('/')
+    await setupTestPage(playwrightPage, '/')
     // Navigation menu is hidden by default on mobile until hamburger is clicked
     const menu = playwrightPage.locator('nav#main-nav ul')
     await expect(menu).not.toBeVisible()
@@ -36,7 +37,7 @@ test.describe('Mobile Navigation', () => {
 
     // Install fake timers before going to the page
     await playwrightPage.clock.install()
-    await page.goto('/')
+    await setupTestPage(playwrightPage, '/')
 
     // Open mobile menu
     await page.click('button[aria-label="toggle menu"]')
@@ -55,7 +56,7 @@ test.describe('Mobile Navigation', () => {
 
     // Install fake timers before going to the page
     await playwrightPage.clock.install()
-    await page.goto('/')
+    await setupTestPage(playwrightPage, '/')
 
     await page.click('button[aria-label="toggle menu"]')
 
@@ -76,7 +77,7 @@ test.describe('Mobile Navigation', () => {
 
     // Install fake timers before going to the page
     await playwrightPage.clock.install()
-    await page.goto('/')
+    await setupTestPage(playwrightPage, '/')
 
     // Open menu
     await page.click('button[aria-label="toggle menu"]')
@@ -103,7 +104,7 @@ test.describe('Mobile Navigation', () => {
 
     // Install fake timers before going to the page
     await playwrightPage.clock.install()
-    await page.goto('/')
+    await setupTestPage(playwrightPage, '/')
 
     const initialExpanded = await page.getAttribute('button[aria-label="toggle menu"]', 'aria-expanded')
     expect(initialExpanded).toBe('false')
@@ -122,7 +123,7 @@ test.describe('Mobile Navigation', () => {
 
     // Install fake timers before going to the page
     await playwrightPage.clock.install()
-    await page.goto('/')
+    await setupTestPage(playwrightPage, '/')
 
     // Open menu
     await page.click('button[aria-label="toggle menu"]')
@@ -172,7 +173,7 @@ test.describe('Mobile Navigation', () => {
 
     // Install fake timers before going to the page
     await playwrightPage.clock.install()
-    await page.goto('/')
+    await setupTestPage(playwrightPage, '/')
 
     // Open menu
     await page.click('button[aria-label="toggle menu"]')
@@ -196,7 +197,7 @@ test.describe('Mobile Navigation', () => {
     const page = new BasePage(playwrightPage)
     await page.setViewport(375, 667)
 
-    await page.goto('/')
+    await setupTestPage(playwrightPage, '/')
 
     // Open mobile menu first
     await page.click('button[aria-label="toggle menu"]')
@@ -218,7 +219,7 @@ test.describe('Mobile Navigation', () => {
     const page = new BasePage(playwrightPage)
     await page.setViewport(375, 667)
 
-    await page.goto('/')
+    await setupTestPage(playwrightPage, '/')
 
     // Open mobile menu first
     await page.click('button[aria-label="toggle menu"]')
@@ -240,7 +241,7 @@ test.describe('Mobile Navigation', () => {
   test('@ready mobile menu has proper ARIA attributes', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
     await page.setViewport(375, 667)
-    await page.goto('/')
+    await setupTestPage(playwrightPage, '/')
 
     const ariaLabel = await page.getAttribute('button[aria-label="toggle menu"]', 'aria-label')
     const navRole = await page.getAttribute('nav#main-nav', 'role')
@@ -257,7 +258,7 @@ test.describe('Mobile Navigation', () => {
 
     // Install fake timers before going to the page
     await playwrightPage.clock.install()
-    await page.goto('/')
+    await setupTestPage(playwrightPage, '/')
 
     // Open menu
     await page.click('button[aria-label="toggle menu"]')
@@ -287,7 +288,7 @@ test.describe('Mobile Navigation', () => {
 
     // Install fake timers before going to the page
     await playwrightPage.clock.install()
-    await page.goto('/')
+    await setupTestPage(playwrightPage, '/')
 
     // Initially, splash element should not be clickable (pointer-events: none)
     const splashElement = playwrightPage.getByTestId('mobile-splash-backdrop')
@@ -334,7 +335,7 @@ test.describe('Mobile Navigation', () => {
 
     // Install fake timers before going to the page
     await playwrightPage.clock.install()
-    await page.goto('/')
+    await setupTestPage(playwrightPage, '/')
 
     // Open menu first
     await page.click('button[aria-label="toggle menu"]')
@@ -368,7 +369,7 @@ test.describe('Mobile Navigation', () => {
 
     // Install fake timers before going to the page
     await playwrightPage.clock.install()
-    await page.goto('/')
+    await setupTestPage(playwrightPage, '/')
 
     // Check body doesn't have no-scroll class initially
     const hasNoScrollClassInitial = await playwrightPage.locator('body').evaluate((el) => {
@@ -403,7 +404,7 @@ test.describe('Mobile Navigation', () => {
 
     // Install fake timers before going to the page
     await playwrightPage.clock.install()
-    await page.goto('/')
+    await setupTestPage(playwrightPage, '/')
 
     // Focus on toggle button using keyboard
     await playwrightPage.locator('button[aria-label="toggle menu"]').focus()
@@ -435,7 +436,7 @@ test.describe('Mobile Navigation', () => {
 
     // Install fake timers before going to the page
     await playwrightPage.clock.install()
-    await page.goto('/')
+    await setupTestPage(playwrightPage, '/')
 
     // Open menu
     await page.click('button[aria-label="toggle menu"]')
@@ -482,7 +483,7 @@ test.describe('Mobile Navigation', () => {
 
     // Install fake timers before going to the page
     await playwrightPage.clock.install()
-    await page.goto('/')
+    await setupTestPage(playwrightPage, '/')
 
     // Open menu
     await page.click('button[aria-label="toggle menu"]')
@@ -511,7 +512,7 @@ test.describe('Mobile Navigation', () => {
 
     // Install fake timers before going to the page
     await playwrightPage.clock.install()
-    await page.goto('/')
+    await setupTestPage(playwrightPage, '/')
 
     // Open menu
     await page.click('button[aria-label="toggle menu"]')
@@ -541,7 +542,7 @@ test.describe('Mobile Navigation', () => {
 
     // Install fake timers before going to the page
     await playwrightPage.clock.install()
-    await page.goto('/')
+    await setupTestPage(playwrightPage, '/')
 
     // Open menu
     await page.click('button[aria-label="toggle menu"]')

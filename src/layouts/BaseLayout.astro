@@ -67,8 +67,12 @@ const {
     {import.meta.env.PROD && <ViewTransitions />}
   </head>
   <body>
-    {/* Cookie Consent Overlay - Standard load without persistence to fix e2e tests */}
-    <CookieConsent client:load />
+    {/* Cookie Consent Overlay - Only persist in production mode */}
+    {import.meta.env.PROD ? (
+      <CookieConsent transition:persist />
+    ) : (
+      <CookieConsent />
+    )}
     {/* Skip to main content link for accessibility */}
     <Skip />
     {/* Sets Window Controls Overlay API for PWA title bar */}
@@ -84,7 +88,11 @@ const {
       {/* Site footer */}
       <Footer />
     </Container>
-    {/* Theme Picker Modal - Standard load without persistence to fix e2e tests */}
-    <ThemePicker client:load />
+    {/* Theme Picker Modal - Only persist in production mode */}
+    {import.meta.env.PROD ? (
+      <ThemePicker transition:persist />
+    ) : (
+      <ThemePicker />
+    )}
   </body>
 </html>

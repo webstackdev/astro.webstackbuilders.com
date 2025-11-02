@@ -10,13 +10,14 @@
  */
 
 import { test, expect } from '@test/e2e/helpers'
+import { setupTestPage } from '@test/e2e/helpers/cookieHelper'
 
 test.describe('Hero Animation - Mobile Menu Pause Regression', () => {
   // Configure mobile viewport for all tests in this suite
   test.use({ viewport: { width: 375, height: 667 } })
 
   test.beforeEach(async ({ page }) => {
-    await page.goto('/')
+    await setupTestPage(page, '/')
     // Wait for hero animation to load
     await page.waitForSelector('#heroAnimation', { timeout: 5000 })
   })
