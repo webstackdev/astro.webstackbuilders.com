@@ -34,15 +34,17 @@ describe('EmbedManager', () => {
     EmbedManager.reset()
 
     // Mock IntersectionObserver
-    mockIntersectionObserver = vi.fn((_callback, options) => ({
-      observe: vi.fn(),
-      unobserve: vi.fn(),
-      disconnect: vi.fn(),
-      takeRecords: vi.fn(),
-      root: options?.root || null,
-      rootMargin: options?.rootMargin || '0px',
-      thresholds: Array.isArray(options?.threshold) ? options.threshold : [options?.threshold || 0],
-    }))
+    mockIntersectionObserver = vi.fn(function(_callback, options) {
+      return {
+        observe: vi.fn(),
+        unobserve: vi.fn(),
+        disconnect: vi.fn(),
+        takeRecords: vi.fn(),
+        root: options?.root || null,
+        rootMargin: options?.rootMargin || '0px',
+        thresholds: Array.isArray(options?.threshold) ? options.threshold : [options?.threshold || 0],
+      }
+    })
     global.IntersectionObserver = mockIntersectionObserver
     /* eslint-enable @typescript-eslint/no-explicit-any */
 
