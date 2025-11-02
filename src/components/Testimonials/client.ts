@@ -72,6 +72,12 @@ export class TestimonialsCarousel extends LoadableScript {
       // Initialize Embla Carousel with Autoplay plugin
       this.emblaApi = EmblaCarousel(this.viewportNode, options, [Autoplay(autoplayOptions)])
 
+      // Expose API to DOM for testing purposes
+      if (this.emblaNode) {
+        ;(this.emblaNode as HTMLElement & { __emblaApi__: EmblaCarouselType }).__emblaApi__ =
+          this.emblaApi
+      }
+
       this.setupNavigationButtons()
       this.setupDotsNavigation()
     } catch (error) {
