@@ -199,7 +199,6 @@ class Loader {
       script.init()
       // Track executed scripts for pause/resume functionality
       this.executedScripts.add(script)
-      console.log(`Script initialized: ${script.scriptName}`)
     } catch (error) {
       handleScriptError(error, context)
     }
@@ -376,17 +375,11 @@ class Loader {
       if (hasConsent) {
         // Consent granted - load script if not already executed
         if (!this.executedScripts.has(script)) {
-          console.log(
-            `✅ Consent granted for ${consentCategory}, loading ${script.scriptName}`
-          )
           this.executeScript(script)
         }
       } else {
         // Consent revoked - pause script if it's running
         if (this.executedScripts.has(script)) {
-          console.log(
-            `⛔ Consent revoked for ${consentCategory}, pausing ${script.scriptName}`
-          )
           try {
             script.pause()
             // Optionally remove from executed set if you want it to be able to restart
