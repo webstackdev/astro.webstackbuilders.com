@@ -1,11 +1,15 @@
 /**
  * Unit tests for downloads form API endpoint
  */
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { POST } from '../submit'
 
 describe('Downloads API - POST /api/downloads/submit', () => {
 	beforeEach(() => {
+		// Suppress console output
+		vi.spyOn(console, 'log').mockImplementation(() => {})
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+		vi.spyOn(console, 'warn').mockImplementation(() => {})
 		// Reset any state if needed
 	})
 
