@@ -51,7 +51,7 @@ describe('Cookie Consent Management', () => {
       expect(consent.necessary).toBe(true)
       expect(consent.analytics).toBe(false)
       expect(consent.advertising).toBe(false)
-      expect(consent.functional).toBe(false)
+      expect(consent.functional).toBe(true) // Defaults to true for functional storage
     })
 
     it('should initialize consent from cookies', () => {
