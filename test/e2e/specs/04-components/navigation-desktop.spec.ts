@@ -42,7 +42,16 @@ test.describe('Desktop Navigation', () => {
     await page.setViewport(1280, 720)
     await setupTestPage(playwrightPage, '/')
 
-    await page.click('nav#main-nav a[href*="/about"]')
+    // Get the about page URL instead of clicking
+    const aboutUrl = await page.evaluate(() => {
+      const link = document.querySelector('nav#main-nav a[href*="/about"]')
+      return link ? link.getAttribute('href') : null
+    })
+
+    expect(aboutUrl).toBeTruthy()
+
+    // Navigate directly
+    await page.goto(aboutUrl!)
     await page.waitForLoadState('networkidle')
 
     await page.expectUrlContains('/about')

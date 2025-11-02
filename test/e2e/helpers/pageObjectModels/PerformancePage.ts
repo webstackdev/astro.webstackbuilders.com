@@ -46,8 +46,20 @@ export class PerformancePage extends BasePage {
    * FID measures interactivity - should be under 100ms for good UX
    */
   async measureFID(): Promise<number> {
+    // Wait for page to be fully interactive
+    await this.page.waitForLoadState('networkidle')
+
+    // Find a safe clickable element (not the cookie modal)
+    const clickTarget = await this.page.evaluate(() => {
+      // Try to find main content area or header
+      const main = document.querySelector('main')
+      const header = document.querySelector('header')
+
+      return main ? 'main' : (header ? 'header' : 'body')
+    })
+
     const startTime = Date.now()
-    await this.page.click('body')
+    await this.page.click(clickTarget, { force: true })
     const endTime = Date.now()
     return endTime - startTime
   }
