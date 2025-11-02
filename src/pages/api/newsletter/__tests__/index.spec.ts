@@ -24,6 +24,11 @@ const { recordConsent } = await import('../../../../../api/shared/consent-log')
 describe('Newsletter API - POST /api/newsletter', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
+		// Suppress console output
+		vi.spyOn(console, 'log').mockImplementation(() => {})
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+		vi.spyOn(console, 'warn').mockImplementation(() => {})
+
 		vi.mocked(createPendingSubscription).mockResolvedValue('test-token-123')
 		vi.mocked(sendConfirmationEmail).mockResolvedValue(undefined)
 		vi.mocked(recordConsent).mockResolvedValue({

@@ -29,6 +29,11 @@ const { sendWelcomeEmail } = await import('../../../../../api/newsletter/email')
 describe('Newsletter Confirmation API - GET /api/newsletter/confirm', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
+		// Suppress console output
+		vi.spyOn(console, 'log').mockImplementation(() => {})
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+		vi.spyOn(console, 'warn').mockImplementation(() => {})
+		
 		vi.mocked(recordConsent).mockResolvedValue({
 			id: 'test-consent-id',
 			email: 'test@example.com',
