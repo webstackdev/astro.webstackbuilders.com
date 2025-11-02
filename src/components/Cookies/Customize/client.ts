@@ -169,26 +169,20 @@ export class CookieCustomize extends LoadableScript {
     // This would integrate with your analytics, functional, and advertising scripts
 
     if (preferences.analytics) {
-      console.log('Analytics cookies enabled')
       this.enableAnalytics()
     } else {
-      console.log('Analytics cookies disabled')
       this.disableAnalytics()
     }
 
     if (preferences.functional) {
-      console.log('Functional cookies enabled')
       this.enableFunctional()
     } else {
-      console.log('Functional cookies disabled')
       this.disableFunctional()
     }
 
     if (preferences.advertising) {
-      console.log('Advertising cookies enabled')
       this.enableAdvertising()
     } else {
-      console.log('Advertising cookies disabled')
       this.disableAdvertising()
     }
   }
