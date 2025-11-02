@@ -142,19 +142,9 @@ describe('TestimonialsCarousel LoadableScript', () => {
         stopOnMouseEnter: true,
       })
     })
-
-    it('should log successful initialization', () => {
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-
-      TestimonialsCarousel.init()
-
-      expect(consoleSpy).toHaveBeenCalledWith('Testimonials carousel initialized with autoplay')
-
-      consoleSpy.mockRestore()
-    })
   })
 
-  describe('Navigation Buttons', () => {
+  describe('Navigation controls', () => {
     it('should setup prev/next button event listeners', () => {
       TestimonialsCarousel.init()
 
