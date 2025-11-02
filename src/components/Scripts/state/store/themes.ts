@@ -122,4 +122,12 @@ export function initThemeSideEffects(): void {
   $theme.subscribe((themeId) => {
     applyThemeToDom(themeId)
   })
+
+  // Side Effect: Re-apply theme after View Transitions DOM swap
+  // The inline script in Head/index.astro applies theme on initial load,
+  // but View Transitions replaces the DOM, so we need to re-apply
+  document.addEventListener('astro:after-swap', () => {
+    const theme = $theme.get()
+    applyThemeToDom(theme)
+  })
 }
