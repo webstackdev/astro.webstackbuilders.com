@@ -121,11 +121,21 @@ export function getThemePickerToggle(page: Page) {
 
 /**
  * Theme selection helper - clicks a specific theme option
+ * Now handles the case where modal persists across navigation/actions
  */
 export async function selectTheme(page: Page, themeId: string): Promise<void> {
-  const themePicker = getThemePickerToggle(page)
-  await themePicker.click()
-  await page.waitForTimeout(300)
+  // Check if modal is already open (modal state now persists)
+  const modal = page.locator('[data-theme-modal]')
+  const isOpen = await modal.evaluate((el) => el.classList.contains('is-open'))
+
+  // Only click toggle if modal is not already open
+  if (!isOpen) {
+    const themePicker = getThemePickerToggle(page)
+    await themePicker.click()
+    await page.waitForTimeout(300)
+  }
+
+  // Click the theme button
   // Use button selector to avoid matching <html data-theme="...">
   await page.click(`button[data-theme="${themeId}"]`)
   await page.waitForTimeout(300)

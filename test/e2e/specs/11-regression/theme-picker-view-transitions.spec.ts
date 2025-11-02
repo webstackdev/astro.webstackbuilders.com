@@ -145,8 +145,9 @@ test.describe('Theme Picker - View Transitions Regression', () => {
     const htmlElement = page.locator('html')
     await expect(htmlElement).toHaveAttribute('data-theme', 'dark')
 
-    // 4. Verify theme picker modal remained open (new behavior: modal persists when selecting themes)
+    // 4. Verify theme picker modal stays open after selecting theme and navigating
+    // Note: The modal stays open because $themePickerOpen persists the state
     const themePickerAfterNav = page.locator('.themepicker').first()
-    await expect(themePickerAfterNav).not.toHaveClass(/is-open/)
+    await expect(themePickerAfterNav).toHaveClass(/is-open/)
   })
 })

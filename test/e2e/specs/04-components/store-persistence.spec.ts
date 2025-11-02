@@ -78,12 +78,13 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(300)
 
-    // Modal should close when navigation starts (per our implementation fix)
+    // Modal should remain open after navigation (state persists via $themePickerOpen store)
     const modalAfterNav = page.locator('[data-theme-modal]')
-    await expect(modalAfterNav).not.toHaveClass(/is-open/)
+    await expect(modalAfterNav).toHaveClass(/is-open/)
 
-    // Note: Modal state in localStorage is intentionally not checked here
-    // The modal closes on navigation for better UX
+    // Verify modal state persisted in localStorage
+    const isOpen = await page.evaluate(() => localStorage.getItem('themePickerOpen'))
+    expect(isOpen).toBe('true')
   })
 
   test.skip('@ready cookie consent preferences persist across View Transitions', async ({ page }) => {
