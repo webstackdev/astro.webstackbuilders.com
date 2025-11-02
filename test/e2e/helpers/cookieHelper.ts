@@ -126,6 +126,7 @@ export async function selectTheme(page: Page, themeId: string): Promise<void> {
   const themePicker = getThemePickerToggle(page)
   await themePicker.click()
   await page.waitForTimeout(300)
-  await page.click(`[data-theme="${themeId}"]`)
+  // Use button selector to avoid matching <html data-theme="...">
+  await page.click(`button[data-theme="${themeId}"]`)
   await page.waitForTimeout(300)
 }

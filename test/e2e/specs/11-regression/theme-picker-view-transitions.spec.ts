@@ -121,8 +121,8 @@ test.describe('Theme Picker - View Transitions Regression', () => {
       await themeToggleBtn.click()
       await expect(themeToggleBtn).toHaveAttribute('aria-expanded', 'true')
 
-      // Close it before next iteration - click outside to close theme picker
-      await page.click('body', { position: { x: 10, y: 10 } })
+      // Modal now stays open when selecting themes - close it manually before next iteration
+      await themeToggleBtn.click()
       await expect(themeToggleBtn).toHaveAttribute('aria-expanded', 'false')
     }
   })
@@ -145,11 +145,8 @@ test.describe('Theme Picker - View Transitions Regression', () => {
     const htmlElement = page.locator('html')
     await expect(htmlElement).toHaveAttribute('data-theme', 'dark')
 
-    // 4. Open theme picker to confirm it still works
-    await page.locator('.theme-toggle-btn').first().click()
-
-    // Verify the theme picker opened successfully
+    // 4. Verify theme picker modal remained open (new behavior: modal persists when selecting themes)
     const themePickerAfterNav = page.locator('.themepicker').first()
-    await expect(themePickerAfterNav).toHaveClass(/is-open/)
+    await expect(themePickerAfterNav).not.toHaveClass(/is-open/)
   })
 })

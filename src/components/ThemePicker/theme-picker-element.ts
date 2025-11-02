@@ -4,7 +4,7 @@
  * Works seamlessly with Astro View Transitions
  */
 
-import { $theme, setTheme } from '@components/Scripts/state'
+import { $theme, $themePickerOpen, setTheme } from '@components/Scripts/state'
 import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
 
 export const CLASSES = {
@@ -52,6 +52,22 @@ export class ThemePickerElement extends HTMLElement {
     const context = { scriptName: 'ThemePickerElement', operation: 'connectedCallback' }
     addScriptBreadcrumb(context)
 
+    // Wait for DOM to be ready before initializing
+    // This ensures the toggle button in Header exists
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => this.initialize())
+    } else {
+      this.initialize()
+    }
+  }
+
+  /**
+   * Initialize the theme picker after DOM is ready
+   */
+  private initialize(): void {
+    const context = { scriptName: 'ThemePickerElement', operation: 'initialize' }
+    addScriptBreadcrumb(context)
+
     try {
       // Find elements within this component
       this.findElements()
@@ -65,7 +81,17 @@ export class ThemePickerElement extends HTMLElement {
       this.setActiveItem()
       this.bindEvents()
 
-      console.log('ThemePicker: initialized successfully')
+      // Restore modal state from store (for View Transitions persistence)
+      const wasOpen = $themePickerOpen.get()
+      if (wasOpen) {
+        // Set open state without animation (for initial page load/navigation)
+        this.isModalOpen = true
+        this.pickerModal.removeAttribute('hidden')
+        this.pickerModal.classList.add(CLASSES.isOpen)
+        this.toggleBtn.setAttribute('aria-expanded', 'true')
+        // Sync store (already true, but ensures consistency)
+        $themePickerOpen.set(true)
+      }
     } catch (error) {
       handleScriptError(error, context)
     }
@@ -169,9 +195,7 @@ export class ThemePickerElement extends HTMLElement {
           e.preventDefault()
           this.togglePicker()
         }
-      })
-
-      // Close button
+      })      // Close button
       this.closeBtn.addEventListener('click', () => this.togglePicker(false))
       this.closeBtn.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -189,11 +213,16 @@ export class ThemePickerElement extends HTMLElement {
 
           const themeId = button.dataset['theme'] as ThemeIds
           if (themeId) {
-            button.addEventListener('click', () => this.setThemeAndClose(themeId))
+            button.addEventListener('click', (e) => {
+              // Stop ALL event propagation to prevent "click outside" handler
+              e.stopImmediatePropagation()
+              this.applyTheme(themeId)
+            })
             button.addEventListener('keydown', (e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault()
-                this.setThemeAndClose(themeId)
+                e.stopImmediatePropagation()
+                this.applyTheme(themeId)
               }
             })
           }
@@ -209,15 +238,29 @@ export class ThemePickerElement extends HTMLElement {
         }
       })
 
-      // Close on click outside
+      // Track if we're in a View Transition to prevent closing modal during navigation
+      let isTransitioning = false
+
+      document.addEventListener('astro:before-preparation', () => {
+        isTransitioning = true
+        // Modal state is persisted via $themePickerOpen store
+        // Don't close the modal - it should stay open across navigation
+      })
+
+      document.addEventListener('astro:after-swap', () => {
+        isTransitioning = false
+      })
+
+      // Close on click outside (but not during View Transitions)
       document.addEventListener('click', (e) => {
-        if (this.isModalOpen) {
+        if (this.isModalOpen && !isTransitioning) {
           const target = e.target as HTMLElement
-          // Check if click is outside both the modal and the toggle button
-          if (
-            !this.pickerModal.contains(target) &&
-            !this.toggleBtn.contains(target)
-          ) {
+          // Check if click is on or inside the modal, toggle button, or any theme button
+          const isInsideModal = this.pickerModal.contains(target)
+          const isToggleButton = this.toggleBtn.contains(target)
+          const isThemeButton = Array.from(this.themeSelectBtns).some(btn => btn.contains(target))
+
+          if (!isInsideModal && !isToggleButton && !isThemeButton) {
             this.togglePicker(false)
           }
         }
@@ -263,10 +306,18 @@ export class ThemePickerElement extends HTMLElement {
     try {
       this.isModalOpen = open !== undefined ? open : !this.isModalOpen
 
+      // Sync with store for View Transitions persistence
+      $themePickerOpen.set(this.isModalOpen)
+
       if (this.isModalOpen) {
-        this.pickerModal.classList.add(CLASSES.isOpen)
+        // Remove hidden first, then add class after browser paints
         this.pickerModal.removeAttribute('hidden')
         this.toggleBtn.setAttribute('aria-expanded', 'true')
+
+        // Wait for next frame so browser processes max-height: 0 before animating to 14em
+        requestAnimationFrame(() => {
+          this.pickerModal.classList.add(CLASSES.isOpen)
+        })
       } else {
         this.pickerModal.classList.remove(CLASSES.isOpen)
 
@@ -288,11 +339,6 @@ export class ThemePickerElement extends HTMLElement {
   /**
    * Set theme and close modal
    */
-  private setThemeAndClose(themeId: ThemeIds): void {
-    this.applyTheme(themeId)
-    this.togglePicker(false)
-  }
-
   /**
    * Apply theme to document
    */
@@ -314,8 +360,6 @@ export class ThemePickerElement extends HTMLElement {
 
       // Update meta theme-color
       this.updateMetaThemeColor(themeId)
-
-      console.log(`ThemePicker: Theme changed to ${themeId}`)
     } catch (error) {
       handleScriptError(error, context)
     }

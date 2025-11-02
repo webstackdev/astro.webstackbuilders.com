@@ -79,6 +79,12 @@ const {
     <PwaTitleBar />
     {/* Site header and main content */}
     <Container id="main-content">
+      {/* Theme Picker Modal - uses transition:persist in production for View Transitions API */}
+      {import.meta.env.PROD ? (
+        <ThemePicker transition:persist />
+      ) : (
+        <ThemePicker />
+      )}
       <Header path={path} />
       <Breadcrumbs path={path} pageTitle={pageTitle} />
       {/* Main page content */}
@@ -88,11 +94,5 @@ const {
       {/* Site footer */}
       <Footer />
     </Container>
-    {/* Theme Picker Modal - Only persist in production mode */}
-    {import.meta.env.PROD ? (
-      <ThemePicker transition:persist />
-    ) : (
-      <ThemePicker />
-    )}
   </body>
 </html>

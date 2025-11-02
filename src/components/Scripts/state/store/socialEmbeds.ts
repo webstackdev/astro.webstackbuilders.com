@@ -1,7 +1,7 @@
 /**
  * Social Embeds Cache State Management
  */
-import { map } from 'nanostores'
+import { persistentAtom } from '@nanostores/persistent'
 import type { EmbedCacheState } from './@types'
 import { $consent } from './cookieConsent'
 
@@ -11,10 +11,19 @@ import { $consent } from './cookieConsent'
 
 /**
  * Social embed cache
- * Session-only (not persisted to localStorage)
+ * Persisted to localStorage automatically via nanostores/persistent
  * Requires functional consent to use
  */
-export const $embedCache = map<EmbedCacheState>({})
+export const $embedCache = persistentAtom<EmbedCacheState>('socialEmbedCache', {}, {
+  encode: JSON.stringify,
+  decode: (value: string): EmbedCacheState => {
+    try {
+      return JSON.parse(value)
+    } catch {
+      return {}
+    }
+  },
+})
 
 // ============================================================================
 // ACTIONS
@@ -27,10 +36,14 @@ export function cacheEmbed(key: string, data: unknown, ttl: number): void {
   const hasFunctionalConsent = $consent.get().functional
   if (!hasFunctionalConsent) return
 
-  $embedCache.setKey(key, {
-    data,
-    timestamp: Date.now(),
-    ttl,
+  const currentCache = $embedCache.get()
+  $embedCache.set({
+    ...currentCache,
+    [key]: {
+      data,
+      timestamp: Date.now(),
+      ttl,
+    },
   })
 }
 

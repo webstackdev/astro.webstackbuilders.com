@@ -369,10 +369,14 @@ describe('EmbedManager', () => {
     it('should use cached data when available', async () => {
       // Pre-populate cache in state store
       const cacheKey = 'embed_cache_x_aHR0cHM6Ly90d2l0dGVyLmNvbS91c2VyL3N0YXR1cy8xMjM='
-      $embedCache.setKey(cacheKey, {
-        data: { html: '<blockquote>Cached Tweet</blockquote>' },
-        timestamp: Date.now(),
-        ttl: 24 * 60 * 60 * 1000, // 24 hours
+      const currentCache = $embedCache.get()
+      $embedCache.set({
+        ...currentCache,
+        [cacheKey]: {
+          data: { html: '<blockquote>Cached Tweet</blockquote>' },
+          timestamp: Date.now(),
+          ttl: 24 * 60 * 60 * 1000, // 24 hours
+        },
       })
 
       const embedElement = document.createElement('div')
@@ -395,10 +399,14 @@ describe('EmbedManager', () => {
     it('should invalidate expired cache entries', async () => {
       // Pre-populate cache with expired data in state store
       const cacheKey = 'embed_cache_x_aHR0cHM6Ly90d2l0dGVyLmNvbS91c2VyL3N0YXR1cy8xMjM='
-      $embedCache.setKey(cacheKey, {
-        data: { html: '<blockquote>Old Tweet</blockquote>' },
-        timestamp: Date.now() - 25 * 60 * 60 * 1000, // 25 hours ago
-        ttl: 24 * 60 * 60 * 1000, // 24 hour TTL
+      const currentCache = $embedCache.get()
+      $embedCache.set({
+        ...currentCache,
+        [cacheKey]: {
+          data: { html: '<blockquote>Old Tweet</blockquote>' },
+          timestamp: Date.now() - 25 * 60 * 60 * 1000, // 25 hours ago
+          ttl: 24 * 60 * 60 * 1000, // 24 hour TTL
+        },
       })
 
       const embedElement = document.createElement('div')

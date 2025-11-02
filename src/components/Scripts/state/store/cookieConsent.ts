@@ -1,7 +1,8 @@
 /**
  * Cookie Consent State Management
  */
-import { map, computed, atom } from 'nanostores'
+import { computed, atom } from 'nanostores'
+import { persistentAtom } from '@nanostores/persistent'
 import type { ConsentState, ConsentCategory, ConsentValue } from './@types'
 import { getCookie, setCookie } from '../cookies'
 import { handleScriptError } from '@components/Scripts/errors'
@@ -12,14 +13,32 @@ import { handleScriptError } from '@components/Scripts/errors'
 
 /**
  * Consent preferences
- * Source of truth: Cookies (necessary for GDPR compliance)
- * Store updates when cookies change
+ * Persisted to localStorage automatically via nanostores/persistent
+ * Also synced with cookies for GDPR compliance
+ *
+ * Note: 'functional' defaults to true as it covers strictly necessary storage
+ * for site functionality (theme, UI state, error logging without PII, etc.)
+ * Users can opt-out via cookie preferences if desired.
  */
-export const $consent = map<ConsentState>({
+export const $consent = persistentAtom<ConsentState>('cookieConsent', {
   necessary: true,
   analytics: false,
   advertising: false,
-  functional: false,
+  functional: true,
+}, {
+  encode: JSON.stringify,
+  decode: (value: string): ConsentState => {
+    try {
+      return JSON.parse(value)
+    } catch {
+      return {
+        necessary: true,
+        analytics: false,
+        advertising: false,
+        functional: true,
+      }
+    }
+  },
 })
 
 /**
@@ -74,7 +93,7 @@ export function initConsentFromCookies(): void {
       necessary: true,
       analytics: false,
       advertising: false,
-      functional: false,
+      functional: true,
     })
   }
 }
@@ -85,15 +104,19 @@ export function initConsentFromCookies(): void {
  */
 export function updateConsent(category: ConsentCategory, value: ConsentValue): void {
   try {
-    // Update store
-    $consent.setKey(category, value)
+    // Get current state
+    const currentConsent = $consent.get()
+
+    // Update store with new value
+    $consent.set({
+      ...currentConsent,
+      [category]: value,
+      timestamp: new Date().toISOString(),
+    })
 
     // Update cookie
     const cookieName = `consent_${category}`
     setCookie(cookieName, value.toString(), { expires: 365, sameSite: 'strict' })
-
-    // Add timestamp
-    $consent.setKey('timestamp', new Date().toISOString())
   } catch (error) {
     handleScriptError(error, {
       scriptName: 'cookieConsent',

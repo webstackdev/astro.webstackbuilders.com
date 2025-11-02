@@ -28,7 +28,7 @@ export {
 } from './store/cookieConsent'
 
 // Re-export themes
-export { $theme, setTheme } from './store/themes'
+export { $theme, $themePickerOpen, setTheme } from './store/themes'
 
 // Re-export Mastodon instances
 export {
@@ -41,6 +41,3 @@ export {
 
 // Re-export social embeds
 export { $embedCache, cacheEmbed, getCachedEmbed, clearEmbedCache } from './store/socialEmbeds'
-
-// Re-export utilities
-export { initStateSideEffects } from './store/utils'

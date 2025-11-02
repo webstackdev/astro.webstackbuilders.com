@@ -32,6 +32,22 @@ export const $theme = persistentAtom<ThemeId>('theme', 'default', {
   },
 })
 
+/**
+ * Theme picker modal visibility state
+ * Persisted to localStorage (via persistentAtom) so it survives View Transitions
+ * and page reloads. This keeps the modal open during navigation for better UX.
+ */
+export const $themePickerOpen = persistentAtom<boolean>('themePickerOpen', false, {
+  encode: (value) => JSON.stringify(value),
+  decode: (value: string) => {
+    try {
+      return JSON.parse(value)
+    } catch {
+      return false
+    }
+  },
+})
+
 // ============================================================================
 // ACTIONS
 // ============================================================================
@@ -67,8 +83,8 @@ export function setTheme(themeId: ThemeId): void {
  * Setup theme-related side effects
  */
 export function initThemeSideEffects(): void {
-  // Side Effect: Update DOM and localStorage when theme changes
-  $theme.subscribe((themeId) => {
+  // Helper function to apply theme to DOM
+  const applyThemeToDom = (themeId: ThemeId) => {
     try {
       // Update DOM attribute
       document.documentElement.setAttribute('data-theme', themeId)
@@ -92,8 +108,18 @@ export function initThemeSideEffects(): void {
     } catch (error) {
       handleScriptError(error, {
         scriptName: 'themes',
-        operation: 'themeSubscription',
+        operation: 'applyThemeToDom',
       })
     }
+  }
+
+  // Apply the current theme immediately on initialization
+  // This ensures the theme from localStorage is applied to the DOM
+  const currentTheme = $theme.get()
+  applyThemeToDom(currentTheme)
+
+  // Side Effect: Update DOM and localStorage when theme changes
+  $theme.subscribe((themeId) => {
+    applyThemeToDom(themeId)
   })
 }

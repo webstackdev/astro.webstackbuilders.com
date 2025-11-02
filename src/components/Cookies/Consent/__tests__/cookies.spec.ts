@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { beforeEach, describe, expect, test, vi } from 'vitest'
+import { beforeEach, describe, expect, test } from 'vitest'
 import {
   getConsentCookie,
   initConsentCookies,
@@ -9,11 +9,6 @@ import {
 } from '../cookies'
 import { getCookie } from '@components/Scripts/state/cookies'
 import { $consent } from '@components/Scripts/state/store/cookieConsent'
-
-// Mock only the side effects function since we don't need it for cookie tests
-vi.mock('@components/Scripts/state/store/utils', () => ({
-  initStateSideEffects: vi.fn(),
-}))
 
 describe(`Consent cookies handlers work`, () => {
   beforeEach(() => {
