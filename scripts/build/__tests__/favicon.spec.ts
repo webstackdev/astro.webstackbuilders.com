@@ -21,6 +21,9 @@ describe('favicon.ts', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    // Suppress console output
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    vi.spyOn(console, 'error').mockImplementation(() => {})
   })
 
   describe('generateIcoFavicon', () => {
