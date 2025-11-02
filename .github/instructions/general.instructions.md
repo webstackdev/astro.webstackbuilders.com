@@ -36,6 +36,7 @@ applyTo: "**"
 - A working example test using the Container API is available at /home/kevin/Repos/Webstack Builders/Corporate Website/astro.webstackbuilders.com/src/components/Test/container.spec.ts
 - **NEVER hard-code content slugs in e2e tests** (e.g., `/articles/typescript-best-practices`, `/services/web-development`). Content can be deleted or renamed. Always dynamically fetch the first available item from listing pages (articles, services, case-studies, etc.) and navigate to it. This prevents test breakage when content changes.
 - **Playwright E2E Tests**: ALWAYS run with `DEBUG=1` environment variable (e.g., `DEBUG=1 npx playwright test`). This prevents the Playwright test runner from launching its own dev server. The user maintains a running dev server for development.
+- **NEVER run the full e2e test suite** unless explicitly requested by the user. The full suite is very resource intensive and takes over 10 minutes to run. Only run specific e2e test files when verification is needed (e.g., `DEBUG=1 npx playwright test test/e2e/specific-file.spec.ts`).
 - **NEVER start a dev server yourself**. The user runs their own dev server for development. When you need a dev server running, notify the user instead of starting one.
 
 # Personality

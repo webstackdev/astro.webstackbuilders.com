@@ -67,9 +67,8 @@ export const allowAllConsentCookies = () => {
 }
 
 export const removeConsentCookies = () => {
-  // Actually remove the cookies (for testing purposes)
-  // In production, we'd typically set to false, but for test cleanup we remove them
   consentCookies.forEach(name => {
-    removeCookie(prefixConsentCookie(name))
+    const cookieName = prefixConsentCookie(name)
+    removeCookie(cookieName)
   })
 }

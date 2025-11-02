@@ -34,9 +34,13 @@ export function setCookie(name: string, value: string, options: CookieOptions = 
 
 /**
  * Remove cookie
+ * Must use same path/domain as when cookie was set
  */
-export function removeCookie(name: string): void {
-  Cookies.remove(name)
+export function removeCookie(name: string, options: Partial<CookieOptions> = {}): void {
+  const defaults: Partial<CookieOptions> = {
+    path: '/',
+  }
+  Cookies.remove(name, { ...defaults, ...options })
 }
 
 /**
