@@ -29,7 +29,6 @@ export class CarouselManager extends LoadableScript {
         return
       }
 
-      console.log('Initializing CarouselManager...')
       instance.discoverNewCarousels()
       instance.setupGlobalListeners()
       instance.initialized = true
@@ -74,8 +73,6 @@ export class CarouselManager extends LoadableScript {
 
           this.carousels.set(htmlElement, carousel)
           htmlElement.setAttribute('data-carousel-managed', 'true')
-
-          console.log(`Carousel ${this.carousels.size} initialized with autoplay`)
         } catch (error) {
           // One carousel failing shouldn't break all carousels
           handleScriptError(error, { scriptName: CarouselManager.scriptName, operation: 'initCarousel' })
