@@ -43,12 +43,6 @@ describe(`Consent cookies handlers work`, () => {
     // With commonSetup, we have clean state - no cookies exist
     const necessaryCookie = getConsentCookie('necessary')
 
-    // Debug: Log what cookies were actually set
-    console.log('All cookies:', document.cookie)
-    console.log('necessary:', necessaryCookie)
-    console.log('functional:', getCookie('consent_functional'))
-    console.log('analytics:', getCookie('consent_analytics'))
-
     // After getConsentCookie, cookies should be initialized
     // necessary=true (always required)
     expect(necessaryCookie).toBe('true')
@@ -73,16 +67,7 @@ describe(`Consent cookies handlers work`, () => {
     setAllConsentCookies()
     expect(document.cookie).toBeTruthy()
 
-    console.log('Before removal:', document.cookie)
     removeConsentCookies()
-    console.log('After removal:', document.cookie)
-
-    // Cookies should be removed
-    const necessary = getCookie('consent_necessary')
-    const analytics = getCookie('consent_analytics')
-
-    console.log('After removal - necessary:', necessary)
-    console.log('After removal - analytics:', analytics)
 
     // The removeConsentCookies function removes cookies, but they may be coming back
     // from persistent storage. This test may need to also clear localStorage.
