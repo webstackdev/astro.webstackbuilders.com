@@ -23,18 +23,18 @@ test.describe('Open Graph Metadata', () => {
   test('@ready article pages have OG type article', async ({ page: playwrightPage }) => {
     const page = new BasePage(playwrightPage)
     await page.goto('/articles')
-    
+
     // Wait for articles to load
     await page.waitForSelector('a[href*="/articles/"]', { timeout: 5000 })
-    
+
     // Get the first article URL
     const articleUrl = await page.evaluate(() => {
       const link = document.querySelector('a[href*="/articles/"]')
       return link ? link.getAttribute('href') : null
     })
-    
+
     expect(articleUrl).toBeTruthy()
-    
+
     // Navigate directly to the article page
     await page.goto(articleUrl!)
     await page.waitForLoadState('networkidle')

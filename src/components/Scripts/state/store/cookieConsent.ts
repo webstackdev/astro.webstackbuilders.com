@@ -123,9 +123,7 @@ export function updateConsent(category: ConsentCategory, value: ConsentValue): v
       operation: 'updateConsent',
     })
   }
-}
-
-/**
+}/**
  * Grant all consent categories
  */
 export function allowAllConsent(): void {

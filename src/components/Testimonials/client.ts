@@ -74,9 +74,6 @@ export class TestimonialsCarousel extends LoadableScript {
 
       this.setupNavigationButtons()
       this.setupDotsNavigation()
-
-      // Log initialization
-      console.log('Testimonials carousel initialized with autoplay')
     } catch (error) {
       // Testimonials carousel is optional enhancement
       handleScriptError(error, context)

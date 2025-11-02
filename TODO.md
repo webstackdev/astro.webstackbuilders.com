@@ -15,7 +15,6 @@ Breakdown:
 
 Top Files with Skipped Tests:
 
-cookie-consent.spec.ts - 15 @wip
 social-shares.spec.ts - 12 @wip
 testimonials.spec.ts - 11 @wip + 2 @flaky
 gdpr-consent.spec.ts - 10 @wip
