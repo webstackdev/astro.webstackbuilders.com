@@ -4,184 +4,158 @@
  * @see src/components/Head/
  */
 
-import { test, expect } from '@playwright/test'
-import { TEST_URLS } from '../../fixtures/test-data'
+import { BasePage, test, expect } from '@test/e2e/helpers'
 
 test.describe('SEO Meta Tags', () => {
-  test.skip('@wip all pages have meta description', async ({ page }) => {
-    // Expected: Every page should have a meta description
-    const pages = [
-      TEST_URLS.home,
-      TEST_URLS.about,
-      TEST_URLS.services,
-      TEST_URLS.caseStudies,
-      TEST_URLS.contact,
-    ]
+  test('@ready all pages have meta description', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    const pages = ['/', '/about', '/services', '/case-studies', '/contact']
 
     for (const url of pages) {
       await page.goto(url)
-      const metaDesc = page.locator('meta[name="description"]')
-      await expect(metaDesc).toHaveCount(1)
+      await page.expectAttribute('meta[name="description"]', 'content')
 
-      const content = await metaDesc.getAttribute('content')
+      const content = await page.getAttribute('meta[name="description"]', 'content')
       expect(content?.trim().length).toBeGreaterThan(0)
       expect(content?.length).toBeLessThan(160) // SEO best practice
     }
   })
 
-  test.skip('@wip meta descriptions are unique per page', async ({ page }) => {
-    // Expected: Each page should have unique description
-    const pages = [TEST_URLS.home, TEST_URLS.about, TEST_URLS.services]
+  test('@ready meta descriptions are unique per page', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    const pages = ['/', '/about', '/services']
     const descriptions = new Set()
 
     for (const url of pages) {
       await page.goto(url)
-      const metaDesc = page.locator('meta[name="description"]')
-      const content = await metaDesc.getAttribute('content')
+      const content = await page.getAttribute('meta[name="description"]', 'content')
       descriptions.add(content)
     }
 
     expect(descriptions.size).toBe(pages.length)
   })
 
-  test.skip('@wip all pages have canonical URL', async ({ page }) => {
-    // Expected: Every page should have a canonical link
-    await page.goto(TEST_URLS.about)
+  test('@ready all pages have canonical URL', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.goto('/about')
 
-    const canonical = page.locator('link[rel="canonical"]')
-    await expect(canonical).toHaveCount(1)
-
-    const href = await canonical.getAttribute('href')
+    await page.expectAttribute('link[rel="canonical"]', 'href')
+    const href = await page.getAttribute('link[rel="canonical"]', 'href')
     expect(href).toMatch(/^https?:\/\//)
   })
 
-  test.skip('@wip canonical URL matches current page', async ({ page }) => {
-    // Expected: Canonical should match the actual URL (without query params)
-    await page.goto(TEST_URLS.services)
+  test('@ready canonical URL matches current page', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.goto('/services')
 
-    const canonical = page.locator('link[rel="canonical"]')
-    const href = await canonical.getAttribute('href')
-
+    const href = await page.getAttribute('link[rel="canonical"]', 'href')
     expect(href).toContain('/services')
   })
 
-  test.skip('@wip pages have viewport meta tag', async ({ page }) => {
-    // Expected: Should have responsive viewport meta tag
-    await page.goto(TEST_URLS.home)
+  test('@ready pages have viewport meta tag', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.goto('/')
 
-    const viewport = page.locator('meta[name="viewport"]')
-    await expect(viewport).toHaveCount(1)
-
-    const content = await viewport.getAttribute('content')
+    await page.expectAttribute('meta[name="viewport"]', 'content')
+    const content = await page.getAttribute('meta[name="viewport"]', 'content')
     expect(content).toContain('width=device-width')
   })
 
-  test.skip('@wip pages have charset meta tag', async ({ page }) => {
-    // Expected: Should declare UTF-8 charset
-    await page.goto(TEST_URLS.home)
+  test('@ready pages have charset meta tag', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.goto('/')
 
-    const charset = page.locator('meta[charset], meta[http-equiv="Content-Type"]')
-    const count = await charset.count()
-
+    const count = await page.countElements('meta[charset], meta[http-equiv="Content-Type"]')
     expect(count).toBeGreaterThan(0)
   })
 
-  test.skip('@wip pages have robots meta tag', async ({ page }) => {
-    // Expected: Should have robots meta tag for indexing control
-    await page.goto(TEST_URLS.home)
+  test('@ready pages have robots meta tag', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.goto('/')
 
-    const robots = page.locator('meta[name="robots"]')
-    const count = await robots.count()
+    const count = await page.countElements('meta[name="robots"]')
 
     if (count > 0) {
-      const content = await robots.getAttribute('content')
+      const content = await page.getAttribute('meta[name="robots"]', 'content')
       expect(['index, follow', 'all', 'noindex']).toContain(content || '')
     }
   })
 
-  test.skip('@wip 404 page has noindex', async ({ page }) => {
-    // Expected: 404 page should not be indexed
-    await page.goto(TEST_URLS.notFound)
+  test('@ready 404 page has noindex', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.goto('/404')
 
-    const robots = page.locator('meta[name="robots"]')
-    const content = await robots.getAttribute('content')
-
+    const content = await page.getAttribute('meta[name="robots"]', 'content')
     expect(content).toContain('noindex')
   })
 
-  test.skip('@wip pages have author meta tag', async ({ page }) => {
-    // Expected: Should declare site author
-    await page.goto(TEST_URLS.home)
+  test('@ready pages have author meta tag', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.goto('/')
 
-    const author = page.locator('meta[name="author"]')
-    const count = await author.count()
+    const count = await page.countElements('meta[name="author"]')
 
     if (count > 0) {
-      const content = await author.getAttribute('content')
+      const content = await page.getAttribute('meta[name="author"]', 'content')
       expect(content?.trim().length).toBeGreaterThan(0)
     }
   })
 
-  test.skip('@wip article pages have author', async ({ page }) => {
-    // Expected: Articles should have author meta tag
-    await page.goto(TEST_URLS.articles)
-    const firstArticle = page.locator('a[href*="/articles/"]').first()
-    await firstArticle.click()
+  test('@ready article pages have author', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.goto('/articles')
+    await page.click('a[href*="/articles/"]')
     await page.waitForLoadState('networkidle')
 
-    const author = page.locator('meta[name="author"]')
-    const content = await author.getAttribute('content')
-
+    const content = await page.getAttribute('meta[name="author"]', 'content')
     expect(content?.trim().length).toBeGreaterThan(0)
   })
 
-  test.skip('@wip pages have theme-color meta tag', async ({ page }) => {
-    // Expected: Should have theme color for mobile browsers
-    await page.goto(TEST_URLS.home)
+  test('@ready pages have theme-color meta tag', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.goto('/')
 
-    const themeColor = page.locator('meta[name="theme-color"]')
-    const count = await themeColor.count()
+    const count = await page.countElements('meta[name="theme-color"]')
 
     if (count > 0) {
-      const content = await themeColor.getAttribute('content')
+      const content = await page.getAttribute('meta[name="theme-color"]', 'content')
       expect(content).toMatch(/^#[0-9a-fA-F]{6}$/) // Hex color
     }
   })
 
-  test.skip('@wip pages have title tag', async ({ page }) => {
-    // Expected: Every page should have a title
-    const pages = [TEST_URLS.home, TEST_URLS.about, TEST_URLS.services]
+  test('@ready pages have title tag', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    const pages = ['/', '/about', '/services']
 
     for (const url of pages) {
       await page.goto(url)
-      const title = await page.title()
+      const title = await page.getTitle()
 
       expect(title.length).toBeGreaterThan(0)
       expect(title.length).toBeLessThan(70) // SEO best practice
     }
   })
 
-  test.skip('@wip titles are unique per page', async ({ page }) => {
-    // Expected: Each page should have unique title
-    const pages = [TEST_URLS.home, TEST_URLS.about, TEST_URLS.services]
+  test('@ready titles are unique per page', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    const pages = ['/', '/about', '/services']
     const titles = new Set()
 
     for (const url of pages) {
       await page.goto(url)
-      const title = await page.title()
+      const title = await page.getTitle()
       titles.add(title)
     }
 
     expect(titles.size).toBe(pages.length)
   })
 
-  test.skip('@wip pages have language attribute', async ({ page }) => {
-    // Expected: HTML tag should have lang attribute
-    await page.goto(TEST_URLS.home)
+  test('@ready pages have language attribute', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.goto('/')
+    await page.waitForLoadState('domcontentloaded')
 
-    const html = page.locator('html')
-    const lang = await html.getAttribute('lang')
-
+    const lang = await playwrightPage.evaluate(() => document.documentElement.getAttribute('lang'))
     expect(lang).toBeTruthy()
     expect(lang).toMatch(/^[a-z]{2}(-[A-Z]{2})?$/) // e.g., en or en-US
   })

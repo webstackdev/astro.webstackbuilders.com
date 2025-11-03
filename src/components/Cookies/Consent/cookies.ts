@@ -43,11 +43,14 @@ export const setConsentCookie = (name: Categories, preference: Preference = `gra
  */
 export const initConsentCookies = () => {
   const necessary = getCookie(`consent_necessary`)
-  // If cookie doesn't exist, initialize all to false (not granted) and return true
+  // If cookie doesn't exist, initialize consent values
   if (!necessary) {
-    consentCookies.forEach(name => {
-      updateConsent(name as 'necessary' | 'analytics' | 'advertising' | 'functional', false)
-    })
+    // Set tracking consent to false (user hasn't opted in yet)
+    updateConsent('analytics', false)
+    updateConsent('advertising', false)
+    // Functional consent defaults to true (hybrid approach - user can opt out)
+    updateConsent('functional', true)
+    updateConsent('necessary', true)
     return true
   }
   // If necessary cookie is 'true', user has already made a choice, return false
@@ -64,9 +67,8 @@ export const allowAllConsentCookies = () => {
 }
 
 export const removeConsentCookies = () => {
-  // Actually remove the cookies (for testing purposes)
-  // In production, we'd typically set to false, but for test cleanup we remove them
   consentCookies.forEach(name => {
-    removeCookie(prefixConsentCookie(name))
+    const cookieName = prefixConsentCookie(name)
+    removeCookie(cookieName)
   })
 }

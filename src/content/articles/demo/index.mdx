@@ -1,0 +1,180 @@
+---
+title: "Demo Article - Component Showcase"
+description: "This is a demonstration article showcasing all available markdown components. Feel free to explore the various components and their usage patterns."
+author: kevin-firko
+tags: ["typescript", "cms"]
+image:
+  src: "/assets/images/demo-article.jpg"
+  alt: "Demo Article Component Showcase"
+publishDate: 2024-01-01
+isDraft: true
+featured: false
+---
+
+## Welcome to the Demo Article
+
+This article serves as a comprehensive demonstration of all available components in our markdown system. Each section below showcases a different component with example usage.
+
+## Callout Component
+
+The Callout component highlights important information:
+
+<Callout type="info">
+This is an informational callout. Use it to draw attention to helpful tips or additional context.
+</Callout>
+
+<Callout type="warning">
+This is a warning callout. Use it to highlight potential pitfalls or important considerations.
+</Callout>
+
+<Callout type="success">
+This is a success callout. Perfect for highlighting achievements or positive outcomes.
+</Callout>
+
+<Callout type="danger">
+This is a danger callout. Use it for critical warnings or errors that need immediate attention.
+</Callout>
+
+## Avatar Component
+
+Display author or user avatars:
+
+<Avatar
+  src="/assets/images/authors/kevin-firko.jpg"
+  alt="Kevin Firko"
+  size="large"
+/>
+
+## Highlighter Component
+
+The Highlighter component allows you to <Highlighter>emphasize specific text</Highlighter> within your content. It's perfect for drawing attention to key concepts or important terms.
+
+## Code Examples
+
+Here's a standard code block for reference:
+
+```typescript
+// Example TypeScript code
+interface DemoInterface {
+  title: string;
+  description: string;
+  tags: string[];
+}
+
+const demo: DemoInterface = {
+  title: "Demo Article",
+  description: "This is a demo",
+  tags: ["typescript", "demo"]
+};
+```
+
+## Carousel Component
+
+Showcase multiple images or content in a carousel:
+
+<Carousel>
+  <img src="./demo-image.jpg" alt="Demo slide 1" />
+  <img src="./demo-image.jpg" alt="Demo slide 2" />
+  <img src="./demo-image.jpg" alt="Demo slide 3" />
+</Carousel>
+
+## Social Embeds
+
+### YouTube Embed
+
+<Embed
+  type="youtube"
+  url="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+/>
+
+### X (Twitter) Embed
+
+<Embed
+  type="x"
+  url="https://twitter.com/example/status/1234567890"
+/>
+
+### GitHub Gist Embed
+
+<Embed
+  type="gist"
+  url="https://gist.github.com/example/1234567890abcdef"
+/>
+
+## Testimonials Component
+
+Display customer feedback and testimonials:
+
+<Testimonials count={3} />
+
+## Newsletter Signup
+
+Encourage readers to subscribe to your newsletter:
+
+<Newsletter />
+
+## Contact Call-to-Action
+
+Invite readers to get in touch:
+
+<Contact />
+
+## Featured Content
+
+Highlight featured articles or services:
+
+<Featured type="articles" limit={3} />
+
+## Social Sharing
+
+Add social sharing buttons for the article:
+
+<Shares />
+
+## Sprite Component
+
+Use SVG sprites for icons throughout your content:
+
+<Sprite name="check" class="w-6 h-6 text-success" />
+<Sprite name="warning" class="w-6 h-6 text-warning" />
+<Sprite name="info" class="w-6 h-6 text-info" />
+
+## Markdown Features
+
+### Lists
+
+Unordered lists:
+
+- First item
+- Second item
+- Third item with **bold text**
+- Fourth item with *italic text*
+
+Ordered lists:
+
+1. First step
+2. Second step
+3. Third step
+
+### Tables
+
+| Feature | Supported | Notes |
+|---------|-----------|-------|
+| Callouts | ✅ | Multiple types available |
+| Avatars | ✅ | Configurable sizes |
+| Carousels | ✅ | Auto-play optional |
+| Embeds | ✅ | Multiple platforms |
+
+### Blockquotes
+
+> This is a blockquote. Use it for quotes, citations, or to highlight important statements from external sources.
+
+### Links
+
+Visit our [homepage](/) or read more [articles](/articles) to explore additional content.
+
+## Conclusion
+
+This demo article showcases all the components available in our markdown system. Each component is designed to enhance your content and provide a better reading experience for your audience.
+
+Remember, this is a demonstration article (marked as draft), so it won't appear in production builds or sitemaps. Feel free to experiment with these components when creating your own content!

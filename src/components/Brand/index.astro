@@ -2,31 +2,26 @@
 /**
  * Brand identity with logo and wordmark, used in the Header component
  */
-import { Image } from 'astro:assets'
-import buildersSvg from '@assets/images/site/wordmark-builders.svg'
-import logoSvg from '@assets/images/site/logo.svg'
-import webstackSvg from '@assets/images/site/wordmark-webstack.svg'
+import Logo from './Logo.astro'
+import WordmarkBuilders from './WordmarkBuilders.astro'
+import WordmarkWebstack from './WordmarkWebstack.astro'
 ---
 
 <a
-  class="flex items-stretch hover:[&_.logo-block-outer]:brightness-70 hover:[&_.logo-block-inner]:brightness-70 hover:[&_.wordmark__svg-path]:brightness-50 focus:[&_.logo-block-outer]:brightness-70 focus:[&_.logo-block-inner]:brightness-70 focus:[&_.wordmark__svg-path]:brightness-50"
+  class="flex items-stretch hover:brightness-90 focus:brightness-90"
   href="/"
   rel="home"
   aria-label="Go To Homepage"
 >
-  <span
-    class="brand-logo [&_.logo]:h-[var(--header-icon-size)] [&_.logo]:w-[var(--header-icon-size)] [&_.logo-block-outer]:fill-[var(--color-primary-offset)] [&_.logo-block-inner]:fill-[var(--color-primary)]"
-  >
-    <Image src={logoSvg} alt="Webstack Builders corporate logo." class="logo" />
+  <span class="brand-logo">
+    <Logo class="h-[var(--header-icon-size)] w-[var(--header-icon-size)]" />
   </span>
-  <span
-    class="flex flex-col justify-between items-center ml-2 sm:ml-3 [&_.wordmark__svg]:h-[calc(var(--header-icon-size)/2-0.3em)] [&_.wordmark__svg-path]:fill-[var(--color-primary-offset)]"
-  >
+  <span class="flex flex-col justify-between items-center ml-2 sm:ml-3">
     <span class="brand-wordmark-webstack">
-      <Image src={webstackSvg} alt="Webstack wordmark." class="wordmark__svg" />
+      <WordmarkWebstack class="h-[calc(var(--header-icon-size)/2-0.3em)]" />
     </span>
     <span class="brand-wordmark-builders">
-      <Image src={buildersSvg} alt="Builders wordmark." class="wordmark__svg" />
+      <WordmarkBuilders class="h-[calc(var(--header-icon-size)/2-0.3em)]" />
     </span>
   </span>
 </a>

@@ -2,6 +2,7 @@
  * Unit tests for generic script loader with LoadableScript interface
  */
 
+// @vitest-environment happy-dom
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import {
   registerScript,
@@ -250,10 +251,7 @@ describe('Generic Script Loader', () => {
       targetSelector?: string
     }
 
-    let mockIntersectionObserver: (
-      _callback: IntersectionObserverCallback,
-      _options?: IntersectionObserverInit
-    ) => MockObserverInstance
+    let mockIntersectionObserver: typeof IntersectionObserver
     let observerCallback: IntersectionObserverCallback
     let observerInstances: MockObserverInstance[] = []
 
@@ -293,25 +291,32 @@ describe('Generic Script Loader', () => {
     }
 
     beforeEach(() => {
-      // Mock IntersectionObserver
+      // Mock IntersectionObserver as a spyable constructor
       observerInstances = []
-      mockIntersectionObserver = vi.fn((_callback: IntersectionObserverCallback, _options) => {
-        observerCallback = _callback
+
+      const MockIntersectionObserverClass = vi.fn(function(
+        this: IntersectionObserver,
+        callback: IntersectionObserverCallback,
+        options?: IntersectionObserverInit
+      ) {
+        observerCallback = callback
         const instance: MockObserverInstance = {
           observe: vi.fn(),
           unobserve: vi.fn(),
           disconnect: vi.fn(),
           takeRecords: vi.fn(() => []),
-          root: _options?.root ?? null,
-          rootMargin: _options?.rootMargin ?? '0px',
-          thresholds: Array.isArray(_options?.threshold) ? _options.threshold : [_options?.threshold ?? 0],
+          root: options?.root ?? null,
+          rootMargin: options?.rootMargin ?? '0px',
+          thresholds: Array.isArray(options?.threshold) ? options.threshold : [options?.threshold ?? 0],
         }
         observerInstances.push(instance)
-        return instance
-      })
+        return instance as unknown as IntersectionObserver
+      }) as unknown as typeof IntersectionObserver
+
+      mockIntersectionObserver = MockIntersectionObserverClass
 
       // Replace global IntersectionObserver
-      global.IntersectionObserver = mockIntersectionObserver as unknown as typeof IntersectionObserver
+      global.IntersectionObserver = mockIntersectionObserver
     })
 
     afterEach(() => {
@@ -518,7 +523,7 @@ describe('Generic Script Loader', () => {
       consoleSpy.mockRestore()
 
       // Restore IntersectionObserver for other tests
-      global.IntersectionObserver = mockIntersectionObserver as unknown as typeof IntersectionObserver
+      global.IntersectionObserver = mockIntersectionObserver
     })
 
     it('should disconnect observer on reset', () => {

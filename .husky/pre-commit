@@ -1,7 +1,25 @@
 #!/bin/sh
 
+# Load nvm if available and use appropriate node version
+if [ -f "$HOME/.nvm/nvm.sh" ]; then
+  . "$HOME/.nvm/nvm.sh"
+  # Try different nvm use strategies in order of preference
+  if nvm use 2>/dev/null; then
+    echo "Using current nvm node version"
+  elif nvm use node 2>/dev/null; then
+    echo "Using latest nvm node version"
+  elif nvm use --lts 2>/dev/null; then
+    echo "Using LTS node version"
+  else
+    echo "Using system node version"
+  fi
+fi
+
+# Run TypeScript check (fast feedback on type errors)
+npm run check
+
 # Run unit tests (fast feedback)
-nvm use default && npm run test:unit
+npm run test:unit
 
 # Verify branch naming convention
 .husky/scripts/check-branch-name.sh

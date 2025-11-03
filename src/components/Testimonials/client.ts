@@ -72,11 +72,14 @@ export class TestimonialsCarousel extends LoadableScript {
       // Initialize Embla Carousel with Autoplay plugin
       this.emblaApi = EmblaCarousel(this.viewportNode, options, [Autoplay(autoplayOptions)])
 
+      // Expose API to DOM for testing purposes
+      if (this.emblaNode) {
+        ;(this.emblaNode as HTMLElement & { __emblaApi__: EmblaCarouselType }).__emblaApi__ =
+          this.emblaApi
+      }
+
       this.setupNavigationButtons()
       this.setupDotsNavigation()
-
-      // Log initialization
-      console.log('Testimonials carousel initialized with autoplay')
     } catch (error) {
       // Testimonials carousel is optional enhancement
       handleScriptError(error, context)
@@ -164,9 +167,11 @@ export class TestimonialsCarousel extends LoadableScript {
           if (index === selectedIndex) {
             dot.classList.add('bg-[color:var(--color-primary)]', 'w-6')
             dot.classList.remove('bg-[color:var(--color-text-offset)]', 'w-3')
+            dot.setAttribute('aria-current', 'true')
           } else {
             dot.classList.remove('bg-[color:var(--color-primary)]', 'w-6')
             dot.classList.add('bg-[color:var(--color-text-offset)]', 'w-3')
+            dot.removeAttribute('aria-current')
           }
         })
       }

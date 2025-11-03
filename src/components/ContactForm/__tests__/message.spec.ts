@@ -1,3 +1,4 @@
+// @vitest-environment happy-dom
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { initMssgLengthHandler, messageInputElementValidator } from '../message'
 import type { ContactFormSelectors } from '../selectors'

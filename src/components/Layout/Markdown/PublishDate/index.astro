@@ -1,0 +1,19 @@
+---
+export interface Props {
+  publishDate: Date
+}
+
+const { publishDate } = Astro.props
+---
+
+<time
+  class="inline-flex items-center gap-1 before:content-['📅']"
+  itemprop="datePublished"
+  datetime={publishDate.toISOString()}
+>
+  {publishDate.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })}
+</time>

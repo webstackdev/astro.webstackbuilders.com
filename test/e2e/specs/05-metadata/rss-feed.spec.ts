@@ -4,11 +4,11 @@
  * @see src/pages/rss.xml.ts
  */
 
-import { test, expect } from '@playwright/test'
+import { BasePage, test, expect } from '@test/e2e/helpers'
 
 test.describe('RSS Feed', () => {
-  test.skip('@wip RSS feed is accessible', async ({ page }) => {
-    // Expected: /rss.xml should return valid XML
+  test('@ready RSS feed is accessible', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     const response = await page.goto('/rss.xml')
     expect(response?.status()).toBe(200)
 
@@ -16,8 +16,8 @@ test.describe('RSS Feed', () => {
     expect(contentType).toMatch(/xml|rss/)
   })
 
-  test.skip('@wip RSS feed is valid XML', async ({ page }) => {
-    // Expected: Feed should be parseable XML
+  test('@ready RSS feed is valid XML', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     const response = await page.goto('/rss.xml')
     const xml = await response?.text()
 
@@ -26,8 +26,8 @@ test.describe('RSS Feed', () => {
     expect(xml).toContain('</rss>')
   })
 
-  test.skip('@wip RSS feed has channel element', async ({ page }) => {
-    // Expected: Should have <channel> with title, link, description
+  test('@ready RSS feed has channel element', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     const response = await page.goto('/rss.xml')
     const xml = await response?.text()
 
@@ -37,8 +37,8 @@ test.describe('RSS Feed', () => {
     expect(xml).toContain('<description>')
   })
 
-  test.skip('@wip RSS feed has items', async ({ page }) => {
-    // Expected: Feed should contain article items
+  test('@ready RSS feed has items', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     const response = await page.goto('/rss.xml')
     const xml = await response?.text()
 
@@ -49,8 +49,8 @@ test.describe('RSS Feed', () => {
     expect(itemCount).toBeGreaterThan(0)
   })
 
-  test.skip('@wip RSS items have required fields', async ({ page }) => {
-    // Expected: Each item should have title, link, description, pubDate
+  test('@ready RSS items have required fields', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     const response = await page.goto('/rss.xml')
     const xml = await response?.text()
 
@@ -65,19 +65,17 @@ test.describe('RSS Feed', () => {
     expect(firstItem).toContain('<pubDate>')
   })
 
-  test.skip('@wip RSS feed is linked in HTML', async ({ page }) => {
-    // Expected: HTML should have link to RSS feed
+  test('@ready RSS feed is linked in HTML', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     await page.goto('/')
 
-    const rssLink = page.locator('link[type="application/rss+xml"]')
-    await expect(rssLink).toHaveCount(1)
-
-    const href = await rssLink.getAttribute('href')
+    await page.expectAttribute('link[type="application/rss+xml"]', 'href')
+    const href = await page.getAttribute('link[type="application/rss+xml"]', 'href')
     expect(href).toContain('rss.xml')
   })
 
-  test.skip('@wip RSS feed uses absolute URLs', async ({ page }) => {
-    // Expected: All links should be absolute URLs
+  test('@ready RSS feed uses absolute URLs', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     const response = await page.goto('/rss.xml')
     const xml = await response?.text()
 
@@ -89,8 +87,8 @@ test.describe('RSS Feed', () => {
     }
   })
 
-  test.skip('@wip RSS feed has valid pubDate format', async ({ page }) => {
-    // Expected: pubDate should be RFC 822 format
+  test('@ready RSS feed has valid pubDate format', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     const response = await page.goto('/rss.xml')
     const xml = await response?.text()
 
@@ -102,21 +100,19 @@ test.describe('RSS Feed', () => {
     expect(pubDate).toMatch(/\w{3}, \d{2} \w{3} \d{4}/)
   })
 
-  test.skip('@wip RSS feed includes content', async ({ page }) => {
-    // Expected: Items should have content or description
+  test('@ready RSS feed includes content', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     const response = await page.goto('/rss.xml')
     const xml = await response?.text()
 
     const hasContent =
-      xml?.includes('<content:encoded>') ||
-      xml?.includes('<description>') ||
-      xml?.includes('<content>')
+      xml?.includes('<content:encoded>') || xml?.includes('<description>') || xml?.includes('<content>')
 
     expect(hasContent).toBe(true)
   })
 
-  test.skip('@wip RSS feed has language specified', async ({ page }) => {
-    // Expected: Should specify language in channel
+  test('@ready RSS feed has language specified', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     const response = await page.goto('/rss.xml')
     const xml = await response?.text()
 

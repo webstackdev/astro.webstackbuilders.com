@@ -18,6 +18,11 @@ describe('EmbedManager', () => {
     // Initialize state management
     AppBootstrap.init()
 
+    // Suppress console output
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+
     // Grant functional consent for caching
     updateConsent('functional', true)
 
@@ -34,15 +39,17 @@ describe('EmbedManager', () => {
     EmbedManager.reset()
 
     // Mock IntersectionObserver
-    mockIntersectionObserver = vi.fn((_callback, options) => ({
-      observe: vi.fn(),
-      unobserve: vi.fn(),
-      disconnect: vi.fn(),
-      takeRecords: vi.fn(),
-      root: options?.root || null,
-      rootMargin: options?.rootMargin || '0px',
-      thresholds: Array.isArray(options?.threshold) ? options.threshold : [options?.threshold || 0],
-    }))
+    mockIntersectionObserver = vi.fn(function(_callback, options) {
+      return {
+        observe: vi.fn(),
+        unobserve: vi.fn(),
+        disconnect: vi.fn(),
+        takeRecords: vi.fn(),
+        root: options?.root || null,
+        rootMargin: options?.rootMargin || '0px',
+        thresholds: Array.isArray(options?.threshold) ? options.threshold : [options?.threshold || 0],
+      }
+    })
     global.IntersectionObserver = mockIntersectionObserver
     /* eslint-enable @typescript-eslint/no-explicit-any */
 
@@ -50,7 +57,9 @@ describe('EmbedManager', () => {
     global.fetch = vi.fn()
   })
 
-  afterEach(() => {
+  afterEach(async () => {
+    // Wait for any pending async operations to complete
+    await vi.waitFor(() => {}, { timeout: 100 }).catch(() => {})
     vi.restoreAllMocks()
   })
 
@@ -369,10 +378,14 @@ describe('EmbedManager', () => {
     it('should use cached data when available', async () => {
       // Pre-populate cache in state store
       const cacheKey = 'embed_cache_x_aHR0cHM6Ly90d2l0dGVyLmNvbS91c2VyL3N0YXR1cy8xMjM='
-      $embedCache.setKey(cacheKey, {
-        data: { html: '<blockquote>Cached Tweet</blockquote>' },
-        timestamp: Date.now(),
-        ttl: 24 * 60 * 60 * 1000, // 24 hours
+      const currentCache = $embedCache.get()
+      $embedCache.set({
+        ...currentCache,
+        [cacheKey]: {
+          data: { html: '<blockquote>Cached Tweet</blockquote>' },
+          timestamp: Date.now(),
+          ttl: 24 * 60 * 60 * 1000, // 24 hours
+        },
       })
 
       const embedElement = document.createElement('div')
@@ -395,10 +408,14 @@ describe('EmbedManager', () => {
     it('should invalidate expired cache entries', async () => {
       // Pre-populate cache with expired data in state store
       const cacheKey = 'embed_cache_x_aHR0cHM6Ly90d2l0dGVyLmNvbS91c2VyL3N0YXR1cy8xMjM='
-      $embedCache.setKey(cacheKey, {
-        data: { html: '<blockquote>Old Tweet</blockquote>' },
-        timestamp: Date.now() - 25 * 60 * 60 * 1000, // 25 hours ago
-        ttl: 24 * 60 * 60 * 1000, // 24 hour TTL
+      const currentCache = $embedCache.get()
+      $embedCache.set({
+        ...currentCache,
+        [cacheKey]: {
+          data: { html: '<blockquote>Old Tweet</blockquote>' },
+          timestamp: Date.now() - 25 * 60 * 60 * 1000, // 25 hours ago
+          ttl: 24 * 60 * 60 * 1000, // 24 hour TTL
+        },
       })
 
       const embedElement = document.createElement('div')

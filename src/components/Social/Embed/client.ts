@@ -59,7 +59,6 @@ export class EmbedManager extends LoadableScript {
         return
       }
 
-      console.log('Initializing EmbedManager...')
       instance.discoverNewEmbeds()
       instance.initialized = true
     } catch (error) {
@@ -110,8 +109,6 @@ export class EmbedManager extends LoadableScript {
 
           this.embeds.set(htmlElement, embed)
           htmlElement.setAttribute('data-embed-managed', 'true')
-
-          console.log(`Embed ${this.embeds.size} initialized for ${platform || 'auto-detected'} platform`)
         } catch (error) {
           // One embed failing shouldn't break all embeds
           handleScriptError(error, { scriptName: EmbedManager.scriptName, operation: 'initEmbed' })
@@ -322,13 +319,11 @@ class EmbedInstance {
         // Check cache first
         const cached = this.getCachedData()
         if (cached) {
-          console.log(`Loading ${this.platform} embed from cache`)
           this.renderEmbed(cached)
           return
         }
 
         // Fetch fresh data
-        console.log(`Fetching ${this.platform} embed from oEmbed API`)
         const oembedData = await this.fetchOEmbed()
 
         if (oembedData) {
@@ -521,15 +516,13 @@ class EmbedInstance {
         parent.insertBefore(wrapper, iframe)
         wrapper.appendChild(iframe)
       }
-
-      console.log('LinkedIn embed made responsive')
     } catch (error) {
       handleScriptError(error, context)
     }
   }
 
   private getCacheKey(): string {
-    return `${EmbedInstance.CACHE_PREFIX}${this.platform}_${btoa(this.url).substring(0, 50)}`
+    return `${EmbedInstance.CACHE_PREFIX}${this.platform}_${Buffer.from(this.url, 'utf8').toString('base64').substring(0, 50)}`
   }
 
   private getCachedData(): OEmbedResponse | null {

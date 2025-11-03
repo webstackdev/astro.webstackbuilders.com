@@ -1,18 +1,10 @@
 ---
+import { navigationItems } from './server'
 export interface Props {
   path: string
 }
 
 const { path } = Astro.props
-
-// Create an array with (nested) navigation objects
-const navigationItems = [
-  { url: '/about', title: 'About' },
-  { url: '/articles', title: 'Articles' },
-  { url: '/case-studies', title: 'Case Studies' },
-  { url: '/services', title: 'Services' },
-  { url: '/contact', title: 'Contact' },
-]
 
 const activeMenuItem = (url: string) => {
   return path === url ? 'nav-item-active' : ''
@@ -25,53 +17,188 @@ const activeMenuItem = (url: string) => {
     overflow: hidden;
   }
 
+  /* Mobile menu - hidden by default */
+  .main-nav-menu {
+    display: none;
+  }
+
+  /* Mobile menu items - initially hidden with transform */
+  .main-nav-item {
+    opacity: 0;
+    transform: translateY(-1rem);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+
+  /* Desktop menu - visible */
+  @media (min-width: 1024px) {
+    .main-nav-menu {
+      display: flex;
+    }
+
+    .main-nav-item {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Staggered animation delays for mobile menu items - start after splash completes */
+  @media (max-width: 1023px) {
+    :global(#header.aria-expanded-true) .main-nav-menu.menu-visible .main-nav-item:nth-child(1) {
+      transition-delay: 0.1s !important;
+    }
+    :global(#header.aria-expanded-true) .main-nav-menu.menu-visible .main-nav-item:nth-child(2) {
+      transition-delay: 0.2s !important;
+    }
+    :global(#header.aria-expanded-true) .main-nav-menu.menu-visible .main-nav-item:nth-child(3) {
+      transition-delay: 0.3s !important;
+    }
+    :global(#header.aria-expanded-true) .main-nav-menu.menu-visible .main-nav-item:nth-child(4) {
+      transition-delay: 0.4s !important;
+    }
+    :global(#header.aria-expanded-true) .main-nav-menu.menu-visible .main-nav-item:nth-child(5) {
+      transition-delay: 0.5s !important;
+    }
+    :global(#header.aria-expanded-true) .main-nav-menu.menu-visible .main-nav-item:nth-child(6) {
+      transition-delay: 0.6s !important;
+    }
+
+    /* Mobile menu items - remove desktop underlines */
+    :global(#header.aria-expanded-true) .main-nav-item a {
+      text-decoration: none !important;
+    }
+
+    /* Mobile menu item - remove focus outline */
+    :global(#header.aria-expanded-true) .main-nav-item a:focus {
+      outline: none !important;
+    }
+
+    /* Mobile menu item hover/focus/active underline effects */
+    :global(#header.aria-expanded-true) .main-nav-item a:hover,
+    :global(#header.aria-expanded-true) .main-nav-item a:focus,
+    :global(#header.aria-expanded-true) .main-nav-item a:active {
+      text-decoration: underline !important;
+      text-decoration-style: dotted !important;
+      text-decoration-color: var(--color-bg) !important;
+      text-underline-offset: 8px !important;
+      text-decoration-thickness: 2px !important;
+      outline: none !important;
+    }
+  }
+
   /* Mobile splash background animation */
-  #mobile-splash {
+  /*
+    Use a fixed, centered pseudo-element that scales from the
+    toggle button origin to cover the entire viewport. Keep the
+    splash slightly translucent and ensure it sits *under* the
+    menu items so links can appear above it.
+  */
+  :global(#mobile-splash) {
+    /* anchor point for the splash (small element near toggle) */
     height: 1px;
-    position: absolute;
-    right: 40px;
-    top: 40px;
     width: 1px;
+    position: fixed;
+    /* keep near the top-right where the hamburger lives but respect safe-area */
+    right: env(safe-area-inset-right, 20px);
+    top: env(safe-area-inset-top, 20px);
+    pointer-events: none;
+    z-index: var(--z-mobile-splash);
   }
 
-  #mobile-splash::after {
-    background-color: var(--color-primary-offset);
-    border-radius: 50%;
+  :global(#mobile-splash::after) {
     content: '';
-    display: block;
-    position: absolute;
-    z-index: var(--z-nav);
-    height: 284vmax;
-    left: -142vmax;
-    top: -142vmax;
-    width: 284vmax;
-    transform-origin: 50% 50%;
-    transform: scale(0);
-    transition: transform 0.5s cubic-bezier(0.755, 0.05, 0.855, 0.06);
-    will-change: transform;
+    position: fixed;
+    /* Position the circle center at the hamburger button location */
+    right: calc(env(safe-area-inset-right, 20px) + 20px); /* Adjust to button center */
+    top: calc(env(safe-area-inset-top, 20px) + 20px); /* Adjust to button center */
+    /* Center the circle on this point */
+    transform: translate(50%, -50%) scale(0);
+    transform-origin: center;
+    border-radius: 50%;
+    /* make it big enough to guarantee full coverage on all viewports */
+    width: 300vmax;
+    height: 300vmax;
+    /* keep the splash slightly translucent so page chrome is visible under it */
+    background-color: var(--color-bg-inverse);
+    opacity: 1;
+    will-change: transform, opacity;
+    transition: transform 0.55s cubic-bezier(0.755, 0.05, 0.855, 0.06);
+    /* place the splash above everything except nav menu items and close button */
+    z-index: var(--z-mobile-splash);
+    pointer-events: none;
   }
 
-  /* Mobile menu open state splash */
-  #header.aria-expanded-true #mobile-splash::after {
-    transform: scale(1);
+  /* Mobile menu open state splash - scale up to cover viewport */
+  :global(#header.aria-expanded-true #mobile-splash::after) {
+    transform: translate(50%, -50%) scale(1);
   }
+
+  /* Keep splash backdrop non-interactive */
 
   /* Mobile menu open state display */
-  #header.aria-expanded-true .main-nav-menu {
-    display: flex;
-    height: 100vh;
-    transform: scale(1);
+  :global(#header.aria-expanded-true) .main-nav {
+    /* ensure menu items sit above the splash (120 > 110) */
+    z-index: var(--z-mobile-menu);
   }
 
-  #header.aria-expanded-true .main-nav-item {
+  :global(#header.aria-expanded-true) .main-nav-menu {
+    /* When open, make the menu full-screen and center items. We keep this
+       in CSS because it's only applied when the header has the expanded
+       class and relies on fixed positioning and z-index coordination.
+    */
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+    /* Delay menu appearance until splash covers viewport */
+    opacity: 0;
+    /* ensure menu items sit above the splash (120 > 110) */
+    z-index: var(--z-mobile-menu);
+    transition: opacity 0.3s ease 0.5s;
+  }
+
+  :global(#header.aria-expanded-true) .main-nav-menu.menu-visible {
     opacity: 1;
+  }
+
+  :global(#header.aria-expanded-true) .main-nav-menu.menu-visible .main-nav-item {
+    opacity: 1;
+    /* ensure menu items sit above the splash (120 > 110) */
+    z-index: var(--z-mobile-menu);
     transform: translateY(0);
+  }
+
+  :global(#header.aria-expanded-true) .main-nav-item a {
+    color: var(--color-bg) !important;
+    opacity: 1;
+    /* ensure menu items sit above the splash (120 > 110) */
+    z-index: var(--z-mobile-menu-item) !important;
   }
 
   /* Desktop navigation item underline effects */
   @media (min-width: 1024px) {
+    .main-nav-item a {
+      color: var(--color-primary-offset);
+      text-decoration: underline;
+      text-decoration-style: dotted;
+      text-decoration-color: var(--color-primary-offset);
+      text-underline-offset: 8px;
+      text-decoration-thickness: 2px;
+      transition: color 0.2s, text-decoration-color 0.2s;
+    }
+
+    .main-nav-item a:hover,
+    .main-nav-item a:focus {
+      color: var(--color-primary);
+      text-decoration-color: transparent;
+    }
+
     .main-nav-item::after {
-      background-color: var(--color-border);
+      background-color: var(--color-primary);
       bottom: -0.25rem;
       content: '';
       display: block;
@@ -81,16 +208,20 @@ const activeMenuItem = (url: string) => {
       right: 1.25rem;
       transform-origin: 0 50%;
       transform: scaleX(0);
-      transition: transform 0.3s cubic-bezier(0.86, 0, 0.07, 1);
+      transition: transform 0.3s cubic-bezier(0.86, 0, 0.07, 1) 0.1s;
     }
 
     .main-nav-item:hover::after {
-      background-color: var(--color-primary);
       transform: scaleX(1);
     }
 
+    .nav-item-active a {
+      text-decoration: none;
+      color: var(--color-primary);
+    }
+
     .nav-item-active::after {
-      background-color: var(--color-primary-offset);
+      background-color: var(--color-primary);
       transform: none;
     }
 
@@ -108,10 +239,10 @@ const activeMenuItem = (url: string) => {
   >
     {
       navigationItems.map(navItem => (
-        <li class:list={['main-nav-item opacity-100 lg:relative', activeMenuItem(navItem.url)]}>
+          <li class:list={['main-nav-item lg:relative', activeMenuItem(navItem.url)]}>
           <a
             href={navItem.url}
-            class="block text-primary text-xl lg:text-lg font-bold tracking-[5px] lg:tracking-normal p-4 lg:px-5 lg:py-3 text-center uppercase lg:lowercase no-underline hover:text-bg-offset hover:bg-primary lg:hover:bg-inherit lg:hover:text-primary focus:text-bg-offset focus:bg-primary lg:focus:bg-inherit lg:focus:text-primary focus:outline-0 lg:flex lg:items-center lg:text-primary-offset lg:relative lg:transition-colors lg:duration-200 lg:whitespace-nowrap lg:z-10"
+            class="block text-primary text-xl lg:text-lg font-bold tracking-[5px] lg:tracking-normal p-4 lg:px-5 lg:py-3 text-center uppercase lg:lowercase no-underline lg:hover:text-bg-offset lg:hover:bg-inherit lg:focus:text-bg-offset lg:focus:bg-inherit focus:outline-0 lg:flex lg:items-center lg:relative lg:whitespace-nowrap lg:z-10"
           >
             {navItem.title}
           </a>

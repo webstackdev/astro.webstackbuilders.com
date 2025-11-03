@@ -2,110 +2,156 @@
  * Newsletter Subscription Form E2E Tests
  * Tests for newsletter signup functionality
  */
-import { test, expect } from '@playwright/test'
-import { TEST_EMAILS, TEST_URLS, SUCCESS_MESSAGES, ERROR_MESSAGES } from '../../fixtures/test-data'
+import { test, expect } from '@test/e2e/helpers'
+import { TEST_EMAILS, ERROR_MESSAGES } from '@test/e2e/fixtures/test-data'
+import { NewsletterPage } from '@test/e2e/helpers/pageObjectModels/NewsletterPage'
 
 test.describe('Newsletter Subscription Form', () => {
+  let newsletterPage: NewsletterPage
+
   test.beforeEach(async ({ page }) => {
-    await page.goto(TEST_URLS.home)
+    newsletterPage = new NewsletterPage(page)
+    await newsletterPage.navigateToNewsletterForm()
   })
 
-  test.skip('@wip form accepts valid email', async ({ page }) => {
-    // Expected: Should accept and submit valid email
-    // Actual: Unknown - needs testing
-    await page.fill('#newsletter-email', TEST_EMAILS.valid)
-    await page.check('#newsletter-gdpr-consent')
-    await page.click('#newsletter-submit')
+  test('@ready form accepts valid email and shows success message', async () => {
+    // Subscribe with valid email and consent
+    await newsletterPage.fillEmail(TEST_EMAILS.valid)
+    await newsletterPage.checkGdprConsent()
+    await newsletterPage.submitForm()
 
-    await expect(page.locator('#newsletter-message')).toContainText(SUCCESS_MESSAGES.newsletterConfirmation)
+    // Should show confirmation message (using partial match to handle variations)
+    await newsletterPage.expectMessageContains('check your email')
   })
 
-  test.skip('@wip form rejects invalid email', async ({ page }) => {
-    // Expected: Should show error for invalid email format
-    // Actual: Unknown - needs testing
-    await page.fill('#newsletter-email', TEST_EMAILS.invalid)
-    await page.check('#newsletter-gdpr-consent')
-    await page.click('#newsletter-submit')
+  test('@ready form rejects invalid email format', async () => {
+    // Try to subscribe with invalid email
+    await newsletterPage.fillEmail(TEST_EMAILS.invalid)
+    await newsletterPage.checkGdprConsent()
+    await newsletterPage.submitForm()
 
-    await expect(page.locator('#newsletter-message')).toContainText(ERROR_MESSAGES.emailInvalid)
+    // Should show email validation error
+    await newsletterPage.expectMessageContains(ERROR_MESSAGES.emailInvalid)
   })
 
-  test.skip('@wip form requires GDPR consent', async ({ page }) => {
-    // Expected: Should show error if GDPR not checked
-    // Actual: Unknown - needs testing
-    await page.fill('#newsletter-email', TEST_EMAILS.valid)
-    // Don't check GDPR consent
-    await page.click('#newsletter-submit')
+  test('@ready form requires GDPR consent', async ({ page }) => {
+    let apiCallMade = false
 
-    await expect(page.locator('#newsletter-message')).toContainText(ERROR_MESSAGES.consentRequired)
+    // Monitor API calls to ensure client-side validation prevents submission
+    await page.route('/api/newsletter', (route) => {
+      apiCallMade = true
+      route.abort() // Don't actually process it
+    })
+
+    // Wait for page to be fully loaded with scripts
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(500) // Give scripts time to initialize
+
+    await newsletterPage.fillEmail(TEST_EMAILS.valid)
+    // Don't check GDPR consent - leave it unchecked
+    await newsletterPage.submitForm()
+
+    // Wait for client-side validation to show error message
+    await page.waitForFunction(() => {
+      const message = document.getElementById('newsletter-message')
+      return message && message.textContent && message.textContent.includes('consent')
+    }, { timeout: 3000 })
+
+    // Verify that no API call was made (client-side validation prevented it)
+    if (apiCallMade) {
+      throw new Error('API call was made - client-side validation failed to prevent submission')
+    }
+
+    // Should show consent required error message
+    await newsletterPage.expectMessageContains('Please consent to receive marketing communications')
   })
 
-  test.skip('@wip form requires email address', async ({ page }) => {
-    // Expected: Should show error if email is empty
-    // Actual: Unknown - needs testing
-    await page.check('#newsletter-gdpr-consent')
-    await page.click('#newsletter-submit')
+  test('@ready form requires email address', async ({ page }) => {
+    // Try to submit without email - browser validation will prevent submission
+    await newsletterPage.checkGdprConsent()
 
-    await expect(page.locator('#newsletter-message')).toContainText(ERROR_MESSAGES.emailRequired)
+    // Email input should have required attribute
+    const emailInput = page.locator('#newsletter-email')
+    await expect(emailInput).toHaveAttribute('required', '')
   })
 
-  test.skip('@wip submit button shows loading state', async ({ page }) => {
-    // Expected: Button should show loading spinner during submission
-    // Actual: Unknown - needs testing
-    await page.fill('#newsletter-email', TEST_EMAILS.valid)
-    await page.check('#newsletter-gdpr-consent')
-    await page.click('#newsletter-submit')
+  test('@ready submit button shows loading state', async ({ page }) => {
+    // Start subscription
+    await newsletterPage.fillEmail(TEST_EMAILS.valid)
+    await newsletterPage.checkGdprConsent()
 
-    // Check for loading indicator
-    await expect(page.locator('#button-spinner')).toBeVisible()
+    // Wait for the newsletter form JS to be loaded and initialized
+    await page.waitForFunction(() => {
+      const button = window.document.querySelector('#newsletter-submit') as HTMLButtonElement
+      return button && !button.disabled
+    })
+
+    // Set up intercept for API call to slow it down
+    await page.route('/api/newsletter', async route => {
+      // Add delay to make spinner visible longer
+      // Mobile Safari and webkit need longer delay
+      const delay = page.context().browser()?.browserType().name() === 'webkit' ? 300 : 100
+      await new Promise(resolve => setTimeout(resolve, delay))
+      await route.continue()
+    })
+
+    // Click submit and immediately check for spinner
+    const submitButton = page.locator('#newsletter-submit')
+    const spinner = page.locator('#button-spinner')
+
+    // Submit form and check loading state immediately
+    const submitPromise = submitButton.click()
+
+    // The spinner should become visible during the API call
+    await expect(spinner).toBeVisible({ timeout: 2000 })
+
+    // Wait for the submit to complete
+    await submitPromise
   })
 
-  test.skip('@wip form resets after successful submission', async ({ page }) => {
-    // Expected: Form should clear after successful submission
-    // Actual: Unknown - needs testing
-    await page.fill('#newsletter-email', TEST_EMAILS.valid)
-    await page.check('#newsletter-gdpr-consent')
-    await page.click('#newsletter-submit')
+  test('@ready form resets after successful submission', async () => {
+    // Submit valid subscription
+    await newsletterPage.fillEmail(TEST_EMAILS.valid)
+    await newsletterPage.checkGdprConsent()
+    await newsletterPage.submitForm()
 
-    // Wait for success message
-    await expect(page.locator('#newsletter-message')).toContainText(SUCCESS_MESSAGES.newsletterConfirmation)
+    // Wait for success message (updated to match actual API response)
+    await newsletterPage.expectMessageContains('Please check your email to confirm your subscription')
 
     // Verify form is cleared
-    await expect(page.locator('#newsletter-email')).toHaveValue('')
-    await expect(page.locator('#newsletter-gdpr-consent')).not.toBeChecked()
+    await newsletterPage.expectFormReset()
   })
 
-  test.skip('@wip email validation on blur', async ({ page }) => {
-    // Expected: Should validate email when field loses focus
-    // Actual: Unknown - needs testing
-    await page.fill('#newsletter-email', TEST_EMAILS.invalid)
-    await page.locator('#newsletter-email').blur()
+  test('@ready email validation on blur', async () => {
+    // Fill invalid email and blur
+    await newsletterPage.fillEmail(TEST_EMAILS.invalid)
+    await newsletterPage.blurEmailInput()
 
-    await expect(page.locator('#newsletter-message')).toContainText(ERROR_MESSAGES.emailInvalid)
+    // Should show validation error
+    await newsletterPage.expectMessageContains(ERROR_MESSAGES.emailInvalid)
   })
 
-  test.skip('@wip GDPR consent link works', async ({ page }) => {
-    // Expected: GDPR consent should have working privacy link
-    // Actual: Unknown - needs testing
-    const privacyLink = page.locator('label[for="newsletter-gdpr-consent"] a')
+  test('@ready GDPR consent link works', async ({ page }) => {
+    // Find the privacy link within the GDPR consent label
+    // The structure is: <GDPRConsent> which renders a label with a link inside
+    const privacyLink = page.locator('label:has(#newsletter-gdpr-consent) a').first()
     await expect(privacyLink).toBeVisible()
     await expect(privacyLink).toHaveAttribute('href', /privacy/)
   })
 
-  test.skip('@blocked API returns confirmation message', async ({ page }) => {
-    // Blocked by: Need API endpoint available in test env
-    // Expected: API should return success message
-    // Actual: Unknown - needs API setup
-    await page.fill('#newsletter-email', TEST_EMAILS.valid)
-    await page.check('#newsletter-gdpr-consent')
+  test('@ready API returns confirmation message', async ({ page }) => {
+    // Set up response promise before submitting
+    const apiResponsePromise = page.waitForResponse('/api/newsletter')
 
-    // Intercept API call
-    const responsePromise = page.waitForResponse('/api/newsletter')
-    await page.click('#newsletter-submit')
-    const response = await responsePromise
+    await newsletterPage.fillEmail(TEST_EMAILS.valid)
+    await newsletterPage.checkGdprConsent()
+    await newsletterPage.submitForm()
 
-    expect(response.status()).toBe(200)
-    const data = await response.json()
-    expect(data.success).toBe(true)
+    // Verify API response
+    const apiResponse = await apiResponsePromise
+    expect(apiResponse.status()).toBe(200)
+    const responseData = await apiResponse.json()
+    expect(responseData.success).toBe(true)
+    expect(responseData.message).toContain('check your email')
   })
 })

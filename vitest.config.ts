@@ -5,6 +5,11 @@ import { resolve } from 'path'
 // @TODO: Should set up `reporters` for CI to create an artifact on failed runs with `outputFIle`
 
 export default getViteConfig({
+  define: {
+    'import.meta.env.DEV': true,
+    'import.meta.env.PROD': false,
+    'import.meta.env.SSR': true,
+  },
   resolve: {
     alias: {
       '@assets': resolve(__dirname, './src/assets'),
@@ -35,6 +40,11 @@ export default getViteConfig({
       ['test/unit/**', 'node'],
       ['test/e2e/helpers/__tests__/**', 'node'],
     ],
+    env: {
+      DEV: 'true',
+      PROD: 'false',
+      SSR: 'true',
+    },
     testTimeout: 30 * 1000,
     setupFiles: ['./vitest.setup.ts'],
     coverage: {

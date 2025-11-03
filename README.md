@@ -143,58 +143,7 @@ To add a new theme (e.g., a holiday theme), follow these steps:
 
 #### 1. Add CSS Variables in `src/styles/themes.css`
 
-Add a new CSS rule with your theme's custom properties:
-
-```css
-/* Holiday Theme Example */
-[data-theme="holiday"] {
-  /* Background Colors */
-  --color-bg: #0f172a;
-  --color-bg-offset: #1e293b;
-
-  /* Text Colors */
-  --color-text: #f1f5f9;
-  --color-text-offset: #cbd5e1;
-
-  /* Primary Brand Colors */
-  --color-primary: #dc2626;
-  --color-primary-offset: #991b1b;
-  --color-primary-bg: #7f1d1d;
-  --color-primary-bg-hover: #991b1b;
-  --color-primary-hover: #b91c1c;
-
-  /* Secondary Colors */
-  --color-secondary: #16a34a;
-  --color-secondary-offset: #15803d;
-  --color-secondary-bg: #052e16;
-
-  /* Status Colors */
-  --color-success: #16a34a;
-  --color-success-offset: #22c55e;
-  --color-success-bg: #052e16;
-
-  --color-info: #0891b2;
-  --color-info-bg: #164e63;
-
-  --color-warning: #a16207;
-  --color-warning-offset: #ca8a04;
-  --color-warning-bg: #451a03;
-
-  --color-danger: #dc2626;
-  --color-danger-bg: #7f1d1d;
-
-  /* Special Colors */
-  --color-twitter: #1da1f2;
-  --color-modal-background: #0f172a;
-
-  /* Accent Colors */
-  --color-accent: #fbbf24;
-  --color-accent-bg: #451a03;
-
-  /* Syntax Highlighting */
-  --shiki-theme: 'github-dark';
-}
-```
+Add a new CSS rule with the theme's custom colors following the pattern of existing themes in this file.
 
 #### 2. Register Theme in `src/lib/themes.ts`
 

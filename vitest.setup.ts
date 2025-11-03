@@ -34,6 +34,23 @@ Object.defineProperty(globalThis, 'TextDecoder', {
   writable: true,
 })
 
+// Mock import.meta.env for Astro runtime
+const globalAsRecord = globalThis as Record<string, unknown>
+if (typeof globalAsRecord['import'] === 'undefined') {
+  Object.defineProperty(globalThis, 'import', {
+    value: {
+      meta: {
+        env: {
+          DEV: process.env['NODE_ENV'] !== 'production',
+          PROD: process.env['NODE_ENV'] === 'production',
+          SSR: true,
+        },
+      },
+    },
+    writable: true,
+  })
+}
+
 // Try to load axe matchers if available
 try {
   // Use dynamic import to avoid TypeScript/linting issues

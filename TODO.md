@@ -1,13 +1,75 @@
 # TODO
 
-From the error output, the article page has:
+Files with Skipped Tests:
 
-<h1 id="article-title"> - the actual article title (correct)
-<h1 id="create-custom-font-sets-use-font-forge"> - from markdown content (wrong!)
-<h1>No islands detected.</h1> - from some debug/dev tool
-<h1>Audit</h1> - from some debug/dev tool
-<h1>No accessibility or performance issues detected.</h1> - from debug/dev tool
-<h1>Settings</h1> - from debug/dev tool
+social-shares.spec.ts - 12 @wip
+gdpr-consent.spec.ts - 10 @wip
+
+Blocked Categories (44 tests):
+
+Visual regression testing (18) - Needs Percy/Chromatic
+PWA functionality (12) - Service workers not implemented
+Lighthouse audits (6) - Integration pending
+Newsletter double opt-in (6) - Email testing infrastructure
+Axe accessibility (2) - axe-core integration
+
+\[color:var\(--color-(.*?)\)\]
+
+## Axe tags
+
+cat.aria: Rules related to Accessible Rich Internet Applications (ARIA) attributes and roles.
+cat.color: Rules related to color contrast and meaning conveyed by color.
+cat.controls: Rules for interactive controls, such as form elements and links.
+cat.forms: Rules specifically for forms, form fields, and their labels.
+cat.keyboard: Rules related to keyboard operability.
+cat.links: Rules for links, including their names and destinations.
+cat.name-role-value: Rules that check if an element has a name, role, and value that can be correctly interpreted by assistive technologies.
+cat.semantics: Rules related to the semantic structure of a document, such as headings and landmarks.
+cat.sensory-and-visual-cues: Rules that deal with information conveyed by sensory or visual characteristics.
+cat.structure: Rules related to the document's overall structure, like the proper nesting of elements.
+cat.tables: Rules for data tables, including headers and associations.
+cat.text-alternatives: Rules for ensuring that text alternatives are provided for non-text content, such as images.
+
+## Social Media Preview Cards
+
+Looking at the social-card endpoint implementation, it's designed to work with third-party screenshot services, not the social networks themselves.
+
+Here's how it works:
+
+The Two Formats
+HTML format (format=html or default): Returns a full HTML page with inline CSS styled as a 1200x630px card - the standard Open Graph image dimensions.
+
+OG format (format=og): Returns JSON with Open Graph meta tags, where the og:image URL points back to the HTML version of the card.
+
+How Social Networks Actually Work
+Social networks like Twitter, Facebook, LinkedIn, etc. don't screenshot HTML pages. They expect:
+
+- Direct image URLs (PNG, JPEG, etc.)
+- Standard dimensions (1200x630px for most platforms)
+
+The Intended Workflow
+
+This endpoint is designed to integrate with screenshot services like:
+
+- Puppeteer or Playwright - Run your own screenshot service
+- Vercel OG Image Generation - Vercel's built-in service
+- Cloudinary - Can fetch and screenshot URLs
+- ScreenshotOne or ApiFlash - Dedicated screenshot APIs
+- Satori - Convert HTML/CSS to SVG/PNG
+
+Current Limitation
+
+As implemented, this endpoint would need an additional step to be useful for social sharing:
+
+Your endpoint → Screenshot service → Image file → Social networks
+
+Better Approaches
+
+For a production Astro site, you'd typically:
+
+- Use @vercel/og or Satori to generate actual images server-side
+- Pre-generate images at build time for static content
+- Use a screenshot service that can be called from your endpoint to return actual images
 
 ## @TODO: Use Confetti on CTA forms
 

@@ -1,3 +1,4 @@
+// @vitest-environment happy-dom
 /**
  * Layer 4: Unified Plugin Tests - rehype-accessible-emojis
  *

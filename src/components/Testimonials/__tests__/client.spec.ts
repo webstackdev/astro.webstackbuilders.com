@@ -1,3 +1,4 @@
+// @vitest-environment happy-dom
 /**
  * Unit tests for TestimonialsCarousel LoadableScript class
  * Tests the carousel functionality and LoadableScript integration
@@ -47,6 +48,10 @@ describe('TestimonialsCarousel LoadableScript', () => {
   beforeEach(() => {
     // Clear all mocks before each test
     vi.clearAllMocks()
+    // Suppress console output
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
     // Setup fresh DOM for each test
     setupTestimonialsCarouselDOM()
   })
@@ -137,19 +142,9 @@ describe('TestimonialsCarousel LoadableScript', () => {
         stopOnMouseEnter: true,
       })
     })
-
-    it('should log successful initialization', () => {
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-
-      TestimonialsCarousel.init()
-
-      expect(consoleSpy).toHaveBeenCalledWith('Testimonials carousel initialized with autoplay')
-
-      consoleSpy.mockRestore()
-    })
   })
 
-  describe('Navigation Buttons', () => {
+  describe('Navigation controls', () => {
     it('should setup prev/next button event listeners', () => {
       TestimonialsCarousel.init()
 

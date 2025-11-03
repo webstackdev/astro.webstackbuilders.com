@@ -127,7 +127,17 @@ class Loader {
     ]
 
     domEvents.forEach(eventType => {
-      const listener = () => this.executeEvent(eventType)
+      const listener = () => {
+        this.executeEvent(eventType)
+        // Re-register listeners for View Transitions support
+        // astro:page-load should fire on every navigation
+        if (eventType === 'astro:page-load' || eventType === 'astro:after-swap') {
+          // Remove this event from executedEvents so it can run again
+          this.executedEvents.delete(eventType)
+          // Re-register this specific listener
+          document.addEventListener(eventType, listener, { once: true })
+        }
+      }
       document.addEventListener(eventType, listener, { once: true })
     })
   }
@@ -170,8 +180,11 @@ class Loader {
       this.executeScript(script)
     })
 
-    // Clear the queue
-    this.eventQueues.delete(eventType)
+    // For View Transitions: Keep the queue and allow re-execution for these events
+    if (eventType !== 'astro:page-load' && eventType !== 'astro:after-swap') {
+      // Clear the queue for one-time events
+      this.eventQueues.delete(eventType)
+    }
   }
 
   /**
@@ -186,7 +199,6 @@ class Loader {
       script.init()
       // Track executed scripts for pause/resume functionality
       this.executedScripts.add(script)
-      console.log(`Script initialized: ${script.scriptName}`)
     } catch (error) {
       handleScriptError(error, context)
     }
@@ -363,17 +375,11 @@ class Loader {
       if (hasConsent) {
         // Consent granted - load script if not already executed
         if (!this.executedScripts.has(script)) {
-          console.log(
-            `✅ Consent granted for ${consentCategory}, loading ${script.scriptName}`
-          )
           this.executeScript(script)
         }
       } else {
         // Consent revoked - pause script if it's running
         if (this.executedScripts.has(script)) {
-          console.log(
-            `⛔ Consent revoked for ${consentCategory}, pausing ${script.scriptName}`
-          )
           try {
             script.pause()
             // Optionally remove from executed set if you want it to be able to restart

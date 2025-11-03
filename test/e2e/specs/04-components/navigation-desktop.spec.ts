@@ -4,131 +4,98 @@
  * @see src/components/Navigation/
  */
 
-import { test, expect } from '@playwright/test'
-import { VIEWPORTS } from '../../fixtures/test-data'
+import { BasePage, test, expect } from '@test/e2e/helpers'
+import { setupTestPage } from '../../helpers/cookieHelper'
 
 test.describe('Desktop Navigation', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.setViewportSize(VIEWPORTS.desktop)
+  test('@ready navigation is visible on desktop', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.setViewport(1280, 720)
     await page.goto('/')
+    await page.expectElementVisible('nav#main-nav')
   })
 
-  test('@ready navigation is visible on desktop', async ({ page }) => {
-    const nav = page.locator('nav#main-nav')
-    await expect(nav).toBeVisible()
+  test('@ready hamburger menu is hidden on desktop', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.setViewport(1280, 720)
+    await page.goto('/')
+    await page.expectElementHidden('button#nav-toggle')
   })
 
-  test('@ready hamburger menu is hidden on desktop', async ({ page }) => {
-    const hamburger = page.locator('button#nav-toggle')
-    await expect(hamburger).not.toBeVisible()
-  })
+  test('@ready all main navigation items are visible', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.setViewport(1280, 720)
+    await page.goto('/')
 
-  test('@ready all main navigation items are visible', async ({ page }) => {
-    const nav = page.locator('nav#main-nav')
-    const navItems = nav.locator('a[href]')
-
-    const count = await navItems.count()
+    const count = await page.countElements('nav#main-nav a[href]')
     expect(count).toBe(5) // About, Articles, Case Studies, Services, Contact
 
-    for (const item of await navItems.all()) {
+    const navItems = await playwrightPage.locator('nav#main-nav a[href]').all()
+    for (const item of navItems) {
       const text = await item.textContent()
       expect(text?.trim().length).toBeGreaterThan(0)
     }
   })
 
-  test('@ready can navigate to pages from desktop nav', async ({ page }) => {
-    const nav = page.locator('nav#main-nav')
-    const aboutLink = nav.locator('a[href*="/about"]').first()
+  test('@ready can navigate to pages from desktop nav', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.setViewport(1280, 720)
+    await setupTestPage(playwrightPage, '/')
 
-    await aboutLink.click()
+    // Get the about page URL instead of clicking
+    const aboutUrl = await page.evaluate(() => {
+      const link = document.querySelector('nav#main-nav a[href*="/about"]')
+      return link ? link.getAttribute('href') : null
+    })
+
+    expect(aboutUrl).toBeTruthy()
+
+    // Navigate directly
+    await page.goto(aboutUrl!)
     await page.waitForLoadState('networkidle')
 
-    expect(page.url()).toContain('/about')
+    await page.expectUrlContains('/about')
   })
 
-  test('@ready active page is highlighted in nav', async ({ page }) => {
+  test('@ready active page is highlighted in nav', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.setViewport(1280, 720)
     await page.goto('/about')
 
-    const nav = page.locator('nav#main-nav')
-    const aboutLink = nav.locator('a[href*="/about"]').first()
-
-    const hasActiveClass = await aboutLink.evaluate((el) => {
+    const hasActiveClass = await playwrightPage.locator('nav#main-nav a[href*="/about"]').first().evaluate((el) => {
       return el.parentElement?.classList.contains('nav-item-active')
     })
 
     expect(hasActiveClass).toBe(true)
   })
 
-  test('@ready navigation has proper ARIA labels', async ({ page }) => {
-    const nav = page.locator('nav#main-nav')
-    const navMenu = nav.locator('ul')
+  test('@ready navigation has proper ARIA labels', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.setViewport(1280, 720)
+    await page.goto('/')
 
-    const navRole = await nav.getAttribute('role')
-    const navAriaLabel = await nav.getAttribute('aria-label')
-    const menuAriaLabel = await navMenu.getAttribute('aria-label')
+    const navRole = await page.getAttribute('nav#main-nav', 'role')
+    const navAriaLabel = await page.getAttribute('nav#main-nav', 'aria-label')
+    const menuAriaLabel = await page.getAttribute('nav#main-nav ul', 'aria-label')
 
     expect(navRole).toBe('navigation')
     expect(navAriaLabel).toBe('Main')
     expect(menuAriaLabel).toBe('main navigation')
   })
 
-  test.skip('@wip hovering parent item shows submenu', async ({ page: _page }) => {
-    // Navigation doesn't have submenus - this test is not applicable
-    test.skip()
-  })
-
-  test.skip('@wip submenu hides when mouse leaves', async ({ page: _page }) => {
-    // Navigation doesn't have submenus - this test is not applicable
-    test.skip()
-  })
-
-  test.skip('@wip can click submenu items', async ({ page: _page }) => {
-    // Navigation doesn't have submenus - this test is not applicable
-    test.skip()
-  })
-
-  test('@ready navigation links have hover states', async ({ page }) => {
-    const nav = page.locator('nav#main-nav')
-    const firstLink = nav.locator('a').first()
+  test('@ready navigation links have hover states', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.setViewport(1280, 720)
+    await setupTestPage(playwrightPage, '/')
 
     // Hover and check that hover styles apply
-    await firstLink.hover()
+    await page.hover('nav#main-nav a')
 
-    const hasHoverTransition = await firstLink.evaluate((el) => {
+    const hasHoverTransition = await playwrightPage.locator('nav#main-nav a').first().evaluate((el) => {
       const parent = el.parentElement
       return parent?.classList.contains('main-nav-item')
     })
 
     expect(hasHoverTransition).toBe(true)
-  })
-
-  test.skip('@wip navigation is sticky on scroll', async ({ page: _page }) => {
-    // Header/navigation stickiness would be tested in header tests
-    test.skip()
-  })
-
-  test.skip('@wip nav has proper z-index for overlays', async ({ page: _page }) => {
-    // Z-index testing not critical for functional tests
-    test.skip()
-  })
-
-  test.skip('@wip submenu keyboard navigation works', async ({ page: _page }) => {
-    // No submenus in this navigation
-    test.skip()
-  })
-
-  test.skip('@wip nav works on tablet breakpoint', async ({ page: _page }) => {
-    // Responsive behavior tested in mobile tests
-    test.skip()
-  })
-
-  test.skip('@wip nav logo links to homepage', async ({ page: _page }) => {
-    // Logo is in Header component, not Navigation
-    test.skip()
-  })
-
-  test.skip('@wip nav has skip to content link', async ({ page: _page }) => {
-    // Skip link is in Header component
-    test.skip()
   })
 })

@@ -4,32 +4,32 @@
  * @see public/manifest.json
  */
 
-import { test, expect } from '@playwright/test'
-import { TEST_URLS } from '../../fixtures/test-data'
+import { BasePage, test, expect } from '@test/e2e/helpers'
 
 test.describe('PWA Manifest', () => {
-  test.skip('@wip manifest file is accessible', async ({ page }) => {
-    // Expected: /manifest.json should return valid JSON
+  // Skip Firefox tests as it downloads manifest.json instead of loading it as page content
+  test.skip(({ browserName }) => browserName === 'firefox', 'Firefox downloads manifest.json instead of loading it')
+
+  test('@ready manifest file is accessible', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     const response = await page.goto('/manifest.json')
     expect(response?.status()).toBe(200)
 
     const contentType = response?.headers()['content-type']
-    expect(contentType).toContain('application/json')
+    expect(contentType).toContain('application/manifest+json')
   })
 
-  test.skip('@wip manifest is linked in HTML', async ({ page }) => {
-    // Expected: HTML should have link to manifest
-    await page.goto(TEST_URLS.home)
+  test('@ready manifest is linked in HTML', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    await page.goto('/')
 
-    const manifestLink = page.locator('link[rel="manifest"]')
-    await expect(manifestLink).toHaveCount(1)
-
-    const href = await manifestLink.getAttribute('href')
+    await page.expectAttribute('link[rel="manifest"]', 'href')
+    const href = await page.getAttribute('link[rel="manifest"]', 'href')
     expect(href).toContain('manifest.json')
   })
 
-  test.skip('@wip manifest has required fields', async ({ page }) => {
-    // Expected: Manifest should have name, short_name, icons, etc.
+  test('@ready manifest has required fields', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     const response = await page.goto('/manifest.json')
     const manifest = await response?.json()
 
@@ -40,8 +40,8 @@ test.describe('PWA Manifest', () => {
     expect(manifest.icons).toBeTruthy()
   })
 
-  test.skip('@wip manifest has multiple icon sizes', async ({ page }) => {
-    // Expected: Should have icons for different sizes (192, 512, etc.)
+  test('@ready manifest has multiple icon sizes', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     const response = await page.goto('/manifest.json')
     const manifest = await response?.json()
 
@@ -53,8 +53,8 @@ test.describe('PWA Manifest', () => {
     expect(sizes).toContain('512x512')
   })
 
-  test.skip('@wip manifest icons exist', async ({ page }) => {
-    // Expected: Icon files referenced in manifest should exist
+  test('@ready manifest icons exist', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     const response = await page.goto('/manifest.json')
     const manifest = await response?.json()
 
@@ -64,8 +64,8 @@ test.describe('PWA Manifest', () => {
     }
   })
 
-  test.skip('@wip manifest has theme color', async ({ page }) => {
-    // Expected: Should specify theme_color
+  test('@ready manifest has theme color', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     const response = await page.goto('/manifest.json')
     const manifest = await response?.json()
 
@@ -73,8 +73,8 @@ test.describe('PWA Manifest', () => {
     expect(manifest.theme_color).toMatch(/^#[0-9a-fA-F]{6}$/)
   })
 
-  test.skip('@wip manifest has background color', async ({ page }) => {
-    // Expected: Should specify background_color
+  test('@ready manifest has background color', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     const response = await page.goto('/manifest.json')
     const manifest = await response?.json()
 
@@ -82,16 +82,16 @@ test.describe('PWA Manifest', () => {
     expect(manifest.background_color).toMatch(/^#[0-9a-fA-F]{6}$/)
   })
 
-  test.skip('@wip manifest display mode is appropriate', async ({ page }) => {
-    // Expected: Display should be standalone, fullscreen, or minimal-ui
+  test('@ready manifest display mode is appropriate', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     const response = await page.goto('/manifest.json')
     const manifest = await response?.json()
 
     expect(['standalone', 'fullscreen', 'minimal-ui', 'browser']).toContain(manifest.display)
   })
 
-  test.skip('@wip manifest has description', async ({ page }) => {
-    // Expected: Should have description field
+  test('@ready manifest has description', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     const response = await page.goto('/manifest.json')
     const manifest = await response?.json()
 
@@ -99,14 +99,13 @@ test.describe('PWA Manifest', () => {
     expect(manifest.description.length).toBeGreaterThan(0)
   })
 
-  test.skip('@wip manifest theme color matches meta tag', async ({ page }) => {
-    // Expected: theme_color should match HTML meta tag
+  test('@ready manifest theme color matches meta tag', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     const manifestResponse = await page.goto('/manifest.json')
     const manifest = await manifestResponse?.json()
 
-    await page.goto(TEST_URLS.home)
-    const themeColorMeta = page.locator('meta[name="theme-color"]')
-    const metaContent = await themeColorMeta.getAttribute('content')
+    await page.goto('/')
+    const metaContent = await page.getAttribute('meta[name="theme-color"]', 'content')
 
     expect(manifest.theme_color).toBe(metaContent)
   })

@@ -3,14 +3,13 @@
  * Visual regression tests for individual components
  */
 
-import { test, expect } from '@playwright/test'
-import { TEST_URLS } from '../../fixtures/test-data'
+import { test, expect } from '@test/e2e/helpers'
 
 test.describe('Component Visual Rendering', () => {
   test.skip('@blocked navigation component visual', async ({ page }) => {
     // Blocked by: Need visual regression testing setup
     // Expected: Navigation should render consistently
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     // TODO: Visual testing
     // await percySnapshot(page, 'Component - Navigation')
@@ -19,7 +18,7 @@ test.describe('Component Visual Rendering', () => {
   test.skip('@blocked footer component visual', async ({ page }) => {
     // Blocked by: Need visual regression testing setup
     // Expected: Footer should render consistently
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     // TODO: Visual testing
     // await percySnapshot(page, 'Component - Footer')
@@ -28,7 +27,7 @@ test.describe('Component Visual Rendering', () => {
   test.skip('@blocked carousel component visual', async ({ page }) => {
     // Blocked by: Need visual regression testing setup
     // Expected: Carousel should render consistently
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     const carousel = page.locator('[data-carousel]').first()
     await carousel.scrollIntoViewIfNeeded()
@@ -40,7 +39,7 @@ test.describe('Component Visual Rendering', () => {
   test.skip('@blocked contact form component visual', async ({ page }) => {
     // Blocked by: Need visual regression testing setup
     // Expected: Contact form should render consistently
-    await page.goto(TEST_URLS.contact)
+    await page.goto("/contact")
 
     // TODO: Visual testing
     // await percySnapshot(page, 'Component - Contact Form')
@@ -49,7 +48,7 @@ test.describe('Component Visual Rendering', () => {
   test.skip('@blocked newsletter form component visual', async ({ page }) => {
     // Blocked by: Need visual regression testing setup
     // Expected: Newsletter form should render consistently
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     const newsletter = page.locator('[data-newsletter-form]').first()
     await newsletter.scrollIntoViewIfNeeded()
@@ -61,7 +60,7 @@ test.describe('Component Visual Rendering', () => {
   test.skip('@blocked theme picker component visual', async ({ page }) => {
     // Blocked by: Need visual regression testing setup
     // Expected: Theme picker should render consistently
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     // TODO: Visual testing
     // await percySnapshot(page, 'Component - Theme Picker')
@@ -70,7 +69,7 @@ test.describe('Component Visual Rendering', () => {
   test.skip('@blocked cookie consent component visual', async ({ page }) => {
     // Blocked by: Need visual regression testing setup
     // Expected: Cookie banner should render consistently
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     const cookieBanner = page.locator('[data-cookie-consent]')
     if (await cookieBanner.isVisible()) {
@@ -82,7 +81,7 @@ test.describe('Component Visual Rendering', () => {
   test.skip('@blocked article card component visual', async ({ page }) => {
     // Blocked by: Need visual regression testing setup
     // Expected: Article cards should render consistently
-    await page.goto(TEST_URLS.articles)
+    await page.goto("/articles")
 
     // TODO: Visual testing
     // await percySnapshot(page, 'Component - Article Card')
@@ -91,7 +90,7 @@ test.describe('Component Visual Rendering', () => {
   test.skip('@blocked testimonial component visual', async ({ page }) => {
     // Blocked by: Need visual regression testing setup
     // Expected: Testimonial should render consistently
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     const testimonial = page.locator('[data-testimonials]').first()
     await testimonial.scrollIntoViewIfNeeded()
@@ -102,7 +101,7 @@ test.describe('Component Visual Rendering', () => {
 
   test.skip('@wip buttons render consistently', async ({ page }) => {
     // Expected: All button styles should be consistent
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     const buttons = page.locator('button, .button, [role="button"]')
     const count = await buttons.count()
@@ -128,7 +127,7 @@ test.describe('Component Visual Rendering', () => {
 
   test.skip('@wip links have consistent styling', async ({ page }) => {
     // Expected: All links should have consistent appearance
-    await page.goto(TEST_URLS.about)
+    await page.goto("/about")
 
     const links = page.locator('main a')
     const count = await links.count()
@@ -150,7 +149,7 @@ test.describe('Component Visual Rendering', () => {
 
   test.skip('@wip headings have consistent hierarchy', async ({ page }) => {
     // Expected: Heading styles should follow proper hierarchy
-    await page.goto(TEST_URLS.articles)
+    await page.goto("/articles")
 
     const h1Size = await page.locator('h1').first().evaluate((el) => {
       return parseFloat(window.getComputedStyle(el).fontSize)
@@ -166,7 +165,7 @@ test.describe('Component Visual Rendering', () => {
 
   test.skip('@wip cards have consistent appearance', async ({ page }) => {
     // Expected: All card components should look similar
-    await page.goto(TEST_URLS.services)
+    await page.goto("/services")
 
     const cards = page.locator('[class*="card"], [data-card]')
     const count = await cards.count()
@@ -195,7 +194,7 @@ test.describe('Component Visual Rendering', () => {
 
   test.skip('@wip icons render correctly', async ({ page }) => {
     // Expected: SVG icons should render without issues
-    await page.goto(TEST_URLS.home)
+    await page.goto("/")
 
     const icons = page.locator('svg')
     const count = await icons.count()

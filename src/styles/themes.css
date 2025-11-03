@@ -1,12 +1,10 @@
+@import "tailwindcss";
+
 /**
  * Theme System - Pure CSS Implementation
  *
  * This file defines all available themes using CSS custom properties.
  * Each theme is applied via data attributes on the document element.
- *
- * IMPORTANT: When adding a new theme here, you must also update:
- * - src/lib/themes.ts (add theme to registry)
- * - README.md (update theme documentation if needed)
  *
  * Theme Structure:
  * - Light theme: Default theme, applied to :root
@@ -19,224 +17,251 @@
  * --color-{purpose}-bg: Background variant (for badges, etc.)
  */
 
-/* =============================================================================
-   DEFAULT THEME (Light)
-   ============================================================================= */
+ /*
+Common Tailwind Color Classes
+
+accent-{color}:       Sets the accent color for interactive elements like checkboxes
+bg-{color}:           Sets the background color
+border-{color}:       Sets the border color
+caret-{color}:        Utilities for controlling the color of the text input cursor
+decoration-{color}:   Utilities for controlling the color of text decorations
+fill-{color}:         Sets the fill color for SVG elements
+inset-ring-{color}:	  Sets the color of inset ring shadows
+inset-shadow-{color}:	Sets the color of inset box shadows
+outline-{color}:      Sets the outline color of an element
+ring-{color}:	        Sets the color of ring shadows
+shadow-{color}:	      Sets the color of box shadows
+stroke-{color}:       Sets the stroke color for SVG elements
+text-{color}:         Sets the text color
+
+link-color:          pale-blue;
+banner-color:        pale-green;
+banner-border:       pale-dark-green;
+banner-bg:           pale-neon-green;
+alert-status:        pale-green;
+alert-status-border: pale-dark-green;
+button-bg:           pale-neon-blue;
+button-border:       pale-blue;
+footer-bg:           pale-neon-blue;
+
+current: 'currentColor';
+transparent: 'transparent';
+
+--color-page: #f3f4f6; // --color-bg
+--color-page-offset: #e5e7eb; // --color-bg-offset
+--color-foreground: #001a39; // --color-bg-inverse
+--color-content: #374151; // --color-text
+--color-content-offset: #9ca3af; // --color-text-offset
+
+--color-base
+*/
+
+/**
+ * =============================================================================
+ *  DEFAULT THEME (Light) - Tailwind adds @theme to both theme vars and :root
+ * =============================================================================
+ */
+@theme inline {
+  --color-bg: var(--light-color-bg);
+  --color-bg-offset: var(--light-color-bg-offset);
+  --color-bg-inverse: var(--light-color-bg-inverse);
+  --color-text: var(--light-color-text);
+  --color-text-offset: var(--light-color-text-offset);
+  --color-border: var(--light-color-border);
+  --color-primary: var(--light-color-primary);
+  --color-primary-offset: var(--light-color-primary-offset);
+  --color-primary-bg: var(--light-color-primary-bg);
+  --color-primary-bg-hover: var(--light-color-primary-bg-hover);
+  --color-primary-hover: var(--light-color-primary-hover);
+  --color-secondary: var(--light-color-secondary);
+  --color-secondary-offset: var(--light-color-secondary-offset);
+  --color-secondary-bg: var(--light-color-secondary-bg);
+  --color-success: var(--light-color-success);
+  --color-success-offset: var(--light-color-success-offset);
+  --color-success-bg: var(--light-color-success-bg);
+  --color-info: var(--light-color-info);
+  --color-info-bg: var(--light-color-info-bg);
+  --color-warning: var(--light-color-warning);
+  --color-warning-offset: var(--light-color-warning-offset);
+  --color-warning-bg: var(--light-color-warning-bg);
+  --color-danger: var(--light-color-danger);
+  --color-danger-bg: var(--light-color-danger-bg);
+  --color-twitter: var(--light-color-twitter);
+  --color-modal-background: var(--light-color-modal-background);
+  --color-accent: var(--light-color-accent);
+  --color-accent-bg: var(--light-color-accent-bg);
+  --color-link-shadow: var(--light-color-link-shadow);
+  --color-share-highlight-text: var(--light-color-share-highlight-text);
+  --color-share-highlight-bg: var(--light-color-share-highlight-bg);
+  --color-share-highlight-text-active: var(--light-color-share-highlight-text-active);
+  --color-share-highlight-bg-active: var(--light-color-share-highlight-bg-active);
+  --color-share-highlight-tooltip-text: var(--light-color-share-highlight-tooltip-text);
+  --color-share-highlight-tooltip-bg: var(--light-color-share-highlight-tooltip-bg);
+  --shiki-theme: var(--light-shiki-theme);
+  --shadow-sm: var(--light-shadow-sm);
+  --shadow-md: var(--light-shadow-md);
+  --shadow-hover: var(--light-shadow-hover);
+  --shadow-active: var(--light-shadow-active);
+  --shadow-text: var(--light-shadow-text);
+}
+
+/**
+ * =============================================================================
+ *  LIGHT THEME DEFINITIONS
+ *  These are defined at :root level and referenced by both [data-theme="dark"]
+ *  and @media (prefers-color-scheme: dark) to maintain a single source of truth
+ * =============================================================================
+ */
 :root {
-  /* Background Colors */
-  --color-bg: #f3f4f6;
-  --color-bg-offset: #e5e7eb;
-
-  /* Text Colors */
-  --color-text: #374151;
-  --color-text-offset: #9ca3af;
-
-  /* Border Colors */
-  --color-border: #f0f4ff;
-
-  /* Primary Brand Colors */
-  --color-primary: #006dca;
-  --color-primary-offset: #00386d;
-  --color-primary-bg: #dbeafe;
-  --color-primary-bg-hover: #bfdbfe;
-  --color-primary-hover: #0056a3;
-
-  /* Secondary Colors */
-  --color-secondary: #facc15;
-  --color-secondary-offset: #ca8a04;
-  --color-secondary-bg: #fef3c7;
-
-  /* Status Colors */
-  --color-success: #16a34a;
-  --color-success-offset: #22c55e;
-  --color-success-bg: #dcfce7;
-
-  --color-info: #0891b2;
-  --color-info-bg: #cffafe;
-
-  --color-warning: #a16207;
-  --color-warning-offset: #ca8a04;
-  --color-warning-bg: #fef3c7;
-
-  --color-danger: #dc2626;
-  --color-danger-bg: #fecaca;
-
-  /* Special Colors */
-  --color-twitter: #1da1f2;
-  --color-modal-background: #f3f4f6;
-
-  /* Accent Colors (for purple elements) */
-  --color-accent: #7c3aed;
-  --color-accent-bg: #ede9fe;
-
-  /* Markdown Content Colors */
-  --color-link-shadow: #2563eb; /* blue-600 for link underline shadow */
-  --color-share-highlight-text: #111827; /* gray-900 */
-  --color-share-highlight-bg: #e5e7eb; /* gray-200 */
-  --color-share-highlight-text-active: #ffffff; /* white */
-  --color-share-highlight-bg-active: #2563eb; /* blue-600 */
-  --color-share-highlight-tooltip-text: #ffffff; /* white */
-  --color-share-highlight-tooltip-bg: #111827; /* gray-900 */
-
-  /* Syntax Highlighting */
-  --shiki-theme: 'github-light';
-
-  /* Semantic Aliases (matching your existing CSS variable system) */
-  --color-theme-text: var(--color-text);
-  --color-theme-text-muted: var(--color-text-offset);
-  --color-theme-bg: var(--color-bg);
-  --color-theme-bg-offset: var(--color-bg-offset);
-  --color-theme-border: var(--color-border);
-  --color-theme-primary: var(--color-primary);
-  --color-theme-primary-hover: var(--color-primary-hover);
-  --color-theme-primary-bg: var(--color-primary-bg);
-  --color-theme-primary-bg-hover: var(--color-primary-bg-hover);
-  --color-theme-secondary: var(--color-secondary);
-  --color-theme-secondary-bg: var(--color-secondary-bg);
-  --color-theme-success: var(--color-success);
-  --color-theme-success-bg: var(--color-success-bg);
-  --color-theme-warning: var(--color-warning);
-  --color-theme-warning-bg: var(--color-warning-bg);
-  --color-theme-danger: var(--color-danger);
-  --color-theme-danger-bg: var(--color-danger-bg);
-  --color-theme-accent: var(--color-accent);
-  --color-theme-accent-bg: var(--color-accent-bg);
+  --light-color-bg: #f3f4f6;
+  --light-color-bg-offset: #e5e7eb;
+  --light-color-bg-inverse: #001a39;
+  --light-color-text: #374151;
+  --light-color-text-offset: #9ca3af;
+  --light-color-border: #f0f4ff;
+  --light-color-primary: #006dca;
+  --light-color-primary-offset: #00386d;
+  --light-color-primary-bg: #dbeafe;
+  --light-color-primary-bg-hover: #bfdbfe;
+  --light-color-primary-hover: #0056a3;
+  --light-color-secondary: #facc15;
+  --light-color-secondary-offset: #ca8a04;
+  --light-color-secondary-bg: #fef3c7;
+  --light-color-success: #16a34a;
+  --light-color-success-offset: #22c55e;
+  --light-color-success-bg: #dcfce7;
+  --light-color-info: #0891b2;
+  --light-color-info-bg: #cffafe;
+  --light-color-warning: #a16207;
+  --light-color-warning-offset: #ca8a04;
+  --light-color-warning-bg: #fef3c7;
+  --light-color-danger: #dc2626;
+  --light-color-danger-bg: #fecaca;
+  --light-color-twitter: #1da1f2;
+  --light-color-modal-background: #f3f4f6;
+  --light-color-accent: #7c3aed;
+  --light-color-accent-bg: #ede9fe;
+  --light-color-link-shadow: #2563eb; /* blue-600 for link underline shadow */
+  --light-color-share-highlight-text: #111827; /* gray-900 */
+  --light-color-share-highlight-bg: #e5e7eb; /* gray-200 */
+  --light-color-share-highlight-text-active: #ffffff; /* white */
+  --light-color-share-highlight-bg-active: #2563eb; /* blue-600 */
+  --light-color-share-highlight-tooltip-text: #ffffff; /* white */
+  --light-color-share-highlight-tooltip-bg: #111827; /* gray-900 */
+  --light-shiki-theme: 'github-light';
+  --light-shadow-sm: 0 2px 16px #000026;
+  --light-shadow-md: 0 4px 6px #32325d1c, 0 1px 3px #000014;
+  --light-shadow-hover: 0 7px 14px #3232321a, 0 3px 6px #000014;
+  --light-shadow-active: 0 3px 12px -2px inset #32323240;
+  --light-shadow-text: 0 1px 3px #000026;
 }
 
-/* =============================================================================
-   DARK THEME
-   ============================================================================= */
+/**
+ * =============================================================================
+ *  DARK THEME DEFINITIONS
+ *  These are defined at :root level and referenced by both [data-theme="dark"]
+ *  and @media (prefers-color-scheme: dark) to maintain a single source of truth
+ * =============================================================================
+ */
+:root {
+  --dark-color-bg: #001a39;
+  --dark-color-bg-offset: #00386d;
+  --dark-color-bg-inverse: #f3f4f6;
+  --dark-color-text: #f3f4f6;
+  --dark-color-text-offset: #e5e7eb;
+  --dark-color-border: #222222;
+  --dark-color-primary: #f3f4f6;
+  --dark-color-primary-offset: #e5e7eb;
+  --dark-color-primary-bg: #1e293b;
+  --dark-color-primary-bg-hover: #334155;
+  --dark-color-primary-hover: #d1d5db;
+  --dark-color-secondary: #facc15;
+  --dark-color-secondary-offset: #ca8a04;
+  --dark-color-secondary-bg: #451a03;
+  --dark-color-success: #16a34a;
+  --dark-color-success-offset: #22c55e;
+  --dark-color-success-bg: #052e16;
+  --dark-color-info: #0891b2;
+  --dark-color-info-bg: #164e63;
+  --dark-color-warning: #a16207;
+  --dark-color-warning-offset: #ca8a04;
+  --dark-color-warning-bg: #451a03;
+  --dark-color-danger: #dc2626;
+  --dark-color-danger-bg: #7f1d1d;
+  --dark-color-twitter: #1da1f2;
+  --dark-color-modal-background: #f3f4f6;
+  --dark-color-accent: #8b5cf6;
+  --dark-color-accent-bg: #2e1065;
+  --dark-color-link-shadow: #60a5fa;
+  --dark-color-share-highlight-text: #f3f4f6;
+  --dark-color-share-highlight-bg: #374151;
+  --dark-color-share-highlight-text-active: #111827;
+  --dark-color-share-highlight-bg-active: #60a5fa;
+  --dark-color-share-highlight-tooltip-text: #111827;
+  --dark-color-share-highlight-tooltip-bg: #f3f4f6;
+  --dark-shiki-theme: 'github-dark';
+  --dark-shadow-sm: 0 2px 16px #00004d;
+  --dark-shadow-md: 0 4px 6px #00004d, 0 1px 3px #000033;
+  --dark-shadow-hover: 0 7px 14px #000066, 0 3px 6px #000033;
+  --dark-shadow-active: 0 3px 12px -2px inset #000080;
+  --dark-shadow-text: 0 1px 3px #00004d;
+}
+
+/**
+ * =============================================================================
+ *  DARK THEME - Explicit Selection
+ *  Applied when user explicitly selects dark theme
+ * =============================================================================
+ */
 [data-theme="dark"] {
-  /* Background Colors */
-  --color-bg: #001a39;
-  --color-bg-offset: #00386d;
-
-  /* Text Colors */
-  --color-text: #f3f4f6;
-  --color-text-offset: #e5e7eb;
-
-  /* Border Colors */
-  --color-border: #222222;
-
-  /* Primary Brand Colors - Inverted for dark mode */
-  --color-primary: #f3f4f6;
-  --color-primary-offset: #e5e7eb;
-  --color-primary-bg: #1e293b;
-  --color-primary-bg-hover: #334155;
-  --color-primary-hover: #d1d5db;
-
-  /* Secondary Colors */
-  --color-secondary: #facc15;
-  --color-secondary-offset: #ca8a04;
-  --color-secondary-bg: #451a03;
-
-  /* Status Colors */
-  --color-success: #16a34a;
-  --color-success-offset: #22c55e;
-  --color-success-bg: #052e16;
-
-  --color-info: #0891b2;
-  --color-info-bg: #164e63;
-
-  --color-warning: #a16207;
-  --color-warning-offset: #ca8a04;
-  --color-warning-bg: #451a03;
-
-  --color-danger: #dc2626;
-  --color-danger-bg: #7f1d1d;
-
-  /* Special Colors */
-  --color-twitter: #1da1f2;
-  --color-modal-background: #f3f4f6;
-
-  /* Accent Colors */
-  --color-accent: #8b5cf6;
-  --color-accent-bg: #2e1065;
-
-  /* Markdown Content Colors */
-  --color-link-shadow: #60a5fa; /* blue-400 for dark mode link underline */
-  --color-share-highlight-text: #f3f4f6; /* gray-100 */
-  --color-share-highlight-bg: #374151; /* gray-700 */
-  --color-share-highlight-text-active: #111827; /* gray-900 */
-  --color-share-highlight-bg-active: #60a5fa; /* blue-400 */
-  --color-share-highlight-tooltip-text: #111827; /* gray-900 */
-  --color-share-highlight-tooltip-bg: #f3f4f6; /* gray-100 */
-
-  /* Syntax Highlighting */
-  --shiki-theme: 'github-dark';
+  --color-bg: var(--dark-color-bg);
+  --color-bg-offset: var(--dark-color-bg-offset);
+  --color-bg-inverse: var(--dark-color-bg-inverse);
+  --color-text: var(--dark-color-text);
+  --color-text-offset: var(--dark-color-text-offset);
+  --color-border: var(--dark-color-border);
+  --color-primary: var(--dark-color-primary);
+  --color-primary-offset: var(--dark-color-primary-offset);
+  --color-primary-bg: var(--dark-color-primary-bg);
+  --color-primary-bg-hover: var(--dark-color-primary-bg-hover);
+  --color-primary-hover: var(--dark-color-primary-hover);
+  --color-secondary: var(--dark-color-secondary);
+  --color-secondary-offset: var(--dark-color-secondary-offset);
+  --color-secondary-bg: var(--dark-color-secondary-bg);
+  --color-success: var(--dark-color-success);
+  --color-success-offset: var(--dark-color-success-offset);
+  --color-success-bg: var(--dark-color-success-bg);
+  --color-info: var(--dark-color-info);
+  --color-info-bg: var(--dark-color-info-bg);
+  --color-warning: var(--dark-color-warning);
+  --color-warning-offset: var(--dark-color-warning-offset);
+  --color-warning-bg: var(--dark-color-warning-bg);
+  --color-danger: var(--dark-color-danger);
+  --color-danger-bg: var(--dark-color-danger-bg);
+  --color-twitter: var(--dark-color-twitter);
+  --color-modal-background: var(--dark-color-modal-background);
+  --color-accent: var(--dark-color-accent);
+  --color-accent-bg: var(--dark-color-accent-bg);
+  --color-link-shadow: var(--dark-color-link-shadow);
+  --color-share-highlight-text: var(--dark-color-share-highlight-text);
+  --color-share-highlight-bg: var(--dark-color-share-highlight-bg);
+  --color-share-highlight-text-active: var(--dark-color-share-highlight-text-active);
+  --color-share-highlight-bg-active: var(--dark-color-share-highlight-bg-active);
+  --color-share-highlight-tooltip-text: var(--dark-color-share-highlight-tooltip-text);
+  --color-share-highlight-tooltip-bg: var(--dark-color-share-highlight-tooltip-bg);
+  --shiki-theme: var(--dark-shiki-theme);
+  --shadow-sm: var(--dark-shadow-sm);
+  --shadow-md: var(--dark-shadow-md);
+  --shadow-hover: var(--dark-shadow-hover);
+  --shadow-active: var(--dark-shadow-active);
+  --shadow-text: var(--dark-shadow-text);
 }
 
-/* =============================================================================
-   SYSTEM PREFERENCE SUPPORT
-   Apply dark theme when user prefers dark mode and no explicit theme is set
-   ============================================================================= */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) {
-    /* Background Colors */
-    --color-bg: #001a39;
-    --color-bg-offset: #00386d;
-
-    /* Text Colors */
-    --color-text: #f3f4f6;
-    --color-text-offset: #e5e7eb;
-
-    /* Border Colors */
-    --color-border: #222222;
-
-    /* Primary Brand Colors */
-    --color-primary: #f3f4f6;
-    --color-primary-offset: #e5e7eb;
-    --color-primary-bg: #1e293b;
-    --color-primary-bg-hover: #334155;
-    --color-primary-hover: #d1d5db;
-
-    /* Secondary Colors */
-    --color-secondary: #facc15;
-    --color-secondary-offset: #ca8a04;
-    --color-secondary-bg: #451a03;
-
-    /* Status Colors */
-    --color-success: #16a34a;
-    --color-success-offset: #22c55e;
-    --color-success-bg: #052e16;
-
-    --color-info: #0891b2;
-    --color-info-bg: #164e63;
-
-    --color-warning: #a16207;
-    --color-warning-offset: #ca8a04;
-    --color-warning-bg: #451a03;
-
-    --color-danger: #dc2626;
-    --color-danger-bg: #7f1d1d;
-
-    /* Special Colors */
-    --color-twitter: #1da1f2;
-    --color-modal-background: #f3f4f6;
-
-    /* Accent Colors */
-    --color-accent: #8b5cf6;
-    --color-accent-bg: #2e1065;
-
-    /* Markdown Content Colors */
-    --color-link-shadow: #60a5fa; /* blue-400 for dark mode link underline */
-    --color-share-highlight-text: #f3f4f6; /* gray-100 */
-    --color-share-highlight-bg: #374151; /* gray-700 */
-    --color-share-highlight-text-active: #111827; /* gray-900 */
-    --color-share-highlight-bg-active: #60a5fa; /* blue-400 */
-    --color-share-highlight-tooltip-text: #111827; /* gray-900 */
-    --color-share-highlight-tooltip-bg: #f3f4f6; /* gray-100 */
-
-    /* Syntax Highlighting */
-    --shiki-theme: 'github-dark';
-  }
-}
-
-/* =============================================================================
-   EXAMPLE: HOLIDAY THEME
-   Uncomment and customize for seasonal themes
-   ============================================================================= */
-/*
+/**
+ * =============================================================================
+ *   HOLIDAY THEME
+ * =============================================================================
+ */
 [data-theme="holiday"] {
   --color-bg: #0f172a;
   --color-bg-offset: #1e293b;
@@ -265,6 +290,70 @@
   --color-modal-background: #0f172a;
   --color-accent: #fbbf24;
   --color-accent-bg: #451a03;
-  --shiki-theme: 'github-dark';
+  --color-link-shadow: #2563eb; /* blue-600 for link underline shadow */
+  --color-share-highlight-text: #111827; /* gray-900 */
+  --color-share-highlight-bg: #e5e7eb; /* gray-200 */
+  --color-share-highlight-text-active: #ffffff; /* white */
+  --color-share-highlight-bg-active: #2563eb; /* blue-600 */
+  --color-share-highlight-tooltip-text: #ffffff; /* white */
+  --color-share-highlight-tooltip-bg: #111827; /* gray-900 */
+  --shiki-theme: 'github-light';
+  --shadow-sm: 0 2px 16px #000026;
+  --shadow-md: 0 4px 6px #32325d1c, 0 1px 3px #000014;
+  --shadow-hover: 0 7px 14px #3232321a, 0 3px 6px #000014;
+  --shadow-active: 0 3px 12px -2px inset #32323240;
+  --shadow-text: 0 1px 3px #000026;
 }
-*/
+
+
+/**
+ * =============================================================================
+ *  SYSTEM PREFERENCE SUPPORT
+ *  Apply dark theme when user prefers dark mode and no explicit theme is set
+ * =============================================================================
+ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --color-bg: var(--dark-color-bg);
+    --color-bg-offset: var(--dark-color-bg-offset);
+    --color-bg-inverse: var(--dark-color-bg-inverse);
+    --color-text: var(--dark-color-text);
+    --color-text-offset: var(--dark-color-text-offset);
+    --color-border: var(--dark-color-border);
+    --color-primary: var(--dark-color-primary);
+    --color-primary-offset: var(--dark-color-primary-offset);
+    --color-primary-bg: var(--dark-color-primary-bg);
+    --color-primary-bg-hover: var(--dark-color-primary-bg-hover);
+    --color-primary-hover: var(--dark-color-primary-hover);
+    --color-secondary: var(--dark-color-secondary);
+    --color-secondary-offset: var(--dark-color-secondary-offset);
+    --color-secondary-bg: var(--dark-color-secondary-bg);
+    --color-success: var(--dark-color-success);
+    --color-success-offset: var(--dark-color-success-offset);
+    --color-success-bg: var(--dark-color-success-bg);
+    --color-info: var(--dark-color-info);
+    --color-info-bg: var(--dark-color-info-bg);
+    --color-warning: var(--dark-color-warning);
+    --color-warning-offset: var(--dark-color-warning-offset);
+    --color-warning-bg: var(--dark-color-warning-bg);
+    --color-danger: var(--dark-color-danger);
+    --color-danger-bg: var(--dark-color-danger-bg);
+    --color-twitter: var(--dark-color-twitter);
+    --color-modal-background: var(--dark-color-modal-background);
+    --color-accent: var(--dark-color-accent);
+    --color-accent-bg: var(--dark-color-accent-bg);
+    --color-link-shadow: var(--dark-color-link-shadow);
+    --color-share-highlight-text: var(--dark-color-share-highlight-text);
+    --color-share-highlight-bg: var(--dark-color-share-highlight-bg);
+    --color-share-highlight-text-active: var(--dark-color-share-highlight-text-active);
+    --color-share-highlight-bg-active: var(--dark-color-share-highlight-bg-active);
+    --color-share-highlight-tooltip-text: var(--dark-color-share-highlight-tooltip-text);
+    --color-share-highlight-tooltip-bg: var(--dark-color-share-highlight-tooltip-bg);
+    --shiki-theme: var(--dark-shiki-theme);
+    --shadow-sm: var(--dark-shadow-sm);
+    --shadow-md: var(--dark-shadow-md);
+    --shadow-hover: var(--dark-shadow-hover);
+    --shadow-active: var(--dark-shadow-active);
+    --shadow-text: var(--dark-shadow-text);
+  }
+}

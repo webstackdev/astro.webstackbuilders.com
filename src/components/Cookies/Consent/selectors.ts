@@ -2,7 +2,6 @@
  * Selectors for the cookie consent modal elements
  */
 import {
-  isAnchorElement,
   isButtonElement,
   isDivElement,
 } from '@components/Scripts/assertions/elements'
@@ -27,16 +26,6 @@ export const getCookieConsentCloseBtn = () => {
   return closeBtn
 }
 
-export const getCookieConsentAllowLink = () => {
-  const allowLink = document.querySelector('.cookie-modal__link-allow')
-  if (!isButtonElement(allowLink)) {
-    throw new ClientScriptError(
-      `Cookie consent 'Allow All' link with class 'cookie-modal__link-allow' not found`
-    )
-  }
-  return allowLink
-}
-
 export const getCookieConsentAllowBtn = () => {
   const allowBtn = document.querySelector('.cookie-modal__btn-allow')
   if (!isButtonElement(allowBtn)) {
@@ -45,16 +34,6 @@ export const getCookieConsentAllowBtn = () => {
     )
   }
   return allowBtn
-}
-
-export const getCookieConsentCustomizeLink = () => {
-  const customizeLink = document.querySelector('.cookie-modal__link-customize')
-  if (!isAnchorElement(customizeLink)) {
-    throw new ClientScriptError(
-      `Cookie consent 'Customize' link with class 'cookie-modal__link-customize' not found`
-    )
-  }
-  return customizeLink
 }
 
 export const getCookieConsentCustomizeBtn = () => {

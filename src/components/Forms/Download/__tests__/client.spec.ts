@@ -7,6 +7,16 @@ import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import { DownloadForm } from '../client'
 import DownloadFormComponent from '../index.astro'
 
+// Mock the logger to suppress error output in tests
+vi.mock('@lib/logger', () => ({
+  logger: {
+    error: vi.fn(),
+    warn: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
+  },
+}))
+
 /**
  * Helper function to set up DOM from Container API
  */
@@ -25,8 +35,13 @@ async function setupDownloadFormDOM() {
 describe('DownloadForm class', () => {
   beforeEach(async () => {
     await setupDownloadFormDOM()
-    // Mock fetch globally
-    global.fetch = vi.fn()
+    // Mock fetch globally with a default response
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ success: true }),
+    })
+    // Suppress console.error during tests to reduce noise
+    vi.spyOn(console, 'error').mockImplementation(() => {})
   })
 
   test('initializes with correct elements', async () => {

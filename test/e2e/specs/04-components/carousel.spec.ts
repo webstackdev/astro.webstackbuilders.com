@@ -4,12 +4,11 @@
  * @see src/components/Carousel/
  */
 
-import { test, expect } from '@playwright/test'
-import { TEST_URLS } from '../../fixtures/test-data'
+import { test, expect } from '@test/e2e/helpers'
 
 test.describe('Carousel Component', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
   })
 
   test.skip('@wip carousel displays on homepage', async ({ page }) => {
@@ -145,7 +144,7 @@ test.describe('Carousel Component', () => {
   test.skip('@wip carousel is responsive on mobile', async ({ page }) => {
     // Expected: Carousel should work on mobile viewports
     await page.setViewportSize({ width: 375, height: 667 })
-    await page.goto(TEST_URLS.home)
+    await page.goto('/')
 
     const carousel = page.locator('[data-carousel]').first()
     await expect(carousel).toBeVisible()

@@ -61,6 +61,9 @@ describe('getUrlDomain', () => {
 describe('getSoftwareName', () => {
   beforeEach(() => {
     global.fetch = vi.fn()
+    // Suppress console.error and console.warn during tests to reduce noise
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
   })
 
   it('returns software name for valid Mastodon instance', async () => {
@@ -168,6 +171,9 @@ describe('getSoftwareName', () => {
 describe('isMastodonInstance', () => {
   beforeEach(() => {
     global.fetch = vi.fn()
+    // Suppress console.error and console.warn during tests to reduce noise
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
   })
 
   it('returns true for Mastodon instance', async () => {

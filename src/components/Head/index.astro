@@ -7,59 +7,74 @@ export interface Props {
   path: string
   description?: string
   image?: string
+  noindex?: boolean
+  contentType?: 'article' | 'website'
+  publishDate?: Date
+  modifiedDate?: Date
+  author?: string
+  section?: string
+  tags?: string[]
 }
 
-const { pageTitle, path, description, image } = Astro.props
+const {
+  pageTitle,
+  path,
+  description,
+  image,
+  noindex,
+  contentType,
+  publishDate,
+  modifiedDate,
+  author,
+  section,
+  tags,
+} = Astro.props
 ---
 
-<head>
-  <meta charset="utf-8">
-  <title>{pageTitle}</title>
-  {/* Site <meta> tags, Open Graph social tags, and favicon, PWA manifest, */}
-  {/* RSS, canonical, pingback, and webmention links  */}
-  <Meta
-    pageTitle={pageTitle}
-    path={path}
-    {...description && { description }}
-    {...image && { image }}
-  />
-  {/* Set theme name on <html> element from storage early to prevent flash of  */}
-  {/* unstyled content. IMPORTANT: This violates invariant rules and is intentional. */}
-  <script is:inline>
-    const storedTheme = localStorage.getItem('theme')
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    const theme = storedTheme ?? (prefersDark ? 'dark' : 'default')
-    document.documentElement.setAttribute('data-theme', theme)
-  </script>
+{/* The <head> element is in BaseLayout.astro due to Astro */}
+{/* hoisting issues related to <html> and <head> elements */}
+<meta charset="utf-8">
+<title>{pageTitle}</title>
+{/* Site <meta> tags, Open Graph social tags, and favicon, PWA manifest, */}
+{/* RSS, canonical, pingback, and webmention links  */}
+<Meta
+  pageTitle={pageTitle}
+  path={path}
+  {...description && { description }}
+  {...image && { image }}
+  {...noindex && { noindex }}
+  {...contentType && { contentType }}
+  {...publishDate && { publishDate }}
+  {...modifiedDate && { modifiedDate }}
+  {...author && { author }}
+  {...section && { section }}
+  {...tags && { tags }}
+/>
+{/* Set theme name on <html> element from storage early to prevent flash of  */}
+{/* unstyled content. IMPORTANT: This violates invariant rules and is intentional. */}
+<script is:inline>
+  const storedTheme = localStorage.getItem('theme')
+  // Only use stored theme if it's an explicit non-default choice
+  // If no stored theme or 'default', check system preference
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+  const theme = (storedTheme && storedTheme !== 'default')
+    ? storedTheme
+    : (prefersDark ? 'dark' : 'default')
+  document.documentElement.setAttribute('data-theme', theme)
+  document.documentElement.setAttribute('lang', 'en')
+</script><script>
+  {/* Be careful adding script here. It runs before any script tags in components. */}
+  import { SentryBootstrap } from '@components/Scripts/sentry/client'
+  import { PUBLIC_SENTRY_DSN } from 'astro:env/client'
+  import { AppBootstrap } from '@components/Scripts/state/bootstrap'
 
-  <script>
-    {/* Initialize error handlers */}
-    {/* Production: Sentry handles errors with replay, breadcrumbs, and remote tracking */}
-    {/* Development: Custom handlers log errors to console for debugging */}
-    import { SentryBootstrap } from '@components/Scripts/sentry/client'
-    import { PUBLIC_SENTRY_DSN } from 'astro:env/client'
-    import { AppBootstrap } from '@components/Scripts/state/bootstrap'
-
-    if (import.meta.env.PROD && PUBLIC_SENTRY_DSN) {
-      SentryBootstrap.init()
-      AppBootstrap.init()
-    } else {
-      // Development: Use custom error handlers with console logging
-      import('@components/Scripts/errors/errorListeners')
-        .then(({ addErrorEventListeners }) => {
-          addErrorEventListeners()
-          console.info('🔧 Sentry disabled in development mode')
-          // Initialize AppBootstrap after error handlers
-          AppBootstrap.init()
-        })
-        .catch((error) => {
-          console.error('❌ Failed to initialize error listeners:', error)
-          // Still try to initialize AppBootstrap even if error listeners fail
-          AppBootstrap.init()
-        })
-    }
-  </script>
-  {/* Client-side router for Astro pages (enables partial page reloads) */}
-  {/* Must be placed at the end of the <head> to avoid blocking page rendering */}
-  <ClientRouter />
-</head>
+  if (import.meta.env.PROD && PUBLIC_SENTRY_DSN) {
+    SentryBootstrap.init()
+  } else {
+    console.info('🔧 Sentry disabled in development mode')
+  }
+  AppBootstrap.init()
+</script>
+{/* Client-side router for Astro pages (enables partial page reloads) */}
+{/* Must be placed at the end of the <head> to avoid blocking page rendering */}
+<ClientRouter />

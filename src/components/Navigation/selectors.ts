@@ -24,6 +24,8 @@ export const SELECTORS = {
   toggleBtn: '.nav-toggle-btn',
   /** Mobile splash <div> */
   splash: '#mobile-splash',
+  /** Focus trap container for mobile navigation */
+  focusContainer: '#mobile-nav-focus-container',
 }
 
 /**
@@ -96,4 +98,15 @@ export const getNavToggleBtnElement = (): HTMLButtonElement => {
     throw new Error(`<button> element with class ${SELECTORS.toggleBtn} is missing in document`)
   }
   return toggleBtn as HTMLButtonElement
+}
+
+/**
+ * Getter for the mobile navigation focus container <div> HTML element
+ */
+export const getMobileNavFocusContainer = (): HTMLDivElement => {
+  const focusContainer = document.querySelector(SELECTORS.focusContainer)
+  if (!isDivElement(focusContainer)) {
+    throw new Error(`<div> element with id ${SELECTORS.focusContainer} is missing in document`)
+  }
+  return focusContainer as HTMLDivElement
 }

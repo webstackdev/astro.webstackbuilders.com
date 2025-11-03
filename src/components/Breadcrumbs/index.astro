@@ -20,42 +20,44 @@ const breadcrumbs = generateBreadcrumbs(path, pageTitle)
 
 {
   breadcrumbs.length > 1 && (
-    <nav aria-label="Breadcrumb" class="breadcrumbs">
-      <ol class="flex items-center space-x-2 text-sm text-[color:var(--color-text-offset)]">
-        {breadcrumbs.map((item, index) => (
-          <li class="flex items-center">
-            {index > 0 && (
-              <svg
-                class="w-4 h-4 mx-2 text-[color:var(--color-text-offset)] opacity-60"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            )}
+    <div class="mx-auto max-w-[75rem] w-[90%] mt-4">
+      <nav aria-label="Breadcrumb" class="breadcrumbs pl-8">
+        <ol class="flex items-center space-x-2 text-sm text-[color:var(--color-text-offset)]">
+          {breadcrumbs.map((item, index) => (
+            <li class="flex items-center">
+              {index > 0 && (
+                <svg
+                  class="w-4 h-4 mx-2 text-[color:var(--color-text-offset)] opacity-60"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              )}
 
-            {item.isCurrentPage ? (
-              <span class="text-[color:var(--color-text)] font-medium" aria-current="page">
-                {item.label}
-              </span>
-            ) : (
-              <a
-                href={item.href}
-                class="text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-offset)] hover:underline transition-colors duration-200"
-              >
-                {item.label}
-              </a>
-            )}
-          </li>
-        ))}
-      </ol>
-    </nav>
+              {item.isCurrentPage ? (
+                <span class="text-[color:var(--color-text)] font-medium" aria-current="page">
+                  {item.label}
+                </span>
+              ) : (
+                <a
+                  href={item.href}
+                  class="text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-offset)] hover:underline transition-colors duration-200"
+                >
+                  {item.label}
+                </a>
+              )}
+            </li>
+          ))}
+        </ol>
+      </nav>
+    </div>
   )
 }

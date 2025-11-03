@@ -8,9 +8,11 @@ import {
   getNavMenuElement,
   getNavToggleBtnElement,
   getNavToggleWrapperElement,
+  getMobileNavFocusContainer,
 } from './selectors'
 import { ClientScriptError } from '@components/Scripts/errors/ClientScriptError'
 import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
+import { dispatchScriptEvent, ScriptEvent } from '@components/Scripts/events'
 
 export const CLASSES = {
   navOpen: 'aria-expanded-true',
@@ -38,6 +40,8 @@ export class Navigation extends LoadableScript {
   toggleWrapper: HTMLSpanElement
   /** <button> element with class 'nav-icon__toggle-btn' */
   toggleBtn: HTMLButtonElement
+  /** <div> element with id '#mobile-nav-focus-container' for focus trap */
+  focusContainer: HTMLDivElement
   togglePosition!: DOMRect
 
   constructor() {
@@ -51,6 +55,7 @@ export class Navigation extends LoadableScript {
       this.menu = getNavMenuElement()
       this.toggleWrapper = getNavToggleWrapperElement()
       this.toggleBtn = getNavToggleBtnElement()
+      this.focusContainer = getMobileNavFocusContainer()
     } catch (error) {
       throw new ClientScriptError(
         `Navigation: Failed to find required DOM elements - ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -67,9 +72,10 @@ export class Navigation extends LoadableScript {
 
     try {
       /**
-       * Set the focus trap on the menu <ul> so navigating past the last item wraps to the first.
+       * Set the focus trap on the focus container which contains both the toggle button and menu.
+       * This ensures proper tab order between the toggle button and navigation links.
        */
-      this.focusTrap = createFocusTrap([this.toggleBtn, this.menu], {
+      this.focusTrap = createFocusTrap(this.focusContainer, {
         initialFocus: () => this.toggleBtn,
         /** Close the nav menu if the focus trap is exited by user pressing ESC */
         onDeactivate: () => this.toggleMenu(false),
@@ -100,6 +106,14 @@ export class Navigation extends LoadableScript {
     //this.toggleBtn.addEventListener('keyup', event => {
     //  if (event.key === 'Enter') this.toggleMenu()
     //})
+
+    // Handle Escape key to close menu
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && this.isMenuOpen) {
+        this.toggleMenu(false)
+      }
+    })
+
     window.addEventListener('resize', this.setTogglePosition)
 
     // Set up View Transitions navigation for all nav links
@@ -149,20 +163,18 @@ export class Navigation extends LoadableScript {
     /** Short-circuit if force paramater is the same as current state */
     if (this.isMenuOpen === force) return
     this.isMenuOpen = force !== undefined ? force : !this.isMenuOpen
-    /**
-     * The `#header__nav-icon` mobile nav menu hamburger icon is positioned with `right: 0`
-     * and `align-items: center` in the `#header` flex container, but it will move down
-     * when the `.main-nav__menu` unordered list has its `display` property changed from
-     * `none` to `flex`. This is to fix the `#header__nav-icon` wrapper to an absolute
-     * position when the menu list is expanded so it stays in the same position.
-     */
+
+    // Dispatch events to pause/resume background animations
     if (this.isMenuOpen) {
-      this.toggleWrapper.style.left = `${this.togglePosition.left}px`
-      this.toggleWrapper.style.top = `${this.togglePosition.top}px`
+      dispatchScriptEvent(ScriptEvent.OVERLAY_OPENED, { source: 'navigation' })
     } else {
-      this.toggleWrapper.style.removeProperty('left')
-      this.toggleWrapper.style.removeProperty('top')
+      dispatchScriptEvent(ScriptEvent.OVERLAY_CLOSED, { source: 'navigation' })
     }
+
+    /**
+     * The toggle button is already positioned with `position: fixed` and `right`,
+     * so we don't need to adjust its position when the menu opens.
+     */
     /** <body class="no-scroll"> */
     document.body.classList.toggle(CLASSES.noScroll, this.isMenuOpen)
     /** <button class="nav-icon__toggle-btn" aria-expanded="false" ...> */
@@ -172,8 +184,20 @@ export class Navigation extends LoadableScript {
 
     if (this.isMenuOpen) {
       this.focusTrap.activate()
+      // Add menu-visible class after splash animation completes (550ms)
+      const menu = document.querySelector('.main-nav-menu')
+      if (menu) {
+        setTimeout(() => {
+          menu.classList.add('menu-visible')
+        }, 550)
+      }
     } else {
       this.focusTrap.deactivate()
+      // Remove menu-visible class immediately when closing
+      const menu = document.querySelector('.main-nav-menu')
+      if (menu) {
+        menu.classList.remove('menu-visible')
+      }
     }
   }
 

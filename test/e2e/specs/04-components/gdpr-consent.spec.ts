@@ -4,12 +4,12 @@
  * @see src/components/Cookies/
  */
 
-import { test, expect } from '@playwright/test'
-import { TEST_URLS } from '../../fixtures/test-data'
+import { test, expect } from '@test/e2e/helpers'
+
 
 test.describe('GDPR Consent Component', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(TEST_URLS.contact) // Use contact page which has newsletter form
+    await page.goto('/contact') // Use contact page which has newsletter form
   })
 
   test.skip('@wip GDPR consent checkbox is visible', async ({ page }) => {
@@ -120,7 +120,7 @@ test.describe('GDPR Consent Component', () => {
 
   test.skip('@wip GDPR checkbox works on contact form', async ({ page }) => {
     // Expected: GDPR should also work on contact form
-    await page.goto(TEST_URLS.contact)
+    await page.goto('/contact')
 
     const gdprCheckbox = page.locator('input[type="checkbox"][name*="consent"], input[type="checkbox"][name*="gdpr"]')
     await expect(gdprCheckbox.first()).toBeVisible()

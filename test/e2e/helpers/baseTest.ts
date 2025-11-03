@@ -23,6 +23,7 @@
  * })
  * ```
  */
+/* eslint-disable no-empty-pattern */
 import { test as baseTest, expect } from '@playwright/test'
 import pagesData from '../../../.cache/pages.json' with { type: 'json' }
 

@@ -1,3 +1,4 @@
+// @vitest-environment happy-dom
 /**
  * Unit tests for SocialShare LoadableScript implementation
  * Tests the SocialShare class and analytics integration

@@ -1,21 +1,14 @@
 ---
 /**
  * Layout for Markdown/MDX content files
- *
- * Components automatically available in MDX:
- *
- * - Avatar: Author avatars
- * - Callout: Highlighted info boxes
- * - Contact: Contact call-to-action
- * - Featured: Featured content blocks
- * - Newsletter: Newsletter signup
- * - Carousel: Image/content carousels
- * - Embed: Social media embeds (X, LinkedIn, Bluesky, Mastodon, Reddit, YouTube, GitHub Gist, CodePen)
- * - Highlighter: Text highlighting
- * - Shares: Social share buttons
- * - Sprite: SVG sprites
- * - Testimonials: Testimonial blocks
  */
+import Footer from '@components/Layout/Markdown/Footer/index.astro'
+import Lead from '@components/Layout/Markdown/Lead/index.astro'
+import Subtitle from '@components/Layout/Markdown/Subtitle/index.astro'
+import Title from '@components/Layout/Markdown/Title/index.astro'
+import Toc from '@components/Layout/Markdown/Toc/index.astro'
+
+/** Components made available for use in MDX */
 import BaseLayout from './BaseLayout.astro'
 import Avatar from '@components/Avatar/index.astro'
 import Callout from '@components/Callout/index.astro'
@@ -30,7 +23,7 @@ import Shares from '@components/Social/Shares/Shares.astro'
 import Sprite from '@components/Sprite/index.astro'
 import Testimonials from '@components/Testimonials/index.astro'
 
-// Export components for use in MDX
+/** Export components for use in MDX */
 export { Avatar, Callout, Contact, Embed, Featured, Newsletter, Carousel, Highlighter, Shares, Sprite, Testimonials }
 
 export interface Props {
@@ -110,87 +103,25 @@ const baseLayoutProps = {
     aria-labelledby="article-title"
   >
     <header class="mb-8">
-      <h1 id="article-title" class="text-3xl font-bold leading-tight mb-4" itemprop="headline">
-        {pageTitle}
-      </h1>
-
-      {subtitle && <p class="text-lg text-[var(--color-text-muted)] leading-relaxed" itemprop="description">{subtitle}</p>}
-
+      <Title pageTitle={pageTitle} />
       {
-        (publishDate || author || readingTime || tags) && (
-          <div class="flex flex-wrap gap-2 items-center text-sm text-[var(--color-text-muted)] mt-4 pt-4 border-t border-[var(--color-border)]">
-            {publishDate && (
-              <time
-                class="inline-flex items-center gap-1 before:content-['📅']"
-                itemprop="datePublished"
-                datetime={publishDate.toISOString()}
-              >
-                {publishDate.toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </time>
-            )}
-
-            {modifiedDate && modifiedDate !== publishDate && (
-              <time
-                class="inline-flex items-center gap-1 before:content-['🔄']"
-                itemprop="dateModified"
-                datetime={modifiedDate.toISOString()}
-              >
-                Updated{' '}
-                {modifiedDate.toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </time>
-            )}
-
-            {author && (
-              <span class="inline-flex items-center gap-1 before:content-['✍️']" itemprop="author" itemscope itemtype="http://schema.org/Person">
-                <span itemprop="name">{author}</span>
-              </span>
-            )}
-
-            {readingTime && <span class="inline-flex items-center gap-1 before:content-['⏱️']">{readingTime}</span>}
-
-            {tags && tags.length > 0 && (
-              <ul class="flex flex-wrap gap-1 list-none p-0 m-0" aria-label="Article tags">
-                {tags.map((tag) => (
-                  <li>
-                    <a
-                      href={`/tags/${tag}`}
-                      rel="tag"
-                      itemprop="keywords"
-                      class="inline-block px-2 py-0.5 bg-[var(--color-surface-raised)] rounded text-xs no-underline transition-colors hover:bg-[var(--color-primary)] hover:text-[var(--color-on-primary)] focus:bg-[var(--color-primary)] focus:text-[var(--color-on-primary)]"
-                    >
-                      {tag}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        )
+        subtitle && <Subtitle subtitle={subtitle} />
+      }
+      {
+        (modifiedDate || publishDate || author || readingTime || tags) && <Lead
+          {...author && { author }}
+          {...modifiedDate && { modifiedDate }}
+          {...publishDate && { publishDate }}
+          {...readingTime && { readingTime }}
+          {...tags && { tags }}
+        />
       }
     </header>
 
     <slot name="hero-image" />
 
     <div class="grid gap-8 lg:grid-cols-[250px_1fr] lg:gap-16" itemprop="articleBody">
-      {
-        showToc && (
-          <aside class="p-4 bg-[var(--color-surface-raised)] rounded-lg border border-[var(--color-border)] lg:sticky lg:top-4 lg:self-start lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto" aria-labelledby="toc-heading">
-            <h2 id="toc-heading" class="text-base font-semibold mb-2">Table of Contents</h2>
-            <nav class="toc-nav">
-              {/* TOC will be automatically generated by remark-toc plugin */}
-            </nav>
-          </aside>
-        )
-      }
-
+      {showToc && <Toc />}
       <div class="markdown-content__prose leading-relaxed">
         <slot />
       </div>
@@ -198,15 +129,7 @@ const baseLayoutProps = {
 
     <slot name="after-content" />
 
-    {
-      section && (
-        <footer class="mt-16 pt-8 border-t border-[var(--color-border)] text-sm text-[var(--color-text-muted)]">
-          <p class="markdown-content__section">
-            Filed under: <a href={`/sections/${section}`} class="text-[var(--color-primary)] no-underline hover:underline focus:underline">{section}</a>
-          </p>
-        </footer>
-      )
-    }
+    {section && <Footer section={section} />}
   </article>
 
   <slot name="related-content" />

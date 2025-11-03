@@ -1,11 +1,15 @@
 ---
-import CookieConsent from '@components/Cookies/Consent/index.astro'
-import Head from '@components/Head/index.astro'
-import Header from '@components/Header/index.astro'
-import Footer from '@components/Footer/index.astro'
-import PwaTitleBar from '@components/PwaTitleBar/index.astro'
 import Breadcrumbs from '@components/Breadcrumbs/index.astro'
-import ThemePicker from '@components/ThemePicker/Themes.astro'
+import Container from '@components/Layout/Container/index.astro'
+import CookieConsent from '@components/Cookies/Consent/index.astro'
+import Footer from '@components/Footer/index.astro'
+import HeadContent from '@components/Head/index.astro'
+import Header from '@components/Header/index.astro'
+import Content from '@components/Layout/Content/index.astro'
+import PwaTitleBar from '@components/PwaTitleBar/index.astro'
+import Skip from '@components/Layout/Skip/index.astro'
+import ThemePicker from '@components/ThemePicker/index.astro'
+import { ClientRouter } from 'astro:transitions'
 
 import '@styles/index.css'
 import '@styles/sprites.css'
@@ -25,6 +29,7 @@ export interface Props {
   tags?: string[]
   description?: string
   image?: string
+  noindex?: boolean
 }
 
 const {
@@ -38,65 +43,56 @@ const {
   tags,
   description,
   image,
+  noindex,
 } = Astro.props
 ---
 
-<style>
-  /* Container constraints for header and footer elements */
-  .layout :global(.header),
-  .layout :global(.footer) {
-    flex: none;
-    margin-left: auto;
-    margin-right: auto;
-    max-width: 75rem; /* 1200px at 16px font-size */
-    width: 90%;
-  }
-</style>
-
+<!DOCTYPE html>
 <html lang="en">
-  <Head
-    pageTitle={pageTitle}
-    path={path}
-    {...contentType && { contentType }}
-    {...publishDate && { publishDate }}
-    {...modifiedDate && { modifiedDate }}
-    {...author && { author }}
-    {...section && { section }}
-    {...tags && { tags }}
-    {...description && { description }}
-    {...image && { image }}
-  />
+  <head>
+    <HeadContent
+      pageTitle={pageTitle}
+      path={path}
+      {...description && { description }}
+      {...image && { image }}
+      {...noindex && { noindex }}
+      {...contentType && { contentType }}
+      {...publishDate && { publishDate }}
+      {...modifiedDate && { modifiedDate }}
+      {...author && { author }}
+      {...section && { section }}
+      {...tags && { tags }}
+    />
+    {/* Only enable View Transitions in production to avoid breaking e2e tests */}
+    {import.meta.env.PROD && <ClientRouter />}
+  </head>
   <body>
-    <a
-      href="#main"
-      class="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-1/2 focus:-translate-x-1/2 focus:px-6 focus:py-4 focus:outline-none focus:z-50 focus:bg-blue-600 focus:text-white focus:rounded"
-      >skip to main content</a
-    >
+    {/* Cookie Consent Overlay - Only persist in production mode */}
+    {import.meta.env.PROD ? (
+      <CookieConsent transition:persist />
+    ) : (
+      <CookieConsent />
+    )}
+    {/* Skip to main content link for accessibility */}
+    <Skip />
     {/* Sets Window Controls Overlay API for PWA title bar */}
     <PwaTitleBar />
     {/* Site header and main content */}
-    <div
-      class="flex flex-col min-h-screen relative transition-transform duration-300 ease-[cubic-bezier(0.25,0.46,0.45,0.94)]"
-      role="document"
-      style="padding-top: env(titlebar-area-height, 0);"
-    >
+    <Container id="main-content">
+      {/* Theme Picker Modal - uses transition:persist in production for View Transitions API */}
+      {import.meta.env.PROD ? (
+        <ThemePicker transition:persist />
+      ) : (
+        <ThemePicker />
+      )}
       <Header path={path} />
-      <div class="mx-auto max-w-[75rem] w-[90%] mt-4">
-        <Breadcrumbs path={path} pageTitle={pageTitle} />
-      </div>
-      <main
-        id="main"
-        class="flex flex-col flex-[0_1_auto] mx-auto max-w-[75rem] w-[90%]"
-        role="main"
-        tabindex="-1"
-      >
+      <Breadcrumbs path={path} pageTitle={pageTitle} />
+      {/* Main page content */}
+      <Content>
         <slot />
-      </main>
+      </Content>
+      {/* Site footer */}
       <Footer />
-    </div>
-    {/* Cookie Consent Overlay */}
-    <CookieConsent />
-    {/* Theme Picker Modal */}
-    <ThemePicker />
+    </Container>
   </body>
 </html>

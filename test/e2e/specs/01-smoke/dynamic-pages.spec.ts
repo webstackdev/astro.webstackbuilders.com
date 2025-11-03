@@ -3,8 +3,7 @@
  * Tests dynamically generated pages (articles, services, case studies)
  * Uses API to fetch actual content IDs to ensure tests work even if content changes
  */
-import { test, expect } from '@playwright/test'
-import { setupConsoleErrorChecker, logConsoleErrors } from '@test/e2e/helpers/console-errors'
+import { test, expect, setupConsoleErrorChecker, logConsoleErrors } from '@test/e2e/helpers'
 
 test.describe('Dynamic Pages @smoke', () => {
   test('@ready article detail page loads', async ({ page }) => {
@@ -97,7 +96,10 @@ test.describe('Dynamic Pages @smoke', () => {
     expect(content).toContain('<rss')
   })
 
-  test('@ready manifest.json is accessible', async ({ page }) => {
+  test('@ready manifest.json is accessible', async ({ page }, testInfo) => {
+    // Skip Firefox due to manifest download behavior difference
+    test.skip(testInfo.project.name === 'firefox', 'Firefox treats manifest.json as download')
+
     // PWA manifest should be accessible and valid JSON
     const response = await page.goto('/manifest.json')
     expect(response?.status()).toBe(200)

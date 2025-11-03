@@ -65,7 +65,7 @@ const generatePwaIcon = (size: number): IconGenerator => ({ density, width, heig
 
 const saveFile = (destination: string) => {
   return async (buffer: Buffer) => {
-    return await writeFile(destination, buffer)
+    return await writeFile(destination, new Uint8Array(buffer))
   }
 }
 

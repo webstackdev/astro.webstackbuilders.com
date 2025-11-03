@@ -1,0 +1,25 @@
+---
+import Author from '@components/Layout/Markdown/Author/index.astro'
+import ModifiedDate from '@components/Layout/Markdown/ModifiedDate/index.astro'
+import PublishDate from '@components/Layout/Markdown/PublishDate/index.astro'
+import ReadingTime from '@components/Layout/Markdown/ReadingTime/index.astro'
+import Tags from '@components/Layout/Markdown/Tags/index.astro'
+
+export interface Props {
+  author?: string
+  modifiedDate?: Date
+  publishDate?: Date
+  readingTime?: string
+  tags?: string[]
+}
+
+const { modifiedDate, publishDate, author, readingTime, tags } = Astro.props
+---
+
+<div class="flex flex-wrap gap-2 items-center text-sm text-[var(--color-text-muted)] mt-4 pt-4 border-t border-[var(--color-border)]">
+  {publishDate && <PublishDate publishDate={publishDate} />}
+  {modifiedDate && modifiedDate !== publishDate && <ModifiedDate modifiedDate={modifiedDate} />}
+  {author && <Author author={author} />}
+  {readingTime && <ReadingTime readingTime={readingTime} />}
+  {tags && tags.length > 0 && <Tags {...{ tags }} />}
+</div>

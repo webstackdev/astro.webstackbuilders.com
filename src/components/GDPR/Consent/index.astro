@@ -9,7 +9,6 @@
  * ```astro
  * <GDPRConsent
  *   purposes={['contact', 'marketing']}
- *   required={true}
  * />
  * ```
  */
@@ -17,9 +16,6 @@
 export interface Props {
   /** Data processing purposes user is consenting to */
   purposes: Array<'contact' | 'marketing' | 'analytics' | 'downloads'>
-
-  /** Whether consent is required to submit form */
-  required?: boolean
 
   /** Custom consent text (overrides default) */
   customText?: string
@@ -42,7 +38,6 @@ export interface Props {
 
 const {
   purposes,
-  required = false,
   customText,
   privacyPolicyUrl = '/privacy/',
   cookiePolicyUrl = '/cookies/',
@@ -59,7 +54,7 @@ const purposeDescriptions: Record<string, string> = {
   downloads: 'Providing access to requested content'
 }
 
-const purposeList = purposes.map(p => purposeDescriptions[p] || p)
+const purposeList = purposes.map((p: keyof typeof purposeDescriptions) => purposeDescriptions[p] || p)
 ---
 
 <div
@@ -70,13 +65,13 @@ const purposeList = purposes.map(p => purposeDescriptions[p] || p)
   data-form-id={formId}
 >
   <label class="gdpr-consent__label">
-    <input
+        <input
       type="checkbox"
       name={name}
       id={id}
-      required={required}
-      aria-required={required ? 'true' : 'false'}
+      value="true"
       aria-describedby={`${id}-description`}
+      aria-invalid="false"
       class="gdpr-consent__checkbox"
     />
     <span id={`${id}-description`} class="gdpr-consent__text">
@@ -86,7 +81,7 @@ const purposeList = purposes.map(p => purposeDescriptions[p] || p)
         <>
           I consent to Webstack Builders processing my personal data for:
           <ul class="gdpr-consent__purposes">
-            {purposeList.map(purpose => (
+            {purposeList.map((purpose: string) => (
               <li>{purpose}</li>
             ))}
           </ul>
@@ -133,9 +128,9 @@ const purposeList = purposes.map(p => purposeDescriptions[p] || p)
   .gdpr-consent {
     margin: 1.5rem 0;
     padding: 1rem;
-    border: 1px solid var(--color-theme-border, #e5e7eb);
+    border: 1px solid var(--color-border);
     border-radius: 0.5rem;
-    background-color: var(--color-theme-bg-offset, #f9fafb);
+    background-color: var(--color-bg-offset);
   }
 
   .gdpr-consent__label {
@@ -151,25 +146,25 @@ const purposeList = purposes.map(p => purposeDescriptions[p] || p)
     height: 1.25rem;
     margin-top: 0.125rem;
     cursor: pointer;
-    border: 2px solid var(--color-theme-border, #d1d5db);
+    border: 2px solid var(--color-border);
     border-radius: 0.25rem;
   }
 
   .gdpr-consent__checkbox:focus {
-    outline: 2px solid var(--color-theme-primary, #3b82f6);
+    outline: 2px solid var(--color-primary);
     outline-offset: 2px;
   }
 
   .gdpr-consent__checkbox:checked {
-    background-color: var(--color-theme-primary, #3b82f6);
-    border-color: var(--color-theme-primary, #3b82f6);
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
   }
 
   .gdpr-consent__text {
     flex: 1;
     font-size: 0.875rem;
     line-height: 1.5;
-    color: var(--color-theme-text, #1f2937);
+    color: var(--color-text);
   }
 
   .gdpr-consent__purposes {
@@ -183,20 +178,20 @@ const purposeList = purposes.map(p => purposeDescriptions[p] || p)
   }
 
   .gdpr-consent__text a {
-    color: var(--color-theme-link, #3b82f6);
+    color: var(--color-primary);
     text-decoration: underline;
   }
 
   .gdpr-consent__text a:hover {
-    color: var(--color-theme-link-hover, #2563eb);
+    color: var(--color-primary-hover);
   }
 
   .gdpr-consent__error {
     margin-top: 0.5rem;
     padding: 0.5rem;
     font-size: 0.875rem;
-    color: var(--color-theme-danger, #dc2626);
-    background-color: var(--color-theme-danger-bg, #fee2e2);
+    color: var(--color-danger);
+    background-color: var(--color-danger-bg);
     border-radius: 0.25rem;
   }
 </style>

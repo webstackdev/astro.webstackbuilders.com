@@ -1,6 +1,7 @@
 import { LoadableScript, type TriggerEvent } from '../Scripts/loader'
 import { gsap } from 'gsap'
 import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
+import { onScriptEvent, ScriptEvent } from '@components/Scripts/events'
 
 type Timeline = ReturnType<typeof gsap.timeline>
 
@@ -33,6 +34,8 @@ export class HeroLoader extends LoadableScript {
 
   private static instance: HeroLoader | null = null
   private timeline?: Timeline
+  private overlayOpenedCleanup?: () => void
+  private overlayClosedCleanup?: () => void
 
   constructor() {
     super()
@@ -406,6 +409,21 @@ export class HeroLoader extends LoadableScript {
         HeroLoader.instance = new HeroLoader()
       }
       HeroLoader.instance.startAnimation()
+
+      // Set up event listeners for overlay open/close
+      HeroLoader.instance.overlayOpenedCleanup = onScriptEvent(
+        ScriptEvent.OVERLAY_OPENED,
+        () => {
+          HeroLoader.pause()
+        }
+      )
+
+      HeroLoader.instance.overlayClosedCleanup = onScriptEvent(
+        ScriptEvent.OVERLAY_CLOSED,
+        () => {
+          HeroLoader.resume()
+        }
+      )
     } catch (error) {
       // Animation is optional - page still works without it
       handleScriptError(error, context)
@@ -443,6 +461,15 @@ export class HeroLoader extends LoadableScript {
     addScriptBreadcrumb(context)
 
     try {
+      // Clean up event listeners
+      if (HeroLoader.instance?.overlayOpenedCleanup) {
+        HeroLoader.instance.overlayOpenedCleanup()
+      }
+      if (HeroLoader.instance?.overlayClosedCleanup) {
+        HeroLoader.instance.overlayClosedCleanup()
+      }
+
+      // Reset timeline
       if (HeroLoader.instance?.timeline) {
         HeroLoader.instance.timeline.restart()
       }

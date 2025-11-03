@@ -2,7 +2,8 @@
  * State tests for cookie consent modal visibility
  * Now uses centralized state store from Scripts/state
  */
-import { beforeEach, describe, expect, test } from 'vitest'
+// @vitest-environment happy-dom
+import { describe, expect, beforeEach, test } from 'vitest'
 import { AppBootstrap } from '@components/Scripts/state/bootstrap'
 import { $cookieModalVisible } from '../state'
 
