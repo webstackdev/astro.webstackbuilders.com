@@ -47,9 +47,12 @@ footer-bg:           pale-neon-blue;
 current: 'currentColor';
 transparent: 'transparent';
 
---color-foreground
---color-content
---color-page
+--color-page: #f3f4f6; // --color-bg
+--color-page-offset: #e5e7eb; // --color-bg-offset
+--color-foreground: #001a39; // --color-bg-inverse
+--color-content: #374151; // --color-text
+--color-content-offset: #9ca3af; // --color-text-offset
+
 --color-base
 */
 
@@ -59,47 +62,98 @@ transparent: 'transparent';
  * =============================================================================
  */
 @theme inline {
-  --color-bg: #f3f4f6;
-  --color-bg-offset: #e5e7eb;
-  --color-bg-inverse: #001a39;
-  --color-text: #374151;
-  --color-text-offset: #9ca3af;
-  --color-border: #f0f4ff;
-  --color-primary: #006dca;
-  --color-primary-offset: #00386d;
-  --color-primary-bg: #dbeafe;
-  --color-primary-bg-hover: #bfdbfe;
-  --color-primary-hover: #0056a3;
-  --color-secondary: #facc15;
-  --color-secondary-offset: #ca8a04;
-  --color-secondary-bg: #fef3c7;
-  --color-success: #16a34a;
-  --color-success-offset: #22c55e;
-  --color-success-bg: #dcfce7;
-  --color-info: #0891b2;
-  --color-info-bg: #cffafe;
-  --color-warning: #a16207;
-  --color-warning-offset: #ca8a04;
-  --color-warning-bg: #fef3c7;
-  --color-danger: #dc2626;
-  --color-danger-bg: #fecaca;
-  --color-twitter: #1da1f2;
-  --color-modal-background: #f3f4f6;
-  --color-accent: #7c3aed;
-  --color-accent-bg: #ede9fe;
-  --color-link-shadow: #2563eb; /* blue-600 for link underline shadow */
-  --color-share-highlight-text: #111827; /* gray-900 */
-  --color-share-highlight-bg: #e5e7eb; /* gray-200 */
-  --color-share-highlight-text-active: #ffffff; /* white */
-  --color-share-highlight-bg-active: #2563eb; /* blue-600 */
-  --color-share-highlight-tooltip-text: #ffffff; /* white */
-  --color-share-highlight-tooltip-bg: #111827; /* gray-900 */
-  --shiki-theme: 'github-light';
-  --shadow-sm: 0 2px 16px #000026;
-  --shadow-md: 0 4px 6px #32325d1c, 0 1px 3px #000014;
-  --shadow-hover: 0 7px 14px #3232321a, 0 3px 6px #000014;
-  --shadow-active: 0 3px 12px -2px inset #32323240;
-  --shadow-text: 0 1px 3px #000026;
+  --color-bg: var(--light-color-bg);
+  --color-bg-offset: var(--light-color-bg-offset);
+  --color-bg-inverse: var(--light-color-bg-inverse);
+  --color-text: var(--light-color-text);
+  --color-text-offset: var(--light-color-text-offset);
+  --color-border: var(--light-color-border);
+  --color-primary: var(--light-color-primary);
+  --color-primary-offset: var(--light-color-primary-offset);
+  --color-primary-bg: var(--light-color-primary-bg);
+  --color-primary-bg-hover: var(--light-color-primary-bg-hover);
+  --color-primary-hover: var(--light-color-primary-hover);
+  --color-secondary: var(--light-color-secondary);
+  --color-secondary-offset: var(--light-color-secondary-offset);
+  --color-secondary-bg: var(--light-color-secondary-bg);
+  --color-success: var(--light-color-success);
+  --color-success-offset: var(--light-color-success-offset);
+  --color-success-bg: var(--light-color-success-bg);
+  --color-info: var(--light-color-info);
+  --color-info-bg: var(--light-color-info-bg);
+  --color-warning: var(--light-color-warning);
+  --color-warning-offset: var(--light-color-warning-offset);
+  --color-warning-bg: var(--light-color-warning-bg);
+  --color-danger: var(--light-color-danger);
+  --color-danger-bg: var(--light-color-danger-bg);
+  --color-twitter: var(--light-color-twitter);
+  --color-modal-background: var(--light-color-modal-background);
+  --color-accent: var(--light-color-accent);
+  --color-accent-bg: var(--light-color-accent-bg);
+  --color-link-shadow: var(--light-color-link-shadow);
+  --color-share-highlight-text: var(--light-color-share-highlight-text);
+  --color-share-highlight-bg: var(--light-color-share-highlight-bg);
+  --color-share-highlight-text-active: var(--light-color-share-highlight-text-active);
+  --color-share-highlight-bg-active: var(--light-color-share-highlight-bg-active);
+  --color-share-highlight-tooltip-text: var(--light-color-share-highlight-tooltip-text);
+  --color-share-highlight-tooltip-bg: var(--light-color-share-highlight-tooltip-bg);
+  --shiki-theme: var(--light-shiki-theme);
+  --shadow-sm: var(--light-shadow-sm);
+  --shadow-md: var(--light-shadow-md);
+  --shadow-hover: var(--light-shadow-hover);
+  --shadow-active: var(--light-shadow-active);
+  --shadow-text: var(--light-shadow-text);
+}
+
+/**
+ * =============================================================================
+ *  LIGHT THEME DEFINITIONS
+ *  These are defined at :root level and referenced by both [data-theme="dark"]
+ *  and @media (prefers-color-scheme: dark) to maintain a single source of truth
+ * =============================================================================
+ */
+:root {
+  --light-color-bg: #f3f4f6;
+  --light-color-bg-offset: #e5e7eb;
+  --light-color-bg-inverse: #001a39;
+  --light-color-text: #374151;
+  --light-color-text-offset: #9ca3af;
+  --light-color-border: #f0f4ff;
+  --light-color-primary: #006dca;
+  --light-color-primary-offset: #00386d;
+  --light-color-primary-bg: #dbeafe;
+  --light-color-primary-bg-hover: #bfdbfe;
+  --light-color-primary-hover: #0056a3;
+  --light-color-secondary: #facc15;
+  --light-color-secondary-offset: #ca8a04;
+  --light-color-secondary-bg: #fef3c7;
+  --light-color-success: #16a34a;
+  --light-color-success-offset: #22c55e;
+  --light-color-success-bg: #dcfce7;
+  --light-color-info: #0891b2;
+  --light-color-info-bg: #cffafe;
+  --light-color-warning: #a16207;
+  --light-color-warning-offset: #ca8a04;
+  --light-color-warning-bg: #fef3c7;
+  --light-color-danger: #dc2626;
+  --light-color-danger-bg: #fecaca;
+  --light-color-twitter: #1da1f2;
+  --light-color-modal-background: #f3f4f6;
+  --light-color-accent: #7c3aed;
+  --light-color-accent-bg: #ede9fe;
+  --light-color-link-shadow: #2563eb; /* blue-600 for link underline shadow */
+  --light-color-share-highlight-text: #111827; /* gray-900 */
+  --light-color-share-highlight-bg: #e5e7eb; /* gray-200 */
+  --light-color-share-highlight-text-active: #ffffff; /* white */
+  --light-color-share-highlight-bg-active: #2563eb; /* blue-600 */
+  --light-color-share-highlight-tooltip-text: #ffffff; /* white */
+  --light-color-share-highlight-tooltip-bg: #111827; /* gray-900 */
+  --light-shiki-theme: 'github-light';
+  --light-shadow-sm: 0 2px 16px #000026;
+  --light-shadow-md: 0 4px 6px #32325d1c, 0 1px 3px #000014;
+  --light-shadow-hover: 0 7px 14px #3232321a, 0 3px 6px #000014;
+  --light-shadow-active: 0 3px 12px -2px inset #32323240;
+  --light-shadow-text: 0 1px 3px #000026;
 }
 
 /**

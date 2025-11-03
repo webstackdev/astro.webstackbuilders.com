@@ -78,6 +78,12 @@ export class ThemePickerElement extends HTMLElement {
         return
       }
 
+      // Sync active theme with what's already set in DOM by HEAD script
+      const domTheme = document.documentElement.dataset['theme'] as ThemeIds | undefined
+      if (domTheme && domTheme !== this.activeTheme) {
+        this.activeTheme = domTheme
+      }
+
       this.setActiveItem()
       this.bindEvents()
 
@@ -159,8 +165,13 @@ export class ThemePickerElement extends HTMLElement {
    */
   private getStoredPreference(): ThemeIds | false {
     try {
+      // Check if theme is actually stored in localStorage (not just default initialization)
+      const hasStoredTheme = localStorage.getItem('theme') !== null
+      if (!hasStoredTheme) {
+        return false
+      }
       const storedTheme = $theme.get() as ThemeIds
-      return storedTheme && storedTheme !== 'default' ? storedTheme : false
+      return storedTheme || false
     } catch {
       return false
     }

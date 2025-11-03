@@ -54,13 +54,15 @@ const {
 {/* unstyled content. IMPORTANT: This violates invariant rules and is intentional. */}
 <script is:inline>
   const storedTheme = localStorage.getItem('theme')
+  // Only use stored theme if it's an explicit non-default choice
+  // If no stored theme or 'default', check system preference
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-  const theme = storedTheme ?? (prefersDark ? 'dark' : 'default')
+  const theme = (storedTheme && storedTheme !== 'default')
+    ? storedTheme
+    : (prefersDark ? 'dark' : 'default')
   document.documentElement.setAttribute('data-theme', theme)
   document.documentElement.setAttribute('lang', 'en')
-</script>
-
-<script>
+</script><script>
   {/* Be careful adding script here. It runs before any script tags in components. */}
   import { SentryBootstrap } from '@components/Scripts/sentry/client'
   import { PUBLIC_SENTRY_DSN } from 'astro:env/client'

@@ -9,18 +9,22 @@ import { setupCleanTestPage, setupTestPage, selectTheme, getThemePickerToggle } 
 
 
 test.describe('Theme Picker Component', () => {
-  test.beforeEach(async ({ page }) => {
-    // Most tests need clean state - individual tests can override this
+  test.beforeEach(async ({ page }, testInfo) => {
+    // Skip setup for tests that need custom media emulation
+    if (testInfo.title.includes('prefers-color-scheme')) {
+      return
+    }
+    // Most tests need clean state
     await setupCleanTestPage(page)
   })
 
-  test('@wip theme picker is visible', async ({ page }) => {
+  test('@ready theme picker is visible', async ({ page }) => {
     // Expected: Theme picker button should be visible in header
     const themePicker = getThemePickerToggle(page)
     await expect(themePicker).toBeVisible()
   })
 
-  test('@wip can toggle to dark theme', async ({ page }) => {
+  test('@ready can toggle to dark theme', async ({ page }) => {
     // Expected: Clicking theme picker should open modal and allow selecting dark theme
     await selectTheme(page, 'dark')
 
@@ -31,7 +35,7 @@ test.describe('Theme Picker Component', () => {
     expect(dataTheme).toBe('dark')
   })
 
-  test('@wip can toggle back to light theme', async ({ page }) => {
+  test('@ready can toggle back to light theme', async ({ page }) => {
     // Expected: Toggling twice should return to default theme
 
     // Toggle to dark
@@ -46,7 +50,7 @@ test.describe('Theme Picker Component', () => {
     expect(dataTheme).toBe('default')
   })
 
-  test('@wip theme preference persists across page reloads', async ({ page }) => {
+  test('@ready theme preference persists across page reloads', async ({ page }) => {
     // Expected: Theme selection should be stored in localStorage
 
     // Toggle to dark theme
@@ -63,7 +67,7 @@ test.describe('Theme Picker Component', () => {
     expect(dataTheme).toBe('dark')
   })
 
-  test('@wip theme preference persists across navigation', async ({ page }) => {
+  test('@ready theme preference persists across navigation', async ({ page }) => {
     // Expected: Theme should persist when navigating between pages
 
     // This test needs its own setup without localStorage clearing
@@ -83,7 +87,7 @@ test.describe('Theme Picker Component', () => {
     expect(dataTheme).toBe('dark')
   })
 
-  test('@wip theme picker has accessible label', async ({ page }) => {
+  test('@ready theme picker has accessible label', async ({ page }) => {
     // Expected: Theme picker button should have appropriate ARIA label
     const themePicker = getThemePickerToggle(page)
 
@@ -92,12 +96,7 @@ test.describe('Theme Picker Component', () => {
     expect(ariaLabel?.toLowerCase()).toContain('theme')
   })
 
-  test.skip('@wip theme picker shows current theme state', async ({ page }) => {
-    // SKIPPED: is-active class not applied to parent <li> after theme selection
-    // Root cause: setActiveItem() may not be called or activeTheme not updated properly
-    // After clicking dark theme button, parent <li> should have is-active class but doesn't
-    // This is an implementation bug in theme-picker-element.ts
-
+  test('@ready theme picker shows current theme state', async ({ page }) => {
     // Expected: Theme picker modal should show active state for current theme
     const themePicker = getThemePickerToggle(page)
 
@@ -105,13 +104,17 @@ test.describe('Theme Picker Component', () => {
     await themePicker.click()
     await page.waitForTimeout(300)
 
-    // Check that default theme button has is-active class
+    // Check that default theme button's parent has is-active class
     const defaultThemeButton = page.locator('button[data-theme="default"]')
-    const parentLi = defaultThemeButton.locator('..')
-    await expect(parentLi).toHaveClass(/is-active/)
+    const defaultParentLi = defaultThemeButton.locator('..')
 
-    // Select dark theme
-    await defaultThemeButton.click()
+    // Verify default theme is initially active
+    const defaultClasses = await defaultParentLi.getAttribute('class')
+    expect(defaultClasses).toContain('is-active')
+
+    // Select dark theme (which closes the modal)
+    const darkThemeButton = page.locator('button[data-theme="dark"]')
+    await darkThemeButton.click()
     await page.waitForTimeout(300)
 
     // Reopen modal
@@ -119,20 +122,24 @@ test.describe('Theme Picker Component', () => {
     await page.waitForTimeout(300)
 
     // Dark theme should now be active
-    const darkThemeButton = page.locator('button[data-theme="dark"]')
     const darkParentLi = darkThemeButton.locator('..')
-    await expect(darkParentLi).toHaveClass(/is-active/)
+    const darkClasses = await darkParentLi.getAttribute('class')
+    expect(darkClasses).toContain('is-active')
+
+    // And default should no longer be active
+    const defaultClassesAfter = await defaultParentLi.getAttribute('class')
+    expect(defaultClassesAfter).not.toContain('is-active')
   })
 
-  test.skip('@wip respects prefers-color-scheme on first visit', async ({ page }) => {
-    // SKIPPED: Theme initialization doesn't respect prefers-color-scheme in current implementation
+  test('@ready respects prefers-color-scheme on first visit', async ({ page }) => {
     // Expected: Should use system preference if no stored preference
-    // Simulate dark mode preference
+    // Simulate dark mode preference BEFORE navigation
+    await page.context().clearCookies()
+
     await page.emulateMedia({ colorScheme: 'dark' })
 
-    // Visit site for "first time" (localStorage cleared in beforeEach)
-    await page.goto('/')
-    await page.waitForTimeout(300)
+    // Visit site for "first time" with dark mode preference
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
 
     const htmlElement = page.locator('html')
     const dataTheme = await htmlElement.getAttribute('data-theme')
@@ -140,7 +147,7 @@ test.describe('Theme Picker Component', () => {
     expect(dataTheme).toBe('dark')
   })
 
-  test('@wip manual selection overrides system preference', async ({ page }) => {
+  test('@ready manual selection overrides system preference', async ({ page }) => {
     // Expected: User selection should override system preference
     await page.emulateMedia({ colorScheme: 'dark' })
     await page.goto('/')
@@ -162,7 +169,7 @@ test.describe('Theme Picker Component', () => {
     expect(dataThemeAfterReload).toBe('default')
   })
 
-  test('@wip theme transition is smooth', async ({ page }) => {
+  test('@ready theme transition is smooth', async ({ page }) => {
     // Expected: Theme change should not cause flash of unstyled content
     const themePicker = getThemePickerToggle(page)
     const htmlElement = page.locator('html')
