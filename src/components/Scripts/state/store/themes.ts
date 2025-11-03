@@ -142,6 +142,11 @@ export function initThemeSideEffects(): void {
   // persistentAtom's restore is async and may fire after our init code runs
   // Use setTimeout to ensure we run after restore completes
   setTimeout(() => {
+    // Guard against test environment teardown
+    if (typeof document === 'undefined' || typeof localStorage === 'undefined') {
+      return
+    }
+
     // Apply the current theme after restore completes
     // Priority order:
     // 1. User's stored preference (manual selection) - highest priority
