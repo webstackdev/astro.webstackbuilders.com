@@ -15,6 +15,157 @@ Axe accessibility (2) - axe-core integration
 
 \[color:var\(--color-(.*?)\)\]
 
+## Color vars
+
+brand primary:    #001733
+brand secondary:  #0062B6
+
+src/components: 427
+src/lib: 13
+src/pages: 250
+
+Applies a solid border of currentColor to an element:
+
+ring (1px), ring-2, ring-4
+accent
+
+### text-white
+
+- Button - success button text
+- Button - success button hover text
+- Button - success button focus text
+
+### --color-bg: 57  #f3f4f6
+
+- [tag] - main content background
+
+### --color-bg-offset: 48 #e5e7eb
+
+- Avatar - wrapper for fallback that just shows initials
+- Button - icon button hover background
+- Button - icon button focus background
+- Button - icon button active background
+
+### --color-bg-inverse: 2 #001a39
+
+### --color-text: 141 #374151
+
+- Button - primary button text
+- Button - primary button focus text
+- Button - secondary button text
+- Button - secondary button hover text
+- Button - secondary button focus text
+- Button - icon button text
+- Button - twitter button text
+- [tag] - H1
+
+### --color-text-offset: 103  #9ca3af
+
+- Avatar - test in wrapper for fallback that just shows initials
+- [tag] - header text
+
+### --color-border: 68  #f0f4ff
+
+### --color-primary: 180  #006dca
+
+- Button - primary button background
+- [tag] - header anchor text
+
+### --color-primary-offset: 14  #00386d
+
+- Button - primary button focus background
+- Hamburger Menu Icon - SVG background fill
+
+### --color-primary-bg: 7   #dbeafe
+
+### --color-primary-bg-hover: 1   #bfdbfe
+
+### --color-primary-hover: 15   #0056a3
+
+### --color-secondary: 5    #facc15
+
+- Button - secondary button background
+
+### --color-secondary-offset: 7   #ca8a04
+
+- Button - secondary button hover background
+- Button - secondary button focus background
+- Button - secondary button active background
+
+### --color-secondary-bg: 1   #fef3c7
+
+### --color-success: 19   #16a34a
+
+- Button - success button background
+
+### --color-success-offset: 7   #22c55e
+
+- Button - success button hover background
+- Button - success button focus background
+- Button - success button active background
+
+### --color-success-bg: 6   #dcfce7
+
+### --color-info: 1   #0891b2
+
+### --color-info-bg: 2    #cffafe
+
+### --color-warning: 5    #a16207
+
+- Button - warning button background
+
+### --color-warning-offset: 3   #ca8a04
+
+- Button - warning button hover background
+- Button - warning button focus background
+- Button - warning button active background
+
+### --color-warning-bg: 1   #fef3c7
+
+### --color-danger: 16    #dc2626
+
+### --color-danger-bg: 5    #fecaca
+
+### --color-accent: 10    #7c3aed
+
+### --color-accent-bg: 1    #ede9fe
+
+### --color-link-shadow: 2    #2563eb
+
+--color-share-highlight-text: 1
+--color-share-highlight-bg: 1
+--color-share-highlight-text-active: 1
+--color-share-highlight-bg-active: 1
+--color-share-highlight-tooltip-text: 1
+--color-share-highlight-tooltip-bg: 1
+
+--shiki-theme: 0
+
+### --shadow-sm: 4
+
+- Button - primary button shadow
+
+### --shadow-md: 1
+
+### --shadow-hover: 8
+
+- Button - primary button focus shadow
+
+### --shadow-active: 4
+
+- Button - secondary button active shadow
+
+### --shadow-text: 4
+
+- Button - primary button text-shadow
+
+### --color-twitter: 4
+
+- Button - twitter button background
+- Button - twitter button border
+- Button - twitter button hover background
+- Button - twitter button focus background
+
 ## Axe tags
 
 cat.aria: Rules related to Accessible Rich Internet Applications (ARIA) attributes and roles.
