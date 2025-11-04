@@ -1,25 +1,29 @@
 /**
  * Unit tests for newsletter subscription API endpoint
  */
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest'
 import { POST, OPTIONS } from '../index'
 
 // Mock dependencies
-vi.mock('../../../../../api/newsletter/token', () => ({
+vi.mock('@api/newsletter/token', () => ({
 	createPendingSubscription: vi.fn(),
 }))
 
-vi.mock('../../../../../api/newsletter/email', () => ({
+vi.mock('@api/newsletter/email', () => ({
 	sendConfirmationEmail: vi.fn(),
 }))
 
-vi.mock('../../../../../api/shared/consent-log', () => ({
+vi.mock('@api/shared/consent-log', () => ({
 	recordConsent: vi.fn(),
 }))
 
-const { createPendingSubscription } = await import('../../../../api/newsletter/token')
-const { sendConfirmationEmail } = await import('../../../../api/newsletter/email')
-const { recordConsent } = await import('../../../../api/shared/consent-log')
+const tokenModule = await import('@api/newsletter/token')
+const emailModule = await import('@api/newsletter/email')
+const consentModule = await import('@api/shared/consent-log')
+
+const mockCreatePendingSubscription = tokenModule.createPendingSubscription as Mock
+const mockSendConfirmationEmail = emailModule.sendConfirmationEmail as Mock
+const mockRecordConsent = consentModule.recordConsent as Mock
 
 describe('Newsletter API - POST /api/newsletter', () => {
 	beforeEach(() => {
@@ -29,9 +33,9 @@ describe('Newsletter API - POST /api/newsletter', () => {
 		vi.spyOn(console, 'error').mockImplementation(() => {})
 		vi.spyOn(console, 'warn').mockImplementation(() => {})
 
-		vi.mocked(createPendingSubscription).mockResolvedValue('test-token-123')
-		vi.mocked(sendConfirmationEmail).mockResolvedValue(undefined)
-		vi.mocked(recordConsent).mockResolvedValue({
+		mockCreatePendingSubscription.mockResolvedValue('test-token-123')
+		mockSendConfirmationEmail.mockResolvedValue(undefined)
+		mockRecordConsent.mockResolvedValue({
 			id: 'test-consent-id',
 			email: 'test@example.com',
 			purposes: ['marketing'],
@@ -71,7 +75,7 @@ describe('Newsletter API - POST /api/newsletter', () => {
 		expect(data.requiresConfirmation).toBe(true)
 
 		// Verify mocks were called correctly
-		expect(recordConsent).toHaveBeenCalledWith(
+		expect(mockRecordConsent).toHaveBeenCalledWith(
 			expect.objectContaining({
 				email: 'test@example.com',
 				purposes: ['marketing'],
@@ -79,13 +83,13 @@ describe('Newsletter API - POST /api/newsletter', () => {
 				verified: false,
 			}),
 		)
-		expect(createPendingSubscription).toHaveBeenCalledWith(
+		expect(mockCreatePendingSubscription).toHaveBeenCalledWith(
 			expect.objectContaining({
 				email: 'test@example.com',
 				firstName: 'John',
 			}),
 		)
-		expect(sendConfirmationEmail).toHaveBeenCalledWith('test@example.com', 'test-token-123', 'John')
+		expect(mockSendConfirmationEmail).toHaveBeenCalledWith('test@example.com', 'test-token-123', 'John')
 	})
 
 	it('should reject subscription without email', async () => {
@@ -153,7 +157,7 @@ describe('Newsletter API - POST /api/newsletter', () => {
 
 		await POST({ request } as any)
 
-		expect(recordConsent).toHaveBeenCalledWith(
+		expect(mockRecordConsent).toHaveBeenCalledWith(
 			expect.objectContaining({
 				email: 'test@example.com',
 			}),
@@ -200,11 +204,11 @@ describe('Newsletter API - POST /api/newsletter', () => {
 
 		expect(response.status).toBe(200)
 		expect(data.success).toBe(true)
-		expect(sendConfirmationEmail).toHaveBeenCalledWith('test@example.com', 'test-token-123', undefined)
+		expect(mockSendConfirmationEmail).toHaveBeenCalledWith('test@example.com', 'test-token-123', undefined)
 	})
 
 	it('should handle service errors gracefully', async () => {
-		vi.mocked(createPendingSubscription).mockRejectedValue(new Error('Service unavailable'))
+		mockCreatePendingSubscription.mockRejectedValue(new Error('Service unavailable'))
 
 		const request = new Request('http://localhost/api/newsletter', {
 			method: 'POST',
