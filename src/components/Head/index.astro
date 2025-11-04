@@ -1,5 +1,4 @@
 ---
-import { ClientRouter } from 'astro:transitions'
 import Meta from '@components/Head/Meta.astro'
 
 export interface Props {
@@ -50,32 +49,21 @@ const {
   {...section && { section }}
   {...tags && { tags }}
 />
-{/* Set theme name on <html> element from storage early to prevent flash of  */}
-{/* unstyled content. IMPORTANT: This violates invariant rules and is intentional. */}
 <script is:inline>
-  const storedTheme = localStorage.getItem('theme')
-  // Only use stored theme if it's an explicit non-default choice
-  // If no stored theme or 'default', check system preference
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-  const theme = (storedTheme && storedTheme !== 'default')
-    ? storedTheme
-    : (prefersDark ? 'dark' : 'default')
-  document.documentElement.setAttribute('data-theme', theme)
-  document.documentElement.setAttribute('lang', 'en')
+  {/** Inline script to set theme name on <html> so that it runs first */}
+  import { setInitialTheme } from '@components/Scripts/theme'
+  setInitialTheme()
 </script>
 <script>
   {/* Be careful adding script here. It runs before any script tags in components. */}
   import { SentryBootstrap } from '@components/Scripts/sentry/client'
   import { PUBLIC_SENTRY_DSN } from 'astro:env/client'
-  import { AppBootstrap } from '@components/Scripts/state/bootstrap'
-
   if (import.meta.env.PROD && PUBLIC_SENTRY_DSN) {
     SentryBootstrap.init()
   } else {
     console.info('🔧 Sentry disabled in development mode')
   }
+
+  import { AppBootstrap } from '@components/Scripts/state/bootstrap'
   AppBootstrap.init()
 </script>
-{/* Client-side router for Astro pages (enables partial page reloads) */}
-{/* Must be placed at the end of the <head> to avoid blocking page rendering */}
-<ClientRouter />

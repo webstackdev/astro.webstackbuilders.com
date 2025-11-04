@@ -48,7 +48,7 @@ const {
 ---
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
   <head>
     <HeadContent
       pageTitle={pageTitle}
@@ -63,8 +63,9 @@ const {
       {...section && { section }}
       {...tags && { tags }}
     />
-    {/* Only enable View Transitions in production to avoid breaking e2e tests */}
-    {import.meta.env.PROD && <ClientRouter />}
+    {/* Client-side router for Astro pages (enables partial page reloads) */}
+    {/* Must be placed at the end of the <head> to avoid blocking page rendering */}
+    <ClientRouter />
   </head>
   <body>
     {/* Cookie Consent Overlay - Only persist in production mode */}
