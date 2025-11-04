@@ -11,6 +11,16 @@ jobs:
     name: Code Quality Check
     runs-on: ubuntu-latest
 
+    # Define environment variables once at the job level
+    # These will be available to ALL steps in this job
+    env:
+      CONVERTKIT_API_KEY: ${{ secrets.CONVERTKIT_API_KEY }}
+      CONVERTKIT_FORM_ID: ${{ secrets.CONVERTKIT_FORM_ID }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      PUBLIC_SENTRY_DSN: ${{ secrets.PUBLIC_SENTRY_DSN }}
+      WEBMENTION_IO_TOKEN: ${{ secrets.WEBMENTION_IO_TOKEN }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -22,7 +32,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: Run TypeScript check
         run: npm run check
