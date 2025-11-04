@@ -15,18 +15,18 @@ can be done like this, here with a different starting number:
 <code style="--start: 13;">...</code>
 */
 code {
-	counter-reset: step;
 	counter-increment: step calc(var(--start, 1) - 1);
+	counter-reset: step;
 }
 
 code .line::before {
+  color: rgb(115 138 148 / 40%);
   content: counter(step);
   counter-increment: step;
-  width: 1rem;
-  margin-right: 1.5rem;
   display: inline-block;
+  margin-right: 1.5rem;
   text-align: right;
-  color: rgba(115,138,148,.4)
+  width: 1rem
 }
 
 /* Query based dark mode */
@@ -37,7 +37,7 @@ code .line::before {
   }
 }
 
-@media (prefers-color-scheme: light), (prefers-color-scheme: no-preference) {
+@media (prefers-color-scheme: light) {
   .shiki-dark {
     display: none;
   }
