@@ -1,3 +1,4 @@
+/* eslint-disable jsdoc/no-multi-asterisks */
 /**
  * Type definitions for remark-abbr
  *

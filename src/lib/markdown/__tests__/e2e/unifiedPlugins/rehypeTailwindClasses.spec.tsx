@@ -6,8 +6,8 @@
  * utility classes to HTML elements for consistent styling.
  */
 
-import { describe, it, expect, beforeAll } from "vitest";
-import { renderMarkdown } from "../../../helpers/markdownLoader";
+import { describe, it, expect, beforeAll } from "vitest"
+import { renderMarkdown } from "../../../helpers/markdownLoader"
 
 let html: string
 

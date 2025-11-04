@@ -46,6 +46,7 @@ describe(`ClientScriptError has proper inheritance and props set`, () => {
   test(`Extended with constructor`, () => {
     class HttpError extends ClientScriptError {
       constructor(
+        /* eslint-disable-next-line no-unused-vars */
         public code: number,
         message?: string
       ) {

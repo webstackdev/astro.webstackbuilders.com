@@ -55,6 +55,12 @@ const getTagDisplayName = (tag: string) => {
 
 const displayName = getTagDisplayName(tag)
 const path = `/tags/${tag}/`
+
+// Type guard to check if image is an object with src/alt properties
+type ImageObject = { src: string; alt: string }
+const isImageObject = (img: unknown): img is ImageObject => {
+  return typeof img === 'object' && img !== null && 'src' in img && 'alt' in img
+}
 ---
 
 <BaseLayout pageTitle={`${displayName} - Tag`} path={path}>
@@ -89,12 +95,16 @@ const path = `/tags/${tag}/`
                         src={
                           typeof item.data.image === 'string'
                             ? item.data.image
-                            : (item.data.image as any)?.src || item.data.image
+                            : isImageObject(item.data.image)
+                              ? item.data.image.src
+                              : String(item.data.image)
                         }
                         alt={
                           typeof item.data.image === 'string'
                             ? item.data.title
-                            : (item.data.image as any)?.alt || item.data.title
+                            : isImageObject(item.data.image)
+                              ? item.data.image.alt
+                              : item.data.title
                         }
                         loading="lazy"
                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
@@ -140,7 +150,7 @@ const path = `/tags/${tag}/`
                       {/* Client or Author info */}
                       {'client' in item.data && item.data.client && (
                         <span class="inline-block text-sm font-medium text-[var(--color-primary)] bg-[var(--color-primary-bg)] px-3 py-1 rounded-full">
-                          Client: {(item.data as any).client}
+                          Client: {item.data.client}
                         </span>
                       )}
 

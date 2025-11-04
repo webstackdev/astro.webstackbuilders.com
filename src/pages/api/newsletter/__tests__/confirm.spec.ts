@@ -22,9 +22,9 @@ vi.mock('../../../../../api/newsletter/newsletter', () => ({
 	subscribeToConvertKit: vi.fn(),
 }))
 
-const { confirmSubscription } = await import('../../../../../api/newsletter/token')
-const { recordConsent } = await import('../../../../../api/shared/consent-log')
-const { sendWelcomeEmail } = await import('../../../../../api/newsletter/email')
+const { confirmSubscription } = await import('../../../../api/newsletter/token')
+const { recordConsent } = await import('../../../../api/shared/consent-log')
+const { sendWelcomeEmail } = await import('../../../../api/newsletter/email')
 
 describe('Newsletter Confirmation API - GET /api/newsletter/confirm', () => {
 	beforeEach(() => {

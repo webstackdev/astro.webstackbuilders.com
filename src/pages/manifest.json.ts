@@ -68,30 +68,31 @@ export function GET() {
      * share dialog, and the OS can launch the app to receive and process the data, such
      * as text, URLs, or files, as defined in the share_target property of the manifest.
      */
-    /**
-    //@TODO:
-    share_target: {
-      // URL for the web share target
-      action: '/share/',
-      method: 'GET', // or 'POST'
-      // Ignored with GET, encoding for POST data
-      enctype: 'application/x-www-form-urlencoded',
-      params: {
-        // Name of the query parameter to use for the title of the document being shared.
-        title: 'title',
-        // Name of the query parameter for the text (or body) of the message being shared.
-        text: 'text',
-        // Name of the query parameter for the URL to the resource being shared.
-        url: 'url',
-        // which files are accepted by the share target
-        files: {
-          // Name of the query parameter for the file being shared.
-          name: '',
-          // Accepted file types (MIME types or file extensions)
-          accept: ['image/*', 'video/*'],
-        }
+    /* eslint-disable jsdoc/no-bad-blocks */
+    /*
+      @TODO:
+      share_target: {
+        // URL for the web share target
+        action: '/share/',
+        method: 'GET', // or 'POST'
+        // Ignored with GET, encoding for POST data
+        enctype: 'application/x-www-form-urlencoded',
+        params: {
+          // Name of the query parameter to use for the title of the document being shared.
+          title: 'title',
+          // Name of the query parameter for the text (or body) of the message being shared.
+          text: 'text',
+          // Name of the query parameter for the URL to the resource being shared.
+          url: 'url',
+          // which files are accepted by the share target
+          files: {
+            // Name of the query parameter for the file being shared.
+            name: '',
+            // Accepted file types (MIME types or file extensions)
+            accept: ['image/*', 'video/*'],
+          }
+        },
       },
-    },
     */
   }
   /* eslint-enable camelcase */

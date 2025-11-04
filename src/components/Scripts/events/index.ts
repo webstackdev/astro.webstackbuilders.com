@@ -3,12 +3,14 @@
  * Allows scripts to broadcast state changes that other scripts can respond to
  */
 
+/* eslint-disable no-unused-vars */
 export enum ScriptEvent {
   /** Fired when an overlay/modal opens that should pause background animations */
   OVERLAY_OPENED = 'script:overlay-opened',
   /** Fired when an overlay/modal closes that should resume background animations */
   OVERLAY_CLOSED = 'script:overlay-closed',
 }
+/* eslint-enable no-unused-vars */
 
 /**
  * Dispatch a custom script event
@@ -28,7 +30,7 @@ export function dispatchScriptEvent(eventType: ScriptEvent, detail?: unknown): v
  */
 export function onScriptEvent(
   eventType: ScriptEvent,
-  handler: (event: CustomEvent) => void
+  handler: (_event: CustomEvent) => void
 ): () => void {
   const listener = (event: Event) => handler(event as CustomEvent)
   document.addEventListener(eventType, listener)

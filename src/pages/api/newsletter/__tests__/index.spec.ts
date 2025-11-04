@@ -17,9 +17,9 @@ vi.mock('../../../../../api/shared/consent-log', () => ({
 	recordConsent: vi.fn(),
 }))
 
-const { createPendingSubscription } = await import('../../../../../api/newsletter/token')
-const { sendConfirmationEmail } = await import('../../../../../api/newsletter/email')
-const { recordConsent } = await import('../../../../../api/shared/consent-log')
+const { createPendingSubscription } = await import('../../../../api/newsletter/token')
+const { sendConfirmationEmail } = await import('../../../../api/newsletter/email')
+const { recordConsent } = await import('../../../../api/shared/consent-log')
 
 describe('Newsletter API - POST /api/newsletter', () => {
 	beforeEach(() => {

@@ -22,7 +22,7 @@ vi.mock('../../../../../api/shared/consent-log', () => ({
 	recordConsent: vi.fn(),
 }))
 
-const { recordConsent } = await import('../../../../../api/shared/consent-log')
+const { recordConsent } = await import('../../../../api/shared/consent-log')
 
 describe('Contact API - POST /api/contact', () => {
 	beforeEach(() => {

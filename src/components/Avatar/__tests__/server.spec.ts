@@ -16,13 +16,9 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
  */
 
 describe('AvatarManager', () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let AvatarManager: any
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let getAvatarImage: any
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let avatarMap: any
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let getAvailableAvatars: any
 
   beforeEach(async () => {
@@ -252,7 +248,6 @@ describe('AvatarManager', () => {
 
       expect(() => {
         // Testing runtime immutability
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ;(allAvatars as any)['new-avatar'] = {
           src: '/test.jpg',
           width: 100,
@@ -268,7 +263,6 @@ describe('AvatarManager', () => {
 
       expect(() => {
         // Testing runtime immutability
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         delete (allAvatars as any)['kevin-brown']
       }).toThrow()
     })
@@ -279,7 +273,6 @@ describe('AvatarManager', () => {
 
       expect(() => {
         // Testing runtime immutability
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ;(allAvatars as any)['kevin-brown'].src = '/modified.jpg'
       }).toThrow()
     })
