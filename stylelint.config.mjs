@@ -1,7 +1,10 @@
 /** @type {import('stylelint').Config} */
 export default {
   extends: [
-    'stylelint-config-html',
+    /**
+     * Astro stylint official plugin still includes many
+     * deprecated styles that are erroring - November 2025
+     */
     'stylelint-config-standard'
   ],
   overrides: [
