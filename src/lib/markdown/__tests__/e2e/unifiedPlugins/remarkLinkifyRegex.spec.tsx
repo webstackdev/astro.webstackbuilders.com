@@ -6,8 +6,8 @@
  * URLs in text to clickable links.
  */
 
-import { describe, it, expect, beforeAll } from "vitest";
-import { renderMarkdown } from "../../../helpers/markdownLoader";
+import { describe, it, expect, beforeAll } from "vitest"
+import { renderMarkdown } from "../../../helpers/markdownLoader"
 
 let html: string
 

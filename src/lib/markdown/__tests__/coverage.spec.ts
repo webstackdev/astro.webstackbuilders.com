@@ -87,10 +87,8 @@ function buildPluginTestCases(pluginType: 'remark' | 'rehype') {
   const testCases: Array<{ pluginName: string; pluginNameKebab: string; isLocal: boolean }> = []
 
   for (let index = 0; index < plugins.length; index++) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const pluginEntry = plugins[index] as any
     const plugin = Array.isArray(pluginEntry) ? pluginEntry[0] : pluginEntry
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const pluginName = (plugin as any).name || `plugin-${index}`
     const pluginNameKebab = toKebabCase(pluginName)
     const isLocal = LOCAL_PLUGINS.has(pluginName)

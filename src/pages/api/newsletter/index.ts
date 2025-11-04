@@ -5,9 +5,9 @@
  * With Vercel adapter, this becomes a serverless function automatically
  */
 import type { APIRoute } from 'astro'
-import { createPendingSubscription } from '../../../../api/newsletter/token'
-import { sendConfirmationEmail } from '../../../../api/newsletter/email'
-import { recordConsent } from '../../../../api/shared/consent-log'
+import { createPendingSubscription } from 'src/api/newsletter/token'
+import { sendConfirmationEmail } from 'src/api/newsletter/email'
+import { recordConsent } from 'src/api/shared/consent-log'
 
 export const prerender = false // Force SSR for this endpoint
 
@@ -108,9 +108,11 @@ export async function subscribeToConvertKit(
       subscriber: {
         id: 999999,
         state: 'active',
+        /* eslint-disable camelcase */
         email_address: data.email,
         first_name: data.firstName || null,
         created_at: new Date().toISOString(),
+        /* eslint-enable camelcase */
         fields: {},
       },
     }

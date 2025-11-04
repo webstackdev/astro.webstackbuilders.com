@@ -11,7 +11,6 @@ import { $embedCache, updateConsent, clearEmbedCache } from '@components/Scripts
  */
 
 describe('EmbedManager', () => {
-  /* eslint-disable @typescript-eslint/no-explicit-any */
   let mockIntersectionObserver: any
 
   beforeEach(() => {
@@ -51,7 +50,6 @@ describe('EmbedManager', () => {
       }
     })
     global.IntersectionObserver = mockIntersectionObserver
-    /* eslint-enable @typescript-eslint/no-explicit-any */
 
     // Mock fetch
     global.fetch = vi.fn()

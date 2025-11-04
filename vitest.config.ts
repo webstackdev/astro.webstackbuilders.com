@@ -12,6 +12,7 @@ export default getViteConfig({
   },
   resolve: {
     alias: {
+      '@api': resolve(__dirname, './src/api'),
       '@assets': resolve(__dirname, './src/assets'),
       '@components': resolve(__dirname, './src/components'),
       '@content': resolve(__dirname, './src/content'),

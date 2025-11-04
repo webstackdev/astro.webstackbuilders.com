@@ -17,11 +17,11 @@ import {
 import { callToActionValidator } from './src/integrations/CtaValidator/call-to-action-validator'
 import { serializeSitemapItem, writePagesJson } from './src/lib/config/sitemap-serialize'
 
-// Type guard for required environment variables (only in CI)
-const IS_CI = process.env['CI'] === 'true'
+// Type guard for required environment variables (only in Vercel)
+const IS_VERCEL = process.env['VERCEL']
 const SENTRY_AUTH_TOKEN = process.env['SENTRY_AUTH_TOKEN']
-if (IS_CI && !SENTRY_AUTH_TOKEN) {
-  throw new Error('SENTRY_AUTH_TOKEN environment variable is required in CI but not set')
+if (IS_VERCEL && !SENTRY_AUTH_TOKEN) {
+  throw new Error('SENTRY_AUTH_TOKEN environment variable is required in Vercel but not set')
 }
 
 export default defineConfig({
@@ -38,11 +38,11 @@ export default defineConfig({
     callToActionValidator({
       debug: true // Enable debug logging to see validation details
     }),
-    // Only include Sentry integration in CI environments
-    ...(IS_CI && SENTRY_AUTH_TOKEN ? [sentry({
+    // Only include Sentry integration in Vercel environments
+    ...(IS_VERCEL ? [sentry({
       project: "webstack-builders-corporate-website",
       org: "webstack-builders",
-      authToken: SENTRY_AUTH_TOKEN,
+      authToken: SENTRY_AUTH_TOKEN!, // Non-null assertion safe due to check above
     })] : []),
     sitemap({
       lastmod: new Date(),

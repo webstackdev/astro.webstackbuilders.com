@@ -6,8 +6,6 @@ vi.mock('../selectors')
 
 import { getHireMeAnchorElement } from '../selectors'
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 // No MockDate needed, using fake timers for Date
 
 describe('Footer', () => {

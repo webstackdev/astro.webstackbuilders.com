@@ -1,7 +1,7 @@
 /**
  * Unit tests for contact form API endpoint
  */
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest'
 import { POST, OPTIONS } from '../index'
 
 // Mock Resend before importing the module
@@ -18,17 +18,18 @@ vi.mock('resend', () => {
 })
 
 // Mock dependencies
-vi.mock('../../../../../api/shared/consent-log', () => ({
+vi.mock('@api/shared/consent-log', () => ({
 	recordConsent: vi.fn(),
 }))
 
-const { recordConsent } = await import('../../../../../api/shared/consent-log')
+const consentModule = await import('@api/shared/consent-log')
+const mockRecordConsent = consentModule.recordConsent as Mock
 
 describe('Contact API - POST /api/contact', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
 		mockSend.mockResolvedValue({ data: { id: 'test-email-id' } })
-		vi.mocked(recordConsent).mockResolvedValue({
+		mockRecordConsent.mockResolvedValue({
 			id: 'test-consent-id',
 			email: 'test@example.com',
 			purposes: ['contact'],
@@ -293,7 +294,7 @@ describe('Contact API - POST /api/contact', () => {
 
 		await POST({ request } as any)
 
-		expect(recordConsent).toHaveBeenCalledWith(
+		expect(mockRecordConsent).toHaveBeenCalledWith(
 			expect.objectContaining({
 				email: 'test@example.com',
 				purposes: ['contact'],
@@ -319,7 +320,7 @@ describe('Contact API - POST /api/contact', () => {
 
 		await POST({ request } as any)
 
-		expect(recordConsent).not.toHaveBeenCalled()
+		expect(mockRecordConsent).not.toHaveBeenCalled()
 	})
 })
 

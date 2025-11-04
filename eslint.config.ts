@@ -7,7 +7,7 @@ import ymlPlugin from "eslint-plugin-yml"
 import tsPlugin from "typescript-eslint"
 import restrictedGlobals from "confusing-browser-globals"
 
-const level = process.env["NODE_ENV"] === "production" ? "error" : "warn"
+const level = "error"
 
 export default [
   eslint.configs.recommended,
@@ -99,6 +99,7 @@ export default [
       'jsdoc/no-bad-blocks': level,
       'jsdoc/no-defaults': level,
       'jsdoc/no-types': 'off',
+      'jsdoc/require-jsdoc': 'off',
       'jsdoc/tag-lines': 'off',
       'jsdoc/require-param': 'off',
       'jsdoc/require-param-type': 'off',
@@ -118,6 +119,13 @@ export default [
       'security/detect-object-injection': 'off',
       'security/detect-unsafe-regex': 'off',
       semi: ['error', 'never'],
-    }
-  }
+    },
+  },
+  {
+    files: ['**/*.spec.ts'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/consistent-type-assertions': 'off',
+    },
+  },
 ]

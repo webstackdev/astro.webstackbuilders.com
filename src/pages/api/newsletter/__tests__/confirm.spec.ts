@@ -1,30 +1,34 @@
 /**
  * Unit tests for newsletter confirmation API endpoint
  */
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest'
 import type { APIContext } from 'astro'
 import { GET } from '../confirm'
 
 // Mock dependencies
-vi.mock('../../../../../api/newsletter/token', () => ({
+vi.mock('@api/newsletter/token', () => ({
 	confirmSubscription: vi.fn(),
 }))
 
-vi.mock('../../../../../api/shared/consent-log', () => ({
+vi.mock('@api/shared/consent-log', () => ({
 	recordConsent: vi.fn(),
 }))
 
-vi.mock('../../../../../api/newsletter/email', () => ({
+vi.mock('@api/newsletter/email', () => ({
 	sendWelcomeEmail: vi.fn(),
 }))
 
-vi.mock('../../../../../api/newsletter/newsletter', () => ({
+vi.mock('@api/newsletter/newsletter', () => ({
 	subscribeToConvertKit: vi.fn(),
 }))
 
-const { confirmSubscription } = await import('../../../../../api/newsletter/token')
-const { recordConsent } = await import('../../../../../api/shared/consent-log')
-const { sendWelcomeEmail } = await import('../../../../../api/newsletter/email')
+const tokenModule = await import('@api/newsletter/token')
+const consentModule = await import('@api/shared/consent-log')
+const emailModule = await import('@api/newsletter/email')
+
+const mockConfirmSubscription = tokenModule.confirmSubscription as Mock
+const mockRecordConsent = consentModule.recordConsent as Mock
+const mockSendWelcomeEmail = emailModule.sendWelcomeEmail as Mock
 
 describe('Newsletter Confirmation API - GET /api/newsletter/confirm', () => {
 	beforeEach(() => {
@@ -34,7 +38,7 @@ describe('Newsletter Confirmation API - GET /api/newsletter/confirm', () => {
 		vi.spyOn(console, 'error').mockImplementation(() => {})
 		vi.spyOn(console, 'warn').mockImplementation(() => {})
 
-		vi.mocked(recordConsent).mockResolvedValue({
+		mockRecordConsent.mockResolvedValue({
 			id: 'test-consent-id',
 			email: 'test@example.com',
 			purposes: ['marketing'],
@@ -44,7 +48,7 @@ describe('Newsletter Confirmation API - GET /api/newsletter/confirm', () => {
 			privacyPolicyVersion: '2025-10-20',
 			verified: true,
 		})
-		vi.mocked(sendWelcomeEmail).mockResolvedValue(undefined)
+		mockSendWelcomeEmail.mockResolvedValue(undefined)
 	})
 
 	afterEach(() => {
@@ -65,7 +69,7 @@ describe('Newsletter Confirmation API - GET /api/newsletter/confirm', () => {
 			source: 'newsletter_form' as const,
 		}
 
-		vi.mocked(confirmSubscription).mockResolvedValue(mockSubscription)
+		mockConfirmSubscription.mockResolvedValue(mockSubscription)
 
 		const url = new URL('http://localhost/api/newsletter/confirm?token=valid-token-123')
 		const response = await GET({ url } as Partial<APIContext> as APIContext)
@@ -78,7 +82,7 @@ describe('Newsletter Confirmation API - GET /api/newsletter/confirm', () => {
 		expect(data.message).toContain('confirmed')
 
 		// Verify consent was recorded as verified
-		expect(recordConsent).toHaveBeenCalledWith(
+		expect(mockRecordConsent).toHaveBeenCalledWith(
 			expect.objectContaining({
 				email: 'test@example.com',
 				purposes: ['marketing'],
@@ -88,7 +92,7 @@ describe('Newsletter Confirmation API - GET /api/newsletter/confirm', () => {
 		)
 
 		// Verify welcome email was sent
-		expect(sendWelcomeEmail).toHaveBeenCalledWith('test@example.com', 'John')
+		expect(mockSendWelcomeEmail).toHaveBeenCalledWith('test@example.com', 'John')
 	})
 
 	it('should reject request without token', async () => {
@@ -103,7 +107,7 @@ describe('Newsletter Confirmation API - GET /api/newsletter/confirm', () => {
 	})
 
 	it('should handle expired or invalid token', async () => {
-		vi.mocked(confirmSubscription).mockResolvedValue(null)
+		mockConfirmSubscription.mockResolvedValue(null)
 
 		const url = new URL('http://localhost/api/newsletter/confirm?token=expired-token')
 		const response = await GET({ url } as Partial<APIContext> as APIContext)
@@ -127,7 +131,7 @@ describe('Newsletter Confirmation API - GET /api/newsletter/confirm', () => {
 			source: 'newsletter_form' as const,
 		}
 
-		vi.mocked(confirmSubscription).mockResolvedValue(mockSubscription)
+		mockConfirmSubscription.mockResolvedValue(mockSubscription)
 
 		const url = new URL('http://localhost/api/newsletter/confirm?token=valid-token-123')
 		const response = await GET({ url } as Partial<APIContext> as APIContext)
@@ -135,7 +139,7 @@ describe('Newsletter Confirmation API - GET /api/newsletter/confirm', () => {
 
 		expect(response.status).toBe(200)
 		expect(data.success).toBe(true)
-		expect(sendWelcomeEmail).toHaveBeenCalledWith('test@example.com', undefined)
+		expect(mockSendWelcomeEmail).toHaveBeenCalledWith('test@example.com', undefined)
 	})
 
 	it('should handle subscription without ipAddress', async () => {
@@ -151,20 +155,20 @@ describe('Newsletter Confirmation API - GET /api/newsletter/confirm', () => {
 			source: 'newsletter_form' as const,
 		}
 
-		vi.mocked(confirmSubscription).mockResolvedValue(mockSubscription)
+		mockConfirmSubscription.mockResolvedValue(mockSubscription)
 
 		const url = new URL('http://localhost/api/newsletter/confirm?token=valid-token-123')
 		const response = await GET({ url } as Partial<APIContext> as APIContext)
 
 		expect(response.status).toBe(200)
-		expect(recordConsent).toHaveBeenCalledWith(
+		expect(mockRecordConsent).toHaveBeenCalledWith(
 			expect.objectContaining({
 				email: 'test@example.com',
 				verified: true,
 			}),
 		)
 		// Should not have ipAddress in the call
-		expect(recordConsent).toHaveBeenCalledWith(
+		expect(mockRecordConsent).toHaveBeenCalledWith(
 			expect.not.objectContaining({
 				ipAddress: expect.anything(),
 			}),
@@ -184,8 +188,8 @@ describe('Newsletter Confirmation API - GET /api/newsletter/confirm', () => {
 			source: 'newsletter_form' as const,
 		}
 
-		vi.mocked(confirmSubscription).mockResolvedValue(mockSubscription)
-		vi.mocked(sendWelcomeEmail).mockRejectedValue(new Error('Email service down'))
+		mockConfirmSubscription.mockResolvedValue(mockSubscription)
+		mockSendWelcomeEmail.mockRejectedValue(new Error('Email service down'))
 
 		const url = new URL('http://localhost/api/newsletter/confirm?token=valid-token-123')
 		const response = await GET({ url } as Partial<APIContext> as APIContext)
@@ -197,7 +201,7 @@ describe('Newsletter Confirmation API - GET /api/newsletter/confirm', () => {
 	})
 
 	it('should handle confirmation service errors', async () => {
-		vi.mocked(confirmSubscription).mockRejectedValue(new Error('Database error'))
+		mockConfirmSubscription.mockRejectedValue(new Error('Database error'))
 
 		const url = new URL('http://localhost/api/newsletter/confirm?token=valid-token-123')
 		const response = await GET({ url } as Partial<APIContext> as APIContext)

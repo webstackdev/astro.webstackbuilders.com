@@ -8,16 +8,16 @@
 }
 
 /* Grid areas for responsive layout */
-@media (min-width: 640px) {
+@media (width >= 640px) {
   .footer-grid {
     display: grid;
     gap: 0.5rem 1rem;
-    grid-template-columns: 1fr 1fr;
     grid-template-areas:
       "contact social"
       "contact channels"
       "bottom-row bottom-row"
       "copyright copyright";
+    grid-template-columns: 1fr 1fr;
   }
 
   .footer-contact { grid-area: contact; }
@@ -26,19 +26,15 @@
   .footer-copyright { grid-area: copyright; }
 }
 
-@media (min-width: 1024px) {
+@media (width >= 1024px) {
   .footer-grid {
-    grid-template-columns: 2fr 1fr 1fr;
-    grid-template-rows: 2rem auto auto;
-    grid-template-areas:
-      "hire-me social bottom-row"
-      "contact social bottom-row"
-      "copyright copyright copyright";
+    grid-template:
+      "hire-me social bottom-row" 2rem "contact social bottom-row" auto "copyright copyright copyright" auto / 2fr 1fr 1fr;
   }
 
   .footer-hire-me {
-    grid-area: hire-me;
     align-self: end;
+    grid-area: hire-me;
     margin-top: 2rem;
   }
 
