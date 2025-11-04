@@ -18,7 +18,6 @@ import { callToActionValidator } from './src/integrations/CtaValidator/call-to-a
 import { serializeSitemapItem, writePagesJson } from './src/lib/config/sitemap-serialize'
 
 // Check for Sentry auth token (optional - Sentry will be skipped if not available)
-const IS_CI = process.env['CI'] === 'true'
 const SENTRY_AUTH_TOKEN = process.env['SENTRY_AUTH_TOKEN']
 
 export default defineConfig({
