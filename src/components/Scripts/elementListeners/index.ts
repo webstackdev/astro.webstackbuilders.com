@@ -1,21 +1,23 @@
 /**
  * Element event listeners utility
  * Provides standardized event listener attachment with accessibility support
+ * Supports both regular functions and web component methods with 'this' context
  */
-type eventHandler = (_event: Event) => void
 
-const getClickEventListener = (handler: eventHandler) => {
+type eventHandler = (this: unknown, _event: Event) => void
+
+const getClickEventListener = (handler: eventHandler, context?: unknown) => {
   /**
    * Click event listener wrapper
    * @param event - Mouse event
    */
   function clickListener(event: MouseEvent) {
-    if (event.type === `click`) handler(event)
+    if (event.type === `click`) handler.call(context, event)
   }
   return clickListener
 }
 
-const getEnterKeyEventListener = (handler: eventHandler) => {
+const getEnterKeyEventListener = (handler: eventHandler, context?: unknown) => {
   /**
    * Enter key event listener wrapper
    * @param event - Keyboard event
@@ -28,23 +30,23 @@ const getEnterKeyEventListener = (handler: eventHandler) => {
      * `keydown` event and a key being held down.
      */
     if (event.isComposing || event.repeat) return
-    if (event.key === `Enter`) handler(event)
+    if (event.key === `Enter`) handler.call(context, event)
   }
   return keypressListener
 }
 
-const getTouchendEventListener = (handler: eventHandler) => {
+const getTouchendEventListener = (handler: eventHandler, context?: unknown) => {
   /**
    * Touch end event listener wrapper
    * @param event - Touch event
    */
   function touchendEventHandler(event: TouchEvent) {
-    if (event.type === `touchend`) handler(event)
+    if (event.type === `touchend`) handler.call(context, event)
   }
   return touchendEventHandler
 }
 
-const getEscapeKeyEventListener = (handler: eventHandler) => {
+const getEscapeKeyEventListener = (handler: eventHandler, context?: unknown) => {
   /**
    * Escape key event listener wrapper
    * @param event - Keyboard event
@@ -57,25 +59,37 @@ const getEscapeKeyEventListener = (handler: eventHandler) => {
      * `keydown` event and a key being held down.
      */
     if (event.isComposing || event.repeat) return
-    if (event.key === `Escape`) handler(event)
+    if (event.key === `Escape`) handler.call(context, event)
   }
   return keypressListener
 }
 
-export const addButtonEventListeners = (element: HTMLButtonElement, handler: eventHandler) => {
-  element.addEventListener(`click`, getClickEventListener(handler))
-  element.addEventListener(`keyup`, getEnterKeyEventListener(handler))
-  element.addEventListener(`touchend`, getTouchendEventListener(handler))
+export const addButtonEventListeners = (
+  element: HTMLButtonElement,
+  handler: eventHandler,
+  context?: unknown,
+) => {
+  element.addEventListener(`click`, getClickEventListener(handler, context))
+  element.addEventListener(`keyup`, getEnterKeyEventListener(handler, context))
+  element.addEventListener(`touchend`, getTouchendEventListener(handler, context))
 }
 
-export const addLinkEventListeners = (element: HTMLAnchorElement, handler: eventHandler) => {
-  element.addEventListener(`click`, getClickEventListener(handler))
-  element.addEventListener(`keyup`, getEnterKeyEventListener(handler))
-  element.addEventListener(`touchend`, getTouchendEventListener(handler))
+export const addLinkEventListeners = (
+  element: HTMLAnchorElement,
+  handler: eventHandler,
+  context?: unknown,
+) => {
+  element.addEventListener(`click`, getClickEventListener(handler, context))
+  element.addEventListener(`keyup`, getEnterKeyEventListener(handler, context))
+  element.addEventListener(`touchend`, getTouchendEventListener(handler, context))
 }
 
-export const addWrapperEventListeners = (element: HTMLDivElement, handler: eventHandler) => {
-  element.addEventListener(`keyup`, getEscapeKeyEventListener(handler))
+export const addWrapperEventListeners = (
+  element: HTMLDivElement,
+  handler: eventHandler,
+  context?: unknown,
+) => {
+  element.addEventListener(`keyup`, getEscapeKeyEventListener(handler, context))
 }
 
 // Export the type for external use

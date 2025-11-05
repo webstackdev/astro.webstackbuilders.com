@@ -6,6 +6,7 @@ import securityPlugin from "eslint-plugin-security"
 import ymlPlugin from "eslint-plugin-yml"
 import tsPlugin from "typescript-eslint"
 import restrictedGlobals from "confusing-browser-globals"
+import enforceCentralizedEventsRule from "./test/eslint/enforce-centralized-events-rule.ts"
 
 const level = "error"
 
@@ -19,6 +20,13 @@ export default [
   securityPlugin.configs.recommended,
   ...ymlPlugin.configs['flat/recommended'],
   {
+    plugins: {
+      'custom-rules': {
+        rules: {
+          'enforce-centralized-events': enforceCentralizedEventsRule,
+        },
+      },
+    },
     settings: {
       'import/resolver': {
         typescript: {
@@ -37,6 +45,10 @@ export default [
     },
     rules: {
       /**
+       * Custom ESLint rules
+       */
+      'custom-rules/enforce-centralized-events': 'error',
+      /**
        * Common rule settings for all linted files
        */
       '@typescript-eslint/ban-ts-comment': 'off',
@@ -53,7 +65,7 @@ export default [
       '@typescript-eslint/no-unsafe-return': 'off',
       '@typescript-eslint/no-unused-vars': [
         level,
-        { varsIgnorePattern: '^_', argsIgnorePattern: '^_' },
+        { varsIgnorePattern: '^_', argsIgnorePattern: '^_|^this$' },
       ],
       '@typescript-eslint/no-var-requires': level,
       '@typescript-eslint/no-unnecessary-type-assertion': 'off',
@@ -110,7 +122,7 @@ export default [
       'no-new': level,
       'no-restricted-globals': ['error'].concat(restrictedGlobals),
       'no-unused-expressions': [level, { allowShortCircuit: true, allowTernary: true }],
-      'no-unused-vars': [level, { varsIgnorePattern: '^_', argsIgnorePattern: '^_' }],
+      'no-unused-vars': [level, { varsIgnorePattern: '^_', argsIgnorePattern: '^_|^this$' }],
       'no-useless-escape': 'off',
       'prefer-arrow-callback': 'off',
       'prefer-object-spread': level,
@@ -126,6 +138,12 @@ export default [
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/consistent-type-assertions': 'off',
+    },
+  },
+  {
+    files: ['src/components/Scripts/elementListeners/index.ts'],
+    rules: {
+      'custom-rules/enforce-centralized-events': 'off',
     },
   },
 ]
