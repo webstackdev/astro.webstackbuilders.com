@@ -3,7 +3,7 @@
  * Manages form validation, submission, and UI state changes
  */
 
-import { LoadableScript, type TriggerEvent } from '../../Scripts/loader/@types/loader'
+import { LoadableScript, type TriggerEvent } from '@components/Scripts/loader/@types/loader'
 import { ClientScriptError } from '@components/Scripts/errors/ClientScriptError'
 import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
 

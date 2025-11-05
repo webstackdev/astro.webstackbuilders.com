@@ -4,6 +4,7 @@ import { handleScriptError } from '../errors/handler'
  * Set theme name on <html> element from storage
  * early to prevent flash of unstyled content.
  */
+// @TODO: This will give a flash of the incorrect theme. The theme selector set on <html> will show before this script has a chance to run. Also, the theme is being changed to "default" somewhere which selects for nothing in the current setup.
 export const setInitialTheme = () => {
   /** 1. If there is a stored theme in localstorage, it takes priority */
   let themeSet = false

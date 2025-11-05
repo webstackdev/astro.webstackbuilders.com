@@ -5,6 +5,7 @@ import vercelStatic from '@astrojs/vercel'
 import sentry from "@sentry/astro"
 import tailwindcss from '@tailwindcss/vite'
 import AstroPWA from '@vite-pwa/astro'
+import vtbot from 'astro-vtbot'
 import icon from 'astro-icon'
 import { defineConfig } from 'astro/config'
 import {
@@ -57,6 +58,8 @@ export default defineConfig({
         },
       },
     },
+    // Debugging tools for Astro View Transition API
+    vtbot(),
   ],
   output: 'static', // Most pages are static; API routes will be marked for SSR
   prefetch: true,
