@@ -2,6 +2,7 @@
  * Unit tests for the enforce-centralized-events ESLint rule
  */
 
+import { describe, it } from 'vitest'
 import { RuleTester } from 'eslint'
 import enforceCentralizedEventsRule from '../enforce-centralized-events-rule.js'
 
@@ -12,269 +13,273 @@ const ruleTester = new RuleTester({
   },
 })
 
-ruleTester.run('enforce-centralized-events', enforceCentralizedEventsRule, {
-  valid: [
-    // ========================================
-    // Valid: Using centralized utilities
-    // ========================================
-    {
-      code: `
+describe('enforce-centralized-events', () => {
+  it('should pass all valid test cases', () => {
+    ruleTester.run('enforce-centralized-events', enforceCentralizedEventsRule, {
+      valid: [
+        // ========================================
+        // Valid: Using centralized utilities
+        // ========================================
+        {
+          code: `
         import { addButtonEventListeners } from './elementListeners';
         const button = document.querySelector('button');
         addButtonEventListeners(button, handleClick);
       `,
-      filename: 'src/components/SomeComponent/index.ts',
-    },
-    {
-      code: `
+          filename: 'src/components/SomeComponent/index.ts',
+        },
+        {
+          code: `
         import { addLinkEventListeners } from './elementListeners';
         const link = document.querySelector('a');
         addLinkEventListeners(link, handleClick);
       `,
-      filename: 'src/components/SomeComponent/index.ts',
-    },
-    {
-      code: `
+          filename: 'src/components/SomeComponent/index.ts',
+        },
+        {
+          code: `
         import { addWrapperEventListeners } from './elementListeners';
         const wrapper = document.querySelector('div');
         addWrapperEventListeners(wrapper, handleEscape);
       `,
-      filename: 'src/components/SomeComponent/index.ts',
-    },
+          filename: 'src/components/SomeComponent/index.ts',
+        },
 
-    // ========================================
-    // Valid: Inside the centralized handler file itself
-    // ========================================
-    {
-      code: `
+        // ========================================
+        // Valid: Inside the centralized handler file itself
+        // ========================================
+        {
+          code: `
         element.addEventListener('click', clickHandler);
         element.addEventListener('keyup', keyupHandler);
         element.addEventListener('touchend', touchendHandler);
       `,
-      filename: 'src/components/Scripts/elementListeners/index.ts',
-    },
+          filename: 'src/components/Scripts/elementListeners/index.ts',
+        },
 
-    // ========================================
-    // Valid: Non-restricted events
-    // ========================================
-    {
-      code: `
+        // ========================================
+        // Valid: Non-restricted events
+        // ========================================
+        {
+          code: `
         element.addEventListener('focus', handleFocus);
         element.addEventListener('blur', handleBlur);
         element.addEventListener('scroll', handleScroll);
         element.addEventListener('resize', handleResize);
         element.addEventListener('load', handleLoad);
       `,
-      filename: 'src/components/SomeComponent/index.ts',
-    },
+          filename: 'src/components/SomeComponent/index.ts',
+        },
 
-    // ========================================
-    // Valid: Variable event names (can't be checked statically)
-    // ========================================
-    {
-      code: `
+        // ========================================
+        // Valid: Variable event names (can't be checked statically)
+        // ========================================
+        {
+          code: `
         const eventType = 'click';
         element.addEventListener(eventType, handler);
       `,
-      filename: 'src/components/SomeComponent/index.ts',
-    },
-  ],
+          filename: 'src/components/SomeComponent/index.ts',
+        },
+      ],
 
-  invalid: [
-    // ========================================
-    // Invalid: Direct click event listener
-    // ========================================
-    {
-      code: `
+      invalid: [
+        // ========================================
+        // Invalid: Direct click event listener
+        // ========================================
+        {
+          code: `
         button.addEventListener('click', handleClick);
       `,
-      filename: 'src/components/SomeComponent/index.ts',
-      errors: [
-        {
-          messageId: 'useCentralizedUtility',
-          data: {
-            utility: 'addButtonEventListeners or addLinkEventListeners',
-            description: 'click events',
-            features: 'click, keyup Enter, and touchend support',
-          },
+          filename: 'src/components/SomeComponent/index.ts',
+          errors: [
+            {
+              messageId: 'useCentralizedUtility',
+              data: {
+                utility: 'addButtonEventListeners or addLinkEventListeners',
+                description: 'click events',
+                features: 'click, keyup Enter, and touchend support',
+              },
+            },
+          ],
         },
-      ],
-    },
 
-    // ========================================
-    // Invalid: Direct keyup event listener
-    // ========================================
-    {
-      code: `
+        // ========================================
+        // Invalid: Direct keyup event listener
+        // ========================================
+        {
+          code: `
         button.addEventListener('keyup', handleKeyup);
       `,
-      filename: 'src/components/SomeComponent/index.ts',
-      errors: [
-        {
-          messageId: 'useCentralizedUtility',
-          data: {
-            utility:
-              'addButtonEventListeners, addLinkEventListeners, or addWrapperEventListeners',
-            description: 'keyup events (Enter/Escape)',
-            features: 'isComposing check, repeat prevention, Enter/Escape key handling',
-          },
+          filename: 'src/components/SomeComponent/index.ts',
+          errors: [
+            {
+              messageId: 'useCentralizedUtility',
+              data: {
+                utility:
+                  'addButtonEventListeners, addLinkEventListeners, or addWrapperEventListeners',
+                description: 'keyup events (Enter/Escape)',
+                features: 'isComposing check, repeat prevention, Enter/Escape key handling',
+              },
+            },
+          ],
         },
-      ],
-    },
 
-    // ========================================
-    // Invalid: Direct touchend event listener
-    // ========================================
-    {
-      code: `
+        // ========================================
+        // Invalid: Direct touchend event listener
+        // ========================================
+        {
+          code: `
         button.addEventListener('touchend', handleTouch);
       `,
-      filename: 'src/components/SomeComponent/index.ts',
-      errors: [
-        {
-          messageId: 'useCentralizedUtility',
-          data: {
-            utility: 'addButtonEventListeners or addLinkEventListeners',
-            description: 'touchend events',
-            features: 'click, keyup Enter, and touchend support',
-          },
+          filename: 'src/components/SomeComponent/index.ts',
+          errors: [
+            {
+              messageId: 'useCentralizedUtility',
+              data: {
+                utility: 'addButtonEventListeners or addLinkEventListeners',
+                description: 'touchend events',
+                features: 'click, keyup Enter, and touchend support',
+              },
+            },
+          ],
         },
-      ],
-    },
 
-    // ========================================
-    // Invalid: keydown instead of keyup
-    // ========================================
-    {
-      code: `
+        // ========================================
+        // Invalid: keydown instead of keyup
+        // ========================================
+        {
+          code: `
         button.addEventListener('keydown', handleKeydown);
       `,
-      filename: 'src/components/SomeComponent/index.ts',
-      errors: [
-        {
-          messageId: 'useCentralizedUtility',
-          data: {
-            utility: 'keyup with addButtonEventListeners or addWrapperEventListeners',
-            description: 'keyboard events (use keyup instead of keydown for better accessibility)',
-            features: 'isComposing check, repeat prevention, Enter/Escape key handling',
-          },
+          filename: 'src/components/SomeComponent/index.ts',
+          errors: [
+            {
+              messageId: 'useCentralizedUtility',
+              data: {
+                utility: 'keyup with addButtonEventListeners or addWrapperEventListeners',
+                description:
+                  'keyboard events (use keyup instead of keydown for better accessibility)',
+                features: 'isComposing check, repeat prevention, Enter/Escape key handling',
+              },
+            },
+          ],
         },
-      ],
-    },
 
-    // ========================================
-    // Invalid: deprecated keypress event
-    // ========================================
-    {
-      code: `
+        // ========================================
+        // Invalid: deprecated keypress event
+        // ========================================
+        {
+          code: `
         button.addEventListener('keypress', handleKeypress);
       `,
-      filename: 'src/components/SomeComponent/index.ts',
-      errors: [
-        {
-          messageId: 'useCentralizedUtility',
-          data: {
-            utility: 'keyup with addButtonEventListeners or addWrapperEventListeners',
-            description: 'keyboard events (use keyup instead of deprecated keypress)',
-            features: 'isComposing check, repeat prevention, Enter/Escape key handling',
-          },
+          filename: 'src/components/SomeComponent/index.ts',
+          errors: [
+            {
+              messageId: 'useCentralizedUtility',
+              data: {
+                utility: 'keyup with addButtonEventListeners or addWrapperEventListeners',
+                description: 'keyboard events (use keyup instead of deprecated keypress)',
+                features: 'isComposing check, repeat prevention, Enter/Escape key handling',
+              },
+            },
+          ],
         },
-      ],
-    },
 
-    // ========================================
-    // Invalid: Web component context
-    // ========================================
-    {
-      code: `
+        // ========================================
+        // Invalid: Web component context
+        // ========================================
+        {
+          code: `
         class MyComponent extends HTMLElement {
           connectedCallback() {
             this.addEventListener('click', this.handleClick);
           }
         }
       `,
-      filename: 'src/components/MyComponent/index.ts',
-      errors: [
-        {
-          messageId: 'webComponentException',
-          data: {
-            utility: 'addButtonEventListeners or addLinkEventListeners',
-            description: 'click events',
-            features: 'click, keyup Enter, and touchend support',
-          },
+          filename: 'src/components/MyComponent/index.ts',
+          errors: [
+            {
+              messageId: 'webComponentException',
+              data: {
+                utility: 'addButtonEventListeners or addLinkEventListeners',
+                description: 'click events',
+                features: 'click, keyup Enter, and touchend support',
+              },
+            },
+          ],
         },
-      ],
-    },
 
-    // ========================================
-    // Invalid: Multiple violations in one file
-    // ========================================
-    {
-      code: `
+        // ========================================
+        // Invalid: Multiple violations in one file
+        // ========================================
+        {
+          code: `
         button.addEventListener('click', handleClick);
         button.addEventListener('keyup', handleKeyup);
         button.addEventListener('touchend', handleTouch);
       `,
-      filename: 'src/components/SomeComponent/index.ts',
-      errors: [
-        {
-          messageId: 'useCentralizedUtility',
-          data: {
-            utility: 'addButtonEventListeners or addLinkEventListeners',
-            description: 'click events',
-            features: 'click, keyup Enter, and touchend support',
-          },
+          filename: 'src/components/SomeComponent/index.ts',
+          errors: [
+            {
+              messageId: 'useCentralizedUtility',
+              data: {
+                utility: 'addButtonEventListeners or addLinkEventListeners',
+                description: 'click events',
+                features: 'click, keyup Enter, and touchend support',
+              },
+            },
+            {
+              messageId: 'useCentralizedUtility',
+              data: {
+                utility:
+                  'addButtonEventListeners, addLinkEventListeners, or addWrapperEventListeners',
+                description: 'keyup events (Enter/Escape)',
+                features: 'isComposing check, repeat prevention, Enter/Escape key handling',
+              },
+            },
+            {
+              messageId: 'useCentralizedUtility',
+              data: {
+                utility: 'addButtonEventListeners or addLinkEventListeners',
+                description: 'touchend events',
+                features: 'click, keyup Enter, and touchend support',
+              },
+            },
+          ],
         },
-        {
-          messageId: 'useCentralizedUtility',
-          data: {
-            utility:
-              'addButtonEventListeners, addLinkEventListeners, or addWrapperEventListeners',
-            description: 'keyup events (Enter/Escape)',
-            features: 'isComposing check, repeat prevention, Enter/Escape key handling',
-          },
-        },
-        {
-          messageId: 'useCentralizedUtility',
-          data: {
-            utility: 'addButtonEventListeners or addLinkEventListeners',
-            description: 'touchend events',
-            features: 'click, keyup Enter, and touchend support',
-          },
-        },
-      ],
-    },
 
-    // ========================================
-    // Invalid: Document-level listener (still needs centralization)
-    // ========================================
-    {
-      code: `
+        // ========================================
+        // Invalid: Document-level listener (still needs centralization)
+        // ========================================
+        {
+          code: `
         document.addEventListener('click', handleDocumentClick);
       `,
-      filename: 'src/components/SomeComponent/index.ts',
-      errors: [
-        {
-          messageId: 'useCentralizedUtility',
+          filename: 'src/components/SomeComponent/index.ts',
+          errors: [
+            {
+              messageId: 'useCentralizedUtility',
+            },
+          ],
         },
-      ],
-    },
 
-    // ========================================
-    // Invalid: Window-level listener (still needs centralization)
-    // ========================================
-    {
-      code: `
+        // ========================================
+        // Invalid: Window-level listener (still needs centralization)
+        // ========================================
+        {
+          code: `
         window.addEventListener('keyup', handleWindowKeyup);
       `,
-      filename: 'src/components/SomeComponent/index.ts',
-      errors: [
-        {
-          messageId: 'useCentralizedUtility',
+          filename: 'src/components/SomeComponent/index.ts',
+          errors: [
+            {
+              messageId: 'useCentralizedUtility',
+            },
+          ],
         },
       ],
-    },
-  ],
+    })
+  })
 })
 
-console.log('All tests passed!')

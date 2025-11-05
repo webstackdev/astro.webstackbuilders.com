@@ -31,6 +31,7 @@ export default getViteConfig({
       'scripts/**/*.spec.ts',
       'api/**/*.spec.ts',
       'test/unit/**/*.spec.ts',
+      'test/eslint/__tests__/**/*.spec.ts',
       'test/e2e/helpers/__tests__/**/*.spec.ts',
     ],
     environmentMatchGlobs: [
@@ -39,6 +40,7 @@ export default getViteConfig({
       ['scripts/**', 'node'],
       ['api/**', 'node'],
       ['test/unit/**', 'node'],
+      ['test/eslint/__tests__/**', 'node'],
       ['test/e2e/helpers/__tests__/**', 'node'],
     ],
     env: {
