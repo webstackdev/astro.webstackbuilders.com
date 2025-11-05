@@ -8,7 +8,7 @@ import { LoadableScript, type TriggerEvent } from '../../Scripts/loader/@types/l
 import { isDivElement, isButtonElement } from '@components/Scripts/assertions/elements'
 import { ClientScriptError } from '@components/Scripts/errors/ClientScriptError'
 import { addButtonEventListeners } from '@components/Scripts/elementListeners'
-import { updateConsent, $consent } from '@components/Scripts/state'
+import { updateConsent, $consent } from '@components/Scripts/store'
 
 export interface CookiePreferences {
   necessary: boolean

@@ -11,7 +11,7 @@ export type {
   ConsentState,
   EmbedCacheEntry,
   EmbedCacheState,
-} from './store/@types'
+} from './@types'
 
 // Re-export cookie consent
 export {
@@ -22,13 +22,19 @@ export {
   $hasAdvertisingConsent,
   $hasAnyConsent,
   initConsentFromCookies,
+  initConsentSideEffects,
   updateConsent,
   allowAllConsent,
   revokeAllConsent,
-} from './store/cookieConsent'
+} from './cookieConsent'
 
 // Re-export themes
-export { $theme, $themePickerOpen, setTheme } from './store/themes'
+export {
+  $theme,
+  $themePickerOpen,
+  initThemeSideEffects,
+  setTheme,
+} from './themes'
 
 // Re-export Mastodon instances
 export {
@@ -37,7 +43,7 @@ export {
   saveMastodonInstance,
   removeMastodonInstance,
   clearMastodonInstances,
-} from './store/mastodonInstances'
+} from './mastodonInstances'
 
 // Re-export social embeds
-export { $embedCache, cacheEmbed, getCachedEmbed, clearEmbedCache } from './store/socialEmbeds'
+export { $embedCache, cacheEmbed, getCachedEmbed, clearEmbedCache } from './socialEmbeds'

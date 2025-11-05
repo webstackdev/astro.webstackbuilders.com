@@ -4,7 +4,7 @@
  * Works seamlessly with Astro View Transitions
  */
 
-import { $theme, $themePickerOpen, setTheme } from '@components/Scripts/state'
+import { $theme, $themePickerOpen, setTheme } from '@components/Scripts/store'
 import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
 import { addButtonEventListeners } from '@components/Scripts/elementListeners'
 

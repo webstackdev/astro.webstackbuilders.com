@@ -13,11 +13,11 @@
 import { LoadableScript } from './@types/loader'
 import type { UserInteractionEvent, TriggerEvent, ConsentMetadata } from './@types/loader'
 import {
-  $hasAnalyticsConsent,
-  $hasAdvertisingConsent,
+    $hasAdvertisingConsent,
   $hasFunctionalConsent,
-} from '@components/Scripts/state'
-import type { ConsentCategory } from '@components/Scripts/state'
+  $hasAnalyticsConsent,
+} from '@components/Scripts/store'
+import type { ConsentCategory } from '@components/Scripts/store'
 import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
 
 export const userInteractionEvents: UserInteractionEvent[] = [

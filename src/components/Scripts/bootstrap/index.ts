@@ -5,10 +5,10 @@
  */
 import { ClientScriptError } from '@components/Scripts/errors/ClientScriptError'
 import { addScriptBreadcrumb, handleScriptError } from '@components/Scripts/errors'
-import { $hasFunctionalConsent, initConsentFromCookies } from '@components/Scripts/state'
-import { initConsentSideEffects } from './store/cookieConsent'
-import { initThemeSideEffects } from './store/themes'
-import { clearEmbedCache } from './store/socialEmbeds'
+import { $hasFunctionalConsent, initConsentFromCookies } from '@components/Scripts/store'
+import { initConsentSideEffects } from '@components/Scripts/store/cookieConsent'
+import { initThemeSideEffects } from '@components/Scripts/store/themes'
+import { clearEmbedCache } from '@components/Scripts/store/socialEmbeds'
 
 /**
  * Setup side effects - call once during app initialization

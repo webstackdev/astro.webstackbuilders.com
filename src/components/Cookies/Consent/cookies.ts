@@ -3,8 +3,8 @@
  * State management for cookie consent
  * Now uses centralized state store from lib/state
  */
-import { getCookie, removeCookie } from '@components/Scripts/state/cookies'
-import { updateConsent } from '@components/Scripts/state'
+import { getCookie, removeCookie } from '@components/Scripts/utils/cookies'
+import { updateConsent } from '@components/Scripts/store'
 
 type Preference = `granted` | `refused` | `unknown`
 

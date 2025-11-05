@@ -4,27 +4,28 @@
  * Tests initialization of state management on page load
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { AppBootstrap } from '../bootstrap'
+import { AppBootstrap } from '@components/Scripts/bootstrap'
 import { ClientScriptError } from '@components/Scripts/errors/ClientScriptError'
+import { addScriptBreadcrumb } from '@components/Scripts/errors'
 
-// Mock the state initialization functions
-vi.mock('@components/Scripts/state', () => ({
+// Mock the store initialization functions
+vi.mock('@components/Scripts/store', () => ({
   initConsentFromCookies: vi.fn(),
   $hasFunctionalConsent: {
     subscribe: vi.fn(),
   },
 }))
 
-// Mock store modules that initStateSideEffects uses internally
-vi.mock('../store/cookieConsent', () => ({
+// Mock store modules that are imported by bootstrap
+vi.mock('@components/Scripts/store/cookieConsent', () => ({
   initConsentSideEffects: vi.fn(),
 }))
 
-vi.mock('../store/themes', () => ({
+vi.mock('@components/Scripts/store/themes', () => ({
   initThemeSideEffects: vi.fn(),
 }))
 
-vi.mock('../store/socialEmbeds', () => ({
+vi.mock('@components/Scripts/store/socialEmbeds', () => ({
   clearEmbedCache: vi.fn(),
 }))
 
@@ -34,10 +35,10 @@ vi.mock('@components/Scripts/errors', () => ({
   handleScriptError: vi.fn(),
 }))
 
-import { initConsentFromCookies } from '@components/Scripts/state'
-import { addScriptBreadcrumb } from '@components/Scripts/errors'
-import { initConsentSideEffects } from '../store/cookieConsent'
-import { initThemeSideEffects } from '../store/themes'
+// Import the mocked functions after setting up mocks
+import { initConsentFromCookies } from '@components/Scripts/store'
+import { initConsentSideEffects } from '@components/Scripts/store/cookieConsent'
+import { initThemeSideEffects } from '@components/Scripts/store/themes'
 
 describe('AppBootstrap', () => {
   beforeEach(() => {

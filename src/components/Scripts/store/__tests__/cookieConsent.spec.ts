@@ -12,7 +12,7 @@ import {
   allowAllConsent,
   revokeAllConsent,
 } from '../cookieConsent'
-import * as cookieUtils from '../../cookies'
+import * as cookieUtils from '@components/Scripts/utils/cookies'
 
 // Mock js-cookie
 vi.mock('js-cookie', () => ({

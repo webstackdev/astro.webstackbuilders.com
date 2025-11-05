@@ -16,7 +16,7 @@ import {
   $currentMastodonInstance,
   $mastodonInstances,
   saveMastodonInstance,
-} from '@components/Scripts/state'
+} from '@components/Scripts/store'
 import { addButtonEventListeners, addWrapperEventListeners } from '@components/Scripts/elementListeners'
 import {
   getModalElement,

@@ -4,8 +4,8 @@
  * Tests the wrapper functions around js-cookie library
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { getCookie, setCookie, removeCookie, getAllCookies, hasCookie } from '../cookies'
 import Cookies from 'js-cookie'
+import { getCookie, setCookie, removeCookie, getAllCookies, hasCookie } from '@components/Scripts/utils/cookies'
 
 describe('Cookie Utilities', () => {
   beforeEach(() => {

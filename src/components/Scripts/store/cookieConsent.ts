@@ -4,7 +4,7 @@
 import { computed, atom } from 'nanostores'
 import { persistentAtom } from '@nanostores/persistent'
 import type { ConsentState, ConsentCategory, ConsentValue } from './@types'
-import { getCookie, setCookie } from '../cookies'
+import { getCookie, setCookie } from '@components/Scripts/utils/cookies'
 import { handleScriptError } from '@components/Scripts/errors'
 
 // ============================================================================

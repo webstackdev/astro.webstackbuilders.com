@@ -2,8 +2,8 @@
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { EmbedManager } from '../client'
-import { AppBootstrap } from '@components/Scripts/state/bootstrap'
-import { $embedCache, updateConsent, clearEmbedCache } from '@components/Scripts/state'
+import { AppBootstrap } from '@components/Scripts/bootstrap'
+import { $embedCache, updateConsent, clearEmbedCache } from '@components/Scripts/store'
 
 /**
  * Unit tests for Social Embed component
