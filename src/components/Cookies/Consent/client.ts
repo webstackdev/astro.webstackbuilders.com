@@ -32,7 +32,7 @@ export class CookieConsent extends LoadableScript {
   /** Customize button element */
   customizeBtn: HTMLButtonElement
   /** Focus trap handler reference for proper cleanup */
-  private trapFocusHandler: ((_event: KeyboardEvent) => void) | null = null
+  private trapFocusHandler: ((_event: Event) => void) | null = null
   /** Static reference to track modal visibility across View Transitions */
   private static isModalCurrentlyVisible = false
   /** Flag to ensure View Transitions handlers are only set up once */
@@ -275,23 +275,26 @@ export class CookieConsent extends LoadableScript {
       const lastFocusable = focusableElements[focusableElements.length - 1] as HTMLElement
 
       // Handle Tab key navigation within modal
-      this.trapFocusHandler = (e: KeyboardEvent) => {
-        if (e.key === 'Tab') {
-          if (e.shiftKey) { // Shift + Tab
+      this.trapFocusHandler = (e: Event) => {
+        const keyEvent = e as KeyboardEvent
+        if (keyEvent.key === 'Tab') {
+          if (keyEvent.shiftKey) {
+            // Shift + Tab
             if (document.activeElement === firstFocusable) {
-              e.preventDefault()
+              keyEvent.preventDefault()
               lastFocusable.focus()
             }
-          } else { // Tab
+          } else {
+            // Tab
             if (document.activeElement === lastFocusable) {
-              e.preventDefault()
+              keyEvent.preventDefault()
               firstFocusable.focus()
             }
           }
         }
       }
 
-      this.wrapper.addEventListener('keydown', this.trapFocusHandler)
+      addWrapperEventListeners(this.wrapper, this.trapFocusHandler)
     } catch (error) {
       handleScriptError(error, context)
     }
@@ -306,7 +309,7 @@ export class CookieConsent extends LoadableScript {
 
     try {
       if (this.trapFocusHandler) {
-        this.wrapper.removeEventListener('keydown', this.trapFocusHandler)
+        this.wrapper.removeEventListener('keyup', this.trapFocusHandler)
         this.trapFocusHandler = null
       }
     } catch (error) {

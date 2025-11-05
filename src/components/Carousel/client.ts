@@ -3,6 +3,7 @@ import EmblaCarousel, { type EmblaOptionsType, type EmblaCarouselType } from 'em
 import Autoplay from 'embla-carousel-autoplay'
 import { ClientScriptError } from '@components/Scripts/errors/ClientScriptError'
 import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
+import { addButtonEventListeners } from '@components/Scripts/elementListeners'
 
 /**
  * Auto-discovery carousel implementation using singleton pattern
@@ -245,7 +246,7 @@ class CarouselInstance {
     try {
       if (!this.emblaApi || !this.prevBtn || !this.nextBtn) return
 
-      this.prevBtn.addEventListener('click', () => {
+      addButtonEventListeners(this.prevBtn, () => {
         try {
           this.emblaApi!.scrollPrev()
         } catch (error) {
@@ -253,7 +254,7 @@ class CarouselInstance {
         }
       })
 
-      this.nextBtn.addEventListener('click', () => {
+      addButtonEventListeners(this.nextBtn, () => {
         try {
           this.emblaApi!.scrollNext()
         } catch (error) {
@@ -310,7 +311,7 @@ class CarouselInstance {
             'embla__dot w-2 h-2 rounded-full bg-[color:var(--color-text-offset)] transition-all duration-300 hover:bg-[color:var(--color-primary)]'
           dot.setAttribute('aria-label', `Go to slide ${index + 1}`)
 
-          dot.addEventListener('click', () => {
+          addButtonEventListeners(dot, () => {
             try {
               this.emblaApi!.scrollTo(index)
             } catch (error) {

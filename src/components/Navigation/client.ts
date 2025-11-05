@@ -13,6 +13,7 @@ import {
 import { ClientScriptError } from '@components/Scripts/errors/ClientScriptError'
 import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
 import { dispatchScriptEvent, ScriptEvent } from '@components/Scripts/events'
+import { addButtonEventListeners, addLinkEventListeners } from '@components/Scripts/elementListeners'
 
 export const CLASSES = {
   navOpen: 'aria-expanded-true',
@@ -99,7 +100,7 @@ export class Navigation extends LoadableScript {
   }
 
   bindEvents() {
-    this.toggleBtn.addEventListener('click', () => {
+    addButtonEventListeners(this.toggleBtn, () => {
       this.toggleMenu()
     })
     // @TODO: Why is pressing enter triggering the click event, when type="button" is set?
@@ -108,7 +109,7 @@ export class Navigation extends LoadableScript {
     //})
 
     // Handle Escape key to close menu
-    document.addEventListener('keydown', (event) => {
+    document.addEventListener('keyup', (event) => {
       if (event.key === 'Escape' && this.isMenuOpen) {
         this.toggleMenu(false)
       }
@@ -132,7 +133,7 @@ export class Navigation extends LoadableScript {
 
       navLinks.forEach(link => {
         try {
-          link.addEventListener('click', event => {
+          addLinkEventListeners(link as HTMLAnchorElement, (event) => {
             event.preventDefault()
             const href = link.getAttribute('href')
 

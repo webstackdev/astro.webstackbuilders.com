@@ -141,7 +141,10 @@ export default [
     },
   },
   {
-    files: ['src/components/Scripts/elementListeners/index.ts'],
+    files: [
+      'src/components/Scripts/elementListeners/index.ts',
+      'src/components/Social/Shares/client.ts', // Needs direct addEventListener for pause/resume/reset lifecycle
+    ],
     rules: {
       'custom-rules/enforce-centralized-events': 'off',
     },

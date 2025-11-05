@@ -6,6 +6,7 @@
 
 import { $theme, $themePickerOpen, setTheme } from '@components/Scripts/state'
 import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
+import { addButtonEventListeners } from '@components/Scripts/elementListeners'
 
 export const CLASSES = {
   isOpen: 'is-open',
@@ -200,20 +201,9 @@ export class ThemePickerElement extends HTMLElement {
 
     try {
       // Toggle button
-      this.toggleBtn.addEventListener('click', () => this.togglePicker())
-      this.toggleBtn.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
-          this.togglePicker()
-        }
-      })      // Close button
-      this.closeBtn.addEventListener('click', () => this.togglePicker(false))
-      this.closeBtn.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
-          this.togglePicker(false)
-        }
-      })
+      addButtonEventListeners(this.toggleBtn, () => this.togglePicker(), this)
+      // Close button
+      addButtonEventListeners(this.closeBtn, () => this.togglePicker(false), this)
 
       // Theme selection buttons
       this.themeSelectBtns.forEach((button) => {
@@ -224,18 +214,11 @@ export class ThemePickerElement extends HTMLElement {
 
           const themeId = button.dataset['theme'] as ThemeIds
           if (themeId) {
-            button.addEventListener('click', (e) => {
+            addButtonEventListeners(button, (e) => {
               // Stop ALL event propagation to prevent "click outside" handler
               e.stopImmediatePropagation()
               this.applyTheme(themeId)
-            })
-            button.addEventListener('keydown', (e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault()
-                e.stopImmediatePropagation()
-                this.applyTheme(themeId)
-              }
-            })
+            }, this)
           }
         } catch (error) {
           handleScriptError(error, { scriptName: 'ThemePickerElement', operation: 'bindThemeButton' })

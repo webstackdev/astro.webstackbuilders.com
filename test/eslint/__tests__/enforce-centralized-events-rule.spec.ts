@@ -81,6 +81,44 @@ describe('enforce-centralized-events', () => {
       `,
           filename: 'src/components/SomeComponent/index.ts',
         },
+
+        // ========================================
+        // Valid: Document-level listeners (allowed - element utilities don't work here)
+        // ========================================
+        {
+          code: `
+        document.addEventListener('click', handleDocumentClick);
+        document.addEventListener('keydown', handleKeyDown);
+        document.addEventListener('keyup', handleKeyUp);
+      `,
+          filename: 'src/components/SomeComponent/index.ts',
+        },
+
+        // ========================================
+        // Valid: Window-level listeners (allowed - element utilities don't work here)
+        // ========================================
+        {
+          code: `
+        window.addEventListener('keyup', handleWindowKeyup);
+        window.addEventListener('click', handleWindowClick);
+      `,
+          filename: 'src/components/SomeComponent/index.ts',
+        },
+
+        // ========================================
+        // Valid: this.addEventListener in web components (component is the event target)
+        // ========================================
+        {
+          code: `
+        class MyComponent extends HTMLElement {
+          connectedCallback() {
+            this.addEventListener('click', this.handleClick);
+            this.addEventListener('keyup', this.handleKeyUp);
+          }
+        }
+      `,
+          filename: 'src/components/MyComponent/index.ts',
+        },
       ],
 
       invalid: [
@@ -187,37 +225,12 @@ describe('enforce-centralized-events', () => {
         },
 
         // ========================================
-        // Invalid: Web component context
+        // Invalid: Non-web-component button click on child element
         // ========================================
         {
           code: `
-        class MyComponent extends HTMLElement {
-          connectedCallback() {
-            this.addEventListener('click', this.handleClick);
-          }
-        }
-      `,
-          filename: 'src/components/MyComponent/index.ts',
-          errors: [
-            {
-              messageId: 'webComponentException',
-              data: {
-                utility: 'addButtonEventListeners or addLinkEventListeners',
-                description: 'click events',
-                features: 'click, keyup Enter, and touchend support',
-              },
-            },
-          ],
-        },
-
-        // ========================================
-        // Invalid: Multiple violations in one file
-        // ========================================
-        {
-          code: `
+        const button = this.querySelector('button');
         button.addEventListener('click', handleClick);
-        button.addEventListener('keyup', handleKeyup);
-        button.addEventListener('touchend', handleTouch);
       `,
           filename: 'src/components/SomeComponent/index.ts',
           errors: [
@@ -228,53 +241,6 @@ describe('enforce-centralized-events', () => {
                 description: 'click events',
                 features: 'click, keyup Enter, and touchend support',
               },
-            },
-            {
-              messageId: 'useCentralizedUtility',
-              data: {
-                utility:
-                  'addButtonEventListeners, addLinkEventListeners, or addWrapperEventListeners',
-                description: 'keyup events (Enter/Escape)',
-                features: 'isComposing check, repeat prevention, Enter/Escape key handling',
-              },
-            },
-            {
-              messageId: 'useCentralizedUtility',
-              data: {
-                utility: 'addButtonEventListeners or addLinkEventListeners',
-                description: 'touchend events',
-                features: 'click, keyup Enter, and touchend support',
-              },
-            },
-          ],
-        },
-
-        // ========================================
-        // Invalid: Document-level listener (still needs centralization)
-        // ========================================
-        {
-          code: `
-        document.addEventListener('click', handleDocumentClick);
-      `,
-          filename: 'src/components/SomeComponent/index.ts',
-          errors: [
-            {
-              messageId: 'useCentralizedUtility',
-            },
-          ],
-        },
-
-        // ========================================
-        // Invalid: Window-level listener (still needs centralization)
-        // ========================================
-        {
-          code: `
-        window.addEventListener('keyup', handleWindowKeyup);
-      `,
-          filename: 'src/components/SomeComponent/index.ts',
-          errors: [
-            {
-              messageId: 'useCentralizedUtility',
             },
           ],
         },
@@ -282,4 +248,3 @@ describe('enforce-centralized-events', () => {
     })
   })
 })
-

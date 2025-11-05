@@ -152,6 +152,24 @@ const enforceCentralizedEventsRule: Rule.RuleModule = {
           return
         }
 
+        // Allow document and window level listeners (can't use element-specific utilities)
+        if (
+          node.callee.type === 'MemberExpression' &&
+          node.callee.object.type === 'Identifier' &&
+          (node.callee.object.name === 'document' || node.callee.object.name === 'window')
+        ) {
+          return
+        }
+
+        // Allow this.addEventListener in web components (the component itself is the event target)
+        if (
+          node.callee.type === 'MemberExpression' &&
+          node.callee.object.type === 'ThisExpression' &&
+          isLikelyWebComponent(node)
+        ) {
+          return
+        }
+
         // Determine if this is in a web component
         const isWebComponent = isLikelyWebComponent(node)
         const messageId = isWebComponent ? 'webComponentException' : 'useCentralizedUtility'

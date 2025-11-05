@@ -76,12 +76,12 @@ export class CookieCustomize extends LoadableScript {
 
     // Allow all button
     if (this.allowAllBtn) {
-      this.allowAllBtn.addEventListener('click', () => this.allowAll())
+      addButtonEventListeners(this.allowAllBtn, () => this.allowAll())
     }
 
     // Save preferences button
     if (this.saveBtn) {
-      this.saveBtn.addEventListener('click', () => this.savePreferences())
+      addButtonEventListeners(this.saveBtn, () => this.savePreferences())
     }
   }
 

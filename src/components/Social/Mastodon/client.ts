@@ -17,6 +17,7 @@ import {
   $mastodonInstances,
   saveMastodonInstance,
 } from '@components/Scripts/state'
+import { addButtonEventListeners, addWrapperEventListeners } from '@components/Scripts/elementListeners'
 import {
   getModalElement,
   getBackdropElement,
@@ -123,9 +124,9 @@ export class MastodonModal extends LoadableScript {
       })
 
       // Set up event listeners
-      this.closeButton.addEventListener('click', () => this.closeModal())
-      this.cancelButton.addEventListener('click', () => this.closeModal())
-      this.backdrop.addEventListener('click', () => this.closeModal())
+      addButtonEventListeners(this.closeButton, () => this.closeModal())
+      addButtonEventListeners(this.cancelButton, () => this.closeModal())
+      addWrapperEventListeners(this.backdrop, () => this.closeModal())
       this.form.addEventListener('submit', (e) => this.handleSubmit(e))
 
       // Listen for ESC key
@@ -191,7 +192,7 @@ export class MastodonModal extends LoadableScript {
         button.type = 'button'
         button.className = 'saved-instance'
         button.textContent = instance
-        button.addEventListener('click', () => {
+        addButtonEventListeners(button, () => {
           if (this.instanceInput) {
             this.instanceInput.value = instance
             this.instanceInput.focus()

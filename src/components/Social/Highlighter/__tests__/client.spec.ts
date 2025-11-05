@@ -176,8 +176,8 @@ describe('HighlighterElement', () => {
 
   describe('Keyboard Navigation', () => {
     it('should show dialog on Enter key', async () => {
-      // Trigger Enter key on the host element
-      const event = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })
+      // Trigger Enter key on the host element (using keyup for accessibility)
+      const event = new KeyboardEvent('keyup', { key: 'Enter', bubbles: true })
       highlighter.dispatchEvent(event)
 
       const dialog = highlighter.shadowRoot?.querySelector('.share-dialog')
@@ -185,8 +185,8 @@ describe('HighlighterElement', () => {
     })
 
     it('should show dialog on Space key', async () => {
-      // Trigger Space key on the host element
-      const event = new KeyboardEvent('keydown', { key: ' ', bubbles: true })
+      // Trigger Space key on the host element (using keyup for accessibility)
+      const event = new KeyboardEvent('keyup', { key: ' ', bubbles: true })
       highlighter.dispatchEvent(event)
 
       const dialog = highlighter.shadowRoot?.querySelector('.share-dialog')
@@ -200,9 +200,9 @@ describe('HighlighterElement', () => {
         highlighter.shadowRoot?.querySelector('.share-dialog')?.getAttribute('aria-hidden')
       ).toBe('false')
 
-      // Trigger Escape key
-      const event = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })
-      highlighter.dispatchEvent(event)
+      // Trigger Escape key (using keyup for accessibility)
+      const event = new KeyboardEvent('keyup', { key: 'Escape', bubbles: true })
+      document.dispatchEvent(event)
 
       const dialog = highlighter.shadowRoot?.querySelector('.share-dialog')
       expect(dialog?.getAttribute('aria-hidden')).toBe('true')

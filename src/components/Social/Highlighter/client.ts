@@ -10,6 +10,7 @@ import { platforms, copyToClipboard, nativeShare } from '@components/Social/comm
 import { MastodonModal } from '@components/Social/Mastodon/client'
 import { getSlotElement } from './selectors'
 import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
+import { addButtonEventListeners } from '@components/Scripts/elementListeners'
 
 /**
  * Highlighter element that creates a shareable text highlight
@@ -222,7 +223,7 @@ class HighlighterElement extends HTMLElement {
       this.addEventListener('focusout', () => this.hideDialog())
 
       // Keyboard navigation
-      this.addEventListener('keydown', e => {
+      document.addEventListener('keyup', (e) => {
         try {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault()
@@ -232,14 +233,14 @@ class HighlighterElement extends HTMLElement {
             this.blur()
           }
         } catch (error) {
-          handleScriptError(error, { scriptName: 'Highlighter', operation: 'keydown' })
+          handleScriptError(error, { scriptName: 'Highlighter', operation: 'keyup' })
         }
       })
 
       // Share button clicks
       const buttons = this.shadowRoot.querySelectorAll<HTMLButtonElement>('.share-button')
       buttons.forEach(button => {
-        button.addEventListener('click', e => {
+        addButtonEventListeners(button, (e) => {
           try {
             e.stopPropagation()
             const platformId = button.dataset['platform']
@@ -249,7 +250,7 @@ class HighlighterElement extends HTMLElement {
           } catch (error) {
             handleScriptError(error, { scriptName: 'Highlighter', operation: 'shareClick' })
           }
-        })
+        }, this)
       })
     } catch (error) {
       handleScriptError(error, context)

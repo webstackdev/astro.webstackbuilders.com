@@ -112,7 +112,7 @@ class ShareHighlight extends HTMLElement {
     }
 
     this.addEventListener('click', () => this.share())
-    this.addEventListener('keydown', e => {
+    this.addEventListener('keyup', (e) => {
       if (e.key && e.key.toLowerCase() === 'enter') {
         this.share()
       }

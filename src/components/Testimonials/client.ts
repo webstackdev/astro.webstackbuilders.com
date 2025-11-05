@@ -8,6 +8,7 @@ import EmblaCarousel, { type EmblaOptionsType, type EmblaCarouselType } from 'em
 import Autoplay from 'embla-carousel-autoplay'
 import { LoadableScript, type TriggerEvent } from '../Scripts/loader/@types/loader'
 import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
+import { addButtonEventListeners } from '@components/Scripts/elementListeners'
 
 /**
  * Testimonials carousel using LoadableScript pattern with instance-specific approach
@@ -96,11 +97,11 @@ export class TestimonialsCarousel extends LoadableScript {
     const nextBtn = this.emblaNode.querySelector<HTMLButtonElement>('.embla__button--next')
 
     if (prevBtn && nextBtn) {
-      prevBtn.addEventListener('click', () => {
+      addButtonEventListeners(prevBtn, () => {
         this.emblaApi?.scrollPrev()
       })
 
-      nextBtn.addEventListener('click', () => {
+      addButtonEventListeners(nextBtn, () => {
         this.emblaApi?.scrollNext()
       })
 
@@ -150,7 +151,7 @@ export class TestimonialsCarousel extends LoadableScript {
           'embla__dot w-3 h-3 rounded-full bg-[color:var(--color-text-offset)] transition-all duration-300 hover:bg-[color:var(--color-primary)]'
         dot.setAttribute('aria-label', `Go to testimonial ${index + 1}`)
 
-        dot.addEventListener('click', () => {
+        addButtonEventListeners(dot, () => {
           this.emblaApi?.scrollTo(index)
         })
 
