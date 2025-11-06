@@ -5,7 +5,7 @@
 // @vitest-environment happy-dom
 import { describe, expect, beforeEach, test } from 'vitest'
 import { AppBootstrap } from '@components/scripts/bootstrap'
-import { $cookieModalVisible } from '@components/Cookies/Consent/state'
+import { $cookieModalVisible } from '@components/Consent/Banner/state'
 
 describe(`Cookie modal visibility using state store`, () => {
   beforeEach(() => {

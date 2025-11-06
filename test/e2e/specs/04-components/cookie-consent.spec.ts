@@ -1,7 +1,7 @@
 /**
  * Cookie Consent Banner Tests
  * Tests for cookie consent banner display and functionality
- * @see src/components/Cookies/
+ * @see src/components/Consent/
  */
 
 import { test, expect } from '@test/e2e/helpers'

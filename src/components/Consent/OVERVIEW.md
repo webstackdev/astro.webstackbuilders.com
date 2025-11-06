@@ -2,7 +2,7 @@
 
 ## How the Components Work Together
 
-### 1. Cookie Consent Modal (`src/components/Cookies/Consent/`)
+### 1. Cookie Consent Banner (`src/components/Consent/Banner/`)
 
 **Purpose:** First-time visitor prompt that appears at the bottom of the page asking for cookie consent.
 
@@ -17,8 +17,8 @@
 
 **User Actions:**
 
-1. **"Allow All" button** → Calls `allowAllConsentCookies()` which sets all 4 consent cookies to `granted`, hides modal
-2. **"Customize" button** → Opens the Customize modal (detailed preference center)
+1. **"Allow All" button** → Calls `allowAllConsentCookies()` which sets all 4 consent cookies to `granted`, hides banner
+2. **"Customize" button** → Opens the Preferences modal (detailed preference center)
 3. **Close button** → Just hides the modal without changing consent (keeps `unknown` state)
 
 **State Storage:**
@@ -28,7 +28,7 @@
 
 ---
 
-### 2. Cookie Customize Modal (`src/components/Cookies/Customize/`)
+### 2. Cookie Preferences Modal (`src/components/Consent/Preferences/`)
 
 **Purpose:** Detailed preference center where users can toggle individual cookie categories.
 
@@ -90,7 +90,7 @@ To prevent cookies from being set when opted out, you need to:
 1. **Before loading any analytics/advertising script**, check consent:
 
 ```typescript
-import { getConsentCookie } from '@components/Cookies/Consent/cookies'
+import { getConsentCookie } from '@components/Consent/Banner/cookies'
 
 const analyticsConsent = getConsentCookie('analytics')
 if (analyticsConsent === 'granted') {

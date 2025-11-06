@@ -6,7 +6,7 @@ import {
   prefixConsentCookie,
   removeConsentCookies,
   setConsentCookie,
-} from '@components/Cookies/Consent/cookies'
+} from '@components/Consent/Banner/cookies'
 import { getCookie } from '@components/scripts/utils/cookies'
 import { commonSetup } from '@test/unit/helpers/reset'
 

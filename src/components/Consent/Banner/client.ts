@@ -3,15 +3,15 @@ import {
   addButtonEventListeners,
   addWrapperEventListeners,
 } from '@components/scripts/elementListeners'
-import { $cookieModalVisible } from '@components/Cookies/Consent/state'
-import { initConsentCookies, allowAllConsentCookies } from '@components/Cookies/Consent/cookies'
-import { showCookieCustomizeModal } from '@components/Cookies/Customize/client'
+import { $cookieModalVisible } from '@components/Consent/Banner/state'
+import { initConsentCookies, allowAllConsentCookies } from '@components/Consent/Banner/cookies'
+import { showCookieCustomizeModal } from '@components/Consent/Preferences/client'
 import {
   getCookieConsentAllowBtn,
   getCookieConsentCloseBtn,
   getCookieConsentCustomizeBtn,
   getCookieConsentWrapper,
-} from '@components/Cookies/Consent/selectors'
+} from '@components/Consent/Banner/selectors'
 import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
 import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
 

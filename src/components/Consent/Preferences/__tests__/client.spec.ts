@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { CookieCustomize } from '@components/Cookies/Customize/client'
+import { CookieCustomize } from '@components/Consent/Preferences/client'
 import { AppBootstrap } from '@components/scripts/bootstrap'
 import { $consent } from '@components/scripts/store'
 

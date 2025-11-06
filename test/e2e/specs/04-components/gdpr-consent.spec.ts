@@ -1,7 +1,6 @@
 /**
- * GDPR Consent Component Tests
- * Tests for GDPR consent checkboxes in forms
- * @see src/components/Cookies/
+ * GDPR Consent Banner Tests
+ * @see src/components/Consent/
  */
 
 import { test, expect } from '@test/e2e/helpers'
