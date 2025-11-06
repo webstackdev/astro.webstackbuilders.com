@@ -14,7 +14,6 @@ export {
   type ConsentState,
   type ConsentValue,
   $consent,
-  $cookieModalVisible,
   $hasAdvertisingConsent,
   $hasAnalyticsConsent,
   $hasAnyConsent,
@@ -24,6 +23,16 @@ export {
   revokeAllConsent,
   updateConsent,
 } from './consent'
+
+// Re-export visibility
+export {
+  type VisibilityState,
+  $visibility,
+  $isConsentBannerVisible,
+  showConsentBanner,
+  hideConsentBanner,
+  toggleConsentBanner,
+} from './visibility'
 
 // Re-export themes
 export {

@@ -4,7 +4,7 @@
 
 // @vitest-environment happy-dom
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { setInitialTheme } from '@components/scripts/theme/index'
+import { setInitialTheme } from '@components/scripts/bootstrap/theme/index'
 import * as errorHandler from '@components/scripts/errors/handler'
 
 describe('setInitialTheme', () => {

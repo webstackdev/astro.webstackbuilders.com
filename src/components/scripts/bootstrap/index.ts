@@ -6,8 +6,8 @@
 import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { initConsentFromCookies } from '@components/scripts/store'
-import { initConsentSideEffects, initStateSideEffects } from '@components/scripts/consent'
-import { initThemeSideEffects, setInitialTheme } from '@components/scripts/theme'
+import { initConsentSideEffects, initStateSideEffects } from '@components/scripts/bootstrap/consent'
+import { initThemeSideEffects, setInitialTheme } from '@components/scripts/bootstrap/theme'
 import { SentryBootstrap } from '@components/scripts/sentry/client'
 import { PUBLIC_SENTRY_DSN } from 'astro:env/client'
 

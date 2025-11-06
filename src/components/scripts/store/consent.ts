@@ -1,7 +1,7 @@
 /**
  * Cookie Consent State Management
  */
-import { computed, atom } from 'nanostores'
+import { computed } from 'nanostores'
 import { persistentAtom } from '@nanostores/persistent'
 import type { ConsentState, ConsentCategory, ConsentValue } from './@types'
 import { getCookie, setCookie } from '@components/scripts/utils/cookies'
@@ -56,12 +56,6 @@ export const $consent = persistentAtom<ConsentState>('cookieConsent', {
   },
 })
 
-/**
- * Cookie consent modal visibility
- * Session-only state (not persisted)
- */
-export const $cookieModalVisible = atom<boolean>(false)
-
 // ============================================================================
 // COMPUTED STORES
 // ============================================================================
@@ -86,7 +80,7 @@ export const $hasAnyConsent = computed($consent, (consent) => {
 
 /**
  * Initialize consent state from cookies on page load
- * Called once during app initialization
+ * Called once during app initialization from bootstrap
  */
 export function initConsentFromCookies(): void {
   try {

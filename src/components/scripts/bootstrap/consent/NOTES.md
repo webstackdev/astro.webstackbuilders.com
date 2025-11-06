@@ -1,5 +1,25 @@
 # Consent Category Usage Summary
 
+## OT: loader
+
+Components using 'astro:page-load':
+
+- CallToAction/Newsletter
+- Carousel
+- ContactForm
+- Cookies/Consent
+- Cookies/Customize
+- Forms/Download
+- Head
+- Hero
+- Navigation
+- Social/Embed
+- Social/Highlighter
+- Social/Mastodon
+- Social/Shares
+- Testimonials
+- Toasts/NetworkStatus
+
 ## Categories
 
 ### 'necessary' - Infrastructure only, NO actual usage

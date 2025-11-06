@@ -1,6 +1,11 @@
 /**
  * Cookie modal visibility state
  */
-import { $cookieModalVisible } from '@components/scripts/store'
+import {
+  $isConsentBannerVisible,
+  showConsentBanner,
+  hideConsentBanner,
+  toggleConsentBanner,
+} from '@components/scripts/store'
 
-export { $cookieModalVisible }
+export { $isConsentBannerVisible, showConsentBanner, hideConsentBanner, toggleConsentBanner }

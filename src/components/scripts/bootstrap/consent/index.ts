@@ -1,11 +1,11 @@
 // @TODO: Moved from components/scripts/store/cookieConsent.ts
 import { handleScriptError } from '@components/scripts/errors'
 import {
-  $cookieModalVisible,
+  $isConsentBannerVisible,
   $hasAdvertisingConsent,
   $hasAnalyticsConsent,
   $hasFunctionalConsent,
-} from '@components/scripts/store/consent'
+} from '@components/scripts/store'
 import { clearEmbedCache } from '@components/scripts/store/socialEmbeds'
 
 // ============================================================================
@@ -17,7 +17,7 @@ import { clearEmbedCache } from '@components/scripts/store/socialEmbeds'
  */
 export function initConsentSideEffects(): void {
   // Side Effect 1: Show/hide cookie modal
-  $cookieModalVisible.subscribe((visible) => {
+  $isConsentBannerVisible.subscribe((visible) => {
     try {
       const modal = document.getElementById('cookie-modal-id')
       if (modal) {

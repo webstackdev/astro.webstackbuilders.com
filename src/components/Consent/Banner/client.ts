@@ -3,7 +3,7 @@ import {
   addButtonEventListeners,
   addWrapperEventListeners,
 } from '@components/scripts/elementListeners'
-import { $cookieModalVisible } from '@components/Consent/Banner/state'
+import { showConsentBanner, hideConsentBanner } from '@components/Consent/Banner/state'
 import { initConsentCookies, allowAllConsentCookies } from '@components/Consent/Banner/cookies'
 import { showCookieCustomizeModal } from '@components/Consent/Preferences/client'
 import {
@@ -108,7 +108,7 @@ export class CookieConsent extends LoadableScript {
       // Focus the first focusable element (allow button)
       this.allowBtn.focus()
 
-      $cookieModalVisible.set(true)
+      showConsentBanner()
       CookieConsent.isModalCurrentlyVisible = true
     } catch (error) {
       handleScriptError(error, context)
@@ -125,7 +125,7 @@ export class CookieConsent extends LoadableScript {
     this.removeFocusTrap()
 
     this.wrapper.style.display = 'none'
-    $cookieModalVisible.set(false)
+    hideConsentBanner()
     CookieConsent.isModalCurrentlyVisible = false
 
     // Clear session storage flags when user dismisses
@@ -159,7 +159,7 @@ export class CookieConsent extends LoadableScript {
       sessionStorage.removeItem('cookie-consent-modal-shown')
       sessionStorage.removeItem('cookie-modal-visible')
       this.wrapper.style.display = 'none'
-      $cookieModalVisible.set(false)
+      hideConsentBanner()
       CookieConsent.isModalCurrentlyVisible = false
     } catch (error) {
       handleScriptError(error, context)
