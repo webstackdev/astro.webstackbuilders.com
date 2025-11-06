@@ -45,7 +45,7 @@ export class EmbedManager extends LoadableScript {
   private initialized = false
 
   static override scriptName = 'EmbedManager'
-  static override eventType: TriggerEvent = 'delayed'
+  static override eventType: TriggerEvent = 'astro:page-load'
 
   static override init(): void {
     const context = { scriptName: EmbedManager.scriptName, operation: 'init' }

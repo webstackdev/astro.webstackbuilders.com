@@ -70,7 +70,7 @@ function handleShareButtonClick(event: Event): void {
  */
 export class SocialShare extends LoadableScript {
   static override scriptName = 'SocialShare'
-  static override eventType = 'delayed' as const
+  static override eventType = 'astro:page-load' as const
 
   private static listeners = new WeakMap<HTMLElement, EventListener>()
 

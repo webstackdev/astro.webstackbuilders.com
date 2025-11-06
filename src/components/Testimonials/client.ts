@@ -16,7 +16,7 @@ import { addButtonEventListeners } from '@components/scripts/elementListeners'
  */
 export class TestimonialsCarousel extends LoadableScript {
   static override scriptName = 'TestimonialsCarousel'
-  static override eventType: TriggerEvent = 'delayed'
+  static override eventType: TriggerEvent = 'astro:page-load'
 
   private emblaNode: HTMLElement | null = null
   private viewportNode: HTMLElement | null = null

@@ -385,7 +385,7 @@ class HighlighterElement extends HTMLElement {
  */
 export class Highlighter extends LoadableScript {
   static override scriptName = 'Highlighter'
-  static override eventType = 'delayed' as const
+  static override eventType = 'astro:page-load' as const
 
   static override init(): void {
     const context = { scriptName: Highlighter.scriptName, operation: 'init' }

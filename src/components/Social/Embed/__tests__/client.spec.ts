@@ -64,7 +64,7 @@ describe('EmbedManager', () => {
   describe('LoadableScript Interface', () => {
     it('should implement LoadableScript interface', () => {
       expect(EmbedManager.scriptName).toBe('EmbedManager')
-      expect(EmbedManager.eventType).toBe('delayed')
+      expect(EmbedManager.eventType).toBe('astro:page-load')
       expect(typeof EmbedManager.init).toBe('function')
       expect(typeof EmbedManager.pause).toBe('function')
       expect(typeof EmbedManager.resume).toBe('function')

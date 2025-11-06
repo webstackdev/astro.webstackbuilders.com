@@ -2,7 +2,7 @@
  * Regression Tests for Theme Picker with View Transitions
  *
  * Issue: Theme picker button stopped working after navigating to another page
- * Root Cause: Scripts using 'delayed' eventType didn't reinitialize on View Transitions
+ * Root Cause: Scripts didn't properly reinitialize on View Transitions
  * Fix: Migrated to Web Component pattern with connectedCallback/disconnectedCallback lifecycle
  *
  * @see src/components/ThemePicker/theme-picker-element.ts

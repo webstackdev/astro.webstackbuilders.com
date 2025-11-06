@@ -15,37 +15,23 @@ export type UserInteractionEvent =
 
 /** All supported trigger events for script execution */
 /*
-Components Using Trigger Events
-
-Using 'delayed' (3 components):
-
-- Testimonials (client.ts)
-- Social Embed (client.ts)
-- Highlighter (client.ts)
-
-Using 'visible':
-
-None - No components are currently using the 'visible' trigger event.
-
-Using 'consent-gated':
-
-None - No components are currently using the 'consent-gated' trigger event.
-
 Components using 'astro:page-load':
 
-- Head
-- Forms/Download
-- Cookies/Consent
+- CallToAction/Newsletter
 - Carousel
+- ContactForm
+- Cookies/Consent
 - Cookies/Customize
+- Forms/Download
+- Head
 - Hero
 - Navigation
-- Toasts/NetworkStatus
-- ContactForm
-- CallToAction/Newsletter
+- Social/Embed
+- Social/Highlighter
 - Social/Mastodon
-
-The 'delayed' event triggers script execution after user interaction (like mousemove, keydown, wheel, touchstart, etc.), which is perfect for non-critical components like testimonials carousels, social embeds, and text highlighters that don't need to run immediately on page load.
+- Social/Shares
+- Testimonials
+- Toasts/NetworkStatus
 */
 export type TriggerEvent =
   | 'delayed'
