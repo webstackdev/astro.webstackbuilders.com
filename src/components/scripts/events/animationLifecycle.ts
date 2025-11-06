@@ -1,35 +1,35 @@
 /**
- * Custom event system for script-to-script communication
- * Allows scripts to broadcast state changes that other scripts can respond to
+ * Animation lifecycle event system
+ * Controls background animations when overlays/modals open and close
  */
 
 /* eslint-disable no-unused-vars */
-export enum ScriptEvent {
+export enum AnimationLifecycleEvent {
   /** Fired when an overlay/modal opens that should pause background animations */
-  OVERLAY_OPENED = 'script:overlay-opened',
+  OVERLAY_OPENED = 'animation:overlay-opened',
   /** Fired when an overlay/modal closes that should resume background animations */
-  OVERLAY_CLOSED = 'script:overlay-closed',
+  OVERLAY_CLOSED = 'animation:overlay-closed',
 }
 /* eslint-enable no-unused-vars */
 
 /**
- * Dispatch a custom script event
+ * Dispatch an animation lifecycle event
  * @param eventType - The type of event to dispatch
  * @param detail - Optional detail data to pass with the event
  */
-export function dispatchScriptEvent(eventType: ScriptEvent, detail?: unknown): void {
+export function dispatchAnimationEvent(eventType: AnimationLifecycleEvent, detail?: unknown): void {
   const event = new CustomEvent(eventType, { detail })
   document.dispatchEvent(event)
 }
 
 /**
- * Listen for a custom script event
+ * Listen for an animation lifecycle event
  * @param eventType - The type of event to listen for
  * @param handler - The handler function to call when the event is fired
  * @returns Cleanup function to remove the event listener
  */
-export function onScriptEvent(
-  eventType: ScriptEvent,
+export function onAnimationEvent(
+  eventType: AnimationLifecycleEvent,
   handler: (_event: CustomEvent) => void
 ): () => void {
   const listener = (event: Event) => handler(event as CustomEvent)

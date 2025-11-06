@@ -12,7 +12,7 @@ import {
 } from '@components/Navigation/selectors'
 import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
 import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
-import { dispatchScriptEvent, ScriptEvent } from '@components/scripts/events'
+import { dispatchAnimationEvent, AnimationLifecycleEvent } from '@components/scripts/events/animationLifecycle'
 import { addButtonEventListeners, addLinkEventListeners } from '@components/scripts/elementListeners'
 
 export const CLASSES = {
@@ -167,9 +167,9 @@ export class Navigation extends LoadableScript {
 
     // Dispatch events to pause/resume background animations
     if (this.isMenuOpen) {
-      dispatchScriptEvent(ScriptEvent.OVERLAY_OPENED, { source: 'navigation' })
+      dispatchAnimationEvent(AnimationLifecycleEvent.OVERLAY_OPENED, { source: 'navigation' })
     } else {
-      dispatchScriptEvent(ScriptEvent.OVERLAY_CLOSED, { source: 'navigation' })
+      dispatchAnimationEvent(AnimationLifecycleEvent.OVERLAY_CLOSED, { source: 'navigation' })
     }
 
     /**

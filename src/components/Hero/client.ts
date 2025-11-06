@@ -1,7 +1,7 @@
 import { LoadableScript, type TriggerEvent } from '@components/scripts/loader'
 import { gsap } from 'gsap'
 import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
-import { onScriptEvent, ScriptEvent } from '@components/scripts/events'
+import { onAnimationEvent, AnimationLifecycleEvent } from '@components/scripts/events/animationLifecycle'
 
 type Timeline = ReturnType<typeof gsap.timeline>
 
@@ -411,15 +411,15 @@ export class HeroLoader extends LoadableScript {
       HeroLoader.instance.startAnimation()
 
       // Set up event listeners for overlay open/close
-      HeroLoader.instance.overlayOpenedCleanup = onScriptEvent(
-        ScriptEvent.OVERLAY_OPENED,
+      HeroLoader.instance.overlayOpenedCleanup = onAnimationEvent(
+        AnimationLifecycleEvent.OVERLAY_OPENED,
         () => {
           HeroLoader.pause()
         }
       )
 
-      HeroLoader.instance.overlayClosedCleanup = onScriptEvent(
-        ScriptEvent.OVERLAY_CLOSED,
+      HeroLoader.instance.overlayClosedCleanup = onAnimationEvent(
+        AnimationLifecycleEvent.OVERLAY_CLOSED,
         () => {
           HeroLoader.resume()
         }
