@@ -5,7 +5,7 @@
  * is not removed by Astro View Transitions.
  *
  * Related:
- * - src/components/Scripts/theme/index.ts (setInitialTheme)
+ * - src/components/scripts/theme/index.ts (setInitialTheme)
  * - Bug: Astro View Transitions removes lang attribute from <html>
  */
 

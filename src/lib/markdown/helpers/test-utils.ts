@@ -2,7 +2,7 @@ import { remark } from 'remark'
 import remarkGfm from 'remark-gfm'
 import remarkRehype from 'remark-rehype'
 import rehypeStringify from 'rehype-stringify'
-import { remarkRehypeConfig } from '../../config/markdown'
+import { remarkRehypeConfig } from '@lib/config/markdown'
 
 /**
  * Process markdown through a minimal pipeline with a single plugin (Layer 1)

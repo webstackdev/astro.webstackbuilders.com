@@ -1,8 +1,8 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { CookieCustomize } from '../client'
-import { AppBootstrap } from '@components/Scripts/bootstrap'
-import { $consent } from '@components/Scripts/store'
+import { CookieCustomize } from '@components/Cookies/Customize/client'
+import { AppBootstrap } from '@components/scripts/bootstrap'
+import { $consent } from '@components/scripts/store'
 
 // Mock document.cookie with proper getter/setter behavior
 let cookieStorage: string[] = []

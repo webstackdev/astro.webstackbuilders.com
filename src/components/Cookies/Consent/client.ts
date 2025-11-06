@@ -1,19 +1,19 @@
-import { LoadableScript, type TriggerEvent } from '@components/Scripts/loader/@types/loader'
+import { LoadableScript, type TriggerEvent } from '@components/scripts/loader/@types'
 import {
   addButtonEventListeners,
   addWrapperEventListeners,
-} from '@components/Scripts/elementListeners'
-import { $cookieModalVisible } from './state'
-import { initConsentCookies, allowAllConsentCookies } from './cookies'
-import { showCookieCustomizeModal } from '../Customize/client'
+} from '@components/scripts/elementListeners'
+import { $cookieModalVisible } from '@components/Cookies/Consent/state'
+import { initConsentCookies, allowAllConsentCookies } from '@components/Cookies/Consent/cookies'
+import { showCookieCustomizeModal } from '@components/Cookies/Customize/client'
 import {
   getCookieConsentAllowBtn,
   getCookieConsentCloseBtn,
   getCookieConsentCustomizeBtn,
   getCookieConsentWrapper,
-} from './selectors'
-import { ClientScriptError } from '@components/Scripts/errors/ClientScriptError'
-import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
+} from '@components/Cookies/Consent/selectors'
+import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
+import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
 
 /**
  * Cookie Consent component using LoadableScript pattern with instance-specific approach

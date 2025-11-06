@@ -9,7 +9,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { normalizeURL, getUrlDomain, getSoftwareName, isMastodonInstance } from '../detector'
+import { normalizeURL, getUrlDomain, getSoftwareName, isMastodonInstance } from '@components/Social/Mastodon/detector'
 
 // Type alias for mocked fetch function
 type MockedFetch = ReturnType<typeof vi.fn>

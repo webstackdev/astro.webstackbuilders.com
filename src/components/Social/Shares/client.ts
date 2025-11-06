@@ -4,8 +4,8 @@
  * Uses LoadableScript pattern for optimized loading
  */
 
-import { LoadableScript } from '@components/Scripts/loader'
-import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
+import { LoadableScript } from '@components/scripts/loader'
+import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
 
 /**
  * Handle click event for share button

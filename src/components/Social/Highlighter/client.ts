@@ -4,13 +4,13 @@
  * Uses LoadableScript pattern for optimized loading
  */
 
-import { LoadableScript } from '@components/Scripts/loader'
+import { LoadableScript } from '@components/scripts/loader'
 import type { ShareData } from '@components/Social/common'
 import { platforms, copyToClipboard, nativeShare } from '@components/Social/common'
 import { MastodonModal } from '@components/Social/Mastodon/client'
-import { getSlotElement } from './selectors'
-import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
-import { addButtonEventListeners } from '@components/Scripts/elementListeners'
+import { getSlotElement } from '@components/Social/Highlighter/selectors'
+import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
+import { addButtonEventListeners } from '@components/scripts/elementListeners'
 
 /**
  * Highlighter element that creates a shareable text highlight

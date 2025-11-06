@@ -6,8 +6,8 @@ import stringify from 'rehype-stringify'
 import remark2rehype from 'remark-rehype'
 import remarkStringify from 'remark-stringify'
 
-import type { RemarkAbbrOptions } from '../types'
-import remarkAbbr from '../index'
+import type { RemarkAbbrOptions } from '@lib/markdown/plugins/remark-abbreviations/types'
+import remarkAbbr from '@lib/markdown/plugins/remark-abbreviations'
 
 const render = async (text: string, config?: RemarkAbbrOptions) => {
   const processor = unified().use(remarkParse)

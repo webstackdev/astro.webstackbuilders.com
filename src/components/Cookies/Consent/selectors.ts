@@ -4,8 +4,8 @@
 import {
   isButtonElement,
   isDivElement,
-} from '@components/Scripts/assertions/elements'
-import { ClientScriptError } from '@components/Scripts/errors/ClientScriptError'
+} from '@components/scripts/assertions/elements'
+import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
 
 /** Gets the HTMLDivElement wrapping the cookie consent modal */
 export const getCookieConsentWrapper = () => {

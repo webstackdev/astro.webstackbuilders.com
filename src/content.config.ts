@@ -1,6 +1,6 @@
 import { defineCollection, reference, z } from 'astro:content'
 import { glob, file } from 'astro/loaders'
-import { validTags } from './content/_tagList'
+import { validTags } from '@content/_tagList'
 
 const pattern = '**\/[^_]*.{md,mdx}'
 

@@ -6,8 +6,8 @@ import {
   prefixConsentCookie,
   removeConsentCookies,
   setConsentCookie,
-} from '../cookies'
-import { getCookie } from '@components/Scripts/utils/cookies'
+} from '@components/Cookies/Consent/cookies'
+import { getCookie } from '@components/scripts/utils/cookies'
 import { commonSetup } from '@test/unit/helpers/reset'
 
 describe(`Consent cookies handlers work`, () => {

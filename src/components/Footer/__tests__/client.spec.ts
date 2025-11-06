@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { Footer } from '../client'
+import { Footer } from '@components/Footer/client'
 
 // Mock the selectors module
-vi.mock('../selectors')
+vi.mock('@components/Footer/selectors')
 
-import { getHireMeAnchorElement } from '../selectors'
+import { getHireMeAnchorElement } from '@components/Footer/selectors'
 
 // No MockDate needed, using fake timers for Date
 

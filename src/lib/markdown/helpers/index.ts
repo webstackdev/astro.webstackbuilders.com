@@ -8,8 +8,8 @@
 // Markdown fixture loader utilities for E2E testing
 export { loadFixture, MarkdownOutput, renderFixture, renderMarkdown } from './markdownLoader'
 
-// Markdown pipeline processor for testing
+// Export with alias for clarity
 export { renderMarkdown as processMarkdownPipeline } from './pipeline'
 
-// Test utilities for different pipeline layers
+// Export test utilities
 export { processIsolated, processWithAstroSettings, processWithFullPipeline } from './test-utils'

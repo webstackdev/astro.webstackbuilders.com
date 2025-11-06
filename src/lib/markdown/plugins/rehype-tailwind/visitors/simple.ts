@@ -3,8 +3,8 @@
  * These are pure element -> classes mappings with no additional checks
  */
 import type { Element } from 'hast'
-import type { ElementConfig } from '../@types/index.js'
-import { applyClasses } from '../utilities/index.js'
+import type { ElementConfig } from '@lib/markdown/plugins/rehype-tailwind/@types'
+import { applyClasses } from '../utilities'
 
 /**
  * Simple HTML elements configuration

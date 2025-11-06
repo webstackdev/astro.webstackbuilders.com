@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import { setupSocialShareDOM } from './testHelper'
+import { setupSocialShareDOM } from '@components/Social/Shares/__tests__/testHelper'
 
 // Mock gtag function
 const mockGtag = vi.fn()

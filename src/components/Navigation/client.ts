@@ -1,7 +1,7 @@
 import { createFocusTrap } from 'focus-trap'
 import type { FocusTrap } from 'focus-trap'
 import { navigate } from 'astro:transitions/client'
-import { LoadableScript, type TriggerEvent } from '../Scripts/loader/@types/loader'
+import { LoadableScript, type TriggerEvent } from '@components/scripts/loader/@types'
 import {
   getHeaderElement,
   getMobileSplashElement,
@@ -9,11 +9,11 @@ import {
   getNavToggleBtnElement,
   getNavToggleWrapperElement,
   getMobileNavFocusContainer,
-} from './selectors'
-import { ClientScriptError } from '@components/Scripts/errors/ClientScriptError'
-import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
-import { dispatchScriptEvent, ScriptEvent } from '@components/Scripts/events'
-import { addButtonEventListeners, addLinkEventListeners } from '@components/Scripts/elementListeners'
+} from '@components/Navigation/selectors'
+import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
+import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
+import { dispatchScriptEvent, ScriptEvent } from '@components/scripts/events'
+import { addButtonEventListeners, addLinkEventListeners } from '@components/scripts/elementListeners'
 
 export const CLASSES = {
   navOpen: 'aria-expanded-true',

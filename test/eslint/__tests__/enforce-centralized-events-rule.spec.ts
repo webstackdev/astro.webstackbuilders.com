@@ -4,7 +4,7 @@
 
 import { describe, it } from 'vitest'
 import { RuleTester } from 'eslint'
-import enforceCentralizedEventsRule from '../enforce-centralized-events-rule.js'
+import enforceCentralizedEventsRule from '@test/eslint/enforce-centralized-events-rule.js'
 
 const ruleTester = new RuleTester({
   languageOptions: {
@@ -22,7 +22,7 @@ describe('enforce-centralized-events', () => {
         // ========================================
         {
           code: `
-        import { addButtonEventListeners } from './elementListeners';
+        import { addButtonEventListeners } from '@components/scripts/elementListeners';
         const button = document.querySelector('button');
         addButtonEventListeners(button, handleClick);
       `,
@@ -30,7 +30,7 @@ describe('enforce-centralized-events', () => {
         },
         {
           code: `
-        import { addLinkEventListeners } from './elementListeners';
+        import { addLinkEventListeners } from '@components/scripts/elementListeners';
         const link = document.querySelector('a');
         addLinkEventListeners(link, handleClick);
       `,
@@ -38,7 +38,7 @@ describe('enforce-centralized-events', () => {
         },
         {
           code: `
-        import { addWrapperEventListeners } from './elementListeners';
+        import { addWrapperEventListeners } from '@components/scripts/elementListeners';
         const wrapper = document.querySelector('div');
         addWrapperEventListeners(wrapper, handleEscape);
       `,
@@ -54,7 +54,7 @@ describe('enforce-centralized-events', () => {
         element.addEventListener('keyup', keyupHandler);
         element.addEventListener('touchend', touchendHandler);
       `,
-          filename: 'src/components/Scripts/elementListeners/index.ts',
+          filename: 'src/components/scripts/elementListeners/index.ts',
         },
 
         // ========================================

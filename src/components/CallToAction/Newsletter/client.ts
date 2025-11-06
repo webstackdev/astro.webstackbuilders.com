@@ -3,9 +3,9 @@
  * Manages form validation, submission, and UI state changes
  */
 
-import { LoadableScript, type TriggerEvent } from '@components/Scripts/loader/@types/loader'
-import { ClientScriptError } from '@components/Scripts/errors/ClientScriptError'
-import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
+import { LoadableScript, type TriggerEvent } from '@components/scripts/loader/@types'
+import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
+import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
 
 /**
  * Newsletter form component using LoadableScript pattern with instance-specific approach

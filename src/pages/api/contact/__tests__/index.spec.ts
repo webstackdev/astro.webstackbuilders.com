@@ -2,7 +2,7 @@
  * Unit tests for contact form API endpoint
  */
 import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest'
-import { POST, OPTIONS } from '../index'
+import { POST, OPTIONS } from '@pages/api/contact/index'
 
 // Mock Resend before importing the module
 const mockSend = vi.fn().mockResolvedValue({ data: { id: 'test-email-id' } })

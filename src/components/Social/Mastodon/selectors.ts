@@ -10,7 +10,7 @@ import {
   isDivElement,
   isFormElement,
   isInputElement,
-} from '@components/Scripts/assertions/elements'
+} from '@components/scripts/assertions/elements'
 
 export const SELECTORS = {
   /** Main modal container */

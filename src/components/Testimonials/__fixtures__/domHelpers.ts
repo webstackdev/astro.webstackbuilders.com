@@ -3,7 +3,7 @@
  * Creates minimal DOM structure needed for testing testimonials carousel JavaScript behavior
  */
 
-import { mockTestimonials, type TestimonialData } from './mockData'
+import { mockTestimonials, type TestimonialData } from '@components/Testimonials/__fixtures__/mockData'
 
 /**
  * Generates a single testimonial card HTML

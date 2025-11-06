@@ -4,9 +4,9 @@
  * Works seamlessly with Astro View Transitions
  */
 
-import { $theme, $themePickerOpen, setTheme } from '@components/Scripts/store'
-import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
-import { addButtonEventListeners } from '@components/Scripts/elementListeners'
+import { $theme, $themePickerOpen, setTheme } from '@components/scripts/store'
+import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
+import { addButtonEventListeners } from '@components/scripts/elementListeners'
 
 export const CLASSES = {
   isOpen: 'is-open',

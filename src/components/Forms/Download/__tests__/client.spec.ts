@@ -4,8 +4,8 @@
  */
 import { describe, expect, test, beforeEach, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
-import { DownloadForm } from '../client'
-import DownloadFormComponent from '../index.astro'
+import { DownloadForm } from '@components/Forms/Download/client'
+import DownloadFormComponent from '@components/Forms/Download/index.astro'
 
 // Mock the logger to suppress error output in tests
 vi.mock('@lib/logger', () => ({

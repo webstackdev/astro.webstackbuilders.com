@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { setupTestPage } from '../../helpers/cookieHelper.js'
+import { setupTestPage } from '@test/e2e/helpers/cookieHelper'
 
 test.describe('ThemePicker Web Component', () => {
   test('theme picker modal opens and closes', async ({ page }) => {

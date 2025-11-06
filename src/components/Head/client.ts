@@ -4,7 +4,7 @@
  * Sets up theme on document element and initializes metaColors global
  */
 
-import { LoadableScript, type TriggerEvent } from '@components/Scripts/loader/@types/loader'
+import { LoadableScript, type TriggerEvent } from '@components/scripts/loader/@types'
 
 /**
  * HeadThemeSetup component using LoadableScript pattern

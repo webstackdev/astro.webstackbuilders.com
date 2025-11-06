@@ -8,7 +8,7 @@ import {
   getConsentContainer,
   getConsentError,
   getConsentDescription
-} from '../selectors'
+} from '@components/GDPR/Consent/selectors'
 
 /**
  * Helper to create mock GDPR consent HTML structure

@@ -135,7 +135,7 @@ EmbedInstance
 
 ### Intersection Observer Configuration
 
-Matches the Scripts/loader 'visible' event settings:
+Matches the scripts/loader 'visible' event settings:
 
 ```javascript
 {
@@ -218,11 +218,11 @@ import Embed from '@components/Social/Embed/index.astro'
 export { Embed, ... }
 ```
 
-The manager registers with the Scripts/loader on the 'delayed' event:
+The manager registers with the scripts/loader on the 'delayed' event:
 
 ```astro
 <script>
-  import { registerScript } from '../../Scripts/loader'
+  import { registerScript } from '@components/scripts/loader'
   import { EmbedManager } from './client'
 
   registerScript(EmbedManager)

@@ -5,14 +5,14 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { TestimonialsCarousel } from '../client'
+import { TestimonialsCarousel } from '@components/Testimonials/client'
 import {
   setupTestimonialsCarouselDOM,
   cleanupTestimonialsCarouselDOM,
   getDOMElements,
   userInteractions,
-} from '../__fixtures__/domHelpers'
-import { mockTestimonials } from '../__fixtures__/mockData'
+} from '@components/Testimonials/__fixtures__/domHelpers'
+import { mockTestimonials } from '@components/Testimonials/__fixtures__/mockData'
 
 // Mock embla-carousel
 const mockScrollPrev = vi.fn()

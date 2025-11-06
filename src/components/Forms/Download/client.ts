@@ -1,4 +1,4 @@
-import { LoadableScript, type TriggerEvent } from '@components/Scripts/loader/@types/loader'
+import { LoadableScript, type TriggerEvent } from '@components/scripts/loader/@types'
 import { logger } from '@lib/logger'
 import {
   getDownloadFormElement,
@@ -6,8 +6,8 @@ import {
   getDownloadStatusDiv,
   getDownloadButtonWrapper,
 } from './selectors'
-import { ClientScriptError } from '@components/Scripts/errors/ClientScriptError'
-import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
+import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
+import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
 
 /**
  * DownloadForm component using LoadableScript pattern

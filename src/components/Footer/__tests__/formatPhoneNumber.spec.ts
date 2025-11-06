@@ -1,8 +1,8 @@
 /**
- * Unit tests for formatPhoneNumber helper
+ * Unit tests for formatPhoneNumber utility
  */
 import { describe, expect, test, vi } from 'vitest'
-import { formatPhoneNumber } from '../server'
+import { formatPhoneNumber } from '@components/Footer/server'
 
 // Mock the logger
 vi.mock('@lib/logger', () => ({

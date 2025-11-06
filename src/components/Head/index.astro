@@ -52,12 +52,12 @@ const {
 <script>
   {/** Script to set theme name on <html>. This should be inlined by Astro so */}
   {/** that it runs first. Do not add other scripts in this <script> block. */}
-  import { setInitialTheme } from '@components/Scripts/theme'
+  import { setInitialTheme } from '@components/scripts/theme'
   setInitialTheme()
 </script>
 <script>
   {/* Be careful adding script here. It runs before any script tags in components. */}
-  import { SentryBootstrap } from '@components/Scripts/sentry/client'
+  import { SentryBootstrap } from '@components/scripts/sentry/client'
   import { PUBLIC_SENTRY_DSN } from 'astro:env/client'
   if (import.meta.env.PROD && PUBLIC_SENTRY_DSN) {
     SentryBootstrap.init()
@@ -65,6 +65,6 @@ const {
     console.info('🔧 Sentry disabled in development mode')
   }
 
-  import { AppBootstrap } from '@components/Scripts/bootstrap'
+  import { AppBootstrap } from '@components/scripts/bootstrap'
   AppBootstrap.init()
 </script>

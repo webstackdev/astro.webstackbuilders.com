@@ -3,8 +3,8 @@
  * Tests for Newsletter form component using Container API pattern with happy-dom
  */
 import { beforeAll, beforeEach, describe, expect, test, vi, afterEach } from 'vitest'
-import { NewsletterForm } from '../client'
-import { setupNewsletterDOM, getFormElements } from '../__fixtures__/newsletter.fixture'
+import { NewsletterForm } from '@components/CallToAction/Newsletter/client'
+import { setupNewsletterDOM, getFormElements } from '@components/CallToAction/Newsletter/__fixtures__/newsletter.fixture'
 
 // Mock fetch for API testing
 const mockFetch = vi.fn()

@@ -6,9 +6,9 @@
 
 import EmblaCarousel, { type EmblaOptionsType, type EmblaCarouselType } from 'embla-carousel'
 import Autoplay from 'embla-carousel-autoplay'
-import { LoadableScript, type TriggerEvent } from '../Scripts/loader/@types/loader'
-import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
-import { addButtonEventListeners } from '@components/Scripts/elementListeners'
+import { LoadableScript, type TriggerEvent } from '@components/scripts/loader/@types'
+import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
+import { addButtonEventListeners } from '@components/scripts/elementListeners'
 
 /**
  * Testimonials carousel using LoadableScript pattern with instance-specific approach

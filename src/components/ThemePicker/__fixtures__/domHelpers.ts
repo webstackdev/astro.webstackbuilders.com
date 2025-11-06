@@ -4,7 +4,7 @@
  */
 
 import { vi } from 'vitest'
-import { mockThemes } from './mockData'
+import { mockThemes } from '@components/ThemePicker/__fixtures__/mockData'
 
 /**
  * Generates a single theme picker item card HTML

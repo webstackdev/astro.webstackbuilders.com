@@ -4,7 +4,7 @@
  */
 import type { BrowserContext, Page } from '@playwright/test'
 import { expect } from '@playwright/test'
-import { BasePage } from './BasePage'
+import { BasePage } from '@test/e2e/helpers'
 
 export class PwaPage extends BasePage {
   constructor(page: Page) {

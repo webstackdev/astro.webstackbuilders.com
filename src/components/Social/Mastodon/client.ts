@@ -9,15 +9,15 @@
  */
 
 import { createFocusTrap, type FocusTrap } from 'focus-trap'
-import { LoadableScript, type TriggerEvent } from '@components/Scripts/loader/@types/loader'
+import { LoadableScript, type TriggerEvent } from '@components/scripts/loader/@types'
 import { isMastodonInstance, normalizeURL, getUrlDomain } from './detector'
 import { buildShareUrl } from './config'
 import {
   $currentMastodonInstance,
   $mastodonInstances,
   saveMastodonInstance,
-} from '@components/Scripts/store'
-import { addButtonEventListeners, addWrapperEventListeners } from '@components/Scripts/elementListeners'
+} from '@components/scripts/store'
+import { addButtonEventListeners, addWrapperEventListeners } from '@components/scripts/elementListeners'
 import {
   getModalElement,
   getBackdropElement,
@@ -32,7 +32,7 @@ import {
   getSavedInstancesContainer,
   getSavedInstancesList,
 } from './selectors'
-import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
+import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
 
 /**
  * Custom event detail for modal open

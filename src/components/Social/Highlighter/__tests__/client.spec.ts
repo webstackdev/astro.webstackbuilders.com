@@ -3,22 +3,24 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 
 // Mock the common utilities BEFORE importing
-vi.mock('../../common/platforms', async () => {
-  const actual =
-    await vi.importActual<typeof import('../../common/platforms')>('../../common/platforms')
-  return {
-    ...actual,
-    copyToClipboard: vi.fn().mockResolvedValue(true),
-    nativeShare: vi.fn().mockResolvedValue(false),
-  }
-})
+vi.mock('@components/scripts/errors', () => ({
+  handleScriptError: vi.fn(),
+  addScriptBreadcrumb: vi.fn(),
+}))
 
-import { Highlighter } from '../client'
-import { copyToClipboard, nativeShare } from '../../common/platforms'
+vi.mock('@components/Social/common/platforms', () => ({
+  copyToClipboard: vi.fn(),
+  nativeShare: vi.fn(),
+  getPlatform: vi.fn(),
+  platforms: [],
+}))
+
+import { Highlighter } from '@components/Social/Highlighter/client'
+import { copyToClipboard, nativeShare } from '@components/Social/common/platforms'
 
 // Cast mocked functions for assertions
-const mockCopyToClipboard = copyToClipboard as ReturnType<typeof vi.fn>
-const mockNativeShare = nativeShare as ReturnType<typeof vi.fn>
+const mockCopyToClipboard = vi.mocked(copyToClipboard)
+const mockNativeShare = vi.mocked(nativeShare)
 
 describe('Highlighter LoadableScript', () => {
   beforeEach(() => {

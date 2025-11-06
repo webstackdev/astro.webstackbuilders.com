@@ -1,7 +1,7 @@
-import { LoadableScript, type TriggerEvent } from '../Scripts/loader'
+import { LoadableScript, type TriggerEvent } from '@components/scripts/loader'
 import { gsap } from 'gsap'
-import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
-import { onScriptEvent, ScriptEvent } from '@components/Scripts/events'
+import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
+import { onScriptEvent, ScriptEvent } from '@components/scripts/events'
 
 type Timeline = ReturnType<typeof gsap.timeline>
 

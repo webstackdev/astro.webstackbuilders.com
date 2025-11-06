@@ -1,7 +1,7 @@
 /**
  * Type-safe HTML element selectors
  */
-import { isAnchorElement } from '@components/Scripts/assertions/elements'
+import { isAnchorElement } from '@components/scripts/assertions/elements'
 
 export const SELECTORS = {
   /** "Hire Me" block with current month and year set by script */

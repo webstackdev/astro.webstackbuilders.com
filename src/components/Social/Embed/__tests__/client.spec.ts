@@ -1,9 +1,9 @@
 // @vitest-environment happy-dom
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import { EmbedManager } from '../client'
-import { AppBootstrap } from '@components/Scripts/bootstrap'
-import { $embedCache, updateConsent, clearEmbedCache } from '@components/Scripts/store'
+import { EmbedManager } from '@components/Social/Embed/client'
+import { AppBootstrap } from '@components/scripts/bootstrap'
+import { $embedCache, updateConsent, clearEmbedCache } from '@components/scripts/store'
 
 /**
  * Unit tests for Social Embed component

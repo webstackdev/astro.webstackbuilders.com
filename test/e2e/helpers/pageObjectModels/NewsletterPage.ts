@@ -3,7 +3,7 @@
  * Encapsulates newsletter form interactions and validations
  */
 import { type Page, expect } from '@playwright/test'
-import { BasePage } from './BasePage'
+import { BasePage } from '@test/e2e/helpers'
 
 export class NewsletterPage extends BasePage {
   // Selectors

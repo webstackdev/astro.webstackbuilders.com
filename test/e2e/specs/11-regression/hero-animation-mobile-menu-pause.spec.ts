@@ -4,7 +4,7 @@
  * Issue: Hero animation should pause when mobile navigation menu opens
  * Solution: Custom event system (OVERLAY_OPENED/CLOSED) to communicate between scripts
  *
- * @see src/components/Scripts/events/index.ts
+ * @see src/components/scripts/events/index.ts
  * @see src/components/Navigation/client.ts
  * @see src/components/Hero/client.ts
  */

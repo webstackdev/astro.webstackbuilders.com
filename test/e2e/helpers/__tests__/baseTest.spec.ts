@@ -2,12 +2,12 @@ import { describe, expect, it, vi } from 'vitest'
 import fixtureData from '@test/e2e/helpers/__fixtures__/pages.json'
 
 // Mock the pages.json import
-vi.mock('.cache/pages.json', () => ({
+vi.mock('../../../../.cache/pages.json', () => ({
   default: fixtureData,
 }))
 
 // Import after mocking
-const { sitePaths } = await import('../baseTest')
+const { sitePaths } = await import('@test/e2e/helpers/baseTest')
 
 describe('baseTest helpers', () => {
   describe('sitePaths.articles', () => {

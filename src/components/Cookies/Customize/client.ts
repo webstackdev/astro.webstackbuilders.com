@@ -4,11 +4,11 @@
  * Now uses centralized state management from lib/state
  */
 
-import { LoadableScript, type TriggerEvent } from '../../Scripts/loader/@types/loader'
-import { isDivElement, isButtonElement } from '@components/Scripts/assertions/elements'
-import { ClientScriptError } from '@components/Scripts/errors/ClientScriptError'
-import { addButtonEventListeners } from '@components/Scripts/elementListeners'
-import { updateConsent, $consent } from '@components/Scripts/store'
+import { LoadableScript, type TriggerEvent } from '@components/scripts/loader/@types'
+import { isDivElement, isButtonElement } from '@components/scripts/assertions/elements'
+import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
+import { addButtonEventListeners } from '@components/scripts/elementListeners'
+import { updateConsent, $consent } from '@components/scripts/store'
 
 export interface CookiePreferences {
   necessary: boolean

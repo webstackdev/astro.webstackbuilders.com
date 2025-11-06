@@ -6,7 +6,7 @@
  */
 import type { APIRoute } from 'astro'
 import { Resend } from 'resend'
-import { recordConsent } from '../../../api/shared/consent-log'
+import { recordConsent } from '@api/shared/consent-log'
 
 export const prerender = false // Force SSR for this endpoint
 

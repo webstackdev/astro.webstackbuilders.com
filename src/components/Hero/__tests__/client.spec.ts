@@ -2,8 +2,8 @@ import { describe, it, expect, beforeEach, vi, afterEach, type Mock } from 'vite
 import { JSDOM } from 'jsdom'
 import { readFileSync } from 'fs'
 import { resolve } from 'path'
-import { HeroLoader } from '../client'
-import { registerScript, resetDelayedLoader } from '../../Scripts/loader'
+import { HeroLoader } from '@components/Hero/client'
+import { registerScript, resetDelayedLoader } from '@components/scripts/loader'
 import { gsap } from 'gsap'
 
 // Setup function for DOM with hero SVG
@@ -33,7 +33,7 @@ vi.mock('gsap', () => ({
   },
 }))
 
-vi.mock('../../Scripts/loader', () => {
+vi.mock('@components/scripts/loader', () => {
   class LoadableScript {
     static scriptName = 'MockLoadableScript'
     static eventType = 'astro:page-load'

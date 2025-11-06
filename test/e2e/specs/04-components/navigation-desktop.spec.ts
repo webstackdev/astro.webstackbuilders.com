@@ -4,8 +4,12 @@
  * @see src/components/Navigation/
  */
 
-import { BasePage, test, expect } from '@test/e2e/helpers'
-import { setupTestPage } from '../../helpers/cookieHelper'
+import {
+  BasePage,
+  test,
+  expect,
+  setupTestPage,
+ } from '@test/e2e/helpers'
 
 test.describe('Desktop Navigation', () => {
   test('@ready navigation is visible on desktop', async ({ page: playwrightPage }) => {

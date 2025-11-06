@@ -3,9 +3,14 @@
  * Tests for theme switching functionality (light/dark mode)
  * @see src/components/ThemePicker/
  */
-
-import { test, expect } from '@test/e2e/helpers'
-import { setupCleanTestPage, setupTestPage, selectTheme, getThemePickerToggle } from '../../helpers/cookieHelper'
+import {
+  expect,
+  getThemePickerToggle,
+  selectTheme,
+  setupCleanTestPage,
+  setupTestPage,
+  test,
+} from '@test/e2e/helpers'
 
 
 test.describe('Theme Picker Component', () => {

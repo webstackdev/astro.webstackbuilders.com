@@ -1,6 +1,6 @@
-import { LoadableScript, type TriggerEvent } from '../../Scripts/loader/@types/loader'
-import { cacheEmbed, getCachedEmbed } from '@components/Scripts/store'
-import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
+import { LoadableScript, type TriggerEvent } from '@components/scripts/loader/@types'
+import { cacheEmbed, getCachedEmbed } from '@components/scripts/store'
+import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
 
 /**
  * Platform types supported by the Embed component

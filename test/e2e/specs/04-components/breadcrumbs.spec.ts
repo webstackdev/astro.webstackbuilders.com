@@ -4,8 +4,12 @@
  * @see src/components/Breadcrumbs/
  */
 
-import { BasePage, test, expect } from '@test/e2e/helpers'
-import { setupTestPage } from '@test/e2e/helpers/cookieHelper'
+import {
+  BasePage,
+  expect,
+  setupTestPage,
+  test,
+ } from '@test/e2e/helpers'
 
 test.describe('Breadcrumbs Component', () => {
   test('@ready breadcrumbs display on article pages', async ({ page: playwrightPage }) => {

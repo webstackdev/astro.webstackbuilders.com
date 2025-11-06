@@ -7,8 +7,8 @@ import {
   initGDPRConsent,
   validateConsent,
   isConsentValid
-} from '../client'
-import { $formConsent, clearFormConsent, type ConsentPurpose } from '../state'
+} from '@components/GDPR/Consent/client'
+import { $formConsent, clearFormConsent, type ConsentPurpose } from '@components/GDPR/Consent/state'
 
 /**
  * Helper to create mock GDPR consent HTML structure in a form

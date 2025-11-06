@@ -1,7 +1,7 @@
 /**
  * ESLint rule to enforce centralized event listener patterns
  * Prevents direct use of addEventListener for specific event types that should use
- * the centralized utilities in src/components/Scripts/elementListeners/index.ts
+ * the centralized utilities in src/components/scripts/elementListeners/index.ts
  */
 
 import type { Rule } from 'eslint'
@@ -32,7 +32,7 @@ const enforceCentralizedEventsRule: Rule.RuleModule = {
     fixable: undefined,
   },
   create(context: Rule.RuleContext): Rule.RuleListener {
-    const centralizedHandlerFile = 'src/components/Scripts/elementListeners/index.ts'
+    const centralizedHandlerFile = 'src/components/scripts/elementListeners/index.ts'
 
     // Map event types to their centralized utilities
     const eventConfigs: EventConfig[] = [

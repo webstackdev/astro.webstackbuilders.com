@@ -1,9 +1,9 @@
 /**
  * Script for the Footer component using LoadableScript pattern
  */
-import { LoadableScript, type TriggerEvent } from '../Scripts/loader/@types/loader'
-import { getHireMeAnchorElement } from './selectors'
-import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
+import { LoadableScript, type TriggerEvent } from '@components/scripts/loader/@types'
+import { getHireMeAnchorElement } from '@components/Footer/selectors'
+import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
 
 class Footer extends LoadableScript {
   static override scriptName = 'Footer'

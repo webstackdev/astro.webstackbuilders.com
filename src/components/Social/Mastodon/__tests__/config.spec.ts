@@ -8,7 +8,7 @@
  */
 
 import { describe, it, expect } from 'vitest'
-import { mastodonConfig, buildShareUrl } from '../config'
+import { mastodonConfig, buildShareUrl } from '@components/Social/Mastodon/config'
 
 describe('Mastodon Configuration', () => {
   describe('mastodonConfig', () => {

@@ -3,7 +3,8 @@
  * Uses the actual Newsletter/index.astro component instead of hard-coded HTML
  */
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
-import NewsletterComponent from '../index.astro'
+
+import NewsletterComponent from '@components/CallToAction/Newsletter/index.astro'
 
 export interface NewsletterProps {
   title?: string

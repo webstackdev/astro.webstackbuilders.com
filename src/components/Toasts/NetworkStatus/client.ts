@@ -1,4 +1,4 @@
-import { LoadableScript, type TriggerEvent } from '@components/Scripts/loader/@types/loader'
+import { LoadableScript, type TriggerEvent } from '@components/scripts/loader/@types'
 
 /**
  * NetworkStatus component using LoadableScript pattern

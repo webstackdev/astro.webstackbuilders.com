@@ -3,7 +3,7 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest'
 import type { APIContext } from 'astro'
-import { GET } from '../confirm'
+import { GET } from '@pages/api/newsletter/confirm'
 
 // Mock dependencies
 vi.mock('@api/newsletter/token', () => ({

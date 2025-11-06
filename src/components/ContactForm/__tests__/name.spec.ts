@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { initNameLengthHandler, nameInputElementValidator } from '../name'
-import type { ContactFormSelectors } from '../selectors'
+import { initNameLengthHandler, nameInputElementValidator } from '@components/ContactForm/name'
+import type { ContactFormSelectors } from '@components/ContactForm/selectors'
 
 describe('Name Validation', () => {
   let mockSelector: ContactFormSelectors

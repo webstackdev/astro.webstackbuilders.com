@@ -2,7 +2,7 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
-import TestCarousel from '../__fixtures__/client.fixture.astro'
+import TestCarousel from '@components/Carousel/__fixtures__/client.fixture.astro'
 
 // Mock Embla Carousel and Autoplay plugin
 const mockEmblaApi = {

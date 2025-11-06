@@ -1,8 +1,8 @@
 import {
   missingEmailAddressText,
   invalidEmailAddressText,
-  maxLengthEmailAddressText,
   minLengthEmailAddressText,
+  maxLengthEmailAddressText,
 } from './error'
 import type { ContactFormSelectors } from './selectors'
 

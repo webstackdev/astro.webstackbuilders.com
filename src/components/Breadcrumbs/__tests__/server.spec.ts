@@ -1,9 +1,8 @@
 /**
- * Unit tests for breadcrumb generation utilities
+ * Unit tests for Breadcrumbs server utilities
  */
-
-import { describe, it, expect } from 'vitest'
-import { generateBreadcrumbs, generateBreadcrumbLabel } from '../server'
+import { describe, expect, it } from 'vitest'
+import { generateBreadcrumbs, generateBreadcrumbLabel } from '@components/Breadcrumbs/server'
 
 describe('generateBreadcrumbLabel', () => {
   describe('Page Title Override', () => {

@@ -2,7 +2,7 @@
  * Unit tests for downloads form API endpoint
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { POST } from '../submit'
+import { POST } from '@pages/api/downloads/submit'
 
 describe('Downloads API - POST /api/downloads/submit', () => {
 	beforeEach(() => {

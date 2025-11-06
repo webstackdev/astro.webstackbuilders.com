@@ -10,7 +10,7 @@ import {
   getFormConsent,
   type ConsentPurpose,
   type FormConsentState
-} from '../state'
+} from '@components/GDPR/Consent/state'
 
 describe('GDPR Form Consent State', () => {
   beforeEach(() => {

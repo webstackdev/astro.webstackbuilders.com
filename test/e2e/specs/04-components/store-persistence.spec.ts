@@ -1,7 +1,7 @@
 /**
  * Nanostore Persistence Tests
  * Tests that all stores persist their values across page navigations (View Transitions)
- * @see src/components/Scripts/state/
+ * @see src/components/scripts/store/
  */
 
 import { test, expect } from '@test/e2e/helpers'

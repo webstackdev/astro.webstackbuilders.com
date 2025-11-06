@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import remarkLinkifyRegex from 'remark-linkify-regex'
-import { processIsolated } from '../../helpers/test-utils'
+import { processIsolated } from '@lib/markdown/helpers/test-utils'
 
 describe('remark-linkify-regex (Layer 1: Isolated)', () => {
   describe('basic URL detection', () => {

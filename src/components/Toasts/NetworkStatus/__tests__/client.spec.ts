@@ -3,7 +3,7 @@
  * Tests for NetworkStatus component using LoadableScript pattern
  */
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
-import { NetworkStatus } from '../client'
+import { NetworkStatus } from '@components/Toasts/NetworkStatus/client'
 
 describe('NetworkStatus LoadableScript', () => {
   let networkStatus: NetworkStatus

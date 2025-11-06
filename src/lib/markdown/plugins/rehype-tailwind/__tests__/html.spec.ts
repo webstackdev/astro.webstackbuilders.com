@@ -1,12 +1,12 @@
 import { describe, expect, test } from 'vitest'
 import type { Element } from 'hast'
-import type { ElementConfig } from '../@types/index'
+import type { ElementConfig } from '@lib/markdown/plugins/rehype-tailwind/@types'
 import {
   htmlElements,
   applyHtmlElementClasses,
   isSimpleHtmlElement,
   getElementConfig,
-} from '../visitors/simple'
+} from '@lib/markdown/plugins/rehype-tailwind/visitors/simple'
 
 describe('htmlElements configuration', () => {
   test('contains expected number of element configurations', () => {

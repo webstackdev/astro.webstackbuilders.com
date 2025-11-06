@@ -12,7 +12,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import { JSDOM } from 'jsdom'
-import ContainerComponent from '../container.astro'
+import ContainerComponent from '@components/Test/container.astro'
 
 describe('Container API Reference Implementation', () => {
   let container: AstroContainer
