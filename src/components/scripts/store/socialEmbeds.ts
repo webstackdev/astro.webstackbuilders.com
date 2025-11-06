@@ -2,8 +2,21 @@
  * Social Embeds Cache State Management
  */
 import { persistentAtom } from '@nanostores/persistent'
-import type { EmbedCacheState } from './@types'
-import { $consent } from './cookieConsent'
+import { $consent } from './consent'
+
+// ============================================================================
+// TYPES
+// ============================================================================
+
+export interface EmbedCacheEntry {
+  data: unknown
+  timestamp: number
+  ttl: number
+}
+
+export interface EmbedCacheState {
+  [key: string]: EmbedCacheEntry
+}
 
 // ============================================================================
 // STORES

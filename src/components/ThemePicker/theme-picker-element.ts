@@ -4,7 +4,7 @@
  * Works seamlessly with Astro View Transitions
  */
 
-import { $theme, $themePickerOpen, setTheme } from '@components/scripts/store'
+import { $theme, $themePickerOpen, setTheme, type ThemeId } from '@components/scripts/store'
 import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
 import { addButtonEventListeners } from '@components/scripts/elementListeners'
 
@@ -12,8 +12,6 @@ export const CLASSES = {
   isOpen: 'is-open',
   active: 'is-active',
 }
-
-export type ThemeIds = 'default' | 'dark' | 'holiday'
 
 /**
  * Interface for global meta colors object
@@ -34,7 +32,7 @@ declare global {
  */
 export class ThemePickerElement extends HTMLElement {
   private isModalOpen = false
-  private activeTheme: ThemeIds
+  private activeTheme: ThemeId
   private pickerModal!: HTMLDivElement
   private toggleBtn!: HTMLButtonElement
   private closeBtn!: HTMLButtonElement
@@ -80,7 +78,7 @@ export class ThemePickerElement extends HTMLElement {
       }
 
       // Sync active theme with what's already set in DOM by HEAD script
-      const domTheme = document.documentElement.dataset['theme'] as ThemeIds | undefined
+      const domTheme = document.documentElement.dataset['theme'] as ThemeId | undefined
       if (domTheme && domTheme !== this.activeTheme) {
         this.activeTheme = domTheme
       }
@@ -140,7 +138,7 @@ export class ThemePickerElement extends HTMLElement {
   /**
    * Get the initial theme based on stored preference or system preference
    */
-  private getInitialActiveTheme(): ThemeIds {
+  private getInitialActiveTheme(): ThemeId {
     const context = { scriptName: 'ThemePickerElement', operation: 'getInitialTheme' }
     addScriptBreadcrumb(context)
 
@@ -164,14 +162,14 @@ export class ThemePickerElement extends HTMLElement {
   /**
    * Get theme preference from state store
    */
-  private getStoredPreference(): ThemeIds | false {
+  private getStoredPreference(): ThemeId | false {
     try {
       // Check if theme is actually stored in localStorage (not just default initialization)
       const hasStoredTheme = localStorage.getItem('theme') !== null
       if (!hasStoredTheme) {
         return false
       }
-      const storedTheme = $theme.get() as ThemeIds
+      const storedTheme = $theme.get() as ThemeId
       return storedTheme || false
     } catch {
       return false
@@ -181,7 +179,7 @@ export class ThemePickerElement extends HTMLElement {
   /**
    * Get system theme preference
    */
-  private getSystemPreference(): ThemeIds | false {
+  private getSystemPreference(): ThemeId | false {
     try {
       if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
         return 'dark'
@@ -212,7 +210,7 @@ export class ThemePickerElement extends HTMLElement {
             throw new Error(`Theme item ${button.name} is missing the 'data-theme' attribute`)
           }
 
-          const themeId = button.dataset['theme'] as ThemeIds
+          const themeId = button.dataset['theme'] as ThemeId
           if (themeId) {
             addButtonEventListeners(button, (e) => {
               // Stop ALL event propagation to prevent "click outside" handler
@@ -336,7 +334,7 @@ export class ThemePickerElement extends HTMLElement {
   /**
    * Apply theme to document
    */
-  private applyTheme(themeId: ThemeIds): void {
+  private applyTheme(themeId: ThemeId): void {
     const context = { scriptName: 'ThemePickerElement', operation: 'applyTheme' }
     addScriptBreadcrumb(context)
 
@@ -362,7 +360,7 @@ export class ThemePickerElement extends HTMLElement {
   /**
    * Update meta theme-color tag
    */
-  private updateMetaThemeColor(themeId: ThemeIds): void {
+  private updateMetaThemeColor(themeId: ThemeId): void {
     try {
       if (!window.metaColors) return
 

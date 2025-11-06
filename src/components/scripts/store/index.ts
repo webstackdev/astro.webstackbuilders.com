@@ -5,35 +5,32 @@
 
 // Re-export types
 export type {
-  ConsentCategory,
-  ConsentValue,
-  ThemeId,
-  ConsentState,
-  EmbedCacheEntry,
-  EmbedCacheState,
+
 } from './@types'
 
 // Re-export cookie consent
 export {
+  type ConsentCategory,
+  type ConsentState,
+  type ConsentValue,
   $consent,
   $cookieModalVisible,
-  $hasAnalyticsConsent,
-  $hasFunctionalConsent,
   $hasAdvertisingConsent,
+  $hasAnalyticsConsent,
   $hasAnyConsent,
-  initConsentFromCookies,
-  initConsentSideEffects,
-  updateConsent,
+  $hasFunctionalConsent,
   allowAllConsent,
+  initConsentFromCookies,
   revokeAllConsent,
-} from './cookieConsent'
+  updateConsent,
+} from './consent'
 
 // Re-export themes
 export {
   $theme,
   $themePickerOpen,
-  initThemeSideEffects,
   setTheme,
+  type ThemeId,
 } from './themes'
 
 // Re-export Mastodon instances
@@ -46,4 +43,11 @@ export {
 } from './mastodonInstances'
 
 // Re-export social embeds
-export { $embedCache, cacheEmbed, getCachedEmbed, clearEmbedCache } from './socialEmbeds'
+export {
+  $embedCache,
+  cacheEmbed,
+  clearEmbedCache,
+  type EmbedCacheEntry,
+  type EmbedCacheState,
+  getCachedEmbed,
+} from './socialEmbeds'

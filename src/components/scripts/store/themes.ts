@@ -2,9 +2,14 @@
  * Theme persistence store
  */
 import { persistentAtom } from '@nanostores/persistent'
-import type { ThemeId } from './@types'
-import { $consent } from './cookieConsent'
+import { $consent } from './consent'
 import { handleScriptError } from '@components/scripts/errors'
+
+// ============================================================================
+// TYPES
+// ============================================================================
+
+export type ThemeId = 'default' | 'dark' | 'holiday'
 
 // ============================================================================
 // STORES

@@ -4,7 +4,7 @@
  */
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { $mastodonInstances, saveMastodonInstance } from '@components/scripts/store/mastodonInstances'
-import { $consent, updateConsent } from '@components/scripts/store/cookieConsent'
+import { $consent, updateConsent } from '@components/scripts/store/consent'
 
 // Mock js-cookie
 vi.mock('js-cookie', () => ({

@@ -11,7 +11,7 @@ import {
   initConsentFromCookies,
   allowAllConsent,
   revokeAllConsent,
-} from '@components/scripts/store/cookieConsent'
+} from '@components/scripts/store/consent'
 import * as cookieUtils from '@components/scripts/utils/cookies'
 
 // Mock js-cookie

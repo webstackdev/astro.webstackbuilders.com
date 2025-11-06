@@ -5,7 +5,7 @@ import {
   $hasAdvertisingConsent,
   $hasAnalyticsConsent,
   $hasFunctionalConsent,
-} from '@components/scripts/store/cookieConsent'
+} from '@components/scripts/store/consent'
 import { clearEmbedCache } from '@components/scripts/store/socialEmbeds'
 
 // ============================================================================

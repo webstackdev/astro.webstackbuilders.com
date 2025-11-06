@@ -2,12 +2,12 @@
  * Mock data for ThemePicker component testing
  */
 
-export type ThemeIds = 'default' | 'dark' | 'holiday'
+import type { ThemeId } from '@components/scripts/store'
 
 /**
  * Mock themes for testing
  */
-export const mockThemes: ThemeIds[] = ['default', 'dark', 'holiday']
+export const mockThemes: ThemeId[] = ['default', 'dark', 'holiday']
 
 /**
  * Mock meta colors object

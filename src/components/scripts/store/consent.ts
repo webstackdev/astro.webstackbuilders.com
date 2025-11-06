@@ -8,6 +8,21 @@ import { getCookie, setCookie } from '@components/scripts/utils/cookies'
 import { handleScriptError } from '@components/scripts/errors'
 
 // ============================================================================
+// TYPES
+// ============================================================================
+
+export type ConsentCategory = 'necessary' | 'analytics' | 'advertising' | 'functional'
+export type ConsentValue = boolean
+
+export interface ConsentState {
+  necessary: ConsentValue
+  analytics: ConsentValue
+  advertising: ConsentValue
+  functional: ConsentValue
+  timestamp?: string
+}
+
+// ============================================================================
 // STORES
 // ============================================================================
 

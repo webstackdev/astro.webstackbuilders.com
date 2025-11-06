@@ -2,7 +2,7 @@
  * Mastodon Instances State Management
  */
 import { persistentAtom } from '@nanostores/persistent'
-import { $consent } from './cookieConsent'
+import { $consent } from './consent'
 
 // ============================================================================
 // STORES
