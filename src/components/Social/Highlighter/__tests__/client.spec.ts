@@ -12,7 +12,53 @@ vi.mock('@components/Social/common/platforms', () => ({
   copyToClipboard: vi.fn(),
   nativeShare: vi.fn(),
   getPlatform: vi.fn(),
-  platforms: [],
+  platforms: [
+    {
+      name: 'X (Twitter)',
+      id: 'twitter',
+      getShareUrl: ({ text, url }: { text: string; url: string }) =>
+        `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
+      ariaLabel: 'Share on X (Twitter)',
+      icon: 'twitter',
+      colorClasses: 'bg-[#1DA1F2] hover:bg-[#1a91da] text-white',
+    },
+    {
+      name: 'LinkedIn',
+      id: 'linkedin',
+      getShareUrl: ({ url }: { url: string }) =>
+        `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
+      ariaLabel: 'Share on LinkedIn',
+      icon: 'linkedin',
+      colorClasses: 'bg-[#0077b5] hover:bg-[#005885] text-white',
+    },
+    {
+      name: 'Bluesky',
+      id: 'bluesky',
+      getShareUrl: ({ text, url }: { text: string; url: string }) =>
+        `https://bsky.app/intent/compose?text=${encodeURIComponent(`${text} ${url}`)}`,
+      ariaLabel: 'Share on Bluesky',
+      icon: 'bluesky',
+      colorClasses: 'bg-[#00A8E8] hover:bg-[#0087bd] text-white',
+    },
+    {
+      name: 'Reddit',
+      id: 'reddit',
+      getShareUrl: ({ url, title }: { url: string; title: string }) =>
+        `https://reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`,
+      ariaLabel: 'Share on Reddit',
+      icon: 'reddit',
+      colorClasses: 'bg-[#FF4500] hover:bg-[#e03d00] text-white',
+    },
+    {
+      name: 'Mastodon',
+      id: 'mastodon',
+      getShareUrl: () => '',
+      ariaLabel: 'Share on Mastodon',
+      icon: 'mastodon',
+      colorClasses: 'bg-[#6364FF] hover:bg-[#5557e6] text-white',
+      useModal: true,
+    },
+  ],
 }))
 
 import { Highlighter } from '@components/Social/Highlighter/client'
