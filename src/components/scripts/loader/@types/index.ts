@@ -14,6 +14,35 @@ export type UserInteractionEvent =
   | 'touchend'
 
 /** All supported trigger events for script execution */
+/*
+Components Using Trigger Events
+
+Using 'delayed' (3 components):
+
+- Testimonials (client.ts)
+- Social Embed (client.ts)
+- Highlighter (client.ts)
+
+Using 'visible':
+
+None - No components are currently using the 'visible' trigger event.
+
+For reference, most other components use 'astro:page-load':
+
+- Head
+- Forms/Download
+- Cookies/Consent
+- Carousel
+- Cookies/Customize
+- Hero
+- Navigation
+- Toasts/NetworkStatus
+- ContactForm
+- CallToAction/Newsletter
+- Social/Mastodon
+
+The 'delayed' event triggers script execution after user interaction (like mousemove, keydown, wheel, touchstart, etc.), which is perfect for non-critical components like testimonials carousels, social embeds, and text highlighters that don't need to run immediately on page load.
+*/
 export type TriggerEvent =
   | 'delayed'
   | 'visible'

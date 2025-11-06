@@ -6,8 +6,8 @@
 import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
 import { addScriptBreadcrumb, handleScriptError } from '@components/scripts/errors'
 import { $hasFunctionalConsent, initConsentFromCookies } from '@components/scripts/store'
-import { initConsentSideEffects } from '@components/scripts/store/cookieConsent'
-import { initThemeSideEffects } from '@components/scripts/store/themes'
+import { initConsentSideEffects } from '@components/scripts/consent'
+import { initThemeSideEffects } from '@components/scripts/theme'
 import { clearEmbedCache } from '@components/scripts/store/socialEmbeds'
 
 /**

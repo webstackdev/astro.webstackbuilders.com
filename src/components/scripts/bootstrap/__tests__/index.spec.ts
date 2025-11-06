@@ -17,12 +17,13 @@ vi.mock('@components/scripts/store', () => ({
 }))
 
 // Mock store modules that are imported by bootstrap
-vi.mock('@components/scripts/store/cookieConsent', () => ({
+vi.mock('@components/scripts/consent', () => ({
   initConsentSideEffects: vi.fn(),
 }))
 
-vi.mock('@components/scripts/store/themes', () => ({
+vi.mock('@components/scripts/theme', () => ({
   initThemeSideEffects: vi.fn(),
+  setInitialTheme: vi.fn(),
 }))
 
 vi.mock('@components/scripts/store/socialEmbeds', () => ({
@@ -37,8 +38,8 @@ vi.mock('@components/scripts/errors', () => ({
 
 // Import the mocked functions after setting up mocks
 import { initConsentFromCookies } from '@components/scripts/store'
-import { initConsentSideEffects } from '@components/scripts/store/cookieConsent'
-import { initThemeSideEffects } from '@components/scripts/store/themes'
+import { initConsentSideEffects } from '@components/scripts/consent'
+import { initThemeSideEffects } from '@components/scripts/theme'
 
 describe('AppBootstrap', () => {
   beforeEach(() => {
