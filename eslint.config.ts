@@ -101,7 +101,7 @@ export default [
       'jsdoc/check-tag-names': [
         level,
         {
-          definedTags: ['NOTE:', 'TODO:', 'jest-environment', 'jest-environment-options'],
+          definedTags: ['NOTE:', 'jest-environment', 'jest-environment-options'],
           jsxTags: true,
         },
       ],
@@ -121,6 +121,16 @@ export default [
       'new-cap': [level, { newIsCap: true, capIsNew: false }],
       'no-new': level,
       'no-restricted-globals': ['error'].concat(restrictedGlobals),
+      'no-restricted-imports': [
+        'error', {
+            patterns: [
+              {
+                group: ['../*'],
+                message: 'Usage of relative imports is not allowed. Please use path aliases.',
+              },
+            ],
+          },
+      ],
       'no-unused-expressions': [level, { allowShortCircuit: true, allowTernary: true }],
       'no-unused-vars': [level, { varsIgnorePattern: '^_', argsIgnorePattern: '^_|^this$' }],
       'no-useless-escape': 'off',

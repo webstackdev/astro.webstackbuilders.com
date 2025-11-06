@@ -57,6 +57,7 @@ export default {
       },
     ],
     'at-rule-no-vendor-prefix': true,
+    'import-notation': null,
 
     // Empty lines
     'at-rule-empty-line-before': [

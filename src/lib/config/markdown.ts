@@ -1,3 +1,5 @@
+// path alias for markdown folder causes self referential error
+/* eslint-disable no-restricted-imports */
 /**
  * Markdown Configuration
  *
@@ -35,6 +37,7 @@ const remarkLinkifyRegexUrls = remarkLinkifyRegex(/^(https?:\/\/[^\s$.?#].[^\s]*
 Object.defineProperty(remarkLinkifyRegexUrls, 'name', { value: 'remarkLinkifyRegex' })
 
 // Use our TypeScript implementations (modern Remark API)
+
 import remarkAbbreviations from '../markdown/plugins/remark-abbreviations'
 Object.defineProperty(remarkAbbreviations, 'name', { value: 'remarkAbbreviations' })
 
