@@ -1,4 +1,3 @@
-import { LoadableScript, type TriggerEvent } from '@components/scripts/loader/@types'
 import EmblaCarousel, { type EmblaOptionsType, type EmblaCarouselType } from 'embla-carousel'
 import Autoplay from 'embla-carousel-autoplay'
 import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
@@ -7,17 +6,15 @@ import { addButtonEventListeners } from '@components/scripts/elementListeners'
 
 /**
  * Auto-discovery carousel implementation using singleton pattern
- * Can be registered directly without instantiation: registerScript(CarouselManager)
  */
-export class CarouselManager extends LoadableScript {
+export class CarouselManager {
   private static instance: CarouselManager | null = null
   private carousels: Map<HTMLElement, CarouselInstance> = new Map()
   private initialized = false
 
-  static override scriptName = 'CarouselManager'
-  static override eventType: TriggerEvent = 'astro:page-load'
+  static scriptName = 'CarouselManager'
 
-  static override init(): void {
+  static init(): void {
     const context = { scriptName: CarouselManager.scriptName, operation: 'init' }
     addScriptBreadcrumb(context)
 
@@ -38,11 +35,11 @@ export class CarouselManager extends LoadableScript {
     }
   }
 
-  static override pause(): void {
+  static pause(): void {
     CarouselManager.getInstance().pauseAll()
   }
 
-  static override resume(): void {
+  static resume(): void {
     CarouselManager.getInstance().resumeAll()
   }
 
@@ -56,7 +53,6 @@ export class CarouselManager extends LoadableScript {
 
   private constructor() {
     // Private constructor for singleton
-    super()
   }
 
   private discoverNewCarousels(): void {
@@ -173,7 +169,7 @@ export class CarouselManager extends LoadableScript {
   }
 
   // Reset for new page navigation
-  static override reset(): void {
+  static reset(): void {
     const instance = CarouselManager.instance
     if (instance) {
       instance.cleanup()

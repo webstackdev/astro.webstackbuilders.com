@@ -1,18 +1,14 @@
 /**
- * Head Theme Setup - LoadableScript Implementation
+ * Head Theme Setup
  * Runs early in <head> to avoid flash of un-themed styling (FOUS)
  * Sets up theme on document element and initializes metaColors global
  */
 
-import { LoadableScript, type TriggerEvent } from '@components/scripts/loader/@types'
-
 /**
- * HeadThemeSetup component using LoadableScript pattern
- * Initializes theme colors for meta theme-color element
+ * HeadThemeSetup - Initializes theme colors for meta theme-color element
  */
-class HeadThemeSetup extends LoadableScript {
-  static override scriptName = 'HeadThemeSetup'
-  static override eventType: TriggerEvent = 'astro:page-load'
+class HeadThemeSetup {
+  static scriptName = 'HeadThemeSetup'
 
   /**
    * Initialize meta colors global variable
@@ -36,19 +32,19 @@ class HeadThemeSetup extends LoadableScript {
     }
   }
 
-  static override init(): void {
+  static init(): void {
     HeadThemeSetup.initializeMetaColors()
   }
 
-  static override pause(): void {
+  static pause(): void {
     // No pause functionality needed for HeadThemeSetup
   }
 
-  static override resume(): void {
+  static resume(): void {
     // No resume functionality needed for HeadThemeSetup
   }
 
-  static override reset(): void {
+  static reset(): void {
     // No reset functionality needed for HeadThemeSetup
   }
 }

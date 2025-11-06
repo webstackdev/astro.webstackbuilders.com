@@ -156,7 +156,6 @@ describe(`Toggle button works`, () => {
 describe('Navigation LoadableScript implementation', () => {
   test('should have correct static properties', () => {
     expect(Navigation.scriptName).toBe('Navigation')
-    expect(Navigation.eventType).toBe('astro:page-load')
   })
 
   test('should initialize navigation when static init is called', async () => {

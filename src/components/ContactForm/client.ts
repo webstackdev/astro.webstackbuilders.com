@@ -1,10 +1,8 @@
 /**
  * Contact Form Handler
  * Manages form submission, validation, and user interactions for the contact form
- * Uses LoadableScript pattern for proper initialization timing
  */
 
-import { LoadableScript, type TriggerEvent } from '@components/scripts/loader/@types'
 import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
 import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
 
@@ -41,18 +39,16 @@ export interface ContactFormConfig {
 }
 
 /**
- * Contact Form component using LoadableScript pattern with instance-specific approach
+ * Contact Form component with instance-specific approach
  * Manages form submission, validation, and user interactions
  */
-export class ContactForm extends LoadableScript {
-  static override scriptName = 'ContactForm'
-  static override eventType: TriggerEvent = 'astro:page-load'
+export class ContactForm {
+  static scriptName = 'ContactForm'
 
   private elements: ContactFormElements | null = null
   private config: ContactFormConfig
 
   private constructor() {
-    super()
     this.config = {
       maxCharacters: 2000,
       warningThreshold: 1500,
@@ -374,9 +370,9 @@ export class ContactForm extends LoadableScript {
   }
 
   /**
-   * LoadableScript static methods
+   * Static initialization method
    */
-  static override init(): void {
+  static init(): void {
     const context = { scriptName: ContactForm.scriptName, operation: 'init' }
     addScriptBreadcrumb(context)
 
@@ -391,15 +387,15 @@ export class ContactForm extends LoadableScript {
     }
   }
 
-  static override pause(): void {
+  static pause(): void {
     // Contact form doesn't need pause functionality during visibility changes
   }
 
-  static override resume(): void {
+  static resume(): void {
     // Contact form doesn't need resume functionality during visibility changes
   }
 
-  static override reset(): void {
+  static reset(): void {
     // Clean up any global state if needed for View Transitions
     // Remove any event listeners or reset form state if necessary
   }

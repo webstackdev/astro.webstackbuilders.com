@@ -61,7 +61,6 @@ describe('CarouselManager', () => {
   describe('LoadableScript Interface', () => {
     it('should implement LoadableScript interface', () => {
       expect(CarouselManager.scriptName).toBe('CarouselManager')
-      expect(CarouselManager.eventType).toBe('astro:page-load')
       expect(typeof CarouselManager.init).toBe('function')
       expect(typeof CarouselManager.pause).toBe('function')
       expect(typeof CarouselManager.resume).toBe('function')

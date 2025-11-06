@@ -1,7 +1,6 @@
 import { createFocusTrap } from 'focus-trap'
 import type { FocusTrap } from 'focus-trap'
 import { navigate } from 'astro:transitions/client'
-import { LoadableScript, type TriggerEvent } from '@components/scripts/loader/@types'
 import {
   getHeaderElement,
   getMobileSplashElement,
@@ -22,12 +21,11 @@ export const CLASSES = {
 }
 
 /**
- * Navigation component using LoadableScript pattern with instance-specific approach
+ * Navigation component with instance-specific approach
  * Uses Astro View Transitions for navigation
  */
-export class Navigation extends LoadableScript {
-  static override scriptName = 'Navigation'
-  static override eventType: TriggerEvent = 'astro:page-load'
+export class Navigation {
+  static scriptName = 'Navigation'
 
   focusTrap: FocusTrap
   isMenuOpen: boolean
@@ -46,7 +44,6 @@ export class Navigation extends LoadableScript {
   togglePosition!: DOMRect
 
   constructor() {
-    super()
     this.isMenuOpen = false
 
     try {
@@ -203,22 +200,22 @@ export class Navigation extends LoadableScript {
   }
 
   /**
-   * LoadableScript static methods
+   * Static initialization method
    */
-  static override init(): void {
+  static init(): void {
     const navigation = new Navigation()
     navigation.bindEvents()
   }
 
-  static override pause(): void {
+  static pause(): void {
     // Navigation doesn't need pause functionality during visibility changes
   }
 
-  static override resume(): void {
+  static resume(): void {
     // Navigation doesn't need resume functionality during visibility changes
   }
 
-  static override reset(): void {
+  static reset(): void {
     // Clean up any global state if needed for View Transitions
     // Remove any event listeners or reset focus traps if necessary
   }

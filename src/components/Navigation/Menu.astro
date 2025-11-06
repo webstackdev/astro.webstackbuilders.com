@@ -269,9 +269,9 @@ const activeMenuItem = (url: string) => {
   </ul>
 </nav>
 <script>
-  import { registerScript } from '@components/scripts/loader'
   import { Navigation } from '@components/Navigation/client'
 
-  // Register navigation script to initialize with Astro View Transitions
-  registerScript(Navigation)
+  document.addEventListener('astro:page-load', () => {
+    Navigation.init()
+  })
 </script>

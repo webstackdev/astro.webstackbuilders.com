@@ -1,29 +1,25 @@
 /**
  * Testimonials Carousel Setup
  * Initializes Embla Carousel for testimonials display
- * Uses LoadableScript pattern for proper initialization timing
  */
 
 import EmblaCarousel, { type EmblaOptionsType, type EmblaCarouselType } from 'embla-carousel'
 import Autoplay from 'embla-carousel-autoplay'
-import { LoadableScript, type TriggerEvent } from '@components/scripts/loader/@types'
 import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
 import { addButtonEventListeners } from '@components/scripts/elementListeners'
 
 /**
- * Testimonials carousel using LoadableScript pattern with instance-specific approach
+ * Testimonials carousel with instance-specific approach
  * Uses Embla Carousel with autoplay for testimonials display
  */
-export class TestimonialsCarousel extends LoadableScript {
-  static override scriptName = 'TestimonialsCarousel'
-  static override eventType: TriggerEvent = 'astro:page-load'
+export class TestimonialsCarousel {
+  static scriptName = 'TestimonialsCarousel'
 
   private emblaNode: HTMLElement | null = null
   private viewportNode: HTMLElement | null = null
   private emblaApi: EmblaCarouselType | null = null
 
   constructor() {
-    super()
     this.findElements()
   }
 
@@ -184,9 +180,9 @@ export class TestimonialsCarousel extends LoadableScript {
   }
 
   /**
-   * LoadableScript static methods
+   * Static initialization method
    */
-  static override init(): void {
+  static init(): void {
     const context = { scriptName: TestimonialsCarousel.scriptName, operation: 'init' }
     addScriptBreadcrumb(context)
 
@@ -199,15 +195,15 @@ export class TestimonialsCarousel extends LoadableScript {
     }
   }
 
-  static override pause(): void {
+  static pause(): void {
     // Carousel doesn't need pause functionality during visibility changes
   }
 
-  static override resume(): void {
+  static resume(): void {
     // Carousel doesn't need resume functionality during visibility changes
   }
 
-  static override reset(): void {
+  static reset(): void {
     // Clean up any global state if needed for View Transitions
     // Embla API will be cleaned up automatically when the DOM changes
   }

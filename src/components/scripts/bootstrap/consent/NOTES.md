@@ -4,21 +4,26 @@
 
 Components using 'astro:page-load':
 
-- CallToAction/Newsletter
-- Carousel
-- ContactForm
-- Cookies/Consent
-- Cookies/Customize
-- Forms/Download
-- Head
-- Hero
-- Navigation
-- Social/Embed
-- Social/Highlighter
-- Social/Mastodon
-- Social/Shares
-- Testimonials
-- Toasts/NetworkStatus
+Singleton Pattern Components (will refactor now):
+
+✅ CarouselManager
+✅ ContactForm
+✅ Hero
+✅ TestimonialsCarousel
+✅ Navigation
+✅ HeadThemeSetup
+
+Instance Pattern Components (skip for now):
+
+❌ NewsletterForm - Creates instances per form element
+❌ CookieConsent - Instance-based with View Transitions handling
+❌ CookieCustomize - Instance-based
+❌ DownloadForm - Instance-based
+❌ SocialEmbed - Manager with multiple instances
+❌ Highlighter - Web Component
+❌ MastodonModal - Instance-based
+❌ SocialShares - Instance-based
+❌ NetworkStatus - Singleton but uses getInstance pattern
 
 ## Categories
 

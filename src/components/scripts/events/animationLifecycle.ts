@@ -3,6 +3,23 @@
  * Controls background animations when overlays/modals open and close
  */
 
+// @TODO: refactor to pubsub-js
+// @TODO: Use a nanostore backing in a store file. Where does the logic to update the store live? In the event system? This is what will be called by a component that needs to pause or resume animations. But is there a danger of dispatching two events for the same update, if we have an event system and the useStore() hook or .subscribe() to a store for changes?
+
+/*
+Use Nanostores for State Management:
+
+Use Nanostores for data that represents the current state of your application (e.g., shopping cart count, user authentication status, theme setting).
+
+Subscribe to changes: Components can listen() to these stores or use framework-specific hooks (useStore()) to reactively update the UI when the state changes.
+
+Use a dedicated Pub/Sub library for Events:
+
+For transient events or actions that don't represent a persistent state, a dedicated library like pubsub-js or a simple built-in event emitter (or even just callbacks) is a better fit.
+
+Example events: "user logged in", "modal closed", "item dragged", "form submitted successfully". These are actions that happen at a specific point in time, and you only care about notifying active listeners at that moment.
+*/
+
 /* eslint-disable no-unused-vars */
 export enum AnimationLifecycleEvent {
   /** Fired when an overlay/modal opens that should pause background animations */

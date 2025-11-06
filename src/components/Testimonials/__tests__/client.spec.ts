@@ -64,7 +64,6 @@ describe('TestimonialsCarousel LoadableScript', () => {
   describe('LoadableScript implementation', () => {
     it('should have correct static properties', () => {
       expect(TestimonialsCarousel.scriptName).toBe('TestimonialsCarousel')
-      expect(TestimonialsCarousel.eventType).toBe('astro:page-load')
     })
 
     it('should implement all LoadableScript methods', () => {
