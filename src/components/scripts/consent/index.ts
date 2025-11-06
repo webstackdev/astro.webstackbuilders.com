@@ -6,6 +6,8 @@ import {
   $hasAnalyticsConsent,
   $hasFunctionalConsent,
 } from '@components/scripts/store/cookieConsent'
+import { clearEmbedCache } from '@components/scripts/store/socialEmbeds'
+
 // ============================================================================
 // SIDE EFFECTS
 // ============================================================================
@@ -74,6 +76,35 @@ export function initConsentSideEffects(): void {
         scriptName: 'cookieConsent',
         operation: 'advertisingConsentEvent',
       })
+    }
+  })
+}
+
+/**
+ * Setup side effects - call once during app initialization
+ * This is like Redux middleware or RTK's createAsyncThunk
+ */
+// #TODO: Moved from components/scripts/bootstrap
+export function initStateSideEffects(): void {
+  // Side Effect: Clear localStorage when functional consent is revoked
+  $hasFunctionalConsent.subscribe((hasConsent) => {
+    if (!hasConsent) {
+      try {
+        // Clear theme from localStorage
+        localStorage.removeItem('theme')
+
+        // Clear Mastodon instances from localStorage
+        localStorage.removeItem('mastodonInstances')
+        localStorage.removeItem('mastodonCurrentInstance')
+
+        // Clear embed cache
+        clearEmbedCache()
+      } catch (error) {
+        handleScriptError(error, {
+          scriptName: 'AppBootstrap',
+          operation: 'clearLocalStorageOnConsentRevoke',
+        })
+      }
     }
   })
 }

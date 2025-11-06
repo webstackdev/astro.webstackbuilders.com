@@ -27,7 +27,11 @@ Using 'visible':
 
 None - No components are currently using the 'visible' trigger event.
 
-For reference, most other components use 'astro:page-load':
+Using 'consent-gated':
+
+None - No components are currently using the 'consent-gated' trigger event.
+
+Components using 'astro:page-load':
 
 - Head
 - Forms/Download
