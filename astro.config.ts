@@ -35,7 +35,7 @@ export default defineConfig({
     AstroPWA(serviceWorkerConfig),
     icon(),
     mdx(markdownConfig),
-    preact(),
+    preact({ devtools: true }),
     callToActionValidator({
       debug: true // Enable debug logging to see validation details
     }),
