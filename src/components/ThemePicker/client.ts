@@ -57,6 +57,7 @@ export class ThemePickerElement extends LitElement {
 
   // Track View Transitions
   private isTransitioning = false
+  private isInitialized = false
 
   /**
    * Lit lifecycle: called when element is connected
@@ -82,6 +83,11 @@ export class ThemePickerElement extends LitElement {
     addScriptBreadcrumb(context)
 
     try {
+      // Skip if already initialized (for View Transitions)
+      if (this.isInitialized) {
+        return
+      }
+
       // Find elements within this component
       this.findElements()
 
@@ -93,6 +99,7 @@ export class ThemePickerElement extends LitElement {
 
       this.bindEvents()
       this.setViewTransitionHandlers()
+      this.isInitialized = true
 
       // Initial update (Lit + StoreController will handle all reactivity automatically)
       this.requestUpdate()
@@ -136,8 +143,11 @@ export class ThemePickerElement extends LitElement {
     addScriptBreadcrumb(context)
 
     try {
-      // Toggle button
-      addButtonEventListeners(this.toggleBtn, () => this.handleToggle(), this)
+      // Toggle button - stop propagation to prevent "click outside" handler
+      addButtonEventListeners(this.toggleBtn, (e) => {
+        e.stopPropagation()
+        this.handleToggle()
+      }, this)
 
       // Close button
       addButtonEventListeners(this.closeBtn, () => this.handleClose(), this)
@@ -170,18 +180,21 @@ export class ThemePickerElement extends LitElement {
       })
 
       // Close on click outside (but not during View Transitions)
+      // Use bubble phase (default) so button handlers run first and can stopPropagation
       document.addEventListener('click', (e) => {
-        if (this.themePickerOpenStore.value && !this.isTransitioning) {
-          const target = e.target as HTMLElement
-          const isInsideModal = this.pickerModal.contains(target)
-          const isToggleButton = this.toggleBtn.contains(target)
-          const isThemeButton = Array.from(this.themeSelectBtns).some(btn => btn.contains(target))
+        // Skip if transitioning
+        if (this.isTransitioning) return
 
-          if (!isInsideModal && !isToggleButton && !isThemeButton) {
-            this.handleClose()
-          }
+        const target = e.target as HTMLElement
+        const isInsideModal = this.pickerModal.contains(target)
+        const isToggleButton = this.toggleBtn.contains(target)
+
+        // Close if clicking outside modal and not on toggle button
+        // This runs in bubble phase, after button handlers, so stopPropagation works
+        if (this.themePickerOpenStore.value && !isInsideModal && !isToggleButton) {
+          this.handleClose()
         }
-      })
+      }) // Default bubble phase - button handlers run first
     } catch (error) {
       handleScriptError(error, context)
     }
@@ -193,11 +206,31 @@ export class ThemePickerElement extends LitElement {
   private setViewTransitionHandlers(): void {
     document.addEventListener('astro:before-preparation', () => {
       this.isTransitioning = true
-      // Modal state persisted via $themePickerOpen store
     })
 
     document.addEventListener('astro:after-swap', () => {
       this.isTransitioning = false
+
+      // Re-query DOM elements after swap since HTML was replaced
+      // But DON'T re-bind events since this element persists
+      try {
+        this.findElements()
+
+        // CRITICAL: If modal should be open, apply classes immediately
+        // to prevent visual jump (HTML was swapped without the is-open class)
+        const isOpen = this.themePickerOpenStore.value
+        if (isOpen) {
+          // Apply state synchronously before browser paints
+          this.pickerModal.removeAttribute('hidden')
+          this.pickerModal.classList.add(CLASSES.isOpen)
+          this.toggleBtn.setAttribute('aria-expanded', 'true')
+        }
+
+        // Force Lit to update with new DOM references
+        this.requestUpdate()
+      } catch (error) {
+        handleScriptError(error, { scriptName: 'ThemePickerElement', operation: 'after-swap' })
+      }
     })
   }
 
