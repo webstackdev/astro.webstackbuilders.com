@@ -20,15 +20,18 @@
       const stored = localStorage.getItem('theme')
 
       if (stored && stored !== 'light') {
-        // User has explicitly chosen a non-light theme - apply it immediately
+        // User explicitly chose a theme - apply it immediately
         document.documentElement.setAttribute('data-theme', stored)
+      } else if (!stored) {
+        // No stored preference - use system preference
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+        document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light')
       }
-      // If no stored theme or stored theme is 'light',
-      // BaseLayout.astro already set data-theme="light", so nothing to do
+      // If stored === 'light', BaseLayout.astro already set it, nothing to do
 
     } catch {
       // localStorage access can fail (privacy mode, etc.)
-      // Fail silently - not critical, just means we use default light theme
+      // Fall back to BaseLayout's data-theme="light"
     }
   })()
 </script>
