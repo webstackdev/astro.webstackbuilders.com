@@ -58,6 +58,7 @@ export class ThemePickerElement extends LitElement {
   // Track View Transitions
   private isTransitioning = false
   private isInitialized = false
+  private isTogglingViaButton = false
 
   /**
    * Lit lifecycle: called when element is connected
@@ -182,12 +183,13 @@ export class ThemePickerElement extends LitElement {
       // Close on click outside (but not during View Transitions)
       // Use bubble phase (default) so button handlers run first and can stopPropagation
       document.addEventListener('click', (e) => {
-        // Skip if transitioning
+        // Skip if transitioning or if toggle button is actively being clicked
         if (this.isTransitioning) return
+        if (this.isTogglingViaButton) return
 
         const target = e.target as HTMLElement
         const isInsideModal = this.pickerModal.contains(target)
-        const isToggleButton = this.toggleBtn.contains(target)
+        const isToggleButton = this.toggleBtn.contains(target) || target === this.toggleBtn
 
         // Close if clicking outside modal and not on toggle button
         // This runs in bubble phase, after button handlers, so stopPropagation works
@@ -195,14 +197,29 @@ export class ThemePickerElement extends LitElement {
           this.handleClose()
         }
       }) // Default bubble phase - button handlers run first
+
+      // Mobile-specific: Handle touchend separately since it fires before click
+      // and can have different event targets due to SVG children
+      document.addEventListener('touchend', (e) => {
+        // Skip if transitioning or if toggle button is actively being clicked
+        if (this.isTransitioning) return
+        if (this.isTogglingViaButton) return
+
+        const target = e.target as HTMLElement
+        const isInsideModal = this.pickerModal.contains(target)
+        const isToggleButton = this.toggleBtn.contains(target) || target === this.toggleBtn
+
+        // Close only if touching outside both modal and toggle button
+        if (this.themePickerOpenStore.value && !isInsideModal && !isToggleButton) {
+          this.handleClose()
+        }
+      })
     } catch (error) {
       handleScriptError(error, context)
     }
-  }
-
-  /**
-   * Set up View Transition handlers
-   */
+  }  /**
+      * Set up View Transition handlers
+      */
   private setViewTransitionHandlers(): void {
     document.addEventListener('astro:before-preparation', () => {
       this.isTransitioning = true
@@ -297,7 +314,16 @@ export class ThemePickerElement extends LitElement {
     addScriptBreadcrumb(context)
 
     try {
+      // Set flag to indicate we're toggling via button, not document listener
+      this.isTogglingViaButton = true
+
+      // Update state
       $themePickerOpen.set(!this.themePickerOpenStore.value)
+
+      // Clear flag after a delay to allow document listeners to see it
+      setTimeout(() => {
+        this.isTogglingViaButton = false
+      }, 200)
     } catch (error) {
       handleScriptError(error, context)
     }
