@@ -21,19 +21,33 @@ applyTo: "**"
 
 # Testing Standards
 
-- NEVER use manual HTML strings in test files. They get out of sync with templates and are worse than no test at all.
-- Always use Astro's Container API to create fixtures from actual .astro templates.
+## Astro Component Testing - Container API (MANDATORY)
+
+- **NEVER use manual HTML strings in test files or fixtures.** They get out of sync with templates and are worse than no test at all.
+- **ALWAYS use Astro's Container API** to create fixtures from actual .astro templates. See: https://docs.astro.build/en/reference/container-reference/
+- **Test fixtures MUST import actual components**, not duplicate HTML. Example:
+  ```astro
+  ---
+  import MyComponent from '@components/MyComponent/index.astro'
+  const { testProp } = Astro.props
+  ---
+  <MyComponent prop={testProp} />
+  ```
+- **Hard-coded HTML fixtures are FORBIDDEN.** If you find yourself writing HTML in a fixture, STOP and use the actual component instead.
 - Reference the working example in src/components/Test/container.astro and its test file.
 - Use experimental_AstroContainer.create() to instantiate the container.
 - Use container.renderToString(Component) to get rendered HTML from actual Astro components.
 - For DOM unit testing with Container API: use `// @vitest-environment happy-dom` for better DOM compatibility than jsdom or node.
 - Configure Vitest with getViteConfig() from 'astro/config' to support Astro Container API.
 - Test files should follow a client.spec.ts naming pattern or similar.
-- Fixture files should follow a componentName.fixture.ts naming pattern (e.g., newsletter.fixture.ts).
+- Fixture files should follow a componentName.fixture.astro naming pattern (e.g., newsletter.fixture.astro).
 - Use `// @vitest-environment happy-dom` as the first line of test files that need DOM support with Container API. Never include Vitest directives inside JSDoc comments.
 - happy-dom provides proper document, window, and localStorage globals without manual mocking.
 - JavaScript loading warnings from happy-dom are silenced in vitest.setup.ts for clean test output.
 - A working example test using the Container API is available at /home/kevin/Repos/Webstack Builders/Corporate Website/astro.webstackbuilders.com/src/components/Test/container.spec.ts
+
+## E2E Testing Standards
+
 - **NEVER hard-code content slugs in e2e tests** (e.g., `/articles/typescript-best-practices`, `/services/web-development`). Content can be deleted or renamed. Always dynamically fetch the first available item from listing pages (articles, services, case-studies, etc.) and navigate to it. This prevents test breakage when content changes.
 - **Playwright E2E Tests**: ALWAYS run with `DEBUG=1` environment variable (e.g., `DEBUG=1 npx playwright test`). This prevents the Playwright test runner from launching its own dev server. The user maintains a running dev server for development.
 - **NEVER run the full e2e test suite** unless explicitly requested by the user. The full suite is very resource intensive and takes over 10 minutes to run. Only run specific e2e test files when verification is needed (e.g., `DEBUG=1 npx playwright test test/e2e/specific-file.spec.ts`).
