@@ -1,10 +1,9 @@
 /**
- * Cookie Preferences Management using LoadableScript pattern
+ * Cookie Preferences Management
  * Handles cookie preference functionality and modal interactions
  * Now uses centralized state management from lib/state
  */
 
-import { LoadableScript, type TriggerEvent } from '@components/scripts/loader/@types'
 import { isDivElement, isButtonElement } from '@components/scripts/assertions/elements'
 import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
 import { addButtonEventListeners } from '@components/scripts/elementListeners'
@@ -19,11 +18,10 @@ export interface CookiePreferences {
 }
 
 /**
- * Cookie Preferences component using LoadableScript pattern
+ * Cookie Preferences component
  */
-export class CookieCustomize extends LoadableScript {
-  static override scriptName = 'CookieCustomize'
-  static override eventType: TriggerEvent = 'astro:page-load'
+export class CookieCustomize {
+  static scriptName = 'CookieCustomize'
 
   private modal: HTMLDivElement
   private closeBtn: HTMLButtonElement
@@ -31,7 +29,6 @@ export class CookieCustomize extends LoadableScript {
   private saveBtn: HTMLButtonElement | null
 
   constructor() {
-    super()
     this.modal = this.getCookieCustomizeModal()
     this.closeBtn = this.getCookieCustomizeCloseBtn()
     this.allowAllBtn = document.getElementById('cookie-allow-all') as HTMLButtonElement
@@ -242,21 +239,21 @@ export class CookieCustomize extends LoadableScript {
   /**
    * LoadableScript static methods
    */
-  static override init(): void {
+  static init(): void {
     const cookieCustomize = new CookieCustomize()
     cookieCustomize.bindEvents()
     cookieCustomize.loadPreferences()
   }
 
-  static override pause(): void {
+  static pause(): void {
     // Cookie preferences don't need pause functionality
   }
 
-  static override resume(): void {
+  static resume(): void {
     // Cookie preferences don't need resume functionality
   }
 
-  static override reset(): void {
+  static reset(): void {
     // Clean up any global state if needed for View Transitions
   }
 }

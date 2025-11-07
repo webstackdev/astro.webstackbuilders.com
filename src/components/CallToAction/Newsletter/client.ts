@@ -1,18 +1,16 @@
 /**
- * Newsletter subscription form client-side logic using LoadableScript pattern
+ * Newsletter subscription form client-side logic
  * Manages form validation, submission, and UI state changes
  */
 
-import { LoadableScript, type TriggerEvent } from '@components/scripts/loader/@types'
 import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
 import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
 
 /**
- * Newsletter form component using LoadableScript pattern with instance-specific approach
+ * Newsletter form component with instance-specific approach
  */
-export class NewsletterForm extends LoadableScript {
-  static override scriptName = 'NewsletterForm'
-  static override eventType: TriggerEvent = 'astro:page-load'
+export class NewsletterForm {
+  static scriptName = 'NewsletterForm'
 
   // Email validation pattern (matches server-side)
   private readonly emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -29,7 +27,6 @@ export class NewsletterForm extends LoadableScript {
   private originalButtonText = 'Subscribe'
 
   constructor() {
-    super()
     this.initializeElements()
   }
 
@@ -292,7 +289,7 @@ export class NewsletterForm extends LoadableScript {
   /**
    * LoadableScript static methods
    */
-  static override init(): void {
+  static init(): void {
     const context = { scriptName: NewsletterForm.scriptName, operation: 'init' }
     addScriptBreadcrumb(context)
 
@@ -304,15 +301,15 @@ export class NewsletterForm extends LoadableScript {
     }
   }
 
-  static override pause(): void {
+  static pause(): void {
     // Newsletter form doesn't need pause functionality during visibility changes
   }
 
-  static override resume(): void {
+  static resume(): void {
     // Newsletter form doesn't need resume functionality during visibility changes
   }
 
-  static override reset(): void {
+  static reset(): void {
     // Clean up any global state if needed for View Transitions
     // This could be enhanced to unbind events if we tracked instances
   }

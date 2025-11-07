@@ -65,7 +65,10 @@ import CookieSvg from '@assets/images/site/cookie.svg'
 </div>
 
 <script>
-  import { registerScript } from '@components/scripts/loader'
   import { CookieConsent } from '@components/Consent/Banner/client'
-  registerScript(CookieConsent)
+
+  // Initialize cookie consent with Astro View Transitions
+  document.addEventListener('astro:page-load', () => {
+    CookieConsent.init()
+  })
 </script>

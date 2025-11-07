@@ -257,7 +257,6 @@ describe('NewsletterForm class works', () => {
 describe('NewsletterForm LoadableScript implementation', () => {
   test('has correct static properties', () => {
     expect(NewsletterForm.scriptName).toBe('NewsletterForm')
-    expect(NewsletterForm.eventType).toBe('astro:page-load')
   })
 
   test('static init method works', async () => {

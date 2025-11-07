@@ -198,9 +198,10 @@ import logoSvg from '@assets/images/site/logo.svg'
 
 <!-- Cookie Management Script -->
 <script>
-  import { registerScript } from '@components/scripts/loader'
   import { CookieCustomize } from '@components/Consent/Preferences/client'
 
-  // Register the script with the loader
-  registerScript(CookieCustomize)
+  // Initialize cookie preferences with Astro View Transitions
+  document.addEventListener('astro:page-load', () => {
+    CookieCustomize.init()
+  })
 </script>

@@ -63,10 +63,6 @@ describe('CookieCustomize', () => {
       expect(CookieCustomize.scriptName).toBe('CookieCustomize')
     })
 
-    it('should have correct eventType', () => {
-      expect(CookieCustomize.eventType).toBe('astro:page-load')
-    })
-
     it('should initialize without errors when DOM elements exist', () => {
       // Create actual DOM elements
       const mockModal = mockDiv('cookie-customize-modal-id')

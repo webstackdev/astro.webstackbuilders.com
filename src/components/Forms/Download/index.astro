@@ -198,9 +198,10 @@ const downloadUrl = `/downloads/${fileName}`
 </style>
 
 <script>
-  import { registerScript } from '@components/scripts/loader'
   import { DownloadForm } from '@components/Forms/Download/client'
 
-  // Register download form script to initialize with Astro View Transitions
-  registerScript(DownloadForm)
+  // Initialize download form with Astro View Transitions
+  document.addEventListener('astro:page-load', () => {
+    DownloadForm.init()
+  })
 </script>

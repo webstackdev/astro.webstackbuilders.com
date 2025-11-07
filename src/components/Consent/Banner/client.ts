@@ -1,4 +1,3 @@
-import { LoadableScript, type TriggerEvent } from '@components/scripts/loader/@types'
 import {
   addButtonEventListeners,
   addWrapperEventListeners,
@@ -16,12 +15,11 @@ import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
 import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
 
 /**
- * Cookie Consent component using LoadableScript pattern with instance-specific approach
+ * Cookie Consent component with instance-specific approach
  * Manages the cookie consent modal display and user interactions across View Transitions
  */
-export class CookieConsent extends LoadableScript {
-  static override scriptName = 'CookieConsent'
-  static override eventType: TriggerEvent = 'astro:page-load'
+export class CookieConsent {
+  static scriptName = 'CookieConsent'
 
   /** Modal wrapper element */
   wrapper: HTMLDivElement
@@ -39,8 +37,6 @@ export class CookieConsent extends LoadableScript {
   private static viewTransitionsSetup = false
 
   constructor() {
-    super()
-
     try {
       this.wrapper = getCookieConsentWrapper()
       this.closeBtn = getCookieConsentCloseBtn()
@@ -320,20 +316,20 @@ export class CookieConsent extends LoadableScript {
   /**
    * LoadableScript static methods
    */
-  static override init(): void {
+  static init(): void {
     const cookieConsent = new CookieConsent()
     cookieConsent.showModal()
   }
 
-  static override pause(): void {
+  static pause(): void {
     // Cookie consent doesn't need pause functionality during visibility changes
   }
 
-  static override resume(): void {
+  static resume(): void {
     // Cookie consent doesn't need resume functionality during visibility changes
   }
 
-  static override reset(): void {
+  static reset(): void {
     // Preserve modal visibility state during View Transitions
     // This method is called before View Transitions swap content
     const currentModal = document.getElementById('cookie-modal-id')
