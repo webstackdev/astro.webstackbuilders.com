@@ -1,13 +1,11 @@
 /**
- * Script for the Footer component using LoadableScript pattern
+ * Script for the Footer component
  */
-import { LoadableScript, type TriggerEvent } from '@components/scripts/loader/@types'
 import { getHireMeAnchorElement } from '@components/Footer/selectors'
 import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
 
-class Footer extends LoadableScript {
-  static override scriptName = 'Footer'
-  static override eventType: TriggerEvent = 'astro:page-load'
+class Footer {
+  static scriptName = 'Footer'
 
   private static getMonthName(date: Date): string {
     const monthDate = new Date(date)
@@ -15,7 +13,7 @@ class Footer extends LoadableScript {
     return monthDate.toLocaleString('en-US', { month: 'long' })
   }
 
-  static override init(): void {
+  static init(): void {
     const context = { scriptName: Footer.scriptName, operation: 'init' }
     addScriptBreadcrumb(context)
 
@@ -32,15 +30,15 @@ class Footer extends LoadableScript {
     }
   }
 
-  static override pause(): void {
+  static pause(): void {
     // No pause functionality needed for Footer
   }
 
-  static override resume(): void {
+  static resume(): void {
     // No resume functionality needed for Footer
   }
 
-  static override reset(): void {
+  static reset(): void {
     // No reset functionality needed for Footer
   }
 }

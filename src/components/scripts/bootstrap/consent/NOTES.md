@@ -1,26 +1,5 @@
 # Consent Category Usage Summary
 
-## OT: loader
-
-Components using 'astro:page-load':
-
-Instance Pattern Components (skip for now):
-
-❌ NewsletterForm - Creates instances per form element
-❌ CookieConsent - Instance-based with View Transitions handling
-❌ CookieCustomize - Instance-based
-❌ DownloadForm - Instance-based
-❌ SocialEmbed - Manager with multiple instances
-❌ Highlighter - Web Component
-❌ MastodonModal - Instance-based
-❌ SocialShares - Instance-based
-❌ NetworkStatus - Singleton but uses getInstance pattern
-
-9 instance pattern components skipped for future work:
-
-NewsletterForm, CookieConsent, CookieCustomize, DownloadForm
-SocialEmbed, Highlighter, MastodonModal, SocialShares, NetworkStatus
-
 ## Categories
 
 ### 'necessary' - Infrastructure only, NO actual usage
