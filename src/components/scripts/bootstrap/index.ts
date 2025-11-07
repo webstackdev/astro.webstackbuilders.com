@@ -7,7 +7,7 @@ import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { initConsentFromCookies } from '@components/scripts/store'
 import { initConsentSideEffects, initStateSideEffects } from '@components/scripts/bootstrap/consent'
-import { initThemeSideEffects, setInitialTheme } from '@components/scripts/bootstrap/theme'
+import { initThemeSystem } from '@components/scripts/store/themes'
 import { SentryBootstrap } from '@components/scripts/sentry/client'
 import { PUBLIC_SENTRY_DSN } from 'astro:env/client'
 
@@ -16,10 +16,6 @@ export class AppBootstrap {
     addScriptBreadcrumb({ scriptName: 'AppBootstrap', operation: 'init' })
 
     try {
-      /** Script to set theme name on <html>. This should be inlined by Astro so */
-      /** that it runs first. Do not add other scripts in this <script> block. */
-      setInitialTheme()
-
       /* Be careful adding script here. It runs before any script tags in components. */
       if (import.meta.env.PROD && PUBLIC_SENTRY_DSN) {
         SentryBootstrap.init()
@@ -38,8 +34,10 @@ export class AppBootstrap {
       addScriptBreadcrumb({ scriptName: 'AppBootstrap', operation: 'initConsentSideEffects' })
       initConsentSideEffects()
 
-      addScriptBreadcrumb({ scriptName: 'AppBootstrap', operation: 'initThemeSideEffects' })
-      initThemeSideEffects()
+      // 3. Initialize theme system (replaces old setInitialTheme + initThemeSideEffects)
+      // This synchronizes DOM, localStorage, and store state
+      addScriptBreadcrumb({ scriptName: 'AppBootstrap', operation: 'initThemeSystem' })
+      initThemeSystem()
 
       addScriptBreadcrumb({ scriptName: 'AppBootstrap', operation: 'initStateSideEffects' })
       initStateSideEffects()

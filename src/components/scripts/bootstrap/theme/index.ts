@@ -120,7 +120,7 @@ export function initThemeSideEffects(): void {
         $theme.set(storedTheme as ThemeId)
       }
       applyThemeToDom(storedTheme as ThemeId)
-    } else if (domTheme && domTheme !== 'default' && domTheme !== storeTheme) {
+    } else if (domTheme && domTheme !== 'light' && domTheme !== storeTheme) {
       // No stored preference, but HEAD script detected system preference
       // Sync store to match DOM without persisting
       console.log('[Theme] Syncing to system preference:', domTheme)

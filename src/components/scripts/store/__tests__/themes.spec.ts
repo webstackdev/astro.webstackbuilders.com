@@ -24,7 +24,7 @@ describe('Theme Management', () => {
       advertising: false,
       functional: false,
     })
-    $theme.set('default')
+    $theme.set('light')
 
     // Clear mocks
     vi.clearAllMocks()
@@ -52,7 +52,7 @@ describe('Theme Management', () => {
     setTheme('dark')
 
     // Theme not persisted to store or localStorage
-    expect($theme.get()).toBe('default') // Still default
+    expect($theme.get()).toBe('light') // Still light
     expect(localStorage.getItem('theme')).toBeNull()
 
     // But DOM should be updated

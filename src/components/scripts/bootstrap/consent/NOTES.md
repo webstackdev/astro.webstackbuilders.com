@@ -4,6 +4,67 @@
 
 View Transitions friction: transition:persist requires client:only directive, loses SSR benefits
 
+```typescript
+// In themes.ts
+export const $theme = persistentAtom<ThemeId>('theme', 'default', {
+  // ... encode/decode ...
+})
+
+// In HEAD inline script
+<script is:inline>
+  (function() {
+    const stored = localStorage.getItem('theme')
+    if (stored && stored !== 'default') {
+      // User explicitly chose a theme
+      document.documentElement.setAttribute('data-theme', stored)
+    } else {
+      // Use system preference
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+      document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light')
+    }
+  })()
+</script>
+```
+
+```html
+<!DOCTYPE html>
+<html data-theme="loading">
+  <head>
+      <title>My Page</title>
+      <!-- ... other head elements ... -->
+      <style>
+          html[data-theme="loading"] body {
+              visibility: hidden; /* Or opacity: 0; */
+          }
+      </style>
+  </head>
+  <body>
+    <!-- Your page content -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        document.documentElement.removeAttribute('data-theme'); // Or set to a desired theme, e.g., 'data-theme="light"'
+        // If using opacity, you might add a CSS transition for a smoother reveal:
+        // document.body.style.opacity = '1';
+      });
+    </script>
+    <noscript><style>body { visibility: visible; }</style></noscript>
+  </body>
+</html>
+```
+
+```typescript
+let domReady = (cb) => {
+  document.readyState === 'interactive' || document.readyState === 'complete'
+    ? cb()
+    : document.addEventListener('DOMContentLoaded', cb);
+};
+
+domReady(() => {
+  // Display body when DOM is loaded
+  document.body.style.visibility = 'visible';
+})
+```
+
 ## Categories
 
 ### 'necessary' - Infrastructure only, NO actual usage

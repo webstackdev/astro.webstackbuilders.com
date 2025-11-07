@@ -84,16 +84,11 @@ export default [
         },
       ],
       'import/no-webpack-loader-syntax': level,
-      'import/extensions': [
-        level,
-        'ignorePackages',
-        {
-          ts: 'never',
-          tsx: 'never',
-          js: 'never',
-          jsx: 'never',
-        },
-      ],
+      'import/extensions': [level, "never", {
+        "astro": "always",
+        "json": "always",
+        "svg": "always"
+      }],
       'import/order': 'off',
       'jsdoc/check-indentation': level,
       'jsdoc/check-line-alignment': level,

@@ -22,9 +22,19 @@ vi.mock('@components/scripts/bootstrap/consent', () => ({
   initStateSideEffects: vi.fn(),
 }))
 
-vi.mock('@components/scripts/bootstrap/theme', () => ({
-  initThemeSideEffects: vi.fn(),
-  setInitialTheme: vi.fn(),
+vi.mock('@components/scripts/store/themes', () => ({
+  initThemeSystem: vi.fn(),
+  $theme: {
+    get: vi.fn(() => 'light'),
+    set: vi.fn(),
+    subscribe: vi.fn(),
+  },
+  $themePickerOpen: {
+    get: vi.fn(() => false),
+    set: vi.fn(),
+    subscribe: vi.fn(),
+  },
+  setTheme: vi.fn(),
 }))
 
 vi.mock('@components/scripts/store/socialEmbeds', () => ({
@@ -40,7 +50,7 @@ vi.mock('@components/scripts/errors', () => ({
 // Import the mocked functions after setting up mocks
 import { initConsentFromCookies } from '@components/scripts/store'
 import { initConsentSideEffects, initStateSideEffects } from '@components/scripts/bootstrap/consent'
-import { initThemeSideEffects } from '@components/scripts/bootstrap/theme'
+import { initThemeSystem } from '@components/scripts/store/themes'
 
 describe('AppBootstrap', () => {
   beforeEach(() => {
@@ -51,21 +61,21 @@ describe('AppBootstrap', () => {
     it('should call initConsentFromCookies and initialize side effects', () => {
       vi.mocked(initConsentFromCookies).mockReturnValue(undefined)
       vi.mocked(initConsentSideEffects).mockReturnValue(undefined)
-      vi.mocked(initThemeSideEffects).mockReturnValue(undefined)
+      vi.mocked(initThemeSystem).mockReturnValue(undefined)
       vi.mocked(initStateSideEffects).mockReturnValue(undefined)
 
       AppBootstrap.init()
 
       expect(initConsentFromCookies).toHaveBeenCalledTimes(1)
       expect(initConsentSideEffects).toHaveBeenCalledTimes(1)
-      expect(initThemeSideEffects).toHaveBeenCalledTimes(1)
+      expect(initThemeSystem).toHaveBeenCalledTimes(1)
       expect(initStateSideEffects).toHaveBeenCalledTimes(1)
     })
 
     it('should add breadcrumbs for successful initialization', () => {
       vi.mocked(initConsentFromCookies).mockReturnValue(undefined)
       vi.mocked(initConsentSideEffects).mockReturnValue(undefined)
-      vi.mocked(initThemeSideEffects).mockReturnValue(undefined)
+      vi.mocked(initThemeSystem).mockReturnValue(undefined)
       vi.mocked(initStateSideEffects).mockReturnValue(undefined)
 
       AppBootstrap.init()
@@ -84,7 +94,7 @@ describe('AppBootstrap', () => {
       })
       expect(addScriptBreadcrumb).toHaveBeenCalledWith({
         scriptName: 'AppBootstrap',
-        operation: 'initThemeSideEffects'
+        operation: 'initThemeSystem'
       })
       expect(addScriptBreadcrumb).toHaveBeenCalledWith({
         scriptName: 'AppBootstrap',
@@ -95,7 +105,7 @@ describe('AppBootstrap', () => {
     it('should not throw error when initialization succeeds', () => {
       vi.mocked(initConsentFromCookies).mockReturnValue(undefined)
       vi.mocked(initConsentSideEffects).mockReturnValue(undefined)
-      vi.mocked(initThemeSideEffects).mockReturnValue(undefined)
+      vi.mocked(initThemeSystem).mockReturnValue(undefined)
       vi.mocked(initStateSideEffects).mockReturnValue(undefined)
 
       expect(() => AppBootstrap.init()).not.toThrow()
@@ -140,7 +150,7 @@ describe('AppBootstrap', () => {
         throw new Error('Cookie initialization failed')
       })
       vi.mocked(initConsentSideEffects).mockReturnValue(undefined)
-      vi.mocked(initThemeSideEffects).mockReturnValue(undefined)
+      vi.mocked(initThemeSystem).mockReturnValue(undefined)
       vi.mocked(initStateSideEffects).mockReturnValue(undefined)
 
       try {
@@ -150,7 +160,7 @@ describe('AppBootstrap', () => {
       }
 
       expect(initConsentSideEffects).not.toHaveBeenCalled()
-      expect(initThemeSideEffects).not.toHaveBeenCalled()
+      expect(initThemeSystem).not.toHaveBeenCalled()
       expect(initStateSideEffects).not.toHaveBeenCalled()
     })
 
@@ -173,7 +183,7 @@ describe('AppBootstrap', () => {
     it('should successfully initialize on repeated calls', () => {
       vi.mocked(initConsentFromCookies).mockReturnValue(undefined)
       vi.mocked(initConsentSideEffects).mockReturnValue(undefined)
-      vi.mocked(initThemeSideEffects).mockReturnValue(undefined)
+      vi.mocked(initThemeSystem).mockReturnValue(undefined)
       vi.mocked(initStateSideEffects).mockReturnValue(undefined)
 
       AppBootstrap.init()
@@ -181,7 +191,7 @@ describe('AppBootstrap', () => {
 
       expect(initConsentFromCookies).toHaveBeenCalledTimes(2)
       expect(initConsentSideEffects).toHaveBeenCalledTimes(2)
-      expect(initThemeSideEffects).toHaveBeenCalledTimes(2)
+      expect(initThemeSystem).toHaveBeenCalledTimes(2)
       expect(initStateSideEffects).toHaveBeenCalledTimes(2)
     })
   })

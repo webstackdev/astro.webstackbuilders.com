@@ -1,5 +1,6 @@
 ---
 import Meta from '@components/Head/Meta.astro'
+import ThemeInit from '@components/Head/ThemeInit.astro'
 
 export interface Props {
   pageTitle: string
@@ -34,6 +35,8 @@ const {
 {/* hoisting issues related to <html> and <head> elements */}
 <meta charset="utf-8">
 <title>{pageTitle}</title>
+{/* Inline script to set theme ASAP - prevents FOUC */}
+<ThemeInit />
 {/* Site <meta> tags, Open Graph social tags, and favicon, PWA manifest, */}
 {/* RSS, canonical, pingback, and webmention links  */}
 <Meta

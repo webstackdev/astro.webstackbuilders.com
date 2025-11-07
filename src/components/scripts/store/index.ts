@@ -39,6 +39,7 @@ export {
   $theme,
   $themePickerOpen,
   setTheme,
+  initThemeSystem,
   type ThemeId,
 } from './themes'
 

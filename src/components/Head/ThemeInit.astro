@@ -1,0 +1,34 @@
+---
+/**
+ * Theme Initialization - Inline Script
+ *
+ * CRITICAL: This script MUST be inlined (is:inline) and run as early as possible
+ * to prevent Flash of Unstyled Content (FOUC).
+ *
+ * Purpose: Set data-theme attribute on <html> from localStorage before page renders
+ *
+ * Keep this script minimal - it runs synchronously and blocks rendering.
+ * Full theme system initialization happens later in AppBootstrap.
+ */
+---
+
+<script is:inline>
+  // IIFE to avoid polluting global scope
+  (function() {
+    try {
+      // Read theme preference from localStorage (set by user's previous selection)
+      const stored = localStorage.getItem('theme')
+
+      if (stored && stored !== 'light') {
+        // User has explicitly chosen a non-light theme - apply it immediately
+        document.documentElement.setAttribute('data-theme', stored)
+      }
+      // If no stored theme or stored theme is 'light',
+      // BaseLayout.astro already set data-theme="light", so nothing to do
+
+    } catch {
+      // localStorage access can fail (privacy mode, etc.)
+      // Fail silently - not critical, just means we use default light theme
+    }
+  })()
+</script>

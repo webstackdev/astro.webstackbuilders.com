@@ -1,0 +1,331 @@
+/**
+ * ThemePicker Web Component (Lit + Nanostores)
+ * Manages theme selection and persistence using Lit and Nanostores
+ * Works seamlessly with Astro View Transitions
+ */
+
+import { LitElement } from 'lit'
+import { StoreController } from '@nanostores/lit'
+import { $theme, $themePickerOpen, setTheme, type ThemeId } from '@components/scripts/store'
+import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
+import { addButtonEventListeners } from '@components/scripts/elementListeners'
+import {
+  getThemePickerModal,
+  getThemePickerToggleBtn,
+  getThemePickerCloseBtn,
+  getThemeSelectBtns,
+} from './selectors'
+
+export const CLASSES = {
+  isOpen: 'is-open',
+  active: 'is-active',
+}
+
+/**
+ * Interface for global meta colors object
+ */
+interface MetaColors {
+  [key: string]: string
+}
+
+declare global {
+  interface Window {
+    metaColors?: MetaColors
+  }
+}
+
+/**
+ * ThemePicker Custom Element (Lit-based)
+ * Uses Light DOM (no Shadow DOM) with Astro-rendered templates
+ * Lit provides reactive store integration via StoreController
+ */
+export class ThemePickerElement extends LitElement {
+  // Render to Light DOM instead of Shadow DOM
+  override createRenderRoot() {
+    return this // No shadow DOM - works with Astro templates!
+  }
+
+  // Reactive store bindings - Lit auto-updates when these change
+  private themeStore = new StoreController(this, $theme)
+  private themePickerOpenStore = new StoreController(this, $themePickerOpen)
+
+  // Cache DOM elements
+  private pickerModal!: HTMLDivElement
+  private toggleBtn!: HTMLButtonElement
+  private closeBtn!: HTMLButtonElement
+  private themeSelectBtns!: NodeListOf<HTMLButtonElement>
+
+  // Track View Transitions
+  private isTransitioning = false
+
+  /**
+   * Lit lifecycle: called when element is connected
+   */
+  override connectedCallback(): void {
+    super.connectedCallback()
+    const context = { scriptName: 'ThemePickerElement', operation: 'connectedCallback' }
+    addScriptBreadcrumb(context)
+
+    // Wait for DOM to be ready before initializing
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => this.initialize())
+    } else {
+      this.initialize()
+    }
+  }
+
+  /**
+   * Initialize the theme picker after DOM is ready
+   */
+  private initialize(): void {
+    const context = { scriptName: 'ThemePickerElement', operation: 'initialize' }
+    addScriptBreadcrumb(context)
+
+    try {
+      // Find elements within this component
+      this.findElements()
+
+      // Check if CSS custom properties are supported
+      if (!CSS.supports('color', 'var(--fake-var)')) {
+        console.log('ThemePicker: CSS custom properties not supported, theme picker disabled')
+        return
+      }
+
+      this.bindEvents()
+      this.setViewTransitionHandlers()
+
+      // Initial update (Lit + StoreController will handle all reactivity automatically)
+      this.requestUpdate()
+    } catch (error) {
+      handleScriptError(error, context)
+    }
+  }
+
+  /**
+   * Lit lifecycle: called after properties change
+   * Lit automatically calls this when stores update via StoreController
+   */
+  override updated(): void {
+    const isOpen = this.themePickerOpenStore.value
+    const currentTheme = this.themeStore.value
+
+    // Update modal visibility
+    this.updateModalVisibility(isOpen)
+
+    // Update active theme button
+    this.updateActiveTheme(currentTheme)
+  }
+
+  /**
+   * Find and cache DOM elements within this component
+   */
+  private findElements(): void {
+    const context = { scriptName: 'ThemePickerElement', operation: 'findElements' }
+    addScriptBreadcrumb(context)
+    this.pickerModal = getThemePickerModal(this)
+    this.toggleBtn = getThemePickerToggleBtn()
+    this.closeBtn = getThemePickerCloseBtn(this)
+    this.themeSelectBtns = getThemeSelectBtns(this)
+  }
+
+  /**
+   * Bind event listeners
+   */
+  private bindEvents(): void {
+    const context = { scriptName: 'ThemePickerElement', operation: 'bindEvents' }
+    addScriptBreadcrumb(context)
+
+    try {
+      // Toggle button
+      addButtonEventListeners(this.toggleBtn, () => this.handleToggle(), this)
+
+      // Close button
+      addButtonEventListeners(this.closeBtn, () => this.handleClose(), this)
+
+      // Theme selection buttons
+      this.themeSelectBtns.forEach((button) => {
+        try {
+          if (!('theme' in button.dataset)) {
+            throw new Error(`Theme item ${button.name} is missing the 'data-theme' attribute`)
+          }
+
+          const themeId = button.dataset['theme'] as ThemeId
+          if (themeId) {
+            addButtonEventListeners(button, (e) => {
+              // Stop ALL event propagation to prevent "click outside" handler
+              e.stopImmediatePropagation()
+              this.applyTheme(themeId)
+            }, this)
+          }
+        } catch (error) {
+          handleScriptError(error, { scriptName: 'ThemePickerElement', operation: 'bindThemeButton' })
+        }
+      })
+
+      // Close on Escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && this.themePickerOpenStore.value) {
+          this.handleClose()
+        }
+      })
+
+      // Close on click outside (but not during View Transitions)
+      document.addEventListener('click', (e) => {
+        if (this.themePickerOpenStore.value && !this.isTransitioning) {
+          const target = e.target as HTMLElement
+          const isInsideModal = this.pickerModal.contains(target)
+          const isToggleButton = this.toggleBtn.contains(target)
+          const isThemeButton = Array.from(this.themeSelectBtns).some(btn => btn.contains(target))
+
+          if (!isInsideModal && !isToggleButton && !isThemeButton) {
+            this.handleClose()
+          }
+        }
+      })
+    } catch (error) {
+      handleScriptError(error, context)
+    }
+  }
+
+  /**
+   * Set up View Transition handlers
+   */
+  private setViewTransitionHandlers(): void {
+    document.addEventListener('astro:before-preparation', () => {
+      this.isTransitioning = true
+      // Modal state persisted via $themePickerOpen store
+    })
+
+    document.addEventListener('astro:after-swap', () => {
+      this.isTransitioning = false
+    })
+  }
+
+  /**
+   * Update modal visibility (called by Lit's updated lifecycle)
+   */
+  private updateModalVisibility(isOpen: boolean): void {
+    if (isOpen) {
+      // Remove hidden first, then add class after browser paints
+      this.pickerModal.removeAttribute('hidden')
+      this.toggleBtn.setAttribute('aria-expanded', 'true')
+
+      // Wait for next frame so browser processes max-height: 0 before animating to 14em
+      requestAnimationFrame(() => {
+        this.pickerModal.classList.add(CLASSES.isOpen)
+      })
+    } else {
+      this.pickerModal.classList.remove(CLASSES.isOpen)
+
+      // Wait for animation before hiding
+      const transitionHandler = () => {
+        if (!this.themePickerOpenStore.value) {
+          this.pickerModal.setAttribute('hidden', '')
+        }
+        this.pickerModal.removeEventListener('transitionend', transitionHandler)
+      }
+      this.pickerModal.addEventListener('transitionend', transitionHandler, { once: true })
+
+      this.toggleBtn.setAttribute('aria-expanded', 'false')
+    }
+  }
+
+  /**
+   * Update active theme button styling (called by Lit's updated lifecycle)
+   */
+  private updateActiveTheme(currentTheme: ThemeId): void {
+    try {
+      this.themeSelectBtns.forEach((button) => {
+        const themeId = button.dataset['theme']
+        const parentLi = button.closest('li')
+
+        if (themeId === currentTheme) {
+          button.setAttribute('aria-checked', 'true')
+          if (parentLi) {
+            parentLi.classList.add(CLASSES.active)
+          }
+        } else {
+          button.setAttribute('aria-checked', 'false')
+          if (parentLi) {
+            parentLi.classList.remove(CLASSES.active)
+          }
+        }
+      })
+    } catch (error) {
+      handleScriptError(error, { scriptName: 'ThemePickerElement', operation: 'updateActiveTheme' })
+    }
+  }
+
+  /**
+   * Handle toggle button click
+   */
+  private handleToggle(): void {
+    const context = { scriptName: 'ThemePickerElement', operation: 'handleToggle' }
+    addScriptBreadcrumb(context)
+
+    try {
+      $themePickerOpen.set(!this.themePickerOpenStore.value)
+    } catch (error) {
+      handleScriptError(error, context)
+    }
+  }
+
+  /**
+   * Handle close button click
+   */
+  private handleClose(): void {
+    const context = { scriptName: 'ThemePickerElement', operation: 'handleClose' }
+    addScriptBreadcrumb(context)
+
+    try {
+      $themePickerOpen.set(false)
+      this.toggleBtn.focus()
+    } catch (error) {
+      handleScriptError(error, context)
+    }
+  }
+
+  /**
+   * Apply theme to document
+   */
+  private applyTheme(themeId: ThemeId): void {
+    const context = { scriptName: 'ThemePickerElement', operation: 'applyTheme' }
+    addScriptBreadcrumb(context)
+
+    try {
+      // Update document attribute
+      document.documentElement.dataset['theme'] = themeId
+
+      // Update state store (Lit will reactively update via StoreController)
+      setTheme(themeId)
+
+      // Update meta theme-color
+      this.updateMetaThemeColor(themeId)
+    } catch (error) {
+      handleScriptError(error, context)
+    }
+  }
+
+  /**
+   * Update meta theme-color tag
+   */
+  private updateMetaThemeColor(themeId: ThemeId): void {
+    try {
+      if (!window.metaColors) return
+
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const color = window.metaColors[themeId]
+      if (metaThemeColor && color) {
+        metaThemeColor.setAttribute('content', color)
+      }
+    } catch (error) {
+      // Non-critical - just log
+      console.warn('ThemePicker: Failed to update meta theme-color', error)
+    }
+  }
+}
+
+// Register the custom element
+if (!customElements.get('theme-picker')) {
+  customElements.define('theme-picker', ThemePickerElement)
+}
