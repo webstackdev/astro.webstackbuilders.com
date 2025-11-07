@@ -4,22 +4,28 @@
  * Verifies that elements with transition:persist maintain their DOM identity
  * across page navigations when using Astro's View Transitions API.
  *
+ * Tests specifically focus on Web Components (like ThemePicker) to verify
+ * whether Astro properly handles transition:persist for custom elements.
+ *
  * Related:
- * - src/layouts/BaseLayout.astro (view-transition test element)
+ * - src/layouts/BaseLayout.astro (ThemePicker with transition:persist)
+ * - src/components/ThemePicker/index.astro (Web Component implementation)
  * - Astro View Transitions API documentation
  */
 
 import { BasePage, test, describe, expect } from '@test/e2e/helpers'
 
-describe('View Transitions - transition:persist', () => {
-  test('should persist DOM element identity across navigation', async ({ page: playwrightPage }) => {
+describe('View Transitions - transition:persist on Web Components', () => {
+  test('should persist ThemePicker web component identity across navigation', async ({
+    page: playwrightPage,
+  }) => {
     const page = new BasePage(playwrightPage)
     await page.goto('/')
 
-    // Set a unique identifier on the element and store a custom property
+    // Set a unique identifier on the ThemePicker web component and store a custom property
     const initialData = await page.evaluate(() => {
-      const element = document.querySelector('[data-testid="view-transition"]') as HTMLElement
-      if (!element) throw new Error('view-transition element not found')
+      const element = document.querySelector('theme-picker') as HTMLElement
+      if (!element) throw new Error('theme-picker web component not found')
 
       // Create a unique identifier
       const uniqueId = `test-${Date.now()}-${Math.random()}`
@@ -31,9 +37,13 @@ describe('View Transitions - transition:persist', () => {
       // This is more definitive proof of DOM identity persistence
       ;(element as any).__testProperty = uniqueId
 
+      // Store a counter to verify the element isn't recreated
+      ;(element as any).__navigationCounter = 0
+
       return {
         uniqueId,
         initialTimestamp: Date.now(),
+        tagName: element.tagName.toLowerCase(),
       }
     })
 
@@ -42,30 +52,40 @@ describe('View Transitions - transition:persist', () => {
 
     // Verify the element still has the same unique identifier
     const afterNavigationData = await page.evaluate(() => {
-      const element = document.querySelector('[data-testid="view-transition"]') as HTMLElement
-      if (!element) throw new Error('view-transition element not found after navigation')
+      const element = document.querySelector('theme-picker') as HTMLElement
+      if (!element) throw new Error('theme-picker web component not found after navigation')
+
+      // Increment counter to prove it's the same element
+      const counter = (element as any).__navigationCounter
+      ;(element as any).__navigationCounter = counter + 1
 
       return {
         dataAttribute: element.getAttribute('data-unique-id'),
         customProperty: (element as any).__testProperty,
+        navigationCounter: counter,
         elementExists: !!element,
+        tagName: element.tagName.toLowerCase(),
       }
     })
 
     // Assertions proving DOM identity persistence
     expect(afterNavigationData.elementExists).toBe(true)
+    expect(afterNavigationData.tagName).toBe('theme-picker')
     expect(afterNavigationData.dataAttribute).toBe(initialData.uniqueId)
     expect(afterNavigationData.customProperty).toBe(initialData.uniqueId)
+    expect(afterNavigationData.navigationCounter).toBe(0) // Should still be 0 if element persisted
   })
 
-  test.skip('should maintain custom properties across multiple navigations', async ({ page: playwrightPage }) => {
+  test.skip('should maintain custom properties across multiple navigations', async ({
+    page: playwrightPage,
+  }) => {
     const page = new BasePage(playwrightPage)
     await page.goto('/')
 
-    // Set multiple custom properties on the element
+    // Set multiple custom properties on the ThemePicker web component
     const testData = await page.evaluate(() => {
-      const element = document.querySelector('[data-testid="view-transition"]') as HTMLElement
-      if (!element) throw new Error('view-transition element not found')
+      const element = document.querySelector('theme-picker') as HTMLElement
+      if (!element) throw new Error('theme-picker web component not found')
 
       const data = {
         id: `id-${Math.random()}`,
@@ -88,7 +108,7 @@ describe('View Transitions - transition:persist', () => {
 
       // Verify the custom property persists
       const currentData = await page.evaluate(() => {
-        const element = document.querySelector('[data-testid="view-transition"]') as HTMLElement
+        const element = document.querySelector('theme-picker') as HTMLElement
         return (element as any).__testData
       })
 
@@ -96,14 +116,16 @@ describe('View Transitions - transition:persist', () => {
     }
   })
 
-  test.skip('should preserve event listener state across navigation', async ({ page: playwrightPage }) => {
+  test.skip('should preserve internal state of web component across navigation', async ({
+    page: playwrightPage,
+  }) => {
     const page = new BasePage(playwrightPage)
     await page.goto('/')
 
-    // Add an event listener and track if it fires
+    // Modify internal state of the ThemePicker component
     await page.evaluate(() => {
-      const element = document.querySelector('[data-testid="view-transition"]') as HTMLElement
-      if (!element) throw new Error('view-transition element not found')
+      const element = document.querySelector('theme-picker') as HTMLElement
+      if (!element) throw new Error('theme-picker web component not found')
 
       let clickCount = 0
 
@@ -112,6 +134,8 @@ describe('View Transitions - transition:persist', () => {
         ;(element as any).__clickCount = clickCount
       }
 
+      // Note: This is for testing DOM persistence, not production code
+      // In production, we use addButtonEventListeners from elementListeners
       element.addEventListener('click', handleClick)
 
       // Store initial state
@@ -122,11 +146,11 @@ describe('View Transitions - transition:persist', () => {
     // Navigate to another page
     await page.goto('/about')
 
-    // Click the element and verify the listener still works
-    await playwrightPage.locator('[data-testid="view-transition"]').click()
+    // Click the element and verify internal state persists
+    await playwrightPage.locator('theme-picker').click()
 
     const listenerData = await page.evaluate(() => {
-      const element = document.querySelector('[data-testid="view-transition"]') as HTMLElement
+      const element = document.querySelector('theme-picker') as HTMLElement
       return {
         listenerAttached: (element as any).__listenerAttached,
         clickCount: (element as any).__clickCount,
@@ -141,10 +165,10 @@ describe('View Transitions - transition:persist', () => {
     const page = new BasePage(playwrightPage)
     await page.goto('/')
 
-    // Store a WeakMap reference test - more advanced verification
+    // Store a reference test on ThemePicker - advanced verification of identity persistence
     const refCheck = await page.evaluate(() => {
-      const element = document.querySelector('[data-testid="view-transition"]') as HTMLElement
-      if (!element) throw new Error('view-transition element not found')
+      const element = document.querySelector('theme-picker') as HTMLElement
+      if (!element) throw new Error('theme-picker web component not found')
 
       // Create a unique symbol that can only exist on the same object reference
       const uniqueSymbol = Symbol('test-identity')
@@ -156,21 +180,24 @@ describe('View Transitions - transition:persist', () => {
 
       return {
         symbolKey: uniqueSymbol.toString(),
+        tagName: element.tagName.toLowerCase(),
       }
     })
 
     // Navigate
     await page.goto('/about')
 
-    // Check if the symbol property still exists
+    // Check if the symbol property still exists (proves same object reference)
     const afterNav = await page.evaluate(() => {
-      const element = document.querySelector('[data-testid="view-transition"]') as HTMLElement
+      const element = document.querySelector('theme-picker') as HTMLElement
       return {
         symbolKey: (element as any).__symbolKey,
         symbolValue: (element as any).__symbolValue,
+        tagName: element.tagName.toLowerCase(),
       }
     })
 
+    expect(afterNav.tagName).toBe('theme-picker')
     expect(afterNav.symbolKey).toBe(refCheck.symbolKey)
     expect(afterNav.symbolValue).toBe('identity-marker')
   })

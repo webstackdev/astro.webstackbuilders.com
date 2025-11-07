@@ -8,7 +8,6 @@ import Header from '@components/Header/index.astro'
 import Content from '@components/Layout/Content/index.astro'
 import PwaTitleBar from '@components/PwaTitleBar/index.astro'
 import Skip from '@components/Layout/Skip/index.astro'
-import ViewTransitionTest from '@components/Test/ViewTransitionTest.astro'
 import ThemePicker from '@components/ThemePicker/index.astro'
 import { ClientRouter } from 'astro:transitions'
 
@@ -69,24 +68,15 @@ const {
     <ClientRouter />
   </head>
   <body>
-    {/* Cookie Consent Overlay - Only persist in production mode */}
-    {import.meta.env.PROD ? (
-      <CookieConsent transition:persist />
-    ) : (
-      <CookieConsent />
-    )}
+    {/* Cookie Consent Overlay */}
+    <CookieConsent />
     {/* Skip to main content link for accessibility */}
     <Skip />
     {/* Sets Window Controls Overlay API for PWA title bar */}
     <PwaTitleBar />
     {/* Site header and main content */}
     <Container id="main-content">
-      {/* Theme Picker Modal - uses transition:persist in production for View Transitions API */}
-      {import.meta.env.PROD ? (
-        <ThemePicker transition:persist />
-      ) : (
-        <ThemePicker />
-      )}
+      <ThemePicker client:load transition:persist />
       <Header path={path} />
       <Breadcrumbs path={path} pageTitle={pageTitle} />
       {/* Main page content */}
@@ -96,7 +86,5 @@ const {
       {/* Site footer */}
       <Footer />
     </Container>
-    {/* View Transition Test Element for E2E Regression Tests */}
-    <ViewTransitionTest />
   </body>
 </html>

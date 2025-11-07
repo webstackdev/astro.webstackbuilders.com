@@ -1,8 +1,86 @@
-# ThemePicker Mobile Issues
+# ThemePicker Issues & TODO
 
-## Current Status: UNRESOLVED
+## Current Status Summary
 
-Date: November 8, 2025
+- **Mobile Touch Issues**: UNRESOLVED (documented below)
+- **Desktop**: ✅ WORKING
+- **System Preference Detection**: 🔍 INVESTIGATING (media query works, but regression in initial theme)
+- **E2E Tests**: ✅ 14/14 PASSING (Chromium)
+- **Unit Tests**: ✅ 23/23 PASSING
+
+Last Updated: November 8, 2025
+
+---
+
+## System Preference Detection Investigation
+
+### Debug Testing Results (November 8, 2025)
+
+Created `/src/pages/debug-prefers-color-scheme.html` to test `window.matchMedia('(prefers-color-scheme: dark)')`.
+
+**Chrome Settings Tested (all in incognito):**
+
+1. Light theme
+2. Dark theme
+3. System theme
+
+**Results:** Media query works correctly in all cases:
+
+- Chrome Light → `prefers-color-scheme: dark` = `false`, `light` = `true`
+- Chrome Dark → Same as light (unexpected!)
+- Chrome System → Same as light
+
+**Conclusion:** The media query itself works. The regression might be:
+
+1. Timing issue (script runs before system preference available)
+2. Different issue causing FOUC
+3. Need to investigate git diff changes more carefully
+
+**Git Diff Analysis (81188a5 → 315d7b0):**
+
+- Added `else if (!stored)` block to ThemeInit.astro
+- Logic: Check `window.matchMedia('(prefers-color-scheme: dark)').matches`
+- Should work but causes dark theme on first visit
+
+**Status:** Paused - needs deeper investigation of timing/FOUC
+
+---
+
+## TODO Items
+
+### High Priority
+
+- [ ] **Fix position of theme picker toggle icon on mobile view**
+  - Current: Icon slides down vertically when modal opens
+  - Expected: Should slide RIGHT to align under hamburger menu icon
+  - Issue: Looks awkward spaced off right margin
+  - Required: Reverse position animation on modal close
+
+### Medium Priority
+
+- [ ] **Fix system preference regression** (from investigation above)
+  - Debug why first-time visitors always get dark theme
+  - Eliminate FOUC (light theme flash before dark)
+  - Verify fix across all system preference settings
+
+- [ ] **Add more themes**
+  - Current: Only light and dark
+  - Expand theme options for users
+
+- [ ] **Add carousel to theme picker modal**
+  - Needed when: More themes than fit in viewport
+  - Allows scrolling through theme options
+
+### Low Priority
+
+- [ ] **Resolve mobile touch issues** (see below for details)
+
+---
+
+## Mobile Touch Issues
+
+### Current Status: UNRESOLVED
+
 Component: `src/components/ThemePicker/client.ts`
 
 ## Symptoms

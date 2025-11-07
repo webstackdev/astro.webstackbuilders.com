@@ -176,16 +176,32 @@ test.describe('Theme Picker Component', () => {
   test.describe('System Preferences', () => {
     test('@ready respects prefers-color-scheme on first visit', async ({ page }) => {
       // Expected: Should use system preference if no stored preference
-      // Simulate dark mode preference BEFORE navigation
-      await page.context().clearCookies()
 
+      // First, visit the page to establish the domain context
+      await page.goto('/')
+
+      // Clear localStorage to simulate first visit
+      await page.evaluate(() => localStorage.clear())
+
+      // Set up media emulation for dark color scheme
       await page.emulateMedia({ colorScheme: 'dark' })
 
-      // Visit site for "first time" with dark mode preference
-      await page.goto('/', { waitUntil: 'domcontentloaded' })
+      // Reload to apply the preference with no stored theme
+      await page.reload({ waitUntil: 'domcontentloaded' })
+
+      // Debug: Check what's in localStorage
+      const storedTheme = await page.evaluate(() => localStorage.getItem('theme'))
+      console.log('Stored theme after reload:', storedTheme)
+
+      // Debug: Check media query
+      const prefersDark = await page.evaluate(() =>
+        window.matchMedia('(prefers-color-scheme: dark)').matches
+      )
+      console.log('Prefers dark:', prefersDark)
 
       const htmlElement = page.locator('html')
       const dataTheme = await htmlElement.getAttribute('data-theme')
+      console.log('Actual data-theme:', dataTheme)
 
       expect(dataTheme).toBe('dark')
     })
