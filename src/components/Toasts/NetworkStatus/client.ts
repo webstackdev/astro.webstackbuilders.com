@@ -1,18 +1,14 @@
-import { LoadableScript, type TriggerEvent } from '@components/scripts/loader/@types'
-
 /**
- * NetworkStatus component using LoadableScript pattern
+ * NetworkStatus component
  * Monitors online/offline status and displays notifications
  */
-export class NetworkStatus extends LoadableScript {
-  static override scriptName = 'NetworkStatus'
-  static override eventType: TriggerEvent = 'astro:page-load'
+export class NetworkStatus {
+  static scriptName = 'NetworkStatus'
 
   private static instance: NetworkStatus | null = null
   private hideTimeout: ReturnType<typeof setTimeout> | null = null
 
   constructor() {
-    super()
   }
 
   bindEvents() {
@@ -99,24 +95,24 @@ export class NetworkStatus extends LoadableScript {
   /**
    * LoadableScript static methods
    */
-  static override init(): void {
+  static init(): void {
     NetworkStatus.instance = new NetworkStatus()
     NetworkStatus.instance.bindEvents()
   }
 
-  static override pause(): void {
+  static pause(): void {
     if (NetworkStatus.instance) {
       NetworkStatus.instance.pause()
     }
   }
 
-  static override resume(): void {
+  static resume(): void {
     if (NetworkStatus.instance) {
       NetworkStatus.instance.resume()
     }
   }
 
-  static override reset(): void {
+  static reset(): void {
     if (NetworkStatus.instance) {
       NetworkStatus.instance.pause()
       NetworkStatus.instance = null

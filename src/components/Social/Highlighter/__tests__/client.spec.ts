@@ -88,7 +88,6 @@ describe('Highlighter LoadableScript', () => {
   describe('LoadableScript Interface', () => {
     it('should implement LoadableScript interface', () => {
       expect(Highlighter.scriptName).toBe('Highlighter')
-      expect(Highlighter.eventType).toBe('astro:page-load')
       expect(typeof Highlighter.init).toBe('function')
       expect(typeof Highlighter.pause).toBe('function')
       expect(typeof Highlighter.resume).toBe('function')

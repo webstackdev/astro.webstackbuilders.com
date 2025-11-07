@@ -4,7 +4,6 @@
  * Uses LoadableScript pattern for optimized loading
  */
 
-import { LoadableScript } from '@components/scripts/loader'
 import type { ShareData } from '@components/Social/common'
 import { platforms, copyToClipboard, nativeShare } from '@components/Social/common'
 import { MastodonModal } from '@components/Social/Mastodon/client'
@@ -381,13 +380,12 @@ class HighlighterElement extends HTMLElement {
 }
 
 /**
- * Highlighter LoadableScript for delayed initialization
+ * Highlighter for delayed initialization
  */
-export class Highlighter extends LoadableScript {
-  static override scriptName = 'Highlighter'
-  static override eventType = 'astro:page-load' as const
+export class Highlighter {
+  static scriptName = 'Highlighter'
 
-  static override init(): void {
+  static init(): void {
     const context = { scriptName: Highlighter.scriptName, operation: 'init' }
     addScriptBreadcrumb(context)
 
@@ -402,15 +400,15 @@ export class Highlighter extends LoadableScript {
     }
   }
 
-  static override pause(): void {
+  static pause(): void {
     // No persistent state to pause
   }
 
-  static override resume(): void {
+  static resume(): void {
     // No persistent state to resume
   }
 
-  static override reset(): void {
+  static reset(): void {
     // No persistent state to reset
   }
 }

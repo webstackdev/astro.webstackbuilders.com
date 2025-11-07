@@ -1,10 +1,8 @@
 /**
  * Social Share Client-side functionality
  * Handles click tracking, Mastodon modal, and Web Share API integration
- * Uses LoadableScript pattern for optimized loading
  */
 
-import { LoadableScript } from '@components/scripts/loader'
 import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
 
 /**
@@ -66,15 +64,14 @@ function handleShareButtonClick(event: Event): void {
 }
 
 /**
- * Social Share LoadableScript for delayed initialization
+ * Social Share for delayed initialization
  */
-export class SocialShare extends LoadableScript {
-  static override scriptName = 'SocialShare'
-  static override eventType = 'astro:page-load' as const
+export class SocialShare {
+  static scriptName = 'SocialShare'
 
   private static listeners = new WeakMap<HTMLElement, EventListener>()
 
-  static override init(): void {
+  static init(): void {
     const context = { scriptName: SocialShare.scriptName, operation: 'init' }
     addScriptBreadcrumb(context)
 
@@ -96,7 +93,7 @@ export class SocialShare extends LoadableScript {
     }
   }
 
-  static override pause(): void {
+  static pause(): void {
     const context = { scriptName: SocialShare.scriptName, operation: 'pause' }
     addScriptBreadcrumb(context)
 
@@ -118,11 +115,11 @@ export class SocialShare extends LoadableScript {
     }
   }
 
-  static override resume(): void {
+  static resume(): void {
     this.init()
   }
 
-  static override reset(): void {
+  static reset(): void {
     this.pause()
     this.listeners = new WeakMap()
   }

@@ -39,7 +39,10 @@ const { ariaLabel, class: className } = Astro.props
 </highlighter-element>
 
 <script>
-  import { registerScript } from '@components/scripts/loader'
   import { Highlighter } from '@components/Social/Highlighter/client'
-  registerScript(Highlighter)
+
+  // Initialize highlighter with Astro View Transitions
+  document.addEventListener('astro:page-load', () => {
+    Highlighter.init()
+  })
 </script>

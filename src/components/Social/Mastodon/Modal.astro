@@ -148,8 +148,10 @@ const { id = 'mastodon-modal' } = Astro.props
 </style>
 
 <script>
-  import { registerScript } from '@components/scripts/loader'
   import { MastodonModal } from '@components/Social/Mastodon/client'
 
-  registerScript(MastodonModal)
+  // Initialize Mastodon modal with Astro View Transitions
+  document.addEventListener('astro:page-load', () => {
+    MastodonModal.init()
+  })
 </script>

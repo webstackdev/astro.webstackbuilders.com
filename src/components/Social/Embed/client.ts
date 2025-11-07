@@ -1,4 +1,3 @@
-import { LoadableScript, type TriggerEvent } from '@components/scripts/loader/@types'
 import { cacheEmbed, getCachedEmbed } from '@components/scripts/store'
 import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
 
@@ -39,15 +38,14 @@ interface OEmbedResponse {
  * Manager class for all social embeds using singleton pattern
  * Can be registered directly: registerScript(EmbedManager)
  */
-export class EmbedManager extends LoadableScript {
+export class EmbedManager {
   private static instance: EmbedManager | null = null
   private embeds: Map<HTMLElement, EmbedInstance> = new Map()
   private initialized = false
 
-  static override scriptName = 'EmbedManager'
-  static override eventType: TriggerEvent = 'astro:page-load'
+  static scriptName = 'EmbedManager'
 
-  static override init(): void {
+  static init(): void {
     const context = { scriptName: EmbedManager.scriptName, operation: 'init' }
     addScriptBreadcrumb(context)
 
@@ -67,11 +65,11 @@ export class EmbedManager extends LoadableScript {
     }
   }
 
-  static override pause(): void {
+  static pause(): void {
     EmbedManager.getInstance().pauseAll()
   }
 
-  static override resume(): void {
+  static resume(): void {
     EmbedManager.getInstance().resumeAll()
   }
 
@@ -83,7 +81,6 @@ export class EmbedManager extends LoadableScript {
   }
 
   private constructor() {
-    super()
   }
 
   private discoverNewEmbeds(): void {
@@ -183,7 +180,7 @@ export class EmbedManager extends LoadableScript {
     }
   }
 
-  static override reset(): void {
+  static reset(): void {
     const instance = EmbedManager.instance
     if (instance) {
       instance.cleanup()

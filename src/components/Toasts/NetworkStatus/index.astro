@@ -83,9 +83,10 @@
 </style>
 
 <script>
-  import { registerScript } from '@components/scripts/loader'
   import { NetworkStatus } from '@components/Toasts/NetworkStatus/client'
 
-  // Register NetworkStatus script to initialize with Astro View Transitions
-  registerScript(NetworkStatus)
+  // Initialize NetworkStatus with Astro View Transitions
+  document.addEventListener('astro:page-load', () => {
+    NetworkStatus.init()
+  })
 </script>

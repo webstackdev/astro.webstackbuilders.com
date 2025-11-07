@@ -44,10 +44,6 @@ describe('NetworkStatus LoadableScript', () => {
       expect(NetworkStatus.scriptName).toBe('NetworkStatus')
     })
 
-    test('should have correct eventType', () => {
-      expect(NetworkStatus.eventType).toBe('astro:page-load')
-    })
-
     test('should initialize without errors', () => {
       expect(() => new NetworkStatus()).not.toThrow()
     })
