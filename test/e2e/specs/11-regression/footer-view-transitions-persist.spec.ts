@@ -13,7 +13,7 @@
  * - Astro View Transitions API documentation
  */
 
-import { BasePage, test, describe, expect } from '@test/e2e/helpers'
+import { ComponentPersistencePage, BasePage, test, describe, expect } from '@test/e2e/helpers'
 
 describe('View Transitions - transition:persist on Web Components', () => {
   test('should persist ThemePicker web component identity across navigation', async ({
@@ -205,62 +205,24 @@ describe('View Transitions - transition:persist on Web Components', () => {
   test('should persist Preact Footer component identity across navigation', async ({
     page: playwrightPage,
   }) => {
-    const page = new BasePage(playwrightPage)
+    const page = new ComponentPersistencePage(playwrightPage)
     await page.goto('/')
 
-    // Set a unique identifier on the Preact Footer component and store a custom property
-    const initialData = await page.evaluate(() => {
-      const element = document.querySelector('[data-testid="footer-preact"]') as HTMLElement
-      if (!element) throw new Error('footer-preact component not found')
-
-      // Create a unique identifier
-      const uniqueId = `test-${Date.now()}-${Math.random()}`
-
-      // Set it as a data attribute
-      element.setAttribute('data-unique-id', uniqueId)
-
-      // Also set a custom property directly on the DOM element
-      // This is more definitive proof of DOM identity persistence
-      ;(element as any).__testProperty = uniqueId
-
-      // Store a counter to verify the element isn't recreated
-      ;(element as any).__navigationCounter = 0
-
-      return {
-        uniqueId,
-        initialTimestamp: Date.now(),
-        tagName: element.tagName.toLowerCase(),
-      }
-    })
+    // Set up test data on the Preact Footer component
+    const initialData = await page.setupPersistenceTest('[data-testid="footer-preact"]')
 
     // Navigate to a different page using Astro View Transitions
     await page.navigateToPage('/articles')
     await page.waitForURL('**/articles', { timeout: 5000 })
     await page.waitForPageLoad()
 
-    // Verify the element still has the same unique identifier
-    const afterNavigationData = await page.evaluate(() => {
-      const element = document.querySelector('[data-testid="footer-preact"]') as HTMLElement
-      if (!element) throw new Error('footer-preact component not found after navigation')
+    // Verify the element persisted with the same DOM identity
+    const afterNavigationData = await page.verifyPersistence('[data-testid="footer-preact"]')
 
-      // Increment counter to prove it's the same element
-      const counter = (element as any).__navigationCounter
-      ;(element as any).__navigationCounter = counter + 1
+    // Run all persistence assertions
+    page.assertPersistence(initialData, afterNavigationData)
 
-      return {
-        dataAttribute: element.getAttribute('data-unique-id'),
-        customProperty: (element as any).__testProperty,
-        navigationCounter: counter,
-        elementExists: !!element,
-        tagName: element.tagName.toLowerCase(),
-      }
-    })
-
-    // Assertions proving DOM identity persistence
-    expect(afterNavigationData.elementExists).toBe(true)
-    expect(afterNavigationData.tagName).toBe('footer')
-    expect(afterNavigationData.dataAttribute).toBe(initialData.uniqueId)
-    expect(afterNavigationData.customProperty).toBe(initialData.uniqueId)
-    expect(afterNavigationData.navigationCounter).toBe(0) // Should still be 0 if element persisted
+    // Output console messages for debugging
+    page.printCapturedMessages('FOOTER PERSISTENCE TEST CONSOLE')
   })
 })

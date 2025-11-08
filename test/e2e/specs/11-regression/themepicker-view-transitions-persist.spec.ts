@@ -13,82 +13,32 @@
  * - Astro View Transitions API documentation
  */
 
-import { BasePage, test, describe, expect } from '@test/e2e/helpers'
-import { setupConsoleCapture, printCapturedMessages } from '@test/e2e/helpers/consoleCapture'
+import { ComponentPersistencePage, BasePage, test, describe, expect } from '@test/e2e/helpers'
 
 describe('View Transitions - transition:persist on Web Components', () => {
   test('should persist ThemePicker web component identity across navigation', async ({
     page: playwrightPage,
   }) => {
-    const page = new BasePage(playwrightPage)
-
-    // Capture all console output including nested group content
-    const consoleMessages = setupConsoleCapture(playwrightPage, true)
+    const page = new ComponentPersistencePage(playwrightPage)
 
     await page.goto('/')
 
-    // Set a unique identifier on the ThemePicker web component and store a custom property
-    const initialData = await page.evaluate(() => {
-      const element = document.querySelector('theme-picker') as HTMLElement
-      if (!element) throw new Error('theme-picker web component not found')
-
-      // Create a unique identifier
-      const uniqueId = `test-${Date.now()}-${Math.random()}`
-
-      // Set it as a data attribute
-      element.setAttribute('data-unique-id', uniqueId)
-
-      // Also set a custom property directly on the DOM element
-      // This is more definitive proof of DOM identity persistence
-      ;(element as any).__testProperty = uniqueId
-
-      // Store a counter to verify the element isn't recreated
-      ;(element as any).__navigationCounter = 0
-
-      return {
-        uniqueId,
-        initialTimestamp: Date.now(),
-        tagName: element.tagName.toLowerCase(),
-      }
-    })
+    // Set up test data on the ThemePicker web component
+    const initialData = await page.setupPersistenceTest('theme-picker')
 
     // Navigate to a different page using Astro's View Transitions
-    // Click the Articles link in the main navigation to trigger client-side navigation
     await page.navigateToPage('/articles')
-
-    // Wait for the View Transition to complete and URL to change
     await page.waitForURL('**/articles', { timeout: 5000 })
-
-    // Wait for Astro page load event instead of arbitrary timeout
     await page.waitForPageLoad()
 
-    // Verify the element still has the same unique identifier
-    const afterNavigationData = await page.evaluate(() => {
-      const element = document.querySelector('theme-picker') as HTMLElement
-      if (!element) throw new Error('theme-picker web component not found after navigation')
+    // Verify the element persisted with the same DOM identity
+    const afterNavigationData = await page.verifyPersistence('theme-picker')
 
-      // Increment counter to prove it's the same element
-      const counter = (element as any).__navigationCounter
-      ;(element as any).__navigationCounter = counter + 1
+    // Run all persistence assertions
+    page.assertPersistence(initialData, afterNavigationData)
 
-      return {
-        dataAttribute: element.getAttribute('data-unique-id'),
-        customProperty: (element as any).__testProperty,
-        navigationCounter: counter,
-        elementExists: !!element,
-        tagName: element.tagName.toLowerCase(),
-      }
-    })
-
-    // Assertions proving DOM identity persistence
-    expect(afterNavigationData.elementExists).toBe(true)
-    expect(afterNavigationData.tagName).toBe('theme-picker')
-    expect(afterNavigationData.dataAttribute).toBe(initialData.uniqueId)
-    expect(afterNavigationData.customProperty).toBe(initialData.uniqueId)
-    expect(afterNavigationData.navigationCounter).toBe(0) // Should still be 0 if element persisted
-
-    // Output all captured console messages for analysis
-    printCapturedMessages(consoleMessages, 'ALL CAPTURED CONSOLE MESSAGES')
+    // Output console messages for debugging
+    page.printCapturedMessages('ALL CAPTURED CONSOLE MESSAGES')
   })
 
   test.skip('should maintain custom properties across multiple navigations', async ({
@@ -174,48 +124,5 @@ describe('View Transitions - transition:persist on Web Components', () => {
 
     expect(listenerData.listenerAttached).toBe(true)
     expect(listenerData.clickCount).toBe(1) // Should have incremented from the click
-  })
-
-  test('should maintain element reference across navigation', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
-    await page.goto('/')
-
-    // Store a reference test on ThemePicker - advanced verification of identity persistence
-    const refCheck = await page.evaluate(() => {
-      const element = document.querySelector('theme-picker') as HTMLElement
-      if (!element) throw new Error('theme-picker web component not found')
-
-      // Create a unique symbol that can only exist on the same object reference
-      const uniqueSymbol = Symbol('test-identity')
-      ;(element as any)[uniqueSymbol] = 'identity-marker'
-
-      // Store the symbol key as a string for later comparison
-      ;(element as any).__symbolKey = uniqueSymbol.toString()
-      ;(element as any).__symbolValue = 'identity-marker'
-
-      return {
-        symbolKey: uniqueSymbol.toString(),
-        tagName: element.tagName.toLowerCase(),
-      }
-    })
-
-    // Navigate using View Transitions
-    await page.navigateToPage('/articles')
-    await page.waitForURL('**/articles', { timeout: 5000 })
-    await page.waitForPageLoad()
-
-    // Check if the symbol property still exists (proves same object reference)
-    const afterNav = await page.evaluate(() => {
-      const element = document.querySelector('theme-picker') as HTMLElement
-      return {
-        symbolKey: (element as any).__symbolKey,
-        symbolValue: (element as any).__symbolValue,
-        tagName: element.tagName.toLowerCase(),
-      }
-    })
-
-    expect(afterNav.tagName).toBe('theme-picker')
-    expect(afterNav.symbolKey).toBe(refCheck.symbolKey)
-    expect(afterNav.symbolValue).toBe('identity-marker')
   })
 })
