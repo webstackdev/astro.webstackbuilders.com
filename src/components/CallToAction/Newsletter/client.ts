@@ -1,51 +1,94 @@
 /**
- * Newsletter subscription form client-side logic
- * Manages form validation, submission, and UI state changes
+ * Newsletter Form Web Component (Lit-based)
+ * Manages newsletter subscription form with validation and submission
+ * Works seamlessly with Astro View Transitions
  */
 
-import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
+import { LitElement } from 'lit'
 import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
+import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
 
 /**
- * Newsletter form component with instance-specific approach
+ * Newsletter Form Custom Element (Lit-based)
+ * Uses Light DOM (no Shadow DOM) with Astro-rendered templates
  */
-export class NewsletterForm {
-  static scriptName = 'NewsletterForm'
+export class NewsletterFormElement extends LitElement {
+  // Render to Light DOM instead of Shadow DOM
+  override createRenderRoot() {
+    return this // No shadow DOM - works with Astro templates!
+  }
 
   // Email validation pattern (matches server-side)
   private readonly emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
   // DOM elements
-  private form: HTMLFormElement | null = null
-  private emailInput: HTMLInputElement | null = null
-  private consentCheckbox: HTMLInputElement | null = null
-  private submitButton: HTMLButtonElement | null = null
-  private buttonText: HTMLSpanElement | null = null
-  private buttonArrow: SVGSVGElement | null = null
-  private buttonSpinner: SVGSVGElement | null = null
-  private message: HTMLParagraphElement | null = null
+  private form!: HTMLFormElement
+  private emailInput!: HTMLInputElement
+  private consentCheckbox!: HTMLInputElement
+  private submitButton!: HTMLButtonElement
+  private buttonText!: HTMLSpanElement
+  private buttonArrow!: SVGSVGElement
+  private buttonSpinner!: SVGSVGElement
+  private message!: HTMLParagraphElement
   private originalButtonText = 'Subscribe'
 
-  constructor() {
-    this.initializeElements()
+  // Track initialization
+  private isInitialized = false
+
+  /**
+   * Lit lifecycle: called when element is connected
+   */
+  override connectedCallback(): void {
+    super.connectedCallback()
+    const context = { scriptName: 'NewsletterFormElement', operation: 'connectedCallback' }
+    addScriptBreadcrumb(context)
+
+    // Wait for DOM to be ready before initializing
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => this.initialize())
+    } else {
+      this.initialize()
+    }
   }
 
   /**
-   * Initialize DOM element references
+   * Initialize the newsletter form after DOM is ready
+   * Public for testing purposes
    */
-  private initializeElements(): void {
-    const context = { scriptName: NewsletterForm.scriptName, operation: 'initializeElements' }
+  public initialize(): void {
+    const context = { scriptName: 'NewsletterFormElement', operation: 'initialize' }
     addScriptBreadcrumb(context)
 
     try {
-      this.form = document.getElementById('newsletter-form') as HTMLFormElement | null
-      this.emailInput = document.getElementById('newsletter-email') as HTMLInputElement | null
-      this.consentCheckbox = document.getElementById('newsletter-gdpr-consent') as HTMLInputElement | null
-      this.submitButton = document.getElementById('newsletter-submit') as HTMLButtonElement | null
-      this.buttonText = document.getElementById('button-text') as HTMLSpanElement | null
-      this.buttonArrow = document.getElementById('button-arrow') as SVGSVGElement | null
-      this.buttonSpinner = document.getElementById('button-spinner') as SVGSVGElement | null
-      this.message = document.getElementById('newsletter-message') as HTMLParagraphElement | null
+      // Skip if already initialized (for View Transitions)
+      if (this.isInitialized) {
+        return
+      }
+
+      this.findElements()
+      this.bindEvents()
+      this.isInitialized = true
+    } catch (error) {
+      handleScriptError(error, context)
+    }
+  }
+
+  /**
+   * Find and cache DOM elements
+   */
+  private findElements(): void {
+    const context = { scriptName: 'NewsletterFormElement', operation: 'findElements' }
+    addScriptBreadcrumb(context)
+
+    try {
+      this.form = this.querySelector('#newsletter-form') as HTMLFormElement
+      this.emailInput = this.querySelector('#newsletter-email') as HTMLInputElement
+      this.consentCheckbox = this.querySelector('#newsletter-gdpr-consent') as HTMLInputElement
+      this.submitButton = this.querySelector('#newsletter-submit') as HTMLButtonElement
+      this.buttonText = this.querySelector('#button-text') as HTMLSpanElement
+      this.buttonArrow = this.querySelector('#button-arrow') as SVGSVGElement
+      this.buttonSpinner = this.querySelector('#button-spinner') as SVGSVGElement
+      this.message = this.querySelector('#newsletter-message') as HTMLParagraphElement
 
       if (
         !this.form ||
@@ -58,23 +101,19 @@ export class NewsletterForm {
         !this.message
       ) {
         throw new ClientScriptError(
-          'NewsletterForm: Required DOM elements not found. Form requires all elements to function.'
+          'NewsletterFormElement: Required DOM elements not found'
         )
       }
 
-      // Save original button text (recoverable)
-      try {
-        this.originalButtonText = this.buttonText.textContent || 'Subscribe'
-        this.submitButton.setAttribute('data-original-text', this.originalButtonText)
-      } catch (error) {
-        handleScriptError(error, { scriptName: NewsletterForm.scriptName, operation: 'saveButtonText' })
-      }
+      // Save original button text
+      this.originalButtonText = this.buttonText.textContent || 'Subscribe'
+      this.submitButton.setAttribute('data-original-text', this.originalButtonText)
     } catch (error) {
       if (error instanceof ClientScriptError) {
         throw error
       }
       throw new ClientScriptError(
-        `NewsletterForm: Failed to initialize elements - ${error instanceof Error ? error.message : 'Unknown error'}`
+        `NewsletterFormElement: Failed to find elements - ${error instanceof Error ? error.message : 'Unknown error'}`
       )
     }
   }
@@ -82,8 +121,8 @@ export class NewsletterForm {
   /**
    * Validate email address format
    */
-  public validateEmail(email: string): boolean {
-    const context = { scriptName: NewsletterForm.scriptName, operation: 'validateEmail' }
+  private validateEmail(email: string): boolean {
+    const context = { scriptName: 'NewsletterFormElement', operation: 'validateEmail' }
     addScriptBreadcrumb(context)
 
     try {
@@ -97,8 +136,8 @@ export class NewsletterForm {
   /**
    * Display a message to the user
    */
-  public showMessage(text: string, type: 'success' | 'error' | 'info'): void {
-    const context = { scriptName: NewsletterForm.scriptName, operation: 'showMessage' }
+  private showMessage(text: string, type: 'success' | 'error' | 'info'): void {
+    const context = { scriptName: 'NewsletterFormElement', operation: 'showMessage' }
     addScriptBreadcrumb(context)
 
     try {
@@ -126,8 +165,8 @@ export class NewsletterForm {
   /**
    * Set the loading state of the submit button
    */
-  public setLoading(loading: boolean): void {
-    const context = { scriptName: NewsletterForm.scriptName, operation: 'setLoading' }
+  private setLoading(loading: boolean): void {
+    const context = { scriptName: 'NewsletterFormElement', operation: 'setLoading' }
     addScriptBreadcrumb(context)
 
     try {
@@ -155,7 +194,7 @@ export class NewsletterForm {
    * Handle form submission
    */
   private handleSubmit = async (e: Event): Promise<void> => {
-    const context = { scriptName: NewsletterForm.scriptName, operation: 'handleSubmit' }
+    const context = { scriptName: 'NewsletterFormElement', operation: 'handleSubmit' }
     addScriptBreadcrumb(context)
 
     try {
@@ -197,7 +236,7 @@ export class NewsletterForm {
           },
           body: JSON.stringify({
             email,
-            consentGiven
+            consentGiven,
           }),
         })
 
@@ -213,7 +252,7 @@ export class NewsletterForm {
           this.showMessage(data.error || 'Failed to subscribe. Please try again.', 'error')
         }
       } catch (error) {
-        handleScriptError(error, { scriptName: NewsletterForm.scriptName, operation: 'apiSubmission' })
+        handleScriptError(error, { scriptName: 'NewsletterFormElement', operation: 'apiSubmission' })
         this.showMessage('Network error. Please check your connection and try again.', 'error')
       } finally {
         this.setLoading(false)
@@ -229,7 +268,7 @@ export class NewsletterForm {
    * Handle email input blur for real-time validation
    */
   private handleEmailBlur = (): void => {
-    const context = { scriptName: NewsletterForm.scriptName, operation: 'handleEmailBlur' }
+    const context = { scriptName: 'NewsletterFormElement', operation: 'handleEmailBlur' }
     addScriptBreadcrumb(context)
 
     try {
@@ -250,8 +289,8 @@ export class NewsletterForm {
   /**
    * Bind event listeners
    */
-  bindEvents(): void {
-    const context = { scriptName: NewsletterForm.scriptName, operation: 'bindEvents' }
+  private bindEvents(): void {
+    const context = { scriptName: 'NewsletterFormElement', operation: 'bindEvents' }
     addScriptBreadcrumb(context)
 
     try {
@@ -268,13 +307,15 @@ export class NewsletterForm {
   }
 
   /**
-   * Remove event listeners for cleanup
+   * Lit lifecycle: called when element is disconnected
    */
-  unbindEvents(): void {
-    const context = { scriptName: NewsletterForm.scriptName, operation: 'unbindEvents' }
+  override disconnectedCallback(): void {
+    super.disconnectedCallback()
+    const context = { scriptName: 'NewsletterFormElement', operation: 'disconnectedCallback' }
     addScriptBreadcrumb(context)
 
     try {
+      // Clean up event listeners
       if (this.form) {
         this.form.removeEventListener('submit', this.handleSubmit)
       }
@@ -285,32 +326,10 @@ export class NewsletterForm {
       handleScriptError(error, context)
     }
   }
-
-  /**
-   * LoadableScript static methods
-   */
-  static init(): void {
-    const context = { scriptName: NewsletterForm.scriptName, operation: 'init' }
-    addScriptBreadcrumb(context)
-
-    try {
-      const newsletterForm = new NewsletterForm()
-      newsletterForm.bindEvents()
-    } catch (error) {
-      handleScriptError(error, context)
-    }
-  }
-
-  static pause(): void {
-    // Newsletter form doesn't need pause functionality during visibility changes
-  }
-
-  static resume(): void {
-    // Newsletter form doesn't need resume functionality during visibility changes
-  }
-
-  static reset(): void {
-    // Clean up any global state if needed for View Transitions
-    // This could be enhanced to unbind events if we tracked instances
-  }
 }
+
+// Register the custom element
+if (!customElements.get('newsletter-form')) {
+  customElements.define('newsletter-form', NewsletterFormElement)
+}
+

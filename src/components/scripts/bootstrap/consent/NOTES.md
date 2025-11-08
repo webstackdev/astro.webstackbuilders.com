@@ -1,9 +1,5 @@
 # Consent Category Usage Summary
 
-## OT: Frameworks Notes
-
-View Transitions friction: transition:persist requires client:only directive, loses SSR benefits
-
 ## Categories
 
 ### 'necessary' - Infrastructure only, NO actual usage
