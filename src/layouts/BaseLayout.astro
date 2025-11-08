@@ -2,7 +2,7 @@
 import Breadcrumbs from '@components/Breadcrumbs/index.astro'
 import Container from '@components/Layout/Container/index.astro'
 import CookieConsent from '@components/Consent/Banner/index.astro'
-import Footer from '@components/Footer/index.astro'
+import FooterPreact from '@components/Footer/FooterPreact'
 import HeadContent from '@components/Head/index.astro'
 import Header from '@components/Header/index.astro'
 import Content from '@components/Layout/Content/index.astro'
@@ -10,9 +10,13 @@ import PwaTitleBar from '@components/PwaTitleBar/index.astro'
 import Skip from '@components/Layout/Skip/index.astro'
 import ThemePicker from '@components/ThemePicker/index.astro'
 import { ClientRouter } from 'astro:transitions'
+import VtBotDebug from 'astro-vtbot/components/VtBotDebug.astro'
+import Linter from 'astro-vtbot/components/Linter.astro'
+import AuthorAvatar from '@assets/images/avatars/kevin-brown.webp'
 
 import '@styles/index.css'
 import '@styles/sprites.css'
+import '@components/Footer/footer.css'
 
 export interface Props {
   pageTitle: string
@@ -45,6 +49,11 @@ const {
   image,
   noindex,
 } = Astro.props
+
+const year = new Date().getFullYear()
+const siteUrl = Astro.site?.toString() || 'https://webstackbuilders.com'
+// Get the image src path for Preact
+const avatarSrc = AuthorAvatar.src
 ---
 
 <!DOCTYPE html>
@@ -65,7 +74,9 @@ const {
     />
     {/* Client-side router for Astro pages (enables partial page reloads) */}
     {/* Must be placed at the end of the <head> to avoid blocking page rendering */}
+    <VtBotDebug />
     <ClientRouter />
+    <Linter />
   </head>
   <body>
     {/* Cookie Consent Overlay */}
@@ -76,15 +87,15 @@ const {
     <PwaTitleBar />
     {/* Site header and main content */}
     <Container id="main-content">
-      <ThemePicker client:load transition:persist />
+      <ThemePicker client:load transition:name="theme-picker-island" transition:persist />
       <Header path={path} />
       <Breadcrumbs path={path} pageTitle={pageTitle} />
       {/* Main page content */}
       <Content>
         <slot />
       </Content>
-      {/* Site footer */}
-      <Footer />
+      {/* Site footer - Preact component with transition:persist for testing */}
+      <FooterPreact year={year} siteUrl={siteUrl} authorAvatar={avatarSrc} client:load transition:name="footer-island" transition:persist />
     </Container>
   </body>
 </html>
