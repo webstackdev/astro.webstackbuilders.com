@@ -1,8 +1,14 @@
 /**
  * Theme persistence store
+ *
+ * Theme preference is classified as 'necessary' under GDPR:
+ * - Purely cosmetic/accessibility preference
+ * - No tracking or behavioral data collection
+ * - No third-party data sharing
+ * - Similar to language preference (universally accepted as necessary)
+ * - GDPR Recital 30: "not personal data" when used solely for technical delivery
  */
 import { persistentAtom } from '@nanostores/persistent'
-import { $consent } from './consent'
 import { handleScriptError } from '@components/scripts/errors'
 
 // ============================================================================
@@ -18,7 +24,7 @@ export type ThemeId = 'light' | 'dark' | 'holiday'
 /**
  * Theme preference
  * Persisted to localStorage automatically via nanostores/persistent
- * Requires functional consent to persist
+ * Classified as 'necessary' - no consent required
  */
 export const $theme = persistentAtom<ThemeId>('theme', 'light', {
   encode: (value) => value,
@@ -60,19 +66,12 @@ export const $themePickerOpen = persistentAtom<boolean>('themePickerOpen', false
 /**
  * Update theme
  * Automatically persisted to localStorage by persistentAtom
- * Only persists if functional consent is granted
+ * Classified as 'necessary' - always persists, no consent check required
  */
 export function setTheme(themeId: ThemeId): void {
   try {
-    const hasFunctionalConsent = $consent.get().functional
-
-    if (hasFunctionalConsent) {
-      // Persist theme preference to localStorage via persistentAtom
-      $theme.set(themeId)
-    } else {
-      // Session-only: update DOM but don't persist
-      document.documentElement.setAttribute('data-theme', themeId)
-    }
+    // Theme is 'necessary' - always persist to localStorage
+    $theme.set(themeId)
   } catch (error) {
     handleScriptError(error, {
       scriptName: 'themes',

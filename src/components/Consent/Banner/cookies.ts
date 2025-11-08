@@ -48,8 +48,8 @@ export const initConsentCookies = () => {
     // Set tracking consent to false (user hasn't opted in yet)
     updateConsent('analytics', false)
     updateConsent('marketing', false)
-    // Functional consent defaults to true (hybrid approach - user can opt out)
-    updateConsent('functional', true)
+    // Functional consent defaults to false (opt-in for Mastodon instance storage)
+    updateConsent('functional', false)
     updateConsent('necessary', true)
     return true
   }

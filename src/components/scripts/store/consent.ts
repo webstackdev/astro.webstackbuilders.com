@@ -30,15 +30,15 @@ export interface ConsentState {
  * Persisted to localStorage automatically via nanostores/persistent
  * Also synced with cookies for GDPR compliance
  *
- * Note: 'functional' defaults to true as it covers strictly necessary storage
- * for site functionality (theme, UI state, error logging without PII, etc.)
- * Users can opt-out via cookie preferences if desired.
+ * Note: 'functional' defaults to false (opt-in model) as it stores personal data
+ * (Mastodon instance preferences which can identify users). Theme and social cache
+ * are now classified as 'necessary' and don't require consent.
  */
 export const $consent = persistentAtom<ConsentState>('cookieConsent', {
   necessary: true,
   analytics: false,
   marketing: false,
-  functional: true,
+  functional: false,
 }, {
   encode: JSON.stringify,
   decode: (value: string): ConsentState => {
@@ -49,7 +49,7 @@ export const $consent = persistentAtom<ConsentState>('cookieConsent', {
         necessary: true,
         analytics: false,
         marketing: false,
-        functional: true,
+        functional: false,
       }
     }
   },
@@ -101,7 +101,7 @@ export function initConsentFromCookies(): void {
       necessary: true,
       analytics: false,
       marketing: false,
-      functional: true,
+      functional: false,
     })
   }
 }

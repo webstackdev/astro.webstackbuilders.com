@@ -2,23 +2,55 @@
 
 ## Categories
 
-### 'necessary' - Infrastructure only, NO actual usage
+### 'necessary' - Essential site functionality, NO consent required
 
-- Always defaults to true and cannot be revoked
-- NOT tied to any localStorage items or features
-- Only used for consent tracking itself (the consent cookie system)
-- Loader comment: "Necessary scripts don't need consent - return a store that's always true"
-
-### 'functional' - Actively used for localStorage management
+**Always defaults to true and cannot be revoked**
 
 Used for storing:
 
-- Theme preference (theme localStorage key)
-- Mastodon instance data (mastodonInstances, mastodonCurrentInstance) - **GDPR RISK**
-- Social embed cache (cleared via clearEmbedCache())
-- Defaults to true (opt-out model)
+- **Theme preference** (theme localStorage key)
+- **Social embed cache** (oEmbed API responses)
+- Consent tracking itself (the consent cookie system)
 
-KEY ISSUE: Code comment states: "covers strictly necessary storage for site functionality" - this is conflating 'functional' with 'necessary'
+**Why these are 'necessary' and don't require consent:**
+
+#### Theme Preference
+
+- Purely cosmetic/accessibility preference
+- No tracking or personal identification
+- Doesn't collect behavioral data
+- No third-party data sharing
+- Similar to language preference (universally accepted as necessary)
+- Users expect UI preferences to persist
+- GDPR Recital 30: "not personal data" when used solely for technical delivery
+
+#### Social Embed Cache
+
+- Performance optimization for publicly available content
+- Stores only public oEmbed API responses (tweets, YouTube videos, etc.)
+- No user authentication tokens or session data
+- No browsing history or behavioral tracking
+- Content would load anyway - cache just reduces API calls
+- Improves user experience and reduces external requests
+- Contains no information about which user viewed which embed
+
+### 'functional' - Optional user preferences requiring opt-in
+
+**Defaults to false (opt-in model)**
+
+Used for storing:
+
+- Mastodon instance data (mastodonInstances, mastodonCurrentInstance)
+
+**Why this requires consent:**
+
+- Reveals user's Mastodon instance (can identify where user has account)
+- Behavioral tracking (records which instances user interacts with)
+- Creates persistent profile of social media preferences
+- May reveal username indirectly on small/single-user instances
+- GDPR Article 4(1): This is personal data requiring explicit opt-in consent
+
+@TODO: How would we provide opt-in for Mastodon instances? Just the general cookie consent and customize banner and page, or should there be a special way to do it like the GDPR consent form on the social share page?
 
 ### 'analytics' - Infrastructure only, NO implementation
 
@@ -27,18 +59,20 @@ KEY ISSUE: Code comment states: "covers strictly necessary storage for site func
 - Defaults to false (opt-in model)
 - No actual analytics code exists - just empty stubs
 
-### 'advertising' - Infrastructure only, NO implementation
+### 'marketing' - Infrastructure only, NO implementation
 
-- Has store ($hasAdvertisingConsent)
-- Has cookie (consent_advertising)
+- Has store ($hasMarketingConsent)
+- Has cookie (consent_marketing)
 - Defaults to false (opt-in model)
-- No actual advertising code exists - just empty stubs
+- No actual marketing code exists - just empty stubs
 
-## Social embed cache
+## Social embed cache - MOVED TO 'necessary'
 
-1. Should be 'necessary' - The cache is purely a performance optimization for publicly available content that would load anyway
-2. No GDPR risk - It doesn't store any personal data about the site visitor
-3. Enhances user experience - Reduces API calls and speeds up page loads
+**No longer requires consent - classified as necessary for technical delivery**
+
+1. ✅ **No GDPR risk** - Stores only public data, no personal information
+2. ✅ **Performance optimization** - Reduces API calls and speeds up page loads
+3. ✅ **No behavioral tracking** - Doesn't track which user viewed which embed
 
 The social embed cache stores oEmbed API responses from third-party platforms. NO user account data is stored. The cache contains:
 
@@ -57,7 +91,7 @@ The social embed cache stores oEmbed API responses from third-party platforms. N
 - No user preferences or settings
 - No information about which user viewed which embed
 
-## Mastodon instance data - **GDPR VIOLATION**
+## Mastodon instance data - Requires opt-in consent
 
 **What it stores:**
 
@@ -74,20 +108,13 @@ The social embed cache stores oEmbed API responses from third-party platforms. N
 3. **Behavioral tracking** - Records which instances user interacts with
 4. **Persistent identifier** - Creates a profile of user's social media preferences
 
-### ❌ CURRENT ISSUES
+### ✅ IMPLEMENTED CHANGES FOR GDPR COMPLIANCE
 
-1. **Opt-out instead of opt-in** - Defaults to `functional: true`, violating GDPR Article 7
-2. **Wrong consent category** - Should be in 'functional' with opt-IN, not opt-OUT
-3. **Misleading consent** - Conflated with "necessary" which cannot require consent
-4. **No granular control** - Bundled with theme preference which IS necessary
-
-### ✅ REQUIRED CHANGES FOR GDPR COMPLIANCE
-
-1. **Keep in 'functional' category** (correctly categorized)
-2. **Change default to FALSE** - Must be opt-in, not opt-out
-3. **Separate from 'necessary' items** - Theme should be 'necessary', Mastodon should be 'functional'
-4. **Clear consent purpose** - User must understand they're storing social media instance data
-5. **Easy revocation** - Must be able to remove saved instances without losing other preferences
+1. ✅ **In 'functional' category** (correctly categorized)
+2. ✅ **Default is FALSE** - Opt-in model, not opt-out
+3. ✅ **Separated from 'necessary' items** - Theme and cache are 'necessary', Mastodon is 'functional'
+4. **TODO:** Clear consent purpose - User must understand they're storing social media instance data
+5. **TODO:** Easy revocation - Must be able to remove saved instances without losing other preferences
 
 ### Legal Justification
 
@@ -107,33 +134,30 @@ Therefore, it requires **explicit opt-in consent** under Article 7, not opt-out.
 
 The consent system currently gates **localStorage writes only**, not component functionality:
 
-#### 1. **Theme Preference** (`setTheme()`)
+#### 1. **Theme Preference** (`setTheme()`) - NO LONGER GATED
 
 ```typescript
 // src/components/scripts/store/themes.ts
-const hasFunctionalConsent = $consent.get().functional
-if (hasFunctionalConsent) {
-  // Only persist to localStorage if consent granted
-  localStorage.setItem('theme', themeId)
-}
-// BUT: Theme still applies even without consent - just not saved
+// CHANGED: Theme is now 'necessary' - always saved to localStorage
+localStorage.setItem('theme', themeId)
+// No consent check required
 ```
 
-#### 2. **Mastodon Instance Storage** (`saveMastodonInstance()`)
+#### 2. **Mastodon Instance Storage** (`saveMastodonInstance()`) - GATED BY FUNCTIONAL
 
 ```typescript
 // src/components/scripts/store/mastodonInstances.ts
 const hasFunctionalConsent = $consent.get().functional
 if (!hasFunctionalConsent) return  // Early exit - won't save instance
+// NOW DEFAULTS TO FALSE - user must opt-in
 ```
 
-#### 3. **Social Embed Cache** (`cacheEmbed()`, `getCachedEmbed()`)
+#### 3. **Social Embed Cache** (`cacheEmbed()`, `getCachedEmbed()`) - NO LONGER GATED
 
 ```typescript
 // src/components/scripts/store/socialEmbeds.ts
-const hasFunctionalConsent = $consent.get().functional
-if (!hasFunctionalConsent) return  // Won't cache embed data
-if (!hasFunctionalConsent) return null  // Won't retrieve cached data
+// CHANGED: Social embed cache is now 'necessary' - always cached
+// No consent check required
 ```
 
 ### Where Consent IS NOT Checked (Components Load Regardless)

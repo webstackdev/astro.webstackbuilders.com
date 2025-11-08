@@ -1,8 +1,15 @@
 /**
  * Social Embeds Cache State Management
+ *
+ * Classified as 'necessary' under GDPR:
+ * - Stores only public oEmbed API responses (tweets, YouTube videos, etc.)
+ * - No user authentication tokens or session data
+ * - No browsing history or behavioral tracking
+ * - Performance optimization that reduces external API calls
+ * - Contains no information about which user viewed which embed
+ * - GDPR Recital 30: Technical storage necessary for technical delivery
  */
 import { persistentAtom } from '@nanostores/persistent'
-import { $consent } from './consent'
 
 // ============================================================================
 // TYPES
@@ -25,7 +32,7 @@ export interface EmbedCacheState {
 /**
  * Social embed cache
  * Persisted to localStorage automatically via nanostores/persistent
- * Requires functional consent to use
+ * Classified as 'necessary' - no consent required
  */
 export const $embedCache = persistentAtom<EmbedCacheState>('socialEmbedCache', {}, {
   encode: JSON.stringify,
@@ -44,11 +51,9 @@ export const $embedCache = persistentAtom<EmbedCacheState>('socialEmbedCache', {
 
 /**
  * Add embed to cache
+ * Classified as 'necessary' - always caches, no consent check required
  */
 export function cacheEmbed(key: string, data: unknown, ttl: number): void {
-  const hasFunctionalConsent = $consent.get().functional
-  if (!hasFunctionalConsent) return
-
   const currentCache = $embedCache.get()
   $embedCache.set({
     ...currentCache,
@@ -62,11 +67,9 @@ export function cacheEmbed(key: string, data: unknown, ttl: number): void {
 
 /**
  * Get embed from cache (returns null if expired or missing)
+ * Classified as 'necessary' - always retrieves, no consent check required
  */
 export function getCachedEmbed(key: string): unknown | null {
-  const hasFunctionalConsent = $consent.get().functional
-  if (!hasFunctionalConsent) return null
-
   const entry = $embedCache.get()[key]
   if (!entry) return null
 
