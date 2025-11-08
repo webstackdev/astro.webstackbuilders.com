@@ -19,6 +19,17 @@ applyTo: "**"
 - Always create TypeScript files, not JavaScript files.
 - Prefer destructured imports over namespace imports when importing specific functions from modules (e.g., `import { resolve } from 'path'` instead of `import * as path from 'path'`).
 
+# Astro View Transitions Navigation
+
+Components may have behavior dependent on Astro View Transitions navigation events. Choose the appropriate navigation method:
+
+- **Fresh page load**: Use `page.goto(url)` for full browser navigation (no View Transitions, triggers full page lifecycle)
+- **Client-side navigation**: Use `navigateToPage('/path')` for in-site navigation with View Transitions (triggers `astro:page-load` and other View Transition events)
+
+Always use the `navigateToPage()` method for client-side navigation - never ad-hoc `click('a[href]')` calls. This maintains centralized control.
+
+# Personality
+
 # Testing Standards
 
 ## Astro Component Testing - Container API (MANDATORY)
@@ -52,6 +63,22 @@ applyTo: "**"
 - **Playwright E2E Tests**: ALWAYS run with `DEBUG=1` environment variable (e.g., `DEBUG=1 npx playwright test`). This prevents the Playwright test runner from launching its own dev server. The user maintains a running dev server for development.
 - **NEVER run the full e2e test suite** unless explicitly requested by the user. The full suite is very resource intensive and takes over 10 minutes to run. Only run specific e2e test files when verification is needed (e.g., `DEBUG=1 npx playwright test test/e2e/specific-file.spec.ts`).
 - **NEVER start a dev server yourself**. The user runs their own dev server for development. When you need a dev server running, notify the user instead of starting one.
+
+### Astro View Transitions Testing
+
+- **Navigation method matters**: Choose between `page.goto()` and Astro's client-side navigation based on what you're testing:
+  - Use `page.goto(url)` for testing **fresh page loads** (full browser navigation, no View Transitions)
+  - Use `page.click('a[href="/path"]')` or BasePage's `navigateToPage()` for testing **View Transitions** (client-side navigation within the site)
+- **Wait for page load properly**: Use BasePage's `waitForPageLoad()` method to wait for `astro:page-load` event instead of arbitrary timeouts
+- **NEVER use `page.waitForTimeout()`** for waiting on View Transitions - it's unreliable and slows tests. Use event-based waits instead
+- **transition:persist directive**: Must be applied directly to HTML elements (including custom elements), not on Astro component wrappers. Example:
+  ```astro
+  <!-- CORRECT: In component definition -->
+  <theme-picker transition:name="theme-picker-island" transition:persist>
+
+  <!-- WRONG: On component usage -->
+  <ThemePicker transition:name="theme-picker-island" transition:persist />
+  ```
 
 # Personality
 - Do not apologize
