@@ -19,7 +19,6 @@ describe('Mastodon Instance Management', () => {
   beforeEach(() => {
     // Reset stores to default state
     $consent.set({
-      necessary: true,
       analytics: false,
       marketing: false,
       functional: false,

@@ -27,7 +27,6 @@ describe('Cookie Consent Management', () => {
   beforeEach(() => {
     // Reset stores to default state
     $consent.set({
-      necessary: true,
       analytics: false,
       marketing: false,
       functional: false,
@@ -48,10 +47,9 @@ describe('Cookie Consent Management', () => {
     it('should initialize with default consent state', () => {
       const consent = $consent.get()
 
-      expect(consent.necessary).toBe(true)
       expect(consent.analytics).toBe(false)
       expect(consent.marketing).toBe(false)
-      expect(consent.functional).toBe(true) // Defaults to true for functional storage
+      expect(consent.functional).toBe(false) // Defaults to false (opt-in for Mastodon instance storage)
     })
 
     it('should initialize consent from cookies', () => {
@@ -98,14 +96,13 @@ describe('Cookie Consent Management', () => {
       allowAllConsent()
 
       const consent = $consent.get()
-      expect(consent.necessary).toBe(true)
       expect(consent.analytics).toBe(true)
       expect(consent.marketing).toBe(true)
       expect(consent.functional).toBe(true)
-      expect(setCookieSpy).toHaveBeenCalledTimes(4) // All 4 categories
+      expect(setCookieSpy).toHaveBeenCalledTimes(3) // 3 categories
     })
 
-    it('should revoke all non-necessary consent', () => {
+    it('should revoke all consent', () => {
       // First grant all
       allowAllConsent()
 
@@ -113,7 +110,6 @@ describe('Cookie Consent Management', () => {
       revokeAllConsent()
 
       const consent = $consent.get()
-      expect(consent.necessary).toBe(true) // Still true
       expect(consent.analytics).toBe(false)
       expect(consent.marketing).toBe(false)
       expect(consent.functional).toBe(false)

@@ -10,7 +10,6 @@ import { addButtonEventListeners } from '@components/scripts/elementListeners'
 import { updateConsent, $consent } from '@components/scripts/store'
 
 export interface CookiePreferences {
-  necessary: boolean
   analytics: boolean
   functional: boolean
   marketing: boolean
@@ -87,7 +86,6 @@ export class CookieCustomize {
     const consent = $consent.get()
 
     const preferences: CookiePreferences = {
-      necessary: consent.necessary,
       analytics: consent.analytics,
       functional: consent.functional,
       marketing: consent.marketing,
@@ -126,7 +124,6 @@ export class CookieCustomize {
 
   allowAll(): void {
     const preferences: CookiePreferences = {
-      necessary: true,
       analytics: true,
       functional: true,
       marketing: true,
@@ -153,7 +150,6 @@ export class CookieCustomize {
     const marketingCheckbox = document.getElementById('marketing-cookies') as HTMLInputElement
 
     return {
-      necessary: true, // Always true
       analytics: analyticsCheckbox ? analyticsCheckbox.checked : false,
       functional: functionalCheckbox ? functionalCheckbox.checked : false,
       marketing: marketingCheckbox ? marketingCheckbox.checked : false,

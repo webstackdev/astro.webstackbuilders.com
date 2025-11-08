@@ -296,12 +296,11 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     // Theme should be reset to default
     expect(theme).toBe('default')
 
-    // Consent should be reset with defaults (functional is now true by default for hybrid approach)
+    // Consent should be reset with defaults (functional defaults to false - opt-in for Mastodon)
     if (consent) {
       const consentObj = JSON.parse(consent)
-      expect(consentObj.necessary).toBe(true)
       expect(consentObj.analytics).toBe(false)
-      expect(consentObj.functional).toBe(true)
+      expect(consentObj.functional).toBe(false)
     }
   })
 })

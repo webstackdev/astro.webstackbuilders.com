@@ -204,7 +204,6 @@ describe('CookieCustomize', () => {
       it('should load preferences from state store', () => {
         // Set consent in state store
         $consent.set({
-          necessary: true,
           analytics: true,
           functional: false,
           marketing: true,
@@ -213,7 +212,6 @@ describe('CookieCustomize', () => {
         const result = instance.loadPreferences()
 
         expect(result).toMatchObject({
-          necessary: true,
           analytics: true,
           functional: false,
           marketing: true,
@@ -225,10 +223,9 @@ describe('CookieCustomize', () => {
         const result = instance.loadPreferences()
 
         expect(result).toMatchObject({
-          necessary: true,
           analytics: expect.any(Boolean),
           functional: expect.any(Boolean),
-          advertising: expect.any(Boolean),
+          marketing: expect.any(Boolean),
         })
       })
     })

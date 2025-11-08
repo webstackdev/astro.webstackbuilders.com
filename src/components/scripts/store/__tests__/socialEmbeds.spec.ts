@@ -1,10 +1,17 @@
 // @vitest-environment happy-dom
 /**
  * Unit tests for social embeds cache state management
+ *
+ * Social embed caching is classified as 'necessary' under GDPR:
+ * - Caches only public oEmbed API responses
+ * - No user authentication tokens
+ * - Performance optimization that improves user experience
+ * - Contains no information about which user viewed which embed
+ *
+ * No consent check required - always caches and retrieves.
  */
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { cacheEmbed, getCachedEmbed } from '@components/scripts/store/socialEmbeds'
-import { $consent, updateConsent } from '@components/scripts/store/consent'
 
 // Mock js-cookie
 vi.mock('js-cookie', () => ({
@@ -17,14 +24,6 @@ vi.mock('js-cookie', () => ({
 
 describe('Embed Cache Management', () => {
   beforeEach(() => {
-    // Reset stores to default state
-    $consent.set({
-      necessary: true,
-      analytics: false,
-      marketing: false,
-      functional: false,
-    })
-
     // Clear mocks
     vi.clearAllMocks()
 
@@ -36,9 +35,7 @@ describe('Embed Cache Management', () => {
     vi.clearAllMocks()
   })
 
-  it('should cache embed when functional consent is granted', () => {
-    updateConsent('functional', true)
-
+  it('should cache embed without consent check', () => {
     const mockData = { html: '<iframe>...</iframe>' }
     cacheEmbed('twitter_123', mockData, 3600000)
 
@@ -46,19 +43,15 @@ describe('Embed Cache Management', () => {
     expect(cached).toEqual(mockData)
   })
 
-  it('should not cache embed when functional consent is denied', () => {
-    updateConsent('functional', false)
-
-    const mockData = { html: '<iframe>...</iframe>' }
+  it('should retrieve cached embed data', () => {
+    const mockData = { html: '<iframe>...</iframe>', providerName: 'Twitter' }
     cacheEmbed('twitter_123', mockData, 3600000)
 
     const cached = getCachedEmbed('twitter_123')
-    expect(cached).toBeNull()
+    expect(cached).toEqual(mockData)
   })
 
   it('should return null for expired cache entries', () => {
-    updateConsent('functional', true)
-
     const mockData = { html: '<iframe>...</iframe>' }
     const ttl = -1000 // Already expired (negative TTL)
 
@@ -68,16 +61,30 @@ describe('Embed Cache Management', () => {
     expect(cached).toBeNull()
   })
 
-  it('should return null when no consent', () => {
-    updateConsent('functional', true)
+  it('should return null for non-existent cache keys', () => {
+    const cached = getCachedEmbed('non_existent_key')
+    expect(cached).toBeNull()
+  })
 
-    const mockData = { html: '<iframe>...</iframe>' }
-    cacheEmbed('twitter_123', mockData, 3600000)
+  it('should cache multiple embeds independently', () => {
+    const twitterData = { html: '<iframe src="twitter">...</iframe>' }
+    const youtubeData = { html: '<iframe src="youtube">...</iframe>' }
 
-    // Revoke consent
-    updateConsent('functional', false)
+    cacheEmbed('twitter_123', twitterData, 3600000)
+    cacheEmbed('youtube_456', youtubeData, 3600000)
+
+    expect(getCachedEmbed('twitter_123')).toEqual(twitterData)
+    expect(getCachedEmbed('youtube_456')).toEqual(youtubeData)
+  })
+
+  it('should overwrite existing cache entry with same key', () => {
+    const originalData = { html: '<iframe>original</iframe>' }
+    const updatedData = { html: '<iframe>updated</iframe>' }
+
+    cacheEmbed('twitter_123', originalData, 3600000)
+    cacheEmbed('twitter_123', updatedData, 3600000)
 
     const cached = getCachedEmbed('twitter_123')
-    expect(cached).toBeNull()
+    expect(cached).toEqual(updatedData)
   })
 })

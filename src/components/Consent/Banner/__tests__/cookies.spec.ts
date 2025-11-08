@@ -15,43 +15,41 @@ describe(`Consent cookies handlers work`, () => {
   commonSetup()
 
   const setAllConsentCookies = () => {
-    document.cookie = `consent_necessary=true;Max-Age=30;SameSite=Strict;`
     document.cookie = `consent_analytics=true;Max-Age=30;SameSite=Strict;`
     document.cookie = `consent_marketing=true;Max-Age=30;SameSite=Strict;`
     document.cookie = `consent_functional=true;Max-Age=30;SameSite=Strict;`
   }
 
   test(`prefixes short form of consent cookie name with 'consent_'`, () => {
-    const sut = prefixConsentCookie(`necessary`)
-    expect(sut).toMatch(`consent_necessary`)
+    const sut = prefixConsentCookie(`analytics`)
+    expect(sut).toMatch(`consent_analytics`)
   })
 
-  test(`sets 'necessary' cookie key using state management`, () => {
-    setConsentCookie(`necessary`, `granted`)
+  test(`sets 'analytics' cookie key using state management`, () => {
     setConsentCookie(`analytics`, `granted`)
+    setConsentCookie(`marketing`, `granted`)
     // State management stores 'true' for granted
-    expect(document.cookie).toMatch(`consent_necessary=true`)
     expect(document.cookie).toMatch(`consent_analytics=true`)
+    expect(document.cookie).toMatch(`consent_marketing=true`)
   })
 
   test(`gets cookie by key`, () => {
-    document.cookie = `consent_necessary=true;Max-Age=30;SameSite=Strict;`
-    expect(getConsentCookie(`necessary`)).toMatch(`true`)
+    document.cookie = `consent_analytics=true;Max-Age=30;SameSite=Strict;`
+    expect(getConsentCookie(`analytics`)).toMatch(`true`)
   })
 
   test(`initializes consent cookies and returns true if not already set`, () => {
     // With commonSetup, we have clean state - no cookies exist
-    const necessaryCookie = getConsentCookie('necessary')
+    const analyticsCookie = getConsentCookie('analytics')
 
     // After getConsentCookie, cookies should be initialized
-    // necessary=true (always required)
-    expect(necessaryCookie).toBe('true')
-    expect(document.cookie).toMatch(`consent_necessary=true`)
+    // All consent defaults to false (opt-in model)
+    expect(analyticsCookie).toBe('false')
+    expect(document.cookie).toMatch(`consent_analytics=false`)
 
-    // Note: The current implementation may not set all cookies to document.cookie immediately
-    // They might only be in the state store. Let's verify what we can.
-    const analyticsValue = getCookie('consent_analytics')
-    expect(analyticsValue).toBeTruthy() // Should exist, even if false
+    // Verify other cookies are also initialized
+    const marketingValue = getCookie('consent_marketing')
+    expect(marketingValue).toBeTruthy() // Should exist, even if false
   })
 
   test(`initializer bails with false if consent cookies already set`, () => {
@@ -59,7 +57,7 @@ describe(`Consent cookies handlers work`, () => {
     expect(document.cookie).toBeTruthy()
     const sut = initConsentCookies()
     expect(sut).toBeFalsy()
-    expect(document.cookie).toMatch(`consent_necessary=true`)
+    expect(document.cookie).toMatch(`consent_analytics=true`)
   })
 
   test(`removes all consent cookies completely`, () => {

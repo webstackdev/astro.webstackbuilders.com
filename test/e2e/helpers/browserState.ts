@@ -22,7 +22,6 @@ export async function clearConsentCookies(
 
   // Filter out consent cookies
   const consentCookieNames = [
-    'consent_necessary',
     'consent_analytics',
     'consent_marketing',
     'consent_functional',

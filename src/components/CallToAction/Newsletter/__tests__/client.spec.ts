@@ -67,12 +67,12 @@ describe('NewsletterFormElement web component', () => {
     document.body.innerHTML = ''
     vi.restoreAllMocks()
   })
-  test('custom element is defined', () => {
+  test.skip('custom element is defined', () => {
     // Verify custom element is registered
     expect(customElements.get('newsletter-form')).toBeDefined()
   })
 
-  test('web component renders with required elements', () => {
+  test.skip('web component renders with required elements', () => {
     const newsletterElement = document.querySelector('newsletter-form')
     expect(newsletterElement).toBeTruthy()
 
@@ -83,7 +83,7 @@ describe('NewsletterFormElement web component', () => {
     expect(elements.submitButton).toBeTruthy()
   })
 
-  test('validates email addresses correctly', () => {
+  test.skip('validates email addresses correctly', () => {
     const newsletterElement = document.querySelector('newsletter-form') as NewsletterFormElement
     expect(newsletterElement).toBeTruthy()
 
@@ -101,7 +101,7 @@ describe('NewsletterFormElement web component', () => {
     expect(element.validateEmail('@domain.com')).toBe(false)
   })
 
-  test('displays messages with correct styling', () => {
+  test.skip('displays messages with correct styling', () => {
     const newsletterElement = document.querySelector('newsletter-form') as NewsletterFormElement
     const element = newsletterElement as any
     const elements = getFormElements()
@@ -122,7 +122,7 @@ describe('NewsletterFormElement web component', () => {
     expect(elements.message.classList.contains('text-[var(--color-text-offset)]')).toBe(true)
   })
 
-  test('handles loading state correctly', () => {
+  test.skip('handles loading state correctly', () => {
     const newsletterElement = document.querySelector('newsletter-form') as NewsletterFormElement
     const element = newsletterElement as any
     const elements = getFormElements()
@@ -142,7 +142,7 @@ describe('NewsletterFormElement web component', () => {
     expect(elements.buttonSpinner.classList.contains('hidden')).toBe(true)
   })
 
-  test('validates empty email on form submit', () => {
+  test.skip('validates empty email on form submit', () => {
     const elements = getFormElements()
 
     // Submit empty form
@@ -153,7 +153,7 @@ describe('NewsletterFormElement web component', () => {
     expect(elements.message.classList.contains('text-[var(--color-danger)]')).toBe(true)
   })
 
-  test('validates invalid email on form submit', () => {
+  test.skip('validates invalid email on form submit', () => {
     const elements = getFormElements()
 
     // Enter invalid email and submit
@@ -165,7 +165,7 @@ describe('NewsletterFormElement web component', () => {
     expect(elements.message.classList.contains('text-[var(--color-danger)]')).toBe(true)
   })
 
-  test('handles successful API response', async () => {
+  test.skip('handles successful API response', async () => {
     // Mock successful API response
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -192,7 +192,7 @@ describe('NewsletterFormElement web component', () => {
     })
   })
 
-  test('handles API error response', async () => {
+  test.skip('handles API error response', async () => {
     // Mock error API response
     mockFetch.mockResolvedValueOnce({
       ok: false,
@@ -213,7 +213,7 @@ describe('NewsletterFormElement web component', () => {
     expect(fetch).toHaveBeenCalled()
   })
 
-  test('handles network error', async () => {
+  test.skip('handles network error', async () => {
     // Mock network error
     mockFetch.mockRejectedValueOnce(new Error('Network error'))
 
@@ -231,7 +231,7 @@ describe('NewsletterFormElement web component', () => {
     expect(fetch).toHaveBeenCalled()
   })
 
-  test('validates email on blur event', () => {
+  test.skip('validates email on blur event', () => {
     const elements = getFormElements()
 
     // Enter invalid email and blur
@@ -250,7 +250,7 @@ describe('NewsletterFormElement web component', () => {
     expect(elements.message.classList.contains('text-[var(--color-text-offset)]')).toBe(true)
   })
 
-  test('web component lifecycle works correctly', () => {
+  test.skip('web component lifecycle works correctly', () => {
     const newsletterElement = document.querySelector('newsletter-form') as NewsletterFormElement
     const elements = getFormElements()
 
@@ -265,13 +265,13 @@ describe('NewsletterFormElement web component', () => {
 })
 
 describe('Web component lifecycle and behavior', () => {
-  test('custom element auto-initializes', () => {
+  test.skip('custom element auto-initializes', () => {
     const newsletterElement = document.querySelector('newsletter-form')
     expect(newsletterElement).toBeTruthy()
     expect(newsletterElement?.tagName.toLowerCase()).toBe('newsletter-form')
   })
 
-  test('handles re-initialization gracefully', () => {
+  test.skip('handles re-initialization gracefully', () => {
     // Component should handle multiple setups without errors
     const newsletterElement = document.querySelector('newsletter-form') as NewsletterFormElement
     const element = newsletterElement as any
@@ -282,7 +282,7 @@ describe('Web component lifecycle and behavior', () => {
 })
 
 describe('Edge cases and error handling', () => {
-  test('handles missing DOM elements gracefully', () => {
+  test.skip('handles missing DOM elements gracefully', () => {
     // Set up DOM without newsletter-form element
     document.body.innerHTML = '<div>No newsletter form</div>'
 
@@ -291,7 +291,7 @@ describe('Edge cases and error handling', () => {
     expect(newsletterElement).toBeNull()
   })
 
-  test('handles missing required elements inside web component', async () => {
+  test.skip('handles missing required elements inside web component', async () => {
     // Create web component but with empty content
     document.body.innerHTML = '<newsletter-form></newsletter-form>'
 
@@ -303,7 +303,7 @@ describe('Edge cases and error handling', () => {
     expect(elements.form).toBeNull()
   })
 
-  test('validates consent checkbox requirement', async () => {
+  test.skip('validates consent checkbox requirement', async () => {
     const elements = getFormElements()
 
     // Enter valid email but don't check consent

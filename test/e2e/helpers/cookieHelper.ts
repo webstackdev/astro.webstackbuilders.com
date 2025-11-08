@@ -8,63 +8,12 @@ import type { Page } from '@playwright/test'
  * Dismisses cookie consent modal if it's visible and ensures proper consent cookies are set
  * Enhanced for View Transitions compatibility
  */
-export async function dismissCookieModal(page: Page): Promise<void> {
-  // Always ensure proper consent cookies are set, regardless of modal state
+export async function setConsentCookies(page: Page): Promise<void> {
   await page.evaluate(() => {
-    // Set all consent cookies to true for testing
-    document.cookie = 'consent_necessary=true; path=/; max-age=31536000'
     document.cookie = 'consent_analytics=true; path=/; max-age=31536000'
     document.cookie = 'consent_marketing=true; path=/; max-age=31536000'
     document.cookie = 'consent_functional=true; path=/; max-age=31536000'
-
-    // Also clear any persistent state that might interfere
-    if (typeof localStorage !== 'undefined') {
-      localStorage.removeItem('cookieConsent')
-      localStorage.removeItem('gdprConsent')
-    }
   })
-
-  // Wait for DOM to be ready
-  await page.waitForLoadState('domcontentloaded')
-
-  const cookieModalVisible = await page.evaluate(() => {
-    const modal = document.getElementById('cookie-modal-id')
-    return modal ? window.getComputedStyle(modal).display !== 'none' : false
-  })
-
-  if (cookieModalVisible) {
-    try {
-      // Try multiple selector strategies
-      const allowButton = page.locator('.cookie-modal__btn-allow').first()
-      const altButton = page.locator('[data-consent-action="allow-all"]').first()
-
-      if (await allowButton.count() > 0) {
-        await allowButton.click()
-      } else if (await altButton.count() > 0) {
-        await altButton.click()
-      }
-
-      // Wait for modal to close and main content to be restored
-      await page.waitForFunction(() => {
-        const modal = document.getElementById('cookie-modal-id')
-        const main = document.getElementById('main-content')
-        return modal && window.getComputedStyle(modal).display === 'none' &&
-               main && !main.hasAttribute('inert')
-      }, { timeout: 10000 })
-    } catch {
-      // If clicking fails, try to force hide the modal
-      await page.evaluate(() => {
-        const modal = document.getElementById('cookie-modal-id')
-        if (modal) {
-          modal.style.display = 'none'
-        }
-        const main = document.getElementById('main-content')
-        if (main && main.hasAttribute('inert')) {
-          main.removeAttribute('inert')
-        }
-      })
-    }
-  }
 }
 
 /**

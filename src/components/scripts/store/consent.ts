@@ -10,11 +10,10 @@ import { handleScriptError } from '@components/scripts/errors'
 // TYPES
 // ============================================================================
 
-export type ConsentCategory = 'necessary' | 'analytics' | 'marketing' | 'functional'
+export type ConsentCategory = 'analytics' | 'marketing' | 'functional'
 export type ConsentValue = boolean
 
 export interface ConsentState {
-  necessary: ConsentValue
   analytics: ConsentValue
   marketing: ConsentValue
   functional: ConsentValue
@@ -32,10 +31,9 @@ export interface ConsentState {
  *
  * Note: 'functional' defaults to false (opt-in model) as it stores personal data
  * (Mastodon instance preferences which can identify users). Theme and social cache
- * are now classified as 'necessary' and don't require consent.
+ * are classified as 'necessary' and handled separately without requiring consent.
  */
 export const $consent = persistentAtom<ConsentState>('cookieConsent', {
-  necessary: true,
   analytics: false,
   marketing: false,
   functional: false,
@@ -46,7 +44,6 @@ export const $consent = persistentAtom<ConsentState>('cookieConsent', {
       return JSON.parse(value)
     } catch {
       return {
-        necessary: true,
         analytics: false,
         marketing: false,
         functional: false,
@@ -67,7 +64,7 @@ export const $hasFunctionalConsent = computed($consent, (consent) => consent.fun
 export const $hasMarketingConsent = computed($consent, (consent) => consent.marketing)
 
 /**
- * Check if any non-necessary consent is granted
+ * Check if any consent is granted
  */
 export const $hasAnyConsent = computed($consent, (consent) => {
   return consent.analytics || consent.functional || consent.marketing
@@ -84,7 +81,6 @@ export const $hasAnyConsent = computed($consent, (consent) => {
 export function initConsentFromCookies(): void {
   try {
     const consent: ConsentState = {
-      necessary: true, // Always true
       analytics: getCookie('consent_analytics') === 'true',
       marketing: getCookie('consent_marketing') === 'true',
       functional: getCookie('consent_functional') === 'true',
@@ -98,7 +94,6 @@ export function initConsentFromCookies(): void {
     })
     // Set safe defaults if cookie reading fails
     $consent.set({
-      necessary: true,
       analytics: false,
       marketing: false,
       functional: false,
@@ -137,12 +132,12 @@ export function updateConsent(category: ConsentCategory, value: ConsentValue): v
  * Grant all consent categories
  */
 export function allowAllConsent(): void {
-  const categories: ConsentCategory[] = ['necessary', 'analytics', 'marketing', 'functional']
+  const categories: ConsentCategory[] = ['analytics', 'marketing', 'functional']
   categories.forEach((category) => updateConsent(category, true))
 }
 
 /**
- * Revoke all non-necessary consent
+ * Revoke all consent
  */
 export function revokeAllConsent(): void {
   updateConsent('analytics', false)
