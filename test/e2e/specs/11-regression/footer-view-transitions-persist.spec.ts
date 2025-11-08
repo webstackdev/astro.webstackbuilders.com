@@ -233,8 +233,10 @@ describe('View Transitions - transition:persist on Web Components', () => {
       }
     })
 
-    // Navigate to a different page
-    await page.goto('/about')
+    // Navigate to a different page using Astro View Transitions
+    await page.navigateToPage('/articles')
+    await page.waitForURL('**/articles', { timeout: 5000 })
+    await page.waitForPageLoad()
 
     // Verify the element still has the same unique identifier
     const afterNavigationData = await page.evaluate(() => {

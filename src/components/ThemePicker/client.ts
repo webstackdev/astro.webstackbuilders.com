@@ -114,6 +114,11 @@ export class ThemePickerElement extends LitElement {
    * Lit automatically calls this when stores update via StoreController
    */
   override updated(): void {
+    // Guard: Don't update until component is initialized
+    if (!this.isInitialized) {
+      return
+    }
+
     const isOpen = this.themePickerOpenStore.value
     const currentTheme = this.themeStore.value
 

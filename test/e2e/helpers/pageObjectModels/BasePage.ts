@@ -231,9 +231,61 @@ export class BasePage {
 
   /**
    * Wait for specified timeout in milliseconds
+   * @deprecated Use event-based waits like waitForPageLoad() instead
    */
   async wait(timeout: number): Promise<void> {
     await this._page.waitForTimeout(timeout)
+  }
+
+  /**
+   * Wait for Astro page load event
+   * Use this instead of waitForTimeout when testing View Transitions
+   *
+   * @example
+   * ```ts
+   * await page.navigateToPage('/articles')
+   * await page.waitForPageLoad()
+   * ```
+   */
+  async waitForPageLoad(): Promise<void> {
+    await this._page.evaluate(() => {
+      return new Promise<void>(resolve => {
+        document.addEventListener('astro:page-load', () => {
+          resolve()
+        }, { once: true })
+      })
+    })
+  }
+
+  /**
+   * Navigate to a page using Astro View Transitions
+   * Clicks a link with the given href to trigger client-side navigation
+   *
+   * @param href - The href of the link to click (e.g., '/articles')
+   *
+   * @example
+   * ```ts
+   * await page.navigateToPage('/articles')
+   * await page.waitForPageLoad()
+   * ```
+   */
+  async navigateToPage(href: string): Promise<void> {
+    await this._page.click(`a[href="${href}"]`)
+  }
+
+  /**
+   * Wait for URL to change to match the expected pattern
+   *
+   * @param urlPattern - Glob pattern or regex to match against URL
+   * @param options - Timeout and other options
+   *
+   * @example
+   * ```ts
+   * await page.waitForURL('/articles')
+   * ```
+   */
+  async waitForURL(urlPattern: string | RegExp, options?: { timeout?: number }): Promise<void> {
+    await this._page.waitForURL(urlPattern, options)
   }
 
   /**

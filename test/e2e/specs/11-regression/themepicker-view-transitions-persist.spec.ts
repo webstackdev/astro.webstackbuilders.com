@@ -14,12 +14,17 @@
  */
 
 import { BasePage, test, describe, expect } from '@test/e2e/helpers'
+import { setupConsoleCapture, printCapturedMessages } from '@test/e2e/helpers/consoleCapture'
 
 describe('View Transitions - transition:persist on Web Components', () => {
   test('should persist ThemePicker web component identity across navigation', async ({
     page: playwrightPage,
   }) => {
     const page = new BasePage(playwrightPage)
+
+    // Capture all console output including nested group content
+    const consoleMessages = setupConsoleCapture(playwrightPage, true)
+
     await page.goto('/')
 
     // Set a unique identifier on the ThemePicker web component and store a custom property
@@ -47,8 +52,15 @@ describe('View Transitions - transition:persist on Web Components', () => {
       }
     })
 
-    // Navigate to a different page
-    await page.goto('/about')
+    // Navigate to a different page using Astro's View Transitions
+    // Click the Articles link in the main navigation to trigger client-side navigation
+    await page.navigateToPage('/articles')
+
+    // Wait for the View Transition to complete and URL to change
+    await page.waitForURL('**/articles', { timeout: 5000 })
+
+    // Wait for Astro page load event instead of arbitrary timeout
+    await page.waitForPageLoad()
 
     // Verify the element still has the same unique identifier
     const afterNavigationData = await page.evaluate(() => {
@@ -74,6 +86,9 @@ describe('View Transitions - transition:persist on Web Components', () => {
     expect(afterNavigationData.dataAttribute).toBe(initialData.uniqueId)
     expect(afterNavigationData.customProperty).toBe(initialData.uniqueId)
     expect(afterNavigationData.navigationCounter).toBe(0) // Should still be 0 if element persisted
+
+    // Output all captured console messages for analysis
+    printCapturedMessages(consoleMessages, 'ALL CAPTURED CONSOLE MESSAGES')
   })
 
   test.skip('should maintain custom properties across multiple navigations', async ({
@@ -184,8 +199,10 @@ describe('View Transitions - transition:persist on Web Components', () => {
       }
     })
 
-    // Navigate
-    await page.goto('/about')
+    // Navigate using View Transitions
+    await page.navigateToPage('/articles')
+    await page.waitForURL('**/articles', { timeout: 5000 })
+    await page.waitForPageLoad()
 
     // Check if the symbol property still exists (proves same object reference)
     const afterNav = await page.evaluate(() => {

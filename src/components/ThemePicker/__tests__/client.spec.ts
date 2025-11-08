@@ -12,19 +12,15 @@ describe('ThemePicker Component', () => {
   let html: string
 
   beforeEach(async () => {
-    // Suppress expected async errors from Lit component initialization
-    // The component tries to update DOM elements that don't exist in tests
-    const ignoreError = (err: unknown) => {
-      if (err instanceof TypeError && String(err).includes('Cannot read properties of undefined')) {
-        return // Suppress expected Lit component errors
-      }
-      throw err // Re-throw unexpected errors
-    }
-    process.on('unhandledRejection', ignoreError)
-
     container = await AstroContainer.create()
     html = await container.renderToString(ThemePickerFixture)
     document.body.innerHTML = html
+
+    // Wait for all async operations (including Lit component initialization) to complete
+    await (window as any).happyDOM.whenAsyncComplete()
+
+    // Additional tick to ensure event handlers are bound
+    await new Promise(resolve => setTimeout(resolve, 0))
   })
 
   afterEach(() => {
