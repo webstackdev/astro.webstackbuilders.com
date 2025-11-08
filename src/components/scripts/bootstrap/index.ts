@@ -34,8 +34,7 @@ export class AppBootstrap {
       addScriptBreadcrumb({ scriptName: 'AppBootstrap', operation: 'initConsentSideEffects' })
       initConsentSideEffects()
 
-      // 3. Initialize theme system (replaces old setInitialTheme + initThemeSideEffects)
-      // This synchronizes DOM, localStorage, and store state
+      // 3. Initialize theme system - synchronizes DOM, localStorage, and store state
       addScriptBreadcrumb({ scriptName: 'AppBootstrap', operation: 'initThemeSystem' })
       initThemeSystem()
 
