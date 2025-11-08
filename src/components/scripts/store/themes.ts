@@ -15,7 +15,7 @@ import { handleScriptError } from '@components/scripts/errors'
 // TYPES
 // ============================================================================
 
-export type ThemeId = 'light' | 'dark' | 'holiday'
+export type ThemeId = 'light' | 'dark' | 'holiday' | 'a11y'
 
 // ============================================================================
 // STORES
@@ -27,20 +27,12 @@ export type ThemeId = 'light' | 'dark' | 'holiday'
  * Classified as 'necessary' - no consent required
  */
 export const $theme = persistentAtom<ThemeId>('theme', 'light', {
-  encode: (value) => value,
-  decode: (value: string) => {
-    // Handle both JSON-stringified values (for backwards compatibility) and plain strings
-    if (value.startsWith('"') && value.endsWith('"')) {
-      try {
-        return JSON.parse(value)
-      } catch {
-        return 'light'
-      }
-    }
-    // Handle plain string values
-    const validThemes: ThemeId[] = ['light', 'dark', 'holiday']
-    return validThemes.includes(value as ThemeId) ? (value as ThemeId) : 'light'
-  },
+	encode: (value) => value,
+	decode: (value: string) => {
+		// Handle both JSON-stringified and plain strings
+		const validThemes: ThemeId[] = ['light', 'dark', 'holiday', 'a11y']
+		return validThemes.includes(value as ThemeId) ? (value as ThemeId) : 'light'
+	},
 })
 
 /**
