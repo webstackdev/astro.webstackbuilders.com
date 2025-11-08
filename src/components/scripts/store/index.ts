@@ -14,7 +14,7 @@ export {
   type ConsentState,
   type ConsentValue,
   $consent,
-  $hasAdvertisingConsent,
+  $hasMarketingConsent,
   $hasAnalyticsConsent,
   $hasAnyConsent,
   $hasFunctionalConsent,

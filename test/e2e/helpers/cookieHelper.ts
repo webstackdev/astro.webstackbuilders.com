@@ -14,7 +14,7 @@ export async function dismissCookieModal(page: Page): Promise<void> {
     // Set all consent cookies to true for testing
     document.cookie = 'consent_necessary=true; path=/; max-age=31536000'
     document.cookie = 'consent_analytics=true; path=/; max-age=31536000'
-    document.cookie = 'consent_advertising=true; path=/; max-age=31536000'
+    document.cookie = 'consent_marketing=true; path=/; max-age=31536000'
     document.cookie = 'consent_functional=true; path=/; max-age=31536000'
 
     // Also clear any persistent state that might interfere

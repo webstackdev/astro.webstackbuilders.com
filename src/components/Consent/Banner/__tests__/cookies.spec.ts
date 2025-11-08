@@ -17,7 +17,7 @@ describe(`Consent cookies handlers work`, () => {
   const setAllConsentCookies = () => {
     document.cookie = `consent_necessary=true;Max-Age=30;SameSite=Strict;`
     document.cookie = `consent_analytics=true;Max-Age=30;SameSite=Strict;`
-    document.cookie = `consent_advertising=true;Max-Age=30;SameSite=Strict;`
+    document.cookie = `consent_marketing=true;Max-Age=30;SameSite=Strict;`
     document.cookie = `consent_functional=true;Max-Age=30;SameSite=Strict;`
   }
 

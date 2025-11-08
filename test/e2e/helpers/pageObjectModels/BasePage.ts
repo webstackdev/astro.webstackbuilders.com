@@ -64,7 +64,7 @@ export class BasePage {
       await this._page.evaluate(() => {
         document.cookie = 'consent_necessary=true; path=/; max-age=31536000'
         document.cookie = 'consent_analytics=true; path=/; max-age=31536000'
-        document.cookie = 'consent_advertising=true; path=/; max-age=31536000'
+        document.cookie = 'consent_marketing=true; path=/; max-age=31536000'
         document.cookie = 'consent_functional=true; path=/; max-age=31536000'
 
         // Clear localStorage

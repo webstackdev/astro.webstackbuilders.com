@@ -21,7 +21,7 @@ describe('Mastodon Instance Management', () => {
     $consent.set({
       necessary: true,
       analytics: false,
-      advertising: false,
+      marketing: false,
       functional: false,
     })
     $mastodonInstances.set(new Set())

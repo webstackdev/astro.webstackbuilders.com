@@ -3,7 +3,6 @@
  */
 import { computed } from 'nanostores'
 import { persistentAtom } from '@nanostores/persistent'
-import type { ConsentState, ConsentCategory, ConsentValue } from './@types'
 import { getCookie, setCookie } from '@components/scripts/utils/cookies'
 import { handleScriptError } from '@components/scripts/errors'
 
@@ -11,13 +10,13 @@ import { handleScriptError } from '@components/scripts/errors'
 // TYPES
 // ============================================================================
 
-export type ConsentCategory = 'necessary' | 'analytics' | 'advertising' | 'functional'
+export type ConsentCategory = 'necessary' | 'analytics' | 'marketing' | 'functional'
 export type ConsentValue = boolean
 
 export interface ConsentState {
   necessary: ConsentValue
   analytics: ConsentValue
-  advertising: ConsentValue
+  marketing: ConsentValue
   functional: ConsentValue
   timestamp?: string
 }
@@ -38,7 +37,7 @@ export interface ConsentState {
 export const $consent = persistentAtom<ConsentState>('cookieConsent', {
   necessary: true,
   analytics: false,
-  advertising: false,
+  marketing: false,
   functional: true,
 }, {
   encode: JSON.stringify,
@@ -49,7 +48,7 @@ export const $consent = persistentAtom<ConsentState>('cookieConsent', {
       return {
         necessary: true,
         analytics: false,
-        advertising: false,
+        marketing: false,
         functional: true,
       }
     }
@@ -65,13 +64,13 @@ export const $consent = persistentAtom<ConsentState>('cookieConsent', {
  */
 export const $hasAnalyticsConsent = computed($consent, (consent) => consent.analytics)
 export const $hasFunctionalConsent = computed($consent, (consent) => consent.functional)
-export const $hasAdvertisingConsent = computed($consent, (consent) => consent.advertising)
+export const $hasMarketingConsent = computed($consent, (consent) => consent.marketing)
 
 /**
  * Check if any non-necessary consent is granted
  */
 export const $hasAnyConsent = computed($consent, (consent) => {
-  return consent.analytics || consent.functional || consent.advertising
+  return consent.analytics || consent.functional || consent.marketing
 })
 
 // ============================================================================
@@ -87,7 +86,7 @@ export function initConsentFromCookies(): void {
     const consent: ConsentState = {
       necessary: true, // Always true
       analytics: getCookie('consent_analytics') === 'true',
-      advertising: getCookie('consent_advertising') === 'true',
+      marketing: getCookie('consent_marketing') === 'true',
       functional: getCookie('consent_functional') === 'true',
     }
 
@@ -101,7 +100,7 @@ export function initConsentFromCookies(): void {
     $consent.set({
       necessary: true,
       analytics: false,
-      advertising: false,
+      marketing: false,
       functional: true,
     })
   }
@@ -138,7 +137,7 @@ export function updateConsent(category: ConsentCategory, value: ConsentValue): v
  * Grant all consent categories
  */
 export function allowAllConsent(): void {
-  const categories: ConsentCategory[] = ['necessary', 'analytics', 'advertising', 'functional']
+  const categories: ConsentCategory[] = ['necessary', 'analytics', 'marketing', 'functional']
   categories.forEach((category) => updateConsent(category, true))
 }
 
@@ -147,6 +146,6 @@ export function allowAllConsent(): void {
  */
 export function revokeAllConsent(): void {
   updateConsent('analytics', false)
-  updateConsent('advertising', false)
+  updateConsent('marketing', false)
   updateConsent('functional', false)
 }

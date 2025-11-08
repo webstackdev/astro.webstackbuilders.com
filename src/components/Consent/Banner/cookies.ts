@@ -11,13 +11,13 @@ type Preference = `granted` | `refused` | `unknown`
 interface Consent {
   necessary: Preference
   analytics: Preference
-  advertising: Preference
+  marketing: Preference
   functional: Preference
 }
 
 type Categories = keyof Consent
 
-export const consentCookies: Categories[] = [`necessary`, `analytics`, `advertising`, `functional`]
+export const consentCookies: Categories[] = [`necessary`, `analytics`, `marketing`, `functional`]
 
 export const prefixConsentCookie = (name: string) => {
   return `consent_${name}`
@@ -35,7 +35,7 @@ export const getConsentCookie = (name: Categories) => {
  */
 export const setConsentCookie = (name: Categories, preference: Preference = `granted`) => {
   const granted = preference === 'granted'
-  updateConsent(name as 'necessary' | 'analytics' | 'advertising' | 'functional', granted)
+  updateConsent(name as 'necessary' | 'analytics' | 'marketing' | 'functional', granted)
 }
 
 /**
@@ -47,7 +47,7 @@ export const initConsentCookies = () => {
   if (!necessary) {
     // Set tracking consent to false (user hasn't opted in yet)
     updateConsent('analytics', false)
-    updateConsent('advertising', false)
+    updateConsent('marketing', false)
     // Functional consent defaults to true (hybrid approach - user can opt out)
     updateConsent('functional', true)
     updateConsent('necessary', true)
@@ -62,7 +62,7 @@ export const initConsentCookies = () => {
 export const allowAllConsentCookies = () => {
   // Grant all consent using state management
   consentCookies.forEach(name => {
-    updateConsent(name as 'necessary' | 'analytics' | 'advertising' | 'functional', true)
+    updateConsent(name as 'necessary' | 'analytics' | 'marketing' | 'functional', true)
   })
 }
 

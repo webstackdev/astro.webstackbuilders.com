@@ -2,7 +2,7 @@
 import { handleScriptError } from '@components/scripts/errors'
 import {
   $isConsentBannerVisible,
-  $hasAdvertisingConsent,
+  $hasMarketingConsent,
   $hasAnalyticsConsent,
   $hasFunctionalConsent,
 } from '@components/scripts/store'
@@ -63,18 +63,18 @@ export function initConsentSideEffects(): void {
     }
   })
 
-  // Side Effect 4: Handle advertising consent changes for scripts
-  $hasAdvertisingConsent.subscribe((hasConsent) => {
+  // Side Effect 4: Handle marketing consent changes for scripts
+  $hasMarketingConsent.subscribe((hasConsent) => {
     try {
       window.dispatchEvent(
         new CustomEvent('consent-changed', {
-          detail: { category: 'advertising', granted: hasConsent },
+          detail: { category: 'marketing', granted: hasConsent },
         })
       )
     } catch (error) {
       handleScriptError(error, {
         scriptName: 'cookieConsent',
-        operation: 'advertisingConsentEvent',
+        operation: 'marketingConsentEvent',
       })
     }
   })

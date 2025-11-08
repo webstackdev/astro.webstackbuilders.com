@@ -13,7 +13,7 @@ export interface CookiePreferences {
   necessary: boolean
   analytics: boolean
   functional: boolean
-  advertising: boolean
+  marketing: boolean
   timestamp: string
 }
 
@@ -90,7 +90,7 @@ export class CookieCustomize {
       necessary: consent.necessary,
       analytics: consent.analytics,
       functional: consent.functional,
-      advertising: consent.advertising,
+      marketing: consent.marketing,
       timestamp: new Date().toISOString(),
     }
 
@@ -103,11 +103,11 @@ export class CookieCustomize {
   private updateCheckboxes(preferences: CookiePreferences): void {
     const analyticsCheckbox = document.getElementById('analytics-cookies') as HTMLInputElement
     const functionalCheckbox = document.getElementById('functional-cookies') as HTMLInputElement
-    const advertisingCheckbox = document.getElementById('advertising-cookies') as HTMLInputElement
+    const marketingCheckbox = document.getElementById('marketing-cookies') as HTMLInputElement
 
     if (analyticsCheckbox) analyticsCheckbox.checked = preferences.analytics || false
     if (functionalCheckbox) functionalCheckbox.checked = preferences.functional || false
-    if (advertisingCheckbox) advertisingCheckbox.checked = preferences.advertising || false
+    if (marketingCheckbox) marketingCheckbox.checked = preferences.marketing || false
   }
 
   savePreferences(): void {
@@ -116,7 +116,7 @@ export class CookieCustomize {
     // Update state store - automatically updates cookies
     updateConsent('analytics', preferences.analytics)
     updateConsent('functional', preferences.functional)
-    updateConsent('advertising', preferences.advertising)
+    updateConsent('marketing', preferences.marketing)
 
     this.applyPreferences(preferences)
 
@@ -129,7 +129,7 @@ export class CookieCustomize {
       necessary: true,
       analytics: true,
       functional: true,
-      advertising: true,
+      marketing: true,
       timestamp: new Date().toISOString(),
     }
 
@@ -139,7 +139,7 @@ export class CookieCustomize {
     // Update state store - automatically updates cookies
     updateConsent('analytics', true)
     updateConsent('functional', true)
-    updateConsent('advertising', true)
+    updateConsent('marketing', true)
 
     this.applyPreferences(preferences)
 
@@ -150,20 +150,20 @@ export class CookieCustomize {
   private getCurrentPreferences(): CookiePreferences {
     const analyticsCheckbox = document.getElementById('analytics-cookies') as HTMLInputElement
     const functionalCheckbox = document.getElementById('functional-cookies') as HTMLInputElement
-    const advertisingCheckbox = document.getElementById('advertising-cookies') as HTMLInputElement
+    const marketingCheckbox = document.getElementById('marketing-cookies') as HTMLInputElement
 
     return {
       necessary: true, // Always true
       analytics: analyticsCheckbox ? analyticsCheckbox.checked : false,
       functional: functionalCheckbox ? functionalCheckbox.checked : false,
-      advertising: advertisingCheckbox ? advertisingCheckbox.checked : false,
+      marketing: marketingCheckbox ? marketingCheckbox.checked : false,
       timestamp: new Date().toISOString(),
     }
   }
 
   applyPreferences(preferences: CookiePreferences): void {
     // Apply the cookie preferences to actual cookie management
-    // This would integrate with your analytics, functional, and advertising scripts
+    // This would integrate with your analytics, functional, and marketing scripts
 
     if (preferences.analytics) {
       this.enableAnalytics()
@@ -177,10 +177,10 @@ export class CookieCustomize {
       this.disableFunctional()
     }
 
-    if (preferences.advertising) {
-      this.enableAdvertising()
+    if (preferences.marketing) {
+      this.enableMarketing()
     } else {
-      this.disableAdvertising()
+      this.disableMarketing()
     }
   }
 
@@ -205,14 +205,14 @@ export class CookieCustomize {
     // Implement functional cookie disabling logic
   }
 
-  private enableAdvertising(): void {
-    // Implement advertising cookie enabling logic
-    // Example: Load advertising tracking scripts
+  private enableMarketing(): void {
+    // Implement marketing cookie enabling logic
+    // Example: Load marketing tracking scripts
   }
 
-  private disableAdvertising(): void {
-    // Implement advertising cookie disabling logic
-    // Example: Clear advertising cookies
+  private disableMarketing(): void {
+    // Implement marketing cookie disabling logic
+    // Example: Clear marketing cookies
   }
 
   showNotification(message: string): void {

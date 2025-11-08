@@ -21,7 +21,7 @@ describe('Embed Cache Management', () => {
     $consent.set({
       necessary: true,
       analytics: false,
-      advertising: false,
+      marketing: false,
       functional: false,
     })
 

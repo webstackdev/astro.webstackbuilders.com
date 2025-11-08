@@ -29,7 +29,7 @@ describe('Cookie Consent Management', () => {
     $consent.set({
       necessary: true,
       analytics: false,
-      advertising: false,
+      marketing: false,
       functional: false,
     })
 
@@ -50,7 +50,7 @@ describe('Cookie Consent Management', () => {
 
       expect(consent.necessary).toBe(true)
       expect(consent.analytics).toBe(false)
-      expect(consent.advertising).toBe(false)
+      expect(consent.marketing).toBe(false)
       expect(consent.functional).toBe(true) // Defaults to true for functional storage
     })
 
@@ -67,7 +67,7 @@ describe('Cookie Consent Management', () => {
       const consent = $consent.get()
       expect(consent.analytics).toBe(true)
       expect(consent.functional).toBe(true)
-      expect(consent.advertising).toBe(false)
+      expect(consent.marketing).toBe(false)
     })
 
     it('should update consent and set cookie', () => {
@@ -100,7 +100,7 @@ describe('Cookie Consent Management', () => {
       const consent = $consent.get()
       expect(consent.necessary).toBe(true)
       expect(consent.analytics).toBe(true)
-      expect(consent.advertising).toBe(true)
+      expect(consent.marketing).toBe(true)
       expect(consent.functional).toBe(true)
       expect(setCookieSpy).toHaveBeenCalledTimes(4) // All 4 categories
     })
@@ -115,7 +115,7 @@ describe('Cookie Consent Management', () => {
       const consent = $consent.get()
       expect(consent.necessary).toBe(true) // Still true
       expect(consent.analytics).toBe(false)
-      expect(consent.advertising).toBe(false)
+      expect(consent.marketing).toBe(false)
       expect(consent.functional).toBe(false)
     })
   })

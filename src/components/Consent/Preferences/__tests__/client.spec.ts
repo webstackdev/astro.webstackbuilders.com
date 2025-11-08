@@ -145,26 +145,26 @@ describe('CookieCustomize', () => {
         functionalCheckbox.id = 'functional-cookies'
         functionalCheckbox.checked = false
 
-        const advertisingCheckbox = document.createElement('input')
-        advertisingCheckbox.type = 'checkbox'
-        advertisingCheckbox.id = 'advertising-cookies'
-        advertisingCheckbox.checked = true
+        const marketingCheckbox = document.createElement('input')
+        marketingCheckbox.type = 'checkbox'
+        marketingCheckbox.id = 'marketing-cookies'
+        marketingCheckbox.checked = true
 
         // Add to document
         document.body.appendChild(analyticsCheckbox)
         document.body.appendChild(functionalCheckbox)
-        document.body.appendChild(advertisingCheckbox)
+        document.body.appendChild(marketingCheckbox)
 
         instance.savePreferences()
 
         // Check that consent was updated in state store (which updates cookies automatically)
         expect(document.cookie).toContain('consent_analytics=true')
-        expect(document.cookie).toContain('consent_advertising=true')
+        expect(document.cookie).toContain('consent_marketing=true')
 
         // Cleanup
         document.body.removeChild(analyticsCheckbox)
         document.body.removeChild(functionalCheckbox)
-        document.body.removeChild(advertisingCheckbox)
+        document.body.removeChild(marketingCheckbox)
       })
 
       it('should enable all cookies when allowAll is called', () => {
@@ -179,26 +179,26 @@ describe('CookieCustomize', () => {
         functionalCheckbox.id = 'functional-cookies'
         functionalCheckbox.checked = false
 
-        const advertisingCheckbox = document.createElement('input')
-        advertisingCheckbox.type = 'checkbox'
-        advertisingCheckbox.id = 'advertising-cookies'
-        advertisingCheckbox.checked = false
+        const marketingCheckbox = document.createElement('input')
+        marketingCheckbox.type = 'checkbox'
+        marketingCheckbox.id = 'marketing-cookies'
+        marketingCheckbox.checked = false
 
         // Add to document
         document.body.appendChild(analyticsCheckbox)
         document.body.appendChild(functionalCheckbox)
-        document.body.appendChild(advertisingCheckbox)
+        document.body.appendChild(marketingCheckbox)
 
         instance.allowAll()
 
         expect(analyticsCheckbox.checked).toBe(true)
         expect(functionalCheckbox.checked).toBe(true)
-        expect(advertisingCheckbox.checked).toBe(true)
+        expect(marketingCheckbox.checked).toBe(true)
 
         // Cleanup
         document.body.removeChild(analyticsCheckbox)
         document.body.removeChild(functionalCheckbox)
-        document.body.removeChild(advertisingCheckbox)
+        document.body.removeChild(marketingCheckbox)
       })
 
       it('should load preferences from state store', () => {
@@ -207,7 +207,7 @@ describe('CookieCustomize', () => {
           necessary: true,
           analytics: true,
           functional: false,
-          advertising: true,
+          marketing: true,
         })
 
         const result = instance.loadPreferences()
@@ -216,7 +216,7 @@ describe('CookieCustomize', () => {
           necessary: true,
           analytics: true,
           functional: false,
-          advertising: true,
+          marketing: true,
         })
       })
 
