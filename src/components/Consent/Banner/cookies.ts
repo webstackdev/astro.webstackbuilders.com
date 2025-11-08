@@ -4,25 +4,17 @@
  * Now uses centralized state store from lib/state
  */
 import { getCookie, removeCookie } from '@components/scripts/utils/cookies'
-import { updateConsent } from '@components/scripts/store'
+import { updateConsent, type ConsentCategories } from '@components/scripts/store'
 
 type Preference = `granted` | `refused` | `unknown`
 
-interface Consent {
-  analytics: Preference
-  marketing: Preference
-  functional: Preference
-}
-
-type Categories = keyof Consent
-
-export const consentCookies: Categories[] = [`analytics`, `marketing`, `functional`]
+export const consentCookies: ConsentCategories[] = [`analytics`, `marketing`, `functional`]
 
 export const prefixConsentCookie = (name: string) => {
   return `consent_${name}`
 }
 
-export const getConsentCookie = (name: Categories) => {
+export const getConsentCookie = (name: ConsentCategories) => {
   const analytics = getCookie(`consent_analytics`)
   if (!analytics) initConsentCookies()
   return getCookie(prefixConsentCookie(name))
@@ -32,7 +24,7 @@ export const getConsentCookie = (name: Categories) => {
  * Set consent cookie using centralized state management
  * This updates both the store and the cookie automatically
  */
-export const setConsentCookie = (name: Categories, preference: Preference = `granted`) => {
+export const setConsentCookie = (name: ConsentCategories, preference: Preference = `granted`) => {
   const granted = preference === 'granted'
   updateConsent(name as 'analytics' | 'marketing' | 'functional', granted)
 }

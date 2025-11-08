@@ -11,13 +11,13 @@ import { handleScriptError } from '@components/scripts/errors'
 // ============================================================================
 
 export type ConsentCategory = 'analytics' | 'marketing' | 'functional'
+export type ConsentCategories = ConsentCategory
 export type ConsentValue = boolean
 
 export interface ConsentState {
   analytics: ConsentValue
   marketing: ConsentValue
   functional: ConsentValue
-  timestamp?: string
 }
 
 // ============================================================================
@@ -114,7 +114,6 @@ export function updateConsent(category: ConsentCategory, value: ConsentValue): v
     $consent.set({
       ...currentConsent,
       [category]: value,
-      timestamp: new Date().toISOString(),
     })
 
     // Update cookie

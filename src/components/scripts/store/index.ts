@@ -11,6 +11,7 @@ export type {
 // Re-export cookie consent
 export {
   type ConsentCategory,
+  type ConsentCategories,
   type ConsentState,
   type ConsentValue,
   $consent,

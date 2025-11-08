@@ -13,7 +13,6 @@ export interface CookiePreferences {
   analytics: boolean
   functional: boolean
   marketing: boolean
-  timestamp: string
 }
 
 /**
@@ -89,7 +88,6 @@ export class CookieCustomize {
       analytics: consent.analytics,
       functional: consent.functional,
       marketing: consent.marketing,
-      timestamp: new Date().toISOString(),
     }
 
     // Update checkboxes to match current state
@@ -127,7 +125,6 @@ export class CookieCustomize {
       analytics: true,
       functional: true,
       marketing: true,
-      timestamp: new Date().toISOString(),
     }
 
     // Update checkboxes
@@ -153,7 +150,6 @@ export class CookieCustomize {
       analytics: analyticsCheckbox ? analyticsCheckbox.checked : false,
       functional: functionalCheckbox ? functionalCheckbox.checked : false,
       marketing: marketingCheckbox ? marketingCheckbox.checked : false,
-      timestamp: new Date().toISOString(),
     }
   }
 
