@@ -3,7 +3,7 @@
  *
  * Handles validation and state management for GDPR consent checkboxes in forms
  */
-import { recordFormConsent, clearFormConsent, type ConsentPurpose } from './state'
+import { recordFormConsent, clearFormConsent } from './state'
 import { getConsentCheckbox, getConsentError } from './selectors'
 import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
 import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
@@ -12,12 +12,12 @@ import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/erro
  * Initialize GDPR consent checkbox
  *
  * @param checkboxId - ID of the consent checkbox element
- * @param purposes - Data processing purposes
+ * @param purpose - Data processing purpose
  * @param formId - Optional form identifier
  */
 export function initGDPRConsent(
   checkboxId: string,
-  purposes: ConsentPurpose[],
+  purpose: string,
   formId?: string
 ): void {
   const context = { scriptName: 'GDPRConsent', operation: 'init' }
@@ -43,7 +43,7 @@ export function initGDPRConsent(
       addScriptBreadcrumb(changeContext)
       try {
         if (checkbox.checked) {
-          recordFormConsent(purposes, formId)
+          recordFormConsent(purpose, formId)
           clearError(errorElement)
         } else {
           clearFormConsent()
