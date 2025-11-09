@@ -55,7 +55,7 @@ export async function recordConsent(data: {
     source: data.source,
     userAgent: data.userAgent,
     ...(data.ipAddress && { ipAddress: data.ipAddress }),
-    privacyPolicyVersion: '2025-10-20', // Update when privacy policy changes
+    privacyPolicyVersion: import.meta.env['PUBLIC_PRIVACY_POLICY_VERSION'] || '2025-11-09', // Fallback to current date
     ...(data.consentText && { consentText: data.consentText }),
     ...(data.verified !== undefined && { verified: data.verified }),
   }

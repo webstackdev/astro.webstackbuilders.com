@@ -15,8 +15,9 @@ import {
   serviceWorkerConfig,
   vercelConfig,
 } from './src/lib/config'
-import { callToActionValidator } from './src/integrations/CtaValidator/call-to-action-validator'
-import { serializeSitemapItem, writePagesJson } from './src/lib/config/sitemap-serialize'
+import { callToActionValidator } from './src/integrations/CtaValidator'
+import { privacyPolicyVersion } from './src/integrations/PrivacyPolicyVersion'
+import { serializeSitemapItem, writePagesJson } from './src/lib/config/sitemapSerialize'
 
 // Type guard for required environment variables (only in Vercel)
 const IS_VERCEL = process.env['VERCEL']
@@ -36,10 +37,14 @@ export default defineConfig({
     icon(),
     mdx(markdownConfig),
     preact({ devtools: true }),
+    /** Verify number of call to actions included in Markdown files */
     callToActionValidator({
-      debug: true // Enable debug logging to see validation details
+      /** Enable debug logging to see validation details */
+      debug: true
     }),
-    // Only include Sentry integration in Vercel environments
+    /** Inject privacy policy version from git commit date for GDPR record keeping */
+    privacyPolicyVersion(),
+    /** Only include Sentry integration in Vercel environments */
     ...(IS_VERCEL ? [sentry({
       project: "webstack-builders-corporate-website",
       org: "webstack-builders",
@@ -49,7 +54,10 @@ export default defineConfig({
       lastmod: new Date(),
       serialize: serializeSitemapItem,
     }),
-    // Custom integration to write pages.json after build
+    /**
+     * Custom integration to write pages.json after build. It's a list
+     * of all pages in the site for use by the E2E test harness.
+     */
     {
       name: 'pages-json-writer',
       hooks: {
@@ -58,21 +66,27 @@ export default defineConfig({
         },
       },
     },
-    // Debugging tools for Astro View Transition API
+    /** Debugging tools for Astro View Transition API */
     vtbot(),
   ],
-  output: 'static', // Most pages are static; API routes will be marked for SSR
+  /** API routes are marked in their files for SSR */
+  output: 'static',
   prefetch: true,
-  site: getSiteUrl(), // Change URL between development and production environments
+  /** Change URL between development and production environments */
+  site: getSiteUrl(),
   trailingSlash: 'never',
   vite: {
     build: {
-      sourcemap: true, // Source map generation must be turned on
+      /** Source map generation must be turned on for Sentry. */
+      sourcemap: true,
     },
-    // @ts-expect-error - tailwindcss plugin type compatibility
+    /* @ts-expect-error - tailwindcss plugin type compatibility */
     plugins: [tailwindcss()],
-    // Note: The "astro:transitions sourcemap" warning is cosmetic and can be safely ignored
-    // It occurs because the transitions plugin transforms code without generating sourcemaps
-    // This doesn't affect build functionality, runtime performance, or debugging capabilities
+    /**
+     * Note: The "astro:transitions sourcemap" warning is cosmetic and can be safely
+     * ignored. It occurs because the transitions plugin transforms code without
+     * generating sourcemaps. This doesn't affect build functionality, runtime
+     * performance, or debugging capabilities
+     */
   }
 })
