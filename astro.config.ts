@@ -17,7 +17,7 @@ import {
 } from './src/lib/config'
 import { callToActionValidator } from './src/integrations/CtaValidator'
 import { privacyPolicyVersion } from './src/integrations/PrivacyPolicyVersion'
-import { serializeSitemapItem, writePagesJson } from './src/lib/config/sitemapSerialize'
+import { createSerializeFunction, pagesJsonWriter } from './src/integrations/sitemapSerialize'
 
 // Type guard for required environment variables (only in Vercel)
 const IS_VERCEL = process.env['VERCEL']
@@ -51,21 +51,11 @@ export default defineConfig({
       authToken: SENTRY_AUTH_TOKEN!, // Non-null assertion safe due to check above
     })] : []),
     sitemap({
-      lastmod: new Date(),
-      serialize: serializeSitemapItem,
+      serialize: createSerializeFunction({
+        exclude: ['downloads', 'social-shares', '/articles/demo'],
+      }),
     }),
-    /**
-     * Custom integration to write pages.json after build. It's a list
-     * of all pages in the site for use by the E2E test harness.
-     */
-    {
-      name: 'pages-json-writer',
-      hooks: {
-        'astro:build:done': () => {
-          writePagesJson()
-        },
-      },
-    },
+    pagesJsonWriter(),
     /** Debugging tools for Astro View Transition API */
     vtbot(),
   ],
