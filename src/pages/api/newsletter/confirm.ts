@@ -6,9 +6,9 @@
 import type { APIRoute } from 'astro'
 
 // These imports work in Astro API routes because they run server-side
-import { confirmSubscription } from '@api/newsletter/token'
+import { confirmSubscription } from './_token'
 import { recordConsent } from '@api/shared/consent-log'
-import { sendWelcomeEmail } from '@api/newsletter/email'
+import { sendWelcomeEmail } from './_email'
 
 export const GET: APIRoute = async ({ url }) => {
   const token = url.searchParams.get('token')

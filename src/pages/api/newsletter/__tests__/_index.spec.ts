@@ -5,11 +5,11 @@ import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vite
 import { POST, OPTIONS } from '@pages/api/newsletter'
 
 // Mock dependencies
-vi.mock('@api/newsletter/token', () => ({
+vi.mock('@pages/api/newsletter/_token', () => ({
 	createPendingSubscription: vi.fn(),
 }))
 
-vi.mock('@api/newsletter/email', () => ({
+vi.mock('@pages/api/newsletter/_email', () => ({
 	sendConfirmationEmail: vi.fn(),
 }))
 
@@ -17,8 +17,8 @@ vi.mock('@api/shared/consent-log', () => ({
 	recordConsent: vi.fn(),
 }))
 
-const tokenModule = await import('@api/newsletter/token')
-const emailModule = await import('@api/newsletter/email')
+const tokenModule = await import('@pages/api/newsletter/_token')
+const emailModule = await import('@pages/api/newsletter/_email')
 const consentModule = await import('@api/shared/consent-log')
 
 const mockCreatePendingSubscription = tokenModule.createPendingSubscription as Mock

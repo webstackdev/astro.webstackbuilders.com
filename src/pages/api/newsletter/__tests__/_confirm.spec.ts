@@ -6,7 +6,7 @@ import type { APIContext } from 'astro'
 import { GET } from '@pages/api/newsletter/confirm'
 
 // Mock dependencies
-vi.mock('@api/newsletter/token', () => ({
+vi.mock('@pages/api/newsletter/_token', () => ({
 	confirmSubscription: vi.fn(),
 }))
 
@@ -14,7 +14,7 @@ vi.mock('@api/shared/consent-log', () => ({
 	recordConsent: vi.fn(),
 }))
 
-vi.mock('@api/newsletter/email', () => ({
+vi.mock('@pages/api/newsletter/_email', () => ({
 	sendWelcomeEmail: vi.fn(),
 }))
 
@@ -22,9 +22,9 @@ vi.mock('@api/newsletter/newsletter', () => ({
 	subscribeToConvertKit: vi.fn(),
 }))
 
-const tokenModule = await import('@api/newsletter/token')
+const tokenModule = await import('@pages/api/newsletter/_token')
 const consentModule = await import('@api/shared/consent-log')
-const emailModule = await import('@api/newsletter/email')
+const emailModule = await import('@pages/api/newsletter/_email')
 
 const mockConfirmSubscription = tokenModule.confirmSubscription as Mock
 const mockRecordConsent = consentModule.recordConsent as Mock

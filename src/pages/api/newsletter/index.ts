@@ -5,8 +5,8 @@
  * With Vercel adapter, this becomes a serverless function automatically
  */
 import type { APIRoute } from 'astro'
-import { createPendingSubscription } from 'src/api/newsletter/token'
-import { sendConfirmationEmail } from 'src/api/newsletter/email'
+import { createPendingSubscription } from './_token'
+import { sendConfirmationEmail } from './_email'
 import { recordConsent } from 'src/api/shared/consent-log'
 
 export const prerender = false // Force SSR for this endpoint
