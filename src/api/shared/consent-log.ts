@@ -4,12 +4,14 @@
  * Stores consent records for compliance and data subject access requests
  */
 
+import { validate as isValidUUID } from 'uuid'
+
 /**
  * Consent record stored in audit trail
  */
 export interface ConsentRecord {
-  id: string // Unique identifier
-  email: string
+  id: string // UUID - Unique identifier for this consent instance
+  email?: string // Optional - not applicable for client-side consent events
   purposes: Array<'contact' | 'marketing' | 'analytics' | 'downloads'>
   timestamp: string // ISO 8601
   source: 'contact_form' | 'newsletter_form' | 'download_form'
@@ -17,7 +19,7 @@ export interface ConsentRecord {
   ipAddress?: string // Optional, only store if needed for fraud prevention
   privacyPolicyVersion: string // Track which policy version user agreed to
   consentText?: string // Optional: Store exact consent text shown to user
-  verified: boolean // For double opt-in flows
+  verified?: boolean // Optional - For double opt-in flows only
 }
 
 /**
@@ -27,20 +29,12 @@ export interface ConsentRecord {
 const consentLogs: ConsentRecord[] = []
 
 /**
- * Generate unique ID for consent record
- */
-function generateConsentId(): string {
-  const timestamp = Date.now().toString(36)
-  const random = Math.random().toString(36).substring(2, 15)
-  return `consent_${timestamp}_${random}`
-}
-
-/**
  * Record consent in audit trail
  * Call this whenever user gives explicit consent
  */
 export async function recordConsent(data: {
-  email: string
+  id: string // UUID - Must be a valid UUID v4
+  email?: string
   purposes: Array<'contact' | 'marketing' | 'analytics' | 'downloads'>
   source: 'contact_form' | 'newsletter_form' | 'download_form'
   userAgent: string
@@ -48,9 +42,14 @@ export async function recordConsent(data: {
   consentText?: string
   verified?: boolean
 }): Promise<ConsentRecord> {
+  // Validate UUID
+  if (!isValidUUID(data.id)) {
+    throw new Error(`Invalid consent ID: must be a valid UUID. Received: ${data.id}`)
+  }
+
   const record: ConsentRecord = {
-    id: generateConsentId(),
-    email: data.email.toLowerCase().trim(),
+    id: data.id,
+    ...(data.email && { email: data.email.toLowerCase().trim() }),
     purposes: data.purposes,
     timestamp: new Date().toISOString(),
     source: data.source,
@@ -58,7 +57,7 @@ export async function recordConsent(data: {
     ...(data.ipAddress && { ipAddress: data.ipAddress }),
     privacyPolicyVersion: '2025-10-20', // Update when privacy policy changes
     ...(data.consentText && { consentText: data.consentText }),
-    verified: data.verified ?? false,
+    ...(data.verified !== undefined && { verified: data.verified }),
   }
 
   // Store consent record
@@ -68,10 +67,14 @@ export async function recordConsent(data: {
   // await db.consentLogs.insert(record)
 
   console.log(`✅ Consent recorded: ${record.id}`)
-  console.log(`   Email: ${record.email}`)
+  if (record.email) {
+    console.log(`   Email: ${record.email}`)
+  }
   console.log(`   Purposes: ${record.purposes.join(', ')}`)
   console.log(`   Source: ${record.source}`)
-  console.log(`   Verified: ${record.verified}`)
+  if (record.verified !== undefined) {
+    console.log(`   Verified: ${record.verified}`)
+  }
 
   return record
 }
@@ -110,7 +113,7 @@ export async function hasActiveConsent(
   const records = await getConsentByPurpose(email, purpose)
 
   // Filter for verified consents only
-  const verifiedRecords = records.filter((r) => r.verified)
+  const verifiedRecords = records.filter((r) => r.verified === true)
 
   if (verifiedRecords.length === 0) {
     return null
@@ -141,13 +144,6 @@ export async function deleteConsentRecords(email: string): Promise<number> {
   console.log(`🗑️  Deleted ${deletedCount} consent record(s) for ${email}`)
 
   return deletedCount
-}
-
-/**
- * Get total number of consent records (for admin/debugging)
- */
-export function getConsentLogCount(): number {
-  return consentLogs.length
 }
 
 /**
