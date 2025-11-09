@@ -8,6 +8,7 @@ import tsPlugin from "typescript-eslint"
 import restrictedGlobals from "confusing-browser-globals"
 import enforceCentralizedEventsRule from "./test/eslint/enforce-centralized-events-rule.ts"
 import noHtmlElementAssertionsRule from "./test/eslint/no-html-element-assertions-rule.ts"
+import noQuerySelectorOutsideSelectorsRule from "./test/eslint/no-query-selector-outside-selectors-rule.ts"
 
 const level = "error"
 
@@ -26,6 +27,7 @@ export default [
         rules: {
           'enforce-centralized-events': enforceCentralizedEventsRule,
           'no-html-element-assertions': noHtmlElementAssertionsRule,
+          'no-query-selector-outside-selectors': noQuerySelectorOutsideSelectorsRule,
         },
       },
     },
@@ -51,6 +53,7 @@ export default [
        */
       'custom-rules/enforce-centralized-events': 'error',
       'custom-rules/no-html-element-assertions': 'error',
+      'custom-rules/no-query-selector-outside-selectors': 'off', // TODO: Enable after extracting selectors
       /**
        * Common rule settings for all linted files
        */
