@@ -7,6 +7,7 @@ import ymlPlugin from "eslint-plugin-yml"
 import tsPlugin from "typescript-eslint"
 import restrictedGlobals from "confusing-browser-globals"
 import enforceCentralizedEventsRule from "./test/eslint/enforce-centralized-events-rule.ts"
+import noHtmlElementAssertionsRule from "./test/eslint/no-html-element-assertions-rule.ts"
 
 const level = "error"
 
@@ -24,6 +25,7 @@ export default [
       'custom-rules': {
         rules: {
           'enforce-centralized-events': enforceCentralizedEventsRule,
+          'no-html-element-assertions': noHtmlElementAssertionsRule,
         },
       },
     },
@@ -48,6 +50,7 @@ export default [
        * Custom ESLint rules
        */
       'custom-rules/enforce-centralized-events': 'error',
+      'custom-rules/no-html-element-assertions': 'error',
       /**
        * Common rule settings for all linted files
        */
@@ -143,6 +146,20 @@ export default [
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/consistent-type-assertions': 'off',
+    },
+  },
+  {
+    files: ['src/components/scripts/assertions/elements.ts'],
+    rules: {
+      // This file implements type guards and legitimately needs type assertions
+      'custom-rules/no-html-element-assertions': 'off',
+    },
+  },
+  {
+    files: ['**/*error.spec.ts'],
+    rules: {
+      // Error test files use mock objects which legitimately need type assertions
+      'custom-rules/no-html-element-assertions': 'off',
     },
   },
   {

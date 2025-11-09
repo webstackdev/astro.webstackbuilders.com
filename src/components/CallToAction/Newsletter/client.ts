@@ -7,6 +7,7 @@
 import { LitElement } from 'lit'
 import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
 import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
+import { getNewsletterElements } from './selectors'
 
 /**
  * Newsletter Form Custom Element (Lit-based)
@@ -81,29 +82,15 @@ export class NewsletterFormElement extends LitElement {
     addScriptBreadcrumb(context)
 
     try {
-      this.form = this.querySelector('#newsletter-form') as HTMLFormElement
-      this.emailInput = this.querySelector('#newsletter-email') as HTMLInputElement
-      this.consentCheckbox = this.querySelector('#newsletter-gdpr-consent') as HTMLInputElement
-      this.submitButton = this.querySelector('#newsletter-submit') as HTMLButtonElement
-      this.buttonText = this.querySelector('#button-text') as HTMLSpanElement
-      this.buttonArrow = this.querySelector('#button-arrow') as SVGSVGElement
-      this.buttonSpinner = this.querySelector('#button-spinner') as SVGSVGElement
-      this.message = this.querySelector('#newsletter-message') as HTMLParagraphElement
-
-      if (
-        !this.form ||
-        !this.emailInput ||
-        !this.consentCheckbox ||
-        !this.submitButton ||
-        !this.buttonText ||
-        !this.buttonArrow ||
-        !this.buttonSpinner ||
-        !this.message
-      ) {
-        throw new ClientScriptError(
-          'NewsletterFormElement: Required DOM elements not found'
-        )
-      }
+      const elements = getNewsletterElements(this)
+      this.form = elements.form
+      this.emailInput = elements.emailInput
+      this.consentCheckbox = elements.consentCheckbox
+      this.submitButton = elements.submitButton
+      this.buttonText = elements.buttonText
+      this.buttonArrow = elements.buttonArrow
+      this.buttonSpinner = elements.buttonSpinner
+      this.message = elements.message
 
       // Save original button text
       this.originalButtonText = this.buttonText.textContent || 'Subscribe'

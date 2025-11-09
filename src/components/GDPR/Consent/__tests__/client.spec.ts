@@ -9,6 +9,7 @@ import {
   isConsentValid
 } from '@components/GDPR/Consent/client'
 import { $formConsent, clearFormConsent, type ConsentPurpose } from '@components/GDPR/Consent/state'
+import { isInputElement, isDivElement } from '@components/scripts/assertions/elements'
 
 /**
  * Helper to create mock GDPR consent HTML structure in a form
@@ -31,6 +32,23 @@ function setupConsentForm(checkboxId = 'gdpr-consent'): HTMLFormElement {
   return form
 }
 
+/**
+ * Helper to get and validate GDPR consent form elements
+ */
+function getConsentElements(checkboxId = 'gdpr-consent') {
+  const checkbox = document.getElementById(checkboxId)
+  if (!isInputElement(checkbox)) {
+    throw new Error(`Checkbox with id "${checkboxId}" not found`)
+  }
+
+  const errorElement = document.getElementById(`${checkboxId}-error`)
+  if (!isDivElement(errorElement)) {
+    throw new Error(`Error element with id "${checkboxId}-error" not found`)
+  }
+
+  return { checkbox, errorElement }
+}
+
 describe('initGDPRConsent', () => {
   beforeEach(() => {
     document.body.innerHTML = ''
@@ -43,7 +61,7 @@ describe('initGDPRConsent', () => {
 
     initGDPRConsent('gdpr-consent', purposes)
 
-    const checkbox = document.getElementById('gdpr-consent') as HTMLInputElement
+    const { checkbox } = getConsentElements()
     checkbox.checked = true
     checkbox.dispatchEvent(new Event('change'))
 
@@ -58,7 +76,7 @@ describe('initGDPRConsent', () => {
 
     initGDPRConsent('gdpr-consent', purposes)
 
-    const checkbox = document.getElementById('gdpr-consent') as HTMLInputElement
+    const { checkbox } = getConsentElements()
     checkbox.checked = true
     checkbox.dispatchEvent(new Event('change'))
 
@@ -71,7 +89,7 @@ describe('initGDPRConsent', () => {
 
     initGDPRConsent('gdpr-consent', ['contact'])
 
-    const checkbox = document.getElementById('gdpr-consent') as HTMLInputElement
+    const { checkbox } = getConsentElements()
 
     // Check then uncheck
     checkbox.checked = true
@@ -88,8 +106,7 @@ describe('initGDPRConsent', () => {
 
     initGDPRConsent('gdpr-consent', ['contact'])
 
-    const checkbox = document.getElementById('gdpr-consent') as HTMLInputElement
-    const errorElement = document.getElementById('gdpr-consent-error') as HTMLDivElement
+    const { checkbox, errorElement } = getConsentElements()
 
     // Show error first
     errorElement.textContent = 'You must consent'
@@ -108,7 +125,7 @@ describe('initGDPRConsent', () => {
 
     initGDPRConsent('gdpr-consent', ['contact'], 'contact-form')
 
-    const checkbox = document.getElementById('gdpr-consent') as HTMLInputElement
+    const { checkbox } = getConsentElements('gdpr-consent')
     checkbox.checked = true
     checkbox.dispatchEvent(new Event('change'))
 
@@ -121,7 +138,7 @@ describe('initGDPRConsent', () => {
 
     initGDPRConsent('custom-consent', ['marketing'])
 
-    const checkbox = document.getElementById('custom-consent') as HTMLInputElement
+    const { checkbox } = getConsentElements('custom-consent')
     checkbox.checked = true
     checkbox.dispatchEvent(new Event('change'))
 
@@ -147,7 +164,7 @@ describe('initGDPRConsent', () => {
 
     initGDPRConsent('gdpr-consent', ['contact'])
 
-    const checkbox = document.getElementById('gdpr-consent') as HTMLInputElement
+    const { checkbox } = getConsentElements('gdpr-consent')
     checkbox.checked = true
 
     const submitEvent = new Event('submit', { cancelable: true })
@@ -163,7 +180,7 @@ describe('initGDPRConsent', () => {
 
     initGDPRConsent('gdpr-consent', ['contact'])
 
-    const checkbox = document.getElementById('gdpr-consent') as HTMLInputElement
+    const { checkbox } = getConsentElements('gdpr-consent')
     const focusSpy = vi.spyOn(checkbox, 'focus')
 
     form.dispatchEvent(new Event('submit', { cancelable: true }))
@@ -189,7 +206,7 @@ describe('initGDPRConsent', () => {
 
     initGDPRConsent('gdpr-consent', ['contact'])
 
-    const checkbox = document.getElementById('gdpr-consent') as HTMLInputElement
+    const { checkbox } = getConsentElements('gdpr-consent')
     checkbox.checked = true
     checkbox.dispatchEvent(new Event('change'))
 
@@ -206,8 +223,8 @@ describe('validateConsent', () => {
   test('returns true when checkbox is checked', () => {
     setupConsentForm()
 
-    const checkbox = document.getElementById('gdpr-consent') as HTMLInputElement
-    const errorElement = document.getElementById('gdpr-consent-error') as HTMLDivElement
+    const { checkbox } = getConsentElements('gdpr-consent')
+    const { errorElement } = getConsentElements()
 
     checkbox.checked = true
     const result = validateConsent(checkbox, errorElement)
@@ -218,8 +235,8 @@ describe('validateConsent', () => {
   test('returns false when checkbox is unchecked', () => {
     setupConsentForm()
 
-    const checkbox = document.getElementById('gdpr-consent') as HTMLInputElement
-    const errorElement = document.getElementById('gdpr-consent-error') as HTMLDivElement
+    const { checkbox } = getConsentElements('gdpr-consent')
+    const { errorElement } = getConsentElements()
 
     checkbox.checked = false
     const result = validateConsent(checkbox, errorElement)
@@ -230,8 +247,8 @@ describe('validateConsent', () => {
   test('shows error message when validation fails', () => {
     setupConsentForm()
 
-    const checkbox = document.getElementById('gdpr-consent') as HTMLInputElement
-    const errorElement = document.getElementById('gdpr-consent-error') as HTMLDivElement
+    const { checkbox } = getConsentElements('gdpr-consent')
+    const { errorElement } = getConsentElements()
 
     checkbox.checked = false
     validateConsent(checkbox, errorElement)
@@ -244,8 +261,8 @@ describe('validateConsent', () => {
   test('clears error message when validation succeeds', () => {
     setupConsentForm()
 
-    const checkbox = document.getElementById('gdpr-consent') as HTMLInputElement
-    const errorElement = document.getElementById('gdpr-consent-error') as HTMLDivElement
+    const { checkbox } = getConsentElements('gdpr-consent')
+    const { errorElement } = getConsentElements()
 
     // Set error first
     errorElement.textContent = 'Error message'
@@ -261,8 +278,8 @@ describe('validateConsent', () => {
   test('removes role attribute when clearing error', () => {
     setupConsentForm()
 
-    const checkbox = document.getElementById('gdpr-consent') as HTMLInputElement
-    const errorElement = document.getElementById('gdpr-consent-error') as HTMLDivElement
+    const { checkbox } = getConsentElements('gdpr-consent')
+    const { errorElement } = getConsentElements()
 
     errorElement.setAttribute('role', 'alert')
 
@@ -281,7 +298,7 @@ describe('isConsentValid', () => {
   test('returns true when checkbox is checked', () => {
     setupConsentForm()
 
-    const checkbox = document.getElementById('gdpr-consent') as HTMLInputElement
+    const { checkbox } = getConsentElements('gdpr-consent')
     checkbox.checked = true
 
     expect(isConsentValid('gdpr-consent')).toBe(true)
@@ -290,7 +307,7 @@ describe('isConsentValid', () => {
   test('returns false when checkbox is unchecked', () => {
     setupConsentForm()
 
-    const checkbox = document.getElementById('gdpr-consent') as HTMLInputElement
+    const { checkbox } = getConsentElements('gdpr-consent')
     checkbox.checked = false
 
     expect(isConsentValid('gdpr-consent')).toBe(false)
@@ -305,7 +322,7 @@ describe('isConsentValid', () => {
   test('works with custom checkbox ID', () => {
     setupConsentForm('custom-consent')
 
-    const checkbox = document.getElementById('custom-consent') as HTMLInputElement
+    const { checkbox } = getConsentElements('custom-consent')
     checkbox.checked = true
 
     expect(isConsentValid('custom-consent')).toBe(true)
@@ -324,7 +341,7 @@ describe('integration tests', () => {
     initGDPRConsent('gdpr-consent', ['contact'], 'contact-form')
 
     // Step 1: Check checkbox
-    const checkbox = document.getElementById('gdpr-consent') as HTMLInputElement
+    const { checkbox } = getConsentElements('gdpr-consent')
     checkbox.checked = true
     checkbox.dispatchEvent(new Event('change'))
 
@@ -348,7 +365,7 @@ describe('integration tests', () => {
 
     initGDPRConsent('gdpr-consent', ['contact'])
 
-    const checkbox = document.getElementById('gdpr-consent') as HTMLInputElement
+    const { checkbox } = getConsentElements('gdpr-consent')
 
     // Check then uncheck
     checkbox.checked = true
@@ -373,7 +390,7 @@ describe('integration tests', () => {
     const purposes: ConsentPurpose[] = ['contact', 'marketing', 'analytics']
     initGDPRConsent('gdpr-consent', purposes, 'multi-form')
 
-    const checkbox = document.getElementById('gdpr-consent') as HTMLInputElement
+    const { checkbox } = getConsentElements('gdpr-consent')
     checkbox.checked = true
     checkbox.dispatchEvent(new Event('change'))
 

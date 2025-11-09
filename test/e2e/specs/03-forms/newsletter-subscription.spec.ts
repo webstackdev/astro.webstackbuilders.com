@@ -82,8 +82,8 @@ test.describe('Newsletter Subscription Form', () => {
 
     // Wait for the newsletter form JS to be loaded and initialized
     await page.waitForFunction(() => {
-      const button = window.document.querySelector('#newsletter-submit') as HTMLButtonElement
-      return button && !button.disabled
+      const button = window.document.querySelector('#newsletter-submit')
+      return button instanceof HTMLButtonElement && !button.disabled
     })
 
     // Set up intercept for API call to slow it down

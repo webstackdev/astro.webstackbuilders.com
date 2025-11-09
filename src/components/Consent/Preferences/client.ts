@@ -4,8 +4,13 @@
  * Uses centralized state management from scripts/store
  */
 
-import { isDivElement, isButtonElement, isInputElement } from '@components/scripts/assertions/elements'
-import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
+import { isInputElement } from '@components/scripts/assertions/elements'
+import {
+  getConsentCustomizeModal,
+  getConsentCustomizeCloseBtn,
+  getAllowAllBtn,
+  getSavePreferencesBtn,
+} from '@components/Consent/Preferences/selectors'
 import { addButtonEventListeners } from '@components/scripts/elementListeners'
 import { updateConsent, $consent, type ConsentState } from '@components/scripts/store'
 
@@ -21,32 +26,10 @@ export class ConsentCustomize {
   private saveBtn: HTMLButtonElement | null
 
   constructor() {
-    this.modal = this.getConsentCustomizeModal()
-    this.closeBtn = this.getConsentCustomizeCloseBtn()
-    this.allowAllBtn = document.getElementById('consent-allow-all') as HTMLButtonElement
-    this.saveBtn = document.getElementById('consent-save-preferences') as HTMLButtonElement
-  }
-
-  /** Gets the HTMLDivElement wrapping the consent customize modal */
-  private getConsentCustomizeModal(): HTMLDivElement {
-    const modal = document.getElementById('cookie-customize-modal-id')
-    if (!isDivElement(modal)) {
-      throw new ClientScriptError(
-        `Consent customize modal with id 'cookie-customize-modal-id' not found`
-      )
-    }
-    return modal
-  }
-
-  /** Gets the close button for the consent customize modal */
-  private getConsentCustomizeCloseBtn(): HTMLButtonElement {
-    const closeBtn = document.querySelector('.cookie-modal__close-btn')
-    if (!isButtonElement(closeBtn)) {
-      throw new ClientScriptError(
-        `Consent customize close button with class 'cookie-modal__close-btn' not found`
-      )
-    }
-    return closeBtn
+    this.modal = getConsentCustomizeModal()
+    this.closeBtn = getConsentCustomizeCloseBtn()
+    this.allowAllBtn = getAllowAllBtn()
+    this.saveBtn = getSavePreferencesBtn()
   }
 
   /** Show the consent customize modal */
@@ -249,8 +232,6 @@ export class ConsentCustomize {
  * Used by the ConsentBanner component
  */
 export const showConsentCustomizeModal = (): void => {
-  const modal = document.getElementById('cookie-customize-modal-id') as HTMLDivElement
-  if (modal) {
-    modal.style.display = 'flex'
-  }
+  const modal = getConsentCustomizeModal()
+  modal.style.display = 'flex'
 }

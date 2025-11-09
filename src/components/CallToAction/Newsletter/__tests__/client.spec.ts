@@ -5,22 +5,19 @@
 import { beforeAll, beforeEach, describe, expect, test, vi, afterEach } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import { NewsletterFormElement } from '@components/CallToAction/Newsletter/client'
+import { getNewsletterElements } from '@components/CallToAction/Newsletter/selectors'
 import NewsletterFixture from '@components/CallToAction/Newsletter/__fixtures__/client.fixture.astro'
 
 /**
  * Helper function to get form elements after DOM setup
+ * Uses the same selector function as production code
  */
 function getFormElements() {
-  return {
-    form: document.getElementById('newsletter-form') as HTMLFormElement,
-    emailInput: document.getElementById('newsletter-email') as HTMLInputElement,
-    consentCheckbox: document.getElementById('newsletter-gdpr-consent') as HTMLInputElement,
-    submitButton: document.getElementById('newsletter-submit') as HTMLButtonElement,
-    buttonText: document.getElementById('button-text') as HTMLSpanElement,
-    buttonArrow: document.getElementById('button-arrow') as unknown as SVGSVGElement,
-    buttonSpinner: document.getElementById('button-spinner') as unknown as SVGSVGElement,
-    message: document.getElementById('newsletter-message') as HTMLParagraphElement,
+  const customElement = document.querySelector('newsletter-form')
+  if (!customElement) {
+    throw new Error('newsletter-form custom element not found')
   }
+  return getNewsletterElements(customElement)
 }
 
 // Mock fetch for API testing

@@ -29,7 +29,7 @@ export const queryAllDocument = (selector: string): NodeListOf<Element> => {
 export const getBodyElement = (): HTMLBodyElement => {
   if (!isBodyElement(document.body))
     throw new Error(`Page is missing a <body> element, is the document empty?`)
-  return document.body as HTMLBodyElement
+  return document.body
 }
 
 /**
@@ -38,7 +38,7 @@ export const getBodyElement = (): HTMLBodyElement => {
 export const getHtmlElement = (): HTMLHtmlElement => {
   if (!isHtmlElement(document.documentElement))
     throw new Error(`Page is missing a <html> element, is the document XML or XHTML?`)
-  return document.documentElement as HTMLHtmlElement
+  return document.documentElement
 }
 
 /**
@@ -47,7 +47,7 @@ export const getHtmlElement = (): HTMLHtmlElement => {
 export const getSlotElement = (shadowRoot: ShadowRoot): HTMLSlotElement => {
   const slotElement = shadowRoot.querySelector('slot')
   if (!isSlotElement(slotElement)) throw new Error(`<slot> element is missing in shadow root`)
-  return slotElement as HTMLSlotElement
+  return slotElement
 }
 
 /**
@@ -57,7 +57,7 @@ export const getDivElement = (selector: string): HTMLDivElement => {
   const element = document.querySelector(selector)
   if (!isDivElement(element))
     throw new Error(`Could not find <div> element for query selector ${selector}`)
-  return element as HTMLDivElement
+  return element
 }
 
 export const getDivElements = (selector: string): NodeListOf<HTMLDivElement> => {

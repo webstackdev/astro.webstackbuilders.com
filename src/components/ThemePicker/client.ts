@@ -192,7 +192,9 @@ export class ThemePickerElement extends LitElement {
         if (this.isTransitioning) return
         if (this.isTogglingViaButton) return
 
-        const target = e.target as HTMLElement
+        const target = e.target
+        if (!(target instanceof HTMLElement)) return
+
         const isInsideModal = this.pickerModal.contains(target)
         const isToggleButton = this.toggleBtn.contains(target) || target === this.toggleBtn
 
@@ -210,7 +212,9 @@ export class ThemePickerElement extends LitElement {
         if (this.isTransitioning) return
         if (this.isTogglingViaButton) return
 
-        const target = e.target as HTMLElement
+        const target = e.target
+        if (!(target instanceof HTMLElement)) return
+
         const isInsideModal = this.pickerModal.contains(target)
         const isToggleButton = this.toggleBtn.contains(target) || target === this.toggleBtn
 

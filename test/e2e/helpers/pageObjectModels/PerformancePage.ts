@@ -209,15 +209,16 @@ export class PerformancePage extends BasePage {
     height: number
   }>> {
     return await this.page.locator('img').evaluateAll((imgs) => {
-      return imgs.map((img) => {
-        const htmlImg = img as HTMLImageElement
-        return {
-          src: htmlImg.getAttribute('src'),
-          loading: htmlImg.getAttribute('loading'),
-          width: htmlImg.width,
-          height: htmlImg.height,
-        }
-      })
+      return imgs
+        .filter((img): img is HTMLImageElement => img instanceof HTMLImageElement)
+        .map((img) => {
+          return {
+            src: img.getAttribute('src'),
+            loading: img.getAttribute('loading'),
+            width: img.width,
+            height: img.height,
+          }
+        })
     })
   }
 

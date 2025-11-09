@@ -5,6 +5,10 @@
 import { describe, expect, test, beforeEach, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import { DownloadForm } from '@components/Forms/Download/client'
+import {
+  isFormElement,
+  isInputElement,
+} from '@components/scripts/assertions/elements'
 import DownloadFormComponent from '@components/Forms/Download/index.astro'
 
 // Mock the logger to suppress error output in tests
@@ -32,6 +36,50 @@ async function setupDownloadFormDOM() {
   document.body.innerHTML = result
 }
 
+/**
+ * Helper function to get and validate all download form elements
+ */
+function getDownloadFormElements() {
+  const form = document.getElementById('downloadForm')
+  if (!isFormElement(form)) {
+    throw new Error('Download form element not found')
+  }
+
+  const firstName = form.querySelector('#firstName')
+  if (!isInputElement(firstName)) {
+    throw new Error('firstName input not found')
+  }
+
+  const lastName = form.querySelector('#lastName')
+  if (!isInputElement(lastName)) {
+    throw new Error('lastName input not found')
+  }
+
+  const workEmail = form.querySelector('#workEmail')
+  if (!isInputElement(workEmail)) {
+    throw new Error('workEmail input not found')
+  }
+
+  const jobTitle = form.querySelector('#jobTitle')
+  if (!isInputElement(jobTitle)) {
+    throw new Error('jobTitle input not found')
+  }
+
+  const companyName = form.querySelector('#companyName')
+  if (!isInputElement(companyName)) {
+    throw new Error('companyName input not found')
+  }
+
+  return {
+    form,
+    firstName,
+    lastName,
+    workEmail,
+    jobTitle,
+    companyName,
+  }
+}
+
 describe('DownloadForm class', () => {
   beforeEach(async () => {
     await setupDownloadFormDOM()
@@ -51,7 +99,11 @@ describe('DownloadForm class', () => {
 
   test('bindEvents attaches submit listener', async () => {
     const form = new DownloadForm()
-    const formElement = document.getElementById('downloadForm') as HTMLFormElement
+    const formElement = document.getElementById('downloadForm')
+
+    if (!isFormElement(formElement)) {
+      throw new Error('Form element not found')
+    }
 
     const submitSpy = vi.fn((e) => e.preventDefault())
     formElement.addEventListener('submit', submitSpy)
@@ -75,12 +127,22 @@ describe('DownloadForm class', () => {
     form.bindEvents()
 
     // Fill out the form
-    const formElement = document.getElementById('downloadForm') as HTMLFormElement
-    const firstNameInput = formElement.querySelector('#firstName') as HTMLInputElement
-    const lastNameInput = formElement.querySelector('#lastName') as HTMLInputElement
-    const emailInput = formElement.querySelector('#workEmail') as HTMLInputElement
-    const jobTitleInput = formElement.querySelector('#jobTitle') as HTMLInputElement
-    const companyInput = formElement.querySelector('#companyName') as HTMLInputElement
+    const formElement = document.getElementById('downloadForm')
+    if (!isFormElement(formElement)) {
+      throw new Error('Form element not found')
+    }
+
+    const firstNameInput = formElement.querySelector('#firstName')
+    const lastNameInput = formElement.querySelector('#lastName')
+    const emailInput = formElement.querySelector('#workEmail')
+    const jobTitleInput = formElement.querySelector('#jobTitle')
+    const companyInput = formElement.querySelector('#companyName')
+
+    if (!isInputElement(firstNameInput) || !isInputElement(lastNameInput) ||
+        !isInputElement(emailInput) || !isInputElement(jobTitleInput) ||
+        !isInputElement(companyInput)) {
+      throw new Error('Form inputs not found')
+    }
 
     firstNameInput.value = 'John'
     lastNameInput.value = 'Doe'
@@ -125,12 +187,12 @@ describe('DownloadForm class', () => {
     form.bindEvents()
 
     // Fill out the form
-    const formElement = document.getElementById('downloadForm') as HTMLFormElement
-    ;(formElement.querySelector('#firstName') as HTMLInputElement).value = 'John'
-    ;(formElement.querySelector('#lastName') as HTMLInputElement).value = 'Doe'
-    ;(formElement.querySelector('#workEmail') as HTMLInputElement).value = 'john@example.com'
-    ;(formElement.querySelector('#jobTitle') as HTMLInputElement).value = 'Developer'
-    ;(formElement.querySelector('#companyName') as HTMLInputElement).value = 'Acme'
+    const { form: formElement, firstName, lastName, workEmail, jobTitle, companyName } = getDownloadFormElements()
+    firstName.value = 'John'
+    lastName.value = 'Doe'
+    workEmail.value = 'john@example.com'
+    jobTitle.value = 'Developer'
+    companyName.value = 'Acme'
 
     // Submit the form
     const submitEvent = new Event('submit', { bubbles: true, cancelable: true })
@@ -165,12 +227,12 @@ describe('DownloadForm class', () => {
     form.bindEvents()
 
     // Fill out the form
-    const formElement = document.getElementById('downloadForm') as HTMLFormElement
-    ;(formElement.querySelector('#firstName') as HTMLInputElement).value = 'John'
-    ;(formElement.querySelector('#lastName') as HTMLInputElement).value = 'Doe'
-    ;(formElement.querySelector('#workEmail') as HTMLInputElement).value = 'john@example.com'
-    ;(formElement.querySelector('#jobTitle') as HTMLInputElement).value = 'Developer'
-    ;(formElement.querySelector('#companyName') as HTMLInputElement).value = 'Acme'
+    const { form: formElement, firstName, lastName, workEmail, jobTitle, companyName } = getDownloadFormElements()
+    firstName.value = 'John'
+    lastName.value = 'Doe'
+    workEmail.value = 'john@example.com'
+    jobTitle.value = 'Developer'
+    companyName.value = 'Acme'
 
     // Submit the form
     const submitEvent = new Event('submit', { bubbles: true, cancelable: true })
@@ -196,15 +258,18 @@ describe('DownloadForm class', () => {
     const form = new DownloadForm()
     form.bindEvents()
 
-    const submitBtn = document.getElementById('downloadSubmitBtn') as HTMLButtonElement
-    const formElement = document.getElementById('downloadForm') as HTMLFormElement
+    const { form: formElement, firstName, lastName, workEmail, jobTitle, companyName } = getDownloadFormElements()
+    const submitBtn = document.getElementById('downloadSubmitBtn')
+    if (!submitBtn || !(submitBtn instanceof HTMLButtonElement)) {
+      throw new Error('Submit button not found')
+    }
 
     // Fill form
-    ;(formElement.querySelector('#firstName') as HTMLInputElement).value = 'John'
-    ;(formElement.querySelector('#lastName') as HTMLInputElement).value = 'Doe'
-    ;(formElement.querySelector('#workEmail') as HTMLInputElement).value = 'john@example.com'
-    ;(formElement.querySelector('#jobTitle') as HTMLInputElement).value = 'Developer'
-    ;(formElement.querySelector('#companyName') as HTMLInputElement).value = 'Acme'
+    firstName.value = 'John'
+    lastName.value = 'Doe'
+    workEmail.value = 'john@example.com'
+    jobTitle.value = 'Developer'
+    companyName.value = 'Acme'
 
     expect(submitBtn.disabled).toBe(false)
 

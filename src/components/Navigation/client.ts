@@ -9,6 +9,7 @@ import {
   getNavToggleWrapperElement,
   getMobileNavFocusContainer,
 } from '@components/Navigation/selectors'
+import { isAnchorElement } from '@components/scripts/assertions/elements'
 import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
 import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
 import { dispatchAnimationEvent, AnimationLifecycleEvent } from '@components/scripts/events/animationLifecycle'
@@ -129,8 +130,10 @@ export class Navigation {
       const navLinks = this.menu.querySelectorAll('a[href]')
 
       navLinks.forEach(link => {
+        if (!isAnchorElement(link)) return
+
         try {
-          addLinkEventListeners(link as HTMLAnchorElement, (event) => {
+          addLinkEventListeners(link, (event) => {
             event.preventDefault()
             const href = link.getAttribute('href')
 
@@ -183,19 +186,15 @@ export class Navigation {
     if (this.isMenuOpen) {
       this.focusTrap.activate()
       // Add menu-visible class after splash animation completes (550ms)
-      const menu = document.querySelector('.main-nav-menu')
-      if (menu) {
-        setTimeout(() => {
-          menu.classList.add('menu-visible')
-        }, 550)
-      }
+      const menu = getNavMenuElement()
+      setTimeout(() => {
+        menu.classList.add('menu-visible')
+      }, 550)
     } else {
       this.focusTrap.deactivate()
       // Remove menu-visible class immediately when closing
-      const menu = document.querySelector('.main-nav-menu')
-      if (menu) {
-        menu.classList.remove('menu-visible')
-      }
+      const menu = getNavMenuElement()
+      menu.classList.remove('menu-visible')
     }
   }
 

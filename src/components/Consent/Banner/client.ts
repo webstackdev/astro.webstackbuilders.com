@@ -267,8 +267,10 @@ export class CookieConsent {
 
       if (focusableElements.length === 0) return
 
-      const firstFocusable = focusableElements[0] as HTMLElement
-      const lastFocusable = focusableElements[focusableElements.length - 1] as HTMLElement
+      const firstFocusable = focusableElements[0]
+      const lastFocusable = focusableElements[focusableElements.length - 1]
+
+      if (!(firstFocusable instanceof HTMLElement) || !(lastFocusable instanceof HTMLElement)) return
 
       // Handle Tab key navigation within modal
       this.trapFocusHandler = (e: Event) => {

@@ -68,6 +68,11 @@ export function isLabelElement(element: unknown): element is HTMLLabelElement {
   return false
 }
 
+export function isMetaElement(element: unknown): element is HTMLMetaElement {
+  if (isType1Element(element) && element[`tagName`] === `META`) return true
+  return false
+}
+
 export function isNavElement(element: unknown): element is HTMLElement {
   if (isType1Element(element) && element[`tagName`] === `NAV`) return true
   return false

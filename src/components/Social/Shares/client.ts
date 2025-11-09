@@ -3,6 +3,7 @@
  * Handles click tracking, Mastodon modal, and Web Share API integration
  */
 
+import { isMetaElement } from '@components/scripts/assertions/elements'
 import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
 
 /**
@@ -13,8 +14,8 @@ function handleShareButtonClick(event: Event): void {
   addScriptBreadcrumb(context)
 
   try {
-    const target = event.currentTarget as HTMLElement
-    if (!target) return
+    const target = event.currentTarget
+    if (!(target instanceof HTMLElement)) return
 
     // Handle Mastodon modal buttons
     const platformId = target.dataset['platform']
@@ -47,11 +48,12 @@ function handleShareButtonClick(event: Event): void {
     const mouseEvent = event as MouseEvent
     if (navigator.share && mouseEvent.shiftKey) {
       event.preventDefault()
-      const metaDescription = document.querySelector('meta[name="description"]') as HTMLMetaElement
+      const metaDescription = document.querySelector('meta[name="description"]')
+      const description = isMetaElement(metaDescription) ? metaDescription.content : ''
       navigator
         .share({
           title: document.title,
-          text: metaDescription?.content || '',
+          text: description,
           url: window.location.href,
         })
         .catch(err => {

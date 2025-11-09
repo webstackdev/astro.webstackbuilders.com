@@ -159,9 +159,9 @@ describe('Error Messages and Validation', () => {
         const mockInput = {
           maxLength: 100,
           value: 'a'.repeat(110) + '@example.com',
-        } as HTMLInputElement
+        } satisfies Partial<HTMLInputElement>
 
-        const text = maxLengthEmailAddressText(mockInput)
+        const text = maxLengthEmailAddressText(mockInput as HTMLInputElement)
 
         expect(text).toContain('100')
         expect(text).toContain(mockInput.value.length.toString())
@@ -173,9 +173,9 @@ describe('Error Messages and Validation', () => {
         const mockInput = {
           minLength: 5,
           value: 'a@b',
-        } as HTMLInputElement
+        } satisfies Partial<HTMLInputElement>
 
-        const text = minLengthEmailAddressText(mockInput)
+        const text = minLengthEmailAddressText(mockInput as HTMLInputElement)
 
         expect(text).toContain('5')
         expect(text).toContain('3')

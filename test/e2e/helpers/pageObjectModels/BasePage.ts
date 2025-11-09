@@ -396,7 +396,9 @@ export class BasePage {
    */
   async getAllLinks(): Promise<string[]> {
     return await this._page.$$eval('a[href]', (links) =>
-      links.map((link) => (link as HTMLAnchorElement).href)
+      links
+        .filter((link): link is HTMLAnchorElement => link instanceof HTMLAnchorElement)
+        .map((link) => link.href)
     )
   }
 

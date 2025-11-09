@@ -19,6 +19,15 @@ Axe accessibility (2) - axe-core integration
 
 We need to update all tests to use Astro's View Transitions navigate() method instead of Playwright's goto() method. Navigate will trigger Astro events, while goto does full page reloads.
 
+## Improve Selectors
+
+I started moving querySelector() calls to selector files. I probably moved too many of them out of test files into specialized helpers. The purpose of them is to avoid TypeScript "as HTMLElement" assertions and centralize error handling for cases where elements are not found.
+
+- Need to look at error handling. Added a bunch of selectors, but didn't examine closely if any are for situations where we should quietly fail if the element is not found. We need an optional flag to not throw if the element not found.
+- The selectors for tests cases need to be more generic and accept a query parameter, so it's clearer in a test file what's being selected for. We also need to evaluate whether they should throw.
+- There are still querySelectorAll() selectors that weren't moved. We need to handle all query selectors with context. We have cases like this.menu.querySelectorAll() where we should pass a context parameter instead of assuming "document".
+- I added an ESLint rule. It needs to be enabled.
+
 ## Color vars
 
 brand primary:    #001733

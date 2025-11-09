@@ -92,20 +92,21 @@ export class EmbedManager {
 
       embedElements.forEach((element, index) => {
         try {
-          const htmlElement = element as HTMLElement
-          const platform = htmlElement.dataset['embedPlatform'] as EmbedPlatform | undefined
-          const url = htmlElement.dataset['embedUrl']
+          if (!(element instanceof HTMLElement)) return
+
+          const platform = element.dataset['embedPlatform'] as EmbedPlatform | undefined
+          const url = element.dataset['embedUrl']
 
           if (!url) {
             console.warn('Embed element missing data-embed-url attribute')
             return
           }
 
-          const embed = new EmbedInstance(htmlElement, url, platform, this.embeds.size + index)
+          const embed = new EmbedInstance(element, url, platform, this.embeds.size + index)
           embed.initialize()
 
-          this.embeds.set(htmlElement, embed)
-          htmlElement.setAttribute('data-embed-managed', 'true')
+          this.embeds.set(element, embed)
+          element.setAttribute('data-embed-managed', 'true')
         } catch (error) {
           // One embed failing shouldn't break all embeds
           handleScriptError(error, { scriptName: EmbedManager.scriptName, operation: 'initEmbed' })

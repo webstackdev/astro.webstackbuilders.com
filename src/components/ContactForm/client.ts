@@ -5,6 +5,7 @@
 
 import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
 import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
+import { isFormElement, isButtonElement } from '@components/scripts/assertions/elements'
 
 export interface ContactFormElements {
   form: HTMLFormElement
@@ -65,32 +66,32 @@ export class ContactForm {
     addScriptBreadcrumb(context)
 
     try {
-      const form = document.getElementById('contactForm') as HTMLFormElement
-      if (!form) {
+      const form = document.getElementById('contactForm')
+      if (!isFormElement(form)) {
         throw new ClientScriptError('ContactForm: Form element not found. Contact form cannot function without the form element.')
       }
 
-      const messages = document.getElementById('formMessages') as HTMLElement
-      const successMessage = messages?.querySelector('.message-success') as HTMLElement
-      const errorMessage = messages?.querySelector('.message-error') as HTMLElement
-      const errorText = document.getElementById('errorMessage') as HTMLElement
-      const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement
-      const btnText = submitBtn?.querySelector('.btn-text') as HTMLElement
-      const btnLoading = submitBtn?.querySelector('.btn-loading') as HTMLElement
-      const messageTextarea = document.getElementById('message') as HTMLTextAreaElement
-      const charCount = document.getElementById('charCount') as HTMLElement
+      const messages = document.getElementById('formMessages')
+      const successMessage = messages?.querySelector('.message-success')
+      const errorMessage = messages?.querySelector('.message-error')
+      const errorText = document.getElementById('errorMessage')
+      const submitBtn = document.getElementById('submitBtn')
+      const btnText = submitBtn?.querySelector('.btn-text')
+      const btnLoading = submitBtn?.querySelector('.btn-loading')
+      const messageTextarea = document.getElementById('message')
+      const charCount = document.getElementById('charCount')
       const uppyContainer = document.getElementById('uppyContainer')
 
       if (
-        !messages ||
-        !successMessage ||
-        !errorMessage ||
-        !errorText ||
-        !submitBtn ||
-        !btnText ||
-        !btnLoading ||
-        !messageTextarea ||
-        !charCount
+        !(messages instanceof HTMLElement) ||
+        !(successMessage instanceof HTMLElement) ||
+        !(errorMessage instanceof HTMLElement) ||
+        !(errorText instanceof HTMLElement) ||
+        !isButtonElement(submitBtn) ||
+        !(btnText instanceof HTMLElement) ||
+        !(btnLoading instanceof HTMLElement) ||
+        !(messageTextarea instanceof HTMLTextAreaElement) ||
+        !(charCount instanceof HTMLElement)
       ) {
         throw new ClientScriptError('ContactForm: Required DOM elements not found. Form requires all elements to function.')
       }
@@ -344,7 +345,9 @@ export class ContactForm {
         try {
           input.addEventListener('blur', () => {
             try {
-              this.validateField(input as HTMLInputElement)
+              if (input instanceof HTMLInputElement) {
+                this.validateField(input)
+              }
             } catch (error) {
               handleScriptError(error, { scriptName: ContactForm.scriptName, operation: 'validateOnBlur' })
             }
@@ -353,7 +356,9 @@ export class ContactForm {
           input.addEventListener('input', () => {
             try {
               if (input.classList.contains('error')) {
-                this.validateField(input as HTMLInputElement)
+                if (input instanceof HTMLInputElement) {
+                  this.validateField(input)
+                }
               }
             } catch (error) {
               handleScriptError(error, { scriptName: ContactForm.scriptName, operation: 'validateOnInput' })

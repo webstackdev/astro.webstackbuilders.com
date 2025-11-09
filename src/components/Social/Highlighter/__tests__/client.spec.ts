@@ -306,7 +306,7 @@ describe('HighlighterElement', () => {
     it('should open Twitter share URL', async () => {
       const twitterButton = highlighter.shadowRoot?.querySelector(
         '[data-platform="twitter"]'
-      ) as HTMLButtonElement
+      )
       expect(twitterButton).toBeTruthy()
 
       twitterButton.click()
@@ -321,7 +321,7 @@ describe('HighlighterElement', () => {
     it('should open LinkedIn share URL', async () => {
       const linkedinButton = highlighter.shadowRoot?.querySelector(
         '[data-platform="linkedin"]'
-      ) as HTMLButtonElement
+      )
       expect(linkedinButton).toBeTruthy()
 
       linkedinButton.click()
@@ -336,7 +336,7 @@ describe('HighlighterElement', () => {
     it('should open Bluesky share URL', async () => {
       const blueskyButton = highlighter.shadowRoot?.querySelector(
         '[data-platform="bluesky"]'
-      ) as HTMLButtonElement
+      )
       expect(blueskyButton).toBeTruthy()
 
       blueskyButton.click()
@@ -351,7 +351,7 @@ describe('HighlighterElement', () => {
     it('should open Reddit share URL', async () => {
       const redditButton = highlighter.shadowRoot?.querySelector(
         '[data-platform="reddit"]'
-      ) as HTMLButtonElement
+      )
       expect(redditButton).toBeTruthy()
 
       redditButton.click()
@@ -372,7 +372,7 @@ describe('HighlighterElement', () => {
 
       const twitterButton = specialHighlighter.shadowRoot?.querySelector(
         '[data-platform="twitter"]'
-      ) as HTMLButtonElement
+      )
       twitterButton?.click()
 
       expect(window.open).toHaveBeenCalledWith(
@@ -387,7 +387,7 @@ describe('HighlighterElement', () => {
     it('should call copyToClipboard with text and URL', async () => {
       const copyButton = highlighter.shadowRoot?.querySelector(
         '[data-platform="copy"]'
-      ) as HTMLButtonElement
+      )
       expect(copyButton).toBeTruthy()
 
       copyButton.click()
@@ -403,7 +403,7 @@ describe('HighlighterElement', () => {
 
       const copyButton = highlighter.shadowRoot?.querySelector(
         '[data-platform="copy"]'
-      ) as HTMLButtonElement
+      )
 
       copyButton.click()
 
@@ -429,7 +429,7 @@ describe('HighlighterElement', () => {
 
       const twitterButton = highlighter.shadowRoot?.querySelector(
         '[data-platform="twitter"]'
-      ) as HTMLButtonElement
+      )
       twitterButton.click()
 
       // Should have tried native share
@@ -442,7 +442,7 @@ describe('HighlighterElement', () => {
 
       const twitterButton = highlighter.shadowRoot?.querySelector(
         '[data-platform="twitter"]'
-      ) as HTMLButtonElement
+      )
       twitterButton.click()
 
       // Wait for async operations
@@ -459,7 +459,7 @@ describe('HighlighterElement', () => {
 
       const twitterButton = highlighter.shadowRoot?.querySelector(
         '[data-platform="twitter"]'
-      ) as HTMLButtonElement
+      )
       twitterButton.click()
 
       // Wait for async share operation
@@ -488,7 +488,7 @@ describe('HighlighterElement', () => {
 
       const copyButton = highlighter.shadowRoot?.querySelector(
         '[data-platform="copy"]'
-      ) as HTMLButtonElement
+      )
       copyButton.click()
 
       // Wait for async copy operation
@@ -531,7 +531,7 @@ describe('HighlighterElement', () => {
 
   describe('Edge Cases', () => {
     it('should handle click without valid platform', async () => {
-      const button = highlighter.shadowRoot?.querySelector('.share-button') as HTMLButtonElement
+      const button = highlighter.shadowRoot?.querySelector('.share-button')
       button?.removeAttribute('data-platform')
 
       // Should not throw

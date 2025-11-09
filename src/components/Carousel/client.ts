@@ -64,12 +64,13 @@ export class CarouselManager {
 
       carouselElements.forEach((element, index) => {
         try {
-          const htmlElement = element as HTMLElement
-          const carousel = new CarouselInstance(htmlElement, this.carousels.size + index)
+          if (!(element instanceof HTMLElement)) return
+
+          const carousel = new CarouselInstance(element, this.carousels.size + index)
           carousel.initialize()
 
-          this.carousels.set(htmlElement, carousel)
-          htmlElement.setAttribute('data-carousel-managed', 'true')
+          this.carousels.set(element, carousel)
+          element.setAttribute('data-carousel-managed', 'true')
         } catch (error) {
           // One carousel failing shouldn't break all carousels
           handleScriptError(error, { scriptName: CarouselManager.scriptName, operation: 'initCarousel' })
