@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { CookieCustomize } from '@components/Consent/Preferences/client'
+import { ConsentCustomize } from '@components/Consent/Preferences/client'
 import { AppBootstrap } from '@components/scripts/bootstrap'
 import { $consent } from '@components/scripts/store'
 
@@ -43,7 +43,7 @@ const mockDiv = (id: string): HTMLDivElement => {
   return div
 }
 
-describe('CookieCustomize', () => {
+describe('ConsentCustomize', () => {
   beforeEach(() => {
     // Initialize state management
     AppBootstrap.init()
@@ -60,7 +60,7 @@ describe('CookieCustomize', () => {
 
   describe('LoadableScript Static Methods', () => {
     it('should have correct scriptName', () => {
-      expect(CookieCustomize.scriptName).toBe('CookieCustomize')
+      expect(ConsentCustomize.scriptName).toBe('ConsentCustomize')
     })
 
     it('should initialize without errors when DOM elements exist', () => {
@@ -68,8 +68,8 @@ describe('CookieCustomize', () => {
       const mockModal = mockDiv('cookie-customize-modal-id')
       const mockCloseBtn = mockButton('cookie-modal__close-btn')
       mockCloseBtn.classList.add('cookie-modal__close-btn')
-      const mockAllowBtn = mockButton('cookie-allow-all')
-      const mockSaveBtn = mockButton('cookie-save-preferences')
+      const mockAllowBtn = mockButton('consent-allow-all')
+      const mockSaveBtn = mockButton('consent-save-preferences')
 
       // Add elements to the document
       document.body.appendChild(mockModal)
@@ -78,7 +78,7 @@ describe('CookieCustomize', () => {
       document.body.appendChild(mockSaveBtn)
 
       expect(() => {
-        CookieCustomize.init()
+        ConsentCustomize.init()
       }).not.toThrow()
 
       // Cleanup
@@ -90,7 +90,7 @@ describe('CookieCustomize', () => {
   })
 
   describe('Instance Methods', () => {
-    let instance: CookieCustomize
+    let instance: ConsentCustomize
     let mockModal: HTMLDivElement
     let mockCloseBtn: HTMLButtonElement
     let mockAllowBtn: HTMLButtonElement
@@ -100,8 +100,8 @@ describe('CookieCustomize', () => {
       mockModal = mockDiv('cookie-customize-modal-id')
       mockCloseBtn = mockButton('cookie-modal__close-btn')
       mockCloseBtn.classList.add('cookie-modal__close-btn')
-      mockAllowBtn = mockButton('cookie-allow-all')
-      mockSaveBtn = mockButton('cookie-save-preferences')
+      mockAllowBtn = mockButton('consent-allow-all')
+      mockSaveBtn = mockButton('consent-save-preferences')
 
       // Add elements to the document
       document.body.appendChild(mockModal)
@@ -109,7 +109,7 @@ describe('CookieCustomize', () => {
       document.body.appendChild(mockAllowBtn)
       document.body.appendChild(mockSaveBtn)
 
-      instance = new CookieCustomize()
+      instance = new ConsentCustomize()
     })
 
     afterEach(() => {

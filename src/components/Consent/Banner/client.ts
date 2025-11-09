@@ -4,7 +4,7 @@ import {
 } from '@components/scripts/elementListeners'
 import { showConsentBanner, hideConsentBanner } from '@components/Consent/Banner/state'
 import { initConsentCookies, allowAllConsentCookies } from '@components/Consent/Banner/cookies'
-import { showCookieCustomizeModal } from '@components/Consent/Preferences/client'
+import { showConsentCustomizeModal } from '@components/Consent/Preferences/client'
 import {
   getCookieConsentAllowBtn,
   getCookieConsentCloseBtn,
@@ -170,7 +170,7 @@ export class CookieConsent {
     addScriptBreadcrumb(context)
 
     try {
-      showCookieCustomizeModal()
+      showConsentCustomizeModal()
     } catch (error) {
       handleScriptError(error, context)
     }
