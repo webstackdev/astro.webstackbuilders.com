@@ -1,16 +1,16 @@
-import eslint from "@eslint/js"
-import astroPlugin from "eslint-plugin-astro"
-import importPlugin from "eslint-plugin-import"
-import jsdocPlugin from "eslint-plugin-jsdoc"
-import securityPlugin from "eslint-plugin-security"
-import ymlPlugin from "eslint-plugin-yml"
-import tsPlugin from "typescript-eslint"
-import restrictedGlobals from "confusing-browser-globals"
-import enforceCentralizedEventsRule from "./test/eslint/enforce-centralized-events-rule.ts"
-import noHtmlElementAssertionsRule from "./test/eslint/no-html-element-assertions-rule.ts"
-import noQuerySelectorOutsideSelectorsRule from "./test/eslint/no-query-selector-outside-selectors-rule.ts"
+import eslint from '@eslint/js'
+import astroPlugin from 'eslint-plugin-astro'
+import importPlugin from 'eslint-plugin-import'
+import jsdocPlugin from 'eslint-plugin-jsdoc'
+import securityPlugin from 'eslint-plugin-security'
+import ymlPlugin from 'eslint-plugin-yml'
+import tsPlugin from 'typescript-eslint'
+import restrictedGlobals from 'confusing-browser-globals'
+import enforceCentralizedEventsRule from './test/eslint/enforce-centralized-events-rule.ts'
+import noHtmlElementAssertionsRule from './test/eslint/no-html-element-assertions-rule.ts'
+import noQuerySelectorOutsideSelectorsRule from './test/eslint/no-query-selector-outside-selectors-rule.ts'
 
-const level = "error"
+const level = 'error'
 
 export default [
   eslint.configs.recommended,
@@ -90,11 +90,21 @@ export default [
         },
       ],
       'import/no-webpack-loader-syntax': level,
-      'import/extensions': [level, "never", {
-        "astro": "always",
-        "json": "always",
-        "svg": "always"
-      }],
+      'import/extensions': [
+        level,
+        'ignorePackages', // Ignores extensions for packages
+        {
+          'js': 'never',
+          'jsx': 'always',
+          'ts': 'never',
+          'tsx': 'always',
+          'mjs': 'always',
+          'cjs': 'always',
+          'astro': 'always',
+          'json': 'always',
+          'svg': 'always',
+        },
+      ],
       'import/order': 'off',
       'jsdoc/check-indentation': level,
       'jsdoc/check-line-alignment': level,
