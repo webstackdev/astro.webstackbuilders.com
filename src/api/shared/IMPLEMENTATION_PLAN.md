@@ -900,10 +900,34 @@ Use Postman/Thunder Client or create test file for each endpoint.
 ## Open Questions (Must Resolve Before Implementation)
 
 1. **Email Service for Production**: Which service? (Resend, SendGrid, AWS SES?)
+
+We use Resend for site emails. There is substantial configuration to use Resend in the Newsletter component.
+
 2. **Newsletter API Endpoint**: Current implementation? Where is `/api/newsletter` defined?
+
+All API endpoints are defined in the src/pages/api directory. These are deployed as Vercel Functions by Astro.
+
 3. **Contact Form API**: Current implementation? Does it exist?
+
+
+See above on Newsletter API endpoint.
+
 4. **Upstash Setup**: Do we have Upstash Redis configured? Need credentials for rate limiting.
 5. **Production Supabase**: Do we have a production Supabase project? Or create new?
+
+There is a project already setup. All relevant API keys and links are in the .env file in the roof of the project:
+
+// Password to the database, not sure if we need.
+SUPRABASE_DATABASE_PASSWORD
+
+// A RESTful endpoint for querying and managing your database.
+PUBLIC_SUPABASE_URL
+
+// Anon public API key
+PUBLIC_SUPABASE_KEY
+
+// Secret service key that can bypass RLS
+SUPABASE_SERVICE_ROLE_KEY
 
 ## Critical Notes
 
