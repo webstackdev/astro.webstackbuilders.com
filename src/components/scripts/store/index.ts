@@ -21,6 +21,7 @@ export {
   $hasFunctionalConsent,
   allowAllConsent,
   initConsentFromCookies,
+  initConsentSideEffects,
   revokeAllConsent,
   updateConsent,
 } from './consent'
@@ -37,10 +38,14 @@ export {
 
 // Re-export themes
 export {
-  $theme,
-  $themePickerOpen,
+  addViewTransitionThemeInitListener,
+  closeThemePicker,
+  createThemeController,
+  createThemePickerOpenController,
+  openThemePicker,
   setTheme,
-  initThemeSystem,
+  themeKeyChangeSideEffectsListener,
+  toggleThemePicker,
   type ThemeId,
 } from './themes'
 

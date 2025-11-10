@@ -9,6 +9,8 @@
  * - GDPR Recital 30: "not personal data" when used solely for technical delivery
  */
 import { persistentAtom } from '@nanostores/persistent'
+import { StoreController } from '@nanostores/lit'
+import type { ReactiveControllerHost } from 'lit'
 import { handleScriptError } from '@components/scripts/errors'
 
 // ============================================================================
@@ -72,38 +74,95 @@ export function setTheme(themeId: ThemeId): void {
   }
 }
 
+/**
+ * Open the theme picker modal
+ */
+export function openThemePicker(): void {
+  try {
+    $themePickerOpen.set(true)
+  } catch (error) {
+    handleScriptError(error, {
+      scriptName: 'themes',
+      operation: 'openThemePicker',
+    })
+  }
+}
+
+/**
+ * Close the theme picker modal
+ */
+export function closeThemePicker(): void {
+  try {
+    $themePickerOpen.set(false)
+  } catch (error) {
+    handleScriptError(error, {
+      scriptName: 'themes',
+      operation: 'closeThemePicker',
+    })
+  }
+}
+
+/**
+ * Toggle the theme picker modal open/closed
+ */
+export function toggleThemePicker(): void {
+  try {
+    $themePickerOpen.set(!$themePickerOpen.get())
+  } catch (error) {
+    handleScriptError(error, {
+      scriptName: 'themes',
+      operation: 'toggleThemePicker',
+    })
+  }
+}
+
 // ============================================================================
-// THEME SYSTEM INITIALIZATION
+// CONTROLLERS
 // ============================================================================
 
 /**
- * Initialize theme system - single source of truth for theme state management
- * Synchronizes three sources: DOM data-theme, localStorage, and $theme store
- *
- * Call this once during app bootstrap after stores are imported
+ * Create a reactive StoreController for $theme
+ * For use in Lit components - automatically triggers re-render when theme changes
  */
-export function initThemeSystem(): void {
-  let isInitialized = false
+export function createThemeController(host: ReactiveControllerHost): StoreController<ThemeId> {
+  return new StoreController(host, $theme)
+}
 
-  /**
-   * Helper: Apply theme to all three sources of truth
-   * 1. DOM data-theme attribute
-   * 2. localStorage (for fast HEAD script access)
-   * 3. Meta theme-color tag
-   */
-  const syncThemeEverywhere = (themeId: ThemeId) => {
+/**
+ * Create a reactive StoreController for $themePickerOpen
+ * For use in Lit components - automatically triggers re-render when picker state changes
+ */
+export function createThemePickerOpenController(host: ReactiveControllerHost): StoreController<boolean> {
+  return new StoreController(host, $themePickerOpen)
+}
+
+// ============================================================================
+// SIDE EFFECTS
+// ============================================================================
+
+/**
+ * Apply theme value to all three sources of truth when it changes. This
+ * system is to allow fast application of the theme setting on page load
+ * to avoid FOUC.
+ *
+ * 1. DOM data-theme attribute
+ * 2. localStorage (for fast HEAD script access)
+ * 3. Meta theme-color tag
+ */
+export function themeKeyChangeSideEffectsListener(): void {
+  $theme.listen((themeId: ThemeId) => {
     try {
-      // 1. Update DOM
-      document.documentElement.setAttribute('data-theme', themeId)
+      // 1. Update <html> element data-theme attribute
+      document.documentElement.dataset['theme'] = themeId
 
-      // 2. Update localStorage explicitly (persistentAtom does this for store, but we need it for HEAD script)
+      // 2. Update localStorage explicitly for use in quick-checks to prevent FOUC
       try {
         localStorage.setItem('theme', themeId)
-      } catch {
-        // Fail silently - not critical
+      } catch (error) {
+        console.error('❌ Could not update localstorage with theme change:', error)
       }
 
-      // 3. Update meta theme-color
+      // 3. Update meta theme-color, used in PWAs
       const metaElement = document.querySelector('meta[name="theme-color"]')
       if (metaElement && window.metaColors) {
         metaElement.setAttribute('content', window.metaColors[themeId] || '')
@@ -111,73 +170,33 @@ export function initThemeSystem(): void {
     } catch (error) {
       handleScriptError(error, {
         scriptName: 'themes',
-        operation: 'syncThemeEverywhere',
+        operation: 'themeKeyChangeSideEffectsListener',
       })
     }
-  }
+  })
+}
 
-  /**
-   * Initialize theme when ready (after persistentAtom restore completes)
-   * Uses requestIdleCallback for better performance, with setTimeout fallback
-   */
-  const initWhenReady = () => {
-    // Guard against test environment teardown
-    if (typeof document === 'undefined' || typeof localStorage === 'undefined') {
-      return
-    }
-
+/**
+ * Add the fast theme setting logic for Astro View Transition API navigation events.
+ *
+ * The DOMContentLoaded event does not fire on subsequent page transitions (soft loads).
+ */
+export function addViewTransitionThemeInitListener(): void {
+  document.addEventListener("astro:before-swap", (event) => {
     try {
-      // Priority order for initial theme:
-      // 1. localStorage (user explicitly chose) - highest priority
-      // 2. DOM data-theme (set by HEAD script, may include system preference)
-      // 3. Store default value ('light')
-
-      const stored = localStorage.getItem('theme') as ThemeId | null
-      const domTheme = document.documentElement.getAttribute('data-theme') as ThemeId | null
-      const storeTheme = $theme.get()
-
-      let finalTheme: ThemeId = storeTheme
-
-      if (stored && stored !== storeTheme) {
-        // localStorage has user preference, update store
-        finalTheme = stored
-        $theme.set(stored)
-      } else if (domTheme && domTheme !== storeTheme && !stored) {
-        // DOM has system preference (set by HEAD script), sync to store
-        finalTheme = domTheme
-        $theme.set(domTheme)
-      }
-
-      // Apply theme to all sources
-      syncThemeEverywhere(finalTheme)
-
-      // Mark initialization complete - now we can react to user changes
-      isInitialized = true
+      // 1. Read theme preference from localStorage (set by user's previous selection)
+      const stored = localStorage.getItem('theme')!
+      // <html> element
+      event.newDocument.documentElement.dataset['theme'] = stored
+      // 4. Turn <body> visible. It's set to hidden in BaseLayout.astro to avoid FOUC
+      event.newDocument.body.classList.remove('invisible')
+      // 5. Success!
+      console.log('🎨 Theme init on "astro:before-swap" executed')
     } catch (error) {
-      handleScriptError(error, {
-        scriptName: 'themes',
-        operation: 'initWhenReady',
-      })
+      // localStorage access can fail (privacy mode, etc.)
+      // Fall back to BaseLayout's data-theme="light", make sure the page is visible
+      event.newDocument.body.classList.remove('invisible')
+      console.error('❌ Theme init on "astro:before-swap" failed with errors:', error)
     }
-  }
-
-  // Use requestIdleCallback for better performance, or setTimeout fallback
-  if ('requestIdleCallback' in window) {
-    requestIdleCallback(initWhenReady, { timeout: 100 })
-  } else {
-    setTimeout(initWhenReady, 0)
-  }
-
-  // React to theme changes (only after initialization completes)
-  $theme.listen((themeId) => {
-    if (isInitialized) {
-      syncThemeEverywhere(themeId)
-    }
-  })
-
-  // Handle View Transitions - re-apply theme after DOM swap
-  document.addEventListener('astro:after-swap', () => {
-    const theme = $theme.get()
-    syncThemeEverywhere(theme)
-  })
+  }, { once: true })
 }

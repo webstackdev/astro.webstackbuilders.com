@@ -815,15 +815,15 @@ test('Critical Paths @smoke', async ({ context, page, allPaths }) => {
       await expect(page.locator('main')).toBeVisible()
     })
 
-    await test.step('@ready cookie consent banner appears', async () => {
+    await test.step('@ready consent banner appears', async () => {
       // Clear consent cookies to force banner to appear
-      await clearConsentCookies(context)
+      await clearConsentBanner(context)
 
       await page.goto(path)
       await page.waitForLoadState('networkidle')
 
       // Cookie modal should be visible
-      await expect(page.locator('#cookie-modal-id')).toBeVisible()
+      await expect(page.locator('#consent-modal-id')).toBeVisible()
     })
   }
 })
