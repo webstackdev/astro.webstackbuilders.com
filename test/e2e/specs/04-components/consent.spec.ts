@@ -1,5 +1,5 @@
 /**
- * Cookie Consent Banner Tests
+ * Consent Banner Tests
  * Tests for cookie consent banner display and functionality
  * @see src/components/Consent/
  */
@@ -7,7 +7,7 @@
 import { test, expect } from '@test/e2e/helpers'
 
 
-test.describe('Cookie Consent Banner', () => {
+test.describe('Consent Banner', () => {
   test.beforeEach(async ({ page, context }) => {
     // Clear all cookies and storage before navigation
     await context.clearCookies()
@@ -19,35 +19,35 @@ test.describe('Cookie Consent Banner', () => {
       sessionStorage.clear()
     })
 
-    // Wait for cookie banner to be initialized
+    // Wait for consent banner to be initialized
     await page.waitForTimeout(1000)
   })
 
-  test('@ready cookie banner displays on first visit', async ({ page }) => {
-    // Expected: Cookie consent banner should appear for first-time visitors
+  test('@ready consent banner displays on first visit', async ({ page }) => {
+    // Expected: Consent banner should appear for first-time visitors
     const cookieBanner = page.locator('#consent-modal-id')
     await expect(cookieBanner).toBeVisible()
   })
 
-  test('@ready cookie banner has accept button', async ({ page }) => {
-    // Expected: Banner should have "Allow All" button
+  test('@ready consent banner has accept button', async ({ page }) => {
+    // Expected: Consent banner should have "Allow All" button
     const cookieBanner = page.locator('#consent-modal-id')
     const acceptButton = cookieBanner.locator('button:has-text("Allow All")')
 
     await expect(acceptButton).toBeVisible()
   })
 
-  test('@ready cookie banner has customize link', async ({ page }) => {
-    // Expected: Banner should have "Customize" link
+  test('@ready consent banner has customize link', async ({ page }) => {
+    // Expected: Consent banner should have "Customize" link
     const cookieBanner = page.locator('#consent-modal-id')
     const customizeLink = cookieBanner.getByRole('link', { name: 'Customize' })
 
     await expect(customizeLink).toBeVisible()
-    await expect(customizeLink).toHaveAttribute('href', '/cookies')
+    await expect(customizeLink).toHaveAttribute('href', '/consent')
   })
 
   test('@ready clicking allow all hides banner', async ({ page }) => {
-    // Expected: Banner should disappear after accepting
+    // Expected: Consent banner should disappear after accepting
     const cookieBanner = page.locator('#consent-modal-id')
     const acceptButton = cookieBanner.locator('button:has-text("Allow All")')
 
@@ -86,7 +86,7 @@ test.describe('Cookie Consent Banner', () => {
   })
 
   test('@ready banner contains privacy policy link', async ({ page }) => {
-    // Expected: Banner should link to privacy/cookie policy
+    // Expected:  Consentbanner should link to privacy/cookie policy
     const cookieBanner = page.locator('#consent-modal-id')
     const policyLink = cookieBanner.locator('a[href*="privacy"], a[href*="cookie"]')
 
@@ -113,7 +113,7 @@ test.describe('Cookie Consent Banner', () => {
   })
 
   test('@ready banner has proper ARIA attributes', async ({ page }) => {
-    // Expected: Banner should be accessible with proper roles
+    // Expected: Consent banner should be accessible with proper roles
     const cookieBanner = page.locator('#consent-modal-id')
 
     const role = await cookieBanner.getAttribute('role')

@@ -53,9 +53,9 @@ describe('generateBreadcrumbLabel', () => {
       expect(result).toBe('Privacy Policy')
     })
 
-    it('should map /cookies to "Cookie Policy"', () => {
-      const result = generateBreadcrumbLabel('cookies', '/cookies')
-      expect(result).toBe('Cookie Policy')
+    it('should map /consent to "Consent Policy"', () => {
+      const result = generateBreadcrumbLabel('consent', '/consent')
+      expect(result).toBe('Consent Policy')
     })
 
     it('should map /tags to "Tags"', () => {

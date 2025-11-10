@@ -48,7 +48,7 @@ export const TEST_URLS = {
   caseStudies: '/case-studies',
   contact: '/contact',
   privacy: '/privacy',
-  cookies: '/cookies',
+  consent: '/consent',
   notFound: '/this-page-does-not-exist',
 }
 
