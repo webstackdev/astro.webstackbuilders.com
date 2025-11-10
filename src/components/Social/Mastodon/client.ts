@@ -7,15 +7,15 @@
  * SPDX-FileCopyrightText: © 2025 Kevin Brown <kevin@webstackbuilders.com>
  * SPDX-License-Identifier: AGPL-3.0-only
  */
-
 import { createFocusTrap, type FocusTrap } from 'focus-trap'
 import { isMastodonInstance, normalizeURL, getUrlDomain } from './detector'
 import { buildShareUrl } from './config'
 import {
-  $currentMastodonInstance,
-  $mastodonInstances,
   saveMastodonInstance,
-} from '@components/scripts/store'
+  setCurrentMastodonInstance,
+  getCurrentMastodonInstance,
+  subscribeMastodonInstances,
+} from '@components/scripts/store/mastodonInstances'
 import { addButtonEventListeners, addWrapperEventListeners } from '@components/scripts/elementListeners'
 import {
   getModalElement,
@@ -133,7 +133,7 @@ export class MastodonModal {
       window.addEventListener('mastodon:open-modal', this.handleOpenModalEvent)
 
       // Subscribe to saved instances changes
-      this.unsubscribeSavedInstances = $mastodonInstances.subscribe((instances) => {
+      this.unsubscribeSavedInstances = subscribeMastodonInstances((instances) => {
         this.updateSavedInstancesUI(instances)
       })
     } catch (error) {
@@ -215,7 +215,7 @@ export class MastodonModal {
       }
 
       // Restore last used instance
-      const lastInstance = $currentMastodonInstance.get()
+      const lastInstance = getCurrentMastodonInstance()
       if (lastInstance && this.instanceInput) {
         this.instanceInput.value = lastInstance
       }
@@ -312,7 +312,7 @@ export class MastodonModal {
       }
 
       // Store current instance
-      $currentMastodonInstance.set(instance)
+      setCurrentMastodonInstance(instance)
 
       // Build share URL and redirect
       const shareUrl = buildShareUrl(instance, this.shareText)

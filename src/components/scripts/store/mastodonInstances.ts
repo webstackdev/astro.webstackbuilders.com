@@ -2,7 +2,7 @@
  * Mastodon Instances State Management
  */
 import { persistentAtom } from '@nanostores/persistent'
-import { $consent } from './consent'
+import { $hasFunctionalConsent } from './consent'
 
 // ============================================================================
 // STORES
@@ -40,11 +40,24 @@ export const $currentMastodonInstance = persistentAtom<string | undefined>(
 // ============================================================================
 
 /**
+ * Set current Mastodon instance
+ */
+export function setCurrentMastodonInstance(instance: string): void {
+  $currentMastodonInstance.set(instance)
+}
+
+/**
+ * Get current Mastodon instance
+ */
+export function getCurrentMastodonInstance(): string | undefined {
+  return $currentMastodonInstance.get()
+}
+
+/**
  * Add Mastodon instance (max 5, FIFO)
  */
 export function saveMastodonInstance(domain: string): void {
-  const hasFunctionalConsent = $consent.get().functional
-  if (!hasFunctionalConsent) return
+  if (!$hasFunctionalConsent.get()) return
 
   const instances = $mastodonInstances.get()
   const updated = new Set([domain, ...instances].slice(0, 5))
@@ -65,4 +78,31 @@ export function removeMastodonInstance(domain: string): void {
  */
 export function clearMastodonInstances(): void {
   $mastodonInstances.set(new Set())
+}
+
+/**
+ * Subscribe to Mastodon instances changes
+ * Returns unsubscribe function
+ */
+export function subscribeMastodonInstances(
+  callback: (_instances: Set<string>) => void
+): () => void {
+  return $mastodonInstances.subscribe(callback)
+}
+
+// ============================================================================
+// SIDE EFFECTS
+// ============================================================================
+
+/**
+ * Initialize side effect to clear Mastodon data when functional consent is revoked
+ * Call this once during app initialization
+ */
+export function mastodonDataConsentRevokeListener(): void {
+  $hasFunctionalConsent.subscribe((hasConsent) => {
+    if (!hasConsent) {
+      clearMastodonInstances()
+      $currentMastodonInstance.set(undefined)
+    }
+  })
 }

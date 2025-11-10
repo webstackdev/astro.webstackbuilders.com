@@ -10,7 +10,6 @@ import {
   initConsentFromCookies,
   initConsentSideEffects,
 } from '@components/scripts/store'
-import { initStateSideEffects } from '@components/scripts/bootstrap/consent'
 import { SentryBootstrap } from '@components/scripts/sentry/client'
 import { PUBLIC_SENTRY_DSN } from 'astro:env/client'
 
@@ -37,9 +36,6 @@ export class AppBootstrap {
       // 2. Setup all module-specific side effects (runs once per page load)
       addScriptBreadcrumb({ scriptName: 'AppBootstrap', operation: 'initConsentSideEffects' })
       initConsentSideEffects()
-
-      addScriptBreadcrumb({ scriptName: 'AppBootstrap', operation: 'initStateSideEffects' })
-      initStateSideEffects()
     } catch (error: unknown) {
       const scriptError = new ClientScriptError(error)
       throw scriptError

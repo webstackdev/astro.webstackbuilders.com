@@ -30,9 +30,8 @@ export {
 export {
   type VisibilityState,
   $visibility,
-  $isConsentBannerVisible,
-  showConsentBanner,
   hideConsentBanner,
+  showConsentBanner,
   toggleConsentBanner,
 } from './visibility'
 
@@ -51,19 +50,18 @@ export {
 
 // Re-export Mastodon instances
 export {
-  $mastodonInstances,
-  $currentMastodonInstance,
-  saveMastodonInstance,
-  removeMastodonInstance,
   clearMastodonInstances,
+  mastodonDataConsentRevokeListener,
+  removeMastodonInstance,
+  saveMastodonInstance,
 } from './mastodonInstances'
 
 // Re-export social embeds
 export {
-  $embedCache,
   cacheEmbed,
   clearEmbedCache,
+  getCachedEmbed,
+  socialEmbedDataConsentRevokeListener,
   type EmbedCacheEntry,
   type EmbedCacheState,
-  getCachedEmbed,
 } from './socialEmbeds'

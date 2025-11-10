@@ -1,11 +1,9 @@
 /**
  * Consent modal visibility state
  */
-import {
-  $isConsentBannerVisible,
+export {
   showConsentBanner,
   hideConsentBanner,
   toggleConsentBanner,
+  isConsentBannerVisible,
 } from '@components/scripts/store'
-
-export { $isConsentBannerVisible, showConsentBanner, hideConsentBanner, toggleConsentBanner }

@@ -10,6 +10,7 @@
  * - GDPR Recital 30: Technical storage necessary for technical delivery
  */
 import { persistentAtom } from '@nanostores/persistent'
+import { $hasFunctionalConsent } from './consent'
 
 // ============================================================================
 // TYPES
@@ -90,4 +91,20 @@ export function getCachedEmbed(key: string): unknown | null {
  */
 export function clearEmbedCache(): void {
   $embedCache.set({})
+}
+
+// ============================================================================
+// SIDE EFFECTS
+// ============================================================================
+
+/**
+ * Initialize side effect to clear Mastodon data when functional consent is revoked
+ * Call this once during app initialization
+ */
+export function socialEmbedDataConsentRevokeListener(): void {
+  $hasFunctionalConsent.subscribe((hasConsent) => {
+    if (!hasConsent) {
+      clearEmbedCache()
+    }
+  })
 }

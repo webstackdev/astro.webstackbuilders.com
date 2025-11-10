@@ -5,6 +5,7 @@ import { computed } from 'nanostores'
 import { persistentAtom } from '@nanostores/persistent'
 import { getCookie, setCookie } from '@components/scripts/utils/cookies'
 import { handleScriptError } from '@components/scripts/errors'
+import { $isConsentBannerVisible } from '@components/scripts/store/visibility'
 
 // ============================================================================
 // TYPES
@@ -33,6 +34,7 @@ export interface ConsentState {
  * (Mastodon instance preferences which can identify users). Theme and social cache
  * are classified as 'necessary' and handled separately without requiring consent.
  */
+// @TODO: $consent.get() - should subscribe instead
 export const $consent = persistentAtom<ConsentState>('cookieConsent', {
   analytics: false,
   marketing: false,
@@ -75,33 +77,6 @@ export const $hasAnyConsent = computed($consent, (consent) => {
 // ============================================================================
 
 /**
- * Initialize consent state from cookies on page load
- * Called once during app initialization from bootstrap
- */
-export function initConsentFromCookies(): void {
-  try {
-    const consent: ConsentState = {
-      analytics: getCookie('consent_analytics') === 'true',
-      marketing: getCookie('consent_marketing') === 'true',
-      functional: getCookie('consent_functional') === 'true',
-    }
-
-    $consent.set(consent)
-  } catch (error) {
-    handleScriptError(error, {
-      scriptName: 'cookieConsent',
-      operation: 'initConsentFromCookies',
-    })
-    // Set safe defaults if cookie reading fails
-    $consent.set({
-      analytics: false,
-      marketing: false,
-      functional: false,
-    })
-  }
-}
-
-/**
  * Update consent for specific category
  * Automatically updates both store AND cookie
  */
@@ -142,4 +117,52 @@ export function revokeAllConsent(): void {
   updateConsent('analytics', false)
   updateConsent('marketing', false)
   updateConsent('functional', false)
+}
+
+// ============================================================================
+// SIDE EFFECTS
+// ============================================================================
+
+/**
+ * Initialize consent state from cookies on page load
+ * Called once during app initialization from bootstrap
+ */
+export function initConsentFromCookies(): void {
+  try {
+    const consent: ConsentState = {
+      analytics: getCookie('consent_analytics') === 'true',
+      marketing: getCookie('consent_marketing') === 'true',
+      functional: getCookie('consent_functional') === 'true',
+    }
+
+    $consent.set(consent)
+  } catch (error) {
+    handleScriptError(error, {
+      scriptName: 'cookieConsent',
+      operation: 'initConsentFromCookies',
+    })
+    // Set safe defaults if cookie reading fails
+    $consent.set({
+      analytics: false,
+      marketing: false,
+      functional: false,
+    })
+  }
+}
+
+export function initConsentSideEffects(): void {
+  // Side Effect 1: Show/hide cookie modal
+  $isConsentBannerVisible.subscribe((visible) => {
+    try {
+      const modal = document.getElementById('consent-modal-id')
+      if (modal) {
+        modal.style.display = visible ? 'flex' : 'none'
+      }
+    } catch (error) {
+      handleScriptError(error, {
+        scriptName: 'cookieConsent',
+        operation: 'modalVisibility',
+      })
+    }
+  })
 }
