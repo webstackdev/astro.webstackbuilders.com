@@ -1,5 +1,5 @@
 /**
- * State tests for cookie consent modal visibility
+ * State tests for consent modal visibility
  * Now uses centralized state store from Scripts/state
  */
 // @vitest-environment happy-dom

@@ -73,17 +73,17 @@ test.describe('Keyboard Navigation', () => {
     await page.goto('/contact')
 
     // Dismiss cookie modal if it's open (common in test environments)
-    const cookieModalVisible = await page.page.evaluate(() => {
-      const modal = document.getElementById('cookie-modal-id')
+    const consentModalVisible = await page.page.evaluate(() => {
+      const modal = document.getElementById('consent-modal-id')
       return modal ? window.getComputedStyle(modal).display !== 'none' : false
     })
 
-    if (cookieModalVisible) {
+    if (consentModalVisible) {
       // Click the "Allow All" button to dismiss the modal
-      await page.page.click('.cookie-modal__btn-allow')
+      await page.page.click('.consent-modal__btn-allow')
       // Wait for modal to close and main content to be restored
       await page.page.waitForFunction(() => {
-        const modal = document.getElementById('cookie-modal-id')
+        const modal = document.getElementById('consent-modal-id')
         const main = document.getElementById('main-content')
         return modal && window.getComputedStyle(modal).display === 'none' &&
                main && !main.hasAttribute('inert')

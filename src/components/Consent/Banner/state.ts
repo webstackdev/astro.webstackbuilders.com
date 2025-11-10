@@ -1,5 +1,5 @@
 /**
- * Cookie modal visibility state
+ * Consent modal visibility state
  */
 import {
   $isConsentBannerVisible,

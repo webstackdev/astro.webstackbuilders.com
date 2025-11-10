@@ -65,9 +65,9 @@ describe('ConsentCustomize', () => {
 
     it('should initialize without errors when DOM elements exist', () => {
       // Create actual DOM elements
-      const mockModal = mockDiv('cookie-customize-modal-id')
-      const mockCloseBtn = mockButton('cookie-modal__close-btn')
-      mockCloseBtn.classList.add('cookie-modal__close-btn')
+      const mockModal = mockDiv('consent-modal-modal-id')
+      const mockCloseBtn = mockButton('consent-modal__close-btn')
+      mockCloseBtn.classList.add('consent-modal__close-btn')
       const mockAllowBtn = mockButton('consent-allow-all')
       const mockSaveBtn = mockButton('consent-save-preferences')
 
@@ -97,9 +97,9 @@ describe('ConsentCustomize', () => {
     let mockSaveBtn: HTMLButtonElement
 
     beforeEach(() => {
-      mockModal = mockDiv('cookie-customize-modal-id')
-      mockCloseBtn = mockButton('cookie-modal__close-btn')
-      mockCloseBtn.classList.add('cookie-modal__close-btn')
+      mockModal = mockDiv('consent-modal-modal-id')
+      mockCloseBtn = mockButton('consent-modal__close-btn')
+      mockCloseBtn.classList.add('consent-modal__close-btn')
       mockAllowBtn = mockButton('consent-allow-all')
       mockSaveBtn = mockButton('consent-save-preferences')
 

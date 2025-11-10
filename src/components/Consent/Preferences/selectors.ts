@@ -6,9 +6,9 @@ import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
 
 export const SELECTORS = {
   /** Consent customize modal wrapper */
-  modal: 'cookie-customize-modal-id',
+  modal: 'consent-modal-modal-id',
   /** Close button for modal */
-  closeBtn: '.cookie-modal__close-btn',
+  closeBtn: '.consent-modal__close-btn',
   /** Allow all consent button */
   allowAllBtn: 'consent-allow-all',
   /** Save preferences button */

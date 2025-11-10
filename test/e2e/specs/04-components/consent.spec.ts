@@ -25,13 +25,13 @@ test.describe('Cookie Consent Banner', () => {
 
   test('@ready cookie banner displays on first visit', async ({ page }) => {
     // Expected: Cookie consent banner should appear for first-time visitors
-    const cookieBanner = page.locator('#cookie-modal-id')
+    const cookieBanner = page.locator('#consent-modal-id')
     await expect(cookieBanner).toBeVisible()
   })
 
   test('@ready cookie banner has accept button', async ({ page }) => {
     // Expected: Banner should have "Allow All" button
-    const cookieBanner = page.locator('#cookie-modal-id')
+    const cookieBanner = page.locator('#consent-modal-id')
     const acceptButton = cookieBanner.locator('button:has-text("Allow All")')
 
     await expect(acceptButton).toBeVisible()
@@ -39,7 +39,7 @@ test.describe('Cookie Consent Banner', () => {
 
   test('@ready cookie banner has customize link', async ({ page }) => {
     // Expected: Banner should have "Customize" link
-    const cookieBanner = page.locator('#cookie-modal-id')
+    const cookieBanner = page.locator('#consent-modal-id')
     const customizeLink = cookieBanner.getByRole('link', { name: 'Customize' })
 
     await expect(customizeLink).toBeVisible()
@@ -48,7 +48,7 @@ test.describe('Cookie Consent Banner', () => {
 
   test('@ready clicking allow all hides banner', async ({ page }) => {
     // Expected: Banner should disappear after accepting
-    const cookieBanner = page.locator('#cookie-modal-id')
+    const cookieBanner = page.locator('#consent-modal-id')
     const acceptButton = cookieBanner.locator('button:has-text("Allow All")')
 
     await acceptButton.click()
@@ -59,7 +59,7 @@ test.describe('Cookie Consent Banner', () => {
 
   test('@ready accept choice persists across page reloads', async ({ page }) => {
     // Expected: After accepting, banner should not reappear
-    const cookieBanner = page.locator('#cookie-modal-id')
+    const cookieBanner = page.locator('#consent-modal-id')
     const acceptButton = cookieBanner.locator('button:has-text("Allow All")')
 
     await acceptButton.click()
@@ -73,7 +73,7 @@ test.describe('Cookie Consent Banner', () => {
 
   test('@ready accept choice persists across navigation', async ({ page }) => {
     // Expected: After accepting, banner should not appear on other pages
-    const cookieBanner = page.locator('#cookie-modal-id')
+    const cookieBanner = page.locator('#consent-modal-id')
     const acceptButton = cookieBanner.locator('button:has-text("Allow All")')
 
     await acceptButton.click()
@@ -87,7 +87,7 @@ test.describe('Cookie Consent Banner', () => {
 
   test('@ready banner contains privacy policy link', async ({ page }) => {
     // Expected: Banner should link to privacy/cookie policy
-    const cookieBanner = page.locator('#cookie-modal-id')
+    const cookieBanner = page.locator('#consent-modal-id')
     const policyLink = cookieBanner.locator('a[href*="privacy"], a[href*="cookie"]')
 
     await expect(policyLink.first()).toBeVisible()
@@ -95,7 +95,7 @@ test.describe('Cookie Consent Banner', () => {
 
   test('@ready banner is accessible via keyboard', async ({ page }) => {
     // Expected: Can navigate and interact with keyboard
-    const cookieBanner = page.locator('#cookie-modal-id')
+    const cookieBanner = page.locator('#consent-modal-id')
     await expect(cookieBanner).toBeVisible()
 
     // Tab to first interactive element (close button)
@@ -114,7 +114,7 @@ test.describe('Cookie Consent Banner', () => {
 
   test('@ready banner has proper ARIA attributes', async ({ page }) => {
     // Expected: Banner should be accessible with proper roles
-    const cookieBanner = page.locator('#cookie-modal-id')
+    const cookieBanner = page.locator('#consent-modal-id')
 
     const role = await cookieBanner.getAttribute('role')
     const ariaLabel = await cookieBanner.getAttribute('aria-label')

@@ -75,7 +75,7 @@ export class BasePage {
 
       // Force hide the modal
       await this._page.evaluate(() => {
-        const modal = document.getElementById('cookie-modal-id')
+        const modal = document.getElementById('consent-modal-id')
         if (modal) {
           modal.style.display = 'none'
         }
@@ -465,7 +465,7 @@ export class BasePage {
    */
   async expectCookiesContactForm(): Promise<void> {
     await this.waitForPageComplete()
-    await expect(this._page.locator('#cookie-modal-id')).toBeVisible()
+    await expect(this._page.locator('#consent-modal-id')).toBeVisible()
   }
 
   /**
@@ -477,15 +477,15 @@ export class BasePage {
    * // Continue with test that requires clicking on page elements
    */
   async clearCookieDialog(): Promise<void> {
-    const cookieDialog = this._page.locator('#cookie-modal-id')
+    const cookieDialog = this._page.locator('#consent-modal-id')
 
     // Check if cookie dialog is visible
     if (await cookieDialog.isVisible()) {
       // Click "Allow All" button to dismiss the dialog
-      await this._page.click('.cookie-modal__btn-allow')
+      await this._page.click('.consent-modal__btn-allow')
 
       // Wait for the dialog to be hidden
-      await this._page.waitForSelector('#cookie-modal-id', { state: 'hidden' })
+      await this._page.waitForSelector('#consent-modal-id', { state: 'hidden' })
     }
   }
 

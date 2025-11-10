@@ -58,10 +58,12 @@ export class ComponentPersistencePage extends BasePage {
         location: msg.location().url,
       })
 
-      // Print to test output for real-time debugging
-      console.log(`[${type}] ${text}`)
-      if (args.length > 0 && args.join('') !== text) {
-        console.log(`  Args: ${args.join(', ')}`)
+      // Only print errors and warnings for real-time debugging
+      if (type === 'error' || type === 'warning') {
+        console.log(`[${type}] ${text}`)
+        if (args.length > 0 && args.join('') !== text) {
+          console.log(`  Args: ${args.join(', ')}`)
+        }
       }
     })
   }
