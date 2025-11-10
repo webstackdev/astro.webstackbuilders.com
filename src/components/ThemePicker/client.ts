@@ -5,8 +5,14 @@
  */
 
 import { LitElement } from 'lit'
-import { StoreController } from '@nanostores/lit'
-import { $theme, $themePickerOpen, setTheme, type ThemeId } from '@components/scripts/store'
+import {
+  setTheme,
+  toggleThemePicker,
+  closeThemePicker,
+  createThemeController,
+  createThemePickerOpenController,
+  type ThemeId,
+} from '@components/scripts/store'
 import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
 import { addButtonEventListeners } from '@components/scripts/elementListeners'
 import {
@@ -22,19 +28,6 @@ export const CLASSES = {
 }
 
 /**
- * Interface for global meta colors object
- */
-interface MetaColors {
-  [key: string]: string
-}
-
-declare global {
-  interface Window {
-    metaColors?: MetaColors
-  }
-}
-
-/**
  * ThemePicker Custom Element (Lit-based)
  * Uses Light DOM (no Shadow DOM) with Astro-rendered templates
  * Lit provides reactive store integration via StoreController
@@ -46,8 +39,8 @@ export class ThemePickerElement extends LitElement {
   }
 
   // Reactive store bindings - Lit auto-updates when these change
-  private themeStore = new StoreController(this, $theme)
-  private themePickerOpenStore = new StoreController(this, $themePickerOpen)
+  private themeStore = createThemeController(this)
+  private themePickerOpenStore = createThemePickerOpenController(this)
 
   // Cache DOM elements
   private pickerModal!: HTMLDivElement
@@ -326,8 +319,8 @@ export class ThemePickerElement extends LitElement {
       // Set flag to indicate we're toggling via button, not document listener
       this.isTogglingViaButton = true
 
-      // Update state
-      $themePickerOpen.set(!this.themePickerOpenStore.value)
+      // Update state using action function
+      toggleThemePicker()
 
       // Clear flag after a delay to allow document listeners to see it
       setTimeout(() => {
@@ -346,7 +339,7 @@ export class ThemePickerElement extends LitElement {
     addScriptBreadcrumb(context)
 
     try {
-      $themePickerOpen.set(false)
+      closeThemePicker()
       this.toggleBtn.focus()
     } catch (error) {
       handleScriptError(error, context)

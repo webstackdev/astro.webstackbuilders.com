@@ -1,12 +1,6 @@
 import { captureException } from '@sentry/browser'
 import { ClientScriptError } from './ClientScriptError'
 
-declare global {
-  interface Window {
-    _throw: boolean
-  }
-}
-
 export interface ScriptErrorContext {
   scriptName: string
   operation?: string

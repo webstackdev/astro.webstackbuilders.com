@@ -23,11 +23,9 @@ class HeadThemeSetup {
 
     // Initialize metaColors on window if it doesn't exist
     if (typeof window !== 'undefined') {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ;(window as any).metaColors = (window as any).metaColors || {}
+      window.metaColors = window.metaColors || {}
       themes.forEach(theme => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ;(window as any).metaColors[theme.id] = theme.colors.backgroundOffset
+        window.metaColors![theme.id] = theme.colors.backgroundOffset
       })
     }
   }
