@@ -6,12 +6,11 @@
 import { describe, expect, beforeEach, test } from 'vitest'
 import { AppBootstrap } from '@components/scripts/bootstrap'
 import {
-  $isConsentBannerVisible,
   showConsentBanner,
   hideConsentBanner,
   toggleConsentBanner,
+  isConsentBannerVisible,
 } from '@components/Consent/Banner/state'
-import { $visibility } from '@components/scripts/store'
 
 describe(`Cookie modal visibility using state store`, () => {
   beforeEach(() => {
@@ -23,42 +22,36 @@ describe(`Cookie modal visibility using state store`, () => {
 
   test(`returns false from state store by default`, () => {
     // State store initializes with false
-    expect($isConsentBannerVisible.get()).toBe(false)
+    expect(isConsentBannerVisible()).toBe(false)
   })
 
   test(`returns true from state store when set to true`, () => {
     showConsentBanner()
-    expect($isConsentBannerVisible.get()).toBe(true)
+    expect(isConsentBannerVisible()).toBe(true)
   })
 
   test(`returns false from state store when set to false`, () => {
     showConsentBanner()
     hideConsentBanner()
-    expect($isConsentBannerVisible.get()).toBe(false)
+    expect(isConsentBannerVisible()).toBe(false)
   })
 
   test(`sets state store value`, () => {
     showConsentBanner()
-    expect($isConsentBannerVisible.get()).toBe(true)
+    expect(isConsentBannerVisible()).toBe(true)
   })
 
   test(`initializes state store to true`, () => {
     showConsentBanner()
-    expect($isConsentBannerVisible.get()).toBe(true)
-  })
-
-  test(`state is managed by centralized store`, () => {
-    // Verify we're using the Nanostore computed store
-    expect($isConsentBannerVisible.get).toBeDefined()
-    expect($visibility.get).toBeDefined()
+    expect(isConsentBannerVisible()).toBe(true)
   })
 
   test(`toggleConsentBanner changes visibility state`, () => {
-    expect($isConsentBannerVisible.get()).toBe(false)
+    expect(isConsentBannerVisible()).toBe(false)
     toggleConsentBanner()
-    expect($isConsentBannerVisible.get()).toBe(true)
+    expect(isConsentBannerVisible()).toBe(true)
     toggleConsentBanner()
-    expect($isConsentBannerVisible.get()).toBe(false)
+    expect(isConsentBannerVisible()).toBe(false)
   })
 })
 

@@ -108,3 +108,10 @@ export function toggleConsentBanner(): void {
     })
   }
 }
+
+/**
+ * Get consent banner visibility state
+ */
+export function isConsentBannerVisible(): boolean {
+  return $isConsentBannerVisible.get()
+}

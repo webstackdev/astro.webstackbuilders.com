@@ -93,6 +93,22 @@ export function clearEmbedCache(): void {
   $embedCache.set({})
 }
 
+/**
+ * Get the full embed cache state
+ * Used for testing and debugging
+ */
+export function getEmbedCacheState(): EmbedCacheState {
+  return $embedCache.get()
+}
+
+/**
+ * Set the full embed cache state
+ * Used for testing and seeding cache
+ */
+export function setEmbedCacheState(state: EmbedCacheState): void {
+  $embedCache.set(state)
+}
+
 // ============================================================================
 // SIDE EFFECTS
 // ============================================================================

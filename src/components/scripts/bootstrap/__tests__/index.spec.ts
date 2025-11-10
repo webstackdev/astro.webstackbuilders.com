@@ -11,34 +11,11 @@ import { addScriptBreadcrumb } from '@components/scripts/errors'
 // Mock the store initialization functions
 vi.mock('@components/scripts/store', () => ({
   initConsentFromCookies: vi.fn(),
+  initConsentSideEffects: vi.fn(),
+  addViewTransitionThemeInitListener: vi.fn(),
   $hasFunctionalConsent: {
     subscribe: vi.fn(),
   },
-}))
-
-// Mock store modules that are imported by bootstrap
-vi.mock('@components/scripts/bootstrap/consent', () => ({
-  initConsentSideEffects: vi.fn(),
-  initStateSideEffects: vi.fn(),
-}))
-
-vi.mock('@components/scripts/store/themes', () => ({
-  initThemeSystem: vi.fn(),
-  $theme: {
-    get: vi.fn(() => 'light'),
-    set: vi.fn(),
-    subscribe: vi.fn(),
-  },
-  $themePickerOpen: {
-    get: vi.fn(() => false),
-    set: vi.fn(),
-    subscribe: vi.fn(),
-  },
-  setTheme: vi.fn(),
-}))
-
-vi.mock('@components/scripts/store/socialEmbeds', () => ({
-  clearEmbedCache: vi.fn(),
 }))
 
 // Mock Sentry breadcrumb function
@@ -48,9 +25,11 @@ vi.mock('@components/scripts/errors', () => ({
 }))
 
 // Import the mocked functions after setting up mocks
-import { initConsentFromCookies } from '@components/scripts/store'
-import { initConsentSideEffects, initStateSideEffects } from '@components/scripts/bootstrap/consent'
-import { initThemeSystem } from '@components/scripts/store/themes'
+import {
+  initConsentFromCookies,
+  initConsentSideEffects,
+  addViewTransitionThemeInitListener,
+} from '@components/scripts/store'
 
 describe('AppBootstrap', () => {
   beforeEach(() => {
@@ -58,25 +37,22 @@ describe('AppBootstrap', () => {
   })
 
   describe('Successful initialization', () => {
-    it('should call initConsentFromCookies and initialize side effects', () => {
+    it('should call addViewTransitionThemeInitListener, initConsentFromCookies and initialize side effects', () => {
+      vi.mocked(addViewTransitionThemeInitListener).mockReturnValue(undefined)
       vi.mocked(initConsentFromCookies).mockReturnValue(undefined)
       vi.mocked(initConsentSideEffects).mockReturnValue(undefined)
-      vi.mocked(initThemeSystem).mockReturnValue(undefined)
-      vi.mocked(initStateSideEffects).mockReturnValue(undefined)
 
       AppBootstrap.init()
 
+      expect(addViewTransitionThemeInitListener).toHaveBeenCalledTimes(1)
       expect(initConsentFromCookies).toHaveBeenCalledTimes(1)
       expect(initConsentSideEffects).toHaveBeenCalledTimes(1)
-      expect(initThemeSystem).toHaveBeenCalledTimes(1)
-      expect(initStateSideEffects).toHaveBeenCalledTimes(1)
     })
 
     it('should add breadcrumbs for successful initialization', () => {
+      vi.mocked(addViewTransitionThemeInitListener).mockReturnValue(undefined)
       vi.mocked(initConsentFromCookies).mockReturnValue(undefined)
       vi.mocked(initConsentSideEffects).mockReturnValue(undefined)
-      vi.mocked(initThemeSystem).mockReturnValue(undefined)
-      vi.mocked(initStateSideEffects).mockReturnValue(undefined)
 
       AppBootstrap.init()
 
@@ -86,27 +62,22 @@ describe('AppBootstrap', () => {
       })
       expect(addScriptBreadcrumb).toHaveBeenCalledWith({
         scriptName: 'AppBootstrap',
+        operation: 'addViewTransitionThemeInitListener'
+      })
+      expect(addScriptBreadcrumb).toHaveBeenCalledWith({
+        scriptName: 'AppBootstrap',
         operation: 'initConsentFromCookies'
       })
       expect(addScriptBreadcrumb).toHaveBeenCalledWith({
         scriptName: 'AppBootstrap',
         operation: 'initConsentSideEffects'
       })
-      expect(addScriptBreadcrumb).toHaveBeenCalledWith({
-        scriptName: 'AppBootstrap',
-        operation: 'initThemeSystem'
-      })
-      expect(addScriptBreadcrumb).toHaveBeenCalledWith({
-        scriptName: 'AppBootstrap',
-        operation: 'initStateSideEffects'
-      })
     })
 
     it('should not throw error when initialization succeeds', () => {
+      vi.mocked(addViewTransitionThemeInitListener).mockReturnValue(undefined)
       vi.mocked(initConsentFromCookies).mockReturnValue(undefined)
       vi.mocked(initConsentSideEffects).mockReturnValue(undefined)
-      vi.mocked(initThemeSystem).mockReturnValue(undefined)
-      vi.mocked(initStateSideEffects).mockReturnValue(undefined)
 
       expect(() => AppBootstrap.init()).not.toThrow()
     })
@@ -124,6 +95,7 @@ describe('AppBootstrap', () => {
     })
 
     it('should add breadcrumb before throwing error', () => {
+      vi.mocked(addViewTransitionThemeInitListener).mockReturnValue(undefined)
       const testError = new Error('Cookie initialization failed')
       vi.mocked(initConsentFromCookies).mockImplementation(() => {
         throw testError
@@ -141,17 +113,20 @@ describe('AppBootstrap', () => {
       })
       expect(addScriptBreadcrumb).toHaveBeenCalledWith({
         scriptName: 'AppBootstrap',
+        operation: 'addViewTransitionThemeInitListener'
+      })
+      expect(addScriptBreadcrumb).toHaveBeenCalledWith({
+        scriptName: 'AppBootstrap',
         operation: 'initConsentFromCookies'
       })
     })
 
     it('should not call side effects when initConsentFromCookies fails', () => {
+      vi.mocked(addViewTransitionThemeInitListener).mockReturnValue(undefined)
       vi.mocked(initConsentFromCookies).mockImplementation(() => {
         throw new Error('Cookie initialization failed')
       })
       vi.mocked(initConsentSideEffects).mockReturnValue(undefined)
-      vi.mocked(initThemeSystem).mockReturnValue(undefined)
-      vi.mocked(initStateSideEffects).mockReturnValue(undefined)
 
       try {
         AppBootstrap.init()
@@ -160,11 +135,10 @@ describe('AppBootstrap', () => {
       }
 
       expect(initConsentSideEffects).not.toHaveBeenCalled()
-      expect(initThemeSystem).not.toHaveBeenCalled()
-      expect(initStateSideEffects).not.toHaveBeenCalled()
     })
 
     it('should wrap non-Error objects in ClientScriptError', () => {
+      vi.mocked(addViewTransitionThemeInitListener).mockReturnValue(undefined)
       vi.mocked(initConsentFromCookies).mockImplementation(() => {
         throw 'String error'
       })
@@ -181,18 +155,16 @@ describe('AppBootstrap', () => {
 
   describe('Integration scenarios', () => {
     it('should successfully initialize on repeated calls', () => {
+      vi.mocked(addViewTransitionThemeInitListener).mockReturnValue(undefined)
       vi.mocked(initConsentFromCookies).mockReturnValue(undefined)
       vi.mocked(initConsentSideEffects).mockReturnValue(undefined)
-      vi.mocked(initThemeSystem).mockReturnValue(undefined)
-      vi.mocked(initStateSideEffects).mockReturnValue(undefined)
 
       AppBootstrap.init()
       AppBootstrap.init()
 
+      expect(addViewTransitionThemeInitListener).toHaveBeenCalledTimes(2)
       expect(initConsentFromCookies).toHaveBeenCalledTimes(2)
       expect(initConsentSideEffects).toHaveBeenCalledTimes(2)
-      expect(initThemeSystem).toHaveBeenCalledTimes(2)
-      expect(initStateSideEffects).toHaveBeenCalledTimes(2)
     })
   })
 })

@@ -29,10 +29,10 @@ export {
 // Re-export visibility
 export {
   type VisibilityState,
-  $visibility,
   hideConsentBanner,
   showConsentBanner,
   toggleConsentBanner,
+  isConsentBannerVisible,
 } from './visibility'
 
 // Re-export themes
@@ -61,6 +61,8 @@ export {
   cacheEmbed,
   clearEmbedCache,
   getCachedEmbed,
+  getEmbedCacheState,
+  setEmbedCacheState,
   socialEmbedDataConsentRevokeListener,
   type EmbedCacheEntry,
   type EmbedCacheState,
