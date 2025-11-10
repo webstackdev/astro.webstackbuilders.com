@@ -15,6 +15,10 @@ Axe accessibility (2) - axe-core integration
 
 \[color:var\(--color-(.*?)\)\]
 
+## Search
+
+Add Upstash Search as a Vercel Marketplace Integration. 
+
 ## !!! IMPORTANT !!!
 
 We need to update all tests to use Astro's View Transitions navigate() method instead of Playwright's goto() method. Navigate will trigger Astro events, while goto does full page reloads.

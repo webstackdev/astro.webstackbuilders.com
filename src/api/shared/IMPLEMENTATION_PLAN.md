@@ -913,6 +913,12 @@ All API endpoints are defined in the src/pages/api directory. These are deployed
 See above on Newsletter API endpoint.
 
 4. **Upstash Setup**: Do we have Upstash Redis configured? Need credentials for rate limiting.
+
+There is a project already setup. All relevant API keys and links are in the .env file in the roof of the project:
+
+UPSTASH_REDIS_REST_URL
+UPSTASH_REDIS_REST_TOKEN
+
 5. **Production Supabase**: Do we have a production Supabase project? Or create new?
 
 There is a project already setup. All relevant API keys and links are in the .env file in the roof of the project:
