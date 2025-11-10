@@ -10,7 +10,7 @@ import { validate as isValidUUID } from 'uuid'
  * Consent record stored in audit trail
  */
 export interface ConsentRecord {
-  id: string // UUID - Unique identifier for this consent instance
+  DataSubjectId: string // UUID - Unique identifier for this consent instance
   email?: string // Optional - not applicable for client-side consent events
   purposes: Array<'contact' | 'marketing' | 'analytics' | 'downloads'>
   timestamp: string // ISO 8601
@@ -48,7 +48,7 @@ export async function recordConsent(data: {
   }
 
   const record: ConsentRecord = {
-    id: data.id,
+    DataSubjectId: data.id,
     ...(data.email && { email: data.email.toLowerCase().trim() }),
     purposes: data.purposes,
     timestamp: new Date().toISOString(),
@@ -66,7 +66,7 @@ export async function recordConsent(data: {
   // In production: Save to database
   // await db.consentLogs.insert(record)
 
-  console.log(`✅ Consent recorded: ${record.id}`)
+  console.log(`✅ Consent recorded: ${record.DataSubjectId}`)
   if (record.email) {
     console.log(`   Email: ${record.email}`)
   }
@@ -158,7 +158,7 @@ export async function exportUserConsentData(email: string): Promise<string> {
     exportDate: new Date().toISOString(),
     recordCount: records.length,
     consentRecords: records.map((record) => ({
-      id: record.id,
+      DataSubjectId: record.DataSubjectId,
       purposes: record.purposes,
       timestamp: record.timestamp,
       source: record.source,
