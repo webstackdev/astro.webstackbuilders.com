@@ -5,9 +5,12 @@
  */
 import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
-import { initConsentFromCookies } from '@components/scripts/store'
-import { initConsentSideEffects, initStateSideEffects } from '@components/scripts/bootstrap/consent'
-import { initThemeSystem } from '@components/scripts/store/themes'
+import {
+  addViewTransitionThemeInitListener,
+  initConsentFromCookies,
+  initConsentSideEffects,
+} from '@components/scripts/store'
+import { initStateSideEffects } from '@components/scripts/bootstrap/consent'
 import { SentryBootstrap } from '@components/scripts/sentry/client'
 import { PUBLIC_SENTRY_DSN } from 'astro:env/client'
 
@@ -23,20 +26,17 @@ export class AppBootstrap {
         console.info('🔧 Sentry disabled in development mode')
       }
 
-      // 1. Initialize consent from cookies first
-      // This must happen before side effects because side effects may depend on consent state
+      // 1. Add event listener to set theme on Astro View Transitions API page navigation
+      addScriptBreadcrumb({ scriptName: 'AppBootstrap', operation: 'addViewTransitionThemeInitListener' })
+      addViewTransitionThemeInitListener()
+
+      // 2. Initialize consent from cookies
       addScriptBreadcrumb({ scriptName: 'AppBootstrap', operation: 'initConsentFromCookies' })
       initConsentFromCookies()
 
       // 2. Setup all module-specific side effects (runs once per page load)
-      // Note: persistentAtom stores auto-load from localStorage on import
-      // But we need to sync cookies -> localStorage for consent
       addScriptBreadcrumb({ scriptName: 'AppBootstrap', operation: 'initConsentSideEffects' })
       initConsentSideEffects()
-
-      // 3. Initialize theme system - synchronizes DOM, localStorage, and store state
-      addScriptBreadcrumb({ scriptName: 'AppBootstrap', operation: 'initThemeSystem' })
-      initThemeSystem()
 
       addScriptBreadcrumb({ scriptName: 'AppBootstrap', operation: 'initStateSideEffects' })
       initStateSideEffects()
