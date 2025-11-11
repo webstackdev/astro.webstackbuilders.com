@@ -90,7 +90,7 @@ The privacy policy version is automatically determined at build time by the `Pri
 ### 0.4 Create Directory Structure
 
 ```bash
-mkdir -p src/api/@types
+mkdir -p src/pages/api/@types
 mkdir -p src/pages/api/gdpr
 mkdir -p src/pages/api/newsletter
 mkdir -p src/pages/api/cron
@@ -891,6 +891,21 @@ Use Postman/Thunder Client or create test file for each endpoint.
 ---
 
 ## Phase 10: Testing
+
+### 10.0 Verify unit tests
+
+src/components/CallToAction/Newsletter/__tests__/client.spec.ts
+
+src/components/scripts/consent/db/__tests__/rls.spec.ts
+
+src/pages/api/newsletter/__tests__/_confirm.spec.ts
+src/pages/api/newsletter/__tests__/_index.spec.ts
+
+src/components/GDPR/Consent/__tests__/state.spec.ts
+
+src/lib/helpers/__tests__/dataSubjectId.spec.ts
+
+src/pages/api/contact/__tests__/_index.spec.ts
 
 ### 10.1 Email Testing with Mailpit
 

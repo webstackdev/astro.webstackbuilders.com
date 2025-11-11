@@ -17,6 +17,10 @@ Axe accessibility (2) - axe-core integration
 
 Add Upstash Search as a Vercel Marketplace Integration.
 
+## Email Templates
+
+Right now we're using string literals to define HTML email templates for site mails. We should use Nunjucks with the rule-checking for valid CSS in HTML emails like we have in the corporate email footer repo.
+
 ## !!! IMPORTANT !!!
 
 We need to update all tests to use Astro's View Transitions navigate() method instead of Playwright's goto() method. Navigate will trigger Astro events, while goto does full page reloads.
