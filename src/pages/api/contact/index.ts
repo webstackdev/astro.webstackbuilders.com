@@ -6,7 +6,8 @@
  */
 import type { APIRoute } from 'astro'
 import { Resend } from 'resend'
-import { recordConsent } from '@api/shared/consent-log'
+import { v4 as uuidv4 } from 'uuid'
+import { isValidUUID } from '@lib/helpers/uuid'
 
 export const prerender = false // Force SSR for this endpoint
 
@@ -17,6 +18,7 @@ interface ContactFormData {
 	phone?: string
 	message: string
 	consent?: boolean
+	DataSubjectId?: string // Optional - will be generated if not provided
 	service?: string
 	budget?: string
 	timeline?: string
@@ -378,14 +380,42 @@ export const POST: APIRoute = async ({ request }) => {
 
 		// Record GDPR consent (optional for contact form)
 		if (formData.consent) {
-			await recordConsent({
-				email: formData.email,
-				purposes: ['contact'],
-				source: 'contact_form',
-				userAgent,
-				...(ip !== 'unknown' && { ipAddress: ip }),
-				verified: true,
+			// Generate or validate DataSubjectId
+			let subjectId = formData.DataSubjectId
+			if (!subjectId) {
+				subjectId = uuidv4()
+			} else if (!isValidUUID(subjectId)) {
+				return new Response(
+					JSON.stringify({
+						success: false,
+						error: 'Invalid DataSubjectId format',
+					}),
+					{
+						status: 400,
+						headers: { 'Content-Type': 'application/json' },
+					},
+				)
+			}
+
+			// Record consent via new GDPR API
+			const consentResponse = await fetch(`${new URL(request.url).origin}/api/gdpr/consent`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					DataSubjectId: subjectId,
+					email: formData.email,
+					purposes: ['contact'],
+					source: 'contact_form',
+					userAgent,
+					...(ip !== 'unknown' && { ipAddress: ip }),
+					verified: true, // Contact form consent is immediately verified
+				}),
 			})
+
+			if (!consentResponse.ok) {
+				console.error('Failed to record consent:', await consentResponse.json())
+				// Continue anyway - don't block form submission on consent logging failure
+			}
 		}
 
 		// Generate email content

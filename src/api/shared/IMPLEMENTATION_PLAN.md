@@ -1137,33 +1137,60 @@ The system now provides a complete GDPR-compliant data access and deletion workf
 
 ✅ POST /api/newsletter - Updated to:
 
-Accept optional DataSubjectId from client (generates UUID if not provided)
-Validate DataSubjectId format
-Create unverified consent record via the new /api/gdpr/consent API
-Store pending subscription in Supabase newsletter_confirmations table with DataSubjectId
-Maintain backward compatibility with in-memory storage
+- Accept optional DataSubjectId from client (generates UUID if not provided)
+- Validate DataSubjectId format
+- Create unverified consent record via the new /api/gdpr/consent API
+- Store pending subscription in Supabase newsletter_confirmations table with DataSubjectId
+- Maintain backward compatibility with in-memory storage
 
 ✅ _token.ts - Updated to:
 
-Include DataSubjectId in PendingSubscription interface
-Store pending subscriptions in Supabase instead of just memory
-Retrieve subscriptions from Supabase in validateToken()
-Mark subscriptions as confirmed in Supabase via confirmSubscription()
-Fallback to in-memory storage for backward compatibility
+- Include DataSubjectId in PendingSubscription interface
+- Store pending subscriptions in Supabase instead of just memory
+- Retrieve subscriptions from Supabase in validateToken()
+- Mark subscriptions as confirmed in Supabase via confirmSubscription()
+- Fallback to in-memory storage for backward compatibility
 
 ✅ GET /api/newsletter/confirm - Updated to:
 
-Remove old recordConsent dependency
-Mark consent records as verified: true in Supabase after email confirmation
-Update consent records matching email, DataSubjectId, and marketing purpose
-Maintain existing ConvertKit and welcome email functionality
+- Remove old recordConsent dependency
+- Mark consent records as verified: true in Supabase after email confirmation
+- Update consent records matching email, DataSubjectId, and marketing purpose
+- Maintain existing ConvertKit and welcome email functionality
 
 Key Features:
 
-Full integration with new Supabase-based consent system
-Proper double opt-in: unverified consent → email confirmation → verified consent
-DataSubjectId tracking throughout the newsletter flow
-Database persistence for all pending subscriptions
-GDPR-compliant audit trail in consent_records and newsletter_confirmations tables
+- Full integration with new Supabase-based consent system
+- Proper double opt-in: unverified consent → email confirmation → verified consent
+- DataSubjectId tracking throughout the newsletter flow
+- Database persistence for all pending subscriptions
+- GDPR-compliant audit trail in consent_records and newsletter_confirmations tables
 
 Note: Web component conversion (Phase 6.3) is deferred per the implementation plan - we'll handle it when actively modifying newsletter components.
+
+**Phase 7: Form Integration** - Complete ✅
+
+✅ Updated POST /api/contact endpoint:
+
+Added DataSubjectId field to ContactFormData interface (optional)
+Removed dependency on old recordConsent function
+Added UUID validation and generation logic
+Integrated with new /api/gdpr/consent API for consent recording
+Contact form consent is marked as verified: true (no double opt-in needed)
+Graceful error handling - form submission continues even if consent logging fails
+Maintains all existing functionality (email sending, file attachments, etc.)
+
+✅ Deferred Items (per implementation plan):
+
+7.1: Contact Form web component conversion - deferred until actively modifying
+7.2: GDPR Consent component conversion - deferred until actively modifying
+
+Key Features:
+
+Full integration with Supabase-based consent system
+DataSubjectId tracking for contact form submissions
+Backward compatible - generates UUID if client doesn't provide one
+Non-blocking consent logging - form submission succeeds even if consent API fails
+Immediate verification for contact form consent (no email confirmation needed)
+
+**Phase 8: Cron Jobs**
