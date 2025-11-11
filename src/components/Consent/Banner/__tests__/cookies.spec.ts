@@ -61,15 +61,22 @@ describe(`Consent cookies handlers work`, () => {
   })
 
   test(`removes all consent cookies completely`, () => {
-    // With commonSetup, we have clean state
     setAllConsentCookies()
     expect(document.cookie).toBeTruthy()
+    expect(document.cookie).toMatch(`consent_analytics=true`)
+    expect(document.cookie).toMatch(`consent_marketing=true`)
+    expect(document.cookie).toMatch(`consent_functional=true`)
 
     removeConsentCookies()
 
-    // The removeConsentCookies function removes cookies, but they may be coming back
-    // from persistent storage. This test may need to also clear localStorage.
-    // For now, just verify the function was called without error
-    expect(true).toBe(true) // Placeholder until we understand the persistence behavior
+    // Verify all consent cookies are removed
+    expect(document.cookie).not.toMatch(`consent_analytics`)
+    expect(document.cookie).not.toMatch(`consent_marketing`)
+    expect(document.cookie).not.toMatch(`consent_functional`)
+
+    // Use cookie utilities to double-check
+    expect(getCookie('consent_analytics')).toBeUndefined()
+    expect(getCookie('consent_marketing')).toBeUndefined()
+    expect(getCookie('consent_functional')).toBeUndefined()
   })
 })
