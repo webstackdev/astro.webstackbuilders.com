@@ -12,7 +12,6 @@ import {
   allowAllConsent,
   revokeAllConsent,
 } from '@components/scripts/store/consent'
-import * as cookieUtils from '@components/scripts/utils/cookies'
 
 // Mock js-cookie
 vi.mock('js-cookie', () => ({
@@ -23,6 +22,17 @@ vi.mock('js-cookie', () => ({
   },
 }))
 
+// Mock utils/cookies
+vi.mock('@components/scripts/utils/cookies', () => ({
+  getCookie: vi.fn(),
+  setCookie: vi.fn(),
+  removeCookie: vi.fn(),
+  getAllCookies: vi.fn(),
+}))
+
+// Import mocked functions for spying
+import { getCookie, setCookie } from '@components/scripts/utils/cookies'
+
 describe('Cookie Consent Management', () => {
   beforeEach(() => {
     // Reset stores to default state
@@ -30,6 +40,7 @@ describe('Cookie Consent Management', () => {
       analytics: false,
       marketing: false,
       functional: false,
+      DataSubjectId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', // Valid UUID format
     })
 
     // Clear mocks
@@ -53,8 +64,7 @@ describe('Cookie Consent Management', () => {
     })
 
     it('should initialize consent from cookies', () => {
-      const getCookieSpy = vi.spyOn(cookieUtils, 'getCookie')
-      getCookieSpy.mockImplementation((name: string) => {
+      vi.mocked(getCookie).mockImplementation((name: string) => {
         if (name === 'consent_analytics') return 'true'
         if (name === 'consent_functional') return 'true'
         return undefined
@@ -69,13 +79,11 @@ describe('Cookie Consent Management', () => {
     })
 
     it('should update consent and set cookie', () => {
-      const setCookieSpy = vi.spyOn(cookieUtils, 'setCookie')
-
       updateConsent('analytics', true)
 
       const consent = $consent.get()
       expect(consent.analytics).toBe(true)
-      expect(setCookieSpy).toHaveBeenCalledWith(
+      expect(setCookie).toHaveBeenCalledWith(
         'consent_analytics',
         'true',
         expect.objectContaining({ expires: 365, sameSite: 'strict' })
@@ -86,15 +94,13 @@ describe('Cookie Consent Management', () => {
     // This will be implemented during the consent system refactor
 
     it('should allow all consent categories', () => {
-      const setCookieSpy = vi.spyOn(cookieUtils, 'setCookie')
-
       allowAllConsent()
 
       const consent = $consent.get()
       expect(consent.analytics).toBe(true)
       expect(consent.marketing).toBe(true)
       expect(consent.functional).toBe(true)
-      expect(setCookieSpy).toHaveBeenCalledTimes(3) // 3 categories
+      expect(setCookie).toHaveBeenCalledTimes(3) // 3 categories
     })
 
     it('should revoke all consent', () => {

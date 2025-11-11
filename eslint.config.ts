@@ -6,9 +6,9 @@ import securityPlugin from 'eslint-plugin-security'
 import ymlPlugin from 'eslint-plugin-yml'
 import tsPlugin from 'typescript-eslint'
 import restrictedGlobals from 'confusing-browser-globals'
-import enforceCentralizedEventsRule from './test/eslint/enforce-centralized-events-rule.ts'
-import noHtmlElementAssertionsRule from './test/eslint/no-html-element-assertions-rule.ts'
-import noQuerySelectorOutsideSelectorsRule from './test/eslint/no-query-selector-outside-selectors-rule.ts'
+import enforceCentralizedEventsRule from './test/eslint/enforce-centralized-events-rule'
+import noHtmlElementAssertionsRule from './test/eslint/no-html-element-assertions-rule'
+import noQuerySelectorOutsideSelectorsRule from './test/eslint/no-query-selector-outside-selectors-rule'
 
 const level = 'error'
 
@@ -138,6 +138,11 @@ export default [
               {
                 group: ['../*'],
                 message: 'Usage of relative imports is not allowed. Please use path aliases.',
+              },
+              {
+                group: ['*'],
+                importNames: ['*'],
+                message: 'Wildcard imports are not allowed. Please use named imports instead.',
               },
             ],
           },
