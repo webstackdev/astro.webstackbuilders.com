@@ -30,14 +30,14 @@ npm install -D @types/uuid @types/nodemailer
 ### 0.2 Initialize Supabase
 
 ```bash
-# Install Supabase CLI globally
-npm install -g supabase
+# Install Supabase CLI
+npm install -D supabase
 
 # Initialize in project (creates supabase/ directory)
-supabase init
+npx supabase init
 
 # Start local Supabase with Docker
-supabase start
+npx supabase start
 ```
 
 **Output will show:**
@@ -52,24 +52,29 @@ supabase start
 Create/update `.env`:
 
 ```bash
-# Supabase (from supabase start output)
-PUBLIC_SUPABASE_URL=http://localhost:54321  # Production: https://your-project.supabase.co
-PUBLIC_SUPABASE_ANON_KEY=eyJhbGci...         # Safe to expose (public)
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGci...        # NEVER add PUBLIC_ prefix!
+# Supabase Local (from npx supabase start output)
+PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+PUBLIC_SUPABASE_KEY=sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH
+SUPABASE_SERVICE_ROLE_KEY=sb_secret_N7UND0UgjKTVK-Uodkm0Hg_xSvEMPvz  # NEVER add PUBLIC_ prefix!
 
-# Privacy Policy
-PUBLIC_PRIVACY_POLICY_VERSION=2024-11-10
+# Supabase Production (from your production project)
+# PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+# PUBLIC_SUPABASE_KEY=eyJhbGci...
+# SUPABASE_SERVICE_ROLE_KEY=eyJhbGci...
 
-# Email Testing (Ethereal)
-ETHEREAL_USER=your-username@ethereal.email
-ETHEREAL_PASS=your-password
+# Email Testing (use Supabase Mailpit - see Phase 10.1)
+# ETHEREAL_USER=your-username@ethereal.email
+# ETHEREAL_PASS=your-password
 
 # Vercel Cron Jobs
 CRON_SECRET=  # Generate with: openssl rand -base64 32
 
 # Upstash (for rate limiting)
-UPSTASH_REDIS_REST_URL=
-UPSTASH_REDIS_REST_TOKEN=
+KV_URL=
+KV_REST_API_UR=
+KV_REST_API_TOKEN=
+KV_REST_API_READ_ONLY_TOKEN=
+REDIS_URL=
 ```
 
 **Generate CRON_SECRET:**
@@ -77,6 +82,10 @@ UPSTASH_REDIS_REST_TOKEN=
 ```bash
 openssl rand -base64 32
 ```
+
+**Privacy Policy Version:**
+
+The privacy policy version is automatically determined at build time by the `PrivacyPolicyVersion` Astro integration (`src/integrations/PrivacyPolicyVersion/index.ts`). It uses the git commit date of the privacy policy file and is available as `import.meta.env.PUBLIC_PRIVACY_POLICY_VERSION`. No manual configuration needed.
 
 ### 0.4 Create Directory Structure
 
@@ -259,7 +268,7 @@ export const supabaseAdmin = createClient(
 // Public client (client-side, respects RLS)
 export const supabasePublic = createClient(
   supabaseUrl,
-  import.meta.env.PUBLIC_SUPABASE_ANON_KEY!
+  import.meta.env.PUBLIC_SUPABASE_KEY!
 )
 ```
 
@@ -881,9 +890,36 @@ Use Postman/Thunder Client or create test file for each endpoint.
 
 ## Phase 10: Testing
 
-### 10.1 Setup Ethereal Email
+### 10.1 Email Testing with Mailpit
 
-### 10.2 E2E Tests
+Supabase local development includes **Mailpit** for email testing (no Ethereal needed):
+
+- **Mailpit URL**: `http://127.0.0.1:54324`
+- All emails sent from local Supabase are captured in Mailpit
+- Access the web UI to view sent emails, test links, etc.
+- No additional configuration required
+
+### 10.2 Setup Docker Environments for Local Testing
+
+**Supabase** (already configured in Phase 0.2):
+
+```bash
+supabase start  # Runs PostgreSQL + Studio locally
+```
+
+**Official Redis Docker image combined with a proxy like Serverless Redis HTTP (SRH)**
+
+Achieve a similar local development environment to Upstash Redis:
+
+- Which proxy to use (e.g., @upstash/redis-http-proxy or similar)
+- Docker compose configuration
+- How to point UPSTASH_REDIS_REST_URL to local proxy
+
+### 10.3 E2E Tests
+
+- What aspects to test (consent flow, form submissions, DSAR requests)
+- Whether to use Playwright (already configured in your project)
+- How to handle DataSubjectId in tests (use test engine from nanostores)
 
 ---
 
@@ -909,19 +945,21 @@ All API endpoints are defined in the src/pages/api directory. These are deployed
 
 3. **Contact Form API**: Current implementation? Does it exist?
 
-
 See above on Newsletter API endpoint.
 
 4. **Upstash Setup**: Do we have Upstash Redis configured? Need credentials for rate limiting.
 
-There is a project already setup. All relevant API keys and links are in the .env file in the roof of the project:
+There is a project already setup. It is the Upstash Redis Marketplace Integration for Vercel. I have installed the @upstash/redis SDK. All relevant API keys and links are in the .env file in the roof of the project:
 
-UPSTASH_REDIS_REST_URL
-UPSTASH_REDIS_REST_TOKEN
+KV_URL
+KV_REST_API_UR
+KV_REST_API_TOKEN
+KV_REST_API_READ_ONLY_TOKEN
+REDIS_URL
 
 5. **Production Supabase**: Do we have a production Supabase project? Or create new?
 
-There is a project already setup. All relevant API keys and links are in the .env file in the roof of the project:
+There is a project already setup. I have installed the @supabase/supabase-js SDK. All relevant API keys and links are in the .env file in the roof of the project:
 
 // Password to the database, not sure if we need.
 SUPRABASE_DATABASE_PASSWORD
@@ -952,7 +990,13 @@ SUPABASE_SERVICE_ROLE_KEY
    - Email is optional, added on form submission
    - Two-record pattern for newsletter: unverified (no email) → verified (with email)
 
-4. **Testing Strategy**:
+4. **Privacy Policy Version**:
+   - Automatically generated at build time from git commit date
+   - Handled by `PrivacyPolicyVersion` integration (`src/integrations/PrivacyPolicyVersion/index.ts`)
+   - Available as `import.meta.env.PUBLIC_PRIVACY_POLICY_VERSION`
+   - No manual configuration needed
+
+5. **Testing Strategy**:
    - Use nanostore test API (`useTestStorageEngine`) for localStorage tests
-   - Use Ethereal for email testing (free, no limits)
+   - Use Mailpit (included with Supabase) for email testing at `http://127.0.0.1:54324`
    - Test RLS policies thoroughly before moving forward
