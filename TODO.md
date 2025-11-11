@@ -13,11 +13,9 @@ Lighthouse audits (6) - Integration pending
 Newsletter double opt-in (6) - Email testing infrastructure
 Axe accessibility (2) - axe-core integration
 
-\[color:var\(--color-(.*?)\)\]
-
 ## Search
 
-Add Upstash Search as a Vercel Marketplace Integration. 
+Add Upstash Search as a Vercel Marketplace Integration.
 
 ## !!! IMPORTANT !!!
 

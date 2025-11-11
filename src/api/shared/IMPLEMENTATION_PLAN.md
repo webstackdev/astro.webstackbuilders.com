@@ -94,8 +94,8 @@ mkdir -p src/api/@types
 mkdir -p src/pages/api/gdpr
 mkdir -p src/pages/api/newsletter
 mkdir -p src/pages/api/cron
+mkdir -p src/pages/api/_utils
 mkdir -p src/components/scripts/consent/db
-mkdir -p src/components/scripts/consent/rateLimit
 mkdir -p test/helpers
 ```
 
@@ -499,15 +499,15 @@ it('deletes DataSubjectId from storage', () => {
 
 ### 3.1 Create Rate Limiter
 
-**File:** `src/lib/rateLimit/index.ts`
+**File:** `src/pages/api/_utils/rateLimit.ts`
 
 ```typescript
 import { Ratelimit } from '@upstash/ratelimit'
 import { Redis } from '@upstash/redis'
 
 const redis = new Redis({
-  url: import.meta.env.UPSTASH_REDIS_REST_URL!,
-  token: import.meta.env.UPSTASH_REDIS_REST_TOKEN!
+  url: import.meta.env['KV_REST_API_URL'] as string,
+  token: import.meta.env['KV_REST_API_TOKEN'] as string,
 })
 
 export const rateLimiters = {

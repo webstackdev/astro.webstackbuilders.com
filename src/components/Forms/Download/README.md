@@ -236,22 +236,6 @@ await sgMail.send({
 })
 ```
 
-## Styling
-
-The form uses CSS custom properties for theming:
-
-```css
---color-bg                /* Form background */
---color-text              /* Primary text color */
---color-text-offset       /* Secondary text color */
---color-border            /* Border color */
---color-primary           /* Primary action color */
---color-success-bg        /* Success message background */
---color-success-text      /* Success message text */
---color-error-bg          /* Error message background */
---color-error-text        /* Error message text */
-```
-
 ## Analytics
 
 Track form interactions by adding event listeners:
