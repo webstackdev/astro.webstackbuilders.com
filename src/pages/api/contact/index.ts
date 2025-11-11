@@ -6,8 +6,7 @@
  */
 import type { APIRoute } from 'astro'
 import { Resend } from 'resend'
-import { v4 as uuidv4 } from 'uuid'
-import { isValidUUID } from '@lib/helpers/uuid'
+import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
 
 export const prerender = false // Force SSR for this endpoint
 
@@ -384,7 +383,7 @@ export const POST: APIRoute = async ({ request }) => {
 			let subjectId = formData.DataSubjectId
 			if (!subjectId) {
 				subjectId = uuidv4()
-			} else if (!isValidUUID(subjectId)) {
+			} else if (!uuidValidate(subjectId)) {
 				return new Response(
 					JSON.stringify({
 						success: false,

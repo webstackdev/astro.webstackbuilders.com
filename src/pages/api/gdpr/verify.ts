@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro'
 import { supabaseAdmin } from '@components/scripts/consent/db/supabase'
 import { rateLimiters, checkRateLimit } from '@pages/api/_utils/rateLimit'
-import type { ErrorResponse } from '@api/@types/gdpr'
+import type { ErrorResponse } from '@pages/api/_utils/gdpr-types'
 
 /**
  * GET /api/gdpr/verify?token=xxx

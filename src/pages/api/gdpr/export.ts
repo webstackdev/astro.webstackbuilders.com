@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro'
 import { supabaseAdmin } from '@components/scripts/consent/db/supabase'
 import { rateLimiters, checkRateLimit } from '@pages/api/_utils/rateLimit'
-import { isValidUUID } from '@lib/helpers/uuid'
+import { validate as uuidValidate } from 'uuid'
 
 export const GET: APIRoute = async ({ clientAddress, url }) => {
   const { success, reset } = await checkRateLimit(rateLimiters.export, clientAddress)
@@ -21,7 +21,7 @@ export const GET: APIRoute = async ({ clientAddress, url }) => {
 
   const DataSubjectId = url.searchParams.get('DataSubjectId')
 
-  if (!DataSubjectId || !isValidUUID(DataSubjectId)) {
+  if (!DataSubjectId || !uuidValidate(DataSubjectId)) {
     return new Response('Invalid DataSubjectId', { status: 400 })
   }
 

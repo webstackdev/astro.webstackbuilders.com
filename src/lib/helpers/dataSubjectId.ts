@@ -1,17 +1,16 @@
-import { v4 as uuidv4 } from 'uuid'
-import { isValidUUID } from './uuid'
+import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
 
 export function getOrCreateDataSubjectId(): string {
   // Try localStorage first
   const storedId = localStorage.getItem('DataSubjectId')
-  if (storedId && isValidUUID(storedId)) {
+  if (storedId && uuidValidate(storedId)) {
     syncToCookie(storedId)
     return storedId
   }
 
   // Try cookie as backup
   const cookieId = getCookieValue('DataSubjectId')
-  if (cookieId && isValidUUID(cookieId)) {
+  if (cookieId && uuidValidate(cookieId)) {
     localStorage.setItem('DataSubjectId', cookieId)
     return cookieId
   }

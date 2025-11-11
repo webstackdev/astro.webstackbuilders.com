@@ -1,8 +1,8 @@
 import type { APIRoute } from 'astro'
 import { supabaseAdmin } from '@components/scripts/consent/db/supabase'
 import { rateLimiters, checkRateLimit } from '@pages/api/_utils/rateLimit'
-import { isValidUUID } from '@lib/helpers/uuid'
-import type { ConsentRequest, ConsentResponse, ErrorResponse } from '@api/@types/gdpr'
+import { validate as uuidValidate } from 'uuid'
+import type { ConsentRequest, ConsentResponse, ErrorResponse } from '@pages/api/_utils/gdpr-types'
 
 export const POST: APIRoute = async ({ request, clientAddress }) => {
   // Rate limiting
@@ -28,7 +28,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     const body: ConsentRequest = await request.json()
 
     // Validate DataSubjectId
-    if (!isValidUUID(body.DataSubjectId)) {
+    if (!uuidValidate(body.DataSubjectId)) {
       return new Response(JSON.stringify({
         success: false,
         error: { code: 'INVALID_UUID', message: 'Invalid DataSubjectId' }
@@ -107,7 +107,7 @@ export const GET: APIRoute = async ({ clientAddress, url }) => {
   const DataSubjectId = url.searchParams.get('DataSubjectId')
   const purpose = url.searchParams.get('purpose')
 
-  if (!DataSubjectId || !isValidUUID(DataSubjectId)) {
+  if (!DataSubjectId || !uuidValidate(DataSubjectId)) {
     return new Response(JSON.stringify({
       success: false,
       error: { code: 'INVALID_UUID', message: 'Valid DataSubjectId required' }
@@ -184,7 +184,7 @@ export const DELETE: APIRoute = async ({ clientAddress, url }) => {
 
   const DataSubjectId = url.searchParams.get('DataSubjectId')
 
-  if (!DataSubjectId || !isValidUUID(DataSubjectId)) {
+  if (!DataSubjectId || !uuidValidate(DataSubjectId)) {
     return new Response(JSON.stringify({
       success: false,
       error: { code: 'INVALID_UUID', message: 'Valid DataSubjectId required' }
