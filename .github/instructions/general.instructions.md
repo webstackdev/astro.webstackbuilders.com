@@ -19,6 +19,24 @@ applyTo: "**"
 - Always create TypeScript files, not JavaScript files.
 - Prefer destructured imports over namespace imports when importing specific functions from modules (e.g., `import { resolve } from 'path'` instead of `import * as path from 'path'`).
 
+# Code Organization and Directory Structure
+
+## src/lib Directory Restrictions
+- **The src/lib directory is for server-side build code ONLY**
+- NO client-side code can go in src/lib (it gets bundled into server-side builds)
+- Client-side utilities should go in src/components/scripts/ or appropriate component directories
+
+## API Code Organization
+- **API endpoints** go in `src/pages/api/`
+- **Code files related to API endpoints** go in `src/pages/api/` and are prefixed with `_` (e.g., `_utils/`, `_contracts/`)
+- **API utility files** go specifically in the `_utils/` folder
+- **API contract/type files** go in `_contracts/` folder for centralized type definitions
+
+## Mixed Concern Files
+- Files that straddle server-side API and client-side concerns (like API client wrappers) require clarification
+- **Ask before placing such files** - they may need special handling or alternative organization
+- Example: gdpr.client.ts (API client wrapper) - unclear placement due to mixed server/client concerns
+
 # Astro View Transitions Navigation
 
 Components may have behavior dependent on Astro View Transitions navigation events. Choose the appropriate navigation method:
