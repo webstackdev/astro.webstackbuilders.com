@@ -31,7 +31,27 @@ export interface ConsentResponse {
 export interface ErrorResponse {
   success: false
   error: {
-    code: 'INVALID_UUID' | 'RATE_LIMIT_EXCEEDED' | 'NOT_FOUND' | 'UNAUTHORIZED'
+    code: 'INVALID_UUID' | 'RATE_LIMIT_EXCEEDED' | 'NOT_FOUND' | 'UNAUTHORIZED' | 'INVALID_REQUEST'
     message: string
   }
+}
+
+export interface DSARRequest {
+  id: string
+  token: string
+  email: string
+  requestType: 'ACCESS' | 'DELETE'
+  expiresAt: string
+  fulfilledAt?: string
+  createdAt: string
+}
+
+export interface DSARRequestInput {
+  email: string
+  requestType: 'ACCESS' | 'DELETE'
+}
+
+export interface DSARResponse {
+  success: true
+  message: string
 }
