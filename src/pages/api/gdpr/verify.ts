@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro'
 import { supabaseAdmin } from '@components/scripts/consent/db/supabase'
 import { rateLimiters, checkRateLimit } from '@pages/api/_utils/rateLimit'
-import type { ErrorResponse } from '@pages/api/_utils/gdpr-types'
+import type { DSARRequest, ErrorResponse } from '@pages/api/_contracts/gdpr.contracts'
 
 /**
  * GET /api/gdpr/verify?token=xxx
@@ -41,28 +41,39 @@ export const GET: APIRoute = async ({ url, clientAddress, redirect }) => {
 
   try {
     // Find the DSAR request
-    const { data: dsarRequest, error: fetchError } = await supabaseAdmin
+    const { data: dsarRequestData, error: fetchError } = await supabaseAdmin
       .from('dsar_requests')
       .select('*')
       .eq('token', token)
       .single()
 
-    if (fetchError || !dsarRequest) {
+    if (fetchError || !dsarRequestData) {
       return redirect('/privacy/my-data?status=invalid')
     }
 
+    // Type the DSAR request data properly
+    const dsarRequest: DSARRequest = {
+      id: dsarRequestData.id,
+      token: dsarRequestData.token,
+      email: dsarRequestData.email,
+      requestType: dsarRequestData.request_type,
+      expiresAt: dsarRequestData.expires_at,
+      fulfilledAt: dsarRequestData.fulfilled_at,
+      createdAt: dsarRequestData.created_at,
+    }
+
     // Check if already fulfilled
-    if (dsarRequest.fulfilled_at) {
+    if (dsarRequest.fulfilledAt) {
       return redirect('/privacy/my-data?status=already-completed')
     }
 
     // Check if expired
-    if (new Date(dsarRequest.expires_at) < new Date()) {
+    if (new Date(dsarRequest.expiresAt) < new Date()) {
       return redirect('/privacy/my-data?status=expired')
     }
 
     const email = dsarRequest.email
-    const requestType = dsarRequest.request_type
+    const requestType = dsarRequest.requestType
 
     if (requestType === 'ACCESS') {
       // Export all consent data for this email
@@ -80,7 +91,7 @@ export const GET: APIRoute = async ({ url, clientAddress, redirect }) => {
       // Return data as JSON download
       const exportData = {
         email,
-        requestDate: dsarRequest.created_at,
+        requestDate: dsarRequest.createdAt,
         consentRecords: consentRecords?.map(({ ip_address: _ip, ...record }) => record) || []
       }
 

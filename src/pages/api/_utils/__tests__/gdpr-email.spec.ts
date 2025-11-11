@@ -1,36 +1,34 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { sendDSARVerificationEmail } from '@pages/api/_utils/gdpr-email'
 
+// Create mock send function at module level
+const mockSend = vi.fn()
+
 // Mock the Resend module
 vi.mock('resend', () => {
-  const mockSend = vi.fn()
   return {
-    Resend: vi.fn().mockImplementation(() => ({
-      emails: {
-        send: mockSend,
-      },
-    })),
+    Resend: vi.fn(function ResendMock(_apiKey) {
+      return {
+        emails: {
+          send: mockSend,
+        },
+      }
+    }),
   }
 })
 
 describe('GDPR Email Utils', () => {
-  let mockResendSend: ReturnType<typeof vi.fn>
   let originalEnv: Record<string, string | undefined>
   let consoleLogSpy: ReturnType<typeof vi.fn>
   let consoleErrorSpy: ReturnType<typeof vi.fn>
 
-  beforeEach(async () => {
+  beforeEach(() => {
     // Store original env
     originalEnv = { ...process.env }
 
     // Mock console methods
     consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-
-    // Get the mock function from the mocked Resend class
-    const { Resend } = await import('resend')
-    const resendInstance = new Resend('test-key')
-    mockResendSend = resendInstance.emails.send as ReturnType<typeof vi.fn>
 
     // Reset all mocks
     vi.clearAllMocks()
@@ -58,7 +56,7 @@ describe('GDPR Email Utils', () => {
             requestType: 'ACCESS',
           }
         )
-        expect(mockResendSend).not.toHaveBeenCalled()
+        expect(mockSend).not.toHaveBeenCalled()
       })
 
       it('should log email details instead of sending in test mode', async () => {
@@ -74,7 +72,7 @@ describe('GDPR Email Utils', () => {
             requestType: 'DELETE',
           }
         )
-        expect(mockResendSend).not.toHaveBeenCalled()
+        expect(mockSend).not.toHaveBeenCalled()
       })
 
       it('should log email details instead of sending in CI mode', async () => {
@@ -91,7 +89,7 @@ describe('GDPR Email Utils', () => {
             requestType: 'ACCESS',
           }
         )
-        expect(mockResendSend).not.toHaveBeenCalled()
+        expect(mockSend).not.toHaveBeenCalled()
       })
     })
 
@@ -104,15 +102,15 @@ describe('GDPR Email Utils', () => {
       })
 
       it('should send ACCESS verification email successfully', async () => {
-        mockResendSend.mockResolvedValue({
+        mockSend.mockResolvedValue({
           data: { id: 'message-id-123' },
           error: null,
         })
 
         await sendDSARVerificationEmail('user@example.com', 'verification-token-123', 'ACCESS')
 
-        expect(mockResendSend).toHaveBeenCalledTimes(1)
-        const callArgs = mockResendSend.mock.calls[0]?.[0]
+        expect(mockSend).toHaveBeenCalledTimes(1)
+        const callArgs = mockSend.mock.calls[0]?.[0]
         expect(callArgs).toBeDefined()
 
         expect(callArgs!.from).toBe('Webstack Builders <privacy@webstackbuilders.com>')
@@ -138,15 +136,15 @@ describe('GDPR Email Utils', () => {
       })
 
       it('should send DELETE verification email successfully with warning', async () => {
-        mockResendSend.mockResolvedValue({
+        mockSend.mockResolvedValue({
           data: { id: 'message-id-456' },
           error: null,
         })
 
         await sendDSARVerificationEmail('user@example.com', 'delete-token-456', 'DELETE')
 
-        expect(mockResendSend).toHaveBeenCalledTimes(1)
-        const callArgs = mockResendSend.mock.calls[0]?.[0]
+        expect(mockSend).toHaveBeenCalledTimes(1)
+        const callArgs = mockSend.mock.calls[0]?.[0]
         expect(callArgs).toBeDefined()
 
         expect(callArgs!.subject).toBe('Verify Your Data Deletion Request - Webstack Builders')
@@ -163,14 +161,14 @@ describe('GDPR Email Utils', () => {
 
       it('should use default localhost URL when SITE_URL is not set', async () => {
         delete process.env['SITE_URL']
-        mockResendSend.mockResolvedValue({
+        mockSend.mockResolvedValue({
           data: { id: 'message-id-789' },
           error: null,
         })
 
         await sendDSARVerificationEmail('user@example.com', 'token-789', 'ACCESS')
 
-        const callArgs = mockResendSend.mock.calls[0]?.[0]
+        const callArgs = mockSend.mock.calls[0]?.[0]
         expect(callArgs).toBeDefined()
         expect(callArgs!.html).toContain('http://localhost:4321/api/gdpr/verify?token=token-789')
         expect(callArgs!.text).toContain('http://localhost:4321/api/gdpr/verify?token=token-789')
@@ -183,11 +181,11 @@ describe('GDPR Email Utils', () => {
           sendDSARVerificationEmail('user@example.com', 'token-123', 'ACCESS')
         ).rejects.toThrow('RESEND_API_KEY environment variable is not set')
 
-        expect(mockResendSend).not.toHaveBeenCalled()
+        expect(mockSend).not.toHaveBeenCalled()
       })
 
       it('should handle Resend API error response', async () => {
-        mockResendSend.mockResolvedValue({
+        mockSend.mockResolvedValue({
           data: null,
           error: {
             message: 'Invalid API key',
@@ -210,7 +208,7 @@ describe('GDPR Email Utils', () => {
 
       it('should handle Resend API network error', async () => {
         const networkError = new Error('Network failure')
-        mockResendSend.mockRejectedValue(networkError)
+        mockSend.mockRejectedValue(networkError)
 
         await expect(
           sendDSARVerificationEmail('user@example.com', 'token-123', 'ACCESS')
@@ -224,14 +222,14 @@ describe('GDPR Email Utils', () => {
 
       it('should include current year in email content', async () => {
         const currentYear = new Date().getFullYear()
-        mockResendSend.mockResolvedValue({
+        mockSend.mockResolvedValue({
           data: { id: 'message-id-year' },
           error: null,
         })
 
         await sendDSARVerificationEmail('user@example.com', 'token-year', 'ACCESS')
 
-        const callArgs = mockResendSend.mock.calls[0]?.[0]
+        const callArgs = mockSend.mock.calls[0]?.[0]
         expect(callArgs).toBeDefined()
         expect(callArgs!.html).toContain(`© ${currentYear} Webstack Builders`)
         expect(callArgs!.text).toContain(`© ${currentYear} Webstack Builders`)
@@ -239,14 +237,14 @@ describe('GDPR Email Utils', () => {
 
       it('should generate proper verification URLs with tokens', async () => {
         process.env['SITE_URL'] = 'https://example.com'
-        mockResendSend.mockResolvedValue({
+        mockSend.mockResolvedValue({
           data: { id: 'message-id-url' },
           error: null,
         })
 
         await sendDSARVerificationEmail('user@example.com', 'special-token-123', 'DELETE')
 
-        const callArgs = mockResendSend.mock.calls[0]?.[0]
+        const callArgs = mockSend.mock.calls[0]?.[0]
         expect(callArgs).toBeDefined()
         const expectedUrl = 'https://example.com/api/gdpr/verify?token=special-token-123'
 

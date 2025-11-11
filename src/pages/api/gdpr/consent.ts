@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro'
 import { supabaseAdmin } from '@components/scripts/consent/db/supabase'
 import { rateLimiters, checkRateLimit } from '@pages/api/_utils/rateLimit'
 import { validate as uuidValidate } from 'uuid'
-import type { ConsentRequest, ConsentResponse, ErrorResponse } from '@pages/api/_utils/gdpr-types'
+import type { ConsentRequest, ConsentResponse, ErrorResponse } from '@pages/api/_contracts/gdpr.contracts'
 
 export const POST: APIRoute = async ({ request, clientAddress }) => {
   // Rate limiting

@@ -7,6 +7,7 @@
 import type { APIRoute } from 'astro'
 import { Resend } from 'resend'
 import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
+import { checkContactRateLimit } from '@pages/api/_utils/rateLimit'
 
 export const prerender = false // Force SSR for this endpoint
 
@@ -36,37 +37,6 @@ interface EmailData {
 	to: string
 	subject: string
 	html: string
-}
-
-// Simple in-memory rate limiting (use Redis in production)
-const rateLimitStore = new Map<string, number[]>()
-
-/**
- * Check if the IP address has exceeded the rate limit
- * Disabled in development and CI environments
- */
-function checkRateLimit(ip: string): boolean {
-	// Skip rate limiting in dev/test/CI environments
-	const isDevOrTest = import.meta.env.DEV || import.meta.env.MODE === 'test' || process.env['CI'] === 'true'
-	if (isDevOrTest) {
-		return true
-	}
-
-	const now = Date.now()
-	const windowMs = 15 * 60 * 1000 // 15 minutes
-	const maxRequests = 5 // Lower limit for contact form
-	const key = `contact_rate_limit_${ip}`
-	const requests = rateLimitStore.get(key) || []
-
-	const validRequests = requests.filter((timestamp) => now - timestamp < windowMs)
-
-	if (validRequests.length >= maxRequests) {
-		return false
-	}
-
-	validRequests.push(now)
-	rateLimitStore.set(key, validRequests)
-	return true
 }
 
 /**
@@ -250,7 +220,7 @@ export const POST: APIRoute = async ({ request }) => {
 		const userAgent = request.headers.get('user-agent') || 'unknown'
 
 		// Check rate limit
-		if (!checkRateLimit(ip)) {
+		if (!checkContactRateLimit(ip)) {
 			return new Response(
 				JSON.stringify({
 					success: false,

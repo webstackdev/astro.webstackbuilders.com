@@ -1,23 +1,41 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import { rateLimiters, checkRateLimit } from '@pages/api/_utils/rateLimit'
+import { rateLimiters, checkRateLimit, checkContactRateLimit } from '@pages/api/_utils/rateLimit'
 
 // Mock the Upstash Redis and Ratelimit modules
 vi.mock('@upstash/redis', () => ({
-  Redis: vi.fn().mockImplementation(() => ({})),
+  Redis: vi.fn(function RedisMock(_config) {
+    return {}
+  }),
 }))
 
-vi.mock('@upstash/ratelimit', () => ({
-  Ratelimit: vi.fn().mockImplementation((config) => ({
-    limit: vi.fn(),
-    config,
-  })),
-}))
+vi.mock('@upstash/ratelimit', () => {
+  const mockLimitFn = vi.fn()
+
+  const RatelimitConstructor = vi.fn(function RatelimitMock(config) {
+    return {
+      limit: mockLimitFn,
+      config,
+    }
+  })
+
+  // Add static methods to the constructor
+  Object.assign(RatelimitConstructor, {
+    slidingWindow: vi.fn((requests, window) => ({ requests, window })),
+    fixedWindow: vi.fn((requests, window) => ({ requests, window })),
+  })
+
+  return {
+    Ratelimit: RatelimitConstructor,
+  }
+})
 
 describe('Rate Limit Utils', () => {
   let originalEnv: Record<string, string | undefined>
+
+  // Get reference to the mock function after module initialization
   let mockLimit: ReturnType<typeof vi.fn>
 
-  beforeEach(() => {
+  beforeEach(async () => {
     // Store original env
     originalEnv = { ...import.meta.env }
 
@@ -25,8 +43,17 @@ describe('Rate Limit Utils', () => {
     import.meta.env['KV_REST_API_URL'] = 'https://test-redis.upstash.io'
     import.meta.env['KV_REST_API_TOKEN'] = 'test-token'
 
-    // Get the mocked limit function
-    mockLimit = vi.fn()
+    // Get the mock function from the created rate limiters
+    const { Ratelimit } = await import('@upstash/ratelimit')
+    const { Redis } = await import('@upstash/redis')
+    const rateLimiterInstance = new Ratelimit({
+      redis: new Redis({
+        url: 'https://test-redis.upstash.io',
+        token: 'test-token',
+      }),
+      limiter: Ratelimit.slidingWindow(1, '1 m'),
+    })
+    mockLimit = rateLimiterInstance.limit as ReturnType<typeof vi.fn>
 
     // Reset all mocks
     vi.clearAllMocks()
@@ -57,12 +84,16 @@ describe('Rate Limit Utils', () => {
       expect(rateLimiters.delete).toBeDefined()
       expect(typeof rateLimiters.delete.limit).toBe('function')
     })
+
+    it('should export contact rate limiter', () => {
+      expect(rateLimiters.contact).toBeDefined()
+      expect(typeof rateLimiters.contact.limit).toBe('function')
+    })
   })
 
   describe('checkRateLimit', () => {
     beforeEach(() => {
       // Create a mock rate limiter
-      mockLimit = vi.fn()
       const mockRateLimiter = {
         limit: mockLimit,
         config: {},
@@ -210,6 +241,105 @@ describe('Rate Limit Utils', () => {
 
       expect(result.success).toBe(true)
       expect(typeof result.reset).toBe('number')
+    })
+  })
+
+  describe('checkContactRateLimit', () => {
+    let originalEnvMode: string | undefined
+    let originalDev: boolean | undefined
+    let originalCI: string | undefined
+
+    beforeEach(() => {
+      originalEnvMode = import.meta.env.MODE
+      originalDev = import.meta.env.DEV
+      originalCI = process.env['CI']
+    })
+
+    afterEach(() => {
+      if (originalEnvMode !== undefined) {
+        import.meta.env.MODE = originalEnvMode
+      }
+      if (originalDev !== undefined) {
+        import.meta.env.DEV = originalDev
+      }
+      if (originalCI !== undefined) {
+        process.env['CI'] = originalCI
+      }
+    })
+
+    it('should return true in test environment', () => {
+      import.meta.env.MODE = 'test'
+
+      const result = checkContactRateLimit('192.168.1.1')
+      expect(result).toBe(true)
+    })
+
+    it('should return true in development environment', () => {
+      import.meta.env.DEV = true
+
+      const result = checkContactRateLimit('192.168.1.1')
+      expect(result).toBe(true)
+    })
+
+    it('should return true in CI environment', () => {
+      process.env['CI'] = 'true'
+
+      const result = checkContactRateLimit('192.168.1.1')
+      expect(result).toBe(true)
+    })
+
+    it('should allow requests under the limit in production', () => {
+      // Set production-like environment
+      import.meta.env.MODE = 'production'
+      import.meta.env.DEV = false
+      process.env['CI'] = 'false'
+
+      const ip = '192.168.1.2'
+
+      // First 5 requests should succeed
+      for (let i = 0; i < 5; i++) {
+        const result = checkContactRateLimit(ip)
+        expect(result).toBe(true)
+      }
+    })
+
+    it('should block requests over the limit in production', () => {
+      // Set production-like environment
+      import.meta.env.MODE = 'production'
+      import.meta.env.DEV = false
+      process.env['CI'] = 'false'
+
+      const ip = '192.168.1.3'
+
+      // Use up the limit (5 requests)
+      for (let i = 0; i < 5; i++) {
+        checkContactRateLimit(ip)
+      }
+
+      // 6th request should be blocked
+      const result = checkContactRateLimit(ip)
+      expect(result).toBe(false)
+    })
+
+    it('should isolate rate limits by IP address', () => {
+      // Set production-like environment
+      import.meta.env.MODE = 'production'
+      import.meta.env.DEV = false
+      process.env['CI'] = 'false'
+
+      const ip1 = '192.168.1.4'
+      const ip2 = '192.168.1.5'
+
+      // Use up limit for first IP
+      for (let i = 0; i < 5; i++) {
+        checkContactRateLimit(ip1)
+      }
+
+      // First IP should be blocked
+      expect(checkContactRateLimit(ip1)).toBe(false)
+
+      // Second IP should still work
+      expect(checkContactRateLimit(ip2)).toBe(true)
     })
   })
 })
