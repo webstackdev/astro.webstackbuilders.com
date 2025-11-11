@@ -493,5 +493,7 @@ export class ContactFormElement extends LitElement {
   }
 }
 
-// Register the custom element
-customElements.define('contact-form', ContactFormElement)
+// Register the custom element (with guard against duplicate registration)
+if (!customElements.get('contact-form')) {
+  customElements.define('contact-form', ContactFormElement)
+}
