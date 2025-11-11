@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from 'vitest'
-import { supabaseAdmin, supabasePublic } from '@lib/db/supabase'
+import { supabaseAdmin, supabasePublic } from '@components/scripts/consent/db/supabase'
 
 describe('RLS Policies', () => {
   const testDataSubjectId = '550e8400-e29b-41d4-a716-446655440000'

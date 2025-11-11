@@ -94,8 +94,8 @@ mkdir -p src/api/@types
 mkdir -p src/pages/api/gdpr
 mkdir -p src/pages/api/newsletter
 mkdir -p src/pages/api/cron
-mkdir -p src/lib/db
-mkdir -p src/lib/rateLimit
+mkdir -p src/components/scripts/consent/db
+mkdir -p src/components/scripts/consent/rateLimit
 mkdir -p test/helpers
 ```
 

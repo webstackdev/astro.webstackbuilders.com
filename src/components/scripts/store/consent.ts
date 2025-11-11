@@ -1,11 +1,12 @@
 /**
  * Cookie Consent State Management
  */
-import { computed } from 'nanostores'
+import { computed, onMount } from 'nanostores'
 import { persistentAtom } from '@nanostores/persistent'
 import { getCookie, setCookie } from '@components/scripts/utils/cookies'
 import { handleScriptError } from '@components/scripts/errors'
 import { $isConsentBannerVisible } from '@components/scripts/store/visibility'
+import { getOrCreateDataSubjectId, deleteDataSubjectId } from '@lib/helpers/dataSubjectId'
 
 // ============================================================================
 // TYPES
@@ -19,6 +20,7 @@ export interface ConsentState {
   analytics: ConsentValue
   marketing: ConsentValue
   functional: ConsentValue
+  DataSubjectId: string
 }
 
 // ============================================================================
@@ -39,6 +41,7 @@ export const $consent = persistentAtom<ConsentState>('cookieConsent', {
   analytics: false,
   marketing: false,
   functional: false,
+  DataSubjectId: '', // Will be set on first access
 }, {
   encode: JSON.stringify,
   decode: (value: string): ConsentState => {
@@ -49,9 +52,21 @@ export const $consent = persistentAtom<ConsentState>('cookieConsent', {
         analytics: false,
         marketing: false,
         functional: false,
+        DataSubjectId: '',
       }
     }
   },
+})
+
+// Initialize DataSubjectId on store mount
+onMount($consent, () => {
+  const currentState = $consent.get()
+  if (!currentState.DataSubjectId) {
+    $consent.set({
+      ...currentState,
+      DataSubjectId: getOrCreateDataSubjectId(),
+    })
+  }
 })
 
 // ============================================================================
@@ -129,10 +144,12 @@ export function revokeAllConsent(): void {
  */
 export function initConsentFromCookies(): void {
   try {
+    const currentState = $consent.get()
     const consent: ConsentState = {
       analytics: getCookie('consent_analytics') === 'true',
       marketing: getCookie('consent_marketing') === 'true',
       functional: getCookie('consent_functional') === 'true',
+      DataSubjectId: currentState.DataSubjectId || getOrCreateDataSubjectId(),
     }
 
     $consent.set(consent)
@@ -146,6 +163,7 @@ export function initConsentFromCookies(): void {
       analytics: false,
       marketing: false,
       functional: false,
+      DataSubjectId: getOrCreateDataSubjectId(),
     })
   }
 }
@@ -163,6 +181,58 @@ export function initConsentSideEffects(): void {
         scriptName: 'cookieConsent',
         operation: 'modalVisibility',
       })
+    }
+  })
+
+  // Side Effect 2: Log consent changes to API
+  $consent.subscribe(async (consentState, oldConsentState) => {
+    try {
+      // Only log if purposes changed (not on initial load)
+      if (!oldConsentState) return
+
+      // Check if any consent category actually changed
+      const categoriesChanged = ['analytics', 'marketing', 'functional'].some(
+        (category) => consentState[category as ConsentCategory] !== oldConsentState[category as ConsentCategory]
+      )
+
+      if (!categoriesChanged) return
+
+      // Collect granted purposes
+      const purposes: string[] = []
+      if (consentState.analytics) purposes.push('analytics')
+      if (consentState.marketing) purposes.push('marketing')
+      if (consentState.functional) purposes.push('functional')
+
+      await fetch('/api/gdpr/consent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          DataSubjectId: consentState.DataSubjectId,
+          purposes,
+          source: 'cookies_modal',
+          userAgent: navigator.userAgent,
+          verified: false,
+        }),
+      })
+    } catch (error) {
+      handleScriptError(error, {
+        scriptName: 'cookieConsent',
+        operation: 'logConsentToAPI',
+      })
+    }
+  })
+
+  // Side Effect 3: Delete DataSubjectId when functional consent is revoked
+  $hasFunctionalConsent.subscribe((hasConsent) => {
+    if (!hasConsent) {
+      try {
+        deleteDataSubjectId()
+      } catch (error) {
+        handleScriptError(error, {
+          scriptName: 'cookieConsent',
+          operation: 'deleteDataSubjectId',
+        })
+      }
     }
   })
 }
