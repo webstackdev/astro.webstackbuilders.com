@@ -1193,4 +1193,60 @@ Key Features:
 - Non-blocking consent logging - form submission succeeds even if consent API fails
 - Immediate verification for contact form consent (no email confirmation needed)
 
-**Phase 8: Cron Jobs**
+**Phase 8: Cron Jobs** - Complete
+
+1. /api/cron/cleanup-confirmations - Runs daily at 2 AM UTC
+
+- Deletes expired newsletter confirmation tokens
+- Removes old confirmed records (7+ days)
+- Returns count of deleted records
+
+2. /api/cron/cleanup-dsar-requests - Runs daily at 3 AM UTC
+
+- Removes fulfilled DSAR requests older than 30 days
+- Removes expired unfulfilled requests (7+ days old)
+- Returns count of deleted records
+
+3. vercel.json - Updated with cron schedules
+
+- Both endpoints secured with CRON_SECRET authorization header
+- Runs automatically on Vercel infrastructure
+
+Both endpoints include:
+
+- CRON_SECRET validation for security
+- Detailed logging of cleanup operations
+- Error handling with proper status codes
+- JSON responses with deleted counts
+
+**Phase 9: Sentry Integration** - Complete
+
+1. Client-side Sentry (client.ts):
+
+- Added import of $consent store
+- Updated sendDefaultPii to respect analytics consent
+- Enhanced beforeSend hook to scrub PII when consent is not granted:
+  - Removes IP addresses
+  - Removes user agent and request headers
+  - Clears breadcrumbs that may contain user interactions
+- Added updateConsentContext() method to track consent changes in Sentry
+
+2. Consent Store (consent.ts):
+
+- Added Side Effect 4: Subscribes to $hasAnalyticsConsent changes
+- Dynamically imports Sentry to call updateConsentContext()
+- Uses lazy loading to avoid circular dependencies
+- Includes error handling for environments where Sentry isn't initialized
+
+3. Server-side Sentry (sentry.server.config.js):
+
+- Added clarifying comment that server-side always sends PII
+- Server errors need full context as they occur in API/SSR without direct user consent
+
+How it works:
+
+- On initialization, Sentry checks current analytics consent
+- If no consent, PII is disabled and events are scrubbed
+- When user changes consent, store subscriber updates Sentry context
+- Sentry context is tagged with consent status for debugging
+- All PII scrubbing happens automatically in the beforeSend hook

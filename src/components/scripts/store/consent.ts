@@ -235,4 +235,22 @@ export function initConsentSideEffects(): void {
       }
     }
   })
+
+  // Side Effect 4: Update Sentry context when analytics consent changes
+  $hasAnalyticsConsent.subscribe((hasConsent) => {
+    try {
+      // Dynamically import to avoid circular dependencies and allow lazy loading
+      import('@components/scripts/sentry/client').then(({ SentryBootstrap }) => {
+        SentryBootstrap.updateConsentContext(hasConsent)
+      }).catch((error) => {
+        // Sentry may not be initialized in all environments
+        console.warn('Failed to update Sentry consent context:', error)
+      })
+    } catch (error) {
+      handleScriptError(error, {
+        scriptName: 'cookieConsent',
+        operation: 'updateSentryConsent',
+      })
+    }
+  })
 }
