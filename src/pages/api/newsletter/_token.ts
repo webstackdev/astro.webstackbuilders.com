@@ -3,12 +3,15 @@
  * Generates and validates confirmation tokens for GDPR-compliant newsletter signups
  */
 
+import { supabaseAdmin } from '@components/scripts/consent/db/supabase'
+
 /**
  * Pending subscription data stored temporarily until confirmed
  */
 export interface PendingSubscription {
   email: string
   firstName?: string
+  DataSubjectId: string
   token: string
   createdAt: string // ISO 8601
   expiresAt: string // ISO 8601 - 24 hours from creation
@@ -46,6 +49,7 @@ export function generateConfirmationToken(): string {
 export async function createPendingSubscription(data: {
   email: string
   firstName?: string
+  DataSubjectId: string
   userAgent: string
   ipAddress?: string
   source: 'newsletter_form' | 'contact_form'
@@ -57,6 +61,7 @@ export async function createPendingSubscription(data: {
   const pending: PendingSubscription = {
     email: data.email.toLowerCase().trim(),
     ...(data.firstName && { firstName: data.firstName.trim() }),
+    DataSubjectId: data.DataSubjectId,
     token,
     createdAt: now.toISOString(),
     expiresAt: expiresAt.toISOString(),
@@ -67,7 +72,22 @@ export async function createPendingSubscription(data: {
     source: data.source,
   }
 
-  // Store with token as key for quick lookup
+  // Store in Supabase newsletter_confirmations table
+  const { error } = await supabaseAdmin
+    .from('newsletter_confirmations')
+    .insert({
+      token,
+      email: pending.email,
+      data_subject_id: pending.DataSubjectId,
+      expires_at: expiresAt.toISOString()
+    })
+
+  if (error) {
+    console.error('Failed to create pending subscription:', error)
+    throw new Error('Failed to create subscription confirmation')
+  }
+
+  // Also keep in memory for backward compatibility (for now)
   pendingSubscriptions.set(token, pending)
 
   // Clean up expired tokens (simple garbage collection)
@@ -83,6 +103,38 @@ export async function createPendingSubscription(data: {
 export async function validateToken(
   token: string,
 ): Promise<PendingSubscription | null> {
+  // Try Supabase first
+  const { data: dbRecord } = await supabaseAdmin
+    .from('newsletter_confirmations')
+    .select('*')
+    .eq('token', token)
+    .is('confirmed_at', null) // Not yet confirmed
+    .single()
+
+  if (dbRecord) {
+    const now = new Date()
+    const expiresAt = new Date(dbRecord.expires_at)
+
+    if (now > expiresAt) {
+      // Token expired
+      return null
+    }
+
+    // Convert to PendingSubscription format
+    return {
+      email: dbRecord.email,
+      DataSubjectId: dbRecord.data_subject_id,
+      token: dbRecord.token,
+      createdAt: dbRecord.created_at,
+      expiresAt: dbRecord.expires_at,
+      consentTimestamp: dbRecord.created_at,
+      userAgent: 'unknown', // Not stored in DB
+      verified: false,
+      source: 'newsletter_form',
+    }
+  }
+
+  // Fallback to in-memory (for backward compatibility)
   const pending = pendingSubscriptions.get(token)
 
   if (!pending) {
@@ -120,10 +172,16 @@ export async function confirmSubscription(
     return null
   }
 
+  // Mark as confirmed in Supabase
+  await supabaseAdmin
+    .from('newsletter_confirmations')
+    .update({ confirmed_at: new Date().toISOString() })
+    .eq('token', token)
+
   // Mark as verified
   pending.verified = true
 
-  // Remove from pending (one-time use token)
+  // Remove from in-memory pending (one-time use token)
   pendingSubscriptions.delete(token)
 
   return pending

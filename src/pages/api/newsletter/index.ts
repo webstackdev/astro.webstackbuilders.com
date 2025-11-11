@@ -7,7 +7,8 @@
 import type { APIRoute } from 'astro'
 import { createPendingSubscription } from './_token'
 import { sendConfirmationEmail } from './_email'
-import { recordConsent } from 'src/api/shared/consent-log'
+import { v4 as uuidv4 } from 'uuid'
+import { isValidUUID } from '@lib/helpers/uuid'
 
 export const prerender = false // Force SSR for this endpoint
 
@@ -16,6 +17,7 @@ interface NewsletterFormData {
   email: string
   firstName?: string
   consentGiven?: boolean
+  DataSubjectId?: string // Optional - will be generated if not provided
 }
 
 interface ConvertKitSubscriber {
@@ -199,7 +201,7 @@ export const POST: APIRoute = async ({ request }) => {
 
 		// Parse and validate input
 		const body = (await request.json()) as NewsletterFormData
-		const { email, firstName, consentGiven } = body
+		const { email, firstName, consentGiven, DataSubjectId } = body
 		const validatedEmail = validateEmail(email)
 
 		// Validate GDPR consent
@@ -216,20 +218,58 @@ export const POST: APIRoute = async ({ request }) => {
 			)
 		}
 
-		// Record initial (unverified) consent
-		await recordConsent({
-			email: validatedEmail,
-			purposes: ['marketing'],
-			source: 'newsletter_form',
-			userAgent,
-			...(ip !== 'unknown' && { ipAddress: ip }),
-			verified: false,
+		// Generate or validate DataSubjectId
+		let subjectId = DataSubjectId
+		if (!subjectId) {
+			subjectId = uuidv4()
+		} else if (!isValidUUID(subjectId)) {
+			return new Response(
+				JSON.stringify({
+					success: false,
+					error: 'Invalid DataSubjectId format',
+				}),
+				{
+					status: 400,
+					headers: { 'Content-Type': 'application/json' },
+				},
+			)
+		}
+
+		// Record initial (unverified) consent via new GDPR API
+		const consentResponse = await fetch(`${new URL(request.url).origin}/api/gdpr/consent`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				DataSubjectId: subjectId,
+				email: validatedEmail,
+				purposes: ['marketing'],
+				source: 'newsletter_form',
+				userAgent,
+				...(ip !== 'unknown' && { ipAddress: ip }),
+				verified: false,
+			}),
 		})
+
+		if (!consentResponse.ok) {
+			const error = await consentResponse.json()
+			console.error('Failed to record consent:', error)
+			return new Response(
+				JSON.stringify({
+					success: false,
+					error: 'Failed to record consent. Please try again.',
+				}),
+				{
+					status: 500,
+					headers: { 'Content-Type': 'application/json' },
+				},
+			)
+		}
 
 		// Create pending subscription with token
 		const token = await createPendingSubscription({
 			email: validatedEmail,
 			...(firstName && { firstName }),
+			DataSubjectId: subjectId,
 			userAgent,
 			...(ip !== 'unknown' && { ipAddress: ip }),
 			source: 'newsletter_form',

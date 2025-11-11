@@ -1002,3 +1002,168 @@ SUPABASE_SERVICE_ROLE_KEY
    - Use nanostore test API (`useTestStorageEngine`) for localStorage tests
    - Use Mailpit (included with Supabase) for email testing at `http://127.0.0.1:54324`
    - Test RLS policies thoroughly before moving forward
+
+## Completion Output
+
+**Phase 0 Status:** ✅ Complete
+
+✅ 0.1: Dependencies installed (@supabase/supabase-js, uuid, @upstash/ratelimit, nodemailer)
+✅ 0.2: Supabase initialized (CLI installed, local instance running)
+✅ 0.3: Environment variables documented (Vercel Marketplace Upstash integration keys noted)
+✅ 0.4: Directory structure created
+
+**Phase 1: Database & Types** - Complete ✅
+
+Summary
+
+Created:
+
+✅ gdpr.ts - TypeScript interfaces for GDPR consent types
+✅ 001_create_consent_records.sql - Main consent tracking table
+✅ 002_create_newsletter_confirmations.sql - Newsletter double opt-in table
+✅ 003_create_dsar_requests.sql - Data Subject Access Requests table
+✅ Applied all migrations to local Supabase database
+✅ supabase.ts - Supabase client configurations (admin & public)
+✅ rls.spec.ts - RLS policy tests
+
+Database Tables Created:
+
+- consent_records - with RLS policies, indexes on data_subject_id, email, timestamp
+- newsletter_confirmations - with RLS policies, indexes on token, expiry
+- dsar_requests - with RLS policies, indexes on token, expiry
+
+**Phase 2: DataSubjectId & Consent Store** - Complete ✅
+
+Summary
+
+Created:
+
+✅ uuid.ts - UUID validation function
+✅ dataSubjectId.ts - DataSubjectId management (create, delete, cookie sync)
+✅ dataSubjectId.spec.ts - Tests for DataSubjectId persistence
+
+Updated:
+
+4. ✅ consent.ts:
+
+- Added DataSubjectId field to ConsentState interface
+- Initialize DataSubjectId on store mount with onMount()
+- Updated initConsentFromCookies() to include DataSubjectId
+- Added Side Effect 2: Log consent changes to /api/gdpr/consent API
+- Added Side Effect 3: Delete DataSubjectId when functional consent is revoked
+
+Key Features Implemented:
+
+- DataSubjectId persists to localStorage and syncs to cookie
+- Automatic generation of UUID v4 on first visit
+- Cookie includes SameSite=Strict and Secure flag in production
+- API logging of consent changes with DataSubjectId
+- DataSubjectId deletion when functional consent is revoked
+- Comprehensive test coverage
+
+Note: Phases 2.5 and 2.6 (converting Consent Modal and Preferences to web components) are marked for later as noted in the implementation plan ("Convert components AS we modify them").
+
+**Phase 3: Rate Limiting** - Complete ✅
+
+I've created rateLimit.ts with:
+
+✅ Upstash Redis configuration using correct env vars (KV_REST_API_URL, KV_REST_API_TOKEN)
+✅ Four rate limiters: consent (10/min), consentRead (30/min), export (5/min), delete (3/min)
+✅ checkRateLimit() helper function
+✅ Updated implementation plan with correct path and env variable names
+
+**Phase 4: Core GDPR API Endpoints** - Complete ✅
+
+✅ consent.ts - Complete GDPR consent API with:
+
+- `POST`: Create consent records with rate limiting (10/min)
+- `GET`: Retrieve consent records by DataSubjectId with optional purpose filtering (30/min)
+- `DELETE`: Delete all consent records for a DataSubjectId (3/min)
+
+✅ export.ts - Data export endpoint:
+
+- `GET`: Export all consent data for a DataSubjectId as downloadable JSON (5/min)
+- Removes sensitive ip_address field from export
+
+All endpoints include:
+
+- Upstash rate limiting
+- UUID validation
+- Proper error handling
+- TypeScript types
+- Supabase admin client (bypasses RLS for server-side operations)
+
+Note: The camelCase lint warnings for database column names (data_subject_id, user_agent, etc.) are expected - these match PostgreSQL's snake_case standard and follow the same pattern used in the RLS tests you reviewed earlier.
+
+**Phase 5: Email-Based DSAR Requests** - Complete ✅
+
+✅ POST /api/gdpr/request-data - Initiates DSAR requests:
+
+- Validates email format and request type (ACCESS or DELETE)
+- Creates DSAR request record with 24-hour expiration token
+- Checks for duplicate requests and resends email if needed
+- Sends verification email via Resend
+- Rate limited (5 requests/minute)
+
+✅ GET /api/gdpr/verify?token=xxx - Verifies and fulfills requests:
+
+- Validates verification token
+- Checks expiration and fulfillment status
+- For ACCESS requests: Exports all consent data as JSON download (removes sensitive IP addresses)
+- For DELETE requests: Deletes all consent_records and newsletter_confirmations for the email
+- Marks request as fulfilled
+- Redirects to status pages
+
+✅ email.ts - Email service for DSAR:
+
+- Sends verification emails using Resend
+- Different templates for ACCESS vs DELETE requests
+- Includes warnings for deletion requests
+- 24-hour expiration notice
+- Development/test mode skips actual emails
+
+✅ /privacy/my-data page - User-facing interface:
+
+- Two forms: Access My Data and Delete My Data
+- Real-time form validation
+- Status messages from URL params
+- Clear warnings for deletion
+- Checkbox confirmation for deletion
+- Responsive design with proper styling
+
+The system now provides a complete GDPR-compliant data access and deletion workflow with email verification!
+
+**Phase 6: Newsletter Double Opt-In** - Complete ✅
+
+✅ POST /api/newsletter - Updated to:
+
+Accept optional DataSubjectId from client (generates UUID if not provided)
+Validate DataSubjectId format
+Create unverified consent record via the new /api/gdpr/consent API
+Store pending subscription in Supabase newsletter_confirmations table with DataSubjectId
+Maintain backward compatibility with in-memory storage
+
+✅ _token.ts - Updated to:
+
+Include DataSubjectId in PendingSubscription interface
+Store pending subscriptions in Supabase instead of just memory
+Retrieve subscriptions from Supabase in validateToken()
+Mark subscriptions as confirmed in Supabase via confirmSubscription()
+Fallback to in-memory storage for backward compatibility
+
+✅ GET /api/newsletter/confirm - Updated to:
+
+Remove old recordConsent dependency
+Mark consent records as verified: true in Supabase after email confirmation
+Update consent records matching email, DataSubjectId, and marketing purpose
+Maintain existing ConvertKit and welcome email functionality
+
+Key Features:
+
+Full integration with new Supabase-based consent system
+Proper double opt-in: unverified consent → email confirmation → verified consent
+DataSubjectId tracking throughout the newsletter flow
+Database persistence for all pending subscriptions
+GDPR-compliant audit trail in consent_records and newsletter_confirmations tables
+
+Note: Web component conversion (Phase 6.3) is deferred per the implementation plan - we'll handle it when actively modifying newsletter components.
