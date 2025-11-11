@@ -11,3 +11,9 @@ export {
   removeCookie,
   getAllCookies,
 } from './cookies'
+
+// Re-export data subject ID utilities
+export {
+  getOrCreateDataSubjectId,
+  deleteDataSubjectId,
+} from './dataSubjectId'

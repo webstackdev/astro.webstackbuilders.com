@@ -8,7 +8,7 @@ import type { ReactiveControllerHost } from 'lit'
 import { getCookie, setCookie } from '@components/scripts/utils/cookies'
 import { handleScriptError } from '@components/scripts/errors'
 import { $isConsentBannerVisible } from '@components/scripts/store/visibility'
-import { getOrCreateDataSubjectId, deleteDataSubjectId } from '@lib/helpers/dataSubjectId'
+import { getOrCreateDataSubjectId, deleteDataSubjectId } from '@components/scripts/utils/dataSubjectId'
 
 // ============================================================================
 // TYPES

@@ -896,14 +896,10 @@ Use Postman/Thunder Client or create test file for each endpoint.
 
 src/components/CallToAction/Newsletter/__tests__/client.spec.ts
 
-src/components/scripts/consent/db/__tests__/rls.spec.ts
+src/components/GDPR/Consent/__tests__/state.spec.ts
 
 src/pages/api/newsletter/__tests__/_confirm.spec.ts
 src/pages/api/newsletter/__tests__/_index.spec.ts
-
-src/components/GDPR/Consent/__tests__/state.spec.ts
-
-src/lib/helpers/__tests__/dataSubjectId.spec.ts
 
 src/pages/api/contact/__tests__/_index.spec.ts
 
