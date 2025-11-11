@@ -838,6 +838,8 @@ export const GET: APIRoute = async ({ request, clientAddress, url }) => {
 
 Use Postman/Thunder Client or create test file for each endpoint.
 
+**Note:** You may see camelCase lint warnings for database column names (`data_subject_id`, `user_agent`, etc.). These are expected - PostgreSQL uses snake_case as standard, and the warnings can be ignored. The same pattern is used in the existing RLS tests.
+
 ---
 
 ## Phase 5: Email-Based DSAR Requests
