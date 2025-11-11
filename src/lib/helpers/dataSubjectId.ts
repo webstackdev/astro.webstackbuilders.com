@@ -42,6 +42,13 @@ function syncToCookie(dataSubjectId: string): void {
 }
 
 function getCookieValue(name: string): string | null {
+  // For security: only allow safe cookie names (alphanumeric + underscore)
+  if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
+    throw new Error(`Invalid cookie name: ${name}`)
+  }
+  
+  // Use a safe, pre-validated cookie name in regex
+  // eslint-disable-next-line security/detect-non-literal-regexp
   const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`))
   return match?.[1] ? decodeURIComponent(match[1]) : null
 }

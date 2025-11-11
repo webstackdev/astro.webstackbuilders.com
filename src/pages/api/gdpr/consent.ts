@@ -36,7 +36,6 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     }
 
     // Insert consent record (database uses snake_case column names)
-    // eslint-disable-next-line camelcase
     const { data, error } = await supabaseAdmin
       .from('consent_records')
       .insert({

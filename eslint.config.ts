@@ -184,4 +184,17 @@ export default [
       'custom-rules/enforce-centralized-events': 'off',
     },
   },
+  {
+    files: [
+      // Database files that use snake_case for database field names
+      'src/components/scripts/consent/db/__tests__/rls.spec.ts',
+      'src/pages/api/gdpr/consent.ts',
+      'src/pages/api/gdpr/request-data.ts',
+      'src/pages/api/gdpr/verify.ts',
+      'src/pages/api/newsletter/_token.ts',
+    ],
+    rules: {
+      camelcase: 'off',
+    },
+  },
 ]
