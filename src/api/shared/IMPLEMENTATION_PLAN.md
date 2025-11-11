@@ -906,7 +906,7 @@ Supabase local development includes **Mailpit** for email testing (no Ethereal n
 **Supabase** (already configured in Phase 0.2):
 
 ```bash
-supabase start  # Runs PostgreSQL + Studio locally
+npx supabase start  # Runs PostgreSQL + Studio locally
 ```
 
 **Official Redis Docker image combined with a proxy like Serverless Redis HTTP (SRH)**
@@ -1250,3 +1250,11 @@ How it works:
 - When user changes consent, store subscriber updates Sentry context
 - Sentry context is tagged with consent status for debugging
 - All PII scrubbing happens automatically in the beforeSend hook
+
+Deferred: Refactor Components to Web Components
+
+Newsletter Form (Phase 6.3)
+Contact Form (Phase 7.1)
+GDPR Consent Component (Phase 7.2)
+Consent Modal (Phase 2.5)
+Consent Preferences (Phase 2.6)

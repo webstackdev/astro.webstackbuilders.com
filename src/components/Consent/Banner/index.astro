@@ -5,16 +5,17 @@ import Button from '@components/Button/index.astro'
 import CookieSvg from '@assets/images/site/cookie.svg'
 ---
 
-<div
-  id="consent-modal-id"
-  class="bg-[var(--color-bg-offset)] bottom-0 left-0 fixed right-0 w-full z-50"
-  style="display:none;"
-  role="dialog"
-  aria-label="Cookie consent dialog"
-  aria-describedby="consent-modal__content"
-  aria-modal="true"
-  tabindex="-1"
->
+<consent-banner>
+  <div
+    id="consent-modal-id"
+    class="bg-[var(--color-bg-offset)] bottom-0 left-0 fixed right-0 w-full z-50"
+    style="display:none;"
+    role="dialog"
+    aria-label="Cookie consent dialog"
+    aria-describedby="consent-modal__content"
+    aria-modal="true"
+    tabindex="-1"
+  >
   <!-- Close button positioned at far right of viewport -->
   <button
     type="button"
@@ -62,16 +63,16 @@ import CookieSvg from '@assets/images/site/cookie.svg'
       </div>
     </div>
   </div>
-</div>
+  </div>
+</consent-banner>
 
 <script>
-  import { Consent } from '@components/Consent/Banner/client'
+  // Import the Web Component - it will auto-register
+  import '@components/Consent/Banner/client'
   import { initConsentSideEffects } from '@components/scripts/store'
 
-  // Initialize cookie consent with Astro View Transitions
+  // Initialize cookie consent side effects with Astro View Transitions
   document.addEventListener('astro:page-load', () => {
-    Consent.init()
-    //
     initConsentSideEffects()
   })
 </script>

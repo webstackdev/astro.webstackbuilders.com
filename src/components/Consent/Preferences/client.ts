@@ -4,6 +4,7 @@
  * Uses centralized state management from scripts/store
  */
 
+import { LitElement } from 'lit'
 import { isInputElement } from '@components/scripts/assertions/elements'
 import {
   getConsentCustomizeModal,
@@ -15,36 +16,70 @@ import { addButtonEventListeners } from '@components/scripts/elementListeners'
 import { updateConsent, $consent, type ConsentState } from '@components/scripts/store'
 
 /**
- * Consent Preferences component
+ * Consent Preferences web component
  */
-export class ConsentCustomize {
-  static scriptName = 'ConsentCustomize'
+export class ConsentPreferencesElement extends LitElement {
+  private modal: HTMLDivElement | null = null
+  private closeBtn: HTMLButtonElement | null = null
+  private allowAllBtn: HTMLButtonElement | null = null
+  private saveBtn: HTMLButtonElement | null = null
 
-  private modal: HTMLDivElement
-  private closeBtn: HTMLButtonElement
-  private allowAllBtn: HTMLButtonElement | null
-  private saveBtn: HTMLButtonElement | null
+  override createRenderRoot() {
+    return this
+  }
 
-  constructor() {
+  override connectedCallback() {
+    super.connectedCallback()
+    this.initialize()
+  }
+
+  private initialize(): void {
+    this.findElements()
+    this.bindEvents()
+    this.loadPreferences()
+    this.setViewTransitionsHandlers()
+  }
+
+  private findElements(): void {
     this.modal = getConsentCustomizeModal()
     this.closeBtn = getConsentCustomizeCloseBtn()
     this.allowAllBtn = getAllowAllBtn()
     this.saveBtn = getSavePreferencesBtn()
   }
 
+  private setViewTransitionsHandlers(): void {
+    document.addEventListener('astro:before-preparation', () => {
+      ConsentPreferencesElement.handleBeforePreparation()
+    })
+
+    document.addEventListener('astro:after-swap', () => {
+      this.initialize()
+    })
+  }
+
+  private static handleBeforePreparation(): void {
+    // Clean up before View Transitions swap
+  }
+
   /** Show the consent customize modal */
   showModal(): void {
-    this.modal.style.display = 'flex'
+    if (this.modal) {
+      this.modal.style.display = 'flex'
+    }
   }
 
   /** Hide the consent customize modal */
-  hideModal = (): void => {
-    this.modal.style.display = 'none'
+  private hideModal = (): void => {
+    if (this.modal) {
+      this.modal.style.display = 'none'
+    }
   }
 
-  bindEvents(): void {
+  private bindEvents(): void {
     // Close button
-    addButtonEventListeners(this.closeBtn, this.hideModal)
+    if (this.closeBtn) {
+      addButtonEventListeners(this.closeBtn, this.hideModal)
+    }
 
     // Allow all button
     if (this.allowAllBtn) {
@@ -57,7 +92,7 @@ export class ConsentCustomize {
     }
   }
 
-  loadPreferences(): ConsentState | null {
+  private loadPreferences(): ConsentState | null {
     // Load from centralized state store
     const consent = $consent.get()
 
@@ -83,13 +118,13 @@ export class ConsentCustomize {
     }
   }
 
-  savePreferences(): void {
+  private savePreferences(): void {
     const preferences = this.getCurrentPreferences()
 
     // Update state store - automatically updates cookies
-    updateConsent('analytics', preferences.analytics)
-    updateConsent('functional', preferences.functional)
-    updateConsent('marketing', preferences.marketing)
+    updateConsent('analytics', preferences.analytics ?? false)
+    updateConsent('functional', preferences.functional ?? false)
+    updateConsent('marketing', preferences.marketing ?? false)
 
     this.applyPreferences(preferences)
 
@@ -97,28 +132,28 @@ export class ConsentCustomize {
     this.showNotification('Consent preferences saved successfully!')
   }
 
-  allowAll(): void {
-    const preferences: ConsentState = {
+  private allowAll(): void {
+    // Update checkboxes
+    const preferences: Partial<ConsentState> = {
       analytics: true,
       functional: true,
       marketing: true,
     }
 
-    // Update checkboxes
-    this.updateCheckboxes(preferences)
+    this.updateCheckboxes(preferences as ConsentState)
 
     // Update state store - automatically updates cookies
     updateConsent('analytics', true)
     updateConsent('functional', true)
     updateConsent('marketing', true)
 
-    this.applyPreferences(preferences)
+    this.applyPreferences(preferences as ConsentState)
 
     // Show confirmation
     this.showNotification('All consent enabled!')
   }
 
-  private getCurrentPreferences(): ConsentState {
+  private getCurrentPreferences(): Partial<ConsentState> {
     const analyticsCheckbox = document.getElementById('analytics-cookies')
     const functionalCheckbox = document.getElementById('functional-cookies')
     const marketingCheckbox = document.getElementById('marketing-cookies')
@@ -130,7 +165,7 @@ export class ConsentCustomize {
     }
   }
 
-  applyPreferences(preferences: ConsentState): void {
+  private applyPreferences(preferences: Partial<ConsentState>): void {
     // Apply the consent preferences to actual consent management
     // This would integrate with your analytics, functional, and marketing scripts
 
@@ -184,7 +219,7 @@ export class ConsentCustomize {
     // Example: Clear marketing cookies
   }
 
-  showNotification(message: string): void {
+  private showNotification(message: string): void {
     // Create a simple notification
     const notification = document.createElement('div')
     notification.className =
@@ -204,27 +239,6 @@ export class ConsentCustomize {
       }, 300)
     }, 3000)
   }
-
-  /**
-   * LoadableScript static methods
-   */
-  static init(): void {
-    const consentCustomize = new ConsentCustomize()
-    consentCustomize.bindEvents()
-    consentCustomize.loadPreferences()
-  }
-
-  static pause(): void {
-    // Consent preferences don't need pause functionality
-  }
-
-  static resume(): void {
-    // Consent preferences don't need resume functionality
-  }
-
-  static reset(): void {
-    // Clean up any global state if needed for View Transitions
-  }
 }
 
 /**
@@ -235,3 +249,6 @@ export const showConsentCustomizeModal = (): void => {
   const modal = getConsentCustomizeModal()
   modal.style.display = 'flex'
 }
+
+// Register the custom element
+customElements.define('consent-preferences', ConsentPreferencesElement)

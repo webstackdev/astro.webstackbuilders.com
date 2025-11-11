@@ -4,14 +4,15 @@ import Sprite from '@components/Sprite/index.astro'
 import logoSvg from '@assets/images/site/logo.svg'
 ---
 
-<div
-  id="consent-modal-modal-id"
-  class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
-  style="display:none;"
-  role="dialog"
-  aria-label="customize consent dialog"
-  aria-describedby="consent-modal__settings-desc"
->
+<consent-preferences>
+  <div
+    id="consent-modal-modal-id"
+    class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+    style="display:none;"
+    role="dialog"
+    aria-label="customize consent dialog"
+    aria-describedby="consent-modal__settings-desc"
+  >
   <div
     class="bg-bg rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
   >
@@ -190,13 +191,9 @@ import logoSvg from '@assets/images/site/logo.svg'
     </div>
   </div>
 </div>
+</consent-preferences>
 
 <!-- Privacy Preferences Management Script -->
 <script>
-  import { CookieCustomize } from '@components/Consent/Preferences/client'
-
-  // Initialize privacy preferences with Astro View Transitions
-  document.addEventListener('astro:page-load', () => {
-    CookieCustomize.init()
-  })
+  import '@components/Consent/Preferences/client'
 </script>
