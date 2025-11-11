@@ -46,7 +46,7 @@ function getCookieValue(name: string): string | null {
   if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
     throw new Error(`Invalid cookie name: ${name}`)
   }
-  
+
   // Use a safe, pre-validated cookie name in regex
   // eslint-disable-next-line security/detect-non-literal-regexp
   const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`))
