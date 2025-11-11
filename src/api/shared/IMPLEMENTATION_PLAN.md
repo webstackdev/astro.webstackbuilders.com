@@ -1172,25 +1172,25 @@ Note: Web component conversion (Phase 6.3) is deferred per the implementation pl
 
 ✅ Updated POST /api/contact endpoint:
 
-Added DataSubjectId field to ContactFormData interface (optional)
-Removed dependency on old recordConsent function
-Added UUID validation and generation logic
-Integrated with new /api/gdpr/consent API for consent recording
-Contact form consent is marked as verified: true (no double opt-in needed)
-Graceful error handling - form submission continues even if consent logging fails
-Maintains all existing functionality (email sending, file attachments, etc.)
+- Added DataSubjectId field to ContactFormData interface (optional)
+- Removed dependency on old recordConsent function
+- Added UUID validation and generation logic
+- Integrated with new /api/gdpr/consent API for consent recording
+- Contact form consent is marked as verified: true (no double opt-in needed)
+- Graceful error handling - form submission continues even if consent logging fails
+- Maintains all existing functionality (email sending, file attachments, etc.)
 
 ✅ Deferred Items (per implementation plan):
 
-7.1: Contact Form web component conversion - deferred until actively modifying
-7.2: GDPR Consent component conversion - deferred until actively modifying
+- 7.1: Contact Form web component conversion - deferred until actively modifying
+- 7.2: GDPR Consent component conversion - deferred until actively modifying
 
 Key Features:
 
-Full integration with Supabase-based consent system
-DataSubjectId tracking for contact form submissions
-Backward compatible - generates UUID if client doesn't provide one
-Non-blocking consent logging - form submission succeeds even if consent API fails
-Immediate verification for contact form consent (no email confirmation needed)
+- Full integration with Supabase-based consent system
+- DataSubjectId tracking for contact form submissions
+- Backward compatible - generates UUID if client doesn't provide one
+- Non-blocking consent logging - form submission succeeds even if consent API fails
+- Immediate verification for contact form consent (no email confirmation needed)
 
 **Phase 8: Cron Jobs**
