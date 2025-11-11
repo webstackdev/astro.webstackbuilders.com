@@ -935,6 +935,12 @@ Achieve a similar local development environment to Upstash Redis:
 
 ---
 
+## Phase 12: Add Vercel Analytics
+
+- Consent / Preferences component
+
+---
+
 ## Open Questions (Must Resolve Before Implementation)
 
 1. **Email Service for Production**: Which service? (Resend, SendGrid, AWS SES?)

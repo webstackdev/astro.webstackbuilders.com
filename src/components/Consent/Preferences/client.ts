@@ -13,12 +13,20 @@ import {
   getSavePreferencesBtn,
 } from '@components/Consent/Preferences/selectors'
 import { addButtonEventListeners } from '@components/scripts/elementListeners'
-import { updateConsent, $consent, type ConsentState } from '@components/scripts/store'
+import {
+  updateConsent,
+  allowAllConsent,
+  createConsentController,
+  type ConsentState
+} from '@components/scripts/store'
 
 /**
  * Consent Preferences web component
  */
 export class ConsentPreferencesElement extends LitElement {
+  // Reactive store binding - Lit auto-updates when consent state changes
+  private consentController = createConsentController(this)
+
   private modal: HTMLDivElement | null = null
   private closeBtn: HTMLButtonElement | null = null
   private allowAllBtn: HTMLButtonElement | null = null
@@ -93,8 +101,8 @@ export class ConsentPreferencesElement extends LitElement {
   }
 
   private loadPreferences(): ConsentState | null {
-    // Load from centralized state store
-    const consent = $consent.get()
+    // Load from centralized state store via reactive controller
+    const consent = this.consentController.value
 
     // Update checkboxes to match current state
     this.updateCheckboxes(consent)
@@ -133,21 +141,14 @@ export class ConsentPreferencesElement extends LitElement {
   }
 
   private allowAll(): void {
-    // Update checkboxes
-    const preferences: Partial<ConsentState> = {
-      analytics: true,
-      functional: true,
-      marketing: true,
-    }
+    // Use the store action to allow all consent
+    allowAllConsent()
 
-    this.updateCheckboxes(preferences as ConsentState)
+    // Update checkboxes to reflect the new state
+    const updatedConsent = this.consentController.value
+    this.updateCheckboxes(updatedConsent)
 
-    // Update state store - automatically updates cookies
-    updateConsent('analytics', true)
-    updateConsent('functional', true)
-    updateConsent('marketing', true)
-
-    this.applyPreferences(preferences as ConsentState)
+    this.applyPreferences(updatedConsent)
 
     // Show confirmation
     this.showNotification('All consent enabled!')
@@ -250,5 +251,7 @@ export const showConsentCustomizeModal = (): void => {
   modal.style.display = 'flex'
 }
 
-// Register the custom element
-customElements.define('consent-preferences', ConsentPreferencesElement)
+// Register the custom element (with guard against duplicate registration)
+if (!customElements.get('consent-preferences')) {
+  customElements.define('consent-preferences', ConsentPreferencesElement)
+}

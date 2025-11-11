@@ -3,6 +3,8 @@
  */
 import { computed, onMount } from 'nanostores'
 import { persistentAtom } from '@nanostores/persistent'
+import { StoreController } from '@nanostores/lit'
+import type { ReactiveControllerHost } from 'lit'
 import { getCookie, setCookie } from '@components/scripts/utils/cookies'
 import { handleScriptError } from '@components/scripts/errors'
 import { $isConsentBannerVisible } from '@components/scripts/store/visibility'
@@ -253,4 +255,48 @@ export function initConsentSideEffects(): void {
       })
     }
   })
+}
+
+// ============================================================================
+// CONTROLLERS
+// ============================================================================
+
+/**
+ * Create a reactive StoreController for $consent
+ * For use in Lit components - automatically triggers re-render when consent state changes
+ */
+export function createConsentController(host: ReactiveControllerHost): StoreController<ConsentState> {
+  return new StoreController(host, $consent)
+}
+
+/**
+ * Create a reactive StoreController for $hasAnalyticsConsent
+ * For use in Lit components - automatically triggers re-render when analytics consent changes
+ */
+export function createAnalyticsConsentController(host: ReactiveControllerHost): StoreController<boolean> {
+  return new StoreController(host, $hasAnalyticsConsent)
+}
+
+/**
+ * Create a reactive StoreController for $hasFunctionalConsent
+ * For use in Lit components - automatically triggers re-render when functional consent changes
+ */
+export function createFunctionalConsentController(host: ReactiveControllerHost): StoreController<boolean> {
+  return new StoreController(host, $hasFunctionalConsent)
+}
+
+/**
+ * Create a reactive StoreController for $hasMarketingConsent
+ * For use in Lit components - automatically triggers re-render when marketing consent changes
+ */
+export function createMarketingConsentController(host: ReactiveControllerHost): StoreController<boolean> {
+  return new StoreController(host, $hasMarketingConsent)
+}
+
+/**
+ * Create a reactive StoreController for $hasAnyConsent
+ * For use in Lit components - automatically triggers re-render when any consent changes
+ */
+export function createAnyConsentController(host: ReactiveControllerHost): StoreController<boolean> {
+  return new StoreController(host, $hasAnyConsent)
 }

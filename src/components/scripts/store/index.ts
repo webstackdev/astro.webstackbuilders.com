@@ -14,7 +14,7 @@ export {
   type ConsentCategories,
   type ConsentState,
   type ConsentValue,
-  $consent,
+  $consent, // only allowed to use in tests
   $hasMarketingConsent,
   $hasAnalyticsConsent,
   $hasAnyConsent,
@@ -24,6 +24,11 @@ export {
   initConsentSideEffects,
   revokeAllConsent,
   updateConsent,
+  createConsentController,
+  createAnalyticsConsentController,
+  createFunctionalConsentController,
+  createMarketingConsentController,
+  createAnyConsentController,
 } from './consent'
 
 // Re-export visibility
