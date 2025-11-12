@@ -26,12 +26,12 @@
     "not IE 11"
   ],
   "scripts": {
-    "build": "NODE_ENV=production npm run build:favicons && npx astro build",
-    "build:dev": "NODE_ENV=development npm run build:favicons && npx astro build",
+    "build": "cross-env NODE_ENV=production npm run build:favicons && npx astro build",
+    "build:dev": "cross-env NODE_ENV=development npm run build:favicons && npx astro build",
     "build:favicons": "npx ts-node ./scripts/build/favicon.ts",
     "check": "npx astro check",
     "clean": "npx rimraf dist && npx rimraf .astro",
-    "dev": "npm run sync && npm run build:favicons && NODE_ENV=development npx astro dev",
+    "dev": "npm run sync && npm run build:favicons && cross-env NODE_ENV=development npx astro dev",
     "format": "npm run format:json && npm run format:code && npm run format:style",
     "format:code": "npx prettier --write \"@types/**/*.{js,ts}\" \"scripts/**/*.{js,ts}\" \"src/**/*.{js,ts,tsx,astro}\" --plugin=prettier-plugin-astro",
     "format:json": "npx prettier --write '**/*.json' --cache --ignore-path .gitignore",
@@ -42,10 +42,10 @@
     "lint:style": "npx stylelint \"src/**/*.{css,astro}\"",
     "preview": "npm run build:favicons && npx astro build && astro preview",
     "sync": "npx astro sync",
-    "test": "NODE_ENV=test npm run test:unit && npm run test:e2e",
-    "test:coverage": "NODE_ENV=test npx vitest run --coverage",
-    "test:e2e": "NODE_ENV=test npx playwright test",
-    "test:unit": "NODE_ENV=test npx vitest run",
+    "test": "cross-env NODE_ENV=test npm run test:unit && npm run test:e2e",
+    "test:coverage": "cross-env NODE_ENV=test npx vitest run --coverage",
+    "test:e2e": "cross-env NODE_ENV=test npx playwright test",
+    "test:unit": "cross-env NODE_ENV=test npx vitest run",
     "upgrade": "npx @astrojs/upgrade",
     "prepare": "husky"
   },
@@ -75,7 +75,9 @@
     "astro": "5.15.5",
     "astro-icon": "^1.1.5",
     "astro-vtbot": "^2.1.9",
+    "cross-env": "^10.1.0",
     "dotenv": "17.2.3",
+    "email-validator": "^2.0.4",
     "embla-carousel": "^8.6.0",
     "embla-carousel-autoplay": "^8.6.0",
     "focus-trap": "7.6.6",
@@ -108,6 +110,7 @@
     "zod": "4.1.12"
   },
   "devDependencies": {
+    "@eslint-community/eslint-plugin-eslint-comments": "^4.5.0",
     "@eslint/js": "9.39.1",
     "@playwright/test": "1.56.1",
     "@testing-library/dom": "10.4.1",

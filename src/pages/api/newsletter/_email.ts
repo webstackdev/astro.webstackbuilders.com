@@ -10,7 +10,7 @@ import { Resend } from 'resend'
  * API key must be set in RESEND_API_KEY environment variable
  */
 function getResendClient(): Resend {
-  const apiKey = process.env['RESEND_API_KEY']
+  const apiKey = import.meta.env.RESEND_API_KEY
   if (!apiKey) {
     throw new Error('RESEND_API_KEY environment variable is not set')
   }
@@ -21,7 +21,7 @@ function getResendClient(): Resend {
  * Get the site URL from environment or default to localhost
  */
 function getSiteUrl(): string {
-  return process.env['SITE_URL'] || 'http://localhost:4321'
+  return import.meta.env.SITE || 'http://localhost:4321'
 }
 
 /**

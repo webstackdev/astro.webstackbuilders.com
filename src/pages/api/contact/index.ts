@@ -5,6 +5,7 @@
  * With Vercel adapter, this becomes a serverless function automatically
  */
 import type { APIRoute } from 'astro'
+import { getSecret } from 'astro:env/server'
 import { Resend } from 'resend'
 import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
 import { checkContactRateLimit } from '@pages/api/_utils/rateLimit'
@@ -169,9 +170,7 @@ function formatFileSize(bytes: number): string {
  */
 async function sendEmail(emailData: EmailData, files: FileAttachment[]): Promise<void> {
 	// Skip actual email sending in dev/test environments
-	const isDevOrTest = import.meta.env.DEV || import.meta.env.MODE === 'test' || process.env['NODE_ENV'] === 'test'
-
-	if (isDevOrTest) {
+	if (getSecret('VITEST') || import.meta.env.DEV) {
 		return // Skip actual email sending in dev/test
 	}
 

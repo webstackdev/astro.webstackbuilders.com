@@ -53,14 +53,6 @@ export function privacyPolicyVersion(): AstroIntegration {
     name: 'privacy-policy-version',
     hooks: {
       'astro:config:setup': async ({ updateConfig }) => {
-        // Check if version is already set manually via env var
-        const existingVersion = process.env.PUBLIC_PRIVACY_POLICY_VERSION
-
-        if (existingVersion) {
-          console.log(`ℹ️  Using manual privacy policy version from env: ${existingVersion}`)
-          return // Don't override manual setting
-        }
-
         // Get version from git commit date
         const privacyPolicyPath = 'src/pages/privacy/index.astro'
         const version = getPrivacyPolicyVersionFromGit(privacyPolicyPath)

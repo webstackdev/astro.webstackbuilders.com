@@ -1,3 +1,21 @@
+/**
+ * GDPR API Endpoint Types
+ *
+ * This file contains TypeScript type definitions for the GDPR-related API endpoints.
+ * These types serve as a contract between the API endpoints and their consumers,
+ * providing type safety without requiring Swagger/OpenAPI schema generation.
+ *
+ * Each interface represents either:
+ * - Request payloads sent to the API
+ * - Response payloads returned by the API
+ * - Database record structures
+ *
+ * Used by:
+ * - /api/gdpr/consent (ConsentRequest, ConsentResponse, ErrorResponse)
+ * - /api/gdpr/request-data (DSARRequestInput, DSARResponse, ErrorResponse)
+ * - /api/gdpr/verify (ErrorResponse)
+ */
+
 export interface ConsentRecord {
   id: string
   DataSubjectId: string

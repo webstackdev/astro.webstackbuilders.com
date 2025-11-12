@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import { sendDSARVerificationEmail } from '@pages/api/_utils/gdpr-email'
+import { sendDSARVerificationEmail } from '@pages/api/gdpr/_dsarVerificationEmails'
 
 // Create mock send function at module level
 const mockSend = vi.fn()
@@ -24,6 +24,7 @@ describe('GDPR Email Utils', () => {
 
   beforeEach(() => {
     // Store original env
+    /* eslint-disable-next-line no-process-env */
     originalEnv = { ...process.env }
 
     // Mock console methods
@@ -36,6 +37,7 @@ describe('GDPR Email Utils', () => {
 
   afterEach(() => {
     // Restore original environment
+    /* eslint-disable-next-line no-process-env */
     process.env = originalEnv
     consoleLogSpy.mockRestore()
     consoleErrorSpy.mockRestore()
@@ -44,6 +46,7 @@ describe('GDPR Email Utils', () => {
   describe('sendDSARVerificationEmail', () => {
     describe('in development/test environment', () => {
       it('should log email details instead of sending in development mode', async () => {
+        /* eslint-disable-next-line no-process-env */
         process.env['NODE_ENV'] = 'development'
 
         await sendDSARVerificationEmail('test@example.com', 'test-token', 'ACCESS')
@@ -60,7 +63,8 @@ describe('GDPR Email Utils', () => {
       })
 
       it('should log email details instead of sending in test mode', async () => {
-        process.env['NODE_ENV'] = 'test'
+        /* eslint-disable-next-line no-process-env */
+        process.env['VITEST'] = '1'
 
         await sendDSARVerificationEmail('test@example.com', 'test-token', 'DELETE')
 
@@ -76,8 +80,10 @@ describe('GDPR Email Utils', () => {
       })
 
       it('should log email details instead of sending in CI mode', async () => {
+        /* eslint-disable no-process-env */
         process.env['NODE_ENV'] = 'production'
         process.env['CI'] = 'true'
+        /* eslint-enable no-process-env */
 
         await sendDSARVerificationEmail('test@example.com', 'test-token', 'ACCESS')
 
@@ -95,10 +101,12 @@ describe('GDPR Email Utils', () => {
 
     describe('in production environment', () => {
       beforeEach(() => {
+        /* eslint-disable no-process-env */
         process.env['NODE_ENV'] = 'production'
         process.env['CI'] = 'false'
         process.env['RESEND_API_KEY'] = 'test-resend-key'
         process.env['SITE_URL'] = 'https://webstackbuilders.com'
+        /* eslint-enable no-process-env */
       })
 
       it('should send ACCESS verification email successfully', async () => {
@@ -160,6 +168,7 @@ describe('GDPR Email Utils', () => {
       })
 
       it('should use default localhost URL when SITE_URL is not set', async () => {
+        /* eslint-disable-next-line no-process-env */
         delete process.env['SITE_URL']
         mockSend.mockResolvedValue({
           data: { id: 'message-id-789' },
@@ -175,6 +184,7 @@ describe('GDPR Email Utils', () => {
       })
 
       it('should throw error when RESEND_API_KEY is not set', async () => {
+        /* eslint-disable-next-line no-process-env */
         delete process.env['RESEND_API_KEY']
 
         await expect(
@@ -236,6 +246,7 @@ describe('GDPR Email Utils', () => {
       })
 
       it('should generate proper verification URLs with tokens', async () => {
+        /* eslint-disable-next-line no-process-env */
         process.env['SITE_URL'] = 'https://example.com'
         mockSend.mockResolvedValue({
           data: { id: 'message-id-url' },

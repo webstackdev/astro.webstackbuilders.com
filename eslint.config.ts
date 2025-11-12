@@ -67,19 +67,23 @@ export default [
       '@typescript-eslint/no-non-null-assertion': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-function-type': level,
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-return': 'off',
       '@typescript-eslint/no-unused-vars': [
         level,
         { varsIgnorePattern: '^_', argsIgnorePattern: '^_|^this$' },
       ],
+      '@typescript-eslint/no-empty-object-type': level,
       '@typescript-eslint/no-var-requires': level,
       '@typescript-eslint/no-unnecessary-type-assertion': 'off',
+      '@typescript-eslint/no-wrapper-object-types': level,
       '@typescript-eslint/restrict-template-expressions': 'off',
       '@typescript-eslint/triple-slash-reference': 'off',
+      /** Issue with Prettier https://github.com/prettier/eslint-plugin-prettier/issues/65: */
       'arrow-body-style': 'off',
-      camelcase: [level],
-      curly: 'off',
+      'camelcase': [level],
+      'curly': 'off',
       'import/no-unresolved': [
         level,
         {
@@ -105,6 +109,28 @@ export default [
           'svg': 'always',
         },
       ],
+      'import/no-restricted-paths': [
+        level,
+        {
+          zones: [
+            {
+              target: 'src/components/',
+              from: 'src/lib/',
+              message: 'The src/lib directory is for build-time code only.',
+            },
+            {
+              target: 'src/layouts/',
+              from: 'src/lib/',
+              message: 'The src/lib directory is for build-time code only.',
+            },
+            {
+              target: 'src/pages/',
+              from: 'src/lib/',
+              message: 'The src/lib directory is for build-time code only.',
+            },
+          ],
+        },
+      ],
       'import/order': 'off',
       'jsdoc/check-indentation': level,
       'jsdoc/check-line-alignment': level,
@@ -112,7 +138,7 @@ export default [
       'jsdoc/check-tag-names': [
         level,
         {
-          definedTags: ['NOTE:', 'jest-environment', 'jest-environment-options'],
+          definedTags: ['NOTE:', 'jest-environment'],
           jsxTags: true,
         },
       ],
@@ -131,6 +157,7 @@ export default [
       'jsdoc/valid-types': 'off',
       'new-cap': [level, { newIsCap: true, capIsNew: false }],
       'no-new': level,
+      'no-process-env': level,
       'no-restricted-globals': ['error'].concat(restrictedGlobals),
       'no-restricted-imports': [
         'error', {
@@ -150,13 +177,14 @@ export default [
       'no-unused-expressions': [level, { allowShortCircuit: true, allowTernary: true }],
       'no-unused-vars': [level, { varsIgnorePattern: '^_', argsIgnorePattern: '^_|^this$' }],
       'no-useless-escape': 'off',
+      /** Issue with Prettier https://github.com/prettier/eslint-plugin-prettier/issues/65: */
       'prefer-arrow-callback': 'off',
       'prefer-object-spread': level,
       'prefer-spread': level,
       'security/detect-non-literal-fs-filename': 'off',
       'security/detect-object-injection': 'off',
       'security/detect-unsafe-regex': 'off',
-      semi: ['error', 'never'],
+      'semi': ['error', 'never'],
     },
   },
   {
@@ -200,6 +228,51 @@ export default [
     ],
     rules: {
       camelcase: 'off',
+    },
+  },
+  {
+    files: [
+      '.eslintrc.js',
+      'astro.config.ts',
+      'playwright.config.ts',
+      'vitest.setup.ts',
+      'scripts/build/**/*'
+    ],
+    rules: {
+      // All files except Astro config should use import.meta.env.ENV_VAR
+      'no-process-env': 'off',
+    },
+  },
+  {
+    files: [
+      'src/components/**/*',
+      'src/layouts/**/*',
+      'src/pages/**/*',
+    ],
+    rules: {
+      'no-restricted-syntax': [
+        level,
+        {
+          'selector': 'MetaProperty[meta.name="import"][property.name="meta"]',
+          'message': 'Do not use import.meta.env directly. Use methods in src/components/scripts/utils like isCI(), isDev(), etc.'
+        }
+      ],
+    },
+  },
+  {
+    files: [
+      'src/lib/config/environmentServer.ts',
+      'src/lib/config/siteUrlServer.ts',
+      'src/components/scripts/utils/environmentClient.ts',
+      'src/components/scripts/utils/siteUrlClient.ts',
+    ],
+    rules: {
+      'no-restricted-syntax': [
+        'off',
+        {
+          'selector': 'MetaProperty[meta.name="import"][property.name="meta"]',
+        }
+      ],
     },
   },
 ]

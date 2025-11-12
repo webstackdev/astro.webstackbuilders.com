@@ -60,7 +60,7 @@ class AvatarManagerClass {
       if (filename && imageData) {
         // Deep freeze the image metadata to prevent modifications
         map[filename] = Object.freeze({ ...imageData })
-      } else if (process.env['NODE_ENV'] === 'development') {
+      } else if (import.meta.env.DEV) {
         console.warn(`[AvatarManager] Failed to process avatar at path: ${path}`)
       }
     }
@@ -68,7 +68,7 @@ class AvatarManagerClass {
     // Freeze the map to prevent modifications
     this.avatarMap = Object.freeze(map)
 
-    if (process.env['NODE_ENV'] === 'development') {
+    if (import.meta.env.DEV) {
       console.log(`[AvatarManager] Initialized with ${Object.keys(this.avatarMap).length} avatars`)
     }
   }

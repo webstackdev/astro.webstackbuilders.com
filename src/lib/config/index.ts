@@ -1,5 +1,5 @@
-export { environmentalVariablesConfig } from './environmentalVariables'
+export { environmentalVariablesConfig } from './environmentalVariableValidation'
 export { markdownConfig } from './markdown'
 export { serviceWorkerConfig } from './serviceWorker'
-export { getSiteUrl } from './siteUrl'
+export { getSiteUrl } from './siteUrlServer'
 export { vercelConfig } from './vercel'

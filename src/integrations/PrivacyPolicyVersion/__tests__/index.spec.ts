@@ -20,9 +20,6 @@ describe('PrivacyPolicyVersion Integration', () => {
 
     // Reset module cache to get fresh instance
     vi.resetModules()
-
-    // Ensure no env var is set for tests that need to test git
-    delete process.env['PUBLIC_PRIVACY_POLICY_VERSION']
   })
 
   afterEach(() => {
@@ -139,54 +136,6 @@ describe('PrivacyPolicyVersion Integration', () => {
       const versionString = callArgs?.vite?.define?.['import.meta.env.PUBLIC_PRIVACY_POLICY_VERSION']
 
       expect(versionString).toMatch(/^"\d{4}-\d{2}-\d{2}"$/)
-    })
-  })
-
-  describe('manual environment variable override', () => {
-    it('should not call git when PUBLIC_PRIVACY_POLICY_VERSION is already set', async () => {
-      // Set manual env var
-      process.env['PUBLIC_PRIVACY_POLICY_VERSION'] = '2023-01-01'
-
-      const { privacyPolicyVersion } = await import('../index')
-
-      const mockUpdateConfig = vi.fn()
-      const integration = privacyPolicyVersion()
-
-      await integration.hooks['astro:config:setup']?.({
-        updateConfig: mockUpdateConfig,
-        // @ts-expect-error - Partial mock
-        config: {},
-      })
-
-      // Should not call git
-      expect(execSync).not.toHaveBeenCalled()
-
-      // Should not call updateConfig
-      expect(mockUpdateConfig).not.toHaveBeenCalled()
-
-      // Should log that manual version is being used
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Using manual privacy policy version from env: 2023-01-01'),
-      )
-    })
-
-    it('should respect empty string as manual override', async () => {
-      // Empty string should not be treated as "not set"
-      process.env['PUBLIC_PRIVACY_POLICY_VERSION'] = ''
-
-      const { privacyPolicyVersion } = await import('../index')
-
-      const mockUpdateConfig = vi.fn()
-      const integration = privacyPolicyVersion()
-
-      await integration.hooks['astro:config:setup']?.({
-        updateConfig: mockUpdateConfig,
-        // @ts-expect-error - Partial mock
-        config: {},
-      })
-
-      // Empty string is falsy, so it should fall through to git
-      expect(execSync).toHaveBeenCalled()
     })
   })
 

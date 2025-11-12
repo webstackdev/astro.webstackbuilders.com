@@ -5,9 +5,11 @@
  * With Vercel adapter, this becomes a serverless function automatically
  */
 import type { APIRoute } from 'astro'
+import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
+import { rateLimiters, checkRateLimit } from '@pages/api/_utils/rateLimit'
+import type { ErrorResponse } from '@pages/api/_contracts/gdpr.contracts'
 import { createPendingSubscription } from './_token'
 import { sendConfirmationEmail } from './_email'
-import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
 
 export const prerender = false // Force SSR for this endpoint
 
@@ -39,37 +41,6 @@ interface ConvertKitResponse {
 
 interface ConvertKitErrorResponse {
   errors: string[]
-}
-
-// Simple in-memory rate limiting (use Redis in production)
-const rateLimitStore = new Map<string, number[]>()
-
-/**
- * Check if the IP address has exceeded the rate limit
- * Disabled in development and CI environments
- */
-function checkRateLimit(ip: string): boolean {
-  // Skip rate limiting in dev/test/CI environments
-  const isDevOrTest = import.meta.env.DEV || import.meta.env.MODE === 'test' || process.env['CI'] === 'true'
-  if (isDevOrTest) {
-    return true
-  }
-
-  const now = Date.now()
-  const windowMs = 15 * 60 * 1000 // 15 minutes
-  const maxRequests = 10
-  const key = `newsletter_rate_limit_${ip}`
-  const requests = rateLimitStore.get(key) || []
-
-  const validRequests = requests.filter(timestamp => now - timestamp < windowMs)
-
-  if (validRequests.length >= maxRequests) {
-    return false
-  }
-
-  validRequests.push(now)
-  rateLimitStore.set(key, validRequests)
-  return true
 }
 
 /**
@@ -175,63 +146,55 @@ export async function subscribeToConvertKit(
 /**
  * Main API handler for newsletter subscriptions
  */
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, clientAddress }) => {
+  // Rate limiting
+  const { success, reset } = await checkRateLimit(rateLimiters.consent, clientAddress)
+
+  if (!success) {
+    return new Response(JSON.stringify({
+      success: false,
+      error: {
+        code: 'RATE_LIMIT_EXCEEDED',
+        message: `Try again in ${Math.ceil((reset! - Date.now()) / 1000)}s`
+      }
+    } as ErrorResponse), {
+      status: 429,
+      headers: {
+        'Content-Type': 'application/json',
+        'Retry-After': String(Math.ceil((reset! - Date.now()) / 1000))
+      }
+    })
+  }
+
 	try {
-		// Get client IP and user agent
-		const ip =
-			request.headers.get('x-forwarded-for')?.split(',')[0] ||
-			request.headers.get('x-real-ip') ||
-			'unknown'
-		const userAgent = request.headers.get('user-agent') || 'unknown'
-
-		// Check rate limit
-		if (!checkRateLimit(ip)) {
-			return new Response(
-				JSON.stringify({
-					success: false,
-					error: 'Too many subscription requests. Please try again later.',
-				}),
-				{
-					status: 429,
-					headers: { 'Content-Type': 'application/json' },
-				},
-			)
-		}
-
 		// Parse and validate input
-		const body = (await request.json()) as NewsletterFormData
+		const body: NewsletterFormData = await request.json()
 		const { email, firstName, consentGiven, DataSubjectId } = body
 		const validatedEmail = validateEmail(email)
 
 		// Validate GDPR consent
 		if (!consentGiven) {
-			return new Response(
-				JSON.stringify({
-					success: false,
-					error: 'You must consent to receive marketing emails to subscribe.',
-				}),
-				{
-					status: 400,
-					headers: { 'Content-Type': 'application/json' },
-				},
-			)
-		}
+      return new Response(JSON.stringify({
+        success: false,
+        error: { code: 'INVALID_REQUEST', message: 'You must consent to receive marketing emails to subscribe.' }
+      } as ErrorResponse), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
 
 		// Generate or validate DataSubjectId
 		let subjectId = DataSubjectId
 		if (!subjectId) {
 			subjectId = uuidv4()
 		} else if (!uuidValidate(subjectId)) {
-			return new Response(
-				JSON.stringify({
-					success: false,
-					error: 'Invalid DataSubjectId format',
-				}),
-				{
-					status: 400,
-					headers: { 'Content-Type': 'application/json' },
-				},
-			)
+			return new Response(JSON.stringify({
+				success: false,
+				error: { code: 'INVALID_UUID', message: 'Invalid DataSubjectId format' }
+			} as ErrorResponse), {
+				status: 400,
+				headers: { 'Content-Type': 'application/json' },
+			})
 		}
 
 		// Record initial (unverified) consent via new GDPR API
@@ -243,8 +206,8 @@ export const POST: APIRoute = async ({ request }) => {
 				email: validatedEmail,
 				purposes: ['marketing'],
 				source: 'newsletter_form',
-				userAgent,
-				...(ip !== 'unknown' && { ipAddress: ip }),
+				userAgent: request.headers.get('user-agent') || 'unknown',
+				...(clientAddress !== 'unknown' && { ipAddress: clientAddress }),
 				verified: false,
 			}),
 		})
@@ -252,16 +215,13 @@ export const POST: APIRoute = async ({ request }) => {
 		if (!consentResponse.ok) {
 			const error = await consentResponse.json()
 			console.error('Failed to record consent:', error)
-			return new Response(
-				JSON.stringify({
-					success: false,
-					error: 'Failed to record consent. Please try again.',
-				}),
-				{
-					status: 500,
-					headers: { 'Content-Type': 'application/json' },
-				},
-			)
+			return new Response(JSON.stringify({
+				success: false,
+				error: { code: 'INVALID_REQUEST', message: 'Failed to record consent. Please try again.' }
+			} as ErrorResponse), {
+				status: 500,
+				headers: { 'Content-Type': 'application/json' },
+			})
 		}
 
 		// Create pending subscription with token
@@ -269,8 +229,8 @@ export const POST: APIRoute = async ({ request }) => {
 			email: validatedEmail,
 			...(firstName && { firstName }),
 			DataSubjectId: subjectId,
-			userAgent,
-			...(ip !== 'unknown' && { ipAddress: ip }),
+			userAgent: request.headers.get('user-agent') || 'unknown',
+			...(clientAddress !== 'unknown' && { clientAddress: ip }),
 			source: 'newsletter_form',
 		})
 
@@ -295,16 +255,13 @@ export const POST: APIRoute = async ({ request }) => {
 		const errorMessage =
 			error instanceof Error ? error.message : 'An unexpected error occurred. Please try again.'
 
-		return new Response(
-			JSON.stringify({
-				success: false,
-				error: errorMessage,
-			}),
-			{
-				status: 400,
-				headers: { 'Content-Type': 'application/json' },
-			},
-		)
+		return new Response(JSON.stringify({
+			success: false,
+			error: { code: 'INVALID_REQUEST', message: errorMessage }
+		} as ErrorResponse), {
+			status: 400,
+			headers: { 'Content-Type': 'application/json' },
+		})
 	}
 }
 

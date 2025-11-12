@@ -1,5 +1,12 @@
 /**
- * Provides build-time validation and type generation for all content by Astro build system
+ * Provides build-time validation and type generation for all content by Astro build system.
+ * This file exports a collections object where each key is a collection name, and the value
+ * uses defineCollection() to specify the schema for that collection. Astro uses this
+ * configuration to automatically load and manage content from specified directories like
+ * src/content/articles or src/content/testimonials.
+ *
+ * The 'email' collection is included in the src/content directory, but is not handled by
+ * Astro's collections systems. It is used by files in src/pages/api.
  */
 import { defineCollection, reference, z } from 'astro:content'
 import { glob, file } from 'astro/loaders'

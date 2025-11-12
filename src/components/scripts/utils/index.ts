@@ -17,3 +17,12 @@ export {
   getOrCreateDataSubjectId,
   deleteDataSubjectId,
 } from './dataSubjectId'
+
+// Re-export cookie utilities
+export {
+  getSiteUrl,
+  isCI,
+  isUnitTest,
+  isDev,
+  isProd,
+} from './environmentClient'

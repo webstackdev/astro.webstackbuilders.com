@@ -59,7 +59,7 @@ describe('AvatarManager', () => {
 
       // Constructor should only run once (if in development mode)
       // In production, console.log won't be called
-      if (process.env['NODE_ENV'] === 'development') {
+      if (import.meta.env.DEV) {
         expect(consoleLogSpy).toHaveBeenCalledTimes(1)
       }
     })

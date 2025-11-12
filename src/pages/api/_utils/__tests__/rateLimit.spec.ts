@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+import { getSecret} from 'astro:env/server'
 import { rateLimiters, checkRateLimit, checkContactRateLimit } from '@pages/api/_utils/rateLimit'
 
 // Mock the Upstash Redis and Ratelimit modules
@@ -252,7 +253,7 @@ describe('Rate Limit Utils', () => {
     beforeEach(() => {
       originalEnvMode = import.meta.env.MODE
       originalDev = import.meta.env.DEV
-      originalCI = process.env['CI']
+      originalCI = getSecret('CI')
     })
 
     afterEach(() => {
@@ -263,6 +264,7 @@ describe('Rate Limit Utils', () => {
         import.meta.env.DEV = originalDev
       }
       if (originalCI !== undefined) {
+        /* eslint-disable-next-line no-process-env */
         process.env['CI'] = originalCI
       }
     })
@@ -282,6 +284,7 @@ describe('Rate Limit Utils', () => {
     })
 
     it('should return true in CI environment', () => {
+      /* eslint-disable-next-line no-process-env */
       process.env['CI'] = 'true'
 
       const result = checkContactRateLimit('192.168.1.1')
@@ -292,6 +295,7 @@ describe('Rate Limit Utils', () => {
       // Set production-like environment
       import.meta.env.MODE = 'production'
       import.meta.env.DEV = false
+      /* eslint-disable-next-line no-process-env */
       process.env['CI'] = 'false'
 
       const ip = '192.168.1.2'
@@ -307,6 +311,7 @@ describe('Rate Limit Utils', () => {
       // Set production-like environment
       import.meta.env.MODE = 'production'
       import.meta.env.DEV = false
+      /* eslint-disable-next-line no-process-env */
       process.env['CI'] = 'false'
 
       const ip = '192.168.1.3'
@@ -325,6 +330,7 @@ describe('Rate Limit Utils', () => {
       // Set production-like environment
       import.meta.env.MODE = 'production'
       import.meta.env.DEV = false
+      /* eslint-disable-next-line no-process-env */
       process.env['CI'] = 'false'
 
       const ip1 = '192.168.1.4'

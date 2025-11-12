@@ -1,5 +1,6 @@
 import { Ratelimit } from '@upstash/ratelimit'
 import { Redis } from '@upstash/redis'
+import { getSecret } from 'astro:env/server'
 
 const redis = new Redis({
   url: import.meta.env['KV_REST_API_URL'] as string,
@@ -54,7 +55,7 @@ export async function checkRateLimit(
  */
 export function checkContactRateLimit(ip: string): boolean {
   // Skip rate limiting in dev/test/CI environments
-  const isDevOrTest = import.meta.env.DEV || import.meta.env.MODE === 'test' || process.env['CI'] === 'true'
+  const isDevOrTest = import.meta.env.DEV || getSecret('NODE_ENV') === 'test' || getSecret('CI') === 'true'
   if (isDevOrTest) {
     return true
   }
