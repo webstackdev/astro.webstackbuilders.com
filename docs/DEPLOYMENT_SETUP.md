@@ -11,6 +11,7 @@ The CI workflow (`.github/workflows/build-and-test.yml`) is configured with thre
 3. **deploy-to-vercel** - Deploys to Vercel production only after deployment gate succeeds
 
 This ensures Vercel deployments only occur when:
+
 - Push is to the `main` branch
 - All tests pass
 - Build succeeds
@@ -70,16 +71,32 @@ The `.vercel/project.json` file created by `vercel link` will contain both `proj
 3. Click **New repository secret**
 4. Add each of these three secrets:
 
-| Secret Name | Value |
-|-------------|-------|
-| `VERCEL_TOKEN` | Token from step 1.1 |
-| `VERCEL_PROJECT_ID` | Project ID from step 1.2 |
-| `VERCEL_ORG_ID` | Organization ID from step 1.3 |
+   - **Name**: Exact name from the list above (case-sensitive)
+   - **Value**: The actual secret value from your local `.env` file
+   - Click **Add secret**
 
 **Important:**
+
 - Secret names must match exactly (case-sensitive)
 - Values should be pasted as-is, no quotes or extra whitespace
 - After saving, you cannot view the values again (only update them)
+
+### GitHub Security Features
+
+GitHub Actions automatically:
+
+- ✅ **Masks secret values** in all log output
+- ✅ **Prevents secrets from being printed** to console
+- ✅ **Blocks secret exposure** in pull requests from forks
+- ✅ **Encrypts secrets** at rest and in transit
+
+**Example of Masked Output**
+
+If a secret contains `abc123xyz`, GitHub will show:
+
+```bash
+***
+```
 
 ## Step 3: Configure Vercel to Prevent Auto-Deploy
 
@@ -131,6 +148,7 @@ If you want Vercel to remain connected but wait for CI:
 
 3. Go to GitHub **Actions** tab
 4. Watch the workflow run:
+
    - `build-and-test` should run first (lint, tests, build, E2E)
    - `deployment-ready` should run after tests pass
    - `deploy-to-vercel` should run last and deploy to Vercel production
@@ -144,27 +162,47 @@ If you want Vercel to remain connected but wait for CI:
 ### Troubleshooting
 
 **If deployment fails with authentication error:**
+
 - Verify secrets are set correctly in GitHub (names match exactly)
 - Check token hasn't expired
 - Ensure token has correct scope/permissions
 
 **If deployment doesn't trigger:**
+
 - Verify push is to `main` branch
 - Check that `deployment-ready` job succeeded
 - Look at GitHub Actions logs for errors
 
 **If tests pass but deployment skipped:**
+
 - Check the `if: github.ref == 'refs/heads/main' && success()` condition
 - Ensure previous jobs succeeded (not just "completed")
 
 **If Vercel still auto-deploys:**
+
 - Double-check Step 3 settings in Vercel dashboard
 - May need to disconnect and reconnect Git integration
 - Contact Vercel support if setting persists
 
-## Step 5: Optional - Set Up Branch Protection
+**"Context access might be invalid" warnings**
 
-For additional safety, configure branch protection on `main`:
+These YAML lint warnings appear before secrets are added to GitHub. They will disappear once you configure the secrets in your repository settings.
+
+**Build fails with "environment variable is not set"**
+
+1. Verify the secret is added in GitHub Settings
+2. Check the secret name matches exactly (case-sensitive)
+3. Ensure the workflow file references the secret correctly: `${{ secrets.SECRET_NAME }}`
+
+**Secret not available in job**
+
+- Secrets are not passed to workflows triggered by forks
+- Check that the secret is configured at the repository level (not environment level)
+- Verify the job has access to secrets (jobs inherit by default)
+
+## Step 5: Set Up Branch Protection
+
+Configure branch protection on `main`:
 
 1. Go to GitHub **Settings** → **Branches**
 2. Add branch protection rule for `main`
@@ -177,6 +215,7 @@ For additional safety, configure branch protection on `main`:
 4. Save changes
 
 This ensures:
+
 - No direct pushes to `main` (requires PR)
 - CI must pass before merge
 - Forces code review workflow
@@ -201,23 +240,7 @@ Tokens should be rotated periodically (recommend yearly):
 ### Updating the Workflow
 
 If you modify `.github/workflows/build-and-test.yml`:
+
 - Ensure job dependencies remain correct (`needs: ...`)
 - Keep the `if: github.ref == 'refs/heads/main'` conditions
 - Test in a feature branch first before merging to `main`
-
-## Security Best Practices
-
-1. **Never commit secrets to the repository** (use GitHub Secrets only)
-2. **Use organization/team tokens** rather than personal tokens when possible
-3. **Set token expiration** and rotate regularly
-4. **Limit token scope** to only the necessary permissions
-5. **Use branch protection** to prevent accidental deployments
-6. **Review GitHub Actions logs** regularly for suspicious activity
-7. **Enable 2FA** on both GitHub and Vercel accounts
-
-## Resources
-
-- [Vercel CLI Documentation](https://vercel.com/docs/cli)
-- [GitHub Actions Secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets)
-- [Vercel Deployment Protection](https://vercel.com/docs/security/deployment-protection)
-- [GitHub Branch Protection](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches)
