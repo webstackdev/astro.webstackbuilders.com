@@ -1,24 +1,26 @@
 /// <reference types="vitest" />
 import { getViteConfig } from 'astro/config'
 import { resolve } from 'path'
-
-// @TODO: Should set up `reporters` for CI to create an artifact on failed runs with `outputFIle`
+import { getSiteUrl } from './src/lib/config'
 
 export default getViteConfig({
   define: {
     'import.meta.env.DEV': true,
+    'import.meta.env.MODE': 'development',
     'import.meta.env.PROD': false,
+    'import.meta.env.SITE': getSiteUrl(),
     'import.meta.env.SSR': true,
   },
   resolve: {
     alias: {
-      '@api': resolve(__dirname, './src/api'),
       '@assets': resolve(__dirname, './src/assets'),
+      '@cache/*': resolve(__dirname, './cache'),
       '@components': resolve(__dirname, './src/components'),
       '@content': resolve(__dirname, './src/content'),
       '@data': resolve(__dirname, './src/data'),
       '@layouts': resolve(__dirname, './src/layouts'),
       '@lib': resolve(__dirname, './src/lib'),
+      '@pages': resolve(__dirname, './src/pages'),
       '@styles': resolve(__dirname, './src/styles'),
       '@test': resolve(__dirname, './test'),
       'astro:transitions/client': resolve(__dirname, './test/__mocks__/astro:transitions/client.ts'),
@@ -35,10 +37,10 @@ export default getViteConfig({
       'test/e2e/helpers/__tests__/**/*.spec.ts',
     ],
     environmentMatchGlobs: [
-      ['src/**', 'jsdom'],
+      ['src/**', 'happy-dom'],
       ['src/lib/**', 'node'],
       ['scripts/**', 'node'],
-      ['api/**', 'node'],
+      ['src/pages/api/**', 'node'],
       ['test/unit/**', 'node'],
       ['test/eslint/__tests__/**', 'node'],
       ['test/e2e/helpers/__tests__/**', 'node'],
@@ -47,12 +49,17 @@ export default getViteConfig({
       DEV: 'true',
       PROD: 'false',
       SSR: 'true',
+      VITEST: 'true',
     },
+    // Use GitHub Actions reporter when running in CI so tests produce
+    // actionable annotations in the Actions UI. Vitest 1.3.0+ includes
+    // a built-in 'github-actions' reporter, so we rely on that here.
+  reporters: process.env['GITHUB_ACTIONS'] ? ['default', 'github-actions'] : 'default',
     testTimeout: 30 * 1000,
     setupFiles: ['./vitest.setup.ts'],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html', 'lcov'],
+      reporter: ['text', 'json-summary', 'json', 'html', 'lcov'],
       reportsDirectory: './coverage',
       include: ['src/**/*.{ts,tsx,astro}', 'scripts/**/*.ts'],
       exclude: [

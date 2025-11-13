@@ -157,19 +157,21 @@ export default [
       'jsdoc/valid-types': 'off',
       'new-cap': [level, { newIsCap: true, capIsNew: false }],
       'no-new': level,
-      'no-process-env': level,
+      'no-process-env': [level, , {
+        "message": "Do not use  process.env directly. See docs/ENVIRONMENT_VARIABLES."
+      }]
       'no-restricted-globals': ['error'].concat(restrictedGlobals),
       'no-restricted-imports': [
         'error', {
             patterns: [
               {
                 group: ['../*'],
-                message: 'Usage of relative imports is not allowed. Please use path aliases.',
+                message: 'Usage of relative imports is not allowed. Use path aliases.',
               },
               {
                 group: ['*'],
                 importNames: ['*'],
-                message: 'Wildcard imports are not allowed. Please use named imports instead.',
+                message: 'Wildcard imports are not allowed. Use named imports instead.',
               },
             ],
           },
@@ -231,6 +233,34 @@ export default [
     },
   },
   {
+    // Test files can import from server code in src/lib
+    files: ['src/**/__tests__/**/*'],
+    rules: {
+      'import/no-restricted-paths': 'off',
+    },
+  },
+  {
+    // Test files can import from server code in src/lib
+    'import/no-restricted-paths': [
+      level,
+      {
+        zones: [
+          {
+            target: 'src/**/__tests__/**/*',
+            from: 'src/components/scripts/utils/environmentClient.ts',
+            message: 'use src/lib/config/environmentServer.ts in test files, not environmentClient.',
+          },
+          {
+            target: 'src/**/__tests__/**/*',
+            from: 'src/components/scripts/utils/siteUrlClient.ts',
+            message: 'use src/lib/config/siteUrlServer.ts in test files, not siteUrlClient.',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    // Files that need access to process.env()
     files: [
       '.eslintrc.js',
       'astro.config.ts',
@@ -239,7 +269,6 @@ export default [
       'scripts/build/**/*'
     ],
     rules: {
-      // All files except Astro config should use import.meta.env.ENV_VAR
       'no-process-env': 'off',
     },
   },
@@ -254,7 +283,7 @@ export default [
         level,
         {
           'selector': 'MetaProperty[meta.name="import"][property.name="meta"]',
-          'message': 'Do not use import.meta.env directly. Use methods in src/components/scripts/utils like isCI(), isDev(), etc.'
+          'message': 'Do not use import.meta.env directly. See docs/ENVIRONMENT_VARIABLES.'
         }
       ],
     },
