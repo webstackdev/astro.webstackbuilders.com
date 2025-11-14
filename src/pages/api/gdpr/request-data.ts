@@ -5,6 +5,8 @@ import { sendDSARVerificationEmail } from '@pages/api/gdpr/_dsarVerificationEmai
 import type { DSARRequestInput, DSARResponse, ErrorResponse } from '@pages/api/_contracts/gdpr.contracts'
 import { v4 as uuidv4 } from 'uuid'
 
+export const prerender = false // Force SSR for this endpoint
+
 /**
  * POST /api/gdpr/request-data
  * Initiates a DSAR (Data Subject Access Request) for data access or deletion

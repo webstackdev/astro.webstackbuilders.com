@@ -3,6 +3,8 @@ import { supabaseAdmin } from '@components/scripts/consent/db/supabase'
 import { rateLimiters, checkRateLimit } from '@pages/api/_utils/rateLimit'
 import { validate as uuidValidate } from 'uuid'
 
+export const prerender = false // Force SSR for this endpoint
+
 export const GET: APIRoute = async ({ clientAddress, url }) => {
   const { success, reset } = await checkRateLimit(rateLimiters.export, clientAddress)
 

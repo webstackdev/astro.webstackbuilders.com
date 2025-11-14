@@ -10,6 +10,8 @@ import { supabaseAdmin } from '@components/scripts/consent/db/supabase'
 import { confirmSubscription } from './_token'
 import { sendWelcomeEmail } from './_email'
 
+export const prerender = false // Force SSR for this endpoint
+
 export const GET: APIRoute = async ({ url }) => {
   const token = url.searchParams.get('token')
 

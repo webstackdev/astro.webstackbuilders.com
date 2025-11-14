@@ -3,6 +3,8 @@ import { supabaseAdmin } from '@components/scripts/consent/db/supabase'
 import { rateLimiters, checkRateLimit } from '@pages/api/_utils/rateLimit'
 import type { DSARRequest, ErrorResponse } from '@pages/api/_contracts/gdpr.contracts'
 
+export const prerender = false // Force SSR for this endpoint
+
 /**
  * GET /api/gdpr/verify?token=xxx
  * Verifies DSAR token and fulfills the request (data access or deletion)

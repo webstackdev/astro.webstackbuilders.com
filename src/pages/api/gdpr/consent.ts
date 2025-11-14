@@ -4,6 +4,8 @@ import { rateLimiters, checkRateLimit } from '@pages/api/_utils/rateLimit'
 import { validate as uuidValidate } from 'uuid'
 import type { ConsentRequest, ConsentResponse, ErrorResponse } from '@pages/api/_contracts/gdpr.contracts'
 
+export const prerender = false // Force SSR for this endpoint
+
 export const POST: APIRoute = async ({ request, clientAddress }) => {
   // Rate limiting
   const { success, reset } = await checkRateLimit(rateLimiters.consent, clientAddress)
