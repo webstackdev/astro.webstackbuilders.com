@@ -5,6 +5,44 @@
 import type { Page } from '@playwright/test'
 
 /**
+ * Dismiss cookie consent modal if it's visible
+ */
+export async function dismissCookieModal(page: Page): Promise<void> {
+  try {
+    // Set consent cookies
+    await page.evaluate(() => {
+      document.cookie = 'consent_analytics=true; path=/; max-age=31536000'
+      document.cookie = 'consent_marketing=true; path=/; max-age=31536000'
+      document.cookie = 'consent_functional=true; path=/; max-age=31536000'
+
+      // Clear localStorage
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem('cookieConsent')
+        localStorage.removeItem('gdprConsent')
+      }
+    })
+
+    // Force hide the modal
+    await page.evaluate(() => {
+      const modal = document.getElementById('consent-modal-id')
+      if (modal) {
+        modal.style.display = 'none'
+      }
+    })
+
+    // Click dismiss button if available
+    const dismissSelector = '[data-testid="cookie-consent-dismiss"], [data-testid="consent-accept"], .consent-accept'
+    const dismissButton = page.locator(dismissSelector).first()
+    if (await dismissButton.isVisible()) {
+      await dismissButton.click()
+    }
+  } catch (error) {
+    // Silently continue if modal dismissal fails
+    console.debug('Cookie modal dismissal failed:', error)
+  }
+}
+
+/**
  * Dismisses cookie consent modal if it's visible and ensures proper consent cookies are set
  * Enhanced for View Transitions compatibility
  */
