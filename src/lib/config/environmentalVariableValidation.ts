@@ -11,114 +11,133 @@ import type { AstroUserConfig } from 'astro'
  * or import { MY_VAR } from 'astro:env/server', ensuring only the intended
  * variables are available in each context.
  *
- * Public client variables: Available in both client and server bundles.
- * Public server variables: Only available in the server bundle.
- * Secret server variables: Only available in the server bundle and not included in the final bundle.
+ * Public server variables: These variables end up in the final server bundle and can be accessed on the server through the astro:env/server module
+ *
+ * Secret server variables: These variables are not part of the final bundle and can be accessed on the server through the astro:env/server module.
+ *
+ * Public client variables: These variables end up in both the final client and server bundles, and can be accessed from both client and server through the astro:env/client module
+ *
+ * Secret client variables: not supported because there is no safe way to send this data to the client.
+ *
+ * ✅ CORRECT: Public client variables are available from BOTH modules
+ * import { PUBLIC_SENTRY_DSN } from 'astro:env/client'  // Works in client code
+ * import { PUBLIC_SUPABASE_KEY } from 'astro:env/server' // Works in server code (API routes)
+ *
+ * ❌ WRONG: Server variables are ONLY available from astro:env/server
+ * import { RESEND_API_KEY } from 'astro:env/client' // TypeScript error!
  */
 
 export const environmentalVariablesConfig: AstroUserConfig['env'] = {
   schema: {
     DEV_SERVER_PORT: envField.number({
-      context: 'client',
       access: 'public',
-      optional: true,
+      context: 'client',
       default: 4321,
+      optional: true,
     }),
     /**
      * Site uses ConvertKit for managing newsletter subscriptions
      */
     CONVERTKIT_API_KEY: envField.string({
-      context: 'server',
       access: 'public',
+      context: 'server',
       optional: false,
     }),
     CONVERTKIT_FORM_ID: envField.number({
-      context: 'server',
       access: 'public',
+      context: 'server',
       optional: false,
     }),
     /**
      * Vercel uses optional cron secret to prevent abuse of services
      */
     CRON_SECRET: envField.string({
-      context: 'server',
       access: 'public',
+      context: 'server',
       optional: false,
     }),
     /**
      * Site uses Vercel Upstash integration for rate limiting on API endpoints
      */
     KV_URL: envField.string({
-      context: 'server',
       access: 'public',
+      context: 'server',
       optional: false,
     }),
     KV_REST_API_URL: envField.string({
-      context: 'server',
       access: 'public',
+      context: 'server',
       optional: false,
     }),
     KV_REST_API_TOKEN: envField.string({
-      context: 'server',
       access: 'secret',
+      context: 'server',
       optional: false,
     }),
     KV_REST_API_READ_ONLY_TOKEN: envField.string({
-      context: 'server',
       access: 'public',
+      context: 'server',
       optional: false,
     }),
     REDIS_URL: envField.string({
-      context: 'server',
       access: 'public',
+      context: 'server',
       optional: false,
     }),
     /**
      * Site uses Resend for sending site emails
      */
     RESEND_API_KEY: envField.string({
-      context: 'server',
       access: 'public',
+      context: 'server',
       optional: false,
     }),
     /**
      * Site uses Sentry for monitoring site errors and user path tracing
      */
     SENTRY_AUTH_TOKEN: envField.string({
-      context: 'server',
       access: 'public',
+      context: 'server',
       optional: false, // Only required for uploading source maps during build
     }),
     PUBLIC_SENTRY_DSN: envField.string({
-      context: 'client',
       access: 'public',
+      context: 'client',
       optional: false, // Optional - Sentry only enabled if provided
     }),
     /**
      * Site uses Suprabase for managing GDPR consent records
      */
     PUBLIC_SUPABASE_URL: envField.string({
-      context: 'client',
       access: 'public',
+      context: 'client',
       optional: false,
     }),
     PUBLIC_SUPABASE_KEY: envField.string({
-      context: 'server',
       access: 'public',
+      context: 'server',
       optional: false,
     }),
     SUPABASE_SERVICE_ROLE_KEY: envField.string({
-      context: 'server',
       access: 'secret',
+      context: 'server',
       optional: false,
     }),
     /**
      * Site uses ConvertKit for managing newsletter subscriptions
      */
     WEBMENTION_IO_TOKEN: envField.string({
-      context: 'server',
       access: 'secret',
+      context: 'server',
       optional: false,
     }),
   },
+  /**
+   * By default, only public variables are validated on the server when starting the
+   * dev server or a build, and private variables are validated at runtime only. If
+   * enabled, private variables will also be checked on start. This is useful in some
+   * continuous integration (CI) pipelines to make sure all your secrets are correctly
+   * set before deploying.
+   */
+  validateSecrets: true,
 }

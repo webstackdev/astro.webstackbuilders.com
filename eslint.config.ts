@@ -273,6 +273,64 @@ export default [
     },
   },
   {
+    /**
+     * Path aliases cannot be used in files that are imported by astro.config.ts.
+     */
+    files: [
+      'src/integrations/**/*',
+      'src/lib/config/**/*',
+    ],
+    rules: {
+      'no-restricted-imports': [
+        'error', {
+            patterns: [
+              {
+                group: ['@/*'],
+                message: 'Path aliases cannot be used in files that are imported by astro.config.ts. See notes in that config file for the reasons why.',
+              },
+            ],
+          },
+      ],
+    },
+  },
+  {
+    files: [
+      'src/components/**/*',
+      'src/layouts/**/*',
+      'src/pages/**/*',
+    ],
+    rules: {
+      'no-restricted-imports': [
+        'error', {
+            patterns: [
+              {
+                group: ['astro:env/server'],
+                message: 'Client code must use astro:env/client, not astro:env/server.',
+              },
+            ],
+          },
+      ],
+    },
+  },
+  {
+    files: [
+      'src/lib/**/*.ts',
+      'src/pages/api/**/*',
+    ],
+    rules: {
+      'no-restricted-imports': [
+        'error', {
+            patterns: [
+              {
+                group: ['astro:env/client'],
+                message: 'SSR API routes and server code must use astro:env/server, not astro:env/client.',
+              },
+            ],
+          },
+      ],
+    },
+  },
+  {
     /** No import.meta.env use in general. */
     files: [
       'src/components/**/*',
@@ -303,27 +361,6 @@ export default [
         {
           'selector': 'MetaProperty[meta.name="import"][property.name="meta"]',
         }
-      ],
-    },
-  },
-  {
-    /**
-     * Path aliases cannot be used in files that are imported by astro.config.ts.
-     */
-    files: [
-      'src/integrations/**/*',
-      'src/lib/config/**/*',
-    ],
-    rules: {
-      'no-restricted-imports': [
-        'error', {
-            patterns: [
-              {
-                group: ['@/*'],
-                message: 'Path aliases cannot be used in files that are imported by astro.config.ts. See notes in that config file for the reasons why.',
-              },
-            ],
-          },
       ],
     },
   },
