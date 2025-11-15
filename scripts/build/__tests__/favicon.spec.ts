@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest'
 import sharp, { type Metadata } from 'sharp'
 import toIco from 'to-ico'
 import { writeFile } from 'fs/promises'
+import { UnitTestError } from '@test/errors'
 
 // Mock external dependencies
 vi.mock('sharp')
@@ -35,7 +36,7 @@ describe('favicon.ts', () => {
       // Since generateIcoFavicon is not exported, we'll create a local test
       const generateIcoFavicon = ({ width, height, density }: Partial<Metadata>) => {
         if (!width || !height || !density) {
-          throw new Error(`Required option not passed to generateIcoFavicon`)
+          throw new UnitTestError(`Required option not passed to generateIcoFavicon`)
         }
       }
 
@@ -47,7 +48,7 @@ describe('favicon.ts', () => {
     it('should throw error when height is missing', () => {
       const generateIcoFavicon = ({ width, height, density }: Partial<Metadata>) => {
         if (!width || !height || !density) {
-          throw new Error(`Required option not passed to generateIcoFavicon`)
+          throw new UnitTestError(`Required option not passed to generateIcoFavicon`)
         }
       }
       const metadata: Partial<Metadata> = { width: 512, density: 72 }
@@ -60,7 +61,7 @@ describe('favicon.ts', () => {
     it('should throw error when density is missing', () => {
       const generateIcoFavicon = ({ width, height, density }: Partial<Metadata>) => {
         if (!width || !height || !density) {
-          throw new Error(`Required option not passed to generateIcoFavicon`)
+          throw new UnitTestError(`Required option not passed to generateIcoFavicon`)
         }
       }
       const metadata: Partial<Metadata> = { width: 512, height: 512 }
@@ -111,7 +112,7 @@ describe('favicon.ts', () => {
     it('should throw error when required parameters are missing', () => {
       const generatePngFavicon = ({ width, height, density }: Partial<Metadata>) => {
         if (!width || !height || !density) {
-          throw new Error(`Required option not passed to generatePngFavicon`)
+          throw new UnitTestError(`Required option not passed to generatePngFavicon`)
         }
       }
 

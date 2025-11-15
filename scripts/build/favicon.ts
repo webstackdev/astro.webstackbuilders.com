@@ -21,13 +21,16 @@
 import sharp, { type Metadata } from 'sharp'
 import toIco from 'to-ico'
 import { writeFile, mkdir } from 'fs/promises'
+import { ClientScriptError } from '@components/scripts/errors'
 
 type IconGenerator = (_options: Metadata) => Promise<Buffer>
 
 const faviconPath = `src/assets/favicon.svg`
 const generateIcoFavicon: IconGenerator = async ({ width, height, density }) => {
-  if (!width || !height || !density)
-    throw new Error(`Required option not passed to generateIcoFavicon`)
+  if (!width || !height || !density) {
+    const message = `Required option not passed to generateIcoFavicon`
+    throw new ClientScriptError({ message })
+  }
   const faviconDimensions = [32, 64]
   // Create buffer for each size
   return Promise.all(
@@ -42,8 +45,10 @@ const generateIcoFavicon: IconGenerator = async ({ width, height, density }) => 
 }
 
 const generatePngFavicon: IconGenerator = ({ density, width, height }) => {
-  if (!width || !height || !density)
-    throw new Error(`Required option not passed to generatePngFavicon`)
+  if (!width || !height || !density) {
+    const message = `Required option not passed to generatePngFavicon`
+    throw new ClientScriptError({ message })
+  }
   return sharp(faviconPath, {
     density: (180 / Math.max(width, height)) * density,
   })
@@ -53,8 +58,10 @@ const generatePngFavicon: IconGenerator = ({ density, width, height }) => {
 }
 
 const generatePwaIcon = (size: number): IconGenerator => ({ density, width, height }) => {
-  if (!width || !height || !density)
-    throw new Error(`Required option not passed to generatePwaIcon`)
+  if (!width || !height || !density) {
+    const message = `Required option not passed to generatePwaIcon`
+    throw new ClientScriptError({ message })
+  }
   return sharp(faviconPath, {
     density: (size / Math.max(width, height)) * density,
   })
