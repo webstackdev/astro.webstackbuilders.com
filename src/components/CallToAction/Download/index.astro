@@ -16,6 +16,8 @@
  * ```
  */
 
+import { ClientScriptError } from '@components/scripts/errors'
+
 export interface Props {
   /** Name of the download resource (matches the folder name in content/downloads) */
   resource: string
@@ -42,7 +44,8 @@ const {
 
 // Validate that resource is provided
 if (!resource) {
-  throw new Error('Download CTA component requires a "resource" prop')
+  const message = 'Download CTA component requires a "resource" prop'
+  throw new ClientScriptError({ message })
 }
 
 // Construct the download landing page URL
