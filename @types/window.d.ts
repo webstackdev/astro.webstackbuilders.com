@@ -22,11 +22,9 @@ declare global {
     metaColors?: MetaColors
 
     /**
-     * Test flag to force error throwing in development
-     * Used by error handler to re-throw errors for debugging
-     * Set by E2E tests via page.evaluate()
+     * Test flag to indicate Playwright control
      */
-    _throw?: boolean
+    isPlaywrightControlled?: boolean
   }
 }
 

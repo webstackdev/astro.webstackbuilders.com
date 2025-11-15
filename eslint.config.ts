@@ -159,7 +159,7 @@ export default [
       'no-new': level,
       'no-process-env': [level, , {
         "message": "Do not use  process.env directly. See docs/ENVIRONMENT_VARIABLES."
-      }]
+      }],
       'no-restricted-globals': ['error'].concat(restrictedGlobals),
       'no-restricted-imports': [
         'error', {
@@ -199,14 +199,14 @@ export default [
   {
     files: ['src/components/scripts/assertions/elements.ts'],
     rules: {
-      // This file implements type guards and legitimately needs type assertions
+      /** This file implements type guards and legitimately needs type assertions */
       'custom-rules/no-html-element-assertions': 'off',
     },
   },
   {
     files: ['**/*error.spec.ts'],
     rules: {
-      // Error test files use mock objects which legitimately need type assertions
+      /** Error test files use mock objects which legitimately need type assertions */
       'custom-rules/no-html-element-assertions': 'off',
     },
   },
@@ -221,7 +221,7 @@ export default [
   },
   {
     files: [
-      // Database files that use snake_case for database field names
+      /** Database files that use snake_case for database field names */
       'src/components/scripts/consent/db/__tests__/rls.spec.ts',
       'src/pages/api/gdpr/consent.ts',
       'src/pages/api/gdpr/request-data.ts',
@@ -233,14 +233,14 @@ export default [
     },
   },
   {
-    // Test files can import from server code in src/lib
+    /** Test files can import from server code in src/lib */
     files: ['src/**/__tests__/**/*'],
     rules: {
       'import/no-restricted-paths': 'off',
     },
   },
   {
-    // Test files can import from server code in src/lib
+    /** Test files can import from server code in src/lib */
     'import/no-restricted-paths': [
       level,
       {
@@ -260,7 +260,7 @@ export default [
     ],
   },
   {
-    // Files that need access to process.env()
+    /** These directories should can use process.env, which is forbidden in other files */
     files: [
       '.eslintrc.js',
       'astro.config.ts',
@@ -273,6 +273,7 @@ export default [
     },
   },
   {
+    /** No import.meta.env use in general. */
     files: [
       'src/components/**/*',
       'src/layouts/**/*',
@@ -289,6 +290,7 @@ export default [
     },
   },
   {
+    /** These files can use import.meta.env */
     files: [
       'src/lib/config/environmentServer.ts',
       'src/lib/config/siteUrlServer.ts',
@@ -301,6 +303,27 @@ export default [
         {
           'selector': 'MetaProperty[meta.name="import"][property.name="meta"]',
         }
+      ],
+    },
+  },
+  {
+    /**
+     * Path aliases cannot be used in files that are imported by astro.config.ts.
+     */
+    files: [
+      'src/integrations/**/*',
+      'src/lib/config/**/*',
+    ],
+    rules: {
+      'no-restricted-imports': [
+        'error', {
+            patterns: [
+              {
+                group: ['@/*'],
+                message: 'Path aliases cannot be used in files that are imported by astro.config.ts. See notes in that config file for the reasons why.',
+              },
+            ],
+          },
       ],
     },
   },

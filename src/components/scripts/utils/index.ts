@@ -2,8 +2,6 @@
  * Scripts Utils - Barrel Export
  * Single source for all utility functions
  */
-
-// Re-export cookie utilities
 export {
   type CookieOptions,
   getCookie,
@@ -12,17 +10,18 @@ export {
   getAllCookies,
 } from './cookies'
 
-// Re-export data subject ID utilities
 export {
   getOrCreateDataSubjectId,
   deleteDataSubjectId,
 } from './dataSubjectId'
 
-// Re-export cookie utilities
 export {
-  getSiteUrl,
   isCI,
   isUnitTest,
+  isE2eTest,
+  isTest,
   isDev,
   isProd,
 } from './environmentClient'
+
+export { getSiteUrl} from './siteUrlClient'

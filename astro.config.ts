@@ -8,9 +8,19 @@ import AstroPWA from '@vite-pwa/astro'
 import vtbot from 'astro-vtbot'
 import icon from 'astro-icon'
 import { defineConfig } from 'astro/config'
+/**
+ * You cannot use path aliases (@lib, @components, etc.) in files that are
+ * imported by astro.config.ts, because the path alias resolution happens
+ * AFTER the config is loaded, not before. This means that adding resolve.alias
+ * paths to the vite section in astro.config.ts would not allow using path
+ * aliases because it creates a circular dependency problem since the config
+ * file itself is importing from the paths it needs to configure.
+ */
 import {
   environmentalVariablesConfig,
+  getSentryAuthToken,
   getSiteUrl,
+  isVercel,
   markdownConfig,
   serviceWorkerConfig,
   vercelConfig,
@@ -18,13 +28,6 @@ import {
 import { callToActionValidator } from './src/integrations/CtaValidator'
 import { privacyPolicyVersion } from './src/integrations/PrivacyPolicyVersion'
 import { createSerializeFunction, pagesJsonWriter } from './src/integrations/sitemapSerialize'
-
-// Type guard for required environment variables (only in Vercel)
-const IS_VERCEL = process.env['VERCEL']
-const SENTRY_AUTH_TOKEN = process.env['SENTRY_AUTH_TOKEN']
-if (IS_VERCEL && !SENTRY_AUTH_TOKEN) {
-  throw new Error('SENTRY_AUTH_TOKEN environment variable is required in Vercel but not set')
-}
 
 export default defineConfig({
   adapter: vercelStatic(vercelConfig),
@@ -45,10 +48,10 @@ export default defineConfig({
     /** Inject privacy policy version from git commit date for GDPR record keeping */
     privacyPolicyVersion(),
     /** Only include Sentry integration in Vercel environments */
-    ...(IS_VERCEL ? [sentry({
+    ...(isVercel() ? [sentry({
       project: "webstack-builders-corporate-website",
       org: "webstack-builders",
-      authToken: SENTRY_AUTH_TOKEN!, // Non-null assertion safe due to check above
+      authToken: getSentryAuthToken(),
     })] : []),
     sitemap({
       serialize: createSerializeFunction({

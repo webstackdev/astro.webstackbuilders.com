@@ -8,8 +8,7 @@ export default getViteConfig({
     'import.meta.env.DEV': true,
     'import.meta.env.MODE': 'development',
     'import.meta.env.PROD': false,
-    'import.meta.env.SITE': getSiteUrl(),
-    'import.meta.env.SSR': true,
+    'import.meta.env.SITE': JSON.stringify(getSiteUrl()),
   },
   resolve: {
     alias: {
@@ -47,8 +46,9 @@ export default getViteConfig({
     ],
     env: {
       DEV: 'true',
+      MODE: 'test',
+      NODE_ENV: 'development',
       PROD: 'false',
-      SSR: 'true',
       VITEST: 'true',
     },
     // Use GitHub Actions reporter when running in CI so tests produce

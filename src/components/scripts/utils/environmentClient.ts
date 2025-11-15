@@ -1,26 +1,27 @@
+
 /**
- * Client-side checks for environment
+ * We are setting the VITEST env var in vitest.config.ts for unit tests.
  */
-
-// @TODO: Implement these methods
-
-export const getSiteUrl = () => {
-  return "localhost:4321"
-}
-
-export const isCI = () => {
-  return true
-}
-
-// Vitest sets the VITEST environment variable and exposes them from your .env files as import.meta.env.
 export const isUnitTest = () => {
-  return true
+  return typeof process !== 'undefined' && !!process.env['VITEST']
+}
+
+export const isE2eTest = () => {
+  // In browser context (E2E tests with Playwright)
+  if (typeof window !== 'undefined') {
+    return window.isPlaywrightControlled === true
+  }
+  return false
+}
+
+export const isTest = () => {
+  return isUnitTest() || isE2eTest()
 }
 
 export const isDev = () => {
-  return true
+  return import.meta.env.DEV
 }
 
 export const isProd = () => {
-  return true
+  return import.meta.env.PROD && !isUnitTest()
 }
