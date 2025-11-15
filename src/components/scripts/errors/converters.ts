@@ -39,7 +39,7 @@ export const normalizeMessage = (message: unknown): ClientScriptErrorParams => {
   }
 }
 
-export interface stackMetadata {
+interface stackMetadata {
   fileName?: string | undefined
   lineNumber?: string | undefined
   columnNumber?: string | undefined

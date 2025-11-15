@@ -39,9 +39,7 @@ export function handleScriptError(
       },
     })
   } else {
-    // For e2e testing to capture any error without needing timeouts
-    if (window._throw) throw clientError
-    // Otherwise log it for debugging
+    // Log it for debugging
     console.error(
       `[${context.scriptName}]${context.operation ? ` ${context.operation}` : ''}:`,
       clientError,

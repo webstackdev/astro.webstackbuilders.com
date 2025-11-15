@@ -14,7 +14,7 @@ import {
   normalizeMessage,
 } from '@components/scripts/errors/converters'
 import { isString } from '@components/scripts/assertions/primitives'
-import { PromiseRejectionEvent } from '@lib/@types/PromiseRejectionEvent'
+import { PromiseRejectionEvent } from '@components/scripts/@types/PromiseRejectionEvent'
 
 const voidFn = () => {}
 

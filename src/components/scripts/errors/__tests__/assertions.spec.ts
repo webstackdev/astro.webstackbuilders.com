@@ -5,7 +5,7 @@
 import { describe, expect, test } from 'vitest'
 import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
 import { isError, isErrorEvent, isPromiseRejectionEvent, isClientScriptError } from '@components/scripts/errors/assertions'
-import { PromiseRejectionEvent } from '@lib/@types/PromiseRejectionEvent'
+import { PromiseRejectionEvent } from '@components/scripts/@types/PromiseRejectionEvent'
 
 const voidFn = () => {}
 
