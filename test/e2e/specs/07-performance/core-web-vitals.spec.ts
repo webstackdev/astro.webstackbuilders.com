@@ -3,14 +3,15 @@
  * Tests for Core Web Vitals metrics (LCP, FID, CLS)
  */
 
-import { test } from '@test/e2e/helpers'
+import { BasePage, test } from '@test/e2e/helpers'
 import { PerformancePage } from '@test/e2e/helpers/pageObjectModels/PerformancePage'
 
 test.describe('Core Web Vitals', () => {
   let performancePage: PerformancePage
 
-  test.beforeEach(async ({ page }) => {
-    performancePage = new PerformancePage(page)
+  test.beforeEach(async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    performancePage = new PerformancePage(page.page)
     await performancePage.goto('/')
   })
 

@@ -55,7 +55,16 @@ export class BasePage {
     }
 
     return response
-  }  /**
+  }
+
+  /**
+   * Reload the current page
+   */
+  async reload(options?: { timeout?: number; waitUntil?: 'load' | 'domcontentloaded' | 'networkidle' }): Promise<null | Response> {
+    return await this._page.reload(options)
+  }
+
+  /**
    * Dismiss cookie consent modal if it's visible
    */
   private async dismissCookieModal(): Promise<void> {
@@ -131,6 +140,13 @@ export class BasePage {
    */
   async setViewport(width: number, height: number): Promise<void> {
     await this._page.setViewportSize({ width, height })
+  }
+
+  /**
+   * Set viewport size using object parameter
+   */
+  async setViewportSize(size: { width: number; height: number }): Promise<void> {
+    await this._page.setViewportSize(size)
   }
 
   /**
@@ -215,6 +231,34 @@ export class BasePage {
   }
 
   /**
+   * Type text using keyboard
+   */
+  async type(text: string): Promise<void> {
+    await this._page.keyboard.type(text)
+  }
+
+  /**
+   * Get keyboard object for advanced keyboard operations
+   */
+  get keyboard() {
+    return this._page.keyboard
+  }
+
+  /**
+   * Get mouse object for advanced mouse operations
+   */
+  get mouse() {
+    return this._page.mouse
+  }
+
+  /**
+   * Get touchscreen object for touch operations
+   */
+  get touchscreen() {
+    return this._page.touchscreen
+  }
+
+  /**
    * Hover over element
    */
   async hover(selector: string): Promise<void> {
@@ -234,6 +278,36 @@ export class BasePage {
    */
   async wait(timeout: number): Promise<void> {
     await this._page.waitForTimeout(timeout)
+  }
+
+  /**
+   * Wait for specified timeout in milliseconds
+   * Alias for wait() method
+   * @deprecated Use event-based waits like waitForPageLoad() instead
+   */
+  async waitForTimeout(timeout: number): Promise<void> {
+    await this._page.waitForTimeout(timeout)
+  }
+
+  /**
+   * Wait for a custom function to return truthy value
+   */
+  async waitForFunction<R>(
+    pageFunction: () => R | Promise<R>,
+    arg?: unknown,
+    options?: { timeout?: number }
+  ): Promise<void> {
+    await this._page.waitForFunction(pageFunction, arg, options)
+  }
+
+  /**
+   * Intercept and modify network requests
+   */
+  async route(
+    url: string | RegExp | ((url: URL) => boolean),
+    handler: (route: import('@playwright/test').Route) => void
+  ): Promise<void> {
+    await this._page.route(url, handler)
   }
 
   /**
@@ -288,6 +362,24 @@ export class BasePage {
   }
 
   /**
+   * Wait for a response matching the URL pattern
+   *
+   * @param urlPattern - URL or pattern to match
+   * @param options - Timeout and other options
+   *
+   * @example
+   * ```ts
+   * const response = await page.waitForResponse('/api/newsletter')
+   * ```
+   */
+  async waitForResponse(
+    urlPattern: string | RegExp | ((response: Response) => boolean),
+    options?: { timeout?: number }
+  ): Promise<Response> {
+    return await this._page.waitForResponse(urlPattern, options)
+  }
+
+  /**
    * ================================================================
    *
    * Browser and Head Methods
@@ -300,6 +392,38 @@ export class BasePage {
    */
   getCurrentUrl(): string {
     return this._page.url()
+  }
+
+  /**
+   * Get page URL (alias for getCurrentUrl)
+   */
+  url(): string {
+    return this._page.url()
+  }
+
+  /**
+   * Get page title
+   */
+  async title(): Promise<string> {
+    return this._page.title()
+  }
+
+  /**
+   * Get the browser context that the page belongs to
+   */
+  context() {
+    return this._page.context()
+  }
+
+  /**
+   * Emulate media features (e.g., prefers-color-scheme, reduced-motion)
+   */
+  async emulateMedia(options: {
+    colorScheme?: 'light' | 'dark' | 'no-preference'
+    reducedMotion?: 'reduce' | 'no-preference'
+    forcedColors?: 'active' | 'none'
+  }): Promise<void> {
+    await this._page.emulateMedia(options)
   }
 
   /**

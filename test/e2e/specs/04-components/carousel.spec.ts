@@ -4,20 +4,23 @@
  * @see src/components/Carousel/
  */
 
-import { test, expect } from '@test/e2e/helpers'
+import { BasePage, test, expect } from '@test/e2e/helpers'
 
 test.describe('Carousel Component', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     await page.goto('/')
   })
 
-  test.skip('@wip carousel displays on homepage', async ({ page }) => {
+  test.skip('@wip carousel displays on homepage', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     // Expected: Carousel component should be visible
     const carousel = page.locator('[data-carousel]').first()
     await expect(carousel).toBeVisible()
   })
 
-  test.skip('@wip carousel has navigation buttons', async ({ page }) => {
+  test.skip('@wip carousel has navigation buttons', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     // Expected: Previous and next buttons should be visible
     const prevButton = page.locator('[data-carousel-prev]').first()
     const nextButton = page.locator('[data-carousel-next]').first()
@@ -26,7 +29,8 @@ test.describe('Carousel Component', () => {
     await expect(nextButton).toBeVisible()
   })
 
-  test.skip('@wip can navigate to next slide', async ({ page }) => {
+  test.skip('@wip can navigate to next slide', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     // Expected: Clicking next button should change the active slide
     const carousel = page.locator('[data-carousel]').first()
     const nextButton = page.locator('[data-carousel-next]').first()
@@ -46,7 +50,8 @@ test.describe('Carousel Component', () => {
     expect(newSlide).not.toBe(initialSlide)
   })
 
-  test.skip('@wip can navigate to previous slide', async ({ page }) => {
+  test.skip('@wip can navigate to previous slide', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     // Expected: Clicking previous button should change the active slide
     const carousel = page.locator('[data-carousel]').first()
     const prevButton = page.locator('[data-carousel-prev]').first()
@@ -70,7 +75,8 @@ test.describe('Carousel Component', () => {
     expect(afterPrev).not.toBe(beforePrev)
   })
 
-  test.skip('@wip carousel has pagination dots', async ({ page }) => {
+  test.skip('@wip carousel has pagination dots', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     // Expected: Pagination indicators should be visible
     const pagination = page.locator('[data-carousel-pagination]').first()
     await expect(pagination).toBeVisible()
@@ -80,7 +86,8 @@ test.describe('Carousel Component', () => {
     expect(dotCount).toBeGreaterThan(0)
   })
 
-  test.skip('@wip can click pagination dot to jump to slide', async ({ page }) => {
+  test.skip('@wip can click pagination dot to jump to slide', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     // Expected: Clicking pagination dot should jump to that slide
     const carousel = page.locator('[data-carousel]').first()
     const pagination = page.locator('[data-carousel-pagination]').first()
@@ -99,7 +106,8 @@ test.describe('Carousel Component', () => {
     }
   })
 
-  test.skip('@wip carousel supports keyboard navigation', async ({ page }) => {
+  test.skip('@wip carousel supports keyboard navigation', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     // Expected: Arrow keys should navigate carousel
     const carousel = page.locator('[data-carousel]').first()
     await carousel.focus()
@@ -118,7 +126,8 @@ test.describe('Carousel Component', () => {
     expect(newSlide).not.toBe(initialSlide)
   })
 
-  test.skip('@wip carousel wraps around from last to first slide', async ({ page }) => {
+  test.skip('@wip carousel wraps around from last to first slide', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     // Expected: Navigating past last slide should wrap to first
     const carousel = page.locator('[data-carousel]').first()
     const nextButton = page.locator('[data-carousel-next]').first()
@@ -141,7 +150,8 @@ test.describe('Carousel Component', () => {
     expect(activeSlide).toBe('0')
   })
 
-  test.skip('@wip carousel is responsive on mobile', async ({ page }) => {
+  test.skip('@wip carousel is responsive on mobile', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     // Expected: Carousel should work on mobile viewports
     await page.setViewportSize({ width: 375, height: 667 })
     await page.goto('/')
@@ -170,7 +180,8 @@ test.describe('Carousel Component', () => {
     }
   })
 
-  test.skip('@flaky autoplay pauses on hover', async ({ page }) => {
+  test.skip('@flaky autoplay pauses on hover', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     // Expected: Autoplay should pause when user hovers
     // Note: Marked as flaky because timing-dependent
     const carousel = page.locator('[data-carousel]').first()

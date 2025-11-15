@@ -2,15 +2,16 @@
  * Newsletter Subscription Form E2E Tests
  * Tests for newsletter signup functionality
  */
-import { test, expect } from '@test/e2e/helpers'
+import { BasePage, test, expect } from '@test/e2e/helpers'
 import { TEST_EMAILS, ERROR_MESSAGES } from '@test/e2e/fixtures/test-data'
 import { NewsletterPage } from '@test/e2e/helpers/pageObjectModels/NewsletterPage'
 
 test.describe('Newsletter Subscription Form', () => {
   let newsletterPage: NewsletterPage
 
-  test.beforeEach(async ({ page }) => {
-    newsletterPage = new NewsletterPage(page)
+  test.beforeEach(async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    newsletterPage = new NewsletterPage(page.page)
     await newsletterPage.navigateToNewsletterForm()
   })
 
@@ -34,7 +35,8 @@ test.describe('Newsletter Subscription Form', () => {
     await newsletterPage.expectMessageContains(ERROR_MESSAGES.emailInvalid)
   })
 
-  test('@ready form requires GDPR consent', async ({ page }) => {
+  test('@ready form requires GDPR consent', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     let apiCallMade = false
 
     // Monitor API calls to ensure client-side validation prevents submission
@@ -66,7 +68,8 @@ test.describe('Newsletter Subscription Form', () => {
     await newsletterPage.expectMessageContains('Please consent to receive marketing communications')
   })
 
-  test('@ready form requires email address', async ({ page }) => {
+  test('@ready form requires email address', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     // Try to submit without email - browser validation will prevent submission
     await newsletterPage.checkGdprConsent()
 
@@ -75,7 +78,8 @@ test.describe('Newsletter Subscription Form', () => {
     await expect(emailInput).toHaveAttribute('required', '')
   })
 
-  test('@ready submit button shows loading state', async ({ page }) => {
+  test('@ready submit button shows loading state', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     // Start subscription
     await newsletterPage.fillEmail(TEST_EMAILS.valid)
     await newsletterPage.checkGdprConsent()
@@ -131,7 +135,8 @@ test.describe('Newsletter Subscription Form', () => {
     await newsletterPage.expectMessageContains(ERROR_MESSAGES.emailInvalid)
   })
 
-  test('@ready GDPR consent link works', async ({ page }) => {
+  test('@ready GDPR consent link works', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     // Find the privacy link within the GDPR consent label
     // The structure is: <GDPRConsent> which renders a label with a link inside
     const privacyLink = page.locator('label:has(#newsletter-gdpr-consent) a').first()
@@ -139,7 +144,8 @@ test.describe('Newsletter Subscription Form', () => {
     await expect(privacyLink).toHaveAttribute('href', /privacy/)
   })
 
-  test('@ready API returns confirmation message', async ({ page }) => {
+  test('@ready API returns confirmation message', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     // Set up response promise before submitting
     const apiResponsePromise = page.waitForResponse('/api/newsletter')
 

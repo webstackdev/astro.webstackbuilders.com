@@ -13,14 +13,15 @@
  * 3. Run E2E tests against the preview server
  */
 
-import { test } from '@test/e2e/helpers'
+import { BasePage, test } from '@test/e2e/helpers'
 import { PwaPage } from '@test/e2e/helpers/pageObjectModels/PwaPage'
 
 test.describe('Service Worker', () => {
   let pwaPage: PwaPage
 
-  test.beforeEach(async ({ page }) => {
-    pwaPage = new PwaPage(page)
+  test.beforeEach(async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    pwaPage = new PwaPage(page.page)
   })
 
   test.skip('@blocked service worker installs on first visit', async () => {

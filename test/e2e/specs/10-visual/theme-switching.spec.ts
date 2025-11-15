@@ -3,10 +3,11 @@
  * Visual regression tests for light/dark theme switching
  */
 
-import { test, expect } from '@test/e2e/helpers'
+import { BasePage, test, expect } from '@test/e2e/helpers'
 
 test.describe('Theme Switching Visuals', () => {
-  test.skip('@blocked light theme screenshot baseline', async ({ page }) => {
+  test.skip('@blocked light theme screenshot baseline', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     // Blocked by: Need visual regression testing setup (e.g., Percy, Chromatic)
     // Expected: Capture baseline screenshot of light theme
     await page.goto("/")
@@ -21,7 +22,8 @@ test.describe('Theme Switching Visuals', () => {
     // await percySnapshot(page, 'Homepage - Light Theme')
   })
 
-  test.skip('@blocked dark theme screenshot baseline', async ({ page }) => {
+  test.skip('@blocked dark theme screenshot baseline', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     // Blocked by: Need visual regression testing setup
     // Expected: Capture baseline screenshot of dark theme
     await page.goto("/")
@@ -36,7 +38,8 @@ test.describe('Theme Switching Visuals', () => {
     // await percySnapshot(page, 'Homepage - Dark Theme')
   })
 
-  test.skip('@wip theme colors are applied correctly', async ({ page }) => {
+  test.skip('@wip theme colors are applied correctly', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     // Expected: Theme switch should change CSS variables
     await page.goto("/")
 
@@ -67,7 +70,8 @@ test.describe('Theme Switching Visuals', () => {
     expect(lightColors.bg).not.toBe(darkColors.bg)
   })
 
-  test.skip('@blocked compare light vs dark theme visually', async ({ page }) => {
+  test.skip('@blocked compare light vs dark theme visually', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     // Blocked by: Need visual regression testing
     // Expected: Should detect visual differences between themes
     await page.goto("/about")
@@ -87,14 +91,15 @@ test.describe('Theme Switching Visuals', () => {
     // await percySnapshot(page, 'About Page - Dark')
   })
 
-  test.skip('@wip no broken images in either theme', async ({ page }) => {
+  test.skip('@wip no broken images in either theme', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     // Expected: All images should load in both themes
     const themes = ['light', 'dark']
 
     for (const theme of themes) {
       await page.goto("/")
 
-      await page.evaluate((t) => {
+      await page.page.evaluate((t) => {
         document.documentElement.setAttribute('data-theme', t)
       }, theme)
 
@@ -109,14 +114,15 @@ test.describe('Theme Switching Visuals', () => {
     }
   })
 
-  test.skip('@wip text remains readable in both themes', async ({ page }) => {
+  test.skip('@wip text remains readable in both themes', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     // Expected: Text should have sufficient contrast in both themes
     await page.goto("/")
 
     const themes = ['light', 'dark']
 
     for (const theme of themes) {
-      await page.evaluate((t) => {
+      await page.page.evaluate((t) => {
         document.documentElement.setAttribute('data-theme', t)
       }, theme)
 
@@ -136,7 +142,8 @@ test.describe('Theme Switching Visuals', () => {
     }
   })
 
-  test.skip('@blocked article page theme comparison', async ({ page }) => {
+  test.skip('@blocked article page theme comparison', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
     // Blocked by: Need visual regression testing
     // Expected: Articles should look good in both themes
     await page.goto("/articles")
@@ -159,7 +166,9 @@ test.describe('Theme Switching Visuals', () => {
     // await percySnapshot(page, 'Article - Dark')
   })
 
-  test.skip('@wip theme transition is smooth', async ({ page }) => {
+  test.skip('@wip theme transition is smooth', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    
     // Expected: Theme switch should have smooth transition
     await page.goto("/")
 
@@ -172,7 +181,9 @@ test.describe('Theme Switching Visuals', () => {
     expect(hasTransition).toBe(true)
   })
 
-  test.skip('@wip no flash of wrong theme on load', async ({ page }) => {
+  test.skip('@wip no flash of wrong theme on load', async ({ page: playwrightPage }) => {
+    const page = new BasePage(playwrightPage)
+    
     // Expected: Should not show wrong theme before switching
     // This tests the theme loading script
 

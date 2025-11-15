@@ -7,16 +7,19 @@ import type { AstroUserConfig } from 'astro'
  * import { SERVER_API_URL} from "astro:env/server";
  * <script>import { API_URL } from "astro:env/client";</script>
  *
- * Public client variables end up in both the final client and server bundles, and can
- * be accessed from both client and server through the astro:env/client module. Public
- * server variables end up in the final server bundle. Secret server variables are not
- * part of the final server bundle and are only validated at runtime.
+ * Variables are accessed through import { MY_VAR } from 'astro:env/client'
+ * or import { MY_VAR } from 'astro:env/server', ensuring only the intended
+ * variables are available in each context.
+ *
+ * Public client variables: Available in both client and server bundles.
+ * Public server variables: Only available in the server bundle.
+ * Secret server variables: Only available in the server bundle and not included in the final bundle.
  */
 
 export const environmentalVariablesConfig: AstroUserConfig['env'] = {
   schema: {
     DEV_SERVER_PORT: envField.number({
-      context: 'server',
+      context: 'client',
       access: 'public',
       optional: true,
       default: 4321,
@@ -40,7 +43,7 @@ export const environmentalVariablesConfig: AstroUserConfig['env'] = {
     CRON_SECRET: envField.string({
       context: 'server',
       access: 'public',
-      optional: true,
+      optional: false,
     }),
     /**
      * Site uses Vercel Upstash integration for rate limiting on API endpoints
@@ -48,27 +51,27 @@ export const environmentalVariablesConfig: AstroUserConfig['env'] = {
     KV_URL: envField.string({
       context: 'server',
       access: 'public',
-      optional: true,
+      optional: false,
     }),
     KV_REST_API_URL: envField.string({
       context: 'server',
       access: 'public',
-      optional: true,
+      optional: false,
     }),
     KV_REST_API_TOKEN: envField.string({
       context: 'server',
-      access: 'public',
-      optional: true,
+      access: 'secret',
+      optional: false,
     }),
     KV_REST_API_READ_ONLY_TOKEN: envField.string({
       context: 'server',
       access: 'public',
-      optional: true,
+      optional: false,
     }),
     REDIS_URL: envField.string({
       context: 'server',
       access: 'public',
-      optional: true,
+      optional: false,
     }),
     /**
      * Site uses Resend for sending site emails
@@ -84,12 +87,12 @@ export const environmentalVariablesConfig: AstroUserConfig['env'] = {
     SENTRY_AUTH_TOKEN: envField.string({
       context: 'server',
       access: 'public',
-      optional: true, // Only required for uploading source maps during build
+      optional: false, // Only required for uploading source maps during build
     }),
     PUBLIC_SENTRY_DSN: envField.string({
       context: 'client',
       access: 'public',
-      optional: true, // Optional - Sentry only enabled if provided
+      optional: false, // Optional - Sentry only enabled if provided
     }),
     /**
      * Site uses Suprabase for managing GDPR consent records
@@ -97,17 +100,17 @@ export const environmentalVariablesConfig: AstroUserConfig['env'] = {
     PUBLIC_SUPABASE_URL: envField.string({
       context: 'client',
       access: 'public',
-      optional: true,
+      optional: false,
     }),
     PUBLIC_SUPABASE_KEY: envField.string({
       context: 'server',
       access: 'public',
-      optional: true,
+      optional: false,
     }),
     SUPABASE_SERVICE_ROLE_KEY: envField.string({
       context: 'server',
       access: 'secret',
-      optional: true,
+      optional: false,
     }),
     /**
      * Site uses ConvertKit for managing newsletter subscriptions
@@ -115,7 +118,7 @@ export const environmentalVariablesConfig: AstroUserConfig['env'] = {
     WEBMENTION_IO_TOKEN: envField.string({
       context: 'server',
       access: 'secret',
-      optional: true, // Optional - WebMentions only fetched if provided
+      optional: false,
     }),
   },
 }

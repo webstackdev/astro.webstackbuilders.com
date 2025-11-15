@@ -4,6 +4,7 @@
  * @see src/components/ThemePicker/
  */
 import {
+  BasePage,
   expect,
   getThemePickerToggle,
   selectTheme,
@@ -45,23 +46,26 @@ async function navigateWithMobileSupport(page: import('@playwright/test').Page, 
 
 test.describe('Theme Picker Component', () => {
   test.describe('Core Functionality', () => {
-    test.beforeEach(async ({ page }, testInfo) => {
+    test.beforeEach(async ({ page: playwrightPage }, testInfo) => {
+      const page = new BasePage(playwrightPage)
       // Skip setup for tests that need custom media emulation
       if (testInfo.title.includes('prefers-color-scheme')) {
         return
       }
-      await setupCleanTestPage(page)
+      await setupCleanTestPage(page.page)
     })
 
-    test('@ready theme picker is visible', async ({ page }) => {
+    test('@ready theme picker is visible', async ({ page: playwrightPage }) => {
+      const page = new BasePage(playwrightPage)
       // Expected: Theme picker button should be visible in header
-      const themePicker = getThemePickerToggle(page)
+      const themePicker = getThemePickerToggle(page.page)
       await expect(themePicker).toBeVisible()
     })
 
-    test('@ready can toggle to dark theme', async ({ page }) => {
+    test('@ready can toggle to dark theme', async ({ page: playwrightPage }) => {
+      const page = new BasePage(playwrightPage)
       // Expected: Clicking theme picker should open modal and allow selecting dark theme
-      await selectTheme(page, 'dark')
+      await selectTheme(page.page, 'dark')
 
       // Check if dark theme is applied
       const htmlElement = page.locator('html')
@@ -70,14 +74,15 @@ test.describe('Theme Picker Component', () => {
       expect(dataTheme).toBe('dark')
     })
 
-    test('@ready can toggle back to light theme', async ({ page }) => {
+    test('@ready can toggle back to light theme', async ({ page: playwrightPage }) => {
+      const page = new BasePage(playwrightPage)
       // Expected: Toggling twice should return to light theme
 
       // Toggle to dark
-      await selectTheme(page, 'dark')
+      await selectTheme(page.page, 'dark')
 
       // Toggle back to light
-      await selectTheme(page, 'light')
+      await selectTheme(page.page, 'light')
 
       const htmlElement = page.locator('html')
       const dataTheme = await htmlElement.getAttribute('data-theme')
@@ -85,18 +90,20 @@ test.describe('Theme Picker Component', () => {
       expect(dataTheme).toBe('light')
     })
 
-    test('@ready theme picker has accessible label', async ({ page }) => {
+    test('@ready theme picker has accessible label', async ({ page: playwrightPage }) => {
+      const page = new BasePage(playwrightPage)
       // Expected: Theme picker button should have appropriate ARIA label
-      const themePicker = getThemePickerToggle(page)
+      const themePicker = getThemePickerToggle(page.page)
 
       const ariaLabel = await themePicker.getAttribute('aria-label')
       expect(ariaLabel).toBeTruthy()
       expect(ariaLabel?.toLowerCase()).toContain('theme')
     })
 
-    test('@ready theme picker shows current theme state', async ({ page }) => {
+    test('@ready theme picker shows current theme state', async ({ page: playwrightPage }) => {
+      const page = new BasePage(playwrightPage)
       // Expected: Theme picker modal should show active state for current theme
-      const themePicker = getThemePickerToggle(page)
+      const themePicker = getThemePickerToggle(page.page)
 
       // Open the theme picker modal
       await themePicker.click()
@@ -131,15 +138,17 @@ test.describe('Theme Picker Component', () => {
   })
 
   test.describe('Persistence', () => {
-    test.beforeEach(async ({ page }) => {
-      await setupCleanTestPage(page)
+    test.beforeEach(async ({ page: playwrightPage }) => {
+      const page = new BasePage(playwrightPage)
+      await setupCleanTestPage(page.page)
     })
 
-    test('@ready theme preference persists across page reloads', async ({ page }) => {
+    test('@ready theme preference persists across page reloads', async ({ page: playwrightPage }) => {
+      const page = new BasePage(playwrightPage)
       // Expected: Theme selection should be stored in localStorage
 
       // Toggle to dark theme
-      await selectTheme(page, 'dark')
+      await selectTheme(page.page, 'dark')
 
       // Reload page
       await page.reload()
@@ -152,14 +161,15 @@ test.describe('Theme Picker Component', () => {
       expect(dataTheme).toBe('dark')
     })
 
-    test('@ready theme preference persists across navigation', async ({ page }) => {
+    test('@ready theme preference persists across navigation', async ({ page: playwrightPage }) => {
+      const page = new BasePage(playwrightPage)
       // Expected: Theme should persist when navigating between pages
 
       // This test needs its own setup without localStorage clearing
-      await setupTestPage(page)
+      await setupTestPage(page.page)
 
       // Select dark theme using helper
-      await selectTheme(page, 'dark')
+      await selectTheme(page.page, 'dark')
 
       // Navigate to another page
       await page.goto('/about')
@@ -174,7 +184,8 @@ test.describe('Theme Picker Component', () => {
   })
 
   test.describe('System Preferences', () => {
-    test('@ready respects prefers-color-scheme on first visit', async ({ page }) => {
+    test('@ready respects prefers-color-scheme on first visit', async ({ page: playwrightPage }) => {
+      const page = new BasePage(playwrightPage)
       // Expected: Should use system preference if no stored preference
 
       // First, visit the page to establish the domain context
@@ -206,14 +217,15 @@ test.describe('Theme Picker Component', () => {
       expect(dataTheme).toBe('dark')
     })
 
-    test('@ready manual selection overrides system preference', async ({ page }) => {
+    test('@ready manual selection overrides system preference', async ({ page: playwrightPage }) => {
+      const page = new BasePage(playwrightPage)
       // Expected: User selection should override system preference
       await page.emulateMedia({ colorScheme: 'dark' })
       await page.goto('/')
       await page.waitForTimeout(300)
 
       // Manually switch to light theme
-      await selectTheme(page, 'light')
+      await selectTheme(page.page, 'light')
 
       const htmlElement = page.locator('html')
       const dataTheme = await htmlElement.getAttribute('data-theme')
@@ -230,14 +242,16 @@ test.describe('Theme Picker Component', () => {
   })
 
   test.describe('View Transitions - Regression', () => {
-    test.beforeEach(async ({ page }) => {
+    test.beforeEach(async ({ page: playwrightPage }) => {
+      const page = new BasePage(playwrightPage)
       // Clear localStorage and dismiss cookie modal before each test
-      await setupTestPage(page, '/')
+      await setupTestPage(page.page, '/')
       await page.evaluate(() => localStorage.clear())
       await page.reload()
     })
 
-    test('theme picker button works after View Transition navigation', async ({ page }) => {
+    test('theme picker button works after View Transition navigation', async ({ page: playwrightPage }) => {
+      const page = new BasePage(playwrightPage)
       // Issue: Theme picker button stopped working after navigating to another page
       // Root Cause: Scripts didn't properly reinitialize on View Transitions
       // Fix: Migrated to Web Component pattern with connectedCallback/disconnectedCallback lifecycle
@@ -256,7 +270,7 @@ test.describe('Theme Picker Component', () => {
       await expect(themeToggleBtn).toHaveAttribute('aria-expanded', 'false')
 
       // 2. Navigate to another page using an internal link
-      await navigateWithMobileSupport(page, '.main-nav-item a')
+      await navigateWithMobileSupport(page.page, '.main-nav-item a')
 
       // 3. Verify theme picker button still works after navigation
       const themeToggleBtnAfterNav = page.locator('.theme-toggle-btn').first()
@@ -271,9 +285,10 @@ test.describe('Theme Picker Component', () => {
       await expect(themePicker).toHaveClass(/is-open/)
     })
 
-    test('theme picker can select themes after View Transition navigation', async ({ page }) => {
+    test('theme picker can select themes after View Transition navigation', async ({ page: playwrightPage }) => {
+      const page = new BasePage(playwrightPage)
       // Navigate to another page first using mobile-aware helper
-      await navigateWithMobileSupport(page, '.main-nav-item a')
+      await navigateWithMobileSupport(page.page, '.main-nav-item a')
 
       // 2. Open theme picker
       const themeToggleBtn = page.locator('.theme-toggle-btn').first()
@@ -293,7 +308,8 @@ test.describe('Theme Picker Component', () => {
       await expect(darkThemeItem).toHaveClass(/is-active/)
     })
 
-    test('theme preference persists across View Transitions', async ({ page }) => {
+    test('theme preference persists across View Transitions', async ({ page: playwrightPage }) => {
+      const page = new BasePage(playwrightPage)
       // 1. Select dark theme on home page
       const themeToggleBtn = page.locator('.theme-toggle-btn').first()
       await themeToggleBtn.click()
@@ -305,7 +321,7 @@ test.describe('Theme Picker Component', () => {
       await page.waitForTimeout(500)
 
       // 2. Navigate to another page using mobile-aware helper
-      await navigateWithMobileSupport(page, '.main-nav-item a')
+      await navigateWithMobileSupport(page.page, '.main-nav-item a')
 
       // 3. Verify dark theme is still applied
       const htmlElement = page.locator('html')
@@ -319,13 +335,15 @@ test.describe('Theme Picker Component', () => {
   })
 
   test.describe('HTML Attributes - Regression', () => {
-    test.beforeEach(async ({ page }) => {
-      await setupTestPage(page, '/')
+    test.beforeEach(async ({ page: playwrightPage }) => {
+      const page = new BasePage(playwrightPage)
+      await setupTestPage(page.page, '/')
       await page.evaluate(() => localStorage.clear())
       await page.reload()
     })
 
-    test('preserves lang attribute across navigation', async ({ page }) => {
+    test('preserves lang attribute across navigation', async ({ page: playwrightPage }) => {
+      const page = new BasePage(playwrightPage)
       // Bug: Astro View Transitions removes lang attribute from <html>
       // Verify lang attribute on home page
       let langAttr = await page.getAttribute('html', 'lang')
@@ -339,7 +357,8 @@ test.describe('Theme Picker Component', () => {
       expect(langAttr).toBe('en')
     })
 
-    test('preserves lang attribute with theme changes', async ({ page }) => {
+    test('preserves lang attribute with theme changes', async ({ page: playwrightPage }) => {
+      const page = new BasePage(playwrightPage)
       // Set theme
       await page.evaluate(() => {
         localStorage.setItem('theme', 'dark')
