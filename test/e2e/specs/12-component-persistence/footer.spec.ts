@@ -16,6 +16,7 @@
 /* eslint-disable custom-rules/enforce-centralized-events -- Test file uses addEventListener to verify DOM persistence */
 
 import { ComponentPersistencePage, test, describe, expect } from '@test/e2e/helpers'
+import { TestError } from '@test/errors'
 
 describe('Footer Component Persistence', () => {
   test('should persist Footer component identity across navigation', async ({
@@ -48,7 +49,7 @@ describe('Footer Component Persistence', () => {
     // Attach an event listener with closure state to the Footer component
     const initialClickCount = await page.evaluate(() => {
       const element = document.querySelector('[data-testid="footer-preact"]')
-      if (!element) throw new Error('Footer component not found')
+      if (!element) throw new TestError('Footer component not found')
 
       let clickCount = 0
 
@@ -75,7 +76,7 @@ describe('Footer Component Persistence', () => {
     // Dispatch click event to trigger the listener
     const afterNavigationData = await page.evaluate(() => {
       const element = document.querySelector('[data-testid="footer-preact"]')
-      if (!element) throw new Error('Footer component not found after navigation')
+      if (!element) throw new TestError('Footer component not found after navigation')
 
       element.dispatchEvent(new MouseEvent('click', { bubbles: true }))
 

@@ -3,6 +3,7 @@
  * Tests for newsletter signup functionality
  */
 import { test, expect } from '@test/e2e/helpers'
+import { TestError } from '@test/errors'
 import { TEST_EMAILS, ERROR_MESSAGES } from '@test/e2e/fixtures/test-data'
 import { NewsletterPage } from '@test/e2e/helpers/pageObjectModels/NewsletterPage'
 
@@ -60,7 +61,7 @@ test.describe('Newsletter Subscription Form', () => {
 
     // Verify that no API call was made (client-side validation prevented it)
     if (apiCallMade) {
-      throw new Error('API call was made - client-side validation failed to prevent submission')
+      throw new TestError('API call was made - client-side validation failed to prevent submission')
     }
 
     // Should show consent required error message

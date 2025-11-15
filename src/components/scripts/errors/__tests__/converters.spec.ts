@@ -3,6 +3,7 @@
  * Tests for error converters to ClientScriptError
  */
 import { describe, expect, test } from 'vitest'
+import { TestError } from '@test/errors'
 import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
 import {
   convertFromError,
@@ -20,9 +21,9 @@ const voidFn = () => {}
 
 describe(`extractMetadaFromStackTrace correctly pulls metadata from stack trace`, () => {
   test(`extractMetadaFromStackTrace gets correct metadata`, () => {
-    const err = new Error(`test error`)
+    const err = new TestError(`test error`)
     const stack = err.stack
-    if (!isString(stack)) throw new Error()
+    if (!isString(stack)) throw new TestError(`Expected stack to be a string`)
     const sut = extractMetadaFromStackTrace(stack)
     expect(sut).toEqual(
       expect.objectContaining({

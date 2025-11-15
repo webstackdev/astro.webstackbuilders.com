@@ -1,1 +1,1 @@
-export { UnitTestError } from './UnitTestError'
+export { TestError } from './TestError'

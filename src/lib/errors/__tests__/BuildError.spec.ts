@@ -2,6 +2,7 @@
  * Tests for error handling routines and custom errors
  */
 import { describe, expect, test } from 'vitest'
+import { TestError } from '@test/errors'
 import { BuildError, isBuildError } from '@lib/errors/BuildError'
 
 describe(`BuildError class is constructible`, () => {
@@ -9,7 +10,7 @@ describe(`BuildError class is constructible`, () => {
     try {
       throw new BuildError(`Test error`)
     } catch (err) {
-      if (!isBuildError(err)) throw new Error()
+      if (!isBuildError(err)) throw new TestError(`Expected BuildError to be thrown`)
       // The name property should be set to the error`s name
       expect(err.name).toBe(`BuildError`)
 

@@ -10,6 +10,7 @@ import {
   isInputElement,
 } from '@components/scripts/assertions/elements'
 import DownloadFormComponent from '@components/Forms/Download/index.astro'
+import { TestError } from '@test/errors'
 
 // Mock the logger to suppress error output in tests
 vi.mock('@lib/logger', () => ({
@@ -42,32 +43,32 @@ async function setupDownloadFormDOM() {
 function getDownloadFormElements() {
   const form = document.getElementById('downloadForm')
   if (!isFormElement(form)) {
-    throw new Error('Download form element not found')
+    throw new TestError('Download form element not found')
   }
 
   const firstName = form.querySelector('#firstName')
   if (!isInputElement(firstName)) {
-    throw new Error('firstName input not found')
+    throw new TestError('firstName input not found')
   }
 
   const lastName = form.querySelector('#lastName')
   if (!isInputElement(lastName)) {
-    throw new Error('lastName input not found')
+    throw new TestError('lastName input not found')
   }
 
   const workEmail = form.querySelector('#workEmail')
   if (!isInputElement(workEmail)) {
-    throw new Error('workEmail input not found')
+    throw new TestError('workEmail input not found')
   }
 
   const jobTitle = form.querySelector('#jobTitle')
   if (!isInputElement(jobTitle)) {
-    throw new Error('jobTitle input not found')
+    throw new TestError('jobTitle input not found')
   }
 
   const companyName = form.querySelector('#companyName')
   if (!isInputElement(companyName)) {
-    throw new Error('companyName input not found')
+    throw new TestError('companyName input not found')
   }
 
   return {
@@ -102,7 +103,7 @@ describe('DownloadForm class', () => {
     const formElement = document.getElementById('downloadForm')
 
     if (!isFormElement(formElement)) {
-      throw new Error('Form element not found')
+      throw new TestError('Form element not found')
     }
 
     const submitSpy = vi.fn((e) => e.preventDefault())
@@ -129,7 +130,7 @@ describe('DownloadForm class', () => {
     // Fill out the form
     const formElement = document.getElementById('downloadForm')
     if (!isFormElement(formElement)) {
-      throw new Error('Form element not found')
+      throw new TestError('Form element not found')
     }
 
     const firstNameInput = formElement.querySelector('#firstName')
@@ -141,7 +142,7 @@ describe('DownloadForm class', () => {
     if (!isInputElement(firstNameInput) || !isInputElement(lastNameInput) ||
         !isInputElement(emailInput) || !isInputElement(jobTitleInput) ||
         !isInputElement(companyInput)) {
-      throw new Error('Form inputs not found')
+      throw new TestError('Form inputs not found')
     }
 
     firstNameInput.value = 'John'
@@ -261,7 +262,7 @@ describe('DownloadForm class', () => {
     const { form: formElement, firstName, lastName, workEmail, jobTitle, companyName } = getDownloadFormElements()
     const submitBtn = document.getElementById('downloadSubmitBtn')
     if (!submitBtn || !(submitBtn instanceof HTMLButtonElement)) {
-      throw new Error('Submit button not found')
+      throw new TestError('Submit button not found')
     }
 
     // Fill form

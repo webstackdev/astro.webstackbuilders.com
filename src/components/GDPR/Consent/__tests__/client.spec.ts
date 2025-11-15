@@ -10,6 +10,7 @@ import {
 } from '@components/GDPR/Consent/client'
 import { $formConsent, clearFormConsent, type ConsentPurpose } from '@components/GDPR/Consent/state'
 import { isInputElement, isDivElement } from '@components/scripts/assertions/elements'
+import { TestError } from '@test/errors'
 
 /**
  * Helper to create mock GDPR consent HTML structure in a form
@@ -38,12 +39,12 @@ function setupConsentForm(checkboxId = 'gdpr-consent'): HTMLFormElement {
 function getConsentElements(checkboxId = 'gdpr-consent') {
   const checkbox = document.getElementById(checkboxId)
   if (!isInputElement(checkbox)) {
-    throw new Error(`Checkbox with id "${checkboxId}" not found`)
+    throw new TestError(`Checkbox with id "${checkboxId}" not found`)
   }
 
   const errorElement = document.getElementById(`${checkboxId}-error`)
   if (!isDivElement(errorElement)) {
-    throw new Error(`Error element with id "${checkboxId}-error" not found`)
+    throw new TestError(`Error element with id "${checkboxId}-error" not found`)
   }
 
   return { checkbox, errorElement }

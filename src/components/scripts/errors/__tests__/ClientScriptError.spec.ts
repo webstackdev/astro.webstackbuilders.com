@@ -3,6 +3,7 @@
  */
 import { describe, expect, test } from 'vitest'
 import type { Constructor } from '@test/unit/matchers/assertions'
+import { TestError } from '@test/errors'
 import { ClientScriptError, isClientScriptError } from '@components/scripts/errors'
 
 describe(`ClientScriptError class is constructible`, () => {
@@ -10,7 +11,7 @@ describe(`ClientScriptError class is constructible`, () => {
     try {
       throw new ClientScriptError(`It went bad!`)
     } catch (err) {
-      if (!isClientScriptError(err)) throw new Error()
+      if (!isClientScriptError(err)) throw new TestError(`Expected ClientScriptError to be thrown`)
       // The name property should be set to the error`s name
       expect(err.name).toBe(`ClientScriptError`)
 

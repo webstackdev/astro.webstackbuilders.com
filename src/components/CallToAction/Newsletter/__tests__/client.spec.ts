@@ -7,6 +7,7 @@ import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import { NewsletterFormElement } from '@components/CallToAction/Newsletter/client'
 import { getNewsletterElements } from '@components/CallToAction/Newsletter/selectors'
 import NewsletterFixture from '@components/CallToAction/Newsletter/__fixtures__/client.fixture.astro'
+import { TestError } from '@test/errors'
 
 /**
  * Helper function to get form elements after DOM setup
@@ -15,7 +16,7 @@ import NewsletterFixture from '@components/CallToAction/Newsletter/__fixtures__/
 function getFormElements() {
   const customElement = document.querySelector('newsletter-form')
   if (!customElement) {
-    throw new Error('newsletter-form custom element not found')
+    throw new TestError('newsletter-form custom element not found')
   }
   return getNewsletterElements(customElement)
 }

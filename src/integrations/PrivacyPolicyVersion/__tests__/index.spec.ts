@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { execSync } from 'node:child_process'
+import { TestError } from '@test/errors'
 
 // Mock child_process
 vi.mock('node:child_process', () => ({
@@ -91,7 +92,7 @@ describe('PrivacyPolicyVersion Integration', () => {
     it('should use current date as fallback when git command fails', async () => {
       // Mock git command failure
       vi.mocked(execSync).mockImplementation(() => {
-        throw new Error('Git command failed')
+        throw new TestError('Git command failed')
       })
 
       const { privacyPolicyVersion } = await import('../index')

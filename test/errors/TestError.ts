@@ -1,7 +1,7 @@
 /**
  * Custom error class for unit test errors
  */
-export class UnitTestError extends Error {
+export class TestError extends Error {
   constructor(message: string, options?: ErrorOptions) {
     super(message, options)
     /**
@@ -9,13 +9,13 @@ export class UnitTestError extends Error {
      * keep native Error behavior
      */
     Object.defineProperty(this, 'name', {
-      value: 'UnitTestError',
+      value: 'TestError',
       enumerable: false,
       configurable: true,
     })
     /** Fix the extended error prototype chain because Typescript __extends can't */
     Object.setPrototypeOf(this, new.target.prototype)
     /** Remove constructor from stack trace in V8 */
-    if ('captureStackTrace' in Error) Error.captureStackTrace(this, UnitTestError)
+    if ('captureStackTrace' in Error) Error.captureStackTrace(this, TestError)
   }
 }

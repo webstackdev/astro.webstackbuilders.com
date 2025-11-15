@@ -7,6 +7,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { AppBootstrap } from '@components/scripts/bootstrap'
 import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
+import { TestError } from '@test/errors'
 
 // Mock the store initialization functions
 vi.mock('@components/scripts/store', () => ({
@@ -124,7 +125,7 @@ describe('AppBootstrap', () => {
     it('should not call side effects when initConsentFromCookies fails', () => {
       vi.mocked(addViewTransitionThemeInitListener).mockReturnValue(undefined)
       vi.mocked(initConsentFromCookies).mockImplementation(() => {
-        throw new Error('Cookie initialization failed')
+        throw new TestError('Cookie initialization failed')
       })
       vi.mocked(initConsentSideEffects).mockReturnValue(undefined)
 

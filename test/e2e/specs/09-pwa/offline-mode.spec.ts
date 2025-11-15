@@ -10,6 +10,7 @@
  */
 
 import { test } from '@test/e2e/helpers'
+import { TestError } from '@test/errors'
 import { PwaPage } from '@test/e2e/helpers/pageObjectModels/PwaPage'
 
 test.describe('PWA Offline Mode', () => {
@@ -94,7 +95,7 @@ test.describe('PWA Offline Mode', () => {
     const swStatus = await pwaPage.updateServiceWorker()
     pwaPage.page.evaluate((status) => {
       if (status !== 'updated') {
-        throw new Error(`Expected 'updated' but got '${status}'`)
+        throw new TestError(`Expected 'updated' but got '${status}'`)
       }
     }, swStatus)
   })
@@ -106,7 +107,7 @@ test.describe('PWA Offline Mode', () => {
     const hasStyles = await pwaPage.expectOfflinePageHasStyles()
     pwaPage.page.evaluate((styles) => {
       if (!styles) {
-        throw new Error('Expected offline page to have styles')
+        throw new TestError('Expected offline page to have styles')
       }
     }, hasStyles)
   })
@@ -119,7 +120,7 @@ test.describe('PWA Offline Mode', () => {
     const swState = await pwaPage.getServiceWorkerState()
     pwaPage.page.evaluate((state) => {
       if (!state.active) {
-        throw new Error('Expected service worker to be active')
+        throw new TestError('Expected service worker to be active')
       }
     }, swState)
   })
