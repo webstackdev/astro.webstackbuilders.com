@@ -46,8 +46,22 @@ async function navigateWithMobileSupport(page: import('@playwright/test').Page, 
 
 test.describe('Theme Picker Component', () => {
   test.describe('Core Functionality', () => {
+    /**
+     * Clean test setup before each test
+     *
+     * Side effects relied upon:
+     * - Clears all cookies, localStorage, and sessionStorage to prevent state pollution between tests
+     * - Performs hard reload to bypass View Transitions cache
+     * - Dismisses cookie consent modal so it doesn't interfere with theme picker interactions
+     * - Ensures consistent starting state for theme testing (no persisted theme preferences)
+     *
+     * Without this setup, tests would fail due to:
+     * - Leftover theme preferences from previous tests affecting assertions
+     * - Cookie modal blocking theme picker UI interactions
+     * - Stale View Transitions state causing inconsistent behavior
+     */
     test.beforeEach(async ({ page: playwrightPage }, testInfo) => {
-      const page = new BasePage(playwrightPage)
+      const page = await BasePage.init(playwrightPage)
       // Skip setup for tests that need custom media emulation
       if (testInfo.title.includes('prefers-color-scheme')) {
         return
@@ -56,14 +70,14 @@ test.describe('Theme Picker Component', () => {
     })
 
     test('@ready theme picker is visible', async ({ page: playwrightPage }) => {
-      const page = new BasePage(playwrightPage)
+      const page = await BasePage.init(playwrightPage)
       // Expected: Theme picker button should be visible in header
       const themePicker = getThemePickerToggle(page.page)
       await expect(themePicker).toBeVisible()
     })
 
     test('@ready can toggle to dark theme', async ({ page: playwrightPage }) => {
-      const page = new BasePage(playwrightPage)
+      const page = await BasePage.init(playwrightPage)
       // Expected: Clicking theme picker should open modal and allow selecting dark theme
       await selectTheme(page.page, 'dark')
 
@@ -75,7 +89,7 @@ test.describe('Theme Picker Component', () => {
     })
 
     test('@ready can toggle back to light theme', async ({ page: playwrightPage }) => {
-      const page = new BasePage(playwrightPage)
+      const page = await BasePage.init(playwrightPage)
       // Expected: Toggling twice should return to light theme
 
       // Toggle to dark
@@ -91,7 +105,7 @@ test.describe('Theme Picker Component', () => {
     })
 
     test('@ready theme picker has accessible label', async ({ page: playwrightPage }) => {
-      const page = new BasePage(playwrightPage)
+      const page = await BasePage.init(playwrightPage)
       // Expected: Theme picker button should have appropriate ARIA label
       const themePicker = getThemePickerToggle(page.page)
 
@@ -101,7 +115,7 @@ test.describe('Theme Picker Component', () => {
     })
 
     test('@ready theme picker shows current theme state', async ({ page: playwrightPage }) => {
-      const page = new BasePage(playwrightPage)
+      const page = await BasePage.init(playwrightPage)
       // Expected: Theme picker modal should show active state for current theme
       const themePicker = getThemePickerToggle(page.page)
 
@@ -138,13 +152,25 @@ test.describe('Theme Picker Component', () => {
   })
 
   test.describe('Persistence', () => {
+    /**
+     * Clean test setup before each persistence test
+     *
+     * Side effects relied upon:
+     * - Clears all storage and cookies to start with no persisted theme preference
+     * - Dismisses cookie modal to prevent UI interference
+     * - Ensures clean state needed to properly test theme persistence behavior
+     *
+     * Without this setup, persistence tests would be unreliable due to:
+     * - Pre-existing theme preferences making it impossible to verify persistence from scratch
+     * - Cached state from previous tests affecting reload behavior
+     */
     test.beforeEach(async ({ page: playwrightPage }) => {
-      const page = new BasePage(playwrightPage)
+      const page = await BasePage.init(playwrightPage)
       await setupCleanTestPage(page.page)
     })
 
     test('@ready theme preference persists across page reloads', async ({ page: playwrightPage }) => {
-      const page = new BasePage(playwrightPage)
+      const page = await BasePage.init(playwrightPage)
       // Expected: Theme selection should be stored in localStorage
 
       // Toggle to dark theme
@@ -162,7 +188,7 @@ test.describe('Theme Picker Component', () => {
     })
 
     test('@ready theme preference persists across navigation', async ({ page: playwrightPage }) => {
-      const page = new BasePage(playwrightPage)
+      const page = await BasePage.init(playwrightPage)
       // Expected: Theme should persist when navigating between pages
 
       // This test needs its own setup without localStorage clearing
@@ -185,7 +211,7 @@ test.describe('Theme Picker Component', () => {
 
   test.describe('System Preferences', () => {
     test('@ready respects prefers-color-scheme on first visit', async ({ page: playwrightPage }) => {
-      const page = new BasePage(playwrightPage)
+      const page = await BasePage.init(playwrightPage)
       // Expected: Should use system preference if no stored preference
 
       // First, visit the page to establish the domain context
@@ -218,7 +244,7 @@ test.describe('Theme Picker Component', () => {
     })
 
     test('@ready manual selection overrides system preference', async ({ page: playwrightPage }) => {
-      const page = new BasePage(playwrightPage)
+      const page = await BasePage.init(playwrightPage)
       // Expected: User selection should override system preference
       await page.emulateMedia({ colorScheme: 'dark' })
       await page.goto('/')
@@ -242,8 +268,23 @@ test.describe('Theme Picker Component', () => {
   })
 
   test.describe('View Transitions - Regression', () => {
+    /**
+     * Setup for View Transitions regression tests
+     *
+     * Side effects relied upon:
+     * - Navigates to homepage and dismisses cookie modal
+     * - Clears localStorage to remove any persisted theme
+     * - Performs reload to ensure View Transitions cache is fresh
+     *
+     * Without this setup, View Transitions tests would fail due to:
+     * - Stale View Transitions state from previous navigations
+     * - Persisted theme preferences interfering with navigation behavior
+     * - Cookie modal blocking interactions during navigation
+     *
+     * Critical for testing that theme picker properly reinitializes after View Transitions navigation
+     */
     test.beforeEach(async ({ page: playwrightPage }) => {
-      const page = new BasePage(playwrightPage)
+      const page = await BasePage.init(playwrightPage)
       // Clear localStorage and dismiss cookie modal before each test
       await setupTestPage(page.page, '/')
       await page.evaluate(() => localStorage.clear())
@@ -251,7 +292,7 @@ test.describe('Theme Picker Component', () => {
     })
 
     test('theme picker button works after View Transition navigation', async ({ page: playwrightPage }) => {
-      const page = new BasePage(playwrightPage)
+      const page = await BasePage.init(playwrightPage)
       // Issue: Theme picker button stopped working after navigating to another page
       // Root Cause: Scripts didn't properly reinitialize on View Transitions
       // Fix: Migrated to Web Component pattern with connectedCallback/disconnectedCallback lifecycle
@@ -286,7 +327,7 @@ test.describe('Theme Picker Component', () => {
     })
 
     test('theme picker can select themes after View Transition navigation', async ({ page: playwrightPage }) => {
-      const page = new BasePage(playwrightPage)
+      const page = await BasePage.init(playwrightPage)
       // Navigate to another page first using mobile-aware helper
       await navigateWithMobileSupport(page.page, '.main-nav-item a')
 
@@ -309,7 +350,7 @@ test.describe('Theme Picker Component', () => {
     })
 
     test('theme preference persists across View Transitions', async ({ page: playwrightPage }) => {
-      const page = new BasePage(playwrightPage)
+      const page = await BasePage.init(playwrightPage)
       // 1. Select dark theme on home page
       const themeToggleBtn = page.locator('.theme-toggle-btn').first()
       await themeToggleBtn.click()
@@ -335,15 +376,30 @@ test.describe('Theme Picker Component', () => {
   })
 
   test.describe('HTML Attributes - Regression', () => {
+    /**
+     * Setup for HTML attributes regression tests
+     *
+     * Side effects relied upon:
+     * - Navigates to homepage and dismisses cookie modal
+     * - Clears localStorage to ensure no theme is persisted
+     * - Reloads page to get fresh HTML with all attributes intact
+     *
+     * Without this setup, tests would fail due to:
+     * - Modified HTML state from previous tests
+     * - Astro View Transitions potentially caching incorrect HTML state
+     * - Cookie modal interfering with navigation and attribute testing
+     *
+     * Critical for verifying that HTML attributes (like lang) survive View Transitions navigation
+     */
     test.beforeEach(async ({ page: playwrightPage }) => {
-      const page = new BasePage(playwrightPage)
+      const page = await BasePage.init(playwrightPage)
       await setupTestPage(page.page, '/')
       await page.evaluate(() => localStorage.clear())
       await page.reload()
     })
 
     test('preserves lang attribute across navigation', async ({ page: playwrightPage }) => {
-      const page = new BasePage(playwrightPage)
+      const page = await BasePage.init(playwrightPage)
       // Bug: Astro View Transitions removes lang attribute from <html>
       // Verify lang attribute on home page
       let langAttr = await page.getAttribute('html', 'lang')
@@ -358,7 +414,7 @@ test.describe('Theme Picker Component', () => {
     })
 
     test('preserves lang attribute with theme changes', async ({ page: playwrightPage }) => {
-      const page = new BasePage(playwrightPage)
+      const page = await BasePage.init(playwrightPage)
       // Set theme
       await page.evaluate(() => {
         localStorage.setItem('theme', 'dark')

@@ -40,7 +40,7 @@ export class ConsentBannerElement extends LitElement {
   private trapFocusHandler: (((_event: Event) => void) | null) = null
 
   // Track View Transitions
-  private isInitialized = false
+  public isInitialized = false
   private static isModalCurrentlyVisible = false
 
   /**

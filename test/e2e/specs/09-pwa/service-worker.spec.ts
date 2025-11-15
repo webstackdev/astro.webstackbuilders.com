@@ -13,36 +13,33 @@
  * 3. Run E2E tests against the preview server
  */
 
-import { BasePage, test } from '@test/e2e/helpers'
+import { test } from '@test/e2e/helpers'
 import { PwaPage } from '@test/e2e/helpers/pageObjectModels/PwaPage'
 
 test.describe('Service Worker', () => {
-  let pwaPage: PwaPage
-
-  test.beforeEach(async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
-    pwaPage = new PwaPage(page.page)
-  })
-
-  test.skip('@blocked service worker installs on first visit', async () => {
+  test.skip('@blocked service worker installs on first visit', async ({ page: playwrightPage }) => {
+    const pwaPage = await PwaPage.init(playwrightPage)
     // BLOCKED: Service worker only registers in production mode
     await pwaPage.navigateToHomeAndWaitForSW()
     await pwaPage.expectServiceWorkerActivated()
   })
 
-  test.skip('@blocked service worker caches navigation requests', async () => {
+  test.skip('@blocked service worker caches navigation requests', async ({ page: playwrightPage }) => {
+    const pwaPage = await PwaPage.init(playwrightPage)
     // BLOCKED: Service worker only works in production mode
     await pwaPage.navigateToHomeAndWaitForSW()
     await pwaPage.expectCachedPages()
   })
 
-  test.skip('@blocked service worker caches static assets', async () => {
+  test.skip('@blocked service worker caches static assets', async ({ page: playwrightPage }) => {
+    const pwaPage = await PwaPage.init(playwrightPage)
     // BLOCKED: Service worker only works in production mode
     await pwaPage.navigateToHomeAndWaitForSW()
     await pwaPage.expectCachedStaticAssets()
   })
 
-  test.skip('@blocked service worker responds with cached version when offline', async ({ context }) => {
+  test.skip('@blocked service worker responds with cached version when offline', async ({ page: playwrightPage, context }) => {
+    const pwaPage = await PwaPage.init(playwrightPage)
     // BLOCKED: Service worker only works in production mode
     await pwaPage.navigateToHomeAndWaitForSW()
 
@@ -57,13 +54,15 @@ test.describe('Service Worker', () => {
     await pwaPage.expectPageHasContent()
   })
 
-  test.skip('@blocked service worker implements cache versioning', async () => {
+  test.skip('@blocked service worker implements cache versioning', async ({ page: playwrightPage }) => {
+    const pwaPage = await PwaPage.init(playwrightPage)
     // BLOCKED: Service worker only works in production mode
     await pwaPage.navigateToHomeAndWaitForSW()
     await pwaPage.expectCacheVersioning()
   })
 
-  test.skip('@blocked service worker has proper scope', async () => {
+  test.skip('@blocked service worker has proper scope', async ({ page: playwrightPage }) => {
+    const pwaPage = await PwaPage.init(playwrightPage)
     // BLOCKED: Service worker only works in production mode
     await pwaPage.navigateToHomeAndWaitForSW()
     const baseUrl = pwaPage.page.url().split('/').slice(0, 3).join('/')

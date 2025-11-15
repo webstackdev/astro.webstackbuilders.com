@@ -14,7 +14,7 @@ const VIEWPORTS = {
 
 test.describe('Responsive Layout Visuals', () => {
   test.skip('@blocked mobile viewport screenshot', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Blocked by: Need visual regression testing setup
     // Expected: Capture mobile layout
     await page.setViewportSize(VIEWPORTS.mobile)
@@ -25,7 +25,7 @@ test.describe('Responsive Layout Visuals', () => {
   })
 
   test.skip('@blocked tablet viewport screenshot', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Blocked by: Need visual regression testing setup
     // Expected: Capture tablet layout
     await page.setViewportSize(VIEWPORTS.tablet)
@@ -36,7 +36,7 @@ test.describe('Responsive Layout Visuals', () => {
   })
 
   test.skip('@blocked desktop viewport screenshot', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Blocked by: Need visual regression testing setup
     // Expected: Capture desktop layout
     await page.setViewportSize(VIEWPORTS.desktop)
@@ -47,7 +47,7 @@ test.describe('Responsive Layout Visuals', () => {
   })
 
   test.skip('@blocked wide viewport screenshot', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Blocked by: Need visual regression testing setup
     // Expected: Capture wide desktop layout
     await page.setViewportSize(VIEWPORTS.wide)
@@ -58,7 +58,7 @@ test.describe('Responsive Layout Visuals', () => {
   })
 
   test.skip('@wip no horizontal scroll on mobile', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: Content should not cause horizontal scroll
     await page.setViewportSize(VIEWPORTS.mobile)
     await page.goto("/")
@@ -71,7 +71,7 @@ test.describe('Responsive Layout Visuals', () => {
   })
 
   test.skip('@wip no horizontal scroll on tablet', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: No horizontal overflow on tablet
     await page.setViewportSize(VIEWPORTS.tablet)
     await page.goto("/")
@@ -84,7 +84,7 @@ test.describe('Responsive Layout Visuals', () => {
   })
 
   test.skip('@wip images scale correctly on mobile', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: Images should not overflow container
     await page.setViewportSize(VIEWPORTS.mobile)
     await page.goto("/")
@@ -98,7 +98,7 @@ test.describe('Responsive Layout Visuals', () => {
   })
 
   test.skip('@wip mobile navigation works', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: Mobile menu should be functional
     await page.setViewportSize(VIEWPORTS.mobile)
     await page.goto("/")
@@ -114,7 +114,7 @@ test.describe('Responsive Layout Visuals', () => {
   })
 
   test.skip('@wip desktop navigation shows all items', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: Desktop nav should show all links inline
     await page.setViewportSize(VIEWPORTS.desktop)
     await page.goto("/")
@@ -127,7 +127,7 @@ test.describe('Responsive Layout Visuals', () => {
   })
 
   test.skip('@blocked article page responsive comparison', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Blocked by: Need visual regression testing
     // Expected: Article should look good at all sizes
     await page.goto("/articles")
@@ -143,7 +143,7 @@ test.describe('Responsive Layout Visuals', () => {
   })
 
   test.skip('@wip footer stacks correctly on mobile', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: Footer content should stack vertically on mobile
     await page.setViewportSize(VIEWPORTS.mobile)
     await page.goto("/")
@@ -156,7 +156,7 @@ test.describe('Responsive Layout Visuals', () => {
   })
 
   test.skip('@wip text is readable at all sizes', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: Font sizes should be appropriate for each viewport
     const viewports = [VIEWPORTS.mobile, VIEWPORTS.tablet, VIEWPORTS.desktop]
 
@@ -176,7 +176,7 @@ test.describe('Responsive Layout Visuals', () => {
   })
 
   test.skip('@wip touch targets are appropriately sized on mobile', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: Interactive elements should be at least 44x44px on mobile
     await page.setViewportSize(VIEWPORTS.mobile)
     await page.goto("/")
@@ -196,7 +196,7 @@ test.describe('Responsive Layout Visuals', () => {
   })
 
   test.skip('@wip forms are usable on mobile', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: Form fields should be appropriately sized for touch
     await page.setViewportSize(VIEWPORTS.mobile)
     await page.goto("/contact")

@@ -24,7 +24,7 @@ cat.text-alternatives: Rules for ensuring that text alternatives are provided fo
 
 test.describe('WCAG Compliance', () => {
   test.skip('@blocked run axe accessibility audit on homepage with default theme', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
     const results = await new AxeBuilder({ page: page.page })
       .withTags(['cat.color'])
@@ -42,7 +42,7 @@ test.describe('WCAG Compliance', () => {
   })
 
   test.skip('@blocked run axe audit on all main pages', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Blocked by: Need to integrate @axe-core/playwright
     // Expected: All pages should pass accessibility audit
 

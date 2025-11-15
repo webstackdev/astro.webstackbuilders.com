@@ -11,15 +11,14 @@
  * 3. Update tests to use the Lighthouse API
  */
 
-import { BasePage, test } from '@test/e2e/helpers'
+import { test } from '@test/e2e/helpers'
 import { PerformancePage } from '@test/e2e/helpers/pageObjectModels/PerformancePage'
 
 test.describe('Lighthouse Performance', () => {
   let performancePage: PerformancePage
 
   test.beforeEach(async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
-    performancePage = new PerformancePage(page.page)
+    performancePage = await PerformancePage.init(playwrightPage)
   })
 
   test.skip('@blocked run Lighthouse audit on homepage', async () => {

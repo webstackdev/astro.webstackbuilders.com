@@ -8,22 +8,40 @@ import { BasePage, test, expect } from '@test/e2e/helpers'
 
 
 test.describe('Testimonials Component', () => {
+  /**
+   * Setup for testimonials carousel tests
+   *
+   * Side effects relied upon:
+   * - Navigates to homepage where testimonials carousel is displayed
+   * - Waits for carousel to initialize (Embla Carousel with Autoplay plugin)
+   *
+   * Without this setup, tests would fail due to:
+   * - Carousel not being initialized, causing navigation buttons and slides to not be ready
+   * - Embla API not being available on the DOM element
+   * - Autoplay and interaction handlers not being set up
+   *
+   * The wait ensures the carousel's __emblaApi__ is attached to the DOM element
+   */
   test.beforeEach(async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
-    // Wait for carousel to initialize
-    await page.waitForTimeout(1500)
+
+    // Wait for carousel to initialize by checking for the Embla API on the element
+    await page.waitForFunction(() => {
+      const carousel = document.querySelector<HTMLElement & { __emblaApi__?: unknown }>('.testimonials-embla')
+      return carousel?.__emblaApi__ !== undefined
+    }, { timeout: 5000 })
   })
 
   test('@ready testimonials section is visible', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: Testimonials component should be visible on homepage
     const testimonials = page.locator('.testimonials-embla')
     await expect(testimonials).toBeVisible()
   })
 
   test('@ready displays testimonial content', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: Should show testimonial text/quote
     const testimonialText = page.locator('blockquote').first()
 
@@ -34,7 +52,7 @@ test.describe('Testimonials Component', () => {
   })
 
   test('@ready displays testimonial author', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: Should show who gave the testimonial
     const testimonials = page.locator('.testimonials-embla')
     const author = testimonials.locator('.font-semibold').first()
@@ -46,7 +64,7 @@ test.describe('Testimonials Component', () => {
   })
 
   test('@ready displays author company/title', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: Should show author's company or job title
     const testimonials = page.locator('.testimonials-embla')
     const company = testimonials.locator('.text-sm.text-text-offset').first()
@@ -58,7 +76,7 @@ test.describe('Testimonials Component', () => {
   })
 
   test('@ready displays author avatar/photo', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: Should show author image
     const testimonials = page.locator('.testimonials-embla')
     const avatar = testimonials.locator('.avatar-image').first()
@@ -67,7 +85,7 @@ test.describe('Testimonials Component', () => {
   })
 
   test('@ready can navigate between testimonials', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: If multiple testimonials, should be able to navigate
     const testimonials = page.locator('.testimonials-embla')
     const nextButton = testimonials.locator('.embla__button--next')
@@ -91,7 +109,7 @@ test.describe('Testimonials Component', () => {
   })
 
   test('@ready has previous navigation button', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: Should have previous button
     const testimonials = page.locator('.testimonials-embla')
     const prevButton = testimonials.locator('.embla__button--prev')
@@ -105,7 +123,7 @@ test.describe('Testimonials Component', () => {
   })
 
   test('@ready has pagination indicators', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: Should show dots/indicators for multiple testimonials
     const testimonials = page.locator('.testimonials-embla')
     const pagination = testimonials.locator('.embla__dots')
@@ -122,7 +140,7 @@ test.describe('Testimonials Component', () => {
   })
 
   test('@ready pagination dots are interactive', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: Clicking pagination dot should jump to that testimonial
     const testimonials = page.locator('.testimonials-embla')
     const pagination = testimonials.locator('.embla__dots')
@@ -165,7 +183,7 @@ test.describe('Testimonials Component', () => {
   })
 
   test('@ready testimonials auto-rotate', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: Testimonials should auto-advance when autoplay is triggered
     const testimonials = page.locator('.testimonials-embla')
 
@@ -220,7 +238,7 @@ test.describe('Testimonials Component', () => {
   })
 
   test('@ready auto-rotation pauses on hover', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: Auto-rotation should pause when user hovers
     const testimonials = page.locator('.testimonials-embla')
 
@@ -259,7 +277,7 @@ test.describe('Testimonials Component', () => {
   })
 
   test('@ready testimonials are responsive', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: Testimonials should display well on mobile
     await page.setViewportSize({ width: 375, height: 667 })
     await page.goto('/')
@@ -273,7 +291,7 @@ test.describe('Testimonials Component', () => {
   })
 
   test('@ready testimonials have proper semantic markup', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: Should use proper HTML5 elements
     const testimonials = page.locator('.testimonials-embla')
 

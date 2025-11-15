@@ -8,8 +8,24 @@ import { BasePage, test, expect } from '@test/e2e/helpers'
 
 
 test.describe('Social Shares Component', () => {
+  /**
+   * Setup for social shares component tests
+   *
+   * Side effects relied upon:
+   * - Navigates to the articles listing page
+   * - Clicks the first article link to load an article detail page
+   * - Waits for networkidle to ensure social share buttons are fully rendered
+   *
+   * Without this setup, tests would fail due to:
+   * - Social share component not being present (it only appears on article pages)
+   * - Share buttons not having proper context (need article title, URL, description)
+   * - Client-side share functionality not being initialized
+   *
+   * This ensures tests run against a real article page where social sharing
+   * functionality is available and properly configured
+   */
   test.beforeEach(async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Go to an article page (social shares usually appear on articles)
     await page.goto('/articles')
     // Click first article
@@ -19,14 +35,14 @@ test.describe('Social Shares Component', () => {
   })
 
   test.skip('@wip social share buttons are visible', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: Social share component should be visible on article pages
     const socialShares = page.locator('[data-social-shares]')
     await expect(socialShares).toBeVisible()
   })
 
   test.skip('@wip displays common social platforms', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: Should have buttons for Twitter, LinkedIn, Facebook, etc.
     const socialShares = page.locator('[data-social-shares]')
 
@@ -43,7 +59,7 @@ test.describe('Social Shares Component', () => {
   })
 
   test.skip('@wip share buttons have accessible labels', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: All share buttons should have aria-label or text
     const socialShares = page.locator('[data-social-shares]')
     const buttons = socialShares.locator('button, a')
@@ -59,7 +75,7 @@ test.describe('Social Shares Component', () => {
   })
 
   test.skip('@wip clicking Twitter share opens new window', async ({ page: playwrightPage, context }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: Twitter share should open in new window
     const socialShares = page.locator('[data-social-shares]')
     const twitterButton = socialShares.locator('[data-share="twitter"]').first()
@@ -79,7 +95,7 @@ test.describe('Social Shares Component', () => {
   })
 
   test.skip('@wip clicking LinkedIn share opens new window', async ({ page: playwrightPage, context }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: LinkedIn share should open in new window
     const socialShares = page.locator('[data-social-shares]')
     const linkedinButton = socialShares.locator('[data-share="linkedin"]').first()
@@ -98,7 +114,7 @@ test.describe('Social Shares Component', () => {
   })
 
   test.skip('@wip share URLs include current page URL', async ({ page: playwrightPage, context }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: Share links should include the current article URL
     const currentUrl = page.url()
     const socialShares = page.locator('[data-social-shares]')
@@ -122,7 +138,7 @@ test.describe('Social Shares Component', () => {
   })
 
   test.skip('@wip share URLs include page title', async ({ page: playwrightPage, context }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: Share links should include the article title
     const pageTitle = await page.title()
     const socialShares = page.locator('[data-social-shares]')
@@ -146,7 +162,7 @@ test.describe('Social Shares Component', () => {
   })
 
   test.skip('@wip native share button uses Web Share API', async ({ page: playwrightPage, browserName }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: Native share button should trigger Web Share API
     // Skip on browsers that don't support Web Share API in test environment
     if (browserName !== 'chromium') {
@@ -173,7 +189,7 @@ test.describe('Social Shares Component', () => {
   })
 
   test.skip('@wip copy link button copies URL to clipboard', async ({ page: playwrightPage, context }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: Copy button should copy current URL to clipboard
     await context.grantPermissions(['clipboard-write', 'clipboard-read'])
 
@@ -194,7 +210,7 @@ test.describe('Social Shares Component', () => {
   })
 
   test.skip('@wip copy link button shows confirmation', async ({ page: playwrightPage, context }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: After copying, should show confirmation message
     await context.grantPermissions(['clipboard-write'])
 
@@ -218,7 +234,7 @@ test.describe('Social Shares Component', () => {
   })
 
   test.skip('@wip email share opens mailto link', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: Email share should use mailto: protocol
     const socialShares = page.locator('[data-social-shares]')
     const emailButton = socialShares.locator('[data-share="email"]')
@@ -232,7 +248,7 @@ test.describe('Social Shares Component', () => {
   })
 
   test.skip('@wip social shares are responsive', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: Social shares should work on mobile
     await page.setViewportSize({ width: 375, height: 667 })
     await page.reload()

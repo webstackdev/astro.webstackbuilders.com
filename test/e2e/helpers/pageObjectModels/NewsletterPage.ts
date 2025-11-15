@@ -14,8 +14,17 @@ export class NewsletterPage extends BasePage {
   private readonly messageSelector = '#newsletter-message'
   private readonly buttonSpinnerSelector = '#button-spinner'
 
-  constructor(page: Page) {
+  protected constructor(page: Page) {
     super(page)
+  }
+
+  static override async init(page: Page): Promise<NewsletterPage> {
+    await page.addInitScript(() => {
+      window.isPlaywrightControlled = true
+    })
+    const instance = new NewsletterPage(page)
+    await instance.onInit()
+    return instance
   }
 
   /**

@@ -7,20 +7,33 @@ import { BasePage, test, expect } from '@test/e2e/helpers'
 
 
 test.describe('GDPR Consent Component', () => {
+  /**
+   * Setup for GDPR consent component tests
+   *
+   * Side effects relied upon:
+   * - Navigates to the contact page which contains a newsletter signup form
+   *
+   * Without this setup, tests would fail due to:
+   * - GDPR consent checkbox not being present on the page
+   * - Newsletter form and associated consent controls not being rendered
+   *
+   * The contact page is specifically chosen because it contains the newsletter
+   * subscription form which includes GDPR consent controls
+   */
   test.beforeEach(async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
-    await page.goto('/contact') // Use contact page which has newsletter form
+    const page = await BasePage.init(playwrightPage)
+    await page.goto('/contact')
   })
 
   test.skip('@wip GDPR consent checkbox is visible', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: GDPR consent checkbox should be visible on newsletter form
     const gdprCheckbox = page.locator('input[type="checkbox"][name*="consent"], input[type="checkbox"][name*="gdpr"]')
     await expect(gdprCheckbox.first()).toBeVisible()
   })
 
   test.skip('@wip GDPR consent has label', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: Checkbox should have associated label
     const gdprCheckbox = page.locator('input[type="checkbox"][name*="consent"], input[type="checkbox"][name*="gdpr"]').first()
     const checkboxId = await gdprCheckbox.getAttribute('id')
@@ -37,7 +50,7 @@ test.describe('GDPR Consent Component', () => {
   })
 
   test.skip('@wip GDPR label contains privacy policy link', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: GDPR label should link to privacy policy
     const gdprLabel = page.locator('label:has(input[type="checkbox"][name*="consent"]), label:has(input[type="checkbox"][name*="gdpr"])').first()
     const privacyLink = gdprLabel.locator('a[href*="privacy"]')
@@ -46,7 +59,7 @@ test.describe('GDPR Consent Component', () => {
   })
 
   test.skip('@wip privacy policy link opens in new tab', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: Privacy link should have target="_blank"
     const gdprLabel = page.locator('label:has(input[type="checkbox"][name*="consent"]), label:has(input[type="checkbox"][name*="gdpr"])').first()
     const privacyLink = gdprLabel.locator('a[href*="privacy"]')
@@ -59,7 +72,7 @@ test.describe('GDPR Consent Component', () => {
   })
 
   test.skip('@wip form cannot submit without GDPR consent', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: Form submission should fail if GDPR not checked
     const emailInput = page.locator('input[type="email"]').first()
     const submitButton = page.locator('button[type="submit"]').first()
@@ -77,7 +90,7 @@ test.describe('GDPR Consent Component', () => {
   })
 
   test.skip('@wip form can submit with GDPR consent', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: Form should accept submission when GDPR is checked
     const emailInput = page.locator('input[type="email"]').first()
     const submitButton = page.locator('button[type="submit"]').first()
@@ -94,7 +107,7 @@ test.describe('GDPR Consent Component', () => {
   })
 
   test.skip('@wip GDPR checkbox is accessible via keyboard', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: Can check/uncheck with Space key
     const gdprCheckbox = page.locator('input[type="checkbox"][name*="consent"], input[type="checkbox"][name*="gdpr"]').first()
 
@@ -112,7 +125,7 @@ test.describe('GDPR Consent Component', () => {
   })
 
   test.skip('@wip GDPR error message is displayed', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: Should show error message when unchecked on submit
     const submitButton = page.locator('button[type="submit"]').first()
     const emailInput = page.locator('input[type="email"]').first()
@@ -127,7 +140,7 @@ test.describe('GDPR Consent Component', () => {
   })
 
   test.skip('@wip GDPR checkbox works on contact form', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: GDPR should also work on contact form
     await page.goto('/contact')
 
@@ -140,7 +153,7 @@ test.describe('GDPR Consent Component', () => {
   })
 
   test.skip('@wip GDPR consent state persists during form validation', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: If user checks GDPR then triggers other validation, GDPR stays checked
     const gdprCheckbox = page.locator('input[type="checkbox"][name*="consent"], input[type="checkbox"][name*="gdpr"]').first()
     const submitButton = page.locator('button[type="submit"]').first()

@@ -6,13 +6,13 @@ import { BasePage, test } from '@test/e2e/helpers'
 
 test.describe('Homepage', () => {
   test('@ready page loads with correct title', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
     await page.expectTitle(/Webstack Builders/)
   })
 
   test('@ready hero section displays correctly', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     // Hero should be visible
@@ -23,7 +23,7 @@ test.describe('Homepage', () => {
   })
 
   test('@ready featured services section renders', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     // Check for Featured Services section - Carousel renders an h2 with the title
@@ -31,7 +31,7 @@ test.describe('Homepage', () => {
   })
 
   test('@ready case studies section displays', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     // Check for Success Stories heading - appears twice (section h2 + carousel h2), use first
@@ -39,7 +39,7 @@ test.describe('Homepage', () => {
   })
 
   test('@ready latest articles section renders', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     // Check for Latest Insights heading (appears twice: as section h2 and carousel title)
@@ -47,13 +47,13 @@ test.describe('Homepage', () => {
   })
 
   test('@ready testimonials section displays', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
     await page.expectTextVisible('What Clients Say')
   })
 
   test('@ready newsletter signup form present', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
     await page.expectNewsletterForm()
     await page.expectNewsletterEmailInput()
@@ -61,7 +61,7 @@ test.describe('Homepage', () => {
   })
 
   test('@ready CTA sections are clickable', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     // Find CTA button - may be "Start a Conversation" or similar
@@ -69,7 +69,7 @@ test.describe('Homepage', () => {
   })
 
   test('@ready responsive: mobile view renders correctly', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.setViewport(375, 667)
     await page.goto('/')
 
@@ -81,7 +81,7 @@ test.describe('Homepage', () => {
   })
 
   test('@ready page has no console errors', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
     await page.expectNoErrors()
   })

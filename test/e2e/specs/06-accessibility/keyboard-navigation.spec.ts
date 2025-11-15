@@ -16,7 +16,7 @@ test.describe('Keyboard Navigation', () => {
    * and create an empty tab stop.
    */
   test('@ready can tab through interactive elements', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     let focusableCount = 0
@@ -39,7 +39,7 @@ test.describe('Keyboard Navigation', () => {
    * experience the page to confirm.
    */
   test('@wip tab order follows visual layout', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     const positions: Array<{ y: number; x: number }> = []
@@ -69,7 +69,7 @@ test.describe('Keyboard Navigation', () => {
    * task that requires human interpretation.
    */
   test('@ready form inputs are keyboard accessible', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/contact')
 
     // Dismiss cookie modal if it's open (common in test environments)

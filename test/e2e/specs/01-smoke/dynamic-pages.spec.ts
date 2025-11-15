@@ -7,7 +7,7 @@ import { BasePage, test, expect, setupConsoleErrorChecker, logConsoleErrors } fr
 
 test.describe('Dynamic Pages @smoke', () => {
   test('@ready article detail page loads', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // First, visit articles list to get an actual article link
     await page.goto('/articles')
     await page.waitForLoadState('networkidle')
@@ -32,7 +32,7 @@ test.describe('Dynamic Pages @smoke', () => {
   })
 
   test('@ready service detail page loads', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Visit services list to get an actual service link
     await page.goto('/services')
     await page.waitForLoadState('networkidle')
@@ -59,7 +59,7 @@ test.describe('Dynamic Pages @smoke', () => {
   })
 
   test('@ready case study detail page loads', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Visit case studies list to get an actual case study link
     await page.goto('/case-studies')
     await page.waitForLoadState('networkidle')
@@ -86,7 +86,7 @@ test.describe('Dynamic Pages @smoke', () => {
   })
 
   test('@ready RSS feed is accessible', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // RSS feed should be accessible and valid XML
     const response = await page.goto('/rss.xml')
     expect(response?.status()).toBe(200)
@@ -124,7 +124,7 @@ test.describe('Dynamic Pages @smoke', () => {
   })
 
   test('@ready dynamic pages have no 404 errors', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Test article page
     await page.goto('/articles')
     await page.waitForLoadState('networkidle')
@@ -169,7 +169,7 @@ test.describe('Dynamic Pages @smoke', () => {
   })
 
   test('@ready dynamic pages have no console errors', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // First, get actual article URL
     await page.goto('/articles')
     await page.waitForLoadState('networkidle')

@@ -6,7 +6,7 @@ import { BasePage, test, expect } from '@test/e2e/helpers'
 
 test.describe('Site-wide Features @smoke', () => {
   test('@ready 404 page displays for invalid routes', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     const response = await page.goto('/does-not-exist')
     expect(response?.status()).toBe(404)
     // Verify main content is visible
@@ -15,7 +15,7 @@ test.describe('Site-wide Features @smoke', () => {
   })
 
   test('@ready RSS feed is accessible', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // RSS feed should be accessible and valid XML
     const response = await page.goto('/rss.xml')
     expect(response?.status()).toBe(200)
@@ -51,7 +51,7 @@ test.describe('Site-wide Features @smoke', () => {
   })
 
   test('@ready robots.txt is accessible', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // robots.txt should be accessible and contain directives
     const response = await page.goto('/robots.txt')
     expect(response?.status()).toBe(200)

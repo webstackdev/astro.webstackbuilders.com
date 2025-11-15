@@ -7,8 +7,17 @@ import { expect } from '@playwright/test'
 import { BasePage } from '@test/e2e/helpers'
 
 export class PwaPage extends BasePage {
-  constructor(page: Page) {
+  protected constructor(page: Page) {
     super(page)
+  }
+
+  static override async init(page: Page): Promise<PwaPage> {
+    await page.addInitScript(() => {
+      window.isPlaywrightControlled = true
+    })
+    const instance = new PwaPage(page)
+    await instance.onInit()
+    return instance
   }
 
   /**

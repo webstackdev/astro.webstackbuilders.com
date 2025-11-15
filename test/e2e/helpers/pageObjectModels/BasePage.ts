@@ -20,13 +20,31 @@ export class BasePage {
   public errors404: string[] = []
   public navigationItems = navigationItems
 
-  constructor(protected readonly _page: Page) {
+  protected constructor(protected readonly _page: Page) {
     this.page = _page
 
     // IMPORTANT: Register listener early
     this.page.on('console', (consoleMessage) => {
       this._consoleMessages.push(consoleMessage.text())
     })
+  }
+
+  static async init(page: Page): Promise<BasePage> {
+    await page.addInitScript(() => {
+      window.isPlaywrightControlled = true
+    })
+    const instance = new BasePage(page)
+    await instance.onInit()
+    return instance
+  }
+
+  /**
+   * Hook for subclasses to perform custom initialization
+   * Called after construction but before the instance is returned from init()
+   * Override this in subclasses to add custom setup logic
+   */
+  protected async onInit(): Promise<void> {
+    // Base implementation does nothing - subclasses can override
   }
 
   /**
@@ -102,11 +120,18 @@ export class BasePage {
   }  /**
    * Evaluate JS script in the browser
    */
+  async evaluate<R, Arg = unknown>(
+    pageFunction: (arg: Arg) => R | Promise<R>,
+    arg: Arg
+  ): Promise<R>
   async evaluate<R>(
-    pageFunction: () => R | Promise<R>,
-    arg?: unknown
+    pageFunction: () => R | Promise<R>
+  ): Promise<R>
+  async evaluate<R, Arg = unknown>(
+    pageFunction: ((arg: Arg) => R | Promise<R>) | (() => R | Promise<R>),
+    arg?: Arg
   ): Promise<R> {
-    return await this._page.evaluate(pageFunction, arg)
+    return await this._page.evaluate(pageFunction as any, arg)
   }
 
   /**
@@ -703,15 +728,6 @@ export class BasePage {
    *
    * ================================================================
    */
-
-  /**
-   * Throw errors that are normally handled internally
-   */
-  async disableErrorBoundary(): Promise<void> {
-    await this._page.addInitScript(() => {
-      window._throw = false
-    })
-  }
 
   /**
    * Returns up to (currently) 200 last uncaught exceptions from this page

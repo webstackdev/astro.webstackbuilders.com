@@ -7,7 +7,7 @@ import { BasePage, test, expect } from '@test/e2e/helpers'
 
 test.describe('Component Visual Rendering', () => {
   test.skip('@blocked navigation component visual', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Blocked by: Need visual regression testing setup
     // Expected: Navigation should render consistently
     await page.goto("/")
@@ -17,7 +17,7 @@ test.describe('Component Visual Rendering', () => {
   })
 
   test.skip('@blocked footer component visual', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Blocked by: Need visual regression testing setup
     // Expected: Footer should render consistently
     await page.goto("/")
@@ -27,7 +27,7 @@ test.describe('Component Visual Rendering', () => {
   })
 
   test.skip('@blocked carousel component visual', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Blocked by: Need visual regression testing setup
     // Expected: Carousel should render consistently
     await page.goto("/")
@@ -40,7 +40,7 @@ test.describe('Component Visual Rendering', () => {
   })
 
   test.skip('@blocked contact form component visual', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Blocked by: Need visual regression testing setup
     // Expected: Contact form should render consistently
     await page.goto("/contact")
@@ -50,7 +50,7 @@ test.describe('Component Visual Rendering', () => {
   })
 
   test.skip('@blocked newsletter form component visual', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Blocked by: Need visual regression testing setup
     // Expected: Newsletter form should render consistently
     await page.goto("/")
@@ -63,7 +63,7 @@ test.describe('Component Visual Rendering', () => {
   })
 
   test.skip('@blocked theme picker component visual', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Blocked by: Need visual regression testing setup
     // Expected: Theme picker should render consistently
     await page.goto("/")
@@ -73,7 +73,7 @@ test.describe('Component Visual Rendering', () => {
   })
 
   test.skip('@blocked cookie consent component visual', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Blocked by: Need visual regression testing setup
     // Expected: Cookie banner should render consistently
     await page.goto("/")
@@ -86,7 +86,7 @@ test.describe('Component Visual Rendering', () => {
   })
 
   test.skip('@blocked article card component visual', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Blocked by: Need visual regression testing setup
     // Expected: Article cards should render consistently
     await page.goto("/articles")
@@ -96,7 +96,7 @@ test.describe('Component Visual Rendering', () => {
   })
 
   test.skip('@blocked testimonial component visual', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Blocked by: Need visual regression testing setup
     // Expected: Testimonial should render consistently
     await page.goto("/")
@@ -109,7 +109,7 @@ test.describe('Component Visual Rendering', () => {
   })
 
   test.skip('@wip buttons render consistently', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: All button styles should be consistent
     await page.goto("/")
 
@@ -136,7 +136,7 @@ test.describe('Component Visual Rendering', () => {
   })
 
   test.skip('@wip links have consistent styling', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: All links should have consistent appearance
     await page.goto("/about")
 
@@ -159,7 +159,7 @@ test.describe('Component Visual Rendering', () => {
   })
 
   test.skip('@wip headings have consistent hierarchy', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: Heading styles should follow proper hierarchy
     await page.goto("/articles")
 
@@ -176,7 +176,7 @@ test.describe('Component Visual Rendering', () => {
   })
 
   test.skip('@wip cards have consistent appearance', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: All card components should look similar
     await page.goto("/services")
 
@@ -206,7 +206,7 @@ test.describe('Component Visual Rendering', () => {
   })
 
   test.skip('@wip icons render correctly', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: SVG icons should render without issues
     await page.goto("/")
 

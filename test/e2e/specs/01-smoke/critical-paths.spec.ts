@@ -7,7 +7,7 @@ import { BasePage, test, expect } from '@test/e2e/helpers'
 
 test.describe('Critical Paths @smoke', () => {
   test('@ready all main navigation pages are accessible', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     for (const { url: path, title } of page.navigationItems) {
       await page.goto(path)
       await page.expectTitle(title)
@@ -21,7 +21,7 @@ test.describe('Critical Paths @smoke', () => {
     const isMobile = viewport ? viewport.width < 768 : false
     test.skip(isMobile, 'Desktop navigation test - skipping on mobile viewport')
 
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
 
     // Import setupTestPage here to avoid unused import warnings on other tests
     const { setupTestPage } = await import('../../helpers/cookieHelper')
@@ -40,7 +40,7 @@ test.describe('Critical Paths @smoke', () => {
     const isMobile = viewport ? viewport.width < 768 : false
     test.skip(!isMobile, 'Mobile navigation test - skipping on desktop viewport')
 
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     const navItems = page.navigationItems
@@ -62,7 +62,7 @@ test.describe('Critical Paths @smoke', () => {
   })
 
   test('@ready footer is present on all pages', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     for (const { url: path } of page.navigationItems) {
       await page.goto(path)
       await page.expectFooter()
@@ -70,7 +70,7 @@ test.describe('Critical Paths @smoke', () => {
   })
 
   test('@ready contact form loads and is visible', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/contact')
     await page.expectContactForm()
     await page.expectContactFormNameInput()
@@ -80,7 +80,7 @@ test.describe('Critical Paths @smoke', () => {
   })
 
   test('@ready newsletter form is present on homepage', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Expected: Newsletter form should be visible on homepage
     // Actual: Unknown - needs testing
 
@@ -91,13 +91,13 @@ test.describe('Critical Paths @smoke', () => {
   })
 
   test('@ready theme picker is accessible', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
     await page.expectThemePickerButton()
   })
 
   test('@ready cookie consent banner appears', async ({ page: playwrightPage, context }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Clear consent cookies to force banner to appear
     await page.clearConsentCookies(context)
     await page.goto('/', { skipCookieDismiss: true })
@@ -105,7 +105,7 @@ test.describe('Critical Paths @smoke', () => {
   })
 
   test('@ready main pages have no 404 errors', async ({ page: playwrightPage}) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     for (const { url: path } of page.navigationItems) {
       page.enable404Listener()
       await page.goto(path)
@@ -114,7 +114,7 @@ test.describe('Critical Paths @smoke', () => {
   })
 
   test('@ready main pages have no errors', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     for (const { url: path } of page.navigationItems) {
       await page.goto(path)
       await page.expectNoErrors()

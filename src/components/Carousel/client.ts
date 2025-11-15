@@ -189,8 +189,10 @@ class CarouselInstance {
   private nextBtn: HTMLButtonElement | null
   private viewport: HTMLElement | null
   private dotsContainer: HTMLElement | null
+  private container: HTMLElement
 
   constructor(container: HTMLElement, _instanceId: number) {
+    this.container = container
     this.prevBtn = container.querySelector('.embla__button--prev')
     this.nextBtn = container.querySelector('.embla__button--next')
     this.viewport = container.querySelector('.embla__viewport')
@@ -225,6 +227,9 @@ class CarouselInstance {
 
       // Initialize Embla Carousel with Autoplay plugin
       this.emblaApi = EmblaCarousel(this.viewport, options, [this.autoplayPlugin])
+
+      // Expose API to container element for testing
+      ;(this.container as HTMLElement & { __emblaApi__?: EmblaCarouselType }).__emblaApi__ = this.emblaApi
 
       this.setupNavigationButtons()
       this.setupDotsNavigation()

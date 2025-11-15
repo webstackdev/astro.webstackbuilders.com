@@ -12,7 +12,7 @@ test.describe('Case Study Detail Pages @ready', () => {
       return
     }
 
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto(firstCaseStudy)
     // Verify case study loaded by checking for main article content
     await page.expectElementVisible('article[itemtype="http://schema.org/Article"]')
@@ -28,7 +28,7 @@ test.describe('Case Study Detail Pages @ready', () => {
       return
     }
 
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto(firstCaseStudy)
     await page.expectElementVisible('h1#article-title, h1')
     await page.expectElementNotEmpty('h1#article-title, h1')
@@ -41,7 +41,7 @@ test.describe('Case Study Detail Pages @ready', () => {
       return
     }
 
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto(firstCaseStudy)
     await page.expectElementVisible('article[itemscope], article')
     const count = await page.countElements('article p, article[itemscope] p')
@@ -55,7 +55,7 @@ test.describe('Case Study Detail Pages @ready', () => {
       return
     }
 
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto(firstCaseStudy)
     await page.expectElementVisible('article[itemscope], article')
   })
@@ -67,7 +67,7 @@ test.describe('Case Study Detail Pages @ready', () => {
       return
     }
 
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto(firstCaseStudy)
     await page.expectNoErrors()
   })
@@ -79,7 +79,7 @@ test.describe('Case Study Detail Pages @ready', () => {
       return
     }
 
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto(firstCaseStudy)
     await page.expectNoErrors()
   })

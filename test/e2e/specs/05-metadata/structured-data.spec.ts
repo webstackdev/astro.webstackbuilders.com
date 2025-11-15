@@ -8,7 +8,7 @@ import { BasePage, test, expect } from '@test/e2e/helpers'
 
 test.describe('Structured Data', () => {
   test('@ready homepage has Organization schema', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     const jsonLdScripts = await playwrightPage
@@ -27,7 +27,7 @@ test.describe('Structured Data', () => {
   })
 
   test('@ready Organization schema has required fields', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     const jsonLdScripts = await playwrightPage
@@ -49,7 +49,7 @@ test.describe('Structured Data', () => {
   })
 
   test('@ready article pages have Article schema', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/articles')
 
     // Wait for articles to load
@@ -87,7 +87,7 @@ test.describe('Structured Data', () => {
   })
 
   test('@ready Article schema has required fields', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/articles')
     await page.click('a[href*="/articles/"]')
     await page.waitForLoadState('networkidle')
@@ -111,7 +111,7 @@ test.describe('Structured Data', () => {
   })
 
   test('@ready homepage has WebSite schema', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     const jsonLdScripts = await playwrightPage
@@ -130,7 +130,7 @@ test.describe('Structured Data', () => {
   })
 
   test('@ready BreadcrumbList schema on deep pages', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/articles')
     await page.click('a[href*="/articles/"]')
     await page.waitForLoadState('networkidle')
@@ -151,7 +151,7 @@ test.describe('Structured Data', () => {
   })
 
   test('@ready all schemas have @context', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     const jsonLdScripts = await playwrightPage
@@ -170,7 +170,7 @@ test.describe('Structured Data', () => {
   })
 
   test('@ready schemas are valid JSON', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     const jsonLdScripts = await playwrightPage
@@ -183,7 +183,7 @@ test.describe('Structured Data', () => {
   })
 
   test('@ready service pages have Service schema', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/services')
 
     const firstServiceCount = await page.countElements('a[href*="/services/"]')
@@ -210,7 +210,7 @@ test.describe('Structured Data', () => {
   })
 
   test('@ready contact page has ContactPage schema', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/contact')
 
     const jsonLdScripts = await playwrightPage

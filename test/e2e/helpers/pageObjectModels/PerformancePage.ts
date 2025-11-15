@@ -7,8 +7,17 @@ import { expect } from '@playwright/test'
 import { BasePage } from '@test/e2e/helpers'
 
 export class PerformancePage extends BasePage {
-  constructor(page: Page) {
+  protected constructor(page: Page) {
     super(page)
+  }
+
+  static override async init(page: Page): Promise<PerformancePage> {
+    await page.addInitScript(() => {
+      window.isPlaywrightControlled = true
+    })
+    const instance = new PerformancePage(page)
+    await instance.onInit()
+    return instance
   }
 
   /**

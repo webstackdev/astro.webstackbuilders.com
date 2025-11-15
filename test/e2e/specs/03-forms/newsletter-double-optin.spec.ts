@@ -7,7 +7,7 @@ import { TEST_EMAILS } from '@test/e2e/fixtures/test-data'
 
 test.describe('Newsletter Double Opt-In Flow', () => {
   test.skip('@blocked complete double opt-in flow', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     // Blocked by: Need email testing service integration (e.g., Mailosaur)
     // Expected: Full flow from subscription to welcome email
     // Actual: Cannot test without email service

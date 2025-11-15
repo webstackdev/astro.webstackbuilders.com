@@ -16,15 +16,31 @@ test.describe('Hero Animation - Mobile Menu Pause Regression', () => {
   // Configure mobile viewport for all tests in this suite
   test.use({ viewport: { width: 375, height: 667 } })
 
+  /**
+   * Setup for hero animation mobile menu pause regression tests
+   *
+   * Side effects relied upon:
+   * - Sets up test page at homepage using setupTestPage() helper
+   * - Dismisses cookie consent modal to prevent interference with tests
+   * - Waits for hero animation element to be present in DOM
+   *
+   * Without this setup, tests would fail due to:
+   * - Cookie consent modal blocking interaction with mobile menu button
+   * - Hero animation not being loaded/initialized yet
+   * - Animation element selectors not being available
+   *
+   * The hero animation must be present before tests can verify pause behavior
+   * when the mobile navigation menu opens
+   */
   test.beforeEach(async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await setupTestPage(page.page, '/')
     // Wait for hero animation to load
     await page.waitForSelector('#heroAnimation', { timeout: 5000 })
   })
 
   test('hero animation should pause when mobile menu opens', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
 
     // Get initial animation state
     const initialTransform = await page.evaluate(() => {
@@ -78,7 +94,7 @@ test.describe('Hero Animation - Mobile Menu Pause Regression', () => {
   })
 
   test('hero animation should be paused while mobile menu is open', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
 
     // Open mobile menu
     const hamburgerButton = page.locator('.nav-toggle-btn').first()
@@ -109,8 +125,8 @@ test.describe('Hero Animation - Mobile Menu Pause Regression', () => {
   })
 
   test('mobile menu should open and close correctly', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
-    
+    const page = await BasePage.init(playwrightPage)
+
     const hamburgerButton = page.locator('.nav-toggle-btn').first()
     const header = page.locator('#header')
 
@@ -133,8 +149,8 @@ test.describe('Hero Animation - Mobile Menu Pause Regression', () => {
   })
 
   test('mobile menu should show animated splash background', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
-    
+    const page = await BasePage.init(playwrightPage)
+
     const hamburgerButton = page.locator('.nav-toggle-btn').first()
     const header = page.locator('#header')
 
@@ -178,8 +194,8 @@ test.describe('Hero Animation - Mobile Menu Pause Regression', () => {
   })
 
   test('body should have no-scroll class when mobile menu is open', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
-    
+    const page = await BasePage.init(playwrightPage)
+
     const hamburgerButton = page.locator('.nav-toggle-btn').first()
     const body = page.locator('body')
 
@@ -200,8 +216,8 @@ test.describe('Hero Animation - Mobile Menu Pause Regression', () => {
   })
 
   test('mobile menu navigation links should be clickable and close menu', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
-    
+    const page = await BasePage.init(playwrightPage)
+
     const hamburgerButton = page.locator('.nav-toggle-btn').first()
 
     // Open menu

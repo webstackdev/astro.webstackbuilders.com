@@ -17,7 +17,7 @@ describe('View Transitions - transition:persist on meta theme-color', () => {
   test('should persist meta theme-color element across navigation', async ({
     page: playwrightPage,
   }) => {
-    const page = new ComponentPersistencePage(playwrightPage)
+    const page = await ComponentPersistencePage.init(playwrightPage)
 
     await page.goto('/')
 
@@ -54,7 +54,7 @@ describe('View Transitions - transition:persist on meta theme-color', () => {
   test('should persist <head> element while preserving meta theme-color', async ({
     page: playwrightPage,
   }) => {
-    const page = new ComponentPersistencePage(playwrightPage)
+    const page = await ComponentPersistencePage.init(playwrightPage)
     await page.goto('/')
 
     // Mark the <head> element to verify it persists (Astro behavior)
@@ -124,7 +124,7 @@ describe('View Transitions - transition:persist on meta theme-color', () => {
   test('should maintain theme-color content value across navigation', async ({
     page: playwrightPage,
   }) => {
-    const page = new ComponentPersistencePage(playwrightPage)
+    const page = await ComponentPersistencePage.init(playwrightPage)
     await page.goto('/')
 
     // Get initial theme-color value
@@ -166,7 +166,7 @@ describe('View Transitions - transition:persist on meta theme-color', () => {
   test('should update link rel="canonical" href across navigation', async ({
     page: playwrightPage,
   }) => {
-    const page = new ComponentPersistencePage(playwrightPage)
+    const page = await ComponentPersistencePage.init(playwrightPage)
     await page.goto('/')
 
     // Mark the canonical link element to check if it's replaced or just updated
@@ -220,7 +220,7 @@ describe('View Transitions - transition:persist on meta theme-color', () => {
   test('should maintain link rel="sitemap" href across navigation', async ({
     page: playwrightPage,
   }) => {
-    const page = new ComponentPersistencePage(playwrightPage)
+    const page = await ComponentPersistencePage.init(playwrightPage)
     await page.goto('/')
 
     // Get initial sitemap URL
@@ -249,7 +249,7 @@ describe('View Transitions - transition:persist on meta theme-color', () => {
   test('should maintain meta name="mobile-web-app-capable" across navigation', async ({
     page: playwrightPage,
   }) => {
-    const page = new ComponentPersistencePage(playwrightPage)
+    const page = await ComponentPersistencePage.init(playwrightPage)
     await page.goto('/')
 
     // Get initial mobile-web-app-capable value

@@ -28,8 +28,24 @@ export interface PersistenceVerificationData {
 export class ComponentPersistencePage extends BasePage {
   private consoleMessages: CapturedConsoleMessage[] = []
 
-  constructor(page: Page) {
+  protected constructor(page: Page) {
     super(page)
+  }
+
+  static override async init(page: Page): Promise<ComponentPersistencePage> {
+    await page.addInitScript(() => {
+      window.isPlaywrightControlled = true
+    })
+    const instance = new ComponentPersistencePage(page)
+    await instance.onInit()
+    return instance
+  }
+
+  /**
+   * Custom initialization - sets up console message capture
+   */
+  protected override async onInit(): Promise<void> {
+    await super.onInit()
     this.setupConsoleCapture()
   }
 

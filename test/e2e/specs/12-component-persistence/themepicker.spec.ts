@@ -21,7 +21,7 @@ describe('View Transitions - transition:persist on Web Components', () => {
   test('should persist ThemePicker web component identity across navigation', async ({
     page: playwrightPage,
   }) => {
-    const page = new ComponentPersistencePage(playwrightPage)
+    const page = await ComponentPersistencePage.init(playwrightPage)
 
     await page.goto('/')
 
@@ -46,7 +46,7 @@ describe('View Transitions - transition:persist on Web Components', () => {
   test('should preserve event listeners and closure state across navigation', async ({
     page: playwrightPage,
   }) => {
-    const page = new ComponentPersistencePage(playwrightPage)
+    const page = await ComponentPersistencePage.init(playwrightPage)
     await page.goto('/')
 
     // Attach an event listener with closure state to the ThemePicker component
