@@ -3,7 +3,7 @@
  */
 import { loadEnv } from 'vite'
 import { domain } from '../../../package.json' with { type: 'json' }
-import { isVercel } from '@lib/config/environmentServer'
+import { isVercel } from './environmentServer'
 
 const { DEV_SERVER_PORT } = loadEnv(process.env['NODE_ENV'] ?? 'development', process.cwd(), '')
 
