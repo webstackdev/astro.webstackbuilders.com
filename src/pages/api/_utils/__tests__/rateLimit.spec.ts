@@ -1,5 +1,11 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import { getSecret} from 'astro:env/server'
+
+// Mock environment utilities BEFORE importing the module under test
+vi.mock('@components/scripts/utils', () => ({
+  isDev: vi.fn(() => false),
+  isTest: vi.fn(() => false),
+}))
+
 import { rateLimiters, checkRateLimit, checkContactRateLimit } from '@pages/api/_utils/rateLimit'
 
 // Mock the Upstash Redis and Ratelimit modules
@@ -246,57 +252,40 @@ describe('Rate Limit Utils', () => {
   })
 
   describe('checkContactRateLimit', () => {
-    let originalEnvMode: string | undefined
-    let originalDev: boolean | undefined
-    let originalCI: string | undefined
+    let isDev: ReturnType<typeof vi.fn>
+    let isTest: ReturnType<typeof vi.fn>
 
-    beforeEach(() => {
-      originalEnvMode = import.meta.env.MODE
-      originalDev = import.meta.env.DEV
-      originalCI = getSecret('CI')
+    beforeEach(async () => {
+      // Get the mocked functions
+      const utils = await import('@components/scripts/utils')
+      isDev = utils.isDev as ReturnType<typeof vi.fn>
+      isTest = utils.isTest as ReturnType<typeof vi.fn>
+      
+      // Reset to production mode by default
+      isDev.mockReturnValue(false)
+      isTest.mockReturnValue(false)
     })
 
     afterEach(() => {
-      if (originalEnvMode !== undefined) {
-        import.meta.env.MODE = originalEnvMode
-      }
-      if (originalDev !== undefined) {
-        import.meta.env.DEV = originalDev
-      }
-      if (originalCI !== undefined) {
-        /* eslint-disable-next-line no-process-env */
-        process.env['CI'] = originalCI
-      }
+      vi.clearAllMocks()
     })
 
-    it('should return true in test environment', () => {
-      import.meta.env.MODE = 'test'
+    it('should return true when isTest() returns true', () => {
+      isTest.mockReturnValue(true)
 
       const result = checkContactRateLimit('192.168.1.1')
       expect(result).toBe(true)
     })
 
-    it('should return true in development environment', () => {
-      import.meta.env.DEV = true
-
-      const result = checkContactRateLimit('192.168.1.1')
-      expect(result).toBe(true)
-    })
-
-    it('should return true in CI environment', () => {
-      /* eslint-disable-next-line no-process-env */
-      process.env['CI'] = 'true'
+    it('should return true when isDev() returns true', () => {
+      isDev.mockReturnValue(true)
 
       const result = checkContactRateLimit('192.168.1.1')
       expect(result).toBe(true)
     })
 
     it('should allow requests under the limit in production', () => {
-      // Set production-like environment
-      import.meta.env.MODE = 'production'
-      import.meta.env.DEV = false
-      /* eslint-disable-next-line no-process-env */
-      process.env['CI'] = 'false'
+      // isDev() and isTest() return false (set in beforeEach)
 
       const ip = '192.168.1.2'
 
@@ -308,11 +297,7 @@ describe('Rate Limit Utils', () => {
     })
 
     it('should block requests over the limit in production', () => {
-      // Set production-like environment
-      import.meta.env.MODE = 'production'
-      import.meta.env.DEV = false
-      /* eslint-disable-next-line no-process-env */
-      process.env['CI'] = 'false'
+      // isDev() and isTest() return false (set in beforeEach)
 
       const ip = '192.168.1.3'
 
@@ -327,11 +312,7 @@ describe('Rate Limit Utils', () => {
     })
 
     it('should isolate rate limits by IP address', () => {
-      // Set production-like environment
-      import.meta.env.MODE = 'production'
-      import.meta.env.DEV = false
-      /* eslint-disable-next-line no-process-env */
-      process.env['CI'] = 'false'
+      // isDev() and isTest() return false (set in beforeEach)
 
       const ip1 = '192.168.1.4'
       const ip2 = '192.168.1.5'

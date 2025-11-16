@@ -1,10 +1,11 @@
 import { Ratelimit } from '@upstash/ratelimit'
 import { Redis } from '@upstash/redis'
-import { getSecret } from 'astro:env/server'
+import { KV_REST_API_URL, KV_REST_API_TOKEN } from 'astro:env/server'
+import { isDev, isTest } from '@components/scripts/utils'
 
 const redis = new Redis({
-  url: import.meta.env['KV_REST_API_URL'] as string,
-  token: import.meta.env['KV_REST_API_TOKEN'] as string,
+  url: KV_REST_API_URL,
+  token: KV_REST_API_TOKEN,
 })
 
 // Simple in-memory rate limiting (use Redis in production)
@@ -54,9 +55,8 @@ export async function checkRateLimit(
  * Disabled in development and CI environments
  */
 export function checkContactRateLimit(ip: string): boolean {
-  // Skip rate limiting in dev/test/CI environments
-  const isDevOrTest = import.meta.env.DEV || getSecret('NODE_ENV') === 'test' || getSecret('CI') === 'true'
-  if (isDevOrTest) {
+  // Skip rate limiting in dev/test environments
+  if (isDev() || isTest()) {
     return true
   }
 
