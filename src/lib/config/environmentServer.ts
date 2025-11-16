@@ -27,7 +27,7 @@ export const isCI = () => {
  * We are setting the VITEST env var in vitest.config.ts for unit tests.
  */
 export const isUnitTest = () => {
-  return process.env['VITEST'] ? true : false
+  return process.env['VITEST'] === 'true' ? true : false
 }
 
 /**
@@ -35,7 +35,7 @@ export const isUnitTest = () => {
  * script called by Playwright's globalSetup config hook
  */
 export const isE2eTest = () => {
-  return process.env['PLAYWRIGHT'] ? true : false
+  return process.env['PLAYWRIGHT'] === 'true'
 }
 
 export const isTest = () => {

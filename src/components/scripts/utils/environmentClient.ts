@@ -3,7 +3,7 @@
  * We are setting the VITEST env var in vitest.config.ts for unit tests.
  */
 export const isUnitTest = () => {
-  return typeof process !== 'undefined' && !!process.env['VITEST'] === 'true'
+  return typeof process !== 'undefined' && process.env['VITEST'] === 'true'
 }
 
 export const isE2eTest = () => {
@@ -14,8 +14,19 @@ export const isE2eTest = () => {
   return false
 }
 
+/**
+ * This is the same logic as the environmentServer isE2eTest()
+ * method, for use in API endpoint serverless functions.
+ */
+export const isE2eTestLambda = () => {
+  return  typeof process !== 'undefined' && process.env['PLAYWRIGHT'] === 'true'
+}
+
+/**
+ * Correctly handle checking for e2e test mode in API endpoint serverless functions
+ */
 export const isTest = () => {
-  return isUnitTest() || isE2eTest()
+  return isUnitTest() || isE2eTest() || isE2eTestLambda()
 }
 
 export const isDev = () => {
