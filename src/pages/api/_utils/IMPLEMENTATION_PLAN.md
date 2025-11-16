@@ -53,13 +53,13 @@ Create/update `.env`:
 
 ```bash
 # Supabase Local (from npx supabase start output)
-PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
-PUBLIC_SUPABASE_KEY=sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH
+SUPABASE_URL=http://127.0.0.1:54321
+SUPABASE_KEY=sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH
 SUPABASE_SERVICE_ROLE_KEY=sb_secret_N7UND0UgjKTVK-Uodkm0Hg_xSvEMPvz  # NEVER add PUBLIC_ prefix!
 
 # Supabase Production (from your production project)
-# PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-# PUBLIC_SUPABASE_KEY=eyJhbGci...
+# SUPABASE_URL=https://your-project.supabase.co
+# SUPABASE_KEY=eyJhbGci...
 # SUPABASE_SERVICE_ROLE_KEY=eyJhbGci...
 
 # Email Testing (use Supabase Mailpit - see Phase 10.1)
@@ -251,7 +251,7 @@ supabase db push
 ```typescript
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL!
+const supabaseUrl = import.meta.env.SUPABASE_URL!
 
 // Admin client (server-side only, bypasses RLS)
 export const supabaseAdmin = createClient(
@@ -268,7 +268,7 @@ export const supabaseAdmin = createClient(
 // Public client (client-side, respects RLS)
 export const supabasePublic = createClient(
   supabaseUrl,
-  import.meta.env.PUBLIC_SUPABASE_KEY!
+  import.meta.env.SUPABASE_KEY!
 )
 ```
 
@@ -984,10 +984,10 @@ There is a project already setup. I have installed the @supabase/supabase-js SDK
 SUPRABASE_DATABASE_PASSWORD
 
 // A RESTful endpoint for querying and managing your database.
-PUBLIC_SUPABASE_URL
+SUPABASE_URL
 
 // Anon public API key
-PUBLIC_SUPABASE_KEY
+SUPABASE_KEY
 
 // Secret service key that can bypass RLS
 SUPABASE_SERVICE_ROLE_KEY
