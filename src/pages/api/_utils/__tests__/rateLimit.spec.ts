@@ -6,6 +6,12 @@ vi.mock('@components/scripts/utils', () => ({
   isTest: vi.fn(() => false),
 }))
 
+// Mock astro:env/server
+vi.mock('astro:env/server', () => ({
+  KV_REST_API_URL: 'https://test-redis.upstash.io',
+  KV_REST_API_TOKEN: 'test-token',
+}))
+
 import { rateLimiters, checkRateLimit, checkContactRateLimit } from '@pages/api/_utils/rateLimit'
 
 // Mock the Upstash Redis and Ratelimit modules
@@ -37,19 +43,10 @@ vi.mock('@upstash/ratelimit', () => {
 })
 
 describe('Rate Limit Utils', () => {
-  let originalEnv: Record<string, string | undefined>
-
   // Get reference to the mock function after module initialization
   let mockLimit: ReturnType<typeof vi.fn>
 
   beforeEach(async () => {
-    // Store original env
-    originalEnv = { ...import.meta.env }
-
-    // Set test environment variables
-    import.meta.env['KV_REST_API_URL'] = 'https://test-redis.upstash.io'
-    import.meta.env['KV_REST_API_TOKEN'] = 'test-token'
-
     // Get the mock function from the created rate limiters
     const { Ratelimit } = await import('@upstash/ratelimit')
     const { Redis } = await import('@upstash/redis')
@@ -64,11 +61,6 @@ describe('Rate Limit Utils', () => {
 
     // Reset all mocks
     vi.clearAllMocks()
-  })
-
-  afterEach(() => {
-    // Restore original environment
-    Object.assign(import.meta.env, originalEnv)
   })
 
   describe('rateLimiters configuration', () => {
