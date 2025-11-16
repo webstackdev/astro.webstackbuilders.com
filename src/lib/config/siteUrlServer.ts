@@ -2,9 +2,10 @@
  * Server-side method to determine correct URL
  */
 import { loadEnv } from 'vite'
-import { domain } from '../../../package.json' with { type: 'json' }
+import packageJson from '../../../package.json' with { type: 'json' }
 import { isVercel } from './environmentServer'
 
+const { domain } = packageJson
 const { DEV_SERVER_PORT } = loadEnv(process.env['NODE_ENV'] ?? 'development', process.cwd(), '')
 
 /** Called from astro.config.ts to determine "site" config key */
