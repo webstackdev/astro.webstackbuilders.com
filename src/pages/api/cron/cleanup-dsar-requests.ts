@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro'
+import { CRON_SECRET } from 'astro:env/server'
 import { supabaseAdmin } from '@components/scripts/consent/db/supabase'
-import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
+import { ClientScriptError } from '@components/scripts/errors'
 
 /**
  * Cron job to clean up DSAR requests
@@ -12,17 +13,7 @@ import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
 export const GET: APIRoute = async ({ request }) => {
   // Verify cron secret for security
   const authHeader = request.headers.get('authorization')
-  const cronSecret = import.meta.env['CRON_SECRET']
-
-  if (!cronSecret) {
-    console.error('CRON_SECRET not configured')
-    return new Response(
-      JSON.stringify({ success: false, error: 'CRON_SECRET not configured' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    )
-  }
-
-  if (authHeader !== `Bearer ${cronSecret}`) {
+  if (authHeader !== `Bearer ${CRON_SECRET}`) {
     console.warn('Unauthorized cron attempt - invalid CRON_SECRET')
     return new Response(
       JSON.stringify({ success: false, error: 'Unauthorized' }),
