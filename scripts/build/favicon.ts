@@ -21,7 +21,8 @@
 import sharp, { type Metadata } from 'sharp'
 import toIco from 'to-ico'
 import { writeFile, mkdir } from 'fs/promises'
-import { ClientScriptError } from '@components/scripts/errors'
+import { isTest } from '@lib/config'
+import { BuildError } from '@lib/errors'
 
 type IconGenerator = (_options: Metadata) => Promise<Buffer>
 
@@ -29,7 +30,7 @@ const faviconPath = `src/assets/favicon.svg`
 const generateIcoFavicon: IconGenerator = async ({ width, height, density }) => {
   if (!width || !height || !density) {
     const message = `Required option not passed to generateIcoFavicon`
-    throw new ClientScriptError({ message })
+    throw new BuildError({ message })
   }
   const faviconDimensions = [32, 64]
   // Create buffer for each size
@@ -47,7 +48,7 @@ const generateIcoFavicon: IconGenerator = async ({ width, height, density }) => 
 const generatePngFavicon: IconGenerator = ({ density, width, height }) => {
   if (!width || !height || !density) {
     const message = `Required option not passed to generatePngFavicon`
-    throw new ClientScriptError({ message })
+    throw new BuildError({ message })
   }
   return sharp(faviconPath, {
     density: (180 / Math.max(width, height)) * density,
@@ -60,7 +61,7 @@ const generatePngFavicon: IconGenerator = ({ density, width, height }) => {
 const generatePwaIcon = (size: number): IconGenerator => ({ density, width, height }) => {
   if (!width || !height || !density) {
     const message = `Required option not passed to generatePwaIcon`
-    throw new ClientScriptError({ message })
+    throw new BuildError({ message })
   }
   return sharp(faviconPath, {
     density: (size / Math.max(width, height)) * density,
@@ -102,7 +103,7 @@ export const buildFavicons = async () => {
 }
 
 // Execute when run directly (ES module), but not during tests
-if (process.env['NODE_ENV'] !== 'test') {
+if (!isTest()) {
   buildFavicons().catch((error) => {
     console.error('❌ Failed to generate favicons:', error)
     process.exit(1)
