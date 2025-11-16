@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+import { sendDSARVerificationEmail } from '@pages/api/gdpr/_dsarVerificationEmails'
 
 // Mock environment utilities BEFORE importing the module under test
 vi.mock('@components/scripts/utils', () => ({
@@ -15,10 +16,6 @@ vi.mock('@lib/config', () => ({
 vi.mock('astro:env/server', () => ({
   RESEND_API_KEY: 'test-resend-key',
 }))
-
-import { sendDSARVerificationEmail } from '@pages/api/gdpr/_dsarVerificationEmails'
-import type { isDev, isTest } from '@components/scripts/utils'
-import type { getSiteUrl } from '@lib/config'
 
 // Create mock send function at module level
 const mockSend = vi.fn()
