@@ -6,7 +6,7 @@ import { getSiteUrl } from './src/lib/config'
 export default getViteConfig({
   define: {
     'import.meta.env.DEV': true,
-    'import.meta.env.MODE': 'development',
+    'import.meta.env.MODE': JSON.stringify('development'),
     'import.meta.env.PROD': false,
     'import.meta.env.SITE': JSON.stringify(getSiteUrl()),
   },
