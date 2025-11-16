@@ -5,10 +5,11 @@
  * With Vercel adapter, this becomes a serverless function automatically
  */
 import type { APIRoute } from 'astro'
-import { getSecret } from 'astro:env/server'
 import { Resend } from 'resend'
 import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
-import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
+import { RESEND_API_KEY } from 'astro:env/server'
+import { ClientScriptError } from '@components/scripts/errors'
+import { isDev, isTest } from '@components/scripts/utils'
 import { checkContactRateLimit } from '@pages/api/_utils/rateLimit'
 
 export const prerender = false // Force SSR for this endpoint
@@ -171,19 +172,11 @@ function formatFileSize(bytes: number): string {
  */
 async function sendEmail(emailData: EmailData, files: FileAttachment[]): Promise<void> {
 	// Skip actual email sending in dev/test environments
-	if (getSecret('VITEST') || import.meta.env.DEV) {
-		return // Skip actual email sending in dev/test
+	if (isTest() || isDev()) {
+		return
 	}
 
-	const apiKey = import.meta.env['RESEND_API_KEY']
-
-	if (!apiKey) {
-		throw new ClientScriptError({
-      message: 'Resend API key is not configured.'
-    })
-	}
-
-	const resend = new Resend(apiKey)
+	const resend = new Resend(RESEND_API_KEY)
 
 	try {
 		// Prepare attachments for Resend
