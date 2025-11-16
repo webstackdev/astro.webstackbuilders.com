@@ -30,6 +30,7 @@
 
 import type { AstroIntegration, AstroConfig } from 'astro'
 import { fileURLToPath } from 'url'
+import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
 import type { CallToActionValidatorOptions, CallToActionComponent } from './@types'
 import { discoverCallToActionComponents } from './componentDiscovery'
 import { validateAllPages, validateCtaRequirements } from './validation'
@@ -150,14 +151,14 @@ export function callToActionValidator(
               logger.error('')
             }
 
-            // Use Astro's standard error approach for build failures
-            const errorMessage = `CallToAction validation failed: Found multiple component instances on ${pagesWithErrors.length} page(s). Each CallToAction component should only appear once per page.`
             logger.error(
               `💡 Fix: Remove duplicate component instances or use different CallToAction component types.`
             )
             logger.error('')
 
-            throw new Error(errorMessage)
+            throw new ClientScriptError({
+              message: `CallToAction validation failed: Found multiple component instances on ${pagesWithErrors.length} page(s). Each CallToAction component should only appear once per page.`
+            })
           }
 
           if (config.debug) {
@@ -170,7 +171,9 @@ export function callToActionValidator(
             throw error
           }
           logger.error(`CallToAction Validator: Validation error: ${error}`)
-          throw new Error(`CallToAction validation failed: ${error}`)
+          throw new ClientScriptError({
+            message: `CallToAction validation failed: ${error}`
+          })
         }
       },
     },

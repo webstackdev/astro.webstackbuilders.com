@@ -8,6 +8,7 @@
 import type { Page } from '@playwright/test'
 import { expect } from '@playwright/test'
 import { BasePage } from './BasePage'
+import { TestError } from '@test/errors'
 import type { CapturedConsoleMessage } from '@test/e2e/helpers/consoleCapture'
 import type { ElementWithTestProperties } from '@test/e2e/assertions'
 
@@ -107,7 +108,7 @@ export class ComponentPersistencePage extends BasePage {
   async setupPersistenceTest(selector: string): Promise<PersistenceTestData> {
     return await this.evaluate((sel: string) => {
       const element = document.querySelector(sel) as ElementWithTestProperties | null
-      if (!element) throw new Error(`${sel} element not found`)
+      if (!element) throw new TestError(`${sel} element not found`)
 
       // Create a unique identifier
       const uniqueId = `test-${Date.now()}-${Math.random()}`
@@ -138,7 +139,7 @@ export class ComponentPersistencePage extends BasePage {
   async verifyPersistence(selector: string): Promise<PersistenceVerificationData> {
     return await this.evaluate((sel: string) => {
       const element = document.querySelector(sel) as ElementWithTestProperties | null
-      if (!element) throw new Error(`${sel} element not found after navigation`)
+      if (!element) throw new TestError(`${sel} element not found after navigation`)
 
       // Increment counter to prove it's the same element
       const counter = element.__navigationCounter ?? 0

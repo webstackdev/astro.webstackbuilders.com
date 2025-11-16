@@ -5,6 +5,7 @@
 
 import { readdir, readFile } from 'fs/promises'
 import { join, resolve } from 'path'
+import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
 import type { CallToActionComponent } from './@types'
 import { generateImportPatterns } from './parsers'
 
@@ -65,9 +66,9 @@ export async function discoverCallToActionComponents(
       }
     }
   } catch (error) {
-    throw new Error(
-      `Failed to read CallToAction components directory '${fullComponentPath}': ${error}`
-    )
+    throw new ClientScriptError({
+      message: `Failed to read CallToAction components directory '${fullComponentPath}': ${error}`
+    })
   }
 
   return components

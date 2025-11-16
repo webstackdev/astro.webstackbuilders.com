@@ -6,6 +6,7 @@
  */
 import type { APIRoute } from 'astro'
 import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
+import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
 import { rateLimiters, checkRateLimit } from '@pages/api/_utils/rateLimit'
 import type { ErrorResponse } from '@pages/api/_contracts/gdpr.contracts'
 import { createPendingSubscription } from './_token'
@@ -48,17 +49,23 @@ interface ConvertKitErrorResponse {
  */
 function validateEmail(email: string): string {
   if (!email) {
-    throw new Error('Email address is required.')
+    throw new ClientScriptError({
+      message: 'Email address is required.'
+    })
   }
 
   // RFC 5321 specifies max email length of 254 characters
   if (email.length > 254) {
-    throw new Error('Email address is too long')
+    throw new ClientScriptError({
+      message: 'Email address is too long'
+    })
   }
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   if (!emailRegex.test(email)) {
-    throw new Error('Email address is invalid')
+    throw new ClientScriptError({
+      message: 'Email address is invalid'
+    })
   }
 
   return email.trim().toLowerCase()
@@ -93,7 +100,9 @@ export async function subscribeToConvertKit(
   const apiKey = import.meta.env['CONVERTKIT_API_KEY']
 
   if (!apiKey) {
-    throw new Error('ConvertKit API key is not configured.')
+    throw new ClientScriptError({
+      message: 'ConvertKit API key is not configured.'
+    })
   }
 
   /* eslint-disable camelcase */
@@ -122,24 +131,32 @@ export async function subscribeToConvertKit(
     if (response.status === 401) {
       const errorData = responseData as ConvertKitErrorResponse
       console.error('ConvertKit API authentication failed:', errorData.errors)
-      throw new Error('Newsletter service configuration error. Please contact support.')
+      throw new ClientScriptError({
+        message: 'Newsletter service configuration error. Please contact support.'
+      })
     }
 
     if (response.status === 422) {
       const errorData = responseData as ConvertKitErrorResponse
-      throw new Error(errorData.errors[0] || 'Invalid email address')
+      throw new ClientScriptError({
+        message: errorData.errors[0] || 'Invalid email address'
+      })
     }
 
     if (response.status === 200 || response.status === 201 || response.status === 202) {
       return responseData as ConvertKitResponse
     }
 
-    throw new Error('An unexpected error occurred. Please try again later.')
+    throw new ClientScriptError({
+      message: 'An unexpected error occurred. Please try again later.'
+    })
   } catch (error) {
     if (error instanceof Error) {
       throw error
     }
-    throw new Error('Failed to connect to newsletter service. Please try again later.')
+    throw new ClientScriptError({
+      message: 'Failed to connect to newsletter service. Please try again later.'
+    })
   }
 }
 

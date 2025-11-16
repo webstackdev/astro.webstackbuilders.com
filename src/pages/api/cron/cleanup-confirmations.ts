@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro'
 import { supabaseAdmin } from '@components/scripts/consent/db/supabase'
+import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
 
 /**
  * Cron job to clean up newsletter confirmations
@@ -41,7 +42,9 @@ export const GET: APIRoute = async ({ request }) => {
       .select()
 
     if (expiredError) {
-      throw new Error(`Failed to delete expired tokens: ${expiredError.message}`)
+      throw new ClientScriptError({
+        message: `Failed to delete expired tokens: ${expiredError.message}`
+      })
     }
 
     // Delete old confirmed records (7+ days old)
@@ -53,7 +56,9 @@ export const GET: APIRoute = async ({ request }) => {
       .select()
 
     if (confirmedError) {
-      throw new Error(`Failed to delete old confirmed records: ${confirmedError.message}`)
+      throw new ClientScriptError({
+        message: `Failed to delete old confirmed records: ${confirmedError.message}`
+      })
     }
 
     const expiredCount = expiredData?.length || 0

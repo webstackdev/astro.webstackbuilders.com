@@ -1,6 +1,7 @@
 /**
  * Type-safe HTML element selectors
  */
+import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
 import {
   isButtonElement,
   isDivElement,
@@ -151,7 +152,9 @@ export class ContactFormSelectors {
   public get contactForm(): HTMLFormElement {
     const formELement = document.querySelector(SELECTORS.formELement)
     if (!isFormElement(formELement)) {
-      throw new Error(`Contact form is missing in document, selector: ${SELECTORS.formELement}`)
+      throw new ClientScriptError({
+  message: `Contact form is missing in document, selector: ${SELECTORS.formELement}`
+})
     }
     return formELement
   }
@@ -163,9 +166,9 @@ export class ContactFormSelectors {
     if (!this._submitButton) {
       const submitButton = document.querySelector(SELECTORS.submitButton)
       if (!isButtonElement(submitButton)) {
-        throw new Error(
-          `Contact form submit button is missing in document, selector: ${SELECTORS.submitButton}`
-        )
+        throw new ClientScriptError({
+          message: `Contact form submit button is missing in document, selector: ${SELECTORS.submitButton}`
+        })
       }
       this._submitButton = submitButton
     }
@@ -179,7 +182,9 @@ export class ContactFormSelectors {
     if (!this._formValidationError) {
       const errorValidationElement = document.querySelector(SELECTORS.formError)
       if (!isDivElement(errorValidationElement)) {
-        throw new Error(`Contact form error wrapper is missing in document: ${SELECTORS.formError}`)
+        throw new ClientScriptError({
+          message: `Contact form error wrapper is missing in document: ${SELECTORS.formError}`
+        })
       }
       this._formValidationError = errorValidationElement
     }
@@ -193,9 +198,9 @@ export class ContactFormSelectors {
     const elementSelector = SELECTORS[selector]
     const group = document.querySelector(elementSelector)
     if (!isDivElement(group)) {
-      throw new Error(
-        `Contact form input group wrapper <div> is missing in document, selector: ${elementSelector}`
-      )
+      throw new ClientScriptError({
+        message: `Contact form input group wrapper <div> is missing in document, selector: ${elementSelector}`
+      })
     }
     return group
   }
@@ -206,9 +211,9 @@ export class ContactFormSelectors {
   private getInputElement(formGroup: HTMLDivElement): HTMLInputElement {
     const inputElement = formGroup.querySelector(SELECTORS.inputElement)
     if (!isInputElement(inputElement)) {
-      throw new Error(
-        `Contact form input element is missing in document for input group: ${formGroup['tagName']}`
-      )
+      throw new ClientScriptError({
+        message: `Contact form input element is missing in document for input group: ${formGroup['tagName']}`
+      })
     }
     return inputElement
   }
@@ -219,9 +224,9 @@ export class ContactFormSelectors {
   private getLabelElement(formGroup: HTMLDivElement): HTMLLabelElement {
     const labelElement = formGroup.querySelector(SELECTORS.inputLabel)
     if (!isLabelElement(labelElement)) {
-      throw new Error(
-        `Contact form input group wrapper <div> is missing in document for input group: ${formGroup['tagName']}`
-      )
+      throw new ClientScriptError({
+        message: `Contact form input group wrapper <div> is missing in document for input group: ${formGroup['tagName']}`
+      })
     }
     return labelElement
   }
@@ -232,9 +237,9 @@ export class ContactFormSelectors {
   private getErrorValidationElement(formGroup: HTMLDivElement): HTMLDivElement {
     const errorValidationElement = formGroup.querySelector(SELECTORS.validationError)
     if (!isDivElement(errorValidationElement)) {
-      throw new Error(
-        `Contact form input group wrapper <div> is missing in document for input group: ${formGroup['tagName']}`
-      )
+      throw new ClientScriptError({
+        message: `Contact form input group wrapper <div> is missing in document for input group: ${formGroup['tagName']}`
+      })
     }
     return errorValidationElement
   }

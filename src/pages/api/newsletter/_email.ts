@@ -4,6 +4,7 @@
  */
 
 import { Resend } from 'resend'
+import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
 
 /**
  * Initialize Resend client
@@ -12,7 +13,9 @@ import { Resend } from 'resend'
 function getResendClient(): Resend {
   const apiKey = import.meta.env.RESEND_API_KEY
   if (!apiKey) {
-    throw new Error('RESEND_API_KEY environment variable is not set')
+    throw new ClientScriptError({
+      message: `RESEND_API_KEY environment variable is not set`
+    })
   }
   return new Resend(apiKey)
 }
@@ -231,7 +234,9 @@ export async function sendConfirmationEmail(
 
     if (result.error) {
       console.error('[Newsletter Email] Failed to send confirmation:', result.error)
-      throw new Error(`Failed to send confirmation email: ${result.error.message}`)
+      throw new ClientScriptError({
+        message: `Failed to send confirmation email: ${result.error.message}`
+      })
     }
 
     console.log('[Newsletter Email] Confirmation sent successfully:', {
@@ -394,7 +399,9 @@ Questions? Reply to this email or contact us at hello@webstackbuilders.com
 
     if (result.error) {
       console.error('[Newsletter Email] Failed to send welcome email:', result.error)
-      throw new Error(`Failed to send welcome email: ${result.error.message}`)
+      throw new ClientScriptError({
+        message: `Failed to send welcome email: ${result.error.message}`
+      })
     }
 
     console.log('[Newsletter Email] Welcome email sent successfully:', {

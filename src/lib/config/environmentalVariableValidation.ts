@@ -29,6 +29,18 @@ import type { AstroUserConfig } from 'astro'
 
 export const environmentalVariablesConfig: AstroUserConfig['env'] = {
   schema: {
+    /**
+     * Set in Vitest config for unit tests
+     */
+    VITEST: envField.string({
+      access: 'public',
+      context: 'client',
+      default: false,
+      optional: true,
+    }),
+    /**
+     * Allow overriding default dev server port
+     */
     DEV_SERVER_PORT: envField.number({
       access: 'public',
       context: 'client',

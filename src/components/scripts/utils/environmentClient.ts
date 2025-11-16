@@ -3,7 +3,7 @@
  * We are setting the VITEST env var in vitest.config.ts for unit tests.
  */
 export const isUnitTest = () => {
-  return typeof process !== 'undefined' && !!process.env['VITEST']
+  return typeof process !== 'undefined' && !!process.env['VITEST'] === 'true'
 }
 
 export const isE2eTest = () => {

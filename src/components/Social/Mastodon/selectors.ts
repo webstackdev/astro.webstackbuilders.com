@@ -4,7 +4,7 @@
  * SPDX-FileCopyrightText: © 2025 Kevin Brown <kevin@webstackbuilders.com>
  * SPDX-License-Identifier: AGPL-3.0-only
  */
-
+import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
 import {
   isButtonElement,
   isDivElement,
@@ -45,7 +45,9 @@ export const SELECTORS = {
 export function getModalElement(): HTMLDivElement {
   const modal = document.querySelector(SELECTORS.modal)
   if (!isDivElement(modal)) {
-    throw new Error('Mastodon modal container <div> is missing from the DOM')
+    throw new ClientScriptError({
+      message: 'Mastodon modal container <div> is missing from the DOM'
+    })
   }
   return modal
 }
@@ -56,7 +58,9 @@ export function getModalElement(): HTMLDivElement {
 export function getBackdropElement(modal: HTMLDivElement): HTMLDivElement {
   const backdrop = modal.querySelector(SELECTORS.backdrop)
   if (!isDivElement(backdrop)) {
-    throw new Error('Modal backdrop <div> is missing from modal')
+    throw new ClientScriptError({
+      message: 'Modal backdrop <div> is missing from modal'
+    })
   }
   return backdrop
 }
@@ -67,7 +71,9 @@ export function getBackdropElement(modal: HTMLDivElement): HTMLDivElement {
 export function getCloseButtonElement(modal: HTMLDivElement): HTMLButtonElement {
   const button = modal.querySelector(SELECTORS.closeButton)
   if (!isButtonElement(button)) {
-    throw new Error('Modal close <button> is missing from modal header')
+    throw new ClientScriptError({
+      message: 'Modal close <button> is missing from modal header'
+    })
   }
   return button
 }
@@ -78,7 +84,9 @@ export function getCloseButtonElement(modal: HTMLDivElement): HTMLButtonElement 
 export function getCancelButtonElement(modal: HTMLDivElement): HTMLButtonElement {
   const button = modal.querySelector(SELECTORS.cancelButton)
   if (!isButtonElement(button)) {
-    throw new Error('Modal cancel <button> is missing from modal actions')
+    throw new ClientScriptError({
+      message: 'Modal cancel <button> is missing from modal actions'
+    })
   }
   return button
 }
@@ -89,7 +97,9 @@ export function getCancelButtonElement(modal: HTMLDivElement): HTMLButtonElement
 export function getFormElement(modal: HTMLDivElement): HTMLFormElement {
   const form = modal.querySelector(SELECTORS.form)
   if (!isFormElement(form)) {
-    throw new Error('Share <form> is missing from modal')
+    throw new ClientScriptError({
+      message: 'Share <form> is missing from modal'
+    })
   }
   return form
 }
@@ -100,7 +110,9 @@ export function getFormElement(modal: HTMLDivElement): HTMLFormElement {
 export function getShareTextElement(modal: HTMLDivElement): HTMLTextAreaElement {
   const textarea = modal.querySelector(SELECTORS.shareText)
   if (!(textarea instanceof HTMLTextAreaElement)) {
-    throw new Error('Share text <textarea> is missing from form')
+    throw new ClientScriptError({
+      message: 'Share text <textarea> is missing from form'
+    })
   }
   return textarea
 }
@@ -111,7 +123,9 @@ export function getShareTextElement(modal: HTMLDivElement): HTMLTextAreaElement 
 export function getInstanceInputElement(modal: HTMLDivElement): HTMLInputElement {
   const input = modal.querySelector(SELECTORS.instanceInput)
   if (!isInputElement(input)) {
-    throw new Error('Instance <input> is missing from form')
+    throw new ClientScriptError({
+      message: 'Instance <input> is missing from form'
+    })
   }
   return input
 }
@@ -122,7 +136,9 @@ export function getInstanceInputElement(modal: HTMLDivElement): HTMLInputElement
 export function getRememberCheckboxElement(modal: HTMLDivElement): HTMLInputElement {
   const checkbox = modal.querySelector(SELECTORS.rememberCheckbox)
   if (!isInputElement(checkbox)) {
-    throw new Error('Remember checkbox <input> is missing from form')
+    throw new ClientScriptError({
+      message: 'Remember checkbox <input> is missing from form'
+    })
   }
   return checkbox
 }
@@ -133,7 +149,9 @@ export function getRememberCheckboxElement(modal: HTMLDivElement): HTMLInputElem
 export function getSubmitButtonElement(form: HTMLFormElement): HTMLButtonElement {
   const button = form.querySelector(SELECTORS.submitButton)
   if (!isButtonElement(button)) {
-    throw new Error('Submit <button> is missing from form')
+    throw new ClientScriptError({
+      message: 'Submit <button> is missing from form'
+    })
   }
   return button
 }
@@ -144,7 +162,9 @@ export function getSubmitButtonElement(form: HTMLFormElement): HTMLButtonElement
 export function getStatusElement(modal: HTMLDivElement): HTMLParagraphElement {
   const status = modal.querySelector(SELECTORS.statusElement)
   if (!(status instanceof HTMLParagraphElement)) {
-    throw new Error('Status <p> element is missing from modal')
+    throw new ClientScriptError({
+      message: 'Status <p> element is missing from modal'
+    })
   }
   return status
 }
@@ -155,7 +175,9 @@ export function getStatusElement(modal: HTMLDivElement): HTMLParagraphElement {
 export function getSavedInstancesContainer(modal: HTMLDivElement): HTMLDivElement {
   const container = modal.querySelector(SELECTORS.savedInstancesContainer)
   if (!isDivElement(container)) {
-    throw new Error('Saved instances container <div> is missing from modal')
+    throw new ClientScriptError({
+      message: 'Saved instances container <div> is missing from modal'
+    })
   }
   return container
 }
@@ -166,7 +188,9 @@ export function getSavedInstancesContainer(modal: HTMLDivElement): HTMLDivElemen
 export function getSavedInstancesList(modal: HTMLDivElement): HTMLDivElement {
   const list = modal.querySelector(SELECTORS.savedInstancesList)
   if (!isDivElement(list)) {
-    throw new Error('Saved instances list <div> is missing from modal')
+    throw new ClientScriptError({
+      message: 'Saved instances list <div> is missing from modal'
+    })
   }
   return list
 }

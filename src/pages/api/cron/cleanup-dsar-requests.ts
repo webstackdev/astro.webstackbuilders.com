@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro'
 import { supabaseAdmin } from '@components/scripts/consent/db/supabase'
+import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
 
 /**
  * Cron job to clean up DSAR requests
@@ -43,7 +44,9 @@ export const GET: APIRoute = async ({ request }) => {
       .select()
 
     if (fulfilledError) {
-      throw new Error(`Failed to delete fulfilled requests: ${fulfilledError.message}`)
+      throw new ClientScriptError({
+        message: `Failed to delete fulfilled requests: ${fulfilledError.message}`
+      })
     }
 
     // Delete expired unfulfilled requests (7+ days old, never fulfilled)
@@ -55,7 +58,9 @@ export const GET: APIRoute = async ({ request }) => {
       .select()
 
     if (expiredError) {
-      throw new Error(`Failed to delete expired requests: ${expiredError.message}`)
+      throw new ClientScriptError({
+        message: `Failed to delete expired requests: ${expiredError.message}`
+      })
     }
 
     const fulfilledCount = fulfilledData?.length || 0

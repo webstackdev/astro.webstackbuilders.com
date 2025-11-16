@@ -16,7 +16,6 @@ export {
 } from './dataSubjectId'
 
 export {
-  isCI,
   isUnitTest,
   isE2eTest,
   isTest,

@@ -4,6 +4,7 @@
  */
 
 import { supabaseAdmin } from '@components/scripts/consent/db/supabase'
+import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
 
 /**
  * Pending subscription data stored temporarily until confirmed
@@ -84,7 +85,9 @@ export async function createPendingSubscription(data: {
 
   if (error) {
     console.error('Failed to create pending subscription:', error)
-    throw new Error('Failed to create subscription confirmation')
+    throw new ClientScriptError({
+      message: `Failed to create subscription confirmation`
+    })
   }
 
   // Also keep in memory for backward compatibility (for now)

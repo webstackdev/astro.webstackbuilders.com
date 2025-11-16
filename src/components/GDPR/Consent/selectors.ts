@@ -1,6 +1,7 @@
 /**
  * DOM selectors for GDPR Consent component
  */
+import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
 
 /**
  * Get the consent checkbox element
@@ -10,7 +11,9 @@ export function getConsentCheckbox(containerId?: string): HTMLInputElement {
   const element = document.getElementById(id)
 
   if (!element || !(element instanceof HTMLInputElement)) {
-    throw new Error(`GDPR consent checkbox not found: #${id}`)
+    throw new ClientScriptError({
+      message: `GDPR consent checkbox not found: #${id}`
+    })
   }
 
   return element
@@ -24,7 +27,9 @@ export function getConsentContainer(containerId?: string): HTMLDivElement {
   const element = document.getElementById(id)
 
   if (!element || !(element instanceof HTMLDivElement)) {
-    throw new Error(`GDPR consent container not found: #${id}`)
+    throw new ClientScriptError({
+      message: `GDPR consent container not found: #${id}`
+    })
   }
 
   return element
@@ -38,7 +43,9 @@ export function getConsentError(containerId?: string): HTMLDivElement {
   const element = document.getElementById(id)
 
   if (!element || !(element instanceof HTMLDivElement)) {
-    throw new Error(`GDPR consent error element not found: #${id}`)
+    throw new ClientScriptError({
+      message: `GDPR consent error element not found: #${id}`
+    })
   }
 
   return element
@@ -52,7 +59,9 @@ export function getConsentDescription(containerId?: string): HTMLSpanElement {
   const element = document.getElementById(id)
 
   if (!element || !(element instanceof HTMLSpanElement)) {
-    throw new Error(`GDPR consent description not found: #${id}`)
+    throw new ClientScriptError({
+      message: `GDPR consent description not found: #${id}`
+    })
   }
 
   return element

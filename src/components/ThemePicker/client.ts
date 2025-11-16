@@ -13,6 +13,7 @@ import {
   createThemePickerOpenController,
   type ThemeId,
 } from '@components/scripts/store'
+import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
 import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
 import { addButtonEventListeners } from '@components/scripts/elementListeners'
 import {
@@ -155,7 +156,9 @@ export class ThemePickerElement extends LitElement {
       this.themeSelectBtns.forEach((button) => {
         try {
           if (!('theme' in button.dataset)) {
-            throw new Error(`Theme item ${button.name} is missing the 'data-theme' attribute`)
+            throw new ClientScriptError({
+              message: `Theme item ${button.name} is missing the 'data-theme' attribute`
+            })
           }
 
           const themeId = button.dataset['theme'] as ThemeId

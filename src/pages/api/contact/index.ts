@@ -8,6 +8,7 @@ import type { APIRoute } from 'astro'
 import { getSecret } from 'astro:env/server'
 import { Resend } from 'resend'
 import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
+import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
 import { checkContactRateLimit } from '@pages/api/_utils/rateLimit'
 
 export const prerender = false // Force SSR for this endpoint
@@ -177,7 +178,9 @@ async function sendEmail(emailData: EmailData, files: FileAttachment[]): Promise
 	const apiKey = import.meta.env['RESEND_API_KEY']
 
 	if (!apiKey) {
-		throw new Error('Resend API key is not configured.')
+		throw new ClientScriptError({
+      message: 'Resend API key is not configured.'
+    })
 	}
 
 	const resend = new Resend(apiKey)
@@ -198,11 +201,15 @@ async function sendEmail(emailData: EmailData, files: FileAttachment[]): Promise
 		})
 
 		if (!response.data) {
-			throw new Error(response.error?.message || 'Failed to send email')
+      throw new ClientScriptError({
+        message: response.error?.message || 'Failed to send email'
+      })
 		}
 	} catch (error) {
 		console.error('Resend API error:', error)
-		throw new Error('Failed to send email. Please try again later.')
+		throw new ClientScriptError({
+      message: 'Failed to send email. Please try again later.'
+    })
 	}
 }
 

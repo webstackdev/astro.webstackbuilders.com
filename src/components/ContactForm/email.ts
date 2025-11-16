@@ -4,6 +4,7 @@ import {
   minLengthEmailAddressText,
   maxLengthEmailAddressText,
 } from './error'
+import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
 import type { ContactFormSelectors } from './selectors'
 
 export const initEmailValidationHandler = (selector: ContactFormSelectors) => {
@@ -39,6 +40,8 @@ const getEmailErrorText = (emailInputElement: HTMLInputElement) => {
     /** If the data is too long, display the following error message */
     return maxLengthEmailAddressText(emailInputElement)
   } else {
-    throw new Error()
+    throw new ClientScriptError({
+      message: `Unknown email validation error`
+    })
   }
 }

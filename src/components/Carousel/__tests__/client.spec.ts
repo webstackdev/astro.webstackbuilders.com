@@ -289,7 +289,7 @@ describe('CarouselManager', () => {
       // Mock EmblaCarousel to throw an error
       const EmblaCarousel = (await import('embla-carousel')).default
       vi.mocked(EmblaCarousel).mockImplementation(() => {
-        throw new Error('Mock initialization error')
+        throw new TestError('Mock initialization error')
       })
 
       // Error handling now uses handleScriptError instead of console.error

@@ -63,6 +63,7 @@ export const extractMetadaFromStackTrace = (stack: string | undefined): stackMet
     poppedStackArr.shift()
   }
 
+  // Can't use wrapped error here!
   if (!isString(poppedStackArr[0])) throw new Error()
 
   const stackLine = poppedStackArr.shift() as string

@@ -1,4 +1,5 @@
 import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
+import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
 
 export function getOrCreateDataSubjectId(): string {
   // Try localStorage first
@@ -43,7 +44,9 @@ function syncToCookie(dataSubjectId: string): void {
 function getCookieValue(name: string): string | null {
   // For security: only allow safe cookie names (alphanumeric + underscore)
   if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
-    throw new Error(`Invalid cookie name: ${name}`)
+    throw new ClientScriptError({
+      message: `Invalid cookie name: ${name}`
+    })
   }
 
   // Use a safe, pre-validated cookie name in regex

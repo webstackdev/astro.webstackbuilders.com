@@ -1,6 +1,7 @@
 /**
  * Type-safe HTML element selectors
  */
+import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
 import {
   isBodyElement,
   isDivElement,
@@ -11,14 +12,18 @@ import {
 export const queryDocument = (selector: string): Element => {
   const element = document.querySelector(selector)
   if (element === null)
-    throw new Error(`Could not find document element for query selector ${selector}`)
+    throw new ClientScriptError({
+      message: `Could not find document element for query selector ${selector}`
+    })
   return element
 }
 
 export const queryAllDocument = (selector: string): NodeListOf<Element> => {
   const elements = document.querySelectorAll(selector)
   if (elements.length === 0)
-    throw new Error(`Could not find any document elements for query selector ${selector}`)
+    throw new ClientScriptError({
+      message: `Could not find any document elements for query selector ${selector}`
+    })
   return elements
 }
 
@@ -27,7 +32,9 @@ export const queryAllDocument = (selector: string): NodeListOf<Element> => {
  */
 export const getBodyElement = (): HTMLBodyElement => {
   if (!isBodyElement(document.body))
-    throw new Error(`Page is missing a <body> element, is the document empty?`)
+    throw new ClientScriptError({
+      message: `Page is missing a <body> element, is the document empty?`
+    })
   return document.body
 }
 
@@ -36,7 +43,9 @@ export const getBodyElement = (): HTMLBodyElement => {
  */
 export const getHtmlElement = (): HTMLHtmlElement => {
   if (!isHtmlElement(document.documentElement))
-    throw new Error(`Page is missing a <html> element, is the document XML or XHTML?`)
+    throw new ClientScriptError({
+      message: `Page is missing a <html> element, is the document XML or XHTML?`
+    })
   return document.documentElement
 }
 
@@ -45,7 +54,9 @@ export const getHtmlElement = (): HTMLHtmlElement => {
  */
 export const getSlotElement = (shadowRoot: ShadowRoot): HTMLSlotElement => {
   const slotElement = shadowRoot.querySelector('slot')
-  if (!isSlotElement(slotElement)) throw new Error(`<slot> element is missing in shadow root`)
+  if (!isSlotElement(slotElement)) throw new ClientScriptError({
+    message: `<slot> element is missing in shadow root`
+  })
   return slotElement
 }
 
@@ -55,13 +66,17 @@ export const getSlotElement = (shadowRoot: ShadowRoot): HTMLSlotElement => {
 export const getDivElement = (selector: string): HTMLDivElement => {
   const element = document.querySelector(selector)
   if (!isDivElement(element))
-    throw new Error(`Could not find <div> element for query selector ${selector}`)
+    throw new ClientScriptError({
+      message: `Could not find <div> element for query selector ${selector}`
+    })
   return element
 }
 
 export const getDivElements = (selector: string): NodeListOf<HTMLDivElement> => {
   const elements = document.querySelectorAll(selector)
   if (elements.length === 0)
-    throw new Error(`Could not find any <div> elements for query selector ${selector}`)
+    throw new ClientScriptError({
+      message: `Could not find any <div> elements for query selector ${selector}`
+    })
   return elements as NodeListOf<HTMLDivElement>
 }

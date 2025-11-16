@@ -79,7 +79,9 @@ export class DownloadForm {
         })
 
         if (!response.ok) {
-          throw new Error('Failed to submit form')
+          throw new ClientScriptError({
+            message: 'Failed to submit form'
+          })
         }
 
         await response.json()
