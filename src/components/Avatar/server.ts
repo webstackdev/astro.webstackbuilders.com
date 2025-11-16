@@ -15,6 +15,7 @@
  */
 
 import type { ImageMetadata } from 'astro'
+import { isDev } from '@components/scripts/utils'
 
 type AvatarMap = Record<string, ImageMetadata>
 
@@ -60,7 +61,7 @@ class AvatarManagerClass {
       if (filename && imageData) {
         // Deep freeze the image metadata to prevent modifications
         map[filename] = Object.freeze({ ...imageData })
-      } else if (import.meta.env.DEV) {
+      } else if (isDev()) {
         console.warn(`[AvatarManager] Failed to process avatar at path: ${path}`)
       }
     }
@@ -68,7 +69,7 @@ class AvatarManagerClass {
     // Freeze the map to prevent modifications
     this.avatarMap = Object.freeze(map)
 
-    if (import.meta.env.DEV) {
+    if (isDev()) {
       console.log(`[AvatarManager] Initialized with ${Object.keys(this.avatarMap).length} avatars`)
     }
   }

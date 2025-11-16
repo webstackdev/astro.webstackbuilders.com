@@ -13,12 +13,13 @@ jobs:
 
     # Define environment variables once at the job level
     # These will be available to ALL steps in this job
+    # @TODO: Same issue with build-and-test.yml. These are real keys set on GitHub. But the production build only occurs on Vercel, and it's the only place that needs real keys. Once we set up a test framework using Docker containers for Suprabase, Upstash, etc., we should replace these keys with test keys.
     env:
       CONVERTKIT_API_KEY: ${{ secrets.CONVERTKIT_API_KEY }}
       CONVERTKIT_FORM_ID: ${{ secrets.CONVERTKIT_FORM_ID }}
       RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
       SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-      PUBLIC_SENTRY_DSN: ${{ secrets.PUBLIC_SENTRY_DSN }}
+      SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
       WEBMENTION_IO_TOKEN: ${{ secrets.WEBMENTION_IO_TOKEN }}
 
     steps:

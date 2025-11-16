@@ -1,5 +1,5 @@
 import * as Sentry from "@sentry/astro"
-import { PUBLIC_SENTRY_DSN } from "astro:env/client"
+import { SENTRY_DSN } from "astro:env/client"
 
 /**
  * Server-side Sentry initialization
@@ -8,16 +8,16 @@ import { PUBLIC_SENTRY_DSN } from "astro:env/client"
  * It tracks server-side errors, API errors, and build-time issues.
  *
  * Note: SENTRY_AUTH_TOKEN is only needed for uploading source maps during build.
- * The server SDK only needs PUBLIC_SENTRY_DSN to report errors.
+ * The server SDK only needs SENTRY_DSN to report errors.
  */
 
 const isProd = import.meta.env.PROD
 const isDev = import.meta.env.DEV
 
 // Initialize Sentry in production if DSN is available
-if (isProd && PUBLIC_SENTRY_DSN) {
+if (isProd) {
   Sentry.init({
-    dsn: PUBLIC_SENTRY_DSN,
+    dsn: SENTRY_DSN,
 
     /** Release name to track regressions between releases */
     release: import.meta.env['npm_package_name'] + '@' + import.meta.env['npm_package_version'],

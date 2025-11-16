@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-
+import { isDev } from '@components/scripts/utils'
 /**
  * Comprehensive unit tests for AvatarManager
  *
@@ -59,7 +59,7 @@ describe('AvatarManager', () => {
 
       // Constructor should only run once (if in development mode)
       // In production, console.log won't be called
-      if (import.meta.env.DEV) {
+      if (isDev()) {
         expect(consoleLogSpy).toHaveBeenCalledTimes(1)
       }
     })

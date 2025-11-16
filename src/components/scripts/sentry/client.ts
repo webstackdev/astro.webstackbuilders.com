@@ -10,7 +10,7 @@ import {
   makeFetchTransport,
   linkedErrorsIntegration,
 } from '@sentry/browser'
-import { PUBLIC_SENTRY_DSN } from 'astro:env/client'
+import { SENTRY_DSN } from 'astro:env/client'
 import { $consent } from '@components/scripts/store/consent'
 
 /**
@@ -31,18 +31,12 @@ import { $consent } from '@components/scripts/store/consent'
 
 export class SentryBootstrap {
   static init(): void {
-    // Skip initialization if DSN is not configured
-    if (!PUBLIC_SENTRY_DSN) {
-      console.warn('⚠️ Sentry DSN not configured, skipping initialization')
-      return
-    }
-
     // Check analytics consent for PII handling
     const consentState = $consent.get()
     const hasAnalyticsConsent = consentState.analytics
 
     const client = new BrowserClient({
-      dsn: PUBLIC_SENTRY_DSN,
+      dsn: SENTRY_DSN,
 
       integrations: [
         // Core integrations

@@ -10,7 +10,7 @@ import {
   initConsentSideEffects,
 } from '@components/scripts/store'
 import { SentryBootstrap } from '@components/scripts/sentry/client'
-import { PUBLIC_SENTRY_DSN } from 'astro:env/client'
+import { isProd } from "@components.scripts/utils"
 
 export class AppBootstrap {
   static init(): void {
@@ -18,7 +18,7 @@ export class AppBootstrap {
 
     try {
       /* Be careful adding script here. It runs before any script tags in components. */
-      if (import.meta.env.PROD && PUBLIC_SENTRY_DSN) {
+      if (isProd()) {
         SentryBootstrap.init()
       } else {
         console.info('🔧 Sentry disabled in development mode')

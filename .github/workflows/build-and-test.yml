@@ -1,4 +1,5 @@
 # Runs build, unit tests, and E2E tests - gates deployment
+# @TODO: Push to a preview branch on Vercel, and run the E2E tests on that preview instead of from a dev server
 name: CI - Build & Test
 
 on:
@@ -19,14 +20,14 @@ jobs:
 
     # Define environment variables once at the job level
     # These will be available to ALL steps in this job
-    # @TODO: These are real keys set on GitHub. But the production build only occurs on Vercel, and it's the only place that needs real keys. Once we set up a test framework using Docker containers for Suprabase, Upstash, etc., we should replace these keys with test keys.
+    # @TODO: Same issue with type-check.yml. These are real keys set on GitHub. But the production build only occurs on Vercel, and it's the only place that needs real keys. Once we set up a test framework using Docker containers for Suprabase, Upstash, etc., we should replace these keys with test keys.
     env:
       CONVERTKIT_API_KEY: ${{ secrets.CONVERTKIT_API_KEY }}
       CONVERTKIT_FORM_ID: ${{ secrets.CONVERTKIT_FORM_ID }}
       CRON_SECRET: ${{ secrets.CRON_SECRET }}
       RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
       SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-      PUBLIC_SENTRY_DSN: ${{ secrets.PUBLIC_SENTRY_DSN }}
+      SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
       PUBLIC_SUPABASE_URL: ${{ secrets.PUBLIC_SUPABASE_URL }}
       PUBLIC_SUPABASE_KEY: ${{ secrets.PUBLIC_SUPABASE_KEY }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}

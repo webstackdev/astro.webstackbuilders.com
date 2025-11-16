@@ -116,7 +116,7 @@ export const environmentalVariablesConfig: AstroUserConfig['env'] = {
       context: 'server',
       optional: false, // Only required for uploading source maps during build
     }),
-    PUBLIC_SENTRY_DSN: envField.string({
+    SENTRY_DSN: envField.string({
       access: 'public',
       context: 'client',
       optional: false, // Optional - Sentry only enabled if provided

@@ -1,5 +1,6 @@
 import { captureException } from '@sentry/browser'
 import { ClientScriptError } from './ClientScriptError'
+import { isProd } from '@components/scripts/utils'
 
 export interface ScriptErrorContext {
   scriptName: string
@@ -31,7 +32,7 @@ export function handleScriptError(
 ): ClientScriptError {
   // Transform to ClientScriptError (normalizes message internally)
   const clientError = new ClientScriptError(error)
-  if (import.meta.env.PROD) {
+  if (isProd()) {
     captureException(clientError, {
       tags: {
         scriptName: context.scriptName,
