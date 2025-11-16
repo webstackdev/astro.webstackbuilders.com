@@ -4,27 +4,15 @@
  */
 
 import { Resend } from 'resend'
-import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
+import { RESEND_API_KEY } from 'astro:env/server'
+import { ClientScriptError } from '@components/scripts/errors'
+import { getSiteUrl, isDev, isTest } from '@components/scripts/utils'
 
 /**
  * Initialize Resend client
- * API key must be set in RESEND_API_KEY environment variable
  */
 function getResendClient(): Resend {
-  const apiKey = import.meta.env.RESEND_API_KEY
-  if (!apiKey) {
-    throw new ClientScriptError({
-      message: `RESEND_API_KEY environment variable is not set`
-    })
-  }
-  return new Resend(apiKey)
-}
-
-/**
- * Get the site URL from environment or default to localhost
- */
-function getSiteUrl(): string {
-  return import.meta.env.SITE || 'http://localhost:4321'
+  return new Resend(RESEND_API_KEY)
 }
 
 /**
@@ -206,9 +194,7 @@ export async function sendConfirmationEmail(
   firstName?: string
 ): Promise<void> {
   // Skip actual email sending in dev/test environments
-  const isDevOrTest = process.env['NODE_ENV'] === 'development' || process.env['NODE_ENV'] === 'test' || process.env['CI'] === 'true'
-
-  if (isDevOrTest) {
+  if (isDev() || isTest()) {
     console.log('[DEV/TEST MODE] Newsletter confirmation email would be sent:', { email, token })
     return
   }
@@ -261,9 +247,7 @@ export async function sendWelcomeEmail(
   firstName?: string
 ): Promise<void> {
   // Skip actual email sending in dev/test environments
-  const isDevOrTest = process.env['NODE_ENV'] === 'development' || process.env['NODE_ENV'] === 'test' || process.env['CI'] === 'true'
-
-  if (isDevOrTest) {
+  if (isDev() || isTest()) {
     console.log('[DEV/TEST MODE] Newsletter welcome email would be sent:', { email })
     return
   }

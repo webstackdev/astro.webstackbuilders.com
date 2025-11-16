@@ -6,7 +6,9 @@
  */
 import type { APIRoute } from 'astro'
 import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
-import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
+import { CONVERTKIT_API_KEY } from 'astro:env/server'
+import { ClientScriptError } from '@components/scripts/errors'
+import { isDev, isTest } from '@components/scripts/utils'
 import { rateLimiters, checkRateLimit } from '@pages/api/_utils/rateLimit'
 import type { ErrorResponse } from '@pages/api/_contracts/gdpr.contracts'
 import { createPendingSubscription } from './_token'
@@ -78,9 +80,7 @@ export async function subscribeToConvertKit(
   data: NewsletterFormData
 ): Promise<ConvertKitResponse> {
   // Skip actual ConvertKit API call in dev/test environments
-  const isDevOrTest = import.meta.env.DEV || import.meta.env.MODE === 'test' || process.env['NODE_ENV'] === 'test'
-
-  if (isDevOrTest) {
+  if (isDev() || isTest()) {
     console.log('[DEV/TEST MODE] Newsletter subscription would be created:', { email: data.email })
     // Return mock success response
     return {
@@ -95,14 +95,6 @@ export async function subscribeToConvertKit(
         fields: {},
       },
     }
-  }
-
-  const apiKey = import.meta.env['CONVERTKIT_API_KEY']
-
-  if (!apiKey) {
-    throw new ClientScriptError({
-      message: 'ConvertKit API key is not configured.'
-    })
   }
 
   /* eslint-disable camelcase */
@@ -121,7 +113,7 @@ export async function subscribeToConvertKit(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Kit-Api-Key': apiKey,
+        'X-Kit-Api-Key': CONVERTKIT_API_KEY,
       },
       body: JSON.stringify(subscriberData),
     })
@@ -247,7 +239,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
 			...(firstName && { firstName }),
 			DataSubjectId: subjectId,
 			userAgent: request.headers.get('user-agent') || 'unknown',
-			...(clientAddress !== 'unknown' && { clientAddress: ip }),
+			...(clientAddress !== 'unknown' && { clientAddress }),
 			source: 'newsletter_form',
 		})
 
