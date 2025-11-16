@@ -41,8 +41,7 @@ export async function sendDSARVerificationEmail(
     })
   }
 
-  const siteUrl = getSiteUrl()
-  const verifyUrl = `${siteUrl}/api/gdpr/verify?token=${token}`
+  const verifyUrl = `${getSiteUrl()}/api/gdpr/verify?token=${token}`
   const expiresIn = '24 hours'
   const actionText = requestType === 'ACCESS' ? 'access your data' : 'delete your data'
   const subject = requestType === 'ACCESS'
