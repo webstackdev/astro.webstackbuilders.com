@@ -20,13 +20,31 @@ export class BasePage {
   public errors404: string[] = []
   public navigationItems = navigationItems
 
-  constructor(protected readonly _page: Page) {
+  protected constructor(protected readonly _page: Page) {
     this.page = _page
 
     // IMPORTANT: Register listener early
     this.page.on('console', (consoleMessage) => {
       this._consoleMessages.push(consoleMessage.text())
     })
+  }
+
+  static async init(page: Page): Promise<BasePage> {
+    await page.addInitScript(() => {
+      window.isPlaywrightControlled = true
+    })
+    const instance = new BasePage(page)
+    await instance.onInit()
+    return instance
+  }
+
+  /**
+   * Hook for subclasses to perform custom initialization
+   * Called after construction but before the instance is returned from init()
+   * Override this in subclasses to add custom setup logic
+   */
+  protected async onInit(): Promise<void> {
+    // Base implementation does nothing - subclasses can override
   }
 
   /**
@@ -55,16 +73,24 @@ export class BasePage {
     }
 
     return response
-  }  /**
+  }
+
+  /**
+   * Reload the current page
+   */
+  async reload(options?: { timeout?: number; waitUntil?: 'load' | 'domcontentloaded' | 'networkidle' }): Promise<null | Response> {
+    return await this._page.reload(options)
+  }
+
+  /**
    * Dismiss cookie consent modal if it's visible
    */
   private async dismissCookieModal(): Promise<void> {
     try {
       // Set consent cookies
       await this._page.evaluate(() => {
-        document.cookie = 'consent_necessary=true; path=/; max-age=31536000'
         document.cookie = 'consent_analytics=true; path=/; max-age=31536000'
-        document.cookie = 'consent_advertising=true; path=/; max-age=31536000'
+        document.cookie = 'consent_marketing=true; path=/; max-age=31536000'
         document.cookie = 'consent_functional=true; path=/; max-age=31536000'
 
         // Clear localStorage
@@ -76,7 +102,7 @@ export class BasePage {
 
       // Force hide the modal
       await this._page.evaluate(() => {
-        const modal = document.getElementById('cookie-modal-id')
+        const modal = document.getElementById('consent-modal-id')
         if (modal) {
           modal.style.display = 'none'
         }
@@ -94,11 +120,18 @@ export class BasePage {
   }  /**
    * Evaluate JS script in the browser
    */
+  async evaluate<R, Arg = unknown>(
+    pageFunction: (arg: Arg) => R | Promise<R>,
+    arg: Arg
+  ): Promise<R>
   async evaluate<R>(
-    pageFunction: () => R | Promise<R>,
-    arg?: unknown
+    pageFunction: () => R | Promise<R>
+  ): Promise<R>
+  async evaluate<R, Arg = unknown>(
+    pageFunction: ((arg: Arg) => R | Promise<R>) | (() => R | Promise<R>),
+    arg?: Arg
   ): Promise<R> {
-    return await this._page.evaluate(pageFunction, arg)
+    return await this._page.evaluate(pageFunction as any, arg)
   }
 
   /**
@@ -132,6 +165,13 @@ export class BasePage {
    */
   async setViewport(width: number, height: number): Promise<void> {
     await this._page.setViewportSize({ width, height })
+  }
+
+  /**
+   * Set viewport size using object parameter
+   */
+  async setViewportSize(size: { width: number; height: number }): Promise<void> {
+    await this._page.setViewportSize(size)
   }
 
   /**
@@ -216,6 +256,34 @@ export class BasePage {
   }
 
   /**
+   * Type text using keyboard
+   */
+  async type(text: string): Promise<void> {
+    await this._page.keyboard.type(text)
+  }
+
+  /**
+   * Get keyboard object for advanced keyboard operations
+   */
+  get keyboard() {
+    return this._page.keyboard
+  }
+
+  /**
+   * Get mouse object for advanced mouse operations
+   */
+  get mouse() {
+    return this._page.mouse
+  }
+
+  /**
+   * Get touchscreen object for touch operations
+   */
+  get touchscreen() {
+    return this._page.touchscreen
+  }
+
+  /**
    * Hover over element
    */
   async hover(selector: string): Promise<void> {
@@ -231,9 +299,109 @@ export class BasePage {
 
   /**
    * Wait for specified timeout in milliseconds
+   * @deprecated Use event-based waits like waitForPageLoad() instead
    */
   async wait(timeout: number): Promise<void> {
     await this._page.waitForTimeout(timeout)
+  }
+
+  /**
+   * Wait for specified timeout in milliseconds
+   * Alias for wait() method
+   * @deprecated Use event-based waits like waitForPageLoad() instead
+   */
+  async waitForTimeout(timeout: number): Promise<void> {
+    await this._page.waitForTimeout(timeout)
+  }
+
+  /**
+   * Wait for a custom function to return truthy value
+   */
+  async waitForFunction<R>(
+    pageFunction: () => R | Promise<R>,
+    arg?: unknown,
+    options?: { timeout?: number }
+  ): Promise<void> {
+    await this._page.waitForFunction(pageFunction, arg, options)
+  }
+
+  /**
+   * Intercept and modify network requests
+   */
+  async route(
+    url: string | RegExp | ((url: URL) => boolean),
+    handler: (route: import('@playwright/test').Route) => void
+  ): Promise<void> {
+    await this._page.route(url, handler)
+  }
+
+  /**
+   * Wait for Astro page load event
+   * Use this instead of waitForTimeout when testing View Transitions
+   *
+   * @example
+   * ```ts
+   * await page.navigateToPage('/articles')
+   * await page.waitForPageLoad()
+   * ```
+   */
+  async waitForPageLoad(): Promise<void> {
+    await this._page.evaluate(() => {
+      return new Promise<void>(resolve => {
+        document.addEventListener('astro:page-load', () => {
+          resolve()
+        }, { once: true })
+      })
+    })
+  }
+
+  /**
+   * Navigate to a page using Astro View Transitions
+   * Clicks a link with the given href to trigger client-side navigation
+   *
+   * @param href - The href of the link to click (e.g., '/articles')
+   *
+   * @example
+   * ```ts
+   * await page.navigateToPage('/articles')
+   * await page.waitForPageLoad()
+   * ```
+   */
+  async navigateToPage(href: string): Promise<void> {
+    await this._page.click(`a[href="${href}"]`)
+  }
+
+  /**
+   * Wait for URL to change to match the expected pattern
+   *
+   * @param urlPattern - Glob pattern or regex to match against URL
+   * @param options - Timeout and other options
+   *
+   * @example
+   * ```ts
+   * await page.waitForURL('/articles')
+   * ```
+   */
+  async waitForURL(urlPattern: string | RegExp, options?: { timeout?: number }): Promise<void> {
+    await this._page.waitForURL(urlPattern, options)
+  }
+
+  /**
+   * Wait for a response matching the URL pattern
+   *
+   * @param urlPattern - URL or pattern to match
+   * @param options - Timeout and other options
+   *
+   * @example
+   * ```ts
+   * const response = await page.waitForResponse('/api/newsletter')
+   * ```
+   */
+  async waitForResponse(
+    urlPattern: string | RegExp | ((response: Response) => boolean),
+    options?: { timeout?: number }
+  ): Promise<Response> {
+    return await this._page.waitForResponse(urlPattern, options)
   }
 
   /**
@@ -249,6 +417,38 @@ export class BasePage {
    */
   getCurrentUrl(): string {
     return this._page.url()
+  }
+
+  /**
+   * Get page URL (alias for getCurrentUrl)
+   */
+  url(): string {
+    return this._page.url()
+  }
+
+  /**
+   * Get page title
+   */
+  async title(): Promise<string> {
+    return this._page.title()
+  }
+
+  /**
+   * Get the browser context that the page belongs to
+   */
+  context() {
+    return this._page.context()
+  }
+
+  /**
+   * Emulate media features (e.g., prefers-color-scheme, reduced-motion)
+   */
+  async emulateMedia(options: {
+    colorScheme?: 'light' | 'dark' | 'no-preference'
+    reducedMotion?: 'reduce' | 'no-preference'
+    forcedColors?: 'active' | 'none'
+  }): Promise<void> {
+    await this._page.emulateMedia(options)
   }
 
   /**
@@ -345,7 +545,9 @@ export class BasePage {
    */
   async getAllLinks(): Promise<string[]> {
     return await this._page.$$eval('a[href]', (links) =>
-      links.map((link) => (link as HTMLAnchorElement).href)
+      links
+        .filter((link): link is HTMLAnchorElement => link instanceof HTMLAnchorElement)
+        .map((link) => link.href)
     )
   }
 
@@ -412,7 +614,7 @@ export class BasePage {
    */
   async expectCookiesContactForm(): Promise<void> {
     await this.waitForPageComplete()
-    await expect(this._page.locator('#cookie-modal-id')).toBeVisible()
+    await expect(this._page.locator('#consent-modal-id')).toBeVisible()
   }
 
   /**
@@ -424,15 +626,15 @@ export class BasePage {
    * // Continue with test that requires clicking on page elements
    */
   async clearCookieDialog(): Promise<void> {
-    const cookieDialog = this._page.locator('#cookie-modal-id')
+    const cookieDialog = this._page.locator('#consent-modal-id')
 
     // Check if cookie dialog is visible
     if (await cookieDialog.isVisible()) {
       // Click "Allow All" button to dismiss the dialog
-      await this._page.click('.cookie-modal__btn-allow')
+      await this._page.click('.consent-modal__btn-allow')
 
       // Wait for the dialog to be hidden
-      await this._page.waitForSelector('#cookie-modal-id', { state: 'hidden' })
+      await this._page.waitForSelector('#consent-modal-id', { state: 'hidden' })
     }
   }
 
@@ -526,15 +728,6 @@ export class BasePage {
    *
    * ================================================================
    */
-
-  /**
-   * Throw errors that are normally handled internally
-   */
-  async disableErrorBoundary(): Promise<void> {
-    await this._page.addInitScript(() => {
-      window._throw = false
-    })
-  }
 
   /**
    * Returns up to (currently) 200 last uncaught exceptions from this page

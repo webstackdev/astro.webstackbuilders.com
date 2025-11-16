@@ -3,8 +3,10 @@
  * These are pure element -> classes mappings with no additional checks
  */
 import type { Element } from 'hast'
-import type { ElementConfig } from '../@types/index.js'
-import { applyClasses } from '../utilities/index.js'
+import type { ElementConfig } from '@lib/markdown/plugins/rehype-tailwind/@types'
+// path alias for utilities folder causes self referential error
+/* eslint-disable-next-line no-restricted-imports */
+import { applyClasses } from '../utilities'
 
 /**
  * Simple HTML elements configuration

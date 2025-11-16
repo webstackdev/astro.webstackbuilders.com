@@ -3,7 +3,7 @@
  */
 import { writeFileSync } from 'fs'
 import AxeBuilder from '@axe-core/playwright'
-import { test, expect } from '@test/e2e/helpers'
+import { BasePage, test, expect } from '@test/e2e/helpers'
 
 // https://github.com/dequelabs/axe-core/blob/develop/doc/rule-descriptions.md?plain=1
 
@@ -23,9 +23,10 @@ cat.text-alternatives: Rules for ensuring that text alternatives are provided fo
 */
 
 test.describe('WCAG Compliance', () => {
-  test.skip('@blocked run axe accessibility audit on homepage with default theme', async ({ page }) => {
+  test.skip('@blocked run axe accessibility audit on homepage with default theme', async ({ page: playwrightPage }) => {
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
-    const results = await new AxeBuilder({ page })
+    const results = await new AxeBuilder({ page: page.page })
       .withTags(['cat.color'])
       .disableRules('color-contrast-enhanced')
       .analyze()
@@ -40,7 +41,8 @@ test.describe('WCAG Compliance', () => {
     expect(results.incomplete).toEqual([])
   })
 
-  test.skip('@blocked run axe audit on all main pages', async ({ page }) => {
+  test.skip('@blocked run axe audit on all main pages', async ({ page: playwrightPage }) => {
+    const page = await BasePage.init(playwrightPage)
     // Blocked by: Need to integrate @axe-core/playwright
     // Expected: All pages should pass accessibility audit
 
@@ -54,7 +56,7 @@ test.describe('WCAG Compliance', () => {
 
     for (const url of pages) {
       await page.goto(url)
-      const results = await new AxeBuilder({ page })
+      const results = await new AxeBuilder({ page: page.page })
         .withTags(['cat.forms'])
         .analyze()
       expect(results.violations).toEqual([])

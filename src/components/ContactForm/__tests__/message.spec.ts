@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { initMssgLengthHandler, messageInputElementValidator } from '../message'
-import type { ContactFormSelectors } from '../selectors'
+import { initMssgLengthHandler, messageInputElementValidator } from '@components/ContactForm/message'
+import type { ContactFormSelectors } from '@components/ContactForm/selectors'
 
 describe('Message Validation', () => {
   let mockSelector: ContactFormSelectors

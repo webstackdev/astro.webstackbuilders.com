@@ -1,0 +1,51 @@
+/** Cannot use path aliases in this file */
+import { BuildError } from '../errors/BuildError'
+
+/**
+ * This method is only intended to be called from astro.config.ts
+ */
+export const getSentryAuthToken = () => {
+  if (!process.env['SENTRY_AUTH_TOKEN']) {
+    throw new BuildError('Running in CI environment, but SENTRY_AUTH_TOKEN is not set.')
+  }
+  return process.env['SENTRY_AUTH_TOKEN']
+}
+
+export const isGitHub = () => {
+  return !!process.env['GITHUB_ACTIONS']
+}
+
+export const isVercel = () => {
+  return !!process.env['VERCEL']
+}
+
+export const isCI = () => {
+  return isGitHub() || isVercel()
+}
+
+/**
+ * We are setting the VITEST env var in vitest.config.ts for unit tests.
+ */
+export const isUnitTest = () => {
+  return process.env['VITEST'] ? true : false
+}
+
+/**
+ * Environmental variable "PLAYWRIGHT" is set in a setup
+ * script called by Playwright's globalSetup config hook
+ */
+export const isE2eTest = () => {
+  return process.env['PLAYWRIGHT'] ? true : false
+}
+
+export const isTest = () => {
+  return isUnitTest() || isE2eTest()
+}
+
+export const isDev = () => {
+  return import.meta.env.DEV
+}
+
+export const isProd = () => {
+  return import.meta.env.PROD && !isUnitTest()
+}

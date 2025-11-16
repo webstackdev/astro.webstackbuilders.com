@@ -8,7 +8,7 @@ import { BasePage, test, expect } from '@test/e2e/helpers'
 
 test.describe('RSS Feed', () => {
   test('@ready RSS feed is accessible', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     const response = await page.goto('/rss.xml')
     expect(response?.status()).toBe(200)
 
@@ -17,7 +17,7 @@ test.describe('RSS Feed', () => {
   })
 
   test('@ready RSS feed is valid XML', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     const response = await page.goto('/rss.xml')
     const xml = await response?.text()
 
@@ -27,7 +27,7 @@ test.describe('RSS Feed', () => {
   })
 
   test('@ready RSS feed has channel element', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     const response = await page.goto('/rss.xml')
     const xml = await response?.text()
 
@@ -38,7 +38,7 @@ test.describe('RSS Feed', () => {
   })
 
   test('@ready RSS feed has items', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     const response = await page.goto('/rss.xml')
     const xml = await response?.text()
 
@@ -50,7 +50,7 @@ test.describe('RSS Feed', () => {
   })
 
   test('@ready RSS items have required fields', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     const response = await page.goto('/rss.xml')
     const xml = await response?.text()
 
@@ -66,7 +66,7 @@ test.describe('RSS Feed', () => {
   })
 
   test('@ready RSS feed is linked in HTML', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     await page.expectAttribute('link[type="application/rss+xml"]', 'href')
@@ -75,7 +75,7 @@ test.describe('RSS Feed', () => {
   })
 
   test('@ready RSS feed uses absolute URLs', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     const response = await page.goto('/rss.xml')
     const xml = await response?.text()
 
@@ -88,7 +88,7 @@ test.describe('RSS Feed', () => {
   })
 
   test('@ready RSS feed has valid pubDate format', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     const response = await page.goto('/rss.xml')
     const xml = await response?.text()
 
@@ -101,7 +101,7 @@ test.describe('RSS Feed', () => {
   })
 
   test('@ready RSS feed includes content', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     const response = await page.goto('/rss.xml')
     const xml = await response?.text()
 
@@ -112,7 +112,7 @@ test.describe('RSS Feed', () => {
   })
 
   test('@ready RSS feed has language specified', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     const response = await page.goto('/rss.xml')
     const xml = await response?.text()
 

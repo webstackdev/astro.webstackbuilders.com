@@ -1,0 +1,268 @@
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+import { sendDSARVerificationEmail } from '@pages/api/gdpr/_dsarVerificationEmails'
+
+// Create mock send function at module level
+const mockSend = vi.fn()
+
+// Mock the Resend module
+vi.mock('resend', () => {
+  return {
+    Resend: vi.fn(function ResendMock(_apiKey) {
+      return {
+        emails: {
+          send: mockSend,
+        },
+      }
+    }),
+  }
+})
+
+describe('GDPR Email Utils', () => {
+  let originalEnv: Record<string, string | undefined>
+  let consoleLogSpy: ReturnType<typeof vi.fn>
+  let consoleErrorSpy: ReturnType<typeof vi.fn>
+
+  beforeEach(() => {
+    // Store original env
+    /* eslint-disable-next-line no-process-env */
+    originalEnv = { ...process.env }
+
+    // Mock console methods
+    consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    // Reset all mocks
+    vi.clearAllMocks()
+  })
+
+  afterEach(() => {
+    // Restore original environment
+    /* eslint-disable-next-line no-process-env */
+    process.env = originalEnv
+    consoleLogSpy.mockRestore()
+    consoleErrorSpy.mockRestore()
+  })
+
+  describe('sendDSARVerificationEmail', () => {
+    describe('in development/test environment', () => {
+      it('should log email details instead of sending in development mode', async () => {
+        /* eslint-disable-next-line no-process-env */
+        process.env['NODE_ENV'] = 'development'
+
+        await sendDSARVerificationEmail('test@example.com', 'test-token', 'ACCESS')
+
+        expect(consoleLogSpy).toHaveBeenCalledWith(
+          '[DEV/TEST MODE] DSAR verification email would be sent:',
+          {
+            email: 'test@example.com',
+            token: 'test-token',
+            requestType: 'ACCESS',
+          }
+        )
+        expect(mockSend).not.toHaveBeenCalled()
+      })
+
+      it('should log email details instead of sending in test mode', async () => {
+        /* eslint-disable-next-line no-process-env */
+        process.env['VITEST'] = '1'
+
+        await sendDSARVerificationEmail('test@example.com', 'test-token', 'DELETE')
+
+        expect(consoleLogSpy).toHaveBeenCalledWith(
+          '[DEV/TEST MODE] DSAR verification email would be sent:',
+          {
+            email: 'test@example.com',
+            token: 'test-token',
+            requestType: 'DELETE',
+          }
+        )
+        expect(mockSend).not.toHaveBeenCalled()
+      })
+
+      it('should log email details instead of sending in CI mode', async () => {
+        /* eslint-disable no-process-env */
+        process.env['NODE_ENV'] = 'production'
+        process.env['CI'] = 'true'
+        /* eslint-enable no-process-env */
+
+        await sendDSARVerificationEmail('test@example.com', 'test-token', 'ACCESS')
+
+        expect(consoleLogSpy).toHaveBeenCalledWith(
+          '[DEV/TEST MODE] DSAR verification email would be sent:',
+          {
+            email: 'test@example.com',
+            token: 'test-token',
+            requestType: 'ACCESS',
+          }
+        )
+        expect(mockSend).not.toHaveBeenCalled()
+      })
+    })
+
+    describe('in production environment', () => {
+      beforeEach(() => {
+        /* eslint-disable no-process-env */
+        process.env['NODE_ENV'] = 'production'
+        process.env['CI'] = 'false'
+        process.env['RESEND_API_KEY'] = 'test-resend-key'
+        process.env['SITE_URL'] = 'https://webstackbuilders.com'
+        /* eslint-enable no-process-env */
+      })
+
+      it('should send ACCESS verification email successfully', async () => {
+        mockSend.mockResolvedValue({
+          data: { id: 'message-id-123' },
+          error: null,
+        })
+
+        await sendDSARVerificationEmail('user@example.com', 'verification-token-123', 'ACCESS')
+
+        expect(mockSend).toHaveBeenCalledTimes(1)
+        const callArgs = mockSend.mock.calls[0]?.[0]
+        expect(callArgs).toBeDefined()
+
+        expect(callArgs!.from).toBe('Webstack Builders <privacy@webstackbuilders.com>')
+        expect(callArgs!.to).toBe('user@example.com')
+        expect(callArgs!.subject).toBe('Verify Your Data Access Request - Webstack Builders')
+        expect(callArgs!.html).toContain('Data Access Request')
+        expect(callArgs!.html).toContain('access your data')
+        expect(callArgs!.html).toContain('https://webstackbuilders.com/api/gdpr/verify?token=verification-token-123')
+        expect(callArgs!.text).toContain('Data Access Request')
+        expect(callArgs!.tags).toEqual([
+          { name: 'type', value: 'gdpr-verification' },
+          { name: 'request-type', value: 'access' },
+        ])
+
+        expect(consoleLogSpy).toHaveBeenCalledWith(
+          '[DSAR Email] Verification sent successfully:',
+          {
+            email: 'user@example.com',
+            requestType: 'ACCESS',
+            messageId: 'message-id-123',
+          }
+        )
+      })
+
+      it('should send DELETE verification email successfully with warning', async () => {
+        mockSend.mockResolvedValue({
+          data: { id: 'message-id-456' },
+          error: null,
+        })
+
+        await sendDSARVerificationEmail('user@example.com', 'delete-token-456', 'DELETE')
+
+        expect(mockSend).toHaveBeenCalledTimes(1)
+        const callArgs = mockSend.mock.calls[0]?.[0]
+        expect(callArgs).toBeDefined()
+
+        expect(callArgs!.subject).toBe('Verify Your Data Deletion Request - Webstack Builders')
+        expect(callArgs!.html).toContain('Data Deletion Request')
+        expect(callArgs!.html).toContain('delete your data')
+        expect(callArgs!.html).toContain('⚠️ Important')
+        expect(callArgs!.html).toContain('permanently delete all your data')
+        expect(callArgs!.text).toContain('⚠️ IMPORTANT')
+        expect(callArgs!.tags).toEqual([
+          { name: 'type', value: 'gdpr-verification' },
+          { name: 'request-type', value: 'delete' },
+        ])
+      })
+
+      it('should use default localhost URL when SITE_URL is not set', async () => {
+        /* eslint-disable-next-line no-process-env */
+        delete process.env['SITE_URL']
+        mockSend.mockResolvedValue({
+          data: { id: 'message-id-789' },
+          error: null,
+        })
+
+        await sendDSARVerificationEmail('user@example.com', 'token-789', 'ACCESS')
+
+        const callArgs = mockSend.mock.calls[0]?.[0]
+        expect(callArgs).toBeDefined()
+        expect(callArgs!.html).toContain('http://localhost:4321/api/gdpr/verify?token=token-789')
+        expect(callArgs!.text).toContain('http://localhost:4321/api/gdpr/verify?token=token-789')
+      })
+
+      it('should throw error when RESEND_API_KEY is not set', async () => {
+        /* eslint-disable-next-line no-process-env */
+        delete process.env['RESEND_API_KEY']
+
+        await expect(
+          sendDSARVerificationEmail('user@example.com', 'token-123', 'ACCESS')
+        ).rejects.toThrow('RESEND_API_KEY environment variable is not set')
+
+        expect(mockSend).not.toHaveBeenCalled()
+      })
+
+      it('should handle Resend API error response', async () => {
+        mockSend.mockResolvedValue({
+          data: null,
+          error: {
+            message: 'Invalid API key',
+            name: 'validation_error',
+          },
+        })
+
+        await expect(
+          sendDSARVerificationEmail('user@example.com', 'token-123', 'ACCESS')
+        ).rejects.toThrow('Failed to send verification email: Invalid API key')
+
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+          '[DSAR Email] Failed to send verification:',
+          expect.objectContaining({
+            message: 'Invalid API key',
+            name: 'validation_error',
+          })
+        )
+      })
+
+      it('should handle Resend API network error', async () => {
+        const networkError = new Error('Network failure')
+        mockSend.mockRejectedValue(networkError)
+
+        await expect(
+          sendDSARVerificationEmail('user@example.com', 'token-123', 'ACCESS')
+        ).rejects.toThrow('Network failure')
+
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+          '[DSAR Email] Error sending verification:',
+          networkError
+        )
+      })
+
+      it('should include current year in email content', async () => {
+        const currentYear = new Date().getFullYear()
+        mockSend.mockResolvedValue({
+          data: { id: 'message-id-year' },
+          error: null,
+        })
+
+        await sendDSARVerificationEmail('user@example.com', 'token-year', 'ACCESS')
+
+        const callArgs = mockSend.mock.calls[0]?.[0]
+        expect(callArgs).toBeDefined()
+        expect(callArgs!.html).toContain(`© ${currentYear} Webstack Builders`)
+        expect(callArgs!.text).toContain(`© ${currentYear} Webstack Builders`)
+      })
+
+      it('should generate proper verification URLs with tokens', async () => {
+        /* eslint-disable-next-line no-process-env */
+        process.env['SITE_URL'] = 'https://example.com'
+        mockSend.mockResolvedValue({
+          data: { id: 'message-id-url' },
+          error: null,
+        })
+
+        await sendDSARVerificationEmail('user@example.com', 'special-token-123', 'DELETE')
+
+        const callArgs = mockSend.mock.calls[0]?.[0]
+        expect(callArgs).toBeDefined()
+        const expectedUrl = 'https://example.com/api/gdpr/verify?token=special-token-123'
+
+        expect(callArgs!.html).toContain(`href="${expectedUrl}"`)
+        expect(callArgs!.html).toContain(expectedUrl) // Also as plain text in email
+        expect(callArgs!.text).toContain(expectedUrl)
+      })
+    })
+  })
+})

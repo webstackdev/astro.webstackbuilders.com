@@ -1,6 +1,16 @@
+/**
+ * Provides build-time validation and type generation for all content by Astro build system.
+ * This file exports a collections object where each key is a collection name, and the value
+ * uses defineCollection() to specify the schema for that collection. Astro uses this
+ * configuration to automatically load and manage content from specified directories like
+ * src/content/articles or src/content/testimonials.
+ *
+ * The 'email' collection is included in the src/content directory, but is not handled by
+ * Astro's collections systems. It is used by files in src/pages/api.
+ */
 import { defineCollection, reference, z } from 'astro:content'
 import { glob, file } from 'astro/loaders'
-import { validTags } from './content/_tagList'
+import { validTags } from '@content/_tagList'
 
 const pattern = '**\/[^_]*.{md,mdx}'
 
@@ -135,37 +145,6 @@ const contactDataCollection = defineCollection({
 })
 
 /**
- * Cookie consent tracking
- *
- * This is the categories of cookies used on the website for the cookie consent
- * manager to use in informing users and offering opt-out:
- * - "essential-website-cookies" Cannot be opted out of and are necessary for
- * the site to function.
- * - "performance-and-functionality-cookies" Search widget, weather update, etc.
- * - "analytics-and-customization-cookies" Google Analytics, theme cookie
- */
-const cookiesEntrySchema = z.object({
-  name: z.string(),
-  purpose: z.string(),
-  provider: z.string().url(),
-  service: z.string(),
-  'service-privacy-policy-url': z.string().url(),
-  country: z.string().includes('_').length(5),
-  type: z.string(),
-  'expires-in': z.string(),
-})
-
-const cookiesSchema = z.object({
-  category: z.string(),
-  cookies: z.array(cookiesEntrySchema),
-})
-
-const cookiesCollection = defineCollection({
-  loader: file('./src/content/cookies.json'),
-  schema: cookiesSchema,
-})
-
-/**
  * Services
  */
 const servicesSchema = z.object({
@@ -186,36 +165,6 @@ const servicesSchema = z.object({
 const servicesCollection = defineCollection({
   loader: glob({ pattern, base: './src/content/services' }),
   schema: () => servicesSchema,
-})
-
-/**
- * Site pages like privacy, cookies, 404, and offline
- */
-const sitePagesSchema = z.object({
-  title: z.string(),
-  publishDate: z.date(),
-  isDraft: z.boolean().default(false),
-})
-
-const sitePagesCollection = defineCollection({
-  loader: glob({ pattern, base: './src/content/site' }),
-  schema: () => sitePagesSchema,
-})
-
-/**
- * Storage
- *
- * Names for local and session storage keys that are referenced in both client script
- * and Astro templates, and that need to stay in sync.
- */
-const storageSchema = z.object({
-  key: z.string(),
-  value: z.string(),
-})
-
-const storageCollection = defineCollection({
-  loader: file('./src/content/storage.json'),
-  schema: storageSchema,
 })
 
 /**
@@ -301,11 +250,8 @@ export const collections = {
   authors: authorsCollection,
   caseStudies: caseStudiesCollection,
   contactData: contactDataCollection,
-  cookies: cookiesCollection,
   downloads: downloadsCollection,
   services: servicesCollection,
-  sitePages: sitePagesCollection,
-  storage: storageCollection,
   testimonials: testimonialCollection,
   themes: themesCollection,
 }

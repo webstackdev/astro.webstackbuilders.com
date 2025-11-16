@@ -5,9 +5,12 @@
  * With Vercel adapter, this becomes a serverless function automatically
  */
 import type { APIRoute } from 'astro'
-import { createPendingSubscription } from 'src/api/newsletter/token'
-import { sendConfirmationEmail } from 'src/api/newsletter/email'
-import { recordConsent } from 'src/api/shared/consent-log'
+import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
+import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
+import { rateLimiters, checkRateLimit } from '@pages/api/_utils/rateLimit'
+import type { ErrorResponse } from '@pages/api/_contracts/gdpr.contracts'
+import { createPendingSubscription } from './_token'
+import { sendConfirmationEmail } from './_email'
 
 export const prerender = false // Force SSR for this endpoint
 
@@ -16,6 +19,7 @@ interface NewsletterFormData {
   email: string
   firstName?: string
   consentGiven?: boolean
+  DataSubjectId?: string // Optional - will be generated if not provided
 }
 
 interface ConvertKitSubscriber {
@@ -40,53 +44,28 @@ interface ConvertKitErrorResponse {
   errors: string[]
 }
 
-// Simple in-memory rate limiting (use Redis in production)
-const rateLimitStore = new Map<string, number[]>()
-
-/**
- * Check if the IP address has exceeded the rate limit
- * Disabled in development and CI environments
- */
-function checkRateLimit(ip: string): boolean {
-  // Skip rate limiting in dev/test/CI environments
-  const isDevOrTest = import.meta.env.DEV || import.meta.env.MODE === 'test' || process.env['CI'] === 'true'
-  if (isDevOrTest) {
-    return true
-  }
-
-  const now = Date.now()
-  const windowMs = 15 * 60 * 1000 // 15 minutes
-  const maxRequests = 10
-  const key = `newsletter_rate_limit_${ip}`
-  const requests = rateLimitStore.get(key) || []
-
-  const validRequests = requests.filter(timestamp => now - timestamp < windowMs)
-
-  if (validRequests.length >= maxRequests) {
-    return false
-  }
-
-  validRequests.push(now)
-  rateLimitStore.set(key, validRequests)
-  return true
-}
-
 /**
  * Validate email address format and length
  */
 function validateEmail(email: string): string {
   if (!email) {
-    throw new Error('Email address is required.')
+    throw new ClientScriptError({
+      message: 'Email address is required.'
+    })
   }
 
   // RFC 5321 specifies max email length of 254 characters
   if (email.length > 254) {
-    throw new Error('Email address is too long')
+    throw new ClientScriptError({
+      message: 'Email address is too long'
+    })
   }
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   if (!emailRegex.test(email)) {
-    throw new Error('Email address is invalid')
+    throw new ClientScriptError({
+      message: 'Email address is invalid'
+    })
   }
 
   return email.trim().toLowerCase()
@@ -121,7 +100,9 @@ export async function subscribeToConvertKit(
   const apiKey = import.meta.env['CONVERTKIT_API_KEY']
 
   if (!apiKey) {
-    throw new Error('ConvertKit API key is not configured.')
+    throw new ClientScriptError({
+      message: 'ConvertKit API key is not configured.'
+    })
   }
 
   /* eslint-disable camelcase */
@@ -150,88 +131,123 @@ export async function subscribeToConvertKit(
     if (response.status === 401) {
       const errorData = responseData as ConvertKitErrorResponse
       console.error('ConvertKit API authentication failed:', errorData.errors)
-      throw new Error('Newsletter service configuration error. Please contact support.')
+      throw new ClientScriptError({
+        message: 'Newsletter service configuration error. Please contact support.'
+      })
     }
 
     if (response.status === 422) {
       const errorData = responseData as ConvertKitErrorResponse
-      throw new Error(errorData.errors[0] || 'Invalid email address')
+      throw new ClientScriptError({
+        message: errorData.errors[0] || 'Invalid email address'
+      })
     }
 
     if (response.status === 200 || response.status === 201 || response.status === 202) {
       return responseData as ConvertKitResponse
     }
 
-    throw new Error('An unexpected error occurred. Please try again later.')
+    throw new ClientScriptError({
+      message: 'An unexpected error occurred. Please try again later.'
+    })
   } catch (error) {
     if (error instanceof Error) {
       throw error
     }
-    throw new Error('Failed to connect to newsletter service. Please try again later.')
+    throw new ClientScriptError({
+      message: 'Failed to connect to newsletter service. Please try again later.'
+    })
   }
 }
 
 /**
  * Main API handler for newsletter subscriptions
  */
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, clientAddress }) => {
+  // Rate limiting
+  const { success, reset } = await checkRateLimit(rateLimiters.consent, clientAddress)
+
+  if (!success) {
+    return new Response(JSON.stringify({
+      success: false,
+      error: {
+        code: 'RATE_LIMIT_EXCEEDED',
+        message: `Try again in ${Math.ceil((reset! - Date.now()) / 1000)}s`
+      }
+    } as ErrorResponse), {
+      status: 429,
+      headers: {
+        'Content-Type': 'application/json',
+        'Retry-After': String(Math.ceil((reset! - Date.now()) / 1000))
+      }
+    })
+  }
+
 	try {
-		// Get client IP and user agent
-		const ip =
-			request.headers.get('x-forwarded-for')?.split(',')[0] ||
-			request.headers.get('x-real-ip') ||
-			'unknown'
-		const userAgent = request.headers.get('user-agent') || 'unknown'
-
-		// Check rate limit
-		if (!checkRateLimit(ip)) {
-			return new Response(
-				JSON.stringify({
-					success: false,
-					error: 'Too many subscription requests. Please try again later.',
-				}),
-				{
-					status: 429,
-					headers: { 'Content-Type': 'application/json' },
-				},
-			)
-		}
-
 		// Parse and validate input
-		const body = (await request.json()) as NewsletterFormData
-		const { email, firstName, consentGiven } = body
+		const body: NewsletterFormData = await request.json()
+		const { email, firstName, consentGiven, DataSubjectId } = body
 		const validatedEmail = validateEmail(email)
 
 		// Validate GDPR consent
 		if (!consentGiven) {
-			return new Response(
-				JSON.stringify({
-					success: false,
-					error: 'You must consent to receive marketing emails to subscribe.',
-				}),
-				{
-					status: 400,
-					headers: { 'Content-Type': 'application/json' },
-				},
-			)
+      return new Response(JSON.stringify({
+        success: false,
+        error: { code: 'INVALID_REQUEST', message: 'You must consent to receive marketing emails to subscribe.' }
+      } as ErrorResponse), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+
+		// Generate or validate DataSubjectId
+		let subjectId = DataSubjectId
+		if (!subjectId) {
+			subjectId = uuidv4()
+		} else if (!uuidValidate(subjectId)) {
+			return new Response(JSON.stringify({
+				success: false,
+				error: { code: 'INVALID_UUID', message: 'Invalid DataSubjectId format' }
+			} as ErrorResponse), {
+				status: 400,
+				headers: { 'Content-Type': 'application/json' },
+			})
 		}
 
-		// Record initial (unverified) consent
-		await recordConsent({
-			email: validatedEmail,
-			purposes: ['marketing'],
-			source: 'newsletter_form',
-			userAgent,
-			...(ip !== 'unknown' && { ipAddress: ip }),
-			verified: false,
+		// Record initial (unverified) consent via new GDPR API
+		const consentResponse = await fetch(`${new URL(request.url).origin}/api/gdpr/consent`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				DataSubjectId: subjectId,
+				email: validatedEmail,
+				purposes: ['marketing'],
+				source: 'newsletter_form',
+				userAgent: request.headers.get('user-agent') || 'unknown',
+				...(clientAddress !== 'unknown' && { ipAddress: clientAddress }),
+				verified: false,
+			}),
 		})
+
+		if (!consentResponse.ok) {
+			const error = await consentResponse.json()
+			console.error('Failed to record consent:', error)
+			return new Response(JSON.stringify({
+				success: false,
+				error: { code: 'INVALID_REQUEST', message: 'Failed to record consent. Please try again.' }
+			} as ErrorResponse), {
+				status: 500,
+				headers: { 'Content-Type': 'application/json' },
+			})
+		}
 
 		// Create pending subscription with token
 		const token = await createPendingSubscription({
 			email: validatedEmail,
 			...(firstName && { firstName }),
-			userAgent,
-			...(ip !== 'unknown' && { ipAddress: ip }),
+			DataSubjectId: subjectId,
+			userAgent: request.headers.get('user-agent') || 'unknown',
+			...(clientAddress !== 'unknown' && { clientAddress: ip }),
 			source: 'newsletter_form',
 		})
 
@@ -256,16 +272,13 @@ export const POST: APIRoute = async ({ request }) => {
 		const errorMessage =
 			error instanceof Error ? error.message : 'An unexpected error occurred. Please try again.'
 
-		return new Response(
-			JSON.stringify({
-				success: false,
-				error: errorMessage,
-			}),
-			{
-				status: 400,
-				headers: { 'Content-Type': 'application/json' },
-			},
-		)
+		return new Response(JSON.stringify({
+			success: false,
+			error: { code: 'INVALID_REQUEST', message: errorMessage }
+		} as ErrorResponse), {
+			status: 400,
+			headers: { 'Content-Type': 'application/json' },
+		})
 	}
 }
 

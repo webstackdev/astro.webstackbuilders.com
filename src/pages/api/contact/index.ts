@@ -5,8 +5,11 @@
  * With Vercel adapter, this becomes a serverless function automatically
  */
 import type { APIRoute } from 'astro'
+import { getSecret } from 'astro:env/server'
 import { Resend } from 'resend'
-import { recordConsent } from '../../../api/shared/consent-log'
+import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
+import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
+import { checkContactRateLimit } from '@pages/api/_utils/rateLimit'
 
 export const prerender = false // Force SSR for this endpoint
 
@@ -17,6 +20,7 @@ interface ContactFormData {
 	phone?: string
 	message: string
 	consent?: boolean
+	DataSubjectId?: string // Optional - will be generated if not provided
 	service?: string
 	budget?: string
 	timeline?: string
@@ -35,37 +39,6 @@ interface EmailData {
 	to: string
 	subject: string
 	html: string
-}
-
-// Simple in-memory rate limiting (use Redis in production)
-const rateLimitStore = new Map<string, number[]>()
-
-/**
- * Check if the IP address has exceeded the rate limit
- * Disabled in development and CI environments
- */
-function checkRateLimit(ip: string): boolean {
-	// Skip rate limiting in dev/test/CI environments
-	const isDevOrTest = import.meta.env.DEV || import.meta.env.MODE === 'test' || process.env['CI'] === 'true'
-	if (isDevOrTest) {
-		return true
-	}
-
-	const now = Date.now()
-	const windowMs = 15 * 60 * 1000 // 15 minutes
-	const maxRequests = 5 // Lower limit for contact form
-	const key = `contact_rate_limit_${ip}`
-	const requests = rateLimitStore.get(key) || []
-
-	const validRequests = requests.filter((timestamp) => now - timestamp < windowMs)
-
-	if (validRequests.length >= maxRequests) {
-		return false
-	}
-
-	validRequests.push(now)
-	rateLimitStore.set(key, validRequests)
-	return true
 }
 
 /**
@@ -198,16 +171,16 @@ function formatFileSize(bytes: number): string {
  */
 async function sendEmail(emailData: EmailData, files: FileAttachment[]): Promise<void> {
 	// Skip actual email sending in dev/test environments
-	const isDevOrTest = import.meta.env.DEV || import.meta.env.MODE === 'test' || process.env['NODE_ENV'] === 'test'
-
-	if (isDevOrTest) {
+	if (getSecret('VITEST') || import.meta.env.DEV) {
 		return // Skip actual email sending in dev/test
 	}
 
 	const apiKey = import.meta.env['RESEND_API_KEY']
 
 	if (!apiKey) {
-		throw new Error('Resend API key is not configured.')
+		throw new ClientScriptError({
+      message: 'Resend API key is not configured.'
+    })
 	}
 
 	const resend = new Resend(apiKey)
@@ -228,11 +201,15 @@ async function sendEmail(emailData: EmailData, files: FileAttachment[]): Promise
 		})
 
 		if (!response.data) {
-			throw new Error(response.error?.message || 'Failed to send email')
+      throw new ClientScriptError({
+        message: response.error?.message || 'Failed to send email'
+      })
 		}
 	} catch (error) {
 		console.error('Resend API error:', error)
-		throw new Error('Failed to send email. Please try again later.')
+		throw new ClientScriptError({
+      message: 'Failed to send email. Please try again later.'
+    })
 	}
 }
 
@@ -249,7 +226,7 @@ export const POST: APIRoute = async ({ request }) => {
 		const userAgent = request.headers.get('user-agent') || 'unknown'
 
 		// Check rate limit
-		if (!checkRateLimit(ip)) {
+		if (!checkContactRateLimit(ip)) {
 			return new Response(
 				JSON.stringify({
 					success: false,
@@ -378,14 +355,42 @@ export const POST: APIRoute = async ({ request }) => {
 
 		// Record GDPR consent (optional for contact form)
 		if (formData.consent) {
-			await recordConsent({
-				email: formData.email,
-				purposes: ['contact'],
-				source: 'contact_form',
-				userAgent,
-				...(ip !== 'unknown' && { ipAddress: ip }),
-				verified: true,
+			// Generate or validate DataSubjectId
+			let subjectId = formData.DataSubjectId
+			if (!subjectId) {
+				subjectId = uuidv4()
+			} else if (!uuidValidate(subjectId)) {
+				return new Response(
+					JSON.stringify({
+						success: false,
+						error: 'Invalid DataSubjectId format',
+					}),
+					{
+						status: 400,
+						headers: { 'Content-Type': 'application/json' },
+					},
+				)
+			}
+
+			// Record consent via new GDPR API
+			const consentResponse = await fetch(`${new URL(request.url).origin}/api/gdpr/consent`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					DataSubjectId: subjectId,
+					email: formData.email,
+					purposes: ['contact'],
+					source: 'contact_form',
+					userAgent,
+					...(ip !== 'unknown' && { ipAddress: ip }),
+					verified: true, // Contact form consent is immediately verified
+				}),
 			})
+
+			if (!consentResponse.ok) {
+				console.error('Failed to record consent:', await consentResponse.json())
+				// Continue anyway - don't block form submission on consent logging failure
+			}
 		}
 
 		// Generate email content

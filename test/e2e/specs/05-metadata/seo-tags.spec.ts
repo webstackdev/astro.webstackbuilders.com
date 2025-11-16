@@ -8,7 +8,7 @@ import { BasePage, test, expect } from '@test/e2e/helpers'
 
 test.describe('SEO Meta Tags', () => {
   test('@ready all pages have meta description', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     const pages = ['/', '/about', '/services', '/case-studies', '/contact']
 
     for (const url of pages) {
@@ -22,7 +22,7 @@ test.describe('SEO Meta Tags', () => {
   })
 
   test('@ready meta descriptions are unique per page', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     const pages = ['/', '/about', '/services']
     const descriptions = new Set()
 
@@ -36,7 +36,7 @@ test.describe('SEO Meta Tags', () => {
   })
 
   test('@ready all pages have canonical URL', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/about')
 
     await page.expectAttribute('link[rel="canonical"]', 'href')
@@ -45,7 +45,7 @@ test.describe('SEO Meta Tags', () => {
   })
 
   test('@ready canonical URL matches current page', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/services')
 
     const href = await page.getAttribute('link[rel="canonical"]', 'href')
@@ -53,7 +53,7 @@ test.describe('SEO Meta Tags', () => {
   })
 
   test('@ready pages have viewport meta tag', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     await page.expectAttribute('meta[name="viewport"]', 'content')
@@ -62,7 +62,7 @@ test.describe('SEO Meta Tags', () => {
   })
 
   test('@ready pages have charset meta tag', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     const count = await page.countElements('meta[charset], meta[http-equiv="Content-Type"]')
@@ -70,7 +70,7 @@ test.describe('SEO Meta Tags', () => {
   })
 
   test('@ready pages have robots meta tag', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     const count = await page.countElements('meta[name="robots"]')
@@ -82,7 +82,7 @@ test.describe('SEO Meta Tags', () => {
   })
 
   test('@ready 404 page has noindex', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/404')
 
     const content = await page.getAttribute('meta[name="robots"]', 'content')
@@ -90,7 +90,7 @@ test.describe('SEO Meta Tags', () => {
   })
 
   test('@ready pages have author meta tag', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     const count = await page.countElements('meta[name="author"]')
@@ -102,7 +102,7 @@ test.describe('SEO Meta Tags', () => {
   })
 
   test('@ready article pages have author', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/articles')
     await page.click('a[href*="/articles/"]')
     await page.waitForLoadState('networkidle')
@@ -112,7 +112,7 @@ test.describe('SEO Meta Tags', () => {
   })
 
   test('@ready pages have theme-color meta tag', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     const count = await page.countElements('meta[name="theme-color"]')
@@ -124,7 +124,7 @@ test.describe('SEO Meta Tags', () => {
   })
 
   test('@ready pages have title tag', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     const pages = ['/', '/about', '/services']
 
     for (const url of pages) {
@@ -137,7 +137,7 @@ test.describe('SEO Meta Tags', () => {
   })
 
   test('@ready titles are unique per page', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     const pages = ['/', '/about', '/services']
     const titles = new Set()
 
@@ -151,7 +151,7 @@ test.describe('SEO Meta Tags', () => {
   })
 
   test('@ready pages have language attribute', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
     await page.waitForLoadState('domcontentloaded')
 

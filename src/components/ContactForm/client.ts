@@ -1,12 +1,12 @@
 /**
  * Contact Form Handler
  * Manages form submission, validation, and user interactions for the contact form
- * Uses LoadableScript pattern for proper initialization timing
  */
 
-import { LoadableScript, type TriggerEvent } from '../Scripts/loader/@types/loader'
-import { ClientScriptError } from '@components/Scripts/errors/ClientScriptError'
-import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
+import { LitElement } from 'lit'
+import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
+import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
+import { isFormElement, isButtonElement } from '@components/scripts/assertions/elements'
 
 export interface ContactFormElements {
   form: HTMLFormElement
@@ -41,17 +41,18 @@ export interface ContactFormConfig {
 }
 
 /**
- * Contact Form component using LoadableScript pattern with instance-specific approach
+ * Contact Form web component
  * Manages form submission, validation, and user interactions
  */
-export class ContactForm extends LoadableScript {
-  static override scriptName = 'ContactForm'
-  static override eventType: TriggerEvent = 'astro:page-load'
-
+export class ContactFormElement extends LitElement {
   private elements: ContactFormElements | null = null
   private config: ContactFormConfig
 
-  private constructor() {
+  override createRenderRoot() {
+    return this
+  }
+
+  constructor() {
     super()
     this.config = {
       maxCharacters: 2000,
@@ -61,40 +62,73 @@ export class ContactForm extends LoadableScript {
     }
   }
 
+  override connectedCallback() {
+    super.connectedCallback()
+    this.initialize()
+  }
+
+  private initialize(): void {
+    const context = { scriptName: 'ContactFormElement', operation: 'initialize' }
+    addScriptBreadcrumb(context)
+
+    try {
+      if (this.discoverElements()) {
+        this.initializeForm()
+      }
+      this.setViewTransitionsHandlers()
+    } catch (error) {
+      handleScriptError(error, context)
+    }
+  }
+
+  private setViewTransitionsHandlers(): void {
+    document.addEventListener('astro:before-preparation', () => {
+      ContactFormElement.handleBeforePreparation()
+    })
+
+    document.addEventListener('astro:after-swap', () => {
+      this.initialize()
+    })
+  }
+
+  private static handleBeforePreparation(): void {
+    // Clean up before View Transitions swap
+  }
+
   /**
    * Discover and cache DOM elements
    */
   private discoverElements(): boolean {
-    const context = { scriptName: ContactForm.scriptName, operation: 'discoverElements' }
+    const context = { scriptName: 'ContactFormElement', operation: 'discoverElements' }
     addScriptBreadcrumb(context)
 
     try {
-      const form = document.getElementById('contactForm') as HTMLFormElement
-      if (!form) {
+      const form = document.getElementById('contactForm')
+      if (!isFormElement(form)) {
         throw new ClientScriptError('ContactForm: Form element not found. Contact form cannot function without the form element.')
       }
 
-      const messages = document.getElementById('formMessages') as HTMLElement
-      const successMessage = messages?.querySelector('.message-success') as HTMLElement
-      const errorMessage = messages?.querySelector('.message-error') as HTMLElement
-      const errorText = document.getElementById('errorMessage') as HTMLElement
-      const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement
-      const btnText = submitBtn?.querySelector('.btn-text') as HTMLElement
-      const btnLoading = submitBtn?.querySelector('.btn-loading') as HTMLElement
-      const messageTextarea = document.getElementById('message') as HTMLTextAreaElement
-      const charCount = document.getElementById('charCount') as HTMLElement
+      const messages = document.getElementById('formMessages')
+      const successMessage = messages?.querySelector('.message-success')
+      const errorMessage = messages?.querySelector('.message-error')
+      const errorText = document.getElementById('errorMessage')
+      const submitBtn = document.getElementById('submitBtn')
+      const btnText = submitBtn?.querySelector('.btn-text')
+      const btnLoading = submitBtn?.querySelector('.btn-loading')
+      const messageTextarea = document.getElementById('message')
+      const charCount = document.getElementById('charCount')
       const uppyContainer = document.getElementById('uppyContainer')
 
       if (
-        !messages ||
-        !successMessage ||
-        !errorMessage ||
-        !errorText ||
-        !submitBtn ||
-        !btnText ||
-        !btnLoading ||
-        !messageTextarea ||
-        !charCount
+        !(messages instanceof HTMLElement) ||
+        !(successMessage instanceof HTMLElement) ||
+        !(errorMessage instanceof HTMLElement) ||
+        !(errorText instanceof HTMLElement) ||
+        !isButtonElement(submitBtn) ||
+        !(btnText instanceof HTMLElement) ||
+        !(btnLoading instanceof HTMLElement) ||
+        !(messageTextarea instanceof HTMLTextAreaElement) ||
+        !(charCount instanceof HTMLElement)
       ) {
         throw new ClientScriptError('ContactForm: Required DOM elements not found. Form requires all elements to function.')
       }
@@ -124,7 +158,7 @@ export class ContactForm extends LoadableScript {
   }
 
   private initializeForm(): void {
-    const context = { scriptName: ContactForm.scriptName, operation: 'initializeForm' }
+    const context = { scriptName: 'ContactFormElement', operation: 'initializeForm' }
     addScriptBreadcrumb(context)
 
     try {
@@ -141,7 +175,7 @@ export class ContactForm extends LoadableScript {
   }
 
   private setupCharacterCounter(): void {
-    const context = { scriptName: ContactForm.scriptName, operation: 'setupCharacterCounter' }
+    const context = { scriptName: 'ContactFormElement', operation: 'setupCharacterCounter' }
     addScriptBreadcrumb(context)
 
     try {
@@ -161,7 +195,7 @@ export class ContactForm extends LoadableScript {
             this.elements.charCount.style.color = 'var(--color-text-offset)'
           }
         } catch (error) {
-          handleScriptError(error, { scriptName: ContactForm.scriptName, operation: 'characterCountUpdate' })
+          handleScriptError(error, { scriptName: 'ContactFormElement', operation: 'characterCountUpdate' })
         }
       })
     } catch (error) {
@@ -170,7 +204,7 @@ export class ContactForm extends LoadableScript {
   }
 
   private setupFileUploadPlaceholder(): void {
-    const context = { scriptName: ContactForm.scriptName, operation: 'setupFileUploadPlaceholder' }
+    const context = { scriptName: 'ContactFormElement', operation: 'setupFileUploadPlaceholder' }
     addScriptBreadcrumb(context)
 
     try {
@@ -196,7 +230,7 @@ export class ContactForm extends LoadableScript {
   }
 
   private setupFormSubmission(): void {
-    const context = { scriptName: ContactForm.scriptName, operation: 'setupFormSubmission' }
+    const context = { scriptName: 'ContactFormElement', operation: 'setupFormSubmission' }
     addScriptBreadcrumb(context)
 
     try {
@@ -207,7 +241,7 @@ export class ContactForm extends LoadableScript {
           e.preventDefault()
           await this.handleFormSubmission()
         } catch (error) {
-          handleScriptError(error, { scriptName: ContactForm.scriptName, operation: 'formSubmit' })
+          handleScriptError(error, { scriptName: 'ContactFormElement', operation: 'formSubmit' })
           this.showErrorMessage('An error occurred. Please try again.')
           this.setLoading(false)
         }
@@ -218,7 +252,7 @@ export class ContactForm extends LoadableScript {
   }
 
   private async handleFormSubmission(): Promise<void> {
-    const context = { scriptName: ContactForm.scriptName, operation: 'handleFormSubmission' }
+    const context = { scriptName: 'ContactFormElement', operation: 'handleFormSubmission' }
     addScriptBreadcrumb(context)
 
     try {
@@ -243,7 +277,7 @@ export class ContactForm extends LoadableScript {
           this.showErrorMessage(result.message || 'An error occurred while sending your message.')
         }
       } catch (error) {
-        handleScriptError(error, { scriptName: ContactForm.scriptName, operation: 'apiSubmission' })
+        handleScriptError(error, { scriptName: 'ContactFormElement', operation: 'apiSubmission' })
         this.showErrorMessage('Unable to send message. Please try again later.')
       } finally {
         this.setLoading(false)
@@ -255,7 +289,7 @@ export class ContactForm extends LoadableScript {
   }
 
   private setLoading(loading: boolean): void {
-    const context = { scriptName: ContactForm.scriptName, operation: 'setLoading' }
+    const context = { scriptName: 'ContactFormElement', operation: 'setLoading' }
     addScriptBreadcrumb(context)
 
     try {
@@ -278,7 +312,7 @@ export class ContactForm extends LoadableScript {
   }
 
   private showSuccessMessage(): void {
-    const context = { scriptName: ContactForm.scriptName, operation: 'showSuccessMessage' }
+    const context = { scriptName: 'ContactFormElement', operation: 'showSuccessMessage' }
     addScriptBreadcrumb(context)
 
     try {
@@ -293,7 +327,7 @@ export class ContactForm extends LoadableScript {
   }
 
   private showErrorMessage(message: string): void {
-    const context = { scriptName: ContactForm.scriptName, operation: 'showErrorMessage' }
+    const context = { scriptName: 'ContactFormElement', operation: 'showErrorMessage' }
     addScriptBreadcrumb(context)
 
     try {
@@ -310,7 +344,7 @@ export class ContactForm extends LoadableScript {
   }
 
   private hideMessages(): void {
-    const context = { scriptName: ContactForm.scriptName, operation: 'hideMessages' }
+    const context = { scriptName: 'ContactFormElement', operation: 'hideMessages' }
     addScriptBreadcrumb(context)
 
     try {
@@ -323,7 +357,7 @@ export class ContactForm extends LoadableScript {
   }
 
   private resetForm(): void {
-    const context = { scriptName: ContactForm.scriptName, operation: 'resetForm' }
+    const context = { scriptName: 'ContactFormElement', operation: 'resetForm' }
     addScriptBreadcrumb(context)
 
     try {
@@ -337,7 +371,7 @@ export class ContactForm extends LoadableScript {
   }
 
   private setupFormValidation(): void {
-    const context = { scriptName: ContactForm.scriptName, operation: 'setupFormValidation' }
+    const context = { scriptName: 'ContactFormElement', operation: 'setupFormValidation' }
     addScriptBreadcrumb(context)
 
     try {
@@ -348,24 +382,28 @@ export class ContactForm extends LoadableScript {
         try {
           input.addEventListener('blur', () => {
             try {
-              this.validateField(input as HTMLInputElement)
+              if (input instanceof HTMLInputElement) {
+                this.validateField(input)
+              }
             } catch (error) {
-              handleScriptError(error, { scriptName: ContactForm.scriptName, operation: 'validateOnBlur' })
+              handleScriptError(error, { scriptName: 'ContactFormElement', operation: 'validateOnBlur' })
             }
           })
 
           input.addEventListener('input', () => {
             try {
               if (input.classList.contains('error')) {
-                this.validateField(input as HTMLInputElement)
+                if (input instanceof HTMLInputElement) {
+                  this.validateField(input)
+                }
               }
             } catch (error) {
-              handleScriptError(error, { scriptName: ContactForm.scriptName, operation: 'validateOnInput' })
+              handleScriptError(error, { scriptName: 'ContactFormElement', operation: 'validateOnInput' })
             }
           })
         } catch (error) {
           // One field failing shouldn't break all validation
-          handleScriptError(error, { scriptName: ContactForm.scriptName, operation: 'setupFieldValidation' })
+          handleScriptError(error, { scriptName: 'ContactFormElement', operation: 'setupFieldValidation' })
         }
       })
     } catch (error) {
@@ -373,39 +411,8 @@ export class ContactForm extends LoadableScript {
     }
   }
 
-  /**
-   * LoadableScript static methods
-   */
-  static override init(): void {
-    const context = { scriptName: ContactForm.scriptName, operation: 'init' }
-    addScriptBreadcrumb(context)
-
-    try {
-      // Create instance and discover elements
-      const instance = new ContactForm()
-      if (instance.discoverElements()) {
-        instance.initializeForm()
-      }
-    } catch (error) {
-      handleScriptError(error, context)
-    }
-  }
-
-  static override pause(): void {
-    // Contact form doesn't need pause functionality during visibility changes
-  }
-
-  static override resume(): void {
-    // Contact form doesn't need resume functionality during visibility changes
-  }
-
-  static override reset(): void {
-    // Clean up any global state if needed for View Transitions
-    // Remove any event listeners or reset form state if necessary
-  }
-
-  public validateField(field: HTMLInputElement): boolean {
-    const context = { scriptName: ContactForm.scriptName, operation: 'validateField' }
+  private validateField(field: HTMLInputElement): boolean {
+    const context = { scriptName: 'ContactFormElement', operation: 'validateField' }
     addScriptBreadcrumb(context)
 
     try {
@@ -466,7 +473,7 @@ export class ContactForm extends LoadableScript {
   }
 
   private addErrorStyles(): void {
-    const context = { scriptName: ContactForm.scriptName, operation: 'addErrorStyles' }
+    const context = { scriptName: 'ContactFormElement', operation: 'addErrorStyles' }
     addScriptBreadcrumb(context)
 
     try {
@@ -484,4 +491,9 @@ export class ContactForm extends LoadableScript {
       handleScriptError(error, context)
     }
   }
+}
+
+// Register the custom element (with guard against duplicate registration)
+if (!customElements.get('contact-form')) {
+  customElements.define('contact-form', ContactFormElement)
 }

@@ -41,7 +41,7 @@ export interface DefaultTheme {
  */
 export const themes: Theme[] = [
   {
-    id: 'default',
+    id: 'light',
     name: 'Light',
     description: 'Clean light theme with blue accents',
     category: 'core',
@@ -66,7 +66,7 @@ export const themes: Theme[] = [
  * Default theme configuration
  */
 export const defaultTheme: DefaultTheme = {
-  id: 'default',
+  id: 'light',
   prefersDarkScheme: false,
 }
 
@@ -109,11 +109,11 @@ export function themeExists(themeId: string): boolean {
  * Get the next theme in the list (useful for theme cycling)
  */
 export function getNextTheme(currentThemeId: string): string {
-  if (themes.length === 0) return 'default'
+  if (themes.length === 0) return 'light'
   const currentIndex = themes.findIndex(theme => theme.id === currentThemeId)
   const nextIndex = (currentIndex + 1) % themes.length
   const nextTheme = themes[nextIndex]
-  return nextTheme?.id || themes[0]?.id || 'default'
+  return nextTheme?.id || themes[0]?.id || 'light'
 }
 
 /**

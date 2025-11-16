@@ -102,7 +102,7 @@ export function generateBreadcrumbLabel(
     '/case-studies': 'Case Studies',
     '/contact': 'Contact',
     '/privacy': 'Privacy Policy',
-    '/cookies': 'Cookie Policy',
+    '/consent': 'Consent Policy',
     '/tags': 'Tags',
   }
 

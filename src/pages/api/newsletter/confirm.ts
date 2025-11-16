@@ -4,11 +4,13 @@
  * This is an Astro API route that runs server-side
  */
 import type { APIRoute } from 'astro'
+import { supabaseAdmin } from '@components/scripts/consent/db/supabase'
 
 // These imports work in Astro API routes because they run server-side
-import { confirmSubscription } from '../../../api/newsletter/token'
-import { recordConsent } from '../../../api/shared/consent-log'
-import { sendWelcomeEmail } from '../../../api/newsletter/email'
+import { confirmSubscription } from './_token'
+import { sendWelcomeEmail } from './_email'
+
+export const prerender = false // Force SSR for this endpoint
 
 export const GET: APIRoute = async ({ url }) => {
   const token = url.searchParams.get('token')
@@ -45,15 +47,15 @@ export const GET: APIRoute = async ({ url }) => {
       )
     }
 
-    // Record verified consent in audit trail
-    await recordConsent({
-      email: subscription.email,
-      purposes: ['marketing'],
-      source: 'newsletter_form',
-      userAgent: subscription.userAgent,
-      ...(subscription.ipAddress ? { ipAddress: subscription.ipAddress } : {}),
-      verified: true,
-    })
+    // Mark consent as verified in Supabase
+    // Find the most recent unverified consent record for this email and DataSubjectId
+    await supabaseAdmin
+      .from('consent_records')
+      .update({ verified: true })
+      .eq('email', subscription.email)
+      .eq('data_subject_id', subscription.DataSubjectId)
+      .eq('verified', false)
+      .contains('purposes', ['marketing'])
 
     // Send welcome email (non-blocking, don't fail if it errors)
     try {

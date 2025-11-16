@@ -1,0 +1,25 @@
+---
+/**
+ * Test fixture for ThemePicker Container API testing
+ * Uses actual ThemePicker component to ensure tests stay in sync with implementation
+ */
+import ThemePicker from '@components/ThemePicker/index.astro'
+import ThemeButton from '@components/ThemePicker/ThemeButton.astro'
+
+export interface Props {
+  /** Override default label for testing */
+  label?: string
+  /** Override close component for testing */
+  closeComponent?: string
+}
+
+const { label = 'Select theme', closeComponent = 'close' } = Astro.props
+---
+
+<!-- Minimal header with theme toggle button for testing -->
+<header id="header" class="header" role="banner">
+  <ThemeButton />
+</header>
+
+<!-- Actual ThemePicker component -->
+<ThemePicker label={label} closeComponent={closeComponent} />

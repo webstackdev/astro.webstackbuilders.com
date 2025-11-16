@@ -13,7 +13,7 @@ test.describe('ARIA and Screen Readers', () => {
    * region.
    */
   test('@ready page has main landmark', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     await page.expectMainElement()
@@ -27,7 +27,7 @@ test.describe('ARIA and Screen Readers', () => {
    * nested inside other landmarks.
    */
   test('@ready page has navigation landmark', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     const nav = page.page.locator('nav, [role="navigation"]')
@@ -42,7 +42,7 @@ test.describe('ARIA and Screen Readers', () => {
    * the button is an icon without visible text.
   */
   test('@ready buttons have accessible labels', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     const buttons = page.page.locator('button')
@@ -67,7 +67,7 @@ test.describe('ARIA and Screen Readers', () => {
    * assistive technologies.
    */
   test('@ready links have meaningful text', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     const links = page.page.locator('a[href]')
@@ -94,7 +94,7 @@ test.describe('ARIA and Screen Readers', () => {
    * Axe automatically checks that images have alt text and flags missing alt text
    */
   test('@ready images have alt text', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     const images = page.page.locator('img')
@@ -113,7 +113,7 @@ test.describe('ARIA and Screen Readers', () => {
    * Axe checks that form inputs have labels
    */
   test('@ready form inputs have labels', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/contact')
 
     const inputs = page.page.locator('input[type="text"], input[type="email"], textarea')
@@ -149,7 +149,7 @@ test.describe('ARIA and Screen Readers', () => {
    * technologies.
    */
   test('@ready page has exactly one h1', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     const h1 = page.page.locator('h1')
@@ -166,7 +166,7 @@ test.describe('ARIA and Screen Readers', () => {
    * programmatically associated with the field.
    */
   test('@ready required fields are marked', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/contact')
 
     const emailInput = page.page.locator('input[type="email"]').first()
@@ -182,7 +182,7 @@ test.describe('ARIA and Screen Readers', () => {
    * screen readers interpret them properly.
  */
   test('@ready lists use proper markup', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     const lists = page.page.locator('ul, ol, [role="list"]')

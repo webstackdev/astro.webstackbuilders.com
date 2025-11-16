@@ -10,7 +10,7 @@ import {
   isHeaderElement,
   isSpanElement,
   isUlElement,
-} from '@components/Scripts/assertions/elements'
+} from '@components/scripts/assertions/elements'
 import {
   getHeaderElement,
   getMobileSplashElement,
@@ -18,8 +18,8 @@ import {
   getNavToggleBtnElement,
   getNavToggleWrapperElement,
   getNavWrapperElement,
-} from '../selectors'
-import TestNavigationComponent from './TestNavigation.astro'
+} from '@components/Navigation/selectors'
+import TestNavigationComponent from '@components/Navigation/__tests__/TestNavigation.astro'
 
 /**
  * Helper function to set up DOM from Container API

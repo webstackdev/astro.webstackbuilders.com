@@ -2,9 +2,9 @@
 import contactData from '@content/contact.json'
 import themes from '@content/themes.json'
 import { absoluteUrl } from '@lib/helpers'
-import Seo from './Seo.astro'
-import Social from './Social.astro'
-import StructuredData from './StructuredData.astro'
+import Seo from '@components/Head/Seo.astro'
+import Social from '@components/Head/Social.astro'
+import StructuredData from '@components/Head/StructuredData.astro'
 
 export interface Props {
   pageTitle: string
@@ -70,9 +70,15 @@ const slug = path.replace(/^\//, '').replace(/\/$/, '') || 'home'
   {...modifiedDate && { modifiedDate }}
   {...author && { author }}
 />
-{/* Used to sets the color of the surrounding user interface for e.g. the */}
-{/* browser title bar. It is updated by script when the theme changes.    */}
-<meta name="theme-color" content={defaultTheme.colors.backgroundOffset} />
+{/* Used to sets the color of the surrounding user interface for e.g. the browser */}
+{/* title bar. It is updated by script when the theme changes. Preserved across */}
+{/* Astro View Transitions API page navigations so doesn't need reset. */}
+<meta
+  name="theme-color"
+  content={defaultTheme.colors.backgroundOffset}
+  transition:name="theme-color"
+  transition:persist
+/>
 {/* Favicon links */}
 <link rel="icon" href="/favicon.ico" />
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />

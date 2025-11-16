@@ -1,14 +1,31 @@
 /**
  * Nanostore Persistence Tests
  * Tests that all stores persist their values across page navigations (View Transitions)
- * @see src/components/Scripts/state/
+ * @see src/components/scripts/store/
  */
 
-import { test, expect } from '@test/e2e/helpers'
+import { BasePage, test, expect } from '@test/e2e/helpers'
 import { selectTheme } from '@test/e2e/helpers/cookieHelper'
 
 test.describe('Nanostore Persistence Across Navigation', () => {
-  test.beforeEach(async ({ page, context }) => {
+  /**
+   * Setup for nanostore persistence tests
+   *
+   * Side effects relied upon:
+   * - Clears all storage (localStorage, sessionStorage, cookies) to ensure clean state
+   * - Reloads page after clearing storage to re-initialize nanostores with empty state
+   * - Waits for networkidle to ensure stores and components are fully initialized
+   *
+   * Without this setup, tests would fail due to:
+   * - Stores containing values from previous tests, causing false positives/negatives
+   * - Persistence mechanisms reading stale data from storage
+   * - Race conditions where stores haven't finished initializing before tests run
+   *
+   * This ensures each test starts with a known baseline (empty stores) to verify
+   * persistence behavior across View Transitions navigation
+   */
+  test.beforeEach(async ({ page: playwrightPage, context }) => {
+    const page = await BasePage.init(playwrightPage)
     // Clear ALL storage (localStorage, sessionStorage, AND cookies) for clean state
     await context.clearCookies()
     await page.goto('/')
@@ -21,7 +38,8 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     await page.waitForLoadState('networkidle')
   })
 
-  test.skip('@ready theme preference persists across View Transitions', async ({ page }) => {
+  test.skip('@ready theme preference persists across View Transitions', async ({ page: playwrightPage }) => {
+    const page = await BasePage.init(playwrightPage)
     // SKIPPED: Theme persists to localStorage but isn't re-applied from localStorage after View Transition
     // Root cause: Theme initialization on new page doesn't read from $theme store properly
     // localStorage.getItem('theme') returns 'dark' but <html data-theme> is null after navigation
@@ -32,7 +50,7 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     await page.waitForLoadState('networkidle')
 
     // Select dark theme using helper
-    await selectTheme(page, 'dark')
+    await selectTheme(page.page, 'dark')
 
     // Verify theme is applied
     let htmlTheme = await page.locator('html').getAttribute('data-theme')
@@ -59,7 +77,8 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     expect(storedTheme).toBe('dark')
   })
 
-  test('@ready theme picker modal state persists across View Transitions', async ({ page }) => {
+  test('@ready theme picker modal state persists across View Transitions', async ({ page: playwrightPage }) => {
+    const page = await BasePage.init(playwrightPage)
     // Go to homepage
     await page.goto('/')
     await page.waitForLoadState('networkidle')
@@ -87,7 +106,8 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     expect(isOpen).toBe('true')
   })
 
-  test.skip('@ready cookie consent preferences persist across View Transitions', async ({ page }) => {
+  test.skip('@ready cookie consent preferences persist across View Transitions', async ({ page: playwrightPage }) => {
+    const page = await BasePage.init(playwrightPage)
     // SKIPPED: This test needs rework for hybrid consent approach
     // where functional is true by default and analytics is opt-in
     // Go to homepage
@@ -129,7 +149,8 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     }
   })
 
-  test.skip('@ready social embed cache persists across View Transitions', async ({ page }) => {
+  test.skip('@ready social embed cache persists across View Transitions', async ({ page: playwrightPage }) => {
+    const page = await BasePage.init(playwrightPage)
     // SKIPPED: Test setup issue - cache functions not available in test environment
     // Go to a page with social embeds (if available)
     await page.goto('/')
@@ -180,7 +201,8 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     }
   })
 
-  test.skip('@ready mastodon instances persist across View Transitions', async ({ page }) => {
+  test.skip('@ready mastodon instances persist across View Transitions', async ({ page: playwrightPage }) => {
+    const page = await BasePage.init(playwrightPage)
     // SKIPPED: Test setup issue - mastodon functions not available in test environment
     // Go to homepage
     await page.goto('/')
@@ -231,7 +253,8 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     }
   })
 
-  test('@ready all stores clear on explicit storage clear', async ({ page }) => {
+  test('@ready all stores clear on explicit storage clear', async ({ page: playwrightPage }) => {
+    const page = await BasePage.init(playwrightPage)
     // Go to homepage and set up all stores
     await page.goto('/')
     await page.waitForLoadState('networkidle')
@@ -273,7 +296,8 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     expect(consent).toBeNull()
   })
 
-  test('@ready stores restore defaults when localStorage is corrupted', async ({ page }) => {
+  test('@ready stores restore defaults when localStorage is corrupted', async ({ page: playwrightPage }) => {
+    const page = await BasePage.init(playwrightPage)
     // Go to homepage
     await page.goto('/')
     await page.waitForLoadState('networkidle')
@@ -296,12 +320,11 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     // Theme should be reset to default
     expect(theme).toBe('default')
 
-    // Consent should be reset with defaults (functional is now true by default for hybrid approach)
+    // Consent should be reset with defaults (functional defaults to false - opt-in for Mastodon)
     if (consent) {
       const consentObj = JSON.parse(consent)
-      expect(consentObj.necessary).toBe(true)
       expect(consentObj.analytics).toBe(false)
-      expect(consentObj.functional).toBe(true)
+      expect(consentObj.functional).toBe(false)
     }
   })
 })

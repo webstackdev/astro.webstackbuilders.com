@@ -1,7 +1,8 @@
 /**
  * Type-safe HTML element selectors
  */
-import { isAnchorElement } from '@components/Scripts/assertions/elements'
+import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
+import { isAnchorElement } from '@components/scripts/assertions/elements'
 
 export const SELECTORS = {
   /** "Hire Me" block with current month and year set by script */
@@ -14,7 +15,9 @@ export const SELECTORS = {
 export const getHireMeAnchorElement = (): HTMLAnchorElement => {
   const anchor = document.querySelector(SELECTORS.hireMeAnchor)
   if (!isAnchorElement(anchor)) {
-    throw new Error(`Footer anchor for "Hire Me" element, selector: ${SELECTORS.hireMeAnchor}`)
+    throw new ClientScriptError({
+      message: `Footer anchor for "Hire Me" element, selector: ${SELECTORS.hireMeAnchor}`
+    })
   }
   return anchor
 }

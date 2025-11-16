@@ -2,9 +2,9 @@ import { describe, it, expect } from 'vitest'
 import { remark } from 'remark'
 import remarkGfm from 'remark-gfm'
 import remarkRehype from 'remark-rehype'
-import { rehypeTailwindClasses } from '../../plugins/rehype-tailwind'
+import { rehypeTailwindClasses } from '@lib/markdown/plugins/rehype-tailwind'
 import rehypeStringify from 'rehype-stringify'
-import { remarkRehypeConfig } from '../../../config/markdown'
+import { remarkRehypeConfig } from '@lib/config/markdown'
 
 /**
  * Helper for testing rehype-tailwind with Astro settings

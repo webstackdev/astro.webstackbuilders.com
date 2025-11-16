@@ -1,4 +1,3 @@
-import { LoadableScript, type TriggerEvent } from '@components/Scripts/loader/@types/loader'
 import { logger } from '@lib/logger'
 import {
   getDownloadFormElement,
@@ -6,16 +5,15 @@ import {
   getDownloadStatusDiv,
   getDownloadButtonWrapper,
 } from './selectors'
-import { ClientScriptError } from '@components/Scripts/errors/ClientScriptError'
-import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
+import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
+import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
 
 /**
- * DownloadForm component using LoadableScript pattern
+ * DownloadForm component
  * Handles form submission for gated download resources
  */
-export class DownloadForm extends LoadableScript {
-  static override scriptName = 'DownloadForm'
-  static override eventType: TriggerEvent = 'astro:page-load'
+export class DownloadForm {
+  static scriptName = 'DownloadForm'
 
   private form: HTMLFormElement
   private submitButton: HTMLButtonElement
@@ -23,8 +21,6 @@ export class DownloadForm extends LoadableScript {
   private downloadButtonWrapper: HTMLElement
 
   constructor() {
-    super()
-
     const context = { scriptName: DownloadForm.scriptName, operation: 'constructor' }
     addScriptBreadcrumb(context)
 
@@ -83,7 +79,9 @@ export class DownloadForm extends LoadableScript {
         })
 
         if (!response.ok) {
-          throw new Error('Failed to submit form')
+          throw new ClientScriptError({
+            message: 'Failed to submit form'
+          })
         }
 
         await response.json()
@@ -141,7 +139,7 @@ export class DownloadForm extends LoadableScript {
   /**
    * LoadableScript static methods
    */
-  static override init(): void {
+  static init(): void {
     const context = { scriptName: DownloadForm.scriptName, operation: 'init' }
     addScriptBreadcrumb(context)
 
@@ -159,15 +157,15 @@ export class DownloadForm extends LoadableScript {
     }
   }
 
-  static override pause(): void {
+  static pause(): void {
     // DownloadForm doesn't need pause functionality
   }
 
-  static override resume(): void {
+  static resume(): void {
     // DownloadForm doesn't need resume functionality
   }
 
-  static override reset(): void {
+  static reset(): void {
     // Clean up any global state if needed for View Transitions
   }
 }

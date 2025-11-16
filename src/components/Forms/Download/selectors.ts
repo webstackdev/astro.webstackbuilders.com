@@ -1,6 +1,7 @@
 /**
  * Selectors for DownloadForm component elements
  */
+import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
 
 /**
  * Get the download form element
@@ -9,7 +10,9 @@
 export function getDownloadFormElement(): HTMLFormElement {
   const form = document.getElementById('downloadForm')
   if (!form || !(form instanceof HTMLFormElement)) {
-    throw new Error('Download form element not found')
+    throw new ClientScriptError({
+  message: `Download form element not found`
+})
   }
   return form
 }
@@ -21,7 +24,9 @@ export function getDownloadFormElement(): HTMLFormElement {
 export function getDownloadSubmitButton(): HTMLButtonElement {
   const button = document.getElementById('downloadSubmitBtn')
   if (!button || !(button instanceof HTMLButtonElement)) {
-    throw new Error('Download submit button not found')
+    throw new ClientScriptError({
+      message: `Download submit button not found`
+    })
   }
   return button
 }
@@ -33,7 +38,9 @@ export function getDownloadSubmitButton(): HTMLButtonElement {
 export function getDownloadStatusDiv(): HTMLElement {
   const statusDiv = document.getElementById('downloadFormStatus')
   if (!statusDiv) {
-    throw new Error('Download status div not found')
+    throw new ClientScriptError({
+      message: `Download status div not found`
+    })
   }
   return statusDiv
 }
@@ -45,7 +52,9 @@ export function getDownloadStatusDiv(): HTMLElement {
 export function getDownloadButtonWrapper(): HTMLElement {
   const wrapper = document.getElementById('downloadButtonWrapper')
   if (!wrapper) {
-    throw new Error('Download button wrapper not found')
+    throw new ClientScriptError({
+      message: `Download button wrapper not found`
+    })
   }
   return wrapper
 }

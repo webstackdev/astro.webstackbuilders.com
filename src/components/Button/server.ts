@@ -1,7 +1,7 @@
 /**
- * Button component types and exports
+ * Server-side utility functions for Button component
  */
-import type { SpriteName } from '../Sprite/sprites'
+import type { SpriteName } from '@components/Sprite/sprites'
 
 export type ButtonVariant = 'primary' | 'secondary' | 'twitter' | 'success' | 'warning' | 'icon'
 export type ButtonSize = 'small' | 'medium' | 'large'

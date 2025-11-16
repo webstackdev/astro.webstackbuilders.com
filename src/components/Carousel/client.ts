@@ -1,22 +1,20 @@
-import { LoadableScript, type TriggerEvent } from '../Scripts/loader/@types/loader'
 import EmblaCarousel, { type EmblaOptionsType, type EmblaCarouselType } from 'embla-carousel'
 import Autoplay from 'embla-carousel-autoplay'
-import { ClientScriptError } from '@components/Scripts/errors/ClientScriptError'
-import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
+import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
+import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
+import { addButtonEventListeners } from '@components/scripts/elementListeners'
 
 /**
  * Auto-discovery carousel implementation using singleton pattern
- * Can be registered directly without instantiation: registerScript(CarouselManager)
  */
-export class CarouselManager extends LoadableScript {
+export class CarouselManager {
   private static instance: CarouselManager | null = null
   private carousels: Map<HTMLElement, CarouselInstance> = new Map()
   private initialized = false
 
-  static override scriptName = 'CarouselManager'
-  static override eventType: TriggerEvent = 'astro:page-load'
+  static scriptName = 'CarouselManager'
 
-  static override init(): void {
+  static init(): void {
     const context = { scriptName: CarouselManager.scriptName, operation: 'init' }
     addScriptBreadcrumb(context)
 
@@ -37,11 +35,11 @@ export class CarouselManager extends LoadableScript {
     }
   }
 
-  static override pause(): void {
+  static pause(): void {
     CarouselManager.getInstance().pauseAll()
   }
 
-  static override resume(): void {
+  static resume(): void {
     CarouselManager.getInstance().resumeAll()
   }
 
@@ -55,7 +53,6 @@ export class CarouselManager extends LoadableScript {
 
   private constructor() {
     // Private constructor for singleton
-    super()
   }
 
   private discoverNewCarousels(): void {
@@ -67,12 +64,13 @@ export class CarouselManager extends LoadableScript {
 
       carouselElements.forEach((element, index) => {
         try {
-          const htmlElement = element as HTMLElement
-          const carousel = new CarouselInstance(htmlElement, this.carousels.size + index)
+          if (!(element instanceof HTMLElement)) return
+
+          const carousel = new CarouselInstance(element, this.carousels.size + index)
           carousel.initialize()
 
-          this.carousels.set(htmlElement, carousel)
-          htmlElement.setAttribute('data-carousel-managed', 'true')
+          this.carousels.set(element, carousel)
+          element.setAttribute('data-carousel-managed', 'true')
         } catch (error) {
           // One carousel failing shouldn't break all carousels
           handleScriptError(error, { scriptName: CarouselManager.scriptName, operation: 'initCarousel' })
@@ -172,7 +170,7 @@ export class CarouselManager extends LoadableScript {
   }
 
   // Reset for new page navigation
-  static override reset(): void {
+  static reset(): void {
     const instance = CarouselManager.instance
     if (instance) {
       instance.cleanup()
@@ -191,8 +189,10 @@ class CarouselInstance {
   private nextBtn: HTMLButtonElement | null
   private viewport: HTMLElement | null
   private dotsContainer: HTMLElement | null
+  private container: HTMLElement
 
   constructor(container: HTMLElement, _instanceId: number) {
+    this.container = container
     this.prevBtn = container.querySelector('.embla__button--prev')
     this.nextBtn = container.querySelector('.embla__button--next')
     this.viewport = container.querySelector('.embla__viewport')
@@ -228,6 +228,9 @@ class CarouselInstance {
       // Initialize Embla Carousel with Autoplay plugin
       this.emblaApi = EmblaCarousel(this.viewport, options, [this.autoplayPlugin])
 
+      // Expose API to container element for testing
+      ;(this.container as HTMLElement & { __emblaApi__?: EmblaCarouselType }).__emblaApi__ = this.emblaApi
+
       this.setupNavigationButtons()
       this.setupDotsNavigation()
     } catch (error) {
@@ -245,7 +248,7 @@ class CarouselInstance {
     try {
       if (!this.emblaApi || !this.prevBtn || !this.nextBtn) return
 
-      this.prevBtn.addEventListener('click', () => {
+      addButtonEventListeners(this.prevBtn, () => {
         try {
           this.emblaApi!.scrollPrev()
         } catch (error) {
@@ -253,7 +256,7 @@ class CarouselInstance {
         }
       })
 
-      this.nextBtn.addEventListener('click', () => {
+      addButtonEventListeners(this.nextBtn, () => {
         try {
           this.emblaApi!.scrollNext()
         } catch (error) {
@@ -310,7 +313,7 @@ class CarouselInstance {
             'embla__dot w-2 h-2 rounded-full bg-[color:var(--color-text-offset)] transition-all duration-300 hover:bg-[color:var(--color-primary)]'
           dot.setAttribute('aria-label', `Go to slide ${index + 1}`)
 
-          dot.addEventListener('click', () => {
+          addButtonEventListeners(dot, () => {
             try {
               this.emblaApi!.scrollTo(index)
             } catch (error) {

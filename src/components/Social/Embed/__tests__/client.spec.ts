@@ -1,9 +1,14 @@
 // @vitest-environment happy-dom
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import { EmbedManager } from '../client'
-import { AppBootstrap } from '@components/Scripts/state/bootstrap'
-import { $embedCache, updateConsent, clearEmbedCache } from '@components/Scripts/state'
+import { EmbedManager } from '@components/Social/Embed/client'
+import { AppBootstrap } from '@components/scripts/bootstrap'
+import {
+  updateConsent,
+  clearEmbedCache,
+  getEmbedCacheState,
+  setEmbedCacheState,
+} from '@components/scripts/store'
 
 /**
  * Unit tests for Social Embed component
@@ -64,7 +69,6 @@ describe('EmbedManager', () => {
   describe('LoadableScript Interface', () => {
     it('should implement LoadableScript interface', () => {
       expect(EmbedManager.scriptName).toBe('EmbedManager')
-      expect(EmbedManager.eventType).toBe('delayed')
       expect(typeof EmbedManager.init).toBe('function')
       expect(typeof EmbedManager.pause).toBe('function')
       expect(typeof EmbedManager.resume).toBe('function')
@@ -360,7 +364,7 @@ describe('EmbedManager', () => {
       await new Promise(resolve => setTimeout(resolve, 0))
 
       // Check state store for cached data
-      const cache = $embedCache.get()
+      const cache = getEmbedCacheState()
       const cacheKey = Object.keys(cache).find(key => key.startsWith('embed_cache_x_'))
       expect(cacheKey).toBeTruthy()
 
@@ -376,8 +380,8 @@ describe('EmbedManager', () => {
     it('should use cached data when available', async () => {
       // Pre-populate cache in state store
       const cacheKey = 'embed_cache_x_aHR0cHM6Ly90d2l0dGVyLmNvbS91c2VyL3N0YXR1cy8xMjM='
-      const currentCache = $embedCache.get()
-      $embedCache.set({
+      const currentCache = getEmbedCacheState()
+      setEmbedCacheState({
         ...currentCache,
         [cacheKey]: {
           data: { html: '<blockquote>Cached Tweet</blockquote>' },
@@ -406,8 +410,8 @@ describe('EmbedManager', () => {
     it('should invalidate expired cache entries', async () => {
       // Pre-populate cache with expired data in state store
       const cacheKey = 'embed_cache_x_aHR0cHM6Ly90d2l0dGVyLmNvbS91c2VyL3N0YXR1cy8xMjM='
-      const currentCache = $embedCache.get()
-      $embedCache.set({
+      const currentCache = getEmbedCacheState()
+      setEmbedCacheState({
         ...currentCache,
         [cacheKey]: {
           data: { html: '<blockquote>Old Tweet</blockquote>' },
@@ -464,7 +468,7 @@ describe('EmbedManager', () => {
       }
       await new Promise(resolve => setTimeout(resolve, 0))
 
-      const cache = $embedCache.get()
+      const cache = getEmbedCacheState()
       const cacheKey = Object.keys(cache).find(key => key.startsWith('embed_cache_x_'))
       if (cacheKey) {
         const cached = cache[cacheKey]

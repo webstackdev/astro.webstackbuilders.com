@@ -5,14 +5,14 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { TestimonialsCarousel } from '../client'
+import { TestimonialsCarousel } from '@components/Testimonials/client'
 import {
   setupTestimonialsCarouselDOM,
   cleanupTestimonialsCarouselDOM,
   getDOMElements,
   userInteractions,
-} from '../__fixtures__/domHelpers'
-import { mockTestimonials } from '../__fixtures__/mockData'
+} from '@components/Testimonials/__fixtures__/domHelpers'
+import { mockTestimonials } from '@components/Testimonials/__fixtures__/mockData'
 
 // Mock embla-carousel
 const mockScrollPrev = vi.fn()
@@ -64,7 +64,6 @@ describe('TestimonialsCarousel LoadableScript', () => {
   describe('LoadableScript implementation', () => {
     it('should have correct static properties', () => {
       expect(TestimonialsCarousel.scriptName).toBe('TestimonialsCarousel')
-      expect(TestimonialsCarousel.eventType).toBe('delayed')
     })
 
     it('should implement all LoadableScript methods', () => {

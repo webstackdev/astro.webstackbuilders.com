@@ -8,7 +8,7 @@ import { BasePage, test, expect } from '@test/e2e/helpers'
 
 test.describe('Footer Component', () => {
   test('@ready footer is visible on all pages', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
     await page.expectFooter()
 
@@ -18,7 +18,7 @@ test.describe('Footer Component', () => {
   })
 
   test('@ready footer contains company name/branding', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
     await page.expectElementVisible('footer[role="contentinfo"]')
 
@@ -28,7 +28,7 @@ test.describe('Footer Component', () => {
   })
 
   test('@ready footer has copyright notice', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
     const footerText = await page.getTextContent('footer[role="contentinfo"]')
 
@@ -37,21 +37,21 @@ test.describe('Footer Component', () => {
   })
 
   test('@ready footer has navigation links', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
     const count = await page.countElements('footer[role="contentinfo"] a[href]')
     expect(count).toBeGreaterThan(0)
   })
 
   test('@ready footer has legal links', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
     await page.expectElementVisible('footer[role="contentinfo"] a[href*="privacy"]')
     await page.expectElementVisible('footer[role="contentinfo"] a[href*="cookie"]')
   })
 
   test('@ready footer links are functional', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     // Dismiss cookie dialog if present
@@ -64,7 +64,7 @@ test.describe('Footer Component', () => {
   })
 
   test('@ready footer has social media links', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     // Check for common social platforms
@@ -73,7 +73,7 @@ test.describe('Footer Component', () => {
   })
 
   test('@ready footer has contact information', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
     const footerText = await page.getTextContent('footer[role="contentinfo"]')
 
@@ -86,7 +86,7 @@ test.describe('Footer Component', () => {
   })
 
   test('@ready footer is responsive on mobile', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.setViewport(375, 667)
     await page.goto('/')
 
@@ -98,7 +98,7 @@ test.describe('Footer Component', () => {
   })
 
   test('@ready footer uses semantic HTML', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
     await page.expectFooter()
 
@@ -108,7 +108,7 @@ test.describe('Footer Component', () => {
   })
 
   test('@ready footer has accessibility landmarks', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
     const role = await page.getAttribute('footer', 'role')
     const tagName = await playwrightPage.locator('footer').evaluate((el) => el.tagName.toLowerCase())

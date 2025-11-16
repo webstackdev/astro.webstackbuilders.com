@@ -5,6 +5,8 @@
  */
 import type { APIRoute } from 'astro'
 
+export const prerender = false // Force SSR for this endpoint
+
 export const GET: APIRoute = async ({ request }) => {
   const url = new URL(request.url)
   const slug = url.searchParams.get('slug') || 'home'

@@ -1,0 +1,90 @@
+// @vitest-environment happy-dom
+/**
+ * Unit tests for social embeds cache state management
+ *
+ * Social embed caching is classified as 'necessary' under GDPR:
+ * - Caches only public oEmbed API responses
+ * - No user authentication tokens
+ * - Performance optimization that improves user experience
+ * - Contains no information about which user viewed which embed
+ *
+ * No consent check required - always caches and retrieves.
+ */
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+import { cacheEmbed, getCachedEmbed } from '@components/scripts/store/socialEmbeds'
+
+// Mock js-cookie
+vi.mock('js-cookie', () => ({
+  default: {
+    get: vi.fn(),
+    set: vi.fn(),
+    remove: vi.fn(),
+  },
+}))
+
+describe('Embed Cache Management', () => {
+  beforeEach(() => {
+    // Clear mocks
+    vi.clearAllMocks()
+
+    // Clear localStorage
+    localStorage.clear()
+  })
+
+  afterEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('should cache embed without consent check', () => {
+    const mockData = { html: '<iframe>...</iframe>' }
+    cacheEmbed('twitter_123', mockData, 3600000)
+
+    const cached = getCachedEmbed('twitter_123')
+    expect(cached).toEqual(mockData)
+  })
+
+  it('should retrieve cached embed data', () => {
+    const mockData = { html: '<iframe>...</iframe>', providerName: 'Twitter' }
+    cacheEmbed('twitter_123', mockData, 3600000)
+
+    const cached = getCachedEmbed('twitter_123')
+    expect(cached).toEqual(mockData)
+  })
+
+  it('should return null for expired cache entries', () => {
+    const mockData = { html: '<iframe>...</iframe>' }
+    const ttl = -1000 // Already expired (negative TTL)
+
+    cacheEmbed('twitter_123', mockData, ttl)
+
+    const cached = getCachedEmbed('twitter_123')
+    expect(cached).toBeNull()
+  })
+
+  it('should return null for non-existent cache keys', () => {
+    const cached = getCachedEmbed('non_existent_key')
+    expect(cached).toBeNull()
+  })
+
+  it('should cache multiple embeds independently', () => {
+    const twitterData = { html: '<iframe src="twitter">...</iframe>' }
+    const youtubeData = { html: '<iframe src="youtube">...</iframe>' }
+
+    cacheEmbed('twitter_123', twitterData, 3600000)
+    cacheEmbed('youtube_456', youtubeData, 3600000)
+
+    expect(getCachedEmbed('twitter_123')).toEqual(twitterData)
+    expect(getCachedEmbed('youtube_456')).toEqual(youtubeData)
+  })
+
+  it('should overwrite existing cache entry with same key', () => {
+    const originalData = { html: '<iframe>original</iframe>' }
+    const updatedData = { html: '<iframe>updated</iframe>' }
+
+    cacheEmbed('twitter_123', originalData, 3600000)
+    cacheEmbed('twitter_123', updatedData, 3600000)
+
+    const cached = getCachedEmbed('twitter_123')
+    expect(cached).toEqual(updatedData)
+  })
+})

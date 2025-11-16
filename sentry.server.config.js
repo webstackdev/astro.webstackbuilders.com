@@ -32,7 +32,12 @@ if (isProd && PUBLIC_SENTRY_DSN) {
      */
     tracesSampleRate: 1.0,
 
-    /** Send PII (personally identifiable information) like IP addresses */
+    /**
+     * Send PII (personally identifiable information) like IP addresses
+     * Server-side errors always include PII for debugging as they occur in
+     * API routes and SSR contexts where user consent is not directly available.
+     * Client-side Sentry respects user consent preferences.
+     */
     sendDefaultPii: true,
 
     /** Attach stack traces to all messages */

@@ -8,14 +8,14 @@ import {
   isFormElement,
   isButtonElement,
   isDivElement,
-} from '@components/Scripts/assertions/elements'
+} from '@components/scripts/assertions/elements'
 import {
   getDownloadFormElement,
   getDownloadSubmitButton,
   getDownloadStatusDiv,
   getDownloadButtonWrapper,
-} from '../selectors'
-import DownloadFormComponent from '../index.astro'
+} from '@components/Forms/Download/selectors'
+import DownloadFormComponent from '@components/Forms/Download/index.astro'
 
 /**
  * Helper function to set up DOM from Container API

@@ -3,22 +3,70 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 
 // Mock the common utilities BEFORE importing
-vi.mock('../../common/platforms', async () => {
-  const actual =
-    await vi.importActual<typeof import('../../common/platforms')>('../../common/platforms')
-  return {
-    ...actual,
-    copyToClipboard: vi.fn().mockResolvedValue(true),
-    nativeShare: vi.fn().mockResolvedValue(false),
-  }
-})
+vi.mock('@components/scripts/errors', () => ({
+  handleScriptError: vi.fn(),
+  addScriptBreadcrumb: vi.fn(),
+}))
 
-import { Highlighter } from '../client'
-import { copyToClipboard, nativeShare } from '../../common/platforms'
+vi.mock('@components/Social/common/platforms', () => ({
+  copyToClipboard: vi.fn(),
+  nativeShare: vi.fn(),
+  getPlatform: vi.fn(),
+  platforms: [
+    {
+      name: 'X (Twitter)',
+      id: 'twitter',
+      getShareUrl: ({ text, url }: { text: string; url: string }) =>
+        `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
+      ariaLabel: 'Share on X (Twitter)',
+      icon: 'twitter',
+      colorClasses: 'bg-[#1DA1F2] hover:bg-[#1a91da] text-white',
+    },
+    {
+      name: 'LinkedIn',
+      id: 'linkedin',
+      getShareUrl: ({ url }: { url: string }) =>
+        `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
+      ariaLabel: 'Share on LinkedIn',
+      icon: 'linkedin',
+      colorClasses: 'bg-[#0077b5] hover:bg-[#005885] text-white',
+    },
+    {
+      name: 'Bluesky',
+      id: 'bluesky',
+      getShareUrl: ({ text, url }: { text: string; url: string }) =>
+        `https://bsky.app/intent/compose?text=${encodeURIComponent(`${text} ${url}`)}`,
+      ariaLabel: 'Share on Bluesky',
+      icon: 'bluesky',
+      colorClasses: 'bg-[#00A8E8] hover:bg-[#0087bd] text-white',
+    },
+    {
+      name: 'Reddit',
+      id: 'reddit',
+      getShareUrl: ({ url, title }: { url: string; title: string }) =>
+        `https://reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`,
+      ariaLabel: 'Share on Reddit',
+      icon: 'reddit',
+      colorClasses: 'bg-[#FF4500] hover:bg-[#e03d00] text-white',
+    },
+    {
+      name: 'Mastodon',
+      id: 'mastodon',
+      getShareUrl: () => '',
+      ariaLabel: 'Share on Mastodon',
+      icon: 'mastodon',
+      colorClasses: 'bg-[#6364FF] hover:bg-[#5557e6] text-white',
+      useModal: true,
+    },
+  ],
+}))
+
+import { Highlighter } from '@components/Social/Highlighter/client'
+import { copyToClipboard, nativeShare } from '@components/Social/common/platforms'
 
 // Cast mocked functions for assertions
-const mockCopyToClipboard = copyToClipboard as ReturnType<typeof vi.fn>
-const mockNativeShare = nativeShare as ReturnType<typeof vi.fn>
+const mockCopyToClipboard = vi.mocked(copyToClipboard)
+const mockNativeShare = vi.mocked(nativeShare)
 
 describe('Highlighter LoadableScript', () => {
   beforeEach(() => {
@@ -40,7 +88,6 @@ describe('Highlighter LoadableScript', () => {
   describe('LoadableScript Interface', () => {
     it('should implement LoadableScript interface', () => {
       expect(Highlighter.scriptName).toBe('Highlighter')
-      expect(Highlighter.eventType).toBe('delayed')
       expect(typeof Highlighter.init).toBe('function')
       expect(typeof Highlighter.pause).toBe('function')
       expect(typeof Highlighter.resume).toBe('function')
@@ -176,8 +223,8 @@ describe('HighlighterElement', () => {
 
   describe('Keyboard Navigation', () => {
     it('should show dialog on Enter key', async () => {
-      // Trigger Enter key on the host element
-      const event = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })
+      // Trigger Enter key on the host element (using keyup for accessibility)
+      const event = new KeyboardEvent('keyup', { key: 'Enter', bubbles: true })
       highlighter.dispatchEvent(event)
 
       const dialog = highlighter.shadowRoot?.querySelector('.share-dialog')
@@ -185,8 +232,8 @@ describe('HighlighterElement', () => {
     })
 
     it('should show dialog on Space key', async () => {
-      // Trigger Space key on the host element
-      const event = new KeyboardEvent('keydown', { key: ' ', bubbles: true })
+      // Trigger Space key on the host element (using keyup for accessibility)
+      const event = new KeyboardEvent('keyup', { key: ' ', bubbles: true })
       highlighter.dispatchEvent(event)
 
       const dialog = highlighter.shadowRoot?.querySelector('.share-dialog')
@@ -200,9 +247,9 @@ describe('HighlighterElement', () => {
         highlighter.shadowRoot?.querySelector('.share-dialog')?.getAttribute('aria-hidden')
       ).toBe('false')
 
-      // Trigger Escape key
-      const event = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })
-      highlighter.dispatchEvent(event)
+      // Trigger Escape key (using keyup for accessibility)
+      const event = new KeyboardEvent('keyup', { key: 'Escape', bubbles: true })
+      document.dispatchEvent(event)
 
       const dialog = highlighter.shadowRoot?.querySelector('.share-dialog')
       expect(dialog?.getAttribute('aria-hidden')).toBe('true')
@@ -259,7 +306,7 @@ describe('HighlighterElement', () => {
     it('should open Twitter share URL', async () => {
       const twitterButton = highlighter.shadowRoot?.querySelector(
         '[data-platform="twitter"]'
-      ) as HTMLButtonElement
+      )
       expect(twitterButton).toBeTruthy()
 
       twitterButton.click()
@@ -274,7 +321,7 @@ describe('HighlighterElement', () => {
     it('should open LinkedIn share URL', async () => {
       const linkedinButton = highlighter.shadowRoot?.querySelector(
         '[data-platform="linkedin"]'
-      ) as HTMLButtonElement
+      )
       expect(linkedinButton).toBeTruthy()
 
       linkedinButton.click()
@@ -289,7 +336,7 @@ describe('HighlighterElement', () => {
     it('should open Bluesky share URL', async () => {
       const blueskyButton = highlighter.shadowRoot?.querySelector(
         '[data-platform="bluesky"]'
-      ) as HTMLButtonElement
+      )
       expect(blueskyButton).toBeTruthy()
 
       blueskyButton.click()
@@ -304,7 +351,7 @@ describe('HighlighterElement', () => {
     it('should open Reddit share URL', async () => {
       const redditButton = highlighter.shadowRoot?.querySelector(
         '[data-platform="reddit"]'
-      ) as HTMLButtonElement
+      )
       expect(redditButton).toBeTruthy()
 
       redditButton.click()
@@ -325,7 +372,7 @@ describe('HighlighterElement', () => {
 
       const twitterButton = specialHighlighter.shadowRoot?.querySelector(
         '[data-platform="twitter"]'
-      ) as HTMLButtonElement
+      )
       twitterButton?.click()
 
       expect(window.open).toHaveBeenCalledWith(
@@ -340,7 +387,7 @@ describe('HighlighterElement', () => {
     it('should call copyToClipboard with text and URL', async () => {
       const copyButton = highlighter.shadowRoot?.querySelector(
         '[data-platform="copy"]'
-      ) as HTMLButtonElement
+      )
       expect(copyButton).toBeTruthy()
 
       copyButton.click()
@@ -356,7 +403,7 @@ describe('HighlighterElement', () => {
 
       const copyButton = highlighter.shadowRoot?.querySelector(
         '[data-platform="copy"]'
-      ) as HTMLButtonElement
+      )
 
       copyButton.click()
 
@@ -382,7 +429,7 @@ describe('HighlighterElement', () => {
 
       const twitterButton = highlighter.shadowRoot?.querySelector(
         '[data-platform="twitter"]'
-      ) as HTMLButtonElement
+      )
       twitterButton.click()
 
       // Should have tried native share
@@ -395,7 +442,7 @@ describe('HighlighterElement', () => {
 
       const twitterButton = highlighter.shadowRoot?.querySelector(
         '[data-platform="twitter"]'
-      ) as HTMLButtonElement
+      )
       twitterButton.click()
 
       // Wait for async operations
@@ -412,7 +459,7 @@ describe('HighlighterElement', () => {
 
       const twitterButton = highlighter.shadowRoot?.querySelector(
         '[data-platform="twitter"]'
-      ) as HTMLButtonElement
+      )
       twitterButton.click()
 
       // Wait for async share operation
@@ -441,7 +488,7 @@ describe('HighlighterElement', () => {
 
       const copyButton = highlighter.shadowRoot?.querySelector(
         '[data-platform="copy"]'
-      ) as HTMLButtonElement
+      )
       copyButton.click()
 
       // Wait for async copy operation
@@ -484,7 +531,7 @@ describe('HighlighterElement', () => {
 
   describe('Edge Cases', () => {
     it('should handle click without valid platform', async () => {
-      const button = highlighter.shadowRoot?.querySelector('.share-button') as HTMLButtonElement
+      const button = highlighter.shadowRoot?.querySelector('.share-button')
       button?.removeAttribute('data-platform')
 
       // Should not throw

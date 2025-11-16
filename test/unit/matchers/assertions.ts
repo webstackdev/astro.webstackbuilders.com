@@ -1,7 +1,9 @@
 /**
  * Custom test matchers and type definitions for error tests
  */
-export type Constructor = new (..._args: unknown[]) => object
+// Make Constructor type more flexible to accept any constructor signature
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type Constructor = new (..._args: any[]) => object
 
 /**
  * Custom matchers interface for vitest

@@ -171,7 +171,8 @@ The component includes runtime validation:
 
 ```typescript
 if (!resource) {
-  throw new Error('Download CTA component requires a "resource" prop')
+  const message = 'Download CTA component requires a "resource" prop'
+  throw new ClientScriptError({ message })
 }
 ```
 

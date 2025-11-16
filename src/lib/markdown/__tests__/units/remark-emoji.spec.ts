@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import remarkEmoji from 'remark-emoji'
-import { processIsolated } from '../../helpers/test-utils'
+import { processIsolated } from '@lib/markdown/helpers/test-utils'
 
 describe('remark-emoji (Layer 1: Isolated)', () => {
   describe('basic emoji conversion', () => {

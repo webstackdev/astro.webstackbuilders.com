@@ -15,22 +15,12 @@ import { atom } from 'nanostores'
 // ============================================================================
 
 /**
- * Purpose for which data is being collected
- * Must align with purposes listed in Privacy Policy
- */
-export type ConsentPurpose =
-  | 'contact'      // Processing contact form data to respond to inquiries
-  | 'marketing'    // Sending marketing emails and communications
-  | 'analytics'    // Website usage analytics
-  | 'downloads'    // Providing access to gated content/downloads
-
-/**
  * Form consent state
  * Tracks whether user has explicitly consented to data processing
  */
 export interface FormConsentState {
-  /** Purposes user has consented to */
-  purposes: ConsentPurpose[]
+  /** Purpose user has consented to */
+  purpose: string
 
   /** ISO timestamp when consent was given */
   timestamp: string
@@ -59,15 +49,15 @@ export const $formConsent = atom<FormConsentState | null>(null)
 /**
  * Record form consent when checkbox is checked
  *
- * @param purposes - Data processing purposes being consented to
+ * @param purpose - Data processing purpose being consented to
  * @param formId - Optional form identifier
  */
 export function recordFormConsent(
-  purposes: ConsentPurpose[],
+  purpose: string,
   formId?: string
 ): void {
   const consentState: FormConsentState = {
-    purposes,
+    purpose,
     timestamp: new Date().toISOString(),
     validated: true
   }
@@ -92,9 +82,9 @@ export function clearFormConsent(): void {
  * @param purpose - Purpose to check
  * @returns true if user has consented to this purpose
  */
-export function hasConsentForPurpose(purpose: ConsentPurpose): boolean {
+export function hasConsentForPurpose(purpose: string): boolean {
   const consent = $formConsent.get()
-  return consent?.validated && consent.purposes.includes(purpose) || false
+  return consent?.validated && consent.purpose === purpose || false
 }
 
 /**

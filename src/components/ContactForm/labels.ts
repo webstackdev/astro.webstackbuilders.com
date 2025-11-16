@@ -4,12 +4,18 @@
  * and set it back to 0.5 if they clear the input.
  */
 import { type ContactFormSelectors, formControlGroupSelectors } from './selectors'
+import { isInputElement } from '@components/scripts/assertions/elements'
+
 // e.target.value
 export const isEmpty = (formControl: HTMLInputElement) => !formControl.value.trim().length
 export const initLabelHandlers = (selector: ContactFormSelectors) => {
   formControlGroupSelectors.forEach(selectorGroup => {
-    const controlLabel = selector[selectorGroup.labelElement] as HTMLLabelElement
-    const formControl = selector[selectorGroup.formControl] as HTMLInputElement
+    const controlLabel = selector[selectorGroup.labelElement]
+    const formControl = selector[selectorGroup.formControl]
+
+    if (!(controlLabel instanceof HTMLLabelElement)) return
+    if (!isInputElement(formControl)) return
+
     formControl.addEventListener(`input`, _ => {
       const hasText = !isEmpty(formControl)
       if (hasText && controlLabel.style.opacity !== `0`) {

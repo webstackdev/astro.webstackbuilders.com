@@ -14,7 +14,7 @@ test.describe('WCAG Compliance', () => {
    * which is a more stringent level of compliance,
    */
   test.skip('@wip touch targets are at least 44x44 pixels', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     const buttons = page.page.locator('button, a')
@@ -44,7 +44,7 @@ test.describe('WCAG Compliance', () => {
    * found to have a 1:1 ratio are considered "incomplete" and require a manual review.
    */
   test.skip('@ready text has sufficient color contrast', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     // Sample a few text elements
@@ -75,7 +75,7 @@ test.describe('WCAG Compliance', () => {
    * minimum size and contrast criteria relative to adjacent colors, not just the background color.
    */
   test.skip('@ready focus indicators are visible', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     await page.pressKey('Tab')
@@ -108,7 +108,7 @@ test.describe('WCAG Compliance', () => {
    * element and the maximum-scale parameter is not less than 2.
    */
   test.skip('@ready page can be zoomed to 200%', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
 
     await page.goto('/')
 
@@ -139,7 +139,7 @@ test.describe('WCAG Compliance', () => {
    * an underline. Axe also checks if links have a distinct style on focus and hover.
    */
   test.skip('@ready links are distinguishable from text', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
 
     await page.goto('/')
 
@@ -165,7 +165,7 @@ test.describe('WCAG Compliance', () => {
    * of both the general flash threshold and the more restrictive "three flashes" rule.
    */
   test.skip('@ready no content flashes more than 3 times per second', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     // Check for animations
@@ -195,7 +195,7 @@ test.describe('WCAG Compliance', () => {
    * a complex, context-dependent check that requires manual inspection.
    */
   test.skip('@ready page is usable without motion', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
 
     await page.page.emulateMedia({ reducedMotion: 'reduce' })
     await page.goto('/')
@@ -221,7 +221,7 @@ test.describe('WCAG Compliance', () => {
    * to the invalid field or an error summary.
    */
   test.skip('@wip form errors are clearly identified', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
 
     await page.goto('/contact')
 
@@ -243,7 +243,7 @@ test.describe('WCAG Compliance', () => {
    * ?
    */
   test.skip('@ready time limits can be extended', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
 
     await page.goto('/')
 

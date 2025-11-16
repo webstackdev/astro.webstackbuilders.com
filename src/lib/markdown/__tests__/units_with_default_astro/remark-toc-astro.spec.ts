@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import remarkToc from 'remark-toc'
-import { processWithAstroSettings } from '../../helpers/test-utils'
-import { remarkTocConfig } from '../../../config/markdown'
+import { processWithAstroSettings } from '@lib/markdown/helpers/test-utils'
+import { remarkTocConfig } from '@lib/config/markdown'
 
 describe('remark-toc (Layer 2: With Astro Pipeline)', () => {
   describe('TOC with GFM', () => {

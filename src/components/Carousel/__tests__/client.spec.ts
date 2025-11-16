@@ -2,7 +2,9 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
-import TestCarousel from '../__fixtures__/client.fixture.astro'
+import TestCarousel from '@components/Carousel/__fixtures__/client.fixture.astro'
+import { isButtonElement } from '@components/scripts/assertions/elements'
+import { TestError } from '@test/errors'
 
 // Mock Embla Carousel and Autoplay plugin
 const mockEmblaApi = {
@@ -61,7 +63,6 @@ describe('CarouselManager', () => {
   describe('LoadableScript Interface', () => {
     it('should implement LoadableScript interface', () => {
       expect(CarouselManager.scriptName).toBe('CarouselManager')
-      expect(CarouselManager.eventType).toBe('astro:page-load')
       expect(typeof CarouselManager.init).toBe('function')
       expect(typeof CarouselManager.pause).toBe('function')
       expect(typeof CarouselManager.resume).toBe('function')
@@ -114,21 +115,24 @@ describe('CarouselManager', () => {
     })
 
     it('should handle previous button click', () => {
-      const prevButton = carousel.querySelector('.embla__button--prev') as HTMLButtonElement
+      const prevButton = carousel.querySelector('.embla__button--prev')
+      if (!isButtonElement(prevButton)) throw new TestError('Prev button not found')
       prevButton.click()
 
       expect(mockEmblaApi.scrollPrev).toHaveBeenCalled()
     })
 
     it('should handle next button click', () => {
-      const nextButton = carousel.querySelector('.embla__button--next') as HTMLButtonElement
+      const nextButton = carousel.querySelector('.embla__button--next')
+      if (!isButtonElement(nextButton)) throw new TestError('Next button not found')
       nextButton.click()
 
       expect(mockEmblaApi.scrollNext).toHaveBeenCalled()
     })
 
     it('should handle dot navigation click', () => {
-      const firstDot = carousel.querySelector('.embla__dot') as HTMLButtonElement
+      const firstDot = carousel.querySelector('.embla__dot')
+      if (!isButtonElement(firstDot)) throw new TestError('First dot not found')
       firstDot.click()
 
       expect(mockEmblaApi.scrollTo).toHaveBeenCalledWith(0)
@@ -143,8 +147,10 @@ describe('CarouselManager', () => {
       const onSelectCallback = mockEmblaApi.on.mock.calls.find(call => call[0] === 'select')?.[1]
       onSelectCallback?.()
 
-      const prevButton = carousel.querySelector('.embla__button--prev') as HTMLButtonElement
-      const nextButton = carousel.querySelector('.embla__button--next') as HTMLButtonElement
+      const prevButton = carousel.querySelector('.embla__button--prev')
+      if (!isButtonElement(prevButton)) throw new TestError('Prev button not found')
+      const nextButton = carousel.querySelector('.embla__button--next')
+      if (!isButtonElement(nextButton)) throw new TestError('Next button not found')
 
       expect(prevButton.disabled).toBe(true)
       expect(prevButton.classList.contains('opacity-30')).toBe(true)
@@ -283,7 +289,7 @@ describe('CarouselManager', () => {
       // Mock EmblaCarousel to throw an error
       const EmblaCarousel = (await import('embla-carousel')).default
       vi.mocked(EmblaCarousel).mockImplementation(() => {
-        throw new Error('Mock initialization error')
+        throw new TestError('Mock initialization error')
       })
 
       // Error handling now uses handleScriptError instead of console.error
@@ -318,8 +324,10 @@ describe('CarouselManager', () => {
     it('should have proper ARIA attributes', () => {
       CarouselManager.init()
 
-      const prevButton = carousel.querySelector('.embla__button--prev') as HTMLButtonElement
-      const nextButton = carousel.querySelector('.embla__button--next') as HTMLButtonElement
+      const prevButton = carousel.querySelector('.embla__button--prev')
+      if (!isButtonElement(prevButton)) throw new TestError('Prev button not found')
+      const nextButton = carousel.querySelector('.embla__button--next')
+      if (!isButtonElement(nextButton)) throw new TestError('Next button not found')
 
       expect(prevButton.type).toBe('button')
       expect(nextButton.type).toBe('button')

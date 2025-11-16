@@ -1,18 +1,14 @@
 /**
- * Head Theme Setup - LoadableScript Implementation
+ * Head Theme Setup
  * Runs early in <head> to avoid flash of un-themed styling (FOUS)
  * Sets up theme on document element and initializes metaColors global
  */
 
-import { LoadableScript, type TriggerEvent } from '@components/Scripts/loader/@types/loader'
-
 /**
- * HeadThemeSetup component using LoadableScript pattern
- * Initializes theme colors for meta theme-color element
+ * HeadThemeSetup - Initializes theme colors for meta theme-color element
  */
-class HeadThemeSetup extends LoadableScript {
-  static override scriptName = 'HeadThemeSetup'
-  static override eventType: TriggerEvent = 'astro:page-load'
+class HeadThemeSetup {
+  static scriptName = 'HeadThemeSetup'
 
   /**
    * Initialize meta colors global variable
@@ -27,28 +23,26 @@ class HeadThemeSetup extends LoadableScript {
 
     // Initialize metaColors on window if it doesn't exist
     if (typeof window !== 'undefined') {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ;(window as any).metaColors = (window as any).metaColors || {}
+      window.metaColors = window.metaColors || {}
       themes.forEach(theme => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ;(window as any).metaColors[theme.id] = theme.colors.backgroundOffset
+        window.metaColors![theme.id] = theme.colors.backgroundOffset
       })
     }
   }
 
-  static override init(): void {
+  static init(): void {
     HeadThemeSetup.initializeMetaColors()
   }
 
-  static override pause(): void {
+  static pause(): void {
     // No pause functionality needed for HeadThemeSetup
   }
 
-  static override resume(): void {
+  static resume(): void {
     // No resume functionality needed for HeadThemeSetup
   }
 
-  static override reset(): void {
+  static reset(): void {
     // No reset functionality needed for HeadThemeSetup
   }
 }
