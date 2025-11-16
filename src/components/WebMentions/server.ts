@@ -4,6 +4,7 @@
  * @see https://webmention.io/
  * @see https://github.com/aaronpk/webmention.io
  */
+import {  WEBMENTION_IO_TOKEN } from 'astro:env/client'
 
 export interface WebmentionAuthor {
   url?: string
@@ -85,23 +86,12 @@ const cleanWebmention = (entry: Webmention): Webmention => {
  * @param token - Optional webmention.io API token (from env var)
  * @returns Array of processed webmentions
  */
-export const fetchWebmentions = async (
-  url: string,
-  token?: string
-): Promise<Webmention[]> => {
-  // Get token from environment if not provided
-  const apiToken = token || import.meta.env['WEBMENTION_IO_TOKEN']
-
-  if (!apiToken) {
-    console.warn('⚠️ WEBMENTION_IO_TOKEN not found. Webmentions will not be fetched.')
-    return []
-  }
-
+export const fetchWebmentions = async (url: string): Promise<Webmention[]> => {
   try {
     // Fetch from webmention.io API
     const apiUrl = new URL('https://webmention.io/api/mentions.jf2')
     apiUrl.searchParams.set('target', url)
-    apiUrl.searchParams.set('token', apiToken)
+    apiUrl.searchParams.set('token', WEBMENTION_IO_TOKEN)
     apiUrl.searchParams.set('per-page', '1000')
 
     const response = await fetch(apiUrl.toString(), {
