@@ -4,7 +4,7 @@
  * SPDX-FileCopyrightText: © 2025 Kevin Brown <kevin@webstackbuilders.com>
  * SPDX-License-Identifier: AGPL-3.0-only
  */
-import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
+import { ClientScriptError } from '@components/scripts/errors'
 import {
   isButtonElement,
   isDivElement,

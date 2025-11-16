@@ -10,9 +10,8 @@ import {
   getMobileNavFocusContainer,
 } from '@components/Navigation/selectors'
 import { isAnchorElement } from '@components/scripts/assertions/elements'
-import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
-import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
-import { dispatchAnimationEvent, AnimationLifecycleEvent } from '@components/scripts/events/animationLifecycle'
+import { addScriptBreadcrumb, ClientScriptError, handleScriptError } from '@components/scripts/errors'
+import { dispatchAnimationEvent, AnimationLifecycleEvent } from '@components/scripts/events'
 import { addButtonEventListeners, addLinkEventListeners } from '@components/scripts/elementListeners'
 
 export const CLASSES = {

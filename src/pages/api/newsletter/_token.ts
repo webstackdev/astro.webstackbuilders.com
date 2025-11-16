@@ -4,7 +4,7 @@
  */
 
 import { supabaseAdmin } from '@components/scripts/consent/db/supabase'
-import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
+import { ClientScriptError } from '@components/scripts/errors'
 
 /**
  * Pending subscription data stored temporarily until confirmed

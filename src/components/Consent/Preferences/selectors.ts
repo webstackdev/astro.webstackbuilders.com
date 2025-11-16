@@ -2,7 +2,7 @@
  * Type-safe HTML element selectors for Consent Preferences
  */
 import { isDivElement, isButtonElement } from '@components/scripts/assertions/elements'
-import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
+import { ClientScriptError } from '@components/scripts/errors'
 
 export const SELECTORS = {
   /** Consent customize modal wrapper */

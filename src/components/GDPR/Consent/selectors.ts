@@ -1,7 +1,7 @@
 /**
  * DOM selectors for GDPR Consent component
  */
-import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
+import { ClientScriptError } from '@components/scripts/errors'
 
 /**
  * Get the consent checkbox element

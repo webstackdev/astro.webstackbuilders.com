@@ -3,8 +3,7 @@
  * Initializes state management on every page load
  * This MUST run before any other scripts that depend on state
  */
-import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
-import { addScriptBreadcrumb } from '@components/scripts/errors'
+import { addScriptBreadcrumb, ClientScriptError } from '@components/scripts/errors'
 import {
   addViewTransitionThemeInitListener,
   initConsentFromCookies,

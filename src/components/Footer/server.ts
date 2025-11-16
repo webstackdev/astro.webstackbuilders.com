@@ -3,7 +3,7 @@
  * Functions used during build process in Astro frontmatter
  */
 import parsePhoneNumber from 'libphonenumber-js'
-import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
+import { ClientScriptError } from '@components/scripts/errors'
 
 /**
  * Format a phone number in standard format

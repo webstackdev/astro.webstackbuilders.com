@@ -5,8 +5,7 @@
  */
 
 import { LitElement } from 'lit'
-import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
-import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
+import { addScriptBreadcrumb, ClientScriptError, handleScriptError } from '@components/scripts/errors'
 import { getNewsletterElements } from './selectors'
 
 /**

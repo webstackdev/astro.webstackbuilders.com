@@ -1,7 +1,7 @@
 /**
  * Type-safe HTML element selectors
  */
-import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
+import { ClientScriptError } from '@components/scripts/errors'
 import {
   isBodyElement,
   isDivElement,

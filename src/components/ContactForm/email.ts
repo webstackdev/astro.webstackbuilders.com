@@ -4,7 +4,7 @@ import {
   minLengthEmailAddressText,
   maxLengthEmailAddressText,
 } from './error'
-import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
+import { ClientScriptError } from '@components/scripts/errors'
 import type { ContactFormSelectors } from './selectors'
 
 export const initEmailValidationHandler = (selector: ContactFormSelectors) => {

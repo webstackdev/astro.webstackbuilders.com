@@ -1,6 +1,6 @@
 import { gsap } from 'gsap'
 import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
-import { onAnimationEvent, AnimationLifecycleEvent } from '@components/scripts/events/animationLifecycle'
+import { onAnimationEvent, AnimationLifecycleEvent } from '@components/scripts/events'
 
 type Timeline = ReturnType<typeof gsap.timeline>
 

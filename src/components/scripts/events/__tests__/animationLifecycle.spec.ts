@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { dispatchAnimationEvent, onAnimationEvent, AnimationLifecycleEvent } from '@components/scripts/events/animationLifecycle'
+import { dispatchAnimationEvent, onAnimationEvent, AnimationLifecycleEvent } from '@components/scripts/events'
 
 describe('Animation Lifecycle Events System', () => {
   // Clean up event listeners after each test

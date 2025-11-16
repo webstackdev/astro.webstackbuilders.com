@@ -2,7 +2,7 @@
  * Selectors for the theme picker elements
  */
 import { isButtonElement, isDivElement } from '@components/scripts/assertions/elements'
-import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
+import { ClientScriptError } from '@components/scripts/errors'
 
 /**
  * Gets the theme picker modal element

@@ -4,8 +4,7 @@
  */
 
 import { LitElement } from 'lit'
-import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
-import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
+import { addScriptBreadcrumb, ClientScriptError, handleScriptError } from '@components/scripts/errors'
 import { isFormElement, isButtonElement } from '@components/scripts/assertions/elements'
 
 export interface ContactFormElements {

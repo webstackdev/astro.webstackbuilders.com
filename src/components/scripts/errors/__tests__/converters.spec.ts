@@ -4,7 +4,7 @@
  */
 import { describe, expect, test } from 'vitest'
 import { TestError } from '@test/errors'
-import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
+import { ClientScriptError } from '@components/scripts/errors'
 import {
   convertFromError,
   convertFromClientScriptError,

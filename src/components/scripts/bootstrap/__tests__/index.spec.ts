@@ -5,8 +5,7 @@
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { AppBootstrap } from '@components/scripts/bootstrap'
-import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
-import { addScriptBreadcrumb } from '@components/scripts/errors'
+import { addScriptBreadcrumb, ClientScriptError } from '@components/scripts/errors'
 import { TestError } from '@test/errors'
 
 // Mock the store initialization functions

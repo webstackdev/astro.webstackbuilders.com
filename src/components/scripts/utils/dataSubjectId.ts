@@ -1,5 +1,5 @@
 import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
-import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
+import { ClientScriptError } from '@components/scripts/errors'
 
 export function getOrCreateDataSubjectId(): string {
   // Try localStorage first

@@ -4,7 +4,7 @@ import {
   isButtonElement,
   isSpanElement,
 } from '@components/scripts/assertions/elements'
-import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
+import { ClientScriptError } from '@components/scripts/errors'
 
 export const SELECTORS = {
   form: '#newsletter-form',
