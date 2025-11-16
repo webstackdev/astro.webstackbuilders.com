@@ -32,10 +32,14 @@ export const environmentalVariablesConfig: AstroUserConfig['env'] = {
     /**
      * Set in Vitest config for unit tests
      */
+    PLAYWRIGHT: envField.string({
+      access: 'public',
+      context: 'client',
+      optional: true,
+    }),
     VITEST: envField.string({
       access: 'public',
       context: 'client',
-      default: false,
       optional: true,
     }),
     /**
