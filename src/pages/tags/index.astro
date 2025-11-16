@@ -1,15 +1,21 @@
 ---
-import BaseLayout from '@layouts/BaseLayout.astro'
 import { getCollection } from 'astro:content'
+import { isDev, isProd } from '@components/scripts/utils'
+import BaseLayout from '@layouts/BaseLayout.astro'
 import { exceptions } from '@content/_tagList'
 
 // Get all content collections with tags
 const allArticles = await getCollection('articles', ({ data }) => {
-  return process.env['NODE_ENV'] === 'production' ? data.isDraft !== true : true
+  return isDev() || (isProd() && data.isDraft !== true)
 })
 
-const allCaseStudies = await getCollection('caseStudies')
-const allServices = await getCollection('services')
+const allCaseStudies = await getCollection('caseStudies', ({ data }) => {
+  return isDev() || (isProd() && data.isDraft !== true)
+})
+
+const allServices = await getCollection('services', ({ data }) => {
+  return isDev() || (isProd() && data.isDraft !== true)
+})
 
 // Combine all content and sort by publish date (newest first)
 const allContent = [

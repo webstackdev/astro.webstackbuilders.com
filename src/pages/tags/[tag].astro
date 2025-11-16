@@ -1,16 +1,34 @@
 ---
-import { getCollection } from 'astro:content'
+import { type CollectionEntry, getCollection } from 'astro:content'
+import { isDev, isProd } from '@components/scripts/utils'
 import BaseLayout from '@layouts/BaseLayout.astro'
 import { exceptions } from '@content/_tagList'
+
+export interface Params {
+  tag: string
+}
+
+type ContentItem =
+  | (CollectionEntry<'articles'> & { type: 'article' })
+  | (CollectionEntry<'caseStudies'> & { type: 'case-study' })
+  | (CollectionEntry<'services'> & { type: 'service' })
+
+export interface Props {
+  content: ContentItem[]
+}
 
 export async function getStaticPaths() {
   // Get all content collections with tags
   const allArticles = await getCollection('articles', ({ data }) => {
-    return process.env['NODE_ENV'] === 'production' ? data.isDraft !== true : true
+    return isDev() || (isProd() && data.isDraft !== true)
   })
 
-  const allCaseStudies = await getCollection('caseStudies')
-  const allServices = await getCollection('services')
+  const allCaseStudies = await getCollection('caseStudies', ({ data }) => {
+    return isDev() || (isProd() && data.isDraft !== true)
+  })
+  const allServices = await getCollection('services', ({ data }) => {
+    return isDev() || (isProd() && data.isDraft !== true)
+  })
 
   // Combine all content and extract unique tags
   const allContent = [

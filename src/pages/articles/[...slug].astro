@@ -1,12 +1,17 @@
 ---
-import { getCollection } from 'astro:content'
+import { type CollectionEntry, getCollection } from 'astro:content'
+import { isDev, isProd } from '@components/scripts/utils'
 import MarkdownLayout, { Shares, Carousel } from '@layouts/MarkdownLayout.astro'
 import { WebMentions } from '@components/WebMentions'
+
+export interface Props {
+  article: CollectionEntry<'articles'>
+}
 
 /** Generate static paths for all articles */
 export async function getStaticPaths() {
   const articleEntries = await getCollection('articles', ({ data }) => {
-    return process.env['NODE_ENV'] !== 'production' || data.isDraft !== true
+    return isDev() || (isProd() && data.isDraft !== true)
   })
   return articleEntries.map(article => ({
     params: { slug: article.id },

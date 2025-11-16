@@ -1,12 +1,13 @@
 ---
 import { getCollection } from 'astro:content'
+import { isDev, isProd } from '@components/scripts/utils'
 import PageLayout from '@layouts/PageLayout.astro'
 
 const pageTitle = 'Articles'
 const path = '/articles/'
 
 const allArticles = await getCollection('articles', ({ data }) => {
-  return process.env['NODE_ENV'] === 'production' ? data.isDraft !== true : true
+  return isDev() || (isProd() && data.isDraft !== true)
 })
 
 // Sort by publish date (newest first)

@@ -1,17 +1,17 @@
 ---
-import type { CollectionEntry } from 'astro:content'
-import { getCollection } from 'astro:content'
+import { type CollectionEntry, getCollection } from 'astro:content'
+import { isDev, isProd } from '@components/scripts/utils'
 import MarkdownLayout from '@layouts/MarkdownLayout.astro'
 import DownloadForm from '@components/Forms/Download/index.astro'
 
-interface Props {
+export interface Props {
   download: CollectionEntry<'downloads'>
 }
 
 /** Generate static paths for all downloads */
 export async function getStaticPaths() {
   const downloadEntries = await getCollection('downloads', ({ data }) => {
-    return process.env['NODE_ENV'] !== 'production' || data.isDraft !== true
+    return isDev() || (isProd() && data.isDraft !== true)
   })
   return downloadEntries.map(download => ({
     params: { slug: download.id },
