@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/astro"
 import { SENTRY_DSN } from "astro:env/client"
-
+import { isDev, isProd } from '@lib/config'
 /**
  * Server-side Sentry initialization
  *
@@ -11,11 +11,8 @@ import { SENTRY_DSN } from "astro:env/client"
  * The server SDK only needs SENTRY_DSN to report errors.
  */
 
-const isProd = import.meta.env.PROD
-const isDev = import.meta.env.DEV
-
 // Initialize Sentry in production if DSN is available
-if (isProd) {
+if (isProd()) {
   Sentry.init({
     dsn: SENTRY_DSN,
 
@@ -51,7 +48,7 @@ if (isProd) {
      */
     beforeSend(event, _hint) {
       // Don't send in development
-      if (isDev) {
+      if (isDev()) {
         return null
       }
       return event

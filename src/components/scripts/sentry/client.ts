@@ -11,6 +11,7 @@ import {
   linkedErrorsIntegration,
 } from '@sentry/browser'
 import { SENTRY_DSN } from 'astro:env/client'
+import { isDev } from '@components/scripts/utils'
 import { $consent } from '@components/scripts/store/consent'
 
 /**
@@ -37,7 +38,6 @@ export class SentryBootstrap {
 
     const client = new BrowserClient({
       dsn: SENTRY_DSN,
-
       integrations: [
         // Core integrations
         breadcrumbsIntegration({
@@ -105,7 +105,7 @@ export class SentryBootstrap {
        */
       beforeSend(event, _hint) {
         // Don't send errors in development
-        if (import.meta.env.DEV) {
+        if (isDev()) {
           return null
         }
 

@@ -20,11 +20,11 @@ import type { AstroUserConfig } from 'astro'
  * Secret client variables: not supported because there is no safe way to send this data to the client.
  *
  * ✅ CORRECT: Public client variables are available from BOTH modules
- * import { PUBLIC_SENTRY_DSN } from 'astro:env/client'  // Works in client code
- * import { PUBLIC_SUPABASE_KEY } from 'astro:env/server' // Works in server code (API routes)
+ * import { CLIENT_PUBLIC_DSN } from 'astro:env/client'  // Works in client code
+ * import { CLIENT_PUBLIC_KEY } from 'astro:env/server' // Works in server code (API routes)
  *
  * ❌ WRONG: Server variables are ONLY available from astro:env/server
- * import { RESEND_API_KEY } from 'astro:env/client' // TypeScript error!
+ * import { CLIENT_PUBLIC_KEY } from 'astro:env/client' // TypeScript error!
  */
 
 export const environmentalVariablesConfig: AstroUserConfig['env'] = {
@@ -110,11 +110,14 @@ export const environmentalVariablesConfig: AstroUserConfig['env'] = {
     }),
     /**
      * Site uses Sentry for monitoring site errors and user path tracing
+     *
+     * - Only used in code called by astro.config.ts, uses process.env
+     * - Used to upload source maps during build
      */
     SENTRY_AUTH_TOKEN: envField.string({
-      access: 'public',
+      access: 'secret',
       context: 'server',
-      optional: false, // Only required for uploading source maps during build
+      optional: false,
     }),
     SENTRY_DSN: envField.string({
       access: 'public',
@@ -124,12 +127,12 @@ export const environmentalVariablesConfig: AstroUserConfig['env'] = {
     /**
      * Site uses Suprabase for managing GDPR consent records
      */
-    PUBLIC_SUPABASE_URL: envField.string({
+    SUPABASE_URL: envField.string({
       access: 'public',
       context: 'client',
       optional: false,
     }),
-    PUBLIC_SUPABASE_KEY: envField.string({
+    SUPABASE_KEY: envField.string({
       access: 'public',
       context: 'server',
       optional: false,

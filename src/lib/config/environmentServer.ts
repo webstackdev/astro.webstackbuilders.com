@@ -1,13 +1,7 @@
-/** Cannot use path aliases in this file */
-import { BuildError } from '../errors/BuildError'
-
 /**
  * This method is only intended to be called from astro.config.ts
  */
 export const getSentryAuthToken = () => {
-  if (!process.env['SENTRY_AUTH_TOKEN']) {
-    throw new BuildError('Running in CI environment, but SENTRY_AUTH_TOKEN is not set.')
-  }
   return process.env['SENTRY_AUTH_TOKEN']
 }
 
