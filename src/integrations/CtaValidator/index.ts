@@ -27,10 +27,9 @@
  * })
  * ```
  */
-
 import type { AstroIntegration, AstroConfig } from 'astro'
 import { fileURLToPath } from 'url'
-import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
+import { BuildError } from '../../lib/errors'
 import type { CallToActionValidatorOptions, CallToActionComponent } from './@types'
 import { discoverCallToActionComponents } from './componentDiscovery'
 import { validateAllPages, validateCtaRequirements } from './validation'
@@ -156,7 +155,7 @@ export function callToActionValidator(
             )
             logger.error('')
 
-            throw new ClientScriptError({
+            throw new BuildError({
               message: `CallToAction validation failed: Found multiple component instances on ${pagesWithErrors.length} page(s). Each CallToAction component should only appear once per page.`
             })
           }
@@ -171,7 +170,7 @@ export function callToActionValidator(
             throw error
           }
           logger.error(`CallToAction Validator: Validation error: ${error}`)
-          throw new ClientScriptError({
+          throw new BuildError({
             message: `CallToAction validation failed: ${error}`
           })
         }

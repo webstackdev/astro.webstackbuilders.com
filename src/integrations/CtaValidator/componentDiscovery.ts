@@ -2,10 +2,9 @@
  * Component discovery for CallToAction validator
  * Discovers all CallToAction components in the specified directory
  */
-
 import { readdir, readFile } from 'fs/promises'
 import { join, resolve } from 'path'
-import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
+import { BuildError } from '../../lib/errors'
 import type { CallToActionComponent } from './@types'
 import { generateImportPatterns } from './parsers'
 
@@ -66,7 +65,7 @@ export async function discoverCallToActionComponents(
       }
     }
   } catch (error) {
-    throw new ClientScriptError({
+    throw new BuildError({
       message: `Failed to read CallToAction components directory '${fullComponentPath}': ${error}`
     })
   }
