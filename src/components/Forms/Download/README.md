@@ -180,8 +180,9 @@ await hubspot.contacts.create({
 
 ```typescript
 import { Client } from '@hubspot/api-client'
+import { HUBSPOT_TOKEN } from 'astro:env/client'
 
-const hubspot = new Client({ accessToken: process.env.HUBSPOT_TOKEN })
+const hubspot = new Client({ accessToken: HUBSPOT_TOKEN })
 
 await hubspot.crm.contacts.basicApi.create({
   properties: {
@@ -198,10 +199,11 @@ await hubspot.crm.contacts.basicApi.create({
 
 ```typescript
 import mailchimp from '@mailchimp/mailchimp_marketing'
+import { MAILCHIMP_API_KEY, MAILCHIMP_SERVER_PREFIX } from 'astro:env/client'
 
 mailchimp.setConfig({
-  apiKey: process.env.MAILCHIMP_API_KEY,
-  server: process.env.MAILCHIMP_SERVER_PREFIX,
+  apiKey: MAILCHIMP_API_KEY,
+  server: MAILCHIMP_SERVER_PREFIX,
 })
 
 await mailchimp.lists.addListMember(LIST_ID, {
@@ -220,8 +222,9 @@ await mailchimp.lists.addListMember(LIST_ID, {
 
 ```typescript
 import sgMail from '@sendgrid/mail'
+import { SENDGRID_API_KEY } from 'astro:env/client'
 
-sgMail.setApiKey(process.env.SENDGRID_API_KEY)
+sgMail.setApiKey(SENDGRID_API_KEY)
 
 await sgMail.send({
   to: 'leads@yourcompany.com',
