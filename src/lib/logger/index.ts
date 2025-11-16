@@ -1,9 +1,9 @@
 /**
- * Simple logger for development mode
+ * Simple logger for development mode and testing
  * In production, errors are sent to Sentry instead
  */
-
-const isDev = import.meta.env.DEV
+import { isDev, isTest } from '@lib/config'
+const shouldLog = isDev() || isTest()
 
 export const logger = {
   /**
@@ -12,7 +12,7 @@ export const logger = {
    * In production: Silent (errors go to Sentry via errorHandler)
    */
   error(message: string, error?: unknown): void {
-    if (isDev) {
+    if (shouldLog) {
       console.error(`❌ ${message}`, error || '')
     }
   },
@@ -22,7 +22,7 @@ export const logger = {
    * Only outputs in development mode
    */
   warn(message: string, data?: unknown): void {
-    if (isDev) {
+    if (shouldLog) {
       console.warn(`⚠️ ${message}`, data || '')
     }
   },
@@ -32,7 +32,7 @@ export const logger = {
    * Only outputs in development mode
    */
   info(message: string, data?: unknown): void {
-    if (isDev) {
+    if (shouldLog) {
       console.info(`ℹ️ ${message}`, data || '')
     }
   },
@@ -42,7 +42,7 @@ export const logger = {
    * Only outputs in development mode
    */
   debug(message: string, data?: unknown): void {
-    if (isDev) {
+    if (shouldLog) {
       console.debug(`🐛 ${message}`, data || '')
     }
   },
@@ -52,7 +52,7 @@ export const logger = {
    * Only outputs in development mode
    */
   success(message: string, data?: unknown): void {
-    if (isDev) {
+    if (shouldLog) {
       console.log(`✅ ${message}`, data || '')
     }
   },
