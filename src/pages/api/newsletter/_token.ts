@@ -3,7 +3,7 @@
  * Generates and validates confirmation tokens for GDPR-compliant newsletter signups
  */
 
-import { supabaseAdmin } from '@components/scripts/consent/db/supabase'
+import { supabaseAdmin } from '@pages/api/_utils'
 import { ClientScriptError } from '@components/scripts/errors'
 
 /**

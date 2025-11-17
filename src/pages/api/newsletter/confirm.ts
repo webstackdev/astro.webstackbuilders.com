@@ -4,7 +4,7 @@
  * This is an Astro API route that runs server-side
  */
 import type { APIRoute } from 'astro'
-import { supabaseAdmin } from '@components/scripts/consent/db/supabase'
+import { supabaseAdmin } from '@pages/api/_utils'
 
 // These imports work in Astro API routes because they run server-side
 import { confirmSubscription } from './_token'
