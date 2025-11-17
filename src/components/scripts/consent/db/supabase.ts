@@ -1,21 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
-
-const supabaseUrl = import.meta.env['SUPABASE_URL']!
-
-// Admin client (server-side only, bypasses RLS)
-export const supabaseAdmin = createClient(
-  supabaseUrl,
-  import.meta.env['SUPABASE_SERVICE_ROLE_KEY']!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-)
+import { SUPABASE_KEY, SUPABASE_URL} from 'astro:env/client'
 
 // Public client (client-side, respects RLS)
 export const supabasePublic = createClient(
-  supabaseUrl,
-  import.meta.env['SUPABASE_KEY']!
+  SUPABASE_URL,
+  SUPABASE_KEY
 )
