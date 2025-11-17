@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro'
 import { CRON_SECRET } from 'astro:env/server'
-import { supabaseAdmin } from '@pages/api/_util'
+import { supabaseAdmin } from '@pages/api/_utils'
 import { ClientScriptError } from '@components/scripts/errors'
 
 /**
