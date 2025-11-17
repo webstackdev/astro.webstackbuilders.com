@@ -1,4 +1,3 @@
-// @vitest-environment happy-dom
 /**
  * Tests for navigation menu script using Container API pattern with happy-dom
  */
@@ -8,7 +7,6 @@ import { getNavToggleBtnElement } from '@components/Navigation/selectors'
 import { Navigation } from '@components/Navigation/client'
 import TestNavigationComponent from '@components/Navigation/__tests__/TestNavigation.astro'
 
-// Mock focus-trap to work in jsdom environment
 vi.mock('focus-trap', () => {
   return {
     createFocusTrap: () => ({

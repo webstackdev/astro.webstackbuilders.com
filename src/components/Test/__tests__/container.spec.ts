@@ -1,17 +1,14 @@
 /* eslint-disable jsdoc/escape-inline-tags */
-// @vitest-environment node
+// @vitest-environment happy-dom
 /**
  * ✅ WORKING Container API Reference Implementation
  *
  * This demonstrates the successful pattern for using Astro's Container API
  * with proper Vitest configuration using getViteConfig() from 'astro/config'.
- *
- * IMPORTANT: Container API requires @vitest-environment node due to esbuild issues in jsdom.
- * For DOM testing, use JSDOM manually within the node environment.
  */
 import { describe, it, expect, beforeEach } from 'vitest'
+import { Window } from 'happy-dom'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
-import { JSDOM } from 'jsdom'
 import ContainerComponent from '@components/Test/container.astro'
 
 describe('Container API Reference Implementation', () => {
@@ -50,14 +47,14 @@ describe('Container API Reference Implementation', () => {
       },
     })
 
-    // Create JSDOM instance for DOM testing in node environment
-    const dom = new JSDOM(result)
-    const document = dom.window.document
+    const window = new Window()
+    const domParser = new window.DOMParser()
+    const doc = domParser.parseFromString(result, 'text/html')
 
     // Test DOM elements from actual Astro component
-    const titleElement = document.querySelector('h2.test-title')
-    const messageElement = document.querySelector('p.test-message')
-    const buttonElement = document.querySelector('button.test-button')
+    const titleElement = doc.querySelector('h2.test-title')
+    const messageElement = doc.querySelector('p.test-message')
+    const buttonElement = doc.querySelector('button.test-button')
 
     expect(titleElement).toBeTruthy()
     expect(titleElement?.textContent).toBe('Interactive Test')
@@ -68,15 +65,5 @@ describe('Container API Reference Implementation', () => {
     expect(buttonElement).toBeTruthy()
     expect(buttonElement?.textContent?.trim()).toBe('Test Button')
     expect(buttonElement?.id).toBe('test-btn')
-  })
-
-  it('should demonstrate the Container API advantage over manual HTML', () => {
-    // ✅ GOOD: Using Container API with actual Astro component
-    // - Always in sync with template changes
-    // - Includes proper CSS classes and attributes
-    // - Validates props and component logic
-    // - Includes Astro's development attributes for debugging
-
-    expect(true).toBe(true) // This test documents the approach
   })
 })

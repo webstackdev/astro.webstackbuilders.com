@@ -1,5 +1,5 @@
+// @vitest-environment happy-dom
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import { JSDOM } from 'jsdom'
 import { readFileSync } from 'fs'
 import { resolve } from 'path'
 import { HeroLoader } from '@components/Hero/client'
@@ -37,9 +37,6 @@ describe('HeroLoader', () => {
   let timelineMock: any
 
   beforeEach(() => {
-    const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>')
-    global.document = dom.window.document
-    global.window = dom.window as unknown as Window & typeof globalThis
     vi.clearAllMocks()
     gsapMock = gsap
     timelineMock = {

@@ -6,11 +6,11 @@ This directory contains reusable mock implementations for testing.
 
 ### `focus-trap.ts`
 
-Mock implementation of the `focus-trap` library for testing in jsdom environments.
+Mock implementation of the `focus-trap` library for testing in DOM test environments.
 
 **Why this mock is needed:**
 
-- The real `focus-trap` library uses tabbable element detection that doesn't work properly in jsdom
+- The real `focus-trap` library uses tabbable element detection that doesn't work properly in test environments
 - Tests fail with "Your focus-trap must have at least one container with at least one tabbable node" errors
 - This mock provides simplified focus-trap behavior that works reliably in test environments
 

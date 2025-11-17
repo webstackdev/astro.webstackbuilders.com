@@ -135,6 +135,6 @@ Uses `@testing-library/preact` (not React) to match the project's Preact configu
 - `vitest` - Test runner
 - `@testing-library/preact` - Component rendering
 - `vitest-axe` - Accessibility testing
-- `jsdom` - DOM environment
+- `happy-dom` - DOM environment
 
 All dependencies were already present in the project.
