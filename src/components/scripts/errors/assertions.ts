@@ -1,8 +1,8 @@
 /**
  * Error-related assertions
  */
-import { ClientScriptError } from './ClientScriptError'
-import type { PromiseRejectionEvent } from '@components/scripts/@types/PromiseRejectionEvent'
+import { IClientScriptError } from './@types/ClientScriptError'
+import type { PromiseRejectionEvent } from '../@types/PromiseRejectionEvent'
 
 export function isError(error: unknown): error is Error {
   if (typeof error === 'object' && (error as Error).name === 'Error') return true
@@ -27,7 +27,7 @@ export function isPromiseRejectionEvent(error: unknown): error is PromiseRejecti
   return false
 }
 
-export function isClientScriptError(error: unknown): error is ClientScriptError {
+export function isClientScriptError(error: unknown): error is IClientScriptError {
   if (typeof error === 'object' && (error as Error).name === 'ClientScriptError') return true
   return false
 }

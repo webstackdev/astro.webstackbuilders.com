@@ -2,17 +2,9 @@
  * Custom error class for client-side script errors with enhanced context
  */
 import { normalizeMessage } from './converters'
+import { type IClientScriptError } from './@types/ClientScriptError'
 
-export interface ClientScriptErrorParams {
-  message: string
-  stack?: string | undefined
-  cause?: unknown
-  fileName?: string | undefined
-  columnNumber?: string | undefined
-  lineNumber?: string | undefined
-}
-
-export class ClientScriptError extends Error {
+export class ClientScriptError extends Error implements IClientScriptError {
   fileName?: string | undefined
   columnNumber?: string | undefined
   lineNumber?: string | undefined
@@ -49,6 +41,10 @@ export class ClientScriptError extends Error {
         name: this.name,
         message: this.message,
         stack: this.stack,
+        cause: this.cause,
+        fileName: this.fileName,
+        columnNumber: this.columnNumber,
+        lineNumber: this.lineNumber,
       },
     }
   }

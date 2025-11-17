@@ -3,6 +3,12 @@ import { getViteConfig } from 'astro/config'
 import { resolve } from 'path'
 import { getSiteUrl } from './src/lib/config'
 
+/**
+ * Needed to be able to skip running integrations in astro.config.ts
+ * during unit tests
+ */
+process.env['VITEST'] = 'true'
+
 export default getViteConfig({
   define: {
     'import.meta.env.DEV': true,

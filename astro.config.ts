@@ -20,12 +20,15 @@ import {
   environmentalVariablesConfig,
   getSentryAuthToken,
   getSiteUrl,
+  isUnitTest,
   isVercel,
   markdownConfig,
   serviceWorkerConfig,
   vercelConfig,
 } from './src/lib/config'
 import { callToActionValidator } from './src/integrations/CtaValidator'
+import { faviconGenerator } from './src/integrations/FaviconGenerator'
+import { packageRelease } from './src/integrations/PackageRelease'
 import { privacyPolicyVersion } from './src/integrations/PrivacyPolicyVersion'
 import { createSerializeFunction, pagesJsonWriter } from './src/integrations/sitemapSerialize'
 
@@ -35,16 +38,27 @@ export default defineConfig({
     enabled: false,
   },
   env: environmentalVariablesConfig,
-  integrations: [
+  /**
+   * Astro sets substantial Vite config internally in the framework. When you use Vitest
+   * in an Astro project, you use Astro's getViteConfig helper to get the resolved internal
+   * Vite syntax along with any Vite syntax set in this astro.config.ts file. Since integrations
+   * can change config, they're ran when the helper's called. This causes problems for 
+   * unit testing integrations.
+   */
+  integrations: isUnitTest() ? [] : [
     AstroPWA(serviceWorkerConfig),
     icon(),
     mdx(markdownConfig),
     preact({ devtools: true }),
+    /** Generate favicons and PWA icons from source SVG */
+    faviconGenerator(),
     /** Verify number of call to actions included in Markdown files */
     callToActionValidator({
       /** Enable debug logging to see validation details */
       debug: true
     }),
+    /** Inject package release (name@version) for tracking regressions between releases */
+    packageRelease(),
     /** Inject privacy policy version from git commit date for GDPR record keeping */
     privacyPolicyVersion(),
     /** Only include Sentry integration in Vercel environments */
