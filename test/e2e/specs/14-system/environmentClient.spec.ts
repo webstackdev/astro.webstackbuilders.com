@@ -20,7 +20,7 @@ test.describe('Client Environment Detection Regression', () => {
 
     // Execute the environment detection function in the browser context
     // Import and call the function directly in the browser
-    const isUnitTestResult = await page.page.evaluate(async () => {
+    const isUnitTestResult = await page.evaluate(async () => {
       // @ts-expect-error - Browser-side import, path resolved by dev server at runtime
       const { isUnitTest } = await import('/src/components/scripts/utils/environmentClient.ts')
       return isUnitTest()
@@ -36,7 +36,7 @@ test.describe('Client Environment Detection Regression', () => {
     await page.goto('/')
     await page.waitForLoadState('networkidle')
 
-    const isTestResult = await page.page.evaluate(async () => {
+    const isTestResult = await page.evaluate(async () => {
       // @ts-expect-error - Browser-side import, path resolved by dev server at runtime
       const { isTest } = await import('/src/components/scripts/utils/environmentClient.ts')
       return isTest()
@@ -52,7 +52,7 @@ test.describe('Client Environment Detection Regression', () => {
     await page.goto('/')
     await page.waitForLoadState('networkidle')
 
-    const isE2eTestResult = await page.page.evaluate(async () => {
+    const isE2eTestResult = await page.evaluate(async () => {
       // @ts-expect-error - Browser-side import, path resolved by dev server at runtime
       const { isE2eTest } = await import('/src/components/scripts/utils/environmentClient.ts')
       return isE2eTest()
@@ -68,7 +68,7 @@ test.describe('Client Environment Detection Regression', () => {
     await page.goto('/')
     await page.waitForLoadState('networkidle')
 
-    const isDevResult = await page.page.evaluate(async () => {
+    const isDevResult = await page.evaluate(async () => {
       // @ts-expect-error - Browser-side import, path resolved by dev server at runtime
       const { isDev } = await import('/src/components/scripts/utils/environmentClient.ts')
       return isDev()
@@ -84,7 +84,7 @@ test.describe('Client Environment Detection Regression', () => {
     await page.goto('/')
     await page.waitForLoadState('networkidle')
 
-    const isProdResult = await page.page.evaluate(async () => {
+    const isProdResult = await page.evaluate(async () => {
       // @ts-expect-error - Browser-side import, path resolved by dev server at runtime
       const { isProd } = await import('/src/components/scripts/utils/environmentClient.ts')
       return isProd()
