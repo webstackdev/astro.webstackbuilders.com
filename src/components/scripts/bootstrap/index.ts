@@ -10,7 +10,7 @@ import {
   initConsentSideEffects,
 } from '@components/scripts/store'
 import { SentryBootstrap } from '@components/scripts/sentry/client'
-import { isProd } from "@components.scripts/utils"
+import { isProd } from '@components/scripts/utils'
 
 export class AppBootstrap {
   static init(): void {
