@@ -1,6 +1,5 @@
 import type { APIRoute } from 'astro'
-import { supabaseAdmin } from '@components/scripts/consent/db/supabase'
-import { rateLimiters, checkRateLimit } from '@pages/api/_utils/rateLimit'
+import { rateLimiters, checkRateLimit, supabaseAdmin } from '@pages/api/_utils'
 import { sendDSARVerificationEmail } from '@pages/api/gdpr/_dsarVerificationEmails'
 import type { DSARRequestInput, DSARResponse, ErrorResponse } from '@pages/api/_contracts/gdpr.contracts'
 import { v4 as uuidv4 } from 'uuid'

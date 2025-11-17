@@ -1,6 +1,5 @@
 import type { APIRoute } from 'astro'
-import { supabaseAdmin } from '@components/scripts/consent/db/supabase'
-import { rateLimiters, checkRateLimit } from '@pages/api/_utils/rateLimit'
+import { rateLimiters, checkRateLimit, supabaseAdmin } from '@pages/api/_utils'
 import { validate as uuidValidate } from 'uuid'
 
 export const prerender = false // Force SSR for this endpoint
