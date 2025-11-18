@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 
 // Mock environment utilities BEFORE importing the module under test
-vi.mock('@components/scripts/utils', () => ({
+vi.mock('@components/scripts/utils/environmentClient', () => ({
   isDev: vi.fn(() => false),
   isTest: vi.fn(() => false),
 }))
@@ -249,10 +249,10 @@ describe('Rate Limit Utils', () => {
 
     beforeEach(async () => {
       // Get the mocked functions
-      const utils = await import('@components/scripts/utils')
+      const utils = await import('@components/scripts/utils/environmentClient')
       isDev = utils.isDev as ReturnType<typeof vi.fn>
       isTest = utils.isTest as ReturnType<typeof vi.fn>
-      
+
       // Reset to production mode by default
       isDev.mockReturnValue(false)
       isTest.mockReturnValue(false)
