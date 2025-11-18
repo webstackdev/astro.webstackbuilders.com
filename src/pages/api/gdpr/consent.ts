@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro'
-import { supabaseAdmin } from '@components/scripts/consent/db/supabase'
-import { rateLimiters, checkRateLimit } from '@pages/api/_utils/rateLimit'
+import { getPrivacyPolicyVersion } from '@components/scripts/utils/environmentClient'
+import { rateLimiters, checkRateLimit, supabaseAdmin } from '@pages/api/_utils'
 import { validate as uuidValidate } from 'uuid'
 import type { ConsentRequest, ConsentResponse, ErrorResponse } from '@pages/api/_contracts/gdpr.contracts'
 
@@ -47,7 +47,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
         source: body.source,
         user_agent: body.userAgent,
         ip_address: body.ipAddress,
-        privacy_policy_version: import.meta.env['PUBLIC_PRIVACY_POLICY_VERSION'] as string,
+        privacy_policy_version: getPrivacyPolicyVersion(),
         consent_text: body.consentText,
         verified: body.verified ?? false
       })

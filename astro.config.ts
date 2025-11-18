@@ -33,21 +33,6 @@ import { packageRelease } from './src/integrations/PackageRelease'
 import { privacyPolicyVersion } from './src/integrations/PrivacyPolicyVersion'
 import { createSerializeFunction, pagesJsonWriter } from './src/integrations/sitemapSerialize'
 
-const disablePwaIntegration = process.env['DISABLE_PWA']?.toLowerCase() === 'true'
-const enableRollupLogger = process.env['DEBUG_ROLLUP']?.toLowerCase() === 'true'
-
-const rollupImportLogger = (): PluginOption => ({
-  enforce: 'pre',
-  name: 'rollup-import-logger',
-  resolveId(source, importer) {
-    if (source.includes('rollup') || source === 'vite' || source.startsWith('vite/') || source.includes('vite/dist')) {
-      console.info('[rollup-import]', source, importer)
-    }
-
-    return null
-  },
-})
-
 export default defineConfig({
   adapter: vercelStatic(vercelConfig),
   devToolbar: {
@@ -62,7 +47,7 @@ export default defineConfig({
    * unit testing integrations.
    */
   integrations: isUnitTest() ? [] : [
-    ...(disablePwaIntegration ? [] : [AstroPWA(serviceWorkerConfig)]),
+    AstroPWA(serviceWorkerConfig),
     icon(),
     mdx(markdownConfig),
     /** Generate favicons and PWA icons from source SVG */
@@ -113,7 +98,6 @@ export default defineConfig({
     /* @ts-expect-error - tailwindcss plugin type compatibility */
     plugins: [
       tailwindcss(),
-      ...(enableRollupLogger ? [rollupImportLogger()] : []),
     ] as PluginOption[],
     resolve: {
       alias: {

@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/astro"
 import { SENTRY_DSN } from "astro:env/client"
-import { isDev, isProd } from '@lib/config'
+import { getPackageRelease, isDev, isProd } from '@lib/config'
 /**
  * Server-side Sentry initialization
  *
@@ -17,7 +17,7 @@ if (isProd()) {
     dsn: SENTRY_DSN,
 
     /** Release name to track regressions between releases */
-    release: import.meta.env['npm_package_name'] + '@' + import.meta.env['npm_package_version'],
+    release: getPackageRelease(),
 
     /** Environment name for filtering in Sentry */
     environment: 'production',
