@@ -1,7 +1,5 @@
 /**
  * The PromiseRejectionEvent constructor is a Web API and not provided by Happy Dom
- *
- * @see [PromiseRejectionEvent is not defined](https://github.com/jsdom/jsdom/issues/2401)
  */
 export type PromiseRejectionEventTypes = 'rejectionhandled' | 'unhandledrejection'
 
