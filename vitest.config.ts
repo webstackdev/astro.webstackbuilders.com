@@ -60,26 +60,27 @@ export default getViteConfig({
     // Use GitHub Actions reporter when running in CI so tests produce
     // actionable annotations in the Actions UI. Vitest 1.3.0+ includes
     // a built-in 'github-actions' reporter, so we rely on that here.
-  reporters: process.env['GITHUB_ACTIONS'] ? ['default', 'github-actions'] : 'default',
-    testTimeout: 30 * 1000,
-    setupFiles: ['./vitest.setup.ts'],
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json-summary', 'json', 'html', 'lcov'],
-      reportsDirectory: './coverage',
-      include: ['src/**/*.{ts,tsx,astro}', 'scripts/**/*.ts'],
-      exclude: [
-        'src/**/*.spec.ts',
-        'scripts/**/*.spec.ts',
-        'src/**/__tests__/**',
-        'scripts/**/__tests__/**',
-        'src/@types/**',
-        '@types/**',
-        '**/*.d.ts',
-      ],
-      all: true,
-      clean: true,
-    },
+    reporters: process.env['GITHUB_ACTIONS'] ? ['default', 'github-actions'] :
+      'default',
+      testTimeout: 30 * 1000,
+      setupFiles: ['./vitest.setup.ts'],
+      coverage: {
+        provider: 'v8',
+        reporter: ['text', 'json-summary', 'json', 'html', 'lcov'],
+        reportsDirectory: './coverage',
+        include: ['src/**/*.{ts,tsx,astro}', 'scripts/**/*.ts'],
+        exclude: [
+          'src/**/*.spec.ts',
+          'scripts/**/*.spec.ts',
+          'src/**/__tests__/**',
+          'scripts/**/__tests__/**',
+          'src/@types/**',
+          '@types/**',
+          '**/*.d.ts',
+        ],
+        all: true,
+        clean: true,
+      },
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 } as any)
