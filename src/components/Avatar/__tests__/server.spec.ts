@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import { isDev } from '@components/scripts/utils'
+import { isDev } from '@components/scripts/utils/environmentClient'
 /**
  * Comprehensive unit tests for AvatarManager
  *

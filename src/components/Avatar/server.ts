@@ -15,7 +15,7 @@
  */
 
 import type { ImageMetadata } from 'astro'
-import { isDev } from '@components/scripts/utils'
+import { isDev } from '@components/scripts/utils/environmentClient'
 
 type AvatarMap = Record<string, ImageMetadata>
 

@@ -15,12 +15,9 @@ export {
   deleteDataSubjectId,
 } from './dataSubjectId'
 
-export {
-  isUnitTest,
-  isE2eTest,
-  isTest,
-  isDev,
-  isProd,
-} from './environmentClient'
-
-export { getSiteUrl} from './siteUrlClient'
+/**
+ * !!!! DO NOT RE-EXPORT environmentClient.ts or siteUrlClient.ts methods here !!!!!
+ *
+ * Their use of "astro:env/client" causes Rollup problems in splitting the bundle
+ * when the methods are imported from this barrel file into both client and API contexts.
+ */

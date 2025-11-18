@@ -1,6 +1,6 @@
 import { captureException } from '@sentry/browser'
 import { ClientScriptError } from './ClientScriptError'
-import { isProd } from '@components/scripts/utils'
+import { isProd } from '@components/scripts/utils/environmentClient'
 
 export interface ScriptErrorContext {
   scriptName: string

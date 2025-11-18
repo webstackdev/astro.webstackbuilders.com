@@ -11,7 +11,7 @@ import {
   linkedErrorsIntegration,
 } from '@sentry/browser'
 import { SENTRY_DSN } from 'astro:env/client'
-import { isDev } from '@components/scripts/utils'
+import { isDev, getPackageRelease } from '@components/scripts/utils/environmentClient'
 import { $consent } from '@components/scripts/store/consent'
 
 /**
@@ -68,7 +68,7 @@ export class SentryBootstrap {
       ],
 
       /** Release name to track regressions between releases */
-      release: import.meta.env['npm_package_name'] + '@' + import.meta.env['npm_package_version'],
+      release: getPackageRelease(),
 
       /** Environment name for filtering in Sentry */
       environment: 'production',

@@ -3,7 +3,6 @@ import sharp, { type Metadata } from 'sharp'
 import toIco from 'to-ico'
 import { writeFile, mkdir } from 'fs/promises'
 import { existsSync } from 'fs'
-import { BuildError } from '@lib/errors'
 
 // Mock external dependencies before any imports
 vi.mock('sharp')

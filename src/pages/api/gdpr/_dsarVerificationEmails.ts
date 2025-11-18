@@ -4,11 +4,11 @@
  */
 import { RESEND_API_KEY } from 'astro:env/server'
 import { Resend } from 'resend'
-import { getSiteUrl } from '@lib/config'
+import { getSiteUrl } from '@components/scripts/utils/siteUrlClient'
 import { dsarVerificationEmailHtml } from '@content/email/dsar.html'
 import { dsarVerificationEmailText } from '@content/email/dsar.text'
 import { ClientScriptError } from '@components/scripts/errors'
-import { isDev, isTest } from '@components/scripts/utils'
+import { isDev, isTest } from '@components/scripts/utils/environmentClient'
 
 /**
  * Send verification email for DSAR request

@@ -9,7 +9,7 @@ import { Resend } from 'resend'
 import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
 import { RESEND_API_KEY } from 'astro:env/server'
 import { ClientScriptError } from '@components/scripts/errors'
-import { isDev, isTest } from '@components/scripts/utils'
+import { isDev, isTest } from '@components/scripts/utils/environmentClient'
 import { checkContactRateLimit } from '@pages/api/_utils'
 
 export const prerender = false // Force SSR for this endpoint

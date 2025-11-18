@@ -6,7 +6,8 @@
 import { Resend } from 'resend'
 import { RESEND_API_KEY } from 'astro:env/server'
 import { ClientScriptError } from '@components/scripts/errors'
-import { getSiteUrl, isDev, isTest } from '@components/scripts/utils'
+import { isDev, isTest } from '@components/scripts/utils/environmentClient'
+import { getSiteUrl } from '@components/scripts/utils/siteUrlClient'
 
 /**
  * Initialize Resend client

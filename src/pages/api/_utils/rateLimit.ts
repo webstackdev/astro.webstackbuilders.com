@@ -1,7 +1,7 @@
 import { Ratelimit } from '@upstash/ratelimit'
 import { Redis } from '@upstash/redis'
 import { KV_REST_API_URL, KV_REST_API_TOKEN } from 'astro:env/server'
-import { isDev, isTest } from '@components/scripts/utils'
+import { isDev, isTest } from '@components/scripts/utils/environmentClient'
 
 const redis = new Redis({
   url: KV_REST_API_URL,
