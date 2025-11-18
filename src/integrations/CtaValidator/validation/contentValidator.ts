@@ -10,6 +10,7 @@ import type {
   PageAnalysis,
   ValidatedContentType,
   WarningIssue,
+  CallToActionMode,
 } from '@integrations/CtaValidator/@types'
 import { findAstroFiles } from './pageValidator'
 /* eslint-disable-next-line no-restricted-imports */
@@ -90,6 +91,7 @@ export async function validateContentEntries(
   callToActionComponents: CallToActionComponent[],
   contentMapping: Map<string, string[]>,
   warnings: WarningIssue[],
+  validatePageCtaRequirementsFn: (analysis: PageAnalysis, mode: CallToActionMode) => WarningIssue[],
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   logger: any,
   debug: boolean
@@ -127,9 +129,7 @@ export async function validateContentEntries(
         }
 
         const mode = analysis.frontmatter.callToActionMode || 'default'
-        const entryWarnings = await import('./requirements.js').then((m) =>
-          m.validatePageCtaRequirements(analysis, mode)
-        )
+        const entryWarnings = validatePageCtaRequirementsFn(analysis, mode)
 
         warnings.push(...entryWarnings)
 
