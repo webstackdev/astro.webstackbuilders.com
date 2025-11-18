@@ -22,6 +22,7 @@ describe('Mastodon Instance Management', () => {
       analytics: false,
       marketing: false,
       functional: false,
+      DataSubjectId: '',
     })
     $mastodonInstances.set(new Set())
 
