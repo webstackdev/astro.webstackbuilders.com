@@ -6,7 +6,7 @@ import { persistentAtom } from '@nanostores/persistent'
 import { StoreController } from '@nanostores/lit'
 import type { ReactiveControllerHost } from 'lit'
 import { getCookie, setCookie } from '@components/scripts/utils/cookies'
-import { handleScriptError } from '@components/scripts/errors'
+import { handleScriptError } from '@components/scripts/errors/handler'
 import { $isConsentBannerVisible } from '@components/scripts/store/visibility'
 import { getOrCreateDataSubjectId, deleteDataSubjectId } from '@components/scripts/utils/dataSubjectId'
 

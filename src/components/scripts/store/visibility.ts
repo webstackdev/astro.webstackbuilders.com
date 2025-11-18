@@ -4,7 +4,7 @@
  */
 import { computed } from 'nanostores'
 import { persistentAtom } from '@nanostores/persistent'
-import { handleScriptError } from '@components/scripts/errors'
+import { handleScriptError } from '@components/scripts/errors/handler'
 
 // ============================================================================
 // TYPES

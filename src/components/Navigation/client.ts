@@ -10,7 +10,8 @@ import {
   getMobileNavFocusContainer,
 } from '@components/Navigation/selectors'
 import { isAnchorElement } from '@components/scripts/assertions/elements'
-import { addScriptBreadcrumb, ClientScriptError, handleScriptError } from '@components/scripts/errors'
+import { addScriptBreadcrumb, ClientScriptError } from '@components/scripts/errors'
+import { handleScriptError } from '@components/scripts/errors/handler'
 import { dispatchAnimationEvent, AnimationLifecycleEvent } from '@components/scripts/events'
 import { addButtonEventListeners, addLinkEventListeners } from '@components/scripts/elementListeners'
 

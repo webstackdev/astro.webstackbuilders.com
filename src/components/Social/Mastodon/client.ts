@@ -31,7 +31,8 @@ import {
   getSavedInstancesContainer,
   getSavedInstancesList,
 } from './selectors'
-import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
+import { addScriptBreadcrumb } from '@components/scripts/errors'
+import { handleScriptError } from '@components/scripts/errors/handler'
 
 /**
  * Custom event detail for modal open

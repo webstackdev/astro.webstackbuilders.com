@@ -5,7 +5,8 @@
  */
 import { recordFormConsent, clearFormConsent } from './state'
 import { getConsentCheckbox, getConsentError } from './selectors'
-import { addScriptBreadcrumb, ClientScriptError, handleScriptError } from '@components/scripts/errors'
+import { addScriptBreadcrumb, ClientScriptError } from '@components/scripts/errors'
+import { handleScriptError } from '@components/scripts/errors/handler'
 
 /**
  * Initialize GDPR consent checkbox

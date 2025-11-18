@@ -2,7 +2,8 @@
  * Script for the Footer component
  */
 import { getHireMeAnchorElement } from '@components/Footer/selectors'
-import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
+import { addScriptBreadcrumb } from '@components/scripts/errors'
+import { handleScriptError } from '@components/scripts/errors/handler'
 
 class Footer {
   static scriptName = 'Footer'

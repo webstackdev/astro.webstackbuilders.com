@@ -4,7 +4,8 @@
  */
 
 import { isMetaElement } from '@components/scripts/assertions/elements'
-import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
+import { addScriptBreadcrumb } from '@components/scripts/errors'
+import { handleScriptError } from '@components/scripts/errors/handler'
 
 /**
  * Handle click event for share button

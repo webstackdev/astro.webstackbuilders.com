@@ -5,7 +5,8 @@ import {
   getDownloadStatusDiv,
   getDownloadButtonWrapper,
 } from './selectors'
-import { addScriptBreadcrumb, ClientScriptError, handleScriptError } from '@components/scripts/errors'
+import { addScriptBreadcrumb, ClientScriptError } from '@components/scripts/errors'
+import { handleScriptError } from '@components/scripts/errors/handler'
 
 /**
  * DownloadForm component

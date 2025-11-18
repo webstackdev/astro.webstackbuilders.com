@@ -18,7 +18,8 @@ import {
   getConsentCustomizeBtn,
   getConsentWrapper,
 } from '@components/Consent/Banner/selectors'
-import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
+import { addScriptBreadcrumb } from '@components/scripts/errors'
+import { handleScriptError } from '@components/scripts/errors/handler'
 
 /**
  * Consent Banner Custom Element

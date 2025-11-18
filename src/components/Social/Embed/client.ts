@@ -1,5 +1,6 @@
 import { cacheEmbed, getCachedEmbed } from '@components/scripts/store'
-import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
+import { addScriptBreadcrumb } from '@components/scripts/errors'
+import { handleScriptError } from '@components/scripts/errors/handler'
 
 /**
  * Platform types supported by the Embed component

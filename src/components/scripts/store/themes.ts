@@ -11,7 +11,7 @@
 import { persistentAtom } from '@nanostores/persistent'
 import { StoreController } from '@nanostores/lit'
 import type { ReactiveControllerHost } from 'lit'
-import { handleScriptError } from '@components/scripts/errors'
+import { handleScriptError } from '@components/scripts/errors/handler'
 
 // ============================================================================
 // TYPES

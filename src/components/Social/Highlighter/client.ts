@@ -8,7 +8,8 @@ import type { ShareData } from '@components/Social/common'
 import { platforms, copyToClipboard, nativeShare } from '@components/Social/common'
 import { MastodonModal } from '@components/Social/Mastodon/client'
 import { getSlotElement } from '@components/Social/Highlighter/selectors'
-import { handleScriptError, addScriptBreadcrumb } from '@components/scripts/errors'
+import { addScriptBreadcrumb } from '@components/scripts/errors'
+import { handleScriptError } from '@components/scripts/errors/handler'
 import { addButtonEventListeners } from '@components/scripts/elementListeners'
 
 /**

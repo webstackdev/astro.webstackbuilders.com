@@ -1,6 +1,7 @@
 import EmblaCarousel, { type EmblaOptionsType, type EmblaCarouselType } from 'embla-carousel'
 import Autoplay from 'embla-carousel-autoplay'
-import { addScriptBreadcrumb, ClientScriptError, handleScriptError } from '@components/scripts/errors'
+import { addScriptBreadcrumb, ClientScriptError } from '@components/scripts/errors'
+import { handleScriptError } from '@components/scripts/errors/handler'
 import { addButtonEventListeners } from '@components/scripts/elementListeners'
 
 /**
