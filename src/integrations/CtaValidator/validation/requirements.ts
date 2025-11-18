@@ -51,6 +51,7 @@ export async function validateCtaRequirements(
     callToActionComponents,
     contentMapping,
     warnings,
+    validatePageCtaRequirements,
     logger,
     debug
   )
