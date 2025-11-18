@@ -1,5 +1,5 @@
 /* eslint-disable jsdoc/escape-inline-tags */
-// @vitest-environment happy-dom
+// @vitest-environment node
 /**
  * ✅ WORKING Container API Reference Implementation
  *
