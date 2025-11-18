@@ -3,6 +3,8 @@ import { CRON_SECRET } from 'astro:env/server'
 import { supabaseAdmin } from '@pages/api/_utils'
 import { ClientScriptError } from '@components/scripts/errors'
 
+export const prerender = false
+
 /**
  * Cron job to clean up DSAR requests
  * - Removes fulfilled requests older than 30 days
