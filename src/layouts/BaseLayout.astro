@@ -2,7 +2,7 @@
 import Breadcrumbs from '@components/Breadcrumbs/index.astro'
 import Container from '@components/Layout/Container/index.astro'
 import CookieConsent from '@components/Consent/Banner/index.astro'
-import FooterPreact from '@components/Footer/FooterPreact'
+import Footer from '@components/Footer/index.astro'
 import HeadContent from '@components/Head/index.astro'
 import Header from '@components/Header/index.astro'
 import Content from '@components/Layout/Content/index.astro'
@@ -92,7 +92,7 @@ const avatarSrc = AuthorAvatar.src
       <PwaTitleBar />
       {/* Site header and main content */}
       <Container id="main-content">
-        <ThemePicker client:load />
+  <ThemePicker />
         <Header path={path} />
         <Breadcrumbs path={path} pageTitle={pageTitle} />
         {/* Main page content */}
@@ -100,7 +100,7 @@ const avatarSrc = AuthorAvatar.src
           <slot />
         </Content>
         {/* Site footer - Preact component */}
-        <FooterPreact year={year} siteUrl={siteUrl} authorAvatar={avatarSrc} client:load transition:name="footer-island" transition:persist />
+        <Footer />
       </Container>
     </body>
   </>

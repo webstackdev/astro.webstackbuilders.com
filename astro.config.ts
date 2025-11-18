@@ -1,13 +1,14 @@
 import mdx from '@astrojs/mdx'
-import preact from '@astrojs/preact'
 import sitemap from '@astrojs/sitemap'
 import vercelStatic from '@astrojs/vercel'
-import sentry from "@sentry/astro"
+import sentry from '@sentry/astro'
 import tailwindcss from '@tailwindcss/vite'
 import AstroPWA from '@vite-pwa/astro'
 import vtbot from 'astro-vtbot'
 import icon from 'astro-icon'
 import { defineConfig } from 'astro/config'
+import { fileURLToPath } from 'node:url'
+import type { PluginOption } from 'vite'
 /**
  * You cannot use path aliases (@lib, @components, etc.) in files that are
  * imported by astro.config.ts, because the path alias resolution happens
@@ -32,6 +33,21 @@ import { packageRelease } from './src/integrations/PackageRelease'
 import { privacyPolicyVersion } from './src/integrations/PrivacyPolicyVersion'
 import { createSerializeFunction, pagesJsonWriter } from './src/integrations/sitemapSerialize'
 
+const disablePwaIntegration = process.env['DISABLE_PWA']?.toLowerCase() === 'true'
+const enableRollupLogger = process.env['DEBUG_ROLLUP']?.toLowerCase() === 'true'
+
+const rollupImportLogger = (): PluginOption => ({
+  enforce: 'pre',
+  name: 'rollup-import-logger',
+  resolveId(source, importer) {
+    if (source.includes('rollup') || source === 'vite' || source.startsWith('vite/') || source.includes('vite/dist')) {
+      console.info('[rollup-import]', source, importer)
+    }
+
+    return null
+  },
+})
+
 export default defineConfig({
   adapter: vercelStatic(vercelConfig),
   devToolbar: {
@@ -42,20 +58,19 @@ export default defineConfig({
    * Astro sets substantial Vite config internally in the framework. When you use Vitest
    * in an Astro project, you use Astro's getViteConfig helper to get the resolved internal
    * Vite syntax along with any Vite syntax set in this astro.config.ts file. Since integrations
-   * can change config, they're ran when the helper's called. This causes problems for 
+   * can change config, they're ran when the helper's called. This causes problems for
    * unit testing integrations.
    */
   integrations: isUnitTest() ? [] : [
-    AstroPWA(serviceWorkerConfig),
+    ...(disablePwaIntegration ? [] : [AstroPWA(serviceWorkerConfig)]),
     icon(),
     mdx(markdownConfig),
-    preact({ devtools: true }),
     /** Generate favicons and PWA icons from source SVG */
     faviconGenerator(),
     /** Verify number of call to actions included in Markdown files */
     callToActionValidator({
       /** Enable debug logging to see validation details */
-      debug: true
+      debug: true,
     }),
     /** Inject package release (name@version) for tracking regressions between releases */
     packageRelease(),
@@ -87,13 +102,23 @@ export default defineConfig({
       /** Source map generation must be turned on for Sentry. */
       sourcemap: true,
     },
+    define: {
+      /**
+       * LightningCSS exposes a WASM build via require('../pkg'), which Vite cannot
+       * resolve when bundling for the browser. Setting this flag to false at build
+       * time lets Rollup tree-shake the problematic branch.
+       */
+      'process.env.CSS_TRANSFORMER_WASM': 'false',
+    },
     /* @ts-expect-error - tailwindcss plugin type compatibility */
-    plugins: [tailwindcss()],
-    /**
-     * Note: The "astro:transitions sourcemap" warning is cosmetic and can be safely
-     * ignored. It occurs because the transitions plugin transforms code without
-     * generating sourcemaps. This doesn't affect build functionality, runtime
-     * performance, or debugging capabilities
-     */
+    plugins: [
+      tailwindcss(),
+      ...(enableRollupLogger ? [rollupImportLogger()] : []),
+    ] as PluginOption[],
+    resolve: {
+      alias: {
+        fsevents: fileURLToPath(new URL('./src/shims/fsevents.ts', import.meta.url)),
+      },
+    },
   }
 })
