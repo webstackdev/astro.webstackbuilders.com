@@ -3,6 +3,7 @@ import sharp, { type Metadata } from 'sharp'
 import toIco from 'to-ico'
 import { writeFile, mkdir } from 'fs/promises'
 import { existsSync } from 'fs'
+import { isUnitTest } from '@lib/config/environmentServer'
 
 // Mock external dependencies before any imports
 vi.mock('sharp')
@@ -50,7 +51,7 @@ describe('FaviconGenerator Integration', () => {
   afterAll(() => {
     // Force process exit after a brief delay to allow cleanup
     setTimeout(() => {
-      if (process.env.VITEST) {
+      if (isUnitTest()) {
         process.exit(0)
       }
     }, 100)
