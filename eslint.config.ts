@@ -157,9 +157,7 @@ export default [
       'jsdoc/valid-types': 'off',
       'new-cap': [level, { newIsCap: true, capIsNew: false }],
       'no-new': level,
-      'no-process-env': [level, , {
-        "message": "Do not use  process.env directly. See docs/ENVIRONMENT_VARIABLES."
-      }],
+      'no-process-env': level,
       'no-restricted-globals': ['error'].concat(restrictedGlobals),
       'no-restricted-imports': [
         'error', {
@@ -222,7 +220,6 @@ export default [
   {
     files: [
       /** Database files that use snake_case for database field names */
-      'src/components/scripts/consent/db/__tests__/rls.spec.ts',
       'src/pages/api/gdpr/consent.ts',
       'src/pages/api/gdpr/request-data.ts',
       'src/pages/api/gdpr/verify.ts',
@@ -233,40 +230,36 @@ export default [
     },
   },
   {
-    /** Test files can import from server code in src/lib */
+    /** Test files can import from server code in src/lib, but must use server-side helpers */
     files: ['src/**/__tests__/**/*'],
     rules: {
-      'import/no-restricted-paths': 'off',
+      'import/no-restricted-paths': [
+        level,
+        {
+          zones: [
+            {
+              target: 'src/**/__tests__/**/*',
+              from: 'src/components/scripts/utils/environmentClient.ts',
+              message: 'use src/lib/config/environmentServer.ts in test files, not environmentClient.',
+            },
+            {
+              target: 'src/**/__tests__/**/*',
+              from: 'src/components/scripts/utils/siteUrlClient.ts',
+              message: 'use src/lib/config/siteUrlServer.ts in test files, not siteUrlClient.',
+            },
+          ],
+        },
+      ],
     },
   },
   {
-    /** Test files can import from server code in src/lib */
-    'import/no-restricted-paths': [
-      level,
-      {
-        zones: [
-          {
-            target: 'src/**/__tests__/**/*',
-            from: 'src/components/scripts/utils/environmentClient.ts',
-            message: 'use src/lib/config/environmentServer.ts in test files, not environmentClient.',
-          },
-          {
-            target: 'src/**/__tests__/**/*',
-            from: 'src/components/scripts/utils/siteUrlClient.ts',
-            message: 'use src/lib/config/siteUrlServer.ts in test files, not siteUrlClient.',
-          },
-        ],
-      },
-    ],
-  },
-  {
-    /** These directories should can use process.env, which is forbidden in other files */
+    /** These directories can use process.env, which is forbidden in other files */
     files: [
       '.eslintrc.js',
       'astro.config.ts',
       'playwright.config.ts',
       'vitest.setup.ts',
-      'scripts/build/**/*'
+      'src/lib/config/**/*'
     ],
     rules: {
       'no-process-env': 'off',
