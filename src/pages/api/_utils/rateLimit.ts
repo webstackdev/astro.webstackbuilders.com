@@ -7,46 +7,27 @@ import {
   isTest,
 } from '@pages/api/_environment'
 
-const redis = new Redis({
-  url: getUpstashApiUrl(),
-  token: getUpstashApiToken(),
-})
+type RateLimiter = {
+  limit: (identifier: string) => Promise<{ success: boolean; reset: number | undefined }>
+}
+
+const redis = createRedisClient()
 
 // Simple in-memory rate limiting (use Redis in production)
 const rateLimitStore = new Map<string, number[]>()
 
-export const rateLimiters = {
-  consent: new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(10, '1 m'),
-    analytics: true,
-  }),
-  consentRead: new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(30, '1 m'),
-    analytics: true,
-  }),
-  export: new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(5, '1 m'),
-    analytics: true,
-  }),
-  delete: new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(3, '1 m'),
-    analytics: true,
-  }),
-  contact: new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(5, '15 m'),
-    analytics: true,
-  }),
+export const rateLimiters: Record<string, RateLimiter> = {
+  consent: createLimiter(Ratelimit.slidingWindow(10, '1 m')),
+  consentRead: createLimiter(Ratelimit.slidingWindow(30, '1 m')),
+  export: createLimiter(Ratelimit.slidingWindow(5, '1 m')),
+  delete: createLimiter(Ratelimit.slidingWindow(3, '1 m')),
+  contact: createLimiter(Ratelimit.slidingWindow(5, '15 m')),
 }
 
 export async function checkRateLimit(
-  limiter: Ratelimit,
-  identifier: string
-): Promise<{ success: boolean; reset?: number }> {
+  limiter: RateLimiter,
+  identifier: string,
+): Promise<{ success: boolean; reset: number | undefined }> {
   const result = await limiter.limit(identifier)
   return {
     success: result.success,
@@ -80,4 +61,29 @@ export function checkContactRateLimit(ipFingerprint: string): boolean {
   validRequests.push(now)
   rateLimitStore.set(key, validRequests)
   return true
+}
+
+function createRedisClient(): Redis | undefined {
+  if (isDev() || isTest()) {
+    return undefined
+  }
+
+  return new Redis({
+    url: getUpstashApiUrl(),
+    token: getUpstashApiToken(),
+  })
+}
+
+function createLimiter(window: ReturnType<typeof Ratelimit.slidingWindow>): RateLimiter {
+  if (!redis) {
+    return {
+      limit: async () => ({ success: true, reset: Date.now() }),
+    }
+  }
+
+  return new Ratelimit({
+    redis,
+    limiter: window,
+    analytics: true,
+  })
 }

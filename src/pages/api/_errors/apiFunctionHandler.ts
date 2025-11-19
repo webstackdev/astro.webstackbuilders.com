@@ -71,14 +71,17 @@ export function handleApiFunctionError(
   error: unknown,
   context: ApiFunctionContext,
 ): ApiFunctionError {
-  const serverError = ApiFunctionError.from(error, {
+  const overrides: Partial<ApiFunctionErrorParams> = {
     route: context.route,
-    operation: context.operation,
-    requestId: context.requestId,
-    correlationId: context.correlationId,
-    status: context.status,
-    code: context.code,
-  } satisfies Partial<ApiFunctionErrorParams>)
+  }
+
+  if (context.operation !== undefined) overrides.operation = context.operation
+  if (context.requestId !== undefined) overrides.requestId = context.requestId
+  if (context.correlationId !== undefined) overrides.correlationId = context.correlationId
+  if (context.status !== undefined) overrides.status = context.status
+  if (context.code !== undefined) overrides.code = context.code
+
+  const serverError = ApiFunctionError.from(error, overrides)
 
   const hasFunctionalConsent = context.consent?.functional ?? false
   const hashSalt = context.hashSalt ?? context.route

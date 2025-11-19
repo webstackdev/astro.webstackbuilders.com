@@ -1,6 +1,5 @@
 import { init as sentryInit } from '@sentry/astro'
-import { SENTRY_DSN } from 'astro:env/server'
-import { getPackageRelease, isDev, isProd } from '@pages/api/_environment'
+import { getPackageRelease, getSentryDsn, isDev, isProd } from '@pages/api/_environment'
 
 let initialized = false
 
@@ -13,14 +12,8 @@ export function ensureApiSentry(): void {
     return
   }
 
-  if (!SENTRY_DSN) {
-    console.warn('[sentry] SENTRY_DSN is not configured; server-side telemetry disabled')
-    initialized = true
-    return
-  }
-
   sentryInit({
-    dsn: SENTRY_DSN,
+    dsn: getSentryDsn(),
     release: getPackageRelease(),
     environment: 'production',
     tracesSampleRate: 1.0,

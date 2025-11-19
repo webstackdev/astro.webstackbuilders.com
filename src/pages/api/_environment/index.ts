@@ -118,6 +118,22 @@ export function getResendApiKey(): string {
 }
 
 /**
+ * Gets the Sentry DSN. This value is set in Vercel env vars and
+ * made available to serverless functions by default.
+ *
+ * @throws {ApiFunctionError} If SENTRY_DSN is not set
+ */
+export function getSentryDsn(): string {
+  const key = process.env['SENTRY_DSN']
+  if (!key) {
+    throw new ApiFunctionError(
+      'SENTRY_DSN environment variable is not set. This is either set in a .env file locally during development, in GitHub Secrets and made available in CI runs by the .github/workflows actions, or by Vercel as an env var made available to serverless functions in deployment.'
+    )
+  }
+  return key
+}
+
+/**
  * Gets the Suprabase REST API URL token. This value is set in Vercel env vars and
  * made available to serverless functions by default.
  *
