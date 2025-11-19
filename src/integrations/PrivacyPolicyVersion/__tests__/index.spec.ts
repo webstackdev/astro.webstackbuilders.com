@@ -55,7 +55,7 @@ describe('PrivacyPolicyVersion Integration', () => {
       expect(mockUpdateConfig).toHaveBeenCalledWith({
         vite: {
           define: {
-            'import.meta.env.PUBLIC_PRIVACY_POLICY_VERSION': '"2024-03-15"',
+            'import.meta.env.PRIVACY_POLICY_VERSION': '"2024-03-15"',
           },
         },
       })
@@ -83,13 +83,13 @@ describe('PrivacyPolicyVersion Integration', () => {
       expect(mockUpdateConfig).toHaveBeenCalledWith({
         vite: {
           define: {
-            'import.meta.env.PUBLIC_PRIVACY_POLICY_VERSION': '"2024-03-15"',
+            'import.meta.env.PRIVACY_POLICY_VERSION': '"2024-03-15"',
           },
         },
       })
     })
 
-    it('should use current date as fallback when git command fails', async () => {
+    it('should throw BuildError when git command fails', async () => {
       // Mock git command failure
       vi.mocked(execSync).mockImplementation(() => {
         throw new TestError('Git command failed')
@@ -100,24 +100,18 @@ describe('PrivacyPolicyVersion Integration', () => {
       const mockUpdateConfig = vi.fn()
       const integration = privacyPolicyVersion()
 
-      await integration.hooks['astro:config:setup']?.({
-        updateConfig: mockUpdateConfig,
-        // @ts-expect-error - Partial mock
-        config: {},
-      })
+      await expect(
+        integration.hooks['astro:config:setup']?.({
+          updateConfig: mockUpdateConfig,
+          // @ts-expect-error - Partial mock
+          config: {},
+        }),
+      ).rejects.toThrow('Could not get privacy policy version from git')
 
-      // Should use current date (can't assert exact date, but check format)
-      const callArgs = mockUpdateConfig.mock.calls[0]?.[0]
-      const versionString = callArgs?.vite?.define?.['import.meta.env.PUBLIC_PRIVACY_POLICY_VERSION']
-
-      expect(versionString).toMatch(/^"\d{4}-\d{2}-\d{2}"$/)
-
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Could not get privacy policy version from git'),
-      )
+      expect(consoleWarnSpy).not.toHaveBeenCalled()
     })
 
-    it('should use current date when git returns empty string', async () => {
+    it('should throw BuildError when git returns empty string', async () => {
       // Mock git command returning empty string
       vi.mocked(execSync).mockReturnValue('')
 
@@ -126,17 +120,13 @@ describe('PrivacyPolicyVersion Integration', () => {
       const mockUpdateConfig = vi.fn()
       const integration = privacyPolicyVersion()
 
-      await integration.hooks['astro:config:setup']?.({
-        updateConfig: mockUpdateConfig,
-        // @ts-expect-error - Partial mock
-        config: {},
-      })
-
-      // Should use current date as fallback
-      const callArgs = mockUpdateConfig.mock.calls[0]?.[0]
-      const versionString = callArgs?.vite?.define?.['import.meta.env.PUBLIC_PRIVACY_POLICY_VERSION']
-
-      expect(versionString).toMatch(/^"\d{4}-\d{2}-\d{2}"$/)
+      await expect(
+        integration.hooks['astro:config:setup']?.({
+          updateConfig: mockUpdateConfig,
+          // @ts-expect-error - Partial mock
+          config: {},
+        }),
+      ).rejects.toThrow('No git commits found for privacy policy file')
     })
   })
 

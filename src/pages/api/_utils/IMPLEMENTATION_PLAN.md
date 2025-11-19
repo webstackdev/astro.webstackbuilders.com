@@ -85,7 +85,7 @@ openssl rand -base64 32
 
 **Privacy Policy Version:**
 
-The privacy policy version is automatically determined at build time by the `PrivacyPolicyVersion` Astro integration (`src/integrations/PrivacyPolicyVersion/index.ts`). It uses the git commit date of the privacy policy file and is available as `import.meta.env.PUBLIC_PRIVACY_POLICY_VERSION`. No manual configuration needed.
+The privacy policy version is automatically determined at build time by the `PrivacyPolicyVersion` Astro integration (`src/integrations/PrivacyPolicyVersion/index.ts`). It uses the git commit date of the privacy policy file and is available as `import.meta.env.PRIVACY_POLICY_VERSION`. No manual configuration needed.
 
 ### 0.4 Create Directory Structure
 
@@ -601,7 +601,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
         source: body.source,
         user_agent: body.userAgent,
         ip_address: body.ipAddress,
-        privacy_policy_version: import.meta.env.PUBLIC_PRIVACY_POLICY_VERSION,
+        privacy_policy_version: import.meta.env.PRIVACY_POLICY_VERSION,
         consent_text: body.consentText,
         verified: body.verified ?? false
       })
@@ -1012,7 +1012,7 @@ SUPABASE_SERVICE_ROLE_KEY
 4. **Privacy Policy Version**:
    - Automatically generated at build time from git commit date
    - Handled by `PrivacyPolicyVersion` integration (`src/integrations/PrivacyPolicyVersion/index.ts`)
-   - Available as `import.meta.env.PUBLIC_PRIVACY_POLICY_VERSION`
+   - Available as `import.meta.env.PRIVACY_POLICY_VERSION`
    - No manual configuration needed
 
 5. **Testing Strategy**:
@@ -1255,7 +1255,7 @@ Both endpoints include:
 - Uses lazy loading to avoid circular dependencies
 - Includes error handling for environments where Sentry isn't initialized
 
-3. Server-side Sentry (sentry.server.config.js):
+3. Server-side Sentry (sentry.server.config.ts):
 
 - Added clarifying comment that server-side always sends PII
 - Server errors need full context as they occur in API/SSR without direct user consent

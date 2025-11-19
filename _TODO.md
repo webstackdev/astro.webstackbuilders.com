@@ -1,5 +1,10 @@
 # TODO
 
+## src/pages/api next steps
+
+1. build Supabase-aware fixtures to cover the GDPR endpoints (consent/request/export/verify) end-to-end
+2. add integration-style tests that exercise the DSAR flow using a lightweight fake DB layer.
+
 Files with Skipped Tests:
 
 social-shares.spec.ts - 12 @wip
