@@ -4,43 +4,59 @@
  * Usage: GET /api/social-card?slug=article-title&title=Article Title&description=Article description
  */
 import type { APIRoute } from 'astro'
+import { handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
 
-export const prerender = false // Force SSR for this endpoint
+export const prerender = false
+
+const ROUTE = '/api/social-card'
+
+const jsonErrorResponse = (message: string, status: number) =>
+  new Response(
+    JSON.stringify({
+      success: false,
+      error: message,
+    }),
+    {
+      status,
+      headers: { 'Content-Type': 'application/json' },
+    },
+  )
 
 export const GET: APIRoute = async ({ request }) => {
-  const url = new URL(request.url)
-  const slug = url.searchParams.get('slug') || 'home'
-  const title = url.searchParams.get('title') || 'Webstack Builders'
-  const description = url.searchParams.get('description') || 'Professional Web Development Services'
-  const date = url.searchParams.get('date') || new Date().toLocaleDateString()
-  const format = url.searchParams.get('format') || 'html' // html or og
+  try {
+    const url = new URL(request.url)
+    const slug = url.searchParams.get('slug') || 'home'
+    const title = url.searchParams.get('title') || 'Webstack Builders'
+    const description = url.searchParams.get('description') || 'Professional Web Development Services'
+    const date = url.searchParams.get('date') || new Date().toLocaleDateString()
+    const format = url.searchParams.get('format') || 'html' // html or og
 
-  // If requesting Open Graph meta tags
-  if (format === 'og') {
-    const imageUrl = `${url.origin}/api/social-card?slug=${encodeURIComponent(slug)}&title=${encodeURIComponent(title)}&description=${encodeURIComponent(description)}&format=html`
+    // If requesting Open Graph meta tags
+    if (format === 'og') {
+      const imageUrl = `${url.origin}/api/social-card?slug=${encodeURIComponent(slug)}&title=${encodeURIComponent(title)}&description=${encodeURIComponent(description)}&format=html`
 
-    return new Response(
-      JSON.stringify({
-        'og:title': title,
-        'og:description': description,
-        'og:image': imageUrl,
-        'og:url': `${url.origin}/${slug}`,
-        'twitter:card': 'summary_large_image',
-        'twitter:title': title,
-        'twitter:description': description,
-        'twitter:image': imageUrl,
-      }),
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'public, max-age=3600',
-        },
-      }
-    )
-  }
+      return new Response(
+        JSON.stringify({
+          'og:title': title,
+          'og:description': description,
+          'og:image': imageUrl,
+          'og:url': `${url.origin}/${slug}`,
+          'twitter:card': 'summary_large_image',
+          'twitter:title': title,
+          'twitter:description': description,
+          'twitter:image': imageUrl,
+        }),
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'public, max-age=3600',
+          },
+        }
+      )
+    }
 
-  // HTML template for social card (can be screenshot by external services)
-  const htmlTemplate = `
+    // HTML template for social card (can be screenshot by external services)
+    const htmlTemplate = `
     <!DOCTYPE html>
     <html lang="en">
       <head>
@@ -143,10 +159,18 @@ export const GET: APIRoute = async ({ request }) => {
     </html>
   `
 
-  return new Response(htmlTemplate, {
-    headers: {
-      'Content-Type': 'text/html',
-      'Cache-Control': 'public, max-age=3600',
-    },
-  })
+    return new Response(htmlTemplate, {
+      headers: {
+        'Content-Type': 'text/html',
+        'Cache-Control': 'public, max-age=3600',
+      },
+    })
+  } catch (error) {
+    const serverError = handleApiFunctionError(error, {
+      route: ROUTE,
+      operation: 'GET',
+    })
+
+    return jsonErrorResponse('Unable to generate social card', serverError.status ?? 500)
+  }
 }

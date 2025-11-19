@@ -1,7 +1,8 @@
 import type { APIRoute } from 'astro'
-import { CRON_SECRET } from 'astro:env/server'
+import { getCronSecret } from '@pages/api/_environment'
 import { supabaseAdmin } from '@pages/api/_utils'
-import { ClientScriptError } from '@components/scripts/errors'
+import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
+import { handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
 
 export const prerender = false
 
@@ -16,7 +17,7 @@ export const GET: APIRoute = async ({ request }) => {
   // Verify cron secret for security
   const authHeader = request.headers.get('authorization')
 
-  if (authHeader !== `Bearer ${CRON_SECRET}`) {
+  if (authHeader !== `Bearer ${getCronSecret()}`) {
     console.warn('Unauthorized cron attempt - invalid CRON_SECRET')
     return new Response(
       JSON.stringify({ success: false, error: 'Unauthorized' }),
@@ -35,10 +36,15 @@ export const GET: APIRoute = async ({ request }) => {
       .lt('expires_at', now.toISOString())
       .select()
 
-    if (expiredError) {
-      throw new ClientScriptError({
-        message: `Failed to delete expired tokens: ${expiredError.message}`
-      })
+  if (expiredError) {
+    throw new ApiFunctionError({
+      message: `Failed to delete expired tokens: ${expiredError.message}`,
+      cause: expiredError,
+      code: 'CRON_DELETE_EXPIRED_TOKENS_FAILED',
+      status: 500,
+      route: '/api/cron/cleanup-confirmations',
+      operation: 'deleteExpiredTokens'
+    })
     }
 
     // Delete old confirmed records (7+ days old)
@@ -49,10 +55,15 @@ export const GET: APIRoute = async ({ request }) => {
       .lt('created_at', sevenDaysAgo.toISOString())
       .select()
 
-    if (confirmedError) {
-      throw new ClientScriptError({
-        message: `Failed to delete old confirmed records: ${confirmedError.message}`
-      })
+  if (confirmedError) {
+    throw new ApiFunctionError({
+      message: `Failed to delete old confirmed records: ${confirmedError.message}`,
+      cause: confirmedError,
+      code: 'CRON_DELETE_CONFIRMED_TOKENS_FAILED',
+      status: 500,
+      route: '/api/cron/cleanup-confirmations',
+      operation: 'deleteConfirmedRecords'
+    })
     }
 
     const expiredCount = expiredData?.length || 0
@@ -76,13 +87,16 @@ export const GET: APIRoute = async ({ request }) => {
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     )
   } catch (error) {
-    console.error('Newsletter confirmations cleanup failed:', error)
+    const serverError = handleApiFunctionError(error, {
+      route: '/api/cron/cleanup-confirmations',
+      operation: 'GET',
+    })
     return new Response(
       JSON.stringify({
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: serverError.message,
       }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
+      { status: serverError.status ?? 500, headers: { 'Content-Type': 'application/json' } }
     )
   }
 }

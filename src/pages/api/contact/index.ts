@@ -7,9 +7,9 @@
 import type { APIRoute } from 'astro'
 import { Resend } from 'resend'
 import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
-import { RESEND_API_KEY } from 'astro:env/server'
-import { ClientScriptError } from '@components/scripts/errors'
-import { isDev, isTest } from '@components/scripts/utils/environmentClient'
+import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
+import { handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
+import { getResendApiKey, isDev, isTest } from '@pages/api/_environment'
 import { checkContactRateLimit } from '@pages/api/_utils'
 
 export const prerender = false // Force SSR for this endpoint
@@ -176,7 +176,7 @@ async function sendEmail(emailData: EmailData, files: FileAttachment[]): Promise
 		return
 	}
 
-	const resend = new Resend(RESEND_API_KEY)
+	const resend = new Resend(getResendApiKey())
 
 	try {
 		// Prepare attachments for Resend
@@ -194,15 +194,24 @@ async function sendEmail(emailData: EmailData, files: FileAttachment[]): Promise
 		})
 
 		if (!response.data) {
-      throw new ClientScriptError({
-        message: response.error?.message || 'Failed to send email'
-      })
+			throw new ApiFunctionError({
+				message: response.error?.message || 'Failed to send email',
+				code: 'RESEND_SEND_FAILED',
+				status: 502,
+				route: '/api/contact',
+				operation: 'sendEmail'
+			})
 		}
 	} catch (error) {
 		console.error('Resend API error:', error)
-		throw new ClientScriptError({
-      message: 'Failed to send email. Please try again later.'
-    })
+		throw new ApiFunctionError({
+			message: 'Failed to send email. Please try again later.',
+			cause: error,
+			code: 'RESEND_SEND_FAILED',
+			status: 502,
+			route: '/api/contact',
+			operation: 'sendEmail'
+		})
 	}
 }
 
@@ -411,10 +420,16 @@ export const POST: APIRoute = async ({ request }) => {
 			},
 		)
 	} catch (error) {
-		console.error('Contact form error:', error)
+		const serverError = handleApiFunctionError(error, {
+      route: '/api/contact',
+      operation: 'POST',
+      extra: {
+        userAgent: request.headers.get('user-agent') || 'unknown',
+      },
+    })
 
 		const errorMessage =
-			error instanceof Error ? error.message : 'An unexpected error occurred. Please try again.'
+			serverError instanceof Error ? serverError.message : 'An unexpected error occurred. Please try again.'
 
 		return new Response(
 			JSON.stringify({
@@ -422,7 +437,7 @@ export const POST: APIRoute = async ({ request }) => {
 				error: errorMessage,
 			}),
 			{
-				status: 500,
+				status: serverError.status ?? 500,
 				headers: { 'Content-Type': 'application/json' },
 			},
 		)

@@ -1,23 +1,45 @@
 import type { APIRoute } from 'astro'
 import { rateLimiters, checkRateLimit, supabaseAdmin } from '@pages/api/_utils'
 import { validate as uuidValidate } from 'uuid'
+import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
+import { handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
+import type { ErrorResponse } from '@pages/api/_contracts/gdpr.contracts'
 
 export const prerender = false // Force SSR for this endpoint
+
+const ROUTE = '/api/gdpr/export'
+
+const jsonResponse = (body: unknown, status: number, headers?: Record<string, string>) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(headers || {}),
+    },
+  })
+
+const buildRateLimitResponse = (reset: number | undefined) => {
+  const retryAfterSeconds = reset ? Math.max(0, Math.ceil((reset - Date.now()) / 1000)) : 60
+  return jsonResponse(
+    {
+      success: false,
+      error: {
+        code: 'RATE_LIMIT_EXCEEDED',
+        message: `Try again in ${retryAfterSeconds}s`,
+      },
+    } satisfies ErrorResponse,
+    429,
+    {
+      'Retry-After': String(retryAfterSeconds),
+    },
+  )
+}
 
 export const GET: APIRoute = async ({ clientAddress, url }) => {
   const { success, reset } = await checkRateLimit(rateLimiters.export, clientAddress)
 
   if (!success) {
-    return new Response(JSON.stringify({
-      success: false,
-      error: {
-        code: 'RATE_LIMIT_EXCEEDED',
-        message: `Try again in ${Math.ceil((reset! - Date.now()) / 1000)}s`
-      }
-    }), {
-      status: 429,
-      headers: { 'Retry-After': String(Math.ceil((reset! - Date.now()) / 1000)) }
-    })
+    return buildRateLimitResponse(reset)
   }
 
   const DataSubjectId = url.searchParams.get('DataSubjectId')
@@ -33,7 +55,14 @@ export const GET: APIRoute = async ({ clientAddress, url }) => {
       .eq('data_subject_id', DataSubjectId)
 
     if (error) {
-      throw error
+      throw new ApiFunctionError(error, {
+        route: ROUTE,
+        operation: 'GET.fetch-consent-records',
+        status: 500,
+        details: {
+          dataSubjectId: DataSubjectId,
+        },
+      })
     }
 
     // Remove sensitive fields (ip_address)
@@ -47,7 +76,17 @@ export const GET: APIRoute = async ({ clientAddress, url }) => {
       }
     })
   } catch (error) {
-    console.error('Failed to export data:', error)
-    return new Response('Failed to export data', { status: 500 })
+    const serverError = handleApiFunctionError(error, {
+      route: ROUTE,
+      operation: 'GET',
+      extra: {
+        clientAddress,
+        dataSubjectId: DataSubjectId,
+      },
+    })
+
+    return new Response('Failed to export data', {
+      status: serverError.status ?? 500,
+    })
   }
 }

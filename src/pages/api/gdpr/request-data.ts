@@ -1,10 +1,53 @@
 import type { APIRoute } from 'astro'
+import { v4 as uuidv4 } from 'uuid'
 import { rateLimiters, checkRateLimit, supabaseAdmin } from '@pages/api/_utils'
 import { sendDSARVerificationEmail } from '@pages/api/gdpr/_dsarVerificationEmails'
 import type { DSARRequestInput, DSARResponse, ErrorResponse } from '@pages/api/_contracts/gdpr.contracts'
-import { v4 as uuidv4 } from 'uuid'
+import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
+import { handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
 
 export const prerender = false // Force SSR for this endpoint
+
+const ROUTE = '/api/gdpr/request-data'
+
+const jsonResponse = (body: unknown, status: number, headers?: Record<string, string>) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(headers || {}),
+    },
+  })
+
+const buildRateLimitResponse = (reset: number | undefined) => {
+  const retryAfterSeconds = reset ? Math.max(0, Math.ceil((reset - Date.now()) / 1000)) : 60
+
+  return jsonResponse(
+    {
+      success: false,
+      error: {
+        code: 'RATE_LIMIT_EXCEEDED',
+        message: `Too many requests. Try again in ${retryAfterSeconds}s`,
+      },
+    } satisfies ErrorResponse,
+    429,
+    {
+      'Retry-After': String(retryAfterSeconds),
+    },
+  )
+}
+
+const buildValidationError = (message: string) =>
+  jsonResponse(
+    {
+      success: false,
+      error: {
+        code: 'INVALID_REQUEST',
+        message,
+      },
+    } satisfies ErrorResponse,
+    400,
+  )
 
 /**
  * POST /api/gdpr/request-data
@@ -16,19 +59,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
   const { success, reset } = await checkRateLimit(rateLimiters.export, clientAddress)
 
   if (!success) {
-    return new Response(JSON.stringify({
-      success: false,
-      error: {
-        code: 'RATE_LIMIT_EXCEEDED',
-        message: `Too many requests. Try again in ${Math.ceil((reset! - Date.now()) / 1000)}s`
-      }
-    } as ErrorResponse), {
-      status: 429,
-      headers: {
-        'Content-Type': 'application/json',
-        'Retry-After': String(Math.ceil((reset! - Date.now()) / 1000))
-      }
-    })
+    return buildRateLimitResponse(reset)
   }
 
   try {
@@ -36,36 +67,18 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
 
     // Validate request
     if (!body.email || !body.requestType) {
-      return new Response(JSON.stringify({
-        success: false,
-        error: {
-          code: 'INVALID_REQUEST',
-          message: 'Email and request type are required'
-        }
-      } as ErrorResponse), { status: 400 })
+      return buildValidationError('Email and request type are required')
     }
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(body.email)) {
-      return new Response(JSON.stringify({
-        success: false,
-        error: {
-          code: 'INVALID_REQUEST',
-          message: 'Invalid email format'
-        }
-      } as ErrorResponse), { status: 400 })
+      return buildValidationError('Invalid email format')
     }
 
     // Validate request type
     if (!['ACCESS', 'DELETE'].includes(body.requestType)) {
-      return new Response(JSON.stringify({
-        success: false,
-        error: {
-          code: 'INVALID_REQUEST',
-          message: 'Request type must be ACCESS or DELETE'
-        }
-      } as ErrorResponse), { status: 400 })
+      return buildValidationError('Request type must be ACCESS or DELETE')
     }
 
     const email = body.email.toLowerCase().trim()
@@ -73,26 +86,38 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
 
     // Check for existing unfulfilled request for this email
-    const { data: existing } = await supabaseAdmin
+    const { data: existing, error: existingError } = await supabaseAdmin
       .from('dsar_requests')
       .select('*')
       .eq('email', email)
       .eq('request_type', body.requestType)
       .is('fulfilled_at', null)
       .gt('expires_at', new Date().toISOString())
-      .single()
+      .maybeSingle()
+
+    if (existingError) {
+      throw new ApiFunctionError(existingError, {
+        route: ROUTE,
+        operation: 'fetch-existing-request',
+        status: 500,
+        details: {
+          email,
+          requestType: body.requestType,
+        },
+      })
+    }
 
     if (existing) {
       // Resend verification email with existing token
       await sendDSARVerificationEmail(email, existing.token, body.requestType)
 
-      return new Response(JSON.stringify({
-        success: true,
-        message: 'Verification email sent. Please check your inbox.'
-      } as DSARResponse), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+      return jsonResponse(
+        {
+          success: true,
+          message: 'Verification email sent. Please check your inbox.',
+        } satisfies DSARResponse,
+        200,
+      )
     }
 
     // Create new DSAR request (database uses snake_case columns)
@@ -106,30 +131,47 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
       })
 
     if (error) {
-      throw error
+      throw new ApiFunctionError(error, {
+        route: ROUTE,
+        operation: 'create-request',
+        status: 500,
+        details: {
+          email,
+          requestType: body.requestType,
+        },
+      })
     }
 
     // Send verification email
     await sendDSARVerificationEmail(email, token, body.requestType)
 
-    return new Response(JSON.stringify({
-      success: true,
-      message: 'Verification email sent. Please check your inbox and click the link to complete your request.'
-    } as DSARResponse), {
-      status: 201,
-      headers: { 'Content-Type': 'application/json' }
-    })
+    return jsonResponse(
+      {
+        success: true,
+        message: 'Verification email sent. Please check your inbox and click the link to complete your request.',
+      } satisfies DSARResponse,
+      201,
+    )
   } catch (error) {
-    console.error('Failed to create DSAR request:', error)
-    return new Response(JSON.stringify({
-      success: false,
-      error: {
-        code: 'INVALID_REQUEST',
-        message: 'Failed to process request. Please try again.'
-      }
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
+    const serverError = handleApiFunctionError(error, {
+      route: ROUTE,
+      operation: 'POST',
+      extra: {
+        clientAddress,
+      },
     })
+
+    return jsonResponse(
+      {
+        success: false,
+        error: {
+          code: 'INVALID_REQUEST',
+          message: serverError.status >= 400 && serverError.status < 500
+            ? serverError.message
+            : 'Failed to process request. Please try again.',
+        },
+      } satisfies ErrorResponse,
+      serverError.status ?? 500,
+    )
   }
 }

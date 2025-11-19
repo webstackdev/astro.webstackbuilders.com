@@ -21,7 +21,7 @@ import { writeFile, mkdir } from 'fs/promises'
 import { existsSync } from 'fs'
 import { resolve } from 'node:path'
 import type { AstroIntegration } from 'astro'
-import { BuildError } from '../../lib/errors/index.js'
+import { BuildError } from '../../lib/errors/BuildError'
 
 type IconGenerator = (_options: Metadata) => Promise<Buffer>
 

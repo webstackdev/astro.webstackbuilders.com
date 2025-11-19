@@ -4,7 +4,7 @@
  */
 
 import { supabaseAdmin } from '@pages/api/_utils'
-import { ClientScriptError } from '@components/scripts/errors'
+import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
 
 /**
  * Pending subscription data stored temporarily until confirmed
@@ -85,8 +85,13 @@ export async function createPendingSubscription(data: {
 
   if (error) {
     console.error('Failed to create pending subscription:', error)
-    throw new ClientScriptError({
-      message: `Failed to create subscription confirmation`
+    throw new ApiFunctionError({
+      message: 'Failed to create subscription confirmation',
+      cause: error,
+      code: 'NEWSLETTER_TOKEN_CREATE_FAILED',
+      status: 500,
+      route: '/api/newsletter',
+      operation: 'createPendingSubscription'
     })
   }
 

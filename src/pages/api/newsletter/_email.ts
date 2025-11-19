@@ -4,16 +4,15 @@
  */
 
 import { Resend } from 'resend'
-import { RESEND_API_KEY } from 'astro:env/server'
-import { ClientScriptError } from '@components/scripts/errors'
-import { isDev, isTest } from '@components/scripts/utils/environmentClient'
-import { getSiteUrl } from '@components/scripts/utils/siteUrlClient'
+import { getResendApiKey, isDev, isTest } from '@pages/api/_environment'
+import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
+import { getSiteUrl } from '@lib/config/siteUrlServer'
 
 /**
  * Initialize Resend client
  */
 function getResendClient(): Resend {
-  return new Resend(RESEND_API_KEY)
+  return new Resend(getResendApiKey())
 }
 
 /**
@@ -221,8 +220,12 @@ export async function sendConfirmationEmail(
 
     if (result.error) {
       console.error('[Newsletter Email] Failed to send confirmation:', result.error)
-      throw new ClientScriptError({
-        message: `Failed to send confirmation email: ${result.error.message}`
+      throw new ApiFunctionError({
+        message: `Failed to send confirmation email: ${result.error.message}`,
+        code: 'NEWSLETTER_CONFIRMATION_EMAIL_FAILED',
+        status: 502,
+        route: '/api/newsletter',
+        operation: 'sendConfirmationEmail'
       })
     }
 
@@ -232,7 +235,13 @@ export async function sendConfirmationEmail(
     })
   } catch (error) {
     console.error('[Newsletter Email] Error sending confirmation:', error)
-    throw error
+    throw new ApiFunctionError(error, {
+      message: 'Failed to send confirmation email. Please try again later.',
+      code: 'NEWSLETTER_CONFIRMATION_EMAIL_FAILED',
+      status: 502,
+      route: '/api/newsletter',
+      operation: 'sendConfirmationEmail'
+    })
   }
 }
 
@@ -384,8 +393,12 @@ Questions? Reply to this email or contact us at hello@webstackbuilders.com
 
     if (result.error) {
       console.error('[Newsletter Email] Failed to send welcome email:', result.error)
-      throw new ClientScriptError({
-        message: `Failed to send welcome email: ${result.error.message}`
+      throw new ApiFunctionError({
+        message: `Failed to send welcome email: ${result.error.message}`,
+        code: 'NEWSLETTER_WELCOME_EMAIL_FAILED',
+        status: 502,
+        route: '/api/newsletter',
+        operation: 'sendWelcomeEmail'
       })
     }
 
@@ -395,6 +408,12 @@ Questions? Reply to this email or contact us at hello@webstackbuilders.com
     })
   } catch (error) {
     console.error('[Newsletter Email] Error sending welcome email:', error)
-    throw error
+    throw new ApiFunctionError(error, {
+      message: 'Failed to send welcome email. Please try again later.',
+      code: 'NEWSLETTER_WELCOME_EMAIL_FAILED',
+      status: 502,
+      route: '/api/newsletter',
+      operation: 'sendWelcomeEmail'
+    })
   }
 }

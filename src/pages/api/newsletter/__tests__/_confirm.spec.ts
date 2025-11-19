@@ -10,25 +10,44 @@ vi.mock('@pages/api/newsletter/_token', () => ({
 	confirmSubscription: vi.fn(),
 }))
 
-vi.mock('@api/shared/consent-log', () => ({
-	recordConsent: vi.fn(),
-}))
-
 vi.mock('@pages/api/newsletter/_email', () => ({
 	sendWelcomeEmail: vi.fn(),
 }))
 
-vi.mock('@api/newsletter/newsletter', () => ({
+const createSupabaseQueryBuilder = () => {
+	const builder = {
+		update: vi.fn(),
+		eq: vi.fn(),
+		contains: vi.fn(),
+	}
+
+	builder.update.mockReturnThis()
+	builder.eq.mockReturnThis()
+	builder.contains.mockResolvedValue({ error: null })
+
+	return builder
+}
+
+let supabaseQueryBuilder = createSupabaseQueryBuilder()
+const supabaseFromMock = vi.fn(() => supabaseQueryBuilder)
+
+vi.mock('@pages/api/_utils', () => ({
+	supabaseAdmin: {
+		from: supabaseFromMock,
+	},
+}))
+
+vi.mock('@pages/api/newsletter/index', () => ({
 	subscribeToConvertKit: vi.fn(),
 }))
 
 const tokenModule = await import('@pages/api/newsletter/_token')
-const consentModule = await import('@api/shared/consent-log')
 const emailModule = await import('@pages/api/newsletter/_email')
+const convertKitModule = await import('@pages/api/newsletter/index')
 
 const mockConfirmSubscription = tokenModule.confirmSubscription as Mock
-const mockRecordConsent = consentModule.recordConsent as Mock
 const mockSendWelcomeEmail = emailModule.sendWelcomeEmail as Mock
+const mockSubscribeToConvertKit = convertKitModule.subscribeToConvertKit as Mock
 
 describe('Newsletter Confirmation API - GET /api/newsletter/confirm', () => {
 	beforeEach(() => {
@@ -38,16 +57,8 @@ describe('Newsletter Confirmation API - GET /api/newsletter/confirm', () => {
 		vi.spyOn(console, 'error').mockImplementation(() => {})
 		vi.spyOn(console, 'warn').mockImplementation(() => {})
 
-		mockRecordConsent.mockResolvedValue({
-			id: 'test-consent-id',
-			email: 'test@example.com',
-			purposes: ['marketing'],
-			timestamp: new Date().toISOString(),
-			source: 'newsletter_form' as const,
-			userAgent: 'Test Browser',
-			privacyPolicyVersion: '2025-10-20',
-			verified: true,
-		})
+		supabaseQueryBuilder = createSupabaseQueryBuilder()
+		supabaseFromMock.mockReturnValue(supabaseQueryBuilder)
 		mockSendWelcomeEmail.mockResolvedValue(undefined)
 	})
 
@@ -81,18 +92,16 @@ describe('Newsletter Confirmation API - GET /api/newsletter/confirm', () => {
 		expect(data.email).toBe('test@example.com')
 		expect(data.message).toContain('confirmed')
 
-		// Verify consent was recorded as verified
-		expect(mockRecordConsent).toHaveBeenCalledWith(
-			expect.objectContaining({
-				email: 'test@example.com',
-				purposes: ['marketing'],
-				source: 'newsletter_form',
-				verified: true,
-			}),
-		)
+		// Verify Supabase consent update call
+		expect(supabaseFromMock).toHaveBeenCalledWith('consent_records')
+		expect(supabaseQueryBuilder.update).toHaveBeenCalledWith({ verified: true })
 
 		// Verify welcome email was sent
 		expect(mockSendWelcomeEmail).toHaveBeenCalledWith('test@example.com', 'John')
+
+		expect(mockSubscribeToConvertKit).toHaveBeenCalledWith(
+			expect.objectContaining({ email: 'test@example.com' }),
+		)
 	})
 
 	it('should reject request without token', async () => {
@@ -161,18 +170,7 @@ describe('Newsletter Confirmation API - GET /api/newsletter/confirm', () => {
 		const response = await GET({ url } as Partial<APIContext> as APIContext)
 
 		expect(response.status).toBe(200)
-		expect(mockRecordConsent).toHaveBeenCalledWith(
-			expect.objectContaining({
-				email: 'test@example.com',
-				verified: true,
-			}),
-		)
-		// Should not have ipAddress in the call
-		expect(mockRecordConsent).toHaveBeenCalledWith(
-			expect.not.objectContaining({
-				ipAddress: expect.anything(),
-			}),
-		)
+		expect(supabaseFromMock).toHaveBeenCalledWith('consent_records')
 	})
 
 	it('should continue even if welcome email fails', async () => {

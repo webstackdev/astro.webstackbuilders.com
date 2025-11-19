@@ -1,15 +1,11 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 
 // Mock environment utilities BEFORE importing the module under test
-vi.mock('@components/scripts/utils/environmentClient', () => ({
+vi.mock('@pages/api/_environment', () => ({
+  getUpstashApiToken: vi.fn(() => 'test-token'),
+  getUpstashApiUrl: vi.fn(() => 'https://test-redis.upstash.io'),
   isDev: vi.fn(() => false),
   isTest: vi.fn(() => false),
-}))
-
-// Mock astro:env/server
-vi.mock('astro:env/server', () => ({
-  KV_REST_API_URL: 'https://test-redis.upstash.io',
-  KV_REST_API_TOKEN: 'test-token',
 }))
 
 import { rateLimiters, checkRateLimit, checkContactRateLimit } from '@pages/api/_utils/rateLimit'
@@ -249,7 +245,7 @@ describe('Rate Limit Utils', () => {
 
     beforeEach(async () => {
       // Get the mocked functions
-      const utils = await import('@components/scripts/utils/environmentClient')
+      const utils = await import('@lib/config/environmentServer')
       isDev = utils.isDev as ReturnType<typeof vi.fn>
       isTest = utils.isTest as ReturnType<typeof vi.fn>
 

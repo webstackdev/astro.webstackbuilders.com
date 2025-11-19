@@ -2,13 +2,12 @@
  * DSAR (Data Subject Access Request) email service
  * Sends verification emails for data access and deletion requests using Resend
  */
-import { RESEND_API_KEY } from 'astro:env/server'
 import { Resend } from 'resend'
-import { getSiteUrl } from '@components/scripts/utils/siteUrlClient'
+import { getSiteUrl } from '@lib/config'
 import { dsarVerificationEmailHtml } from '@content/email/dsar.html'
 import { dsarVerificationEmailText } from '@content/email/dsar.text'
-import { ClientScriptError } from '@components/scripts/errors'
-import { isDev, isTest } from '@components/scripts/utils/environmentClient'
+import { getResendApiKey, isDev, isTest } from '@pages/api/_environment'
+import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
 
 /**
  * Send verification email for DSAR request
@@ -31,13 +30,17 @@ export async function sendDSARVerificationEmail(
 
   let resend: Resend
   try {
-    resend = new Resend(RESEND_API_KEY)
+    resend = new Resend(getResendApiKey())
   } catch (error) {
     const message = `[DSAR Email] Failed to initialize Resend client`
     console.error(message, error)
-    throw new ClientScriptError({
+    throw new ApiFunctionError({
       message,
       cause: error,
+      code: 'DSAR_EMAIL_INIT_FAILED',
+      status: 500,
+      route: '/api/gdpr',
+      operation: 'sendDSARVerificationEmail'
     })
   }
 
@@ -79,9 +82,13 @@ export async function sendDSARVerificationEmail(
     if (result.error) {
       const message = `[DSAR Email] Failed to send verification`
       console.error(message, result.error)
-      throw new ClientScriptError({
+      throw new ApiFunctionError({
         message,
         cause: result.error,
+        code: 'DSAR_EMAIL_SEND_FAILED',
+        status: 502,
+        route: '/api/gdpr',
+        operation: 'sendDSARVerificationEmail'
       })
     }
 
@@ -93,9 +100,13 @@ export async function sendDSARVerificationEmail(
   } catch (error) {
     const message = `[DSAR Email] Error sending verification`
     console.error(message, error)
-    throw new ClientScriptError({
+    throw new ApiFunctionError({
       message,
       cause: error,
+      code: 'DSAR_EMAIL_SEND_FAILED',
+      status: 502,
+      route: '/api/gdpr',
+      operation: 'sendDSARVerificationEmail'
     })
   }
 }

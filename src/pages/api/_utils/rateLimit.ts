@@ -1,11 +1,15 @@
 import { Ratelimit } from '@upstash/ratelimit'
 import { Redis } from '@upstash/redis'
-import { KV_REST_API_URL, KV_REST_API_TOKEN } from 'astro:env/server'
-import { isDev, isTest } from '@components/scripts/utils/environmentClient'
+import {
+  getUpstashApiToken,
+  getUpstashApiUrl,
+  isDev,
+  isTest,
+} from '@pages/api/_environment'
 
 const redis = new Redis({
-  url: KV_REST_API_URL,
-  token: KV_REST_API_TOKEN,
+  url: getUpstashApiUrl(),
+  token: getUpstashApiToken(),
 })
 
 // Simple in-memory rate limiting (use Redis in production)
@@ -51,10 +55,11 @@ export async function checkRateLimit(
 }
 
 /**
- * Check if the IP address has exceeded the contact form rate limit
- * Disabled in development and CI environments
+ * Check if the client fingerprint (hashed IP/UA) exceeded the contact form limit.
+ * Disabled in development and CI environments. Callers should hash PII before
+ * invoking this helper to keep rate-limiting compliant with GDPR requirements.
  */
-export function checkContactRateLimit(ip: string): boolean {
+export function checkContactRateLimit(ipFingerprint: string): boolean {
   // Skip rate limiting in dev/test environments
   if (isDev() || isTest()) {
     return true
@@ -63,7 +68,7 @@ export function checkContactRateLimit(ip: string): boolean {
   const now = Date.now()
   const windowMs = 15 * 60 * 1000 // 15 minutes
   const maxRequests = 5 // Lower limit for contact form
-  const key = `contact_rate_limit_${ip}`
+  const key = `contact_rate_limit_${ipFingerprint}`
   const requests = rateLimitStore.get(key) || []
 
   const validRequests = requests.filter((timestamp) => now - timestamp < windowMs)

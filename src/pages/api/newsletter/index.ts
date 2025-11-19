@@ -6,9 +6,9 @@
  */
 import type { APIRoute } from 'astro'
 import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
-import { CONVERTKIT_API_KEY } from 'astro:env/server'
-import { ClientScriptError } from '@components/scripts/errors'
-import { isDev, isTest } from '@components/scripts/utils/environmentClient'
+import { getConvertkitApiKey, isDev, isTest } from '@pages/api/_environment'
+import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
+import { handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
 import { rateLimiters, checkRateLimit } from '@pages/api/_utils/rateLimit'
 import type { ErrorResponse } from '@pages/api/_contracts/gdpr.contracts'
 import { createPendingSubscription } from './_token'
@@ -51,23 +51,35 @@ interface ConvertKitErrorResponse {
  */
 function validateEmail(email: string): string {
   if (!email) {
-    throw new ClientScriptError({
-      message: 'Email address is required.'
-    })
+  throw new ApiFunctionError({
+    message: 'Email address is required.',
+    status: 400,
+    code: 'INVALID_EMAIL',
+    route: '/api/newsletter',
+    operation: 'validateEmail'
+  })
   }
 
   // RFC 5321 specifies max email length of 254 characters
   if (email.length > 254) {
-    throw new ClientScriptError({
-      message: 'Email address is too long'
-    })
+  throw new ApiFunctionError({
+    message: 'Email address is too long',
+    status: 400,
+    code: 'INVALID_EMAIL',
+    route: '/api/newsletter',
+    operation: 'validateEmail'
+  })
   }
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   if (!emailRegex.test(email)) {
-    throw new ClientScriptError({
-      message: 'Email address is invalid'
-    })
+  throw new ApiFunctionError({
+    message: 'Email address is invalid',
+    status: 400,
+    code: 'INVALID_EMAIL',
+    route: '/api/newsletter',
+    operation: 'validateEmail'
+  })
   }
 
   return email.trim().toLowerCase()
@@ -113,7 +125,7 @@ export async function subscribeToConvertKit(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Kit-Api-Key': CONVERTKIT_API_KEY,
+        'X-Kit-Api-Key': getConvertkitApiKey(),
       },
       body: JSON.stringify(subscriberData),
     })
@@ -123,31 +135,45 @@ export async function subscribeToConvertKit(
     if (response.status === 401) {
       const errorData = responseData as ConvertKitErrorResponse
       console.error('ConvertKit API authentication failed:', errorData.errors)
-      throw new ClientScriptError({
-        message: 'Newsletter service configuration error. Please contact support.'
-      })
+    throw new ApiFunctionError({
+      message: 'Newsletter service configuration error. Please contact support.',
+      status: 502,
+      code: 'CONVERTKIT_AUTH',
+      route: '/api/newsletter',
+      operation: 'subscribeToConvertKit'
+    })
     }
 
     if (response.status === 422) {
       const errorData = responseData as ConvertKitErrorResponse
-      throw new ClientScriptError({
-        message: errorData.errors[0] || 'Invalid email address'
-      })
+    throw new ApiFunctionError({
+      message: errorData.errors[0] || 'Invalid email address',
+      status: 400,
+      code: 'INVALID_EMAIL',
+      route: '/api/newsletter',
+      operation: 'subscribeToConvertKit'
+    })
     }
 
     if (response.status === 200 || response.status === 201 || response.status === 202) {
       return responseData as ConvertKitResponse
     }
 
-    throw new ClientScriptError({
-      message: 'An unexpected error occurred. Please try again later.'
+    throw new ApiFunctionError({
+      message: 'An unexpected error occurred. Please try again later.',
+      status: 502,
+      code: 'CONVERTKIT_UNKNOWN',
+      route: '/api/newsletter',
+      operation: 'subscribeToConvertKit'
     })
   } catch (error) {
-    if (error instanceof Error) {
-      throw error
-    }
-    throw new ClientScriptError({
-      message: 'Failed to connect to newsletter service. Please try again later.'
+    throw new ApiFunctionError({
+      message: 'Failed to connect to newsletter service. Please try again later.',
+      cause: error,
+      status: 502,
+      code: 'CONVERTKIT_NETWORK',
+      route: '/api/newsletter',
+      operation: 'subscribeToConvertKit'
     })
   }
 }
@@ -258,19 +284,22 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
 				headers: { 'Content-Type': 'application/json' },
 			},
 		)
-	} catch (error) {
-		console.error('Newsletter subscription error:', error)
+  } catch (error) {
+    const serverError = handleApiFunctionError(error, {
+      route: '/api/newsletter',
+      operation: 'POST',
+      extra: {
+        userAgent: request.headers.get('user-agent') || 'unknown',
+      },
+    })
 
-		const errorMessage =
-			error instanceof Error ? error.message : 'An unexpected error occurred. Please try again.'
-
-		return new Response(JSON.stringify({
-			success: false,
-			error: { code: 'INVALID_REQUEST', message: errorMessage }
-		} as ErrorResponse), {
-			status: 400,
-			headers: { 'Content-Type': 'application/json' },
-		})
+    return new Response(JSON.stringify({
+      success: false,
+      error: { code: serverError.code || 'INVALID_REQUEST', message: serverError.message }
+    } as ErrorResponse), {
+      status: serverError.status ?? 400,
+      headers: { 'Content-Type': 'application/json' },
+    })
 	}
 }
 

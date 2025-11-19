@@ -1,29 +1,76 @@
 import type { APIRoute } from 'astro'
-import { getPrivacyPolicyVersion } from '@components/scripts/utils/environmentClient'
+import { getPrivacyPolicyVersion } from '@pages/api/_environment'
 import { rateLimiters, checkRateLimit, supabaseAdmin } from '@pages/api/_utils'
 import { validate as uuidValidate } from 'uuid'
 import type { ConsentRequest, ConsentResponse, ErrorResponse } from '@pages/api/_contracts/gdpr.contracts'
+import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
+import { handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
 
 export const prerender = false // Force SSR for this endpoint
+
+const ROUTE = '/api/gdpr/consent'
+
+const jsonResponse = (body: unknown, status: number, headers?: Record<string, string>) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(headers || {}),
+    },
+  })
+
+const buildRateLimitResponse = (reset: number | undefined, message?: string) => {
+  const retryAfterSeconds = reset ? Math.max(0, Math.ceil((reset - Date.now()) / 1000)) : 60
+  return jsonResponse(
+    {
+      success: false,
+      error: {
+        code: 'RATE_LIMIT_EXCEEDED',
+        message: message ?? `Try again in ${retryAfterSeconds}s`,
+      },
+    } satisfies ErrorResponse,
+    429,
+    {
+      'Retry-After': String(retryAfterSeconds),
+    },
+  )
+}
+
+const buildServerErrorResponse = (serverError: ApiFunctionError, defaultMessage: string) =>
+  jsonResponse(
+    {
+      success: false,
+      error: {
+        code: resolveErrorCode(serverError.code),
+        message: serverError.status >= 400 && serverError.status < 500 ? serverError.message : defaultMessage,
+      },
+    } satisfies ErrorResponse,
+    serverError.status ?? 500,
+  )
+
+const resolveErrorCode = (code?: string): ErrorResponse['error']['code'] => {
+  const allowedCodes: Array<ErrorResponse['error']['code']> = [
+    'INVALID_UUID',
+    'RATE_LIMIT_EXCEEDED',
+    'NOT_FOUND',
+    'UNAUTHORIZED',
+    'INVALID_REQUEST',
+    'INTERNAL_ERROR',
+  ]
+
+  if (code && allowedCodes.includes(code as ErrorResponse['error']['code'])) {
+    return code as ErrorResponse['error']['code']
+  }
+
+  return 'INTERNAL_ERROR'
+}
 
 export const POST: APIRoute = async ({ request, clientAddress }) => {
   // Rate limiting
   const { success, reset } = await checkRateLimit(rateLimiters.consent, clientAddress)
 
   if (!success) {
-    return new Response(JSON.stringify({
-      success: false,
-      error: {
-        code: 'RATE_LIMIT_EXCEEDED',
-        message: `Try again in ${Math.ceil((reset! - Date.now()) / 1000)}s`
-      }
-    } as ErrorResponse), {
-      status: 429,
-      headers: {
-        'Content-Type': 'application/json',
-        'Retry-After': String(Math.ceil((reset! - Date.now()) / 1000))
-      }
-    })
+    return buildRateLimitResponse(reset)
   }
 
   try {
@@ -31,10 +78,10 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
 
     // Validate DataSubjectId
     if (!uuidValidate(body.DataSubjectId)) {
-      return new Response(JSON.stringify({
+      return jsonResponse({
         success: false,
-        error: { code: 'INVALID_UUID', message: 'Invalid DataSubjectId' }
-      } as ErrorResponse), { status: 400 })
+        error: { code: 'INVALID_UUID', message: 'Invalid DataSubjectId' },
+      } satisfies ErrorResponse, 400)
     }
 
     // Insert consent record (database uses snake_case column names)
@@ -55,34 +102,46 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
       .single()
 
     if (error) {
-      throw error
+      throw new ApiFunctionError(error, {
+        route: ROUTE,
+        operation: 'insert-consent',
+        status: 500,
+        details: {
+          dataSubjectId: body.DataSubjectId,
+          purposes: body.purposes,
+        },
+      })
     }
 
-    return new Response(JSON.stringify({
-      success: true,
-      record: {
-        id: data.id,
-        DataSubjectId: data.data_subject_id,
-        email: data.email,
-        purposes: data.purposes,
-        timestamp: data.timestamp,
-        source: data.source,
-        userAgent: data.user_agent,
-        ipAddress: data.ip_address,
-        privacyPolicyVersion: data.privacy_policy_version,
-        consentText: data.consent_text,
-        verified: data.verified
-      }
-    } as ConsentResponse), {
-      status: 201,
-      headers: { 'Content-Type': 'application/json' }
-    })
+    return jsonResponse(
+      {
+        success: true,
+        record: {
+          id: data.id,
+          DataSubjectId: data.data_subject_id,
+          email: data.email,
+          purposes: data.purposes,
+          timestamp: data.timestamp,
+          source: data.source,
+          userAgent: data.user_agent,
+          ipAddress: data.ip_address,
+          privacyPolicyVersion: data.privacy_policy_version,
+          consentText: data.consent_text,
+          verified: data.verified,
+        },
+      } satisfies ConsentResponse,
+      201,
+    )
   } catch (error) {
-    console.error('Failed to record consent:', error)
-    return new Response(JSON.stringify({
-      success: false,
-      error: { code: 'INTERNAL_ERROR', message: 'Failed to record consent' }
-    }), { status: 500 })
+    const serverError = handleApiFunctionError(error, {
+      route: ROUTE,
+      operation: 'POST',
+      extra: {
+        clientAddress,
+      },
+    })
+
+    return buildServerErrorResponse(serverError, 'Failed to record consent')
   }
 }
 
@@ -91,29 +150,17 @@ export const GET: APIRoute = async ({ clientAddress, url }) => {
   const { success, reset } = await checkRateLimit(rateLimiters.consentRead, clientAddress)
 
   if (!success) {
-    return new Response(JSON.stringify({
-      success: false,
-      error: {
-        code: 'RATE_LIMIT_EXCEEDED',
-        message: `Try again in ${Math.ceil((reset! - Date.now()) / 1000)}s`
-      }
-    } as ErrorResponse), {
-      status: 429,
-      headers: {
-        'Content-Type': 'application/json',
-        'Retry-After': String(Math.ceil((reset! - Date.now()) / 1000))
-      }
-    })
+    return buildRateLimitResponse(reset)
   }
 
   const DataSubjectId = url.searchParams.get('DataSubjectId')
   const purpose = url.searchParams.get('purpose')
 
   if (!DataSubjectId || !uuidValidate(DataSubjectId)) {
-    return new Response(JSON.stringify({
+    return jsonResponse({
       success: false,
-      error: { code: 'INVALID_UUID', message: 'Valid DataSubjectId required' }
-    } as ErrorResponse), { status: 400 })
+      error: { code: 'INVALID_UUID', message: 'Valid DataSubjectId required' },
+    } satisfies ErrorResponse, 400)
   }
 
   try {
@@ -129,7 +176,15 @@ export const GET: APIRoute = async ({ clientAddress, url }) => {
     const { data, error } = await query
 
     if (error) {
-      throw error
+      throw new ApiFunctionError(error, {
+        route: ROUTE,
+        operation: 'GET.fetch-consent-records',
+        status: 500,
+        details: {
+          dataSubjectId: DataSubjectId,
+          purpose,
+        },
+      })
     }
 
     const records = data.map(record => ({
@@ -146,21 +201,27 @@ export const GET: APIRoute = async ({ clientAddress, url }) => {
       verified: record.verified
     }))
 
-    return new Response(JSON.stringify({
-      success: true,
-      records,
-      hasActive: purpose ? records.length > 0 : undefined,
-      activeRecord: purpose && records.length > 0 ? records[0] : undefined
-    }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' }
-    })
+    return jsonResponse(
+      {
+        success: true,
+        records,
+        hasActive: purpose ? records.length > 0 : undefined,
+        activeRecord: purpose && records.length > 0 ? records[0] : undefined,
+      },
+      200,
+    )
   } catch (error) {
-    console.error('Failed to retrieve consent:', error)
-    return new Response(JSON.stringify({
-      success: false,
-      error: { code: 'INTERNAL_ERROR', message: 'Failed to retrieve consent' }
-    }), { status: 500 })
+    const serverError = handleApiFunctionError(error, {
+      route: ROUTE,
+      operation: 'GET',
+      extra: {
+        clientAddress,
+        dataSubjectId: DataSubjectId,
+        purpose,
+      },
+    })
+
+    return buildServerErrorResponse(serverError, 'Failed to retrieve consent')
   }
 }
 
@@ -169,28 +230,16 @@ export const DELETE: APIRoute = async ({ clientAddress, url }) => {
   const { success, reset } = await checkRateLimit(rateLimiters.delete, clientAddress)
 
   if (!success) {
-    return new Response(JSON.stringify({
-      success: false,
-      error: {
-        code: 'RATE_LIMIT_EXCEEDED',
-        message: `Try again in ${Math.ceil((reset! - Date.now()) / 1000)}s`
-      }
-    } as ErrorResponse), {
-      status: 429,
-      headers: {
-        'Content-Type': 'application/json',
-        'Retry-After': String(Math.ceil((reset! - Date.now()) / 1000))
-      }
-    })
+    return buildRateLimitResponse(reset)
   }
 
   const DataSubjectId = url.searchParams.get('DataSubjectId')
 
   if (!DataSubjectId || !uuidValidate(DataSubjectId)) {
-    return new Response(JSON.stringify({
+    return jsonResponse({
       success: false,
-      error: { code: 'INVALID_UUID', message: 'Valid DataSubjectId required' }
-    } as ErrorResponse), { status: 400 })
+      error: { code: 'INVALID_UUID', message: 'Valid DataSubjectId required' },
+    } satisfies ErrorResponse, 400)
   }
 
   try {
@@ -201,21 +250,33 @@ export const DELETE: APIRoute = async ({ clientAddress, url }) => {
       .select()
 
     if (error) {
-      throw error
+      throw new ApiFunctionError(error, {
+        route: ROUTE,
+        operation: 'DELETE.remove-consent',
+        status: 500,
+        details: {
+          dataSubjectId: DataSubjectId,
+        },
+      })
     }
 
-    return new Response(JSON.stringify({
-      success: true,
-      deletedCount: data?.length || 0
-    }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' }
-    })
+    return jsonResponse(
+      {
+        success: true,
+        deletedCount: data?.length || 0,
+      },
+      200,
+    )
   } catch (error) {
-    console.error('Failed to delete consent:', error)
-    return new Response(JSON.stringify({
-      success: false,
-      error: { code: 'INTERNAL_ERROR', message: 'Failed to delete consent' }
-    }), { status: 500 })
+    const serverError = handleApiFunctionError(error, {
+      route: ROUTE,
+      operation: 'DELETE',
+      extra: {
+        clientAddress,
+        dataSubjectId: DataSubjectId,
+      },
+    })
+
+    return buildServerErrorResponse(serverError, 'Failed to delete consent')
   }
 }

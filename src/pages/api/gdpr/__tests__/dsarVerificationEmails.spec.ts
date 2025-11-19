@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { sendDSARVerificationEmail } from '@pages/api/gdpr/_dsarVerificationEmails'
 
 // Mock environment utilities BEFORE importing the module under test
-vi.mock('@components/scripts/utils', () => ({
+vi.mock('@lib/config/environmentServer', () => ({
   isDev: vi.fn(() => false),
   isTest: vi.fn(() => false),
 }))
@@ -42,10 +42,10 @@ describe('GDPR Email Utils', () => {
 
   beforeEach(async () => {
     // Get the mocked functions
-    const utils = await import('@components/scripts/utils')
-    isDev = utils.isDev as ReturnType<typeof vi.fn>
-    isTest = utils.isTest as ReturnType<typeof vi.fn>
-    
+    const envUtils = await import('@lib/config/environmentServer')
+    isDev = envUtils.isDev as ReturnType<typeof vi.fn>
+    isTest = envUtils.isTest as ReturnType<typeof vi.fn>
+
     const config = await import('@lib/config')
     getSiteUrl = config.getSiteUrl as ReturnType<typeof vi.fn>
 

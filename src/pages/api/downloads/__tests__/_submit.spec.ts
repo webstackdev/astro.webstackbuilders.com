@@ -165,8 +165,8 @@ describe('Downloads API - POST /api/downloads/submit', () => {
 		const response = await POST({ request } as any)
 		const data = await response.json()
 
-		expect(response.status).toBe(500)
+		expect(response.status).toBe(400)
 		expect(data.success).toBe(false)
-		expect(data.message).toContain('Internal server error')
+		expect(data.message).toContain('Invalid JSON payload')
 	})
 })
