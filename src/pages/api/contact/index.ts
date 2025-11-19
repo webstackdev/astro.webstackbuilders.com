@@ -8,9 +8,10 @@ import type { APIRoute } from 'astro'
 import { Resend } from 'resend'
 import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
 import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
-import { handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
+import { buildApiErrorResponse, handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
 import { getResendApiKey, isDev, isTest } from '@pages/api/_environment'
 import { checkContactRateLimit } from '@pages/api/_utils'
+import { createApiFunctionContext, createRateLimitIdentifier } from '@pages/api/_utils/requestContext'
 
 export const prerender = false // Force SSR for this endpoint
 
@@ -218,30 +219,32 @@ async function sendEmail(emailData: EmailData, files: FileAttachment[]): Promise
 /**
  * Main API handler for contact form submissions
  */
-export const POST: APIRoute = async ({ request }) => {
-	try {
-		// Get client IP and user agent
-		const ip =
-			request.headers.get('x-forwarded-for')?.split(',')[0] ||
-			request.headers.get('x-real-ip') ||
-			'unknown'
-		const userAgent = request.headers.get('user-agent') || 'unknown'
+export const POST: APIRoute = async ({ request, cookies, clientAddress }) => {
+	const { context: apiContext, fingerprint } = createApiFunctionContext({
+		route: '/api/contact',
+		operation: 'POST',
+		request,
+		cookies,
+		clientAddress,
+	})
 
-		// Check rate limit
-		if (!checkContactRateLimit(ip)) {
-			return new Response(
-				JSON.stringify({
-					success: false,
-					error: 'Too many form submissions. Please try again later.',
-				}),
-				{
-					status: 429,
-					headers: { 'Content-Type': 'application/json' },
-				},
-			)
+	const userAgent = request.headers.get('user-agent') || 'unknown'
+	const ip =
+		clientAddress ||
+		request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+		request.headers.get('x-real-ip') ||
+		'unknown'
+
+	try {
+		const rateLimitIdentifier = createRateLimitIdentifier('contact', fingerprint)
+		if (!checkContactRateLimit(rateLimitIdentifier)) {
+			throw new ApiFunctionError({
+				message: 'Too many form submissions. Please try again later.',
+				status: 429,
+				code: 'RATE_LIMIT_EXCEEDED',
+			})
 		}
 
-		// Parse request body
 		const contentType = request.headers.get('content-type') || ''
 		let formData: ContactFormData
 		const files: FileAttachment[] = []
@@ -282,47 +285,38 @@ export const POST: APIRoute = async ({ request }) => {
 			const maxFiles = 5
 
 			let fileCount = 0
-			for (const [key, value] of form.entries()) {
+			for (const [key, value] of form as unknown as Iterable<[
+				string,
+				FormDataEntryValue,
+			]>) {
 				if (key.startsWith('file') && value instanceof File && value.size > 0) {
 					fileCount++
 
 					if (fileCount > maxFiles) {
-						return new Response(
-							JSON.stringify({
-								success: false,
-								error: `Maximum ${maxFiles} files allowed`,
-							}),
-							{
-								status: 400,
-								headers: { 'Content-Type': 'application/json' },
-							},
-						)
+						throw new ApiFunctionError({
+							message: `Maximum ${maxFiles} files allowed`,
+							status: 400,
+							code: 'FILE_COUNT_EXCEEDED',
+							details: { maxFiles },
+						})
 					}
 
 					if (value.size > maxFileSize) {
-						return new Response(
-							JSON.stringify({
-								success: false,
-								error: `File ${value.name} exceeds 10MB limit`,
-							}),
-							{
-								status: 400,
-								headers: { 'Content-Type': 'application/json' },
-							},
-						)
+						throw new ApiFunctionError({
+							message: `File ${value.name} exceeds 10MB limit`,
+							status: 400,
+							code: 'FILE_TOO_LARGE',
+							details: { file: value.name, maxBytes: maxFileSize },
+						})
 					}
 
 					if (!allowedTypes.includes(value.type)) {
-						return new Response(
-							JSON.stringify({
-								success: false,
-								error: `File type ${value.type} not allowed`,
-							}),
-							{
-								status: 400,
-								headers: { 'Content-Type': 'application/json' },
-							},
-						)
+						throw new ApiFunctionError({
+							message: `File type ${value.type} not allowed`,
+							status: 400,
+							code: 'FILE_TYPE_NOT_ALLOWED',
+							details: { file: value.name, type: value.type },
+						})
 					}
 
 					const buffer = Buffer.from(await value.arrayBuffer())
@@ -334,114 +328,91 @@ export const POST: APIRoute = async ({ request }) => {
 					})
 				}
 			}
-		} else {
-			// Handle JSON request
-			formData = (await request.json()) as ContactFormData
-		}
+	    } else {
+	      try {
+	        formData = (await request.json()) as ContactFormData
+	      } catch {
+	        throw new ApiFunctionError({
+	          message: 'Invalid JSON payload',
+	          status: 400,
+	          code: 'INVALID_JSON',
+	        })
+	      }
+	    }
 
-		// Validate input
-		const errors = validateInput(formData)
-		if (errors.length > 0) {
-			return new Response(
-				JSON.stringify({
-					success: false,
-					error: errors[0],
-					errors,
-				}),
-				{
-					status: 400,
-					headers: { 'Content-Type': 'application/json' },
-				},
-			)
-		}
+	    const validationErrors = validateInput(formData)
+	    if (validationErrors.length > 0) {
+	      throw new ApiFunctionError({
+	        message: validationErrors[0],
+	        status: 400,
+	        code: 'INVALID_REQUEST',
+	        details: { errors: validationErrors },
+	      })
+	    }
 
-		// Record GDPR consent (optional for contact form)
-		if (formData.consent) {
-			// Generate or validate DataSubjectId
-			let subjectId = formData.DataSubjectId
-			if (!subjectId) {
-				subjectId = uuidv4()
-			} else if (!uuidValidate(subjectId)) {
-				return new Response(
-					JSON.stringify({
-						success: false,
-						error: 'Invalid DataSubjectId format',
-					}),
-					{
-						status: 400,
-						headers: { 'Content-Type': 'application/json' },
-					},
-				)
-			}
+	    if (formData.consent) {
+	      let subjectId = formData.DataSubjectId
+	      if (!subjectId) {
+	        subjectId = uuidv4()
+	      } else if (!uuidValidate(subjectId)) {
+	        throw new ApiFunctionError({
+	          message: 'Invalid DataSubjectId format',
+	          status: 400,
+	          code: 'INVALID_UUID',
+	        })
+	      }
 
-			// Record consent via new GDPR API
-			const consentResponse = await fetch(`${new URL(request.url).origin}/api/gdpr/consent`, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					DataSubjectId: subjectId,
-					email: formData.email,
-					purposes: ['contact'],
-					source: 'contact_form',
-					userAgent,
-					...(ip !== 'unknown' && { ipAddress: ip }),
-					verified: true, // Contact form consent is immediately verified
-				}),
-			})
+	      const consentResponse = await fetch(`${new URL(request.url).origin}/api/gdpr/consent`, {
+	        method: 'POST',
+	        headers: { 'Content-Type': 'application/json' },
+	        body: JSON.stringify({
+	          DataSubjectId: subjectId,
+	          email: formData.email,
+	          purposes: ['contact'],
+	          source: 'contact_form',
+	          userAgent,
+	          ...(ip !== 'unknown' && { ipAddress: ip }),
+	          verified: true,
+	        }),
+	      })
 
-			if (!consentResponse.ok) {
-				console.error('Failed to record consent:', await consentResponse.json())
-				// Continue anyway - don't block form submission on consent logging failure
-			}
-		}
+	      if (!consentResponse.ok) {
+	        throw new ApiFunctionError({
+	          message: 'Failed to record consent. Please try again later.',
+	          status: 502,
+	          code: 'CONSENT_RECORD_FAILED',
+	        })
+	      }
+	    }
 
-		// Generate email content
-		const htmlContent = generateEmailContent(formData, files)
+	    const htmlContent = generateEmailContent(formData, files)
 
-		// Send email via Resend
-		const emailData: EmailData = {
-			from: 'contact@webstackbuilders.com',
-			to: 'info@webstackbuilders.com',
-			subject: `Contact Form: ${formData.name}`,
-			html: htmlContent,
-		}
+	    const emailData: EmailData = {
+	      from: 'contact@webstackbuilders.com',
+	      to: 'info@webstackbuilders.com',
+	      subject: `Contact Form: ${formData.name}`,
+	      html: htmlContent,
+	    }
 
-		await sendEmail(emailData, files)
+	    await sendEmail(emailData, files)
 
-		// Return success response
-		return new Response(
-			JSON.stringify({
-				success: true,
-				message: 'Thank you for your message. We will get back to you soon!',
-			}),
-			{
-				status: 200,
-				headers: { 'Content-Type': 'application/json' },
-			},
-		)
-	} catch (error) {
-		const serverError = handleApiFunctionError(error, {
-      route: '/api/contact',
-      operation: 'POST',
-      extra: {
-        userAgent: request.headers.get('user-agent') || 'unknown',
-      },
-    })
+	    return new Response(
+	      JSON.stringify({
+	        success: true,
+	        message: 'Thank you for your message. We will get back to you soon!',
+	      }),
+	      {
+	        status: 200,
+	        headers: { 'Content-Type': 'application/json' },
+	      },
+	    )
+	  } catch (error) {
+	    const serverError = handleApiFunctionError(error, apiContext)
 
-		const errorMessage =
-			serverError instanceof Error ? serverError.message : 'An unexpected error occurred. Please try again.'
-
-		return new Response(
-			JSON.stringify({
-				success: false,
-				error: errorMessage,
-			}),
-			{
-				status: serverError.status ?? 500,
-				headers: { 'Content-Type': 'application/json' },
-			},
-		)
-	}
+	    return buildApiErrorResponse(serverError, {
+	      fallbackMessage: 'An unexpected error occurred. Please try again.',
+	    })
+	  }
 }
 
 // Handle OPTIONS for CORS

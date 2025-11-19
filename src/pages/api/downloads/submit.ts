@@ -3,7 +3,8 @@
  */
 import type { APIRoute } from 'astro'
 import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
-import { handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
+import { buildApiErrorResponse, handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
+import { createApiFunctionContext } from '@pages/api/_utils/requestContext'
 
 export const prerender = false
 
@@ -66,7 +67,15 @@ const validateDownloadForm = (payload: Partial<DownloadFormData>): DownloadFormD
   return normalized
 }
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, cookies, clientAddress }) => {
+  const { context: apiContext } = createApiFunctionContext({
+    route: '/api/downloads/submit',
+    operation: 'POST',
+    request,
+    cookies,
+    clientAddress,
+  })
+
   try {
     let payload: Partial<DownloadFormData>
     try {
@@ -114,20 +123,10 @@ export const POST: APIRoute = async ({ request }) => {
           })
         : rawError
 
-    const serverError = handleApiFunctionError(normalizedError, {
-      route: '/api/downloads/submit',
-      operation: 'POST',
+    const serverError = handleApiFunctionError(normalizedError, apiContext)
+
+    return buildApiErrorResponse(serverError, {
+      fallbackMessage: 'Internal server error',
     })
-
-    const isClientError = serverError.status >= 400 && serverError.status < 500
-    const message = isClientError ? serverError.message : 'Internal server error'
-
-    return buildJsonResponse(
-      {
-        success: false,
-        message,
-      },
-      serverError.status ?? 500,
-    )
   }
 }

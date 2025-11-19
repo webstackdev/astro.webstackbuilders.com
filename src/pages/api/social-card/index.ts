@@ -4,25 +4,22 @@
  * Usage: GET /api/social-card?slug=article-title&title=Article Title&description=Article description
  */
 import type { APIRoute } from 'astro'
-import { handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
+import { buildApiErrorResponse, handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
+import { createApiFunctionContext } from '@pages/api/_utils/requestContext'
 
 export const prerender = false
 
 const ROUTE = '/api/social-card'
 
-const jsonErrorResponse = (message: string, status: number) =>
-  new Response(
-    JSON.stringify({
-      success: false,
-      error: message,
-    }),
-    {
-      status,
-      headers: { 'Content-Type': 'application/json' },
-    },
-  )
+export const GET: APIRoute = async ({ request, clientAddress, cookies }) => {
+  const { context: apiContext } = createApiFunctionContext({
+    route: ROUTE,
+    operation: 'GET',
+    request,
+    clientAddress,
+    cookies,
+  })
 
-export const GET: APIRoute = async ({ request }) => {
   try {
     const url = new URL(request.url)
     const slug = url.searchParams.get('slug') || 'home'
@@ -166,11 +163,8 @@ export const GET: APIRoute = async ({ request }) => {
       },
     })
   } catch (error) {
-    const serverError = handleApiFunctionError(error, {
-      route: ROUTE,
-      operation: 'GET',
+    return buildApiErrorResponse(handleApiFunctionError(error, apiContext), {
+      fallbackMessage: 'Unable to generate social card',
     })
-
-    return jsonErrorResponse('Unable to generate social card', serverError.status ?? 500)
   }
 }

@@ -8,9 +8,9 @@ import type { APIRoute } from 'astro'
 import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
 import { getConvertkitApiKey, isDev, isTest } from '@pages/api/_environment'
 import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
-import { handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
+import { buildApiErrorResponse, handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
 import { rateLimiters, checkRateLimit } from '@pages/api/_utils/rateLimit'
-import type { ErrorResponse } from '@pages/api/_contracts/gdpr.contracts'
+import { createApiFunctionContext, createRateLimitIdentifier } from '@pages/api/_utils/requestContext'
 import { createPendingSubscription } from './_token'
 import { sendConfirmationEmail } from './_email'
 
@@ -181,126 +181,131 @@ export async function subscribeToConvertKit(
 /**
  * Main API handler for newsletter subscriptions
  */
-export const POST: APIRoute = async ({ request, clientAddress }) => {
-  // Rate limiting
-  const { success, reset } = await checkRateLimit(rateLimiters.consent, clientAddress)
+export const POST: APIRoute = async ({ request, cookies, clientAddress }) => {
+  const { context: apiContext, fingerprint } = createApiFunctionContext({
+    route: '/api/newsletter',
+    operation: 'POST',
+    request,
+    cookies,
+    clientAddress,
+  })
 
-  if (!success) {
-    return new Response(JSON.stringify({
-      success: false,
-      error: {
+  const userAgent = request.headers.get('user-agent') || 'unknown'
+  apiContext.extra = { ...(apiContext.extra || {}), userAgent }
+
+  try {
+    const rateLimitIdentifier = createRateLimitIdentifier('newsletter:consent', fingerprint)
+    const { success, reset } = await checkRateLimit(rateLimiters.consent, rateLimitIdentifier)
+
+    if (!success) {
+      const retryAfterMs = typeof reset === 'number' ? Math.max(0, reset - Date.now()) : 0
+      const retryAfterSeconds = Math.max(1, Math.ceil(retryAfterMs / 1000))
+      throw new ApiFunctionError({
+        message: `Try again in ${retryAfterSeconds}s`,
+        status: 429,
         code: 'RATE_LIMIT_EXCEEDED',
-        message: `Try again in ${Math.ceil((reset! - Date.now()) / 1000)}s`
-      }
-    } as ErrorResponse), {
-      status: 429,
-      headers: {
-        'Content-Type': 'application/json',
-        'Retry-After': String(Math.ceil((reset! - Date.now()) / 1000))
-      }
-    })
-  }
-
-	try {
-		// Parse and validate input
-		const body: NewsletterFormData = await request.json()
-		const { email, firstName, consentGiven, DataSubjectId } = body
-		const validatedEmail = validateEmail(email)
-
-		// Validate GDPR consent
-		if (!consentGiven) {
-      return new Response(JSON.stringify({
-        success: false,
-        error: { code: 'INVALID_REQUEST', message: 'You must consent to receive marketing emails to subscribe.' }
-      } as ErrorResponse), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
+        details: { retryAfterSeconds },
       })
     }
 
-		// Generate or validate DataSubjectId
-		let subjectId = DataSubjectId
-		if (!subjectId) {
-			subjectId = uuidv4()
-		} else if (!uuidValidate(subjectId)) {
-			return new Response(JSON.stringify({
-				success: false,
-				error: { code: 'INVALID_UUID', message: 'Invalid DataSubjectId format' }
-			} as ErrorResponse), {
-				status: 400,
-				headers: { 'Content-Type': 'application/json' },
-			})
-		}
+    let body: NewsletterFormData
+    try {
+      body = await request.json()
+    } catch {
+      throw new ApiFunctionError({
+        message: 'Invalid JSON payload',
+        status: 400,
+        code: 'INVALID_JSON',
+      })
+    }
 
-		// Record initial (unverified) consent via new GDPR API
-		const consentResponse = await fetch(`${new URL(request.url).origin}/api/gdpr/consent`, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({
-				DataSubjectId: subjectId,
-				email: validatedEmail,
-				purposes: ['marketing'],
-				source: 'newsletter_form',
-				userAgent: request.headers.get('user-agent') || 'unknown',
-				...(clientAddress !== 'unknown' && { ipAddress: clientAddress }),
-				verified: false,
-			}),
-		})
+    const { email, firstName, consentGiven, DataSubjectId } = body
+    const validatedEmail = validateEmail(email)
 
-		if (!consentResponse.ok) {
-			const error = await consentResponse.json()
-			console.error('Failed to record consent:', error)
-			return new Response(JSON.stringify({
-				success: false,
-				error: { code: 'INVALID_REQUEST', message: 'Failed to record consent. Please try again.' }
-			} as ErrorResponse), {
-				status: 500,
-				headers: { 'Content-Type': 'application/json' },
-			})
-		}
+    if (!consentGiven) {
+      throw new ApiFunctionError({
+        message: 'You must consent to receive marketing emails to subscribe.',
+        status: 400,
+        code: 'CONSENT_REQUIRED',
+      })
+    }
 
-		// Create pending subscription with token
-		const token = await createPendingSubscription({
-			email: validatedEmail,
-			...(firstName && { firstName }),
-			DataSubjectId: subjectId,
-			userAgent: request.headers.get('user-agent') || 'unknown',
-			...(clientAddress !== 'unknown' && { clientAddress }),
-			source: 'newsletter_form',
-		})
+    let subjectId = DataSubjectId
+    if (!subjectId) {
+      subjectId = uuidv4()
+    } else if (!uuidValidate(subjectId)) {
+      throw new ApiFunctionError({
+        message: 'Invalid DataSubjectId format',
+        status: 400,
+        code: 'INVALID_UUID',
+      })
+    }
 
-		// Send confirmation email
-		await sendConfirmationEmail(validatedEmail, token, firstName)
-
-		// Return success response
-		return new Response(
-			JSON.stringify({
-				success: true,
-				message: 'Please check your email to confirm your subscription.',
-				requiresConfirmation: true,
-			}),
-			{
-				status: 200,
-				headers: { 'Content-Type': 'application/json' },
-			},
-		)
-  } catch (error) {
-    const serverError = handleApiFunctionError(error, {
-      route: '/api/newsletter',
-      operation: 'POST',
-      extra: {
-        userAgent: request.headers.get('user-agent') || 'unknown',
-      },
-    })
-
-    return new Response(JSON.stringify({
-      success: false,
-      error: { code: serverError.code || 'INVALID_REQUEST', message: serverError.message }
-    } as ErrorResponse), {
-      status: serverError.status ?? 400,
+    const consentResponse = await fetch(`${new URL(request.url).origin}/api/gdpr/consent`, {
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        DataSubjectId: subjectId,
+        email: validatedEmail,
+        purposes: ['marketing'],
+        source: 'newsletter_form',
+        userAgent,
+        ...(clientAddress && clientAddress !== 'unknown' && { ipAddress: clientAddress }),
+        verified: false,
+      }),
     })
-	}
+
+    if (!consentResponse.ok) {
+      throw new ApiFunctionError({
+        message: 'Failed to record consent. Please try again.',
+        status: 502,
+        code: 'CONSENT_RECORD_FAILED',
+      })
+    }
+
+    const token = await createPendingSubscription({
+      email: validatedEmail,
+      ...(firstName && { firstName }),
+      DataSubjectId: subjectId,
+      userAgent,
+      ...(clientAddress && clientAddress !== 'unknown' && { clientAddress }),
+      source: 'newsletter_form',
+    })
+
+    await sendConfirmationEmail(validatedEmail, token, firstName)
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: 'Please check your email to confirm your subscription.',
+        requiresConfirmation: true,
+      }),
+      {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      },
+    )
+  } catch (error) {
+    const serverError = handleApiFunctionError(error, apiContext)
+    const retryAfterSecondsRaw = serverError.details?.['retryAfterSeconds']
+    const retryAfterSeconds =
+      typeof retryAfterSecondsRaw === 'number'
+        ? Math.max(1, Math.ceil(retryAfterSecondsRaw))
+        : undefined
+
+    const responseOptions = {
+      fallbackMessage: 'Failed to process newsletter request.',
+    } as {
+      fallbackMessage: string
+      headers?: HeadersInit
+    }
+
+    if (retryAfterSeconds) {
+      responseOptions.headers = { 'Retry-After': String(retryAfterSeconds) }
+    }
+
+    return buildApiErrorResponse(serverError, responseOptions)
+  }
 }
 
 // Handle OPTIONS for CORS

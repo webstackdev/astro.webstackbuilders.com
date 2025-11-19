@@ -2,9 +2,10 @@ import type { APIRoute } from 'astro'
 import { v4 as uuidv4 } from 'uuid'
 import { rateLimiters, checkRateLimit, supabaseAdmin } from '@pages/api/_utils'
 import { sendDSARVerificationEmail } from '@pages/api/gdpr/_dsarVerificationEmails'
-import type { DSARRequestInput, DSARResponse, ErrorResponse } from '@pages/api/_contracts/gdpr.contracts'
+import type { DSARRequestInput, DSARResponse } from '@pages/api/_contracts/gdpr.contracts'
 import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
-import { handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
+import { buildApiErrorResponse, handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
+import { createApiFunctionContext, createRateLimitIdentifier } from '@pages/api/_utils/requestContext'
 
 export const prerender = false // Force SSR for this endpoint
 
@@ -19,66 +20,89 @@ const jsonResponse = (body: unknown, status: number, headers?: Record<string, st
     },
   })
 
-const buildRateLimitResponse = (reset: number | undefined) => {
-  const retryAfterSeconds = reset ? Math.max(0, Math.ceil((reset - Date.now()) / 1000)) : 60
-
-  return jsonResponse(
-    {
-      success: false,
-      error: {
-        code: 'RATE_LIMIT_EXCEEDED',
-        message: `Too many requests. Try again in ${retryAfterSeconds}s`,
-      },
-    } satisfies ErrorResponse,
-    429,
-    {
-      'Retry-After': String(retryAfterSeconds),
-    },
-  )
+const buildRateLimitError = (reset: number | undefined) => {
+  const retryAfterMs = typeof reset === 'number' ? Math.max(0, reset - Date.now()) : 0
+  const retryAfterSeconds = Math.max(1, Math.ceil(retryAfterMs / 1000))
+  return new ApiFunctionError({
+    message: `Too many requests. Try again in ${retryAfterSeconds}s`,
+    status: 429,
+    code: 'RATE_LIMIT_EXCEEDED',
+    details: { retryAfterSeconds },
+  })
 }
 
 const buildValidationError = (message: string) =>
-  jsonResponse(
-    {
-      success: false,
-      error: {
-        code: 'INVALID_REQUEST',
-        message,
-      },
-    } satisfies ErrorResponse,
-    400,
-  )
+  new ApiFunctionError({
+    message,
+    status: 400,
+    code: 'INVALID_REQUEST',
+  })
+
+const buildErrorResponse = (
+  error: unknown,
+  context: ReturnType<typeof createApiFunctionContext>['context'],
+  fallbackMessage: string,
+) => {
+  const serverError = handleApiFunctionError(error, context)
+  const retryAfterSecondsRaw = serverError.details?.['retryAfterSeconds']
+  const options = {
+    fallbackMessage,
+  } as {
+    fallbackMessage: string
+    headers?: HeadersInit
+  }
+
+  if (typeof retryAfterSecondsRaw === 'number') {
+    options.headers = { 'Retry-After': String(Math.max(1, Math.ceil(retryAfterSecondsRaw))) }
+  }
+
+  return buildApiErrorResponse(serverError, options)
+}
 
 /**
  * POST /api/gdpr/request-data
  * Initiates a DSAR (Data Subject Access Request) for data access or deletion
  * Sends verification email with token
  */
-export const POST: APIRoute = async ({ request, clientAddress }) => {
-  // Rate limiting (use export limiter - 5 requests per minute)
-  const { success, reset } = await checkRateLimit(rateLimiters.export, clientAddress)
 
-  if (!success) {
-    return buildRateLimitResponse(reset)
-  }
+export const POST: APIRoute = async ({ request, clientAddress, cookies }) => {
+  const { context: apiContext, fingerprint } = createApiFunctionContext({
+    route: ROUTE,
+    operation: 'POST',
+    request,
+    cookies,
+    clientAddress,
+  })
 
   try {
-    const body: DSARRequestInput = await request.json()
-
-    // Validate request
-    if (!body.email || !body.requestType) {
-      return buildValidationError('Email and request type are required')
+    const rateLimitIdentifier = createRateLimitIdentifier('gdpr:dsar:request', fingerprint)
+    const { success, reset } = await checkRateLimit(rateLimiters.export, rateLimitIdentifier)
+    if (!success) {
+      throw buildRateLimitError(reset)
     }
 
-    // Validate email format
+    let body: DSARRequestInput
+    try {
+      body = await request.json()
+    } catch {
+      throw new ApiFunctionError({
+        message: 'Invalid JSON payload',
+        status: 400,
+        code: 'INVALID_JSON',
+      })
+    }
+
+    if (!body.email || !body.requestType) {
+      throw buildValidationError('Email and request type are required')
+    }
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(body.email)) {
-      return buildValidationError('Invalid email format')
+      throw buildValidationError('Invalid email format')
     }
 
-    // Validate request type
     if (!['ACCESS', 'DELETE'].includes(body.requestType)) {
-      return buildValidationError('Request type must be ACCESS or DELETE')
+      throw buildValidationError('Request type must be ACCESS or DELETE')
     }
 
     const email = body.email.toLowerCase().trim()
@@ -153,25 +177,6 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
       201,
     )
   } catch (error) {
-    const serverError = handleApiFunctionError(error, {
-      route: ROUTE,
-      operation: 'POST',
-      extra: {
-        clientAddress,
-      },
-    })
-
-    return jsonResponse(
-      {
-        success: false,
-        error: {
-          code: 'INVALID_REQUEST',
-          message: serverError.status >= 400 && serverError.status < 500
-            ? serverError.message
-            : 'Failed to process request. Please try again.',
-        },
-      } satisfies ErrorResponse,
-      serverError.status ?? 500,
-    )
+    return buildErrorResponse(error, apiContext, 'Failed to process request. Please try again.')
   }
 }

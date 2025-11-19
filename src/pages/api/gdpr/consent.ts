@@ -2,9 +2,10 @@ import type { APIRoute } from 'astro'
 import { getPrivacyPolicyVersion } from '@pages/api/_environment'
 import { rateLimiters, checkRateLimit, supabaseAdmin } from '@pages/api/_utils'
 import { validate as uuidValidate } from 'uuid'
-import type { ConsentRequest, ConsentResponse, ErrorResponse } from '@pages/api/_contracts/gdpr.contracts'
+import type { ConsentRequest, ConsentResponse } from '@pages/api/_contracts/gdpr.contracts'
 import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
-import { handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
+import { buildApiErrorResponse, handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
+import { createApiFunctionContext, createRateLimitIdentifier } from '@pages/api/_utils/requestContext'
 
 export const prerender = false // Force SSR for this endpoint
 
@@ -19,72 +20,73 @@ const jsonResponse = (body: unknown, status: number, headers?: Record<string, st
     },
   })
 
-const buildRateLimitResponse = (reset: number | undefined, message?: string) => {
-  const retryAfterSeconds = reset ? Math.max(0, Math.ceil((reset - Date.now()) / 1000)) : 60
-  return jsonResponse(
-    {
-      success: false,
-      error: {
-        code: 'RATE_LIMIT_EXCEEDED',
-        message: message ?? `Try again in ${retryAfterSeconds}s`,
-      },
-    } satisfies ErrorResponse,
-    429,
-    {
-      'Retry-After': String(retryAfterSeconds),
-    },
-  )
+const buildRateLimitError = (reset: number | undefined, message?: string) => {
+  const retryAfterMs = typeof reset === 'number' ? Math.max(0, reset - Date.now()) : 0
+  const retryAfterSeconds = Math.max(1, Math.ceil(retryAfterMs / 1000))
+  return new ApiFunctionError({
+    message: message ?? `Try again in ${retryAfterSeconds}s`,
+    status: 429,
+    code: 'RATE_LIMIT_EXCEEDED',
+    details: { retryAfterSeconds },
+  })
 }
 
-const buildServerErrorResponse = (serverError: ApiFunctionError, defaultMessage: string) =>
-  jsonResponse(
-    {
-      success: false,
-      error: {
-        code: resolveErrorCode(serverError.code),
-        message: serverError.status >= 400 && serverError.status < 500 ? serverError.message : defaultMessage,
-      },
-    } satisfies ErrorResponse,
-    serverError.status ?? 500,
-  )
-
-const resolveErrorCode = (code?: string): ErrorResponse['error']['code'] => {
-  const allowedCodes: Array<ErrorResponse['error']['code']> = [
-    'INVALID_UUID',
-    'RATE_LIMIT_EXCEEDED',
-    'NOT_FOUND',
-    'UNAUTHORIZED',
-    'INVALID_REQUEST',
-    'INTERNAL_ERROR',
-  ]
-
-  if (code && allowedCodes.includes(code as ErrorResponse['error']['code'])) {
-    return code as ErrorResponse['error']['code']
+const buildErrorResponse = (
+  error: unknown,
+  context: ReturnType<typeof createApiFunctionContext>['context'],
+  fallbackMessage: string,
+) => {
+  const serverError = handleApiFunctionError(error, context)
+  const retryAfterSecondsRaw = serverError.details?.['retryAfterSeconds']
+  const options = {
+    fallbackMessage,
+  } as {
+    fallbackMessage: string
+    headers?: HeadersInit
   }
 
-  return 'INTERNAL_ERROR'
+  if (typeof retryAfterSecondsRaw === 'number') {
+    options.headers = { 'Retry-After': String(Math.max(1, Math.ceil(retryAfterSecondsRaw))) }
+  }
+
+  return buildApiErrorResponse(serverError, options)
 }
 
-export const POST: APIRoute = async ({ request, clientAddress }) => {
-  // Rate limiting
-  const { success, reset } = await checkRateLimit(rateLimiters.consent, clientAddress)
-
-  if (!success) {
-    return buildRateLimitResponse(reset)
-  }
+export const POST: APIRoute = async ({ request, cookies, clientAddress }) => {
+  const { context: apiContext, fingerprint } = createApiFunctionContext({
+    route: ROUTE,
+    operation: 'POST',
+    request,
+    cookies,
+    clientAddress,
+  })
 
   try {
-    const body: ConsentRequest = await request.json()
-
-    // Validate DataSubjectId
-    if (!uuidValidate(body.DataSubjectId)) {
-      return jsonResponse({
-        success: false,
-        error: { code: 'INVALID_UUID', message: 'Invalid DataSubjectId' },
-      } satisfies ErrorResponse, 400)
+    const rateLimitIdentifier = createRateLimitIdentifier('gdpr:consent:post', fingerprint)
+    const { success, reset } = await checkRateLimit(rateLimiters.consent, rateLimitIdentifier)
+    if (!success) {
+      throw buildRateLimitError(reset)
     }
 
-    // Insert consent record (database uses snake_case column names)
+    let body: ConsentRequest
+    try {
+      body = await request.json()
+    } catch {
+      throw new ApiFunctionError({
+        message: 'Invalid JSON payload',
+        status: 400,
+        code: 'INVALID_JSON',
+      })
+    }
+
+    if (!uuidValidate(body.DataSubjectId)) {
+      throw new ApiFunctionError({
+        message: 'Invalid DataSubjectId',
+        status: 400,
+        code: 'INVALID_UUID',
+      })
+    }
+
     const { data, error } = await supabaseAdmin
       .from('consent_records')
       .insert({
@@ -96,7 +98,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
         ip_address: body.ipAddress,
         privacy_policy_version: getPrivacyPolicyVersion(),
         consent_text: body.consentText,
-        verified: body.verified ?? false
+        verified: body.verified ?? false,
       })
       .select()
       .single()
@@ -133,37 +135,38 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
       201,
     )
   } catch (error) {
-    const serverError = handleApiFunctionError(error, {
-      route: ROUTE,
-      operation: 'POST',
-      extra: {
-        clientAddress,
-      },
-    })
-
-    return buildServerErrorResponse(serverError, 'Failed to record consent')
+    return buildErrorResponse(error, apiContext, 'Failed to record consent')
   }
 }
 
-export const GET: APIRoute = async ({ clientAddress, url }) => {
-  // Rate limiting
-  const { success, reset } = await checkRateLimit(rateLimiters.consentRead, clientAddress)
 
-  if (!success) {
-    return buildRateLimitResponse(reset)
-  }
+export const GET: APIRoute = async ({ clientAddress, url, request, cookies }) => {
+  const { context: apiContext, fingerprint } = createApiFunctionContext({
+    route: ROUTE,
+    operation: 'GET',
+    request,
+    cookies,
+    clientAddress,
+  })
 
   const DataSubjectId = url.searchParams.get('DataSubjectId')
   const purpose = url.searchParams.get('purpose')
 
-  if (!DataSubjectId || !uuidValidate(DataSubjectId)) {
-    return jsonResponse({
-      success: false,
-      error: { code: 'INVALID_UUID', message: 'Valid DataSubjectId required' },
-    } satisfies ErrorResponse, 400)
-  }
-
   try {
+    const rateLimitIdentifier = createRateLimitIdentifier('gdpr:consent:get', fingerprint)
+    const { success, reset } = await checkRateLimit(rateLimiters.consentRead, rateLimitIdentifier)
+    if (!success) {
+      throw buildRateLimitError(reset)
+    }
+
+    if (!DataSubjectId || !uuidValidate(DataSubjectId)) {
+      throw new ApiFunctionError({
+        message: 'Valid DataSubjectId required',
+        status: 400,
+        code: 'INVALID_UUID',
+      })
+    }
+
     let query = supabaseAdmin
       .from('consent_records')
       .select('*')
@@ -211,38 +214,42 @@ export const GET: APIRoute = async ({ clientAddress, url }) => {
       200,
     )
   } catch (error) {
-    const serverError = handleApiFunctionError(error, {
-      route: ROUTE,
-      operation: 'GET',
-      extra: {
-        clientAddress,
-        dataSubjectId: DataSubjectId,
-        purpose,
-      },
-    })
-
-    return buildServerErrorResponse(serverError, 'Failed to retrieve consent')
+    apiContext.extra = {
+      ...(apiContext.extra || {}),
+      dataSubjectId: DataSubjectId,
+      purpose,
+    }
+    return buildErrorResponse(error, apiContext, 'Failed to retrieve consent')
   }
 }
 
-export const DELETE: APIRoute = async ({ clientAddress, url }) => {
-  // Rate limiting
-  const { success, reset } = await checkRateLimit(rateLimiters.delete, clientAddress)
 
-  if (!success) {
-    return buildRateLimitResponse(reset)
-  }
+export const DELETE: APIRoute = async ({ clientAddress, url, request, cookies }) => {
+  const { context: apiContext, fingerprint } = createApiFunctionContext({
+    route: ROUTE,
+    operation: 'DELETE',
+    request,
+    cookies,
+    clientAddress,
+  })
 
   const DataSubjectId = url.searchParams.get('DataSubjectId')
 
-  if (!DataSubjectId || !uuidValidate(DataSubjectId)) {
-    return jsonResponse({
-      success: false,
-      error: { code: 'INVALID_UUID', message: 'Valid DataSubjectId required' },
-    } satisfies ErrorResponse, 400)
-  }
-
   try {
+    const rateLimitIdentifier = createRateLimitIdentifier('gdpr:consent:delete', fingerprint)
+    const { success, reset } = await checkRateLimit(rateLimiters.delete, rateLimitIdentifier)
+    if (!success) {
+      throw buildRateLimitError(reset)
+    }
+
+    if (!DataSubjectId || !uuidValidate(DataSubjectId)) {
+      throw new ApiFunctionError({
+        message: 'Valid DataSubjectId required',
+        status: 400,
+        code: 'INVALID_UUID',
+      })
+    }
+
     const { data, error } = await supabaseAdmin
       .from('consent_records')
       .delete()
@@ -268,15 +275,10 @@ export const DELETE: APIRoute = async ({ clientAddress, url }) => {
       200,
     )
   } catch (error) {
-    const serverError = handleApiFunctionError(error, {
-      route: ROUTE,
-      operation: 'DELETE',
-      extra: {
-        clientAddress,
-        dataSubjectId: DataSubjectId,
-      },
-    })
-
-    return buildServerErrorResponse(serverError, 'Failed to delete consent')
+    apiContext.extra = {
+      ...(apiContext.extra || {}),
+      dataSubjectId: DataSubjectId,
+    }
+    return buildErrorResponse(error, apiContext, 'Failed to delete consent')
   }
 }

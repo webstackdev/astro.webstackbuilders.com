@@ -2,53 +2,72 @@ import type { APIRoute } from 'astro'
 import { rateLimiters, checkRateLimit, supabaseAdmin } from '@pages/api/_utils'
 import { validate as uuidValidate } from 'uuid'
 import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
-import { handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
-import type { ErrorResponse } from '@pages/api/_contracts/gdpr.contracts'
+import { buildApiErrorResponse, handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
+import { createApiFunctionContext, createRateLimitIdentifier } from '@pages/api/_utils/requestContext'
 
 export const prerender = false // Force SSR for this endpoint
 
 const ROUTE = '/api/gdpr/export'
 
-const jsonResponse = (body: unknown, status: number, headers?: Record<string, string>) =>
-  new Response(JSON.stringify(body), {
-    status,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(headers || {}),
-    },
+const buildRateLimitError = (reset: number | undefined) => {
+  const retryAfterMs = typeof reset === 'number' ? Math.max(0, reset - Date.now()) : 0
+  const retryAfterSeconds = Math.max(1, Math.ceil(retryAfterMs / 1000))
+  return new ApiFunctionError({
+    message: `Try again in ${retryAfterSeconds}s`,
+    status: 429,
+    code: 'RATE_LIMIT_EXCEEDED',
+    details: { retryAfterSeconds },
   })
-
-const buildRateLimitResponse = (reset: number | undefined) => {
-  const retryAfterSeconds = reset ? Math.max(0, Math.ceil((reset - Date.now()) / 1000)) : 60
-  return jsonResponse(
-    {
-      success: false,
-      error: {
-        code: 'RATE_LIMIT_EXCEEDED',
-        message: `Try again in ${retryAfterSeconds}s`,
-      },
-    } satisfies ErrorResponse,
-    429,
-    {
-      'Retry-After': String(retryAfterSeconds),
-    },
-  )
 }
 
-export const GET: APIRoute = async ({ clientAddress, url }) => {
-  const { success, reset } = await checkRateLimit(rateLimiters.export, clientAddress)
-
-  if (!success) {
-    return buildRateLimitResponse(reset)
+const buildErrorResponse = (
+  error: unknown,
+  context: ReturnType<typeof createApiFunctionContext>['context'],
+  fallbackMessage: string,
+) => {
+  const serverError = handleApiFunctionError(error, context)
+  const retryAfterSecondsRaw = serverError.details?.['retryAfterSeconds']
+  const options = {
+    fallbackMessage,
+  } as {
+    fallbackMessage: string
+    headers?: HeadersInit
   }
 
-  const DataSubjectId = url.searchParams.get('DataSubjectId')
-
-  if (!DataSubjectId || !uuidValidate(DataSubjectId)) {
-    return new Response('Invalid DataSubjectId', { status: 400 })
+  if (typeof retryAfterSecondsRaw === 'number') {
+    options.headers = { 'Retry-After': String(Math.max(1, Math.ceil(retryAfterSecondsRaw))) }
   }
 
-  try {
+  return buildApiErrorResponse(serverError, options)
+}
+
+
+export const GET: APIRoute = async ({ clientAddress, url, request, cookies }) => {
+	const { context: apiContext, fingerprint } = createApiFunctionContext({
+		route: ROUTE,
+		operation: 'GET',
+		request,
+		cookies,
+		clientAddress,
+	})
+
+	const DataSubjectId = url.searchParams.get('DataSubjectId')
+
+	try {
+		const rateLimitIdentifier = createRateLimitIdentifier('gdpr:export:get', fingerprint)
+		const { success, reset } = await checkRateLimit(rateLimiters.export, rateLimitIdentifier)
+		if (!success) {
+			throw buildRateLimitError(reset)
+		}
+
+		if (!DataSubjectId || !uuidValidate(DataSubjectId)) {
+			throw new ApiFunctionError({
+				message: 'Invalid DataSubjectId',
+				status: 400,
+				code: 'INVALID_UUID',
+			})
+		}
+
     const { data, error } = await supabaseAdmin
       .from('consent_records')
       .select('*')
@@ -76,17 +95,10 @@ export const GET: APIRoute = async ({ clientAddress, url }) => {
       }
     })
   } catch (error) {
-    const serverError = handleApiFunctionError(error, {
-      route: ROUTE,
-      operation: 'GET',
-      extra: {
-        clientAddress,
-        dataSubjectId: DataSubjectId,
-      },
-    })
-
-    return new Response('Failed to export data', {
-      status: serverError.status ?? 500,
-    })
+    apiContext.extra = {
+      ...(apiContext.extra || {}),
+      dataSubjectId: DataSubjectId,
+    }
+    return buildErrorResponse(error, apiContext, 'Failed to export data')
   }
 }

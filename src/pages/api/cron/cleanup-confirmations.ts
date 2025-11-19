@@ -2,9 +2,18 @@ import type { APIRoute } from 'astro'
 import { getCronSecret } from '@pages/api/_environment'
 import { supabaseAdmin } from '@pages/api/_utils'
 import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
-import { handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
+import { buildApiErrorResponse, handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
+import { createApiFunctionContext } from '@pages/api/_utils/requestContext'
 
 export const prerender = false
+
+const ROUTE = '/api/cron/cleanup-confirmations'
+
+const buildErrorResponse = (
+  error: unknown,
+  context: ReturnType<typeof createApiFunctionContext>['context'],
+  fallbackMessage: string,
+) => buildApiErrorResponse(handleApiFunctionError(error, context), { fallbackMessage })
 
 /**
  * Cron job to clean up newsletter confirmations
@@ -13,15 +22,33 @@ export const prerender = false
  *
  * Scheduled via vercel.json to run daily
  */
-export const GET: APIRoute = async ({ request }) => {
+export const GET: APIRoute = async ({ request, clientAddress, cookies }) => {
+  const { context: apiContext } = createApiFunctionContext({
+    route: ROUTE,
+    operation: 'GET',
+    request,
+    clientAddress,
+    cookies,
+  })
+
   // Verify cron secret for security
   const authHeader = request.headers.get('authorization')
 
   if (authHeader !== `Bearer ${getCronSecret()}`) {
     console.warn('Unauthorized cron attempt - invalid CRON_SECRET')
-    return new Response(
-      JSON.stringify({ success: false, error: 'Unauthorized' }),
-      { status: 401, headers: { 'Content-Type': 'application/json' } }
+    apiContext.extra = {
+      ...(apiContext.extra || {}),
+      authHeader: authHeader ? 'PRESENT' : 'MISSING',
+      clientAddress,
+    }
+    return buildErrorResponse(
+      new ApiFunctionError({
+        message: 'Unauthorized',
+        status: 401,
+        code: 'UNAUTHORIZED',
+      }),
+      apiContext,
+      'Unauthorized cron access',
     )
   }
 
@@ -36,15 +63,15 @@ export const GET: APIRoute = async ({ request }) => {
       .lt('expires_at', now.toISOString())
       .select()
 
-  if (expiredError) {
-    throw new ApiFunctionError({
-      message: `Failed to delete expired tokens: ${expiredError.message}`,
-      cause: expiredError,
-      code: 'CRON_DELETE_EXPIRED_TOKENS_FAILED',
-      status: 500,
-      route: '/api/cron/cleanup-confirmations',
-      operation: 'deleteExpiredTokens'
-    })
+    if (expiredError) {
+      throw new ApiFunctionError({
+        message: `Failed to delete expired tokens: ${expiredError.message}`,
+        cause: expiredError,
+        code: 'CRON_DELETE_EXPIRED_TOKENS_FAILED',
+        status: 500,
+        route: ROUTE,
+        operation: 'deleteExpiredTokens',
+      })
     }
 
     // Delete old confirmed records (7+ days old)
@@ -55,15 +82,15 @@ export const GET: APIRoute = async ({ request }) => {
       .lt('created_at', sevenDaysAgo.toISOString())
       .select()
 
-  if (confirmedError) {
-    throw new ApiFunctionError({
-      message: `Failed to delete old confirmed records: ${confirmedError.message}`,
-      cause: confirmedError,
-      code: 'CRON_DELETE_CONFIRMED_TOKENS_FAILED',
-      status: 500,
-      route: '/api/cron/cleanup-confirmations',
-      operation: 'deleteConfirmedRecords'
-    })
+    if (confirmedError) {
+      throw new ApiFunctionError({
+        message: `Failed to delete old confirmed records: ${confirmedError.message}`,
+        cause: confirmedError,
+        code: 'CRON_DELETE_CONFIRMED_TOKENS_FAILED',
+        status: 500,
+        route: ROUTE,
+        operation: 'deleteConfirmedRecords',
+      })
     }
 
     const expiredCount = expiredData?.length || 0
@@ -84,19 +111,13 @@ export const GET: APIRoute = async ({ request }) => {
         },
         timestamp: now.toISOString(),
       }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
     )
   } catch (error) {
-    const serverError = handleApiFunctionError(error, {
-      route: '/api/cron/cleanup-confirmations',
-      operation: 'GET',
-    })
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: serverError.message,
-      }),
-      { status: serverError.status ?? 500, headers: { 'Content-Type': 'application/json' } }
-    )
+    apiContext.extra = {
+      ...(apiContext.extra || {}),
+      authHeader: 'REDACTED',
+    }
+    return buildErrorResponse(error, apiContext, 'Failed to clean up newsletter confirmations')
   }
 }

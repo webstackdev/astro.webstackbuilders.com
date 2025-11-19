@@ -6,7 +6,8 @@
 import type { APIRoute } from 'astro'
 import { supabaseAdmin } from '@pages/api/_utils'
 import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
-import { handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
+import { buildApiErrorResponse, handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
+import { createApiFunctionContext } from '@pages/api/_utils/requestContext'
 
 // These imports work in Astro API routes because they run server-side
 import { confirmSubscription } from './_token'
@@ -22,18 +23,23 @@ const jsonResponse = (body: Record<string, unknown>, status: number) =>
     headers: { 'Content-Type': 'application/json' },
   })
 
-export const GET: APIRoute = async ({ url }) => {
+export const GET: APIRoute = async ({ url, request, cookies, clientAddress }) => {
+  const { context: apiContext } = createApiFunctionContext({
+    route: ROUTE,
+    operation: 'GET',
+    request,
+    cookies,
+    clientAddress,
+  })
+
   const token = url.searchParams.get('token')
 
   if (!token) {
-    return jsonResponse(
-      {
-        success: false,
-        status: 'invalid',
-        error: 'No token provided',
-      },
-      400,
-    )
+    throw new ApiFunctionError({
+      message: 'No token provided',
+      status: 400,
+      code: 'TOKEN_REQUIRED',
+    })
   }
 
   try {
@@ -41,14 +47,11 @@ export const GET: APIRoute = async ({ url }) => {
     const subscription = await confirmSubscription(token)
 
     if (!subscription) {
-      return jsonResponse(
-        {
-          success: false,
-          status: 'expired',
-          message: 'This confirmation link has expired or been used already.',
-        },
-        400,
-      )
+      throw new ApiFunctionError({
+        message: 'This confirmation link has expired or been used already.',
+        status: 400,
+        code: 'TOKEN_EXPIRED',
+      })
     }
 
     // Mark consent as verified in Supabase
@@ -78,7 +81,7 @@ export const GET: APIRoute = async ({ url }) => {
       await sendWelcomeEmail(subscription.email, subscription.firstName)
     } catch (emailError) {
       handleApiFunctionError(emailError, {
-        route: ROUTE,
+        ...apiContext,
         operation: 'send-welcome-email',
         extra: {
           email: subscription.email,
@@ -95,7 +98,7 @@ export const GET: APIRoute = async ({ url }) => {
       })
     } catch (convertKitError) {
       handleApiFunctionError(convertKitError, {
-        route: ROUTE,
+        ...apiContext,
         operation: 'subscribe-convertkit',
         extra: {
           email: subscription.email,
@@ -113,21 +116,11 @@ export const GET: APIRoute = async ({ url }) => {
       200,
     )
   } catch (error) {
-    const serverError = handleApiFunctionError(error, {
-      route: ROUTE,
-      operation: 'GET',
-      extra: {
-        token,
-      },
-    })
+    apiContext.extra = { ...(apiContext.extra || {}), token }
+    const serverError = handleApiFunctionError(error, apiContext)
 
-    return jsonResponse(
-      {
-        success: false,
-        status: 'error',
-        error: serverError.message,
-      },
-      serverError.status ?? 500,
-    )
+    return buildApiErrorResponse(serverError, {
+      fallbackMessage: 'Unable to confirm subscription.',
+    })
   }
 }

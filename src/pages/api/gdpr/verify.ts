@@ -1,56 +1,81 @@
 import type { APIRoute } from 'astro'
 import { rateLimiters, checkRateLimit, supabaseAdmin } from '@pages/api/_utils'
-import type { DSARRequest, ErrorResponse } from '@pages/api/_contracts/gdpr.contracts'
+import type { DSARRequest } from '@pages/api/_contracts/gdpr.contracts'
 import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
-import { handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
+import { buildApiErrorResponse, handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
+import { createApiFunctionContext, createRateLimitIdentifier } from '@pages/api/_utils/requestContext'
 
 export const prerender = false // Force SSR for this endpoint
 
 const ROUTE = '/api/gdpr/verify'
 
-const buildRateLimitResponse = (reset: number | undefined) => {
-  const retryAfterSeconds = reset ? Math.max(0, Math.ceil((reset - Date.now()) / 1000)) : 60
-  return new Response(
-    JSON.stringify({
-      success: false,
-      error: {
-        code: 'RATE_LIMIT_EXCEEDED',
-        message: `Too many requests. Try again in ${retryAfterSeconds}s`,
-      },
-    } satisfies ErrorResponse),
-    {
-      status: 429,
-      headers: {
-        'Content-Type': 'application/json',
-        'Retry-After': String(retryAfterSeconds),
-      },
-    },
-  )
+const buildRateLimitError = (reset: number | undefined) => {
+  const retryAfterMs = typeof reset === 'number' ? Math.max(0, reset - Date.now()) : 0
+  const retryAfterSeconds = Math.max(1, Math.ceil(retryAfterMs / 1000))
+  return new ApiFunctionError({
+    message: `Too many requests. Try again in ${retryAfterSeconds}s`,
+    status: 429,
+    code: 'RATE_LIMIT_EXCEEDED',
+    details: { retryAfterSeconds },
+  })
+}
+
+const buildErrorResponse = (
+  error: unknown,
+  context: ReturnType<typeof createApiFunctionContext>['context'],
+  fallbackMessage: string,
+) => {
+  const serverError = handleApiFunctionError(error, context)
+  const retryAfterSecondsRaw = serverError.details?.['retryAfterSeconds']
+  const options = {
+    fallbackMessage,
+  } as {
+    fallbackMessage: string
+    headers?: HeadersInit
+  }
+
+  if (typeof retryAfterSecondsRaw === 'number') {
+    options.headers = { 'Retry-After': String(Math.max(1, Math.ceil(retryAfterSecondsRaw))) }
+  }
+
+  return buildApiErrorResponse(serverError, options)
 }
 
 /**
  * GET /api/gdpr/verify?token=xxx
  * Verifies DSAR token and fulfills the request (data access or deletion)
  */
-export const GET: APIRoute = async ({ url, clientAddress, redirect }) => {
-  // Rate limiting
-  const { success, reset } = await checkRateLimit(rateLimiters.export, clientAddress)
+export const GET: APIRoute = async ({ request, clientAddress, cookies, redirect }) => {
+  const { context: apiContext, fingerprint } = createApiFunctionContext({
+    route: ROUTE,
+    operation: 'GET',
+    request,
+    cookies,
+    clientAddress,
+  })
+
+  const url = new URL(request.url)
+  const token = url.searchParams.get('token')
+  const rateLimitIdentifier = createRateLimitIdentifier('gdpr:dsar:verify', fingerprint)
+  const { success, reset } = await checkRateLimit(rateLimiters.export, rateLimitIdentifier)
 
   if (!success) {
-    return buildRateLimitResponse(reset)
+    return buildErrorResponse(buildRateLimitError(reset), apiContext, 'Too many requests')
   }
-
-  const token = url.searchParams.get('token')
 
   if (!token) {
-    return new Response(JSON.stringify({
-      success: false,
-      error: {
+    return buildErrorResponse(
+      new ApiFunctionError({
+        message: 'Verification token is required',
+        status: 400,
         code: 'INVALID_REQUEST',
-        message: 'Verification token is required'
-        }
-    } as ErrorResponse), { status: 400 })
+      }),
+      apiContext,
+      'Verification token is required',
+    )
   }
+
+  apiContext.extra = { ...(apiContext.extra || {}), token }
 
   try {
     // Find the DSAR request
@@ -207,14 +232,11 @@ export const GET: APIRoute = async ({ url, clientAddress, redirect }) => {
 
     return redirect('/privacy/my-data?status=error')
   } catch (error) {
-    handleApiFunctionError(error, {
-      route: ROUTE,
-      operation: 'GET',
-      extra: {
-        clientAddress,
-        token,
-      },
-    })
+    apiContext.extra = {
+      ...(apiContext.extra || {}),
+      clientAddress,
+    }
+    handleApiFunctionError(error, apiContext)
     return redirect('/privacy/my-data?status=error')
   }
 }
