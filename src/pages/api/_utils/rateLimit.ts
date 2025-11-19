@@ -8,7 +8,7 @@ import {
 } from '@pages/api/_environment'
 
 export type RateLimiter = {
-  limit: (identifier: string) => Promise<{ success: boolean; reset: number | undefined }>
+  limit: (_identifier: string) => Promise<{ success: boolean; reset: number | undefined }>
 }
 
 export type RateLimiterKey = 'consent' | 'consentRead' | 'export' | 'delete' | 'contact'

@@ -15,6 +15,8 @@ export {
   deleteDataSubjectId,
 } from './dataSubjectId'
 
+export { absoluteUrl } from './absoluteUrl'
+
 /**
  * !!!! DO NOT RE-EXPORT environmentClient.ts OR siteUrlClient.ts METHODS HERE !!!!!
  *

@@ -2,7 +2,7 @@
  * Unit tests for absoluteUrl helper
  */
 import { describe, test, expect } from 'vitest'
-import { absoluteUrl } from '@lib/helpers/absoluteUrl'
+import { absoluteUrl } from '@components/scripts/utils/absoluteUrl'
 
 describe(`absoluteUrl helper`, () => {
   test(`returns fully qualified URL when given valid route and site`, () => {

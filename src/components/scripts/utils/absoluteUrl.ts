@@ -10,11 +10,11 @@
  * @param site the Astro.site object that can only be accessed in .astro files
  * @returns fully qualified URL
  */
-import { BuildError } from '../errors/BuildError'
+import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
 
 export const absoluteUrl = (route: string, site?: URL) => {
   if (!route || !(site instanceof URL)) {
-    throw new BuildError({
+    throw new ClientScriptError({
       message: `absoluteUrl helper called but either route or site not passed`
     })
   }

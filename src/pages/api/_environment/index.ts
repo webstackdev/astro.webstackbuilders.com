@@ -1,7 +1,7 @@
 /**
  * Used for API endpoints. environmentClient pulls from astro:env/client
  * and references browser globals (window, document, Playwright shims, etc.). That file
- * is intentionally scoped to client bundles; Astro’s SSR compiler doesn’t expect server
+ * is intentionally scoped to client bundles; Astro's SSR compiler doesn't expect server
  * routes to import it. Vercel exposes environment variables in Vercel serverless
  * functions with process.env.
  */
@@ -17,6 +17,8 @@ export {
   isUnitTest,
   isVercel,
 } from '@lib/config/environmentServer'
+
+//export { getSiteUrl } from '@lib/config/siteUrlServer'
 
 /**
  * Privacy Policy Version Utility

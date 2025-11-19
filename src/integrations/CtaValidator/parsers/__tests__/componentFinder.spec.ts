@@ -3,9 +3,7 @@
  */
 
 import { describe, it, expect } from 'vitest'
-/* eslint-disable-next-line no-restricted-imports */
 import { findComponentUsages, generateImportPatterns } from '../componentFinder'
-/* eslint-disable-next-line no-restricted-imports */
 import type { CallToActionComponent } from '../../@types'
 
 describe('generateImportPatterns', () => {

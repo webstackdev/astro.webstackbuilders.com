@@ -252,6 +252,16 @@ export default [
       ],
     },
   },
+  /** Environment file in src/pages/api is an except to the restricted paths rule */
+  {
+    files: [
+      'src/pages/api/_environment/index.ts',
+      'src/pages/api/_logger/index.ts',
+    ],
+    rules: {
+      'import/no-restricted-paths': 'off',
+    },
+  },
   {
     /** These directories can use process.env, which is forbidden in other files */
     files: [
@@ -259,7 +269,9 @@ export default [
       'astro.config.ts',
       'playwright.config.ts',
       'vitest.setup.ts',
-      'src/lib/config/**/*'
+      'src/components/scripts/utils/environmentClient.ts',
+      'src/lib/config/**/*',
+      'src/pages/api/_environment/**/*',
     ],
     rules: {
       'no-process-env': 'off',
@@ -343,10 +355,11 @@ export default [
   {
     /** These files can use import.meta.env */
     files: [
-      'src/lib/config/environmentServer.ts',
-      'src/lib/config/siteUrlServer.ts',
       'src/components/scripts/utils/environmentClient.ts',
       'src/components/scripts/utils/siteUrlClient.ts',
+      'src/lib/config/environmentServer.ts',
+      'src/lib/config/siteUrlServer.ts',
+      'src/pages/api/_environment/index.ts',
     ],
     rules: {
       'no-restricted-syntax': [

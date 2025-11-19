@@ -27,7 +27,7 @@ type IconGenerator = (_options: Metadata) => Promise<Buffer>
 
 /**
  * Generate ICO favicon with multiple resolutions (32x32, 64x64)
- * @internal - Exported for testing
+ * @internal
  */
 export const generateIcoFavicon = (faviconPath: string): IconGenerator => async ({ width, height, density }) => {
   if (!width || !height || !density) {
@@ -53,7 +53,7 @@ export const generateIcoFavicon = (faviconPath: string): IconGenerator => async 
 
 /**
  * Generate Apple Touch Icon (180x180)
- * @internal - Exported for testing
+ * @internal
  */
 export const generatePngFavicon = (faviconPath: string): IconGenerator => ({ density, width, height }) => {
   if (!width || !height || !density) {
@@ -72,7 +72,7 @@ export const generatePngFavicon = (faviconPath: string): IconGenerator => ({ den
 
 /**
  * Generate PWA icon at specified size
- * @internal - Exported for testing
+ * @internal
  */
 export const generatePwaIcon = (faviconPath: string, size: number): IconGenerator => ({ density, width, height }) => {
   if (!width || !height || !density) {
@@ -133,13 +133,8 @@ async function generateFavicons(faviconPath: string, outputDir: string): Promise
   // Generate all favicons in parallel
   const results = await Promise.allSettled(
     faviconTypes.map(async ([name, generator]) => {
-      try {
-        const buffer = await generator(metadata)
-        await saveFile(`${outputDir}/${name}`)(buffer)
-      } catch (error) {
-        // Re-throw to be caught by allSettled
-        throw error
-      }
+      const buffer = await generator(metadata)
+      await saveFile(`${outputDir}/${name}`)(buffer)
     })
   )
 

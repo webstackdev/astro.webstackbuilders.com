@@ -3,7 +3,6 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-/* eslint-disable-next-line no-restricted-imports */
 import { discoverCallToActionComponents } from '../componentDiscovery'
 
 // Mock fs/promises

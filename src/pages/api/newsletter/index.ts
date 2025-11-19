@@ -293,11 +293,11 @@ export const POST: APIRoute = async ({ request, cookies, clientAddress }) => {
         ? Math.max(1, Math.ceil(retryAfterSecondsRaw))
         : undefined
 
-    const responseOptions = {
-      fallbackMessage: 'Failed to process newsletter request.',
-    } as {
+    const responseOptions: {
       fallbackMessage: string
       headers?: HeadersInit
+    } = {
+      fallbackMessage: 'Failed to process newsletter request.',
     }
 
     if (retryAfterSeconds) {

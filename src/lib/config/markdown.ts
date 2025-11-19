@@ -1,5 +1,4 @@
 // path alias for markdown folder causes self referential error
-/* eslint-disable no-restricted-imports */
 /**
  * Markdown Configuration
  *

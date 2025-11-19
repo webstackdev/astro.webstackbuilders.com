@@ -4,7 +4,7 @@
  * Tests the environment detection functions in a Vitest/happy-dom context
  */
 import { describe, it, expect } from 'vitest'
-import { isUnitTest, isE2eTest, isTest, isDev, isProd } from '@components/scripts/utils/environmentClient'
+import { isUnitTest, isE2eTest, isTest, isDev, isProd } from '@lib/config/environmentServer'
 
 describe('Environment detection utilities', () => {
   it('isUnitTest should return true when running in Vitest', () => {

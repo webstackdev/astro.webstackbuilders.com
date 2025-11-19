@@ -3,7 +3,6 @@
  */
 
 import { describe, it, expect } from 'vitest'
-/* eslint-disable-next-line no-restricted-imports */
 import { getContentTypeFromPath, getFirstComponent, extractSlugAndCollection } from '../pathUtils'
 
 describe('getContentTypeFromPath', () => {

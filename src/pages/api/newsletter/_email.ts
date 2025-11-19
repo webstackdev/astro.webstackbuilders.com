@@ -5,8 +5,8 @@
 
 import { Resend } from 'resend'
 import { getResendApiKey, isDev, isTest } from '@pages/api/_environment'
+import { getSiteUrl } from '@pages/api/_environment/siteUrlApi'
 import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
-import { getSiteUrl } from '@lib/config/siteUrlServer'
 
 /**
  * Initialize Resend client

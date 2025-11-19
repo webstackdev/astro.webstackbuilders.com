@@ -45,11 +45,11 @@ const buildErrorResponse = (
 ) => {
   const serverError = handleApiFunctionError(error, context)
   const retryAfterSecondsRaw = serverError.details?.['retryAfterSeconds']
-  const options = {
-    fallbackMessage,
-  } as {
+  const options: {
     fallbackMessage: string
     headers?: HeadersInit
+  } = {
+    fallbackMessage,
   }
 
   if (typeof retryAfterSecondsRaw === 'number') {

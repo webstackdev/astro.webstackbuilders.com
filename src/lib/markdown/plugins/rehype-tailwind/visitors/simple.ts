@@ -5,7 +5,6 @@
 import type { Element } from 'hast'
 import type { ElementConfig } from '@lib/markdown/plugins/rehype-tailwind/@types'
 // path alias for utilities folder causes self referential error
-/* eslint-disable-next-line no-restricted-imports */
 import { applyClasses } from '../utilities'
 
 /**

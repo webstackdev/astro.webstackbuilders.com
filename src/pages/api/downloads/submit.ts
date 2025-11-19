@@ -80,7 +80,7 @@ export const POST: APIRoute = async ({ request, cookies, clientAddress }) => {
     let payload: Partial<DownloadFormData>
     try {
       payload = await request.json()
-    } catch (parseError) {
+    } catch {
       throw new ApiFunctionError({
         message: 'Invalid JSON payload',
         status: 400,

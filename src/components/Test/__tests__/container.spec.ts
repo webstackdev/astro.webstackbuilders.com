@@ -1,4 +1,3 @@
-/* eslint-disable jsdoc/escape-inline-tags */
 // @vitest-environment node
 /**
  * ✅ WORKING Container API Reference Implementation

@@ -13,7 +13,6 @@ import type {
   CallToActionMode,
 } from '@integrations/CtaValidator/@types'
 import { findAstroFiles } from './pageValidator'
-/* eslint-disable-next-line no-restricted-imports */
 import {
   extractSlugAndCollection,
   findComponentUsages,
@@ -83,6 +82,7 @@ export async function buildContentMapping(projectRoot: string): Promise<Map<stri
  * @param callToActionComponents - Discovered CTA components
  * @param contentMapping - Map of content collections to file paths
  * @param warnings - Array to accumulate warnings
+ * @param validatePageCtaRequirementsFn - Function to validate CTA requirements for a page
  * @param logger - Astro logger instance
  * @param debug - Enable debug logging
  */
@@ -91,7 +91,7 @@ export async function validateContentEntries(
   callToActionComponents: CallToActionComponent[],
   contentMapping: Map<string, string[]>,
   warnings: WarningIssue[],
-  validatePageCtaRequirementsFn: (analysis: PageAnalysis, mode: CallToActionMode) => WarningIssue[],
+  validatePageCtaRequirementsFn: (_analysis: PageAnalysis, _mode: CallToActionMode) => WarningIssue[],
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   logger: any,
   debug: boolean

@@ -7,7 +7,6 @@ import { readdir, readFile } from 'fs/promises'
 import { join, resolve, relative } from 'path'
 import type { AstroConfig } from 'astro'
 import type { CallToActionComponent, PageValidationResult } from '@integrations/CtaValidator/@types'
-/* eslint-disable-next-line no-restricted-imports */
 import { findComponentUsages } from '../parsers'
 
 /**

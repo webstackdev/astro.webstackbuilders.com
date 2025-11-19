@@ -83,7 +83,6 @@ const cleanWebmention = (entry: Webmention): Webmention => {
  * Fetch webmentions from webmention.io API
  *
  * @param url - The target URL to fetch mentions for
- * @param token - Optional webmention.io API token (from env var)
  * @returns Array of processed webmentions
  */
 export const fetchWebmentions = async (url: string): Promise<Webmention[]> => {

@@ -43,6 +43,7 @@ class AvatarManagerClass {
 
   private constructor() {
     // Eagerly import all avatar images during initialization
+    /* eslint-disable-next-line no-restricted-syntax -- The eslint syntax isn't fine-grained enough to allow "glob" method on import.meta */
     const avatarModules = import.meta.glob('../../assets/images/avatars/*.{webp,jpg,png}', {
       eager: true,
       import: 'default',

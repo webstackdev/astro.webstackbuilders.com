@@ -35,7 +35,7 @@ export interface ApiFunctionContext {
   consent?: ApiFunctionConsent
   requestMeta?: ApiRequestMetadata
   hashSalt?: string
-  scrub?: (error: ApiFunctionError) => void
+  scrub?: (_error: ApiFunctionError) => void
 }
 
 export interface ApiErrorResponseOptions {

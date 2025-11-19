@@ -1,4 +1,3 @@
-import { logger } from '@lib/logger'
 import {
   getDownloadFormElement,
   getDownloadSubmitButton,
@@ -98,7 +97,6 @@ export class DownloadForm {
         // Reset form
         this.form.reset()
       } catch (error) {
-        logger.error('Error submitting download form', error)
         handleScriptError(error, { scriptName: DownloadForm.scriptName, operation: 'apiSubmission' })
         this.showStatus('error', 'There was an error processing your request. Please try again.')
       } finally {

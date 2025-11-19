@@ -5,7 +5,6 @@
 import { describe, it, expect } from 'vitest'
 import type { SitemapItem } from '@astrojs/sitemap'
 import { EnumChangefreq } from 'sitemap'
-/* eslint-disable-next-line no-restricted-imports */
 import {
   createSerializeFunction,
   serializePagesData,

@@ -3,9 +3,7 @@
  */
 
 import { describe, it, expect } from 'vitest'
-/* eslint-disable-next-line no-restricted-imports */
 import { validatePageCtaRequirements } from '../requirements'
-/* eslint-disable-next-line no-restricted-imports */
 import type { PageAnalysis } from '../../@types'
 
 describe('validatePageCtaRequirements', () => {
