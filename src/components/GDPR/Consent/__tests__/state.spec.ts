@@ -8,7 +8,6 @@ import {
   clearFormConsent,
   hasConsentForPurpose,
   getFormConsent,
-  type ConsentPurpose,
   type FormConsentState
 } from '@components/GDPR/Consent/state'
 
@@ -25,7 +24,7 @@ describe('GDPR Form Consent State', () => {
 
     test('can be set directly', () => {
       const state: FormConsentState = {
-        purposes: ['contact'],
+        purpose: 'contact',
         timestamp: '2025-10-20T12:00:00.000Z',
         validated: true
       }
@@ -35,7 +34,7 @@ describe('GDPR Form Consent State', () => {
 
     test('can be cleared', () => {
       $formConsent.set({
-        purposes: ['contact'],
+        purpose: 'contact',
         timestamp: '2025-10-20T12:00:00.000Z',
         validated: true
       })
@@ -45,27 +44,18 @@ describe('GDPR Form Consent State', () => {
   })
 
   describe('recordFormConsent', () => {
-    test('records consent for single purpose', () => {
-      const purposes: ConsentPurpose[] = ['contact']
-      recordFormConsent(purposes)
+    test('records consent for provided purpose', () => {
+      recordFormConsent('contact')
 
       const consent = $formConsent.get()
       expect(consent).not.toBeNull()
-      expect(consent?.purposes).toEqual(['contact'])
+      expect(consent?.purpose).toBe('contact')
       expect(consent?.validated).toBe(true)
       expect(consent?.timestamp).toBeDefined()
     })
 
-    test('records consent for multiple purposes', () => {
-      const purposes: ConsentPurpose[] = ['contact', 'marketing', 'analytics']
-      recordFormConsent(purposes)
-
-      const consent = $formConsent.get()
-      expect(consent?.purposes).toEqual(['contact', 'marketing', 'analytics'])
-    })
-
     test('records ISO timestamp', () => {
-      recordFormConsent(['contact'])
+      recordFormConsent('contact')
 
       const consent = $formConsent.get()
       expect(consent?.timestamp).toBeDefined()
@@ -82,39 +72,39 @@ describe('GDPR Form Consent State', () => {
     })
 
     test('sets validated to true', () => {
-      recordFormConsent(['contact'])
+      recordFormConsent('contact')
 
       const consent = $formConsent.get()
       expect(consent?.validated).toBe(true)
     })
 
     test('records optional formId', () => {
-      recordFormConsent(['contact'], 'contact-form')
+      recordFormConsent('contact', 'contact-form')
 
       const consent = $formConsent.get()
       expect(consent?.formId).toBe('contact-form')
     })
 
     test('omits formId when not provided', () => {
-      recordFormConsent(['contact'])
+      recordFormConsent('contact')
 
       const consent = $formConsent.get()
       expect(consent?.formId).toBeUndefined()
     })
 
     test('overwrites previous consent', () => {
-      recordFormConsent(['contact'], 'form-1')
-      recordFormConsent(['marketing'], 'form-2')
+      recordFormConsent('contact', 'form-1')
+      recordFormConsent('marketing', 'form-2')
 
       const consent = $formConsent.get()
-      expect(consent?.purposes).toEqual(['marketing'])
+      expect(consent?.purpose).toBe('marketing')
       expect(consent?.formId).toBe('form-2')
     })
   })
 
   describe('clearFormConsent', () => {
     test('clears consent state', () => {
-      recordFormConsent(['contact'])
+      recordFormConsent('contact')
       expect($formConsent.get()).not.toBeNull()
 
       clearFormConsent()
@@ -134,33 +124,24 @@ describe('GDPR Form Consent State', () => {
     })
 
     test('returns true when purpose is consented', () => {
-      recordFormConsent(['contact', 'marketing'])
+      recordFormConsent('contact')
       expect(hasConsentForPurpose('contact')).toBe(true)
-      expect(hasConsentForPurpose('marketing')).toBe(true)
+      expect(hasConsentForPurpose('marketing')).toBe(false)
     })
 
     test('returns false when purpose is not consented', () => {
-      recordFormConsent(['contact'])
+      recordFormConsent('contact')
       expect(hasConsentForPurpose('marketing')).toBe(false)
       expect(hasConsentForPurpose('analytics')).toBe(false)
       expect(hasConsentForPurpose('downloads')).toBe(false)
     })
 
     test('returns false when consent is cleared', () => {
-      recordFormConsent(['contact'])
+      recordFormConsent('contact')
       expect(hasConsentForPurpose('contact')).toBe(true)
 
       clearFormConsent()
       expect(hasConsentForPurpose('contact')).toBe(false)
-    })
-
-    test('works with all purpose types', () => {
-      const allPurposes: ConsentPurpose[] = ['contact', 'marketing', 'analytics', 'downloads']
-      recordFormConsent(allPurposes)
-
-      allPurposes.forEach(purpose => {
-        expect(hasConsentForPurpose(purpose)).toBe(true)
-      })
     })
   })
 
@@ -170,18 +151,18 @@ describe('GDPR Form Consent State', () => {
     })
 
     test('returns complete consent state', () => {
-      recordFormConsent(['contact', 'marketing'], 'test-form')
+      recordFormConsent('contact', 'test-form')
 
       const consent = getFormConsent()
       expect(consent).not.toBeNull()
-      expect(consent?.purposes).toEqual(['contact', 'marketing'])
+      expect(consent?.purpose).toBe('contact')
       expect(consent?.validated).toBe(true)
       expect(consent?.timestamp).toBeDefined()
       expect(consent?.formId).toBe('test-form')
     })
 
     test('returns null after clearing consent', () => {
-      recordFormConsent(['contact'])
+      recordFormConsent('contact')
       expect(getFormConsent()).not.toBeNull()
 
       clearFormConsent()
@@ -189,7 +170,7 @@ describe('GDPR Form Consent State', () => {
     })
 
     test('returns copy of state (not reference)', () => {
-      recordFormConsent(['contact'])
+      recordFormConsent('contact')
       const consent1 = getFormConsent()
       const consent2 = getFormConsent()
 
@@ -200,20 +181,16 @@ describe('GDPR Form Consent State', () => {
   })
 
   describe('type safety', () => {
-    test('only accepts valid ConsentPurpose types', () => {
-      // These should compile (TypeScript check)
-      recordFormConsent(['contact'])
-      recordFormConsent(['marketing'])
-      recordFormConsent(['analytics'])
-      recordFormConsent(['downloads'])
-
-      // This would fail TypeScript compilation:
-      // recordFormConsent(['invalid' as ConsentPurpose])
+    test('accepts purpose strings', () => {
+      recordFormConsent('contact')
+      recordFormConsent('marketing')
+      recordFormConsent('analytics')
+      recordFormConsent('downloads')
     })
 
     test('validates FormConsentState structure', () => {
       const validState: FormConsentState = {
-        purposes: ['contact'],
+        purpose: 'contact',
         timestamp: '2025-10-20T12:00:00.000Z',
         validated: true,
         formId: 'test-form' // optional
@@ -225,24 +202,8 @@ describe('GDPR Form Consent State', () => {
   })
 
   describe('edge cases', () => {
-    test('handles empty purposes array', () => {
-      recordFormConsent([])
-
-      const consent = $formConsent.get()
-      expect(consent?.purposes).toEqual([])
-      expect(consent?.validated).toBe(true)
-    })
-
-    test('handles duplicate purposes', () => {
-      recordFormConsent(['contact', 'contact', 'marketing'])
-
-      const consent = $formConsent.get()
-      // Duplicates are allowed (consumer should dedupe if needed)
-      expect(consent?.purposes).toEqual(['contact', 'contact', 'marketing'])
-    })
-
     test('handles formId with special characters', () => {
-      recordFormConsent(['contact'], 'form-with-special-chars_123')
+      recordFormConsent('contact', 'form-with-special-chars_123')
 
       const consent = $formConsent.get()
       expect(consent?.formId).toBe('form-with-special-chars_123')

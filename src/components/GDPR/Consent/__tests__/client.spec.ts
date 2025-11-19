@@ -8,7 +8,7 @@ import {
   validateConsent,
   isConsentValid
 } from '@components/GDPR/Consent/client'
-import { $formConsent, clearFormConsent, type ConsentPurpose } from '@components/GDPR/Consent/state'
+import { $formConsent, clearFormConsent } from '@components/GDPR/Consent/state'
 import { isInputElement, isDivElement } from '@components/scripts/assertions/elements'
 import { TestError } from '@test/errors'
 
@@ -58,37 +58,35 @@ describe('initGDPRConsent', () => {
 
   test('initializes checkbox change handler', () => {
     setupConsentForm()
-    const purposes: ConsentPurpose[] = ['contact']
+    const purpose = 'contact'
 
-    initGDPRConsent('gdpr-consent', purposes)
+    initGDPRConsent('gdpr-consent', purpose)
 
     const { checkbox } = getConsentElements()
     checkbox.checked = true
     checkbox.dispatchEvent(new Event('change'))
 
     const consent = $formConsent.get()
-    expect(consent?.purposes).toEqual(['contact'])
+    expect(consent?.purpose).toBe('contact')
     expect(consent?.validated).toBe(true)
   })
 
   test('records consent when checkbox is checked', () => {
     setupConsentForm()
-    const purposes: ConsentPurpose[] = ['contact', 'marketing']
-
-    initGDPRConsent('gdpr-consent', purposes)
+    initGDPRConsent('gdpr-consent', 'contact')
 
     const { checkbox } = getConsentElements()
     checkbox.checked = true
     checkbox.dispatchEvent(new Event('change'))
 
     const consent = $formConsent.get()
-    expect(consent?.purposes).toEqual(['contact', 'marketing'])
+    expect(consent?.purpose).toBe('contact')
   })
 
   test('clears consent when checkbox is unchecked', () => {
     setupConsentForm()
 
-    initGDPRConsent('gdpr-consent', ['contact'])
+    initGDPRConsent('gdpr-consent', 'contact')
 
     const { checkbox } = getConsentElements()
 
@@ -105,7 +103,7 @@ describe('initGDPRConsent', () => {
   test('clears error message when checkbox is checked', () => {
     setupConsentForm()
 
-    initGDPRConsent('gdpr-consent', ['contact'])
+    initGDPRConsent('gdpr-consent', 'contact')
 
     const { checkbox, errorElement } = getConsentElements()
 
@@ -124,7 +122,7 @@ describe('initGDPRConsent', () => {
   test('includes formId when provided', () => {
     setupConsentForm()
 
-    initGDPRConsent('gdpr-consent', ['contact'], 'contact-form')
+    initGDPRConsent('gdpr-consent', 'contact', 'contact-form')
 
     const { checkbox } = getConsentElements('gdpr-consent')
     checkbox.checked = true
@@ -137,20 +135,20 @@ describe('initGDPRConsent', () => {
   test('works with custom checkbox ID', () => {
     setupConsentForm('custom-consent')
 
-    initGDPRConsent('custom-consent', ['marketing'])
+    initGDPRConsent('custom-consent', 'marketing')
 
     const { checkbox } = getConsentElements('custom-consent')
     checkbox.checked = true
     checkbox.dispatchEvent(new Event('change'))
 
     const consent = $formConsent.get()
-    expect(consent?.purposes).toEqual(['marketing'])
+    expect(consent?.purpose).toBe('marketing')
   })
 
   test('prevents form submission when unchecked', () => {
     const form = setupConsentForm()
 
-    initGDPRConsent('gdpr-consent', ['contact'])
+    initGDPRConsent('gdpr-consent', 'contact')
 
     const submitEvent = new Event('submit', { cancelable: true })
     const preventDefaultSpy = vi.spyOn(submitEvent, 'preventDefault')
@@ -163,7 +161,7 @@ describe('initGDPRConsent', () => {
   test('allows form submission when checked', () => {
     const form = setupConsentForm()
 
-    initGDPRConsent('gdpr-consent', ['contact'])
+    initGDPRConsent('gdpr-consent', 'contact')
 
     const { checkbox } = getConsentElements('gdpr-consent')
     checkbox.checked = true
@@ -179,7 +177,7 @@ describe('initGDPRConsent', () => {
   test('focuses checkbox when form submission fails', () => {
     const form = setupConsentForm()
 
-    initGDPRConsent('gdpr-consent', ['contact'])
+    initGDPRConsent('gdpr-consent', 'contact')
 
     const { checkbox } = getConsentElements('gdpr-consent')
     const focusSpy = vi.spyOn(checkbox, 'focus')
@@ -193,7 +191,7 @@ describe('initGDPRConsent', () => {
     document.body.innerHTML = '<div></div>'
 
     // GDPR is a critical component (Phase 1), should throw
-    expect(() => initGDPRConsent('missing', ['contact'])).toThrow('GDPR consent checkbox not found')
+    expect(() => initGDPRConsent('missing', 'contact')).toThrow(/GDPRConsent: Failed to find required elements/)
   })
 
   test('works without form element', () => {
@@ -205,14 +203,14 @@ describe('initGDPRConsent', () => {
       </div>
     `
 
-    initGDPRConsent('gdpr-consent', ['contact'])
+    initGDPRConsent('gdpr-consent', 'contact')
 
     const { checkbox } = getConsentElements('gdpr-consent')
     checkbox.checked = true
     checkbox.dispatchEvent(new Event('change'))
 
     const consent = $formConsent.get()
-    expect(consent?.purposes).toEqual(['contact'])
+    expect(consent?.purpose).toBe('contact')
   })
 })
 
@@ -339,7 +337,7 @@ describe('integration tests', () => {
   test('complete consent flow: check, submit, validate', () => {
     const form = setupConsentForm()
 
-    initGDPRConsent('gdpr-consent', ['contact'], 'contact-form')
+    initGDPRConsent('gdpr-consent', 'contact', 'contact-form')
 
     // Step 1: Check checkbox
     const { checkbox } = getConsentElements('gdpr-consent')
@@ -347,7 +345,7 @@ describe('integration tests', () => {
     checkbox.dispatchEvent(new Event('change'))
 
     // Verify consent recorded
-    expect($formConsent.get()?.purposes).toEqual(['contact'])
+    expect($formConsent.get()?.purpose).toBe('contact')
 
     // Step 2: Submit form
     const submitEvent = new Event('submit', { cancelable: true })
@@ -364,7 +362,7 @@ describe('integration tests', () => {
   test('complete flow: uncheck after check, submit blocked', () => {
     const form = setupConsentForm()
 
-    initGDPRConsent('gdpr-consent', ['contact'])
+    initGDPRConsent('gdpr-consent', 'contact')
 
     const { checkbox } = getConsentElements('gdpr-consent')
 
@@ -385,19 +383,4 @@ describe('integration tests', () => {
     expect(preventDefaultSpy).toHaveBeenCalled()
   })
 
-  test('multiple purposes flow', () => {
-    setupConsentForm()
-
-    const purposes: ConsentPurpose[] = ['contact', 'marketing', 'analytics']
-    initGDPRConsent('gdpr-consent', purposes, 'multi-form')
-
-    const { checkbox } = getConsentElements('gdpr-consent')
-    checkbox.checked = true
-    checkbox.dispatchEvent(new Event('change'))
-
-    const consent = $formConsent.get()
-    expect(consent?.purposes).toEqual(['contact', 'marketing', 'analytics'])
-    expect(consent?.formId).toBe('multi-form')
-    expect(consent?.validated).toBe(true)
-  })
 })

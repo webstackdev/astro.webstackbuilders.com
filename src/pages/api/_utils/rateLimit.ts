@@ -7,16 +7,20 @@ import {
   isTest,
 } from '@pages/api/_environment'
 
-type RateLimiter = {
+export type RateLimiter = {
   limit: (identifier: string) => Promise<{ success: boolean; reset: number | undefined }>
 }
+
+export type RateLimiterKey = 'consent' | 'consentRead' | 'export' | 'delete' | 'contact'
+
+export type RateLimiterMap = Record<RateLimiterKey, RateLimiter>
 
 const redis = createRedisClient()
 
 // Simple in-memory rate limiting (use Redis in production)
 const rateLimitStore = new Map<string, number[]>()
 
-export const rateLimiters: Record<string, RateLimiter> = {
+export const rateLimiters: RateLimiterMap = {
   consent: createLimiter(Ratelimit.slidingWindow(10, '1 m')),
   consentRead: createLimiter(Ratelimit.slidingWindow(30, '1 m')),
   export: createLimiter(Ratelimit.slidingWindow(5, '1 m')),
