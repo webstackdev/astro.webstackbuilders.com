@@ -11,6 +11,7 @@ import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
 import { buildApiErrorResponse, handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
 import { rateLimiters, checkRateLimit } from '@pages/api/_utils/rateLimit'
 import { createApiFunctionContext, createRateLimitIdentifier } from '@pages/api/_utils/requestContext'
+import { recordConsent } from '@pages/api/_logger'
 import { createPendingSubscription } from './_token'
 import { sendConfirmationEmail } from './_email'
 
@@ -195,7 +196,17 @@ export const POST: APIRoute = async ({ request, cookies, clientAddress }) => {
 
   try {
     const rateLimitIdentifier = createRateLimitIdentifier('newsletter:consent', fingerprint)
-    const { success, reset } = await checkRateLimit(rateLimiters.consent, rateLimitIdentifier)
+    const consentLimiter = rateLimiters['consent']
+
+    if (!consentLimiter) {
+      throw new ApiFunctionError({
+        message: 'Rate limiting is not configured for newsletter subscriptions.',
+        status: 500,
+        code: 'RATE_LIMIT_NOT_CONFIGURED',
+      })
+    }
+
+    const { success, reset } = await checkRateLimit(consentLimiter, rateLimitIdentifier)
 
     if (!success) {
       const retryAfterMs = typeof reset === 'number' ? Math.max(0, reset - Date.now()) : 0
@@ -241,27 +252,16 @@ export const POST: APIRoute = async ({ request, cookies, clientAddress }) => {
       })
     }
 
-    const consentResponse = await fetch(`${new URL(request.url).origin}/api/gdpr/consent`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        DataSubjectId: subjectId,
-        email: validatedEmail,
-        purposes: ['marketing'],
-        source: 'newsletter_form',
-        userAgent,
-        ...(clientAddress && clientAddress !== 'unknown' && { ipAddress: clientAddress }),
-        verified: false,
-      }),
+    await recordConsent({
+      origin: new URL(request.url).origin,
+      DataSubjectId: subjectId,
+      email: validatedEmail,
+      purposes: ['marketing'],
+      source: 'newsletter_form',
+      userAgent,
+      ...(clientAddress && clientAddress !== 'unknown' && { ipAddress: clientAddress }),
+      verified: false,
     })
-
-    if (!consentResponse.ok) {
-      throw new ApiFunctionError({
-        message: 'Failed to record consent. Please try again.',
-        status: 502,
-        code: 'CONSENT_RECORD_FAILED',
-      })
-    }
 
     const token = await createPendingSubscription({
       email: validatedEmail,

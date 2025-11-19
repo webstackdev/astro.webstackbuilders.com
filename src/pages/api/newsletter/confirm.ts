@@ -33,16 +33,17 @@ export const GET: APIRoute = async ({ url, request, cookies, clientAddress }) =>
   })
 
   const token = url.searchParams.get('token')
-
-  if (!token) {
-    throw new ApiFunctionError({
-      message: 'No token provided',
-      status: 400,
-      code: 'TOKEN_REQUIRED',
-    })
-  }
+  apiContext.extra = { ...(apiContext.extra || {}), token }
 
   try {
+    if (!token) {
+      throw new ApiFunctionError({
+        message: 'No token provided',
+        status: 400,
+        code: 'TOKEN_REQUIRED',
+      })
+    }
+
     // Validate and confirm the subscription
     const subscription = await confirmSubscription(token)
 
@@ -116,7 +117,6 @@ export const GET: APIRoute = async ({ url, request, cookies, clientAddress }) =>
       200,
     )
   } catch (error) {
-    apiContext.extra = { ...(apiContext.extra || {}), token }
     const serverError = handleApiFunctionError(error, apiContext)
 
     return buildApiErrorResponse(serverError, {

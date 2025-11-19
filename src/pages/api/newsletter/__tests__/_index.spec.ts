@@ -4,6 +4,17 @@
 import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest'
 import { POST, OPTIONS } from '@pages/api/newsletter'
 
+const rateLimitMocks = vi.hoisted(() => ({
+	rateLimiters: {
+		consent: {},
+	},
+	checkRateLimit: vi.fn().mockResolvedValue({ success: true }),
+}))
+
+const consentMocks = vi.hoisted(() => ({
+	recordConsent: vi.fn(),
+}))
+
 // Mock dependencies
 vi.mock('@pages/api/newsletter/_token', () => ({
 	createPendingSubscription: vi.fn(),
@@ -13,17 +24,20 @@ vi.mock('@pages/api/newsletter/_email', () => ({
 	sendConfirmationEmail: vi.fn(),
 }))
 
-vi.mock('@api/shared/consent-log', () => ({
-	recordConsent: vi.fn(),
+vi.mock('@pages/api/_logger', () => consentMocks)
+
+vi.mock('@pages/api/_utils/rateLimit', () => ({
+	rateLimiters: rateLimitMocks.rateLimiters,
+	checkRateLimit: rateLimitMocks.checkRateLimit,
+	checkContactRateLimit: vi.fn(),
 }))
 
 const tokenModule = await import('@pages/api/newsletter/_token')
 const emailModule = await import('@pages/api/newsletter/_email')
-const consentModule = await import('@api/shared/consent-log')
+const mockRecordConsent = consentMocks.recordConsent as Mock
 
 const mockCreatePendingSubscription = tokenModule.createPendingSubscription as Mock
 const mockSendConfirmationEmail = emailModule.sendConfirmationEmail as Mock
-const mockRecordConsent = consentModule.recordConsent as Mock
 
 describe('Newsletter API - POST /api/newsletter', () => {
 	beforeEach(() => {
@@ -102,11 +116,11 @@ describe('Newsletter API - POST /api/newsletter', () => {
 		})
 
 		const response = await POST({ request } as any)
-		const data = await response.json()
+		const body = await response.json()
 
 		expect(response.status).toBe(400)
-		expect(data.success).toBe(false)
-		expect(data.error).toContain('Email address is required')
+		expect(body.error).toBeDefined()
+		expect(body.error.message).toContain('Email address is required')
 	})
 
 	it('should reject subscription with invalid email format', async () => {
@@ -120,11 +134,11 @@ describe('Newsletter API - POST /api/newsletter', () => {
 		})
 
 		const response = await POST({ request } as any)
-		const data = await response.json()
+		const body = await response.json()
 
 		expect(response.status).toBe(400)
-		expect(data.success).toBe(false)
-		expect(data.error).toContain('invalid')
+		expect(body.error).toBeDefined()
+		expect(body.error.message).toContain('invalid')
 	})
 
 	it('should reject subscription without consent', async () => {
@@ -138,11 +152,11 @@ describe('Newsletter API - POST /api/newsletter', () => {
 		})
 
 		const response = await POST({ request } as any)
-		const data = await response.json()
+		const body = await response.json()
 
 		expect(response.status).toBe(400)
-		expect(data.success).toBe(false)
-		expect(data.error).toContain('consent')
+		expect(body.error).toBeDefined()
+		expect(body.error.message).toContain('consent')
 	})
 
 	it('should normalize email to lowercase', async () => {
@@ -220,11 +234,11 @@ describe('Newsletter API - POST /api/newsletter', () => {
 		})
 
 		const response = await POST({ request } as any)
-		const data = await response.json()
+		const body = await response.json()
 
-		expect(response.status).toBe(400)
-		expect(data.success).toBe(false)
-		expect(data.error).toContain('Service unavailable')
+		expect(response.status).toBe(500)
+		expect(body.error).toBeDefined()
+		expect(body.error.message).toContain('Failed to process newsletter request.')
 	})
 })
 

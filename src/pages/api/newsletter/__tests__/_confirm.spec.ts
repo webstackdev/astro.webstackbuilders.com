@@ -5,6 +5,10 @@ import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vite
 import type { APIContext } from 'astro'
 import { GET } from '@pages/api/newsletter/confirm'
 
+const supabaseMocks = vi.hoisted(() => ({
+	supabaseFromMock: vi.fn(),
+}))
+
 // Mock dependencies
 vi.mock('@pages/api/newsletter/_token', () => ({
 	confirmSubscription: vi.fn(),
@@ -29,13 +33,32 @@ const createSupabaseQueryBuilder = () => {
 }
 
 let supabaseQueryBuilder = createSupabaseQueryBuilder()
-const supabaseFromMock = vi.fn(() => supabaseQueryBuilder)
 
 vi.mock('@pages/api/_utils', () => ({
 	supabaseAdmin: {
-		from: supabaseFromMock,
+		from: supabaseMocks.supabaseFromMock,
 	},
 }))
+
+const supabaseFromMock = supabaseMocks.supabaseFromMock
+
+const createRequestContext = (inputUrl: string): APIContext => {
+	const url = new URL(inputUrl)
+	const request = new Request(url.toString(), {
+		method: 'GET',
+		headers: {
+			'user-agent': 'Test Browser',
+		},
+	})
+
+	return {
+		request,
+		url,
+		params: {},
+		locals: {},
+		redirect: vi.fn(),
+	} as unknown as APIContext
+}
 
 vi.mock('@pages/api/newsletter/index', () => ({
 	subscribeToConvertKit: vi.fn(),
@@ -82,8 +105,7 @@ describe('Newsletter Confirmation API - GET /api/newsletter/confirm', () => {
 
 		mockConfirmSubscription.mockResolvedValue(mockSubscription)
 
-		const url = new URL('http://localhost/api/newsletter/confirm?token=valid-token-123')
-		const response = await GET({ url } as Partial<APIContext> as APIContext)
+		const response = await GET(createRequestContext('http://localhost/api/newsletter/confirm?token=valid-token-123'))
 		const data = await response.json()
 
 		expect(response.status).toBe(200)
@@ -105,27 +127,23 @@ describe('Newsletter Confirmation API - GET /api/newsletter/confirm', () => {
 	})
 
 	it('should reject request without token', async () => {
-		const url = new URL('http://localhost/api/newsletter/confirm')
-		const response = await GET({ url } as Partial<APIContext> as APIContext)
-		const data = await response.json()
+		const response = await GET(createRequestContext('http://localhost/api/newsletter/confirm'))
+		const body = await response.json()
 
 		expect(response.status).toBe(400)
-		expect(data.success).toBe(false)
-		expect(data.status).toBe('invalid')
-		expect(data.error).toContain('No token provided')
+		expect(body.error).toBeDefined()
+		expect(body.error.message).toContain('No token provided')
 	})
 
 	it('should handle expired or invalid token', async () => {
 		mockConfirmSubscription.mockResolvedValue(null)
 
-		const url = new URL('http://localhost/api/newsletter/confirm?token=expired-token')
-		const response = await GET({ url } as Partial<APIContext> as APIContext)
-		const data = await response.json()
+		const response = await GET(createRequestContext('http://localhost/api/newsletter/confirm?token=expired-token'))
+		const body = await response.json()
 
 		expect(response.status).toBe(400)
-		expect(data.success).toBe(false)
-		expect(data.status).toBe('expired')
-		expect(data.message).toContain('expired')
+		expect(body.error).toBeDefined()
+		expect(body.error.message).toContain('expired')
 	})
 
 	it('should handle subscription without firstName', async () => {
@@ -142,8 +160,7 @@ describe('Newsletter Confirmation API - GET /api/newsletter/confirm', () => {
 
 		mockConfirmSubscription.mockResolvedValue(mockSubscription)
 
-		const url = new URL('http://localhost/api/newsletter/confirm?token=valid-token-123')
-		const response = await GET({ url } as Partial<APIContext> as APIContext)
+		const response = await GET(createRequestContext('http://localhost/api/newsletter/confirm?token=valid-token-123'))
 		const data = await response.json()
 
 		expect(response.status).toBe(200)
@@ -166,8 +183,7 @@ describe('Newsletter Confirmation API - GET /api/newsletter/confirm', () => {
 
 		mockConfirmSubscription.mockResolvedValue(mockSubscription)
 
-		const url = new URL('http://localhost/api/newsletter/confirm?token=valid-token-123')
-		const response = await GET({ url } as Partial<APIContext> as APIContext)
+		const response = await GET(createRequestContext('http://localhost/api/newsletter/confirm?token=valid-token-123'))
 
 		expect(response.status).toBe(200)
 		expect(supabaseFromMock).toHaveBeenCalledWith('consent_records')
@@ -189,8 +205,7 @@ describe('Newsletter Confirmation API - GET /api/newsletter/confirm', () => {
 		mockConfirmSubscription.mockResolvedValue(mockSubscription)
 		mockSendWelcomeEmail.mockRejectedValue(new Error('Email service down'))
 
-		const url = new URL('http://localhost/api/newsletter/confirm?token=valid-token-123')
-		const response = await GET({ url } as Partial<APIContext> as APIContext)
+		const response = await GET(createRequestContext('http://localhost/api/newsletter/confirm?token=valid-token-123'))
 		const data = await response.json()
 
 		// Should still succeed
@@ -201,13 +216,11 @@ describe('Newsletter Confirmation API - GET /api/newsletter/confirm', () => {
 	it('should handle confirmation service errors', async () => {
 		mockConfirmSubscription.mockRejectedValue(new Error('Database error'))
 
-		const url = new URL('http://localhost/api/newsletter/confirm?token=valid-token-123')
-		const response = await GET({ url } as Partial<APIContext> as APIContext)
-		const data = await response.json()
+		const response = await GET(createRequestContext('http://localhost/api/newsletter/confirm?token=valid-token-123'))
+		const body = await response.json()
 
 		expect(response.status).toBe(500)
-		expect(data.success).toBe(false)
-		expect(data.status).toBe('error')
-		expect(data.error).toContain('Database error')
+		expect(body.error).toBeDefined()
+		expect(body.error.message).toContain('Unable to confirm subscription.')
 	})
 })

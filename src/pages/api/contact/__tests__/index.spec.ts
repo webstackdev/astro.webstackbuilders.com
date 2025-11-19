@@ -93,11 +93,10 @@ describe('Contact API - POST /api/contact', () => {
 		})
 
 		const response = await POST({ request } as any)
-		const data = await response.json()
-
+		const body = await response.json()
 		expect(response.status).toBe(400)
-		expect(data.success).toBe(false)
-		expect(data.error).toContain('Name is required')
+		expect(body.error).toBeDefined()
+		expect(body.error.message).toContain('Name is required')
 	})
 
 	it('should reject submission with short name', async () => {
@@ -115,11 +114,11 @@ describe('Contact API - POST /api/contact', () => {
 		})
 
 		const response = await POST({ request } as any)
-		const data = await response.json()
+		const body = await response.json()
 
 		expect(response.status).toBe(400)
-		expect(data.success).toBe(false)
-		expect(data.error).toContain('at least 2 characters')
+		expect(body.error).toBeDefined()
+		expect(body.error.message).toContain('at least 2 characters')
 	})
 
 	it('should reject submission without email', async () => {
@@ -136,11 +135,11 @@ describe('Contact API - POST /api/contact', () => {
 		})
 
 		const response = await POST({ request } as any)
-		const data = await response.json()
+		const body = await response.json()
 
 		expect(response.status).toBe(400)
-		expect(data.success).toBe(false)
-		expect(data.error).toContain('Email is required')
+		expect(body.error).toBeDefined()
+		expect(body.error.message).toContain('Email is required')
 	})
 
 	it('should reject submission with invalid email', async () => {
@@ -158,11 +157,11 @@ describe('Contact API - POST /api/contact', () => {
 		})
 
 		const response = await POST({ request } as any)
-		const data = await response.json()
+		const body = await response.json()
 
 		expect(response.status).toBe(400)
-		expect(data.success).toBe(false)
-		expect(data.error).toContain('Invalid email')
+		expect(body.error).toBeDefined()
+		expect(body.error.message).toContain('Invalid email')
 	})
 
 	it('should reject submission without message', async () => {
@@ -179,11 +178,11 @@ describe('Contact API - POST /api/contact', () => {
 		})
 
 		const response = await POST({ request } as any)
-		const data = await response.json()
+		const body = await response.json()
 
 		expect(response.status).toBe(400)
-		expect(data.success).toBe(false)
-		expect(data.error).toContain('Message is required')
+		expect(body.error).toBeDefined()
+		expect(body.error.message).toContain('Message is required')
 	})
 
 	it('should reject submission with short message', async () => {
@@ -201,11 +200,11 @@ describe('Contact API - POST /api/contact', () => {
 		})
 
 		const response = await POST({ request } as any)
-		const data = await response.json()
+		const body = await response.json()
 
 		expect(response.status).toBe(400)
-		expect(data.success).toBe(false)
-		expect(data.error).toContain('at least 10 characters')
+		expect(body.error).toBeDefined()
+		expect(body.error.message).toContain('at least 10 characters')
 	})
 
 	it('should reject submission with spam content', async () => {
@@ -223,11 +222,11 @@ describe('Contact API - POST /api/contact', () => {
 		})
 
 		const response = await POST({ request } as any)
-		const data = await response.json()
+		const body = await response.json()
 
 		expect(response.status).toBe(400)
-		expect(data.success).toBe(false)
-		expect(data.error).toContain('spam')
+		expect(body.error).toBeDefined()
+		expect(body.error.message).toContain('spam')
 	})
 
 	it('should bypass rate limiting in test environment', async () => {
@@ -412,11 +411,11 @@ describe('Contact API - POST /api/contact', () => {
 		})
 
 		const response = await POST({ request } as any)
-		const data = await response.json()
+		const body = await response.json()
 
 		expect(response.status).toBe(400)
-		expect(data.success).toBe(false)
-		expect(data.error).toContain('Invalid DataSubjectId format')
+		expect(body.error).toBeDefined()
+		expect(body.error.message).toContain('Invalid DataSubjectId format')
 	})
 })
 

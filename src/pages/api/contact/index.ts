@@ -10,7 +10,7 @@ import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
 import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
 import { buildApiErrorResponse, handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
 import { getResendApiKey, isDev, isTest } from '@pages/api/_environment'
-import { checkContactRateLimit } from '@pages/api/_utils'
+import { checkContactRateLimit } from '@pages/api/_utils/rateLimit'
 import { createApiFunctionContext, createRateLimitIdentifier } from '@pages/api/_utils/requestContext'
 
 export const prerender = false // Force SSR for this endpoint
@@ -362,23 +362,35 @@ export const POST: APIRoute = async ({ request, cookies, clientAddress }) => {
 	        })
 	      }
 
-	      const consentResponse = await fetch(`${new URL(request.url).origin}/api/gdpr/consent`, {
-	        method: 'POST',
-	        headers: { 'Content-Type': 'application/json' },
-	        body: JSON.stringify({
-	          DataSubjectId: subjectId,
-	          email: formData.email,
-	          purposes: ['contact'],
-	          source: 'contact_form',
-	          userAgent,
-	          ...(ip !== 'unknown' && { ipAddress: ip }),
-	          verified: true,
-	        }),
-	      })
+	      const consentPayload = {
+	        DataSubjectId: subjectId,
+	        email: formData.email,
+	        purposes: ['contact'],
+	        source: 'contact_form',
+	        userAgent,
+	        ...(ip !== 'unknown' && { ipAddress: ip }),
+	        verified: true,
+	      }
 
-	      if (!consentResponse.ok) {
-	        throw new ApiFunctionError({
-	          message: 'Failed to record consent. Please try again later.',
+	      try {
+	        const consentResponse = await fetch(`${new URL(request.url).origin}/api/gdpr/consent`, {
+	          method: 'POST',
+	          headers: { 'Content-Type': 'application/json' },
+	          body: JSON.stringify(consentPayload),
+	        })
+
+	        if (!consentResponse.ok) {
+	          throw new ApiFunctionError({
+	            message: 'Failed to record consent. Please try again later.',
+	            status: 502,
+	            code: 'CONSENT_RECORD_FAILED',
+	            details: { consentPayload },
+	          })
+	        }
+	      } catch (consentError) {
+	        handleApiFunctionError(consentError, {
+	          ...apiContext,
+	          operation: 'POST:consent',
 	          status: 502,
 	          code: 'CONSENT_RECORD_FAILED',
 	        })
@@ -406,8 +418,8 @@ export const POST: APIRoute = async ({ request, cookies, clientAddress }) => {
 	        headers: { 'Content-Type': 'application/json' },
 	      },
 	    )
-	  } catch (error) {
-	    const serverError = handleApiFunctionError(error, apiContext)
+	} catch (error) {
+		const serverError = handleApiFunctionError(error, apiContext)
 
 	    return buildApiErrorResponse(serverError, {
 	      fallbackMessage: 'An unexpected error occurred. Please try again.',

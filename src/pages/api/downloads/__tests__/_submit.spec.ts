@@ -47,11 +47,11 @@ describe('Downloads API - POST /api/downloads/submit', () => {
 		})
 
 		const response = await POST({ request } as any)
-		const data = await response.json()
+		const body = await response.json()
 
 		expect(response.status).toBe(400)
-		expect(data.success).toBe(false)
-		expect(data.message).toContain('required')
+		expect(body.error).toBeDefined()
+		expect(body.error.message).toContain('required')
 	})
 
 	it('should reject submission without lastName', async () => {
@@ -67,11 +67,11 @@ describe('Downloads API - POST /api/downloads/submit', () => {
 		})
 
 		const response = await POST({ request } as any)
-		const data = await response.json()
+		const body = await response.json()
 
 		expect(response.status).toBe(400)
-		expect(data.success).toBe(false)
-		expect(data.message).toContain('required')
+		expect(body.error).toBeDefined()
+		expect(body.error.message).toContain('required')
 	})
 
 	it('should reject submission without workEmail', async () => {
@@ -87,11 +87,11 @@ describe('Downloads API - POST /api/downloads/submit', () => {
 		})
 
 		const response = await POST({ request } as any)
-		const data = await response.json()
+		const body = await response.json()
 
 		expect(response.status).toBe(400)
-		expect(data.success).toBe(false)
-		expect(data.message).toContain('required')
+		expect(body.error).toBeDefined()
+		expect(body.error.message).toContain('required')
 	})
 
 	it('should reject submission without jobTitle', async () => {
@@ -107,11 +107,11 @@ describe('Downloads API - POST /api/downloads/submit', () => {
 		})
 
 		const response = await POST({ request } as any)
-		const data = await response.json()
+		const body = await response.json()
 
 		expect(response.status).toBe(400)
-		expect(data.success).toBe(false)
-		expect(data.message).toContain('required')
+		expect(body.error).toBeDefined()
+		expect(body.error.message).toContain('required')
 	})
 
 	it('should reject submission without companyName', async () => {
@@ -127,11 +127,11 @@ describe('Downloads API - POST /api/downloads/submit', () => {
 		})
 
 		const response = await POST({ request } as any)
-		const data = await response.json()
+		const body = await response.json()
 
 		expect(response.status).toBe(400)
-		expect(data.success).toBe(false)
-		expect(data.message).toContain('required')
+		expect(body.error).toBeDefined()
+		expect(body.error.message).toContain('required')
 	})
 
 	it('should reject submission with invalid email format', async () => {
@@ -148,11 +148,11 @@ describe('Downloads API - POST /api/downloads/submit', () => {
 		})
 
 		const response = await POST({ request } as any)
-		const data = await response.json()
+		const body = await response.json()
 
 		expect(response.status).toBe(400)
-		expect(data.success).toBe(false)
-		expect(data.message).toContain('Invalid email')
+		expect(body.error).toBeDefined()
+		expect(body.error.message).toContain('Invalid email')
 	})
 
 	it('should handle malformed JSON gracefully', async () => {
@@ -163,10 +163,10 @@ describe('Downloads API - POST /api/downloads/submit', () => {
 		})
 
 		const response = await POST({ request } as any)
-		const data = await response.json()
+		const body = await response.json()
 
 		expect(response.status).toBe(400)
-		expect(data.success).toBe(false)
-		expect(data.message).toContain('Invalid JSON payload')
+		expect(body.error).toBeDefined()
+		expect(body.error.message).toContain('Invalid JSON payload')
 	})
 })
