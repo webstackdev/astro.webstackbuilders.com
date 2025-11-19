@@ -47,7 +47,10 @@ test.describe('Newsletter Subscription Form', () => {
 
     // Wait for page to be fully loaded with scripts
     await newsletterPage.waitForLoadState('networkidle')
-    await newsletterPage.waitForTimeout(500) // Give scripts time to initialize
+    await newsletterPage.waitForFunction(() => {
+      const button = document.querySelector('#newsletter-submit')
+      return button instanceof HTMLButtonElement && !button.disabled
+    }, undefined, { timeout: 3000 })
 
     await newsletterPage.fillEmail(TEST_EMAILS.valid)
     // Don't check GDPR consent - leave it unchecked

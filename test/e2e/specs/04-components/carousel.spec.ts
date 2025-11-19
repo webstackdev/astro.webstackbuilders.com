@@ -5,6 +5,7 @@
  */
 
 import { BasePage, test, expect } from '@test/e2e/helpers'
+import { waitForAnimationFrames } from '@test/e2e/helpers/waitHelpers'
 
 test.describe('Carousel Component', () => {
   /**
@@ -273,13 +274,15 @@ test.describe('Carousel Component', () => {
     // Hover over carousel
     await carousel.hover()
 
-    // Wait longer than autoplay interval (4000ms + buffer)
-    // This timeout is intentional - testing time-based autoplay behavior
-    await page.waitForTimeout(5000)
-
-    const afterHover = await carousel.evaluate((el) => {
-      return el.querySelector('[aria-current="true"]')?.getAttribute('data-index')
-    })
+    // Wait longer than autoplay interval (4000ms + buffer) using animation frames
+    let afterHover = initialSlide
+    for (let index = 0; index < 5; index++) {
+      await waitForAnimationFrames(page.page, 60)
+      afterHover = await carousel.evaluate((el) => {
+        return el.querySelector('[aria-current="true"]')?.getAttribute('data-index')
+      })
+      expect(afterHover).toBe(initialSlide)
+    }
 
     // Slide should not have changed during hover
     expect(afterHover).toBe(initialSlide)

@@ -2,10 +2,7 @@
  * This file cannot be used in API endpoint code. See
  * src/lib/config/environmentServer.ts for details.
  */
-import {
-  PACKAGE_RELEASE_VERSION,
-  PRIVACY_POLICY_VERSION,
-} from 'astro:env/client'
+import { PACKAGE_RELEASE_VERSION, PRIVACY_POLICY_VERSION } from 'astro:env/client'
 import { ClientScriptError } from '@components/scripts/errors'
 
 /**
@@ -47,31 +44,6 @@ export const isProd = () => {
 }
 
 /**
- * Privacy Policy Version Utility
- *
- * Provides access to the privacy policy version that's injected at build time
- * via the PrivacyPolicyVersion Astro integration.
- *
- * @see src/integrations/PrivacyPolicyVersion/index.ts
- */
-
-/**
- * Provides access to the privacy policy version that is injected
- * at build time via the PrivacyPolicyVersion Astro integration.
- *
- * @returns The privacy policy version in YYYY-MM-DD format
- * @throws {ClientScriptError} If PRIVACY_POLICY_VERSION is not set
- */
-export function getPrivacyPolicyVersion(): string {
-  if (!PRIVACY_POLICY_VERSION) {
-    throw new ClientScriptError(
-      'PRIVACY_POLICY_VERSION environment variable is not set. This should be injected by the PrivacyPolicyVersion integration.',
-    )
-  }
-  return PRIVACY_POLICY_VERSION
-}
-
-/**
  * Package Release Utility
  *
  * Provides access to the package release version that is injected at build time
@@ -92,4 +64,18 @@ export function getPackageRelease(): string {
     )
   }
   return PACKAGE_RELEASE_VERSION
+}
+
+/**
+ * Gets the privacy policy version injected at build time
+ * @returns ISO timestamp string representing current privacy policy version
+ * @throws {ClientScriptError} If PRIVACY_POLICY_VERSION is missing
+ */
+export function getPrivacyPolicyVersion(): string {
+  if (!PRIVACY_POLICY_VERSION) {
+    throw new ClientScriptError(
+      'PRIVACY_POLICY_VERSION environment variable is not set. This should be injected by the PrivacyPolicyVersion integration.',
+    )
+  }
+  return PRIVACY_POLICY_VERSION
 }

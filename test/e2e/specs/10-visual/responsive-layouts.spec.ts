@@ -4,6 +4,7 @@
  */
 
 import { BasePage, test, expect } from '@test/e2e/helpers'
+import { waitForAnimationFrames } from '@test/e2e/helpers/waitHelpers'
 
 const VIEWPORTS = {
   mobile: { width: 375, height: 667 },
@@ -107,7 +108,6 @@ test.describe('Responsive Layout Visuals', () => {
     await expect(hamburger).toBeVisible()
 
     await hamburger.click()
-    await page.waitForTimeout(300)
 
     const menu = page.locator('[data-nav-menu]')
     await expect(menu).toBeVisible()
@@ -137,7 +137,7 @@ test.describe('Responsive Layout Visuals', () => {
 
     for (const [_name, viewport] of Object.entries(VIEWPORTS)) {
       await page.setViewportSize(viewport)
-      await page.waitForTimeout(500)
+      await waitForAnimationFrames(page.page, 60)
       // await percySnapshot(page, `Article - ${_name}`)
     }
   })

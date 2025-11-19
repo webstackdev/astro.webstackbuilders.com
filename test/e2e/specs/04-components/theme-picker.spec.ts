@@ -19,15 +19,20 @@ import {
 async function navigateWithMobileSupport(page: import('@playwright/test').Page, selector: string) {
   const viewport = page.viewportSize()
   const isMobile = viewport && viewport.width < 768
+  const navToggle = page.locator('button[aria-label="toggle menu"]')
+  const header = page.locator('#header')
+  const targetLink = page.locator(selector).first()
 
   if (isMobile) {
     // Open mobile menu first
-    await page.locator('button[aria-label="toggle menu"]').click()
-    await page.waitForTimeout(600) // Wait for mobile menu animation
+    await navToggle.click()
+    await expect(navToggle).toHaveAttribute('aria-expanded', 'true')
+    await expect(header).toHaveClass(/aria-expanded-true/)
+    await targetLink.waitFor({ state: 'visible', timeout: 2000 })
   }
 
   // Click the first navigation link
-  await page.locator(selector).first().click()
+  await targetLink.click()
 
   // Wait for navigation to complete
   await page.waitForLoadState('networkidle')
@@ -35,11 +40,11 @@ async function navigateWithMobileSupport(page: import('@playwright/test').Page, 
   // On mobile, the menu should automatically close after navigation
   // But let's ensure it's closed by checking and closing if needed
   if (isMobile) {
-    const menuToggle = page.locator('button[aria-label="toggle menu"]')
-    const isExpanded = await menuToggle.getAttribute('aria-expanded')
+    const isExpanded = await navToggle.getAttribute('aria-expanded')
     if (isExpanded === 'true') {
-      await menuToggle.click()
-      await page.waitForTimeout(600) // Wait for close animation
+      await navToggle.click()
+      await expect(navToggle).toHaveAttribute('aria-expanded', 'false')
+      await expect(header).not.toHaveClass(/aria-expanded-true/)
     }
   }
 }
@@ -118,36 +123,36 @@ test.describe('Theme Picker Component', () => {
       const page = await BasePage.init(playwrightPage)
       // Expected: Theme picker modal should show active state for current theme
       const themePicker = getThemePickerToggle(page.page)
+      const modal = page.locator('[data-theme-modal]')
 
       // Open the theme picker modal
       await themePicker.click()
-      await page.waitForTimeout(300)
+      await expect(themePicker).toHaveAttribute('aria-expanded', 'true')
+      await expect(modal).toHaveClass(/is-open/)
 
       // Check that light theme button's parent has is-active class
       const lightThemeButton = page.locator('button[data-theme="light"]')
       const lightParentLi = lightThemeButton.locator('..')
 
       // Verify light theme is initially active
-      const lightClasses = await lightParentLi.getAttribute('class')
-      expect(lightClasses).toContain('is-active')
+      await expect(lightParentLi).toHaveClass(/is-active/)
 
       // Select dark theme (which closes the modal)
       const darkThemeButton = page.locator('button[data-theme="dark"]')
       await darkThemeButton.click()
-      await page.waitForTimeout(300)
+      await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
 
       // Reopen modal
       await themePicker.click()
-      await page.waitForTimeout(300)
+      await expect(themePicker).toHaveAttribute('aria-expanded', 'true')
+      await expect(modal).toHaveClass(/is-open/)
 
       // Dark theme should now be active
       const darkParentLi = darkThemeButton.locator('..')
-      const darkClasses = await darkParentLi.getAttribute('class')
-      expect(darkClasses).toContain('is-active')
+      await expect(darkParentLi).toHaveClass(/is-active/)
 
       // And light should no longer be active
-      const lightClassesAfter = await lightParentLi.getAttribute('class')
-      expect(lightClassesAfter).not.toContain('is-active')
+      await expect(lightParentLi).not.toHaveClass(/is-active/)
     })
   })
 
@@ -177,8 +182,8 @@ test.describe('Theme Picker Component', () => {
       await selectTheme(page.page, 'dark')
 
       // Reload page
-      await page.reload()
-      await page.waitForTimeout(300)
+      await page.reload({ waitUntil: 'domcontentloaded' })
+      await page.waitForLoadState('networkidle')
 
       // Verify dark theme persisted
       const htmlElement = page.locator('html')
@@ -199,7 +204,7 @@ test.describe('Theme Picker Component', () => {
 
       // Navigate to another page
       await page.goto('/about')
-      await page.waitForTimeout(300)
+      await page.waitForLoadState('networkidle')
 
       // Verify dark theme persisted
       const htmlElement = page.locator('html')
@@ -248,7 +253,7 @@ test.describe('Theme Picker Component', () => {
       // Expected: User selection should override system preference
       await page.emulateMedia({ colorScheme: 'dark' })
       await page.goto('/')
-      await page.waitForTimeout(300)
+      await page.waitForLoadState('networkidle')
 
       // Manually switch to light theme
       await selectTheme(page.page, 'light')
@@ -259,8 +264,8 @@ test.describe('Theme Picker Component', () => {
       expect(dataTheme).toBe('light')
 
       // Verify it persists after reload
-      await page.reload()
-      await page.waitForTimeout(300)
+      await page.reload({ waitUntil: 'domcontentloaded' })
+      await page.waitForLoadState('networkidle')
 
       const dataThemeAfterReload = await htmlElement.getAttribute('data-theme')
       expect(dataThemeAfterReload).toBe('light')
@@ -358,8 +363,7 @@ test.describe('Theme Picker Component', () => {
       const darkThemeBtn = page.locator('.themepicker__selectBtn[data-theme="dark"]').first()
       await darkThemeBtn.click()
 
-      // Wait for theme to be applied and picker to close
-      await page.waitForTimeout(500)
+      await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
 
       // 2. Navigate to another page using mobile-aware helper
       await navigateWithMobileSupport(page.page, '.main-nav-item a')

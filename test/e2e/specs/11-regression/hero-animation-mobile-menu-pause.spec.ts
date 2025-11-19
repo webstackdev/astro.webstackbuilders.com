@@ -11,6 +11,7 @@
 
 import { BasePage, test, expect } from '@test/e2e/helpers'
 import { setupTestPage } from '@test/e2e/helpers/cookieHelper'
+import { waitForAnimationFrames } from '@test/e2e/helpers/waitHelpers'
 
 test.describe('Hero Animation - Mobile Menu Pause Regression', () => {
   // Configure mobile viewport for all tests in this suite
@@ -59,7 +60,7 @@ test.describe('Hero Animation - Mobile Menu Pause Regression', () => {
     await expect(hamburgerButton).toHaveAttribute('aria-expanded', 'true')
 
     // Wait a bit to ensure animation would have progressed if not paused
-    await page.waitForTimeout(500)
+    await waitForAnimationFrames(page.page, 60)
 
     // Check that animation state hasn't changed (indicating pause)
     const transformDuringMenu = await page.evaluate(() => {
@@ -80,7 +81,7 @@ test.describe('Hero Animation - Mobile Menu Pause Regression', () => {
     await expect(closeButton).toHaveAttribute('aria-expanded', 'false')
 
     // Wait a bit for animation to resume and progress
-    await page.waitForTimeout(500)
+    await waitForAnimationFrames(page.page, 60)
 
     // Verify animation has resumed by checking transform has changed
     const transformAfterMenu = await page.evaluate(() => {
@@ -105,7 +106,7 @@ test.describe('Hero Animation - Mobile Menu Pause Regression', () => {
     const transforms: (string | null)[] = []
 
     for (let i = 0; i < 3; i++) {
-      await page.waitForTimeout(200)
+      await waitForAnimationFrames(page.page, 12)
       const transform = await page.page.evaluate(() => {
         const monitorBottom = document.querySelector('.monitorBottom')
         if (!monitorBottom) return null
@@ -171,8 +172,8 @@ test.describe('Hero Animation - Mobile Menu Pause Regression', () => {
     // Header should have the aria-expanded-true class which triggers splash animation
     await expect(header).toHaveClass(/aria-expanded-true/)
 
-    // Wait for animation to start (give it 100ms)
-    await page.waitForTimeout(100)
+    // Wait for animation to start (give it ~100ms via animation frames)
+    await waitForAnimationFrames(page.page, 6)
 
     // Check that splash ::after is now scaling up (transform should change)
     const expandedTransform = await page.page.evaluate(() => {

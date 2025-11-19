@@ -5,6 +5,18 @@
  */
 
 import { BasePage, test, expect } from '@test/e2e/helpers'
+import { waitForAnimationFrames } from '@test/e2e/helpers/waitHelpers'
+
+const testimonialsSelector = '.testimonials-embla'
+
+async function waitForTestimonialsEmblaSettle(page: BasePage): Promise<void> {
+  await page.page.waitForFunction((selector) => {
+    const emblaNode = document.querySelector<HTMLElement & {
+      __emblaApi__?: { internalEngine: () => { settled: boolean } }
+    }>(selector)
+    return emblaNode?.__emblaApi__?.internalEngine().settled === true
+  }, testimonialsSelector)
+}
 
 
 test.describe('Testimonials Component', () => {
@@ -102,7 +114,7 @@ test.describe('Testimonials Component', () => {
 
     // Click and verify it still works (carousel navigation functional)
     await nextButton.click()
-    await page.waitForTimeout(500)
+    await waitForTestimonialsEmblaSettle(page)
 
     // Verify button is still there (carousel didn't break)
     await expect(nextButton).toBeVisible()
@@ -175,7 +187,7 @@ test.describe('Testimonials Component', () => {
     // Click a different dot (if on first dot, click second; otherwise click first)
     const targetIndex = initialIndex === 0 ? 1 : 0
     await dots.nth(targetIndex).click()
-    await page.waitForTimeout(500)
+    await waitForTestimonialsEmblaSettle(page)
 
     const newIndex = await getSelectedDotIndex()
     expect(newIndex).toBe(targetIndex)
@@ -230,11 +242,9 @@ test.describe('Testimonials Component', () => {
       }
     })
 
-    // Wait for slide transition (plugin delay is 6s, add small buffer)
-    await page.waitForTimeout(6500)
-
-    const newIndex = await getSelectedDotIndex()
-    expect(newIndex).not.toBe(initialIndex)
+    await expect
+      .poll(getSelectedDotIndex, { intervals: [500], timeout: 8000 })
+      .not.toBe(initialIndex)
   })
 
   test('@ready auto-rotation pauses on hover', async ({ page: playwrightPage }) => {
@@ -267,13 +277,17 @@ test.describe('Testimonials Component', () => {
     // Hover over testimonials to pause auto-rotation
     // The stopOnMouseEnter option should stop autoplay
     await testimonials.hover()
-    await page.waitForTimeout(500) // Wait for hover to take effect
+    await page.page.waitForFunction((selector) => {
+      return document.querySelector(`${selector}:hover`) !== null
+    }, testimonialsSelector)
 
-    // Wait longer than rotation interval to verify it doesn't advance
-    await page.waitForTimeout(7000)
-
-    const textAfterHover = await testimonials.locator('blockquote').first().textContent()
-    expect(textAfterHover).toBe(initialText)
+    // Wait longer than rotation interval to verify it doesn't advance by checking over time
+    let textAfterHover = initialText
+    for (let index = 0; index < 7; index++) {
+      await waitForAnimationFrames(page.page, 60)
+      textAfterHover = await testimonials.locator('blockquote').first().textContent()
+      expect(textAfterHover).toBe(initialText)
+    }
   })
 
   test('@ready testimonials are responsive', async ({ page: playwrightPage }) => {
@@ -281,7 +295,7 @@ test.describe('Testimonials Component', () => {
     // Expected: Testimonials should display well on mobile
     await page.setViewportSize({ width: 375, height: 667 })
     await page.goto('/')
-    await page.waitForTimeout(1500)
+    await page.waitForLoadState('networkidle')
 
     const testimonials = page.locator('.testimonials-embla')
     await expect(testimonials).toBeVisible()

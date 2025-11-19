@@ -40,8 +40,7 @@ export class PwaPage extends BasePage {
   async navigateToHomeAndWaitForSW(): Promise<void> {
     await this.goto('/')
     await this.waitForLoadState('networkidle')
-    // Give service worker time to register
-    await this.wait(2000)
+    await this.waitForServiceWorkerReady()
   }
 
   /**
@@ -71,6 +70,23 @@ export class PwaPage extends BasePage {
         }
       }
       return false
+    })
+  }
+
+  /**
+   * Wait until the service worker is ready (registered + activated)
+   */
+  async waitForServiceWorkerReady(): Promise<void> {
+    await this.page.evaluate(async () => {
+      if (!('serviceWorker' in navigator)) {
+        return
+      }
+
+      try {
+        await navigator.serviceWorker.ready
+      } catch {
+        // ignore readiness errors in environments without SW support
+      }
     })
   }
 

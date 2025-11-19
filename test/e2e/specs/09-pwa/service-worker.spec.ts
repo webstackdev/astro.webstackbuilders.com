@@ -48,7 +48,8 @@ test.describe('Service Worker', () => {
 
     // Reload page
     await pwaPage.page.reload()
-    await pwaPage.wait(1000)
+    await pwaPage.waitForLoadState('networkidle')
+    await pwaPage.waitForServiceWorkerReady()
 
     // Should load from cache
     await pwaPage.expectPageHasContent()

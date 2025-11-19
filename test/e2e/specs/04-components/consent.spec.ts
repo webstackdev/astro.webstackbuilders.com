@@ -6,6 +6,14 @@
 
 import { BasePage, test, expect } from '@test/e2e/helpers'
 
+const consentModalSelector = '#consent-modal-id'
+
+const getConsentBanner = (page: BasePage) => page.locator(consentModalSelector)
+
+async function waitForConsentBannerHidden(page: BasePage): Promise<void> {
+  await expect(getConsentBanner(page)).toBeHidden({ timeout: 5000 })
+}
+
 
 test.describe('Consent Banner', () => {
   /**
@@ -46,14 +54,14 @@ test.describe('Consent Banner', () => {
   test('@ready consent banner displays on first visit', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     // Expected: Consent banner should appear for first-time visitors
-    const cookieBanner = page.locator('#consent-modal-id')
+    const cookieBanner = getConsentBanner(page)
     await expect(cookieBanner).toBeVisible()
   })
 
   test('@ready consent banner has accept button', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     // Expected: Consent banner should have "Allow All" button
-    const cookieBanner = page.locator('#consent-modal-id')
+    const cookieBanner = getConsentBanner(page)
     const acceptButton = cookieBanner.locator('button:has-text("Allow All")')
 
     await expect(acceptButton).toBeVisible()
@@ -62,7 +70,7 @@ test.describe('Consent Banner', () => {
   test('@ready consent banner has customize link', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     // Expected: Consent banner should have "Customize" link
-    const cookieBanner = page.locator('#consent-modal-id')
+    const cookieBanner = getConsentBanner(page)
     const customizeLink = cookieBanner.getByRole('link', { name: 'Customize' })
 
     await expect(customizeLink).toBeVisible()
@@ -72,49 +80,47 @@ test.describe('Consent Banner', () => {
   test('@ready clicking allow all hides banner', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     // Expected: Consent banner should disappear after accepting
-    const cookieBanner = page.locator('#consent-modal-id')
+    const cookieBanner = getConsentBanner(page)
     const acceptButton = cookieBanner.locator('button:has-text("Allow All")')
 
     await acceptButton.click()
-    await page.waitForTimeout(500)
-
-    await expect(cookieBanner).not.toBeVisible()
+    await waitForConsentBannerHidden(page)
   })
 
   test('@ready accept choice persists across page reloads', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     // Expected: After accepting, banner should not reappear
-    const cookieBanner = page.locator('#consent-modal-id')
+    const cookieBanner = getConsentBanner(page)
     const acceptButton = cookieBanner.locator('button:has-text("Allow All")')
 
     await acceptButton.click()
-    await page.waitForTimeout(500)
+    await waitForConsentBannerHidden(page)
 
-    await page.reload()
-    await page.waitForTimeout(500)
+    await page.reload({ waitUntil: 'domcontentloaded' })
+    await page.waitForLoadState('networkidle')
 
-    await expect(cookieBanner).not.toBeVisible()
+    await expect(cookieBanner).toBeHidden()
   })
 
   test('@ready accept choice persists across navigation', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     // Expected: After accepting, banner should not appear on other pages
-    const cookieBanner = page.locator('#consent-modal-id')
+    const cookieBanner = getConsentBanner(page)
     const acceptButton = cookieBanner.locator('button:has-text("Allow All")')
 
     await acceptButton.click()
-    await page.waitForTimeout(500)
+    await waitForConsentBannerHidden(page)
 
     await page.goto('/about')
-    await page.waitForTimeout(500)
+    await page.waitForLoadState('networkidle')
 
-    await expect(cookieBanner).not.toBeVisible()
+    await expect(cookieBanner).toBeHidden()
   })
 
   test('@ready banner contains privacy policy link', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     // Expected:  Consentbanner should link to privacy/cookie policy
-    const cookieBanner = page.locator('#consent-modal-id')
+    const cookieBanner = getConsentBanner(page)
     const policyLink = cookieBanner.locator('a[href*="privacy"], a[href*="cookie"]')
 
     await expect(policyLink.first()).toBeVisible()
@@ -123,7 +129,7 @@ test.describe('Consent Banner', () => {
   test('@ready banner is accessible via keyboard', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     // Expected: Can navigate and interact with keyboard
-    const cookieBanner = page.locator('#consent-modal-id')
+    const cookieBanner = getConsentBanner(page)
     await expect(cookieBanner).toBeVisible()
 
     // Tab to first interactive element (close button)
@@ -134,10 +140,7 @@ test.describe('Consent Banner', () => {
 
     // Should be able to press Enter to activate
     await page.keyboard.press('Enter')
-    await page.waitForTimeout(500)
-
-    // Banner should be hidden after accepting
-    await expect(cookieBanner).not.toBeVisible()
+    await waitForConsentBannerHidden(page)
   })
 
   test('@ready banner has proper ARIA attributes', async ({ page: playwrightPage }) => {

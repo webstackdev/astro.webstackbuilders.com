@@ -3,6 +3,8 @@
  * Provides utilities for handling cookie consent modal and common test setups
  */
 import type { Page } from '@playwright/test'
+import { expect } from '@test/e2e/helpers'
+import { waitForAnimationFrames } from '@test/e2e/helpers/waitHelpers'
 
 /**
  * Dismiss cookie consent modal if it's visible
@@ -61,8 +63,8 @@ export async function setConsentCookies(page: Page): Promise<void> {
 export async function setupTestPage(page: Page, url: string = '/'): Promise<void> {
   await page.goto(url, { waitUntil: 'domcontentloaded' })
 
-  // Wait a bit for any client-side initialization
-  await page.waitForTimeout(100)
+  // Wait for Astro scripts to hydrate the main content
+  await page.waitForFunction(() => !!document.getElementById('main-content'))
 
   await dismissCookieModal(page)
 }
@@ -113,17 +115,31 @@ export function getThemePickerToggle(page: Page) {
 export async function selectTheme(page: Page, themeId: string): Promise<void> {
   // Check if modal is already open (modal state now persists)
   const modal = page.locator('[data-theme-modal]')
-  const isOpen = await modal.evaluate((el) => el.classList.contains('is-open'))
+  const toggleButton = getThemePickerToggle(page)
+  const isOpen = await modal.evaluate((el) => !el.hasAttribute('hidden'))
 
   // Only click toggle if modal is not already open
   if (!isOpen) {
-    const themePicker = getThemePickerToggle(page)
-    await themePicker.click()
-    await page.waitForTimeout(300)
+    await toggleButton.click()
+    await expect(toggleButton).toHaveAttribute('aria-expanded', 'true')
+    await expect(modal).toBeVisible()
+    await expect(modal).toHaveClass(/is-open/)
   }
 
   // Click the theme button
   // Use button selector to avoid matching <html data-theme="...">
-  await page.click(`button[data-theme="${themeId}"]`)
-  await page.waitForTimeout(300)
+  const themeButton = page.locator(`button[data-theme="${themeId}"]`)
+  await themeButton.click()
+
+  // Wait for current theme to update everywhere
+  const html = page.locator('html')
+  await expect(html).toHaveAttribute('data-theme', themeId)
+  await page.waitForFunction((id) => {
+    try {
+      return localStorage.getItem('theme') === id
+    } catch {
+      return false
+    }
+  }, themeId)
+  await waitForAnimationFrames(page, 2)
 }

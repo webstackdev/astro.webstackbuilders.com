@@ -82,11 +82,9 @@ test.describe('GDPR Consent Component', () => {
     // Don't check GDPR
 
     await submitButton.click()
-    await page.waitForTimeout(500)
-
-    // Should show validation error
-    const validationMessage = await gdprCheckbox.evaluate((el: HTMLInputElement) => el.validationMessage)
-    expect(validationMessage).toBeTruthy()
+    await expect.poll(async () => {
+      return await gdprCheckbox.evaluate((el: HTMLInputElement) => el.validationMessage)
+    }).not.toEqual('')
   })
 
   test.skip('@wip form can submit with GDPR consent', async ({ page: playwrightPage }) => {
@@ -100,7 +98,6 @@ test.describe('GDPR Consent Component', () => {
     await gdprCheckbox.check()
 
     await submitButton.click()
-    await page.waitForTimeout(1000)
 
     // Form should be processing or show success
     // (Actual behavior depends on API implementation)
@@ -118,10 +115,7 @@ test.describe('GDPR Consent Component', () => {
 
     // Check with Space
     await page.keyboard.press('Space')
-    await page.waitForTimeout(300)
-
-    const isChecked = await gdprCheckbox.isChecked()
-    expect(isChecked).toBe(true)
+    await expect(gdprCheckbox).toBeChecked()
   })
 
   test.skip('@wip GDPR error message is displayed', async ({ page: playwrightPage }) => {
@@ -132,9 +126,6 @@ test.describe('GDPR Consent Component', () => {
 
     await emailInput.fill('test@example.com')
     await submitButton.click()
-    await page.waitForTimeout(500)
-
-    // Look for error message
     const errorMessage = page.locator('[data-error*="consent"], [data-error*="gdpr"], .error:has-text("consent")')
     await expect(errorMessage.first()).toBeVisible()
   })
@@ -164,9 +155,6 @@ test.describe('GDPR Consent Component', () => {
 
     // Submit form (may trigger other validation)
     await submitButton.click()
-    await page.waitForTimeout(500)
-
-    // GDPR should still be checked
-    expect(await gdprCheckbox.isChecked()).toBe(true)
+    await expect(gdprCheckbox).toBeChecked()
   })
 })

@@ -202,11 +202,9 @@ test.describe('Social Shares Component', () => {
 
     const currentUrl = page.url()
     await copyButton.click()
-    await page.waitForTimeout(500)
-
-    // Read clipboard
-    const clipboardText = await page.evaluate(() => navigator.clipboard.readText())
-    expect(clipboardText).toBe(currentUrl)
+    await expect.poll(async () => {
+      return await page.evaluate(async () => navigator.clipboard.readText())
+    }).toBe(currentUrl)
   })
 
   test.skip('@wip copy link button shows confirmation', async ({ page: playwrightPage, context }) => {
@@ -222,15 +220,15 @@ test.describe('Social Shares Component', () => {
     }
 
     await copyButton.click()
-    await page.waitForTimeout(300)
-
-    // Look for confirmation (text change, tooltip, or notification)
-    const buttonText = await copyButton.textContent()
-    const ariaLabel = await copyButton.getAttribute('aria-label')
-
-    expect(buttonText?.toLowerCase().includes('copied') || ariaLabel?.toLowerCase().includes('copied')).toBe(
-      true
-    )
+    await expect.poll(async () => {
+      const [buttonText, ariaLabel] = await Promise.all([
+        copyButton.textContent(),
+        copyButton.getAttribute('aria-label')
+      ])
+      const textIndicatesCopy = buttonText?.toLowerCase().includes('copied') ?? false
+      const ariaIndicatesCopy = ariaLabel?.toLowerCase().includes('copied') ?? false
+      return textIndicatesCopy || ariaIndicatesCopy
+    }).toBe(true)
   })
 
   test.skip('@wip email share opens mailto link', async ({ page: playwrightPage }) => {

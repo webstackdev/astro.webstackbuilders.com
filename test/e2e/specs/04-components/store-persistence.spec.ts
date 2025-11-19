@@ -7,6 +7,10 @@
 import { BasePage, test, expect } from '@test/e2e/helpers'
 import { selectTheme } from '@test/e2e/helpers/cookieHelper'
 
+const getLocalStorageItem = (page: BasePage, key: string) => {
+  return page.evaluate((storageKey) => localStorage.getItem(storageKey), key)
+}
+
 test.describe('Nanostore Persistence Across Navigation', () => {
   /**
    * Setup for nanostore persistence tests
@@ -53,27 +57,25 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     await selectTheme(page.page, 'dark')
 
     // Verify theme is applied
-    let htmlTheme = await page.locator('html').getAttribute('data-theme')
-    expect(htmlTheme).toBe('dark')
+    const htmlElement = page.locator('html')
+    await expect(htmlElement).toHaveAttribute('data-theme', 'dark')
 
     // Wait for localStorage to be updated (nanostores persistence is async)
-    await page.waitForTimeout(100)
-
-    // Verify localStorage has the theme stored BEFORE navigation
-    let storedTheme = await page.evaluate(() => localStorage.getItem('theme'))
+    await expect.poll(async () => {
+      return await getLocalStorageItem(page, 'theme')
+    }).toBe('dark')
+    let storedTheme = await getLocalStorageItem(page, 'theme')
     expect(storedTheme).toBe('dark')
 
     // Navigate to another page using View Transitions
     await page.click('a[href="/about"]')
     await page.waitForLoadState('networkidle')
-    await page.waitForTimeout(300)
 
     // Verify theme persisted after navigation
-    htmlTheme = await page.locator('html').getAttribute('data-theme')
-    expect(htmlTheme).toBe('dark')
+    await expect(htmlElement).toHaveAttribute('data-theme', 'dark')
 
     // Verify localStorage still has the theme stored
-    storedTheme = await page.evaluate(() => localStorage.getItem('theme'))
+    storedTheme = await getLocalStorageItem(page, 'theme')
     expect(storedTheme).toBe('dark')
   })
 
@@ -86,7 +88,6 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     // Open theme picker modal
     const themeToggle = page.locator('[data-theme-toggle]')
     await themeToggle.click()
-    await page.waitForTimeout(300)
 
     // Verify modal is open
     const modal = page.locator('[data-theme-modal]')
@@ -95,7 +96,6 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     // Navigate to another page while modal is open
     await page.click('a[href="/about"]')
     await page.waitForLoadState('networkidle')
-    await page.waitForTimeout(300)
 
     // Modal should remain open after navigation (state persists via $themePickerOpen store)
     const modalAfterNav = page.locator('[data-theme-modal]')
@@ -123,10 +123,12 @@ test.describe('Nanostore Persistence Across Navigation', () => {
         updateConsent('analytics', true)
       }
     })
-    await page.waitForTimeout(200)
+    await expect.poll(async () => {
+      return await getLocalStorageItem(page, 'cookieConsent')
+    }).not.toBeNull()
 
     // Verify consent is stored in localStorage
-    let storedConsent = await page.evaluate(() => localStorage.getItem('cookieConsent'))
+    let storedConsent = await getLocalStorageItem(page, 'cookieConsent')
     expect(storedConsent).toBeTruthy()
     if (storedConsent) {
       const consent = JSON.parse(storedConsent)
@@ -137,10 +139,13 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     // Navigate to another page
     await page.click('a[href="/about"]')
     await page.waitForLoadState('networkidle')
-    await page.waitForTimeout(300)
+
+    await expect.poll(async () => {
+      return await getLocalStorageItem(page, 'cookieConsent')
+    }).not.toBeNull()
 
     // Verify consent persisted after navigation
-    storedConsent = await page.evaluate(() => localStorage.getItem('cookieConsent'))
+    storedConsent = await getLocalStorageItem(page, 'cookieConsent')
     expect(storedConsent).toBeTruthy()
     if (storedConsent) {
       const consent = JSON.parse(storedConsent)
@@ -164,7 +169,9 @@ test.describe('Nanostore Persistence Across Navigation', () => {
         updateConsent('functional', true)
       }
     })
-    await page.waitForTimeout(200)
+    await expect.poll(async () => {
+      return await getLocalStorageItem(page, 'cookieConsent')
+    }).not.toBeNull()
 
     // Add a mock embed to the cache
     await page.evaluate(() => {
@@ -175,10 +182,12 @@ test.describe('Nanostore Persistence Across Navigation', () => {
         cacheEmbed('test_embed_123', testData, 24 * 60 * 60 * 1000) // 24 hours
       }
     })
-    await page.waitForTimeout(200)
+    await expect.poll(async () => {
+      return await getLocalStorageItem(page, 'socialEmbedCache')
+    }).not.toBeNull()
 
     // Verify cache is stored in localStorage
-    let storedCache = await page.evaluate(() => localStorage.getItem('socialEmbedCache'))
+    let storedCache = await getLocalStorageItem(page, 'socialEmbedCache')
     expect(storedCache).toBeTruthy()
     if (storedCache) {
       const cache = JSON.parse(storedCache)
@@ -189,10 +198,13 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     // Navigate to another page
     await page.click('a[href="/about"]')
     await page.waitForLoadState('networkidle')
-    await page.waitForTimeout(300)
 
     // Verify cache persisted after navigation
-    storedCache = await page.evaluate(() => localStorage.getItem('socialEmbedCache'))
+    await expect.poll(async () => {
+      return await getLocalStorageItem(page, 'socialEmbedCache')
+    }).not.toBeNull()
+
+    storedCache = await getLocalStorageItem(page, 'socialEmbedCache')
     expect(storedCache).toBeTruthy()
     if (storedCache) {
       const cache = JSON.parse(storedCache)
@@ -216,7 +228,9 @@ test.describe('Nanostore Persistence Across Navigation', () => {
         updateConsent('functional', true)
       }
     })
-    await page.waitForTimeout(200)
+    await expect.poll(async () => {
+      return await getLocalStorageItem(page, 'cookieConsent')
+    }).not.toBeNull()
 
     // Add mastodon instances
     await page.evaluate(() => {
@@ -227,10 +241,12 @@ test.describe('Nanostore Persistence Across Navigation', () => {
         saveMastodonInstance('fosstodon.org')
       }
     })
-    await page.waitForTimeout(200)
+    await expect.poll(async () => {
+      return await getLocalStorageItem(page, 'mastodonInstances')
+    }).not.toBeNull()
 
     // Verify instances are stored in localStorage
-    let storedInstances = await page.evaluate(() => localStorage.getItem('mastodonInstances'))
+    let storedInstances = await getLocalStorageItem(page, 'mastodonInstances')
     expect(storedInstances).toBeTruthy()
     if (storedInstances) {
       const instances = JSON.parse(storedInstances)
@@ -241,10 +257,13 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     // Navigate to another page
     await page.click('a[href="/about"]')
     await page.waitForLoadState('networkidle')
-    await page.waitForTimeout(300)
 
     // Verify instances persisted after navigation
-    storedInstances = await page.evaluate(() => localStorage.getItem('mastodonInstances'))
+    await expect.poll(async () => {
+      return await getLocalStorageItem(page, 'mastodonInstances')
+    }).not.toBeNull()
+
+    storedInstances = await getLocalStorageItem(page, 'mastodonInstances')
     expect(storedInstances).toBeTruthy()
     if (storedInstances) {
       const instances = JSON.parse(storedInstances)
@@ -262,10 +281,10 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     // Set theme
     const themeToggle = page.locator('[data-theme-toggle]')
     await themeToggle.click()
-    await page.waitForTimeout(200)
     const darkThemeButton = page.locator('[data-theme="dark"]')
+    await expect(darkThemeButton).toBeVisible()
     await darkThemeButton.click()
-    await page.waitForTimeout(200)
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
 
     // Set consent
     await page.evaluate(() => {
@@ -275,7 +294,9 @@ test.describe('Nanostore Persistence Across Navigation', () => {
         updateConsent('functional', true)
       }
     })
-    await page.waitForTimeout(200)
+    await expect.poll(async () => {
+      return await getLocalStorageItem(page, 'cookieConsent')
+    }).not.toBeNull()
 
     // Verify stores have data
     let theme = await page.evaluate(() => localStorage.getItem('theme'))
@@ -311,11 +332,16 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     // Reload page to trigger store initialization
     await page.reload()
     await page.waitForLoadState('networkidle')
-    await page.waitForTimeout(300)
+    await expect.poll(async () => {
+      return await getLocalStorageItem(page, 'theme')
+    }).toBe('default')
 
     // Verify stores recovered with defaults
-    const theme = await page.evaluate(() => localStorage.getItem('theme'))
-    const consent = await page.evaluate(() => localStorage.getItem('cookieConsent'))
+    const theme = await getLocalStorageItem(page, 'theme')
+    await expect.poll(async () => {
+      return await getLocalStorageItem(page, 'cookieConsent')
+    }).not.toBeNull()
+    const consent = await getLocalStorageItem(page, 'cookieConsent')
 
     // Theme should be reset to default
     expect(theme).toBe('default')

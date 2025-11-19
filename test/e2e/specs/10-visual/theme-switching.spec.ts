@@ -4,6 +4,16 @@
  */
 
 import { BasePage, test, expect } from '@test/e2e/helpers'
+import { waitForAnimationFrames } from '@test/e2e/helpers/waitHelpers'
+
+async function setTheme(page: BasePage, theme: string): Promise<void> {
+  await page.evaluate((nextTheme) => {
+    document.documentElement.setAttribute('data-theme', nextTheme)
+  }, theme)
+  const html = page.locator('html')
+  await expect(html).toHaveAttribute('data-theme', theme)
+  await waitForAnimationFrames(page.page, 2)
+}
 
 test.describe('Theme Switching Visuals', () => {
   test.skip('@blocked light theme screenshot baseline', async ({ page: playwrightPage }) => {
@@ -12,11 +22,7 @@ test.describe('Theme Switching Visuals', () => {
     // Expected: Capture baseline screenshot of light theme
     await page.goto("/")
 
-    await page.evaluate(() => {
-      document.documentElement.setAttribute('data-theme', 'light')
-    })
-
-    await page.waitForTimeout(500)
+    await setTheme(page, 'light')
 
     // TODO: Integrate visual testing tool
     // await percySnapshot(page, 'Homepage - Light Theme')
@@ -28,11 +34,7 @@ test.describe('Theme Switching Visuals', () => {
     // Expected: Capture baseline screenshot of dark theme
     await page.goto("/")
 
-    await page.evaluate(() => {
-      document.documentElement.setAttribute('data-theme', 'dark')
-    })
-
-    await page.waitForTimeout(500)
+    await setTheme(page, 'dark')
 
     // TODO: Integrate visual testing tool
     // await percySnapshot(page, 'Homepage - Dark Theme')
@@ -54,8 +56,13 @@ test.describe('Theme Switching Visuals', () => {
 
     // Switch to dark theme
     const themePicker = page.locator('[data-theme-picker]')
+    const html = page.locator('html')
+    const initialTheme = await html.getAttribute('data-theme')
     await themePicker.click()
-    await page.waitForTimeout(500)
+    await expect
+      .poll(async () => await html.getAttribute('data-theme'), { intervals: [200], timeout: 2000 })
+      .not.toBe(initialTheme)
+    await waitForAnimationFrames(page.page, 2)
 
     // Get dark theme colors
     const darkColors = await page.evaluate(() => {
@@ -77,17 +84,11 @@ test.describe('Theme Switching Visuals', () => {
     await page.goto("/about")
 
     // Light theme
-    await page.evaluate(() => {
-      document.documentElement.setAttribute('data-theme', 'light')
-    })
-    await page.waitForTimeout(500)
+    await setTheme(page, 'light')
     // await percySnapshot(page, 'About Page - Light')
 
     // Dark theme
-    await page.evaluate(() => {
-      document.documentElement.setAttribute('data-theme', 'dark')
-    })
-    await page.waitForTimeout(500)
+    await setTheme(page, 'dark')
     // await percySnapshot(page, 'About Page - Dark')
   })
 
@@ -98,12 +99,7 @@ test.describe('Theme Switching Visuals', () => {
 
     for (const theme of themes) {
       await page.goto("/")
-
-      await page.page.evaluate((t) => {
-        document.documentElement.setAttribute('data-theme', t)
-      }, theme)
-
-      await page.waitForTimeout(500)
+      await setTheme(page, theme)
 
       const brokenImages = await page.evaluate(() => {
         const images = Array.from(document.querySelectorAll('img'))
@@ -122,11 +118,7 @@ test.describe('Theme Switching Visuals', () => {
     const themes = ['light', 'dark']
 
     for (const theme of themes) {
-      await page.page.evaluate((t) => {
-        document.documentElement.setAttribute('data-theme', t)
-      }, theme)
-
-      await page.waitForTimeout(300)
+      await setTheme(page, theme)
 
       const textElement = page.locator('p').first()
       const styles = await textElement.evaluate((el) => {
@@ -152,17 +144,11 @@ test.describe('Theme Switching Visuals', () => {
     await page.waitForLoadState('networkidle')
 
     // Light
-    await page.evaluate(() => {
-      document.documentElement.setAttribute('data-theme', 'light')
-    })
-    await page.waitForTimeout(500)
+    await setTheme(page, 'light')
     // await percySnapshot(page, 'Article - Light')
 
     // Dark
-    await page.evaluate(() => {
-      document.documentElement.setAttribute('data-theme', 'dark')
-    })
-    await page.waitForTimeout(500)
+    await setTheme(page, 'dark')
     // await percySnapshot(page, 'Article - Dark')
   })
 

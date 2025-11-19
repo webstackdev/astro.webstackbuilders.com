@@ -3,6 +3,7 @@
  * Tests for Web Content Accessibility Guidelines compliance
  */
 import { BasePage, test, expect } from '@test/e2e/helpers'
+import { waitForAnimationFrames } from '@test/e2e/helpers/waitHelpers'
 
 // @TODO: The purpose of this file is to have a special test for the "a11y" theme that should meet the higher WCAG 2.2 standards. Those standards require higher contrast ratios and other improvements.
 
@@ -119,7 +120,7 @@ test.describe('WCAG Compliance', () => {
       document.body.style.zoom = '2'
     })
 
-    await page.page.waitForTimeout(500)
+    await waitForAnimationFrames(page.page, 30)
 
     // Content should still be accessible
     await page.expectMainElement()
@@ -229,9 +230,9 @@ test.describe('WCAG Compliance', () => {
 
     const submitButton = page.page.locator('button[type="submit"]').first()
     await submitButton.click()
-    await page.page.waitForTimeout(500)
 
     const errors = page.page.locator('[data-error], .error, [role="alert"]')
+    await errors.first().waitFor({ state: 'visible' })
     const count = await errors.count()
 
     expect(count).toBeGreaterThan(0)

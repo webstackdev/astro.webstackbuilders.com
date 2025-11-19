@@ -69,8 +69,10 @@ const enforceCentralizedEventsRule: Rule.RuleModule = {
      * Look for class declarations extending HTMLElement in the source code
      */
     function isLikelyWebComponent(_node: CallExpression): boolean {
-      // Get the source code to check for class extending HTMLElement
-      const sourceCode = context.sourceCode || context.getSourceCode()
+      const sourceCode = context.sourceCode
+      if (!sourceCode) {
+        return false
+      }
       const ast = sourceCode.ast
 
       // Look for ClassDeclaration or ClassExpression that extends HTMLElement
@@ -147,7 +149,7 @@ const enforceCentralizedEventsRule: Rule.RuleModule = {
         }
 
         // Allow this in the centralized handler file itself
-        const filename = context.getFilename()
+        const filename = context.filename ?? ''
         if (filename.includes(centralizedHandlerFile)) {
           return
         }

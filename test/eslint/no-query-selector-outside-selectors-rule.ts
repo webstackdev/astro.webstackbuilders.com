@@ -24,7 +24,7 @@ const noQuerySelectorOutsideSelectorsRule: Rule.RuleModule = {
     fixable: undefined,
   },
   create(context: Rule.RuleContext): Rule.RuleListener {
-    const filename = context.filename || context.getFilename()
+    const filename = context.filename ?? ''
     const isTestFile = /\.(spec|test)\.ts$/.test(filename)
     const isSelectorsFile = filename.endsWith('selectors.ts')
 

@@ -25,7 +25,7 @@ test.describe('Core Web Vitals', () => {
 
   test('@ready Cumulative Layout Shift under 0.1', async () => {
     // Wait for page to settle
-    await performancePage.wait(3000)
+    await performancePage.waitForPageComplete()
     await performancePage.expectCLSUnder(0.1)
   })
 

@@ -112,8 +112,14 @@ export class BasePage {
         }
       })
 
-      // Small delay to ensure changes are applied
-      await this._page.waitForTimeout(50)
+        // Wait until modal is hidden and page is interactive again
+        await this.waitForFunction(() => {
+          const modal = document.getElementById('consent-modal-id')
+          const main = document.getElementById('main-content')
+          const modalHidden = !modal || modal.style.display === 'none' || modal.hasAttribute('hidden')
+          const mainInteractive = !main || !main.hasAttribute('inert')
+          return modalHidden && mainInteractive
+        }, undefined, { timeout: 1000 })
     } catch {
       // Ignore errors - modal might not exist on all pages
     }
