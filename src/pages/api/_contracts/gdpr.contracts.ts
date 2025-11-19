@@ -49,7 +49,13 @@ export interface ConsentResponse {
 export interface ErrorResponse {
   success: false
   error: {
-    code: 'INVALID_UUID' | 'RATE_LIMIT_EXCEEDED' | 'NOT_FOUND' | 'UNAUTHORIZED' | 'INVALID_REQUEST'
+    code:
+      | 'INVALID_UUID'
+      | 'RATE_LIMIT_EXCEEDED'
+      | 'NOT_FOUND'
+      | 'UNAUTHORIZED'
+      | 'INVALID_REQUEST'
+      | 'INTERNAL_ERROR'
     message: string
   }
 }

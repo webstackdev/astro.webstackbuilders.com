@@ -10,7 +10,7 @@
  * @param site the Astro.site object that can only be accessed in .astro files
  * @returns fully qualified URL
  */
-import { BuildError } from '@lib/errors'
+import { BuildError } from '../errors/BuildError'
 
 export const absoluteUrl = (route: string, site?: URL) => {
   if (!route || !(site instanceof URL)) {

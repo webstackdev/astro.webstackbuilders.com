@@ -29,7 +29,7 @@
  */
 import type { AstroIntegration, AstroConfig } from 'astro'
 import { fileURLToPath } from 'url'
-import { BuildError } from '../../lib/errors'
+import { BuildError } from '../../lib/errors/BuildError'
 import type { CallToActionValidatorOptions, CallToActionComponent } from './@types'
 import { discoverCallToActionComponents } from './componentDiscovery'
 import { validateAllPages, validateCtaRequirements } from './validation'

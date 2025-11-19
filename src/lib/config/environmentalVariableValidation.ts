@@ -29,6 +29,18 @@ import type { AstroUserConfig } from 'astro'
 
 export const environmentalVariablesConfig: AstroUserConfig['env'] = {
   schema: {
+    PACKAGE_RELEASE_VERSION: envField.string({
+      access: 'public',
+      context: 'client',
+      default: 'unknown@0.0.0',
+      optional: true,
+    }),
+    PRIVACY_POLICY_VERSION: envField.string({
+      access: 'public',
+      context: 'client',
+      default: '1970-01-01',
+      optional: true,
+    }),
     /**
      * Set in Vitest config for unit tests
      */
@@ -127,18 +139,18 @@ export const environmentalVariablesConfig: AstroUserConfig['env'] = {
     /**
      * Site uses Suprabase for managing GDPR consent records
      */
+    SUPABASE_KEY: envField.string({
+      access: 'public',
+      context: 'client',
+      optional: false,
+    }),
     SUPABASE_URL: envField.string({
       access: 'public',
       context: 'client',
       optional: false,
     }),
-    SUPABASE_KEY: envField.string({
-      access: 'public',
-      context: 'server',
-      optional: false,
-    }),
     SUPABASE_SERVICE_ROLE_KEY: envField.string({
-      access: 'secret',
+      access: 'public',
       context: 'server',
       optional: false,
     }),

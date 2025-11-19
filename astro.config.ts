@@ -33,6 +33,41 @@ import { packageRelease } from './src/integrations/PackageRelease'
 import { privacyPolicyVersion } from './src/integrations/PrivacyPolicyVersion'
 import { createSerializeFunction, pagesJsonWriter } from './src/integrations/sitemapSerialize'
 
+const sharedTestIntegrations = [
+  icon(),
+]
+
+const standardIntegrations = [
+  AstroPWA(serviceWorkerConfig),
+  ...sharedTestIntegrations,
+  mdx(markdownConfig),
+  /** Generate favicons and PWA icons from source SVG */
+  faviconGenerator(),
+  /** Verify number of call to actions included in Markdown files */
+  callToActionValidator({
+    /** Enable debug logging to see validation details */
+    debug: true,
+  }),
+  /** Inject package release (name@version) for tracking regressions between releases */
+  packageRelease(),
+  /** Inject privacy policy version from git commit date for GDPR record keeping */
+  privacyPolicyVersion(),
+  /** Only include Sentry integration in Vercel environments */
+  ...(isVercel() ? [sentry({
+    project: "webstack-builders-corporate-website",
+    org: "webstack-builders",
+    authToken: getSentryAuthToken(),
+  })] : []),
+  sitemap({
+    serialize: createSerializeFunction({
+      exclude: ['downloads', 'social-shares', '/articles/demo'],
+    }),
+  }),
+  pagesJsonWriter(),
+  /** Debugging tools for Astro View Transition API */
+  vtbot(),
+]
+
 export default defineConfig({
   adapter: vercelStatic(vercelConfig),
   devToolbar: {
@@ -46,36 +81,7 @@ export default defineConfig({
    * can change config, they're ran when the helper's called. This causes problems for
    * unit testing integrations.
    */
-  integrations: isUnitTest() ? [] : [
-    AstroPWA(serviceWorkerConfig),
-    icon(),
-    mdx(markdownConfig),
-    /** Generate favicons and PWA icons from source SVG */
-    faviconGenerator(),
-    /** Verify number of call to actions included in Markdown files */
-    callToActionValidator({
-      /** Enable debug logging to see validation details */
-      debug: true,
-    }),
-    /** Inject package release (name@version) for tracking regressions between releases */
-    packageRelease(),
-    /** Inject privacy policy version from git commit date for GDPR record keeping */
-    privacyPolicyVersion(),
-    /** Only include Sentry integration in Vercel environments */
-    ...(isVercel() ? [sentry({
-      project: "webstack-builders-corporate-website",
-      org: "webstack-builders",
-      authToken: getSentryAuthToken(),
-    })] : []),
-    sitemap({
-      serialize: createSerializeFunction({
-        exclude: ['downloads', 'social-shares', '/articles/demo'],
-      }),
-    }),
-    pagesJsonWriter(),
-    /** Debugging tools for Astro View Transition API */
-    vtbot(),
-  ],
+  integrations: isUnitTest() ? sharedTestIntegrations : standardIntegrations,
   /** API routes are marked in their files for SSR */
   output: 'static',
   prefetch: true,

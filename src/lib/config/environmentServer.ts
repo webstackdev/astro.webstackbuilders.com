@@ -1,7 +1,11 @@
 /**
  * This file needs to be importable by config files, so no path aliases.
  */
-import { BuildError } from '../errors'
+import { BuildError } from '../errors/BuildError'
+
+/**
+ * Used for getting build-time and SSR serverless function environment
+ */
 
 /**
  * We are setting the VITEST env var in vitest.config.ts for unit tests.
@@ -26,6 +30,11 @@ export const isDev = () => {
   return import.meta.env.DEV
 }
 
+/**
+ * The value of import.meta.env.PROD is included in the serverless function
+ * bundle. Astro, which uses Vite under the hood, performs a static replacement
+ * of import.meta.env.* variables at build time.
+ */
 export const isProd = () => {
   return import.meta.env.PROD && !isUnitTest()
 }
@@ -55,54 +64,4 @@ export function getSentryAuthToken(): string {
     )
   }
   return token
-}
-
-/**
- * Privacy Policy Version Utility
- *
- * Provides access to the privacy policy version that's injected at build time
- * via the PrivacyPolicyVersion Astro integration.
- *
- * @see src/integrations/PrivacyPolicyVersion/index.ts
- */
-
-/**
- * Gets the privacy policy version from the build-time environment variable
- * @returns The privacy policy version in YYYY-MM-DD format
- * @throws {BuildError} If PRIVACY_POLICY_VERSION is not set
- */
-export function getPrivacyPolicyVersion(): string {
-  const version = import.meta.env['PRIVACY_POLICY_VERSION']
-  if (!version) {
-    throw new BuildError(
-      'PRIVACY_POLICY_VERSION environment variable is not set. This should be injected by the PrivacyPolicyVersion integration.',
-      { phase: 'runtime' },
-    )
-  }
-  return version
-}
-
-/**
- * Package Release Utility
- *
- * Provides access to the package release version that's injected at build time
- * via the PackageRelease Astro integration.
- *
- * @see src/integrations/PackageRelease/index.ts
- */
-
-/**
- * Gets the package release from the build-time environment variable
- * @returns The package release in name@version format
- * @throws {BuildError} If PACKAGE_RELEASE_VERSION is not set
- */
-export function getPackageRelease(): string {
-  const release = import.meta.env['PACKAGE_RELEASE_VERSION']
-  if (!release) {
-    throw new BuildError(
-      'PACKAGE_RELEASE_VERSION environment variable is not set. This should be injected by the PackageRelease integration.',
-      { phase: 'runtime' },
-    )
-  }
-  return release
 }

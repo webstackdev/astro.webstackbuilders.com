@@ -1,5 +1,5 @@
 import { titleCase } from 'title-case'
-import { BuildError } from '@lib/errors'
+import { BuildError } from '../errors/BuildError'
 
 /**
  * Include the page name in the tab title if it's set

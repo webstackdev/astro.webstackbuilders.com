@@ -1,8 +1,8 @@
 /**
  * Custom error class for build-time errors with enhanced context
  *
- * Used for errors that occur during build processes, compilation, file operations,
- * and other build-time activities.
+ * Used for errors that occur during build processes, Astro integrations,
+ * compilation, file operations, and other build-time activities.
  */
 
 export interface BuildErrorParams {

@@ -4,7 +4,7 @@
  */
 import { readdir, readFile } from 'fs/promises'
 import { join, resolve } from 'path'
-import { BuildError } from '../../lib/errors'
+import { BuildError } from '../../lib/errors/BuildError'
 import type { CallToActionComponent } from './@types'
 import { generateImportPatterns } from './parsers'
 

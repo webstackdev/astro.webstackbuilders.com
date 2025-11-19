@@ -1,6 +1,7 @@
-import * as Sentry from "@sentry/astro"
-import { SENTRY_DSN } from "astro:env/client"
-import { getPackageRelease, isDev, isProd } from '@lib/config'
+import {init as sentryInit } from '@sentry/astro'
+import { SENTRY_DSN } from 'astro:env/client'
+import { getPackageRelease, isDev, isProd } from './src/lib/config'
+
 /**
  * Server-side Sentry initialization
  *
@@ -13,7 +14,7 @@ import { getPackageRelease, isDev, isProd } from '@lib/config'
 
 // Initialize Sentry in production if DSN is available
 if (isProd()) {
-  Sentry.init({
+  sentryInit({
     dsn: SENTRY_DSN,
 
     /** Release name to track regressions between releases */
