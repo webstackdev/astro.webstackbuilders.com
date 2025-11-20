@@ -1,7 +1,8 @@
 ---
 import type { ButtonProps } from '@components/Button/server'
-import { baseClasses, sizeClasses, variantClasses } from '@components/Button/server'
+import { buildButtonClassList, resolveAriaLabel } from '@components/Button/server'
 import Sprite from '@components/Sprite/index.astro'
+import styles from './button.module.css'
 
 type Props = ButtonProps
 
@@ -22,21 +23,27 @@ const {
 } = Astro.props
 
 // Combine all classes
-const buttonClasses = [baseClasses, sizeClasses[size], variantClasses[variant], additionalClasses]
-  .filter(Boolean)
-  .join(' ')
+const buttonClassList = buildButtonClassList({
+  styles,
+  variant,
+  size,
+  additionalClasses,
+})
 
 // Determine icon size based on button size if not specified
 const defaultIconSize = iconSize || (size === 'small' ? 16 : size === 'large' ? 24 : 20)
+
+const computedAriaLabel = resolveAriaLabel({ text, ariaLabel, icon, iconPosition })
+const ariaAttributes = computedAriaLabel ? { 'aria-label': computedAriaLabel } : {}
 ---
 
 <button
   type={type}
-  class={buttonClasses}
+  class:list={buttonClassList}
   disabled={disabled}
   id={id}
-  aria-label={ariaLabel}
   onclick={onClick}
+  {...ariaAttributes}
   {...rest}
 >
   {
