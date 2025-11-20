@@ -32,6 +32,10 @@ interface EnvironmentApiSnapshot {
   privacyPolicyVersion: string
 }
 
+interface SiteUrlSnapshot {
+  siteUrl: string
+}
+
 declare global {
   interface Window {
     /**
@@ -55,6 +59,16 @@ declare global {
      * Snapshot of environment-api (server helper) results for Playwright assertions
      */
     environmentApiSnapshot?: EnvironmentApiSnapshot
+
+    /**
+     * Snapshot of client-side site URL helper
+     */
+    siteUrlClientSnapshot?: SiteUrlSnapshot
+
+    /**
+     * Snapshot of server-side site URL helper
+     */
+    siteUrlApiSnapshot?: SiteUrlSnapshot
   }
 }
 

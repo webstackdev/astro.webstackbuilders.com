@@ -1,0 +1,29 @@
+---
+import { getSiteUrl } from '@components/scripts/utils/siteUrlClient'
+
+const snapshot = {
+  siteUrl: getSiteUrl(),
+}
+
+const formattedSnapshot = JSON.stringify(snapshot, null, 2)
+const scriptContent = `window.siteUrlClientSnapshot = ${JSON.stringify(snapshot).replace(/</g, '\\u003c')}`
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Site URL Client Diagnostics</title>
+    <meta name="robots" content="noindex, nofollow">
+  </head>
+  <body>
+    <main>
+      <h1>Site URL Client Diagnostics</h1>
+      <p data-testid="site-url-client-notice">
+        This page captures the client-side URL resolution for automated testing only.
+      </p>
+      <pre id="site-url-client-json">{formattedSnapshot}</pre>
+    </main>
+    <script type="module" set:html={scriptContent}></script>
+  </body>
+</html>

@@ -1,0 +1,29 @@
+---
+import { getSiteUrl } from '@pages/api/_environment/siteUrlApi'
+
+const snapshot = {
+  siteUrl: getSiteUrl(),
+}
+
+const formattedSnapshot = JSON.stringify(snapshot, null, 2)
+const scriptContent = `window.siteUrlApiSnapshot = ${JSON.stringify(snapshot).replace(/</g, '\\u003c')}`
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Site URL API Diagnostics</title>
+    <meta name="robots" content="noindex, nofollow">
+  </head>
+  <body>
+    <main>
+      <h1>Site URL API Diagnostics</h1>
+      <p data-testid="site-url-api-notice">
+        This page captures the server-side URL resolution for automated testing only.
+      </p>
+      <pre id="site-url-api-json">{formattedSnapshot}</pre>
+    </main>
+    <script type="module" set:html={scriptContent}></script>
+  </body>
+</html>

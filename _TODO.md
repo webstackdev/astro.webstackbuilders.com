@@ -5,7 +5,20 @@
 1. build Supabase-aware fixtures to cover the GDPR endpoints (consent/request/export/verify) end-to-end
 2. add integration-style tests that exercise the DSAR flow using a lightweight fake DB layer.
 
-Files with Skipped Tests:
+## Unit tests failure groups
+
+1. client.spec.ts, Navigation specs, Forms/Download specs, and multiple selector tests crash because document isn't defined or Astro can't render component fixtures. These need a DOM-aware environment (// @vitest-environment happy-dom) plus Container-based fixtures per repo standards.
+
+2. Selector tests in selectors.spec.ts and download form selectors expect thrown errors, but the helper functions currently return [object Object]; check that error helpers throw ClientScriptError (or similar) and ensure mocks expose the ClientScriptError export (see bootstrap tests complaining about missing export).
+
+3. pageTitle.spec.ts and absoluteUrl.spec.ts also show [object Object] instead of the expected message, indicating the helpers throw non-Error values; update them to throw Error (or a typed error) with the asserted message.
+
+4. rateLimit.spec.ts fails because isDev/isTest mocks aren't mocked functions; wrap the @lib/config/environment import with vi.mock and provide spies so .mockReturnValue works.
+dsarVerificationEmails.spec.ts can't run because RESEND_API_KEY isn't set. Provide a fake key via process.env.RESEND_API_KEY = 'test' in the suite (and mock Resend client) so tests don't hit real env requirements.
+
+5. componentDiscovery.spec.ts expects an error string but receives an object; ensure the helper throws an Error with the message the test asserts.
+
+## Files with Skipped Tests
 
 social-shares.spec.ts - 12 @wip
 gdpr-consent.spec.ts - 10 @wip
@@ -254,7 +267,7 @@ https://www.kirilv.com/canvas-confetti/
 
 ## @TODO: Use the Page Visibility API to pause videos, image carousels, and animations
 
-Stop unnecessary processes when the user doesn’t see the page or inversely to perform background actions.
+Stop unnecessary processes when the user doesn't see the page or inversely to perform background actions.
 
 ## @TODO: "Add to Calendar" button
 

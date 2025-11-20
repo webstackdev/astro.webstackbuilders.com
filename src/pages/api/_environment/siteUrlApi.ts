@@ -2,14 +2,12 @@
  * Server-side method to determine correct URL
  */
 
-// @TODO: package.json isn't available from SSR serverless functions !!!!
-
 import packageJson from '../../../../package.json' with { type: 'json' }
-import { isVercel } from './'
+import { isVercel } from './environmentApi'
 
-const { domain } = packageJson
 const devServerPort = process.env['DEV_SERVER_PORT']?.trim()
 const resolvedDevServerPort = devServerPort && devServerPort.length > 0 ? devServerPort : '4321'
+const { domain } = packageJson
 
 /** Called from astro.config.ts to determine "site" config key */
 export const getSiteUrl = (): string => {

@@ -18,8 +18,6 @@ export {
   isVercel,
 } from '@lib/config/environmentServer'
 
-//export { getSiteUrl } from '@lib/config/siteUrlServer'
-
 /**
  * Privacy Policy Version Utility
  *
