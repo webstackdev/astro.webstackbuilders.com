@@ -36,7 +36,7 @@ vi.mock('embla-carousel-autoplay', () => ({
 }))
 
 // Import CarouselManager after mocking
-const { CarouselManager } = await import('../client')
+const { CarouselManager } = await import('../client/client')
 
 describe('CarouselManager', () => {
   let container: Awaited<ReturnType<typeof AstroContainer.create>>

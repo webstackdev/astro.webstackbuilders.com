@@ -13,6 +13,7 @@ export class NewsletterPage extends BasePage {
   private readonly gdprConsentSelector = '#newsletter-gdpr-consent'
   private readonly messageSelector = '#newsletter-message'
   private readonly buttonSpinnerSelector = '#button-spinner'
+  private readonly fixturePath = '/testing/newsletter'
 
   protected constructor(page: Page) {
     super(page)
@@ -28,10 +29,10 @@ export class NewsletterPage extends BasePage {
   }
 
   /**
-   * Navigate to home page where newsletter form is located
+   * Navigate to the dedicated newsletter testing fixture page
    */
   async navigateToNewsletterForm(): Promise<void> {
-    await this.goto('/')
+    await this.goto(this.fixturePath)
     await this.waitForLoadState('networkidle') // Ensure all scripts are loaded
     await this.expectNewsletterForm()
   }

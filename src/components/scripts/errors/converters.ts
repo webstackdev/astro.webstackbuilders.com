@@ -42,6 +42,8 @@ export const normalizeMessage = (message: unknown): ClientScriptErrorParams => {
     return convertFromErrorEvent(message)
   } else if (isPromiseRejectionEvent(message)) {
     return convertFromPromiseRejectionEvent(message)
+  } else if (isMessageLikeObject(message)) {
+    return convertFromMessageObject(message)
   } else {
     return convertFromPrimitive(message)
   }
@@ -96,6 +98,37 @@ export function convertFromError(error: Error): ClientScriptErrorParams {
     fileName,
     columnNumber,
     lineNumber,
+  })
+}
+
+type MessageLikeObject = {
+  message?: unknown
+  stack?: unknown
+  cause?: unknown
+  fileName?: unknown
+  columnNumber?: unknown
+  lineNumber?: unknown
+}
+
+const isRecord = (value: unknown): value is Record<string | number | symbol, unknown> => {
+  return typeof value === 'object' && value !== null
+}
+
+const isMessageLikeObject = (value: unknown): value is MessageLikeObject => {
+  return isRecord(value) && 'message' in value
+}
+
+const coerceOptionalString = (input: unknown): string | undefined =>
+  typeof input === 'string' ? input : input === undefined ? undefined : String(input)
+
+export const convertFromMessageObject = (input: MessageLikeObject): ClientScriptErrorParams => {
+  return createErrorParams({
+    message: coerceOptionalString(input.message) ?? '',
+    stack: coerceOptionalString(input.stack),
+    cause: input,
+    fileName: coerceOptionalString(input.fileName),
+    columnNumber: coerceOptionalString(input.columnNumber),
+    lineNumber: coerceOptionalString(input.lineNumber),
   })
 }
 

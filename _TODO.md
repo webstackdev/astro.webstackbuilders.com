@@ -18,6 +18,13 @@ dsarVerificationEmails.spec.ts can't run because RESEND_API_KEY isn't set. Provi
 
 5. componentDiscovery.spec.ts expects an error string but receives an object; ensure the helper throws an Error with the message the test asserts.
 
+## Newsletter units
+
+Next options (if needed):
+
+1. silence the expected Lit "dev mode" console output in tests
+2. expand the selector error assertions to cover the new metadata fields.
+
 ## Typing client-side API calls and SSR API endpoints
 
 Shared Types vs Swagger / Keeping Docs in Sync

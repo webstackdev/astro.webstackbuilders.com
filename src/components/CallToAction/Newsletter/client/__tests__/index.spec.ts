@@ -1,317 +1,222 @@
-// @vitest-environment happy-dom
-/**
- * Tests for Newsletter form web component using Container API pattern with happy-dom
- */
-import { beforeAll, beforeEach, describe, expect, test, vi, afterEach } from 'vitest'
+// @vitest-environment node
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest'
+import { Window } from 'happy-dom'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
-import { NewsletterFormElement } from '@components/CallToAction/Newsletter/client'
-import { getNewsletterElements } from '@components/CallToAction/Newsletter/client/selectors'
-import NewsletterFixture from '@components/CallToAction/Newsletter/client/__fixtures__/client.fixture.astro'
-import { TestError } from '@test/errors'
+import NewsletterFixture from '@components/CallToAction/Newsletter/client/__fixtures__/index.fixture.astro'
 
-/**
- * Helper function to get form elements after DOM setup
- * Uses the same selector function as production code
- */
-function getFormElements() {
-  const customElement = document.querySelector('newsletter-form')
-  if (!customElement) {
-    throw new TestError('newsletter-form custom element not found')
-  }
-  return getNewsletterElements(customElement)
+type NewsletterFormElementInstance = import('@components/CallToAction/Newsletter/client').NewsletterFormElement
+type NewsletterClientModule = typeof import('@components/CallToAction/Newsletter/client')
+
+const flushPromises = async () => {
+  await Promise.resolve()
+  await new Promise(resolve => setTimeout(resolve, 0))
 }
-
-// Mock fetch for API testing
-const mockFetch = vi.fn()
-global.fetch = mockFetch
 
 describe('NewsletterFormElement web component', () => {
   let container: AstroContainer
-  let html: string
+  let newsletterElement: NewsletterFormElementInstance
+  let windowInstance: Window
+  let NewsletterFormElementCtor: NewsletterClientModule['NewsletterFormElement'] | undefined
+  let fetchMock: ReturnType<typeof vi.fn>
 
-  beforeAll(() => {
-    vi.useFakeTimers()
+  const defineGlobalProperty = (key: string, value: unknown) => {
+    Object.defineProperty(globalThis, key, {
+      configurable: true,
+      enumerable: true,
+      writable: true,
+      value,
+    })
+  }
+
+  const applyWindowGlobals = (win: Window) => {
+    defineGlobalProperty('window', win)
+    defineGlobalProperty('document', win.document)
+    defineGlobalProperty('navigator', win.navigator)
+    defineGlobalProperty('CustomEvent', win.CustomEvent)
+    defineGlobalProperty('Event', win.Event)
+    defineGlobalProperty('KeyboardEvent', win.KeyboardEvent)
+    defineGlobalProperty('MouseEvent', win.MouseEvent)
+    defineGlobalProperty('Node', win.Node)
+    defineGlobalProperty('Element', win.Element)
+    defineGlobalProperty('HTMLElement', win.HTMLElement)
+    defineGlobalProperty('HTMLFormElement', win.HTMLFormElement)
+    defineGlobalProperty('HTMLInputElement', win.HTMLInputElement)
+    defineGlobalProperty('HTMLButtonElement', win.HTMLButtonElement)
+    defineGlobalProperty('HTMLSpanElement', win.HTMLSpanElement)
+    defineGlobalProperty('HTMLParagraphElement', win.HTMLParagraphElement)
+    defineGlobalProperty('SVGElement', win.SVGElement)
+    defineGlobalProperty('SVGSVGElement', win.SVGSVGElement)
+    defineGlobalProperty('customElements', win.customElements)
+    defineGlobalProperty('MutationObserver', win.MutationObserver)
+    defineGlobalProperty('getComputedStyle', win.getComputedStyle.bind(win))
+    defineGlobalProperty('requestAnimationFrame', win.requestAnimationFrame.bind(win))
+    defineGlobalProperty('cancelAnimationFrame', win.cancelAnimationFrame.bind(win))
+  }
+
+  beforeAll(async () => {
+    windowInstance = new Window()
+    applyWindowGlobals(windowInstance)
+    ;({ NewsletterFormElement: NewsletterFormElementCtor } = await import('@components/CallToAction/Newsletter/client'))
   })
 
   beforeEach(async () => {
-    vi.clearAllMocks()
-    mockFetch.mockClear()
+    fetchMock = vi.fn()
+    globalThis.fetch = fetchMock as unknown as typeof fetch
 
     container = await AstroContainer.create()
-    html = await container.renderToString(NewsletterFixture)
+    const html = await container.renderToString(NewsletterFixture)
+    const domParser = new windowInstance.DOMParser()
+    const doc = domParser.parseFromString(html, 'text/html')
+    windowInstance.document.body.innerHTML = doc.body?.innerHTML ?? ''
 
-    console.log('=== RENDERED HTML ===')
-    console.log(html.substring(0, 1000))
-    console.log('=== END HTML ===')
-
-    document.body.innerHTML = html
-
-    // Get the web component and manually initialize it
-    // Don't trigger global DOMContentLoaded as it causes issues with other components
-    const newsletterElement = document.querySelector('newsletter-form') as NewsletterFormElement
-
-    console.log('Newsletter element found:', !!newsletterElement)
-    console.log('Custom element defined:', !!customElements.get('newsletter-form'))
-
-    if (newsletterElement) {
-      newsletterElement.initialize()
+    const root = windowInstance.document.querySelector('newsletter-form') as NewsletterFormElementInstance | null
+    if (!root) {
+      throw new Error('Failed to locate <newsletter-form> in rendered fixture')
     }
 
-    // Wait for initialization to complete
-    await new Promise(resolve => setTimeout(resolve, 0))
+    if (!windowInstance.customElements.get('newsletter-form')) {
+      if (!NewsletterFormElementCtor) {
+        throw new Error('NewsletterFormElement failed to load before tests executed')
+      }
+      windowInstance.customElements.define(
+        'newsletter-form',
+        NewsletterFormElementCtor as unknown as CustomElementConstructor
+      )
+    }
+
+    newsletterElement = root
+    newsletterElement.initialize()
   })
 
   afterEach(() => {
-    document.body.innerHTML = ''
+    windowInstance.document.body.innerHTML = ''
     vi.restoreAllMocks()
   })
-  test.skip('custom element is defined', () => {
-    // Verify custom element is registered
+
+  afterAll(() => {
+    windowInstance.close()
+  })
+
+  const selectElement = <T extends Element>(selector: string): T => {
+    const element = newsletterElement.querySelector(selector)
+    if (!element) {
+      throw new Error(`Failed to locate ${selector} within newsletter-form`)
+    }
+    return element as T
+  }
+
+  const getElements = () => ({
+    form: selectElement<HTMLFormElement>('#newsletter-form'),
+    emailInput: selectElement<HTMLInputElement>('#newsletter-email'),
+    consentCheckbox: selectElement<HTMLInputElement>('#newsletter-gdpr-consent'),
+    submitButton: selectElement<HTMLButtonElement>('#newsletter-submit'),
+    buttonText: selectElement<HTMLSpanElement>('#button-text'),
+    buttonArrow: selectElement<SVGSVGElement>('#button-arrow'),
+    buttonSpinner: selectElement<SVGSVGElement>('#button-spinner'),
+    message: selectElement<HTMLParagraphElement>('#newsletter-message'),
+  })
+
+  test('registers the custom element and hydrates DOM references', () => {
     expect(customElements.get('newsletter-form')).toBeDefined()
+
+    const elements = getElements()
+    expect(elements.form.id).toBe('newsletter-form')
+    expect(elements.emailInput.id).toBe('newsletter-email')
+    expect(elements.consentCheckbox.id).toBe('newsletter-gdpr-consent')
   })
 
-  test.skip('web component renders with required elements', () => {
-    const newsletterElement = document.querySelector('newsletter-form')
-    expect(newsletterElement).toBeTruthy()
+  test('validates missing and malformed email input before submission', () => {
+    const elements = getElements()
 
-    // Verify required elements exist
-    const elements = getFormElements()
-    expect(elements.form).toBeTruthy()
-    expect(elements.emailInput).toBeTruthy()
-    expect(elements.submitButton).toBeTruthy()
-  })
-
-  test.skip('validates email addresses correctly', () => {
-    const newsletterElement = document.querySelector('newsletter-form') as NewsletterFormElement
-    expect(newsletterElement).toBeTruthy()
-
-    // Access private method via any type for testing
-    const element = newsletterElement as any
-
-    // Test valid emails
-    expect(element.validateEmail('test@example.com')).toBe(true)
-    expect(element.validateEmail('user.name+tag@domain.co.uk')).toBe(true)
-
-    // Test invalid emails
-    expect(element.validateEmail('')).toBe(false)
-    expect(element.validateEmail('invalid')).toBe(false)
-    expect(element.validateEmail('test@')).toBe(false)
-    expect(element.validateEmail('@domain.com')).toBe(false)
-  })
-
-  test.skip('displays messages with correct styling', () => {
-    const newsletterElement = document.querySelector('newsletter-form') as NewsletterFormElement
-    const element = newsletterElement as any
-    const elements = getFormElements()
-
-    // Test success message
-    element.showMessage('Success message', 'success')
-    expect(elements.message.textContent).toBe('Success message')
-    expect(elements.message.classList.contains('text-[var(--color-success)]')).toBe(true)
-
-    // Test error message
-    element.showMessage('Error message', 'error')
-    expect(elements.message.textContent).toBe('Error message')
-    expect(elements.message.classList.contains('text-[var(--color-danger)]')).toBe(true)
-
-    // Test info message
-    element.showMessage('Info message', 'info')
-    expect(elements.message.textContent).toBe('Info message')
-    expect(elements.message.classList.contains('text-[var(--color-text-offset)]')).toBe(true)
-  })
-
-  test.skip('handles loading state correctly', () => {
-    const newsletterElement = document.querySelector('newsletter-form') as NewsletterFormElement
-    const element = newsletterElement as any
-    const elements = getFormElements()
-
-    // Test loading state
-    element.setLoading(true)
-    expect(elements.submitButton.disabled).toBe(true)
-    expect(elements.buttonText.textContent).toBe('Subscribing...')
-    expect(elements.buttonArrow.classList.contains('hidden')).toBe(true)
-    expect(elements.buttonSpinner.classList.contains('hidden')).toBe(false)
-
-    // Test non-loading state
-    element.setLoading(false)
-    expect(elements.submitButton.disabled).toBe(false)
-    expect(elements.buttonText.textContent).toBe('Subscribe')
-    expect(elements.buttonArrow.classList.contains('hidden')).toBe(false)
-    expect(elements.buttonSpinner.classList.contains('hidden')).toBe(true)
-  })
-
-  test.skip('validates empty email on form submit', () => {
-    const elements = getFormElements()
-
-    // Submit empty form
-    const submitEvent = new Event('submit')
+    const submitEvent = new Event('submit', { bubbles: true, cancelable: true })
     elements.form.dispatchEvent(submitEvent)
-
     expect(elements.message.textContent).toBe('Please enter your email address.')
-    expect(elements.message.classList.contains('text-[var(--color-danger)]')).toBe(true)
-  })
 
-  test.skip('validates invalid email on form submit', () => {
-    const elements = getFormElements()
-
-    // Enter invalid email and submit
     elements.emailInput.value = 'invalid-email'
-    const submitEvent = new Event('submit')
-    elements.form.dispatchEvent(submitEvent)
-
+    elements.form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
     expect(elements.message.textContent).toBe('Please enter a valid email address.')
-    expect(elements.message.classList.contains('text-[var(--color-danger)]')).toBe(true)
   })
 
-  test.skip('handles successful API response', async () => {
-    // Mock successful API response
-    mockFetch.mockResolvedValueOnce({
+  test('requires GDPR consent before submitting the form', () => {
+    const elements = getElements()
+
+    elements.emailInput.value = 'test@example.com'
+    elements.consentCheckbox.checked = false
+
+    elements.form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
+    expect(elements.message.textContent).toBe('Please consent to receive marketing communications.')
+  })
+
+  test('submits to the newsletter API and shows success feedback', async () => {
+    const elements = getElements()
+
+    fetchMock.mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve({ success: true, message: 'Subscribed successfully!' }),
     })
 
-    const elements = getFormElements()
-
-    // Enter valid email, check consent, and submit
     elements.emailInput.value = 'test@example.com'
     elements.consentCheckbox.checked = true
-    const submitEvent = new Event('submit')
-    elements.form.dispatchEvent(submitEvent)
 
-    // Wait for async operations
-    await vi.runAllTimersAsync()
+    elements.form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
+    await flushPromises()
 
-    expect(fetch).toHaveBeenCalledWith('/api/newsletter', {
+    expect(fetchMock).toHaveBeenCalledWith('/api/newsletter', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ email: 'test@example.com', consentGiven: true }),
     })
+    expect(elements.message.textContent).toBe('Subscribed successfully!')
+    expect(elements.submitButton.disabled).toBe(false)
+    expect(elements.buttonSpinner.classList.contains('hidden')).toBe(true)
   })
 
-  test.skip('handles API error response', async () => {
-    // Mock error API response
-    mockFetch.mockResolvedValueOnce({
+  test('handles API error responses gracefully', async () => {
+    const elements = getElements()
+
+    fetchMock.mockResolvedValueOnce({
       ok: false,
       json: () => Promise.resolve({ success: false, error: 'Subscription failed' }),
     })
 
-    const elements = getFormElements()
-
-    // Enter valid email, check consent, and submit
     elements.emailInput.value = 'test@example.com'
     elements.consentCheckbox.checked = true
-    const submitEvent = new Event('submit')
-    elements.form.dispatchEvent(submitEvent)
 
-    // Wait for async operations
-    await vi.runAllTimersAsync()
+    elements.form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
+    await flushPromises()
 
-    expect(fetch).toHaveBeenCalled()
+    expect(fetchMock).toHaveBeenCalled()
+    expect(elements.message.textContent).toBe('Subscription failed')
   })
 
-  test.skip('handles network error', async () => {
-    // Mock network error
-    mockFetch.mockRejectedValueOnce(new Error('Network error'))
+  test('shows a network error message when fetch rejects', async () => {
+    const elements = getElements()
 
-    const elements = getFormElements()
+    fetchMock.mockRejectedValueOnce(new Error('Network error'))
 
-    // Enter valid email, check consent, and submit
     elements.emailInput.value = 'test@example.com'
     elements.consentCheckbox.checked = true
-    const submitEvent = new Event('submit')
-    elements.form.dispatchEvent(submitEvent)
 
-    // Wait for async operations
-    await vi.runAllTimersAsync()
+    elements.form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
+    await flushPromises()
 
-    expect(fetch).toHaveBeenCalled()
+    expect(fetchMock).toHaveBeenCalled()
+    expect(elements.message.textContent).toBe('Network error. Please check your connection and try again.')
   })
 
-  test.skip('validates email on blur event', () => {
-    const elements = getFormElements()
+  test('validates addresses on blur for real-time feedback', () => {
+    const elements = getElements()
 
-    // Enter invalid email and blur
     elements.emailInput.value = 'invalid-email'
-    const blurEvent = new Event('blur')
-    elements.emailInput.dispatchEvent(blurEvent)
-
+    elements.emailInput.dispatchEvent(new Event('blur'))
     expect(elements.message.textContent).toBe('Please enter a valid email address.')
-    expect(elements.message.classList.contains('text-[var(--color-danger)]')).toBe(true)
 
-    // Enter valid email and blur
     elements.emailInput.value = 'test@example.com'
-    elements.emailInput.dispatchEvent(blurEvent)
-
-    expect(elements.message.textContent).toBe("You'll receive a confirmation email. Click the link to complete your subscription.")
-    expect(elements.message.classList.contains('text-[var(--color-text-offset)]')).toBe(true)
-  })
-
-  test.skip('web component lifecycle works correctly', () => {
-    const newsletterElement = document.querySelector('newsletter-form') as NewsletterFormElement
-    const elements = getFormElements()
-
-    // Verify element is initialized
-    expect(newsletterElement).toBeTruthy()
-
-    // Verify events are bound (submit should trigger validation)
-    const submitEvent = new Event('submit')
-    elements.form.dispatchEvent(submitEvent)
-    expect(elements.message.textContent).toBe('Please enter your email address.')
-  })
-})
-
-describe('Web component lifecycle and behavior', () => {
-  test.skip('custom element auto-initializes', () => {
-    const newsletterElement = document.querySelector('newsletter-form')
-    expect(newsletterElement).toBeTruthy()
-    expect(newsletterElement?.tagName.toLowerCase()).toBe('newsletter-form')
-  })
-
-  test.skip('handles re-initialization gracefully', () => {
-    // Component should handle multiple setups without errors
-    const newsletterElement = document.querySelector('newsletter-form') as NewsletterFormElement
-    const element = newsletterElement as any
-
-    // Calling initialize multiple times should be safe
-    expect(() => element.initialize()).not.toThrow()
-  })
-})
-
-describe('Edge cases and error handling', () => {
-  test.skip('handles missing DOM elements gracefully', () => {
-    // Set up DOM without newsletter-form element
-    document.body.innerHTML = '<div>No newsletter form</div>'
-
-    // Web component won't be present
-    const newsletterElement = document.querySelector('newsletter-form')
-    expect(newsletterElement).toBeNull()
-  })
-
-  test.skip('handles missing required elements inside web component', async () => {
-    // Create web component but with empty content
-    document.body.innerHTML = '<newsletter-form></newsletter-form>'
-
-    const newsletterElement = document.querySelector('newsletter-form')
-    expect(newsletterElement).toBeTruthy()
-
-    // Form elements won't exist, but component should handle gracefully
-    const elements = getFormElements()
-    expect(elements.form).toBeNull()
-  })
-
-  test.skip('validates consent checkbox requirement', async () => {
-    const elements = getFormElements()
-
-    // Enter valid email but don't check consent
-    elements.emailInput.value = 'test@example.com'
-    elements.consentCheckbox.checked = false
-
-    const submitEvent = new Event('submit')
-    elements.form.dispatchEvent(submitEvent)
-
-    expect(elements.message.textContent).toBe('Please consent to receive marketing communications.')
-    expect(elements.message.classList.contains('text-[var(--color-danger)]')).toBe(true)
+    elements.emailInput.dispatchEvent(new Event('blur'))
+    expect(elements.message.textContent).toBe(
+      "You'll receive a confirmation email. Click the link to complete your subscription."
+    )
   })
 })
