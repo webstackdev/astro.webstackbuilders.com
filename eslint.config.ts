@@ -360,6 +360,7 @@ export default [
       'src/lib/config/environmentServer.ts',
       'src/lib/config/siteUrlServer.ts',
       'src/pages/api/_environment/index.ts',
+      'src/pages/api/_environment/environmentApi.ts',
     ],
     rules: {
       'no-restricted-syntax': [

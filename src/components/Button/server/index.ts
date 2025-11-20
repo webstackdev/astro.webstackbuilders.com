@@ -5,19 +5,21 @@ export type ButtonSize = 'small' | 'medium' | 'large'
 export type ButtonType = 'button' | 'submit' | 'reset'
 export type IconPosition = 'left' | 'right' | 'only'
 
+type Optional<T> = T | undefined
+
 export interface ButtonProps {
-  text?: string
-  variant?: ButtonVariant
-  size?: ButtonSize
-  type?: ButtonType
-  disabled?: boolean
-  class?: string
-  id?: string
-  ariaLabel?: string
-  onClick?: string
-  icon?: SpriteName
-  iconPosition?: IconPosition
-  iconSize?: number | string
+  text?: Optional<string>
+  variant?: Optional<ButtonVariant>
+  size?: Optional<ButtonSize>
+  type?: Optional<ButtonType>
+  disabled?: Optional<boolean>
+  class?: Optional<string>
+  id?: Optional<string>
+  ariaLabel?: Optional<string>
+  onClick?: Optional<string>
+  icon?: Optional<SpriteName>
+  iconPosition?: Optional<IconPosition>
+  iconSize?: Optional<number | string>
 }
 
 export interface ButtonStyleModule {
@@ -52,9 +54,9 @@ const ICON_ONLY_POSITION: IconPosition = 'only'
 
 export interface ButtonClassOptions {
   styles: ButtonStyleModule
-  variant?: ButtonVariant
-  size?: ButtonSize
-  additionalClasses?: string
+  variant?: Optional<ButtonVariant>
+  size?: Optional<ButtonSize>
+  additionalClasses?: Optional<string>
 }
 
 export function buildButtonClassList({
@@ -82,10 +84,10 @@ export function buildButtonClassList({
 }
 
 export interface ButtonLabelOptions {
-  text?: string
-  ariaLabel?: string
-  icon?: SpriteName
-  iconPosition?: IconPosition
+  text?: Optional<string>
+  ariaLabel?: Optional<string>
+  icon?: Optional<SpriteName>
+  iconPosition?: Optional<IconPosition>
 }
 
 export function isIconOnly({ icon, iconPosition, text }: ButtonLabelOptions): boolean {

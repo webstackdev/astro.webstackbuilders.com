@@ -5,8 +5,8 @@
 import { beforeAll, beforeEach, describe, expect, test, vi, afterEach } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import { NewsletterFormElement } from '@components/CallToAction/Newsletter/client'
-import { getNewsletterElements } from '@components/CallToAction/Newsletter/selectors'
-import NewsletterFixture from '@components/CallToAction/Newsletter/__fixtures__/client.fixture.astro'
+import { getNewsletterElements } from '@components/CallToAction/Newsletter/client/selectors'
+import NewsletterFixture from '@components/CallToAction/Newsletter/client/__fixtures__/client.fixture.astro'
 import { TestError } from '@test/errors'
 
 /**

@@ -7,7 +7,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { Window } from 'happy-dom'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import ThemePickerFixture from '@components/ThemePicker/__fixtures__/client.fixture.astro'
-import type { Props as ThemePickerFixtureProps } from '@components/ThemePicker/__fixtures__/client.fixture.astro'
+import type { ThemePickerFixtureProps } from '@components/ThemePicker/__fixtures__/client.fixture.types'
 
 vi.mock(
   '@components/Sprite/index.astro',
