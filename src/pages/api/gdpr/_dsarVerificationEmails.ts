@@ -5,7 +5,7 @@
 import { Resend } from 'resend'
 import { dsarVerificationEmailHtml } from '@content/email/dsar.html'
 import { dsarVerificationEmailText } from '@content/email/dsar.text'
-import { getResendApiKey, isDev, isTest } from '@pages/api/_environment'
+import { getResendApiKey, isDev, isTest } from '@pages/api/_environment/environmentApi'
 import { getSiteUrl } from '@pages/api/_environment/siteUrlApi'
 import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
 

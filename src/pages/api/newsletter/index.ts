@@ -6,7 +6,7 @@
  */
 import type { APIRoute } from 'astro'
 import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
-import { getConvertkitApiKey, isDev, isTest } from '@pages/api/_environment'
+import { getConvertkitApiKey, isDev, isTest } from '@pages/api/_environment/environmentApi'
 import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
 import { buildApiErrorResponse, handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
 import { rateLimiters, checkRateLimit } from '@pages/api/_utils/rateLimit'

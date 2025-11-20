@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro'
-import { getPrivacyPolicyVersion } from '@pages/api/_environment'
+import { getPrivacyPolicyVersion } from '@pages/api/_environment/environmentApi'
 import { rateLimiters, checkRateLimit, supabaseAdmin } from '@pages/api/_utils'
 import { validate as uuidValidate } from 'uuid'
 import type { ConsentRequest, ConsentResponse } from '@pages/api/_contracts/gdpr.contracts'

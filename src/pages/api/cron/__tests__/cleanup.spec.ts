@@ -17,7 +17,7 @@ vi.mock('@pages/api/_utils', () => ({
 }))
 
 vi.mock('@pages/api/_environment', async () => {
-  const actual = await vi.importActual<typeof import('@pages/api/_environment')>(
+  const actual = await vi.importActual<typeof import('@pages/api/_environment/environmentApi')>(
     '@pages/api/_environment',
   )
   return {

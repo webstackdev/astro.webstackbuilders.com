@@ -5,7 +5,7 @@ import {
   getUpstashApiUrl,
   isDev,
   isTest,
-} from '@pages/api/_environment'
+} from '@pages/api/_environment/environmentApi'
 
 export type RateLimiter = {
   limit: (_identifier: string) => Promise<{ success: boolean; reset: number | undefined }>

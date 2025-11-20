@@ -9,7 +9,7 @@ import { Resend } from 'resend'
 import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
 import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
 import { buildApiErrorResponse, handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
-import { getResendApiKey, isDev, isTest } from '@pages/api/_environment'
+import { getResendApiKey, isDev, isTest } from '@pages/api/_environment/environmentApi'
 import { checkContactRateLimit } from '@pages/api/_utils/rateLimit'
 import { createApiFunctionContext, createRateLimitIdentifier } from '@pages/api/_utils/requestContext'
 

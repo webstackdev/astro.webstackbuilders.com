@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro'
-import { getCronSecret } from '@pages/api/_environment'
+import { getCronSecret } from '@pages/api/_environment/environmentApi'
 import { supabaseAdmin } from '@pages/api/_utils'
 import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
 import { buildApiErrorResponse, handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
