@@ -1,135 +1,74 @@
-# GDPR API Client Usage Guide
+# GDPR API Usage Guide
 
-This guide shows how to use the type-safe GDPR API client instead of raw fetch calls.
+This guide now focuses on sharing contract types between the SSR endpoints and any client or server-side callers. Implementation code should live alongside the endpoint that owns it. Shared files only export types.
 
-## 1. Import the client functions
+## 1. Import the contract types
 
 ```typescript
-import { recordConsent, submitDataRequest, recordConsentServerSide } from '@lib/api/gdpr.client'
+import type {
+  ConsentRequest,
+  ConsentResponse,
+  DSARRequestInput,
+  DSARResponse,
+  ErrorResponse
+} from '@pages/api/_contracts/gdpr.contracts'
 ```
 
-## 2. Client-side usage examples
+Using these shared types keeps both sides of the API honest without duplicating runtime logic.
 
-### Recording consent (cookies modal)
+## 2. Client-side consent submission example
 
 ```typescript
-// Before (raw fetch):
-await fetch('/api/gdpr/consent', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    DataSubjectId: consentState.DataSubjectId,
-    purposes,
-    source: 'cookies_modal',
-    userAgent: navigator.userAgent,
-    verified: false,
-  }),
-})
-
-// After (typed client):
-const result = await recordConsent({
+const payload: ConsentRequest = {
   DataSubjectId: consentState.DataSubjectId,
   purposes,
   source: 'cookies_modal',
   userAgent: navigator.userAgent,
   verified: false,
-})
-
-if (result.success) {
-  console.log('Consent recorded:', result.data.record.id)
-} else {
-  console.error('Failed:', result.error.message)
 }
-```
 
-### Submitting data requests (my-data page)
-
-```typescript
-// Before (raw fetch):
-const response = await fetch('/api/gdpr/request-data', {
+const response = await fetch('/api/gdpr/consent', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    email,
-    requestType: 'ACCESS'
-  })
-})
-const data = await response.json()
-
-// After (typed client):
-const result = await submitDataRequest({
-  email,
-  requestType: 'ACCESS'
+  body: JSON.stringify(payload),
 })
 
-if (result.success) {
-  accessMessage.textContent = result.data.message
-  accessMessage.className = 'form-message success'
-} else {
-  accessMessage.textContent = result.error.message
-  accessMessage.className = 'form-message error'
-}
+const data: ConsentResponse | ErrorResponse = await response.json()
 ```
 
-## 3. Server-side usage examples
+Because the payload is typed, any contract drift is caught at build time.
 
-### Contact form API
+## 3. Server-side helper usage
+
+Server routes can call the shared logger helper:
 
 ```typescript
-// Before (raw fetch):
-const consentResponse = await fetch(`${new URL(request.url).origin}/api/gdpr/consent`, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    DataSubjectId: subjectId,
-    email: formData.email,
-    purposes: ['contact'],
-    source: 'contact_form',
-    userAgent,
-    verified: true,
-  }),
+import { recordConsent } from '@pages/api/_logger'
+
+await recordConsent({
+  origin: new URL(request.url).origin,
+  DataSubjectId: subjectId,
+  email: validatedEmail,
+  purposes: ['contact'],
+  source: 'contact_form',
+  userAgent,
+  verified: true,
 })
-
-// After (typed client):
-const result = await recordConsentServerSide(
-  new URL(request.url).origin,
-  {
-    DataSubjectId: subjectId,
-    email: formData.email,
-    purposes: ['contact'],
-    source: 'contact_form',
-    userAgent,
-    verified: true,
-  }
-)
-
-if (!result.success) {
-  // Handle error with proper typing
-  console.error('Consent failed:', result.error.code, result.error.message)
-}
 ```
 
-## 4. Benefits of the typed client
+`recordConsent` now encapsulates the fetch logic so API routes stay minimal while still using the shared contracts.
 
-1. **Type Safety**: Compile-time validation of request/response structures
-2. **Error Handling**: Consistent error response format across all functions
-3. **IntelliSense**: Auto-completion for all fields and response properties
-4. **Documentation**: JSDoc comments with usage examples
-5. **Centralized**: Single place to manage API call logic and error handling
+## 4. Recommended workflow
 
-## 5. Migration checklist
+1. Define every request/response shape in `@pages/api/_contracts`.
+2. Import those types in both the endpoint implementation and any caller (client or server).
+3. Keep shared files type-only to avoid duplicated runtime logic.
+4. Let each runtime (client, API route, worker) own the fetch/request mechanics that make sense for its environment.
 
-- [ ] `src/components/scripts/store/consent.ts` - Use `recordConsent()`
-- [ ] `src/pages/privacy/my-data.astro` - Use `submitDataRequest()`
-- [ ] `src/pages/api/contact/index.ts` - Use `recordConsentServerSide()`
-- [ ] `src/pages/api/newsletter/index.ts` - Use `recordConsentServerSide()`
+## 5. Available GDPR types
 
-## 6. Contract types
-
-All types are re-exported from `@pages/api/_contracts/gdpr.contracts`:
-
-- `ConsentRequest` - Consent recording payload
-- `ConsentResponse` - Consent creation response
-- `DSARRequestInput` - Data request payload
-- `DSARResponse` - Data request confirmation response
-- `ErrorResponse` - Standardized error format
+- `ConsentRequest` – Consent recording payload
+- `ConsentResponse` – Consent creation response
+- `DSARRequestInput` – Data request payload
+- `DSARResponse` – Data request confirmation response
+- `ErrorResponse` – Standardized error format

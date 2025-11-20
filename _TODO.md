@@ -18,6 +18,26 @@ dsarVerificationEmails.spec.ts can't run because RESEND_API_KEY isn't set. Provi
 
 5. componentDiscovery.spec.ts expects an error string but receives an object; ensure the helper throws an Error with the message the test asserts.
 
+## Typing client-side API calls and SSR API endpoints
+
+Shared Types vs Swagger / Keeping Docs in Sync
+
+1. Type-only sharing (current approach)
+
+- Pros: zero extra build tooling, server/client stay aligned as long as both import @pages/api/_contracts.
+- Cons: no generated docs/SDKs; discipline is required to keep manual docs current.
+- How to enforce: treat the contract files as the single source of truth, add lint rules banning request/response literal types outside _contracts, and add lightweight contract tests that instantiate each type against the endpoint handler (failing if fields diverge).
+
+2. Code-first OpenAPI (Zod or TS schemas → OpenAPI)
+
+- Define schemas in Zod/Valibot (or ts-rest) alongside the endpoint. Generate OpenAPI JSON plus TypeScript types from those schemas. Docs (Swagger UI/Redoc) and any client SDKs come from the generated spec, so they’re always in sync.
+- Guarantees: CI regenerates the spec and fails when the checked-in artifact is stale; endpoint handlers reuse the same schema for runtime validation, so a mismatch cannot compile.
+
+3. Spec-first OpenAPI + Swagger Codegen
+
+- Maintain an OpenAPI YAML/JSON file as the source of truth, run Swagger Codegen (or openapi-typescript) to produce both server stubs and client SDKs.
+- Guarantees: developers edit the spec, run codegen (enforced via a pre-commit/CI task), and the generated server stubs remind you to implement every path/verb. Documentation pages (Swagger UI) are rendered straight from the same spec, so they inherently match the implementation.
+
 ## Files with Skipped Tests
 
 social-shares.spec.ts - 12 @wip
