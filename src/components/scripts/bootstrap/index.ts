@@ -10,13 +10,23 @@ import {
   initConsentSideEffects,
 } from '@components/scripts/store'
 import { SentryBootstrap } from '@components/scripts/sentry/client'
-import { isProd } from '@components/scripts/utils/environmentClient'
+import { isProd, isDev, isE2eTest, isTest, isUnitTest } from '@components/scripts/utils/environmentClient'
 
 export class AppBootstrap {
   static init(): void {
     addScriptBreadcrumb({ scriptName: 'AppBootstrap', operation: 'init' })
 
     try {
+      if (typeof window !== 'undefined' && window.isPlaywrightControlled) {
+        window.environmentClientSnapshot = {
+          isUnitTest: isUnitTest(),
+          isTest: isTest(),
+          isE2eTest: isE2eTest(),
+          isDev: isDev(),
+          isProd: isProd(),
+        }
+      }
+
       /* Be careful adding script here. It runs before any script tags in components. */
       if (isProd()) {
         SentryBootstrap.init()

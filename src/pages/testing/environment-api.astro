@@ -1,0 +1,49 @@
+---
+import {
+  getPackageRelease,
+  getPrivacyPolicyVersion,
+  isDev,
+  isE2eTest,
+  isProd,
+  isTest,
+  isUnitTest,
+} from '@pages/api/_environment/environmentApi'
+
+/**
+ * This testing page intentionally renders as part of the client bundle so
+ * Playwright can verify the statically generated output.
+ */
+export const prerender = true
+
+const snapshot = {
+  isUnitTest: isUnitTest(),
+  isTest: isTest(),
+  isE2eTest: isE2eTest(),
+  isDev: isDev(),
+  isProd: isProd(),
+  packageRelease: getPackageRelease(),
+  privacyPolicyVersion: getPrivacyPolicyVersion(),
+}
+
+const formattedSnapshot = JSON.stringify(snapshot, null, 2)
+const scriptContent = `window.environmentApiSnapshot = ${JSON.stringify(snapshot).replace(/</g, '\\u003c')}`
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Environment API Diagnostics</title>
+    <meta name="robots" content="noindex, nofollow">
+  </head>
+  <body>
+    <main>
+      <h1>Environment API Diagnostics</h1>
+      <p data-testid="environment-api-notice">
+        This page exposes server environment helpers for automated testing only.
+      </p>
+      <pre id="environment-api-json">{formattedSnapshot}</pre>
+    </main>
+    <script type="module" set:html={scriptContent}></script>
+  </body>
+</html>

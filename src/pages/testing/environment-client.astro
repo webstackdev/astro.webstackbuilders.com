@@ -1,0 +1,48 @@
+---
+
+---
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Environment Client Diagnostics</title>
+    <meta name="robots" content="noindex, nofollow">
+  </head>
+  <body>
+    <main>
+      <h1>Environment Client Diagnostics</h1>
+      <p data-testid="environment-client-notice">
+        This page exposes environment utilities for automated testing only.
+      </p>
+      <pre id="environment-client-json">Collecting client environment data…</pre>
+    </main>
+    <script>
+      import {
+        getPackageRelease,
+        getPrivacyPolicyVersion,
+        isDev,
+        isE2eTest,
+        isProd,
+        isTest,
+        isUnitTest,
+      } from '@components/scripts/utils/environmentClient'
+
+      const snapshot = {
+        isUnitTest: isUnitTest(),
+        isTest: isTest(),
+        isE2eTest: isE2eTest(),
+        isDev: isDev(),
+        isProd: isProd(),
+        packageRelease: getPackageRelease(),
+        privacyPolicyVersion: getPrivacyPolicyVersion(),
+      }
+
+      window.environmentClientSnapshot = snapshot
+
+      const output = document.getElementById('environment-client-json')
+      if (output) {
+        output.textContent = JSON.stringify(snapshot, null, 2)
+      }
+    </script>
+  </body>
+</html>

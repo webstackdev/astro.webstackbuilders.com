@@ -255,7 +255,7 @@ export default [
   /** Environment file in src/pages/api is an except to the restricted paths rule */
   {
     files: [
-      'src/pages/api/_environment/index.ts',
+      'src/pages/api/_environment/environmentApi.ts',
       'src/pages/api/_logger/index.ts',
     ],
     rules: {

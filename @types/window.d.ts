@@ -12,6 +12,26 @@ interface MetaColors {
   [key: string]: string
 }
 
+interface EnvironmentClientSnapshot {
+  isUnitTest: boolean
+  isTest: boolean
+  isE2eTest: boolean
+  isDev: boolean
+  isProd: boolean
+  packageRelease: string
+  privacyPolicyVersion: string
+}
+
+interface EnvironmentApiSnapshot {
+  isUnitTest: boolean
+  isTest: boolean
+  isE2eTest: boolean
+  isDev: boolean
+  isProd: boolean
+  packageRelease: string
+  privacyPolicyVersion: string
+}
+
 declare global {
   interface Window {
     /**
@@ -25,6 +45,16 @@ declare global {
      * Test flag to indicate Playwright control
      */
     isPlaywrightControlled?: boolean
+
+    /**
+     * Snapshot of environment-client results for Playwright assertions
+     */
+    environmentClientSnapshot?: EnvironmentClientSnapshot
+
+    /**
+     * Snapshot of environment-api (server helper) results for Playwright assertions
+     */
+    environmentApiSnapshot?: EnvironmentApiSnapshot
   }
 }
 

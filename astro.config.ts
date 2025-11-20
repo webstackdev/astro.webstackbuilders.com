@@ -60,7 +60,7 @@ const standardIntegrations = [
   })] : []),
   sitemap({
     serialize: createSerializeFunction({
-      exclude: ['downloads', 'social-shares', '/articles/demo'],
+      exclude: ['downloads', 'social-shares', '/articles/demo', 'testing'],
     }),
   }),
   pagesJsonWriter(),
