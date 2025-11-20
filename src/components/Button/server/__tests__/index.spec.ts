@@ -4,7 +4,7 @@ import {
   resolveAriaLabel,
   isIconOnly,
   type ButtonStyleModule,
-} from '@components/Button/server'
+} from '../index'
 
 type ClassList = Record<string, boolean>
 
