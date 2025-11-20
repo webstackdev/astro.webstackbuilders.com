@@ -16,6 +16,7 @@
 
 import type { ImageMetadata } from 'astro'
 import { isDev } from '@components/scripts/utils/environmentClient'
+import { loadAvatarModules } from './avatarImports'
 
 type AvatarMap = Record<string, ImageMetadata>
 
@@ -43,11 +44,7 @@ class AvatarManagerClass {
 
   private constructor() {
     // Eagerly import all avatar images during initialization
-    /* eslint-disable-next-line no-restricted-syntax -- The eslint syntax isn't fine-grained enough to allow "glob" method on import.meta */
-    const avatarModules = import.meta.glob('../../assets/images/avatars/*.{webp,jpg,png}', {
-      eager: true,
-      import: 'default',
-    }) as Record<string, ImageMetadata>
+    const avatarModules = loadAvatarModules()
 
     // Build the avatar mapping
     const map: AvatarMap = {}

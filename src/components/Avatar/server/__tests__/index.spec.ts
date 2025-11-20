@@ -1,5 +1,28 @@
+import type { ImageMetadata } from 'astro'
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import { isDev } from '@lib/config/environmentServer'
+
+/* eslint-disable-next-line no-restricted-syntax -- import.meta.glob required to load fixture assets */
+const fixtureModules = import.meta.glob('../__fixtures__/avatars/*.{webp,jpg,png}', {
+  eager: true,
+  import: 'default',
+}) as Record<string, ImageMetadata>
+
+const fixtureAvatarNames = Array.from(
+  new Set(
+    Object.keys(fixtureModules)
+      .map((path) => path.split('/').pop()?.replace(/\.(webp|jpg|png)$/i, ''))
+      .filter((name): name is string => Boolean(name))
+  )
+)
+
+const mockLoadAvatarModules = vi.fn(() => fixtureModules)
+
+vi.mock('../avatarImports', () => ({
+  loadAvatarModules: mockLoadAvatarModules,
+}))
+
+const primaryAvatar = 'kevin-brown'
+const fixtureAvatarCount = fixtureAvatarNames.length
 /**
  * Comprehensive unit tests for AvatarManager
  *
@@ -10,9 +33,9 @@ import { isDev } from '@lib/config/environmentServer'
  * - Backward-compatible deprecated functions
  * - Edge cases and error handling
  *
- * Note: These tests use the actual avatar files in src/assets/images/avatars/
- * Expected files: brian-bristol.webp, chris-southam.webp, dru-sellers.webp,
- * kevin-brown.jpg, kevin-brown.webp, sara-king.webp, test-red-dot.png
+ * Note: These tests load dedicated fixture avatars from
+ * src/components/Avatar/server/__fixtures__/avatars/ to keep metadata stable.
+ * Fixtures mirror the production files except for test-red-dot.png.
  */
 
 describe('AvatarManager', () => {
@@ -22,12 +45,15 @@ describe('AvatarManager', () => {
   let getAvailableAvatars: any
 
   beforeEach(async () => {
+    mockLoadAvatarModules.mockClear()
+    vi.resetModules()
+
     // Mock console methods to avoid cluttering test output
     vi.spyOn(console, 'log').mockImplementation(() => {})
     vi.spyOn(console, 'warn').mockImplementation(() => {})
 
     // Import the module
-    const module = await import('../server')
+    const module = await import('..')
     AvatarManager = module.AvatarManager
 
     // Get the singleton instance and extract methods for backward compatibility
@@ -50,18 +76,13 @@ describe('AvatarManager', () => {
     })
 
     it('should initialize only once', () => {
-      const consoleLogSpy = vi.spyOn(console, 'log')
+      const initialCalls = mockLoadAvatarModules.mock.calls.length
+      expect(initialCalls).toBe(1)
 
-      // Get instance multiple times
-      AvatarManager.getInstance()
       AvatarManager.getInstance()
       AvatarManager.getInstance()
 
-      // Constructor should only run once (if in development mode)
-      // In production, console.log won't be called
-      if (isDev()) {
-        expect(consoleLogSpy).toHaveBeenCalledTimes(1)
-      }
+      expect(mockLoadAvatarModules).toHaveBeenCalledTimes(initialCalls)
     })
 
     it('should have a private constructor (enforced by TypeScript)', () => {
@@ -76,7 +97,7 @@ describe('AvatarManager', () => {
   describe('getAvatar()', () => {
     it('should return avatar metadata for existing avatar', () => {
       const instance = AvatarManager.getInstance()
-      const avatar = instance.getAvatar('kevin-brown')
+      const avatar = instance.getAvatar(primaryAvatar)
 
       expect(avatar).toBeDefined()
       // Avatar should be an object or a string path
@@ -95,7 +116,7 @@ describe('AvatarManager', () => {
     it('should return correct metadata for kevin-brown avatar', () => {
       const instance = AvatarManager.getInstance()
 
-      const kevinAvatar = instance.getAvatar('kevin-brown')
+      const kevinAvatar = instance.getAvatar(primaryAvatar)
       expect(kevinAvatar).toBeDefined()
 
       // Check the structure of the returned value
@@ -123,7 +144,7 @@ describe('AvatarManager', () => {
     it('should be case-sensitive for filenames', () => {
       const instance = AvatarManager.getInstance()
 
-      const lowerCase = instance.getAvatar('kevin-brown')
+      const lowerCase = instance.getAvatar(primaryAvatar)
       const upperCase = instance.getAvatar('Kevin-Brown')
 
       expect(lowerCase).toBeDefined()
@@ -135,7 +156,7 @@ describe('AvatarManager', () => {
     it('should return true for existing avatar', () => {
       const instance = AvatarManager.getInstance()
 
-      expect(instance.hasAvatar('kevin-brown')).toBe(true)
+      expect(instance.hasAvatar(primaryAvatar)).toBe(true)
     })
 
     it('should return false for non-existent avatar', () => {
@@ -154,7 +175,7 @@ describe('AvatarManager', () => {
     it('should be case-sensitive', () => {
       const instance = AvatarManager.getInstance()
 
-      expect(instance.hasAvatar('kevin-brown')).toBe(true)
+      expect(instance.hasAvatar(primaryAvatar)).toBe(true)
       expect(instance.hasAvatar('Kevin-Brown')).toBe(false)
       expect(instance.hasAvatar('KEVIN-BROWN')).toBe(false)
     })
@@ -166,14 +187,14 @@ describe('AvatarManager', () => {
       const avatars = instance.getAvailableAvatars()
 
       expect(Array.isArray(avatars)).toBe(true)
-      expect(avatars.length).toBeGreaterThan(0)
+      expect(avatars.length).toBe(fixtureAvatarCount)
     })
 
     it('should include kevin-brown avatar', () => {
       const instance = AvatarManager.getInstance()
       const avatars = instance.getAvailableAvatars()
 
-      expect(avatars).toContain('kevin-brown')
+      expect(avatars).toContain(primaryAvatar)
     })
 
     it('should return filenames without extensions', () => {
@@ -208,7 +229,7 @@ describe('AvatarManager', () => {
       const instance = AvatarManager.getInstance()
       const allAvatars = instance.getAll()
 
-      expect(allAvatars['kevin-brown']).toBeDefined()
+      expect(allAvatars[primaryAvatar]).toBeDefined()
     })
 
     it('should return a read-only object', () => {
@@ -224,8 +245,7 @@ describe('AvatarManager', () => {
     it('should return the correct number of avatars', () => {
       const instance = AvatarManager.getInstance()
 
-      // Should match the actual number of avatar files in the directory
-      expect(instance.count).toBeGreaterThan(0)
+      expect(instance.count).toBe(fixtureAvatarCount)
     })
 
     it('should be consistent with getAvailableAvatars length', () => {
@@ -261,20 +281,32 @@ describe('AvatarManager', () => {
       const instance = AvatarManager.getInstance()
       const allAvatars = instance.getAll()
 
-      expect(() => {
-        // Testing runtime immutability
-        delete (allAvatars as any)['kevin-brown']
-      }).toThrow()
+      let deleteResult: boolean | undefined
+      try {
+        deleteResult = delete (allAvatars as any)[primaryAvatar]
+      } catch (error) {
+        expect(error).toBeInstanceOf(TypeError)
+      }
+
+      if (typeof deleteResult === 'boolean') {
+        expect(deleteResult).toBe(false)
+      }
+
+      expect(allAvatars[primaryAvatar]).toBeDefined()
     })
 
     it('should not allow modification of existing avatar properties', () => {
       const instance = AvatarManager.getInstance()
       const allAvatars = instance.getAll()
 
-      expect(() => {
-        // Testing runtime immutability
-        ;(allAvatars as any)['kevin-brown'].src = '/modified.jpg'
-      }).toThrow()
+      const originalSrc = allAvatars[primaryAvatar]?.src
+      try {
+        ;(allAvatars as any)[primaryAvatar].src = '/modified.jpg'
+      } catch (error) {
+        expect(error).toBeInstanceOf(TypeError)
+      }
+
+      expect(allAvatars[primaryAvatar]?.src).toBe(originalSrc)
     })
   })
 
@@ -282,8 +314,8 @@ describe('AvatarManager', () => {
     describe('getAvatarImage() (deprecated)', () => {
       it('should work the same as getInstance().getAvatar()', () => {
         const instance = AvatarManager.getInstance()
-        const newWay = instance.getAvatar('kevin-brown')
-        const oldWay = getAvatarImage('kevin-brown')
+        const newWay = instance.getAvatar(primaryAvatar)
+        const oldWay = getAvatarImage(primaryAvatar)
 
         expect(oldWay).toEqual(newWay)
       })
@@ -319,24 +351,23 @@ describe('AvatarManager', () => {
         const avatars = getAvailableAvatars()
 
         expect(Array.isArray(avatars)).toBe(true)
-        expect(avatars.length).toBeGreaterThan(0)
+        expect(avatars.length).toBe(fixtureAvatarCount)
       })
     })
   })
 
   describe('Edge Cases', () => {
     it('should handle avatar with special characters in filename', () => {
-      // This would need mock data with special chars, skipping for now
-      // but good to consider for real-world usage
       const instance = AvatarManager.getInstance()
-      expect(instance.hasAvatar('avatar-with-dash')).toBeDefined()
+      const hyphenatedName = fixtureAvatarNames.find((name) => name.includes('-')) ?? primaryAvatar
+      expect(instance.hasAvatar(hyphenatedName)).toBe(true)
     })
 
     it('should handle multiple file extensions correctly', () => {
       const instance = AvatarManager.getInstance()
 
-      // kevin-brown should be found regardless of extension
-      expect(instance.hasAvatar('kevin-brown')).toBe(true)
+      // The canonical avatar should be found regardless of extension
+      expect(instance.hasAvatar(primaryAvatar)).toBe(true)
     })
 
     it('should strip file extension case-insensitively', () => {
@@ -356,7 +387,7 @@ describe('AvatarManager', () => {
   describe('Type Safety', () => {
     it('should return proper ImageMetadata type from getAvatar', () => {
       const instance = AvatarManager.getInstance()
-      const avatar = instance.getAvatar('kevin-brown')
+      const avatar = instance.getAvatar(primaryAvatar)
 
       if (avatar && typeof avatar === 'object') {
         expect(typeof avatar.src).toBe('string')
@@ -397,13 +428,13 @@ describe('AvatarManager', () => {
 
       // Make many rapid calls
       for (let i = 0; i < 100; i++) {
-        instance.getAvatar('kevin-brown')
-        instance.hasAvatar('kevin-brown')
+        instance.getAvatar(primaryAvatar)
+        instance.hasAvatar(primaryAvatar)
         instance.getAvailableAvatars()
       }
 
       // Should still work correctly
-      expect(instance.getAvatar('kevin-brown')).toBeDefined()
+      expect(instance.getAvatar(primaryAvatar)).toBeDefined()
       expect(instance.count).toBeGreaterThan(0)
     })
   })
