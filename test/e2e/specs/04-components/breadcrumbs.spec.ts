@@ -107,7 +107,7 @@ test.describe('Breadcrumbs Component', () => {
     await page.expectElementVisible('nav[aria-label="Breadcrumb"]')
   })
 
-  test.skip('@wip breadcrumbs have structured data', async ({ page: playwrightPage }) => {
+  test('@ready breadcrumbs have structured data', async ({ page: playwrightPage }) => {
     // Expected: Should include JSON-LD BreadcrumbList schema
     const page = await BasePage.init(playwrightPage)
     await setupTestPage(playwrightPage, '/articles')
