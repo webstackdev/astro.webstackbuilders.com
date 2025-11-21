@@ -262,10 +262,15 @@ export class ConsentPreferencesElement extends LitElement {
   }
 
   private showNotification(message: string): void {
+    document
+      .querySelectorAll<HTMLDivElement>('[data-testid="consent-toast"]')
+      .forEach((existingToast) => existingToast.remove())
+
     // Create a simple notification
     const notification = document.createElement('div')
     notification.className =
       'fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300'
+    notification.dataset['testid'] = 'consent-toast'
     notification.textContent = message
 
     document.body.appendChild(notification)
