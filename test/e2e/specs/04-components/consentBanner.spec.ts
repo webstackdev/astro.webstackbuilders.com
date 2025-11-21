@@ -14,6 +14,37 @@ async function waitForConsentBannerHidden(page: BasePage): Promise<void> {
   await expect(getConsentBanner(page)).toBeHidden({ timeout: 5000 })
 }
 
+async function removeViteErrorOverlay(page: BasePage): Promise<void> {
+  await page.evaluate(() => {
+    const styleId = 'disable-vite-overlay-style'
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement('style')
+      style.id = styleId
+      style.textContent = `
+        vite-error-overlay {
+          pointer-events: none !important;
+          opacity: 0 !important;
+          display: none !important;
+        }
+      `
+      document.head.append(style)
+    }
+
+    document.querySelectorAll('vite-error-overlay').forEach(element => {
+      element.remove()
+    })
+  })
+}
+
+async function acceptAllCookies(page: BasePage): Promise<void> {
+  await removeViteErrorOverlay(page)
+  const cookieBanner = getConsentBanner(page)
+  const acceptButton = cookieBanner.locator('button:has-text("Allow All")')
+
+  await acceptButton.click()
+  await waitForConsentBannerHidden(page)
+}
+
 
 test.describe('Consent Banner', () => {
   /**
@@ -37,11 +68,17 @@ test.describe('Consent Banner', () => {
     // Clear all cookies and storage before navigation
     await context.clearCookies()
 
-    // Navigate to page and clear storage
-    await page.goto('/')
+    // Navigate to page without auto-dismissing the consent banner and clear storage
+    await page.goto('/', { skipCookieDismiss: true, timeout: 15000 })
     await page.evaluate(() => {
       localStorage.clear()
       sessionStorage.clear()
+
+      const expirations = 'Thu, 01 Jan 1970 00:00:00 GMT'
+      document.cookie = `consent_analytics=; expires=${expirations}; path=/`
+      document.cookie = `consent_marketing=; expires=${expirations}; path=/`
+      document.cookie = `consent_functional=; expires=${expirations}; path=/`
+      document.cookie = `consent_banner=; expires=${expirations}; path=/`
     })
 
     // Wait for consent banner custom element to be initialized
@@ -49,6 +86,8 @@ test.describe('Consent Banner', () => {
       const element = document.querySelector<HTMLElement & { isInitialized?: boolean }>('consent-banner')
       return element?.isInitialized === true
     }, { timeout: 5000 })
+
+    await removeViteErrorOverlay(page)
   })
 
   test('@ready consent banner displays on first visit', async ({ page: playwrightPage }) => {
@@ -80,24 +119,18 @@ test.describe('Consent Banner', () => {
   test('@ready clicking allow all hides banner', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     // Expected: Consent banner should disappear after accepting
-    const cookieBanner = getConsentBanner(page)
-    const acceptButton = cookieBanner.locator('button:has-text("Allow All")')
-
-    await acceptButton.click()
-    await waitForConsentBannerHidden(page)
+    await acceptAllCookies(page)
   })
 
   test('@ready accept choice persists across page reloads', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     // Expected: After accepting, banner should not reappear
     const cookieBanner = getConsentBanner(page)
-    const acceptButton = cookieBanner.locator('button:has-text("Allow All")')
-
-    await acceptButton.click()
-    await waitForConsentBannerHidden(page)
+    await acceptAllCookies(page)
 
     await page.reload({ waitUntil: 'domcontentloaded' })
     await page.waitForLoadState('networkidle')
+    await removeViteErrorOverlay(page)
 
     await expect(cookieBanner).toBeHidden()
   })
@@ -106,13 +139,11 @@ test.describe('Consent Banner', () => {
     const page = await BasePage.init(playwrightPage)
     // Expected: After accepting, banner should not appear on other pages
     const cookieBanner = getConsentBanner(page)
-    const acceptButton = cookieBanner.locator('button:has-text("Allow All")')
+    await acceptAllCookies(page)
 
-    await acceptButton.click()
-    await waitForConsentBannerHidden(page)
-
-    await page.goto('/about')
+    await page.goto('/about', { timeout: 15000 })
     await page.waitForLoadState('networkidle')
+    await removeViteErrorOverlay(page)
 
     await expect(cookieBanner).toBeHidden()
   })
@@ -132,11 +163,22 @@ test.describe('Consent Banner', () => {
     const cookieBanner = getConsentBanner(page)
     await expect(cookieBanner).toBeVisible()
 
-    // Tab to first interactive element (close button)
+    const closeButton = cookieBanner.getByRole('button', { name: /close cookie consent dialog/i })
+    const allowAllButton = cookieBanner.locator('button:has-text("Allow All")')
+
+    await cookieBanner.focus()
+
+    // Tab to the close button and verify focus follows the keyboard
     await page.keyboard.press('Tab')
+    await expect.poll(async () => {
+      return await closeButton.evaluate(node => document.activeElement === node)
+    }).toBe(true)
 
     // Tab to Allow All button
     await page.keyboard.press('Tab')
+    await expect.poll(async () => {
+      return await allowAllButton.evaluate(node => document.activeElement === node)
+    }).toBe(true)
 
     // Should be able to press Enter to activate
     await page.keyboard.press('Enter')

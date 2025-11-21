@@ -9,15 +9,15 @@ import {
   addButtonEventListeners,
   addWrapperEventListeners,
 } from '@components/scripts/elementListeners'
-import { showConsentBanner, hideConsentBanner } from '@components/Consent/Banner/state'
-import { initConsentCookies, allowAllConsentCookies } from '@components/Consent/Banner/cookies'
+import { showConsentBanner, hideConsentBanner } from '@components/Consent/Banner/client/state'
+import { initConsentCookies, allowAllConsentCookies } from '@components/Consent/Banner/client/cookies'
 import { showConsentCustomizeModal } from '@components/Consent/Preferences/client'
 import {
   getConsentAllowBtn,
   getConsentCloseBtn,
   getConsentCustomizeBtn,
   getConsentWrapper,
-} from '@components/Consent/Banner/selectors'
+} from '@components/Consent/Banner/client/selectors'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
 

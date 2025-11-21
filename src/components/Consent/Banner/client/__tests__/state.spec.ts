@@ -10,7 +10,7 @@ import {
   hideConsentBanner,
   toggleConsentBanner,
   isConsentBannerVisible,
-} from '@components/Consent/Banner/state'
+} from '@components/Consent/Banner/client/state'
 
 describe(`Cookie modal visibility using state store`, () => {
   beforeEach(() => {

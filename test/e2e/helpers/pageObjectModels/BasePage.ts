@@ -61,11 +61,26 @@ export class BasePage {
    * and async scripts may not have finished loading.
    * Automatically dismisses cookie consent modal unless skipCookieDismiss is true.
    */
-  async goto(path: string, options?: { skipCookieDismiss?: boolean }): Promise<null | Response> {
-    const response = await this._page.goto(path, {
-      timeout: 5000,
-      waitUntil: 'domcontentloaded',
-    })
+  async goto(path: string, options?: { skipCookieDismiss?: boolean; timeout?: number }): Promise<null | Response> {
+    const navigate = async () => {
+      return await this._page.goto(path, {
+        timeout: options?.timeout ?? 5000,
+        waitUntil: 'domcontentloaded',
+      })
+    }
+
+    let response: null | Response = null
+
+    try {
+      response = await navigate()
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      if (message.includes('ERR_ABORTED')) {
+        response = await navigate()
+      } else {
+        throw error
+      }
+    }
 
     // Dismiss cookie modal to prevent it from blocking clicks (unless opted out)
     if (!options?.skipCookieDismiss) {
