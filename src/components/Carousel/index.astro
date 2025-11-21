@@ -85,118 +85,123 @@ if (limit) {
 
 {
   items.length > 0 && (
-    <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-      <header class="text-center mb-12">
-        <h2 class="text-3xl md:text-4xl font-bold text-text">{title}</h2>
-      </header>
+    <carousel-slider data-carousel class="block">
+      <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <header class="text-center mb-12">
+          <h2 class="text-3xl md:text-4xl font-bold text-text">{title}</h2>
+        </header>
 
-      {/* Embla Carousel */}
-      <div class="embla relative">
-        <div class="embla__viewport overflow-hidden">
-          <div class="embla__container flex gap-4 md:gap-6">
-            {items.map((item: ItemType) => (
-              <div class="embla__slide flex-[0_0_100%] md:flex-[0_0_50%] lg:flex-[0_0_33.333%] min-w-0">
-                <article class="group h-full">
-                  <a
-                    href={`/${type}/${item.id}`}
-                    class="block h-full bg-bg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-border hover:border-primary transform hover:-translate-y-2"
-                  >
-                    {'icon' in item.data && item.data.icon && (
-                      <div class="p-6 pb-4">
-                        <div class="w-12 h-12 bg-bg-offset rounded-lg flex items-center justify-center group-hover:bg-primary group-hover:bg-opacity-20 transition-colors">
-                          <img src={item.data.icon} alt="" loading="lazy" class="w-6 h-6" />
+        {/* Embla Carousel */}
+        <div class="embla relative" role="region" aria-label={`${title} carousel`}>
+          <div class="embla__viewport overflow-hidden">
+            <div class="embla__container flex gap-4 md:gap-6">
+              {items.map((item: ItemType, index) => (
+                <div
+                  class="embla__slide flex-[0_0_100%] md:flex-[0_0_50%] lg:flex-[0_0_33.333%] min-w-0"
+                  data-carousel-slide
+                  data-index={String(index)}
+                >
+                  <article class="group h-full">
+                    <a
+                      href={`/${type}/${item.id}`}
+                      class="block h-full bg-bg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-border hover:border-primary transform hover:-translate-y-2"
+                    >
+                      {'icon' in item.data && item.data.icon && (
+                        <div class="p-6 pb-4">
+                          <div class="w-12 h-12 bg-bg-offset rounded-lg flex items-center justify-center group-hover:bg-primary group-hover:bg-opacity-20 transition-colors">
+                            <img src={item.data.icon} alt="" loading="lazy" class="w-6 h-6" />
+                          </div>
+                        </div>
+                      )}
+                      <div class="p-6 pt-2">
+                        <h3 class="text-xl font-semibold text-text mb-3 group-hover:text-primary transition-colors">
+                          {item.data.title}
+                        </h3>
+                        {item.data.description && (
+                          <p class="text-offset leading-relaxed text-sm">
+                            {item.data.description}
+                          </p>
+                        )}
+                        <div class="mt-4 flex items-center text-primary text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                          <span>Learn more</span>
+                          <svg
+                            class="ml-1 w-4 h-4 transform group-hover:translate-x-1 transition-transform"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M17 8l4 4m0 0l-4 4m4-4H3"
+                            />
+                          </svg>
                         </div>
                       </div>
-                    )}
-                    <div class="p-6 pt-2">
-                      <h3 class="text-xl font-semibold text-text mb-3 group-hover:text-primary transition-colors">
-                        {item.data.title}
-                      </h3>
-                      {item.data.description && (
-                        <p class="text-offset leading-relaxed text-sm">
-                          {item.data.description}
-                        </p>
-                      )}
-                      <div class="mt-4 flex items-center text-primary text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span>Learn more</span>
-                        <svg
-                          class="ml-1 w-4 h-4 transform group-hover:translate-x-1 transition-transform"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M17 8l4 4m0 0l-4 4m4-4H3"
-                          />
-                        </svg>
-                      </div>
-                    </div>
-                  </a>
-                </article>
-              </div>
-            ))}
+                    </a>
+                  </article>
+                </div>
+              ))}
+            </div>
           </div>
+
+          {/* Navigation Buttons */}
+          <button
+            type="button"
+            class="embla__button embla__button--prev absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-12 h-12 rounded-full bg-bg border-2 border-border shadow-lg hover:bg-primary hover:border-primary transition-all duration-300 flex items-center justify-center z-10 disabled:opacity-30 disabled:cursor-not-allowed"
+            aria-label="Previous slide"
+            data-carousel-prev
+          >
+            <svg
+              class="w-6 h-6 text-text"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+          </button>
+
+          <button
+            type="button"
+            class="embla__button embla__button--next absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-12 h-12 rounded-full bg-bg border-2 border-border shadow-lg hover:bg-primary hover:border-primary transition-all duration-300 flex items-center justify-center z-10 disabled:opacity-30 disabled:cursor-not-allowed"
+            aria-label="Next slide"
+            data-carousel-next
+          >
+            <svg
+              class="w-6 h-6 text-text"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </button>
+
+          {/* Dots Navigation */}
+          <div
+            class="embla__dots flex gap-2 justify-center mt-8"
+            role="group"
+            aria-label="Carousel navigation"
+            data-carousel-pagination
+          />
         </div>
-
-        {/* Navigation Buttons */}
-        <button
-          type="button"
-          class="embla__button embla__button--prev absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-12 h-12 rounded-full bg-bg border-2 border-border shadow-lg hover:bg-primary hover:border-primary transition-all duration-300 flex items-center justify-center z-10 disabled:opacity-30 disabled:cursor-not-allowed"
-          aria-label="Previous slide"
-        >
-          <svg
-            class="w-6 h-6 text-text"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
-        </button>
-
-        <button
-          type="button"
-          class="embla__button embla__button--next absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-12 h-12 rounded-full bg-bg border-2 border-border shadow-lg hover:bg-primary hover:border-primary transition-all duration-300 flex items-center justify-center z-10 disabled:opacity-30 disabled:cursor-not-allowed"
-          aria-label="Next slide"
-        >
-          <svg
-            class="w-6 h-6 text-text"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M9 5l7 7-7 7"
-            />
-          </svg>
-        </button>
-
-        {/* Dots Navigation */}
-        <div
-          class="embla__dots flex gap-2 justify-center mt-8"
-          role="group"
-          aria-label="Carousel navigation"
-        />
-      </div>
-    </section>
+      </section>
+    </carousel-slider>
   )
 }
 
 <script>
-  import { CarouselManager } from '@components/Carousel/client'
-
-  document.addEventListener('astro:page-load', () => {
-    CarouselManager.init()
-  })
+  import '@components/Carousel/client'
 </script>
