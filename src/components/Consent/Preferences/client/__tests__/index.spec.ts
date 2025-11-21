@@ -113,6 +113,7 @@ describe('ConsentPreferencesElement', () => {
       mockModal = mockDiv('consent-modal-modal-id')
       mockCloseBtn = mockButton('consent-modal__close-btn')
       mockCloseBtn.classList.add('consent-modal__close-btn')
+      mockCloseBtn.dataset['testid'] = 'consent-preferences-close'
       mockAllowBtn = mockButton('consent-allow-all')
       mockSaveBtn = mockButton('consent-save-preferences')
 

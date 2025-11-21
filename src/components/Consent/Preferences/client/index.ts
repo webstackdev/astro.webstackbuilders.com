@@ -6,12 +6,6 @@
 
 import { LitElement } from 'lit'
 import { isInputElement } from '@components/scripts/assertions/elements'
-import {
-  getConsentCustomizeModal,
-  getConsentCustomizeCloseBtn,
-  getAllowAllBtn,
-  getSavePreferencesBtn,
-} from '@components/Consent/Preferences/selectors'
 import { addButtonEventListeners } from '@components/scripts/elementListeners'
 import {
   updateConsent,
@@ -19,6 +13,12 @@ import {
   createConsentController,
   type ConsentState
 } from '@components/scripts/store'
+import {
+  getConsentCustomizeModal,
+  getConsentCustomizeCloseBtn,
+  getAllowAllBtn,
+  getSavePreferencesBtn,
+} from '@components/Consent/Preferences/client/selectors'
 
 /**
  * Consent Preferences web component
@@ -31,6 +31,7 @@ export class ConsentPreferencesElement extends LitElement {
   private closeBtn: HTMLButtonElement | null = null
   private allowAllBtn: HTMLButtonElement | null = null
   private saveBtn: HTMLButtonElement | null = null
+  private toggleLabels: HTMLLabelElement[] = []
 
   override createRenderRoot() {
     return this
@@ -39,6 +40,11 @@ export class ConsentPreferencesElement extends LitElement {
   override connectedCallback() {
     super.connectedCallback()
     this.initialize()
+  }
+
+  override disconnectedCallback(): void {
+    this.cleanupToggleLabelListeners()
+    super.disconnectedCallback()
   }
 
   private initialize(): void {
@@ -97,6 +103,41 @@ export class ConsentPreferencesElement extends LitElement {
     // Save preferences button
     if (this.saveBtn) {
       addButtonEventListeners(this.saveBtn, () => this.savePreferences())
+    }
+
+    this.bindToggleLabelListeners()
+  }
+
+  private bindToggleLabelListeners(): void {
+    this.cleanupToggleLabelListeners()
+    this.toggleLabels = Array.from(
+      this.querySelectorAll<HTMLLabelElement>('[data-consent-toggle]'),
+    )
+
+    this.toggleLabels.forEach((label) => {
+      label.addEventListener('click', this.handleToggleLabelClick)
+    })
+  }
+
+  private cleanupToggleLabelListeners(): void {
+    this.toggleLabels.forEach((label) => {
+      label.removeEventListener('click', this.handleToggleLabelClick)
+    })
+    this.toggleLabels = []
+  }
+
+  private handleToggleLabelClick = (event: Event): void => {
+    event.preventDefault()
+    const label = event.currentTarget as HTMLLabelElement | null
+    const checkboxId = label?.getAttribute('data-consent-toggle')
+
+    if (!checkboxId) {
+      return
+    }
+
+    const checkbox = document.getElementById(checkboxId)
+    if (isInputElement(checkbox)) {
+      checkbox.checked = !checkbox.checked
     }
   }
 

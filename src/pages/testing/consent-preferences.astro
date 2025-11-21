@@ -1,0 +1,24 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro'
+import ConsentPreferences from '@components/Consent/Preferences/index.astro'
+
+const pageTitle = 'Consent Preferences Testing Ground'
+const pageDescription = 'Isolated render of the consent preferences modal for QA and automation coverage.'
+const pagePath = '/testing/consent-preferences'
+---
+
+<BaseLayout pageTitle={pageTitle} path={pagePath} description={pageDescription} noindex>
+  <section class="mx-auto mb-10 max-w-3xl space-y-4 text-lg text-offset">
+    <p>
+      This route renders the production consent preferences modal in isolation so automated tests
+      can interact with its web component without relying on marketing content or feature flags.
+    </p>
+    <p>
+      The markup below is identical to what ships with the consent banner customize experience,
+      ensuring we exercise the same selectors, accessibility attributes, and button wiring users
+      rely on when opting into different storage categories.
+    </p>
+  </section>
+
+  <ConsentPreferences />
+</BaseLayout>

@@ -8,7 +8,7 @@ export const SELECTORS = {
   /** Consent customize modal wrapper */
   modal: 'consent-modal-modal-id',
   /** Close button for modal */
-  closeBtn: '.consent-modal__close-btn',
+  closeBtn: '[data-testid="consent-preferences-close"]',
   /** Allow all consent button */
   allowAllBtn: 'consent-allow-all',
   /** Save preferences button */
@@ -35,7 +35,7 @@ export const getConsentCustomizeCloseBtn = (): HTMLButtonElement => {
   const closeBtn = document.querySelector(SELECTORS.closeBtn)
   if (!isButtonElement(closeBtn)) {
     throw new ClientScriptError(
-      `Consent customize close button with class '${SELECTORS.closeBtn}' not found`
+      `Consent customize close button with selector '${SELECTORS.closeBtn}' not found`
     )
   }
   return closeBtn
