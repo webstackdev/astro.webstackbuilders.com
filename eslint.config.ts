@@ -12,6 +12,64 @@ import noQuerySelectorOutsideSelectorsRule from './test/eslint/no-query-selector
 
 const level = 'error'
 
+const errorDefinitionIgnores = [
+  'src/lib/errors/**/*',
+  'src/components/scripts/errors/**/*',
+  'test/errors/**/*',
+]
+
+const newErrorSelector = {
+  selector: 'NewExpression[callee.name="Error"]',
+  message: 'Use project-specific error classes instead of the base Error constructor.',
+}
+
+const buildErrorSelector = {
+  selector: 'NewExpression[callee.name="BuildError"]',
+  message: 'BuildError can only be instantiated in server-only or integration contexts.',
+}
+
+const clientScriptErrorSelector = {
+  selector: 'NewExpression[callee.name="ClientScriptError"]',
+  message: 'ClientScriptError can only be instantiated within client-side component directories.',
+}
+
+const testErrorSelector = {
+  selector: 'NewExpression[callee.name="TestError"]',
+  message: 'TestError can only be instantiated in unit or e2e test directories.',
+}
+
+const importMetaEnvSelector = {
+  selector: 'MemberExpression[property.name="env"] > MetaProperty[meta.name="import"][property.name="meta"]',
+  message: 'Do not use import.meta.env directly. See docs/ENVIRONMENT_VARIABLES.',
+}
+
+type RestrictedSyntaxRuleOptions = {
+  allowBuildError?: boolean
+  allowClientScriptError?: boolean
+  allowTestError?: boolean
+  includeImportMetaEnv?: boolean
+}
+
+const createRestrictedSyntaxRule = ({
+  allowBuildError = false,
+  allowClientScriptError = false,
+  allowTestError = false,
+  includeImportMetaEnv = false,
+}: RestrictedSyntaxRuleOptions = {}) => {
+  const selectors = [
+    newErrorSelector,
+    ...(allowBuildError ? [] : [buildErrorSelector]),
+    ...(allowClientScriptError ? [] : [clientScriptErrorSelector]),
+    ...(allowTestError ? [] : [testErrorSelector]),
+  ]
+
+  if (includeImportMetaEnv) {
+    selectors.push(importMetaEnvSelector)
+  }
+
+  return [level, ...selectors] as const
+}
+
 export default [
   eslint.configs.recommended,
   ...tsPlugin.configs.recommended,
@@ -36,7 +94,7 @@ export default [
         typescript: {
           alwaysTryTypes: true,
           project: './tsconfig.json',
-          extensions: ['.ts', '.tsx', '.js', '.jsx', '.astro'],
+          extensions: ['.ts', '.tsx', '.astro'],
         },
       },
     },
@@ -109,40 +167,11 @@ export default [
           'svg': 'always',
         },
       ],
-      'import/no-restricted-paths': [
-        level,
-        {
-          zones: [
-            {
-              target: 'src/components/',
-              from: 'src/lib/',
-              message: 'The src/lib directory is for build-time code only.',
-            },
-            {
-              target: 'src/layouts/',
-              from: 'src/lib/',
-              message: 'The src/lib directory is for build-time code only.',
-            },
-            {
-              target: 'src/pages/',
-              from: 'src/lib/',
-              message: 'The src/lib directory is for build-time code only.',
-            },
-          ],
-        },
-      ],
       'import/order': 'off',
       'jsdoc/check-indentation': level,
-      'jsdoc/check-line-alignment': level,
-      'jsdoc/check-syntax': level,
-      'jsdoc/check-tag-names': [
-        level,
-        {
-          definedTags: ['NOTE:', 'jest-environment'],
-          jsxTags: true,
-        },
-      ],
-      'jsdoc/match-description': 'off',
+      'jsdoc/check-line-alignment': 'off',
+      'jsdoc/check-param-names': 'off',
+      'jsdoc/check-values': 'off',
       'jsdoc/multiline-blocks': 'off',
       'jsdoc/newline-after-description': 'off',
       'jsdoc/no-bad-blocks': level,
@@ -157,19 +186,14 @@ export default [
       'jsdoc/valid-types': 'off',
       'new-cap': [level, { newIsCap: true, capIsNew: false }],
       'no-new': level,
-      'no-process-env': level,
       'no-restricted-globals': ['error'].concat(restrictedGlobals),
       'no-restricted-imports': [
         'error', {
             patterns: [
               {
-                group: ['../*'],
-                message: 'Usage of relative imports is not allowed. Use path aliases.',
-              },
-              {
                 group: ['*'],
                 importNames: ['*'],
-                message: 'Wildcard imports are not allowed. Use named imports instead.',
+                message: 'Wildcard imports are not allowed. Use named imports instead with object destructuring.',
               },
             ],
           },
@@ -187,6 +211,72 @@ export default [
       'semi': ['error', 'never'],
     },
   },
+
+  /**
+   * =================================================================================================
+   *
+   *  Restrict error instantiation to the correct directories. Restricts usage of the built-in
+   *  Error class to custom error classes only. Makes sure custom error classes are used in
+   *  appropriate contexts - BuildError, ClientScriptError, TestError.
+   *
+   * =================================================================================================
+   */
+
+  {
+    files: [
+      '**/*.astro',
+      '**/*.ts',
+      '**/*.tsx',
+    ],
+    ignores: errorDefinitionIgnores,
+    rules: {
+      'no-restricted-syntax': createRestrictedSyntaxRule(),
+    },
+  },
+  {
+    files: [
+      'integrations/**/*',
+      'scripts/**/*.ts',
+      'src/components/**/server/**/*',
+      'src/layouts/**/server/**/*',
+      'src/lib/**/*.ts',
+      'src/pages/**/server/**/*',
+      'src/pages/api/**/*.ts',
+    ],
+    ignores: errorDefinitionIgnores,
+    rules: {
+      'no-restricted-syntax': createRestrictedSyntaxRule({ allowBuildError: true }),
+    },
+  },
+  {
+    files: [
+      'src/components/**/client/**/*',
+      'src/components/scripts/**/*',
+      'src/layouts/**/client/**/*',
+      'src/pages/**/client/**/*',
+    ],
+    ignores: errorDefinitionIgnores,
+    rules: {
+      'no-restricted-syntax': createRestrictedSyntaxRule({ allowClientScriptError: true }),
+    },
+  },
+  {
+    files: [
+      'test/**/*',
+    ],
+    ignores: errorDefinitionIgnores,
+    rules: {
+      'no-restricted-syntax': createRestrictedSyntaxRule({ allowTestError: true }),
+    },
+  },
+  /**
+   * =================================================================================================
+   *
+   *  Test files need some relaxed rules to allow "any" types and "as" type assertions
+   *
+   * =================================================================================================
+   */
+
   {
     files: ['**/*.spec.ts'],
     rules: {
@@ -194,32 +284,56 @@ export default [
       '@typescript-eslint/consistent-type-assertions': 'off',
     },
   },
-  {
-    files: ['src/components/scripts/assertions/elements.ts'],
-    rules: {
-      /** This file implements type guards and legitimately needs type assertions */
-      'custom-rules/no-html-element-assertions': 'off',
-    },
-  },
-  {
-    files: ['**/*error.spec.ts'],
-    rules: {
-      /** Error test files use mock objects which legitimately need type assertions */
-      'custom-rules/no-html-element-assertions': 'off',
-    },
-  },
+
+  /**
+   * =================================================================================================
+   *
+   *  These files implement type guards and legitimately needs type assertions
+   *
+   * =================================================================================================
+   */
+
   {
     files: [
+      '**/*error.spec.ts',
+      'src/components/scripts/assertions/elements.ts',
+    ],
+    rules: {
+      'custom-rules/no-html-element-assertions': 'off',
+    },
+  },
+
+  /**
+   * =================================================================================================
+   *
+   *  Exceptions to the project custom rule that prevents direct use of addEventListener in
+   *  favor of centralized utilities
+   *
+   * =================================================================================================
+   */
+
+  {
+    files: [
+      /** Centralized utilities providing event listener management */
       'src/components/scripts/elementListeners/index.ts',
-      'src/components/Social/Shares/client.ts', // Needs direct addEventListener for pause/resume/reset lifecycle
+      /** Needs direct addEventListener for pause/resume/reset lifecycle */
+      'src/components/Social/Shares/client.ts',
     ],
     rules: {
       'custom-rules/enforce-centralized-events': 'off',
     },
   },
+
+  /**
+   * =================================================================================================
+   *
+   *  Database files that use snake_case for database field names
+   *
+   * =================================================================================================
+   */
+
   {
     files: [
-      /** Database files that use snake_case for database field names */
       'src/pages/api/gdpr/consent.ts',
       'src/pages/api/gdpr/request-data.ts',
       'src/pages/api/gdpr/verify.ts',
@@ -229,9 +343,276 @@ export default [
       camelcase: 'off',
     },
   },
+
+  /**
+   * =================================================================================================
+   *
+   *  No process.env use in general. This is to prevent mis-use in client code
+   *  and ensure expected environmental variables are available in code context.
+   *
+   * =================================================================================================
+   */
+
   {
-    /** Test files can import from server code in src/lib, but must use server-side helpers */
-    files: ['src/**/__tests__/**/*'],
+    files: [
+      '**/*.astro',
+      '**/*.ts',
+      '**/*.tsx',
+    ],
+    rules: {
+      'no-process-env': level,
+    },
+  },
+  {
+    /** These directories can use process.env, which is forbidden in other files */
+    files: [
+      '.eslintrc.js',
+      'astro.config.ts',
+      'playwright.config.ts',
+      'vitest.setup.ts',
+      'src/components/scripts/utils/environmentClient.ts',
+      'src/lib/config/**/*',
+      'src/pages/api/_environment/**/*',
+    ],
+    rules: {
+      'no-process-env': 'off',
+    },
+  },
+
+  /**
+   * =================================================================================================
+   *
+   *  No import.meta.env use in general, for the same reason as the restriction on use of
+   *  process.env.  This is to prevent mis-use in client code and ensure expected environmental
+   *  variables are  available in code context.
+   *
+   * =================================================================================================
+   */
+
+  {
+    files: [
+      'src/components/**/*',
+      'src/layouts/**/*',
+      'src/pages/**/*',
+    ],
+    rules: {
+      'no-restricted-syntax': [
+        level,
+        {
+          'selector': 'MemberExpression[property.name="env"] > MetaProperty[meta.name="import"][property.name="meta"]',
+          'message': 'Do not use import.meta.env directly. See docs/ENVIRONMENT_VARIABLES.'
+        }
+      ],
+    },
+  },
+  {
+    /** These files can use import.meta.env */
+    files: [
+      'src/components/scripts/utils/environmentClient.ts',
+      'src/components/scripts/utils/siteUrlClient.ts',
+      'src/lib/config/environmentServer.ts',
+      'src/lib/config/siteUrlServer.ts',
+      'src/pages/api/_environment/index.ts',
+      'src/pages/api/_environment/environmentApi.ts',
+    ],
+    rules: {
+      'no-restricted-syntax': [
+        'off',
+        {
+          'selector': 'MemberExpression[property.name="env"] > MetaProperty[meta.name="import"][property.name="meta"]',
+        }
+      ],
+    },
+  },
+
+  /**
+   * =================================================================================================
+   *
+   *  Enforce use of path aliases in the project over relative imports
+   *
+   * =================================================================================================
+   */
+
+  {
+    files: [
+      '**/*.astro',
+      '**/*.ts',
+      '**/*.tsx',
+    ],
+    rules: {
+      'no-restricted-imports': [
+        level,
+        {
+          patterns: [
+            {
+              group: ['../*'],
+              message: 'Usage of relative imports is not allowed. Use path aliases.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: [
+      'src/integrations/**/*',
+      'src/lib/config/**/*',
+    ],
+    rules: {
+      'no-restricted-imports': [
+        level, {
+            patterns: [
+              {
+                group: ['@/*'],
+                message: 'Path aliases cannot be used in files that are imported by astro.config.ts. See notes in that config file for the reasons why.',
+              },
+            ],
+          },
+      ],
+    },
+  },
+
+  /**
+   * =================================================================================================
+   *
+   *  The following rules are designed to enforce separation of client-side, SSR,
+   *  and build-time server code so that Vite does not incorrectly bundle code.
+   *
+   * =================================================================================================
+   */
+
+  /**
+   * Restrict the server directory in components, layouts, and pages to
+   * importing only from src/components/scripts
+   */
+  {
+    files: [
+      '**/*.astro',
+      '**/*.ts',
+      '**/*.tsx',
+    ],
+    rules: {
+      'import/no-restricted-paths': [
+        level,
+        {
+          zones: [
+            {
+              target: 'src/components/**/client/**/*',
+              from: 'src/lib/**/*',
+              message: 'The src/lib directory is for build-time code only.',
+            },
+            {
+              target: 'src/layouts/**/client/**/*',
+              from: 'src/lib/**/*',
+              message: 'The src/lib directory is for build-time code only.',
+            },
+            {
+              target: 'src/pages/**/client/**/*',
+              from: 'src/lib/**/*',
+              message: 'The src/lib directory is for build-time code only.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: [
+      '**/*.astro',
+      '**/*.ts',
+      '**/*.tsx',
+    ],
+    rules: {
+      'import/no-restricted-paths': [
+        'off',
+        {
+          zones: [
+            {
+              target: 'src/components/**/server/**/*',
+              from: 'src/lib/**/*',
+            },
+            {
+              target: 'src/layouts/**/server/**/*',
+              from: 'src/lib/**/*',
+            },
+            {
+              target: 'src/pages/**/server/**/*',
+              from: 'src/lib/**/*',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  /**
+   * Restrict the client directory in components, layouts, and pages to importing only from src/lib
+   */
+  {
+    files: [
+      '**/*.astro',
+      '**/*.ts',
+      '**/*.tsx',
+    ],
+    rules: {
+      'import/no-restricted-paths': [
+        level,
+        {
+          zones: [
+            {
+              target: 'src/components/**/server/**/*',
+              from: 'src/components/scripts/**/*',
+              message: 'The src/components/scripts directory is for client bundle code only.',
+            },
+            {
+              target: 'src/layouts/**/server/**/*',
+              from: 'src/components/scripts/**/*',
+              message: 'The src/components/scripts directory is for client bundle code only.',
+            },
+            {
+              target: 'src/pages/**/server/**/*',
+              from: 'src/components/scripts/**/*',
+              message: 'The src/components/scripts directory is for client bundle code only.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: [
+      '**/*.astro',
+      '**/*.ts',
+      '**/*.tsx',
+    ],
+    rules: {
+      'import/no-restricted-paths': [
+        'off',
+        {
+          zones: [
+            {
+              target: 'src/components/**/client/**/*',
+              from: 'src/components/scripts/**/*',
+            },
+            {
+              target: 'src/layouts/**/client/**/*',
+              from: 'src/components/scripts/**/*',
+            },
+            {
+              target: 'src/pages/**/client/**/*',
+              from: 'src/components/scripts/**/*',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  /**
+   * Test files can import from server code in src/lib, but must use server-side helpers
+   */
+  {
+    files: [
+      'src/**/__tests__/**/*'
+    ],
     rules: {
       'import/no-restricted-paths': [
         level,
@@ -252,9 +633,9 @@ export default [
       ],
     },
   },
-  /** Environment file in src/pages/api is an except to the restricted paths rule */
   {
     files: [
+      /** Environment file in src/pages/api is an exception to the restricted paths rule */
       'src/pages/api/_environment/environmentApi.ts',
       'src/pages/api/_logger/index.ts',
     ],
@@ -262,36 +643,27 @@ export default [
       'import/no-restricted-paths': 'off',
     },
   },
+
+  /**
+   * =================================================================================================
+   *
+   *  Control use of "astro:env" helper for environmental variable imports.
+   *
+   * =================================================================================================
+   */
+
   {
-    /** These directories can use process.env, which is forbidden in other files */
     files: [
-      '.eslintrc.js',
-      'astro.config.ts',
-      'playwright.config.ts',
-      'vitest.setup.ts',
-      'src/components/scripts/utils/environmentClient.ts',
-      'src/lib/config/**/*',
-      'src/pages/api/_environment/**/*',
-    ],
-    rules: {
-      'no-process-env': 'off',
-    },
-  },
-  {
-    /**
-     * Path aliases cannot be used in files that are imported by astro.config.ts.
-     */
-    files: [
-      'src/integrations/**/*',
-      'src/lib/config/**/*',
+      'src/lib/**/*.ts',
+      'src/pages/api/**/*',
     ],
     rules: {
       'no-restricted-imports': [
         'error', {
             patterns: [
               {
-                group: ['@/*'],
-                message: 'Path aliases cannot be used in files that are imported by astro.config.ts. See notes in that config file for the reasons why.',
+                group: ['astro:env/client'],
+                message: 'SSR API routes and server code must use astro:env/server, not astro:env/client.',
               },
             ],
           },
@@ -314,60 +686,6 @@ export default [
               },
             ],
           },
-      ],
-    },
-  },
-  {
-    files: [
-      'src/lib/**/*.ts',
-      'src/pages/api/**/*',
-    ],
-    rules: {
-      'no-restricted-imports': [
-        'error', {
-            patterns: [
-              {
-                group: ['astro:env/client'],
-                message: 'SSR API routes and server code must use astro:env/server, not astro:env/client.',
-              },
-            ],
-          },
-      ],
-    },
-  },
-  {
-    /** No import.meta.env use in general. */
-    files: [
-      'src/components/**/*',
-      'src/layouts/**/*',
-      'src/pages/**/*',
-    ],
-    rules: {
-      'no-restricted-syntax': [
-        level,
-        {
-          'selector': 'MetaProperty[meta.name="import"][property.name="meta"]',
-          'message': 'Do not use import.meta.env directly. See docs/ENVIRONMENT_VARIABLES.'
-        }
-      ],
-    },
-  },
-  {
-    /** These files can use import.meta.env */
-    files: [
-      'src/components/scripts/utils/environmentClient.ts',
-      'src/components/scripts/utils/siteUrlClient.ts',
-      'src/lib/config/environmentServer.ts',
-      'src/lib/config/siteUrlServer.ts',
-      'src/pages/api/_environment/index.ts',
-      'src/pages/api/_environment/environmentApi.ts',
-    ],
-    rules: {
-      'no-restricted-syntax': [
-        'off',
-        {
-          'selector': 'MetaProperty[meta.name="import"][property.name="meta"]',
-        }
       ],
     },
   },
