@@ -3,6 +3,7 @@
  */
 import { describe, expect, test, vi } from 'vitest'
 import { formatPhoneNumber } from '@components/Footer/server'
+import { BuildError } from '@lib/errors/BuildError'
 
 // Mock the logger
 vi.mock('@lib/logger', () => ({
@@ -27,19 +28,16 @@ describe(`formatPhoneNumber helper`, () => {
     expect(result).toBe('(800) 555-1234')
   })
 
-  test(`returns undefined for invalid phone number`, () => {
-    const result = formatPhoneNumber('invalid')
-    expect(result).toBeUndefined()
+  test(`throws BuildError for invalid phone number`, () => {
+    expect(() => formatPhoneNumber('invalid')).toThrowError(BuildError)
   })
 
-  test(`returns undefined for empty string`, () => {
-    const result = formatPhoneNumber('')
-    expect(result).toBeUndefined()
+  test(`throws BuildError for empty string`, () => {
+    expect(() => formatPhoneNumber('')).toThrowError(BuildError)
   })
 
-  test(`returns undefined for number without country code`, () => {
-    const result = formatPhoneNumber('2133734253')
-    expect(result).toBeUndefined()
+  test(`throws BuildError for number without country code`, () => {
+    expect(() => formatPhoneNumber('2133734253')).toThrowError(BuildError)
   })
 
   test(`handles phone number with extra characters`, () => {

@@ -3,7 +3,7 @@
  * Functions used during build process in Astro frontmatter
  */
 import parsePhoneNumber from 'libphonenumber-js'
-import { ClientScriptError } from '@components/scripts/errors'
+import { BuildError } from '@lib/errors/BuildError'
 
 /**
  * Format a phone number in standard format
@@ -14,7 +14,7 @@ import { ClientScriptError } from '@components/scripts/errors'
 export const formatPhoneNumber = (phoneNumber: string) => {
   const parsedPhoneNumber = parsePhoneNumber(phoneNumber)
   if (!parsedPhoneNumber) {
-    throw new ClientScriptError({
+    throw new BuildError({
       message: `Trying to format invalid phone number: ${phoneNumber}`
     })
   }

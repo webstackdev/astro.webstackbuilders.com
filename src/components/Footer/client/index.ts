@@ -1,47 +1,61 @@
 /**
- * Script for the Footer component
+ * Footer web component
+ * Updates the "Hire Me" CTA text once connected
  */
+import { LitElement } from 'lit'
 import { getHireMeAnchorElement } from '@components/Footer/client/selectors'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
 
-class Footer {
-  static scriptName = 'Footer'
+class FooterElement extends LitElement {
+  private hireMeAnchor: HTMLAnchorElement | null = null
+
+  override createRenderRoot() {
+    return this
+  }
+
+  override connectedCallback(): void {
+    super.connectedCallback()
+    this.initialize()
+  }
+
+  private initialize(): void {
+    const context = { scriptName: 'FooterElement', operation: 'initialize' }
+    addScriptBreadcrumb(context)
+
+    try {
+      if (!this.hireMeAnchor) {
+        this.hireMeAnchor = getHireMeAnchorElement(this)
+      }
+
+      this.updateHireMeCopy()
+    } catch (error) {
+      handleScriptError(error, context)
+    }
+  }
+
+  private updateHireMeCopy(): void {
+    if (!this.hireMeAnchor) {
+      return
+    }
+
+    const date = new Date()
+    const month = FooterElement.getMonthName(date)
+    const year = date.getFullYear()
+
+    this.hireMeAnchor.innerHTML = `Available ${month}, ${year}. Hire Me Now`
+    this.hireMeAnchor.style.display = 'inline-block'
+  }
 
   private static getMonthName(date: Date): string {
     const monthDate = new Date(date)
     monthDate.setMonth(monthDate.getMonth() - 1)
     return monthDate.toLocaleString('en-US', { month: 'long' })
   }
-
-  static init(): void {
-    const context = { scriptName: Footer.scriptName, operation: 'init' }
-    addScriptBreadcrumb(context)
-
-    try {
-      const anchor = getHireMeAnchorElement()
-      const date = new Date()
-      const month = Footer.getMonthName(date)
-      const year = date.getFullYear()
-      anchor.innerHTML = `Available ${month}, ${year}. Hire Me Now`
-      anchor.style.display = 'inline-block'
-    } catch (error) {
-      // Footer date is optional enhancement
-      handleScriptError(error, context)
-    }
-  }
-
-  static pause(): void {
-    // No pause functionality needed for Footer
-  }
-
-  static resume(): void {
-    // No resume functionality needed for Footer
-  }
-
-  static reset(): void {
-    // No reset functionality needed for Footer
-  }
 }
 
-export { Footer }
+if (!customElements.get('site-footer')) {
+  customElements.define('site-footer', FooterElement)
+}
+
+export { FooterElement }

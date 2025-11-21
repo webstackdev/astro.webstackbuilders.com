@@ -1,23 +1,16 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { Footer } from '@components/Footer/client'
+// @vitest-environment happy-dom
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest'
+import { FooterElement } from '@components/Footer/client'
 
 // Mock the selectors module
-vi.mock('@components/Footer/selectors')
+vi.mock('@components/Footer/client/selectors', () => ({
+  getHireMeAnchorElement: vi.fn(),
+}))
 
 import { getHireMeAnchorElement } from '@components/Footer/client/selectors'
 
-// No MockDate needed, using fake timers for Date
-
-describe('Footer', () => {
-  const mockAnchor = {
-    innerHTML: '',
-    style: {
-      display: '',
-    },
-  }
-
+describe('FooterElement', () => {
   beforeEach(() => {
-    ;(getHireMeAnchorElement as any).mockReturnValue(mockAnchor)
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2024-10-17'))
   })
@@ -27,30 +20,18 @@ describe('Footer', () => {
     vi.clearAllMocks()
   })
 
-  it('should update hire me anchor with current date on init', () => {
+  it('updates the hire me anchor with availability copy when connected', () => {
     const anchor = {
-      ...mockAnchor,
-      innerHTML: 'Old text',
-      style: { ...mockAnchor.style, display: 'none' },
-    }
+      innerHTML: '',
+      style: { display: 'none' },
+    } as unknown as HTMLAnchorElement
+    ;(getHireMeAnchorElement as Mock).mockReturnValue(anchor)
 
-    ;(getHireMeAnchorElement as any).mockReturnValue(anchor)
+    const element = new FooterElement()
+    element.connectedCallback()
 
-    Footer.init()
-
+    expect(getHireMeAnchorElement).toHaveBeenCalledWith(element)
     expect(anchor.innerHTML).toBe('Available September, 2024. Hire Me Now')
     expect(anchor.style.display).toBe('inline-block')
-  })
-
-  it('should handle pause', () => {
-    expect(() => Footer.pause()).not.toThrow()
-  })
-
-  it('should handle resume', () => {
-    expect(() => Footer.resume()).not.toThrow()
-  })
-
-  it('should handle reset', () => {
-    expect(() => Footer.reset()).not.toThrow()
   })
 })

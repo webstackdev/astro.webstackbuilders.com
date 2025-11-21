@@ -12,11 +12,11 @@ export const SELECTORS = {
 /**
  * Getter for the header <span> HTML element that wraps the menu
  */
-export const getHireMeAnchorElement = (): HTMLAnchorElement => {
-  const anchor = document.querySelector(SELECTORS.hireMeAnchor)
+export const getHireMeAnchorElement = (scope: ParentNode = document): HTMLAnchorElement => {
+  const anchor = scope.querySelector(SELECTORS.hireMeAnchor)
   if (!isAnchorElement(anchor)) {
     throw new ClientScriptError({
-      message: `Footer anchor for "Hire Me" element, selector: ${SELECTORS.hireMeAnchor}`
+      message: `Footer anchor for "Hire Me" element, selector: ${SELECTORS.hireMeAnchor}`,
     })
   }
   return anchor

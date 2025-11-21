@@ -47,7 +47,7 @@ test.describe('Footer Component', () => {
     const page = await BasePage.init(playwrightPage)
     await page.goto('/')
     await page.expectElementVisible('footer[role="contentinfo"] a[href*="privacy"]')
-    await page.expectElementVisible('footer[role="contentinfo"] a[href*="cookie"]')
+    await page.expectElementVisible('footer[role="contentinfo"] a[href*="consent"]')
   })
 
   test('@ready footer links are functional', async ({ page: playwrightPage }) => {
