@@ -1,6 +1,7 @@
 ---
 // ContactForm.astro - Reusable contact form component
 import GDPRConsent from '@components/GDPR/Consent/index.astro'
+import UploadPlaceholder from './upload.astro'
 ---
 
 <contact-form>
@@ -16,7 +17,16 @@ import GDPRConsent from '@components/GDPR/Consent/index.astro'
       </p>
     </div>
 
-    <form class="space-y-8" id="contactForm" method="post" enctype="multipart/form-data">
+    <form class="space-y-8" id="contactForm" method="post" enctype="multipart/form-data" novalidate>
+      <div
+        id="formErrorBanner"
+        class="hidden rounded-xl border border-danger bg-danger/10 text-danger px-4 py-3"
+        role="alert"
+        aria-live="assertive"
+      >
+        Please fix the errors in your message and hit the submit button again.
+      </div>
+
       <!-- Personal Information -->
       <div class="pb-6 border-b border-border">
         <h3 class="flex items-center text-xl font-semibold text-text mb-6">
@@ -39,6 +49,11 @@ import GDPRConsent from '@components/GDPR/Consent/index.astro'
               minlength="2"
               maxlength="100"
             />
+            <p
+              class="hidden text-sm text-danger"
+              data-field-error="name"
+              aria-live="polite"
+            ></p>
           </div>
 
           <div class="space-y-2">
@@ -53,6 +68,11 @@ import GDPRConsent from '@components/GDPR/Consent/index.astro'
               required
               placeholder="your.email@example.com"
             />
+            <p
+              class="hidden text-sm text-danger"
+              data-field-error="email"
+              aria-live="polite"
+            ></p>
           </div>
         </div>
 
@@ -168,6 +188,11 @@ import GDPRConsent from '@components/GDPR/Consent/index.astro'
             placeholder="Describe your project, goals, target audience, and any specific requirements..."
             minlength="10"
             maxlength="2000"></textarea>
+          <p
+            class="hidden text-sm text-danger"
+            data-field-error="message"
+            aria-live="polite"
+          ></p>
           <div class="text-right text-sm text-text-offset">
             <span id="charCount">0</span>/2000 characters
           </div>
@@ -188,7 +213,9 @@ import GDPRConsent from '@components/GDPR/Consent/index.astro'
         <div
           class="border-2 border-dashed border-border rounded-xl p-8 text-center bg-bg-offset hover:border-primary-hover transition-colors duration-200"
         >
-          <div id="uppyContainer"></div>
+          <div id="uppyContainer" hidden>
+            <UploadPlaceholder />
+          </div>
           <div class="mt-4 space-y-2">
             <p class="text-sm text-text-offset">
               <strong>Supported formats:</strong> PDF, DOC, DOCX, JPG, PNG, GIF, WebP, MP3, WAV, MP4,

@@ -4,7 +4,7 @@ import { Footer } from '@components/Footer/client'
 // Mock the selectors module
 vi.mock('@components/Footer/selectors')
 
-import { getHireMeAnchorElement } from '@components/Footer/selectors'
+import { getHireMeAnchorElement } from '@components/Footer/client/selectors'
 
 // No MockDate needed, using fake timers for Date
 

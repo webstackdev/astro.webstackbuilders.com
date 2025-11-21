@@ -9,6 +9,7 @@ const ALLOW_ALL_BUTTON = '#consent-allow-all'
 const SAVE_BUTTON = '#consent-save-preferences'
 const MODAL_SELECTOR = '#consent-modal-modal-id'
 const CLOSE_BUTTON = '[data-testid="consent-preferences-close"]'
+const TOAST = '[data-testid="consent-toast"]'
 
 const toggleLabel = (checkboxId: string): string => `[data-consent-toggle="${checkboxId}"]`
 
@@ -82,7 +83,9 @@ test.describe('Consent Preferences Component', () => {
     await expect(marketingCheckbox).not.toBeChecked()
 
     await page.locator(SAVE_BUTTON).click()
-    await expect(page.locator('text=Consent preferences saved successfully!')).toBeVisible()
+    const toast = page.locator(TOAST)
+    await expect(toast).toHaveText('Consent preferences saved successfully!')
+    await expect(toast).toHaveAttribute('data-toast-type', 'success')
   })
 
   test('@ready Allow All enables every category', async ({ page: playwrightPage }) => {
@@ -102,5 +105,9 @@ test.describe('Consent Preferences Component', () => {
     await expect(analyticsCheckbox).toBeChecked()
     await expect(functionalCheckbox).toBeChecked()
     await expect(marketingCheckbox).toBeChecked()
+
+    const toast = page.locator(TOAST)
+    await expect(toast).toHaveText('All consent enabled!')
+    await expect(toast).toHaveAttribute('data-toast-type', 'success')
   })
 })

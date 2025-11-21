@@ -1,7 +1,7 @@
 /**
  * Script for the Footer component
  */
-import { getHireMeAnchorElement } from '@components/Footer/selectors'
+import { getHireMeAnchorElement } from '@components/Footer/client/selectors'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
 

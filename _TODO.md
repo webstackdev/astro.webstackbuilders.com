@@ -1,9 +1,25 @@
 # TODO
 
+## Centralize toast notifications to Toast component
+
+- Right now, the consent/preferences component has its own showNotification() method and toast handling. We have a centralized Toast component but is only being used for network availability right now. Maybe refactor to use a single Toast component, and move the network availability logic somewhere else like bootstrap.
+
+- Add an error-path test to consent/preferences component to simulate a failing network call and ensure the error variant renders.
+
+- Look at what other components might need toast handling and implement it.
+
 ## src/pages/api next steps
 
 1. build Supabase-aware fixtures to cover the GDPR endpoints (consent/request/export/verify) end-to-end
 2. add integration-style tests that exercise the DSAR flow using a lightweight fake DB layer.
+3. Do the same for RESEND and the contact endpoint
+4. Where are we uploading files to? We need to implement the Uppy library in ContactForm, but currently nowhere to send the files to
+5. Need to add network failure testing modes to component unit tests where it's possible, but this is related to the above Toast issue.
+
+Components that need full e2e testing implemented:
+
+- CallToAction/Newsletter
+- ContactForm
 
 ## Unit tests failure groups
 
@@ -44,6 +60,11 @@ Shared Types vs Swagger / Keeping Docs in Sync
 
 - Maintain an OpenAPI YAML/JSON file as the source of truth, run Swagger Codegen (or openapi-typescript) to produce both server stubs and client SDKs.
 - Guarantees: developers edit the spec, run codegen (enforced via a pre-commit/CI task), and the generated server stubs remind you to implement every path/verb. Documentation pages (Swagger UI) are rendered straight from the same spec, so they inherently match the implementation.
+
+Affected components:
+
+- CallToAction/Newsletter
+- ContactForm
 
 ## Files with Skipped Tests
 

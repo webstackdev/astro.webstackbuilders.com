@@ -1,4 +1,4 @@
-import { getHireMeAnchorElement } from '@components/Footer/selectors'
+import { getHireMeAnchorElement } from '@components/Footer/client/selectors'
 
 try {
   const wrapper = getHireMeAnchorElement()

@@ -14,7 +14,7 @@ import {
   messageWarnLength,
   messageMaxLength,
   nameMaxLength,
-} from '@components/ContactForm/error'
+} from '@components/ContactForm/client/errorMessages'
 
 describe('Error Messages and Validation', () => {
   describe('Message Length Validation', () => {
@@ -72,7 +72,7 @@ describe('Error Messages and Validation', () => {
         const text = mssgLengthWarningText(message)
 
         expect(text).toContain('close to the max length')
-        expect(text).toContain((1850 - messageMaxLength).toString())
+        expect(text).toContain((messageMaxLength - 1850).toString())
       })
 
       it('should calculate remaining characters correctly', () => {
@@ -81,7 +81,7 @@ describe('Error Messages and Validation', () => {
         lengths.forEach(length => {
           const message = 'a'.repeat(length)
           const text = mssgLengthWarningText(message)
-          const remaining = length - messageMaxLength
+          const remaining = messageMaxLength - length
 
           expect(text).toContain(remaining.toString())
         })
