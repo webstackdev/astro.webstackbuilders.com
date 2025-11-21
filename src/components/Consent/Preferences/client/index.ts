@@ -261,16 +261,21 @@ export class ConsentPreferencesElement extends LitElement {
     // Example: Clear marketing cookies
   }
 
-  private showNotification(message: string): void {
+  private showNotification(message: string, type: 'success' | 'error' = 'success'): void {
     document
       .querySelectorAll<HTMLDivElement>('[data-testid="consent-toast"]')
       .forEach((existingToast) => existingToast.remove())
 
+    const typeClasses: Record<'success' | 'error', string> = {
+      success: 'bg-green-600',
+      error: 'bg-red-600'
+    }
+
     // Create a simple notification
     const notification = document.createElement('div')
-    notification.className =
-      'fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300'
+    notification.className = `fixed top-4 right-4 ${typeClasses[type]} text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300`
     notification.dataset['testid'] = 'consent-toast'
+    notification.dataset['toastType'] = type
     notification.textContent = message
 
     document.body.appendChild(notification)
