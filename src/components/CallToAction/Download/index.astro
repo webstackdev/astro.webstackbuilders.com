@@ -1,10 +1,8 @@
 ---
 /**
- * Download Call-to-Action Component
+ * A lightweight banner/link used to funnel traffic to an existing
+ * download page, which is implemented by Forms/Download.
  */
-
-import { ClientScriptError } from '@components/scripts/errors'
-
 export interface Props {
   /** Name of the download resource (matches the folder name in content/downloads) */
   resource: string
@@ -28,12 +26,6 @@ const {
   buttonText = 'Download Now',
   secondaryLink,
 } = Astro.props
-
-// Validate that resource is provided
-if (!resource) {
-  const message = 'Download CTA component requires a "resource" prop'
-  throw new ClientScriptError({ message })
-}
 
 // Construct the download landing page URL
 const downloadUrl = `/downloads/${resource}`
