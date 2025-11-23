@@ -1,31 +1,46 @@
 /**
- * Provides Happy DOM utilities for Lit-powered Astro component tests.
+ * Provides JSDOM utilities for Lit-powered Astro component tests.
  * The helpers create scoped browser globals, load WebComponentModule contracts,
  * render Astro templates into sanitized DOM trees, and assert against the upgraded elements.
  */
-import { Window } from 'happy-dom'
-import type HappyDomNode from 'happy-dom/lib/nodes/node/Node'
-import type HappyDomDocumentFragment from 'happy-dom/lib/nodes/document-fragment/DocumentFragment'
+import { JSDOM } from 'jsdom'
 import type { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import { BuildError } from '@lib/errors/BuildError'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 
-type HappyDomGlobalKey = 'window' | 'document' | 'customElements' | 'HTMLElement'
-type HappyDomGlobals = Partial<Record<HappyDomGlobalKey, unknown>>
+type DomGlobalKey = 'window' | 'document' | 'customElements' | 'HTMLElement'
+type DomGlobals = Partial<Record<DomGlobalKey, unknown>>
+
+type DomWindow = Window & typeof globalThis
+
+let sharedDom: JSDOM | null = null
+let sharedWindow: DomWindow | null = null
+
+const getSharedWindow = (): DomWindow => {
+	if (!sharedDom || !sharedWindow) {
+		sharedDom = new JSDOM('<!doctype html><html><body></body></html>', {
+			pretendToBeVisual: true,
+			url: 'http://localhost',
+		})
+		sharedWindow = sharedDom.window as unknown as DomWindow
+	}
+
+	return sharedWindow
+}
 
 export type AstroComponentInstance = Parameters<AstroContainer['renderToString']>[0]
 export type AstroRenderArgs = Parameters<AstroContainer['renderToString']>[1]
 export type RenderResult = Awaited<ReturnType<AstroContainer['renderToString']>>
 
-export interface HappyDomEnvironmentContext {
-	window: Window
+export interface JsdomEnvironmentContext {
+	window: DomWindow
 }
 
-export type HappyDomEnvironmentCallback<TReturn> = (
-	_context: HappyDomEnvironmentContext,
+export type JsdomEnvironmentCallback<TReturn> = (
+	_context: JsdomEnvironmentContext,
 ) => Promise<TReturn> | TReturn
 
-export const setGlobalValue = (key: HappyDomGlobalKey, value: unknown): void => {
+export const setGlobalValue = (key: DomGlobalKey, value: unknown): void => {
 	if (value === undefined) {
 		delete (globalThis as Record<string, unknown>)[key]
 		return
@@ -34,7 +49,7 @@ export const setGlobalValue = (key: HappyDomGlobalKey, value: unknown): void => 
 	;(globalThis as Record<string, unknown>)[key] = value
 }
 
-const captureGlobalSnapshot = (): HappyDomGlobals => {
+const captureGlobalSnapshot = (): DomGlobals => {
 	const globalObject = globalThis as Record<string, unknown>
 	return {
 		window: globalObject['window'],
@@ -44,14 +59,14 @@ const captureGlobalSnapshot = (): HappyDomGlobals => {
 	}
 }
 
-const installHappyDomGlobals = (window: Window): void => {
+const installWindowGlobals = (window: DomWindow): void => {
 	setGlobalValue('window', window)
 	setGlobalValue('document', window.document)
 	setGlobalValue('customElements', window.customElements)
 	setGlobalValue('HTMLElement', window.HTMLElement)
 }
 
-const restoreGlobalSnapshot = (snapshot: HappyDomGlobals): void => {
+const restoreGlobalSnapshot = (snapshot: DomGlobals): void => {
 	setGlobalValue('window', snapshot.window)
 	setGlobalValue('document', snapshot.document)
 	setGlobalValue('customElements', snapshot.customElements)
@@ -59,22 +74,20 @@ const restoreGlobalSnapshot = (snapshot: HappyDomGlobals): void => {
 }
 
 /**
- * Provides a scoped Happy DOM environment for DOM-centric tests.
+ * Provides a scoped JSDOM environment for DOM-centric tests.
  */
-export const withHappyDomEnvironment = async <TReturn>(
-	callback: HappyDomEnvironmentCallback<TReturn>,
+export const withJsdomEnvironment = async <TReturn>(
+	callback: JsdomEnvironmentCallback<TReturn>,
 ): Promise<TReturn> => {
-	const window = new Window()
+	const window = getSharedWindow()
 	const snapshot = captureGlobalSnapshot()
 
-	installHappyDomGlobals(window)
+	installWindowGlobals(window)
 
 	try {
 		return await callback({ window })
 	} finally {
 		restoreGlobalSnapshot(snapshot)
-		await window.happyDOM?.whenAsyncComplete?.()
-		await window.happyDOM?.close?.()
 	}
 }
 
@@ -82,7 +95,7 @@ export type ModuleElement<TModule extends WebComponentModule> = TModule extends 
 	? TElement
 	: HTMLElement
 
-export interface RenderInHappyDomOptions<TModule extends WebComponentModule> {
+export interface RenderInJsdomOptions<TModule extends WebComponentModule> {
 	container: AstroContainer
 	component: AstroComponentInstance
 	args?: AstroRenderArgs
@@ -91,7 +104,7 @@ export interface RenderInHappyDomOptions<TModule extends WebComponentModule> {
 	waitForReady?: (_element: ModuleElement<TModule>) => Promise<void> | void
 	assert: (_context: {
 		element: ModuleElement<TModule>
-		window: Window
+		window: DomWindow
 		module: TModule
 		renderResult: RenderResult
 	}) => Promise<void> | void
@@ -121,44 +134,29 @@ const normalizeModuleSpecifier = (moduleSpecifier: string): string => {
 	return ensureExtension(moduleSpecifier)
 }
 
-export type HappyDomRenderer<TModule extends WebComponentModule> = (
-	_options: RenderInHappyDomOptions<TModule>,
+export type JsdomRenderer<TModule extends WebComponentModule> = (
+	_options: RenderInJsdomOptions<TModule>,
 ) => Promise<void>
 
-export const renderInHappyDom = async <TModule extends WebComponentModule>(
-	_options: RenderInHappyDomOptions<TModule>,
+export const renderInJsdom = async <TModule extends WebComponentModule>(
+	_options: RenderInJsdomOptions<TModule>,
 ): Promise<void> => {
 	const { container, component, args, moduleLoader, selector, waitForReady = defaultWaitForReady, assert } = _options
 
-	await withHappyDomEnvironment(async ({ window }) => {
+	await withJsdomEnvironment(async ({ window }) => {
 		const module = await moduleLoader()
+		await module.registerWebComponent(module.registeredName)
 
 		const renderedHtml: RenderResult = await container.renderToString(component, args)
 
 		const sanitizedHtml = sanitizeRenderedHtml(renderedHtml)
-		const template = window.document.createElement('template')
-		template.innerHTML = sanitizedHtml
-		await module.registerWebComponent(module.registeredName)
-		const fragment = template.content.cloneNode(true) as HappyDomDocumentFragment
-		const placeholders = Array.from(fragment.querySelectorAll(module.registeredName))
-		placeholders.forEach((placeholder) => {
-			const upgradedElement = window.document.createElement(module.registeredName)
-			Array.from(placeholder.attributes).forEach((attribute) => {
-				upgradedElement.setAttribute(attribute.name, attribute.value ?? '')
-			})
-			while (placeholder.firstChild) {
-				upgradedElement.appendChild(placeholder.firstChild as HappyDomNode)
-			}
-			placeholder.replaceWith(upgradedElement as HappyDomNode)
-		})
-		window.document.body.innerHTML = ''
-		window.document.body.appendChild(fragment as HappyDomNode)
+		window.document.body.innerHTML = sanitizedHtml
 
 		const querySelector = selector ?? module.registeredName
 		const element = window.document.querySelector(querySelector) as ModuleElement<TModule> | null
 		if (!element) {
 			throw BuildError.fileOperation(
-				`Unable to locate rendered element for selector "${querySelector}" during Happy DOM rendering`,
+				`Unable to locate rendered element for selector "${querySelector}" during JSDOM rendering`,
 			)
 		}
 
@@ -194,6 +192,7 @@ export const loadWebComponentModule = async <TModule extends WebComponentModule>
 	}
 
 	const imported = (await importer()) as ModuleImport<TModule>
+
 	if (!imported.webComponentModule) {
 		throw BuildError.fileOperation(
 			`Module "${moduleSpecifier}" does not export a webComponentModule contract`,
@@ -210,7 +209,7 @@ export interface ExecuteRenderOptions<TModule extends WebComponentModule> {
 	args?: AstroRenderArgs
 	selector?: string
 	waitForReady?: (_element: ModuleElement<TModule>) => Promise<void> | void
-	renderer?: HappyDomRenderer<TModule>
+	renderer?: JsdomRenderer<TModule>
 	assert: (_context: { element: ModuleElement<TModule>; module: TModule; renderResult: RenderResult }) => Promise<void> | void
 }
 
@@ -219,11 +218,11 @@ export const executeRender = async <TModule extends WebComponentModule>(
 ): Promise<void> => {
 	const { container, component, moduleSpecifier, args, selector, waitForReady, renderer, assert } = options
 
-	const rendererToUse: HappyDomRenderer<TModule> = renderer
+	const rendererToUse: JsdomRenderer<TModule> = renderer
 		? renderer
-		: (rendererOptions) => renderInHappyDom<TModule>(rendererOptions)
+		: (rendererOptions) => renderInJsdom<TModule>(rendererOptions)
 
-	const rendererOptions: RenderInHappyDomOptions<TModule> = {
+	const rendererOptions: RenderInJsdomOptions<TModule> = {
 		container,
 		component,
 		args,
