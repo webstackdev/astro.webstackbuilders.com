@@ -24,6 +24,7 @@ type DomGlobalKey =
 	| 'HTMLInputElement'
 	| 'HTMLButtonElement'
 	| 'HTMLSpanElement'
+	| 'HTMLAnchorElement'
 type DomGlobals = Partial<Record<DomGlobalKey, unknown>>
 
 const DOM_GLOBAL_KEYS: DomGlobalKey[] = [
@@ -42,6 +43,7 @@ const DOM_GLOBAL_KEYS: DomGlobalKey[] = [
 	'HTMLInputElement',
 	'HTMLButtonElement',
 	'HTMLSpanElement',
+	'HTMLAnchorElement',
 ]
 
 type DomWindow = Window & typeof globalThis
@@ -106,6 +108,7 @@ const installWindowGlobals = (window: DomWindow): void => {
 	setGlobalValue('HTMLInputElement', window.HTMLInputElement)
 	setGlobalValue('HTMLButtonElement', window.HTMLButtonElement)
 	setGlobalValue('HTMLSpanElement', window.HTMLSpanElement)
+	setGlobalValue('HTMLAnchorElement', window.HTMLAnchorElement)
 }
 
 const restoreGlobalSnapshot = (snapshot: DomGlobals): void => {

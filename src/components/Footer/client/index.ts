@@ -7,8 +7,11 @@ import { getHireMeAnchorElement } from '@components/Footer/client/selectors'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { defineCustomElement } from '@components/scripts/utils'
+import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 
-class FooterElement extends LitElement {
+const SCRIPT_NAME = 'FooterElement'
+
+export class FooterElement extends LitElement {
   private hireMeAnchor: HTMLAnchorElement | null = null
 
   override createRenderRoot() {
@@ -21,7 +24,7 @@ class FooterElement extends LitElement {
   }
 
   private initialize(): void {
-    const context = { scriptName: 'FooterElement', operation: 'initialize' }
+    const context = { scriptName: SCRIPT_NAME, operation: 'initialize' }
     addScriptBreadcrumb(context)
 
     try {
@@ -55,7 +58,19 @@ class FooterElement extends LitElement {
   }
 }
 
-export const registerFooterWebComponent = (tagName = 'site-footer') =>
-  defineCustomElement(tagName, FooterElement)
+declare global {
+  interface HTMLElementTagNameMap {
+    'site-footer': FooterElement
+  }
+}
 
-export { FooterElement }
+export const registerFooterWebComponent = (tagName = 'site-footer') => {
+  if (typeof window === 'undefined') return
+  defineCustomElement(tagName, FooterElement)
+}
+
+export const webComponentModule: WebComponentModule<FooterElement> = {
+  registeredName: 'site-footer',
+  componentCtor: FooterElement,
+  registerWebComponent: registerFooterWebComponent,
+}

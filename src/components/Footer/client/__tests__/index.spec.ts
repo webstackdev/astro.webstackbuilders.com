@@ -1,37 +1,54 @@
-// @vitest-environment happy-dom
-import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest'
-import { FooterElement } from '@components/Footer/client'
+// @vitest-environment node
 
-// Mock the selectors module
-vi.mock('@components/Footer/client/selectors', () => ({
-  getHireMeAnchorElement: vi.fn(),
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { experimental_AstroContainer as AstroContainer } from 'astro/container'
+import Footer from '@components/Footer/index.astro'
+import type { FooterElement } from '@components/Footer/client'
+import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
+import { executeRender } from '@test/unit/helpers/litRuntime'
+
+vi.mock('@components/scripts/utils/absoluteUrl', () => ({
+  absoluteUrl: (route: string) => `https://example.com${route}`,
 }))
 
-import { getHireMeAnchorElement } from '@components/Footer/client/selectors'
+type FooterComponentModule = WebComponentModule<FooterElement>
 
-describe('FooterElement', () => {
+const renderFooter = async (
+  assertion: (_context: { element: FooterElement }) => Promise<void> | void,
+) => {
+  const container = await AstroContainer.create({
+    astroConfig: {
+      site: 'https://example.com',
+    },
+  })
+
+  await executeRender<FooterComponentModule>({
+    container,
+    component: Footer,
+    moduleSpecifier: '@components/Footer/client/index',
+    assert: async ({ element }) => {
+      await assertion({ element })
+    },
+  })
+}
+
+describe('FooterElement web component', () => {
   beforeEach(() => {
     vi.useFakeTimers()
-    vi.setSystemTime(new Date('2024-10-17'))
+    vi.setSystemTime(new Date('2024-10-17T12:00:00Z'))
   })
 
   afterEach(() => {
     vi.useRealTimers()
-    vi.clearAllMocks()
   })
 
-  it('updates the hire me anchor with availability copy when connected', () => {
-    const anchor = {
-      innerHTML: '',
-      style: { display: 'none' },
-    } as unknown as HTMLAnchorElement
-    ;(getHireMeAnchorElement as Mock).mockReturnValue(anchor)
+  it('updates the Hire Me anchor copy and display state when connected', async () => {
+    await renderFooter(({ element }) => {
+      const hireMeAnchor = element.querySelector<HTMLAnchorElement>('#page-footer__hire-me-anchor')
 
-    const element = new FooterElement()
-    element.connectedCallback()
-
-    expect(getHireMeAnchorElement).toHaveBeenCalledWith(element)
-    expect(anchor.innerHTML).toBe('Available September, 2024. Hire Me Now')
-    expect(anchor.style.display).toBe('inline-block')
+      expect(hireMeAnchor).toBeInstanceOf(HTMLAnchorElement)
+      expect(hireMeAnchor?.innerHTML).toBe('Available September, 2024. Hire Me Now')
+      expect(hireMeAnchor?.style.display).toBe('inline-block')
+    })
   })
 })
