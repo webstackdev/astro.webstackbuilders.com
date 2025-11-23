@@ -8,7 +8,7 @@
  */
 
 import { describe, it, expect, beforeAll } from 'vitest'
-import { renderMarkdown } from '../../../helpers/markdownLoader'
+import { renderMarkdown } from '@lib/markdown/helpers/markdownLoader'
 
 let html: string
 

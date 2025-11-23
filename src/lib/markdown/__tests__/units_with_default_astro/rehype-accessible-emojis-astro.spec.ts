@@ -4,7 +4,7 @@ import remarkGfm from 'remark-gfm'
 import remarkRehype from 'remark-rehype'
 import { rehypeAccessibleEmojis } from 'rehype-accessible-emojis'
 import rehypeStringify from 'rehype-stringify'
-import { remarkRehypeConfig } from '../../../config/markdown'
+import { remarkRehypeConfig } from '@lib/config/markdown'
 
 /**
  * Helper for testing rehype-accessible-emojis with Astro settings

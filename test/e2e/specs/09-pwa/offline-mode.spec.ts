@@ -10,33 +10,32 @@
  */
 
 import { test } from '@test/e2e/helpers'
+import { TestError } from '@test/errors'
 import { PwaPage } from '@test/e2e/helpers/pageObjectModels/PwaPage'
 
 test.describe('PWA Offline Mode', () => {
-  let pwaPage: PwaPage
-
-  test.beforeEach(async ({ page }) => {
-    pwaPage = new PwaPage(page)
-  })
-
-  test.skip('@blocked service worker registers successfully', async () => {
+  test.skip('@blocked service worker registers successfully', async ({ page: playwrightPage }) => {
+    const pwaPage = await PwaPage.init(playwrightPage)
     // BLOCKED: Service worker only registers in production mode
     // @see src/lib/config/serviceWorker.ts - mode: 'production'
     await pwaPage.navigateToHomeAndWaitForSW()
     await pwaPage.expectServiceWorkerRegistered()
   })
 
-  test('@ready offline page is accessible', async () => {
+  test('@ready offline page is accessible', async ({ page: playwrightPage }) => {
+    const pwaPage = await PwaPage.init(playwrightPage)
     await pwaPage.navigateToOfflinePage()
     await pwaPage.expectOfflineHeading()
   })
 
-  test('@ready offline page displays appropriate message', async () => {
+  test('@ready offline page displays appropriate message', async ({ page: playwrightPage }) => {
+    const pwaPage = await PwaPage.init(playwrightPage)
     await pwaPage.navigateToOfflinePage()
     await pwaPage.expectOfflinePageMessage('offline')
   })
 
-  test.skip('@blocked site works offline after initial visit', async ({ context }) => {
+  test.skip('@blocked site works offline after initial visit', async ({ page: playwrightPage, context }) => {
+    const pwaPage = await PwaPage.init(playwrightPage)
     // BLOCKED: Requires service worker to cache content
     // Service worker only works in production mode
     await pwaPage.navigateToHomeAndWaitForSW()
@@ -51,13 +50,15 @@ test.describe('PWA Offline Mode', () => {
     await pwaPage.expectPageHasContent()
   })
 
-  test.skip('@blocked service worker caches critical assets', async () => {
+  test.skip('@blocked service worker caches critical assets', async ({ page: playwrightPage }) => {
+    const pwaPage = await PwaPage.init(playwrightPage)
     // BLOCKED: Service worker only works in production mode
     await pwaPage.navigateToHomeAndWaitForSW()
     await pwaPage.expectCachedAssets()
   })
 
-  test.skip('@blocked offline fallback for dynamic content', async ({ context }) => {
+  test.skip('@blocked offline fallback for dynamic content', async ({ page: playwrightPage, context }) => {
+    const pwaPage = await PwaPage.init(playwrightPage)
     // BLOCKED: Requires service worker for offline fallback
     await pwaPage.navigateToHomeAndWaitForSW()
 
@@ -72,7 +73,8 @@ test.describe('PWA Offline Mode', () => {
     }
   })
 
-  test('@ready online indicator updates correctly', async ({ context }) => {
+  test('@ready online indicator updates correctly', async ({ page: playwrightPage, context }) => {
+    const pwaPage = await PwaPage.init(playwrightPage)
     await pwaPage.goto('/')
 
     // Should be online initially
@@ -85,37 +87,40 @@ test.describe('PWA Offline Mode', () => {
     await pwaPage.expectOffline()
   })
 
-  test.skip('@blocked service worker updates when new version available', async () => {
+  test.skip('@blocked service worker updates when new version available', async ({ page: playwrightPage }) => {
+    const pwaPage = await PwaPage.init(playwrightPage)
     // BLOCKED: Service worker only works in production mode
     await pwaPage.navigateToHomeAndWaitForSW()
 
     const swStatus = await pwaPage.updateServiceWorker()
     pwaPage.page.evaluate((status) => {
       if (status !== 'updated') {
-        throw new Error(`Expected 'updated' but got '${status}'`)
+        throw new TestError(`Expected 'updated' but got '${status}'`)
       }
     }, swStatus)
   })
 
-  test('@ready offline page has proper styling', async () => {
+  test('@ready offline page has proper styling', async ({ page: playwrightPage }) => {
+    const pwaPage = await PwaPage.init(playwrightPage)
     await pwaPage.navigateToOfflinePage()
 
     const hasStyles = await pwaPage.expectOfflinePageHasStyles()
     pwaPage.page.evaluate((styles) => {
       if (!styles) {
-        throw new Error('Expected offline page to have styles')
+        throw new TestError('Expected offline page to have styles')
       }
     }, hasStyles)
   })
 
-  test.skip('@blocked service worker is activated', async () => {
+  test.skip('@blocked service worker is activated', async ({ page: playwrightPage }) => {
+    const pwaPage = await PwaPage.init(playwrightPage)
     // BLOCKED: Service worker only works in production mode
     await pwaPage.navigateToHomeAndWaitForSW()
 
     const swState = await pwaPage.getServiceWorkerState()
     pwaPage.page.evaluate((state) => {
       if (!state.active) {
-        throw new Error('Expected service worker to be active')
+        throw new TestError('Expected service worker to be active')
       }
     }, swState)
   })

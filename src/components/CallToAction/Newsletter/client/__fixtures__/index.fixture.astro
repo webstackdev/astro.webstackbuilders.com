@@ -1,0 +1,33 @@
+---
+/**
+ * Test fixture for Newsletter Container API testing
+ * Uses actual Newsletter component to ensure tests stay in sync with implementation
+ */
+import Newsletter from '@components/CallToAction/Newsletter/index.astro'
+
+export interface Props {
+  /** Override title for testing */
+  title?: string
+  /** Override description for testing */
+  description?: string
+  /** Override placeholder for testing */
+  placeholder?: string
+  /** Override button text for testing */
+  buttonText?: string
+}
+
+const {
+  title = 'Test Newsletter',
+  description = 'Test description for newsletter signup',
+  placeholder = 'test@example.com',
+  buttonText = 'Subscribe',
+} = Astro.props
+---
+
+<!-- Actual Newsletter component -->
+<Newsletter
+  title={title}
+  description={description}
+  placeholder={placeholder}
+  buttonText={buttonText}
+/>

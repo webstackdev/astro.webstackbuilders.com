@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import remarkBreaks from 'remark-breaks'
-import { processIsolated } from '../../helpers/test-utils'
+import { processIsolated } from '@lib/markdown/helpers/test-utils'
 
 describe('remark-breaks (Layer 1: Isolated)', () => {
   describe('basic line break functionality', () => {

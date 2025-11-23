@@ -4,11 +4,20 @@
  */
 import type { Page } from '@playwright/test'
 import { expect } from '@playwright/test'
-import { BasePage } from './BasePage'
+import { BasePage } from '@test/e2e/helpers'
 
 export class PerformancePage extends BasePage {
-  constructor(page: Page) {
+  protected constructor(page: Page) {
     super(page)
+  }
+
+  static override async init(page: Page): Promise<PerformancePage> {
+    await page.addInitScript(() => {
+      window.isPlaywrightControlled = true
+    })
+    const instance = new PerformancePage(page)
+    await instance.onInit()
+    return instance
   }
 
   /**
@@ -209,15 +218,16 @@ export class PerformancePage extends BasePage {
     height: number
   }>> {
     return await this.page.locator('img').evaluateAll((imgs) => {
-      return imgs.map((img) => {
-        const htmlImg = img as HTMLImageElement
-        return {
-          src: htmlImg.getAttribute('src'),
-          loading: htmlImg.getAttribute('loading'),
-          width: htmlImg.width,
-          height: htmlImg.height,
-        }
-      })
+      return imgs
+        .filter((img): img is HTMLImageElement => img instanceof HTMLImageElement)
+        .map((img) => {
+          return {
+            src: img.getAttribute('src'),
+            loading: img.getAttribute('loading'),
+            width: img.width,
+            height: img.height,
+          }
+        })
     })
   }
 

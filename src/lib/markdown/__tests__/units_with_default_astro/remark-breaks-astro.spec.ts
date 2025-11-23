@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import remarkBreaks from 'remark-breaks'
-import { processWithAstroSettings } from '../../helpers/test-utils'
+import { processWithAstroSettings } from '@lib/markdown/helpers/test-utils'
 
 describe('remark-breaks (Layer 2: With Astro Pipeline)', () => {
   describe('line breaks with GFM', () => {

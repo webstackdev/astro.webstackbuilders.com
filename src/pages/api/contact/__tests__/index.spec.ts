@@ -1,8 +1,8 @@
 /**
  * Unit tests for contact form API endpoint
  */
-import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest'
-import { POST, OPTIONS } from '../index'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { POST, OPTIONS } from '@pages/api/contact/index'
 
 // Mock Resend before importing the module
 const mockSend = vi.fn().mockResolvedValue({ data: { id: 'test-email-id' } })
@@ -17,31 +17,37 @@ vi.mock('resend', () => {
 	}
 })
 
-// Mock dependencies
-vi.mock('@api/shared/consent-log', () => ({
-	recordConsent: vi.fn(),
-}))
-
-const consentModule = await import('@api/shared/consent-log')
-const mockRecordConsent = consentModule.recordConsent as Mock
+// Mock fetch for GDPR consent API calls
+const mockFetch = vi.fn()
+global.fetch = mockFetch
 
 describe('Contact API - POST /api/contact', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
 		mockSend.mockResolvedValue({ data: { id: 'test-email-id' } })
-		mockRecordConsent.mockResolvedValue({
-			id: 'test-consent-id',
-			email: 'test@example.com',
-			purposes: ['contact'],
-			timestamp: new Date().toISOString(),
-			source: 'contact_form' as const,
-			userAgent: 'Test Browser',
-			privacyPolicyVersion: '2025-10-20',
-			verified: true,
+
+		// Mock successful GDPR consent API response
+		mockFetch.mockResolvedValue({
+			ok: true,
+			json: async () => ({
+				success: true,
+				record: {
+					id: 'test-consent-id',
+					DataSubjectId: 'test-uuid-123',
+					email: 'test@example.com',
+					purposes: ['contact'],
+					timestamp: new Date().toISOString(),
+					source: 'contact_form',
+					userAgent: 'Test Browser',
+					privacyPolicyVersion: '2025-11-09',
+					verified: true,
+				}
+			})
 		})
 
-		// Set mock env var for Resend
+		// Set mock env vars
 		vi.stubEnv('RESEND_API_KEY', 'test-api-key')
+		vi.stubEnv('NODE_ENV', 'test')
 	})
 
 	afterEach(() => {
@@ -87,11 +93,10 @@ describe('Contact API - POST /api/contact', () => {
 		})
 
 		const response = await POST({ request } as any)
-		const data = await response.json()
-
+		const body = await response.json()
 		expect(response.status).toBe(400)
-		expect(data.success).toBe(false)
-		expect(data.error).toContain('Name is required')
+		expect(body.error).toBeDefined()
+		expect(body.error.message).toContain('Name is required')
 	})
 
 	it('should reject submission with short name', async () => {
@@ -109,11 +114,11 @@ describe('Contact API - POST /api/contact', () => {
 		})
 
 		const response = await POST({ request } as any)
-		const data = await response.json()
+		const body = await response.json()
 
 		expect(response.status).toBe(400)
-		expect(data.success).toBe(false)
-		expect(data.error).toContain('at least 2 characters')
+		expect(body.error).toBeDefined()
+		expect(body.error.message).toContain('at least 2 characters')
 	})
 
 	it('should reject submission without email', async () => {
@@ -130,11 +135,11 @@ describe('Contact API - POST /api/contact', () => {
 		})
 
 		const response = await POST({ request } as any)
-		const data = await response.json()
+		const body = await response.json()
 
 		expect(response.status).toBe(400)
-		expect(data.success).toBe(false)
-		expect(data.error).toContain('Email is required')
+		expect(body.error).toBeDefined()
+		expect(body.error.message).toContain('Email is required')
 	})
 
 	it('should reject submission with invalid email', async () => {
@@ -152,11 +157,11 @@ describe('Contact API - POST /api/contact', () => {
 		})
 
 		const response = await POST({ request } as any)
-		const data = await response.json()
+		const body = await response.json()
 
 		expect(response.status).toBe(400)
-		expect(data.success).toBe(false)
-		expect(data.error).toContain('Invalid email')
+		expect(body.error).toBeDefined()
+		expect(body.error.message).toContain('Invalid email')
 	})
 
 	it('should reject submission without message', async () => {
@@ -173,11 +178,11 @@ describe('Contact API - POST /api/contact', () => {
 		})
 
 		const response = await POST({ request } as any)
-		const data = await response.json()
+		const body = await response.json()
 
 		expect(response.status).toBe(400)
-		expect(data.success).toBe(false)
-		expect(data.error).toContain('Message is required')
+		expect(body.error).toBeDefined()
+		expect(body.error.message).toContain('Message is required')
 	})
 
 	it('should reject submission with short message', async () => {
@@ -195,11 +200,11 @@ describe('Contact API - POST /api/contact', () => {
 		})
 
 		const response = await POST({ request } as any)
-		const data = await response.json()
+		const body = await response.json()
 
 		expect(response.status).toBe(400)
-		expect(data.success).toBe(false)
-		expect(data.error).toContain('at least 10 characters')
+		expect(body.error).toBeDefined()
+		expect(body.error.message).toContain('at least 10 characters')
 	})
 
 	it('should reject submission with spam content', async () => {
@@ -217,11 +222,11 @@ describe('Contact API - POST /api/contact', () => {
 		})
 
 		const response = await POST({ request } as any)
-		const data = await response.json()
+		const body = await response.json()
 
 		expect(response.status).toBe(400)
-		expect(data.success).toBe(false)
-		expect(data.error).toContain('spam')
+		expect(body.error).toBeDefined()
+		expect(body.error.message).toContain('spam')
 	})
 
 	it('should bypass rate limiting in test environment', async () => {
@@ -294,13 +299,15 @@ describe('Contact API - POST /api/contact', () => {
 
 		await POST({ request } as any)
 
-		expect(mockRecordConsent).toHaveBeenCalledWith(
+		expect(mockFetch).toHaveBeenCalledWith(
+			'http://localhost/api/gdpr/consent',
 			expect.objectContaining({
-				email: 'test@example.com',
-				purposes: ['contact'],
-				source: 'contact_form',
-				verified: true,
-			}),
+				method: 'POST',
+				headers: expect.objectContaining({
+					'Content-Type': 'application/json',
+				}),
+				body: expect.stringContaining('"email":"test@example.com"'),
+			})
 		)
 	})
 
@@ -320,7 +327,95 @@ describe('Contact API - POST /api/contact', () => {
 
 		await POST({ request } as any)
 
-		expect(mockRecordConsent).not.toHaveBeenCalled()
+		expect(mockFetch).not.toHaveBeenCalledWith(
+			expect.stringMatching(/\/api\/gdpr\/consent$/),
+			expect.any(Object)
+		)
+	})
+
+	it('should continue form submission even if consent logging fails', async () => {
+		// Mock GDPR consent API failure
+		mockFetch.mockResolvedValueOnce({
+			ok: false,
+			json: async () => ({ success: false, error: { code: 'SERVER_ERROR', message: 'Database error' } })
+		})
+
+		const request = new Request('http://localhost/api/contact', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'x-forwarded-for': '10.0.0.11', // Unique IP to avoid rate limiting
+			},
+			body: JSON.stringify({
+				name: 'John Doe',
+				email: 'test@example.com',
+				message: 'Test message with enough content',
+				consent: true,
+			}),
+		})
+
+		const response = await POST({ request } as any)
+		const data = await response.json()
+
+		// Form submission should still succeed
+		expect(response.status).toBe(200)
+		expect(data.success).toBe(true)
+		expect(data.message).toContain('Thank you')
+
+		// Consent API should have been called but failed
+		expect(mockFetch).toHaveBeenCalledWith(
+			'http://localhost/api/gdpr/consent',
+			expect.any(Object)
+		)
+	})
+
+	it('should generate DataSubjectId when not provided', async () => {
+		const request = new Request('http://localhost/api/contact', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'x-forwarded-for': '10.0.0.12',
+			},
+			body: JSON.stringify({
+				name: 'John Doe',
+				email: 'test@example.com',
+				message: 'Test message with enough content',
+				consent: true,
+			}),
+		})
+
+		await POST({ request } as any)
+
+		expect(mockFetch).toHaveBeenCalledWith(
+			'http://localhost/api/gdpr/consent',
+			expect.objectContaining({
+				body: expect.stringMatching(/"DataSubjectId":"[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}"/),
+			})
+		)
+	})
+
+	it('should validate provided DataSubjectId', async () => {
+		const request = new Request('http://localhost/api/contact', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'x-forwarded-for': '10.0.0.13',
+			},
+			body: JSON.stringify({
+				name: 'John Doe',
+				email: 'test@example.com',
+				message: 'Test message with enough content',
+				consent: true,
+				DataSubjectId: 'invalid-uuid',
+			}),
+		})
+
+		const response = await POST({ request } as any)
+		const body = await response.json()
+
+		expect(response.status).toBe(400)
+		expect(body.error).toBeDefined()
+		expect(body.error.message).toContain('Invalid DataSubjectId format')
 	})
 })
 

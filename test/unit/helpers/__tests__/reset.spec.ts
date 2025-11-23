@@ -5,7 +5,7 @@
  * is properly cleared between tests
  */
 import { describe, test, expect } from 'vitest'
-import { commonSetup } from '../reset'
+import { commonSetup } from '@test/unit/helpers/reset'
 
 describe('commonSetup helper', () => {
   // Apply the common setup to all tests in this suite

@@ -1,14 +1,12 @@
-// @vitest-environment happy-dom
 /**
  * Tests for navigation menu script using Container API pattern with happy-dom
  */
 import { beforeAll, describe, expect, test, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
-import { getNavToggleBtnElement } from '../selectors'
-import { Navigation } from '../client'
-import TestNavigationComponent from './TestNavigation.astro'
+import { getNavToggleBtnElement } from '@components/Navigation/selectors'
+import { Navigation } from '@components/Navigation/client'
+import TestNavigationComponent from '@components/Navigation/__tests__/TestNavigation.astro'
 
-// Mock focus-trap to work in jsdom environment
 vi.mock('focus-trap', () => {
   return {
     createFocusTrap: () => ({
@@ -156,7 +154,6 @@ describe(`Toggle button works`, () => {
 describe('Navigation LoadableScript implementation', () => {
   test('should have correct static properties', () => {
     expect(Navigation.scriptName).toBe('Navigation')
-    expect(Navigation.eventType).toBe('astro:page-load')
   })
 
   test('should initialize navigation when static init is called', async () => {

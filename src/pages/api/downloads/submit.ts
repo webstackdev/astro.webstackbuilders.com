@@ -2,6 +2,11 @@
  * API endpoint for download form submissions
  */
 import type { APIRoute } from 'astro'
+import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
+import { buildApiErrorResponse, handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
+import { createApiFunctionContext } from '@pages/api/_utils/requestContext'
+
+export const prerender = false
 
 interface DownloadFormData {
   firstName: string
@@ -11,48 +16,82 @@ interface DownloadFormData {
   companyName: string
 }
 
-export const POST: APIRoute = async ({ request }) => {
+const JSON_HEADERS = {
+  'Content-Type': 'application/json',
+}
+
+const REQUIRED_FIELDS: Array<keyof DownloadFormData> = [
+  'firstName',
+  'lastName',
+  'workEmail',
+  'jobTitle',
+  'companyName',
+]
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+const buildJsonResponse = (body: Record<string, unknown>, status: number) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: JSON_HEADERS,
+  })
+
+const validateDownloadForm = (payload: Partial<DownloadFormData>): DownloadFormData => {
+  const normalized: DownloadFormData = {
+    firstName: payload.firstName?.trim() ?? '',
+    lastName: payload.lastName?.trim() ?? '',
+    workEmail: payload.workEmail?.trim() ?? '',
+    jobTitle: payload.jobTitle?.trim() ?? '',
+    companyName: payload.companyName?.trim() ?? '',
+  }
+
+  const missingFields = REQUIRED_FIELDS.filter((field) => !normalized[field])
+
+  if (missingFields.length) {
+    throw new ApiFunctionError({
+      message: 'All fields are required',
+      status: 400,
+      code: 'MISSING_FIELDS',
+      details: { missingFields },
+    })
+  }
+
+  if (!EMAIL_REGEX.test(normalized.workEmail)) {
+    throw new ApiFunctionError({
+      message: 'Invalid email address',
+      status: 400,
+      code: 'INVALID_EMAIL',
+    })
+  }
+
+  return normalized
+}
+
+export const POST: APIRoute = async ({ request, cookies, clientAddress }) => {
+  const { context: apiContext } = createApiFunctionContext({
+    route: '/api/downloads/submit',
+    operation: 'POST',
+    request,
+    cookies,
+    clientAddress,
+  })
+
   try {
-    const data: DownloadFormData = await request.json()
-
-    // Validate required fields
-    if (
-      !data.firstName ||
-      !data.lastName ||
-      !data.workEmail ||
-      !data.jobTitle ||
-      !data.companyName
-    ) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          message: 'All fields are required',
-        }),
-        {
-          status: 400,
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      )
+    let payload: Partial<DownloadFormData>
+    try {
+      payload = await request.json()
+    } catch {
+      throw new ApiFunctionError({
+        message: 'Invalid JSON payload',
+        status: 400,
+        code: 'INVALID_JSON',
+        details: {
+          route: '/api/downloads/submit',
+        },
+      })
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(data.workEmail)) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          message: 'Invalid email address',
-        }),
-        {
-          status: 400,
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      )
-    }
+    const data = validateDownloadForm(payload)
 
     // TODO: Integrate with email service (e.g., SendGrid, Mailchimp, HubSpot)
     // TODO: Store submission in database or CRM
@@ -65,31 +104,29 @@ export const POST: APIRoute = async ({ request }) => {
       timestamp: new Date().toISOString(),
     })
 
-    return new Response(
-      JSON.stringify({
+    return buildJsonResponse(
+      {
         success: true,
         message: 'Form submitted successfully',
-      }),
-      {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
+      },
+      200,
     )
-  } catch (error) {
-    console.error('Error processing download form:', error)
-    return new Response(
-      JSON.stringify({
-        success: false,
-        message: 'Internal server error',
-      }),
-      {
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    )
+  } catch (rawError) {
+    const normalizedError =
+      rawError instanceof ApiFunctionError
+        ? rawError
+        : rawError instanceof SyntaxError
+        ? new ApiFunctionError({
+            message: 'Invalid JSON payload',
+            status: 400,
+            code: 'INVALID_JSON',
+          })
+        : rawError
+
+    const serverError = handleApiFunctionError(normalizedError, apiContext)
+
+    return buildApiErrorResponse(serverError, {
+      fallbackMessage: 'Internal server error',
+    })
   }
 }

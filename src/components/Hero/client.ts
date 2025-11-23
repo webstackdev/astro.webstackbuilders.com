@@ -1,7 +1,7 @@
-import { LoadableScript, type TriggerEvent } from '../Scripts/loader'
 import { gsap } from 'gsap'
-import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
-import { onScriptEvent, ScriptEvent } from '@components/Scripts/events'
+import { addScriptBreadcrumb } from '@components/scripts/errors'
+import { handleScriptError } from '@components/scripts/errors/handler'
+import { onAnimationEvent, AnimationLifecycleEvent } from '@components/scripts/events'
 
 type Timeline = ReturnType<typeof gsap.timeline>
 
@@ -28,9 +28,8 @@ const Anticipate = {
   },
 } as const
 
-export class HeroLoader extends LoadableScript {
-  static override scriptName = 'HeroLoader'
-  static override eventType: TriggerEvent = 'astro:page-load'
+export class HeroLoader {
+  static scriptName = 'HeroLoader'
 
   private static instance: HeroLoader | null = null
   private timeline?: Timeline
@@ -38,7 +37,6 @@ export class HeroLoader extends LoadableScript {
   private overlayClosedCleanup?: () => void
 
   constructor() {
-    super()
     HeroLoader.instance = this
   }
 
@@ -400,7 +398,7 @@ export class HeroLoader extends LoadableScript {
     }
   }
 
-  static override init() {
+  static init() {
     const context = { scriptName: HeroLoader.scriptName, operation: 'init' }
     addScriptBreadcrumb(context)
 
@@ -411,15 +409,15 @@ export class HeroLoader extends LoadableScript {
       HeroLoader.instance.startAnimation()
 
       // Set up event listeners for overlay open/close
-      HeroLoader.instance.overlayOpenedCleanup = onScriptEvent(
-        ScriptEvent.OVERLAY_OPENED,
+      HeroLoader.instance.overlayOpenedCleanup = onAnimationEvent(
+        AnimationLifecycleEvent.OVERLAY_OPENED,
         () => {
           HeroLoader.pause()
         }
       )
 
-      HeroLoader.instance.overlayClosedCleanup = onScriptEvent(
-        ScriptEvent.OVERLAY_CLOSED,
+      HeroLoader.instance.overlayClosedCleanup = onAnimationEvent(
+        AnimationLifecycleEvent.OVERLAY_CLOSED,
         () => {
           HeroLoader.resume()
         }
@@ -430,7 +428,7 @@ export class HeroLoader extends LoadableScript {
     }
   }
 
-  static override pause() {
+  static pause() {
     const context = { scriptName: HeroLoader.scriptName, operation: 'pause' }
     addScriptBreadcrumb(context)
 
@@ -443,7 +441,7 @@ export class HeroLoader extends LoadableScript {
     }
   }
 
-  static override resume() {
+  static resume() {
     const context = { scriptName: HeroLoader.scriptName, operation: 'resume' }
     addScriptBreadcrumb(context)
 
@@ -456,7 +454,7 @@ export class HeroLoader extends LoadableScript {
     }
   }
 
-  static override reset() {
+  static reset() {
     const context = { scriptName: HeroLoader.scriptName, operation: 'reset' }
     addScriptBreadcrumb(context)
 

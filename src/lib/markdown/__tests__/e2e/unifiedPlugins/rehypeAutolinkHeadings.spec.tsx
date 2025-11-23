@@ -7,7 +7,7 @@
  */
 
 import { describe, it, expect, beforeAll } from 'vitest'
-import { renderMarkdown } from '../../../helpers/markdownLoader'
+import { renderMarkdown } from '@lib/markdown/helpers/markdownLoader'
 
 let html: string
 
@@ -50,7 +50,7 @@ describe('Layer 4: E2E - rehypeAutolinkHeadings', () => {
     const h1Count = (html.match(/<h1/g) || []).length
     const h2Count = (html.match(/<h2/g) || []).length
     const h3Count = (html.match(/<h3/g) || []).length
-    
+
     expect(h1Count).toBeGreaterThanOrEqual(1)
     expect(h2Count).toBeGreaterThanOrEqual(2)
     expect(h3Count).toBeGreaterThanOrEqual(1)

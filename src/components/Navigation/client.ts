@@ -1,7 +1,6 @@
 import { createFocusTrap } from 'focus-trap'
 import type { FocusTrap } from 'focus-trap'
 import { navigate } from 'astro:transitions/client'
-import { LoadableScript, type TriggerEvent } from '../Scripts/loader/@types/loader'
 import {
   getHeaderElement,
   getMobileSplashElement,
@@ -9,10 +8,12 @@ import {
   getNavToggleBtnElement,
   getNavToggleWrapperElement,
   getMobileNavFocusContainer,
-} from './selectors'
-import { ClientScriptError } from '@components/Scripts/errors/ClientScriptError'
-import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
-import { dispatchScriptEvent, ScriptEvent } from '@components/Scripts/events'
+} from '@components/Navigation/selectors'
+import { isAnchorElement } from '@components/scripts/assertions/elements'
+import { addScriptBreadcrumb, ClientScriptError } from '@components/scripts/errors'
+import { handleScriptError } from '@components/scripts/errors/handler'
+import { dispatchAnimationEvent, AnimationLifecycleEvent } from '@components/scripts/events'
+import { addButtonEventListeners, addLinkEventListeners } from '@components/scripts/elementListeners'
 
 export const CLASSES = {
   navOpen: 'aria-expanded-true',
@@ -21,12 +22,11 @@ export const CLASSES = {
 }
 
 /**
- * Navigation component using LoadableScript pattern with instance-specific approach
+ * Navigation component with instance-specific approach
  * Uses Astro View Transitions for navigation
  */
-export class Navigation extends LoadableScript {
-  static override scriptName = 'Navigation'
-  static override eventType: TriggerEvent = 'astro:page-load'
+export class Navigation {
+  static scriptName = 'Navigation'
 
   focusTrap: FocusTrap
   isMenuOpen: boolean
@@ -45,7 +45,6 @@ export class Navigation extends LoadableScript {
   togglePosition!: DOMRect
 
   constructor() {
-    super()
     this.isMenuOpen = false
 
     try {
@@ -99,7 +98,7 @@ export class Navigation extends LoadableScript {
   }
 
   bindEvents() {
-    this.toggleBtn.addEventListener('click', () => {
+    addButtonEventListeners(this.toggleBtn, () => {
       this.toggleMenu()
     })
     // @TODO: Why is pressing enter triggering the click event, when type="button" is set?
@@ -108,7 +107,7 @@ export class Navigation extends LoadableScript {
     //})
 
     // Handle Escape key to close menu
-    document.addEventListener('keydown', (event) => {
+    document.addEventListener('keyup', (event) => {
       if (event.key === 'Escape' && this.isMenuOpen) {
         this.toggleMenu(false)
       }
@@ -131,8 +130,10 @@ export class Navigation extends LoadableScript {
       const navLinks = this.menu.querySelectorAll('a[href]')
 
       navLinks.forEach(link => {
+        if (!isAnchorElement(link)) return
+
         try {
-          link.addEventListener('click', event => {
+          addLinkEventListeners(link, (event) => {
             event.preventDefault()
             const href = link.getAttribute('href')
 
@@ -166,9 +167,9 @@ export class Navigation extends LoadableScript {
 
     // Dispatch events to pause/resume background animations
     if (this.isMenuOpen) {
-      dispatchScriptEvent(ScriptEvent.OVERLAY_OPENED, { source: 'navigation' })
+      dispatchAnimationEvent(AnimationLifecycleEvent.OVERLAY_OPENED, { source: 'navigation' })
     } else {
-      dispatchScriptEvent(ScriptEvent.OVERLAY_CLOSED, { source: 'navigation' })
+      dispatchAnimationEvent(AnimationLifecycleEvent.OVERLAY_CLOSED, { source: 'navigation' })
     }
 
     /**
@@ -185,39 +186,35 @@ export class Navigation extends LoadableScript {
     if (this.isMenuOpen) {
       this.focusTrap.activate()
       // Add menu-visible class after splash animation completes (550ms)
-      const menu = document.querySelector('.main-nav-menu')
-      if (menu) {
-        setTimeout(() => {
-          menu.classList.add('menu-visible')
-        }, 550)
-      }
+      const menu = getNavMenuElement()
+      setTimeout(() => {
+        menu.classList.add('menu-visible')
+      }, 550)
     } else {
       this.focusTrap.deactivate()
       // Remove menu-visible class immediately when closing
-      const menu = document.querySelector('.main-nav-menu')
-      if (menu) {
-        menu.classList.remove('menu-visible')
-      }
+      const menu = getNavMenuElement()
+      menu.classList.remove('menu-visible')
     }
   }
 
   /**
-   * LoadableScript static methods
+   * Static initialization method
    */
-  static override init(): void {
+  static init(): void {
     const navigation = new Navigation()
     navigation.bindEvents()
   }
 
-  static override pause(): void {
+  static pause(): void {
     // Navigation doesn't need pause functionality during visibility changes
   }
 
-  static override resume(): void {
+  static resume(): void {
     // Navigation doesn't need resume functionality during visibility changes
   }
 
-  static override reset(): void {
+  static reset(): void {
     // Clean up any global state if needed for View Transitions
     // Remove any event listeners or reset focus traps if necessary
   }

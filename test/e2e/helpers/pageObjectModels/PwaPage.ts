@@ -4,11 +4,20 @@
  */
 import type { BrowserContext, Page } from '@playwright/test'
 import { expect } from '@playwright/test'
-import { BasePage } from './BasePage'
+import { BasePage } from '@test/e2e/helpers'
 
 export class PwaPage extends BasePage {
-  constructor(page: Page) {
+  protected constructor(page: Page) {
     super(page)
+  }
+
+  static override async init(page: Page): Promise<PwaPage> {
+    await page.addInitScript(() => {
+      window.isPlaywrightControlled = true
+    })
+    const instance = new PwaPage(page)
+    await instance.onInit()
+    return instance
   }
 
   /**
@@ -31,8 +40,7 @@ export class PwaPage extends BasePage {
   async navigateToHomeAndWaitForSW(): Promise<void> {
     await this.goto('/')
     await this.waitForLoadState('networkidle')
-    // Give service worker time to register
-    await this.wait(2000)
+    await this.waitForServiceWorkerReady()
   }
 
   /**
@@ -62,6 +70,23 @@ export class PwaPage extends BasePage {
         }
       }
       return false
+    })
+  }
+
+  /**
+   * Wait until the service worker is ready (registered + activated)
+   */
+  async waitForServiceWorkerReady(): Promise<void> {
+    await this.page.evaluate(async () => {
+      if (!('serviceWorker' in navigator)) {
+        return
+      }
+
+      try {
+        await navigator.serviceWorker.ready
+      } catch {
+        // ignore readiness errors in environments without SW support
+      }
     })
   }
 

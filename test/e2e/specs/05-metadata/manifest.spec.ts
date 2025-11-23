@@ -11,7 +11,7 @@ test.describe('PWA Manifest', () => {
   test.skip(({ browserName }) => browserName === 'firefox', 'Firefox downloads manifest.json instead of loading it')
 
   test('@ready manifest file is accessible', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     const response = await page.goto('/manifest.json')
     expect(response?.status()).toBe(200)
 
@@ -20,7 +20,7 @@ test.describe('PWA Manifest', () => {
   })
 
   test('@ready manifest is linked in HTML', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     await page.expectAttribute('link[rel="manifest"]', 'href')
@@ -29,7 +29,7 @@ test.describe('PWA Manifest', () => {
   })
 
   test('@ready manifest has required fields', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     const response = await page.goto('/manifest.json')
     const manifest = await response?.json()
 
@@ -41,7 +41,7 @@ test.describe('PWA Manifest', () => {
   })
 
   test('@ready manifest has multiple icon sizes', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     const response = await page.goto('/manifest.json')
     const manifest = await response?.json()
 
@@ -54,7 +54,7 @@ test.describe('PWA Manifest', () => {
   })
 
   test('@ready manifest icons exist', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     const response = await page.goto('/manifest.json')
     const manifest = await response?.json()
 
@@ -65,7 +65,7 @@ test.describe('PWA Manifest', () => {
   })
 
   test('@ready manifest has theme color', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     const response = await page.goto('/manifest.json')
     const manifest = await response?.json()
 
@@ -74,7 +74,7 @@ test.describe('PWA Manifest', () => {
   })
 
   test('@ready manifest has background color', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     const response = await page.goto('/manifest.json')
     const manifest = await response?.json()
 
@@ -83,7 +83,7 @@ test.describe('PWA Manifest', () => {
   })
 
   test('@ready manifest display mode is appropriate', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     const response = await page.goto('/manifest.json')
     const manifest = await response?.json()
 
@@ -91,7 +91,7 @@ test.describe('PWA Manifest', () => {
   })
 
   test('@ready manifest has description', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     const response = await page.goto('/manifest.json')
     const manifest = await response?.json()
 
@@ -100,7 +100,7 @@ test.describe('PWA Manifest', () => {
   })
 
   test('@ready manifest theme color matches meta tag', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     const manifestResponse = await page.goto('/manifest.json')
     const manifest = await manifestResponse?.json()
 

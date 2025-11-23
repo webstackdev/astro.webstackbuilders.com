@@ -1,9 +1,7 @@
-import { describe, it, expect, beforeEach, vi, afterEach, type Mock } from 'vitest'
-import { JSDOM } from 'jsdom'
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { readFileSync } from 'fs'
 import { resolve } from 'path'
-import { HeroLoader } from '../client'
-import { registerScript, resetDelayedLoader } from '../../Scripts/loader'
+import { HeroLoader } from '@components/Hero/client'
 import { gsap } from 'gsap'
 
 // Setup function for DOM with hero SVG
@@ -33,26 +31,11 @@ vi.mock('gsap', () => ({
   },
 }))
 
-vi.mock('../../Scripts/loader', () => {
-  class LoadableScript {
-    static scriptName = 'MockLoadableScript'
-    static eventType = 'astro:page-load'
-  }
-  return {
-    registerScript: vi.fn(),
-    resetDelayedLoader: vi.fn(),
-    LoadableScript,
-  }
-})
-
 describe('HeroLoader', () => {
   let gsapMock: any
   let timelineMock: any
 
   beforeEach(() => {
-    const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>')
-    global.document = dom.window.document
-    global.window = dom.window as unknown as Window & typeof globalThis
     vi.clearAllMocks()
     gsapMock = gsap
     timelineMock = {
@@ -72,19 +55,12 @@ describe('HeroLoader', () => {
     vi.restoreAllMocks()
     // Clears the HeroLoader singleton instance setup by 'new HeroLoader()' in init() calls via static property access
     ;(HeroLoader as any).instance = null
-    resetDelayedLoader()
   })
 
   describe('HeroLoader instantiation and initialization', () => {
     it('should create instance and set properties', () => {
       const loader = new HeroLoader()
       expect(loader).toBeInstanceOf(HeroLoader)
-    })
-
-    it('should register with loader', () => {
-      ;(registerScript as Mock).mockClear()
-      registerScript(HeroLoader)
-      expect(registerScript).toHaveBeenCalledWith(HeroLoader)
     })
 
     it('should start animation when init is called', () => {

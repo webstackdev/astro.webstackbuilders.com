@@ -1,11 +1,11 @@
 /**
  * Social Share Client-side functionality
  * Handles click tracking, Mastodon modal, and Web Share API integration
- * Uses LoadableScript pattern for optimized loading
  */
 
-import { LoadableScript } from '@components/Scripts/loader'
-import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
+import { isMetaElement } from '@components/scripts/assertions/elements'
+import { addScriptBreadcrumb } from '@components/scripts/errors'
+import { handleScriptError } from '@components/scripts/errors/handler'
 
 /**
  * Handle click event for share button
@@ -15,8 +15,8 @@ function handleShareButtonClick(event: Event): void {
   addScriptBreadcrumb(context)
 
   try {
-    const target = event.currentTarget as HTMLElement
-    if (!target) return
+    const target = event.currentTarget
+    if (!(target instanceof HTMLElement)) return
 
     // Handle Mastodon modal buttons
     const platformId = target.dataset['platform']
@@ -49,11 +49,12 @@ function handleShareButtonClick(event: Event): void {
     const mouseEvent = event as MouseEvent
     if (navigator.share && mouseEvent.shiftKey) {
       event.preventDefault()
-      const metaDescription = document.querySelector('meta[name="description"]') as HTMLMetaElement
+      const metaDescription = document.querySelector('meta[name="description"]')
+      const description = isMetaElement(metaDescription) ? metaDescription.content : ''
       navigator
         .share({
           title: document.title,
-          text: metaDescription?.content || '',
+          text: description,
           url: window.location.href,
         })
         .catch(err => {
@@ -66,15 +67,14 @@ function handleShareButtonClick(event: Event): void {
 }
 
 /**
- * Social Share LoadableScript for delayed initialization
+ * Social Share for delayed initialization
  */
-export class SocialShare extends LoadableScript {
-  static override scriptName = 'SocialShare'
-  static override eventType = 'delayed' as const
+export class SocialShare {
+  static scriptName = 'SocialShare'
 
   private static listeners = new WeakMap<HTMLElement, EventListener>()
 
-  static override init(): void {
+  static init(): void {
     const context = { scriptName: SocialShare.scriptName, operation: 'init' }
     addScriptBreadcrumb(context)
 
@@ -96,7 +96,7 @@ export class SocialShare extends LoadableScript {
     }
   }
 
-  static override pause(): void {
+  static pause(): void {
     const context = { scriptName: SocialShare.scriptName, operation: 'pause' }
     addScriptBreadcrumb(context)
 
@@ -118,11 +118,11 @@ export class SocialShare extends LoadableScript {
     }
   }
 
-  static override resume(): void {
+  static resume(): void {
     this.init()
   }
 
-  static override reset(): void {
+  static reset(): void {
     this.pause()
     this.listeners = new WeakMap()
   }

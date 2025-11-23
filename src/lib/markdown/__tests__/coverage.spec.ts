@@ -9,7 +9,8 @@
 import { describe, it, beforeAll, expect } from 'vitest'
 import { readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
-import { markdownConfig } from '../../config/markdown'
+
+import { markdownConfig } from '@lib/config/markdown'
 
 interface TestFileMap {
   units: Set<string>

@@ -5,7 +5,7 @@ import remarkRehype from 'remark-rehype'
 import rehypeSlug from 'rehype-slug'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 import rehypeStringify from 'rehype-stringify'
-import { remarkRehypeConfig, rehypeAutolinkHeadingsConfig } from '../../../config/markdown'
+import { remarkRehypeConfig, rehypeAutolinkHeadingsConfig } from '@lib/config/markdown'
 
 /**
  * Helper for testing rehype-autolink-headings with Astro settings

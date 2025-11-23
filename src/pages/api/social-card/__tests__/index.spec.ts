@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { GET } from '../index'
+import { GET } from '@pages/api/social-card'
 
 describe('Social Card API - GET /api/social-card', () => {
 	it('should return HTML template with default values', async () => {

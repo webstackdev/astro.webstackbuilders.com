@@ -2,7 +2,7 @@
  * Unit tests for pageTitle helper
  */
 import { describe, expect, test } from 'vitest'
-import { pageTitle } from '../pageTitle'
+import { pageTitle } from '@lib/helpers/pageTitle'
 
 describe(`pageTitle helper`, () => {
   test(`returns formatted page title with separator`, () => {

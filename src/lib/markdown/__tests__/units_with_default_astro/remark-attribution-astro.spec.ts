@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import remarkAttribution from '../../plugins/remark-attribution/index'
-import { processWithAstroSettings } from '../../helpers/test-utils'
+import remarkAttribution from '@lib/markdown/plugins/remark-attribution/index'
+import { processWithAstroSettings } from '@lib/markdown/helpers/test-utils'
 
 describe('remark-attribution (Layer 2: With Astro Pipeline)', () => {
   describe('attribution with GFM', () => {

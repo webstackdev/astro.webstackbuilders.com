@@ -3,7 +3,7 @@
  * Tests for NetworkStatus component using LoadableScript pattern
  */
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
-import { NetworkStatus } from '../client'
+import { NetworkStatus } from '@components/Toasts/NetworkStatus/client'
 
 describe('NetworkStatus LoadableScript', () => {
   let networkStatus: NetworkStatus
@@ -42,10 +42,6 @@ describe('NetworkStatus LoadableScript', () => {
   describe('LoadableScript Implementation', () => {
     test('should have correct scriptName', () => {
       expect(NetworkStatus.scriptName).toBe('NetworkStatus')
-    })
-
-    test('should have correct eventType', () => {
-      expect(NetworkStatus.eventType).toBe('astro:page-load')
     })
 
     test('should initialize without errors', () => {

@@ -1,13 +1,14 @@
 /**
  * Type-safe HTML element selectors
  */
+import { ClientScriptError } from '@components/scripts/errors'
 import {
   isButtonElement,
   isDivElement,
   isHeaderElement,
   isSpanElement,
   isUlElement,
-} from '@components/Scripts/assertions/elements'
+} from '@components/scripts/assertions/elements'
 
 export const SELECTORS = {
   /** Site main <header> */
@@ -34,9 +35,11 @@ export const SELECTORS = {
 export const getHeaderElement = (): HTMLElement => {
   const header = document.querySelector(SELECTORS.header)
   if (!isHeaderElement(header)) {
-    throw new Error(`Site main <header> is missing in document, selector: ${SELECTORS.header}`)
+    throw new ClientScriptError({
+      message: `Site main <header> is missing in document, selector: ${SELECTORS.header}`
+    })
   }
-  return header as HTMLElement
+  return header
 }
 
 /**
@@ -45,9 +48,11 @@ export const getHeaderElement = (): HTMLElement => {
 export const getMobileSplashElement = (): HTMLDivElement => {
   const splash = document.querySelector(SELECTORS.splash)
   if (!isDivElement(splash)) {
-    throw new Error(`Mobile nav splash <div> is missing in document, selector: ${SELECTORS.splash}`)
+    throw new ClientScriptError({
+      message: `Mobile nav splash <div> is missing in document, selector: ${SELECTORS.splash}`
+    })
   }
-  return splash as HTMLDivElement
+  return splash
 }
 
 /**
@@ -56,11 +61,11 @@ export const getMobileSplashElement = (): HTMLDivElement => {
 export const getNavWrapperElement = (): HTMLSpanElement => {
   const navWrapper = document.querySelector(SELECTORS.navWrapper)
   if (!isSpanElement(navWrapper)) {
-    throw new Error(
-      `Main nav menu <span> wrapper is missing in document, selector: ${SELECTORS.navWrapper}`
-    )
+    throw new ClientScriptError({
+      message: `Main nav menu <span> wrapper is missing in document, selector: ${SELECTORS.navWrapper}`
+    })
   }
-  return navWrapper as HTMLSpanElement
+  return navWrapper
 }
 
 /**
@@ -70,11 +75,11 @@ export const getNavMenuElement = (): HTMLUListElement => {
   const navWrapper = getNavWrapperElement()
   const menu = navWrapper.querySelector(SELECTORS.menu)
   if (!isUlElement(menu)) {
-    throw new Error(
-      `<ul> element is missing under <nav> element in document, class: ${SELECTORS.menu}`
-    )
+    throw new ClientScriptError({
+      message: `<ul> element is missing under <nav> element in document, class: ${SELECTORS.menu}`
+    })
   }
-  return menu as HTMLUListElement
+  return menu
 }
 
 /**
@@ -83,9 +88,11 @@ export const getNavMenuElement = (): HTMLUListElement => {
 export const getNavToggleWrapperElement = (): HTMLSpanElement => {
   const toggleWrapper = document.querySelector(SELECTORS.toggleWrapper)
   if (!isSpanElement(toggleWrapper)) {
-    throw new Error(`<span> element with class ${SELECTORS.toggleWrapper} is missing in document`)
+    throw new ClientScriptError({
+      message: `<span> element with class ${SELECTORS.toggleWrapper} is missing in document`
+    })
   }
-  return toggleWrapper as HTMLSpanElement
+  return toggleWrapper
 }
 
 /**
@@ -95,9 +102,11 @@ export const getNavToggleBtnElement = (): HTMLButtonElement => {
   const toggleWrapper = getNavToggleWrapperElement()
   const toggleBtn = toggleWrapper.querySelector(SELECTORS.toggleBtn)
   if (!isButtonElement(toggleBtn)) {
-    throw new Error(`<button> element with class ${SELECTORS.toggleBtn} is missing in document`)
+    throw new ClientScriptError({
+      message: `<button> element with class ${SELECTORS.toggleBtn} is missing in document`
+    })
   }
-  return toggleBtn as HTMLButtonElement
+  return toggleBtn
 }
 
 /**
@@ -106,7 +115,9 @@ export const getNavToggleBtnElement = (): HTMLButtonElement => {
 export const getMobileNavFocusContainer = (): HTMLDivElement => {
   const focusContainer = document.querySelector(SELECTORS.focusContainer)
   if (!isDivElement(focusContainer)) {
-    throw new Error(`<div> element with id ${SELECTORS.focusContainer} is missing in document`)
+    throw new ClientScriptError({
+      message: `<div> element with id ${SELECTORS.focusContainer} is missing in document`
+    })
   }
-  return focusContainer as HTMLDivElement
+  return focusContainer
 }

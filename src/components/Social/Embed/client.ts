@@ -1,6 +1,6 @@
-import { LoadableScript, type TriggerEvent } from '../../Scripts/loader/@types/loader'
-import { cacheEmbed, getCachedEmbed } from '@components/Scripts/state'
-import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
+import { cacheEmbed, getCachedEmbed } from '@components/scripts/store'
+import { addScriptBreadcrumb } from '@components/scripts/errors'
+import { handleScriptError } from '@components/scripts/errors/handler'
 
 /**
  * Platform types supported by the Embed component
@@ -39,15 +39,14 @@ interface OEmbedResponse {
  * Manager class for all social embeds using singleton pattern
  * Can be registered directly: registerScript(EmbedManager)
  */
-export class EmbedManager extends LoadableScript {
+export class EmbedManager {
   private static instance: EmbedManager | null = null
   private embeds: Map<HTMLElement, EmbedInstance> = new Map()
   private initialized = false
 
-  static override scriptName = 'EmbedManager'
-  static override eventType: TriggerEvent = 'delayed'
+  static scriptName = 'EmbedManager'
 
-  static override init(): void {
+  static init(): void {
     const context = { scriptName: EmbedManager.scriptName, operation: 'init' }
     addScriptBreadcrumb(context)
 
@@ -67,11 +66,11 @@ export class EmbedManager extends LoadableScript {
     }
   }
 
-  static override pause(): void {
+  static pause(): void {
     EmbedManager.getInstance().pauseAll()
   }
 
-  static override resume(): void {
+  static resume(): void {
     EmbedManager.getInstance().resumeAll()
   }
 
@@ -83,7 +82,6 @@ export class EmbedManager extends LoadableScript {
   }
 
   private constructor() {
-    super()
   }
 
   private discoverNewEmbeds(): void {
@@ -95,20 +93,21 @@ export class EmbedManager extends LoadableScript {
 
       embedElements.forEach((element, index) => {
         try {
-          const htmlElement = element as HTMLElement
-          const platform = htmlElement.dataset['embedPlatform'] as EmbedPlatform | undefined
-          const url = htmlElement.dataset['embedUrl']
+          if (!(element instanceof HTMLElement)) return
+
+          const platform = element.dataset['embedPlatform'] as EmbedPlatform | undefined
+          const url = element.dataset['embedUrl']
 
           if (!url) {
             console.warn('Embed element missing data-embed-url attribute')
             return
           }
 
-          const embed = new EmbedInstance(htmlElement, url, platform, this.embeds.size + index)
+          const embed = new EmbedInstance(element, url, platform, this.embeds.size + index)
           embed.initialize()
 
-          this.embeds.set(htmlElement, embed)
-          htmlElement.setAttribute('data-embed-managed', 'true')
+          this.embeds.set(element, embed)
+          element.setAttribute('data-embed-managed', 'true')
         } catch (error) {
           // One embed failing shouldn't break all embeds
           handleScriptError(error, { scriptName: EmbedManager.scriptName, operation: 'initEmbed' })
@@ -183,7 +182,7 @@ export class EmbedManager extends LoadableScript {
     }
   }
 
-  static override reset(): void {
+  static reset(): void {
     const instance = EmbedManager.instance
     if (instance) {
       instance.cleanup()

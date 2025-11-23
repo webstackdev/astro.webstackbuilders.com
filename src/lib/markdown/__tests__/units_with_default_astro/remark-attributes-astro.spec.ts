@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import remarkAttributes from '../../plugins/remark-attributes/index'
-import { processWithAstroSettings } from '../../helpers/test-utils'
-import { remarkAttributesConfig } from '../../../config/markdown'
+import remarkAttributes from '@lib/markdown/plugins/remark-attributes/index'
+import { processWithAstroSettings } from '@lib/markdown/helpers/test-utils'
+import { remarkAttributesConfig } from '@lib/config/markdown'
 
 describe('remark-attributes (Layer 2: With Astro Pipeline)', () => {
   describe('attributes with GFM', () => {

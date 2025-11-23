@@ -1,16 +1,6 @@
 # Download Call-to-Action Component
 
-A visually striking call-to-action component that encourages users to download gated resources. The component links to download landing pages where users fill out a form to access the content.
-
-## Features
-
-- **Theme-Aware Styling**: Adapts to site themes with CSS custom properties
-- **Gradient Background**: Eye-catching gradient from primary to accent colors
-- **Animated Icon**: Download icon with hover animation
-- **Trust Indicators**: Shows "Instant Access", "No Credit Card Required", and "Expert Insights"
-- **Responsive Design**: Mobile-first approach with responsive breakpoints
-- **Accessible**: Semantic HTML with proper ARIA labels
-- **Customizable**: Flexible props for title, description, and button text
+A call-to-action component to encourage users to download gated resources. The component links to download landing pages where users fill out a form to access the content.
 
 ## Usage
 
@@ -72,23 +62,6 @@ The `resource` prop must match the folder name of a download in `src/content/dow
 
 The component will construct the URL as `/downloads/{resource}` and navigate to that landing page when the button is clicked.
 
-## Design Elements
-
-### Visual Features
-
-- **Gradient Background**: Uses primary and accent theme colors
-- **Decorative Blurs**: Subtle circular blur elements for depth
-- **Icon Badge**: Large download icon with semi-transparent background
-- **Hover Effects**: Smooth transitions and subtle lift on hover
-- **Trust Indicators**: Three icons with benefits displayed below the CTA
-
-### Accessibility
-
-- Semantic HTML5 `<section>` element
-- High contrast white text on colored background
-- Focus states for keyboard navigation
-- Screen reader friendly
-
 ## Customization
 
 ### Styling
@@ -117,79 +90,6 @@ This CTA component works seamlessly with the download system:
 3. **Form Submission**: User fills out the download form on the landing page
 4. **Access Granted**: After submission, download button appears
 5. **PDF Download**: User clicks to download the PDF in a new tab
-
-## Example Placements
-
-### In an Article
-
-```astro
----
-// In src/pages/articles/api-strategy.astro
-import Download from '@components/CallToAction/Download/index.astro'
----
-
-<article>
-  <!-- Article content -->
-
-  <Download
-    resource="api-tool-consolidation-whitepaper"
-    title="Want to Learn More About API Consolidation?"
-    description="Download our comprehensive whitepaper with case studies and implementation strategies."
-  />
-</article>
-```
-
-### In a Service Page
-
-```astro
----
-// In src/pages/services/security-consulting.astro
-import Download from '@components/CallToAction/Download/index.astro'
----
-
-<main>
-  <!-- Service information -->
-
-  <Download
-    resource="ransomware-recovery-kit"
-    title="Protect Your Organization Today"
-    description="Get our complete ransomware recovery kit with prevention strategies and response protocols."
-    secondaryLink={{
-      href: "/contact",
-      text: "Schedule Consultation"
-    }}
-  />
-</main>
-```
-
-## Validation
-
-The component includes runtime validation:
-
-- Throws an error if the `resource` prop is not provided
-- Ensures the component is used correctly
-
-```typescript
-if (!resource) {
-  throw new Error('Download CTA component requires a "resource" prop')
-}
-```
-
-## Browser Support
-
-Works in all modern browsers that support:
-
-- CSS Grid and Flexbox
-- CSS Custom Properties (CSS Variables)
-- CSS Backdrop Blur (graceful degradation)
-- SVG
-
-## Performance
-
-- Static component with no client-side JavaScript
-- Uses native HTML anchor tags for navigation
-- CSS transitions handled by GPU
-- Optimized SVG icons
 
 ## Related Components
 

@@ -14,4 +14,4 @@
 
 export { default as Highlighter } from './Highlighter.astro'
 export { Highlighter as HighlighterScript } from './client'
-export type { SharePlatform, ShareData } from '../common'
+export type { SharePlatform, ShareData } from '@components/Social/common'

@@ -1,14 +1,35 @@
 /**
  * Nanostore Persistence Tests
  * Tests that all stores persist their values across page navigations (View Transitions)
- * @see src/components/Scripts/state/
+ * @see src/components/scripts/store/
  */
 
-import { test, expect } from '@test/e2e/helpers'
+import { BasePage, test, expect } from '@test/e2e/helpers'
 import { selectTheme } from '@test/e2e/helpers/cookieHelper'
 
+const getLocalStorageItem = (page: BasePage, key: string) => {
+  return page.evaluate((storageKey) => localStorage.getItem(storageKey), key)
+}
+
 test.describe('Nanostore Persistence Across Navigation', () => {
-  test.beforeEach(async ({ page, context }) => {
+  /**
+   * Setup for nanostore persistence tests
+   *
+   * Side effects relied upon:
+   * - Clears all storage (localStorage, sessionStorage, cookies) to ensure clean state
+   * - Reloads page after clearing storage to re-initialize nanostores with empty state
+   * - Waits for networkidle to ensure stores and components are fully initialized
+   *
+   * Without this setup, tests would fail due to:
+   * - Stores containing values from previous tests, causing false positives/negatives
+   * - Persistence mechanisms reading stale data from storage
+   * - Race conditions where stores haven't finished initializing before tests run
+   *
+   * This ensures each test starts with a known baseline (empty stores) to verify
+   * persistence behavior across View Transitions navigation
+   */
+  test.beforeEach(async ({ page: playwrightPage, context }) => {
+    const page = await BasePage.init(playwrightPage)
     // Clear ALL storage (localStorage, sessionStorage, AND cookies) for clean state
     await context.clearCookies()
     await page.goto('/')
@@ -21,7 +42,8 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     await page.waitForLoadState('networkidle')
   })
 
-  test.skip('@ready theme preference persists across View Transitions', async ({ page }) => {
+  test.skip('@ready theme preference persists across View Transitions', async ({ page: playwrightPage }) => {
+    const page = await BasePage.init(playwrightPage)
     // SKIPPED: Theme persists to localStorage but isn't re-applied from localStorage after View Transition
     // Root cause: Theme initialization on new page doesn't read from $theme store properly
     // localStorage.getItem('theme') returns 'dark' but <html data-theme> is null after navigation
@@ -32,34 +54,33 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     await page.waitForLoadState('networkidle')
 
     // Select dark theme using helper
-    await selectTheme(page, 'dark')
+    await selectTheme(page.page, 'dark')
 
     // Verify theme is applied
-    let htmlTheme = await page.locator('html').getAttribute('data-theme')
-    expect(htmlTheme).toBe('dark')
+    const htmlElement = page.locator('html')
+    await expect(htmlElement).toHaveAttribute('data-theme', 'dark')
 
     // Wait for localStorage to be updated (nanostores persistence is async)
-    await page.waitForTimeout(100)
-
-    // Verify localStorage has the theme stored BEFORE navigation
-    let storedTheme = await page.evaluate(() => localStorage.getItem('theme'))
+    await expect.poll(async () => {
+      return await getLocalStorageItem(page, 'theme')
+    }).toBe('dark')
+    let storedTheme = await getLocalStorageItem(page, 'theme')
     expect(storedTheme).toBe('dark')
 
     // Navigate to another page using View Transitions
     await page.click('a[href="/about"]')
     await page.waitForLoadState('networkidle')
-    await page.waitForTimeout(300)
 
     // Verify theme persisted after navigation
-    htmlTheme = await page.locator('html').getAttribute('data-theme')
-    expect(htmlTheme).toBe('dark')
+    await expect(htmlElement).toHaveAttribute('data-theme', 'dark')
 
     // Verify localStorage still has the theme stored
-    storedTheme = await page.evaluate(() => localStorage.getItem('theme'))
+    storedTheme = await getLocalStorageItem(page, 'theme')
     expect(storedTheme).toBe('dark')
   })
 
-  test('@ready theme picker modal state persists across View Transitions', async ({ page }) => {
+  test('@ready theme picker modal state persists across View Transitions', async ({ page: playwrightPage }) => {
+    const page = await BasePage.init(playwrightPage)
     // Go to homepage
     await page.goto('/')
     await page.waitForLoadState('networkidle')
@@ -67,7 +88,6 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     // Open theme picker modal
     const themeToggle = page.locator('[data-theme-toggle]')
     await themeToggle.click()
-    await page.waitForTimeout(300)
 
     // Verify modal is open
     const modal = page.locator('[data-theme-modal]')
@@ -76,7 +96,6 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     // Navigate to another page while modal is open
     await page.click('a[href="/about"]')
     await page.waitForLoadState('networkidle')
-    await page.waitForTimeout(300)
 
     // Modal should remain open after navigation (state persists via $themePickerOpen store)
     const modalAfterNav = page.locator('[data-theme-modal]')
@@ -87,7 +106,8 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     expect(isOpen).toBe('true')
   })
 
-  test.skip('@ready cookie consent preferences persist across View Transitions', async ({ page }) => {
+  test.skip('@ready cookie consent preferences persist across View Transitions', async ({ page: playwrightPage }) => {
+    const page = await BasePage.init(playwrightPage)
     // SKIPPED: This test needs rework for hybrid consent approach
     // where functional is true by default and analytics is opt-in
     // Go to homepage
@@ -103,10 +123,12 @@ test.describe('Nanostore Persistence Across Navigation', () => {
         updateConsent('analytics', true)
       }
     })
-    await page.waitForTimeout(200)
+    await expect.poll(async () => {
+      return await getLocalStorageItem(page, 'cookieConsent')
+    }).not.toBeNull()
 
     // Verify consent is stored in localStorage
-    let storedConsent = await page.evaluate(() => localStorage.getItem('cookieConsent'))
+    let storedConsent = await getLocalStorageItem(page, 'cookieConsent')
     expect(storedConsent).toBeTruthy()
     if (storedConsent) {
       const consent = JSON.parse(storedConsent)
@@ -117,10 +139,13 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     // Navigate to another page
     await page.click('a[href="/about"]')
     await page.waitForLoadState('networkidle')
-    await page.waitForTimeout(300)
+
+    await expect.poll(async () => {
+      return await getLocalStorageItem(page, 'cookieConsent')
+    }).not.toBeNull()
 
     // Verify consent persisted after navigation
-    storedConsent = await page.evaluate(() => localStorage.getItem('cookieConsent'))
+    storedConsent = await getLocalStorageItem(page, 'cookieConsent')
     expect(storedConsent).toBeTruthy()
     if (storedConsent) {
       const consent = JSON.parse(storedConsent)
@@ -129,7 +154,8 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     }
   })
 
-  test.skip('@ready social embed cache persists across View Transitions', async ({ page }) => {
+  test.skip('@ready social embed cache persists across View Transitions', async ({ page: playwrightPage }) => {
+    const page = await BasePage.init(playwrightPage)
     // SKIPPED: Test setup issue - cache functions not available in test environment
     // Go to a page with social embeds (if available)
     await page.goto('/')
@@ -143,7 +169,9 @@ test.describe('Nanostore Persistence Across Navigation', () => {
         updateConsent('functional', true)
       }
     })
-    await page.waitForTimeout(200)
+    await expect.poll(async () => {
+      return await getLocalStorageItem(page, 'cookieConsent')
+    }).not.toBeNull()
 
     // Add a mock embed to the cache
     await page.evaluate(() => {
@@ -154,10 +182,12 @@ test.describe('Nanostore Persistence Across Navigation', () => {
         cacheEmbed('test_embed_123', testData, 24 * 60 * 60 * 1000) // 24 hours
       }
     })
-    await page.waitForTimeout(200)
+    await expect.poll(async () => {
+      return await getLocalStorageItem(page, 'socialEmbedCache')
+    }).not.toBeNull()
 
     // Verify cache is stored in localStorage
-    let storedCache = await page.evaluate(() => localStorage.getItem('socialEmbedCache'))
+    let storedCache = await getLocalStorageItem(page, 'socialEmbedCache')
     expect(storedCache).toBeTruthy()
     if (storedCache) {
       const cache = JSON.parse(storedCache)
@@ -168,10 +198,13 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     // Navigate to another page
     await page.click('a[href="/about"]')
     await page.waitForLoadState('networkidle')
-    await page.waitForTimeout(300)
 
     // Verify cache persisted after navigation
-    storedCache = await page.evaluate(() => localStorage.getItem('socialEmbedCache'))
+    await expect.poll(async () => {
+      return await getLocalStorageItem(page, 'socialEmbedCache')
+    }).not.toBeNull()
+
+    storedCache = await getLocalStorageItem(page, 'socialEmbedCache')
     expect(storedCache).toBeTruthy()
     if (storedCache) {
       const cache = JSON.parse(storedCache)
@@ -180,7 +213,8 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     }
   })
 
-  test.skip('@ready mastodon instances persist across View Transitions', async ({ page }) => {
+  test.skip('@ready mastodon instances persist across View Transitions', async ({ page: playwrightPage }) => {
+    const page = await BasePage.init(playwrightPage)
     // SKIPPED: Test setup issue - mastodon functions not available in test environment
     // Go to homepage
     await page.goto('/')
@@ -194,7 +228,9 @@ test.describe('Nanostore Persistence Across Navigation', () => {
         updateConsent('functional', true)
       }
     })
-    await page.waitForTimeout(200)
+    await expect.poll(async () => {
+      return await getLocalStorageItem(page, 'cookieConsent')
+    }).not.toBeNull()
 
     // Add mastodon instances
     await page.evaluate(() => {
@@ -205,10 +241,12 @@ test.describe('Nanostore Persistence Across Navigation', () => {
         saveMastodonInstance('fosstodon.org')
       }
     })
-    await page.waitForTimeout(200)
+    await expect.poll(async () => {
+      return await getLocalStorageItem(page, 'mastodonInstances')
+    }).not.toBeNull()
 
     // Verify instances are stored in localStorage
-    let storedInstances = await page.evaluate(() => localStorage.getItem('mastodonInstances'))
+    let storedInstances = await getLocalStorageItem(page, 'mastodonInstances')
     expect(storedInstances).toBeTruthy()
     if (storedInstances) {
       const instances = JSON.parse(storedInstances)
@@ -219,10 +257,13 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     // Navigate to another page
     await page.click('a[href="/about"]')
     await page.waitForLoadState('networkidle')
-    await page.waitForTimeout(300)
 
     // Verify instances persisted after navigation
-    storedInstances = await page.evaluate(() => localStorage.getItem('mastodonInstances'))
+    await expect.poll(async () => {
+      return await getLocalStorageItem(page, 'mastodonInstances')
+    }).not.toBeNull()
+
+    storedInstances = await getLocalStorageItem(page, 'mastodonInstances')
     expect(storedInstances).toBeTruthy()
     if (storedInstances) {
       const instances = JSON.parse(storedInstances)
@@ -231,7 +272,8 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     }
   })
 
-  test('@ready all stores clear on explicit storage clear', async ({ page }) => {
+  test('@ready all stores clear on explicit storage clear', async ({ page: playwrightPage }) => {
+    const page = await BasePage.init(playwrightPage)
     // Go to homepage and set up all stores
     await page.goto('/')
     await page.waitForLoadState('networkidle')
@@ -239,10 +281,10 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     // Set theme
     const themeToggle = page.locator('[data-theme-toggle]')
     await themeToggle.click()
-    await page.waitForTimeout(200)
     const darkThemeButton = page.locator('[data-theme="dark"]')
+    await expect(darkThemeButton).toBeVisible()
     await darkThemeButton.click()
-    await page.waitForTimeout(200)
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
 
     // Set consent
     await page.evaluate(() => {
@@ -252,7 +294,9 @@ test.describe('Nanostore Persistence Across Navigation', () => {
         updateConsent('functional', true)
       }
     })
-    await page.waitForTimeout(200)
+    await expect.poll(async () => {
+      return await getLocalStorageItem(page, 'cookieConsent')
+    }).not.toBeNull()
 
     // Verify stores have data
     let theme = await page.evaluate(() => localStorage.getItem('theme'))
@@ -273,7 +317,8 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     expect(consent).toBeNull()
   })
 
-  test('@ready stores restore defaults when localStorage is corrupted', async ({ page }) => {
+  test('@ready stores restore defaults when localStorage is corrupted', async ({ page: playwrightPage }) => {
+    const page = await BasePage.init(playwrightPage)
     // Go to homepage
     await page.goto('/')
     await page.waitForLoadState('networkidle')
@@ -287,21 +332,25 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     // Reload page to trigger store initialization
     await page.reload()
     await page.waitForLoadState('networkidle')
-    await page.waitForTimeout(300)
+    await expect.poll(async () => {
+      return await getLocalStorageItem(page, 'theme')
+    }).toBe('default')
 
     // Verify stores recovered with defaults
-    const theme = await page.evaluate(() => localStorage.getItem('theme'))
-    const consent = await page.evaluate(() => localStorage.getItem('cookieConsent'))
+    const theme = await getLocalStorageItem(page, 'theme')
+    await expect.poll(async () => {
+      return await getLocalStorageItem(page, 'cookieConsent')
+    }).not.toBeNull()
+    const consent = await getLocalStorageItem(page, 'cookieConsent')
 
     // Theme should be reset to default
     expect(theme).toBe('default')
 
-    // Consent should be reset with defaults (functional is now true by default for hybrid approach)
+    // Consent should be reset with defaults (functional defaults to false - opt-in for Mastodon)
     if (consent) {
       const consentObj = JSON.parse(consent)
-      expect(consentObj.necessary).toBe(true)
       expect(consentObj.analytics).toBe(false)
-      expect(consentObj.functional).toBe(true)
+      expect(consentObj.functional).toBe(false)
     }
   })
 })

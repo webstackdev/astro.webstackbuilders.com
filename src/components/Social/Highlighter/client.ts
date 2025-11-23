@@ -4,12 +4,13 @@
  * Uses LoadableScript pattern for optimized loading
  */
 
-import { LoadableScript } from '@components/Scripts/loader'
 import type { ShareData } from '@components/Social/common'
 import { platforms, copyToClipboard, nativeShare } from '@components/Social/common'
 import { MastodonModal } from '@components/Social/Mastodon/client'
-import { getSlotElement } from './selectors'
-import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
+import { getSlotElement } from '@components/Social/Highlighter/selectors'
+import { addScriptBreadcrumb } from '@components/scripts/errors'
+import { handleScriptError } from '@components/scripts/errors/handler'
+import { addButtonEventListeners } from '@components/scripts/elementListeners'
 
 /**
  * Highlighter element that creates a shareable text highlight
@@ -222,7 +223,7 @@ class HighlighterElement extends HTMLElement {
       this.addEventListener('focusout', () => this.hideDialog())
 
       // Keyboard navigation
-      this.addEventListener('keydown', e => {
+      document.addEventListener('keyup', (e) => {
         try {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault()
@@ -232,14 +233,14 @@ class HighlighterElement extends HTMLElement {
             this.blur()
           }
         } catch (error) {
-          handleScriptError(error, { scriptName: 'Highlighter', operation: 'keydown' })
+          handleScriptError(error, { scriptName: 'Highlighter', operation: 'keyup' })
         }
       })
 
       // Share button clicks
       const buttons = this.shadowRoot.querySelectorAll<HTMLButtonElement>('.share-button')
       buttons.forEach(button => {
-        button.addEventListener('click', e => {
+        addButtonEventListeners(button, (e) => {
           try {
             e.stopPropagation()
             const platformId = button.dataset['platform']
@@ -249,7 +250,7 @@ class HighlighterElement extends HTMLElement {
           } catch (error) {
             handleScriptError(error, { scriptName: 'Highlighter', operation: 'shareClick' })
           }
-        })
+        }, this)
       })
     } catch (error) {
       handleScriptError(error, context)
@@ -380,13 +381,12 @@ class HighlighterElement extends HTMLElement {
 }
 
 /**
- * Highlighter LoadableScript for delayed initialization
+ * Highlighter for delayed initialization
  */
-export class Highlighter extends LoadableScript {
-  static override scriptName = 'Highlighter'
-  static override eventType = 'delayed' as const
+export class Highlighter {
+  static scriptName = 'Highlighter'
 
-  static override init(): void {
+  static init(): void {
     const context = { scriptName: Highlighter.scriptName, operation: 'init' }
     addScriptBreadcrumb(context)
 
@@ -401,15 +401,15 @@ export class Highlighter extends LoadableScript {
     }
   }
 
-  static override pause(): void {
+  static pause(): void {
     // No persistent state to pause
   }
 
-  static override resume(): void {
+  static resume(): void {
     // No persistent state to resume
   }
 
-  static override reset(): void {
+  static reset(): void {
     // No persistent state to reset
   }
 }

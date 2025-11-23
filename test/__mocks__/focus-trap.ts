@@ -1,7 +1,7 @@
 /**
  * Mock implementation of focus-trap for testing
  *
- * This mock provides a simplified version of focus-trap that works in jsdom environments
+ * This mock provides a simplified version of focus-trap that works in test environments
  * where the library's tabbable element detection doesn't work properly.
  *
  * **Reusability:**

@@ -1,5 +1,5 @@
 /**
- * Mastodon Share Modal - LoadableScript Implementation
+ * Mastodon Share Modal
  *
  * Provides a modal interface for sharing content to Mastodon instances.
  * Handles instance detection, validation, and saved instance management.
@@ -7,16 +7,16 @@
  * SPDX-FileCopyrightText: © 2025 Kevin Brown <kevin@webstackbuilders.com>
  * SPDX-License-Identifier: AGPL-3.0-only
  */
-
 import { createFocusTrap, type FocusTrap } from 'focus-trap'
-import { LoadableScript, type TriggerEvent } from '@components/Scripts/loader/@types/loader'
 import { isMastodonInstance, normalizeURL, getUrlDomain } from './detector'
 import { buildShareUrl } from './config'
 import {
-  $currentMastodonInstance,
-  $mastodonInstances,
   saveMastodonInstance,
-} from '@components/Scripts/state'
+  setCurrentMastodonInstance,
+  getCurrentMastodonInstance,
+  subscribeMastodonInstances,
+} from '@components/scripts/store/mastodonInstances'
+import { addButtonEventListeners, addWrapperEventListeners } from '@components/scripts/elementListeners'
 import {
   getModalElement,
   getBackdropElement,
@@ -31,7 +31,8 @@ import {
   getSavedInstancesContainer,
   getSavedInstancesList,
 } from './selectors'
-import { handleScriptError, addScriptBreadcrumb } from '@components/Scripts/errors'
+import { addScriptBreadcrumb } from '@components/scripts/errors'
+import { handleScriptError } from '@components/scripts/errors/handler'
 
 /**
  * Custom event detail for modal open
@@ -64,9 +65,8 @@ declare global {
 /**
  * MastodonModal - Main controller for the Mastodon share modal
  */
-export class MastodonModal extends LoadableScript {
-  static override scriptName = 'MastodonModal'
-  static override eventType: TriggerEvent = 'astro:page-load'
+export class MastodonModal {
+  static scriptName = 'MastodonModal'
 
   private static instance: MastodonModal | null = null
 
@@ -90,7 +90,6 @@ export class MastodonModal extends LoadableScript {
   private unsubscribeSavedInstances: (() => void) | null = null
 
   constructor() {
-    super()
   }
 
   /**
@@ -123,9 +122,9 @@ export class MastodonModal extends LoadableScript {
       })
 
       // Set up event listeners
-      this.closeButton.addEventListener('click', () => this.closeModal())
-      this.cancelButton.addEventListener('click', () => this.closeModal())
-      this.backdrop.addEventListener('click', () => this.closeModal())
+      addButtonEventListeners(this.closeButton, () => this.closeModal())
+      addButtonEventListeners(this.cancelButton, () => this.closeModal())
+      addWrapperEventListeners(this.backdrop, () => this.closeModal())
       this.form.addEventListener('submit', (e) => this.handleSubmit(e))
 
       // Listen for ESC key
@@ -135,7 +134,7 @@ export class MastodonModal extends LoadableScript {
       window.addEventListener('mastodon:open-modal', this.handleOpenModalEvent)
 
       // Subscribe to saved instances changes
-      this.unsubscribeSavedInstances = $mastodonInstances.subscribe((instances) => {
+      this.unsubscribeSavedInstances = subscribeMastodonInstances((instances) => {
         this.updateSavedInstancesUI(instances)
       })
     } catch (error) {
@@ -191,7 +190,7 @@ export class MastodonModal extends LoadableScript {
         button.type = 'button'
         button.className = 'saved-instance'
         button.textContent = instance
-        button.addEventListener('click', () => {
+        addButtonEventListeners(button, () => {
           if (this.instanceInput) {
             this.instanceInput.value = instance
             this.instanceInput.focus()
@@ -217,7 +216,7 @@ export class MastodonModal extends LoadableScript {
       }
 
       // Restore last used instance
-      const lastInstance = $currentMastodonInstance.get()
+      const lastInstance = getCurrentMastodonInstance()
       if (lastInstance && this.instanceInput) {
         this.instanceInput.value = lastInstance
       }
@@ -314,7 +313,7 @@ export class MastodonModal extends LoadableScript {
       }
 
       // Store current instance
-      $currentMastodonInstance.set(instance)
+      setCurrentMastodonInstance(instance)
 
       // Build share URL and redirect
       const shareUrl = buildShareUrl(instance, this.shareText)
@@ -382,7 +381,7 @@ export class MastodonModal extends LoadableScript {
   /**
    * LoadableScript static methods
    */
-  static override init(): void {
+  static init(): void {
     const context = { scriptName: MastodonModal.scriptName, operation: 'init' }
     addScriptBreadcrumb(context)
 
@@ -395,19 +394,19 @@ export class MastodonModal extends LoadableScript {
     }
   }
 
-  static override pause(): void {
+  static pause(): void {
     if (MastodonModal.instance) {
       MastodonModal.instance.pause()
     }
   }
 
-  static override resume(): void {
+  static resume(): void {
     if (MastodonModal.instance) {
       MastodonModal.instance.resume()
     }
   }
 
-  static override reset(): void {
+  static reset(): void {
     if (MastodonModal.instance) {
       MastodonModal.instance.pause()
       if (MastodonModal.instance.unsubscribeSavedInstances) {

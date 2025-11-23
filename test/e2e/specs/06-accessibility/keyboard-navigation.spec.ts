@@ -16,7 +16,7 @@ test.describe('Keyboard Navigation', () => {
    * and create an empty tab stop.
    */
   test('@ready can tab through interactive elements', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     let focusableCount = 0
@@ -39,7 +39,7 @@ test.describe('Keyboard Navigation', () => {
    * experience the page to confirm.
    */
   test('@wip tab order follows visual layout', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     const positions: Array<{ y: number; x: number }> = []
@@ -69,21 +69,21 @@ test.describe('Keyboard Navigation', () => {
    * task that requires human interpretation.
    */
   test('@ready form inputs are keyboard accessible', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/contact')
 
     // Dismiss cookie modal if it's open (common in test environments)
-    const cookieModalVisible = await page.page.evaluate(() => {
-      const modal = document.getElementById('cookie-modal-id')
+    const consentModalVisible = await page.page.evaluate(() => {
+      const modal = document.getElementById('consent-modal-id')
       return modal ? window.getComputedStyle(modal).display !== 'none' : false
     })
 
-    if (cookieModalVisible) {
+    if (consentModalVisible) {
       // Click the "Allow All" button to dismiss the modal
-      await page.page.click('.cookie-modal__btn-allow')
+      await page.page.click('.consent-modal__btn-allow')
       // Wait for modal to close and main content to be restored
       await page.page.waitForFunction(() => {
-        const modal = document.getElementById('cookie-modal-id')
+        const modal = document.getElementById('consent-modal-id')
         const main = document.getElementById('main-content')
         return modal && window.getComputedStyle(modal).display === 'none' &&
                main && !main.hasAttribute('inert')
