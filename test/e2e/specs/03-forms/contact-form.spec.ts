@@ -1,6 +1,8 @@
 /**
  * Contact Form E2E Tests
+ *
  * Focuses on client-side validation and UI behaviors of the contact form.
+ * Also see test/e2e/specs/02-pages/contact.spec.ts for navigation and basic load tests.
  */
 import type { Page } from '@playwright/test'
 import { BasePage, expect, test } from '@test/e2e/helpers'

@@ -1,6 +1,7 @@
 /**
  * Contact Page E2E Tests
- * Tests for the contact page and form
+ *
+ * Also see test/e2e/specs/03-forms/contact-form.spec.ts for contact form-specific tests
  */
 import { BasePage, test } from '@test/e2e/helpers'
 
