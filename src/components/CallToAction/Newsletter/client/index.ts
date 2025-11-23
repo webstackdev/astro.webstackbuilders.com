@@ -9,12 +9,14 @@ import { addScriptBreadcrumb, ClientScriptError } from '@components/scripts/erro
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { getNewsletterElements } from './selectors'
 import { defineCustomElement } from '@components/scripts/utils'
+import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 
 /**
  * Newsletter Form Custom Element (Lit-based)
  * Uses Light DOM (no Shadow DOM) with Astro-rendered templates
  */
 export class NewsletterFormElement extends LitElement {
+  static readonly registeredName = 'newsletter-form'
   // Render to Light DOM instead of Shadow DOM
   override createRenderRoot() {
     return this // No shadow DOM - works with Astro templates!
@@ -323,6 +325,12 @@ export class NewsletterFormElement extends LitElement {
   }
 }
 
-export const registerNewsletterFormWebComponent = (tagName = 'newsletter-form') =>
+export const registerNewsletterFormWebComponent = (tagName = NewsletterFormElement.registeredName) =>
   defineCustomElement(tagName, NewsletterFormElement)
+
+export const webComponentModule: WebComponentModule<NewsletterFormElement> = {
+  registeredName: NewsletterFormElement.registeredName,
+  componentCtor: NewsletterFormElement,
+  registerWebComponent: registerNewsletterFormWebComponent,
+}
 

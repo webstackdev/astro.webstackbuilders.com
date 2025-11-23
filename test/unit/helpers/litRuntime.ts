@@ -8,8 +8,41 @@ import type { experimental_AstroContainer as AstroContainer } from 'astro/contai
 import { BuildError } from '@lib/errors/BuildError'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 
-type DomGlobalKey = 'window' | 'document' | 'customElements' | 'HTMLElement'
+type DomGlobalKey =
+	| 'window'
+	| 'document'
+	| 'customElements'
+	| 'HTMLElement'
+	| 'Node'
+	| 'Element'
+	| 'Event'
+	| 'CustomEvent'
+	| 'SVGElement'
+	| 'SVGSVGElement'
+	| 'HTMLParagraphElement'
+	| 'HTMLFormElement'
+	| 'HTMLInputElement'
+	| 'HTMLButtonElement'
+	| 'HTMLSpanElement'
 type DomGlobals = Partial<Record<DomGlobalKey, unknown>>
+
+const DOM_GLOBAL_KEYS: DomGlobalKey[] = [
+	'window',
+	'document',
+	'customElements',
+	'HTMLElement',
+	'Node',
+	'Element',
+	'Event',
+	'CustomEvent',
+	'SVGElement',
+	'SVGSVGElement',
+	'HTMLParagraphElement',
+	'HTMLFormElement',
+	'HTMLInputElement',
+	'HTMLButtonElement',
+	'HTMLSpanElement',
+]
 
 type DomWindow = Window & typeof globalThis
 
@@ -51,12 +84,10 @@ export const setGlobalValue = (key: DomGlobalKey, value: unknown): void => {
 
 const captureGlobalSnapshot = (): DomGlobals => {
 	const globalObject = globalThis as Record<string, unknown>
-	return {
-		window: globalObject['window'],
-		document: globalObject['document'],
-		customElements: globalObject['customElements'],
-		HTMLElement: globalObject['HTMLElement'],
-	}
+	return DOM_GLOBAL_KEYS.reduce<DomGlobals>((snapshot, key) => {
+		snapshot[key] = globalObject[key]
+		return snapshot
+	}, {})
 }
 
 const installWindowGlobals = (window: DomWindow): void => {
@@ -64,13 +95,23 @@ const installWindowGlobals = (window: DomWindow): void => {
 	setGlobalValue('document', window.document)
 	setGlobalValue('customElements', window.customElements)
 	setGlobalValue('HTMLElement', window.HTMLElement)
+	setGlobalValue('Node', window.Node)
+	setGlobalValue('Element', window.Element)
+	setGlobalValue('Event', window.Event)
+	setGlobalValue('CustomEvent', window.CustomEvent)
+	setGlobalValue('SVGElement', window.SVGElement)
+	setGlobalValue('SVGSVGElement', window.SVGSVGElement)
+	setGlobalValue('HTMLParagraphElement', window.HTMLParagraphElement)
+	setGlobalValue('HTMLFormElement', window.HTMLFormElement)
+	setGlobalValue('HTMLInputElement', window.HTMLInputElement)
+	setGlobalValue('HTMLButtonElement', window.HTMLButtonElement)
+	setGlobalValue('HTMLSpanElement', window.HTMLSpanElement)
 }
 
 const restoreGlobalSnapshot = (snapshot: DomGlobals): void => {
-	setGlobalValue('window', snapshot.window)
-	setGlobalValue('document', snapshot.document)
-	setGlobalValue('customElements', snapshot.customElements)
-	setGlobalValue('HTMLElement', snapshot.HTMLElement)
+	for (const key of DOM_GLOBAL_KEYS) {
+		setGlobalValue(key, snapshot[key])
+	}
 }
 
 /**
