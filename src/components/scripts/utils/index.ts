@@ -17,6 +17,8 @@ export {
 
 export { absoluteUrl } from './absoluteUrl'
 
+export { defineCustomElement } from './defineCustomElement'
+
 /**
  * !!!! DO NOT RE-EXPORT environmentClient.ts OR siteUrlClient.ts METHODS HERE !!!!!
  *
