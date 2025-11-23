@@ -1,7 +1,10 @@
 import { LitElement, html, css } from 'lit'
 import { defineCustomElement } from '@components/scripts/utils'
+import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 
 export class TestWebComponent extends LitElement {
+  static registeredName = 'test-web-component'
+
   static override properties = {
     message: { type: String },
   }
@@ -31,5 +34,11 @@ export class TestWebComponent extends LitElement {
   }
 }
 
-export const registerTestWebComponent = (tagName = 'test-web-component') =>
+export const registerWebComponent = (tagName = TestWebComponent.registeredName) =>
   defineCustomElement(tagName, TestWebComponent)
+
+export const webComponentModule: WebComponentModule<TestWebComponent> = {
+  registeredName: TestWebComponent.registeredName,
+  componentCtor: TestWebComponent,
+  registerWebComponent,
+}

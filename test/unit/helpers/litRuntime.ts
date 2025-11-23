@@ -1,6 +1,9 @@
 import { Window } from 'happy-dom'
+import type HappyDomNode from 'happy-dom/lib/nodes/node/Node'
+import type HappyDomDocumentFragment from 'happy-dom/lib/nodes/document-fragment/DocumentFragment'
 import type { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import { BuildError } from '@lib/errors/BuildError'
+import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 
 type HappyDomGlobalKey = 'window' | 'document' | 'customElements' | 'HTMLElement'
 type HappyDomGlobals = Partial<Record<HappyDomGlobalKey, unknown>>
@@ -70,44 +73,168 @@ export const withHappyDomEnvironment = async <TReturn>(
 	}
 }
 
-interface RenderInHappyDomOptions<TElement, THydrateResult> {
+export type ModuleElement<TModule extends WebComponentModule> = TModule extends WebComponentModule<infer TElement>
+	? TElement
+	: HTMLElement
+
+export interface RenderInHappyDomOptions<TModule extends WebComponentModule> {
 	container: AstroContainer
 	component: AstroComponentInstance
 	args?: AstroRenderArgs
-	selector: string
-	hydrate?: () => Promise<THydrateResult> | THydrateResult
-	waitForReady?: (_element: TElement) => Promise<void> | void
+	moduleLoader: () => Promise<TModule> | TModule
+	selector?: string
+	waitForReady?: (_element: ModuleElement<TModule>) => Promise<void> | void
 	assert: (_context: {
-		element: TElement
+		element: ModuleElement<TModule>
 		window: Window
-		hydrateResult: THydrateResult
+		module: TModule
 		renderResult: RenderResult
 	}) => Promise<void> | void
 }
 
-const defaultWaitForReady = async () => {}
+const defaultWaitForReady = async (_element?: unknown) => {}
 
-export const renderInHappyDom = async <TElement, THydrateResult = void>(
-	options: RenderInHappyDomOptions<TElement, THydrateResult>,
+const componentModuleImporters = import.meta.glob<ModuleImport<WebComponentModule>>(
+	'/src/components/**/*.ts',
+)
+
+const sanitizeRenderedHtml = (html: string): string => {
+	const withoutScripts = html.replace(/<script[\s\S]*?<\/script>/gi, '')
+	return withoutScripts.replace(/\sdata-astro-cid-[^=\s>]+="[^"]*"/gi, '')
+}
+
+const hasFileExtension = (specifier: string): boolean => /\.[a-zA-Z0-9]+$/.test(specifier)
+
+const normalizeModuleSpecifier = (moduleSpecifier: string): string => {
+	const ensureExtension = (specifier: string) => (hasFileExtension(specifier) ? specifier : `${specifier}.ts`)
+
+	if (moduleSpecifier.startsWith('@components/')) {
+		const relativePath = moduleSpecifier.slice('@components/'.length)
+		return `/src/components/${ensureExtension(relativePath)}`
+	}
+
+	return ensureExtension(moduleSpecifier)
+}
+
+export type HappyDomRenderer<TModule extends WebComponentModule> = (
+	_options: RenderInHappyDomOptions<TModule>,
+) => Promise<void>
+
+export const renderInHappyDom = async <TModule extends WebComponentModule>(
+	_options: RenderInHappyDomOptions<TModule>,
 ): Promise<void> => {
-	const { container, component, args, selector, hydrate, waitForReady = defaultWaitForReady, assert } = options
+	const { container, component, args, moduleLoader, selector, waitForReady = defaultWaitForReady, assert } = _options
 
 	await withHappyDomEnvironment(async ({ window }) => {
+		const module = await moduleLoader()
+
 		const renderedHtml: RenderResult = await container.renderToString(component, args)
 
-		window.document.body.innerHTML = renderedHtml
-		window.document.querySelectorAll('script').forEach((script) => script.remove())
+		const sanitizedHtml = sanitizeRenderedHtml(renderedHtml)
+		const template = window.document.createElement('template')
+		template.innerHTML = sanitizedHtml
+		await module.registerWebComponent(module.registeredName)
+		const fragment = template.content.cloneNode(true) as HappyDomDocumentFragment
+		const placeholders = Array.from(fragment.querySelectorAll(module.registeredName))
+		placeholders.forEach((placeholder) => {
+			const upgradedElement = window.document.createElement(module.registeredName)
+			Array.from(placeholder.attributes).forEach((attribute) => {
+				upgradedElement.setAttribute(attribute.name, attribute.value ?? '')
+			})
+			while (placeholder.firstChild) {
+				upgradedElement.appendChild(placeholder.firstChild as HappyDomNode)
+			}
+			placeholder.replaceWith(upgradedElement as HappyDomNode)
+		})
+		window.document.body.innerHTML = ''
+		window.document.body.appendChild(fragment as HappyDomNode)
 
-		const hydrateResult = (await hydrate?.()) as THydrateResult
-
-		const element = window.document.querySelector(selector) as TElement | null
+		const querySelector = selector ?? module.registeredName
+		const element = window.document.querySelector(querySelector) as ModuleElement<TModule> | null
 		if (!element) {
 			throw BuildError.fileOperation(
-				`Unable to locate rendered element for selector "${selector}" during Happy DOM rendering`,
+				`Unable to locate rendered element for selector "${querySelector}" during Happy DOM rendering`,
+			)
+		}
+
+		const registeredCtor = window.customElements.get(module.registeredName) as
+			| CustomElementConstructor
+			| undefined
+		const expectedCtor: CustomElementConstructor = module.componentCtor
+		if (!registeredCtor || registeredCtor !== expectedCtor) {
+			throw BuildError.fileOperation(
+				`Custom element "${module.registeredName}" is not registered with the expected constructor`,
 			)
 		}
 
 		await waitForReady(element)
-		await assert({ element, window, hydrateResult, renderResult: renderedHtml })
+		await assert({ element, window, module, renderResult: renderedHtml })
 	})
+}
+
+interface ModuleImport<TModule extends WebComponentModule> {
+	webComponentModule?: TModule
+}
+
+export const loadWebComponentModule = async <TModule extends WebComponentModule>(
+	moduleSpecifier: string,
+): Promise<TModule> => {
+	const normalizedSpecifier = normalizeModuleSpecifier(moduleSpecifier)
+	const importer = componentModuleImporters[normalizedSpecifier]
+
+	if (!importer) {
+		throw BuildError.fileOperation(
+			`Unable to locate a component module for specifier "${moduleSpecifier}" (resolved to "${normalizedSpecifier}")`,
+		)
+	}
+
+	const imported = (await importer()) as ModuleImport<TModule>
+	if (!imported.webComponentModule) {
+		throw BuildError.fileOperation(
+			`Module "${moduleSpecifier}" does not export a webComponentModule contract`,
+		)
+	}
+
+	return imported.webComponentModule
+}
+
+export interface ExecuteRenderOptions<TModule extends WebComponentModule> {
+	container: AstroContainer
+	component: AstroComponentInstance
+	moduleSpecifier: string
+	args?: AstroRenderArgs
+	selector?: string
+	waitForReady?: (_element: ModuleElement<TModule>) => Promise<void> | void
+	renderer?: HappyDomRenderer<TModule>
+	assert: (_context: { element: ModuleElement<TModule>; module: TModule; renderResult: RenderResult }) => Promise<void> | void
+}
+
+export const executeRender = async <TModule extends WebComponentModule>(
+	options: ExecuteRenderOptions<TModule>,
+): Promise<void> => {
+	const { container, component, moduleSpecifier, args, selector, waitForReady, renderer, assert } = options
+
+	const rendererToUse: HappyDomRenderer<TModule> = renderer
+		? renderer
+		: (rendererOptions) => renderInHappyDom<TModule>(rendererOptions)
+
+	const rendererOptions: RenderInHappyDomOptions<TModule> = {
+		container,
+		component,
+		args,
+		moduleLoader: () => loadWebComponentModule<TModule>(moduleSpecifier),
+		assert: async ({ element, module, renderResult }) => {
+			await assert({ element, module, renderResult })
+		},
+	}
+
+	if (typeof selector === 'string') {
+		rendererOptions.selector = selector
+	}
+
+	if (waitForReady) {
+		rendererOptions.waitForReady = waitForReady
+	}
+
+	await rendererToUse(rendererOptions)
 }

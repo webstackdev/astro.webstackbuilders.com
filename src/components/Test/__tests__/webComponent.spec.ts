@@ -3,12 +3,10 @@ import { beforeEach, describe, expect, test } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import TestWebComponentAstro from '@components/Test/webComponent.astro'
 import type { TestWebComponent as TestWebComponentInstance } from '@components/Test/webComponent'
-import {
-  renderInHappyDom,
-  type RenderResult,
-} from '@test/unit/helpers/litRuntime'
+import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
+import { executeRender } from '@test/unit/helpers/litRuntime'
 
-type TestComponentModule = typeof import('@components/Test/webComponent')
+type TestComponentModule = WebComponentModule<TestWebComponentInstance>
 
 describe('TestWebComponent class behavior', () => {
   let container: AstroContainer
@@ -17,49 +15,46 @@ describe('TestWebComponent class behavior', () => {
     container = await AstroContainer.create()
   })
 
-  const componentSelector = 'test-web-component'
   const renderArgs = {
     props: {
       heading: 'Integration test',
     },
   }
 
-  const executeRender = async (
+  const runComponentRender = async (
     assertion: (_context: { element: TestWebComponentInstance }) => Promise<void> | void,
   ): Promise<void> => {
-    await renderInHappyDom<TestWebComponentInstance, TestComponentModule>({
+    await executeRender<TestComponentModule>({
       container,
       component: TestWebComponentAstro,
+      moduleSpecifier: '@components/Test/webComponent',
       args: renderArgs,
-      selector: componentSelector,
-      hydrate: async () => {
-        const module = await import('@components/Test/webComponent')
-        module.registerTestWebComponent()
-        return module
-      },
-      waitForReady: async (element) => {
+      waitForReady: async (element: TestWebComponentInstance) => {
         await element.updateComplete
       },
-      assert: async ({ element, window, hydrateResult, renderResult }) => {
-        expect(window.customElements.get(componentSelector)).toBe(
-          hydrateResult.TestWebComponent,
-        )
-        const hydratedMarkup: RenderResult = renderResult
-        expect(hydratedMarkup).toContain(`<${componentSelector}`)
-
+      assert: async ({
+        element,
+        module,
+        renderResult,
+      }: {
+        element: TestWebComponentInstance
+        module: TestComponentModule
+        renderResult: string
+      }) => {
+        expect(renderResult).toContain(`<${module.registeredName}`)
         await assertion({ element })
       },
     })
   }
 
   test('renders default message in light DOM', async () => {
-    await executeRender(async ({ element }) => {
+    await runComponentRender(async ({ element }) => {
       expect(element.querySelector('#message')?.textContent).toBe('Hello from Lit')
     })
   })
 
   test('updates DOM when message changes', async () => {
-    await executeRender(async ({ element }) => {
+    await runComponentRender(async ({ element }) => {
       element.message = 'Updated message'
       await element.updateComplete
 
