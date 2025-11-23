@@ -34,8 +34,9 @@ export class TestWebComponent extends LitElement {
   }
 }
 
-export const registerWebComponent = (tagName = TestWebComponent.registeredName) =>
+export const registerWebComponent = async (tagName = TestWebComponent.registeredName) => {
   defineCustomElement(tagName, TestWebComponent)
+}
 
 export const webComponentModule: WebComponentModule<TestWebComponent> = {
   registeredName: TestWebComponent.registeredName,

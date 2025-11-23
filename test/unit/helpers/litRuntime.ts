@@ -1,3 +1,8 @@
+/**
+ * Provides Happy DOM utilities for Lit-powered Astro component tests.
+ * The helpers create scoped browser globals, load WebComponentModule contracts,
+ * render Astro templates into sanitized DOM trees, and assert against the upgraded elements.
+ */
 import { Window } from 'happy-dom'
 import type HappyDomNode from 'happy-dom/lib/nodes/node/Node'
 import type HappyDomDocumentFragment from 'happy-dom/lib/nodes/document-fragment/DocumentFragment'
