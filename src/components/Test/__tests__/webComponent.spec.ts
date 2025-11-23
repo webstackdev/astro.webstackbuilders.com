@@ -3,7 +3,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import { GlobalRegistrator } from '@happy-dom/global-registrator'
 import type { TestWebComponent as TestWebComponentInstance } from '@components/Test/webComponent'
-import { withLitRuntime } from '../../../test/unit/helpers/litRuntime'
+import { withLitRuntime } from '@test/unit/helpers/litRuntime'
 
 type TestWebComponentModule = typeof import('@components/Test/webComponent')
 type TestWebComponentAstroModule = typeof import('@components/Test/webComponent.astro')
