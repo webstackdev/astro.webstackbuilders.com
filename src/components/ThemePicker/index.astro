@@ -126,9 +126,8 @@ const { closeComponent = 'close', label = 'Select theme' } = Astro.props
 </theme-picker>
 
 <script>
-  // Import the Web Component - it will auto-register
-  import './client'
-  // Initialize the listener that keeps all of the theme key state synchronized when theme values change
+  import { registerThemePickerWebComponent } from './client'
   import { themeKeyChangeSideEffectsListener } from '@components/scripts/store'
+  registerThemePickerWebComponent()
   themeKeyChangeSideEffectsListener()
 </script>

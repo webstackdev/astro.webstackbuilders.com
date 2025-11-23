@@ -22,6 +22,7 @@ import {
   getThemePickerCloseBtn,
   getThemeSelectBtns,
 } from './selectors'
+import { defineCustomElement } from '@components/scripts/utils'
 
 export const CLASSES = {
   isOpen: 'is-open',
@@ -389,7 +390,5 @@ export class ThemePickerElement extends LitElement {
   }
 }
 
-// Register the custom element
-if (!customElements.get('theme-picker')) {
-  customElements.define('theme-picker', ThemePickerElement)
-}
+export const registerThemePickerWebComponent = (tagName = 'theme-picker') =>
+  defineCustomElement(tagName, ThemePickerElement)

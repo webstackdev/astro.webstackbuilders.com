@@ -13,6 +13,7 @@ import { initLabelHandlers, type LabelController } from './feedback'
 import { initEmailValidationHandler } from './email'
 import { initFormSubmission } from './formSubmission'
 import { initGenericValidation, initNameLengthHandler, initMssgLengthHandler } from './validation'
+import { defineCustomElement } from '@components/scripts/utils'
 
 export class ContactFormElement extends LitElement {
   private labelController: LabelController | null = null
@@ -77,6 +78,5 @@ export class ContactFormElement extends LitElement {
   }
 }
 
-if (!customElements.get('contact-form')) {
-  customElements.define('contact-form', ContactFormElement)
-}
+export const registerContactFormWebComponent = (tagName = 'contact-form') =>
+  defineCustomElement(tagName, ContactFormElement)

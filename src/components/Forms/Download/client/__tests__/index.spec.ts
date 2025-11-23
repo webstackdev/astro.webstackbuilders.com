@@ -251,7 +251,11 @@ describe('download-form web component', () => {
 
 async function ensureDownloadFormClient() {
   if (!downloadFormClientPromise) {
-    downloadFormClientPromise = import('@components/Forms/Download/client').then(() => undefined)
+    downloadFormClientPromise = import('@components/Forms/Download/client').then(
+      ({ registerDownloadFormWebComponent }) => {
+        registerDownloadFormWebComponent()
+      }
+    )
   }
   return downloadFormClientPromise
 }

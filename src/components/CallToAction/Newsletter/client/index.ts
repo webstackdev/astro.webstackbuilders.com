@@ -8,6 +8,7 @@ import { LitElement } from 'lit'
 import { addScriptBreadcrumb, ClientScriptError } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { getNewsletterElements } from './selectors'
+import { defineCustomElement } from '@components/scripts/utils'
 
 /**
  * Newsletter Form Custom Element (Lit-based)
@@ -44,11 +45,18 @@ export class NewsletterFormElement extends LitElement {
     const context = { scriptName: 'NewsletterFormElement', operation: 'connectedCallback' }
     addScriptBreadcrumb(context)
 
-    // Wait for DOM to be ready before initializing
+    const scheduleInitialization = () => {
+      queueMicrotask(() => this.initialize())
+    }
+
     if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => this.initialize())
+      const handleDomReady = () => {
+        document.removeEventListener('DOMContentLoaded', handleDomReady)
+        scheduleInitialization()
+      }
+      document.addEventListener('DOMContentLoaded', handleDomReady)
     } else {
-      this.initialize()
+      scheduleInitialization()
     }
   }
 
@@ -315,8 +323,6 @@ export class NewsletterFormElement extends LitElement {
   }
 }
 
-// Register the custom element
-if (!customElements.get('newsletter-form')) {
-  customElements.define('newsletter-form', NewsletterFormElement)
-}
+export const registerNewsletterFormWebComponent = (tagName = 'newsletter-form') =>
+  defineCustomElement(tagName, NewsletterFormElement)
 

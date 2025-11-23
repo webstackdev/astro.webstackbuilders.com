@@ -3,6 +3,7 @@ import Autoplay from 'embla-carousel-autoplay'
 import { addButtonEventListeners } from '@components/scripts/elementListeners'
 import { addScriptBreadcrumb, ClientScriptError } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
+import { defineCustomElement } from '@components/scripts/utils'
 
 const SCRIPT_NAME = 'CarouselElement'
 
@@ -297,6 +298,7 @@ declare global {
   }
 }
 
-if (typeof window !== 'undefined' && !customElements.get('carousel-slider')) {
-  customElements.define('carousel-slider', CarouselElement)
+export const registerCarouselWebComponent = (tagName = 'carousel-slider') => {
+  if (typeof window === 'undefined') return
+  defineCustomElement(tagName, CarouselElement)
 }

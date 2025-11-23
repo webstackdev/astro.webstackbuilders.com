@@ -1,3 +1,5 @@
+import { defineCustomElement } from '@components/scripts/utils'
+
 interface HighlightShareData {
   url: string
   title: string
@@ -166,7 +168,9 @@ class ShareHighlight extends HTMLElement {
   }
 }
 
-// Register custom element
-if ('customElements' in window) {
-  customElements.define('share-highlight', ShareHighlight)
+export const registerShareHighlightWebComponent = (tagName = 'share-highlight') => {
+  if (!('customElements' in globalThis)) {
+    return
+  }
+  defineCustomElement(tagName, ShareHighlight)
 }

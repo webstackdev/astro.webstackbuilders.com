@@ -20,6 +20,7 @@ import {
 } from '@components/Consent/Banner/client/selectors'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
+import { defineCustomElement } from '@components/scripts/utils'
 
 /**
  * Consent Banner Custom Element
@@ -359,7 +360,5 @@ export class ConsentBannerElement extends LitElement {
   }
 }
 
-// Register the custom element
-if (!customElements.get('consent-banner')) {
-  customElements.define('consent-banner', ConsentBannerElement)
-}
+export const registerConsentBannerWebComponent = (tagName = 'consent-banner') =>
+  defineCustomElement(tagName, ConsentBannerElement)

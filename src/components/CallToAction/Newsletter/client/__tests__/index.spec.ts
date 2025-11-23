@@ -16,7 +16,7 @@ describe('NewsletterFormElement web component', () => {
   let container: AstroContainer
   let newsletterElement: NewsletterFormElementInstance
   let windowInstance: Window
-  let NewsletterFormElementCtor: NewsletterClientModule['NewsletterFormElement'] | undefined
+  let registerNewsletterFormWebComponent: NewsletterClientModule['registerNewsletterFormWebComponent'] | undefined
   let fetchMock: ReturnType<typeof vi.fn>
 
   const defineGlobalProperty = (key: string, value: unknown) => {
@@ -56,7 +56,11 @@ describe('NewsletterFormElement web component', () => {
   beforeAll(async () => {
     windowInstance = new Window()
     applyWindowGlobals(windowInstance)
-    ;({ NewsletterFormElement: NewsletterFormElementCtor } = await import('@components/CallToAction/Newsletter/client'))
+    const clientModule = await import('@components/CallToAction/Newsletter/client')
+    registerNewsletterFormWebComponent = clientModule.registerNewsletterFormWebComponent
+    if (!registerNewsletterFormWebComponent) {
+      throw new Error('registerNewsletterFormWebComponent is unavailable')
+    }
   })
 
   beforeEach(async () => {
@@ -67,21 +71,17 @@ describe('NewsletterFormElement web component', () => {
     const html = await container.renderToString(NewsletterFixture)
     const domParser = new windowInstance.DOMParser()
     const doc = domParser.parseFromString(html, 'text/html')
+
+    if (!registerNewsletterFormWebComponent) {
+      throw new Error('registerNewsletterFormWebComponent did not initialize')
+    }
+
+    registerNewsletterFormWebComponent()
     windowInstance.document.body.innerHTML = doc.body?.innerHTML ?? ''
 
     const root = windowInstance.document.querySelector('newsletter-form') as NewsletterFormElementInstance | null
     if (!root) {
       throw new Error('Failed to locate <newsletter-form> in rendered fixture')
-    }
-
-    if (!windowInstance.customElements.get('newsletter-form')) {
-      if (!NewsletterFormElementCtor) {
-        throw new Error('NewsletterFormElement failed to load before tests executed')
-      }
-      windowInstance.customElements.define(
-        'newsletter-form',
-        NewsletterFormElementCtor as unknown as CustomElementConstructor
-      )
     }
 
     newsletterElement = root

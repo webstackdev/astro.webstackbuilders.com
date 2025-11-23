@@ -6,6 +6,7 @@ import { LitElement } from 'lit'
 import { getHireMeAnchorElement } from '@components/Footer/client/selectors'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
+import { defineCustomElement } from '@components/scripts/utils'
 
 class FooterElement extends LitElement {
   private hireMeAnchor: HTMLAnchorElement | null = null
@@ -54,8 +55,7 @@ class FooterElement extends LitElement {
   }
 }
 
-if (!customElements.get('site-footer')) {
-  customElements.define('site-footer', FooterElement)
-}
+export const registerFooterWebComponent = (tagName = 'site-footer') =>
+  defineCustomElement(tagName, FooterElement)
 
 export { FooterElement }

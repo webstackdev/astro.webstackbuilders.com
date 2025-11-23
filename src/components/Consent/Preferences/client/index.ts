@@ -19,6 +19,7 @@ import {
   getAllowAllBtn,
   getSavePreferencesBtn,
 } from '@components/Consent/Preferences/client/selectors'
+import { defineCustomElement } from '@components/scripts/utils'
 
 /**
  * Consent Preferences web component
@@ -302,7 +303,5 @@ export const showConsentCustomizeModal = (): void => {
   modal.style.display = 'flex'
 }
 
-// Register the custom element (with guard against duplicate registration)
-if (!customElements.get('consent-preferences')) {
-  customElements.define('consent-preferences', ConsentPreferencesElement)
-}
+export const registerConsentPreferencesWebComponent = (tagName = 'consent-preferences') =>
+  defineCustomElement(tagName, ConsentPreferencesElement)

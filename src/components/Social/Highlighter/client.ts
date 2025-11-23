@@ -11,6 +11,7 @@ import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { addButtonEventListeners, addWrapperEventListeners } from '@components/scripts/elementListeners'
 import { LitElement, html } from 'lit'
+import { defineCustomElement } from '@components/scripts/utils'
 
 /**
  * Highlighter element that creates a shareable text highlight
@@ -468,10 +469,7 @@ export class Highlighter {
     addScriptBreadcrumb(context)
 
     try {
-      // Register custom element if not already registered
-      if (!customElements.get('highlighter-element')) {
-        customElements.define('highlighter-element', HighlighterElement)
-      }
+      registerHighlighterWebComponent()
     } catch (error) {
       // Highlighter is optional enhancement
       handleScriptError(error, context)
@@ -490,3 +488,6 @@ export class Highlighter {
     // No persistent state to reset
   }
 }
+
+export const registerHighlighterWebComponent = (tagName = 'highlighter-element') =>
+  defineCustomElement(tagName, HighlighterElement)
