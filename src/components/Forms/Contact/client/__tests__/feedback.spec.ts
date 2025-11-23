@@ -6,8 +6,8 @@ import {
   initLabelHandlers,
   showErrorBanner,
   showFieldFeedback,
-} from '@components/ContactForm/client/feedback'
-import type { ContactFormFields, FieldElements } from '@components/ContactForm/client/@types'
+} from '@components/Forms/Contact/client/feedback'
+import type { ContactFormFields, FieldElements } from '@components/Forms/Contact/client/@types'
 
 const createField = <T extends HTMLInputElement | HTMLTextAreaElement>(
   input: T,

@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { initMssgLengthHandler, validateMessageField } from '@components/ContactForm/client/validation'
+import { initMssgLengthHandler, validateMessageField } from '@components/Forms/Contact/client/validation'
 import type { FieldElements } from '@components/ContactForm/client/types'
 
 const createMessageField = (): FieldElements<HTMLTextAreaElement> => {

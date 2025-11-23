@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { Window } from 'happy-dom'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import ContactForm from '@components/ContactForm/index.astro'
-import { getContactFormElements } from '@components/ContactForm/client/selectors'
+import { getContactFormElements } from '@components/Forms/Contact/client/selectors'
 
 const attachDocumentToGlobal = (windowInstance: Window) => {
   const runtime = globalThis as typeof globalThis

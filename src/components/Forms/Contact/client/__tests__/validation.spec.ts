@@ -9,8 +9,8 @@ import {
   validateGenericFields,
   validateMessageField,
   validateNameField,
-} from '@components/ContactForm/client/validation'
-import type { FieldElements } from '@components/ContactForm/client/@types'
+} from '@components/Forms/Contact/client/validation'
+import type { FieldElements } from '@components/Forms/Contact/client/@types'
 
 const createFieldElements = (): FieldElements<HTMLInputElement> => {
   const input = document.createElement('input')

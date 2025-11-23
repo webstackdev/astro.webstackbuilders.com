@@ -1,11 +1,11 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { initFormSubmission } from '@components/ContactForm/client/formSubmission'
+import { initFormSubmission } from '@components/Forms/Contact/client/formSubmission'
 import type {
   ContactFormConfig,
   ContactFormElements,
   FieldElements,
-} from '@components/ContactForm/client/@types'
+} from '@components/Forms/Contact/client/@types'
 
 vi.mock('@components/scripts/errors', () => ({
   addScriptBreadcrumb: vi.fn(),

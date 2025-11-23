@@ -14,7 +14,7 @@ import {
   messageWarnLength,
   messageMaxLength,
   nameMaxLength,
-} from '@components/ContactForm/client/errorMessages'
+} from '@components/Forms/Contact/client/errorMessages'
 
 describe('Error Messages and Validation', () => {
   describe('Message Length Validation', () => {

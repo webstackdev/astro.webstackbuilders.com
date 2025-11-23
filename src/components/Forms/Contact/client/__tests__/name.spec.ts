@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { initNameLengthHandler, validateNameField } from '@components/ContactForm/client/validation'
+import { initNameLengthHandler, validateNameField } from '@components/Forms/Contact/client/validation'
 import type { FieldElements } from '@components/ContactForm/client/types'
 
 const createFieldElements = (): FieldElements<HTMLInputElement> => {

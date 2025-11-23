@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { describe, it, expect } from 'vitest'
-import { initCharacterCounter, initUploadPlaceholder } from '@components/ContactForm/client/utils'
-import type { ContactFormConfig, ContactFormElements } from '@components/ContactForm/client/@types'
+import { initCharacterCounter, initUploadPlaceholder } from '@components/Forms/Contact/client/utils'
+import type { ContactFormConfig, ContactFormElements } from '@components/Forms/Contact/client/@types'
 
 const baseConfig: ContactFormConfig = {
   maxCharacters: 2000,
