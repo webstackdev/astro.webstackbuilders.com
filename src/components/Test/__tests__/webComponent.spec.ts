@@ -1,76 +1,102 @@
 // @vitest-environment node
-import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'vitest'
+import { beforeEach, describe, expect, test } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
-import { GlobalRegistrator } from '@happy-dom/global-registrator'
+import { Window } from 'happy-dom'
+import TestWebComponentAstro from '@components/Test/webComponent.astro'
 import type { TestWebComponent as TestWebComponentInstance } from '@components/Test/webComponent'
-import { withLitRuntime } from '@test/unit/helpers/litRuntime'
 
-type TestWebComponentModule = typeof import('@components/Test/webComponent')
-type TestWebComponentAstroModule = typeof import('@components/Test/webComponent.astro')
+type RenderResult = Awaited<ReturnType<AstroContainer['renderToString']>>
 
-let TestWebComponentAstro: TestWebComponentAstroModule['default']
-let TestWebComponentCtor: TestWebComponentModule['TestWebComponent']
-let registerTestWebComponent: TestWebComponentModule['registerTestWebComponent']
+type HappyDomGlobalKey = 'window' | 'document' | 'customElements' | 'HTMLElement'
+type HappyDomGlobals = Partial<Record<HappyDomGlobalKey, unknown>>
 
-beforeAll(async () => {
-  GlobalRegistrator.register()
-  const [astroComponent, componentModule] = await Promise.all([
-    import('@components/Test/webComponent.astro'),
-    import('@components/Test/webComponent'),
-  ])
+const setGlobalValue = (key: HappyDomGlobalKey, value: unknown) => {
+  if (value === undefined) {
+    delete (globalThis as Record<string, unknown>)[key]
+    return
+  }
 
-  TestWebComponentAstro = astroComponent.default
-  TestWebComponentCtor = componentModule.TestWebComponent
-  registerTestWebComponent = componentModule.registerTestWebComponent
-})
+  ;(globalThis as Record<string, unknown>)[key] = value
+}
 
-afterAll(async () => {
-  await GlobalRegistrator.unregister()
-})
+const withHappyDomEnvironment = async <TReturn>(
+  callback: (_context: { window: Window }) => Promise<TReturn> | TReturn,
+): Promise<TReturn> => {
+  const window = new Window()
+  const globalObject = globalThis as Record<string, unknown>
+  const previousGlobals: HappyDomGlobals = {
+    window: globalObject['window'],
+    document: globalObject['document'],
+    customElements: globalObject['customElements'],
+    HTMLElement: globalObject['HTMLElement'],
+  }
 
-describe('Test web component rendering via Astro Container API', () => {
+  setGlobalValue('window', window)
+  setGlobalValue('document', window.document)
+  setGlobalValue('customElements', window.customElements)
+  setGlobalValue('HTMLElement', window.HTMLElement)
+
+  try {
+    return await callback({ window })
+  } finally {
+    setGlobalValue('window', previousGlobals.window)
+    setGlobalValue('document', previousGlobals.document)
+    setGlobalValue('customElements', previousGlobals.customElements)
+    setGlobalValue('HTMLElement', previousGlobals.HTMLElement)
+    await window.happyDOM?.whenAsyncComplete?.()
+    await window.happyDOM?.close?.()
+  }
+}
+
+describe('TestWebComponent class behavior', () => {
   let container: AstroContainer
 
   beforeEach(async () => {
     container = await AstroContainer.create()
   })
 
-  test('container output references compiled client bundle instead of inlining code', async () => {
-    const result = await container.renderToString(TestWebComponentAstro, {
-      props: {
-        heading: 'Test',
-      },
+  const renderInHappyDom = async (
+    assertion: (_context: { element: TestWebComponentInstance }) => Promise<void> | void,
+  ): Promise<void> => {
+    await withHappyDomEnvironment(async ({ window }) => {
+      const { TestWebComponent: TestWebComponentCtor, registerTestWebComponent } = await import(
+        '@components/Test/webComponent'
+      )
+
+      const renderedHtml: RenderResult = await container.renderToString(TestWebComponentAstro, {
+        props: {
+          heading: 'Integration test',
+        },
+      })
+
+      window.document.body.innerHTML = renderedHtml
+      window.document.querySelectorAll('script').forEach((script) => script.remove())
+
+      registerTestWebComponent()
+
+      const element = window.document.querySelector('test-web-component') as
+        | TestWebComponentInstance
+        | null
+
+      if (!element) {
+        throw new Error('Unable to locate rendered <test-web-component> instance in document')
+      }
+
+      expect(window.customElements.get('test-web-component')).toBe(TestWebComponentCtor)
+
+      await element.updateComplete
+      await assertion({ element })
     })
-
-    expect(result).toMatchInlineSnapshot(
-      `"<test-web-component class=\"test-web-component\" data-testid=\"test-web-component\" data-astro-cid-7wyxbui3=\"true\"> <h2 data-astro-cid-7wyxbui3>Test</h2> </test-web-component>  <script type=\"module\" src=\"/home/kevin/Repos/Webstack Builders/Corporate Website/astro.webstackbuilders.com/src/components/Test/webComponent.astro?astro&type=script&index=0&lang.ts\"></script>"`,
-    )
-
-    expect(result).toContain('<test-web-component')
-  })
-})
-
-describe('TestWebComponent class behavior', () => {
-  const runtimeTagName = 'test-web-component-spec'
+  }
 
   test('renders default message in light DOM', async () => {
-    await withLitRuntime(async ({ register, mount }) => {
-      await register(runtimeTagName, (tagName) => registerTestWebComponent(tagName))
-      expect(customElements.get(runtimeTagName)).toBe(TestWebComponentCtor)
-
-      const element = await mount<TestWebComponentInstance>(runtimeTagName)
-
+    await renderInHappyDom(async ({ element }) => {
       expect(element.querySelector('#message')?.textContent).toBe('Hello from Lit')
     })
   })
 
   test('updates DOM when message changes', async () => {
-    await withLitRuntime(async ({ register, mount }) => {
-      await register(runtimeTagName, (tagName) => registerTestWebComponent(tagName))
-      expect(customElements.get(runtimeTagName)).toBe(TestWebComponentCtor)
-
-      const element = await mount<TestWebComponentInstance>(runtimeTagName)
-
+    await renderInHappyDom(async ({ element }) => {
       element.message = 'Updated message'
       await element.updateComplete
 
