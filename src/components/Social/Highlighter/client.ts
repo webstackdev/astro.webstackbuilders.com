@@ -7,80 +7,191 @@
 import type { ShareData } from '@components/Social/common'
 import { platforms, copyToClipboard, nativeShare } from '@components/Social/common'
 import { MastodonModal } from '@components/Social/Mastodon/client'
-import { getSlotElement } from '@components/Social/Highlighter/selectors'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
-import { addButtonEventListeners } from '@components/scripts/elementListeners'
+import { addButtonEventListeners, addWrapperEventListeners } from '@components/scripts/elementListeners'
+import { LitElement, html } from 'lit'
 
 /**
  * Highlighter element that creates a shareable text highlight
  * with a hover dialog showing social share options
  */
-class HighlighterElement extends HTMLElement {
-  declare shadowRoot: ShadowRoot
-  private label: string
+class HighlighterElement extends LitElement {
+  static override properties = {
+    label: { type: String, attribute: 'aria-label', reflect: true },
+  }
+
+  label = 'Share this'
+  private highlightContent: HTMLSpanElement
+  private listenersAttached = false
+  private contentCaptured = false
+  private boundButtons = new WeakSet<HTMLButtonElement>()
+  private triggerButton: HTMLButtonElement | null = null
+  private wrapperElement: HTMLDivElement | null = null
+
+  private handleMouseEnter = () => this.showDialog()
+  private handleFocusIn = () => this.showDialog()
+  private handleMouseLeave = () => this.hideDialog()
+  private handleFocusOut = (event: FocusEvent) => {
+    const nextTarget = event.relatedTarget as Node | null
+    if (!nextTarget || !this.contains(nextTarget)) {
+      this.hideDialog()
+    }
+  }
 
   constructor() {
     super()
-    this.label = this.getAttribute('aria-label') || 'Share this'
-    this.attachShadow({ mode: 'open' })
-    this.render()
+    this.highlightContent = document.createElement('span')
+    this.highlightContent.classList.add('highlighter__content')
   }
 
-  connectedCallback() {
-    if (!this.hasAttribute('tabindex')) {
-      this.tabIndex = 0
+  protected override createRenderRoot(): HTMLElement {
+    return this
+  }
+
+  public override connectedCallback(): void {
+    this.captureInitialContent()
+    super.connectedCallback()
+    if (!this.label) {
+      this.label = 'Share this'
     }
     if (!this.hasAttribute('aria-label')) {
       this.setAttribute('aria-label', this.label)
     }
-
-    this.setupEventListeners()
+    this.attachHostListeners()
   }
 
-  /**
-   * Render the shadow DOM template
-   */
-  private render(): void {
-    const template = document.createElement('template')
-    template.innerHTML = `
+  protected override firstUpdated(): void {
+    this.bindTriggerButton()
+    this.bindWrapperListeners()
+    this.bindShareButtons()
+  }
+
+  protected override updated(): void {
+    this.bindTriggerButton()
+    this.bindWrapperListeners()
+    this.bindShareButtons()
+  }
+
+  private captureInitialContent(): void {
+    if (this.contentCaptured) return
+    const fragment = document.createDocumentFragment()
+    while (this.firstChild) {
+      fragment.appendChild(this.firstChild)
+    }
+    if (fragment.childNodes.length > 0) {
+      this.highlightContent.appendChild(fragment)
+    }
+    this.contentCaptured = true
+  }
+
+  protected override render() {
+    return html`
       <style>${this.getStyles()}</style>
-      <slot></slot>
-      <div class="share-dialog" role="dialog" aria-label="${this.label}" aria-hidden="true">
-        <div class="share-dialog__buttons">
-          ${platforms
-            .map(
-              platform => `
+      <div class="highlighter__wrapper">
+        <button type="button" class="highlighter__trigger" aria-label="${this.label}">
+          ${this.highlightContent}
+        </button>
+        <div class="share-dialog" role="dialog" aria-label="${this.label}" aria-hidden="true">
+          <div class="share-dialog__buttons">
+            ${platforms.map(
+              platform => html`
+                <button
+                  type="button"
+                  class="share-button"
+                  data-platform="${platform.id}"
+                  aria-label="${platform.ariaLabel}"
+                  title="${platform.ariaLabel}"
+                >
+                  <svg class="share-icon" aria-hidden="true">
+                    <use href="/sprite.svg#${platform.icon}"></use>
+                  </svg>
+                </button>
+              `
+            )}
             <button
               type="button"
-              class="share-button"
-              data-platform="${platform.id}"
-              aria-label="${platform.ariaLabel}"
-              title="${platform.ariaLabel}"
+              class="share-button copy-button"
+              data-platform="copy"
+              aria-label="Copy link"
+              title="Copy link"
             >
               <svg class="share-icon" aria-hidden="true">
-                <use href="/sprite.svg#${platform.icon}"></use>
+                <use href="/sprite.svg#link"></use>
               </svg>
             </button>
-          `
-            )
-            .join('')}
-          <button
-            type="button"
-            class="share-button copy-button"
-            data-platform="copy"
-            aria-label="Copy link"
-            title="Copy link"
-          >
-            <svg class="share-icon" aria-hidden="true">
-              <use href="/sprite.svg#link"></use>
-            </svg>
-          </button>
+          </div>
+          <div class="share-dialog__arrow"></div>
         </div>
-        <div class="share-dialog__arrow"></div>
       </div>
     `
-    this.shadowRoot.appendChild(template.content.cloneNode(true))
+  }
+
+  private attachHostListeners(): void {
+    if (this.listenersAttached) return
+    const context = { scriptName: 'Highlighter', operation: 'attachHostListeners' }
+    addScriptBreadcrumb(context)
+
+    try {
+      this.addEventListener('mouseenter', this.handleMouseEnter)
+      this.addEventListener('focusin', this.handleFocusIn)
+      this.addEventListener('mouseleave', this.handleMouseLeave)
+      this.addEventListener('focusout', this.handleFocusOut)
+      this.listenersAttached = true
+    } catch (error) {
+      handleScriptError(error, context)
+    }
+  }
+
+  private bindShareButtons(): void {
+    const buttons = this.querySelectorAll<HTMLButtonElement>('.share-button')
+    buttons.forEach(button => {
+      if (this.boundButtons.has(button)) return
+      addButtonEventListeners(
+        button,
+        (event) => {
+          event.stopPropagation()
+          const platformId = button.dataset['platform']
+          if (platformId) {
+            void this.handleShare(platformId)
+          }
+        },
+        this
+      )
+      this.boundButtons.add(button)
+    })
+  }
+
+  private bindTriggerButton(): void {
+    const trigger = this.querySelector<HTMLButtonElement>('.highlighter__trigger')
+    if (!trigger || trigger === this.triggerButton) return
+    this.triggerButton = trigger
+    addButtonEventListeners(trigger, (event) => {
+      event.stopPropagation()
+      this.handleComponentActivation()
+    }, this)
+  }
+
+  private bindWrapperListeners(): void {
+    const wrapper = this.querySelector<HTMLDivElement>('.highlighter__wrapper')
+    if (!wrapper || wrapper === this.wrapperElement) return
+    this.wrapperElement = wrapper
+    addWrapperEventListeners(wrapper, () => {
+      this.handleEscapeDismiss()
+    }, this)
+  }
+
+  private handleComponentActivation(): void {
+    this.showDialog()
+  }
+
+  private handleEscapeDismiss(): void {
+    this.hideDialog()
+    this.blur()
+  }
+
+  private getShareDialogElement(): HTMLElement | null {
+    return this.querySelector('.share-dialog')
   }
 
   /**
@@ -88,9 +199,9 @@ class HighlighterElement extends HTMLElement {
    */
   private getStyles(): string {
     return `
-      :host {
+      :where(highlighter-element) {
         position: relative;
-        display: inline;
+        display: inline-block;
         cursor: pointer;
         --highlight-bg: #bfdbfe;
         --highlight-bg-hover: #93c5fd;
@@ -100,13 +211,31 @@ class HighlighterElement extends HTMLElement {
         --button-hover: #f3f4f6;
       }
 
-      :host(:hover),
-      :host(:focus) {
+      :where(highlighter-element):hover,
+      :where(highlighter-element):focus-within {
         outline: 2px solid var(--highlight-bg-hover);
         outline-offset: 2px;
       }
 
-      ::slotted(mark) {
+      :where(highlighter-element) .highlighter__wrapper {
+        position: relative;
+        display: inline-flex;
+        flex-direction: column;
+      }
+
+      :where(highlighter-element) .highlighter__trigger {
+        display: inline-flex;
+        background: transparent;
+        border: none;
+        padding: 0;
+        margin: 0;
+        font: inherit;
+        color: inherit;
+        cursor: inherit;
+        text-align: left;
+      }
+
+      :where(highlighter-element) .highlighter__content {
         color: var(--highlight-text);
         background-color: var(--highlight-bg);
         padding: 0.125rem 0.25rem;
@@ -114,12 +243,12 @@ class HighlighterElement extends HTMLElement {
         transition: background-color 0.2s ease;
       }
 
-      :host(:hover) ::slotted(mark),
-      :host(:focus) ::slotted(mark) {
+      :where(highlighter-element):hover .highlighter__content,
+      :where(highlighter-element):focus-within .highlighter__content {
         background-color: var(--highlight-bg-hover);
       }
 
-      .share-dialog {
+      :where(highlighter-element) .share-dialog {
         display: none;
         position: absolute;
         bottom: calc(100% + 0.75rem);
@@ -133,17 +262,17 @@ class HighlighterElement extends HTMLElement {
         white-space: nowrap;
       }
 
-      .share-dialog[aria-hidden="false"] {
+      :where(highlighter-element) .share-dialog[aria-hidden="false"] {
         display: block;
       }
 
-      .share-dialog__buttons {
+      :where(highlighter-element) .share-dialog__buttons {
         display: flex;
         gap: 0.25rem;
         align-items: center;
       }
 
-      .share-button {
+      :where(highlighter-element) .share-button {
         display: flex;
         align-items: center;
         justify-content: center;
@@ -157,33 +286,33 @@ class HighlighterElement extends HTMLElement {
         padding: 0.5rem;
       }
 
-      .share-button:hover {
+      :where(highlighter-element) .share-button:hover {
         background-color: var(--button-hover);
         transform: translateY(-1px);
       }
 
-      .share-button:active {
+      :where(highlighter-element) .share-button:active {
         transform: translateY(0);
       }
 
-      .share-button:focus-visible {
+      :where(highlighter-element) .share-button:focus-visible {
         outline: 2px solid #3b82f6;
         outline-offset: 2px;
       }
 
-      .share-icon {
+      :where(highlighter-element) .share-icon {
         width: 1.25rem;
         height: 1.25rem;
         fill: currentColor;
       }
 
-      .copy-button {
+      :where(highlighter-element) .copy-button {
         margin-left: 0.25rem;
         border-left: 1px solid #e5e7eb;
         padding-left: 0.75rem;
       }
 
-      .share-dialog__arrow {
+      :where(highlighter-element) .share-dialog__arrow {
         position: absolute;
         bottom: -0.375rem;
         left: 50%;
@@ -196,7 +325,7 @@ class HighlighterElement extends HTMLElement {
       }
 
       @media (prefers-color-scheme: dark) {
-        :host {
+        :where(highlighter-element) {
           --highlight-bg: #1e40af;
           --highlight-bg-hover: #1e3a8a;
           --dialog-bg: #1f2937;
@@ -207,61 +336,10 @@ class HighlighterElement extends HTMLElement {
   }
 
   /**
-   * Setup event listeners for interaction
-   */
-  private setupEventListeners(): void {
-    const context = { scriptName: 'Highlighter', operation: 'setupEventListeners' }
-    addScriptBreadcrumb(context)
-
-    try {
-      // Show dialog on hover/focus
-      this.addEventListener('mouseenter', () => this.showDialog())
-      this.addEventListener('focusin', () => this.showDialog())
-
-      // Hide dialog on mouse leave/blur
-      this.addEventListener('mouseleave', () => this.hideDialog())
-      this.addEventListener('focusout', () => this.hideDialog())
-
-      // Keyboard navigation
-      document.addEventListener('keyup', (e) => {
-        try {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault()
-            this.showDialog()
-          } else if (e.key === 'Escape') {
-            this.hideDialog()
-            this.blur()
-          }
-        } catch (error) {
-          handleScriptError(error, { scriptName: 'Highlighter', operation: 'keyup' })
-        }
-      })
-
-      // Share button clicks
-      const buttons = this.shadowRoot.querySelectorAll<HTMLButtonElement>('.share-button')
-      buttons.forEach(button => {
-        addButtonEventListeners(button, (e) => {
-          try {
-            e.stopPropagation()
-            const platformId = button.dataset['platform']
-            if (platformId) {
-              this.handleShare(platformId)
-            }
-          } catch (error) {
-            handleScriptError(error, { scriptName: 'Highlighter', operation: 'shareClick' })
-          }
-        }, this)
-      })
-    } catch (error) {
-      handleScriptError(error, context)
-    }
-  }
-
-  /**
    * Show the share dialog
    */
   private showDialog(): void {
-    const dialog = this.shadowRoot.querySelector('.share-dialog')
+    const dialog = this.getShareDialogElement()
     if (dialog) {
       dialog.setAttribute('aria-hidden', 'false')
     }
@@ -271,7 +349,7 @@ class HighlighterElement extends HTMLElement {
    * Hide the share dialog
    */
   private hideDialog(): void {
-    const dialog = this.shadowRoot.querySelector('.share-dialog')
+    const dialog = this.getShareDialogElement()
     if (dialog) {
       dialog.setAttribute('aria-hidden', 'true')
     }
@@ -281,10 +359,9 @@ class HighlighterElement extends HTMLElement {
    * Get the highlighted text from the slot
    */
   private getHighlightedText(): string {
-    const slot = getSlotElement(this.shadowRoot)
-    const nodes = slot.assignedNodes({ flatten: true })
+    const nodes = Array.from(this.highlightContent.childNodes)
     return nodes
-      .map(node => node.textContent?.trim() || '')
+      .map((node: ChildNode) => node.textContent?.trim() || '')
       .join(' ')
       .trim()
   }
@@ -353,7 +430,7 @@ class HighlighterElement extends HTMLElement {
    * Show visual feedback for copy action
    */
   private showCopyFeedback(): void {
-    const copyButton = this.shadowRoot.querySelector('.copy-button')
+    const copyButton = this.querySelector<HTMLButtonElement>('.copy-button')
     if (copyButton) {
       const originalHTML = copyButton.innerHTML
       copyButton.innerHTML = `

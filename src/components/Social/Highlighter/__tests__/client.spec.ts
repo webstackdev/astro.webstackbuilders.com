@@ -120,21 +120,27 @@ describe('Highlighter LoadableScript', () => {
 
 describe('HighlighterElement', () => {
   let highlighter: HTMLElement
-  const queryFromShadow = <T extends Element>(selector: string): T | null =>
-    (highlighter.shadowRoot?.querySelector(selector) as T | null) ?? null
+  const queryWithin = <T extends Element>(selector: string): T | null =>
+    (highlighter.querySelector(selector) as T | null) ?? null
 
-  const getFromShadow = <T extends Element>(selector: string): T => {
-    const element = queryFromShadow<T>(selector)
+  const getWithin = <T extends Element>(selector: string): T => {
+    const element = queryWithin<T>(selector)
     if (!element) {
-      throw new Error(`Expected element ${selector} to exist inside Highlighter shadow DOM`)
+      throw new Error(`Expected element ${selector} to exist inside Highlighter`)
     }
     return element
   }
 
   const getShareButton = (platform: string): HTMLButtonElement =>
-    getFromShadow<HTMLButtonElement>(`[data-platform="${platform}"]`)
+    getWithin<HTMLButtonElement>(`.share-button[data-platform="${platform}"]`)
 
-  const getShareDialog = () => getFromShadow<HTMLElement>('.share-dialog')
+  const getShareDialog = () => getWithin<HTMLElement>('.share-dialog')
+  const getTriggerButton = () => getWithin<HTMLButtonElement>('.highlighter__trigger')
+  const getWrapper = () => getWithin<HTMLDivElement>('.highlighter__wrapper')
+  const getHighlightContent = (element: Element = highlighter) =>
+    element.querySelector<HTMLElement>('.highlighter__content')
+  const getHighlightText = (element: Element = highlighter) =>
+    getHighlightContent(element)?.textContent?.trim() ?? ''
 
   const getLatestShareEvent = (
     listener: ReturnType<typeof vi.fn>
@@ -172,8 +178,8 @@ describe('HighlighterElement', () => {
   })
 
   describe('Rendering', () => {
-    it('should create shadow DOM', () => {
-      expect(highlighter.shadowRoot).toBeTruthy()
+    it('should render in the light DOM', () => {
+      expect(highlighter.shadowRoot).toBeNull()
     })
 
     it('should render share dialog', () => {
@@ -181,13 +187,13 @@ describe('HighlighterElement', () => {
     })
 
     it('should render all platform buttons', () => {
-      const buttons = highlighter.shadowRoot?.querySelectorAll('.share-button')
+      const buttons = highlighter.querySelectorAll('.share-button')
       expect(buttons).toHaveLength(6) // 5 platforms + copy button
     })
 
     it('should render platform buttons in correct order', () => {
-      const buttons = highlighter.shadowRoot?.querySelectorAll('.share-button')
-      const platforms = Array.from(buttons || [])
+      const buttons = highlighter.querySelectorAll('.share-button')
+      const platforms = Array.from(buttons)
         .slice(0, 4) // First 4 are social platforms
         .map(btn => btn.getAttribute('data-platform'))
 
@@ -247,17 +253,17 @@ describe('HighlighterElement', () => {
 
   describe('Keyboard Navigation', () => {
     it('should show dialog on Enter key', async () => {
-      // Trigger Enter key on the host element (using keyup for accessibility)
+      const trigger = getTriggerButton()
       const event = new KeyboardEvent('keyup', { key: 'Enter', bubbles: true })
-      highlighter.dispatchEvent(event)
+      trigger.dispatchEvent(event)
 
       expect(getShareDialog().getAttribute('aria-hidden')).toBe('false')
     })
 
     it('should show dialog on Space key', async () => {
-      // Trigger Space key on the host element (using keyup for accessibility)
+      const trigger = getTriggerButton()
       const event = new KeyboardEvent('keyup', { key: ' ', bubbles: true })
-      highlighter.dispatchEvent(event)
+      trigger.dispatchEvent(event)
 
       expect(getShareDialog().getAttribute('aria-hidden')).toBe('false')
     })
@@ -267,9 +273,10 @@ describe('HighlighterElement', () => {
       highlighter.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }))
       expect(getShareDialog().getAttribute('aria-hidden')).toBe('false')
 
-      // Trigger Escape key (using keyup for accessibility)
+      // Trigger Escape key on wrapper (using keyup for accessibility)
+      const wrapper = getWrapper()
       const event = new KeyboardEvent('keyup', { key: 'Escape', bubbles: true })
-      document.dispatchEvent(event)
+      wrapper.dispatchEvent(event)
 
       expect(getShareDialog().getAttribute('aria-hidden')).toBe('true')
     })
@@ -277,25 +284,24 @@ describe('HighlighterElement', () => {
 
   describe('Text Extraction', () => {
     it('should extract text from slot', () => {
-      const text = highlighter.textContent?.trim()
-      expect(text).toBe('Test shareable content')
+      expect(getHighlightText()).toBe('Test shareable content')
     })
 
-    it('should handle empty content', () => {
+    it('should handle empty content', async () => {
       const emptyHighlighter = document.createElement('highlighter-element')
       document.body.appendChild(emptyHighlighter)
 
-      const text = emptyHighlighter.textContent?.trim()
-      expect(text).toBe('')
+      await flushMicrotasks()
+      expect(getHighlightText(emptyHighlighter)).toBe('')
     })
 
-    it('should handle nested HTML', () => {
+    it('should handle nested HTML', async () => {
       const htmlHighlighter = document.createElement('highlighter-element')
       htmlHighlighter.innerHTML = '<strong>Bold</strong> and <em>italic</em> text'
       document.body.appendChild(htmlHighlighter)
 
-      const text = htmlHighlighter.textContent?.trim()
-      expect(text).toBe('Bold and italic text')
+      await flushMicrotasks()
+      expect(getHighlightText(htmlHighlighter)).toBe('Bold and italic text')
     })
   })
 
@@ -358,9 +364,7 @@ describe('HighlighterElement', () => {
 
       await flushMicrotasks()
 
-      const twitterButton = specialHighlighter.shadowRoot?.querySelector('[data-platform="twitter"]') as
-        | HTMLButtonElement
-        | null
+      const twitterButton = specialHighlighter.querySelector<HTMLButtonElement>('[data-platform="twitter"]')
       if (!twitterButton) {
         throw new Error('twitter button missing on special highlighter')
       }
@@ -482,25 +486,26 @@ describe('HighlighterElement', () => {
     it('should have proper ARIA attributes on container', () => {
       // The host element is the container
       expect(highlighter.getAttribute('role')).toBeNull() // Not set by default on custom elements
-      expect(highlighter.getAttribute('tabindex')).toBe('0')
+      expect(highlighter.getAttribute('tabindex')).toBeNull()
       expect(highlighter.getAttribute('aria-label')).toBeTruthy()
+
+      const trigger = getTriggerButton()
+      expect(trigger.getAttribute('type')).toBe('button')
+      expect(trigger.getAttribute('aria-label')).toBe('Share this quote')
     })
 
     it('should have proper ARIA labels on platform buttons', () => {
-      const twitterButton = highlighter.shadowRoot?.querySelector('[data-platform="twitter"]')
-      expect(twitterButton?.getAttribute('aria-label')).toBe('Share on X (Twitter)')
-
-      const linkedinButton = highlighter.shadowRoot?.querySelector('[data-platform="linkedin"]')
-      expect(linkedinButton?.getAttribute('aria-label')).toBe('Share on LinkedIn')
+      expect(getShareButton('twitter').getAttribute('aria-label')).toBe('Share on X (Twitter)')
+      expect(getShareButton('linkedin').getAttribute('aria-label')).toBe('Share on LinkedIn')
     })
 
     it('should toggle aria-hidden on dialog', () => {
-      const dialog = highlighter.shadowRoot?.querySelector('.share-dialog')
-      expect(dialog?.getAttribute('aria-hidden')).toBe('true')
+      const dialog = getShareDialog()
+      expect(dialog.getAttribute('aria-hidden')).toBe('true')
 
       highlighter.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }))
 
-      expect(dialog?.getAttribute('aria-hidden')).toBe('false')
+      expect(dialog.getAttribute('aria-hidden')).toBe('false')
     })
   })
 
@@ -513,19 +518,13 @@ describe('HighlighterElement', () => {
       expect(() => button.click()).not.toThrow()
     })
 
-    it('should handle missing shadowRoot gracefully', () => {
-      // This is more for coverage - should not happen in practice
-      const element = document.createElement('div')
-      expect(element.shadowRoot).toBeNull()
-    })
-
-    it('should handle very long text content', () => {
+    it('should handle very long text content', async () => {
       const longHighlighter = document.createElement('highlighter-element')
       longHighlighter.textContent = 'A'.repeat(1000)
       document.body.appendChild(longHighlighter)
 
-      const text = longHighlighter.textContent?.trim()
-      expect(text).toHaveLength(1000)
+      await flushMicrotasks()
+      expect(getHighlightText(longHighlighter)).toHaveLength(1000)
     })
   })
 })
