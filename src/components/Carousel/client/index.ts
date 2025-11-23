@@ -4,6 +4,7 @@ import { addButtonEventListeners } from '@components/scripts/elementListeners'
 import { addScriptBreadcrumb, ClientScriptError } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { defineCustomElement } from '@components/scripts/utils'
+import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 
 const SCRIPT_NAME = 'CarouselElement'
 
@@ -301,4 +302,10 @@ declare global {
 export const registerCarouselWebComponent = (tagName = 'carousel-slider') => {
   if (typeof window === 'undefined') return
   defineCustomElement(tagName, CarouselElement)
+}
+
+export const webComponentModule: WebComponentModule<CarouselElement> = {
+  registeredName: 'carousel-slider',
+  componentCtor: CarouselElement,
+  registerWebComponent: registerCarouselWebComponent,
 }

@@ -1,6 +1,4 @@
-import type { LitElement } from 'lit'
-
-export interface WebComponentModule<TElement extends LitElement = LitElement> {
+export interface WebComponentModule<TElement extends HTMLElement = HTMLElement> {
   registeredName: string
   componentCtor: CustomElementConstructor & { prototype: TElement }
   registerWebComponent: (_tagName?: string) => Promise<void> | void
