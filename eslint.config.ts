@@ -288,6 +288,26 @@ export default [
   /**
    * =================================================================================================
    *
+   *  Allow CSS module class access via dot-notation in Astro files. CSS modules expose an index
+   *  signature which normally forces bracket notation; this keeps those files readable while
+   *  retaining the stricter behavior elsewhere.
+   *
+   * =================================================================================================
+   */
+
+  {
+    files: [
+      'src/components/**/*.astro',
+      'src/pages/**/*.astro',
+    ],
+    rules: {
+      '@typescript-eslint/dot-notation': [level, { allowIndexSignaturePropertyAccess: true }],
+    },
+  },
+
+  /**
+   * =================================================================================================
+   *
    *  These files implement type guards and legitimately needs type assertions
    *
    * =================================================================================================
