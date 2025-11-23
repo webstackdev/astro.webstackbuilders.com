@@ -16,7 +16,9 @@ type DomGlobalKey =
 	| 'Node'
 	| 'Element'
 	| 'Event'
-	| 'CustomEvent'
+	| 'HTMLAnchorElement'
+	| 'HTMLDivElement'
+	| 'localStorage'
 	| 'SVGElement'
 	| 'SVGSVGElement'
 	| 'HTMLParagraphElement'
@@ -25,6 +27,7 @@ type DomGlobalKey =
 	| 'HTMLButtonElement'
 	| 'HTMLSpanElement'
 	| 'HTMLAnchorElement'
+	| 'HTMLDivElement'
 type DomGlobals = Partial<Record<DomGlobalKey, unknown>>
 
 const DOM_GLOBAL_KEYS: DomGlobalKey[] = [
@@ -34,8 +37,9 @@ const DOM_GLOBAL_KEYS: DomGlobalKey[] = [
 	'HTMLElement',
 	'Node',
 	'Element',
-	'Event',
-	'CustomEvent',
+	'HTMLAnchorElement',
+	'HTMLDivElement',
+	'localStorage',
 	'SVGElement',
 	'SVGSVGElement',
 	'HTMLParagraphElement',
@@ -44,6 +48,7 @@ const DOM_GLOBAL_KEYS: DomGlobalKey[] = [
 	'HTMLButtonElement',
 	'HTMLSpanElement',
 	'HTMLAnchorElement',
+	'HTMLDivElement',
 ]
 
 type DomWindow = Window & typeof globalThis
@@ -109,6 +114,8 @@ const installWindowGlobals = (window: DomWindow): void => {
 	setGlobalValue('HTMLButtonElement', window.HTMLButtonElement)
 	setGlobalValue('HTMLSpanElement', window.HTMLSpanElement)
 	setGlobalValue('HTMLAnchorElement', window.HTMLAnchorElement)
+	setGlobalValue('HTMLDivElement', window.HTMLDivElement)
+	setGlobalValue('localStorage', window.localStorage)
 }
 
 const restoreGlobalSnapshot = (snapshot: DomGlobals): void => {
@@ -254,7 +261,12 @@ export interface ExecuteRenderOptions<TModule extends WebComponentModule> {
 	selector?: string
 	waitForReady?: (_element: ModuleElement<TModule>) => Promise<void> | void
 	renderer?: JsdomRenderer<TModule>
-	assert: (_context: { element: ModuleElement<TModule>; module: TModule; renderResult: RenderResult }) => Promise<void> | void
+	assert: (_context: {
+		element: ModuleElement<TModule>
+		module: TModule
+		renderResult: RenderResult
+		window?: DomWindow
+	}) => Promise<void> | void
 }
 
 export const executeRender = async <TModule extends WebComponentModule>(
@@ -271,8 +283,8 @@ export const executeRender = async <TModule extends WebComponentModule>(
 		component,
 		args,
 		moduleLoader: () => loadWebComponentModule<TModule>(moduleSpecifier),
-		assert: async ({ element, module, renderResult }) => {
-			await assert({ element, module, renderResult })
+		assert: async ({ element, module, renderResult, window }) => {
+			await assert({ element, module, renderResult, window })
 		},
 	}
 

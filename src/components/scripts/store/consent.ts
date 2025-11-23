@@ -90,6 +90,28 @@ export const $hasAnyConsent = computed($consent, (consent) => {
 })
 
 // ============================================================================
+// SUBSCRIPTION HELPERS
+// ============================================================================
+
+export type ConsentSubscription = (_hasConsent: boolean) => void
+
+/**
+ * Read the current functional consent preference
+ */
+export function getFunctionalConsentPreference(): boolean {
+  return $hasFunctionalConsent.get()
+}
+
+/**
+ * Subscribe to functional consent changes with immediate synchronization
+ */
+export function subscribeToFunctionalConsent(listener: ConsentSubscription): () => void {
+  const unsubscribe = $hasFunctionalConsent.listen(listener)
+  listener($hasFunctionalConsent.get())
+  return unsubscribe
+}
+
+// ============================================================================
 // ACTIONS
 // ============================================================================
 
@@ -134,6 +156,23 @@ export function revokeAllConsent(): void {
   updateConsent('analytics', false)
   updateConsent('marketing', false)
   updateConsent('functional', false)
+}
+
+/**
+ * Ensure consent cookies exist with explicit opt-out defaults
+ * Returns true when cookies were initialized during this call
+ */
+export function ensureConsentCookiesInitialized(): boolean {
+  const analyticsCookie = getCookie('consent_analytics')
+
+  if (typeof analyticsCookie === 'undefined') {
+    updateConsent('analytics', false)
+    updateConsent('marketing', false)
+    updateConsent('functional', false)
+    return true
+  }
+
+  return false
 }
 
 // ============================================================================

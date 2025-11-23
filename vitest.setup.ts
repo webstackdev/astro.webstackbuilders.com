@@ -34,6 +34,7 @@ Object.defineProperty(globalThis, 'TextDecoder', {
   writable: true,
 })
 
+
 // Try to load axe matchers if available
 try {
   // Use dynamic import to avoid TypeScript/linting issues

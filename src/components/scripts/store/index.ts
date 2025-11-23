@@ -20,6 +20,7 @@ export {
   $hasAnyConsent,
   $hasFunctionalConsent,
   allowAllConsent,
+  ensureConsentCookiesInitialized,
   initConsentFromCookies,
   initConsentSideEffects,
   revokeAllConsent,
@@ -29,6 +30,8 @@ export {
   createFunctionalConsentController,
   createMarketingConsentController,
   createAnyConsentController,
+  getFunctionalConsentPreference,
+  subscribeToFunctionalConsent,
 } from './consent'
 
 // Re-export visibility

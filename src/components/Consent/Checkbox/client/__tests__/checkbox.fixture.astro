@@ -1,0 +1,17 @@
+---
+import ConsentCheckbox, { type Props as ConsentCheckboxProps } from '@components/Consent/Checkbox/index.astro'
+
+export interface CheckboxFixtureProps extends ConsentCheckboxProps {
+  formId?: string
+}
+
+const props: CheckboxFixtureProps = {
+  purpose: 'Responding to your inquiry',
+  ...Astro.props,
+}
+---
+
+<form id="gdpr-consent-form" data-testid="gdpr-consent-form">
+  <ConsentCheckbox {...props} />
+  <button type="submit">Submit</button>
+</form>

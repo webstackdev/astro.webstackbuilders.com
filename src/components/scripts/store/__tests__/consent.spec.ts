@@ -11,6 +11,9 @@ import {
   initConsentFromCookies,
   allowAllConsent,
   revokeAllConsent,
+  ensureConsentCookiesInitialized,
+  getFunctionalConsentPreference,
+  subscribeToFunctionalConsent,
 } from '@components/scripts/store/consent'
 
 // Mock js-cookie
@@ -115,6 +118,29 @@ describe('Cookie Consent Management', () => {
       expect(consent.marketing).toBe(false)
       expect(consent.functional).toBe(false)
     })
+
+    it('initializes consent cookies when missing', () => {
+      vi.mocked(getCookie).mockReturnValue(undefined)
+
+      const result = ensureConsentCookiesInitialized()
+
+      expect(result).toBe(true)
+      expect(setCookie).toHaveBeenCalledTimes(3)
+      const expectedOptions = expect.objectContaining({ expires: 365, sameSite: 'strict' })
+
+      expect(setCookie).toHaveBeenNthCalledWith(1, 'consent_analytics', 'false', expectedOptions)
+      expect(setCookie).toHaveBeenNthCalledWith(2, 'consent_marketing', 'false', expectedOptions)
+      expect(setCookie).toHaveBeenNthCalledWith(3, 'consent_functional', 'false', expectedOptions)
+    })
+
+    it('skips initialization when consent cookies already exist', () => {
+      vi.mocked(getCookie).mockReturnValue('false')
+
+      const result = ensureConsentCookiesInitialized()
+
+      expect(result).toBe(false)
+      expect(setCookie).not.toHaveBeenCalled()
+    })
   })
 
   describe('Computed Consent Stores', () => {
@@ -149,6 +175,32 @@ describe('Cookie Consent Management', () => {
       // Should be called with true as first argument (nanostores passes additional args)
       expect(callback).toHaveBeenCalled()
       expect(callback.mock.calls[0]?.[0]).toBe(true)
+
+      unsubscribe()
+    })
+  })
+
+  describe('Functional Consent Helpers', () => {
+    it('reports the current functional consent preference', () => {
+      expect(getFunctionalConsentPreference()).toBe(false)
+
+      updateConsent('functional', true)
+
+      expect(getFunctionalConsentPreference()).toBe(true)
+    })
+
+    it('subscribes to functional consent updates with immediate sync', () => {
+      const listener = vi.fn()
+
+      const unsubscribe = subscribeToFunctionalConsent(listener)
+
+      expect(listener).toHaveBeenCalledTimes(1)
+      expect(listener.mock.calls[0]?.[0]).toBe(false)
+
+      listener.mockClear()
+      updateConsent('functional', true)
+
+      expect(listener.mock.calls[0]?.[0]).toBe(true)
 
       unsubscribe()
     })
