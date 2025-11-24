@@ -1,8 +1,6 @@
 // @vitest-environment node
 
 import { describe, expect, it } from 'vitest'
-import { experimental_AstroContainer as AstroContainer } from 'astro/container'
-import CheckboxFixture from '@components/Consent/Checkbox/client/__tests__/checkbox.fixture.astro'
 import {
   getConsentCheckbox,
   getConsentContainer,
@@ -10,55 +8,16 @@ import {
   getConsentError,
 } from '@components/Consent/Checkbox/client/selectors'
 import type { ConsentCheckboxElement } from '@components/Consent/Checkbox/client'
-import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
-import { executeRender } from '@test/unit/helpers/litRuntime'
 import { ClientScriptError } from '@components/scripts/errors'
-
-type ConsentCheckboxModule = WebComponentModule<ConsentCheckboxElement>
-
-const defaultProps = {
-  id: 'gdpr-consent',
-  purpose: 'Responding to your inquiry',
-}
-
-const CONSENT_READY_TIMEOUT_MS = 2_000
-
-const waitForConsentReady = async (element: ConsentCheckboxElement) => {
-  await new Promise<void>((resolve, reject) => {
-    if (element.isInitialized) {
-      resolve()
-      return
-    }
-
-    const timeoutId = setTimeout(() => {
-      element.removeEventListener('consent-checkbox:ready', onReady)
-      reject(new Error('Consent checkbox never finished initializing'))
-    }, CONSENT_READY_TIMEOUT_MS)
-
-    function onReady() {
-      clearTimeout(timeoutId)
-      resolve()
-    }
-
-    element.addEventListener('consent-checkbox:ready', onReady, { once: true })
-  })
-}
+import { renderConsentCheckbox } from '@components/Consent/Checkbox/client/__tests__/testUtils'
 
 const renderSelectors = async (
   assertion: (_context: { element: ConsentCheckboxElement }) => Promise<void> | void,
   props: Record<string, unknown> = {},
 ) => {
-  const container = await AstroContainer.create()
-
-  await executeRender<ConsentCheckboxModule>({
-    container,
-    component: CheckboxFixture,
-    moduleSpecifier: '@components/Consent/Checkbox/client/index',
-    args: { props: { ...defaultProps, ...props } },
-    selector: 'consent-checkbox',
-    waitForReady: waitForConsentReady,
-    assert: async ({ element }) => assertion({ element }),
-  })
+  await renderConsentCheckbox(async ({ element }) => {
+    await assertion({ element })
+  }, props)
 }
 
 describe('Consent checkbox selectors', () => {

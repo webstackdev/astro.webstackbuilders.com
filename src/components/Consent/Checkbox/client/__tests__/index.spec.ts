@@ -1,12 +1,8 @@
 // @vitest-environment node
 
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { experimental_AstroContainer as AstroContainer } from 'astro/container'
-import CheckboxFixture from '@components/Consent/Checkbox/client/__tests__/checkbox.fixture.astro'
-import type { ConsentCheckboxElement } from '@components/Consent/Checkbox/client'
-import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
-import { executeRender, withJsdomEnvironment } from '@test/unit/helpers/litRuntime'
-import { ClientScriptError } from '@components/scripts/errors'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { renderConsentCheckbox } from '@components/Consent/Checkbox/client/__tests__/testUtils'
+import { withJsdomEnvironment } from '@test/unit/helpers/litRuntime'
 import * as consentStore from '@components/scripts/store'
 
 vi.mock('@components/scripts/store', () => {
@@ -50,76 +46,11 @@ const consentStoreMock = consentStore as ConsentStoreMock
 const updateConsentMock = vi.mocked(consentStore.updateConsent)
 const subscribeToFunctionalConsentMock = vi.mocked(consentStore.subscribeToFunctionalConsent)
 
-type ConsentClientModule = typeof import('@components/Consent/Checkbox/client')
-let consentClientModule: ConsentClientModule | null = null
-
-const getConsentClientModule = (): ConsentClientModule => {
-  if (!consentClientModule) {
-    throw new Error('Consent checkbox client module not initialized')
-  }
-
-  return consentClientModule
-}
-
-type ConsentCheckboxModule = WebComponentModule<ConsentCheckboxElement>
-
-const defaultProps = {
-  id: 'gdpr-consent',
-  formId: 'contact-form',
-  purpose: 'Responding to your inquiry',
-}
-
-beforeAll(async () => {
-  await withJsdomEnvironment(async () => {
-    consentClientModule = await import('@components/Consent/Checkbox/client')
-  })
-})
-
-const CONSENT_READY_TIMEOUT_MS = 2_000
-
 beforeEach(() => {
   consentStoreMock.__test.resetConsent()
   updateConsentMock.mockClear()
   subscribeToFunctionalConsentMock.mockClear()
 })
-
-const waitForConsentReady = async (element: ConsentCheckboxElement) => {
-  await new Promise<void>((resolve, reject) => {
-    if (element.isInitialized) {
-      resolve()
-      return
-    }
-
-    const timeoutId = setTimeout(() => {
-      element.removeEventListener('consent-checkbox:ready', onReady)
-      reject(new Error('Consent checkbox never finished initializing'))
-    }, CONSENT_READY_TIMEOUT_MS)
-
-    function onReady() {
-      clearTimeout(timeoutId)
-      resolve()
-    }
-
-    element.addEventListener('consent-checkbox:ready', onReady, { once: true })
-  })
-}
-
-const renderConsentCheckbox = async (
-  assertion: (_context: { element: ConsentCheckboxElement; window: any }) => Promise<void> | void,
-  props: Record<string, unknown> = {},
-) => {
-  const container = await AstroContainer.create()
-
-  await executeRender<ConsentCheckboxModule>({
-    container,
-    component: CheckboxFixture,
-    moduleSpecifier: '@components/Consent/Checkbox/client/index',
-    args: { props: { ...defaultProps, ...props } },
-    selector: 'consent-checkbox',
-    waitForReady: waitForConsentReady,
-    assert: async ({ element, window }) => assertion({ element, window }),
-  })
-}
 
 describe('ConsentCheckboxElement', () => {
   it('requests consent updates when the checkbox is checked', async () => {
@@ -219,74 +150,52 @@ describe('ConsentCheckboxElement', () => {
       expect(focusSpy).toHaveBeenCalled()
     })
   })
-})
 
-describe('Validation helpers', () => {
-  it('validateConsent shows and clears error messages', async () => {
-    const { validateConsent } = getConsentClientModule()
-
-    await renderConsentCheckbox(({ element }) => {
+  it('continues to operate when the checkbox is not inside a form', async () => {
+    await renderConsentCheckbox(({ element, window }) => {
+      const form = element.closest('form')
       const checkbox = element.querySelector<HTMLInputElement>('input[type="checkbox"]')
-      const errorElement = element.querySelector<HTMLDivElement>('#gdpr-consent-error')
 
-      expect(checkbox).toBeTruthy()
-      expect(errorElement).toBeTruthy()
-
-      checkbox!.checked = false
-      expect(validateConsent(checkbox!, errorElement!)).toBe(false)
-      expect(errorElement!.textContent).toContain('You must consent to data processing')
-
-      checkbox!.checked = true
-      expect(validateConsent(checkbox!, errorElement!)).toBe(true)
-      expect(errorElement!.textContent).toBe('')
-    })
-  })
-
-  it('isConsentValid reflects the checkbox state', async () => {
-    const { isConsentValid } = getConsentClientModule()
-
-    await renderConsentCheckbox(({ element }) => {
-      const checkbox = element.querySelector<HTMLInputElement>('input[type="checkbox"]')
+      expect(form).toBeNull()
       expect(checkbox).toBeTruthy()
 
-      checkbox!.checked = false
-      expect(isConsentValid('gdpr-consent')).toBe(false)
-
       checkbox!.checked = true
-      expect(isConsentValid('gdpr-consent')).toBe(true)
-    })
-  })
-})
-
-describe('initGDPRConsent', () => {
-  it('throws ClientScriptError when elements are missing', async () => {
-    await withJsdomEnvironment(async ({ window }) => {
-      window.document.body.innerHTML = '<div></div>'
-
-      const { initGDPRConsent } = getConsentClientModule()
-      expect(() => initGDPRConsent('missing', 'contact')).toThrow(ClientScriptError)
-    })
-  })
-
-  it('handles checkboxes that are not inside a form', async () => {
-    await withJsdomEnvironment(async ({ window }) => {
-      window.document.body.innerHTML = `
-        <div id="gdpr-consent-container">
-          <input type="checkbox" id="gdpr-consent" />
-          <div id="gdpr-consent-error"></div>
-        </div>
-      `
-
-      const { initGDPRConsent } = getConsentClientModule()
-      const cleanup = initGDPRConsent('gdpr-consent', 'contact')
-
-      const checkbox = window.document.getElementById('gdpr-consent') as HTMLInputElement
-      checkbox.checked = true
-      checkbox.dispatchEvent(new window.Event('change'))
+      checkbox!.dispatchEvent(new window.Event('change', { bubbles: true }))
 
       expect(updateConsentMock).toHaveBeenCalledWith('functional', true)
+    }, { wrapInForm: false })
+  })
+})
 
-      cleanup()
+describe('ConsentCheckbox web component module contract', () => {
+  it('exposes metadata for registration', async () => {
+    await withJsdomEnvironment(async () => {
+      const { webComponentModule, ConsentCheckboxElement } = await import('@components/Consent/Checkbox/client')
+      expect(webComponentModule.registeredName).toBe('consent-checkbox')
+      expect(webComponentModule.componentCtor).toBe(ConsentCheckboxElement)
+    })
+  })
+
+  it('registers the custom element when window is available', async () => {
+    await withJsdomEnvironment(async ({ window }) => {
+      const { registerConsentCheckboxWebComponent, ConsentCheckboxElement } = await import('@components/Consent/Checkbox/client')
+      const uniqueTag = `consent-checkbox-${Math.random().toString(36).slice(2)}`
+
+      const originalGet = window.customElements.get.bind(window.customElements)
+      const getSpy = vi.spyOn(window.customElements, 'get').mockImplementation((tagName: string) => {
+        if (tagName === uniqueTag) {
+          return undefined
+        }
+        return originalGet(tagName)
+      })
+      const defineSpy = vi.spyOn(window.customElements, 'define').mockImplementation(() => undefined)
+
+      registerConsentCheckboxWebComponent(uniqueTag)
+
+      expect(defineSpy).toHaveBeenCalledWith(uniqueTag, ConsentCheckboxElement)
+
+      getSpy.mockRestore()
+      defineSpy.mockRestore()
     })
   })
 })

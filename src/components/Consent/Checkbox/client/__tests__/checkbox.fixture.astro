@@ -3,15 +3,23 @@ import ConsentCheckbox, { type Props as ConsentCheckboxProps } from '@components
 
 export interface CheckboxFixtureProps extends ConsentCheckboxProps {
   formId?: string
+  wrapInForm?: boolean
 }
 
-const props: CheckboxFixtureProps = {
+const {
+  wrapInForm = true,
+  ...props
+} = {
   purpose: 'Responding to your inquiry',
+  wrapInForm: true,
   ...Astro.props,
-}
+} as CheckboxFixtureProps
 ---
-
-<form id="gdpr-consent-form" data-testid="gdpr-consent-form">
+{wrapInForm ? (
+  <form id="gdpr-consent-form" data-testid="gdpr-consent-form">
+    <ConsentCheckbox {...props} />
+    <button type="submit">Submit</button>
+  </form>
+) : (
   <ConsentCheckbox {...props} />
-  <button type="submit">Submit</button>
-</form>
+)}

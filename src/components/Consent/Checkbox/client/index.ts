@@ -3,7 +3,6 @@
  *
  * Handles validation and state management for GDPR consent checkboxes in forms
  */
-import { getConsentCheckbox, getConsentError } from './selectors'
 import { addScriptBreadcrumb, ClientScriptError } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { defineCustomElement } from '@components/scripts/utils'
@@ -14,234 +13,27 @@ const COMPONENT_TAG_NAME = 'consent-checkbox' as const
 const READY_EVENT = 'consent-checkbox:ready'
 const COMPONENT_SCRIPT_NAME = 'ConsentCheckboxElement'
 
-/**
- * Initialize GDPR consent checkbox
- *
- * @param checkboxId - ID of the consent checkbox element
- * @param purpose - Data processing purpose
- * @param formId - Optional form identifier
- */
-export function initGDPRConsent(
-  checkboxId: string,
-  purpose: string,
-  formId?: string
-): () => void {
-  const contextMetadata = { checkboxId, purpose, formId }
-  const context = { scriptName: 'GDPRConsent', operation: 'init', ...contextMetadata }
-  addScriptBreadcrumb(context)
-
-  let checkbox: HTMLInputElement
-  let errorElement: HTMLDivElement
-
-  // Critical: Must find checkbox and error elements (GDPR legal requirement)
-  try {
-    checkbox = getConsentCheckbox(checkboxId)
-    errorElement = getConsentError(checkboxId)
-  } catch (error) {
-    throw new ClientScriptError(
-      `GDPRConsent: Failed to find required elements for checkbox '${checkboxId}' - ${error instanceof Error ? error.message : 'Unknown error'}. GDPR consent is a legal requirement and cannot function without these elements.`
-    )
-  }
-
-  const syncConsentState = (hasConsent: boolean) => {
-    checkbox.checked = hasConsent
-    if (hasConsent) {
-      clearError(errorElement)
-    }
-  }
-
-  let consentUnsubscribe: (() => void) | null = null
-  try {
-    consentUnsubscribe = subscribeToFunctionalConsent(syncConsentState)
-  } catch (error) {
-    handleScriptError(error, {
-      scriptName: 'GDPRConsent',
-      operation: 'syncConsentState',
-      ...contextMetadata,
-    })
-  }
-
-  const changeHandler = () => {
-    const changeContext = { scriptName: 'GDPRConsent', operation: 'handleChange', ...contextMetadata }
-    addScriptBreadcrumb(changeContext)
-
-    try {
-      updateConsent('functional', checkbox.checked)
-      if (checkbox.checked) {
-        clearError(errorElement)
-      }
-    } catch (error) {
-      handleScriptError(error, changeContext)
-    }
-  }
-
-  // Recoverable: Handle checkbox change events
-  try {
-    checkbox.addEventListener('change', changeHandler)
-  } catch (error) {
-    handleScriptError(error, { scriptName: 'GDPRConsent', operation: 'bindChangeEvent', ...contextMetadata })
-  }
-
-  let form: HTMLFormElement | null = null
-  let submitHandler: ((_event: SubmitEvent) => void) | null = null
-
-  // Recoverable: Handle form submission validation
-  try {
-    form = checkbox.closest('form')
-    if (form) {
-      submitHandler = (event) => {
-        const submitContext = { scriptName: 'GDPRConsent', operation: 'handleSubmit', ...contextMetadata }
-        addScriptBreadcrumb(submitContext)
-        try {
-          if (!validateConsent(checkbox, errorElement)) {
-            event.preventDefault()
-            checkbox.focus()
-          }
-        } catch (error) {
-          handleScriptError(error, submitContext)
-          // Prevent form submission on validation error
-          event.preventDefault()
-        }
-      }
-
-      form.addEventListener('submit', submitHandler)
-    }
-  } catch (error) {
-    handleScriptError(error, { scriptName: 'GDPRConsent', operation: 'bindSubmitEvent', ...contextMetadata })
-  }
-
-  return () => {
-    try {
-      checkbox.removeEventListener('change', changeHandler)
-    } catch {
-      // Ignore cleanup errors
-    }
-
-    if (form && submitHandler) {
-      try {
-        form.removeEventListener('submit', submitHandler)
-      } catch {
-        // Ignore cleanup errors
-      }
-    }
-
-    try {
-      consentUnsubscribe?.()
-    } catch {
-      // Ignore cleanup errors
-    }
-  }
-}
-
-/**
- * Validate consent checkbox is checked
- *
- * @param checkbox - Checkbox element
- * @param errorElement - Error message element
- * @returns true if valid, false otherwise
- */
-export function validateConsent(
-  checkbox: HTMLInputElement,
-  errorElement: HTMLDivElement
-): boolean {
-  const context = { scriptName: 'GDPRConsent', operation: 'validateConsent' }
-  addScriptBreadcrumb(context)
-
-  try {
-    if (!checkbox.checked) {
-      showError(
-        errorElement,
-        'You must consent to data processing to submit this form.'
-      )
-      return false
-    }
-
-    clearError(errorElement)
-    return true
-  } catch (error) {
-    handleScriptError(error, context)
-    // On error, assume invalid and show generic error
-    try {
-      showError(errorElement, 'Unable to validate consent. Please try again.')
-    } catch {
-      // Silently fail if can't show error
-    }
-    return false
-  }
-}
-
-/**
- * Show error message
- *
- * @param errorElement - Error message element
- * @param message - Error message to display
- */
-function showError(errorElement: HTMLDivElement, message: string): void {
-  const context = { scriptName: 'GDPRConsent', operation: 'showError' }
-  addScriptBreadcrumb(context)
-
-  try {
-    errorElement.textContent = message
-    errorElement.style.display = 'block'
-    errorElement.setAttribute('role', 'alert')
-  } catch (error) {
-    handleScriptError(error, context)
-  }
-}
-
-/**
- * Clear error message
- *
- * @param errorElement - Error message element
- */
-function clearError(errorElement: HTMLDivElement): void {
-  const context = { scriptName: 'GDPRConsent', operation: 'clearError' }
-  addScriptBreadcrumb(context)
-
-  try {
-    errorElement.textContent = ''
-    errorElement.style.display = 'none'
-    errorElement.removeAttribute('role')
-  } catch (error) {
-    handleScriptError(error, context)
-  }
-}
-
-/**
- * Check if consent is currently valid
- *
- * @param checkboxId - ID of the consent checkbox element
- * @returns true if checkbox is checked
- */
-export function isConsentValid(checkboxId: string): boolean {
-  const context = { scriptName: 'GDPRConsent', operation: 'isConsentValid' }
-  addScriptBreadcrumb(context)
-
-  try {
-    const checkbox = getConsentCheckbox(checkboxId)
-    return checkbox.checked
-  } catch (error) {
-    handleScriptError(error, context)
-    return false
-  }
-}
-
 export class ConsentCheckboxElement extends HTMLElement {
   private domReadyHandler: (() => void) | null = null
-  private teardownHandlers: (() => void) | null = null
+  private checkbox: HTMLInputElement | null = null
+  private errorElement: HTMLDivElement | null = null
+  private form: HTMLFormElement | null = null
+  private consentUnsubscribe: (() => void) | null = null
+  private changeHandler: (() => void) | null = null
+  private submitHandler: ((event: SubmitEvent) => void) | null = null
+  private componentPurpose = ''
+  private componentFormId: string | undefined
+
   public isInitialized = false
 
   connectedCallback(): void {
-    if (this.isInitialized) {
+    if (typeof document === 'undefined' || this.isInitialized) {
       return
     }
 
     if (document.readyState === 'loading') {
       this.domReadyHandler = () => {
-        if (this.domReadyHandler) {
-          document.removeEventListener('DOMContentLoaded', this.domReadyHandler)
-          this.domReadyHandler = null
-        }
+        this.cleanupDomReadyHandler()
         this.initialize()
       }
 
@@ -253,16 +45,8 @@ export class ConsentCheckboxElement extends HTMLElement {
   }
 
   disconnectedCallback(): void {
-    if (this.domReadyHandler) {
-      document.removeEventListener('DOMContentLoaded', this.domReadyHandler)
-      this.domReadyHandler = null
-    }
-
-    if (this.teardownHandlers) {
-      this.teardownHandlers()
-      this.teardownHandlers = null
-    }
-
+    this.cleanupDomReadyHandler()
+    this.cleanupListeners()
     this.isInitialized = false
   }
 
@@ -276,27 +60,237 @@ export class ConsentCheckboxElement extends HTMLElement {
 
     try {
       const checkbox = this.querySelector<HTMLInputElement>('input[type="checkbox"]')
-
       if (!checkbox) {
         throw new ClientScriptError('Consent checkbox input not found inside component')
       }
 
-      const dataSource = this.querySelector<HTMLElement>('[data-purpose]')
-      const purpose = this.getAttribute('data-purpose') ?? dataSource?.dataset['purpose'] ?? ''
-      const formId = this.getAttribute('data-form-id') ?? dataSource?.dataset['formId'] ?? undefined
-
-      if (this.teardownHandlers) {
-        this.teardownHandlers()
-        this.teardownHandlers = null
+      if (!checkbox.id) {
+        throw new ClientScriptError('Consent checkbox input must include an id attribute')
       }
 
-      this.teardownHandlers = initGDPRConsent(checkbox.id, purpose, formId)
+      const errorElement = this.querySelector<HTMLDivElement>(`#${checkbox.id}-error`)
+
+      if (!errorElement) {
+        throw new ClientScriptError('Consent checkbox error element not found inside component')
+      }
+
+      this.checkbox = checkbox
+      this.errorElement = errorElement
+      this.form = checkbox.closest('form')
+      this.componentPurpose = this.resolvePurpose()
+      this.componentFormId = this.resolveFormId()
+
+      this.subscribeToConsentChanges()
+      this.bindCheckboxChange()
+      this.bindFormValidation()
 
       this.isInitialized = true
-      this.dispatchEvent(new CustomEvent(READY_EVENT))
+      this.dispatchReadyEvent()
+    } catch (error) {
+      handleScriptError(error, context)
+      this.cleanupListeners()
+      this.isInitialized = false
+    }
+  }
+
+  private resolvePurpose(): string {
+    const dataSource = this.querySelector<HTMLElement>('[data-purpose]')
+    return this.getAttribute('data-purpose') ?? dataSource?.dataset['purpose'] ?? ''
+  }
+
+  private resolveFormId(): string | undefined {
+    const dataSource = this.querySelector<HTMLElement>('[data-form-id]')
+    return this.getAttribute('data-form-id') ?? dataSource?.dataset['formId'] ?? undefined
+  }
+
+  private buildContext(operation: string) {
+    return {
+      scriptName: COMPONENT_SCRIPT_NAME,
+      operation,
+      checkboxId: this.checkbox?.id,
+      purpose: this.componentPurpose,
+      formId: this.componentFormId,
+    }
+  }
+
+  private subscribeToConsentChanges(): void {
+    if (this.consentUnsubscribe || !this.checkbox) {
+      return
+    }
+
+    const syncConsentState = (hasConsent: boolean) => {
+      if (!this.checkbox) {
+        return
+      }
+
+      this.checkbox.checked = hasConsent
+      if (hasConsent) {
+        this.clearError()
+      }
+    }
+
+    try {
+      this.consentUnsubscribe = subscribeToFunctionalConsent(syncConsentState)
+    } catch (error) {
+      handleScriptError(error, this.buildContext('syncConsentState'))
+    }
+  }
+
+  private bindCheckboxChange(): void {
+    if (!this.checkbox) {
+      return
+    }
+
+    this.changeHandler = () => {
+      const context = this.buildContext('handleChange')
+      addScriptBreadcrumb(context)
+
+      try {
+        updateConsent('functional', this.checkbox!.checked)
+        if (this.checkbox?.checked) {
+          this.clearError()
+        }
+      } catch (error) {
+        handleScriptError(error, context)
+      }
+    }
+
+    try {
+      this.checkbox.addEventListener('change', this.changeHandler)
+    } catch (error) {
+      handleScriptError(error, this.buildContext('bindChangeEvent'))
+    }
+  }
+
+  private bindFormValidation(): void {
+    if (!this.checkbox) {
+      return
+    }
+
+    this.form = this.checkbox.closest('form')
+    if (!this.form) {
+      return
+    }
+
+    this.submitHandler = (event: SubmitEvent) => {
+      const submitContext = this.buildContext('handleSubmit')
+      addScriptBreadcrumb(submitContext)
+
+      try {
+        if (!this.validateConsent()) {
+          event.preventDefault()
+          this.checkbox?.focus()
+        }
+      } catch (error) {
+        handleScriptError(error, submitContext)
+        event.preventDefault()
+      }
+    }
+
+    try {
+      this.form.addEventListener('submit', this.submitHandler)
+    } catch (error) {
+      handleScriptError(error, this.buildContext('bindSubmitEvent'))
+    }
+  }
+
+  private validateConsent(): boolean {
+    const context = this.buildContext('validateConsent')
+    addScriptBreadcrumb(context)
+
+    try {
+      if (!this.checkbox?.checked) {
+        this.showError('You must consent to data processing to submit this form.')
+        return false
+      }
+
+      this.clearError()
+      return true
+    } catch (error) {
+      handleScriptError(error, context)
+      this.showError('Unable to validate consent. Please try again.')
+      return false
+    }
+  }
+
+  private showError(message: string): void {
+    if (!this.errorElement) {
+      return
+    }
+
+    const context = this.buildContext('showError')
+    addScriptBreadcrumb(context)
+
+    try {
+      this.errorElement.textContent = message
+      this.errorElement.style.display = 'block'
+      this.errorElement.setAttribute('role', 'alert')
     } catch (error) {
       handleScriptError(error, context)
     }
+  }
+
+  private clearError(): void {
+    if (!this.errorElement) {
+      return
+    }
+
+    const context = this.buildContext('clearError')
+    addScriptBreadcrumb(context)
+
+    try {
+      this.errorElement.textContent = ''
+      this.errorElement.style.display = 'none'
+      this.errorElement.removeAttribute('role')
+    } catch (error) {
+      handleScriptError(error, context)
+    }
+  }
+
+  private dispatchReadyEvent(): void {
+    this.dispatchEvent(new CustomEvent(READY_EVENT))
+  }
+
+  private cleanupDomReadyHandler(): void {
+    if (this.domReadyHandler) {
+      document.removeEventListener('DOMContentLoaded', this.domReadyHandler)
+      this.domReadyHandler = null
+    }
+  }
+
+  private cleanupListeners(): void {
+    if (this.checkbox && this.changeHandler) {
+      try {
+        this.checkbox.removeEventListener('change', this.changeHandler)
+      } catch {
+        // Ignore cleanup errors
+      }
+    }
+
+    if (this.form && this.submitHandler) {
+      try {
+        this.form.removeEventListener('submit', this.submitHandler)
+      } catch {
+        // Ignore cleanup errors
+      }
+    }
+
+    if (this.consentUnsubscribe) {
+      try {
+        this.consentUnsubscribe()
+      } catch {
+        // Ignore cleanup errors
+      }
+    }
+
+    this.checkbox = null
+    this.errorElement = null
+    this.form = null
+    this.changeHandler = null
+    this.submitHandler = null
+    this.consentUnsubscribe = null
+    this.componentPurpose = ''
+    this.componentFormId = undefined
   }
 }
 
