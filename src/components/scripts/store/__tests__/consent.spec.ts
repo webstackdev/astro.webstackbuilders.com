@@ -14,6 +14,11 @@ import {
   ensureConsentCookiesInitialized,
   getFunctionalConsentPreference,
   subscribeToFunctionalConsent,
+  initConsentCookies,
+  allowAllConsentCookies,
+  getConsentCookie,
+  setConsentCookie,
+  removeConsentCookies,
 } from '@components/scripts/store/consent'
 
 // Mock js-cookie
@@ -34,7 +39,7 @@ vi.mock('@components/scripts/utils/cookies', () => ({
 }))
 
 // Import mocked functions for spying
-import { getCookie, setCookie } from '@components/scripts/utils/cookies'
+import { getCookie, removeCookie, setCookie } from '@components/scripts/utils/cookies'
 
 describe('Cookie Consent Management', () => {
   beforeEach(() => {
@@ -203,6 +208,49 @@ describe('Cookie Consent Management', () => {
       expect(listener.mock.calls[0]?.[0]).toBe(true)
 
       unsubscribe()
+    })
+  })
+
+  describe('Consent Cookie Helpers', () => {
+    it('initializes consent cookies when analytics cookie is missing via initConsentCookies', () => {
+      vi.mocked(getCookie).mockReturnValue(undefined)
+
+      const result = initConsentCookies()
+
+      expect(result).toBe(true)
+      expect(setCookie).toHaveBeenCalledTimes(3)
+    })
+
+    it('grants all consent categories through allowAllConsentCookies', () => {
+      allowAllConsentCookies()
+
+      const consent = $consent.get()
+      expect(consent.analytics).toBe(true)
+      expect(consent.marketing).toBe(true)
+      expect(consent.functional).toBe(true)
+    })
+
+    it('reads stored consent preferences with getConsentCookie', () => {
+      vi.mocked(getCookie).mockImplementation((name: string) => {
+        if (name === 'consent_analytics') return 'true'
+        if (name === 'consent_functional') return 'false'
+        return undefined
+      })
+
+      expect(getConsentCookie('functional')).toBe('false')
+    })
+
+    it('updates consent via setConsentCookie helper', () => {
+      setConsentCookie('marketing', 'granted')
+
+      const consent = $consent.get()
+      expect(consent.marketing).toBe(true)
+    })
+
+    it('removes persisted consent cookies through removeConsentCookies', () => {
+      removeConsentCookies()
+
+      expect(removeCookie).toHaveBeenCalledTimes(3)
     })
   })
 })

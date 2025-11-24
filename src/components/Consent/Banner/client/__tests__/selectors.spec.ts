@@ -1,8 +1,14 @@
 // @vitest-environment node
-import { beforeEach, afterEach, describe, expect, it } from 'vitest'
-import { Window } from 'happy-dom'
+
+import { beforeEach, describe, expect, it } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
-import ConsentBanner from '@components/Consent/Banner/index.astro'
+import BannerFixture from '@components/Consent/Banner/client/__tests__/banner.fixture.astro'
+import type { ConsentBannerElement } from '@components/Consent/Banner/client'
+import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
+import {
+  executeRender,
+  withJsdomEnvironment,
+} from '@test/unit/helpers/litRuntime'
 import {
   getConsentWrapper,
   getConsentCloseBtn,
@@ -11,69 +17,99 @@ import {
 } from '@components/Consent/Banner/client/selectors'
 import { ClientScriptError } from '@components/scripts/errors'
 
-const attachDom = (html: string): Window => {
-  const windowInstance = new Window()
-  windowInstance.document.body.innerHTML = html
+type ConsentBannerModule = WebComponentModule<ConsentBannerElement>
 
-  globalThis.window = windowInstance as unknown as typeof globalThis.window
-  globalThis.document = windowInstance.document as unknown as Document
-  globalThis.Node = windowInstance.Node as unknown as typeof globalThis.Node
+const CONSENT_READY_TIMEOUT_MS = 2_000
+const BANNER_READY_EVENT = 'consent-banner:ready'
 
-  return windowInstance
+const waitForBannerReady = async (element: ConsentBannerElement) => {
+  if (element.isInitialized) {
+    return
+  }
+
+  await new Promise<void>((resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      element.removeEventListener(BANNER_READY_EVENT, onReady)
+      reject(new Error('Consent banner never finished initializing'))
+    }, CONSENT_READY_TIMEOUT_MS)
+
+    function onReady() {
+      clearTimeout(timeoutId)
+      resolve()
+    }
+
+    element.addEventListener(BANNER_READY_EVENT, onReady, { once: true })
+  })
+}
+
+const renderConsentBanner = async (
+  assertion: () => Promise<void> | void,
+) => {
+  const container = await AstroContainer.create()
+
+  await executeRender<ConsentBannerModule>({
+    container,
+    component: BannerFixture,
+    moduleSpecifier: '@components/Consent/Banner/client/index',
+    selector: 'consent-banner',
+    waitForReady: waitForBannerReady,
+    assert: async () => assertion(),
+  })
 }
 
 describe('Consent Banner Selectors', () => {
-  let container: AstroContainer
-  let windowInstance: Window
-
   beforeEach(async () => {
-    container = await AstroContainer.create()
-    const markup = await container.renderToString(ConsentBanner)
-    windowInstance = attachDom(markup)
+    await withJsdomEnvironment(({ window }) => {
+      window.sessionStorage.clear()
+      window.localStorage.clear()
+    })
   })
 
-  afterEach(() => {
-    windowInstance.happyDOM?.cancelAsync?.()
-    delete (globalThis as { document?: Document }).document
-    delete (globalThis as { window?: typeof globalThis.window }).window
-    delete (globalThis as { Node?: typeof globalThis.Node }).Node
+  it('returns consent modal wrapper with expected attributes', async () => {
+    await renderConsentBanner(() => {
+      const wrapper = getConsentWrapper()
+
+      expect(wrapper.id).toBe('consent-modal-id')
+      expect(wrapper.getAttribute('role')).toBe('dialog')
+      expect(wrapper.getAttribute('aria-label')).toBe('Cookie consent dialog')
+    })
   })
 
-  it('returns consent modal wrapper with expected attributes', () => {
-    const wrapper = getConsentWrapper()
+  it('locates the close button', async () => {
+    await renderConsentBanner(() => {
+      const closeBtn = getConsentCloseBtn()
 
-    expect(wrapper.id).toBe('consent-modal-id')
-    expect(wrapper.getAttribute('role')).toBe('dialog')
-    expect(wrapper.getAttribute('aria-label')).toBe('Cookie consent dialog')
+      expect(closeBtn).toBeTruthy()
+      expect(closeBtn.classList.contains('consent-modal__close-btn')).toBe(true)
+      expect(closeBtn.getAttribute('aria-label')).toMatch(/close cookie consent dialog/i)
+    })
   })
 
-  it('locates the close button', () => {
-    const closeBtn = getConsentCloseBtn()
+  it('locates the allow-all button', async () => {
+    await renderConsentBanner(() => {
+      const allowBtn = getConsentAllowBtn()
 
-    expect(closeBtn).toBeTruthy()
-    expect(closeBtn.classList.contains('consent-modal__close-btn')).toBe(true)
-    expect(closeBtn.getAttribute('aria-label')).toMatch(/close cookie consent dialog/i)
+      expect(allowBtn).toBeTruthy()
+      expect(allowBtn.classList.contains('consent-modal__btn-allow')).toBe(true)
+      expect(allowBtn.textContent?.trim()).toBe('Allow All')
+    })
   })
 
-  it('locates the allow-all button', () => {
-    const allowBtn = getConsentAllowBtn()
+  it('locates the customize button', async () => {
+    await renderConsentBanner(() => {
+      const customizeBtn = getConsentCustomizeBtn()
 
-    expect(allowBtn).toBeTruthy()
-    expect(allowBtn.classList.contains('consent-modal__btn-allow')).toBe(true)
-    expect(allowBtn.textContent?.trim()).toBe('Allow All')
+      expect(customizeBtn).toBeTruthy()
+      expect(customizeBtn.classList.contains('consent-modal__btn-customize')).toBe(true)
+      expect(customizeBtn.textContent?.trim()).toBe('Customize')
+    })
   })
 
-  it('locates the customize button', () => {
-    const customizeBtn = getConsentCustomizeBtn()
+  it('throws a ClientScriptError when wrapper is missing', async () => {
+    await renderConsentBanner(() => {
+      document.getElementById('consent-modal-id')?.remove()
 
-    expect(customizeBtn).toBeTruthy()
-    expect(customizeBtn.classList.contains('consent-modal__btn-customize')).toBe(true)
-    expect(customizeBtn.textContent?.trim()).toBe('Customize')
-  })
-
-  it('throws a ClientScriptError when wrapper is missing', () => {
-    document.getElementById('consent-modal-id')?.remove()
-
-    expect(() => getConsentWrapper()).toThrowError(ClientScriptError)
+      expect(() => getConsentWrapper()).toThrowError(ClientScriptError)
+    })
   })
 })

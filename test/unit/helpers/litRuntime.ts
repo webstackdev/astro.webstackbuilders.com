@@ -18,6 +18,7 @@ type DomGlobalKey =
 	| 'Event'
 	| 'HTMLAnchorElement'
 	| 'HTMLDivElement'
+	| 'sessionStorage'
 	| 'localStorage'
 	| 'SVGElement'
 	| 'SVGSVGElement'
@@ -39,6 +40,7 @@ const DOM_GLOBAL_KEYS: DomGlobalKey[] = [
 	'Element',
 	'HTMLAnchorElement',
 	'HTMLDivElement',
+	'sessionStorage',
 	'localStorage',
 	'SVGElement',
 	'SVGSVGElement',
@@ -115,6 +117,7 @@ const installWindowGlobals = (window: DomWindow): void => {
 	setGlobalValue('HTMLSpanElement', window.HTMLSpanElement)
 	setGlobalValue('HTMLAnchorElement', window.HTMLAnchorElement)
 	setGlobalValue('HTMLDivElement', window.HTMLDivElement)
+	setGlobalValue('sessionStorage', window.sessionStorage)
 	setGlobalValue('localStorage', window.localStorage)
 }
 

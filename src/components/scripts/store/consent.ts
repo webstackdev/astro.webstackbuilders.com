@@ -5,7 +5,7 @@ import { computed, onMount } from 'nanostores'
 import { persistentAtom } from '@nanostores/persistent'
 import { StoreController } from '@nanostores/lit'
 import type { ReactiveControllerHost } from 'lit'
-import { getCookie, setCookie } from '@components/scripts/utils/cookies'
+import { getCookie, removeCookie, setCookie } from '@components/scripts/utils/cookies'
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { $isConsentBannerVisible } from '@components/scripts/store/visibility'
 import { getOrCreateDataSubjectId, deleteDataSubjectId } from '@components/scripts/utils/dataSubjectId'
@@ -17,6 +17,7 @@ import { getOrCreateDataSubjectId, deleteDataSubjectId } from '@components/scrip
 export type ConsentCategory = 'analytics' | 'marketing' | 'functional'
 export type ConsentCategories = ConsentCategory
 export type ConsentValue = boolean
+export type ConsentPreference = 'granted' | 'refused' | 'unknown'
 
 export interface ConsentState {
   analytics: ConsentValue
@@ -24,6 +25,11 @@ export interface ConsentState {
   functional: ConsentValue
   DataSubjectId: string
 }
+
+const consentCookieCategories: ConsentCategories[] = ['analytics', 'marketing', 'functional']
+const CONSENT_COOKIE_PREFIX = 'consent_'
+
+const prefixConsentCookie = (category: ConsentCategories): string => `${CONSENT_COOKIE_PREFIX}${category}`
 
 // ============================================================================
 // STORES
@@ -88,6 +94,56 @@ export const $hasMarketingConsent = computed($consent, (consent) => consent.mark
 export const $hasAnyConsent = computed($consent, (consent) => {
   return consent.analytics || consent.functional || consent.marketing
 })
+
+// ============================================================================
+// COOKIE HELPERS
+// ============================================================================
+
+/**
+ * Read a consent cookie value, ensuring defaults exist before access
+ */
+export function getConsentCookie(category: ConsentCategories): string | undefined {
+  const analyticsCookie = getCookie(prefixConsentCookie('analytics'))
+  if (typeof analyticsCookie === 'undefined') {
+    initConsentCookies()
+  }
+
+  return getCookie(prefixConsentCookie(category))
+}
+
+/**
+ * Persist consent through the centralized state updates
+ */
+export function setConsentCookie(
+  category: ConsentCategories,
+  preference: ConsentPreference = 'granted',
+): void {
+  const granted = preference === 'granted'
+  updateConsent(category, granted)
+}
+
+/**
+ * Initialize consent cookies with opt-out defaults
+ */
+export function initConsentCookies(): boolean {
+  return ensureConsentCookiesInitialized()
+}
+
+/**
+ * Grant all consent categories (used by consent banner primary CTA)
+ */
+export function allowAllConsentCookies(): void {
+  allowAllConsent()
+}
+
+/**
+ * Remove persisted consent cookies without mutating store state
+ */
+export function removeConsentCookies(): void {
+  consentCookieCategories.forEach((category) => {
+    removeCookie(prefixConsentCookie(category))
+  })
+}
 
 // ============================================================================
 // SUBSCRIPTION HELPERS
