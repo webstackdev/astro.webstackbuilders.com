@@ -171,6 +171,16 @@ export function subscribeToFunctionalConsent(listener: ConsentSubscription): () 
 // ACTIONS
 // ============================================================================
 
+export type ConsentStateListener = (_consent: ConsentState) => void
+
+export function getConsentSnapshot(): ConsentState {
+  return $consent.get()
+}
+
+export function subscribeToConsentState(listener: ConsentStateListener): () => void {
+  return $consent.listen(listener)
+}
+
 /**
  * Update consent for specific category
  * Automatically updates both store AND cookie

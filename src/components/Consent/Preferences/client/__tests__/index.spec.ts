@@ -1,212 +1,182 @@
-// @vitest-environment happy-dom
+// @vitest-environment node
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { ConsentPreferencesElement } from '@components/Consent/Preferences/client'
-import { $consent, updateConsent, allowAllConsent } from '@components/scripts/store'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { experimental_AstroContainer as AstroContainer } from 'astro/container'
+import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
+import ConsentPreferencesComponent from '@components/Consent/Preferences/index.astro'
+import type { ConsentPreferencesElement } from '@components/Consent/Preferences/client'
+import type { ConsentCategory, ConsentState } from '@components/scripts/store'
+import { allowAllConsent, updateConsent } from '@components/scripts/store'
+import { executeRender, withJsdomEnvironment } from '@test/unit/helpers/litRuntime'
 
-// Mock dependencies
-vi.mock('@components/scripts/store', () => ({
-  $consent: {
-    get: vi.fn(),
-    set: vi.fn(),
-  },
-  updateConsent: vi.fn(),
-  allowAllConsent: vi.fn(),
-  createConsentController: vi.fn(() => ({
-    value: {
-      analytics: false,
-      functional: true,
-      marketing: false,
-      DataSubjectId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', // Valid UUID format
+type ConsentPreferencesModule = WebComponentModule<ConsentPreferencesElement>
+type JsdomWindow = Window & typeof globalThis
+
+const CONSENT_READY_TIMEOUT_MS = 2_000
+const CONSENT_PREFERENCES_READY_EVENT = 'consent-preferences:ready'
+
+const waitForPreferencesReady = async (element: ConsentPreferencesElement) => {
+  if (element.dataset['consentPreferencesReady'] === 'true') {
+    return
+  }
+
+  await new Promise<void>((resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      element.removeEventListener(CONSENT_PREFERENCES_READY_EVENT, onReady)
+      reject(new Error('Consent preferences component never finished initializing'))
+    }, CONSENT_READY_TIMEOUT_MS)
+
+    function onReady() {
+      clearTimeout(timeoutId)
+      resolve()
+    }
+
+    element.addEventListener(CONSENT_PREFERENCES_READY_EVENT, onReady, { once: true })
+  })
+}
+
+const renderConsentPreferences = async (
+  assertion: (_context: { element: ConsentPreferencesElement; window: JsdomWindow }) => Promise<void> | void,
+) => {
+  const container = await AstroContainer.create()
+
+  await executeRender<ConsentPreferencesModule>({
+    container,
+    component: ConsentPreferencesComponent,
+    moduleSpecifier: '@components/Consent/Preferences/client/index',
+    selector: 'consent-preferences',
+    waitForReady: waitForPreferencesReady,
+    assert: async ({ element, window }) => {
+      if (!window) {
+        throw new Error('Consent preferences tests require a window instance')
+      }
+
+      await assertion({ element, window: window as JsdomWindow })
     },
-  })),
-}))
-
-// Mock bootstrap initialization
-const mockBootstrap = {
-  init: vi.fn(),
+  })
 }
 
-vi.mock('@components/scripts/bootstrap', () => ({
-  AppBootstrap: mockBootstrap,
-}))
+const consentMockHelpers = vi.hoisted(() => {
+  const defaultState: ConsentState = {
+    analytics: false,
+    functional: false,
+    marketing: false,
+    DataSubjectId: '00000000-0000-0000-0000-000000000000',
+  }
 
-// Mock toast controller
-const mockToastController = {
-  show: vi.fn(),
-}
+  const state: ConsentState = { ...defaultState }
+  const listeners = new Set<(_consent: ConsentState) => void>()
 
-vi.mock('@components/Toasts/controller', () => ({
-  ToastController: mockToastController,
-}))
+  return {
+    state,
+    listeners,
+    reset() {
+      state.analytics = defaultState.analytics
+      state.functional = defaultState.functional
+      state.marketing = defaultState.marketing
+      state.DataSubjectId = defaultState.DataSubjectId
+      listeners.clear()
+    },
+    notify() {
+      const snapshot: ConsentState = { ...state }
+      listeners.forEach((listener) => listener(snapshot))
+    },
+  }
+})
 
-// DOM element creation helpers
-const mockButton = (id: string): HTMLButtonElement => {
-  const button = document.createElement('button')
-  button.id = id
-  return button
-}
+vi.mock('@components/scripts/store', () => {
+  const { state, listeners, notify } = consentMockHelpers
 
-const mockDiv = (id: string): HTMLDivElement => {
-  const div = document.createElement('div')
-  div.id = id
-  div.style.display = 'none'
-  return div
-}
-
-const mockCheckbox = (id: string): HTMLInputElement => {
-  const input = document.createElement('input')
-  input.type = 'checkbox'
-  input.id = id
-  return input
-}
-
-// Mock cookie storage for cleanup
-let cookieStorage: any[] = []
-
-Object.defineProperty(document, 'cookie', {
-  get: () => cookieStorage.join('; '),
-  set: (value) => {
-    cookieStorage.push(value)
-  },
-  configurable: true,
+  return {
+    __esModule: true,
+    getConsentSnapshot: vi.fn(() => ({ ...state })),
+    subscribeToConsentState: vi.fn((listener: (_consent: ConsentState) => void) => {
+      listeners.add(listener)
+      return () => listeners.delete(listener)
+    }),
+    updateConsent: vi.fn((category: ConsentCategory, value: boolean) => {
+      state[category] = value
+      notify()
+    }),
+    allowAllConsent: vi.fn(() => {
+      state.analytics = true
+      state.functional = true
+      state.marketing = true
+      notify()
+    }),
+  }
 })
 
 describe('ConsentPreferencesElement', () => {
-  beforeEach(() => {
-    // Initialize state management
-    mockBootstrap.init()
-
-    // Reset mocks
+  beforeEach(async () => {
+    consentMockHelpers.reset()
     vi.clearAllMocks()
 
-    // Reset cookies
-    cookieStorage = []
-
-    // Clear document body
-    document.body.innerHTML = ''
-
-    // Mock default consent state
-    vi.mocked($consent.get).mockReturnValue({
-      analytics: false,
-      functional: false,
-      marketing: false,
-      DataSubjectId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', // Valid UUID format
+    await withJsdomEnvironment(({ window }) => {
+      window.sessionStorage.clear()
+      window.localStorage.clear()
     })
   })
 
-  describe('Web Component Registration', () => {
-    it('should be registered as custom element', () => {
-      expect(customElements.get('consent-preferences')).toBeDefined()
+  it('shows the modal when showModal is invoked', async () => {
+    await renderConsentPreferences(({ element, window }) => {
+      const wrapper = window.document.getElementById('consent-modal-modal-id') as HTMLDivElement | null
+      expect(wrapper).not.toBeNull()
+
+      element.showModal()
+      expect(wrapper!.style.display).toBe('flex')
     })
   })
 
-  describe('Component Interaction', () => {
-    let element: ConsentPreferencesElement
-    let mockModal: HTMLDivElement
-    let mockCloseBtn: HTMLButtonElement
-    let mockAllowBtn: HTMLButtonElement
-    let mockSaveBtn: HTMLButtonElement
+  it('hides the modal when the close button is clicked', async () => {
+    await renderConsentPreferences(({ element, window }) => {
+      element.showModal()
+      const wrapper = window.document.getElementById('consent-modal-modal-id') as HTMLDivElement | null
+      expect(wrapper).not.toBeNull()
+      const closeBtn = window.document.querySelector('.consent-modal__close-btn') as HTMLButtonElement | null
+      expect(closeBtn).not.toBeNull()
 
-    beforeEach(() => {
-      // Create mock DOM structure
-      mockModal = mockDiv('consent-modal-modal-id')
-      mockCloseBtn = mockButton('consent-modal__close-btn')
-      mockCloseBtn.classList.add('consent-modal__close-btn')
-      mockCloseBtn.dataset['testid'] = 'consent-preferences-close'
-      mockAllowBtn = mockButton('consent-allow-all')
-      mockSaveBtn = mockButton('consent-save-preferences')
+      closeBtn!.dispatchEvent(new window.MouseEvent('click', { bubbles: true }))
 
-      // Add elements to the document
-      document.body.appendChild(mockModal)
-      document.body.appendChild(mockCloseBtn)
-      document.body.appendChild(mockAllowBtn)
-      document.body.appendChild(mockSaveBtn)
-
-      // Create web component instance
-      element = new ConsentPreferencesElement()
-      document.body.appendChild(element)
+      expect(wrapper!.style.display).toBe('none')
     })
+  })
 
-    afterEach(() => {
-      // Cleanup
-      if (mockModal.parentNode) document.body.removeChild(mockModal)
-      if (mockCloseBtn.parentNode) document.body.removeChild(mockCloseBtn)
-      if (mockAllowBtn.parentNode) document.body.removeChild(mockAllowBtn)
-      if (mockSaveBtn.parentNode) document.body.removeChild(mockSaveBtn)
-      if (element.parentNode) document.body.removeChild(element)
+  it('grants all consent when Allow All is clicked', async () => {
+    await renderConsentPreferences(({ window }) => {
+      const allowBtn = window.document.getElementById('consent-allow-all') as HTMLButtonElement | null
+      expect(allowBtn).not.toBeNull()
+
+      allowBtn!.dispatchEvent(new window.MouseEvent('click', { bubbles: true }))
+
+      expect(allowAllConsent).toHaveBeenCalled()
+      expect((window.document.getElementById('analytics-cookies') as HTMLInputElement).checked).toBe(true)
+      expect((window.document.getElementById('functional-cookies') as HTMLInputElement).checked).toBe(true)
+      expect((window.document.getElementById('marketing-cookies') as HTMLInputElement).checked).toBe(true)
     })
+  })
 
-    describe('Modal Operations', () => {
-      it('should show modal when showModal is called', () => {
-        element.showModal()
-        expect(element['modal']?.style.display).toBe('flex')
-      })
+  it('saves consent preferences when Save button is clicked', async () => {
+    await renderConsentPreferences(({ window }) => {
+      const analyticsCheckbox = window.document.getElementById('analytics-cookies') as HTMLInputElement | null
+      const functionalCheckbox = window.document.getElementById('functional-cookies') as HTMLInputElement | null
+      const marketingCheckbox = window.document.getElementById('marketing-cookies') as HTMLInputElement | null
+      expect(analyticsCheckbox).not.toBeNull()
+      expect(functionalCheckbox).not.toBeNull()
+      expect(marketingCheckbox).not.toBeNull()
 
-      it('should hide modal when close button is clicked', () => {
-        // First show the modal
-        element.showModal()
-        expect(element['modal']?.style.display).toBe('flex')
+      analyticsCheckbox!.checked = true
+      functionalCheckbox!.checked = false
+      marketingCheckbox!.checked = true
 
-        // Click close button
-        mockCloseBtn.click()
+      const saveBtn = window.document.getElementById('consent-save-preferences') as HTMLButtonElement | null
+      expect(saveBtn).not.toBeNull()
 
-        // Modal should be hidden
-        expect(element['modal']?.style.display).toBe('none')
-      })
-    })
+      saveBtn!.dispatchEvent(new window.MouseEvent('click', { bubbles: true }))
 
-    describe('Consent Management', () => {
-      it('should handle allow all button click', () => {
-        const mockDataSubjectId = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' // Valid UUID format
-        vi.mocked($consent.get).mockReturnValue({
-          analytics: false,
-          functional: false,
-          marketing: false,
-          DataSubjectId: mockDataSubjectId,
-        })
-
-        // Click allow all button
-        mockAllowBtn.click()
-
-        // Verify: allowAllConsent action called
-        expect(allowAllConsent).toHaveBeenCalled()
-      })
-
-      it('should handle save preferences button click', () => {
-        // Set up checkbox elements that the component will find
-        const analyticsCheckbox = mockCheckbox('analytics-cookies')
-        analyticsCheckbox.checked = true
-        const functionalCheckbox = mockCheckbox('functional-cookies')
-        functionalCheckbox.checked = false
-        const marketingCheckbox = mockCheckbox('marketing-cookies')
-        marketingCheckbox.checked = true
-
-        document.body.appendChild(analyticsCheckbox)
-        document.body.appendChild(functionalCheckbox)
-        document.body.appendChild(marketingCheckbox)
-
-        const mockDataSubjectId = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' // Valid UUID format
-        vi.mocked($consent.get).mockReturnValue({
-          analytics: false,
-          functional: false,
-          marketing: false,
-          DataSubjectId: mockDataSubjectId,
-        })
-
-        // Click save preferences button
-        mockSaveBtn.click()
-
-        // Verify: updateConsent called with checkbox states
-        expect(updateConsent).toHaveBeenCalledWith('analytics', true)
-        expect(updateConsent).toHaveBeenCalledWith('functional', false)
-        expect(updateConsent).toHaveBeenCalledWith('marketing', true)
-
-        // Cleanup
-        document.body.removeChild(analyticsCheckbox)
-        document.body.removeChild(functionalCheckbox)
-        document.body.removeChild(marketingCheckbox)
-      })
+      expect(updateConsent).toHaveBeenCalledWith('analytics', true)
+      expect(updateConsent).toHaveBeenCalledWith('functional', false)
+      expect(updateConsent).toHaveBeenCalledWith('marketing', true)
     })
   })
 })

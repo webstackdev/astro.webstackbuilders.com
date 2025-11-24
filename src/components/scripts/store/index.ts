@@ -21,6 +21,8 @@ export {
   $hasFunctionalConsent,
   allowAllConsent,
   allowAllConsentCookies,
+  getConsentSnapshot,
+  subscribeToConsentState,
   ensureConsentCookiesInitialized,
   getConsentCookie,
   initConsentFromCookies,

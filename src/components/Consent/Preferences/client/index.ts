@@ -4,14 +4,15 @@
  * Uses centralized state management from scripts/store
  */
 
-import { LitElement } from 'lit'
+import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { isInputElement } from '@components/scripts/assertions/elements'
 import { addButtonEventListeners } from '@components/scripts/elementListeners'
 import {
+  getConsentSnapshot,
+  subscribeToConsentState,
   updateConsent,
   allowAllConsent,
-  createConsentController,
-  type ConsentState
+  type ConsentState,
 } from '@components/scripts/store'
 import {
   getConsentCustomizeModal,
@@ -19,40 +20,94 @@ import {
   getAllowAllBtn,
   getSavePreferencesBtn,
 } from '@components/Consent/Preferences/client/selectors'
+import { addScriptBreadcrumb } from '@components/scripts/errors'
+import { handleScriptError } from '@components/scripts/errors/handler'
 import { defineCustomElement } from '@components/scripts/utils'
 
-/**
- * Consent Preferences web component
- */
-export class ConsentPreferencesElement extends LitElement {
-  // Reactive store binding - Lit auto-updates when consent state changes
-  private consentController = createConsentController(this)
+const COMPONENT_TAG_NAME = 'consent-preferences' as const
+const COMPONENT_SCRIPT_NAME = 'ConsentPreferencesElement'
+export const CONSENT_PREFERENCES_READY_EVENT = 'consent-preferences:ready'
 
-  private modal: HTMLDivElement | null = null
-  private closeBtn: HTMLButtonElement | null = null
-  private allowAllBtn: HTMLButtonElement | null = null
-  private saveBtn: HTMLButtonElement | null = null
-  private toggleLabels: HTMLLabelElement[] = []
+export class ConsentPreferencesElement extends HTMLElement {
+  private modal!: HTMLDivElement
+  private closeBtn!: HTMLButtonElement
+  private allowAllBtn!: HTMLButtonElement
+  private saveBtn!: HTMLButtonElement
+  private domReadyHandler: (() => void) | null = null
+  private beforePreparationHandler: (() => void) | null = null
+  private afterSwapHandler: (() => void) | null = null
+  private unsubscribeConsent: (() => void) | null = null
+  private toggleLabelHandler: ((_event: Event) => void) | null = null
+  private isInitialized = false
 
-  override createRenderRoot() {
-    return this
+  connectedCallback(): void {
+    if (typeof document === 'undefined' || this.isInitialized) {
+      return
+    }
+
+    const context = { scriptName: COMPONENT_SCRIPT_NAME, operation: 'connectedCallback' }
+    addScriptBreadcrumb(context)
+
+    try {
+      if (document.readyState === 'loading') {
+        this.domReadyHandler = () => {
+          document.removeEventListener('DOMContentLoaded', this.domReadyHandler as EventListener)
+          this.domReadyHandler = null
+          this.initialize()
+        }
+        document.addEventListener('DOMContentLoaded', this.domReadyHandler)
+        return
+      }
+
+      this.initialize()
+    } catch (error) {
+      handleScriptError(error, context)
+    }
   }
 
-  override connectedCallback() {
-    super.connectedCallback()
-    this.initialize()
-  }
+  disconnectedCallback(): void {
+    if (this.domReadyHandler) {
+      document.removeEventListener('DOMContentLoaded', this.domReadyHandler)
+      this.domReadyHandler = null
+    }
 
-  override disconnectedCallback(): void {
+    this.removeViewTransitionsHandlers()
     this.cleanupToggleLabelListeners()
-    super.disconnectedCallback()
+
+    if (this.unsubscribeConsent) {
+      this.unsubscribeConsent()
+      this.unsubscribeConsent = null
+    }
+
+    this.isInitialized = false
+    delete this.dataset['consentPreferencesReady']
   }
 
   private initialize(): void {
-    this.findElements()
-    this.bindEvents()
-    this.loadPreferences()
-    this.setViewTransitionsHandlers()
+    if (this.isInitialized) {
+      return
+    }
+
+    const context = { scriptName: COMPONENT_SCRIPT_NAME, operation: 'initialize' }
+    addScriptBreadcrumb(context)
+
+    try {
+      delete this.dataset['consentPreferencesReady']
+      this.findElements()
+      this.bindEvents()
+      this.syncConsentState(getConsentSnapshot())
+      this.subscribeToConsentStore()
+      this.setViewTransitionsHandlers()
+      this.isInitialized = true
+      this.dispatchReadyEvent()
+    } catch (error) {
+      handleScriptError(error, context)
+    }
+  }
+
+  private dispatchReadyEvent(): void {
+    this.dataset['consentPreferencesReady'] = 'true'
+    this.dispatchEvent(new CustomEvent(CONSENT_PREFERENCES_READY_EVENT))
   }
 
   private findElements(): void {
@@ -62,22 +117,66 @@ export class ConsentPreferencesElement extends LitElement {
     this.saveBtn = getSavePreferencesBtn()
   }
 
-  private setViewTransitionsHandlers(): void {
-    document.addEventListener('astro:before-preparation', () => {
-      ConsentPreferencesElement.handleBeforePreparation()
-    })
+  private subscribeToConsentStore(): void {
+    if (this.unsubscribeConsent) {
+      return
+    }
 
-    document.addEventListener('astro:after-swap', () => {
-      this.initialize()
-    })
+    const handleUpdate = (consent: ConsentState) => {
+      this.syncConsentState(consent)
+    }
+
+    this.unsubscribeConsent = subscribeToConsentState(handleUpdate)
+  }
+
+  private syncConsentState(consent: ConsentState): void {
+    this.updateCheckboxes(consent)
+  }
+
+  private setViewTransitionsHandlers(): void {
+    if (this.beforePreparationHandler || this.afterSwapHandler) {
+      return
+    }
+
+    const context = { scriptName: COMPONENT_SCRIPT_NAME, operation: 'setViewTransitionsHandlers' }
+    addScriptBreadcrumb(context)
+
+    try {
+      this.beforePreparationHandler = () => {
+        ConsentPreferencesElement.handleBeforePreparation()
+      }
+
+      this.afterSwapHandler = () => {
+        this.isInitialized = false
+        this.cleanupToggleLabelListeners()
+        this.initialize()
+      }
+
+      document.addEventListener('astro:before-preparation', this.beforePreparationHandler)
+      document.addEventListener('astro:after-swap', this.afterSwapHandler)
+    } catch (error) {
+      handleScriptError(error, context)
+    }
+  }
+
+  private removeViewTransitionsHandlers(): void {
+    if (this.beforePreparationHandler) {
+      document.removeEventListener('astro:before-preparation', this.beforePreparationHandler)
+      this.beforePreparationHandler = null
+    }
+
+    if (this.afterSwapHandler) {
+      document.removeEventListener('astro:after-swap', this.afterSwapHandler)
+      this.afterSwapHandler = null
+    }
   }
 
   private static handleBeforePreparation(): void {
-    // Clean up before View Transitions swap
+    // Reserved for future cleanup work before View Transition swaps
   }
 
   /** Show the consent customize modal */
-  showModal(): void {
+  public showModal(): void {
     if (this.modal) {
       this.modal.style.display = 'flex'
     }
@@ -91,65 +190,48 @@ export class ConsentPreferencesElement extends LitElement {
   }
 
   private bindEvents(): void {
-    // Close button
-    if (this.closeBtn) {
-      addButtonEventListeners(this.closeBtn, this.hideModal)
-    }
-
-    // Allow all button
-    if (this.allowAllBtn) {
-      addButtonEventListeners(this.allowAllBtn, () => this.allowAll())
-    }
-
-    // Save preferences button
-    if (this.saveBtn) {
-      addButtonEventListeners(this.saveBtn, () => this.savePreferences())
-    }
-
+    addButtonEventListeners(this.closeBtn, this.hideModal)
+    addButtonEventListeners(this.allowAllBtn, () => this.allowAll())
+    addButtonEventListeners(this.saveBtn, () => this.savePreferences())
     this.bindToggleLabelListeners()
   }
 
   private bindToggleLabelListeners(): void {
-    this.cleanupToggleLabelListeners()
-    this.toggleLabels = Array.from(
-      this.querySelectorAll<HTMLLabelElement>('[data-consent-toggle]'),
-    )
-
-    this.toggleLabels.forEach((label) => {
-      label.addEventListener('click', this.handleToggleLabelClick)
-    })
-  }
-
-  private cleanupToggleLabelListeners(): void {
-    this.toggleLabels.forEach((label) => {
-      label.removeEventListener('click', this.handleToggleLabelClick)
-    })
-    this.toggleLabels = []
-  }
-
-  private handleToggleLabelClick = (event: Event): void => {
-    event.preventDefault()
-    const label = event.currentTarget as HTMLLabelElement | null
-    const checkboxId = label?.getAttribute('data-consent-toggle')
-
-    if (!checkboxId) {
+    if (this.toggleLabelHandler) {
       return
     }
 
-    const checkbox = document.getElementById(checkboxId)
-    if (isInputElement(checkbox)) {
-      checkbox.checked = !checkbox.checked
+    this.toggleLabelHandler = (event: Event) => {
+      const target = event.target
+      if (!(target instanceof HTMLElement)) {
+        return
+      }
+
+      const label = target.closest<HTMLLabelElement>('[data-consent-toggle]')
+      if (!label || !this.contains(label)) {
+        return
+      }
+
+      event.preventDefault()
+      const checkboxId = label.getAttribute('data-consent-toggle')
+      if (!checkboxId) {
+        return
+      }
+
+      const checkbox = document.getElementById(checkboxId)
+      if (isInputElement(checkbox)) {
+        checkbox.checked = !checkbox.checked
+      }
     }
+
+    document.addEventListener('click', this.toggleLabelHandler)
   }
 
-  private loadPreferences(): ConsentState | null {
-    // Load from centralized state store via reactive controller
-    const consent = this.consentController.value
-
-    // Update checkboxes to match current state
-    this.updateCheckboxes(consent)
-
-    return consent
+  private cleanupToggleLabelListeners(): void {
+    if (this.toggleLabelHandler) {
+      document.removeEventListener('click', this.toggleLabelHandler)
+      this.toggleLabelHandler = null
+    }
   }
 
   private updateCheckboxes(preferences: ConsentState): void {
@@ -171,28 +253,19 @@ export class ConsentPreferencesElement extends LitElement {
   private savePreferences(): void {
     const preferences = this.getCurrentPreferences()
 
-    // Update state store - automatically updates cookies
     updateConsent('analytics', preferences.analytics ?? false)
     updateConsent('functional', preferences.functional ?? false)
     updateConsent('marketing', preferences.marketing ?? false)
 
     this.applyPreferences(preferences)
-
-    // Show confirmation
     this.showNotification('Consent preferences saved successfully!')
   }
 
   private allowAll(): void {
-    // Use the store action to allow all consent
     allowAllConsent()
-
-    // Update checkboxes to reflect the new state
-    const updatedConsent = this.consentController.value
-    this.updateCheckboxes(updatedConsent)
-
+    const updatedConsent = getConsentSnapshot()
+    this.syncConsentState(updatedConsent)
     this.applyPreferences(updatedConsent)
-
-    // Show confirmation
     this.showNotification('All consent enabled!')
   }
 
@@ -209,9 +282,6 @@ export class ConsentPreferencesElement extends LitElement {
   }
 
   private applyPreferences(preferences: Partial<ConsentState>): void {
-    // Apply the consent preferences to actual consent management
-    // This would integrate with your analytics, functional, and marketing scripts
-
     if (preferences.analytics) {
       this.enableAnalytics()
     } else {
@@ -232,34 +302,27 @@ export class ConsentPreferencesElement extends LitElement {
   }
 
   private enableAnalytics(): void {
-    // Implement analytics consent enabling logic
-    // Example: Load Google Analytics
-    // gtag('config', 'GA_MEASUREMENT_ID')
+    // Placeholder for analytics consent enabling logic
   }
 
   private disableAnalytics(): void {
-    // Implement analytics consent disabling logic
-    // Example: Disable Google Analytics
-    // window['ga-disable-GA_MEASUREMENT_ID'] = true
+    // Placeholder for analytics consent disabling logic
   }
 
   private enableFunctional(): void {
-    // Implement functional consent enabling logic
-    // Example: Enable theme preferences, language settings, etc.
+    // Placeholder for functional consent enabling logic
   }
 
   private disableFunctional(): void {
-    // Implement functional consent disabling logic
+    // Placeholder for functional consent disabling logic
   }
 
   private enableMarketing(): void {
-    // Implement marketing consent enabling logic
-    // Example: Load marketing tracking scripts
+    // Placeholder for marketing consent enabling logic
   }
 
   private disableMarketing(): void {
-    // Implement marketing consent disabling logic
-    // Example: Clear marketing cookies
+    // Placeholder for marketing consent disabling logic
   }
 
   private showNotification(message: string, type: 'success' | 'error' = 'success'): void {
@@ -269,10 +332,9 @@ export class ConsentPreferencesElement extends LitElement {
 
     const typeClasses: Record<'success' | 'error', string> = {
       success: 'bg-green-600',
-      error: 'bg-red-600'
+      error: 'bg-red-600',
     }
 
-    // Create a simple notification
     const notification = document.createElement('div')
     notification.className = `fixed top-4 right-4 ${typeClasses[type]} text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300`
     notification.dataset['testid'] = 'consent-toast'
@@ -281,11 +343,10 @@ export class ConsentPreferencesElement extends LitElement {
 
     document.body.appendChild(notification)
 
-    // Remove after 3 seconds
-    setTimeout(() => {
+    window.setTimeout(() => {
       notification.style.opacity = '0'
       notification.style.transform = 'translateY(-20px)'
-      setTimeout(() => {
+      window.setTimeout(() => {
         if (notification.parentNode) {
           document.body.removeChild(notification)
         }
@@ -303,5 +364,13 @@ export const showConsentCustomizeModal = (): void => {
   modal.style.display = 'flex'
 }
 
-export const registerConsentPreferencesWebComponent = (tagName = 'consent-preferences') =>
+export const registerConsentPreferencesWebComponent = (tagName: string = COMPONENT_TAG_NAME) => {
+  if (typeof window === 'undefined') return
   defineCustomElement(tagName, ConsentPreferencesElement)
+}
+
+export const webComponentModule: WebComponentModule<ConsentPreferencesElement> = {
+  registeredName: COMPONENT_TAG_NAME,
+  componentCtor: ConsentPreferencesElement,
+  registerWebComponent: registerConsentPreferencesWebComponent,
+}
