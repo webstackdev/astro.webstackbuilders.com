@@ -96,6 +96,19 @@ const getEmailErrorText = (input: HTMLInputElement): string => {
 }
 
 export const validateEmailField = (field: FieldElements<HTMLInputElement>): boolean => {
+  const { input } = field
+
+  // Manual fallback for environments without native constraint validation (e.g., JSDOM)
+  if (input.minLength > 0 && input.value.length < input.minLength) {
+    showFieldFeedback(field, minLengthEmailAddressText(input), 'error')
+    return false
+  }
+
+  if (input.maxLength > -1 && input.value.length > input.maxLength) {
+    showFieldFeedback(field, maxLengthEmailAddressText(input), 'error')
+    return false
+  }
+
   if (!field.input.validity.valid) {
     showFieldFeedback(field, getEmailErrorText(field.input), 'error')
     return false

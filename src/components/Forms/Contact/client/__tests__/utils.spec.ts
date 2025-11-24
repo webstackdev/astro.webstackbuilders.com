@@ -1,7 +1,8 @@
-// @vitest-environment happy-dom
+// @vitest-environment node
 import { describe, it, expect } from 'vitest'
 import { initCharacterCounter, initUploadPlaceholder } from '@components/Forms/Contact/client/utils'
 import type { ContactFormConfig, ContactFormElements } from '@components/Forms/Contact/client/@types'
+import { renderContactForm } from './testUtils'
 
 const baseConfig: ContactFormConfig = {
   maxCharacters: 2000,
@@ -10,39 +11,40 @@ const baseConfig: ContactFormConfig = {
   apiEndpoint: '/api/contact',
 }
 
-const createElements = () => ({
-  messageTextarea: document.createElement('textarea'),
-  charCount: document.createElement('span'),
-  uppyContainer: document.createElement('div'),
-} as Pick<ContactFormElements, 'messageTextarea' | 'charCount' | 'uppyContainer'> as ContactFormElements)
-
 describe('ContactForm utils', () => {
-  it('updates character counter colors across thresholds', () => {
-    const elements = createElements()
-    initCharacterCounter(elements, baseConfig)
+  it('updates character counter colors across thresholds', async () => {
+    await renderContactForm(({ elements, window }) => {
+      initCharacterCounter(elements, baseConfig)
 
-    elements.messageTextarea.value = 'a'.repeat(100)
-    elements.messageTextarea.dispatchEvent(new Event('input'))
-    expect(elements.charCount.textContent).toBe('100')
-    expect(elements.charCount.style.color).toBe('var(--color-text-offset)')
+      elements.messageTextarea.value = 'a'.repeat(100)
+      elements.messageTextarea.dispatchEvent(new window.Event('input'))
+      expect(elements.charCount.textContent).toBe('100')
+      expect(elements.charCount.style.color).toBe('var(--color-text-offset)')
 
-    elements.messageTextarea.value = 'a'.repeat(baseConfig.warningThreshold + 1)
-    elements.messageTextarea.dispatchEvent(new Event('input'))
-    expect(elements.charCount.style.color).toBe('var(--color-warning)')
+      elements.messageTextarea.value = 'a'.repeat(baseConfig.warningThreshold + 1)
+      elements.messageTextarea.dispatchEvent(new window.Event('input'))
+      expect(elements.charCount.style.color).toBe('var(--color-warning)')
 
-    elements.messageTextarea.value = 'a'.repeat(baseConfig.errorThreshold + 1)
-    elements.messageTextarea.dispatchEvent(new Event('input'))
-    expect(elements.charCount.style.color).toBe('var(--color-danger)')
+      elements.messageTextarea.value = 'a'.repeat(baseConfig.errorThreshold + 1)
+      elements.messageTextarea.dispatchEvent(new window.Event('input'))
+      expect(elements.charCount.style.color).toBe('var(--color-danger)')
+    })
   })
 
-  it('reveals upload placeholder only when container exists', () => {
-    const elements = createElements()
-    elements.uppyContainer.hidden = true
+  it('reveals upload placeholder only when container exists', async () => {
+    await renderContactForm(({ elements }) => {
+      const { uppyContainer } = elements
+      if (!uppyContainer) {
+        throw new Error('Contact form fixture must include the upload container')
+      }
 
-    initUploadPlaceholder(elements)
-    expect(elements.uppyContainer.hidden).toBe(false)
+      uppyContainer.hidden = true
 
-    const withoutContainer = { ...elements, uppyContainer: null }
-    expect(() => initUploadPlaceholder(withoutContainer as ContactFormElements)).not.toThrow()
+      initUploadPlaceholder(elements)
+      expect(uppyContainer.hidden).toBe(false)
+
+      const withoutContainer: ContactFormElements = { ...elements, uppyContainer: null }
+      expect(() => initUploadPlaceholder(withoutContainer)).not.toThrow()
+    })
   })
 })

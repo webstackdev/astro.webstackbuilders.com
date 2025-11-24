@@ -16,7 +16,6 @@ export {
 } from './dataSubjectId'
 
 export { absoluteUrl } from './absoluteUrl'
-
 export { defineCustomElement } from './defineCustomElement'
 
 /**

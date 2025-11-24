@@ -14,6 +14,9 @@ import { initEmailValidationHandler } from './email'
 import { initFormSubmission } from './formSubmission'
 import { initGenericValidation, initNameLengthHandler, initMssgLengthHandler } from './validation'
 import { defineCustomElement } from '@components/scripts/utils'
+import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
+
+const COMPONENT_TAG_NAME = 'contact-form' as const
 
 export class ContactFormElement extends LitElement {
   private labelController: LabelController | null = null
@@ -78,5 +81,22 @@ export class ContactFormElement extends LitElement {
   }
 }
 
-export const registerContactFormWebComponent = (tagName = 'contact-form') =>
+declare global {
+  interface HTMLElementTagNameMap {
+    'contact-form': ContactFormElement
+  }
+}
+
+export const registerContactFormWebComponent = (tagName: string = COMPONENT_TAG_NAME) => {
+  if (typeof window === 'undefined') {
+    return
+  }
+
   defineCustomElement(tagName, ContactFormElement)
+}
+
+export const webComponentModule: WebComponentModule<ContactFormElement> = {
+  registeredName: COMPONENT_TAG_NAME,
+  componentCtor: ContactFormElement,
+  registerWebComponent: registerContactFormWebComponent,
+}

@@ -1,67 +1,54 @@
-// @vitest-environment happy-dom
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+// @vitest-environment node
+import { describe, it, expect, vi } from 'vitest'
 import { initNameLengthHandler, validateNameField } from '@components/Forms/Contact/client/validation'
-import type { FieldElements } from '@components/ContactForm/client/types'
-
-const createFieldElements = (): FieldElements<HTMLInputElement> => {
-  const input = document.createElement('input')
-  input.type = 'text'
-  input.id = 'name'
-  input.required = true
-  input.maxLength = 50
-
-  const label = document.createElement('label')
-  label.htmlFor = 'name'
-
-  const feedback = document.createElement('p')
-  feedback.dataset.fieldError = 'name'
-  feedback.classList.add('hidden')
-
-  return { input, label, feedback }
-}
+import { renderContactForm } from './testUtils'
 
 describe('Name Validation', () => {
-  let field: FieldElements<HTMLInputElement>
+  it('attaches handlers via initNameLengthHandler', async () => {
+    await renderContactForm(({ elements }) => {
+      const field = elements.fields.name
+      const spy = vi.spyOn(field.input, 'addEventListener')
 
-  beforeEach(() => {
-    document.body.innerHTML = ''
-    field = createFieldElements()
-    document.body.append(field.input, field.label, field.feedback)
+      initNameLengthHandler(field)
+
+      expect(spy).toHaveBeenCalledWith('input', expect.any(Function))
+      expect(spy).toHaveBeenCalledWith('blur', expect.any(Function))
+    })
   })
 
-  it('attaches handlers via initNameLengthHandler', () => {
-    const spy = vi.spyOn(field.input, 'addEventListener')
+  it('rejects empty names', async () => {
+    await renderContactForm(({ elements }) => {
+      const field = elements.fields.name
+      field.input.value = ''
 
-    initNameLengthHandler(field)
+      const result = validateNameField(field)
 
-    expect(spy).toHaveBeenCalledWith('input', expect.any(Function))
-    expect(spy).toHaveBeenCalledWith('blur', expect.any(Function))
+      expect(result).toBe(false)
+      expect(field.feedback.textContent).toContain('enter your name')
+    })
   })
 
-  it('rejects empty names', () => {
-    field.input.value = ''
+  it('rejects names longer than 50 characters', async () => {
+    await renderContactForm(({ elements }) => {
+      const field = elements.fields.name
+      field.input.value = 'a'.repeat(60)
 
-    const result = validateNameField(field)
+      const result = validateNameField(field)
 
-    expect(result).toBe(false)
-    expect(field.feedback.textContent).toContain('enter your name')
+      expect(result).toBe(false)
+      expect(field.feedback.textContent).toContain('too long')
+    })
   })
 
-  it('rejects names longer than 50 characters', () => {
-    field.input.value = 'a'.repeat(60)
+  it('accepts valid names', async () => {
+    await renderContactForm(({ elements }) => {
+      const field = elements.fields.name
+      field.input.value = 'Jane Doe'
 
-    const result = validateNameField(field)
+      const result = validateNameField(field)
 
-    expect(result).toBe(false)
-    expect(field.feedback.textContent).toContain('too long')
-  })
-
-  it('accepts valid names', () => {
-    field.input.value = 'Jane Doe'
-
-    const result = validateNameField(field)
-
-    expect(result).toBe(true)
-    expect(field.feedback.classList.contains('hidden')).toBe(true)
+      expect(result).toBe(true)
+      expect(field.feedback.classList.contains('hidden')).toBe(true)
+    })
   })
 })
