@@ -1,10 +1,5 @@
 // @vitest-environment node
-/**
- * Tests for DownloadForm HTML element selectors using the Astro Container API
- */
-import { beforeEach, describe, expect, test } from 'vitest'
-import { Window } from 'happy-dom'
-import { experimental_AstroContainer as AstroContainer } from 'astro/container'
+import { describe, expect, it } from 'vitest'
 import {
   getDownloadButtonWrapper,
   getDownloadCompanyNameInput,
@@ -16,125 +11,139 @@ import {
   getDownloadSubmitButton,
   getDownloadWorkEmailInput,
 } from '@components/Forms/Download/client/selectors'
-import DownloadFormComponent from '@components/Forms/Download/index.astro'
 import {
   isButtonElement,
   isDivElement,
   isFormElement,
   isInputElement,
 } from '@components/scripts/assertions/elements'
+import { renderDownloadForm } from './testUtils'
 
-let container: AstroContainer
-let domWindow: Window
-
-function installDomGlobals(window: Window) {
-  globalThis.HTMLElement = window.HTMLElement as unknown as typeof globalThis.HTMLElement
-  globalThis.HTMLFormElement = window.HTMLFormElement as unknown as typeof globalThis.HTMLFormElement
-  globalThis.HTMLButtonElement = window.HTMLButtonElement as unknown as typeof globalThis.HTMLButtonElement
-  globalThis.HTMLInputElement = window.HTMLInputElement as unknown as typeof globalThis.HTMLInputElement
-  globalThis.Element = window.Element as unknown as typeof globalThis.Element
-  globalThis.Node = window.Node as unknown as typeof globalThis.Node
-  globalThis.DocumentFragment = window.DocumentFragment as unknown as typeof globalThis.DocumentFragment
+const resolveDocument = (root: Document | Element): Document => {
+  if ('nodeType' in root && root.nodeType === Node.DOCUMENT_NODE) {
+    return root as Document
+  }
+  const owner = root.ownerDocument
+  if (!owner) {
+    throw new Error('Owner document not available for provided root')
+  }
+  return owner
 }
 
-beforeEach(async () => {
-  container = await AstroContainer.create()
-  domWindow = new Window()
-  installDomGlobals(domWindow)
-})
-
-async function renderDownloadFormDocument(): Promise<Document> {
-  const result = await container.renderToString(DownloadFormComponent, {
-    props: {
-      title: 'Test Resource',
-      fileName: 'test-file.pdf',
-      fileType: 'PDF',
-    },
-  })
-  const domParser = new domWindow.DOMParser()
-  return domParser.parseFromString(result, 'text/html') as unknown as Document
+const removeElementById = (root: Document | Element, id: string) => {
+  const target = root.querySelector<HTMLElement>(`#${id}`)
+  if (!target) {
+    throw new Error(`Node with id "${id}" not found for removal`)
+  }
+  target.remove()
 }
 
-function createDocumentWithMarkup(markup: string): Document {
-  const doc = domWindow.document.implementation.createHTMLDocument()
-  doc.body.innerHTML = markup
-  return doc as unknown as Document
+const replaceElementWith = (
+  root: Document | Element,
+  id: string,
+  createNode: (doc: Document) => HTMLElement,
+) => {
+  const doc = resolveDocument(root)
+  const original = doc.querySelector<HTMLElement>(`#${id}`)
+  if (!original) {
+    throw new Error(`Node with id "${id}" not found for replacement`)
+  }
+  const replacement = createNode(doc)
+  replacement.id = original.id
+  original.replaceWith(replacement)
 }
 
 describe('getDownloadFormElement selector', () => {
-  test('works with element in DOM', async () => {
-    const doc = await renderDownloadFormDocument()
-    const element = getDownloadFormElement(doc)
-    expect(isFormElement(element)).toBeTruthy()
-    expect(element.id).toBe('downloadForm')
+  it('works with element in DOM', async () => {
+    await renderDownloadForm(async ({ window }) => {
+      const element = getDownloadFormElement(window.document)
+      expect(isFormElement(element)).toBeTruthy()
+      expect(element.id).toBe('downloadForm')
+    })
   })
 
-  test('throws with no form in DOM', () => {
-    const doc = createDocumentWithMarkup('<div></div>')
-    expect(() => getDownloadFormElement(doc)).toThrow('Download form element not found')
+  it('throws with no form in DOM', async () => {
+    await renderDownloadForm(async ({ window }) => {
+      removeElementById(window.document, 'downloadForm')
+      expect(() => getDownloadFormElement(window.document)).toThrow('Download form element not found')
+    })
   })
 
-  test('throws with wrong element type', () => {
-    const doc = createDocumentWithMarkup('<div id="downloadForm"></div>')
-    expect(() => getDownloadFormElement(doc)).toThrow('Download form element not found')
+  it('throws with wrong element type', async () => {
+    await renderDownloadForm(async ({ window }) => {
+      replaceElementWith(window.document, 'downloadForm', (doc) => doc.createElement('div'))
+      expect(() => getDownloadFormElement(window.document)).toThrow('Download form element not found')
+    })
   })
 
-  test('scopes queries to the provided root', async () => {
-    const doc = await renderDownloadFormDocument()
-    const component = doc.querySelector('download-form')
-    expect(component).toBeTruthy()
-    if (!component) {
-      throw new Error('download-form wrapper not found in DOM')
-    }
-    const element = getDownloadFormElement(component)
-    expect(isFormElement(element)).toBeTruthy()
+  it('scopes queries to the provided root', async () => {
+    await renderDownloadForm(async ({ window }) => {
+      const component = window.document.querySelector('download-form')
+      expect(component).toBeTruthy()
+      if (!component) {
+        throw new Error('download-form wrapper not found in DOM')
+      }
+      const element = getDownloadFormElement(component)
+      expect(isFormElement(element)).toBeTruthy()
+    })
   })
 })
 
 describe('getDownloadSubmitButton selector', () => {
-  test('works with element in DOM', async () => {
-    const doc = await renderDownloadFormDocument()
-    const element = getDownloadSubmitButton(doc)
-    expect(isButtonElement(element)).toBeTruthy()
-    expect(element.id).toBe('downloadSubmitBtn')
+  it('works with element in DOM', async () => {
+    await renderDownloadForm(async ({ window }) => {
+      const element = getDownloadSubmitButton(window.document)
+      expect(isButtonElement(element)).toBeTruthy()
+      expect(element.id).toBe('downloadSubmitBtn')
+    })
   })
 
-  test('throws with no button in DOM', () => {
-    const doc = createDocumentWithMarkup('<div></div>')
-    expect(() => getDownloadSubmitButton(doc)).toThrow('Download submit button not found')
+  it('throws with no button in DOM', async () => {
+    await renderDownloadForm(async ({ window }) => {
+      removeElementById(window.document, 'downloadSubmitBtn')
+      expect(() => getDownloadSubmitButton(window.document)).toThrow('Download submit button not found')
+    })
   })
 
-  test('throws with wrong element type', () => {
-    const doc = createDocumentWithMarkup('<div id="downloadSubmitBtn"></div>')
-    expect(() => getDownloadSubmitButton(doc)).toThrow('Download submit button not found')
+  it('throws with wrong element type', async () => {
+    await renderDownloadForm(async ({ window }) => {
+      replaceElementWith(window.document, 'downloadSubmitBtn', (doc) => doc.createElement('div'))
+      expect(() => getDownloadSubmitButton(window.document)).toThrow('Download submit button not found')
+    })
   })
 })
 
 describe('getDownloadStatusDiv selector', () => {
-  test('works with element in DOM', async () => {
-    const doc = await renderDownloadFormDocument()
-    const element = getDownloadStatusDiv(doc)
-    expect(isDivElement(element)).toBeTruthy()
-    expect(element.id).toBe('downloadFormStatus')
+  it('works with element in DOM', async () => {
+    await renderDownloadForm(async ({ window }) => {
+      const element = getDownloadStatusDiv(window.document)
+      expect(isDivElement(element)).toBeTruthy()
+      expect(element.id).toBe('downloadFormStatus')
+    })
   })
 
-  test('throws with no status div in DOM', () => {
-    const doc = createDocumentWithMarkup('<div></div>')
-    expect(() => getDownloadStatusDiv(doc)).toThrow('Download status div not found')
+  it('throws with no status div in DOM', async () => {
+    await renderDownloadForm(async ({ window }) => {
+      removeElementById(window.document, 'downloadFormStatus')
+      expect(() => getDownloadStatusDiv(window.document)).toThrow('Download status div not found')
+    })
   })
 })
 
 describe('getDownloadButtonWrapper selector', () => {
-  test('works with element in DOM', async () => {
-    const doc = await renderDownloadFormDocument()
-    const element = getDownloadButtonWrapper(doc)
-    expect(isDivElement(element)).toBeTruthy()
-    expect(element.id).toBe('downloadButtonWrapper')
+  it('works with element in DOM', async () => {
+    await renderDownloadForm(async ({ window }) => {
+      const element = getDownloadButtonWrapper(window.document)
+      expect(isDivElement(element)).toBeTruthy()
+      expect(element.id).toBe('downloadButtonWrapper')
+    })
   })
 
-  test('throws with no wrapper in DOM', () => {
-    const doc = createDocumentWithMarkup('<div></div>')
-    expect(() => getDownloadButtonWrapper(doc)).toThrow('Download button wrapper not found')
+  it('throws with no wrapper in DOM', async () => {
+    await renderDownloadForm(async ({ window }) => {
+      removeElementById(window.document, 'downloadButtonWrapper')
+      expect(() => getDownloadButtonWrapper(window.document)).toThrow('Download button wrapper not found')
+    })
   })
 })
 
@@ -172,15 +181,18 @@ const inputSelectorCases = [
 ]
 
 describe.each(inputSelectorCases)('$name selector', ({ selector, id, errorMessage }) => {
-  test('works with element in DOM', async () => {
-    const doc = await renderDownloadFormDocument()
-    const element = selector(doc)
-    expect(isInputElement(element)).toBeTruthy()
-    expect(element.id).toBe(id)
+  it('works with element in DOM', async () => {
+    await renderDownloadForm(async ({ window }) => {
+      const element = selector(window.document)
+      expect(isInputElement(element)).toBeTruthy()
+      expect(element.id).toBe(id)
+    })
   })
 
-  test('throws when input is missing', () => {
-    const doc = createDocumentWithMarkup('<div></div>')
-    expect(() => selector(doc)).toThrow(errorMessage)
+  it('throws when input is missing', async () => {
+    await renderDownloadForm(async ({ window }) => {
+      removeElementById(window.document, id)
+      expect(() => selector(window.document)).toThrow(errorMessage)
+    })
   })
 })

@@ -1,21 +1,6 @@
 // @vitest-environment node
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest'
-import { GlobalRegistrator } from '@happy-dom/global-registrator'
-import { experimental_AstroContainer as AstroContainer } from 'astro/container'
-import {
-  getDownloadButtonWrapper,
-  getDownloadCompanyNameInput,
-  getDownloadFirstNameInput,
-  getDownloadFormElement,
-  getDownloadJobTitleInput,
-  getDownloadLastNameInput,
-  getDownloadStatusDiv,
-  getDownloadSubmitButton,
-  getDownloadWorkEmailInput,
-} from '@components/Forms/Download/client/selectors'
-import DownloadFormComponent from '@components/Forms/Download/index.astro'
-import { TestError } from '@test/errors'
-import { withLitRuntime } from '@test/unit/helpers/litRuntime'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { renderDownloadForm, type DownloadFormElements } from './testUtils'
 
 // Mock the logger to suppress error output in tests
 vi.mock('@lib/logger', () => ({
@@ -26,254 +11,136 @@ vi.mock('@lib/logger', () => ({
     debug: vi.fn(),
   },
 }))
+const flushPromises = () => new Promise(resolve => setTimeout(resolve, 0))
 
-let container: AstroContainer | undefined
-let consoleErrorSpy: ReturnType<typeof vi.spyOn> | undefined
-const originalFetch = global.fetch
-let downloadFormClientPromise: Promise<void> | undefined
-const downloadFormTagName = 'download-form'
-
-/**
- * Helper function to set up DOM from Container API
- */
-async function renderDownloadFormDOM() {
-  if (!container) {
-    throw new TestError('Astro container not initialized')
-  }
-
-  const result = await container.renderToString(DownloadFormComponent, {
-    props: {
-      title: 'Test Resource',
-      fileName: 'test-file.pdf',
-      fileType: 'PDF',
-    },
-  })
-
-  const template = document.createElement('template')
-  template.innerHTML = result
-  const body = document.body
-  body.replaceChildren()
-  while (template.content.firstChild) {
-    body.appendChild(template.content.firstChild)
-  }
+const defaultFormValues = {
+  firstName: 'Jane',
+  lastName: 'Doe',
+  workEmail: 'jane@example.com',
+  jobTitle: 'Engineer',
+  companyName: 'Acme Corp',
 }
 
-async function hydrateDownloadFormElement() {
-  await customElements.whenDefined(downloadFormTagName)
-  const element = document.querySelector(downloadFormTagName)
-  if (!element) {
-    throw new TestError('download-form element not found in DOM')
-  }
-  await Promise.resolve()
-  return element
+const fillDownloadForm = (
+  elements: DownloadFormElements,
+  overrides: Partial<typeof defaultFormValues> = {},
+) => {
+  const values = { ...defaultFormValues, ...overrides }
+  elements.firstName.value = values.firstName
+  elements.lastName.value = values.lastName
+  elements.workEmail.value = values.workEmail
+  elements.jobTitle.value = values.jobTitle
+  elements.companyName.value = values.companyName
+  return values
 }
 
-const withHydratedDownloadForm = async (assertions: () => Promise<void> | void) => {
-  await withLitRuntime(async ({ register }) => {
-    await register(downloadFormTagName, async () => ensureDownloadFormClient())
-    await renderDownloadFormDOM()
-    await hydrateDownloadFormElement()
-    await assertions()
-  })
+const submitForm = (window: Window & typeof globalThis, form: HTMLFormElement) => {
+  const submitEvent = new window.Event('submit', { bubbles: true, cancelable: true })
+  form.dispatchEvent(submitEvent)
 }
+
+const successfulResponse = (): Response =>
+  ({
+    ok: true,
+    json: async () => ({ success: true }),
+  } as Response)
 
 describe('download-form web component', () => {
-  beforeAll(() => {
-    GlobalRegistrator.register()
-  })
-
-  afterAll(async () => {
-    await GlobalRegistrator.unregister()
-  })
-
-  beforeEach(async () => {
-    container = await AstroContainer.create()
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ success: true }),
-    }) as typeof fetch
-
-    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-  })
-
   afterEach(() => {
-    consoleErrorSpy?.mockRestore()
-    if (originalFetch) {
-      global.fetch = originalFetch
-    } else {
-      delete (global as typeof global & { fetch?: typeof global.fetch }).fetch
-    }
-    container = undefined
+    vi.restoreAllMocks()
   })
 
-  test('submits download requests via fetch', async () => {
-    await withHydratedDownloadForm(async () => {
-      const {
-        form,
-        firstName,
-        lastName,
-        workEmail,
-        jobTitle,
-        companyName,
-      } = getDownloadFormElements()
-      firstName.value = 'John'
-      lastName.value = 'Doe'
-      workEmail.value = 'john.doe@example.com'
-      jobTitle.value = 'Developer'
-      companyName.value = 'Acme Corp'
+  it('submits download requests via fetch', async () => {
+    await renderDownloadForm(async ({ elements, window }) => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(successfulResponse())
+      const payload = fillDownloadForm(elements)
 
-      await submitFormAndFlush(form)
+      submitForm(window, elements.form)
+      await flushPromises()
 
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect(fetchSpy).toHaveBeenCalledWith(
         '/api/downloads/submit',
         expect.objectContaining({
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            firstName: 'John',
-            lastName: 'Doe',
-            workEmail: 'john.doe@example.com',
-            jobTitle: 'Developer',
-            companyName: 'Acme Corp',
-          }),
-        })
+          body: JSON.stringify(payload),
+        }),
       )
+
+      fetchSpy.mockRestore()
     })
   })
 
-  test('shows success message and reveals download button', async () => {
-    await withHydratedDownloadForm(async () => {
-      const {
-        form,
-        firstName,
-        lastName,
-        workEmail,
-        jobTitle,
-        companyName,
-      } = getDownloadFormElements()
-      firstName.value = 'Jane'
-      lastName.value = 'Doe'
-      workEmail.value = 'jane@example.com'
-      jobTitle.value = 'Engineer'
-      companyName.value = 'Widgets Inc'
+  it('shows success message and reveals download button', async () => {
+    await renderDownloadForm(async ({ elements, window }) => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(successfulResponse())
+      fillDownloadForm(elements)
 
-      await submitFormAndFlush(form)
+      submitForm(window, elements.form)
+      await flushPromises()
 
-      const statusDiv = getDownloadStatusDiv()
-      expect(statusDiv?.classList.contains('hidden')).toBe(false)
-      expect(statusDiv?.classList.contains('success')).toBe(true)
-      expect(statusDiv?.textContent).toContain('Thank you')
+      expect(elements.statusDiv.classList.contains('hidden')).toBe(false)
+      expect(elements.statusDiv.classList.contains('success')).toBe(true)
+      expect(elements.statusDiv.textContent).toContain('Thank you')
+      expect(elements.downloadButtonWrapper.classList.contains('hidden')).toBe(false)
+      expect(elements.submitButton.classList.contains('hidden')).toBe(true)
+      expect(elements.firstName.value).toBe('')
+      expect(elements.lastName.value).toBe('')
+      expect(elements.workEmail.value).toBe('')
 
-      const downloadWrapper = getDownloadButtonWrapper()
-      expect(downloadWrapper?.classList.contains('hidden')).toBe(false)
-
-      const submitButton = getDownloadSubmitButton()
-      expect(submitButton?.classList.contains('hidden')).toBe(true)
+      fetchSpy.mockRestore()
     })
   })
 
-  test('displays error state when API fails', async () => {
-    ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-      ok: false,
-      json: async () => ({ error: 'Server error' }),
-    })
+  it('displays error state when API fails', async () => {
+    await renderDownloadForm(async ({ elements, window }) => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+        ok: false,
+        json: async () => ({ message: 'Server error' }),
+      } as Response)
 
-    await withHydratedDownloadForm(async () => {
-      const {
-        form,
-        firstName,
-        lastName,
-        workEmail,
-        jobTitle,
-        companyName,
-      } = getDownloadFormElements()
-      firstName.value = 'Sam'
-      lastName.value = 'Lee'
-      workEmail.value = 'sam@example.com'
-      jobTitle.value = 'Analyst'
-      companyName.value = 'Example'
+      fillDownloadForm(elements)
+      submitForm(window, elements.form)
+      await flushPromises()
 
-      await submitFormAndFlush(form)
+      expect(fetchSpy).toHaveBeenCalled()
+      expect(elements.statusDiv.classList.contains('hidden')).toBe(false)
+      expect(elements.statusDiv.classList.contains('error')).toBe(true)
+      expect(elements.statusDiv.textContent).toContain('There was an error processing your request')
+      expect(elements.downloadButtonWrapper.classList.contains('hidden')).toBe(true)
+      expect(elements.submitButton.classList.contains('hidden')).toBe(false)
 
-      const statusDiv = getDownloadStatusDiv()
-      expect(statusDiv?.classList.contains('hidden')).toBe(false)
-      expect(statusDiv?.classList.contains('error')).toBe(true)
-      expect(statusDiv?.textContent).toContain('error')
+      fetchSpy.mockRestore()
     })
   })
 
-  test('disables submit button while request is pending', async () => {
-    let resolveFetch: (() => void) | undefined
-    ;(global.fetch as ReturnType<typeof vi.fn>).mockImplementationOnce(
-      () =>
-        new Promise((resolve) => {
-          resolveFetch = () =>
-            resolve({
-              ok: true,
-              json: async () => ({ success: true }),
-            })
-        })
-    )
+  it('disables submit button while request is pending', async () => {
+    await renderDownloadForm(async ({ elements, window }) => {
+      let resolveFetch: (() => void) | undefined
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(
+        () =>
+          new Promise(resolve => {
+            resolveFetch = () => resolve(successfulResponse())
+          }),
+      )
 
-    await withHydratedDownloadForm(async () => {
-      const {
-        form,
-        firstName,
-        lastName,
-        workEmail,
-        jobTitle,
-        companyName,
-      } = getDownloadFormElements()
-      firstName.value = 'Ava'
-      lastName.value = 'Jones'
-      workEmail.value = 'ava@example.com'
-      jobTitle.value = 'PM'
-      companyName.value = 'Acme'
+      fillDownloadForm(elements)
+      submitForm(window, elements.form)
 
-      const submitButton = getDownloadSubmitButton()
-
-      const submitEvent = new Event('submit', { bubbles: true, cancelable: true })
-      form.dispatchEvent(submitEvent)
-
-      expect(submitButton.disabled).toBe(true)
-      expect(submitButton.textContent).toBe('Processing...')
+      expect(elements.submitButton.disabled).toBe(true)
+      expect(elements.submitButton.textContent).toBe('Processing...')
 
       resolveFetch?.()
-      await new Promise((resolve) => setTimeout(resolve, 0))
+      await flushPromises()
 
-      expect(submitButton.disabled).toBe(false)
-      expect(submitButton.textContent).toBe('Download Now')
+      expect(fetchSpy).toHaveBeenCalled()
+      expect(elements.submitButton.disabled).toBe(false)
+      expect(elements.submitButton.textContent).toBe('Download Now')
+
+      fetchSpy.mockRestore()
     })
   })
 })
-
-async function ensureDownloadFormClient() {
-  if (!downloadFormClientPromise) {
-    downloadFormClientPromise = import('@components/Forms/Download/client').then(
-      ({ registerDownloadFormWebComponent }) => {
-        registerDownloadFormWebComponent()
-      }
-    )
-  }
-  return downloadFormClientPromise
-}
-
-function getDownloadFormElements() {
-  return {
-    form: getDownloadFormElement(),
-    firstName: getDownloadFirstNameInput(),
-    lastName: getDownloadLastNameInput(),
-    workEmail: getDownloadWorkEmailInput(),
-    jobTitle: getDownloadJobTitleInput(),
-    companyName: getDownloadCompanyNameInput(),
-  }
-}
-
-async function submitFormAndFlush(form: HTMLFormElement) {
-  const submitEvent = new Event('submit', { bubbles: true, cancelable: true })
-  form.dispatchEvent(submitEvent)
-  await new Promise((resolve) => setTimeout(resolve, 0))
-}
 

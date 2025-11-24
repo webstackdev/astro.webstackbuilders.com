@@ -8,6 +8,7 @@ import {
 import { addScriptBreadcrumb, ClientScriptError } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { defineCustomElement } from '@components/scripts/utils'
+import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 
 const scriptName = 'DownloadFormElement'
 
@@ -154,5 +155,16 @@ export class DownloadFormElement extends LitElement {
 
 const elementName = 'download-form'
 
-export const registerDownloadFormWebComponent = (tagName = elementName) =>
+export const registerDownloadFormWebComponent = (tagName = elementName) => {
+  if (typeof window === 'undefined') {
+    return
+  }
+
   defineCustomElement(tagName, DownloadFormElement)
+}
+
+export const webComponentModule: WebComponentModule<DownloadFormElement> = {
+  registeredName: elementName,
+  componentCtor: DownloadFormElement,
+  registerWebComponent: registerDownloadFormWebComponent,
+}
