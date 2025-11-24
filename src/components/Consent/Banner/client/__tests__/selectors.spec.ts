@@ -2,7 +2,7 @@
 
 import { beforeEach, describe, expect, it } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
-import BannerFixture from '@components/Consent/Banner/client/__tests__/banner.fixture.astro'
+import ConsentBanner from '@components/Consent/Banner/index.astro'
 import type { ConsentBannerElement } from '@components/Consent/Banner/client'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import {
@@ -49,7 +49,7 @@ const renderConsentBanner = async (
 
   await executeRender<ConsentBannerModule>({
     container,
-    component: BannerFixture,
+    component: ConsentBanner,
     moduleSpecifier: '@components/Consent/Banner/client/index',
     selector: 'consent-banner',
     waitForReady: waitForBannerReady,
