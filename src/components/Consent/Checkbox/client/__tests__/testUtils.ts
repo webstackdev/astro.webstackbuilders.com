@@ -1,6 +1,6 @@
 import { expect } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
-import CheckboxFixture, { type CheckboxFixtureProps } from '@components/Consent/Checkbox/client/__tests__/checkbox.fixture.astro'
+import CheckboxFixture, { type CheckboxFixtureProps } from '@components/Consent/Checkbox/client/__fixtures__/checkbox.fixture.astro'
 import type { ConsentCheckboxElement } from '@components/Consent/Checkbox/client'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { executeRender } from '@test/unit/helpers/litRuntime'
