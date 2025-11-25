@@ -1,25 +1,21 @@
-import type { IconName } from '@components/Icon/@types/icons'
-
 export type ButtonVariant = 'primary' | 'secondary' | 'twitter' | 'success' | 'warning' | 'icon'
 export type ButtonSize = 'small' | 'medium' | 'large'
 export type ButtonType = 'button' | 'submit' | 'reset'
 export type IconPosition = 'left' | 'right' | 'only'
 
-type Optional<T> = T | undefined
-
 export interface ButtonProps {
-  text?: Optional<string>
-  variant?: Optional<ButtonVariant>
-  size?: Optional<ButtonSize>
-  type?: Optional<ButtonType>
-  disabled?: Optional<boolean>
-  class?: Optional<string>
-  id?: Optional<string>
-  ariaLabel?: Optional<string>
-  onClick?: Optional<string>
-  icon?: Optional<IconName>
-  iconPosition?: Optional<IconPosition>
-  iconSize?: Optional<number | string>
+  text?: string
+  variant?: ButtonVariant
+  size?: ButtonSize
+  type?: ButtonType
+  disabled?: boolean
+  class?: string
+  id?: string
+  ariaLabel?: string
+  onClick?: string
+  icon?: string
+  iconPosition?: IconPosition
+  iconSize?: number | string
 }
 
 export interface ButtonStyleModule {
@@ -54,9 +50,9 @@ const ICON_ONLY_POSITION: IconPosition = 'only'
 
 export interface ButtonClassOptions {
   styles: ButtonStyleModule
-  variant?: Optional<ButtonVariant>
-  size?: Optional<ButtonSize>
-  additionalClasses?: Optional<string>
+  variant?: ButtonVariant
+  size?: ButtonSize
+  additionalClasses?: string
 }
 
 export function buildButtonClassList({
@@ -64,8 +60,8 @@ export function buildButtonClassList({
   variant = 'primary',
   size = 'medium',
   additionalClasses,
-}: ButtonClassOptions): Record<string, boolean> {
-  const classes: Record<string, boolean> = {
+}: ButtonClassOptions) {
+  const classes = {
     [styles.button]: true,
     [styles[sizeClassLookup[size]]]: true,
     [styles[variantClassLookup[variant]]]: true,
@@ -84,17 +80,17 @@ export function buildButtonClassList({
 }
 
 export interface ButtonLabelOptions {
-  text?: Optional<string>
-  ariaLabel?: Optional<string>
-  icon?: Optional<IconName>
-  iconPosition?: Optional<IconPosition>
+  text?: string
+  ariaLabel?: string
+  icon?: string
+  iconPosition?: IconPosition
 }
 
-export function isIconOnly({ icon, iconPosition, text }: ButtonLabelOptions): boolean {
+export function isIconOnly({ icon, iconPosition, text }: ButtonLabelOptions) {
   return Boolean(icon && iconPosition === ICON_ONLY_POSITION && !text)
 }
 
-export function resolveAriaLabel({ text, ariaLabel, icon, iconPosition }: ButtonLabelOptions): string | undefined {
+export function resolveAriaLabel({ text, ariaLabel, icon, iconPosition }: ButtonLabelOptions) {
   if (ariaLabel) {
     return ariaLabel
   }
@@ -110,7 +106,7 @@ export function resolveAriaLabel({ text, ariaLabel, icon, iconPosition }: Button
   return undefined
 }
 
-function humanizeIconName(icon: IconName): string {
+function humanizeIconName(icon: string) {
   return icon
     .replace(/[-_]+/g, ' ')
     .replace(/\b\w/g, (char) => char.toUpperCase())

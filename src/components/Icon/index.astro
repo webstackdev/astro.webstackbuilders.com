@@ -4,14 +4,13 @@
  * Refactored to use Tailwind classes instead of CSS classes.
  */
 import { Icon } from 'astro-icon/components'
-import type { IconName } from '@components/Icon/@types/icons'
 
 export interface Props {
   class?: string
-  name: IconName
+  name: string
   size?: number | string
   /** Color variant for the icon */
-  variant?: 'default' | 'muted' | 'success' | 'warning' | 'inherit'
+  variant?: 'default' | 'muted' | 'success' | 'warning' | 'inherit' | 'custom'
 }
 
 const { class: className, name, size = 24, variant = 'default' } = Astro.props
@@ -23,6 +22,7 @@ const colorClasses = {
   success: 'text-success fill-success',
   warning: 'text-warning fill-warning',
   inherit: 'text-inherit fill-inherit',
+  custom: '',
 }
 ---
 

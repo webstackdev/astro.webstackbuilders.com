@@ -8,7 +8,7 @@ To add a new icon to the project:
 
 ### 1. Add the SVG file
 
-Place your SVG file in this directory (`src/icons/`). Use kebab-case naming (e.g., `my-new-icon.svg`).
+Place your SVG file in this directory (`src/icons/`). Use kebab-case naming (e.g., `my-new-icon.svg`). SVG Icons must include a `<title>` element for ARIA purposes.
 
 **SVG Format Requirements:**
 
@@ -18,22 +18,7 @@ Place your SVG file in this directory (`src/icons/`). Use kebab-case naming (e.g
 </svg>
 ```
 
-### 2. Update TypeScript definitions
-
-After adding a new SVG file, you **must** update the `src/components/Icon/@types/icons.ts` file to include the new icon name in the `IconName` union type:
-
-```typescript
-export type IconName =
-  | 'alarm-clock'
-  | 'arrow-down'
-  // ... existing icons
-  | 'my-new-icon'  // Add your new icon here
-  | 'warning';
-```
-
-This provides TypeScript autocomplete and prevents typos when using icons in components.
-
-### 3. Use the icon
+### 2. Use the icon
 
 Import and use the `Icon` component:
 
@@ -49,7 +34,7 @@ import Icon from '@components/Icon/index.astro'
 
 The `Icon` component accepts these props:
 
-- `name` (required): The icon name (must match a file in `src/icons/` and be defined in `IconName` type)
+- `name` (required): The icon name (must match a file in `src/icons/`)
 - `class`: CSS classes to apply
 - `size`: Icon size (defaults to 24)
 
@@ -83,32 +68,4 @@ inkscape --batch-process --export-area-drawing --export-plain-svg --export-filen
 
 ## Available Icons
 
-| Icon | Name | Description |
-|------|------|-------------|
-| ![alarm-clock](./alarm-clock.svg) | `alarm-clock` | Clock/time icon |
-| ![arrow-down](./arrow-down.svg) | `arrow-down` | Downward arrow |
-| ![arrow-right](./arrow-right.svg) | `arrow-right` | Rightward arrow |
-| ![award](./award.svg) | `award` | Award/achievement icon |
-| ![check](./check.svg) | `check` | Checkmark |
-| ![close](./close.svg) | `close` | Close/X button |
-| ![codepen](./codepen.svg) | `codepen` | CodePen social icon |
-| ![external](./external.svg) | `external` | External link indicator |
-| ![feed](./feed.svg) | `feed` | RSS/feed icon |
-| ![github](./github.svg) | `github` | GitHub social icon |
-| ![heart](./heart.svg) | `heart` | Heart/favorite icon |
-| ![info](./info.svg) | `info` | Information icon |
-| ![keybase](./keybase.svg) | `keybase` | Keybase social icon |
-| ![lightbulb](./lightbulb.svg) | `lightbulb` | Idea/lightbulb icon |
-| ![linkedin](./linkedin.svg) | `linkedin` | LinkedIn social icon |
-| ![message](./message.svg) | `message` | Message/chat icon |
-| ![paper-and-pencil](./paper-and-pencil.svg) | `paper-and-pencil` | Writing/editing icon |
-| ![paper-clip](./paper-clip.svg) | `paper-clip` | Attachment icon |
-| ![question](./question.svg) | `question` | Question/help icon |
-| ![repost](./repost.svg) | `repost` | Repost/share icon |
-| ![twitter](./twitter.svg) | `twitter` | Twitter/X social icon |
-| ![warning](./warning.svg) | `warning` | Warning/alert icon |
-
----
-
-**Important:** Always update `src/@types/icons.ts` when adding new icons to maintain TypeScript safety and autocomplete functionality.
-
+See the `testing/icons` page when running the dev server for a layout of available icons.
