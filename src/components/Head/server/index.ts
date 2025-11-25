@@ -5,15 +5,24 @@
 
 /**
  * Get social share image URL using dynamic generation
- * Usage: getSocialImage(title, description, slug, baseUrl)
+ * Usage: getSocialImage(baseUrl, title, description, slug)
  */
+const normalizeBaseUrl = (value?: string): string => {
+  if (!value || value.trim() === '') {
+    throw new Error('Base URL is required to generate social metadata.')
+  }
+
+  const base = value.trim()
+  return base.replace(/\/+$/, '')
+}
+
 export function getSocialImage(
+  baseUrl: string,
   title?: string,
   description?: string,
-  slug?: string,
-  baseUrl?: string
+  slug?: string
 ): string {
-  const baseURL = baseUrl || 'https://webstackbuilders.com'
+  const baseURL = normalizeBaseUrl(baseUrl)
   const encodedTitle = encodeURIComponent(title || 'Webstack Builders')
   const encodedDescription = encodeURIComponent(
     description || 'Professional Web Development Services'
@@ -31,7 +40,7 @@ export interface SocialMetadataOptions {
   slug?: string
   image?: string
   url?: string
-  baseUrl?: string
+  baseUrl: string
 }
 
 export interface SocialMetadata {
@@ -57,11 +66,12 @@ export function getSocialMetadata(options: SocialMetadataOptions): SocialMetadat
     slug = 'home',
     image,
     url,
-    baseUrl = 'https://webstackbuilders.com',
+    baseUrl,
   } = options
 
-  const socialImage = image || getSocialImage(slug, baseUrl)
-  const socialUrl = url || `${baseUrl}/${slug}`
+  const normalizedBaseUrl = normalizeBaseUrl(baseUrl)
+  const socialImage = image || getSocialImage(normalizedBaseUrl, title, description, slug)
+  const socialUrl = url || `${normalizedBaseUrl}/${slug}`
   const imageAlt = `Social card for ${title}`
 
   return {

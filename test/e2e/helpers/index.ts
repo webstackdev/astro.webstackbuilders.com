@@ -14,6 +14,7 @@ export {
 export { clearConsentCookies } from '@test/e2e/helpers/browserState'
 export { BasePage } from '@test/e2e/helpers/pageObjectModels/BasePage'
 export { ComponentPersistencePage } from '@test/e2e/helpers/pageObjectModels/ComponentPersistencePage'
+export { HeadPage } from '@test/e2e/helpers/pageObjectModels/HeadPage'
 export {
   setupCleanTestPage,
   setupTestPage,

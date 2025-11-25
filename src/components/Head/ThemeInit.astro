@@ -8,13 +8,24 @@
  * CRITICAL: This script MUST be inlined (is:inline) and run as early as possible
  * to prevent Flash of Unstyled Content (FOUC).
  *
- * !!! DO NOT EXPAND THE SCOPE OF THIS SCRIPT !!!
+ * !!! DO NOT EXPAND THE SCOPE OF THIS SCRIPT OR MOVE OUT OF THIS FILE !!!
  *
  * It runs synchronously and blocks rendering.
  */
+import { themeData } from './server/themeData'
+
+const { defaultThemeIdJson, darkThemeIdJson, metaColorsJson } = themeData()
 ---
 
-<script is:inline>
+<script
+  is:inline
+  define:vars={{
+    defaultThemeIdJson,
+    darkThemeIdJson,
+    metaColorsJson,
+  }}
+>
+  // @ts-nocheck
   document.addEventListener('DOMContentLoaded', () => {
     /**
      * This code is only for initial page load from the site. DOMContentLoaded does
@@ -23,10 +34,14 @@
      * "astro:before-swap" event.
      */
     try {
+      const defaultThemeId = JSON.parse(defaultThemeIdJson)
+      const darkThemeId = JSON.parse(darkThemeIdJson)
+      const themeMetaColors = JSON.parse(metaColorsJson)
+
       // Read theme preference from localStorage (set by user's previous selection)
       const stored = localStorage.getItem('theme')
 
-      if (stored && stored !== 'light') {
+      if (stored && stored !== defaultThemeId) {
         // User explicitly chose a theme - apply it immediately
         // <html> element
         document.documentElement.dataset['theme'] =  stored
@@ -34,28 +49,35 @@
         // No stored preference - use system preference
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
         // <html> element
-        document.documentElement.dataset['theme'] =  prefersDark ? 'dark' : 'light'
+        document.documentElement.dataset['theme'] =  prefersDark ? darkThemeId : defaultThemeId
       }
 
       // 2. Turn <body> visible. It's set to hidden in BaseLayout.astro to avoid FOUC. Do
       // here to make sure it gets turned on, in case the <meta> element selector throws.
       document.body.classList.remove('invisible')
 
-      // 3. Update meta theme-color used for PWAs
+      // 3. Add theme entries from src/content/themes.json to the window.metaColors object
+      window.metaColors = window.metaColors || {}
+      Object.assign(window.metaColors, themeMetaColors)
+
+      // 4. Update meta theme-color used for PWAs
       const metaElement = document.querySelector('meta[name="theme-color"]')
-      if (stored && stored !== 'light' && metaElement && window.metaColors) {
+      if (stored && stored !== defaultThemeId && metaElement && window.metaColors) {
         // User explicitly chose a theme - apply it immediately
         metaElement.setAttribute('content', window.metaColors[stored] || '')
       } else if (!stored && metaElement && window.metaColors) {
         // No stored preference - use system preference
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-        metaElement.setAttribute('content', window.metaColors[prefersDark ? 'dark' : 'light'] || '')
+        metaElement.setAttribute(
+          'content',
+          window.metaColors[prefersDark ? darkThemeId : defaultThemeId] || ''
+        )
       }
 
-      // 4. If stored === 'light', BaseLayout.astro already set it on <html> data-theme attribute
+      // 5. If stored === defaultThemeId, BaseLayout.astro already set it on <html> data-theme attribute
       // and Meta.astro already set it on <meta name="theme-color">, so nothing to do
 
-      // 5. Success!
+      // 6. Success!
       console.log('🎨 Theme init on "DOMContentLoaded" executed')
     } catch (error) {
       // localStorage access can fail (privacy mode, etc.)
