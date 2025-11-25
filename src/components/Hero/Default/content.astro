@@ -3,25 +3,39 @@
  * Hero Content Column - Default Variant
  */
 import Sprite from '@components/Sprite/index.astro'
-import type { ContentProps as Props } from '@components/Hero/@types/content'
 
-export type { Props }
+export interface Props {
+  pretitle?: string
+  title?: string
+  benefits?: Array<{
+    text: string
+    highlight: string
+  }>
+  primaryLink?: {
+    href: string
+    text: string
+  }
+  secondaryLink?: {
+    href: string
+    text: string
+  }
+}
 
-const { pretitle, title, benefits, primaryLink, secondaryLink } = Astro.props
+const { pretitle, title, benefits, primaryLink, secondaryLink } = Astro.props as Props
 ---
 
 {/* Content Column */}
 <div class="order-2 lg:order-1 space-y-6">
   {/* Pretitle */}
   <span
-    class="inline-block text-sm md:text-base font-bold tracking-wide text-[var(--color-primary)] uppercase"
+    class="inline-block text-sm md:text-base font-bold tracking-wide text-primary uppercase"
   >
     {pretitle}
   </span>
 
   {/* Main Title */}
   <h1
-    class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-[var(--color-text)] leading-tight"
+    class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-text leading-tight"
   >
     {title}
   </h1>
@@ -29,18 +43,18 @@ const { pretitle, title, benefits, primaryLink, secondaryLink } = Astro.props
   {/* Benefits Section */}
   {
     benefits && benefits.length > 0 && (
-      <div class="bg-[var(--color-bg-offset)] rounded-2xl p-6 md:p-8 border border-[var(--color-border)]">
-        <div class="text-sm font-semibold text-[var(--color-text-offset)] mb-4 uppercase tracking-wide">
+      <div class="bg-bg-offset rounded-2xl p-6 md:p-8 border border-border">
+        <div class="text-sm font-semibold text-text-offset mb-4 uppercase tracking-wide">
           Up to:
         </div>
         <ul class="space-y-4">
           {benefits.map(benefit => (
             <li class="flex items-start gap-3">
-              <span class="flex-shrink-0 w-6 h-6 text-[var(--color-success)] [&_.icon]:w-6 [&_.icon]:h-6 [&_.icon]:stroke-current">
+              <span class="shrink-0 w-6 h-6 text-success [&_.icon]:w-6 [&_.icon]:h-6 [&_.icon]:stroke-current">
                 <Sprite name="check" />
               </span>
-              <span class="text-base md:text-lg text-[var(--color-text)]">
-                <strong class="font-bold text-[var(--color-primary)]">{benefit.highlight}</strong>{' '}
+              <span class="text-base md:text-lg text-text">
+                <strong class="font-bold text-primary">{benefit.highlight}</strong>{' '}
                 {benefit.text}
               </span>
             </li>
@@ -56,7 +70,7 @@ const { pretitle, title, benefits, primaryLink, secondaryLink } = Astro.props
       primaryLink && (
         <a
           href={primaryLink.href}
-          class="group inline-block px-8 py-4 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white font-semibold rounded-xl transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 text-center"
+          class="group inline-block px-8 py-4 bg-primary hover:bg-primary-hover text-white font-semibold rounded-xl transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 text-center"
         >
           {primaryLink.text}
           <svg
@@ -79,7 +93,7 @@ const { pretitle, title, benefits, primaryLink, secondaryLink } = Astro.props
       secondaryLink && (
         <a
           href={secondaryLink.href}
-          class="group inline-block px-8 py-4 bg-transparent border-2 border-[var(--color-border)] hover:border-[var(--color-primary)] text-[var(--color-text)] hover:text-[var(--color-primary)] font-semibold rounded-xl transition-all duration-200 text-center"
+          class="group inline-block px-8 py-4 bg-transparent border-2 border-border hover:border-primary text-text hover:text-primary font-semibold rounded-xl transition-all duration-200 text-center"
         >
           {secondaryLink.text}
           <svg

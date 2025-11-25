@@ -2,18 +2,25 @@
 /**
  * Hero CTA Links - Default Variant
  */
-import type { CtaProps as Props } from '@components/Hero/@types/ctaLinks'
+export interface Props {
+  primaryLink: {
+    href: string
+    text: string
+  }
+  secondaryLink: {
+    href: string
+    text: string
+  }
+}
 
-export type { Props }
-
-const { primaryLink, secondaryLink } = Astro.props
+const { primaryLink, secondaryLink } = Astro.props as Props
 ---
 
 {/* CTA Links */}
 <div class="flex flex-col sm:flex-row gap-4 pt-2">
   <a
     href={primaryLink.href}
-    class="group inline-block px-8 py-4 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white font-semibold rounded-xl transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 text-center"
+    class="group inline-block px-8 py-4 bg-primary hover:bg-primary-hover text-white font-semibold rounded-xl transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 text-center"
   >
     {primaryLink.text}
     <svg
@@ -31,7 +38,7 @@ const { primaryLink, secondaryLink } = Astro.props
   </a>
   <a
     href={secondaryLink.href}
-    class="group inline-block px-8 py-4 bg-transparent border-2 border-[var(--color-border)] hover:border-[var(--color-primary)] text-[var(--color-text)] hover:text-[var(--color-primary)] font-semibold rounded-xl transition-all duration-200 text-center"
+    class="group inline-block px-8 py-4 bg-transparent border-2 border-border hover:border-primary text-text hover:text-primary font-semibold rounded-xl transition-all duration-200 text-center"
   >
     {secondaryLink.text}
     <svg

@@ -3,11 +3,16 @@
  * Hero Image Column - Default Variant
  */
 import { Image as AstroImage } from 'astro:assets'
-import type { ImageProps as Props } from '@components/Hero/@types/image'
+import type { ImageMetadata } from 'astro'
 
-export type { Props }
+export interface Props {
+  image?: {
+    src: ImageMetadata
+    alt: string
+  }
+}
 
-const { image } = Astro.props
+const { image } = Astro.props as Props
 ---
 
 {/* Image Column */}
