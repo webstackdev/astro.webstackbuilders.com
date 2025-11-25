@@ -38,6 +38,9 @@ export const registerWebComponent = async (tagName = TestWebComponent.registered
   defineCustomElement(tagName, TestWebComponent)
 }
 
+// Backwards compatibility with older component script usage
+export const registerTestWebComponent = registerWebComponent
+
 export const webComponentModule: WebComponentModule<TestWebComponent> = {
   registeredName: TestWebComponent.registeredName,
   componentCtor: TestWebComponent,

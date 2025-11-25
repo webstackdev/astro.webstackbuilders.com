@@ -12,6 +12,14 @@
  * - README.md (update theme documentation if needed)
  */
 
+import themeConfig from '@content/themes.json'
+
+// @TODO: add tooltip that makes use of the description field
+
+interface ThemeColors {
+  backgroundOffset: string
+}
+
 /**
  * Theme object interface
  */
@@ -26,6 +34,8 @@ export interface Theme {
   category?: 'core' | 'seasonal' | 'custom'
   /** Boolean flag for temporary/seasonal themes */
   seasonal?: boolean
+  /** Theme color settings used by head/meta scripts */
+  colors: ThemeColors
 }
 
 /**
@@ -39,36 +49,15 @@ export interface DefaultTheme {
 /**
  * Available themes configuration
  */
-export const themes: Theme[] = [
-  {
-    id: 'light',
-    name: 'Light',
-    description: 'Clean light theme with blue accents',
-    category: 'core',
-  },
-  {
-    id: 'dark',
-    name: 'Dark',
-    description: 'Dark theme with navy background',
-    category: 'core',
-  },
-  // Example of seasonal theme (uncomment and customize):
-  // {
-  //   id: 'holiday',
-  //   name: 'Holiday',
-  //   description: 'Festive red and green theme for the holidays',
-  //   category: 'seasonal',
-  //   seasonal: true
-  // }
-]
-
-/**
- * Default theme configuration
- */
-export const defaultTheme: DefaultTheme = {
-  id: 'light',
-  prefersDarkScheme: false,
+interface ThemeConfig {
+  themes: Theme[]
+  defaultTheme: DefaultTheme
 }
+
+const themeData = themeConfig as ThemeConfig
+
+export const themes = themeData.themes
+export const defaultTheme = themeData.defaultTheme
 
 /**
  * Get theme by ID

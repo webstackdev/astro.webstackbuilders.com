@@ -3,14 +3,20 @@
  * Returns the web app manifest for progressive web app functionality
  */
 import contactData from '@content/contact.json'
-import themes from '@content/themes.json'
+import themeConfig from '@content/themes.json'
 
 /**
  * GET endpoint for the web app manifest
  * @returns Response with manifest JSON
  */
 export function GET() {
-  const defaultTheme = themes.default
+  const defaultThemeId = themeConfig.defaultTheme.id
+  const defaultTheme =
+    themeConfig.themes.find(theme => theme.id === defaultThemeId) || themeConfig.themes[0]
+
+  if (!defaultTheme) {
+    throw new Error('No themes configured in themes.json; unable to build manifest.json')
+  }
   /* eslint-disable camelcase */
   const manifest = {
     lang: 'en_US',
