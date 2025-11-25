@@ -1,4 +1,4 @@
-import type { SpriteName } from '@components/Sprite/sprites'
+import type { IconName } from '@components/Icon/@types/icons'
 
 export type ButtonVariant = 'primary' | 'secondary' | 'twitter' | 'success' | 'warning' | 'icon'
 export type ButtonSize = 'small' | 'medium' | 'large'
@@ -17,7 +17,7 @@ export interface ButtonProps {
   id?: Optional<string>
   ariaLabel?: Optional<string>
   onClick?: Optional<string>
-  icon?: Optional<SpriteName>
+  icon?: Optional<IconName>
   iconPosition?: Optional<IconPosition>
   iconSize?: Optional<number | string>
 }
@@ -86,7 +86,7 @@ export function buildButtonClassList({
 export interface ButtonLabelOptions {
   text?: Optional<string>
   ariaLabel?: Optional<string>
-  icon?: Optional<SpriteName>
+  icon?: Optional<IconName>
   iconPosition?: Optional<IconPosition>
 }
 
@@ -110,7 +110,7 @@ export function resolveAriaLabel({ text, ariaLabel, icon, iconPosition }: Button
   return undefined
 }
 
-function humanizeIconName(icon: SpriteName): string {
+function humanizeIconName(icon: IconName): string {
   return icon
     .replace(/[-_]+/g, ' ')
     .replace(/\b\w/g, (char) => char.toUpperCase())

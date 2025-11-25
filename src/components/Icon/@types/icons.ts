@@ -1,7 +1,7 @@
 // Type definitions for sprite names based on files in src/icons/
 // This provides autocomplete for astro-icon component
 
-export type SpriteName =
+export type IconName =
   | 'alarm-clock'
   | 'arrow-down'
   | 'arrow-right'
@@ -29,4 +29,4 @@ export type SpriteName =
   | 'warning'
 
 // Re-export for easier imports
-export type { SpriteName as default }
+export type { IconName as default }

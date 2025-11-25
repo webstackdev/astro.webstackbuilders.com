@@ -10,8 +10,8 @@ import ThemePickerFixture from '@components/ThemePicker/__fixtures__/client.fixt
 import type { ThemePickerFixtureProps } from '@components/ThemePicker/__fixtures__/client.fixture.types'
 
 vi.mock(
-  '@components/Sprite/index.astro',
-  async () => await import('@components/ThemePicker/__mocks__/SpriteMock.astro')
+  '@components/Icon/index.astro',
+  async () => await import('@components/ThemePicker/__mocks__/IconMock.astro')
 )
 
 type ParsedDocument = ReturnType<Window['DOMParser']['prototype']['parseFromString']>

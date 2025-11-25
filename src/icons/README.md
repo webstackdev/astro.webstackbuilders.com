@@ -20,10 +20,10 @@ Place your SVG file in this directory (`src/icons/`). Use kebab-case naming (e.g
 
 ### 2. Update TypeScript definitions
 
-After adding a new SVG file, you **must** update the `src/components/Sprite/sprites.ts` file to include the new icon name in the `SpriteName` union type:
+After adding a new SVG file, you **must** update the `src/components/Icon/@types/icons.ts` file to include the new icon name in the `IconName` union type:
 
 ```typescript
-export type SpriteName =
+export type IconName =
   | 'alarm-clock'
   | 'arrow-down'
   // ... existing icons
@@ -35,26 +35,21 @@ This provides TypeScript autocomplete and prevents typos when using icons in com
 
 ### 3. Use the icon
 
-Import and use the `Sprite` component:
+Import and use the `Icon` component:
 
 ```astro
 ---
-import Sprite from '@components/Sprite.astro'
+import Icon from '@components/Icon/index.astro'
 ---
 
-```astro
----
-import Sprite from '@components/Sprite/index.astro'
----
-
-<Sprite name="new-icon-name" />
+<Icon name="new-icon-name" />
 ```
 
 ## Icon Usage
 
-The `Sprite` component accepts these props:
+The `Icon` component accepts these props:
 
-- `name` (required): The icon name (must match a file in `src/icons/` and be defined in `SpriteName` type)
+- `name` (required): The icon name (must match a file in `src/icons/` and be defined in `IconName` type)
 - `class`: CSS classes to apply
 - `size`: Icon size (defaults to 24)
 
@@ -63,7 +58,7 @@ The `Sprite` component accepts these props:
 Icons integrate with the site's theming system via CSS custom properties:
 
 ```css
-/* In src/styles/sprites.css */
+/* In src/styles/icons.css */
 [astro-icon] {
   color: var(--color-theme-sprites);
   fill: currentColor;

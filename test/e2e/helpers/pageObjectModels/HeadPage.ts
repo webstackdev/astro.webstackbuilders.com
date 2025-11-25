@@ -5,6 +5,7 @@
 import type { Page } from '@playwright/test'
 import { expect } from '@playwright/test'
 import { BasePage } from '@test/e2e/helpers'
+import { TestError } from '@test/errors'
 
 export type JsonLdSchema = Record<string, unknown> & {
   '@type'?: string | string[]
@@ -61,7 +62,7 @@ export class HeadPage extends BasePage {
         }
       } catch (error) {
         const reason = error instanceof Error ? error.message : String(error)
-        throw new Error(`Failed to parse JSON-LD script at index ${index}: ${reason}`)
+        throw new TestError(`Failed to parse JSON-LD script at index ${index}: ${reason}`)
       }
     })
 
@@ -138,14 +139,14 @@ export class HeadPage extends BasePage {
    * Retrieve a meta tag content by its name attribute
    */
   async getMetaContentByName(name: string): Promise<string | null> {
-    return await this.getMetaContent('name', name)
+    return await this.getMetaContentByAttribute('name', name)
   }
 
   /**
    * Retrieve a meta tag content by its property attribute
    */
   async getMetaContentByProperty(property: string): Promise<string | null> {
-    return await this.getMetaContent('property', property)
+    return await this.getMetaContentByAttribute('property', property)
   }
 
   /**
@@ -156,7 +157,7 @@ export class HeadPage extends BasePage {
     value: string,
     expectedContent: string | RegExp,
   ): Promise<void> {
-    const content = await this.getMetaContent(attribute, value)
+    const content = await this.getMetaContentByAttribute(attribute, value)
     expect(content, `Meta ${attribute}="${value}" should be present`).not.toBeNull()
     this.assertTextMatch(content as string, expectedContent)
   }
@@ -216,7 +217,7 @@ export class HeadPage extends BasePage {
     expect(result.ok, `Asset ${result.url} responded with status ${result.status}`).toBe(true)
   }
 
-  private async getMetaContent(attribute: 'name' | 'property', value: string): Promise<string | null> {
+  private async getMetaContentByAttribute(attribute: 'name' | 'property', value: string): Promise<string | null> {
     return await this.page.evaluate(params => {
       const selector = `meta[${params.attribute}="${params.value}"]`
       const meta = document.head.querySelector(selector)

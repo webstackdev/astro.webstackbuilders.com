@@ -1,14 +1,14 @@
 ---
 /**
- * Sprite component using astro-icon. SVG files are in `src/icons/` directory.
+ * Icon component using astro-icon. SVG files are in `src/icons/` directory.
  * Refactored to use Tailwind classes instead of CSS classes.
  */
 import { Icon } from 'astro-icon/components'
-import type { SpriteName } from '@components/Sprite/sprites'
+import type { IconName } from '@components/Icon/@types/icons'
 
 export interface Props {
   class?: string
-  name: SpriteName
+  name: IconName
   size?: number | string
   /** Color variant for the icon */
   variant?: 'default' | 'muted' | 'success' | 'warning' | 'inherit'
@@ -18,10 +18,10 @@ const { class: className, name, size = 24, variant = 'default' } = Astro.props
 
 // Map color variants to Tailwind classes using CSS custom properties
 const colorClasses = {
-  default: 'text-[color:var(--color-sprites)] fill-[color:var(--color-sprites)]',
-  muted: 'text-[color:var(--color-text-muted)] fill-[color:var(--color-text-muted)]',
-  success: 'text-[color:var(--color-success)] fill-[color:var(--color-success)]',
-  warning: 'text-[color:var(--color-warning)] fill-[color:var(--color-warning)]',
+  default: 'text-icons fill-icons',
+  muted: 'text-text-muted fill-text-muted',
+  success: 'text-success fill-success',
+  warning: 'text-warning fill-warning',
   inherit: 'text-inherit fill-inherit',
 }
 ---

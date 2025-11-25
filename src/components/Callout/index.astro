@@ -1,6 +1,6 @@
 ---
-import Sprite from '@components/Sprite/index.astro'
-import type { SpriteName } from '@components/Sprite/sprites'
+import Icon from '@components/Icon/index.astro'
+import type { IconName } from '@components/Icon/@types/icons'
 
 export interface Props {
   type?: 'warning' | 'action' | 'tip' | 'info' | 'note'
@@ -9,7 +9,7 @@ export interface Props {
 const { type = 'info' } = Astro.props
 
 // Map callout types to sprite icons
-const iconMap: Record<string, SpriteName> = {
+const iconMap: Record<string, IconName> = {
   warning: 'warning',
   action: 'warning',
   info: 'info',
@@ -35,7 +35,7 @@ const borderColorMap: Record<string, string> = {
   note: 'var(--color-text)',
 }
 
-const icon: SpriteName = iconMap[type] as SpriteName
+const icon: IconName = iconMap[type] as IconName
 const backgroundColor = backgroundColorMap[type]
 const borderColor = borderColorMap[type]
 ---
@@ -61,7 +61,7 @@ const borderColor = borderColorMap[type]
   <div
     class="callout__icon bg-bg rounded-full absolute left-0 top-0 ml-0.5 p-1 -translate-x-1/2 -translate-y-1/2"
   >
-    <Sprite name={icon} size={20} />
+    <Icon name={icon} size={20} />
   </div>
 
   <div class="callout__content border-l-4 p-4 md:pl-8">
