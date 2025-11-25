@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { readFileSync } from 'fs'
 import { resolve } from 'path'
-import { HeroLoader } from '@components/Hero/client'
+import { HeroLoader } from '@components/Hero/Home/client'
 import { gsap } from 'gsap'
 
 // Setup function for DOM with hero SVG

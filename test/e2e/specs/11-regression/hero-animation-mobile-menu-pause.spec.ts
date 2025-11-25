@@ -6,7 +6,7 @@
  *
  * @see src/components/scripts/animationLifecycle.ts
  * @see src/components/Navigation/client.ts
- * @see src/components/Hero/client.ts
+ * @see src/components/Hero/Home/client/index.ts
  */
 
 import { BasePage, test, expect } from '@test/e2e/helpers'
