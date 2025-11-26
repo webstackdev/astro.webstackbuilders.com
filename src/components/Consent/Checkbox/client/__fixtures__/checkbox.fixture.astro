@@ -6,14 +6,16 @@ export interface CheckboxFixtureProps extends ConsentCheckboxProps {
   wrapInForm?: boolean
 }
 
-const {
-  wrapInForm = true,
-  ...props
-} = {
+const fixtureProps: CheckboxFixtureProps = {
   purpose: 'Responding to your inquiry',
   wrapInForm: true,
   ...Astro.props,
-} as CheckboxFixtureProps
+}
+
+const {
+  wrapInForm = true,
+  ...props
+} = fixtureProps
 ---
 {wrapInForm ? (
   <form id="gdpr-consent-form" data-testid="gdpr-consent-form">

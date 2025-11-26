@@ -1,7 +1,6 @@
 import type { ImageMetadata } from 'astro'
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 
-/* eslint-disable-next-line no-restricted-syntax -- import.meta.glob required to load fixture assets */
 const fixtureModules = import.meta.glob('../__fixtures__/avatars/*.{webp,jpg,png}', {
   eager: true,
   import: 'default',
