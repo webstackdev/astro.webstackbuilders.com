@@ -1,0 +1,52 @@
+.button {
+  transition: background-color 0.15s linear;
+}
+
+.button:focus .icon {
+  color: var(--color-text-offset);
+}
+
+.icon {
+  transition: transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.bar,
+.circle {
+  fill: none;
+  stroke: var(--color-bg);
+  stroke-linecap: round;
+  stroke-width: 0.3rem;
+}
+
+.bar {
+  transform-origin: 50% 50%;
+  transition: transform 0.25s ease-in-out, opacity 0.25s ease-in-out;
+}
+
+.circle {
+  stroke-dasharray: var(--circle-stroke);
+  stroke-dashoffset: var(--circle-stroke);
+  transition: stroke-dashoffset 0.3s linear 0.1s;
+}
+
+.button[aria-expanded='true'] .icon {
+  color: var(--color-bg);
+  transform: rotate(180deg);
+}
+
+.button[aria-expanded='true'] .bar:nth-child(1),
+.button[aria-expanded='true'] .bar:nth-child(4) {
+  opacity: 0;
+}
+
+.button[aria-expanded='true'] .bar:nth-child(2) {
+  transform: rotate(45deg);
+}
+
+.button[aria-expanded='true'] .bar:nth-child(3) {
+  transform: rotate(-45deg);
+}
+
+.button[aria-expanded='true'] .circle {
+  stroke-dashoffset: 0;
+}

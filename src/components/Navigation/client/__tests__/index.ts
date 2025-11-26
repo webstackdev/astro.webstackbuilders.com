@@ -3,7 +3,7 @@
  */
 import { beforeAll, describe, expect, test, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
-import { getNavToggleBtnElement } from '@components/Navigation/selectors'
+import { getNavToggleBtnElement } from '@components/Navigation/client/selectors'
 import { Navigation } from '@components/Navigation/client'
 import TestNavigationComponent from '@components/Navigation/__tests__/TestNavigation.astro'
 

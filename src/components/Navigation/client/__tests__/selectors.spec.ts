@@ -18,7 +18,7 @@ import {
   getNavToggleBtnElement,
   getNavToggleWrapperElement,
   getNavWrapperElement,
-} from '@components/Navigation/selectors'
+} from '@components/Navigation/client/selectors'
 import TestNavigationComponent from '@components/Navigation/__tests__/TestNavigation.astro'
 
 /**

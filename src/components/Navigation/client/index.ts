@@ -8,7 +8,7 @@ import {
   getNavToggleBtnElement,
   getNavToggleWrapperElement,
   getMobileNavFocusContainer,
-} from '@components/Navigation/selectors'
+} from '@components/Navigation/client/selectors'
 import { isAnchorElement } from '@components/scripts/assertions/elements'
 import { addScriptBreadcrumb, ClientScriptError } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
