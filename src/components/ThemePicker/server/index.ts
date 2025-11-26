@@ -14,8 +14,6 @@
 
 import themeConfig from '@content/themes.json'
 
-// @TODO: add tooltip that makes use of the description field
-
 interface ThemeColors {
   backgroundOffset: string
 }

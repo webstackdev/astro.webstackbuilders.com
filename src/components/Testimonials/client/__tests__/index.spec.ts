@@ -6,7 +6,7 @@ import TestimonialsComponent, { type Props as TestimonialsProps } from '@compone
 import type { TestimonialsCarouselElement } from '@components/Testimonials/client'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { executeRender } from '@test/unit/helpers/litRuntime'
-import testimonialsCollection from '@components/Testimonials/__fixtures__/collection.fixture'
+import testimonialsCollection from '@components/Testimonials/client/__fixtures__/collection.fixture'
 
 type TestimonialsModule = WebComponentModule<TestimonialsCarouselElement>
 

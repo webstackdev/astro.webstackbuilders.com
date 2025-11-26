@@ -23,6 +23,7 @@ import {
   getThemeSelectBtns,
 } from './selectors'
 import { defineCustomElement } from '@components/scripts/utils'
+import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 
 export const CLASSES = {
   isOpen: 'is-open',
@@ -87,8 +88,8 @@ export class ThemePickerElement extends LitElement {
       // Find elements within this component
       this.findElements()
 
-      // Check if CSS custom properties are supported
-      if (!CSS.supports('color', 'var(--fake-var)')) {
+      // Check if CSS custom properties are supported (guard for non-browser envs like tests)
+      if (typeof CSS === 'undefined' || !CSS.supports('color', 'var(--fake-var)')) {
         console.log('ThemePicker: CSS custom properties not supported, theme picker disabled')
         return
       }
@@ -392,3 +393,9 @@ export class ThemePickerElement extends LitElement {
 
 export const registerThemePickerWebComponent = (tagName = 'theme-picker') =>
   defineCustomElement(tagName, ThemePickerElement)
+
+export const webComponentModule: WebComponentModule<ThemePickerElement> = {
+  registeredName: 'theme-picker',
+  componentCtor: ThemePickerElement,
+  registerWebComponent: registerThemePickerWebComponent,
+}
