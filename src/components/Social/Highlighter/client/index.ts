@@ -12,17 +12,23 @@ import { handleScriptError } from '@components/scripts/errors/handler'
 import { addButtonEventListeners, addWrapperEventListeners } from '@components/scripts/elementListeners'
 import { LitElement, html } from 'lit'
 import { defineCustomElement } from '@components/scripts/utils'
+import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
+
+const SCRIPT_NAME = 'Highlighter'
+const COMPONENT_TAG_NAME = 'highlighter-element'
 
 /**
  * Highlighter element that creates a shareable text highlight
  * with a hover dialog showing social share options
  */
-class HighlighterElement extends LitElement {
+export class HighlighterElement extends LitElement {
+  static registeredName = COMPONENT_TAG_NAME
+
   static override properties = {
     label: { type: String, attribute: 'aria-label', reflect: true },
   }
 
-  label = 'Share this'
+  declare label: string
   private highlightContent: HTMLSpanElement
   private listenersAttached = false
   private contentCaptured = false
@@ -88,7 +94,6 @@ class HighlighterElement extends LitElement {
 
   protected override render() {
     return html`
-      <style>${this.getStyles()}</style>
       <div class="highlighter__wrapper">
         <button type="button" class="highlighter__trigger" aria-label="${this.label}">
           ${this.highlightContent}
@@ -130,7 +135,7 @@ class HighlighterElement extends LitElement {
 
   private attachHostListeners(): void {
     if (this.listenersAttached) return
-    const context = { scriptName: 'Highlighter', operation: 'attachHostListeners' }
+    const context = { scriptName: SCRIPT_NAME, operation: 'attachHostListeners' }
     addScriptBreadcrumb(context)
 
     try {
@@ -242,7 +247,7 @@ class HighlighterElement extends LitElement {
    * Handle share action for a specific platform
    */
   private async handleShare(platformId: string): Promise<void> {
-    const context = { scriptName: 'Highlighter', operation: 'handleShare' }
+    const context = { scriptName: SCRIPT_NAME, operation: 'handleShare' }
     addScriptBreadcrumb(context)
 
     try {
@@ -317,36 +322,19 @@ class HighlighterElement extends LitElement {
   }
 }
 
-/**
- * Highlighter for delayed initialization
- */
-export class Highlighter {
-  static scriptName = 'Highlighter'
-
-  static init(): void {
-    const context = { scriptName: Highlighter.scriptName, operation: 'init' }
-    addScriptBreadcrumb(context)
-
-    try {
-      registerHighlighterWebComponent()
-    } catch (error) {
-      // Highlighter is optional enhancement
-      handleScriptError(error, context)
-    }
+export const registerWebComponent = (tagName = HighlighterElement.registeredName) => {
+  if (typeof window === 'undefined') {
+    return
   }
 
-  static pause(): void {
-    // No persistent state to pause
-  }
-
-  static resume(): void {
-    // No persistent state to resume
-  }
-
-  static reset(): void {
-    // No persistent state to reset
-  }
+  defineCustomElement(tagName, HighlighterElement)
 }
 
-export const registerHighlighterWebComponent = (tagName = 'highlighter-element') =>
-  defineCustomElement(tagName, HighlighterElement)
+// Backwards compatibility for existing imports
+export const registerHighlighterWebComponent = registerWebComponent
+
+export const webComponentModule: WebComponentModule<HighlighterElement> = {
+  registeredName: COMPONENT_TAG_NAME,
+  componentCtor: HighlighterElement,
+  registerWebComponent,
+}
