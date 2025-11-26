@@ -13,7 +13,16 @@ const collectionFixture: MinimalTestimonialEntry[] = mockTestimonials.map((testi
   data: {
     name: testimonial.author,
     organization: testimonial.company ?? testimonial.role,
-    publishDate: new Date(2024, index, 1).toISOString(),
+    publishDate: new Date(2024, index, 1),
+    tags: ['testimonials'],
+    avatar: testimonial.avatar
+      ? {
+          src: testimonial.avatar,
+          alt: `${testimonial.author} avatar`,
+        }
+      : undefined,
+    active: true,
+    isDraft: false,
   },
 }))
 
