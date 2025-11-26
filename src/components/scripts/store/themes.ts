@@ -19,6 +19,34 @@ import { handleScriptError } from '@components/scripts/errors/handler'
 
 export type ThemeId = 'light' | 'dark' | 'holiday' | 'a11y'
 
+const validThemes: ThemeId[] = ['light', 'dark', 'holiday', 'a11y']
+const fallbackTheme: ThemeId = 'light'
+
+const getInitialThemePreference = (): ThemeId => {
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return fallbackTheme
+  }
+
+  try {
+    const stored = window.localStorage?.getItem('theme')
+    if (stored && validThemes.includes(stored as ThemeId)) {
+      return stored as ThemeId
+    }
+  } catch {
+    // Ignore localStorage access issues (Safari private mode, etc.)
+  }
+
+  try {
+    if (typeof window.matchMedia === 'function' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return 'dark'
+    }
+  } catch {
+    // matchMedia unsupported - fall through to default
+  }
+
+  return fallbackTheme
+}
+
 // ============================================================================
 // STORES
 // ============================================================================
@@ -28,13 +56,12 @@ export type ThemeId = 'light' | 'dark' | 'holiday' | 'a11y'
  * Persisted to localStorage automatically via nanostores/persistent
  * Classified as 'necessary' - no consent required
  */
-export const $theme = persistentAtom<ThemeId>('theme', 'light', {
-	encode: (value) => value,
-	decode: (value: string) => {
-		// Handle both JSON-stringified and plain strings
-		const validThemes: ThemeId[] = ['light', 'dark', 'holiday', 'a11y']
-		return validThemes.includes(value as ThemeId) ? (value as ThemeId) : 'light'
-	},
+export const $theme = persistentAtom<ThemeId>('theme', getInitialThemePreference(), {
+  encode: (value) => value,
+  decode: (value: string) => {
+    // Handle both JSON-stringified and plain strings
+    return validThemes.includes(value as ThemeId) ? (value as ThemeId) : fallbackTheme
+  },
 })
 
 /**

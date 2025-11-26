@@ -13,29 +13,52 @@ import {
   test,
 } from '@test/e2e/helpers'
 
+type PlaywrightPage = import('@playwright/test').Page
+
+const THEME_PICKER_READY_ATTR = 'data-theme-picker-ready'
+const NAVIGATION_READY_ATTR = 'data-nav-ready'
+
+const waitForThemePickerReady = async (page: PlaywrightPage) => {
+  await page.waitForFunction((attr) => {
+    const host = document.querySelector('theme-picker')
+    return host?.getAttribute(attr) === 'true'
+  }, THEME_PICKER_READY_ATTR)
+}
+
+const waitForNavigationReady = async (page: PlaywrightPage) => {
+  await page.waitForFunction((attr) => {
+    const nav = document.querySelector('site-navigation')
+    return nav?.getAttribute(attr) === 'true'
+  }, NAVIGATION_READY_ATTR)
+}
+
+const waitForHeaderComponents = async (page: PlaywrightPage) => {
+  await Promise.all([waitForThemePickerReady(page), waitForNavigationReady(page)])
+}
+
+const getDefaultNavigationHref = (basePage: BasePage) => basePage.navigationItems[0]?.url ?? '/about'
+
 /**
  * Helper function to handle mobile navigation
  */
-async function navigateWithMobileSupport(page: import('@playwright/test').Page, selector: string) {
+async function navigateWithMobileSupport(basePage: BasePage, href: string = getDefaultNavigationHref(basePage)) {
+  const page = basePage.page
   const viewport = page.viewportSize()
   const isMobile = viewport && viewport.width < 768
   const navToggle = page.locator('button[aria-label="toggle menu"]')
   const header = page.locator('#header')
-  const targetLink = page.locator(selector).first()
 
   if (isMobile) {
     // Open mobile menu first
+    await navToggle.waitFor({ state: 'visible' })
     await navToggle.click()
     await expect(navToggle).toHaveAttribute('aria-expanded', 'true')
     await expect(header).toHaveClass(/aria-expanded-true/)
-    await targetLink.waitFor({ state: 'visible', timeout: 2000 })
   }
 
-  // Click the first navigation link
-  await targetLink.click()
-
-  // Wait for navigation to complete
-  await page.waitForLoadState('networkidle')
+  // Trigger client-side navigation (Astro View Transitions)
+  await basePage.navigateToPage(href)
+  await basePage.waitForPageLoad()
 
   // On mobile, the menu should automatically close after navigation
   // But let's ensure it's closed by checking and closing if needed
@@ -65,13 +88,10 @@ test.describe('Theme Picker Component', () => {
      * - Cookie modal blocking theme picker UI interactions
      * - Stale View Transitions state causing inconsistent behavior
      */
-    test.beforeEach(async ({ page: playwrightPage }, testInfo) => {
+    test.beforeEach(async ({ page: playwrightPage }) => {
       const page = await BasePage.init(playwrightPage)
-      // Skip setup for tests that need custom media emulation
-      if (testInfo.title.includes('prefers-color-scheme')) {
-        return
-      }
       await setupCleanTestPage(page.page)
+      await waitForHeaderComponents(page.page)
     })
 
     test('@ready theme picker is visible', async ({ page: playwrightPage }) => {
@@ -124,6 +144,7 @@ test.describe('Theme Picker Component', () => {
       // Expected: Theme picker modal should show active state for current theme
       const themePicker = getThemePickerToggle(page.page)
       const modal = page.locator('[data-theme-modal]')
+      const closeBtn = page.locator('.themepicker__closeBtn').first()
 
       // Open the theme picker modal
       await themePicker.click()
@@ -137,10 +158,15 @@ test.describe('Theme Picker Component', () => {
       // Verify light theme is initially active
       await expect(lightParentLi).toHaveClass(/is-active/)
 
-      // Select dark theme (which closes the modal)
+      // Select dark theme - modal stays open for additional actions
       const darkThemeButton = page.locator('button[data-theme="dark"]')
       await darkThemeButton.click()
       await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+
+      // Close the modal using the dedicated close button
+      await closeBtn.click()
+      await expect(themePicker).toHaveAttribute('aria-expanded', 'false')
+      await expect(modal).not.toHaveClass(/is-open/)
 
       // Reopen modal
       await themePicker.click()
@@ -172,6 +198,7 @@ test.describe('Theme Picker Component', () => {
     test.beforeEach(async ({ page: playwrightPage }) => {
       const page = await BasePage.init(playwrightPage)
       await setupCleanTestPage(page.page)
+      await waitForHeaderComponents(page.page)
     })
 
     test('@ready theme preference persists across page reloads', async ({ page: playwrightPage }) => {
@@ -198,6 +225,7 @@ test.describe('Theme Picker Component', () => {
 
       // This test needs its own setup without localStorage clearing
       await setupTestPage(page.page)
+      await waitForHeaderComponents(page.page)
 
       // Select dark theme using helper
       await selectTheme(page.page, 'dark')
@@ -294,6 +322,7 @@ test.describe('Theme Picker Component', () => {
       await setupTestPage(page.page, '/')
       await page.evaluate(() => localStorage.clear())
       await page.reload()
+      await waitForHeaderComponents(page.page)
     })
 
     test('theme picker button works after View Transition navigation', async ({ page: playwrightPage }) => {
@@ -316,7 +345,7 @@ test.describe('Theme Picker Component', () => {
       await expect(themeToggleBtn).toHaveAttribute('aria-expanded', 'false')
 
       // 2. Navigate to another page using an internal link
-      await navigateWithMobileSupport(page.page, '.main-nav-item a')
+      await navigateWithMobileSupport(page)
 
       // 3. Verify theme picker button still works after navigation
       const themeToggleBtnAfterNav = page.locator('.theme-toggle-btn').first()
@@ -334,7 +363,7 @@ test.describe('Theme Picker Component', () => {
     test('theme picker can select themes after View Transition navigation', async ({ page: playwrightPage }) => {
       const page = await BasePage.init(playwrightPage)
       // Navigate to another page first using mobile-aware helper
-      await navigateWithMobileSupport(page.page, '.main-nav-item a')
+      await navigateWithMobileSupport(page)
 
       // 2. Open theme picker
       const themeToggleBtn = page.locator('.theme-toggle-btn').first()
@@ -366,7 +395,7 @@ test.describe('Theme Picker Component', () => {
       await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
 
       // 2. Navigate to another page using mobile-aware helper
-      await navigateWithMobileSupport(page.page, '.main-nav-item a')
+      await navigateWithMobileSupport(page)
 
       // 3. Verify dark theme is still applied
       const htmlElement = page.locator('html')
@@ -400,6 +429,7 @@ test.describe('Theme Picker Component', () => {
       await setupTestPage(page.page, '/')
       await page.evaluate(() => localStorage.clear())
       await page.reload()
+      await waitForHeaderComponents(page.page)
     })
 
     test('preserves lang attribute across navigation', async ({ page: playwrightPage }) => {

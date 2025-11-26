@@ -65,6 +65,7 @@ export class NavigationElement extends LitElement {
     this.setupFocusTrap()
     this.bindEvents()
     this.initialized = true
+    this.setAttribute('data-nav-ready', 'true')
   }
 
   private setupFocusTrap(): void {

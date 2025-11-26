@@ -1,5 +1,10 @@
 # TODO
 
+## Themepicker tooltips, extra themes
+
+- Add additional themes
+- @TODO: add tooltip that makes use of the description field
+
 ## Sentry feedback, chat bot tying into my phone and email
 
 See note in src/components/scripts/sentry/client.ts - "User Feedback - allow users to report issues"

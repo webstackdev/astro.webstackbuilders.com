@@ -97,6 +97,7 @@ export class ThemePickerElement extends LitElement {
       this.bindEvents()
       this.setViewTransitionHandlers()
       this.isInitialized = true
+      this.setAttribute('data-theme-picker-ready', 'true')
 
       // Initial update (Lit + StoreController will handle all reactivity automatically)
       this.requestUpdate()

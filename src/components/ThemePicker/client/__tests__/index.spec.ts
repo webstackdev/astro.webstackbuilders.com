@@ -15,8 +15,8 @@ vi.mock(
 type ThemePickerModule = WebComponentModule<ThemePickerElement>
 
 type QueryRoot = ParentNode & {
-  querySelector: (selectors: string) => Element | null
-  querySelectorAll: (selectors: string) => NodeListOf<Element>
+  querySelector: (_selectors: string) => Element | null
+  querySelectorAll: (_selectors: string) => NodeListOf<Element>
 }
 
 const queryElement = <T extends Element>(root: QueryRoot, selector: string): T => {

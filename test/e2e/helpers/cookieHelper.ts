@@ -116,6 +116,8 @@ export async function selectTheme(page: Page, themeId: string): Promise<void> {
   // Check if modal is already open (modal state now persists)
   const modal = page.locator('[data-theme-modal]')
   const toggleButton = getThemePickerToggle(page)
+  await modal.waitFor({ state: 'attached' })
+  await toggleButton.waitFor({ state: 'visible' })
   const isOpen = await modal.evaluate((el) => !el.hasAttribute('hidden'))
 
   // Only click toggle if modal is not already open
