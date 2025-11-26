@@ -15,7 +15,7 @@ const { id = 'mastodon-modal' } = Astro.props
 
 <div
   id={id}
-  class="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+  class="fixed inset-0 z-9999 flex items-center justify-center p-4"
   role="dialog"
   aria-modal="true"
   aria-labelledby="modal-title"
@@ -23,13 +23,13 @@ const { id = 'mastodon-modal' } = Astro.props
 >
   <div class="modal-backdrop absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
   <div
-    class="modal-content relative w-full max-w-2xl max-h-[90vh] overflow-auto bg-[var(--color-bg)] rounded-lg shadow-2xl"
+    class="modal-content relative w-full max-w-2xl max-h-[90vh] overflow-auto bg-bg rounded-lg shadow-2xl"
   >
-    <div class="flex items-center justify-between p-6 border-b border-[var(--color-border)]">
+    <div class="flex items-center justify-between p-6 border-b border-border">
       <h2 id="modal-title" class="m-0 text-xl font-semibold">Share to Mastodon</h2>
       <button
         type="button"
-        class="modal-close flex items-center justify-center w-8 h-8 p-0 border-0 bg-transparent rounded text-[var(--color-text-muted)] cursor-pointer transition-all duration-150 hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-text)]"
+        class="modal-close flex items-center justify-center w-8 h-8 p-0 border-0 bg-transparent rounded text-text-muted cursor-pointer transition-all duration-150 hover:bg-bg-muted hover:text-text"
         aria-label="Close modal"
       >
         <svg
@@ -54,7 +54,7 @@ const { id = 'mastodon-modal' } = Astro.props
           name="text"
           rows="4"
           readonly
-          class="w-full p-3 border border-[var(--color-border)] rounded-md bg-[var(--color-bg-muted)] font-[inherit] text-sm leading-6 resize-y focus:outline-2 focus:outline-[var(--color-primary)] focus:outline-offset-2"
+          class="w-full p-3 border border-border rounded-md bg-bg-muted font-[inherit] text-sm leading-6 resize-y focus:outline-2 focus:outline-primary focus:outline-offset-2"
         ></textarea>
       </div>
 
@@ -63,10 +63,10 @@ const { id = 'mastodon-modal' } = Astro.props
         <label for="mastodon-instance" class="flex flex-col gap-2 font-medium">
           <span>Mastodon Instance</span>
           <div
-            class="flex items-stretch border border-[var(--color-border)] rounded-md overflow-hidden bg-[var(--color-bg-input)] focus-within:outline-2 focus-within:outline-[var(--color-primary)] focus-within:outline-offset-2"
+            class="flex items-stretch border border-border rounded-md overflow-hidden bg-bg-input focus-within:outline-2 focus-within:outline-primary focus-within:outline-offset-2"
           >
             <span
-              class="flex items-center px-3 py-2 bg-[var(--color-bg-muted)] text-[var(--color-text-muted)] text-sm select-none"
+              class="flex items-center px-3 py-2 bg-bg-muted text-text-muted text-sm select-none"
               aria-label="https prefix"
               id="instance-prefix"
             >
@@ -79,14 +79,14 @@ const { id = 'mastodon-modal' } = Astro.props
               placeholder="mastodon.social"
               required
               aria-describedby="instance-prefix"
-              class="flex-1 min-w-0 px-3 py-2 border-0 bg-transparent text-base text-[var(--color-text)] focus:outline-none"
+              class="flex-1 min-w-0 px-3 py-2 border-0 bg-transparent text-base text-text focus:outline-none"
             />
           </div>
         </label>
 
         <!-- Saved Instances -->
         <div id="saved-instances" class="flex flex-col gap-2" style="display: none;">
-          <p class="m-0 text-sm font-medium text-[var(--color-text-muted)]">Previously used:</p>
+          <p class="m-0 text-sm font-medium text-text-muted">Previously used:</p>
           <div class="saved-list flex flex-wrap gap-2"></div>
         </div>
 
@@ -101,13 +101,13 @@ const { id = 'mastodon-modal' } = Astro.props
       <div class="flex gap-3 justify-end">
         <button
           type="button"
-          class="btn-secondary modal-cancel px-4 py-2 border border-[var(--color-border)] rounded-md font-medium cursor-pointer transition-all duration-150 bg-transparent text-[var(--color-text)] hover:bg-[var(--color-bg-muted)]"
+          class="btn-secondary modal-cancel px-4 py-2 border border-border rounded-md font-medium cursor-pointer transition-all duration-150 bg-transparent text-text hover:bg-bg-muted"
         >
           Cancel
         </button>
         <button
           type="submit"
-          class="btn-primary px-4 py-2 border-0 rounded-md font-medium cursor-pointer transition-all duration-150 bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-dark)] disabled:opacity-50 disabled:cursor-not-allowed"
+          class="btn-primary px-4 py-2 border-0 rounded-md font-medium cursor-pointer transition-all duration-150 bg-primary text-white hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Share
         </button>
