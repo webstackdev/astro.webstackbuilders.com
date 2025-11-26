@@ -3,6 +3,7 @@
  * Unit tests for cookie consent state management
  */
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+import type { ConsentState } from '@components/scripts/store/consent'
 import {
   $consent,
   $hasAnalyticsConsent,
@@ -20,7 +21,9 @@ import {
   setConsentCookie,
   removeConsentCookies,
   getAnalyticsConsentPreference,
+  initConsentSideEffects,
 } from '@components/scripts/store/consent'
+import { $isConsentBannerVisible } from '@components/scripts/store/visibility'
 
 // Mock js-cookie
 vi.mock('js-cookie', () => ({
@@ -41,6 +44,24 @@ vi.mock('@components/scripts/utils/cookies', () => ({
 
 // Import mocked functions for spying
 import { getCookie, removeCookie, setCookie } from '@components/scripts/utils/cookies'
+import { deleteDataSubjectId } from '@components/scripts/utils/dataSubjectId'
+import { updateConsentContext } from '@components/scripts/sentry/helpers'
+
+vi.mock('@components/scripts/utils/dataSubjectId', () => ({
+  getOrCreateDataSubjectId: vi.fn(() => 'data-subject-123'),
+  deleteDataSubjectId: vi.fn(),
+}))
+
+vi.mock('@components/scripts/sentry/helpers', () => ({
+  updateConsentContext: vi.fn(),
+}))
+
+afterEach(() => {
+  vi.restoreAllMocks()
+  vi.clearAllMocks()
+  vi.unstubAllGlobals()
+  document.getElementById('consent-modal-id')?.remove()
+})
 
 describe('Cookie Consent Management', () => {
   beforeEach(() => {
@@ -57,10 +78,6 @@ describe('Cookie Consent Management', () => {
 
     // Clear localStorage
     localStorage.clear()
-  })
-
-  afterEach(() => {
-    vi.clearAllMocks()
   })
 
   describe('Consent State', () => {
@@ -262,6 +279,125 @@ describe('Cookie Consent Management', () => {
       removeConsentCookies()
 
       expect(removeCookie).toHaveBeenCalledTimes(3)
+    })
+  })
+})
+
+describe('Consent side effects', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('syncs consent modal visibility with banner store updates', () => {
+    const modal = document.createElement('div')
+    modal.id = 'consent-modal-id'
+    document.body.appendChild(modal)
+
+    let visibilityListener: ((visible: boolean) => void) | undefined
+    vi.spyOn($isConsentBannerVisible, 'subscribe').mockImplementation((listener) => {
+      visibilityListener = listener
+      return () => {}
+    })
+    vi.spyOn($consent, 'subscribe').mockImplementation(() => () => {})
+    vi.spyOn($hasFunctionalConsent, 'subscribe').mockImplementation(() => () => {})
+    vi.spyOn($hasAnalyticsConsent, 'subscribe').mockImplementation(() => () => {})
+
+    initConsentSideEffects()
+
+    expect(visibilityListener).toBeDefined()
+
+    visibilityListener?.(true)
+    expect(modal.style.display).toBe('flex')
+
+    visibilityListener?.(false)
+    expect(modal.style.display).toBe('none')
+  })
+
+  it('logs consent updates via the GDPR API when preferences change', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue({ ok: true })
+    vi.stubGlobal('fetch', fetchSpy)
+
+    let consentListener:
+      | ((state: ConsentState, oldState?: ConsentState) => Promise<void> | void)
+      | undefined
+    vi.spyOn($consent, 'subscribe').mockImplementation((listener) => {
+      consentListener = listener
+      return () => {}
+    })
+    vi.spyOn($isConsentBannerVisible, 'subscribe').mockImplementation(() => () => {})
+    vi.spyOn($hasFunctionalConsent, 'subscribe').mockImplementation(() => () => {})
+    vi.spyOn($hasAnalyticsConsent, 'subscribe').mockImplementation(() => () => {})
+
+    initConsentSideEffects()
+
+    const oldState = {
+      analytics: false,
+      marketing: false,
+      functional: false,
+      DataSubjectId: 'subject-123',
+    }
+    const newState = {
+      analytics: true,
+      marketing: false,
+      functional: false,
+      DataSubjectId: 'subject-123',
+    }
+
+    await consentListener?.(newState, oldState)
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1)
+    const [url, options] = fetchSpy.mock.calls[0]
+    expect(url).toBe('/api/gdpr/consent')
+    expect(options?.method).toBe('POST')
+    const payload = JSON.parse(options?.body as string)
+    expect(payload).toMatchObject({
+      DataSubjectId: 'subject-123',
+      purposes: ['analytics'],
+      source: 'cookies_modal',
+      verified: false,
+    })
+
+    await consentListener?.(newState, undefined)
+    expect(fetchSpy).toHaveBeenCalledTimes(1)
+  })
+
+  it('deletes the data subject id when functional consent is revoked', () => {
+    let functionalListener: ((hasConsent: boolean) => void) | undefined
+    vi.spyOn($hasFunctionalConsent, 'subscribe').mockImplementation((listener) => {
+      functionalListener = listener
+      return () => {}
+    })
+    vi.spyOn($isConsentBannerVisible, 'subscribe').mockImplementation(() => () => {})
+    vi.spyOn($consent, 'subscribe').mockImplementation(() => () => {})
+    vi.spyOn($hasAnalyticsConsent, 'subscribe').mockImplementation(() => () => {})
+
+    initConsentSideEffects()
+
+    expect(functionalListener).toBeDefined()
+
+    functionalListener?.(true)
+    expect(deleteDataSubjectId).not.toHaveBeenCalled()
+
+    functionalListener?.(false)
+    expect(deleteDataSubjectId).toHaveBeenCalledTimes(1)
+  })
+
+  it('updates the Sentry consent context when analytics consent changes', async () => {
+    let analyticsListener: ((hasConsent: boolean) => void) | undefined
+    vi.spyOn($hasAnalyticsConsent, 'subscribe').mockImplementation((listener) => {
+      analyticsListener = listener
+      return () => {}
+    })
+    vi.spyOn($isConsentBannerVisible, 'subscribe').mockImplementation(() => () => {})
+    vi.spyOn($consent, 'subscribe').mockImplementation(() => () => {})
+    vi.spyOn($hasFunctionalConsent, 'subscribe').mockImplementation(() => () => {})
+
+    initConsentSideEffects()
+
+    analyticsListener?.(true)
+
+    await vi.waitFor(() => {
+      expect(updateConsentContext).toHaveBeenCalledWith(true)
     })
   })
 })

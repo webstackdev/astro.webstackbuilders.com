@@ -1,15 +1,27 @@
-// @vitest-environment happy-dom
+// @vitest-environment jsdom
 
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
+  $visibility,
   hideConsentBanner,
   isConsentBannerVisible,
   showConsentBanner,
   toggleConsentBanner,
 } from '@components/scripts/store/visibility'
+import { handleScriptError } from '@components/scripts/errors/handler'
+
+vi.mock('@components/scripts/errors/handler', () => ({
+  handleScriptError: vi.fn(),
+}))
+
+afterEach(() => {
+  vi.restoreAllMocks()
+  localStorage.clear()
+})
 
 describe('UI visibility state management', () => {
   beforeEach(() => {
+    vi.clearAllMocks()
     localStorage.clear()
     hideConsentBanner()
   })
@@ -39,5 +51,53 @@ describe('UI visibility state management', () => {
 
     toggleConsentBanner()
     expect(isConsentBannerVisible()).toBe(false)
+  })
+})
+
+describe('UI visibility error handling', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('reports errors when showing the banner fails', () => {
+    const error = new Error('show failure')
+    vi.spyOn($visibility, 'set').mockImplementation(() => {
+      throw error
+    })
+
+    showConsentBanner()
+
+    expect(handleScriptError).toHaveBeenCalledWith(error, {
+      scriptName: 'visibility',
+      operation: 'showConsentBanner',
+    })
+  })
+
+  it('reports errors when hiding the banner fails', () => {
+    const error = new Error('hide failure')
+    vi.spyOn($visibility, 'set').mockImplementation(() => {
+      throw error
+    })
+
+    hideConsentBanner()
+
+    expect(handleScriptError).toHaveBeenCalledWith(error, {
+      scriptName: 'visibility',
+      operation: 'hideConsentBanner',
+    })
+  })
+
+  it('reports errors when toggling the banner fails', () => {
+    const error = new Error('toggle failure')
+    vi.spyOn($visibility, 'set').mockImplementation(() => {
+      throw error
+    })
+
+    toggleConsentBanner()
+
+    expect(handleScriptError).toHaveBeenCalledWith(error, {
+      scriptName: 'visibility',
+      operation: 'toggleConsentBanner',
+    })
   })
 })

@@ -1,4 +1,4 @@
-// @vitest-environment happy-dom
+// @vitest-environment jsdom
 /**
  * Unit tests for social embeds cache state management
  *
@@ -11,7 +11,13 @@
  * No consent check required - always caches and retrieves.
  */
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import { cacheEmbed, getCachedEmbed } from '@components/scripts/store/socialEmbeds'
+import {
+  cacheEmbed,
+  clearEmbedCache,
+  getCachedEmbed,
+  getEmbedCacheState,
+  setEmbedCacheState,
+} from '@components/scripts/store/socialEmbeds'
 
 // Mock js-cookie
 vi.mock('js-cookie', () => ({
@@ -86,5 +92,27 @@ describe('Embed Cache Management', () => {
 
     const cached = getCachedEmbed('twitter_123')
     expect(cached).toEqual(updatedData)
+  })
+
+  it('should clear the entire cache when requested', () => {
+    cacheEmbed('twitter_123', { html: 'foo' }, 3600000)
+    cacheEmbed('youtube_456', { html: 'bar' }, 3600000)
+
+    clearEmbedCache()
+
+    expect(getCachedEmbed('twitter_123')).toBeNull()
+    expect(getCachedEmbed('youtube_456')).toBeNull()
+    expect(getEmbedCacheState()).toEqual({})
+  })
+
+  it('should expose cache state getters and setters', () => {
+    const state = {
+      entry_a: { data: { html: 'A' }, timestamp: 0, ttl: 1000 },
+      entry_b: { data: { html: 'B' }, timestamp: 0, ttl: 1000 },
+    }
+
+    setEmbedCacheState(state)
+
+    expect(getEmbedCacheState()).toEqual(state)
   })
 })

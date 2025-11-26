@@ -1,4 +1,4 @@
-// @vitest-environment happy-dom
+// @vitest-environment jsdom
 /**
  * Unit tests for Mastodon instances state management
  */
