@@ -53,7 +53,7 @@ describe('NavigationElement web component behavior', () => {
     await executeRender<NavigationComponentModule>({
       container,
       component: TestNavigationComponent,
-      moduleSpecifier: '@components/Navigation/client',
+      moduleSpecifier: '@components/Navigation/client/index',
       waitForReady: async (element: NavigationComponent) => {
         await element.updateComplete
       },
@@ -99,7 +99,7 @@ describe('NavigationElement web component behavior', () => {
       toggleButton.click()
       expect(document.body.classList.contains('no-scroll')).toBe(true)
 
-      document.dispatchEvent(new KeyboardEvent('keyup', { key: 'Escape' }))
+      document.dispatchEvent(new window.KeyboardEvent('keyup', { key: 'Escape' }))
       expect(document.body.classList.contains('no-scroll')).toBe(false)
     })
   })

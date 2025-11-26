@@ -3,8 +3,7 @@
  * Test Navigation component that combines Menu and NavToggle for Container API testing
  * This component creates the complete DOM structure expected by Navigation.ts
  */
-import Menu from '@components/Navigation/Menu.astro'
-import NavToggle from '@components/Navigation/NavToggle.astro'
+import Navigation from '@components/Navigation/index.astro'
 
 export interface Props {
   path?: string
@@ -15,13 +14,5 @@ const { path = '/' } = Astro.props
 
 <header id="header" class="header">
   <div id="mobile-splash" class="mobile-splash"></div>
-  {/* Focus trap container for mobile navigation - required by Navigation client */}
-  <div id="mobile-nav-focus-container" class="contents">
-    <span id="header__main-nav">
-      <Menu path={path} />
-    </span>
-    <span id="header__nav-icon" class="nav-toggle-wrapper">
-      <NavToggle />
-    </span>
-  </div>
+  <Navigation path={path} />
 </header>

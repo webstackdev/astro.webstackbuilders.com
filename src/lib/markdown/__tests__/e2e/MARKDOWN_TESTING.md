@@ -33,7 +33,7 @@ Rendered HTML
 Testing Library + Axe Validation
 ```
 
-## Test Component
+## E2E Test Component
 
 Located at `src/components/Test/index.astro`, this component:
 
