@@ -8,6 +8,17 @@ import type { WebComponentModule } from '@components/scripts/@types/webComponent
 import { executeRender } from '@test/unit/helpers/litRuntime'
 import testimonialsCollection from '@components/Testimonials/client/__fixtures__/collection.fixture'
 
+const createAnimationControllerMock = vi.fn(() => ({
+  requestPlay: vi.fn(),
+  requestPause: vi.fn(),
+  clearUserPreference: vi.fn(),
+  destroy: vi.fn(),
+}))
+
+vi.mock('@components/scripts/store', () => ({
+  createAnimationController: createAnimationControllerMock,
+}))
+
 type TestimonialsModule = WebComponentModule<TestimonialsCarouselElement>
 
 vi.mock('astro:content', () => ({
@@ -77,6 +88,7 @@ const renderTestimonials = async (
 describe('Testimonials component', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    createAnimationControllerMock.mockClear()
   })
 
   it('renders the supplied title and respects the limit', async () => {
@@ -103,6 +115,12 @@ describe('Testimonials component', () => {
       expect(root.getAttribute('data-carousel-ready')).toBe('true')
       expect(root.getAttribute('data-carousel-autoplay')).toBe('paused')
       expect(dots.length).toBeGreaterThan(0)
+    })
+  })
+
+  it('registers an animation lifecycle controller', async () => {
+    await renderTestimonials(() => {
+      expect(createAnimationControllerMock).toHaveBeenCalled()
     })
   })
 })

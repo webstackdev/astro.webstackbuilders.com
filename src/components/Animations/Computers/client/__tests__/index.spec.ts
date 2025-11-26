@@ -50,12 +50,14 @@ const getComputersModule = () => {
 
 const addScriptBreadcrumbMock = vi.hoisted(() => vi.fn())
 const handleScriptErrorMock = vi.hoisted(() => vi.fn())
-const onAnimationEventMock = vi.hoisted(() => vi.fn())
-
-const lifecycleEvents = vi.hoisted(() => ({
-  OVERLAY_OPENED: 'overlay-opened',
-  OVERLAY_CLOSED: 'overlay-closed',
-}))
+const createAnimationControllerMock = vi.hoisted(() =>
+  vi.fn(() => ({
+    requestPlay: vi.fn(),
+    requestPause: vi.fn(),
+    clearUserPreference: vi.fn(),
+    destroy: vi.fn(),
+  }))
+)
 
 vi.mock('@components/scripts/errors', () => ({
   addScriptBreadcrumb: addScriptBreadcrumbMock,
@@ -65,9 +67,8 @@ vi.mock('@components/scripts/errors/handler', () => ({
   handleScriptError: handleScriptErrorMock,
 }))
 
-vi.mock('@components/scripts/events', () => ({
-  AnimationLifecycleEvent: lifecycleEvents,
-  onAnimationEvent: onAnimationEventMock,
+vi.mock('@components/scripts/store', () => ({
+  createAnimationController: createAnimationControllerMock,
 }))
 
 vi.mock('gsap', () => ({
@@ -141,8 +142,6 @@ describe('ComputersAnimation web component module', () => {
 
 describe('ComputersAnimationElement', () => {
   it('initializes the GSAP timeline when hero markup exists', async () => {
-    const { overlayOpenedCleanup, overlayClosedCleanup } = mockOverlayLifecycle()
-
     await renderComputersAnimation(async ({ element }) => {
       element.initialize()
 
@@ -152,22 +151,25 @@ describe('ComputersAnimationElement', () => {
         '.monitorBottom',
         expect.objectContaining({ transformOrigin: '50% 100%' }),
       )
-      expect(onAnimationEventMock).toHaveBeenNthCalledWith(1, lifecycleEvents.OVERLAY_OPENED, expect.any(Function))
-      expect(onAnimationEventMock).toHaveBeenNthCalledWith(2, lifecycleEvents.OVERLAY_CLOSED, expect.any(Function))
+      expect(createAnimationControllerMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          animationId: 'computers-animation',
+          debugLabel: 'ComputersAnimationElement',
+          onPause: expect.any(Function),
+          onPlay: expect.any(Function),
+        }),
+      )
       expect(getBreadcrumbOperations()).toEqual(expect.arrayContaining(['initialize', 'startAnimation']))
-      expect(overlayOpenedCleanup).not.toHaveBeenCalled()
-      expect(overlayClosedCleanup).not.toHaveBeenCalled()
     })
   })
 
-  it('pauses and resumes when overlay lifecycle events fire', async () => {
-    mockOverlayLifecycle()
-
+  it('pauses and resumes when lifecycle controller callbacks run', async () => {
     await renderComputersAnimation(async ({ element }) => {
       element.initialize()
 
-      const pauseHandler = onAnimationEventMock.mock.calls[0]?.[1] as (() => void) | undefined
-      const resumeHandler = onAnimationEventMock.mock.calls[1]?.[1] as (() => void) | undefined
+      const controllerArgs = createAnimationControllerMock.mock.calls[0]?.[0]
+      const pauseHandler = controllerArgs?.onPause
+      const resumeHandler = controllerArgs?.onPlay
 
       pauseHandler?.()
       resumeHandler?.()
@@ -179,14 +181,12 @@ describe('ComputersAnimationElement', () => {
   })
 
   it('tears down resources on disconnect', async () => {
-    const { overlayOpenedCleanup, overlayClosedCleanup } = mockOverlayLifecycle()
-
     await renderComputersAnimation(async ({ element }) => {
       element.initialize()
       element.disconnectedCallback()
 
-      expect(overlayOpenedCleanup).toHaveBeenCalled()
-      expect(overlayClosedCleanup).toHaveBeenCalled()
+      const controllerHandle = getLastControllerHandle()
+      expect(controllerHandle?.destroy).toHaveBeenCalled()
       expect(timelineMock.kill).toHaveBeenCalled()
       expect(getBreadcrumbOperations()).toContain('teardown')
     })
@@ -274,13 +274,6 @@ const renderComputersAnimation = async (
   })
 }
 
-const mockOverlayLifecycle = () => {
-  const overlayOpenedCleanup = vi.fn()
-  const overlayClosedCleanup = vi.fn()
-  onAnimationEventMock.mockReturnValueOnce(overlayOpenedCleanup).mockReturnValueOnce(overlayClosedCleanup)
-  return { overlayOpenedCleanup, overlayClosedCleanup }
-}
-
 const getBreadcrumbOperations = (): string[] => {
   return addScriptBreadcrumbMock.mock.calls
     .map(([context]) => context?.operation)
@@ -323,3 +316,8 @@ function createTimelineMock() {
 }
 
 const generateUniqueTagName = (): string => `computers-animation-${Math.random().toString(36).slice(2)}`
+
+const getLastControllerHandle = () =>
+  createAnimationControllerMock.mock.results.at(-1)?.value as
+    | ReturnType<typeof createAnimationControllerMock>
+    | undefined

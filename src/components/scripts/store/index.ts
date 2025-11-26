@@ -8,6 +8,23 @@ export type {
 
 } from './@types'
 
+// Re-export animation lifecycle store
+export {
+  $animationLifecycle,
+  $animationPreferences,
+  __resetAnimationLifecycleForTests,
+  clearAnimationPreference,
+  createAnimationController,
+  getAnimationPreference,
+  initAnimationLifecycle,
+  setAnimationPreference,
+  setOverlayPauseState,
+  type AnimationControllerConfig,
+  type AnimationControllerHandle,
+  type AnimationId,
+  type AnimationPlayState,
+} from './animationLifecycle'
+
 // Re-export cookie consent
 export {
   type ConsentCategory,

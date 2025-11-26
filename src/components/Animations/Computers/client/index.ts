@@ -2,7 +2,10 @@ import { LitElement } from 'lit'
 import { gsap } from 'gsap'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
-import { AnimationLifecycleEvent, onAnimationEvent } from '@components/scripts/events'
+import {
+  createAnimationController,
+  type AnimationControllerHandle,
+} from '@components/scripts/store'
 import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 
@@ -36,9 +39,8 @@ const Anticipate = {
 
 export class ComputersAnimationElement extends LitElement {
   private timeline: Timeline | null = null
-  private overlayOpenedCleanup: (() => void) | undefined
-  private overlayClosedCleanup: (() => void) | undefined
   private initialized = false
+  private animationController: AnimationControllerHandle | undefined
   private readonly domReadyHandler = () => {
     document.removeEventListener('DOMContentLoaded', this.domReadyHandler)
     this.initialize()
@@ -76,11 +78,15 @@ export class ComputersAnimationElement extends LitElement {
 
     try {
       this.startAnimation()
-      this.overlayOpenedCleanup = onAnimationEvent(AnimationLifecycleEvent.OVERLAY_OPENED, () => {
-        this.pause()
-      })
-      this.overlayClosedCleanup = onAnimationEvent(AnimationLifecycleEvent.OVERLAY_CLOSED, () => {
-        this.resume()
+      this.animationController = createAnimationController({
+        animationId: 'computers-animation',
+        debugLabel: SCRIPT_NAME,
+        onPause: () => {
+          this.pause()
+        },
+        onPlay: () => {
+          this.resume()
+        },
       })
       this.initialized = true
     } catch (error) {
@@ -117,10 +123,8 @@ export class ComputersAnimationElement extends LitElement {
     addScriptBreadcrumb(context)
 
     try {
-      this.overlayOpenedCleanup?.()
-      this.overlayClosedCleanup?.()
-      this.overlayOpenedCleanup = undefined
-      this.overlayClosedCleanup = undefined
+      this.animationController?.destroy()
+      this.animationController = undefined
 
       if (this.timeline) {
         this.timeline.kill()

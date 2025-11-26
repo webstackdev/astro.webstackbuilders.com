@@ -9,6 +9,17 @@ import type { WebComponentModule } from '@components/scripts/@types/webComponent
 import { executeRender } from '@test/unit/helpers/litRuntime'
 import sampleCollection from '@components/Carousel/client/__fixtures__/collection.fixture'
 
+const createAnimationControllerMock = vi.fn(() => ({
+  requestPlay: vi.fn(),
+  requestPause: vi.fn(),
+  clearUserPreference: vi.fn(),
+  destroy: vi.fn(),
+}))
+
+vi.mock('@components/scripts/store', () => ({
+  createAnimationController: createAnimationControllerMock,
+}))
+
 type CarouselComponentModule = WebComponentModule<CarouselElement>
 type ConcreteCarouselProps = Required<CarouselProps<'articles'>>
 
@@ -79,6 +90,7 @@ const renderCarousel = async (
 describe('Carousel component (server output)', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    createAnimationControllerMock.mockClear()
   })
 
   it('renders the provided title and respects the requested limit', async () => {
@@ -129,5 +141,11 @@ describe('Carousel component (server output)', () => {
       expect(cardTitles).toHaveLength(3)
       expect(new Set(cardTitles)).toEqual(new Set(['Article Four', 'Article Three', 'Article One']))
     }, { variant: 'random', limit: 3 })
+  })
+
+  it('registers an animation lifecycle controller', async () => {
+    await renderCarousel(() => {
+      expect(createAnimationControllerMock).toHaveBeenCalled()
+    })
   })
 })

@@ -6,6 +6,7 @@
 import { addScriptBreadcrumb, ClientScriptError } from '@components/scripts/errors'
 import {
   addViewTransitionThemeInitListener,
+  initAnimationLifecycle,
   initConsentFromCookies,
   initConsentSideEffects,
 } from '@components/scripts/store'
@@ -48,11 +49,15 @@ export class AppBootstrap {
       addScriptBreadcrumb({ scriptName: 'AppBootstrap', operation: 'addViewTransitionThemeInitListener' })
       addViewTransitionThemeInitListener()
 
-      // 2. Initialize consent from cookies
+      // 2. Initialize animation lifecycle listeners
+      addScriptBreadcrumb({ scriptName: 'AppBootstrap', operation: 'initAnimationLifecycle' })
+      initAnimationLifecycle()
+
+      // 3. Initialize consent from cookies
       addScriptBreadcrumb({ scriptName: 'AppBootstrap', operation: 'initConsentFromCookies' })
       initConsentFromCookies()
 
-      // 2. Setup all module-specific side effects (runs once per page load)
+      // 4. Setup all module-specific side effects (runs once per page load)
       addScriptBreadcrumb({ scriptName: 'AppBootstrap', operation: 'initConsentSideEffects' })
       initConsentSideEffects()
     } catch (error: unknown) {

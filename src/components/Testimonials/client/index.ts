@@ -4,6 +4,10 @@ import { addButtonEventListeners } from '@components/scripts/elementListeners'
 import { addScriptBreadcrumb, ClientScriptError } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { defineCustomElement } from '@components/scripts/utils'
+import {
+  createAnimationController,
+  type AnimationControllerHandle,
+} from '@components/scripts/store'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 
 const SCRIPT_NAME = 'TestimonialsCarouselElement'
@@ -32,6 +36,8 @@ export class TestimonialsCarouselElement extends HTMLElement {
   private prevBtn: HTMLButtonElement | null = null
   private nextBtn: HTMLButtonElement | null = null
   private initialized = false
+  private animationController: AnimationControllerHandle | undefined
+  private readonly animationInstanceId: string
   private readonly domReadyHandler = () => {
     document.removeEventListener('DOMContentLoaded', this.domReadyHandler)
     this.initialize()
@@ -39,8 +45,13 @@ export class TestimonialsCarouselElement extends HTMLElement {
   private readonly autoplayPlayHandler = () => this.setAutoplayState('playing')
   private readonly autoplayStopHandler = () => this.setAutoplayState('paused')
 
-  private static readonly instances = new Set<TestimonialsCarouselElement>()
-  private static visibilityHandler: (() => void) | undefined
+  private static instanceCounter = 0
+
+  constructor() {
+    super()
+    TestimonialsCarouselElement.instanceCounter += 1
+    this.animationInstanceId = `testimonials-${TestimonialsCarouselElement.instanceCounter}`
+  }
 
   connectedCallback(): void {
     if (typeof document === 'undefined') return
@@ -49,7 +60,6 @@ export class TestimonialsCarouselElement extends HTMLElement {
     addScriptBreadcrumb(context)
 
     try {
-      TestimonialsCarouselElement.registerInstance(this)
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', this.domReadyHandler, { once: true })
         return
@@ -64,7 +74,6 @@ export class TestimonialsCarouselElement extends HTMLElement {
     if (typeof document === 'undefined') return
     document.removeEventListener('DOMContentLoaded', this.domReadyHandler)
     this.teardown()
-    TestimonialsCarouselElement.unregisterInstance(this)
   }
 
   private initialize(): void {
@@ -106,6 +115,7 @@ export class TestimonialsCarouselElement extends HTMLElement {
 
       this.initialized = true
       this.setAttribute('data-carousel-ready', 'true')
+      this.registerAnimationLifecycle()
     } catch (error) {
       this.teardown()
       handleScriptError(error, context)
@@ -132,6 +142,8 @@ export class TestimonialsCarouselElement extends HTMLElement {
     this.initialized = false
     this.removeAttribute('data-carousel-ready')
     this.removeAttribute('data-carousel-autoplay')
+    this.animationController?.destroy()
+    this.animationController = undefined
 
     if (this.dotsContainer) {
       this.dotsContainer.innerHTML = ''
@@ -264,39 +276,19 @@ export class TestimonialsCarouselElement extends HTMLElement {
     this.setAttribute('data-carousel-autoplay', state)
   }
 
-  private static registerInstance(instance: TestimonialsCarouselElement): void {
-    TestimonialsCarouselElement.instances.add(instance)
-    TestimonialsCarouselElement.ensureVisibilityHandler()
-  }
-
-  private static unregisterInstance(instance: TestimonialsCarouselElement): void {
-    TestimonialsCarouselElement.instances.delete(instance)
-    if (TestimonialsCarouselElement.instances.size === 0) {
-      TestimonialsCarouselElement.cleanupVisibilityHandler()
-    }
-  }
-
-  private static ensureVisibilityHandler(): void {
-    if (typeof document === 'undefined') return
-    if (TestimonialsCarouselElement.visibilityHandler) return
-
-    TestimonialsCarouselElement.visibilityHandler = () => {
-      if (document.hidden) {
-        TestimonialsCarouselElement.instances.forEach(instance => instance.pause())
-      } else {
-        TestimonialsCarouselElement.instances.forEach(instance => instance.resume())
-      }
-    }
-
-    document.addEventListener('visibilitychange', TestimonialsCarouselElement.visibilityHandler)
-  }
-
-  private static cleanupVisibilityHandler(): void {
-    if (typeof document === 'undefined') return
-    if (!TestimonialsCarouselElement.visibilityHandler) return
-
-    document.removeEventListener('visibilitychange', TestimonialsCarouselElement.visibilityHandler)
-    TestimonialsCarouselElement.visibilityHandler = undefined
+  private registerAnimationLifecycle(): void {
+    if (this.animationController) return
+    this.animationController = createAnimationController({
+      animationId: 'testimonials-carousel',
+      instanceId: this.animationInstanceId,
+      debugLabel: SCRIPT_NAME,
+      onPlay: () => {
+        this.resume()
+      },
+      onPause: () => {
+        this.pause()
+      },
+    })
   }
 }
 

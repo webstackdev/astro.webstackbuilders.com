@@ -4,6 +4,10 @@ import { addButtonEventListeners } from '@components/scripts/elementListeners'
 import { addScriptBreadcrumb, ClientScriptError } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { defineCustomElement } from '@components/scripts/utils'
+import {
+  createAnimationController,
+  type AnimationControllerHandle,
+} from '@components/scripts/store'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 
 const SCRIPT_NAME = 'CarouselElement'
@@ -32,6 +36,8 @@ export class CarouselElement extends HTMLElement {
   private prevBtn: HTMLButtonElement | null = null
   private nextBtn: HTMLButtonElement | null = null
   private initialized = false
+  private animationController: AnimationControllerHandle | undefined
+  private readonly animationInstanceId: string
   private readonly domReadyHandler = () => {
     document.removeEventListener('DOMContentLoaded', this.domReadyHandler)
     this.initialize()
@@ -39,8 +45,13 @@ export class CarouselElement extends HTMLElement {
   private readonly autoplayPlayHandler = () => this.setAutoplayState('playing')
   private readonly autoplayStopHandler = () => this.setAutoplayState('paused')
 
-  private static readonly instances = new Set<CarouselElement>()
-  private static visibilityHandler: (() => void) | undefined
+  private static instanceCounter = 0
+
+  constructor() {
+    super()
+    CarouselElement.instanceCounter += 1
+    this.animationInstanceId = `carousel-${CarouselElement.instanceCounter}`
+  }
 
   connectedCallback(): void {
     if (typeof document === 'undefined') return
@@ -49,7 +60,6 @@ export class CarouselElement extends HTMLElement {
     addScriptBreadcrumb(context)
 
     try {
-      CarouselElement.registerInstance(this)
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', this.domReadyHandler, { once: true })
         return
@@ -64,7 +74,6 @@ export class CarouselElement extends HTMLElement {
     if (typeof document === 'undefined') return
     document.removeEventListener('DOMContentLoaded', this.domReadyHandler)
     this.teardown()
-    CarouselElement.unregisterInstance(this)
   }
 
   private initialize(): void {
@@ -101,6 +110,7 @@ export class CarouselElement extends HTMLElement {
 
       this.initialized = true
       this.setAttribute('data-carousel-ready', 'true')
+      this.registerAnimationLifecycle()
     } catch (error) {
       this.teardown()
       handleScriptError(error, context)
@@ -126,6 +136,8 @@ export class CarouselElement extends HTMLElement {
     this.initialized = false
     this.removeAttribute('data-carousel-ready')
     this.removeAttribute('data-carousel-autoplay')
+    this.animationController?.destroy()
+    this.animationController = undefined
 
     if (this.dotsContainer) {
       this.dotsContainer.innerHTML = ''
@@ -257,39 +269,19 @@ export class CarouselElement extends HTMLElement {
     this.setAttribute('data-carousel-autoplay', state)
   }
 
-  private static registerInstance(instance: CarouselElement): void {
-    CarouselElement.instances.add(instance)
-    CarouselElement.ensureVisibilityHandler()
-  }
-
-  private static unregisterInstance(instance: CarouselElement): void {
-    CarouselElement.instances.delete(instance)
-    if (CarouselElement.instances.size === 0) {
-      CarouselElement.cleanupVisibilityHandler()
-    }
-  }
-
-  private static ensureVisibilityHandler(): void {
-    if (typeof document === 'undefined') return
-    if (CarouselElement.visibilityHandler) return
-
-    CarouselElement.visibilityHandler = () => {
-      if (document.hidden) {
-        CarouselElement.instances.forEach(instance => instance.pause())
-      } else {
-        CarouselElement.instances.forEach(instance => instance.resume())
-      }
-    }
-
-    document.addEventListener('visibilitychange', CarouselElement.visibilityHandler)
-  }
-
-  private static cleanupVisibilityHandler(): void {
-    if (typeof document === 'undefined') return
-    if (!CarouselElement.visibilityHandler) return
-
-    document.removeEventListener('visibilitychange', CarouselElement.visibilityHandler)
-    CarouselElement.visibilityHandler = undefined
+  private registerAnimationLifecycle(): void {
+    if (this.animationController) return
+    this.animationController = createAnimationController({
+      animationId: 'carousel',
+      instanceId: this.animationInstanceId,
+      debugLabel: SCRIPT_NAME,
+      onPlay: () => {
+        this.resume()
+      },
+      onPause: () => {
+        this.pause()
+      },
+    })
   }
 }
 

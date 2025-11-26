@@ -11,9 +11,9 @@ import {
 import { isAnchorElement } from '@components/scripts/assertions/elements'
 import { addScriptBreadcrumb, ClientScriptError } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
-import { dispatchAnimationEvent, AnimationLifecycleEvent } from '@components/scripts/events'
 import { addButtonEventListeners, addLinkEventListeners } from '@components/scripts/elementListeners'
 import { defineCustomElement } from '@components/scripts/utils'
+import { setOverlayPauseState } from '@components/scripts/store'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 
 const SCRIPT_NAME = 'NavigationElement'
@@ -151,9 +151,9 @@ export class NavigationElement extends LitElement {
     this.isMenuOpen = force !== undefined ? force : !this.isMenuOpen
 
     if (this.isMenuOpen) {
-      dispatchAnimationEvent(AnimationLifecycleEvent.OVERLAY_OPENED, { source: 'navigation' })
+      setOverlayPauseState('navigation', true)
     } else {
-      dispatchAnimationEvent(AnimationLifecycleEvent.OVERLAY_CLOSED, { source: 'navigation' })
+      setOverlayPauseState('navigation', false)
     }
 
     document.body.classList.toggle(CLASSES.noScroll, this.isMenuOpen)

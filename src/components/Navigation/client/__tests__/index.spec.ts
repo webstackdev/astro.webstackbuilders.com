@@ -11,6 +11,12 @@ import {
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { executeRender } from '@test/unit/helpers/litRuntime'
 
+const setOverlayPauseStateMock = vi.fn()
+
+vi.mock('@components/scripts/store', () => ({
+  setOverlayPauseState: setOverlayPauseStateMock,
+}))
+
 const navigateMock = vi.fn()
 const focusTrapMock = {
   activate: vi.fn(),
@@ -45,6 +51,7 @@ describe('NavigationElement web component behavior', () => {
     navigateMock.mockClear()
     focusTrapMock.activate.mockClear()
     focusTrapMock.deactivate.mockClear()
+    setOverlayPauseStateMock.mockClear()
   })
 
   const renderNavigation = async (
@@ -78,6 +85,7 @@ describe('NavigationElement web component behavior', () => {
       expect(document.body.classList.contains('no-scroll')).toBe(true)
       expect(header.classList.contains('aria-expanded-true')).toBe(true)
       expect(menu.classList.contains('menu-visible')).toBe(false)
+      expect(setOverlayPauseStateMock).toHaveBeenNthCalledWith(1, 'navigation', true)
 
       vi.advanceTimersByTime(600)
       expect(menu.classList.contains('menu-visible')).toBe(true)
@@ -86,6 +94,7 @@ describe('NavigationElement web component behavior', () => {
       expect(document.body.classList.contains('no-scroll')).toBe(false)
       expect(header.classList.contains('aria-expanded-true')).toBe(false)
       expect(menu.classList.contains('menu-visible')).toBe(false)
+      expect(setOverlayPauseStateMock).toHaveBeenNthCalledWith(2, 'navigation', false)
     })
     vi.useRealTimers()
   })

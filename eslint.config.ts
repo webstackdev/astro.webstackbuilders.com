@@ -1,3 +1,4 @@
+/* eslint-disable */
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import eslint from '@eslint/js'
@@ -13,6 +14,7 @@ import noHtmlElementAssertionsRule from './test/eslint/no-html-element-assertion
 import noQuerySelectorOutsideSelectorsRule from './test/eslint/no-query-selector-outside-selectors-rule'
 
 const level = 'error'
+const astroParser = (astroPlugin as unknown as { parser: typeof tsPlugin.parser }).parser
 const tsconfigRootDir = path.dirname(fileURLToPath(import.meta.url))
 
 const errorDefinitionIgnores = [
@@ -239,6 +241,7 @@ export default [
   {
     files: [
       'integrations/**/*',
+      'src/integrations/**/*',
       'scripts/**/*.ts',
       'src/components/**/server/**/*',
       'src/layouts/**/server/**/*',
@@ -266,6 +269,16 @@ export default [
   {
     files: [
       'test/**/*',
+    ],
+    ignores: errorDefinitionIgnores,
+    rules: {
+      'no-restricted-syntax': createRestrictedSyntaxRule({ allowTestError: true }),
+    },
+  },
+  {
+    files: [
+      'src/integrations/**/*.spec.ts',
+      'src/integrations/**/__tests__/**/*.ts',
     ],
     ignores: errorDefinitionIgnores,
     rules: {
@@ -304,7 +317,7 @@ export default [
       'src/pages/**/*.astro',
     ],
     languageOptions: {
-      parser: astroPlugin.parser,
+      parser: astroParser,
       parserOptions: {
         parser: tsPlugin.parser,
         project: './tsconfig.json',
@@ -667,6 +680,8 @@ export default [
   },
   {
     files: [
+      /** Test case for the utility is an exception to the restricted paths rule */
+      'src/components/scripts/utils/__tests__/siteUrlClient.spec.ts',
       /** Environment file in src/pages/api is an exception to the restricted paths rule */
       'src/pages/api/_environment/environmentApi.ts',
       'src/pages/api/_logger/index.ts',
