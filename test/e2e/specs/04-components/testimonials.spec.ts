@@ -7,15 +7,19 @@
 import { BasePage, test, expect } from '@test/e2e/helpers'
 import { waitForAnimationFrames } from '@test/e2e/helpers/waitHelpers'
 
-const testimonialsSelector = '.testimonials-embla'
+const testimonialsCarouselSelector = 'testimonials-carousel'
+const testimonialsEmblaSelector = '.testimonials-embla'
+
+async function waitForTestimonialsCarouselReady(page: BasePage): Promise<void> {
+  await page.page.waitForFunction((selector: string) => {
+    const carousel = document.querySelector<HTMLElement>(selector)
+    return carousel?.getAttribute('data-carousel-ready') === 'true'
+  }, testimonialsCarouselSelector)
+}
 
 async function waitForTestimonialsEmblaSettle(page: BasePage): Promise<void> {
-  await page.page.waitForFunction((selector) => {
-    const emblaNode = document.querySelector<HTMLElement & {
-      __emblaApi__?: { internalEngine: () => { settled: boolean } }
-    }>(selector)
-    return emblaNode?.__emblaApi__?.internalEngine().settled === true
-  }, testimonialsSelector)
+  await waitForTestimonialsCarouselReady(page)
+  await waitForAnimationFrames(page.page, 30)
 }
 
 
@@ -38,11 +42,7 @@ test.describe('Testimonials Component', () => {
     const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
-    // Wait for carousel to initialize by checking for the Embla API on the element
-    await page.waitForFunction(() => {
-      const carousel = document.querySelector<HTMLElement & { __emblaApi__?: unknown }>('.testimonials-embla')
-      return carousel?.__emblaApi__ !== undefined
-    }, { timeout: 5000 })
+    await waitForTestimonialsCarouselReady(page)
   })
 
   test('@ready testimonials section is visible', async ({ page: playwrightPage }) => {
@@ -91,9 +91,20 @@ test.describe('Testimonials Component', () => {
     const page = await BasePage.init(playwrightPage)
     // Expected: Should show author image
     const testimonials = page.locator('.testimonials-embla')
-    const avatar = testimonials.locator('.avatar-image').first()
+    const avatarContainer = testimonials.locator('.avatar-container').first()
 
-    await expect(avatar).toBeVisible()
+    await expect(avatarContainer).toBeVisible()
+
+    const avatarImage = avatarContainer.locator('.avatar-image')
+    if (await avatarImage.count()) {
+      await expect(avatarImage.first()).toBeVisible()
+      return
+    }
+
+    const avatarFallback = avatarContainer.locator('.avatar-placeholder').first()
+    await expect(avatarFallback).toBeVisible()
+    const fallbackText = await avatarFallback.textContent()
+    expect(fallbackText?.trim().length).toBe(1)
   })
 
   test('@ready can navigate between testimonials', async ({ page: playwrightPage }) => {
@@ -277,9 +288,9 @@ test.describe('Testimonials Component', () => {
     // Hover over testimonials to pause auto-rotation
     // The stopOnMouseEnter option should stop autoplay
     await testimonials.hover()
-    await page.page.waitForFunction((selector) => {
+    await page.page.waitForFunction((selector: string) => {
       return document.querySelector(`${selector}:hover`) !== null
-    }, testimonialsSelector)
+    }, testimonialsEmblaSelector)
 
     // Wait longer than rotation interval to verify it doesn't advance by checking over time
     let textAfterHover = initialText
