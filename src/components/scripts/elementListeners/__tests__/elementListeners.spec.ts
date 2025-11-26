@@ -1,4 +1,4 @@
-// @vitest-environment happy-dom
+// @vitest-environment jsdom
 import { describe, it, expect, beforeEach, vi, type MockedFunction } from 'vitest'
 import {
   addButtonEventListeners,
@@ -6,6 +6,29 @@ import {
   addWrapperEventListeners,
   type eventHandler,
 } from '@components/scripts/elementListeners/index'
+
+const createTouchEndEvent = (): TouchEvent => {
+  if (typeof TouchEvent === 'function') {
+    return new TouchEvent('touchend', {
+      touches: [],
+      targetTouches: [],
+      changedTouches: [],
+    })
+  }
+
+  const fallbackEvent = new Event('touchend') as TouchEvent & {
+    touches: TouchList & Touch[]
+    targetTouches: TouchList & Touch[]
+    changedTouches: TouchList & Touch[]
+  }
+  const emptyTouches = [] as unknown as TouchList & Touch[]
+
+  fallbackEvent.touches = emptyTouches
+  fallbackEvent.targetTouches = emptyTouches
+  fallbackEvent.changedTouches = emptyTouches
+
+  return fallbackEvent
+}
 
 describe('Element Listeners', () => {
   let mockHandler: MockedFunction<eventHandler>
@@ -83,11 +106,7 @@ describe('Element Listeners', () => {
     it('should attach touchend event listener', () => {
       addButtonEventListeners(button, mockHandler)
 
-      const touchEvent = new TouchEvent('touchend', {
-        touches: [],
-        targetTouches: [],
-        changedTouches: [],
-      })
+      const touchEvent = createTouchEndEvent()
       button.dispatchEvent(touchEvent)
 
       expect(mockHandler).toHaveBeenCalledOnce()
@@ -105,11 +124,7 @@ describe('Element Listeners', () => {
       button.dispatchEvent(enterEvent)
 
       // Touch event
-      const touchEvent = new TouchEvent('touchend', {
-        touches: [],
-        targetTouches: [],
-        changedTouches: [],
-      })
+      const touchEvent = createTouchEndEvent()
       button.dispatchEvent(touchEvent)
 
       expect(mockHandler).toHaveBeenCalledTimes(3)
@@ -161,11 +176,7 @@ describe('Element Listeners', () => {
     it('should attach touchend event listener', () => {
       addLinkEventListeners(link, mockHandler)
 
-      const touchEvent = new TouchEvent('touchend', {
-        touches: [],
-        targetTouches: [],
-        changedTouches: [],
-      })
+      const touchEvent = createTouchEndEvent()
       link.dispatchEvent(touchEvent)
 
       expect(mockHandler).toHaveBeenCalledOnce()
@@ -183,11 +194,7 @@ describe('Element Listeners', () => {
       link.dispatchEvent(enterEvent)
 
       // Touch event
-      const touchEvent = new TouchEvent('touchend', {
-        touches: [],
-        targetTouches: [],
-        changedTouches: [],
-      })
+      const touchEvent = createTouchEndEvent()
       link.dispatchEvent(touchEvent)
 
       expect(mockHandler).toHaveBeenCalledTimes(3)
@@ -328,11 +335,7 @@ describe('Element Listeners', () => {
       addButtonEventListeners(button, buttonHandler)
       addLinkEventListeners(link, linkHandler)
 
-      const touchEvent = new TouchEvent('touchend', {
-        touches: [],
-        targetTouches: [],
-        changedTouches: [],
-      })
+      const touchEvent = createTouchEndEvent()
 
       button.dispatchEvent(touchEvent)
       link.dispatchEvent(touchEvent)
