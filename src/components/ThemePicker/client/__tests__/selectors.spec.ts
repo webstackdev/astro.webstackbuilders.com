@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
-import ThemePickerFixture from '@components/ThemePicker/client/__fixtures__/client.fixture.astro'
+import ThemePickerFixture from '@components/ThemePicker/client/__fixtures__/index.fixture.astro'
 import type { ThemePickerElement } from '@components/ThemePicker/client'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import {
