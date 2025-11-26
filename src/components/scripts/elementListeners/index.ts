@@ -41,7 +41,11 @@ const getTouchendEventListener = (handler: eventHandler, context?: unknown) => {
    * @param event - Touch event
    */
   function touchendEventHandler(event: TouchEvent) {
-    if (event.type === `touchend`) handler.call(context, event)
+    if (event.type !== `touchend`) return
+    if (event.cancelable && !event.defaultPrevented) {
+      event.preventDefault()
+    }
+    handler.call(context, event)
   }
   return touchendEventHandler
 }
@@ -70,8 +74,11 @@ export const addButtonEventListeners = (
   context?: unknown,
 ) => {
   element.addEventListener(`click`, getClickEventListener(handler, context))
-  element.addEventListener(`keyup`, getEnterKeyEventListener(handler, context))
-  element.addEventListener(`touchend`, getTouchendEventListener(handler, context))
+  // Native <button> elements already trigger click events for keyboard interaction
+  // so we deliberately skip binding Enter listeners to avoid duplicate handlers
+  element.addEventListener(`touchend`, getTouchendEventListener(handler, context), {
+    passive: false,
+  })
 }
 
 export const addLinkEventListeners = (
@@ -81,7 +88,9 @@ export const addLinkEventListeners = (
 ) => {
   element.addEventListener(`click`, getClickEventListener(handler, context))
   element.addEventListener(`keyup`, getEnterKeyEventListener(handler, context))
-  element.addEventListener(`touchend`, getTouchendEventListener(handler, context))
+  element.addEventListener(`touchend`, getTouchendEventListener(handler, context), {
+    passive: false,
+  })
 }
 
 export const addWrapperEventListeners = (

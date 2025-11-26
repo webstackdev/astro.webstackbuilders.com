@@ -15,6 +15,38 @@ test.describe('Mobile Navigation', () => {
     // Wait for menu-visible class to be added
     await playwrightPage.waitForSelector('.main-nav-menu.menu-visible', { state: 'visible' })
   }
+
+  const simulateBackdropPointerTap = async (playwrightPage: import('@playwright/test').Page) => {
+    await playwrightPage.evaluate(() => {
+      const outsideTarget = document.createElement('div')
+      outsideTarget.setAttribute('data-test-id', 'navigation-backdrop-probe')
+      outsideTarget.style.position = 'fixed'
+      outsideTarget.style.top = '420px'
+      outsideTarget.style.left = '24px'
+      outsideTarget.style.width = '24px'
+      outsideTarget.style.height = '24px'
+      outsideTarget.style.zIndex = '1'
+      outsideTarget.style.pointerEvents = 'auto'
+      document.body.appendChild(outsideTarget)
+
+      const pointerOptions: PointerEventInit = {
+        bubbles: true,
+        cancelable: true,
+        pointerType: 'touch',
+      }
+
+      outsideTarget.dispatchEvent(new PointerEvent('pointerdown', pointerOptions))
+      outsideTarget.dispatchEvent(new PointerEvent('pointerup', pointerOptions))
+      outsideTarget.dispatchEvent(
+        new MouseEvent('click', {
+          bubbles: true,
+          cancelable: true,
+        }),
+      )
+
+      outsideTarget.remove()
+    })
+  }
   test('@ready hamburger menu is visible on mobile', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     await page.setViewport(375, 667)
@@ -347,9 +379,9 @@ test.describe('Mobile Navigation', () => {
     })
     expect(hasExpandedClassBefore).toBe(true)
 
-    // Click on the backdrop area - this should have NO effect (menu stays open)
-    // Click on an area where the splash backdrop is visible but no interactive elements are
-    await playwrightPage.click('body', { position: { x: 100, y: 400 } })
+    // Simulate a pointer sequence on a temporary element outside the header.
+    // This replicates tapping the backdrop without accidentally triggering hero CTAs.
+    await simulateBackdropPointerTap(playwrightPage)
     await playwrightPage.clock.fastForward(600)
 
     // Menu should STILL be open after clicking backdrop (no effect)

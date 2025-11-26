@@ -10,13 +10,14 @@ import {
 const createTouchEndEvent = (): TouchEvent => {
   if (typeof TouchEvent === 'function') {
     return new TouchEvent('touchend', {
+      cancelable: true,
       touches: [],
       targetTouches: [],
       changedTouches: [],
     })
   }
 
-  const fallbackEvent = new Event('touchend') as TouchEvent & {
+  const fallbackEvent = new Event('touchend', { bubbles: true, cancelable: true }) as TouchEvent & {
     touches: TouchList & Touch[]
     targetTouches: TouchList & Touch[]
     changedTouches: TouchList & Touch[]
@@ -60,45 +61,11 @@ describe('Element Listeners', () => {
       )
     })
 
-    it('should attach keyup event listener for Enter key', () => {
+    it('should ignore Enter keyup events to avoid duplicate clicks', () => {
       addButtonEventListeners(button, mockHandler)
 
       const enterEvent = new KeyboardEvent('keyup', { key: 'Enter' })
       button.dispatchEvent(enterEvent)
-
-      expect(mockHandler).toHaveBeenCalledOnce()
-      expect(mockHandler).toHaveBeenCalledWith(enterEvent)
-    })
-
-    it('should not trigger on other keys', () => {
-      addButtonEventListeners(button, mockHandler)
-
-      const spaceEvent = new KeyboardEvent('keyup', { key: ' ' })
-      button.dispatchEvent(spaceEvent)
-
-      expect(mockHandler).not.toHaveBeenCalled()
-    })
-
-    it('should not trigger on composing input', () => {
-      addButtonEventListeners(button, mockHandler)
-
-      const composingEvent = new KeyboardEvent('keyup', {
-        key: 'Enter',
-        isComposing: true,
-      })
-      button.dispatchEvent(composingEvent)
-
-      expect(mockHandler).not.toHaveBeenCalled()
-    })
-
-    it('should not trigger on repeated key events', () => {
-      addButtonEventListeners(button, mockHandler)
-
-      const repeatEvent = new KeyboardEvent('keyup', {
-        key: 'Enter',
-        repeat: true,
-      })
-      button.dispatchEvent(repeatEvent)
 
       expect(mockHandler).not.toHaveBeenCalled()
     })
@@ -111,6 +78,7 @@ describe('Element Listeners', () => {
 
       expect(mockHandler).toHaveBeenCalledOnce()
       expect(mockHandler).toHaveBeenCalledWith(touchEvent)
+      expect(touchEvent.defaultPrevented).toBe(true)
     })
 
     it('should handle multiple event types on same element', () => {
@@ -119,15 +87,11 @@ describe('Element Listeners', () => {
       // Click event
       button.click()
 
-      // Enter key event
-      const enterEvent = new KeyboardEvent('keyup', { key: 'Enter' })
-      button.dispatchEvent(enterEvent)
-
       // Touch event
       const touchEvent = createTouchEndEvent()
       button.dispatchEvent(touchEvent)
 
-      expect(mockHandler).toHaveBeenCalledTimes(3)
+      expect(mockHandler).toHaveBeenCalledTimes(2)
     })
   })
 
@@ -181,6 +145,7 @@ describe('Element Listeners', () => {
 
       expect(mockHandler).toHaveBeenCalledOnce()
       expect(mockHandler).toHaveBeenCalledWith(touchEvent)
+      expect(touchEvent.defaultPrevented).toBe(true)
     })
 
     it('should handle multiple event types on same element', () => {
@@ -313,11 +278,12 @@ describe('Element Listeners', () => {
       const enterEvent = new KeyboardEvent('keyup', { key: 'Enter' })
       const escapeEvent = new KeyboardEvent('keyup', { key: 'Escape' })
 
-      button.dispatchEvent(enterEvent)
+      const clickEvent = new MouseEvent('click', { bubbles: true, cancelable: true })
+      button.dispatchEvent(clickEvent)
       link.dispatchEvent(enterEvent)
       wrapper.dispatchEvent(escapeEvent)
 
-      expect(buttonHandler).toHaveBeenCalledWith(enterEvent)
+      expect(buttonHandler).toHaveBeenCalledWith(clickEvent)
       expect(linkHandler).toHaveBeenCalledWith(enterEvent)
       expect(wrapperHandler).toHaveBeenCalledWith(escapeEvent)
     })

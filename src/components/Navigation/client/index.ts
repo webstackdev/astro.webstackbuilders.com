@@ -71,6 +71,9 @@ export class NavigationElement extends LitElement {
     try {
       this.focusTrap = createFocusTrap(this.focusContainer, {
         initialFocus: () => this.toggleBtn,
+        // Allow backdrop taps without collapsing the menu
+        allowOutsideClick: true,
+        clickOutsideDeactivates: false,
         onDeactivate: () => this.toggleMenu(false),
       })
     } catch (error) {
@@ -86,6 +89,7 @@ export class NavigationElement extends LitElement {
     })
 
     document.addEventListener('keyup', this.handleDocumentKeyup)
+    document.addEventListener('pointerdown', this.handleDocumentPointerDown, { capture: true })
 
     this.setupViewTransitions()
   }
@@ -94,6 +98,16 @@ export class NavigationElement extends LitElement {
     if (event.key === 'Escape' && this.isMenuOpen) {
       this.toggleMenu(false)
     }
+  }
+
+  private handleDocumentPointerDown = (event: PointerEvent) => {
+    if (!this.isMenuOpen) return
+    const target = event.target
+    if (!(target instanceof Node)) return
+    if (this.header.contains(target)) return
+
+    event.preventDefault()
+    event.stopPropagation()
   }
 
   private setupViewTransitions(): void {
