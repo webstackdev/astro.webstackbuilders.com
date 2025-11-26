@@ -2,7 +2,7 @@
 /**
  * Individual WebMention item display
  */
-import type { Webmention } from '@components/WebMentions/server'
+import type { Webmention } from '@components/WebMentions/@types'
 
 interface Props {
   mention: Webmention
@@ -24,7 +24,7 @@ const formatDate = (dateString: string) => {
 ---
 
 <article
-  class="p-4 bg-[var(--color-bg-offset)] rounded-lg border border-[var(--color-border)] h-cite"
+  class="p-4 bg-bg-offset rounded-lg border border-border h-cite"
   id={`webmention-${mention['wm-id']}`}
 >
   <div
@@ -33,13 +33,13 @@ const formatDate = (dateString: string) => {
     {
       mention.author ? (
         <a
-          class="inline-flex items-center gap-3 no-underline text-[var(--color-text)] transition-colors hover:text-[var(--color-primary-hover)] p-author h-card u-url"
+          class="inline-flex items-center gap-3 no-underline text-text transition-colors hover:text-primary-hover p-author h-card u-url"
           href={mention.author.url || mention['wm-source']}
           target="_blank"
           rel="noopener noreferrer"
         >
           <img
-            class="w-10 h-10 rounded-full object-cover border-2 border-[var(--color-border)] u-photo"
+            class="w-10 h-10 rounded-full object-cover border-2 border-border u-photo"
             src={mention.author.photo || '/assets/images/webmention-avatar-default.svg'}
             alt={mention.author.name || 'Anonymous'}
             loading="lazy"
@@ -49,7 +49,7 @@ const formatDate = (dateString: string) => {
       ) : (
         <span class="inline-flex items-center gap-3">
           <img
-            class="w-10 h-10 rounded-full object-cover border-2 border-[var(--color-border)]"
+            class="w-10 h-10 rounded-full object-cover border-2 border-border"
             src="/assets/images/webmention-avatar-default.svg"
             alt="Anonymous"
             loading="lazy"
@@ -62,7 +62,7 @@ const formatDate = (dateString: string) => {
     {
       mention.published && (
         <time
-          class="text-[var(--color-text-offset)] text-sm whitespace-nowrap dt-published"
+          class="text-text-offset text-sm whitespace-nowrap dt-published"
           datetime={mention.published}
         >
           {formatDate(mention.published)}
@@ -74,7 +74,7 @@ const formatDate = (dateString: string) => {
   {
     mention.content?.value && (
       <div
-        class="text-[var(--color-text)] leading-relaxed break-words [&_p]:my-2 [&_a]:text-[var(--color-primary)] [&_a]:underline [&_a:hover]:text-[var(--color-primary-hover)] p-content"
+        class="text-text leading-relaxed wrap-break-word [&_p]:my-2 [&_a]:text-primary [&_a]:underline [&_a:hover]:text-primary-hover p-content"
         set:html={mention.content.value}
       />
     )
