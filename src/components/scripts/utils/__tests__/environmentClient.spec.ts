@@ -1,7 +1,7 @@
-// @vitest-environment happy-dom
+// @vitest-environment jsdom
 /**
  * Unit tests for environment detection utilities
- * Tests the environment detection functions in a Vitest/happy-dom context
+ * Tests the environment detection functions in a Vitest/jsdom context
  */
 import { describe, it, expect } from 'vitest'
 import { isUnitTest, isE2eTest, isTest, isDev, isProd } from '@lib/config/environmentServer'

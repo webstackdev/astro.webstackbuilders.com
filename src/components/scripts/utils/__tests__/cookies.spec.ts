@@ -1,4 +1,4 @@
-// @vitest-environment happy-dom
+// @vitest-environment jsdom
 /**
  * Unit tests for cookie utilities
  * Tests the wrapper functions around js-cookie library
