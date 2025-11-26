@@ -1,0 +1,151 @@
+mark {
+  background-color: yellow;
+}
+
+share-highlight {
+  /* default state */
+  --share-highlight-text-color: inherit;
+  --share-highlight-bg-color: hsl(180deg 40% 85%);
+
+  /* hover/focus state */
+  --share-highlight-text-color-active: inherit;
+  --share-highlight-bg-color-active: hsl(180deg 40% 75%);
+
+  /* tooltip */
+  --share-highlight-tooltip-text-color: hsl(0deg 0% 100%);
+  --share-highlight-tooltip-bg-color: hsl(0deg 0% 0%);
+}
+
+:where(highlighter-element) {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  --highlight-bg: #bfdbfe;
+  --highlight-bg-hover: #93c5fd;
+  --highlight-text: inherit;
+  --dialog-bg: #ffffff;
+  --dialog-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --button-hover: #f3f4f6;
+}
+
+:where(highlighter-element):hover,
+:where(highlighter-element):focus-within {
+  outline: 2px solid var(--highlight-bg-hover);
+  outline-offset: 2px;
+}
+
+:where(highlighter-element) .highlighter__wrapper {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+}
+
+:where(highlighter-element) .highlighter__trigger {
+  display: inline-flex;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  cursor: inherit;
+  text-align: left;
+}
+
+:where(highlighter-element) .highlighter__content {
+  color: var(--highlight-text);
+  background-color: var(--highlight-bg);
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  transition: background-color 0.2s ease;
+}
+
+:where(highlighter-element):hover .highlighter__content,
+:where(highlighter-element):focus-within .highlighter__content {
+  background-color: var(--highlight-bg-hover);
+}
+
+:where(highlighter-element) .share-dialog {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 0.75rem);
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--dialog-bg);
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  box-shadow: var(--dialog-shadow);
+  z-index: 50;
+  white-space: nowrap;
+}
+
+:where(highlighter-element) .share-dialog[aria-hidden="false"] {
+  display: block;
+}
+
+:where(highlighter-element) .share-dialog__buttons {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+:where(highlighter-element) .share-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: none;
+  border-radius: 0.375rem;
+  background-color: transparent;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  padding: 0.5rem;
+}
+
+:where(highlighter-element) .share-button:hover {
+  background-color: var(--button-hover);
+  transform: translateY(-1px);
+}
+
+:where(highlighter-element) .share-button:active {
+  transform: translateY(0);
+}
+
+:where(highlighter-element) .share-button:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+:where(highlighter-element) .share-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  fill: currentColor;
+}
+
+:where(highlighter-element) .copy-button {
+  margin-left: 0.25rem;
+  border-left: 1px solid #e5e7eb;
+  padding-left: 0.75rem;
+}
+
+:where(highlighter-element) .share-dialog__arrow {
+  position: absolute;
+  bottom: -0.375rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 0.5rem solid transparent;
+  border-right: 0.5rem solid transparent;
+  border-top: 0.5rem solid var(--dialog-bg);
+}
+
+@media (prefers-color-scheme: dark) {
+  :where(highlighter-element) {
+    --highlight-bg: #1e40af;
+    --highlight-bg-hover: #1e3a8a;
+    --dialog-bg: #1f2937;
+    --button-hover: #374151;
+  }
+}
