@@ -293,7 +293,7 @@ describe('Consent side effects', () => {
     modal.id = 'consent-modal-id'
     document.body.appendChild(modal)
 
-    let visibilityListener: ((visible: boolean) => void) | undefined
+    let visibilityListener: ((_visible: boolean) => void) | undefined
     vi.spyOn($isConsentBannerVisible, 'subscribe').mockImplementation((listener) => {
       visibilityListener = listener
       return () => {}
@@ -318,7 +318,7 @@ describe('Consent side effects', () => {
     vi.stubGlobal('fetch', fetchSpy)
 
     let consentListener:
-      | ((state: ConsentState, oldState?: ConsentState) => Promise<void> | void)
+      | ((_state: ConsentState, _oldState?: ConsentState) => Promise<void> | void)
       | undefined
     vi.spyOn($consent, 'subscribe').mockImplementation((listener) => {
       consentListener = listener
@@ -362,7 +362,7 @@ describe('Consent side effects', () => {
   })
 
   it('deletes the data subject id when functional consent is revoked', () => {
-    let functionalListener: ((hasConsent: boolean) => void) | undefined
+    let functionalListener: ((_hasConsent: boolean) => void) | undefined
     vi.spyOn($hasFunctionalConsent, 'subscribe').mockImplementation((listener) => {
       functionalListener = listener
       return () => {}
@@ -383,7 +383,7 @@ describe('Consent side effects', () => {
   })
 
   it('updates the Sentry consent context when analytics consent changes', async () => {
-    let analyticsListener: ((hasConsent: boolean) => void) | undefined
+    let analyticsListener: ((_hasConsent: boolean) => void) | undefined
     vi.spyOn($hasAnalyticsConsent, 'subscribe').mockImplementation((listener) => {
       analyticsListener = listener
       return () => {}

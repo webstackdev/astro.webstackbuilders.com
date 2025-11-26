@@ -4,6 +4,7 @@ import toIco from 'to-ico'
 import { writeFile, mkdir } from 'fs/promises'
 import { existsSync } from 'fs'
 import { isUnitTest } from '@lib/config/environmentServer'
+import { TestError } from '@test/errors'
 
 // Mock external dependencies before any imports
 vi.mock('sharp')
@@ -177,7 +178,7 @@ describe('FaviconGenerator Integration', () => {
     })
 
     it('should handle sharp errors and wrap in BuildError', async () => {
-      const sharpError = new Error('Sharp processing failed')
+      const sharpError = new TestError('Sharp processing failed')
 
       vi.mocked(existsSync).mockReturnValue(true)
       ;(sharp as unknown as Mock).mockReturnValue({

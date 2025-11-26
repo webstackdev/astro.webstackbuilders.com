@@ -41,7 +41,7 @@ const removeElementById = (root: Document | Element, id: string) => {
 const replaceElementWith = (
   root: Document | Element,
   id: string,
-  createNode: (doc: Document) => HTMLElement,
+  createNode: (_doc: Document) => HTMLElement,
 ) => {
   const doc = resolveDocument(root)
   const original = doc.querySelector<HTMLElement>(`#${id}`)

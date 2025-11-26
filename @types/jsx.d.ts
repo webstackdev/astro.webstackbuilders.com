@@ -1,8 +1,8 @@
 /// <reference types="react" />
-
-// Make JSX namespace available globally for MDX compatibility
-// This fixes the "Cannot find namespace 'JSX'" error from @types/mdx
-/* eslint-disable-next-line no-restricted-imports */
+/**
+ * Make JSX namespace available globally for MDX compatibility
+ * This fixes the "Cannot find namespace 'JSX'" error from `@types/mdx`
+ */
 import * as React from 'react'
 
 declare global {

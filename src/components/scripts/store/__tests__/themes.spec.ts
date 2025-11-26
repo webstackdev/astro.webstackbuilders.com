@@ -194,7 +194,7 @@ describe('themeKeyChangeSideEffectsListener', () => {
     document.head.appendChild(meta)
     ;(window as ThemeTestWindow).metaColors = { dark: '#000000' }
 
-    let listener: ((themeId: ThemeId) => void) | undefined
+    let listener: ((_themeId: ThemeId) => void) | undefined
     const listenSpy = vi
       .spyOn($theme, 'listen')
       .mockImplementation((callback: (themeId: ThemeId) => void) => {

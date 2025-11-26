@@ -107,8 +107,10 @@ describe('Embed Cache Management', () => {
 
   it('should expose cache state getters and setters', () => {
     const state = {
+      /* eslint-disable camelcase */
       entry_a: { data: { html: 'A' }, timestamp: 0, ttl: 1000 },
       entry_b: { data: { html: 'B' }, timestamp: 0, ttl: 1000 },
+      /* eslint-enable camelcase */
     }
 
     setEmbedCacheState(state)

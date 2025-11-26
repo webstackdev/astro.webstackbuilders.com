@@ -14,7 +14,7 @@ const { content } = Astro.props
 
 // Parse and render the markdown using Astro's built-in capabilities
 // This ensures we're testing the actual markdown pipeline as configured
-const { Content } = await (async () => {
+const processMarkdown = async () => {
   // For testing, we'll use Astro's markdown rendering directly
   const { remark } = await import('remark')
   const { default: remarkGfm } = await import('remark-gfm')
@@ -47,10 +47,7 @@ const { Content } = await (async () => {
 
   // Import configs
   const configModule = await import('../../lib/config/markdown')
-  const { remarkAttributesConfig, remarkTocConfig, rehypeAutolinkHeadingsConfig, remarkRehypeConfig } =
-    configModule
-
-  /* eslint-enable import/no-restricted-paths */
+  const { remarkAttributesConfig, remarkTocConfig, rehypeAutolinkHeadingsConfig, remarkRehypeConfig } = configModule
 
   // Process markdown through the full pipeline
   const processor = remark()
@@ -70,12 +67,10 @@ const { Content } = await (async () => {
     .use(rehypeStringify)
 
   const result = await processor.process(content)
-  const html = String(result)
+  return String(result)
+}
 
-  return { Content: () => html }
-})()
-
-const html = Content()
+const html = await processMarkdown()
 ---
 
 <article class="markdown-content" data-testid="markdown-output">

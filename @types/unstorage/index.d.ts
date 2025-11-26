@@ -1,34 +1,34 @@
 declare module 'unstorage' {
-  const createStorage: any
+  const createStorage: unknown
   export default createStorage
 }
 
 declare module 'unstorage/*' {
-  const driver: any
+  const driver: unknown
   export default driver
 }
 
 declare module 'unstorage/*.mjs' {
-  const driver: any
+  const driver: unknown
   export default driver
 }
 
 declare module 'unstorage/drivers' {
-  const driver: any
+  const driver: unknown
   export default driver
 }
 
 declare module 'unstorage/drivers/*' {
-  const driver: any
+  const driver: unknown
   export default driver
 }
 
 declare module 'unstorage/drivers/*.mjs' {
-  const driver: any
+  const driver: unknown
   export default driver
 }
 
 declare module 'unstorage/drivers/utils/*' {
-  const driver: any
+  const driver: unknown
   export default driver
 }

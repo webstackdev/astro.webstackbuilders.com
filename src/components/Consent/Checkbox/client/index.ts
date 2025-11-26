@@ -20,7 +20,7 @@ export class ConsentCheckboxElement extends HTMLElement {
   private form: HTMLFormElement | null = null
   private consentUnsubscribe: (() => void) | null = null
   private changeHandler: (() => void) | null = null
-  private submitHandler: ((event: SubmitEvent) => void) | null = null
+  private submitHandler: ((_event: SubmitEvent) => void) | null = null
   private componentPurpose = ''
   private componentFormId: string | undefined
 

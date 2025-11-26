@@ -5,6 +5,6 @@ declare module 'astro-vtbot' {
     [key: string]: unknown
   }
 
-  const vtbot: (options?: VtbotOptions) => AstroIntegration
+  const vtbot: (_options?: VtbotOptions) => AstroIntegration
   export default vtbot
 }

@@ -4,6 +4,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { discoverCallToActionComponents } from '../componentDiscovery'
+import { TestError } from '@test/errors'
 
 // Mock fs/promises
 vi.mock('fs/promises', () => ({
@@ -66,7 +67,7 @@ describe('discoverCallToActionComponents', () => {
     // First call succeeds (Contact), second fails (OtherFolder)
     mockReadFile
       .mockResolvedValueOnce('component content')
-      .mockRejectedValueOnce(new Error('ENOENT'))
+      .mockRejectedValueOnce(new TestError('ENOENT'))
 
     const components = await discoverCallToActionComponents(
       '/project',
@@ -122,7 +123,7 @@ describe('discoverCallToActionComponents', () => {
       { name: 'Invalid', isDirectory: () => true, isFile: () => false },
     ] as any)
 
-    mockReadFile.mockRejectedValue(new Error('ENOENT'))
+    mockReadFile.mockRejectedValue(new TestError('ENOENT'))
 
     await discoverCallToActionComponents(
       '/project',
@@ -137,7 +138,7 @@ describe('discoverCallToActionComponents', () => {
   })
 
   it('should throw error when component directory cannot be read', async () => {
-    mockReaddir.mockRejectedValue(new Error('Permission denied'))
+    mockReaddir.mockRejectedValue(new TestError('Permission denied'))
 
     await expect(
       discoverCallToActionComponents(
