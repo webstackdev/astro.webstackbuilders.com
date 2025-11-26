@@ -11,8 +11,9 @@ import {
   linkedErrorsIntegration,
 } from '@sentry/browser'
 import { SENTRY_DSN } from 'astro:env/client'
-import { isDev, getPackageRelease } from '@components/scripts/utils/environmentClient'
-import { $consent } from '@components/scripts/store/consent'
+import { getPackageRelease } from '@components/scripts/utils/environmentClient'
+import { getAnalyticsConsentPreference } from '@components/scripts/store/consent'
+import { beforeSendHandler } from '@components/scripts/sentry/helpers'
 
 /**
  * Client-side Sentry initialization with GDPR-compliant PII handling
@@ -33,8 +34,7 @@ import { $consent } from '@components/scripts/store/consent'
 export class SentryBootstrap {
   static init(): void {
     // Check analytics consent for PII handling
-    const consentState = $consent.get()
-    const hasAnalyticsConsent = consentState.analytics
+    const hasAnalyticsConsent = getAnalyticsConsentPreference()
 
     const client = new BrowserClient({
       dsn: SENTRY_DSN,
@@ -103,33 +103,7 @@ export class SentryBootstrap {
        * Before sending events, you can modify or drop them
        * Useful for filtering sensitive data based on consent
        */
-      beforeSend(event, _hint) {
-        // Don't send errors in development
-        if (isDev()) {
-          return null
-        }
-
-        // If no analytics consent, scrub PII from event
-        const currentConsent = $consent.get()
-        if (!currentConsent.analytics) {
-          // Remove IP address
-          if (event.user) {
-            delete event.user.ip_address
-          }
-
-          // Remove user agent and other request data
-          if (event.request) {
-            delete event.request.headers
-          }
-
-          // Clear breadcrumbs that may contain user interactions
-          if (event.breadcrumbs) {
-            event.breadcrumbs = []
-          }
-        }
-
-        return event
-      },
+      beforeSend: beforeSendHandler,
     })
 
     getCurrentScope().setClient(client)
@@ -138,20 +112,4 @@ export class SentryBootstrap {
     console.log('✅ Sentry monitoring initialized')
   }
 
-  /**
-   * Update Sentry context when consent changes
-   * Called by consent store subscriber
-   */
-  static updateConsentContext(hasAnalyticsConsent: boolean): void {
-    const scope = getCurrentScope()
-
-    // Set consent status in Sentry context
-    scope.setContext('consent', {
-      analytics: hasAnalyticsConsent,
-      timestamp: new Date().toISOString(),
-    })
-
-    // Log consent change
-    console.log(`🔒 Sentry PII ${hasAnalyticsConsent ? 'enabled' : 'disabled'} based on analytics consent`)
-  }
 }

@@ -1,4 +1,4 @@
-// @vitest-environment happy-dom
+// @vitest-environment jsdom
 /**
  * Unit tests for cookie consent state management
  */
@@ -19,6 +19,7 @@ import {
   getConsentCookie,
   setConsentCookie,
   removeConsentCookies,
+  getAnalyticsConsentPreference,
 } from '@components/scripts/store/consent'
 
 // Mock js-cookie
@@ -208,6 +209,16 @@ describe('Cookie Consent Management', () => {
       expect(listener.mock.calls[0]?.[0]).toBe(true)
 
       unsubscribe()
+    })
+  })
+
+  describe('Analytics Consent Helpers', () => {
+    it('reports the current analytics consent preference', () => {
+      expect(getAnalyticsConsentPreference()).toBe(false)
+
+      updateConsent('analytics', true)
+
+      expect(getAnalyticsConsentPreference()).toBe(true)
     })
   })
 

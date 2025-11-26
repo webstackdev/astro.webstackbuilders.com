@@ -158,6 +158,10 @@ export function getFunctionalConsentPreference(): boolean {
   return $hasFunctionalConsent.get()
 }
 
+export function getAnalyticsConsentPreference(): boolean {
+  return $hasAnalyticsConsent.get()
+}
+
 /**
  * Subscribe to functional consent changes with immediate synchronization
  */
@@ -347,8 +351,8 @@ export function initConsentSideEffects(): void {
   $hasAnalyticsConsent.subscribe((hasConsent) => {
     try {
       // Dynamically import to avoid circular dependencies and allow lazy loading
-      import('@components/scripts/sentry/client').then(({ SentryBootstrap }) => {
-        SentryBootstrap.updateConsentContext(hasConsent)
+      import('@components/scripts/sentry/helpers').then(({ updateConsentContext }) => {
+        updateConsentContext(hasConsent)
       }).catch((error) => {
         // Sentry may not be initialized in all environments
         console.warn('Failed to update Sentry consent context:', error)

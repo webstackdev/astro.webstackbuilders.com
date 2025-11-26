@@ -1,5 +1,9 @@
 # TODO
 
+## Sentry feedback, chat bot tying into my phone and email
+
+See note in src/components/scripts/sentry/client.ts - "User Feedback - allow users to report issues"
+
 ## Centralize toast notifications to Toast component
 
 - Right now, the consent/preferences component has its own showNotification() method and toast handling. We have a centralized Toast component but is only being used for network availability right now. Maybe refactor to use a single Toast component, and move the network availability logic somewhere else like bootstrap.
