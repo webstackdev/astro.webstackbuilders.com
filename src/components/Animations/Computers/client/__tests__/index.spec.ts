@@ -5,6 +5,7 @@ import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import ComputersAnimationAstro from '@components/Animations/Computers/index.astro'
 import type { ComputersAnimationElement } from '@components/Animations/Computers/client'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
+import type { AnimationControllerConfig, AnimationControllerHandle } from '@components/scripts/store'
 import { executeRender, withJsdomEnvironment } from '@test/unit/helpers/litRuntime'
 import { gsap } from 'gsap'
 
@@ -51,7 +52,7 @@ const getComputersModule = () => {
 const addScriptBreadcrumbMock = vi.hoisted(() => vi.fn())
 const handleScriptErrorMock = vi.hoisted(() => vi.fn())
 const createAnimationControllerMock = vi.hoisted(() =>
-  vi.fn(() => ({
+  vi.fn((_config: AnimationControllerConfig): AnimationControllerHandle => ({
     requestPlay: vi.fn(),
     requestPause: vi.fn(),
     clearUserPreference: vi.fn(),
@@ -317,7 +318,5 @@ function createTimelineMock() {
 
 const generateUniqueTagName = (): string => `computers-animation-${Math.random().toString(36).slice(2)}`
 
-const getLastControllerHandle = () =>
-  createAnimationControllerMock.mock.results.at(-1)?.value as
-    | ReturnType<typeof createAnimationControllerMock>
-    | undefined
+const getLastControllerHandle = (): AnimationControllerHandle | undefined =>
+  createAnimationControllerMock.mock.results.at(-1)?.value

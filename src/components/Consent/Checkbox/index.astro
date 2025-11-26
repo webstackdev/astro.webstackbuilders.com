@@ -13,28 +13,8 @@
  * ```
  */
 
-export interface Props {
-  /** Data processing purpose user is consenting to */
-  purpose: string
-
-  /** Custom consent text (overrides default) */
-  customText?: string
-
-  /** Link to Privacy Policy */
-  privacyPolicyUrl?: string
-
-  /** Link to Cookie Policy */
-  cookiePolicyUrl?: string
-
-  /** Input element name attribute */
-  name?: string
-
-  /** Input element ID attribute */
-  id?: string
-
-  /** Form identifier (for tracking in consent logs) */
-  formId?: string
-}
+import type { ConsentCheckboxProps } from './props'
+export type { ConsentCheckboxProps as Props } from './props'
 
 const {
   purpose,
@@ -43,8 +23,8 @@ const {
   cookiePolicyUrl = '/consent/',
   name = 'gdpr_consent',
   id = 'gdpr-consent',
-  formId
-} = Astro.props
+  formId,
+} = Astro.props as ConsentCheckboxProps
 ---
 
 <consent-checkbox

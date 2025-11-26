@@ -222,7 +222,7 @@ describe('themeKeyChangeSideEffectsListener', () => {
     document.head.appendChild(meta)
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     vi.spyOn($theme, 'listen').mockImplementation((callback) => {
-      callback('dark')
+      callback('dark', 'light')
       return () => {}
     })
     vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {

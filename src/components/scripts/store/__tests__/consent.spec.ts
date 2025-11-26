@@ -346,7 +346,11 @@ describe('Consent side effects', () => {
     await consentListener?.(newState, oldState)
 
     expect(fetchSpy).toHaveBeenCalledTimes(1)
-    const [url, options] = fetchSpy.mock.calls[0]
+    const firstFetchCall = fetchSpy.mock.calls.at(0)
+    if (!firstFetchCall) {
+      throw new Error('Expected consent logging fetch to be called once')
+    }
+    const [url, options] = firstFetchCall
     expect(url).toBe('/api/gdpr/consent')
     expect(options?.method).toBe('POST')
     const payload = JSON.parse(options?.body as string)

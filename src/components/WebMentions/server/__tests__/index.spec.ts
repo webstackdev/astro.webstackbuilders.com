@@ -45,7 +45,11 @@ describe('fetchWebmentions', () => {
     const results = await fetchWebmentions(targetUrl)
 
     expect(fetchMock).toHaveBeenCalledTimes(1)
-    const [requestedUrl, init] = fetchMock.mock.calls[0]
+    const firstCall = fetchMock.mock.calls.at(0)
+    if (!firstCall) {
+      throw new Error('fetch was not called during webmention fetch test')
+    }
+    const [requestedUrl, init] = firstCall
     const parsedUrl = new URL(requestedUrl as string)
 
     expect(parsedUrl.origin + parsedUrl.pathname).toBe('https://webmention.io/api/mentions.jf2')
@@ -55,10 +59,15 @@ describe('fetchWebmentions', () => {
     expect(init).toEqual({ headers: { 'Cache-Control': 'max-age=300' } })
 
     expect(results).toHaveLength(3)
-    expect(results[0]['wm-property']).toBe('mention-of')
-    expect(new Date(results[0].published).getTime()).toBeLessThan(new Date(results[2].published).getTime())
+    const [firstResult, secondResult, thirdResult] = results
+    if (!firstResult || !secondResult || !thirdResult) {
+      throw new Error('fixture must include at least three webmentions')
+    }
 
-    const sanitizedHtml = results[1].content?.value ?? ''
+    expect(firstResult['wm-property']).toBe('mention-of')
+    expect(new Date(firstResult.published).getTime()).toBeLessThan(new Date(thirdResult.published).getTime())
+
+    const sanitizedHtml = secondResult.content?.value ?? ''
     expect(sanitizedHtml).toBe('<p>Love this post</p>')
   })
 
@@ -113,9 +122,14 @@ describe('Webmention helpers', () => {
   ]
 
   it('detects when a webmention originates from the configured domain', () => {
-    expect(isOwnWebmention(helperWebmentions[0])).toBe(true)
-    expect(isOwnWebmention(helperWebmentions[1])).toBe(false)
-    expect(isOwnWebmention(helperWebmentions[2], ['https://elsewhere.example.com'])).toBe(true)
+    const [first, second, third] = helperWebmentions
+    if (!first || !second || !third) {
+      throw new Error('helper webmentions fixture must include three entries')
+    }
+
+    expect(isOwnWebmention(first)).toBe(true)
+    expect(isOwnWebmention(second)).toBe(false)
+    expect(isOwnWebmention(third, ['https://elsewhere.example.com'])).toBe(true)
   })
 
   it('filters webmentions by target URL', () => {

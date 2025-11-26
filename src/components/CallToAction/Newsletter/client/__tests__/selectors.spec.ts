@@ -2,7 +2,7 @@
 import { beforeEach, describe, expect, test } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import Newsletter from '@components/CallToAction/Newsletter/index.astro'
-import type { Props as NewsletterProps } from '@components/CallToAction/Newsletter/index.astro'
+import type { NewsletterProps } from '@components/CallToAction/Newsletter/props'
 import type { NewsletterFormElement } from '@components/CallToAction/Newsletter/client'
 import { SELECTORS, getNewsletterElements } from '@components/CallToAction/Newsletter/client/selectors'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'

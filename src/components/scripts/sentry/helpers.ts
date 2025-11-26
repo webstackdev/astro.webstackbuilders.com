@@ -1,12 +1,13 @@
-import { getCurrentScope } from '@sentry/browser'
-import type { Event as SentryEvent } from '@sentry/types'
+import { getCurrentScope, type BrowserOptions } from '@sentry/browser'
 import { isDev } from '@components/scripts/utils/environmentClient'
 import { getConsentSnapshot } from '@components/scripts/store/consent'
+
+type BeforeSendHandler = NonNullable<BrowserOptions['beforeSend']>
 
 /**
  * Applies consent-aware filtering to Sentry events before they are sent.
  */
-export function beforeSendHandler(event: SentryEvent): SentryEvent | null {
+export const beforeSendHandler: BeforeSendHandler = (event, _hint) => {
   if (isDev()) {
     return null
   }

@@ -3,13 +3,11 @@
 // Refactored to use Embla Carousel for consistency with other carousel components
 import { getCollection } from 'astro:content'
 import Avatar from '@components/Avatar/index.astro'
+import type { TestimonialsProps } from './props'
 
-export interface Props {
-  title?: string
-  limit?: number
-}
+export type { TestimonialsProps as Props } from './props'
 
-const { title = 'Testimonials', limit } = Astro.props
+const { title = 'Testimonials', limit } = Astro.props as TestimonialsProps
 
 // Get all testimonials from content collection
 const allTestimonials = await getCollection('testimonials')

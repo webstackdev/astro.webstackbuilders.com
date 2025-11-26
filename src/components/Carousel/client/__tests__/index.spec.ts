@@ -3,7 +3,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import CarouselComponent from '@components/Carousel/index.astro'
-import type { Props as CarouselProps } from '@components/Carousel/index.astro'
+import type { CarouselProps } from '@components/Carousel/props'
 import type { CarouselElement } from '@components/Carousel/client'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { executeRender } from '@test/unit/helpers/litRuntime'

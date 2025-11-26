@@ -2,7 +2,7 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import Newsletter from '@components/CallToAction/Newsletter/index.astro'
-import type { Props as NewsletterProps } from '@components/CallToAction/Newsletter/index.astro'
+import type { NewsletterProps } from '@components/CallToAction/Newsletter/props'
 import type { NewsletterFormElement } from '@components/CallToAction/Newsletter/client'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { executeRender } from '@test/unit/helpers/litRuntime'

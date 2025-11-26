@@ -16,6 +16,7 @@ type DomGlobalKey =
 	| 'Node'
 	| 'Element'
 	| 'Event'
+	| 'CustomEvent'
 	| 'HTMLAnchorElement'
 	| 'HTMLDivElement'
 	| 'sessionStorage'
@@ -28,8 +29,6 @@ type DomGlobalKey =
 	| 'HTMLButtonElement'
 	| 'HTMLSpanElement'
 	| 'HTMLTextAreaElement'
-	| 'HTMLAnchorElement'
-	| 'HTMLDivElement'
 	| 'FormData'
 type DomGlobals = Partial<Record<DomGlobalKey, unknown>>
 
@@ -40,6 +39,8 @@ const DOM_GLOBAL_KEYS: DomGlobalKey[] = [
 	'HTMLElement',
 	'Node',
 	'Element',
+	'Event',
+	'CustomEvent',
 	'HTMLAnchorElement',
 	'HTMLDivElement',
 	'sessionStorage',
@@ -52,8 +53,6 @@ const DOM_GLOBAL_KEYS: DomGlobalKey[] = [
 	'HTMLButtonElement',
 	'HTMLSpanElement',
 	'HTMLTextAreaElement',
-	'HTMLAnchorElement',
-	'HTMLDivElement',
 	'FormData',
 ]
 

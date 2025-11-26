@@ -349,11 +349,11 @@ export function createAnimationController(config: AnimationControllerConfig): An
   const controller: RegisteredController = {
     key,
     animationId: config.animationId,
-    debugLabel: config.debugLabel,
     defaultState: config.defaultState ?? 'playing',
     currentState: 'paused',
     play: config.onPlay,
     pause: config.onPause,
+    ...(config.debugLabel ? { debugLabel: config.debugLabel } : {}),
   }
 
   controllerRegistry.set(key, controller)

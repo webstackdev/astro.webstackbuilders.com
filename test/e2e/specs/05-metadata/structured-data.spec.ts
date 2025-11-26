@@ -123,9 +123,9 @@ test.describe('Structured Data', () => {
 
     const webSiteSchema = await page.getSchemaByType<JsonLdSchema>('WebSite')
     expect(webSiteSchema).toBeDefined()
-    const publisher = webSiteSchema?.publisher as JsonLdSchema | undefined
-    expect(publisher?.name).toBeTruthy()
-    expectAbsoluteUrl(publisher?.logo as string | undefined)
+    const publisher = webSiteSchema ? (webSiteSchema['publisher'] as JsonLdSchema | undefined) : undefined
+    expect(publisher?.['name']).toBeTruthy()
+    expectAbsoluteUrl(publisher?.['logo'] as string | undefined)
   })
 
   test('@ready all JSON-LD entries specify schema.org context', async ({ page: playwrightPage }) => {

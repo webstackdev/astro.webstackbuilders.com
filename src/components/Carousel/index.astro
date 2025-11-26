@@ -2,25 +2,9 @@
 // Generic Carousel component for displaying content - both featured and suggested
 import { getCollection } from 'astro:content'
 import type { CollectionEntry } from 'astro:content'
+import type { CarouselProps, CollectionKeyMap } from './props'
 
-// Type mapping from prop values to actual collection keys
-type CollectionKeyMap = {
-  services: 'services'
-  'case-studies': 'caseStudies'
-  articles: 'articles'
-}
-
-// Type-safe union of valid collection prop names
-type CollectionPropName = keyof CollectionKeyMap
-
-// Generic interface that infers the collection type from the type prop
-export interface Props<T extends CollectionPropName = CollectionPropName> {
-  title?: string
-  limit?: number
-  variant?: 'featured' | 'suggested' | 'random'
-  currentSlug: string
-  type: T
-}
+export type { CarouselProps as Props } from './props'
 
 const {
   title = 'Featured Content',
@@ -28,7 +12,7 @@ const {
   variant = 'featured',
   currentSlug,
   type,
-} = Astro.props
+} = Astro.props as CarouselProps
 
 // Map the prop type to the actual collection key with proper typing
 const collectionKey = {

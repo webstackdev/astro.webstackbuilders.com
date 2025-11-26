@@ -3,7 +3,9 @@ import { mockTestimonials } from '@components/Testimonials/client/__fixtures__/m
 
 export type TestimonialCollectionEntry = CollectionEntry<'testimonials'>
 
-type MinimalTestimonialEntry = Pick<TestimonialCollectionEntry, 'id' | 'slug' | 'body' | 'data' | 'collection'>
+type MinimalTestimonialEntry = Pick<TestimonialCollectionEntry, 'id' | 'body' | 'data' | 'collection'> & {
+  slug: string
+}
 
 const collectionFixture: MinimalTestimonialEntry[] = mockTestimonials.map((testimonial, index) => ({
   id: testimonial.id,

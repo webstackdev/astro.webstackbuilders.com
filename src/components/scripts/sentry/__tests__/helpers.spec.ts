@@ -25,10 +25,13 @@ vi.mock('@sentry/browser', () => ({
 const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
 const createEvent = (): Parameters<typeof beforeSendHandler>[0] => ({
+  type: 'error',
   user: { 'ip_address': '127.0.0.1' },
   request: { headers: { 'user-agent': 'test' } },
   breadcrumbs: [{ message: 'clicked' }],
-}) as Parameters<typeof beforeSendHandler>[0]
+}) as unknown as Parameters<typeof beforeSendHandler>[0]
+
+const createHint = (): Parameters<typeof beforeSendHandler>[1] => ({}) as Parameters<typeof beforeSendHandler>[1]
 
 describe('sentry helpers', () => {
   beforeEach(() => {
@@ -43,7 +46,7 @@ describe('sentry helpers', () => {
       isDevMock.mockReturnValue(true)
       const event = createEvent()
 
-      const result = beforeSendHandler(event)
+      const result = beforeSendHandler(event, createHint())
 
       expect(result).toBeNull()
       expect(getConsentSnapshotMock).not.toHaveBeenCalled()
@@ -53,7 +56,7 @@ describe('sentry helpers', () => {
       getConsentSnapshotMock.mockReturnValue({ analytics: true })
 
       const event = createEvent()
-      const result = beforeSendHandler(event)
+      const result = beforeSendHandler(event, createHint())
 
       expect(result).toBe(event)
       expect(event.user?.ip_address).toBe('127.0.0.1')
@@ -65,7 +68,7 @@ describe('sentry helpers', () => {
       getConsentSnapshotMock.mockReturnValue({ analytics: false })
 
       const event = createEvent()
-      const result = beforeSendHandler(event)
+      const result = beforeSendHandler(event, createHint())
 
       expect(result).toBe(event)
       expect(event.user?.ip_address).toBeUndefined()
