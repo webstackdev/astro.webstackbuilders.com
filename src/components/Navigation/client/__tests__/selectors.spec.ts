@@ -1,8 +1,5 @@
-// @vitest-environment happy-dom
-/**
- * Tests for HTML element selectors using Container API pattern with happy-dom
- */
-import { describe, expect, test } from 'vitest'
+// @vitest-environment node
+import { beforeEach, describe, expect, test } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import {
   isButtonElement,
@@ -19,94 +16,127 @@ import {
   getNavToggleWrapperElement,
   getNavWrapperElement,
 } from '@components/Navigation/client/selectors'
-import TestNavigationComponent from '@components/Navigation/__tests__/TestNavigation.astro'
+import TestNavigationComponent from '@components/Navigation/client/__tests__/TestNavigation.astro'
+import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
+import { executeRender } from '@test/unit/helpers/litRuntime'
 
-/**
- * Helper function to set up DOM from Container API
- * @param path - The current path for active menu highlighting
- */
-async function setupNavigationDOM(path = '/') {
-  const container = await AstroContainer.create()
-  const result = await container.renderToString(TestNavigationComponent, {
-    props: { path },
+type NavigationComponent = HTMLElementTagNameMap['site-navigation']
+type NavigationComponentModule = WebComponentModule<NavigationComponent>
+
+let container: AstroContainer
+
+beforeEach(async () => {
+  container = await AstroContainer.create()
+})
+
+const renderNavigationDom = async (
+  assertion: (_context: { element: NavigationComponent }) => Promise<void> | void,
+) => {
+  await executeRender<NavigationComponentModule>({
+    container,
+    component: TestNavigationComponent,
+    moduleSpecifier: '@components/Navigation/client/index',
+    waitForReady: async (element) => {
+      await element.updateComplete
+    },
+    assert: async ({ element }) => {
+      await assertion({ element })
+    },
   })
-  document.body.innerHTML = result
 }
 
 describe('getHeaderElement selector works', () => {
   test(' works with element in DOM', async () => {
-    await setupNavigationDOM()
-    const sut = isHeaderElement(getHeaderElement())
-    expect(sut).toBeTruthy()
+    await renderNavigationDom(async () => {
+      const sut = isHeaderElement(getHeaderElement())
+      expect(sut).toBeTruthy()
+    })
   })
 
-  test(' throws with no results selected against DOM', () => {
-    document.body.innerHTML = `<div></div>`
-    expect(() => getHeaderElement()).toThrow()
+  test(' throws with no results selected against DOM', async () => {
+    await renderNavigationDom(async () => {
+      document.body.innerHTML = `<div></div>`
+      expect(() => getHeaderElement()).toThrow()
+    })
   })
 })
 
 describe('getMobileSplashElement selector works', () => {
   test(' works with element in DOM', async () => {
-    await setupNavigationDOM()
-    const sut = isDivElement(getMobileSplashElement())
-    expect(sut).toBeTruthy()
+    await renderNavigationDom(async () => {
+      const sut = isDivElement(getMobileSplashElement())
+      expect(sut).toBeTruthy()
+    })
   })
 
-  test(' throws with no results selected against DOM', () => {
-    document.body.innerHTML = `<div></div>`
-    expect(() => getMobileSplashElement()).toThrow()
+  test(' throws with no results selected against DOM', async () => {
+    await renderNavigationDom(async () => {
+      document.body.innerHTML = `<div></div>`
+      expect(() => getMobileSplashElement()).toThrow()
+    })
   })
 })
 
 describe('getNavWrapperElement selector works', () => {
   test(' works with element in DOM', async () => {
-    await setupNavigationDOM()
-    const sut = isSpanElement(getNavWrapperElement())
-    expect(sut).toBeTruthy()
+    await renderNavigationDom(async () => {
+      const sut = isSpanElement(getNavWrapperElement())
+      expect(sut).toBeTruthy()
+    })
   })
 
-  test(' throws with no results selected against DOM', () => {
-    document.body.innerHTML = `<div></div>`
-    expect(() => getNavWrapperElement()).toThrow()
+  test(' throws with no results selected against DOM', async () => {
+    await renderNavigationDom(async () => {
+      document.body.innerHTML = `<div></div>`
+      expect(() => getNavWrapperElement()).toThrow()
+    })
   })
 })
 
 describe('getNavMenuElement selector works', () => {
   test('getNavElement works with element in DOM', async () => {
-    await setupNavigationDOM()
-    const sut = getNavMenuElement()
-    expect(isUlElement(sut)).toBeTruthy()
+    await renderNavigationDom(async () => {
+      const sut = getNavMenuElement()
+      expect(isUlElement(sut)).toBeTruthy()
+    })
   })
 
-  test('getNavElement throws with no results selected against DOM', () => {
-    document.body.innerHTML = `<nav class="main-nav" role="navigation"></nav>`
-    expect(() => getNavMenuElement()).toThrow()
+  test('getNavElement throws with no results selected against DOM', async () => {
+    await renderNavigationDom(async () => {
+      document.body.innerHTML = `<nav class="main-nav" role="navigation"></nav>`
+      expect(() => getNavMenuElement()).toThrow()
+    })
   })
 })
 
 describe('getNavToggleWrapperElement selector works', () => {
   test('getNavToggleWrapperElement works with element in DOM', async () => {
-    await setupNavigationDOM()
-    const sut = getNavToggleWrapperElement()
-    expect(isSpanElement(sut)).toBeTruthy()
+    await renderNavigationDom(async () => {
+      const sut = getNavToggleWrapperElement()
+      expect(isSpanElement(sut)).toBeTruthy()
+    })
   })
 
-  test('getNavToggleWrapperElement throws with no results selected against DOM', () => {
-    document.body.innerHTML = `<nav class="main-nav" role="navigation"></nav>`
-    expect(() => getNavToggleWrapperElement()).toThrow()
+  test('getNavToggleWrapperElement throws with no results selected against DOM', async () => {
+    await renderNavigationDom(async () => {
+      document.body.innerHTML = `<nav class="main-nav" role="navigation"></nav>`
+      expect(() => getNavToggleWrapperElement()).toThrow()
+    })
   })
 })
 
 describe('getNavToggleBtnElement selector works', () => {
   test('getNavToggleBtnElement works with element in DOM', async () => {
-    await setupNavigationDOM()
-    const sut = getNavToggleBtnElement()
-    expect(isButtonElement(sut)).toBeTruthy()
+    await renderNavigationDom(async () => {
+      const sut = getNavToggleBtnElement()
+      expect(isButtonElement(sut)).toBeTruthy()
+    })
   })
 
-  test('getNavToggleBtnElement throws with no <slot> elements in the shadow DOM', () => {
-    document.body.innerHTML = `<nav class="main-nav" role="navigation"></nav>`
-    expect(() => getNavToggleBtnElement()).toThrow()
+  test('getNavToggleBtnElement throws with no <slot> elements in the shadow DOM', async () => {
+    await renderNavigationDom(async () => {
+      document.body.innerHTML = `<nav class="main-nav" role="navigation"></nav>`
+      expect(() => getNavToggleBtnElement()).toThrow()
+    })
   })
 })
