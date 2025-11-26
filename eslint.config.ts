@@ -1,3 +1,5 @@
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import eslint from '@eslint/js'
 import astroPlugin from 'eslint-plugin-astro'
 import importPlugin from 'eslint-plugin-import'
@@ -11,6 +13,7 @@ import noHtmlElementAssertionsRule from './test/eslint/no-html-element-assertion
 import noQuerySelectorOutsideSelectorsRule from './test/eslint/no-query-selector-outside-selectors-rule'
 
 const level = 'error'
+const tsconfigRootDir = path.dirname(fileURLToPath(import.meta.url))
 
 const errorDefinitionIgnores = [
   'src/lib/errors/**/*',
@@ -300,6 +303,15 @@ export default [
       'src/components/**/*.astro',
       'src/pages/**/*.astro',
     ],
+    languageOptions: {
+      parser: astroPlugin.parser,
+      parserOptions: {
+        parser: tsPlugin.parser,
+        project: './tsconfig.json',
+        tsconfigRootDir,
+        extraFileExtensions: ['.astro'],
+      },
+    },
     rules: {
       '@typescript-eslint/dot-notation': [level, { allowIndexSignaturePropertyAccess: true }],
     },
