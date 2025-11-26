@@ -1,12 +1,24 @@
-// @vitest-environment happy-dom
+// @vitest-environment jsdom
 /**
  * Unit tests for AppBootstrap
  * Tests initialization of state management on page load
  */
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AppBootstrap } from '@components/scripts/bootstrap'
 import { addScriptBreadcrumb, ClientScriptError } from '@components/scripts/errors'
 import { TestError } from '@test/errors'
+
+vi.mock('@components/scripts/errors', async () => {
+  const actual = await vi.importActual<typeof import('@components/scripts/errors')>(
+    '@components/scripts/errors'
+  )
+
+  return {
+    ...actual,
+    addScriptBreadcrumb: vi.fn(),
+    handleScriptError: vi.fn(),
+  }
+})
 
 // Mock the store initialization functions
 vi.mock('@components/scripts/store', () => ({
@@ -18,11 +30,23 @@ vi.mock('@components/scripts/store', () => ({
   },
 }))
 
-// Mock Sentry breadcrumb function
-vi.mock('@components/scripts/errors', () => ({
-  addScriptBreadcrumb: vi.fn(),
-  handleScriptError: vi.fn(),
+vi.mock('@components/scripts/sentry/client', () => ({
+  SentryBootstrap: {
+    init: vi.fn(),
+  },
 }))
+
+const mockEnvironmentClient = vi.hoisted(() => ({
+  getPackageRelease: vi.fn().mockReturnValue('test-release'),
+  getPrivacyPolicyVersion: vi.fn().mockReturnValue('1.0.0'),
+  isProd: vi.fn().mockReturnValue(false),
+  isDev: vi.fn().mockReturnValue(true),
+  isE2eTest: vi.fn().mockReturnValue(false),
+  isTest: vi.fn().mockReturnValue(false),
+  isUnitTest: vi.fn().mockReturnValue(true),
+}))
+
+vi.mock('@components/scripts/utils/environmentClient', () => mockEnvironmentClient)
 
 // Import the mocked functions after setting up mocks
 import {
@@ -30,18 +54,52 @@ import {
   initConsentSideEffects,
   addViewTransitionThemeInitListener,
 } from '@components/scripts/store'
+import { SentryBootstrap } from '@components/scripts/sentry/client'
+
+type TestWindow = Window & {
+  isPlaywrightControlled?: boolean
+  environmentClientSnapshot?: {
+    isUnitTest: boolean
+    isTest: boolean
+    isE2eTest: boolean
+    isDev: boolean
+    isProd: boolean
+    packageRelease: string
+    privacyPolicyVersion: string
+  }
+}
+
+const testWindow = window as TestWindow
+const consoleInfoSpy = vi.spyOn(console, 'info').mockImplementation(() => {})
+
+const mockSuccessfulInit = () => {
+  vi.mocked(addViewTransitionThemeInitListener).mockReturnValue(undefined)
+  vi.mocked(initConsentFromCookies).mockReturnValue(undefined)
+  vi.mocked(initConsentSideEffects).mockReturnValue(undefined)
+}
 
 describe('AppBootstrap', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockSuccessfulInit()
+    delete testWindow.isPlaywrightControlled
+    delete testWindow.environmentClientSnapshot
+    mockEnvironmentClient.isProd.mockReturnValue(false)
+    mockEnvironmentClient.isDev.mockReturnValue(true)
+    mockEnvironmentClient.isE2eTest.mockReturnValue(false)
+    mockEnvironmentClient.isTest.mockReturnValue(false)
+    mockEnvironmentClient.isUnitTest.mockReturnValue(true)
+    mockEnvironmentClient.getPackageRelease.mockReturnValue('test-release')
+    mockEnvironmentClient.getPrivacyPolicyVersion.mockReturnValue('1.0.0')
+    consoleInfoSpy.mockClear()
+  })
+
+  afterAll(() => {
+    consoleInfoSpy.mockRestore()
   })
 
   describe('Successful initialization', () => {
     it('should call addViewTransitionThemeInitListener, initConsentFromCookies and initialize side effects', () => {
-      vi.mocked(addViewTransitionThemeInitListener).mockReturnValue(undefined)
-      vi.mocked(initConsentFromCookies).mockReturnValue(undefined)
-      vi.mocked(initConsentSideEffects).mockReturnValue(undefined)
-
       AppBootstrap.init()
 
       expect(addViewTransitionThemeInitListener).toHaveBeenCalledTimes(1)
@@ -50,10 +108,6 @@ describe('AppBootstrap', () => {
     })
 
     it('should add breadcrumbs for successful initialization', () => {
-      vi.mocked(addViewTransitionThemeInitListener).mockReturnValue(undefined)
-      vi.mocked(initConsentFromCookies).mockReturnValue(undefined)
-      vi.mocked(initConsentSideEffects).mockReturnValue(undefined)
-
       AppBootstrap.init()
 
       expect(addScriptBreadcrumb).toHaveBeenCalledWith({
@@ -75,10 +129,6 @@ describe('AppBootstrap', () => {
     })
 
     it('should not throw error when initialization succeeds', () => {
-      vi.mocked(addViewTransitionThemeInitListener).mockReturnValue(undefined)
-      vi.mocked(initConsentFromCookies).mockReturnValue(undefined)
-      vi.mocked(initConsentSideEffects).mockReturnValue(undefined)
-
       expect(() => AppBootstrap.init()).not.toThrow()
     })
   })
@@ -122,11 +172,9 @@ describe('AppBootstrap', () => {
     })
 
     it('should not call side effects when initConsentFromCookies fails', () => {
-      vi.mocked(addViewTransitionThemeInitListener).mockReturnValue(undefined)
       vi.mocked(initConsentFromCookies).mockImplementation(() => {
         throw new TestError('Cookie initialization failed')
       })
-      vi.mocked(initConsentSideEffects).mockReturnValue(undefined)
 
       try {
         AppBootstrap.init()
@@ -138,7 +186,6 @@ describe('AppBootstrap', () => {
     })
 
     it('should wrap non-Error objects in ClientScriptError', () => {
-      vi.mocked(addViewTransitionThemeInitListener).mockReturnValue(undefined)
       vi.mocked(initConsentFromCookies).mockImplementation(() => {
         throw 'String error'
       })
@@ -155,16 +202,55 @@ describe('AppBootstrap', () => {
 
   describe('Integration scenarios', () => {
     it('should successfully initialize on repeated calls', () => {
-      vi.mocked(addViewTransitionThemeInitListener).mockReturnValue(undefined)
-      vi.mocked(initConsentFromCookies).mockReturnValue(undefined)
-      vi.mocked(initConsentSideEffects).mockReturnValue(undefined)
-
       AppBootstrap.init()
       AppBootstrap.init()
 
       expect(addViewTransitionThemeInitListener).toHaveBeenCalledTimes(2)
       expect(initConsentFromCookies).toHaveBeenCalledTimes(2)
       expect(initConsentSideEffects).toHaveBeenCalledTimes(2)
+    })
+  })
+
+  describe('Runtime integrations', () => {
+    it('should write the environment snapshot when Playwright controls the window', () => {
+      testWindow.isPlaywrightControlled = true
+      mockEnvironmentClient.isUnitTest.mockReturnValue(false)
+      mockEnvironmentClient.isTest.mockReturnValue(true)
+      mockEnvironmentClient.isE2eTest.mockReturnValue(true)
+      mockEnvironmentClient.isDev.mockReturnValue(false)
+      mockEnvironmentClient.isProd.mockReturnValue(true)
+      mockEnvironmentClient.getPackageRelease.mockReturnValue('2024.10.0')
+      mockEnvironmentClient.getPrivacyPolicyVersion.mockReturnValue('3.1.4')
+
+      AppBootstrap.init()
+
+      expect(testWindow.environmentClientSnapshot).toEqual({
+        isUnitTest: false,
+        isTest: true,
+        isE2eTest: true,
+        isDev: false,
+        isProd: true,
+        packageRelease: '2024.10.0',
+        privacyPolicyVersion: '3.1.4',
+      })
+    })
+
+    it('should initialize Sentry in production builds', () => {
+      mockEnvironmentClient.isProd.mockReturnValue(true)
+
+      AppBootstrap.init()
+
+      expect(SentryBootstrap.init).toHaveBeenCalledTimes(1)
+      expect(consoleInfoSpy).not.toHaveBeenCalled()
+    })
+
+    it('should log when Sentry stays disabled outside production', () => {
+      mockEnvironmentClient.isProd.mockReturnValue(false)
+
+      AppBootstrap.init()
+
+      expect(SentryBootstrap.init).not.toHaveBeenCalled()
+      expect(consoleInfoSpy).toHaveBeenCalledWith('🔧 Sentry disabled in development mode')
     })
   })
 })
