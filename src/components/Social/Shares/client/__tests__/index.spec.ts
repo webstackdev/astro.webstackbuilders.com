@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import { setupSocialShareDOM } from '@components/Social/Shares/__tests__/testHelper'
+import { setupSocialShareDOM } from '@components/Social/Shares/client/__tests__/testHelper'
 
 // Mock gtag function
 const mockGtag = vi.fn()
@@ -39,7 +39,7 @@ describe('Social Share LoadableScript', () => {
 
   afterEach(() => {
     // Clean up by calling reset
-    import('../client').then(({ SocialShare }) => {
+    import('..').then(({ SocialShare }) => {
       SocialShare.reset()
     })
 
@@ -53,7 +53,7 @@ describe('Social Share LoadableScript', () => {
 
   describe('SocialShare class', () => {
     it('should find and attach event listeners to social share buttons', async () => {
-      const { SocialShare } = await import('../client')
+      const { SocialShare } = await import('..')
 
       SocialShare.init()
 
@@ -62,7 +62,7 @@ describe('Social Share LoadableScript', () => {
     })
 
     it('should call gtag when share button is clicked', async () => {
-      const { SocialShare } = await import('../client')
+      const { SocialShare } = await import('..')
 
       SocialShare.init()
 
@@ -87,7 +87,7 @@ describe('Social Share LoadableScript', () => {
       const originalGtag = windowWithGtag.gtag
       windowWithGtag.gtag = undefined
 
-      const { SocialShare } = await import('../client')
+      const { SocialShare } = await import('..')
 
       SocialShare.init()
 
@@ -106,7 +106,7 @@ describe('Social Share LoadableScript', () => {
     })
 
     it('should extract social network name from aria-label', async () => {
-      const { SocialShare } = await import('../client')
+      const { SocialShare } = await import('..')
 
       SocialShare.init()
 
@@ -124,7 +124,7 @@ describe('Social Share LoadableScript', () => {
     })
 
     it('should use Web Share API when shift+click and navigator.share is available', async () => {
-      const { SocialShare } = await import('../client')
+      const { SocialShare } = await import('..')
 
       SocialShare.init()
 
@@ -155,7 +155,7 @@ describe('Social Share LoadableScript', () => {
     })
 
     it('should not use Web Share API for regular clicks', async () => {
-      const { SocialShare } = await import('../client')
+      const { SocialShare } = await import('..')
 
       SocialShare.init()
 
@@ -177,7 +177,7 @@ describe('Social Share LoadableScript', () => {
         metaDesc.remove()
       }
 
-      const { SocialShare } = await import('../client')
+      const { SocialShare } = await import('..')
 
       SocialShare.init()
 
@@ -210,7 +210,7 @@ describe('Social Share LoadableScript', () => {
         writable: true,
       })
 
-      const { SocialShare } = await import('../client')
+      const { SocialShare } = await import('..')
 
       SocialShare.init()
 
@@ -236,7 +236,7 @@ describe('Social Share LoadableScript', () => {
     })
 
     it('should handle missing aria-label gracefully', async () => {
-      const { SocialShare } = await import('../client')
+      const { SocialShare } = await import('..')
 
       // Create a button without aria-label
       const buttonWithoutLabel = document.createElement('a')
@@ -258,7 +258,7 @@ describe('Social Share LoadableScript', () => {
     })
 
     it('should handle missing event target gracefully', async () => {
-      const { SocialShare } = await import('../client')
+      const { SocialShare } = await import('..')
 
       SocialShare.init()
 
@@ -286,7 +286,7 @@ describe('Social Share LoadableScript', () => {
 
   describe('Lifecycle methods', () => {
     it('should pause and remove event listeners', async () => {
-      const { SocialShare } = await import('../client')
+      const { SocialShare } = await import('..')
 
       SocialShare.init()
 
@@ -308,7 +308,7 @@ describe('Social Share LoadableScript', () => {
     })
 
     it('should resume and re-add event listeners', async () => {
-      const { SocialShare } = await import('../client')
+      const { SocialShare } = await import('..')
 
       SocialShare.init()
       SocialShare.pause()
@@ -327,7 +327,7 @@ describe('Social Share LoadableScript', () => {
     })
 
     it('should reset and clear all listeners', async () => {
-      const { SocialShare } = await import('../client')
+      const { SocialShare } = await import('..')
 
       SocialShare.init()
 
@@ -351,7 +351,7 @@ describe('Social Share LoadableScript', () => {
 
   describe('Integration with different social networks', () => {
     it('should handle all supported social networks correctly', async () => {
-      const { SocialShare } = await import('../client')
+      const { SocialShare } = await import('..')
 
       SocialShare.init()
 
@@ -378,7 +378,7 @@ describe('Social Share LoadableScript', () => {
     })
 
     it('should open Mastodon modal for Mastodon button', async () => {
-      const { SocialShare } = await import('../client')
+      const { SocialShare } = await import('..')
 
       // Mock window.openMastodonModal
       const mockOpenModal = vi.fn()
