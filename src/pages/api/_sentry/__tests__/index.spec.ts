@@ -4,18 +4,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const sentryInitMock = vi.fn()
-const envMocks = {
-  isProd: vi.fn(),
-  isDev: vi.fn(),
+const envMocks = vi.hoisted(() => ({
+  isProd: vi.fn(() => false),
+  isDev: vi.fn(() => false),
   getSentryDsn: vi.fn(() => 'https://public@example.ingest.sentry.io/1'),
   getPackageRelease: vi.fn(() => 'pkg@1.0.0'),
-}
+}))
 
 vi.mock('@sentry/astro', () => ({
   init: sentryInitMock,
 }))
 
-vi.mock('@pages/api/_environment', () => envMocks)
+vi.mock('@pages/api/_environment/environmentApi', () => envMocks)
 
 describe('ensureApiSentry', () => {
   beforeEach(() => {
