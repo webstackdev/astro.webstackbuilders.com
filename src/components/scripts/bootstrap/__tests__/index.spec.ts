@@ -24,6 +24,7 @@ vi.mock('@components/scripts/errors', async () => {
 vi.mock('@components/scripts/store', () => ({
   initConsentFromCookies: vi.fn(),
   initConsentSideEffects: vi.fn(),
+  initAnimationLifecycle: vi.fn(),
   addViewTransitionThemeInitListener: vi.fn(),
   $hasFunctionalConsent: {
     subscribe: vi.fn(),
@@ -52,6 +53,7 @@ vi.mock('@components/scripts/utils/environmentClient', () => mockEnvironmentClie
 import {
   initConsentFromCookies,
   initConsentSideEffects,
+  initAnimationLifecycle,
   addViewTransitionThemeInitListener,
 } from '@components/scripts/store'
 import { SentryBootstrap } from '@components/scripts/sentry/client'
@@ -76,6 +78,7 @@ const mockSuccessfulInit = () => {
   vi.mocked(addViewTransitionThemeInitListener).mockReturnValue(undefined)
   vi.mocked(initConsentFromCookies).mockReturnValue(undefined)
   vi.mocked(initConsentSideEffects).mockReturnValue(undefined)
+  vi.mocked(initAnimationLifecycle).mockReturnValue(undefined)
 }
 
 describe('AppBootstrap', () => {
@@ -103,6 +106,7 @@ describe('AppBootstrap', () => {
       AppBootstrap.init()
 
       expect(addViewTransitionThemeInitListener).toHaveBeenCalledTimes(1)
+      expect(initAnimationLifecycle).toHaveBeenCalledTimes(1)
       expect(initConsentFromCookies).toHaveBeenCalledTimes(1)
       expect(initConsentSideEffects).toHaveBeenCalledTimes(1)
     })
@@ -117,6 +121,10 @@ describe('AppBootstrap', () => {
       expect(addScriptBreadcrumb).toHaveBeenCalledWith({
         scriptName: 'AppBootstrap',
         operation: 'addViewTransitionThemeInitListener'
+      })
+      expect(addScriptBreadcrumb).toHaveBeenCalledWith({
+        scriptName: 'AppBootstrap',
+        operation: 'initAnimationLifecycle'
       })
       expect(addScriptBreadcrumb).toHaveBeenCalledWith({
         scriptName: 'AppBootstrap',
@@ -167,6 +175,10 @@ describe('AppBootstrap', () => {
       })
       expect(addScriptBreadcrumb).toHaveBeenCalledWith({
         scriptName: 'AppBootstrap',
+        operation: 'initAnimationLifecycle'
+      })
+      expect(addScriptBreadcrumb).toHaveBeenCalledWith({
+        scriptName: 'AppBootstrap',
         operation: 'initConsentFromCookies'
       })
     })
@@ -206,6 +218,7 @@ describe('AppBootstrap', () => {
       AppBootstrap.init()
 
       expect(addViewTransitionThemeInitListener).toHaveBeenCalledTimes(2)
+      expect(initAnimationLifecycle).toHaveBeenCalledTimes(2)
       expect(initConsentFromCookies).toHaveBeenCalledTimes(2)
       expect(initConsentSideEffects).toHaveBeenCalledTimes(2)
     })
