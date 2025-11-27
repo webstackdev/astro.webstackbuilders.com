@@ -52,13 +52,50 @@ describe('SocialShareElement web component', () => {
           throw new Error('window context is required for SocialShareElement tests')
         }
 
-        ;(globalThis as typeof globalThis & { MouseEvent?: typeof window.MouseEvent }).MouseEvent =
-          window.MouseEvent
-        ;(globalThis as typeof globalThis & { navigator?: Navigator }).navigator = window.navigator
-
-        await assertion({ element, window })
+        const restoreGlobals = installBrowserGlobals(window)
+        try {
+          await assertion({ element, window })
+        } finally {
+          restoreGlobals()
+        }
       },
     })
+  }
+
+  type BrowserGlobalKey = 'MouseEvent' | 'navigator'
+
+  const installBrowserGlobals = (window: Window & typeof globalThis) => {
+    const previousDescriptors: Partial<Record<BrowserGlobalKey, PropertyDescriptor | undefined>> = {
+      MouseEvent: Object.getOwnPropertyDescriptor(globalThis, 'MouseEvent'),
+      navigator: Object.getOwnPropertyDescriptor(globalThis, 'navigator'),
+    }
+
+    if (window.MouseEvent) {
+      Object.defineProperty(globalThis, 'MouseEvent', {
+        configurable: true,
+        value: window.MouseEvent,
+      })
+    }
+
+    Object.defineProperty(globalThis, 'navigator', {
+      configurable: true,
+      value: window.navigator,
+    })
+
+    return () => restoreBrowserGlobals(previousDescriptors)
+  }
+
+  const restoreBrowserGlobals = (
+    descriptors: Partial<Record<BrowserGlobalKey, PropertyDescriptor | undefined>>,
+  ) => {
+    for (const key of Object.keys(descriptors) as BrowserGlobalKey[]) {
+      const descriptor = descriptors[key]
+      if (descriptor) {
+        Object.defineProperty(globalThis, key, descriptor)
+      } else {
+        delete (globalThis as Record<string, unknown>)[key]
+      }
+    }
   }
 
   test('renders buttons for the requested social networks', async () => {
@@ -117,6 +154,11 @@ describe('SocialShareElement web component', () => {
       const shareSpy = vi.fn().mockResolvedValue(undefined)
       ;(window.navigator as Navigator & { share?: typeof shareSpy }).share = shareSpy
 
+      window.document.title = defaultProps.title
+      const shareUrl = new URL(defaultProps.url)
+      window.history.replaceState({}, '', shareUrl.pathname)
+      const expectedLocation = window.location.href
+
       const metaDescription = window.document.createElement('meta')
       metaDescription.name = 'description'
       metaDescription.content = 'Meta description copy'
@@ -135,7 +177,7 @@ describe('SocialShareElement web component', () => {
       expect(shareSpy).toHaveBeenCalledWith({
         title: defaultProps.title,
         text: 'Meta description copy',
-        url: defaultProps.url,
+        url: expectedLocation,
       })
     })
   })
