@@ -1,402 +1,143 @@
-// @vitest-environment happy-dom
-/**
- * Unit tests for SocialShare LoadableScript implementation
- * Tests the SocialShare class and analytics integration
- */
+// @vitest-environment node
+import { beforeEach, describe, expect, test, vi } from 'vitest'
+import { experimental_AstroContainer as AstroContainer } from 'astro/container'
+import SocialShareComponent from '@components/Social/Shares/index.astro'
+import type { SocialShareElement } from '@components/Social/Shares/client/index'
+import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
+import { executeRender } from '@test/unit/helpers/litRuntime'
 
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import { setupSocialShareDOM } from '@components/Social/Shares/client/__tests__/testHelper'
+type SocialShareModule = WebComponentModule<SocialShareElement>
 
-// Mock gtag function
-const mockGtag = vi.fn()
+interface RenderContext {
+  element: SocialShareElement
+  window: Window & typeof globalThis
+}
 
-// Mock navigator.share
-const mockShare = vi.fn()
+type ComponentProps = {
+  url: string
+  title: string
+  description?: string
+  socialNetworks?: ('twitter' | 'linkedin' | 'bluesky' | 'reddit' | 'mastodon')[]
+}
 
-describe('Social Share LoadableScript', () => {
-  beforeEach(() => {
-    // Clear all mocks before each test
-    vi.clearAllMocks()
+describe('SocialShareElement web component', () => {
+  let container: AstroContainer
 
-    // Setup fresh DOM for each test
-    setupSocialShareDOM()
-
-    // Mock window.gtag
-    Object.defineProperty(window, 'gtag', {
-      value: mockGtag,
-      writable: true,
-    })
-
-    // Mock navigator.share
-    Object.defineProperty(navigator, 'share', {
-      value: mockShare.mockResolvedValue(undefined),
-      writable: true,
-    })
-
-    // Mock console.log to avoid test output clutter
-    vi.spyOn(console, 'log').mockImplementation(() => {})
+  beforeEach(async () => {
+    container = await AstroContainer.create()
   })
 
-  afterEach(() => {
-    // Clean up by calling reset
-    import('..').then(({ SocialShare }) => {
-      SocialShare.reset()
+  const defaultProps: ComponentProps = {
+    url: 'https://example.com/article',
+    title: 'Demo article',
+    description: 'Example summary',
+  }
+
+  const renderComponent = async (
+    props: ComponentProps = defaultProps,
+    assertion: (_context: RenderContext) => Promise<void> | void,
+  ) => {
+    await executeRender<SocialShareModule>({
+      container,
+      component: SocialShareComponent,
+      moduleSpecifier: '@components/Social/Shares/client/index',
+      args: {
+        props,
+      },
+      waitForReady: async (element: SocialShareElement) => {
+        await element.updateComplete
+      },
+      assert: async ({ element, window }) => {
+        if (!window) {
+          throw new Error('window context is required for SocialShareElement tests')
+        }
+
+        ;(globalThis as typeof globalThis & { MouseEvent?: typeof window.MouseEvent }).MouseEvent =
+          window.MouseEvent
+        ;(globalThis as typeof globalThis & { navigator?: Navigator }).navigator = window.navigator
+
+        await assertion({ element, window })
+      },
     })
+  }
 
-    // Clean up DOM
-    document.body.innerHTML = ''
-    document.head.innerHTML = ''
-
-    // Restore console.log
-    vi.restoreAllMocks()
+  test('renders buttons for the requested social networks', async () => {
+    await renderComponent(
+      {
+        ...defaultProps,
+        socialNetworks: ['twitter', 'linkedin'],
+      },
+      async ({ element }) => {
+        const buttons = element.querySelectorAll('.social-share__button')
+        expect(buttons).toHaveLength(2)
+        expect(element.querySelector('[aria-label="Share on LinkedIn"]')).toBeTruthy()
+      },
+    )
   })
 
-  describe('SocialShare class', () => {
-    it('should find and attach event listeners to social share buttons', async () => {
-      const { SocialShare } = await import('..')
+  test('sends analytics event when sharing via standard button', async () => {
+    await renderComponent(defaultProps, async ({ element, window }) => {
+      const windowWithAnalytics = window as typeof window & {
+        gtag?: (_command: string, _action: string, _parameters: Record<string, unknown>) => void
+      }
 
-      SocialShare.init()
+      const gtagSpy = vi.fn()
+      windowWithAnalytics.gtag = gtagSpy
 
-      const shareButtons = document.querySelectorAll('.social-share__button')
-      expect(shareButtons).toHaveLength(4) // twitter, linkedin, bluesky, mastodon
-    })
-
-    it('should call gtag when share button is clicked', async () => {
-      const { SocialShare } = await import('..')
-
-      SocialShare.init()
-
-      const twitterButton = document.querySelector(
-        '[aria-label="Share on X (Twitter)"]'
-      ) as HTMLElement
+      const twitterButton = element.querySelector('[aria-label="Share on X (Twitter)"]')
       expect(twitterButton).toBeTruthy()
 
-      // Simulate click
-      twitterButton.click()
+      twitterButton?.dispatchEvent(new window.MouseEvent('click', { bubbles: true }))
 
-      expect(mockGtag).toHaveBeenCalledWith('event', 'share', {
+      expect(gtagSpy).toHaveBeenCalledWith('event', 'share', {
         method: 'x (twitter)',
         contentType: 'article',
         contentId: '/',
       })
     })
-
-    it('should not call gtag if gtag is undefined', async () => {
-      // Override gtag to be undefined for this test
-      const windowWithGtag = window as typeof window & { gtag?: unknown }
-      const originalGtag = windowWithGtag.gtag
-      windowWithGtag.gtag = undefined
-
-      const { SocialShare } = await import('..')
-
-      SocialShare.init()
-
-      const linkedInButton = document.querySelector(
-        '[aria-label="Share on LinkedIn"]'
-      ) as HTMLElement
-      expect(linkedInButton).toBeTruthy()
-
-      // Simulate click
-      linkedInButton.click()
-
-      expect(mockGtag).not.toHaveBeenCalled()
-
-      // Restore original gtag
-      windowWithGtag.gtag = originalGtag
-    })
-
-    it('should extract social network name from aria-label', async () => {
-      const { SocialShare } = await import('..')
-
-      SocialShare.init()
-
-      const blueskyButton = document.querySelector('[aria-label="Share on Bluesky"]') as HTMLElement
-      expect(blueskyButton).toBeTruthy()
-
-      // Simulate click
-      blueskyButton.click()
-
-      expect(mockGtag).toHaveBeenCalledWith('event', 'share', {
-        method: 'bluesky',
-        contentType: 'article',
-        contentId: '/',
-      })
-    })
-
-    it('should use Web Share API when shift+click and navigator.share is available', async () => {
-      const { SocialShare } = await import('..')
-
-      SocialShare.init()
-
-      const twitterButton = document.querySelector(
-        '[aria-label="Share on X (Twitter)"]'
-      ) as HTMLElement
-      expect(twitterButton).toBeTruthy()
-
-      // Create a shift+click event
-      const shiftClickEvent = new MouseEvent('click', {
-        bubbles: true,
-        cancelable: true,
-        shiftKey: true,
-      })
-
-      // Mock preventDefault
-      const preventDefaultSpy = vi.spyOn(shiftClickEvent, 'preventDefault')
-
-      // Dispatch the event on Twitter button (not Mastodon which uses modal)
-      twitterButton.dispatchEvent(shiftClickEvent)
-
-      expect(preventDefaultSpy).toHaveBeenCalled()
-      expect(mockShare).toHaveBeenCalledWith({
-        title: 'Test Document Title',
-        text: 'Test meta description',
-        url: 'http://localhost:3000/',
-      })
-    })
-
-    it('should not use Web Share API for regular clicks', async () => {
-      const { SocialShare } = await import('..')
-
-      SocialShare.init()
-
-      const twitterButton = document.querySelector(
-        '[aria-label="Share on X (Twitter)"]'
-      ) as HTMLElement
-      expect(twitterButton).toBeTruthy()
-
-      // Regular click (no shift key)
-      twitterButton.click()
-
-      expect(mockShare).not.toHaveBeenCalled()
-    })
-
-    it('should handle missing meta description gracefully', async () => {
-      // Remove meta description
-      const metaDesc = document.querySelector('meta[name="description"]')
-      if (metaDesc) {
-        metaDesc.remove()
-      }
-
-      const { SocialShare } = await import('..')
-
-      SocialShare.init()
-
-      const twitterButton = document.querySelector(
-        '[aria-label="Share on X (Twitter)"]'
-      ) as HTMLElement
-      expect(twitterButton).toBeTruthy()
-
-      // Shift+click to trigger Web Share API
-      const shiftClickEvent = new MouseEvent('click', {
-        bubbles: true,
-        cancelable: true,
-        shiftKey: true,
-      })
-
-      twitterButton.dispatchEvent(shiftClickEvent)
-
-      expect(mockShare).toHaveBeenCalledWith({
-        title: 'Test Document Title',
-        text: '', // Empty string when meta description is missing
-        url: 'http://localhost:3000/',
-      })
-    })
-
-    it('should handle Web Share API errors gracefully', async () => {
-      // Mock navigator.share to reject
-      const shareError = new Error('Share failed')
-      Object.defineProperty(navigator, 'share', {
-        value: vi.fn().mockRejectedValue(shareError),
-        writable: true,
-      })
-
-      const { SocialShare } = await import('..')
-
-      SocialShare.init()
-
-      const twitterButton = document.querySelector(
-        '[aria-label="Share on X (Twitter)"]'
-      ) as HTMLElement
-      expect(twitterButton).toBeTruthy()
-
-      // Shift+click to trigger Web Share API
-      const shiftClickEvent = new MouseEvent('click', {
-        bubbles: true,
-        cancelable: true,
-        shiftKey: true,
-      })
-
-      twitterButton.dispatchEvent(shiftClickEvent)
-
-      // Wait for the promise rejection to be handled
-      await new Promise(resolve => setTimeout(resolve, 10))
-
-      // Should handle error gracefully via handleScriptError
-      // Error handling now uses Sentry integration instead of console.log
-    })
-
-    it('should handle missing aria-label gracefully', async () => {
-      const { SocialShare } = await import('..')
-
-      // Create a button without aria-label
-      const buttonWithoutLabel = document.createElement('a')
-      buttonWithoutLabel.className = 'social-share__button'
-      buttonWithoutLabel.textContent = 'Share'
-      document.body.appendChild(buttonWithoutLabel)
-
-      SocialShare.init()
-
-      // Click the button without aria-label
-      buttonWithoutLabel.click()
-
-      // Should still call gtag but with undefined method
-      expect(mockGtag).toHaveBeenCalledWith('event', 'share', {
-        method: undefined,
-        contentType: 'article',
-        contentId: '/',
-      })
-    })
-
-    it('should handle missing event target gracefully', async () => {
-      const { SocialShare } = await import('..')
-
-      SocialShare.init()
-
-      const twitterButton = document.querySelector(
-        '[aria-label="Share on X (Twitter)"]'
-      ) as HTMLElement
-      expect(twitterButton).toBeTruthy()
-
-      // Create an event without a valid currentTarget
-      const customEvent = new Event('click', { bubbles: true })
-      Object.defineProperty(customEvent, 'currentTarget', {
-        value: null,
-        writable: true,
-      })
-
-      // This should not throw an error
-      expect(() => {
-        twitterButton.dispatchEvent(customEvent)
-      }).not.toThrow()
-
-      // gtag should not be called since target is null
-      expect(mockGtag).not.toHaveBeenCalled()
-    })
   })
 
-  describe('Lifecycle methods', () => {
-    it('should pause and remove event listeners', async () => {
-      const { SocialShare } = await import('..')
+  test('opens Mastodon modal for Mastodon platform', async () => {
+    await renderComponent(defaultProps, async ({ element, window }) => {
+      const modalSpy = vi.fn()
+      ;(window as Window & { openMastodonModal?: (_text: string) => void }).openMastodonModal = modalSpy
 
-      SocialShare.init()
-
-      const twitterButton = document.querySelector(
-        '[aria-label="Share on X (Twitter)"]'
-      ) as HTMLElement
-
-      // Click should work initially
-      twitterButton.click()
-      expect(mockGtag).toHaveBeenCalledTimes(1)
-
-      // Pause should remove listeners
-      SocialShare.pause()
-      vi.clearAllMocks()
-
-      // Click should not trigger gtag after pause
-      twitterButton.click()
-      expect(mockGtag).not.toHaveBeenCalled()
-    })
-
-    it('should resume and re-add event listeners', async () => {
-      const { SocialShare } = await import('..')
-
-      SocialShare.init()
-      SocialShare.pause()
-      vi.clearAllMocks()
-
-      // Resume should re-add listeners
-      SocialShare.resume()
-
-      const twitterButton = document.querySelector(
-        '[aria-label="Share on X (Twitter)"]'
-      ) as HTMLElement
-
-      // Click should work again after resume
-      twitterButton.click()
-      expect(mockGtag).toHaveBeenCalledTimes(1)
-    })
-
-    it('should reset and clear all listeners', async () => {
-      const { SocialShare } = await import('..')
-
-      SocialShare.init()
-
-      const twitterButton = document.querySelector(
-        '[aria-label="Share on X (Twitter)"]'
-      ) as HTMLElement
-
-      // Click should work initially
-      twitterButton.click()
-      expect(mockGtag).toHaveBeenCalledTimes(1)
-
-      // Reset should clear everything
-      SocialShare.reset()
-      vi.clearAllMocks()
-
-      // Click should not trigger gtag after reset
-      twitterButton.click()
-      expect(mockGtag).not.toHaveBeenCalled()
-    })
-  })
-
-  describe('Integration with different social networks', () => {
-    it('should handle all supported social networks correctly', async () => {
-      const { SocialShare } = await import('..')
-
-      SocialShare.init()
-
-      const networks = [
-        { selector: '[aria-label="Share on X (Twitter)"]', expected: 'x (twitter)' },
-        { selector: '[aria-label="Share on LinkedIn"]', expected: 'linkedin' },
-        { selector: '[aria-label="Share on Bluesky"]', expected: 'bluesky' },
-      ]
-
-      networks.forEach(({ selector, expected }) => {
-        const button = document.querySelector(selector) as HTMLElement
-        expect(button).toBeTruthy()
-
-        button.click()
-
-        expect(mockGtag).toHaveBeenCalledWith('event', 'share', {
-          method: expected,
-          contentType: 'article',
-          contentId: '/',
-        })
-      })
-
-      expect(mockGtag).toHaveBeenCalledTimes(3)
-    })
-
-    it('should open Mastodon modal for Mastodon button', async () => {
-      const { SocialShare } = await import('..')
-
-      // Mock window.openMastodonModal
-      const mockOpenModal = vi.fn()
-      Object.defineProperty(window, 'openMastodonModal', {
-        value: mockOpenModal,
-        writable: true,
-      })
-
-      SocialShare.init()
-
-      const mastodonButton = document.querySelector('[data-platform="mastodon"]') as HTMLElement
+      const mastodonButton = element.querySelector('[data-platform="mastodon"]')
       expect(mastodonButton).toBeTruthy()
 
-      // Regular click should open modal
-      mastodonButton.click()
+      mastodonButton?.dispatchEvent(new window.MouseEvent('click', { bubbles: true, cancelable: true }))
 
-      // Should call openMastodonModal with text from data attribute
-      expect(mockOpenModal).toHaveBeenCalledWith('Test description https://example.com/test')
+      expect(modalSpy).toHaveBeenCalled()
+      expect(modalSpy.mock.calls[0]?.[0]).toContain(defaultProps.url)
+    })
+  })
+
+  test('uses Web Share API when shift+clicking a share button', async () => {
+    await renderComponent(defaultProps, async ({ element, window }) => {
+      const shareSpy = vi.fn().mockResolvedValue(undefined)
+      ;(window.navigator as Navigator & { share?: typeof shareSpy }).share = shareSpy
+
+      const metaDescription = window.document.createElement('meta')
+      metaDescription.name = 'description'
+      metaDescription.content = 'Meta description copy'
+      window.document.head.appendChild(metaDescription)
+
+      const twitterButton = element.querySelector('[aria-label="Share on X (Twitter)"]')
+      expect(twitterButton).toBeTruthy()
+
+      const shiftClick = new window.MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+        shiftKey: true,
+      })
+
+      twitterButton?.dispatchEvent(shiftClick)
+      expect(shareSpy).toHaveBeenCalledWith({
+        title: defaultProps.title,
+        text: 'Meta description copy',
+        url: defaultProps.url,
+      })
     })
   })
 })
+

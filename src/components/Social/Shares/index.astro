@@ -1,9 +1,7 @@
 ---
 /**
- * Social media sharing component with buttons for various platforms
+ * Social media sharing component powered by Lit web component
  */
-import Icon from '@components/Icon/index.astro'
-import { platforms, type ShareData } from '@components/Social/common'
 
 export interface Props {
   /** Page URL to share */
@@ -32,99 +30,23 @@ const {
 } = Astro.props
 
 // Create share data
-const shareData: ShareData = {
-  text: description ? `${title} - ${description}` : title,
-  url,
-  title,
-}
-
-// Filter platforms based on requested networks
-const selectedPlatforms = platforms.filter(platform =>
-  socialNetworks.includes(platform.id as (typeof socialNetworks)[number])
-)
-
-const containerClasses = [
-  'social-share',
-  layout === 'horizontal' ? 'flex flex-wrap gap-3' : 'flex flex-col gap-2',
-  additionalClasses,
-]
-  .filter(Boolean)
-  .join(' ')
+const shareDescription = description ?? ''
+const containerClassAttr = additionalClasses ?? ''
+const socialNetworksAttr = socialNetworks.join(',')
 ---
 
-<style>
-  /* Additional styling for social share component */
-  .social-share__button:hover {
-    transform: translateY(-1px);
-  }
-
-  .social-share__button:active {
-    transform: translateY(0);
-  }
-
-  /* Responsive adjustments */
-  @media (width <= 640px) {
-    .social-share {
-      justify-content: center;
-    }
-
-    .social-share__label {
-      margin-bottom: 0.5rem;
-      text-align: center;
-      width: 100%;
-    }
-  }
-</style>
-
-<div class={containerClasses} role="group" aria-label="Share this content">
-  <span
-    class="social-share__label text-sm font-semibold text-text-offset mr-2 self-center"
-  >
-    Share:
-  </span>
-
-  {
-    selectedPlatforms.map(platform => {
-      const shareUrl = platform.getShareUrl(shareData)
-      const shareText = `${shareData.text} ${shareData.url}`
-
-      // Mastodon uses modal, others use direct links
-      if (platform.useModal) {
-        return (
-          <button
-            type="button"
-            class={`social-share__button inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white font-medium transition-colors ${platform.colorClasses} hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
-            aria-label={platform.ariaLabel}
-            data-platform={platform.id}
-            data-share-text={shareText}
-          >
-            <Icon name={platform.icon} class="h-4 w-4 fill-current" />
-            <span class="hidden sm:inline">{platform.name}</span>
-          </button>
-        )
-      }
-
-      return (
-        <a
-          href={shareUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          class={`social-share__button inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white font-medium transition-colors ${platform.colorClasses} hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
-          aria-label={platform.ariaLabel}
-        >
-          <Icon name={platform.icon} class="h-4 w-4 fill-current" />
-          <span class="hidden sm:inline">{platform.name}</span>
-        </a>
-      )
-    })
-  }
-</div>
+<social-share-element
+  data-social-shares
+  url={url}
+  title={title}
+  description={shareDescription}
+  layout={layout}
+  social-networks={socialNetworksAttr}
+  container-class={containerClassAttr}
+  label-text="Share:"
+/>
 
 <script>
-  import { SocialShare } from '@components/Social/Shares/client'
-
-  // Initialize social share with Astro View Transitions
-  document.addEventListener('astro:page-load', () => {
-    SocialShare.init()
-  })
+  import { registerSocialShareElement } from './client'
+  registerSocialShareElement()
 </script>
