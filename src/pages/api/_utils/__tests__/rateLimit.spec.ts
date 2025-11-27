@@ -1,11 +1,28 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 
+const { mockIsDev, mockIsTest } = vi.hoisted(() => ({
+  mockIsDev: vi.fn(() => false),
+  mockIsTest: vi.fn(() => false),
+}))
+
+// Mock server environment helpers that get re-exported through environmentApi
+vi.mock('@lib/config/environmentServer', () => ({
+  isCI: vi.fn(() => false),
+  isDev: mockIsDev,
+  isE2eTest: vi.fn(() => false),
+  isGitHub: vi.fn(() => false),
+  isProd: vi.fn(() => true),
+  isTest: mockIsTest,
+  isUnitTest: vi.fn(() => false),
+  isVercel: vi.fn(() => false),
+}))
+
 // Mock environment utilities BEFORE importing the module under test
-vi.mock('@pages/api/_environment', () => ({
+vi.mock('@pages/api/_environment/environmentApi', () => ({
   getUpstashApiToken: vi.fn(() => 'test-token'),
   getUpstashApiUrl: vi.fn(() => 'https://test-redis.upstash.io'),
-  isDev: vi.fn(() => false),
-  isTest: vi.fn(() => false),
+  isDev: mockIsDev,
+  isTest: mockIsTest,
 }))
 
 import { rateLimiters, checkRateLimit, checkContactRateLimit } from '@pages/api/_utils/rateLimit'
@@ -94,8 +111,11 @@ describe('Rate Limit Utils', () => {
         config: {},
       }
 
-      // Set the rate limiter for tests
-      Object.assign(rateLimiters.consent, mockRateLimiter)
+      // Ensure each exported limiter uses the shared mock implementation
+      Object.keys(rateLimiters).forEach((key) => {
+        const mapKey = key as keyof typeof rateLimiters
+        Object.assign(rateLimiters[mapKey], mockRateLimiter)
+      })
     })
 
     it('should return success when rate limit is not exceeded', async () => {
