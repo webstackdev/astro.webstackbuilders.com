@@ -1,20 +1,19 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { sendDSARVerificationEmail } from '@pages/api/gdpr/_dsarVerificationEmails'
 
-// Mock environment utilities BEFORE importing the module under test
-vi.mock('@lib/config/environmentServer', () => ({
-  isDev: vi.fn(() => false),
-  isTest: vi.fn(() => false),
+const { envMocks, siteUrlMock } = vi.hoisted(() => ({
+  envMocks: {
+    isDev: vi.fn(() => false),
+    isTest: vi.fn(() => false),
+    getResendApiKey: vi.fn(() => 'test-resend-key'),
+  },
+  siteUrlMock: vi.fn(() => 'https://webstackbuilders.com'),
 }))
 
-// Mock getSiteUrl
-vi.mock('@lib/config', () => ({
-  getSiteUrl: vi.fn(() => 'https://webstackbuilders.com'),
-}))
+vi.mock('@pages/api/_environment/environmentApi', () => envMocks)
 
-// Mock astro:env/server
-vi.mock('astro:env/server', () => ({
-  RESEND_API_KEY: 'test-resend-key',
+vi.mock('@pages/api/_environment/siteUrlApi', () => ({
+  getSiteUrl: siteUrlMock,
 }))
 
 // Create mock send function at module level
@@ -36,30 +35,18 @@ vi.mock('resend', () => {
 describe('GDPR Email Utils', () => {
   let consoleLogSpy: ReturnType<typeof vi.fn>
   let consoleErrorSpy: ReturnType<typeof vi.fn>
-  let isDev: ReturnType<typeof vi.fn>
-  let isTest: ReturnType<typeof vi.fn>
-  let getSiteUrl: ReturnType<typeof vi.fn>
 
-  beforeEach(async () => {
-    // Get the mocked functions
-    const envUtils = await import('@lib/config/environmentServer')
-    isDev = envUtils.isDev as ReturnType<typeof vi.fn>
-    isTest = envUtils.isTest as ReturnType<typeof vi.fn>
+  beforeEach(() => {
+    vi.resetModules()
+    vi.clearAllMocks()
 
-    const config = await import('@lib/config')
-    getSiteUrl = config.getSiteUrl as ReturnType<typeof vi.fn>
+    envMocks.isDev.mockReturnValue(false)
+    envMocks.isTest.mockReturnValue(false)
+    envMocks.getResendApiKey.mockReturnValue('test-resend-key')
+    siteUrlMock.mockReturnValue('https://webstackbuilders.com')
 
-    // Mock console methods
     consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-
-    // Reset to production mode by default
-    isDev.mockReturnValue(false)
-    isTest.mockReturnValue(false)
-    getSiteUrl.mockReturnValue('https://webstackbuilders.com')
-
-    // Reset all mocks
-    vi.clearAllMocks()
   })
 
   afterEach(() => {
@@ -70,7 +57,7 @@ describe('GDPR Email Utils', () => {
   describe('sendDSARVerificationEmail', () => {
     describe('in development/test environment', () => {
       it('should log email details instead of sending when isDev() returns true', async () => {
-        isDev.mockReturnValue(true)
+        envMocks.isDev.mockReturnValue(true)
 
         await sendDSARVerificationEmail('test@example.com', 'test-token', 'ACCESS')
 
@@ -86,7 +73,7 @@ describe('GDPR Email Utils', () => {
       })
 
       it('should log email details instead of sending when isTest() returns true', async () => {
-        isTest.mockReturnValue(true)
+        envMocks.isTest.mockReturnValue(true)
 
         await sendDSARVerificationEmail('test@example.com', 'test-token', 'DELETE')
 
@@ -163,7 +150,7 @@ describe('GDPR Email Utils', () => {
       })
 
       it('should use getSiteUrl() return value for verification URL', async () => {
-        getSiteUrl.mockReturnValue('http://localhost:4321')
+        siteUrlMock.mockReturnValue('http://localhost:4321')
         mockSend.mockResolvedValue({
           data: { id: 'message-id-789' },
           error: null,
@@ -229,7 +216,7 @@ describe('GDPR Email Utils', () => {
       })
 
       it('should generate proper verification URLs with tokens', async () => {
-        getSiteUrl.mockReturnValue('https://example.com')
+        siteUrlMock.mockReturnValue('https://example.com')
         mockSend.mockResolvedValue({
           data: { id: 'message-id-url' },
           error: null,
