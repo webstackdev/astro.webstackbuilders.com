@@ -129,14 +129,21 @@ describe('animation lifecycle store', () => {
 
     const onPlay = vi.fn()
     const onPause = vi.fn()
-    createAnimationController({
+    const controller = createAnimationController({
       animationId: 'computers',
       onPlay,
       onPause,
     })
 
-    expect(onPause).toHaveBeenCalledTimes(1)
+    expect(onPause).not.toHaveBeenCalled()
     expect(onPlay).not.toHaveBeenCalled()
+
+    controller.requestPlay()
+    expect(onPlay).toHaveBeenCalledTimes(1)
+    expect(onPause).not.toHaveBeenCalled()
+
+    controller.requestPause()
+    expect(onPause).toHaveBeenCalledTimes(1)
 
     clearAnimationPreference('computers')
     expect(getAnimationPreference('computers')).toBeUndefined()
