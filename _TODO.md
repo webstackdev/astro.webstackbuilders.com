@@ -1,5 +1,9 @@
 # TODO
 
+## Analytics
+
+Vercel Analytics
+
 ## Themepicker tooltips, extra themes
 
 - Add additional themes
