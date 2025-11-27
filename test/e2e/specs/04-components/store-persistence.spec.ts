@@ -78,13 +78,8 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     await disableConsentModal(page)
   })
 
-  test.skip('@ready theme preference persists across View Transitions', async ({ page: playwrightPage }) => {
+  test('@ready theme preference persists across View Transitions', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
-    // SKIPPED: Theme persists to localStorage but isn't re-applied from localStorage after View Transition
-    // Root cause: Theme initialization on new page doesn't read from $theme store properly
-    // localStorage.getItem('theme') returns 'dark' but <html data-theme> is null after navigation
-    // This is an implementation bug in theme initialization logic
-
     // Go to homepage
     await gotoWithoutGrantingConsent(page)
     await page.waitForLoadState('networkidle')
@@ -140,22 +135,22 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     expect(isOpen).toBe('true')
   })
 
-  test.skip('@ready cookie consent preferences persist across View Transitions', async ({ page: playwrightPage }) => {
+  test('@ready cookie consent preferences persist across View Transitions', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
-    // SKIPPED: This test needs rework for hybrid consent approach
-    // where functional is true by default and analytics is opt-in
     // Go to homepage
     await gotoWithoutGrantingConsent(page)
     await page.waitForLoadState('networkidle')
 
     // Accept functional consent
-    await page.evaluate(() => {
-      const { updateConsent } = window as any
-      if (updateConsent) {
-        updateConsent('functional', true)
-        updateConsent('analytics', true)
+    const consentHelpersAvailable = await page.evaluate(() => {
+      if (!window.updateConsent) {
+        return false
       }
+      window.updateConsent('functional', true)
+      window.updateConsent('analytics', true)
+      return true
     })
+    expect(consentHelpersAvailable).toBe(true)
     await expect.poll(async () => {
       return await getLocalStorageItem(page, 'cookieConsent')
     }).not.toBeNull()
@@ -186,32 +181,35 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     }
   })
 
-  test.skip('@ready social embed cache persists across View Transitions', async ({ page: playwrightPage }) => {
+  test('@ready social embed cache persists across View Transitions', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
-    // SKIPPED: Test setup issue - cache functions not available in test environment
     // Go to a page with social embeds (if available)
     await gotoWithoutGrantingConsent(page)
     await page.waitForLoadState('networkidle')
 
     // First enable functional consent (required for caching)
-    await page.evaluate(() => {
-      const { updateConsent } = window as any
-      if (updateConsent) {
-        updateConsent('functional', true)
+    const functionalConsentApplied = await page.evaluate(() => {
+      if (!window.updateConsent) {
+        return false
       }
+      window.updateConsent('functional', true)
+      return true
     })
+    expect(functionalConsentApplied).toBe(true)
     await expect.poll(async () => {
       return await getLocalStorageItem(page, 'cookieConsent')
     }).not.toBeNull()
 
     // Add a mock embed to the cache
-    await page.evaluate(() => {
-      const { cacheEmbed } = window as any
-      if (cacheEmbed) {
-        const testData = { html: '<blockquote>Test cached embed</blockquote>' }
-        cacheEmbed('test_embed_123', testData, 24 * 60 * 60 * 1000) // 24 hours
+    const cacheHelpersAvailable = await page.evaluate(() => {
+      if (!window.cacheEmbed) {
+        return false
       }
+      const testData = { html: '<blockquote>Test cached embed</blockquote>' }
+      window.cacheEmbed('test_embed_123', testData, 24 * 60 * 60 * 1000) // 24 hours
+      return true
     })
+    expect(cacheHelpersAvailable).toBe(true)
     await expect.poll(async () => {
       return await getLocalStorageItem(page, 'socialEmbedCache')
     }).not.toBeNull()
@@ -242,32 +240,35 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     }
   })
 
-  test.skip('@ready mastodon instances persist across View Transitions', async ({ page: playwrightPage }) => {
+  test('@ready mastodon instances persist across View Transitions', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
-    // SKIPPED: Test setup issue - mastodon functions not available in test environment
     // Go to homepage
     await gotoWithoutGrantingConsent(page)
     await page.waitForLoadState('networkidle')
 
     // First enable functional consent (required for persistence)
-    await page.evaluate(() => {
-      const { updateConsent } = window as any
-      if (updateConsent) {
-        updateConsent('functional', true)
+    const functionalConsentEnabled = await page.evaluate(() => {
+      if (!window.updateConsent) {
+        return false
       }
+      window.updateConsent('functional', true)
+      return true
     })
+    expect(functionalConsentEnabled).toBe(true)
     await expect.poll(async () => {
       return await getLocalStorageItem(page, 'cookieConsent')
     }).not.toBeNull()
 
     // Add mastodon instances
-    await page.evaluate(() => {
-      const { saveMastodonInstance } = window as any
-      if (saveMastodonInstance) {
-        saveMastodonInstance('mastodon.social')
-        saveMastodonInstance('fosstodon.org')
+    const mastodonHelpersAvailable = await page.evaluate(() => {
+      if (!window.saveMastodonInstance) {
+        return false
       }
+      window.saveMastodonInstance('mastodon.social')
+      window.saveMastodonInstance('fosstodon.org')
+      return true
     })
+    expect(mastodonHelpersAvailable).toBe(true)
     await expect.poll(async () => {
       return await getLocalStorageItem(page, 'mastodonInstances')
     }).not.toBeNull()
@@ -313,12 +314,14 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
 
     // Set consent
-    await page.evaluate(() => {
-      const { updateConsent } = window as any
-      if (updateConsent) {
-        updateConsent('functional', true)
+    const consentSet = await page.evaluate(() => {
+      if (!window.updateConsent) {
+        return false
       }
+      window.updateConsent('functional', true)
+      return true
     })
+    expect(consentSet).toBe(true)
     await expect.poll(async () => {
       return await getLocalStorageItem(page, 'cookieConsent')
     }).not.toBeNull()

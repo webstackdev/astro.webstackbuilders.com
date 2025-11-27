@@ -9,6 +9,7 @@ import {
   initAnimationLifecycle,
   initConsentFromCookies,
   initConsentSideEffects,
+  exposeStoreActionsForTesting,
 } from '@components/scripts/store'
 import { SentryBootstrap } from '@components/scripts/sentry/client'
 import {
@@ -60,6 +61,9 @@ export class AppBootstrap {
       // 4. Setup all module-specific side effects (runs once per page load)
       addScriptBreadcrumb({ scriptName: 'AppBootstrap', operation: 'initConsentSideEffects' })
       initConsentSideEffects()
+
+      // 5. Expose limited store actions for Playwright-driven E2E tests
+      exposeStoreActionsForTesting()
     } catch (error: unknown) {
       const scriptError = new ClientScriptError(error)
       throw scriptError

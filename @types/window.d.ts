@@ -69,6 +69,14 @@ declare global {
      * Snapshot of server-side site URL helper
      */
     siteUrlApiSnapshot?: SiteUrlSnapshot
+
+    /**
+     * Exposed store helpers that tests use to seed state when Playwright controls the browser.
+     * These are only defined when window.isPlaywrightControlled === true.
+     */
+    updateConsent?: (category: 'analytics' | 'marketing' | 'functional', value: boolean) => void
+    cacheEmbed?: (key: string, data: unknown, ttl: number) => void
+    saveMastodonInstance?: (domain: string) => void
   }
 }
 

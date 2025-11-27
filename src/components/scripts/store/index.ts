@@ -2,6 +2,9 @@
  * Central State Management - Barrel Export
  * Single source of truth for all client-side state
  */
+import { updateConsent } from './consent'
+import { cacheEmbed } from './socialEmbeds'
+import { saveMastodonInstance } from './mastodonInstances'
 
 // Re-export types
 export type {
@@ -99,3 +102,19 @@ export {
   type EmbedCacheEntry,
   type EmbedCacheState,
 } from './socialEmbeds'
+
+/**
+ * Expose a limited set of store actions during Playwright runs so E2E tests
+ * can seed state without relying on private internals or DOM-only flows.
+ */
+export function exposeStoreActionsForTesting(): void {
+  if (typeof window === 'undefined' || window.isPlaywrightControlled !== true) {
+    return
+  }
+
+  Object.assign(window, {
+    updateConsent,
+    cacheEmbed,
+    saveMastodonInstance,
+  })
+}
