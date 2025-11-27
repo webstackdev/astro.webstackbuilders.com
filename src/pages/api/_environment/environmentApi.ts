@@ -6,17 +6,29 @@
  * functions with process.env.
  */
 import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
-
+import { isUnitTest } from '@lib/config/environmentServer'
 export {
   isCI,
-  isDev,
   isE2eTest,
   isGitHub,
-  isProd,
   isTest,
   isUnitTest,
   isVercel,
 } from '@lib/config/environmentServer'
+
+/**
+ * The value of import.meta.env.MODE is included in the serverless function
+ * bundle. Astro, which uses Vite under the hood, performs a static replacement
+ * of import.meta.env.* variables at build time.
+ */
+
+export const isDev = () => {
+  return import.meta.env.MODE === 'development'
+}
+
+export const isProd = () => {
+  return import.meta.env.MODE === 'production' && !isUnitTest()
+}
 
 /**
  * Privacy Policy Version Utility

@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
+import { TestError } from '@test/errors'
 import TestNavigationComponent from '@components/Navigation/client/__tests__/TestNavigation.astro'
 import {
   isAnchorElement,
@@ -78,7 +79,7 @@ describe('NavigationElement web component behavior', () => {
       const toggleButton = document.querySelector('.nav-toggle-btn')
 
       if (!isUlElement(menu) || !isHeaderElement(header) || !isButtonElement(toggleButton)) {
-        throw new Error('Navigation DOM structure is missing expected elements')
+        throw new TestError('Navigation DOM structure is missing expected elements')
       }
       toggleButton.click()
 
@@ -103,7 +104,7 @@ describe('NavigationElement web component behavior', () => {
     await renderNavigation(async () => {
       const toggleButton = document.querySelector('.nav-toggle-btn')
       if (!isButtonElement(toggleButton)) {
-        throw new Error('Navigation toggle button not found')
+        throw new TestError('Navigation toggle button not found')
       }
       toggleButton.click()
       expect(document.body.classList.contains('no-scroll')).toBe(true)
@@ -117,7 +118,7 @@ describe('NavigationElement web component behavior', () => {
     await renderNavigation(async () => {
       const firstLink = document.querySelector('.main-nav-menu a')
       if (!isAnchorElement(firstLink)) {
-        throw new Error('Navigation link not found')
+        throw new TestError('Navigation link not found')
       }
       firstLink.click()
       expect(navigateMock).toHaveBeenCalledWith(firstLink.getAttribute('href'))
@@ -128,7 +129,7 @@ describe('NavigationElement web component behavior', () => {
     await renderNavigation(async () => {
       const toggleButton = document.querySelector('.nav-toggle-btn')
       if (!isButtonElement(toggleButton)) {
-        throw new Error('Navigation toggle button not found')
+        throw new TestError('Navigation toggle button not found')
       }
       toggleButton.click()
       expect(focusTrapMock.activate).toHaveBeenCalled()

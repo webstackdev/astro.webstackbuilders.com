@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { TestError } from '@test/errors'
 import {
   recordConsent,
   recordConsentServerSide,
@@ -92,7 +93,7 @@ describe('gdpr.client', () => {
     })
 
     it('returns fallback error when fetch throws', async () => {
-      fetchSpy.mockRejectedValue(new Error('network down'))
+      fetchSpy.mockRejectedValue(new TestError('network down'))
 
       const result = await recordConsent(consentRequest)
 

@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
+import { TestError } from '@test/errors'
 import ThemePickerFixture from '@components/ThemePicker/client/__fixtures__/index.fixture.astro'
 import type { ThemePickerFixtureProps } from '@components/ThemePicker/client/__fixtures__/index.fixture.types'
 import type { ThemePickerElement } from '@components/ThemePicker/client'
@@ -22,7 +23,7 @@ type QueryRoot = ParentNode & {
 const queryElement = <T extends Element>(root: QueryRoot, selector: string): T => {
   const element = root.querySelector(selector) as T | null
   if (!element) {
-    throw new Error(`Expected element matching "${selector}" to exist`)
+    throw new TestError(`Expected element matching "${selector}" to exist`)
   }
   return element
 }
@@ -72,7 +73,7 @@ const renderThemePickerDom = async (
     },
     assert: async ({ element, window }) => {
       if (!window) {
-        throw new Error('ThemePicker tests require a Window instance from litRuntime')
+        throw new TestError('ThemePicker tests require a Window instance from litRuntime')
       }
       await assertion({ element, window })
     },
@@ -264,7 +265,7 @@ describe('ThemePicker Component', () => {
         expect(items.length).toBeGreaterThan(0)
         const firstItem = items[0]
         if (!firstItem) {
-          throw new Error('Expected at least one theme list item')
+          throw new TestError('Expected at least one theme list item')
         }
 
         const hues = Array.from(firstItem.querySelectorAll('.themepicker__hue')) as HTMLElement[]
@@ -273,7 +274,7 @@ describe('ThemePicker Component', () => {
         expectedClasses.forEach((className, index) => {
           const hue = hues[index]
           if (!hue) {
-            throw new Error(`Missing hue at index ${index}`)
+            throw new TestError(`Missing hue at index ${index}`)
           }
           expect(hue.classList.contains(className)).toBe(true)
         })

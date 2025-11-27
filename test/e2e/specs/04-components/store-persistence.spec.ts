@@ -11,6 +11,40 @@ const getLocalStorageItem = (page: BasePage, key: string) => {
   return page.evaluate((storageKey) => localStorage.getItem(storageKey), key)
 }
 
+const disableConsentModal = async (page: BasePage) => {
+  await page.evaluate(() => {
+    const modal = document.getElementById('consent-modal-id')
+    if (modal) {
+      modal.style.display = 'none'
+      modal.setAttribute('aria-hidden', 'true')
+    }
+
+    const main = document.getElementById('main-content')
+    if (main && main.hasAttribute('inert')) {
+      main.removeAttribute('inert')
+    }
+  })
+}
+
+const gotoWithoutGrantingConsent = async (page: BasePage, path = '/') => {
+  await page.goto(path, { skipCookieDismiss: true })
+  await disableConsentModal(page)
+}
+
+const navigateWithViewTransitions = async (page: BasePage, href: string) => {
+  const navigationElement = page.locator('site-navigation')
+  await expect(navigationElement).toHaveAttribute('data-nav-ready', 'true')
+
+  const mobileToggle = page.locator('#header__nav-icon button')
+  if (await mobileToggle.isVisible()) {
+    await mobileToggle.click()
+    await expect(mobileToggle).toHaveAttribute('aria-expanded', 'true')
+  }
+
+  await page.navigateToPage(href)
+  await page.waitForPageLoad()
+}
+
 test.describe('Nanostore Persistence Across Navigation', () => {
   /**
    * Setup for nanostore persistence tests
@@ -32,14 +66,16 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     const page = await BasePage.init(playwrightPage)
     // Clear ALL storage (localStorage, sessionStorage, AND cookies) for clean state
     await context.clearCookies()
-    await page.goto('/')
+    await gotoWithoutGrantingConsent(page)
     await page.evaluate(() => {
       localStorage.clear()
       sessionStorage.clear()
     })
+    await context.clearCookies()
     // Reload page so stores re-initialize with cleared storage
     await page.reload()
     await page.waitForLoadState('networkidle')
+    await disableConsentModal(page)
   })
 
   test.skip('@ready theme preference persists across View Transitions', async ({ page: playwrightPage }) => {
@@ -50,7 +86,7 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     // This is an implementation bug in theme initialization logic
 
     // Go to homepage
-    await page.goto('/')
+    await gotoWithoutGrantingConsent(page)
     await page.waitForLoadState('networkidle')
 
     // Select dark theme using helper
@@ -68,8 +104,7 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     expect(storedTheme).toBe('dark')
 
     // Navigate to another page using View Transitions
-    await page.click('a[href="/about"]')
-    await page.waitForLoadState('networkidle')
+    await navigateWithViewTransitions(page, '/about')
 
     // Verify theme persisted after navigation
     await expect(htmlElement).toHaveAttribute('data-theme', 'dark')
@@ -82,7 +117,7 @@ test.describe('Nanostore Persistence Across Navigation', () => {
   test('@ready theme picker modal state persists across View Transitions', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     // Go to homepage
-    await page.goto('/')
+    await gotoWithoutGrantingConsent(page)
     await page.waitForLoadState('networkidle')
 
     // Open theme picker modal
@@ -94,8 +129,7 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     await expect(modal).toHaveClass(/is-open/)
 
     // Navigate to another page while modal is open
-    await page.click('a[href="/about"]')
-    await page.waitForLoadState('networkidle')
+    await navigateWithViewTransitions(page, '/about')
 
     // Modal should remain open after navigation (state persists via $themePickerOpen store)
     const modalAfterNav = page.locator('[data-theme-modal]')
@@ -111,12 +145,11 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     // SKIPPED: This test needs rework for hybrid consent approach
     // where functional is true by default and analytics is opt-in
     // Go to homepage
-    await page.goto('/')
+    await gotoWithoutGrantingConsent(page)
     await page.waitForLoadState('networkidle')
 
     // Accept functional consent
     await page.evaluate(() => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { updateConsent } = window as any
       if (updateConsent) {
         updateConsent('functional', true)
@@ -137,8 +170,7 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     }
 
     // Navigate to another page
-    await page.click('a[href="/about"]')
-    await page.waitForLoadState('networkidle')
+    await navigateWithViewTransitions(page, '/about')
 
     await expect.poll(async () => {
       return await getLocalStorageItem(page, 'cookieConsent')
@@ -158,12 +190,11 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     const page = await BasePage.init(playwrightPage)
     // SKIPPED: Test setup issue - cache functions not available in test environment
     // Go to a page with social embeds (if available)
-    await page.goto('/')
+    await gotoWithoutGrantingConsent(page)
     await page.waitForLoadState('networkidle')
 
     // First enable functional consent (required for caching)
     await page.evaluate(() => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { updateConsent } = window as any
       if (updateConsent) {
         updateConsent('functional', true)
@@ -175,7 +206,6 @@ test.describe('Nanostore Persistence Across Navigation', () => {
 
     // Add a mock embed to the cache
     await page.evaluate(() => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { cacheEmbed } = window as any
       if (cacheEmbed) {
         const testData = { html: '<blockquote>Test cached embed</blockquote>' }
@@ -196,8 +226,7 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     }
 
     // Navigate to another page
-    await page.click('a[href="/about"]')
-    await page.waitForLoadState('networkidle')
+    await navigateWithViewTransitions(page, '/about')
 
     // Verify cache persisted after navigation
     await expect.poll(async () => {
@@ -217,12 +246,11 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     const page = await BasePage.init(playwrightPage)
     // SKIPPED: Test setup issue - mastodon functions not available in test environment
     // Go to homepage
-    await page.goto('/')
+    await gotoWithoutGrantingConsent(page)
     await page.waitForLoadState('networkidle')
 
     // First enable functional consent (required for persistence)
     await page.evaluate(() => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { updateConsent } = window as any
       if (updateConsent) {
         updateConsent('functional', true)
@@ -234,7 +262,6 @@ test.describe('Nanostore Persistence Across Navigation', () => {
 
     // Add mastodon instances
     await page.evaluate(() => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { saveMastodonInstance } = window as any
       if (saveMastodonInstance) {
         saveMastodonInstance('mastodon.social')
@@ -255,8 +282,7 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     }
 
     // Navigate to another page
-    await page.click('a[href="/about"]')
-    await page.waitForLoadState('networkidle')
+    await navigateWithViewTransitions(page, '/about')
 
     // Verify instances persisted after navigation
     await expect.poll(async () => {
@@ -275,7 +301,7 @@ test.describe('Nanostore Persistence Across Navigation', () => {
   test('@ready all stores clear on explicit storage clear', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     // Go to homepage and set up all stores
-    await page.goto('/')
+    await gotoWithoutGrantingConsent(page)
     await page.waitForLoadState('networkidle')
 
     // Set theme
@@ -288,7 +314,6 @@ test.describe('Nanostore Persistence Across Navigation', () => {
 
     // Set consent
     await page.evaluate(() => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { updateConsent } = window as any
       if (updateConsent) {
         updateConsent('functional', true)
@@ -320,7 +345,7 @@ test.describe('Nanostore Persistence Across Navigation', () => {
   test('@ready stores restore defaults when localStorage is corrupted', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     // Go to homepage
-    await page.goto('/')
+    await gotoWithoutGrantingConsent(page)
     await page.waitForLoadState('networkidle')
 
     // Corrupt localStorage entries
@@ -334,7 +359,7 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     await page.waitForLoadState('networkidle')
     await expect.poll(async () => {
       return await getLocalStorageItem(page, 'theme')
-    }).toBe('default')
+    }).toBe('light')
 
     // Verify stores recovered with defaults
     const theme = await getLocalStorageItem(page, 'theme')
@@ -344,7 +369,7 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     const consent = await getLocalStorageItem(page, 'cookieConsent')
 
     // Theme should be reset to default
-    expect(theme).toBe('default')
+    expect(theme).toBe('light')
 
     // Consent should be reset with defaults (functional defaults to false - opt-in for Mastodon)
     if (consent) {

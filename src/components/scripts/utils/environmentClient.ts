@@ -35,12 +35,18 @@ export const isTest = () => {
   return isUnitTest() || isE2eTest() || isE2eTestLambda()
 }
 
+/**
+ * The value of import.meta.env.MODE is included in the serverless function
+ * bundle. Astro, which uses Vite under the hood, performs a static replacement
+ * of import.meta.env.* variables at build time.
+ */
+
 export const isDev = () => {
-  return import.meta.env.DEV
+  return import.meta.env.MODE === 'development'
 }
 
 export const isProd = () => {
-  return import.meta.env.PROD && !isUnitTest()
+  return import.meta.env.MODE === 'production' && !isUnitTest()
 }
 
 /**

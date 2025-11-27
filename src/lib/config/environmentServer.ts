@@ -26,17 +26,18 @@ export const isTest = () => {
   return isUnitTest() || isE2eTest()
 }
 
+/**
+ * Production behaviors include functionality like using real API keys.
+ * The only environment we want that behavior is during the production
+ * build on Vercel.
+ */
+
 export const isDev = () => {
-  return import.meta.env.DEV
+  return !isVercel()
 }
 
-/**
- * The value of import.meta.env.PROD is included in the serverless function
- * bundle. Astro, which uses Vite under the hood, performs a static replacement
- * of import.meta.env.* variables at build time.
- */
 export const isProd = () => {
-  return import.meta.env.PROD && !isUnitTest()
+  return isVercel()
 }
 
 export const isGitHub = () => {

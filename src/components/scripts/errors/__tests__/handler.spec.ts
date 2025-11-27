@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { TestError } from '@test/errors'
 import { ClientScriptError } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { captureException } from '@sentry/browser'
@@ -26,7 +27,7 @@ describe('handleScriptError', () => {
   it('reports exceptions to Sentry when running in production', () => {
     isProdMock.mockReturnValue(true)
 
-    const result = handleScriptError(new Error('boom'), {
+    const result = handleScriptError(new TestError('boom'), {
       scriptName: 'AppBootstrap',
       operation: 'init',
     })

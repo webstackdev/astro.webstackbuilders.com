@@ -2,6 +2,7 @@
 
 import { beforeEach, describe, expect, it } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
+import { TestError } from '@test/errors'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import ConsentPreferencesComponent from '@components/Consent/Preferences/index.astro'
 import type { ConsentPreferencesElement } from '@components/Consent/Preferences/client'
@@ -25,7 +26,7 @@ const waitForPreferencesReady = async (element: ConsentPreferencesElement) => {
   await new Promise<void>((resolve, reject) => {
     const timeoutId = setTimeout(() => {
       element.removeEventListener(CONSENT_PREFERENCES_READY_EVENT, onReady)
-      reject(new Error('Consent preferences component never finished initializing'))
+            reject(new TestError('Consent preferences component never finished initializing'))
     }, CONSENT_READY_TIMEOUT_MS)
 
     function onReady() {
@@ -50,7 +51,7 @@ const renderConsentPreferences = async (
     waitForReady: waitForPreferencesReady,
     assert: async ({ element, window }) => {
       if (!window) {
-        throw new Error('Consent preferences tests require a window instance')
+        throw new TestError('Consent preferences tests require a window instance')
       }
 
       await assertion({ element, window: window as JsdomWindow })

@@ -1,13 +1,11 @@
 /**
  * E2E Regression Tests for Client Environment Detection
  *
- * Issue: Environment detection functions should work correctly in browser context
- * Solution: Test environment utilities in actual browser environment via page.evaluate()
- *
  * @see src/components/scripts/utils/environmentClient.ts
  */
 
 import { test, expect } from '@test/e2e/helpers'
+import { TestError } from '@test/errors'
 import { BasePage } from '@test/e2e/helpers/pageObjectModels/BasePage'
 
 type EnvironmentSnapshot = {
@@ -30,7 +28,7 @@ const getEnvironmentSnapshot = async (page: BasePage): Promise<EnvironmentSnapsh
   await navigateToDiagnosticsPage(page)
   return await page.evaluate(() => {
     if (!window.environmentClientSnapshot) {
-      throw new Error('Environment snapshot not initialized')
+      throw new TestError('Environment snapshot not initialized')
     }
     return window.environmentClientSnapshot
   })

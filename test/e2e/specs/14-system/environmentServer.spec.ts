@@ -1,10 +1,7 @@
 /**
- * E2E Regression Tests for Client Environment Detection
+ * E2E Regression Tests for Server Environment Detection
  *
- * Issue: Environment detection functions should work correctly in browser context
- * Solution: Test environment utilities in actual browser environment via page.evaluate()
- *
- * @see src/components/scripts/utils/environmentClient.ts
+ * @see src/lib/config/environmentServer.ts
  */
 
 import { test, expect } from '@test/e2e/helpers'

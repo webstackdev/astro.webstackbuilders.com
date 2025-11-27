@@ -11,11 +11,8 @@ export interface Props {
 
 const { title, description, slug, image } = Astro.props
 
-if (!(Astro.site instanceof URL)) {
-  throw new Error('Astro.site must be configured to generate social metadata.')
-}
-
-const options: SocialMetadataOptions = { url: Astro.url.href, baseUrl: Astro.site.origin }
+/** Assertion on Astro.site because it's guaranteed to be present or build throws */
+const options: SocialMetadataOptions = { url: Astro.url.href, baseUrl: Astro.site!.origin }
 if (title !== undefined) options.title = title
 if (description !== undefined) options.description = description
 if (slug !== undefined) options.slug = slug

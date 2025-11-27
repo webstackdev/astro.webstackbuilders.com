@@ -1,5 +1,6 @@
 import { expect } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
+import { TestError } from '@test/errors'
 import ContactFormFixture from '@components/Forms/Contact/client/__tests__/__fixtures__/contactForm.fixture.astro'
 import type { ContactFormElement } from '@components/Forms/Contact/client'
 import { getContactFormElements } from '@components/Forms/Contact/client/selectors'
@@ -32,7 +33,7 @@ export const renderContactForm = async (
     selector: 'contact-form',
     assert: async ({ element, module, window, renderResult }) => {
       if (!window) {
-        throw new Error('Contact form tests require a DOM-like window environment')
+        throw new TestError('Contact form tests require a DOM-like window environment')
       }
 
       const context = {

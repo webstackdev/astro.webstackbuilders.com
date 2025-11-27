@@ -3,6 +3,7 @@
  * Unit tests for cookie consent state management
  */
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+import { TestError } from '@test/errors'
 import type { ConsentState } from '@components/scripts/store/consent'
 import {
   $consent,
@@ -348,7 +349,7 @@ describe('Consent side effects', () => {
     expect(fetchSpy).toHaveBeenCalledTimes(1)
     const firstFetchCall = fetchSpy.mock.calls.at(0)
     if (!firstFetchCall) {
-      throw new Error('Expected consent logging fetch to be called once')
+      throw new TestError('Expected consent logging fetch to be called once')
     }
     const [url, options] = firstFetchCall
     expect(url).toBe('/api/gdpr/consent')

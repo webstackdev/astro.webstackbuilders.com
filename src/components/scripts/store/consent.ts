@@ -32,6 +32,42 @@ const CONSENT_COOKIE_PREFIX = 'consent_'
 
 const prefixConsentCookie = (category: ConsentCategories): string => `${CONSENT_COOKIE_PREFIX}${category}`
 
+const createDefaultConsentState = (): ConsentState => ({
+  analytics: false,
+  marketing: false,
+  functional: false,
+  DataSubjectId: '',
+})
+
+const persistConsentStateSafely = (state: ConsentState): void => {
+  if (typeof window === 'undefined' || typeof window.localStorage === 'undefined') {
+    return
+  }
+
+  try {
+    window.localStorage.setItem('cookieConsent', JSON.stringify(state))
+  } catch {
+    // Ignore persistence failures (Safari private mode, etc.)
+  }
+}
+
+const isConsentState = (value: unknown): value is ConsentState => {
+  if (!value || typeof value !== 'object') {
+    return false
+  }
+
+  const candidate = value as Partial<ConsentState>
+  const hasValidBooleans = typeof candidate.analytics === 'boolean'
+    && typeof candidate.marketing === 'boolean'
+    && typeof candidate.functional === 'boolean'
+
+  if (!hasValidBooleans) {
+    return false
+  }
+
+  return typeof candidate.DataSubjectId === 'string' || typeof candidate.DataSubjectId === 'undefined'
+}
+
 // ============================================================================
 // STORES
 // ============================================================================
@@ -46,24 +82,26 @@ const prefixConsentCookie = (category: ConsentCategories): string => `${CONSENT_
  * are classified as 'necessary' and handled separately without requiring consent.
  */
 // @TODO: $consent.get() - should subscribe instead
-export const $consent = persistentAtom<ConsentState>('cookieConsent', {
-  analytics: false,
-  marketing: false,
-  functional: false,
-  DataSubjectId: '', // Will be set on first access
-}, {
+export const $consent = persistentAtom<ConsentState>('cookieConsent', createDefaultConsentState(), {
   encode: JSON.stringify,
   decode: (value: string): ConsentState => {
     try {
-      return JSON.parse(value)
-    } catch {
-      return {
-        analytics: false,
-        marketing: false,
-        functional: false,
-        DataSubjectId: '',
+      const parsedValue = JSON.parse(value)
+      if (isConsentState(parsedValue)) {
+        return {
+          analytics: parsedValue.analytics,
+          marketing: parsedValue.marketing,
+          functional: parsedValue.functional,
+          DataSubjectId: parsedValue.DataSubjectId ?? '',
+        }
       }
+    } catch {
+      // Ignore JSON parsing errors - we will fall back to defaults
     }
+
+    const defaultState = createDefaultConsentState()
+    persistConsentStateSafely(defaultState)
+    return defaultState
   },
 })
 

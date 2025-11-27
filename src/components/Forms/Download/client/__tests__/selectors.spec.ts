@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
+import { TestError } from '@test/errors'
 import {
   getDownloadButtonWrapper,
   getDownloadCompanyNameInput,
@@ -25,7 +26,7 @@ const resolveDocument = (root: Document | Element): Document => {
   }
   const owner = root.ownerDocument
   if (!owner) {
-    throw new Error('Owner document not available for provided root')
+    throw new TestError('Owner document not available for provided root')
   }
   return owner
 }
@@ -33,7 +34,7 @@ const resolveDocument = (root: Document | Element): Document => {
 const removeElementById = (root: Document | Element, id: string) => {
   const target = root.querySelector<HTMLElement>(`#${id}`)
   if (!target) {
-    throw new Error(`Node with id "${id}" not found for removal`)
+    throw new TestError(`Node with id "${id}" not found for removal`)
   }
   target.remove()
 }
@@ -46,7 +47,7 @@ const replaceElementWith = (
   const doc = resolveDocument(root)
   const original = doc.querySelector<HTMLElement>(`#${id}`)
   if (!original) {
-    throw new Error(`Node with id "${id}" not found for replacement`)
+    throw new TestError(`Node with id "${id}" not found for replacement`)
   }
   const replacement = createNode(doc)
   replacement.id = original.id
@@ -81,7 +82,7 @@ describe('getDownloadFormElement selector', () => {
       const component = window.document.querySelector('download-form')
       expect(component).toBeTruthy()
       if (!component) {
-        throw new Error('download-form wrapper not found in DOM')
+        throw new TestError('download-form wrapper not found in DOM')
       }
       const element = getDownloadFormElement(component)
       expect(isFormElement(element)).toBeTruthy()

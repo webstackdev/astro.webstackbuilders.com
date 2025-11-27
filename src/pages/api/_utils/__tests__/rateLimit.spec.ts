@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+import { TestError } from '@test/errors'
 
 const { mockIsDev, mockIsTest } = vi.hoisted(() => ({
   mockIsDev: vi.fn(() => false),
@@ -173,7 +174,7 @@ describe('Rate Limit Utils', () => {
     })
 
     it('should propagate rate limiter errors', async () => {
-      const error = new Error('Redis connection failed')
+      const error = new TestError('Redis connection failed')
       mockLimit.mockRejectedValue(error)
 
       await expect(

@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { TestError } from '@test/errors'
 import type { Webmention, WebmentionResponse } from '@components/WebMentions/@types'
 import fixture from '../__fixtures__/index.fixture.json'
 import {
@@ -47,7 +48,7 @@ describe('fetchWebmentions', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1)
     const firstCall = fetchMock.mock.calls.at(0)
     if (!firstCall) {
-      throw new Error('fetch was not called during webmention fetch test')
+      throw new TestError('fetch was not called during webmention fetch test')
     }
     const [requestedUrl, init] = firstCall
     const parsedUrl = new URL(requestedUrl as string)
@@ -61,7 +62,7 @@ describe('fetchWebmentions', () => {
     expect(results).toHaveLength(3)
     const [firstResult, secondResult, thirdResult] = results
     if (!firstResult || !secondResult || !thirdResult) {
-      throw new Error('fixture must include at least three webmentions')
+      throw new TestError('fixture must include at least three webmentions')
     }
 
     expect(firstResult['wm-property']).toBe('mention-of')
@@ -86,7 +87,7 @@ describe('fetchWebmentions', () => {
 
   it('returns an empty array when the fetch call fails', async () => {
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    fetchMock.mockRejectedValue(new Error('network down'))
+    fetchMock.mockRejectedValue(new TestError('network down'))
 
     const results = await fetchWebmentions(targetUrl)
 
@@ -124,7 +125,7 @@ describe('Webmention helpers', () => {
   it('detects when a webmention originates from the configured domain', () => {
     const [first, second, third] = helperWebmentions
     if (!first || !second || !third) {
-      throw new Error('helper webmentions fixture must include three entries')
+      throw new TestError('helper webmentions fixture must include three entries')
     }
 
     expect(isOwnWebmention(first)).toBe(true)

@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
+import { TestError } from '@test/errors'
 import SocialShareComponent from '@components/Social/Shares/index.astro'
 import type { SocialShareElement } from '@components/Social/Shares/client/index'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
@@ -49,7 +50,7 @@ describe('SocialShareElement web component', () => {
       },
       assert: async ({ element, window }) => {
         if (!window) {
-          throw new Error('window context is required for SocialShareElement tests')
+          throw new TestError('window context is required for SocialShareElement tests')
         }
 
         const restoreGlobals = installBrowserGlobals(window)

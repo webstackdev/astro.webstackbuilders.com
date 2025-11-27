@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+import { TestError } from '@test/errors'
 import { sendDSARVerificationEmail } from '@pages/api/gdpr/_dsarVerificationEmails'
 
 const { envMocks, siteUrlMock } = vi.hoisted(() => ({
@@ -187,7 +188,7 @@ describe('GDPR Email Utils', () => {
       })
 
       it('should handle Resend API network error', async () => {
-        const networkError = new Error('Network failure')
+        const networkError = new TestError('Network failure')
         mockSend.mockRejectedValue(networkError)
 
         await expect(

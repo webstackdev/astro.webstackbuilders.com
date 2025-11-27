@@ -2,6 +2,7 @@
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
+import { TestError } from '@test/errors'
 import ComputersAnimationAstro from '@components/Animations/Computers/index.astro'
 import type { ComputersAnimationElement } from '@components/Animations/Computers/client'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
@@ -39,7 +40,7 @@ const getComputersModule = () => {
     !registerComputersAnimationWebComponentFn ||
     !computersWebComponentModule
   ) {
-    throw new Error('Computers animation module was not initialized correctly')
+    throw new TestError('Computers animation module was not initialized correctly')
   }
 
   return {
@@ -229,7 +230,7 @@ describe('ComputersAnimationElement', () => {
   })
 
   it('reports GSAP failures through the script error handler', async () => {
-    const error = new Error('gsap failed')
+    const error = new TestError('gsap failed')
     gsapMock.set.mockImplementationOnce(() => {
       throw error
     })
@@ -265,7 +266,7 @@ const renderComputersAnimation = async (
     selector: 'computers-animation',
     assert: async ({ element, module, window, renderResult }) => {
       if (!window) {
-        throw new Error('Computers animation tests require a DOM-capable window environment')
+        throw new TestError('Computers animation tests require a DOM-capable window environment')
       }
 
       forceDocumentReady(window)

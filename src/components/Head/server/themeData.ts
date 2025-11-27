@@ -12,23 +12,23 @@ type ThemeDataFunction = () => ThemeInitScriptData
 export const themeData: ThemeDataFunction = () => {
   try {
     if (!Array.isArray(themeConfig.themes) || themeConfig.themes.length === 0) {
-      throw new Error('themes.json must include at least one theme entry.')
+      throw new BuildError('themes.json must include at least one theme entry.')
     }
 
     const defaultThemeId = themeConfig.defaultTheme?.id
     if (!defaultThemeId) {
-      throw new Error('themes.json missing defaultTheme.id value.')
+      throw new BuildError('themes.json missing defaultTheme.id value.')
     }
 
     const metaColors = Object.fromEntries(
       themeConfig.themes.map(theme => {
         if (!theme.id) {
-          throw new Error('Theme entry missing required id.')
+          throw new BuildError('Theme entry missing required id.')
         }
 
         const color = theme.colors?.backgroundOffset
         if (!color) {
-          throw new Error(`Theme ${theme.id} missing colors.backgroundOffset value.`)
+          throw new BuildError(`Theme ${theme.id} missing colors.backgroundOffset value.`)
         }
 
         return [theme.id, color]

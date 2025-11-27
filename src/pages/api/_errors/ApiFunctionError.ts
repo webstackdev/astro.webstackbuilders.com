@@ -198,3 +198,28 @@ export class ApiFunctionError extends Error {
     }
   }
 }
+
+export const normalizeUnknownApiError = (error: unknown, fallbackMessage = DEFAULT_ERROR_MESSAGE): Error => {
+  if (error instanceof Error) {
+    return error
+  }
+
+  if (typeof error === 'string') {
+    const trimmed = error.trim()
+    return new Error(trimmed || fallbackMessage)
+  }
+
+  if (error && typeof error === 'object') {
+    const maybeMessage = (error as { message?: unknown }).message
+    if (typeof maybeMessage === 'string') {
+      const trimmed = maybeMessage.trim()
+      return new Error(trimmed || fallbackMessage)
+    }
+  }
+
+  try {
+    return new Error(JSON.stringify(error))
+  } catch {
+    return new Error(fallbackMessage)
+  }
+}

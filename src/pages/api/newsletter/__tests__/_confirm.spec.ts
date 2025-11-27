@@ -3,6 +3,7 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest'
 import type { APIContext } from 'astro'
+import { TestError } from '@test/errors'
 import { GET } from '@pages/api/newsletter/confirm'
 
 const supabaseMocks = vi.hoisted(() => ({
@@ -203,7 +204,7 @@ describe('Newsletter Confirmation API - GET /api/newsletter/confirm', () => {
 		}
 
 		mockConfirmSubscription.mockResolvedValue(mockSubscription)
-		mockSendWelcomeEmail.mockRejectedValue(new Error('Email service down'))
+		mockSendWelcomeEmail.mockRejectedValue(new TestError('Email service down'))
 
 		const response = await GET(createRequestContext('http://localhost/api/newsletter/confirm?token=valid-token-123'))
 		const data = await response.json()
@@ -214,7 +215,7 @@ describe('Newsletter Confirmation API - GET /api/newsletter/confirm', () => {
 	})
 
 	it('should handle confirmation service errors', async () => {
-		mockConfirmSubscription.mockRejectedValue(new Error('Database error'))
+		mockConfirmSubscription.mockRejectedValue(new TestError('Database error'))
 
 		const response = await GET(createRequestContext('http://localhost/api/newsletter/confirm?token=valid-token-123'))
 		const body = await response.json()

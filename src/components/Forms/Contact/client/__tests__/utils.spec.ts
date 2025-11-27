@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect } from 'vitest'
+import { TestError } from '@test/errors'
 import { initCharacterCounter, initUploadPlaceholder } from '@components/Forms/Contact/client/utils'
 import type { ContactFormConfig, ContactFormElements } from '@components/Forms/Contact/client/@types'
 import { renderContactForm } from './testUtils'
@@ -35,7 +36,7 @@ describe('ContactForm utils', () => {
     await renderContactForm(({ elements }) => {
       const { uppyContainer } = elements
       if (!uppyContainer) {
-        throw new Error('Contact form fixture must include the upload container')
+        throw new TestError('Contact form fixture must include the upload container')
       }
 
       uppyContainer.hidden = true

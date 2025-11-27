@@ -5,6 +5,7 @@
  */
 
 import { HeadPage, test, expect } from '@test/e2e/helpers'
+import { TestError } from '@test/errors'
 import type { JsonLdSchema } from '@test/e2e/helpers/pageObjectModels/HeadPage'
 
 interface OrganizationSchema extends JsonLdSchema {
@@ -48,7 +49,7 @@ const getFirstContentLink = async (page: HeadPage, selector: string): Promise<st
   }, selector)
 
   if (!href) {
-    throw new Error(`Unable to find href for selector: ${selector}`)
+    throw new TestError(`Unable to find href for selector: ${selector}`)
   }
 
   return href

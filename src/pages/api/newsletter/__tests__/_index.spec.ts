@@ -2,6 +2,7 @@
  * Unit tests for newsletter subscription API endpoint
  */
 import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest'
+import { TestError } from '@test/errors'
 import { POST, OPTIONS } from '@pages/api/newsletter'
 
 const rateLimitMocks = vi.hoisted(() => ({
@@ -222,7 +223,7 @@ describe('Newsletter API - POST /api/newsletter', () => {
 	})
 
 	it('should handle service errors gracefully', async () => {
-		mockCreatePendingSubscription.mockRejectedValue(new Error('Service unavailable'))
+		mockCreatePendingSubscription.mockRejectedValue(new TestError('Service unavailable'))
 
 		const request = new Request('http://localhost/api/newsletter', {
 			method: 'POST',

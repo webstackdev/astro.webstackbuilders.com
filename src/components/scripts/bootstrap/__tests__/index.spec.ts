@@ -143,7 +143,7 @@ describe('AppBootstrap', () => {
 
   describe('Error handling - initConsentFromCookies fails', () => {
     it('should throw ClientScriptError when initConsentFromCookies throws', () => {
-      const testError = new Error('Cookie initialization failed')
+      const testError = new TestError('Cookie initialization failed')
       vi.mocked(initConsentFromCookies).mockImplementation(() => {
         throw testError
       })
@@ -154,7 +154,7 @@ describe('AppBootstrap', () => {
 
     it('should add breadcrumb before throwing error', () => {
       vi.mocked(addViewTransitionThemeInitListener).mockReturnValue(undefined)
-      const testError = new Error('Cookie initialization failed')
+      const testError = new TestError('Cookie initialization failed')
       vi.mocked(initConsentFromCookies).mockImplementation(() => {
         throw testError
       })

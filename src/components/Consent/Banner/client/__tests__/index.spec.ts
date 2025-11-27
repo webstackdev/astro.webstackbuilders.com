@@ -2,6 +2,7 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
+import { TestError } from '@test/errors'
 import ConsentBanner from '@components/Consent/Banner/index.astro'
 import type { ConsentBannerElement } from '@components/Consent/Banner/client'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
@@ -45,7 +46,7 @@ const waitForBannerReady = async (element: ConsentBannerElement) => {
   await new Promise<void>((resolve, reject) => {
     const timeoutId = setTimeout(() => {
       element.removeEventListener(BANNER_READY_EVENT, onReady)
-      reject(new Error('Consent banner never finished initializing'))
+      reject(new TestError('Consent banner never finished initializing'))
     }, CONSENT_READY_TIMEOUT_MS)
 
     function onReady() {
@@ -72,7 +73,7 @@ const renderConsentBanner = async (
     waitForReady: waitForBannerReady,
     assert: async ({ element, window }) => {
       if (!window) {
-        throw new Error('JSDOM window is not available for consent banner tests')
+        throw new TestError('JSDOM window is not available for consent banner tests')
       }
 
       await assertion({ element, window: window as JsdomWindow })
@@ -157,7 +158,7 @@ describe('ConsentBannerElement', () => {
       expect(customizeBtn).not.toBeNull()
 
       const bannerCtor = element.constructor as typeof HTMLElement & {
-        navigateToUrl: (url: string) => void
+        navigateToUrl: (_url: string) => void
       }
       const navigateSpy = vi.spyOn(bannerCtor, 'navigateToUrl').mockImplementation(() => {})
 

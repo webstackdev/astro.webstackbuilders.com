@@ -1,4 +1,11 @@
+/**
+ * E2E Regression Tests for API Serverless Function Environment Detection
+ *
+ * @see src/pages/api/_environment/environmentApi.ts
+ */
+
 import { test, expect } from '@test/e2e/helpers'
+import { TestError } from '@test/errors'
 import { BasePage } from '@test/e2e/helpers/pageObjectModels/BasePage'
 
 type EnvironmentApiSnapshot = {
@@ -21,7 +28,7 @@ const getEnvironmentSnapshot = async (page: BasePage): Promise<EnvironmentApiSna
   await navigateToDiagnosticsPage(page)
   return await page.evaluate(() => {
     if (!window.environmentApiSnapshot) {
-      throw new Error('Environment API snapshot not initialized')
+      throw new TestError('Environment API snapshot not initialized')
     }
     return window.environmentApiSnapshot
   })

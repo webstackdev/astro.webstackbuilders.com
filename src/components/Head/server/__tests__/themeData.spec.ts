@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { TestError } from '@test/errors'
 import themeConfig from '@content/themes.json'
 
 const loadThemeData = async () => {
@@ -55,6 +56,6 @@ describe('themeData', () => {
       return
     }
 
-    throw new Error('themeData should throw when the configuration is invalid')
+    throw new TestError('themeData should throw when the configuration is invalid')
   })
 })

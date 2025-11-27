@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { afterAll, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
+import { TestError } from '@test/errors'
 import HighlighterFixture from '@components/Social/Highlighter/client/__fixtures__/index.fixture.astro'
 import type { HighlighterElement } from '@components/Social/Highlighter/client/index'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
@@ -89,13 +90,13 @@ const waitForShareDialog = async (element: HighlighterElement): Promise<void> =>
     await flushMicrotasks()
   }
   process.stdout.write(`Highlighter markup before failure: ${element.outerHTML}\n`)
-  throw new Error('HighlighterElement failed to render the share dialog')
+  throw new TestError('HighlighterElement failed to render the share dialog')
 }
 
 const getShareButton = (element: HighlighterElement, platformId: string): HTMLButtonElement => {
   const button = element.querySelector<HTMLButtonElement>(`.share-button[data-platform="${platformId}"]`)
   if (!button) {
-    throw new Error(`Missing share button for ${platformId}`)
+    throw new TestError(`Missing share button for ${platformId}`)
   }
   return button
 }
@@ -122,13 +123,13 @@ const renderHighlighter = async (
     assert: async ({ element, window, renderResult, module }) => {
       process.stdout.write(`Highlighter server render: ${renderResult}\n`)
       if (!window) {
-        throw new Error('Highlighter tests require a window instance')
+        throw new TestError('Highlighter tests require a window instance')
       }
       if (!window.customElements.get('highlighter-element')) {
-        throw new Error('highlighter-element is not defined in customElements registry')
+        throw new TestError('highlighter-element is not defined in customElements registry')
       }
       if (!(element instanceof module.componentCtor)) {
-        throw new Error('Rendered element is not an instance of HighlighterElement')
+        throw new TestError('Rendered element is not an instance of HighlighterElement')
       }
       await flushMicrotasks()
       const performUpdate = (element as HighlighterElement & { performUpdate?: () => Promise<void> }).performUpdate

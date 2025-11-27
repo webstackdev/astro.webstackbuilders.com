@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { TestError } from '@test/errors'
 import { renderContactForm, type RenderContactFormContext } from './testUtils'
 
 vi.mock('@components/scripts/errors', () => ({
@@ -26,7 +27,7 @@ describe('ContactForm submission', () => {
 
     const budgetSelect = window.document.getElementById('budget') as HTMLSelectElement | null
     if (!budgetSelect) {
-      throw new Error('Budget select not found in contact form')
+      throw new TestError('Budget select not found in contact form')
     }
     budgetSelect.value = '5k-10k'
   }

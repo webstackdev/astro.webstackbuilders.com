@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect, vi } from 'vitest'
+import { TestError } from '@test/errors'
 import {
   initEmailValidationHandler,
   initMssgLengthHandler,
@@ -178,7 +179,7 @@ describe('Validation helpers', () => {
         expect(validateGenericFields(form)).toBe(false)
 
         if (!company || !budget) {
-          throw new Error('Company field not found in contact form')
+          throw new TestError('Company field not found in contact form')
         }
 
         company.value = 'Webstack Builders'

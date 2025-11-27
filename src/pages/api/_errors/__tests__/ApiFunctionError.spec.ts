@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest'
+import { TestError } from '@test/errors'
 import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
 
 describe(`ApiFunctionError basics`, () => {
@@ -91,7 +92,7 @@ describe(`Details handling`, () => {
 describe(`Safe messaging helpers`, () => {
   test(`getSafeMessage exposes client error message and hides server error detail`, () => {
     const clientError = new ApiFunctionError(`Bad input`, { status: 400 })
-    const serverError = new ApiFunctionError(new Error(`Sensitive info`), { status: 503 })
+    const serverError = new ApiFunctionError(new TestError(`Sensitive info`), { status: 503 })
 
     expect(clientError.getSafeMessage()).toBe('Bad input')
     expect(serverError.getSafeMessage()).toBe('Internal server error')
@@ -170,7 +171,7 @@ describe(`Serialization helpers`, () => {
 
 describe(`Static helpers`, () => {
   test(`from rewraps unknown errors and applies overrides`, () => {
-    const raw = new Error(`Boom`)
+    const raw = new TestError(`Boom`)
     const sut = ApiFunctionError.from(raw, { status: 504, code: 'TIMEOUT' })
     expect(sut).toBeInstanceOf(ApiFunctionError)
     expect(sut.status).toBe(504)

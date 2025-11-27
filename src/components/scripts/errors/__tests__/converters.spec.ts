@@ -37,7 +37,7 @@ describe(`extractMetadaFromStackTrace correctly pulls metadata from stack trace`
 
 describe(`Converts from Error`, () => {
   test(`convertFromError`, () => {
-    const sut = convertFromError(new Error(`test error`))
+    const sut = convertFromError(new TestError(`test error`))
     expect(sut).toEqual(
       expect.objectContaining({
         message: `test error`,

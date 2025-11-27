@@ -21,6 +21,36 @@ export type ThemeId = 'light' | 'dark' | 'holiday' | 'a11y'
 
 const validThemes: ThemeId[] = ['light', 'dark', 'holiday', 'a11y']
 const fallbackTheme: ThemeId = 'light'
+const themeStorageKey = 'theme'
+
+const persistThemeSafely = (value: ThemeId): void => {
+  if (typeof window === 'undefined' || typeof window.localStorage === 'undefined') {
+    return
+  }
+
+  try {
+    window.localStorage.setItem(themeStorageKey, value)
+  } catch {
+    // Ignore write failures (Safari private mode, etc.)
+  }
+}
+
+const normalizeThemeValue = (rawValue: string): ThemeId | null => {
+  if (validThemes.includes(rawValue as ThemeId)) {
+    return rawValue as ThemeId
+  }
+
+  try {
+    const parsedValue = JSON.parse(rawValue)
+    if (typeof parsedValue === 'string' && validThemes.includes(parsedValue as ThemeId)) {
+      return parsedValue as ThemeId
+    }
+  } catch {
+    // Swallow JSON parse errors and fall through to fallback handling
+  }
+
+  return null
+}
 
 const getInitialThemePreference = (): ThemeId => {
   if (typeof window === 'undefined' || typeof document === 'undefined') {
@@ -56,11 +86,16 @@ const getInitialThemePreference = (): ThemeId => {
  * Persisted to localStorage automatically via nanostores/persistent
  * Classified as 'necessary' - no consent required
  */
-export const $theme = persistentAtom<ThemeId>('theme', getInitialThemePreference(), {
+export const $theme = persistentAtom<ThemeId>(themeStorageKey, getInitialThemePreference(), {
   encode: (value) => value,
   decode: (value: string) => {
-    // Handle both JSON-stringified and plain strings
-    return validThemes.includes(value as ThemeId) ? (value as ThemeId) : fallbackTheme
+    const normalizedValue = normalizeThemeValue(value)
+    if (normalizedValue) {
+      return normalizedValue
+    }
+
+    persistThemeSafely(fallbackTheme)
+    return fallbackTheme
   },
 })
 

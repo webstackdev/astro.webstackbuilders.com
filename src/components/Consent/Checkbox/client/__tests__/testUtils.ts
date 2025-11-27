@@ -1,5 +1,6 @@
 import { expect } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
+import { TestError } from '@test/errors'
 import CheckboxFixture from '@components/Consent/Checkbox/client/__fixtures__/checkbox.fixture.astro'
 import type { CheckboxFixtureProps } from '@components/Consent/Checkbox/client/types'
 import type { ConsentCheckboxElement } from '@components/Consent/Checkbox/client'
@@ -20,7 +21,7 @@ export const waitForConsentReady = async (element: ConsentCheckboxElement): Prom
   await new Promise<void>((resolve, reject) => {
     const timeoutId = setTimeout(() => {
       element.removeEventListener(consentCheckboxReadyEvent, onReady)
-      reject(new Error('Consent checkbox never finished initializing'))
+      reject(new TestError('Consent checkbox never finished initializing'))
     }, CONSENT_READY_TIMEOUT_MS)
 
     function onReady() {
@@ -64,7 +65,7 @@ export const renderConsentCheckbox = async (
     waitForReady: waitForConsentReady,
     assert: async ({ element, window, module, renderResult }) => {
       if (!window) {
-        throw new Error('Consent checkbox tests require a browser-like window environment')
+        throw new TestError('Consent checkbox tests require a browser-like window environment')
       }
 
       expect(renderResult).toContain(`<${module.registeredName}`)

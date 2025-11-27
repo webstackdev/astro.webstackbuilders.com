@@ -2,6 +2,7 @@
 
 import { beforeEach, describe, expect, it } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
+import { TestError } from '@test/errors'
 import ConsentBanner from '@components/Consent/Banner/index.astro'
 import type { ConsentBannerElement } from '@components/Consent/Banner/client'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
@@ -30,7 +31,7 @@ const waitForBannerReady = async (element: ConsentBannerElement) => {
   await new Promise<void>((resolve, reject) => {
     const timeoutId = setTimeout(() => {
       element.removeEventListener(BANNER_READY_EVENT, onReady)
-      reject(new Error('Consent banner never finished initializing'))
+      reject(new TestError('Consent banner never finished initializing'))
     }, CONSENT_READY_TIMEOUT_MS)
 
     function onReady() {

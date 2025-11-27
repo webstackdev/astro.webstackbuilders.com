@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
+import { TestError } from '@test/errors'
 import Newsletter from '@components/CallToAction/Newsletter/index.astro'
 import type { NewsletterProps } from '@components/CallToAction/Newsletter/props'
 import type { NewsletterFormElement } from '@components/CallToAction/Newsletter/client'
@@ -25,7 +26,7 @@ const getElements = (root: NewsletterFormElement) => {
   const selectElement = <T extends Element>(selector: string): T => {
     const element = root.querySelector(selector)
     if (!element) {
-      throw new Error(`Failed to locate ${selector} within newsletter-form`)
+      throw new TestError(`Failed to locate ${selector} within newsletter-form`)
     }
     return element as T
   }
@@ -160,7 +161,7 @@ describe('NewsletterFormElement web component', () => {
   })
 
   test('shows a network error message when fetch rejects', async () => {
-    fetchMock.mockRejectedValueOnce(new Error('Network error'))
+    fetchMock.mockRejectedValueOnce(new TestError('Network error'))
 
     await renderNewsletter(async ({ elements }) => {
       elements.emailInput.value = 'test@example.com'

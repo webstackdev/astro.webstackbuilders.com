@@ -1,5 +1,6 @@
 import { expect } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
+import { TestError } from '@test/errors'
 import DownloadFormFixture from '@components/Forms/Download/client/__tests__/__fixtures__/downloadForm.fixture.astro'
 import type { DownloadFormElement } from '@components/Forms/Download/client'
 import {
@@ -53,7 +54,7 @@ export const renderDownloadForm = async (
     selector: 'download-form',
     assert: async ({ element, module, window, renderResult }) => {
       if (!window) {
-        throw new Error('Download form tests require a DOM-like window environment')
+        throw new TestError('Download form tests require a DOM-like window environment')
       }
 
       const context: RenderDownloadFormContext = {

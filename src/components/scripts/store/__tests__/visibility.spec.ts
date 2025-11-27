@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { TestError } from '@test/errors'
 import {
   $visibility,
   hideConsentBanner,
@@ -60,7 +61,7 @@ describe('UI visibility error handling', () => {
   })
 
   it('reports errors when showing the banner fails', () => {
-    const error = new Error('show failure')
+    const error = new TestError('show failure')
     vi.spyOn($visibility, 'set').mockImplementation(() => {
       throw error
     })
@@ -74,7 +75,7 @@ describe('UI visibility error handling', () => {
   })
 
   it('reports errors when hiding the banner fails', () => {
-    const error = new Error('hide failure')
+    const error = new TestError('hide failure')
     vi.spyOn($visibility, 'set').mockImplementation(() => {
       throw error
     })
@@ -88,7 +89,7 @@ describe('UI visibility error handling', () => {
   })
 
   it('reports errors when toggling the banner fails', () => {
-    const error = new Error('toggle failure')
+    const error = new TestError('toggle failure')
     vi.spyOn($visibility, 'set').mockImplementation(() => {
       throw error
     })

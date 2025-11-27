@@ -2,10 +2,15 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { captureException } from '@sentry/astro'
 import { ensureApiSentry } from '@pages/api/_sentry'
 import { getSuprabaseApiServiceRoleKey, getSuprabaseApiUrl, isProd } from '@pages/api/_environment/environmentApi'
+import { ApiFunctionError, normalizeUnknownApiError } from '@pages/api/_errors/ApiFunctionError'
 
 let cachedSupabaseAdmin: SupabaseClient | null = null
-let supabaseInitError: Error | null = null
+let supabaseInitError: ApiFunctionError | null = null
 let hasLoggedInitError = false
+
+const SUPABASE_INIT_FALLBACK_MESSAGE = 'Failed to initialize Supabase admin client.'
+const SUPABASE_INIT_OPERATION = 'supabaseAdmin.initialize'
+const SUPABASE_INIT_ERROR_CODE = 'SUPABASE_INIT_FAILED'
 
 const logSupabaseInitError = (error: Error) => {
   if (hasLoggedInitError) {
@@ -45,10 +50,19 @@ const getSupabaseAdminClient = (): SupabaseClient => {
 
     return cachedSupabaseAdmin
   } catch (error) {
-    const normalizedError = error instanceof Error ? error : new Error(String(error))
-    supabaseInitError = normalizedError
-    logSupabaseInitError(normalizedError)
-    throw normalizedError
+    const normalizedError = normalizeUnknownApiError(error, SUPABASE_INIT_FALLBACK_MESSAGE)
+    const apiError = ApiFunctionError.from(normalizedError, {
+      status: 500,
+      code: SUPABASE_INIT_ERROR_CODE,
+      operation: SUPABASE_INIT_OPERATION,
+      details: {
+        message: normalizedError.message,
+      },
+    })
+
+    supabaseInitError = apiError
+    logSupabaseInitError(apiError)
+    throw apiError
   }
 }
 

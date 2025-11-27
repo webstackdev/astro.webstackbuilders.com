@@ -1,7 +1,7 @@
 ---
 import contactData from '@content/contact.json'
-import themeConfig from '@content/themes.json'
 import { absoluteUrl } from '@components/scripts/utils'
+import { getMetaThemeData } from '@components/Head/server/meta'
 import Seo from '@components/Head/Seo.astro'
 import Social from '@components/Head/Social.astro'
 import StructuredData from '@components/Head/StructuredData.astro'
@@ -34,14 +34,7 @@ const {
   noindex = false,
 } = Astro.props
 
-const defaultThemeId = themeConfig.defaultTheme.id
-const defaultTheme =
-  themeConfig.themes.find(theme => theme.id === defaultThemeId) || themeConfig.themes[0]
-
-if (!defaultTheme) {
-  throw new Error('No themes configured in themes.json; unable to set meta theme-color.')
-}
-const slug = path.replace(/^\//, '').replace(/\/$/, '') || 'home'
+const { slug, defaultTheme } = getMetaThemeData(path)
 ---
 
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />

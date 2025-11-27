@@ -3,6 +3,7 @@
  * Tests for error assertions
  */
 import { describe, expect, test } from 'vitest'
+import { TestError } from '@test/errors'
 import { ClientScriptError } from '@components/scripts/errors'
 import { isError, isErrorEvent, isPromiseRejectionEvent, isClientScriptError } from '@components/scripts/errors/assertions'
 import { PromiseRejectionEvent } from '@components/scripts/@types/PromiseRejectionEvent'
@@ -11,13 +12,13 @@ const voidFn = () => {}
 
 describe(`Assertion for Error object`, () => {
   test(`Error object returns true in isError assertion`, () => {
-    const sut = isError(new Error(`test error`))
+    const sut = isError(new TestError(`test error`))
     expect(sut).toBeTruthy()
   })
 
-  test(`TypeError object returns false in isError assertion`, () => {
+  test(`TypeError object returns true in isError assertion`, () => {
     const sut = isError(new TypeError())
-    expect(sut).toBeFalsy()
+    expect(sut).toBeTruthy()
   })
 })
 

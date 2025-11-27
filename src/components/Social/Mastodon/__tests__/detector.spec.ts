@@ -9,6 +9,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { TestError } from '@test/errors'
 import { normalizeURL, getUrlDomain, getSoftwareName, isMastodonInstance } from '@components/Social/Mastodon/client/detector'
 
 // Type alias for mocked fetch function
@@ -96,7 +97,7 @@ describe('getSoftwareName', () => {
   })
 
   it('returns undefined for network error', async () => {
-    ;(global.fetch as unknown as MockedFetch).mockRejectedValueOnce(new Error('Network error'))
+    ;(global.fetch as unknown as MockedFetch).mockRejectedValueOnce(new TestError('Network error'))
 
     const result = await getSoftwareName('invalid.domain')
     expect(result).toBeUndefined()
@@ -127,7 +128,7 @@ describe('getSoftwareName', () => {
       .mockResolvedValueOnce({
         json: async () => mockNodeInfoList,
       })
-      .mockRejectedValueOnce(new Error('NodeInfo fetch failed'))
+      .mockRejectedValueOnce(new TestError('NodeInfo fetch failed'))
 
     const result = await getSoftwareName('mastodon.social')
     expect(result).toBeUndefined()
@@ -158,7 +159,7 @@ describe('getSoftwareName', () => {
       .mockResolvedValueOnce({
         json: async () => mockNodeInfoList,
       })
-      .mockRejectedValueOnce(new Error('First link failed'))
+      .mockRejectedValueOnce(new TestError('First link failed'))
       .mockResolvedValueOnce({
         json: async () => mockNodeInfo,
       })
@@ -322,7 +323,7 @@ describe('isMastodonInstance', () => {
   })
 
   it('returns false for network error', async () => {
-    ;(global.fetch as unknown as MockedFetch).mockRejectedValueOnce(new Error('Network error'))
+    ;(global.fetch as unknown as MockedFetch).mockRejectedValueOnce(new TestError('Network error'))
 
     const result = await isMastodonInstance('invalid.domain')
     expect(result).toBe(false)

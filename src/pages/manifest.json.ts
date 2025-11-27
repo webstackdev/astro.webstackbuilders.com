@@ -2,21 +2,29 @@
  * PWA Manifest
  * Returns the web app manifest for progressive web app functionality
  */
+import type { APIRoute } from 'astro'
+import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
+import { buildApiErrorResponse, handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
+import { createApiFunctionContext } from '@pages/api/_utils/requestContext'
 import contactData from '@content/contact.json'
 import themeConfig from '@content/themes.json'
 
-/**
- * GET endpoint for the web app manifest
- * @returns Response with manifest JSON
- */
-export function GET() {
-  const defaultThemeId = themeConfig.defaultTheme.id
-  const defaultTheme =
-    themeConfig.themes.find(theme => theme.id === defaultThemeId) || themeConfig.themes[0]
+const ROUTE = '/manifest.json'
+const FALLBACK_ERROR_MESSAGE = 'Unable to build PWA manifest.'
+
+const buildManifestPayload = () => {
+  const defaultThemeId = themeConfig.defaultTheme?.id
+  const themes = themeConfig.themes || []
+  const defaultTheme = themes.find(theme => theme.id === defaultThemeId) || themes[0]
 
   if (!defaultTheme) {
-    throw new Error('No themes configured in themes.json; unable to build manifest.json')
+    throw new ApiFunctionError({
+      message: 'No themes configured in themes.json; unable to build manifest.json',
+      status: 500,
+      code: 'MANIFEST_THEME_MISSING',
+    })
   }
+
   /* eslint-disable camelcase */
   const manifest = {
     lang: 'en_US',
@@ -69,7 +77,7 @@ export function GET() {
     display: 'standalone',
     orientation: 'natural',
     /**
-     * Allows the PWA) to be registered with the operating system as a destination for
+     * Allows the PWA to be registered with the operating system as a destination for
      * content shared from other apps. When a user shares content, the PWA appears in the
      * share dialog, and the OS can launch the app to receive and process the data, such
      * as text, URLs, or files, as defined in the share_target property of the manifest.
@@ -100,12 +108,37 @@ export function GET() {
         },
       },
     */
+    /* eslint-enable jsdoc/no-bad-blocks */
   }
   /* eslint-enable camelcase */
 
-  return new Response(JSON.stringify(manifest), {
-    headers: {
-      'Content-Type': 'application/manifest+json',
-    },
+  return manifest
+}
+
+/**
+ * GET endpoint for the web app manifest
+ * @returns Response with manifest JSON
+ */
+export const GET: APIRoute = async ({ request, cookies, clientAddress }) => {
+  const { context } = createApiFunctionContext({
+    route: ROUTE,
+    operation: 'GET',
+    request,
+    cookies,
+    clientAddress,
   })
+
+  try {
+    const manifest = buildManifestPayload()
+    return new Response(JSON.stringify(manifest), {
+      headers: {
+        'Content-Type': 'application/manifest+json',
+      },
+    })
+  } catch (error) {
+    const apiError = handleApiFunctionError(error, context)
+    return buildApiErrorResponse(apiError, {
+      fallbackMessage: FALLBACK_ERROR_MESSAGE,
+    })
+  }
 }

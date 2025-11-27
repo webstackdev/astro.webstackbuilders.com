@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
+import { TestError } from '@test/errors'
 import { getSoftwareName, getUrlDomain, isMastodonInstance, normalizeURL } from '../detector'
 
 const createFetchResponse = <T>(data: T) => ({
@@ -57,7 +58,7 @@ describe('mastodon detector utilities', () => {
 
   test('getSoftwareName returns undefined when nodeinfo cannot be fetched', async () => {
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    fetchMock.mockRejectedValueOnce(new Error('network failure'))
+    fetchMock.mockRejectedValueOnce(new TestError('network failure'))
 
     await expect(getSoftwareName('mastodon.social')).resolves.toBeUndefined()
     expect(errorSpy).toHaveBeenCalled()

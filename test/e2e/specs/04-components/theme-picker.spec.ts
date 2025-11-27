@@ -267,6 +267,9 @@ test.describe('Theme Picker Component', () => {
         window.matchMedia('(prefers-color-scheme: dark)').matches
       )
 
+      expect(prefersDark).toBe(true)
+      expect(storedTheme).toBe('dark')
+
       const htmlElement = page.locator('html')
       const dataTheme = await htmlElement.getAttribute('data-theme')
 

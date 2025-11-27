@@ -21,11 +21,19 @@ const errorDefinitionIgnores = [
   'src/lib/errors/**/*',
   'src/components/scripts/errors/**/*',
   'test/errors/**/*',
+  'src/pages/api/_errors/ApiFunctionError.ts',
 ]
+
+const baseErrorMessage = 'Use project-specific error classes instead of the base Error constructor.'
 
 const newErrorSelector = {
   selector: 'NewExpression[callee.name="Error"]',
-  message: 'Use project-specific error classes instead of the base Error constructor.',
+  message: baseErrorMessage,
+}
+
+const callErrorSelector = {
+  selector: 'CallExpression[callee.name="Error"]',
+  message: baseErrorMessage,
 }
 
 const buildErrorSelector = {
@@ -63,6 +71,7 @@ const createRestrictedSyntaxRule = ({
 }: RestrictedSyntaxRuleOptions = {}) => {
   const selectors = [
     newErrorSelector,
+    callErrorSelector,
     ...(allowBuildError ? [] : [buildErrorSelector]),
     ...(allowClientScriptError ? [] : [clientScriptErrorSelector]),
     ...(allowTestError ? [] : [testErrorSelector]),
@@ -256,6 +265,18 @@ export default [
   },
   {
     files: [
+      'src/components/**/server/**/*',
+      'src/layouts/**/server/**/*',
+      'src/pages/**/server/**/*',
+      'src/pages/api/**/*.ts',
+    ],
+    ignores: errorDefinitionIgnores,
+    rules: {
+      'no-restricted-syntax': createRestrictedSyntaxRule({ allowBuildError: true, includeImportMetaEnv: true }),
+    },
+  },
+  {
+    files: [
       'src/components/**/client/**/*',
       'src/components/scripts/**/*',
       'src/layouts/**/client/**/*',
@@ -263,12 +284,41 @@ export default [
     ],
     ignores: errorDefinitionIgnores,
     rules: {
-      'no-restricted-syntax': createRestrictedSyntaxRule({ allowClientScriptError: true }),
+      'no-restricted-syntax': createRestrictedSyntaxRule({ allowClientScriptError: true, includeImportMetaEnv: true }),
+    },
+  },
+  {
+    files: [
+      'src/components/**/__tests__/**',
+      'src/components/**/__tests__/**/*.ts',
+      'src/components/**/__tests__/**/*.tsx',
+      'src/components/**/__tests__/*.ts',
+      'src/components/**/__tests__/*.tsx',
+    ],
+    ignores: errorDefinitionIgnores,
+    rules: {
+      'no-restricted-syntax': createRestrictedSyntaxRule({
+        allowClientScriptError: true,
+        allowTestError: true,
+        includeImportMetaEnv: true,
+      }),
     },
   },
   {
     files: [
       'test/**/*',
+    ],
+    ignores: errorDefinitionIgnores,
+    rules: {
+      'no-restricted-syntax': createRestrictedSyntaxRule({ allowTestError: true }),
+    },
+  },
+  {
+    files: [
+      '**/*.spec.ts',
+      '**/*.spec.tsx',
+      '**/*.test.ts',
+      '**/*.test.tsx',
     ],
     ignores: errorDefinitionIgnores,
     rules: {
@@ -414,6 +464,7 @@ export default [
       '.eslintrc.js',
       'astro.config.ts',
       'playwright.config.ts',
+      'vitest.config.ts',
       'vitest.setup.ts',
       'src/components/scripts/utils/environmentClient.ts',
       'src/lib/config/**/*',
@@ -440,14 +491,20 @@ export default [
       'src/layouts/**/*',
       'src/pages/**/*',
     ],
+    ignores: [
+      ...errorDefinitionIgnores,
+      'src/components/**/client/**/*',
+      'src/components/**/server/**/*',
+      'src/components/**/__tests__/**',
+      'src/components/scripts/**/*',
+      'src/layouts/**/client/**/*',
+      'src/layouts/**/server/**/*',
+      'src/pages/**/client/**/*',
+      'src/pages/**/server/**/*',
+      'src/pages/api/**/*',
+    ],
     rules: {
-      'no-restricted-syntax': [
-        level,
-        {
-          'selector': 'MemberExpression[property.name="env"] > MetaProperty[meta.name="import"][property.name="meta"]',
-          'message': 'Do not use import.meta.env directly. See docs/ENVIRONMENT_VARIABLES.'
-        }
-      ],
+      'no-restricted-syntax': createRestrictedSyntaxRule({ includeImportMetaEnv: true }),
     },
   },
   {
@@ -461,12 +518,7 @@ export default [
       'src/pages/api/_environment/environmentApi.ts',
     ],
     rules: {
-      'no-restricted-syntax': [
-        'off',
-        {
-          'selector': 'MemberExpression[property.name="env"] > MetaProperty[meta.name="import"][property.name="meta"]',
-        }
-      ],
+      'no-restricted-syntax': createRestrictedSyntaxRule({ allowBuildError: true, allowClientScriptError: true }),
     },
   },
 

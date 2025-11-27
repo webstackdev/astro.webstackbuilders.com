@@ -1,5 +1,7 @@
 # TODO
 
+## See the @TODO: about enabling the PWA to be used as a share target for other apps in src/pages/manifest.json.ts
+
 ## Analytics
 
 Vercel Analytics

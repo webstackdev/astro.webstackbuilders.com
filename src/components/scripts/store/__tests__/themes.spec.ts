@@ -6,6 +6,7 @@
  * All themes are always persisted to localStorage for accessibility and user experience.
  */
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+import { TestError } from '@test/errors'
 import {
   $theme,
   $themePickerOpen,
@@ -115,7 +116,7 @@ describe('Theme Management', () => {
   })
 
   it('reports errors when theme persistence fails', () => {
-    const error = new Error('storage failure')
+    const error = new TestError('storage failure')
     const setSpy = vi.spyOn($theme, 'set').mockImplementation(() => {
       throw error
     })
@@ -155,7 +156,7 @@ describe('Theme picker visibility state', () => {
   })
 
   it('reports handleScriptError when picker updates fail', () => {
-    const error = new Error('picker failure')
+    const error = new TestError('picker failure')
     const setSpy = vi.spyOn($themePickerOpen, 'set').mockImplementation(() => {
       throw error
     })
@@ -216,7 +217,7 @@ describe('themeKeyChangeSideEffectsListener', () => {
   })
 
   it('logs when localStorage persistence fails but continues execution', () => {
-    const error = new Error('blocked')
+    const error = new TestError('blocked')
     const meta = document.createElement('meta')
     meta.setAttribute('name', 'theme-color')
     document.head.appendChild(meta)
@@ -266,7 +267,7 @@ describe('addViewTransitionThemeInitListener', () => {
   })
 
   it('falls back gracefully when localStorage access fails', () => {
-    const error = new Error('denied')
+    const error = new TestError('denied')
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
       throw error

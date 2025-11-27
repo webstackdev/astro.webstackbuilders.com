@@ -11,9 +11,6 @@ process.env['VITEST'] = 'true'
 
 export default getViteConfig({
   define: {
-    'import.meta.env.DEV': true,
-    'import.meta.env.MODE': JSON.stringify('development'),
-    'import.meta.env.PROD': false,
     'import.meta.env.SITE': JSON.stringify(getSiteUrl()),
   },
   resolve: {
@@ -33,6 +30,7 @@ export default getViteConfig({
     },
   },
   test: {
+    mode: 'development',
     include: [
       'src/**/*.spec.ts?(x)',
       'scripts/**/*.spec.ts',
@@ -52,7 +50,7 @@ export default getViteConfig({
     ],
     env: {
       DEV: 'true',
-      MODE: 'test',
+      MODE: 'development',
       NODE_ENV: 'development',
       PROD: 'false',
       VITEST: 'true',
