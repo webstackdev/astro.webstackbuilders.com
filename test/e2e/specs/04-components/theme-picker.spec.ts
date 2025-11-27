@@ -261,17 +261,14 @@ test.describe('Theme Picker Component', () => {
 
       // Debug: Check what's in localStorage
       const storedTheme = await page.evaluate(() => localStorage.getItem('theme'))
-      console.log('Stored theme after reload:', storedTheme)
 
       // Debug: Check media query
       const prefersDark = await page.evaluate(() =>
         window.matchMedia('(prefers-color-scheme: dark)').matches
       )
-      console.log('Prefers dark:', prefersDark)
 
       const htmlElement = page.locator('html')
       const dataTheme = await htmlElement.getAttribute('data-theme')
-      console.log('Actual data-theme:', dataTheme)
 
       expect(dataTheme).toBe('dark')
     })
