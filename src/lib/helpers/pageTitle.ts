@@ -9,10 +9,9 @@ import { BuildError } from '../errors/BuildError'
  * @returns The formatted page title
  */
 export const pageTitle = (title: string, siteTitle: string) => {
-  if (typeof title !== 'string')
-    throw new BuildError({
-      message: `Title passed to pageTitle formatter is not a string, received:\n${title}`
-    })
+  if (typeof title !== 'string') {
+    throw new BuildError('Title passed to pageTitle formatter is not a string')
+  }
   const seperator = ` | `
   const casedPageTitle = titleCase(title)
   const casedSiteTitle = titleCase(siteTitle)
