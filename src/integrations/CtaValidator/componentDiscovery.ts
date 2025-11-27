@@ -65,9 +65,8 @@ export async function discoverCallToActionComponents(
       }
     }
   } catch (error) {
-    throw new BuildError({
-      message: `Failed to read CallToAction components directory '${fullComponentPath}': ${error}`
-    })
+    const message = error instanceof Error ? error.message : String(error)
+    throw new BuildError(`Failed to read CallToAction components directory '${fullComponentPath}': ${message}`)
   }
 
   return components
