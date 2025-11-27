@@ -16,9 +16,9 @@ vi.mock('@pages/api/_utils', () => ({
   supabaseAdmin: supabaseAdminMock,
 }))
 
-vi.mock('@pages/api/_environment', async () => {
+vi.mock('@pages/api/_environment/environmentApi', async () => {
   const actual = await vi.importActual<typeof import('@pages/api/_environment/environmentApi')>(
-    '@pages/api/_environment',
+    '@pages/api/_environment/environmentApi',
   )
   return {
     ...actual,
