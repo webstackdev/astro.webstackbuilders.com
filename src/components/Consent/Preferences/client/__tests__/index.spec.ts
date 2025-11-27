@@ -6,7 +6,7 @@ import type { WebComponentModule } from '@components/scripts/@types/webComponent
 import ConsentPreferencesComponent from '@components/Consent/Preferences/index.astro'
 import type { ConsentPreferencesElement } from '@components/Consent/Preferences/client'
 import type { ConsentCategory, ConsentState } from '@components/scripts/store'
-import { allowAllConsent, updateConsent } from '@components/scripts/store'
+import { allowAllConsent, updateConsent, revokeAllConsent } from '@components/scripts/store'
 import { executeRender, withJsdomEnvironment } from '@test/unit/helpers/litRuntime'
 
 type ConsentPreferencesModule = WebComponentModule<ConsentPreferencesElement>
@@ -104,6 +104,12 @@ vi.mock('@components/scripts/store', () => {
       state.marketing = true
       notify()
     }),
+    revokeAllConsent: vi.fn(() => {
+      state.analytics = false
+      state.functional = false
+      state.marketing = false
+      notify()
+    }),
   }
 })
 
@@ -118,30 +124,6 @@ describe('ConsentPreferencesElement', () => {
     })
   })
 
-  it('shows the modal when showModal is invoked', async () => {
-    await renderConsentPreferences(({ element, window }) => {
-      const wrapper = window.document.getElementById('consent-modal-modal-id') as HTMLDivElement | null
-      expect(wrapper).not.toBeNull()
-
-      element.showModal()
-      expect(wrapper!.style.display).toBe('flex')
-    })
-  })
-
-  it('hides the modal when the close button is clicked', async () => {
-    await renderConsentPreferences(({ element, window }) => {
-      element.showModal()
-      const wrapper = window.document.getElementById('consent-modal-modal-id') as HTMLDivElement | null
-      expect(wrapper).not.toBeNull()
-      const closeBtn = window.document.querySelector('.consent-modal__close-btn') as HTMLButtonElement | null
-      expect(closeBtn).not.toBeNull()
-
-      closeBtn!.dispatchEvent(new window.MouseEvent('click', { bubbles: true }))
-
-      expect(wrapper!.style.display).toBe('none')
-    })
-  })
-
   it('grants all consent when Allow All is clicked', async () => {
     await renderConsentPreferences(({ window }) => {
       const allowBtn = window.document.getElementById('consent-allow-all') as HTMLButtonElement | null
@@ -153,6 +135,20 @@ describe('ConsentPreferencesElement', () => {
       expect((window.document.getElementById('analytics-cookies') as HTMLInputElement).checked).toBe(true)
       expect((window.document.getElementById('functional-cookies') as HTMLInputElement).checked).toBe(true)
       expect((window.document.getElementById('marketing-cookies') as HTMLInputElement).checked).toBe(true)
+    })
+  })
+
+  it('revokes all consent when Decline All is clicked', async () => {
+    await renderConsentPreferences(({ window }) => {
+      const denyBtn = window.document.getElementById('consent-deny-all') as HTMLButtonElement | null
+      expect(denyBtn).not.toBeNull()
+
+      denyBtn!.dispatchEvent(new window.MouseEvent('click', { bubbles: true }))
+
+      expect(revokeAllConsent).toHaveBeenCalled()
+      expect((window.document.getElementById('analytics-cookies') as HTMLInputElement).checked).toBe(false)
+      expect((window.document.getElementById('functional-cookies') as HTMLInputElement).checked).toBe(false)
+      expect((window.document.getElementById('marketing-cookies') as HTMLInputElement).checked).toBe(false)
     })
   })
 

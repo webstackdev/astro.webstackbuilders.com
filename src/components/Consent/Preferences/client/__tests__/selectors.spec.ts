@@ -5,13 +5,7 @@ import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import ConsentPreferencesComponent from '@components/Consent/Preferences/index.astro'
 import type { ConsentPreferencesElement } from '@components/Consent/Preferences/client'
-import {
-  getConsentCustomizeModal,
-  getConsentCustomizeCloseBtn,
-  getAllowAllBtn,
-  getSavePreferencesBtn,
-} from '@components/Consent/Preferences/client/selectors'
-import { ClientScriptError } from '@components/scripts/errors'
+import { getAllowAllBtn, getSavePreferencesBtn, getDenyAllBtn } from '@components/Consent/Preferences/client/selectors'
 import {
   executeRender,
   withJsdomEnvironment,
@@ -72,26 +66,6 @@ beforeEach(async () => {
 })
 
 describe('Consent Preferences Selectors', () => {
-  it('returns the consent customize modal wrapper', async () => {
-    await renderConsentPreferences(() => {
-      const modal = getConsentCustomizeModal()
-
-      expect(modal.id).toBe('consent-modal-modal-id')
-      expect(modal.getAttribute('role')).toBe('dialog')
-      expect(modal.getAttribute('aria-label')).toBe('customize consent dialog')
-    })
-  })
-
-  it('returns the close button with expected attributes', async () => {
-    await renderConsentPreferences(() => {
-      const closeBtn = getConsentCustomizeCloseBtn()
-
-      expect(closeBtn.classList.contains('consent-modal__close-btn')).toBe(true)
-      expect(closeBtn.dataset['testid']).toBe('consent-preferences-close')
-      expect(closeBtn.getAttribute('aria-label')).toMatch(/privacy preferences dialog/i)
-    })
-  })
-
   it('returns the allow-all button', async () => {
     await renderConsentPreferences(() => {
       const allowBtn = getAllowAllBtn()
@@ -110,11 +84,12 @@ describe('Consent Preferences Selectors', () => {
     })
   })
 
-  it('throws ClientScriptError when the modal is missing', async () => {
-    await renderConsentPreferences(({ window }) => {
-      window.document.getElementById('consent-modal-modal-id')?.remove()
+  it('returns the deny-all button', async () => {
+    await renderConsentPreferences(() => {
+      const denyBtn = getDenyAllBtn()
 
-      expect(() => getConsentCustomizeModal()).toThrowError(ClientScriptError)
+      expect(denyBtn.id).toBe('consent-deny-all')
+      expect(denyBtn.textContent?.trim()).toBe('Decline All')
     })
   })
 })

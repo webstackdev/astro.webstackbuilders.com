@@ -1,40 +1,17 @@
 ---
 import { Image } from 'astro:assets'
-import Icon from '@components/Icon/index.astro'
 import logoSvg from '@assets/images/site/logo.svg'
 ---
 
-<consent-preferences>
-  <div
-    id="consent-modal-modal-id"
-    class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
-    style="display:none;"
-    role="dialog"
-    aria-label="customize consent dialog"
-    aria-describedby="consent-modal__settings-desc"
-  >
-  <div
-    class="bg-bg rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
-  >
-    {/* Header */}
-    <div
-      class="sticky top-0 bg-bg border-b border-bg-offset px-6 py-4 flex items-center justify-between z-10"
-    >
+<consent-preferences class="block w-full">
+  <section class="bg-bg rounded-2xl shadow-2xl max-w-4xl w-full">
+    <div class="px-6 py-4 flex items-center justify-between border-b border-bg-offset">
       <div class="flex items-center gap-4">
         <Image src={logoSvg} alt="Webstack Builders corporate logo." class="h-8 w-auto" />
         <h2 class="text-2xl font-bold text-text">Privacy Preference Center</h2>
       </div>
-      <button
-        type="button"
-        class="consent-modal__close-btn bg-transparent border-0 text-primary outline-none hover:text-success-offset focus:text-success-offset transition-colors"
-        data-testid="consent-preferences-close"
-        aria-label="Close privacy preferences dialog"
-      >
-        <Icon name="close" />
-      </button>
     </div>
 
-    {/* Content */}
     <div class="px-6 py-8">
       {/* Introduction */}
       <div class="mb-8">
@@ -173,10 +150,13 @@ import logoSvg from '@assets/images/site/logo.svg'
       </div>
     </div>
 
-    {/* Footer Actions */}
-    <div
-      class="sticky bottom-0 bg-bg border-t border-bg-offset px-6 py-4 flex gap-3 justify-end"
-    >
+    <div class="bg-bg border-t border-bg-offset px-6 py-4 flex gap-3 justify-end flex-wrap">
+      <button
+        id="consent-deny-all"
+        class="px-6 py-2 bg-secondary text-text rounded-lg hover:bg-secondary-offset transition-colors duration-200 font-medium"
+      >
+        Decline All
+      </button>
       <button
         id="consent-save-preferences"
         class="px-6 py-2 bg-text-muted text-white rounded-lg hover:bg-text transition-colors duration-200 font-medium"
@@ -190,8 +170,7 @@ import logoSvg from '@assets/images/site/logo.svg'
         Allow All
       </button>
     </div>
-  </div>
-</div>
+  </section>
 </consent-preferences>
 
 <!-- Privacy Preferences Management Script -->

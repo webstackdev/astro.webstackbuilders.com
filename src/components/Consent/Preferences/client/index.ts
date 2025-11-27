@@ -1,6 +1,6 @@
 /**
  * Consent Preferences Management
- * Handles consent preference functionality and modal interactions
+ * Handles consent preference functionality for the inline component
  * Uses centralized state management from scripts/store
  */
 
@@ -12,14 +12,10 @@ import {
   subscribeToConsentState,
   updateConsent,
   allowAllConsent,
+  revokeAllConsent,
   type ConsentState,
 } from '@components/scripts/store'
-import {
-  getConsentCustomizeModal,
-  getConsentCustomizeCloseBtn,
-  getAllowAllBtn,
-  getSavePreferencesBtn,
-} from '@components/Consent/Preferences/client/selectors'
+import { getAllowAllBtn, getSavePreferencesBtn, getDenyAllBtn } from '@components/Consent/Preferences/client/selectors'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { defineCustomElement } from '@components/scripts/utils'
@@ -29,9 +25,8 @@ const COMPONENT_SCRIPT_NAME = 'ConsentPreferencesElement'
 export const CONSENT_PREFERENCES_READY_EVENT = 'consent-preferences:ready'
 
 export class ConsentPreferencesElement extends HTMLElement {
-  private modal!: HTMLDivElement
-  private closeBtn!: HTMLButtonElement
   private allowAllBtn!: HTMLButtonElement
+  private denyAllBtn!: HTMLButtonElement
   private saveBtn!: HTMLButtonElement
   private domReadyHandler: (() => void) | null = null
   private beforePreparationHandler: (() => void) | null = null
@@ -92,7 +87,6 @@ export class ConsentPreferencesElement extends HTMLElement {
     addScriptBreadcrumb(context)
 
     try {
-      delete this.dataset['consentPreferencesReady']
       this.findElements()
       this.bindEvents()
       this.syncConsentState(getConsentSnapshot())
@@ -111,9 +105,8 @@ export class ConsentPreferencesElement extends HTMLElement {
   }
 
   private findElements(): void {
-    this.modal = getConsentCustomizeModal()
-    this.closeBtn = getConsentCustomizeCloseBtn()
     this.allowAllBtn = getAllowAllBtn()
+    this.denyAllBtn = getDenyAllBtn()
     this.saveBtn = getSavePreferencesBtn()
   }
 
@@ -175,23 +168,9 @@ export class ConsentPreferencesElement extends HTMLElement {
     // Reserved for future cleanup work before View Transition swaps
   }
 
-  /** Show the consent customize modal */
-  public showModal(): void {
-    if (this.modal) {
-      this.modal.style.display = 'flex'
-    }
-  }
-
-  /** Hide the consent customize modal */
-  private hideModal = (): void => {
-    if (this.modal) {
-      this.modal.style.display = 'none'
-    }
-  }
-
   private bindEvents(): void {
-    addButtonEventListeners(this.closeBtn, this.hideModal)
     addButtonEventListeners(this.allowAllBtn, () => this.allowAll())
+    addButtonEventListeners(this.denyAllBtn, () => this.denyAll())
     addButtonEventListeners(this.saveBtn, () => this.savePreferences())
     this.bindToggleLabelListeners()
   }
@@ -267,6 +246,14 @@ export class ConsentPreferencesElement extends HTMLElement {
     this.syncConsentState(updatedConsent)
     this.applyPreferences(updatedConsent)
     this.showNotification('All consent enabled!')
+  }
+
+  private denyAll(): void {
+    revokeAllConsent()
+    const updatedConsent = getConsentSnapshot()
+    this.syncConsentState(updatedConsent)
+    this.applyPreferences(updatedConsent)
+    this.showNotification('All optional consent disabled!')
   }
 
   private getCurrentPreferences(): Partial<ConsentState> {
@@ -355,13 +342,10 @@ export class ConsentPreferencesElement extends HTMLElement {
   }
 }
 
-/**
- * Helper function to show the consent customize modal
- * Used by the ConsentBanner component
- */
-export const showConsentCustomizeModal = (): void => {
-  const modal = getConsentCustomizeModal()
-  modal.style.display = 'flex'
+declare global {
+  interface HTMLElementTagNameMap {
+    'consent-preferences': ConsentPreferencesElement
+  }
 }
 
 export const registerConsentPreferencesWebComponent = (tagName: string = COMPONENT_TAG_NAME) => {

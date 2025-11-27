@@ -6,6 +6,7 @@ import { persistentAtom } from '@nanostores/persistent'
 import { StoreController } from '@nanostores/lit'
 import type { ReactiveControllerHost } from 'lit'
 import { getCookie, removeCookie, setCookie } from '@components/scripts/utils/cookies'
+import { ClientScriptError } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { $isConsentBannerVisible } from '@components/scripts/store/visibility'
 import { getOrCreateDataSubjectId, deleteDataSubjectId } from '@components/scripts/utils/dataSubjectId'
@@ -296,10 +297,16 @@ export function initConsentSideEffects(): void {
   })
 
   // Side Effect 2: Log consent changes to API
+  const consentLoggingContext = {
+    scriptName: 'cookieConsent',
+    operation: 'logConsentToAPI',
+  } as const
+  let hasConsentLoggingFailure = false
+
   $consent.subscribe(async (consentState, oldConsentState) => {
     try {
       // Only log if purposes changed (not on initial load)
-      if (!oldConsentState) return
+      if (!oldConsentState || hasConsentLoggingFailure) return
 
       // Check if any consent category actually changed
       const categoriesChanged = ['analytics', 'marketing', 'functional'].some(
@@ -314,7 +321,7 @@ export function initConsentSideEffects(): void {
       if (consentState.marketing) purposes.push('marketing')
       if (consentState.functional) purposes.push('functional')
 
-      await fetch('/api/gdpr/consent', {
+      const response = await fetch('/api/gdpr/consent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -325,11 +332,29 @@ export function initConsentSideEffects(): void {
           verified: false,
         }),
       })
+
+      if (!response.ok) {
+        const responseBody = await response.json().catch(() => null)
+        const serverError = responseBody && typeof responseBody === 'object' && 'error' in responseBody
+          ? (responseBody as { error: { message?: string } }).error
+          : null
+        const serverMessage = serverError?.message
+          ?? (responseBody && typeof (responseBody as { message?: string }).message === 'string'
+            ? (responseBody as { message: string }).message
+            : undefined)
+
+        throw new ClientScriptError({
+          message: serverMessage ?? `Failed to record consent (status ${response.status})`,
+          cause: {
+            status: response.status,
+            statusText: response.statusText,
+            body: responseBody,
+          },
+        })
+      }
     } catch (error) {
-      handleScriptError(error, {
-        scriptName: 'cookieConsent',
-        operation: 'logConsentToAPI',
-      })
+      hasConsentLoggingFailure = true
+      handleScriptError(error, consentLoggingContext)
     }
   })
 

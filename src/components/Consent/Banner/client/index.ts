@@ -15,7 +15,6 @@ import {
   initConsentCookies,
   showConsentBanner,
 } from '@components/scripts/store'
-import { showConsentCustomizeModal } from '@components/Consent/Preferences/client'
 import {
   getConsentAllowBtn,
   getConsentCloseBtn,
@@ -41,6 +40,13 @@ export class ConsentBannerElement extends HTMLElement {
   private afterSwapHandler: (() => void) | null = null
   public isInitialized = false
   private static isModalCurrentlyVisible = false
+  public static navigateToUrl(url: string): void {
+    if (typeof window === 'undefined') {
+      return
+    }
+
+    window.location.assign(url)
+  }
 
   connectedCallback(): void {
     if (this.isInitialized || typeof document === 'undefined') {
@@ -207,10 +213,21 @@ export class ConsentBannerElement extends HTMLElement {
     addScriptBreadcrumb(context)
 
     try {
-      showConsentCustomizeModal()
+      this.navigateToConsentPage()
     } catch (error) {
       handleScriptError(error, context)
     }
+  }
+
+  private navigateToConsentPage(): void {
+    if (typeof window === 'undefined') {
+      return
+    }
+
+    this.handleDismissModal()
+
+    const targetUrl = new URL('/consent', window.location.origin)
+    ConsentBannerElement.navigateToUrl(targetUrl.toString())
   }
 
   private bindEvents(): void {
@@ -236,6 +253,13 @@ export class ConsentBannerElement extends HTMLElement {
       const shouldBeVisible = wasVisible ||
         ConsentBannerElement.isModalCurrentlyVisible ||
         sessionStorage.getItem('consent-modal-visible') === 'true'
+      const cookiesInitialized = initConsentCookies()
+
+      if (this.isConsentRoute()) {
+        console.log('🍪 Suppressing consent modal on consent settings page')
+        this.suppressModalForConsentPage()
+        return
+      }
 
       if (shouldBeVisible) {
         console.log('🍪 Restoring modal from previous navigation')
@@ -246,7 +270,7 @@ export class ConsentBannerElement extends HTMLElement {
         return
       }
 
-      if (!initConsentCookies()) {
+      if (!cookiesInitialized) {
         console.log('🍪 User already consented, skipping modal')
         return
       }
@@ -261,6 +285,24 @@ export class ConsentBannerElement extends HTMLElement {
     } catch (error) {
       handleScriptError(error, context)
     }
+  }
+
+  private isConsentRoute(): boolean {
+    if (typeof window === 'undefined') {
+      return false
+    }
+
+    const pathname = window.location.pathname
+    return pathname === '/consent' || pathname.startsWith('/consent/')
+  }
+
+  private suppressModalForConsentPage(): void {
+    this.removeFocusTrap()
+    this.wrapper.style.display = 'none'
+    hideConsentBanner()
+    ConsentBannerElement.isModalCurrentlyVisible = false
+    sessionStorage.removeItem('consent-modal-visible')
+    sessionStorage.removeItem('consent-modal-shown')
   }
 
   private setupFocusTrap(): void {
