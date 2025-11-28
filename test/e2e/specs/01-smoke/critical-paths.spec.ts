@@ -22,13 +22,14 @@ test.describe('Critical Paths @smoke', () => {
     test.skip(isMobile, 'Desktop navigation test - skipping on mobile viewport')
 
     const page = await BasePage.init(playwrightPage)
-
-    // Import setupTestPage here to avoid unused import warnings on other tests
-    const { setupTestPage } = await import('../../helpers/cookieHelper')
-    await setupTestPage(playwrightPage, '/')
-
     for (const { url: path } of page.navigationItems) {
-      await page.click(`a[href="${path}"]`)
+      await page.goto('/')
+      const navigationComplete = page.waitForPageLoad()
+      await page.navigateToPage(path)
+      await navigationComplete
+      await playwrightPage.waitForFunction(() => {
+        return !document.documentElement.hasAttribute('data-astro-transition')
+      })
       // eslint-disable-next-line security/detect-non-literal-regexp
       await page.expectUrl(new RegExp(path))
     }
@@ -41,7 +42,6 @@ test.describe('Critical Paths @smoke', () => {
     test.skip(!isMobile, 'Mobile navigation test - skipping on desktop viewport')
 
     const page = await BasePage.init(playwrightPage)
-    await page.goto('/')
 
     const navItems = page.navigationItems
     for (let i = 0; i < navItems.length; i++) {
@@ -49,13 +49,19 @@ test.describe('Critical Paths @smoke', () => {
       if (!item) continue
 
       const { url: path } = item
+      await page.goto('/')
 
       // Open mobile menu before each navigation
       await page.click('button[aria-label="toggle menu"]')
-      await playwrightPage.waitForTimeout(600) // Wait for mobile menu animation
+      await playwrightPage.waitForSelector('.menu-visible', { state: 'visible' })
 
       // Click navigation link
+      const navigationComplete = page.waitForPageLoad()
       await page.click(`a[href="${path}"]`)
+      await navigationComplete
+      await playwrightPage.waitForFunction(() => {
+        return !document.documentElement.hasAttribute('data-astro-transition')
+      })
       // eslint-disable-next-line security/detect-non-literal-regexp
       await page.expectUrl(new RegExp(path))
     }
