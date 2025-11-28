@@ -1,262 +1,151 @@
 /**
  * Social Shares Component Tests
- * Tests for social media sharing functionality including Web Share API
+ * Tests for social media sharing functionality including share URLs and Mastodon modal
  * @see src/components/Social/
  */
 
+import type { BrowserContext, Page } from '@playwright/test'
 import { BasePage, test, expect } from '@test/e2e/helpers'
 
+const SHARE_FIXTURE = {
+  path: '/testing/social-shares',
+  url: 'https://astro.webstackbuilders.com/testing/social-shares',
+  title: 'Testing Article: Future of Web Performance',
+  description: 'Synthetic article metadata supplied solely for end-to-end validation of the social share experience.',
+}
+
+const SOCIAL_SHARE_SELECTOR = '[data-social-shares]'
+const SHARE_BUTTON_SELECTOR = `${SOCIAL_SHARE_SELECTOR} [data-share]`
+const EXPECTED_PLATFORMS = ['twitter', 'linkedin', 'bluesky', 'reddit', 'mastodon'] as const
+const SHARE_DATA_TEXT = `${SHARE_FIXTURE.title} - ${SHARE_FIXTURE.description}`.trim()
+const SHARE_MODAL_TEXT = `${SHARE_DATA_TEXT} ${SHARE_FIXTURE.url}`.trim()
+
+async function loadSocialShareFixture(playwrightPage: Page) {
+  const page = await BasePage.init(playwrightPage)
+  await page.goto(SHARE_FIXTURE.path)
+  await page.waitForLoadState('networkidle')
+  return page
+}
+
+async function openSharePopup(
+  playwrightPage: Page,
+  context: BrowserContext,
+  platform: (typeof EXPECTED_PLATFORMS)[number]
+) {
+  const page = await loadSocialShareFixture(playwrightPage)
+  const shareButton = page.locator(`${SHARE_BUTTON_SELECTOR}[data-share="${platform}"]`).first()
+  await expect(shareButton).toBeVisible()
+  const popupPromise = context.waitForEvent('page')
+  await shareButton.click()
+  const popup = await popupPromise
+  await popup.waitForLoadState('domcontentloaded')
+  return popup
+}
 
 test.describe('Social Shares Component', () => {
-  /**
-   * Setup for social shares component tests
-   *
-   * Side effects relied upon:
-   * - Navigates to the articles listing page
-   * - Clicks the first article link to load an article detail page
-   * - Waits for networkidle to ensure social share buttons are fully rendered
-   *
-   * Without this setup, tests would fail due to:
-   * - Social share component not being present (it only appears on article pages)
-   * - Share buttons not having proper context (need article title, URL, description)
-   * - Client-side share functionality not being initialized
-   *
-   * This ensures tests run against a real article page where social sharing
-   * functionality is available and properly configured
-   */
-  test.beforeEach(async ({ page: playwrightPage }) => {
-    const page = await BasePage.init(playwrightPage)
-    // Go to an article page (social shares usually appear on articles)
-    await page.goto('/articles')
-    // Click first article
-    const firstArticle = page.locator('a[href*="/articles/"]').first()
-    await firstArticle.click()
-    await page.waitForLoadState('networkidle')
-  })
-
-  test.skip('@wip social share buttons are visible', async ({ page: playwrightPage }) => {
-    const page = await BasePage.init(playwrightPage)
-    // Expected: Social share component should be visible on article pages
-    const socialShares = page.locator('[data-social-shares]')
+  test('renders social share component inside testing fixture', async ({ page: playwrightPage }) => {
+    const page = await loadSocialShareFixture(playwrightPage)
+    const socialShares = page.locator(SOCIAL_SHARE_SELECTOR)
     await expect(socialShares).toBeVisible()
+    await expect(socialShares.locator('.social-share__label')).toHaveText('Share:')
   })
 
-  test.skip('@wip displays common social platforms', async ({ page: playwrightPage }) => {
-    const page = await BasePage.init(playwrightPage)
-    // Expected: Should have buttons for Twitter, LinkedIn, Facebook, etc.
-    const socialShares = page.locator('[data-social-shares]')
-
-    // At least one social button should be visible
-    const count = await socialShares.locator('button, a').count()
-    expect(count).toBeGreaterThan(0)
-
-    // Verify common platforms exist
-    const hasTwitter = (await socialShares.locator('[data-share="twitter"]').count()) > 0
-    const hasLinkedin = (await socialShares.locator('[data-share="linkedin"]').count()) > 0
-    const hasFacebook = (await socialShares.locator('[data-share="facebook"]').count()) > 0
-
-    expect(hasTwitter || hasLinkedin || hasFacebook).toBe(true)
+  test('displays expected platforms with deterministic order', async ({ page: playwrightPage }) => {
+    const page = await loadSocialShareFixture(playwrightPage)
+    const buttons = page.locator(SHARE_BUTTON_SELECTOR)
+    await expect(buttons).toHaveCount(EXPECTED_PLATFORMS.length)
+    const shareIds = await buttons.evaluateAll(elements => elements.map(el => el.getAttribute('data-share')))
+    expect(shareIds.filter((value): value is string => Boolean(value))).toEqual(EXPECTED_PLATFORMS)
   })
 
-  test.skip('@wip share buttons have accessible labels', async ({ page: playwrightPage }) => {
-    const page = await BasePage.init(playwrightPage)
-    // Expected: All share buttons should have aria-label or text
-    const socialShares = page.locator('[data-social-shares]')
-    const buttons = socialShares.locator('button, a')
-
+  test('share buttons expose accessible labels', async ({ page: playwrightPage }) => {
+    const page = await loadSocialShareFixture(playwrightPage)
+    const buttons = page.locator(SHARE_BUTTON_SELECTOR)
     const count = await buttons.count()
+
     for (let i = 0; i < count; i++) {
       const button = buttons.nth(i)
       const ariaLabel = await button.getAttribute('aria-label')
-      const text = await button.textContent()
-
-      expect(ariaLabel || text?.trim()).toBeTruthy()
+      expect(ariaLabel?.trim()).toBeTruthy()
     }
   })
 
-  test.skip('@wip clicking Twitter share opens new window', async ({ page: playwrightPage, context }) => {
-    const page = await BasePage.init(playwrightPage)
-    // Expected: Twitter share should open in new window
-    const socialShares = page.locator('[data-social-shares]')
-    const twitterButton = socialShares.locator('[data-share="twitter"]').first()
-
-    if ((await twitterButton.count()) === 0) {
-      test.skip()
-    }
-
-    // Listen for new page
-    const pagePromise = context.waitForEvent('page')
-    await twitterButton.click()
-
-    const newPage = await pagePromise
-    expect(newPage.url()).toContain('twitter.com')
-
-    await newPage.close()
+  test('twitter share encodes fixture title and url', async ({ page: playwrightPage, context }) => {
+    const popup = await openSharePopup(playwrightPage, context, 'twitter')
+    const popupUrl = new URL(popup.url())
+    const validTwitterHosts = ['twitter.com', 'x.com']
+    expect(validTwitterHosts).toContain(popupUrl.hostname)
+    expect(popupUrl.searchParams.get('url')).toBe(SHARE_FIXTURE.url)
+    expect(popupUrl.searchParams.get('text')).toBe(SHARE_DATA_TEXT)
+    await popup.close()
   })
 
-  test.skip('@wip clicking LinkedIn share opens new window', async ({ page: playwrightPage, context }) => {
-    const page = await BasePage.init(playwrightPage)
-    // Expected: LinkedIn share should open in new window
-    const socialShares = page.locator('[data-social-shares]')
-    const linkedinButton = socialShares.locator('[data-share="linkedin"]').first()
+  test('linkedin share exposes encoded href and launches LinkedIn window', async ({ page: playwrightPage, context }) => {
+    const page = await loadSocialShareFixture(playwrightPage)
+    const linkedinButton = page.locator(`${SHARE_BUTTON_SELECTOR}[data-share="linkedin"]`).first()
+    await expect(linkedinButton).toBeVisible()
 
-    if ((await linkedinButton.count()) === 0) {
-      test.skip()
+    const href = await linkedinButton.getAttribute('href')
+    expect(href).toBeTruthy()
+    if (href) {
+      const hrefUrl = new URL(href)
+      expect(hrefUrl.hostname).toContain('linkedin.com')
+      expect(hrefUrl.searchParams.get('url')).toBe(SHARE_FIXTURE.url)
     }
 
-    const pagePromise = context.waitForEvent('page')
+    const popupPromise = context.waitForEvent('page')
     await linkedinButton.click()
-
-    const newPage = await pagePromise
-    expect(newPage.url()).toContain('linkedin.com')
-
-    await newPage.close()
+    const popup = await popupPromise
+    const popupUrl = new URL(popup.url())
+    expect(popupUrl.hostname).toContain('linkedin.com')
+    const validLinkedinPaths = ['/sharing/share-offsite', '/uas/login']
+    expect(validLinkedinPaths.some(path => popupUrl.pathname.startsWith(path))).toBe(true)
+    await popup.close()
   })
 
-  test.skip('@wip share URLs include current page URL', async ({ page: playwrightPage, context }) => {
-    const page = await BasePage.init(playwrightPage)
-    // Expected: Share links should include the current article URL
-    const currentUrl = page.url()
-    const socialShares = page.locator('[data-social-shares]')
-    const twitterButton = socialShares.locator('[data-share="twitter"]').first()
-
-    if ((await twitterButton.count()) === 0) {
-      test.skip()
-    }
-
-    const pagePromise = context.waitForEvent('page')
-    await twitterButton.click()
-
-    const newPage = await pagePromise
-    const shareUrl = newPage.url()
-
-    // Check if current URL is encoded in the share URL
-    const encodedUrl = encodeURIComponent(currentUrl)
-    expect(shareUrl).toContain(encodedUrl)
-
-    await newPage.close()
+  test('bluesky share concatenates share text and url', async ({ page: playwrightPage, context }) => {
+    const popup = await openSharePopup(playwrightPage, context, 'bluesky')
+    const popupUrl = new URL(popup.url())
+    expect(popupUrl.hostname).toContain('bsky.app')
+    const textParam = popupUrl.searchParams.get('text')
+    expect(textParam?.startsWith(SHARE_DATA_TEXT)).toBe(true)
+    expect(textParam?.endsWith(SHARE_FIXTURE.url)).toBe(true)
+    await popup.close()
   })
 
-  test.skip('@wip share URLs include page title', async ({ page: playwrightPage, context }) => {
-    const page = await BasePage.init(playwrightPage)
-    // Expected: Share links should include the article title
-    const pageTitle = await page.title()
-    const socialShares = page.locator('[data-social-shares]')
-    const twitterButton = socialShares.locator('[data-share="twitter"]').first()
-
-    if ((await twitterButton.count()) === 0) {
-      test.skip()
-    }
-
-    const pagePromise = context.waitForEvent('page')
-    await twitterButton.click()
-
-    const newPage = await pagePromise
-    const shareUrl = newPage.url()
-
-    // Title might be encoded
-    const encodedTitle = encodeURIComponent(pageTitle)
-    expect(shareUrl).toContain(encodedTitle.substring(0, 20)) // Partial match
-
-    await newPage.close()
+  test('reddit share includes url and title parameters', async ({ page: playwrightPage, context }) => {
+    const popup = await openSharePopup(playwrightPage, context, 'reddit')
+    const popupUrl = new URL(popup.url())
+    expect(popupUrl.hostname).toContain('reddit.com')
+    expect(popupUrl.searchParams.get('url')).toBe(SHARE_FIXTURE.url)
+    expect(popupUrl.searchParams.get('title')).toBe(SHARE_FIXTURE.title)
+    await popup.close()
   })
 
-  test.skip('@wip native share button uses Web Share API', async ({ page: playwrightPage, browserName }) => {
-    const page = await BasePage.init(playwrightPage)
-    // Expected: Native share button should trigger Web Share API
-    // Skip on browsers that don't support Web Share API in test environment
-    if (browserName !== 'chromium') {
-      test.skip()
-    }
-
-    const socialShares = page.locator('[data-social-shares]')
-    const nativeShareButton = socialShares.locator('[data-share="native"]')
-
-    if ((await nativeShareButton.count()) === 0) {
-      test.skip()
-    }
-
-    // Mock the navigator.share API
+  test('mastodon share delegates to modal helper', async ({ page: playwrightPage }) => {
+    const page = await loadSocialShareFixture(playwrightPage)
+    const mastodonButton = page.locator(`${SHARE_BUTTON_SELECTOR}[data-share="mastodon"]`).first()
     await page.evaluate(() => {
-      // @ts-ignore
-      window.navigator.share = async () => {
-        return Promise.resolve()
+      const windowWithModal = window as Window & { openMastodonModal?: (_text: string) => void; mastodonPayload?: string }
+      delete windowWithModal.mastodonPayload
+      windowWithModal.openMastodonModal = (text: string) => {
+        windowWithModal.mastodonPayload = text
       }
     })
 
-    await nativeShareButton.click()
-    // If no error, Web Share API was called successfully
+    await mastodonButton.click()
+    const payload = await page.evaluate(() => (window as Window & { mastodonPayload?: string }).mastodonPayload)
+    expect(payload).toBe(SHARE_MODAL_TEXT)
   })
 
-  test.skip('@wip copy link button copies URL to clipboard', async ({ page: playwrightPage, context }) => {
-    const page = await BasePage.init(playwrightPage)
-    // Expected: Copy button should copy current URL to clipboard
-    await context.grantPermissions(['clipboard-write', 'clipboard-read'])
-
-    const socialShares = page.locator('[data-social-shares]')
-    const copyButton = socialShares.locator('[data-share="copy"]')
-
-    if ((await copyButton.count()) === 0) {
-      test.skip()
-    }
-
-    const currentUrl = page.url()
-    await copyButton.click()
-    await expect.poll(async () => {
-      return await page.evaluate(async () => navigator.clipboard.readText())
-    }).toBe(currentUrl)
-  })
-
-  test.skip('@wip copy link button shows confirmation', async ({ page: playwrightPage, context }) => {
-    const page = await BasePage.init(playwrightPage)
-    // Expected: After copying, should show confirmation message
-    await context.grantPermissions(['clipboard-write'])
-
-    const socialShares = page.locator('[data-social-shares]')
-    const copyButton = socialShares.locator('[data-share="copy"]')
-
-    if ((await copyButton.count()) === 0) {
-      test.skip()
-    }
-
-    await copyButton.click()
-    await expect.poll(async () => {
-      const [buttonText, ariaLabel] = await Promise.all([
-        copyButton.textContent(),
-        copyButton.getAttribute('aria-label')
-      ])
-      const textIndicatesCopy = buttonText?.toLowerCase().includes('copied') ?? false
-      const ariaIndicatesCopy = ariaLabel?.toLowerCase().includes('copied') ?? false
-      return textIndicatesCopy || ariaIndicatesCopy
-    }).toBe(true)
-  })
-
-  test.skip('@wip email share opens mailto link', async ({ page: playwrightPage }) => {
-    const page = await BasePage.init(playwrightPage)
-    // Expected: Email share should use mailto: protocol
-    const socialShares = page.locator('[data-social-shares]')
-    const emailButton = socialShares.locator('[data-share="email"]')
-
-    if ((await emailButton.count()) === 0) {
-      test.skip()
-    }
-
-    const href = await emailButton.getAttribute('href')
-    expect(href).toContain('mailto:')
-  })
-
-  test.skip('@wip social shares are responsive', async ({ page: playwrightPage }) => {
-    const page = await BasePage.init(playwrightPage)
-    // Expected: Social shares should work on mobile
+  test('social shares remain reachable on small viewports', async ({ page: playwrightPage }) => {
+    const page = await loadSocialShareFixture(playwrightPage)
     await page.setViewportSize({ width: 375, height: 667 })
-    await page.reload()
+    await page.reload({ waitUntil: 'domcontentloaded' })
+    await page.waitForLoadState('networkidle')
 
-    const socialShares = page.locator('[data-social-shares]')
+    const socialShares = page.locator(SOCIAL_SHARE_SELECTOR)
     await expect(socialShares).toBeVisible()
-
-    // Buttons should still be clickable
-    const buttons = socialShares.locator('button, a')
-    const count = await buttons.count()
-    expect(count).toBeGreaterThan(0)
+    await expect(socialShares.locator('[data-share]')).toHaveCount(EXPECTED_PLATFORMS.length)
   })
 })
