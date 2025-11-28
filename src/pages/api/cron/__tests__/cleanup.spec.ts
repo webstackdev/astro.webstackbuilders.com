@@ -219,11 +219,13 @@ describe('Cron cleanup endpoints', () => {
 
     let fetchMock: ReturnType<typeof vi.fn>
 
-    const buildRequest = (headers?: HeadersInit) =>
-      new Request('http://localhost/api/cron/ping-integrations', {
-        method: 'GET',
-        headers,
-      })
+    const buildRequest = (headers?: HeadersInit) => {
+      const init: RequestInit = { method: 'GET' }
+      if (typeof headers !== 'undefined') {
+        init.headers = headers
+      }
+      return new Request('http://localhost/api/cron/ping-integrations', init)
+    }
 
     const createFetchResponse = (overrides?: Partial<Response>): Response => ({
       ok: true,
@@ -281,7 +283,7 @@ describe('Cron cleanup endpoints', () => {
 
       const fetchArgs = fetchMock.mock.calls[0]![1] as RequestInit | undefined
       const headers = fetchArgs?.headers as Record<string, string> | undefined
-      expect(headers?.Authorization ?? headers?.authorization).toBe('Bearer upstash-token')
+      expect(headers?.['Authorization'] ?? headers?.['authorization']).toBe('Bearer upstash-token')
     })
 
     it('returns upstream error details when Upstash responds with failure', async () => {
