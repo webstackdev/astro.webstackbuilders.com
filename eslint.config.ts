@@ -516,6 +516,7 @@ export default [
       'src/lib/config/siteUrlServer.ts',
       'src/pages/api/_environment/index.ts',
       'src/pages/api/_environment/environmentApi.ts',
+      'test/e2e/config/global-setup.ts',
     ],
     rules: {
       'no-restricted-syntax': createRestrictedSyntaxRule({ allowBuildError: true, allowClientScriptError: true }),

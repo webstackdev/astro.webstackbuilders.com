@@ -119,7 +119,7 @@ export default defineConfig({
         },
       }),
 
-  globalSetup: './test/e2e/global-setup',
+  globalSetup: './test/e2e/config/global-setup.ts',
 
   // path to the global teardown files.
   //globalTeardown: require.resolve('./global-teardown'),

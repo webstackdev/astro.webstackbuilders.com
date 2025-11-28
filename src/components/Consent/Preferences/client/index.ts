@@ -312,6 +312,7 @@ export class ConsentPreferencesElement extends HTMLElement {
     // Placeholder for marketing consent disabling logic
   }
 
+   // @TODO: consent/preferences is using its own bespoke toast for success/failure, not a component in components/Toasts
   private showNotification(message: string, type: 'success' | 'error' = 'success'): void {
     document
       .querySelectorAll<HTMLDivElement>('[data-testid="consent-toast"]')
