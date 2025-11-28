@@ -4,7 +4,7 @@
  */
 
 import { BasePage, test, expect } from '@test/e2e/helpers'
-import { TestError } from '@test/errors'
+import { EvaluationError } from '@test/errors'
 import { waitForAnimationFrames } from '@test/e2e/helpers/waitHelpers'
 import type { Page } from '@playwright/test'
 
@@ -57,7 +57,7 @@ async function invokeCarouselControl(page: BasePage, action: 'pause' | 'resume')
 
 function assertIndex(value: number | null): asserts value is number {
   if (value === null) {
-    throw new TestError('Carousel did not report an active pagination dot')
+    throw new EvaluationError('Carousel did not report an active pagination dot')
   }
 }
 

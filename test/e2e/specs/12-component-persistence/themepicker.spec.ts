@@ -16,7 +16,6 @@
 /* eslint-disable custom-rules/enforce-centralized-events -- Test file uses addEventListener to verify DOM persistence */
 
 import { ComponentPersistencePage, test, describe, expect } from '@test/e2e/helpers'
-import { TestError } from '@test/errors'
 
 describe('View Transitions - transition:persist on Web Components', () => {
   test('should persist ThemePicker web component identity across navigation', async ({
@@ -39,9 +38,6 @@ describe('View Transitions - transition:persist on Web Components', () => {
 
     // Run all persistence assertions
     page.assertPersistence(initialData, afterNavigationData)
-
-    // Output console messages for debugging
-    page.printCapturedMessages('ALL CAPTURED CONSOLE MESSAGES')
   })
 
   test('should preserve event listeners and closure state across navigation', async ({
@@ -53,8 +49,9 @@ describe('View Transitions - transition:persist on Web Components', () => {
     // Attach an event listener with closure state to the ThemePicker component
     // This tests whether the DOM element truly persists (event listeners would be lost on recreation)
     const initialClickCount = await page.evaluate(() => {
+      const EvaluationErrorCtor = window.EvaluationError!
       const element = document.querySelector('theme-picker')
-      if (!element) throw new TestError('theme-picker web component not found')
+      if (!element) throw new EvaluationErrorCtor('theme-picker web component not found')
 
       let clickCount = 0
 
@@ -82,8 +79,9 @@ describe('View Transitions - transition:persist on Web Components', () => {
 
     // Programmatically dispatch a click event to trigger the listener
     const afterNavigationData = await page.evaluate(() => {
+      const EvaluationErrorCtor = window.EvaluationError!
       const element = document.querySelector('theme-picker')
-      if (!element) throw new TestError('theme-picker web component not found after navigation')
+      if (!element) throw new EvaluationErrorCtor('theme-picker web component not found after navigation')
 
       // Dispatch synthetic click event
       element.dispatchEvent(new MouseEvent('click', { bubbles: true }))

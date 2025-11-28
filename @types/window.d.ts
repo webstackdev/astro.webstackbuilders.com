@@ -2,6 +2,7 @@
  * Global Window interface extensions
  * Centralizes all custom properties added to the window object
  */
+import type { EvaluationError } from '@test/errors/EvaluationError'
 
 /**
  * Meta colors object for theme color management
@@ -74,9 +75,20 @@ declare global {
      * Exposed store helpers that tests use to seed state when Playwright controls the browser.
      * These are only defined when window.isPlaywrightControlled === true.
      */
-    updateConsent?: (category: 'analytics' | 'marketing' | 'functional', value: boolean) => void
-    cacheEmbed?: (key: string, data: unknown, ttl: number) => void
-    saveMastodonInstance?: (domain: string) => void
+    updateConsent?: (_category: 'analytics' | 'marketing' | 'functional', _value: boolean) => void
+    cacheEmbed?: (_key: string, _data: unknown, _ttl: number) => void
+    saveMastodonInstance?: (_domain: string) => void
+
+    /**
+     * Custom evaluation error injected during Playwright tests
+     */
+    EvaluationError?: typeof EvaluationError
+
+    /**
+     * Tracks astro:page-load events for view transition testing
+     */
+    __astroPageLoadCounter?: number
+    __astroPageLoadListenerAttached?: boolean
   }
 }
 

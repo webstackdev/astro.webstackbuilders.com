@@ -5,7 +5,6 @@
  */
 
 import { test, expect } from '@test/e2e/helpers'
-import { TestError } from '@test/errors'
 import { BasePage } from '@test/e2e/helpers/pageObjectModels/BasePage'
 
 type EnvironmentApiSnapshot = {
@@ -28,7 +27,8 @@ const getEnvironmentSnapshot = async (page: BasePage): Promise<EnvironmentApiSna
   await navigateToDiagnosticsPage(page)
   return await page.evaluate(() => {
     if (!window.environmentApiSnapshot) {
-      throw new TestError('Environment API snapshot not initialized')
+      const EvaluationErrorCtor = window.EvaluationError!
+      throw new EvaluationErrorCtor('Environment API snapshot not initialized')
     }
     return window.environmentApiSnapshot
   })

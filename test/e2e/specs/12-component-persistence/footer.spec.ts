@@ -16,7 +16,8 @@
 /* eslint-disable custom-rules/enforce-centralized-events -- Test file uses addEventListener to verify DOM persistence */
 
 import { ComponentPersistencePage, test, describe, expect } from '@test/e2e/helpers'
-import { TestError } from '@test/errors'
+
+const FOOTER_SELECTOR = '[data-testid="footer-preact"], site-footer'
 
 describe('Footer Component Persistence', () => {
   test('should persist Footer component identity across navigation', async ({
@@ -26,7 +27,7 @@ describe('Footer Component Persistence', () => {
     await page.goto('/')
 
     // Set up test data on the Footer component (works for both Preact and Web Component)
-    const initialData = await page.setupPersistenceTest('[data-testid="footer-preact"]')
+    const initialData = await page.setupPersistenceTest(FOOTER_SELECTOR)
 
     // Navigate to a different page using Astro View Transitions
     await page.navigateToPage('/articles')
@@ -34,7 +35,7 @@ describe('Footer Component Persistence', () => {
     await page.waitForPageLoad()
 
     // Verify the element persisted with the same DOM identity
-    const afterNavigationData = await page.verifyPersistence('[data-testid="footer-preact"]')
+    const afterNavigationData = await page.verifyPersistence(FOOTER_SELECTOR)
 
     // Run all persistence assertions
     page.assertPersistence(initialData, afterNavigationData)
@@ -47,9 +48,12 @@ describe('Footer Component Persistence', () => {
     await page.goto('/')
 
     // Attach an event listener with closure state to the Footer component
-    const initialClickCount = await page.evaluate(() => {
-      const element = document.querySelector('[data-testid="footer-preact"]')
-      if (!element) throw new TestError('Footer component not found')
+    const initialClickCount = await page.evaluate((selector: string) => {
+      const EvaluationErrorCtor = window.EvaluationError!
+      const element = document.querySelector(selector)
+      if (!element) {
+        throw new EvaluationErrorCtor(`Footer component (${selector}) not found`)
+      }
 
       let clickCount = 0
 
@@ -64,7 +68,7 @@ describe('Footer Component Persistence', () => {
       ;(element as any).__clickCount = 0
 
       return clickCount
-    })
+    }, FOOTER_SELECTOR)
 
     expect(initialClickCount).toBe(0)
 
@@ -74,9 +78,12 @@ describe('Footer Component Persistence', () => {
     await page.waitForPageLoad()
 
     // Dispatch click event to trigger the listener
-    const afterNavigationData = await page.evaluate(() => {
-      const element = document.querySelector('[data-testid="footer-preact"]')
-      if (!element) throw new TestError('Footer component not found after navigation')
+    const afterNavigationData = await page.evaluate((selector: string) => {
+      const EvaluationErrorCtor = window.EvaluationError!
+      const element = document.querySelector(selector)
+      if (!element) {
+        throw new EvaluationErrorCtor(`Footer component (${selector}) not found after navigation`)
+      }
 
       element.dispatchEvent(new MouseEvent('click', { bubbles: true }))
 
@@ -84,7 +91,7 @@ describe('Footer Component Persistence', () => {
         listenerAttached: (element as any).__listenerAttached,
         clickCount: (element as any).__clickCount,
       }
-    })
+    }, FOOTER_SELECTOR)
 
     expect(afterNavigationData.listenerAttached).toBe(true)
     expect(afterNavigationData.clickCount).toBe(1)

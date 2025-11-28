@@ -6,7 +6,7 @@
  */
 import type { Page } from '@playwright/test'
 import { BasePage, expect, test } from '@test/e2e/helpers'
-import { TestError } from '@test/errors'
+import { EvaluationError } from '@test/errors'
 import { TEST_CONTACT_DATA, TEST_EMAILS } from '@test/e2e/fixtures/test-data'
 
 const CONTACT_PATH = '/contact'
@@ -80,7 +80,7 @@ test.describe('Contact Form', () => {
     await expect(page.locator('#budget + .field-error')).toContainText('This field is required')
 
     if (apiCallMade) {
-      throw new TestError('Contact API was called despite validation errors')
+      throw new EvaluationError('Contact API was called despite validation errors')
     }
   })
 

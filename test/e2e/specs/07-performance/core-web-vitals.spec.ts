@@ -4,7 +4,6 @@
  */
 
 import { test } from '@test/e2e/helpers'
-import { TestError } from '@test/errors'
 import { PerformancePage } from '@test/e2e/helpers/pageObjectModels/PerformancePage'
 
 test.describe('Core Web Vitals', () => {
@@ -57,7 +56,8 @@ test.describe('Core Web Vitals', () => {
 
     performancePage.page.evaluate((time) => {
       if (time >= 3000) {
-        throw new TestError(`Page load time ${time}ms exceeds 3000ms threshold`)
+        const EvaluationErrorCtor = window.EvaluationError!
+        throw new EvaluationErrorCtor(`Page load time ${time}ms exceeds 3000ms threshold`)
       }
     }, loadTime)
   })

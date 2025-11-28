@@ -22,6 +22,7 @@ export class BasePage {
   private _consoleMessages: string[] = []
   public errors404: string[] = []
   public navigationItems = navigationItems
+  private lastAstroPageLoadCount = 0
 
   protected constructor(protected readonly _page: Page) {
     this.page = _page
@@ -32,10 +33,60 @@ export class BasePage {
     })
   }
 
-  static async init(page: Page): Promise<BasePage> {
+  protected static async setupPlaywrightGlobals(page: Page): Promise<void> {
     await page.addInitScript(() => {
       window.isPlaywrightControlled = true
+
+      if (typeof window.__astroPageLoadCounter !== 'number') {
+        window.__astroPageLoadCounter = 0
+      }
+
+      if (!window.__astroPageLoadListenerAttached) {
+        const registerAstroPageLoadListener = () => {
+          if (window.__astroPageLoadListenerAttached) return
+          if (typeof document === 'undefined') return
+
+          document.addEventListener(
+            'astro:page-load',
+            () => {
+              window.__astroPageLoadCounter = (window.__astroPageLoadCounter ?? 0) + 1
+            },
+            { passive: true }
+          )
+
+          window.__astroPageLoadListenerAttached = true
+        }
+
+        if (typeof document !== 'undefined' && document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', registerAstroPageLoadListener, { once: true })
+        } else {
+          registerAstroPageLoadListener()
+        }
+      }
+
+      if (!window.EvaluationError) {
+        class EvaluationError extends Error {
+          constructor(message: string, options?: ErrorOptions) {
+            super(message, options)
+            Object.defineProperty(this, 'name', {
+              value: 'EvaluationError',
+              enumerable: false,
+              configurable: true,
+            })
+            Object.setPrototypeOf(this, new.target.prototype)
+            if ('captureStackTrace' in Error) {
+              Error.captureStackTrace(this, EvaluationError)
+            }
+          }
+        }
+
+        window.EvaluationError = EvaluationError
+      }
     })
+  }
+
+  static async init(page: Page): Promise<BasePage> {
+    await this.setupPlaywrightGlobals(page)
     const instance = new BasePage(page)
     await instance.onInit()
     return instance
@@ -375,13 +426,20 @@ export class BasePage {
    * ```
    */
   async waitForPageLoad(): Promise<void> {
-    await this._page.evaluate(() => {
-      return new Promise<void>(resolve => {
-        document.addEventListener('astro:page-load', () => {
-          resolve()
-        }, { once: true })
-      })
-    })
+    const currentCount = await this._page.evaluate(() => window.__astroPageLoadCounter ?? 0)
+
+    if (currentCount > this.lastAstroPageLoadCount) {
+      this.lastAstroPageLoadCount = currentCount
+      return
+    }
+
+    await this._page.waitForFunction(
+      previousCount => (window.__astroPageLoadCounter ?? 0) > previousCount,
+      currentCount,
+      { timeout: DEFAULT_NAVIGATION_TIMEOUT }
+    )
+
+    this.lastAstroPageLoadCount = await this._page.evaluate(() => window.__astroPageLoadCounter ?? 0)
   }
 
   /**
@@ -397,7 +455,24 @@ export class BasePage {
    * ```
    */
   async navigateToPage(href: string): Promise<void> {
-    await this._page.click(`a[href="${href}"]`)
+    const navLink = this._page.locator(`site-navigation a[href="${href}"]`).first()
+    const linkCount = await navLink.count()
+
+    if (linkCount === 0) {
+      throw new Error(`Navigation link with href "${href}" not found`)
+    }
+
+    if (!(await navLink.isVisible())) {
+      const navToggle = this._page.locator('.nav-toggle-btn').first()
+      if (await navToggle.isVisible()) {
+        await navToggle.click()
+        await expect(navToggle).toHaveAttribute('aria-expanded', 'true', { timeout: DEFAULT_NAVIGATION_TIMEOUT })
+      }
+
+      await expect(navLink).toBeVisible({ timeout: DEFAULT_NAVIGATION_TIMEOUT })
+    }
+
+    await navLink.click()
   }
 
   /**

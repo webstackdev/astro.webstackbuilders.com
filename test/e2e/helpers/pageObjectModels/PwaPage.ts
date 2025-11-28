@@ -12,9 +12,7 @@ export class PwaPage extends BasePage {
   }
 
   static override async init(page: Page): Promise<PwaPage> {
-    await page.addInitScript(() => {
-      window.isPlaywrightControlled = true
-    })
+    await this.setupPlaywrightGlobals(page)
     const instance = new PwaPage(page)
     await instance.onInit()
     return instance

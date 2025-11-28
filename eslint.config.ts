@@ -469,6 +469,7 @@ export default [
       'src/components/scripts/utils/environmentClient.ts',
       'src/lib/config/**/*',
       'src/pages/api/_environment/**/*',
+      'test/e2e/helpers/pageObjectModels/**/*',
     ],
     rules: {
       'no-process-env': 'off',

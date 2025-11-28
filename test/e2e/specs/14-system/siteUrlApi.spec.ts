@@ -1,5 +1,4 @@
 import { test, expect } from '@test/e2e/helpers'
-import { TestError } from '@test/errors'
 import { BasePage } from '@test/e2e/helpers/pageObjectModels/BasePage'
 
 type SiteUrlSnapshot = {
@@ -16,7 +15,8 @@ const getSnapshot = async (page: BasePage): Promise<SiteUrlSnapshot> => {
   await navigateToDiagnosticsPage(page)
   return await page.evaluate(() => {
     if (!window.siteUrlApiSnapshot) {
-      throw new TestError('Site URL api snapshot not initialized')
+      const EvaluationErrorCtor = window.EvaluationError!
+      throw new EvaluationErrorCtor('Site URL api snapshot not initialized')
     }
     return window.siteUrlApiSnapshot
   })

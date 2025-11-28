@@ -20,9 +20,7 @@ export class NewsletterPage extends BasePage {
   }
 
   static override async init(page: Page): Promise<NewsletterPage> {
-    await page.addInitScript(() => {
-      window.isPlaywrightControlled = true
-    })
+    await this.setupPlaywrightGlobals(page)
     const instance = new NewsletterPage(page)
     await instance.onInit()
     return instance

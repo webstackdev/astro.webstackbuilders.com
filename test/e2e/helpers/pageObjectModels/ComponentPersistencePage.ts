@@ -8,7 +8,6 @@
 import type { Page } from '@playwright/test'
 import { expect } from '@playwright/test'
 import { BasePage } from './BasePage'
-import { TestError } from '@test/errors'
 import type { CapturedConsoleMessage } from '@test/e2e/helpers/consoleCapture'
 import type { ElementWithTestProperties } from '@test/e2e/assertions'
 
@@ -26,18 +25,28 @@ export interface PersistenceVerificationData {
   tagName: string
 }
 
+export interface ComponentPersistencePageOptions {
+  echoConsole?: boolean
+}
+
 export class ComponentPersistencePage extends BasePage {
   private consoleMessages: CapturedConsoleMessage[] = []
+  private echoConsoleMessages = process.env['COMPONENT_PERSISTENCE_ECHO_CONSOLE'] === '1'
 
-  protected constructor(page: Page) {
+  protected constructor(page: Page, options?: ComponentPersistencePageOptions) {
     super(page)
+
+    if (typeof options?.echoConsole === 'boolean') {
+      this.echoConsoleMessages = options.echoConsole
+    }
   }
 
-  static override async init(page: Page): Promise<ComponentPersistencePage> {
-    await page.addInitScript(() => {
-      window.isPlaywrightControlled = true
-    })
-    const instance = new ComponentPersistencePage(page)
+  static override async init(
+    page: Page,
+    options?: ComponentPersistencePageOptions
+  ): Promise<ComponentPersistencePage> {
+    await this.setupPlaywrightGlobals(page)
+    const instance = new ComponentPersistencePage(page, options)
     await instance.onInit()
     return instance
   }
@@ -75,8 +84,8 @@ export class ComponentPersistencePage extends BasePage {
         location: msg.location().url,
       })
 
-      // Only print errors and warnings for real-time debugging
-      if (type === 'error' || type === 'warning') {
+      // Only print errors and warnings for real-time debugging when enabled
+      if (this.echoConsoleMessages && (type === 'error' || type === 'warning')) {
         console.log(`[${type}] ${text}`)
         if (args.length > 0 && args.join('') !== text) {
           console.log(`  Args: ${args.join(', ')}`)
@@ -107,8 +116,9 @@ export class ComponentPersistencePage extends BasePage {
    */
   async setupPersistenceTest(selector: string): Promise<PersistenceTestData> {
     return await this.evaluate((sel: string) => {
+      const EvaluationErrorCtor = window.EvaluationError!
       const element = document.querySelector(sel) as ElementWithTestProperties | null
-      if (!element) throw new TestError(`${sel} element not found`)
+      if (!element) throw new EvaluationErrorCtor(`${sel} element not found`)
 
       // Create a unique identifier
       const uniqueId = `test-${Date.now()}-${Math.random()}`
@@ -138,8 +148,9 @@ export class ComponentPersistencePage extends BasePage {
    */
   async verifyPersistence(selector: string): Promise<PersistenceVerificationData> {
     return await this.evaluate((sel: string) => {
+      const EvaluationErrorCtor = window.EvaluationError!
       const element = document.querySelector(sel) as ElementWithTestProperties | null
-      if (!element) throw new TestError(`${sel} element not found after navigation`)
+      if (!element) throw new EvaluationErrorCtor(`${sel} element not found after navigation`)
 
       // Increment counter to prove it's the same element
       const counter = element.__navigationCounter ?? 0

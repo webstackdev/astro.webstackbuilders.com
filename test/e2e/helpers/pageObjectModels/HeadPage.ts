@@ -5,7 +5,7 @@
 import type { Page } from '@playwright/test'
 import { expect } from '@playwright/test'
 import { BasePage } from '@test/e2e/helpers'
-import { TestError } from '@test/errors'
+import { EvaluationError } from '@test/errors'
 
 export type JsonLdSchema = Record<string, unknown> & {
   '@type'?: string | string[]
@@ -28,9 +28,7 @@ export class HeadPage extends BasePage {
   }
 
   static override async init(page: Page): Promise<HeadPage> {
-    await page.addInitScript(() => {
-      window.isPlaywrightControlled = true
-    })
+    await this.setupPlaywrightGlobals(page)
     const instance = new HeadPage(page)
     await instance.onInit()
     return instance
@@ -62,7 +60,7 @@ export class HeadPage extends BasePage {
         }
       } catch (error) {
         const reason = error instanceof Error ? error.message : String(error)
-        throw new TestError(`Failed to parse JSON-LD script at index ${index}: ${reason}`)
+        throw new EvaluationError(`Failed to parse JSON-LD script at index ${index}: ${reason}`)
       }
     })
 

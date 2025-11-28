@@ -12,7 +12,6 @@
  */
 
 import { ComponentPersistencePage, test, describe, expect } from '@test/e2e/helpers'
-import { TestError } from '@test/errors'
 
 describe('View Transitions - transition:persist on meta theme-color', () => {
   test('should persist meta theme-color element across navigation', async ({
@@ -74,8 +73,9 @@ describe('View Transitions - transition:persist on meta theme-color', () => {
 
     // Mark the meta element to verify it persists
     const metaData = await page.evaluate(() => {
+      const EvaluationErrorCtor = window.EvaluationError!
       const meta = document.querySelector('meta[name="theme-color"]')
-      if (!meta) throw new TestError('meta theme-color not found')
+      if (!meta) throw new EvaluationErrorCtor('meta theme-color not found')
 
       const uniqueId = `meta-test-${Date.now()}-${Math.random()}`
       ;(meta as any).__metaTestId = uniqueId
@@ -108,8 +108,9 @@ describe('View Transitions - transition:persist on meta theme-color', () => {
 
     // Check if meta element persisted (should still have custom property)
     const afterNavigationMeta = await page.evaluate(() => {
+      const EvaluationErrorCtor = window.EvaluationError!
       const meta = document.querySelector('meta[name="theme-color"]')
-      if (!meta) throw new TestError('meta theme-color not found after navigation')
+      if (!meta) throw new EvaluationErrorCtor('meta theme-color not found after navigation')
 
       return {
         metaTestId: (meta as any).__metaTestId,
@@ -150,8 +151,8 @@ describe('View Transitions - transition:persist on meta theme-color', () => {
     expect(afterNavigationColor).toBe(initialColor)
     expect(afterNavigationColor).toMatch(/^#[0-9a-fA-F]{6}$/)
 
-    // Navigate back to home
-    await page.navigateToPage('/')
+    // Home is not listed in the navigation menu, so reload the page to return
+    await page.goto('/')
     await page.waitForURL(/\/$/, { timeout: 5000 })
 
     // Verify theme-color is still the same
@@ -172,8 +173,9 @@ describe('View Transitions - transition:persist on meta theme-color', () => {
 
     // Mark the canonical link element to check if it's replaced or just updated
     const initialData = await page.evaluate(() => {
+      const EvaluationErrorCtor = window.EvaluationError!
       const link = document.querySelector('link[rel="canonical"]')
-      if (!link) throw new TestError('canonical link not found')
+      if (!link) throw new EvaluationErrorCtor('canonical link not found')
 
       const uniqueId = `canonical-test-${Date.now()}-${Math.random()}`
       ;(link as any).__canonicalTestId = uniqueId
@@ -193,8 +195,9 @@ describe('View Transitions - transition:persist on meta theme-color', () => {
 
     // Check if element was replaced or just updated
     const afterNavigationData = await page.evaluate(() => {
+      const EvaluationErrorCtor = window.EvaluationError!
       const link = document.querySelector('link[rel="canonical"]')
-      if (!link) throw new TestError('canonical link not found after navigation')
+      if (!link) throw new EvaluationErrorCtor('canonical link not found after navigation')
 
       return {
         canonicalTestId: (link as any).__canonicalTestId,
@@ -210,10 +213,9 @@ describe('View Transitions - transition:persist on meta theme-color', () => {
     // Check if element was replaced (testId should be undefined) or updated (testId should persist)
     if (afterNavigationData.canonicalTestId === initialData.uniqueId) {
       // Element was updated in place (same DOM node)
-      console.log('✓ Canonical link element was UPDATED (same DOM node)')
+      expect(afterNavigationData.canonicalTestId).toBe(initialData.uniqueId)
     } else {
       // Element was replaced (new DOM node)
-      console.log('✓ Canonical link element was REPLACED (new DOM node)')
       expect(afterNavigationData.canonicalTestId).toBeUndefined()
     }
   })

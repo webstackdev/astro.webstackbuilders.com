@@ -12,9 +12,7 @@ export class PerformancePage extends BasePage {
   }
 
   static override async init(page: Page): Promise<PerformancePage> {
-    await page.addInitScript(() => {
-      window.isPlaywrightControlled = true
-    })
+    await this.setupPlaywrightGlobals(page)
     const instance = new PerformancePage(page)
     await instance.onInit()
     return instance

@@ -2,7 +2,7 @@
  * Breadcrumb-specific Page Object Model
  */
 import type { Page } from '@playwright/test'
-import { TestError } from '@test/errors'
+import { EvaluationError } from '@test/errors'
 import { BasePage, setupTestPage } from '@test/e2e/helpers'
 
 export class BreadCrumbPage extends BasePage {
@@ -11,9 +11,7 @@ export class BreadCrumbPage extends BasePage {
   }
 
   static override async init(page: Page): Promise<BreadCrumbPage> {
-    await page.addInitScript(() => {
-      window.isPlaywrightControlled = true
-    })
+    await this.setupPlaywrightGlobals(page)
     const instance = new BreadCrumbPage(page)
     await instance.onInit()
     return instance
@@ -42,7 +40,7 @@ export class BreadCrumbPage extends BasePage {
     }, { selector: linkSelector, segments: minSegments })
 
     if (!targetHref) {
-      throw new TestError(notFoundMessage)
+      throw new EvaluationError(notFoundMessage)
     }
 
     const waitForLoad = this.waitForPageLoad()
