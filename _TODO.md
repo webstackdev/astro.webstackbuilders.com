@@ -2,6 +2,8 @@
 
 ## See the @TODO: about enabling the PWA to be used as a share target for other apps in src/pages/manifest.json.ts
 
+## Make sure all of the pages/testing files are wrapped in BaseLayout for consistency.
+
 ## Analytics
 
 Vercel Analytics
