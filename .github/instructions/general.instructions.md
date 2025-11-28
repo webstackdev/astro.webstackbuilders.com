@@ -67,13 +67,9 @@ Always use the `navigateToPage()` method for client-side navigation - never ad-h
 - Reference the working example in src/components/Test/container.astro and its test file.
 - Use experimental_AstroContainer.create() to instantiate the container.
 - Use container.renderToString(Component) to get rendered HTML from actual Astro components.
-- For DOM unit testing with Container API: use `// @vitest-environment happy-dom` for better DOM compatibility than jsdom or node.
 - Configure Vitest with getViteConfig() from 'astro/config' to support Astro Container API.
 - Test files should follow a client.spec.ts naming pattern or similar.
 - Fixture files should follow a componentName.fixture.astro naming pattern (e.g., newsletter.fixture.astro).
-- Use `// @vitest-environment happy-dom` as the first line of test files that need DOM support with Container API. Never include Vitest directives inside JSDoc comments.
-- happy-dom provides proper document, window, and localStorage globals without manual mocking.
-- JavaScript loading warnings from happy-dom are silenced in vitest.setup.ts for clean test output.
 - A working example test using the Container API is available at /home/kevin/Repos/Webstack Builders/Corporate Website/astro.webstackbuilders.com/src/components/Test/container.spec.ts
 
 ## E2E Testing Standards

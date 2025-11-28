@@ -10,7 +10,6 @@ Follow the coding standards defined in `.github/instructions/`:
 Key rules:
 
 - Use TypeScript exclusively
-- Testing with Container API and happy-dom
 - Never use manual HTML fixtures
 - No apologizing, be direct/concise
 - Wait for permission before implementing suggestions

@@ -429,10 +429,10 @@ export default [
 
   {
     files: [
-      'src/pages/api/gdpr/consent.ts',
-      'src/pages/api/gdpr/request-data.ts',
-      'src/pages/api/gdpr/verify.ts',
-      'src/pages/api/newsletter/_token.ts',
+      'src/lib/config/serviceWorker.ts',
+      'src/components/scripts/store/__tests__/socialEmbeds.spec.ts',
+      'src/pages/api/**/*',
+      'src/pages/manifest.json.ts',
     ],
     rules: {
       camelcase: 'off',

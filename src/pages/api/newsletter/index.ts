@@ -100,17 +100,14 @@ export async function subscribeToConvertKit(
       subscriber: {
         id: 999999,
         state: 'active',
-        /* eslint-disable camelcase */
         email_address: data.email,
         first_name: data.firstName || null,
         created_at: new Date().toISOString(),
-        /* eslint-enable camelcase */
         fields: {},
       },
     }
   }
 
-  /* eslint-disable camelcase */
   const subscriberData: ConvertKitSubscriber = {
     email_address: data.email,
     state: 'active',
@@ -119,7 +116,6 @@ export async function subscribeToConvertKit(
   if (data.firstName) {
     subscriberData.first_name = data.firstName.trim()
   }
-  /* eslint-enable camelcase */
 
   try {
     const response = await fetch('https://api.kit.com/v4/subscribers', {

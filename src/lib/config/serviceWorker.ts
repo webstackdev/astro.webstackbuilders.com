@@ -8,9 +8,7 @@ export const serviceWorkerConfig: PwaOptions = {
   registerType: 'autoUpdate',
   manifest: {
     name: 'Webstack Builders',
-    // eslint-disable-next-line camelcase
     short_name: 'WSB',
-    // eslint-disable-next-line camelcase
     theme_color: '#ffffff',
     icons: [
       {

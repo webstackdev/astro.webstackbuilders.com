@@ -25,7 +25,6 @@ const buildManifestPayload = () => {
     })
   }
 
-  /* eslint-disable camelcase */
   const manifest = {
     lang: 'en_US',
     dir: 'ltr',

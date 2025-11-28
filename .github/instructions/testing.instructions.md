@@ -8,13 +8,8 @@ applyTo: "**/*.spec.ts"
 
 - **NEVER use manual HTML strings** - use Astro's Container API with actual .astro templates
 - **Test fixtures MUST import actual components**, not duplicate HTML
-- Reference: https://docs.astro.build/en/reference/container-reference/
-- Use `experimental_AstroContainer.create()` to instantiate container
-- Use `container.renderToString(Component)` to render
-- Use `// @vitest-environment happy-dom` for DOM support
-- Configure Vitest with `getViteConfig()` from 'astro/config'
-- Naming: `client.spec.ts` for tests, `componentName.fixture.astro` for fixtures
-- Working example: `src/components/Test/container.spec.ts`
+- Naming: `filename.spec.ts` for tests, `componentName.fixture.astro` for fixtures
+- Working example: `src/components/Test/__tests__/webComponent.spec.ts`
 
 ## E2E Testing
 
