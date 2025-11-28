@@ -161,6 +161,7 @@ export default [
         {
           ignore: [
             '^astro:.*',  // Ignore Astro virtual modules
+            '^virtual:pwa-register$',
             '^\\./.*',    // Ignore relative imports (let TypeScript handle these)
           ],
         },
@@ -429,6 +430,7 @@ export default [
 
   {
     files: [
+      'src/lib/config/pwa.ts',
       'src/lib/config/serviceWorker.ts',
       'src/components/scripts/store/__tests__/socialEmbeds.spec.ts',
       'src/pages/api/**/*',

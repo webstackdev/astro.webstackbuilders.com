@@ -2,6 +2,7 @@
  * Global Window interface extensions
  * Centralizes all custom properties added to the window object
  */
+import type { registerSW } from 'virtual:pwa-register'
 import type { EvaluationError } from '@test/errors/EvaluationError'
 
 /**
@@ -89,6 +90,11 @@ declare global {
      */
     __astroPageLoadCounter?: number
     __astroPageLoadListenerAttached?: boolean
+
+    /**
+     * Indicates whether the window is running inside a web worker context
+     */
+    __pwaUpdateSW?: ReturnType<typeof registerSW> | null
   }
 }
 

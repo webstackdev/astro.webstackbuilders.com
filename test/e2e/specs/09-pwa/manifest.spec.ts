@@ -53,14 +53,22 @@ test.describe('PWA Manifest', () => {
     expect(sizes).toContain('512x512')
   })
 
-  test('@ready manifest icons exist', async ({ page: playwrightPage }) => {
-    const page = await BasePage.init(playwrightPage)
-    const response = await page.goto('/manifest.json')
-    const manifest = await response?.json()
+  test('@ready manifest icons exist', async ({ request }) => {
+    const response = await request.get('/manifest.json')
+    expect(response.ok()).toBeTruthy()
+    const manifestUrl = response.url()
+    const manifest = await response.json() as { icons: Array<{ src: string }> }
 
     for (const icon of manifest.icons) {
-      const iconResponse = await page.goto(icon.src)
-      expect(iconResponse?.status()).toBe(200)
+      const assetUrl = icon.src.startsWith('http') ? icon.src : new URL(icon.src, manifestUrl).toString()
+      const iconResponse = await request.get(assetUrl)
+      expect(iconResponse.ok()).toBeTruthy()
+
+      const contentType = iconResponse.headers()['content-type'] || ''
+      expect(contentType).toMatch(/image\/(png|svg\+xml|jpeg|webp|gif|x-icon|vnd\.microsoft\.icon)/)
+
+      const body = await iconResponse.body()
+      expect(body.byteLength).toBeGreaterThan(0)
     }
   })
 
@@ -105,8 +113,11 @@ test.describe('PWA Manifest', () => {
     const manifest = await manifestResponse?.json()
 
     await page.goto('/')
+    await page.expectAttribute('meta[name="theme-color"]', 'content')
     const metaContent = await page.getAttribute('meta[name="theme-color"]', 'content')
 
+    expect(manifest.theme_color).toMatch(/^#[0-9a-fA-F]{6}$/)
+    expect(metaContent).toMatch(/^#[0-9a-fA-F]{6}$/)
     expect(manifest.theme_color).toBe(metaContent)
   })
 })

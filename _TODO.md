@@ -2,7 +2,7 @@
 
 ## See the @TODO: about enabling the PWA to be used as a share target for other apps in src/pages/manifest.json.ts
 
-## Make sure all of the pages/testing files are wrapped in BaseLayout for consistency.
+## Make sure all of the pages/testing files are wrapped in BaseLayout for consistency
 
 ## Analytics
 
@@ -70,7 +70,7 @@ Shared Types vs Swagger / Keeping Docs in Sync
 
 2. Code-first OpenAPI (Zod or TS schemas → OpenAPI)
 
-- Define schemas in Zod/Valibot (or ts-rest) alongside the endpoint. Generate OpenAPI JSON plus TypeScript types from those schemas. Docs (Swagger UI/Redoc) and any client SDKs come from the generated spec, so they’re always in sync.
+- Define schemas in Zod/Valibot (or ts-rest) alongside the endpoint. Generate OpenAPI JSON plus TypeScript types from those schemas. Docs (Swagger UI/Redoc) and any client SDKs come from the generated spec, so they're always in sync.
 - Guarantees: CI regenerates the spec and fails when the checked-in artifact is stale; endpoint handlers reuse the same schema for runtime validation, so a mismatch cannot compile.
 
 3. Spec-first OpenAPI + Swagger Codegen

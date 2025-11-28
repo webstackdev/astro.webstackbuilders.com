@@ -35,6 +35,48 @@ test.describe('SEO Meta Tags', () => {
     expect(descriptions.size).toBe(pages.length)
   })
 
+  test('@ready favicons are linked and assets are valid', async ({ page: playwrightPage, request }) => {
+    const page = await BasePage.init(playwrightPage)
+    await page.goto('/')
+
+    await page.expectAttribute('link[rel="icon"][href="/favicon.ico"]', 'href')
+    await page.expectAttribute('link[rel="icon"][type="image/svg+xml"]', 'href')
+
+    const assets = [
+      { href: '/favicon.ico', pattern: /(image\/x-icon|image\/vnd\.microsoft\.icon)/ },
+      { href: '/favicon.svg', pattern: /image\/svg\+xml/ },
+    ]
+
+    for (const asset of assets) {
+      const response = await request.get(asset.href)
+      expect(response.ok()).toBeTruthy()
+      const contentType = response.headers()['content-type'] || ''
+      expect(contentType).toMatch(asset.pattern)
+      const body = await response.body()
+      expect(body.byteLength).toBeGreaterThan(0)
+    }
+  })
+
+  test('@ready apple-touch icon link stays in place', async ({ page: playwrightPage, request }) => {
+    const page = await BasePage.init(playwrightPage)
+    await page.goto('/')
+
+    await page.expectAttribute('link[rel="apple-touch-icon"]', 'href')
+    const href = await page.getAttribute('link[rel="apple-touch-icon"]', 'href')
+    expect(href).toBeTruthy()
+
+    const assetUrl = href && href.startsWith('http')
+      ? href
+      : new URL(href ?? '/apple-touch-icon.png', page.page.url()).toString()
+
+    const response = await request.get(assetUrl)
+    expect(response.ok()).toBeTruthy()
+    const contentType = response.headers()['content-type'] || ''
+    expect(contentType).toMatch(/image\/png/)
+    const body = await response.body()
+    expect(body.byteLength).toBeGreaterThan(0)
+  })
+
   test('@ready all pages have canonical URL', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     await page.goto('/about')
@@ -109,18 +151,6 @@ test.describe('SEO Meta Tags', () => {
 
     const content = await page.getAttribute('meta[name="author"]', 'content')
     expect(content?.trim().length).toBeGreaterThan(0)
-  })
-
-  test('@ready pages have theme-color meta tag', async ({ page: playwrightPage }) => {
-    const page = await BasePage.init(playwrightPage)
-    await page.goto('/')
-
-    const count = await page.countElements('meta[name="theme-color"]')
-
-    if (count > 0) {
-      const content = await page.getAttribute('meta[name="theme-color"]', 'content')
-      expect(content).toMatch(/^#[0-9a-fA-F]{6}$/) // Hex color
-    }
   })
 
   test('@ready pages have title tag', async ({ page: playwrightPage }) => {

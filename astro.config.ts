@@ -10,7 +10,7 @@ import { defineConfig } from 'astro/config'
 import { fileURLToPath } from 'node:url'
 import type { PluginOption } from 'vite'
 /**
- * You cannot use path aliases (@lib, @components, etc.) in files that are
+ * You cannot use path aliases (`@lib`, `@components`, etc.) in files that are
  * imported by astro.config.ts, because the path alias resolution happens
  * AFTER the config is loaded, not before. This means that adding resolve.alias
  * paths to the vite section in astro.config.ts would not allow using path
@@ -24,13 +24,14 @@ import {
   isUnitTest,
   isVercel,
   markdownConfig,
-  serviceWorkerConfig,
+  pwaConfig,
   vercelConfig,
 } from './src/lib/config'
 import { callToActionValidator } from './src/integrations/CtaValidator'
 import { faviconGenerator } from './src/integrations/FaviconGenerator'
 import { packageRelease } from './src/integrations/PackageRelease'
 import { privacyPolicyVersion } from './src/integrations/PrivacyPolicyVersion'
+import { pwaDevAssetServer } from './src/lib/plugins/pwaDevAssetServer'
 import { createSerializeFunction, pagesJsonWriter } from './src/integrations/sitemapSerialize'
 
 const sharedTestIntegrations = [
@@ -38,7 +39,7 @@ const sharedTestIntegrations = [
 ]
 
 const standardIntegrations = [
-  AstroPWA(serviceWorkerConfig),
+  AstroPWA(pwaConfig),
   ...sharedTestIntegrations,
   mdx(markdownConfig),
   /** Generate favicons and PWA icons from source SVG */
@@ -104,6 +105,7 @@ export default defineConfig({
     /* @ts-expect-error - tailwindcss plugin type compatibility */
     plugins: [
       tailwindcss(),
+      pwaDevAssetServer(),
     ] as PluginOption[],
     resolve: {
       alias: {

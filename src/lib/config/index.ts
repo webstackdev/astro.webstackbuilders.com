@@ -12,5 +12,5 @@ export {
 } from './environmentServer'
 export { getSiteUrl } from './siteUrlServer'
 export { markdownConfig } from './markdown'
-export { serviceWorkerConfig } from './serviceWorker'
+export { pwaConfig } from './pwa'
 export { vercelConfig } from './vercel'
