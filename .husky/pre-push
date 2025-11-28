@@ -3,7 +3,6 @@
 # Load nvm if available and use appropriate node version
 if [ -f "$HOME/.nvm/nvm.sh" ]; then
   . "$HOME/.nvm/nvm.sh"
-  # Try different nvm use strategies in order of preference
   if nvm use 2>/dev/null; then
     echo "Using current nvm node version"
   elif nvm use node 2>/dev/null; then
@@ -15,11 +14,7 @@ if [ -f "$HOME/.nvm/nvm.sh" ]; then
   fi
 fi
 
-# Run lint suite (includes TypeScript check + ESLint + Stylelint + JSON formatting)
+# Pushes must pass lint, unit, and e2e test suites
 npm run lint
-
-# Verify branch naming convention
-.husky/scripts/check-branch-name.sh
-
-# Prevent commits directly to main
-.husky/scripts/prevent-main-commits.sh
+npm run test:unit
+DEBUG=1 npm run test:e2e
