@@ -1,4 +1,3 @@
-// @vitest-environment node
 import { describe, expect, test, vi, beforeEach } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import MastodonFixture from '@components/Social/Mastodon/client/__fixtures__/index.fixture.astro'

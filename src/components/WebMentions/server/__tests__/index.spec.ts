@@ -1,4 +1,3 @@
-// @vitest-environment node
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TestError } from '@test/errors'
 import type { Webmention, WebmentionResponse } from '@components/WebMentions/@types'

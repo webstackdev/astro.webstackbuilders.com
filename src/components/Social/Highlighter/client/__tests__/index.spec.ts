@@ -1,4 +1,3 @@
-// @vitest-environment node
 import { afterAll, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import { TestError } from '@test/errors'

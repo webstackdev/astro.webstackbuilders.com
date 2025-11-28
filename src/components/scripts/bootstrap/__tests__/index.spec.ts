@@ -26,6 +26,7 @@ vi.mock('@components/scripts/store', () => ({
   initConsentSideEffects: vi.fn(),
   initAnimationLifecycle: vi.fn(),
   addViewTransitionThemeInitListener: vi.fn(),
+  exposeStoreActionsForTesting: vi.fn(),
   $hasFunctionalConsent: {
     subscribe: vi.fn(),
   },
@@ -55,6 +56,7 @@ import {
   initConsentSideEffects,
   initAnimationLifecycle,
   addViewTransitionThemeInitListener,
+  exposeStoreActionsForTesting,
 } from '@components/scripts/store'
 import { SentryBootstrap } from '@components/scripts/sentry/client'
 
@@ -79,6 +81,7 @@ const mockSuccessfulInit = () => {
   vi.mocked(initConsentFromCookies).mockReturnValue(undefined)
   vi.mocked(initConsentSideEffects).mockReturnValue(undefined)
   vi.mocked(initAnimationLifecycle).mockReturnValue(undefined)
+  vi.mocked(exposeStoreActionsForTesting).mockReturnValue(undefined)
 }
 
 describe('AppBootstrap', () => {
@@ -109,6 +112,7 @@ describe('AppBootstrap', () => {
       expect(initAnimationLifecycle).toHaveBeenCalledTimes(1)
       expect(initConsentFromCookies).toHaveBeenCalledTimes(1)
       expect(initConsentSideEffects).toHaveBeenCalledTimes(1)
+      expect(exposeStoreActionsForTesting).toHaveBeenCalledTimes(1)
     })
 
     it('should add breadcrumbs for successful initialization', () => {
@@ -221,6 +225,7 @@ describe('AppBootstrap', () => {
       expect(initAnimationLifecycle).toHaveBeenCalledTimes(2)
       expect(initConsentFromCookies).toHaveBeenCalledTimes(2)
       expect(initConsentSideEffects).toHaveBeenCalledTimes(2)
+      expect(exposeStoreActionsForTesting).toHaveBeenCalledTimes(2)
     })
   })
 

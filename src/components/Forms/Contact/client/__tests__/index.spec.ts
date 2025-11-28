@@ -1,4 +1,3 @@
-// @vitest-environment node
 import { describe, it, expect, vi } from 'vitest'
 import { withJsdomEnvironment } from '@test/unit/helpers/litRuntime'
 

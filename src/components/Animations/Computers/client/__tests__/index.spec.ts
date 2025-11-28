@@ -1,4 +1,3 @@
-// @vitest-environment node
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'

@@ -40,6 +40,7 @@ export default getViteConfig({
       'test/e2e/helpers/__tests__/**/*.spec.ts',
     ],
     environmentMatchGlobs: [
+      ['src/components/**', 'node'],
       ['src/**', 'happy-dom'],
       ['src/lib/**', 'node'],
       ['scripts/**', 'node'],
