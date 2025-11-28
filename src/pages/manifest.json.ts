@@ -119,13 +119,12 @@ const buildManifestPayload = () => {
  * GET endpoint for the web app manifest
  * @returns Response with manifest JSON
  */
-export const GET: APIRoute = async ({ request, cookies, clientAddress }) => {
+export const GET: APIRoute = async ({ request, cookies }) => {
   const { context } = createApiFunctionContext({
     route: ROUTE,
     operation: 'GET',
     request,
     cookies,
-    clientAddress,
   })
 
   try {
