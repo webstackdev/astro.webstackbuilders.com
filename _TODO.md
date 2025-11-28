@@ -1,9 +1,5 @@
 # TODO
 
-## See the @TODO: about enabling the PWA to be used as a share target for other apps in src/pages/manifest.json.ts
-
-## Make sure all of the pages/testing files are wrapped in BaseLayout for consistency
-
 ## Analytics
 
 Vercel Analytics
@@ -17,14 +13,6 @@ Vercel Analytics
 
 See note in src/components/scripts/sentry/client.ts - "User Feedback - allow users to report issues"
 
-## Centralize toast notifications to Toast component
-
-- Right now, the consent/preferences component has its own showNotification() method and toast handling. We have a centralized Toast component but is only being used for network availability right now. Maybe refactor to use a single Toast component, and move the network availability logic somewhere else like bootstrap.
-
-- Add an error-path test to consent/preferences component to simulate a failing network call and ensure the error variant renders.
-
-- Look at what other components might need toast handling and implement it.
-
 ## src/pages/api next steps
 
 1. build Supabase-aware fixtures to cover the GDPR endpoints (consent/request/export/verify) end-to-end
@@ -37,26 +25,6 @@ Components that need full e2e testing implemented:
 
 - CallToAction/Newsletter
 - ContactForm
-
-## Unit tests failure groups
-
-1. client.spec.ts, Navigation specs, Forms/Download specs, and multiple selector tests crash because document isn't defined or Astro can't render component fixtures. These need a DOM-aware environment (// @vitest-environment happy-dom) plus Container-based fixtures per repo standards.
-
-2. Selector tests in selectors.spec.ts and download form selectors expect thrown errors, but the helper functions currently return [object Object]; check that error helpers throw ClientScriptError (or similar) and ensure mocks expose the ClientScriptError export (see bootstrap tests complaining about missing export).
-
-3. pageTitle.spec.ts and absoluteUrl.spec.ts also show [object Object] instead of the expected message, indicating the helpers throw non-Error values; update them to throw Error (or a typed error) with the asserted message.
-
-4. rateLimit.spec.ts fails because isDev/isTest mocks aren't mocked functions; wrap the @lib/config/environment import with vi.mock and provide spies so .mockReturnValue works.
-dsarVerificationEmails.spec.ts can't run because RESEND_API_KEY isn't set. Provide a fake key via process.env.RESEND_API_KEY = 'test' in the suite (and mock Resend client) so tests don't hit real env requirements.
-
-5. componentDiscovery.spec.ts expects an error string but receives an object; ensure the helper throws an Error with the message the test asserts.
-
-## Newsletter units
-
-Next options (if needed):
-
-1. silence the expected Lit "dev mode" console output in tests
-2. expand the selector error assertions to cover the new metadata fields.
 
 ## Typing client-side API calls and SSR API endpoints
 
@@ -85,13 +53,9 @@ Affected components:
 
 ## Files with Skipped Tests
 
-social-shares.spec.ts - 12 @wip
-gdpr-consent.spec.ts - 10 @wip
-
 Blocked Categories (44 tests):
 
 Visual regression testing (18) - Needs Percy/Chromatic
-PWA functionality (12) - Service workers not implemented
 Lighthouse audits (6) - Integration pending
 Newsletter double opt-in (6) - Email testing infrastructure
 Axe accessibility (2) - axe-core integration
@@ -104,169 +68,15 @@ Add Upstash Search as a Vercel Marketplace Integration.
 
 Right now we're using string literals to define HTML email templates for site mails. We should use Nunjucks with the rule-checking for valid CSS in HTML emails like we have in the corporate email footer repo.
 
-## !!! IMPORTANT !!!
-
-We need to update all tests to use Astro's View Transitions navigate() method instead of Playwright's goto() method. Navigate will trigger Astro events, while goto does full page reloads.
-
-## Improve Selectors
-
-I started moving querySelector() calls to selector files. I probably moved too many of them out of test files into specialized helpers. The purpose of them is to avoid TypeScript "as HTMLElement" assertions and centralize error handling for cases where elements are not found.
-
-- Need to look at error handling. Added a bunch of selectors, but didn't examine closely if any are for situations where we should quietly fail if the element is not found. We need an optional flag to not throw if the element not found.
-- The selectors for tests cases need to be more generic and accept a query parameter, so it's clearer in a test file what's being selected for. We also need to evaluate whether they should throw.
-- There are still querySelectorAll() selectors that weren't moved. We need to handle all query selectors with context. We have cases like this.menu.querySelectorAll() where we should pass a context parameter instead of assuming "document".
-- I added an ESLint rule. It needs to be enabled.
-
 ## Color vars
 
 brand primary:    #001733
 brand secondary:  #0062B6
 
-src/components: 427
-src/lib: 13
-src/pages: 250
-
-Applies a solid border of currentColor to an element:
-
 ring (1px), ring-2, ring-4
 accent
 
-### text-white
-
-- Button - success button text
-- Button - success button hover text
-- Button - success button focus text
-
-### --color-bg: 57  #f3f4f6
-
-- [tag] - main content background
-
-### --color-bg-offset: 48 #e5e7eb
-
-- Avatar - wrapper for fallback that just shows initials
-- Button - icon button hover background
-- Button - icon button focus background
-- Button - icon button active background
-
-### --color-bg-inverse: 2 #001a39
-
-### --color-text: 141 #374151
-
-- Button - primary button text
-- Button - primary button focus text
-- Button - secondary button text
-- Button - secondary button hover text
-- Button - secondary button focus text
-- Button - icon button text
-- Button - twitter button text
-- [tag] - H1
-
-### --color-text-offset: 103  #9ca3af
-
-- Avatar - test in wrapper for fallback that just shows initials
-- [tag] - header text
-
-### --color-border: 68  #f0f4ff
-
-### --color-primary: 180  #006dca
-
-- Button - primary button background
-- [tag] - header anchor text
-
-### --color-primary-offset: 14  #00386d
-
-- Button - primary button focus background
-- Hamburger Menu Icon - SVG background fill
-
-### --color-primary-bg: 7   #dbeafe
-
-### --color-primary-bg-hover: 1   #bfdbfe
-
-### --color-primary-hover: 15   #0056a3
-
-### --color-secondary: 5    #facc15
-
-- Button - secondary button background
-
-### --color-secondary-offset: 7   #ca8a04
-
-- Button - secondary button hover background
-- Button - secondary button focus background
-- Button - secondary button active background
-
-### --color-secondary-bg: 1   #fef3c7
-
-### --color-success: 19   #16a34a
-
-- Button - success button background
-
-### --color-success-offset: 7   #22c55e
-
-- Button - success button hover background
-- Button - success button focus background
-- Button - success button active background
-
-### --color-success-bg: 6   #dcfce7
-
-### --color-info: 1   #0891b2
-
-### --color-info-bg: 2    #cffafe
-
-### --color-warning: 5    #a16207
-
-- Button - warning button background
-
-### --color-warning-offset: 3   #ca8a04
-
-- Button - warning button hover background
-- Button - warning button focus background
-- Button - warning button active background
-
-### --color-warning-bg: 1   #fef3c7
-
-### --color-danger: 16    #dc2626
-
-### --color-danger-bg: 5    #fecaca
-
-### --color-accent: 10    #7c3aed
-
-### --color-accent-bg: 1    #ede9fe
-
-### --color-link-shadow: 2    #2563eb
-
---color-share-highlight-text: 1
---color-share-highlight-bg: 1
---color-share-highlight-text-active: 1
---color-share-highlight-bg-active: 1
---color-share-highlight-tooltip-text: 1
---color-share-highlight-tooltip-bg: 1
-
---shiki-theme: 0
-
-### --shadow-sm: 4
-
-- Button - primary button shadow
-
-### --shadow-md: 1
-
-### --shadow-hover: 8
-
-- Button - primary button focus shadow
-
-### --shadow-active: 4
-
-- Button - secondary button active shadow
-
-### --shadow-text: 4
-
-- Button - primary button text-shadow
-
-### --color-twitter: 4
-
-- Button - twitter button background
-- Button - twitter button border
-- Button - twitter button hover background
-- Button - twitter button focus background
+text-white, other default Tailwind colors
 
 ## Axe tags
 

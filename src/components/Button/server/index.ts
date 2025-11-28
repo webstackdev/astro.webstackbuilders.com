@@ -13,6 +13,7 @@ export interface ButtonProps {
   id?: string
   ariaLabel?: string
   onClick?: string
+  href?: string
   icon?: string
   iconPosition?: IconPosition
   iconSize?: number | string

@@ -13,7 +13,7 @@ import {
   getConsentWrapper,
   getConsentCloseBtn,
   getConsentAllowBtn,
-  getConsentCustomizeBtn,
+  getConsentCustomizeLink,
 } from '@components/Consent/Banner/client/selectors'
 import { ClientScriptError } from '@components/scripts/errors'
 
@@ -95,13 +95,13 @@ describe('Consent Banner Selectors', () => {
     })
   })
 
-  it('locates the customize button', async () => {
+  it('locates the customize link', async () => {
     await renderConsentBanner(() => {
-      const customizeBtn = getConsentCustomizeBtn()
+      const customizeLink = getConsentCustomizeLink()
 
-      expect(customizeBtn).toBeTruthy()
-      expect(customizeBtn.classList.contains('consent-modal__btn-customize')).toBe(true)
-      expect(customizeBtn.textContent?.trim()).toBe('Customize')
+      expect(customizeLink).toBeTruthy()
+      expect(customizeLink.classList.contains('consent-modal__btn-customize')).toBe(true)
+      expect(customizeLink.textContent?.trim()).toBe('Customize')
     })
   })
 

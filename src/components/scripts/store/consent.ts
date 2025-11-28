@@ -339,61 +339,137 @@ export function initConsentSideEffects(): void {
     scriptName: 'cookieConsent',
     operation: 'logConsentToAPI',
   } as const
+  type ConsentLogPayload = {
+    DataSubjectId: string
+    purposes: string[]
+    source: string
+    userAgent: string
+    verified: boolean
+  }
+  const pendingConsentLogQueue: ConsentLogPayload[] = []
   let hasConsentLoggingFailure = false
+  let isConsentLogProcessing = false
+  let onlineListener: (() => void) | null = null
 
-  $consent.subscribe(async (consentState, oldConsentState) => {
-    try {
-      // Only log if purposes changed (not on initial load)
-      if (!oldConsentState || hasConsentLoggingFailure) return
+  const isNavigatorOnline = () => typeof navigator === 'undefined' || navigator.onLine !== false
 
-      // Check if any consent category actually changed
-      const categoriesChanged = ['analytics', 'marketing', 'functional'].some(
-        (category) => consentState[category as ConsentCategory] !== oldConsentState[category as ConsentCategory]
-      )
-
-      if (!categoriesChanged) return
-
-      // Collect granted purposes
-      const purposes: string[] = []
-      if (consentState.analytics) purposes.push('analytics')
-      if (consentState.marketing) purposes.push('marketing')
-      if (consentState.functional) purposes.push('functional')
-
-      const response = await fetch('/api/gdpr/consent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          DataSubjectId: consentState.DataSubjectId,
-          purposes,
-          source: 'cookies_modal',
-          userAgent: navigator.userAgent,
-          verified: false,
-        }),
-      })
-
-      if (!response.ok) {
-        const responseBody = await response.json().catch(() => null)
-        const serverError = responseBody && typeof responseBody === 'object' && 'error' in responseBody
-          ? (responseBody as { error: { message?: string } }).error
-          : null
-        const serverMessage = serverError?.message
-          ?? (responseBody && typeof (responseBody as { message?: string }).message === 'string'
-            ? (responseBody as { message: string }).message
-            : undefined)
-
-        throw new ClientScriptError({
-          message: serverMessage ?? `Failed to record consent (status ${response.status})`,
-          cause: {
-            status: response.status,
-            statusText: response.statusText,
-            body: responseBody,
-          },
-        })
-      }
-    } catch (error) {
-      hasConsentLoggingFailure = true
-      handleScriptError(error, consentLoggingContext)
+  const ensureOnlineListener = () => {
+    if (typeof window === 'undefined' || onlineListener) {
+      return
     }
+
+    onlineListener = () => {
+      if (onlineListener && typeof window !== 'undefined') {
+        window.removeEventListener('online', onlineListener)
+        onlineListener = null
+      }
+      void processConsentLogQueue()
+    }
+
+    window.addEventListener('online', onlineListener)
+  }
+
+  const processConsentLogQueue = async (): Promise<void> => {
+    if (hasConsentLoggingFailure || isConsentLogProcessing) {
+      return
+    }
+
+    if (!isNavigatorOnline()) {
+      ensureOnlineListener()
+      return
+    }
+
+    isConsentLogProcessing = true
+
+    try {
+      while (pendingConsentLogQueue.length > 0) {
+        const payload = pendingConsentLogQueue[0]!
+        try {
+          await sendConsentPayload(payload)
+          pendingConsentLogQueue.shift()
+        } catch (error) {
+          if (!isNavigatorOnline()) {
+            ensureOnlineListener()
+            break
+          }
+
+          hasConsentLoggingFailure = true
+          pendingConsentLogQueue.shift()
+          handleScriptError(error, consentLoggingContext)
+        }
+      }
+    } finally {
+      isConsentLogProcessing = false
+
+      if (pendingConsentLogQueue.length === 0 && onlineListener && typeof window !== 'undefined') {
+        window.removeEventListener('online', onlineListener)
+        onlineListener = null
+      }
+    }
+  }
+
+  const enqueueConsentPayload = (payload: ConsentLogPayload) => {
+    pendingConsentLogQueue.push(payload)
+    void processConsentLogQueue()
+  }
+
+  const sendConsentPayload = async (payload: ConsentLogPayload) => {
+    const response = await fetch('/api/gdpr/consent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+
+    if (!response.ok) {
+      const responseBody = await response.json().catch(() => null)
+      const serverError = responseBody && typeof responseBody === 'object' && 'error' in responseBody
+        ? (responseBody as { error: { message?: string } }).error
+        : null
+      const serverMessage = serverError?.message
+        ?? (responseBody && typeof (responseBody as { message?: string }).message === 'string'
+          ? (responseBody as { message: string }).message
+          : undefined)
+
+      throw new ClientScriptError({
+        message: serverMessage ?? `Failed to record consent (status ${response.status})`,
+        cause: {
+          status: response.status,
+          statusText: response.statusText,
+          body: responseBody,
+        },
+      })
+    }
+  }
+
+  $consent.subscribe((consentState, oldConsentState) => {
+    if (!oldConsentState || hasConsentLoggingFailure) {
+      return
+    }
+
+    const categoriesChanged = ['analytics', 'marketing', 'functional'].some(
+      (category) => consentState[category as ConsentCategory] !== oldConsentState[category as ConsentCategory],
+    )
+
+    if (!categoriesChanged) {
+      return
+    }
+
+    const purposes: string[] = []
+    if (consentState.analytics) purposes.push('analytics')
+    if (consentState.marketing) purposes.push('marketing')
+    if (consentState.functional) purposes.push('functional')
+
+    const userAgent = typeof navigator !== 'undefined' && typeof navigator.userAgent === 'string'
+      ? navigator.userAgent
+      : 'unknown'
+
+    enqueueConsentPayload({
+      DataSubjectId: consentState.DataSubjectId,
+      purposes,
+      source: 'cookies_modal',
+      userAgent,
+      verified: false,
+    })
   })
 
   // Side Effect 3: Delete DataSubjectId when functional consent is revoked

@@ -2,6 +2,7 @@
  * Selectors for the consent modal elements
  */
 import {
+  isAnchorElement,
   isButtonElement,
   isDivElement,
 } from '@components/scripts/assertions/elements'
@@ -36,12 +37,12 @@ export const getConsentAllowBtn = () => {
   return allowBtn
 }
 
-export const getConsentCustomizeBtn = () => {
-  const customizeBtn = document.querySelector('.consent-modal__btn-customize')
-  if (!isButtonElement(customizeBtn)) {
+export const getConsentCustomizeLink = () => {
+  const customizeLink = document.querySelector('.consent-modal__btn-customize')
+  if (!isAnchorElement(customizeLink)) {
     throw new ClientScriptError(
-      `Cookie consent 'Customize' button with class 'consent-modal__btn-customize' not found`
+      `Cookie consent 'Customize' link with class 'consent-modal__btn-customize' not found`
     )
   }
-  return customizeBtn
+  return customizeLink
 }

@@ -47,6 +47,8 @@ Components may have behavior dependent on Astro View Transitions navigation even
 
 Always use the `navigateToPage()` method for client-side navigation - never ad-hoc `click('a[href]')` calls. This maintains centralized control.
 
+When a Playwright-native action (e.g., `page.click()`, `page.fill()`, `page.hover()`) is required, expose it through the shared `BasePage` helpers (e.g., `BasePage.click()`), then call that helper from tests instead of the raw Playwright API. This keeps all browser interactions centrally managed and makes future behavior changes (timeouts, logging, etc.) easier.
+
 # Personality
 
 # Testing Standards
@@ -83,7 +85,7 @@ Always use the `navigateToPage()` method for client-side navigation - never ad-h
 
 - **Navigation method matters**: Choose between `page.goto()` and Astro's client-side navigation based on what you're testing:
   - Use `page.goto(url)` for testing **fresh page loads** (full browser navigation, no View Transitions)
-  - Use `page.click('a[href="/path"]')` or BasePage's `navigateToPage()` for testing **View Transitions** (client-side navigation within the site)
+  - Use `BasePage.click()` on navigation links or `BasePage.navigateToPage()` for testing **View Transitions** (client-side navigation within the site) so that all clicks flow through the centralized helpers
 - **Wait for page load properly**: Use BasePage's `waitForPageLoad()` method to wait for `astro:page-load` event instead of arbitrary timeouts
 - **NEVER use `page.waitForTimeout()`** for waiting on View Transitions - it's unreliable and slows tests. Use event-based waits instead
 - **transition:persist directive**: Must be applied directly to HTML elements (including custom elements), not on Astro component wrappers. Example:

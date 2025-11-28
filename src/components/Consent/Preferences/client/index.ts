@@ -237,7 +237,6 @@ export class ConsentPreferencesElement extends HTMLElement {
     updateConsent('marketing', preferences.marketing ?? false)
 
     this.applyPreferences(preferences)
-    this.showNotification('Consent preferences saved successfully!')
   }
 
   private allowAll(): void {
@@ -245,7 +244,6 @@ export class ConsentPreferencesElement extends HTMLElement {
     const updatedConsent = getConsentSnapshot()
     this.syncConsentState(updatedConsent)
     this.applyPreferences(updatedConsent)
-    this.showNotification('All consent enabled!')
   }
 
   private denyAll(): void {
@@ -253,7 +251,6 @@ export class ConsentPreferencesElement extends HTMLElement {
     const updatedConsent = getConsentSnapshot()
     this.syncConsentState(updatedConsent)
     this.applyPreferences(updatedConsent)
-    this.showNotification('All optional consent disabled!')
   }
 
   private getCurrentPreferences(): Partial<ConsentState> {
@@ -310,36 +307,6 @@ export class ConsentPreferencesElement extends HTMLElement {
 
   private disableMarketing(): void {
     // Placeholder for marketing consent disabling logic
-  }
-
-   // @TODO: consent/preferences is using its own bespoke toast for success/failure, not a component in components/Toasts
-  private showNotification(message: string, type: 'success' | 'error' = 'success'): void {
-    document
-      .querySelectorAll<HTMLDivElement>('[data-testid="consent-toast"]')
-      .forEach((existingToast) => existingToast.remove())
-
-    const typeClasses: Record<'success' | 'error', string> = {
-      success: 'bg-green-600',
-      error: 'bg-red-600',
-    }
-
-    const notification = document.createElement('div')
-    notification.className = `fixed top-4 right-4 ${typeClasses[type]} text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300`
-    notification.dataset['testid'] = 'consent-toast'
-    notification.dataset['toastType'] = type
-    notification.textContent = message
-
-    document.body.appendChild(notification)
-
-    window.setTimeout(() => {
-      notification.style.opacity = '0'
-      notification.style.transform = 'translateY(-20px)'
-      window.setTimeout(() => {
-        if (notification.parentNode) {
-          document.body.removeChild(notification)
-        }
-      }, 300)
-    }, 3000)
   }
 }
 

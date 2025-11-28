@@ -1,5 +1,5 @@
 ---
-import type { ButtonProps } from '@components/Button/server'
+import type { ButtonLabelOptions, ButtonProps } from '@components/Button/server'
 import { buildButtonClassList, resolveAriaLabel } from '@components/Button/server'
 import Icon from '@components/Icon/index.astro'
 import styles from './button.module.css'
@@ -16,6 +16,7 @@ const {
   id,
   ariaLabel,
   onClick,
+  href,
   icon,
   iconPosition = 'left',
   iconSize,
@@ -33,25 +34,64 @@ const buttonClassList = buildButtonClassList({
 // Determine icon size based on button size if not specified
 const defaultIconSize = iconSize || (size === 'small' ? 16 : size === 'large' ? 24 : 20)
 
-const computedAriaLabel = resolveAriaLabel({ text, ariaLabel, icon, iconPosition })
+const labelOptions: ButtonLabelOptions = { iconPosition }
+
+if (typeof text !== 'undefined') {
+  labelOptions.text = text
+}
+
+if (typeof ariaLabel !== 'undefined') {
+  labelOptions.ariaLabel = ariaLabel
+}
+
+if (typeof icon !== 'undefined') {
+  labelOptions.icon = icon
+}
+
+const computedAriaLabel = resolveAriaLabel(labelOptions)
 const ariaAttributes = computedAriaLabel ? { 'aria-label': computedAriaLabel } : {}
+
 ---
 
-<button
-  type={type}
-  class:list={buttonClassList}
-  disabled={disabled}
-  id={id}
-  onclick={onClick}
-  {...ariaAttributes}
-  {...rest}
->
-  {
-    icon && (iconPosition === 'left' || iconPosition === 'only') && (
-      <Icon name={icon} size={defaultIconSize} class={text ? 'mr-2' : ''} />
-    )
-  }
-  {text && <span>{text}</span>}
-  {icon && iconPosition === 'right' && <Icon name={icon} size={defaultIconSize} class="ml-2" />}
-  <slot />
-</button>
+<div style="display: contents">
+  {href ? (
+    <a
+      href={href}
+      class:list={buttonClassList}
+      id={id}
+      onclick={onClick}
+      aria-disabled={disabled ? 'true' : undefined}
+      tabindex={disabled ? -1 : undefined}
+      {...ariaAttributes}
+      {...rest}
+    >
+      {
+        icon && (iconPosition === 'left' || iconPosition === 'only') && (
+          <Icon name={icon} size={defaultIconSize} class={text ? 'mr-2' : ''} />
+        )
+      }
+      {text && <span>{text}</span>}
+      {icon && iconPosition === 'right' && <Icon name={icon} size={defaultIconSize} class="ml-2" />}
+      <slot />
+    </a>
+  ) : (
+    <button
+      type={type}
+      class:list={buttonClassList}
+      disabled={disabled}
+      id={id}
+      onclick={onClick}
+      {...ariaAttributes}
+      {...rest}
+    >
+      {
+        icon && (iconPosition === 'left' || iconPosition === 'only') && (
+          <Icon name={icon} size={defaultIconSize} class={text ? 'mr-2' : ''} />
+        )
+      }
+      {text && <span>{text}</span>}
+      {icon && iconPosition === 'right' && <Icon name={icon} size={defaultIconSize} class="ml-2" />}
+      <slot />
+    </button>
+  )}
+</div>

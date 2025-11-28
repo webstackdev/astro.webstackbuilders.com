@@ -7,7 +7,6 @@ import { BasePage, expect, test } from '@test/e2e/helpers'
 
 const ALLOW_ALL_BUTTON = '#consent-allow-all'
 const SAVE_BUTTON = '#consent-save-preferences'
-const TOAST = '[data-testid="consent-toast"]'
 const COMPONENT_SELECTOR = 'consent-preferences'
 const WIP_TAG = '@wip'
 const CONSENT_PAGE_PATH = '/consent'
@@ -105,9 +104,9 @@ test.describe('Consent Preferences Component', () => {
       const response = await consentRequest
       expect(response.ok()).toBeTruthy()
 
-      const toast = page.locator(TOAST)
-      await expect(toast).toHaveText('Consent preferences saved successfully!')
-      await expect(toast).toHaveAttribute('data-toast-type', 'success')
+      await expect(page.locator('#analytics-cookies')).toBeChecked()
+      await expect(page.locator('#functional-cookies')).toBeChecked()
+      await expect(page.locator('#marketing-cookies')).toBeChecked()
     }
   )
 
@@ -141,9 +140,9 @@ test.describe('Consent Preferences Component', () => {
     await expect(marketingCheckbox).not.toBeChecked()
 
     await page.locator(SAVE_BUTTON).click()
-    const toast = page.locator(TOAST)
-    await expect(toast).toHaveText('Consent preferences saved successfully!')
-    await expect(toast).toHaveAttribute('data-toast-type', 'success')
+    await expect(analyticsCheckbox).not.toBeChecked()
+    await expect(functionalCheckbox).not.toBeChecked()
+    await expect(marketingCheckbox).not.toBeChecked()
   })
 
   test('@ready Allow All enables every category', async ({ page: playwrightPage }) => {
@@ -164,8 +163,5 @@ test.describe('Consent Preferences Component', () => {
     await expect(functionalCheckbox).toBeChecked()
     await expect(marketingCheckbox).toBeChecked()
 
-    const toast = page.locator(TOAST)
-    await expect(toast).toHaveText('All consent enabled!')
-    await expect(toast).toHaveAttribute('data-toast-type', 'success')
   })
 })

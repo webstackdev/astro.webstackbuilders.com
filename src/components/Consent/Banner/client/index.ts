@@ -7,6 +7,7 @@
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import {
   addButtonEventListeners,
+  addLinkEventListeners,
   addWrapperEventListeners,
 } from '@components/scripts/elementListeners'
 import {
@@ -18,7 +19,7 @@ import {
 import {
   getConsentAllowBtn,
   getConsentCloseBtn,
-  getConsentCustomizeBtn,
+  getConsentCustomizeLink,
   getConsentWrapper,
 } from '@components/Consent/Banner/client/selectors'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
@@ -33,7 +34,7 @@ export class ConsentBannerElement extends HTMLElement {
   private wrapper!: HTMLDivElement
   private closeBtn!: HTMLButtonElement
   private allowBtn!: HTMLButtonElement
-  private customizeBtn!: HTMLButtonElement
+  private customizeLink!: HTMLAnchorElement
   private trapFocusHandler: (((_event: Event) => void) | null) = null
   private domReadyHandler: (() => void) | null = null
   private beforeSwapHandler: (() => void) | null = null
@@ -111,7 +112,7 @@ export class ConsentBannerElement extends HTMLElement {
     this.wrapper = getConsentWrapper()
     this.closeBtn = getConsentCloseBtn()
     this.allowBtn = getConsentAllowBtn()
-    this.customizeBtn = getConsentCustomizeBtn()
+    this.customizeLink = getConsentCustomizeLink()
   }
 
   private setViewTransitionsHandlers(): void {
@@ -208,11 +209,12 @@ export class ConsentBannerElement extends HTMLElement {
     }
   }
 
-  private handleCustomizeCookies = (): void => {
+  private handleCustomizeCookies = (event?: Event): void => {
     const context = { scriptName: COMPONENT_SCRIPT_NAME, operation: 'customizeCookies' }
     addScriptBreadcrumb(context)
 
     try {
+      event?.preventDefault()
       this.navigateToConsentPage()
     } catch (error) {
       handleScriptError(error, context)
@@ -238,7 +240,7 @@ export class ConsentBannerElement extends HTMLElement {
       addWrapperEventListeners(this.wrapper, this.handleWrapperDismissModal)
       addButtonEventListeners(this.closeBtn, this.handleDismissModal)
       addButtonEventListeners(this.allowBtn, this.handleAllowAllCookies)
-      addButtonEventListeners(this.customizeBtn, this.handleCustomizeCookies)
+      addLinkEventListeners(this.customizeLink, this.handleCustomizeCookies)
     } catch (error) {
       handleScriptError(error, context)
     }

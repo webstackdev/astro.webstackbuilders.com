@@ -45,6 +45,28 @@ async function acceptAllCookies(page: BasePage): Promise<void> {
   await waitForConsentBannerHidden(page)
 }
 
+/**
+ * Reset browser storage/cookies so each test starts as a first-time visitor
+ */
+async function resetConsentState(page: BasePage): Promise<void> {
+  await page.evaluate(() => {
+    localStorage.clear()
+    sessionStorage.clear()
+
+    const expirations = 'Thu, 01 Jan 1970 00:00:00 GMT'
+    const consentCookies = [
+      'consent_analytics',
+      'consent_marketing',
+      'consent_functional',
+      'consent_banner',
+    ]
+
+    consentCookies.forEach((cookieName) => {
+      document.cookie = `${cookieName}=; expires=${expirations}; path=/`
+    })
+  })
+}
+
 
 test.describe('Consent Banner', () => {
   /**
@@ -68,18 +90,14 @@ test.describe('Consent Banner', () => {
     // Clear all cookies and storage before navigation
     await context.clearCookies()
 
-    // Navigate to page without auto-dismissing the consent banner and clear storage
+    // Navigate to page without auto-dismissing the consent banner
     await page.goto('/', { skipCookieDismiss: true, timeout: 15000 })
-    await page.evaluate(() => {
-      localStorage.clear()
-      sessionStorage.clear()
+    await resetConsentState(page)
 
-      const expirations = 'Thu, 01 Jan 1970 00:00:00 GMT'
-      document.cookie = `consent_analytics=; expires=${expirations}; path=/`
-      document.cookie = `consent_marketing=; expires=${expirations}; path=/`
-      document.cookie = `consent_functional=; expires=${expirations}; path=/`
-      document.cookie = `consent_banner=; expires=${expirations}; path=/`
-    })
+    // Reload so the modal logic re-runs with a clean browser state across all engines
+    await page.reload({ waitUntil: 'domcontentloaded' })
+    await page.waitForLoadState('networkidle')
+    await page.waitForPageLoad()
 
     // Wait for consent banner custom element to be initialized
     await page.waitForFunction(() => {

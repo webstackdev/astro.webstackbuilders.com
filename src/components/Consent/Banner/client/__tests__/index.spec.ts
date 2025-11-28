@@ -153,8 +153,8 @@ describe('ConsentBannerElement', () => {
 
   it('navigates to the consent page when Customize is triggered', async () => {
     await renderConsentBanner(({ element, window }) => {
-      const customizeBtn = window.document.querySelector('.consent-modal__btn-customize') as HTMLButtonElement | null
-      expect(customizeBtn).not.toBeNull()
+      const customizeLink = window.document.querySelector('.consent-modal__btn-customize') as HTMLAnchorElement | null
+      expect(customizeLink).not.toBeNull()
 
       const bannerCtor = element.constructor as typeof HTMLElement & {
         navigateToUrl: (_url: string) => void
@@ -162,7 +162,7 @@ describe('ConsentBannerElement', () => {
       const navigateSpy = vi.spyOn(bannerCtor, 'navigateToUrl').mockImplementation(() => {})
 
       try {
-        customizeBtn!.dispatchEvent(new window.MouseEvent('click', { bubbles: true }))
+        customizeLink!.dispatchEvent(new window.MouseEvent('click', { bubbles: true }))
 
         expect(navigateSpy).toHaveBeenCalledTimes(1)
         expect(navigateSpy).toHaveBeenCalledWith(expect.stringContaining('/consent'))

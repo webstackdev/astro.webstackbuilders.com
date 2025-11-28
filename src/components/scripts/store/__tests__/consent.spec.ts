@@ -346,7 +346,9 @@ describe('Consent side effects', () => {
 
     await consentListener?.(newState, oldState)
 
-    expect(fetchSpy).toHaveBeenCalledTimes(1)
+    await vi.waitFor(() => {
+      expect(fetchSpy).toHaveBeenCalledTimes(1)
+    })
     const firstFetchCall = fetchSpy.mock.calls.at(0)
     if (!firstFetchCall) {
       throw new TestError('Expected consent logging fetch to be called once')
@@ -363,7 +365,56 @@ describe('Consent side effects', () => {
     })
 
     await consentListener?.(newState, undefined)
-    expect(fetchSpy).toHaveBeenCalledTimes(1)
+    await vi.waitFor(() => {
+      expect(fetchSpy).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  it('queues consent logging when offline and retries after reconnecting', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue({ ok: true })
+    vi.stubGlobal('fetch', fetchSpy)
+
+    const onlineGetter = vi.spyOn(window.navigator, 'onLine', 'get')
+    onlineGetter.mockReturnValue(false)
+
+    let consentListener:
+      | ((_state: ConsentState, _oldState?: ConsentState) => Promise<void> | void)
+      | undefined
+    vi.spyOn($consent, 'subscribe').mockImplementation((listener) => {
+      consentListener = listener
+      return () => {}
+    })
+    vi.spyOn($isConsentBannerVisible, 'subscribe').mockImplementation(() => () => {})
+    vi.spyOn($hasFunctionalConsent, 'subscribe').mockImplementation(() => () => {})
+    vi.spyOn($hasAnalyticsConsent, 'subscribe').mockImplementation(() => () => {})
+
+    initConsentSideEffects()
+
+    const oldState = {
+      analytics: false,
+      marketing: false,
+      functional: false,
+      DataSubjectId: 'subject-123',
+    }
+    const newState = {
+      analytics: true,
+      marketing: false,
+      functional: false,
+      DataSubjectId: 'subject-123',
+    }
+
+    await consentListener?.(newState, oldState)
+
+    expect(fetchSpy).not.toHaveBeenCalled()
+
+    onlineGetter.mockReturnValue(true)
+    window.dispatchEvent(new Event('online'))
+
+    await vi.waitFor(() => {
+      expect(fetchSpy).toHaveBeenCalledTimes(1)
+    })
+
+    onlineGetter.mockRestore()
   })
 
   it('deletes the data subject id when functional consent is revoked', () => {
