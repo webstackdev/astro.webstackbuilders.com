@@ -5,12 +5,15 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import type { APIRoute } from 'astro'
 import { GET as cleanupDsar } from '@pages/api/cron/cleanup-dsar-requests'
 import { GET as cleanupConfirmations } from '@pages/api/cron/cleanup-confirmations'
+import { GET as pingIntegrations } from '@pages/api/cron/ping-integrations'
 
 const supabaseAdminMock = vi.hoisted(() => ({
   from: vi.fn(),
 }))
 
 const getCronSecretMock = vi.hoisted(() => vi.fn(() => 'cron-secret'))
+const getUpstashApiUrlMock = vi.hoisted(() => vi.fn(() => 'https://example.upstash.io'))
+const getUpstashApiTokenMock = vi.hoisted(() => vi.fn(() => 'upstash-token'))
 
 vi.mock('@pages/api/_utils', () => ({
   supabaseAdmin: supabaseAdminMock,
@@ -23,6 +26,8 @@ vi.mock('@pages/api/_environment/environmentApi', async () => {
   return {
     ...actual,
     getCronSecret: getCronSecretMock,
+    getUpstashApiUrl: getUpstashApiUrlMock,
+    getUpstashApiToken: getUpstashApiTokenMock,
   }
 })
 
@@ -53,6 +58,30 @@ const createDeleteChain = (options?: { data?: unknown[]; error?: unknown }): Del
         data: options?.data ?? [],
         error: options?.error ?? null,
       }),
+  }
+
+  return chain
+}
+
+type SelectChain = {
+  select: (...args: unknown[]) => SelectChain
+  limit: (...args: unknown[]) => Promise<{ data?: unknown[]; error?: unknown; count?: number }>
+}
+
+const createSelectChain = (options?: {
+  data?: unknown[]
+  error?: unknown
+  count?: number
+}): SelectChain => {
+  const response = {
+    data: options?.data ?? [],
+    error: options?.error ?? null,
+    count: options?.count ?? options?.data?.length ?? 0,
+  }
+
+  const chain: SelectChain = {
+    select: () => chain,
+    limit: () => Promise.resolve({ ...response }),
   }
 
   return chain
@@ -181,6 +210,117 @@ describe('Cron cleanup endpoints', () => {
 
       expect(response.status).toBe(500)
       expect(body.error.code).toBe('CRON_DELETE_CONFIRMED_TOKENS_FAILED')
+    })
+  })
+
+  describe('ping-integrations', () => {
+    const run = (request: Request) =>
+      pingIntegrations(buildContext(request) as unknown as Parameters<APIRoute>[0])
+
+    let fetchMock: ReturnType<typeof vi.fn>
+
+    const buildRequest = (headers?: HeadersInit) =>
+      new Request('http://localhost/api/cron/ping-integrations', {
+        method: 'GET',
+        headers,
+      })
+
+    const createFetchResponse = (overrides?: Partial<Response>): Response => ({
+      ok: true,
+      status: 200,
+      json: vi.fn().mockResolvedValue({ result: null }),
+      text: vi.fn().mockResolvedValue(''),
+      headers: new Headers(),
+      redirected: false,
+      statusText: 'OK',
+      type: 'basic',
+      url: getUpstashApiUrlMock(),
+      clone: vi.fn(() => createFetchResponse(overrides)),
+      body: null,
+      bodyUsed: false,
+      arrayBuffer: vi.fn(),
+      blob: vi.fn(),
+      formData: vi.fn(),
+      ...overrides,
+    }) as unknown as Response
+
+    beforeEach(() => {
+      fetchMock = vi.fn()
+      vi.stubGlobal('fetch', fetchMock)
+    })
+
+    afterEach(() => {
+      vi.unstubAllGlobals()
+    })
+
+    it('rejects requests without valid secret', async () => {
+      const response = await run(buildRequest())
+      const body = await response.json()
+
+      expect(response.status).toBe(401)
+      expect(body.error.code).toBe('UNAUTHORIZED')
+      expect(fetchMock).not.toHaveBeenCalled()
+    })
+
+    it('pings Upstash and Supabase once authorized', async () => {
+      fetchMock.mockResolvedValue(createFetchResponse())
+      supabaseAdminMock.from.mockReturnValueOnce(createSelectChain({ count: 5 }))
+
+      const response = await run(
+        buildRequest({
+          authorization: 'Bearer cron-secret',
+        }),
+      )
+      const body = await response.json()
+
+      expect(response.status).toBe(200)
+      expect(body.success).toBe(true)
+      expect(typeof body.upstash.durationMs).toBe('number')
+      expect(body.supabase.rowsChecked).toBe(5)
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+
+      const fetchArgs = fetchMock.mock.calls[0]![1] as RequestInit | undefined
+      const headers = fetchArgs?.headers as Record<string, string> | undefined
+      expect(headers?.Authorization ?? headers?.authorization).toBe('Bearer upstash-token')
+    })
+
+    it('returns upstream error details when Upstash responds with failure', async () => {
+      fetchMock.mockResolvedValue(
+        createFetchResponse({
+          ok: false,
+          status: 503,
+          statusText: 'Service Unavailable',
+          json: vi.fn().mockResolvedValue({ error: 'unavailable' }),
+        }),
+      )
+      supabaseAdminMock.from.mockReturnValueOnce(createSelectChain())
+
+      const response = await run(
+        buildRequest({
+          authorization: 'Bearer cron-secret',
+        }),
+      )
+      const body = await response.json()
+
+      expect(response.status).toBe(503)
+      expect(body.error.code).toBe('CRON_UPSTASH_PING_FAILED')
+    })
+
+    it('surfaces Supabase errors when ping fails', async () => {
+      fetchMock.mockResolvedValue(createFetchResponse())
+      supabaseAdminMock.from.mockReturnValueOnce(
+        createSelectChain({ error: { message: 'boom' } }),
+      )
+
+      const response = await run(
+        buildRequest({
+          authorization: 'Bearer cron-secret',
+        }),
+      )
+      const body = await response.json()
+
+      expect(response.status).toBe(500)
+      expect(body.error.code).toBe('CRON_SUPABASE_PING_FAILED')
     })
   })
 })
