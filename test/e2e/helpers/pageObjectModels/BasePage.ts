@@ -14,6 +14,9 @@ import {
 import { navigationItems } from '@components/Navigation/server'
 import { clearConsentCookies } from '@test/e2e/helpers'
 
+const DEFAULT_NAVIGATION_TIMEOUT = 5000
+const EXTENDED_NAVIGATION_TIMEOUT = 15000
+
 export class BasePage {
   readonly page: Page
   private _consoleMessages: string[] = []
@@ -62,9 +65,11 @@ export class BasePage {
    * Automatically dismisses cookie consent modal unless skipCookieDismiss is true.
    */
   async goto(path: string, options?: { skipCookieDismiss?: boolean; timeout?: number }): Promise<null | Response> {
-    const navigate = async () => {
+    const requestedTimeout = options?.timeout ?? DEFAULT_NAVIGATION_TIMEOUT
+
+    const navigate = async (timeout: number) => {
       return await this._page.goto(path, {
-        timeout: options?.timeout ?? 5000,
+        timeout,
         waitUntil: 'domcontentloaded',
       })
     }
@@ -72,11 +77,14 @@ export class BasePage {
     let response: null | Response = null
 
     try {
-      response = await navigate()
+      response = await navigate(requestedTimeout)
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
       if (message.includes('ERR_ABORTED')) {
-        response = await navigate()
+        response = await navigate(requestedTimeout)
+      } else if (!options?.timeout && message.includes('Timeout')) {
+        // Allow a single retry with a longer timeout to absorb slow prerender navigations
+        response = await navigate(EXTENDED_NAVIGATION_TIMEOUT)
       } else {
         throw error
       }
