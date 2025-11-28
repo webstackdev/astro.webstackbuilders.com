@@ -1,36 +1,31 @@
 ---
+import BaseLayout from '@layouts/BaseLayout.astro'
 import NewsletterCta from '@components/CallToAction/Newsletter/index.astro'
-import '@styles/index.css'
 
 export const prerender = true
 
 const pageTitle = 'Newsletter Component Test Fixture'
 const fixtureDescription = 'Dedicated route reserved for newsletter automation scenarios. Not intended for production traffic.'
+const pagePath = '/testing/newsletter'
 ---
-<!DOCTYPE html>
-<html lang="en" data-theme="light">
-  <head>
-    <meta charset="utf-8">
-    <title>{pageTitle}</title>
-    <meta name="robots" content="noindex, nofollow">
-  </head>
-  <body class="bg-bg text-text">
-    <main class="min-h-screen flex flex-col items-center gap-8 py-16 px-4">
-      <header class="max-w-3xl text-center space-y-4">
-        <p class="text-xs uppercase tracking-widest text-text-offset">Testing Fixture</p>
-        <h1 class="text-3xl font-semibold leading-tight">{pageTitle}</h1>
-        <p class="text-text-offset" data-testid="newsletter-test-description">
-          {fixtureDescription}
-        </p>
-      </header>
-      <section class="w-full max-w-4xl" aria-label="Newsletter testing fixture">
-        <NewsletterCta
-          title="Testing Newsletter"
-          description="Use this isolated page to validate newsletter flows without the rest of the marketing site."
-          placeholder="Enter an email for automated testing"
-          buttonText="Subscribe"
-        />
-      </section>
-    </main>
-  </body>
-</html>
+
+<BaseLayout pageTitle={pageTitle} path={pagePath} description={fixtureDescription} noindex>
+  <section class="mx-auto flex max-w-4xl flex-col items-center gap-8 py-10">
+    <header class="max-w-3xl text-center space-y-4">
+      <p class="text-xs uppercase tracking-widest text-text-offset">Testing Fixture</p>
+      <h1 class="text-3xl font-semibold leading-tight">{pageTitle}</h1>
+      <p class="text-text-offset" data-testid="newsletter-test-description">
+        {fixtureDescription}
+      </p>
+    </header>
+
+    <section class="w-full" aria-label="Newsletter testing fixture">
+      <NewsletterCta
+        title="Testing Newsletter"
+        description="Use this isolated page to validate newsletter flows without the rest of the marketing site."
+        placeholder="Enter an email for automated testing"
+        buttonText="Subscribe"
+      />
+    </section>
+  </section>
+</BaseLayout>

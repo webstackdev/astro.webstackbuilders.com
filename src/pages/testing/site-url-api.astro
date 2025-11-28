@@ -1,5 +1,10 @@
 ---
+import BaseLayout from '@layouts/BaseLayout.astro'
 import { getSiteUrl } from '@pages/api/_environment/siteUrlApi'
+
+const pageTitle = 'Site URL API Diagnostics'
+const pageDescription = 'Server-side site URL snapshot for automated testing only.'
+const pagePath = '/testing/site-url-api'
 
 const snapshot = {
   siteUrl: getSiteUrl(),
@@ -9,21 +14,22 @@ const formattedSnapshot = JSON.stringify(snapshot, null, 2)
 const scriptContent = `window.siteUrlApiSnapshot = ${JSON.stringify(snapshot).replace(/</g, '\\u003c')}`
 ---
 
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>Site URL API Diagnostics</title>
-    <meta name="robots" content="noindex, nofollow">
-  </head>
-  <body>
-    <main>
-      <h1>Site URL API Diagnostics</h1>
-      <p data-testid="site-url-api-notice">
-        This page captures the server-side URL resolution for automated testing only.
-      </p>
-      <pre id="site-url-api-json">{formattedSnapshot}</pre>
-    </main>
-    <script type="module" is:inline set:html={scriptContent}></script>
-  </body>
-</html>
+<BaseLayout pageTitle={pageTitle} path={pagePath} description={pageDescription} noindex>
+  <section class="mx-auto mb-6 max-w-3xl space-y-3 text-lg text-offset">
+    <p>
+      This fixture exposes the resolved site URL value generated on the server so automated tests can assert the same output.
+    </p>
+    <p data-testid="site-url-api-notice">
+      The JSON snapshot is also written to <code>window.siteUrlApiSnapshot</code> for convenience.
+    </p>
+  </section>
+
+  <section class="mx-auto max-w-3xl">
+    <pre
+      id="site-url-api-json"
+      class="overflow-auto rounded border border-border bg-bg-offset p-4 font-mono text-sm text-text"
+    >{formattedSnapshot}</pre>
+  </section>
+
+  <script type="module" is:inline set:html={scriptContent}></script>
+</BaseLayout>

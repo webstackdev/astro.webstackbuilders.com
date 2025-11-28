@@ -1,4 +1,5 @@
 ---
+import BaseLayout from '@layouts/BaseLayout.astro'
 import {
   getPackageRelease,
   getPrivacyPolicyVersion,
@@ -15,6 +16,10 @@ import {
  */
 export const prerender = true
 
+const pageTitle = 'Environment API Diagnostics'
+const pageDescription = 'Server environment helper snapshot for automated testing only.'
+const pagePath = '/testing/environment-api'
+
 const snapshot = {
   isUnitTest: isUnitTest(),
   isTest: isTest(),
@@ -29,21 +34,23 @@ const formattedSnapshot = JSON.stringify(snapshot, null, 2)
 const scriptContent = `window.environmentApiSnapshot = ${JSON.stringify(snapshot).replace(/</g, '\\u003c')}`
 ---
 
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>Environment API Diagnostics</title>
-    <meta name="robots" content="noindex, nofollow">
-  </head>
-  <body>
-    <main>
-      <h1>Environment API Diagnostics</h1>
-      <p data-testid="environment-api-notice">
-        This page exposes server environment helpers for automated testing only.
-      </p>
-      <pre id="environment-api-json">{formattedSnapshot}</pre>
-    </main>
-    <script type="module" is:inline set:html={scriptContent}></script>
-  </body>
-</html>
+<BaseLayout pageTitle={pageTitle} path={pagePath} description={pageDescription} noindex>
+  <section class="mx-auto mb-6 max-w-3xl space-y-3 text-lg text-offset">
+    <p>
+      Use this fixture to validate the server-side environment helpers without relying on marketing pages.
+    </p>
+    <p data-testid="environment-api-notice">
+      The JSON payload below mirrors the runtime snapshot that client scripts can also read via
+      <code>window.environmentApiSnapshot</code>.
+    </p>
+  </section>
+
+  <section class="mx-auto max-w-3xl">
+    <pre
+      id="environment-api-json"
+      class="overflow-auto rounded border border-border bg-bg-offset p-4 font-mono text-sm text-text"
+    >{formattedSnapshot}</pre>
+  </section>
+
+  <script type="module" is:inline set:html={scriptContent}></script>
+</BaseLayout>

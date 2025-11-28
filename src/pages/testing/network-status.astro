@@ -1,44 +1,41 @@
 ---
+import BaseLayout from '@layouts/BaseLayout.astro'
 import NetworkStatusComponent from '@components/Toasts/NetworkStatus/index.astro'
-import '@styles/index.css'
 
 export const prerender = true
 
 const pageTitle = 'Network Status Component Fixture'
 const fixtureDescription = 'Sandbox route dedicated to validating the NetworkStatus toast web component and its connection indicator.'
+const pagePath = '/testing/network-status'
 ---
-<!DOCTYPE html>
-<html lang="en" data-theme="light">
-  <head>
-    <meta charset="utf-8">
-    <title>{pageTitle}</title>
-    <meta name="robots" content="noindex, nofollow">
-  </head>
-  <body class="bg-bg text-text">
-    <main class="min-h-screen flex flex-col items-center gap-8 py-16 px-4">
-      <header class="max-w-3xl text-center space-y-4">
-        <p class="text-xs uppercase tracking-widest text-text-offset">Testing Fixture</p>
-        <h1 class="text-3xl font-semibold leading-tight">{pageTitle}</h1>
-        <p class="text-text-offset" data-testid="network-status-test-description">
-          {fixtureDescription}
-        </p>
-      </header>
 
-      <section class="w-full max-w-3xl space-y-6 bg-bg-offset rounded-lg p-6 shadow-sm" aria-label="Network status component fixture">
-        <div class="space-y-4">
-          <NetworkStatusComponent />
-          <div class="border border-border rounded-lg p-4 space-y-3" data-testid="network-status-indicator-panel">
-            <p class="text-sm text-text-offset">Connection Indicator</p>
-            <div class="connection-status text-green-600 font-semibold" data-testid="connection-indicator">
-              Online
-            </div>
-            <p class="text-xs text-text-offset">
-              The indicator above is updated by NetworkStatus when window online/offline events fire. Tests can dispatch those
-              events to simulate connectivity changes and verify toast behavior.
-            </p>
+<BaseLayout pageTitle={pageTitle} path={pagePath} description={fixtureDescription} noindex>
+  <section class="mx-auto flex max-w-4xl flex-col items-center gap-8 py-10">
+    <header class="max-w-3xl text-center space-y-4">
+      <p class="text-xs uppercase tracking-widest text-text-offset">Testing Fixture</p>
+      <h1 class="text-3xl font-semibold leading-tight">{pageTitle}</h1>
+      <p class="text-text-offset" data-testid="network-status-test-description">
+        {fixtureDescription}
+      </p>
+    </header>
+
+    <section
+      class="w-full max-w-3xl space-y-6 rounded-lg border border-border bg-bg-offset p-6 shadow-sm"
+      aria-label="Network status component fixture"
+    >
+      <div class="space-y-4">
+        <NetworkStatusComponent />
+        <div class="space-y-3 rounded-lg border border-border p-4" data-testid="network-status-indicator-panel">
+          <p class="text-sm text-text-offset">Connection Indicator</p>
+          <div class="connection-status text-green-600 font-semibold" data-testid="connection-indicator">
+            Online
           </div>
+          <p class="text-xs text-text-offset">
+            The indicator above is updated by NetworkStatus when window online/offline events fire. Tests can dispatch those
+            events to simulate connectivity changes and verify toast behavior.
+          </p>
         </div>
-      </section>
-    </main>
-  </body>
-</html>
+      </div>
+    </section>
+  </section>
+</BaseLayout>
