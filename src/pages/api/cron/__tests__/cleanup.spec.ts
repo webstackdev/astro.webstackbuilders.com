@@ -64,8 +64,8 @@ const createDeleteChain = (options?: { data?: unknown[]; error?: unknown }): Del
 }
 
 type SelectChain = {
-  select: (...args: unknown[]) => SelectChain
-  limit: (...args: unknown[]) => Promise<{ data?: unknown[]; error?: unknown; count?: number }>
+  select: (..._args: unknown[]) => SelectChain
+  limit: (..._args: unknown[]) => Promise<{ data?: unknown[]; error?: unknown; count?: number }>
 }
 
 const createSelectChain = (options?: {
