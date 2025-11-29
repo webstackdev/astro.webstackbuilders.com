@@ -34,15 +34,15 @@ export default defineConfig({
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
-  forbidOnly: !!process.env['CI'],
+  forbidOnly: !!process.env['GITHUB_ACTIONS'],
   /* Retry on CI only */
-  retries: process.env['CI'] ? 2 : 0,
+  retries: process.env['GITHUB_ACTIONS'] ? 2 : 0,
   /* Opt out of parallel tests on CI. */
-  workers: process.env['CI'] ? 1 : '75%',
+  workers: process.env['GITHUB_ACTIONS'] ? 1 : '75%',
   /* Only run @ready tests in CI, all tests locally */
-  ...(process.env['CI'] ? { grep: /@ready/ } : {}),
+  ...(process.env['GITHUB_ACTIONS'] ? { grep: /@ready/ } : {}),
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: process.env['CI']
+  reporter: process.env['GITHUB_ACTIONS']
     ? 'github'
     : isCIMode
       ? [
