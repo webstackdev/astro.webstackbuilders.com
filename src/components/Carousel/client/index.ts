@@ -7,6 +7,7 @@ import { defineCustomElement } from '@components/scripts/utils'
 import {
   createAnimationController,
   type AnimationControllerHandle,
+  type AnimationPlayState,
 } from '@components/scripts/store'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 
@@ -23,6 +24,7 @@ const AUTOPLAY_OPTIONS = {
   delay: 4000,
   stopOnInteraction: true,
   stopOnMouseEnter: true,
+  playOnInit: false,
 }
 
 type DebugEmblaElement = HTMLElement & { __emblaApi__?: EmblaCarouselType }
@@ -37,6 +39,11 @@ export class CarouselElement extends HTMLElement {
   private nextBtn: HTMLButtonElement | null = null
   private initialized = false
   private animationController: AnimationControllerHandle | undefined
+  private pendingAutoplayState: AnimationPlayState | null = null
+  private hasAutoplaySupport = false
+  private autoplayReady = false
+  private autoplayReadyScheduled = false
+  private autoplayReadyTimer: ReturnType<typeof setTimeout> | null = null
   private readonly animationInstanceId: string
   private readonly domReadyHandler = () => {
     document.removeEventListener('DOMContentLoaded', this.domReadyHandler)
@@ -93,24 +100,37 @@ export class CarouselElement extends HTMLElement {
         throw new ClientScriptError('CarouselElement: Missing required DOM parts for initialization.')
       }
 
-      this.autoplayPlugin = Autoplay({ ...AUTOPLAY_OPTIONS })
-      this.emblaApi = EmblaCarousel(this.viewport, EMBLA_OPTIONS, [this.autoplayPlugin])
+      const slideCount = this.querySelectorAll('[data-carousel-slide]').length
+      const requestedAutoplay = slideCount > 1 ? Autoplay({ ...AUTOPLAY_OPTIONS }) : null
+      this.autoplayReady = false
+      this.autoplayReadyScheduled = false
+      const plugins = requestedAutoplay ? [requestedAutoplay] : []
+      this.emblaApi = EmblaCarousel(this.viewport, EMBLA_OPTIONS, plugins)
       this.emblaRoot.__emblaApi__ = this.emblaApi
+      const emblaSnapCount = this.emblaApi.scrollSnapList().length
+      const supportsAutoplay = slideCount > 1 && emblaSnapCount > 1
+      this.hasAutoplaySupport = supportsAutoplay
+      this.autoplayPlugin = supportsAutoplay ? requestedAutoplay : null
       this.setAutoplayState('paused')
 
-      const emblaWithEvents = this.emblaApi as EmblaCarouselType & {
-        on: (_event: string, _handler: () => void) => EmblaCarouselType
-      }
+      if (this.autoplayPlugin) {
+        const emblaWithEvents = this.emblaApi as EmblaCarouselType & {
+          on: (_event: string, _handler: () => void) => EmblaCarouselType
+        }
 
-      emblaWithEvents.on('autoplay:play', this.autoplayPlayHandler)
-      emblaWithEvents.on('autoplay:stop', this.autoplayStopHandler)
+        emblaWithEvents.on('autoplay:play', this.autoplayPlayHandler)
+        emblaWithEvents.on('autoplay:stop', this.autoplayStopHandler)
+      }
 
       this.setupNavigationButtons()
       this.setupDotsNavigation()
 
       this.initialized = true
       this.setAttribute('data-carousel-ready', 'true')
-      this.registerAnimationLifecycle()
+      if (this.hasAutoplaySupport) {
+        this.registerAnimationLifecycle()
+        this.scheduleAutoplayReady()
+      }
     } catch (error) {
       this.teardown()
       handleScriptError(error, context)
@@ -123,8 +143,10 @@ export class CarouselElement extends HTMLElement {
         off: (_event: string, _handler: () => void) => EmblaCarouselType
       }
 
-      emblaWithEvents.off('autoplay:play', this.autoplayPlayHandler)
-      emblaWithEvents.off('autoplay:stop', this.autoplayStopHandler)
+      if (this.autoplayPlugin) {
+        emblaWithEvents.off('autoplay:play', this.autoplayPlayHandler)
+        emblaWithEvents.off('autoplay:stop', this.autoplayStopHandler)
+      }
       this.emblaApi.destroy()
     }
     if (this.emblaRoot && '__emblaApi__' in this.emblaRoot) {
@@ -138,6 +160,14 @@ export class CarouselElement extends HTMLElement {
     this.removeAttribute('data-carousel-autoplay')
     this.animationController?.destroy()
     this.animationController = undefined
+    this.pendingAutoplayState = null
+    this.hasAutoplaySupport = false
+    if (this.autoplayReadyTimer) {
+      clearTimeout(this.autoplayReadyTimer)
+      this.autoplayReadyTimer = null
+    }
+    this.autoplayReadyScheduled = false
+    this.autoplayReady = false
 
     if (this.dotsContainer) {
       this.dotsContainer.innerHTML = ''
@@ -249,8 +279,7 @@ export class CarouselElement extends HTMLElement {
 
   pause(): void {
     try {
-      this.autoplayPlugin?.stop()
-      this.setAutoplayState('paused')
+      this.updateAutoplayState('paused')
     } catch (error) {
       handleScriptError(error, { scriptName: SCRIPT_NAME, operation: 'pause' })
     }
@@ -258,8 +287,7 @@ export class CarouselElement extends HTMLElement {
 
   resume(): void {
     try {
-      this.autoplayPlugin?.play()
-      this.setAutoplayState('playing')
+      this.updateAutoplayState('playing')
     } catch (error) {
       handleScriptError(error, { scriptName: SCRIPT_NAME, operation: 'resume' })
     }
@@ -269,8 +297,42 @@ export class CarouselElement extends HTMLElement {
     this.setAttribute('data-carousel-autoplay', state)
   }
 
+  private updateAutoplayState(state: AnimationPlayState): void {
+    if (!this.hasAutoplaySupport || !this.autoplayPlugin || !this.emblaApi || !this.initialized || !this.autoplayReady) {
+      if (this.hasAutoplaySupport) {
+        this.pendingAutoplayState = state
+        this.setAutoplayState(state)
+      } else {
+        this.pendingAutoplayState = null
+        this.setAutoplayState('paused')
+      }
+      return
+    }
+
+    this.pendingAutoplayState = null
+    if (state === 'playing') {
+      this.autoplayPlugin.play()
+    } else {
+      this.autoplayPlugin.stop()
+    }
+    this.setAutoplayState(state)
+  }
+
+  private flushPendingAutoplayState(): void {
+    if (!this.pendingAutoplayState || !this.autoplayReady || !this.autoplayPlugin) return
+
+    const pendingState = this.pendingAutoplayState
+    this.pendingAutoplayState = null
+
+    try {
+      this.updateAutoplayState(pendingState)
+    } catch (error) {
+      handleScriptError(error, { scriptName: SCRIPT_NAME, operation: 'flushAutoplay' })
+    }
+  }
+
   private registerAnimationLifecycle(): void {
-    if (this.animationController) return
+    if (this.animationController || !this.hasAutoplaySupport) return
     this.animationController = createAnimationController({
       animationId: 'carousel',
       instanceId: this.animationInstanceId,
@@ -282,6 +344,26 @@ export class CarouselElement extends HTMLElement {
         this.pause()
       },
     })
+  }
+
+  private scheduleAutoplayReady(): void {
+    if (this.autoplayReadyScheduled || !this.autoplayPlugin) return
+    this.autoplayReadyScheduled = true
+
+    const markReady = () => {
+      this.autoplayReadyScheduled = false
+      this.autoplayReadyTimer = null
+      if (!this.initialized || !this.autoplayPlugin) return
+      this.autoplayReady = true
+      this.flushPendingAutoplayState()
+    }
+
+    if (typeof window === 'undefined') {
+      markReady()
+      return
+    }
+
+    this.autoplayReadyTimer = window.setTimeout(markReady, 0)
   }
 }
 

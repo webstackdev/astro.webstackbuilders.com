@@ -8,12 +8,38 @@ import type { WebComponentModule } from '@components/scripts/@types/webComponent
 import { executeRender } from '@test/unit/helpers/litRuntime'
 import sampleCollection from '@components/Carousel/client/__fixtures__/collection.fixture'
 
-const createAnimationControllerMock = vi.fn(() => ({
-  requestPlay: vi.fn(),
-  requestPause: vi.fn(),
-  clearUserPreference: vi.fn(),
-  destroy: vi.fn(),
-}))
+const createAnimationControllerMock = vi.fn((config?: { onPlay?: () => void }) => {
+  config?.onPlay?.()
+  return {
+    requestPlay: vi.fn(),
+    requestPause: vi.fn(),
+    clearUserPreference: vi.fn(),
+    destroy: vi.fn(),
+  }
+})
+
+type AutoplayPluginInstance = {
+  play: ReturnType<typeof vi.fn>
+  stop: ReturnType<typeof vi.fn>
+}
+
+const autoplayPluginInstances: AutoplayPluginInstance[] = []
+
+const createAutoplayPluginMock = vi.fn(() => {
+  const instance: AutoplayPluginInstance = {
+    play: vi.fn(),
+    stop: vi.fn(),
+  }
+  autoplayPluginInstances.push(instance)
+  return instance
+})
+
+let mockScrollSnaps = [0, 1, 2]
+
+const setMockScrollSnaps = (snapCount: number) => {
+  const count = Math.max(1, snapCount)
+  mockScrollSnaps = Array.from({ length: count }, (_, index) => index)
+}
 
 vi.mock('@components/scripts/store', () => ({
   createAnimationController: createAnimationControllerMock,
@@ -35,7 +61,7 @@ vi.mock('embla-carousel', () => {
     on: vi.fn(() => createEmbla.mock.results.at(-1)?.value ?? {}),
     off: vi.fn(() => createEmbla.mock.results.at(-1)?.value ?? {}),
     destroy: vi.fn(),
-    scrollSnapList: vi.fn(() => [0, 1, 2]),
+    scrollSnapList: vi.fn(() => mockScrollSnaps),
     selectedScrollSnap: vi.fn(() => 0),
     scrollTo: vi.fn(),
   }))
@@ -47,10 +73,7 @@ vi.mock('embla-carousel', () => {
 
 vi.mock('embla-carousel-autoplay', () => ({
   __esModule: true,
-  default: vi.fn(() => ({
-    play: vi.fn(),
-    stop: vi.fn(),
-  })),
+  default: createAutoplayPluginMock,
 }))
 
 const defaultCarouselProps: ConcreteCarouselProps = {
@@ -90,6 +113,9 @@ describe('Carousel component (server output)', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     createAnimationControllerMock.mockClear()
+    autoplayPluginInstances.length = 0
+    createAutoplayPluginMock.mockClear()
+    setMockScrollSnaps(3)
   })
 
   it('renders the provided title and respects the requested limit', async () => {
@@ -145,6 +171,30 @@ describe('Carousel component (server output)', () => {
   it('registers an animation lifecycle controller', async () => {
     await renderCarousel(() => {
       expect(createAnimationControllerMock).toHaveBeenCalled()
-    })
+    }, { currentSlug: 'article-four' })
+  })
+
+  it('defers autoplay activation until Embla is ready', async () => {
+    vi.useFakeTimers()
+    try {
+      await renderCarousel(async () => {
+        const pluginInstance = autoplayPluginInstances.at(-1)
+        expect(pluginInstance).toBeDefined()
+        expect(pluginInstance?.play).not.toHaveBeenCalled()
+        await vi.runAllTimersAsync()
+        expect(pluginInstance?.play).toHaveBeenCalled()
+      }, { currentSlug: 'article-four' })
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('skips autoplay wiring when Embla reports a single snap', async () => {
+    setMockScrollSnaps(1)
+    await renderCarousel(({ root }) => {
+      expect(createAnimationControllerMock).not.toHaveBeenCalled()
+      expect(root.getAttribute('data-carousel-autoplay')).toBe('paused')
+      expect(autoplayPluginInstances.at(-1)?.play).not.toHaveBeenCalled()
+    }, { currentSlug: 'article-four' })
   })
 })

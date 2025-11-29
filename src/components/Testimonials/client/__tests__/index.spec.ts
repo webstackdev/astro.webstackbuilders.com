@@ -8,12 +8,31 @@ import type { WebComponentModule } from '@components/scripts/@types/webComponent
 import { executeRender } from '@test/unit/helpers/litRuntime'
 import testimonialsCollection from '@components/Testimonials/client/__fixtures__/collection.fixture'
 
-const createAnimationControllerMock = vi.fn(() => ({
-  requestPlay: vi.fn(),
-  requestPause: vi.fn(),
-  clearUserPreference: vi.fn(),
-  destroy: vi.fn(),
-}))
+const createAnimationControllerMock = vi.fn((config?: { onPlay?: () => void }) => {
+  config?.onPlay?.()
+  return {
+    requestPlay: vi.fn(),
+    requestPause: vi.fn(),
+    clearUserPreference: vi.fn(),
+    destroy: vi.fn(),
+  }
+})
+
+type AutoplayPluginInstance = {
+  play: ReturnType<typeof vi.fn>
+  stop: ReturnType<typeof vi.fn>
+}
+
+const autoplayPluginInstances: AutoplayPluginInstance[] = []
+
+const createAutoplayPluginMock = vi.fn(() => {
+  const instance: AutoplayPluginInstance = {
+    play: vi.fn(),
+    stop: vi.fn(),
+  }
+  autoplayPluginInstances.push(instance)
+  return instance
+})
 
 vi.mock('@components/scripts/store', () => ({
   createAnimationController: createAnimationControllerMock,
@@ -53,10 +72,7 @@ vi.mock('embla-carousel', () => {
 
 vi.mock('embla-carousel-autoplay', () => ({
   __esModule: true,
-  default: vi.fn(() => ({
-    play: vi.fn(),
-    stop: vi.fn(),
-  })),
+  default: createAutoplayPluginMock,
 }))
 
 const defaultProps: TestimonialsProps = {
@@ -89,6 +105,8 @@ describe('Testimonials component', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     createAnimationControllerMock.mockClear()
+    autoplayPluginInstances.length = 0
+    createAutoplayPluginMock.mockClear()
   })
 
   it('renders the supplied title and respects the limit', async () => {
@@ -113,7 +131,7 @@ describe('Testimonials component', () => {
       const dots = root.querySelectorAll('.embla__dot')
 
       expect(root.getAttribute('data-carousel-ready')).toBe('true')
-      expect(root.getAttribute('data-carousel-autoplay')).toBe('paused')
+      expect(root.getAttribute('data-carousel-autoplay')).toBe('playing')
       expect(dots.length).toBeGreaterThan(0)
     })
   })
@@ -122,5 +140,19 @@ describe('Testimonials component', () => {
     await renderTestimonials(() => {
       expect(createAnimationControllerMock).toHaveBeenCalled()
     })
+  })
+
+  it('defers autoplay activation until Embla is ready', async () => {
+    vi.useFakeTimers()
+    try {
+      await renderTestimonials(async () => {
+        const pluginInstance = autoplayPluginInstances.at(-1)
+        expect(pluginInstance?.play).not.toHaveBeenCalled()
+        await vi.runAllTimersAsync()
+        expect(pluginInstance?.play).toHaveBeenCalled()
+      })
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })
