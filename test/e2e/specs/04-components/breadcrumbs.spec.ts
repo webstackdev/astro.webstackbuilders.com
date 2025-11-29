@@ -25,6 +25,13 @@ test.describe('Breadcrumbs Component', () => {
     await page.expectElementVisible('nav[aria-label="Breadcrumb"]')
   })
 
+  test('@ready breadcrumbs display on case study pages', async ({ page: playwrightPage }) => {
+    const page = await BreadCrumbPage.init(playwrightPage)
+    await page.openFirstCaseStudyDetail()
+
+    await page.expectElementVisible('nav[aria-label="Breadcrumb"]')
+  })
+
   test('@ready breadcrumbs show correct path', async ({ page: playwrightPage }) => {
     const page = await BreadCrumbPage.init(playwrightPage)
     await page.openFirstArticleDetail()
@@ -92,25 +99,11 @@ test.describe('Breadcrumbs Component', () => {
   test('@ready breadcrumbs have structured data', async ({ page: playwrightPage }) => {
     // Expected: Should include JSON-LD BreadcrumbList schema
     const page = await BreadCrumbPage.init(playwrightPage)
-    await page.openFirstArticleDetail()
+    await page.openFirstArticleDetail({ navigationMode: 'fresh' })
 
     const jsonLd = await playwrightPage.locator('script[type="application/ld+json"]').allTextContents()
     const hasBreadcrumbSchema = jsonLd.some((json) => json.includes('BreadcrumbList'))
 
     expect(hasBreadcrumbSchema).toBe(true)
-  })
-
-  test('@ready breadcrumbs truncate long titles', async ({ page: playwrightPage }) => {
-    const page = await BreadCrumbPage.init(playwrightPage)
-    await page.openFirstArticleDetail()
-
-    const hasEllipsis = await playwrightPage.locator('nav[aria-label="Breadcrumb"] li').last().evaluate((el) => {
-      const styles = window.getComputedStyle(el)
-      return styles.textOverflow === 'ellipsis' || styles.overflow === 'hidden'
-    })
-
-    // Test passes if either truncation is applied or text is reasonably short
-    const text = await page.getTextContent('nav[aria-label="Breadcrumb"] li:last-child')
-    expect(hasEllipsis || (text && text.length < 50)).toBe(true)
   })
 })

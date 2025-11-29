@@ -90,8 +90,7 @@ test.describe('Structured Data', () => {
     await page.goto('/articles')
 
     const articleHref = await getFirstContentLink(page, 'a[href^="/articles/"]:not([href="/articles"])')
-    await page.navigateToPage(articleHref)
-    await page.waitForPageLoad()
+    await page.goto(articleHref)
 
     await page.expectSchemaTypes(['Article'])
     const article = await page.getSchemaByType<ArticleSchema>('Article')
@@ -112,8 +111,7 @@ test.describe('Structured Data', () => {
     await page.goto('/articles')
 
     const articleHref = await getFirstContentLink(page, 'a[href^="/articles/"]:not([href="/articles"])')
-    await page.navigateToPage(articleHref)
-    await page.waitForPageLoad()
+    await page.goto(articleHref)
 
     await page.expectSchemaTypes(['Article', 'BreadcrumbList'])
   })
@@ -150,8 +148,7 @@ test.describe('Structured Data', () => {
     }
 
     const serviceHref = await getFirstContentLink(page, 'a[href^="/services/"]:not([href="/services"])')
-    await page.navigateToPage(serviceHref)
-    await page.waitForPageLoad()
+    await page.goto(serviceHref)
 
     await page.expectSchemaTypes(['Service'])
     const service = await page.getSchemaByType<ServiceSchema>('Service')

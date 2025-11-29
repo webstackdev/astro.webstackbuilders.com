@@ -14,15 +14,45 @@ import { validTags } from '@content/_tagList'
 
 const pattern = '**\/[^_]*.{md,mdx}'
 
+const MAX_BREADCRUMB_TITLE_LENGTH = 50
+const loggedBreadcrumbTitleWarnings = new Set<string>()
+
+const warnOnBreadcrumbTitleLength = (title: string, collectionName: string): void => {
+  if ((process.env['NODE_ENV'] ?? 'development') !== 'production') return
+  if (title.length <= MAX_BREADCRUMB_TITLE_LENGTH) return
+
+  const warningKey = `${collectionName}:${title}`
+  if (loggedBreadcrumbTitleWarnings.has(warningKey)) return
+
+  loggedBreadcrumbTitleWarnings.add(warningKey)
+  console.warn(
+    `[Breadcrumb Warning] ${collectionName} title "${title}" is ${title.length} characters long. Titles longer than ${MAX_BREADCRUMB_TITLE_LENGTH} characters will truncate in breadcrumbs.`
+  )
+}
+
+const withBreadcrumbTitleWarning = <T extends z.ZodRawShape>(
+  schema: z.ZodObject<T>,
+  collectionName: string
+) =>
+  schema.superRefine(data => {
+    const candidateTitle = (data as { title?: string }).title
+    if (typeof candidateTitle === 'string') {
+      warnOnBreadcrumbTitleLength(candidateTitle, collectionName)
+    }
+  })
+
 // export type AboutSchema = z.infer<typeof aboutSchema>
 
 /**
  * About
  */
-const aboutSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-})
+const aboutSchema = withBreadcrumbTitleWarning(
+  z.object({
+    id: z.string(),
+    title: z.string(),
+  }),
+  'about'
+)
 
 const aboutCollection = defineCollection({
   loader: glob({ pattern, base: './src/content/about' }),
@@ -32,22 +62,25 @@ const aboutCollection = defineCollection({
 /**
  * Articles
  */
-const articlesSchema = z.object({
-  title: z.string(),
-  description: z.string(),
-  // Reference a single author from the `authors` collection by `id`
-  author: reference('authors'),
-  tags: z.array(z.enum(validTags)),
-  image: z.object({
-    src: z.string(),
-    alt: z.string(),
+const articlesSchema = withBreadcrumbTitleWarning(
+  z.object({
+    title: z.string(),
+    description: z.string(),
+    // Reference a single author from the `authors` collection by `id`
+    author: reference('authors'),
+    tags: z.array(z.enum(validTags)),
+    image: z.object({
+      src: z.string(),
+      alt: z.string(),
+    }),
+    // In YAML, dates written without quotes around them are interpreted as Date objects
+    publishDate: z.date(),
+    isDraft: z.boolean().default(false),
+    featured: z.boolean().default(false),
+    readingTime: z.string().optional(),
   }),
-  // In YAML, dates written without quotes around them are interpreted as Date objects
-  publishDate: z.date(),
-  isDraft: z.boolean().default(false),
-  featured: z.boolean().default(false),
-  readingTime: z.string().optional(),
-})
+  'articles'
+)
 
 const articlesCollection = defineCollection({
   loader: glob({ pattern, base: './src/content/articles' }),
@@ -86,30 +119,33 @@ const authorsCollection = defineCollection({
 /**
  * Case Studies
  */
-const caseStudiesSchema = z.object({
-  title: z.string(),
-  description: z.string().optional(),
-  tags: z.array(z.enum(validTags)),
-  // In YAML, dates written without quotes around them are interpreted as Date objects
-  publishDate: z.date(),
-  isDraft: z.boolean().default(false),
-  featured: z.boolean().default(false),
-  // Optional fields that may exist in some case studies
-  image: z
-    .union([
-      z.string(),
-      z.object({
-        src: z.string(),
-        alt: z.string(),
-      }),
-    ])
-    .optional(),
-  client: z.string().optional(),
-  author: reference('authors').optional(),
-  industry: z.string().optional(),
-  projectType: z.string().optional(),
-  duration: z.string().optional(),
-})
+const caseStudiesSchema = withBreadcrumbTitleWarning(
+  z.object({
+    title: z.string(),
+    description: z.string().optional(),
+    tags: z.array(z.enum(validTags)),
+    // In YAML, dates written without quotes around them are interpreted as Date objects
+    publishDate: z.date(),
+    isDraft: z.boolean().default(false),
+    featured: z.boolean().default(false),
+    // Optional fields that may exist in some case studies
+    image: z
+      .union([
+        z.string(),
+        z.object({
+          src: z.string(),
+          alt: z.string(),
+        }),
+      ])
+      .optional(),
+    client: z.string().optional(),
+    author: reference('authors').optional(),
+    industry: z.string().optional(),
+    projectType: z.string().optional(),
+    duration: z.string().optional(),
+  }),
+  'caseStudies'
+)
 
 const caseStudiesCollection = defineCollection({
   loader: glob({ pattern, base: './src/content/case-studies' }),
@@ -147,20 +183,23 @@ const contactDataCollection = defineCollection({
 /**
  * Services
  */
-const servicesSchema = z.object({
-  title: z.string(),
-  description: z.string().optional(),
-  tags: z.array(z.enum(validTags)),
-  // In YAML, dates written without quotes around them are interpreted as Date objects
-  publishDate: z.date(),
-  isDraft: z.boolean().default(false),
-  category: z.string().optional(),
-  icon: z.string().optional(),
-  featured: z.boolean().default(false),
-  pricing: z.string().optional(),
-  duration: z.string().optional(),
-  deliverables: z.array(z.string()).optional(),
-})
+const servicesSchema = withBreadcrumbTitleWarning(
+  z.object({
+    title: z.string(),
+    description: z.string().optional(),
+    tags: z.array(z.enum(validTags)),
+    // In YAML, dates written without quotes around them are interpreted as Date objects
+    publishDate: z.date(),
+    isDraft: z.boolean().default(false),
+    category: z.string().optional(),
+    icon: z.string().optional(),
+    featured: z.boolean().default(false),
+    pricing: z.string().optional(),
+    duration: z.string().optional(),
+    deliverables: z.array(z.string()).optional(),
+  }),
+  'services'
+)
 
 const servicesCollection = defineCollection({
   loader: glob({ pattern, base: './src/content/services' }),
@@ -202,24 +241,27 @@ const testimonialCollection = defineCollection({
 /**
  * Downloads
  */
-const downloadsSchema = z.object({
-  title: z.string(),
-  description: z.string(),
-  author: reference('authors').optional(),
-  tags: z.array(z.enum(validTags)),
-  image: z.object({
-    src: z.string(),
-    alt: z.string(),
+const downloadsSchema = withBreadcrumbTitleWarning(
+  z.object({
+    title: z.string(),
+    description: z.string(),
+    author: reference('authors').optional(),
+    tags: z.array(z.enum(validTags)),
+    image: z.object({
+      src: z.string(),
+      alt: z.string(),
+    }),
+    publishDate: z.date(),
+    isDraft: z.boolean().default(false),
+    featured: z.boolean().default(false),
+    fileType: z.enum(['PDF', 'eBook', 'Whitepaper', 'Guide', 'Report', 'Template']),
+    fileSize: z.string().optional(),
+    pages: z.number().optional(),
+    readingTime: z.string().optional(),
+    fileName: z.string(), // Filename in public/downloads directory
   }),
-  publishDate: z.date(),
-  isDraft: z.boolean().default(false),
-  featured: z.boolean().default(false),
-  fileType: z.enum(['PDF', 'eBook', 'Whitepaper', 'Guide', 'Report', 'Template']),
-  fileSize: z.string().optional(),
-  pages: z.number().optional(),
-  readingTime: z.string().optional(),
-  fileName: z.string(), // Filename in public/downloads directory
-})
+  'downloads'
+)
 
 const downloadsCollection = defineCollection({
   loader: glob({ pattern, base: './src/content/downloads' }),

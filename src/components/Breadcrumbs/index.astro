@@ -9,6 +9,7 @@ export interface Props {
 }
 
 const { path, pageTitle } = Astro.props
+const site = Astro.site
 
 // Don't show breadcrumbs on home page
 if (path === '/' || path === '') {
@@ -16,6 +17,18 @@ if (path === '/' || path === '') {
 }
 
 const breadcrumbs = generateBreadcrumbs(path, pageTitle)
+const breadcrumbSchema = site && breadcrumbs.length > 1
+  ? JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: breadcrumbs.map((item, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        name: item.label,
+        item: new URL(item.href, site).href,
+      })),
+    })
+  : null
 ---
 
 {
@@ -53,6 +66,13 @@ const breadcrumbs = generateBreadcrumbs(path, pageTitle)
                 >
                   {item.label}
                 </a>
+              )}
+              {breadcrumbSchema && (
+                <script
+                  is:inline
+                  type="application/ld+json"
+                  set:html={breadcrumbSchema}
+                />
               )}
             </li>
           ))}

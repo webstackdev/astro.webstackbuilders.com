@@ -22,8 +22,15 @@ export class BreadCrumbPage extends BasePage {
     linkSelector: string
     minSegments: number
     notFoundMessage: string
+    navigationMode?: 'client' | 'fresh'
   }): Promise<void> {
-    const { listingPath, linkSelector, minSegments, notFoundMessage } = options
+    const {
+      listingPath,
+      linkSelector,
+      minSegments,
+      notFoundMessage,
+      navigationMode = 'client',
+    } = options
     await setupTestPage(this.page, listingPath)
 
     const targetHref = await this.evaluate(({ selector, segments }) => {
@@ -43,26 +50,43 @@ export class BreadCrumbPage extends BasePage {
       throw new EvaluationError(notFoundMessage)
     }
 
+    if (navigationMode === 'fresh') {
+      await this.goto(targetHref)
+      return
+    }
+
     const waitForLoad = this.waitForPageLoad()
-    await this.navigateToPage(targetHref)
+    await this.click(`a[href="${targetHref}"]`)
     await waitForLoad
   }
 
-  async openFirstArticleDetail(): Promise<void> {
+  async openFirstArticleDetail(options?: { navigationMode?: 'client' | 'fresh' }): Promise<void> {
     await this.navigateToListingDetail({
       listingPath: '/articles',
       linkSelector: 'main a[href^="/articles/"]',
       minSegments: 2,
       notFoundMessage: 'Could not find article detail link on /articles',
+      ...options,
     })
   }
 
-  async openFirstServiceDetail(): Promise<void> {
+  async openFirstServiceDetail(options?: { navigationMode?: 'client' | 'fresh' }): Promise<void> {
     await this.navigateToListingDetail({
       listingPath: '/services',
       linkSelector: 'main a[href^="/services/"]',
       minSegments: 2,
       notFoundMessage: 'Could not find service detail link on /services',
+      ...options,
+    })
+  }
+
+  async openFirstCaseStudyDetail(options?: { navigationMode?: 'client' | 'fresh' }): Promise<void> {
+    await this.navigateToListingDetail({
+      listingPath: '/case-studies',
+      linkSelector: 'main a[href^="/case-studies/"]',
+      minSegments: 2,
+      notFoundMessage: 'Could not find case study detail link on /case-studies',
+      ...options,
     })
   }
 }
