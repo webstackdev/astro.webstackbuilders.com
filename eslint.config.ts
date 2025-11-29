@@ -1,6 +1,7 @@
 /* eslint-disable */
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import type { Linter } from 'eslint'
 import eslint from '@eslint/js'
 import astroPlugin from 'eslint-plugin-astro'
 import importPlugin from 'eslint-plugin-import'
@@ -13,76 +14,9 @@ import enforceCentralizedEventsRule from './test/eslint/enforce-centralized-even
 import noHtmlElementAssertionsRule from './test/eslint/no-html-element-assertions-rule'
 import noQuerySelectorOutsideSelectorsRule from './test/eslint/no-query-selector-outside-selectors-rule'
 
-const level = 'error'
+const level: Linter.StringSeverity = 'error'
 const astroParser = (astroPlugin as unknown as { parser: typeof tsPlugin.parser }).parser
 const tsconfigRootDir = path.dirname(fileURLToPath(import.meta.url))
-
-const errorDefinitionIgnores = [
-  'src/lib/errors/**/*',
-  'src/components/scripts/errors/**/*',
-  'test/errors/**/*',
-  'src/pages/api/_errors/ApiFunctionError.ts',
-]
-
-const baseErrorMessage = 'Use project-specific error classes instead of the base Error constructor.'
-
-const newErrorSelector = {
-  selector: 'NewExpression[callee.name="Error"]',
-  message: baseErrorMessage,
-}
-
-const callErrorSelector = {
-  selector: 'CallExpression[callee.name="Error"]',
-  message: baseErrorMessage,
-}
-
-const buildErrorSelector = {
-  selector: 'NewExpression[callee.name="BuildError"]',
-  message: 'BuildError can only be instantiated in server-only or integration contexts.',
-}
-
-const clientScriptErrorSelector = {
-  selector: 'NewExpression[callee.name="ClientScriptError"]',
-  message: 'ClientScriptError can only be instantiated within client-side component directories.',
-}
-
-const testErrorSelector = {
-  selector: 'NewExpression[callee.name="TestError"]',
-  message: 'TestError can only be instantiated in unit or e2e test directories.',
-}
-
-const importMetaEnvSelector = {
-  selector: 'MemberExpression[property.name="env"] > MetaProperty[meta.name="import"][property.name="meta"]',
-  message: 'Do not use import.meta.env directly. See docs/ENVIRONMENT_VARIABLES.',
-}
-
-type RestrictedSyntaxRuleOptions = {
-  allowBuildError?: boolean
-  allowClientScriptError?: boolean
-  allowTestError?: boolean
-  includeImportMetaEnv?: boolean
-}
-
-const createRestrictedSyntaxRule = ({
-  allowBuildError = false,
-  allowClientScriptError = false,
-  allowTestError = false,
-  includeImportMetaEnv = false,
-}: RestrictedSyntaxRuleOptions = {}) => {
-  const selectors = [
-    newErrorSelector,
-    callErrorSelector,
-    ...(allowBuildError ? [] : [buildErrorSelector]),
-    ...(allowClientScriptError ? [] : [clientScriptErrorSelector]),
-    ...(allowTestError ? [] : [testErrorSelector]),
-  ]
-
-  if (includeImportMetaEnv) {
-    selectors.push(importMetaEnvSelector)
-  }
-
-  return [level, ...selectors] as const
-}
 
 export default [
   eslint.configs.recommended,
@@ -238,102 +172,114 @@ export default [
    */
 
   {
+    /** Disable `new Error` calls */
     files: [
       '**/*.astro',
       '**/*.ts',
       '**/*.tsx',
     ],
-    ignores: errorDefinitionIgnores,
     rules: {
-      'no-restricted-syntax': createRestrictedSyntaxRule(),
+      'no-restricted-syntax': [
+        level,
+        {
+          selector: 'NewExpression[callee.name="Error"]',
+          message: 'Use project-specific error classes instead of the base Error constructor.',
+        },
+      ],
     },
   },
   {
+    /** BuildError only in server-only or integration contexts */
     files: [
-      'integrations/**/*',
+      '**/*.astro',
+      '**/*.ts',
+      '**/*.tsx',
+    ],
+    ignores: [
       'src/integrations/**/*',
-      'scripts/**/*.ts',
-      'src/components/**/server/**/*',
-      'src/layouts/**/server/**/*',
+      'src/**/server/**/*',
       'src/lib/**/*.ts',
-      'src/pages/**/server/**/*',
-      'src/pages/api/**/*.ts',
     ],
-    ignores: errorDefinitionIgnores,
     rules: {
-      'no-restricted-syntax': createRestrictedSyntaxRule({ allowBuildError: true }),
+      'no-restricted-syntax': [
+        level,
+        {
+          selector: 'NewExpression[callee.name="BuildError"]',
+          message: 'BuildError can only be instantiated in server-only or integration contexts.',
+        },
+      ],
     },
   },
   {
+    /** ClientScriptError only in client directories and the client scripts directory */
     files: [
-      'src/components/**/server/**/*',
-      'src/layouts/**/server/**/*',
-      'src/pages/**/server/**/*',
-      'src/pages/api/**/*.ts',
+      '**/*.astro',
+      '**/*.ts',
+      '**/*.tsx',
     ],
-    ignores: errorDefinitionIgnores,
-    rules: {
-      'no-restricted-syntax': createRestrictedSyntaxRule({ allowBuildError: true, includeImportMetaEnv: true }),
-    },
-  },
-  {
-    files: [
-      'src/components/**/client/**/*',
+    ignores: [
+      'src/**/client/**/*',
       'src/components/scripts/**/*',
-      'src/layouts/**/client/**/*',
-      'src/pages/**/client/**/*',
     ],
-    ignores: errorDefinitionIgnores,
     rules: {
-      'no-restricted-syntax': createRestrictedSyntaxRule({ allowClientScriptError: true, includeImportMetaEnv: true }),
+      'no-restricted-syntax': [
+        level,
+        {
+          selector: 'NewExpression[callee.name="ClientScriptError"]',
+          message: 'ClientScriptError can only be instantiated within client-side component directories.',
+        },
+      ],
+    },
+  },
+  {
+    /** TestError only in unit or e2e test directories */
+    files: [
+      '**/*.astro',
+      '**/*.ts',
+      '**/*.tsx',
+    ],
+    ignores: [
+      'src/**/__tests__/**',
+    ],
+    rules: {
+      'no-restricted-syntax': [
+        level,
+        {
+          selector: 'NewExpression[callee.name="TestError"]',
+          message: 'TestError can only be instantiated in unit or e2e test directories.',
+        },
+      ],
+    },
+  },
+  {
+    /** Directories defining custom errors can use any error class. */
+    files: [
+      '**/*.astro',
+      '**/*.ts',
+      '**/*.tsx',
+    ],
+    ignores: [
+      'src/test/e2e/specs/__tests__/**',
+    ],
+    rules: {
+      'no-restricted-syntax': [
+        level,
+        {
+          selector: 'NewExpression[callee.name="EvaluationError"]',
+          message: 'EvaluationError can only be instantiated in e2e test directories.',
+        },
+      ],
     },
   },
   {
     files: [
-      'src/components/**/__tests__/**',
-      'src/components/**/__tests__/**/*.ts',
-      'src/components/**/__tests__/**/*.tsx',
-      'src/components/**/__tests__/*.ts',
-      'src/components/**/__tests__/*.tsx',
+      'src/lib/errors/**/*',
+      'src/components/scripts/errors/**/*',
+      'test/errors/**/*',
+      'src/pages/api/_errors/ApiFunctionError.ts',
     ],
-    ignores: errorDefinitionIgnores,
     rules: {
-      'no-restricted-syntax': createRestrictedSyntaxRule({
-        allowClientScriptError: true,
-        allowTestError: true,
-        includeImportMetaEnv: true,
-      }),
-    },
-  },
-  {
-    files: [
-      'test/**/*',
-    ],
-    ignores: errorDefinitionIgnores,
-    rules: {
-      'no-restricted-syntax': createRestrictedSyntaxRule({ allowTestError: true }),
-    },
-  },
-  {
-    files: [
-      '**/*.spec.ts',
-      '**/*.spec.tsx',
-      '**/*.test.ts',
-      '**/*.test.tsx',
-    ],
-    ignores: errorDefinitionIgnores,
-    rules: {
-      'no-restricted-syntax': createRestrictedSyntaxRule({ allowTestError: true }),
-    },
-  },
-  {
-    files: [
-      'src/integrations/**/*.spec.ts',
-      'src/integrations/**/__tests__/**/*.ts',
-    ],
-    ignores: errorDefinitionIgnores,
-    rules: {
-      'no-restricted-syntax': createRestrictedSyntaxRule({ allowTestError: true }),
+      'no-restricted-syntax': 'off',
     },
   },
   /**
@@ -494,20 +440,14 @@ export default [
       'src/layouts/**/*',
       'src/pages/**/*',
     ],
-    ignores: [
-      ...errorDefinitionIgnores,
-      'src/components/**/client/**/*',
-      'src/components/**/server/**/*',
-      'src/components/**/__tests__/**',
-      'src/components/scripts/**/*',
-      'src/layouts/**/client/**/*',
-      'src/layouts/**/server/**/*',
-      'src/pages/**/client/**/*',
-      'src/pages/**/server/**/*',
-      'src/pages/api/**/*',
-    ],
     rules: {
-      'no-restricted-syntax': createRestrictedSyntaxRule({ includeImportMetaEnv: true }),
+      'no-restricted-syntax': [
+        level,
+        {
+          selector: 'MemberExpression[property.name="env"] > MetaProperty[meta.name="import"][property.name="meta"]',
+          message: 'Do not use import.meta.env directly. See docs/ENVIRONMENT_VARIABLES.',
+        },
+      ],
     },
   },
   {
@@ -522,7 +462,7 @@ export default [
       'test/e2e/config/global-setup.ts',
     ],
     rules: {
-      'no-restricted-syntax': createRestrictedSyntaxRule({ allowBuildError: true, allowClientScriptError: true }),
+      'no-restricted-syntax': 'off',
     },
   },
 
@@ -562,13 +502,13 @@ export default [
     rules: {
       'no-restricted-imports': [
         level, {
-            patterns: [
-              {
-                group: ['@/*'],
-                message: 'Path aliases cannot be used in files that are imported by astro.config.ts. See notes in that config file for the reasons why.',
-              },
-            ],
-          },
+          patterns: [
+            {
+              group: ['@/*'],
+              message: 'Path aliases cannot be used in files that are imported by astro.config.ts. See notes in that config file for the reasons why.',
+            },
+          ],
+        },
       ],
     },
   },
@@ -598,17 +538,7 @@ export default [
         {
           zones: [
             {
-              target: 'src/components/**/client/**/*',
-              from: 'src/lib/**/*',
-              message: 'The src/lib directory is for build-time code only.',
-            },
-            {
-              target: 'src/layouts/**/client/**/*',
-              from: 'src/lib/**/*',
-              message: 'The src/lib directory is for build-time code only.',
-            },
-            {
-              target: 'src/pages/**/client/**/*',
+              target: 'src/**/client/**/*',
               from: 'src/lib/**/*',
               message: 'The src/lib directory is for build-time code only.',
             },
@@ -629,15 +559,7 @@ export default [
         {
           zones: [
             {
-              target: 'src/components/**/server/**/*',
-              from: 'src/lib/**/*',
-            },
-            {
-              target: 'src/layouts/**/server/**/*',
-              from: 'src/lib/**/*',
-            },
-            {
-              target: 'src/pages/**/server/**/*',
+              target: 'src/**/server/**/*',
               from: 'src/lib/**/*',
             },
           ],
@@ -660,17 +582,7 @@ export default [
         {
           zones: [
             {
-              target: 'src/components/**/server/**/*',
-              from: 'src/components/scripts/**/*',
-              message: 'The src/components/scripts directory is for client bundle code only.',
-            },
-            {
-              target: 'src/layouts/**/server/**/*',
-              from: 'src/components/scripts/**/*',
-              message: 'The src/components/scripts directory is for client bundle code only.',
-            },
-            {
-              target: 'src/pages/**/server/**/*',
+              target: 'src/**/server/**/*',
               from: 'src/components/scripts/**/*',
               message: 'The src/components/scripts directory is for client bundle code only.',
             },
@@ -691,15 +603,7 @@ export default [
         {
           zones: [
             {
-              target: 'src/components/**/client/**/*',
-              from: 'src/components/scripts/**/*',
-            },
-            {
-              target: 'src/layouts/**/client/**/*',
-              from: 'src/components/scripts/**/*',
-            },
-            {
-              target: 'src/pages/**/client/**/*',
+              target: 'src/**/client/**/*',
               from: 'src/components/scripts/**/*',
             },
           ],
@@ -789,6 +693,40 @@ export default [
               },
             ],
           },
+      ],
+    },
+  },
+
+  /**
+   * =================================================================================================
+   *
+   *  Control use of environment helpers based on project area (client, API, build-time, test)
+   *
+   * =================================================================================================
+   */
+
+  {
+    files: [
+      '**/*.astro',
+      '**/*.ts',
+      '**/*.tsx',
+    ],
+    ignores: [
+      'src/**/client/**',
+      'src/components/scripts/**/*',
+      'src/pages/testing/**/*',
+    ],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@components/scripts/utils/environmentClient',
+              message: 'Server code must not import client-only helpers. Use server-side env utilities instead.',
+            },
+          ],
+        },
       ],
     },
   },
