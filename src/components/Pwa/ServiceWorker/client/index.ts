@@ -1,5 +1,5 @@
 import { registerSW } from 'virtual:pwa-register'
-import { isDev } from '@components/scripts/utils/environmentClient'
+import { isDev, isE2eTest } from '@components/scripts/utils/environmentClient'
 
 export const registerServiceWorker = () => {
   const hasServiceWorker = 'serviceWorker' in navigator
@@ -9,7 +9,10 @@ export const registerServiceWorker = () => {
     return
   }
 
-  if (isDev()) {
+  const devMode = isDev()
+  const allowDevServiceWorker = devMode && isE2eTest()
+
+  if (devMode && !allowDevServiceWorker) {
     void navigator.serviceWorker.getRegistrations().then((registrations) => {
       registrations.forEach((registration) => {
         console.info('[pwa] unregistering dev service worker', { scope: registration.scope })
@@ -17,6 +20,10 @@ export const registerServiceWorker = () => {
       })
     })
     return
+  }
+
+  if (allowDevServiceWorker) {
+    console.info('[pwa] enabling dev service worker for E2E testing')
   }
 
   const updateSW = registerSW({
