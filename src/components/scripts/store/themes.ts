@@ -237,28 +237,3 @@ export function themeKeyChangeSideEffectsListener(): void {
     }
   })
 }
-
-/**
- * Add the fast theme setting logic for Astro View Transition API navigation events.
- *
- * The DOMContentLoaded event does not fire on subsequent page transitions (soft loads).
- */
-export function addViewTransitionThemeInitListener(): void {
-  document.addEventListener("astro:before-swap", (event) => {
-    try {
-      // 1. Read theme preference from localStorage (set by user's previous selection)
-      const stored = localStorage.getItem('theme')!
-      // <html> element
-      event.newDocument.documentElement.dataset['theme'] = stored
-      // 4. Turn <body> visible. It's set to hidden in BaseLayout.astro to avoid FOUC
-      event.newDocument.body.classList.remove('invisible')
-      // 5. Success!
-      console.log('🎨 Theme init on "astro:before-swap" executed')
-    } catch (error) {
-      // localStorage access can fail (privacy mode, etc.)
-      // Fall back to BaseLayout's data-theme="light", make sure the page is visible
-      event.newDocument.body.classList.remove('invisible')
-      console.error('❌ Theme init on "astro:before-swap" failed with errors:', error)
-    }
-  }, { once: true })
-}

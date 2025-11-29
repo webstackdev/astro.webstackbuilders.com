@@ -15,7 +15,6 @@ import {
   closeThemePicker,
   toggleThemePicker,
   themeKeyChangeSideEffectsListener,
-  addViewTransitionThemeInitListener,
   type ThemeId,
 } from '@components/scripts/store/themes'
 import { handleScriptError } from '@components/scripts/errors/handler'
@@ -238,55 +237,5 @@ describe('themeKeyChangeSideEffectsListener', () => {
     )
 
     document.head.removeChild(meta)
-  })
-})
-
-describe('addViewTransitionThemeInitListener', () => {
-  beforeEach(() => {
-    localStorage.clear()
-    document.body.className = ''
-  })
-
-  it('applies stored theme to new documents and reveals the body', () => {
-    localStorage.setItem('theme', 'dark')
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-    const newDocument = document.implementation.createHTMLDocument('next')
-    newDocument.body.classList.add('invisible')
-
-    addViewTransitionThemeInitListener()
-
-    const event = new CustomEvent('astro:before-swap') as CustomEvent & {
-      newDocument: Document
-    }
-    event.newDocument = newDocument
-    document.dispatchEvent(event)
-
-    expect(newDocument.documentElement.dataset['theme']).toBe('dark')
-    expect(newDocument.body.classList.contains('invisible')).toBe(false)
-    expect(logSpy).toHaveBeenCalledWith('🎨 Theme init on "astro:before-swap" executed')
-  })
-
-  it('falls back gracefully when localStorage access fails', () => {
-    const error = new TestError('denied')
-    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
-      throw error
-    })
-    const newDocument = document.implementation.createHTMLDocument('fallback')
-    newDocument.body.classList.add('invisible')
-
-    addViewTransitionThemeInitListener()
-
-    const event = new CustomEvent('astro:before-swap') as CustomEvent & {
-      newDocument: Document
-    }
-    event.newDocument = newDocument
-    document.dispatchEvent(event)
-
-    expect(newDocument.body.classList.contains('invisible')).toBe(false)
-    expect(errorSpy).toHaveBeenCalledWith(
-      '❌ Theme init on "astro:before-swap" failed with errors:',
-      error,
-    )
   })
 })

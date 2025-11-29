@@ -5,7 +5,6 @@
  */
 import { addScriptBreadcrumb, ClientScriptError } from '@components/scripts/errors'
 import {
-  addViewTransitionThemeInitListener,
   initAnimationLifecycle,
   initConsentFromCookies,
   initConsentSideEffects,
@@ -46,23 +45,19 @@ export class AppBootstrap {
         console.info('🔧 Sentry disabled in development mode')
       }
 
-      // 1. Add event listener to set theme on Astro View Transitions API page navigation
-      addScriptBreadcrumb({ scriptName: 'AppBootstrap', operation: 'addViewTransitionThemeInitListener' })
-      addViewTransitionThemeInitListener()
-
-      // 2. Initialize animation lifecycle listeners
+      // 1. Initialize animation lifecycle listeners
       addScriptBreadcrumb({ scriptName: 'AppBootstrap', operation: 'initAnimationLifecycle' })
       initAnimationLifecycle()
 
-      // 3. Initialize consent from cookies
+      // 2. Initialize consent from cookies
       addScriptBreadcrumb({ scriptName: 'AppBootstrap', operation: 'initConsentFromCookies' })
       initConsentFromCookies()
 
-      // 4. Setup all module-specific side effects (runs once per page load)
+      // 3. Setup all module-specific side effects (runs once per page load)
       addScriptBreadcrumb({ scriptName: 'AppBootstrap', operation: 'initConsentSideEffects' })
       initConsentSideEffects()
 
-      // 5. Expose limited store actions for Playwright-driven E2E tests
+      // 4. Expose limited store actions for Playwright-driven E2E tests
       exposeStoreActionsForTesting()
     } catch (error: unknown) {
       const scriptError = new ClientScriptError(error)

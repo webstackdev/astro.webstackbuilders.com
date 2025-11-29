@@ -72,7 +72,6 @@ export {
 
 // Re-export themes
 export {
-  addViewTransitionThemeInitListener,
   closeThemePicker,
   createThemeController,
   createThemePickerOpenController,

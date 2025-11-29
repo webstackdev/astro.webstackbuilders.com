@@ -25,7 +25,6 @@ vi.mock('@components/scripts/store', () => ({
   initConsentFromCookies: vi.fn(),
   initConsentSideEffects: vi.fn(),
   initAnimationLifecycle: vi.fn(),
-  addViewTransitionThemeInitListener: vi.fn(),
   exposeStoreActionsForTesting: vi.fn(),
   $hasFunctionalConsent: {
     subscribe: vi.fn(),
@@ -55,7 +54,6 @@ import {
   initConsentFromCookies,
   initConsentSideEffects,
   initAnimationLifecycle,
-  addViewTransitionThemeInitListener,
   exposeStoreActionsForTesting,
 } from '@components/scripts/store'
 import { SentryBootstrap } from '@components/scripts/sentry/client'
@@ -77,7 +75,6 @@ const testWindow = window as TestWindow
 const consoleInfoSpy = vi.spyOn(console, 'info').mockImplementation(() => {})
 
 const mockSuccessfulInit = () => {
-  vi.mocked(addViewTransitionThemeInitListener).mockReturnValue(undefined)
   vi.mocked(initConsentFromCookies).mockReturnValue(undefined)
   vi.mocked(initConsentSideEffects).mockReturnValue(undefined)
   vi.mocked(initAnimationLifecycle).mockReturnValue(undefined)
@@ -105,26 +102,12 @@ describe('AppBootstrap', () => {
   })
 
   describe('Successful initialization', () => {
-    it('should call addViewTransitionThemeInitListener, initConsentFromCookies and initialize side effects', () => {
-      AppBootstrap.init()
-
-      expect(addViewTransitionThemeInitListener).toHaveBeenCalledTimes(1)
-      expect(initAnimationLifecycle).toHaveBeenCalledTimes(1)
-      expect(initConsentFromCookies).toHaveBeenCalledTimes(1)
-      expect(initConsentSideEffects).toHaveBeenCalledTimes(1)
-      expect(exposeStoreActionsForTesting).toHaveBeenCalledTimes(1)
-    })
-
     it('should add breadcrumbs for successful initialization', () => {
       AppBootstrap.init()
 
       expect(addScriptBreadcrumb).toHaveBeenCalledWith({
         scriptName: 'AppBootstrap',
         operation: 'init'
-      })
-      expect(addScriptBreadcrumb).toHaveBeenCalledWith({
-        scriptName: 'AppBootstrap',
-        operation: 'addViewTransitionThemeInitListener'
       })
       expect(addScriptBreadcrumb).toHaveBeenCalledWith({
         scriptName: 'AppBootstrap',
@@ -157,7 +140,6 @@ describe('AppBootstrap', () => {
     })
 
     it('should add breadcrumb before throwing error', () => {
-      vi.mocked(addViewTransitionThemeInitListener).mockReturnValue(undefined)
       const testError = new TestError('Cookie initialization failed')
       vi.mocked(initConsentFromCookies).mockImplementation(() => {
         throw testError
@@ -172,10 +154,6 @@ describe('AppBootstrap', () => {
       expect(addScriptBreadcrumb).toHaveBeenCalledWith({
         scriptName: 'AppBootstrap',
         operation: 'init'
-      })
-      expect(addScriptBreadcrumb).toHaveBeenCalledWith({
-        scriptName: 'AppBootstrap',
-        operation: 'addViewTransitionThemeInitListener'
       })
       expect(addScriptBreadcrumb).toHaveBeenCalledWith({
         scriptName: 'AppBootstrap',
@@ -221,7 +199,6 @@ describe('AppBootstrap', () => {
       AppBootstrap.init()
       AppBootstrap.init()
 
-      expect(addViewTransitionThemeInitListener).toHaveBeenCalledTimes(2)
       expect(initAnimationLifecycle).toHaveBeenCalledTimes(2)
       expect(initConsentFromCookies).toHaveBeenCalledTimes(2)
       expect(initConsentSideEffects).toHaveBeenCalledTimes(2)
