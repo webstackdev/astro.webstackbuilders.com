@@ -158,8 +158,8 @@ export const environmentalVariablesConfig: AstroUserConfig['env'] = {
      * Site uses ConvertKit for managing newsletter subscriptions
      */
     WEBMENTION_IO_TOKEN: envField.string({
-      access: 'public',
-      context: 'client',
+      access: 'secret',
+      context: 'server',
       optional: false,
     }),
   },

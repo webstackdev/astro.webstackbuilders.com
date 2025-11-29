@@ -2,16 +2,16 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TestError } from '@test/errors'
 import type { Webmention, WebmentionResponse } from '@components/WebMentions/@types'
 import fixture from '../__fixtures__/index.fixture.json'
-import {
-  fetchWebmentions,
-  isOwnWebmention,
-  webmentionsByUrl,
-  webmentionCountByType,
-} from '../index'
 
-vi.mock('astro:env/client', () => ({
-  WEBMENTION_IO_TOKEN: 'test-token',
+const tokenState = vi.hoisted(() => ({ value: 'test-token' }))
+
+vi.mock('astro:env/server', () => ({
+  get WEBMENTION_IO_TOKEN() {
+    return tokenState.value
+  },
 }))
+
+const importWebmentionsModule = async () => import('../index')
 
 const fixtureResponse = fixture as WebmentionResponse
 
@@ -31,16 +31,20 @@ describe('fetchWebmentions', () => {
   let fetchMock: ReturnType<typeof vi.fn>
 
   beforeEach(() => {
+    vi.resetModules()
+    tokenState.value = 'test-token'
     fetchMock = vi.fn()
     vi.stubGlobal('fetch', fetchMock)
   })
 
   afterEach(() => {
     vi.unstubAllGlobals()
+    vi.clearAllMocks()
   })
 
   it('fetches, filters, and sanitizes webmentions from the API', async () => {
     fetchMock.mockResolvedValue(createMockResponse())
+    const { fetchWebmentions } = await importWebmentionsModule()
 
     const results = await fetchWebmentions(targetUrl)
 
@@ -56,7 +60,8 @@ describe('fetchWebmentions', () => {
     expect(parsedUrl.searchParams.get('target')).toBe(targetUrl)
     expect(parsedUrl.searchParams.get('token')).toBe('test-token')
     expect(parsedUrl.searchParams.get('per-page')).toBe('1000')
-    expect(init).toEqual({ headers: { 'Cache-Control': 'max-age=300' } })
+    expect(init).toMatchObject({ headers: { 'Cache-Control': 'max-age=300' } })
+    expect(init && 'signal' in (init as Record<string, unknown>)).toBe(true)
 
     expect(results).toHaveLength(3)
     const [firstResult, secondResult, thirdResult] = results
@@ -76,6 +81,7 @@ describe('fetchWebmentions', () => {
     fetchMock.mockResolvedValue(
       createMockResponse({ ok: false, status: 500, statusText: 'Server Error', json: async () => ({}) }),
     )
+    const { fetchWebmentions } = await importWebmentionsModule()
 
     const results = await fetchWebmentions(targetUrl)
 
@@ -87,6 +93,7 @@ describe('fetchWebmentions', () => {
   it('returns an empty array when the fetch call fails', async () => {
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     fetchMock.mockRejectedValue(new TestError('network down'))
+    const { fetchWebmentions } = await importWebmentionsModule()
 
     const results = await fetchWebmentions(targetUrl)
 
@@ -94,9 +101,63 @@ describe('fetchWebmentions', () => {
     expect(errorSpy).toHaveBeenCalled()
     errorSpy.mockRestore()
   })
+
+  it('deduplicates concurrent requests for the same URL', async () => {
+    let resolveFetch: ((response: Response) => void) | undefined
+    fetchMock.mockImplementation(
+      () => new Promise<Response>((resolve) => {
+        resolveFetch = resolve
+      }),
+    )
+
+    const { fetchWebmentions } = await importWebmentionsModule()
+    const firstCall = fetchWebmentions(targetUrl)
+    const secondCall = fetchWebmentions(targetUrl)
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    resolveFetch?.(createMockResponse())
+
+    const [firstResult, secondResult] = await Promise.all([firstCall, secondCall])
+    expect(firstResult).toHaveLength(3)
+    expect(secondResult).toHaveLength(3)
+  })
+
+  it('skips repeated fetch attempts during the failure cooldown window', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    fetchMock.mockRejectedValue(new TestError('connect timeout'))
+    const { fetchWebmentions } = await importWebmentionsModule()
+
+    const firstAttempt = await fetchWebmentions(targetUrl)
+    expect(firstAttempt).toEqual([])
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+
+    fetchMock.mockClear()
+    const secondAttempt = await fetchWebmentions(targetUrl)
+    expect(secondAttempt).toEqual([])
+    expect(fetchMock).not.toHaveBeenCalled()
+    errorSpy.mockRestore()
+  })
+
+  it('logs a warning once and skips fetches when the token is missing or placeholder', async () => {
+    tokenState.value = 'updateme'
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { fetchWebmentions } = await importWebmentionsModule()
+
+    const results = await fetchWebmentions(targetUrl)
+
+    expect(results).toEqual([])
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(warnSpy).toHaveBeenCalledTimes(1)
+    warnSpy.mockRestore()
+  })
 })
 
 describe('Webmention helpers', () => {
+  beforeEach(() => {
+    vi.resetModules()
+    tokenState.value = 'test-token'
+  })
+
   const helperWebmentions: Webmention[] = [
     {
       'wm-id': 'helper-1',
@@ -121,7 +182,8 @@ describe('Webmention helpers', () => {
     },
   ]
 
-  it('detects when a webmention originates from the configured domain', () => {
+  it('detects when a webmention originates from the configured domain', async () => {
+    const { isOwnWebmention } = await importWebmentionsModule()
     const [first, second, third] = helperWebmentions
     if (!first || !second || !third) {
       throw new TestError('helper webmentions fixture must include three entries')
@@ -132,14 +194,16 @@ describe('Webmention helpers', () => {
     expect(isOwnWebmention(third, ['https://elsewhere.example.com'])).toBe(true)
   })
 
-  it('filters webmentions by target URL', () => {
+  it('filters webmentions by target URL', async () => {
+    const { webmentionsByUrl } = await importWebmentionsModule()
     const filtered = webmentionsByUrl(helperWebmentions, 'https://example.com/a')
 
     expect(filtered).toHaveLength(2)
     expect(filtered.every((entry) => entry['wm-target'] === 'https://example.com/a')).toBe(true)
   })
 
-  it('counts webmentions that match specific interaction types', () => {
+  it('counts webmentions that match specific interaction types', async () => {
+    const { webmentionCountByType } = await importWebmentionsModule()
     const count = webmentionCountByType(helperWebmentions, 'https://example.com/a', 'mention-of', 'like-of')
 
     expect(count).toBe(2)
