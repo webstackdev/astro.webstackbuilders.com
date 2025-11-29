@@ -28,6 +28,7 @@ const AUTOPLAY_OPTIONS = {
 }
 
 type DebugEmblaElement = HTMLElement & { __emblaApi__?: EmblaCarouselType }
+type TimerHandle = ReturnType<typeof setTimeout> | number
 
 export class TestimonialsCarouselElement extends HTMLElement {
   private emblaApi: EmblaCarouselType | null = null
@@ -43,7 +44,7 @@ export class TestimonialsCarouselElement extends HTMLElement {
   private hasAutoplaySupport = false
   private autoplayReady = false
   private autoplayReadyScheduled = false
-  private autoplayReadyTimer: ReturnType<typeof setTimeout> | null = null
+  private autoplayReadyTimer: TimerHandle | null = null
   private readonly animationInstanceId: string
   private readonly domReadyHandler = () => {
     document.removeEventListener('DOMContentLoaded', this.domReadyHandler)
