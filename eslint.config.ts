@@ -666,7 +666,7 @@ export default [
     ],
     rules: {
       'no-restricted-imports': [
-        'error', {
+        level, {
             patterns: [
               {
                 group: ['astro:env/client'],
@@ -685,7 +685,7 @@ export default [
     ],
     rules: {
       'no-restricted-imports': [
-        'error', {
+        level, {
             patterns: [
               {
                 group: ['astro:env/server'],
@@ -718,12 +718,63 @@ export default [
     ],
     rules: {
       'no-restricted-imports': [
-        'error',
+        level,
         {
           paths: [
             {
               name: '@components/scripts/utils/environmentClient',
               message: 'Server code must not import client-only helpers. Use server-side env utilities instead.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: [
+      '**/*.astro',
+      '**/*.ts',
+      '**/*.tsx',
+    ],
+    ignores: [
+      'src/integrations/**/*',
+      'src/**/__tests__/**/*',
+      'src/**/server/**/*',
+      'src/lib/**/*.ts',
+      'src/pages/**/*.astro',
+      'src/pages/api/_environment/environmentApi.ts',
+    ],
+    rules: {
+      'no-restricted-imports': [
+        level,
+        {
+          paths: [
+            {
+              name: '@lib/config/environmentServer',
+              message: 'Client code must not import server-only helpers. Use client-side env utilities instead.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: [
+      '**/*.astro',
+      '**/*.ts',
+      '**/*.tsx',
+    ],
+    ignores: [
+      'src/pages/api/**/*',
+    ],
+    rules: {
+      'no-restricted-imports': [
+        level,
+        {
+          paths: [
+            {
+              name: '@pages/api/_environment/environmentApi.ts',
+              message: 'Non-API code must not import API-only helpers. Use either client-side or server-side env utilities as appropriate instead.',
             },
           ],
         },
