@@ -1,5 +1,9 @@
 # TODO
 
+## CI
+
+Change the DEBUG=1 flag to C1=1, add an isCI() method to environment, check both CI and whatever GitHub Actions uses, update Playwright config to it and docs
+
 ## Analytics
 
 Vercel Analytics
