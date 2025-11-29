@@ -10,8 +10,8 @@ import 'dotenv/config'
  * See https://playwright.dev/docs/test-configuration.
  */
 
-/** Debug mode - set DEBUG=1 or DEBUG=true to run only chromium with no HTML report */
-const isDebugMode = Boolean(process.env['DEBUG'] && process.env['DEBUG'] !== 'false' && process.env['DEBUG'] !== '0')
+/** Debug mode - set CI=1 or CI=true to run only chromium with no HTML report */
+const isCIMode = Boolean(process.env['CI'] && (process.env['CI'] === 'true') || process.env['CI'] === '1')
 
 export default defineConfig({
   /* Look for test files in the "tests" directory, relative to this configuration file. */
@@ -44,7 +44,7 @@ export default defineConfig({
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: process.env['CI']
     ? 'github'
-    : isDebugMode
+    : isCIMode
       ? [
           ['list'],
           ['json', { outputFile: '.cache/playwright/results.json' }],
@@ -107,7 +107,7 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   /* In debug mode, assume server is already running */
-  ...(isDebugMode
+  ...(isCIMode
     ? {}
     : {
         webServer: {

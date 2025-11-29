@@ -14,7 +14,7 @@ applyTo: "**/*.spec.ts"
 ## E2E Testing
 
 - **NEVER hard-code content slugs** - fetch dynamically from listing pages
-- **Always run with `DEBUG=1`** - e.g., `DEBUG=1 npx playwright test test/e2e/file.spec.ts`
+- **Always run with `CI=1`** - e.g., `CI=1 npx playwright test test/e2e/file.spec.ts`
 - **NEVER run full e2e suite** unless requested - it takes 10+ minutes
 - **NEVER start dev server** - user maintains running server
 - **Use `BasePage.waitForPageLoad()`** to wait for `astro:page-load` event
