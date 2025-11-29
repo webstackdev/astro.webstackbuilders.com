@@ -1,11 +1,12 @@
-import mdx from '@astrojs/mdx'
-import sitemap from '@astrojs/sitemap'
-import vercelStatic from '@astrojs/vercel'
-import sentry from '@sentry/astro'
-import tailwindcss from '@tailwindcss/vite'
 import AstroPWA from '@vite-pwa/astro'
-import vtbot from 'astro-vtbot'
 import icon from 'astro-icon'
+import lit from '@semantic-ui/astro-lit'
+import mdx from '@astrojs/mdx'
+import sentry from '@sentry/astro'
+import sitemap from '@astrojs/sitemap'
+import tailwindcss from '@tailwindcss/vite'
+import vercelStatic from '@astrojs/vercel'
+import vtbot from 'astro-vtbot'
 import { defineConfig } from 'astro/config'
 import { fileURLToPath } from 'node:url'
 import type { PluginOption } from 'vite'
@@ -49,6 +50,8 @@ const standardIntegrations = [
     /** Enable debug logging to see validation details */
     debug: true,
   }),
+  /** Integration to render Lit templates during build */
+  lit(),
   /** Inject package release (name@version) for tracking regressions between releases */
   packageRelease(),
   /** Inject privacy policy version from git commit date for GDPR record keeping */
