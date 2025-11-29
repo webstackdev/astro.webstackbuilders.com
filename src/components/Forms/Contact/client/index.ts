@@ -21,6 +21,8 @@ const COMPONENT_TAG_NAME = 'contact-form' as const
 export class ContactFormElement extends LitElement {
   private labelController: LabelController | null = null
   private viewTransitionHandlersRegistered = false
+  private beforePreparationHandler: (() => void) | null = null
+  private afterSwapHandler: (() => void) | null = null
 
   private config: ContactFormConfig = {
     maxCharacters: 2000,
@@ -36,6 +38,11 @@ export class ContactFormElement extends LitElement {
   override connectedCallback() {
     super.connectedCallback()
     this.initialize()
+  }
+
+  override disconnectedCallback() {
+    super.disconnectedCallback()
+    this.removeViewTransitionsHandlers()
   }
 
   private initialize(): void {
@@ -65,15 +72,32 @@ export class ContactFormElement extends LitElement {
       return
     }
 
-    document.addEventListener('astro:before-preparation', () => {
+    this.beforePreparationHandler = () => {
       ContactFormElement.handleBeforePreparation()
-    })
+    }
 
-    document.addEventListener('astro:after-swap', () => {
+    this.afterSwapHandler = () => {
       this.initialize()
-    })
+    }
+
+    document.addEventListener('astro:before-preparation', this.beforePreparationHandler)
+    document.addEventListener('astro:after-swap', this.afterSwapHandler)
 
     this.viewTransitionHandlersRegistered = true
+  }
+
+  private removeViewTransitionsHandlers(): void {
+    if (this.beforePreparationHandler) {
+      document.removeEventListener('astro:before-preparation', this.beforePreparationHandler)
+      this.beforePreparationHandler = null
+    }
+
+    if (this.afterSwapHandler) {
+      document.removeEventListener('astro:after-swap', this.afterSwapHandler)
+      this.afterSwapHandler = null
+    }
+
+    this.viewTransitionHandlersRegistered = false
   }
 
   private static handleBeforePreparation(): void {
