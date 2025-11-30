@@ -3,68 +3,57 @@
  * Provides utilities for handling cookie consent modal and common test setups
  */
 import type { Page } from '@playwright/test'
+import { expect } from '@test/e2e/helpers'
+import { waitForAnimationFrames } from '@test/e2e/helpers/waitHelpers'
+
+/**
+ * Dismiss cookie consent modal if it's visible
+ */
+export async function dismissCookieModal(page: Page): Promise<void> {
+  try {
+    // Set consent cookies
+    await page.evaluate(() => {
+      document.cookie = 'consent_analytics=true; path=/; max-age=31536000'
+      document.cookie = 'consent_marketing=true; path=/; max-age=31536000'
+      document.cookie = 'consent_functional=true; path=/; max-age=31536000'
+
+      // Clear localStorage
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem('cookieConsent')
+        localStorage.removeItem('gdprConsent')
+      }
+    })
+
+    // Force hide the modal
+    await page.evaluate(() => {
+      const modal = document.getElementById('consent-modal-id')
+      if (modal) {
+        modal.style.display = 'none'
+      }
+    })
+
+    // Click dismiss button if available
+    const dismissSelector = '[data-testid="cookie-consent-dismiss"], [data-testid="consent-accept"], .consent-accept'
+    const dismissButton = page.locator(dismissSelector).first()
+    if (await dismissButton.isVisible()) {
+      await dismissButton.click()
+    }
+  } catch (error) {
+    // Silently continue if modal dismissal fails
+    console.debug('Cookie modal dismissal failed:', error)
+  }
+}
 
 /**
  * Dismisses cookie consent modal if it's visible and ensures proper consent cookies are set
  * Enhanced for View Transitions compatibility
  */
-export async function dismissCookieModal(page: Page): Promise<void> {
-  // Always ensure proper consent cookies are set, regardless of modal state
+export async function setConsentCookies(page: Page): Promise<void> {
   await page.evaluate(() => {
-    // Set all consent cookies to true for testing
-    document.cookie = 'consent_necessary=true; path=/; max-age=31536000'
     document.cookie = 'consent_analytics=true; path=/; max-age=31536000'
-    document.cookie = 'consent_advertising=true; path=/; max-age=31536000'
+    document.cookie = 'consent_marketing=true; path=/; max-age=31536000'
     document.cookie = 'consent_functional=true; path=/; max-age=31536000'
-
-    // Also clear any persistent state that might interfere
-    if (typeof localStorage !== 'undefined') {
-      localStorage.removeItem('cookieConsent')
-      localStorage.removeItem('gdprConsent')
-    }
   })
-
-  // Wait for DOM to be ready
-  await page.waitForLoadState('domcontentloaded')
-
-  const cookieModalVisible = await page.evaluate(() => {
-    const modal = document.getElementById('cookie-modal-id')
-    return modal ? window.getComputedStyle(modal).display !== 'none' : false
-  })
-
-  if (cookieModalVisible) {
-    try {
-      // Try multiple selector strategies
-      const allowButton = page.locator('.cookie-modal__btn-allow').first()
-      const altButton = page.locator('[data-consent-action="allow-all"]').first()
-
-      if (await allowButton.count() > 0) {
-        await allowButton.click()
-      } else if (await altButton.count() > 0) {
-        await altButton.click()
-      }
-
-      // Wait for modal to close and main content to be restored
-      await page.waitForFunction(() => {
-        const modal = document.getElementById('cookie-modal-id')
-        const main = document.getElementById('main-content')
-        return modal && window.getComputedStyle(modal).display === 'none' &&
-               main && !main.hasAttribute('inert')
-      }, { timeout: 10000 })
-    } catch {
-      // If clicking fails, try to force hide the modal
-      await page.evaluate(() => {
-        const modal = document.getElementById('cookie-modal-id')
-        if (modal) {
-          modal.style.display = 'none'
-        }
-        const main = document.getElementById('main-content')
-        if (main && main.hasAttribute('inert')) {
-          main.removeAttribute('inert')
-        }
-      })
-    }
-  }
 }
 
 /**
@@ -74,8 +63,8 @@ export async function dismissCookieModal(page: Page): Promise<void> {
 export async function setupTestPage(page: Page, url: string = '/'): Promise<void> {
   await page.goto(url, { waitUntil: 'domcontentloaded' })
 
-  // Wait a bit for any client-side initialization
-  await page.waitForTimeout(100)
+  // Wait for Astro scripts to hydrate the main content
+  await page.waitForFunction(() => !!document.getElementById('main-content'))
 
   await dismissCookieModal(page)
 }
@@ -126,17 +115,33 @@ export function getThemePickerToggle(page: Page) {
 export async function selectTheme(page: Page, themeId: string): Promise<void> {
   // Check if modal is already open (modal state now persists)
   const modal = page.locator('[data-theme-modal]')
-  const isOpen = await modal.evaluate((el) => el.classList.contains('is-open'))
+  const toggleButton = getThemePickerToggle(page)
+  await modal.waitFor({ state: 'attached' })
+  await toggleButton.waitFor({ state: 'visible' })
+  const isOpen = await modal.evaluate((el) => !el.hasAttribute('hidden'))
 
   // Only click toggle if modal is not already open
   if (!isOpen) {
-    const themePicker = getThemePickerToggle(page)
-    await themePicker.click()
-    await page.waitForTimeout(300)
+    await toggleButton.click()
+    await expect(toggleButton).toHaveAttribute('aria-expanded', 'true')
+    await expect(modal).toBeVisible()
+    await expect(modal).toHaveClass(/is-open/)
   }
 
   // Click the theme button
   // Use button selector to avoid matching <html data-theme="...">
-  await page.click(`button[data-theme="${themeId}"]`)
-  await page.waitForTimeout(300)
+  const themeButton = page.locator(`button[data-theme="${themeId}"]`)
+  await themeButton.click()
+
+  // Wait for current theme to update everywhere
+  const html = page.locator('html')
+  await expect(html).toHaveAttribute('data-theme', themeId)
+  await page.waitForFunction((id) => {
+    try {
+      return localStorage.getItem('theme') === id
+    } catch {
+      return false
+    }
+  }, themeId)
+  await waitForAnimationFrames(page, 2)
 }

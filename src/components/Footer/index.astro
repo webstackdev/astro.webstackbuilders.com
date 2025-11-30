@@ -1,152 +1,154 @@
 ---
 import { Image } from 'astro:assets'
 import contactData from '@content/contact.json'
-import { absoluteUrl } from '@lib/helpers'
-import { formatPhoneNumber } from './server'
-import Sprite from '@components/Sprite/index.astro'
-import type { SpriteName } from '@components/Sprite/sprites'
-import AuthorAvatar from '../../assets/images/avatars/kevin-brown.webp'
-import './footer.css'
+import { absoluteUrl } from '@components/scripts/utils'
+import { formatPhoneNumber } from '@components/Footer/server'
+import Icon from '@components/Icon/index.astro'
+import AuthorAvatar from '@assets/images/avatars/kevin-brown.webp'
+import styles from './footer.module.css'
 
 const year = new Date().getFullYear()
 ---
 
-<footer class="bg-[color:var(--color-bg-offset)] text-text w-full mt-6 pt-4" role="contentinfo">
-  <div class="flex flex-col footer-grid mx-auto max-w-[75rem] w-[90%] px-4 sm:px-6 lg:px-8 pb-3">
-  {/* Page footer company contact */}
-  <div class="footer-contact mt-3 sm:mt-0 sm:flex sm:items-center">
-    {/* Mobile: avatar and company name in same row, Desktop: avatar on left side */}
-    <div class="flex items-center sm:block sm:mr-4 sm:w-[clamp(5em,25%,8em)]">
-      <div class="mr-3 w-16 sm:mr-0 sm:w-full">
-        <Image src={AuthorAvatar} alt="Site author's avatar image" />
+<site-footer transition:persist>
+  <footer class="bg-bg-offset text-text w-full mt-6 pt-4" role="contentinfo">
+    <div class:list={[styles.footerGrid, 'flex flex-col mx-auto max-w-300 w-[90%] px-4 sm:px-6 lg:px-8 pb-3']}>
+    {/* Page footer company contact */}
+    <div class:list={[styles.footerContact, 'mt-3 sm:mt-0 sm:flex sm:items-center']}>
+      {/* Mobile: avatar and company name in same row, Desktop: avatar on left side */}
+      <div class="flex items-center sm:block sm:mr-4 sm:w-[clamp(5em,25%,8em)]">
+        <div class="mr-3 w-16 sm:mr-0 sm:w-full">
+          <Image src={AuthorAvatar} alt="Site author's avatar image" />
+        </div>
+        <h2 class="text-2xl font-bold sm:hidden">{contactData.company.name}</h2>
       </div>
-      <h2 class="text-2xl font-bold sm:hidden">{contactData.company.name}</h2>
+      <address class="text-base mt-3 sm:mt-0">
+        {/* Desktop: show company name here */}
+        <h2 class="hidden sm:block text-2xl font-bold">{contactData.company.name}</h2>
+        <div class="mt-2 sm:ml-1">
+          <p>{contactData.company.address}</p>
+          <p>{contactData.company.city}, {contactData.company.state} {contactData.company.index}</p>
+        </div>
+        <p class="hyphens-none">
+          <a href={`mailto:${contactData.company.email}`} class="text-text underline decoration-dotted decoration-text underline-offset-4 hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary focus:outline-none">
+            {contactData.company.email}
+          </a>
+        </p>
+        <p itemprop="telephone">
+          <a
+            href={`tel:${contactData.company.telephoneTollFree}`}
+            rel="nofollow"
+            class="text-text underline decoration-dotted decoration-text underline-offset-4 hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary focus:outline-none"
+          >
+            Toll Free {formatPhoneNumber(contactData.company.telephoneTollFree)}
+          </a>
+        </p>
+        <p itemprop="telephone">
+          <a
+            href={`tel:${contactData.company.telephoneLocal}`}
+            rel="nofollow"
+            class="text-text underline decoration-dotted decoration-text underline-offset-4 hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary focus:outline-none"
+          >
+            Local {formatPhoneNumber(contactData.company.telephoneLocal)}
+          </a>
+        </p>
+      </address>
     </div>
-    <address class="text-base mt-3 sm:mt-0">
-      {/* Desktop: show company name here */}
-      <h2 class="hidden sm:block text-2xl font-bold">{contactData.company.name}</h2>
-      <div class="mt-2 sm:ml-1">
-        <p>{contactData.company.address}</p>
-        <p>{contactData.company.city}, {contactData.company.state} {contactData.company.index}</p>
-      </div>
-      <p class="hyphens-none">
-        <a href={`mailto:${contactData.company.email}`} class="text-text underline decoration-dotted decoration-text underline-offset-4 hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary focus:outline-none">
-          {contactData.company.email}
-        </a>
-      </p>
-      <p itemprop="telephone">
-        <a
-          href={`tel:${contactData.company.telephoneTollFree}`}
-          rel="nofollow"
-          class="text-text underline decoration-dotted decoration-text underline-offset-4 hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary focus:outline-none"
-        >
-          Toll Free {formatPhoneNumber(contactData.company.telephoneTollFree)}
-        </a>
-      </p>
-      <p itemprop="telephone">
-        <a
-          href={`tel:${contactData.company.telephoneLocal}`}
-          rel="nofollow"
-          class="text-text underline decoration-dotted decoration-text underline-offset-4 hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary focus:outline-none"
-        >
-          Local {formatPhoneNumber(contactData.company.telephoneLocal)}
-        </a>
-      </p>
-    </address>
-  </div>
-  {/* "Hire Me" block with current month and year set by script */}
-  <div class="footer-hire-me hidden lg:block">
-    <a
-      href="/contact"
-      id="page-footer__hire-me-anchor"
-      class="footer-hire-me-anchor hidden uppercase text-text underline decoration-dotted decoration-text underline-offset-4 hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary focus:outline-none after:content-['>']"
-      aria-label="Available for hire, contact me"
-    >
-      Available Now. Hire Me
-    </a>
-  </div>
-  {/* Page footer Social Share links */}
-  <div class="footer-social">
-    {
-      contactData.company.social
-        .sort((a, b) => a.order - b.order)
-        .map(social => (
-          <div class="footer-social-channel">
-            <a
-              href={social.url}
-              title={social.displayName}
-              rel="me"
-              class="flex items-baseline uppercase text-text underline decoration-dotted decoration-text underline-offset-4 hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary focus:outline-none [&_.icon]:!fill-text [&_.icon]:!stroke-text hover:[&_.icon]:!fill-secondary hover:[&_.icon]:!stroke-secondary focus:[&_.icon]:!fill-secondary focus:[&_.icon]:!stroke-secondary"
-            >
-              <span class="[&_.icon]:h-4 [&_.icon]:w-4">
-                <Sprite name={social.iconName as SpriteName} variant="inherit" />
-              </span>
-              <span class="footer-social-platform ml-2 mt-4">{social.displayName}</span>
-            </a>
-            <div class="footer-social-blurb font-serif leading-tight">
-              {social.blurb}
+    {/* "Hire Me" block with current month and year set by script */}
+    <div class:list={[styles.footerHireMe, 'hidden lg:block']}>
+      <a
+        href="/contact"
+        id="page-footer__hire-me-anchor"
+        class:list={[
+          styles.footerHireMeAnchor,
+          "hidden uppercase text-text underline decoration-dotted decoration-text underline-offset-4 hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary focus:outline-none after:content-['>']",
+        ]}
+        aria-label="Available for hire, contact me"
+      >
+        Available Now. Hire Me
+      </a>
+    </div>
+    {/* Page footer Social Share links */}
+    <div class={styles.footerSocial}>
+      {
+        contactData.company.social
+          .sort((a, b) => a.order - b.order)
+          .map(social => (
+            <div class="footer-social-channel">
+              <a
+                href={social.url}
+                title={social.displayName}
+                rel="me"
+                class="flex items-baseline uppercase text-text underline decoration-dotted decoration-text underline-offset-4 hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary focus:outline-none [&_.icon]:fill-text! [&_.icon]:stroke-text! hover:[&_.icon]:fill-secondary! hover:[&_.icon]:stroke-secondary! focus:[&_.icon]:fill-secondary! focus:[&_.icon]:stroke-secondary!"
+              >
+                <span class="[&_.icon]:h-4 [&_.icon]:w-4">
+                  <Icon name={social.iconName} variant="inherit" />
+                </span>
+                <span class="footer-social-platform ml-2 mt-4">{social.displayName}</span>
+              </a>
+              <div class="footer-social-blurb font-serif leading-tight">
+                {social.blurb}
+              </div>
             </div>
-          </div>
-        ))
-    }
-  </div>
-  <div
-    class="footer-bottom-row flex justify-between sm:justify-evenly lg:flex-col px-1 pt-4 pb-3 sm:p-0 lg:pl-8"
-  >
-    {/* Page footer Subscribe link */}
-    <span class="flex flex-col justify-center lg:pt-3">
-      <a
-        href="/#newsletter"
-        class="text-text underline decoration-dotted decoration-text underline-offset-4 hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary focus:outline-none"
-      >
-        <div class="lg:hidden">Subscribe to</div>
-        <span class="lg:font-bold lg:uppercase">Mailing List</span>
-        <span class="hidden lg:block text-text"> Sign up to stay in touch and get great content </span>
-      </a>
-    </span>
-    {/* Page footer Privacy Policy links */}
-    <span class="flex flex-col justify-center lg:pt-3">
-      <span>
-        <a href="/cookies/" class="text-text underline decoration-dotted decoration-text underline-offset-4 hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary focus:outline-none">
-          <span class="lg:font-bold lg:uppercase">Cookies</span>
-          <span class="hidden lg:block text-text"> Manage how we use cookies for you on our site </span>
+          ))
+      }
+    </div>
+    <div
+      class:list={[styles.footerBottomRow, 'flex justify-between sm:justify-evenly lg:flex-col px-1 pt-4 pb-3 sm:p-0 lg:pl-8']}
+    >
+      {/* Page footer Subscribe link */}
+      <span class="flex flex-col justify-center lg:pt-3">
+        <a
+          href="/#newsletter"
+          class="text-text underline decoration-dotted decoration-text underline-offset-4 hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary focus:outline-none"
+        >
+          <div class="lg:hidden">Subscribe to</div>
+          <span class="lg:font-bold lg:uppercase">Mailing List</span>
+          <span class="hidden lg:block text-text"> Sign up to stay in touch and get great content </span>
         </a>
       </span>
-      <span>
-        <a href="/privacy/" class="text-text underline decoration-dotted decoration-text underline-offset-4 hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary focus:outline-none">
-          <span class="lg:font-bold lg:uppercase">Privacy Policy</span>
-          <span class="hidden lg:block text-text"> Learn what data we collect and how we use it </span>
+      {/* Page footer Privacy Policy links */}
+      <span class="flex flex-col justify-center lg:pt-3">
+        <span>
+          <a href="/consent/" class="text-text underline decoration-dotted decoration-text underline-offset-4 hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary focus:outline-none">
+            <span class="lg:font-bold lg:uppercase">Consent</span>
+            <span class="hidden lg:block text-text"> Manage your privacy preferences and data consent </span>
+          </a>
+        </span>
+        <span>
+          <a href="/privacy/" class="text-text underline decoration-dotted decoration-text underline-offset-4 hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary focus:outline-none">
+            <span class="lg:font-bold lg:uppercase">Privacy Policy</span>
+            <span class="hidden lg:block text-text"> Learn what data we collect and how we use it </span>
+          </a>
+        </span>
+      </span>
+      {/* Page footer RSS link */}
+      <span class:list={[styles.footerFeedIcon, 'flex items-center w-12 lg:h-12 lg:w-12']}>
+        <a
+          href={absoluteUrl('/feed.xml', Astro.site)}
+          title="RSS Feed"
+          class="text-text [&_.icon]:fill-text! [&_.icon]:stroke-text! [&_.icon]:h-10 [&_.icon]:w-10 hover:[&_.icon]:fill-secondary! hover:[&_.icon]:stroke-secondary! focus:[&_.icon]:fill-secondary! focus:[&_.icon]:stroke-secondary! focus:outline-none"
+        >
+          <span class="sr-only">RSS Feed</span>
+          <span><Icon name="feed" variant="inherit" /></span>
         </a>
       </span>
-    </span>
-    {/* Page footer RSS link */}
-    <span class="footer-feed-icon flex items-center w-12 lg:h-12 lg:w-12">
-      <a
-        href={absoluteUrl('/feed.xml', Astro.site)}
-        title="RSS Feed"
-        class="text-text [&_.icon]:!fill-text [&_.icon]:!stroke-text [&_.icon]:h-10 [&_.icon]:w-10 hover:[&_.icon]:!fill-secondary hover:[&_.icon]:!stroke-secondary focus:[&_.icon]:!fill-secondary focus:[&_.icon]:!stroke-secondary focus:outline-none"
-      >
-        <span class="sr-only">RSS Feed</span>
-        <span><Sprite name="feed" variant="inherit" /></span>
-      </a>
-    </span>
-  </div>
-  {/* Page footer Author link and Date */}
-  <div class="footer-copyright flex justify-center py-4 sm:p-0 lg:mt-2">
-    <span>
-      &copy; 2018&ndash;{year}
-    </span>
-    <span class="ml-4">
-      <a rel="me" href={absoluteUrl('/', Astro.site)} class="text-text underline decoration-dotted decoration-text underline-offset-4 hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary focus:outline-none">
-        {contactData.company.name}
-      </a>
-    </span>
-  </div>
-  </div>
-</footer>
+    </div>
+    {/* Page footer Author link and Date */}
+    <div class:list={[styles.footerCopyright, 'flex justify-center py-4 sm:p-0 lg:mt-2']}>
+      <span>
+        &copy; 2018&ndash;{year}
+      </span>
+      <span class="ml-4">
+        <a rel="me" href={absoluteUrl('/', Astro.site)} class="text-text underline decoration-dotted decoration-text underline-offset-4 hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary focus:outline-none">
+          {contactData.company.name}
+        </a>
+      </span>
+    </div>
+    </div>
+  </footer>
+</site-footer>
 <script>
-  import { registerScript } from '../Scripts/loader'
-  import { Footer } from './client'
-
-  registerScript(Footer)
+  import { registerFooterWebComponent } from '@components/Footer/client'
+  registerFooterWebComponent()
 </script>

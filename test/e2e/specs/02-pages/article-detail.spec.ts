@@ -12,7 +12,7 @@ test.describe('Article Detail Pages @ready', () => {
       return
     }
 
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto(firstArticle)
 
     // Page should have main content container
@@ -32,7 +32,7 @@ test.describe('Article Detail Pages @ready', () => {
       return
     }
 
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto(firstArticle)
 
     await page.expectElementVisible('h1#article-title')
@@ -46,7 +46,7 @@ test.describe('Article Detail Pages @ready', () => {
       return
     }
 
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto(firstArticle)
 
     // Should have publish date
@@ -60,7 +60,7 @@ test.describe('Article Detail Pages @ready', () => {
       return
     }
 
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto(firstArticle)
 
     // Article content container should be present
@@ -78,7 +78,7 @@ test.describe('Article Detail Pages @ready', () => {
       return
     }
 
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto(firstArticle)
     await page.expectNoErrors()
   })
@@ -90,7 +90,7 @@ test.describe('Article Detail Pages @ready', () => {
       return
     }
 
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto(firstArticle)
     await page.expectNoErrors()
   })

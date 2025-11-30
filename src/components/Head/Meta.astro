@@ -1,10 +1,10 @@
 ---
 import contactData from '@content/contact.json'
-import themes from '@content/themes.json'
-import { absoluteUrl } from '@lib/helpers'
-import Seo from './Seo.astro'
-import Social from './Social.astro'
-import StructuredData from './StructuredData.astro'
+import { absoluteUrl } from '@components/scripts/utils'
+import { getMetaThemeData } from '@components/Head/server/meta'
+import Seo from '@components/Head/Seo.astro'
+import Social from '@components/Head/Social.astro'
+import StructuredData from '@components/Head/StructuredData.astro'
 
 export interface Props {
   pageTitle: string
@@ -34,8 +34,7 @@ const {
   noindex = false,
 } = Astro.props
 
-const defaultTheme = themes.default
-const slug = path.replace(/^\//, '').replace(/\/$/, '') || 'home'
+const { slug, defaultTheme } = getMetaThemeData(path)
 ---
 
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -70,9 +69,15 @@ const slug = path.replace(/^\//, '').replace(/\/$/, '') || 'home'
   {...modifiedDate && { modifiedDate }}
   {...author && { author }}
 />
-{/* Used to sets the color of the surrounding user interface for e.g. the */}
-{/* browser title bar. It is updated by script when the theme changes.    */}
-<meta name="theme-color" content={defaultTheme.colors.backgroundOffset} />
+{/* Used to sets the color of the surrounding user interface for e.g. the browser */}
+{/* title bar. It is updated by script when the theme changes. Preserved across */}
+{/* Astro View Transitions API page navigations so doesn't need reset. */}
+<meta
+  name="theme-color"
+  content={defaultTheme.colors.backgroundOffset}
+  transition:name="theme-color"
+  transition:persist
+/>
 {/* Favicon links */}
 <link rel="icon" href="/favicon.ico" />
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -80,8 +85,6 @@ const slug = path.replace(/^\//, '').replace(/\/$/, '') || 'home'
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 {/* Status bar style with values such as "default" or "black-translucent" */}
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-{/* Web manifest file for Progressive Web Application app usage */}
-<link rel="manifest" href={absoluteUrl('manifest.json', Astro.site)} />
 {/* Allows the web app to run in full-screen mode */}
 <meta name="mobile-web-app-capable" content="yes">
 {/* RSS Feed */}
@@ -91,6 +94,8 @@ const slug = path.replace(/^\//, '').replace(/\/$/, '') || 'home'
   href={absoluteUrl('rss.xml', Astro.site)}
   title={`RSS Feed for ${contactData.company.name}`}
 />
+{/* Web App Manifest */}
+<link rel="manifest" href="/manifest.json" />
 {/* Webmentions */}
 <link rel="pingback" href={`https://webmention.io/${Astro.site!.hostname}/xmlrpc`} />
 <link rel="webmention" href={`https://webmention.io/${Astro.site!.hostname}/webmention`} />

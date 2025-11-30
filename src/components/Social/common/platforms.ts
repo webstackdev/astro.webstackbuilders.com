@@ -11,7 +11,7 @@ export interface SharePlatform {
   getShareUrl: (_data: ShareData) => string
   /** Accessible label for screen readers */
   ariaLabel: string
-  /** Sprite icon name */
+  /** Icon name */
   icon: string
   /** Tailwind color classes for the button */
   colorClasses: string

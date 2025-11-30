@@ -4,26 +4,30 @@
  * @see src/components/Navigation/
  */
 
-import { BasePage, test, expect } from '@test/e2e/helpers'
-import { setupTestPage } from '../../helpers/cookieHelper'
+import {
+  BasePage,
+  test,
+  expect,
+  setupTestPage,
+ } from '@test/e2e/helpers'
 
 test.describe('Desktop Navigation', () => {
   test('@ready navigation is visible on desktop', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.setViewport(1280, 720)
     await page.goto('/')
     await page.expectElementVisible('nav#main-nav')
   })
 
   test('@ready hamburger menu is hidden on desktop', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.setViewport(1280, 720)
     await page.goto('/')
     await page.expectElementHidden('button#nav-toggle')
   })
 
   test('@ready all main navigation items are visible', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.setViewport(1280, 720)
     await page.goto('/')
 
@@ -38,7 +42,7 @@ test.describe('Desktop Navigation', () => {
   })
 
   test('@ready can navigate to pages from desktop nav', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.setViewport(1280, 720)
     await setupTestPage(playwrightPage, '/')
 
@@ -58,7 +62,7 @@ test.describe('Desktop Navigation', () => {
   })
 
   test('@ready active page is highlighted in nav', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.setViewport(1280, 720)
     await page.goto('/about')
 
@@ -70,7 +74,7 @@ test.describe('Desktop Navigation', () => {
   })
 
   test('@ready navigation has proper ARIA labels', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.setViewport(1280, 720)
     await page.goto('/')
 
@@ -84,7 +88,7 @@ test.describe('Desktop Navigation', () => {
   })
 
   test('@ready navigation links have hover states', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.setViewport(1280, 720)
     await setupTestPage(playwrightPage, '/')
 

@@ -1,6 +1,6 @@
 ---
 // DownloadForm.astro - Gated form for download resources
-interface Props {
+export interface Props {
   title: string
   fileName: string
   fileType?: string
@@ -8,16 +8,18 @@ interface Props {
 }
 
 const { title, fileName, fileType = 'resource', className = '' } = Astro.props
+
+// Construct the download landing page URL
 const downloadUrl = `/downloads/${fileName}`
 ---
 
-<div class={`download-form-wrapper ${className}`}>
-  <div class="bg-[var(--color-bg)] p-6 md:p-8 rounded-2xl shadow-lg border border-[var(--color-border)]">
+<download-form class={`download-form-wrapper mx-auto max-w-2xl ${className}`.trim()}>
+  <div class="bg-bg p-6 md:p-8 rounded-2xl shadow-lg border border-border">
     <div class="mb-6">
-      <h3 class="text-xl md:text-2xl font-semibold text-[var(--color-text)] mb-2">
+      <h3 class="text-xl md:text-2xl font-semibold text-text mb-2">
         Download {title}
       </h3>
-      <p class="text-[var(--color-text-offset)]">
+      <p class="text-offset">
         Fill out the form below to receive your {fileType.toLowerCase()} instantly.
       </p>
     </div>
@@ -26,7 +28,7 @@ const downloadUrl = `/downloads/${fileName}`
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <!-- First Name -->
         <div class="space-y-2">
-          <label for="firstName" class="block text-sm font-medium text-[var(--color-text-offset)]">
+          <label for="firstName" class="block text-sm font-medium text-text-offset">
             First Name <span class="text-red-500">*</span>
           </label>
           <input
@@ -34,7 +36,7 @@ const downloadUrl = `/downloads/${fileName}`
             id="firstName"
             name="firstName"
             autocomplete="given-name"
-            class="w-full px-4 py-3 border-2 border-[var(--color-border)] rounded-xl bg-[var(--color-bg)] text-[var(--color-text)] focus:border-[var(--color-primary)] focus:ring-0 focus:outline-none transition-colors duration-200"
+            class="w-full px-4 py-3 border-2 border-border rounded-xl bg-bg text-text focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200"
             required
             placeholder="John"
             minlength="2"
@@ -44,7 +46,7 @@ const downloadUrl = `/downloads/${fileName}`
 
         <!-- Last Name -->
         <div class="space-y-2">
-          <label for="lastName" class="block text-sm font-medium text-[var(--color-text-offset)]">
+          <label for="lastName" class="block text-sm font-medium text-text-offset">
             Last Name <span class="text-red-500">*</span>
           </label>
           <input
@@ -52,7 +54,7 @@ const downloadUrl = `/downloads/${fileName}`
             id="lastName"
             name="lastName"
             autocomplete="family-name"
-            class="w-full px-4 py-3 border-2 border-[var(--color-border)] rounded-xl bg-[var(--color-bg)] text-[var(--color-text)] focus:border-[var(--color-primary)] focus:ring-0 focus:outline-none transition-colors duration-200"
+            class="w-full px-4 py-3 border-2 border-border rounded-xl bg-bg text-text focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200"
             required
             placeholder="Doe"
             minlength="2"
@@ -63,7 +65,7 @@ const downloadUrl = `/downloads/${fileName}`
 
       <!-- Work Email -->
       <div class="space-y-2">
-        <label for="workEmail" class="block text-sm font-medium text-[var(--color-text-offset)]">
+        <label for="workEmail" class="block text-sm font-medium text-text-offset">
           Work Email <span class="text-red-500">*</span>
         </label>
         <input
@@ -71,7 +73,7 @@ const downloadUrl = `/downloads/${fileName}`
           id="workEmail"
           name="workEmail"
           autocomplete="email"
-          class="w-full px-4 py-3 border-2 border-[var(--color-border)] rounded-xl bg-[var(--color-bg)] text-[var(--color-text)] focus:border-[var(--color-primary)] focus:ring-0 focus:outline-none transition-colors duration-200"
+          class="w-full px-4 py-3 border-2 border-border rounded-xl bg-bg text-text focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200"
           required
           placeholder="john.doe@company.com"
         />
@@ -80,7 +82,7 @@ const downloadUrl = `/downloads/${fileName}`
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <!-- Job Title -->
         <div class="space-y-2">
-          <label for="jobTitle" class="block text-sm font-medium text-[var(--color-text-offset)]">
+          <label for="jobTitle" class="block text-sm font-medium text-text-offset">
             Job Title <span class="text-red-500">*</span>
           </label>
           <input
@@ -88,7 +90,7 @@ const downloadUrl = `/downloads/${fileName}`
             id="jobTitle"
             name="jobTitle"
             autocomplete="organization-title"
-            class="w-full px-4 py-3 border-2 border-[var(--color-border)] rounded-xl bg-[var(--color-bg)] text-[var(--color-text)] focus:border-[var(--color-primary)] focus:ring-0 focus:outline-none transition-colors duration-200"
+            class="w-full px-4 py-3 border-2 border-border rounded-xl bg-bg text-text focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200"
             required
             placeholder="Software Engineer"
             maxlength="100"
@@ -97,7 +99,7 @@ const downloadUrl = `/downloads/${fileName}`
 
         <!-- Company Name -->
         <div class="space-y-2">
-          <label for="companyName" class="block text-sm font-medium text-[var(--color-text-offset)]">
+          <label for="companyName" class="block text-sm font-medium text-text-offset">
             Company Name <span class="text-red-500">*</span>
           </label>
           <input
@@ -105,7 +107,7 @@ const downloadUrl = `/downloads/${fileName}`
             id="companyName"
             name="companyName"
             autocomplete="organization"
-            class="w-full px-4 py-3 border-2 border-[var(--color-border)] rounded-xl bg-[var(--color-bg)] text-[var(--color-text)] focus:border-[var(--color-primary)] focus:ring-0 focus:outline-none transition-colors duration-200"
+            class="w-full px-4 py-3 border-2 border-border rounded-xl bg-bg text-text focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200"
             required
             placeholder="Acme Corporation"
             maxlength="100"
@@ -114,13 +116,13 @@ const downloadUrl = `/downloads/${fileName}`
       </div>
 
       <!-- Privacy Notice -->
-      <div class="pt-4 border-t border-[var(--color-border)]">
-        <p class="text-xs text-[var(--color-text-offset)] leading-relaxed">
+      <div class="pt-4 border-t border-border">
+        <p class="text-xs text-text-offset leading-relaxed">
           By submitting this form, you agree to receive marketing communications from Webstack
           Builders. You can unsubscribe at any time. View our
           <a
             href="/privacy"
-            class="text-[var(--color-primary)] hover:underline focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 rounded"
+            class="text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
           >
             Privacy Policy
           </a>.
@@ -131,7 +133,7 @@ const downloadUrl = `/downloads/${fileName}`
       <div class="pt-2">
         <button
           type="submit"
-          class="w-full bg-[var(--color-primary)] text-white font-semibold py-3 px-6 rounded-xl hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          class="w-full bg-primary text-white font-semibold py-3 px-6 rounded-xl hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           id="downloadSubmitBtn"
         >
           Download Now
@@ -174,14 +176,9 @@ const downloadUrl = `/downloads/${fileName}`
       </div>
     </form>
   </div>
-</div>
+</download-form>
 
 <style>
-  .download-form-wrapper {
-    margin: 0 auto;
-    max-width: 600px;
-  }
-
   #downloadFormStatus.success {
     background-color: var(--color-success-bg);
     border: 1px solid var(--color-success-border);
@@ -198,9 +195,6 @@ const downloadUrl = `/downloads/${fileName}`
 </style>
 
 <script>
-  import { registerScript } from '@components/Scripts/loader'
-  import { DownloadForm } from './client'
-
-  // Register download form script to initialize with Astro View Transitions
-  registerScript(DownloadForm)
+  import { registerDownloadFormWebComponent } from '@components/Forms/Download/client'
+  registerDownloadFormWebComponent()
 </script>

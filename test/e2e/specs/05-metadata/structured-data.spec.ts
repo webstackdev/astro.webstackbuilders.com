@@ -4,228 +4,169 @@
  * @see src/components/Head/
  */
 
-import { BasePage, test, expect } from '@test/e2e/helpers'
+import { HeadPage, test, expect } from '@test/e2e/helpers'
+import { EvaluationError } from '@test/errors'
+import type { JsonLdSchema } from '@test/e2e/helpers/pageObjectModels/HeadPage'
+
+interface OrganizationSchema extends JsonLdSchema {
+  name?: string
+  url?: string
+  logo?: string
+  description?: string
+}
+
+interface ArticleSchema extends JsonLdSchema {
+  headline?: string
+  datePublished?: string
+  dateModified?: string
+  author?: { name?: string }
+  url?: string
+  image?: string | string[]
+}
+
+interface ServiceSchema extends JsonLdSchema {
+  name?: string
+  url?: string
+}
+
+interface ContactPageSchema extends JsonLdSchema {
+  name?: string
+  url?: string
+}
+
+const expectAbsoluteUrl = (value: unknown): void => {
+  expect(typeof value).toBe('string')
+  if (typeof value === 'string') {
+    expect(() => new URL(value)).not.toThrow()
+  }
+}
+
+const getFirstContentLink = async (page: HeadPage, selector: string): Promise<string> => {
+  await page.waitForSelector(selector, { timeout: 5000 })
+  const href = await page.evaluate(sel => {
+    const element = document.querySelector(sel)
+    return element?.getAttribute('href') ?? null
+  }, selector)
+
+  if (!href) {
+    throw new EvaluationError(`Unable to find href for selector: ${selector}`)
+  }
+
+  return href
+}
 
 test.describe('Structured Data', () => {
-  test('@ready homepage has Organization schema', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+  test('@ready homepage renders Organization and WebSite schemas', async ({ page: playwrightPage }) => {
+    const page = await HeadPage.init(playwrightPage)
     await page.goto('/')
 
-    const jsonLdScripts = await playwrightPage
-      .locator('script[type="application/ld+json"]')
-      .allTextContents()
-    const hasOrgSchema = jsonLdScripts.some((json) => {
-      try {
-        const data = JSON.parse(json)
-        return data['@type'] === 'Organization' || data['@type']?.includes('Organization')
-      } catch {
-        return false
-      }
-    })
-
-    expect(hasOrgSchema).toBe(true)
+    await page.expectSchemaTypes(['Organization', 'WebSite'])
   })
 
-  test('@ready Organization schema has required fields', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+  test('@ready Organization schema exposes required fields', async ({ page: playwrightPage }) => {
+    const page = await HeadPage.init(playwrightPage)
     await page.goto('/')
 
-    const jsonLdScripts = await playwrightPage
-      .locator('script[type="application/ld+json"]')
-      .allTextContents()
-    const orgSchema = jsonLdScripts
-      .map((json) => {
-        try {
-          return JSON.parse(json)
-        } catch {
-          return null
-        }
-      })
-      .find((data) => data?.['@type'] === 'Organization')
+    const organization = await page.getSchemaByType<OrganizationSchema>('Organization')
 
-    expect(orgSchema).toBeTruthy()
-    expect(orgSchema?.name).toBeTruthy()
-    expect(orgSchema?.url).toBeTruthy()
+    expect(organization).toBeDefined()
+    expect(organization?.name).toBeTruthy()
+    expect(organization?.url).toBeTruthy()
+    expect(organization?.description).toBeTruthy()
+    expect(organization?.logo).toBeTruthy()
+    expectAbsoluteUrl(organization?.url)
+    expectAbsoluteUrl(organization?.logo)
   })
 
-  test('@ready article pages have Article schema', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+  test('@ready structured data logos resolve to live assets', async ({ page: playwrightPage }) => {
+    const page = await HeadPage.init(playwrightPage)
+    await page.goto('/')
+
+    await page.expectLogosReachable()
+  })
+
+  test('@ready article pages render Article schema with required fields', async ({ page: playwrightPage }) => {
+    const page = await HeadPage.init(playwrightPage)
     await page.goto('/articles')
 
-    // Wait for articles to load
-    await page.waitForSelector('a[href*="/articles/"]', { timeout: 5000 })
+    const articleHref = await getFirstContentLink(page, 'a[href^="/articles/"]:not([href="/articles"])')
+    await page.goto(articleHref)
 
-    // Get the first article URL
-    const articleUrl = await page.evaluate(() => {
-      const link = document.querySelector('a[href*="/articles/"]')
-      return link ? link.getAttribute('href') : null
-    })
+    await page.expectSchemaTypes(['Article'])
+    const article = await page.getSchemaByType<ArticleSchema>('Article')
 
-    expect(articleUrl).toBeTruthy()
-
-    // Navigate directly to the article page
-    await page.goto(articleUrl!)
-    await page.waitForLoadState('networkidle')
-
-    const jsonLdScripts = await playwrightPage
-      .locator('script[type="application/ld+json"]')
-      .allTextContents()
-    const hasArticleSchema = jsonLdScripts.some((json) => {
-      try {
-        const data = JSON.parse(json)
-        return (
-          data['@type'] === 'Article' ||
-          data['@type'] === 'BlogPosting' ||
-          data['@type']?.includes('Article')
-        )
-      } catch {
-        return false
-      }
-    })
-
-    expect(hasArticleSchema).toBe(true)
-  })
-
-  test('@ready Article schema has required fields', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
-    await page.goto('/articles')
-    await page.click('a[href*="/articles/"]')
-    await page.waitForLoadState('networkidle')
-
-    const jsonLdScripts = await playwrightPage
-      .locator('script[type="application/ld+json"]')
-      .allTextContents()
-    const articleSchema = jsonLdScripts
-      .map((json) => {
-        try {
-          return JSON.parse(json)
-        } catch {
-          return null
-        }
-      })
-      .find((data) => data?.['@type'] === 'Article' || data?.['@type'] === 'BlogPosting')
-
-    expect(articleSchema).toBeTruthy()
-    expect(articleSchema?.headline).toBeTruthy()
-    expect(articleSchema?.datePublished).toBeTruthy()
-  })
-
-  test('@ready homepage has WebSite schema', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
-    await page.goto('/')
-
-    const jsonLdScripts = await playwrightPage
-      .locator('script[type="application/ld+json"]')
-      .allTextContents()
-    const hasWebSiteSchema = jsonLdScripts.some((json) => {
-      try {
-        const data = JSON.parse(json)
-        return data['@type'] === 'WebSite'
-      } catch {
-        return false
-      }
-    })
-
-    expect(hasWebSiteSchema).toBe(true)
-  })
-
-  test('@ready BreadcrumbList schema on deep pages', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
-    await page.goto('/articles')
-    await page.click('a[href*="/articles/"]')
-    await page.waitForLoadState('networkidle')
-
-    const jsonLdScripts = await playwrightPage
-      .locator('script[type="application/ld+json"]')
-      .allTextContents()
-    const hasBreadcrumbSchema = jsonLdScripts.some((json) => {
-      try {
-        const data = JSON.parse(json)
-        return data['@type'] === 'BreadcrumbList'
-      } catch {
-        return false
-      }
-    })
-
-    expect(hasBreadcrumbSchema).toBe(true)
-  })
-
-  test('@ready all schemas have @context', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
-    await page.goto('/')
-
-    const jsonLdScripts = await playwrightPage
-      .locator('script[type="application/ld+json"]')
-      .allTextContents()
-
-    for (const json of jsonLdScripts) {
-      try {
-        const data = JSON.parse(json)
-        expect(data['@context']).toBe('https://schema.org')
-      } catch {
-        // Invalid JSON
-        expect(true).toBe(false) // Fail if JSON is invalid
-      }
+    expect(article).toBeDefined()
+    expect(article?.headline).toBeTruthy()
+    expect(article?.datePublished).toBeTruthy()
+    expect(article?.author?.name).toBeTruthy()
+    expect(article?.url).toBeTruthy()
+    expectAbsoluteUrl(article?.url)
+    if (typeof article?.image === 'string') {
+      expectAbsoluteUrl(article.image)
     }
   })
 
-  test('@ready schemas are valid JSON', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
-    await page.goto('/')
+  test('@ready deep content pages include BreadcrumbList schema', async ({ page: playwrightPage }) => {
+    const page = await HeadPage.init(playwrightPage)
+    await page.goto('/articles')
 
-    const jsonLdScripts = await playwrightPage
-      .locator('script[type="application/ld+json"]')
-      .allTextContents()
+    const articleHref = await getFirstContentLink(page, 'a[href^="/articles/"]:not([href="/articles"])')
+    await page.goto(articleHref)
 
-    for (const json of jsonLdScripts) {
-      expect(() => JSON.parse(json)).not.toThrow()
-    }
+    await page.expectSchemaTypes(['Article', 'BreadcrumbList'])
   })
 
-  test('@ready service pages have Service schema', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+  test('@ready homepage WebSite schema references publisher logo', async ({ page: playwrightPage }) => {
+    const page = await HeadPage.init(playwrightPage)
+    await page.goto('/')
+
+    const webSiteSchema = await page.getSchemaByType<JsonLdSchema>('WebSite')
+    expect(webSiteSchema).toBeDefined()
+    const publisher = webSiteSchema ? (webSiteSchema['publisher'] as JsonLdSchema | undefined) : undefined
+    expect(publisher?.['name']).toBeTruthy()
+    expectAbsoluteUrl(publisher?.['logo'] as string | undefined)
+  })
+
+  test('@ready all JSON-LD entries specify schema.org context', async ({ page: playwrightPage }) => {
+    const page = await HeadPage.init(playwrightPage)
+    await page.goto('/')
+
+    const schemas = await page.getStructuredDataEntries()
+    expect(schemas.length).toBeGreaterThan(0)
+    schemas.forEach(entry => {
+      expect(entry.schema['@context']).toBe('https://schema.org')
+    })
+  })
+
+  test('@ready service detail pages expose Service schema', async ({ page: playwrightPage }) => {
+    const page = await HeadPage.init(playwrightPage)
     await page.goto('/services')
 
-    const firstServiceCount = await page.countElements('a[href*="/services/"]')
-    if (firstServiceCount === 0) {
+    const serviceCount = await page.countElements('a[href^="/services/"]:not([href="/services"])')
+    if (serviceCount === 0) {
       test.skip()
     }
 
-    await page.click('a[href*="/services/"]')
-    await page.waitForLoadState('networkidle')
+    const serviceHref = await getFirstContentLink(page, 'a[href^="/services/"]:not([href="/services"])')
+    await page.goto(serviceHref)
 
-    const jsonLdScripts = await playwrightPage
-      .locator('script[type="application/ld+json"]')
-      .allTextContents()
-    const hasServiceSchema = jsonLdScripts.some((json) => {
-      try {
-        const data = JSON.parse(json)
-        return data['@type'] === 'Service' || data['@type'] === 'Product'
-      } catch {
-        return false
-      }
-    })
-
-    expect(hasServiceSchema).toBe(true)
+    await page.expectSchemaTypes(['Service'])
+    const service = await page.getSchemaByType<ServiceSchema>('Service')
+    expect(service).toBeDefined()
+    expect(service?.name).toBeTruthy()
+    expect(service?.url).toBeTruthy()
+    expectAbsoluteUrl(service?.url)
   })
 
-  test('@ready contact page has ContactPage schema', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+  test('@ready contact page renders ContactPage schema', async ({ page: playwrightPage }) => {
+    const page = await HeadPage.init(playwrightPage)
     await page.goto('/contact')
 
-    const jsonLdScripts = await playwrightPage
-      .locator('script[type="application/ld+json"]')
-      .allTextContents()
-    const hasContactSchema = jsonLdScripts.some((json) => {
-      try {
-        const data = JSON.parse(json)
-        return data['@type'] === 'ContactPage' || data['@type'] === 'ContactPoint'
-      } catch {
-        return false
-      }
-    })
-
-    // Optional, but good to have
-    expect(typeof hasContactSchema).toBe('boolean')
+    await page.expectSchemaTypes(['ContactPage'])
+    const contactPage = await page.getSchemaByType<ContactPageSchema>('ContactPage')
+    expect(contactPage).toBeDefined()
+    expect(contactPage?.name).toBeTruthy()
+    expect(contactPage?.url).toBeTruthy()
+    expectAbsoluteUrl(contactPage?.url)
   })
 })

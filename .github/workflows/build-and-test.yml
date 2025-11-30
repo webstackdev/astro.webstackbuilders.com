@@ -1,4 +1,5 @@
 # Runs build, unit tests, and E2E tests - gates deployment
+# @TODO: Push to a preview branch on Vercel, and run the E2E tests on that preview instead of from a dev server
 name: CI - Build & Test
 
 on:
@@ -11,14 +12,30 @@ jobs:
     name: Build and Test
     runs-on: ubuntu-latest
 
+    permissions:
+      # Required to checkout the code
+      contents: read
+      # Required to put a comment into the pull-request
+      pull-requests: write
+
     # Define environment variables once at the job level
     # These will be available to ALL steps in this job
+    # @TODO: Same issue with type-check.yml. These are real keys set on GitHub. But the production build only occurs on Vercel, and it's the only place that needs real keys. Once we set up a test framework using Docker containers for Suprabase, Upstash, etc., we should replace these keys with test keys.
     env:
       CONVERTKIT_API_KEY: ${{ secrets.CONVERTKIT_API_KEY }}
       CONVERTKIT_FORM_ID: ${{ secrets.CONVERTKIT_FORM_ID }}
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
       RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
       SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-      PUBLIC_SENTRY_DSN: ${{ secrets.PUBLIC_SENTRY_DSN }}
+      SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      KV_URL: ${{ secrets.KV_URL }}
+      KV_REST_API_URL: ${{ secrets.KV_REST_API_URL }}
+      KV_REST_API_TOKEN: ${{ secrets.KV_REST_API_TOKEN }}
+      KV_REST_API_READ_ONLY_TOKEN: ${{ secrets.KV_REST_API_READ_ONLY_TOKEN }}
+      REDIS_URL: ${{ secrets.REDIS_URL }}
       WEBMENTION_IO_TOKEN: ${{ secrets.WEBMENTION_IO_TOKEN }}
 
     steps:
@@ -40,8 +57,19 @@ jobs:
       - name: Run lint
         run: npm run lint
 
-      - name: Run unit tests
-        run: npm test -- --run
+      - name: Run unit tests (Vitest — coverage with GitHub Actions reporter)
+        run: |
+          # Run vitest with coverage. The built-in 'github-actions' reporter
+          # (configured in vitest.config.ts) will create annotations.
+          # Coverage reporters (json-summary, json) are configured in vitest.config.ts.
+          npx vitest run --coverage
+
+      - name: Report Coverage
+        uses: davelosert/vitest-coverage-report-action@v2.8.3
+        if: always()
+        with:
+          json-summary-path: './coverage/coverage-summary.json'
+          json-final-path: './coverage/coverage-final.json'
 
       - name: Build project
         run: npm run build
@@ -51,8 +79,26 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Upstash mock image
+        run: docker buildx build --load -t wb/upstash-redis-local:test test/containers/upstash/local-proxy
+
+      - name: Start mock containers
+        run: npm run containers:up
+
+      - name: Wait for mock services
+        run: npm run containers:wait
+
+      - name: Start Supabase stack
+        run: npm run containers:supabase:start
+
       - name: Run Playwright E2E tests
         run: npx playwright test
+        env:
+          CI: "1"
+          FORCE_COLOR: "1"
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4
@@ -63,35 +109,81 @@ jobs:
           retention-days: 30
 
       - name: Upload test coverage
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5.0.0
         if: always()
         with:
           name: test-coverage
           path: coverage/
           retention-days: 30
 
-  # This job will only run after build-and-test succeeds
-  deployment-ready:
-    name: Deployment Gate
+      - name: Stop Supabase stack
+        if: always()
+        run: npm run containers:supabase:stop || true
+
+      - name: Stop mock containers
+        if: always()
+        run: npm run containers:down || true
+
+  # Deploy preview for pull requests
+  deploy-preview:
+    name: Deploy Preview to Vercel
     runs-on: ubuntu-latest
     needs: build-and-test
-    if: github.ref == 'refs/heads/main'
-
-    steps:
-      - name: All tests passed
-        run: echo "✅ All tests passed. Deployment can proceed."
-  deploy-to-vercel:
-    name: Deploy to Vercel
-    runs-on: ubuntu-latest
-    needs: deployment-ready
-    if: github.ref == 'refs/heads/main' && success()
+    if: github.event_name == 'pull_request'
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v25
+      - name: Deploy to Vercel (Preview)
+        uses: amondnet/vercel-action@v41.1.4
+        id: vercel-preview
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          github-comment: true
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+      - name: Comment preview URL on PR
+        uses: actions/github-script@v8
+        if: github.event_name == 'pull_request'
+        with:
+          script: |
+            const previewUrl = '${{ steps.vercel-preview.outputs.preview-url }}';
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `✅ Tests passed! Preview deployment ready:\n\n🔗 ${previewUrl}`
+            });
+
+  # This job will only run after build-and-test succeeds on main branch
+  deployment-ready:
+    name: Production Deployment Gate
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: All tests passed
+        run: echo "✅ All tests passed. Production deployment can proceed."
+
+  # Deploy to production when PR is merged to main
+  deploy-production:
+    name: Deploy to Production (Vercel)
+    runs-on: ubuntu-latest
+    needs: deployment-ready
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && success()
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy to Vercel (Production)
+        uses: amondnet/vercel-action@v41.1.4
+        id: vercel-production
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-args: '--prod'
@@ -99,3 +191,8 @@ jobs:
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+      - name: Log production deployment
+        run: |
+          echo "🚀 Production deployment completed"
+          echo "Production URL: ${{ steps.vercel-production.outputs.preview-url }}"

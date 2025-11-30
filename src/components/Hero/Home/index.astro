@@ -1,0 +1,45 @@
+---
+import Content from './content.astro'
+import ComputersAnimation from '@components/Animations/Computers/index.astro'
+
+interface Benefit {
+  text: string
+  highlight: string
+}
+
+interface Link {
+  href: string
+  text: string
+}
+
+export interface Props {
+  pretitle?: string
+  benefits?: Benefit[]
+  primaryLink?: Link
+  secondaryLink?: Link
+}
+
+const {
+  pretitle = 'Client-Focused Web Application Developer',
+  benefits = [
+    { text: 'increase in sales', highlight: '57%' },
+    { text: 'ROI for every $1', highlight: '$114' },
+    { text: 'conversion', highlight: 'Up to 400%' },
+  ],
+  primaryLink = { href: '/services/web-development', text: 'Improve Your Product' },
+  secondaryLink = { href: '/services/consulting', text: 'Start from scratch' },
+} = Astro.props
+---
+
+<section class="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-20">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+    <Content
+      pretitle={pretitle}
+      benefits={benefits}
+      primaryLink={primaryLink}
+      secondaryLink={secondaryLink}
+    />
+
+    <ComputersAnimation />
+  </div>
+</section>

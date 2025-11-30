@@ -1,0 +1,166 @@
+import { LitElement, html } from 'lit'
+import { defineCustomElement } from '@components/scripts/utils'
+import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
+
+type ToastType = 'success' | 'error'
+
+const TOAST_HIDE_TIMEOUT = 3000
+
+export class NetworkStatusToastElement extends LitElement {
+  static registeredName = 'network-status-toast'
+
+  static override properties = {
+    visible: { type: Boolean },
+    toastType: { type: String },
+    message: { type: String },
+  }
+
+  private hideTimeout: ReturnType<typeof setTimeout> | null = null
+
+  declare visible: boolean
+  declare toastType: ToastType
+  declare message: string
+
+  constructor() {
+    super()
+    this.visible = false
+    this.toastType = 'success'
+    this.message = 'Connection restored!'
+  }
+
+  protected override createRenderRoot() {
+    // Render into the light DOM so Tailwind utility classes continue to work
+    return this
+  }
+
+  override connectedCallback(): void {
+    super.connectedCallback()
+
+    if (typeof window === 'undefined') {
+      return
+    }
+
+    window.addEventListener('online', this.handleOnline)
+    window.addEventListener('offline', this.handleOffline)
+    this.updateConnectionStatus()
+  }
+
+  override disconnectedCallback(): void {
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('online', this.handleOnline)
+      window.removeEventListener('offline', this.handleOffline)
+    }
+
+    if (this.hideTimeout) {
+      clearTimeout(this.hideTimeout)
+      this.hideTimeout = null
+    }
+
+    super.disconnectedCallback()
+  }
+
+  private handleOnline = () => {
+    this.showNotification('Connection restored!', 'success')
+    this.updateConnectionStatus(true)
+  }
+
+  private handleOffline = () => {
+    this.updateConnectionStatus(false)
+  }
+
+  private updateConnectionStatus(forceState?: boolean): void {
+    if (typeof document === 'undefined') {
+      return
+    }
+
+    const statusIndicator = document.querySelector('.connection-status')
+    if (!statusIndicator) {
+      return
+    }
+
+    if (typeof navigator === 'undefined') {
+      return
+    }
+
+    const isOnline = typeof forceState === 'boolean' ? forceState : navigator.onLine
+    statusIndicator.textContent = isOnline ? 'Online' : 'Offline'
+    statusIndicator.className = `connection-status ${isOnline ? 'text-green-600' : 'text-red-600'}`
+  }
+
+  public showNotification(message: string, type: ToastType = 'success'): void {
+    this.message = message
+    this.toastType = type
+    this.visible = true
+
+    if (this.hideTimeout) {
+      clearTimeout(this.hideTimeout)
+    }
+
+    this.hideTimeout = setTimeout(() => {
+      this.visible = false
+      this.hideTimeout = null
+    }, TOAST_HIDE_TIMEOUT)
+  }
+
+  private get toastClasses(): string {
+    const baseClasses =
+      'fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300'
+    return this.visible ? baseClasses : `${baseClasses} hidden`
+  }
+
+  protected override render() {
+    return html`
+      <div
+        id="network-status-toast"
+        class="${this.toastClasses}"
+        data-type="${this.toastType}"
+        role="alert"
+        aria-live="polite"
+      >
+        <div class="flex items-center space-x-2">
+          <svg
+            class="w-5 h-5 success-icon"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            ></path>
+          </svg>
+          <svg
+            class="w-5 h-5 error-icon hidden"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            ></path>
+          </svg>
+          <span class="toast-message">${this.message}</span>
+        </div>
+      </div>
+    `
+  }
+}
+
+export const registerNetworkStatusToast = async (
+  tagName = NetworkStatusToastElement.registeredName,
+): Promise<void> => {
+  defineCustomElement(tagName, NetworkStatusToastElement)
+}
+
+export const webComponentModule: WebComponentModule<NetworkStatusToastElement> = {
+  registeredName: NetworkStatusToastElement.registeredName,
+  componentCtor: NetworkStatusToastElement,
+  registerWebComponent: registerNetworkStatusToast,
+}

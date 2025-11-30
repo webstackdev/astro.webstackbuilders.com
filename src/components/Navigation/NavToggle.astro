@@ -1,105 +1,34 @@
 ---
+import navToggleStyles from './navToggle.module.css'
 /**
  * Menu Toggle Button
  */
 ---
 
-<style>
-  /* Nav toggle button styles */
-  .nav-toggle-btn {
-    background-color: var(--color-primary-offset);
-    border-radius: 50%;
-    border-width: 0;
-    height: var(--header-icon-size);
-    transition: 0.15s linear;
-    width: var(--header-icon-size);
-  }
-
-  .nav-toggle-btn:hover,
-  .nav-toggle-btn:focus {
-    background-color: var(--color-primary);
-    outline-width: 0;
-  }
-
-  .nav-toggle-svg {
-    height: var(--header-icon-size);
-    transform: rotate(0deg);
-    transition: 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
-    width: var(--header-icon-size);
-  }
-
-  /** @TODO: this is broken, no focus effect */
-  .nav-toggle-btn:focus .nav-toggle-svg {
-    color: var(--color-text-offset);
-  }
-
-  .nav-toggle-bar,
-  .nav-toggle-circle {
-    fill: none;
-    stroke: var(--color-bg);
-    stroke-linecap: round;
-    stroke-width: 0.3rem;
-  }
-
-  .nav-toggle-bar {
-    transform: rotate(0deg);
-    transform-origin: 50% 50%;
-    transition: transform 0.25s ease-in-out;
-  }
-
-  .nav-toggle-circle {
-    stroke-dasharray: var(--circle-stroke);
-    stroke-dashoffset: var(--circle-stroke);
-    transition: stroke-dashoffset 0.3s linear 0.1s;
-  }
-
-  /* Animation for menu active state */
-  .nav-toggle-btn[aria-expanded='true'] .nav-toggle-svg {
-    color: white;
-    transform: rotate(180deg);
-  }
-
-  .nav-toggle-btn[aria-expanded='true'] .nav-toggle-bar:nth-child(1),
-  .nav-toggle-btn[aria-expanded='true'] .nav-toggle-bar:nth-child(4) {
-    opacity: 0;
-  }
-
-  .nav-toggle-btn[aria-expanded='true'] .nav-toggle-bar:nth-child(2) {
-    transform: rotate(45deg);
-  }
-
-  .nav-toggle-btn[aria-expanded='true'] .nav-toggle-bar:nth-child(3) {
-    transform: rotate(-45deg);
-  }
-
-  .nav-toggle-btn[aria-expanded='true'] .nav-toggle-circle {
-    stroke-dashoffset: 0;
-  }
-
-  /* Hide on desktop */
-  @media (width >= 1024px) {
-    .nav-toggle-btn {
-      display: none;
-    }
-  }
-</style>
-
 <button
-  class="nav-toggle-btn lg:hidden"
+  class:list={[
+    'nav-toggle-btn',
+    'lg:hidden inline-flex items-center justify-center rounded-full border-0 bg-primary-offset text-bg transition-colors duration-150 ease-linear hover:bg-primary focus:bg-primary focus:outline-none',
+    navToggleStyles['button'],
+  ]}
   type="button"
   aria-expanded="false"
   aria-owns="main-nav"
   aria-label="toggle menu"
   aria-haspopup="true"
 >
-  <svg class="nav-toggle-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
+  <svg
+    class:list={['nav-toggle-svg', 'h-(--header-icon-size) w-(--header-icon-size)', navToggleStyles['icon']]}
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 50 50"
+  >
     <title>menu toggle</title>
     <g>
-      <line class="nav-toggle-bar" x1="13" y1="16.5" x2="37" y2="16.5"></line>
-      <line class="nav-toggle-bar" x1="13" y1="24.5" x2="37" y2="24.5"></line>
-      <line class="nav-toggle-bar" x1="13" y1="24.5" x2="37" y2="24.5"></line>
-      <line class="nav-toggle-bar" x1="13" y1="32.5" x2="37" y2="32.5"></line>
-      <circle class="nav-toggle-circle" r="23" cx="25" cy="25"></circle>
+      <line class:list={['nav-toggle-bar', navToggleStyles['bar']]} x1="13" y1="16.5" x2="37" y2="16.5"></line>
+      <line class:list={['nav-toggle-bar', navToggleStyles['bar']]} x1="13" y1="24.5" x2="37" y2="24.5"></line>
+      <line class:list={['nav-toggle-bar', navToggleStyles['bar']]} x1="13" y1="24.5" x2="37" y2="24.5"></line>
+      <line class:list={['nav-toggle-bar', navToggleStyles['bar']]} x1="13" y1="32.5" x2="37" y2="32.5"></line>
+      <circle class:list={['nav-toggle-circle', navToggleStyles['circle']]} r="23" cx="25" cy="25"></circle>
     </g>
   </svg>
 </button>

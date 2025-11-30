@@ -15,15 +15,47 @@ test.describe('Mobile Navigation', () => {
     // Wait for menu-visible class to be added
     await playwrightPage.waitForSelector('.main-nav-menu.menu-visible', { state: 'visible' })
   }
+
+  const simulateBackdropPointerTap = async (playwrightPage: import('@playwright/test').Page) => {
+    await playwrightPage.evaluate(() => {
+      const outsideTarget = document.createElement('div')
+      outsideTarget.setAttribute('data-test-id', 'navigation-backdrop-probe')
+      outsideTarget.style.position = 'fixed'
+      outsideTarget.style.top = '420px'
+      outsideTarget.style.left = '24px'
+      outsideTarget.style.width = '24px'
+      outsideTarget.style.height = '24px'
+      outsideTarget.style.zIndex = '1'
+      outsideTarget.style.pointerEvents = 'auto'
+      document.body.appendChild(outsideTarget)
+
+      const pointerOptions: PointerEventInit = {
+        bubbles: true,
+        cancelable: true,
+        pointerType: 'touch',
+      }
+
+      outsideTarget.dispatchEvent(new PointerEvent('pointerdown', pointerOptions))
+      outsideTarget.dispatchEvent(new PointerEvent('pointerup', pointerOptions))
+      outsideTarget.dispatchEvent(
+        new MouseEvent('click', {
+          bubbles: true,
+          cancelable: true,
+        }),
+      )
+
+      outsideTarget.remove()
+    })
+  }
   test('@ready hamburger menu is visible on mobile', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.setViewport(375, 667)
     await setupTestPage(playwrightPage, '/')
     await page.expectElementVisible('button[aria-label="toggle menu"]')
   })
 
   test('@ready main navigation is hidden on mobile by default', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.setViewport(375, 667)
     await setupTestPage(playwrightPage, '/')
     // Navigation menu is hidden by default on mobile until hamburger is clicked
@@ -32,7 +64,7 @@ test.describe('Mobile Navigation', () => {
   })
 
   test('@ready main navigation becomes visible when mobile menu is opened', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.setViewport(375, 667)
 
     // Install fake timers before going to the page
@@ -51,7 +83,7 @@ test.describe('Mobile Navigation', () => {
   })
 
   test('@ready can toggle mobile menu splash animation', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.setViewport(375, 667)
 
     // Install fake timers before going to the page
@@ -72,7 +104,7 @@ test.describe('Mobile Navigation', () => {
   })
 
   test('@ready can close mobile menu animation', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.setViewport(375, 667)
 
     // Install fake timers before going to the page
@@ -99,7 +131,7 @@ test.describe('Mobile Navigation', () => {
   })
 
   test('@ready hamburger icon aria-expanded changes on toggle', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.setViewport(375, 667)
 
     // Install fake timers before going to the page
@@ -118,7 +150,7 @@ test.describe('Mobile Navigation', () => {
   })
 
   test('@ready close button is in tab order when menu is open', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.setViewport(375, 667)
 
     // Install fake timers before going to the page
@@ -168,7 +200,7 @@ test.describe('Mobile Navigation', () => {
   })
 
   test('@ready close button is clickable when menu is open', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.setViewport(375, 667)
 
     // Install fake timers before going to the page
@@ -194,7 +226,7 @@ test.describe('Mobile Navigation', () => {
   })
 
   test('@ready can navigate to page from mobile menu', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.setViewport(375, 667)
 
     await setupTestPage(playwrightPage, '/')
@@ -216,7 +248,7 @@ test.describe('Mobile Navigation', () => {
   })
 
   test('@ready can navigate using keyboard Enter on focused link', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.setViewport(375, 667)
 
     await setupTestPage(playwrightPage, '/')
@@ -239,7 +271,7 @@ test.describe('Mobile Navigation', () => {
   })
 
   test('@ready mobile menu has proper ARIA attributes', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.setViewport(375, 667)
     await setupTestPage(playwrightPage, '/')
 
@@ -253,7 +285,7 @@ test.describe('Mobile Navigation', () => {
   })
 
   test('@ready mobile menu closes after navigation', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.setViewport(375, 667)
 
     // Install fake timers before going to the page
@@ -283,7 +315,7 @@ test.describe('Mobile Navigation', () => {
   })
 
   test('@ready mobile menu has backdrop overlay', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.setViewport(375, 667)
 
     // Install fake timers before going to the page
@@ -330,7 +362,7 @@ test.describe('Mobile Navigation', () => {
   })
 
   test('@ready clicking backdrop has no effect', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.setViewport(375, 667)
 
     // Install fake timers before going to the page
@@ -347,9 +379,9 @@ test.describe('Mobile Navigation', () => {
     })
     expect(hasExpandedClassBefore).toBe(true)
 
-    // Click on the backdrop area - this should have NO effect (menu stays open)
-    // Click on an area where the splash backdrop is visible but no interactive elements are
-    await playwrightPage.click('body', { position: { x: 100, y: 400 } })
+    // Simulate a pointer sequence on a temporary element outside the header.
+    // This replicates tapping the backdrop without accidentally triggering hero CTAs.
+    await simulateBackdropPointerTap(playwrightPage)
     await playwrightPage.clock.fastForward(600)
 
     // Menu should STILL be open after clicking backdrop (no effect)
@@ -364,7 +396,7 @@ test.describe('Mobile Navigation', () => {
   })
 
   test('@ready mobile menu prevents body scroll when open', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.setViewport(375, 667)
 
     // Install fake timers before going to the page
@@ -399,7 +431,7 @@ test.describe('Mobile Navigation', () => {
   })
 
   test('@ready mobile menu is keyboard accessible', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.setViewport(375, 667)
 
     // Install fake timers before going to the page
@@ -431,7 +463,7 @@ test.describe('Mobile Navigation', () => {
   })
 
   test('@ready focus is trapped in open mobile menu', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.setViewport(375, 667)
 
     // Install fake timers before going to the page
@@ -478,7 +510,7 @@ test.describe('Mobile Navigation', () => {
   })
 
   test('@ready pressing Escape closes mobile menu', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.setViewport(375, 667)
 
     // Install fake timers before going to the page
@@ -507,7 +539,7 @@ test.describe('Mobile Navigation', () => {
   })
 
   test('@ready pressing Enter on close button closes mobile menu', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.setViewport(375, 667)
 
     // Install fake timers before going to the page
@@ -537,7 +569,7 @@ test.describe('Mobile Navigation', () => {
   })
 
   test('@ready pressing Space on close button closes mobile menu', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.setViewport(375, 667)
 
     // Install fake timers before going to the page

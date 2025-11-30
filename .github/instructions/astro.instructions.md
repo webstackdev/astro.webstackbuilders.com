@@ -12,4 +12,4 @@ applyTo: "docs/**/*.astro"
 - When testing Astro components, use the Astro Container API instead of manual HTML fixtures.
 - This ensures tests stay in sync with component changes automatically.
 - Reference: Astro Container API Documentation at docs.astro.build/en/reference/container-reference/
-- Note: The Container API does not work reliably in jsdom/vitest environments. Use happy-dom instead.
+- There is a model component and test demonstrating this pattern in the src/components/Test directory named webComponent.

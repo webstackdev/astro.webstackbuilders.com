@@ -1,3 +1,4 @@
+// path alias for markdown folder causes self referential error
 /**
  * Markdown Configuration
  *
@@ -35,16 +36,17 @@ const remarkLinkifyRegexUrls = remarkLinkifyRegex(/^(https?:\/\/[^\s$.?#].[^\s]*
 Object.defineProperty(remarkLinkifyRegexUrls, 'name', { value: 'remarkLinkifyRegex' })
 
 // Use our TypeScript implementations (modern Remark API)
-import remarkAbbreviations from '../markdown/plugins/remark-abbreviations/index'
+
+import remarkAbbreviations from '../markdown/plugins/remark-abbreviations'
 Object.defineProperty(remarkAbbreviations, 'name', { value: 'remarkAbbreviations' })
 
-import remarkAttributes from '../markdown/plugins/remark-attributes/index'
+import remarkAttributes from '../markdown/plugins/remark-attributes'
 Object.defineProperty(remarkAttributes, 'name', { value: 'remarkAttributes' })
 
-import remarkAttribution from '../markdown/plugins/remark-attribution/index'
+import remarkAttribution from '../markdown/plugins/remark-attribution'
 Object.defineProperty(remarkAttribution, 'name', { value: 'remarkAttribution' })
 
-import remarkReplacements from '../markdown/plugins/remark-replacements/index'
+import remarkReplacements from '../markdown/plugins/remark-replacements'
 Object.defineProperty(remarkReplacements, 'name', { value: 'remarkReplacements' })
 
 /** Add custom CSS classes to Markdown-generated elements in this file */

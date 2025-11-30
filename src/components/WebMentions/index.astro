@@ -1,0 +1,122 @@
+---
+/**
+ * WebMentions component
+ * Displays webmentions for a given URL from webmention.io
+ *
+ * @see https://webmention.io/
+ * @see https://brid.gy/ for social media integration
+ */
+import { fetchWebmentions } from '@components/WebMentions/server'
+import WebMentionItem from './item.astro'
+
+interface Props {
+  /** The absolute URL of the page to fetch webmentions for */
+  url: string
+  /** Show the facepile of recent mentions */
+  showFacepile?: boolean
+  /** Maximum number of faces to show in facepile */
+  facepileLimit?: number
+}
+
+const { url, showFacepile = true, facepileLimit = 5 } = Astro.props
+
+// Fetch webmentions for this URL
+const mentions = await fetchWebmentions(url)
+
+// Get mentions that should be displayed (mentions and replies)
+const displayMentions = mentions.filter(m =>
+  ['mention-of', 'in-reply-to'].includes(m['wm-property'])
+)
+
+// Get like and repost counts
+const likes = mentions.filter(m => m['wm-property'] === 'like-of')
+const reposts = mentions.filter(m => m['wm-property'] === 'repost-of')
+
+const hasMentions = displayMentions.length > 0
+const hasInteractions = likes.length > 0 || reposts.length > 0
+---
+
+{
+  (hasMentions || hasInteractions) && (
+    <section class="mt-12 pt-8 border-t border-border" id="webmentions">
+      <header class="flex items-start justify-between mb-6 flex-wrap gap-4 flex-col sm:flex-row sm:items-center">
+        <h3 class="text-2xl font-bold text-text m-0">Webmentions</h3>
+
+        {hasInteractions && (
+          <div class="flex gap-6 items-center w-full sm:w-auto justify-start">
+            {likes.length > 0 && (
+              <span
+                class="inline-flex items-center gap-1.5 text-text-offset text-sm font-medium"
+                title={`${likes.length} like${likes.length !== 1 ? 's' : ''}`}
+              >
+                <svg
+                  class="w-5 h-5 text-text-lighter"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
+                </svg>
+                {likes.length}
+              </span>
+            )}
+            {reposts.length > 0 && (
+              <span
+                class="inline-flex items-center gap-1.5 text-text-offset text-sm font-medium"
+                title={`${reposts.length} repost${reposts.length !== 1 ? 's' : ''}`}
+              >
+                <svg
+                  class="w-5 h-5 text-text-lighter"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path d="M4.5 12c0-1.232.046-2.453.138-3.662a4.006 4.006 0 013.7-3.7 48.678 48.678 0 017.324 0 4.006 4.006 0 013.7 3.7c.017.22.032.441.046.662M4.5 12l-3-3m3 3l3-3m12 3c0 1.232-.046 2.453-.138 3.662a4.006 4.006 0 01-3.7 3.7 48.657 48.657 0 01-7.324 0 4.006 4.006 0 01-3.7-3.7c-.017-.22-.032-.441-.046-.662M19.5 12l-3 3m3-3l3 3" />
+                </svg>
+                {reposts.length}
+              </span>
+            )}
+          </div>
+        )}
+      </header>
+
+      {hasMentions ? (
+        <>
+          {showFacepile && displayMentions.length > 0 && (
+            <div class="flex items-center gap-2 mb-6 p-4 bg-bg-offset rounded-lg">
+              {displayMentions
+                .slice(0, facepileLimit)
+                .reverse()
+                .map((mention) => (
+                  <img
+                    src={mention.author?.photo || '/assets/images/webmention-avatar-default.svg'}
+                    alt={mention.author?.name || 'Anonymous'}
+                    title={mention.author?.name || 'Anonymous'}
+                    class="w-10 h-10 rounded-full border-2 border-bg object-cover transition-transform hover:scale-110 hover:z-10"
+                    loading="lazy"
+                  />
+                ))}
+              {displayMentions.length > facepileLimit && (
+                <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-text-lighter text-bg text-xs font-semibold">
+                  +{displayMentions.length - facepileLimit}
+                </span>
+              )}
+            </div>
+          )}
+
+          <ol class="list-none p-0 m-0 flex flex-col gap-6">
+            {displayMentions.reverse().map((mention) => (
+              <li class="m-0">
+                <WebMentionItem mention={mention} />
+              </li>
+            ))}
+          </ol>
+        </>
+      ) : (
+        <p class="text-text-offset italic my-8">No mentions yet.</p>
+      )}
+    </section>
+  )
+}

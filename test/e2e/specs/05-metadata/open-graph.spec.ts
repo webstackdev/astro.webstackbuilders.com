@@ -10,7 +10,7 @@ const REQUIRED_META_TAGS = ['og:title', 'og:description']
 
 test.describe('Open Graph Metadata', () => {
   test('@ready homepage has required OG tags', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     for (const tag of REQUIRED_META_TAGS) {
@@ -21,7 +21,7 @@ test.describe('Open Graph Metadata', () => {
   })
 
   test('@ready article pages have OG type article', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/articles')
 
     // Wait for articles to load
@@ -44,7 +44,7 @@ test.describe('Open Graph Metadata', () => {
   })
 
   test('@ready OG title matches page title', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/about')
 
     const pageTitle = await page.getTitle()
@@ -56,7 +56,7 @@ test.describe('Open Graph Metadata', () => {
   })
 
   test('@ready OG URL matches current page', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/about')
 
     const ogUrlContent = await page.getAttribute('meta[property="og:url"]', 'content')
@@ -64,7 +64,7 @@ test.describe('Open Graph Metadata', () => {
   })
 
   test('@ready OG image is valid URL', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     const imageUrl = await page.getAttribute('meta[property="og:image"]', 'content')
@@ -76,7 +76,7 @@ test.describe('Open Graph Metadata', () => {
   })
 
   test('@ready OG image has dimensions', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     const widthCount = await page.countElements('meta[property="og:image:width"]')
@@ -94,7 +94,7 @@ test.describe('Open Graph Metadata', () => {
   })
 
   test('@ready Twitter Card tags are present', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     await page.expectAttribute('meta[name="twitter:card"]', 'content')
@@ -103,7 +103,7 @@ test.describe('Open Graph Metadata', () => {
   })
 
   test('@ready Twitter title is present', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     const content = await page.getAttribute('meta[name="twitter:title"]', 'content')
@@ -111,7 +111,7 @@ test.describe('Open Graph Metadata', () => {
   })
 
   test('@ready Twitter description is present', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     const content = await page.getAttribute('meta[name="twitter:description"]', 'content')
@@ -119,7 +119,7 @@ test.describe('Open Graph Metadata', () => {
   })
 
   test('@ready Twitter image is present', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     const imageUrl = await page.getAttribute('meta[name="twitter:image"]', 'content')
@@ -127,7 +127,7 @@ test.describe('Open Graph Metadata', () => {
   })
 
   test('@ready all pages have unique OG descriptions', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     const pages = ['/', '/about', '/services']
     const descriptions = new Set()
 
@@ -142,7 +142,7 @@ test.describe('Open Graph Metadata', () => {
   })
 
   test('@ready OG locale is set', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     const count = await page.countElements('meta[property="og:locale"]')
@@ -154,7 +154,7 @@ test.describe('Open Graph Metadata', () => {
   })
 
   test('@ready OG site name is set', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     const siteName = await page.getAttribute('meta[property="og:site_name"]', 'content')
@@ -162,7 +162,7 @@ test.describe('Open Graph Metadata', () => {
   })
 
   test('@ready article pages have article metadata', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/articles')
 
     // Wait for articles to load

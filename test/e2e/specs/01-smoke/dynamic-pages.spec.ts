@@ -3,10 +3,11 @@
  * Tests dynamically generated pages (articles, services, case studies)
  * Uses API to fetch actual content IDs to ensure tests work even if content changes
  */
-import { test, expect, setupConsoleErrorChecker, logConsoleErrors } from '@test/e2e/helpers'
+import { BasePage, test, expect, setupConsoleErrorChecker, logConsoleErrors } from '@test/e2e/helpers'
 
 test.describe('Dynamic Pages @smoke', () => {
-  test('@ready article detail page loads', async ({ page }) => {
+  test('@ready article detail page loads', async ({ page: playwrightPage }) => {
+    const page = await BasePage.init(playwrightPage)
     // First, visit articles list to get an actual article link
     await page.goto('/articles')
     await page.waitForLoadState('networkidle')
@@ -27,10 +28,11 @@ test.describe('Dynamic Pages @smoke', () => {
     await expect(page.locator('h1[id="article-title"]')).toBeVisible()
 
     // Verify we're on an article page (URL should match pattern)
-    expect(page.url()).toMatch(/\/articles\/.+/)
+    expect(page.getCurrentUrl()).toMatch(/\/articles\/.+/)
   })
 
-  test('@ready service detail page loads', async ({ page }) => {
+  test('@ready service detail page loads', async ({ page: playwrightPage }) => {
+    const page = await BasePage.init(playwrightPage)
     // Visit services list to get an actual service link
     await page.goto('/services')
     await page.waitForLoadState('networkidle')
@@ -53,10 +55,11 @@ test.describe('Dynamic Pages @smoke', () => {
     await expect(page.locator('h1[id="article-title"]')).toBeVisible()
 
     // Verify we're on a service page
-    expect(page.url()).toMatch(/\/services\/.+/)
+    expect(page.getCurrentUrl()).toMatch(/\/services\/.+/)
   })
 
-  test('@ready case study detail page loads', async ({ page }) => {
+  test('@ready case study detail page loads', async ({ page: playwrightPage }) => {
+    const page = await BasePage.init(playwrightPage)
     // Visit case studies list to get an actual case study link
     await page.goto('/case-studies')
     await page.waitForLoadState('networkidle')
@@ -79,10 +82,11 @@ test.describe('Dynamic Pages @smoke', () => {
     await expect(page.locator('h1[id="article-title"]')).toBeVisible()
 
     // Verify we're on a case study page
-    expect(page.url()).toMatch(/\/case-studies\/.+/)
+    expect(page.getCurrentUrl()).toMatch(/\/case-studies\/.+/)
   })
 
-  test('@ready RSS feed is accessible', async ({ page }) => {
+  test('@ready RSS feed is accessible', async ({ page: playwrightPage }) => {
+    const page = await BasePage.init(playwrightPage)
     // RSS feed should be accessible and valid XML
     const response = await page.goto('/rss.xml')
     expect(response?.status()).toBe(200)
@@ -119,7 +123,8 @@ test.describe('Dynamic Pages @smoke', () => {
     expect(Array.isArray(manifest.icons)).toBe(true)
   })
 
-  test('@ready dynamic pages have no 404 errors', async ({ page }) => {
+  test('@ready dynamic pages have no 404 errors', async ({ page: playwrightPage }) => {
+    const page = await BasePage.init(playwrightPage)
     // Test article page
     await page.goto('/articles')
     await page.waitForLoadState('networkidle')
@@ -128,7 +133,7 @@ test.describe('Dynamic Pages @smoke', () => {
     const articleUrl = await firstArticleLink.getAttribute('href')
 
     if (articleUrl) {
-      const articleChecker = setupConsoleErrorChecker(page)
+      const articleChecker = setupConsoleErrorChecker(page.page)
       await page.goto(articleUrl)
       await page.waitForLoadState('networkidle')
       expect(articleChecker.failed404s).toHaveLength(0)
@@ -142,7 +147,7 @@ test.describe('Dynamic Pages @smoke', () => {
     const serviceUrl = await firstServiceLink.getAttribute('href')
 
     if (serviceUrl) {
-      const serviceChecker = setupConsoleErrorChecker(page)
+      const serviceChecker = setupConsoleErrorChecker(page.page)
       await page.goto(serviceUrl)
       await page.waitForLoadState('networkidle')
       expect(serviceChecker.failed404s).toHaveLength(0)
@@ -156,14 +161,15 @@ test.describe('Dynamic Pages @smoke', () => {
     const caseStudyUrl = await firstCaseStudyLink.getAttribute('href')
 
     if (caseStudyUrl) {
-      const caseStudyChecker = setupConsoleErrorChecker(page)
+      const caseStudyChecker = setupConsoleErrorChecker(page.page)
       await page.goto(caseStudyUrl)
       await page.waitForLoadState('networkidle')
       expect(caseStudyChecker.failed404s).toHaveLength(0)
     }
   })
 
-  test('@ready dynamic pages have no console errors', async ({ page }) => {
+  test('@ready dynamic pages have no console errors', async ({ page: playwrightPage }) => {
+    const page = await BasePage.init(playwrightPage)
     // First, get actual article URL
     await page.goto('/articles')
     await page.waitForLoadState('networkidle')
@@ -177,7 +183,7 @@ test.describe('Dynamic Pages @smoke', () => {
     }
 
     // Test article detail page for errors
-    const errorChecker = setupConsoleErrorChecker(page)
+    const errorChecker = setupConsoleErrorChecker(page.page)
 
     await page.goto(articleUrl)
     await page.waitForLoadState('networkidle')

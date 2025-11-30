@@ -10,8 +10,8 @@ import 'dotenv/config'
  * See https://playwright.dev/docs/test-configuration.
  */
 
-/** Debug mode - set DEBUG=1 or DEBUG=true to run only chromium with no HTML report */
-const isDebugMode = Boolean(process.env['DEBUG'] && process.env['DEBUG'] !== 'false' && process.env['DEBUG'] !== '0')
+/** Debug mode - set CI=1 or CI=true to run only chromium with no HTML report */
+const isCIMode = Boolean(process.env['CI'] && (process.env['CI'] === 'true') || process.env['CI'] === '1')
 
 export default defineConfig({
   /* Look for test files in the "tests" directory, relative to this configuration file. */
@@ -34,17 +34,17 @@ export default defineConfig({
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
-  forbidOnly: !!process.env['CI'],
+  forbidOnly: !!process.env['GITHUB_ACTIONS'],
   /* Retry on CI only */
-  retries: process.env['CI'] ? 2 : 0,
+  retries: process.env['GITHUB_ACTIONS'] ? 2 : 0,
   /* Opt out of parallel tests on CI. */
-  workers: process.env['CI'] ? 1 : '75%',
+  workers: process.env['GITHUB_ACTIONS'] ? 1 : '75%',
   /* Only run @ready tests in CI, all tests locally */
-  ...(process.env['CI'] ? { grep: /@ready/ } : {}),
+  ...(process.env['GITHUB_ACTIONS'] ? { grep: /@ready/ } : {}),
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: process.env['CI']
+  reporter: process.env['GITHUB_ACTIONS']
     ? 'github'
-    : isDebugMode
+    : isCIMode
       ? [
           ['list'],
           ['json', { outputFile: '.cache/playwright/results.json' }],
@@ -107,7 +107,7 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   /* In debug mode, assume server is already running */
-  ...(isDebugMode
+  ...(isCIMode
     ? {}
     : {
         webServer: {
@@ -119,8 +119,7 @@ export default defineConfig({
         },
       }),
 
-  // path to the global setup files.
-  //globalSetup: require.resolve('./global-setup'),
+  globalSetup: './test/e2e/config/global-setup.ts',
 
   // path to the global teardown files.
   //globalTeardown: require.resolve('./global-teardown'),

@@ -1,0 +1,67 @@
+---
+/**
+ * Hero CTA Links - Home Variant
+ */
+export interface Props {
+  primaryLink: {
+    href: string
+    text: string
+  }
+  secondaryLink: {
+    href: string
+    text: string
+  }
+}
+
+const { primaryLink, secondaryLink } = Astro.props as Props
+---
+
+{/* CTA Links */}
+<div class="flex flex-col sm:flex-row gap-4 pt-2">
+  {
+    primaryLink && (
+      <a
+        href={primaryLink.href}
+        class="group inline-block px-8 py-4 bg-primary hover:bg-primary-hover text-white font-semibold rounded-xl transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 text-center"
+      >
+        {primaryLink.text}
+        <svg
+          class="inline-block w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M14 5l7 7m0 0l-7 7m7-7H3"
+          />
+        </svg>
+      </a>
+    )
+  }
+  {
+    secondaryLink && (
+      <a
+        href={secondaryLink.href}
+        class="group inline-block px-8 py-4 bg-transparent border-2 border-border hover:border-primary text-text hover:text-primary font-semibold rounded-xl transition-all duration-200 text-center"
+      >
+        {secondaryLink.text}
+        <svg
+          class="inline-block w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M14 5l7 7m0 0l-7 7m7-7H3"
+          />
+        </svg>
+      </a>
+    )
+  }
+</div>

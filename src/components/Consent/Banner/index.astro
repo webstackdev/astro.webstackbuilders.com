@@ -1,0 +1,81 @@
+---
+import { Image } from 'astro:assets'
+import Icon from '@components/Icon/index.astro'
+import Button from '@components/Button/index.astro'
+import CookieSvg from '@assets/images/site/cookie.svg'
+---
+
+<consent-banner>
+  <div
+    id="consent-modal-id"
+    class="bg-bg-offset bottom-0 left-0 fixed right-0 w-full z-50"
+    style="display:none;"
+    role="dialog"
+    aria-label="Cookie consent dialog"
+    aria-describedby="consent-modal__content"
+    aria-modal="true"
+    tabindex="-1"
+  >
+  <!-- Close button positioned at far right of viewport -->
+  <button
+    type="button"
+    aria-label="close cookie consent dialog"
+    class="consent-modal__close-btn bg-secondary border-none text-text flex p-1.5 absolute top-0 right-0 transition-all duration-150 ease-in-out hover:bg-secondary-offset hover:text-text focus:bg-secondary-offset focus:text-text focus:outline-none z-10"
+  >
+    <Icon name="close" class="h-8 w-8" />
+  </button>
+
+  <!-- Modal content container with page column constraints -->
+  <div class="rounded-lg mx-auto max-w-300 w-[90%] px-4 sm:px-6 lg:px-8 mb-4 flex flex-col relative">
+    {
+      /* Mobile: 36px + (8px * 2) = 52px container, half = 26px. Desktop: 48px + (12px * 2) = 72px container, half = 36px */
+    }
+    <div
+      class="h-[52px] w-[52px] -top-[26px] md:h-[72px] md:w-[72px] md:-top-9 bg-bg-offset rounded-full absolute left-0 right-0 mx-auto flex items-center justify-center p-2 md:p-3"
+    >
+      <Image src={CookieSvg} alt="Cookie icon." class="h-6 w-6 md:h-12 md:w-12" />
+    </div>
+    <div class="pt-7 pb-4 pl-4 pr-4 md:pt-9 md:pb-4 md:pl-8 md:pr-8">
+
+      <!-- Unified responsive container using CSS Grid -->
+      <div class="grid gap-4 grid-cols-1 md:grid-cols-[auto_1fr] md:items-center">
+        <!-- Buttons: centered on mobile, left-aligned on desktop -->
+        <menu class="flex items-center gap-4 justify-center md:justify-start md:gap-6 order-2 md:order-1">
+          <li class="list-none">
+            <Button
+              text="Allow All"
+              variant="success"
+              type="button"
+              class="consent-modal__btn-allow border-0! border-transparent! shadow-none! text-shadow-none! hover:shadow-none! focus:shadow-none! active:shadow-none! transform-none! hover:transform-none! focus:transform-none! active:transform-none! hover:bg-success-offset! focus:bg-success-offset! text-sm! px-3! py-2! md:text-base! md:px-4! md:py-2!"
+            />
+          </li>
+          <li class="list-none">
+            <Button
+              text="Customize"
+              variant="warning"
+              class="consent-modal__btn-customize shadow-none! text-shadow-none! hover:shadow-none! focus:shadow-none! active:shadow-none! transform-none! hover:transform-none! focus:transform-none! active:transform-none! text-white! hover:text-white! focus:text-white! text-sm! px-3! py-2! md:text-base! md:px-4! md:py-2!"
+              href="/consent"
+            />
+          </li>
+        </menu>
+
+        <!-- Unified text content: centered small on mobile, left-aligned base on desktop -->
+        <p id="consent-modal__content" class="text-center text-sm md:text-left md:text-base order-1 md:order-2">
+          This site stores data to improve your experience. Learn more in our <a href="/consent">Consent Policy</a> and <a href="/privacy">Privacy Policy</a>.
+        </p>
+      </div>
+    </div>
+  </div>
+  </div>
+</consent-banner>
+
+<script>
+  import { registerConsentBannerWebComponent } from '@components/Consent/Banner/client'
+  import { initConsentSideEffects } from '@components/scripts/store'
+  registerConsentBannerWebComponent()
+
+  // Initialize cookie consent side effects with Astro View Transitions
+  document.addEventListener('astro:page-load', () => {
+    initConsentSideEffects()
+  })
+</script>

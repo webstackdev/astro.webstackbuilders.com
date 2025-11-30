@@ -1,0 +1,116 @@
+---
+/**
+ * Theme Initialization - Inline Script
+ *
+ * Set data-theme attribute on <html> and the <meta theme-color> element
+ * from localStorage, prefers-color-scheme as a fallback, or sets a default.
+ *
+ * CRITICAL: This script MUST be inlined (is:inline) and run as early as possible
+ * to prevent Flash of Unstyled Content (FOUC).
+ *
+ * !!! DO NOT EXPAND THE SCOPE OF THIS SCRIPT OR MOVE OUT OF THIS FILE !!!
+ *
+ * It runs synchronously and blocks rendering.
+ */
+import { themeData } from './server/themeData'
+
+const { defaultThemeIdJson, darkThemeIdJson, metaColorsJson } = themeData()
+---
+
+<script
+  is:inline
+  define:vars={{
+    defaultThemeIdJson,
+    darkThemeIdJson,
+    metaColorsJson,
+  }}
+>
+  // @ts-nocheck
+  document.addEventListener('DOMContentLoaded', () => {
+    /**
+     * This code is only for initial page load from the site. DOMContentLoaded does
+     * not fire when using the Astro View Transitions API for page navigation, so
+     * the themes store defines a side effect to set up an event listener for the
+     * "astro:before-swap" event.
+     */
+    try {
+      const defaultThemeId = JSON.parse(defaultThemeIdJson)
+      const darkThemeId = JSON.parse(darkThemeIdJson)
+      const themeMetaColors = JSON.parse(metaColorsJson)
+
+      /** 1. Read theme preference from localStorage (set by user's previous selection) */
+      const stored = localStorage.getItem('theme')
+
+      if (stored && stored !== defaultThemeId) {
+        /** User explicitly chose a theme - apply it immediately */
+        /** <html> element */
+        document.documentElement.dataset['theme'] =  stored
+      } else if (!stored) {
+        /** No stored preference - use system preference */
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+        /** <html> element */
+        document.documentElement.dataset['theme'] =  prefersDark ? darkThemeId : defaultThemeId
+      }
+
+      /** 2. Turn <body> visible. It's set to hidden in BaseLayout.astro to avoid FOUC. Do
+       * here to make sure it gets turned on, in case the <meta> element selector throws.
+       */
+      document.body.classList.remove('invisible')
+
+      /** 3. Add theme entries from src/content/themes.json to the window.metaColors object */
+      window.metaColors = window.metaColors || {}
+      Object.assign(window.metaColors, themeMetaColors)
+
+      /** 4. Update meta theme-color used for PWAs */
+      const metaElement = document.querySelector('meta[name="theme-color"]')
+      if (stored && stored !== defaultThemeId && metaElement && window.metaColors) {
+        /** User explicitly chose a theme - apply it immediately */
+        metaElement.setAttribute('content', window.metaColors[stored] || '')
+      } else if (!stored && metaElement && window.metaColors) {
+        /** No stored preference - use system preference */
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+        metaElement.setAttribute(
+          'content',
+          window.metaColors[prefersDark ? darkThemeId : defaultThemeId] || ''
+        )
+      }
+
+      /**
+       * 5. If stored === defaultThemeId, BaseLayout.astro already set it
+       * on <html> data-theme attribute and Meta.astro already set it on
+       * <meta name="theme-color">, so nothing to do
+       */
+
+      /** 6. Success! */
+      console.log('🎨 Theme init on "DOMContentLoaded" executed')
+    } catch (error) {
+      /** localStorage access can fail (privacy mode, etc.) */
+      /** Fall back to BaseLayout's data-theme="light", make sure the page is visible */
+      document.body.classList.remove('invisible')
+      console.error('❌ Theme init on "DOMContentLoaded" failed with errors:', error)
+    }
+  }, { once: true })
+
+  /**
+   * Add the fast theme setting logic for Astro View Transition API navigation events.
+   *
+   * The DOMContentLoaded event does not fire on subsequent page transitions (soft loads).
+   */
+  document.addEventListener("astro:before-swap", (event) => {
+    try {
+      /** 1. Read theme preference from localStorage (set by user's previous selection) */
+      const stored = localStorage.getItem('theme')
+      /** 2. <html> element */
+      event.newDocument.documentElement.dataset['theme'] = stored
+      /** 3. Turn <body> visible. It's set to hidden in BaseLayout.astro to avoid FOUC */
+      event.newDocument.body.classList.remove('invisible')
+      /** 4. Success! */
+      console.log('🎨 Theme init on "astro:before-swap" executed')
+    } catch (error) {
+      /** localStorage access can fail (privacy mode, etc.) */
+      /** Fall back to BaseLayout's data-theme="light", make sure the page is visible */
+      event.newDocument.body.classList.remove('invisible')
+      console.error('❌ Theme init on "astro:before-swap" failed with errors:', error)
+    }
+  })
+</script>

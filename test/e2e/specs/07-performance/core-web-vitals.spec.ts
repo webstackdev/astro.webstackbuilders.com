@@ -9,8 +9,8 @@ import { PerformancePage } from '@test/e2e/helpers/pageObjectModels/PerformanceP
 test.describe('Core Web Vitals', () => {
   let performancePage: PerformancePage
 
-  test.beforeEach(async ({ page }) => {
-    performancePage = new PerformancePage(page)
+  test.beforeEach(async ({ page: playwrightPage }) => {
+    performancePage = await PerformancePage.init(playwrightPage)
     await performancePage.goto('/')
   })
 
@@ -24,7 +24,7 @@ test.describe('Core Web Vitals', () => {
 
   test('@ready Cumulative Layout Shift under 0.1', async () => {
     // Wait for page to settle
-    await performancePage.wait(3000)
+    await performancePage.waitForPageComplete()
     await performancePage.expectCLSUnder(0.1)
   })
 
@@ -56,7 +56,8 @@ test.describe('Core Web Vitals', () => {
 
     performancePage.page.evaluate((time) => {
       if (time >= 3000) {
-        throw new Error(`Page load time ${time}ms exceeds 3000ms threshold`)
+        const EvaluationErrorCtor = window.EvaluationError!
+        throw new EvaluationErrorCtor(`Page load time ${time}ms exceeds 3000ms threshold`)
       }
     }, loadTime)
   })

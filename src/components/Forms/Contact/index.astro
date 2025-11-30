@@ -1,0 +1,461 @@
+---
+// ContactForm.astro - Reusable contact form component
+import GDPRConsent from '@components/Consent/Checkbox/index.astro'
+import UploadPlaceholder from './upload.astro'
+---
+
+<contact-form>
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 items-start">
+  <!-- Contact Form -->
+  <div class="lg:col-span-2 bg-bg p-6 md:p-8 rounded-2xl shadow-lg">
+    <div class="mb-8">
+      <h2 class="text-2xl md:text-3xl font-semibold text-text mb-3">
+        Tell us about your project
+      </h2>
+      <p class="text-text-offset text-lg">
+        We'll get back to you within 24 hours with a detailed proposal.
+      </p>
+    </div>
+
+    <form class="space-y-8" id="contactForm" method="post" enctype="multipart/form-data" novalidate>
+      <div
+        id="formErrorBanner"
+        class="hidden rounded-xl border border-danger bg-danger/10 text-danger px-4 py-3"
+        role="alert"
+        aria-live="assertive"
+      >
+        Please fix the errors in your message and hit the submit button again.
+      </div>
+
+      <!-- Personal Information -->
+      <div class="pb-6 border-b border-border">
+        <h3 class="flex items-center text-xl font-semibold text-text mb-6">
+          <div class="w-1 h-5 bg-primary rounded-full mr-3"></div>
+          Contact Information
+        </h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="space-y-2">
+            <label for="name" class="block text-sm font-medium text-text-offset"
+              >Full Name *</label
+            >
+            <input
+              type="text"
+              id="name"
+              name="name"
+              class="w-full px-4 py-3 border-2 border-border rounded-xl bg-bg text-text focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200"
+              required
+              placeholder="Your full name"
+              minlength="2"
+              maxlength="100"
+            />
+            <p
+              class="hidden text-sm text-danger"
+              data-field-error="name"
+              aria-live="polite"
+            ></p>
+          </div>
+
+          <div class="space-y-2">
+            <label for="email" class="block text-sm font-medium text-text-offset"
+              >Email Address *</label
+            >
+            <input
+              type="email"
+              id="email"
+              name="email"
+              class="w-full px-4 py-3 border-2 border-border rounded-xl bg-bg text-text focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200"
+              required
+              placeholder="your.email@example.com"
+            />
+            <p
+              class="hidden text-sm text-danger"
+              data-field-error="email"
+              aria-live="polite"
+            ></p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="space-y-2">
+            <label for="company" class="block text-sm font-medium text-text-offset"
+              >Company Name</label
+            >
+            <input
+              type="text"
+              id="company"
+              name="company"
+              class="w-full px-4 py-3 border-2 border-border rounded-xl bg-bg text-text focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200"
+              placeholder="Your company name"
+              maxlength="100"
+            />
+          </div>
+
+          <div class="space-y-2">
+            <label for="phone" class="block text-sm font-medium text-text-offset"
+              >Phone Number</label
+            >
+            <input
+              type="tel"
+              id="phone"
+              name="phone"
+              class="w-full px-4 py-3 border-2 border-border rounded-xl bg-bg text-text focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200"
+              placeholder="+1 (555) 123-4567"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Project Information -->
+      <div class="pb-6 border-b border-border">
+        <h3 class="flex items-center text-xl font-semibold text-text mb-6">
+          <div class="w-1 h-5 bg-primary rounded-full mr-3"></div>
+          Project Details
+        </h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="space-y-2">
+            <label
+              for="project_type"
+              class="block text-sm font-medium text-text-offset">Project Type</label
+            >
+            <select
+              id="project_type"
+              name="project_type"
+              class="w-full px-4 py-3 border-2 border-border rounded-xl bg-bg text-text focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200 cursor-pointer"
+            >
+              <option value="">Select project type</option>
+              <option value="website">New Website</option>
+              <option value="redesign">Website Redesign</option>
+              <option value="ecommerce">E-commerce Store</option>
+              <option value="webapp">Web Application</option>
+              <option value="mobile">Mobile App</option>
+              <option value="api">API Development</option>
+              <option value="consulting">Consulting</option>
+              <option value="maintenance">Maintenance & Support</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+                    <div class="space-y-2">
+            <label for="budget" class="block text-sm font-medium text-text-offset"
+              >Budget Range *</label
+            >
+            <select
+              id="budget"
+              name="budget"
+              required
+              class="w-full px-4 py-3 border-2 border-border rounded-xl bg-bg text-text focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200 cursor-pointer"
+            >
+              <option value="">Select budget range</option>
+              <option value="5k-10k">$5,000 - $10,000</option>
+              <option value="10k-25k">$10,000 - $25,000</option>
+              <option value="25k-50k">$25,000 - $50,000</option>
+              <option value="50k+">$50,000+</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <label for="timeline" class="block text-sm font-medium text-text-offset"
+            >Project Timeline *</label
+          >
+          <select
+            id="timeline"
+            name="timeline"
+            class="w-full px-4 py-3 border-2 border-border rounded-xl bg-bg text-text focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200 cursor-pointer"
+          >
+            <option value="">Select timeline</option>
+            <option value="asap">ASAP</option>
+            <option value="1-month">Within 1 month</option>
+            <option value="2-3-months">2-3 months</option>
+            <option value="3-6-months">3-6 months</option>
+            <option value="6-months-plus">6+ months</option>
+            <option value="flexible">Flexible</option>
+          </select>
+        </div>
+
+        <div class="space-y-2">
+          <label for="message" class="block text-sm font-medium text-text-offset"
+            >Project Description *</label
+          >
+          <textarea
+            id="message"
+            name="message"
+            class="w-full px-4 py-3 border-2 border-border rounded-xl bg-bg text-text focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200 resize-vertical min-h-[120px]"
+            rows="6"
+            required
+            placeholder="Describe your project, goals, target audience, and any specific requirements..."
+            minlength="10"
+            maxlength="2000"></textarea>
+          <p
+            class="hidden text-sm text-danger"
+            data-field-error="message"
+            aria-live="polite"
+          ></p>
+          <div class="text-right text-sm text-text-offset">
+            <span id="charCount">0</span>/2000 characters
+          </div>
+        </div>
+      </div>
+
+      <!-- File Upload Section -->
+      <div class="pb-6">
+        <h3 class="flex items-center text-xl font-semibold text-text mb-4">
+          <div class="w-1 h-5 bg-primary rounded-full mr-3"></div>
+          Project Files (Optional)
+        </h3>
+        <p class="text-text-offset text-sm mb-6">
+          Upload any relevant files like mockups, specifications, existing designs, or reference
+          materials.
+        </p>
+
+        <div
+          class="border-2 border-dashed border-border rounded-xl p-8 text-center bg-bg-offset hover:border-primary-hover transition-colors duration-200"
+        >
+          <div id="uppyContainer" hidden>
+            <UploadPlaceholder />
+          </div>
+          <div class="mt-4 space-y-2">
+            <p class="text-sm text-text-offset">
+              <strong>Supported formats:</strong> PDF, DOC, DOCX, JPG, PNG, GIF, WebP, MP3, WAV, MP4,
+              MOV, ZIP, TXT
+            </p>
+            <p class="text-sm text-text-offset">
+              <strong>Max file size:</strong> 10MB per file • <strong>Max files:</strong> 5
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- GDPR Consent -->
+      <GDPRConsent
+        purpose="responding to your inquiry"
+        formId="contact-form"
+        id="contact-gdpr-consent"
+      />
+
+      <!-- Data Retention Notice -->
+      <div class="text-sm text-text-offset space-y-2 bg-bg-offset p-4 rounded-lg border border-border">
+        <p><strong>Data Retention:</strong> Your contact information will be stored for 90 days to respond to your inquiry.</p>
+        <p><strong>Your Rights:</strong> You can request access, correction, or deletion of your data at any time by contacting <a href="mailto:kevin@webstackbuilders.com" class="text-primary hover:underline">kevin@webstackbuilders.com</a>.</p>
+      </div>
+
+      <div class="flex justify-end">
+        <button
+          type="submit"
+          class="inline-flex items-center justify-center px-8 py-4 bg-primary hover:bg-primary-hover text-white font-semibold rounded-xl transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none min-w-[200px]"
+          id="submitBtn"
+        >
+          <span class="btn-text">Send Project Details</span>
+          <span class="btn-loading hidden">
+            <svg class="animate-spin w-5 h-5 mr-2" viewBox="0 0 24 24">
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                opacity="0.3"></circle>
+              <path d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" fill="currentColor"></path>
+            </svg>
+            Sending...
+          </span>
+        </button>
+      </div>
+    </form>
+
+    <!-- Form Messages -->
+    <div id="formMessages" class="mt-8 rounded-xl overflow-hidden" style="display: none;">
+      <div class="message-success hidden">
+        <div
+          class="flex items-start p-6 bg-success-bg border border-success gap-4"
+        >
+          <div
+            class="shrink-0 w-6 h-6 bg-success text-white rounded-full flex items-center justify-center text-sm font-bold"
+          >
+            ✓
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-success mb-2">Thank you!</h3>
+            <p class="text-text">
+              Your project details have been sent successfully. We'll review everything and get back
+              to you within 24 hours with a detailed proposal.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="message-error hidden">
+        <div
+          class="flex items-start p-6 bg-danger-bg border border-danger gap-4"
+        >
+          <div
+            class="shrink-0 w-6 h-6 bg-danger text-white rounded-full flex items-center justify-center text-sm font-bold"
+          >
+            ⚠
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-danger mb-2">Oops!</h3>
+            <p class="text-text" id="errorMessage">
+              Something went wrong. Please try again later.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contact Information -->
+  <div class="bg-bg p-6 md:p-8 rounded-2xl shadow-lg h-fit sticky top-8">
+    <div class="space-y-8">
+      <div>
+        <h3 class="text-xl font-semibold text-text mb-6">Get In Touch</h3>
+
+        <div class="space-y-6">
+          <div class="flex items-start gap-4">
+            <div
+              class="shrink-0 w-11 h-11 bg-linear-to-br from-primary to-accent text-white rounded-xl flex items-center justify-center"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+                ></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg>
+            </div>
+            <div>
+              <h4 class="font-semibold text-text mb-1">Email</h4>
+              <p class="text-text-offset">kevin@webstackbuilders.com</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-4">
+            <div
+              class="shrink-0 w-11 h-11 bg-linear-to-br from-primary to-accent text-white rounded-xl flex items-center justify-center"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+              </svg>
+            </div>
+            <div>
+              <h4 class="font-semibold text-text mb-1">Location</h4>
+              <p class="text-text-offset">Remote • Worldwide</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-4">
+            <div
+              class="shrink-0 w-11 h-11 bg-linear-to-br from-primary to-accent text-white rounded-xl flex items-center justify-center"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12,6 12,12 16,14"></polyline>
+              </svg>
+            </div>
+            <div>
+              <h4 class="font-semibold text-text mb-1">Response Time</h4>
+              <p class="text-text-offset">Within 24 hours</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h3 class="text-xl font-semibold text-text mb-6">Our Expertise</h3>
+        <ul class="space-y-3">
+          <li class="flex items-center text-text-offset pl-4 relative">
+            <span class="absolute left-0 w-2 h-2 bg-primary rounded-full"></span>
+            Custom Web Development
+          </li>
+          <li class="flex items-center text-text-offset pl-4 relative">
+            <span class="absolute left-0 w-2 h-2 bg-primary rounded-full"></span>
+            E-commerce Solutions
+          </li>
+          <li class="flex items-center text-text-offset pl-4 relative">
+            <span class="absolute left-0 w-2 h-2 bg-primary rounded-full"></span>
+            Progressive Web Apps
+          </li>
+          <li class="flex items-center text-text-offset pl-4 relative">
+            <span class="absolute left-0 w-2 h-2 bg-primary rounded-full"></span>
+            API Development & Integration
+          </li>
+          <li class="flex items-center text-text-offset pl-4 relative">
+            <span class="absolute left-0 w-2 h-2 bg-primary rounded-full"></span>
+            Database Design & Optimization
+          </li>
+          <li class="flex items-center text-text-offset pl-4 relative">
+            <span class="absolute left-0 w-2 h-2 bg-primary rounded-full"></span>
+            Performance & SEO Optimization
+          </li>
+          <li class="flex items-center text-text-offset pl-4 relative">
+            <span class="absolute left-0 w-2 h-2 bg-primary rounded-full"></span>
+            Maintenance & Support
+          </li>
+          <li class="flex items-center text-text-offset pl-4 relative">
+            <span class="absolute left-0 w-2 h-2 bg-primary rounded-full"></span>
+            Technical Consulting
+          </li>
+        </ul>
+      </div>
+
+      <div>
+        <h3 class="text-xl font-semibold text-text mb-6">Why Choose Us?</h3>
+        <ul class="space-y-3">
+          <li class="flex items-center text-text-offset pl-4 relative">
+            <span class="absolute left-0 w-2 h-2 bg-primary rounded-full"></span>
+            15+ years of experience
+          </li>
+          <li class="flex items-center text-text-offset pl-4 relative">
+            <span class="absolute left-0 w-2 h-2 bg-primary rounded-full"></span>
+            Modern tech stack
+          </li>
+          <li class="flex items-center text-text-offset pl-4 relative">
+            <span class="absolute left-0 w-2 h-2 bg-primary rounded-full"></span>
+            Performance-focused
+          </li>
+          <li class="flex items-center text-text-offset pl-4 relative">
+            <span class="absolute left-0 w-2 h-2 bg-primary rounded-full"></span>
+            SEO optimized
+          </li>
+          <li class="flex items-center text-text-offset pl-4 relative">
+            <span class="absolute left-0 w-2 h-2 bg-primary rounded-full"></span>
+            Mobile-first approach
+          </li>
+          <li class="flex items-center text-text-offset pl-4 relative">
+            <span class="absolute left-0 w-2 h-2 bg-primary rounded-full"></span>
+            Ongoing support
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+</contact-form>
+
+<script>
+  import { registerContactFormWebComponent } from '@components/Forms/Contact/client'
+  registerContactFormWebComponent()
+</script>

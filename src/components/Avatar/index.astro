@@ -11,9 +11,8 @@
  * <Avatar name="Chris Southam" class="custom-class" />
  * ```
  */
-
 import { Image } from 'astro:assets'
-import { AvatarManager, normalizeNameToFilename } from './server'
+import { AvatarManager, normalizeNameToFilename } from '@components/Avatar/server'
 
 export interface Props {
   /** The person's name (will be normalized for filename lookup) */
@@ -50,7 +49,7 @@ const fallbackInitial = name.charAt(0).toUpperCase()
         height={avatarImage.height}
       />
     ) : (
-      <div class="avatar-placeholder bg-[color:var(--color-bg-offset)] w-16 h-16 rounded-full flex items-center justify-center text-[color:var(--color-text-offset)]">
+      <div class="avatar-placeholder bg-offset w-16 h-16 rounded-full flex items-center justify-center text-offset">
         {fallbackInitial}
       </div>
     )

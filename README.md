@@ -369,26 +369,22 @@ losst.pro has a modal that pops up for fixing mistakes:
 - astro-navigation
 - astro-webfinger (Mastodon)
 
-## Sprites
+## Icons
 
 Icons are managed through the `astro-icon` system with SVG files stored in `src/icons/`.
 
 **Adding a new icon:**
 
-1. Add the SVG file to `src/icons/` (use kebab-case naming)
-2. Update `src/components/Sprite/sprites.ts` to add the icon name to the `SpriteName` union type
-3. Use the icon with the `Sprite` component
+See [docs](src/icons/README.md).
 
 **Usage:**
 
 ```typescript
 ---
- import Sprite from 'components/Sprite.astro'
+ import Icon from 'components/Icon.astro'
 ---
-<Sprite name="fileName" class="customClassName"/>
+<Icon name="fileName" class="customClassName"/>
 ```
-
-See `src/icons/README.md` for detailed icon documentation.
 
 ## Pages
 

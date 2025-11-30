@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest'
 import { remark } from 'remark'
 import remarkRehype from 'remark-rehype'
 import rehypeStringify from 'rehype-stringify'
-import remarkAttr from '../index'
-import type { RemarkAttrOptions } from '../types'
+import remarkAttr from '@lib/markdown/plugins/remark-attributes'
+import type { RemarkAttrOptions } from '@lib/markdown/plugins/remark-attributes/types'
 
 /**
  * Helper function to process markdown through the attr plugin

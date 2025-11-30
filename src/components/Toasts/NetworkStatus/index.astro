@@ -11,81 +11,15 @@
  * <NetworkStatus />
  * ```
  */
+import styles from './index.module.css'
 ---
 
-<!-- Toast notification container -->
-<div
-  id="network-status-toast"
-  class="fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300 hidden"
-  data-type="success"
-  role="alert"
-  aria-live="polite"
->
-  <div class="flex items-center space-x-2">
-    <!-- Success icon -->
-    <svg
-      class="w-5 h-5 success-icon"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-    >
-      <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        stroke-width="2"
-        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-    </svg>
-    <!-- Error icon -->
-    <svg
-      class="w-5 h-5 error-icon hidden"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-    >
-      <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        stroke-width="2"
-        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-    </svg>
-    <span class="toast-message">Connection restored!</span>
-  </div>
-</div>
-
-<style>
-  #network-status-toast[data-type='success'] {
-    background-color: var(--color-success);
-    color: var(--color-success-bg);
-  }
-
-  #network-status-toast[data-type='error'] {
-    background-color: var(--color-danger);
-    color: var(--color-danger-bg);
-  }
-
-  #network-status-toast[data-type='success'] .success-icon {
-    display: block;
-  }
-
-  #network-status-toast[data-type='success'] .error-icon {
-    display: none;
-  }
-
-  #network-status-toast[data-type='error'] .success-icon {
-    display: none;
-  }
-
-  #network-status-toast[data-type='error'] .error-icon {
-    display: block;
-  }
-</style>
+<network-status-toast
+  class:list={['network-status-toast', styles.toastHost]}
+  data-testid="network-status-toast"
+></network-status-toast>
 
 <script>
-  import { registerScript } from '@components/Scripts/loader'
-  import { NetworkStatus } from './client'
-
-  // Register NetworkStatus script to initialize with Astro View Transitions
-  registerScript(NetworkStatus)
+  import { registerNetworkStatusToast } from '@components/Toasts/NetworkStatus/client'
+  registerNetworkStatusToast()
 </script>

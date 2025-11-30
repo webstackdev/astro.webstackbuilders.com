@@ -17,8 +17,8 @@ import { PerformancePage } from '@test/e2e/helpers/pageObjectModels/PerformanceP
 test.describe('Lighthouse Performance', () => {
   let performancePage: PerformancePage
 
-  test.beforeEach(async ({ page }) => {
-    performancePage = new PerformancePage(page)
+  test.beforeEach(async ({ page: playwrightPage }) => {
+    performancePage = await PerformancePage.init(playwrightPage)
   })
 
   test.skip('@blocked run Lighthouse audit on homepage', async () => {

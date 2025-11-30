@@ -12,7 +12,7 @@ test.describe('Service Detail Pages @ready', () => {
       return
     }
 
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto(firstService)
     await page.expectMainElement()
     await page.expectHeading()
@@ -26,7 +26,7 @@ test.describe('Service Detail Pages @ready', () => {
       return
     }
 
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto(firstService)
     await page.expectElementVisible('h1#article-title')
     await page.expectElementNotEmpty('h1#article-title')
@@ -39,7 +39,7 @@ test.describe('Service Detail Pages @ready', () => {
       return
     }
 
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto(firstService)
     await page.expectElementVisible('article p')
   })
@@ -51,7 +51,7 @@ test.describe('Service Detail Pages @ready', () => {
       return
     }
 
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto(firstService)
     await page.expectNoErrors()
   })
@@ -63,7 +63,7 @@ test.describe('Service Detail Pages @ready', () => {
       return
     }
 
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto(firstService)
     await page.expectNoErrors()
   })

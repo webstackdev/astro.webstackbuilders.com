@@ -1,0 +1,52 @@
+---
+/**
+ * Social media sharing component powered by Lit web component
+ */
+
+export interface Props {
+  /** Page URL to share */
+  url: string
+  /** Page title to share */
+  title: string
+  /** Page description to share */
+  description?: string
+  /** Social image URL */
+  image?: string
+  /** Additional CSS classes */
+  class?: string
+  /** Show as horizontal or vertical layout */
+  layout?: 'horizontal' | 'vertical'
+  /** Which social networks to show */
+  socialNetworks?: ('twitter' | 'linkedin' | 'bluesky' | 'reddit' | 'mastodon')[]
+}
+
+const {
+  url,
+  title,
+  description = '',
+  class: additionalClasses = '',
+  layout = 'horizontal',
+  socialNetworks = ['twitter', 'linkedin', 'bluesky', 'reddit', 'mastodon'],
+} = Astro.props
+
+// Create share data
+const shareDescription = description ?? ''
+const containerClassAttr = additionalClasses ?? ''
+const socialNetworksAttr = socialNetworks.join(',')
+---
+
+<social-share-element
+  data-social-shares
+  url={url}
+  title={title}
+  description={shareDescription}
+  layout={layout}
+  social-networks={socialNetworksAttr}
+  container-class={containerClassAttr}
+  label-text="Share:"
+/>
+
+<script>
+  import { registerSocialShareElement } from './client'
+  registerSocialShareElement()
+</script>

@@ -4,11 +4,18 @@
  */
 import type { BrowserContext, Page } from '@playwright/test'
 import { expect } from '@playwright/test'
-import { BasePage } from './BasePage'
+import { BasePage } from '@test/e2e/helpers'
 
 export class PwaPage extends BasePage {
-  constructor(page: Page) {
+  protected constructor(page: Page) {
     super(page)
+  }
+
+  static override async init(page: Page): Promise<PwaPage> {
+    await this.setupPlaywrightGlobals(page)
+    const instance = new PwaPage(page)
+    await instance.onInit()
+    return instance
   }
 
   /**
@@ -18,21 +25,12 @@ export class PwaPage extends BasePage {
    */
 
   /**
-   * Navigate to the offline page
-   */
-  async navigateToOfflinePage(): Promise<void> {
-    await this.goto('/offline')
-    await this.waitForLoadState('domcontentloaded')
-  }
-
-  /**
    * Navigate to home page and wait for service worker
    */
   async navigateToHomeAndWaitForSW(): Promise<void> {
     await this.goto('/')
     await this.waitForLoadState('networkidle')
-    // Give service worker time to register
-    await this.wait(2000)
+    await this.waitForServiceWorkerReady()
   }
 
   /**
@@ -63,6 +61,39 @@ export class PwaPage extends BasePage {
       }
       return false
     })
+  }
+
+  /**
+   * Wait until the service worker is ready (registered + activated)
+   */
+  async waitForServiceWorkerReady(): Promise<void> {
+    const attempts = 3
+
+    for (let attempt = 0; attempt < attempts; attempt += 1) {
+      try {
+        await this.page.evaluate(async () => {
+          if (!('serviceWorker' in navigator)) {
+            return
+          }
+
+          try {
+            await navigator.serviceWorker.ready
+          } catch {
+            // ignore readiness errors in environments without SW support
+          }
+        })
+        return
+      } catch (error) {
+        const message = error instanceof Error ? error.message : ''
+        const contextDestroyed = message.includes('Execution context was destroyed')
+
+        if (!contextDestroyed || attempt === attempts - 1) {
+          throw error
+        }
+
+        await this.waitForLoadState('networkidle')
+      }
+    }
   }
 
   /**
@@ -239,42 +270,6 @@ export class PwaPage extends BasePage {
 
   /**
    * ================================================================
-   * Offline Page Methods
-   * ================================================================
-   */
-
-  /**
-   * Verify offline page displays offline heading
-   */
-  async expectOfflineHeading(): Promise<void> {
-    await expect(this.page.locator('h1')).toContainText(/offline/i)
-  }
-
-  /**
-   * Verify offline page has styled content
-   */
-  async expectOfflinePageHasStyles(): Promise<boolean> {
-    return await this.page.evaluate(() => {
-      const body = document.body
-      const styles = window.getComputedStyle(body)
-      return styles.backgroundColor !== 'rgba(0, 0, 0, 0)'
-    })
-  }
-
-  /**
-   * Verify offline page contains specific message
-   */
-  async expectOfflinePageMessage(message: string | RegExp): Promise<void> {
-    const content = await this.getTextContent('body')
-    if (typeof message === 'string') {
-      expect(content?.toLowerCase()).toContain(message.toLowerCase())
-    } else {
-      expect(content).toMatch(message)
-    }
-  }
-
-  /**
-   * ================================================================
    * Assertion Methods
    * ================================================================
    */
@@ -337,6 +332,22 @@ export class PwaPage extends BasePage {
   async expectPageHasContent(): Promise<void> {
     const content = await this.getTextContent('body')
     expect(content?.length).toBeGreaterThan(0)
+  }
+
+  /**
+   * Expect offline fallback content to be visible
+   */
+  async expectOfflineFallbackContent(): Promise<void> {
+    await expect(this.page.getByText('You are offline')).toBeVisible()
+    await expect(this.page.getByText('Try again when you reconnect')).toBeVisible()
+  }
+
+  /**
+   * Expect 404 fallback to render when offline navigation fails
+   */
+  async expectNotFoundFallback(): Promise<void> {
+    await expect(this.page.getByRole('heading', { name: 'Page Not Found' })).toBeVisible()
+    await expect(this.page.getByRole('heading', { name: '404' })).toBeVisible()
   }
 
   /**

@@ -3,13 +3,11 @@
 // Refactored to use Embla Carousel for consistency with other carousel components
 import { getCollection } from 'astro:content'
 import Avatar from '@components/Avatar/index.astro'
+import type { TestimonialsProps } from './props'
 
-export interface Props {
-  title?: string
-  limit?: number
-}
+export type { TestimonialsProps as Props } from './props'
 
-const { title = 'Testimonials', limit } = Astro.props
+const { title = 'Testimonials', limit } = Astro.props as TestimonialsProps
 
 // Get all testimonials from content collection
 const allTestimonials = await getCollection('testimonials')
@@ -22,14 +20,15 @@ const testimonials = allTestimonials
 
 {
   testimonials.length > 0 && (
-    <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-      <header class="text-center mb-12">
-        <h2 class="text-3xl md:text-4xl font-bold text-text">{title}</h2>
-      </header>
+    <testimonials-carousel data-carousel class="block">
+      <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <header class="text-center mb-12">
+          <h2 class="text-3xl md:text-4xl font-bold text-text">{title}</h2>
+        </header>
 
-      {/* Embla Carousel for Testimonials */}
-      <div class="testimonials-embla relative">
-        <div class="embla__viewport overflow-hidden">
+        {/* Embla Carousel for Testimonials */}
+        <div class="testimonials-embla relative">
+          <div class="embla__viewport overflow-hidden">
           <div class="embla__container flex">
             {testimonials.map(testimonial => (
               <div class="embla__slide flex-[0_0_100%] min-w-0 px-4">
@@ -50,7 +49,7 @@ const testimonials = allTestimonials
 
                   {/* Author Info */}
                   <div class="flex items-center gap-4">
-                    <Avatar name={testimonial.data.name} class="flex-shrink-0" />
+                    <Avatar name={testimonial.data.name} class="shrink-0" />
                     <div>
                       <div class="font-semibold text-text">
                         {testimonial.data.name}
@@ -117,15 +116,13 @@ const testimonials = allTestimonials
             />
           </>
         )}
-      </div>
-    </section>
+        </div>
+      </section>
+    </testimonials-carousel>
   )
 }
 
 <script>
-  import { registerScript } from '@components/Scripts/loader'
-  import { TestimonialsCarousel } from './client'
-
-  // Register testimonials carousel script to initialize with delayed loading
-  registerScript(TestimonialsCarousel)
+  import { registerTestimonialsWebComponent } from '@components/Testimonials/client'
+  registerTestimonialsWebComponent()
 </script>

@@ -4,33 +4,37 @@
  * @see src/components/Breadcrumbs/
  */
 
-import { BasePage, test, expect } from '@test/e2e/helpers'
-import { setupTestPage } from '@test/e2e/helpers/cookieHelper'
+import {
+  BreadCrumbPage,
+  expect,
+  test,
+} from '@test/e2e/helpers'
 
 test.describe('Breadcrumbs Component', () => {
   test('@ready breadcrumbs display on article pages', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
-    await setupTestPage(playwrightPage, '/articles')
-    await page.click('a[href*="/articles/"]')
-    await page.waitForLoadState('networkidle')
+    const page = await BreadCrumbPage.init(playwrightPage)
+    await page.openFirstArticleDetail()
 
     await page.expectElementVisible('nav[aria-label="Breadcrumb"]')
   })
 
   test('@ready breadcrumbs display on service pages', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
-    await setupTestPage(playwrightPage, '/services')
-    await page.click('a[href*="/services/"]')
-    await page.waitForLoadState('networkidle')
+    const page = await BreadCrumbPage.init(playwrightPage)
+    await page.openFirstServiceDetail()
+
+    await page.expectElementVisible('nav[aria-label="Breadcrumb"]')
+  })
+
+  test('@ready breadcrumbs display on case study pages', async ({ page: playwrightPage }) => {
+    const page = await BreadCrumbPage.init(playwrightPage)
+    await page.openFirstCaseStudyDetail()
 
     await page.expectElementVisible('nav[aria-label="Breadcrumb"]')
   })
 
   test('@ready breadcrumbs show correct path', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
-    await setupTestPage(playwrightPage, '/articles')
-    await page.click('a[href*="/articles/"]')
-    await page.waitForLoadState('networkidle')
+    const page = await BreadCrumbPage.init(playwrightPage)
+    await page.openFirstArticleDetail()
 
     const count = await page.countElements('nav[aria-label="Breadcrumb"] a')
     expect(count).toBeGreaterThan(0)
@@ -41,10 +45,8 @@ test.describe('Breadcrumbs Component', () => {
   })
 
   test('@ready breadcrumb links are clickable', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
-    await setupTestPage(playwrightPage, '/articles')
-    await page.click('a[href*="/articles/"]')
-    await page.waitForLoadState('networkidle')
+    const page = await BreadCrumbPage.init(playwrightPage)
+    await page.openFirstArticleDetail()
 
     await page.click('nav[aria-label="Breadcrumb"] a')
     await page.waitForLoadState('networkidle')
@@ -53,10 +55,8 @@ test.describe('Breadcrumbs Component', () => {
   })
 
   test('@ready current page is not a link', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
-    await setupTestPage(playwrightPage, '/articles')
-    await page.click('a[href*="/articles/"]')
-    await page.waitForLoadState('networkidle')
+    const page = await BreadCrumbPage.init(playwrightPage)
+    await page.openFirstArticleDetail()
 
     // Last item should have aria-current="page" on the span, not be a link
     await page.expectElementVisible('nav[aria-label="Breadcrumb"] li:last-child span[aria-current="page"]')
@@ -67,10 +67,8 @@ test.describe('Breadcrumbs Component', () => {
   })
 
   test('@ready breadcrumbs have proper separators', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
-    await setupTestPage(playwrightPage, '/articles')
-    await page.click('a[href*="/articles/"]')
-    await page.waitForLoadState('networkidle')
+    const page = await BreadCrumbPage.init(playwrightPage)
+    await page.openFirstArticleDetail()
 
     const itemCount = await page.countElements('nav[aria-label="Breadcrumb"] li')
     expect(itemCount).toBeGreaterThan(1)
@@ -81,10 +79,8 @@ test.describe('Breadcrumbs Component', () => {
   })
 
   test('@ready breadcrumbs use proper ARIA', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
-    await setupTestPage(playwrightPage, '/articles')
-    await page.click('a[href*="/articles/"]')
-    await page.waitForLoadState('networkidle')
+    const page = await BreadCrumbPage.init(playwrightPage)
+    await page.openFirstArticleDetail()
 
     await page.expectElementVisible('nav[aria-label="Breadcrumb"]')
 
@@ -93,42 +89,21 @@ test.describe('Breadcrumbs Component', () => {
   })
 
   test('@ready breadcrumbs are responsive', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BreadCrumbPage.init(playwrightPage)
     await page.setViewport(375, 667)
-    await setupTestPage(playwrightPage, '/articles')
-
-    await page.click('a[href*="/articles/"]', { force: true }) // Bypass cookie dialog overlay
-    await page.waitForLoadState('networkidle')
+    await page.openFirstArticleDetail()
 
     await page.expectElementVisible('nav[aria-label="Breadcrumb"]')
   })
 
-  test.skip('@wip breadcrumbs have structured data', async ({ page: playwrightPage }) => {
+  test('@ready breadcrumbs have structured data', async ({ page: playwrightPage }) => {
     // Expected: Should include JSON-LD BreadcrumbList schema
-    const page = new BasePage(playwrightPage)
-    await setupTestPage(playwrightPage, '/articles')
-    await page.click('a[href*="/articles/"]')
-    await page.waitForLoadState('networkidle')
+    const page = await BreadCrumbPage.init(playwrightPage)
+    await page.openFirstArticleDetail({ navigationMode: 'fresh' })
 
     const jsonLd = await playwrightPage.locator('script[type="application/ld+json"]').allTextContents()
     const hasBreadcrumbSchema = jsonLd.some((json) => json.includes('BreadcrumbList'))
 
     expect(hasBreadcrumbSchema).toBe(true)
-  })
-
-  test('@ready breadcrumbs truncate long titles', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
-    await setupTestPage(playwrightPage, '/articles')
-    await page.click('a[href*="/articles/"]')
-    await page.waitForLoadState('networkidle')
-
-    const hasEllipsis = await playwrightPage.locator('nav[aria-label="Breadcrumb"] li').last().evaluate((el) => {
-      const styles = window.getComputedStyle(el)
-      return styles.textOverflow === 'ellipsis' || styles.overflow === 'hidden'
-    })
-
-    // Test passes if either truncation is applied or text is reasonably short
-    const text = await page.getTextContent('nav[aria-label="Breadcrumb"] li:last-child')
-    expect(hasEllipsis || (text && text.length < 50)).toBe(true)
   })
 })

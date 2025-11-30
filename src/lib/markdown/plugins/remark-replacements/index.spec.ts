@@ -5,7 +5,7 @@ import { describe, it, expect } from 'vitest'
 import { unified } from 'unified'
 import remarkParse from 'remark-parse'
 import remarkStringify from 'remark-stringify'
-import remarkReplacements, { type RemarkReplacementsOptions } from './index'
+import remarkReplacements, { type RemarkReplacementsOptions } from '@lib/markdown/plugins/remark-replacements'
 
 /**
  * Helper to process markdown with the plugin

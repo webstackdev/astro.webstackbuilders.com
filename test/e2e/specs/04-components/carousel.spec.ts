@@ -1,195 +1,142 @@
 /**
- * Carousel Component Tests
- * Tests for Embla carousel functionality including navigation, autoplay, and responsiveness
- * @see src/components/Carousel/
+ * Carousel Component E2E coverage
+ * Focuses on the core UX guarantees of the Embla-powered slider rendered on case study detail pages.
  */
 
-import { test, expect } from '@test/e2e/helpers'
+import { BasePage, test, expect } from '@test/e2e/helpers'
+import { EvaluationError } from '@test/errors'
+import { waitForAnimationFrames } from '@test/e2e/helpers/waitHelpers'
+import type { Page } from '@playwright/test'
+
+const selectors = {
+  slider: 'carousel-slider[data-carousel]',
+  prev: '[data-carousel-prev]',
+  next: '[data-carousel-next]',
+  dots: '[data-carousel-pagination] button',
+}
+
+async function setupCarouselTestPage(playwrightPage: Page): Promise<BasePage> {
+  const page = await BasePage.init(playwrightPage)
+  await page.page.emulateMedia({ reducedMotion: 'no-preference' })
+  await page.goto('/testing/carousel')
+  await page.waitForSelector(selectors.slider)
+  await waitForCarouselReady(page)
+  await page.scrollToElement(selectors.slider)
+  return page
+}
+
+async function waitForCarouselReady(page: BasePage): Promise<void> {
+  await page.waitForFunction(() => {
+    const slider = document.querySelector('carousel-slider[data-carousel]')
+    return slider?.getAttribute('data-carousel-ready') === 'true'
+  })
+}
+
+async function getActiveDotIndex(page: BasePage): Promise<number | null> {
+  return await page.evaluate(() => {
+    const slider = document.querySelector('carousel-slider[data-carousel]')
+    const pagination = slider?.querySelector('[data-carousel-pagination]')
+    const activeDot = pagination?.querySelector('button[aria-current="true"]')
+    const index = activeDot?.getAttribute('data-index')
+    return typeof index === 'string' ? Number(index) : null
+  })
+}
+
+async function invokeCarouselControl(page: BasePage, action: 'pause' | 'resume'): Promise<void> {
+  await page.evaluate((method) => {
+    const slider = document.querySelector('carousel-slider[data-carousel]') as HTMLElement & {
+      pause?: () => void
+      resume?: () => void
+    } | null
+
+    if (slider && typeof slider[method] === 'function') {
+      slider[method]()
+    }
+  }, action)
+}
+
+function assertIndex(value: number | null): asserts value is number {
+  if (value === null) {
+    throw new EvaluationError('Carousel did not report an active pagination dot')
+  }
+}
 
 test.describe('Carousel Component', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/')
-  })
+  test('displays slides, navigation controls, and pagination', async ({ page: playwrightPage }) => {
+    const page = await setupCarouselTestPage(playwrightPage)
+    const slider = page.locator(selectors.slider).first()
+    const prevButton = slider.locator(selectors.prev)
+    const nextButton = slider.locator(selectors.next)
+    const dots = slider.locator(selectors.dots)
 
-  test.skip('@wip carousel displays on homepage', async ({ page }) => {
-    // Expected: Carousel component should be visible
-    const carousel = page.locator('[data-carousel]').first()
-    await expect(carousel).toBeVisible()
-  })
-
-  test.skip('@wip carousel has navigation buttons', async ({ page }) => {
-    // Expected: Previous and next buttons should be visible
-    const prevButton = page.locator('[data-carousel-prev]').first()
-    const nextButton = page.locator('[data-carousel-next]').first()
-
+    await expect(slider).toBeVisible()
     await expect(prevButton).toBeVisible()
     await expect(nextButton).toBeVisible()
-  })
 
-  test.skip('@wip can navigate to next slide', async ({ page }) => {
-    // Expected: Clicking next button should change the active slide
-    const carousel = page.locator('[data-carousel]').first()
-    const nextButton = page.locator('[data-carousel-next]').first()
-
-    // Get initial active slide index
-    const initialSlide = await carousel.evaluate((el) => {
-      return el.querySelector('[aria-current="true"]')?.getAttribute('data-index')
-    })
-
-    await nextButton.click()
-    await page.waitForTimeout(500) // Wait for transition
-
-    const newSlide = await carousel.evaluate((el) => {
-      return el.querySelector('[aria-current="true"]')?.getAttribute('data-index')
-    })
-
-    expect(newSlide).not.toBe(initialSlide)
-  })
-
-  test.skip('@wip can navigate to previous slide', async ({ page }) => {
-    // Expected: Clicking previous button should change the active slide
-    const carousel = page.locator('[data-carousel]').first()
-    const prevButton = page.locator('[data-carousel-prev]').first()
-    const nextButton = page.locator('[data-carousel-next]').first()
-
-    // Go to slide 2 first
-    await nextButton.click()
-    await page.waitForTimeout(500)
-
-    const beforePrev = await carousel.evaluate((el) => {
-      return el.querySelector('[aria-current="true"]')?.getAttribute('data-index')
-    })
-
-    await prevButton.click()
-    await page.waitForTimeout(500)
-
-    const afterPrev = await carousel.evaluate((el) => {
-      return el.querySelector('[aria-current="true"]')?.getAttribute('data-index')
-    })
-
-    expect(afterPrev).not.toBe(beforePrev)
-  })
-
-  test.skip('@wip carousel has pagination dots', async ({ page }) => {
-    // Expected: Pagination indicators should be visible
-    const pagination = page.locator('[data-carousel-pagination]').first()
-    await expect(pagination).toBeVisible()
-
-    const dots = pagination.locator('button')
     const dotCount = await dots.count()
-    expect(dotCount).toBeGreaterThan(0)
+    expect(dotCount).toBeGreaterThan(1)
+
+    const slideCount = await slider.locator('[data-carousel-slide]').count()
+    expect(slideCount).toBeGreaterThan(1)
   })
 
-  test.skip('@wip can click pagination dot to jump to slide', async ({ page }) => {
-    // Expected: Clicking pagination dot should jump to that slide
-    const carousel = page.locator('[data-carousel]').first()
-    const pagination = page.locator('[data-carousel-pagination]').first()
-    const dots = pagination.locator('button')
+  test('navigation buttons cycle through slides', async ({ page: playwrightPage }) => {
+    const page = await setupCarouselTestPage(playwrightPage)
+    const slider = page.locator(selectors.slider).first()
+    const nextButton = slider.locator(selectors.next)
+    const prevButton = slider.locator(selectors.prev)
 
-    // Click the third dot (if it exists)
-    if ((await dots.count()) >= 3) {
-      await dots.nth(2).click()
-      await page.waitForTimeout(500)
+    const initialIndex = await getActiveDotIndex(page)
+    assertIndex(initialIndex)
+    await nextButton.click()
+    await expect.poll(async () => await getActiveDotIndex(page)).not.toBe(initialIndex)
 
-      const activeSlide = await carousel.evaluate((el) => {
-        return el.querySelector('[aria-current="true"]')?.getAttribute('data-index')
-      })
+    const afterNext = await getActiveDotIndex(page)
+    assertIndex(afterNext)
+    await prevButton.click()
+    await expect.poll(async () => await getActiveDotIndex(page)).toBe(initialIndex)
 
-      expect(activeSlide).toBe('2')
+    const afterPrev = await getActiveDotIndex(page)
+    assertIndex(afterPrev)
+    expect(afterPrev).toBe(initialIndex)
+    expect(afterNext).not.toBe(initialIndex)
+  })
+
+  test('pagination dots jump to selected slide', async ({ page: playwrightPage }) => {
+    const page = await setupCarouselTestPage(playwrightPage)
+    const slider = page.locator(selectors.slider).first()
+    const dots = slider.locator(selectors.dots)
+    const dotTotal = await dots.count()
+
+    expect(dotTotal).toBeGreaterThan(2)
+
+    const targetIndex = dotTotal - 1
+    await dots.nth(targetIndex).click()
+
+    await expect.poll(async () => await getActiveDotIndex(page)).toBe(targetIndex)
+  })
+
+  test('autoplay exposes pause and resume controls', async ({ page: playwrightPage }) => {
+    const page = await setupCarouselTestPage(playwrightPage)
+    const slider = page.locator(selectors.slider).first()
+
+    const initialIndex = await getActiveDotIndex(page)
+    assertIndex(initialIndex)
+
+    await invokeCarouselControl(page, 'resume')
+    await expect(slider).toHaveAttribute('data-carousel-autoplay', 'playing')
+
+    await invokeCarouselControl(page, 'pause')
+    await expect(slider).toHaveAttribute('data-carousel-autoplay', 'paused')
+
+    const pausedIndex = await getActiveDotIndex(page)
+    assertIndex(pausedIndex)
+    for (let iteration = 0; iteration < 3; iteration++) {
+      await waitForAnimationFrames(page.page, 90)
+      expect(await getActiveDotIndex(page)).toBe(pausedIndex)
     }
-  })
 
-  test.skip('@wip carousel supports keyboard navigation', async ({ page }) => {
-    // Expected: Arrow keys should navigate carousel
-    const carousel = page.locator('[data-carousel]').first()
-    await carousel.focus()
-
-    const initialSlide = await carousel.evaluate((el) => {
-      return el.querySelector('[aria-current="true"]')?.getAttribute('data-index')
-    })
-
-    await page.keyboard.press('ArrowRight')
-    await page.waitForTimeout(500)
-
-    const newSlide = await carousel.evaluate((el) => {
-      return el.querySelector('[aria-current="true"]')?.getAttribute('data-index')
-    })
-
-    expect(newSlide).not.toBe(initialSlide)
-  })
-
-  test.skip('@wip carousel wraps around from last to first slide', async ({ page }) => {
-    // Expected: Navigating past last slide should wrap to first
-    const carousel = page.locator('[data-carousel]').first()
-    const nextButton = page.locator('[data-carousel-next]').first()
-    const pagination = page.locator('[data-carousel-pagination]').first()
-    const dots = pagination.locator('button')
-
-    const totalSlides = await dots.count()
-
-    // Click next until we reach the last slide
-    for (let i = 0; i < totalSlides; i++) {
-      await nextButton.click()
-      await page.waitForTimeout(300)
-    }
-
-    // Should be back at first slide
-    const activeSlide = await carousel.evaluate((el) => {
-      return el.querySelector('[aria-current="true"]')?.getAttribute('data-index')
-    })
-
-    expect(activeSlide).toBe('0')
-  })
-
-  test.skip('@wip carousel is responsive on mobile', async ({ page }) => {
-    // Expected: Carousel should work on mobile viewports
-    await page.setViewportSize({ width: 375, height: 667 })
-    await page.goto('/')
-
-    const carousel = page.locator('[data-carousel]').first()
-    await expect(carousel).toBeVisible()
-
-    // Touch swipe should work
-    const carouselBox = await carousel.boundingBox()
-    if (carouselBox) {
-      await page.touchscreen.tap(carouselBox.x + carouselBox.width / 2, carouselBox.y + carouselBox.height / 2)
-      await page.mouse.move(
-        carouselBox.x + carouselBox.width / 2,
-        carouselBox.y + carouselBox.height / 2
-      )
-      await page.mouse.down()
-      await page.mouse.move(carouselBox.x + 50, carouselBox.y + carouselBox.height / 2)
-      await page.mouse.up()
-      await page.waitForTimeout(500)
-
-      // Verify slide changed
-      const activeSlide = await carousel.evaluate((el) => {
-        return el.querySelector('[aria-current="true"]')
-      })
-      expect(activeSlide).not.toBeNull()
-    }
-  })
-
-  test.skip('@flaky autoplay pauses on hover', async ({ page }) => {
-    // Expected: Autoplay should pause when user hovers
-    // Note: Marked as flaky because timing-dependent
-    const carousel = page.locator('[data-carousel]').first()
-
-    const initialSlide = await carousel.evaluate((el) => {
-      return el.querySelector('[aria-current="true"]')?.getAttribute('data-index')
-    })
-
-    // Hover over carousel
-    await carousel.hover()
-
-    // Wait longer than autoplay interval
-    await page.waitForTimeout(5000)
-
-    const afterHover = await carousel.evaluate((el) => {
-      return el.querySelector('[aria-current="true"]')?.getAttribute('data-index')
-    })
-
-    // Slide should not have changed during hover
-    expect(afterHover).toBe(initialSlide)
+    await invokeCarouselControl(page, 'resume')
+    await expect(slider).toHaveAttribute('data-carousel-autoplay', 'playing')
   })
 })

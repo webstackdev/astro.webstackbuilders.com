@@ -1,18 +1,59 @@
+/**
+ * Provides build-time validation and type generation for all content by Astro build system.
+ * This file exports a collections object where each key is a collection name, and the value
+ * uses defineCollection() to specify the schema for that collection. Astro uses this
+ * configuration to automatically load and manage content from specified directories like
+ * src/content/articles or src/content/testimonials.
+ *
+ * The 'email' collection is included in the src/content directory, but is not handled by
+ * Astro's collections systems. It is used by files in src/pages/api.
+ */
 import { defineCollection, reference, z } from 'astro:content'
 import { glob, file } from 'astro/loaders'
-import { validTags } from './content/_tagList'
+import { isProd } from '@lib/config/environmentServer'
+import { validTags } from '@content/_tagList'
 
 const pattern = '**\/[^_]*.{md,mdx}'
+
+const MAX_BREADCRUMB_TITLE_LENGTH = 50
+const loggedBreadcrumbTitleWarnings = new Set<string>()
+
+const warnOnBreadcrumbTitleLength = (title: string, collectionName: string): void => {
+  if (!isProd()) return
+  if (title.length <= MAX_BREADCRUMB_TITLE_LENGTH) return
+
+  const warningKey = `${collectionName}:${title}`
+  if (loggedBreadcrumbTitleWarnings.has(warningKey)) return
+
+  loggedBreadcrumbTitleWarnings.add(warningKey)
+  console.warn(
+    `[Breadcrumb Warning] ${collectionName} title "${title}" is ${title.length} characters long. Titles longer than ${MAX_BREADCRUMB_TITLE_LENGTH} characters will truncate in breadcrumbs.`
+  )
+}
+
+const withBreadcrumbTitleWarning = <T extends z.ZodRawShape>(
+  schema: z.ZodObject<T>,
+  collectionName: string
+) =>
+  schema.superRefine(data => {
+    const candidateTitle = (data as { title?: string }).title
+    if (typeof candidateTitle === 'string') {
+      warnOnBreadcrumbTitleLength(candidateTitle, collectionName)
+    }
+  })
 
 // export type AboutSchema = z.infer<typeof aboutSchema>
 
 /**
  * About
  */
-const aboutSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-})
+const aboutSchema = withBreadcrumbTitleWarning(
+  z.object({
+    id: z.string(),
+    title: z.string(),
+  }),
+  'about'
+)
 
 const aboutCollection = defineCollection({
   loader: glob({ pattern, base: './src/content/about' }),
@@ -22,22 +63,25 @@ const aboutCollection = defineCollection({
 /**
  * Articles
  */
-const articlesSchema = z.object({
-  title: z.string(),
-  description: z.string(),
-  // Reference a single author from the `authors` collection by `id`
-  author: reference('authors'),
-  tags: z.array(z.enum(validTags)),
-  image: z.object({
-    src: z.string(),
-    alt: z.string(),
+const articlesSchema = withBreadcrumbTitleWarning(
+  z.object({
+    title: z.string(),
+    description: z.string(),
+    // Reference a single author from the `authors` collection by `id`
+    author: reference('authors'),
+    tags: z.array(z.enum(validTags)),
+    image: z.object({
+      src: z.string(),
+      alt: z.string(),
+    }),
+    // In YAML, dates written without quotes around them are interpreted as Date objects
+    publishDate: z.date(),
+    isDraft: z.boolean().default(false),
+    featured: z.boolean().default(false),
+    readingTime: z.string().optional(),
   }),
-  // In YAML, dates written without quotes around them are interpreted as Date objects
-  publishDate: z.date(),
-  isDraft: z.boolean().default(false),
-  featured: z.boolean().default(false),
-  readingTime: z.string().optional(),
-})
+  'articles'
+)
 
 const articlesCollection = defineCollection({
   loader: glob({ pattern, base: './src/content/articles' }),
@@ -76,30 +120,33 @@ const authorsCollection = defineCollection({
 /**
  * Case Studies
  */
-const caseStudiesSchema = z.object({
-  title: z.string(),
-  description: z.string().optional(),
-  tags: z.array(z.enum(validTags)),
-  // In YAML, dates written without quotes around them are interpreted as Date objects
-  publishDate: z.date(),
-  isDraft: z.boolean().default(false),
-  featured: z.boolean().default(false),
-  // Optional fields that may exist in some case studies
-  image: z
-    .union([
-      z.string(),
-      z.object({
-        src: z.string(),
-        alt: z.string(),
-      }),
-    ])
-    .optional(),
-  client: z.string().optional(),
-  author: reference('authors').optional(),
-  industry: z.string().optional(),
-  projectType: z.string().optional(),
-  duration: z.string().optional(),
-})
+const caseStudiesSchema = withBreadcrumbTitleWarning(
+  z.object({
+    title: z.string(),
+    description: z.string().optional(),
+    tags: z.array(z.enum(validTags)),
+    // In YAML, dates written without quotes around them are interpreted as Date objects
+    publishDate: z.date(),
+    isDraft: z.boolean().default(false),
+    featured: z.boolean().default(false),
+    // Optional fields that may exist in some case studies
+    image: z
+      .union([
+        z.string(),
+        z.object({
+          src: z.string(),
+          alt: z.string(),
+        }),
+      ])
+      .optional(),
+    client: z.string().optional(),
+    author: reference('authors').optional(),
+    industry: z.string().optional(),
+    projectType: z.string().optional(),
+    duration: z.string().optional(),
+  }),
+  'caseStudies'
+)
 
 const caseStudiesCollection = defineCollection({
   loader: glob({ pattern, base: './src/content/case-studies' }),
@@ -135,87 +182,29 @@ const contactDataCollection = defineCollection({
 })
 
 /**
- * Cookie consent tracking
- *
- * This is the categories of cookies used on the website for the cookie consent
- * manager to use in informing users and offering opt-out:
- * - "essential-website-cookies" Cannot be opted out of and are necessary for
- * the site to function.
- * - "performance-and-functionality-cookies" Search widget, weather update, etc.
- * - "analytics-and-customization-cookies" Google Analytics, theme cookie
- */
-const cookiesEntrySchema = z.object({
-  name: z.string(),
-  purpose: z.string(),
-  provider: z.string().url(),
-  service: z.string(),
-  'service-privacy-policy-url': z.string().url(),
-  country: z.string().includes('_').length(5),
-  type: z.string(),
-  'expires-in': z.string(),
-})
-
-const cookiesSchema = z.object({
-  category: z.string(),
-  cookies: z.array(cookiesEntrySchema),
-})
-
-const cookiesCollection = defineCollection({
-  loader: file('./src/content/cookies.json'),
-  schema: cookiesSchema,
-})
-
-/**
  * Services
  */
-const servicesSchema = z.object({
-  title: z.string(),
-  description: z.string().optional(),
-  tags: z.array(z.enum(validTags)),
-  // In YAML, dates written without quotes around them are interpreted as Date objects
-  publishDate: z.date(),
-  isDraft: z.boolean().default(false),
-  category: z.string().optional(),
-  icon: z.string().optional(),
-  featured: z.boolean().default(false),
-  pricing: z.string().optional(),
-  duration: z.string().optional(),
-  deliverables: z.array(z.string()).optional(),
-})
+const servicesSchema = withBreadcrumbTitleWarning(
+  z.object({
+    title: z.string(),
+    description: z.string().optional(),
+    tags: z.array(z.enum(validTags)),
+    // In YAML, dates written without quotes around them are interpreted as Date objects
+    publishDate: z.date(),
+    isDraft: z.boolean().default(false),
+    category: z.string().optional(),
+    icon: z.string().optional(),
+    featured: z.boolean().default(false),
+    pricing: z.string().optional(),
+    duration: z.string().optional(),
+    deliverables: z.array(z.string()).optional(),
+  }),
+  'services'
+)
 
 const servicesCollection = defineCollection({
   loader: glob({ pattern, base: './src/content/services' }),
   schema: () => servicesSchema,
-})
-
-/**
- * Site pages like privacy, cookies, 404, and offline
- */
-const sitePagesSchema = z.object({
-  title: z.string(),
-  publishDate: z.date(),
-  isDraft: z.boolean().default(false),
-})
-
-const sitePagesCollection = defineCollection({
-  loader: glob({ pattern, base: './src/content/site' }),
-  schema: () => sitePagesSchema,
-})
-
-/**
- * Storage
- *
- * Names for local and session storage keys that are referenced in both client script
- * and Astro templates, and that need to stay in sync.
- */
-const storageSchema = z.object({
-  key: z.string(),
-  value: z.string(),
-})
-
-const storageCollection = defineCollection({
-  loader: file('./src/content/storage.json'),
-  schema: storageSchema,
 })
 
 /**
@@ -250,41 +239,30 @@ const testimonialCollection = defineCollection({
  * - The `components/Head/client.ts` to set the window.metaColors global variable that iss used to swap out the previous <meta> element when the theme is changed (`id` and `colors.backgroundOffset` properties only)
  */
 
-/** @NOTE: These need to be kept in sync with `src/styles/themes.css` and `src/lib/themes.ts` */
-const themesSchema = z.object({
-  id: z.enum(['default', 'dark']),
-  name: z.enum(['Light', 'Dark']),
-  colors: z.object({
-    backgroundOffset: z.string(),
-  }),
-})
-
-const themesCollection = defineCollection({
-  loader: file('./src/content/themes.json'),
-  schema: themesSchema,
-})
-
 /**
  * Downloads
  */
-const downloadsSchema = z.object({
-  title: z.string(),
-  description: z.string(),
-  author: reference('authors').optional(),
-  tags: z.array(z.enum(validTags)),
-  image: z.object({
-    src: z.string(),
-    alt: z.string(),
+const downloadsSchema = withBreadcrumbTitleWarning(
+  z.object({
+    title: z.string(),
+    description: z.string(),
+    author: reference('authors').optional(),
+    tags: z.array(z.enum(validTags)),
+    image: z.object({
+      src: z.string(),
+      alt: z.string(),
+    }),
+    publishDate: z.date(),
+    isDraft: z.boolean().default(false),
+    featured: z.boolean().default(false),
+    fileType: z.enum(['PDF', 'eBook', 'Whitepaper', 'Guide', 'Report', 'Template']),
+    fileSize: z.string().optional(),
+    pages: z.number().optional(),
+    readingTime: z.string().optional(),
+    fileName: z.string(), // Filename in public/downloads directory
   }),
-  publishDate: z.date(),
-  isDraft: z.boolean().default(false),
-  featured: z.boolean().default(false),
-  fileType: z.enum(['PDF', 'eBook', 'Whitepaper', 'Guide', 'Report', 'Template']),
-  fileSize: z.string().optional(),
-  pages: z.number().optional(),
-  readingTime: z.string().optional(),
-  fileName: z.string(), // Filename in public/downloads directory
-})
+  'downloads'
+)
 
 const downloadsCollection = defineCollection({
   loader: glob({ pattern, base: './src/content/downloads' }),
@@ -301,11 +279,7 @@ export const collections = {
   authors: authorsCollection,
   caseStudies: caseStudiesCollection,
   contactData: contactDataCollection,
-  cookies: cookiesCollection,
   downloads: downloadsCollection,
   services: servicesCollection,
-  sitePages: sitePagesCollection,
-  storage: storageCollection,
   testimonials: testimonialCollection,
-  themes: themesCollection,
 }

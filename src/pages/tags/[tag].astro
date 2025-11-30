@@ -1,16 +1,34 @@
 ---
-import { getCollection } from 'astro:content'
+import { type CollectionEntry, getCollection } from 'astro:content'
+import { isDev, isProd } from '@lib/config/environmentServer'
 import BaseLayout from '@layouts/BaseLayout.astro'
-import { exceptions } from '../../content/_tagList'
+import { exceptions } from '@content/_tagList'
+
+export interface Params {
+  tag: string
+}
+
+type ContentItem =
+  | (CollectionEntry<'articles'> & { type: 'article' })
+  | (CollectionEntry<'caseStudies'> & { type: 'case-study' })
+  | (CollectionEntry<'services'> & { type: 'service' })
+
+export interface Props {
+  content: ContentItem[]
+}
 
 export async function getStaticPaths() {
   // Get all content collections with tags
   const allArticles = await getCollection('articles', ({ data }) => {
-    return process.env['NODE_ENV'] === 'production' ? data.isDraft !== true : true
+    return isDev() || (isProd() && data.isDraft !== true)
   })
 
-  const allCaseStudies = await getCollection('caseStudies')
-  const allServices = await getCollection('services')
+  const allCaseStudies = await getCollection('caseStudies', ({ data }) => {
+    return isDev() || (isProd() && data.isDraft !== true)
+  })
+  const allServices = await getCollection('services', ({ data }) => {
+    return isDev() || (isProd() && data.isDraft !== true)
+  })
 
   // Combine all content and extract unique tags
   const allContent = [
@@ -66,14 +84,14 @@ const isImageObject = (img: unknown): img is ImageObject => {
 <BaseLayout pageTitle={`${displayName} - Tag`} path={path}>
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <header class="text-center mb-12">
-      <h1 class="text-4xl md:text-5xl font-bold text-[var(--color-text)] mb-4">
+      <h1 class="text-4xl md:text-5xl font-bold text-text mb-4">
         {displayName}
       </h1>
-      <p class="text-xl text-[var(--color-text-muted)]">
+      <p class="text-xl text-text-muted">
         {totalItems} item{totalItems !== 1 ? 's' : ''} tagged with {displayName.toLowerCase()}
       </p>
       <nav class="mt-4">
-        <a href="/tags/" class="text-[var(--color-primary)] hover:underline">
+        <a href="/tags/" class="text-primary hover:underline">
           ← Browse all tags
         </a>
       </nav>
@@ -84,7 +102,7 @@ const isImageObject = (img: unknown): img is ImageObject => {
         <>
           <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12 mb-12">
             {paginatedContent.map(item => (
-              <article class="bg-[var(--color-bg)] rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
+              <article class="bg-bg rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
                 <a
                   href={`/${item.type === 'case-study' ? 'case-studies' : item.type === 'service' ? 'services' : 'articles'}/${item.id}`}
                   class="block h-full"
@@ -117,17 +135,17 @@ const isImageObject = (img: unknown): img is ImageObject => {
                       <span
                         class={`px-3 py-1 rounded-full text-white font-medium ${
                           item.type === 'article'
-                            ? 'bg-[var(--color-primary)]'
+                            ? 'bg-primary'
                             : item.type === 'case-study'
-                              ? 'bg-[var(--color-success)]'
-                              : 'bg-[var(--color-accent)]'
+                              ? 'bg-success'
+                              : 'bg-accent'
                         }`}
                       >
                         {item.type === 'case-study'
                           ? 'Case Study'
                           : item.type.charAt(0).toUpperCase() + item.type.slice(1)}
                       </span>
-                      <time class="text-[var(--color-text-muted)]">
+                      <time class="text-text-muted">
                         {item.data.publishDate.toLocaleDateString('en-US', {
                           year: 'numeric',
                           month: 'long',
@@ -136,12 +154,12 @@ const isImageObject = (img: unknown): img is ImageObject => {
                       </time>
                     </div>
 
-                    <h2 class="text-xl font-semibold text-[var(--color-text)] leading-tight group-hover:text-[var(--color-primary)] transition-colors duration-300">
+                    <h2 class="text-xl font-semibold text-text leading-tight group-hover:text-primary transition-colors duration-300">
                       {item.data.title}
                     </h2>
 
                     {item.data.description && (
-                      <p class="text-[var(--color-text-muted)] text-sm leading-relaxed line-clamp-3">
+                      <p class="text-text-muted text-sm leading-relaxed line-clamp-3">
                         {item.data.description}
                       </p>
                     )}
@@ -149,7 +167,7 @@ const isImageObject = (img: unknown): img is ImageObject => {
                     <div class="space-y-3 pt-2">
                       {/* Client or Author info */}
                       {'client' in item.data && item.data.client && (
-                        <span class="inline-block text-sm font-medium text-[var(--color-primary)] bg-[var(--color-primary-bg)] px-3 py-1 rounded-full">
+                        <span class="inline-block text-sm font-medium text-primary bg-primary-bg px-3 py-1 rounded-full">
                           Client: {item.data.client}
                         </span>
                       )}
@@ -163,7 +181,7 @@ const isImageObject = (img: unknown): img is ImageObject => {
                             .map((relatedTag: string) => (
                               <a
                                 href={`/tags/${relatedTag}/`}
-                                class="text-xs font-medium text-[var(--color-text-muted)] bg-[var(--color-bg-offset)] hover:bg-[var(--color-border)] px-2 py-1 rounded-full transition-colors duration-200"
+                                class="text-xs font-medium text-text-muted bg-bg-offset hover:bg-border px-2 py-1 rounded-full transition-colors duration-200"
                               >
                                 {getTagDisplayName(relatedTag)}
                               </a>
@@ -183,7 +201,7 @@ const isImageObject = (img: unknown): img is ImageObject => {
               {currentPage > 1 && (
                 <a
                   href={currentPage === 2 ? path : `${path}?page=${currentPage - 1}`}
-                  class="px-4 py-2 text-sm font-medium text-[var(--color-text)] bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-bg-offset)] transition-colors duration-200"
+                  class="px-4 py-2 text-sm font-medium text-text bg-bg border border-border rounded-lg hover:bg-bg-offset transition-colors duration-200"
                 >
                   ← Previous
                 </a>
@@ -194,12 +212,12 @@ const isImageObject = (img: unknown): img is ImageObject => {
                 <>
                   <a
                     href={path}
-                    class="px-3 py-2 text-sm font-medium text-[var(--color-text)] bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-bg-offset)] transition-colors duration-200"
+                    class="px-3 py-2 text-sm font-medium text-text bg-bg border border-border rounded-lg hover:bg-bg-offset transition-colors duration-200"
                   >
                     1
                   </a>
                   {currentPage > 4 && (
-                    <span class="px-3 py-2 text-sm text-[var(--color-text-muted)]">…</span>
+                    <span class="px-3 py-2 text-sm text-text-muted">…</span>
                   )}
                 </>
               )}
@@ -216,8 +234,8 @@ const isImageObject = (img: unknown): img is ImageObject => {
                     href={page === 1 ? path : `${path}?page=${page}`}
                     class={`px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 ${
                       isCurrentPage
-                        ? 'bg-[var(--color-primary)] text-white'
-                        : 'text-[var(--color-text)] bg-[var(--color-bg)] border border-[var(--color-border)] hover:bg-[var(--color-bg-offset)]'
+                        ? 'bg-primary text-white'
+                        : 'text-text bg-bg border border-border hover:bg-bg-offset'
                     }`}
                     aria-current={isCurrentPage ? 'page' : undefined}
                   >
@@ -230,11 +248,11 @@ const isImageObject = (img: unknown): img is ImageObject => {
               {currentPage < totalPages - 2 && (
                 <>
                   {currentPage < totalPages - 3 && (
-                    <span class="px-3 py-2 text-sm text-[var(--color-text-muted)]">…</span>
+                    <span class="px-3 py-2 text-sm text-text-muted">…</span>
                   )}
                   <a
                     href={`${path}?page=${totalPages}`}
-                    class="px-3 py-2 text-sm font-medium text-[var(--color-text)] bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-bg-offset)] transition-colors duration-200"
+                    class="px-3 py-2 text-sm font-medium text-text bg-bg border border-border rounded-lg hover:bg-bg-offset transition-colors duration-200"
                   >
                     {totalPages}
                   </a>
@@ -244,7 +262,7 @@ const isImageObject = (img: unknown): img is ImageObject => {
               {currentPage < totalPages && (
                 <a
                   href={`${path}?page=${currentPage + 1}`}
-                  class="px-4 py-2 text-sm font-medium text-[var(--color-text)] bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-bg-offset)] transition-colors duration-200"
+                  class="px-4 py-2 text-sm font-medium text-text bg-bg border border-border rounded-lg hover:bg-bg-offset transition-colors duration-200"
                 >
                   Next →
                 </a>
@@ -254,10 +272,10 @@ const isImageObject = (img: unknown): img is ImageObject => {
         </>
       ) : (
         <div class="text-center py-12">
-          <p class="text-xl text-[var(--color-text-muted)] mb-4">
+          <p class="text-xl text-text-muted mb-4">
             No content found for this tag.
           </p>
-          <a href="/tags/" class="text-[var(--color-primary)] hover:underline">
+          <a href="/tags/" class="text-primary hover:underline">
             Browse other tags
           </a>
         </div>

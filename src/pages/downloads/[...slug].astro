@@ -1,17 +1,17 @@
 ---
-import type { CollectionEntry } from 'astro:content'
-import { getCollection } from 'astro:content'
+import { type CollectionEntry, getCollection } from 'astro:content'
+import { isDev, isProd } from '@lib/config/environmentServer'
 import MarkdownLayout from '@layouts/MarkdownLayout.astro'
 import DownloadForm from '@components/Forms/Download/index.astro'
 
-interface Props {
+export interface Props {
   download: CollectionEntry<'downloads'>
 }
 
 /** Generate static paths for all downloads */
 export async function getStaticPaths() {
   const downloadEntries = await getCollection('downloads', ({ data }) => {
-    return process.env['NODE_ENV'] !== 'production' || data.isDraft !== true
+    return isDev() || (isProd() && data.isDraft !== true)
   })
   return downloadEntries.map(download => ({
     params: { slug: download.id },
@@ -56,11 +56,11 @@ const authorId =
 
   <!-- Resource Meta Information -->
   <div
-    class="flex flex-wrap gap-4 mb-8 p-4 bg-[var(--color-bg-offset)] rounded-xl border border-[var(--color-border)]"
+    class="flex flex-wrap gap-4 mb-8 p-4 bg-bg-offset rounded-xl border border-border"
   >
     <div class="flex items-center gap-2">
       <svg
-        class="w-5 h-5 text-[var(--color-text-offset)]"
+        class="w-5 h-5 text-text-offset"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -72,13 +72,13 @@ const authorId =
           d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
         ></path>
       </svg>
-      <span class="text-sm font-medium text-[var(--color-text)]">{download.data.fileType}</span>
+      <span class="text-sm font-medium text-text">{download.data.fileType}</span>
     </div>
     {
       download.data.fileSize && (
         <div class="flex items-center gap-2">
           <svg
-            class="w-5 h-5 text-[var(--color-text-offset)]"
+            class="w-5 h-5 text-text-offset"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -90,7 +90,7 @@ const authorId =
               d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
             />
           </svg>
-          <span class="text-sm text-[var(--color-text-offset)]">{download.data.fileSize}</span>
+          <span class="text-sm text-text-offset">{download.data.fileSize}</span>
         </div>
       )
     }
@@ -98,7 +98,7 @@ const authorId =
       download.data.pages && (
         <div class="flex items-center gap-2">
           <svg
-            class="w-5 h-5 text-[var(--color-text-offset)]"
+            class="w-5 h-5 text-text-offset"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -110,7 +110,7 @@ const authorId =
               d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
             />
           </svg>
-          <span class="text-sm text-[var(--color-text-offset)]">{download.data.pages} pages</span>
+          <span class="text-sm text-text-offset">{download.data.pages} pages</span>
         </div>
       )
     }
@@ -118,7 +118,7 @@ const authorId =
       download.data.readingTime && (
         <div class="flex items-center gap-2">
           <svg
-            class="w-5 h-5 text-[var(--color-text-offset)]"
+            class="w-5 h-5 text-text-offset"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -130,7 +130,7 @@ const authorId =
               d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
-          <span class="text-sm text-[var(--color-text-offset)]">{download.data.readingTime}</span>
+          <span class="text-sm text-text-offset">{download.data.readingTime}</span>
         </div>
       )
     }
@@ -140,7 +140,7 @@ const authorId =
   <div set:html={renderedContent} />
 
   <!-- Download Form -->
-  <div class="border-t border-[var(--color-border)] pt-12 mt-12" slot="after-content">
+  <div class="border-t border-border pt-12 mt-12" slot="after-content">
     <DownloadForm title={pageTitle} fileName={download.data.fileName} fileType={download.data.fileType} />
   </div>
 </MarkdownLayout>

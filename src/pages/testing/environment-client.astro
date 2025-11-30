@@ -1,0 +1,54 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro'
+
+const pageTitle = 'Environment Client Diagnostics'
+const pageDescription = 'Client-side environment helper snapshot for automated testing only.'
+const pagePath = '/testing/environment-client'
+---
+
+<BaseLayout pageTitle={pageTitle} path={pagePath} description={pageDescription} noindex>
+  <section class="mx-auto mb-6 max-w-3xl space-y-3 text-lg text-offset">
+    <p>
+      Use this fixture to verify the client-side environment utility output without depending on marketing routes.
+    </p>
+    <p data-testid="environment-client-notice">
+      Once the page hydrates, the JSON snapshot below is mirrored to <code>window.environmentClientSnapshot</code>.
+    </p>
+  </section>
+
+  <section class="mx-auto max-w-3xl">
+    <pre
+      id="environment-client-json"
+      class="overflow-auto rounded border border-border bg-bg-offset p-4 font-mono text-sm text-text"
+    >Collecting client environment data…</pre>
+  </section>
+
+  <script type="module" is:inline>
+    import {
+      getPackageRelease,
+      getPrivacyPolicyVersion,
+      isDev,
+      isE2eTest,
+      isProd,
+      isTest,
+      isUnitTest,
+    } from '@components/scripts/utils/environmentClient'
+
+    const snapshot = {
+      isUnitTest: isUnitTest(),
+      isTest: isTest(),
+      isE2eTest: isE2eTest(),
+      isDev: isDev(),
+      isProd: isProd(),
+      packageRelease: getPackageRelease(),
+      privacyPolicyVersion: getPrivacyPolicyVersion(),
+    }
+
+    window.environmentClientSnapshot = snapshot
+
+    const output = document.getElementById('environment-client-json')
+    if (output) {
+      output.textContent = JSON.stringify(snapshot, null, 2)
+    }
+  </script>
+</BaseLayout>

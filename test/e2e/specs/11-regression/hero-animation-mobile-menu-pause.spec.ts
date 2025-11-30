@@ -2,27 +2,46 @@
  * E2E Regression Tests for Hero Animation Pause on Mobile Menu
  *
  * Issue: Hero animation should pause when mobile navigation menu opens
- * Solution: Custom event system (OVERLAY_OPENED/CLOSED) to communicate between scripts
+ * Solution: Animation lifecycle event system to communicate between scripts
  *
- * @see src/components/Scripts/events/index.ts
+ * @see src/components/scripts/animationLifecycle.ts
  * @see src/components/Navigation/client.ts
- * @see src/components/Hero/client.ts
+ * @see src/components/Hero/Home/client/index.ts
  */
 
-import { test, expect } from '@test/e2e/helpers'
+import { BasePage, test, expect } from '@test/e2e/helpers'
 import { setupTestPage } from '@test/e2e/helpers/cookieHelper'
+import { waitForAnimationFrames } from '@test/e2e/helpers/waitHelpers'
 
 test.describe('Hero Animation - Mobile Menu Pause Regression', () => {
   // Configure mobile viewport for all tests in this suite
   test.use({ viewport: { width: 375, height: 667 } })
 
-  test.beforeEach(async ({ page }) => {
-    await setupTestPage(page, '/')
+  /**
+   * Setup for hero animation mobile menu pause regression tests
+   *
+   * Side effects relied upon:
+   * - Sets up test page at homepage using setupTestPage() helper
+   * - Dismisses cookie consent modal to prevent interference with tests
+   * - Waits for hero animation element to be present in DOM
+   *
+   * Without this setup, tests would fail due to:
+   * - Cookie consent modal blocking interaction with mobile menu button
+   * - Hero animation not being loaded/initialized yet
+   * - Animation element selectors not being available
+   *
+   * The hero animation must be present before tests can verify pause behavior
+   * when the mobile navigation menu opens
+   */
+  test.beforeEach(async ({ page: playwrightPage }) => {
+    const page = await BasePage.init(playwrightPage)
+    await setupTestPage(page.page, '/')
     // Wait for hero animation to load
     await page.waitForSelector('#heroAnimation', { timeout: 5000 })
   })
 
-  test('hero animation should pause when mobile menu opens', async ({ page }) => {
+  test('hero animation should pause when mobile menu opens', async ({ page: playwrightPage }) => {
+    const page = await BasePage.init(playwrightPage)
 
     // Get initial animation state
     const initialTransform = await page.evaluate(() => {
@@ -41,7 +60,7 @@ test.describe('Hero Animation - Mobile Menu Pause Regression', () => {
     await expect(hamburgerButton).toHaveAttribute('aria-expanded', 'true')
 
     // Wait a bit to ensure animation would have progressed if not paused
-    await page.waitForTimeout(500)
+    await waitForAnimationFrames(page.page, 60)
 
     // Check that animation state hasn't changed (indicating pause)
     const transformDuringMenu = await page.evaluate(() => {
@@ -62,7 +81,7 @@ test.describe('Hero Animation - Mobile Menu Pause Regression', () => {
     await expect(closeButton).toHaveAttribute('aria-expanded', 'false')
 
     // Wait a bit for animation to resume and progress
-    await page.waitForTimeout(500)
+    await waitForAnimationFrames(page.page, 60)
 
     // Verify animation has resumed by checking transform has changed
     const transformAfterMenu = await page.evaluate(() => {
@@ -75,7 +94,9 @@ test.describe('Hero Animation - Mobile Menu Pause Regression', () => {
     expect(transformAfterMenu).toBeDefined()
   })
 
-  test('hero animation should be paused while mobile menu is open', async ({ page }) => {
+  test('hero animation should be paused while mobile menu is open', async ({ page: playwrightPage }) => {
+    const page = await BasePage.init(playwrightPage)
+
     // Open mobile menu
     const hamburgerButton = page.locator('.nav-toggle-btn').first()
     await hamburgerButton.click()
@@ -85,8 +106,8 @@ test.describe('Hero Animation - Mobile Menu Pause Regression', () => {
     const transforms: (string | null)[] = []
 
     for (let i = 0; i < 3; i++) {
-      await page.waitForTimeout(200)
-      const transform = await page.evaluate(() => {
+      await waitForAnimationFrames(page.page, 12)
+      const transform = await page.page.evaluate(() => {
         const monitorBottom = document.querySelector('.monitorBottom')
         if (!monitorBottom) return null
         return window.getComputedStyle(monitorBottom).transform
@@ -104,7 +125,9 @@ test.describe('Hero Animation - Mobile Menu Pause Regression', () => {
     await expect(hamburgerButton).toHaveAttribute('aria-expanded', 'false')
   })
 
-  test('mobile menu should open and close correctly', async ({ page }) => {
+  test('mobile menu should open and close correctly', async ({ page: playwrightPage }) => {
+    const page = await BasePage.init(playwrightPage)
+
     const hamburgerButton = page.locator('.nav-toggle-btn').first()
     const header = page.locator('#header')
 
@@ -126,12 +149,14 @@ test.describe('Hero Animation - Mobile Menu Pause Regression', () => {
     await expect(hamburgerButton).toHaveAttribute('aria-expanded', 'false')
   })
 
-  test('mobile menu should show animated splash background', async ({ page }) => {
+  test('mobile menu should show animated splash background', async ({ page: playwrightPage }) => {
+    const page = await BasePage.init(playwrightPage)
+
     const hamburgerButton = page.locator('.nav-toggle-btn').first()
     const header = page.locator('#header')
 
     // Get initial transform of the splash ::after pseudo-element (should be scale(0))
-    const initialTransform = await page.evaluate(() => {
+    const initialTransform = await page.page.evaluate(() => {
       const splash = document.querySelector('#mobile-splash')
       if (!splash) return null
       const afterStyles = window.getComputedStyle(splash, '::after')
@@ -147,11 +172,11 @@ test.describe('Hero Animation - Mobile Menu Pause Regression', () => {
     // Header should have the aria-expanded-true class which triggers splash animation
     await expect(header).toHaveClass(/aria-expanded-true/)
 
-    // Wait for animation to start (give it 100ms)
-    await page.waitForTimeout(100)
+    // Wait for animation to start (give it ~100ms via animation frames)
+    await waitForAnimationFrames(page.page, 6)
 
     // Check that splash ::after is now scaling up (transform should change)
-    const expandedTransform = await page.evaluate(() => {
+    const expandedTransform = await page.page.evaluate(() => {
       const splash = document.querySelector('#mobile-splash')
       if (!splash) return null
       const afterStyles = window.getComputedStyle(splash, '::after')
@@ -169,7 +194,9 @@ test.describe('Hero Animation - Mobile Menu Pause Regression', () => {
     await expect(header).not.toHaveClass(/aria-expanded-true/)
   })
 
-  test('body should have no-scroll class when mobile menu is open', async ({ page }) => {
+  test('body should have no-scroll class when mobile menu is open', async ({ page: playwrightPage }) => {
+    const page = await BasePage.init(playwrightPage)
+
     const hamburgerButton = page.locator('.nav-toggle-btn').first()
     const body = page.locator('body')
 
@@ -189,7 +216,9 @@ test.describe('Hero Animation - Mobile Menu Pause Regression', () => {
     await expect(body).not.toHaveClass(/no-scroll/)
   })
 
-  test('mobile menu navigation links should be clickable and close menu', async ({ page }) => {
+  test('mobile menu navigation links should be clickable and close menu', async ({ page: playwrightPage }) => {
+    const page = await BasePage.init(playwrightPage)
+
     const hamburgerButton = page.locator('.nav-toggle-btn').first()
 
     // Open menu

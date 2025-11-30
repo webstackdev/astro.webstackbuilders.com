@@ -9,7 +9,7 @@
 import { describe, it, expect, beforeAll, afterEach } from 'vitest'
 import { cleanup, render } from '@testing-library/preact'
 import { axe } from 'vitest-axe'
-import { loadFixture, renderMarkdown, MarkdownOutput } from '../../../helpers/markdownLoader'
+import { loadFixture, renderMarkdown, MarkdownOutput } from '@lib/markdown/helpers/markdownLoader'
 
 let html: string
 

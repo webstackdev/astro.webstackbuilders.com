@@ -8,7 +8,7 @@ import { BasePage, test, expect } from '@test/e2e/helpers'
 
 test.describe('SEO Meta Tags', () => {
   test('@ready all pages have meta description', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     const pages = ['/', '/about', '/services', '/case-studies', '/contact']
 
     for (const url of pages) {
@@ -22,7 +22,7 @@ test.describe('SEO Meta Tags', () => {
   })
 
   test('@ready meta descriptions are unique per page', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     const pages = ['/', '/about', '/services']
     const descriptions = new Set()
 
@@ -35,8 +35,50 @@ test.describe('SEO Meta Tags', () => {
     expect(descriptions.size).toBe(pages.length)
   })
 
+  test('@ready favicons are linked and assets are valid', async ({ page: playwrightPage, request }) => {
+    const page = await BasePage.init(playwrightPage)
+    await page.goto('/')
+
+    await page.expectAttribute('link[rel="icon"][href="/favicon.ico"]', 'href')
+    await page.expectAttribute('link[rel="icon"][type="image/svg+xml"]', 'href')
+
+    const assets = [
+      { href: '/favicon.ico', pattern: /(image\/x-icon|image\/vnd\.microsoft\.icon)/ },
+      { href: '/favicon.svg', pattern: /image\/svg\+xml/ },
+    ]
+
+    for (const asset of assets) {
+      const response = await request.get(asset.href)
+      expect(response.ok()).toBeTruthy()
+      const contentType = response.headers()['content-type'] || ''
+      expect(contentType).toMatch(asset.pattern)
+      const body = await response.body()
+      expect(body.byteLength).toBeGreaterThan(0)
+    }
+  })
+
+  test('@ready apple-touch icon link stays in place', async ({ page: playwrightPage, request }) => {
+    const page = await BasePage.init(playwrightPage)
+    await page.goto('/')
+
+    await page.expectAttribute('link[rel="apple-touch-icon"]', 'href')
+    const href = await page.getAttribute('link[rel="apple-touch-icon"]', 'href')
+    expect(href).toBeTruthy()
+
+    const assetUrl = href && href.startsWith('http')
+      ? href
+      : new URL(href ?? '/apple-touch-icon.png', page.page.url()).toString()
+
+    const response = await request.get(assetUrl)
+    expect(response.ok()).toBeTruthy()
+    const contentType = response.headers()['content-type'] || ''
+    expect(contentType).toMatch(/image\/png/)
+    const body = await response.body()
+    expect(body.byteLength).toBeGreaterThan(0)
+  })
+
   test('@ready all pages have canonical URL', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/about')
 
     await page.expectAttribute('link[rel="canonical"]', 'href')
@@ -45,7 +87,7 @@ test.describe('SEO Meta Tags', () => {
   })
 
   test('@ready canonical URL matches current page', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/services')
 
     const href = await page.getAttribute('link[rel="canonical"]', 'href')
@@ -53,7 +95,7 @@ test.describe('SEO Meta Tags', () => {
   })
 
   test('@ready pages have viewport meta tag', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     await page.expectAttribute('meta[name="viewport"]', 'content')
@@ -62,7 +104,7 @@ test.describe('SEO Meta Tags', () => {
   })
 
   test('@ready pages have charset meta tag', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     const count = await page.countElements('meta[charset], meta[http-equiv="Content-Type"]')
@@ -70,7 +112,7 @@ test.describe('SEO Meta Tags', () => {
   })
 
   test('@ready pages have robots meta tag', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     const count = await page.countElements('meta[name="robots"]')
@@ -82,7 +124,7 @@ test.describe('SEO Meta Tags', () => {
   })
 
   test('@ready 404 page has noindex', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/404')
 
     const content = await page.getAttribute('meta[name="robots"]', 'content')
@@ -90,7 +132,7 @@ test.describe('SEO Meta Tags', () => {
   })
 
   test('@ready pages have author meta tag', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
     const count = await page.countElements('meta[name="author"]')
@@ -102,7 +144,7 @@ test.describe('SEO Meta Tags', () => {
   })
 
   test('@ready article pages have author', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/articles')
     await page.click('a[href*="/articles/"]')
     await page.waitForLoadState('networkidle')
@@ -111,20 +153,8 @@ test.describe('SEO Meta Tags', () => {
     expect(content?.trim().length).toBeGreaterThan(0)
   })
 
-  test('@ready pages have theme-color meta tag', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
-    await page.goto('/')
-
-    const count = await page.countElements('meta[name="theme-color"]')
-
-    if (count > 0) {
-      const content = await page.getAttribute('meta[name="theme-color"]', 'content')
-      expect(content).toMatch(/^#[0-9a-fA-F]{6}$/) // Hex color
-    }
-  })
-
   test('@ready pages have title tag', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     const pages = ['/', '/about', '/services']
 
     for (const url of pages) {
@@ -137,7 +167,7 @@ test.describe('SEO Meta Tags', () => {
   })
 
   test('@ready titles are unique per page', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     const pages = ['/', '/about', '/services']
     const titles = new Set()
 
@@ -151,7 +181,7 @@ test.describe('SEO Meta Tags', () => {
   })
 
   test('@ready pages have language attribute', async ({ page: playwrightPage }) => {
-    const page = new BasePage(playwrightPage)
+    const page = await BasePage.init(playwrightPage)
     await page.goto('/')
     await page.waitForLoadState('domcontentloaded')
 

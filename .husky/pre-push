@@ -1,0 +1,19 @@
+#!/bin/sh
+
+# Load nvm if available and use appropriate node version
+if [ -f "$HOME/.nvm/nvm.sh" ]; then
+  . "$HOME/.nvm/nvm.sh"
+  if nvm use 2>/dev/null; then
+    echo "Using current nvm node version"
+  elif nvm use node 2>/dev/null; then
+    echo "Using latest nvm node version"
+  elif nvm use --lts 2>/dev/null; then
+    echo "Using LTS node version"
+  else
+    echo "Using system node version"
+  fi
+fi
+
+# Pushes must pass lint and unit test suites
+npm run lint
+npm run test:unit

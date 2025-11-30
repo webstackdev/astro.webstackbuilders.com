@@ -1,7 +1,6 @@
 ---
 import Brand from '@components/Brand/index.astro'
-import Menu from '@components/Navigation/Menu.astro'
-import NavToggle from '@components/Navigation/NavToggle.astro'
+import Navigation from '@components/Navigation/index.astro'
 import ThemeButton from '@components/ThemePicker/ThemeButton.astro'
 
 export interface Props {
@@ -51,33 +50,21 @@ const { path } = Astro.props
 {/* Header for all pages */}
 <header
   id="header"
-  class="flex flex-row items-center justify-between py-2 lg:py-3 relative mx-auto max-w-[75rem] w-[90%] px-4 sm:px-6 lg:px-8"
+  class="flex flex-row items-center justify-between py-2 lg:py-3 relative mx-auto max-w-300 w-[90%] px-4 sm:px-6 lg:px-8"
   role="banner"
 >
   {/*- Element for animated background behind mobile navigation menu -*/}
   <div id="mobile-splash" class="mobile-splash" aria-hidden="true" data-testid="mobile-splash-backdrop"></div>
   {/* Logo and wordmark */}
-  <span id="header__brand" class="flex items-center justify-between relative z-[var(--z-content-overlay)]">
+  <span id="header__brand" class="flex items-center justify-between relative z-(--z-content-overlay)">
     <Brand />
   </span>
   {/* Focus trap container for mobile navigation - invisible wrapper for accessibility */}
-  <div id="mobile-nav-focus-container" class="contents">
-    {/* Main Navigation Menu */}
-    <span id="header__main-nav" class="lg:z-[var(--z-nav)] lg:flex-1 lg:mx-8">
-      <Menu path={path} />
-    </span>
-    {/* Mobile navigation toggle button to show menu on full-page splash screen */}
-    <span
-      id="header__nav-icon"
-      class="block fixed right-4 sm:right-6 top-2 z-[var(--z-mobile-close-btn)] lg:hidden"
-    >
-      <NavToggle />
-    </span>
-  </div>
+  <Navigation path={path} />
   {/* Theme picker toggle button to show modal */}
   <span
     id="header__theme-icon"
-    class="w-[calc(var(--header-icon-size)*2+0.5em)] lg:w-[var(--header-icon-size)] relative z-[var(--z-content-overlay)]"
+    class="w-[calc(var(--header-icon-size)*2+0.5em)] lg:w-(--header-icon-size) relative z-(--z-content-overlay)"
   >
     <ThemeButton />
   </span>

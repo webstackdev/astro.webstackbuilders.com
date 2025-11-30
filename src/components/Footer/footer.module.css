@@ -1,0 +1,65 @@
+@keyframes arrowBounce {
+  100% {
+    transform: translate(1.5em);
+  }
+}
+
+@media (width >= 640px) {
+  .footerGrid {
+    display: grid;
+    gap: 0.5rem 1rem;
+    grid-template-areas:
+      "contact social"
+      "contact channels"
+      "bottom-row bottom-row"
+      "copyright copyright";
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .footerContact {
+    grid-area: contact;
+  }
+
+  .footerSocial {
+    grid-area: social;
+  }
+
+  .footerBottomRow {
+    grid-area: bottom-row;
+  }
+
+  .footerCopyright {
+    grid-area: copyright;
+  }
+}
+
+@media (width >= 1024px) {
+  .footerGrid {
+    grid-template:
+      "hire-me social bottom-row" 2rem
+      "contact social bottom-row" auto
+      "copyright copyright copyright" auto
+      / 2fr 1fr 1fr;
+  }
+
+  .footerHireMe {
+    align-self: end;
+    grid-area: hire-me;
+    margin-top: 2rem;
+  }
+
+  .footerHireMeAnchor {
+    margin-top: 0.5rem;
+  }
+}
+
+.footerHireMeAnchor:hover::after,
+.footerHireMeAnchor:focus::after {
+  animation: arrowBounce 1s alternate;
+}
+
+.footerFeedIcon:hover :global(.icon),
+.footerFeedIcon:focus :global(.icon) {
+  height: 3em;
+  width: 3em;
+}

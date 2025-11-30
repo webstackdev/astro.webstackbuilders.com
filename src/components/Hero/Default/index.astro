@@ -1,0 +1,57 @@
+---
+import Content from './content.astro'
+import ImageBlock from './image.astro'
+import type { Props as ImageBlockProps } from './image.astro'
+import type { ImageMetadata } from 'astro'
+
+interface Benefit {
+  text: string
+  highlight: string
+}
+
+interface Link {
+  href: string
+  text: string
+}
+
+export interface Props {
+  pretitle?: string
+  title?: string
+  benefits?: Benefit[]
+  primaryLink?: Link
+  secondaryLink?: Link
+  image?: {
+    src: ImageMetadata
+    alt: string
+  }
+}
+
+const {
+  pretitle = 'Client-Focused Web Application Developer',
+  title = 'Building Modern Web Solutions That Drive Results',
+  benefits = [
+    { text: 'increase in sales', highlight: '57%' },
+    { text: 'ROI for every $1', highlight: '$114' },
+    { text: 'conversion', highlight: 'Up to 400%' },
+  ],
+  primaryLink = { href: '/services/web-development', text: 'Improve Your Product' },
+  secondaryLink = { href: '/services/consulting', text: 'Start from scratch' },
+  image,
+} = Astro.props
+
+const imageProps: Partial<ImageBlockProps> = image ? { image } : {}
+---
+
+<section class="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-20">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+    <Content
+      pretitle={pretitle}
+      title={title}
+      benefits={benefits}
+      primaryLink={primaryLink}
+      secondaryLink={secondaryLink}
+    />
+
+    <ImageBlock {...imageProps} />
+  </div>
+</section>

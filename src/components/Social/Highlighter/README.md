@@ -65,35 +65,3 @@ Platforms supported (in priority order):
 2. LinkedIn
 3. Bluesky
 4. Reddit
-
-## Architecture
-
-- `client.ts` - Web Component with HighlighterElement class and Highlighter LoadableScript
-- `Highlighter.astro` - Astro wrapper component for MDX usage
-- `index.ts` - Barrel exports
-- `__tests__/client.spec.ts` - Comprehensive unit tests (37 test cases, 100% passing)
-
-## Testing
-
-```bash
-npm run test:unit -- src/components/Social/Highlighter/__tests__/client.spec.ts
-```
-
-All 37 tests pass, covering:
-
-- LoadableScript interface compliance
-- Shadow DOM rendering
-- Dialog visibility (hover, focus, keyboard)
-- Platform sharing with URL encoding
-- Copy to clipboard
-- Native Share API
-- Custom event emission
-- Accessibility attributes
-- Edge cases
-
-## Browser Support
-
-- Modern browsers with Web Components support
-- Native Share API for mobile (iOS Safari, Android Chrome)
-- Platform-specific intents as fallback for desktop
-- Copy API with clipboard permissions

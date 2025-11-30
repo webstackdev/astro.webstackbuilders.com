@@ -1,0 +1,27 @@
+---
+/*!
+ * Mastodon Share Modal
+ *
+ * SPDX-FileCopyrightText: © 2025 Kevin Brown <kevin@webstackbuilders.com>
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
+interface Props {
+  id?: string
+}
+
+const { id = 'mastodon-modal' } = Astro.props
+---
+
+<mastodon-modal-element id={id} modal-id={id}></mastodon-modal-element>
+
+<script>
+  import { mastodonDataConsentRevokeListener } from '@components/scripts/store'
+  import { registerMastodonModalWebComponent } from '@components/Social/Mastodon/client'
+
+  registerMastodonModalWebComponent()
+
+  document.addEventListener('astro:page-load', () => {
+    mastodonDataConsentRevokeListener()
+  })
+</script>

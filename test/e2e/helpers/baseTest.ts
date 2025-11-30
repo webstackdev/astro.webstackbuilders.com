@@ -25,7 +25,8 @@
  */
 /* eslint-disable no-empty-pattern */
 import { test as baseTest, expect } from '@playwright/test'
-import pagesData from '../../../.cache/pages.json' with { type: 'json' }
+import pagesData from '@cache/pages.json' with { type: 'json' }
+const { describe } = baseTest
 
 /**
  * Extract and normalize paths for a specific key from pages.json
@@ -142,4 +143,4 @@ export const test = baseTest.extend<{
   },
 })
 
-export { expect }
+export { describe, expect }

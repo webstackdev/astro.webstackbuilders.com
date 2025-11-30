@@ -1,5 +1,5 @@
 ---
-import { generateBreadcrumbs } from './server'
+import { generateBreadcrumbs } from '@components/Breadcrumbs/server'
 
 export interface Props {
   /** The current URL path */
@@ -9,6 +9,7 @@ export interface Props {
 }
 
 const { path, pageTitle } = Astro.props
+const site = Astro.site
 
 // Don't show breadcrumbs on home page
 if (path === '/' || path === '') {
@@ -16,18 +17,30 @@ if (path === '/' || path === '') {
 }
 
 const breadcrumbs = generateBreadcrumbs(path, pageTitle)
+const breadcrumbSchema = site && breadcrumbs.length > 1
+  ? JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: breadcrumbs.map((item, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        name: item.label,
+        item: new URL(item.href, site).href,
+      })),
+    })
+  : null
 ---
 
 {
   breadcrumbs.length > 1 && (
-    <div class="mx-auto max-w-[75rem] w-[90%] mt-4">
+    <div class="mx-auto max-w-300 w-[90%] mt-4">
       <nav aria-label="Breadcrumb" class="breadcrumbs pl-8">
-        <ol class="flex items-center space-x-2 text-sm text-[color:var(--color-text-offset)]">
+        <ol class="flex items-center space-x-2 text-sm text-offset">
           {breadcrumbs.map((item, index) => (
             <li class="flex items-center">
               {index > 0 && (
                 <svg
-                  class="w-4 h-4 mx-2 text-[color:var(--color-text-offset)] opacity-60"
+                  class="w-4 h-4 mx-2 text-offset opacity-60"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -43,16 +56,23 @@ const breadcrumbs = generateBreadcrumbs(path, pageTitle)
               )}
 
               {item.isCurrentPage ? (
-                <span class="text-[color:var(--color-text)] font-medium" aria-current="page">
+                <span class="text-text font-medium" aria-current="page">
                   {item.label}
                 </span>
               ) : (
                 <a
                   href={item.href}
-                  class="text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-offset)] hover:underline transition-colors duration-200"
+                  class="text-primary hover:text-primary-offset hover:underline transition-colors duration-200"
                 >
                   {item.label}
                 </a>
+              )}
+              {breadcrumbSchema && (
+                <script
+                  is:inline
+                  type="application/ld+json"
+                  set:html={breadcrumbSchema}
+                />
               )}
             </li>
           ))}

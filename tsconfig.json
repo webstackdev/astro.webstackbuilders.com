@@ -1,8 +1,19 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "extends": "astro/tsconfigs/strictest",
-  "include": [".astro/types.d.ts", "**/*"],
-  "exclude": ["dist", ".vercel"],
+  "include": [
+    ".astro/types.d.ts",
+    "@types/**/*.d.ts",
+    "scripts/**/*.ts",
+    "api/**/*.ts",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.astro",
+    "test/**/*.ts",
+    "test/**/*.tsx",
+    "*.ts"
+  ],
+  "exclude": ["dist", ".vercel", "node_modules"],
   "compilerOptions": {
     /** Allow JavaScript files to be imported inside the project */
     "allowJs": true,
@@ -69,16 +80,22 @@
     "noUnusedParameters": true,
     /** Import aliases */
     "paths": {
-      "@api/*": ["src/api/*"],
       "@assets/*": ["src/assets/*"],
+      "@cache/*": [".cache/*"],
       "@components/*": ["src/components/*"],
       "@content/*": ["src/content/*"],
       "@data/*": ["src/data/*"],
+      "@integrations/*": ["src/integrations/*"],
       "@layouts/*": ["src/layouts/*"],
       "@lib/*": ["src/lib/*"],
       "@pages/*": ["src/pages/*"],
       "@styles/*": ["src/styles/*"],
-      "@test/*": ["test/*"]
+      "@test/*": ["test/*"],
+      "astro-vtbot": ["@types/astro-vtbot"],
+      "@semantic-ui/astro-lit": ["@types/semantic-ui__astro-lit/index.d.ts"],
+      "unstorage": ["@types/unstorage/index.d.ts"],
+      "unstorage/*": ["@types/unstorage/index.d.ts"],
+      "unstorage/drivers/*": ["@types/unstorage/index.d.ts"]
     },
     /** Strip all comments from TypeScript files when converting into JavaScript */
     "removeComments": true,
@@ -111,7 +128,7 @@
      * https://www.typescriptlang.org/docs/handbook/module-resolution.html#path-mapping
      * This avoids needing for ts-node to include a top-level key of: "ts-node": {  "files": true }
      */
-    "typeRoots": ["./@types/**/*.d.ts", "./node_modules/@types/**/*.d.ts"],
+    "typeRoots": ["./@types", "./node_modules/@types"],
     /** switches to the upcoming ECMA runtime behavior instead of TypeScript's legacy behavior. */
     "useDefineForClassFields": true,
     /**

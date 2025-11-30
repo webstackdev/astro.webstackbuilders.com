@@ -3,7 +3,7 @@
  * Encapsulates newsletter form interactions and validations
  */
 import { type Page, expect } from '@playwright/test'
-import { BasePage } from './BasePage'
+import { BasePage } from '@test/e2e/helpers'
 
 export class NewsletterPage extends BasePage {
   // Selectors
@@ -13,16 +13,24 @@ export class NewsletterPage extends BasePage {
   private readonly gdprConsentSelector = '#newsletter-gdpr-consent'
   private readonly messageSelector = '#newsletter-message'
   private readonly buttonSpinnerSelector = '#button-spinner'
+  private readonly fixturePath = '/testing/newsletter'
 
-  constructor(page: Page) {
+  protected constructor(page: Page) {
     super(page)
   }
 
+  static override async init(page: Page): Promise<NewsletterPage> {
+    await this.setupPlaywrightGlobals(page)
+    const instance = new NewsletterPage(page)
+    await instance.onInit()
+    return instance
+  }
+
   /**
-   * Navigate to home page where newsletter form is located
+   * Navigate to the dedicated newsletter testing fixture page
    */
   async navigateToNewsletterForm(): Promise<void> {
-    await this.goto('/')
+    await this.goto(this.fixturePath)
     await this.waitForLoadState('networkidle') // Ensure all scripts are loaded
     await this.expectNewsletterForm()
   }
