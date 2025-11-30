@@ -103,7 +103,7 @@ describe('fetchWebmentions', () => {
   })
 
   it('deduplicates concurrent requests for the same URL', async () => {
-    let resolveFetch: ((response: Response) => void) | undefined
+    let resolveFetch: ((_response: Response) => void) | undefined
     fetchMock.mockImplementation(
       () => new Promise<Response>((resolve) => {
         resolveFetch = resolve

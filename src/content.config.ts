@@ -10,6 +10,7 @@
  */
 import { defineCollection, reference, z } from 'astro:content'
 import { glob, file } from 'astro/loaders'
+import { isProd } from '@lib/config/environmentServer'
 import { validTags } from '@content/_tagList'
 
 const pattern = '**\/[^_]*.{md,mdx}'
@@ -18,7 +19,7 @@ const MAX_BREADCRUMB_TITLE_LENGTH = 50
 const loggedBreadcrumbTitleWarnings = new Set<string>()
 
 const warnOnBreadcrumbTitleLength = (title: string, collectionName: string): void => {
-  if ((process.env['NODE_ENV'] ?? 'development') !== 'production') return
+  if (!isProd()) return
   if (title.length <= MAX_BREADCRUMB_TITLE_LENGTH) return
 
   const warningKey = `${collectionName}:${title}`
