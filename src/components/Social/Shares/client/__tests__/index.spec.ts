@@ -1,7 +1,6 @@
-import { beforeEach, describe, expect, test, vi } from 'vitest'
+import { beforeAll, beforeEach, describe, expect, test, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import { TestError } from '@test/errors'
-import SocialShareComponent from '@components/Social/Shares/index.astro'
 import type { SocialShareElement } from '@components/Social/Shares/client/index'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { executeRender } from '@test/unit/helpers/litRuntime'
@@ -20,8 +19,15 @@ type ComponentProps = {
   socialNetworks?: ('twitter' | 'linkedin' | 'bluesky' | 'reddit' | 'mastodon')[]
 }
 
+let SocialShareComponent: typeof import('@components/Social/Shares/index.astro').default
+
 describe('SocialShareElement web component', () => {
   let container: AstroContainer
+
+  beforeAll(async () => {
+    const module = await import('@components/Social/Shares/index.astro')
+    SocialShareComponent = module.default
+  })
 
   beforeEach(async () => {
     container = await AstroContainer.create()
@@ -37,6 +43,10 @@ describe('SocialShareElement web component', () => {
     props: ComponentProps = defaultProps,
     assertion: (_context: RenderContext) => Promise<void> | void,
   ) => {
+    if (!SocialShareComponent) {
+      throw new TestError('SocialShareComponent failed to load')
+    }
+
     await executeRender<SocialShareModule>({
       container,
       component: SocialShareComponent,

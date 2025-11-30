@@ -1,5 +1,9 @@
 # TODO
 
+## Performance
+
+Implement mitigations in test/e2e/specs/07-performance/PERFORMANCE.md
+
 ## Analytics
 
 Vercel Analytics
@@ -15,16 +19,9 @@ See note in src/components/scripts/sentry/client.ts - "User Feedback - allow use
 
 ## src/pages/api next steps
 
-1. build Supabase-aware fixtures to cover the GDPR endpoints (consent/request/export/verify) end-to-end
-2. add integration-style tests that exercise the DSAR flow using a lightweight fake DB layer.
-3. Do the same for RESEND and the contact endpoint
-4. Where are we uploading files to? We need to implement the Uppy library in ContactForm, but currently nowhere to send the files to
-5. Need to add network failure testing modes to component unit tests where it's possible, but this is related to the above Toast issue.
-
-Components that need full e2e testing implemented:
-
-- CallToAction/Newsletter
-- ContactForm
+run npm run containers:up && npm run containers:wait
+start Supabase via npm run containers:supabase:start
+launch the dev server and Playwright against the mocks.
 
 ## Typing client-side API calls and SSR API endpoints
 
