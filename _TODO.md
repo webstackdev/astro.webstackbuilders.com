@@ -19,9 +19,19 @@ See note in src/components/scripts/sentry/client.ts - "User Feedback - allow use
 
 ## src/pages/api next steps
 
-run npm run containers:up && npm run containers:wait
-start Supabase via npm run containers:supabase:start
-launch the dev server and Playwright against the mocks.
+E2E Starting Point
+
+Stabilize infra first: run npm run containers:up, npm run containers:wait, npm run containers:supabase:start, and the dev server. Keep containers:logs and containers:supabase:logs tailing in another terminal so every mock failure is visible before Playwright runs.
+
+Create a shared Playwright "mocks ready" fixture: add a helper that checks process.env.E2E_MOCKS === '1' and pings `http://127.0.0.1:8079/` plus the two WireMock endpoints before each suite. That gives quick feedback if someone forgets the setup commands.
+Implementation order
+
+08-api: start with these since their success hinges entirely on the mocks. For each test, assert the HTTP response and inspect the mock's request logs (WireMock /__admin/requests) to prove the backend call happened. Adding the cron tests here makes sense—just exercise the GET endpoints via page.request or Playwright's API testing capability so you don't need UI plumbing.
+
+Cron coverage: write three tests that hit cleanup-confirmations, newsletter-reminders, etc., using the mock stack. Seed Supabase/Redis with known values before each test (scripts in containers) and assert the mocks see the expected outbound traffic.
+
+03-forms: once the API layer is stable, wire the UI flows. Use Playwright to submit each form, but assert success by checking the mock mappings were triggered, not just the UI toast.
+Consent Preferences (@wip): convert it to use the same helper that verifies mocked Upstash REST and Supabase responses. This test should (1) toggle UI controls, (2) check the outbound request via the mock logs, and (3) read back seeded data to confirm persistence.
 
 ## Typing client-side API calls and SSR API endpoints
 
