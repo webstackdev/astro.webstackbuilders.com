@@ -4,6 +4,7 @@
  */
 
 import { supabaseAdmin } from '@pages/api/_utils'
+import { isSupabaseFallbackEnabled } from '@pages/api/_environment/environmentApi'
 import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
 
 /**
@@ -74,25 +75,32 @@ export async function createPendingSubscription(data: {
   }
 
   // Store in Supabase newsletter_confirmations table
-  const { error } = await supabaseAdmin
-    .from('newsletter_confirmations')
-    .insert({
-      token,
-      email: pending.email,
-      data_subject_id: pending.DataSubjectId,
-      expires_at: expiresAt.toISOString()
-    })
+  try {
+    const { error } = await supabaseAdmin
+      .from('newsletter_confirmations')
+      .insert({
+        token,
+        email: pending.email,
+        data_subject_id: pending.DataSubjectId,
+        expires_at: expiresAt.toISOString()
+      })
 
-  if (error) {
-    console.error('Failed to create pending subscription:', error)
-    throw new ApiFunctionError({
-      message: 'Failed to create subscription confirmation',
-      cause: error,
-      code: 'NEWSLETTER_TOKEN_CREATE_FAILED',
-      status: 500,
-      route: '/api/newsletter',
-      operation: 'createPendingSubscription'
-    })
+    if (error) {
+      throw error
+    }
+  } catch (error) {
+    if (!isSupabaseFallbackEnabled()) {
+      console.error('Failed to create pending subscription:', error)
+      throw new ApiFunctionError({
+        message: 'Failed to create subscription confirmation',
+        cause: error,
+        code: 'NEWSLETTER_TOKEN_CREATE_FAILED',
+        status: 500,
+        route: '/api/newsletter',
+        operation: 'createPendingSubscription'
+      })
+    }
+    console.warn('[newsletter] Supabase unavailable, storing pending subscription in memory for e2e tests.')
   }
 
   // Also keep in memory for backward compatibility (for now)

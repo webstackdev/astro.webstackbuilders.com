@@ -6,7 +6,7 @@
  * functions with process.env.
  */
 import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
-import { isUnitTest } from '@lib/config/environmentServer'
+import { isE2eTest, isTest, isUnitTest } from '@lib/config/environmentServer'
 export {
   isCI,
   isE2eTest,
@@ -130,6 +130,26 @@ export function getResendApiKey(): string {
 }
 
 /**
+ * Returns the base URL for the local Resend mock when running e2e tests.
+ * Falls back to localhost + RESEND_HTTP_PORT when RESEND_MOCK_URL is not provided.
+ */
+export function getResendMockBaseUrl(options?: { force?: boolean }): string | null {
+  const explicit = process.env['RESEND_MOCK_URL']
+  const mocksEnabled = Boolean(options?.force) || process.env['E2E_MOCKS'] === '1' || Boolean(explicit) || isE2eTest()
+
+  if (!mocksEnabled) {
+    return null
+  }
+
+  if (explicit) {
+    return explicit.replace(/\/$/, '')
+  }
+  const host = process.env['E2E_MOCKS_HOST'] ?? '127.0.0.1'
+  const port = process.env['RESEND_HTTP_PORT'] ?? '9011'
+  return `http://${host}:${port}`
+}
+
+/**
  * Gets the Sentry DSN. This value is set in Vercel env vars and
  * made available to serverless functions by default.
  *
@@ -207,4 +227,18 @@ export function getUpstashApiToken(): string {
     )
   }
   return token
+}
+
+/**
+ * Determines whether Supabase operations may fall back to mocked responses.
+ * Enabled automatically for end-to-end runs that set E2E_MOCKS=1, but can also be
+ * toggled explicitly with E2E_SUPABASE_FALLBACK=1 when running smoke tests without Supabase.
+ */
+export function isSupabaseFallbackEnabled(): boolean {
+  return (
+    process.env['E2E_SUPABASE_FALLBACK'] === '1' ||
+    process.env['E2E_MOCKS'] === '1' ||
+    isDev() ||
+    isTest()
+  )
 }

@@ -22,3 +22,4 @@ export {
   selectTheme,
   getThemePickerToggle,
 } from '@test/e2e/helpers/cookieHelper'
+export { wiremock, mocksEnabled } from '@test/e2e/helpers/mockServices'

@@ -57,6 +57,7 @@ fi
 SUPABASE_ENV_URL="${SUPABASE_URL:-$DEFAULT_SUPABASE_URL}"
 SUPABASE_SERVICE_ROLE_KEY="${SUPABASE_SERVICE_ROLE_KEY:-}"
 HEALTH_TIMEOUT="${SUPABASE_HEALTH_TIMEOUT:-$DEFAULT_HEALTH_TIMEOUT}"
+REALTIME_REPLICA_REGION="${SUPABASE_REALTIME_REPLICA_REGION:-us-east-1}"
 
 if [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
   echo "SUPABASE_SERVICE_ROLE_KEY is required for health checks. Update test/containers/.env" >&2
@@ -68,6 +69,9 @@ npx supabase stop --workdir "$SUPABASE_DIR" >/dev/null 2>&1 || true
 for port in "${SUPABASE_PORTS[@]}"; do
   free_port "$port"
 done
+
+export REPLICA_REGION="$REALTIME_REPLICA_REGION"
+export SUPABASE_REALTIME_REPLICA_REGION="$REALTIME_REPLICA_REGION"
 
 npx supabase start --workdir "$SUPABASE_DIR" --ignore-health-check
 

@@ -19,11 +19,25 @@ See note in src/components/scripts/sentry/client.ts - "User Feedback - allow use
 
 ## src/pages/api next steps
 
+To confirm nothing else is wrong, run npm run containers:supabase:status to see each service's state and docker inspect --format '{{json .State.Health }}' <container> for anything showing unhealthy.
+If you do need replica support (or just want to suppress that log), set a valid replica_region under the [db] section in config.toml and restart via npm run containers:supabase:stop && npm run containers:supabase:start.
+
+For faster troubleshooting in that noisy log stream, filter just warnings/errors by piping the script through grep -E '\\[(error|warn)\\]' or tailing a single container, e.g. docker logs -f supabase_realtime_<project>.
+
 E2E Starting Point
 
 Stabilize infra first: run npm run containers:up, npm run containers:wait, npm run containers:supabase:start, and the dev server. Keep containers:logs and containers:supabase:logs tailing in another terminal so every mock failure is visible before Playwright runs.
 
 Create a shared Playwright "mocks ready" fixture: add a helper that checks process.env.E2E_MOCKS === '1' and pings `http://127.0.0.1:8079/` plus the two WireMock endpoints before each suite. That gives quick feedback if someone forgets the setup commands.
+
+Those PGRST000 lines are just PostgREST complaining while Postgres is still booting. Every time Supabase restarts (or Docker does a health restart), PostgREST hammers the DB before it's ready and logs "database system is starting up". Once Postgres finishes (~10-15 seconds later), the errors stop. If you scroll further down the same log stream you should see "schema cache loaded" messages confirming it recovered.
+
+The Vector errors are fallout from the same startup noise—its remap transform tries to parse the PostgREST log lines as access logs (with to_timestamp), but that "Failed listening for database notifications…" text doesn't match the timestamp pattern. After PostgREST stabilizes, Vector goes back to normal. Harmless unless you depend on those telemetry pipelines.
+
+If the chatter is distracting, tail each container separately so you only see current warnings: docker logs -f supabase_rest_astro.webstackbuilders.com 2>&1 | grep -E '\\[(error|warn)\\]'. You'll notice the burst only happens immediately after start.sh runs or when the DB container is restarted.
+
+You can also extend the REST container's startup delay to avoid the spam: set PGRST_DB_CONFIG variables or wrap npx supabase start in the script with a sleep until supabase_db reports healthy. But functionally, this is expected Supabase CLI behavior; it doesn't indicate a broken state once the stack reports healthy in npm run containers:supabase:status.
+
 Implementation order
 
 08-api: start with these since their success hinges entirely on the mocks. For each test, assert the HTTP response and inspect the mock's request logs (WireMock /__admin/requests) to prove the backend call happened. Adding the cron tests here makes sense—just exercise the GET endpoints via page.request or Playwright's API testing capability so you don't need UI plumbing.
