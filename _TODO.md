@@ -40,8 +40,6 @@ You can also extend the REST container's startup delay to avoid the spam: set PG
 
 Implementation order
 
-Cron coverage: write three tests that hit cleanup-confirmations, newsletter-reminders, etc., using the mock stack. Seed Supabase/Redis with known values before each test (scripts in containers) and assert the mocks see the expected outbound traffic.
-
 03-forms: once the API layer is stable, wire the UI flows. Use Playwright to submit each form, but assert success by checking the mock mappings were triggered, not just the UI toast.
 Consent Preferences (@wip): convert it to use the same helper that verifies mocked Upstash REST and Supabase responses. This test should (1) toggle UI controls, (2) check the outbound request via the mock logs, and (3) read back seeded data to confirm persistence.
 

@@ -94,6 +94,9 @@ jobs:
       - name: Start Supabase stack
         run: npm run containers:supabase:start
 
+      - name: Apply Supabase migrations
+        run: npm run containers:supabase:db-push
+
       - name: Run Playwright E2E tests
         run: npx playwright test
         env:
