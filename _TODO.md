@@ -40,8 +40,6 @@ You can also extend the REST container's startup delay to avoid the spam: set PG
 
 Implementation order
 
-08-api: start with these since their success hinges entirely on the mocks. For each test, assert the HTTP response and inspect the mock's request logs (WireMock /__admin/requests) to prove the backend call happened. Adding the cron tests here makes sense—just exercise the GET endpoints via page.request or Playwright's API testing capability so you don't need UI plumbing.
-
 Cron coverage: write three tests that hit cleanup-confirmations, newsletter-reminders, etc., using the mock stack. Seed Supabase/Redis with known values before each test (scripts in containers) and assert the mocks see the expected outbound traffic.
 
 03-forms: once the API layer is stable, wire the UI flows. Use Playwright to submit each form, but assert success by checking the mock mappings were triggered, not just the UI toast.
