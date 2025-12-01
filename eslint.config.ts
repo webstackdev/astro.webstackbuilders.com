@@ -418,6 +418,7 @@ export default [
       'src/lib/config/**/*',
       'src/pages/api/_environment/**/*',
       'test/e2e/helpers/pageObjectModels/**/*',
+      'test/e2e/helpers/mockServices.ts',
     ],
     rules: {
       'no-process-env': 'off',

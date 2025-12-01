@@ -4,7 +4,7 @@
  */
 
 import { Resend } from 'resend'
-import { getResendApiKey, isDev, isTest } from '@pages/api/_environment/environmentApi'
+import { getResendApiKey, getResendMockBaseUrl, isDev, isTest } from '@pages/api/_environment/environmentApi'
 import { getSiteUrl } from '@pages/api/_environment/siteUrlApi'
 import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
 
@@ -188,35 +188,85 @@ Privacy Policy: ${getSiteUrl()}/privacy
  * @returns Promise that resolves when email is sent
  * @throws {Error} If Resend API key is not configured or email fails to send
  */
+interface SendConfirmationEmailOptions {
+  forceMockResend?: boolean
+}
+
 export async function sendConfirmationEmail(
   email: string,
   token: string,
-  firstName?: string
+  firstName?: string,
+  options?: SendConfirmationEmailOptions
 ): Promise<void> {
-  // Skip actual email sending in dev/test environments
-  if (isDev() || isTest()) {
-    console.log('[DEV/TEST MODE] Newsletter confirmation email would be sent:', { email, token })
-    return
-  }
-
-  const resend = getResendClient()
+  const resendMockBaseUrl = getResendMockBaseUrl({ force: options?.forceMockResend })
   const siteUrl = getSiteUrl()
   const confirmUrl = `${siteUrl}/newsletter/confirm/${token}`
   const expiresIn = '24 hours'
 
-  try {
-    const result = await resend.emails.send({
-      from: 'Webstack Builders <newsletter@webstackbuilders.com>',
-      to: email,
-      subject: 'Confirm your newsletter subscription - Webstack Builders',
-      html: generateConfirmationEmailHtml(firstName, confirmUrl, expiresIn),
-      text: generateConfirmationEmailText(firstName, confirmUrl, expiresIn),
-      // Optional: Add tags for tracking
-      tags: [
-        { name: 'type', value: 'newsletter-confirmation' },
-        { name: 'flow', value: 'double-optin' },
-      ],
+  // Skip actual email sending when no mock is available in dev/test
+  if (!resendMockBaseUrl && (isDev() || isTest())) {
+    console.log('[DEV/TEST MODE] Newsletter confirmation email would be sent:', { email, token })
+    return
+  }
+
+  const resendPayload = {
+    from: 'Webstack Builders <newsletter@webstackbuilders.com>',
+    to: email,
+    subject: 'Confirm your newsletter subscription - Webstack Builders',
+    html: generateConfirmationEmailHtml(firstName, confirmUrl, expiresIn),
+    text: generateConfirmationEmailText(firstName, confirmUrl, expiresIn),
+    tags: [
+      { name: 'type', value: 'newsletter-confirmation' },
+      { name: 'flow', value: 'double-optin' },
+    ],
+  }
+
+  const handleSendError = (error: unknown) => {
+    console.error('[Newsletter Email] Error sending confirmation:', error)
+    throw new ApiFunctionError(error, {
+      message: 'Failed to send confirmation email. Please try again later.',
+      code: 'NEWSLETTER_CONFIRMATION_EMAIL_FAILED',
+      status: 502,
+      route: '/api/newsletter',
+      operation: 'sendConfirmationEmail'
     })
+  }
+
+  if (resendMockBaseUrl) {
+    const mockAuthorizationHeader = (() => {
+      try {
+        return `Bearer ${getResendApiKey()}`
+      } catch {
+        return 'Bearer mock-resend-key'
+      }
+    })()
+
+    try {
+      const response = await fetch(`${resendMockBaseUrl}/emails`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: mockAuthorizationHeader,
+        },
+        body: JSON.stringify(resendPayload),
+      })
+
+      if (!response.ok) {
+        const body = await response.text().catch(() => 'Unable to read mock response body')
+        throw new Error(`Resend mock responded with ${response.status}: ${body}`)
+      }
+
+      console.log('[Newsletter Email] Confirmation sent to mock service:', { email })
+      return
+    } catch (error) {
+      handleSendError(error)
+    }
+  }
+
+  const resend = getResendClient()
+
+  try {
+    const result = await resend.emails.send(resendPayload)
 
     if (result.error) {
       console.error('[Newsletter Email] Failed to send confirmation:', result.error)
@@ -234,14 +284,7 @@ export async function sendConfirmationEmail(
       messageId: result.data?.id,
     })
   } catch (error) {
-    console.error('[Newsletter Email] Error sending confirmation:', error)
-    throw new ApiFunctionError(error, {
-      message: 'Failed to send confirmation email. Please try again later.',
-      code: 'NEWSLETTER_CONFIRMATION_EMAIL_FAILED',
-      status: 502,
-      route: '/api/newsletter',
-      operation: 'sendConfirmationEmail'
-    })
+    handleSendError(error)
   }
 }
 

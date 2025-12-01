@@ -47,6 +47,8 @@ interface ConvertKitErrorResponse {
   errors: string[]
 }
 
+const E2E_MOCKS_HEADER = 'x-e2e-mocks'
+
 /**
  * Validate email address format and length
  */
@@ -189,6 +191,7 @@ export const POST: APIRoute = async ({ request, cookies, clientAddress }) => {
 
   const userAgent = request.headers.get('user-agent') || 'unknown'
   apiContext.extra = { ...(apiContext.extra || {}), userAgent }
+  const forceMockResend = request.headers.get(E2E_MOCKS_HEADER) === '1'
 
   try {
     const rateLimitIdentifier = createRateLimitIdentifier('newsletter:consent', fingerprint)
@@ -268,7 +271,9 @@ export const POST: APIRoute = async ({ request, cookies, clientAddress }) => {
       source: 'newsletter_form',
     })
 
-    await sendConfirmationEmail(validatedEmail, token, firstName)
+    await sendConfirmationEmail(validatedEmail, token, firstName, {
+      forceMockResend,
+    })
 
     return new Response(
       JSON.stringify({
