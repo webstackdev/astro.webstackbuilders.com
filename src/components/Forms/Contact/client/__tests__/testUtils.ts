@@ -1,7 +1,7 @@
 import { expect } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import { TestError } from '@test/errors'
-import ContactFormFixture from '@components/Forms/Contact/client/__tests__/__fixtures__/contactForm.fixture.astro'
+import ContactFormFixture from '@components/Forms/Contact/client/__fixtures__/contactForm.fixture.astro'
 import type { ContactFormElement } from '@components/Forms/Contact/client'
 import { getContactFormElements } from '@components/Forms/Contact/client/selectors'
 import type { ContactFormElements } from '@components/Forms/Contact/client/@types'
