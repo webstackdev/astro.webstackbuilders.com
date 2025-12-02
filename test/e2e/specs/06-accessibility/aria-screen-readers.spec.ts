@@ -40,7 +40,7 @@ test.describe('ARIA and Screen Readers', () => {
    * rule which is a critical accessibility issue. This rule ensures that all buttons have
    * a discernible name so that screen reader users can understand their purpose, even if
    * the button is an icon without visible text.
-  */
+   */
   test('@ready buttons have accessible labels', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     await page.goto('/')
@@ -180,7 +180,7 @@ test.describe('ARIA and Screen Readers', () => {
    * Axe checks that lists use proper markup. It enforces several rules to ensure lists
    * are structured correctly and semantically, which helps assistive technologies like
    * screen readers interpret them properly.
- */
+   */
   test('@ready lists use proper markup', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     await page.goto('/')

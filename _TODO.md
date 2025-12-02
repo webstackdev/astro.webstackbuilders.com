@@ -23,6 +23,10 @@ Vercel Analytics
 
 See note in src/components/scripts/sentry/client.ts - "User Feedback - allow users to report issues"
 
+## Uppy file uploads from contact form
+
+docs/CONTACT_FORM.md
+
 ## Search
 
 Add Upstash Search as a Vercel Marketplace Integration.

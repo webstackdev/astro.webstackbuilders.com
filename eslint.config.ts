@@ -259,6 +259,7 @@ export default [
       '**/*.tsx',
     ],
     ignores: [
+      'test/e2e/helpers/pageObjectModels/**/*',
       'src/test/e2e/specs/__tests__/**',
     ],
     rules: {
@@ -339,6 +340,7 @@ export default [
     files: [
       '**/*error.spec.ts',
       'src/components/scripts/assertions/elements.ts',
+      'test/e2e/assertions/index.ts',
     ],
     rules: {
       'custom-rules/no-html-element-assertions': 'off',
@@ -417,6 +419,7 @@ export default [
       'src/components/scripts/utils/environmentClient.ts',
       'src/lib/config/**/*',
       'src/pages/api/_environment/**/*',
+      'test/e2e/config/global-setup.ts',
       'test/e2e/helpers/pageObjectModels/**/*',
       'test/e2e/helpers/mockServices.ts',
     ],

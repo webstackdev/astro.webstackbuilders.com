@@ -200,21 +200,26 @@ export class BasePage {
     } catch {
       // Ignore errors - modal might not exist on all pages
     }
-  }  /**
+  }
+
+  /**
    * Evaluate JS script in the browser
    */
-  async evaluate<R, Arg = unknown>(
-    pageFunction: (arg: Arg) => R | Promise<R>,
-    arg: Arg
-  ): Promise<R>
-  async evaluate<R>(
-    pageFunction: () => R | Promise<R>
-  ): Promise<R>
-  async evaluate<R, Arg = unknown>(
-    pageFunction: ((arg: Arg) => R | Promise<R>) | (() => R | Promise<R>),
-    arg?: Arg
+  async evaluate<R, Arg = void>(
+    pageFunction: (_arg: Arg) => R | Promise<R>,
+    ...args: Arg extends void ? [] : [Arg]
   ): Promise<R> {
-    return await this._page.evaluate(pageFunction as any, arg)
+    type EvaluateCallback = Parameters<Page['evaluate']>[0]
+    type EvaluateArgument = Parameters<Page['evaluate']>[1]
+
+    const typedCallback = pageFunction as unknown as EvaluateCallback
+
+    if (args.length === 0) {
+      return (await this._page.evaluate(typedCallback)) as Awaited<R>
+    }
+
+    const [value] = args as [Arg]
+    return (await this._page.evaluate(typedCallback, value as EvaluateArgument)) as Awaited<R>
   }
 
   /**
@@ -412,10 +417,10 @@ export class BasePage {
    * Intercept and modify network requests
    */
   async route(
-    url: string | RegExp | ((url: URL) => boolean),
-    handler: (route: import('@playwright/test').Route) => void
+    targetUrl: string | RegExp | ((_url: URL) => boolean),
+    handler: (_route: import('@playwright/test').Route) => void
   ): Promise<void> {
-    await this._page.route(url, handler)
+    await this._page.route(targetUrl, handler)
   }
 
   /**
@@ -505,7 +510,7 @@ export class BasePage {
    * ```
    */
   async waitForResponse(
-    urlPattern: string | RegExp | ((response: Response) => boolean),
+    urlPattern: string | RegExp | ((_response: Response) => boolean),
     options?: { timeout?: number }
   ): Promise<Response> {
     return await this._page.waitForResponse(urlPattern, options)
