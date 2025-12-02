@@ -435,18 +435,22 @@ export class BasePage {
    * await page.waitForPageLoad()
    * ```
    */
-  async waitForPageLoad(): Promise<void> {
+  async waitForPageLoad(options?: { requireNext?: boolean; timeout?: number }): Promise<void> {
+    const requireNext = options?.requireNext ?? false
+    const timeout = options?.timeout ?? DEFAULT_NAVIGATION_TIMEOUT
     const currentCount = await this._page.evaluate(() => window.__astroPageLoadCounter ?? 0)
 
-    if (currentCount > this.lastAstroPageLoadCount) {
+    if (!requireNext && currentCount > this.lastAstroPageLoadCount) {
       this.lastAstroPageLoadCount = currentCount
       return
     }
 
+    const baseline = requireNext ? currentCount : this.lastAstroPageLoadCount
+
     await this._page.waitForFunction(
       previousCount => (window.__astroPageLoadCounter ?? 0) > previousCount,
-      currentCount,
-      { timeout: DEFAULT_NAVIGATION_TIMEOUT }
+      baseline,
+      { timeout }
     )
 
     this.lastAstroPageLoadCount = await this._page.evaluate(() => window.__astroPageLoadCounter ?? 0)

@@ -24,7 +24,7 @@ test.describe('Critical Paths @smoke', () => {
     const page = await BasePage.init(playwrightPage)
     for (const { url: path } of page.navigationItems) {
       await page.goto('/')
-      const navigationComplete = page.waitForPageLoad()
+      const navigationComplete = page.waitForPageLoad({ requireNext: true })
       await page.navigateToPage(path)
       await navigationComplete
       await playwrightPage.waitForFunction(() => {
@@ -56,7 +56,7 @@ test.describe('Critical Paths @smoke', () => {
       await playwrightPage.waitForSelector('.menu-visible', { state: 'visible' })
 
       // Click navigation link
-      const navigationComplete = page.waitForPageLoad()
+      const navigationComplete = page.waitForPageLoad({ requireNext: true })
       await page.click(`a[href="${path}"]`)
       await navigationComplete
       await playwrightPage.waitForFunction(() => {

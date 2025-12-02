@@ -55,7 +55,7 @@ export class BreadCrumbPage extends BasePage {
       return
     }
 
-    const waitForLoad = this.waitForPageLoad()
+    const waitForLoad = this.waitForPageLoad({ requireNext: true })
     await this.click(`a[href="${targetHref}"]`)
     await waitForLoad
   }
