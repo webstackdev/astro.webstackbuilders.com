@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# End-to-end stress test runner script
 set -uo pipefail
 
 SUCCESS_FILE="/tmp/e2e-stress-run-success-count"

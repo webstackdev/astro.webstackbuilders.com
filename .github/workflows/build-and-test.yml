@@ -57,6 +57,7 @@ jobs:
         run: npm run lint
 
       - name: Run unit tests (Vitest — coverage with GitHub Actions reporter)
+        id: vitest
         run: |
           # Run vitest with coverage. The built-in 'github-actions' reporter
           # (configured in vitest.config.ts) will create annotations.
@@ -65,7 +66,7 @@ jobs:
 
       - name: Report Coverage
         uses: davelosert/vitest-coverage-report-action@v2.9.0
-        if: always()
+        if: ${{ always() && steps.vitest.outcome == 'success' && hashFiles('coverage/coverage-summary.json') != '' }}
         with:
           json-summary-path: './coverage/coverage-summary.json'
           json-final-path: './coverage/coverage-final.json'
