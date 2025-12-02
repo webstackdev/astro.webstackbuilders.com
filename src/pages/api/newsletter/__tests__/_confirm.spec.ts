@@ -119,8 +119,12 @@ describe('Newsletter Confirmation API - GET /api/newsletter/confirm', () => {
 		expect(supabaseFromMock).toHaveBeenCalledWith('consent_records')
 		expect(supabaseQueryBuilder.update).toHaveBeenCalledWith({ verified: true })
 
-		// Verify welcome email was sent
-		expect(mockSendWelcomeEmail).toHaveBeenCalledWith('test@example.com', 'John')
+		// Verify welcome email was sent (force mock disabled by default)
+		expect(mockSendWelcomeEmail).toHaveBeenCalledWith(
+			'test@example.com',
+			'John',
+			expect.objectContaining({ forceMockResend: false }),
+		)
 
 		expect(mockSubscribeToConvertKit).toHaveBeenCalledWith(
 			expect.objectContaining({ email: 'test@example.com' }),
@@ -142,9 +146,10 @@ describe('Newsletter Confirmation API - GET /api/newsletter/confirm', () => {
 		const response = await GET(createRequestContext('http://localhost/api/newsletter/confirm?token=expired-token'))
 		const body = await response.json()
 
-		expect(response.status).toBe(400)
-		expect(body.error).toBeDefined()
-		expect(body.error.message).toContain('expired')
+		expect(response.status).toBe(200)
+		expect(body.success).toBe(false)
+		expect(body.status).toBe('expired')
+		expect(body.message).toContain('expired')
 	})
 
 	it('should handle subscription without firstName', async () => {
@@ -166,7 +171,11 @@ describe('Newsletter Confirmation API - GET /api/newsletter/confirm', () => {
 
 		expect(response.status).toBe(200)
 		expect(data.success).toBe(true)
-		expect(mockSendWelcomeEmail).toHaveBeenCalledWith('test@example.com', undefined)
+		expect(mockSendWelcomeEmail).toHaveBeenCalledWith(
+			'test@example.com',
+			undefined,
+			expect.objectContaining({ forceMockResend: false }),
+		)
 	})
 
 	it('should handle subscription without ipAddress', async () => {

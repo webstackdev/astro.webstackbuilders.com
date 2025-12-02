@@ -104,7 +104,12 @@ describe('Newsletter API - POST /api/newsletter', () => {
 				firstName: 'John',
 			}),
 		)
-		expect(mockSendConfirmationEmail).toHaveBeenCalledWith('test@example.com', 'test-token-123', 'John')
+		expect(mockSendConfirmationEmail).toHaveBeenCalledWith(
+			'test@example.com',
+			'test-token-123',
+			'John',
+			expect.objectContaining({ forceMockResend: false }),
+		)
 	})
 
 	it('should reject subscription without email', async () => {
@@ -219,7 +224,12 @@ describe('Newsletter API - POST /api/newsletter', () => {
 
 		expect(response.status).toBe(200)
 		expect(data.success).toBe(true)
-		expect(mockSendConfirmationEmail).toHaveBeenCalledWith('test@example.com', 'test-token-123', undefined)
+		expect(mockSendConfirmationEmail).toHaveBeenCalledWith(
+			'test@example.com',
+			'test-token-123',
+			undefined,
+			expect.objectContaining({ forceMockResend: false }),
+		)
 	})
 
 	it('should handle service errors gracefully', async () => {
