@@ -35,6 +35,9 @@ import { privacyPolicyVersion } from './src/integrations/PrivacyPolicyVersion'
 import { pwaDevAssetServer } from './src/lib/plugins/pwaDevAssetServer'
 import { createSerializeFunction, pagesJsonWriter } from './src/integrations/sitemapSerialize'
 
+// Ensure Vite's HMR websocket connects through the same exposed dev server port used by Astro.
+const devServerPort = Number(process.env['DEV_SERVER_PORT'] ?? 4321)
+
 const sharedTestIntegrations = [
   icon(),
 ]
@@ -93,6 +96,11 @@ export default defineConfig({
   site: getSiteUrl(),
   trailingSlash: 'never',
   vite: {
+    server: {
+      hmr: {
+        clientPort: devServerPort,
+      },
+    },
     build: {
       /** Source map generation must be turned on for Sentry. */
       sourcemap: true,
