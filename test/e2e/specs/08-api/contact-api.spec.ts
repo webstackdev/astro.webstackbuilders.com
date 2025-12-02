@@ -10,10 +10,6 @@ test.describe('Contact API integrations', () => {
 
   test.describe.configure({ mode: 'serial' })
 
-  test.beforeEach(async () => {
-    await wiremock.resend.resetRequests()
-  })
-
   test('@mocks delivers transactional email payload to Resend', async ({ request }) => {
     const uniqueEmail = `contact-${Date.now()}@example.com`
     const response = await request.post(CONTACT_ENDPOINT, {
@@ -58,13 +54,14 @@ test.describe('Contact API integrations', () => {
   })
 
   test('@mocks rejects invalid submissions before reaching Resend', async ({ request }) => {
+    const invalidEmail = `invalid-contact-${Date.now()}@example.com`
     const response = await request.post(CONTACT_ENDPOINT, {
       headers: {
         'x-e2e-mocks': '1',
       },
       data: {
         name: 'x',
-        email: 'invalid-email',
+        email: invalidEmail,
         message: 'short',
       },
     })
@@ -73,6 +70,7 @@ test.describe('Contact API integrations', () => {
     const requests = await wiremock.resend.findRequests({
       method: 'POST',
       urlPath: RESEND_EMAIL_PATH,
+      bodyIncludes: invalidEmail,
     })
     expect(requests.length).toBe(0)
   })

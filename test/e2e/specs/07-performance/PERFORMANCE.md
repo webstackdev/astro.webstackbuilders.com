@@ -2,14 +2,14 @@
 
 Failures: Firefox + Mobile Safari FID measured 127 ms/126 ms (threshold 100 ms) and Chrome/Edge/Mobile Chrome TBT measured 297 ms-511 ms (threshold 200 ms).
 
-## FID regressions (Firefox, Mobile Safari)
+## First Input Delay (FID) regressions (Firefox, Mobile Safari)
 
 - measureFID clicks the first interactive container right after networkidle, so any document-level listener that executes synchronously inflates this metric. index.ts binds multiple global click, touchend, and keydown handlers plus Lit store updates during initialize(). Those handlers always run before the synthetic click resolves, keeping the main thread busy for ~25 ms on desktop and ~40 ms on mobile.
 
 - index.ts eagerly instantiates focus-trap, registers document keyup/pointerdown, and intercepts every nav link to reroute through astro:transitions. All of that work executes before the first user click completes, which is why only browsers with slower event loop scheduling (Gecko/WebKit) exceed 100 ms.
 Mitigations: lazily register these web components behind requestIdleCallback/queueMicrotask so initial navigation/interactions aren't blocked; bind document listeners only after the relevant UI opens; gate LitElement hydration on an IntersectionObserver so off-screen modals (theme picker) stay inert until revealed.
 
-## TBT regressions (Chromium desktop + mobile)
+## Total Blocking Time (TBT) regressions (Chromium desktop + mobile)
 
 - Carousels (index.ts and index.ts) synchronously instantiate Embla + Autoplay during DOMContentLoaded, even when the slider is below the fold. Embla's layout sync plus dot/button building accounts for ~180 ms of long tasks per carousel; Mobile Chrome shows 500 ms because hero and testimonial sliders initialize back-to-back.
 
