@@ -217,6 +217,11 @@ test.describe('Newsletter Subscription Form', () => {
     await newsletterPage.fillEmail(TEST_EMAILS.valid)
     await newsletterPage.checkGdprConsent()
 
+    await newsletterPage.waitForFunction(() => {
+      const button = document.querySelector('#newsletter-submit')
+      return button instanceof HTMLButtonElement && button.disabled === false
+    }, undefined, { timeout: 3000 })
+
     const browserName = newsletterPage.context().browser()?.browserType().name()
     const delayMs = browserName === 'webkit' ? 400 : 200
     const delayOverride = await delayFetchForEndpoint(newsletterPage.page, { endpoint: '/api/newsletter', delayMs })
@@ -225,9 +230,9 @@ test.describe('Newsletter Subscription Form', () => {
     const submitPromise = submitButton.click()
 
     try {
-      await expect(submitButton).toBeDisabled()
+      await expect(submitButton).toBeDisabled({ timeout: 2000 })
       await submitPromise
-      await expect(submitButton).not.toBeDisabled()
+      await expect(submitButton).toBeEnabled({ timeout: 2000 })
     } finally {
       await delayOverride.restore()
     }
