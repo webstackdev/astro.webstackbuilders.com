@@ -9,9 +9,7 @@ See the "CONSOLE OUTPUT FROM LAST E2E FULL RUN THAT ERRORED" section for the nex
 
 ## Problems Areas
 
-### 2. Service Worker Enablement (Monitoring)
-
-- **Status:** Added Playwright-only logging inside `PwaPage.enableServiceWorkerForE2E()` and `registerServiceWorker()` to record the value of `window.__disableServiceWorkerForE2E`, plus dev/e2e flags, whenever the SW logic runs. Targeted runs of `test/e2e/specs/09-pwa/service-worker.spec.ts` in Chromium and WebKit now pass, and the logs confirm the flag flips to `false` before registration proceeds. Leaving the instrumentation in place through the next stress suite to ensure the readiness timeouts remain resolved.
+## LOG OF FIXES APPLIED TO PROBLEMS IDENTIFIED DURING E2E STRESS TESTS
 
 ### Theme Picker Reload Policy
 
@@ -21,10 +19,18 @@ See the "CONSOLE OUTPUT FROM LAST E2E FULL RUN THAT ERRORED" section for the nex
 
 - **Diagnostics:**
 
-  - Instrument `helpers/cookieHelper.ts` to capture the URL and policy state when the reload is blocked.
+- Instrument `helpers/cookieHelper.ts` to capture the URL and policy state when the reload is blocked.
 
-  - Evaluate alternative reset flows (for example, `page.goto()` with a cache-busting query) so tests do not rely on reload semantics that WebKit disallows under our CSP/service-worker combo.
+- Evaluate alternative reset flows (for example, `page.goto()` with a cache-busting query) so tests do not rely on reload semantics that WebKit disallows under our CSP/service-worker combo.
 
-## LOG OF FIXES APPLIED TO PROBLEMS IDENTIFIED DURING E2E STRESS TESTS
+- **Findings:**
+
+- Added Playwright-only logging to `setupCleanTestPage` so every reload/cache-busting navigation now reports URL, document readiness, storage state, and navigation type to the console (prefixed with `ThemePicker:*`).
+
+- `CI=1 FORCE_COLOR=1 npx playwright test test/e2e/specs/04-components/theme-picker.spec.ts --project=webkit` now completes all 14 tests without triggering WebKit's policy check. Instrumentation confirms the reload path executes and reports `navigationType: 'reload'`, so the flake has not reproduced since adding the logging.
+
+- **Resolution**
+
+Theme Picker reload diagnostics: Instrumented `setupCleanTestPage` with Playwright-only snapshots and re-ran the WebKit theme picker suite; no policy-check cancellations observed, but logs now capture sufficient context if the flake returns.
 
 ## CONSOLE OUTPUT FROM LAST E2E FULL RUN THAT ERRORED
