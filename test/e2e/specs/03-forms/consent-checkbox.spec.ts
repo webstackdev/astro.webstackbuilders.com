@@ -3,158 +3,178 @@
  * @see src/components/Consent/
  */
 
-import { BasePage, test, expect } from '@test/e2e/helpers'
+import type { Page } from '@playwright/test'
+import {
+  BasePage,
+  test,
+  expect,
+  spyOnFetchEndpoint,
+  mockFetchEndpointResponse,
+} from '@test/e2e/helpers'
+import { TEST_EMAILS } from '@test/e2e/fixtures/test-data'
 
+const HOME_PATH = '/'
+const CONTACT_PATH = '/contact'
+const NEWSLETTER_FORM_SELECTOR = '#newsletter-form'
+const NEWSLETTER_EMAIL_INPUT = '#newsletter-email'
+const NEWSLETTER_SUBMIT_BUTTON = '#newsletter-submit'
+const NEWSLETTER_CONSENT_SELECTOR = '#newsletter-gdpr-consent'
+const NEWSLETTER_CONSENT_LABEL_SELECTOR = `label:has(${NEWSLETTER_CONSENT_SELECTOR})`
+const NEWSLETTER_PRIVACY_LINK_SELECTOR = `${NEWSLETTER_CONSENT_LABEL_SELECTOR} a[href*="privacy"]`
+const NEWSLETTER_CONSENT_ERROR_SELECTOR = '#newsletter-gdpr-consent-error'
+const NEWSLETTER_MESSAGE_SELECTOR = '#newsletter-message'
+const CONTACT_CONSENT_SELECTOR = '#contact-gdpr-consent'
 
-test.describe('GDPR Consent Component', () => {
-  /**
-   * Setup for GDPR consent component tests
-   *
-   * Side effects relied upon:
-   * - Navigates to the contact page which contains a newsletter signup form
-   *
-   * Without this setup, tests would fail due to:
-   * - GDPR consent checkbox not being present on the page
-   * - Newsletter form and associated consent controls not being rendered
-   *
-   * The contact page is specifically chosen because it contains the newsletter
-   * subscription form which includes GDPR consent controls
-   */
-  test.beforeEach(async ({ page: playwrightPage }) => {
-    const page = await BasePage.init(playwrightPage)
-    await page.goto('/contact')
+const waitForNewsletterSection = async (page: BasePage): Promise<void> => {
+  await page.waitForLoadState('networkidle')
+  await page.locator(NEWSLETTER_FORM_SELECTOR).waitFor({ state: 'visible' })
+  await page.waitForFunction(() => {
+    const consentCheckbox = document.querySelector<HTMLInputElement>('#newsletter-gdpr-consent')
+    const emailInput = document.querySelector<HTMLInputElement>('#newsletter-email')
+    return Boolean(consentCheckbox && emailInput)
+  }, undefined, { timeout: 5000 })
+  await page.scrollToElement(NEWSLETTER_FORM_SELECTOR)
+}
+
+const waitForContactForm = async (page: BasePage): Promise<void> => {
+  await page.waitForFunction(() => {
+    const container = document.getElementById('uppyContainer')
+    return Boolean(container && container.hidden === false)
+  }, undefined, { timeout: 5000 })
+  await page.locator(CONTACT_CONSENT_SELECTOR).waitFor({ state: 'visible' })
+  await page.scrollToElement(CONTACT_CONSENT_SELECTOR)
+}
+
+const fillNewsletterEmail = async (page: BasePage, email: string = TEST_EMAILS.valid): Promise<void> => {
+  await page.fill(NEWSLETTER_EMAIL_INPUT, email)
+}
+
+const submitNewsletterForm = async (page: BasePage): Promise<void> => {
+  await page.click(NEWSLETTER_SUBMIT_BUTTON)
+}
+
+const expectConsentErrorVisible = async (page: BasePage): Promise<void> => {
+  const errorMessage = page.locator(NEWSLETTER_CONSENT_ERROR_SELECTOR)
+  await expect(errorMessage).toBeVisible()
+  await expect(errorMessage).toContainText('consent')
+}
+test.describe('Newsletter GDPR Consent', () => {
+  let pageUnderTest: BasePage
+  let playwrightPage: Page
+
+  test.beforeEach(async ({ page }) => {
+    playwrightPage = page
+    pageUnderTest = await BasePage.init(page)
+    await pageUnderTest.goto(HOME_PATH)
+    await waitForNewsletterSection(pageUnderTest)
   })
 
-  test.skip('@wip GDPR consent checkbox is visible', async ({ page: playwrightPage }) => {
-    const page = await BasePage.init(playwrightPage)
-    // Expected: GDPR consent checkbox should be visible on newsletter form
-    const gdprCheckbox = page.locator('input[type="checkbox"][name*="consent"], input[type="checkbox"][name*="gdpr"]')
-    await expect(gdprCheckbox.first()).toBeVisible()
+  test('@ready GDPR consent checkbox is visible', async () => {
+    await expect(pageUnderTest.locator(NEWSLETTER_CONSENT_SELECTOR)).toBeVisible()
   })
 
-  test.skip('@wip GDPR consent has label', async ({ page: playwrightPage }) => {
-    const page = await BasePage.init(playwrightPage)
-    // Expected: Checkbox should have associated label
-    const gdprCheckbox = page.locator('input[type="checkbox"][name*="consent"], input[type="checkbox"][name*="gdpr"]').first()
-    const checkboxId = await gdprCheckbox.getAttribute('id')
+  test('@ready GDPR consent has label', async () => {
+    await expect(pageUnderTest.locator(NEWSLETTER_CONSENT_LABEL_SELECTOR)).toContainText('Privacy Policy')
+  })
 
-    if (checkboxId) {
-      const label = page.locator(`label[for="${checkboxId}"]`)
-      await expect(label).toBeVisible()
-    } else {
-      // Label might wrap checkbox
-      const parentLabel = gdprCheckbox.locator('..')
-      const labelText = await parentLabel.textContent()
-      expect(labelText?.trim().length).toBeGreaterThan(0)
+  test('@ready GDPR label contains privacy policy link', async () => {
+    const privacyLink = pageUnderTest.locator(NEWSLETTER_PRIVACY_LINK_SELECTOR).first()
+    await expect(privacyLink).toBeVisible()
+    await expect(privacyLink).toHaveAttribute('href', /\/privacy\/?$/)
+  })
+
+  test('@ready privacy policy link opens in new tab', async () => {
+    const privacyLink = pageUnderTest.locator(NEWSLETTER_PRIVACY_LINK_SELECTOR).first()
+    await expect(privacyLink).toHaveAttribute('target', '_blank')
+    await expect(privacyLink).toHaveAttribute('rel', /noopener/)
+  })
+
+  test('@ready form cannot submit without GDPR consent', async () => {
+    const fetchSpy = await spyOnFetchEndpoint(playwrightPage, '/api/newsletter')
+
+    try {
+      await fillNewsletterEmail(pageUnderTest)
+      await submitNewsletterForm(pageUnderTest)
+
+      await expect(pageUnderTest.locator(NEWSLETTER_MESSAGE_SELECTOR)).toContainText('Please consent')
+      await expectConsentErrorVisible(pageUnderTest)
+
+      const callCount = await fetchSpy.getCallCount()
+      expect(callCount).toBe(0)
+    } finally {
+      await fetchSpy.restore()
     }
   })
 
-  test.skip('@wip GDPR label contains privacy policy link', async ({ page: playwrightPage }) => {
-    const page = await BasePage.init(playwrightPage)
-    // Expected: GDPR label should link to privacy policy
-    const gdprLabel = page.locator('label:has(input[type="checkbox"][name*="consent"]), label:has(input[type="checkbox"][name*="gdpr"])').first()
-    const privacyLink = gdprLabel.locator('a[href*="privacy"]')
+  test('@ready form can submit with GDPR consent', async () => {
+    const subscriptionEmail = `consent-e2e-${Date.now()}@example.com`
+    const successOverride = await mockFetchEndpointResponse(playwrightPage, {
+      endpoint: '/api/newsletter',
+      status: 200,
+      body: {
+        success: true,
+        message: 'Please check your email to confirm your subscription',
+      },
+    })
 
-    await expect(privacyLink).toBeVisible()
+    try {
+      await fillNewsletterEmail(pageUnderTest, subscriptionEmail)
+      await pageUnderTest.check(NEWSLETTER_CONSENT_SELECTOR)
+      await submitNewsletterForm(pageUnderTest)
+      await successOverride.waitForCall()
+
+      await expect(pageUnderTest.locator(NEWSLETTER_MESSAGE_SELECTOR)).toContainText('confirm your subscription')
+    } finally {
+      await successOverride.restore()
+    }
   })
 
-  test.skip('@wip privacy policy link opens in new tab', async ({ page: playwrightPage }) => {
-    const page = await BasePage.init(playwrightPage)
-    // Expected: Privacy link should have target="_blank"
-    const gdprLabel = page.locator('label:has(input[type="checkbox"][name*="consent"]), label:has(input[type="checkbox"][name*="gdpr"])').first()
-    const privacyLink = gdprLabel.locator('a[href*="privacy"]')
+  test('@ready GDPR checkbox is accessible via keyboard', async () => {
+    const checkbox = pageUnderTest.locator(NEWSLETTER_CONSENT_SELECTOR)
+    await checkbox.focus()
 
-    const target = await privacyLink.getAttribute('target')
-    expect(target).toBe('_blank')
+    await pageUnderTest.keyboard.press('Space')
+    await expect(checkbox).toBeChecked()
 
-    const rel = await privacyLink.getAttribute('rel')
-    expect(rel).toContain('noopener')
+    await pageUnderTest.keyboard.press('Space')
+    await expect(checkbox).not.toBeChecked()
   })
 
-  test.skip('@wip form cannot submit without GDPR consent', async ({ page: playwrightPage }) => {
-    const page = await BasePage.init(playwrightPage)
-    // Expected: Form submission should fail if GDPR not checked
-    const emailInput = page.locator('input[type="email"]').first()
-    const submitButton = page.locator('button[type="submit"]').first()
-    const gdprCheckbox = page.locator('input[type="checkbox"][name*="consent"], input[type="checkbox"][name*="gdpr"]').first()
-
-    await emailInput.fill('test@example.com')
-    // Don't check GDPR
-
-    await submitButton.click()
-    await expect.poll(async () => {
-      return await gdprCheckbox.evaluate((el: HTMLInputElement) => el.validationMessage)
-    }).not.toEqual('')
+  test('@ready GDPR error message is displayed', async () => {
+    await fillNewsletterEmail(pageUnderTest)
+    await submitNewsletterForm(pageUnderTest)
+    await expectConsentErrorVisible(pageUnderTest)
   })
 
-  test.skip('@wip form can submit with GDPR consent', async ({ page: playwrightPage }) => {
-    const page = await BasePage.init(playwrightPage)
-    // Expected: Form should accept submission when GDPR is checked
-    const emailInput = page.locator('input[type="email"]').first()
-    const submitButton = page.locator('button[type="submit"]').first()
-    const gdprCheckbox = page.locator('input[type="checkbox"][name*="consent"], input[type="checkbox"][name*="gdpr"]').first()
+  test('@ready GDPR consent state persists during form validation', async () => {
+    const checkbox = pageUnderTest.locator(NEWSLETTER_CONSENT_SELECTOR)
+    await checkbox.check()
+    await expect(checkbox).toBeChecked()
 
-    await emailInput.fill('test@example.com')
-    await gdprCheckbox.check()
+    await pageUnderTest.fill(NEWSLETTER_EMAIL_INPUT, 'invalid-email')
+    await submitNewsletterForm(pageUnderTest)
+    await expect(pageUnderTest.locator(NEWSLETTER_MESSAGE_SELECTOR)).toContainText('valid email address')
+    await expect(checkbox).toBeChecked()
+  })
+})
 
-    await submitButton.click()
+test.describe('Contact Form GDPR Consent', () => {
+  let pageUnderTest: BasePage
 
-    // Form should be processing or show success
-    // (Actual behavior depends on API implementation)
+  test.beforeEach(async ({ page }) => {
+    pageUnderTest = await BasePage.init(page)
+    await pageUnderTest.goto(CONTACT_PATH)
+    await waitForContactForm(pageUnderTest)
   })
 
-  test.skip('@wip GDPR checkbox is accessible via keyboard', async ({ page: playwrightPage }) => {
-    const page = await BasePage.init(playwrightPage)
-    // Expected: Can check/uncheck with Space key
-    const gdprCheckbox = page.locator('input[type="checkbox"][name*="consent"], input[type="checkbox"][name*="gdpr"]').first()
+  test('@ready GDPR checkbox works on contact form', async () => {
+    const contactConsent = pageUnderTest.locator(CONTACT_CONSENT_SELECTOR)
+    await expect(contactConsent).toBeVisible()
 
-    // Tab to checkbox
-    await page.keyboard.press('Tab')
-    await page.keyboard.press('Tab')
-    await page.keyboard.press('Tab') // May need multiple tabs
+    const contactLabel = pageUnderTest.locator(`label:has(${CONTACT_CONSENT_SELECTOR})`)
+    await expect(contactLabel).toContainText('Privacy Policy')
 
-    // Check with Space
-    await page.keyboard.press('Space')
-    await expect(gdprCheckbox).toBeChecked()
-  })
-
-  test.skip('@wip GDPR error message is displayed', async ({ page: playwrightPage }) => {
-    const page = await BasePage.init(playwrightPage)
-    // Expected: Should show error message when unchecked on submit
-    const submitButton = page.locator('button[type="submit"]').first()
-    const emailInput = page.locator('input[type="email"]').first()
-
-    await emailInput.fill('test@example.com')
-    await submitButton.click()
-    const errorMessage = page.locator('[data-error*="consent"], [data-error*="gdpr"], .error:has-text("consent")')
-    await expect(errorMessage.first()).toBeVisible()
-  })
-
-  test.skip('@wip GDPR checkbox works on contact form', async ({ page: playwrightPage }) => {
-    const page = await BasePage.init(playwrightPage)
-    // Expected: GDPR should also work on contact form
-    await page.goto('/contact')
-
-    const gdprCheckbox = page.locator('input[type="checkbox"][name*="consent"], input[type="checkbox"][name*="gdpr"]')
-    await expect(gdprCheckbox.first()).toBeVisible()
-
-    const label = gdprCheckbox.first().locator('xpath=..').locator('..')
-    const labelText = await label.textContent()
-    expect(labelText?.toLowerCase()).toContain('privacy')
-  })
-
-  test.skip('@wip GDPR consent state persists during form validation', async ({ page: playwrightPage }) => {
-    const page = await BasePage.init(playwrightPage)
-    // Expected: If user checks GDPR then triggers other validation, GDPR stays checked
-    const gdprCheckbox = page.locator('input[type="checkbox"][name*="consent"], input[type="checkbox"][name*="gdpr"]').first()
-    const submitButton = page.locator('button[type="submit"]').first()
-
-    // Check GDPR first
-    await gdprCheckbox.check()
-    expect(await gdprCheckbox.isChecked()).toBe(true)
-
-    // Submit form (may trigger other validation)
-    await submitButton.click()
-    await expect(gdprCheckbox).toBeChecked()
+    await contactConsent.check()
+    await expect(contactConsent).toBeChecked()
   })
 })
