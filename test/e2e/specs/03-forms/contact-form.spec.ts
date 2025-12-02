@@ -4,12 +4,24 @@
  * Focuses on client-side validation and UI behaviors of the contact form.
  * Also see test/e2e/specs/02-pages/contact.spec.ts for navigation and basic load tests.
  */
-import type { Page } from '@playwright/test'
-import { BasePage, expect, test } from '@test/e2e/helpers'
-import { EvaluationError } from '@test/errors'
+import type { Page, Response } from '@playwright/test'
+import {
+  BasePage,
+  expect,
+  test,
+  wiremock,
+  mocksEnabled,
+  spyOnFetchEndpoint,
+  injectHeadersIntoFetch,
+  mockFetchEndpointResponse,
+} from '@test/e2e/helpers'
+import { TestError } from '@test/errors'
 import { TEST_CONTACT_DATA, TEST_EMAILS } from '@test/e2e/fixtures/test-data'
 
 const CONTACT_PATH = '/contact'
+const RESEND_EMAIL_PATH = '/emails'
+
+const isContactApiResponse = (response: Response) => response.url().includes('/api/contact')
 
 const waitForContactFormHydration = async (page: BasePage) => {
   await page.waitForFunction(() => {
@@ -29,6 +41,28 @@ const fillRequiredFields = async (page: BasePage) => {
   await page.fill('#name', TEST_CONTACT_DATA.valid.name)
   await page.fill('#email', TEST_CONTACT_DATA.valid.email)
   await page.fill('#message', `${TEST_CONTACT_DATA.valid.message} Additional context for testing.`)
+}
+
+const fillContactFormWithValidData = async (page: BasePage, overrides?: { email?: string }) => {
+  const uniqueSuffix = Date.now()
+  const email = overrides?.email ?? `contact-form-ui-${uniqueSuffix}@example.com`
+
+  await page.fill('#name', TEST_CONTACT_DATA.valid.name)
+  await page.fill('#email', email)
+  await page.fill('#company', TEST_CONTACT_DATA.valid.company)
+  await page.fill('#phone', TEST_CONTACT_DATA.valid.phone)
+  await page.locator('#project_type').selectOption('website')
+  await page.locator('#budget').selectOption('10k-25k')
+  await page.locator('#timeline').selectOption('asap')
+  await page.fill('#message', `${TEST_CONTACT_DATA.valid.message} UI flow ${uniqueSuffix}`)
+  await page.check('#contact-gdpr-consent')
+
+  await expect(page.locator('#project_type')).toHaveValue('website')
+  await expect(page.locator('#budget')).toHaveValue('10k-25k')
+  await expect(page.locator('#timeline')).toHaveValue('asap')
+  await expect(page.locator('#contact-gdpr-consent')).toBeChecked()
+
+  return { email }
 }
 
 test.describe('Contact Form', () => {
@@ -61,26 +95,20 @@ test.describe('Contact Form', () => {
     await page.locator('#project_type').selectOption('website')
     await page.locator('#timeline').selectOption('asap')
 
-    let apiCallMade = false
-    await page.route('/api/contact', route => {
-      apiCallMade = true
-      route.fulfill({
-        status: 422,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          success: false,
-          message: 'Budget range is required',
-        }),
-      })
-    })
+    const fetchSpy = await spyOnFetchEndpoint(playwrightPage, '/api/contact')
 
-    await page.click('#submitBtn')
+    try {
+      await page.click('#submitBtn')
 
-    await expect(page.locator('#formErrorBanner')).toBeVisible()
-    await expect(page.locator('#budget + .field-error')).toContainText('This field is required')
+      await expect(page.locator('#formErrorBanner')).toBeVisible()
+      await expect(page.locator('#budget + .field-error')).toContainText('This field is required')
 
-    if (apiCallMade) {
-      throw new EvaluationError('Contact API was called despite validation errors')
+      const apiCallCount = await fetchSpy.getCallCount()
+      if (apiCallCount > 0) {
+        throw new TestError('Contact API was called despite validation errors')
+      }
+    } finally {
+      await fetchSpy.restore()
     }
   })
 
@@ -92,11 +120,80 @@ test.describe('Contact Form', () => {
     await expect(uppyContainer).toContainText('File Upload Coming Soon')
   })
 
-  test.skip('@wip contact form submits successfully when API is available', async () => {
-    // TODO: Implement when backend Docker harness is ready for full integration tests
+  test('@mocks contact form submits successfully when API is available', async ({ page: playwrightPage }) => {
+    test.skip(!mocksEnabled, 'E2E_MOCKS=1 is required to verify Resend mock delivery')
+
+    await wiremock.resend.resetRequests()
+    const page = await setupContactPage(playwrightPage)
+    const headerOverride = await injectHeadersIntoFetch(playwrightPage, {
+      endpoint: '/api/contact',
+      headers: { 'x-e2e-mocks': '1' },
+    })
+
+    try {
+      const { email } = await fillContactFormWithValidData(page)
+      const responsePromise = page.waitForResponse(isContactApiResponse)
+
+      await page.click('#submitBtn')
+
+      const response = await responsePromise
+      expect(response.status()).toBe(200)
+
+      await expect(page.locator('#formMessages .message-success')).toBeVisible({ timeout: 5000 })
+      await expect(page.locator('#formMessages .message-error')).toBeHidden()
+
+      const loggedRequest = await wiremock.resend.expectRequest({
+        method: 'POST',
+        urlPath: RESEND_EMAIL_PATH,
+        bodyIncludes: [email, 'contact@webstackbuilders.com'],
+      })
+
+      if (!loggedRequest) {
+        throw new TestError('Resend mock did not capture the transactional email payload')
+      }
+
+      const payload = JSON.parse(loggedRequest.request.body ?? '{}') as {
+        to?: string | string[]
+        subject?: string
+      }
+
+      if (Array.isArray(payload.to)) {
+        expect(payload.to).toContain('info@webstackbuilders.com')
+      } else {
+        expect(payload.to).toBe('info@webstackbuilders.com')
+      }
+      expect(payload.subject).toContain('Contact Form')
+    } finally {
+      await headerOverride.restore()
+    }
   })
 
-  test.skip('@wip contact form surfaces API error responses to users', async () => {
-    // TODO: Implement when backend Docker harness is ready for full integration tests
+  test('@ready contact form surfaces API error responses to users', async ({ page: playwrightPage }) => {
+    const page = await setupContactPage(playwrightPage)
+    await fillContactFormWithValidData(page)
+
+    const apiErrorOverride = await mockFetchEndpointResponse(playwrightPage, {
+      endpoint: '/api/contact',
+      body: {
+        success: false,
+        message: 'Unable to reach contact API. Please try again shortly.',
+      },
+      status: 200,
+    })
+
+    try {
+      await page.click('#submitBtn')
+      await apiErrorOverride.waitForCall()
+
+      await expect(page.locator('#formMessages .message-error')).toBeVisible({ timeout: 5000 })
+      await expect(page.locator('#errorMessage')).toContainText('Unable to reach contact API')
+
+      if (mocksEnabled) {
+        const loggedRequests = await wiremock.resend.findRequests({ method: 'POST', urlPath: RESEND_EMAIL_PATH })
+        expect(loggedRequests.length).toBe(0)
+      }
+    } finally {
+      await apiErrorOverride.restore()
+    }
   })
 })

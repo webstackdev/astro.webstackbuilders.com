@@ -43,6 +43,8 @@ Implementation order
 03-forms: once the API layer is stable, wire the UI flows. Use Playwright to submit each form, but assert success by checking the mock mappings were triggered, not just the UI toast.
 Consent Preferences (@wip): convert it to use the same helper that verifies mocked Upstash REST and Supabase responses. This test should (1) toggle UI controls, (2) check the outbound request via the mock logs, and (3) read back seeded data to confirm persistence.
 
+04-components/consentPreferences.spec.ts
+
 ## Typing client-side API calls and SSR API endpoints
 
 Shared Types vs Swagger / Keeping Docs in Sync

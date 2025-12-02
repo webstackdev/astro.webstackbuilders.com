@@ -3,7 +3,8 @@
  * Exercises the consent route which hosts the consent-preferences component inline
  */
 
-import { BasePage, expect, test } from '@test/e2e/helpers'
+import type { Page } from '@playwright/test'
+import { BasePage, expect, test, mockFetchEndpointResponse, type FetchOverrideHandle } from '@test/e2e/helpers'
 
 const ALLOW_ALL_BUTTON = '#consent-allow-all'
 const SAVE_BUTTON = '#consent-save-preferences'
@@ -13,29 +14,10 @@ const CONSENT_PAGE_PATH = '/consent'
 
 const toggleLabel = (checkboxId: string): string => `[data-consent-toggle="${checkboxId}"]`
 
-async function interceptConsentApi(page: BasePage): Promise<void> {
-  await page.route('**/api/gdpr/consent', async (route) => {
-    const requestBody = route.request().postDataJSON?.() as Record<string, unknown> | undefined
-    const purposes = Array.isArray(requestBody?.['purposes']) ? requestBody?.['purposes'] : []
-
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        success: true,
-        record: {
-          id: 'test-consent-record',
-          DataSubjectId: (requestBody?.['DataSubjectId'] as string | undefined) ?? 'test-subject-id',
-          purposes,
-          timestamp: new Date().toISOString(),
-          source: (requestBody?.['source'] as string | undefined) ?? 'cookies_modal',
-          userAgent: (requestBody?.['userAgent'] as string | undefined) ?? 'playwright-test',
-          ipAddress: '127.0.0.1',
-          privacyPolicyVersion: 'test-policy-v1',
-          verified: Boolean(requestBody?.['verified']),
-        },
-      }),
-    })
+const interceptConsentApi = async (page: Page): Promise<FetchOverrideHandle> => {
+  return await mockFetchEndpointResponse(page, {
+    endpoint: '/api/gdpr/consent',
+    responseBuilder: 'consentRecord',
   })
 }
 
@@ -70,12 +52,16 @@ async function waitForConsentPreferences(page: BasePage): Promise<void> {
 }
 
 test.describe('Consent Preferences Component', () => {
+  let consentApiOverride: FetchOverrideHandle | null = null
+
   test.beforeEach(async ({ page: playwrightPage, context }, testInfo) => {
     const page = await BasePage.init(playwrightPage)
     const shouldMockConsentApi = !testInfo.title.includes(WIP_TAG)
 
     if (shouldMockConsentApi) {
-      await interceptConsentApi(page)
+      consentApiOverride = await interceptConsentApi(playwrightPage)
+    } else {
+      consentApiOverride = null
     }
 
     await context.clearCookies()
@@ -83,6 +69,13 @@ test.describe('Consent Preferences Component', () => {
     await playwrightPage.waitForLoadState('networkidle')
     await removeViteErrorOverlay(page)
     await waitForConsentPreferences(page)
+  })
+
+  test.afterEach(async () => {
+    if (consentApiOverride) {
+      await consentApiOverride.restore()
+      consentApiOverride = null
+    }
   })
 
   test.skip(
