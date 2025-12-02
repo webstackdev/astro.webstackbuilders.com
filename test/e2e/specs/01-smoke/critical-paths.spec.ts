@@ -112,8 +112,9 @@ test.describe('Critical Paths @smoke', () => {
 
   test('@ready main pages have no 404 errors', async ({ page: playwrightPage}) => {
     const page = await BasePage.init(playwrightPage)
+    await page.enable404Listener()
     for (const { url: path } of page.navigationItems) {
-      page.enable404Listener()
+      page.reset404Errors()
       await page.goto(path)
       expect(page.errors404, `Received 404 errors for:\n${page.errors404.join("\n")}`).toHaveLength(0)
     }

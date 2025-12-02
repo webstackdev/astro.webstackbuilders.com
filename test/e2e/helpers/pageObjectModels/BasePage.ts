@@ -23,6 +23,7 @@ export class BasePage {
   public errors404: string[] = []
   public navigationItems = navigationItems
   private lastAstroPageLoadCount = 0
+  private has404Listener = false
 
   protected constructor(protected readonly _page: Page) {
     this.page = _page
@@ -862,12 +863,32 @@ export class BasePage {
   /**
    * Verify 404 page is displayed for non-existent pages
    */
+  /**
+   * Capture network responses that return 4xx status codes.
+   * Listener is attached once per Playwright page instance.
+   */
   async enable404Listener(): Promise<void> {
-    this._page.on('response', async response => {
-      if (response.status() >= 400 && response.status() < 500) {
-        this.errors404.push(this._page.url())
+    if (this.has404Listener) {
+      return
+    }
+
+    this._page.on('response', response => {
+      const status = response.status()
+      if (status >= 400 && status < 500) {
+        const method = response.request().method()
+        const responseUrl = response.url()
+        this.errors404.push(`${status} ${method} ${responseUrl}`)
       }
     })
+
+    this.has404Listener = true
+  }
+
+  /**
+   * Reset tracked 4xx network errors between navigations.
+   */
+  reset404Errors(): void {
+    this.errors404 = []
   }
 
   /**
