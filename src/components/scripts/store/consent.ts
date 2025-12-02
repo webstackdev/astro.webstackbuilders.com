@@ -5,6 +5,7 @@ import { computed, onMount } from 'nanostores'
 import { persistentAtom } from '@nanostores/persistent'
 import { StoreController } from '@nanostores/lit'
 import type { ReactiveControllerHost } from 'lit'
+import { validate as uuidValidate } from 'uuid'
 import { getCookie, removeCookie, setCookie } from '@components/scripts/utils/cookies'
 import { ClientScriptError } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
@@ -222,6 +223,23 @@ export function getConsentSnapshot(): ConsentState {
 
 export function subscribeToConsentState(listener: ConsentStateListener): () => void {
   return $consent.listen(listener)
+}
+
+const ensureConsentDataSubjectId = (state: ConsentState): string => {
+  if (state.DataSubjectId && uuidValidate(state.DataSubjectId)) {
+    return state.DataSubjectId
+  }
+
+  const regeneratedId = getOrCreateDataSubjectId()
+
+  if (state.DataSubjectId !== regeneratedId) {
+    $consent.set({
+      ...state,
+      DataSubjectId: regeneratedId,
+    })
+  }
+
+  return regeneratedId
 }
 
 /**
@@ -463,8 +481,10 @@ export function initConsentSideEffects(): void {
       ? navigator.userAgent
       : 'unknown'
 
+    const dataSubjectId = ensureConsentDataSubjectId(consentState)
+
     enqueueConsentPayload({
-      DataSubjectId: consentState.DataSubjectId,
+      DataSubjectId: dataSubjectId,
       purposes,
       source: 'cookies_modal',
       userAgent,

@@ -103,14 +103,13 @@ test.describe('Newsletter Subscription Form', () => {
 
     // Click submit and immediately check for spinner
     const submitButton = newsletterPage.locator('#newsletter-submit')
-    const spinner = newsletterPage.locator('#button-spinner')
 
     // Submit form and check loading state immediately
     const submitPromise = submitButton.click()
 
     try {
-      // The spinner should become visible during the API call
-      await expect(spinner).toBeVisible({ timeout: 2000 })
+      // The spinner should enter the loading state during the API call
+      await newsletterPage.waitForSpinnerLoadingState()
 
       // Wait for the submit to complete
       await submitPromise
