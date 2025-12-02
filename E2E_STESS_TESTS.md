@@ -9,17 +9,9 @@ See the "CONSOLE OUTPUT FROM LAST E2E FULL RUN THAT ERRORED" section for the nex
 
 ## Problems Areas
 
-### Service Worker Enablement
+### 2. Service Worker Enablement (Monitoring)
 
-- **Symptom:**
-
-PWA specs intermittently wait more than 30 seconds for `navigator.serviceWorker.ready`, suggesting `window.__disableServiceWorkerForE2E` may remain `true` despite `PwaPage.enableServiceWorkerForE2E()`.
-
-- **Diagnostics:**
-
-  - Add guarded logs inside `PwaPage.enableServiceWorkerForE2E()` and `registerServiceWorker()` to capture `window.__disableServiceWorkerForE2E` before and after the override.
-
-  - Audit `addInitScript` ordering to ensure no later script reverts the flag, then rerun the PWA spec suite to collect console output.
+- **Status:** Added Playwright-only logging inside `PwaPage.enableServiceWorkerForE2E()` and `registerServiceWorker()` to record the value of `window.__disableServiceWorkerForE2E`, plus dev/e2e flags, whenever the SW logic runs. Targeted runs of `test/e2e/specs/09-pwa/service-worker.spec.ts` in Chromium and WebKit now pass, and the logs confirm the flag flips to `false` before registration proceeds. Leaving the instrumentation in place through the next stress suite to ensure the readiness timeouts remain resolved.
 
 ### Theme Picker Reload Policy
 
@@ -34,7 +26,5 @@ PWA specs intermittently wait more than 30 seconds for `navigator.serviceWorker.
   - Evaluate alternative reset flows (for example, `page.goto()` with a cache-busting query) so tests do not rely on reload semantics that WebKit disallows under our CSP/service-worker combo.
 
 ## LOG OF FIXES APPLIED TO PROBLEMS IDENTIFIED DURING E2E STRESS TESTS
-
-- **2025-12-03 - Carousel/Testimonial hydration:** Added `@webcomponents/template-shadowroot@0.2.1` dependency so Vite can resolve the polyfill required by `@semantic-ui/astro-lit`; reran `testimonials.spec.ts` in Chromium/WebKit with Playwright-only logging to confirm the custom elements initialize and pagination dots update in WebKit.
 
 ## CONSOLE OUTPUT FROM LAST E2E FULL RUN THAT ERRORED
