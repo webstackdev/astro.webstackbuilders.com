@@ -9,21 +9,7 @@ See the "CONSOLE OUTPUT FROM LAST E2E FULL RUN THAT ERRORED" section for the nex
 
 ## Problems Areas
 
-### 1. Carousel / Testimonials Hydration Regressions
-
-- **Symptom:**
-
-`testimonials.spec.ts` consistently fails in WebKit because the target pagination dot never registers as selected (`Expected: 1 Received: 0`). Earlier stress runs also timed out waiting for `data-carousel-ready`, implying the custom element never finishes initialization.
-
-- **Diagnostics:**
-
-  - Inspect built HTML for `/testing/carousel` and the home page to confirm the inline `<script type="module">` blocks that call `register{Carousel,Testimonials}WebComponent()` survive bundling and execute under Playwright.
-
-  - Capture console output during a focused run (e.g., `testimonials.spec.ts` on Chromium) to see whether Embla throws inside `initialize()` or whether `handleScriptError` tears the element down before setting `data-carousel-ready`.
-
-  - Added Playwright-only console instrumentation inside `CarouselElement` and `TestimonialsCarouselElement` to log register/initialize start, success, and failure events. Run the targeted specs and collect console output to see whether these hooks fire.
-
-### 2. Service Worker Enablement
+### Service Worker Enablement
 
 - **Symptom:**
 
@@ -31,11 +17,11 @@ PWA specs intermittently wait more than 30 seconds for `navigator.serviceWorker.
 
 - **Diagnostics:**
 
-  - Log the flag inside `registerServiceWorker()` to prove whether our init script overrides take effect before the registration guard runs.
+  - Add guarded logs inside `PwaPage.enableServiceWorkerForE2E()` and `registerServiceWorker()` to capture `window.__disableServiceWorkerForE2E` before and after the override.
 
-  - Audit `addInitScript` ordering to ensure no later script reverts the flag.
+  - Audit `addInitScript` ordering to ensure no later script reverts the flag, then rerun the PWA spec suite to collect console output.
 
-### 3. Theme Picker Reload Policy
+### Theme Picker Reload Policy
 
 - **Symptom:**
 
@@ -48,5 +34,7 @@ PWA specs intermittently wait more than 30 seconds for `navigator.serviceWorker.
   - Evaluate alternative reset flows (for example, `page.goto()` with a cache-busting query) so tests do not rely on reload semantics that WebKit disallows under our CSP/service-worker combo.
 
 ## LOG OF FIXES APPLIED TO PROBLEMS IDENTIFIED DURING E2E STRESS TESTS
+
+- **2025-12-03 - Carousel/Testimonial hydration:** Added `@webcomponents/template-shadowroot@0.2.1` dependency so Vite can resolve the polyfill required by `@semantic-ui/astro-lit`; reran `testimonials.spec.ts` in Chromium/WebKit with Playwright-only logging to confirm the custom elements initialize and pagination dots update in WebKit.
 
 ## CONSOLE OUTPUT FROM LAST E2E FULL RUN THAT ERRORED
