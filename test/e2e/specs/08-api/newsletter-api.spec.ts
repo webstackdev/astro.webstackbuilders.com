@@ -10,10 +10,6 @@ test.describe('Newsletter API integrations', () => {
 
   test.describe.configure({ mode: 'serial' })
 
-  test.beforeEach(async () => {
-    await wiremock.resend.resetRequests()
-  })
-
   test('@mocks sends double opt-in email through Resend mock', async ({ request }) => {
     const uniqueEmail = `newsletter-${Date.now()}@example.com`
     const response = await request.post(NEWSLETTER_ENDPOINT, {
@@ -58,12 +54,13 @@ test.describe('Newsletter API integrations', () => {
   })
 
   test('@mocks requires consent before sending any emails', async ({ request }) => {
+    const emailWithoutConsent = 'noconsent@example.com'
     const response = await request.post(NEWSLETTER_ENDPOINT, {
       headers: {
         'x-e2e-mocks': '1',
       },
       data: {
-        email: 'noconsent@example.com',
+        email: emailWithoutConsent,
         consentGiven: false,
       },
     })
@@ -72,6 +69,7 @@ test.describe('Newsletter API integrations', () => {
     const requests = await wiremock.resend.findRequests({
       method: 'POST',
       urlPath: RESEND_EMAIL_PATH,
+      bodyIncludes: emailWithoutConsent,
     })
     expect(requests.length).toBe(0)
   })

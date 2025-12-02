@@ -97,6 +97,7 @@ export default [
             '^astro:.*',  // Ignore Astro virtual modules
             '^virtual:pwa-register$',
             '^\\./.*',    // Ignore relative imports (let TypeScript handle these)
+            'test/e2e/specs/14-system/package-release.spec.ts', // Ignore dynamic imports
           ],
         },
       ],
@@ -260,7 +261,7 @@ export default [
     ],
     ignores: [
       'test/e2e/helpers/pageObjectModels/**/*',
-      'src/test/e2e/specs/__tests__/**',
+      'test/e2e/specs/__tests__/**',
     ],
     rules: {
       'no-restricted-syntax': [
