@@ -10,6 +10,7 @@
 import { test, expect } from '@test/e2e/helpers'
 import { BasePage } from '@test/e2e/helpers/pageObjectModels/BasePage'
 
+/* eslint-disable import/no-unresolved */
 test.describe('Privacy Policy Version Integration', () => {
   test('should expose PRIVACY_POLICY_VERSION in import.meta.env', async ({
     page: playwrightPage,
@@ -71,7 +72,7 @@ test.describe('Privacy Policy Version Integration', () => {
     })
 
     // Get version from privacy page
-    await page.goto('/privacy/')
+    await page.goto('/privacy')
     await page.waitForLoadState('networkidle')
 
     const versionFromPrivacy = await page.page.evaluate(async () => {
@@ -103,3 +104,4 @@ test.describe('Privacy Policy Version Integration', () => {
     expect(versionFromModule).toMatch(/^\d{4}-\d{2}-\d{2}$/)
   })
 })
+/* eslint-enable import/no-unresolved */

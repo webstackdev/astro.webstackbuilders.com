@@ -17,8 +17,16 @@ export { ComponentPersistencePage } from '@test/e2e/helpers/pageObjectModels/Com
 export { HeadPage } from '@test/e2e/helpers/pageObjectModels/HeadPage'
 export { BreadCrumbPage } from '@test/e2e/helpers/pageObjectModels/BreadCrumbPage'
 export {
+  spyOnFetchEndpoint,
+  mockFetchEndpointResponse,
+  injectHeadersIntoFetch,
+  delayFetchForEndpoint,
+} from '@test/e2e/helpers/fetchOverride'
+export type { FetchOverrideHandle } from '@test/e2e/helpers/fetchOverride'
+export {
   setupCleanTestPage,
   setupTestPage,
   selectTheme,
   getThemePickerToggle,
 } from '@test/e2e/helpers/cookieHelper'
+export { wiremock, mocksEnabled } from '@test/e2e/helpers/mockServices'

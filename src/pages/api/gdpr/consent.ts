@@ -1,5 +1,6 @@
+import { randomUUID } from 'node:crypto'
 import type { APIRoute } from 'astro'
-import { getPrivacyPolicyVersion } from '@pages/api/_environment/environmentApi'
+import { getPrivacyPolicyVersion, isSupabaseFallbackEnabled } from '@pages/api/_environment/environmentApi'
 import { rateLimiters, checkRateLimit, supabaseAdmin } from '@pages/api/_utils'
 import { validate as uuidValidate } from 'uuid'
 import type { ConsentRequest, ConsentResponse } from '@pages/api/_contracts/gdpr.contracts'
@@ -10,6 +11,50 @@ import { createApiFunctionContext, createRateLimitIdentifier } from '@pages/api/
 export const prerender = false // Force SSR for this endpoint
 
 const ROUTE = '/api/gdpr/consent'
+
+const CONSENT_PURPOSES = ['contact', 'marketing', 'analytics', 'downloads'] as const
+type ConsentPurpose = (typeof CONSENT_PURPOSES)[number]
+
+const CONSENT_SOURCES = ['contact_form', 'newsletter_form', 'download_form', 'cookies_modal', 'preferences_page'] as const
+type ConsentSource = (typeof CONSENT_SOURCES)[number]
+
+const DEFAULT_SOURCE: ConsentSource = 'cookies_modal'
+const DEFAULT_USER_AGENT = 'unknown'
+
+const isConsentPurpose = (value: unknown): value is ConsentPurpose =>
+  typeof value === 'string' && CONSENT_PURPOSES.includes(value as ConsentPurpose)
+
+const isConsentSource = (value: unknown): value is ConsentSource =>
+  typeof value === 'string' && CONSENT_SOURCES.includes(value as ConsentSource)
+
+const sanitizePurposes = (purposes: unknown): ConsentPurpose[] =>
+  Array.isArray(purposes) ? purposes.filter(isConsentPurpose) : []
+
+const sanitizeSource = (source: unknown): ConsentSource => (isConsentSource(source) ? source : DEFAULT_SOURCE)
+
+const normalizeNullableString = (value?: string | null): string | null => {
+  if (typeof value !== 'string') {
+    return null
+  }
+  const trimmed = value.trim()
+  return trimmed.length > 0 ? trimmed : null
+}
+
+const normalizeUserAgent = (value?: string | null): string => normalizeNullableString(value) ?? DEFAULT_USER_AGENT
+
+type ConsentRecordRow = {
+  id: string
+  data_subject_id: string
+  email: string | null
+  purposes: string[]
+  timestamp: string
+  source: string | null
+  user_agent: string | null
+  ip_address: string | null
+  privacy_policy_version: string | null
+  consent_text: string | null
+  verified: boolean
+}
 
 const jsonResponse = (body: unknown, status: number, headers?: Record<string, string>) =>
   new Response(JSON.stringify(body), {
@@ -29,6 +74,64 @@ const buildRateLimitError = (reset: number | undefined, message?: string) => {
     code: 'RATE_LIMIT_EXCEEDED',
     details: { retryAfterSeconds },
   })
+}
+
+const mapConsentRecord = (record: ConsentRecordRow): ConsentResponse['record'] => {
+  const normalizedEmail = normalizeNullableString(record.email)
+  const normalizedIpAddress = normalizeNullableString(record.ip_address)
+  const normalizedConsentText = normalizeNullableString(record.consent_text)
+
+  const mapped: ConsentResponse['record'] = {
+    id: record.id,
+    DataSubjectId: record.data_subject_id,
+    purposes: sanitizePurposes(record.purposes),
+    timestamp: record.timestamp,
+    source: sanitizeSource(record.source),
+    userAgent: normalizeUserAgent(record.user_agent),
+    privacyPolicyVersion: record.privacy_policy_version ?? getPrivacyPolicyVersion(),
+    verified: record.verified,
+  }
+
+  if (normalizedEmail) {
+    mapped.email = normalizedEmail
+  }
+  if (normalizedIpAddress) {
+    mapped.ipAddress = normalizedIpAddress
+  }
+  if (normalizedConsentText) {
+    mapped.consentText = normalizedConsentText
+  }
+
+  return mapped
+}
+
+const buildMockConsentRecord = (body: ConsentRequest): ConsentResponse['record'] => {
+  const normalizedEmail = normalizeNullableString(body.email ?? null)
+  const normalizedIpAddress = normalizeNullableString(body.ipAddress ?? null)
+  const normalizedConsentText = normalizeNullableString(body.consentText ?? null)
+
+  const mockRecord: ConsentResponse['record'] = {
+    id: randomUUID(),
+    DataSubjectId: body.DataSubjectId,
+    purposes: sanitizePurposes(body.purposes),
+    timestamp: new Date().toISOString(),
+    source: sanitizeSource(body.source),
+    userAgent: normalizeUserAgent(body.userAgent),
+    privacyPolicyVersion: getPrivacyPolicyVersion(),
+    verified: body.verified ?? false,
+  }
+
+  if (normalizedEmail) {
+    mockRecord.email = normalizedEmail
+  }
+  if (normalizedIpAddress) {
+    mockRecord.ipAddress = normalizedIpAddress
+  }
+  if (normalizedConsentText) {
+    mockRecord.consentText = normalizedConsentText
+  }
+
+  return mockRecord
 }
 
 const buildErrorResponse = (
@@ -87,50 +190,56 @@ export const POST: APIRoute = async ({ request, cookies, clientAddress }) => {
       })
     }
 
-    const { data, error } = await supabaseAdmin
-      .from('consent_records')
-      .insert({
-        data_subject_id: body.DataSubjectId,
-        email: body.email?.toLowerCase().trim(),
-        purposes: body.purposes,
-        source: body.source,
-        user_agent: body.userAgent,
-        ip_address: body.ipAddress,
-        privacy_policy_version: getPrivacyPolicyVersion(),
-        consent_text: body.consentText,
-        verified: body.verified ?? false,
-      })
-      .select()
-      .single()
+    const normalizedEmail = normalizeNullableString(body.email ?? null)
+    const normalizedPurposes = sanitizePurposes(body.purposes)
+    const normalizedSource = sanitizeSource(body.source)
+    const normalizedUserAgent = normalizeUserAgent(body.userAgent)
+    const normalizedIpAddress = normalizeNullableString(body.ipAddress ?? null)
+    const normalizedConsentText = normalizeNullableString(body.consentText ?? null)
 
-    if (error) {
-      throw new ApiFunctionError(error, {
-        route: ROUTE,
-        operation: 'insert-consent',
-        status: 500,
-        details: {
-          dataSubjectId: body.DataSubjectId,
-          purposes: body.purposes,
-        },
-      })
+    let record: ConsentResponse['record']
+    try {
+      const { data, error } = await supabaseAdmin
+        .from('consent_records')
+        .insert({
+          data_subject_id: body.DataSubjectId,
+          email: normalizedEmail,
+          purposes: normalizedPurposes,
+          source: normalizedSource,
+          user_agent: normalizedUserAgent,
+          ip_address: normalizedIpAddress,
+          privacy_policy_version: getPrivacyPolicyVersion(),
+          consent_text: normalizedConsentText,
+          verified: body.verified ?? false,
+        })
+        .select()
+        .single()
+
+      if (error) {
+        throw new ApiFunctionError(error, {
+          route: ROUTE,
+          operation: 'insert-consent',
+          status: 500,
+          details: {
+            dataSubjectId: body.DataSubjectId,
+            purposes: body.purposes,
+          },
+        })
+      }
+
+      record = mapConsentRecord(data as ConsentRecordRow)
+    } catch (error) {
+      if (!isSupabaseFallbackEnabled()) {
+        throw error
+      }
+      console.warn('[gdpr/consent] Supabase unavailable, returning mocked consent record for e2e tests.')
+      record = buildMockConsentRecord(body)
     }
 
     return jsonResponse(
       {
         success: true,
-        record: {
-          id: data.id,
-          DataSubjectId: data.data_subject_id,
-          email: data.email,
-          purposes: data.purposes,
-          timestamp: data.timestamp,
-          source: data.source,
-          userAgent: data.user_agent,
-          ipAddress: data.ip_address,
-          privacyPolicyVersion: data.privacy_policy_version,
-          consentText: data.consent_text,
-          verified: data.verified,
-        },
+        record,
       } satisfies ConsentResponse,
       201,
     )
@@ -190,19 +299,7 @@ export const GET: APIRoute = async ({ clientAddress, url, request, cookies }) =>
       })
     }
 
-    const records = data.map(record => ({
-      id: record.id,
-      DataSubjectId: record.data_subject_id,
-      email: record.email,
-      purposes: record.purposes,
-      timestamp: record.timestamp,
-      source: record.source,
-      userAgent: record.user_agent,
-      ipAddress: record.ip_address,
-      privacyPolicyVersion: record.privacy_policy_version,
-      consentText: record.consent_text,
-      verified: record.verified
-    }))
+    const records = data.map(record => mapConsentRecord(record as ConsentRecordRow))
 
     return jsonResponse(
       {

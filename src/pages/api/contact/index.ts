@@ -9,7 +9,7 @@ import { Resend } from 'resend'
 import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
 import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
 import { buildApiErrorResponse, handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
-import { getResendApiKey, isDev, isTest } from '@pages/api/_environment/environmentApi'
+import { getResendApiKey, getResendMockBaseUrl, isDev, isTest } from '@pages/api/_environment/environmentApi'
 import { checkContactRateLimit } from '@pages/api/_utils/rateLimit'
 import { createApiFunctionContext, createRateLimitIdentifier } from '@pages/api/_utils/requestContext'
 
@@ -42,6 +42,8 @@ interface EmailData {
 	subject: string
 	html: string
 }
+
+const E2E_MOCKS_HEADER = 'x-e2e-mocks'
 
 /**
  * Validate contact form input
@@ -171,10 +173,74 @@ function formatFileSize(bytes: number): string {
 /**
  * Send email via Resend
  */
-async function sendEmail(emailData: EmailData, files: FileAttachment[]): Promise<void> {
-	// Skip actual email sending in dev/test environments
-	if (isTest() || isDev()) {
+async function sendEmail(
+	emailData: EmailData,
+	files: FileAttachment[],
+	resendMockBaseUrl: string | null
+): Promise<void> {
+	if (!resendMockBaseUrl && (isTest() || isDev())) {
 		return
+	}
+
+	const resendPayload = {
+		from: emailData.from,
+		to: emailData.to,
+		subject: emailData.subject,
+		html: emailData.html,
+		...(files.length > 0 && {
+			attachments: files.map((file) => ({
+				filename: file.filename,
+				content: file.content,
+			})),
+		}),
+	}
+
+	const handleSendError = (error: unknown) => {
+		console.error('[contact] Resend delivery error:', error)
+		throw new ApiFunctionError({
+			message: 'Failed to send email. Please try again later.',
+			cause: error,
+			code: 'RESEND_SEND_FAILED',
+			status: 502,
+			route: '/api/contact',
+			operation: 'sendEmail'
+		})
+	}
+
+	if (resendMockBaseUrl) {
+		const mockAuthorizationHeader = (() => {
+			try {
+				return `Bearer ${getResendApiKey()}`
+			} catch {
+				return 'Bearer mock-resend-key'
+			}
+		})()
+
+		try {
+			const response = await fetch(`${resendMockBaseUrl}/emails`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: mockAuthorizationHeader,
+				},
+				body: JSON.stringify({
+					...resendPayload,
+					attachments: resendPayload.attachments?.map((attachment) => ({
+						filename: attachment.filename,
+						content: (attachment.content as Buffer).toString('base64'),
+					})),
+				}),
+			})
+
+			if (!response.ok) {
+				const body = await response.text().catch(() => 'Unable to read mock response body')
+				throw new Error(`Resend mock responded with ${response.status}: ${body}`)
+			}
+
+			return
+		} catch (error) {
+			handleSendError(error)
+		}
 	}
 
 	const resend = new Resend(getResendApiKey())
@@ -187,32 +253,15 @@ async function sendEmail(emailData: EmailData, files: FileAttachment[]): Promise
 		}))
 
 		const response = await resend.emails.send({
-			from: emailData.from,
-			to: emailData.to,
-			subject: emailData.subject,
-			html: emailData.html,
+			...resendPayload,
 			...(attachments.length > 0 && { attachments }),
 		})
 
 		if (!response.data) {
-			throw new ApiFunctionError({
-				message: response.error?.message || 'Failed to send email',
-				code: 'RESEND_SEND_FAILED',
-				status: 502,
-				route: '/api/contact',
-				operation: 'sendEmail'
-			})
+			throw new Error(response.error?.message || 'Failed to send email')
 		}
 	} catch (error) {
-		console.error('Resend API error:', error)
-		throw new ApiFunctionError({
-			message: 'Failed to send email. Please try again later.',
-			cause: error,
-			code: 'RESEND_SEND_FAILED',
-			status: 502,
-			route: '/api/contact',
-			operation: 'sendEmail'
-		})
+		handleSendError(error)
 	}
 }
 
@@ -236,6 +285,9 @@ export const POST: APIRoute = async ({ request, cookies, clientAddress }) => {
 		'unknown'
 
 	try {
+		const forceMockResend = request.headers.get(E2E_MOCKS_HEADER) === '1'
+		const resendMockBaseUrl = getResendMockBaseUrl({ force: forceMockResend })
+
 		const rateLimitIdentifier = createRateLimitIdentifier('contact', fingerprint)
 		if (!checkContactRateLimit(rateLimitIdentifier)) {
 			throw new ApiFunctionError({
@@ -406,7 +458,7 @@ export const POST: APIRoute = async ({ request, cookies, clientAddress }) => {
 	      html: htmlContent,
 	    }
 
-	    await sendEmail(emailData, files)
+	    await sendEmail(emailData, files, resendMockBaseUrl)
 
 	    return new Response(
 	      JSON.stringify({

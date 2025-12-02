@@ -5,7 +5,7 @@
  */
 
 import type { Rule } from 'eslint'
-import type { CallExpression } from 'estree'
+import type { CallExpression, Node } from 'estree'
 
 interface EventConfig {
   eventName: string
@@ -77,26 +77,42 @@ const enforceCentralizedEventsRule: Rule.RuleModule = {
 
       // Look for ClassDeclaration or ClassExpression that extends HTMLElement
       let foundWebComponent = false
+      const visitorKeys = sourceCode.visitorKeys ?? {}
 
-      function checkNode(astNode: any): void {
-        if (!astNode) return
-
-        if (astNode.type === 'ClassDeclaration' || astNode.type === 'ClassExpression') {
-          if (
-            astNode.superClass &&
-            astNode.superClass.type === 'Identifier' &&
-            astNode.superClass.name === 'HTMLElement'
-          ) {
-            foundWebComponent = true
-          }
+      const isHTMLElementSubclass = (node: Node): boolean => {
+        if (node.type !== 'ClassDeclaration' && node.type !== 'ClassExpression') {
+          return false
         }
 
-        // Recursively check children
-        if (astNode.body) {
-          if (Array.isArray(astNode.body)) {
-            astNode.body.forEach(checkNode)
-          } else {
-            checkNode(astNode.body)
+        const superClass = node.superClass
+        return Boolean(
+          superClass &&
+          superClass.type === 'Identifier' &&
+          superClass.name === 'HTMLElement',
+        )
+      }
+
+      const checkNode = (astNode: Node | null | undefined): void => {
+        if (!astNode || foundWebComponent) return
+
+        if (isHTMLElementSubclass(astNode)) {
+          foundWebComponent = true
+          return
+        }
+
+        const keys = visitorKeys[astNode.type] ?? []
+        for (const key of keys) {
+          const value = (astNode as unknown as Record<string, unknown>)[key]
+          if (Array.isArray(value)) {
+            for (const child of value) {
+              if (child && typeof child === 'object') {
+                checkNode(child as Node)
+                if (foundWebComponent) return
+              }
+            }
+          } else if (value && typeof value === 'object') {
+            checkNode(value as Node)
+            if (foundWebComponent) return
           }
         }
       }

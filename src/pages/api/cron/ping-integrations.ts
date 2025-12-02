@@ -20,6 +20,42 @@ export const prerender = false
 const ROUTE = '/api/cron/ping-integrations'
 const UPSTASH_KEY = '__cron_keepalive__'
 
+const decodeUpstashResult = (payload: unknown) => {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    return payload
+  }
+
+  const typedPayload = payload as Record<string, unknown>
+  const value = typedPayload['result']
+
+  if (typeof value !== 'string') {
+    return payload
+  }
+
+  const candidate = value.trim()
+  const base64Pattern = /^[A-Za-z0-9+/]+={0,2}$/
+
+  if (!candidate || candidate.length % 4 !== 0 || !base64Pattern.test(candidate)) {
+    return payload
+  }
+
+  try {
+    const decoded = Buffer.from(candidate, 'base64').toString('utf-8')
+    const reencoded = Buffer.from(decoded, 'utf-8').toString('base64')
+
+    if (!decoded || reencoded !== candidate) {
+      return payload
+    }
+
+    return {
+      ...typedPayload,
+      result: decoded,
+    }
+  } catch {
+    return payload
+  }
+}
+
 const buildErrorResponse = (
   error: unknown,
   context: ReturnType<typeof createApiFunctionContext>['context'],
@@ -54,7 +90,7 @@ const pingUpstash = async () => {
   }
 
   return {
-    payload,
+    payload: decodeUpstashResult(payload),
     durationMs: Date.now() - start,
   }
 }

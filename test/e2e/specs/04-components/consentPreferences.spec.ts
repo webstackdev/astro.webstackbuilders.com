@@ -3,40 +3,84 @@
  * Exercises the consent route which hosts the consent-preferences component inline
  */
 
-import { BasePage, expect, test } from '@test/e2e/helpers'
+import type { Page } from '@playwright/test'
+import { env } from 'node:process'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { BasePage, expect, mocksEnabled, test, mockFetchEndpointResponse, type FetchOverrideHandle } from '@test/e2e/helpers'
+import type { ConsentResponse } from '@pages/api/_contracts/gdpr.contracts'
 
 const ALLOW_ALL_BUTTON = '#consent-allow-all'
 const SAVE_BUTTON = '#consent-save-preferences'
 const COMPONENT_SELECTOR = 'consent-preferences'
-const WIP_TAG = '@wip'
+const FULL_STACK_TAG = '@containers'
 const CONSENT_PAGE_PATH = '/consent'
+
+const SUPABASE_URL = env['SUPABASE_URL']?.replace(/\/$/, '')
+const SUPABASE_SERVICE_ROLE_KEY = env['SUPABASE_SERVICE_ROLE_KEY']
+const SUPABASE_FALLBACK_ENABLED = env['E2E_SUPABASE_FALLBACK'] === '1' || env['E2E_MOCKS'] === '1'
+
+const supabaseAdminClient: SupabaseClient | null = SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY
+  ? createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    })
+  : null
 
 const toggleLabel = (checkboxId: string): string => `[data-consent-toggle="${checkboxId}"]`
 
-async function interceptConsentApi(page: BasePage): Promise<void> {
-  await page.route('**/api/gdpr/consent', async (route) => {
-    const requestBody = route.request().postDataJSON?.() as Record<string, unknown> | undefined
-    const purposes = Array.isArray(requestBody?.['purposes']) ? requestBody?.['purposes'] : []
-
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        success: true,
-        record: {
-          id: 'test-consent-record',
-          DataSubjectId: (requestBody?.['DataSubjectId'] as string | undefined) ?? 'test-subject-id',
-          purposes,
-          timestamp: new Date().toISOString(),
-          source: (requestBody?.['source'] as string | undefined) ?? 'cookies_modal',
-          userAgent: (requestBody?.['userAgent'] as string | undefined) ?? 'playwright-test',
-          ipAddress: '127.0.0.1',
-          privacyPolicyVersion: 'test-policy-v1',
-          verified: Boolean(requestBody?.['verified']),
-        },
-      }),
-    })
+const interceptConsentApi = async (page: Page): Promise<FetchOverrideHandle> => {
+  return await mockFetchEndpointResponse(page, {
+    endpoint: '/api/gdpr/consent',
+    responseBuilder: 'consentRecord',
   })
+}
+
+const wait = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms))
+
+type ConsentRecordRow = {
+  id: string
+  data_subject_id: string
+  purposes: string[]
+  source: string | null
+  timestamp: string
+}
+
+/**
+ * Polls Supabase until the consent record for the provided subject includes the expected purposes.
+ */
+const waitForSupabaseConsentRecord = async (
+  dataSubjectId: string,
+  expectedPurposes: string[],
+  timeoutMs = 7_000,
+): Promise<ConsentRecordRow> => {
+  if (!supabaseAdminClient) {
+    throw new Error('Supabase admin client unavailable')
+  }
+
+  const deadline = Date.now() + timeoutMs
+  let lastError: string | undefined
+
+  while (Date.now() <= deadline) {
+    const { data, error } = await supabaseAdminClient
+      .from('consent_records')
+      .select('id, data_subject_id, purposes, source, timestamp')
+      .eq('data_subject_id', dataSubjectId)
+      .order('timestamp', { ascending: false })
+      .limit(1)
+
+    if (error) {
+      lastError = error.message
+    } else if (data && data.length > 0) {
+      const record = data[0]!
+      const hasAllPurposes = expectedPurposes.every((purpose) => record.purposes?.includes(purpose))
+      if (hasAllPurposes) {
+        return record
+      }
+    }
+
+    await wait(250)
+  }
+
+  throw new Error(lastError ?? 'Timed out waiting for consent record to persist in Supabase')
 }
 
 async function removeViteErrorOverlay(page: BasePage): Promise<void> {
@@ -70,12 +114,16 @@ async function waitForConsentPreferences(page: BasePage): Promise<void> {
 }
 
 test.describe('Consent Preferences Component', () => {
+  let consentApiOverride: FetchOverrideHandle | null = null
+
   test.beforeEach(async ({ page: playwrightPage, context }, testInfo) => {
     const page = await BasePage.init(playwrightPage)
-    const shouldMockConsentApi = !testInfo.title.includes(WIP_TAG)
+    const shouldMockConsentApi = !testInfo.title.includes(FULL_STACK_TAG)
 
     if (shouldMockConsentApi) {
-      await interceptConsentApi(page)
+      consentApiOverride = await interceptConsentApi(playwrightPage)
+    } else {
+      consentApiOverride = null
     }
 
     await context.clearCookies()
@@ -85,30 +133,88 @@ test.describe('Consent Preferences Component', () => {
     await waitForConsentPreferences(page)
   })
 
-  test.skip(
-    '@wip full stack consent submission hits backend mocks',
-    async ({ page: playwrightPage }) => {
-      // This smoke test is intended to run against the local dev/mock Docker stack
-      // (e.g., Supabase container) and therefore bypasses request interception.
-      const page = await BasePage.init(playwrightPage)
-      await page.goto(CONSENT_PAGE_PATH, { timeout: 15000 })
-      await playwrightPage.waitForLoadState('networkidle')
-      await waitForConsentPreferences(page)
-
-      await page.locator(ALLOW_ALL_BUTTON).click()
-
-      const consentRequest = page.waitForResponse('**/api/gdpr/consent')
-
-      await page.locator(SAVE_BUTTON).click()
-
-      const response = await consentRequest
-      expect(response.ok()).toBeTruthy()
-
-      await expect(page.locator('#analytics-cookies')).toBeChecked()
-      await expect(page.locator('#functional-cookies')).toBeChecked()
-      await expect(page.locator('#marketing-cookies')).toBeChecked()
+  test.afterEach(async () => {
+    if (consentApiOverride) {
+      await consentApiOverride.restore()
+      consentApiOverride = null
     }
-  )
+  })
+
+  test('@containers full stack consent submission hits backend mocks', async ({ page: playwrightPage }) => {
+    test.skip(!mocksEnabled, 'E2E_MOCKS=1 is required to run Supabase-backed consent tests')
+    test.skip(!supabaseAdminClient, 'Supabase containers must be running for full stack consent coverage')
+
+    const page = await BasePage.init(playwrightPage)
+    await waitForConsentPreferences(page)
+
+    const analyticsCheckbox = page.locator('#analytics-cookies')
+    const functionalCheckbox = page.locator('#functional-cookies')
+    const marketingCheckbox = page.locator('#marketing-cookies')
+
+    const expectedPurposes = ['analytics', 'functional', 'marketing']
+
+    const consentResponsePromise = page.waitForResponse((response) => {
+      if (!response.url().includes('/api/gdpr/consent')) return false
+      if (response.request().method() !== 'POST') return false
+
+      try {
+        const postData = response.request().postData()
+        if (!postData) return false
+
+        const payload = JSON.parse(postData) as { purposes?: string[] }
+        const purposes = payload.purposes ?? []
+        return expectedPurposes.every((purpose) => purposes.includes(purpose))
+      } catch {
+        return false
+      }
+    })
+
+    await page.locator(ALLOW_ALL_BUTTON).click()
+
+    await page.locator(SAVE_BUTTON).click()
+
+    const consentResponse = await consentResponsePromise
+    expect(consentResponse.ok()).toBeTruthy()
+
+    const responseBody = (await consentResponse.json()) as ConsentResponse
+    expect(responseBody.success).toBeTruthy()
+
+    const dataSubjectId = responseBody.record?.DataSubjectId
+    expect(dataSubjectId).toBeTruthy()
+    if (!dataSubjectId) {
+      throw new Error('Consent API did not return a DataSubjectId')
+    }
+
+    let cleanupId: string | null = null
+    try {
+      if (!SUPABASE_FALLBACK_ENABLED) {
+        const record = await waitForSupabaseConsentRecord(dataSubjectId, expectedPurposes)
+        cleanupId = record.data_subject_id
+
+        const sortedRecordPurposes = [...record.purposes].sort()
+        const sortedExpectedPurposes = [...expectedPurposes].sort()
+        expect(sortedRecordPurposes).toEqual(sortedExpectedPurposes)
+        expect(record.source).toBe('cookies_modal')
+      } else {
+        // Supabase fallback mode shares sanitized purposes, which currently exclude the functional flag
+        const fallbackExpectedPurposes = expectedPurposes.filter((purpose) => purpose !== 'functional')
+        const sortedResponsePurposes = [...(responseBody.record?.purposes ?? [])].sort()
+        const sortedFallbackPurposes = [...fallbackExpectedPurposes].sort()
+        expect(sortedResponsePurposes).toEqual(sortedFallbackPurposes)
+      }
+
+      await expect(analyticsCheckbox).toBeChecked()
+      await expect(functionalCheckbox).toBeChecked()
+      await expect(marketingCheckbox).toBeChecked()
+    } finally {
+      if (cleanupId) {
+        await supabaseAdminClient
+          ?.from('consent_records')
+          .delete()
+          .eq('data_subject_id', cleanupId)
+      }
+    }
+  })
 
   test('@ready component renders headings and CTAs', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)

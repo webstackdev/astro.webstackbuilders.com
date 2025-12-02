@@ -13,29 +13,6 @@ import {
   test,
 } from '@test/e2e/helpers'
 
-type PlaywrightPage = import('@playwright/test').Page
-
-const THEME_PICKER_READY_ATTR = 'data-theme-picker-ready'
-const NAVIGATION_READY_ATTR = 'data-nav-ready'
-
-const waitForThemePickerReady = async (page: PlaywrightPage) => {
-  await page.waitForFunction((attr) => {
-    const host = document.querySelector('theme-picker')
-    return host?.getAttribute(attr) === 'true'
-  }, THEME_PICKER_READY_ATTR)
-}
-
-const waitForNavigationReady = async (page: PlaywrightPage) => {
-  await page.waitForFunction((attr) => {
-    const nav = document.querySelector('site-navigation')
-    return nav?.getAttribute(attr) === 'true'
-  }, NAVIGATION_READY_ATTR)
-}
-
-const waitForHeaderComponents = async (page: PlaywrightPage) => {
-  await Promise.all([waitForThemePickerReady(page), waitForNavigationReady(page)])
-}
-
 const getDefaultNavigationHref = (basePage: BasePage) => basePage.navigationItems[0]?.url ?? '/about'
 
 /**
@@ -59,6 +36,9 @@ async function navigateWithMobileSupport(basePage: BasePage, href: string = getD
   // Trigger client-side navigation (Astro View Transitions)
   await basePage.navigateToPage(href)
   await basePage.waitForPageLoad()
+  // Header components rehydrate asynchronously after View Transitions; make sure
+  // the theme picker + navigation are ready before interacting again.
+  await basePage.waitForHeaderComponents()
 
   // On mobile, the menu should automatically close after navigation
   // But let's ensure it's closed by checking and closing if needed
@@ -82,7 +62,6 @@ test.describe('Theme Picker Component', () => {
      * - Performs hard reload to bypass View Transitions cache
      * - Dismisses cookie consent modal so it doesn't interfere with theme picker interactions
      * - Ensures consistent starting state for theme testing (no persisted theme preferences)
-     *
      * Without this setup, tests would fail due to:
      * - Leftover theme preferences from previous tests affecting assertions
      * - Cookie modal blocking theme picker UI interactions
@@ -91,7 +70,7 @@ test.describe('Theme Picker Component', () => {
     test.beforeEach(async ({ page: playwrightPage }) => {
       const page = await BasePage.init(playwrightPage)
       await setupCleanTestPage(page.page)
-      await waitForHeaderComponents(page.page)
+      await page.waitForHeaderComponents()
     })
 
     test('@ready theme picker is visible', async ({ page: playwrightPage }) => {
@@ -191,14 +170,14 @@ test.describe('Theme Picker Component', () => {
      * - Dismisses cookie modal to prevent UI interference
      * - Ensures clean state needed to properly test theme persistence behavior
      *
-     * Without this setup, persistence tests would be unreliable due to:
+      await page.waitForHeaderComponents()
      * - Pre-existing theme preferences making it impossible to verify persistence from scratch
      * - Cached state from previous tests affecting reload behavior
      */
     test.beforeEach(async ({ page: playwrightPage }) => {
       const page = await BasePage.init(playwrightPage)
       await setupCleanTestPage(page.page)
-      await waitForHeaderComponents(page.page)
+      await page.waitForHeaderComponents()
     })
 
     test('@ready theme preference persists across page reloads', async ({ page: playwrightPage }) => {
@@ -225,7 +204,7 @@ test.describe('Theme Picker Component', () => {
 
       // This test needs its own setup without localStorage clearing
       await setupTestPage(page.page)
-      await waitForHeaderComponents(page.page)
+      await page.waitForHeaderComponents()
 
       // Select dark theme using helper
       await selectTheme(page.page, 'dark')
@@ -322,7 +301,7 @@ test.describe('Theme Picker Component', () => {
       await setupTestPage(page.page, '/')
       await page.evaluate(() => localStorage.clear())
       await page.reload()
-      await waitForHeaderComponents(page.page)
+      await page.waitForHeaderComponents()
     })
 
     test('theme picker button works after View Transition navigation', async ({ page: playwrightPage }) => {
@@ -331,7 +310,7 @@ test.describe('Theme Picker Component', () => {
       // Root Cause: Scripts didn't properly reinitialize on View Transitions
       // Fix: Migrated to Web Component pattern with connectedCallback/disconnectedCallback lifecycle
 
-      // 1. Verify theme picker works on initial page load
+      await page.waitForHeaderComponents()
       const themeToggleBtn = page.locator('.theme-toggle-btn').first()
       await expect(themeToggleBtn).toBeVisible()
 
@@ -429,7 +408,7 @@ test.describe('Theme Picker Component', () => {
       await setupTestPage(page.page, '/')
       await page.evaluate(() => localStorage.clear())
       await page.reload()
-      await waitForHeaderComponents(page.page)
+      await page.waitForHeaderComponents()
     })
 
     test('preserves lang attribute across navigation', async ({ page: playwrightPage }) => {

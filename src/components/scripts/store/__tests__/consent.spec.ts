@@ -45,7 +45,7 @@ vi.mock('@components/scripts/utils/cookies', () => ({
 
 // Import mocked functions for spying
 import { getCookie, removeCookie, setCookie } from '@components/scripts/utils/cookies'
-import { deleteDataSubjectId } from '@components/scripts/utils/dataSubjectId'
+import { deleteDataSubjectId, getOrCreateDataSubjectId } from '@components/scripts/utils/dataSubjectId'
 import { updateConsentContext } from '@components/scripts/sentry/helpers'
 
 vi.mock('@components/scripts/utils/dataSubjectId', () => ({
@@ -331,17 +331,18 @@ describe('Consent side effects', () => {
 
     initConsentSideEffects()
 
+    const validDataSubjectId = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
     const oldState = {
       analytics: false,
       marketing: false,
       functional: false,
-      DataSubjectId: 'subject-123',
+      DataSubjectId: validDataSubjectId,
     }
     const newState = {
       analytics: true,
       marketing: false,
       functional: false,
-      DataSubjectId: 'subject-123',
+      DataSubjectId: validDataSubjectId,
     }
 
     await consentListener?.(newState, oldState)
@@ -358,7 +359,7 @@ describe('Consent side effects', () => {
     expect(options?.method).toBe('POST')
     const payload = JSON.parse(options?.body as string)
     expect(payload).toMatchObject({
-      DataSubjectId: 'subject-123',
+      DataSubjectId: validDataSubjectId,
       purposes: ['analytics'],
       source: 'cookies_modal',
       verified: false,
@@ -368,6 +369,58 @@ describe('Consent side effects', () => {
     await vi.waitFor(() => {
       expect(fetchSpy).toHaveBeenCalledTimes(1)
     })
+  })
+
+  it('regenerates a DataSubjectId before logging when state value is missing or invalid', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue({ ok: true })
+    vi.stubGlobal('fetch', fetchSpy)
+
+    const regeneratedId = 'regenerated-data-subject-id'
+    vi.mocked(getOrCreateDataSubjectId).mockReturnValue(regeneratedId)
+
+    let consentListener:
+      | ((_state: ConsentState, _oldState?: ConsentState) => Promise<void> | void)
+      | undefined
+    vi.spyOn($consent, 'subscribe').mockImplementation((listener) => {
+      consentListener = listener
+      return () => {}
+    })
+    vi.spyOn($isConsentBannerVisible, 'subscribe').mockImplementation(() => () => {})
+    vi.spyOn($hasFunctionalConsent, 'subscribe').mockImplementation(() => () => {})
+    vi.spyOn($hasAnalyticsConsent, 'subscribe').mockImplementation(() => () => {})
+
+    initConsentSideEffects()
+
+    const oldState = {
+      analytics: false,
+      marketing: false,
+      functional: false,
+      DataSubjectId: '',
+    }
+    const newState = {
+      analytics: true,
+      marketing: false,
+      functional: false,
+      DataSubjectId: '',
+    }
+
+    await consentListener?.(newState, oldState)
+
+    await vi.waitFor(() => {
+      expect(fetchSpy).toHaveBeenCalledTimes(1)
+    })
+
+    expect(getOrCreateDataSubjectId).toHaveBeenCalledTimes(1)
+
+    const firstFetchCall = fetchSpy.mock.calls.at(0)
+    if (!firstFetchCall) {
+      throw new TestError('Expected consent logging fetch to be called once')
+    }
+    const [, options] = firstFetchCall
+    const payload = JSON.parse(options?.body as string)
+    expect(payload.DataSubjectId).toBe(regeneratedId)
+
+    expect($consent.get().DataSubjectId).toBe(regeneratedId)
   })
 
   it('queues consent logging when offline and retries after reconnecting', async () => {

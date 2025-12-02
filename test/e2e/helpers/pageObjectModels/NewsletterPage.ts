@@ -142,6 +142,23 @@ export class NewsletterPage extends BasePage {
   }
 
   /**
+   * Wait for the spinner to enter the loading state at least once
+   */
+  async waitForSpinnerLoadingState(timeout = 2000): Promise<void> {
+    await this.page.waitForFunction(
+      selector => {
+        const spinner = document.querySelector(selector)
+        if (!(spinner instanceof SVGElement)) {
+          return false
+        }
+        return spinner.classList.contains('inline-block') && !spinner.classList.contains('hidden')
+      },
+      this.buttonSpinnerSelector,
+      { timeout }
+    )
+  }
+
+  /**
    * Verify email input has value
    */
   async expectEmailValue(value: string): Promise<void> {
