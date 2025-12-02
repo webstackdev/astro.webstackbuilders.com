@@ -84,6 +84,26 @@ jobs:
       - name: Build Upstash mock image
         run: docker buildx build --load -t wb/upstash-redis-local:test test/containers/upstash/local-proxy
 
+      - name: Generate container env file
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p test/containers
+          : "${SUPABASE_SERVICE_ROLE_KEY:?SUPABASE_SERVICE_ROLE_KEY secret is required}"
+
+          cat <<EOF > test/containers/.env
+          COMPOSE_PROJECT_NAME=wb-e2e
+          CONVERTKIT_HTTP_PORT=9010
+          RESEND_HTTP_PORT=9011
+          UPSTASH_HTTP_PORT=${UPSTASH_HTTP_PORT:-8079}
+          UPSTASH_REDIS_PORT=${UPSTASH_REDIS_PORT:-6380}
+          UPSTASH_TOKEN=${UPSTASH_TOKEN:-local-dev-token}
+          SUPABASE_PROJECT_NAME=wb-supabase
+          SUPABASE_HEALTH_TIMEOUT=${SUPABASE_HEALTH_TIMEOUT:-240}
+          SUPABASE_URL=${SUPABASE_URL:-http://127.0.0.1:54321}
+          SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+          EOF
+
       - name: Start mock containers
         run: npm run containers:up
 
