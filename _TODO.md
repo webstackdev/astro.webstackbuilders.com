@@ -1,3 +1,4 @@
+<!-- markdownlint-disable-file -->
 # TODO
 
 Next, I'd like to add a "pause" and "play" icon to src/components/Animations/Computers
