@@ -39,9 +39,7 @@ const TEST_USER_AGENT = 'playwright/supabase'
 const createdRecordIds: string[] = []
 
 const skipUnlessChromium = (browserName: string) => {
-  if (browserName !== 'chromium') {
-    test.skip('Supabase API tests only run once per suite')
-  }
+  test.skip(browserName !== 'chromium', 'Supabase API tests only run once per suite')
 }
 
 const buildConsentRecordPayload = () => ({

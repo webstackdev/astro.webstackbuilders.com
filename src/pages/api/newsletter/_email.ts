@@ -23,6 +23,10 @@ function getMockAuthorizationHeader(): string {
   }
 }
 
+function resolveResendMockBaseUrl(force?: boolean) {
+  return force === undefined ? getResendMockBaseUrl() : getResendMockBaseUrl({ force })
+}
+
 /**
  * Generate the HTML content for the confirmation email
  */
@@ -208,7 +212,7 @@ export async function sendConfirmationEmail(
   firstName?: string,
   options?: SendConfirmationEmailOptions
 ): Promise<void> {
-  const resendMockBaseUrl = getResendMockBaseUrl({ force: options?.forceMockResend })
+  const resendMockBaseUrl = resolveResendMockBaseUrl(options?.forceMockResend)
   const siteUrl = getSiteUrl()
   const confirmUrl = `${siteUrl}/newsletter/confirm/${token}`
   const expiresIn = '24 hours'
@@ -306,7 +310,7 @@ export async function sendWelcomeEmail(
   firstName?: string,
   options?: SendWelcomeEmailOptions
 ): Promise<void> {
-  const resendMockBaseUrl = getResendMockBaseUrl({ force: options?.forceMockResend })
+  const resendMockBaseUrl = resolveResendMockBaseUrl(options?.forceMockResend)
 
   if (!resendMockBaseUrl && (isDev() || isTest())) {
     console.log('[DEV/TEST MODE] Newsletter welcome email would be sent:', { email })
