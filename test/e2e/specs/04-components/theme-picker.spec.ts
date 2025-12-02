@@ -59,6 +59,9 @@ async function navigateWithMobileSupport(basePage: BasePage, href: string = getD
   // Trigger client-side navigation (Astro View Transitions)
   await basePage.navigateToPage(href)
   await basePage.waitForPageLoad()
+  // Header components rehydrate asynchronously after View Transitions; make sure
+  // the theme picker + navigation are ready before interacting again.
+  await waitForHeaderComponents(page)
 
   // On mobile, the menu should automatically close after navigation
   // But let's ensure it's closed by checking and closing if needed

@@ -1,9 +1,5 @@
 # TODO
 
-Ensured consent logging never sends malformed IDs by validating/regenerating DataSubjectId inside consent.ts. A new helper now runs on every consent change, fixes the state atom when needed, and uses the regenerated ID immediately so the /api/gdpr/consent payload always passes API validation (no more 400s/console noise on Mobile Safari).
-
-Added regression coverage in consent.spec.ts: the existing happy-path test now uses a valid UUID, and a new test asserts we regenerate & persist a DataSubjectId when the store provides an empty/invalid value before logging.
-
 ## Performance
 
 Implement mitigations in test/e2e/specs/07-performance/PERFORMANCE.md
