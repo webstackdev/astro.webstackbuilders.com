@@ -26,23 +26,6 @@ For faster troubleshooting in that noisy log stream, filter just warnings/errors
 
 E2E Starting Point
 
-Stabilize infra first: run npm run containers:up, npm run containers:wait, npm run containers:supabase:start, and the dev server. Keep containers:logs and containers:supabase:logs tailing in another terminal so every mock failure is visible before Playwright runs.
-
-Create a shared Playwright "mocks ready" fixture: add a helper that checks process.env.E2E_MOCKS === '1' and pings `http://127.0.0.1:8079/` plus the two WireMock endpoints before each suite. That gives quick feedback if someone forgets the setup commands.
-
-Those PGRST000 lines are just PostgREST complaining while Postgres is still booting. Every time Supabase restarts (or Docker does a health restart), PostgREST hammers the DB before it's ready and logs "database system is starting up". Once Postgres finishes (~10-15 seconds later), the errors stop. If you scroll further down the same log stream you should see "schema cache loaded" messages confirming it recovered.
-
-The Vector errors are fallout from the same startup noise—its remap transform tries to parse the PostgREST log lines as access logs (with to_timestamp), but that "Failed listening for database notifications…" text doesn't match the timestamp pattern. After PostgREST stabilizes, Vector goes back to normal. Harmless unless you depend on those telemetry pipelines.
-
-If the chatter is distracting, tail each container separately so you only see current warnings: docker logs -f supabase_rest_astro.webstackbuilders.com 2>&1 | grep -E '\\[(error|warn)\\]'. You'll notice the burst only happens immediately after start.sh runs or when the DB container is restarted.
-
-You can also extend the REST container's startup delay to avoid the spam: set PGRST_DB_CONFIG variables or wrap npx supabase start in the script with a sleep until supabase_db reports healthy. But functionally, this is expected Supabase CLI behavior; it doesn't indicate a broken state once the stack reports healthy in npm run containers:supabase:status.
-
-Implementation order
-
-03-forms: once the API layer is stable, wire the UI flows. Use Playwright to submit each form, but assert success by checking the mock mappings were triggered, not just the UI toast.
-Consent Preferences (@wip): convert it to use the same helper that verifies mocked Upstash REST and Supabase responses. This test should (1) toggle UI controls, (2) check the outbound request via the mock logs, and (3) read back seeded data to confirm persistence.
-
 04-components/consentPreferences.spec.ts
 
 ## Typing client-side API calls and SSR API endpoints
