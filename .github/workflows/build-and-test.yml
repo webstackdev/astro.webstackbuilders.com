@@ -1,11 +1,13 @@
 # Runs build, unit tests, and E2E tests - gates deployment
-# @TODO: Push to a preview branch on Vercel, and run the E2E tests on that preview instead of from a dev server
-name: CI - Build & Test
+name: Build and Test
 
 on:
   push:
+    branches:
+      - main
   pull_request:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
   build-and-test:
@@ -39,7 +41,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -50,7 +52,10 @@ jobs:
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
-      - name: Run TypeScript check
+      - name: Sync Astro types
+        run: npm run sync
+
+      - name: Run Astro check
         run: npm run check
 
       - name: Run lint
@@ -61,7 +66,7 @@ jobs:
           # Run vitest with coverage. The built-in 'github-actions' reporter
           # (configured in vitest.config.ts) will create annotations.
           # Coverage reporters (json-summary, json) are configured in vitest.config.ts.
-          npx vitest run --coverage
+          npm run test:coverage
 
       - name: Report Coverage
         uses: davelosert/vitest-coverage-report-action@v2.9.0
@@ -69,11 +74,6 @@ jobs:
         with:
           json-summary-path: './coverage/coverage-summary.json'
           json-final-path: './coverage/coverage-final.json'
-
-      - name: Build project
-        run: npm run build
-        env:
-          NODE_ENV: production
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
@@ -116,11 +116,41 @@ jobs:
       - name: Apply Supabase migrations
         run: npm run containers:supabase:db-push
 
+      - name: Start Astro dev server
+        run: |
+          npm run dev -- --host 0.0.0.0 > /tmp/astro-dev.log 2>&1 &
+          echo $! > /tmp/astro-dev.pid
+
+      - name: Wait for dev server
+        run: |
+          for attempt in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:4321 >/dev/null; then
+              echo "✅ Dev server is responding"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "❌ Dev server failed to start" >&2
+          if [ -f /tmp/astro-dev.log ]; then
+            echo '--- Astro dev server log ---'
+            cat /tmp/astro-dev.log
+          fi
+          exit 1
+
       - name: Run Playwright E2E tests
         run: npx playwright test
         env:
           CI: "1"
           FORCE_COLOR: "1"
+          E2E_MOCKS: "1"
+
+      - name: Stop Astro dev server
+        if: always()
+        run: |
+          if [ -f /tmp/astro-dev.pid ]; then
+            kill $(cat /tmp/astro-dev.pid) || true
+            rm /tmp/astro-dev.pid
+          fi
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4
@@ -155,7 +185,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Deploy to Vercel (Preview)
         uses: amondnet/vercel-action@v41.1.4
@@ -201,7 +231,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Deploy to Vercel (Production)
         uses: amondnet/vercel-action@v41.1.4

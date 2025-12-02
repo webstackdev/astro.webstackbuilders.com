@@ -1,3 +1,4 @@
+<!-- markdownlint-disable-file -->
 # Performance
 
 Latest run (Dec 2, 2025):

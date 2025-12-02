@@ -1,4 +1,18 @@
+<!-- markdownlint-disable-file -->
 # TODO
+
+Inspect the built HTML for /testing/carousel and the home page to confirm the inline `<script type="module">` blocks that call register{Carousel,Testimonials}WebComponent() are still present after bundling. If they're getting tree-shaken or deferred incorrectly, the custom elements would never hydrate, which matches the data-carousel-ready hang.
+
+Capture console output during one stress-run slice (e.g., testimonials.spec.ts in Chromium) to see if the Embla modules or our error handler are throwing—any runtime exception inside initialize() would tear down the element and prevent the ready flag. I'll focus on the [TestimonialsCarouselElement] initialize log path.
+
+For the service-worker suite, verify that PwaPage.enableServiceWorkerForE2E() actually overrides window.__disableServiceWorkerForE2E after each navigation by logging the flag inside registerServiceWorker() before the early-return, and make sure our init scripts run in the right order when multiple addInitScript calls are stacked.
+
+## Pause and Play
+
+Next, I'd like to add a "pause" and "play" icon to src/components/Animations/Computers
+There are icons with those names already configured for the Icon component.
+There are hooks for pause and play already setup in the component.
+The icon should be displayed in the low right hand corner of the animation, with 4px of padding from the bottom and right side. It should overlay the animation, not expand the bounding box of the animation.
 
 ## Performance
 
