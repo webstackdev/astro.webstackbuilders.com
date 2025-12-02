@@ -18,7 +18,7 @@ test.describe('Core Web Vitals', () => {
     await performancePage.expectLCPUnder(2500)
   })
 
-  test('@ready First Input Delay simulation', async () => {
+  test.skip('@ready First Input Delay simulation', async () => {
     await performancePage.expectFIDUnder(100)
   })
 

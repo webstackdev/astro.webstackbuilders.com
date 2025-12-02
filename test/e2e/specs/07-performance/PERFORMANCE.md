@@ -7,7 +7,12 @@ Failures: Firefox + Mobile Safari FID measured 127 ms/126 ms (threshold 100�
 - measureFID clicks the first interactive container right after networkidle, so any document-level listener that executes synchronously inflates this metric. index.ts binds multiple global click, touchend, and keydown handlers plus Lit store updates during initialize(). Those handlers always run before the synthetic click resolves, keeping the main thread busy for ~25 ms on desktop and ~40 ms on mobile.
 
 - index.ts eagerly instantiates focus-trap, registers document keyup/pointerdown, and intercepts every nav link to reroute through astro:transitions. All of that work executes before the first user click completes, which is why only browsers with slower event loop scheduling (Gecko/WebKit) exceed 100 ms.
-Mitigations: lazily register these web components behind requestIdleCallback/queueMicrotask so initial navigation/interactions aren't blocked; bind document listeners only after the relevant UI opens; gate LitElement hydration on an IntersectionObserver so off-screen modals (theme picker) stay inert until revealed.
+
+**Mitigations:**
+
+- lazily register these web components behind requestIdleCallback/queueMicrotask so initial navigation/interactions aren't blocked
+- bind document listeners only after the relevant UI opens
+- gate LitElement hydration on an IntersectionObserver so off-screen modals (theme picker) stay inert until revealed.
 
 ## Total Blocking Time (TBT) regressions (Chromium desktop + mobile)
 
@@ -17,13 +22,13 @@ Mitigations: lazily register these web components behind requestIdleCallback/que
 
 - Global error-handling utilities (@components/scripts/errors/*) are imported by all of the above and run in the same navigation task. Whenever addScriptBreadcrumb fires during initialization, it formats stack traces and sends data to the client logger, increasing long-task duration.
 
-## Mitigations
+**Mitigations**
 
-1. Convert carousel/testimonial scripts to lazy web components that hydrate only when the element enters the viewport, and defer Embla imports via dynamic import() to split the bundle.
+- Convert carousel/testimonial scripts to lazy web components that hydrate only when the element enters the viewport, and defer Embla imports via dynamic import() to split the bundle.
 
-1. Gate animation lifecycle initialization until the first component actually requests animation control, and wrap it in requestIdleCallback so it never runs inside the navigation task.
+- Gate animation lifecycle initialization until the first component actually requests animation control, and wrap it in requestIdleCallback so it never runs inside the navigation task.
 
-1. Move breadcrumb/error instrumentation behind an environment flag or lazy loader so production visitors don't pay the cost before interaction.
+- Move breadcrumb/error instrumentation behind an environment flag or lazy loader so production visitors don't pay the cost before interaction.
 
 ## Next steps
 
