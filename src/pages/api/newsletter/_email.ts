@@ -15,6 +15,14 @@ function getResendClient(): Resend {
   return new Resend(getResendApiKey())
 }
 
+function getMockAuthorizationHeader(): string {
+  try {
+    return `Bearer ${getResendApiKey()}`
+  } catch {
+    return 'Bearer mock-resend-key'
+  }
+}
+
 /**
  * Generate the HTML content for the confirmation email
  */
@@ -131,6 +139,7 @@ function generateConfirmationEmailHtml(
   <div class="footer">
     <p>Questions? Contact us at <a href="mailto:hello@webstackbuilders.com">hello@webstackbuilders.com</a></p>
     <p>Read our <a href="${getSiteUrl()}/privacy">Privacy Policy</a> for more information about how we handle your data.</p>
+    <p>If you no longer wish to receive these emails, you can <a href="${getSiteUrl()}/privacy#unsubscribe" data-testid="unsubscribe-link">unsubscribe here</a> at any time.</p>
     <p style="font-size: 12px; color: #999; margin-top: 20px;">
       © ${new Date().getFullYear()} Webstack Builders. All rights reserved.
     </p>
@@ -174,6 +183,7 @@ WHAT YOU'RE CONSENTING TO:
 
 Questions? Contact us at hello@webstackbuilders.com
 Privacy Policy: ${getSiteUrl()}/privacy
+Unsubscribe: ${getSiteUrl()}/privacy#unsubscribe
 
 © ${new Date().getFullYear()} Webstack Builders. All rights reserved.
   `.trim()
@@ -233,20 +243,12 @@ export async function sendConfirmationEmail(
   }
 
   if (resendMockBaseUrl) {
-    const mockAuthorizationHeader = (() => {
-      try {
-        return `Bearer ${getResendApiKey()}`
-      } catch {
-        return 'Bearer mock-resend-key'
-      }
-    })()
-
     try {
       const response = await fetch(`${resendMockBaseUrl}/emails`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: mockAuthorizationHeader,
+          Authorization: getMockAuthorizationHeader(),
         },
         body: JSON.stringify(resendPayload),
       })
@@ -295,12 +297,18 @@ export async function sendConfirmationEmail(
  * @param email - Subscriber's email address
  * @param firstName - Optional subscriber first name for personalization
  */
+interface SendWelcomeEmailOptions {
+  forceMockResend?: boolean
+}
+
 export async function sendWelcomeEmail(
   email: string,
-  firstName?: string
+  firstName?: string,
+  options?: SendWelcomeEmailOptions
 ): Promise<void> {
-  // Skip actual email sending in dev/test environments
-  if (isDev() || isTest()) {
+  const resendMockBaseUrl = getResendMockBaseUrl({ force: options?.forceMockResend })
+
+  if (!resendMockBaseUrl && (isDev() || isTest())) {
     console.log('[DEV/TEST MODE] Newsletter welcome email would be sent:', { email })
     return
   }
@@ -387,6 +395,7 @@ export async function sendWelcomeEmail(
     </ul>
 
     <p><strong>Need to manage your subscription?</strong> You can unsubscribe at any time using the link at the bottom of any email we send you.</p>
+    <p>If you'd like to unsubscribe right now, <a href="${getSiteUrl()}/privacy#unsubscribe" data-testid="unsubscribe-link">click here</a>.</p>
   </div>
 
   <div class="footer">
@@ -415,14 +424,14 @@ WHAT TO EXPECT:
 - Occasional updates about new features and offerings
 
 Need to manage your subscription? You can unsubscribe at any time using the link at the bottom of any email we send you.
+Unsubscribe: ${getSiteUrl()}/privacy#unsubscribe
 
 Questions? Reply to this email or contact us at hello@webstackbuilders.com
 
 © ${new Date().getFullYear()} Webstack Builders. All rights reserved.
   `.trim()
 
-  try {
-    const result = await resend.emails.send({
+  const resendPayload = {
       from: 'Webstack Builders <newsletter@webstackbuilders.com>',
       to: email,
       subject: '🎉 Welcome to Webstack Builders!',
@@ -432,7 +441,44 @@ Questions? Reply to this email or contact us at hello@webstackbuilders.com
         { name: 'type', value: 'newsletter-welcome' },
         { name: 'flow', value: 'post-confirmation' },
       ],
+  }
+
+  const handleSendError = (error: unknown) => {
+    console.error('[Newsletter Email] Error sending welcome email:', error)
+    throw new ApiFunctionError(error, {
+      message: 'Failed to send welcome email. Please try again later.',
+      code: 'NEWSLETTER_WELCOME_EMAIL_FAILED',
+      status: 502,
+      route: '/api/newsletter',
+      operation: 'sendWelcomeEmail'
     })
+  }
+
+  if (resendMockBaseUrl) {
+    try {
+      const response = await fetch(`${resendMockBaseUrl}/emails`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: getMockAuthorizationHeader(),
+        },
+        body: JSON.stringify(resendPayload),
+      })
+
+      if (!response.ok) {
+        const body = await response.text().catch(() => 'Unable to read mock response body')
+        throw new Error(`Resend mock responded with ${response.status}: ${body}`)
+      }
+
+      console.log('[Newsletter Email] Welcome sent to mock service:', { email })
+      return
+    } catch (error) {
+      handleSendError(error)
+    }
+  }
+
+  try {
+    const result = await resend.emails.send(resendPayload)
 
     if (result.error) {
       console.error('[Newsletter Email] Failed to send welcome email:', result.error)
@@ -450,13 +496,6 @@ Questions? Reply to this email or contact us at hello@webstackbuilders.com
       messageId: result.data?.id,
     })
   } catch (error) {
-    console.error('[Newsletter Email] Error sending welcome email:', error)
-    throw new ApiFunctionError(error, {
-      message: 'Failed to send welcome email. Please try again later.',
-      code: 'NEWSLETTER_WELCOME_EMAIL_FAILED',
-      status: 502,
-      route: '/api/newsletter',
-      operation: 'sendWelcomeEmail'
-    })
+    handleSendError(error)
   }
 }
