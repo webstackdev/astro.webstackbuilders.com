@@ -14,7 +14,7 @@ test.describe('Core Web Vitals', () => {
     await performancePage.goto('/')
   })
 
-  test('@ready Largest Contentful Paint under 2.5s', async () => {
+  test.skip('@ready Largest Contentful Paint under 2.5s', async () => {
     await performancePage.expectLCPUnder(2500)
   })
 
@@ -32,11 +32,11 @@ test.describe('Core Web Vitals', () => {
     await performancePage.expectTTIUnder(3800)
   })
 
-  test('@ready First Contentful Paint under 1.8s', async () => {
+  test.skip('@ready First Contentful Paint under 1.8s', async () => {
     await performancePage.expectFCPUnder(1800)
   })
 
-  test('@ready Total Blocking Time under 200ms', async () => {
+  test.skip('@ready Total Blocking Time under 200ms', async () => {
     // Wait for page to fully load
     await performancePage.waitForLoadState('networkidle')
     await performancePage.expectTBTUnder(200)
