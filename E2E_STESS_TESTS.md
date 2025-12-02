@@ -3,6 +3,10 @@
 
 Our goal is to make the E2E test suite as deterministic as possible, so that we can use it as a gate for CI to make sure that commits and PRs on GitHub are not breaking existing code and can be merged to main. We've spent an entire day running the test cases and fixing errors. Each run, one or more new errors appear, we fix them, and do another run with the same result. The entire test suite seems very flaky.
 
+When a problem area is resolved, add it to the "LOG OF FIXES APPLIED TO PROBLEMS IDENTIFIED DURING E2E STRESS TESTS" section below. The purpose of this log is to identify problems that have already been addressed, so we can determine if the fix worked if similar problems recur.
+
+See the "CONSOLE OUTPUT FROM LAST E2E FULL RUN THAT ERRORED" section for the next set of problems to troubleshoot.
+
 ## Problems Areas
 
 ### 1. Carousel / Testimonials Hydration Regressions
@@ -16,6 +20,8 @@ Our goal is to make the E2E test suite as deterministic as possible, so that we 
   - Inspect built HTML for `/testing/carousel` and the home page to confirm the inline `<script type="module">` blocks that call `register{Carousel,Testimonials}WebComponent()` survive bundling and execute under Playwright.
 
   - Capture console output during a focused run (e.g., `testimonials.spec.ts` on Chromium) to see whether Embla throws inside `initialize()` or whether `handleScriptError` tears the element down before setting `data-carousel-ready`.
+
+  - Added Playwright-only console instrumentation inside `CarouselElement` and `TestimonialsCarouselElement` to log register/initialize start, success, and failure events. Run the targeted specs and collect console output to see whether these hooks fire.
 
 ### 2. Service Worker Enablement
 
@@ -41,26 +47,6 @@ PWA specs intermittently wait more than 30 seconds for `navigator.serviceWorker.
 
   - Evaluate alternative reset flows (for example, `page.goto()` with a cache-busting query) so tests do not rely on reload semantics that WebKit disallows under our CSP/service-worker combo.
 
-## Coordinated Troubleshooting Plan
+## LOG OF FIXES APPLIED TO PROBLEMS IDENTIFIED DURING E2E STRESS TESTS
 
-1. **Isolate failures quickly:**
-
-Run the individual specs above in Chromium and WebKit to capture console logs, traces, and screenshots before applying fixes so we have solid before/after evidence.
-
-2. **Instrument before patching:**
-
-Add temporary logging hooks (build-script inspection, SW flag checks, reload diagnostics) to validate hypotheses with a single rerun, then remove or guard them once validated.
-
-3. **Apply targeted fixes sequentially:**
-
-Fix hydration/registration issues first because they affect multiple specs, then re-run only the impacted specs; once clean, fold in the PWA and theme-picker adjustments and repeat.
-
-4. **Re-run stress subset:**
-
-After each fix cluster, run a reduced but representative bundle (for example, `testimonials`, `theme-picker`, `pwa`) across browsers to catch regressions early.
-
-5. **Full-suite verification:**
-
-Once subsets are stable, kick off the full stress suite to confirm deterministic behavior, and keep this document updated with any new regressions instead of relying on scrollback.
-
-4. **Re-run stress subset**
+## CONSOLE OUTPUT FROM LAST E2E FULL RUN THAT ERRORED
