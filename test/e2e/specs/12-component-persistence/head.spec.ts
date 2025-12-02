@@ -13,6 +13,18 @@
 
 import { ComponentPersistencePage, test, describe, expect } from '@test/e2e/helpers'
 
+const navigateAndAwaitHydration = async (
+  page: ComponentPersistencePage,
+  href: string,
+  urlPattern: string | RegExp,
+  timeout = 5000
+) => {
+  await page.navigateToPage(href)
+  await page.waitForPageLoad()
+  await page.waitForHeaderComponents()
+  await page.waitForURL(urlPattern, { timeout })
+}
+
 describe('View Transitions - transition:persist on meta theme-color', () => {
   test('should persist meta theme-color element across navigation', async ({
     page: playwrightPage,
@@ -20,6 +32,7 @@ describe('View Transitions - transition:persist on meta theme-color', () => {
     const page = await ComponentPersistencePage.init(playwrightPage)
 
     await page.goto('/')
+    await page.waitForHeaderComponents()
 
     // Set up test data on the meta theme-color element
     const initialData = await page.setupPersistenceTest('meta[name="theme-color"]')
@@ -33,8 +46,7 @@ describe('View Transitions - transition:persist on meta theme-color', () => {
     expect(initialContent).toMatch(/^#[0-9a-fA-F]{6}$/)
 
     // Navigate to a different page using Astro's View Transitions
-    await page.navigateToPage('/articles')
-    await page.waitForURL('**/articles', { timeout: 5000 })
+    await navigateAndAwaitHydration(page, '/articles', '**/articles')
 
     // Verify the element persisted with the same DOM identity
     const afterNavigationData = await page.verifyPersistence('meta[name="theme-color"]')
@@ -56,6 +68,7 @@ describe('View Transitions - transition:persist on meta theme-color', () => {
   }) => {
     const page = await ComponentPersistencePage.init(playwrightPage)
     await page.goto('/')
+    await page.waitForHeaderComponents()
 
     // Mark the <head> element to verify it persists (Astro behavior)
     const headData = await page.evaluate(() => {
@@ -89,8 +102,7 @@ describe('View Transitions - transition:persist on meta theme-color', () => {
     expect(metaData.content).toMatch(/^#[0-9a-fA-F]{6}$/)
 
     // Navigate using View Transitions
-    await page.navigateToPage('/articles')
-    await page.waitForURL('**/articles', { timeout: 5000 })
+    await navigateAndAwaitHydration(page, '/articles', '**/articles')
 
     // Check if head element persisted (Astro keeps the same head element)
     const afterNavigationHead = await page.evaluate(() => {
@@ -128,6 +140,7 @@ describe('View Transitions - transition:persist on meta theme-color', () => {
   }) => {
     const page = await ComponentPersistencePage.init(playwrightPage)
     await page.goto('/')
+    await page.waitForHeaderComponents()
 
     // Get initial theme-color value
     const initialColor = await page.evaluate(() => {
@@ -138,8 +151,7 @@ describe('View Transitions - transition:persist on meta theme-color', () => {
     expect(initialColor).toMatch(/^#[0-9a-fA-F]{6}$/)
 
     // Navigate to another page
-    await page.navigateToPage('/services')
-    await page.waitForURL('**/services', { timeout: 5000 })
+    await navigateAndAwaitHydration(page, '/services', '**/services')
 
     // Get theme-color value after navigation
     const afterNavigationColor = await page.evaluate(() => {
@@ -154,6 +166,7 @@ describe('View Transitions - transition:persist on meta theme-color', () => {
     // Home is not listed in the navigation menu, so reload the page to return
     await page.goto('/')
     await page.waitForURL(/\/$/, { timeout: 5000 })
+    await page.waitForHeaderComponents()
 
     // Verify theme-color is still the same
     const finalColor = await page.evaluate(() => {
@@ -170,6 +183,7 @@ describe('View Transitions - transition:persist on meta theme-color', () => {
   }) => {
     const page = await ComponentPersistencePage.init(playwrightPage)
     await page.goto('/')
+    await page.waitForHeaderComponents()
 
     // Mark the canonical link element to check if it's replaced or just updated
     const initialData = await page.evaluate(() => {
@@ -190,8 +204,7 @@ describe('View Transitions - transition:persist on meta theme-color', () => {
     expect(initialData.href).toMatch(/\/$/)
 
     // Navigate to articles page
-    await page.navigateToPage('/articles')
-    await page.waitForURL('**/articles', { timeout: 5000 })
+    await navigateAndAwaitHydration(page, '/articles', '**/articles')
 
     // Check if element was replaced or just updated
     const afterNavigationData = await page.evaluate(() => {
@@ -225,6 +238,7 @@ describe('View Transitions - transition:persist on meta theme-color', () => {
   }) => {
     const page = await ComponentPersistencePage.init(playwrightPage)
     await page.goto('/')
+    await page.waitForHeaderComponents()
 
     // Get initial sitemap URL
     const initialSitemap = await page.evaluate(() => {
@@ -235,8 +249,7 @@ describe('View Transitions - transition:persist on meta theme-color', () => {
     expect(initialSitemap).toBe('/sitemap-index.xml')
 
     // Navigate to services page
-    await page.navigateToPage('/services')
-    await page.waitForURL('**/services', { timeout: 5000 })
+    await navigateAndAwaitHydration(page, '/services', '**/services')
 
     // Get sitemap URL after navigation
     const afterNavigationSitemap = await page.evaluate(() => {
@@ -254,6 +267,7 @@ describe('View Transitions - transition:persist on meta theme-color', () => {
   }) => {
     const page = await ComponentPersistencePage.init(playwrightPage)
     await page.goto('/')
+    await page.waitForHeaderComponents()
 
     // Get initial mobile-web-app-capable value
     const initialValue = await page.evaluate(() => {
@@ -264,8 +278,7 @@ describe('View Transitions - transition:persist on meta theme-color', () => {
     expect(initialValue).toBe('yes')
 
     // Navigate to case studies page
-    await page.navigateToPage('/case-studies')
-    await page.waitForURL('**/case-studies', { timeout: 5000 })
+    await navigateAndAwaitHydration(page, '/case-studies', '**/case-studies')
 
     // Get mobile-web-app-capable value after navigation
     const afterNavigationValue = await page.evaluate(() => {

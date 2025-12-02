@@ -13,6 +13,7 @@ import {
 } from '@playwright/test'
 import { navigationItems } from '@components/Navigation/server'
 import { clearConsentCookies } from '@test/e2e/helpers'
+import { waitForHeaderComponents as waitForHeaderComponentsHelper } from '@test/e2e/helpers/waitHelpers'
 
 const DEFAULT_NAVIGATION_TIMEOUT = 5000
 const EXTENDED_NAVIGATION_TIMEOUT = 15000
@@ -452,6 +453,14 @@ export class BasePage {
   }
 
   /**
+   * Wait for navigation header components (theme picker + nav) to hydrate
+   * Ensures client-side navigation helpers can safely interact with header UI
+   */
+  async waitForHeaderComponents(options?: { timeout?: number }): Promise<void> {
+    await waitForHeaderComponentsHelper(this._page, options?.timeout)
+  }
+
+  /**
    * Navigate to a page using Astro View Transitions
    * Clicks a link with the given href to trigger client-side navigation
    *
@@ -464,6 +473,7 @@ export class BasePage {
    * ```
    */
   async navigateToPage(href: string): Promise<void> {
+    await this.waitForHeaderComponents()
     const navLink = this._page.locator(`site-navigation a[href="${href}"]`).first()
     const linkCount = await navLink.count()
 

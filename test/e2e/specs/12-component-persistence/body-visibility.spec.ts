@@ -18,11 +18,13 @@ test.describe('View Transitions - body visibility reset', () => {
 
     await page.goto('/')
     await page.waitForLoadState('networkidle')
+    await page.waitForHeaderComponents()
 
     const astroBeforeSwapLog = page.consoleMssgPromise('Theme init on "astro:before-swap" executed')
 
     await page.navigateToPage('/about')
     await page.waitForPageLoad()
+    await page.waitForHeaderComponents()
 
     const logMessage = await astroBeforeSwapLog
     expect(logMessage.text()).toContain('Theme init on "astro:before-swap" executed')

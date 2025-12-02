@@ -36,6 +36,7 @@ test.describe('Hero Animation - Mobile Menu Pause Regression', () => {
   test.beforeEach(async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     await setupTestPage(page.page, '/')
+    await page.waitForHeaderComponents()
     // Wait for hero animation to load
     await page.waitForSelector('#heroAnimation', { timeout: 5000 })
   })
@@ -238,6 +239,7 @@ test.describe('Hero Animation - Mobile Menu Pause Regression', () => {
 
     // Wait for navigation
     await page.waitForLoadState('networkidle')
+    await page.waitForHeaderComponents()
 
     // Menu should close after navigation
     const hamburgerAfterNav = page.locator('.nav-toggle-btn').first()
