@@ -9,6 +9,18 @@ export const registerServiceWorker = () => {
     return
   }
 
+  const disableForE2E = typeof window !== 'undefined' && window.__disableServiceWorkerForE2E === true
+  if (disableForE2E) {
+    console.info('[pwa] skipping service worker registration for e2e tests')
+    void navigator.serviceWorker.getRegistrations().then((registrations) => {
+      registrations.forEach((registration) => {
+        console.info('[pwa] unregistering service worker (e2e disable)', { scope: registration.scope })
+        void registration.unregister()
+      })
+    })
+    return
+  }
+
   const devMode = isDev()
   const allowDevServiceWorker = devMode && isE2eTest()
 

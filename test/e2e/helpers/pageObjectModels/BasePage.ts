@@ -36,6 +36,9 @@ export class BasePage {
   protected static async setupPlaywrightGlobals(page: Page): Promise<void> {
     await page.addInitScript(() => {
       window.isPlaywrightControlled = true
+      if (typeof window.__disableServiceWorkerForE2E === 'undefined') {
+        window.__disableServiceWorkerForE2E = true
+      }
 
       if (typeof window.__astroPageLoadCounter !== 'number') {
         window.__astroPageLoadCounter = 0
