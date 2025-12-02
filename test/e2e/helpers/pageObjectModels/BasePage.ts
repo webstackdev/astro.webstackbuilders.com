@@ -862,8 +862,9 @@ export class BasePage {
   async expectNoErrors(): Promise<Array<Error>> {
     await this.waitForPageComplete()
     const errors = await this._page.pageErrors()
-    expect(errors).toHaveLength(0)
-    return await this._page.pageErrors()
+    const filteredErrors = errors.filter((error) => !this.isIgnorablePageError(error))
+    expect(filteredErrors).toHaveLength(0)
+    return filteredErrors
   }
 
   /**
@@ -1176,5 +1177,17 @@ export class BasePage {
     const label = this._page.locator(`label[for="${forId}"]`)
     await expect(label).toBeVisible()
     await expect(label).toContainText(pattern)
+  }
+
+  /**
+   * Filter recurring non-actionable browser errors (e.g., Firefox HMR websockets) from pageErrors().
+   */
+  private isIgnorablePageError(error: Error): boolean {
+    const message = error?.message ?? ''
+
+    // Firefox occasionally surfaces this when Vite's HMR websocket retries during stress runs.
+    if (message.includes('WebSocket closed without opened')) return true
+
+    return false
   }
 }
