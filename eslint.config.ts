@@ -97,7 +97,6 @@ export default [
             '^astro:.*',  // Ignore Astro virtual modules
             '^virtual:pwa-register$',
             '^\\./.*',    // Ignore relative imports (let TypeScript handle these)
-            'test/e2e/specs/14-system/package-release.spec.ts', // Ignore dynamic imports
           ],
         },
       ],
@@ -241,6 +240,7 @@ export default [
     ],
     ignores: [
       'src/**/__tests__/**',
+      'test/e2e/specs/**/*',
     ],
     rules: {
       'no-restricted-syntax': [
@@ -261,7 +261,7 @@ export default [
     ],
     ignores: [
       'test/e2e/helpers/pageObjectModels/**/*',
-      'test/e2e/specs/__tests__/**',
+      'test/e2e/specs/**',
     ],
     rules: {
       'no-restricted-syntax': [
@@ -384,6 +384,7 @@ export default [
       'src/components/scripts/store/__tests__/socialEmbeds.spec.ts',
       'src/pages/api/**/*',
       'src/pages/manifest.json.ts',
+      'test/e2e/specs/15-cron/cron.spec.ts',
     ],
     rules: {
       camelcase: 'off',
@@ -784,6 +785,22 @@ export default [
           ],
         },
       ],
+    },
+  },
+  /**
+   * =================================================================================================
+   *
+   *  Test files using dynamic imports need to include the file extension
+   *
+   * =================================================================================================
+   */
+  {
+    files: [
+      'test/e2e/specs/14-system/package-release.spec.ts',
+      'test/e2e/specs/14-system/privacy-policy-version.spec.ts',
+    ],
+    rules: {
+      'import/extensions': 'off',
     },
   },
 ]

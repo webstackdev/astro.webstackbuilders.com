@@ -37,27 +37,25 @@ import type { FocusTrap, Options } from 'focus-trap'
  * @param _options - Focus trap options
  * @returns A mock FocusTrap object
  */
-export function createFocusTrap(
+export const createFocusTrap = (
   _element: HTMLElement | HTMLElement[],
   _options?: Options
-): FocusTrap {
+): FocusTrap => {
   const trap: FocusTrap = {
-    activate: (): FocusTrap => {
-      return trap
-    },
-    deactivate: (): FocusTrap => {
-      return trap
-    },
-    pause: (): FocusTrap => {
-      return trap
-    },
-    unpause: (): FocusTrap => {
-      return trap
-    },
-    updateContainerElements: (_containerElements: HTMLElement | HTMLElement[]): FocusTrap => {
-      return trap
-    },
-  } as FocusTrap
+    active: false,
+    paused: false,
+    activate: (): FocusTrap => trap,
+    deactivate: (): FocusTrap => trap,
+    pause: (): FocusTrap => trap,
+    unpause: (): FocusTrap => trap,
+    updateContainerElements: (
+      _containerElements:
+        | HTMLElement
+        | SVGElement
+        | string
+        | Array<HTMLElement | SVGElement | string>,
+    ): FocusTrap => trap,
+  }
 
   return trap
 }

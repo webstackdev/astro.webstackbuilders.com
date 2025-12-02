@@ -10,6 +10,7 @@
 import { test, expect } from '@test/e2e/helpers'
 import { BasePage } from '@test/e2e/helpers/pageObjectModels/BasePage'
 
+/* eslint-disable import/no-unresolved */
 test.describe('Package Release Integration', () => {
   test('should expose PACKAGE_RELEASE_VERSION in import.meta.env', async ({
     page: playwrightPage,
@@ -105,3 +106,4 @@ test.describe('Package Release Integration', () => {
     expect(releaseFromModule).toMatch(/^.+@\d+\.\d+\.\d+$/)
   })
 })
+/* eslint-enable import/no-unresolved */
