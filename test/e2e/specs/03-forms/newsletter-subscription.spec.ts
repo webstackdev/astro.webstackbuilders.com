@@ -2,7 +2,7 @@
  * Newsletter Subscription Form E2E Tests
  * Tests for newsletter signup functionality
  */
-import { test, expect, spyOnFetchEndpoint, delayFetchForEndpoint } from '@test/e2e/helpers'
+import { test, expect, spyOnFetchEndpoint, delayFetchForEndpoint, mockFetchEndpointResponse } from '@test/e2e/helpers'
 import { EvaluationError } from '@test/errors'
 import { TEST_EMAILS, ERROR_MESSAGES } from '@test/e2e/fixtures/test-data'
 import { NewsletterPage } from '@test/e2e/helpers/pageObjectModels/NewsletterPage'
@@ -147,6 +147,16 @@ test.describe('Newsletter Subscription Form', () => {
     await newsletterPage.expectMessageContains(ERROR_MESSAGES.emailInvalid)
   })
 
+  test('@ready valid email blur shows guidance message', async ({ page: playwrightPage }) => {
+    const newsletterPage = await NewsletterPage.init(playwrightPage)
+    await newsletterPage.navigateToNewsletterForm()
+
+    await newsletterPage.fillEmail(TEST_EMAILS.valid)
+    await newsletterPage.blurEmailInput()
+
+    await newsletterPage.expectMessageContains("You'll receive a confirmation email. Click the link to complete your subscription.")
+  })
+
   test('@ready GDPR consent link works', async ({ page: playwrightPage }) => {
     const newsletterPage = await NewsletterPage.init(playwrightPage)
     await newsletterPage.navigateToNewsletterForm()
@@ -175,5 +185,51 @@ test.describe('Newsletter Subscription Form', () => {
     const responseData = await apiResponse.json()
     expect(responseData.success).toBe(true)
     expect(responseData.message).toContain('check your email')
+  })
+
+  test('@ready API error preserves form state and surfaces message', async ({ page: playwrightPage }) => {
+    const newsletterPage = await NewsletterPage.init(playwrightPage)
+    await newsletterPage.navigateToNewsletterForm()
+
+    const mockResponse = await mockFetchEndpointResponse(newsletterPage.page, {
+      endpoint: '/api/newsletter',
+      status: 429,
+      body: { success: false, error: 'Try again in 30 seconds.' },
+    })
+
+    try {
+      await newsletterPage.fillEmail(TEST_EMAILS.valid)
+      await newsletterPage.checkGdprConsent()
+      await newsletterPage.submitForm()
+
+      await newsletterPage.expectMessageContains('Try again in 30 seconds.')
+      await newsletterPage.expectEmailValue(TEST_EMAILS.valid)
+      await newsletterPage.expectGdprChecked()
+    } finally {
+      await mockResponse.restore()
+    }
+  })
+
+  test('@ready submit button disables during pending request', async ({ page: playwrightPage }) => {
+    const newsletterPage = await NewsletterPage.init(playwrightPage)
+    await newsletterPage.navigateToNewsletterForm()
+
+    await newsletterPage.fillEmail(TEST_EMAILS.valid)
+    await newsletterPage.checkGdprConsent()
+
+    const browserName = newsletterPage.context().browser()?.browserType().name()
+    const delayMs = browserName === 'webkit' ? 400 : 200
+    const delayOverride = await delayFetchForEndpoint(newsletterPage.page, { endpoint: '/api/newsletter', delayMs })
+    const submitButton = newsletterPage.locator('#newsletter-submit')
+
+    const submitPromise = submitButton.click()
+
+    try {
+      await expect(submitButton).toBeDisabled()
+      await submitPromise
+      await expect(submitButton).not.toBeDisabled()
+    } finally {
+      await delayOverride.restore()
+    }
   })
 })
