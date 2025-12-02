@@ -74,7 +74,7 @@ test.describe('Package Release Integration', () => {
     })
 
     // Get release from privacy page
-    await page.goto('/privacy/')
+    await page.goto('/privacy')
     await page.waitForLoadState('networkidle')
 
     const releaseFromPrivacy = await page.page.evaluate(async () => {

@@ -59,7 +59,8 @@ test.describe('Footer Component', () => {
 
     // Test privacy link navigation
     await page.click('footer[role="contentinfo"] a[href*="/privacy"]')
-    await page.waitForLoadState('networkidle')
+    await page.waitForPageLoad()
+    await page.waitForURL('**/privacy')
     await page.expectUrlContains('/privacy')
   })
 

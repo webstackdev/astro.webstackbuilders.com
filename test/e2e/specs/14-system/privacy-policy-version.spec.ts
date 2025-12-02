@@ -72,7 +72,7 @@ test.describe('Privacy Policy Version Integration', () => {
     })
 
     // Get version from privacy page
-    await page.goto('/privacy/')
+    await page.goto('/privacy')
     await page.waitForLoadState('networkidle')
 
     const versionFromPrivacy = await page.page.evaluate(async () => {

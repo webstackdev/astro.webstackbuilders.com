@@ -55,6 +55,18 @@ async function invokeCarouselControl(page: BasePage, action: 'pause' | 'resume')
   }, action)
 }
 
+/**
+ * Verify the carousel does not advance by sampling several short animation chunks
+ */
+async function expectCarouselRemainsOnSlide(page: BasePage, expectedIndex: number, checks = 6, framesPerCheck = 8): Promise<void> {
+  for (let iteration = 0; iteration < checks; iteration++) {
+    await waitForAnimationFrames(page.page, framesPerCheck)
+    const currentIndex = await getActiveDotIndex(page)
+    assertIndex(currentIndex)
+    expect(currentIndex).toBe(expectedIndex)
+  }
+}
+
 function assertIndex(value: number | null): asserts value is number {
   if (value === null) {
     throw new EvaluationError('Carousel did not report an active pagination dot')
@@ -131,10 +143,7 @@ test.describe('Carousel Component', () => {
 
     const pausedIndex = await getActiveDotIndex(page)
     assertIndex(pausedIndex)
-    for (let iteration = 0; iteration < 3; iteration++) {
-      await waitForAnimationFrames(page.page, 90)
-      expect(await getActiveDotIndex(page)).toBe(pausedIndex)
-    }
+    await expectCarouselRemainsOnSlide(page, pausedIndex)
 
     await invokeCarouselControl(page, 'resume')
     await expect(slider).toHaveAttribute('data-carousel-autoplay', 'playing')
