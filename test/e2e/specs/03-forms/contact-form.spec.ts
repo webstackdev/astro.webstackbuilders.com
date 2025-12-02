@@ -123,7 +123,6 @@ test.describe('Contact Form', () => {
   test('@mocks contact form submits successfully when API is available', async ({ page: playwrightPage }) => {
     test.skip(!mocksEnabled, 'E2E_MOCKS=1 is required to verify Resend mock delivery')
 
-    await wiremock.resend.resetRequests()
     const page = await setupContactPage(playwrightPage)
     const headerOverride = await injectHeadersIntoFetch(playwrightPage, {
       endpoint: '/api/contact',
@@ -170,7 +169,7 @@ test.describe('Contact Form', () => {
 
   test('@ready contact form surfaces API error responses to users', async ({ page: playwrightPage }) => {
     const page = await setupContactPage(playwrightPage)
-    await fillContactFormWithValidData(page)
+    const { email } = await fillContactFormWithValidData(page)
 
     const apiErrorOverride = await mockFetchEndpointResponse(playwrightPage, {
       endpoint: '/api/contact',
@@ -189,7 +188,11 @@ test.describe('Contact Form', () => {
       await expect(page.locator('#errorMessage')).toContainText('Unable to reach contact API')
 
       if (mocksEnabled) {
-        const loggedRequests = await wiremock.resend.findRequests({ method: 'POST', urlPath: RESEND_EMAIL_PATH })
+        const loggedRequests = await wiremock.resend.findRequests({
+          method: 'POST',
+          urlPath: RESEND_EMAIL_PATH,
+          bodyIncludes: email,
+        })
         expect(loggedRequests.length).toBe(0)
       }
     } finally {
