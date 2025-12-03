@@ -105,7 +105,7 @@ export class NewsletterFormElement extends LitElement {
       // Save original button text
       this.originalButtonText = this.buttonText.textContent || 'Subscribe'
       this.submitButton.setAttribute('data-original-text', this.originalButtonText)
-      this.submitButton.dataset.e2eState = 'idle'
+      this.submitButton.dataset['e2eState'] = 'idle'
     } catch (error) {
       if (error instanceof ClientScriptError) {
         throw error
@@ -171,7 +171,7 @@ export class NewsletterFormElement extends LitElement {
     if (!this.submitButton || !this.buttonText || !this.buttonArrow || !this.buttonSpinner) return
 
     this.submitButton.disabled = loading
-    this.submitButton.dataset.e2eState = loading ? 'loading' : 'idle'
+    this.submitButton.dataset['e2eState'] = loading ? 'loading' : 'idle'
 
       if (loading) {
         this.buttonText.textContent = 'Subscribing...'
