@@ -5,9 +5,27 @@ Our goal is to make the E2E test suite as deterministic as possible, so that we 
 
 When a problem area is resolved, add it to the "LOG OF FIXES APPLIED TO PROBLEMS IDENTIFIED DURING E2E STRESS TESTS" section below. The purpose of this log is to identify problems that have already been addressed, so we can determine if the fix worked if similar problems recur.
 
-See the "CONSOLE OUTPUT FROM LAST E2E FULL RUN THAT ERRORED" section for the next set of problems to troubleshoot.
+See the "CONSOLE OUTPUT FROM LAST E2E FULL RUN THAT ERRORED" section for the next set of problems to troubleshoot. If there are multiple errors, build a numbered list in "Problem Areas" section with symptoms and diagnostics. Then we can move to troubleshooting, fixing, and reporting findings.
 
 ## Problems Areas
+
+1. **Environment diagnostics page never resolves**
+
+  - **Symptom:** All three `environmentClient.spec.ts` tests time out at `navigateToDiagnosticsPage()` because `BasePage.waitForFunction()` never receives the readiness signal (Chrome, 30s timeout).
+
+  - **Diagnostics:** Inspect `/diagnostics/environment` (or whichever route `environmentClient` uses) while Playwright is connected to verify the page is actually hydrating. Capture console logs/network tab to see whether the diagnostics bundle is blocked by CSP or service worker caching. Confirm the helper that sets `window.__environmentDiagnosticsReady` still runs after recent bootstrap changes.
+
+2. **Dynamic imports to `environmentClient.ts` fail in browser context**
+
+  - **Symptom:** Every package-release/privacy-policy integration test throws `Failed to fetch dynamically imported module: http://localhost:4321/src/components/scripts/utils/environmentClient.ts` when calling `page.evaluate(() => import('/src/components/scripts/utils/environmentClient.ts'))`.
+
+  - **Diagnostics:** Reproduce manually in devtools to see the exact network error (404 vs MIME/CSP). Verify Vite/Astro still exposes that path in dev server. Consider switching tests to import via the published bundle path (e.g., `/@fs/...` or `@components/scripts/utils/environmentClient`) instead of hard-coded `/src/...` to match current Vite behavior.
+
+3. **Cron cleanup endpoint intermittently hangs**
+
+  - **Symptom:** `cron.spec.ts › cleanup-confirmations removes expired and stale rows` fails with `apiRequestContext.get: socket hang up` against `http://localhost:4321/api/cron/cleanup-confirmations` (Chrome only, mock auth header present).
+
+  - **Diagnostics:** Check dev server logs for that request to confirm whether the endpoint crashes or never responds. Re-run the spec with `DEBUG=astro:*` to capture server-side stack traces. Validate the mock Supabase/Upstash containers are healthy before the cron suite runs (missing dependency could keep the endpoint hanging while waiting on Redis/Supabase).
 
 ## LOG OF FIXES APPLIED TO PROBLEMS IDENTIFIED DURING E2E STRESS TESTS
 
