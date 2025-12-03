@@ -51,7 +51,7 @@ const captureSnapshot = async (page: Page): Promise<SetupSnapshot | null> => {
         readyState: document.readyState,
         theme: localStorage.getItem('theme'),
         transitionPersistCount: document.querySelectorAll('[transition\\:persist]').length,
-        historyLength: history.length,
+        historyLength: window.history.length,
         navigationType: typeof lastEntry?.type === 'string' ? lastEntry.type : null,
         isPlaywrightControlled: isPlaywrightRun,
       }
@@ -75,7 +75,7 @@ const logSetupPhase = async (
   }
   if (!snapshot.isPlaywrightControlled) return
 
-  const { isPlaywrightControlled, ...rest } = snapshot
+  const { isPlaywrightControlled: _isPlaywrightControlled, ...rest } = snapshot
   console.info(`[${label}] setupCleanTestPage:${phase}`, {
     ...rest,
     ...extra,

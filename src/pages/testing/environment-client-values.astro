@@ -1,8 +1,7 @@
 ---
 /**
- * @file Environment client fixture for E2E tests.
- * @description This page intentionally skips BaseLayout to keep hydration minimal for diagnostics.
- * @note Exception: page fixtures normally wrap content in BaseLayout, but this file avoids it on purpose.
+ * @file Environment client fixture for E2E tests. This page intentionally
+ * skips BaseLayout to keep hydration minimal for diagnostics.
  */
 const pageTitle = 'Environment Client Values'
 ---
@@ -14,36 +13,42 @@ const pageTitle = 'Environment Client Values'
     <meta name="robots" content="noindex, nofollow" />
     <style>
       html {
-        font-family: system-ui, sans-serif;
         background: #0b1118;
         color: #f4f7fb;
+        font-family: system-ui, sans-serif;
       }
+
       body {
         margin: 0;
         padding: 2rem;
       }
+
       main {
-        max-width: 42rem;
         margin: 0 auto;
+        max-width: 42rem;
       }
+
       .env-grid {
         display: grid;
         gap: 1rem;
       }
+
       .env-card {
-        border: 1px solid rgba(244, 247, 251, 0.2);
+        background: rgb(255 255 255 / 4%);
+        border: 1px solid rgb(244 247 251 / 20%);
         border-radius: 0.5rem;
         padding: 1rem;
-        background: rgba(255, 255, 255, 0.04);
       }
+
       .env-label {
-        text-transform: uppercase;
+        display: block;
         font-size: 0.75rem;
         letter-spacing: 0.08em;
-        opacity: 0.7;
         margin-bottom: 0.35rem;
-        display: block;
+        opacity: 0.7;
+        text-transform: uppercase;
       }
+
       .env-value {
         font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
         font-size: 1rem;
@@ -69,55 +74,8 @@ const pageTitle = 'Environment Client Values'
         </article>
       </section>
     </main>
-    <script type="module" is:inline>
-      import {
-        getPackageRelease,
-        getPrivacyPolicyVersion,
-      } from '@components/scripts/utils/environmentClient'
-
-      /**
-       * @typedef {'package-release' | 'privacy-policy-version'} EnvValueKey
-       * @typedef {'ready' | 'error'} EnvElementState
-       * @typedef {{ packageRelease: string; privacyPolicyVersion: string }} EnvClientValues
-       */
-
-      /**
-       * @param {EnvValueKey} key
-       * @param {string} value
-       * @param {EnvElementState} [state='ready']
-       */
-      const setValue = (key, value, state = 'ready') => {
-        const element = /** @type {HTMLOutputElement | null} */ (
-          document.querySelector(`[data-env-value="${key}"]`)
-        )
-        if (!element) return
-        element.textContent = value
-        element.dataset['state'] = state
-      }
-
-      /** @type {EnvClientValues} */
-      const values = {
-        packageRelease: '',
-        privacyPolicyVersion: '',
-      }
-
-      try {
-        values.packageRelease = getPackageRelease()
-        setValue('package-release', values.packageRelease)
-      } catch (error) {
-        values.packageRelease = String(error)
-        setValue('package-release', values.packageRelease, 'error')
-      }
-
-      try {
-        values.privacyPolicyVersion = getPrivacyPolicyVersion()
-        setValue('privacy-policy-version', values.privacyPolicyVersion)
-      } catch (error) {
-        values.privacyPolicyVersion = String(error)
-        setValue('privacy-policy-version', values.privacyPolicyVersion, 'error')
-      }
-
-      window.environmentClientValues = values
+    <script>
+      import '@pages/testing/_environment-client-values'
     </script>
   </body>
 </html>
