@@ -67,11 +67,9 @@ test.describe('Theme Picker Component', () => {
      * - Cookie modal blocking theme picker UI interactions
      * - Stale View Transitions state causing inconsistent behavior
      */
-    test.beforeEach(async ({ page: playwrightPage }, testInfo) => {
+    test.beforeEach(async ({ page: playwrightPage }) => {
       const page = await BasePage.init(playwrightPage)
-      await setupCleanTestPage(page.page, '/', {
-        loggingLabel: `ThemePicker:${testInfo.project.name}`,
-      })
+      await setupCleanTestPage(page.page, '/')
       await page.waitForHeaderComponents()
     })
 
@@ -176,11 +174,9 @@ test.describe('Theme Picker Component', () => {
      * - Pre-existing theme preferences making it impossible to verify persistence from scratch
      * - Cached state from previous tests affecting reload behavior
      */
-    test.beforeEach(async ({ page: playwrightPage }, testInfo) => {
+    test.beforeEach(async ({ page: playwrightPage }) => {
       const page = await BasePage.init(playwrightPage)
-      await setupCleanTestPage(page.page, '/', {
-        loggingLabel: `ThemePicker:${testInfo.project.name}`,
-      })
+      await setupCleanTestPage(page.page, '/')
       await page.waitForHeaderComponents()
     })
 

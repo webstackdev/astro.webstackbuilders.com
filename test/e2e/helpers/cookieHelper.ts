@@ -9,18 +9,7 @@ import { waitForAnimationFrames } from '@test/e2e/helpers/waitHelpers'
 type ReloadStrategy = 'reload' | 'cacheBustingGoto'
 
 export interface SetupCleanTestPageOptions {
-  loggingLabel?: string
   reloadStrategy?: ReloadStrategy
-}
-
-interface SetupSnapshot {
-  url: string
-  readyState: DocumentReadyState
-  theme: string | null
-  transitionPersistCount: number
-  historyLength: number
-  navigationType: string | null
-  isPlaywrightControlled: boolean
 }
 
 const DEFAULT_CACHE_BUST_PARAM = '_clean'
@@ -37,49 +26,6 @@ const createCacheBustingUrl = (url: string, token: string): string => {
   const relative = new URL(url, 'https://local.test')
   relative.searchParams.set(DEFAULT_CACHE_BUST_PARAM, token)
   return `${relative.pathname}${relative.search}${relative.hash}`
-}
-
-const captureSnapshot = async (page: Page): Promise<SetupSnapshot | null> => {
-  try {
-    return await page.evaluate(() => {
-      const entries = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[]
-      const lastEntry = entries[entries.length - 1]
-      const isPlaywrightRun = typeof window !== 'undefined' && window.isPlaywrightControlled === true
-
-      return {
-        url: window.location.href,
-        readyState: document.readyState,
-        theme: localStorage.getItem('theme'),
-        transitionPersistCount: document.querySelectorAll('[transition\\:persist]').length,
-        historyLength: window.history.length,
-        navigationType: typeof lastEntry?.type === 'string' ? lastEntry.type : null,
-        isPlaywrightControlled: isPlaywrightRun,
-      }
-    })
-  } catch {
-    return null
-  }
-}
-
-const logSetupPhase = async (
-  page: Page,
-  label: string | undefined,
-  phase: string,
-  extra: Record<string, unknown> = {}
-) => {
-  if (!label) return
-  const snapshot = await captureSnapshot(page)
-  if (!snapshot) {
-    console.info(`[${label}] setupCleanTestPage:${phase}`, extra)
-    return
-  }
-  if (!snapshot.isPlaywrightControlled) return
-
-  const { isPlaywrightControlled: _isPlaywrightControlled, ...rest } = snapshot
-  console.info(`[${label}] setupCleanTestPage:${phase}`, {
-    ...rest,
-    ...extra,
-  })
 }
 
 /**
@@ -148,8 +94,7 @@ export async function setupTestPage(page: Page, url: string = '/'): Promise<void
 /**
  * Enhanced page setup that also clears storage and handles theme reset
  * Use this for tests that need a completely clean state
- * @param options Optional configuration for logging and reload handling
- * @param options.loggingLabel When provided, logs page state snapshots (Playwright-only)
+ * @param options Optional configuration for reload handling
  * @param options.reloadStrategy Toggle between reload (default) and cache-busting navigation
  */
 export async function setupCleanTestPage(
@@ -157,12 +102,11 @@ export async function setupCleanTestPage(
   url: string = '/',
   options: SetupCleanTestPageOptions = {}
 ): Promise<void> {
-  const { loggingLabel, reloadStrategy = 'reload' } = options
+  const { reloadStrategy = 'reload' } = options
   // Clear all storage and cookies before navigation
   await page.context().clearCookies()
 
   await page.goto(url, { waitUntil: 'domcontentloaded' })
-  await logSetupPhase(page, loggingLabel, 'initial-navigation', { reloadStrategy })
 
   // Clear localStorage and sessionStorage (including any persistent state)
   await page.evaluate(() => {
@@ -178,23 +122,16 @@ export async function setupCleanTestPage(
     })
   })
 
-  await logSetupPhase(page, loggingLabel, 'storage-cleared', { reloadStrategy })
-
   // Force a hard reload to ensure clean state (bypass View Transitions cache)
   if (reloadStrategy === 'cacheBustingGoto') {
     const cacheBustTarget = createCacheBustingUrl(url, Date.now().toString())
-    await logSetupPhase(page, loggingLabel, 'cachebust:start', { cacheBustTarget })
     await page.goto(cacheBustTarget, { waitUntil: 'domcontentloaded' })
-    await logSetupPhase(page, loggingLabel, 'cachebust:complete', { cacheBustTarget })
   } else {
-    await logSetupPhase(page, loggingLabel, 'reload:start')
     await page.reload({ waitUntil: 'domcontentloaded' })
-    await logSetupPhase(page, loggingLabel, 'reload:complete')
   }
 
   // Dismiss cookie modal after reload
   await dismissCookieModal(page)
-  await logSetupPhase(page, loggingLabel, 'cookie-modal-dismissed')
 }
 
 /**
