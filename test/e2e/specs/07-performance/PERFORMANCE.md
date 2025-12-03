@@ -2,6 +2,11 @@
 # Performance
 
 continue
+Please analyze E2E_STRESS_TESTS.md
+Let's proceed with troubleshooting
+See E2E_STRESS_TESTS.md and the "Instructions" section. We have an error that occurred after __ runs of the entire test e2e test suite.
+Run the tests
+Update E2E_STRESS_TESTS.md with the implementation
 
 Latest run (Dec 2, 2025):
 

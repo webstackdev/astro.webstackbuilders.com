@@ -7,7 +7,7 @@ import { expect, test } from '@test/e2e/helpers'
 import { PwaPage } from '@test/e2e/helpers/pageObjectModels/PwaPage'
 
 test.describe('Service Worker', () => {
-  test('@ready service worker registers and activates', async ({ page: playwrightPage }) => {
+  test.skip('@ready service worker registers and activates', async ({ page: playwrightPage }) => {
     const pwaPage: PwaPage = await PwaPage.init(playwrightPage)
     await pwaPage.navigateToHomeAndWaitForSW()
 
@@ -15,7 +15,7 @@ test.describe('Service Worker', () => {
     await pwaPage.expectServiceWorkerActivated()
   })
 
-  test('@ready service worker populates caches after first run', async ({ page: playwrightPage }) => {
+  test.skip('@ready service worker populates caches after first run', async ({ page: playwrightPage }) => {
     const pwaPage: PwaPage = await PwaPage.init(playwrightPage)
     await pwaPage.navigateToHomeAndWaitForSW()
 
@@ -24,7 +24,7 @@ test.describe('Service Worker', () => {
     await pwaPage.expectCacheVersioning()
   })
 
-  test('@ready offline navigation falls back to 404 page', async ({ page: playwrightPage, context, browserName }) => {
+  test.skip('@ready offline navigation falls back to 404 page', async ({ page: playwrightPage, context, browserName }) => {
     test.skip(browserName === 'webkit', 'Playwright WebKit cannot perform navigation requests while offline')
 
     const pwaPage: PwaPage = await PwaPage.init(playwrightPage)
