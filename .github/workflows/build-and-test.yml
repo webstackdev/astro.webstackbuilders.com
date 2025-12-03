@@ -32,6 +32,9 @@ jobs:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
       KV_URL: ${{ secrets.KV_URL }}
       KV_REST_API_URL: ${{ secrets.KV_REST_API_URL }}
       KV_REST_API_TOKEN: ${{ secrets.KV_REST_API_TOKEN }}
@@ -99,7 +102,6 @@ jobs:
           UPSTASH_HTTP_PORT=${UPSTASH_HTTP_PORT:-8079}
           UPSTASH_REDIS_PORT=${UPSTASH_REDIS_PORT:-6380}
           UPSTASH_TOKEN=${UPSTASH_TOKEN:-local-dev-token}
-          SUPABASE_PROJECT_NAME=wb-supabase
           SUPABASE_HEALTH_TIMEOUT=${SUPABASE_HEALTH_TIMEOUT:-240}
           SUPABASE_URL=${SUPABASE_URL:-http://127.0.0.1:54321}
           SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
@@ -113,6 +115,11 @@ jobs:
 
       - name: Start Supabase stack
         run: npm run containers:supabase:start
+
+      - name: Link Supabase project
+        run: npx supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD" --workdir suprabase
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
 
       - name: Apply Supabase migrations
         run: npm run containers:supabase:db-push

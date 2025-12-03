@@ -8,6 +8,10 @@ See E2E_STRESS_TESTS.md and the "Instructions" section. We have an error that oc
 Run the tests
 Update E2E_STRESS_TESTS.md with the implementation
 
+Please follow the "Instructions" section in E2E_STRESS_TESTS.md. I've added a new error.
+
+In the "Build and Test" GitHub Action workflow on the "Apply Supabase migrations" step after the last recent push, I get the following error output:
+
 Latest run (Dec 2, 2025):
 
 - Mobile Chrome LCP measured 4.3 s (threshold 2.5 s)
