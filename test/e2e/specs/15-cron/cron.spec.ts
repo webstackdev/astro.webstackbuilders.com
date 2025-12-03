@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { expect, mocksEnabled, test } from '@test/e2e/helpers'
+import { ensureCronDependenciesHealthy } from '@test/e2e/helpers/cronHealth'
 /**
  * These env helpers are safe to use in E2E test as they call process.env
  * directly. Must use "npm run dev:env" for this test case to pass.
@@ -44,16 +45,19 @@ const supabaseAdmin: SupabaseClient | null = skipReason
     })
 
 const upstashCommandEndpoint = UPSTASH_URL ? new URL('/', UPSTASH_URL).toString() : null
+const upstashKeepAliveKey = '__cron_keepalive__'
 const cronAuthHeader = CRON_SECRET ? `Bearer ${CRON_SECRET}` : null
 
-const skipUnlessChromium = (browserName: string) => {
-  test.skip(browserName !== 'chromium', 'Cron tests run once via chromium project to avoid duplicates')
+const skipUnlessChromiumProject = () => {
+  const projectName = test.info().project.name
+  test.skip(projectName !== 'chromium', 'Cron tests run once via chromium project to avoid duplicates')
 }
 
 const dayInMs = 24 * 60 * 60 * 1000
 
 const createdConfirmationIds = new Set<string>()
 const createdDsarIds = new Set<string>()
+const upstashSeedsToRestore = new Map<string, string | null>()
 
 const queueCleanup = (bucket: Set<string>, id: string) => {
   bucket.add(id)
@@ -67,6 +71,58 @@ const cleanupRecords = async (table: 'newsletter_confirmations' | 'dsar_requests
   const values = Array.from(ids)
   await supabaseAdmin.from(table).delete().in('id', values)
   ids.clear()
+}
+
+const sendUpstashCommand = async (command: (string | number)[]) => {
+  if (!upstashCommandEndpoint) {
+    throw new Error('Missing Upstash endpoint')
+  }
+
+  const response = await fetch(upstashCommandEndpoint, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${UPSTASH_TOKEN!}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(command),
+  })
+
+  if (!response.ok) {
+    const body = await response.text().catch(() => 'Unable to read response body')
+    throw new Error(`Failed to run Upstash command: ${response.status} ${body}`)
+  }
+
+  return response
+}
+
+const readUpstashValue = async (key: string) => {
+  const response = await sendUpstashCommand(['GET', key])
+  try {
+    const payload = (await response.json()) as { result?: string | null }
+    if (!Object.prototype.hasOwnProperty.call(payload, 'result')) {
+      return null
+    }
+    const value = payload.result
+    return typeof value === 'string' ? value : null
+  } catch {
+    return null
+  }
+}
+
+const restoreUpstashSeeds = async () => {
+  if (!upstashCommandEndpoint || upstashSeedsToRestore.size === 0) {
+    return
+  }
+
+  for (const [key, previousValue] of upstashSeedsToRestore.entries()) {
+    if (previousValue === null) {
+      await sendUpstashCommand(['DEL', key])
+    } else {
+      await sendUpstashCommand(['SET', key, previousValue])
+    }
+  }
+
+  upstashSeedsToRestore.clear()
 }
 
 const insertNewsletterConfirmation = async (options: {
@@ -146,22 +202,12 @@ const expectMissingById = async (table: 'newsletter_confirmations' | 'dsar_reque
 }
 
 const setUpstashKeepAlive = async (value: string) => {
-  if (!upstashCommandEndpoint) {
-    throw new Error('Missing Upstash endpoint')
+  if (!upstashSeedsToRestore.has(upstashKeepAliveKey)) {
+    const previousValue = await readUpstashValue(upstashKeepAliveKey)
+    upstashSeedsToRestore.set(upstashKeepAliveKey, previousValue)
   }
-  const response = await fetch(upstashCommandEndpoint, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${UPSTASH_TOKEN!}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(['SET', '__cron_keepalive__', value]),
-  })
 
-  if (!response.ok) {
-    const body = await response.text().catch(() => 'Unable to read response body')
-    throw new Error(`Failed to seed Upstash: ${response.status} ${body}`)
-  }
+  await sendUpstashCommand(['SET', upstashKeepAliveKey, value])
 }
 
 test.describe('Cron API endpoints @ready', () => {
@@ -169,15 +215,26 @@ test.describe('Cron API endpoints @ready', () => {
 
   if (skipReason) {
     test.skip(true, skipReason)
+  } else {
+    test.beforeAll(async () => {
+      await ensureCronDependenciesHealthy({
+        supabaseUrl: SUPABASE_URL!,
+        supabaseServiceKey: SUPABASE_SERVICE_ROLE_KEY!,
+        upstashUrl: UPSTASH_URL!,
+        upstashToken: UPSTASH_TOKEN!,
+        timeoutMs: 5000,
+      })
+    })
   }
 
   test.afterEach(async () => {
     await cleanupRecords('newsletter_confirmations', createdConfirmationIds)
     await cleanupRecords('dsar_requests', createdDsarIds)
+    await restoreUpstashSeeds()
   })
 
-  test('@ready cleanup-confirmations removes expired and stale rows', async ({ browserName, request }) => {
-    skipUnlessChromium(browserName)
+  test('@ready cleanup-confirmations removes expired and stale rows', async ({ request }) => {
+    skipUnlessChromiumProject()
 
     const now = Date.now()
     const expiredId = await insertNewsletterConfirmation({
@@ -207,8 +264,8 @@ test.describe('Cron API endpoints @ready', () => {
     await expectMissingById('newsletter_confirmations', staleId)
   })
 
-  test('@ready cleanup-dsar-requests prunes fulfilled and expired items', async ({ browserName, request }) => {
-    skipUnlessChromium(browserName)
+  test('@ready cleanup-dsar-requests prunes fulfilled and expired items', async ({ request }) => {
+    skipUnlessChromiumProject()
 
     const now = Date.now()
     const fulfilledId = await insertDsarRequest({
@@ -238,8 +295,8 @@ test.describe('Cron API endpoints @ready', () => {
     await expectMissingById('dsar_requests', expiredPendingId)
   })
 
-  test('@ready ping-integrations touches Upstash and Supabase', async ({ browserName, request }) => {
-    skipUnlessChromium(browserName)
+  test('@ready ping-integrations touches Upstash and Supabase', async ({ request }) => {
+    skipUnlessChromiumProject()
     const sentinel = `keepalive-${randomUUID()}`
     await setUpstashKeepAlive(sentinel)
 

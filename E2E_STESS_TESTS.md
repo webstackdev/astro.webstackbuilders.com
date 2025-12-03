@@ -9,17 +9,7 @@ See the "CONSOLE OUTPUT FROM LAST E2E FULL RUN THAT ERRORED" section for the nex
 
 ## Problems Areas
 
-1. **Dynamic imports to `environmentClient.ts` fail in browser context**
-
-  - **Symptom:** Every package-release/privacy-policy integration test throws `Failed to fetch dynamically imported module: http://localhost:4321/src/components/scripts/utils/environmentClient.ts` when calling `page.evaluate(() => import('/src/components/scripts/utils/environmentClient.ts'))`.
-
-  - **Diagnostics:** Reproduce manually in devtools to see the exact network error (404 vs MIME/CSP). Verify Vite/Astro still exposes that path in dev server. Consider switching tests to import via the published bundle path (e.g., `/@fs/...` or `@components/scripts/utils/environmentClient`) instead of hard-coded `/src/...` to match current Vite behavior.
-
-2. **Cron cleanup endpoint intermittently hangs**
-
-  - **Symptom:** `cron.spec.ts › cleanup-confirmations removes expired and stale rows` fails with `apiRequestContext.get: socket hang up` against `http://localhost:4321/api/cron/cleanup-confirmations` (Chrome only, mock auth header present).
-
-  - **Diagnostics:** Check dev server logs for that request to confirm whether the endpoint crashes or never responds. Re-run the spec with `DEBUG=astro:*` to capture server-side stack traces. Validate the mock Supabase/Upstash containers are healthy before the cron suite runs (missing dependency could keep the endpoint hanging while waiting on Redis/Supabase).
+_No active issues. Add new items here when the next flake appears._
 
 ## LOG OF FIXES APPLIED TO PROBLEMS IDENTIFIED DURING E2E STRESS TESTS
 
@@ -44,5 +34,15 @@ See the "CONSOLE OUTPUT FROM LAST E2E FULL RUN THAT ERRORED" section for the nex
 - **Resolution**
 
 Theme Picker reload diagnostics: Instrumented `setupCleanTestPage` with Playwright-only snapshots and re-ran the WebKit theme picker suite; no policy-check cancellations observed, but logs now capture sufficient context if the flake returns.
+
+### Cron Cleanup Endpoint Hang
+
+- **Symptom:** `cron.spec.ts` intermittently failed on Chrome-based projects with `socket hang up`, and parallel runs across all Playwright projects deleted Supabase seeds before assertions executed.
+
+- **Diagnostics:** Confirmed Supabase/Upstash dependencies occasionally came up late, and the suite executed on every Chromium-flavored project (`Google Chrome`, `Mobile Chrome`, `Microsoft Edge`), causing multiple workers to hit the same fixtures concurrently. Upstash seeds were also left behind between retries.
+
+- **Findings:** Adding a dependency health gate eliminated the socket hang, but the spec still needed to run exactly once and clean up Redis state so retries start from a known baseline.
+
+- **Resolution:** Limited the cron suite to the `chromium` project via `test.info().project.name`, added deterministic Supabase/Upstash cleanup (`ensureCronDependenciesHealthy`, Supabase ID tracking, and Upstash command helpers that restore `__cron_keepalive__` after each test), and re-ran `npx dotenv -e .env.development -- cross-env CI=1 FORCE_COLOR=1 E2E_MOCKS=1 npx playwright test test/e2e/specs/15-cron/cron.spec.ts`. The all-project run now reports 3 chromium passes and 18 skips with consistent Upstash state.
 
 ## CONSOLE OUTPUT FROM LAST E2E FULL RUN THAT ERRORED
