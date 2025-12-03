@@ -353,6 +353,77 @@ export class BasePage {
   }
 
   /**
+   * Deterministically open the mobile navigation menu and wait for it to finish animating
+   */
+  async openMobileMenu(options?: { timeout?: number }): Promise<void> {
+    const timeout = options?.timeout ?? EXTENDED_NAVIGATION_TIMEOUT
+
+    await this.waitForHeaderComponents({ timeout })
+    await this._page.waitForFunction(
+      () => !document.documentElement?.hasAttribute('data-astro-transition'),
+      undefined,
+      { timeout }
+    )
+
+    const toggleButton = this._page.locator('button[aria-label="toggle menu"]')
+    await expect(toggleButton).toBeVisible({ timeout })
+
+    const expanded = await toggleButton.getAttribute('aria-expanded')
+    if (expanded !== 'true') {
+      await toggleButton.click()
+    }
+
+    await this._page.waitForFunction(
+      () => {
+        const header = document.getElementById('header')
+        const menu = document.querySelector('.main-nav-menu')
+        const body = document.body
+
+        const headerExpanded = header?.classList.contains('aria-expanded-true') ?? false
+        const menuVisible = menu?.classList.contains('menu-visible') ?? false
+        const bodyScrollLocked = body?.classList.contains('no-scroll') ?? false
+
+        return headerExpanded && menuVisible && bodyScrollLocked
+      },
+      undefined,
+      { timeout }
+    )
+  }
+
+  /**
+   * Deterministically close the mobile navigation menu and wait for scroll lock to clear
+   */
+  async closeMobileMenu(options?: { timeout?: number }): Promise<void> {
+    const timeout = options?.timeout ?? DEFAULT_NAVIGATION_TIMEOUT
+    const toggleButton = this._page.locator('button[aria-label="toggle menu"]')
+
+    await expect(toggleButton).toBeVisible({ timeout })
+
+    const expanded = await toggleButton.getAttribute('aria-expanded')
+    if (expanded !== 'true') {
+      return
+    }
+
+    await toggleButton.click()
+
+    await this._page.waitForFunction(
+      () => {
+        const header = document.getElementById('header')
+        const menu = document.querySelector('.main-nav-menu')
+        const body = document.body
+
+        const headerCollapsed = !(header?.classList.contains('aria-expanded-true') ?? false)
+        const menuHidden = !(menu?.classList.contains('menu-visible') ?? false)
+        const bodyScrollRestored = !(body?.classList.contains('no-scroll') ?? false)
+
+        return headerCollapsed && menuHidden && bodyScrollRestored
+      },
+      undefined,
+      { timeout }
+    )
+  }
+
+  /**
    * Get keyboard object for advanced keyboard operations
    */
   get keyboard() {

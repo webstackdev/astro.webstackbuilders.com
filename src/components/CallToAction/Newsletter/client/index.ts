@@ -168,10 +168,14 @@ export class NewsletterFormElement extends LitElement {
     addScriptBreadcrumb(context)
 
     try {
-    if (!this.submitButton || !this.buttonText || !this.buttonArrow || !this.buttonSpinner) return
+      if (!this.submitButton || !this.buttonText || !this.buttonArrow || !this.buttonSpinner) return
 
-    this.submitButton.disabled = loading
-    this.submitButton.dataset['e2eState'] = loading ? 'loading' : 'idle'
+      const state = loading ? 'loading' : 'idle'
+
+      this.submitButton.disabled = loading
+      this.submitButton.dataset['e2eState'] = state
+      this.submitButton.setAttribute('data-e2e-state', state)
+      this.submitButton.setAttribute('aria-busy', loading ? 'true' : 'false')
 
       if (loading) {
         this.buttonText.textContent = 'Subscribing...'

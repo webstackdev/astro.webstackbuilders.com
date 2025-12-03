@@ -52,8 +52,7 @@ test.describe('Critical Paths @smoke', () => {
       await page.goto('/')
 
       // Open mobile menu before each navigation
-      await page.click('button[aria-label="toggle menu"]')
-      await playwrightPage.waitForSelector('.menu-visible', { state: 'visible' })
+      await page.openMobileMenu()
 
       // Click navigation link
       const navigationComplete = page.waitForPageLoad({ requireNext: true })
