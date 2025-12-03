@@ -108,7 +108,7 @@ test.describe('Hero Animation - Mobile Menu Pause Regression', () => {
 
     for (let i = 0; i < 3; i++) {
       await waitForAnimationFrames(page.page, 12)
-      const transform = await page.page.evaluate(() => {
+      const transform = await page.evaluate(() => {
         const monitorBottom = document.querySelector('.monitorBottom')
         if (!monitorBottom) return null
         return window.getComputedStyle(monitorBottom).transform
@@ -157,7 +157,7 @@ test.describe('Hero Animation - Mobile Menu Pause Regression', () => {
     const header = page.locator('#header')
 
     // Get initial transform of the splash ::after pseudo-element (should be scale(0))
-    const initialTransform = await page.page.evaluate(() => {
+    const initialTransform = await page.evaluate(() => {
       const splash = document.querySelector('#mobile-splash')
       if (!splash) return null
       const afterStyles = window.getComputedStyle(splash, '::after')
@@ -177,7 +177,7 @@ test.describe('Hero Animation - Mobile Menu Pause Regression', () => {
     await waitForAnimationFrames(page.page, 6)
 
     // Check that splash ::after is now scaling up (transform should change)
-    const expandedTransform = await page.page.evaluate(() => {
+    const expandedTransform = await page.evaluate(() => {
       const splash = document.querySelector('#mobile-splash')
       if (!splash) return null
       const afterStyles = window.getComputedStyle(splash, '::after')

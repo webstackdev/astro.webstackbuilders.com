@@ -42,10 +42,9 @@ const createCacheBustingUrl = (url: string, token: string): string => {
 const captureSnapshot = async (page: Page): Promise<SetupSnapshot | null> => {
   try {
     return await page.evaluate(() => {
-      const entries = performance.getEntriesByType('navigation') as PerformanceEntry[]
-      const lastEntry = entries[entries.length - 1] as Record<string, unknown> | undefined
-      const isPlaywrightRun =
-        typeof window !== 'undefined' && (window as Record<string, unknown>).isPlaywrightControlled === true
+      const entries = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[]
+      const lastEntry = entries[entries.length - 1]
+      const isPlaywrightRun = typeof window !== 'undefined' && window.isPlaywrightControlled === true
 
       return {
         url: window.location.href,
@@ -53,7 +52,7 @@ const captureSnapshot = async (page: Page): Promise<SetupSnapshot | null> => {
         theme: localStorage.getItem('theme'),
         transitionPersistCount: document.querySelectorAll('[transition\\:persist]').length,
         historyLength: history.length,
-        navigationType: typeof lastEntry?.type === 'string' ? (lastEntry.type as string) : null,
+        navigationType: typeof lastEntry?.type === 'string' ? lastEntry.type : null,
         isPlaywrightControlled: isPlaywrightRun,
       }
     })

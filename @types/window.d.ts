@@ -38,6 +38,11 @@ interface SiteUrlSnapshot {
   siteUrl: string
 }
 
+interface EnvironmentClientValues {
+  packageRelease: string
+  privacyPolicyVersion: string
+}
+
 declare global {
   interface Window {
     /**
@@ -100,6 +105,11 @@ declare global {
      * Indicates whether the window is running inside a web worker context
      */
     __pwaUpdateSW?: ReturnType<typeof registerSW> | null
+
+    /**
+     * Exposes client environment helper values for diagnostics fixtures.
+     */
+    environmentClientValues?: EnvironmentClientValues
   }
 }
 

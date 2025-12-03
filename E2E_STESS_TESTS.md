@@ -9,19 +9,13 @@ See the "CONSOLE OUTPUT FROM LAST E2E FULL RUN THAT ERRORED" section for the nex
 
 ## Problems Areas
 
-1. **Environment diagnostics page never resolves**
-
-  - **Symptom:** All three `environmentClient.spec.ts` tests time out at `navigateToDiagnosticsPage()` because `BasePage.waitForFunction()` never receives the readiness signal (Chrome, 30s timeout).
-
-  - **Diagnostics:** Inspect `/diagnostics/environment` (or whichever route `environmentClient` uses) while Playwright is connected to verify the page is actually hydrating. Capture console logs/network tab to see whether the diagnostics bundle is blocked by CSP or service worker caching. Confirm the helper that sets `window.__environmentDiagnosticsReady` still runs after recent bootstrap changes.
-
-2. **Dynamic imports to `environmentClient.ts` fail in browser context**
+1. **Dynamic imports to `environmentClient.ts` fail in browser context**
 
   - **Symptom:** Every package-release/privacy-policy integration test throws `Failed to fetch dynamically imported module: http://localhost:4321/src/components/scripts/utils/environmentClient.ts` when calling `page.evaluate(() => import('/src/components/scripts/utils/environmentClient.ts'))`.
 
   - **Diagnostics:** Reproduce manually in devtools to see the exact network error (404 vs MIME/CSP). Verify Vite/Astro still exposes that path in dev server. Consider switching tests to import via the published bundle path (e.g., `/@fs/...` or `@components/scripts/utils/environmentClient`) instead of hard-coded `/src/...` to match current Vite behavior.
 
-3. **Cron cleanup endpoint intermittently hangs**
+2. **Cron cleanup endpoint intermittently hangs**
 
   - **Symptom:** `cron.spec.ts › cleanup-confirmations removes expired and stale rows` fails with `apiRequestContext.get: socket hang up` against `http://localhost:4321/api/cron/cleanup-confirmations` (Chrome only, mock auth header present).
 
