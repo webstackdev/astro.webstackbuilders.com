@@ -1,0 +1,48 @@
+---
+export const prerender = false
+---
+<html lang="en">
+  <head>
+    <title>Service Worker Fixture</title>
+  </head>
+  <body>
+    <main>
+      <h1>Service Worker Fixture</h1>
+      <p id="status">Loading service worker source...</p>
+      <pre id="sw-source"></pre>
+    </main>
+    <script type="module" is:inline>
+      const statusEl = document.getElementById('status')
+      const sourceEl = document.getElementById('sw-source')
+
+      /**
+       * @param {string} text Text to display inside the <pre> element.
+       * @param {string} status Status message shown above the source output.
+       */
+      const render = (text, status) => {
+        if (statusEl) {
+          statusEl.textContent = status
+        }
+        if (sourceEl) {
+          sourceEl.textContent = text
+        }
+      }
+
+      const loadServiceWorker = async () => {
+        try {
+          const response = await fetch('/sw.js')
+          if (!response.ok) {
+            throw new Error(`Failed to fetch service worker: ${response.status}`)
+          }
+          const text = await response.text()
+          render(text, 'Service worker loaded successfully:')
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error)
+          render('', `Error loading service worker: ${message}`)
+        }
+      }
+
+      loadServiceWorker()
+    </script>
+  </body>
+</html>

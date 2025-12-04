@@ -1,0 +1,36 @@
+name: Build
+
+on:
+  workflow_run:
+    workflows:
+      - Test
+    types:
+      - completed
+
+jobs:
+  push-supabase-migrations:
+    name: Push Supabase Production Migrations
+    runs-on: ubuntu-latest
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1.6.0
+        with:
+          version: latest
+
+      - name: Link Supabase project
+        run: supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_REF }} --password "${{ secrets.SUPABASE_DB_PASSWORD }}" --workdir suprabase
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Push migrations to production
+        run: supabase db push --workdir suprabase
