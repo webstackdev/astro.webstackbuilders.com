@@ -189,7 +189,7 @@ jobs:
           echo "::endgroup::"
 
           echo "::group::Supabase schema snapshot"
-          FORCE_COLOR=1 npx dotenv-cli -e test/containers/.env -- bash -c 'npx supabase db dump --local --schema-only --workdir suprabase' > /tmp/supabase-schema.sql
+          FORCE_COLOR=1 npx dotenv-cli -e test/containers/.env -- bash -c 'npx supabase db dump --local --schema "public,graphql_public,storage" --workdir suprabase' > /tmp/supabase-schema.sql
           head -n 200 /tmp/supabase-schema.sql || true
           echo "(full schema saved to /tmp/supabase-schema.sql)"
           echo "::endgroup::"
