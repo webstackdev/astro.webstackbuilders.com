@@ -32,6 +32,8 @@ export const pwaConfig: PwaOptions = {
     lang: 'en_US',
     name: contactData.company.name,
     orientation: 'natural',
+    /** Make the app non-installable as a stand-alone PWA */
+    prefer_related_applications: true,
     short_name: contactData.company.name,
     start_url: '/index.html',
     theme_color: manifestThemeColor,
