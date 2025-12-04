@@ -184,12 +184,21 @@ jobs:
         run: |
           set -euo pipefail
 
+          echo "::group::Supabase directory layout"
+          ls -al suprabase || true
+          find suprabase -maxdepth 2 -type f -print | sort || true
+          echo "::endgroup::"
+
           echo "::group::Supabase migrations"
           npm run containers:supabase:db-push
           echo "::endgroup::"
 
           echo "::group::Supabase migration status"
           FORCE_COLOR=1 npx supabase migration list --local --workdir suprabase
+          echo "::endgroup::"
+
+          echo "::group::Supabase migration status (JSON)"
+          FORCE_COLOR=1 npx supabase migration list --local --workdir suprabase --output json || true
           echo "::endgroup::"
 
           echo "::group::Supabase schema snapshot"
@@ -200,6 +209,31 @@ jobs:
           FORCE_COLOR=1 npx dotenv-cli -e test/containers/.env -- bash -c 'npx supabase db dump --local --schema "public,graphql_public,storage" --workdir suprabase' > "${schema_path}"
           head -n 200 "${schema_path}" || true
           echo "(full schema saved to ${schema_path})"
+          echo "::endgroup::"
+
+          echo "::group::Supabase table inventory"
+          bash <<'BASH'
+          set -euo pipefail
+
+          find_db_container() {
+            docker ps --format '{{.ID}} {{.Names}} {{.Image}}' | awk '$3 ~ /^supabase\/postgres(:|$)/ {print $1" "$2; exit}'
+          }
+
+          db_container_line=$(find_db_container)
+          if [ -z "${db_container_line}" ]; then
+            db_container_line=$(docker ps --format '{{.ID}} {{.Names}} {{.Image}}' | awk '$2 ~ /_db_/ {print $1" "$2; exit}')
+          fi
+
+          if [ -z "${db_container_line}" ]; then
+            echo "Supabase database container not found; skipping inventory" >&2
+            exit 0
+          fi
+
+          container_id=$(echo "${db_container_line}" | awk '{print $1}')
+          echo "Listing public schema tables via container ${container_id}"
+          docker exec -e PGPASSWORD=postgres "${container_id}" psql -U postgres -d postgres -c '\dt public.*' || true
+          docker exec -e PGPASSWORD=postgres "${container_id}" psql -U postgres -d postgres -At -c "select table_schema || '.' || table_name from information_schema.tables where table_schema='public' order by 1;" || true
+          BASH
           echo "::endgroup::"
 
           echo "::group::Supabase schema guard"
