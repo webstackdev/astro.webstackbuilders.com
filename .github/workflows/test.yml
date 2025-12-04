@@ -206,7 +206,15 @@ jobs:
           bash <<'BASH'
           set -euo pipefail
 
-          db_container_line=$(docker ps --format '{{.ID}} {{.Names}} {{.Image}}' | awk '$3 ~ /supabase\/postgres/ {print $1" "$2; exit}')
+          find_db_container() {
+            docker ps --format '{{.ID}} {{.Names}} {{.Image}}' | awk '$3 ~ /^supabase\/postgres(:|$)/ {print $1" "$2; exit}'
+          }
+
+          db_container_line=$(find_db_container)
+          if [ -z "${db_container_line}" ]; then
+            db_container_line=$(docker ps --format '{{.ID}} {{.Names}} {{.Image}}' | awk '$2 ~ /_db_/ {print $1" "$2; exit}')
+          fi
+
           if [ -z "${db_container_line}" ]; then
             echo "Supabase database container not found; cannot verify migrations" >&2
             exit 1
@@ -220,7 +228,7 @@ jobs:
           missing=0
 
           for table in "${required_tables[@]}"; do
-            if ! docker exec "${container_id}" psql -U postgres -d postgres -At -c "select to_regclass('public.${table}');" | grep -q "public.${table}"; then
+            if ! docker exec -e PGPASSWORD=postgres "${container_id}" psql -U postgres -d postgres -At -c "select to_regclass('public.${table}');" | grep -q "public.${table}"; then
               echo "❌  Missing table public.${table}"
               missing=1
             else
