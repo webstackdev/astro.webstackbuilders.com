@@ -211,8 +211,12 @@ jobs:
           catalog_present=$(docker exec -e PGPASSWORD=postgres "${container_id}" psql -U postgres -d postgres -At -c "select to_regclass('supabase_migrations.schema_migrations');" || true)
 
           if [ -z "${catalog_present}" ] || [ "${catalog_present}" = "" ] || [ "${catalog_present}" = "NULL" ]; then
-            echo "supabase_migrations.schema_migrations missing; running supabase db reset"
-            FORCE_COLOR=1 npx dotenv-cli -e test/containers/.env -- bash -c 'npx supabase db reset --local --workdir suprabase --yes --debug'
+            echo "supabase_migrations.schema_migrations missing; creating manually"
+            docker exec -e PGPASSWORD=postgres "${container_id}" psql -U postgres -d postgres -v ON_ERROR_STOP=1 -c "CREATE SCHEMA IF NOT EXISTS supabase_migrations;"
+            docker exec -e PGPASSWORD=postgres "${container_id}" psql -U postgres -d postgres -v ON_ERROR_STOP=1 -c "CREATE TABLE IF NOT EXISTS supabase_migrations.schema_migrations (version text PRIMARY KEY, inserted_at timestamptz DEFAULT now());"
+            echo "Catalog created; verifying contents"
+            docker exec -e PGPASSWORD=postgres "${container_id}" psql -U postgres -d postgres -c "\\d supabase_migrations.schema_migrations"
+            docker exec -e PGPASSWORD=postgres "${container_id}" psql -U postgres -d postgres -c "table supabase_migrations.schema_migrations"
           else
             echo "Catalog present: ${catalog_present}"
           fi
