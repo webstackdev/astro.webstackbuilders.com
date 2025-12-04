@@ -189,40 +189,29 @@ jobs:
           echo "::endgroup::"
 
           echo "::group::Supabase schema snapshot"
-          FORCE_COLOR=1 npx dotenv-cli -e test/containers/.env -- bash -c 'npx supabase db dump --local --schema "public,graphql_public,storage" --workdir suprabase' > /tmp/supabase-schema.sql
-          head -n 200 /tmp/supabase-schema.sql || true
-          echo "(full schema saved to /tmp/supabase-schema.sql)"
+          schema_dir="artifacts/supabase"
+          schema_path="${schema_dir}/schema.sql"
+          mkdir -p "${schema_dir}"
+
+          FORCE_COLOR=1 npx dotenv-cli -e test/containers/.env -- bash -c 'npx supabase db dump --local --schema "public,graphql_public,storage" --workdir suprabase' > "${schema_path}"
+          head -n 200 "${schema_path}" || true
+          echo "(full schema saved to ${schema_path})"
           echo "::endgroup::"
 
           echo "::group::Restart Supabase REST container"
           bash <<'BASH'
           set -euo pipefail
 
-          project_id=$(grep -m1 '^project_id' suprabase/config.toml | awk -F'"' '{print $2}')
-          if [ -z "${project_id}" ]; then
-            echo "Unable to determine Supabase project_id" >&2
-            exit 1
-          fi
-
-          sanitize() {
-            echo "$1" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g'
-          }
-
-          rest_container=""
-          for candidate in "${project_id}" "$(sanitize "${project_id}")"; do
-            rest_container=$(docker ps --filter "label=com.docker.compose.project=${candidate}" --format '{{.ID}} {{.Names}}' | grep -E 'rest' | head -n 1 || true)
-            if [ -n "${rest_container}" ]; then
-              container_id=$(echo "${rest_container}" | awk '{print $1}')
-              container_name=$(echo "${rest_container}" | awk '{print $2}')
-              echo "Restarting ${container_name} (${container_id}) to refresh schema cache"
-              docker restart "${container_id}"
-              break
-            fi
-          done
-
-          if [ -z "${rest_container}" ]; then
+          rest_container_line=$(docker ps --format '{{.ID}} {{.Names}} {{.Image}}' | awk '$3 ~ /postgrest/ {print $1" "$2; exit}')
+          if [ -z "${rest_container_line}" ]; then
             echo "Supabase REST container not found; skipping restart" >&2
+            exit 0
           fi
+
+          container_id=$(echo "${rest_container_line}" | awk '{print $1}')
+          container_name=$(echo "${rest_container_line}" | awk '{print $2}')
+          echo "Restarting ${container_name} (${container_id}) to refresh schema cache"
+          docker restart "${container_id}"
           BASH
           echo "::endgroup::"
 
@@ -230,37 +219,27 @@ jobs:
           bash <<'BASH'
           set -euo pipefail
 
-          project_id=$(grep -m1 '^project_id' suprabase/config.toml | awk -F'"' '{print $2}')
-          if [ -z "${project_id}" ]; then
-            echo "Unable to determine Supabase project_id" >&2
-            exit 1
-          fi
-
-          sanitize() {
-            echo "$1" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g'
-          }
-
-          containers=""
-          for candidate in "${project_id}" "$(sanitize "${project_id}")"; do
-            containers=$(docker ps --filter "label=com.docker.compose.project=${candidate}" --format '{{.ID}} {{.Names}}' || true)
-            if [ -n "${containers}" ]; then
-              break
-            fi
-          done
-
+          containers=$(docker ps --format '{{.ID}} {{.Names}} {{.Image}}' | awk '$3 ~ /supabase\// {print $1" "$2}')
           if [ -z "${containers}" ]; then
             echo "No Supabase containers found" >&2
             exit 0
           fi
 
-          echo "Capturing logs for project ${project_id}"
-          echo "${containers}" | while read -r container_id container_name; do
+          while read -r container_id container_name; do
             [ -z "${container_id}" ] && continue
             echo "--- ${container_name} (tail -n 200) ---"
             docker logs --tail 200 "${container_id}" || true
-          done
+          done <<< "${containers}"
           BASH
           echo "::endgroup::"
+
+      - name: Upload Supabase schema snapshot
+        if: ${{ always() && hashFiles('artifacts/supabase/schema.sql') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: supabase-schema
+          path: artifacts/supabase/schema.sql
+          retention-days: 14
 
       - name: Start Astro dev server
         run: |
