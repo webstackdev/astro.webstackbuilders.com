@@ -195,59 +195,71 @@ jobs:
           echo "::endgroup::"
 
           echo "::group::Restart Supabase REST container"
-          bash -euo pipefail -c '
-            project_id=$(grep -m1 "^project_id" suprabase/config.toml | awk -F '"' "{print \$2}")
-            if [ -z "${project_id}" ]; then
-              echo "Unable to determine Supabase project_id" >&2
-              exit 1
+          bash <<'BASH'
+          set -euo pipefail
+
+          project_id=$(grep -m1 '^project_id' suprabase/config.toml | awk -F'"' '{print $2}')
+          if [ -z "${project_id}" ]; then
+            echo "Unable to determine Supabase project_id" >&2
+            exit 1
+          fi
+
+          sanitize() {
+            echo "$1" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g'
+          }
+
+          rest_container=""
+          for candidate in "${project_id}" "$(sanitize "${project_id}")"; do
+            rest_container=$(docker ps --filter "label=com.docker.compose.project=${candidate}" --format '{{.ID}} {{.Names}}' | grep -E 'rest' | head -n 1 || true)
+            if [ -n "${rest_container}" ]; then
+              container_id=$(echo "${rest_container}" | awk '{print $1}')
+              container_name=$(echo "${rest_container}" | awk '{print $2}')
+              echo "Restarting ${container_name} (${container_id}) to refresh schema cache"
+              docker restart "${container_id}"
+              break
             fi
-            sanitize() {
-              echo "$1" | tr "[:upper:]" "[:lower:]" | sed "s/[^a-z0-9]/-/g"
-            }
-            for candidate in "${project_id}" "$(sanitize "${project_id}")"; do
-              rest_container=$(docker ps --filter "label=com.docker.compose.project=${candidate}" --format "{{.ID}} {{.Names}}" | grep -E "rest" | head -n 1 || true)
-              if [ -n "${rest_container}" ]; then
-                container_id=$(echo "${rest_container}" | awk "{print \$1}")
-                container_name=$(echo "${rest_container}" | awk "{print \$2}")
-                echo "Restarting ${container_name} (${container_id}) to refresh schema cache"
-                docker restart "${container_id}"
-                break
-              fi
-            done
-            if [ -z "${rest_container:-}" ]; then
-              echo "Supabase REST container not found; skipping restart" >&2
-            fi
-          '
+          done
+
+          if [ -z "${rest_container}" ]; then
+            echo "Supabase REST container not found; skipping restart" >&2
+          fi
+          BASH
           echo "::endgroup::"
 
           echo "::group::Supabase container logs (last 200 lines)"
-          bash -euo pipefail -c '
-            project_id=$(grep -m1 "^project_id" suprabase/config.toml | awk -F '"' "{print \$2}")
-            if [ -z "${project_id}" ]; then
-              echo "Unable to determine Supabase project_id" >&2
-              exit 1
+          bash <<'BASH'
+          set -euo pipefail
+
+          project_id=$(grep -m1 '^project_id' suprabase/config.toml | awk -F'"' '{print $2}')
+          if [ -z "${project_id}" ]; then
+            echo "Unable to determine Supabase project_id" >&2
+            exit 1
+          fi
+
+          sanitize() {
+            echo "$1" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g'
+          }
+
+          containers=""
+          for candidate in "${project_id}" "$(sanitize "${project_id}")"; do
+            containers=$(docker ps --filter "label=com.docker.compose.project=${candidate}" --format '{{.ID}} {{.Names}}' || true)
+            if [ -n "${containers}" ]; then
+              break
             fi
-            sanitize() {
-              echo "$1" | tr "[:upper:]" "[:lower:]" | sed "s/[^a-z0-9]/-/g"
-            }
-            containers=""
-            for candidate in "${project_id}" "$(sanitize "${project_id}")"; do
-              containers=$(docker ps --filter "label=com.docker.compose.project=${candidate}" --format "{{.ID}} {{.Names}}" || true)
-              if [ -n "${containers}" ]; then
-                break
-              fi
-            done
-            if [ -z "${containers}" ]; then
-              echo "No Supabase containers found" >&2
-              exit 0
-            fi
-            echo "Capturing logs for project ${project_id}"
-            echo "${containers}" | while read -r container_id container_name; do
-              [ -z "${container_id}" ] && continue
-              echo "--- ${container_name} (tail -n 200) ---"
-              docker logs --tail 200 "${container_id}" || true
-            done
-          '
+          done
+
+          if [ -z "${containers}" ]; then
+            echo "No Supabase containers found" >&2
+            exit 0
+          fi
+
+          echo "Capturing logs for project ${project_id}"
+          echo "${containers}" | while read -r container_id container_name; do
+            [ -z "${container_id}" ] && continue
+            echo "--- ${container_name} (tail -n 200) ---"
+            docker logs --tail 200 "${container_id}" || true
+          done
+          BASH
           echo "::endgroup::"
 
       - name: Start Astro dev server
