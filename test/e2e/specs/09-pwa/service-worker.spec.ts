@@ -1,43 +1,12 @@
 /**
- * Service Worker Tests
- * Validates service worker registration, caching, and offline fallbacks.
+ * Service Worker Tests - Must be QA'd manually
+ *
+ * Note: Automated testing of service workers is not feasible in this E2E test suite
+ * due to limitations with the Astro build process and Vercel adapter.
  */
 
-import { expect, test } from '@test/e2e/helpers'
-import { PwaPage } from '@test/e2e/helpers/pageObjectModels/PwaPage'
+import { test } from '@test/e2e/helpers'
 
 test.describe('Service Worker', () => {
-  test.skip('@ready service worker registers and activates', async ({ page: playwrightPage }) => {
-    const pwaPage: PwaPage = await PwaPage.init(playwrightPage)
-    await pwaPage.navigateToHomeAndWaitForSW()
-
-    await pwaPage.expectServiceWorkerRegistered()
-    await pwaPage.expectServiceWorkerActivated()
-  })
-
-  test.skip('@ready service worker populates caches after first run', async ({ page: playwrightPage }) => {
-    const pwaPage: PwaPage = await PwaPage.init(playwrightPage)
-    await pwaPage.navigateToHomeAndWaitForSW()
-
-    const cachedAssets = await pwaPage.getCachedAssetsCount()
-    expect(cachedAssets).toBeGreaterThan(0)
-    await pwaPage.expectCacheVersioning()
-  })
-
-  test.skip('@ready offline navigation falls back to 404 page', async ({ page: playwrightPage, context, browserName }) => {
-    test.skip(browserName === 'webkit', 'Playwright WebKit cannot perform navigation requests while offline')
-
-    const pwaPage: PwaPage = await PwaPage.init(playwrightPage)
-    await pwaPage.navigateToHomeAndWaitForSW()
-
-    await pwaPage.goOffline(context)
-    try {
-      const response = await pwaPage.goto('/definitely-not-real')
-      expect(response).not.toBeNull()
-      await pwaPage.expectNotFoundFallback()
-    } finally {
-      await pwaPage.goOnline(context)
-    }
-  })
+  test.fixme('@ready service worker cannot be tested in automated E2E tests and must be QAed manually, because the @vite-pwa/astro integration that generates sw.js runs on the astro:build:done so that it has access to all generated build artifacts. The Vercel adapter for Astro is incompatible with astro serve, so it is not possible to test against a built environment.', async () => {})
 })
-

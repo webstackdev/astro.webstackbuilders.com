@@ -188,6 +188,10 @@ jobs:
           npm run containers:supabase:db-push
           echo "::endgroup::"
 
+          echo "::group::Supabase migration status"
+          FORCE_COLOR=1 npx supabase migration list --local --workdir suprabase
+          echo "::endgroup::"
+
           echo "::group::Supabase schema snapshot"
           schema_dir="artifacts/supabase"
           schema_path="${schema_dir}/schema.sql"
@@ -196,6 +200,39 @@ jobs:
           FORCE_COLOR=1 npx dotenv-cli -e test/containers/.env -- bash -c 'npx supabase db dump --local --schema "public,graphql_public,storage" --workdir suprabase' > "${schema_path}"
           head -n 200 "${schema_path}" || true
           echo "(full schema saved to ${schema_path})"
+          echo "::endgroup::"
+
+          echo "::group::Supabase schema guard"
+          bash <<'BASH'
+          set -euo pipefail
+
+          db_container_line=$(docker ps --format '{{.ID}} {{.Names}} {{.Image}}' | awk '$3 ~ /supabase\/postgres/ {print $1" "$2; exit}')
+          if [ -z "${db_container_line}" ]; then
+            echo "Supabase database container not found; cannot verify migrations" >&2
+            exit 1
+          fi
+
+          container_id=$(echo "${db_container_line}" | awk '{print $1}')
+          container_name=$(echo "${db_container_line}" | awk '{print $2}')
+          echo "Inspecting tables inside ${container_name} (${container_id})"
+
+          required_tables=(newsletter_confirmations consent_records dsar_requests)
+          missing=0
+
+          for table in "${required_tables[@]}"; do
+            if ! docker exec "${container_id}" psql -U postgres -d postgres -At -c "select to_regclass('public.${table}');" | grep -q "public.${table}"; then
+              echo "❌  Missing table public.${table}"
+              missing=1
+            else
+              echo "✅  Found table public.${table}"
+            fi
+          done
+
+          if [ "${missing}" -ne 0 ]; then
+            echo "Required tables missing after Supabase migrations" >&2
+            exit 1
+          fi
+          BASH
           echo "::endgroup::"
 
           echo "::group::Restart Supabase REST container"
