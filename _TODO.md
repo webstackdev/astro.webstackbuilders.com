@@ -1,22 +1,9 @@
 <!-- markdownlint-disable-file -->
 # TODO
 
-## Pause and Play
-
-Next, I'd like to add a "pause" and "play" icon to src/components/Animations/Computers
-There are icons with those names already configured for the Icon component.
-There are hooks for pause and play already setup in the component.
-The icon should be displayed in the low right hand corner of the animation, with 4px of padding from the bottom and right side. It should overlay the animation, not expand the bounding box of the animation.
-
 ## Performance
 
 Implement mitigations in test/e2e/specs/07-performance/PERFORMANCE.md
-
-## GitHub
-
-- Make sure actions workflows are working correctly after performance tests pass and whole suite is green
-- Change Dependabut to open a single PR with all dependency updates
-- Add 'hotfix' branch and add branch protection rules
 
 ## Analytics
 
