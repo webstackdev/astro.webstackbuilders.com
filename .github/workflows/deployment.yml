@@ -75,30 +75,125 @@ jobs:
         with:
           script: |
             const previewUrl = '${{ steps.vercel-preview.outputs.preview-url }}';
-            const pr = context.payload.workflow_run.pull_requests && context.payload.workflow_run.pull_requests[0];
-            if (!pr) {
-              core.warning('No pull request metadata available; skipping preview comment.');
+            const workflowRun = context.payload.workflow_run;
+            const pr = workflowRun?.pull_requests?.[0];
+            if (!pr || !previewUrl) {
+              core.warning('Missing pull request metadata or preview URL; skipping preview success comment.');
               return;
             }
-            await github.rest.issues.createComment({
-              issue_number: pr.number,
+
+            const commentTag = '<!-- vercel-preview-card -->';
+            const branch = workflowRun.head_branch ?? 'unknown-branch';
+            const sha = workflowRun.head_sha ?? '';
+            const shortSha = sha ? sha.slice(0, 7) : 'unknown';
+            const commitUrl = sha
+              ? `https://github.com/${context.repo.owner}/${context.repo.repo}/commit/${sha}`
+              : `https://github.com/${context.repo.owner}/${context.repo.repo}`;
+            const actor = workflowRun.actor ?? 'workflow_run';
+
+            const body = [
+              commentTag,
+              '✅ **Preview deployment ready**',
+              '',
+              '| Field | Value |',
+              '| --- | --- |',
+              `| Branch | \`${branch}\` |`,
+              `| Commit | [${shortSha}](${commitUrl}) |`,
+              `| Preview | [Open preview](${previewUrl}) |`,
+              '',
+              `_Triggered by @${actor}_`
+            ].join('\n');
+
+            const comments = await github.paginate(github.rest.issues.listComments, {
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `✅ Tests passed! Preview deployment ready:\n\n🔗 ${previewUrl}`
+              issue_number: pr.number,
+              per_page: 100
             });
+            const existingComment = comments.find((comment) => comment.body?.includes(commentTag));
+
+            if (existingComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                body
+              });
+            }
 
       - name: Comment preview failure on PR
         if: always() && steps.vercel-preview.outcome != 'success'
         uses: actions/github-script@v8
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
         with:
           script: |
             const previewUrl = '${{ steps.vercel-preview.outputs.preview-url }}';
-            const pr = context.payload.workflow_run.pull_requests && context.payload.workflow_run.pull_requests[0];
+            const workflowRun = context.payload.workflow_run;
+            const pr = workflowRun?.pull_requests?.[0];
             if (!pr) {
               core.warning('No pull request metadata available; skipping preview failure comment.');
               return;
             }
-            const linkLine = previewUrl ? `\n\n🔗 ${previewUrl}` : '\n\n🔗 View the failed deployment in Vercel.';
+
+            const fallbackRunUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const fetchDeploymentUrl = async () => {
+              if (!process.env.VERCEL_TOKEN || !process.env.VERCEL_PROJECT_ID) {
+                core.info('Missing Vercel credentials; cannot query deployment API.');
+                return null;
+              }
+              const query = new URLSearchParams({
+                projectId: process.env.VERCEL_PROJECT_ID,
+                'meta-githubCommitSha': workflowRun?.head_sha ?? '',
+                limit: '1'
+              });
+              if (process.env.VERCEL_ORG_ID) {
+                query.set('teamId', process.env.VERCEL_ORG_ID);
+              }
+              if (typeof fetch !== 'function') {
+                core.info('Fetch API unavailable in this runtime.');
+                return null;
+              }
+              const response = await fetch(`https://api.vercel.com/v6/deployments?${query.toString()}`, {
+                headers: {
+                  Authorization: `Bearer ${process.env.VERCEL_TOKEN}`
+                }
+              });
+              if (!response.ok) {
+                core.warning(`Unable to fetch deployment info (status ${response.status}).`);
+                return null;
+              }
+              const data = await response.json();
+              const deployment = data?.deployments?.[0];
+              if (deployment?.url) {
+                return `https://${deployment.url}`;
+              }
+              if (deployment?.inspectorUrl) {
+                return deployment.inspectorUrl.startsWith('http')
+                  ? deployment.inspectorUrl
+                  : `https://${deployment.inspectorUrl}`;
+              }
+              return null;
+            };
+
+            let failedDeploymentUrl = previewUrl || await fetchDeploymentUrl();
+            if (!failedDeploymentUrl) {
+              failedDeploymentUrl = fallbackRunUrl;
+            }
+
+            const linkText = failedDeploymentUrl === fallbackRunUrl
+              ? 'View the workflow logs'
+              : 'Open the failed Vercel deployment';
+            const linkLine = `\n\n🔗 [${linkText}](${failedDeploymentUrl})`;
             await github.rest.issues.createComment({
               issue_number: pr.number,
               owner: context.repo.owner,
@@ -147,7 +242,7 @@ jobs:
             const targetUrl = '${{ steps.vercel-production.outputs.preview-url }}';
             const body = targetUrl
               ? `❌ Production deployment failed.\n\n🔗 ${targetUrl}\n\nPlease review the Vercel logs.`
-              : '❌ Production deployment failed. Please review the Vercel logs.'
+              : '❌ Production deployment failed. Please review the Vercel logs.';
             await github.rest.repos.createCommitComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
