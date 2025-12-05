@@ -59,11 +59,12 @@ jobs:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          github-comment: true
+          github-comment: false
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
 
       - name: Comment preview URL on PR
+        if: steps.vercel-preview.outcome == 'success'
         uses: actions/github-script@v8
         with:
           script: |
@@ -78,6 +79,25 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: `✅ Tests passed! Preview deployment ready:\n\n🔗 ${previewUrl}`
+            });
+
+      - name: Comment preview failure on PR
+        if: steps.vercel-preview.outcome != 'success'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const previewUrl = '${{ steps.vercel-preview.outputs.preview-url }}';
+            const pr = context.payload.workflow_run.pull_requests && context.payload.workflow_run.pull_requests[0];
+            if (!pr) {
+              core.warning('No pull request metadata available; skipping preview failure comment.');
+              return;
+            }
+            const linkLine = previewUrl ? `\n\n🔗 ${previewUrl}` : '\n\n🔗 View the failed deployment in Vercel.';
+            await github.rest.issues.createComment({
+              issue_number: pr.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `❌ Preview deployment failed.${linkLine}\n\nPlease review the Vercel build logs for details.`
             });
 
   deploy-production:
@@ -111,3 +131,19 @@ jobs:
         run: |
           echo "🚀 Production deployment completed"
           echo "Production URL: ${{ steps.vercel-production.outputs.preview-url }}"
+
+      - name: Comment production deployment failure on commit
+        if: steps.vercel-production.outcome != 'success'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const targetUrl = '${{ steps.vercel-production.outputs.preview-url }}';
+            const body = targetUrl
+              ? `❌ Production deployment failed.\n\n🔗 ${targetUrl}\n\nPlease review the Vercel logs.`
+              : '❌ Production deployment failed. Please review the Vercel logs.'
+            await github.rest.repos.createCommitComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.payload.workflow_run.head_sha,
+              body,
+            });
