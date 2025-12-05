@@ -114,7 +114,7 @@ test.describe('WCAG Compliance', () => {
     await page.goto('/')
 
     // Zoom in
-    await page.page.evaluate(() => {
+    await page.evaluate(() => {
       document.body.style.zoom = '2'
     })
 
@@ -124,7 +124,7 @@ test.describe('WCAG Compliance', () => {
     await page.expectMainElement()
 
     // No horizontal scroll should be needed at 200% zoom (in most cases)
-    const hasHorizontalScroll = await page.page.evaluate(() => {
+    const hasHorizontalScroll = await page.evaluate(() => {
       return document.documentElement.scrollWidth > window.innerWidth
     })
 
@@ -170,7 +170,7 @@ test.describe('WCAG Compliance', () => {
     await page.goto('/')
 
     // Check for animations
-    const animations = await page.page.evaluate(() => {
+    const animations = await page.evaluate(() => {
       const elements = document.querySelectorAll('*')
       const animated = []
 
@@ -202,7 +202,7 @@ test.describe('WCAG Compliance', () => {
     await page.goto('/')
 
     // Check that animations are disabled/reduced
-    const hasReducedMotion = await page.page.evaluate(() => {
+    const hasReducedMotion = await page.evaluate(() => {
       return window.matchMedia('(prefers-reduced-motion: reduce)').matches
     })
 

@@ -2,31 +2,31 @@ export {
   test,
   describe,
   expect,
-} from '@test/e2e/helpers/baseTest'
+} from './baseTest'
 export {
   setupConsoleErrorChecker,
   logConsoleErrors,
-} from '@test/e2e/helpers/consoleErrors'
+} from './consoleErrors'
 export {
   setupConsoleCapture,
   printCapturedMessages,
-} from '@test/e2e/helpers/consoleCapture'
-export { clearConsentCookies } from '@test/e2e/helpers/browserState'
-export { BasePage } from '@test/e2e/helpers/pageObjectModels/BasePage'
-export { ComponentPersistencePage } from '@test/e2e/helpers/pageObjectModels/ComponentPersistencePage'
-export { HeadPage } from '@test/e2e/helpers/pageObjectModels/HeadPage'
-export { BreadCrumbPage } from '@test/e2e/helpers/pageObjectModels/BreadCrumbPage'
+} from './consoleCapture'
+export { clearConsentCookies } from './browserState'
+export { BasePage } from './pageObjectModels/BasePage'
+export { ComponentPersistencePage } from './pageObjectModels/ComponentPersistencePage'
+export { HeadPage } from './pageObjectModels/HeadPage'
+export { BreadCrumbPage } from './pageObjectModels/BreadCrumbPage'
 export {
   spyOnFetchEndpoint,
   mockFetchEndpointResponse,
   injectHeadersIntoFetch,
   delayFetchForEndpoint,
-} from '@test/e2e/helpers/fetchOverride'
-export type { FetchOverrideHandle } from '@test/e2e/helpers/fetchOverride'
+} from './fetchOverride'
+export type { FetchOverrideHandle } from './fetchOverride'
 export {
   setupCleanTestPage,
   setupTestPage,
   selectTheme,
   getThemePickerToggle,
-} from '@test/e2e/helpers/cookieHelper'
-export { wiremock, mocksEnabled } from '@test/e2e/helpers/mockServices'
+} from './cookieHelper'
+export { wiremock, mocksEnabled } from './mockServices'

@@ -24,17 +24,19 @@ export const pwaConfig: PwaOptions = {
   manifestFilename: 'manifest.json',
   registerType: 'autoUpdate',
   manifest: {
-    lang: 'en_US',
-    dir: 'ltr',
-    name: contactData.company.name,
-    short_name: contactData.company.name,
-    description: contactData.company.description,
-    display_override: ['window-controls-overlay'],
-    theme_color: manifestThemeColor,
     background_color: '#f3f4f6',
-    start_url: '/index.html',
-    display: 'standalone',
+    description: contactData.company.description,
+    dir: 'ltr',
+    display_override: ['window-controls-overlay'],
+    display: 'browser',
+    lang: 'en_US',
+    name: contactData.company.name,
     orientation: 'natural',
+    /** Make the app non-installable as a stand-alone PWA */
+    prefer_related_applications: true,
+    short_name: contactData.company.name,
+    start_url: '/index.html',
+    theme_color: manifestThemeColor,
     icons: [
       {
         src: '/icon-192.png',

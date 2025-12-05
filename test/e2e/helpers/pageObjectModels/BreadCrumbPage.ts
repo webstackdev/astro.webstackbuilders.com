@@ -55,9 +55,24 @@ export class BreadCrumbPage extends BasePage {
       return
     }
 
-    const waitForLoad = this.waitForPageLoad()
+    const supportsViewTransitions = await this.evaluate(() => {
+      if (typeof document === 'undefined') {
+        return false
+      }
+      return typeof document.startViewTransition === 'function'
+    })
+
+    if (supportsViewTransitions) {
+      const waitForLoad = this.waitForPageLoad({ requireNext: true })
+      await this.click(`a[href="${targetHref}"]`)
+      await waitForLoad
+      return
+    }
+
+    const navigationPromise = this.page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 15000 })
     await this.click(`a[href="${targetHref}"]`)
-    await waitForLoad
+    await navigationPromise
+    await this.waitForLoadState('networkidle')
   }
 
   async openFirstArticleDetail(options?: { navigationMode?: 'client' | 'fresh' }): Promise<void> {

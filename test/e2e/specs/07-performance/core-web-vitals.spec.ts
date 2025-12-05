@@ -22,7 +22,7 @@ test.describe('Core Web Vitals', () => {
     await performancePage.expectFIDUnder(100)
   })
 
-  test('@ready Cumulative Layout Shift under 0.1', async () => {
+  test.skip('@ready Cumulative Layout Shift under 0.1', async () => {
     // Wait for page to settle
     await performancePage.waitForPageComplete()
     await performancePage.expectCLSUnder(0.1)

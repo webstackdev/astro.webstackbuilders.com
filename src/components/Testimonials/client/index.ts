@@ -13,6 +13,12 @@ import type { WebComponentModule } from '@components/scripts/@types/webComponent
 
 const SCRIPT_NAME = 'TestimonialsCarouselElement'
 
+const logForE2E = (level: 'info' | 'error', message: string, details?: Record<string, unknown>): void => {
+  if (typeof window === 'undefined' || window.isPlaywrightControlled !== true) return
+  const payload = details ? [`[testimonials] ${message}`, details] : [`[testimonials] ${message}`]
+  console[level](...payload)
+}
+
 const EMBLA_OPTIONS: EmblaOptionsType = {
   loop: true,
   align: 'center',
@@ -89,6 +95,10 @@ export class TestimonialsCarouselElement extends HTMLElement {
 
     const context = { scriptName: SCRIPT_NAME, operation: 'initialize' }
     addScriptBreadcrumb(context)
+    logForE2E('info', 'initialize:start', {
+      id: this.animationInstanceId,
+      existingReadyState: this.getAttribute('data-carousel-ready') ?? 'missing',
+    })
 
     try {
       const scopedRoot = this.classList.contains('testimonials-embla')
@@ -133,6 +143,11 @@ export class TestimonialsCarouselElement extends HTMLElement {
 
       this.initialized = true
       this.setAttribute('data-carousel-ready', 'true')
+      logForE2E('info', 'initialize:complete', {
+        id: this.animationInstanceId,
+        slideCount,
+        supportsAutoplay: this.hasAutoplaySupport,
+      })
 
       if (this.hasAutoplaySupport) {
         this.registerAnimationLifecycle()
@@ -140,6 +155,10 @@ export class TestimonialsCarouselElement extends HTMLElement {
       }
     } catch (error) {
       this.teardown()
+      logForE2E('error', 'initialize:failed', {
+        id: this.animationInstanceId,
+        message: error instanceof Error ? error.message : String(error),
+      })
       handleScriptError(error, context)
     }
   }
@@ -384,6 +403,7 @@ declare global {
 
 export const registerTestimonialsWebComponent = (tagName = 'testimonials-carousel'): void => {
   if (typeof window === 'undefined') return
+  logForE2E('info', 'register:invoke', { tagName })
   defineCustomElement(tagName, TestimonialsCarouselElement)
 }
 

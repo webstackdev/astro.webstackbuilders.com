@@ -13,7 +13,14 @@ export class PwaPage extends BasePage {
 
   private static async enableServiceWorkerForE2E(page: Page): Promise<void> {
     const enableScript = () => {
+      if (typeof window !== 'undefined' && window.isPlaywrightControlled) {
+        const current = window.__disableServiceWorkerForE2E
+        console.info('[pwa-test] enableServiceWorkerForE2E called', { current })
+      }
       window.__disableServiceWorkerForE2E = false
+      if (typeof window !== 'undefined' && window.isPlaywrightControlled) {
+        console.info('[pwa-test] window.__disableServiceWorkerForE2E set to false')
+      }
     }
 
     await page.addInitScript(enableScript)

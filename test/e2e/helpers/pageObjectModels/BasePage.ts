@@ -353,6 +353,77 @@ export class BasePage {
   }
 
   /**
+   * Deterministically open the mobile navigation menu and wait for it to finish animating
+   */
+  async openMobileMenu(options?: { timeout?: number }): Promise<void> {
+    const timeout = options?.timeout ?? EXTENDED_NAVIGATION_TIMEOUT
+
+    await this.waitForHeaderComponents({ timeout })
+    await this._page.waitForFunction(
+      () => !document.documentElement?.hasAttribute('data-astro-transition'),
+      undefined,
+      { timeout }
+    )
+
+    const toggleButton = this._page.locator('button[aria-label="toggle menu"]')
+    await expect(toggleButton).toBeVisible({ timeout })
+
+    const expanded = await toggleButton.getAttribute('aria-expanded')
+    if (expanded !== 'true') {
+      await toggleButton.click()
+    }
+
+    await this._page.waitForFunction(
+      () => {
+        const header = document.getElementById('header')
+        const menu = document.querySelector('.main-nav-menu')
+        const body = document.body
+
+        const headerExpanded = header?.classList.contains('aria-expanded-true') ?? false
+        const menuVisible = menu?.classList.contains('menu-visible') ?? false
+        const bodyScrollLocked = body?.classList.contains('no-scroll') ?? false
+
+        return headerExpanded && menuVisible && bodyScrollLocked
+      },
+      undefined,
+      { timeout }
+    )
+  }
+
+  /**
+   * Deterministically close the mobile navigation menu and wait for scroll lock to clear
+   */
+  async closeMobileMenu(options?: { timeout?: number }): Promise<void> {
+    const timeout = options?.timeout ?? DEFAULT_NAVIGATION_TIMEOUT
+    const toggleButton = this._page.locator('button[aria-label="toggle menu"]')
+
+    await expect(toggleButton).toBeVisible({ timeout })
+
+    const expanded = await toggleButton.getAttribute('aria-expanded')
+    if (expanded !== 'true') {
+      return
+    }
+
+    await toggleButton.click()
+
+    await this._page.waitForFunction(
+      () => {
+        const header = document.getElementById('header')
+        const menu = document.querySelector('.main-nav-menu')
+        const body = document.body
+
+        const headerCollapsed = !(header?.classList.contains('aria-expanded-true') ?? false)
+        const menuHidden = !(menu?.classList.contains('menu-visible') ?? false)
+        const bodyScrollRestored = !(body?.classList.contains('no-scroll') ?? false)
+
+        return headerCollapsed && menuHidden && bodyScrollRestored
+      },
+      undefined,
+      { timeout }
+    )
+  }
+
+  /**
    * Get keyboard object for advanced keyboard operations
    */
   get keyboard() {
@@ -435,18 +506,22 @@ export class BasePage {
    * await page.waitForPageLoad()
    * ```
    */
-  async waitForPageLoad(): Promise<void> {
+  async waitForPageLoad(options?: { requireNext?: boolean; timeout?: number }): Promise<void> {
+    const requireNext = options?.requireNext ?? false
+    const timeout = options?.timeout ?? DEFAULT_NAVIGATION_TIMEOUT
     const currentCount = await this._page.evaluate(() => window.__astroPageLoadCounter ?? 0)
 
-    if (currentCount > this.lastAstroPageLoadCount) {
+    if (!requireNext && currentCount > this.lastAstroPageLoadCount) {
       this.lastAstroPageLoadCount = currentCount
       return
     }
 
+    const baseline = requireNext ? currentCount : this.lastAstroPageLoadCount
+
     await this._page.waitForFunction(
       previousCount => (window.__astroPageLoadCounter ?? 0) > previousCount,
-      currentCount,
-      { timeout: DEFAULT_NAVIGATION_TIMEOUT }
+      baseline,
+      { timeout }
     )
 
     this.lastAstroPageLoadCount = await this._page.evaluate(() => window.__astroPageLoadCounter ?? 0)
@@ -858,8 +933,9 @@ export class BasePage {
   async expectNoErrors(): Promise<Array<Error>> {
     await this.waitForPageComplete()
     const errors = await this._page.pageErrors()
-    expect(errors).toHaveLength(0)
-    return await this._page.pageErrors()
+    const filteredErrors = errors.filter((error) => !this.isIgnorablePageError(error))
+    expect(filteredErrors).toHaveLength(0)
+    return filteredErrors
   }
 
   /**
@@ -1172,5 +1248,17 @@ export class BasePage {
     const label = this._page.locator(`label[for="${forId}"]`)
     await expect(label).toBeVisible()
     await expect(label).toContainText(pattern)
+  }
+
+  /**
+   * Filter recurring non-actionable browser errors (e.g., Firefox HMR websockets) from pageErrors().
+   */
+  private isIgnorablePageError(error: Error): boolean {
+    const message = error?.message ?? ''
+
+    // Firefox occasionally surfaces this when Vite's HMR websocket retries during stress runs.
+    if (message.includes('WebSocket closed without opened')) return true
+
+    return false
   }
 }

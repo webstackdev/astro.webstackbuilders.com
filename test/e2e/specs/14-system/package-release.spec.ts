@@ -10,22 +10,45 @@
 import { test, expect } from '@test/e2e/helpers'
 import { BasePage } from '@test/e2e/helpers/pageObjectModels/BasePage'
 
-/* eslint-disable import/no-unresolved */
+type EnvironmentClientValues = {
+  packageRelease: string
+  privacyPolicyVersion: string
+}
+
+const environmentClientFixturePath = '/testing/environment-client-values'
+
+const getEnvironmentClientValues = async (page: BasePage): Promise<EnvironmentClientValues> => {
+  await page.goto(environmentClientFixturePath, { skipCookieDismiss: true })
+  await page.waitForLoadState('networkidle')
+  await page.waitForFunction(() => {
+    const values = window.environmentClientValues
+    if (!values) {
+      return false
+    }
+    return typeof values.packageRelease === 'string' && typeof values.privacyPolicyVersion === 'string'
+  })
+
+  return await page.evaluate(() => {
+    if (!window.environmentClientValues) {
+      const EvaluationErrorCtor = window.EvaluationError!
+      throw new EvaluationErrorCtor('environmentClientValues not initialized')
+    }
+    return window.environmentClientValues
+  })
+}
+
+const getPackageReleaseValue = async (page: BasePage): Promise<string> => {
+  const values = await getEnvironmentClientValues(page)
+  return values.packageRelease
+}
+
 test.describe('Package Release Integration', () => {
   test('should expose PACKAGE_RELEASE_VERSION in import.meta.env', async ({
     page: playwrightPage,
   }) => {
     const page = await BasePage.init(playwrightPage)
 
-    await page.goto('/')
-    await page.waitForLoadState('networkidle')
-
-    // Execute in browser context to check if the env var is available
-    const packageRelease = await page.page.evaluate(async () => {
-      // @ts-expect-error - runtime-resolved path
-      const { getPackageRelease } = await import('/src/components/scripts/utils/environmentClient.ts')
-      return getPackageRelease()
-    })
+    const packageRelease = await getPackageReleaseValue(page)
 
     // Assert that the release is defined
     expect(packageRelease).toBeDefined()
@@ -38,14 +61,7 @@ test.describe('Package Release Integration', () => {
   test('package release should match package.json format', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
 
-    await page.goto('/')
-    await page.waitForLoadState('networkidle')
-
-    const packageRelease = await page.page.evaluate(async () => {
-      // @ts-expect-error - runtime-resolved path
-      const { getPackageRelease } = await import('/src/components/scripts/utils/environmentClient.ts')
-      return getPackageRelease()
-    })
+    const packageRelease = await getPackageReleaseValue(page)
 
     // Split into name and version
     const [name, version] = packageRelease.split('@')
@@ -66,22 +82,12 @@ test.describe('Package Release Integration', () => {
     // Get release from home page
     await page.goto('/')
     await page.waitForLoadState('networkidle')
-
-    const releaseFromHome = await page.page.evaluate(async () => {
-      // @ts-expect-error - runtime-resolved path
-      const { getPackageRelease } = await import('/src/components/scripts/utils/environmentClient.ts')
-      return getPackageRelease()
-    })
+    const releaseFromHome = await getPackageReleaseValue(page)
 
     // Get release from privacy page
     await page.goto('/privacy')
     await page.waitForLoadState('networkidle')
-
-    const releaseFromPrivacy = await page.page.evaluate(async () => {
-      // @ts-expect-error - runtime-resolved path
-      const { getPackageRelease } = await import('/src/components/scripts/utils/environmentClient.ts')
-      return getPackageRelease()
-    })
+    const releaseFromPrivacy = await getPackageReleaseValue(page)
 
     // Both should be identical
     expect(releaseFromHome).toBe(releaseFromPrivacy)
@@ -92,18 +98,9 @@ test.describe('Package Release Integration', () => {
   }) => {
     const page = await BasePage.init(playwrightPage)
 
-    await page.goto('/')
-    await page.waitForLoadState('networkidle')
-
-    // Test that it can be imported and used in a module context
-    const releaseFromModule = await page.page.evaluate(async () => {
-      // @ts-expect-error - runtime-resolved path
-      const { getPackageRelease } = await import('/src/components/scripts/utils/environmentClient.ts')
-      return getPackageRelease()
-    })
+    const releaseFromModule = await getPackageReleaseValue(page)
 
     expect(releaseFromModule).toBeDefined()
     expect(releaseFromModule).toMatch(/^.+@\d+\.\d+\.\d+$/)
   })
 })
-/* eslint-enable import/no-unresolved */

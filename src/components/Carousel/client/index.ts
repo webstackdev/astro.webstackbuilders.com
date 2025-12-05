@@ -13,6 +13,12 @@ import type { WebComponentModule } from '@components/scripts/@types/webComponent
 
 const SCRIPT_NAME = 'CarouselElement'
 
+const logForE2E = (level: 'info' | 'error', message: string, details?: Record<string, unknown>): void => {
+  if (typeof window === 'undefined' || window.isPlaywrightControlled !== true) return
+  const payload = details ? [`[carousel] ${message}`, details] : [`[carousel] ${message}`]
+  console[level](...payload)
+}
+
 const EMBLA_OPTIONS: EmblaOptionsType = {
   loop: true,
   align: 'start',
@@ -89,6 +95,10 @@ export class CarouselElement extends HTMLElement {
 
     const context = { scriptName: SCRIPT_NAME, operation: 'initialize' }
     addScriptBreadcrumb(context)
+    logForE2E('info', 'initialize:start', {
+      id: this.animationInstanceId,
+      existingReadyState: this.getAttribute('data-carousel-ready') ?? 'missing',
+    })
 
     try {
       this.emblaRoot = this.querySelector('.embla') as DebugEmblaElement | null
@@ -128,12 +138,21 @@ export class CarouselElement extends HTMLElement {
 
       this.initialized = true
       this.setAttribute('data-carousel-ready', 'true')
+      logForE2E('info', 'initialize:complete', {
+        id: this.animationInstanceId,
+        slideCount,
+        supportsAutoplay: this.hasAutoplaySupport,
+      })
       if (this.hasAutoplaySupport) {
         this.registerAnimationLifecycle()
         this.scheduleAutoplayReady()
       }
     } catch (error) {
       this.teardown()
+      logForE2E('error', 'initialize:failed', {
+        id: this.animationInstanceId,
+        message: error instanceof Error ? error.message : String(error),
+      })
       handleScriptError(error, context)
     }
   }
@@ -376,6 +395,7 @@ declare global {
 
 export const registerCarouselWebComponent = (tagName = 'carousel-slider') => {
   if (typeof window === 'undefined') return
+  logForE2E('info', 'register:invoke', { tagName })
   defineCustomElement(tagName, CarouselElement)
 }
 

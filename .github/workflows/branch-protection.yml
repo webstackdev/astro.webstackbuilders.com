@@ -10,8 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check branch naming convention
+        env:
+          BRANCH_NAME: ${{ github.head_ref }}
         run: |
-          BRANCH_NAME="${{ github.head_ref }}"
+          : "${BRANCH_NAME:?github.head_ref is required}"
 
           # Valid patterns: bugfix/, hotfix/, feature/, infrastructure/, maintenance/, content/
           if [[ ! $BRANCH_NAME =~ ^(bugfix|hotfix|feature|infrastructure|maintenance|content)/[a-z0-9-]+$ ]]; then
@@ -36,8 +38,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Ensure PR targets main
+        env:
+          TARGET_BRANCH: ${{ github.base_ref }}
         run: |
-          TARGET_BRANCH="${{ github.base_ref }}"
+          : "${TARGET_BRANCH:?github.base_ref is required}"
 
           if [[ "$TARGET_BRANCH" != "main" ]]; then
             echo "⚠️  Warning: PR is targeting '$TARGET_BRANCH' instead of 'main'"

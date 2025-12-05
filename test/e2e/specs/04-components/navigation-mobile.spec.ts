@@ -399,8 +399,6 @@ test.describe('Mobile Navigation', () => {
     const page = await BasePage.init(playwrightPage)
     await page.setViewport(375, 667)
 
-    // Install fake timers before going to the page
-    await playwrightPage.clock.install()
     await setupTestPage(playwrightPage, '/')
 
     // Check body doesn't have no-scroll class initially
@@ -409,9 +407,8 @@ test.describe('Mobile Navigation', () => {
     })
     expect(hasNoScrollClassInitial).toBe(false)
 
-    // Open menu
-    await page.click('button[aria-label="toggle menu"]')
-    await playwrightPage.clock.fastForward(100) // Just enough for the class to be added
+    // Open menu via helper to wait for the animation and scroll lock
+    await page.openMobileMenu()
 
     // Body should have no-scroll class when menu is open
     const hasNoScrollClassOpen = await playwrightPage.locator('body').evaluate((el) => {
@@ -419,9 +416,8 @@ test.describe('Mobile Navigation', () => {
     })
     expect(hasNoScrollClassOpen).toBe(true)
 
-    // Close menu
-    await page.click('button[aria-label="toggle menu"]')
-    await playwrightPage.clock.fastForward(100) // Just enough for the class to be removed
+    // Close menu via helper to wait for scroll lock to clear
+    await page.closeMobileMenu()
 
     // Body should not have no-scroll class when menu is closed
     const hasNoScrollClassClosed = await playwrightPage.locator('body').evaluate((el) => {

@@ -10,22 +10,45 @@
 import { test, expect } from '@test/e2e/helpers'
 import { BasePage } from '@test/e2e/helpers/pageObjectModels/BasePage'
 
-/* eslint-disable import/no-unresolved */
+type EnvironmentClientValues = {
+  packageRelease: string
+  privacyPolicyVersion: string
+}
+
+const environmentClientFixturePath = '/testing/environment-client-values'
+
+const getEnvironmentClientValues = async (page: BasePage): Promise<EnvironmentClientValues> => {
+  await page.goto(environmentClientFixturePath, { skipCookieDismiss: true })
+  await page.waitForLoadState('networkidle')
+  await page.waitForFunction(() => {
+    const values = window.environmentClientValues
+    if (!values) {
+      return false
+    }
+    return typeof values.packageRelease === 'string' && typeof values.privacyPolicyVersion === 'string'
+  })
+
+  return await page.evaluate(() => {
+    if (!window.environmentClientValues) {
+      const EvaluationErrorCtor = window.EvaluationError!
+      throw new EvaluationErrorCtor('environmentClientValues not initialized')
+    }
+    return window.environmentClientValues
+  })
+}
+
+const getPrivacyPolicyVersionValue = async (page: BasePage): Promise<string> => {
+  const values = await getEnvironmentClientValues(page)
+  return values.privacyPolicyVersion
+}
+
 test.describe('Privacy Policy Version Integration', () => {
   test('should expose PRIVACY_POLICY_VERSION in import.meta.env', async ({
     page: playwrightPage,
   }) => {
     const page = await BasePage.init(playwrightPage)
 
-    await page.goto('/')
-    await page.waitForLoadState('networkidle')
-
-    // Execute in browser context to check if the env var is available
-    const privacyPolicyVersion = await page.page.evaluate(async () => {
-      // @ts-expect-error - runtime-resolved path
-      const { getPrivacyPolicyVersion } = await import('/src/components/scripts/utils/environmentClient.ts')
-      return getPrivacyPolicyVersion()
-    })
+    const privacyPolicyVersion = await getPrivacyPolicyVersionValue(page)
 
     // Assert that the version is defined
     expect(privacyPolicyVersion).toBeDefined()
@@ -38,14 +61,7 @@ test.describe('Privacy Policy Version Integration', () => {
   test('privacy policy version should be a valid date', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
 
-    await page.goto('/')
-    await page.waitForLoadState('networkidle')
-
-    const privacyPolicyVersion = await page.page.evaluate(async () => {
-      // @ts-expect-error - runtime-resolved path
-      const { getPrivacyPolicyVersion } = await import('/src/components/scripts/utils/environmentClient.ts')
-      return getPrivacyPolicyVersion()
-    })
+    const privacyPolicyVersion = await getPrivacyPolicyVersionValue(page)
 
     // Parse the date to ensure it's valid
     const parsedDate = new Date(privacyPolicyVersion)
@@ -64,22 +80,12 @@ test.describe('Privacy Policy Version Integration', () => {
     // Get version from home page
     await page.goto('/')
     await page.waitForLoadState('networkidle')
-
-    const versionFromHome = await page.page.evaluate(async () => {
-      // @ts-expect-error - runtime-resolved path
-      const { getPrivacyPolicyVersion } = await import('/src/components/scripts/utils/environmentClient.ts')
-      return getPrivacyPolicyVersion()
-    })
+    const versionFromHome = await getPrivacyPolicyVersionValue(page)
 
     // Get version from privacy page
     await page.goto('/privacy')
     await page.waitForLoadState('networkidle')
-
-    const versionFromPrivacy = await page.page.evaluate(async () => {
-      // @ts-expect-error - runtime-resolved path
-      const { getPrivacyPolicyVersion } = await import('/src/components/scripts/utils/environmentClient.ts')
-      return getPrivacyPolicyVersion()
-    })
+    const versionFromPrivacy = await getPrivacyPolicyVersionValue(page)
 
     // Both should be identical
     expect(versionFromHome).toBe(versionFromPrivacy)
@@ -90,18 +96,9 @@ test.describe('Privacy Policy Version Integration', () => {
   }) => {
     const page = await BasePage.init(playwrightPage)
 
-    await page.goto('/')
-    await page.waitForLoadState('networkidle')
-
-    // Test that it can be imported and used in a module context
-    const versionFromModule = await page.page.evaluate(async () => {
-      // @ts-expect-error - runtime-resolved path
-      const { getPrivacyPolicyVersion } = await import('/src/components/scripts/utils/environmentClient.ts')
-      return getPrivacyPolicyVersion()
-    })
+    const versionFromModule = await getPrivacyPolicyVersionValue(page)
 
     expect(versionFromModule).toBeDefined()
     expect(versionFromModule).toMatch(/^\d{4}-\d{2}-\d{2}$/)
   })
 })
-/* eslint-enable import/no-unresolved */

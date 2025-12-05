@@ -1,0 +1,81 @@
+---
+/**
+ * @file Environment client fixture for E2E tests. This page intentionally
+ * skips BaseLayout to keep hydration minimal for diagnostics.
+ */
+const pageTitle = 'Environment Client Values'
+---
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>{pageTitle}</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <style>
+      html {
+        background: #0b1118;
+        color: #f4f7fb;
+        font-family: system-ui, sans-serif;
+      }
+
+      body {
+        margin: 0;
+        padding: 2rem;
+      }
+
+      main {
+        margin: 0 auto;
+        max-width: 42rem;
+      }
+
+      .env-grid {
+        display: grid;
+        gap: 1rem;
+      }
+
+      .env-card {
+        background: rgb(255 255 255 / 4%);
+        border: 1px solid rgb(244 247 251 / 20%);
+        border-radius: 0.5rem;
+        padding: 1rem;
+      }
+
+      .env-label {
+        display: block;
+        font-size: 0.75rem;
+        letter-spacing: 0.08em;
+        margin-bottom: 0.35rem;
+        opacity: 0.7;
+        text-transform: uppercase;
+      }
+
+      .env-value {
+        font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+        font-size: 1rem;
+        word-break: break-all;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>{pageTitle}</h1>
+      <p data-testid="environment-client-description">
+        This fixture resolves client-side helpers exposed by <code>/src/components/scripts/utils/environmentClient.ts</code>
+        and mirrors their values into semantic elements for Playwright assertions.
+      </p>
+      <section class="env-grid" data-env-container>
+        <article class="env-card">
+          <span class="env-label">Package Release</span>
+          <output class="env-value" data-env-value="package-release">loading…</output>
+        </article>
+        <article class="env-card">
+          <span class="env-label">Privacy Policy Version</span>
+          <output class="env-value" data-env-value="privacy-policy-version">loading…</output>
+        </article>
+      </section>
+    </main>
+    <script>
+      import '@pages/testing/_environment-client-values'
+    </script>
+  </body>
+</html>

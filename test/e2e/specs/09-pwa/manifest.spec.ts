@@ -53,6 +53,26 @@ test.describe('PWA Manifest', () => {
     expect(sizes).toContain('512x512')
   })
 
+  test('@ready manifest includes maskable icon and multiple generic icons', async ({ page: playwrightPage }) => {
+    const page = await BasePage.init(playwrightPage)
+    const response = await page.goto('/manifest.json')
+    const manifest = await response?.json()
+
+    expect(Array.isArray(manifest.icons)).toBe(true)
+
+    const maskableIcons = manifest.icons.filter((icon: { purpose?: string }) => {
+      const purpose = icon.purpose || 'any'
+      return purpose.split(/\s+/).includes('maskable')
+    })
+    expect(maskableIcons.length).toBeGreaterThanOrEqual(1)
+
+    const genericIcons = manifest.icons.filter((icon: { purpose?: string }) => {
+      const purpose = icon.purpose || 'any'
+      return purpose.split(/\s+/).includes('any')
+    })
+    expect(genericIcons.length).toBeGreaterThanOrEqual(2)
+  })
+
   test('@ready manifest icons exist', async ({ request }) => {
     const response = await request.get('/manifest.json')
     expect(response.ok()).toBeTruthy()

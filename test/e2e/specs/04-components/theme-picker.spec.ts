@@ -69,7 +69,7 @@ test.describe('Theme Picker Component', () => {
      */
     test.beforeEach(async ({ page: playwrightPage }) => {
       const page = await BasePage.init(playwrightPage)
-      await setupCleanTestPage(page.page)
+      await setupCleanTestPage(page.page, '/')
       await page.waitForHeaderComponents()
     })
 
@@ -176,7 +176,7 @@ test.describe('Theme Picker Component', () => {
      */
     test.beforeEach(async ({ page: playwrightPage }) => {
       const page = await BasePage.init(playwrightPage)
-      await setupCleanTestPage(page.page)
+      await setupCleanTestPage(page.page, '/')
       await page.waitForHeaderComponents()
     })
 

@@ -24,7 +24,7 @@ test.describe('Keyboard Navigation', () => {
 
     for (let i = 0; i < maxTabs; i++) {
       await page.pressKey('Tab')
-      const focused = await page.page.evaluate(() => document.activeElement?.tagName)
+      const focused = await page.evaluate(() => document.activeElement?.tagName)
       if (focused && ['A', 'BUTTON', 'INPUT', 'TEXTAREA', 'SELECT'].includes(focused)) {
         focusableCount++
       }
@@ -46,7 +46,7 @@ test.describe('Keyboard Navigation', () => {
 
     for (let i = 0; i < 10; i++) {
       await page.pressKey('Tab')
-      const pos = await page.page.evaluate(() => {
+      const pos = await page.evaluate(() => {
         const el = document.activeElement
         if (!el) return null
         const rect = el.getBoundingClientRect()
@@ -73,7 +73,7 @@ test.describe('Keyboard Navigation', () => {
     await page.goto('/contact')
 
     // Dismiss cookie modal if it's open (common in test environments)
-    const consentModalVisible = await page.page.evaluate(() => {
+    const consentModalVisible = await page.evaluate(() => {
       const modal = document.getElementById('consent-modal-id')
       return modal ? window.getComputedStyle(modal).display !== 'none' : false
     })
@@ -94,7 +94,7 @@ test.describe('Keyboard Navigation', () => {
     let emailFocused = false
     for (let i = 0; i < 20; i++) {
       await page.pressKey('Tab')
-      const focused = await page.page.evaluate(() => document.activeElement?.getAttribute('type'))
+      const focused = await page.evaluate(() => document.activeElement?.getAttribute('type'))
       if (focused === 'email') {
         emailFocused = true
         break

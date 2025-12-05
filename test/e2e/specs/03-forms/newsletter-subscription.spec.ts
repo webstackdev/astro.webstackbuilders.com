@@ -222,15 +222,22 @@ test.describe('Newsletter Subscription Form', () => {
     }, undefined, { timeout: 3000 })
 
     const browserName = newsletterPage.context().browser()?.browserType().name()
-    const delayMs = browserName === 'webkit' ? 400 : 200
+    const delayMs = browserName === 'webkit' ? 400 : browserName === 'firefox' ? 600 : 200
     const delayOverride = await delayFetchForEndpoint(newsletterPage.page, { endpoint: '/api/newsletter', delayMs })
     const submitButton = newsletterPage.locator('#newsletter-submit')
-
+    const stateTimeoutMs = 4000
+    const stateTimeout = { timeout: stateTimeoutMs }
+    const apiResponsePromise = newsletterPage.page.waitForResponse('/api/newsletter')
     const submitPromise = submitButton.click()
+    const fetchStarted = delayOverride.waitForCall(stateTimeoutMs)
 
     try {
+      await fetchStarted
+      await expect(submitButton).toHaveAttribute('data-e2e-state', 'loading', stateTimeout)
       await expect(submitButton).toBeDisabled({ timeout: 2000 })
       await submitPromise
+      await apiResponsePromise
+      await expect(submitButton).toHaveAttribute('data-e2e-state', 'idle', stateTimeout)
       await expect(submitButton).toBeEnabled({ timeout: 2000 })
     } finally {
       await delayOverride.restore()
