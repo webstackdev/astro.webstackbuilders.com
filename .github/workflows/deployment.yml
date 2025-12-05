@@ -64,7 +64,7 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
 
       - name: Comment preview URL on PR
-        if: steps.vercel-preview.outcome == 'success'
+        if: always() && steps.vercel-preview.outcome == 'success'
         uses: actions/github-script@v8
         with:
           script: |
@@ -82,7 +82,7 @@ jobs:
             });
 
       - name: Comment preview failure on PR
-        if: steps.vercel-preview.outcome != 'success'
+        if: always() && steps.vercel-preview.outcome != 'success'
         uses: actions/github-script@v8
         with:
           script: |
@@ -128,12 +128,13 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
 
       - name: Log production deployment
+        if: always() && steps.vercel-production.outcome == 'success'
         run: |
           echo "🚀 Production deployment completed"
           echo "Production URL: ${{ steps.vercel-production.outputs.preview-url }}"
 
       - name: Comment production deployment failure on commit
-        if: steps.vercel-production.outcome != 'success'
+        if: always() && steps.vercel-production.outcome != 'success'
         uses: actions/github-script@v8
         with:
           script: |
