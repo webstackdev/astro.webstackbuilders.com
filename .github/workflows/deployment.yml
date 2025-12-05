@@ -8,10 +8,41 @@ on:
       - completed
 
 jobs:
+  verify-ci:
+    name: Verify CI Results
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+    steps:
+      - name: Ensure lint and unit tests succeeded
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const runId = context.payload.workflow_run.id;
+            const requiredJobs = ['Lint', 'Unit Tests'];
+            const { data } = await github.rest.actions.listJobsForWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: runId,
+              per_page: 100
+            });
+
+            const jobs = data.jobs || [];
+            const missing = requiredJobs.filter((jobName) => {
+              const job = jobs.find((entry) => entry.name === jobName);
+              return !job || job.conclusion !== 'success';
+            });
+
+            if (missing.length > 0) {
+              core.setFailed(`Required CI jobs missing or failed: ${missing.join(', ')}`);
+            }
+
   deploy-preview:
     name: Deploy Preview to Vercel
     runs-on: ubuntu-latest
+    needs: verify-ci
     if: >-
+      needs.verify-ci.result == 'success' &&
       github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.event == 'pull_request'
 
@@ -52,7 +83,9 @@ jobs:
   deploy-production:
     name: Deploy to Production (Vercel)
     runs-on: ubuntu-latest
+    needs: verify-ci
     if: >-
+      needs.verify-ci.result == 'success' &&
       github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_branch == 'main'
