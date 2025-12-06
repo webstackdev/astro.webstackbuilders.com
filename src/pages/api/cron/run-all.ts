@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro'
-import { getCronSecret, getSiteUrl } from '@pages/api/_environment/environmentApi'
+import { getCronSecret } from '@pages/api/_environment/environmentApi'
+import { getSiteUrl } from '@pages/api/_environment/siteUrlApi'
 import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
 import { buildApiErrorResponse, handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
 import { createApiFunctionContext } from '@pages/api/_utils/requestContext'

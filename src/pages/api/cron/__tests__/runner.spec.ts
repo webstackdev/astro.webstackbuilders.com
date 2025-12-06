@@ -86,7 +86,7 @@ describe('cron runner', () => {
     expect(fetchMock).toHaveBeenCalledTimes(3)
 
     const headersUsed = fetchMock.mock.calls[0]?.[1]?.headers as Record<string, string>
-    expect(headersUsed.Authorization ?? headersUsed.authorization).toBe('Bearer cron-secret')
+    expect(headersUsed['Authorization'] ?? headersUsed['authorization']).toBe('Bearer cron-secret')
   })
 
   it('surfaces downstream failure details', async () => {
