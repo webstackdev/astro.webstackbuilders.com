@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { execSync } from 'node:child_process'
+import { existsSync } from 'node:fs'
 import { TestError } from '@test/errors'
 
 vi.mock('../../../lib/config/environmentServer', () => ({
@@ -11,6 +12,10 @@ vi.mock('node:child_process', () => ({
   execSync: vi.fn(),
 }))
 
+vi.mock('node:fs', () => ({
+  existsSync: vi.fn(() => true),
+}))
+
 import { getOptionalEnv } from '../../../lib/config/environmentServer'
 
 describe('PrivacyPolicyVersion Integration', () => {
@@ -19,6 +24,7 @@ describe('PrivacyPolicyVersion Integration', () => {
 
   beforeEach(() => {
     vi.mocked(getOptionalEnv).mockReturnValue(undefined)
+    vi.mocked(existsSync).mockReturnValue(true)
 
     consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
     consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
@@ -150,6 +156,35 @@ describe('PrivacyPolicyVersion Integration', () => {
       })
       expect(consoleWarnSpy).toHaveBeenCalled()
     })
+
+    it('skips git lookup entirely when repository metadata is missing', async () => {
+      vi.mocked(existsSync).mockReturnValue(false)
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date('2026-01-15T00:00:00Z'))
+
+      const { privacyPolicyVersion } = await import('../index')
+
+      const mockUpdateConfig = vi.fn()
+      const integration = privacyPolicyVersion()
+
+      await integration.hooks['astro:config:setup']?.({
+        updateConfig: mockUpdateConfig,
+        // @ts-expect-error - Partial mock
+        config: {},
+      })
+
+      expect(execSync).not.toHaveBeenCalled()
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        '[privacy-policy-version] Git metadata not found. Skipping git lookup.',
+      )
+      expect(mockUpdateConfig).toHaveBeenCalledWith({
+        vite: {
+          define: {
+            'import.meta.env.PRIVACY_POLICY_VERSION': '"2026-01-15"',
+          },
+        },
+      })
+    })
   })
 
   describe('integration metadata', () => {
@@ -209,6 +244,26 @@ describe('PrivacyPolicyVersion Integration', () => {
       expect(execSync).toHaveBeenCalledWith(
         expect.stringContaining('--date=format:%Y-%m-%d'),
         expect.any(Object),
+      )
+    })
+
+    it('executes git commands from the project root directory', async () => {
+      vi.mocked(execSync).mockReturnValue('2024-03-15')
+
+      const { privacyPolicyVersion } = await import('../index')
+
+      const mockUpdateConfig = vi.fn()
+      const integration = privacyPolicyVersion()
+
+      await integration.hooks['astro:config:setup']?.({
+        updateConfig: mockUpdateConfig,
+        // @ts-expect-error - Partial mock
+        config: {},
+      })
+
+      expect(execSync).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({ cwd: process.cwd() }),
       )
     })
   })
