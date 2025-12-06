@@ -139,7 +139,13 @@ jobs:
             const commitUrl = sha
               ? `https://github.com/${context.repo.owner}/${context.repo.repo}/commit/${sha}`
               : `https://github.com/${context.repo.owner}/${context.repo.repo}`;
-            const actor = workflowRun.actor ?? 'workflow_run';
+            const actorLogin = typeof workflowRun.actor === 'string'
+              ? workflowRun.actor
+              : workflowRun.actor?.login;
+            const actor = actorLogin ?? context.actor ?? 'workflow_run';
+            const actorLink = workflowRun.actor?.html_url || (actorLogin ? `https://github.com/${actorLogin}` : null);
+            const actorDisplay = actor.startsWith('@') ? actor : `@${actor}`;
+            const triggeredBy = actorLink ? `[${actorDisplay}](${actorLink})` : actorDisplay;
 
             const body = [
               commentTag,
@@ -149,9 +155,9 @@ jobs:
               '| --- | --- |',
               `| Branch | \`${branch}\` |`,
               `| Commit | [${shortSha}](${commitUrl}) |`,
-              `| Preview | [Open preview](${previewUrl}) |`,
+              `| Preview | <a href="${previewUrl}" target="_blank" rel="noopener noreferrer">Open preview</a> |`,
               '',
-              `_Triggered by @${actor}_`
+              `_Triggered by ${triggeredBy}_`
             ].join('\n');
 
             const comments = await github.paginate(github.rest.issues.listComments, {
