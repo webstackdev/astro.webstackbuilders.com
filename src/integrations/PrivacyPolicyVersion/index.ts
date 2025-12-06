@@ -16,6 +16,7 @@
 
 import { execSync } from 'node:child_process'
 import type { AstroIntegration } from 'astro'
+import { getOptionalEnv } from '../../lib/config/environmentServer'
 
 const PRIVACY_POLICY_PATH = 'src/pages/privacy/index.astro'
 
@@ -54,7 +55,8 @@ function getPrivacyPolicyVersionFromGit(filePath: string): string | null {
  * Resolve privacy policy version using env, git metadata, or current date fallback.
  */
 export function resolvePrivacyPolicyVersion(): string {
-  const envVersion = process.env.PRIVACY_POLICY_VERSION?.trim()
+  const rawEnvVersion = getOptionalEnv('PRIVACY_POLICY_VERSION')
+  const envVersion = typeof rawEnvVersion === 'string' ? rawEnvVersion.trim() : ''
   if (envVersion) {
     console.log(`✅ Privacy policy version sourced from env: ${envVersion}`)
     return envVersion
