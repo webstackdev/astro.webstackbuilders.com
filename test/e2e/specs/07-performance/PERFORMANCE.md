@@ -1,6 +1,8 @@
 <!-- markdownlint-disable-file -->
 # Performance
 
+continue
+
 Latest run (Dec 2, 2025):
 
 - Mobile Chrome LCP measured 4.3 s (threshold 2.5 s)

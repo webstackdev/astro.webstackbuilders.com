@@ -5,6 +5,7 @@
 import { updateConsent } from './consent'
 import { cacheEmbed } from './socialEmbeds'
 import { saveMastodonInstance } from './mastodonInstances'
+import { setOverlayPauseState } from './animationLifecycle'
 
 // Re-export types
 export type {
@@ -115,5 +116,6 @@ export function exposeStoreActionsForTesting(): void {
     updateConsent,
     cacheEmbed,
     saveMastodonInstance,
+    setOverlayPauseState,
   })
 }

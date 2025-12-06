@@ -171,12 +171,19 @@ describe('ComputersAnimationElement', () => {
       const controllerArgs = createAnimationControllerMock.mock.calls[0]?.[0]
       const pauseHandler = controllerArgs?.onPause
       const resumeHandler = controllerArgs?.onPlay
+      const toggleButton = element.querySelector<HTMLButtonElement>('[data-animation-toggle]')
 
       pauseHandler?.()
+      expect(element.getAttribute('data-animation-state')).toBe('paused')
+      expect(toggleButton?.getAttribute('aria-pressed')).toBe('true')
+      expect(toggleButton?.getAttribute('aria-label')).toBe('Play animation')
       resumeHandler?.()
 
       expect(timelineMock.pause).toHaveBeenCalled()
       expect(timelineMock.play).toHaveBeenCalled()
+      expect(element.getAttribute('data-animation-state')).toBe('playing')
+      expect(toggleButton?.getAttribute('aria-pressed')).toBe('false')
+      expect(toggleButton?.getAttribute('aria-label')).toBe('Pause animation')
       expect(getBreadcrumbOperations()).toEqual(expect.arrayContaining(['pause', 'resume']))
     })
   })
@@ -221,10 +228,31 @@ describe('ComputersAnimationElement', () => {
       element.initialize()
 
       element.pause()
+      expect(element.getAttribute('data-animation-state')).toBe('paused')
       element.resume()
 
       expect(timelineMock.pause).toHaveBeenCalledTimes(1)
       expect(timelineMock.play).toHaveBeenCalledTimes(1)
+      expect(element.getAttribute('data-animation-state')).toBe('playing')
+    })
+  })
+
+  it('requests pause and play through the animation controller when the toggle is clicked', async () => {
+    await renderComputersAnimation(async ({ element }) => {
+      element.initialize()
+
+      const toggleButton = element.querySelector<HTMLButtonElement>('[data-animation-toggle]')
+      const controllerHandle = getLastControllerHandle()
+
+      expect(toggleButton).toBeTruthy()
+
+      toggleButton?.click()
+      expect(controllerHandle?.requestPause).toHaveBeenCalledTimes(1)
+
+      element.pause()
+
+      toggleButton?.click()
+      expect(controllerHandle?.requestPlay).toHaveBeenCalledTimes(1)
     })
   })
 

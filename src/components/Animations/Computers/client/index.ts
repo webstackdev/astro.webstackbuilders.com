@@ -2,9 +2,11 @@ import { LitElement } from 'lit'
 import { gsap } from 'gsap'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
+import { addButtonEventListeners } from '@components/scripts/elementListeners'
 import {
   createAnimationController,
   type AnimationControllerHandle,
+  type AnimationPlayState,
 } from '@components/scripts/store'
 import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
@@ -41,9 +43,13 @@ export class ComputersAnimationElement extends LitElement {
   private timeline: Timeline | null = null
   private initialized = false
   private animationController: AnimationControllerHandle | undefined
+  private toggleButton: HTMLButtonElement | null = null
   private readonly domReadyHandler = () => {
     document.removeEventListener('DOMContentLoaded', this.domReadyHandler)
     this.initialize()
+  }
+  private readonly toggleClickHandler = (event: Event) => {
+    this.handleToggleClick(event)
   }
 
   override createRenderRoot() {
@@ -78,9 +84,22 @@ export class ComputersAnimationElement extends LitElement {
 
     try {
       this.startAnimation()
+      this.toggleButton = this.querySelector('[data-animation-toggle]') as HTMLButtonElement | null
+
+      if (this.toggleButton) {
+        addButtonEventListeners(this.toggleButton, this.toggleClickHandler, this)
+      }
+
+      const defaultState = this.getDefaultAnimationState()
+      this.setAnimationState(defaultState)
+      if (defaultState === 'paused') {
+        this.timeline?.pause(0)
+      }
+
       this.animationController = createAnimationController({
         animationId: 'computers-animation',
         debugLabel: SCRIPT_NAME,
+        defaultState,
         onPause: () => {
           this.pause()
         },
@@ -100,6 +119,7 @@ export class ComputersAnimationElement extends LitElement {
 
     try {
       this.timeline?.pause()
+      this.setAnimationState('paused')
     } catch (error) {
       handleScriptError(error, context)
     }
@@ -111,6 +131,7 @@ export class ComputersAnimationElement extends LitElement {
 
     try {
       this.timeline?.play()
+      this.setAnimationState('playing')
     } catch (error) {
       handleScriptError(error, context)
     }
@@ -131,10 +152,95 @@ export class ComputersAnimationElement extends LitElement {
         this.timeline = null
       }
 
+      this.resetToggleButton()
+      this.removeAttribute('data-animation-state')
       this.initialized = false
     } catch (error) {
       handleScriptError(error, context)
     }
+  }
+
+  private setAnimationState(state: AnimationPlayState): void {
+    this.setAttribute('data-animation-state', state)
+    this.updateToggleButton(state)
+  }
+
+  private updateToggleButton(state: AnimationPlayState): void {
+    if (!this.toggleButton) return
+
+    this.toggleButton.setAttribute('aria-pressed', state === 'paused' ? 'true' : 'false')
+    this.toggleButton.setAttribute('aria-label', state === 'paused' ? 'Play animation' : 'Pause animation')
+    this.toggleButton.dataset['animationState'] = state
+
+    const pauseIcon = this.toggleButton.querySelector<HTMLElement>('[data-animation-icon="pause"]')
+    const playIcon = this.toggleButton.querySelector<HTMLElement>('[data-animation-icon="play"]')
+
+    pauseIcon?.classList.toggle('hidden', state === 'paused')
+    playIcon?.classList.toggle('hidden', state === 'playing')
+  }
+
+  private resetToggleButton(): void {
+    if (!this.toggleButton) return
+
+    this.toggleButton.removeAttribute('data-animation-state')
+    this.toggleButton.setAttribute('aria-label', 'Pause animation')
+    this.toggleButton.setAttribute('aria-pressed', 'false')
+
+    const pauseIcon = this.toggleButton.querySelector<HTMLElement>('[data-animation-icon="pause"]')
+    const playIcon = this.toggleButton.querySelector<HTMLElement>('[data-animation-icon="play"]')
+
+    pauseIcon?.classList.remove('hidden')
+    playIcon?.classList.add('hidden')
+
+    this.toggleButton = null
+  }
+
+  private handleToggleClick(event: Event): void {
+    event.preventDefault()
+
+    if (!this.toggleButton) return
+
+    const state = this.getAnimationState()
+
+    if (state === 'playing') {
+      if (this.animationController) {
+        this.animationController.requestPause()
+      } else {
+        this.pause()
+      }
+      return
+    }
+
+    if (this.animationController) {
+      this.animationController.requestPlay()
+      return
+    }
+
+    this.resume()
+  }
+
+  private getAnimationState(): AnimationPlayState {
+    const state = this.getAttribute('data-animation-state') as AnimationPlayState | null
+    return state ?? 'playing'
+  }
+
+  private getDefaultAnimationState(): AnimationPlayState {
+    if (typeof window === 'undefined') {
+      return 'playing'
+    }
+
+    try {
+      if (typeof window.matchMedia === 'function') {
+        const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+        if (mediaQuery.matches) {
+          return 'paused'
+        }
+      }
+    } catch {
+      // Best effort only; fall through to playing
+    }
+
+    return 'playing'
   }
 
   private startAnimation() {

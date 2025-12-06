@@ -66,3 +66,7 @@ export function getSentryAuthToken(): string {
   }
   return token
 }
+
+export const getOptionalEnv = (key: string): string | undefined => {
+  return process.env[key]
+}

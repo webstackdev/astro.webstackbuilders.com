@@ -89,6 +89,7 @@ declare global {
     updateConsent?: (_category: 'analytics' | 'marketing' | 'functional', _value: boolean) => void
     cacheEmbed?: (_key: string, _data: unknown, _ttl: number) => void
     saveMastodonInstance?: (_domain: string) => void
+    setOverlayPauseState?: (_source: string, _isPaused: boolean) => void
 
     /**
      * Custom evaluation error injected during Playwright tests

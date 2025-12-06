@@ -69,7 +69,10 @@ export class BreadCrumbPage extends BasePage {
       return
     }
 
-    const navigationPromise = this.page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 15000 })
+    const navigationPromise = this.page.waitForURL(
+      (url: URL) => url.pathname === targetHref,
+      { waitUntil: 'domcontentloaded', timeout: 15000 },
+    )
     await this.click(`a[href="${targetHref}"]`)
     await navigationPromise
     await this.waitForLoadState('networkidle')
