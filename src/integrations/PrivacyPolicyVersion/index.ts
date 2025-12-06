@@ -16,15 +16,17 @@
 
 import { execSync } from 'node:child_process'
 import type { AstroIntegration } from 'astro'
-import { BuildError } from '../../lib/errors/BuildError'
+
+const PRIVACY_POLICY_PATH = 'src/pages/privacy/index.astro'
+
+export const toIsoDateString = (date: Date): string => date.toISOString().slice(0, 10)
 
 /**
  * Get privacy policy version from git commit date
  * @param filePath - Path to privacy policy file (relative to project root)
  * @returns ISO date string (YYYY-MM-DD) of last commit
- * @throws {BuildError} If git command fails or returns empty result
  */
-function getPrivacyPolicyVersionFromGit(filePath: string): string {
+function getPrivacyPolicyVersionFromGit(filePath: string): string | null {
   try {
     // Get last commit date for privacy policy file in YYYY-MM-DD format
     const lastCommitDate = execSync(
@@ -36,21 +38,37 @@ function getPrivacyPolicyVersionFromGit(filePath: string): string {
       return lastCommitDate
     }
 
-    // If no commits found (new file), throw error
-    throw new BuildError(
-      `No git commits found for privacy policy file: ${filePath}`,
-      { phase: 'config-setup', filePath },
+    console.warn(
+      `[privacy-policy-version] No git commits found for privacy policy file: ${filePath}. Falling back to current date.`,
     )
+    return null
   } catch (error) {
-    // Git not available or command failed
-    if (error instanceof BuildError) {
-      throw error
-    }
-    throw new BuildError(
-      `Could not get privacy policy version from git: ${error instanceof Error ? error.message : String(error)}`,
-      { phase: 'config-setup', tool: 'git', cause: error },
+    console.warn(
+      `[privacy-policy-version] Could not get privacy policy version from git: ${error instanceof Error ? error.message : String(error)}`,
     )
+    return null
   }
+}
+
+/**
+ * Resolve privacy policy version using env, git metadata, or current date fallback.
+ */
+export function resolvePrivacyPolicyVersion(): string {
+  const envVersion = process.env.PRIVACY_POLICY_VERSION?.trim()
+  if (envVersion) {
+    console.log(`✅ Privacy policy version sourced from env: ${envVersion}`)
+    return envVersion
+  }
+
+  const gitVersion = getPrivacyPolicyVersionFromGit(PRIVACY_POLICY_PATH)
+  if (gitVersion) {
+    console.log(`✅ Privacy policy version set from git: ${gitVersion}`)
+    return gitVersion
+  }
+
+  const fallback = toIsoDateString(new Date())
+  console.log(`⚠️  Privacy policy version fallback applied: ${fallback}`)
+  return fallback
 }
 
 /**
@@ -61,11 +79,7 @@ export function privacyPolicyVersion(): AstroIntegration {
     name: 'privacy-policy-version',
     hooks: {
       'astro:config:setup': async ({ updateConfig }) => {
-        // Get version from git commit date
-        const privacyPolicyPath = 'src/pages/privacy/index.astro'
-        const version = getPrivacyPolicyVersionFromGit(privacyPolicyPath)
-
-        console.log(`✅ Privacy policy version set to: ${version}`)
+        const version = resolvePrivacyPolicyVersion()
 
         // Inject as Vite define so it's available as import.meta.env.PRIVACY_POLICY_VERSION
         updateConfig({
