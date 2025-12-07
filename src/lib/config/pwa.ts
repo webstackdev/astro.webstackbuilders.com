@@ -23,6 +23,9 @@ export const pwaConfig: PwaOptions = {
   },
   manifestFilename: 'manifest.json',
   registerType: 'autoUpdate',
+  /**
+   * Options for manifest.json generation
+   */
   manifest: {
     background_color: '#f3f4f6',
     description: contactData.company.description,
@@ -57,6 +60,9 @@ export const pwaConfig: PwaOptions = {
       },
     ],
   },
+  /**
+   * Options for Workbox service worker generation
+   */
   workbox: {
     // ID to be prepended to cache names
     cacheId: 'webstackbuilders',
