@@ -1,15 +1,23 @@
-// path alias for markdown folder causes self referential error
 /**
  * Markdown Configuration
  *
- * Overrides of function names is to provide for better debugging
+ * Overrides of function names with Object.defineProperty is to
+ * provide for better debugging
+ *
+ * NOTE: Use of path alias for markdown folder in this file causes
+ * self referential compile error
  */
-
 import type { MdxOptions } from '@astrojs/mdx'
 import type { ShikiConfig } from 'astro/'
 // import { transformerNotationDiff } from '@shiki/transformers'
 
-/** Rehype plugins */
+/**
+ * ==============================================================
+ *
+ * Rehype plugins
+ *
+ * ==============================================================
+ */
 
 import { rehypeAccessibleEmojis } from 'rehype-accessible-emojis'
 Object.defineProperty(rehypeAccessibleEmojis, 'name', { value: 'rehypeAccessibleEmojis' })
@@ -18,7 +26,14 @@ import type { Options as RehypeAutolinkHeadingsOptions } from 'rehype-autolink-h
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 Object.defineProperty(rehypeAutolinkHeadings, 'name', { value: 'rehypeAutolinkHeadings' })
 
-/** Remark plugins */
+/**
+ * ==============================================================
+ *
+ * Remark plugins
+ *
+ * ==============================================================
+ */
+
 import remarkBreaks from 'remark-breaks'
 Object.defineProperty(remarkBreaks, 'name', { value: 'remarkBreaks' })
 
@@ -31,11 +46,13 @@ import type { Options as RemarkTocOptions } from 'remark-toc'
 import remarkToc from 'remark-toc'
 Object.defineProperty(remarkToc, 'name', { value: 'remarkToc' })
 
-// Create a named instance of remarkLinkifyRegex for URL auto-linking
-const remarkLinkifyRegexUrls = remarkLinkifyRegex(/^(https?:\/\/[^\s$.?#].[^\s]*)$/i)
-Object.defineProperty(remarkLinkifyRegexUrls, 'name', { value: 'remarkLinkifyRegex' })
-
-// Use our TypeScript implementations (modern Remark API)
+/**
+ * ==============================================================
+ *
+ * Project TypeScript implementations (modern Remark API)
+ *
+ * ==============================================================
+ */
 
 import remarkAbbreviations from '../markdown/plugins/remark-abbreviations'
 Object.defineProperty(remarkAbbreviations, 'name', { value: 'remarkAbbreviations' })
@@ -53,13 +70,33 @@ Object.defineProperty(remarkReplacements, 'name', { value: 'remarkReplacements' 
 import { rehypeTailwindClasses } from '../markdown/plugins/rehype-tailwind'
 Object.defineProperty(rehypeTailwindClasses, 'name', { value: 'rehypeTailwindClasses' })
 
-/** Configuration for remark-attributes plugin */
+/**
+ * ==============================================================
+ *
+ * Constants
+ *
+ * ==============================================================
+ */
+
+/** Named instance of remarkLinkifyRegex for URL auto-linking */
+const remarkLinkifyRegexUrls = remarkLinkifyRegex(/^(https?:\/\/[^\s$.?#].[^\s]*)$/i)
+Object.defineProperty(remarkLinkifyRegexUrls, 'name', { value: 'remarkLinkifyRegex' })
+
+/**
+ * ==============================================================
+ *
+ * Configuration
+ *
+ * ==============================================================
+ */
+
+/** remark-attributes plugin */
 export const remarkAttributesConfig = { scope: 'permissive' } as const
 
-/** Configuration for remark-toc plugin */
+/** remark-toc plugin */
 export const remarkTocConfig: RemarkTocOptions = { heading: 'contents' }
 
-/** Configuration for rehype-autolink-headings plugin */
+/** rehype-autolink-headings plugin */
 export const rehypeAutolinkHeadingsConfig: RehypeAutolinkHeadingsOptions = {
   content: {
     type: 'element',
@@ -105,7 +142,7 @@ export const shikiConfigOptions: ShikiConfig = {
   // ],
 }
 
-/** Configuration for remark-rehype plugin (conversion from markdown to HTML AST) */
+/** remark-rehype plugin (conversion from markdown to HTML AST) */
 export const remarkRehypeConfig = {
   /** Footnote label displayed to return to reference */
   footnoteBackLabel: 'Back to reference 1',
@@ -113,6 +150,13 @@ export const remarkRehypeConfig = {
   footnoteLabel: 'Footnotes',
 } as const
 
+/**
+ * ==============================================================
+ *
+ * Exported Markdown configuration
+ *
+ * ==============================================================
+ */
 export const markdownConfig: Partial<MdxOptions> = {
   /** Default is true. Enable GitHub Flavored Markdown */
   gfm: true,

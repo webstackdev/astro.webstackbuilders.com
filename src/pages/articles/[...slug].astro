@@ -41,8 +41,8 @@ const authorId =
   description={article.data.description}
   {...(cover?.src && { image: cover.src })}
   {...(article.data.readingTime && { readingTime: article.data.readingTime })}
-  showToc={false}
 >
+  {/** SLOT: hero-image */}
   {
     cover && (
       <div
@@ -54,8 +54,10 @@ const authorId =
     )
   }
 
+  {/** SLOT: default (unnamed) */}
   <div set:html={renderedContent} />
 
+  {/** SLOT: after-content */}
   <div class="border-t border-border pt-8 mt-12" slot="after-content">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
       <div>
@@ -73,11 +75,10 @@ const authorId =
         class="shrink-0"
       />
     </div>
-
-    {/* WebMentions - shows mentions, likes, and reposts from across the web */}
     <WebMentions url={`https://webstackbuilders.com${path}`} />
   </div>
 
+  {/** SLOT: related-content */}
   <div class="border-t border-border pt-8 mt-12" slot="related-content">
     <header class="mb-8">
       <h3 class="text-2xl font-bold text-text">Other things I've written</h3>

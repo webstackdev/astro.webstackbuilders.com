@@ -38,7 +38,7 @@ Follow the prompts to set up your project with your preferred configuration.
 
 A typical Astro project structure looks like this:
 
-```
+```bash
 /
 ├── public/
 │   └── favicon.svg
