@@ -79,6 +79,7 @@ const articlesSchema = withBreadcrumbTitleWarning(
     isDraft: z.boolean().default(false),
     featured: z.boolean().default(false),
     readingTime: z.string().optional(),
+    showToc: z.boolean().default(true),
   }),
   'articles'
 )
@@ -232,11 +233,9 @@ const testimonialCollection = defineCollection({
 })
 
 /**
- * Visual themes used by the Theme Switcher component and script. These are used by:
- *
- * - The `components/themePicker/themes.njk` template that generates the theme card modal and items (`id` and `name` properties only)
- * - The `components/head/meta.njk` to set the <meta name="theme-color" content="CSS_COLOR" /> tag used for outside-the-page UI elements by the browser (`id` and `colors.backgroundOffset` properties only)
- * - The `components/Head/client.ts` to set the window.metaColors global variable that iss used to swap out the previous <meta> element when the theme is changed (`id` and `colors.backgroundOffset` properties only)
+ * This comment is a placeholder to explain the src/content/themes.json used by the
+ * Theme Switcher component and script to define visual themes. It is not used by the
+ * content system, but there's also a lack of good logical places to add such a data file.
  */
 
 /**

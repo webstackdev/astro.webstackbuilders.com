@@ -1,6 +1,12 @@
 <!-- markdownlint-disable-file -->
 # TODO
 
+## Fix E2E mock container test runner, migrate DB providers
+
+Refactor from using Suprabase and Upstash to using Astro DB + Turso
+
+[Astro DB](https://docs.astro.build/en/guides/astro-db/)
+
 ## Performance
 
 Implement mitigations in test/e2e/specs/07-performance/PERFORMANCE.md

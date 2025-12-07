@@ -2,7 +2,7 @@
 import Icon from '@components/Icon/index.astro'
 
 export interface Props {
-  type?: 'warning' | 'action' | 'tip' | 'info' | 'note'
+  type?: 'warning' | 'action' | 'tip' | 'info' | 'note' | 'success' | 'danger'
 }
 
 const { type = 'info' } = Astro.props
@@ -14,7 +14,9 @@ const iconMap = {
   info: 'info',
   tip: 'lightbulb',
   note: 'question',
-}
+  success: 'check',
+  danger: 'warning',
+} as const
 
 // Map callout types to their background color CSS custom properties
 const backgroundColorMap = {
@@ -23,7 +25,9 @@ const backgroundColorMap = {
   info: 'var(--color-info-bg)',
   tip: 'var(--color-bg-offset)',
   note: 'var(--color-bg-offset)',
-}
+  success: 'var(--color-success-bg)',
+  danger: 'var(--color-danger-bg)',
+} as const
 
 // Map callout types to their border/icon color CSS custom properties
 const borderColorMap = {
@@ -32,11 +36,13 @@ const borderColorMap = {
   info: 'var(--color-info)',
   tip: 'var(--color-text)',
   note: 'var(--color-text)',
-}
+  success: 'var(--color-success)',
+  danger: 'var(--color-danger)',
+} as const
 
-const icon = iconMap[type]
-const backgroundColor = backgroundColorMap[type]
-const borderColor = borderColorMap[type]
+const icon = iconMap[type] ?? iconMap.info
+const backgroundColor = backgroundColorMap[type] ?? backgroundColorMap.info
+const borderColor = borderColorMap[type] ?? borderColorMap.info
 ---
 
 <style define:vars={{ backgroundColor, borderColor }}>
