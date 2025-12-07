@@ -12,7 +12,7 @@
  * ```
  */
 import { Image } from 'astro:assets'
-import { AvatarManager, normalizeNameToFilename } from '@components/Avatar/server'
+import { AvatarManager, normalizeNameToFilename, getFallbackInitials } from '@components/Avatar/server'
 
 export interface Props {
   /** The person's name (will be normalized for filename lookup) */
@@ -34,7 +34,6 @@ if (!avatarImage && !name) {
 }
 
 const avatarAlt = `Photo of ${name}`
-const fallbackInitial = name.charAt(0).toUpperCase()
 ---
 
 <div class:list={['avatar-container', className]}>
@@ -49,8 +48,8 @@ const fallbackInitial = name.charAt(0).toUpperCase()
         height={avatarImage.height}
       />
     ) : (
-      <div class="avatar-placeholder bg-offset w-16 h-16 rounded-full flex items-center justify-center text-offset">
-        {fallbackInitial}
+      <div class="avatar-placeholder bg-primary w-16 h-16 rounded-full flex items-center justify-center text-offset">
+        {getFallbackInitials(name)}
       </div>
     )
   }
