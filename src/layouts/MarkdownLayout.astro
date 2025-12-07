@@ -1,4 +1,6 @@
 ---
+import { type CollectionEntry, render } from 'astro:content'
+
 /**
  * Layout for Markdown/MDX content files
  */
@@ -24,7 +26,7 @@ import Icon from '@components/Icon/index.astro'
 import Testimonials from '@components/Testimonials/index.astro'
 
 /** Export components for use in MDX */
-export { Avatar, Callout, Contact, Embed, Featured, Newsletter, Carousel, Highlighter, Shares, Icon, Testimonials }
+const Components = { Avatar, Callout, Contact, Embed, Featured, Newsletter, Carousel, Highlighter, Shares, Icon, Testimonials }
 
 export interface Props {
   /** Page title shown in <title> and H1 */
@@ -35,6 +37,8 @@ export interface Props {
   subtitle?: string
   /** Content type for OpenGraph metadata */
   contentType?: 'article' | 'website'
+  /** Raw Markdown content from "body" property on content collection */
+  collectionItem: CollectionEntry<'articles'> | CollectionEntry<'services'> | CollectionEntry<'caseStudies'>
   /** Publication date for articles */
   publishDate?: Date
   /** Last modified date */
@@ -62,6 +66,7 @@ const {
   path,
   subtitle,
   contentType = 'article',
+  collectionItem,
   publishDate,
   modifiedDate,
   author,
@@ -70,7 +75,7 @@ const {
   description,
   image,
   readingTime,
-  showToc = true,
+  showToc,
   contentClass = '',
 } = Astro.props
 
@@ -93,6 +98,8 @@ const baseLayoutProps = {
   ...(description && { description }),
   ...(image && { image }),
 }
+
+const { Content } = await render(collectionItem)
 ---
 
 <BaseLayout {...baseLayoutProps}>
@@ -118,22 +125,30 @@ const baseLayoutProps = {
       }
     </header>
 
+    {/** SLOT: hero-image, conditional on image specified */}
     <slot name="hero-image" />
 
-    <div class="grid gap-8 lg:grid-cols-[250px_1fr] lg:gap-16" itemprop="articleBody">
+    {/** SLOT: default (unnamed) */}
+    <div
+      id="content"
+      class={`${showToc ? 'grid gap-8 lg:grid-cols-[250px_1fr]' : 'flex flex-col gap-8'}`}
+      itemprop="articleBody"
+    >
       {showToc && <Toc />}
       <div class="markdown-content__prose leading-relaxed">
-        <slot />
+        <Content components={{ ...Components }} />
       </div>
     </div>
 
+    {/** SLOT: after-content, includes social shares and web mentions */}
     <slot name="after-content" />
 
     {section && <Footer section={section} />}
   </article>
 
+  {/** SLOT: related-content, renders a suggested content carousel */}
   <slot name="related-content" />
 
-  <!-- Mastodon sharing modal for Highlighter -->
+  <!-- Mastodon sharing modal for Highlighter, hidden except on hover -->
   <MastodonModal />
 </BaseLayout>

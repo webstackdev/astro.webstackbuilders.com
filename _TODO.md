@@ -1,6 +1,190 @@
 <!-- markdownlint-disable-file -->
 # TODO
 
+
+
+
+
+
+
+
+
+
+import Avatar from '@components/Avatar/index.astro'
+import Callout from '@components/Callout/index.astro'
+import Contact from '@components/CallToAction/Contact/index.astro'
+import Featured from '@components/CallToAction/Featured/index.astro'
+import Newsletter from '@components/CallToAction/Newsletter/index.astro'
+import Carousel from '@components/Carousel/index.astro'
+import Embed from '@components/Social/Embed/index.astro'
+import Highlighter from '@components/Social/Highlighter/index.astro'
+import Shares from '@components/Social/Shares/index.astro'
+import Icon from '@components/Icon/index.astro'
+import Testimonials from '@components/Testimonials/index.astro'
+
+## Platform Engineering
+
+DevOps with extra steps:
+
+It's about providing a full environment, process and automation, for developers to build, secure, and run their applications. DevOps builds specific pieces, Platform is the whole package.
+
+I describe it as making internal devops products. I try to promote sound architecture, frequent deploys, data-driven ops and code as documentation into processes and opinionated tooling for our devs. I try to collect feedback and measure usage of those tools. Much like I would if I was selling a public SaaS.
+
+platform eng as a team that provides holistic solutions including monitoring and alerting and uptime, working wtih eng teams to tune the solution apose to tayloring the solutions.
+
+Example the platform eng team does everything in K8's, so when u build ur app make sure it runs on k8's.
+
+platform team is providing an end to end solution to abstract away complexity in favor of a standardization (or "opinionated" is another term you see used). think Heroku
+
+on the backend there's usually a plethora of tooling (usually need some homegrown solutions), CI/CD, versioning system, container orchestration, templating engine, IaC, monitoring / telemetry / instrumentation / logging (OTEL, DataDog, etc), alerting, etc. all this should be documented and available for developers to use in a self-service way. there should be zero need for any manual steps from your DevOps/tech ops/SRE/whatever team.
+
+## Highlighter Component
+
+The Highlighter component allows you to <Highlighter>emphasize specific text</Highlighter> within your content. It's perfect for drawing attention to key concepts or important terms.
+
+## Code Examples
+
+Here's a standard code block for reference:
+
+```typescript
+// Example TypeScript code
+interface DemoInterface {
+  title: string;
+  description: string;
+  tags: string[];
+}
+
+const demo: DemoInterface = {
+  title: "Demo Article",
+  description: "This is a demo",
+  tags: ["typescript", "demo"]
+};
+```
+
+## Carousel Component
+
+Showcase multiple images or content in a carousel:
+
+<Carousel>
+  <img src="./demo-image.jpg" alt="Demo slide 1" />
+  <img src="./demo-image.jpg" alt="Demo slide 2" />
+  <img src="./demo-image.jpg" alt="Demo slide 3" />
+</Carousel>
+
+## Social Embeds
+
+### YouTube Embed
+
+<Embed
+  type="youtube"
+  url="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+/>
+
+### X (Twitter) Embed
+
+<Embed
+  type="x"
+  url="https://twitter.com/example/status/1234567890"
+/>
+
+### GitHub Gist Embed
+
+<Embed
+  type="gist"
+  url="https://gist.github.com/example/1234567890abcdef"
+/>
+
+## Testimonials Component
+
+Display customer feedback and testimonials:
+
+<Testimonials count={3} />
+
+## Newsletter Signup
+
+Encourage readers to subscribe to your newsletter:
+
+<Newsletter />
+
+## Contact Call-to-Action
+
+Invite readers to get in touch:
+
+<Contact />
+
+## Featured Content
+
+Highlight featured articles or services:
+
+<Featured type="articles" limit={3} />
+
+## Social Sharing
+
+Add social sharing buttons for the article:
+
+<Shares />
+
+## Icon Component
+
+Use SVG sprites for icons throughout your content:
+
+<Icon name="check" class="w-6 h-6 text-success" />
+<Icon name="warning" class="w-6 h-6 text-warning" />
+<Icon name="info" class="w-6 h-6 text-info" />
+
+## Markdown Features
+
+### Lists
+
+Unordered lists:
+
+- First item
+- Second item
+- Third item with **bold text**
+- Fourth item with *italic text*
+
+Ordered lists:
+
+1. First step
+2. Second step
+3. Third step
+
+### Tables
+
+| Feature | Supported | Notes |
+|---------|-----------|-------|
+| Callouts | ✅ | Multiple types available |
+| Avatars | ✅ | Configurable sizes |
+| Carousels | ✅ | Auto-play optional |
+| Embeds | ✅ | Multiple platforms |
+
+### Blockquotes
+
+> This is a blockquote. Use it for quotes, citations, or to highlight important statements from external sources.
+
+### Links
+
+Visit our [homepage](/) or read more [articles](/articles) to explore additional content.
+
+## Conclusion
+
+This demo article showcases all the components available in our markdown system. Each component is designed to enhance your content and provide a better reading experience for your audience.
+
+Remember, this is a demonstration article (marked as draft), so it won't appear in production builds or sitemaps. Feel free to experiment with these components when creating your own content!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## Fix E2E mock container test runner, migrate DB providers
 
 Refactor from using Suprabase and Upstash to using Astro DB + Turso

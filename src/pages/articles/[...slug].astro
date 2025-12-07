@@ -22,7 +22,7 @@ export async function getStaticPaths() {
 }
 
 const { article } = Astro.props
-const renderedContent = article.rendered?.html || article.body || 'Content not available'
+
 const path = `/articles/${article.id}`
 const pageTitle = article.data.title
 const cover = article.data.image
@@ -34,6 +34,7 @@ const authorId =
   pageTitle={pageTitle}
   path={path}
   contentType="article"
+  collectionItem={article}
   publishDate={article.data.publishDate}
   author={authorId}
   section="Technology"
@@ -41,6 +42,7 @@ const authorId =
   description={article.data.description}
   {...(cover?.src && { image: cover.src })}
   {...(article.data.readingTime && { readingTime: article.data.readingTime })}
+  showToc={article.data.showToc ?? true}
 >
   {/** SLOT: hero-image */}
   {
@@ -53,9 +55,6 @@ const authorId =
       </div>
     )
   }
-
-  {/** SLOT: default (unnamed) */}
-  <div set:html={renderedContent} />
 
   {/** SLOT: after-content */}
   <div class="border-t border-border pt-8 mt-12" slot="after-content">

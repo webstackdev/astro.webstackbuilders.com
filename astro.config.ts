@@ -1,5 +1,6 @@
 import AstroPWA from '@vite-pwa/astro'
 import icon from 'astro-icon'
+import linkValidator from 'astro-link-validator'
 import lit from '@semantic-ui/astro-lit'
 import mdx from '@astrojs/mdx'
 import sentry from '@sentry/astro'
@@ -70,6 +71,13 @@ const standardIntegrations = [
       exclude: ['downloads', 'social-shares', '/articles/demo', 'testing'],
     }),
   }),
+  /** Validate links in built site output on astro:build:done integration hook */
+  linkValidator({
+    checkExternal: false,
+    failOnBrokenLinks: false,
+    verbose: true,
+  }),
+  /** Integration to write pages.json after build so E2E tests can discover what pages exist */
   pagesJsonWriter(),
   /** Debugging tools for Astro View Transition API */
   vtbot(),
