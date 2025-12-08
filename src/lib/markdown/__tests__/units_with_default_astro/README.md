@@ -50,14 +50,12 @@ Current tests in this directory:
 - `remark-breaks-astro.spec.ts` - Line break handling
 - `remark-emoji-astro.spec.ts` - Emoji shortcode conversion
 - `remark-linkify-regex-astro.spec.ts` - URL auto-linking
-- `remark-toc-astro.spec.ts` - Table of contents generation
 
 ## Configuration Imports
 
 Tests import production configurations from `src/lib/config/markdown.ts`:
 
 - `remarkAttrConfig` - Attribute plugin settings
-- `remarkTocConfig` - Table of contents settings
 - `rehypeAutolinkHeadingsConfig` - Heading anchor settings
 - `remarkRehypeConfig` - Astro's remark-to-rehype settings
 

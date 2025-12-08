@@ -1,30 +1,33 @@
 ---
+import { type CollectionEntry, render } from 'astro:content'
+import { Image } from 'astro:assets'
+import type { MarkdownHeading } from 'astro'
+
 /**
  * Layout for Markdown/MDX content files
  */
 import BaseLayout from '@layouts/BaseLayout.astro'
-import Footer from '@components/Layout/Markdown/Footer/index.astro'
 import Lead from '@components/Layout/Markdown/Lead/index.astro'
 import Subtitle from '@components/Layout/Markdown/Subtitle/index.astro'
 import Title from '@components/Layout/Markdown/Title/index.astro'
-import Toc from '@components/Layout/Markdown/Toc/index.astro'
+import Toc from '@components/Toc/index.astro'
 
 /** Components made available for use in MDX */
 import Avatar from '@components/Avatar/index.astro'
 import Callout from '@components/Callout/index.astro'
-import Contact from '@components/CallToAction/Contact/index.astro'
-import Featured from '@components/CallToAction/Featured/index.astro'
-import Newsletter from '@components/CallToAction/Newsletter/index.astro'
 import Carousel from '@components/Carousel/index.astro'
+import Contact from '@components/CallToAction/Contact/index.astro'
 import Embed from '@components/Social/Embed/index.astro'
+import Featured from '@components/CallToAction/Featured/index.astro'
 import Highlighter from '@components/Social/Highlighter/index.astro'
-import MastodonModal from '@components/Social/Mastodon/index.astro'
-import Shares from '@components/Social/Shares/index.astro'
 import Icon from '@components/Icon/index.astro'
+import MastodonModal from '@components/Social/Mastodon/index.astro'
+import Newsletter from '@components/CallToAction/Newsletter/index.astro'
+import Shares from '@components/Social/Shares/index.astro'
 import Testimonials from '@components/Testimonials/index.astro'
 
 /** Export components for use in MDX */
-export { Avatar, Callout, Contact, Embed, Featured, Newsletter, Carousel, Highlighter, Shares, Icon, Testimonials }
+const Components = { Avatar, Callout, Carousel, Contact, Embed, Featured, Highlighter, Icon, Image, MastodonModal, Newsletter, Shares, Testimonials }
 
 export interface Props {
   /** Page title shown in <title> and H1 */
@@ -35,14 +38,18 @@ export interface Props {
   subtitle?: string
   /** Content type for OpenGraph metadata */
   contentType?: 'article' | 'website'
+  /** Raw Markdown content from "body" property on content collection */
+  collectionItem:
+    | CollectionEntry<'articles'>
+    | CollectionEntry<'services'>
+    | CollectionEntry<'caseStudies'>
+    | CollectionEntry<'downloads'>
   /** Publication date for articles */
   publishDate?: Date
   /** Last modified date */
   modifiedDate?: Date
   /** Author name */
   author?: string
-  /** Article section/category */
-  section?: string
   /** Article tags */
   tags?: string[]
   /** Meta description */
@@ -62,15 +69,15 @@ const {
   path,
   subtitle,
   contentType = 'article',
+  collectionItem,
   publishDate,
   modifiedDate,
   author,
-  section,
   tags,
   description,
   image,
   readingTime,
-  showToc = true,
+  showToc,
   contentClass = '',
 } = Astro.props
 
@@ -88,11 +95,14 @@ const baseLayoutProps = {
   ...(publishDate && { publishDate }),
   ...(modifiedDate && { modifiedDate }),
   ...(author && { author }),
-  ...(section && { section }),
   ...(tags && { tags }),
   ...(description && { description }),
   ...(image && { image }),
 }
+
+const { Content, headings = [] } = await render(collectionItem)
+const tocHeadings: MarkdownHeading[] = headings.filter(heading => heading.depth > 1)
+const shouldRenderToc = showToc !== false && tocHeadings.length > 0
 ---
 
 <BaseLayout {...baseLayoutProps}>
@@ -118,22 +128,31 @@ const baseLayoutProps = {
       }
     </header>
 
+    {/** SLOT: hero-image, conditional on image specified */}
     <slot name="hero-image" />
 
-    <div class="grid gap-8 lg:grid-cols-[250px_1fr] lg:gap-16" itemprop="articleBody">
-      {showToc && <Toc />}
+    {/** SLOT: content-prefix, renders prior to markdown body (e.g., metadata panels) */}
+    <slot name="content-prefix" />
+
+    {/** SLOT: default (unnamed) */}
+    <div
+      id="content"
+      class={`${shouldRenderToc ? 'grid gap-8 lg:grid-cols-[250px_1fr]' : 'flex flex-col gap-8'}`}
+      itemprop="articleBody"
+    >
+      {shouldRenderToc && <Toc items={tocHeadings} />}
       <div class="markdown-content__prose leading-relaxed">
-        <slot />
+        <Content components={{ ...Components }} />
       </div>
     </div>
 
+    {/** SLOT: after-content, includes social shares and web mentions */}
     <slot name="after-content" />
-
-    {section && <Footer section={section} />}
   </article>
 
+  {/** SLOT: related-content, renders a suggested content carousel */}
   <slot name="related-content" />
 
-  <!-- Mastodon sharing modal for Highlighter -->
+  <!-- Mastodon sharing modal for Highlighter, hidden except on hover -->
   <MastodonModal />
 </BaseLayout>

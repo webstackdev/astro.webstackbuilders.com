@@ -20,7 +20,6 @@ export async function getStaticPaths() {
 }
 
 const { download } = Astro.props
-const renderedContent = download.rendered?.html || download.body || 'Content not available'
 const path = `/downloads/${download.id}`
 const pageTitle = download.data.title
 const cover = download.data.image
@@ -34,9 +33,9 @@ const authorId =
   pageTitle={pageTitle}
   path={path}
   contentType="article"
+  collectionItem={download}
   publishDate={download.data.publishDate}
   author={authorId}
-  section="Resources"
   tags={download.data.tags}
   description={download.data.description}
   {...(cover?.src && { image: cover.src })}
@@ -57,6 +56,7 @@ const authorId =
   <!-- Resource Meta Information -->
   <div
     class="flex flex-wrap gap-4 mb-8 p-4 bg-bg-offset rounded-xl border border-border"
+    slot="content-prefix"
   >
     <div class="flex items-center gap-2">
       <svg
@@ -135,9 +135,6 @@ const authorId =
       )
     }
   </div>
-
-  <!-- Main Content -->
-  <div set:html={renderedContent} />
 
   <!-- Download Form -->
   <div class="border-t border-border pt-12 mt-12" slot="after-content">

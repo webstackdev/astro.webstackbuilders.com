@@ -79,11 +79,9 @@ jobs:
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
-      - name: Sync Astro types
-        run: npm run sync
-
-      - name: Run Astro check
-        run: npm run check
+      # Astro build runs sync, check, and integrations including verify links
+      - name: Verify green build
+        run: npm run build
 
       - name: Run unit tests (Vitest — coverage with GitHub Actions reporter)
         id: vitest

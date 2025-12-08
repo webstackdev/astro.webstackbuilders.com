@@ -5,7 +5,7 @@
  * and applies all configured markdown plugins.
  */
 
-interface Props {
+export interface Props {
   /** The markdown content to render (from fixtures) */
   content: string
 }
@@ -37,8 +37,6 @@ const processMarkdown = async () => {
 
   const remarkLinkifyRegexModule = await import('remark-linkify-regex')
   const remarkLinkifyRegex = remarkLinkifyRegexModule.default
-
-  const { default: remarkToc } = await import('remark-toc')
   const { rehypeAccessibleEmojis } = await import('rehype-accessible-emojis')
   const { default: rehypeAutolinkHeadings } = await import('rehype-autolink-headings')
 
@@ -47,7 +45,7 @@ const processMarkdown = async () => {
 
   // Import configs
   const configModule = await import('../../lib/config/markdown')
-  const { remarkAttributesConfig, remarkTocConfig, rehypeAutolinkHeadingsConfig, remarkRehypeConfig } = configModule
+  const { remarkAttributesConfig, rehypeAutolinkHeadingsConfig, remarkRehypeConfig } = configModule
 
   // Process markdown through the full pipeline
   const processor = remark()
@@ -58,7 +56,6 @@ const processMarkdown = async () => {
     .use(remarkBreaks)
     .use(remarkEmoji)
     .use(remarkLinkifyRegex(/^(https?:\/\/[^\s$.?#].[^\s]*)$/i))
-    .use(remarkToc, remarkTocConfig)
     .use(remarkRehype, remarkRehypeConfig)
     .use(rehypeSlug)
     .use(rehypeAccessibleEmojis)

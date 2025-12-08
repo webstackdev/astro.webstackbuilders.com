@@ -16,9 +16,8 @@
 
 import type { ImageMetadata } from 'astro'
 import { isDev } from '@lib/config/environmentServer'
+import type { AvatarMap } from './@types'
 import { loadAvatarModules } from './avatarImports'
-
-type AvatarMap = Record<string, ImageMetadata>
 
 /**
  * Normalize a person's name to a filename format
@@ -36,6 +35,24 @@ export function normalizeNameToFilename(name: string): string {
     .trim()
     .replace(/\s+/g, '-') // Replace spaces with hyphens
     .replace(/[^a-z0-9-]/g, '') // Remove non-alphanumeric chars except hyphens
+}
+
+export function getFallbackInitials(name?: string): string {
+  if (!name) return ''
+
+  const normalized = name.trim().replace(/\s+/g, ' ')
+  if (!normalized) return ''
+
+  const parts = normalized.split(' ')
+  const firstInitial = parts[0]?.charAt(0).toUpperCase() ?? ''
+  const lastInitial = parts[parts.length - 1]?.charAt(0).toUpperCase() ?? ''
+
+  if (!firstInitial) return ''
+  if (parts.length === 1 || !lastInitial) {
+    return firstInitial
+  }
+
+  return `${firstInitial}${lastInitial}`
 }
 
 class AvatarManagerClass {

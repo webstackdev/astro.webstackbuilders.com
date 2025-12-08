@@ -1,5 +1,6 @@
 import AstroPWA from '@vite-pwa/astro'
 import icon from 'astro-icon'
+import linkValidator from 'astro-link-validator'
 import lit from '@semantic-ui/astro-lit'
 import mdx from '@astrojs/mdx'
 import sentry from '@sentry/astro'
@@ -8,6 +9,7 @@ import tailwindcss from '@tailwindcss/vite'
 import vercelStatic from '@astrojs/vercel'
 import vtbot from 'astro-vtbot'
 import { defineConfig } from 'astro/config'
+import type { AstroUserConfig } from 'astro'
 import { fileURLToPath } from 'node:url'
 import type { PluginOption } from 'vite'
 /**
@@ -22,6 +24,7 @@ import {
   environmentalVariablesConfig,
   getSentryAuthToken,
   getSiteUrl,
+  isGitHub,
   isUnitTest,
   isVercel,
   markdownConfig,
@@ -70,6 +73,13 @@ const standardIntegrations = [
       exclude: ['downloads', 'social-shares', '/articles/demo', 'testing'],
     }),
   }),
+  /** Validate links in built site output on astro:build:done integration hook */
+  linkValidator({
+    checkExternal: isGitHub(),
+    failOnBrokenLinks: false,
+    verbose: true,
+  }),
+  /** Integration to write pages.json after build so E2E tests can discover what pages exist */
   pagesJsonWriter(),
   /** Debugging tools for Astro View Transition API */
   vtbot(),
@@ -81,6 +91,7 @@ export default defineConfig({
     enabled: false,
   },
   env: environmentalVariablesConfig,
+  markdown: markdownConfig as AstroUserConfig['markdown'],
   /**
    * Astro sets substantial Vite config internally in the framework. When you use Vitest
    * in an Astro project, you use Astro's getViteConfig helper to get the resolved internal

@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content'
-import MarkdownLayout, { Carousel } from '@layouts/MarkdownLayout.astro'
+import MarkdownLayout from '@layouts/MarkdownLayout.astro'
+import Carousel from '@components/Carousel/index.astro'
 import WebMentions from '@components/WebMentions/index.astro'
 
 /** Generate static paths for all case studies */
@@ -26,13 +27,14 @@ const cover = caseStudy.data.image
   pageTitle={pageTitle}
   path={path}
   contentType="article"
+  collectionItem={caseStudy}
   publishDate={caseStudy.data.publishDate}
-  section="Case Studies"
   tags={caseStudy.data.tags}
   {...(caseStudy.data.description && { description: caseStudy.data.description })}
   {...(cover?.src && { image: cover.src })}
   showToc={false}
 >
+  {/** SLOT: hero-image */}
   {
     cover && (
       <div
@@ -89,13 +91,13 @@ const cover = caseStudy.data.image
     </div>
   </div>
 
-  <div set:html={caseStudy.rendered?.html || ''} />
-
+  {/** SLOT: after-content */}
   <div slot="after-content">
     {/* WebMentions - shows mentions, likes, and reposts from across the web */}
     <WebMentions url={`https://webstackbuilders.com${path}`} />
   </div>
 
+  {/** SLOT: related-content */}
   <div class="border-t border-border pt-8 mt-12" slot="related-content">
     <header class="mb-8">
       <h3 class="text-2xl font-bold text-text">Other projects I've worked on</h3>

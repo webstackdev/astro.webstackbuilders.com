@@ -57,8 +57,8 @@ func (s *Server) requestHandler(ctx *fasthttp.RequestCtx) {
 	}
 	_, err := s.authenticate(ctx)
 	if err != nil {
-		s.Logger.Warn("Unauthorised Request")
-		s.respond(ctx, errorResult{Error: "Unauthorised"}, fasthttp.StatusUnauthorized)
+		s.Logger.Warn("Unauthorized Request")
+		s.respond(ctx, errorResult{Error: "Unauthorized"}, fasthttp.StatusUnauthorized)
 		return
 	}
 
@@ -112,7 +112,6 @@ func (s *Server) handleSingleExecute(ctx *fasthttp.RequestCtx) {
 	}
 	result, code := s.executeCommand(fmt.Sprint(args[0]), args[1:]...)
 	s.respond(ctx, result, code)
-	return
 }
 
 func (s *Server) handlePipelineExecute(ctx *fasthttp.RequestCtx) {
@@ -137,7 +136,6 @@ func (s *Server) handlePipelineExecute(ctx *fasthttp.RequestCtx) {
 		results = append(results, result)
 	}
 	s.respond(ctx, results, fasthttp.StatusOK)
-	return
 }
 
 func (s *Server) executeCommand(commandName string, args ...interface{}) (interface{}, int) {
@@ -159,7 +157,7 @@ func (s *Server) parseToken(ctx *fasthttp.RequestCtx) string {
 	return ""
 }
 
-func (s *Server) aclRestToken(commandName string, args ...interface{}) (interface{}, int) {
+func (s *Server) aclRestToken(_ string, args ...interface{}) (interface{}, int) {
 	if len(args) != 3 {
 		return errorResult{Error: "ERR invalid syntax. Usage: ACL RESTTOKEN username password"}, fasthttp.StatusBadRequest
 	}

@@ -1,6 +1,16 @@
 <!-- markdownlint-disable-file -->
 # TODO
 
+## Fix E2E mock container test runner, migrate DB providers
+
+Refactor from using Suprabase and Upstash to using Astro DB + Turso
+
+[Astro DB](https://docs.astro.build/en/guides/astro-db/)
+
+## Mobile Social Shares
+
+See the example image in Social Shares.
+
 ## Performance
 
 Implement mitigations in test/e2e/specs/07-performance/PERFORMANCE.md
@@ -37,10 +47,6 @@ Lunr is a JS search library using an inverted index. Client-side search for stat
 ## Email Templates
 
 Right now we're using string literals to define HTML email templates for site mails. We should use Nunjucks with the rule-checking for valid CSS in HTML emails like we have in the corporate email footer repo.
-
-## @TODO: Provide button to turn off animation in Hero
-
-"Scaling/zooming animations are problematic for accessibility, as they are a common trigger for certain types of migraine. If you need to include such animations on your website, you should provide a control to allow users to turn off animations, preferably site-wide.  Also, consider making use of the prefers-reduced-motion media feature — use it to write a media query that will turn off animations if the user has reduced animation specified in their system preferences. "
 
 ## Color vars
 
@@ -101,11 +107,34 @@ cat.structure: Rules related to the document's overall structure, like the prope
 cat.tables: Rules for data tables, including headers and associations.
 cat.text-alternatives: Rules for ensuring that text alternatives are provided for non-text content, such as images.
 
+## Privacy policy errors
+
+fatal: /home/kevin/Repos/Webstack: '/home/kevin/Repos/Webstack' is outside repository at '/home/kevin/Repos/Webstack Builders/Corporate Website/astro.webstackbuilders.com'
+
+[privacy-policy-version] Could not get privacy policy version from git: Command failed: git log -1 --format=%cd --date=format:%Y-%m-%d -- /home/kevin/Repos/Webstack Builders/Corporate Website/astro.webstackbuilders.com/src/pages/privacy/index.astro
+
+fatal: /home/kevin/Repos/Webstack: '/home/kevin/Repos/Webstack' is outside repository at '/home/kevin/Repos/Webstack Builders/Corporate Website/astro.webstackbuilders.com'
+
+⚠️  Privacy policy version fallback applied: 2025-12-08
+
 ## @TODO: Add Check HTML Links to test workflow
 
 npm i -D check-html-links
 npx check-html-links _site
 `https://github.com/modernweb-dev/rocket/tree/main/packages/check-html-links`
+
+22:38:43 [ERROR] [astro-link-validator] ❌ Found 2 broken links:
+\n📄 index.html:
+  🔗 /services/web-development
+    File not found: services/web-development
+    Text: "Improve Your Product"
+  🔗 /services/consulting
+    File not found: services/consulting
+    Text: "Start from scratch"
+
+## Tags
+
+Can we add a markdown page to explain what each tag is, and use those pages instead of src/content/_tagList.ts to define the tags available?
 
 ## Social Media Preview Cards
 

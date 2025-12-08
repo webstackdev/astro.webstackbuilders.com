@@ -10,39 +10,11 @@
  */
 import { defineCollection, reference, z } from 'astro:content'
 import { glob, file } from 'astro/loaders'
-import { isProd } from '@lib/config/environmentServer'
 import { validTags } from '@content/_tagList'
+/** Wraps a collection schema with a refinement that enforces breadcrumb title length limits */
+import { withBreadcrumbTitleWarning } from '@lib/helpers/breadcrumbTitleLengthRefinement'
 
 const pattern = '**\/[^_]*.{md,mdx}'
-
-const MAX_BREADCRUMB_TITLE_LENGTH = 50
-const loggedBreadcrumbTitleWarnings = new Set<string>()
-
-const warnOnBreadcrumbTitleLength = (title: string, collectionName: string): void => {
-  if (!isProd()) return
-  if (title.length <= MAX_BREADCRUMB_TITLE_LENGTH) return
-
-  const warningKey = `${collectionName}:${title}`
-  if (loggedBreadcrumbTitleWarnings.has(warningKey)) return
-
-  loggedBreadcrumbTitleWarnings.add(warningKey)
-  console.warn(
-    `[Breadcrumb Warning] ${collectionName} title "${title}" is ${title.length} characters long. Titles longer than ${MAX_BREADCRUMB_TITLE_LENGTH} characters will truncate in breadcrumbs.`
-  )
-}
-
-const withBreadcrumbTitleWarning = <T extends z.ZodRawShape>(
-  schema: z.ZodObject<T>,
-  collectionName: string
-) =>
-  schema.superRefine(data => {
-    const candidateTitle = (data as { title?: string }).title
-    if (typeof candidateTitle === 'string') {
-      warnOnBreadcrumbTitleLength(candidateTitle, collectionName)
-    }
-  })
-
-// export type AboutSchema = z.infer<typeof aboutSchema>
 
 /**
  * About
@@ -79,6 +51,7 @@ const articlesSchema = withBreadcrumbTitleWarning(
     isDraft: z.boolean().default(false),
     featured: z.boolean().default(false),
     readingTime: z.string().optional(),
+    showToc: z.boolean().default(true),
   }),
   'articles'
 )
@@ -182,6 +155,36 @@ const contactDataCollection = defineCollection({
 })
 
 /**
+ * Downloads
+ */
+const downloadsSchema = withBreadcrumbTitleWarning(
+  z.object({
+    title: z.string(),
+    description: z.string(),
+    author: reference('authors').optional(),
+    tags: z.array(z.enum(validTags)),
+    image: z.object({
+      src: z.string(),
+      alt: z.string(),
+    }),
+    publishDate: z.date(),
+    isDraft: z.boolean().default(false),
+    featured: z.boolean().default(false),
+    fileType: z.enum(['PDF', 'eBook', 'Whitepaper', 'Guide', 'Report', 'Template']),
+    fileSize: z.string().optional(),
+    pages: z.number().optional(),
+    readingTime: z.string().optional(),
+    fileName: z.string(), // Filename in public/downloads directory
+  }),
+  'downloads'
+)
+
+const downloadsCollection = defineCollection({
+  loader: glob({ pattern, base: './src/content/downloads' }),
+  schema: () => downloadsSchema,
+})
+
+/**
  * Services
  */
 const servicesSchema = withBreadcrumbTitleWarning(
@@ -232,45 +235,9 @@ const testimonialCollection = defineCollection({
 })
 
 /**
- * Visual themes used by the Theme Switcher component and script. These are used by:
- *
- * - The `components/themePicker/themes.njk` template that generates the theme card modal and items (`id` and `name` properties only)
- * - The `components/head/meta.njk` to set the <meta name="theme-color" content="CSS_COLOR" /> tag used for outside-the-page UI elements by the browser (`id` and `colors.backgroundOffset` properties only)
- * - The `components/Head/client.ts` to set the window.metaColors global variable that iss used to swap out the previous <meta> element when the theme is changed (`id` and `colors.backgroundOffset` properties only)
- */
-
-/**
- * Downloads
- */
-const downloadsSchema = withBreadcrumbTitleWarning(
-  z.object({
-    title: z.string(),
-    description: z.string(),
-    author: reference('authors').optional(),
-    tags: z.array(z.enum(validTags)),
-    image: z.object({
-      src: z.string(),
-      alt: z.string(),
-    }),
-    publishDate: z.date(),
-    isDraft: z.boolean().default(false),
-    featured: z.boolean().default(false),
-    fileType: z.enum(['PDF', 'eBook', 'Whitepaper', 'Guide', 'Report', 'Template']),
-    fileSize: z.string().optional(),
-    pages: z.number().optional(),
-    readingTime: z.string().optional(),
-    fileName: z.string(), // Filename in public/downloads directory
-  }),
-  'downloads'
-)
-
-const downloadsCollection = defineCollection({
-  loader: glob({ pattern, base: './src/content/downloads' }),
-  schema: () => downloadsSchema,
-})
-
-/**
- * Contact data
+ * This comment is a placeholder to explain the src/content/themes.json used by the
+ * Theme Switcher component and script to define visual themes. It is not used by the
+ * content system, but there's also a lack of good logical places to add such a data file.
  */
 
 export const collections = {

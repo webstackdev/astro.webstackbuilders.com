@@ -42,6 +42,7 @@ describe('AvatarManager', () => {
   let getAvatarImage: any
   let avatarMap: any
   let getAvailableAvatars: any
+  let getFallbackInitials: (_name?: string) => string
 
   beforeEach(async () => {
     mockLoadAvatarModules.mockClear()
@@ -54,6 +55,7 @@ describe('AvatarManager', () => {
     // Import the module
     const module = await import('..')
     AvatarManager = module.AvatarManager
+    getFallbackInitials = module.getFallbackInitials
 
     // Get the singleton instance and extract methods for backward compatibility
     const instance = AvatarManager.getInstance()
@@ -64,6 +66,26 @@ describe('AvatarManager', () => {
 
   afterEach(() => {
     vi.restoreAllMocks()
+  })
+
+  describe('getFallbackInitials', () => {
+    it('returns empty string when name is missing', () => {
+      expect(getFallbackInitials()).toBe('')
+      expect(getFallbackInitials('   ')).toBe('')
+    })
+
+    it('returns single initial for single-word names', () => {
+      expect(getFallbackInitials('Kevin')).toBe('K')
+    })
+
+    it('returns first and last initials for multi-word names', () => {
+      expect(getFallbackInitials('Kevin Brown')).toBe('KB')
+      expect(getFallbackInitials('  Jean   Luc  Picard ')).toBe('JP')
+    })
+
+    it('handles casing and punctuation gracefully', () => {
+      expect(getFallbackInitials("sarah o'conner")).toBe('SO')
+    })
   })
 
   describe('Singleton Pattern', () => {

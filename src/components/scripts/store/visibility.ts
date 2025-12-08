@@ -12,6 +12,14 @@ import { handleScriptError } from '@components/scripts/errors/handler'
 
 export interface VisibilityState {
   consentBannerVisible: boolean
+  tableOfContentsVisible: boolean
+  tableOfContentsEnabled: boolean
+}
+
+const defaultVisibilityState: VisibilityState = {
+  consentBannerVisible: false,
+  tableOfContentsVisible: false,
+  tableOfContentsEnabled: true,
 }
 
 // ============================================================================
@@ -25,18 +33,18 @@ export interface VisibilityState {
  */
 export const $visibility = persistentAtom<VisibilityState>(
   'visibility',
-  {
-    consentBannerVisible: false,
-  },
+  defaultVisibilityState,
   {
     encode: JSON.stringify,
     decode: (value: string): VisibilityState => {
       try {
-        return JSON.parse(value)
-      } catch {
+        const parsed = JSON.parse(value) as Partial<VisibilityState>
         return {
-          consentBannerVisible: false,
+          ...defaultVisibilityState,
+          ...parsed,
         }
+      } catch {
+        return defaultVisibilityState
       }
     },
   }
@@ -51,6 +59,10 @@ export const $visibility = persistentAtom<VisibilityState>(
  */
 export const $isConsentBannerVisible = computed($visibility, (state) => state.consentBannerVisible)
 
+export const $isTableOfContentsVisible = computed($visibility, (state) => state.tableOfContentsVisible)
+
+export const $isTableOfContentsEnabled = computed($visibility, (state) => state.tableOfContentsEnabled)
+
 // ============================================================================
 // ACTIONS
 // ============================================================================
@@ -58,60 +70,107 @@ export const $isConsentBannerVisible = computed($visibility, (state) => state.co
 /**
  * Show the consent banner
  */
-export function showConsentBanner(): void {
+function updateVisibilityState(operation: string, updater: (_current: VisibilityState) => VisibilityState): void {
   try {
     const current = $visibility.get()
-    $visibility.set({
-      ...current,
-      consentBannerVisible: true,
-    })
+    const next = updater(current)
+    $visibility.set(next)
   } catch (error) {
     handleScriptError(error, {
       scriptName: 'visibility',
-      operation: 'showConsentBanner',
+      operation,
     })
   }
+}
+
+export function showConsentBanner(): void {
+  updateVisibilityState('showConsentBanner', (current) => ({
+    ...current,
+    consentBannerVisible: true,
+    tableOfContentsEnabled: false,
+    tableOfContentsVisible: false,
+  }))
 }
 
 /**
  * Hide the consent banner
  */
 export function hideConsentBanner(): void {
-  try {
-    const current = $visibility.get()
-    $visibility.set({
-      ...current,
-      consentBannerVisible: false,
-    })
-  } catch (error) {
-    handleScriptError(error, {
-      scriptName: 'visibility',
-      operation: 'hideConsentBanner',
-    })
-  }
+  updateVisibilityState('hideConsentBanner', (current) => ({
+    ...current,
+    consentBannerVisible: false,
+    tableOfContentsEnabled: true,
+  }))
 }
 
 /**
  * Toggle the consent banner visibility
  */
 export function toggleConsentBanner(): void {
-  try {
-    const current = $visibility.get()
-    $visibility.set({
+  updateVisibilityState('toggleConsentBanner', (current) => {
+    const consentBannerVisible = !current.consentBannerVisible
+    return {
       ...current,
-      consentBannerVisible: !current.consentBannerVisible,
-    })
-  } catch (error) {
-    handleScriptError(error, {
-      scriptName: 'visibility',
-      operation: 'toggleConsentBanner',
-    })
-  }
+      consentBannerVisible,
+      tableOfContentsEnabled: consentBannerVisible ? false : true,
+      tableOfContentsVisible: consentBannerVisible ? false : current.tableOfContentsVisible,
+    }
+  })
 }
 
 /**
  * Get consent banner visibility state
  */
-export function isConsentBannerVisible(): boolean {
-  return $isConsentBannerVisible.get()
+export function showTableOfContents(): void {
+  updateVisibilityState('showTableOfContents', (current) => {
+    if (!current.tableOfContentsEnabled) {
+      return current
+    }
+
+    return {
+      ...current,
+      tableOfContentsVisible: true,
+    }
+  })
+}
+
+export function hideTableOfContents(): void {
+  updateVisibilityState('hideTableOfContents', (current) => ({
+    ...current,
+    tableOfContentsVisible: false,
+  }))
+}
+
+export function toggleTableOfContents(): void {
+  updateVisibilityState('toggleTableOfContents', (current) => {
+    if (!current.tableOfContentsEnabled) {
+      return current
+    }
+
+    return {
+      ...current,
+      tableOfContentsVisible: !current.tableOfContentsVisible,
+    }
+  })
+}
+
+export function disableTableOfContents(): void {
+  updateVisibilityState('disableTableOfContents', (current) => ({
+    ...current,
+    tableOfContentsEnabled: false,
+    tableOfContentsVisible: false,
+  }))
+}
+
+export function enableTableOfContents(): void {
+  updateVisibilityState('enableTableOfContents', (current) => ({
+    ...current,
+    tableOfContentsEnabled: true,
+  }))
+}
+
+export type VisibilityListener = (_state: VisibilityState) => void
+
+export function onVisibilityChange(listener: VisibilityListener): () => void {
+  return $visibility.subscribe(listener)
 }

@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content'
-import MarkdownLayout, { Carousel } from '@layouts/MarkdownLayout.astro'
+import MarkdownLayout from '@layouts/MarkdownLayout.astro'
+import Carousel from '@components/Carousel/index.astro'
 import WebMentions from '@components/WebMentions/index.astro'
 
 /** Generate static paths for all services */
@@ -22,13 +23,14 @@ const icon = service.data.icon ? { src: service.data.icon, alt: service.data.tit
   pageTitle={pageTitle}
   path={path}
   contentType="article"
+  collectionItem={service}
   publishDate={service.data.publishDate}
-  section="Services"
   tags={service.data.tags}
   {...(service.data.description && { description: service.data.description })}
   {...(icon?.src && { image: icon.src })}
   showToc={false}
 >
+  {/** SLOT: hero-image */}
   {
     icon && (
       <div
@@ -100,13 +102,13 @@ const icon = service.data.icon ? { src: service.data.icon, alt: service.data.tit
     }
   </div>
 
-  <div set:html={service.rendered?.html || ''} />
-
+  {/** SLOT: after-content */}
   <div slot="after-content">
     {/* WebMentions - shows testimonials, mentions, likes, and reposts */}
     <WebMentions url={`https://webstackbuilders.com${path}`} />
   </div>
 
+  {/** SLOT: related-content */}
   <div class="border-t border-border pt-8 mt-12" slot="related-content">
     <header class="mb-8">
       <h3 class="text-2xl font-bold text-text">Other Services I Offer</h3>

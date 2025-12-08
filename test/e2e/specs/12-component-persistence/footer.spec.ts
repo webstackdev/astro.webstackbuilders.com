@@ -5,7 +5,7 @@
  * page navigations when using Astro's View Transitions API with transition:persist.
  *
  * These tests are implementation-agnostic and should work for both:
- * - Current Preact implementation ([data-testid="footer-preact"])
+ * - Current implementation ([data-testid="footer-component"])
  * - Future Web Component implementation (footer-component or similar)
  *
  * Related:
@@ -17,7 +17,7 @@
 
 import { ComponentPersistencePage, test, describe, expect } from '@test/e2e/helpers'
 
-const FOOTER_SELECTOR = '[data-testid="footer-preact"], site-footer'
+const FOOTER_SELECTOR = '[data-testid="footer-component"], site-footer'
 
 describe('Footer Component Persistence', () => {
   test('should persist Footer component identity across navigation', async ({
