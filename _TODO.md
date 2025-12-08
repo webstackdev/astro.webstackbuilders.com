@@ -7,6 +7,16 @@ Refactor from using Suprabase and Upstash to using Astro DB + Turso
 
 [Astro DB](https://docs.astro.build/en/guides/astro-db/)
 
+## Remove Preact dependencies
+
+All markdown E2E tests (`src/lib/markdown/__tests__/e2e/**/*.spec.tsx`) and helpers (`markdownLoader.tsx`) currently render via `@testing-library/preact`; they'd need to switch to plain DOM/Lit-based rendering or Astro's Container API.
+
+## Mobile Social Shares
+
+See the example image in Social Shares.
+
+## Remove all references and dependencies on Preact
+
 ## Performance
 
 Implement mitigations in test/e2e/specs/07-performance/PERFORMANCE.md

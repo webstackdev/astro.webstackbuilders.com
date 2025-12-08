@@ -42,10 +42,6 @@ Object.defineProperty(remarkEmoji, 'name', { value: 'remarkEmoji' })
 
 import remarkLinkifyRegex from 'remark-linkify-regex'
 
-import type { Options as RemarkTocOptions } from 'remark-toc'
-import remarkToc from 'remark-toc'
-Object.defineProperty(remarkToc, 'name', { value: 'remarkToc' })
-
 /**
  * ==============================================================
  *
@@ -92,9 +88,6 @@ Object.defineProperty(remarkLinkifyRegexUrls, 'name', { value: 'remarkLinkifyReg
 
 /** remark-attributes plugin */
 export const remarkAttributesConfig = { scope: 'permissive' } as const
-
-/** remark-toc plugin */
-export const remarkTocConfig: RemarkTocOptions = { heading: 'contents' }
 
 /** rehype-autolink-headings plugin */
 export const rehypeAutolinkHeadingsConfig: RehypeAutolinkHeadingsOptions = {
@@ -188,8 +181,6 @@ export const markdownConfig: Partial<MdxOptions> = {
      * Converts: -->, <--, <=>, 1/2, 2 x 4, +-, etc.
      */
     remarkReplacements,
-    /** Generate a table of contents from Markdown content */
-    [remarkToc, remarkTocConfig],
   ],
   rehypePlugins: [
     /** Add accessible names to emojis */

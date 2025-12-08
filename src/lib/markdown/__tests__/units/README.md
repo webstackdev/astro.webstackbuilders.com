@@ -17,7 +17,6 @@ This directory contains **isolated unit tests for NPM package plugins** to catch
 
 - ✅ `remark-emoji` - Emoji shortcode conversion
 - ✅ `remark-breaks` - Line break handling
-- ✅ `remark-toc` - Table of contents generation
 - ✅ `remark-linkify-regex` - URL auto-linking
 - ✅ `rehype-accessible-emojis` - Emoji accessibility attributes
 - ✅ `rehype-autolink-headings` - Heading anchor links

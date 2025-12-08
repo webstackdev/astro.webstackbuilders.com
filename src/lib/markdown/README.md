@@ -341,7 +341,6 @@ export function myAccessibleListPlugin() {
 │                                                 │
 │  Import from markdown.ts:                       │
 │  • remarkAttributesConfig                       │
-│  • remarkTocConfig                              │
 │  • rehypeAutolinkHeadingsConfig                 │
 │  • remarkRehypeConfig                           │
 └─────────────────────────────────────────────────┘

@@ -74,16 +74,13 @@ export async function processWithFullPipeline(markdown: string): Promise<string>
   const remarkBreaks = (await import('remark-breaks')).default
   const remarkEmoji = (await import('remark-emoji')).default
   const remarkLinkifyRegex = (await import('remark-linkify-regex')).default
-  const remarkToc = (await import('remark-toc')).default
   const { rehypeAccessibleEmojis } = await import('rehype-accessible-emojis')
   const rehypeAutolinkHeadings = (await import('rehype-autolink-headings')).default
   const rehypeSlug = (await import('rehype-slug')).default
   const { rehypeTailwindClasses } = await import('../plugins/rehype-tailwind')
 
   // Import configurations
-  const { remarkAttributesConfig, remarkTocConfig, rehypeAutolinkHeadingsConfig } = await import(
-    '../../config/markdown'
-  )
+  const { remarkAttributesConfig, rehypeAutolinkHeadingsConfig } = await import('../../config/markdown')
 
   try {
     const processor = remark()
@@ -99,7 +96,6 @@ export async function processWithFullPipeline(markdown: string): Promise<string>
       .use(remarkEmoji)
       // remarkLinkifyRegex is a factory function - call it with the regex first
       .use(remarkLinkifyRegex(/^(https?:\/\/[^\s$.?#].[^\s]*)$/i))
-      .use(remarkToc, remarkTocConfig) // Convert to rehype with Astro's options
       .use(remarkRehype, remarkRehypeConfig)
 
       // Add all rehype plugins in the same order as Astro
