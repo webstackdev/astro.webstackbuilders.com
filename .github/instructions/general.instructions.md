@@ -19,6 +19,7 @@ applyTo: "**"
 - Always create TypeScript files, not JavaScript files.
 - Prefer destructured imports over namespace imports when importing specific functions from modules (e.g., `import { resolve } from 'path'` instead of `import * as path from 'path'`).
 - Do not access nanostore observables (e.g., `$consent`) directly from components; expose helper/action methods in `@components/scripts/store` and import those instead.
+- Preact exists only for the Markdown E2E harness under `src/lib/markdown/__tests__/e2e`; all production UI components must use Lit web components instead of Preact.
 
 # Code Organization and Directory Structure
 
