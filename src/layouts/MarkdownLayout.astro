@@ -15,19 +15,19 @@ import Toc from '@components/Toc/index.astro'
 /** Components made available for use in MDX */
 import Avatar from '@components/Avatar/index.astro'
 import Callout from '@components/Callout/index.astro'
-import Contact from '@components/CallToAction/Contact/index.astro'
-import Featured from '@components/CallToAction/Featured/index.astro'
-import Newsletter from '@components/CallToAction/Newsletter/index.astro'
 import Carousel from '@components/Carousel/index.astro'
+import Contact from '@components/CallToAction/Contact/index.astro'
 import Embed from '@components/Social/Embed/index.astro'
+import Featured from '@components/CallToAction/Featured/index.astro'
 import Highlighter from '@components/Social/Highlighter/index.astro'
-import MastodonModal from '@components/Social/Mastodon/index.astro'
-import Shares from '@components/Social/Shares/index.astro'
 import Icon from '@components/Icon/index.astro'
+import MastodonModal from '@components/Social/Mastodon/index.astro'
+import Newsletter from '@components/CallToAction/Newsletter/index.astro'
+import Shares from '@components/Social/Shares/index.astro'
 import Testimonials from '@components/Testimonials/index.astro'
 
 /** Export components for use in MDX */
-const Components = { Avatar, Callout, Contact, Embed, Featured, Newsletter, Carousel, Highlighter, Shares, Icon, Testimonials }
+const Components = { Avatar, Callout, Carousel, Contact, Embed, Featured, Highlighter, Icon, MastodonModal, Newsletter, Shares, Testimonials }
 
 export interface Props {
   /** Page title shown in <title> and H1 */
@@ -39,7 +39,11 @@ export interface Props {
   /** Content type for OpenGraph metadata */
   contentType?: 'article' | 'website'
   /** Raw Markdown content from "body" property on content collection */
-  collectionItem: CollectionEntry<'articles'> | CollectionEntry<'services'> | CollectionEntry<'caseStudies'>
+  collectionItem:
+    | CollectionEntry<'articles'>
+    | CollectionEntry<'services'>
+    | CollectionEntry<'caseStudies'>
+    | CollectionEntry<'downloads'>
   /** Publication date for articles */
   publishDate?: Date
   /** Last modified date */
@@ -130,6 +134,9 @@ const shouldRenderToc = showToc !== false && tocHeadings.length > 0
 
     {/** SLOT: hero-image, conditional on image specified */}
     <slot name="hero-image" />
+
+    {/** SLOT: content-prefix, renders prior to markdown body (e.g., metadata panels) */}
+    <slot name="content-prefix" />
 
     {/** SLOT: default (unnamed) */}
     <div

@@ -107,26 +107,27 @@ cat.structure: Rules related to the document's overall structure, like the prope
 cat.tables: Rules for data tables, including headers and associations.
 cat.text-alternatives: Rules for ensuring that text alternatives are provided for non-text content, such as images.
 
+## Privacy policy errors
+
+fatal: /home/kevin/Repos/Webstack: '/home/kevin/Repos/Webstack' is outside repository at '/home/kevin/Repos/Webstack Builders/Corporate Website/astro.webstackbuilders.com'
+
+[privacy-policy-version] Could not get privacy policy version from git: Command failed: git log -1 --format=%cd --date=format:%Y-%m-%d -- /home/kevin/Repos/Webstack Builders/Corporate Website/astro.webstackbuilders.com/src/pages/privacy/index.astro
+
+fatal: /home/kevin/Repos/Webstack: '/home/kevin/Repos/Webstack' is outside repository at '/home/kevin/Repos/Webstack Builders/Corporate Website/astro.webstackbuilders.com'
+
+⚠️  Privacy policy version fallback applied: 2025-12-08
+
 ## @TODO: Add Check HTML Links to test workflow
 
 npm i -D check-html-links
 npx check-html-links _site
 `https://github.com/modernweb-dev/rocket/tree/main/packages/check-html-links`
 
-14:58:58 [ERROR] [astro-link-validator] ❌ Found 41 broken links:
+17:31:43 [ERROR] [astro-link-validator] ❌ Found 38 broken links:
 \n📄 articles/demo/index.html:
   🔗 /sections/Technology
     File not found: sections/Technology
     Text: "Technology"
-  📦 ./demo-image.jpg
-    File not found: articles/demo/demo-image.jpg
-    Text: "Demo slide 1"
-  📦 ./demo-image.jpg
-    File not found: articles/demo/demo-image.jpg
-    Text: "Demo slide 2"
-  📦 ./demo-image.jpg
-    File not found: articles/demo/demo-image.jpg
-    Text: "Demo slide 3"
 \n📄 articles/getting-started-with-astro/index.html:
   🔗 /sections/Technology
     File not found: sections/Technology

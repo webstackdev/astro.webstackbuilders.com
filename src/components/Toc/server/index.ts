@@ -23,14 +23,19 @@ export const buildTocTree = (headings: MarkdownHeading[]): TocItem[] => {
       children: [],
     }
 
-    while (stack.length > 0 && node.depth <= stack[stack.length - 1].depth) {
+    while (stack.length > 0) {
+      const parent = stack[stack.length - 1]
+      if (!parent || node.depth > parent.depth) {
+        break
+      }
       stack.pop()
     }
 
-    if (stack.length === 0) {
+    const parent = stack[stack.length - 1]
+    if (!parent) {
       tree.push(node)
     } else {
-      stack[stack.length - 1].children.push(node)
+      parent.children.push(node)
     }
 
     stack.push(node)
