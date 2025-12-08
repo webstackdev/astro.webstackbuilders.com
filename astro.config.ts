@@ -9,6 +9,7 @@ import tailwindcss from '@tailwindcss/vite'
 import vercelStatic from '@astrojs/vercel'
 import vtbot from 'astro-vtbot'
 import { defineConfig } from 'astro/config'
+import type { AstroUserConfig } from 'astro'
 import { fileURLToPath } from 'node:url'
 import type { PluginOption } from 'vite'
 /**
@@ -89,6 +90,7 @@ export default defineConfig({
     enabled: false,
   },
   env: environmentalVariablesConfig,
+  markdown: markdownConfig as AstroUserConfig['markdown'],
   /**
    * Astro sets substantial Vite config internally in the framework. When you use Vitest
    * in an Astro project, you use Astro's getViteConfig helper to get the resolved internal
