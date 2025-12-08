@@ -1,10 +1,21 @@
 ---
 // Generic Carousel component for displaying content - both featured and suggested
 import { getCollection } from 'astro:content'
-import type { CollectionEntry } from 'astro:content'
-import type { CarouselProps, CollectionKeyMap } from './props'
+import {
+  type CollectionSlug,
+  type CarouselVariant,
+  type ItemType,
+  collectionMap,
+} from './@types'
+import {  prepareItems } from './server'
 
-export type { CarouselProps as Props } from './props'
+export interface Props {
+  title?: string
+  limit?: number
+  variant?: CarouselVariant
+  currentSlug: string
+  type: CollectionSlug
+}
 
 const {
   title = 'Featured Content',
@@ -12,59 +23,10 @@ const {
   variant = 'featured',
   currentSlug,
   type,
-} = Astro.props as CarouselProps
+} = Astro.props
 
-// Map the prop type to the actual collection key with proper typing
-const collectionKey = {
-  services: 'services',
-  'case-studies': 'caseStudies',
-  articles: 'articles',
-}[type] as CollectionKeyMap[typeof type]
-
-// Get all content from the specified collection with proper typing
-const allItems = await getCollection(collectionKey)
-type ItemType = CollectionEntry<CollectionKeyMap[typeof type]>
-
-// Filter and sort items based on variant
-let items: ItemType[] = allItems
-
-switch (variant) {
-  case 'featured':
-    // Show only featured items, excluding current item
-    items = allItems
-      .filter((item: ItemType) => {
-        if (item.id === currentSlug) return false
-        // All collection types now use the consistent "featured" field
-        return item.data.featured === true
-      })
-      .sort(
-        (a: ItemType, b: ItemType) =>
-          new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime()
-      )
-    break
-
-  case 'suggested':
-    // Filter out current item and get latest items (suggested mode)
-    items = allItems
-      .filter((item: ItemType) => item.id !== currentSlug)
-      .sort(
-        (a: ItemType, b: ItemType) =>
-          new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime()
-      )
-    break
-
-  case 'random':
-    // Show all items excluding current one in random order
-    items = allItems
-      .filter((item: ItemType) => item.id !== currentSlug)
-      .sort(() => Math.random() - 0.5)
-    break
-}
-
-// Apply limit
-if (limit) {
-  items = items.slice(0, limit)
-}
+const allItems = await getCollection(collectionMap[type])
+const items = prepareItems(allItems, variant, currentSlug, limit)
 ---
 
 {
