@@ -12,6 +12,7 @@ type ContentItem =
   | (CollectionEntry<'articles'> & { type: 'article' })
   | (CollectionEntry<'caseStudies'> & { type: 'case-study' })
   | (CollectionEntry<'services'> & { type: 'service' })
+  | (CollectionEntry<'downloads'> & { type: 'download' })
 
 export interface Props {
   content: ContentItem[]
@@ -29,12 +30,16 @@ export async function getStaticPaths() {
   const allServices = await getCollection('services', ({ data }) => {
     return isDev() || (isProd() && data.isDraft !== true)
   })
+  const allDownloads = await getCollection('downloads', ({ data }) => {
+    return isDev() || (isProd() && data.isDraft !== true)
+  })
 
   // Combine all content and extract unique tags
   const allContent = [
     ...allArticles.map(item => ({ ...item, type: 'article' })),
     ...allCaseStudies.map(item => ({ ...item, type: 'case-study' })),
     ...allServices.map(item => ({ ...item, type: 'service' })),
+    ...allDownloads.map(item => ({ ...item, type: 'download' })),
   ]
 
   const uniqueTags = [...new Set(allContent.map(item => item.data.tags).flat())]
@@ -79,6 +84,13 @@ type ImageObject = { src: string; alt: string }
 const isImageObject = (img: unknown): img is ImageObject => {
   return typeof img === 'object' && img !== null && 'src' in img && 'alt' in img
 }
+
+const typeMetadata = {
+  article: { label: 'Article', badgeClass: 'bg-primary', hrefBase: 'articles' },
+  'case-study': { label: 'Case Study', badgeClass: 'bg-success', hrefBase: 'case-studies' },
+  service: { label: 'Service', badgeClass: 'bg-accent', hrefBase: 'services' },
+  download: { label: 'Download', badgeClass: 'bg-secondary', hrefBase: 'downloads' },
+} as const
 ---
 
 <BaseLayout pageTitle={`${displayName} - Tag`} path={path}>
@@ -101,12 +113,11 @@ const isImageObject = (img: unknown): img is ImageObject => {
       paginatedContent.length > 0 ? (
         <>
           <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12 mb-12">
-            {paginatedContent.map(item => (
-              <article class="bg-bg rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
-                <a
-                  href={`/${item.type === 'case-study' ? 'case-studies' : item.type === 'service' ? 'services' : 'articles'}/${item.id}`}
-                  class="block h-full"
-                >
+            {paginatedContent.map(item => {
+              const typeMeta = typeMetadata[item.type]
+              return (
+                <article class="bg-bg rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
+                  <a href={`/${typeMeta.hrefBase}/${item.id}`} class="block h-full">
                   {'image' in item.data && item.data.image && (
                     <div class="aspect-video overflow-hidden">
                       <img
@@ -133,17 +144,9 @@ const isImageObject = (img: unknown): img is ImageObject => {
                   <div class="p-6 space-y-4">
                     <div class="flex items-center gap-3 text-sm">
                       <span
-                        class={`px-3 py-1 rounded-full text-white font-medium ${
-                          item.type === 'article'
-                            ? 'bg-primary'
-                            : item.type === 'case-study'
-                              ? 'bg-success'
-                              : 'bg-accent'
-                        }`}
+                        class={`px-3 py-1 rounded-full text-white font-medium ${typeMeta.badgeClass}`}
                       >
-                        {item.type === 'case-study'
-                          ? 'Case Study'
-                          : item.type.charAt(0).toUpperCase() + item.type.slice(1)}
+                        {typeMeta.label}
                       </span>
                       <time class="text-text-muted">
                         {item.data.publishDate.toLocaleDateString('en-US', {
@@ -191,8 +194,9 @@ const isImageObject = (img: unknown): img is ImageObject => {
                     </div>
                   </div>
                 </a>
-              </article>
-            ))}
+                </article>
+              )
+            })}
           </section>
 
           {/* Pagination */}
