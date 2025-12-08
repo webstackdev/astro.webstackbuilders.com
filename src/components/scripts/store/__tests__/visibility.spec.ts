@@ -3,9 +3,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TestError } from '@test/errors'
 import {
+  $isConsentBannerVisible,
   $visibility,
   hideConsentBanner,
-  isConsentBannerVisible,
   showConsentBanner,
   toggleConsentBanner,
 } from '@components/scripts/store/visibility'
@@ -14,6 +14,8 @@ import { handleScriptError } from '@components/scripts/errors/handler'
 vi.mock('@components/scripts/errors/handler', () => ({
   handleScriptError: vi.fn(),
 }))
+
+const getConsentBannerVisibility = (): boolean => $isConsentBannerVisible.get()
 
 afterEach(() => {
   vi.restoreAllMocks()
@@ -28,30 +30,30 @@ describe('UI visibility state management', () => {
   })
 
   it('defaults to a hidden consent banner', () => {
-    expect(isConsentBannerVisible()).toBe(false)
+    expect(getConsentBannerVisibility()).toBe(false)
   })
 
   it('shows the consent banner when requested', () => {
     showConsentBanner()
 
-    expect(isConsentBannerVisible()).toBe(true)
+    expect(getConsentBannerVisibility()).toBe(true)
   })
 
   it('hides the consent banner after showing it', () => {
     showConsentBanner()
     hideConsentBanner()
 
-    expect(isConsentBannerVisible()).toBe(false)
+    expect(getConsentBannerVisibility()).toBe(false)
   })
 
   it('toggles the consent banner visibility state', () => {
-    expect(isConsentBannerVisible()).toBe(false)
+    expect(getConsentBannerVisibility()).toBe(false)
 
     toggleConsentBanner()
-    expect(isConsentBannerVisible()).toBe(true)
+    expect(getConsentBannerVisibility()).toBe(true)
 
     toggleConsentBanner()
-    expect(isConsentBannerVisible()).toBe(false)
+    expect(getConsentBannerVisibility()).toBe(false)
   })
 })
 

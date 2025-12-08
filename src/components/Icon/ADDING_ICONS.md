@@ -13,7 +13,7 @@ Place your SVG file in this directory (`src/icons/`). Use kebab-case naming (e.g
 **SVG Format Requirements:**
 
 ```xml
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
   <!-- Your icon content -->
 </svg>
 ```

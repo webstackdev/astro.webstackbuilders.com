@@ -1,0 +1,90 @@
+---
+import type { MarkdownHeading } from 'astro'
+import { buildTocTree, type TocItem } from './server/index'
+
+export interface Props {
+  items: MarkdownHeading[]
+}
+
+const { items = [] } = Astro.props
+
+const tocTree = buildTocTree(items)
+---
+
+{tocTree.length > 0 && (
+  <>
+    <table-of-contents class="block">
+      <button
+        type="button"
+        data-toc-toggle
+        aria-controls="toc-drawer"
+        class="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full border border-border bg-surface text-xs font-semibold uppercase tracking-wide shadow-elevated transition hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary lg:hidden"
+      >
+        <span class="sr-only">Toggle table of contents</span>
+        TOC
+      </button>
+
+      <button
+        type="button"
+        data-toc-overlay
+        data-visible="false"
+        aria-label="Close table of contents"
+        class="fixed inset-0 z-40 bg-surface/80 opacity-0 backdrop-blur-sm pointer-events-none transition-opacity duration-300 data-[visible=true]:opacity-100 data-[visible=true]:pointer-events-auto lg:hidden"
+      >
+        <span class="sr-only">Close table of contents</span>
+      </button>
+
+      <div
+        id="toc-drawer"
+        data-toc-panel
+        data-state="closed"
+        class="fixed bottom-0 left-0 right-0 z-40 translate-y-full bg-surface px-6 pb-8 pt-6 shadow-[0_-20px_60px_rgba(15,23,42,0.35)] transition-transform duration-300 ease-out data-[state=open]:translate-y-0 lg:static lg:z-auto lg:translate-y-0 lg:bg-transparent lg:px-0 lg:pb-0 lg:pt-0 lg:shadow-none"
+      >
+        <aside
+          class="rounded-3xl border border-border bg-surface px-5 py-6 shadow-lg lg:rounded-lg lg:border lg:shadow-none lg:top-4 lg:self-start lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto lg:sticky"
+          aria-labelledby="toc-heading"
+        >
+          <div class="flex items-center justify-between gap-3">
+            <h2 id="toc-heading" class="text-base font-semibold">
+              Table of Contents
+            </h2>
+            <span class="text-xs font-medium uppercase tracking-wide text-text-offset hidden lg:inline">
+              Jump to section
+            </span>
+          </div>
+          <nav class="mt-4 toc-nav" aria-label="Table of contents">
+            <ol class="space-y-1">
+              {(() => {
+                const renderNodes = (nodes: TocItem[]): unknown =>
+                  nodes.map(node => (
+                    <li>
+                      <a
+                        href={`#${node.slug}`}
+                        class="block text-sm text-text-offset hover:text-primary transition-colors"
+                      >
+                        {node.text}
+                      </a>
+                      {
+                        node.children.length > 0 && (
+                          <ol class="mt-2 ml-4 border-l border-border pl-4 space-y-1">
+                            {renderNodes(node.children)}
+                          </ol>
+                        )
+                      }
+                    </li>
+                  ))
+
+                return renderNodes(tocTree)
+              })()}
+            </ol>
+          </nav>
+        </aside>
+      </div>
+    </table-of-contents>
+
+    <script>
+      import { registerTableOfContentsComponent } from '@components/Toc/client'
+      registerTableOfContentsComponent()
+    </script>
+  </>
+)}

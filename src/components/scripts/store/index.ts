@@ -68,7 +68,6 @@ export {
   hideConsentBanner,
   showConsentBanner,
   toggleConsentBanner,
-  isConsentBannerVisible,
 } from './visibility'
 
 // Re-export themes
