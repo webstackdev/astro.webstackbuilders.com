@@ -1,5 +1,6 @@
 ---
 import { type CollectionEntry, render } from 'astro:content'
+import type { MarkdownHeading } from 'astro'
 
 /**
  * Layout for Markdown/MDX content files
@@ -9,7 +10,7 @@ import Footer from '@components/Layout/Markdown/Footer/index.astro'
 import Lead from '@components/Layout/Markdown/Lead/index.astro'
 import Subtitle from '@components/Layout/Markdown/Subtitle/index.astro'
 import Title from '@components/Layout/Markdown/Title/index.astro'
-import Toc from '@components/Layout/Markdown/Toc/index.astro'
+import Toc from '@components/Toc/index.astro'
 
 /** Components made available for use in MDX */
 import Avatar from '@components/Avatar/index.astro'
@@ -99,7 +100,9 @@ const baseLayoutProps = {
   ...(image && { image }),
 }
 
-const { Content } = await render(collectionItem)
+const { Content, headings = [] } = await render(collectionItem)
+const tocHeadings: MarkdownHeading[] = headings.filter(heading => heading.depth > 1)
+const shouldRenderToc = showToc !== false && tocHeadings.length > 0
 ---
 
 <BaseLayout {...baseLayoutProps}>
@@ -131,10 +134,10 @@ const { Content } = await render(collectionItem)
     {/** SLOT: default (unnamed) */}
     <div
       id="content"
-      class={`${showToc ? 'grid gap-8 lg:grid-cols-[250px_1fr]' : 'flex flex-col gap-8'}`}
+      class={`${shouldRenderToc ? 'grid gap-8 lg:grid-cols-[250px_1fr]' : 'flex flex-col gap-8'}`}
       itemprop="articleBody"
     >
-      {showToc && <Toc />}
+      {shouldRenderToc && <Toc items={tocHeadings} />}
       <div class="markdown-content__prose leading-relaxed">
         <Content components={{ ...Components }} />
       </div>
