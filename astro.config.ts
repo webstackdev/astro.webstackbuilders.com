@@ -24,6 +24,7 @@ import {
   environmentalVariablesConfig,
   getSentryAuthToken,
   getSiteUrl,
+  isGitHub,
   isUnitTest,
   isVercel,
   markdownConfig,
@@ -74,7 +75,7 @@ const standardIntegrations = [
   }),
   /** Validate links in built site output on astro:build:done integration hook */
   linkValidator({
-    checkExternal: false,
+    checkExternal: isGitHub(),
     failOnBrokenLinks: false,
     verbose: true,
   }),

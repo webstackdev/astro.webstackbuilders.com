@@ -123,125 +123,7 @@ npm i -D check-html-links
 npx check-html-links _site
 `https://github.com/modernweb-dev/rocket/tree/main/packages/check-html-links`
 
-17:31:43 [ERROR] [astro-link-validator] ❌ Found 38 broken links:
-\n📄 articles/demo/index.html:
-  🔗 /sections/Technology
-    File not found: sections/Technology
-    Text: "Technology"
-\n📄 articles/getting-started-with-astro/index.html:
-  🔗 /sections/Technology
-    File not found: sections/Technology
-    Text: "Technology"
-\n📄 articles/typescript-best-practices/index.html:
-  🔗 /sections/Technology
-    File not found: sections/Technology
-    Text: "Technology"
-\n📄 articles/useful-vs-code-extensions/index.html:
-  🔗 /sections/Technology
-    File not found: sections/Technology
-    Text: "Technology"
-\n📄 articles/writing-library-code/index.html:
-  🔗 /sections/Technology
-    File not found: sections/Technology
-    Text: "Technology"
-\n📄 case-studies/division-15/index.html:
-  🔗 /sections/Case Studies
-    File not found: sections/Case Studies
-    Text: "Case Studies"
-\n📄 case-studies/ecommerce-modernization/index.html:
-  🔗 /sections/Case Studies
-    File not found: sections/Case Studies
-    Text: "Case Studies"
-\n📄 case-studies/english-first/index.html:
-  🔗 /sections/Case Studies
-    File not found: sections/Case Studies
-    Text: "Case Studies"
-\n📄 case-studies/enterprise-api-platform/index.html:
-  🔗 /sections/Case Studies
-    File not found: sections/Case Studies
-    Text: "Case Studies"
-\n📄 case-studies/labcorp/index.html:
-  🔗 /sections/Case Studies
-    File not found: sections/Case Studies
-    Text: "Case Studies"
-\n📄 case-studies/us-logistics/index.html:
-  🔗 /sections/Case Studies
-    File not found: sections/Case Studies
-    Text: "Case Studies"
-\n📄 downloads/api-tool-consolidation-whitepaper/index.html:
-  🔗 /tags/devPortals
-    File not found: tags/devPortals
-    Text: "devPortals"
-  🔗 /tags/restful
-    File not found: tags/restful
-    Text: "restful"
-  🔗 /sections/Resources
-    File not found: sections/Resources
-    Text: "Resources"
-  📦 /assets/images/downloads/api-tool-consolidation.jpg
-    File not found: assets/images/downloads/api-tool-consolidation.jpg
-    Text: "API Tool Consolidation Guide cover with modern design showing connected tools and APIs"
-\n📄 downloads/identity-security-for-dummies/index.html:
-  🔗 /tags/aws
-    File not found: tags/aws
-    Text: "aws"
-  🔗 /tags/devPortals
-    File not found: tags/devPortals
-    Text: "devPortals"
-  🔗 /sections/Resources
-    File not found: sections/Resources
-    Text: "Resources"
-  📦 /assets/images/downloads/identity-security-dummies.jpg
-    File not found: assets/images/downloads/identity-security-dummies.jpg
-    Text: "Identity Security for Dummies book cover with friendly design and security icons"
-\n📄 downloads/lakehouse-analytics-guide/index.html:
-  🔗 /tags/aws
-    File not found: tags/aws
-    Text: "aws"
-  🔗 /tags/databaseNormalization
-    File not found: tags/databaseNormalization
-    Text: "databaseNormalization"
-  🔗 /tags/sqlOptimization
-    File not found: tags/sqlOptimization
-    Text: "sqlOptimization"
-  🔗 /sections/Resources
-    File not found: sections/Resources
-    Text: "Resources"
-  📦 /assets/images/downloads/lakehouse-analytics-guide.jpg
-    File not found: assets/images/downloads/lakehouse-analytics-guide.jpg
-    Text: "Lakehouse Analytics Guide cover showing unified data architecture diagram"
-\n📄 downloads/observability-benefits-guide/index.html:
-  🔗 /tags/aws
-    File not found: tags/aws
-    Text: "aws"
-  🔗 /tags/deployment
-    File not found: tags/deployment
-    Text: "deployment"
-  🔗 /tags/devPortals
-    File not found: tags/devPortals
-    Text: "devPortals"
-  🔗 /sections/Resources
-    File not found: sections/Resources
-    Text: "Resources"
-  📦 /assets/images/downloads/observability-benefits.jpg
-    File not found: assets/images/downloads/observability-benefits.jpg
-    Text: "End-to-End Observability ebook cover with distributed systems visualization"
-\n📄 downloads/ransomware-recovery-kit/index.html:
-  🔗 /tags/aws
-    File not found: tags/aws
-    Text: "aws"
-  🔗 /tags/deployment
-    File not found: tags/deployment
-    Text: "deployment"
-  🔗 /tags/ci
-    File not found: tags/ci
-    Text: "ci"
-  🔗 /sections/Resources
-    File not found: sections/Resources
-    Text: "Resources"
-  📦 /assets/images/downloads/ransomware-recovery-kit.jpg
-    File not found: assets/images/downloads/ransomware-recovery-kit.jpg
-    Text: "Ransomware Recovery Kit cover showing security shield and data protection elements"
+22:38:43 [ERROR] [astro-link-validator] ❌ Found 2 broken links:
 \n📄 index.html:
   🔗 /services/web-development
     File not found: services/web-development
@@ -249,14 +131,10 @@ npx check-html-links _site
   🔗 /services/consulting
     File not found: services/consulting
     Text: "Start from scratch"
-\n📄 services/create-custom-font-sets/index.html:
-  🔗 /sections/Services
-    File not found: sections/Services
-    Text: "Services"
-\n📄 services/overview/index.html:
-  🔗 /sections/Services
-    File not found: sections/Services
-    Text: "Services"
+
+## Tags
+
+Can we add a markdown page to explain what each tag is, and use those pages instead of src/content/_tagList.ts to define the tags available?
 
 ## Social Media Preview Cards
 
