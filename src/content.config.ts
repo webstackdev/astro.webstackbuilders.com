@@ -11,10 +11,119 @@
 import { defineCollection, reference, z } from 'astro:content'
 import { glob, file } from 'astro/loaders'
 import { validTags } from '@content/_tagList'
-/** Wraps a collection schema with a refinement that enforces breadcrumb title length limits */
+/**
+ * Wraps a collection schema with a refinement that enforces breadcrumb title length limits */
 import { withBreadcrumbTitleWarning } from '@lib/helpers/breadcrumbTitleLengthRefinement'
 
+/**
+ * NOTE: In YAML, dates written without quotes around them are interpreted as Date objects */
+
+/** Only load markdown and MDX files that do not start with an underscore */
 const pattern = '**\/[^_]*.{md,mdx}'
+
+const baseCollectionSchema = z.object({
+  title: z.string(),
+  description: z.string(),
+  image: z
+    .object({
+      src: z.string().default('cover.webp'),
+      alt: z.string().default('Hero Image'),
+    })
+    .default({}),
+  featured: z.boolean().default(false),
+  isDraft: z.boolean().default(false),
+  publishDate: z.date(),
+  tags: z.array(z.enum(validTags)),
+})
+
+/**
+ * =================================================================================
+ *
+ * Primary Content Collections
+ *
+ * =================================================================================
+ */
+
+/**
+ * Articles
+ */
+const articlesSchema = withBreadcrumbTitleWarning(
+  baseCollectionSchema.extend({
+    author: reference('authors'),
+    readingTime: z.string().optional(),
+    showToc: z.boolean().default(true),
+  }),
+  'articles'
+)
+
+const articlesCollection = defineCollection({
+  loader: glob({ pattern, base: './src/content/articles' }),
+  schema: () => articlesSchema,
+})
+
+/**
+ * Case Studies
+ */
+const caseStudiesSchema = withBreadcrumbTitleWarning(
+  baseCollectionSchema.extend({
+    client: z.string().optional(),
+    duration: z.string().optional(),
+    industry: z.string().optional(),
+    projectType: z.string().optional(),
+  }),
+  'caseStudies'
+)
+
+const caseStudiesCollection = defineCollection({
+  loader: glob({ pattern, base: './src/content/case-studies' }),
+  schema: () => caseStudiesSchema,
+})
+
+/**
+ * Services
+ */
+const servicesSchema = withBreadcrumbTitleWarning(
+  baseCollectionSchema.extend({
+    category: z.string().optional(),
+    deliverables: z.array(z.string()).optional(),
+    duration: z.string().optional(),
+    pricing: z.string().optional(),
+  }),
+  'services'
+)
+
+const servicesCollection = defineCollection({
+  loader: glob({ pattern, base: './src/content/services' }),
+  schema: () => servicesSchema,
+})
+
+/**
+ * Downloads
+ */
+const downloadsSchema = withBreadcrumbTitleWarning(
+  baseCollectionSchema.extend({
+    author: reference('authors').optional(),
+    fileType: z.enum(['PDF', 'eBook', 'Whitepaper', 'Guide', 'Report', 'Template']),
+    fileSize: z.string().optional(),
+    pages: z.number().optional(),
+    readingTime: z.string().optional(),
+    fileName: z.string(),
+  }),
+  'downloads'
+)
+
+const downloadsCollection = defineCollection({
+  loader: glob({ pattern, base: './src/content/downloads' }),
+  schema: () => downloadsSchema,
+})
+
+/**
+ * =================================================================================
+ *
+ * Secondary Content Collections
+ *
+ * =================================================================================
+ */
 
 /**
  * About
@@ -30,35 +139,6 @@ const aboutSchema = withBreadcrumbTitleWarning(
 const aboutCollection = defineCollection({
   loader: glob({ pattern, base: './src/content/about' }),
   schema: aboutSchema,
-})
-
-/**
- * Articles
- */
-const articlesSchema = withBreadcrumbTitleWarning(
-  z.object({
-    title: z.string(),
-    description: z.string(),
-    // Reference a single author from the `authors` collection by `id`
-    author: reference('authors'),
-    tags: z.array(z.enum(validTags)),
-    image: z.object({
-      src: z.string(),
-      alt: z.string(),
-    }),
-    // In YAML, dates written without quotes around them are interpreted as Date objects
-    publishDate: z.date(),
-    isDraft: z.boolean().default(false),
-    featured: z.boolean().default(false),
-    readingTime: z.string().optional(),
-    showToc: z.boolean().default(true),
-  }),
-  'articles'
-)
-
-const articlesCollection = defineCollection({
-  loader: glob({ pattern, base: './src/content/articles' }),
-  schema: () => articlesSchema,
 })
 
 /**
@@ -91,42 +171,6 @@ const authorsCollection = defineCollection({
 })
 
 /**
- * Case Studies
- */
-const caseStudiesSchema = withBreadcrumbTitleWarning(
-  z.object({
-    title: z.string(),
-    description: z.string().optional(),
-    tags: z.array(z.enum(validTags)),
-    // In YAML, dates written without quotes around them are interpreted as Date objects
-    publishDate: z.date(),
-    isDraft: z.boolean().default(false),
-    featured: z.boolean().default(false),
-    // Optional fields that may exist in some case studies
-    image: z
-      .union([
-        z.string(),
-        z.object({
-          src: z.string(),
-          alt: z.string(),
-        }),
-      ])
-      .optional(),
-    client: z.string().optional(),
-    author: reference('authors').optional(),
-    industry: z.string().optional(),
-    projectType: z.string().optional(),
-    duration: z.string().optional(),
-  }),
-  'caseStudies'
-)
-
-const caseStudiesCollection = defineCollection({
-  loader: glob({ pattern, base: './src/content/case-studies' }),
-  schema: () => caseStudiesSchema,
-})
-
-/**
  * Contact data
  */
 const contactDataSocialItemSchema = z.object({
@@ -152,62 +196,6 @@ const contactDataSchema = z.object({
 const contactDataCollection = defineCollection({
   loader: file('./src/content/contact.json'),
   schema: contactDataSchema,
-})
-
-/**
- * Downloads
- */
-const downloadsSchema = withBreadcrumbTitleWarning(
-  z.object({
-    title: z.string(),
-    description: z.string(),
-    author: reference('authors').optional(),
-    tags: z.array(z.enum(validTags)),
-    image: z.object({
-      src: z.string(),
-      alt: z.string(),
-    }),
-    publishDate: z.date(),
-    isDraft: z.boolean().default(false),
-    featured: z.boolean().default(false),
-    fileType: z.enum(['PDF', 'eBook', 'Whitepaper', 'Guide', 'Report', 'Template']),
-    fileSize: z.string().optional(),
-    pages: z.number().optional(),
-    readingTime: z.string().optional(),
-    fileName: z.string(), // Filename in public/downloads directory
-  }),
-  'downloads'
-)
-
-const downloadsCollection = defineCollection({
-  loader: glob({ pattern, base: './src/content/downloads' }),
-  schema: () => downloadsSchema,
-})
-
-/**
- * Services
- */
-const servicesSchema = withBreadcrumbTitleWarning(
-  z.object({
-    title: z.string(),
-    description: z.string().optional(),
-    tags: z.array(z.enum(validTags)),
-    // In YAML, dates written without quotes around them are interpreted as Date objects
-    publishDate: z.date(),
-    isDraft: z.boolean().default(false),
-    category: z.string().optional(),
-    icon: z.string().optional(),
-    featured: z.boolean().default(false),
-    pricing: z.string().optional(),
-    duration: z.string().optional(),
-    deliverables: z.array(z.string()).optional(),
-  }),
-  'services'
-)
-
-const servicesCollection = defineCollection({
-  loader: glob({ pattern, base: './src/content/services' }),
-  schema: () => servicesSchema,
 })
 
 /**
