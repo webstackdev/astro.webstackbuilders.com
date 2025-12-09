@@ -1,5 +1,6 @@
 ---
 import { getCollection } from 'astro:content'
+import { Picture } from 'astro:assets'
 import { isDev, isProd } from '@lib/config/environmentServer'
 import PageLayout from '@layouts/PageLayout.astro'
 
@@ -26,13 +27,18 @@ const sortedArticles = allArticles.sort(
       sortedArticles.map(article => (
         <article class="bg-bg rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
           <a href={`/articles/${article.id}`} class="block">
-            {article.data.image && (
-              <div class="aspect-video overflow-hidden">
-                <img
-                  src={article.data.image.src}
-                  alt={article.data.image.alt}
-                  loading="lazy"
-                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            {article.data.cover?.src && (
+              <div class="relative aspect-video overflow-hidden">
+                <Picture
+                  src={article.data.cover.src}
+                  alt={article.data.cover.alt}
+                  widths={[320, 640, 960, 1280]}
+                  sizes="(min-width: 1280px) 25vw, (min-width: 768px) 50vw, 100vw"
+                  formats={['avif', 'webp', 'jpeg']}
+                  layout="constrained"
+                  fit="cover"
+                  position="center"
+                  class="absolute inset-0 h-full w-full"
                 />
               </div>
             )}

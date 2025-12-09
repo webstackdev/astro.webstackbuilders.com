@@ -1,5 +1,6 @@
 ---
 import { type CollectionEntry, getCollection } from 'astro:content'
+import { Picture } from 'astro:assets'
 import { isDev, isProd } from '@lib/config/environmentServer'
 import MarkdownLayout from '@layouts/MarkdownLayout.astro'
 import DownloadForm from '@components/Forms/Download/index.astro'
@@ -22,7 +23,11 @@ export async function getStaticPaths() {
 const { download } = Astro.props
 const path = `/downloads/${download.id}`
 const pageTitle = download.data.title
-const cover = download.data.image
+const cover = download.data.cover
+  ? typeof download.data.cover === 'string'
+    ? { src: download.data.cover, alt: download.data.title }
+    : download.data.cover
+  : undefined
 const authorId =
   typeof download.data.author === 'string'
     ? download.data.author
@@ -43,12 +48,23 @@ const authorId =
   showToc={false}
 >
   {
-    cover && (
+    cover?.src && (
       <div
-        class="aspect-video max-w-3xl mx-auto rounded-2xl overflow-hidden shadow-lg mb-8"
+        class="relative aspect-video max-w-3xl mx-auto rounded-2xl overflow-hidden shadow-lg mb-8"
         slot="hero-image"
       >
-        <img src={cover.src} alt={cover.alt} loading="eager" class="w-full h-full object-cover" />
+        <Picture
+          src={cover.src}
+          alt={cover.alt}
+          widths={[640, 960, 1280, 1920]}
+          sizes="(min-width: 1280px) 80vw, 100vw"
+          formats={['avif', 'webp', 'jpeg']}
+          layout="constrained"
+          fit="cover"
+          position="center"
+          class="absolute inset-0 h-full w-full object-cover"
+          loading="eager"
+        />
       </div>
     )
   }

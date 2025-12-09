@@ -1,5 +1,6 @@
 ---
 import { getCollection } from 'astro:content'
+import { Picture } from 'astro:assets'
 import PageLayout from '@layouts/PageLayout.astro'
 
 const path = '/services/'
@@ -29,23 +30,35 @@ const services = allServices.sort(
           </h2>
         </header>
         <ul class="space-y-12 md:space-y-20 lg:space-y-20">
-          {services.map(service => (
-            <li class="service-item">
-              <a
-                href={`/services/${service.id}`}
-                class="block group hover:bg-bg-offset rounded-lg p-6 transition-colors duration-200 border border-transparent hover:border-border"
-              >
-                <div class="flex items-start space-x-6">
-                  {service.data.icon && (
-                    <div class="shrink-0 w-16 h-16 bg-primary-bg rounded-lg flex items-center justify-center group-hover:bg-primary-bg-hover transition-colors">
-                      <img
-                        src={service.data.icon}
-                        alt=""
-                        loading="lazy"
-                        class="w-8 h-8 text-primary"
-                      />
-                    </div>
-                  )}
+          {services.map(service => {
+            const cover =
+              typeof service.data.cover === 'string'
+                ? { src: service.data.cover, alt: service.data.title }
+                : service.data.cover
+
+            return (
+              <li class="service-item">
+                <a
+                  href={`/services/${service.id}`}
+                  class="block group hover:bg-bg-offset rounded-lg p-6 transition-colors duration-200 border border-transparent hover:border-border"
+                >
+                  <div class="flex items-start space-x-6">
+                    {cover?.src && (
+                      <div class="relative shrink-0 w-16 h-16 bg-primary-bg rounded-lg overflow-hidden group-hover:bg-primary-bg-hover transition-colors">
+                        <Picture
+                          src={cover.src}
+                          alt={cover.alt}
+                          widths={[64, 96, 128, 192]}
+                          sizes="64px"
+                          formats={['avif', 'webp', 'png']}
+                          layout="fixed"
+                          fit="cover"
+                          position="center"
+                          class="absolute inset-0 h-full w-full object-cover"
+                          loading="lazy"
+                        />
+                      </div>
+                    )}
                   <div class="flex-1 min-w-0">
                     <h3 class="text-xl md:text-2xl font-semibold text-text mb-3 group-hover:text-primary transition-colors">
                       {service.data.title}
@@ -74,7 +87,8 @@ const services = allServices.sort(
                 </div>
               </a>
             </li>
-          ))}
+            )
+          })}
         </ul>
       </section>
     )

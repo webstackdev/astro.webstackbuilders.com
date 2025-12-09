@@ -410,6 +410,27 @@ Allows any Mastodon instance to discover your Mastodon profile directly from you
 </body>
 ```
 
+## Refactor social neworks in Authors collection to Contact collection format
+
+The contact data collection uses an array of social networks, with keys:
+
+```
+{
+  network: z.string(),
+  name: z.string(),
+  url: z.string().url(),
+  order: z.number(),
+}
+```
+
+The authors collection is using named entries under a "social" property, like "twitter", "github", etc. This task is to refactor that to use an array like contact data collection. We also need to add a color for the social network icon, or some other approach to setting the color of it while enabling theming.
+
+We should also make sure the avatar key in the authors collection is being output as a responsive image tag.
+
+## Add Google Maps screenshot (or maps embed) to Contact Page
+
+src/assets/images/map.webp
+
 ## Display a system font until font files load (Lighthouse improvements)
 
 Display a system font until font files load to improve FCP (First Contentful Paint) with `font-display: swap`. Need to make sure that web font doesn't render larger or smaller than the system font fallback to avoid CLS (Cumulative Layout Shift) issues.

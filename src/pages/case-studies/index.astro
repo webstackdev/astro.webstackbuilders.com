@@ -1,5 +1,6 @@
 ---
 import { getCollection } from 'astro:content'
+import { Picture } from 'astro:assets'
 import PageLayout from '@layouts/PageLayout.astro'
 
 const allCaseStudies = await getCollection('caseStudies')
@@ -18,67 +19,72 @@ const sortedCaseStudies = allCaseStudies.sort(
 >
   <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12">
     {
-      sortedCaseStudies.map(caseStudy => (
-        <article class="bg-bg rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
-          <a href={`/case-studies/${caseStudy.id}`} class="block h-full">
-            {caseStudy.data.image && (
-              <div class="aspect-video overflow-hidden">
-                <img
-                  src={
-                    typeof caseStudy.data.image === 'string'
-                      ? caseStudy.data.image
-                      : caseStudy.data.image.src
-                  }
-                  alt={
-                    typeof caseStudy.data.image === 'string'
-                      ? caseStudy.data.title
-                      : caseStudy.data.image.alt
-                  }
-                  loading="lazy"
-                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-            )}
+      sortedCaseStudies.map(caseStudy => {
+        const cover =
+          typeof caseStudy.data.cover === 'string'
+            ? { src: caseStudy.data.cover, alt: caseStudy.data.title }
+            : caseStudy.data.cover
 
-            <div class="p-6 space-y-4">
-              <h2 class="text-xl font-semibold text-text leading-tight group-hover:text-primary transition-colors duration-300">
-                {caseStudy.data.title}
-              </h2>
-
-              {caseStudy.data.description && (
-                <p class="text-text-muted text-sm leading-relaxed line-clamp-3">
-                  {caseStudy.data.description}
-                </p>
-              )}
-
-              <div class="space-y-3">
-                {caseStudy.data.client && (
-                  <span class="inline-block text-sm font-medium text-primary bg-primary-bg px-3 py-1 rounded-full">
-                    Client: {caseStudy.data.client}
-                  </span>
-                )}
-
-                <time class="block text-sm text-text-muted">
-                  {caseStudy.data.publishDate.toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                  })}
-                </time>
-              </div>
-
-              {caseStudy.data.tags && (
-                <div class="flex flex-wrap gap-2 pt-2">
-                  {caseStudy.data.tags.slice(0, 3).map((tag: string) => (
-                    <span class="text-xs font-medium text-text-muted bg-bg-offset px-2 py-1 rounded-full">
-                      {tag}
-                    </span>
-                  ))}
+        return (
+          <article class="bg-bg rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
+            <a href={`/case-studies/${caseStudy.id}`} class="block h-full">
+              {cover?.src && (
+                <div class="relative aspect-video overflow-hidden">
+                  <Picture
+                    src={cover.src}
+                    alt={cover.alt}
+                    widths={[320, 640, 960, 1280]}
+                    sizes="(min-width: 1280px) 25vw, (min-width: 768px) 50vw, 100vw"
+                    formats={['avif', 'webp', 'jpeg']}
+                    layout="constrained"
+                    fit="cover"
+                    position="center"
+                    class="absolute inset-0 block h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    loading="lazy"
+                  />
                 </div>
               )}
-            </div>
-          </a>
-        </article>
-      ))
+
+              <div class="p-6 space-y-4">
+                <h2 class="text-xl font-semibold text-text leading-tight group-hover:text-primary transition-colors duration-300">
+                  {caseStudy.data.title}
+                </h2>
+
+                {caseStudy.data.description && (
+                  <p class="text-text-muted text-sm leading-relaxed line-clamp-3">
+                    {caseStudy.data.description}
+                  </p>
+                )}
+
+                <div class="space-y-3">
+                  {caseStudy.data.client && (
+                    <span class="inline-block text-sm font-medium text-primary bg-primary-bg px-3 py-1 rounded-full">
+                      Client: {caseStudy.data.client}
+                    </span>
+                  )}
+
+                  <time class="block text-sm text-text-muted">
+                    {caseStudy.data.publishDate.toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                    })}
+                  </time>
+                </div>
+
+                {caseStudy.data.tags && (
+                  <div class="flex flex-wrap gap-2 pt-2">
+                    {caseStudy.data.tags.slice(0, 3).map((tag: string) => (
+                      <span class="text-xs font-medium text-text-muted bg-bg-offset px-2 py-1 rounded-full">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </a>
+          </article>
+        )
+      })
     }
   </section>
 </PageLayout>

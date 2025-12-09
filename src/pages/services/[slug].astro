@@ -1,5 +1,6 @@
 ---
 import { getCollection } from 'astro:content'
+import { Picture } from 'astro:assets'
 import MarkdownLayout from '@layouts/MarkdownLayout.astro'
 import Carousel from '@components/Carousel/index.astro'
 import WebMentions from '@components/WebMentions/index.astro'
@@ -16,7 +17,11 @@ export async function getStaticPaths() {
 const { service } = Astro.props
 const path = `/services/${service.id}`
 const pageTitle = service.data.title
-const icon = service.data.icon ? { src: service.data.icon, alt: service.data.title } : undefined
+const cover = service.data.cover
+  ? typeof service.data.cover === 'string'
+    ? { src: service.data.cover, alt: service.data.title }
+    : service.data.cover
+  : undefined
 ---
 
 <MarkdownLayout
@@ -27,17 +32,28 @@ const icon = service.data.icon ? { src: service.data.icon, alt: service.data.tit
   publishDate={service.data.publishDate}
   tags={service.data.tags}
   {...(service.data.description && { description: service.data.description })}
-  {...(icon?.src && { image: icon.src })}
+  {...(cover?.src && { image: cover.src })}
   showToc={false}
 >
   {/** SLOT: hero-image */}
   {
-    icon && (
+    cover?.src && (
       <div
-        class="w-20 h-20 mx-auto mb-8 bg-primary-offset rounded-xl flex items-center justify-center"
+        class="relative w-20 h-20 mx-auto mb-8 bg-primary-offset rounded-xl overflow-hidden"
         slot="hero-image"
       >
-        <img src={icon.src} alt={icon.alt} loading="eager" class="w-10 h-10" />
+        <Picture
+          src={cover.src}
+          alt={cover.alt}
+          widths={[80, 120, 160]}
+          sizes="80px"
+          formats={['avif', 'webp', 'png']}
+          layout="fixed"
+          fit="cover"
+          position="center"
+          class="absolute inset-0 h-full w-full object-cover"
+          loading="eager"
+        />
       </div>
     )
   }

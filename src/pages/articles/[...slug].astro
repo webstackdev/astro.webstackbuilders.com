@@ -1,5 +1,6 @@
 ---
 import { type CollectionEntry, getCollection } from 'astro:content'
+import { Picture } from 'astro:assets'
 import { isDev, isProd } from '@lib/config/environmentServer'
 import MarkdownLayout from '@layouts/MarkdownLayout.astro'
 import Shares from '@components/Social/Shares/index.astro'
@@ -25,7 +26,7 @@ const { article } = Astro.props
 
 const path = `/articles/${article.id}`
 const pageTitle = article.data.title
-const cover = article.data.image
+const cover = article.data.cover
 const authorId =
   typeof article.data.author === 'string' ? article.data.author : article.data.author.id
 ---
@@ -47,10 +48,20 @@ const authorId =
   {
     cover && (
       <div
-        class="aspect-video max-w-3xl mx-auto rounded-2xl overflow-hidden shadow-lg mb-8"
+        class="relative aspect-video max-w-3xl mx-auto rounded-2xl overflow-hidden shadow-lg mb-8"
         slot="hero-image"
       >
-        <img src={cover.src} alt={cover.alt} loading="eager" class="w-full h-full object-cover" />
+        <Picture
+          src={cover.src}
+          alt={cover.alt}
+          widths={[320, 640, 960, 1280]}
+          sizes="(min-width: 1024px) 66vw, 100vw"
+          formats={['avif', 'webp', 'jpeg']}
+          layout="constrained"
+          fit="cover"
+          position="center"
+          class="absolute inset-0 h-full w-full"
+        />
       </div>
     )
   }

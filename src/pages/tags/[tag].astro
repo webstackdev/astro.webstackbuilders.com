@@ -1,5 +1,6 @@
 ---
 import { type CollectionEntry, getCollection } from 'astro:content'
+import { Picture } from 'astro:assets'
 import { isDev, isProd } from '@lib/config/environmentServer'
 import BaseLayout from '@layouts/BaseLayout.astro'
 import { exceptions } from '@content/_tagList'
@@ -79,12 +80,6 @@ const getTagDisplayName = (tag: string) => {
 const displayName = getTagDisplayName(tag)
 const path = `/tags/${tag}/`
 
-// Type guard to check if image is an object with src/alt properties
-type ImageObject = { src: string; alt: string }
-const isImageObject = (img: unknown): img is ImageObject => {
-  return typeof img === 'object' && img !== null && 'src' in img && 'alt' in img
-}
-
 const typeMetadata = {
   article: { label: 'Article', badgeClass: 'bg-primary', hrefBase: 'articles' },
   'case-study': { label: 'Case Study', badgeClass: 'bg-success', hrefBase: 'case-studies' },
@@ -115,85 +110,82 @@ const typeMetadata = {
           <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12 mb-12">
             {paginatedContent.map(item => {
               const typeMeta = typeMetadata[item.type]
+              const cover = item.data.cover
+              const href = `/${typeMeta.hrefBase}/${item.id}`
+
               return (
                 <article class="bg-bg rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
-                  <a href={`/${typeMeta.hrefBase}/${item.id}`} class="block h-full">
-                  {'image' in item.data && item.data.image && (
-                    <div class="aspect-video overflow-hidden">
-                      <img
-                        src={
-                          typeof item.data.image === 'string'
-                            ? item.data.image
-                            : isImageObject(item.data.image)
-                              ? item.data.image.src
-                              : String(item.data.image)
-                        }
-                        alt={
-                          typeof item.data.image === 'string'
-                            ? item.data.title
-                            : isImageObject(item.data.image)
-                              ? item.data.image.alt
-                              : item.data.title
-                        }
-                        loading="lazy"
-                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    </div>
-                  )}
-
-                  <div class="p-6 space-y-4">
-                    <div class="flex items-center gap-3 text-sm">
-                      <span
-                        class={`px-3 py-1 rounded-full text-white font-medium ${typeMeta.badgeClass}`}
-                      >
-                        {typeMeta.label}
-                      </span>
-                      <time class="text-text-muted">
-                        {item.data.publishDate.toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                        })}
-                      </time>
-                    </div>
-
-                    <h2 class="text-xl font-semibold text-text leading-tight group-hover:text-primary transition-colors duration-300">
-                      {item.data.title}
-                    </h2>
-
-                    {item.data.description && (
-                      <p class="text-text-muted text-sm leading-relaxed line-clamp-3">
-                        {item.data.description}
-                      </p>
+                  <a href={href} class="block h-full">
+                    {cover?.src && (
+                      <div class="relative aspect-video overflow-hidden">
+                        <Picture
+                          src={cover.src}
+                          alt={cover.alt}
+                          widths={[320, 640, 960, 1280]}
+                          sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"
+                          formats={['avif', 'webp', 'jpeg']}
+                          layout="constrained"
+                          fit="cover"
+                          position="center"
+                          class="absolute inset-0 h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          loading="lazy"
+                        />
+                      </div>
                     )}
 
-                    <div class="space-y-3 pt-2">
-                      {/* Client or Author info */}
-                      {'client' in item.data && item.data.client && (
-                        <span class="inline-block text-sm font-medium text-primary bg-primary-bg px-3 py-1 rounded-full">
-                          Client: {item.data.client}
+                    <div class="p-6 space-y-4">
+                      <div class="flex items-center gap-3 text-sm">
+                        <span
+                          class={`px-3 py-1 rounded-full text-white font-medium ${typeMeta.badgeClass}`}
+                        >
+                          {typeMeta.label}
                         </span>
+                        <time class="text-text-muted">
+                          {item.data.publishDate.toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                          })}
+                        </time>
+                      </div>
+
+                      <h2 class="text-xl font-semibold text-text leading-tight group-hover:text-primary transition-colors duration-300">
+                        {item.data.title}
+                      </h2>
+
+                      {item.data.description && (
+                        <p class="text-text-muted text-sm leading-relaxed line-clamp-3">
+                          {item.data.description}
+                        </p>
                       )}
 
-                      {/* Additional tags */}
-                      {item.data.tags && item.data.tags.length > 1 && (
-                        <div class="flex flex-wrap gap-2">
-                          {item.data.tags
-                            .filter((t: string) => t !== tag)
-                            .slice(0, 3)
-                            .map((relatedTag: string) => (
-                              <a
-                                href={`/tags/${relatedTag}/`}
-                                class="text-xs font-medium text-text-muted bg-bg-offset hover:bg-border px-2 py-1 rounded-full transition-colors duration-200"
-                              >
-                                {getTagDisplayName(relatedTag)}
-                              </a>
-                            ))}
-                        </div>
-                      )}
+                      <div class="space-y-3 pt-2">
+                        {/* Client or Author info */}
+                        {'client' in item.data && item.data.client && (
+                          <span class="inline-block text-sm font-medium text-primary bg-primary-bg px-3 py-1 rounded-full">
+                            Client: {item.data.client}
+                          </span>
+                        )}
+
+                        {/* Additional tags */}
+                        {item.data.tags && item.data.tags.length > 1 && (
+                          <div class="flex flex-wrap gap-2">
+                            {item.data.tags
+                              .filter((t: string) => t !== tag)
+                              .slice(0, 3)
+                              .map((relatedTag: string) => (
+                                <a
+                                  href={`/tags/${relatedTag}/`}
+                                  class="text-xs font-medium text-text-muted bg-bg-offset hover:bg-border px-2 py-1 rounded-full transition-colors duration-200"
+                                >
+                                  {getTagDisplayName(relatedTag)}
+                                </a>
+                              ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </a>
+                  </a>
                 </article>
               )
             })}
