@@ -37,8 +37,8 @@ jobs:
               core.setFailed(`Required CI jobs missing or failed: ${missing.join(', ')}`);
             }
 
-  push-supabase-migrations:
-    name: Push Supabase Production Migrations
+  push-turso-migrations:
+    name: Push Turso Production Migrations
     runs-on: ubuntu-latest
     needs: verify-ci
     if: >-
@@ -53,15 +53,17 @@ jobs:
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
 
-      - name: Install Supabase CLI
-        uses: supabase/setup-cli@v1.6.0
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
         with:
-          version: latest
+          node-version: '22.x'
+          cache: 'npm'
 
-      - name: Link Supabase project
-        run: supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_REF }} --password "${{ secrets.SUPABASE_DB_PASSWORD }}" --workdir suprabase
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Push Astro DB migrations to Turso
+        run: npx astro db push --remote
         env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-
-      - name: Push migrations to production
-        run: supabase db push --workdir suprabase
+          ASTRO_DB_REMOTE_URL: ${{ secrets.ASTRO_DB_REMOTE_URL }}
+          ASTRO_DB_APP_TOKEN: ${{ secrets.ASTRO_DB_APP_TOKEN }}

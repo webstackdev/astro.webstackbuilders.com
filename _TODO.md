@@ -147,6 +147,10 @@ fatal: /home/kevin/Repos/Webstack: '/home/kevin/Repos/Webstack' is outside repos
 
 ⚠️  Privacy policy version fallback applied: 2025-12-08
 
+## Build output errors
+
+00:19:09 [WARN] [vite] [plugin:astro:assets:esm] context method emitFile() is not supported in serve mode. This plugin is likely not vite-compatible.
+
 ## Tags
 
 Can we add a markdown page to explain what each tag is, and use those pages instead of src/content/_tagList.ts to define the tags available?

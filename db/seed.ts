@@ -5,6 +5,10 @@ import { consentEvents, rateLimitWindows, db } from 'astro:db'
 export default async function seed() {
 	const now = new Date()
 
+	/*
+	 * Provide a pair of consent records so GDPR endpoints, dashboard pages, and local tests
+	 * always have deterministic data to read without depending on real submissions.
+	 */
 	await db.insert(consentEvents).values([
 		{
 			id: randomUUID(),
@@ -34,6 +38,10 @@ export default async function seed() {
 		},
 	])
 
+	/*
+	 * Pre-populate a rate-limit window so the Upstash-compatible limiter logic immediately
+	 * has a known scope/identifier to work with when exercising API routes locally.
+	 */
 	await db.insert(rateLimitWindows).values([
 		{
 			id: randomUUID(),
