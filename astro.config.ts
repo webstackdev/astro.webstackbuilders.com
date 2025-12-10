@@ -1,4 +1,5 @@
 import AstroPWA from '@vite-pwa/astro'
+import db from '@astrojs/db'
 import icon from 'astro-icon'
 import linkValidator from 'astro-link-validator'
 import lit from '@semantic-ui/astro-lit'
@@ -47,6 +48,8 @@ const sharedTestIntegrations = [
 
 const standardIntegrations = [
   AstroPWA(pwaConfig),
+  /** Astro DB - uses Tursa for backing store in production */
+  db(),
   ...sharedTestIntegrations,
   mdx(markdownConfig),
   /** Generate favicons and PWA icons from source SVG */

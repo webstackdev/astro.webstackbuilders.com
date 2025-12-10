@@ -123,10 +123,6 @@ fatal: /home/kevin/Repos/Webstack: '/home/kevin/Repos/Webstack' is outside repos
 
 Can we add a markdown page to explain what each tag is, and use those pages instead of src/content/_tagList.ts to define the tags available?
 
-## Social Media Preview Cards
-
-Looking at the social-card endpoint implementation, it's designed to work with third-party screenshot services, not the social networks themselves.
-
 ## Use Confetti on CTA forms
 
 `canvas-confetti`
