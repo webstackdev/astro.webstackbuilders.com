@@ -23,19 +23,7 @@ We still have a handful of "real" Supabase/Upstash touchpoints under src:
 
 Anything that imports supabaseAdmin (below) rides on that helper, so those env getters/validators (`environmentApi.ts`, `environmentalVariableValidation.ts`)` also remain in play.
 
-API routes that still execute Supabase queries:
-
-- `export.ts` - reads consent_records directly from Supabase when packaging DSAR exports.
-
-- `cleanup-dsar-requests.ts` - deletes fulfilled/expired DSAR requests in Supabase.
-
-- `cleanup-confirmations.ts` - deletes expired/old newsletter_confirmations rows in Supabase.
-
-- `ping-integrations.ts` - the Supabase half of the keep-alive check still runs a select against newsletter_confirmations.
-
-Client-side module supabase.ts still instantiates a public Supabase client (it isn't imported anywhere else now, but the implementation is present).
-
-For Upstash, the only active usage under src is the same ping-integrations route: it fetches `getUpstashApiUrl()` / `getUpstashApiToken()` and performs a REST call against the Upstash proxy key.
+Client-side module `supabase.ts` still instantiates a public Supabase client (it isn't imported anywhere else now, but the implementation is present).
 
 Those env helpers and the validation entries (`KV_REST_API_URL`, `KV_REST_API_TOKEN`, etc.) are therefore still part of the implementation.
 
