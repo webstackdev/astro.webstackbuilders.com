@@ -12,6 +12,7 @@ import type {
 import contactData from '@content/contact.json'
 import { absoluteUrl } from '@components/scripts/utils/absoluteUrl'
 import { BuildError } from '@lib/errors/BuildError'
+import { getSocialImageLink } from '@components/Head/server'
 
 const STRUCTURED_DATA_FILE = 'src/components/Head/server/structuredData.ts'
 const LOGO_PATH = '/logo.png'
@@ -27,7 +28,6 @@ export interface StructuredDataProps {
   publishDate?: Date
   modifiedDate?: Date
   author?: string
-  image?: string
 }
 
 export interface StructuredDataParams extends StructuredDataProps {
@@ -69,7 +69,7 @@ export const getSchemas = (params: StructuredDataParams): string[] => {
 }
 
 const createSchemaContext = (params: StructuredDataParams): SchemaContext => {
-  const { astro, path, pageTitle, description, contentType, publishDate, modifiedDate, author, image } = params
+  const { astro, path, pageTitle, description, contentType, publishDate, modifiedDate, author } = params
 
   if (!astro) {
     throw new BuildError('Astro context is required to generate structured data', {
@@ -98,7 +98,7 @@ const createSchemaContext = (params: StructuredDataParams): SchemaContext => {
   const normalizedPath = normalizePath(path)
   const canonicalUrl = astro.url?.href ?? resolveRoute(normalizedPath, astro.site)
   const descriptionFallback = description ?? contactData.company.description
-  const resolvedImage = resolveOptionalAssetUrl(image, astro.site)
+  const socialImageUrl = getSocialImageLink(path)
 
   const context: SchemaContext = {
     path: normalizedPath,
@@ -107,6 +107,7 @@ const createSchemaContext = (params: StructuredDataParams): SchemaContext => {
     site: astro.site,
     canonicalUrl,
     pathSegments: normalizedPath.split('/').filter(Boolean),
+    image: socialImageUrl,
   }
 
   if (contentType) {
@@ -125,10 +126,6 @@ const createSchemaContext = (params: StructuredDataParams): SchemaContext => {
 
   if (author) {
     context.author = author
-  }
-
-  if (resolvedImage) {
-    context.image = resolvedImage
   }
 
   return context
@@ -318,14 +315,6 @@ const resolveAssetUrl = (asset: string, site: URL): string => {
   }
 }
 
-const resolveOptionalAssetUrl = (asset: string | undefined, site: URL): string | undefined => {
-  if (!asset) {
-    return undefined
-  }
-
-  return resolveAssetUrl(asset, site)
-}
-
 const resolveRoute = (route: string, site: URL): string => {
   try {
     return absoluteUrl(route, site)
@@ -339,3 +328,4 @@ const resolveRoute = (route: string, site: URL): string => {
 const formatSegmentName = (segment: string): string => {
   return segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, ' ')
 }
+

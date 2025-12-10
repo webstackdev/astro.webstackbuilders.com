@@ -1,4 +1,5 @@
 ---
+import { getSiteUrl } from '@lib/config/siteUrlServer'
 import contactData from '@content/contact.json'
 import { absoluteUrl } from '@components/scripts/utils'
 import { getMetaThemeData } from '@components/Head/server/meta'
@@ -13,7 +14,7 @@ export interface Props {
   contentType?: 'article' | 'website'
   /** Meta description */
   description?: string
-  image?: string
+  /** Last modified date */
   modifiedDate?: Date
   /** Whether search engines should ignore the page, default: false */
   noindex?: boolean
@@ -33,7 +34,6 @@ const {
   author,
   contentType,
   description,
-  image,
   modifiedDate,
   noindex = false,
   pageTitle,
@@ -43,7 +43,7 @@ const {
   tags,
 } = Astro.props
 
-const { slug, defaultTheme } = getMetaThemeData(path)
+const defaultTheme = getMetaThemeData()
 ---
 
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -64,15 +64,13 @@ const { slug, defaultTheme } = getMetaThemeData(path)
 <Social
   title={pageTitle}
   description={description || contactData.company.description}
-  slug={slug}
-  {...image && { image }}
+  path={path}
 />
 {/* JSON-LD Structured Data for search engines */}
 <StructuredData
   path={path}
   pageTitle={pageTitle}
   {...description && { description }}
-  {...image && { image }}
   {...contentType && { contentType }}
   {...publishDate && { publishDate }}
   {...modifiedDate && { modifiedDate }}
@@ -100,7 +98,7 @@ const { slug, defaultTheme } = getMetaThemeData(path)
 <link
   type="application/rss+xml"
   rel="alternate"
-  href={absoluteUrl('rss.xml', Astro.site)}
+  href={absoluteUrl('rss.xml', new URL(getSiteUrl()))}
   title={`RSS Feed for ${contactData.company.name}`}
 />
 {/* Web App Manifest */}

@@ -2,8 +2,9 @@
 /**
  * Individual WebMention item display
  */
-// import { Picture } from 'astro:assets'
+import { Image } from 'astro:assets'
 import type { Webmention } from '@components/WebMentions/@types'
+import { buildAvatarImageProps } from './server/avatarImage'
 
 export interface Props {
   mention: Webmention
@@ -39,21 +40,23 @@ const formatDate = (dateString: string) => {
           target="_blank"
           rel="noopener noreferrer"
         >
-          <img
-            class="w-10 h-10 rounded-full object-cover border-2 border-border u-photo"
-            src={mention.author.photo || '/assets/images/webmention-avatar-default.svg'}
+          <Image
+            {...buildAvatarImageProps(mention.author.photo)}
             alt={mention.author.name || 'Anonymous'}
+            class="w-10 h-10 rounded-full object-cover border-2 border-border u-photo"
             loading="lazy"
+            decoding="async"
           />
           <strong class="font-semibold p-name">{mention.author.name}</strong>
         </a>
       ) : (
         <span class="inline-flex items-center gap-3">
-          <img
-            class="w-10 h-10 rounded-full object-cover border-2 border-border"
-            src="/assets/images/webmention-avatar-default.svg"
+          <Image
+            {...buildAvatarImageProps()}
             alt="Anonymous"
+            class="w-10 h-10 rounded-full object-cover border-2 border-border"
             loading="lazy"
+            decoding="async"
           />
           <strong class="font-semibold">Anonymous</strong>
         </span>

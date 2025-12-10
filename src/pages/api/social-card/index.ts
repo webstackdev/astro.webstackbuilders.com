@@ -1,15 +1,111 @@
-/**
- * API endpoint to generate social media cards using HTML template
- * This returns HTML that can be screenshot by external services or used in OG tags
- * Usage: GET /api/social-card?slug=article-title&title=Article Title&description=Article description
- */
+import { fileURLToPath } from 'node:url'
 import type { APIRoute } from 'astro'
+import { getCollection } from 'astro:content'
+import { generateOpenGraphImage } from 'astro-og-canvas'
 import { buildApiErrorResponse, handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
 import { createApiFunctionContext } from '@pages/api/_utils/requestContext'
 
 export const prerender = false
 
 const ROUTE = '/api/social-card'
+const DEFAULT_TITLE = 'Webstack Builders'
+const DEFAULT_DESCRIPTION = 'Professional Web Development Services'
+const LOGO_PATH = fileURLToPath(
+  new URL('../../../../assets/images/site/logo.png', import.meta.url)
+)
+
+type CollectionKey = 'articles' | 'caseStudies' | 'services' | 'downloads'
+type PaletteKey = 'articles' | 'case-studies' | 'services' | 'downloads' | 'default'
+
+interface SocialCardEntry {
+  slug: string
+  title: string
+  description?: string
+  palette: PaletteKey
+}
+
+const collectionConfig = [
+  { collection: 'articles', pathPrefix: 'articles', palette: 'articles' },
+  { collection: 'caseStudies', pathPrefix: 'case-studies', palette: 'case-studies' },
+  { collection: 'services', pathPrefix: 'services', palette: 'services' },
+  { collection: 'downloads', pathPrefix: 'downloads', palette: 'downloads' },
+] as const satisfies ReadonlyArray<{
+  collection: CollectionKey
+  pathPrefix: string
+  palette: PaletteKey
+}>
+
+const gradientPalette: Record<PaletteKey, [number, number, number][]> = {
+  articles: [
+    [10, 37, 64],
+    [59, 130, 246],
+  ],
+  'case-studies': [
+    [47, 27, 70],
+    [156, 163, 175],
+  ],
+  services: [
+    [6, 95, 70],
+    [45, 212, 191],
+  ],
+  downloads: [
+    [30, 64, 175],
+    [147, 197, 253],
+  ],
+  default: [
+    [2, 6, 23],
+    [15, 118, 110],
+  ],
+}
+
+/** Normalize slug parameters to a consistent format */
+const normalizeSlug = (value: string | null): string => {
+  if (!value) return 'home'
+  const trimmed = value.trim().replace(/^\/+/, '').replace(/\/$/, '')
+  return trimmed || 'home'
+}
+
+const sanitizeText = (value: string): string => value.replace(/\s+/g, ' ').trim()
+
+const truncateText = (value: string, maxLength: number): string => {
+  if (value.length <= maxLength) return value
+  return `${value.slice(0, maxLength - 1)}…`
+}
+
+const resolveText = (
+  candidates: Array<string | null | undefined>,
+  fallback: string,
+  maxLength: number,
+): string => {
+  for (const candidate of candidates) {
+    if (typeof candidate === 'string') {
+      const sanitized = sanitizeText(candidate)
+      if (sanitized) {
+        return truncateText(sanitized, maxLength)
+      }
+    }
+  }
+  return truncateText(fallback, maxLength)
+}
+
+const buildContentIndex = async (): Promise<Record<string, SocialCardEntry>> => {
+  const collectionEntries = await Promise.all(
+    collectionConfig.map(async config => {
+      const entries = await getCollection(config.collection)
+      return entries.map(entry => ({
+        slug: `${config.pathPrefix}/${entry.id}`,
+        title: entry.data.title,
+        description: entry.data.description,
+        palette: config.palette,
+      }))
+    })
+  )
+
+  return collectionEntries.flat().reduce<Record<string, SocialCardEntry>>((acc, entry) => {
+    acc[entry.slug] = entry
+    return acc
+  }, {})
+}
 
 export const GET: APIRoute = async ({ request, clientAddress, cookies }) => {
   const { context: apiContext } = createApiFunctionContext({
@@ -22,143 +118,50 @@ export const GET: APIRoute = async ({ request, clientAddress, cookies }) => {
 
   try {
     const url = new URL(request.url)
-    const slug = url.searchParams.get('slug') || 'home'
-    const title = url.searchParams.get('title') || 'Webstack Builders'
-    const description = url.searchParams.get('description') || 'Professional Web Development Services'
-    const date = url.searchParams.get('date') || new Date().toLocaleDateString()
-    const format = url.searchParams.get('format') || 'html' // html or og
+    const slug = normalizeSlug(url.searchParams.get('slug'))
+    const titleOverride = url.searchParams.get('title')
+    const descriptionOverride = url.searchParams.get('description')
 
-    // If requesting Open Graph meta tags
-    if (format === 'og') {
-      const imageUrl = `${url.origin}/api/social-card?slug=${encodeURIComponent(slug)}&title=${encodeURIComponent(title)}&description=${encodeURIComponent(description)}&format=html`
+    const contentIndex = await buildContentIndex()
+    const matchedEntry = contentIndex[slug]
 
-      return new Response(
-        JSON.stringify({
-          'og:title': title,
-          'og:description': description,
-          'og:image': imageUrl,
-          'og:url': `${url.origin}/${slug}`,
-          'twitter:card': 'summary_large_image',
-          'twitter:title': title,
-          'twitter:description': description,
-          'twitter:image': imageUrl,
-        }),
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Cache-Control': 'public, max-age=3600',
-          },
-        }
-      )
-    }
+    const title = resolveText([matchedEntry?.title, titleOverride], DEFAULT_TITLE, 120)
+    const description = resolveText(
+      [matchedEntry?.description, descriptionOverride],
+      DEFAULT_DESCRIPTION,
+      200,
+    )
 
-    // HTML template for social card (can be screenshot by external services)
-    const htmlTemplate = `
-    <!DOCTYPE html>
-    <html lang="en">
-      <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500&display=swap" rel="stylesheet" />
-        <style>
-          * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-          }
+    const palette = matchedEntry?.palette ?? 'default'
 
-          body {
-            width: 1200px;
-            height: 630px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 60px;
-            background: linear-gradient(135deg, #001a39 0%, #006dca 100%);
-            color: white;
-            font-family: "Baloo 2", "Onest Regular", sans-serif;
-            box-sizing: border-box;
-            overflow: hidden;
-          }
+    const imageBuffer = await generateOpenGraphImage({
+      title,
+      description,
+      bgGradient: gradientPalette[palette],
+      padding: 80,
+      logo: {
+        path: LOGO_PATH,
+        size: [180],
+      },
+      font: {
+        title: {
+          size: 86,
+          lineHeight: 96,
+        },
+        description: {
+          size: 48,
+          lineHeight: 58,
+          color: [226, 232, 240],
+        },
+      },
+      format: 'PNG',
+    })
 
-          .card-content {
-            text-align: center;
-            max-width: 1000px;
-            z-index: 2;
-          }
+    const payload = new Uint8Array(imageBuffer)
 
-          h1 {
-            font-size: 4rem;
-            margin-bottom: 2rem;
-            line-height: 1.1;
-            font-weight: 500;
-            color: white;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-          }
-
-          p {
-            font-size: 2rem;
-            line-height: 1.4;
-            margin-bottom: 1rem;
-            opacity: 0.9;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
-          }
-
-          .date {
-            font-size: 1.5rem;
-            opacity: 0.8;
-            font-style: italic;
-          }
-
-          .brand {
-            position: absolute;
-            bottom: 40px;
-            right: 40px;
-            font-size: 1.8rem;
-            font-weight: bold;
-            opacity: 0.8;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
-          }
-
-          /* Decorative elements */
-          .decoration {
-            position: absolute;
-            width: 200px;
-            height: 200px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.1);
-            top: -100px;
-            left: -100px;
-          }
-
-          .decoration:nth-child(2) {
-            width: 150px;
-            height: 150px;
-            top: auto;
-            bottom: -75px;
-            right: -75px;
-            left: auto;
-            background: rgba(255,255,255,0.05);
-          }
-        </style>
-      </head>
-      <body>
-        <div class="decoration"></div>
-        <div class="decoration"></div>
-        <div class="card-content">
-          <h1>${title}</h1>
-          <p>${description}</p>
-          ${date ? `<div class="date">Published on ${date}</div>` : ''}
-        </div>
-        <div class="brand">Webstack Builders</div>
-      </body>
-    </html>
-  `
-
-    return new Response(htmlTemplate, {
+    return new Response(payload, {
       headers: {
-        'Content-Type': 'text/html',
+        'Content-Type': 'image/png',
         'Cache-Control': 'public, max-age=3600',
       },
     })

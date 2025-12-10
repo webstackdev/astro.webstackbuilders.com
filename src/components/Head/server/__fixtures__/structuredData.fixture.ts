@@ -38,9 +38,5 @@ export const createStructuredDataParams = (
   if (overrides.author !== undefined) {
     params.author = overrides.author
   }
-  if (overrides.image !== undefined) {
-    params.image = overrides.image
-  }
-
   return params
 }

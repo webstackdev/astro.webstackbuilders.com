@@ -103,6 +103,12 @@ export default defineConfig({
   /** API routes are marked in their files for SSR */
   output: 'static',
   prefetch: true,
+  image: {
+    remotePatterns: [
+      { protocol: 'https' },
+      { protocol: 'http' },
+    ],
+  },
   /** Change URL between development and production environments */
   site: getSiteUrl(),
   trailingSlash: 'never',

@@ -2,44 +2,32 @@
 /**
  * Open Graph / Facebook / X.com metadata
  */
+import { getSiteUrl } from '@lib/config/siteUrlServer'
+import { getSocialImageLink } from '@components/Head/server'
 import contactData from '@content/contact.json'
-import { getSocialMetadata, type SocialMetadataOptions } from '@components/Head/server'
 
 export interface Props {
-  /** Meta description */
-  description?: string
-  image?: string
-  slug?: string // @TODO: Should this be named "path"? Or rename "path" to "slug"?
-  title?: string
+  description: string
+  path: string
+  title: string
 }
 
-const { title, description, slug, image } = Astro.props
+const { title, description, path } = Astro.props
 
-/** Assertion on Astro.site because it's guaranteed to be present or build throws */
-const options: SocialMetadataOptions = { url: Astro.url.href, baseUrl: Astro.site!.origin }
-if (title !== undefined) options.title = title
-if (description !== undefined) options.description = description
-if (slug !== undefined) options.slug = slug
-if (image !== undefined) options.image = image
 
-const socialMetadata = getSocialMetadata(options)
 ---
 
 {/* Types include 'website', 'article', 'profile', and 'product' */}
 <meta property="og:type" content="website" />
-<meta property="og:title" content={socialMetadata.ogTitle} />
-<meta property="og:description" content={socialMetadata.ogDescription} />
-<meta property="og:image" content={socialMetadata.ogImage} />
-<meta property="og:image:alt" content={socialMetadata.ogImageAlt} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:image" content={getSocialImageLink(path)} />
+<meta property="og:image:alt" content={`Social card for ${title}`} />
 {/* Canonical URL of the page */}
-<meta property="og:url" content={socialMetadata.ogUrl} />
+<meta property="og:url" content={`${getSiteUrl()}/${path}`} />
 <meta property="og:site_name" content={contactData.company.name} />
 
 {/* Twitter metadata */}
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:site" content="@webstackdev" />
 <meta name="twitter:creator" content="@webstackdev" />
-<meta name="twitter:title" content={socialMetadata.twitterTitle} />
-<meta name="twitter:description" content={socialMetadata.twitterDescription} />
-<meta name="twitter:image" content={socialMetadata.twitterImage} />
-<meta name="twitter:image:alt" content={socialMetadata.twitterImageAlt} />
