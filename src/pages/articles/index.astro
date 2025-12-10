@@ -4,22 +4,26 @@ import { Picture } from 'astro:assets'
 import { isDev, isProd } from '@lib/config/environmentServer'
 import PageLayout from '@layouts/PageLayout.astro'
 
-const pageTitle = 'Articles'
-const path = '/articles/'
-
 const allArticles = await getCollection('articles', ({ data }) => {
   return isDev() || (isProd() && data.isDraft !== true)
 })
 
-// Sort by publish date (newest first)
+/** Sort by publish date (newest first) */
 const sortedArticles = allArticles.sort(
   (a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime()
 )
+
+const pageDescription = 'Webstack Builders Articles List'
+const pageTitle = 'All Articles'
+const path = '/articles/'
+const section = 'Articles'
 ---
 
 <PageLayout
+  description={pageDescription}
   pageTitle={pageTitle}
   path={path}
+  section={section}
   subtitle="Insights, tutorials, and thoughts on web development"
 >
   <section class="space-y-12">
@@ -27,11 +31,11 @@ const sortedArticles = allArticles.sort(
       sortedArticles.map(article => (
         <article class="bg-bg rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
           <a href={`/articles/${article.id}`} class="block">
-            {article.data.cover?.src && (
+            {article.data.cover && (
               <div class="relative aspect-video overflow-hidden">
                 <Picture
-                  src={article.data.cover.src}
-                  alt={article.data.cover.alt}
+                  src={article.data.cover}
+                  alt={article.data.coverAlt}
                   widths={[320, 640, 960, 1280]}
                   sizes="(min-width: 1280px) 25vw, (min-width: 768px) 50vw, 100vw"
                   formats={['avif', 'webp', 'jpeg']}

@@ -4,7 +4,7 @@
  */
 import { Picture } from 'astro:assets'
 import { getCollection } from 'astro:content'
-// type CollectionEntry
+
 import {
   type CollectionSlug,
   type CarouselVariant,
@@ -56,11 +56,11 @@ const items = prepareItems(allItems, variant, currentSlug, limit)
                       href={`/${type}/${item.id}`}
                       class="block h-full bg-bg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-border hover:border-primary transform hover:-translate-y-2"
                     >
-                      {item.data.cover?.src && (
+                      {item.data.cover && (
                         <div class="relative aspect-video overflow-hidden">
                           <Picture
-                            src={item.data.cover.src}
-                            alt={item.data.cover.alt || item.data.title}
+                            src={item.data.cover}
+                            alt={item.data.coverAlt}
                             widths={[320, 640, 960, 1280]}
                             sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
                             formats={['avif', 'webp', 'jpeg']}

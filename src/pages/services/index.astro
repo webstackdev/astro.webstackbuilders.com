@@ -3,23 +3,26 @@ import { getCollection } from 'astro:content'
 import { Picture } from 'astro:assets'
 import PageLayout from '@layouts/PageLayout.astro'
 
-const path = '/services/'
-const description = 'Professional web development and consulting services to help you build better software faster.'
-
-// Get all services from content collection
+/** Get all services from content collection */
 const allServices = await getCollection('services')
 
-// Filter and sort services
+/** Filter and sort services */
 const services = allServices.sort(
   (a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime()
 )
+
+const pageDescription = 'Webstack Builders Services List'
+const pageTitle = 'All Services'
+const path = '/services/'
+const section = 'Services'
 ---
 
 <PageLayout
-  pageTitle="Services"
+  description={pageDescription}
+  pageTitle={pageTitle}
   path={path}
+  section={section}
   subtitle="Professional web development and consulting services"
-  description={description}
 >
   {
     services.length > 0 && (
@@ -31,11 +34,6 @@ const services = allServices.sort(
         </header>
         <ul class="space-y-12 md:space-y-20 lg:space-y-20">
           {services.map(service => {
-            const cover =
-              typeof service.data.cover === 'string'
-                ? { src: service.data.cover, alt: service.data.title }
-                : service.data.cover
-
             return (
               <li class="service-item">
                 <a
@@ -43,11 +41,11 @@ const services = allServices.sort(
                   class="block group hover:bg-bg-offset rounded-lg p-6 transition-colors duration-200 border border-transparent hover:border-border"
                 >
                   <div class="flex items-start space-x-6">
-                    {cover?.src && (
+                    {service.data.cover && (
                       <div class="relative shrink-0 w-16 h-16 bg-primary-bg rounded-lg overflow-hidden group-hover:bg-primary-bg-hover transition-colors">
                         <Picture
-                          src={cover.src}
-                          alt={cover.alt}
+                          src={service.data.cover}
+                          alt={service.data.coverAlt}
                           widths={[64, 96, 128, 192]}
                           sizes="64px"
                           formats={['avif', 'webp', 'png']}

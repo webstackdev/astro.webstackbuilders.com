@@ -3,29 +3,39 @@ import Meta from '@components/Head/Meta.astro'
 import ThemeInit from '@components/Head/ThemeInit.astro'
 
 export interface Props {
-  pageTitle: string
-  path: string
+  /** Author name */
+  author?: string
+  /** Content type for OpenGraph metadata */
+  contentType?: 'article' | 'website'
+  /** Meta description */
   description?: string
   image?: string
-  noindex?: boolean
-  contentType?: 'article' | 'website'
-  publishDate?: Date
+  /** Last modified date */
   modifiedDate?: Date
-  author?: string
+  /** Whether search engines should ignore the page, default: false */
+  noindex?: boolean
+  /** Meta page title displayed in the browser tab and window title bar */
+  pageTitle: string
+  /** URL path component e.g. 'articles/my-article' */
+  path: string
+  /** Publication date for articles */
+  publishDate?: Date
+  /** Specifies the main, high-level category or theme of the article */
   section?: string
+  /** Content tags */
   tags?: string[]
 }
 
 const {
-  pageTitle,
-  path,
+  author,
+  contentType,
   description,
   image,
-  noindex,
-  contentType,
-  publishDate,
   modifiedDate,
-  author,
+  noindex,
+  pageTitle,
+  path,
+  publishDate,
   section,
   tags,
 } = Astro.props

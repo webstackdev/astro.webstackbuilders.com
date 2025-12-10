@@ -4,35 +4,36 @@ import { Picture } from 'astro:assets'
 import PageLayout from '@layouts/PageLayout.astro'
 
 const allCaseStudies = await getCollection('caseStudies')
-const path = '/case-studies/'
 
-// Sort by publish date (newest first)
+/** Sort by publish date (newest first) */
 const sortedCaseStudies = allCaseStudies.sort(
   (a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime()
 )
+
+const pageDescription = 'Webstack Builders Case Studies List'
+const pageTitle = 'All Case Studies'
+const path = '/case-studies/'
+const section = 'Case Studies'
 ---
 
 <PageLayout
-  pageTitle="Case Studies"
+  description={pageDescription}
+  pageTitle={pageTitle}
   path={path}
+  section={section}
   subtitle="Explore our successful projects and client outcomes"
 >
   <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12">
     {
       sortedCaseStudies.map(caseStudy => {
-        const cover =
-          typeof caseStudy.data.cover === 'string'
-            ? { src: caseStudy.data.cover, alt: caseStudy.data.title }
-            : caseStudy.data.cover
-
         return (
           <article class="bg-bg rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
             <a href={`/case-studies/${caseStudy.id}`} class="block h-full">
-              {cover?.src && (
+              {caseStudy.data.cover && (
                 <div class="relative aspect-video overflow-hidden">
                   <Picture
-                    src={cover.src}
-                    alt={cover.alt}
+                    src={caseStudy.data.cover}
+                    alt={caseStudy.data.coverAlt}
                     widths={[320, 640, 960, 1280]}
                     sizes="(min-width: 1280px) 25vw, (min-width: 768px) 50vw, 100vw"
                     formats={['avif', 'webp', 'jpeg']}

@@ -1,20 +1,13 @@
 ---
 /**
- * Page layout used for item view pages for dynamic collections like articles,
- * case studies, and services, and dynamic token newsletter confirm pages.
+ * Page layout used for item view pages for primary collections like articles,
+ * case studies, and services, and also dynamic token newsletter confirm pages.
  */
 import BaseLayout from '@layouts/BaseLayout.astro'
 
 export interface Props {
-  pageTitle: string
-  /** The URL path component e.g. 'articles/my-article' */
-  path: string
-  /** Optional page subtitle */
-  subtitle?: string
-  /** Optional page description for meta tags */
-  description?: string
-  /** Schema.org itemtype for structured data */
-  schemaType?: string
+  /** Page description for meta tags */
+  description: string
   /** Article metadata for blog posts */
   meta?: {
     date?: Date
@@ -23,20 +16,41 @@ export interface Props {
     readingTime?: string
     draft?: boolean
   }
+  /** Meta page title displayed in the browser tab and window title bar */
+  pageTitle: string
+  /** The URL path component e.g. 'articles/my-article' */
+  path: string
+  /** Specifies the main, high-level category or theme of the article */
+  section: string
+  /** Optional page subtitle */
+  subtitle?: string
+  /** Schema.org itemtype for structured data */
+  schemaType?: string
 }
 
 const {
+  description,
+  meta,
   pageTitle,
   path,
-  subtitle,
-  description,
   schemaType = 'http://schema.org/WebPage',
-  meta,
+  section,
+  subtitle,
 } = Astro.props
 ---
 
-<BaseLayout pageTitle={pageTitle} path={path} {...description && { description }}>
-  <article class="page-content" itemscope itemtype={schemaType} aria-labelledby="page-title">
+<BaseLayout
+  pageTitle={pageTitle}
+  path={path}
+  description={description}
+  section={section}
+>
+  <article
+    class="page-content"
+    itemscope
+    itemtype={schemaType}
+    aria-labelledby="page-title"
+  >
     <header class="page-content__header">
       <h1 id="page-title" class="page-content__title" itemprop="headline">
         {pageTitle}

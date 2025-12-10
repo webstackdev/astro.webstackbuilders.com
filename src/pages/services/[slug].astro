@@ -15,36 +15,34 @@ export async function getStaticPaths() {
 }
 
 const { service } = Astro.props
+
 const path = `/services/${service.id}`
 const pageTitle = service.data.title
-const cover = service.data.cover
-  ? typeof service.data.cover === 'string'
-    ? { src: service.data.cover, alt: service.data.title }
-    : service.data.cover
-  : undefined
+const section = 'Downloads'
 ---
 
 <MarkdownLayout
+  collectionItem={service}
+  contentType="article"
+  description={service.data.description}
+  image={service.data.cover.src}
   pageTitle={pageTitle}
   path={path}
-  contentType="article"
-  collectionItem={service}
   publishDate={service.data.publishDate}
-  tags={service.data.tags}
-  {...(service.data.description && { description: service.data.description })}
-  {...(cover?.src && { image: cover.src })}
+  section={section}
   showToc={false}
+  tags={service.data.tags}
 >
   {/** SLOT: hero-image */}
   {
-    cover?.src && (
+    service.data.cover && (
       <div
         class="relative w-20 h-20 mx-auto mb-8 bg-primary-offset rounded-xl overflow-hidden"
         slot="hero-image"
       >
         <Picture
-          src={cover.src}
-          alt={cover.alt}
+          src={service.data.cover}
+          alt={service.data.coverAlt}
           widths={[80, 120, 160]}
           sizes="80px"
           formats={['avif', 'webp', 'png']}

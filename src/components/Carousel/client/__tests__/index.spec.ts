@@ -142,7 +142,8 @@ describe('Carousel component (server output)', () => {
       const cardWithIcon = root.querySelector('[data-carousel-slide] img')
 
       expect(cardWithIcon).toBeTruthy()
-      expect(cardWithIcon?.getAttribute('src')).toBe('/icons/one.svg')
+      expect(cardWithIcon?.getAttribute('src')).toMatch(/^\/_image\?href=/)
+      expect(cardWithIcon?.getAttribute('alt')).toBe('Cover image for Article One')
     })
   })
 

@@ -40,12 +40,18 @@ const getContentPreviewForTag = (tag: string, limit: number = 4) => {
   return allContent.filter(item => item.data.tags && item.data.tags.includes(tag)).slice(0, limit)
 }
 
-const pageTitle = 'Tags'
+const pageDescription = 'Webstack Builders Services List'
+const pageTitle = 'All Tags'
 const path = '/tags/'
-
+const section = 'Tags'
 ---
 
-<BaseLayout pageTitle={pageTitle} path={path}>
+<BaseLayout
+  description={pageDescription}
+  pageTitle={pageTitle}
+  path={path}
+  section={section}
+>
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <header class="text-center mb-16">
       <h1 class="text-4xl md:text-5xl font-bold text-text mb-4">
@@ -91,7 +97,6 @@ const path = '/tags/'
               {/* Desktop: Show 3-4 cards in grid */}
               <div class="hidden md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {contentPreview.map(item => {
-                  const cover = item.data.cover
                   const hrefBase =
                     item.type === 'case-study' ? 'case-studies' : item.type === 'service' ? 'services' : 'articles'
                   const href = `/${hrefBase}/${item.id}`
@@ -99,11 +104,11 @@ const path = '/tags/'
                   return (
                     <article class="bg-bg rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
                       <a href={href} class="block h-full">
-                        {cover?.src && (
+                        {item.data.cover && (
                           <div class="relative aspect-video overflow-hidden">
                             <Picture
-                              src={cover.src}
-                              alt={cover.alt}
+                              src={item.data.cover}
+                              alt={item.data.coverAlt}
                               widths={[320, 640, 960, 1280]}
                               sizes="(min-width: 1280px) 25vw, (min-width: 768px) 33vw, 100vw"
                               formats={['avif', 'webp', 'jpeg']}
@@ -158,7 +163,6 @@ const path = '/tags/'
               {/* Mobile: Show single card */}
               <div class="md:hidden">
                 {contentPreview.slice(0, 1).map(item => {
-                  const cover = item.data.cover
                   const hrefBase =
                     item.type === 'case-study' ? 'case-studies' : item.type === 'service' ? 'services' : 'articles'
                   const href = `/${hrefBase}/${item.id}`
@@ -166,11 +170,11 @@ const path = '/tags/'
                   return (
                     <article class="bg-bg rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
                       <a href={href} class="block">
-                        {cover?.src && (
+                        {item.data.cover && (
                           <div class="relative aspect-video overflow-hidden">
                             <Picture
-                              src={cover.src}
-                              alt={cover.alt}
+                              src={item.data.cover}
+                              alt={item.data.coverAlt}
                               widths={[640, 960, 1280]}
                               sizes="100vw"
                               formats={['avif', 'webp', 'jpeg']}

@@ -25,11 +25,8 @@ const createBaseCollectionSchema = ({ image }: SchemaContext) =>
   z.object({
     title: z.string(),
     description: z.string(),
-    cover: z
-      .object({
-        src: image(),
-        alt: z.string(),
-      }),
+    cover: image(),
+    coverAlt: z.string(),
     featured: z.boolean().default(false),
     isDraft: z.boolean().default(false),
     publishDate: z.date(),

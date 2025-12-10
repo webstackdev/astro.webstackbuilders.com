@@ -7,31 +7,40 @@ import Social from '@components/Head/Social.astro'
 import StructuredData from '@components/Head/StructuredData.astro'
 
 export interface Props {
-  pageTitle: string
-  path: string
+  /** Author name */
+  author?: string
+  /** Content type for OpenGraph metadata */
+  contentType?: 'article' | 'website'
+  /** Meta description */
   description?: string
   image?: string
-  contentType?: 'article' | 'website'
-  publishDate?: Date
   modifiedDate?: Date
-  author?: string
-  section?: string
-  tags?: string[]
+  /** Whether search engines should ignore the page, default: false */
   noindex?: boolean
+  /** Meta page title displayed in the browser tab and window title bar */
+  pageTitle: string
+  /** URL path component e.g. 'articles/my-article' */
+  path: string
+  /** Publication date for articles */
+  publishDate?: Date
+  /** Specifies the main, high-level category or theme of the article */
+  section?: string
+  /** Content tags */
+  tags?: string[]
 }
 
 const {
-  pageTitle,
-  path,
+  author,
+  contentType,
   description,
   image,
-  contentType,
-  publishDate,
   modifiedDate,
-  author,
+  noindex = false,
+  pageTitle,
+  path,
+  publishDate,
   section,
   tags,
-  noindex = false,
 } = Astro.props
 
 const { slug, defaultTheme } = getMetaThemeData(path)

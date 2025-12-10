@@ -30,55 +30,57 @@ import Testimonials from '@components/Testimonials/index.astro'
 const Components = { Avatar, Callout, Carousel, Contact, Embed, Featured, Highlighter, Icon, Image, MastodonModal, Newsletter, Picture, Shares, Testimonials }
 
 export interface Props {
-  /** Page title shown in <title> and H1 */
-  pageTitle: string
-  /** URL path component e.g. 'articles/my-article' */
-  path: string
-  /** Optional page subtitle or excerpt */
-  subtitle?: string
-  /** Content type for OpenGraph metadata */
-  contentType?: 'article' | 'website'
+  /** Author name */
+  author?: string
   /** Raw Markdown content from "body" property on content collection */
   collectionItem:
     | CollectionEntry<'articles'>
     | CollectionEntry<'services'>
     | CollectionEntry<'caseStudies'>
-    | CollectionEntry<'downloads'>
-  /** Publication date for articles */
-  publishDate?: Date
-  /** Last modified date */
-  modifiedDate?: Date
-  /** Author name */
-  author?: string
-  /** Article tags */
-  tags?: string[]
-  /** Meta description */
-  description?: string
-  /** Social share image */
-  image?: string
-  /** Estimated reading time */
-  readingTime?: string
-  /** Whether to show table of contents */
-  showToc?: boolean
+    | CollectionEntry<'downloads'>;
   /** Custom CSS class for content wrapper */
   contentClass?: string
+  /** Content type for OpenGraph metadata */
+  contentType?: 'article' | 'website'
+  /** Meta description */
+  description: string
+  /** Page title shown in <title> and H1 */
+  pageTitle: string
+  /** URL path component e.g. 'articles/my-article' */
+  path: string
+  /** Last modified date */
+  modifiedDate?: Date
+  /** Publication date for articles */
+  publishDate?: Date
+  /** Social share image */
+  image: string
+  /** Estimated reading time */
+  readingTime?: string
+  /** Specifies the main, high-level category or theme of the article */
+  section: string
+  /** Whether to show table of contents */
+  showToc?: boolean
+  /** Optional page subtitle or excerpt */
+  subtitle?: string
+  /** Content tags */
+  tags?: string[]
 }
 
 const {
-  pageTitle,
-  path,
-  subtitle,
-  contentType = 'article',
-  collectionItem,
-  publishDate,
-  modifiedDate,
   author,
-  tags,
+  collectionItem,
+  contentClass = '',
+  contentType = 'article',
   description,
   image,
+  modifiedDate,
+  pageTitle,
+  path,
+  publishDate,
   readingTime,
   showToc,
-  contentClass = '',
+  subtitle,
+  tags,
 } = Astro.props
 
 // Schema.org itemtype based on content type
@@ -87,25 +89,22 @@ const schemaType =
     ? 'http://schema.org/Article'
     : 'http://schema.org/WebPage'
 
-// Build BaseLayout props object with only defined values
-const baseLayoutProps = {
-  pageTitle,
-  path,
-  contentType,
-  ...(publishDate && { publishDate }),
-  ...(modifiedDate && { modifiedDate }),
-  ...(author && { author }),
-  ...(tags && { tags }),
-  ...(description && { description }),
-  ...(image && { image }),
-}
-
 const { Content, headings = [] } = await render(collectionItem)
 const tocHeadings: MarkdownHeading[] = headings.filter(heading => heading.depth > 1)
 const shouldRenderToc = showToc !== false && tocHeadings.length > 0
 ---
 
-<BaseLayout {...baseLayoutProps}>
+<BaseLayout
+  pageTitle={pageTitle}
+  path={path}
+  description={description}
+  contentType={contentType}
+  {...publishDate && { publishDate }}
+  {...modifiedDate && { modifiedDate }}
+  {...author && { author }}
+  {...tags && { tags }}
+  {...image && { image }}
+>
   <article
     class={`max-w-[75ch] mx-auto py-8 px-4 ${contentClass}`}
     itemscope

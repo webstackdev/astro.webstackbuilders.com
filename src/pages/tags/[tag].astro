@@ -77,18 +77,26 @@ const getTagDisplayName = (tag: string) => {
   return exceptions[tag as keyof typeof exceptions] || tag
 }
 
-const displayName = getTagDisplayName(tag)
-const path = `/tags/${tag}/`
-
 const typeMetadata = {
   article: { label: 'Article', badgeClass: 'bg-primary', hrefBase: 'articles' },
   'case-study': { label: 'Case Study', badgeClass: 'bg-success', hrefBase: 'case-studies' },
   service: { label: 'Service', badgeClass: 'bg-accent', hrefBase: 'services' },
   download: { label: 'Download', badgeClass: 'bg-secondary', hrefBase: 'downloads' },
 } as const
+
+const displayName = getTagDisplayName(tag)
+const path = `/tags/${tag}/`
+const pageDescription= `List of content tagged with ${displayName}`
+const pageTitle = `${displayName} - Tag`
+const section = 'Tags'
 ---
 
-<BaseLayout pageTitle={`${displayName} - Tag`} path={path}>
+<BaseLayout
+  pageTitle={pageTitle}
+  path={path}
+  description={pageDescription}
+  section={section}
+>
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <header class="text-center mb-12">
       <h1 class="text-4xl md:text-5xl font-bold text-text mb-4">
@@ -110,17 +118,16 @@ const typeMetadata = {
           <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12 mb-12">
             {paginatedContent.map(item => {
               const typeMeta = typeMetadata[item.type]
-              const cover = item.data.cover
               const href = `/${typeMeta.hrefBase}/${item.id}`
 
               return (
                 <article class="bg-bg rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
                   <a href={href} class="block h-full">
-                    {cover?.src && (
+                    {item.data.cover && (
                       <div class="relative aspect-video overflow-hidden">
                         <Picture
-                          src={cover.src}
-                          alt={cover.alt}
+                          src={item.data.cover}
+                          alt={item.data.coverAlt}
                           widths={[320, 640, 960, 1280]}
                           sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"
                           formats={['avif', 'webp', 'jpeg']}

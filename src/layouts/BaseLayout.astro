@@ -18,35 +18,46 @@ import '@styles/index.css'
 import '@styles/icons.css'
 
 export interface Props {
+  author?: string
+  /** Enforce that child is passed to slot */
+  children: unknown
+  /** Optional metadata for articles */
+  contentType?: 'article' | 'website'
+  /** Meta description */
   description: string
+  // @TODO: Used in Head/Seo, factor out to social cards
+  image?: string
+  /** Last modified date */
+  modifiedDate?: Date
+  /** Whether search engines should ignore the page, default: false */
+  noindex?: boolean
+  /**
+   * Meta page title displayed in the browser tab and window title bar,
+   * and used in social cards and Markdown layout for the <title> element
+   */
   pageTitle: string
   /** The URL path component e.g. 'articles/my-article' */
   path: string
-  /** Enforce that child is passed to slot */
-  children?: unknown
-  /** Optional metadata for articles */
-  contentType?: 'article' | 'website'
+  /** Publication date for articles */
   publishDate?: Date
-  modifiedDate?: Date
-  author?: string
+  /** Specifies the main, high-level category or theme of the article */
   section?: string
+  /** Content tags */
   tags?: string[]
-  image?: string
-  noindex?: boolean
 }
 
 const {
-  pageTitle,
-  path,
-  contentType,
-  publishDate,
-  modifiedDate,
   author,
-  section,
-  tags,
+  contentType,
   description,
   image,
+  modifiedDate,
   noindex,
+  pageTitle,
+  path,
+  publishDate,
+  section,
+  tags,
 } = Astro.props
 ---
 
