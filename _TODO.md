@@ -5,11 +5,17 @@
 
 Turso Setup Guidance
 
-Wait until config.ts + seed.ts are committed; then create a Turso database named webstack-corporate-prod (or similar) via turso db create webstack-corporate-prod.
+We need to run `npx astro db push` with production Astro DB credentials on GitHub as part of the merge to main Action workflow. We'll have two sets of env vars then: development for the dev server, and production for the DB push:
 
-Generate an app token (turso db tokens create webstack-corporate-prod -n astro-app) and store the ASTRO_DB_REMOTE_URL/ASTRO_DB_APP_TOKEN secrets.
+ASTRO_DB_REMOTE_URL="libsql://webstack-corporate-prod-webstackdev.aws-us-east-1.turso.io" \
+ASTRO_DB_APP_TOKEN="eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NjUzODU2NzQsImlkIjoiOTc2OTFlZWMtZGFhMC00YjI0LTg2M2QtY2JkYjU2ZDczMjE0IiwicmlkIjoiNWNmZTdkZjAtZGIzMC00ZDJhLTlmNjItMzUwZjkyNGEzOGE2In0.dCxUeBL-zSFW7ckng3QCqIHX9X2DQsBv7yboP_GdbtBtpTkxvdmPwQkRAxqG2l1Iy7J7aExX7xIBIPsAWVMvBg" \
+npx astro db push
 
-After the DB exists, run ASTRO_DB_REMOTE_URL=... ASTRO_DB_APP_TOKEN=... npx astro db push --remote from the project root to apply the schema. That command is when you'll also need to restart your dev server.
+ASTRO_DB_REMOTE_URL="file:./db/dev.db" \
+ASTRO_DB_APP_TOKEN="" \
+npx astro db push
+
+ASTRO_DATABASE_FILE="./db/dev.db"
 
 Let me know if you'd like similar migrations for the other Supabase-backed endpoints or want the fallback flag renamed now that we're on Astro DB.
 

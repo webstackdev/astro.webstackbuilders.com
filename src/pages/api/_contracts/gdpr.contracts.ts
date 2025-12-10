@@ -66,7 +66,7 @@ export interface DSARRequest {
   email: string
   requestType: 'ACCESS' | 'DELETE'
   expiresAt: string
-  fulfilledAt?: string
+  fulfilledAt?: string | undefined
   createdAt: string
 }
 

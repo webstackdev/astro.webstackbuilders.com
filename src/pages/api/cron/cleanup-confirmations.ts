@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro'
+import { db, lt, newsletterConfirmations } from 'astro:db'
 import { getCronSecret } from '@pages/api/_environment/environmentApi'
-import { supabaseAdmin } from '@pages/api/_utils'
 import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
 import { buildApiErrorResponse, handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
 import { createApiFunctionContext } from '@pages/api/_utils/requestContext'
@@ -56,49 +56,44 @@ export const GET: APIRoute = async ({ request, clientAddress, cookies }) => {
     const now = new Date()
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
 
-    // Delete expired tokens
-    const { data: expiredData, error: expiredError } = await supabaseAdmin
-      .from('newsletter_confirmations')
-      .delete()
-      .lt('expires_at', now.toISOString())
-      .select()
+    let expiredCount = 0
+    try {
+      const expiredData = await db
+        .delete(newsletterConfirmations)
+        .where(lt(newsletterConfirmations.expiresAt, now))
+        .returning({ id: newsletterConfirmations.id })
 
-    if (expiredError) {
-      throw new ApiFunctionError({
-        message: `Failed to delete expired tokens: ${expiredError.message}`,
-        cause: expiredError,
-        code: 'CRON_DELETE_EXPIRED_TOKENS_FAILED',
-        status: 500,
+      expiredCount = expiredData.length
+    } catch (error) {
+      throw new ApiFunctionError(error, {
         route: ROUTE,
         operation: 'deleteExpiredTokens',
+        status: 500,
+        code: 'CRON_DELETE_EXPIRED_TOKENS_FAILED',
       })
     }
 
-    // Delete old confirmed records (7+ days old)
-    const { data: confirmedData, error: confirmedError } = await supabaseAdmin
-      .from('newsletter_confirmations')
-      .delete()
-      .not('confirmed_at', 'is', null)
-      .lt('created_at', sevenDaysAgo.toISOString())
-      .select()
+    let confirmedCount = 0
+    try {
+      const confirmedData = await db
+        .delete(newsletterConfirmations)
+        .where(lt(newsletterConfirmations.confirmedAt, sevenDaysAgo))
+        .returning({ id: newsletterConfirmations.id })
 
-    if (confirmedError) {
-      throw new ApiFunctionError({
-        message: `Failed to delete old confirmed records: ${confirmedError.message}`,
-        cause: confirmedError,
-        code: 'CRON_DELETE_CONFIRMED_TOKENS_FAILED',
-        status: 500,
+      confirmedCount = confirmedData.length
+    } catch (error) {
+      throw new ApiFunctionError(error, {
         route: ROUTE,
         operation: 'deleteConfirmedRecords',
+        status: 500,
+        code: 'CRON_DELETE_CONFIRMED_TOKENS_FAILED',
       })
     }
 
-    const expiredCount = expiredData?.length || 0
-    const confirmedCount = confirmedData?.length || 0
     const totalDeleted = expiredCount + confirmedCount
 
     console.log(
-      `Newsletter confirmations cleanup: deleted ${expiredCount} expired + ${confirmedCount} old confirmed = ${totalDeleted} total`
+      `Newsletter confirmations cleanup: deleted ${expiredCount} expired + ${confirmedCount} old confirmed = ${totalDeleted} total`,
     )
 
     return new Response(

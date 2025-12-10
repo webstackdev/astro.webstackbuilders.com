@@ -1,16 +1,12 @@
 /**
  * Cron API Route to ping third-party integrations to keep them awake.
- * Currently pings:
- * - Upstash (key-value store)
- * - Supabase (database)
+ * Currently pings Astro DB (newsletter confirmations table).
  */
 import type { APIRoute } from 'astro'
+import { db, newsletterConfirmations } from 'astro:db'
 import {
   getCronSecret,
-  getUpstashApiToken,
-  getUpstashApiUrl,
 } from '@pages/api/_environment/environmentApi'
-import { supabaseAdmin } from '@pages/api/_utils'
 import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
 import { buildApiErrorResponse, handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
 import { createApiFunctionContext } from '@pages/api/_utils/requestContext'
@@ -18,43 +14,6 @@ import { createApiFunctionContext } from '@pages/api/_utils/requestContext'
 export const prerender = false
 
 const ROUTE = '/api/cron/ping-integrations'
-const UPSTASH_KEY = '__cron_keepalive__'
-
-const decodeUpstashResult = (payload: unknown) => {
-  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
-    return payload
-  }
-
-  const typedPayload = payload as Record<string, unknown>
-  const value = typedPayload['result']
-
-  if (typeof value !== 'string') {
-    return payload
-  }
-
-  const candidate = value.trim()
-  const base64Pattern = /^[A-Za-z0-9+/]+={0,2}$/
-
-  if (!candidate || candidate.length % 4 !== 0 || !base64Pattern.test(candidate)) {
-    return payload
-  }
-
-  try {
-    const decoded = Buffer.from(candidate, 'base64').toString('utf-8')
-    const reencoded = Buffer.from(decoded, 'utf-8').toString('base64')
-
-    if (!decoded || reencoded !== candidate) {
-      return payload
-    }
-
-    return {
-      ...typedPayload,
-      result: decoded,
-    }
-  } catch {
-    return payload
-  }
-}
 
 const buildErrorResponse = (
   error: unknown,
@@ -62,60 +21,26 @@ const buildErrorResponse = (
   fallbackMessage: string,
 ) => buildApiErrorResponse(handleApiFunctionError(error, context), { fallbackMessage })
 
-const pingUpstash = async () => {
+const pingAstroDb = async () => {
   const start = Date.now()
-  const endpoint = new URL(`/get/${encodeURIComponent(UPSTASH_KEY)}`, getUpstashApiUrl())
-  const response = await fetch(endpoint.toString(), {
-    headers: {
-      Authorization: `Bearer ${getUpstashApiToken()}`,
-    },
-  })
-
-  if (!response.ok) {
-    throw new ApiFunctionError({
-      message: `Upstash ping failed with status ${response.status}`,
-      status: response.status,
-      code: 'CRON_UPSTASH_PING_FAILED',
-      route: ROUTE,
-      operation: 'pingUpstash',
-    })
-  }
-
-  let payload: unknown
-
   try {
-    payload = await response.json()
-  } catch {
-    payload = await response.text()
-  }
+    const data = await db
+      .select({ id: newsletterConfirmations.id })
+      .from(newsletterConfirmations)
+      .limit(1)
 
-  return {
-    payload: decodeUpstashResult(payload),
-    durationMs: Date.now() - start,
-  }
-}
-
-const pingSupabase = async () => {
-  const start = Date.now()
-  const { data, error, count } = await supabaseAdmin
-    .from('newsletter_confirmations')
-    .select('id', { count: 'exact' })
-    .limit(1)
-
-  if (error) {
-    throw new ApiFunctionError({
-      message: `Supabase ping failed: ${error.message ?? 'Unknown error'}`,
-      cause: error,
+    return {
+      rowsChecked: data.length,
+      durationMs: Date.now() - start,
+    }
+  } catch (error) {
+    throw new ApiFunctionError(error, {
+      message: 'Astro DB ping failed',
       status: 500,
-      code: 'CRON_SUPABASE_PING_FAILED',
+      code: 'CRON_ASTRO_DB_PING_FAILED',
       route: ROUTE,
-      operation: 'pingSupabase',
+      operation: 'pingAstroDb',
     })
-  }
-
-  return {
-    rowsChecked: typeof count === 'number' ? count : data?.length ?? 0,
-    durationMs: Date.now() - start,
   }
 }
 
@@ -150,16 +75,12 @@ export const GET: APIRoute = async ({ request, clientAddress, cookies }) => {
   }
 
   try {
-    const [upstashResult, supabaseResult] = await Promise.all([
-      pingUpstash(),
-      pingSupabase(),
-    ])
+    const astroDbResult = await pingAstroDb()
 
     return new Response(
       JSON.stringify({
         success: true,
-        upstash: upstashResult,
-        supabase: supabaseResult,
+        astroDb: astroDbResult,
         timestamp: new Date().toISOString(),
       }),
       {

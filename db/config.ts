@@ -4,13 +4,13 @@ const consentEvents = defineTable({
   columns: {
     id: column.text({ primaryKey: true }),
     dataSubjectId: column.text({ notNull: true }),
-    email: column.text(),
+    email: column.text({ optional: true }),
     purposes: column.json<string[]>({ notNull: true }),
     source: column.text({ notNull: true }),
     userAgent: column.text({ notNull: true }),
-    ipAddress: column.text(),
+    ipAddress: column.text({ optional: true }),
     privacyPolicyVersion: column.text({ notNull: true }),
-    consentText: column.text(),
+    consentText: column.text({ optional: true }),
     verified: column.boolean({ notNull: true, default: false }),
     createdAt: column.date({ notNull: true }),
   },
@@ -50,11 +50,11 @@ const dsarRequests = defineTable({
     email: column.text({ notNull: true }),
     requestType: column.text({ notNull: true }),
     expiresAt: column.date({ notNull: true }),
-    fulfilledAt: column.date(),
+    fulfilledAt: column.date({ optional: true }),
     createdAt: column.date({ notNull: true }),
   },
   indexes: {
-    tokenUnique: {
+    dsarTokenUnique: {
       on: ['token'],
       unique: true,
     },
@@ -70,17 +70,17 @@ const newsletterConfirmations = defineTable({
     token: column.text({ notNull: true }),
     email: column.text({ notNull: true }),
     dataSubjectId: column.text({ notNull: true }),
-    firstName: column.text(),
+    firstName: column.text({ optional: true }),
     source: column.text({ notNull: true }),
-    userAgent: column.text(),
-    ipAddress: column.text(),
+    userAgent: column.text({ optional: true }),
+    ipAddress: column.text({ optional: true }),
     consentTimestamp: column.date({ notNull: true }),
     expiresAt: column.date({ notNull: true }),
-    confirmedAt: column.date(),
+    confirmedAt: column.date({ optional: true }),
     createdAt: column.date({ notNull: true }),
   },
   indexes: {
-    tokenUnique: {
+    newsletterTokenUnique: {
       on: ['token'],
       unique: true,
     },

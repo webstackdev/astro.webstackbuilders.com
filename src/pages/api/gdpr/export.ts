@@ -1,9 +1,10 @@
 import type { APIRoute } from 'astro'
-import { rateLimiters, checkRateLimit, supabaseAdmin } from '@pages/api/_utils'
+import { rateLimiters, checkRateLimit } from '@pages/api/_utils'
 import { validate as uuidValidate } from 'uuid'
 import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
 import { buildApiErrorResponse, handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
 import { createApiFunctionContext, createRateLimitIdentifier } from '@pages/api/_utils/requestContext'
+import { findConsentRecords } from '@pages/api/gdpr/_utils/consentStore'
 
 export const prerender = false // Force SSR for this endpoint
 
@@ -68,24 +69,19 @@ export const GET: APIRoute = async ({ clientAddress, url, request, cookies }) =>
 			})
 		}
 
-    const { data, error } = await supabaseAdmin
-      .from('consent_records')
-      .select('*')
-      .eq('data_subject_id', DataSubjectId)
-
-    if (error) {
-      throw new ApiFunctionError(error, {
-        route: ROUTE,
-        operation: 'GET.fetch-consent-records',
-        status: 500,
-        details: {
-          dataSubjectId: DataSubjectId,
-        },
-      })
-    }
-
-    // Remove sensitive fields (ip_address)
-    const exportData = data.map(({ ip_address: _ip, ...record }) => record)
+    const consentRecords = await findConsentRecords(DataSubjectId)
+    const exportData = consentRecords.map((record) => ({
+      id: record.id,
+      data_subject_id: record.dataSubjectId,
+      email: record.email,
+      purposes: record.purposes,
+      source: record.source,
+      user_agent: record.userAgent,
+      privacy_policy_version: record.privacyPolicyVersion,
+      consent_text: record.consentText,
+      verified: record.verified,
+      created_at: record.createdAt.toISOString(),
+    }))
 
     return new Response(JSON.stringify(exportData, null, 2), {
       status: 200,

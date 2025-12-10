@@ -10,15 +10,11 @@ import {
   getCronSecret,
   getSuprabaseApiUrl,
   getSuprabaseApiServiceRoleKey,
-  getUpstashApiUrl,
-  getUpstashApiToken,
  } from '@pages/api/_environment/environmentApi'
 
 const CRON_SECRET = getCronSecret()
 const SUPABASE_URL = getSuprabaseApiUrl()
 const SUPABASE_SERVICE_ROLE_KEY = getSuprabaseApiServiceRoleKey()
-const UPSTASH_URL = getUpstashApiUrl()
-const UPSTASH_TOKEN = getUpstashApiToken()
 
 const requiredEnvMissing = () => {
   if (!mocksEnabled) {
@@ -29,9 +25,6 @@ const requiredEnvMissing = () => {
   }
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
     return 'Supabase admin credentials are required to seed cron fixtures'
-  }
-  if (!UPSTASH_URL || !UPSTASH_TOKEN) {
-    return 'Upstash REST credentials are required for cron ping coverage'
   }
   return null
 }
@@ -44,8 +37,6 @@ const supabaseAdmin: SupabaseClient | null = skipReason
       auth: { autoRefreshToken: false, persistSession: false },
     })
 
-const upstashCommandEndpoint = UPSTASH_URL ? new URL('/', UPSTASH_URL).toString() : null
-const upstashKeepAliveKey = '__cron_keepalive__'
 const cronAuthHeader = CRON_SECRET ? `Bearer ${CRON_SECRET}` : null
 
 const skipUnlessChromiumProject = () => {
@@ -57,7 +48,6 @@ const dayInMs = 24 * 60 * 60 * 1000
 
 const createdConfirmationIds = new Set<string>()
 const createdDsarIds = new Set<string>()
-const upstashSeedsToRestore = new Map<string, string | null>()
 
 const queueCleanup = (bucket: Set<string>, id: string) => {
   bucket.add(id)
@@ -71,58 +61,6 @@ const cleanupRecords = async (table: 'newsletter_confirmations' | 'dsar_requests
   const values = Array.from(ids)
   await supabaseAdmin.from(table).delete().in('id', values)
   ids.clear()
-}
-
-const sendUpstashCommand = async (command: (string | number)[]) => {
-  if (!upstashCommandEndpoint) {
-    throw new Error('Missing Upstash endpoint')
-  }
-
-  const response = await fetch(upstashCommandEndpoint, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${UPSTASH_TOKEN!}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(command),
-  })
-
-  if (!response.ok) {
-    const body = await response.text().catch(() => 'Unable to read response body')
-    throw new Error(`Failed to run Upstash command: ${response.status} ${body}`)
-  }
-
-  return response
-}
-
-const readUpstashValue = async (key: string) => {
-  const response = await sendUpstashCommand(['GET', key])
-  try {
-    const payload = (await response.json()) as { result?: string | null }
-    if (!Object.prototype.hasOwnProperty.call(payload, 'result')) {
-      return null
-    }
-    const value = payload.result
-    return typeof value === 'string' ? value : null
-  } catch {
-    return null
-  }
-}
-
-const restoreUpstashSeeds = async () => {
-  if (!upstashCommandEndpoint || upstashSeedsToRestore.size === 0) {
-    return
-  }
-
-  for (const [key, previousValue] of upstashSeedsToRestore.entries()) {
-    if (previousValue === null) {
-      await sendUpstashCommand(['DEL', key])
-    } else {
-      await sendUpstashCommand(['SET', key, previousValue])
-    }
-  }
-
-  upstashSeedsToRestore.clear()
 }
 
 const insertNewsletterConfirmation = async (options: {
@@ -201,15 +139,6 @@ const expectMissingById = async (table: 'newsletter_confirmations' | 'dsar_reque
   expect(data).toBeNull()
 }
 
-const setUpstashKeepAlive = async (value: string) => {
-  if (!upstashSeedsToRestore.has(upstashKeepAliveKey)) {
-    const previousValue = await readUpstashValue(upstashKeepAliveKey)
-    upstashSeedsToRestore.set(upstashKeepAliveKey, previousValue)
-  }
-
-  await sendUpstashCommand(['SET', upstashKeepAliveKey, value])
-}
-
 test.describe('Cron API endpoints @ready', () => {
   test.describe.configure({ mode: 'serial' })
 
@@ -220,8 +149,6 @@ test.describe('Cron API endpoints @ready', () => {
       await ensureCronDependenciesHealthy({
         supabaseUrl: SUPABASE_URL!,
         supabaseServiceKey: SUPABASE_SERVICE_ROLE_KEY!,
-        upstashUrl: UPSTASH_URL!,
-        upstashToken: UPSTASH_TOKEN!,
         timeoutMs: 5000,
       })
     })
@@ -230,7 +157,6 @@ test.describe('Cron API endpoints @ready', () => {
   test.afterEach(async () => {
     await cleanupRecords('newsletter_confirmations', createdConfirmationIds)
     await cleanupRecords('dsar_requests', createdDsarIds)
-    await restoreUpstashSeeds()
   })
 
   test('@ready cleanup-confirmations removes expired and stale rows', async ({ request }) => {
@@ -295,10 +221,8 @@ test.describe('Cron API endpoints @ready', () => {
     await expectMissingById('dsar_requests', expiredPendingId)
   })
 
-  test('@ready ping-integrations touches Upstash and Supabase', async ({ request }) => {
+  test('@ready ping-integrations validates Astro DB availability', async ({ request }) => {
     skipUnlessChromiumProject()
-    const sentinel = `keepalive-${randomUUID()}`
-    await setUpstashKeepAlive(sentinel)
 
     const response = await request.get('/api/cron/ping-integrations', {
       headers: {
@@ -308,12 +232,10 @@ test.describe('Cron API endpoints @ready', () => {
 
     expect(response.ok()).toBeTruthy()
     const body = (await response.json()) as {
-      upstash: { payload: { result?: string | null }; durationMs: number }
-      supabase: { rowsChecked: number; durationMs: number }
+      astroDb: { rowsChecked: number; durationMs: number }
     }
 
-    expect(body.upstash.payload?.result).toBe(sentinel)
-    expect(body.supabase.rowsChecked).toBeGreaterThanOrEqual(0)
-    expect(body.supabase.durationMs).toBeGreaterThanOrEqual(0)
+    expect(body.astroDb.rowsChecked).toBeGreaterThanOrEqual(0)
+    expect(body.astroDb.durationMs).toBeGreaterThanOrEqual(0)
   })
 })

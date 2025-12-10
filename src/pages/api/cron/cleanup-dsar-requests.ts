@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro'
+import { and, db, dsarRequests, isNull, lt } from 'astro:db'
 import { getCronSecret } from '@pages/api/_environment/environmentApi'
-import { supabaseAdmin } from '@pages/api/_utils'
 import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
 import { buildApiErrorResponse, handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
 import { createApiFunctionContext } from '@pages/api/_utils/requestContext'
@@ -15,13 +15,6 @@ const buildErrorResponse = (
   fallbackMessage: string,
 ) => buildApiErrorResponse(handleApiFunctionError(error, context), { fallbackMessage })
 
-/**
- * Cron job to clean up DSAR requests
- * - Removes fulfilled requests older than 30 days
- * - Removes expired unfulfilled requests (created > 7 days ago AND fulfilled_at IS NULL)
- *
- * Scheduled via vercel.json to run daily
- */
 export const GET: APIRoute = async ({ request, clientAddress, cookies }) => {
   const { context: apiContext } = createApiFunctionContext({
     route: ROUTE,
@@ -56,50 +49,49 @@ export const GET: APIRoute = async ({ request, clientAddress, cookies }) => {
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
 
-    // Delete old fulfilled requests (30+ days)
-    const { data: fulfilledData, error: fulfilledError } = await supabaseAdmin
-      .from('dsar_requests')
-      .delete()
-      .not('fulfilled_at', 'is', null)
-      .lt('fulfilled_at', thirtyDaysAgo.toISOString())
-      .select()
+    let fulfilledCount = 0
+    try {
+      const fulfilledData = await db
+        .delete(dsarRequests)
+        .where(lt(dsarRequests.fulfilledAt, thirtyDaysAgo))
+        .returning({ id: dsarRequests.id })
 
-    if (fulfilledError) {
-      throw new ApiFunctionError({
-        message: `Failed to delete fulfilled requests: ${fulfilledError.message}`,
-        cause: fulfilledError,
-        code: 'CRON_DELETE_FULFILLED_DSAR_FAILED',
-        status: 500,
+      fulfilledCount = fulfilledData.length
+    } catch (error) {
+      throw new ApiFunctionError(error, {
         route: ROUTE,
         operation: 'deleteFulfilledRequests',
+        status: 500,
+        code: 'CRON_DELETE_FULFILLED_DSAR_FAILED',
       })
     }
 
-    // Delete expired unfulfilled requests (7+ days old, never fulfilled)
-    const { data: expiredData, error: expiredError } = await supabaseAdmin
-      .from('dsar_requests')
-      .delete()
-      .is('fulfilled_at', null)
-      .lt('created_at', sevenDaysAgo.toISOString())
-      .select()
+    let expiredCount = 0
+    try {
+      const expiredData = await db
+        .delete(dsarRequests)
+        .where(
+          and(
+            isNull(dsarRequests.fulfilledAt),
+            lt(dsarRequests.createdAt, sevenDaysAgo),
+          ),
+        )
+        .returning({ id: dsarRequests.id })
 
-    if (expiredError) {
-      throw new ApiFunctionError({
-        message: `Failed to delete expired requests: ${expiredError.message}`,
-        cause: expiredError,
-        code: 'CRON_DELETE_EXPIRED_DSAR_FAILED',
-        status: 500,
+      expiredCount = expiredData.length
+    } catch (error) {
+      throw new ApiFunctionError(error, {
         route: ROUTE,
         operation: 'deleteExpiredRequests',
+        status: 500,
+        code: 'CRON_DELETE_EXPIRED_DSAR_FAILED',
       })
     }
 
-    const fulfilledCount = fulfilledData?.length || 0
-    const expiredCount = expiredData?.length || 0
     const totalDeleted = fulfilledCount + expiredCount
 
     console.log(
-      `DSAR requests cleanup: deleted ${fulfilledCount} old fulfilled + ${expiredCount} expired unfulfilled = ${totalDeleted} total`
+      `DSAR requests cleanup: deleted ${fulfilledCount} old fulfilled + ${expiredCount} expired unfulfilled = ${totalDeleted} total`,
     )
 
     return new Response(

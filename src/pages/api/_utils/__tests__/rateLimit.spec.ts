@@ -1,10 +1,36 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { TestError } from '@test/errors'
 
-const { mockIsDev, mockIsTest } = vi.hoisted(() => ({
+type MockWindow = {
+  id: string
+  scope: string
+  identifier: string
+  hits: number
+  limit: number
+  windowMs: number
+  windowExpiresAt: number
+  updatedAt: Date
+}
+
+type WindowState = {
+  current: MockWindow | undefined
+  resetWindow: ReturnType<typeof vi.fn>
+  incrementHits: ReturnType<typeof vi.fn>
+}
+
+const {
+  mockIsDev,
+  mockIsTest,
+  mockIsDbError,
+  mockWithRateLimitWindow,
+} = vi.hoisted(() => ({
   mockIsDev: vi.fn(() => false),
   mockIsTest: vi.fn(() => false),
+  mockIsDbError: vi.fn(() => false),
+  mockWithRateLimitWindow: vi.fn(),
 }))
+
+const windowStates = new Map<string, WindowState>()
 
 // Mock server environment helpers that get re-exported through environmentApi
 vi.mock('@lib/config/environmentServer', () => ({
@@ -20,61 +46,89 @@ vi.mock('@lib/config/environmentServer', () => ({
 
 // Mock environment utilities BEFORE importing the module under test
 vi.mock('@pages/api/_environment/environmentApi', () => ({
-  getUpstashApiToken: vi.fn(() => 'test-token'),
-  getUpstashApiUrl: vi.fn(() => 'https://test-redis.upstash.io'),
   isDev: mockIsDev,
   isTest: mockIsTest,
 }))
 
-import { rateLimiters, checkRateLimit, checkContactRateLimit } from '@pages/api/_utils/rateLimit'
-
-// Mock the Upstash Redis and Ratelimit modules
-vi.mock('@upstash/redis', () => ({
-  Redis: vi.fn(function RedisMock(_config) {
-    return {}
-  }),
+vi.mock('astro:db', () => ({
+  isDbError: mockIsDbError,
 }))
 
-vi.mock('@upstash/ratelimit', () => {
-  const mockLimitFn = vi.fn()
+vi.mock('@pages/api/_utils/rateLimitStore', () => ({
+  withRateLimitWindow: mockWithRateLimitWindow,
+}))
 
-  const RatelimitConstructor = vi.fn(function RatelimitMock(config) {
-    return {
-      limit: mockLimitFn,
-      config,
-    }
-  })
+import { rateLimiters, checkRateLimit, checkContactRateLimit } from '@pages/api/_utils/rateLimit'
 
-  // Add static methods to the constructor
-  Object.assign(RatelimitConstructor, {
-    slidingWindow: vi.fn((requests, window) => ({ requests, window })),
-    fixedWindow: vi.fn((requests, window) => ({ requests, window })),
-  })
-
+function buildWindow(scope: string, identifier: string, overrides?: Partial<MockWindow>): MockWindow {
   return {
-    Ratelimit: RatelimitConstructor,
+    id: overrides?.id ?? `${scope}-${identifier}`,
+    scope,
+    identifier,
+    hits: overrides?.hits ?? 0,
+    limit: overrides?.limit ?? 10,
+    windowMs: overrides?.windowMs ?? 60_000,
+    windowExpiresAt: overrides?.windowExpiresAt ?? Date.now() + 60_000,
+    updatedAt: overrides?.updatedAt ?? new Date(),
   }
-})
+}
+
+function createWindowState(scope: string, identifier: string, initial?: MockWindow): WindowState {
+  const state: WindowState = {
+    current: initial,
+    resetWindow: vi.fn(async ({ hits, limit, windowMs, windowExpiresAt }) => {
+      state.current = buildWindow(scope, identifier, {
+        hits,
+        limit,
+        windowMs,
+        windowExpiresAt,
+      })
+      return state.current
+    }),
+    incrementHits: vi.fn(async () => {
+      if (!state.current) {
+        throw new TestError('Rate limit window missing')
+      }
+      state.current = {
+        ...state.current,
+        hits: state.current.hits + 1,
+        updatedAt: new Date(),
+      }
+      return state.current
+    }),
+  }
+  return state
+}
+
+function ensureWindowState(scope: string, identifier: string): WindowState {
+  const key = `${scope}:${identifier}`
+  if (!windowStates.has(key)) {
+    windowStates.set(key, createWindowState(scope, identifier))
+  }
+  return windowStates.get(key) as WindowState
+}
+
+function seedWindow(scope: string, identifier: string, overrides?: Partial<MockWindow>): WindowState {
+  const state = createWindowState(scope, identifier, buildWindow(scope, identifier, overrides))
+  windowStates.set(`${scope}:${identifier}`, state)
+  return state
+}
 
 describe('Rate Limit Utils', () => {
-  // Get reference to the mock function after module initialization
-  let mockLimit: ReturnType<typeof vi.fn>
-
-  beforeEach(async () => {
-    // Get the mock function from the created rate limiters
-    const { Ratelimit } = await import('@upstash/ratelimit')
-    const { Redis } = await import('@upstash/redis')
-    const rateLimiterInstance = new Ratelimit({
-      redis: new Redis({
-        url: 'https://test-redis.upstash.io',
-        token: 'test-token',
-      }),
-      limiter: Ratelimit.slidingWindow(1, '1 m'),
-    })
-    mockLimit = rateLimiterInstance.limit as ReturnType<typeof vi.fn>
-
-    // Reset all mocks
+  beforeEach(() => {
     vi.clearAllMocks()
+    windowStates.clear()
+    mockIsDev.mockReturnValue(false)
+    mockIsTest.mockReturnValue(false)
+    mockIsDbError.mockReturnValue(false)
+    mockWithRateLimitWindow.mockImplementation(async (scope, identifier, handler) => {
+      const state = ensureWindowState(scope as string, identifier)
+      return handler({
+        window: state.current,
+        resetWindow: state.resetWindow,
+        incrementHits: state.incrementHits,
+      })
+    })
   })
 
   describe('rateLimiters configuration', () => {
@@ -105,157 +159,79 @@ describe('Rate Limit Utils', () => {
   })
 
   describe('checkRateLimit', () => {
-    beforeEach(() => {
-      // Create a mock rate limiter
-      const mockRateLimiter = {
-        limit: mockLimit,
-        config: {},
-      }
-
-      // Ensure each exported limiter uses the shared mock implementation
-      Object.keys(rateLimiters).forEach((key) => {
-        const mapKey = key as keyof typeof rateLimiters
-        Object.assign(rateLimiters[mapKey], mockRateLimiter)
-      })
-    })
-
     it('should return success when rate limit is not exceeded', async () => {
-      const mockResult = {
-        success: true,
-        limit: 10,
-        remaining: 9,
-        reset: Date.now() + 60000,
-      }
-      mockLimit.mockResolvedValue(mockResult)
-
       const result = await checkRateLimit(rateLimiters.consent, '192.168.1.1')
 
-      expect(mockLimit).toHaveBeenCalledWith('192.168.1.1')
-      expect(result).toEqual({
-        success: true,
-        reset: mockResult.reset,
-      })
+      const state = ensureWindowState('consent', '192.168.1.1')
+      expect(state.resetWindow).toHaveBeenCalledTimes(1)
+      expect(result.success).toBe(true)
+      expect(typeof result.reset).toBe('number')
     })
 
     it('should return failure when rate limit is exceeded', async () => {
-      const mockResult = {
-        success: false,
+      seedWindow('consent', '192.168.1.1', {
+        hits: 10,
         limit: 10,
-        remaining: 0,
-        reset: Date.now() + 60000,
-      }
-      mockLimit.mockResolvedValue(mockResult)
-
+        windowExpiresAt: Date.now() + 60000,
+      })
       const result = await checkRateLimit(rateLimiters.consent, '192.168.1.1')
 
-      expect(mockLimit).toHaveBeenCalledWith('192.168.1.1')
-      expect(result).toEqual({
-        success: false,
-        reset: mockResult.reset,
-      })
+      const state = ensureWindowState('consent', '192.168.1.1')
+      expect(state.incrementHits).not.toHaveBeenCalled()
+      expect(result.success).toBe(false)
+      expect(typeof result.reset).toBe('number')
     })
 
     it('should handle different identifiers', async () => {
-      const mockResult = {
-        success: true,
-        limit: 5,
-        remaining: 4,
-        reset: Date.now() + 60000,
-      }
-      mockLimit.mockResolvedValue(mockResult)
-
       await checkRateLimit(rateLimiters.export, 'user@example.com')
-      expect(mockLimit).toHaveBeenCalledWith('user@example.com')
+      expect(mockWithRateLimitWindow).toHaveBeenCalledWith('export', 'user@example.com', expect.any(Function))
 
       await checkRateLimit(rateLimiters.export, '10.0.0.1')
-      expect(mockLimit).toHaveBeenCalledWith('10.0.0.1')
-
-      expect(mockLimit).toHaveBeenCalledTimes(2)
+      expect(mockWithRateLimitWindow).toHaveBeenCalledWith('export', '10.0.0.1', expect.any(Function))
     })
 
     it('should propagate rate limiter errors', async () => {
-      const error = new TestError('Redis connection failed')
-      mockLimit.mockRejectedValue(error)
+      const error = new TestError('DB offline')
+      mockWithRateLimitWindow.mockRejectedValueOnce(error)
 
       await expect(
         checkRateLimit(rateLimiters.consent, '192.168.1.1')
-      ).rejects.toThrow('Redis connection failed')
-
-      expect(mockLimit).toHaveBeenCalledWith('192.168.1.1')
+      ).rejects.toThrow('DB offline')
     })
 
     it('should work with different rate limiter configurations', async () => {
-      const mockResults = [
-        {
-          success: true,
-          limit: 10,
-          remaining: 9,
-          reset: Date.now() + 60000,
-        },
-        {
-          success: true,
-          limit: 30,
-          remaining: 29,
-          reset: Date.now() + 60000,
-        },
-        {
-          success: false,
-          limit: 5,
-          remaining: 0,
-          reset: Date.now() + 60000,
-        },
-      ]
-
-      // Test consent limiter (10 requests per minute)
-      Object.assign(rateLimiters.consent, { limit: mockLimit })
-      mockLimit.mockResolvedValueOnce(mockResults[0])
+      seedWindow('consent', 'test-ip', {
+        hits: 0,
+        limit: 10,
+        windowExpiresAt: Date.now() + 60000,
+      })
       let result = await checkRateLimit(rateLimiters.consent, 'test-ip')
       expect(result.success).toBe(true)
 
-      // Test consentRead limiter (30 requests per minute)
-      Object.assign(rateLimiters.consentRead, { limit: mockLimit })
-      mockLimit.mockResolvedValueOnce(mockResults[1])
+      seedWindow('consentRead', 'test-ip', {
+        hits: 0,
+        limit: 30,
+        windowExpiresAt: Date.now() + 60000,
+      })
       result = await checkRateLimit(rateLimiters.consentRead, 'test-ip')
       expect(result.success).toBe(true)
 
-      // Test export limiter (5 requests per minute)
-      Object.assign(rateLimiters.export, { limit: mockLimit })
-      mockLimit.mockResolvedValueOnce(mockResults[2])
+      seedWindow('export', 'test-ip', {
+        hits: 5,
+        limit: 5,
+        windowExpiresAt: Date.now() + 60000,
+      })
       result = await checkRateLimit(rateLimiters.export, 'test-ip')
       expect(result.success).toBe(false)
-
-      expect(mockLimit).toHaveBeenCalledTimes(3)
     })
 
-    it('should handle missing reset timestamp', async () => {
-      const mockResult = {
-        success: true,
-        limit: 10,
-        remaining: 9,
-        // reset is undefined
-      }
-      mockLimit.mockResolvedValue(mockResult)
+    it('should return fallback response on database errors', async () => {
+      mockIsDbError.mockReturnValue(true)
+      mockWithRateLimitWindow.mockRejectedValueOnce(new Error('db failure'))
 
       const result = await checkRateLimit(rateLimiters.consent, '192.168.1.1')
 
-      expect(result).toEqual({
-        success: true,
-        reset: undefined,
-      })
-    })
-
-    it('should handle edge case with zero remaining requests but success true', async () => {
-      const mockResult = {
-        success: true,
-        limit: 10,
-        remaining: 0,
-        reset: Date.now() + 60000,
-      }
-      mockLimit.mockResolvedValue(mockResult)
-
-      const result = await checkRateLimit(rateLimiters.consent, '192.168.1.1')
-
-      expect(result.success).toBe(true)
+      expect(result.success).toBe(false)
       expect(typeof result.reset).toBe('number')
     })
   })
@@ -264,13 +240,9 @@ describe('Rate Limit Utils', () => {
     let isDev: ReturnType<typeof vi.fn>
     let isTest: ReturnType<typeof vi.fn>
 
-    beforeEach(async () => {
-      // Get the mocked functions
-      const utils = await import('@lib/config/environmentServer')
-      isDev = utils.isDev as ReturnType<typeof vi.fn>
-      isTest = utils.isTest as ReturnType<typeof vi.fn>
-
-      // Reset to production mode by default
+    beforeEach(() => {
+      isDev = mockIsDev
+      isTest = mockIsTest
       isDev.mockReturnValue(false)
       isTest.mockReturnValue(false)
     })

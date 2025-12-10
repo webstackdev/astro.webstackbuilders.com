@@ -1,11 +1,12 @@
 import type { APIRoute } from 'astro'
 import { v4 as uuidv4 } from 'uuid'
-import { rateLimiters, checkRateLimit, supabaseAdmin } from '@pages/api/_utils'
+import { rateLimiters, checkRateLimit } from '@pages/api/_utils'
 import { sendDSARVerificationEmail } from '@pages/api/gdpr/_dsarVerificationEmails'
 import type { DSARRequestInput, DSARResponse } from '@pages/api/_contracts/gdpr.contracts'
 import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
 import { buildApiErrorResponse, handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
 import { createApiFunctionContext, createRateLimitIdentifier } from '@pages/api/_utils/requestContext'
+import { createDsarRequest, findActiveRequestByEmail } from '@pages/api/gdpr/_utils/dsarStore'
 
 export const prerender = false // Force SSR for this endpoint
 
@@ -109,18 +110,11 @@ export const POST: APIRoute = async ({ request, clientAddress, cookies }) => {
     const token = uuidv4()
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
 
-    // Check for existing unfulfilled request for this email
-    const { data: existing, error: existingError } = await supabaseAdmin
-      .from('dsar_requests')
-      .select('*')
-      .eq('email', email)
-      .eq('request_type', body.requestType)
-      .is('fulfilled_at', null)
-      .gt('expires_at', new Date().toISOString())
-      .maybeSingle()
-
-    if (existingError) {
-      throw new ApiFunctionError(existingError, {
+    let existingRequest
+    try {
+      existingRequest = await findActiveRequestByEmail(email, body.requestType)
+    } catch (error) {
+      throw new ApiFunctionError(error, {
         route: ROUTE,
         operation: 'fetch-existing-request',
         status: 500,
@@ -131,9 +125,9 @@ export const POST: APIRoute = async ({ request, clientAddress, cookies }) => {
       })
     }
 
-    if (existing) {
+    if (existingRequest) {
       // Resend verification email with existing token
-      await sendDSARVerificationEmail(email, existing.token, body.requestType)
+      await sendDSARVerificationEmail(email, existingRequest.token, body.requestType)
 
       return jsonResponse(
         {
@@ -144,17 +138,14 @@ export const POST: APIRoute = async ({ request, clientAddress, cookies }) => {
       )
     }
 
-    // Create new DSAR request (database uses snake_case columns)
-    const { error } = await supabaseAdmin
-      .from('dsar_requests')
-      .insert({
+    try {
+      await createDsarRequest({
         token,
         email,
-        request_type: body.requestType,
-        expires_at: expiresAt.toISOString()
+        requestType: body.requestType,
+        expiresAt,
       })
-
-    if (error) {
+    } catch (error) {
       throw new ApiFunctionError(error, {
         route: ROUTE,
         operation: 'create-request',

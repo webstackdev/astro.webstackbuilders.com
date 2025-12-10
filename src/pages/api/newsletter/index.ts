@@ -267,7 +267,7 @@ export const POST: APIRoute = async ({ request, cookies, clientAddress }) => {
       ...(firstName && { firstName }),
       DataSubjectId: subjectId,
       userAgent,
-      ...(clientAddress && clientAddress !== 'unknown' && { clientAddress }),
+      ...(clientAddress && clientAddress !== 'unknown' && { ipAddress: clientAddress }),
       source: 'newsletter_form',
     })
 

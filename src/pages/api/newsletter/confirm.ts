@@ -4,10 +4,10 @@
  * This is an Astro API route that runs server-side
  */
 import type { APIRoute } from 'astro'
-import { supabaseAdmin } from '@pages/api/_utils'
 import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
 import { buildApiErrorResponse, handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
 import { createApiFunctionContext } from '@pages/api/_utils/requestContext'
+import { markConsentRecordsVerified } from '@pages/api/gdpr/_utils/consentStore'
 
 // These imports work in Astro API routes because they run server-side
 import { confirmSubscription } from './_token'
@@ -61,18 +61,10 @@ export const GET: APIRoute = async ({ url, request, cookies, clientAddress }) =>
       )
     }
 
-    // Mark consent as verified in Supabase
-    // Find the most recent unverified consent record for this email and DataSubjectId
-    const { error: consentError } = await supabaseAdmin
-      .from('consent_records')
-      .update({ verified: true })
-      .eq('email', subscription.email)
-      .eq('data_subject_id', subscription.DataSubjectId)
-      .eq('verified', false)
-      .contains('purposes', ['marketing'])
-
-    if (consentError) {
-      throw new ApiFunctionError(consentError, {
+    try {
+      await markConsentRecordsVerified(subscription.email, subscription.DataSubjectId)
+    } catch (error) {
+      throw new ApiFunctionError(error, {
         route: ROUTE,
         operation: 'verify-consent-record',
         status: 500,

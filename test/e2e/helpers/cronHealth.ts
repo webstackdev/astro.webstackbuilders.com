@@ -51,7 +51,6 @@ const withRetries = async (action: () => Promise<void>, label: string, options?:
 }
 
 const buildSupabaseHealthUrl = (baseUrl: string) => new URL('/rest/v1/?select=1', baseUrl).toString()
-const buildUpstashCommandUrl = (baseUrl: string) => new URL('/', baseUrl).toString()
 
 const ensureSupabaseReady = async (supabaseUrl: string, serviceRoleKey: string, options?: RetryOptions) => {
   const healthUrl = buildSupabaseHealthUrl(supabaseUrl)
@@ -77,48 +76,15 @@ const ensureSupabaseReady = async (supabaseUrl: string, serviceRoleKey: string, 
   )
 }
 
-const ensureUpstashReady = async (upstashUrl: string, upstashToken: string, options?: RetryOptions) => {
-  const commandUrl = buildUpstashCommandUrl(upstashUrl)
-  await withRetries(
-    async () => {
-      const response = await fetchWithTimeout(
-        commandUrl,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${upstashToken}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(['PING']),
-        },
-        options?.timeoutMs ?? DEFAULT_OPTIONS.timeoutMs
-      )
-
-      if (!response.ok) {
-        throw new Error(`Upstash responded with status ${response.status}`)
-      }
-    },
-    'Upstash REST API',
-    options
-  )
-}
-
 export interface CronDependencyConfig extends RetryOptions {
   supabaseUrl: string
   supabaseServiceKey: string
-  upstashUrl: string
-  upstashToken: string
 }
 
 export async function ensureCronDependenciesHealthy({
   supabaseUrl,
   supabaseServiceKey,
-  upstashUrl,
-  upstashToken,
   ...options
 }: CronDependencyConfig): Promise<void> {
-  await Promise.all([
-    ensureSupabaseReady(supabaseUrl, supabaseServiceKey, options),
-    ensureUpstashReady(upstashUrl, upstashToken, options),
-  ])
+  await ensureSupabaseReady(supabaseUrl, supabaseServiceKey, options)
 }
