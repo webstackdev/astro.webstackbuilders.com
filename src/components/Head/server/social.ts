@@ -40,15 +40,12 @@ export function getSocialImage(
   slug?: string
 ): string {
   const baseURL = normalizeBaseUrl(baseUrl)
-  const encodedTitle = encodeURIComponent(title || 'Webstack Builders')
-  const encodedDescription = encodeURIComponent(
-    description || 'Professional Web Development Services'
-  )
-  const encodedSlug = encodeURIComponent(slug || 'home')
+  const params = new URLSearchParams()
+  params.set('slug', slug || 'home')
+  params.set('title', title || 'Webstack Builders')
+  params.set('description', description || 'Professional Web Development Services')
 
-  // For development, you can use a service like htmlcsstoimage.com or similar
-  // For production, integrate with services like Puppeteer, Playwright, or @vercel/og
-  return `${baseURL}/api/social-card?title=${encodedTitle}&description=${encodedDescription}&slug=${encodedSlug}&format=html`
+  return `${baseURL}/api/social-card?${params.toString()}`
 }
 
 /**

@@ -23,8 +23,8 @@ export async function getStaticPaths() {
 }
 
 const { article } = Astro.props
-
 const author = await getEntry(article.data.author)
+
 const path = `/articles/${article.id}`
 const section = `Articles`
 ---
@@ -33,7 +33,6 @@ const section = `Articles`
   author={author.data.name}
   collectionItem={article}
   contentType="article"
-  image={article.data.cover.src}
   description={article.data.description}
   pageTitle={article.data.title}
   path={path}
