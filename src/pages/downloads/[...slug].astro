@@ -1,5 +1,6 @@
 ---
 import { type CollectionEntry, getCollection } from 'astro:content'
+import { Picture } from 'astro:assets'
 import { isDev, isProd } from '@lib/config/environmentServer'
 import MarkdownLayout from '@layouts/MarkdownLayout.astro'
 import DownloadForm from '@components/Forms/Download/index.astro'
@@ -20,35 +21,42 @@ export async function getStaticPaths() {
 }
 
 const { download } = Astro.props
+
 const path = `/downloads/${download.id}`
-const pageTitle = download.data.title
-const cover = download.data.image
-const authorId =
-  typeof download.data.author === 'string'
-    ? download.data.author
-    : download.data.author?.id || 'webstack-builders'
+const section = 'Downloads'
 ---
 
 <MarkdownLayout
-  pageTitle={pageTitle}
-  path={path}
-  contentType="article"
   collectionItem={download}
-  publishDate={download.data.publishDate}
-  author={authorId}
-  tags={download.data.tags}
+  contentType="article"
   description={download.data.description}
-  {...(cover?.src && { image: cover.src })}
-  {...(download.data.readingTime && { readingTime: download.data.readingTime })}
+  image={download.data.cover.src}
+  pageTitle={download.data.title}
+  path={path}
+  publishDate={download.data.publishDate}
+  section={section}
   showToc={false}
+  tags={download.data.tags}
+  {...(download.data.readingTime && { readingTime: download.data.readingTime })}
 >
   {
-    cover && (
+    download.data.cover && (
       <div
-        class="aspect-video max-w-3xl mx-auto rounded-2xl overflow-hidden shadow-lg mb-8"
+        class="relative aspect-video max-w-3xl mx-auto rounded-2xl overflow-hidden shadow-lg mb-8"
         slot="hero-image"
       >
-        <img src={cover.src} alt={cover.alt} loading="eager" class="w-full h-full object-cover" />
+        <Picture
+          src={download.data.cover}
+          alt={download.data.coverAlt}
+          widths={[640, 960, 1280, 1920]}
+          sizes="(min-width: 1280px) 80vw, 100vw"
+          formats={['avif', 'webp', 'jpeg']}
+          layout="constrained"
+          fit="cover"
+          position="center"
+          class="absolute inset-0 h-full w-full object-cover"
+          loading="eager"
+        />
       </div>
     )
   }
@@ -138,6 +146,10 @@ const authorId =
 
   <!-- Download Form -->
   <div class="border-t border-border pt-12 mt-12" slot="after-content">
-    <DownloadForm title={pageTitle} fileName={download.data.fileName} fileType={download.data.fileType} />
+    <DownloadForm
+      title={download.data.title}
+      fileName={download.data.fileName}
+      fileType={download.data.fileType}
+    />
   </div>
 </MarkdownLayout>

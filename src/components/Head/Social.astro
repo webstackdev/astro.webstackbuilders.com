@@ -1,12 +1,16 @@
 ---
+/**
+ * Open Graph / Facebook / X.com metadata
+ */
 import contactData from '@content/contact.json'
 import { getSocialMetadata, type SocialMetadataOptions } from '@components/Head/server'
 
 export interface Props {
-  title?: string
+  /** Meta description */
   description?: string
-  slug?: string
   image?: string
+  slug?: string // @TODO: Should this be named "path"? Or rename "path" to "slug"?
+  title?: string
 }
 
 const { title, description, slug, image } = Astro.props
@@ -21,12 +25,13 @@ if (image !== undefined) options.image = image
 const socialMetadata = getSocialMetadata(options)
 ---
 
-{/* Open Graph / Facebook metadata */}
+{/* Types include 'website', 'article', 'profile', and 'product' */}
 <meta property="og:type" content="website" />
 <meta property="og:title" content={socialMetadata.ogTitle} />
 <meta property="og:description" content={socialMetadata.ogDescription} />
 <meta property="og:image" content={socialMetadata.ogImage} />
 <meta property="og:image:alt" content={socialMetadata.ogImageAlt} />
+{/* Canonical URL of the page */}
 <meta property="og:url" content={socialMetadata.ogUrl} />
 <meta property="og:site_name" content={contactData.company.name} />
 

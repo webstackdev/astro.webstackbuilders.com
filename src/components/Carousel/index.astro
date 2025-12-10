@@ -1,6 +1,10 @@
 ---
-// Generic Carousel component for displaying content - both featured and suggested
+/**
+ * Generic Carousel component for displaying content - both featured and suggested
+ */
+import { Picture } from 'astro:assets'
 import { getCollection } from 'astro:content'
+
 import {
   type CollectionSlug,
   type CarouselVariant,
@@ -52,11 +56,19 @@ const items = prepareItems(allItems, variant, currentSlug, limit)
                       href={`/${type}/${item.id}`}
                       class="block h-full bg-bg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-border hover:border-primary transform hover:-translate-y-2"
                     >
-                      {'icon' in item.data && item.data.icon && (
-                        <div class="p-6 pb-4">
-                          <div class="w-12 h-12 bg-bg-offset rounded-lg flex items-center justify-center group-hover:bg-primary group-hover:bg-opacity-20 transition-colors">
-                            <img src={item.data.icon} alt="" loading="lazy" class="w-6 h-6" />
-                          </div>
+                      {item.data.cover && (
+                        <div class="relative aspect-video overflow-hidden">
+                          <Picture
+                            src={item.data.cover}
+                            alt={item.data.coverAlt}
+                            widths={[320, 640, 960, 1280]}
+                            sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+                            formats={['avif', 'webp', 'jpeg']}
+                            layout="constrained"
+                            fit="cover"
+                            position="center"
+                            class="absolute inset-0 h-full w-full"
+                          />
                         </div>
                       )}
                       <div class="p-6 pt-2">

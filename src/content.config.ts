@@ -8,230 +8,205 @@
  * The 'email' collection is included in the src/content directory, but is not handled by
  * Astro's collections systems. It is used by files in src/pages/api.
  */
-import { defineCollection, reference, z } from 'astro:content'
+import { defineCollection, reference, z, type SchemaContext } from 'astro:content'
 import { glob, file } from 'astro/loaders'
 import { validTags } from '@content/_tagList'
-/** Wraps a collection schema with a refinement that enforces breadcrumb title length limits */
+/**
+ * Wraps a collection schema with a refinement that enforces breadcrumb title length limits */
 import { withBreadcrumbTitleWarning } from '@lib/helpers/breadcrumbTitleLengthRefinement'
 
+/**
+ * NOTE: In YAML, dates written without quotes around them are interpreted as Date objects */
+
+/** Only load markdown and MDX files that do not start with an underscore */
 const pattern = '**\/[^_]*.{md,mdx}'
 
-/**
- * About
- */
-const aboutSchema = withBreadcrumbTitleWarning(
+const createBaseCollectionSchema = ({ image }: SchemaContext) =>
   z.object({
-    id: z.string(),
     title: z.string(),
-  }),
-  'about'
-)
+    description: z.string(),
+    cover: image(),
+    coverAlt: z.string(),
+    featured: z.boolean().default(false),
+    isDraft: z.boolean().default(false),
+    publishDate: z.date(),
+    tags: z.array(z.enum(validTags)),
+  })
 
-const aboutCollection = defineCollection({
-  loader: glob({ pattern, base: './src/content/about' }),
-  schema: aboutSchema,
-})
+/**
+ * =================================================================================
+ *
+ * Primary Content Collections
+ *
+ * =================================================================================
+ */
 
 /**
  * Articles
  */
-const articlesSchema = withBreadcrumbTitleWarning(
-  z.object({
-    title: z.string(),
-    description: z.string(),
-    // Reference a single author from the `authors` collection by `id`
-    author: reference('authors'),
-    tags: z.array(z.enum(validTags)),
-    image: z.object({
-      src: z.string(),
-      alt: z.string(),
-    }),
-    // In YAML, dates written without quotes around them are interpreted as Date objects
-    publishDate: z.date(),
-    isDraft: z.boolean().default(false),
-    featured: z.boolean().default(false),
-    readingTime: z.string().optional(),
-    showToc: z.boolean().default(true),
-  }),
-  'articles'
-)
-
 const articlesCollection = defineCollection({
   loader: glob({ pattern, base: './src/content/articles' }),
-  schema: () => articlesSchema,
-})
-
-/**
- * Authors
- */
-const authorsSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  email: z.string().email(),
-  avatar: z.string(),
-  social: z.object({
-    twitter: z.object({
-      name: z.string(),
-      url: z.string().url(),
-    }),
-    github: z.object({
-      name: z.string(),
-      url: z.string().url(),
-    }),
-    linkedin: z.object({
-      name: z.string(),
-      url: z.string().url(),
-    }),
-  }),
-})
-
-const authorsCollection = defineCollection({
-  loader: glob({ pattern, base: './src/content/authors' }),
-  schema: () => authorsSchema,
+  schema: context =>
+    withBreadcrumbTitleWarning(
+      createBaseCollectionSchema(context).extend({
+        author: reference('authors'),
+        readingTime: z.string().optional(),
+        showToc: z.boolean().default(true),
+      }),
+      'articles'
+    ),
 })
 
 /**
  * Case Studies
  */
-const caseStudiesSchema = withBreadcrumbTitleWarning(
-  z.object({
-    title: z.string(),
-    description: z.string().optional(),
-    tags: z.array(z.enum(validTags)),
-    // In YAML, dates written without quotes around them are interpreted as Date objects
-    publishDate: z.date(),
-    isDraft: z.boolean().default(false),
-    featured: z.boolean().default(false),
-    // Optional fields that may exist in some case studies
-    image: z
-      .union([
-        z.string(),
-        z.object({
-          src: z.string(),
-          alt: z.string(),
-        }),
-      ])
-      .optional(),
-    client: z.string().optional(),
-    author: reference('authors').optional(),
-    industry: z.string().optional(),
-    projectType: z.string().optional(),
-    duration: z.string().optional(),
-  }),
-  'caseStudies'
-)
-
 const caseStudiesCollection = defineCollection({
   loader: glob({ pattern, base: './src/content/case-studies' }),
-  schema: () => caseStudiesSchema,
-})
-
-/**
- * Contact data
- */
-const contactDataSocialItemSchema = z.object({
-  network: z.string(),
-  name: z.string(),
-  url: z.string().url(),
-  order: z.number(),
-})
-
-const contactDataSchema = z.object({
-  name: z.string(),
-  email: z.string().email(),
-  address: z.string(),
-  city: z.string(),
-  state: z.string().length(2),
-  index: z.string(),
-  telephoneLocal: z.string(),
-  telephoneMobile: z.string(),
-  telephoneTollFree: z.string(),
-  social: z.array(contactDataSocialItemSchema),
-})
-
-const contactDataCollection = defineCollection({
-  loader: file('./src/content/contact.json'),
-  schema: contactDataSchema,
-})
-
-/**
- * Downloads
- */
-const downloadsSchema = withBreadcrumbTitleWarning(
-  z.object({
-    title: z.string(),
-    description: z.string(),
-    author: reference('authors').optional(),
-    tags: z.array(z.enum(validTags)),
-    image: z.object({
-      src: z.string(),
-      alt: z.string(),
-    }),
-    publishDate: z.date(),
-    isDraft: z.boolean().default(false),
-    featured: z.boolean().default(false),
-    fileType: z.enum(['PDF', 'eBook', 'Whitepaper', 'Guide', 'Report', 'Template']),
-    fileSize: z.string().optional(),
-    pages: z.number().optional(),
-    readingTime: z.string().optional(),
-    fileName: z.string(), // Filename in public/downloads directory
-  }),
-  'downloads'
-)
-
-const downloadsCollection = defineCollection({
-  loader: glob({ pattern, base: './src/content/downloads' }),
-  schema: () => downloadsSchema,
+  schema: context =>
+    withBreadcrumbTitleWarning(
+      createBaseCollectionSchema(context).extend({
+        client: z.string().optional(),
+        duration: z.string().optional(),
+        industry: z.string().optional(),
+        projectType: z.string().optional(),
+        showToc: z.boolean().default(false),
+      }),
+      'caseStudies'
+    ),
 })
 
 /**
  * Services
  */
-const servicesSchema = withBreadcrumbTitleWarning(
-  z.object({
-    title: z.string(),
-    description: z.string().optional(),
-    tags: z.array(z.enum(validTags)),
-    // In YAML, dates written without quotes around them are interpreted as Date objects
-    publishDate: z.date(),
-    isDraft: z.boolean().default(false),
-    category: z.string().optional(),
-    icon: z.string().optional(),
-    featured: z.boolean().default(false),
-    pricing: z.string().optional(),
-    duration: z.string().optional(),
-    deliverables: z.array(z.string()).optional(),
-  }),
-  'services'
-)
-
 const servicesCollection = defineCollection({
   loader: glob({ pattern, base: './src/content/services' }),
-  schema: () => servicesSchema,
+  schema: context =>
+    withBreadcrumbTitleWarning(
+      createBaseCollectionSchema(context).extend({
+        category: z.string().optional(),
+        deliverables: z.array(z.string()).optional(),
+        duration: z.string().optional(),
+        pricing: z.string().optional(),
+        showToc: z.boolean().default(false),
+      }),
+      'services'
+    ),
+})
+
+/**
+ * Downloads
+ */
+const downloadsCollection = defineCollection({
+  loader: glob({ pattern, base: './src/content/downloads' }),
+  schema: context =>
+    withBreadcrumbTitleWarning(
+      createBaseCollectionSchema(context).extend({
+        author: reference('authors').optional(),
+        fileName: z.string(),
+        fileSize: z.string().optional(),
+        fileType: z.enum(['PDF', 'eBook', 'Whitepaper', 'Guide', 'Report', 'Template']),
+        pages: z.number().optional(),
+        readingTime: z.string().optional(),
+        showToc: z.boolean().default(false),
+      }),
+      'downloads'
+    ),
+})
+
+/**
+ * =================================================================================
+ *
+ * Secondary Content Collections
+ *
+ * =================================================================================
+ */
+
+/**
+ * About
+ */
+const aboutCollection = defineCollection({
+  loader: glob({ pattern, base: './src/content/about' }),
+  schema: withBreadcrumbTitleWarning(
+    z.object({
+      id: z.string(),
+      title: z.string(),
+    }),
+    'about'
+  ),
+})
+
+/**
+ * Authors
+ */
+const authorsCollection = defineCollection({
+  loader: glob({ pattern, base: './src/content/authors' }),
+  schema: () => z.object({
+    id: z.string(),
+    name: z.string(),
+    email: z.string().email(),
+    avatar: z.string(),
+    social: z.object({
+      twitter: z.object({
+        name: z.string(),
+        url: z.string().url(),
+      }),
+      github: z.object({
+        name: z.string(),
+        url: z.string().url(),
+      }),
+      linkedin: z.object({
+        name: z.string(),
+        url: z.string().url(),
+      }),
+    }),
+  }),
+})
+
+/**
+ * Contact data
+ */
+const contactDataCollection = defineCollection({
+  loader: file('./src/content/contact.json'),
+  schema: z.object({
+    name: z.string(),
+    email: z.string().email(),
+    address: z.string(),
+    city: z.string(),
+    state: z.string().length(2),
+    index: z.string(),
+    telephoneLocal: z.string(),
+    telephoneMobile: z.string(),
+    telephoneTollFree: z.string(),
+    social: z.array(
+      z.object({
+        network: z.string(),
+        name: z.string(),
+        url: z.string().url(),
+        order: z.number(),
+      }),
+    ),
+  }),
 })
 
 /**
  * Testimonials. These do not have pages generated for them.
  */
-const testimonialSchema = z.object({
-  name: z.string(),
-  organization: z.string().optional(),
-  tags: z.array(z.enum(validTags)),
-  avatar: z
-    .object({
-      src: z.string(),
-      alt: z.string(),
-    })
-    .optional(),
-  // In YAML, dates written without quotes around them are interpreted as Date objects
-  publishDate: z.date(),
-  active: z.boolean().default(false),
-  isDraft: z.boolean().default(false),
-})
-
 const testimonialCollection = defineCollection({
   loader: glob({ pattern, base: './src/content/testimonials' }),
-  schema: () => testimonialSchema,
+  schema: () => z.object({
+    name: z.string(),
+    organization: z.string().optional(),
+    tags: z.array(z.enum(validTags)),
+    avatar: z
+      .object({
+        src: z.string(),
+        alt: z.string(),
+      })
+      .optional(),
+    publishDate: z.date(),
+    active: z.boolean().default(false),
+    isDraft: z.boolean().default(false),
+  }),
 })
 
 /**

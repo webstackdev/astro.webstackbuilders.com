@@ -1,24 +1,28 @@
 ---
 import { getCollection } from 'astro:content'
+import { Picture } from 'astro:assets'
 import PageLayout from '@layouts/PageLayout.astro'
 
-const path = '/services/'
-const description = 'Professional web development and consulting services to help you build better software faster.'
-
-// Get all services from content collection
+/** Get all services from content collection */
 const allServices = await getCollection('services')
 
-// Filter and sort services
+/** Filter and sort services */
 const services = allServices.sort(
   (a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime()
 )
+
+const pageDescription = 'Webstack Builders Services List'
+const pageTitle = 'All Services'
+const path = '/services/'
+const section = 'Services'
 ---
 
 <PageLayout
-  pageTitle="Services"
+  description={pageDescription}
+  pageTitle={pageTitle}
   path={path}
+  section={section}
   subtitle="Professional web development and consulting services"
-  description={description}
 >
   {
     services.length > 0 && (
@@ -29,23 +33,30 @@ const services = allServices.sort(
           </h2>
         </header>
         <ul class="space-y-12 md:space-y-20 lg:space-y-20">
-          {services.map(service => (
-            <li class="service-item">
-              <a
-                href={`/services/${service.id}`}
-                class="block group hover:bg-bg-offset rounded-lg p-6 transition-colors duration-200 border border-transparent hover:border-border"
-              >
-                <div class="flex items-start space-x-6">
-                  {service.data.icon && (
-                    <div class="shrink-0 w-16 h-16 bg-primary-bg rounded-lg flex items-center justify-center group-hover:bg-primary-bg-hover transition-colors">
-                      <img
-                        src={service.data.icon}
-                        alt=""
-                        loading="lazy"
-                        class="w-8 h-8 text-primary"
-                      />
-                    </div>
-                  )}
+          {services.map(service => {
+            return (
+              <li class="service-item">
+                <a
+                  href={`/services/${service.id}`}
+                  class="block group hover:bg-bg-offset rounded-lg p-6 transition-colors duration-200 border border-transparent hover:border-border"
+                >
+                  <div class="flex items-start space-x-6">
+                    {service.data.cover && (
+                      <div class="relative shrink-0 w-16 h-16 bg-primary-bg rounded-lg overflow-hidden group-hover:bg-primary-bg-hover transition-colors">
+                        <Picture
+                          src={service.data.cover}
+                          alt={service.data.coverAlt}
+                          widths={[64, 96, 128, 192]}
+                          sizes="64px"
+                          formats={['avif', 'webp', 'png']}
+                          layout="fixed"
+                          fit="cover"
+                          position="center"
+                          class="absolute inset-0 h-full w-full object-cover"
+                          loading="lazy"
+                        />
+                      </div>
+                    )}
                   <div class="flex-1 min-w-0">
                     <h3 class="text-xl md:text-2xl font-semibold text-text mb-3 group-hover:text-primary transition-colors">
                       {service.data.title}
@@ -74,7 +85,8 @@ const services = allServices.sort(
                 </div>
               </a>
             </li>
-          ))}
+            )
+          })}
         </ul>
       </section>
     )
