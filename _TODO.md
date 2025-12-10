@@ -1,13 +1,47 @@
 <!-- markdownlint-disable-file -->
 # TODO
 
-## Fix E2E mock container test runner, migrate DB providers
-
-Refactor from using Suprabase and Upstash to using Astro DB + Turso
-
 [Astro DB](https://docs.astro.build/en/guides/astro-db/)
 
-## Mobile Social Shares
+Turso Setup Guidance
+
+Wait until config.ts + seed.ts are committed; then create a Turso database named webstack-corporate-prod (or similar) via turso db create webstack-corporate-prod.
+
+Generate an app token (turso db tokens create webstack-corporate-prod -n astro-app) and store the ASTRO_DB_REMOTE_URL/ASTRO_DB_APP_TOKEN secrets.
+
+After the DB exists, run ASTRO_DB_REMOTE_URL=... ASTRO_DB_APP_TOKEN=... npx astro db push --remote from the project root to apply the schema. That command is when you'll also need to restart your dev server.
+
+Let me know if you'd like similar migrations for the other Supabase-backed endpoints or want the fallback flag renamed now that we're on Astro DB.
+
+No seed data was added for DSAR requests yet, but schema changes require astro db push (local + Turso) before the endpoint can execute against the new table.
+
+Run npx astro db push locally, then ASTRO_DB_REMOTE_URL=... ASTRO_DB_APP_TOKEN=... npx astro db push --remote so the new dsarRequests table exists remotely.
+
+We still have a handful of "real" Supabase/Upstash touchpoints under src:
+
+`suprabase.ts` plus its re-export in index.ts still create the Supabase admin client via `getSuprabaseApiUrl()` / `getSuprabaseApiServiceRoleKey()`.
+
+Anything that imports supabaseAdmin (below) rides on that helper, so those env getters/validators (`environmentApi.ts`, `environmentalVariableValidation.ts`)` also remain in play.
+
+API routes that still execute Supabase queries:
+
+- `export.ts` - reads consent_records directly from Supabase when packaging DSAR exports.
+
+- `cleanup-dsar-requests.ts` - deletes fulfilled/expired DSAR requests in Supabase.
+
+- `cleanup-confirmations.ts` - deletes expired/old newsletter_confirmations rows in Supabase.
+
+- `ping-integrations.ts` - the Supabase half of the keep-alive check still runs a select against newsletter_confirmations.
+
+Client-side module supabase.ts still instantiates a public Supabase client (it isn't imported anywhere else now, but the implementation is present).
+
+For Upstash, the only active usage under src is the same ping-integrations route: it fetches `getUpstashApiUrl()` / `getUpstashApiToken()` and performs a REST call against the Upstash proxy key.
+
+Those env helpers and the validation entries (`KV_REST_API_URL`, `KV_REST_API_TOKEN`, etc.) are therefore still part of the implementation.
+
+Outside these files, the remaining "supabase/upstash" mentions are in docs, tests, or tooling scripts only. If we plan to finish the Astro DB migration, those are the concrete spots left to refactor (and we can drop the unused client helper afterwards).
+
+## Mobile Social Shares UI
 
 See the example image in Social Shares.
 
