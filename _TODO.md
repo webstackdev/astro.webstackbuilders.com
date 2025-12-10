@@ -60,6 +60,8 @@ text-white, other default Tailwind colors
 
 ## Typing client-side API calls and SSR API endpoints
 
+Use Astro Actions
+
 Shared Types vs Swagger / Keeping Docs in Sync
 
 1. Type-only sharing (current approach)
@@ -117,21 +119,6 @@ fatal: /home/kevin/Repos/Webstack: '/home/kevin/Repos/Webstack' is outside repos
 
 ⚠️  Privacy policy version fallback applied: 2025-12-08
 
-## @TODO: Add Check HTML Links to test workflow
-
-npm i -D check-html-links
-npx check-html-links _site
-`https://github.com/modernweb-dev/rocket/tree/main/packages/check-html-links`
-
-22:38:43 [ERROR] [astro-link-validator] ❌ Found 2 broken links:
-\n📄 index.html:
-  🔗 /services/web-development
-    File not found: services/web-development
-    Text: "Improve Your Product"
-  🔗 /services/consulting
-    File not found: services/consulting
-    Text: "Start from scratch"
-
 ## Tags
 
 Can we add a markdown page to explain what each tag is, and use those pages instead of src/content/_tagList.ts to define the tags available?
@@ -140,106 +127,32 @@ Can we add a markdown page to explain what each tag is, and use those pages inst
 
 Looking at the social-card endpoint implementation, it's designed to work with third-party screenshot services, not the social networks themselves.
 
-Here's how it works:
-
-The Two Formats
-HTML format (format=html or default): Returns a full HTML page with inline CSS styled as a 1200x630px card - the standard Open Graph image dimensions.
-
-OG format (format=og): Returns JSON with Open Graph meta tags, where the og:image URL points back to the HTML version of the card.
-
-How Social Networks Actually Work
-Social networks like Twitter, Facebook, LinkedIn, etc. don't screenshot HTML pages. They expect:
-
-- Direct image URLs (PNG, JPEG, etc.)
-- Standard dimensions (1200x630px for most platforms)
-
-**The Intended Workflow**
-
-This endpoint is designed to integrate with screenshot services like:
-
-- Puppeteer or Playwright - Run your own screenshot service
-- Vercel OG Image Generation - Vercel's built-in service
-- Cloudinary - Can fetch and screenshot URLs
-- ScreenshotOne or ApiFlash - Dedicated screenshot APIs
-- Satori - Convert HTML/CSS to SVG/PNG
-
-**Current Limitation**
-
-As implemented, this endpoint would need an additional step to be useful for social sharing:
-
-Your endpoint → Screenshot service → Image file → Social networks
-
-Better Approaches
-
-For a production Astro site, you'd typically:
-
-- Use @vercel/og or Satori to generate actual images server-side
-- Pre-generate images at build time for static content
-- Use a screenshot service that can be called from your endpoint to return actual images
-
-**Social Media Preview Generators**
-
-There are several integrations available that vary based on the library they use to create an image file to snapshot, whether they allow the template for generating the image to be modified, and what options they provide for output.
-
-[`astro-og-canvas`](https://www.npmjs.com/package/astro-og-canvas)
-
-- Most popular option (~660 weekly d/l). Generates images at **run time**.
-- Uses **`canvaskit-wasm`** for rendering
-- Uses plain color or gradient background. Provide title, description, and logo (displayed at top left of card).
-- Can't set size of final card.
-
-[`astro-satori`](https://www.npmjs.com/package/astro-satori)
-
-- Moderately popular option (~230 weekly d/l). Generates images at **run time**.
-- Uses Vercel's **Satori** library for rendering (entirely done in JS with limitations on what CSS can be used). Satori is a library for generating SVG strings from pure HTML and CSS.
-- Size of final card can be set.
-- Seems opinionated, but it might be possible to have a lot of control (not sure).
-- Output format?
-
-[`astro-opengraph-image`](https://www.npmjs.com/package/@altano/astro-opengraph-image#fn-filename-change)
-
-- Uses **Satori**. Has dependencies on [`@resvg/resvg-wasm`](https://www.npmjs.com/package/@resvg/resvg-wasm) and Sharp. Middleware integration. Generates images at **run time**.
-- Provides element to add OG tags in document `<head>`.
-- Very flexible, you can provide the Astro template to generate the card.
-
-[Astro Open Graph Image](https://www.npmjs.com/package/astro-og-image)
-
-- Uses **Puppeteer**. Generates images at **build time**.
-- You can provide the Astro template to generate the card.
-- Requires providing a `baseHead` property in page templates.
-
-[Astro Open Graph Image Generator](https://www.npmjs.com/package/@cyberkoalastudios/og-image-generator)
-
-- Uses **Puppeteer**. Has dependencies on [`canvaskit-wasm`](https://www.npmjs.com/package/@resvg/resvg-wasm) and Sharp.
-- You can set the background image. No option to set the size of the card.
-- Manually add OF properties on `<head>` element. Flexible.
-
-## @TODO: Use Confetti on CTA forms
+## Use Confetti on CTA forms
 
 `canvas-confetti`
 `https://github.com/catdad/canvas-confetti`
 `https://www.kirilv.com/canvas-confetti/`
 
-## @TODO: Use the Page Visibility API to pause videos, image carousels, and animations
+## Use the Page Visibility API to pause videos, image carousels, and animations
 
 Stop unnecessary processes when the user doesn't see the page or inversely to perform background actions.
 
-## @TODO: "Add to Calendar" button
+## "Add to Calendar" button
 
 Google Calendar, Apple Calendar,  Yahoo Calender,  Microsoft 365, Outlook, and Teams, and generate iCal/ics files (for all other calendars and cases).
 
 `https://github.com/add2cal/add-to-calendar-button`
 `https://add-to-calendar-button.com/`
 
-## @TODO: Set up webmentions
+## Set up webmentions
 
 Needs to add real API key and test
 
-## @TODO: SCSS Use clothoid corners with border-radius
+## SCSS Use clothoid corners with border-radius
 
 `https://onotakehiko.dev/clothoid/`
 
-`@TODO: SCSS Make sure accent-color or styling for checkboxes/radio button groups is set up. Sets the colour used by checkboxes and radio buttons, as well as range fields and progress indicators. The accent colour is inherited`
+`SCSS Make sure accent-color or styling for checkboxes/radio button groups is set up. Sets the colour used by checkboxes and radio buttons, as well as range fields and progress indicators. The accent colour is inherited`
 
 ```scss
 :root{
@@ -247,11 +160,11 @@ Needs to add real API key and test
 }
 ```
 
-## @TODO: Refactor modals
+## Refactor modals
 
 Modals should be wrapped in the `<dialog>` element and use programmatic methods to display - `showModal()` to disable the area outside of the modal (handles `esc` keypress natively) and `show()` to allow interaction outside the modal, along with `close()`.
 
-## @TODO: Add for iOS
+## Add for iOS
 
 Specifying a Launch Screen Image
 
@@ -382,33 +295,6 @@ Adds some custom directives:
 ### [astro-webfinger](https://www.npmjs.com/package/astro-webfinger)
 
 Allows any Mastodon instance to discover your Mastodon profile directly from your own domain.
-
-## Preload hero images, usually loaded after stylesheets and fonts
-
-```font
-<head>
-  <!-- Hey browser! Please preload this important responsive image -->
-  <link
-    rel="preload"
-    as="image"
-    imagesrcset="
-      image-400.jpg 400w,
-      image-800.jpg 800w,
-      image-1600.jpg 1600w"
-    imagesizes="100vw"
-  >
-</head>
-<body>
-  <img
-    srcset="
-      image-400.jpg 400w,
-      image-800.jpg 800w,
-      image-1600.jpg 1600w"
-    sizes="100vw"
-    alt="..."
-  >
-</body>
-```
 
 ## Refactor social neworks in Authors collection to Contact collection format
 
