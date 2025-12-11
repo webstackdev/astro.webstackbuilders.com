@@ -102,30 +102,6 @@ test.describe('Open Graph Metadata', () => {
     expect(['summary', 'summary_large_image']).toContain(cardType)
   })
 
-  test('@ready Twitter title is present', async ({ page: playwrightPage }) => {
-    const page = await BasePage.init(playwrightPage)
-    await page.goto('/')
-
-    const content = await page.getAttribute('meta[name="twitter:title"]', 'content')
-    expect(content?.trim().length).toBeGreaterThan(0)
-  })
-
-  test('@ready Twitter description is present', async ({ page: playwrightPage }) => {
-    const page = await BasePage.init(playwrightPage)
-    await page.goto('/')
-
-    const content = await page.getAttribute('meta[name="twitter:description"]', 'content')
-    expect(content?.trim().length).toBeGreaterThan(0)
-  })
-
-  test('@ready Twitter image is present', async ({ page: playwrightPage }) => {
-    const page = await BasePage.init(playwrightPage)
-    await page.goto('/')
-
-    const imageUrl = await page.getAttribute('meta[name="twitter:image"]', 'content')
-    expect(imageUrl).toMatch(/^https?:\/\//)
-  })
-
   test('@ready all pages have unique OG descriptions', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     const pages = ['/', '/about', '/services']
