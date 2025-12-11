@@ -43,8 +43,6 @@ interface EmailData {
 	html: string
 }
 
-const E2E_MOCKS_HEADER = 'x-e2e-mocks'
-
 /**
  * Validate contact form input
  */
@@ -285,8 +283,7 @@ export const POST: APIRoute = async ({ request, cookies, clientAddress }) => {
 		'unknown'
 
 	try {
-		const forceMockResend = request.headers.get(E2E_MOCKS_HEADER) === '1'
-		const resendMockBaseUrl = getResendMockBaseUrl({ force: forceMockResend })
+		const resendMockBaseUrl = getResendMockBaseUrl()
 
 		const rateLimitIdentifier = createRateLimitIdentifier('contact', fingerprint)
 		if (!checkContactRateLimit(rateLimitIdentifier)) {

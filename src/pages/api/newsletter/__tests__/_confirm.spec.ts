@@ -106,8 +106,7 @@ describe('Newsletter Confirmation API - GET /api/newsletter/confirm', () => {
 		// Verify welcome email was sent (force mock disabled by default)
 		expect(mockSendWelcomeEmail).toHaveBeenCalledWith(
 			'test@example.com',
-			'John',
-			expect.objectContaining({ forceMockResend: false }),
+			'John'
 		)
 
 		expect(mockSubscribeToConvertKit).toHaveBeenCalledWith(
@@ -148,8 +147,7 @@ describe('Newsletter Confirmation API - GET /api/newsletter/confirm', () => {
 		expect(data.success).toBe(true)
 		expect(mockSendWelcomeEmail).toHaveBeenCalledWith(
 			'test@example.com',
-			undefined,
-			expect.objectContaining({ forceMockResend: false }),
+			undefined
 		)
 	})
 

@@ -39,7 +39,7 @@ export default async function seed() {
 	])
 
 	/*
-	 * Pre-populate a rate-limit window so the Upstash-compatible limiter logic immediately
+	 * Pre-populate a rate-limit window so the Astro DB-backed limiter logic immediately
 	 * has a known scope/identifier to work with when exercising API routes locally.
 	 */
 	await db.insert(rateLimitWindows).values([

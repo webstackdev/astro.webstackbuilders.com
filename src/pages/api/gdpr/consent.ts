@@ -1,6 +1,5 @@
-import { randomUUID } from 'node:crypto'
 import type { APIRoute } from 'astro'
-import { getPrivacyPolicyVersion, isSupabaseFallbackEnabled } from '@pages/api/_environment/environmentApi'
+import { getPrivacyPolicyVersion } from '@pages/api/_environment/environmentApi'
 import { rateLimiters, checkRateLimit } from '@pages/api/_utils'
 import { validate as uuidValidate } from 'uuid'
 import type { ConsentRequest, ConsentResponse } from '@pages/api/_contracts/gdpr.contracts'
@@ -97,35 +96,6 @@ const mapConsentRecord = (record: ConsentEventRecord): ConsentResponse['record']
   return mapped
 }
 
-const buildMockConsentRecord = (body: ConsentRequest): ConsentResponse['record'] => {
-  const normalizedEmail = normalizeNullableString(body.email ?? null)
-  const normalizedIpAddress = normalizeNullableString(body.ipAddress ?? null)
-  const normalizedConsentText = normalizeNullableString(body.consentText ?? null)
-
-  const mockRecord: ConsentResponse['record'] = {
-    id: randomUUID(),
-    DataSubjectId: body.DataSubjectId,
-    purposes: sanitizePurposes(body.purposes),
-    timestamp: new Date().toISOString(),
-    source: sanitizeSource(body.source),
-    userAgent: normalizeUserAgent(body.userAgent),
-    privacyPolicyVersion: getPrivacyPolicyVersion(),
-    verified: body.verified ?? false,
-  }
-
-  if (normalizedEmail) {
-    mockRecord.email = normalizedEmail
-  }
-  if (normalizedIpAddress) {
-    mockRecord.ipAddress = normalizedIpAddress
-  }
-  if (normalizedConsentText) {
-    mockRecord.consentText = normalizedConsentText
-  }
-
-  return mockRecord
-}
-
 const buildErrorResponse = (
   error: unknown,
   context: ReturnType<typeof createApiFunctionContext>['context'],
@@ -204,19 +174,15 @@ export const POST: APIRoute = async ({ request, cookies, clientAddress }) => {
       })
       record = mapConsentRecord(dbRecord)
     } catch (error) {
-      if (!isSupabaseFallbackEnabled()) {
-        throw new ApiFunctionError(error, {
-          route: ROUTE,
-          operation: 'insert-consent',
-          status: 500,
-          details: {
-            dataSubjectId: body.DataSubjectId,
-            purposes: body.purposes,
-          },
-        })
-      }
-      console.warn('[gdpr/consent] Astro DB unavailable, returning mocked consent record for e2e tests.')
-      record = buildMockConsentRecord(body)
+      throw new ApiFunctionError(error, {
+        route: ROUTE,
+        operation: 'insert-consent',
+        status: 500,
+        details: {
+          dataSubjectId: body.DataSubjectId,
+          purposes: body.purposes,
+        },
+      })
     }
 
     return jsonResponse(

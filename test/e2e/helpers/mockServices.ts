@@ -4,36 +4,7 @@
  * outbound calls were made by the server under test.
  */
 
-const defaultHost = process.env['E2E_MOCKS_HOST'] ?? '127.0.0.1'
-
-const serviceConfig = {
-  convertkit: {
-    envUrl: 'CONVERTKIT_MOCK_URL',
-    envPort: 'CONVERTKIT_HTTP_PORT',
-    defaultPort: '9010',
-  },
-  resend: {
-    envUrl: 'RESEND_MOCK_URL',
-    envPort: 'RESEND_HTTP_PORT',
-    defaultPort: '9011',
-  },
-} as const satisfies Record<string, {
-  envUrl: string
-  envPort: string
-  defaultPort: string
-}>
-
-const stripTrailingSlash = (value: string) => value.replace(/\/$/, '')
-
-const buildBaseUrl = (service: keyof typeof serviceConfig) => {
-  const config = serviceConfig[service]
-  const explicit = process.env[config.envUrl]
-  if (explicit) {
-    return stripTrailingSlash(explicit)
-  }
-  const port = process.env[config.envPort] ?? config.defaultPort
-  return `http://${defaultHost}:${port}`
-}
+import { buildWiremockBaseUrl, type WiremockService } from './wiremockConfig'
 
 export interface WiremockLoggedRequest {
   id: string
@@ -83,8 +54,8 @@ const ensureOk = async (response: Response, serviceName: string, action: string)
 export class WiremockClient {
   private readonly baseUrl: string
 
-  constructor(private readonly serviceName: keyof typeof serviceConfig) {
-    this.baseUrl = buildBaseUrl(serviceName)
+  constructor(private readonly serviceName: WiremockService) {
+    this.baseUrl = buildWiremockBaseUrl(serviceName)
   }
 
   private get requestsUrl() {
@@ -159,8 +130,6 @@ export class WiremockClient {
     )
   }
 }
-
-export const mocksEnabled = process.env['E2E_MOCKS'] === '1'
 
 export const wiremock = {
   convertkit: new WiremockClient('convertkit'),

@@ -13,8 +13,6 @@ import { markConsentRecordsVerified } from '@pages/api/gdpr/_utils/consentStore'
 import { confirmSubscription } from './_token'
 import { sendWelcomeEmail } from './_email'
 
-const E2E_MOCKS_HEADER = 'x-e2e-mocks'
-
 export const prerender = false // Force SSR for this endpoint
 
 const ROUTE = '/api/newsletter/confirm'
@@ -36,7 +34,6 @@ export const GET: APIRoute = async ({ url, request, cookies, clientAddress }) =>
 
   const token = url.searchParams.get('token')
   apiContext.extra = { ...(apiContext.extra || {}), token }
-  const forceMockResend = request.headers.get(E2E_MOCKS_HEADER) === '1'
 
   try {
     if (!token) {
@@ -77,9 +74,7 @@ export const GET: APIRoute = async ({ url, request, cookies, clientAddress }) =>
 
     // Send welcome email (non-blocking, don't fail if it errors)
     try {
-      await sendWelcomeEmail(subscription.email, subscription.firstName, {
-        forceMockResend,
-      })
+      await sendWelcomeEmail(subscription.email, subscription.firstName)
     } catch (emailError) {
       handleApiFunctionError(emailError, {
         ...apiContext,

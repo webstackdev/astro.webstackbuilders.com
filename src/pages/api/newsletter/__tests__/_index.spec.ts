@@ -107,8 +107,7 @@ describe('Newsletter API - POST /api/newsletter', () => {
 		expect(mockSendConfirmationEmail).toHaveBeenCalledWith(
 			'test@example.com',
 			'test-token-123',
-			'John',
-			expect.objectContaining({ forceMockResend: false }),
+			'John'
 		)
 	})
 
@@ -227,8 +226,7 @@ describe('Newsletter API - POST /api/newsletter', () => {
 		expect(mockSendConfirmationEmail).toHaveBeenCalledWith(
 			'test@example.com',
 			'test-token-123',
-			undefined,
-			expect.objectContaining({ forceMockResend: false }),
+			undefined
 		)
 	})
 

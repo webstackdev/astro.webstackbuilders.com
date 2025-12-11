@@ -1,21 +1,14 @@
-import { expect, test, wiremock, mocksEnabled } from '@test/e2e/helpers'
+import { expect, test, wiremock } from '@test/e2e/helpers'
 
 const NEWSLETTER_ENDPOINT = '/api/newsletter'
 const RESEND_EMAIL_PATH = '/emails'
 
 test.describe('Newsletter API integrations', () => {
-  if (!mocksEnabled) {
-    test.skip(true, 'E2E_MOCKS=1 is required to run newsletter API integration tests')
-  }
-
   test.describe.configure({ mode: 'serial' })
 
   test('@mocks sends double opt-in email through Resend mock', async ({ request }) => {
     const uniqueEmail = `newsletter-${Date.now()}@example.com`
     const response = await request.post(NEWSLETTER_ENDPOINT, {
-      headers: {
-        'x-e2e-mocks': '1',
-      },
       data: {
         email: uniqueEmail,
         consentGiven: true,
@@ -56,9 +49,6 @@ test.describe('Newsletter API integrations', () => {
   test('@mocks requires consent before sending any emails', async ({ request }) => {
     const emailWithoutConsent = 'noconsent@example.com'
     const response = await request.post(NEWSLETTER_ENDPOINT, {
-      headers: {
-        'x-e2e-mocks': '1',
-      },
       data: {
         email: emailWithoutConsent,
         consentGiven: false,

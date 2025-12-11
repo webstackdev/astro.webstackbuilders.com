@@ -46,30 +46,6 @@ npm run dev:env
 
 The underlying `npm run dev` command remains unchanged for CI and Vercel; `dev:env` is just a convenience for local shells so API routes that depend on `process.env` (cron handlers, email providers, etc.) behave the same way they do in production.
 
-## Supabase Production Initialization
-
-Provisioning the hosted Supabase project uses the same SQL migrations that back local development. When you need to initialize (or update) the production database:
-
-1. Authenticate the Supabase CLI (only required once per machine):
-
-  ```bash
-  npx supabase login
-  ```
-
-1. Link the CLI to the production project (replace the placeholder reference):
-
-  ```bash
-  npx supabase link --project-ref your-production-project-ref --workdir suprabase
-  ```
-
-1. Apply the latest migrations and RLS policies:
-
-  ```bash
-  npm run supabase:db:push
-  ```
-
-The `supabase:db:push` script runs `supabase db push` against the linked project, ensuring every table, index, and policy in `suprabase/migrations` is kept in sync with production.
-
 ## Astro DB Workflows
 
 Astro DB schemas now live under `db/config.ts`. Applying those migrations requires `npx astro db push`; the regular `astro build` command never pushes schema changes for you. Keep local and remote pushes separate to avoid promoting unfinished changes:

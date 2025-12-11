@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test'
+import { testDatabaseFile } from './test/e2e/config/runtime/paths'
 
 /**
  * Read environment variables from file.
@@ -9,12 +10,30 @@ import { isCI } from 'src/lib/config/environmentServer'
 
 if ( !isCI() ) dotenv.config({ path: '.env.development' })
 
+process.env['ASTRO_DATABASE_FILE'] = process.env['ASTRO_DATABASE_FILE'] ?? testDatabaseFile
+process.env['PLAYWRIGHT'] = process.env['PLAYWRIGHT'] ?? 'true'
+
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
 
 /** Debug mode - set CI=1 or CI=true to run only chromium with no HTML report */
 const isCIMode = Boolean(process.env['CI'] && (process.env['CI'] === 'true') || process.env['CI'] === '1')
+
+const buildWebServerEnv = () => {
+  const env: Record<string, string> = {}
+
+  for (const [key, value] of Object.entries(process.env)) {
+    if (typeof value === 'string') {
+      env[key] = value
+    }
+  }
+
+  env['PLAYWRIGHT'] = 'true'
+  env['ASTRO_DATABASE_FILE'] = testDatabaseFile
+
+  return env
+}
 
 export default defineConfig({
   /* Look for test files in the "tests" directory, relative to this configuration file. */
@@ -119,10 +138,12 @@ export default defineConfig({
           /** How long to wait for the process to start up and be available in milliseconds. */
           timeout: 120 * 1000,
           reuseExistingServer: !process.env['CI'],
+          env: buildWebServerEnv(),
         },
       }),
 
   globalSetup: './test/e2e/config/global-setup.ts',
+  globalTeardown: './test/e2e/config/global-teardown.ts',
 
   // path to the global teardown files.
   //globalTeardown: require.resolve('./global-teardown'),

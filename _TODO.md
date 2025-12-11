@@ -1,39 +1,32 @@
 <!-- markdownlint-disable-file -->
 # TODO
 
-[Astro DB](https://docs.astro.build/en/guides/astro-db/)
+## Typing client-side API calls and SSR API endpoints
 
-Turso Setup Guidance
+Use Astro Actions
 
-We need to run `npx astro db push` with production Astro DB credentials on GitHub as part of the merge to main Action workflow. We'll have two sets of env vars then: development for the dev server, and production for the DB push:
+### Shared Types vs Swagger / Keeping Docs in Sync
 
-ASTRO_DB_REMOTE_URL="libsql://webstack-corporate-prod-webstackdev.aws-us-east-1.turso.io" \
-ASTRO_DB_APP_TOKEN="eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NjUzODU2NzQsImlkIjoiOTc2OTFlZWMtZGFhMC00YjI0LTg2M2QtY2JkYjU2ZDczMjE0IiwicmlkIjoiNWNmZTdkZjAtZGIzMC00ZDJhLTlmNjItMzUwZjkyNGEzOGE2In0.dCxUeBL-zSFW7ckng3QCqIHX9X2DQsBv7yboP_GdbtBtpTkxvdmPwQkRAxqG2l1Iy7J7aExX7xIBIPsAWVMvBg" \
-npx astro db push
+**Type-only sharing (current approach)**
 
-ASTRO_DB_REMOTE_URL="file:./db/dev.db" \
-ASTRO_DB_APP_TOKEN="" \
-npx astro db push
+- Pros: zero extra build tooling, server/client stay aligned as long as both import @pages/api/_contracts.
+- Cons: no generated docs/SDKs; discipline is required to keep manual docs current.
+- How to enforce: treat the contract files as the single source of truth, add lint rules banning request/response literal types outside _contracts, and add lightweight contract tests that instantiate each type against the endpoint handler (failing if fields diverge).
 
-ASTRO_DATABASE_FILE="./db/dev.db"
+**Code-first OpenAPI (Zod or TS schemas → OpenAPI)**
 
-Let me know if you'd like similar migrations for the other Supabase-backed endpoints or want the fallback flag renamed now that we're on Astro DB.
+- Define schemas in Zod/Valibot (or ts-rest) alongside the endpoint. Generate OpenAPI JSON plus TypeScript types from those schemas. Docs (Swagger UI/Redoc) and any client SDKs come from the generated spec, so they're always in sync.
+- Guarantees: CI regenerates the spec and fails when the checked-in artifact is stale; endpoint handlers reuse the same schema for runtime validation, so a mismatch cannot compile.
 
-No seed data was added for DSAR requests yet, but schema changes require astro db push (local + Turso) before the endpoint can execute against the new table.
+**Spec-first OpenAPI + Swagger Codegen**
 
-Run npx astro db push locally, then ASTRO_DB_REMOTE_URL=... ASTRO_DB_APP_TOKEN=... npx astro db push --remote so the new dsarRequests table exists remotely.
+- Maintain an OpenAPI YAML/JSON file as the source of truth, run Swagger Codegen (or openapi-typescript) to produce both server stubs and client SDKs.
+- Guarantees: developers edit the spec, run codegen (enforced via a pre-commit/CI task), and the generated server stubs remind you to implement every path/verb. Documentation pages (Swagger UI) are rendered straight from the same spec, so they inherently match the implementation.
 
-We still have a handful of "real" Supabase/Upstash touchpoints under src:
+**Affected components:**
 
-`suprabase.ts` plus its re-export in index.ts still create the Supabase admin client via `getSuprabaseApiUrl()` / `getSuprabaseApiServiceRoleKey()`.
-
-Anything that imports supabaseAdmin (below) rides on that helper, so those env getters/validators (`environmentApi.ts`, `environmentalVariableValidation.ts`)` also remain in play.
-
-Client-side module `supabase.ts` still instantiates a public Supabase client (it isn't imported anywhere else now, but the implementation is present).
-
-Those env helpers and the validation entries (`KV_REST_API_URL`, `KV_REST_API_TOKEN`, etc.) are therefore still part of the implementation.
-
-Outside these files, the remaining "supabase/upstash" mentions are in docs, tests, or tooling scripts only. If we plan to finish the Astro DB migration, those are the concrete spots left to refactor (and we can drop the unused client helper afterwards).
+- CallToAction/Newsletter
+- ContactForm
 
 ## Mobile Social Shares UI
 
@@ -85,33 +78,6 @@ ring (1px), ring-2, ring-4
 accent
 
 text-white, other default Tailwind colors
-
-## Typing client-side API calls and SSR API endpoints
-
-Use Astro Actions
-
-Shared Types vs Swagger / Keeping Docs in Sync
-
-1. Type-only sharing (current approach)
-
-- Pros: zero extra build tooling, server/client stay aligned as long as both import @pages/api/_contracts.
-- Cons: no generated docs/SDKs; discipline is required to keep manual docs current.
-- How to enforce: treat the contract files as the single source of truth, add lint rules banning request/response literal types outside _contracts, and add lightweight contract tests that instantiate each type against the endpoint handler (failing if fields diverge).
-
-1. Code-first OpenAPI (Zod or TS schemas → OpenAPI)
-
-- Define schemas in Zod/Valibot (or ts-rest) alongside the endpoint. Generate OpenAPI JSON plus TypeScript types from those schemas. Docs (Swagger UI/Redoc) and any client SDKs come from the generated spec, so they're always in sync.
-- Guarantees: CI regenerates the spec and fails when the checked-in artifact is stale; endpoint handlers reuse the same schema for runtime validation, so a mismatch cannot compile.
-
-1. Spec-first OpenAPI + Swagger Codegen
-
-- Maintain an OpenAPI YAML/JSON file as the source of truth, run Swagger Codegen (or openapi-typescript) to produce both server stubs and client SDKs.
-- Guarantees: developers edit the spec, run codegen (enforced via a pre-commit/CI task), and the generated server stubs remind you to implement every path/verb. Documentation pages (Swagger UI) are rendered straight from the same spec, so they inherently match the implementation.
-
-Affected components:
-
-- CallToAction/Newsletter
-- ContactForm
 
 ## Files with Skipped Tests
 

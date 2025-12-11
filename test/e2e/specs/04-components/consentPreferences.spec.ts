@@ -4,26 +4,15 @@
  */
 
 import type { Page } from '@playwright/test'
-import { env } from 'node:process'
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
-import { BasePage, expect, mocksEnabled, test, mockFetchEndpointResponse, type FetchOverrideHandle } from '@test/e2e/helpers'
+import { BasePage, expect, test, mockFetchEndpointResponse, type FetchOverrideHandle } from '@test/e2e/helpers'
 import type { ConsentResponse } from '@pages/api/_contracts/gdpr.contracts'
+import { deleteConsentRecordsBySubjectId, waitForConsentRecord } from '@test/e2e/db'
 
 const ALLOW_ALL_BUTTON = '#consent-allow-all'
 const SAVE_BUTTON = '#consent-save-preferences'
 const COMPONENT_SELECTOR = 'consent-preferences'
 const FULL_STACK_TAG = '@containers'
 const CONSENT_PAGE_PATH = '/consent'
-
-const SUPABASE_URL = env['SUPABASE_URL']?.replace(/\/$/, '')
-const SUPABASE_SERVICE_ROLE_KEY = env['SUPABASE_SERVICE_ROLE_KEY']
-const SUPABASE_FALLBACK_ENABLED = env['E2E_SUPABASE_FALLBACK'] === '1' || env['E2E_MOCKS'] === '1'
-
-const supabaseAdminClient: SupabaseClient | null = SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY
-  ? createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    })
-  : null
 
 const toggleLabel = (checkboxId: string): string => `[data-consent-toggle="${checkboxId}"]`
 
@@ -32,55 +21,6 @@ const interceptConsentApi = async (page: Page): Promise<FetchOverrideHandle> => 
     endpoint: '/api/gdpr/consent',
     responseBuilder: 'consentRecord',
   })
-}
-
-const wait = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms))
-
-type ConsentRecordRow = {
-  id: string
-  data_subject_id: string
-  purposes: string[]
-  source: string | null
-  timestamp: string
-}
-
-/**
- * Polls Supabase until the consent record for the provided subject includes the expected purposes.
- */
-const waitForSupabaseConsentRecord = async (
-  dataSubjectId: string,
-  expectedPurposes: string[],
-  timeoutMs = 7_000,
-): Promise<ConsentRecordRow> => {
-  if (!supabaseAdminClient) {
-    throw new Error('Supabase admin client unavailable')
-  }
-
-  const deadline = Date.now() + timeoutMs
-  let lastError: string | undefined
-
-  while (Date.now() <= deadline) {
-    const { data, error } = await supabaseAdminClient
-      .from('consent_records')
-      .select('id, data_subject_id, purposes, source, timestamp')
-      .eq('data_subject_id', dataSubjectId)
-      .order('timestamp', { ascending: false })
-      .limit(1)
-
-    if (error) {
-      lastError = error.message
-    } else if (data && data.length > 0) {
-      const record = data[0]!
-      const hasAllPurposes = expectedPurposes.every((purpose) => record.purposes?.includes(purpose))
-      if (hasAllPurposes) {
-        return record
-      }
-    }
-
-    await wait(250)
-  }
-
-  throw new Error(lastError ?? 'Timed out waiting for consent record to persist in Supabase')
 }
 
 async function removeViteErrorOverlay(page: BasePage): Promise<void> {
@@ -141,9 +81,6 @@ test.describe('Consent Preferences Component', () => {
   })
 
   test('@containers full stack consent submission hits backend mocks', async ({ page: playwrightPage }) => {
-    test.skip(!mocksEnabled, 'E2E_MOCKS=1 is required to run Supabase-backed consent tests')
-    test.skip(!supabaseAdminClient, 'Supabase containers must be running for full stack consent coverage')
-
     const page = await BasePage.init(playwrightPage)
     await waitForConsentPreferences(page)
 
@@ -187,31 +124,15 @@ test.describe('Consent Preferences Component', () => {
 
     let cleanupId: string | null = null
     try {
-      if (!SUPABASE_FALLBACK_ENABLED) {
-        const record = await waitForSupabaseConsentRecord(dataSubjectId, expectedPurposes)
-        cleanupId = record.data_subject_id
-
-        const sortedRecordPurposes = [...record.purposes].sort()
-        const sortedExpectedPurposes = [...expectedPurposes].sort()
-        expect(sortedRecordPurposes).toEqual(sortedExpectedPurposes)
-        expect(record.source).toBe('cookies_modal')
-      } else {
-        // Supabase fallback mode shares sanitized purposes, which currently exclude the functional flag
-        const fallbackExpectedPurposes = expectedPurposes.filter((purpose) => purpose !== 'functional')
-        const sortedResponsePurposes = [...(responseBody.record?.purposes ?? [])].sort()
-        const sortedFallbackPurposes = [...fallbackExpectedPurposes].sort()
-        expect(sortedResponsePurposes).toEqual(sortedFallbackPurposes)
-      }
+      const record = await waitForConsentRecord(dataSubjectId, expectedPurposes)
+      cleanupId = record.dataSubjectId
 
       await expect(analyticsCheckbox).toBeChecked()
       await expect(functionalCheckbox).toBeChecked()
       await expect(marketingCheckbox).toBeChecked()
     } finally {
       if (cleanupId) {
-        await supabaseAdminClient
-          ?.from('consent_records')
-          .delete()
-          .eq('data_subject_id', cleanupId)
+        await deleteConsentRecordsBySubjectId(cleanupId)
       }
     }
   })

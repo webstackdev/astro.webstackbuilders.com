@@ -1,21 +1,14 @@
-import { expect, test, wiremock, mocksEnabled } from '@test/e2e/helpers'
+import { expect, test, wiremock } from '@test/e2e/helpers'
 
 const CONTACT_ENDPOINT = '/api/contact'
 const RESEND_EMAIL_PATH = '/emails'
 
 test.describe('Contact API integrations', () => {
-  if (!mocksEnabled) {
-    test.skip(true, 'E2E_MOCKS=1 is required to run contact API integration tests')
-  }
-
   test.describe.configure({ mode: 'serial' })
 
   test('@mocks delivers transactional email payload to Resend', async ({ request }) => {
     const uniqueEmail = `contact-${Date.now()}@example.com`
     const response = await request.post(CONTACT_ENDPOINT, {
-      headers: {
-        'x-e2e-mocks': '1',
-      },
       data: {
         name: 'Integration Bot',
         email: uniqueEmail,
@@ -56,9 +49,6 @@ test.describe('Contact API integrations', () => {
   test('@mocks rejects invalid submissions before reaching Resend', async ({ request }) => {
     const invalidEmail = `invalid-contact-${Date.now()}@example.com`
     const response = await request.post(CONTACT_ENDPOINT, {
-      headers: {
-        'x-e2e-mocks': '1',
-      },
       data: {
         name: 'x',
         email: invalidEmail,

@@ -85,34 +85,6 @@ export const environmentalVariablesConfig: AstroUserConfig['env'] = {
       optional: false,
     }),
     /**
-     * Site uses Vercel Upstash integration for rate limiting on API endpoints
-     */
-    KV_URL: envField.string({ // not currently used so set to secret
-      access: 'secret',
-      context: 'server',
-      optional: false,
-    }),
-    KV_REST_API_URL: envField.string({
-      access: 'public',
-      context: 'server',
-      optional: false,
-    }),
-    KV_REST_API_TOKEN: envField.string({
-      access: 'public',
-      context: 'server',
-      optional: false,
-    }),
-    KV_REST_API_READ_ONLY_TOKEN: envField.string({ // not currently used so set to secret
-      access: 'secret',
-      context: 'server',
-      optional: false,
-    }),
-    REDIS_URL: envField.string({ // not currently used
-      access: 'secret',
-      context: 'server',
-      optional: false,
-    }),
-    /**
      * Site uses Resend for sending site emails
      */
     RESEND_API_KEY: envField.string({
@@ -135,24 +107,6 @@ export const environmentalVariablesConfig: AstroUserConfig['env'] = {
       access: 'public',
       context: 'client',
       optional: false, // Optional - Sentry only enabled if provided
-    }),
-    /**
-     * Site uses Suprabase for managing GDPR consent records
-     */
-    SUPABASE_KEY: envField.string({
-      access: 'public',
-      context: 'client',
-      optional: false,
-    }),
-    SUPABASE_URL: envField.string({
-      access: 'public',
-      context: 'client',
-      optional: false,
-    }),
-    SUPABASE_SERVICE_ROLE_KEY: envField.string({
-      access: 'public',
-      context: 'server',
-      optional: false,
     }),
     /**
      * Site uses ConvertKit for managing newsletter subscriptions
