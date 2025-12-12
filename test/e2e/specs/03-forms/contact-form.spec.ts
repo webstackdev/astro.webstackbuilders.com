@@ -9,7 +9,6 @@ import {
   BasePage,
   expect,
   test,
-  wiremock,
   spyOnFetchEndpoint,
   mockFetchEndpointResponse,
 } from '@test/e2e/helpers'
@@ -17,7 +16,6 @@ import { TestError } from '@test/errors'
 import { TEST_CONTACT_DATA, TEST_EMAILS } from '@test/e2e/fixtures/test-data'
 
 const CONTACT_PATH = '/contact'
-const RESEND_EMAIL_PATH = '/emails'
 
 const isContactApiResponse = (response: Response) => response.url().includes('/api/contact')
 
@@ -120,7 +118,7 @@ test.describe('Contact Form', () => {
 
   test('@mocks contact form submits successfully when API is available', async ({ page: playwrightPage }) => {
     const page = await setupContactPage(playwrightPage)
-    const { email } = await fillContactFormWithValidData(page)
+    await fillContactFormWithValidData(page)
     const responsePromise = page.waitForResponse(isContactApiResponse)
 
     await page.click('#submitBtn')
@@ -130,33 +128,11 @@ test.describe('Contact Form', () => {
 
     await expect(page.locator('#formMessages .message-success')).toBeVisible({ timeout: 5000 })
     await expect(page.locator('#formMessages .message-error')).toBeHidden()
-
-    const loggedRequest = await wiremock.resend.expectRequest({
-      method: 'POST',
-      urlPath: RESEND_EMAIL_PATH,
-      bodyIncludes: [email, 'contact@webstackbuilders.com'],
-    })
-
-    if (!loggedRequest) {
-      throw new TestError('Resend mock did not capture the transactional email payload')
-    }
-
-    const payload = JSON.parse(loggedRequest.request.body ?? '{}') as {
-      to?: string | string[]
-      subject?: string
-    }
-
-    if (Array.isArray(payload.to)) {
-      expect(payload.to).toContain('info@webstackbuilders.com')
-    } else {
-      expect(payload.to).toBe('info@webstackbuilders.com')
-    }
-    expect(payload.subject).toContain('Contact Form')
   })
 
   test('@ready contact form surfaces API error responses to users', async ({ page: playwrightPage }) => {
     const page = await setupContactPage(playwrightPage)
-    const { email } = await fillContactFormWithValidData(page)
+    await fillContactFormWithValidData(page)
 
     const apiErrorOverride = await mockFetchEndpointResponse(playwrightPage, {
       endpoint: '/api/contact',
@@ -173,13 +149,6 @@ test.describe('Contact Form', () => {
 
       await expect(page.locator('#formMessages .message-error')).toBeVisible({ timeout: 5000 })
       await expect(page.locator('#errorMessage')).toContainText('Unable to reach contact API')
-
-      const loggedRequests = await wiremock.resend.findRequests({
-        method: 'POST',
-        urlPath: RESEND_EMAIL_PATH,
-        bodyIncludes: email,
-      })
-      expect(loggedRequests.length).toBe(0)
     } finally {
       await apiErrorOverride.restore()
     }

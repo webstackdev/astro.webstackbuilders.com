@@ -82,6 +82,43 @@ export const markNewsletterTokenExpired = async (token: string, expiredAt?: Date
   }
 }
 
+export const findLatestNewsletterConfirmationTokenByEmail = async (email: string): Promise<string | null> => {
+  const libsql = getLibsqlClient()
+  const result = await libsql.execute({
+    sql: `SELECT token FROM newsletterConfirmations WHERE email = ? ORDER BY createdAt DESC LIMIT 1`,
+    args: [email],
+  })
+  const row = result.rows[0]
+  if (!row) {
+    return null
+  }
+  const token = row['token']
+  return token ? String(token) : null
+}
+
+export const waitForLatestNewsletterConfirmationTokenByEmail = async (
+  email: string,
+  timeoutMs = 7000,
+): Promise<string> => {
+  const deadline = Date.now() + timeoutMs
+  let lastError: string | null = null
+
+  while (Date.now() <= deadline) {
+    try {
+      const token = await findLatestNewsletterConfirmationTokenByEmail(email)
+      if (token) {
+        return token
+      }
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : String(error)
+    }
+
+    await delay(250)
+  }
+
+  throw new Error(lastError ?? `Timed out waiting for newsletter token for ${email}`)
+}
+
 export interface NewsletterConfirmationSeed {
   email?: string
   dataSubjectId?: string

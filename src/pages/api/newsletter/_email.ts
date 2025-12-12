@@ -4,7 +4,7 @@
  */
 
 import { Resend } from 'resend'
-import { getResendApiKey, getResendMockBaseUrl, isDev, isTest } from '@pages/api/_environment/environmentApi'
+import { getResendApiKey, isDev, isTest } from '@pages/api/_environment/environmentApi'
 import { getSiteUrl } from '@pages/api/_environment/siteUrlApi'
 import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
 
@@ -13,14 +13,6 @@ import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
  */
 function getResendClient(): Resend {
   return new Resend(getResendApiKey())
-}
-
-function getMockAuthorizationHeader(): string {
-  try {
-    return `Bearer ${getResendApiKey()}`
-  } catch {
-    return 'Bearer mock-resend-key'
-  }
 }
 
 /**
@@ -203,13 +195,12 @@ export async function sendConfirmationEmail(
   token: string,
   firstName?: string
 ): Promise<void> {
-  const resendMockBaseUrl = getResendMockBaseUrl()
   const siteUrl = getSiteUrl()
   const confirmUrl = `${siteUrl}/newsletter/confirm/${token}`
   const expiresIn = '24 hours'
 
-  // Skip actual email sending when no mock is available in dev/test
-  if (!resendMockBaseUrl && (isDev() || isTest())) {
+  // Skip actual email sending in dev/test (handled by Astro Actions later)
+  if (isDev() || isTest()) {
     console.log('[DEV/TEST MODE] Newsletter confirmation email would be sent:', { email, token })
     return
   }
@@ -235,29 +226,6 @@ export async function sendConfirmationEmail(
       route: '/api/newsletter',
       operation: 'sendConfirmationEmail'
     })
-  }
-
-  if (resendMockBaseUrl) {
-    try {
-      const response = await fetch(`${resendMockBaseUrl}/emails`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: getMockAuthorizationHeader(),
-        },
-        body: JSON.stringify(resendPayload),
-      })
-
-      if (!response.ok) {
-        const body = await response.text().catch(() => 'Unable to read mock response body')
-        throw new Error(`Resend mock responded with ${response.status}: ${body}`)
-      }
-
-      console.log('[Newsletter Email] Confirmation sent to mock service:', { email })
-      return
-    } catch (error) {
-      handleSendError(error)
-    }
   }
 
   const resend = getResendClient()
@@ -296,9 +264,7 @@ export async function sendWelcomeEmail(
   email: string,
   firstName?: string
 ): Promise<void> {
-  const resendMockBaseUrl = getResendMockBaseUrl()
-
-  if (!resendMockBaseUrl && (isDev() || isTest())) {
+  if (isDev() || isTest()) {
     console.log('[DEV/TEST MODE] Newsletter welcome email would be sent:', { email })
     return
   }
@@ -442,29 +408,6 @@ Questions? Reply to this email or contact us at hello@webstackbuilders.com
       route: '/api/newsletter',
       operation: 'sendWelcomeEmail'
     })
-  }
-
-  if (resendMockBaseUrl) {
-    try {
-      const response = await fetch(`${resendMockBaseUrl}/emails`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: getMockAuthorizationHeader(),
-        },
-        body: JSON.stringify(resendPayload),
-      })
-
-      if (!response.ok) {
-        const body = await response.text().catch(() => 'Unable to read mock response body')
-        throw new Error(`Resend mock responded with ${response.status}: ${body}`)
-      }
-
-      console.log('[Newsletter Email] Welcome sent to mock service:', { email })
-      return
-    } catch (error) {
-      handleSendError(error)
-    }
   }
 
   try {
