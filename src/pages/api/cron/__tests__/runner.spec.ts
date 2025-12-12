@@ -64,11 +64,10 @@ describe('cron runner', () => {
     expect(warnSpy).toHaveBeenCalled()
   })
 
-  it('calls downstream cron endpoints sequentially', async () => {
+  it('calls downstream cron endpoints', async () => {
     fetchMock
       .mockResolvedValueOnce(createResponse('/api/cron/cleanup-confirmations'))
       .mockResolvedValueOnce(createResponse('/api/cron/cleanup-dsar-requests'))
-      .mockResolvedValueOnce(createResponse('/api/cron/ping-integrations'))
 
     const request = new Request('https://example.com/api/cron/run-all', {
       method: 'GET',
@@ -82,8 +81,8 @@ describe('cron runner', () => {
 
     expect(response.status).toBe(200)
     expect(Array.isArray(body.results)).toBe(true)
-    expect(body.results).toHaveLength(3)
-    expect(fetchMock).toHaveBeenCalledTimes(3)
+    expect(body.results).toHaveLength(2)
+    expect(fetchMock).toHaveBeenCalledTimes(2)
 
     const headersUsed = fetchMock.mock.calls[0]?.[1]?.headers as Record<string, string>
     expect(headersUsed['Authorization'] ?? headersUsed['authorization']).toBe('Bearer cron-secret')
@@ -100,7 +99,6 @@ describe('cron runner', () => {
         }),
       )
       .mockResolvedValueOnce(createResponse('/api/cron/cleanup-dsar-requests'))
-      .mockResolvedValueOnce(createResponse('/api/cron/ping-integrations'))
 
     const request = new Request('https://example.com/api/cron/run-all', {
       method: 'GET',
