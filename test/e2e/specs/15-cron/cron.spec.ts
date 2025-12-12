@@ -162,21 +162,4 @@ test.describe('Cron API endpoints @ready', () => {
     await expectDsarMissing(expiredPendingId)
   })
 
-  test('@ready ping-integrations validates Astro DB availability', async ({ request }) => {
-    skipUnlessChromiumProject()
-
-    const response = await request.get('/api/cron/ping-integrations', {
-      headers: {
-        authorization: cronAuthHeader!,
-      },
-    })
-
-    expect(response.ok()).toBeTruthy()
-    const body = (await response.json()) as {
-      astroDb: { rowsChecked: number; durationMs: number }
-    }
-
-    expect(body.astroDb.rowsChecked).toBeGreaterThanOrEqual(0)
-    expect(body.astroDb.durationMs).toBeGreaterThanOrEqual(0)
-  })
 })

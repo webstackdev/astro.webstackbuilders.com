@@ -28,7 +28,6 @@
 
 - cron/cleanup-confirmations → GET
 - cron/cleanup-dsar-requests → GET
-- cron/ping-integrations → GET
 - cron/run-all → GET
 - social-card/ → GET
 
@@ -48,7 +47,6 @@
 - _utils/rateLimitStore.ts
 - cron/cleanup-confirmations.ts
 - cron/cleanup-dsar-requests.ts
-- cron/ping-integrations.ts
 - gdpr/_utils/consentStore.ts
 - gdpr/_utils/dsarStore.ts
 - newsletter/_token.ts

@@ -5,16 +5,13 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import type { APIRoute } from 'astro'
 import { GET as cleanupDsar } from '@pages/api/cron/cleanup-dsar-requests'
 import { GET as cleanupConfirmations } from '@pages/api/cron/cleanup-confirmations'
-import { GET as pingIntegrations } from '@pages/api/cron/ping-integrations'
 
 const dbDeleteMock = vi.hoisted(() => vi.fn())
-const dbSelectMock = vi.hoisted(() => vi.fn())
 const getCronSecretMock = vi.hoisted(() => vi.fn(() => 'cron-secret'))
 
 vi.mock('astro:db', () => ({
   db: {
     delete: dbDeleteMock,
-    select: dbSelectMock,
   },
   dsarRequests: {},
   newsletterConfirmations: {},
@@ -59,23 +56,6 @@ const createDeleteChain = (options?: { data?: unknown[]; error?: unknown }): Del
   }
 }
 
-type SelectChain = {
-  from: ReturnType<typeof vi.fn>
-}
-
-const createSelectChain = (options?: { data?: unknown[]; error?: unknown }): SelectChain => {
-  const limit = () => {
-    if (options?.error) {
-      return Promise.reject(options.error)
-    }
-    return Promise.resolve(options?.data ?? [])
-  }
-
-  return {
-    from: vi.fn(() => ({ limit })),
-  }
-}
-
 describe('Cron cleanup endpoints', () => {
   let warnSpy: ReturnType<typeof vi.spyOn>
   let logSpy: ReturnType<typeof vi.spyOn>
@@ -83,7 +63,6 @@ describe('Cron cleanup endpoints', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     dbDeleteMock.mockReset()
-    dbSelectMock.mockReset()
     getCronSecretMock.mockClear()
     warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
     logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
@@ -203,56 +182,4 @@ describe('Cron cleanup endpoints', () => {
     })
   })
 
-  describe('ping-integrations', () => {
-    const run = (request: Request) =>
-      pingIntegrations(buildContext(request) as unknown as Parameters<APIRoute>[0])
-
-    const buildRequest = (headers?: HeadersInit) => {
-      const init: RequestInit = { method: 'GET' }
-      if (typeof headers !== 'undefined') {
-        init.headers = headers
-      }
-      return new Request('http://localhost/api/cron/ping-integrations', init)
-    }
-
-    it('rejects requests without valid secret', async () => {
-      const response = await run(buildRequest())
-      const body = await response.json()
-
-      expect(response.status).toBe(401)
-      expect(body.error.code).toBe('UNAUTHORIZED')
-    })
-
-    it('pings Astro DB once authorized', async () => {
-      dbSelectMock.mockReturnValueOnce(
-        createSelectChain({ data: [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }] })
-      )
-
-      const response = await run(
-        buildRequest({
-          authorization: 'Bearer cron-secret',
-        }),
-      )
-      const body = await response.json()
-
-      expect(response.status).toBe(200)
-      expect(body.success).toBe(true)
-      expect(typeof body.astroDb.durationMs).toBe('number')
-      expect(body.astroDb.rowsChecked).toBe(5)
-    })
-
-    it('surfaces Astro DB errors when ping fails', async () => {
-      dbSelectMock.mockReturnValueOnce(createSelectChain({ error: { message: 'boom' } }))
-
-      const response = await run(
-        buildRequest({
-          authorization: 'Bearer cron-secret',
-        }),
-      )
-      const body = await response.json()
-
-      expect(response.status).toBe(500)
-      expect(body.error.code).toBe('CRON_ASTRO_DB_PING_FAILED')
-    })
-  })
 })
