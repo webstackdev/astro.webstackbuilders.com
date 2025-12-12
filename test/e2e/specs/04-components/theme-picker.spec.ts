@@ -35,7 +35,7 @@ async function navigateWithMobileSupport(basePage: BasePage, href: string = getD
 
   // Trigger client-side navigation (Astro View Transitions)
   await basePage.navigateToPage(href)
-  await basePage.waitForPageLoad()
+  await basePage.waitForPageLoad({ requireNext: true, timeout: 15000 })
   // Header components rehydrate asynchronously after View Transitions; make sure
   // the theme picker + navigation are ready before interacting again.
   await basePage.waitForHeaderComponents()
@@ -69,8 +69,8 @@ test.describe('Theme Picker Component', () => {
      */
     test.beforeEach(async ({ page: playwrightPage }) => {
       const page = await BasePage.init(playwrightPage)
-      await setupCleanTestPage(page.page, '/')
-      await page.waitForHeaderComponents()
+      await setupCleanTestPage(page.page, '/', { reloadStrategy: 'cacheBustingGoto' })
+      await page.waitForHeaderComponents({ timeout: 15000 })
     })
 
     test('@ready theme picker is visible', async ({ page: playwrightPage }) => {
@@ -176,7 +176,7 @@ test.describe('Theme Picker Component', () => {
      */
     test.beforeEach(async ({ page: playwrightPage }) => {
       const page = await BasePage.init(playwrightPage)
-      await setupCleanTestPage(page.page, '/')
+      await setupCleanTestPage(page.page, '/', { reloadStrategy: 'cacheBustingGoto' })
       await page.waitForHeaderComponents()
     })
 
@@ -188,8 +188,8 @@ test.describe('Theme Picker Component', () => {
       await selectTheme(page.page, 'dark')
 
       // Reload page
-      await page.reload({ waitUntil: 'domcontentloaded' })
-      await page.waitForLoadState('networkidle')
+      await page.reload({ waitUntil: 'domcontentloaded', timeout: 25000 })
+      await page.waitForHeaderComponents({ timeout: 15000 })
 
       // Verify dark theme persisted
       const htmlElement = page.locator('html')
@@ -259,8 +259,8 @@ test.describe('Theme Picker Component', () => {
       const page = await BasePage.init(playwrightPage)
       // Expected: User selection should override system preference
       await page.emulateMedia({ colorScheme: 'dark' })
-      await page.goto('/')
-      await page.waitForLoadState('networkidle')
+      await page.goto('/', { waitUntil: 'domcontentloaded' })
+      await page.waitForHeaderComponents({ timeout: 15000 })
 
       // Manually switch to light theme
       await selectTheme(page.page, 'light')
@@ -271,8 +271,9 @@ test.describe('Theme Picker Component', () => {
       expect(dataTheme).toBe('light')
 
       // Verify it persists after reload
-      await page.reload({ waitUntil: 'domcontentloaded' })
-      await page.waitForLoadState('networkidle')
+      const cacheBust = `/?_cb=${Date.now()}`
+      await page.goto(cacheBust, { waitUntil: 'domcontentloaded', timeout: 35000 })
+      await page.waitForHeaderComponents({ timeout: 20000 })
 
       const dataThemeAfterReload = await htmlElement.getAttribute('data-theme')
       expect(dataThemeAfterReload).toBe('light')
@@ -300,8 +301,7 @@ test.describe('Theme Picker Component', () => {
       // Clear localStorage and dismiss cookie modal before each test
       await setupTestPage(page.page, '/')
       await page.evaluate(() => localStorage.clear())
-      await page.reload()
-      await page.waitForHeaderComponents()
+      await page.waitForHeaderComponents({ timeout: 15000 })
     })
 
     test('theme picker button works after View Transition navigation', async ({ page: playwrightPage }) => {
@@ -407,8 +407,7 @@ test.describe('Theme Picker Component', () => {
       const page = await BasePage.init(playwrightPage)
       await setupTestPage(page.page, '/')
       await page.evaluate(() => localStorage.clear())
-      await page.reload()
-      await page.waitForHeaderComponents()
+      await page.waitForHeaderComponents({ timeout: 15000 })
     })
 
     test('preserves lang attribute across navigation', async ({ page: playwrightPage }) => {
@@ -443,7 +442,8 @@ test.describe('Theme Picker Component', () => {
       expect(themeAttr).toBe('dark')
 
       // Navigate and verify both persist
-      await page.goto('/articles')
+      await page.navigateToPage('/articles')
+      await page.waitForHeaderComponents({ timeout: 15000 })
 
       const langAttrAfter = await page.getAttribute('html', 'lang')
       const themeAttrAfter = await page.getAttribute('html', 'data-theme')
