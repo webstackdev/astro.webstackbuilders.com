@@ -67,7 +67,7 @@ const ensureSnapshotTableHasRow = async (databaseUrl: string, authToken?: string
       })
     }
   } finally {
-    await client.close()
+    client.close()
   }
 }
 

@@ -253,20 +253,17 @@ test.describe('Mobile Navigation', () => {
 
     await setupTestPage(playwrightPage, '/')
 
-    // Open mobile menu first
-    await page.click('button[aria-label="toggle menu"]')
+    await page.openMobileMenu({ timeout: 15000 })
 
-    // Wait for mobile menu animation with real timers for WebKit compatibility
-    await playwrightPage.waitForTimeout(600) // Wait for 550ms animation + buffer
+    const aboutLink = playwrightPage.locator('site-navigation a[href="/about"]').first()
+    await expect(aboutLink).toBeVisible({ timeout: 10000 })
 
     // Focus on a navigation link and press Enter
-    await playwrightPage.locator('nav#main-nav a[href="/about"]').focus()
+    await aboutLink.focus()
     await playwrightPage.keyboard.press('Enter')
 
-    // Wait for navigation to complete and check for About page content instead of URL
-    await playwrightPage.waitForSelector('text=Building Developer-First Infrastructure', { timeout: 5000 })
-
-    // Verify we're on the About page by checking breadcrumbs (using proper Playwright selector)
+    // Wait for the view-transition navigation to finish and verify content
+    await page.waitForPageLoad({ requireNext: true, timeout: 15000 })
     await expect(playwrightPage.locator('nav[aria-label="Breadcrumb"]').getByText('About')).toBeVisible()
   })
 
@@ -288,30 +285,25 @@ test.describe('Mobile Navigation', () => {
     const page = await BasePage.init(playwrightPage)
     await page.setViewport(375, 667)
 
-    // Install fake timers before going to the page
-    await playwrightPage.clock.install()
     await setupTestPage(playwrightPage, '/')
 
-    // Open menu
-    await page.click('button[aria-label="toggle menu"]')
+    await page.openMobileMenu({ timeout: 15000 })
 
-    // Use clock manipulation to speed through animations
-    await waitForMobileMenuAnimation(playwrightPage)
+    const headerExpandedBefore = await playwrightPage.locator('#header').evaluate((el) =>
+      el.classList.contains('aria-expanded-true')
+    )
+    expect(headerExpandedBefore).toBe(true)
 
-    const hasExpandedClassBefore = await playwrightPage.locator('#header').evaluate((el) => {
-      return el.classList.contains('aria-expanded-true')
-    })
-    expect(hasExpandedClassBefore).toBe(true)
-
-    // Navigate to another page
-    await page.click('nav#main-nav a[href="/about"]')
-    await page.waitForLoadState('networkidle')
+    // Navigate via View Transitions and wait for completion
+    await page.navigateToPage('/about')
+    await page.waitForPageLoad({ requireNext: true, timeout: 15000 })
 
     // Menu should be closed after navigation
-    const hasExpandedClassAfter = await playwrightPage.locator('#header').evaluate((el) => {
-      return el.classList.contains('aria-expanded-true')
-    })
-    expect(hasExpandedClassAfter).toBe(false)
+    await playwrightPage.waitForFunction(
+      () => !(document.getElementById('header')?.classList.contains('aria-expanded-true') ?? false),
+      undefined,
+      { timeout: 5000 }
+    )
   })
 
   test('@ready mobile menu has backdrop overlay', async ({ page: playwrightPage }) => {
@@ -461,16 +453,9 @@ test.describe('Mobile Navigation', () => {
   test('@ready focus is trapped in open mobile menu', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     await page.setViewport(375, 667)
-
-    // Install fake timers before going to the page
-    await playwrightPage.clock.install()
     await setupTestPage(playwrightPage, '/')
 
-    // Open menu
-    await page.click('button[aria-label="toggle menu"]')
-
-    // Use clock manipulation to speed through animations
-    await waitForMobileMenuAnimation(playwrightPage)
+    await page.openMobileMenu({ timeout: 15000 })
 
     // Tab to first navigation link
     await playwrightPage.keyboard.press('Tab')
