@@ -1,9 +1,24 @@
 import { randomUUID } from 'node:crypto'
-import { consentEvents, rateLimitWindows, db } from 'astro:db'
+import { and, consentEvents, db, eq, rateLimitWindows } from 'astro:db'
 
 // https://astro.build/db/seed
 export default async function seed() {
+
 	const now = new Date()
+
+	// Ensure idempotent seeding by removing prior seed rows before re-inserting
+	const seededSubjects = [
+		'00000000-0000-0000-0000-000000000001',
+		'00000000-0000-0000-0000-000000000002',
+	]
+
+	for (const subjectId of seededSubjects) {
+		await db.delete(consentEvents).where(eq(consentEvents.dataSubjectId, subjectId))
+	}
+
+	await db
+		.delete(rateLimitWindows)
+		.where(and(eq(rateLimitWindows.scope, 'seed'), eq(rateLimitWindows.identifier, 'local')))
 
 	/*
 	 * Provide a pair of consent records so GDPR endpoints, dashboard pages, and local tests

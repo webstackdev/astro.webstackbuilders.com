@@ -50,16 +50,16 @@ The underlying `npm run dev` command remains unchanged for CI and Vercel; `dev:e
 
 Astro DB schemas now live under `db/config.ts`. Applying those migrations requires `npx astro db push`; the regular `astro build` command never pushes schema changes for you. Keep local and remote pushes separate to avoid promoting unfinished changes:
 
-- **Local development / CI** – Point Astro DB at the file-based database via `ASTRO_DB_REMOTE_URL="file:./db/dev.db"` and run `npx astro db push`. For convenience the `build:ci` script exports `ASTRO_DATABASE_FILE=./db/dev.db` before invoking `astro build`, so `npm run build:ci` is the go-to command anywhere you need a build that reads the local snapshot (including GitHub Actions).
+- **Local development / CI** – Point Astro DB at the file-based database via `ASTRO_DB_REMOTE_URL="file:./.astro/content.db"` and run `npx astro db push`. For convenience the `build:ci` script exports `ASTRO_DATABASE_FILE=./.astro/content.db` before invoking `astro build`, so `npm run build:ci` is the go-to command anywhere you need a build that reads the local snapshot (including GitHub Actions).
 - **Production Turso push** – Export your Turso connection details (`ASTRO_DB_REMOTE_URL` + `ASTRO_DB_APP_TOKEN`) and run `npx astro db push --remote`. The merge-to-main workflow should be the only automation that executes this command.
 - **Vercel deployments** – Set the build command to `npm run build -- --remote` so the build pipeline talks to Turso in read-only mode while still leaving schema promotion to the dedicated workflow.
 
-> `ASTRO_DATABASE_FILE` is evaluated before Astro loads `.env.*`, so put it directly in the shell invocation (e.g., `ASTRO_DATABASE_FILE=./db/dev.db npm run build`) or reuse the provided `npm run build:ci` helper. Dropping the variable into `.env.development` or `.env.production` will not satisfy the build hook.
+> `ASTRO_DATABASE_FILE` is evaluated before Astro loads `.env.*`, so put it directly in the shell invocation (e.g., `ASTRO_DATABASE_FILE=./.astro/content.db npm run build`) or reuse the provided `npm run build:ci` helper. Dropping the variable into `.env.development` or `.env.production` will not satisfy the build hook.
 
 ### Build scripts
 
 - `npm run build` – Runs `astro build --remote`, hitting the production Turso database in read-only mode. Use this for Vercel deployments and any workflows that need to mirror production infrastructure.
-- `npm run build:ci` – Exports `ASTRO_DATABASE_FILE=./db/dev.db` before delegating to `npm run build`, forcing the build to read from the local SQLite snapshot. Use this for local testing and the `Test` GitHub workflow so schema changes stay isolated until the Turso push workflow runs.
+- `npm run build:ci` – Exports `ASTRO_DATABASE_FILE=./.astro/content.db` before delegating to `npm run build`, forcing the build to read from the local SQLite snapshot. Use this for local testing and the `Test` GitHub workflow so schema changes stay isolated until the Turso push workflow runs.
 
 ## Coding Standards
 

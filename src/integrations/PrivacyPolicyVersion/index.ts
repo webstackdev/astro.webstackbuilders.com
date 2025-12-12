@@ -18,9 +18,9 @@ import { execSync } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import type { AstroIntegration } from 'astro'
-import { getOptionalEnv } from '../../lib/config/environmentServer'
+import { getOptionalEnv, getGitHubRepoPath, isGitHub } from '../../lib/config/environmentServer'
 
-const PROJECT_ROOT = process.cwd()
+const PROJECT_ROOT = isGitHub() ? getGitHubRepoPath() : process.cwd()
 const PRIVACY_POLICY_PATH = join(PROJECT_ROOT, 'src', 'pages', 'privacy', 'index.astro')
 const GIT_DIRECTORY_PATH = join(PROJECT_ROOT, '.git')
 

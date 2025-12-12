@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { setTimeout as delay } from 'node:timers/promises'
-import { libsql } from './libsqlClient'
+import { getLibsqlClient } from './libsqlClient'
 
 const toIso = (value: Date | number | string): string => {
   const date = value instanceof Date ? value : new Date(value)
@@ -35,6 +35,7 @@ export const waitForConsentRecord = async (
   expectedPurposes: string[],
   timeoutMs = 7000,
 ): Promise<ConsentRecordRow> => {
+  const libsql = getLibsqlClient()
   const deadline = Date.now() + timeoutMs
   let lastError: string | null = null
 
@@ -69,11 +70,16 @@ export const waitForConsentRecord = async (
 }
 
 export const markNewsletterTokenExpired = async (token: string, expiredAt?: Date) => {
+  const libsql = getLibsqlClient()
   const timestamp = toIso(expiredAt ?? new Date(Date.now() - 60 * 60 * 1000))
-  await libsql.execute({
+  const result = await libsql.execute({
     sql: `UPDATE newsletterConfirmations SET expiresAt = ? WHERE token = ?`,
     args: [timestamp, token],
   })
+
+  if (!result.rowsAffected) {
+    throw new Error(`Unable to mark newsletter token ${token} as expired; no matching rows found`)
+  }
 }
 
 export interface NewsletterConfirmationSeed {
@@ -88,6 +94,7 @@ export interface NewsletterConfirmationSeed {
 export const insertNewsletterConfirmation = async (
   seed: NewsletterConfirmationSeed,
 ): Promise<{ id: string; token: string; email: string }> => {
+  const libsql = getLibsqlClient()
   const id = randomUUID()
   const token = seed.token ?? `cron-newsletter-${randomUUID()}`
   const email = seed.email ?? `cron-newsletter-${Date.now()}@example.com`
@@ -125,6 +132,7 @@ export interface DsarRequestSeed {
 export const insertDsarRequest = async (
   seed: DsarRequestSeed,
 ): Promise<{ id: string; token: string }> => {
+  const libsql = getLibsqlClient()
   const id = randomUUID()
   const token = seed.token ?? `cron-dsar-${randomUUID()}`
   const email = seed.email ?? `cron-dsar-${Date.now()}@example.com`
@@ -150,6 +158,7 @@ export const insertDsarRequest = async (
 }
 
 export const findNewsletterConfirmationById = async (id: string) => {
+  const libsql = getLibsqlClient()
   const result = await libsql.execute({
     sql: `SELECT id FROM newsletterConfirmations WHERE id = ? LIMIT 1`,
     args: [id],
@@ -158,6 +167,7 @@ export const findNewsletterConfirmationById = async (id: string) => {
 }
 
 export const findDsarRequestById = async (id: string) => {
+  const libsql = getLibsqlClient()
   const result = await libsql.execute({
     sql: `SELECT id FROM dsarRequests WHERE id = ? LIMIT 1`,
     args: [id],
@@ -166,6 +176,7 @@ export const findDsarRequestById = async (id: string) => {
 }
 
 export const deleteNewsletterConfirmationById = async (id: string) => {
+  const libsql = getLibsqlClient()
   await libsql.execute({
     sql: `DELETE FROM newsletterConfirmations WHERE id = ?`,
     args: [id],
@@ -173,6 +184,7 @@ export const deleteNewsletterConfirmationById = async (id: string) => {
 }
 
 export const deleteDsarRequestById = async (id: string) => {
+  const libsql = getLibsqlClient()
   await libsql.execute({
     sql: `DELETE FROM dsarRequests WHERE id = ?`,
     args: [id],
@@ -180,6 +192,7 @@ export const deleteDsarRequestById = async (id: string) => {
 }
 
 export const deleteConsentRecordsBySubjectId = async (dataSubjectId: string) => {
+  const libsql = getLibsqlClient()
   await libsql.execute({
     sql: `DELETE FROM consentEvents WHERE dataSubjectId = ?`,
     args: [dataSubjectId],

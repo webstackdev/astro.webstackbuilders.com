@@ -5,6 +5,8 @@
  * routes to import it. Vercel exposes environment variables in Vercel serverless
  * functions with process.env.
  */
+import { readFileSync, statSync } from 'node:fs'
+import path from 'node:path'
 import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
 import { isE2eTest, isUnitTest } from '@lib/config/environmentServer'
 export {
@@ -135,15 +137,19 @@ export function getResendApiKey(): string {
  */
 export function getResendMockBaseUrl(): string | null {
   const explicit = process.env['RESEND_MOCK_URL']
-  const mocksEnabled = Boolean(explicit) || isE2eTest()
-
-  if (!mocksEnabled) {
-    return null
-  }
-
   if (explicit) {
     return explicit.replace(/\/$/, '')
   }
+
+  const stateBaseUrl = getWiremockServiceBaseUrl('resend')
+  if (stateBaseUrl) {
+    return stateBaseUrl
+  }
+
+  if (!isE2eTest()) {
+    return null
+  }
+
   const host = process.env['WIREMOCK_HOST'] ?? '127.0.0.1'
   const port = process.env['RESEND_HTTP_PORT'] ?? '9011'
   return `http://${host}:${port}`
@@ -163,4 +169,53 @@ export function getSentryDsn(): string {
     )
   }
   return key
+}
+
+type WiremockServiceName = 'convertkit' | 'resend'
+
+interface WiremockServiceState {
+  baseUrl?: string
+}
+
+interface WiremockStateFile {
+  services?: Partial<Record<WiremockServiceName, WiremockServiceState>>
+}
+
+const wiremockStateCache: {
+  mtimeMs: number
+  data: WiremockStateFile | null
+} = {
+  mtimeMs: -1,
+  data: null,
+}
+
+const resolveWiremockStatePath = (): string => {
+  const override = process.env['E2E_WIREMOCK_STATE_PATH']
+  if (override?.trim()) {
+    return override
+  }
+  return path.join(process.cwd(), '.cache', 'wiremock-state.json')
+}
+
+const loadWiremockState = (): WiremockStateFile | null => {
+  const stateFile = resolveWiremockStatePath()
+  try {
+    const stats = statSync(stateFile)
+    if (stats.mtimeMs !== wiremockStateCache.mtimeMs) {
+      const contents = readFileSync(stateFile, 'utf8')
+      wiremockStateCache.data = JSON.parse(contents) as WiremockStateFile
+      wiremockStateCache.mtimeMs = stats.mtimeMs
+    }
+    return wiremockStateCache.data
+  } catch {
+    wiremockStateCache.mtimeMs = -1
+    wiremockStateCache.data = null
+    return null
+  }
+}
+
+function getWiremockServiceBaseUrl(serviceName: WiremockServiceName): string | null {
+  const state = loadWiremockState()
+  const candidate = state?.services?.[serviceName]?.baseUrl
+  return candidate ? candidate.replace(/\/$/, '') : null
 }

@@ -1,15 +1,13 @@
 import { createClient } from '@libsql/client'
 import path from 'node:path'
-import { env } from 'node:process'
 
 const resolveDatabaseUrl = () => {
-  const file = env['ASTRO_DATABASE_FILE'] ?? path.join(process.cwd(), 'db', 'dev.db')
-  if (file.startsWith('file:')) {
-    return file
-  }
-  return `file:${path.resolve(file)}`
+  const databaseFile = process.env['ASTRO_DATABASE_FILE'] ?? path.join(process.cwd(), '.astro', 'content.db')
+  const absolutePath = databaseFile.startsWith('file:') ? databaseFile : `file:${path.resolve(databaseFile)}`
+  return absolutePath
 }
 
-export const libsql = createClient({
-  url: resolveDatabaseUrl(),
-})
+export const getLibsqlClient = () => {
+  const url = resolveDatabaseUrl()
+  return createClient({ url })
+}

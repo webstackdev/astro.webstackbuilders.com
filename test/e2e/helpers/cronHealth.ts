@@ -1,5 +1,5 @@
 import { setTimeout as delay } from 'node:timers/promises'
-import { libsql } from '@test/e2e/db/libsqlClient'
+import { getLibsqlClient } from '@test/e2e/db/libsqlClient'
 
 interface RetryOptions {
   retries?: number
@@ -14,6 +14,7 @@ const DEFAULT_OPTIONS: Required<RetryOptions> = {
 export async function ensureCronDependenciesHealthy(options?: RetryOptions): Promise<void> {
   const { retries, delayMs } = { ...DEFAULT_OPTIONS, ...options }
   let lastError: unknown
+  const libsql = getLibsqlClient()
 
   for (let attempt = 1; attempt <= retries; attempt += 1) {
     try {

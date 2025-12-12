@@ -35,7 +35,7 @@ test/containers/
 
 `npm run test:e2e` now invokes Playwright's global setup, which:
 
-1. Resets the Astro DB test database (`.cache/astro-db/e2e.db`).
+1. Resets the shared development Astro DB (`.astro/content.db`).
 2. Runs `docker compose` against `docker-compose.e2e.yml` to boot the ConvertKit and Resend mocks.
 3. Registers a teardown hook so the containers stop once the suite completes.
 

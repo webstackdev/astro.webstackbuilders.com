@@ -1,5 +1,7 @@
 import type { FullConfig } from '@playwright/test'
 import { prepareDatabase, resolveTestDatabaseFile } from './runtime/database'
+import { verifyDatabaseSeed } from './runtime/seedVerification'
+import { writeWiremockState } from './runtime/mockState'
 import { startWiremock } from './runtime/wiremock'
 
 async function globalSetup(_config: FullConfig) {
@@ -13,7 +15,9 @@ async function globalSetup(_config: FullConfig) {
   process.env['ASTRO_DATABASE_FILE'] = testDatabaseFile
 
   await prepareDatabase()
+  await verifyDatabaseSeed()
   await startWiremock()
+  await writeWiremockState()
 }
 
 export default globalSetup

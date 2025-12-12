@@ -3,13 +3,41 @@
 
 ## Astro DB
 
+ASTRO_DATABASE_FILE="file:${PWD}/.astro/content.db" \
+ASTRO_DB_REMOTE_URL="file:${PWD}/.astro/content.db" \
+npx astro db push
+
+ASTRO_DATABASE_FILE="file:${PWD}/.astro/content.db" \
+ASTRO_DB_REMOTE_URL="file:${PWD}/.astro/content.db" \
+npx astro db execute db/seed.ts
+
+`--force-reset` still runs a metadata query against the existing SQLite file. Your content.db already has tables (and likely lacks the drizzle/Astro metadata tables). When the reset path tries to map results, it gets undefined/null (drizzle bug on files with existing user tables but missing its own schema), hence Cannot convert undefined or null to object.
+
+Practical reset path:
+
+Stop the dev server (to release the file).
+Backup/remove the current DB:
+
+`mv .astro/content.db .astro/content.db.bak`
+(or `rm .astro/content.db` if you don't need it)
+
+Run a clean push:
+
+`ASTRO_DATABASE_FILE="file:${PWD}/.astro/content.db" \ASTRO_DB_REMOTE_URL="file:${PWD}/.astro/content.db" \npx astro db push`
+
+Seed if needed:
+
+`ASTRO_DATABASE_FILE="file:${PWD}/.astro/content.db" \ASTRO_DB_REMOTE_URL="file:${PWD}/.astro/content.db" \npx astro db execute db/seed.ts`
+
+If you prefer to keep the dev DB intact, use a different filename for the reset (e.g., content.e2e.db) and point both env vars to that.
+
 ### Remote vs. local databases
 
 To connect to a hosted remote database, use the --remote flag. This flag enables both readable and writable access to your remote database, allowing you to accept and persist user data in production environments.
 
 ASTRO_DATABASE_FILE must be set in the environment the "astro build" command is called from for it to take effect. When it is set, the Astro framework will ignore the "--remote" flag if it is also set, and use the local database file passed to the ASTRO_DATABASE_FILE environmental variable.
 
-**Q:** Should the value of `ASTRO_DATABASE_FILE` be prefixed with a URL schema, like `file:./db/dev.db`?
+**Q:** Should the value of `ASTRO_DATABASE_FILE` be prefixed with a URL schema, like `file:./.astro/content.db`?
 
 **A:** Optional. Astro will resolve a relative path, and add the transport protocol, if necessary.
 
@@ -39,11 +67,13 @@ libSQL supports both HTTP and WebSockets as the transport protocol for a remote 
 
 ### Endpoints:
 
-- contact/ → POST (contact form submission) and OPTIONS (CORS pre-flight)
 - cron/cleanup-confirmations → GET
 - cron/cleanup-dsar-requests → GET
 - cron/ping-integrations → GET
 - cron/run-all → GET
+- social-card/ → GET
+
+- contact/ → POST (contact form submission) and OPTIONS (CORS pre-flight)
 - downloads/submit → POST
 - gdpr/consent → POST, GET, DELETE
 - gdpr/request-data → POST
@@ -52,7 +82,6 @@ libSQL supports both HTTP and WebSockets as the transport protocol for a remote 
 - health/ → GET
 - newsletter/ → POST, OPTIONS
 - newsletter/confirm → GET
-- social-card/ → GET
 
 ### Files importing from `astro:db`
 
@@ -78,24 +107,6 @@ If we want to make it feel less inconsistent, we could either (a) rename `_logge
 ## Typing client-side API calls and SSR API endpoints
 
 Use Astro Actions
-
-### Shared Types vs Swagger / Keeping Docs in Sync
-
-**Type-only sharing (current approach)**
-
-- Pros: zero extra build tooling, server/client stay aligned as long as both import @pages/api/_contracts.
-- Cons: no generated docs/SDKs; discipline is required to keep manual docs current.
-- How to enforce: treat the contract files as the single source of truth, add lint rules banning request/response literal types outside _contracts, and add lightweight contract tests that instantiate each type against the endpoint handler (failing if fields diverge).
-
-**Code-first OpenAPI (Zod or TS schemas → OpenAPI)**
-
-- Define schemas in Zod/Valibot (or ts-rest) alongside the endpoint. Generate OpenAPI JSON plus TypeScript types from those schemas. Docs (Swagger UI/Redoc) and any client SDKs come from the generated spec, so they're always in sync.
-- Guarantees: CI regenerates the spec and fails when the checked-in artifact is stale; endpoint handlers reuse the same schema for runtime validation, so a mismatch cannot compile.
-
-**Spec-first OpenAPI + Swagger Codegen**
-
-- Maintain an OpenAPI YAML/JSON file as the source of truth, run Swagger Codegen (or openapi-typescript) to produce both server stubs and client SDKs.
-- Guarantees: developers edit the spec, run codegen (enforced via a pre-commit/CI task), and the generated server stubs remind you to implement every path/verb. Documentation pages (Swagger UI) are rendered straight from the same spec, so they inherently match the implementation.
 
 **Affected components:**
 
