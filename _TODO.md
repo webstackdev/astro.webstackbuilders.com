@@ -7,15 +7,19 @@
 
 - The action takes HTTP requests (URLs and their methods) and uses that input to interact with the domain, after which it passes the domain's output to one and only one responder.
 
-- The domain can modify state, interacting with storage and/or manipulating data as needed. It contains the business logic.
-
-- The responder builds the entire HTTP response from the domain's output which is given to it by the action.
-
 **Here you define the route and the methods (get, post, put, delete)**
 
 `/actions` or `actions.ts`
 
-`/domain` and `/entities` or `entities.ts`
+- This layer contains the business logic and the persistence logic (e.g., using a repository pattern or similar data mappers). The domain services are responsible for reading from and writing to the database to fulfill business requirements.
+
+`/domain`
+
+- Entities are part of the domain. They represent state and core business rules, but not persistence logic. Defined primarily by its unique identity, rather than its attributes or properties.
+
+`/entities` or `entities.ts`
+
+- The responder builds the entire HTTP response from the domain's output which is given to it by the action. The Responder is responsible solely for formatting the final response (e.g., JSON, HTML) to be sent back to the client.
 
 `/responders` or `responders.ts`
 

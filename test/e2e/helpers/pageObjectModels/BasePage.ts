@@ -120,13 +120,17 @@ export class BasePage {
    * and async scripts may not have finished loading.
    * Automatically dismisses cookie consent modal unless skipCookieDismiss is true.
    */
-  async goto(path: string, options?: { skipCookieDismiss?: boolean; timeout?: number }): Promise<null | Response> {
+  async goto(
+    path: string,
+    options?: { skipCookieDismiss?: boolean; timeout?: number; waitUntil?: 'load' | 'domcontentloaded' | 'networkidle' }
+  ): Promise<null | Response> {
     const requestedTimeout = options?.timeout ?? DEFAULT_NAVIGATION_TIMEOUT
+    const waitUntil = options?.waitUntil ?? 'domcontentloaded'
 
     const navigate = async (timeout: number) => {
       return await this._page.goto(path, {
         timeout,
-        waitUntil: 'domcontentloaded',
+        waitUntil,
       })
     }
 
