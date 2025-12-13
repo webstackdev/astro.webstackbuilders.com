@@ -1,7 +1,8 @@
 ---
+slug: "case-studies"
 displayName: "Case Studies"
 description: "Content tagged with Case Studies."
-cover: "./case-studies.svg"
+cover: "./cover.png"
 coverAlt: "Case Studies"
 featured: false
 ---

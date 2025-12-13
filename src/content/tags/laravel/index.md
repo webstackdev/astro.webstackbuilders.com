@@ -1,7 +1,8 @@
 ---
+slug: "laravel"
 displayName: "laravel"
 description: "Content tagged with laravel."
-cover: "./laravel.svg"
+cover: "./cover.png"
 coverAlt: "laravel"
 featured: false
 ---

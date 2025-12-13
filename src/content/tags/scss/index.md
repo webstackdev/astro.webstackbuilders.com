@@ -1,7 +1,8 @@
 ---
+slug: "scss"
 displayName: "SCSS"
 description: "Content tagged with SCSS."
-cover: "./scss.svg"
+cover: "./cover.png"
 coverAlt: "SCSS"
 featured: false
 ---

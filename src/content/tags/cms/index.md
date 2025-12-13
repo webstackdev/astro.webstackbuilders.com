@@ -1,7 +1,8 @@
 ---
+slug: "cms"
 displayName: "CMS"
 description: "Content tagged with CMS."
-cover: "./cms.svg"
+cover: "./cover.png"
 coverAlt: "CMS"
 featured: false
 ---

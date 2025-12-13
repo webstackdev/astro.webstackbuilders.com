@@ -26,14 +26,14 @@ const allContent = [
 
 const allTags = await getCollection('tags')
 
-const getTagSlugFromEntryId = (id: string) => {
-  return id.replace(/\/index$/, '')
-}
-
 // Function to get content preview for a specific tag
-const getContentPreviewForTag = (tag: string, limit: number = 4) => {
+function getContentPreviewForTag(tag: string, limit: number = 4) {
   return allContent.filter(item => item.data.tags && item.data.tags.includes(tag)).slice(0, limit)
 }
+
+const tagsWithContent = allTags.filter(tag => {
+  return getContentPreviewForTag(tag.data.slug, 1).length > 0
+})
 
 const pageDescription = 'Webstack Builders Services List'
 const pageTitle = 'All Tags'
@@ -59,10 +59,10 @@ const section = 'Tags'
 
     <div class="space-y-12">
       {
-        allTags
+        tagsWithContent
           .sort((a, b) => a.data.displayName.localeCompare(b.data.displayName, 'en'))
           .map(tag => {
-          const tagSlug = getTagSlugFromEntryId(tag.id)
+          const tagSlug = tag.data.slug
           const contentPreview = getContentPreviewForTag(tagSlug, 4)
           const displayName = tag.data.displayName
 

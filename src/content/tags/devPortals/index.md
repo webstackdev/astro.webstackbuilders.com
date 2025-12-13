@@ -1,7 +1,8 @@
 ---
+slug: "devPortals"
 displayName: "Dev Portals"
 description: "Content tagged with Dev Portals."
-cover: "./devportals.svg"
+cover: "./cover.png"
 coverAlt: "Dev Portals"
 featured: false
 ---

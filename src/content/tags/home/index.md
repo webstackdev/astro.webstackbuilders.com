@@ -1,7 +1,8 @@
 ---
+slug: "home"
 displayName: "home"
 description: "Content tagged with home."
-cover: "./home.svg"
+cover: "./cover.png"
 coverAlt: "home"
 featured: false
 ---

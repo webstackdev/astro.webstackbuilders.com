@@ -1,7 +1,8 @@
 ---
+slug: "services"
 displayName: "services"
 description: "Content tagged with services."
-cover: "./services.svg"
+cover: "./cover.png"
 coverAlt: "services"
 featured: false
 ---

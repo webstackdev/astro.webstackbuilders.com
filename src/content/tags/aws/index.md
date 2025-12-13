@@ -1,7 +1,8 @@
 ---
+slug: "aws"
 displayName: "AWS"
 description: "Content tagged with AWS."
-cover: "./aws.svg"
+cover: "./cover.png"
 coverAlt: "AWS"
 featured: false
 ---

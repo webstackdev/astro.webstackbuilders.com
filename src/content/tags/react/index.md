@@ -1,7 +1,8 @@
 ---
+slug: "react"
 displayName: "react"
 description: "Content tagged with react."
-cover: "./react.svg"
+cover: "./cover.png"
 coverAlt: "react"
 featured: false
 ---

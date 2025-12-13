@@ -1,7 +1,8 @@
 ---
+slug: "site"
 displayName: "site"
 description: "Content tagged with site."
-cover: "./site.svg"
+cover: "./cover.png"
 coverAlt: "site"
 featured: false
 ---

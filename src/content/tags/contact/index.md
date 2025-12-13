@@ -1,7 +1,8 @@
 ---
+slug: "contact"
 displayName: "contact"
 description: "Content tagged with contact."
-cover: "./contact.svg"
+cover: "./cover.png"
 coverAlt: "contact"
 featured: false
 ---

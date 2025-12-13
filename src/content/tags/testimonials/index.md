@@ -1,7 +1,8 @@
 ---
+slug: "testimonials"
 displayName: "testimonials"
 description: "Content tagged with testimonials."
-cover: "./testimonials.svg"
+cover: "./cover.png"
 coverAlt: "testimonials"
 featured: false
 ---

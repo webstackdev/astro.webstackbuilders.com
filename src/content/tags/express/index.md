@@ -1,7 +1,8 @@
 ---
+slug: "express"
 displayName: "express"
 description: "Content tagged with express."
-cover: "./express.svg"
+cover: "./cover.png"
 coverAlt: "express"
 featured: false
 ---

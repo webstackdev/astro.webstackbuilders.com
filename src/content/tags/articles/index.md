@@ -1,7 +1,8 @@
 ---
+slug: "articles"
 displayName: "articles"
 description: "Content tagged with articles."
-cover: "./articles.svg"
+cover: "./cover.png"
 coverAlt: "articles"
 featured: false
 ---

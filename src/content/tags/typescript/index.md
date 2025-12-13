@@ -1,7 +1,8 @@
 ---
+slug: "typescript"
 displayName: "TypeScript"
 description: "Content tagged with TypeScript."
-cover: "./typescript.svg"
+cover: "./cover.png"
 coverAlt: "TypeScript"
 featured: false
 ---

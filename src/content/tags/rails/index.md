@@ -1,7 +1,8 @@
 ---
+slug: "rails"
 displayName: "rails"
 description: "Content tagged with rails."
-cover: "./rails.svg"
+cover: "./cover.png"
 coverAlt: "rails"
 featured: false
 ---

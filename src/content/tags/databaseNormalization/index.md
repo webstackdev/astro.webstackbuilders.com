@@ -1,7 +1,8 @@
 ---
+slug: "databaseNormalization"
 displayName: "Database Normalization"
 description: "Content tagged with Database Normalization."
-cover: "./databasenormalization.svg"
+cover: "./cover.png"
 coverAlt: "Database Normalization"
 featured: false
 ---

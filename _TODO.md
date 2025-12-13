@@ -145,51 +145,14 @@ cat.structure: Rules related to the document's overall structure, like the prope
 cat.tables: Rules for data tables, including headers and associations.
 cat.text-alternatives: Rules for ensuring that text alternatives are provided for non-text content, such as images.
 
+## Tags
+
+- Sitemap
+- E2E all pages helper
+
 ## Build output errors
 
 00:19:09 [WARN] [vite] [plugin:astro:assets:esm] context method emitFile() is not supported in serve mode. This plugin is likely not vite-compatible.
-
-Lots of repetitive console logging:
-
-03:52:28   ├─ /articles/useful-vs-code-extensions/index.htmlUsing development environment on port 4321.
-Using development environment on port 4321.
-Using development environment on port 4321.
-Using development environment on port 4321.
- (+6ms)
-03:52:28   ├─ /articles/typescript-best-practices/index.htmlUsing development environment on port 4321.
-Using development environment on port 4321.
-Using development environment on port 4321.
-Using development environment on port 4321.
- (+8ms)
-03:52:28   └─ /articles/writing-library-code/index.htmlUsing development environment on port 4321.
-Using development environment on port 4321.
-Using development environment on port 4321.
-Using development environment on port 4321.
- (+11ms)
-03:52:28 ▶ src/pages/case-studies/[slug].astro
-03:52:28   ├─ /case-studies/ecommerce-modernization/index.htmlUsing development environment on port 4321.
-Using development environment on port 4321.
-Using development environment on port 4321.
-Using development environment on port 4321.
- (+8ms)
-03:52:28   ├─ /case-studies/english-first/index.htmlUsing development environment on port 4321.
-Using development environment on port 4321.
-Using development environment on port 4321.
-Using development environment on port 4321.
- (+7ms)
-03:52:28   ├─ /case-studies/division-15/index.htmlUsing development environment on port 4321.
-Using development environment on port 4321.
-Using development environment on port 4321.
-Using development environment on port 4321.
- (+16ms)
-03:52:28   ├─ /case-studies/enterprise-api-platform/index.htmlUsing development environment on port 4321.
-Using development environment on port 4321.
-Using development environment on port 4321.
-Using development environment on port 4321.
-
-## Tags
-
-Can we add a markdown page to explain what each tag is, and use those pages instead of src/content/_tagList.ts to define the tags available?
 
 ## Use Confetti on CTA forms
 

@@ -1,7 +1,8 @@
 ---
+slug: "deployment"
 displayName: "deployment"
 description: "Content tagged with deployment."
-cover: "./deployment.svg"
+cover: "./cover.png"
 coverAlt: "deployment"
 featured: false
 ---

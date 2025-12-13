@@ -1,7 +1,8 @@
 ---
+slug: "crm"
 displayName: "CRM"
 description: "Content tagged with CRM."
-cover: "./crm.svg"
+cover: "./cover.png"
 coverAlt: "CRM"
 featured: false
 ---

@@ -1,7 +1,8 @@
 ---
+slug: "ci"
 displayName: "CI"
 description: "Content tagged with CI."
-cover: "./ci.svg"
+cover: "./cover.png"
 coverAlt: "CI"
 featured: false
 ---

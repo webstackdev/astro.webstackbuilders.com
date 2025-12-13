@@ -1,7 +1,8 @@
 ---
+slug: "restful"
 displayName: "RESTful"
 description: "Content tagged with RESTful."
-cover: "./restful.svg"
+cover: "./cover.png"
 coverAlt: "RESTful"
 featured: false
 ---

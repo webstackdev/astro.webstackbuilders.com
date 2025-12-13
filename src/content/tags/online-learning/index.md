@@ -1,7 +1,8 @@
 ---
+slug: "online-learning"
 displayName: "Online Learning"
 description: "Content tagged with Online Learning."
-cover: "./online-learning.svg"
+cover: "./cover.png"
 coverAlt: "Online Learning"
 featured: false
 ---

@@ -1,7 +1,8 @@
 ---
+slug: "adTech"
 displayName: "Ad Tech"
 description: "Content tagged with Ad Tech."
-cover: "./adtech.svg"
+cover: "./cover.png"
 coverAlt: "Ad Tech"
 featured: false
 ---

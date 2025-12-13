@@ -1,7 +1,8 @@
 ---
+slug: "graphql"
 displayName: "GraphQl"
 description: "Content tagged with GraphQl."
-cover: "./graphql.svg"
+cover: "./cover.png"
 coverAlt: "GraphQl"
 featured: false
 ---

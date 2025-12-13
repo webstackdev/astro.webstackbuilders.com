@@ -1,7 +1,8 @@
 ---
+slug: "marTech"
 displayName: "Mar Tech"
 description: "Content tagged with Mar Tech."
-cover: "./martech.svg"
+cover: "./cover.png"
 coverAlt: "Mar Tech"
 featured: false
 ---

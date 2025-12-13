@@ -1,7 +1,8 @@
 ---
+slug: "cd"
 displayName: "CD"
 description: "Content tagged with CD."
-cover: "./cd.svg"
+cover: "./cover.png"
 coverAlt: "CD"
 featured: false
 ---

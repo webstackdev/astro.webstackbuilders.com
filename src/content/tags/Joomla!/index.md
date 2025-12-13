@@ -1,7 +1,8 @@
 ---
+slug: "Joomla!"
 displayName: "Joomla!"
 description: "Content tagged with Joomla!."
-cover: "./joomla.svg"
+cover: "./cover.png"
 coverAlt: "Joomla!"
 featured: false
 ---

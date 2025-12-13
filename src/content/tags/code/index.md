@@ -1,7 +1,8 @@
 ---
+slug: "code"
 displayName: "code"
 description: "Content tagged with code."
-cover: "./code.svg"
+cover: "./cover.png"
 coverAlt: "code"
 featured: false
 ---

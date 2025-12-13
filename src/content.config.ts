@@ -151,6 +151,7 @@ const tagsCollection = defineCollection({
   loader: glob({ pattern: '**/index.{md,mdx}', base: './src/content/tags' }),
   schema: ({ image }) =>
     z.object({
+      slug: z.string(),
       displayName: z.string(),
       description: z.string(),
       cover: image(),

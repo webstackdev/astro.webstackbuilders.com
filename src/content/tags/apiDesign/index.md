@@ -1,7 +1,8 @@
 ---
+slug: "apiDesign"
 displayName: "API Design"
 description: "Content tagged with API Design."
-cover: "./apidesign.svg"
+cover: "./cover.png"
 coverAlt: "API Design"
 featured: false
 ---

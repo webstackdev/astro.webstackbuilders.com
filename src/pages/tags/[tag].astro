@@ -18,10 +18,6 @@ export interface Props {
   content: ContentItem[]
 }
 
-const getTagSlugFromEntryId = (id: string) => {
-  return id.replace(/\/index$/, '')
-}
-
 export async function getStaticPaths() {
   const allTags = await getCollection('tags')
 
@@ -51,7 +47,7 @@ export async function getStaticPaths() {
   const uniqueTags = [...new Set(allContent.map(item => item.data.tags).flat())]
 
   return allTags.map(tagEntry => {
-    const tag = getTagSlugFromEntryId(tagEntry.id)
+    const tag = tagEntry.data.slug
     const filteredContent = uniqueTags.includes(tag)
       ? allContent.filter(item => item.data.tags.includes(tag))
       : []
@@ -66,14 +62,14 @@ export async function getStaticPaths() {
 const { tag } = Astro.params
 const { content: allTagContent } = Astro.props
 
-const [tagEntry] = await getCollection('tags', ({ id }) => getTagSlugFromEntryId(id) === tag)
+const [tagEntry] = await getCollection('tags', ({ data }) => data.slug === tag)
 if (!tagEntry) {
   throw new Error(`Unknown tag: ${tag}`)
 }
 
 const allTags = await getCollection('tags')
 const tagDisplayNameBySlug = Object.fromEntries(
-  allTags.map(t => [getTagSlugFromEntryId(t.id), t.data.displayName])
+  allTags.map(t => [t.data.slug, t.data.displayName])
 )
 
 const { Content: TagContent } = await render(tagEntry)
