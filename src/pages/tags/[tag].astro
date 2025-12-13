@@ -85,9 +85,10 @@ const typeMetadata = {
 } as const
 
 const displayName = getTagDisplayName(tag)
-const path = `/tags/${tag}/`
-const pageDescription= `List of content tagged with ${displayName}`
+const path = `/tags/${tag}`
+const pageDescription = `List of content tagged with ${displayName}`
 const pageTitle = `${displayName} - Tag`
+const breadcrumbTitle = displayName
 const section = 'Tags'
 ---
 
@@ -95,6 +96,7 @@ const section = 'Tags'
   pageTitle={pageTitle}
   path={path}
   description={pageDescription}
+  breadcrumbTitle={breadcrumbTitle}
   section={section}
 >
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -106,7 +108,7 @@ const section = 'Tags'
         {totalItems} item{totalItems !== 1 ? 's' : ''} tagged with {displayName.toLowerCase()}
       </p>
       <nav class="mt-4">
-        <a href="/tags/" class="text-primary hover:underline">
+        <a href="/tags" class="text-primary hover:underline">
           ← Browse all tags
         </a>
       </nav>
@@ -182,7 +184,7 @@ const section = 'Tags'
                               .slice(0, 3)
                               .map((relatedTag: string) => (
                                 <a
-                                  href={`/tags/${relatedTag}/`}
+                                  href={`/tags/${relatedTag}`}
                                   class="text-xs font-medium text-text-muted bg-bg-offset hover:bg-border px-2 py-1 rounded-full transition-colors duration-200"
                                 >
                                   {getTagDisplayName(relatedTag)}
