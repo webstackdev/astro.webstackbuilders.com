@@ -44,6 +44,7 @@ import Download from '@components/CallToAction/Download/index.astro'
 
 | Prop | Type | Required | Default | Description |
 |------|------|----------|---------|-------------|
+| `id` | `string` | No | `"download-cta"` | Base id used for `aria-labelledby`/`aria-describedby` relationships |
 | `resource` | `string` | ✅ Yes | - | Name of the download resource (matches folder name in `content/downloads`) |
 | `title` | `string` | No | `"Download Our Free Resource"` | Main heading for the CTA |
 | `description` | `string` | No | `"Get instant access to expert insights and actionable strategies."` | Supporting description text |
