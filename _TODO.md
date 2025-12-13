@@ -145,21 +145,6 @@ cat.structure: Rules related to the document's overall structure, like the prope
 cat.tables: Rules for data tables, including headers and associations.
 cat.text-alternatives: Rules for ensuring that text alternatives are provided for non-text content, such as images.
 
-## Tags
-
-- Sitemap
-- E2E all pages helper
-
-## Build output errors
-
-00:19:09 [WARN] [vite] [plugin:astro:assets:esm] context method emitFile() is not supported in serve mode. This plugin is likely not vite-compatible.
-
-## Use Confetti on CTA forms
-
-`canvas-confetti`
-`https://github.com/catdad/canvas-confetti`
-`https://www.kirilv.com/canvas-confetti/`
-
 ## Use the Page Visibility API to pause videos, image carousels, and animations
 
 Stop unnecessary processes when the user doesn't see the page or inversely to perform background actions.

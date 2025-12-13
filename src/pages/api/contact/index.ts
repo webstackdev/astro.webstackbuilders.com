@@ -6,6 +6,7 @@
  */
 import type { APIRoute } from 'astro'
 import { Resend } from 'resend'
+import emailValidator from 'email-validator'
 import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
 import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
 import { buildApiErrorResponse, handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
@@ -62,8 +63,7 @@ function validateInput(body: ContactFormData): string[] {
 	if (!body.email?.trim()) {
 		errors.push('Email is required')
 	} else {
-		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-		if (!emailRegex.test(body.email)) {
+		if (!emailValidator.validate(body.email.trim())) {
 			errors.push('Invalid email address')
 		}
 	}

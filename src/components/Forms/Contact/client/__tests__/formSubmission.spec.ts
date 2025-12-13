@@ -56,6 +56,11 @@ describe('ContactForm submission', () => {
         json: async () => ({ success: true }),
       } as Response)
 
+      let confettiEvent: Event | undefined
+      context.elements.submitBtn.addEventListener('confetti:fire', (event) => {
+        confettiEvent = event
+      })
+
       const submitEvent = new context.window.Event('submit', { bubbles: true, cancelable: true })
       context.elements.form.dispatchEvent(submitEvent)
 
@@ -77,6 +82,11 @@ describe('ContactForm submission', () => {
       expect(context.elements.charCount.getAttribute('style')).toBeNull()
       expect(context.elements.fields.name.input.value).toBe('')
       expect(context.elements.fields.email.input.value).toBe('')
+
+      expect(confettiEvent).toBeDefined()
+      expect(confettiEvent?.target).toBe(context.elements.submitBtn)
+      expect(confettiEvent?.bubbles).toBe(true)
+      expect((confettiEvent as CustomEvent)?.composed).toBe(true)
 
       fetchSpy.mockRestore()
     })

@@ -94,6 +94,14 @@ export const initFormSubmission = (
 
         if (response.ok && result.success) {
           showSuccessMessage(elements)
+
+          elements.submitBtn.dispatchEvent(
+            new CustomEvent('confetti:fire', {
+              bubbles: true,
+              composed: true,
+            }),
+          )
+
           resetFormState(elements, controllers)
         } else {
           showErrorMessage(elements, result.message || 'An error occurred while sending your message.')

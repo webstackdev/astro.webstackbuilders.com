@@ -110,6 +110,14 @@ export class DownloadFormElement extends LitElement {
         await response.json()
 
         this.showStatus('success', 'Thank you! Click the button below to download your resource.')
+
+        submitButton.dispatchEvent(
+          new CustomEvent('confetti:fire', {
+            bubbles: true,
+            composed: true,
+          }),
+        )
+
         downloadButtonWrapper.classList.remove('hidden')
         submitButton.classList.add('hidden')
         form.reset()

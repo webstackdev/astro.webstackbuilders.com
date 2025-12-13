@@ -5,6 +5,7 @@
  */
 
 import { LitElement } from 'lit'
+import emailValidator from 'email-validator'
 import { addScriptBreadcrumb, ClientScriptError } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { getNewsletterElements } from './selectors'
@@ -21,9 +22,6 @@ export class NewsletterFormElement extends LitElement {
   override createRenderRoot() {
     return this // No shadow DOM - works with Astro templates!
   }
-
-  // Email validation pattern (matches server-side)
-  private readonly emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
   // DOM elements
   private form!: HTMLFormElement
@@ -124,7 +122,7 @@ export class NewsletterFormElement extends LitElement {
     addScriptBreadcrumb(context)
 
     try {
-      return this.emailRegex.test(email)
+      return emailValidator.validate(email)
     } catch (error) {
       handleScriptError(error, context)
       return false
@@ -250,6 +248,7 @@ export class NewsletterFormElement extends LitElement {
             data.message || 'Check your email! Click the confirmation link to complete your subscription.',
             'success'
           )
+          this.submitButton.dispatchEvent(new CustomEvent('confetti:fire', { bubbles: true, composed: true }))
           this.form?.reset()
         } else {
           this.showMessage(data.error || 'Failed to subscribe. Please try again.', 'error')

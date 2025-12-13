@@ -6,6 +6,7 @@
  */
 import type { APIRoute } from 'astro'
 import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
+import emailValidator from 'email-validator'
 import { getConvertkitApiKey, isDev, isTest } from '@pages/api/_environment/environmentApi'
 import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
 import { buildApiErrorResponse, handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
@@ -72,8 +73,7 @@ function validateEmail(email: string): string {
   })
   }
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  if (!emailRegex.test(email)) {
+  if (!emailValidator.validate(email)) {
   throw new ApiFunctionError({
     message: 'Email address is invalid',
     status: 400,

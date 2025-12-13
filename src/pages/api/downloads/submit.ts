@@ -2,6 +2,7 @@
  * API endpoint for download form submissions
  */
 import type { APIRoute } from 'astro'
+import emailValidator from 'email-validator'
 import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
 import { buildApiErrorResponse, handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
 import { createApiFunctionContext } from '@pages/api/_utils/requestContext'
@@ -27,8 +28,6 @@ const REQUIRED_FIELDS: Array<keyof DownloadFormData> = [
   'jobTitle',
   'companyName',
 ]
-
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 const buildJsonResponse = (body: Record<string, unknown>, status: number) =>
   new Response(JSON.stringify(body), {
@@ -56,7 +55,7 @@ const validateDownloadForm = (payload: Partial<DownloadFormData>): DownloadFormD
     })
   }
 
-  if (!EMAIL_REGEX.test(normalized.workEmail)) {
+  if (!emailValidator.validate(normalized.workEmail)) {
     throw new ApiFunctionError({
       message: 'Invalid email address',
       status: 400,

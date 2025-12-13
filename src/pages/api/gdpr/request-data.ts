@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro'
+import emailValidator from 'email-validator'
 import { v4 as uuidv4 } from 'uuid'
 import { rateLimiters, checkRateLimit } from '@pages/api/_utils'
 import { sendDSARVerificationEmail } from '@pages/api/gdpr/_dsarVerificationEmails'
@@ -97,8 +98,7 @@ export const POST: APIRoute = async ({ request, clientAddress, cookies }) => {
       throw buildValidationError('Email and request type are required')
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(body.email)) {
+    if (!emailValidator.validate(body.email)) {
       throw buildValidationError('Invalid email format')
     }
 
