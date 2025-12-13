@@ -1,7 +1,12 @@
 import { LitElement } from 'lit'
 import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
-import { addButtonEventListeners } from '@components/scripts/elementListeners'
+import {
+  addButtonEventListeners,
+  addLinkEventListeners,
+  addWrapperEventListeners,
+} from '@components/scripts/elementListeners'
+import { isDivElement } from '@components/scripts/assertions/elements'
 import {
   hideTableOfContents,
   onVisibilityChange,
@@ -23,8 +28,13 @@ export class TableOfContentsElement extends LitElement {
   private toggleButton: HTMLButtonElement | null = null
   private overlay: HTMLButtonElement | null = null
   private panel: HTMLElement | null = null
+  private tocLinks: HTMLAnchorElement[] = []
   private unsubscribe: (() => void) | null = null
   private visibilityListener?: VisibilityListener
+  private lastFocusedElement: HTMLElement | null = null
+  private previousOpen = false
+  private activeSlug: string | null = null
+  private headingObserver: IntersectionObserver | null = null
 
   constructor() {
     super()
@@ -40,6 +50,7 @@ export class TableOfContentsElement extends LitElement {
     super.connectedCallback()
     this.cacheElements()
     this.attachListeners()
+    this.initializeScrollSpy()
     this.visibilityListener = (state) => {
       this.open = state.tableOfContentsVisible
       this.disabled = !state.tableOfContentsEnabled
@@ -51,6 +62,8 @@ export class TableOfContentsElement extends LitElement {
   override disconnectedCallback(): void {
     this.unsubscribe?.()
     this.unsubscribe = null
+    this.headingObserver?.disconnect()
+    this.headingObserver = null
     super.disconnectedCallback()
   }
 
@@ -62,6 +75,7 @@ export class TableOfContentsElement extends LitElement {
     this.toggleButton = this.querySelector('[data-toc-toggle]') as HTMLButtonElement | null
     this.overlay = this.querySelector('[data-toc-overlay]') as HTMLButtonElement | null
     this.panel = this.querySelector('[data-toc-panel]') as HTMLElement | null
+    this.tocLinks = Array.from(this.querySelectorAll('[data-toc-link]')) as HTMLAnchorElement[]
   }
 
   private attachListeners(): void {
@@ -74,6 +88,33 @@ export class TableOfContentsElement extends LitElement {
       addButtonEventListeners(this.overlay, this.handleOverlay, this)
       this.overlay.dataset['tocListener'] = 'true'
     }
+
+    if (this.panel && !this.panel.dataset['tocEscapeListener']) {
+      if (isDivElement(this.panel)) {
+        addWrapperEventListeners(this.panel, this.handleEscape, this)
+        this.panel.dataset['tocEscapeListener'] = 'true'
+      }
+    }
+
+    this.tocLinks.forEach((link) => {
+      if (link.dataset['tocListener']) {
+        return
+      }
+      addLinkEventListeners(link, this.handleLinkClick, this)
+      link.dataset['tocListener'] = 'true'
+    })
+  }
+
+  private isDesktopLayout(): boolean {
+    if (typeof window === 'undefined') {
+      return false
+    }
+
+    if (!('matchMedia' in window)) {
+      return false
+    }
+
+    return window.matchMedia('(min-width: 1024px)').matches
   }
 
   private syncAttributes(): void {
@@ -82,18 +123,81 @@ export class TableOfContentsElement extends LitElement {
 
     if (this.toggleButton) {
       this.toggleButton.setAttribute('aria-expanded', String(this.open))
-      this.toggleButton.setAttribute('aria-pressed', String(this.open))
       this.toggleButton.toggleAttribute('disabled', this.disabled)
     }
 
     if (this.overlay) {
       this.overlay.setAttribute('data-visible', String(this.open))
       this.overlay.setAttribute('aria-hidden', this.open ? 'false' : 'true')
+
+      const isDesktop = this.isDesktopLayout()
+      const shouldDisableOverlay = !this.open || this.disabled || isDesktop
+      this.overlay.toggleAttribute('disabled', shouldDisableOverlay)
+      this.overlay.tabIndex = shouldDisableOverlay ? -1 : 0
     }
 
     if (this.panel) {
       this.panel.setAttribute('data-state', this.open ? 'open' : 'closed')
+
+      const isDesktop = this.isDesktopLayout()
+      if (!isDesktop) {
+        this.panel.setAttribute('aria-hidden', this.open ? 'false' : 'true')
+        this.setPanelFocusable(this.open)
+      } else {
+        this.panel.removeAttribute('aria-hidden')
+        this.setPanelFocusable(true)
+      }
     }
+
+    if (!this.previousOpen && this.open) {
+      this.lastFocusedElement = (document.activeElement as HTMLElement | null) ?? null
+      this.focusFirstTocLink()
+    }
+
+    if (this.previousOpen && !this.open) {
+      this.restoreFocus()
+    }
+
+    this.previousOpen = this.open
+  }
+
+  private setPanelFocusable(isFocusable: boolean): void {
+    const focusableLinks = this.tocLinks
+    focusableLinks.forEach((link) => {
+      link.tabIndex = isFocusable ? 0 : -1
+    })
+  }
+
+  private focusFirstTocLink(): void {
+    if (this.isDesktopLayout()) {
+      return
+    }
+
+    const firstLink = this.tocLinks.at(0)
+    firstLink?.focus()
+  }
+
+  private restoreFocus(): void {
+    const fallback = this.toggleButton
+    const candidate = this.lastFocusedElement
+
+    if (candidate && typeof candidate.focus === 'function' && document.contains(candidate)) {
+      candidate.focus()
+      return
+    }
+
+    fallback?.focus()
+  }
+
+  private readonly handleEscape = (event: Event) => {
+    if (!this.open) {
+      return
+    }
+
+    if (event.cancelable && !event.defaultPrevented) {
+      event.preventDefault()
+    }
+    hideTableOfContents()
   }
 
   private readonly handleToggle = (event: Event) => {
@@ -114,6 +218,77 @@ export class TableOfContentsElement extends LitElement {
   private readonly handleOverlay = (event: Event) => {
     event.preventDefault()
     hideTableOfContents()
+  }
+
+  private readonly handleLinkClick = (_event: Event) => {
+    if (this.isDesktopLayout()) {
+      return
+    }
+
+    hideTableOfContents()
+  }
+
+  private initializeScrollSpy(): void {
+    if (typeof window === 'undefined') {
+      return
+    }
+
+    if (!('IntersectionObserver' in window)) {
+      return
+    }
+
+    const slugs = this.tocLinks
+      .map((link) => link.dataset['tocSlug'])
+      .filter((slug): slug is string => Boolean(slug))
+
+    const headings = slugs
+      .map((slug) => window.document.getElementById(slug))
+      .filter((heading): heading is HTMLElement => Boolean(heading))
+
+    if (headings.length === 0) {
+      return
+    }
+
+    const observer = new window.IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => (b.intersectionRatio ?? 0) - (a.intersectionRatio ?? 0))
+
+        const next = visible.at(0)?.target
+        const nextSlug = next instanceof HTMLElement ? next.id : null
+        if (!nextSlug || nextSlug === this.activeSlug) {
+          return
+        }
+
+        this.setCurrentSlug(nextSlug)
+      },
+      {
+        root: null,
+        threshold: [0.25, 0.5, 0.75],
+        rootMargin: '0px 0px -60% 0px',
+      },
+    )
+
+    headings.forEach((heading) => observer.observe(heading))
+    this.headingObserver = observer
+  }
+
+  private setCurrentSlug(slug: string): void {
+    this.activeSlug = slug
+
+    this.tocLinks.forEach((link) => {
+      const linkSlug = link.dataset['tocSlug']
+      const isCurrent = Boolean(linkSlug && linkSlug === slug)
+      if (isCurrent) {
+        link.setAttribute('aria-current', 'location')
+        link.setAttribute('data-current', 'true')
+        return
+      }
+
+      link.removeAttribute('aria-current')
+      link.setAttribute('data-current', 'false')
+    })
   }
 }
 
