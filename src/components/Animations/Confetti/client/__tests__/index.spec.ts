@@ -104,7 +104,7 @@ describe('Confetti web component module', () => {
 
 describe('ConfettiAnimationElement', () => {
   const renderConfetti = async (
-    assertion: (_context: { element: ConfettiAnimationElement }) => Promise<void> | void,
+    assertion: (_context: { element: ConfettiAnimationElement; window: Window }) => Promise<void> | void,
   ): Promise<void> => {
     await executeRender<ConfettiModule>({
       container,
@@ -114,9 +114,9 @@ describe('ConfettiAnimationElement', () => {
       waitForReady: async (element) => {
         await element.updateComplete
       },
-      assert: async ({ element, module, renderResult }) => {
+      assert: async ({ element, module, renderResult, window }) => {
         expect(renderResult).toContain(`<${module.registeredName}`)
-        await assertion({ element })
+        await assertion({ element, window: window as unknown as Window })
       },
     })
   }
@@ -184,6 +184,65 @@ describe('ConfettiAnimationElement', () => {
 
       expect(confettiInstanceMock).toHaveBeenCalledTimes(1)
       expect(confettiInstanceMock).toHaveBeenCalledWith(expect.objectContaining({ particleCount: 12 }))
+    })
+  })
+
+  it('defaults the origin to the bottom-center of the event target element', async () => {
+    await renderConfetti(async ({ element, window }) => {
+      element.initialize()
+
+      Object.defineProperty(window, 'innerWidth', { value: 1000, configurable: true })
+      Object.defineProperty(window, 'innerHeight', { value: 500, configurable: true })
+
+      const button = window.document.createElement('button')
+      button.setAttribute('type', 'button')
+      element.appendChild(button)
+
+      button.getBoundingClientRect = () =>
+        ({
+          x: 100,
+          y: 50,
+          left: 100,
+          top: 50,
+          width: 200,
+          height: 40,
+          right: 300,
+          bottom: 90,
+          toJSON: () => ({}),
+        }) as DOMRect
+
+      button.dispatchEvent(
+        new CustomEvent('confetti:fire', {
+          bubbles: true,
+          detail: { particleCount: 12 },
+        }),
+      )
+
+      expect(confettiInstanceMock).toHaveBeenCalledTimes(1)
+
+      const callArgs = confettiInstanceMock.mock.calls[0]?.[0]
+      expect(callArgs).toEqual(expect.objectContaining({ particleCount: 12 }))
+      expect(callArgs?.origin?.x).toBeCloseTo(0.2, 5)
+      expect(callArgs?.origin?.y).toBeCloseTo(0.18, 5)
+    })
+  })
+
+  it('passes colors and shapes through to canvas-confetti', async () => {
+    await renderConfetti(async ({ element }) => {
+      element.initialize()
+
+      element.fire({
+        colors: ['#bada55', '#ff0000'],
+        shapes: ['star'],
+      })
+
+      expect(confettiInstanceMock).toHaveBeenCalledTimes(1)
+      expect(confettiInstanceMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          colors: ['#bada55', '#ff0000'],
+          shapes: ['star'],
+        }),
+      )
     })
   })
 })
