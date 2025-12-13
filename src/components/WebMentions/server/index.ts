@@ -7,6 +7,7 @@
 import { WEBMENTION_IO_TOKEN } from 'astro:env/server'
 import { isDev } from '@lib/config/environmentServer'
 import type { Webmention, WebmentionResponse } from '@components/WebMentions/@types'
+import sanitizeHtml from 'sanitize-html'
 
 const allowedTypes = new Set(['mention-of', 'in-reply-to', 'like-of', 'repost-of'])
 const PLACEHOLDER_TOKENS = new Set(['', 'updateme', 'your_api_token_here'])
@@ -27,16 +28,35 @@ const logTimestamps = new Map<string, number>()
 let missingTokenWarningShown = false
 
 /**
- * Sanitize HTML content
- * In production, consider using DOMPurify or sanitize-html
+ * Sanitize untrusted HTML from webmentions.
+ *
+ * Regex-based sanitization is error-prone; use an allowlist sanitizer instead.
  */
-const sanitizeHTML = (html: string): string => {
-  // Basic sanitization - remove script tags
-  // For production, install and use sanitize-html or DOMPurify
-  return html
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
-}
+const sanitizeHTML = (html: string): string =>
+  sanitizeHtml(html, {
+    allowedTags: [
+      'p',
+      'br',
+      'a',
+      'strong',
+      'em',
+      'b',
+      'i',
+      'code',
+      'pre',
+      'blockquote',
+      'ul',
+      'ol',
+      'li',
+      'span',
+    ],
+    allowedAttributes: {
+      a: ['href', 'title'],
+      span: ['title'],
+    },
+    allowedSchemes: ['http', 'https'],
+    allowProtocolRelative: false,
+  })
 
 /**
  * Check if a webmention is from your own domain
@@ -61,7 +81,7 @@ const cleanWebmention = (entry: Webmention): Webmention => {
     // Really long html mentions, usually newsletters or compilations
     entry.content.value =
       html.length > 2000
-        ? `mentioned this in <a href="${entry['wm-source']}">${entry['wm-source']}</a>`
+        ? sanitizeHTML(`mentioned this in <a href="${entry['wm-source']}">${entry['wm-source']}</a>`)
         : sanitizeHTML(html)
   } else if (text) {
     entry.content.value = sanitizeHTML(text)
