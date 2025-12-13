@@ -35,6 +35,79 @@ interface OEmbedResponse {
   type?: string
 }
 
+const safeParseAbsoluteHttpUrl = (value: string): URL | null => {
+  try {
+    const parsed = new URL(value)
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return null
+    }
+    return parsed
+  } catch {
+    return null
+  }
+}
+
+const hostMatchesDomain = (hostname: string, domain: string): boolean => {
+  const normalizedHost = hostname.toLowerCase()
+  const normalizedDomain = domain.toLowerCase()
+
+  return normalizedHost === normalizedDomain || normalizedHost.endsWith(`.${normalizedDomain}`)
+}
+
+const isUrlOnAllowedDomains = (value: string, allowedDomains: string[]): boolean => {
+  const parsed = safeParseAbsoluteHttpUrl(value)
+  if (!parsed) return false
+
+  return allowedDomains.some((domain) => hostMatchesDomain(parsed.hostname, domain))
+}
+
+const mastodonStatusPathMatchers: RegExp[] = [
+  /^\/\@[^\/]+\/\d+(?:\/.*)?$/,
+  /^\/users\/[^\/]+\/statuses\/\d+(?:\/.*)?$/,
+]
+
+const isMastodonStatusUrl = (value: string): boolean => {
+  const parsed = safeParseAbsoluteHttpUrl(value)
+  if (!parsed) return false
+
+  return mastodonStatusPathMatchers.some((matcher) => matcher.test(parsed.pathname))
+}
+
+/**
+ * Detect the embed platform for a given URL.
+ *
+ * Uses URL parsing + hostname allowlists to avoid substring-matching attacks.
+ */
+export const detectEmbedPlatform = (url: string): EmbedPlatform => {
+  if (isUrlOnAllowedDomains(url, ['twitter.com', 'x.com'])) {
+    return 'x'
+  }
+  if (isUrlOnAllowedDomains(url, ['linkedin.com'])) {
+    return 'linkedin'
+  }
+  if (isUrlOnAllowedDomains(url, ['bsky.app', 'bsky.social'])) {
+    return 'bluesky'
+  }
+  if (isMastodonStatusUrl(url)) {
+    return 'mastodon'
+  }
+  if (isUrlOnAllowedDomains(url, ['reddit.com'])) {
+    return 'reddit'
+  }
+  if (isUrlOnAllowedDomains(url, ['youtube.com', 'youtu.be'])) {
+    return 'youtube'
+  }
+  if (isUrlOnAllowedDomains(url, ['gist.github.com'])) {
+    return 'github-gist'
+  }
+  if (isUrlOnAllowedDomains(url, ['codepen.io'])) {
+    return 'codepen'
+  }
+
+  console.warn(`Could not detect platform for URL: ${url}, defaulting to 'x'`)
+  return 'x'
+}
+
 /**
  * Manager class for all social embeds using singleton pattern
  * Can be registered directly: registerScript(EmbedManager)
@@ -231,35 +304,7 @@ class EmbedInstance {
   }
 
   private detectPlatform(url: string): EmbedPlatform {
-    const urlLower = url.toLowerCase()
-
-    if (urlLower.includes('twitter.com') || urlLower.includes('x.com')) {
-      return 'x'
-    }
-    if (urlLower.includes('linkedin.com')) {
-      return 'linkedin'
-    }
-    if (urlLower.includes('bsky.app') || urlLower.includes('bsky.social')) {
-      return 'bluesky'
-    }
-    if (urlLower.match(/mastodon\.|\/\@[^\/]+\/\d+/)) {
-      return 'mastodon'
-    }
-    if (urlLower.includes('reddit.com')) {
-      return 'reddit'
-    }
-    if (urlLower.includes('youtube.com') || urlLower.includes('youtu.be')) {
-      return 'youtube'
-    }
-    if (urlLower.includes('gist.github.com')) {
-      return 'github-gist'
-    }
-    if (urlLower.includes('codepen.io')) {
-      return 'codepen'
-    }
-
-    console.warn(`Could not detect platform for URL: ${url}, defaulting to 'x'`)
-    return 'x'
+    return detectEmbedPlatform(url)
   }
 
   private setupIntersectionObserver(): void {
@@ -408,7 +453,11 @@ class EmbedInstance {
     try {
       // Parse the Mastodon URL to extract the instance domain
       // Format: https://mastodon.social/@username/123456789
-      const urlObj = new URL(this.url)
+      const urlObj = safeParseAbsoluteHttpUrl(this.url)
+      if (!urlObj) {
+        return null
+      }
+
       const instance = urlObj.hostname
       const encodedUrl = encodeURIComponent(this.url)
 
@@ -452,6 +501,11 @@ class EmbedInstance {
   }
 
   private renderGitHubGist(wrapper: HTMLElement): void {
+    if (!isUrlOnAllowedDomains(this.url, ['gist.github.com'])) {
+      console.warn('GitHub Gist embed blocked: URL host not allowed')
+      return
+    }
+
     // For GitHub Gist, we create a script tag that loads the gist
     const script = document.createElement('script')
     script.src = `${this.url}.js`
