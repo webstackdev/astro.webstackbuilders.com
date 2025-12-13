@@ -47,7 +47,9 @@ export class FooterElement extends LitElement {
     const month = FooterElement.getMonthName(date)
     const year = date.getFullYear()
 
-    this.hireMeAnchor.innerHTML = `Available ${month}, ${year}. Hire Me Now`
+    const label = `Available ${month}, ${year}. Hire Me Now`
+    this.hireMeAnchor.innerHTML = label
+    this.hireMeAnchor.setAttribute('aria-label', label)
     this.hireMeAnchor.style.display = 'inline-block'
   }
 
