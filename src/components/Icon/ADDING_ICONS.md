@@ -8,7 +8,9 @@ To add a new icon to the project:
 
 ### 1. Add the SVG file
 
-Place your SVG file in this directory (`src/icons/`). Use kebab-case naming (e.g., `my-new-icon.svg`). SVG Icons must include a `<title>` element for ARIA purposes.
+Place your SVG file in this directory (`src/icons/`). Use kebab-case naming (e.g., `my-new-icon.svg`).
+
+Note: The `Icon` component renders icons as decorative (`aria-hidden="true"`) by default. If an icon needs meaning, add it in the consuming markup (e.g., label the button/link, or provide adjacent text).
 
 **SVG Format Requirements:**
 
