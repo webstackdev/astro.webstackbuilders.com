@@ -303,13 +303,16 @@ export class MastodonModalElement extends LitElement {
   }
 
   protected override render() {
+    const modalTitleId = `${this.modalId}-title`
+    const instanceHintId = `${this.modalId}-instance-hint`
+
     return html`
       <div
         id=${this.modalId}
         class="fixed inset-0 z-9999 flex items-center justify-center p-4"
         role="dialog"
         aria-modal="true"
-        aria-labelledby="modal-title"
+        aria-labelledby=${modalTitleId}
         ?hidden=${!this.open}
       >
         <div
@@ -318,14 +321,23 @@ export class MastodonModalElement extends LitElement {
         ></div>
         <div class="modal-content relative w-full max-w-2xl max-h-[90vh] overflow-auto bg-bg rounded-lg shadow-2xl">
           <div class="flex items-center justify-between p-6 border-b border-border">
-            <h2 id="modal-title" class="m-0 text-xl font-semibold">Share to Mastodon</h2>
+            <h2 id=${modalTitleId} class="m-0 text-xl font-semibold">Share to Mastodon</h2>
             <button
               type="button"
               class="modal-close flex items-center justify-center w-8 h-8 p-0 border-0 bg-transparent rounded text-text-muted cursor-pointer transition-all duration-150 hover:bg-bg-muted hover:text-text"
               aria-label="Close modal"
               @click=${() => this.closeModal()}
             >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+                focusable="false"
+              >
                 <path d="M18 6L6 18M6 6l12 12"></path>
               </svg>
             </button>
@@ -347,13 +359,13 @@ export class MastodonModalElement extends LitElement {
             <div class="flex flex-col gap-4">
               <label for="mastodon-instance" class="flex flex-col gap-2 font-medium">
                 <span>Mastodon Instance</span>
+                <span id=${instanceHintId} class="sr-only">Enter only the domain, without https://</span>
                 <div
                   class="flex items-stretch border border-border rounded-md overflow-hidden bg-bg-input focus-within:outline-2 focus-within:outline-primary focus-within:outline-offset-2"
                 >
                   <span
                     class="flex items-center px-3 py-2 bg-bg-muted text-text-muted text-sm select-none"
-                    aria-label="https prefix"
-                    id="instance-prefix"
+                    aria-hidden="true"
                   >
                     https://
                   </span>
@@ -363,7 +375,7 @@ export class MastodonModalElement extends LitElement {
                     name="instance"
                     placeholder="mastodon.social"
                     required
-                    aria-describedby="instance-prefix"
+                    aria-describedby=${instanceHintId}
                     class="flex-1 min-w-0 px-3 py-2 border-0 bg-transparent text-base text-text focus:outline-none"
                     .value=${this.instanceValue}
                     @input=${(event: Event) => this.handleInstanceInput(event)}
@@ -418,7 +430,12 @@ export class MastodonModalElement extends LitElement {
               </button>
             </div>
 
-            <p class="modal-status m-0 text-sm text-center ${this.statusType}" role="status" aria-live="polite">
+            <p
+              class="modal-status m-0 text-sm text-center ${this.statusType}"
+              role=${this.statusType === 'error' ? 'alert' : 'status'}
+              aria-live=${this.statusType === 'error' ? 'assertive' : 'polite'}
+              aria-atomic="true"
+            >
               ${this.statusMessage}
             </p>
           </form>

@@ -100,6 +100,19 @@ describe('MastodonModalElement', () => {
       const dialog = element.querySelector('[role="dialog"]') as HTMLElement | null
       expect(dialog?.hasAttribute('hidden')).toBe(true)
       expect(element.open).toBe(false)
+
+      const labelledBy = dialog?.getAttribute('aria-labelledby')
+      expect(labelledBy).toBe(`${element.modalId}-title`)
+      expect(element.querySelector(`#${element.modalId}-title`)?.textContent).toContain('Share to Mastodon')
+
+      const closeIcon = element.querySelector('button[aria-label="Close modal"] svg') as SVGElement | null
+      expect(closeIcon?.getAttribute('aria-hidden')).toBe('true')
+      expect(closeIcon?.getAttribute('focusable')).toBe('false')
+
+      const instanceInput = element.querySelector('#mastodon-instance') as HTMLInputElement | null
+      expect(instanceInput?.getAttribute('aria-describedby')).toBe(`${element.modalId}-instance-hint`)
+      const hint = element.querySelector(`#${element.modalId}-instance-hint`) as HTMLElement | null
+      expect(hint?.textContent).toContain('Enter only the domain')
     })
   })
 
@@ -161,6 +174,8 @@ describe('MastodonModalElement', () => {
 
       const status = element.querySelector('.modal-status') as HTMLElement
       expect(status.textContent).toContain('does not appear')
+      expect(status.getAttribute('role')).toBe('alert')
+      expect(status.getAttribute('aria-live')).toBe('assertive')
       expect(mockSetCurrentInstance).not.toHaveBeenCalled()
     })
   })
