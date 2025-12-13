@@ -122,6 +122,21 @@ describe('SocialShareElement web component', () => {
     )
   })
 
+  test('labels the share group via aria-labelledby', async () => {
+    await renderComponent(defaultProps, async ({ element }) => {
+      const group = element.querySelector('[role="group"]')
+      expect(group).toBeTruthy()
+
+      const labelledBy = group?.getAttribute('aria-labelledby')
+      expect(labelledBy).toBeTruthy()
+      expect(group?.getAttribute('aria-label')).toBeNull()
+
+      const label = labelledBy ? element.querySelector(`#${labelledBy}`) : null
+      expect(label).toBeTruthy()
+      expect(label?.textContent?.trim()).toBe('Share:')
+    })
+  })
+
   test('sends analytics event when sharing via standard button', async () => {
     await renderComponent(defaultProps, async ({ element, window }) => {
       const windowWithAnalytics = window as typeof window & {
@@ -151,6 +166,9 @@ describe('SocialShareElement web component', () => {
 
       const mastodonButton = element.querySelector('[data-platform="mastodon"]')
       expect(mastodonButton).toBeTruthy()
+
+      expect(mastodonButton?.getAttribute('aria-haspopup')).toBe('dialog')
+      expect(mastodonButton?.getAttribute('aria-controls')).toBe('mastodon-modal')
 
       mastodonButton?.dispatchEvent(new window.MouseEvent('click', { bubbles: true, cancelable: true }))
 
