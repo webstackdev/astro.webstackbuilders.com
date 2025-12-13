@@ -35,6 +35,14 @@ const tagsWithContent = allTags.filter(tag => {
   return getContentPreviewForTag(tag.data.slug, 1).length > 0
 })
 
+const tagsWithNoContent = allTags.filter(tag => getContentPreviewForTag(tag.data.slug, 1).length === 0)
+
+for (const tag of tagsWithNoContent) {
+  console.warn(
+    `Warning: there were no content items for tag ${tag.data.displayName}. You might consider removing this tag if it is unused.`
+  )
+}
+
 const pageDescription = 'Webstack Builders Services List'
 const pageTitle = 'All Tags'
 const path = '/tags'
