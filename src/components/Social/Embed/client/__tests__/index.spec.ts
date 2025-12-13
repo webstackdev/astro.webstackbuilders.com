@@ -44,7 +44,16 @@ describe('SocialEmbed component', () => {
         expect(element.dataset['embed']).toBeDefined()
         expect(element.dataset['embedUrl']).toBe(url)
         expect(element.dataset['embedPlatform']).toBeUndefined()
-        expect(element.querySelector('[data-embed-placeholder]')).not.toBeNull()
+        expect(element.getAttribute('aria-busy')).toBe('true')
+
+        const status = element.querySelector('[data-embed-loading-status]')
+        expect(status).not.toBeNull()
+        expect(status?.getAttribute('role')).toBe('status')
+        expect(status?.getAttribute('aria-live')).toBe('polite')
+
+        const placeholder = element.querySelector('[data-embed-placeholder]')
+        expect(placeholder).not.toBeNull()
+        expect(placeholder?.getAttribute('aria-hidden')).toBe('true')
       },
     )
   })
@@ -56,6 +65,7 @@ describe('SocialEmbed component', () => {
       { url, platform: 'linkedin' },
       async ({ element }) => {
         expect(element.dataset['embedPlatform']).toBe('linkedin')
+        expect(element.getAttribute('aria-busy')).toBe('false')
         expect(element.querySelector('iframe')?.getAttribute('src')).toBe(url)
         expect(element.querySelector('[data-embed-placeholder]')).toBeNull()
       },
@@ -70,6 +80,7 @@ describe('SocialEmbed component', () => {
       { url, platform: 'youtube' },
       async ({ element }) => {
         expect(element.dataset['embedPlatform']).toBe('youtube')
+        expect(element.getAttribute('aria-busy')).toBe('true')
         const placeholder = element.querySelector('[data-embed-placeholder]')
         expect(placeholder).not.toBeNull()
         expect(placeholder?.querySelector('.aspect-video')).not.toBeNull()

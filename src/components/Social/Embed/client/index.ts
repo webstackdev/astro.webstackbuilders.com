@@ -285,11 +285,35 @@ class EmbedInstance {
     this.platform = platform || this.detectPlatform(url)
   }
 
+  private setAriaBusy(isBusy: boolean): void {
+    this.container.setAttribute('aria-busy', isBusy ? 'true' : 'false')
+  }
+
+  private removeLoadingStatusNode(): void {
+    const statusNode = this.container.querySelector('[data-embed-loading-status]')
+    if (statusNode instanceof HTMLElement) {
+      statusNode.remove()
+    }
+  }
+
+  private ensureIframeTitles(root: ParentNode, fallbackTitle: string): void {
+    const titleToUse = fallbackTitle.trim().length > 0 ? fallbackTitle : 'Embedded content'
+
+    root.querySelectorAll('iframe').forEach((iframe) => {
+      const title = iframe.getAttribute('title')
+      if (!title || title.trim().length === 0) {
+        iframe.setAttribute('title', titleToUse)
+      }
+    })
+  }
+
   initialize(): void {
     const context = { scriptName: 'EmbedInstance', operation: 'initialize' }
     addScriptBreadcrumb(context)
 
     try {
+      this.setAriaBusy(true)
+
       // LinkedIn embeds are already complete HTML, no need for intersection observer
       if (this.platform === 'linkedin') {
         this.handleLinkedInEmbed()
@@ -484,6 +508,9 @@ class EmbedInstance {
       wrapper.className = 'embed-content'
       wrapper.innerHTML = data.html
 
+      const iframeFallbackTitle = (data.title ?? '').trim() || 'Embedded content'
+      this.ensureIframeTitles(wrapper, iframeFallbackTitle)
+
       // Handle GitHub Gist specially (no oEmbed support)
       if (this.platform === 'github-gist') {
         this.renderGitHubGist(wrapper)
@@ -492,6 +519,9 @@ class EmbedInstance {
 
       // Replace placeholder with actual embed
       placeholder.replaceWith(wrapper)
+
+      this.removeLoadingStatusNode()
+      this.setAriaBusy(false)
 
       // Execute any scripts in the embed HTML
       this.executeScripts(wrapper)
@@ -512,7 +542,11 @@ class EmbedInstance {
     wrapper.appendChild(script)
 
     const placeholder = this.container.querySelector('[data-embed-placeholder]')
-    placeholder?.replaceWith(wrapper)
+    if (placeholder) {
+      placeholder.replaceWith(wrapper)
+      this.removeLoadingStatusNode()
+      this.setAriaBusy(false)
+    }
   }
 
   private executeScripts(container: HTMLElement): void {
@@ -546,6 +580,8 @@ class EmbedInstance {
         return
       }
 
+      this.ensureIframeTitles(iframe.parentNode ?? this.container, 'Embedded LinkedIn content')
+
       // Wrap the iframe in a responsive container
       const wrapper = document.createElement('div')
       wrapper.className = 'embed-linkedin-wrapper'
@@ -569,6 +605,8 @@ class EmbedInstance {
         parent.insertBefore(wrapper, iframe)
         wrapper.appendChild(iframe)
       }
+
+      this.setAriaBusy(false)
     } catch (error) {
       handleScriptError(error, context)
     }

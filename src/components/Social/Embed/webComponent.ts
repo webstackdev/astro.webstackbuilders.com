@@ -68,8 +68,18 @@ export class SocialEmbedElement extends LitElement {
     const includeMedia = mediaPlatforms.includes(this.resolvedPlatform)
 
     return html`
+      <p
+        class="sr-only"
+        data-embed-loading-status
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        Loading embedded content.
+      </p>
       <div
         data-embed-placeholder
+        aria-hidden="true"
         class="border border-gray-200 dark:border-gray-700 rounded-xl p-4 bg-white dark:bg-gray-800 shadow-sm animate-pulse"
       >
         <div class="flex items-center gap-3 mb-4">
@@ -98,9 +108,11 @@ export class SocialEmbedElement extends LitElement {
 
   protected override render(): TemplateResult {
     if (this.resolvedPlatform === 'linkedin') {
+      this.setAttribute('aria-busy', 'false')
       return html`<slot></slot>`
     }
 
+    this.setAttribute('aria-busy', 'true')
     return this.renderPlaceholder()
   }
 }
