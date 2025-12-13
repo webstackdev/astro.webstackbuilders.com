@@ -1,5 +1,7 @@
 ---
 // DownloadForm.astro - Gated form for download resources
+import Confetti from '@components/Animations/Confetti/index.astro'
+
 export interface Props {
   title: string
   fileName: string
@@ -130,15 +132,17 @@ const downloadUrl = `/downloads/${fileName}`
       </div>
 
       <!-- Submit Button -->
-      <div class="pt-2">
-        <button
-          type="submit"
-          class="w-full bg-primary text-white font-semibold py-3 px-6 rounded-xl hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-          id="downloadSubmitBtn"
-        >
-          Download Now
-        </button>
-      </div>
+      <Confetti>
+        <div class="pt-2">
+          <button
+            type="submit"
+            class="w-full bg-primary text-white font-semibold py-3 px-6 rounded-xl hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            id="downloadSubmitBtn"
+          >
+            Download Now
+          </button>
+        </div>
+      </Confetti>
 
       <!-- Download Button (hidden until form is successfully submitted) -->
       <div class="pt-2 hidden" id="downloadButtonWrapper">

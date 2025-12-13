@@ -93,6 +93,28 @@ describe('download-form web component', () => {
     })
   })
 
+  it('dispatches a confetti:fire event from the submit button on success', async () => {
+    await renderDownloadForm(async ({ elements, window }) => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(successfulResponse())
+      fillDownloadForm(elements)
+
+      let confettiEvent: Event | undefined
+      elements.submitButton.addEventListener('confetti:fire', (event) => {
+        confettiEvent = event
+      })
+
+      submitForm(window, elements.form)
+      await flushPromises()
+
+      expect(confettiEvent).toBeDefined()
+      expect(confettiEvent?.target).toBe(elements.submitButton)
+      expect(confettiEvent?.bubbles).toBe(true)
+      expect((confettiEvent as CustomEvent)?.composed).toBe(true)
+
+      fetchSpy.mockRestore()
+    })
+  })
+
   it('displays error state when API fails', async () => {
     await renderDownloadForm(async ({ elements, window }) => {
       const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
