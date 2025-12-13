@@ -1,4 +1,5 @@
 import { ClientScriptError } from '@components/scripts/errors'
+import emailValidator from 'email-validator'
 import type { FieldElements } from './@types'
 import { showFieldFeedback, clearFieldFeedback } from './feedback'
 import {
@@ -156,8 +157,7 @@ export const validateGenericField = (field: GenericField): boolean => {
     isValid = false
     errorMessage = 'This field is required'
   } else if (field instanceof HTMLInputElement && field.type === 'email' && value) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(value)) {
+    if (!emailValidator.validate(value)) {
       isValid = false
       errorMessage = 'Please enter a valid email address'
     }
