@@ -122,6 +122,9 @@ describe('NewsletterFormElement web component', () => {
     })
 
     await renderNewsletter(async ({ elements }) => {
+      const confettiFireHandler = vi.fn()
+      elements.submitButton.addEventListener('confetti:fire', confettiFireHandler)
+
       elements.emailInput.value = 'test@example.com'
       elements.consentCheckbox.checked = true
 
@@ -136,6 +139,7 @@ describe('NewsletterFormElement web component', () => {
         body: JSON.stringify({ email: 'test@example.com', consentGiven: true }),
       })
       expect(elements.message.textContent).toBe('Subscribed successfully!')
+      expect(confettiFireHandler).toHaveBeenCalledTimes(1)
       expect(elements.submitButton.disabled).toBe(false)
       expect(elements.buttonSpinner.classList.contains('hidden')).toBe(true)
     })

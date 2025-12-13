@@ -250,6 +250,7 @@ export class NewsletterFormElement extends LitElement {
             data.message || 'Check your email! Click the confirmation link to complete your subscription.',
             'success'
           )
+          this.submitButton.dispatchEvent(new CustomEvent('confetti:fire', { bubbles: true, composed: true }))
           this.form?.reset()
         } else {
           this.showMessage(data.error || 'Failed to subscribe. Please try again.', 'error')
