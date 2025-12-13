@@ -33,7 +33,7 @@ if (!avatarImage && !name) {
   return null
 }
 
-const avatarAlt = `Photo of ${name}`
+const avatarAlt = name
 ---
 
 <div class:list={['avatar-container', className]}>
@@ -48,8 +48,12 @@ const avatarAlt = `Photo of ${name}`
         height={avatarImage.height}
       />
     ) : (
-      <div class="avatar-placeholder bg-primary w-16 h-16 rounded-full flex items-center justify-center text-offset">
-        {getFallbackInitials(name)}
+      <div
+        class="avatar-placeholder bg-primary w-16 h-16 rounded-full flex items-center justify-center text-offset"
+        role="img"
+        aria-label={name}
+      >
+        <span aria-hidden="true">{getFallbackInitials(name)}</span>
       </div>
     )
   }
