@@ -42,6 +42,7 @@ export class CarouselElement extends HTMLElement {
   private emblaRoot: DebugEmblaElement | null = null
   private viewport: HTMLElement | null = null
   private dotsContainer: HTMLElement | null = null
+  private statusRegion: HTMLElement | null = null
   private prevBtn: HTMLButtonElement | null = null
   private nextBtn: HTMLButtonElement | null = null
   private initialized = false
@@ -58,6 +59,7 @@ export class CarouselElement extends HTMLElement {
   }
   private readonly autoplayPlayHandler = () => this.setAutoplayState('playing')
   private readonly autoplayStopHandler = () => this.setAutoplayState('paused')
+  private readonly keydownHandler = (event: KeyboardEvent) => this.handleKeydown(event)
 
   private static instanceCounter = 0
 
@@ -104,6 +106,7 @@ export class CarouselElement extends HTMLElement {
       this.emblaRoot = this.querySelector('.embla') as DebugEmblaElement | null
       this.viewport = this.querySelector('.embla__viewport')
       this.dotsContainer = this.querySelector('.embla__dots')
+      this.statusRegion = this.querySelector('[data-carousel-status]')
       this.prevBtn = this.querySelector('.embla__button--prev')
       this.nextBtn = this.querySelector('.embla__button--next')
 
@@ -135,6 +138,8 @@ export class CarouselElement extends HTMLElement {
 
       this.setupNavigationButtons()
       this.setupDotsNavigation()
+      this.setupStatusRegion()
+      this.addEventListener('keydown', this.keydownHandler)
 
       this.initialized = true
       this.setAttribute('data-carousel-ready', 'true')
@@ -158,6 +163,7 @@ export class CarouselElement extends HTMLElement {
   }
 
   private teardown(): void {
+    this.removeEventListener('keydown', this.keydownHandler)
     if (this.emblaApi) {
       const emblaWithEvents = this.emblaApi as EmblaCarouselType & {
         off: (_event: string, _handler: () => void) => EmblaCarouselType
@@ -191,6 +197,32 @@ export class CarouselElement extends HTMLElement {
 
     if (this.dotsContainer) {
       this.dotsContainer.innerHTML = ''
+    }
+  }
+
+  private handleKeydown(event: KeyboardEvent): void {
+    if (!this.emblaApi) return
+    if (event.defaultPrevented) return
+    if (event.metaKey || event.ctrlKey || event.altKey) return
+
+    const key = event.key
+    if (key !== 'ArrowLeft' && key !== 'ArrowRight') return
+
+    const target = event.target
+    if (target instanceof HTMLElement) {
+      const tag = target.tagName.toLowerCase()
+      if (tag === 'input' || tag === 'textarea' || tag === 'select' || target.isContentEditable) return
+    }
+
+    try {
+      if (key === 'ArrowLeft') {
+        this.emblaApi.scrollPrev()
+      } else {
+        this.emblaApi.scrollNext()
+      }
+      event.preventDefault()
+    } catch (error) {
+      handleScriptError(error, { scriptName: SCRIPT_NAME, operation: 'handleKeydown' })
     }
   }
 
@@ -295,6 +327,22 @@ export class CarouselElement extends HTMLElement {
       rebuildDots()
       updateDots()
     })
+  }
+
+  private setupStatusRegion(): void {
+    if (!this.emblaApi || !this.statusRegion) return
+
+    const updateStatus = () => {
+      if (!this.emblaApi || !this.statusRegion) return
+
+      const total = this.emblaApi.scrollSnapList().length
+      const current = this.emblaApi.selectedScrollSnap() + 1
+      this.statusRegion.textContent = `Slide ${current} of ${total}`
+    }
+
+    updateStatus()
+    this.emblaApi.on('select', updateStatus)
+    this.emblaApi.on('reInit', updateStatus)
   }
 
   pause(): void {
