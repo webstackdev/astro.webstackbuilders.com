@@ -3,7 +3,6 @@ import { getCollection } from 'astro:content'
 import { Picture } from 'astro:assets'
 import { isDev, isProd } from '@lib/config/environmentServer'
 import BaseLayout from '@layouts/BaseLayout.astro'
-import { exceptions } from '@content/_tagList'
 
 // Get all content collections with tags
 const allArticles = await getCollection('articles', ({ data }) => {
@@ -25,14 +24,10 @@ const allContent = [
   ...allServices.map(item => ({ ...item, type: 'service' })),
 ].sort((a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime())
 
-// Extract all unique tags from all content
-const allTags = Array.from(new Set(allContent.flatMap(item => item.data.tags || []))).filter(
-  tag => tag
-) // Remove any undefined/null tags
+const allTags = await getCollection('tags')
 
-// Function to get display name for tags
-const getTagDisplayName = (tag: string) => {
-  return exceptions[tag as keyof typeof exceptions] || tag
+const getTagSlugFromEntryId = (id: string) => {
+  return id.replace(/\/index$/, '')
 }
 
 // Function to get content preview for a specific tag
@@ -64,16 +59,19 @@ const section = 'Tags'
 
     <div class="space-y-12">
       {
-        allTags.sort().map(tag => {
-          const contentPreview = getContentPreviewForTag(tag, 4)
-          const displayName = getTagDisplayName(tag)
+        allTags
+          .sort((a, b) => a.data.displayName.localeCompare(b.data.displayName, 'en'))
+          .map(tag => {
+          const tagSlug = getTagSlugFromEntryId(tag.id)
+          const contentPreview = getContentPreviewForTag(tagSlug, 4)
+          const displayName = tag.data.displayName
 
           return (
             <section class="border-b border-border pb-12 last:border-b-0">
               <header class="mb-6">
                 <h2 class="text-2xl md:text-3xl font-bold text-text mb-2">
                   <a
-                    href={`/tags/${tag}`}
+                    href={`/tags/${tagSlug}`}
                     class="hover:text-primary transition-colors duration-300"
                   >
                     {displayName}
@@ -84,7 +82,7 @@ const section = 'Tags'
                   {contentPreview.length >= 4 && (
                     <span class="ml-2">
                       <a
-                        href={`/tags/${tag}`}
+                        href={`/tags/${tagSlug}`}
                         class="text-primary hover:underline"
                       >
                         View all →

@@ -10,7 +10,8 @@
  */
 import { defineCollection, reference, z, type SchemaContext } from 'astro:content'
 import { glob, file } from 'astro/loaders'
-import { validTags } from '@content/_tagList'
+import { existsSync, readdirSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 /**
  * Wraps a collection schema with a refinement that enforces breadcrumb title length limits */
 import { withBreadcrumbTitleWarning } from '@lib/helpers/breadcrumbTitleLengthRefinement'
@@ -20,6 +21,28 @@ import { withBreadcrumbTitleWarning } from '@lib/helpers/breadcrumbTitleLengthRe
 
 /** Only load markdown and MDX files that do not start with an underscore */
 const pattern = '**\/[^_]*.{md,mdx}'
+
+const tagContentDir = fileURLToPath(new URL('./content/tags', import.meta.url))
+const tagSlugs = readdirSync(tagContentDir, { withFileTypes: true })
+  .filter(entry => entry.isDirectory() && !entry.name.startsWith('_'))
+  .filter(entry => {
+    const indexMd = new URL(`./content/tags/${entry.name}/index.md`, import.meta.url)
+    const indexMdx = new URL(`./content/tags/${entry.name}/index.mdx`, import.meta.url)
+    return fsExists(indexMd) || fsExists(indexMdx)
+  })
+  .map(entry => entry.name)
+  .sort((a, b) => a.localeCompare(b, 'en'))
+
+if (tagSlugs.length === 0) {
+  throw new Error('No tags found. Add markdown files under src/content/tags.')
+}
+
+type ZodEnumType = [string, ...string[]]
+const validTags = tagSlugs as ZodEnumType
+
+function fsExists(url: URL) {
+  return existsSync(fileURLToPath(url))
+}
 
 const createBaseCollectionSchema = ({ image }: SchemaContext) =>
   z.object({
@@ -120,6 +143,21 @@ const downloadsCollection = defineCollection({
  *
  * =================================================================================
  */
+
+/**
+ * Tags
+ */
+const tagsCollection = defineCollection({
+  loader: glob({ pattern: '**/index.{md,mdx}', base: './src/content/tags' }),
+  schema: ({ image }) =>
+    z.object({
+      displayName: z.string(),
+      description: z.string(),
+      cover: image(),
+      coverAlt: z.string(),
+      featured: z.boolean().default(false),
+    }),
+})
 
 /**
  * About
@@ -223,5 +261,6 @@ export const collections = {
   contactData: contactDataCollection,
   downloads: downloadsCollection,
   services: servicesCollection,
+  tags: tagsCollection,
   testimonials: testimonialCollection,
 }
