@@ -17,16 +17,17 @@ continue
 
 `/domain`
 
-- Entities are part of the domain. They represent state and core business rules, but not persistence logic. Defined primarily by its unique identity, rather than its attributes or properties.
-
-Is an entry point to the domain logic forming the core of the application, modifying state and persistence as needed. This may be a Transaction Script, Service Layer, Application Service, or something similar.
+- The Domain is an entry point to the domain logic forming the core of the application, modifying state and persistence as needed. This may be a Transaction Script, Service Layer, Application Service, or something similar. The Domain in ADR relates to the whole of the domain objects, all the entities and their relations as a whole
 
 `/entities` or `entities.ts`
 
-- The responder builds the entire HTTP response from the domain's output which is given to it by the action. The Responder is responsible solely for formatting the final response (e.g., JSON, HTML) to be sent back to the client.
+- Entities are part of the domain. They represent state and core business rules, but not persistence logic. Defined primarily by its unique identity, rather than its attributes or properties.
+
+- By any name the Domain Payload Object is a specialized Data Transfer Object. A Data Transfer Object is a fine-grained object, providing properties that mirror or at least shadow properties found on the domain objects that they replicate. A Domain Payload Object is a coarse-grained object that transfers whole domain object instances to the client.
 
 `/responders` or `responders.ts`
 
+- The responder builds the entire HTTP response from the domain's output which is given to it by the action. The Responder is responsible solely for formatting the final response (e.g., JSON, HTML) to be sent back to the client.
 
 ### Endpoints:
 
@@ -144,10 +145,6 @@ cat.sensory-and-visual-cues: Rules that deal with information conveyed by sensor
 cat.structure: Rules related to the document's overall structure, like the proper nesting of elements.
 cat.tables: Rules for data tables, including headers and associations.
 cat.text-alternatives: Rules for ensuring that text alternatives are provided for non-text content, such as images.
-
-## Use the Page Visibility API to pause videos, image carousels, and animations
-
-Stop unnecessary processes when the user doesn't see the page or inversely to perform background actions.
 
 ## "Add to Calendar" button
 
