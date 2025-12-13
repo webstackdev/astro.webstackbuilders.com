@@ -51,15 +51,18 @@ if (typeof icon !== 'undefined') {
 const computedAriaLabel = resolveAriaLabel(labelOptions)
 const ariaAttributes = computedAriaLabel ? { 'aria-label': computedAriaLabel } : {}
 
+const linkHref = disabled ? undefined : href
+const linkOnClick = disabled ? undefined : onClick
+
 ---
 
 <div style="display: contents">
   {href ? (
     <a
-      href={href}
+      href={linkHref}
       class:list={buttonClassList}
       id={id}
-      onclick={onClick}
+      onclick={linkOnClick}
       aria-disabled={disabled ? 'true' : undefined}
       tabindex={disabled ? -1 : undefined}
       {...ariaAttributes}

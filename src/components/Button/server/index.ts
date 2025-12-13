@@ -101,14 +101,8 @@ export function resolveAriaLabel({ text, ariaLabel, icon, iconPosition }: Button
   }
 
   if (icon && iconPosition === ICON_ONLY_POSITION) {
-    return humanizeIconName(icon)
+    throw new Error('Button: icon-only buttons must provide ariaLabel')
   }
 
   return undefined
-}
-
-function humanizeIconName(icon: string) {
-  return icon
-    .replace(/[-_]+/g, ' ')
-    .replace(/\b\w/g, (char) => char.toUpperCase())
 }
