@@ -44,9 +44,21 @@ export class ComputersAnimationElement extends LitElement {
   private initialized = false
   private animationController: AnimationControllerHandle | undefined
   private toggleButton: HTMLButtonElement | null = null
+  private intersectionObserver: IntersectionObserver | undefined
+  private isInViewport = true
+  private isPageVisible = true
   private readonly domReadyHandler = () => {
     document.removeEventListener('DOMContentLoaded', this.domReadyHandler)
     this.initialize()
+  }
+  private readonly visibilityChangeHandler = () => {
+    try {
+      if (typeof document === 'undefined') return
+      this.isPageVisible = document.visibilityState !== 'hidden'
+      this.syncPlaybackWithVisibility()
+    } catch {
+      // Best effort only
+    }
   }
   private readonly toggleClickHandler = (event: Event) => {
     this.handleToggleClick(event)
@@ -107,6 +119,9 @@ export class ComputersAnimationElement extends LitElement {
           this.resume()
         },
       })
+
+      this.setupVisibilityHandlers()
+      this.syncPlaybackWithVisibility()
       this.initialized = true
     } catch (error) {
       handleScriptError(error, context)
@@ -130,10 +145,72 @@ export class ComputersAnimationElement extends LitElement {
     addScriptBreadcrumb(context)
 
     try {
-      this.timeline?.play()
       this.setAnimationState('playing')
+      this.syncPlaybackWithVisibility()
     } catch (error) {
       handleScriptError(error, context)
+    }
+  }
+
+  private setupVisibilityHandlers(): void {
+    if (typeof document === 'undefined') return
+
+    try {
+      this.isPageVisible = document.visibilityState !== 'hidden'
+      document.addEventListener('visibilitychange', this.visibilityChangeHandler)
+
+      const intersectionObserverCtor = (globalThis as unknown as { IntersectionObserver?: typeof IntersectionObserver })
+        .IntersectionObserver
+
+      if (typeof intersectionObserverCtor !== 'function') {
+        return
+      }
+
+      this.intersectionObserver = new intersectionObserverCtor(
+        (entries) => {
+          const entry = entries.at(0)
+          const ratio = entry?.intersectionRatio ?? 0
+          this.isInViewport = Boolean(entry?.isIntersecting && ratio > 0)
+          this.syncPlaybackWithVisibility()
+        },
+        { threshold: 0.01 },
+      )
+
+      this.intersectionObserver.observe(this)
+    } catch {
+      // Best effort only
+    }
+  }
+
+  private teardownVisibilityHandlers(): void {
+    try {
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', this.visibilityChangeHandler)
+      }
+
+      this.intersectionObserver?.disconnect()
+      this.intersectionObserver = undefined
+      this.isInViewport = true
+      this.isPageVisible = true
+    } catch {
+      // Best effort only
+    }
+  }
+
+  private syncPlaybackWithVisibility(): void {
+    if (!this.timeline) return
+
+    try {
+      if (!this.isPageVisible || !this.isInViewport) {
+        this.timeline.pause()
+        return
+      }
+
+      if (this.getAnimationState() === 'playing') {
+        this.timeline.play()
+      }
+    } catch {
+      // Best effort only
     }
   }
 
@@ -144,6 +221,7 @@ export class ComputersAnimationElement extends LitElement {
     addScriptBreadcrumb(context)
 
     try {
+      this.teardownVisibilityHandlers()
       this.animationController?.destroy()
       this.animationController = undefined
 

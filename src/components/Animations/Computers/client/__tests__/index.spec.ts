@@ -84,6 +84,17 @@ type TimelineMock = ReturnType<typeof createTimelineMock>
 const gsapMock = vi.mocked(gsap, true)
 let container: AstroContainer
 let timelineMock: TimelineMock
+let intersectionObserverCallback: IntersectionObserverCallback | undefined
+
+class IntersectionObserverMock {
+  observe = vi.fn()
+  unobserve = vi.fn()
+  disconnect = vi.fn()
+
+  constructor(callback: IntersectionObserverCallback) {
+    intersectionObserverCallback = callback
+  }
+}
 
 beforeAll(async () => {
   await ensureComputersModuleLoaded()
@@ -94,6 +105,9 @@ beforeEach(async () => {
   vi.clearAllMocks()
   timelineMock = createTimelineMock()
   gsapMock.timeline.mockImplementation(() => timelineMock as unknown as ReturnType<typeof gsap.timeline>)
+  intersectionObserverCallback = undefined
+  ;(globalThis as unknown as { IntersectionObserver?: typeof IntersectionObserver }).IntersectionObserver =
+    IntersectionObserverMock as unknown as typeof IntersectionObserver
 })
 
 describe('ComputersAnimation web component module', () => {
@@ -227,6 +241,9 @@ describe('ComputersAnimationElement', () => {
     await renderComputersAnimation(async ({ element }) => {
       element.initialize()
 
+      timelineMock.pause.mockClear()
+      timelineMock.play.mockClear()
+
       element.pause()
       expect(element.getAttribute('data-animation-state')).toBe('paused')
       element.resume()
@@ -234,6 +251,67 @@ describe('ComputersAnimationElement', () => {
       expect(timelineMock.pause).toHaveBeenCalledTimes(1)
       expect(timelineMock.play).toHaveBeenCalledTimes(1)
       expect(element.getAttribute('data-animation-state')).toBe('playing')
+    })
+  })
+
+  it('pauses when the element scrolls out of the viewport and resumes when it returns', async () => {
+    await renderComputersAnimation(async ({ element, window }) => {
+      void window
+      element.initialize()
+
+      expect(intersectionObserverCallback).toBeTypeOf('function')
+      timelineMock.pause.mockClear()
+      timelineMock.play.mockClear()
+
+      intersectionObserverCallback?.(
+        [
+          {
+            isIntersecting: false,
+            intersectionRatio: 0,
+          } as unknown as IntersectionObserverEntry,
+        ],
+        {} as IntersectionObserver,
+      )
+
+      expect(timelineMock.pause).toHaveBeenCalledTimes(1)
+      expect(element.getAttribute('data-animation-state')).toBe('playing')
+
+      intersectionObserverCallback?.(
+        [
+          {
+            isIntersecting: true,
+            intersectionRatio: 1,
+          } as unknown as IntersectionObserverEntry,
+        ],
+        {} as IntersectionObserver,
+      )
+
+      expect(timelineMock.play).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  it('pauses when the page is hidden and resumes when visible again', async () => {
+    await renderComputersAnimation(async ({ element, window }) => {
+      element.initialize()
+
+      timelineMock.pause.mockClear()
+      timelineMock.play.mockClear()
+
+      Object.defineProperty(window.document, 'visibilityState', {
+        configurable: true,
+        get: () => 'hidden',
+      })
+
+      window.document.dispatchEvent(new window.Event('visibilitychange'))
+      expect(timelineMock.pause).toHaveBeenCalledTimes(1)
+
+      Object.defineProperty(window.document, 'visibilityState', {
+        configurable: true,
+        get: () => 'visible',
+      })
+
+      window.document.dispatchEvent(new window.Event('visibilitychange'))
+      expect(timelineMock.play).toHaveBeenCalledTimes(1)
     })
   })
 
@@ -295,8 +373,6 @@ const renderComputersAnimation = async (
       if (!window) {
         throw new TestError('Computers animation tests require a DOM-capable window environment')
       }
-
-      forceDocumentReady(window)
       expect(renderResult).toContain(`<${module.registeredName}`)
       await assertion({ element, window: window as Window & typeof globalThis, module })
     },
@@ -307,22 +383,6 @@ const getBreadcrumbOperations = (): string[] => {
   return addScriptBreadcrumbMock.mock.calls
     .map(([context]) => context?.operation)
     .filter((operation): operation is string => Boolean(operation))
-}
-
-const forceDocumentReady = (window: Window & typeof globalThis): void => {
-  const { document } = window
-  if (document.readyState === 'complete') return
-
-  try {
-    Object.defineProperty(document, 'readyState', {
-      configurable: true,
-      get: () => 'complete',
-    })
-  } catch {
-    // best effort only
-  }
-
-  document.dispatchEvent(new window.Event('DOMContentLoaded'))
 }
 
 function createTimelineMock() {
