@@ -9,6 +9,9 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 env:
   CONVERTKIT_API_KEY: ${{ secrets.CONVERTKIT_API_KEY }}
   CONVERTKIT_FORM_ID: ${{ secrets.CONVERTKIT_FORM_ID }}
@@ -55,6 +58,12 @@ jobs:
     needs: lint
     if: ${{ !startsWith(github.head_ref || github.ref_name, 'hotfix/') }}
 
+    permissions:
+      actions: write
+      checks: write
+      contents: read
+      pull-requests: write
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -97,6 +106,10 @@ jobs:
     needs: unit-test
     # Temporarily disabled until the simplified flow is battle-tested
     if: ${{ false && !startsWith(github.head_ref || github.ref_name, 'hotfix/') }}
+
+    permissions:
+      actions: write
+      contents: read
 
     env:
       CONVERTKIT_API_KEY: ${{ secrets.CONVERTKIT_API_KEY }}
