@@ -157,53 +157,25 @@ Google Calendar, Apple Calendar,  Yahoo Calender,  Microsoft 365, Outlook, and T
 
 Needs to add real API key and test
 
-## SCSS Use clothoid corners with border-radius
-
-`https://onotakehiko.dev/clothoid/`
-
-`SCSS Make sure accent-color or styling for checkboxes/radio button groups is set up. Sets the colour used by checkboxes and radio buttons, as well as range fields and progress indicators. The accent colour is inherited`
-
-```scss
-:root{
-  accent-color : #696;
-}
-```
-
-## Refactor modals
-
-Modals should be wrapped in the `<dialog>` element and use programmatic methods to display - `showModal()` to disable the area outside of the modal (handles `esc` keypress natively) and `show()` to allow interaction outside the modal, along with `close()`.
-
-## Add for iOS
-
-Specifying a Launch Screen Image
-
-On iOS, similar to native applications, you can specify a launch screen image that is displayed while your web application launches. This is especially useful when your web application is offline. By default, a screenshot of the web application the last time it was launched is used. To set another startup image, add a link element to the webpage, as in:
-
-```html
-<link rel="apple-touch-startup-image" href="/launch.png">
-```
-
-# Astro 3rd-Party Integrations, Eleventy Migration
-
-## Eleventy plugins that don't yet have identified equivalents for Astro.
+## Astro 3rd-Party Integrations, Eleventy Migration
 
 - **`eleventy-plugin-inclusive-language`**
 
-## Outputs command line warnings for weasel words like "obviously", "basically", etc.
+### Outputs command line warnings for weasel words like "obviously", "basically", etc.
 
 - **`eleventy-plugin-external-links`**
 
-## Adds `target="_blank" rel="noreferrer"` to all external links
+### Adds `target="_blank" rel="noreferrer"` to all external links
 
 - **`eleventy-plugin-emoji`**
 
-## Accessible emoji shortcode and filter. Usage:
+### Accessible emoji shortcode and filter. Usage:
 
 ```{% emoji "⚙️", "settings gear" %} or {{ "⚙️" | emoji: "settings gear" }}```
 
 - **`eleventy-plugin-nesting-toc`**
 
-## Generates a nested table of contents for use in an aside from page contents.
+### Generates a nested table of contents for use in an aside from page contents.
 
 ```typescript
 {
@@ -225,7 +197,7 @@ On iOS, similar to native applications, you can specify a launch screen image th
   }
 ```
 
-## Time to Read
+### Time to Read
 
 Adds filter for analyzing content input into the filter and returning a time-to-read estimate to use in text like 'This will take 3 minutes to read'.
 
@@ -254,15 +226,15 @@ Adds filter for analyzing content input into the filter and returning a time-to-
 
 [`astro-emoji`](https://github.com/seanmcp/astro-emoji#astro-emoji)
 
-## Table of Contents (ToC) generator
+### Table of Contents (ToC) generator
 
 [`astro-toc`](https://github.com/theisel/astro-toc#readme)
 
-## Astro wrapper for the `@github/clipboard-copy-element` web component. Copies element text content or input values to the clipboard
+### Astro wrapper for the `@github/clipboard-copy-element` web component. Copies element text content or input values to the clipboard
 
 [`clipboard-copy`](https://github.com/BryceRussell/astro-github-elements/tree/main/packages/clipboard-copy#astro-github-elementsclipboard-copy)
 
-## Astro wrapper for GitHub's relative time web component. Translates dates to past or future time phrases, like "*4 hours from now*" or "*20 days ago*"
+### Astro wrapper for GitHub's relative time web component. Translates dates to past or future time phrases, like "*4 hours from now*" or "*20 days ago*"
 
 [Relative Time](https://github.com/BryceRussell/astro-github-elements/tree/main/packages/time#readme)
 

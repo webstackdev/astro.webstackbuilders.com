@@ -32,6 +32,7 @@ const getElements = (root: NewsletterFormElement) => {
 
   return {
     form: selectElement<HTMLFormElement>('#newsletter-form'),
+    emailLabel: selectElement<HTMLLabelElement>('#newsletter-email-label'),
     emailInput: selectElement<HTMLInputElement>('#newsletter-email'),
     consentCheckbox: selectElement<HTMLInputElement>('#newsletter-gdpr-consent'),
     submitButton: selectElement<HTMLButtonElement>('#newsletter-submit'),
@@ -90,6 +91,11 @@ describe('NewsletterFormElement web component', () => {
       expect(elements.form.id).toBe('newsletter-form')
       expect(elements.emailInput.id).toBe('newsletter-email')
       expect(elements.consentCheckbox.id).toBe('newsletter-gdpr-consent')
+
+      expect(elements.emailLabel.getAttribute('for')).toBe('newsletter-email')
+      expect(elements.emailLabel.textContent).toContain('Email')
+      expect(elements.buttonArrow.getAttribute('aria-hidden')).toBe('true')
+      expect(elements.buttonSpinner.getAttribute('aria-hidden')).toBe('true')
     })
   })
 
@@ -98,10 +104,14 @@ describe('NewsletterFormElement web component', () => {
       const submitEvent = new Event('submit', { bubbles: true, cancelable: true })
       elements.form.dispatchEvent(submitEvent)
       expect(elements.message.textContent).toBe('Please enter your email address.')
+      expect(elements.emailInput.getAttribute('aria-invalid')).toBe('true')
+      expect(elements.message.getAttribute('role')).toBe('alert')
+      expect(elements.message.getAttribute('aria-live')).toBe('assertive')
 
       elements.emailInput.value = 'invalid-email'
       elements.form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
       expect(elements.message.textContent).toBe('Please enter a valid email address.')
+      expect(elements.emailInput.getAttribute('aria-invalid')).toBe('true')
     })
   })
 
@@ -112,6 +122,8 @@ describe('NewsletterFormElement web component', () => {
 
       elements.form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
       expect(elements.message.textContent).toBe('Please consent to receive marketing communications.')
+      expect(elements.emailInput.getAttribute('aria-invalid')).toBe(null)
+      expect(elements.consentCheckbox.getAttribute('aria-invalid')).toBe('true')
     })
   })
 
@@ -139,9 +151,13 @@ describe('NewsletterFormElement web component', () => {
         body: JSON.stringify({ email: 'test@example.com', consentGiven: true }),
       })
       expect(elements.message.textContent).toBe('Subscribed successfully!')
+      expect(elements.message.getAttribute('role')).toBe('status')
+      expect(elements.message.getAttribute('aria-live')).toBe('polite')
       expect(confettiFireHandler).toHaveBeenCalledTimes(1)
       expect(elements.submitButton.disabled).toBe(false)
       expect(elements.buttonSpinner.classList.contains('hidden')).toBe(true)
+      expect(elements.emailInput.getAttribute('aria-invalid')).toBe(null)
+      expect(elements.consentCheckbox.getAttribute('aria-invalid')).toBe(null)
     })
   })
 
