@@ -159,14 +159,15 @@ export class ComputersAnimationElement extends LitElement {
       this.isPageVisible = document.visibilityState !== 'hidden'
       document.addEventListener('visibilitychange', this.visibilityChangeHandler)
 
-      const intersectionObserverCtor = (globalThis as unknown as { IntersectionObserver?: typeof IntersectionObserver })
-        .IntersectionObserver
+      const IntersectionObserverCtor = (
+        globalThis as unknown as { IntersectionObserver?: typeof IntersectionObserver }
+      ).IntersectionObserver
 
-      if (typeof intersectionObserverCtor !== 'function') {
+      if (typeof IntersectionObserverCtor !== 'function') {
         return
       }
 
-      this.intersectionObserver = new intersectionObserverCtor(
+      this.intersectionObserver = new IntersectionObserverCtor(
         (entries) => {
           const entry = entries.at(0)
           const ratio = entry?.intersectionRatio ?? 0
