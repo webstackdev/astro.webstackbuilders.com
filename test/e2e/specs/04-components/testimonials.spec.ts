@@ -293,7 +293,7 @@ test.describe('Testimonials Component', () => {
     }, testimonialsEmblaSelector)
 
     // Wait longer than rotation interval to verify it doesn't advance by checking over time
-    let textAfterHover = initialText
+    let textAfterHover: string | null
     for (let index = 0; index < 7; index++) {
       await waitForAnimationFrames(page.page, 60)
       textAfterHover = await testimonials.locator('blockquote').first().textContent()
