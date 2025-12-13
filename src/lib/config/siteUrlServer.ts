@@ -12,20 +12,11 @@ const resolvedDevServerPort = devServerPort && devServerPort.length > 0 ? devSer
 /** Called from astro.config.ts to determine "site" config key */
 export const getSiteUrl = (): string => {
   if (isVercel() && domain) {
-    console.log(`✅ Using production environment with domain from package.json: ${domain}`)
     return `https://${domain}`
   }
 
   if (isVercel() && !domain) {
     throw new BuildError('❌ Domain is required in package.json for Vercel production environment.')
-  }
-
-  if (devServerPort && devServerPort.length > 0) {
-    console.log(`Using development environment on port ${resolvedDevServerPort}.`)
-  } else {
-    console.log(
-      '✅ Using default value of "http://localhost:4321" for the site URL. DEV_SERVER_PORT is not set in the environment.'
-    )
   }
 
   return `http://localhost:${resolvedDevServerPort}`

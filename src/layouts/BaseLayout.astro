@@ -19,6 +19,8 @@ import '@styles/icons.css'
 
 export interface Props {
   author?: string
+  /** Optional title override for the breadcrumbs UI */
+  breadcrumbTitle?: string
   /** Enforce that child is passed to slot */
   children: unknown
   /** Optional metadata for articles */
@@ -46,6 +48,7 @@ export interface Props {
 
 const {
   author,
+  breadcrumbTitle,
   contentType,
   description,
   modifiedDate,
@@ -95,7 +98,7 @@ const {
       <Container id="main-content">
         <ThemePicker />
         <Header path={path} />
-        <Breadcrumbs path={path} pageTitle={pageTitle} />
+        <Breadcrumbs path={path} pageTitle={breadcrumbTitle ?? pageTitle} />
         {/* SLOT: default (unnamed) - Main page content */}
         <Content>
           <slot />

@@ -1,9 +1,8 @@
 ---
-import { type CollectionEntry, getCollection } from 'astro:content'
+import { type CollectionEntry, getCollection, render } from 'astro:content'
 import { Picture } from 'astro:assets'
 import { isDev, isProd } from '@lib/config/environmentServer'
 import BaseLayout from '@layouts/BaseLayout.astro'
-import { exceptions } from '@content/_tagList'
 
 export interface Params {
   tag: string
@@ -20,6 +19,8 @@ export interface Props {
 }
 
 export async function getStaticPaths() {
+  const allTags = await getCollection('tags')
+
   // Get all content collections with tags
   const allArticles = await getCollection('articles', ({ data }) => {
     return isDev() || (isProd() && data.isDraft !== true)
@@ -45,8 +46,12 @@ export async function getStaticPaths() {
 
   const uniqueTags = [...new Set(allContent.map(item => item.data.tags).flat())]
 
-  return uniqueTags.map(tag => {
-    const filteredContent = allContent.filter(item => item.data.tags.includes(tag))
+  return allTags.map(tagEntry => {
+    const tag = tagEntry.data.slug
+    const filteredContent = uniqueTags.includes(tag)
+      ? allContent.filter(item => item.data.tags.includes(tag))
+      : []
+
     return {
       params: { tag },
       props: { content: filteredContent },
@@ -56,6 +61,18 @@ export async function getStaticPaths() {
 
 const { tag } = Astro.params
 const { content: allTagContent } = Astro.props
+
+const [tagEntry] = await getCollection('tags', ({ data }) => data.slug === tag)
+if (!tagEntry) {
+  throw new Error(`Unknown tag: ${tag}`)
+}
+
+const allTags = await getCollection('tags')
+const tagDisplayNameBySlug = Object.fromEntries(
+  allTags.map(t => [t.data.slug, t.data.displayName])
+)
+
+const { Content: TagContent } = await render(tagEntry)
 
 // Pagination setup
 const ITEMS_PER_PAGE = 12
@@ -72,9 +89,8 @@ const sortedContent = allTagContent.sort(
 
 const paginatedContent = sortedContent.slice(startIndex, endIndex)
 
-// Function to get display name for tags
-const getTagDisplayName = (tag: string) => {
-  return exceptions[tag as keyof typeof exceptions] || tag
+const getTagDisplayName = (tagSlug: string) => {
+  return tagDisplayNameBySlug[tagSlug] || tagSlug
 }
 
 const typeMetadata = {
@@ -84,10 +100,11 @@ const typeMetadata = {
   download: { label: 'Download', badgeClass: 'bg-secondary', hrefBase: 'downloads' },
 } as const
 
-const displayName = getTagDisplayName(tag)
-const path = `/tags/${tag}/`
-const pageDescription= `List of content tagged with ${displayName}`
+const displayName = tagEntry.data.displayName
+const path = `/tags/${tag}`
+const pageDescription = tagEntry.data.description
 const pageTitle = `${displayName} - Tag`
+const breadcrumbTitle = displayName
 const section = 'Tags'
 ---
 
@@ -95,21 +112,44 @@ const section = 'Tags'
   pageTitle={pageTitle}
   path={path}
   description={pageDescription}
+  breadcrumbTitle={breadcrumbTitle}
   section={section}
 >
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <header class="text-center mb-12">
-      <h1 class="text-4xl md:text-5xl font-bold text-text mb-4">
-        {displayName}
-      </h1>
-      <p class="text-xl text-text-muted">
-        {totalItems} item{totalItems !== 1 ? 's' : ''} tagged with {displayName.toLowerCase()}
-      </p>
-      <nav class="mt-4">
-        <a href="/tags/" class="text-primary hover:underline">
-          ← Browse all tags
-        </a>
-      </nav>
+    <header class="mb-12">
+      <div class="flex flex-col gap-6 sm:flex-row sm:items-start">
+        <div class="shrink-0">
+          <div class="relative w-28 sm:w-32 md:w-40 aspect-square overflow-hidden rounded-2xl bg-bg-offset">
+            <img
+              src={tagEntry.data.cover.src}
+              width={tagEntry.data.cover.width}
+              height={tagEntry.data.cover.height}
+              alt={tagEntry.data.coverAlt}
+              class="absolute inset-0 h-full w-full object-contain"
+              loading="eager"
+              decoding="async"
+            />
+          </div>
+        </div>
+
+        <div class="min-w-0 flex-1">
+          <h1 class="text-4xl md:text-5xl font-bold text-text mb-4">
+            {displayName}
+          </h1>
+          <p class="text-xl text-text-muted">
+            {totalItems} item{totalItems !== 1 ? 's' : ''} tagged with {displayName.toLowerCase()}
+          </p>
+          <div class="mt-6 prose prose-invert max-w-none">
+            <TagContent />
+          </div>
+
+          <nav class="mt-6">
+            <a href="/tags" class="text-primary hover:underline">
+              ← Browse all tags
+            </a>
+          </nav>
+        </div>
+      </div>
     </header>
 
     {
@@ -122,8 +162,8 @@ const section = 'Tags'
 
               return (
                 <article class="bg-bg rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
-                  <a href={href} class="block h-full">
-                    {item.data.cover && (
+                  {item.data.cover && (
+                    <a href={href} class="block">
                       <div class="relative aspect-video overflow-hidden">
                         <Picture
                           src={item.data.cover}
@@ -138,61 +178,66 @@ const section = 'Tags'
                           loading="lazy"
                         />
                       </div>
+                    </a>
+                  )}
+
+                  <div class="p-6 space-y-4">
+                    <div class="flex items-center gap-3 text-sm">
+                      <span
+                        class={`px-3 py-1 rounded-full text-white font-medium ${typeMeta.badgeClass}`}
+                      >
+                        {typeMeta.label}
+                      </span>
+                      <time class="text-text-muted">
+                        {item.data.publishDate.toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                        })}
+                      </time>
+                    </div>
+
+                    <h2 class="text-xl font-semibold text-text leading-tight">
+                      <a
+                        href={href}
+                        class="group-hover:text-primary transition-colors duration-300"
+                      >
+                        {item.data.title}
+                      </a>
+                    </h2>
+
+                    {item.data.description && (
+                      <p class="text-text-muted text-sm leading-relaxed line-clamp-3">
+                        {item.data.description}
+                      </p>
                     )}
 
-                    <div class="p-6 space-y-4">
-                      <div class="flex items-center gap-3 text-sm">
-                        <span
-                          class={`px-3 py-1 rounded-full text-white font-medium ${typeMeta.badgeClass}`}
-                        >
-                          {typeMeta.label}
+                    <div class="space-y-3 pt-2">
+                      {/* Client or Author info */}
+                      {'client' in item.data && item.data.client && (
+                        <span class="inline-block text-sm font-medium text-primary bg-primary-bg px-3 py-1 rounded-full">
+                          Client: {item.data.client}
                         </span>
-                        <time class="text-text-muted">
-                          {item.data.publishDate.toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                          })}
-                        </time>
-                      </div>
-
-                      <h2 class="text-xl font-semibold text-text leading-tight group-hover:text-primary transition-colors duration-300">
-                        {item.data.title}
-                      </h2>
-
-                      {item.data.description && (
-                        <p class="text-text-muted text-sm leading-relaxed line-clamp-3">
-                          {item.data.description}
-                        </p>
                       )}
 
-                      <div class="space-y-3 pt-2">
-                        {/* Client or Author info */}
-                        {'client' in item.data && item.data.client && (
-                          <span class="inline-block text-sm font-medium text-primary bg-primary-bg px-3 py-1 rounded-full">
-                            Client: {item.data.client}
-                          </span>
-                        )}
-
-                        {/* Additional tags */}
-                        {item.data.tags && item.data.tags.length > 1 && (
-                          <div class="flex flex-wrap gap-2">
-                            {item.data.tags
-                              .filter((t: string) => t !== tag)
-                              .slice(0, 3)
-                              .map((relatedTag: string) => (
-                                <a
-                                  href={`/tags/${relatedTag}/`}
-                                  class="text-xs font-medium text-text-muted bg-bg-offset hover:bg-border px-2 py-1 rounded-full transition-colors duration-200"
-                                >
-                                  {getTagDisplayName(relatedTag)}
-                                </a>
-                              ))}
-                          </div>
-                        )}
-                      </div>
+                      {/* Additional tags */}
+                      {item.data.tags && item.data.tags.length > 1 && (
+                        <div class="flex flex-wrap gap-2">
+                          {item.data.tags
+                            .filter((t: string) => t !== tag)
+                            .slice(0, 3)
+                            .map((relatedTag: string) => (
+                              <a
+                                href={`/tags/${relatedTag}`}
+                                class="text-xs font-medium text-text-muted bg-bg-offset hover:bg-border px-2 py-1 rounded-full transition-colors duration-200"
+                              >
+                                {getTagDisplayName(relatedTag)}
+                              </a>
+                            ))}
+                        </div>
+                      )}
                     </div>
-                  </a>
+                  </div>
                 </article>
               )
             })}
@@ -278,7 +323,7 @@ const section = 'Tags'
           <p class="text-xl text-text-muted mb-4">
             No content found for this tag.
           </p>
-          <a href="/tags/" class="text-primary hover:underline">
+          <a href="/tags" class="text-primary hover:underline">
             Browse other tags
           </a>
         </div>

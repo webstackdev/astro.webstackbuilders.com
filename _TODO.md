@@ -1,6 +1,8 @@
 <!-- markdownlint-disable-file -->
 # TODO
 
+continue
+
 ## Refactor API Endpoints to Astro Actions
 
 ### Action / Domain / Responder Pattern
@@ -143,23 +145,14 @@ cat.structure: Rules related to the document's overall structure, like the prope
 cat.tables: Rules for data tables, including headers and associations.
 cat.text-alternatives: Rules for ensuring that text alternatives are provided for non-text content, such as images.
 
-## Privacy policy errors
+## Tags
 
-fatal: /home/kevin/Repos/Webstack: '/home/kevin/Repos/Webstack' is outside repository at '/home/kevin/Repos/Webstack Builders/Corporate Website/astro.webstackbuilders.com'
-
-[privacy-policy-version] Could not get privacy policy version from git: Command failed: git log -1 --format=%cd --date=format:%Y-%m-%d -- /home/kevin/Repos/Webstack Builders/Corporate Website/astro.webstackbuilders.com/src/pages/privacy/index.astro
-
-fatal: /home/kevin/Repos/Webstack: '/home/kevin/Repos/Webstack' is outside repository at '/home/kevin/Repos/Webstack Builders/Corporate Website/astro.webstackbuilders.com'
-
-⚠️  Privacy policy version fallback applied: 2025-12-08
+- Sitemap
+- E2E all pages helper
 
 ## Build output errors
 
 00:19:09 [WARN] [vite] [plugin:astro:assets:esm] context method emitFile() is not supported in serve mode. This plugin is likely not vite-compatible.
-
-## Tags
-
-Can we add a markdown page to explain what each tag is, and use those pages instead of src/content/_tagList.ts to define the tags available?
 
 ## Use Confetti on CTA forms
 
