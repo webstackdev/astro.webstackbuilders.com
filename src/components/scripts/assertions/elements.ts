@@ -12,7 +12,7 @@ export function isType1Element(element: unknown): element is Element {
     element &&
     typeof element === 'object' &&
     'tagName' in (element as Element) &&
-    (element as Element).nodeType === Node.ELEMENT_NODE
+    (element as Element).nodeType === 1
   )
     return true
   return false

@@ -3,6 +3,7 @@ import Autoplay from 'embla-carousel-autoplay'
 import { addButtonEventListeners } from '@components/scripts/elementListeners'
 import { addScriptBreadcrumb, ClientScriptError } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
+import { isButtonElement, isType1Element } from '@components/scripts/assertions/elements'
 import { defineCustomElement } from '@components/scripts/utils'
 import {
   createAnimationController,
@@ -44,6 +45,8 @@ export class TestimonialsCarouselElement extends HTMLElement {
   private dotsContainer: HTMLElement | null = null
   private prevBtn: HTMLButtonElement | null = null
   private nextBtn: HTMLButtonElement | null = null
+  private autoplayToggleBtn: HTMLButtonElement | null = null
+  private viewportId: string | null = null
   private initialized = false
   private animationController: AnimationControllerHandle | undefined
   private pendingAutoplayState: AnimationPlayState | null = null
@@ -108,8 +111,9 @@ export class TestimonialsCarouselElement extends HTMLElement {
       this.emblaRoot = scopedRoot ?? null
       this.viewport = this.querySelector('.embla__viewport')
       this.dotsContainer = this.querySelector('.embla__dots')
-      this.prevBtn = this.querySelector('.embla__button--prev')
-      this.nextBtn = this.querySelector('.embla__button--next')
+      this.prevBtn = this.resolveButton('.embla__button--prev')
+      this.nextBtn = this.resolveButton('.embla__button--next')
+      this.autoplayToggleBtn = this.resolveButton('[data-testimonials-autoplay-toggle]')
 
       if (!this.emblaRoot || !this.viewport) {
         throw new ClientScriptError('TestimonialsCarouselElement: Missing DOM nodes for Embla setup')
@@ -140,6 +144,7 @@ export class TestimonialsCarouselElement extends HTMLElement {
 
       this.setupNavigationButtons()
       this.setupDotsNavigation()
+      this.setupAutoplayToggle()
 
       this.initialized = true
       this.setAttribute('data-carousel-ready', 'true')
@@ -204,6 +209,8 @@ export class TestimonialsCarouselElement extends HTMLElement {
   private setupNavigationButtons(): void {
     if (!this.emblaApi || !this.prevBtn || !this.nextBtn) return
 
+    this.ensureViewportId()
+
     const updateButtonStates = () => {
       if (!this.emblaApi || !this.prevBtn || !this.nextBtn) return
 
@@ -240,6 +247,11 @@ export class TestimonialsCarouselElement extends HTMLElement {
       }
     }, this)
 
+    if (this.viewportId) {
+      this.prevBtn.setAttribute('aria-controls', this.viewportId)
+      this.nextBtn.setAttribute('aria-controls', this.viewportId)
+    }
+
     this.emblaApi.on('select', updateButtonStates)
     this.emblaApi.on('reInit', updateButtonStates)
     updateButtonStates()
@@ -247,6 +259,8 @@ export class TestimonialsCarouselElement extends HTMLElement {
 
   private setupDotsNavigation(): void {
     if (!this.emblaApi || !this.dotsContainer) return
+
+    this.ensureViewportId()
 
     const dotsContainer = this.dotsContainer
     const ownerDocument = this.ownerDocument ?? document
@@ -264,6 +278,10 @@ export class TestimonialsCarouselElement extends HTMLElement {
         dot.className =
           'embla__dot w-3 h-3 rounded-full bg-[color:var(--color-text-offset)] transition-all duration-300 hover:bg-[color:var(--color-primary)]'
         dot.setAttribute('aria-label', `Go to testimonial ${index + 1}`)
+
+        if (this.viewportId) {
+          dot.setAttribute('aria-controls', this.viewportId)
+        }
 
         addButtonEventListeners(dot, () => {
           try {
@@ -323,6 +341,75 @@ export class TestimonialsCarouselElement extends HTMLElement {
 
   private setAutoplayState(state: 'playing' | 'paused'): void {
     this.setAttribute('data-carousel-autoplay', state)
+    this.syncAutoplayToggleButton(state)
+  }
+
+  private setupAutoplayToggle(): void {
+    if (!this.autoplayToggleBtn) {
+      return
+    }
+
+    this.ensureViewportId()
+    if (this.viewportId) {
+      this.autoplayToggleBtn.setAttribute('aria-controls', this.viewportId)
+    }
+
+    addButtonEventListeners(
+      this.autoplayToggleBtn,
+      () => {
+        const state = this.getAttribute('data-carousel-autoplay')
+        if (state === 'playing') {
+          this.pause()
+          return
+        }
+        this.resume()
+      },
+      this,
+    )
+
+    const initialState = (this.getAttribute('data-carousel-autoplay') as 'playing' | 'paused' | null) ?? 'paused'
+    this.syncAutoplayToggleButton(initialState)
+  }
+
+  private syncAutoplayToggleButton(state: 'playing' | 'paused'): void {
+    if (!this.autoplayToggleBtn) {
+      return
+    }
+
+    const pauseIcon = this.autoplayToggleBtn.querySelector('[data-testimonials-icon="pause"]')
+    const playIcon = this.autoplayToggleBtn.querySelector('[data-testimonials-icon="play"]')
+
+    if (state === 'playing') {
+      this.autoplayToggleBtn.setAttribute('aria-label', 'Pause testimonials')
+      this.autoplayToggleBtn.setAttribute('aria-pressed', 'false')
+      if (isType1Element(pauseIcon)) pauseIcon.classList.remove('hidden')
+      if (isType1Element(playIcon)) playIcon.classList.add('hidden')
+      return
+    }
+
+    this.autoplayToggleBtn.setAttribute('aria-label', 'Play testimonials')
+    this.autoplayToggleBtn.setAttribute('aria-pressed', 'true')
+    if (isType1Element(pauseIcon)) pauseIcon.classList.add('hidden')
+    if (isType1Element(playIcon)) playIcon.classList.remove('hidden')
+  }
+
+  private ensureViewportId(): void {
+    if (!this.viewport || this.viewportId) {
+      return
+    }
+
+    const existingId = this.viewport.getAttribute('id')
+    const nextId = existingId && existingId.length > 0 ? existingId : `${this.animationInstanceId}-viewport`
+    this.viewport.setAttribute('id', nextId)
+    this.viewportId = nextId
+  }
+
+  private resolveButton(selector: string): HTMLButtonElement | null {
+    const element = this.querySelector(selector)
+    if (!isButtonElement(element)) {
+      return null
+    }
+    return element
   }
 
   private updateAutoplayState(state: AnimationPlayState): void {
