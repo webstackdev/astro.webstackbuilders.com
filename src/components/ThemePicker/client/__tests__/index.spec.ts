@@ -135,7 +135,7 @@ describe('ThemePicker Component', () => {
       await renderThemePickerDom(({ window }) => {
         const toggleBtn = getToggleButton(window.document)
         expect(toggleBtn.getAttribute('aria-expanded')).toBe('false')
-        expect(toggleBtn.getAttribute('aria-owns')).toBe('theme-menu')
+        expect(toggleBtn.getAttribute('aria-controls')).toBe('theme-picker-panel')
         expect(toggleBtn.getAttribute('aria-haspopup')).toBe('true')
       })
     })
