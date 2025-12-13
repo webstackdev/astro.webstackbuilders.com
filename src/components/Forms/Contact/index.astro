@@ -1,6 +1,7 @@
 ---
 // ContactForm.astro - Reusable contact form component
 import GDPRConsent from '@components/Consent/Checkbox/index.astro'
+import Confetti from '@components/Animations/Confetti/index.astro'
 import UploadPlaceholder from './upload.astro'
 ---
 
@@ -241,29 +242,31 @@ import UploadPlaceholder from './upload.astro'
         <p><strong>Your Rights:</strong> You can request access, correction, or deletion of your data at any time by contacting <a href="mailto:kevin@webstackbuilders.com" class="text-primary hover:underline">kevin@webstackbuilders.com</a>.</p>
       </div>
 
-      <div class="flex justify-end">
-        <button
-          type="submit"
-          class="inline-flex items-center justify-center px-8 py-4 bg-primary hover:bg-primary-hover text-white font-semibold rounded-xl transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none min-w-[200px]"
-          id="submitBtn"
-        >
-          <span class="btn-text">Send Project Details</span>
-          <span class="btn-loading hidden">
-            <svg class="animate-spin w-5 h-5 mr-2" viewBox="0 0 24 24">
-              <circle
-                cx="12"
-                cy="12"
-                r="10"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                opacity="0.3"></circle>
-              <path d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" fill="currentColor"></path>
-            </svg>
-            Sending...
-          </span>
-        </button>
-      </div>
+      <Confetti>
+        <div class="flex justify-end">
+          <button
+            type="submit"
+            class="inline-flex items-center justify-center px-8 py-4 bg-primary hover:bg-primary-hover text-white font-semibold rounded-xl transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none min-w-[200px]"
+            id="submitBtn"
+          >
+            <span class="btn-text">Send Project Details</span>
+            <span class="btn-loading hidden">
+              <svg class="animate-spin w-5 h-5 mr-2" viewBox="0 0 24 24">
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  opacity="0.3"></circle>
+                <path d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" fill="currentColor"></path>
+              </svg>
+              Sending...
+            </span>
+          </button>
+        </div>
+      </Confetti>
     </form>
 
     <!-- Form Messages -->
