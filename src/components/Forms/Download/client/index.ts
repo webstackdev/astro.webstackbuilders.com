@@ -72,6 +72,20 @@ export class DownloadFormElement extends LitElement {
     }
   }
 
+  private syncAriaInvalidState(form: HTMLFormElement): void {
+    const invalidControls = form.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
+      'input, select, textarea',
+    )
+
+    invalidControls.forEach((control) => {
+      if (control.willValidate && !control.checkValidity()) {
+        control.setAttribute('aria-invalid', 'true')
+        return
+      }
+      control.removeAttribute('aria-invalid')
+    })
+  }
+
   private async handleSubmit(event: Event): Promise<void> {
     const context = { scriptName, operation: 'handleSubmit' }
     addScriptBreadcrumb(context)
@@ -80,16 +94,23 @@ export class DownloadFormElement extends LitElement {
       event.preventDefault()
       const { form, submitButton, downloadButtonWrapper } = this.getElements()
 
+      if (!form.checkValidity()) {
+        form.reportValidity()
+        this.syncAriaInvalidState(form)
+        this.showStatus('error', 'Please complete all required fields before continuing.')
+        return
+      }
+
       submitButton.disabled = true
       submitButton.textContent = 'Processing...'
 
       const formData = new FormData(form)
       const payload = {
-        firstName: formData.get('firstName'),
-        lastName: formData.get('lastName'),
-        workEmail: formData.get('workEmail'),
-        jobTitle: formData.get('jobTitle'),
-        companyName: formData.get('companyName'),
+        firstName: String(formData.get('firstName') ?? ''),
+        lastName: String(formData.get('lastName') ?? ''),
+        workEmail: String(formData.get('workEmail') ?? ''),
+        jobTitle: String(formData.get('jobTitle') ?? ''),
+        companyName: String(formData.get('companyName') ?? ''),
       }
 
       try {
@@ -121,6 +142,7 @@ export class DownloadFormElement extends LitElement {
         downloadButtonWrapper.classList.remove('hidden')
         submitButton.classList.add('hidden')
         form.reset()
+        this.syncAriaInvalidState(form)
       } catch (error) {
         handleScriptError(error, { scriptName, operation: 'apiSubmission' })
         this.showStatus('error', 'There was an error processing your request. Please try again.')
@@ -144,6 +166,15 @@ export class DownloadFormElement extends LitElement {
 
     try {
       const { statusDiv } = this.getElements()
+
+      if (type === 'error') {
+        statusDiv.setAttribute('role', 'alert')
+        statusDiv.setAttribute('aria-live', 'assertive')
+      } else {
+        statusDiv.setAttribute('role', 'status')
+        statusDiv.setAttribute('aria-live', 'polite')
+      }
+
       statusDiv.textContent = message
       statusDiv.classList.remove('hidden', 'success', 'error')
       statusDiv.classList.add(type)

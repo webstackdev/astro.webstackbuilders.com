@@ -49,6 +49,29 @@ describe('download-form web component', () => {
     vi.restoreAllMocks()
   })
 
+  it('does not submit when native form validation fails', async () => {
+    await renderDownloadForm(async ({ elements, window }) => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(successfulResponse())
+
+      vi.spyOn(elements.form, 'checkValidity').mockReturnValue(false)
+      vi.spyOn(elements.form, 'reportValidity').mockReturnValue(false)
+
+      // Leave inputs empty; validation is stubbed to fail.
+      submitForm(window, elements.form)
+      await flushPromises()
+
+      expect(fetchSpy).not.toHaveBeenCalled()
+      expect(elements.firstName.getAttribute('aria-invalid')).toBe('true')
+
+      expect(elements.statusDiv.classList.contains('hidden')).toBe(false)
+      expect(elements.statusDiv.classList.contains('error')).toBe(true)
+      expect(elements.statusDiv.getAttribute('role')).toBe('alert')
+      expect(elements.statusDiv.getAttribute('aria-live')).toBe('assertive')
+
+      fetchSpy.mockRestore()
+    })
+  })
+
   it('submits download requests via fetch', async () => {
     await renderDownloadForm(async ({ elements, window }) => {
       const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(successfulResponse())
@@ -83,6 +106,8 @@ describe('download-form web component', () => {
       expect(elements.statusDiv.classList.contains('hidden')).toBe(false)
       expect(elements.statusDiv.classList.contains('success')).toBe(true)
       expect(elements.statusDiv.textContent).toContain('Thank you')
+      expect(elements.statusDiv.getAttribute('role')).toBe('status')
+      expect(elements.statusDiv.getAttribute('aria-live')).toBe('polite')
       expect(elements.downloadButtonWrapper.classList.contains('hidden')).toBe(false)
       expect(elements.submitButton.classList.contains('hidden')).toBe(true)
       expect(elements.firstName.value).toBe('')
@@ -130,6 +155,8 @@ describe('download-form web component', () => {
       expect(elements.statusDiv.classList.contains('hidden')).toBe(false)
       expect(elements.statusDiv.classList.contains('error')).toBe(true)
       expect(elements.statusDiv.textContent).toContain('There was an error processing your request')
+      expect(elements.statusDiv.getAttribute('role')).toBe('alert')
+      expect(elements.statusDiv.getAttribute('aria-live')).toBe('assertive')
       expect(elements.downloadButtonWrapper.classList.contains('hidden')).toBe(true)
       expect(elements.submitButton.classList.contains('hidden')).toBe(false)
 
