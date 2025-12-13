@@ -34,7 +34,7 @@ const breadcrumbSchema = site && breadcrumbs.length > 1
 {
   breadcrumbs.length > 1 && (
     <div class="mx-auto max-w-300 w-[90%] mt-4">
-      <nav aria-label="Breadcrumb" class="breadcrumbs pl-8">
+      <nav aria-label="Breadcrumbs" class="breadcrumbs pl-8">
         <ol class="flex items-center space-x-2 text-sm text-offset">
           {breadcrumbs.map((item, index) => (
             <li class="flex items-center">
@@ -62,21 +62,21 @@ const breadcrumbSchema = site && breadcrumbs.length > 1
               ) : (
                 <a
                   href={item.href}
-                  class="text-primary hover:text-primary-offset hover:underline transition-colors duration-200"
+                  class="text-primary hover:text-primary-offset hover:underline focus:text-primary-offset focus:underline focus:outline-none transition-colors duration-200"
                 >
                   {item.label}
                 </a>
               )}
-              {breadcrumbSchema && (
-                <script
-                  is:inline
-                  type="application/ld+json"
-                  set:html={breadcrumbSchema}
-                />
-              )}
             </li>
           ))}
         </ol>
+        {breadcrumbSchema && (
+          <script
+            is:inline
+            type="application/ld+json"
+            set:html={breadcrumbSchema}
+          />
+        )}
       </nav>
     </div>
   )
