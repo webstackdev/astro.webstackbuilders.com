@@ -15,9 +15,22 @@ describe('ContactForm selectors', () => {
       expect(elements.fields.email.feedback.dataset['fieldError']).toBe('email')
       expect(elements.fields.message.feedback.dataset['fieldError']).toBe('message')
 
+      expect(elements.fields.name.feedback.id).toBe('name-error')
+      expect(elements.fields.email.feedback.id).toBe('email-error')
+      expect(elements.fields.message.feedback.id).toBe('message-error')
+
+      expect(elements.fields.name.input.getAttribute('aria-errormessage')).toBe('name-error')
+      expect(elements.fields.email.input.getAttribute('aria-errormessage')).toBe('email-error')
+      expect(elements.fields.message.input.getAttribute('aria-errormessage')).toBe('message-error')
+
       expect(elements.formErrorBanner.id).toBe('formErrorBanner')
       expect(elements.successMessage.classList.contains('message-success')).toBe(true)
       expect(elements.errorMessage.classList.contains('message-error')).toBe(true)
+
+      expect(elements.successMessage.getAttribute('role')).toBe('status')
+      expect(elements.successMessage.getAttribute('aria-live')).toBe('polite')
+      expect(elements.errorMessage.getAttribute('role')).toBe('alert')
+      expect(elements.errorMessage.getAttribute('aria-live')).toBe('assertive')
       expect(elements.charCount.id).toBe('charCount')
       expect(elements.submitBtn.id).toBe('submitBtn')
       expect(elements.btnText.classList.contains('btn-text')).toBe(true)
