@@ -42,10 +42,18 @@ describe('NetworkStatusToastElement', () => {
 
   test('is hidden by default', async () => {
     await renderComponent(async ({ element }) => {
-      const toast = element.querySelector('#network-status-toast')
+      const toast = element.querySelector('[data-network-status-toast]')
       expect(toast).toBeTruthy()
       expect(toast?.classList.contains('hidden')).toBe(true)
       expect(toast?.getAttribute('data-type')).toBe('success')
+      expect(toast?.getAttribute('role')).toBe('status')
+      expect(toast?.getAttribute('aria-live')).toBe('polite')
+      expect(toast?.getAttribute('aria-atomic')).toBe('true')
+
+      const svgs = toast?.querySelectorAll('svg') ?? []
+      svgs.forEach((svg) => {
+        expect(svg.getAttribute('focusable')).toBe('false')
+      })
     })
   })
 
@@ -56,14 +64,29 @@ describe('NetworkStatusToastElement', () => {
       window.dispatchEvent(new window.Event('online'))
       await element.updateComplete
 
-      const toast = element.querySelector('#network-status-toast')
+      const toast = element.querySelector('[data-network-status-toast]')
       expect(toast?.classList.contains('hidden')).toBe(false)
       expect(toast?.getAttribute('data-type')).toBe('success')
+      expect(toast?.getAttribute('role')).toBe('status')
+      expect(toast?.getAttribute('aria-live')).toBe('polite')
       expect(toast?.querySelector('.toast-message')?.textContent).toBe('Connection restored!')
 
       vi.advanceTimersByTime(3000)
       await element.updateComplete
       expect(toast?.classList.contains('hidden')).toBe(true)
+    })
+  })
+
+  test('uses alert semantics for error toasts', async () => {
+    await renderComponent(async ({ element }) => {
+      element.showNotification('Connection lost!', 'error')
+      await element.updateComplete
+
+      const toast = element.querySelector('[data-network-status-toast]')
+      expect(toast?.getAttribute('data-type')).toBe('error')
+      expect(toast?.getAttribute('role')).toBe('alert')
+      expect(toast?.getAttribute('aria-live')).toBe('assertive')
+      expect(toast?.getAttribute('aria-atomic')).toBe('true')
     })
   })
 
