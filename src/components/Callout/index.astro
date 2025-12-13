@@ -7,6 +7,16 @@ export interface Props {
 
 const { type = 'info' } = Astro.props
 
+const typeLabelMap = {
+  warning: 'Warning',
+  action: 'Action',
+  tip: 'Tip',
+  info: 'Info',
+  note: 'Note',
+  success: 'Success',
+  danger: 'Danger',
+} as const
+
 // Map callout types to sprite icons
 const iconMap = {
   warning: 'warning',
@@ -43,6 +53,7 @@ const borderColorMap = {
 const icon = iconMap[type] ?? iconMap.info
 const backgroundColor = backgroundColorMap[type] ?? backgroundColorMap.info
 const borderColor = borderColorMap[type] ?? borderColorMap.info
+const typeLabel = typeLabelMap[type] ?? typeLabelMap.info
 ---
 
 <style define:vars={{ backgroundColor, borderColor }}>
@@ -62,7 +73,7 @@ const borderColor = borderColorMap[type] ?? borderColorMap.info
   }
 </style>
 
-<div class="callout border border--border border-l-0 rounded-r-lg relative pl-6">
+<div class="callout border border--border border-l-0 rounded-r-lg relative pl-6" role="note">
   <div
     class="callout__icon bg-bg rounded-full absolute left-0 top-0 ml-0.5 p-1 -translate-x-1/2 -translate-y-1/2"
   >
@@ -70,6 +81,7 @@ const borderColor = borderColorMap[type] ?? borderColorMap.info
   </div>
 
   <div class="callout__content border-l-4 p-4 md:pl-8">
+    <span class="sr-only">{typeLabel} callout:</span>
     <slot />
   </div>
 </div>
