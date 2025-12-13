@@ -4,7 +4,7 @@
  */
 import type { Page } from '@playwright/test'
 import { expect } from '@test/e2e/helpers'
-import { waitForAnimationFrames } from '@test/e2e/helpers/waitHelpers'
+import { waitForAnimationFrames, waitForThemePickerReady } from '@test/e2e/helpers/waitHelpers'
 
 type ReloadStrategy = 'reload' | 'cacheBustingGoto'
 
@@ -150,6 +150,7 @@ export async function selectTheme(page: Page, themeId: string): Promise<void> {
   // Check if modal is already open (modal state now persists)
   const modal = page.locator('[data-theme-modal]')
   const toggleButton = getThemePickerToggle(page)
+  await waitForThemePickerReady(page)
   await modal.waitFor({ state: 'attached' })
   await toggleButton.waitFor({ state: 'visible' })
   const isOpen = await modal.evaluate((el) => !el.hasAttribute('hidden'))

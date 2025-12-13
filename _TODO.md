@@ -1,13 +1,74 @@
 <!-- markdownlint-disable-file -->
 # TODO
 
-## Fix E2E mock container test runner, migrate DB providers
+## Refactor API Endpoints to Astro Actions
 
-Refactor from using Suprabase and Upstash to using Astro DB + Turso
+### Action / Domain / Responder Pattern
 
-[Astro DB](https://docs.astro.build/en/guides/astro-db/)
+- The action takes HTTP requests (URLs and their methods) and uses that input to interact with the domain, after which it passes the domain's output to one and only one responder.
 
-## Mobile Social Shares
+**Here you define the route and the methods (get, post, put, delete)**
+
+`/actions` or `actions.ts`
+
+- This layer contains the business logic and the persistence logic (e.g., using a repository pattern or similar data mappers). The domain services are responsible for reading from and writing to the database to fulfill business requirements.
+
+`/domain`
+
+- Entities are part of the domain. They represent state and core business rules, but not persistence logic. Defined primarily by its unique identity, rather than its attributes or properties.
+
+Is an entry point to the domain logic forming the core of the application, modifying state and persistence as needed. This may be a Transaction Script, Service Layer, Application Service, or something similar.
+
+`/entities` or `entities.ts`
+
+- The responder builds the entire HTTP response from the domain's output which is given to it by the action. The Responder is responsible solely for formatting the final response (e.g., JSON, HTML) to be sent back to the client.
+
+`/responders` or `responders.ts`
+
+
+### Endpoints:
+
+- cron/cleanup-confirmations → GET
+- cron/cleanup-dsar-requests → GET
+- cron/run-all → GET
+- social-card/ → GET
+
+- contact/ → POST (contact form submission) and OPTIONS (CORS pre-flight)
+- downloads/submit → POST
+- gdpr/consent → POST, GET, DELETE
+- gdpr/request-data → POST
+- gdpr/export → GET
+- gdpr/verify → GET
+- health/ → GET
+- newsletter/ → POST, OPTIONS
+- newsletter/confirm → GET
+
+### Files importing from `astro:db`
+
+- _utils/rateLimit.ts
+- _utils/rateLimitStore.ts
+- cron/cleanup-confirmations.ts
+- cron/cleanup-dsar-requests.ts
+- gdpr/_utils/consentStore.ts
+- gdpr/_utils/dsarStore.ts
+- newsletter/_token.ts
+
+### Cross-endpoint dependencies:
+
+gdpr: Mostly self-contained, but `verify.ts` does import `deleteNewsletterConfirmationsByEmail` from `@pages/api/newsletter/_token` (line 15). That's a direct dependency on the newsletter code.
+
+newsletter: `confirm.ts` pulls `markConsentRecordsVerified` from `@pages/api/gdpr/_utils/consentStore` (line 10) to mark double opt-in consent. That's the reciprocal dependency.
+
+Newsletter hits the gdpr consent endpoint using `recordConsent` in `src/pages/api/_logger/index.ts`.
+
+If we want to make it feel less inconsistent, we could either (a) rename `_logger` to something like `_consentClient` so its purpose is clearer, or (b) move to a microservices architecture and expose a protected `/api/gdpr/verify` endpoint and have newsletter call it over HTTP as well - but that would need additional auth to prevent abuse.
+
+**Affected components:**
+
+- CallToAction/Newsletter
+- ContactForm
+
+## Mobile Social Shares UI
 
 See the example image in Social Shares.
 
@@ -58,33 +119,6 @@ accent
 
 text-white, other default Tailwind colors
 
-## Typing client-side API calls and SSR API endpoints
-
-Use Astro Actions
-
-Shared Types vs Swagger / Keeping Docs in Sync
-
-1. Type-only sharing (current approach)
-
-- Pros: zero extra build tooling, server/client stay aligned as long as both import @pages/api/_contracts.
-- Cons: no generated docs/SDKs; discipline is required to keep manual docs current.
-- How to enforce: treat the contract files as the single source of truth, add lint rules banning request/response literal types outside _contracts, and add lightweight contract tests that instantiate each type against the endpoint handler (failing if fields diverge).
-
-1. Code-first OpenAPI (Zod or TS schemas → OpenAPI)
-
-- Define schemas in Zod/Valibot (or ts-rest) alongside the endpoint. Generate OpenAPI JSON plus TypeScript types from those schemas. Docs (Swagger UI/Redoc) and any client SDKs come from the generated spec, so they're always in sync.
-- Guarantees: CI regenerates the spec and fails when the checked-in artifact is stale; endpoint handlers reuse the same schema for runtime validation, so a mismatch cannot compile.
-
-1. Spec-first OpenAPI + Swagger Codegen
-
-- Maintain an OpenAPI YAML/JSON file as the source of truth, run Swagger Codegen (or openapi-typescript) to produce both server stubs and client SDKs.
-- Guarantees: developers edit the spec, run codegen (enforced via a pre-commit/CI task), and the generated server stubs remind you to implement every path/verb. Documentation pages (Swagger UI) are rendered straight from the same spec, so they inherently match the implementation.
-
-Affected components:
-
-- CallToAction/Newsletter
-- ContactForm
-
 ## Files with Skipped Tests
 
 Blocked Categories (44 tests):
@@ -119,13 +153,13 @@ fatal: /home/kevin/Repos/Webstack: '/home/kevin/Repos/Webstack' is outside repos
 
 ⚠️  Privacy policy version fallback applied: 2025-12-08
 
+## Build output errors
+
+00:19:09 [WARN] [vite] [plugin:astro:assets:esm] context method emitFile() is not supported in serve mode. This plugin is likely not vite-compatible.
+
 ## Tags
 
 Can we add a markdown page to explain what each tag is, and use those pages instead of src/content/_tagList.ts to define the tags available?
-
-## Social Media Preview Cards
-
-Looking at the social-card endpoint implementation, it's designed to work with third-party screenshot services, not the social networks themselves.
 
 ## Use Confetti on CTA forms
 

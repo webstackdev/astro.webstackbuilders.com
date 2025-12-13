@@ -44,6 +44,11 @@ export const isGitHub = () => {
   return !!process.env['GITHUB_ACTIONS']
 }
 
+
+export const getGitHubRepoPath = () => {
+  return process.env['GITHUB_WORKSPACE']!
+}
+
 export const isVercel = () => {
   return !!process.env['VERCEL']
 }

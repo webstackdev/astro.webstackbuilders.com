@@ -3,8 +3,8 @@
  * Generates and validates confirmation tokens for GDPR-compliant newsletter signups
  */
 
-import { supabaseAdmin } from '@pages/api/_utils'
-import { isSupabaseFallbackEnabled } from '@pages/api/_environment/environmentApi'
+import { randomUUID } from 'node:crypto'
+import { and, db, eq, isNull, newsletterConfirmations } from 'astro:db'
 import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
 
 /**
@@ -12,14 +12,14 @@ import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
  */
 export interface PendingSubscription {
   email: string
-  firstName?: string
+  firstName?: string | undefined
   DataSubjectId: string
   token: string
   createdAt: string // ISO 8601
   expiresAt: string // ISO 8601 - 24 hours from creation
   consentTimestamp: string // ISO 8601
   userAgent: string
-  ipAddress?: string // Optional, for fraud prevention only
+  ipAddress?: string | undefined // Optional, for fraud prevention only
   verified: boolean
   source: 'newsletter_form' | 'contact_form'
 }
@@ -74,33 +74,30 @@ export async function createPendingSubscription(data: {
     source: data.source,
   }
 
-  // Store in Supabase newsletter_confirmations table
   try {
-    const { error } = await supabaseAdmin
-      .from('newsletter_confirmations')
-      .insert({
-        token,
-        email: pending.email,
-        data_subject_id: pending.DataSubjectId,
-        expires_at: expiresAt.toISOString()
-      })
-
-    if (error) {
-      throw error
-    }
+    await db.insert(newsletterConfirmations).values({
+      id: randomUUID(),
+      token,
+      email: pending.email,
+      dataSubjectId: pending.DataSubjectId,
+      firstName: pending.firstName ?? null,
+      source: pending.source,
+      userAgent: pending.userAgent,
+      ipAddress: pending.ipAddress ?? null,
+      consentTimestamp: new Date(pending.consentTimestamp),
+      expiresAt,
+      confirmedAt: null,
+      createdAt: now,
+    })
   } catch (error) {
-    if (!isSupabaseFallbackEnabled()) {
-      console.error('Failed to create pending subscription:', error)
-      throw new ApiFunctionError({
-        message: 'Failed to create subscription confirmation',
-        cause: error,
-        code: 'NEWSLETTER_TOKEN_CREATE_FAILED',
-        status: 500,
-        route: '/api/newsletter',
-        operation: 'createPendingSubscription'
-      })
-    }
-    console.warn('[newsletter] Supabase unavailable, storing pending subscription in memory for e2e tests.')
+    throw new ApiFunctionError({
+      message: 'Failed to create subscription confirmation',
+      cause: error,
+      code: 'NEWSLETTER_TOKEN_CREATE_FAILED',
+      status: 500,
+      route: '/api/newsletter',
+      operation: 'createPendingSubscription',
+    })
   }
 
   // Also keep in memory for backward compatibility (for now)
@@ -119,34 +116,37 @@ export async function createPendingSubscription(data: {
 export async function validateToken(
   token: string,
 ): Promise<PendingSubscription | null> {
-  // Try Supabase first
-  const { data: dbRecord } = await supabaseAdmin
-    .from('newsletter_confirmations')
-    .select('*')
-    .eq('token', token)
-    .is('confirmed_at', null) // Not yet confirmed
-    .single()
+  const [dbRecord] = await db
+    .select()
+    .from(newsletterConfirmations)
+    .where(
+      and(
+        eq(newsletterConfirmations.token, token),
+        isNull(newsletterConfirmations.confirmedAt),
+      ),
+    )
+    .limit(1)
 
   if (dbRecord) {
     const now = new Date()
-    const expiresAt = new Date(dbRecord.expires_at)
+    const expiresAt = new Date(dbRecord.expiresAt)
 
     if (now > expiresAt) {
-      // Token expired
       return null
     }
 
-    // Convert to PendingSubscription format
     return {
       email: dbRecord.email,
-      DataSubjectId: dbRecord.data_subject_id,
+      firstName: dbRecord.firstName ?? undefined,
+      DataSubjectId: dbRecord.dataSubjectId,
       token: dbRecord.token,
-      createdAt: dbRecord.created_at,
-      expiresAt: dbRecord.expires_at,
-      consentTimestamp: dbRecord.created_at,
-      userAgent: 'unknown', // Not stored in DB
+      createdAt: dbRecord.createdAt.toISOString(),
+      expiresAt: dbRecord.expiresAt.toISOString(),
+      consentTimestamp: dbRecord.consentTimestamp.toISOString(),
+      userAgent: dbRecord.userAgent ?? 'unknown',
+      ipAddress: dbRecord.ipAddress ?? undefined,
       verified: false,
-      source: 'newsletter_form',
+      source: dbRecord.source as PendingSubscription['source'],
     }
   }
 
@@ -188,11 +188,10 @@ export async function confirmSubscription(
     return null
   }
 
-  // Mark as confirmed in Supabase
-  await supabaseAdmin
-    .from('newsletter_confirmations')
-    .update({ confirmed_at: new Date().toISOString() })
-    .eq('token', token)
+  await db
+    .update(newsletterConfirmations)
+    .set({ confirmedAt: new Date() })
+    .where(eq(newsletterConfirmations.token, token))
 
   // Mark as verified
   pending.verified = true
@@ -224,4 +223,14 @@ function cleanExpiredTokens(): void {
  */
 export function getPendingCount(): number {
   return pendingSubscriptions.size
+}
+
+export async function deleteNewsletterConfirmationsByEmail(email: string): Promise<number> {
+  const normalizedEmail = email.trim().toLowerCase()
+  const deleted = await db
+    .delete(newsletterConfirmations)
+    .where(eq(newsletterConfirmations.email, normalizedEmail))
+    .returning({ id: newsletterConfirmations.id })
+
+  return deleted.length
 }

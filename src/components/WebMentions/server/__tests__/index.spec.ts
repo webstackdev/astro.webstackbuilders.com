@@ -74,6 +74,33 @@ describe('fetchWebmentions', () => {
 
     const sanitizedHtml = secondResult.content?.value ?? ''
     expect(sanitizedHtml).toBe('<p>Love this post</p>')
+    expect(sanitizedHtml).not.toContain('<script')
+
+    // Also ensure iframe and unsafe attributes are removed.
+    const { fetchWebmentions: fetchAgain } = await importWebmentionsModule()
+    const secondTargetUrl = `${targetUrl}?sanitizer=1`
+    fetchMock.mockResolvedValue(
+      createMockResponse(
+        {},
+        {
+          ...fixtureResponse,
+          children: [
+            {
+              ...fixtureResponse.children[1],
+              content: {
+                html: '<p>Hello</p><iframe src="https://evil.example"></iframe><a href="javascript:alert(1)">x</a>',
+              },
+            } as Webmention,
+          ],
+        },
+      ),
+    )
+
+    const injectedResults = await fetchAgain(secondTargetUrl)
+    const injectedValue = injectedResults.at(0)?.content?.value ?? ''
+    expect(injectedValue).toContain('<p>Hello</p>')
+    expect(injectedValue).not.toContain('<iframe')
+    expect(injectedValue).not.toContain('javascript:')
   })
 
   it('returns an empty array when the API responds with an error status', async () => {

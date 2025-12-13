@@ -6,7 +6,7 @@
  * functions with process.env.
  */
 import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
-import { isE2eTest, isTest, isUnitTest } from '@lib/config/environmentServer'
+import { isUnitTest } from '@lib/config/environmentServer'
 export {
   isCI,
   isE2eTest,
@@ -130,26 +130,6 @@ export function getResendApiKey(): string {
 }
 
 /**
- * Returns the base URL for the local Resend mock when running e2e tests.
- * Falls back to localhost + RESEND_HTTP_PORT when RESEND_MOCK_URL is not provided.
- */
-export function getResendMockBaseUrl(options?: { force?: boolean }): string | null {
-  const explicit = process.env['RESEND_MOCK_URL']
-  const mocksEnabled = Boolean(options?.force) || process.env['E2E_MOCKS'] === '1' || Boolean(explicit) || isE2eTest()
-
-  if (!mocksEnabled) {
-    return null
-  }
-
-  if (explicit) {
-    return explicit.replace(/\/$/, '')
-  }
-  const host = process.env['E2E_MOCKS_HOST'] ?? '127.0.0.1'
-  const port = process.env['RESEND_HTTP_PORT'] ?? '9011'
-  return `http://${host}:${port}`
-}
-
-/**
  * Gets the Sentry DSN. This value is set in Vercel env vars and
  * made available to serverless functions by default.
  *
@@ -163,82 +143,4 @@ export function getSentryDsn(): string {
     )
   }
   return key
-}
-
-/**
- * Gets the Suprabase REST API URL token. This value is set in Vercel env vars and
- * made available to serverless functions by default.
- *
- * @throws {ApiFunctionError} If SUPABASE_URL is not set
- */
-export function getSuprabaseApiUrl(): string {
-  const url = process.env['SUPABASE_URL']
-  if (!url) {
-    throw new ApiFunctionError(
-      'SUPABASE_URL environment variable is not set. This is either set in a .env file locally during development, in GitHub Secrets and made available in CI runs by the .github/workflows actions, or by Vercel as an env var made available to serverless functions in deployment.'
-    )
-  }
-  return url
-}
-
-/**
- * Gets the Suprabase REST API URL token. This value is set in Vercel env vars and
- * made available to serverless functions by default.
- *
- * @throws {ApiFunctionError} If SUPABASE_SERVICE_ROLE_KEY is not set
- */
-export function getSuprabaseApiServiceRoleKey(): string {
-  const token = process.env['SUPABASE_SERVICE_ROLE_KEY']
-  if (!token) {
-    throw new ApiFunctionError(
-      'SUPABASE_SERVICE_ROLE_KEY environment variable is not set. This is either set in a .env file locally during development, in GitHub Secrets and made available in CI runs by the .github/workflows actions, or by Vercel as an env var made available to serverless functions in deployment.'
-    )
-  }
-  return token
-}
-
-/**
- * Gets the Upstash REST API URL. This value is set in Vercel env vars and
- * made available to serverless functions by default.
- *
- * @throws {ApiFunctionError} If KV_REST_API_URL is not set
- */
-export function getUpstashApiUrl(): string {
-  const url = process.env['KV_REST_API_URL']
-  if (!url) {
-    throw new ApiFunctionError(
-      'KV_REST_API_URL environment variable is not set. This is either set in a .env file locally during development, in GitHub Secrets and made available in CI runs by the .github/workflows actions, or by Vercel as an env var made available to serverless functions in deployment.'
-    )
-  }
-  return url
-}
-
-/**
- * Gets the Upstash REST API secret token. This value is set in Vercel env vars and
- * made available to serverless functions by default.
- *
- * @throws {ApiFunctionError} If KV_REST_API_TOKEN is not set
- */
-export function getUpstashApiToken(): string {
-  const token = process.env['KV_REST_API_TOKEN']
-  if (!token) {
-    throw new ApiFunctionError(
-      'KV_REST_API_TOKEN environment variable is not set. This is either set in a .env file locally during development, in GitHub Secrets and made available in CI runs by the .github/workflows actions, or by Vercel as an env var made available to serverless functions in deployment.'
-    )
-  }
-  return token
-}
-
-/**
- * Determines whether Supabase operations may fall back to mocked responses.
- * Enabled automatically for end-to-end runs that set E2E_MOCKS=1, but can also be
- * toggled explicitly with E2E_SUPABASE_FALLBACK=1 when running smoke tests without Supabase.
- */
-export function isSupabaseFallbackEnabled(): boolean {
-  return (
-    process.env['E2E_SUPABASE_FALLBACK'] === '1' ||
-    process.env['E2E_MOCKS'] === '1' ||
-    isDev() ||
-    isTest()
-  )
 }

@@ -11,7 +11,6 @@ const ROUTE = '/api/cron/run-all'
 const CRON_ENDPOINTS = [
   '/api/cron/cleanup-confirmations',
   '/api/cron/cleanup-dsar-requests',
-  '/api/cron/ping-integrations',
 ]
 
 const buildErrorResponse = (

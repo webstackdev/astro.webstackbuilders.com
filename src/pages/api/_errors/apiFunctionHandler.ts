@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto'
 import { captureException, withScope } from '@sentry/astro'
 import { ensureApiSentry } from '@pages/api/_sentry'
-import { isProd, isTest } from '@pages/api/_environment/environmentApi'
+import { isDev, isProd, isTest } from '@pages/api/_environment/environmentApi'
 import { ApiFunctionError, type ApiFunctionErrorParams } from './ApiFunctionError'
 
 ensureApiSentry()
@@ -58,6 +58,8 @@ export interface ApiErrorLogEntry {
   region?: string | undefined
   consentFunctional: boolean
   message: string
+  stack?: string | undefined
+  cause?: string | undefined
   requestMeta?: SanitizedRequestMetadata | undefined
 }
 
@@ -174,6 +176,11 @@ export function formatApiErrorLogEntry(
     retryable: error.retryable,
     consentFunctional: details.consentFunctional,
     message: error.getSafeMessage(),
+  }
+
+  if (isDev()) {
+    if (error.stack) entry.stack = error.stack
+    if (error.cause) entry.cause = error.cause instanceof Error ? error.cause.message : String(error.cause)
   }
 
   if (details.operation) entry.operation = details.operation

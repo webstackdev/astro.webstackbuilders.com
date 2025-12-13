@@ -1,11 +1,6 @@
-import { Ratelimit } from '@upstash/ratelimit'
-import { Redis } from '@upstash/redis'
-import {
-  getUpstashApiToken,
-  getUpstashApiUrl,
-  isDev,
-  isTest,
-} from '@pages/api/_environment/environmentApi'
+import { isDbError } from 'astro:db'
+import { isDev, isTest } from '@pages/api/_environment/environmentApi'
+import { withRateLimitWindow } from '@pages/api/_utils/rateLimitStore'
 
 export type RateLimiter = {
   limit: (_identifier: string) => Promise<{ success: boolean; reset: number | undefined }>
@@ -15,17 +10,29 @@ export type RateLimiterKey = 'consent' | 'consentRead' | 'export' | 'delete' | '
 
 export type RateLimiterMap = Record<RateLimiterKey, RateLimiter>
 
-const redis = createRedisClient()
-
 // Simple in-memory rate limiting (use Redis in production)
 const rateLimitStore = new Map<string, number[]>()
 
+type RateLimiterConfig = {
+  scope: RateLimiterKey
+  limit: number
+  windowMs: number
+}
+
+const limiterConfigs: Record<RateLimiterKey, RateLimiterConfig> = {
+  consent: { scope: 'consent', limit: 10, windowMs: 60_000 },
+  consentRead: { scope: 'consentRead', limit: 30, windowMs: 60_000 },
+  export: { scope: 'export', limit: 5, windowMs: 60_000 },
+  delete: { scope: 'delete', limit: 3, windowMs: 60_000 },
+  contact: { scope: 'contact', limit: 5, windowMs: 15 * 60 * 1000 },
+}
+
 export const rateLimiters: RateLimiterMap = {
-  consent: createLimiter(Ratelimit.slidingWindow(10, '1 m')),
-  consentRead: createLimiter(Ratelimit.slidingWindow(30, '1 m')),
-  export: createLimiter(Ratelimit.slidingWindow(5, '1 m')),
-  delete: createLimiter(Ratelimit.slidingWindow(3, '1 m')),
-  contact: createLimiter(Ratelimit.slidingWindow(5, '15 m')),
+  consent: createLimiter(limiterConfigs.consent),
+  consentRead: createLimiter(limiterConfigs.consentRead),
+  export: createLimiter(limiterConfigs.export),
+  delete: createLimiter(limiterConfigs.delete),
+  contact: createLimiter(limiterConfigs.contact),
 }
 
 export async function checkRateLimit(
@@ -66,28 +73,60 @@ export function checkContactRateLimit(ipFingerprint: string): boolean {
   rateLimitStore.set(key, validRequests)
   return true
 }
-
-function createRedisClient(): Redis | undefined {
-  if (isDev() || isTest()) {
-    return undefined
+function createLimiter(config: RateLimiterConfig): RateLimiter {
+  return {
+    limit: identifier => applyRateLimit(config, identifier),
   }
-
-  return new Redis({
-    url: getUpstashApiUrl(),
-    token: getUpstashApiToken(),
-  })
 }
 
-function createLimiter(window: ReturnType<typeof Ratelimit.slidingWindow>): RateLimiter {
-  if (!redis) {
+async function applyRateLimit(
+  config: RateLimiterConfig,
+  identifier: string,
+): Promise<{ success: boolean; reset: number | undefined }> {
+  if (isDev() || isTest()) {
     return {
-      limit: async () => ({ success: true, reset: Date.now() }),
+      success: true,
+      reset: Date.now() + config.windowMs,
     }
   }
 
-  return new Ratelimit({
-    redis,
-    limiter: window,
-    analytics: true,
-  })
+  if (!identifier) {
+    return { success: true, reset: Date.now() + config.windowMs }
+  }
+
+  try {
+    return await withRateLimitWindow(config.scope, identifier, async context => {
+      const now = Date.now()
+      const currentWindow = context.window
+
+      if (!currentWindow || currentWindow.windowExpiresAt <= now) {
+        const reset = now + config.windowMs
+        const nextWindow = await context.resetWindow({
+          hits: 1,
+          limit: config.limit,
+          windowMs: config.windowMs,
+          windowExpiresAt: reset,
+        })
+        return { success: true, reset: nextWindow.windowExpiresAt }
+      }
+
+      if (currentWindow.hits < config.limit) {
+        const updatedWindow = await context.incrementHits()
+        return { success: true, reset: updatedWindow.windowExpiresAt }
+      }
+
+      return {
+        success: false,
+        reset: currentWindow.windowExpiresAt,
+      }
+    })
+  } catch (error) {
+    if (isDbError(error)) {
+      return {
+        success: false,
+        reset: Date.now() + config.windowMs,
+      }
+    }
+    throw error
+  }
 }

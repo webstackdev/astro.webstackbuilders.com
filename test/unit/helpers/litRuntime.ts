@@ -176,8 +176,21 @@ const componentModuleImporters = import.meta.glob<ModuleImport<WebComponentModul
 )
 
 const sanitizeRenderedHtml = (html: string): string => {
-	const withoutScripts = html.replace(/<script[\s\S]*?<\/script>/gi, '')
-	return withoutScripts.replace(/\sdata-astro-cid-[^=\s>]+="[^"]*"/gi, '')
+	const dom = new JSDOM(`<!doctype html><html><body>${html}</body></html>`)
+
+	for (const script of dom.window.document.querySelectorAll('script')) {
+		script.remove()
+	}
+
+	for (const element of dom.window.document.querySelectorAll('*')) {
+		for (const attribute of [...element.attributes]) {
+			if (attribute.name.startsWith('data-astro-cid-')) {
+				element.removeAttribute(attribute.name)
+			}
+		}
+	}
+
+	return dom.window.document.body.innerHTML
 }
 
 const hasFileExtension = (specifier: string): boolean => /\.[a-zA-Z0-9]+$/.test(specifier)

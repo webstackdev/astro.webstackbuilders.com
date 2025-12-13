@@ -1,9 +1,18 @@
 import type { APIRoute } from 'astro'
-import { rateLimiters, checkRateLimit, supabaseAdmin } from '@pages/api/_utils'
+import { rateLimiters, checkRateLimit } from '@pages/api/_utils'
 import type { DSARRequest } from '@pages/api/_contracts/gdpr.contracts'
 import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
 import { buildApiErrorResponse, handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
 import { createApiFunctionContext, createRateLimitIdentifier } from '@pages/api/_utils/requestContext'
+import {
+  deleteConsentRecordsByEmail,
+  findConsentRecordsByEmail,
+} from '@pages/api/gdpr/_utils/consentStore'
+import {
+  findDsarRequestByToken,
+  markDsarRequestFulfilled,
+} from '@pages/api/gdpr/_utils/dsarStore'
+import { deleteNewsletterConfirmationsByEmail } from '@pages/api/newsletter/_token'
 
 export const prerender = false // Force SSR for this endpoint
 
@@ -78,37 +87,20 @@ export const GET: APIRoute = async ({ request, clientAddress, cookies, redirect 
   apiContext.extra = { ...(apiContext.extra || {}), token }
 
   try {
-    // Find the DSAR request
-    const { data: dsarRequestData, error: fetchError } = await supabaseAdmin
-      .from('dsar_requests')
-      .select('*')
-      .eq('token', token)
-      .maybeSingle()
+    const dbRequest = await findDsarRequestByToken(token)
 
-    if (fetchError) {
-      throw new ApiFunctionError(fetchError, {
-        route: ROUTE,
-        operation: 'fetch-request',
-        status: 500,
-        details: {
-          token,
-        },
-      })
-    }
-
-    if (!dsarRequestData) {
+    if (!dbRequest) {
       return redirect('/privacy/my-data?status=invalid')
     }
 
-    // Type the DSAR request data properly
     const dsarRequest: DSARRequest = {
-      id: dsarRequestData.id,
-      token: dsarRequestData.token,
-      email: dsarRequestData.email,
-      requestType: dsarRequestData.request_type,
-      expiresAt: dsarRequestData.expires_at,
-      fulfilledAt: dsarRequestData.fulfilled_at,
-      createdAt: dsarRequestData.created_at,
+      id: dbRequest.id,
+      token: dbRequest.token,
+      email: dbRequest.email,
+      requestType: dbRequest.requestType as DSARRequest['requestType'],
+      expiresAt: dbRequest.expiresAt.toISOString(),
+      fulfilledAt: dbRequest.fulfilledAt?.toISOString(),
+      createdAt: dbRequest.createdAt.toISOString(),
     }
 
     // Check if already fulfilled
@@ -125,14 +117,11 @@ export const GET: APIRoute = async ({ request, clientAddress, cookies, redirect 
     const requestType = dsarRequest.requestType
 
     if (requestType === 'ACCESS') {
-      // Export all consent data for this email
-      const { data: consentRecords, error: consentError } = await supabaseAdmin
-        .from('consent_records')
-        .select('*')
-        .eq('email', email)
-
-      if (consentError) {
-        throw new ApiFunctionError(consentError, {
+      let consentRecords
+      try {
+        consentRecords = await findConsentRecordsByEmail(email)
+      } catch (error) {
+        throw new ApiFunctionError(error, {
           route: ROUTE,
           operation: 'fetch-consent-records',
           status: 500,
@@ -142,14 +131,10 @@ export const GET: APIRoute = async ({ request, clientAddress, cookies, redirect 
         })
       }
 
-      // Mark request as fulfilled
-      const { error: fulfillError } = await supabaseAdmin
-        .from('dsar_requests')
-        .update({ fulfilled_at: new Date().toISOString() })
-        .eq('token', token)
-
-      if (fulfillError) {
-        throw new ApiFunctionError(fulfillError, {
+      try {
+        await markDsarRequestFulfilled(token)
+      } catch (error) {
+        throw new ApiFunctionError(error, {
           route: ROUTE,
           operation: 'mark-request-fulfilled',
           status: 500,
@@ -164,7 +149,10 @@ export const GET: APIRoute = async ({ request, clientAddress, cookies, redirect 
       const exportData = {
         email,
         requestDate: dsarRequest.createdAt,
-        consentRecords: consentRecords?.map(({ ip_address: _ip, ...record }) => record) || []
+        consentRecords: consentRecords.map(({ ipAddress: _ip, ...record }) => ({
+          ...record,
+          createdAt: record.createdAt instanceof Date ? record.createdAt.toISOString() : record.createdAt,
+        })),
       }
 
       return new Response(JSON.stringify(exportData, null, 2), {
@@ -175,14 +163,10 @@ export const GET: APIRoute = async ({ request, clientAddress, cookies, redirect 
         }
       })
     } else if (requestType === 'DELETE') {
-      // Delete all consent records for this email
-      const { error: deleteConsentsError } = await supabaseAdmin
-        .from('consent_records')
-        .delete()
-        .eq('email', email)
-
-      if (deleteConsentsError) {
-        throw new ApiFunctionError(deleteConsentsError, {
+      try {
+        await deleteConsentRecordsByEmail(email)
+      } catch (error) {
+        throw new ApiFunctionError(error, {
           route: ROUTE,
           operation: 'delete-consent-records',
           status: 500,
@@ -192,14 +176,10 @@ export const GET: APIRoute = async ({ request, clientAddress, cookies, redirect 
         })
       }
 
-      // Delete newsletter confirmations
-      const { error: deleteConfirmationsError } = await supabaseAdmin
-        .from('newsletter_confirmations')
-        .delete()
-        .eq('email', email)
-
-      if (deleteConfirmationsError) {
-        throw new ApiFunctionError(deleteConfirmationsError, {
+      try {
+        await deleteNewsletterConfirmationsByEmail(email)
+      } catch (error) {
+        throw new ApiFunctionError(error, {
           route: ROUTE,
           operation: 'delete-newsletter-confirmations',
           status: 500,
@@ -209,14 +189,10 @@ export const GET: APIRoute = async ({ request, clientAddress, cookies, redirect 
         })
       }
 
-      // Mark request as fulfilled
-      const { error: deleteFulfillError } = await supabaseAdmin
-        .from('dsar_requests')
-        .update({ fulfilled_at: new Date().toISOString() })
-        .eq('token', token)
-
-      if (deleteFulfillError) {
-        throw new ApiFunctionError(deleteFulfillError, {
+      try {
+        await markDsarRequestFulfilled(token)
+      } catch (error) {
+        throw new ApiFunctionError(error, {
           route: ROUTE,
           operation: 'mark-delete-request-fulfilled',
           status: 500,

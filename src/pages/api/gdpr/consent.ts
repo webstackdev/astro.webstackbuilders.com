@@ -1,12 +1,17 @@
-import { randomUUID } from 'node:crypto'
 import type { APIRoute } from 'astro'
-import { getPrivacyPolicyVersion, isSupabaseFallbackEnabled } from '@pages/api/_environment/environmentApi'
-import { rateLimiters, checkRateLimit, supabaseAdmin } from '@pages/api/_utils'
+import { getPrivacyPolicyVersion } from '@pages/api/_environment/environmentApi'
+import { rateLimiters, checkRateLimit } from '@pages/api/_utils'
 import { validate as uuidValidate } from 'uuid'
 import type { ConsentRequest, ConsentResponse } from '@pages/api/_contracts/gdpr.contracts'
 import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
 import { buildApiErrorResponse, handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
 import { createApiFunctionContext, createRateLimitIdentifier } from '@pages/api/_utils/requestContext'
+import {
+  createConsentRecord,
+  deleteConsentRecords,
+  findConsentRecords,
+  type ConsentEventRecord,
+} from '@pages/api/gdpr/_utils/consentStore'
 
 export const prerender = false // Force SSR for this endpoint
 
@@ -42,20 +47,6 @@ const normalizeNullableString = (value?: string | null): string | null => {
 
 const normalizeUserAgent = (value?: string | null): string => normalizeNullableString(value) ?? DEFAULT_USER_AGENT
 
-type ConsentRecordRow = {
-  id: string
-  data_subject_id: string
-  email: string | null
-  purposes: string[]
-  timestamp: string
-  source: string | null
-  user_agent: string | null
-  ip_address: string | null
-  privacy_policy_version: string | null
-  consent_text: string | null
-  verified: boolean
-}
-
 const jsonResponse = (body: unknown, status: number, headers?: Record<string, string>) =>
   new Response(JSON.stringify(body), {
     status,
@@ -76,19 +67,19 @@ const buildRateLimitError = (reset: number | undefined, message?: string) => {
   })
 }
 
-const mapConsentRecord = (record: ConsentRecordRow): ConsentResponse['record'] => {
+const mapConsentRecord = (record: ConsentEventRecord): ConsentResponse['record'] => {
   const normalizedEmail = normalizeNullableString(record.email)
-  const normalizedIpAddress = normalizeNullableString(record.ip_address)
-  const normalizedConsentText = normalizeNullableString(record.consent_text)
+  const normalizedIpAddress = normalizeNullableString(record.ipAddress)
+  const normalizedConsentText = normalizeNullableString(record.consentText)
 
   const mapped: ConsentResponse['record'] = {
     id: record.id,
-    DataSubjectId: record.data_subject_id,
+    DataSubjectId: record.dataSubjectId,
     purposes: sanitizePurposes(record.purposes),
-    timestamp: record.timestamp,
+    timestamp: record.createdAt instanceof Date ? record.createdAt.toISOString() : new Date(record.createdAt).toISOString(),
     source: sanitizeSource(record.source),
-    userAgent: normalizeUserAgent(record.user_agent),
-    privacyPolicyVersion: record.privacy_policy_version ?? getPrivacyPolicyVersion(),
+    userAgent: normalizeUserAgent(record.userAgent),
+    privacyPolicyVersion: record.privacyPolicyVersion ?? getPrivacyPolicyVersion(),
     verified: record.verified,
   }
 
@@ -103,35 +94,6 @@ const mapConsentRecord = (record: ConsentRecordRow): ConsentResponse['record'] =
   }
 
   return mapped
-}
-
-const buildMockConsentRecord = (body: ConsentRequest): ConsentResponse['record'] => {
-  const normalizedEmail = normalizeNullableString(body.email ?? null)
-  const normalizedIpAddress = normalizeNullableString(body.ipAddress ?? null)
-  const normalizedConsentText = normalizeNullableString(body.consentText ?? null)
-
-  const mockRecord: ConsentResponse['record'] = {
-    id: randomUUID(),
-    DataSubjectId: body.DataSubjectId,
-    purposes: sanitizePurposes(body.purposes),
-    timestamp: new Date().toISOString(),
-    source: sanitizeSource(body.source),
-    userAgent: normalizeUserAgent(body.userAgent),
-    privacyPolicyVersion: getPrivacyPolicyVersion(),
-    verified: body.verified ?? false,
-  }
-
-  if (normalizedEmail) {
-    mockRecord.email = normalizedEmail
-  }
-  if (normalizedIpAddress) {
-    mockRecord.ipAddress = normalizedIpAddress
-  }
-  if (normalizedConsentText) {
-    mockRecord.consentText = normalizedConsentText
-  }
-
-  return mockRecord
 }
 
 const buildErrorResponse = (
@@ -199,41 +161,28 @@ export const POST: APIRoute = async ({ request, cookies, clientAddress }) => {
 
     let record: ConsentResponse['record']
     try {
-      const { data, error } = await supabaseAdmin
-        .from('consent_records')
-        .insert({
-          data_subject_id: body.DataSubjectId,
-          email: normalizedEmail,
-          purposes: normalizedPurposes,
-          source: normalizedSource,
-          user_agent: normalizedUserAgent,
-          ip_address: normalizedIpAddress,
-          privacy_policy_version: getPrivacyPolicyVersion(),
-          consent_text: normalizedConsentText,
-          verified: body.verified ?? false,
-        })
-        .select()
-        .single()
-
-      if (error) {
-        throw new ApiFunctionError(error, {
-          route: ROUTE,
-          operation: 'insert-consent',
-          status: 500,
-          details: {
-            dataSubjectId: body.DataSubjectId,
-            purposes: body.purposes,
-          },
-        })
-      }
-
-      record = mapConsentRecord(data as ConsentRecordRow)
+      const dbRecord = await createConsentRecord({
+        dataSubjectId: body.DataSubjectId,
+        email: normalizedEmail,
+        purposes: normalizedPurposes,
+        source: normalizedSource,
+        userAgent: normalizedUserAgent,
+        ipAddress: normalizedIpAddress,
+        privacyPolicyVersion: getPrivacyPolicyVersion(),
+        consentText: normalizedConsentText,
+        verified: body.verified ?? false,
+      })
+      record = mapConsentRecord(dbRecord)
     } catch (error) {
-      if (!isSupabaseFallbackEnabled()) {
-        throw error
-      }
-      console.warn('[gdpr/consent] Supabase unavailable, returning mocked consent record for e2e tests.')
-      record = buildMockConsentRecord(body)
+      throw new ApiFunctionError(error, {
+        route: ROUTE,
+        operation: 'insert-consent',
+        status: 500,
+        details: {
+          dataSubjectId: body.DataSubjectId,
+          purposes: body.purposes,
+        },
+      })
     }
 
     return jsonResponse(
@@ -276,18 +225,10 @@ export const GET: APIRoute = async ({ clientAddress, url, request, cookies }) =>
       })
     }
 
-    let query = supabaseAdmin
-      .from('consent_records')
-      .select('*')
-      .eq('data_subject_id', DataSubjectId)
-
-    if (purpose) {
-      query = query.contains('purposes', [purpose])
-    }
-
-    const { data, error } = await query
-
-    if (error) {
+    let fetchRecords: ConsentEventRecord[]
+    try {
+      fetchRecords = await findConsentRecords(DataSubjectId)
+    } catch (error) {
       throw new ApiFunctionError(error, {
         route: ROUTE,
         operation: 'GET.fetch-consent-records',
@@ -298,8 +239,10 @@ export const GET: APIRoute = async ({ clientAddress, url, request, cookies }) =>
         },
       })
     }
-
-    const records = data.map(record => mapConsentRecord(record as ConsentRecordRow))
+    const filteredRecords = purpose
+      ? fetchRecords.filter(record => record.purposes.includes(purpose))
+      : fetchRecords
+    const records = filteredRecords.map(mapConsentRecord)
 
     return jsonResponse(
       {
@@ -347,13 +290,10 @@ export const DELETE: APIRoute = async ({ clientAddress, url, request, cookies })
       })
     }
 
-    const { data, error } = await supabaseAdmin
-      .from('consent_records')
-      .delete()
-      .eq('data_subject_id', DataSubjectId)
-      .select()
-
-    if (error) {
+    let deletedCount: number
+    try {
+      deletedCount = await deleteConsentRecords(DataSubjectId)
+    } catch (error) {
       throw new ApiFunctionError(error, {
         route: ROUTE,
         operation: 'DELETE.remove-consent',
@@ -367,7 +307,7 @@ export const DELETE: APIRoute = async ({ clientAddress, url, request, cookies })
     return jsonResponse(
       {
         success: true,
-        deletedCount: data?.length || 0,
+        deletedCount,
       },
       200,
     )

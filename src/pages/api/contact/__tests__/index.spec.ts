@@ -4,6 +4,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { POST, OPTIONS } from '@pages/api/contact/index'
 
+vi.mock('astro:db', () => ({
+	isDbError: () => false,
+}))
+
 // Mock Resend before importing the module
 const mockSend = vi.fn().mockResolvedValue({ data: { id: 'test-email-id' } })
 

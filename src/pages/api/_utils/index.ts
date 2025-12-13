@@ -1,4 +1,3 @@
-export { supabaseAdmin } from './suprabase'
 export {
   rateLimiters,
   checkRateLimit,

@@ -19,7 +19,7 @@ if [[ ! -f "$SUCCESS_FILE" ]]; then
 fi
 
 while true; do
-  CI=1 FORCE_COLOR=1 E2E_MOCKS=1 npx playwright test
+  CI=1 FORCE_COLOR=1 npx playwright test
   status=$?
 
   if [[ $status -eq 0 ]]; then

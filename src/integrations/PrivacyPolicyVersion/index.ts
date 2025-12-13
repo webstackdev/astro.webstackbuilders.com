@@ -14,39 +14,64 @@
  * 3. Current date (if git is unavailable)
  */
 
-import { execSync } from 'node:child_process'
-import { existsSync } from 'node:fs'
-import { join } from 'node:path'
+import * as fs from 'node:fs'
+import { join, posix } from 'node:path'
 import type { AstroIntegration } from 'astro'
-import { getOptionalEnv } from '../../lib/config/environmentServer'
+import { log as gitLog } from 'isomorphic-git'
+import { getOptionalEnv, getGitHubRepoPath, isGitHub } from '../../lib/config/environmentServer'
 
-const PROJECT_ROOT = process.cwd()
-const PRIVACY_POLICY_PATH = join(PROJECT_ROOT, 'src', 'pages', 'privacy', 'index.astro')
+const getProjectRoot = (): string => {
+  if (!isGitHub()) {
+    return process.cwd()
+  }
+
+  try {
+    const repoPath = getGitHubRepoPath()
+    if (repoPath) {
+      return repoPath
+    }
+  } catch {
+    // ignore and fall back
+  }
+
+  console.warn('[privacy-policy-version] GITHUB_WORKSPACE not set. Falling back to process.cwd().')
+  return process.cwd()
+}
+
+const PROJECT_ROOT = getProjectRoot()
+const PRIVACY_POLICY_FILEPATH = posix.join('src', 'pages', 'privacy', 'index.astro')
 const GIT_DIRECTORY_PATH = join(PROJECT_ROOT, '.git')
 
 export const toIsoDateString = (date: Date): string => date.toISOString().slice(0, 10)
+
+const formatGitShortDate = (timestamp: number, timezoneOffset: number): string => {
+  const localSeconds = timestamp + timezoneOffset * 60
+  const date = new Date(localSeconds * 1000)
+  const year = date.getUTCFullYear()
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0')
+  const day = String(date.getUTCDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
 
 /**
  * Get privacy policy version from git commit date
  * @param filePath - Path to privacy policy file (relative to project root)
  * @returns ISO date string (YYYY-MM-DD) of last commit
  */
-function getPrivacyPolicyVersionFromGit(filePath: string): string | null {
+async function getPrivacyPolicyVersionFromGit(filepath: string): Promise<string | null> {
   try {
-    // Get last commit date for privacy policy file in YYYY-MM-DD format
-    const lastCommitDate = execSync(
-      `git log -1 --format=%cd --date=format:%Y-%m-%d -- ${filePath}`,
-      { encoding: 'utf-8', cwd: PROJECT_ROOT },
-    ).trim()
+    const entries = await gitLog({ fs, dir: PROJECT_ROOT, filepath, depth: 1 })
 
-    if (lastCommitDate) {
-      return lastCommitDate
+    const latest = entries[0]
+    if (!latest) {
+      console.warn(
+        `[privacy-policy-version] No git commits found for privacy policy file: ${filepath}. Falling back to current date.`,
+      )
+      return null
     }
 
-    console.warn(
-      `[privacy-policy-version] No git commits found for privacy policy file: ${filePath}. Falling back to current date.`,
-    )
-    return null
+    const { timestamp, timezoneOffset } = latest.commit.committer
+    return formatGitShortDate(timestamp, timezoneOffset)
   } catch (error) {
     console.warn(
       `[privacy-policy-version] Could not get privacy policy version from git: ${error instanceof Error ? error.message : String(error)}`,
@@ -63,7 +88,7 @@ function getPrivacyPolicyVersionFromGit(filePath: string): string | null {
  */
 function hasGitRepository(): boolean {
   try {
-    return existsSync(GIT_DIRECTORY_PATH)
+    return fs.existsSync(GIT_DIRECTORY_PATH)
   } catch (error) {
     console.warn(
       `[privacy-policy-version] Unable to verify git repository: ${error instanceof Error ? error.message : String(error)}`,
@@ -75,7 +100,7 @@ function hasGitRepository(): boolean {
 /**
  * Resolve privacy policy version using env, git metadata, or current date fallback.
  */
-export function resolvePrivacyPolicyVersion(): string {
+export async function resolvePrivacyPolicyVersion(): Promise<string> {
   const rawEnvVersion = getOptionalEnv('PRIVACY_POLICY_VERSION')
   const envVersion = typeof rawEnvVersion === 'string' ? rawEnvVersion.trim() : ''
   if (envVersion) {
@@ -84,7 +109,7 @@ export function resolvePrivacyPolicyVersion(): string {
   }
 
   if (hasGitRepository()) {
-    const gitVersion = getPrivacyPolicyVersionFromGit(PRIVACY_POLICY_PATH)
+    const gitVersion = await getPrivacyPolicyVersionFromGit(PRIVACY_POLICY_FILEPATH)
     if (gitVersion) {
       console.log(`✅ Privacy policy version set from git: ${gitVersion}`)
       return gitVersion
@@ -106,7 +131,7 @@ export function privacyPolicyVersion(): AstroIntegration {
     name: 'privacy-policy-version',
     hooks: {
       'astro:config:setup': async ({ updateConfig }) => {
-        const version = resolvePrivacyPolicyVersion()
+        const version = await resolvePrivacyPolicyVersion()
 
         // Inject as Vite define so it's available as import.meta.env.PRIVACY_POLICY_VERSION
         updateConfig({

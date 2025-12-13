@@ -29,4 +29,4 @@ export {
   selectTheme,
   getThemePickerToggle,
 } from './cookieHelper'
-export { wiremock, mocksEnabled } from './mockServices'
+export { wiremock } from './mockServices'
