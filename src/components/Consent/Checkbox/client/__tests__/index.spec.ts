@@ -52,6 +52,20 @@ beforeEach(() => {
 })
 
 describe('ConsentCheckboxElement', () => {
+  it('wires a stable accessible name via aria-labelledby', async () => {
+    await renderConsentCheckbox(({ element }) => {
+      const checkbox = element.querySelector<HTMLInputElement>('input[type="checkbox"]')
+      expect(checkbox).toBeTruthy()
+
+      const labelId = checkbox!.getAttribute('aria-labelledby')
+      expect(labelId).toBe('gdpr-consent-label')
+
+      const label = element.querySelector<HTMLElement>(`#${labelId}`)
+      expect(label).toBeTruthy()
+      expect(label!.textContent).toContain('Consent to data processing')
+    })
+  })
+
   it('requests consent updates when the checkbox is checked', async () => {
     await renderConsentCheckbox(({ element, window }) => {
       const checkbox = element.querySelector<HTMLInputElement>('input[type="checkbox"]')
@@ -116,6 +130,7 @@ describe('ConsentCheckboxElement', () => {
 
       expect(submitEvent.defaultPrevented).toBe(true)
       expect(errorElement!.textContent).toContain('You must consent to data processing')
+      expect(checkbox!.getAttribute('aria-invalid')).toBe('true')
     })
   })
 
@@ -132,6 +147,25 @@ describe('ConsentCheckboxElement', () => {
       form!.dispatchEvent(submitEvent)
 
       expect(submitEvent.defaultPrevented).toBe(false)
+    })
+  })
+
+  it('clears aria-invalid when consent is granted after an error', async () => {
+    await renderConsentCheckbox(({ element, window }) => {
+      const form = element.closest('form') as HTMLFormElement | null
+      const checkbox = element.querySelector<HTMLInputElement>('input[type="checkbox"]')
+
+      expect(form).toBeTruthy()
+      expect(checkbox).toBeTruthy()
+
+      const submitEvent = new window.Event('submit', { cancelable: true })
+      form!.dispatchEvent(submitEvent)
+      expect(checkbox!.getAttribute('aria-invalid')).toBe('true')
+
+      checkbox!.checked = true
+      checkbox!.dispatchEvent(new window.Event('change', { bubbles: true }))
+
+      expect(checkbox!.getAttribute('aria-invalid')).toBe('false')
     })
   })
 
