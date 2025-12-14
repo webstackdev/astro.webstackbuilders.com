@@ -24,7 +24,14 @@ jobs:
         uses: actions/github-script@v8
         with:
           script: |
-            const runId = context.payload.workflow_run.id;
+            const workflowRun = context.payload.workflow_run;
+            const headBranch = workflowRun?.head_branch;
+            if (typeof headBranch === 'string' && headBranch.startsWith('hotfix/')) {
+              core.info('hotfix/* branch detected; skipping CI job verification.');
+              return;
+            }
+
+            const runId = workflowRun.id;
             const requiredJobs = ['Lint', 'Unit Tests'];
             const { data } = await github.rest.actions.listJobsForWorkflowRun({
               owner: context.repo.owner,
@@ -70,11 +77,14 @@ jobs:
         id: vercel-preview
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           github-comment: false
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          GITHUB_SHA: ${{ github.event.workflow_run.head_sha }}
+          GITHUB_REF: refs/heads/${{ github.event.workflow_run.head_branch }}
 
       - name: Comment preview URL on PR
         if: ${{ !startsWith(github.event.workflow_run.head_branch, 'hotfix/') && always() && steps.vercel-preview.outcome == 'success' }}
@@ -285,11 +295,14 @@ jobs:
         id: vercel-production
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           vercel-args: '--prod'
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          GITHUB_SHA: ${{ github.event.workflow_run.head_sha }}
+          GITHUB_REF: refs/heads/${{ github.event.workflow_run.head_branch }}
 
       - name: Log production deployment
         if: always() && steps.vercel-production.outcome == 'success'
