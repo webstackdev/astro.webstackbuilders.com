@@ -1,6 +1,6 @@
 ---
 import { navigationItems } from '@components/Navigation/server'
-import menuStyles from './menu.module.css'
+import styles from './menu.module.css'
 export interface Props {
   path: string
 }
@@ -12,7 +12,7 @@ const isActiveMenuItem = (url: string) => {
 }
 
 const activeMenuItem = (url: string) => {
-  return isActiveMenuItem(url) ? ['nav-item-active', menuStyles['navItemActive']] : []
+  return isActiveMenuItem(url) ? ['nav-item-active', styles.navItemActive] : []
 }
 ---
 
@@ -20,7 +20,7 @@ const activeMenuItem = (url: string) => {
   <ul
     class:list={[
       'main-nav-menu',
-      menuStyles['mainNavMenu'],
+      styles.mainNavMenu,
       'w-full font-heading text-[0.85rem] uppercase tracking-[0.22em] text-primary',
       'lg:relative lg:text-[0.8rem] lg:tracking-[0.12em]'
     ]}
@@ -30,14 +30,14 @@ const activeMenuItem = (url: string) => {
       navigationItems.map((navItem) => {
         const isActive = isActiveMenuItem(navItem.url)
         return (
-          <li class:list={['main-nav-item', menuStyles['mainNavItem'], 'lg:relative', ...activeMenuItem(navItem.url)]}>
+          <li class:list={['main-nav-item', styles.mainNavItem, 'lg:relative', ...activeMenuItem(navItem.url)]}>
             <a
               href={navItem.url}
               aria-current={isActive ? 'page' : undefined}
               class:list={[
                 'block text-primary text-xl font-bold tracking-[5px] uppercase no-underline text-center p-4 focus:outline-0',
                 'lg:text-lg lg:lowercase lg:tracking-normal lg:px-5 lg:py-3 lg:flex lg:items-center lg:relative lg:whitespace-nowrap lg:z-10',
-                menuStyles['mainNavLink'],
+                styles.mainNavLink,
               ]}
             >
               {navItem.title}

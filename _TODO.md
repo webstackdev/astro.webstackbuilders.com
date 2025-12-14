@@ -153,24 +153,6 @@ Google Calendar, Apple Calendar,  Yahoo Calender,  Microsoft 365, Outlook, and T
 `https://github.com/add2cal/add-to-calendar-button`
 `https://add-to-calendar-button.com/`
 
-In a number of components where we've moved styles into a *.module.css file and imported it into the Astro layout, we've been inconsistent with naming the import and resolved lint errors concerning accessing object properties by using bracket access, such as:
-
-import menuStyles from './menu.module.css'
-menuStyles['navItemActive']
-
-In all of these cases, we need to refactor to use the pattern show in the Button and Footer components, where we create a *.module.css.d.ts to provide types, name the import consistently as "styles", and access those styles as follows:
-
-styles.footerGrid
-
-Components that need refactoring are as follows. Let's do this next.
-
-src/components/Navigation/Menu.astro
-src/components/Navigation/NavToggle.astro
-src/components/Social/Shares/client/index.ts
-src/components/ThemePicker/index.astro
-src/components/Toasts/NetworkStatus/index.astro
-
-
 ## Set up webmentions
 
 Needs to add real API key and test

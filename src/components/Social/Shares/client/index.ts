@@ -70,7 +70,7 @@ export class SocialShareElement extends LitElement {
     const shareData = this.getShareData()
     const shareText = `${shareData.text} ${shareData.url}`.trim()
     const containerClassList = [
-      styles['container'],
+      styles.container,
       'social-share',
       this.layout === 'vertical' ? 'flex flex-col gap-2' : 'flex flex-wrap gap-3',
       this.containerClass,
@@ -79,7 +79,7 @@ export class SocialShareElement extends LitElement {
       .join(' ')
 
     const labelClassList = [
-      styles['label'],
+      styles.label,
       'social-share__label text-sm font-semibold text-text-offset mr-2 self-center',
     ]
       .filter(Boolean)
@@ -125,7 +125,7 @@ export class SocialShareElement extends LitElement {
   private renderPlatform(platform: SharePlatform, shareData: ShareData, shareText: string) {
     const icon = PLATFORM_ICONS[platform.id]?.()
     const buttonClassList = [
-      styles['button'],
+      styles.button,
       'social-share__button inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white font-medium transition-colors hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500',
       platform.colorClasses,
     ]
