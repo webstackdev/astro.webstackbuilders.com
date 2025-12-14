@@ -53,12 +53,19 @@ jobs:
       github.event.workflow_run.event == 'pull_request'
 
     steps:
+      - name: Hotfix branch — skip preview deploy
+        if: ${{ startsWith(github.event.workflow_run.head_branch, 'hotfix/') }}
+        run: |
+          echo "hotfix/* branch detected; skipping preview deployment (treat as success)."
+
       - name: Checkout repository
+        if: ${{ !startsWith(github.event.workflow_run.head_branch, 'hotfix/') }}
         uses: actions/checkout@v6
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Deploy to Vercel (Preview)
+        if: ${{ !startsWith(github.event.workflow_run.head_branch, 'hotfix/') }}
         uses: amondnet/vercel-action@v41.1.4
         id: vercel-preview
         with:
@@ -70,7 +77,7 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
 
       - name: Comment preview URL on PR
-        if: always() && steps.vercel-preview.outcome == 'success'
+        if: ${{ !startsWith(github.event.workflow_run.head_branch, 'hotfix/') && always() && steps.vercel-preview.outcome == 'success' }}
         uses: actions/github-script@v8
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -185,7 +192,7 @@ jobs:
             }
 
       - name: Comment preview failure on PR
-        if: always() && steps.vercel-preview.outcome != 'success'
+        if: ${{ !startsWith(github.event.workflow_run.head_branch, 'hotfix/') && always() && steps.vercel-preview.outcome != 'success' }}
         uses: actions/github-script@v8
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
