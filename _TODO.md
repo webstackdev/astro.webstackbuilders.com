@@ -221,10 +221,6 @@ The contact data collection uses an array of social networks, with keys:
 
 The authors collection is using named entries under a "social" property, like "twitter", "github", etc. This task is to refactor that to use an array like contact data collection. We also need to add a color for the social network icon, or some other approach to setting the color of it while enabling theming.
 
-## Add Google Maps screenshot (or maps embed) to Contact Page
-
-src/assets/images/map.webp
-
 ## Display a system font until font files load (Lighthouse improvements)
 
 Display a system font until font files load to improve FCP (First Contentful Paint) with `font-display: swap`. Need to make sure that web font doesn't render larger or smaller than the system font fallback to avoid CLS (Cumulative Layout Shift) issues.
