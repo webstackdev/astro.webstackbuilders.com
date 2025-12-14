@@ -18,6 +18,11 @@ import type { WebComponentModule } from '@components/scripts/@types/webComponent
 
 const SCRIPT_NAME = 'NavigationElement'
 
+const MENU_TOGGLE_LABELS = {
+  open: 'Open main menu',
+  close: 'Close main menu',
+}
+
 export const CLASSES = {
   navOpen: 'aria-expanded-true',
   noScroll: 'no-scroll',
@@ -64,6 +69,7 @@ export class NavigationElement extends LitElement {
 
     this.setupFocusTrap()
     this.bindEvents()
+    this.toggleBtn.setAttribute('aria-label', MENU_TOGGLE_LABELS.open)
     this.initialized = true
     this.setAttribute('data-nav-ready', 'true')
   }
@@ -158,6 +164,7 @@ export class NavigationElement extends LitElement {
 
     document.body.classList.toggle(CLASSES.noScroll, this.isMenuOpen)
     this.toggleBtn.setAttribute('aria-expanded', String(this.isMenuOpen))
+    this.toggleBtn.setAttribute('aria-label', this.isMenuOpen ? MENU_TOGGLE_LABELS.close : MENU_TOGGLE_LABELS.open)
     this.header.classList.toggle(CLASSES.navOpen, this.isMenuOpen)
 
     if (this.isMenuOpen) {

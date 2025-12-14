@@ -7,8 +7,12 @@ export interface Props {
 
 const { path } = Astro.props
 
+const isActiveMenuItem = (url: string) => {
+  return path === url
+}
+
 const activeMenuItem = (url: string) => {
-  return path === url ? ['nav-item-active', menuStyles['navItemActive']] : []
+  return isActiveMenuItem(url) ? ['nav-item-active', menuStyles['navItemActive']] : []
 }
 ---
 
@@ -21,23 +25,26 @@ const activeMenuItem = (url: string) => {
       'lg:relative lg:text-[0.8rem] lg:tracking-[0.12em]'
     ]}
     tabindex="-1"
-    aria-label="main navigation"
   >
     {
-      navigationItems.map(navItem => (
+      navigationItems.map((navItem) => {
+        const isActive = isActiveMenuItem(navItem.url)
+        return (
           <li class:list={['main-nav-item', menuStyles['mainNavItem'], 'lg:relative', ...activeMenuItem(navItem.url)]}>
-          <a
-            href={navItem.url}
-            class:list={[
-              'block text-primary text-xl font-bold tracking-[5px] uppercase no-underline text-center p-4 focus:outline-0',
-              'lg:text-lg lg:lowercase lg:tracking-normal lg:px-5 lg:py-3 lg:flex lg:items-center lg:relative lg:whitespace-nowrap lg:z-10',
-              menuStyles['mainNavLink']
-            ]}
-          >
-            {navItem.title}
-          </a>
-        </li>
-      ))
+            <a
+              href={navItem.url}
+              aria-current={isActive ? 'page' : undefined}
+              class:list={[
+                'block text-primary text-xl font-bold tracking-[5px] uppercase no-underline text-center p-4 focus:outline-0',
+                'lg:text-lg lg:lowercase lg:tracking-normal lg:px-5 lg:py-3 lg:flex lg:items-center lg:relative lg:whitespace-nowrap lg:z-10',
+                menuStyles['mainNavLink'],
+              ]}
+            >
+              {navItem.title}
+            </a>
+          </li>
+        )
+      })
     }
   </ul>
 </nav>

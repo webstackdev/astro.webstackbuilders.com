@@ -80,10 +80,13 @@ describe('NavigationElement web component behavior', () => {
       if (!isUlElement(menu) || !isHeaderElement(header) || !isButtonElement(toggleButton)) {
         throw new TestError('Navigation DOM structure is missing expected elements')
       }
+
+      expect(toggleButton.getAttribute('aria-label')).toBe('Open main menu')
       toggleButton.click()
 
       expect(document.body.classList.contains('no-scroll')).toBe(true)
       expect(header.classList.contains('aria-expanded-true')).toBe(true)
+      expect(toggleButton.getAttribute('aria-label')).toBe('Close main menu')
       expect(menu.classList.contains('menu-visible')).toBe(false)
       expect(setOverlayPauseStateMock).toHaveBeenNthCalledWith(1, 'navigation', true)
 
@@ -93,6 +96,7 @@ describe('NavigationElement web component behavior', () => {
       toggleButton.click()
       expect(document.body.classList.contains('no-scroll')).toBe(false)
       expect(header.classList.contains('aria-expanded-true')).toBe(false)
+      expect(toggleButton.getAttribute('aria-label')).toBe('Open main menu')
       expect(menu.classList.contains('menu-visible')).toBe(false)
       expect(setOverlayPauseStateMock).toHaveBeenNthCalledWith(2, 'navigation', false)
     })
