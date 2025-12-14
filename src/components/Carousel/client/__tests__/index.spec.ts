@@ -53,18 +53,41 @@ vi.mock('astro:content', () => ({
 }))
 
 vi.mock('embla-carousel', () => {
-  const createEmbla = vi.fn(() => ({
-    canScrollPrev: vi.fn(() => false),
-    canScrollNext: vi.fn(() => false),
-    scrollPrev: vi.fn(),
-    scrollNext: vi.fn(),
-    on: vi.fn(() => createEmbla.mock.results.at(-1)?.value ?? {}),
-    off: vi.fn(() => createEmbla.mock.results.at(-1)?.value ?? {}),
-    destroy: vi.fn(),
-    scrollSnapList: vi.fn(() => mockScrollSnaps),
-    selectedScrollSnap: vi.fn(() => 0),
-    scrollTo: vi.fn(),
-  }))
+  const createEmbla = vi.fn(() => {
+    const handlers = new Map<string, Array<() => void>>()
+    let selectedIndex = 0
+
+    const api = {
+      canScrollPrev: vi.fn(() => false),
+      canScrollNext: vi.fn(() => false),
+      scrollPrev: vi.fn(),
+      scrollNext: vi.fn(),
+      on: vi.fn((event: string, handler: () => void) => {
+        const existing = handlers.get(event) ?? []
+        handlers.set(event, [...existing, handler])
+        return api
+      }),
+      off: vi.fn((event: string, handler: () => void) => {
+        const existing = handlers.get(event) ?? []
+        handlers.set(
+          event,
+          existing.filter(entry => entry !== handler),
+        )
+        return api
+      }),
+      destroy: vi.fn(),
+      scrollSnapList: vi.fn(() => mockScrollSnaps),
+      selectedScrollSnap: vi.fn(() => selectedIndex),
+      scrollTo: vi.fn((index: number) => {
+        selectedIndex = index
+      }),
+      __trigger: (event: string) => {
+        ;(handlers.get(event) ?? []).forEach(handler => handler())
+      },
+    }
+
+    return api
+  })
 
   return {
     default: createEmbla,
@@ -122,9 +145,27 @@ describe('Carousel component (server output)', () => {
     await renderCarousel(({ root }) => {
       const heading = root.querySelector('h2')
       const slides = root.querySelectorAll('[data-carousel-slide]')
+      const region = root.querySelector('.embla')
+      const dotsContainer = root.querySelector('[data-carousel-pagination]')
+      const statusRegion = root.querySelector('[data-carousel-status]')
+      const prevIcon = root.querySelector('.embla__button--prev svg')
+      const nextIcon = root.querySelector('.embla__button--next svg')
+      const learnMoreIcon = root.querySelector('[data-carousel-slide] svg')
 
       expect(heading?.textContent).toBe('Latest Reads')
       expect(slides).toHaveLength(2)
+
+      expect(heading?.id).toBeTruthy()
+      expect(region?.getAttribute('aria-labelledby')).toBe(heading?.id)
+      expect(dotsContainer?.getAttribute('aria-label')).toBe('Latest Reads slide navigation')
+
+      expect(prevIcon?.getAttribute('aria-hidden')).toBe('true')
+      expect(nextIcon?.getAttribute('aria-hidden')).toBe('true')
+      expect(learnMoreIcon?.getAttribute('aria-hidden')).toBe('true')
+
+      expect(statusRegion?.getAttribute('role')).toBe('status')
+      expect(statusRegion?.getAttribute('aria-live')).toBe('polite')
+      expect(statusRegion?.textContent).toBe('Slide 1 of 3')
     }, { title: 'Latest Reads', limit: 2, currentSlug: 'article-four' })
   })
 
@@ -197,5 +238,26 @@ describe('Carousel component (server output)', () => {
       expect(root.getAttribute('data-carousel-autoplay')).toBe('paused')
       expect(autoplayPluginInstances.at(-1)?.play).not.toHaveBeenCalled()
     }, { currentSlug: 'article-four' })
+  })
+
+  it('supports ArrowLeft/ArrowRight navigation when focus is inside the carousel', async () => {
+    await renderCarousel(({ root }) => {
+      const emblaApi = (root.querySelector('.embla') as unknown as { __emblaApi__?: { scrollPrev: () => void; scrollNext: () => void } })
+        .__emblaApi__
+      expect(emblaApi).toBeDefined()
+
+      const prevButton = root.querySelector('.embla__button--prev') as HTMLButtonElement | null
+      expect(prevButton).toBeInstanceOf(HTMLButtonElement)
+      prevButton?.focus()
+
+      const keyboardEventCtor = root.ownerDocument.defaultView?.KeyboardEvent
+      expect(keyboardEventCtor).toBeDefined()
+
+      root.dispatchEvent(new keyboardEventCtor!('keydown', { key: 'ArrowLeft', bubbles: true }))
+      root.dispatchEvent(new keyboardEventCtor!('keydown', { key: 'ArrowRight', bubbles: true }))
+
+      expect(emblaApi?.scrollPrev).toHaveBeenCalledTimes(1)
+      expect(emblaApi?.scrollNext).toHaveBeenCalledTimes(1)
+    })
   })
 })

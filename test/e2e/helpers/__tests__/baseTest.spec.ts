@@ -81,16 +81,6 @@ describe('baseTest helpers', () => {
     })
   })
 
-  describe('sitePaths.socialShares', () => {
-    it('should extract social-shares paths', () => {
-      expect(sitePaths.socialShares).toMatchInlineSnapshot(`
-        [
-          "/social-shares/template",
-        ]
-      `)
-    })
-  })
-
   it('should extract all single-page paths', () => {
     expect(sitePaths.singlePages).toMatchInlineSnapshot(`
       [
@@ -102,7 +92,6 @@ describe('baseTest helpers', () => {
         "/downloads",
         "/privacy",
         "/services",
-        "/social-shares",
         "/tags",
       ]
     `)
@@ -137,7 +126,6 @@ describe('baseTest helpers', () => {
         "/downloads/lakehouse-analytics-guide",
         "/downloads/observability-benefits-guide",
         "/downloads/ransomware-recovery-kit",
-        "/social-shares/template",
         "/about",
         "/articles",
         "/case-studies",
@@ -146,7 +134,6 @@ describe('baseTest helpers', () => {
         "/downloads",
         "/privacy",
         "/services",
-        "/social-shares",
         "/tags",
         "/non-existent-page",
       ]

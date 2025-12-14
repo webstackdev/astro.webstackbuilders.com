@@ -29,6 +29,7 @@ describe('ContactForm feedback helpers', () => {
       expect(field.feedback.dataset['state']).toBe('error')
       expect(field.feedback.style.color).toBe('var(--color-danger)')
       expect(field.input.classList.contains('error')).toBe(true)
+      expect(field.input.getAttribute('aria-invalid')).toBe('true')
 
       clearFieldFeedback(field)
       expect(field.feedback.textContent).toBe('')
@@ -36,6 +37,7 @@ describe('ContactForm feedback helpers', () => {
       expect(field.feedback.dataset['state']).toBeUndefined()
       expect(field.feedback.getAttribute('style')).toBeNull()
       expect(field.input.classList.contains('error')).toBe(false)
+      expect(field.input.getAttribute('aria-invalid')).toBe('false')
     })
   })
 
@@ -48,6 +50,7 @@ describe('ContactForm feedback helpers', () => {
       expect(field.feedback.dataset['state']).toBe('warning')
       expect(field.feedback.style.color).toBe('var(--color-warning)')
       expect(field.input.classList.contains('error')).toBe(false)
+      expect(field.input.getAttribute('aria-invalid')).toBe('false')
     })
   })
 

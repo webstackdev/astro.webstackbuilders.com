@@ -160,6 +160,11 @@ describe('ComputersAnimationElement', () => {
     await renderComputersAnimation(async ({ element }) => {
       element.initialize()
 
+      const svg = element.querySelector('svg#heroAnimation')
+      expect(svg).toBeTruthy()
+      expect(svg?.getAttribute('aria-hidden')).toBe('true')
+      expect(svg?.getAttribute('focusable')).toBe('false')
+
       expect(gsapMock.timeline).toHaveBeenCalledTimes(1)
       expect(timelineMock.timeScale).toHaveBeenCalledWith(3)
       expect(gsapMock.set).toHaveBeenCalledWith(

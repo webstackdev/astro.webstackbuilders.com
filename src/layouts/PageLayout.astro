@@ -58,36 +58,46 @@ const {
       {subtitle && <p class="page-content__subtitle">{subtitle}</p>}
       {
         meta && (
-          <div class="page-content__meta">
+          <dl class="page-content__meta">
             {meta.date && (
-              <time
-                class="page-content__date"
-                itemprop="datePublished"
-                datetime={meta.date.toISOString()}
-              >
-                {meta.date.toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </time>
+              <>
+                <dt class="sr-only">Published</dt>
+                <dd>
+                  <time
+                    class="page-content__date"
+                    itemprop="datePublished"
+                    datetime={meta.date.toISOString()}
+                  >
+                    {meta.date.toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
+                  </time>
+                </dd>
+              </>
             )}
             {meta.readingTime && (
-              <p class="page-content__reading-time">{meta.readingTime} to read</p>
+              <>
+                <dt class="sr-only">Reading time</dt>
+                <dd class="page-content__reading-time">{meta.readingTime}</dd>
+              </>
             )}
             {meta.tags && meta.tags.length > 0 && (
-              <div class="page-content__tags">
-                <span aria-label="in category">&sdot;</span>
-                <span class="page-content__tag-list">{meta.tags.join(', ')}</span>
-              </div>
+              <>
+                <dt class="sr-only">Tags</dt>
+                <dd class="page-content__tags">
+                  <span class="page-content__tag-list">{meta.tags.join(', ')}</span>
+                </dd>
+              </>
             )}
             {meta.draft && (
               <>
-                <span aria-hidden="true">&sdot;</span>
-                <span class="page-content__status">(Draft)</span>
+                <dt class="sr-only">Status</dt>
+                <dd class="page-content__status">Draft</dd>
               </>
             )}
-          </div>
+          </dl>
         )
       }
     </header>

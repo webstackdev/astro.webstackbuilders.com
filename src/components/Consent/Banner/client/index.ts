@@ -163,7 +163,14 @@ export class ConsentBannerElement extends HTMLElement {
     try {
       this.wrapper.style.display = 'block'
       this.setupFocusTrap()
-      this.allowBtn.focus()
+      this.wrapper.focus()
+      setTimeout(() => {
+        if (this.wrapper.style.display === 'none') {
+          return
+        }
+
+        this.allowBtn.focus()
+      }, 0)
       showConsentBanner()
       ConsentBannerElement.isModalCurrentlyVisible = true
     } catch (error) {

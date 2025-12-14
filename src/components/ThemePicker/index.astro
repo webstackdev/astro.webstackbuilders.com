@@ -6,6 +6,7 @@
  */
 import { themes } from '@components/ThemePicker/server'
 import Icon from '@components/Icon/index.astro'
+import styles from './themePicker.module.css'
 
 export interface Props {
   closeComponent?: string
@@ -15,86 +16,39 @@ export interface Props {
 const { closeComponent = 'close', label = 'Select theme' } = Astro.props
 ---
 
-<style>
-  /* Modal max-height animation */
-  .themepicker {
-    max-height: 0; /** Stays here as it's part of the animation */
-    overflow: hidden;
-    transition: max-height 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  }
-
-  .themepicker[hidden] {
-    display: block !important;
-  }
-
-  .themepicker.is-open {
-    max-height: 14em;
-  }
-
-  /* Theme item animations and effects */
-  .themepicker__item {
-    transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  }
-
-  .themepicker__item.is-active {
-    box-shadow: 0 0 0 2px var(--color-primary) !important;
-    transform: scale(1);
-    z-index: 1;
-  }
-
-  .themepicker__item.is-active::after {
-    border-color: transparent transparent var(--color-primary) transparent;
-    border-style: solid;
-    border-width: 0 10px 12px;
-    content: '';
-    display: block;
-    height: 0;
-    left: 50%;
-    position: absolute;
-    top: 100%;
-    transform: translate(-50%, 0.25em);
-    width: 0;
-  }
-
-  /* Custom scrollbar */
-  .themepicker__list::-webkit-scrollbar {
-    height: 8px;
-  }
-
-  .themepicker__list::-webkit-scrollbar-thumb {
-    background: var(--color-border);
-  }
-
-  .themepicker__list::-webkit-scrollbar-track {
-    background: var(--color-bg-offset);
-  }
-
-  /* Overlapping color circles */
-  .themepicker__hue + .themepicker__hue {
-    margin-left: -0.3125em;
-  }
-</style>
-
 <theme-picker transition:name="theme-picker-island" transition:persist>
   <div
-    class="themepicker bg-bg-offset block overflow-hidden relative w-full"
+    class:list={[styles.themePicker, 'themepicker', 'bg-bg-offset block overflow-hidden relative w-full']}
     data-theme-modal
     data-nosnippet
+    id="theme-picker-panel"
+    role="region"
+    aria-labelledby="theme-picker-label"
     hidden
   >
     <h3
+      id="theme-picker-label"
       class="font-sans text-base font-bold tracking-tight leading-[calc(2+0.6)] text-center uppercase"
     >
       {label}
     </h3>
     <ul
       id="theme-menu"
-      class="themepicker__list block mb-[0.25em] overflow-x-auto overflow-y-hidden py-4 px-6 pb-8 text-center whitespace-nowrap w-full"
-      style="-webkit-overflow-scrolling: touch;"
+      class:list={[
+        styles.list,
+        'themepicker__list',
+        'block mb-[0.25em] overflow-x-auto overflow-y-hidden py-4 px-6 pb-8 text-center whitespace-nowrap w-full',
+      ]}
     >
       {
         themes.map(theme => (
-          <li class="themepicker__item inline-block relative rounded-lg scale-100 ml-4 first:ml-0 hover:shadow-md hover:scale-105 hover:z-1">
+          <li
+            class:list={[
+              styles.item,
+              'themepicker__item',
+              'inline-block relative rounded-lg scale-100 ml-4 first:ml-0 hover:shadow-md hover:scale-105 hover:z-1',
+            ]}
+          >
             <button
               class="themepicker__selectBtn block p-4 rounded-lg border border-bg-offset w-full text-center bg-bg-offset"
               aria-label={`select color theme ${theme.name}`}
@@ -102,11 +56,41 @@ const { closeComponent = 'close', label = 'Select theme' } = Astro.props
             >
               <span class="block text-text">{theme.name}</span>
               <span class="block py-0.5">
-                <span class="themepicker__hue rounded-full shadow-[0_0_0_2px_var(--color-text)] inline-block h-6 w-6 overflow-hidden text-left indent-full align-bottom whitespace-nowrap bg-primary" />
-                <span class="themepicker__hue rounded-full shadow-[0_0_0_2px_var(--color-text)] inline-block h-6 w-6 overflow-hidden text-left indent-full align-bottom whitespace-nowrap bg-secondary" />
-                <span class="themepicker__hue rounded-full shadow-[0_0_0_2px_var(--color-text)] inline-block h-6 w-6 overflow-hidden text-left indent-full align-bottom whitespace-nowrap bg-border" />
-                <span class="themepicker__hue rounded-full shadow-[0_0_0_2px_var(--color-text)] inline-block h-6 w-6 overflow-hidden text-left indent-full align-bottom whitespace-nowrap bg-text-offset" />
-                <span class="themepicker__hue rounded-full shadow-[0_0_0_2px_var(--color-text)] inline-block h-6 w-6 overflow-hidden text-left indent-full align-bottom whitespace-nowrap bg-text" />
+                <span
+                  class:list={[
+                    styles.hue,
+                    'themepicker__hue',
+                    'rounded-full shadow-[0_0_0_2px_var(--color-text)] inline-block h-6 w-6 overflow-hidden text-left indent-full align-bottom whitespace-nowrap bg-primary',
+                  ]}
+                />
+                <span
+                  class:list={[
+                    styles.hue,
+                    'themepicker__hue',
+                    'rounded-full shadow-[0_0_0_2px_var(--color-text)] inline-block h-6 w-6 overflow-hidden text-left indent-full align-bottom whitespace-nowrap bg-secondary',
+                  ]}
+                />
+                <span
+                  class:list={[
+                    styles.hue,
+                    'themepicker__hue',
+                    'rounded-full shadow-[0_0_0_2px_var(--color-text)] inline-block h-6 w-6 overflow-hidden text-left indent-full align-bottom whitespace-nowrap bg-border',
+                  ]}
+                />
+                <span
+                  class:list={[
+                    styles.hue,
+                    'themepicker__hue',
+                    'rounded-full shadow-[0_0_0_2px_var(--color-text)] inline-block h-6 w-6 overflow-hidden text-left indent-full align-bottom whitespace-nowrap bg-text-offset',
+                  ]}
+                />
+                <span
+                  class:list={[
+                    styles.hue,
+                    'themepicker__hue',
+                    'rounded-full shadow-[0_0_0_2px_var(--color-text)] inline-block h-6 w-6 overflow-hidden text-left indent-full align-bottom whitespace-nowrap bg-text',
+                  ]}
+                />
               </span>
             </button>
           </li>

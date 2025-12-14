@@ -123,6 +123,38 @@ describe('ConsentPreferencesElement', () => {
       window.localStorage.clear()
     })
   })
+  it('wires the preferences center labels and switch semantics', async () => {
+    await renderConsentPreferences(({ window }) => {
+      const section = window.document.querySelector('consent-preferences section') as HTMLElement | null
+      expect(section).not.toBeNull()
+      expect(section!.getAttribute('aria-labelledby')).toBe('consent-preferences__title')
+      expect(section!.getAttribute('aria-describedby')).toBe('consent-preferences__settings-desc')
+
+      const pageTitle = window.document.getElementById('consent-preferences__title')
+      expect(pageTitle?.textContent).toContain('Privacy Preference Center')
+
+      const settingsDesc = window.document.getElementById('consent-preferences__settings-desc')
+      expect(settingsDesc).not.toBeNull()
+
+      const analyticsSwitch = window.document.getElementById('analytics-cookies') as HTMLInputElement | null
+      expect(analyticsSwitch).not.toBeNull()
+      expect(analyticsSwitch!.getAttribute('role')).toBe('switch')
+      expect(analyticsSwitch!.getAttribute('aria-labelledby')).toBe('consent-preferences__analytics-title')
+      expect(analyticsSwitch!.getAttribute('aria-describedby')).toBe('consent-preferences__analytics-desc')
+
+      const functionalSwitch = window.document.getElementById('functional-cookies') as HTMLInputElement | null
+      expect(functionalSwitch).not.toBeNull()
+      expect(functionalSwitch!.getAttribute('role')).toBe('switch')
+      expect(functionalSwitch!.getAttribute('aria-labelledby')).toBe('consent-preferences__functional-title')
+      expect(functionalSwitch!.getAttribute('aria-describedby')).toBe('consent-preferences__functional-desc')
+
+      const marketingSwitch = window.document.getElementById('marketing-cookies') as HTMLInputElement | null
+      expect(marketingSwitch).not.toBeNull()
+      expect(marketingSwitch!.getAttribute('role')).toBe('switch')
+      expect(marketingSwitch!.getAttribute('aria-labelledby')).toBe('consent-preferences__marketing-title')
+      expect(marketingSwitch!.getAttribute('aria-describedby')).toBe('consent-preferences__marketing-desc')
+    })
+  })
 
   it('grants all consent when Allow All is clicked', async () => {
     await renderConsentPreferences(({ window }) => {

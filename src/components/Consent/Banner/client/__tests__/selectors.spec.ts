@@ -71,7 +71,7 @@ describe('Consent Banner Selectors', () => {
 
       expect(wrapper.id).toBe('consent-modal-id')
       expect(wrapper.getAttribute('role')).toBe('dialog')
-      expect(wrapper.getAttribute('aria-label')).toBe('Cookie consent dialog')
+      expect(wrapper.getAttribute('aria-labelledby')).toBe('consent-modal__title')
     })
   })
 
@@ -81,7 +81,7 @@ describe('Consent Banner Selectors', () => {
 
       expect(closeBtn).toBeTruthy()
       expect(closeBtn.classList.contains('consent-modal__close-btn')).toBe(true)
-      expect(closeBtn.getAttribute('aria-label')).toMatch(/close cookie consent dialog/i)
+      expect(closeBtn.getAttribute('aria-label')).toMatch(/close cookie consent/i)
     })
   })
 

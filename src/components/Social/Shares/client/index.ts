@@ -1,4 +1,5 @@
 import { LitElement, html } from 'lit'
+import { ifDefined } from 'lit/directives/if-defined.js'
 import { isMetaElement } from '@components/scripts/assertions/elements'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
@@ -10,6 +11,9 @@ import styles from '../index.module.css'
 const COMPONENT_TAG_NAME = 'social-share-element'
 const DEFAULT_NETWORKS = 'twitter,linkedin,bluesky,reddit,mastodon'
 const DEFAULT_LABEL = 'Share:'
+const MASTODON_MODAL_ID = 'mastodon-modal'
+
+let socialShareInstanceCounter = 0
 
 const PLATFORM_ICONS: Record<string, () => ReturnType<typeof html>> = {
   twitter: () => html`<path d="M 25,4.9919786 C 24.000000,5.3877005 23.395722,5.3983957 22.625668,5.013369 23.620321,4.4144385 23.673797,3.986631 24.037433,2.8529412 23.096257,3.4090909 22.048128,3.815508 20.935829,4.0294118 20.058824,3.0882353 18.796791,2.5 17.406417,2.5 c -2.673797,0 -4.86631,2.1818182 -4.86631,4.855615 0,0.3850267 0.03209,0.7486631 0.106952,1.1122994 C 8.6149733,8.2540107 5.0320856,6.328877 2.6363636,3.3877005 2.2085561,4.1042781 1.9946524,4.9385027 1.9946524,5.8475936 c 0,1.6684492 0.855615,3.1550802 2.1390374,4.0320855 C 3.342246,9.8475936 2.5935829,9.6336898 1.9411765,9.2700535 v 0.064171 c 0,2.3529415 1.6684492,4.3101605 3.8930481,4.7486635 -0.7165775,0.213903 -1.4652406,0.213903 -2.2032086,0.08556 0.6203209,1.925134 2.4171123,3.336899 4.5454546,3.379679 C 6.1122995,19.184492 3.5347594,19.868984 1,19.569519 c 2.1390374,1.390374 4.7058824,2.181818 7.4545455,2.181818 8.9304815,0 13.8181815,-7.40107 13.8181815,-13.8288771 0,-0.2139038 0,-0.4278075 -0.02139,-0.6417112 0.962567,-0.6737968 2.096257,-1.3048129 2.737968,-2.2887701 z" />`,
@@ -43,6 +47,7 @@ export class SocialShareElement extends LitElement {
   declare labelText: string
   declare socialNetworksAttr: string
   declare containerClass: string
+  private labelId: string
 
   constructor() {
     super()
@@ -53,6 +58,8 @@ export class SocialShareElement extends LitElement {
     this.labelText = DEFAULT_LABEL
     this.socialNetworksAttr = DEFAULT_NETWORKS
     this.containerClass = ''
+    socialShareInstanceCounter += 1
+    this.labelId = `social-share-label-${socialShareInstanceCounter}`
   }
 
   protected override createRenderRoot(): HTMLElement {
@@ -63,7 +70,7 @@ export class SocialShareElement extends LitElement {
     const shareData = this.getShareData()
     const shareText = `${shareData.text} ${shareData.url}`.trim()
     const containerClassList = [
-      styles['container'],
+      styles.container,
       'social-share',
       this.layout === 'vertical' ? 'flex flex-col gap-2' : 'flex flex-wrap gap-3',
       this.containerClass,
@@ -72,18 +79,23 @@ export class SocialShareElement extends LitElement {
       .join(' ')
 
     const labelClassList = [
-      styles['label'],
+      styles.label,
       'social-share__label text-sm font-semibold text-text-offset mr-2 self-center',
     ]
       .filter(Boolean)
       .join(' ')
 
+    const hasLabelText = Boolean(this.labelText?.trim())
+
     return html`
-      <div class="${containerClassList}" role="group" aria-label="Share this content">
-        <span class="${labelClassList}">${this.labelText}</span>
-        ${this.selectedPlatforms.map((platform) =>
-          this.renderPlatform(platform, shareData, shareText),
-        )}
+      <div
+        class="${containerClassList}"
+        role="group"
+        aria-labelledby=${ifDefined(hasLabelText ? this.labelId : undefined)}
+        aria-label=${ifDefined(hasLabelText ? undefined : 'Share this content')}
+      >
+        <span id=${this.labelId} class="${labelClassList}">${this.labelText}</span>
+        ${this.selectedPlatforms.map((platform) => this.renderPlatform(platform, shareData, shareText))}
       </div>
     `
   }
@@ -113,7 +125,7 @@ export class SocialShareElement extends LitElement {
   private renderPlatform(platform: SharePlatform, shareData: ShareData, shareText: string) {
     const icon = PLATFORM_ICONS[platform.id]?.()
     const buttonClassList = [
-      styles['button'],
+      styles.button,
       'social-share__button inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white font-medium transition-colors hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500',
       platform.colorClasses,
     ]
@@ -121,11 +133,14 @@ export class SocialShareElement extends LitElement {
       .join(' ')
 
     if (platform.useModal) {
+      const isMastodon = platform.id === 'mastodon'
       return html`
         <button
           type="button"
           class="${buttonClassList}"
           aria-label="${platform.ariaLabel}"
+          aria-haspopup=${ifDefined(isMastodon ? 'dialog' : undefined)}
+          aria-controls=${ifDefined(isMastodon ? MASTODON_MODAL_ID : undefined)}
           data-platform="${platform.id}"
           data-share="${platform.id}"
           data-share-text="${shareText}"

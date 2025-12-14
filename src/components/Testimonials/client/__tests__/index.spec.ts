@@ -113,9 +113,22 @@ describe('Testimonials component', () => {
     await renderTestimonials(({ root }) => {
       const heading = root.querySelector('h2')
       const slides = root.querySelectorAll('.embla__slide')
+      const quoteIcon = root.querySelector('article svg')
 
       expect(heading?.textContent).toBe('Trusted Partners')
       expect(slides).toHaveLength(2)
+
+      expect(root.getAttribute('role')).toBe('region')
+      expect(root.getAttribute('aria-roledescription')).toBe('carousel')
+      expect(root.getAttribute('aria-label')).toBe('Trusted Partners')
+
+      const firstSlide = slides.item(0)
+      expect(firstSlide.getAttribute('role')).toBe('group')
+      expect(firstSlide.getAttribute('aria-roledescription')).toBe('slide')
+      expect(firstSlide.getAttribute('aria-label')).toBe('Testimonial 1 of 2')
+
+      expect(quoteIcon?.getAttribute('aria-hidden')).toBe('true')
+      expect(quoteIcon?.getAttribute('focusable')).toBe('false')
     }, { title: 'Trusted Partners', limit: 2 })
   })
 
@@ -123,16 +136,42 @@ describe('Testimonials component', () => {
     await renderTestimonials(({ root }) => {
       expect(root.querySelector('.embla__button--prev')).toBeNull()
       expect(root.querySelector('.embla__dots')).toBeNull()
+      expect(root.querySelector('[data-testimonials-autoplay-toggle]')).toBeNull()
     }, { limit: 1 })
   })
 
   it('registers the web component and generates pagination dots', async () => {
     await renderTestimonials(({ root }) => {
       const dots = root.querySelectorAll('.embla__dot')
+      const viewport = root.querySelector('.embla__viewport')
+      const prevBtn = root.querySelector('.embla__button--prev')
+      const nextBtn = root.querySelector('.embla__button--next')
+      const autoplayToggle = root.querySelector('[data-testimonials-autoplay-toggle]')
+      const prevIcon = root.querySelector('.embla__button--prev svg')
+      const nextIcon = root.querySelector('.embla__button--next svg')
 
       expect(root.getAttribute('data-carousel-ready')).toBe('true')
       expect(root.getAttribute('data-carousel-autoplay')).toBe('playing')
       expect(dots.length).toBeGreaterThan(0)
+
+      expect(viewport?.getAttribute('id')).toMatch(/^testimonials-\d+-viewport$/)
+      const viewportId = viewport?.getAttribute('id')
+      expect(viewportId).toBeTruthy()
+
+      dots.forEach((dot) => {
+        expect(dot.getAttribute('aria-controls')).toBe(viewportId)
+      })
+      expect(prevBtn?.getAttribute('aria-controls')).toBe(viewportId)
+      expect(nextBtn?.getAttribute('aria-controls')).toBe(viewportId)
+      expect(autoplayToggle?.getAttribute('aria-controls')).toBe(viewportId)
+
+      expect(autoplayToggle?.getAttribute('aria-label')).toBe('Pause testimonials')
+      expect(autoplayToggle?.getAttribute('aria-pressed')).toBe('false')
+
+      expect(prevIcon?.getAttribute('aria-hidden')).toBe('true')
+      expect(prevIcon?.getAttribute('focusable')).toBe('false')
+      expect(nextIcon?.getAttribute('aria-hidden')).toBe('true')
+      expect(nextIcon?.getAttribute('focusable')).toBe('false')
     })
   })
 
@@ -154,5 +193,29 @@ describe('Testimonials component', () => {
     } finally {
       vi.useRealTimers()
     }
+  })
+
+  it('toggles autoplay via the pause/play button', async () => {
+    await renderTestimonials(async ({ root }) => {
+      const autoplayToggle = root.querySelector('[data-testimonials-autoplay-toggle]')
+      expect(autoplayToggle).toBeTruthy()
+
+      const toggleBtn = autoplayToggle as HTMLButtonElement
+      expect(root.getAttribute('data-carousel-autoplay')).toBe('playing')
+      expect(toggleBtn.getAttribute('aria-pressed')).toBe('false')
+      expect(toggleBtn.getAttribute('aria-label')).toBe('Pause testimonials')
+
+      toggleBtn.click()
+
+      expect(root.getAttribute('data-carousel-autoplay')).toBe('paused')
+      expect(toggleBtn.getAttribute('aria-pressed')).toBe('true')
+      expect(toggleBtn.getAttribute('aria-label')).toBe('Play testimonials')
+
+      toggleBtn.click()
+
+      expect(root.getAttribute('data-carousel-autoplay')).toBe('playing')
+      expect(toggleBtn.getAttribute('aria-pressed')).toBe('false')
+      expect(toggleBtn.getAttribute('aria-label')).toBe('Pause testimonials')
+    })
   })
 })

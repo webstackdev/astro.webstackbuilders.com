@@ -46,6 +46,18 @@ describe('Footer selector utilities', () => {
     })
   })
 
+  it('renders social links as a nav list', async () => {
+    await renderFooter(({ element }) => {
+      const socialNav = element.querySelector('nav[aria-label="Social links"]')
+      const socialList = socialNav?.querySelector('ul')
+      const socialLinks = socialNav?.querySelectorAll('a[href]')
+
+      expect(socialNav).toBeTruthy()
+      expect(socialList).toBeTruthy()
+      expect(socialLinks?.length).toBeGreaterThan(0)
+    })
+  })
+
   it('throws a ClientScriptError when the Hire Me anchor is missing', async () => {
     await renderFooter(({ element }) => {
       element.querySelector(SELECTORS.hireMeAnchor)?.remove()

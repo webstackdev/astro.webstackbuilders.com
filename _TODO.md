@@ -17,16 +17,17 @@ continue
 
 `/domain`
 
-- Entities are part of the domain. They represent state and core business rules, but not persistence logic. Defined primarily by its unique identity, rather than its attributes or properties.
-
-Is an entry point to the domain logic forming the core of the application, modifying state and persistence as needed. This may be a Transaction Script, Service Layer, Application Service, or something similar.
+- The Domain is an entry point to the domain logic forming the core of the application, modifying state and persistence as needed. This may be a Transaction Script, Service Layer, Application Service, or something similar. The Domain in ADR relates to the whole of the domain objects, all the entities and their relations as a whole
 
 `/entities` or `entities.ts`
 
-- The responder builds the entire HTTP response from the domain's output which is given to it by the action. The Responder is responsible solely for formatting the final response (e.g., JSON, HTML) to be sent back to the client.
+- Entities are part of the domain. They represent state and core business rules, but not persistence logic. Defined primarily by its unique identity, rather than its attributes or properties.
+
+- By any name the Domain Payload Object is a specialized Data Transfer Object. A Data Transfer Object is a fine-grained object, providing properties that mirror or at least shadow properties found on the domain objects that they replicate. A Domain Payload Object is a coarse-grained object that transfers whole domain object instances to the client.
 
 `/responders` or `responders.ts`
 
+- The responder builds the entire HTTP response from the domain's output which is given to it by the action. The Responder is responsible solely for formatting the final response (e.g., JSON, HTML) to be sent back to the client.
 
 ### Endpoints:
 
@@ -145,10 +146,6 @@ cat.structure: Rules related to the document's overall structure, like the prope
 cat.tables: Rules for data tables, including headers and associations.
 cat.text-alternatives: Rules for ensuring that text alternatives are provided for non-text content, such as images.
 
-## Use the Page Visibility API to pause videos, image carousels, and animations
-
-Stop unnecessary processes when the user doesn't see the page or inversely to perform background actions.
-
 ## "Add to Calendar" button
 
 Google Calendar, Apple Calendar,  Yahoo Calender,  Microsoft 365, Outlook, and Teams, and generate iCal/ics files (for all other calendars and cases).
@@ -160,75 +157,15 @@ Google Calendar, Apple Calendar,  Yahoo Calender,  Microsoft 365, Outlook, and T
 
 Needs to add real API key and test
 
-## SCSS Use clothoid corners with border-radius
-
-`https://onotakehiko.dev/clothoid/`
-
-`SCSS Make sure accent-color or styling for checkboxes/radio button groups is set up. Sets the colour used by checkboxes and radio buttons, as well as range fields and progress indicators. The accent colour is inherited`
-
-```scss
-:root{
-  accent-color : #696;
-}
-```
-
-## Refactor modals
-
-Modals should be wrapped in the `<dialog>` element and use programmatic methods to display - `showModal()` to disable the area outside of the modal (handles `esc` keypress natively) and `show()` to allow interaction outside the modal, along with `close()`.
-
-## Add for iOS
-
-Specifying a Launch Screen Image
-
-On iOS, similar to native applications, you can specify a launch screen image that is displayed while your web application launches. This is especially useful when your web application is offline. By default, a screenshot of the web application the last time it was launched is used. To set another startup image, add a link element to the webpage, as in:
-
-```html
-<link rel="apple-touch-startup-image" href="/launch.png">
-```
-
-# Astro 3rd-Party Integrations, Eleventy Migration
-
-## Eleventy plugins that don't yet have identified equivalents for Astro.
-
-- **`eleventy-plugin-inclusive-language`**
-
-## Outputs command line warnings for weasel words like "obviously", "basically", etc.
+## Astro 3rd-Party Integrations, Eleventy Migration
 
 - **`eleventy-plugin-external-links`**
 
-## Adds `target="_blank" rel="noreferrer"` to all external links
+### Adds `target="_blank" rel="noreferrer"` to all external links
 
 - **`eleventy-plugin-emoji`**
 
-## Accessible emoji shortcode and filter. Usage:
-
-```{% emoji "⚙️", "settings gear" %} or {{ "⚙️" | emoji: "settings gear" }}```
-
-- **`eleventy-plugin-nesting-toc`**
-
-## Generates a nested table of contents for use in an aside from page contents.
-
-```typescript
-{
-    /** Which heading tags are selected, where each headings must have an ID attribute */
-    tags: ['h2', 'h3'],
-    /**
-     * Elements to ignore when constructing the label for every header. Useful for
-     * ignoring permalinks. Must be selectors.
-     */
-    ignoredElements: [], // default
-    /** Element to put around the root `ol` */
-    wrapper: 'nav', // default
-    /** Class for the element around the root `ol` */
-    wrapperClass: 'toc', // default
-    /** Optional text to show in heading above the wrapper element */
-    headingText: '', // default
-    /** Heading tag when showing heading above the wrapper element */
-    headingTag: 'h2', // default
-  }
-```
-
-## Time to Read
+### Time to Read
 
 Adds filter for analyzing content input into the filter and returning a time-to-read estimate to use in text like 'This will take 3 minutes to read'.
 
@@ -236,7 +173,7 @@ Adds filter for analyzing content input into the filter and returning a time-to-
 {
     speed: '200 words per minute',
     /** 'long': 3 minutes and 10 seconds, 'short': 3 min & 10 sec, 'narrow': 3m, 10s */
-    style: 'narrow',
+    style: 'narrow',src/layouts/BaseLayout.astro
     /** Which time units to render */
     hours: false,
     minutes: true,
@@ -257,15 +194,15 @@ Adds filter for analyzing content input into the filter and returning a time-to-
 
 [`astro-emoji`](https://github.com/seanmcp/astro-emoji#astro-emoji)
 
-## Table of Contents (ToC) generator
+### Table of Contents (ToC) generator
 
 [`astro-toc`](https://github.com/theisel/astro-toc#readme)
 
-## Astro wrapper for the `@github/clipboard-copy-element` web component. Copies element text content or input values to the clipboard
+### Astro wrapper for the `@github/clipboard-copy-element` web component. Copies element text content or input values to the clipboard
 
 [`clipboard-copy`](https://github.com/BryceRussell/astro-github-elements/tree/main/packages/clipboard-copy#astro-github-elementsclipboard-copy)
 
-## Astro wrapper for GitHub's relative time web component. Translates dates to past or future time phrases, like "*4 hours from now*" or "*20 days ago*"
+### Astro wrapper for GitHub's relative time web component. Translates dates to past or future time phrases, like "*4 hours from now*" or "*20 days ago*"
 
 [Relative Time](https://github.com/BryceRussell/astro-github-elements/tree/main/packages/time#readme)
 

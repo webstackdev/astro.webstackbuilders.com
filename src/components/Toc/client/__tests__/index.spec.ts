@@ -48,7 +48,7 @@ const emitVisibilityState = (overrides: Partial<VisibilityState> = {}) => {
 }
 
 const renderTableOfContents = async (
-  assertion: (_ctx: { root: TableOfContentsElement }) => Promise<void> | void,
+  assertion: (_ctx: { root: TableOfContentsElement; window: Window }) => Promise<void> | void,
   headings: MarkdownHeading[] = defaultHeadings,
 ) => {
   const container = await AstroContainer.create()
@@ -62,8 +62,8 @@ const renderTableOfContents = async (
         headings,
       } satisfies TocFixtureProps,
     },
-    assert: async ({ element }) => {
-      await assertion({ root: element as TableOfContentsElement })
+    assert: async ({ element, window }) => {
+      await assertion({ root: element as TableOfContentsElement, window: window as unknown as Window })
     },
   })
 }
@@ -121,6 +121,10 @@ describe('TableOfContents component rendering', () => {
       expect(links).toHaveLength(defaultHeadings.length)
       expect(panel?.getAttribute('data-state')).toBe('closed')
       expect(root.hasAttribute('data-open')).toBe(false)
+      expect(toggleButton?.getAttribute('aria-pressed')).toBeNull()
+      expect(toggleButton?.getAttribute('aria-label')).toBe('Table of contents')
+      expect(overlay?.hasAttribute('disabled')).toBe(true)
+      expect(overlay?.tabIndex).toBe(-1)
 
       emitVisibilityState({ tableOfContentsVisible: true })
       await root.updateComplete
@@ -129,6 +133,8 @@ describe('TableOfContents component rendering', () => {
       expect(panel?.getAttribute('data-state')).toBe('open')
       expect(overlay?.getAttribute('data-visible')).toBe('true')
       expect(toggleButton?.getAttribute('aria-expanded')).toBe('true')
+      expect(overlay?.hasAttribute('disabled')).toBe(false)
+      expect(overlay?.tabIndex).toBe(0)
     })
   })
 
@@ -152,6 +158,104 @@ describe('TableOfContents component rendering', () => {
 
       overlay?.click()
       expect(hideTableOfContents).toHaveBeenCalledTimes(2)
+    })
+  })
+
+  it('closes with Escape and restores focus to the toggle', async () => {
+    await renderTableOfContents(async ({ root, window }) => {
+      const toggleButton = root.querySelector('[data-toc-toggle]') as HTMLButtonElement | null
+      const panel = root.querySelector('[data-toc-panel]') as HTMLDivElement | null
+      const firstLink = root.querySelector('[data-toc-link]') as HTMLAnchorElement | null
+
+      expect(toggleButton).toBeTruthy()
+      expect(panel).toBeTruthy()
+      expect(firstLink).toBeTruthy()
+
+      toggleButton?.focus()
+      expect(window.document.activeElement).toBe(toggleButton)
+
+      emitVisibilityState({ tableOfContentsVisible: true })
+      await root.updateComplete
+
+      expect(window.document.activeElement).toBe(firstLink)
+
+      const KeyboardEventCtor = (window as unknown as { KeyboardEvent: typeof KeyboardEvent }).KeyboardEvent
+      const escapeEvent = new KeyboardEventCtor('keyup', { key: 'Escape', bubbles: true })
+      panel?.dispatchEvent(escapeEvent)
+      expect(hideTableOfContents).toHaveBeenCalledTimes(1)
+
+      emitVisibilityState({ tableOfContentsVisible: false })
+      await root.updateComplete
+
+      expect(window.document.activeElement).toBe(toggleButton)
+    })
+  })
+
+  it('closes the mobile panel when clicking a toc link', async () => {
+    await renderTableOfContents(async ({ root }) => {
+      const firstLink = root.querySelector('[data-toc-link]') as HTMLAnchorElement | null
+      expect(firstLink).toBeTruthy()
+
+      emitVisibilityState({ tableOfContentsVisible: true })
+      await root.updateComplete
+
+      firstLink?.click()
+      expect(hideTableOfContents).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  it('applies aria-current and current styling for the active heading', async () => {
+    const observers: Array<{
+      callback: IntersectionObserverCallback
+      observed: Element[]
+    }> = []
+
+    await withJsdomEnvironment(async ({ window }) => {
+      window.IntersectionObserver = class {
+        readonly callback: IntersectionObserverCallback
+        readonly observed: Element[] = []
+
+        constructor(callback: IntersectionObserverCallback) {
+          this.callback = callback
+          observers.push({ callback, observed: this.observed })
+        }
+
+        observe = (target: Element) => {
+          this.observed.push(target)
+        }
+
+        unobserve = () => undefined
+
+        disconnect = () => undefined
+      } as unknown as typeof IntersectionObserver
+    })
+
+    await renderTableOfContents(async ({ root, window }) => {
+      const links = Array.from(root.querySelectorAll('[data-toc-link]')) as HTMLAnchorElement[]
+      expect(links).toHaveLength(defaultHeadings.length)
+      expect(observers).toHaveLength(1)
+
+      const usageHeading = window.document.getElementById('usage')
+      expect(usageHeading).toBeTruthy()
+
+      observers[0]?.callback(
+        [
+          {
+            isIntersecting: true,
+            intersectionRatio: 1,
+            target: usageHeading as Element,
+          } as IntersectionObserverEntry,
+        ],
+        {} as IntersectionObserver,
+      )
+
+      const usageLink = links.find(link => link.dataset['tocSlug'] === 'usage')
+      expect(usageLink?.getAttribute('aria-current')).toBe('location')
+      expect(usageLink?.getAttribute('data-current')).toBe('true')
+
+      const otherLink = links.find(link => link.dataset['tocSlug'] === 'overview')
+      expect(otherLink?.getAttribute('aria-current')).toBeNull()
+      expect(otherLink?.getAttribute('data-current')).toBe('false')
     })
   })
 })

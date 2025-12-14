@@ -3,6 +3,7 @@
 // Refactored to use Embla Carousel for consistency with other carousel components
 import { getCollection } from 'astro:content'
 import Avatar from '@components/Avatar/index.astro'
+import Icon from '@components/Icon/index.astro'
 import type { TestimonialsProps } from './props'
 
 export type { TestimonialsProps as Props } from './props'
@@ -20,7 +21,13 @@ const testimonials = allTestimonials
 
 {
   testimonials.length > 0 && (
-    <testimonials-carousel data-carousel class="block">
+    <testimonials-carousel
+      data-carousel
+      class="block"
+      role="region"
+      aria-roledescription="carousel"
+      aria-label={title}
+    >
       <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <header class="text-center mb-12">
           <h2 class="text-3xl md:text-4xl font-bold text-text">{title}</h2>
@@ -30,12 +37,23 @@ const testimonials = allTestimonials
         <div class="testimonials-embla relative">
           <div class="embla__viewport overflow-hidden">
           <div class="embla__container flex">
-            {testimonials.map(testimonial => (
-              <div class="embla__slide flex-[0_0_100%] min-w-0 px-4">
+            {testimonials.map((testimonial, index) => (
+              <div
+                class="embla__slide flex-[0_0_100%] min-w-0 px-4"
+                role="group"
+                aria-roledescription="slide"
+                aria-label={`Testimonial ${index + 1} of ${testimonials.length}`}
+              >
                 <article class="bg-bg-offset rounded-xl p-8 shadow-lg border border-border h-full flex flex-col">
                   {/* Quote Icon */}
                   <div class="text-primary mb-4">
-                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                    <svg
+                      class="w-8 h-8"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                      focusable="false"
+                    >
                       <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h4v10h-10z" />
                     </svg>
                   </div>
@@ -78,6 +96,8 @@ const testimonials = allTestimonials
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
               >
                 <path
                   stroke-linecap="round"
@@ -98,6 +118,8 @@ const testimonials = allTestimonials
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
               >
                 <path
                   stroke-linecap="round"
@@ -109,11 +131,27 @@ const testimonials = allTestimonials
             </button>
 
             {/* Dots Navigation */}
-            <div
-              class="embla__dots flex gap-2 justify-center mt-8"
-              role="group"
-              aria-label="Testimonial navigation"
-            />
+            <div class="mt-8 flex items-center justify-center gap-3">
+              <div
+                class="embla__dots flex gap-2 justify-center"
+                role="group"
+                aria-label="Testimonial navigation"
+              />
+              <button
+                type="button"
+                class="flex items-center justify-center rounded-full border border-border bg-bg p-1 text-text shadow-lg transition-colors hover:bg-bg-offset"
+                data-testimonials-autoplay-toggle
+                aria-label="Pause testimonials"
+                aria-pressed="false"
+              >
+                <span data-testimonials-icon="pause">
+                  <Icon name="pause" size={20} />
+                </span>
+                <span data-testimonials-icon="play" class="hidden">
+                  <Icon name="play" size={20} />
+                </span>
+              </button>
+            </div>
           </>
         )}
         </div>

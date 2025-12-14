@@ -224,7 +224,7 @@ export class ConsentCheckboxElement extends HTMLElement {
     try {
       this.errorElement.textContent = message
       this.errorElement.style.display = 'block'
-      this.errorElement.setAttribute('role', 'alert')
+      this.checkbox?.setAttribute('aria-invalid', 'true')
     } catch (error) {
       handleScriptError(error, context)
     }
@@ -241,7 +241,7 @@ export class ConsentCheckboxElement extends HTMLElement {
     try {
       this.errorElement.textContent = ''
       this.errorElement.style.display = 'none'
-      this.errorElement.removeAttribute('role')
+      this.checkbox?.setAttribute('aria-invalid', 'false')
     } catch (error) {
       handleScriptError(error, context)
     }

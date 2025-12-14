@@ -139,6 +139,14 @@ export class NewsletterFormElement extends LitElement {
     try {
       if (!this.message) return
 
+      if (type === 'error') {
+        this.message.setAttribute('role', 'alert')
+        this.message.setAttribute('aria-live', 'assertive')
+      } else {
+        this.message.setAttribute('role', 'status')
+        this.message.setAttribute('aria-live', 'polite')
+      }
+
       this.message.textContent = text
       this.message.classList.remove(
         'text-[var(--color-text-offset)]',
@@ -156,6 +164,18 @@ export class NewsletterFormElement extends LitElement {
     } catch (error) {
       handleScriptError(error, context)
     }
+  }
+
+  /**
+   * Toggle aria-invalid on form inputs
+   */
+  private setFieldInvalid(field: HTMLInputElement, invalid: boolean): void {
+    if (invalid) {
+      field.setAttribute('aria-invalid', 'true')
+      return
+    }
+
+    field.removeAttribute('aria-invalid')
   }
 
   /**
@@ -203,24 +223,30 @@ export class NewsletterFormElement extends LitElement {
 
       if (!this.emailInput || !this.consentCheckbox) return
 
+      this.setFieldInvalid(this.emailInput, false)
+      this.setFieldInvalid(this.consentCheckbox, false)
+
       const email = this.emailInput.value.trim()
       const consentGiven = this.consentCheckbox.checked
 
       // Client-side validation
       if (!email) {
         this.showMessage('Please enter your email address.', 'error')
+        this.setFieldInvalid(this.emailInput, true)
         this.emailInput.focus()
         return
       }
 
       if (!this.validateEmail(email)) {
         this.showMessage('Please enter a valid email address.', 'error')
+        this.setFieldInvalid(this.emailInput, true)
         this.emailInput.focus()
         return
       }
 
       if (!consentGiven) {
         this.showMessage('Please consent to receive marketing communications.', 'error')
+        this.setFieldInvalid(this.consentCheckbox, true)
         this.consentCheckbox.focus()
         return
       }
@@ -250,6 +276,8 @@ export class NewsletterFormElement extends LitElement {
           )
           this.submitButton.dispatchEvent(new CustomEvent('confetti:fire', { bubbles: true, composed: true }))
           this.form?.reset()
+          this.setFieldInvalid(this.emailInput, false)
+          this.setFieldInvalid(this.consentCheckbox, false)
         } else {
           this.showMessage(data.error || 'Failed to subscribe. Please try again.', 'error')
         }
@@ -279,9 +307,13 @@ export class NewsletterFormElement extends LitElement {
       const email = this.emailInput.value.trim()
 
       if (email && !this.validateEmail(email)) {
+        this.setFieldInvalid(this.emailInput, true)
         this.showMessage('Please enter a valid email address.', 'error')
       } else if (email) {
+        this.setFieldInvalid(this.emailInput, false)
         this.showMessage("You'll receive a confirmation email. Click the link to complete your subscription.", 'info')
+      } else {
+        this.setFieldInvalid(this.emailInput, false)
       }
     } catch (error) {
       handleScriptError(error, context)

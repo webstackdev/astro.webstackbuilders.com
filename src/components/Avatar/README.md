@@ -12,7 +12,7 @@ import Avatar from '@components/Avatar/index.astro'
 <!-- Basic usage - name is automatically normalized -->
 <Avatar name="Kevin Brown" />
 
-<!-- If avatar doesn't exist, shows 'K' initial -->
+<!-- If avatar doesn't exist, shows initials visually but stays labeled by name -->
 <Avatar name="Jane Doe" />
 
 <!-- Custom CSS class -->

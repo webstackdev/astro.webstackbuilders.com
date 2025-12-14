@@ -59,9 +59,10 @@ describe('Button server helpers', () => {
       expect(label).toBeUndefined()
     })
 
-    it('humanizes icon names for icon-only buttons', () => {
-      const label = resolveAriaLabel({ icon: 'arrow-right', iconPosition: 'only' })
-      expect(label).toBe('Arrow Right')
+    it('throws when an icon-only button does not provide ariaLabel', () => {
+      expect(() => resolveAriaLabel({ icon: 'arrow-right', iconPosition: 'only' })).toThrow(
+        'Button: icon-only buttons must provide ariaLabel',
+      )
     })
   })
 

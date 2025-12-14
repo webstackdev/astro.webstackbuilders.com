@@ -32,7 +32,6 @@ export class ConsentPreferencesElement extends HTMLElement {
   private beforePreparationHandler: (() => void) | null = null
   private afterSwapHandler: (() => void) | null = null
   private unsubscribeConsent: (() => void) | null = null
-  private toggleLabelHandler: ((_event: Event) => void) | null = null
   private isInitialized = false
 
   connectedCallback(): void {
@@ -67,7 +66,6 @@ export class ConsentPreferencesElement extends HTMLElement {
     }
 
     this.removeViewTransitionsHandlers()
-    this.cleanupToggleLabelListeners()
 
     if (this.unsubscribeConsent) {
       this.unsubscribeConsent()
@@ -141,7 +139,6 @@ export class ConsentPreferencesElement extends HTMLElement {
 
       this.afterSwapHandler = () => {
         this.isInitialized = false
-        this.cleanupToggleLabelListeners()
         this.initialize()
       }
 
@@ -172,45 +169,6 @@ export class ConsentPreferencesElement extends HTMLElement {
     addButtonEventListeners(this.allowAllBtn, () => this.allowAll())
     addButtonEventListeners(this.denyAllBtn, () => this.denyAll())
     addButtonEventListeners(this.saveBtn, () => this.savePreferences())
-    this.bindToggleLabelListeners()
-  }
-
-  private bindToggleLabelListeners(): void {
-    if (this.toggleLabelHandler) {
-      return
-    }
-
-    this.toggleLabelHandler = (event: Event) => {
-      const target = event.target
-      if (!(target instanceof HTMLElement)) {
-        return
-      }
-
-      const label = target.closest<HTMLLabelElement>('[data-consent-toggle]')
-      if (!label || !this.contains(label)) {
-        return
-      }
-
-      event.preventDefault()
-      const checkboxId = label.getAttribute('data-consent-toggle')
-      if (!checkboxId) {
-        return
-      }
-
-      const checkbox = document.getElementById(checkboxId)
-      if (isInputElement(checkbox)) {
-        checkbox.checked = !checkbox.checked
-      }
-    }
-
-    document.addEventListener('click', this.toggleLabelHandler)
-  }
-
-  private cleanupToggleLabelListeners(): void {
-    if (this.toggleLabelHandler) {
-      document.removeEventListener('click', this.toggleLabelHandler)
-      this.toggleLabelHandler = null
-    }
   }
 
   private updateCheckboxes(preferences: ConsentState): void {

@@ -40,9 +40,9 @@ const hasInteractions = likes.length > 0 || reposts.length > 0
 
 {
   (hasMentions || hasInteractions) && (
-    <section class="mt-12 pt-8 border-t border-border" id="webmentions">
+    <section class="mt-12 pt-8 border-t border-border" id="webmentions" aria-labelledby="webmentions-heading">
       <header class="flex items-start justify-between mb-6 flex-wrap gap-4 flex-col sm:flex-row sm:items-center">
-        <h3 class="text-2xl font-bold text-text m-0">Webmentions</h3>
+        <h3 class="text-2xl font-bold text-text m-0" id="webmentions-heading">Webmentions</h3>
 
         {hasInteractions && (
           <div class="flex gap-6 items-center w-full sm:w-auto justify-start">
@@ -50,6 +50,7 @@ const hasInteractions = likes.length > 0 || reposts.length > 0
               <span
                 class="inline-flex items-center gap-1.5 text-text-offset text-sm font-medium"
                 title={`${likes.length} like${likes.length !== 1 ? 's' : ''}`}
+                aria-label={`${likes.length} like${likes.length !== 1 ? 's' : ''}`}
               >
                 <svg
                   class="w-5 h-5 text-text-lighter"
@@ -57,6 +58,7 @@ const hasInteractions = likes.length > 0 || reposts.length > 0
                   viewBox="0 0 24 24"
                   fill="currentColor"
                   aria-hidden="true"
+                  focusable="false"
                 >
                   <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
                 </svg>
@@ -67,6 +69,7 @@ const hasInteractions = likes.length > 0 || reposts.length > 0
               <span
                 class="inline-flex items-center gap-1.5 text-text-offset text-sm font-medium"
                 title={`${reposts.length} repost${reposts.length !== 1 ? 's' : ''}`}
+                aria-label={`${reposts.length} repost${reposts.length !== 1 ? 's' : ''}`}
               >
                 <svg
                   class="w-5 h-5 text-text-lighter"
@@ -74,6 +77,7 @@ const hasInteractions = likes.length > 0 || reposts.length > 0
                   viewBox="0 0 24 24"
                   fill="currentColor"
                   aria-hidden="true"
+                  focusable="false"
                 >
                   <path d="M4.5 12c0-1.232.046-2.453.138-3.662a4.006 4.006 0 013.7-3.7 48.678 48.678 0 017.324 0 4.006 4.006 0 013.7 3.7c.017.22.032.441.046.662M4.5 12l-3-3m3 3l3-3m12 3c0 1.232-.046 2.453-.138 3.662a4.006 4.006 0 01-3.7 3.7 48.657 48.657 0 01-7.324 0 4.006 4.006 0 01-3.7-3.7c-.017-.22-.032-.441-.046-.662M19.5 12l-3 3m3-3l3 3" />
                 </svg>
@@ -87,7 +91,11 @@ const hasInteractions = likes.length > 0 || reposts.length > 0
       {hasMentions ? (
         <>
           {showFacepile && displayMentions.length > 0 && (
-            <div class="flex items-center gap-2 mb-6 p-4 bg-bg-offset rounded-lg">
+            <div
+              class="flex items-center gap-2 mb-6 p-4 bg-bg-offset rounded-lg"
+              role="group"
+              aria-label={`Recent mentions: ${displayMentions.length}`}
+            >
               {displayMentions
                 .slice(0, facepileLimit)
                 .reverse()
@@ -96,13 +104,19 @@ const hasInteractions = likes.length > 0 || reposts.length > 0
                     {...buildAvatarImageProps(mention.author?.photo)}
                     alt={mention.author?.name || 'Anonymous'}
                     title={mention.author?.name || 'Anonymous'}
+                    aria-hidden="true"
                     class="w-10 h-10 rounded-full border-2 border-bg object-cover transition-transform hover:scale-110 hover:z-10"
                     loading="lazy"
                     decoding="async"
                   />
                 ))}
               {displayMentions.length > facepileLimit && (
-                <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-text-lighter text-bg text-xs font-semibold">
+                <span
+                  class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-text-lighter text-bg text-xs font-semibold"
+                  aria-label={`${displayMentions.length - facepileLimit} more mention${
+                    displayMentions.length - facepileLimit !== 1 ? 's' : ''
+                  }`}
+                >
                   +{displayMentions.length - facepileLimit}
                 </span>
               )}

@@ -154,6 +154,24 @@ describe('HighlighterElement', () => {
       expect(element.querySelector('.share-dialog')).not.toBeNull()
       expect(element.querySelectorAll('.share-button')).toHaveLength(mockPlatforms.length + 1)
       expect(element.getAttribute('aria-label')).toBe(defaultProps.ariaLabel)
+
+      const trigger = element.querySelector('.highlighter__trigger') as HTMLButtonElement | null
+      expect(trigger).toBeTruthy()
+      expect(trigger?.getAttribute('aria-label')).toBeNull()
+      expect(trigger?.textContent).toContain(defaultProps.content)
+
+      const dialog = element.querySelector('.share-dialog') as HTMLElement | null
+      expect(dialog?.getAttribute('role')).toBe('toolbar')
+
+      const describedBy = trigger?.getAttribute('aria-describedby')
+      expect(describedBy).toBeTruthy()
+      const hint = describedBy ? element.querySelector(`#${describedBy}`) : null
+      expect(hint?.textContent).toBe(defaultProps.ariaLabel)
+
+      const controls = trigger?.getAttribute('aria-controls')
+      expect(controls).toBeTruthy()
+      expect(dialog?.id).toBe(controls)
+      expect(trigger?.getAttribute('aria-expanded')).toBe('false')
     })
   })
 
@@ -162,11 +180,16 @@ describe('HighlighterElement', () => {
       const dialog = element.querySelector('.share-dialog') as HTMLElement | null
       expect(dialog?.getAttribute('aria-hidden')).toBe('true')
 
+      const trigger = element.querySelector('.highlighter__trigger') as HTMLButtonElement | null
+      expect(trigger?.getAttribute('aria-expanded')).toBe('false')
+
       element.dispatchEvent(new window.MouseEvent('mouseenter', { bubbles: true }))
       expect(dialog?.getAttribute('aria-hidden')).toBe('false')
+      expect(trigger?.getAttribute('aria-expanded')).toBe('true')
 
       element.dispatchEvent(new window.MouseEvent('mouseleave', { bubbles: true }))
       expect(dialog?.getAttribute('aria-hidden')).toBe('true')
+      expect(trigger?.getAttribute('aria-expanded')).toBe('false')
     })
   })
 
@@ -186,6 +209,9 @@ describe('HighlighterElement', () => {
       expect(mockCopyToClipboard).toHaveBeenCalledWith(`"${defaultProps.content}" ${window.location.href}`)
       expect(shareListener).toHaveBeenCalledTimes(1)
       expect(getLastShareEvent(shareListener)?.detail.platform).toBe('copy')
+
+      const status = element.querySelector('[data-highlighter-status]') as HTMLElement | null
+      expect(status?.textContent).toContain('Link copied')
 
       element.removeEventListener('highlighter:share', shareListener)
     })

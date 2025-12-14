@@ -17,6 +17,8 @@ import type { WebComponentModule } from '@components/scripts/@types/webComponent
 const SCRIPT_NAME = 'Highlighter'
 const COMPONENT_TAG_NAME = 'highlighter-element'
 
+let highlighterInstanceCounter = 0
+
 /**
  * Highlighter element that creates a shareable text highlight
  * with a hover dialog showing social share options
@@ -35,6 +37,9 @@ export class HighlighterElement extends LitElement {
   private boundButtons = new WeakSet<HTMLButtonElement>()
   private triggerButton: HTMLButtonElement | null = null
   private wrapperElement: HTMLDivElement | null = null
+  private readonly dialogId: string
+  private readonly hintId: string
+  private readonly statusId: string
 
   private handleMouseEnter = () => this.showDialog()
   private handleFocusIn = () => this.showDialog()
@@ -50,6 +55,11 @@ export class HighlighterElement extends LitElement {
     super()
     this.highlightContent = document.createElement('span')
     this.highlightContent.classList.add('highlighter__content')
+
+    highlighterInstanceCounter += 1
+    this.dialogId = `highlighter-share-dialog-${highlighterInstanceCounter}`
+    this.hintId = `highlighter-share-hint-${highlighterInstanceCounter}`
+    this.statusId = `highlighter-share-status-${highlighterInstanceCounter}`
   }
 
   protected override createRenderRoot(): HTMLElement {
@@ -95,10 +105,23 @@ export class HighlighterElement extends LitElement {
   protected override render() {
     return html`
       <div class="highlighter__wrapper">
-        <button type="button" class="highlighter__trigger" aria-label="${this.label}">
+        <button
+          type="button"
+          class="highlighter__trigger"
+          aria-describedby="${this.hintId}"
+          aria-controls="${this.dialogId}"
+          aria-expanded="false"
+        >
           ${this.highlightContent}
         </button>
-        <div class="share-dialog" role="dialog" aria-label="${this.label}" aria-hidden="true">
+        <span id="${this.hintId}" class="sr-only">${this.label}</span>
+        <div
+          id="${this.dialogId}"
+          class="share-dialog"
+          role="toolbar"
+          aria-label="${this.label}"
+          aria-hidden="true"
+        >
           <div class="share-dialog__buttons">
             ${platforms.map(
               platform => html`
@@ -109,7 +132,7 @@ export class HighlighterElement extends LitElement {
                   aria-label="${platform.ariaLabel}"
                   title="${platform.ariaLabel}"
                 >
-                  <svg class="share-icon" aria-hidden="true">
+                  <svg class="share-icon" aria-hidden="true" focusable="false">
                     <use href="/sprite.svg#${platform.icon}"></use>
                   </svg>
                 </button>
@@ -122,13 +145,22 @@ export class HighlighterElement extends LitElement {
               aria-label="Copy link"
               title="Copy link"
             >
-              <svg class="share-icon" aria-hidden="true">
+              <svg class="share-icon" aria-hidden="true" focusable="false">
                 <use href="/sprite.svg#link"></use>
               </svg>
             </button>
           </div>
           <div class="share-dialog__arrow"></div>
         </div>
+
+        <span
+          id="${this.statusId}"
+          class="sr-only"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          data-highlighter-status
+        ></span>
       </div>
     `
   }
@@ -200,6 +232,21 @@ export class HighlighterElement extends LitElement {
     return this.querySelector('.share-dialog')
   }
 
+  private getStatusElement(): HTMLElement | null {
+    return this.querySelector<HTMLElement>(`#${this.statusId}`)
+  }
+
+  private announceStatus(message: string): void {
+    const status = this.getStatusElement()
+    if (!status) {
+      return
+    }
+
+    // Clear first so subsequent identical messages still announce.
+    status.textContent = ''
+    status.textContent = message
+  }
+
   /**
    * Show the share dialog
    */
@@ -208,6 +255,8 @@ export class HighlighterElement extends LitElement {
     if (dialog) {
       dialog.setAttribute('aria-hidden', 'false')
     }
+
+    this.triggerButton?.setAttribute('aria-expanded', 'true')
   }
 
   /**
@@ -218,6 +267,8 @@ export class HighlighterElement extends LitElement {
     if (dialog) {
       dialog.setAttribute('aria-hidden', 'true')
     }
+
+    this.triggerButton?.setAttribute('aria-expanded', 'false')
   }
 
   /**
@@ -299,10 +350,12 @@ export class HighlighterElement extends LitElement {
     if (copyButton) {
       const originalHTML = copyButton.innerHTML
       copyButton.innerHTML = `
-        <svg class="share-icon" aria-hidden="true">
+        <svg class="share-icon" aria-hidden="true" focusable="false">
           <use href="/sprite.svg#check"></use>
         </svg>
       `
+
+      this.announceStatus('Link copied')
       setTimeout(() => {
         copyButton.innerHTML = originalHTML
       }, 2000)

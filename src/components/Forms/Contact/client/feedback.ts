@@ -25,8 +25,10 @@ export const showFieldFeedback = (
 
   if (level === 'error') {
     field.input.classList.add('error')
+    field.input.setAttribute('aria-invalid', 'true')
   } else {
     field.input.classList.remove('error')
+    field.input.setAttribute('aria-invalid', 'false')
   }
 }
 
@@ -38,6 +40,7 @@ export const clearFieldFeedback = (
   field.feedback.removeAttribute('style')
   delete field.feedback.dataset['state']
   field.input.classList.remove('error')
+  field.input.setAttribute('aria-invalid', 'false')
 }
 
 const setOpacity = (label: HTMLLabelElement, hasText: boolean): void => {

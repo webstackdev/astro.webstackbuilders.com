@@ -132,6 +132,8 @@ const removeExistingError = (field: GenericField): void => {
   field.classList.remove('error')
   const existing = field.parentNode instanceof HTMLElement ? field.parentNode.querySelector<HTMLElement>('.field-error') : null
   existing?.remove()
+  field.removeAttribute('aria-errormessage')
+  field.setAttribute('aria-invalid', 'false')
 }
 
 const showGenericError = (field: GenericField, message: string): void => {
@@ -142,8 +144,16 @@ const showGenericError = (field: GenericField, message: string): void => {
   errorDiv.className = 'field-error'
   errorDiv.textContent = message
   errorDiv.style.cssText = 'color: var(--color-danger); font-size: 0.85rem; margin-top: 0.25rem;'
+  errorDiv.setAttribute('aria-live', 'polite')
+
+  if (field.id) {
+    errorDiv.id = `${field.id}-error`
+    field.setAttribute('aria-errormessage', errorDiv.id)
+  }
+
   wrapper.appendChild(errorDiv)
   field.classList.add('error')
+  field.setAttribute('aria-invalid', 'true')
 }
 
 export const validateGenericField = (field: GenericField): boolean => {

@@ -27,13 +27,22 @@ const subtitle = 'Please wait while we confirm your subscription'
   <div class="container mx-auto px-4 py-16 max-w-2xl">
     <div class="bg-base border border-offset rounded-lg p-8 shadow-sm">
 
+      <p id="confirmation-status" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
+
       <!-- Loading state -->
       <div id="loading-state">
         <div class="text-center">
-          <svg class="w-16 h-16 mx-auto text-accent mb-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            class="w-16 h-16 mx-auto text-accent mb-4 animate-spin"
+            aria-hidden="true"
+            focusable="false"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
-          <h1 class="text-2xl font-bold text-text mb-2">Confirming your subscription...</h1>
+          <h2 class="text-2xl font-bold text-text mb-2" id="confirm-heading-loading" tabindex="-1">Confirming your subscription...</h2>
           <p class="text-text-offset">Please wait while we verify your confirmation link.</p>
         </div>
       </div>
@@ -41,10 +50,17 @@ const subtitle = 'Please wait while we confirm your subscription'
       <!-- Success state -->
       <div id="success-state" class="hidden">
         <div class="text-center mb-6">
-          <svg class="w-16 h-16 mx-auto text-green-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            class="w-16 h-16 mx-auto text-green-500 mb-4"
+            aria-hidden="true"
+            focusable="false"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <h1 class="text-3xl font-bold text-text mb-2">Subscription Confirmed!</h1>
+          <h2 class="text-3xl font-bold text-text mb-2" id="confirm-heading-success" tabindex="-1">Subscription Confirmed!</h2>
         </div>
 
         <div class="prose prose-invert max-w-none">
@@ -82,10 +98,17 @@ const subtitle = 'Please wait while we confirm your subscription'
       <!-- Expired state -->
       <div id="expired-state" class="hidden">
         <div class="text-center mb-6">
-          <svg class="w-16 h-16 mx-auto text-yellow-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            class="w-16 h-16 mx-auto text-yellow-500 mb-4"
+            aria-hidden="true"
+            focusable="false"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <h1 class="text-3xl font-bold text-text mb-2">Confirmation Link Expired</h1>
+          <h2 class="text-3xl font-bold text-text mb-2" id="confirm-heading-expired" tabindex="-1">Confirmation Link Expired</h2>
         </div>
 
         <div class="prose prose-invert max-w-none">
@@ -109,10 +132,17 @@ const subtitle = 'Please wait while we confirm your subscription'
       <!-- Error state -->
       <div id="error-state" class="hidden">
         <div class="text-center mb-6">
-          <svg class="w-16 h-16 mx-auto text-red-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            class="w-16 h-16 mx-auto text-red-500 mb-4"
+            aria-hidden="true"
+            focusable="false"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <h1 class="text-3xl font-bold text-text mb-2" id="error-title">Confirmation Error</h1>
+          <h2 class="text-3xl font-bold text-text mb-2" id="error-title" tabindex="-1">Confirmation Error</h2>
         </div>
 
         <div class="prose prose-invert max-w-none">
@@ -152,6 +182,19 @@ const subtitle = 'Please wait while we confirm your subscription'
     const expiredState = document.getElementById('expired-state')
     const errorState = document.getElementById('error-state')
 
+    const statusAnnouncer = document.getElementById('confirmation-status')
+
+    function announceStatus(message: string) {
+      if (!statusAnnouncer) return
+      statusAnnouncer.textContent = message
+    }
+
+    function focusHeading(headingId: string) {
+      const heading = document.getElementById(headingId)
+      if (!(heading instanceof HTMLElement)) return
+      heading.focus()
+    }
+
     /** Hide all state elements */
     function hideAllStates() {
       loadingState?.classList.add('hidden')
@@ -166,12 +209,18 @@ const subtitle = 'Please wait while we confirm your subscription'
       const emailElement = document.getElementById('user-email')
       if (emailElement) emailElement.textContent = email
       successState?.classList.remove('hidden')
+
+      announceStatus('Subscription confirmed.')
+      focusHeading('confirm-heading-success')
     }
 
     /** Show expired link state */
     function showExpired() {
       hideAllStates()
       expiredState?.classList.remove('hidden')
+
+      announceStatus('Confirmation link expired.')
+      focusHeading('confirm-heading-expired')
     }
 
     /** Show error state with custom message */
@@ -190,6 +239,9 @@ const subtitle = 'Please wait while we confirm your subscription'
       }
 
       errorState?.classList.remove('hidden')
+
+      announceStatus(title)
+      focusHeading('error-title')
     }
 
     /** Call confirmation API endpoint */
@@ -198,6 +250,8 @@ const subtitle = 'Please wait while we confirm your subscription'
         showError('Invalid Link', 'This confirmation link is invalid or malformed.')
         return
       }
+
+      announceStatus('Confirming subscription.')
 
       try {
         const response = await fetch(`/api/newsletter/confirm?token=${encodeURIComponent(token)}`)

@@ -105,13 +105,22 @@ describe('ConsentBannerElement', () => {
   it('shows the modal when consent cookies are uninitialized', async () => {
     initConsentCookiesMock.mockReturnValue(true)
 
-    await renderConsentBanner(({ window }) => {
+    await renderConsentBanner(async ({ window }) => {
       const wrapper = window.document.getElementById('consent-modal-id') as HTMLDivElement | null
       expect(wrapper).not.toBeNull()
       expect(wrapper!.style.display).toBe('block')
       expect(showConsentBannerMock).toHaveBeenCalled()
       expect(window.sessionStorage.getItem('consent-modal-visible')).toBe('true')
       expect(window.sessionStorage.getItem('consent-modal-shown')).toBe('true')
+
+      expect(window.document.activeElement).toBe(wrapper)
+
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, 0)
+      })
+      const allowBtn = window.document.querySelector('.consent-modal__btn-allow') as HTMLButtonElement | null
+      expect(allowBtn).not.toBeNull()
+      expect(window.document.activeElement).toBe(allowBtn)
     })
   })
 

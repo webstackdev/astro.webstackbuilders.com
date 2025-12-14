@@ -40,7 +40,14 @@ const {
             <div
               class="inline-flex items-center justify-center w-16 h-16 bg-linear-to-br from-primary to-accent rounded-full mb-6"
             >
-              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                class="w-8 h-8 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
+              >
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -63,16 +70,20 @@ const {
             <div class="space-y-4">
               <!-- Email Input -->
               <div class="flex flex-col sm:flex-row gap-3">
-                <input
-                  type="email"
-                  id="newsletter-email"
-                  name="email"
-                  placeholder={placeholder}
-                  class="flex-1 px-6 py-4 border-2 border-border rounded-xl bg-bg text-text placeholder:text-text-offset focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200"
-                  required
-                  aria-label="Email address for newsletter subscription"
-                  aria-describedby="newsletter-message"
-                />
+                <div class="flex flex-col gap-2 flex-1">
+                  <label id="newsletter-email-label" for="newsletter-email" class="text-sm font-medium text-text">
+                    Email address
+                  </label>
+                  <input
+                    type="email"
+                    id="newsletter-email"
+                    name="email"
+                    placeholder={placeholder}
+                    class="w-full px-6 py-4 border-2 border-border rounded-xl bg-bg text-text placeholder:text-text-offset focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200"
+                    required
+                    aria-describedby="newsletter-message"
+                  />
+                </div>
                 <Confetti>
                   <button
                     type="submit"
@@ -87,6 +98,8 @@ const {
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
+                      aria-hidden="true"
+                      focusable="false"
                     >
                       <path
                         stroke-linecap="round"
@@ -99,6 +112,8 @@ const {
                       class="hidden w-5 h-5 ml-2 animate-spin"
                       fill="none"
                       viewBox="0 0 24 24"
+                      aria-hidden="true"
+                      focusable="false"
                     >
                       <circle
                         class="opacity-25"
@@ -133,6 +148,7 @@ const {
                 class="text-sm text-text-offset text-center"
                 role="status"
                 aria-live="polite"
+                aria-atomic="true"
               >
                 You'll receive a confirmation email. Click the link to complete your subscription.
               </p>

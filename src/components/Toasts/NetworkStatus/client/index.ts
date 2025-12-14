@@ -108,14 +108,23 @@ export class NetworkStatusToastElement extends LitElement {
     return this.visible ? baseClasses : `${baseClasses} hidden`
   }
 
+  private get announcementRole(): 'status' | 'alert' {
+    return this.toastType === 'error' ? 'alert' : 'status'
+  }
+
+  private get announcementPoliteness(): 'polite' | 'assertive' {
+    return this.toastType === 'error' ? 'assertive' : 'polite'
+  }
+
   protected override render() {
     return html`
       <div
-        id="network-status-toast"
+        data-network-status-toast
         class="${this.toastClasses}"
         data-type="${this.toastType}"
-        role="alert"
-        aria-live="polite"
+        role="${this.announcementRole}"
+        aria-live="${this.announcementPoliteness}"
+        aria-atomic="true"
       >
         <div class="flex items-center space-x-2">
           <svg
@@ -124,6 +133,7 @@ export class NetworkStatusToastElement extends LitElement {
             stroke="currentColor"
             viewBox="0 0 24 24"
             aria-hidden="true"
+            focusable="false"
           >
             <path
               stroke-linecap="round"
@@ -138,6 +148,7 @@ export class NetworkStatusToastElement extends LitElement {
             stroke="currentColor"
             viewBox="0 0 24 24"
             aria-hidden="true"
+            focusable="false"
           >
             <path
               stroke-linecap="round"

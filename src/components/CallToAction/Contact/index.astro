@@ -17,6 +17,8 @@
  */
 
 export interface Props {
+  /** Optional base id for internal aria relationships */
+  id?: string
   /** Main heading for the CTA */
   title?: string
   /** Supporting description text */
@@ -34,15 +36,21 @@ export interface Props {
 }
 
 const {
+  id = 'contact-cta',
   title = 'Ready to Start Your Project?',
   description = "Let's discuss your goals and create something amazing together.",
   primaryLink = { href: '/contact', text: 'Get In Touch' },
   secondaryLink = { href: '/services', text: 'View Services' },
 } = Astro.props
+
+const titleId = `${id}-title`
+const descriptionId = `${id}-description`
 ---
 
 <section
   class="py-16 md:py-24 bg-linear-to-br from-(--color-primary) to-(--color-accent) relative overflow-hidden"
+  aria-labelledby={titleId}
+  aria-describedby={descriptionId}
 >
   <!-- Decorative background elements -->
   <div class="absolute inset-0 opacity-10">
@@ -58,10 +66,16 @@ const {
 
   <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
     <div class="max-w-4xl mx-auto text-center">
-      <h2 class="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight">
+      <h2
+        id={titleId}
+        class="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight"
+      >
         {title}
       </h2>
-      <p class="text-lg md:text-xl text-white/90 mb-10 max-w-2xl mx-auto leading-relaxed">
+      <p
+        id={descriptionId}
+        class="text-lg md:text-xl text-white/90 mb-10 max-w-2xl mx-auto leading-relaxed"
+      >
         {description}
       </p>
 
@@ -71,7 +85,14 @@ const {
           class="inline-flex items-center justify-center px-8 py-4 bg-white text-primary font-semibold rounded-xl hover:bg-white/90 transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5 min-w-[200px] text-center"
         >
           {primaryLink.text}
-          <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            class="w-5 h-5 ml-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            focusable="false"
+          >
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
