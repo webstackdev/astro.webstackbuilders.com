@@ -206,7 +206,8 @@ Adds some custom directives:
 
 Allows any Mastodon instance to discover your Mastodon profile directly from your own domain.
 
-## Refactor social neworks in Authors collection to an array like the Contact collection format
+
+## Refactor social neworks in Authors collection to Contact collection format
 
 The contact data collection uses an array of social networks, with keys:
 
