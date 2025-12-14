@@ -2,7 +2,11 @@
  * This file cannot be used in API endpoint code. See
  * src/lib/config/environmentServer.ts for details.
  */
-import { PACKAGE_RELEASE_VERSION, PRIVACY_POLICY_VERSION, PUBLIC_GOOGLE_MAPS_API_KEY } from 'astro:env/client'
+import {
+  PACKAGE_RELEASE_VERSION,
+  PRIVACY_POLICY_VERSION,
+  PUBLIC_GOOGLE_MAPS_API_KEY
+} from 'astro:env/client'
 import { ClientScriptError } from '@components/scripts/errors'
 
 /**

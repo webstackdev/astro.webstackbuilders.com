@@ -58,6 +58,16 @@ const createBaseCollectionSchema = ({ image }: SchemaContext) =>
     tags: z.array(z.enum(validTags)),
   })
 
+const createSocialCollectionSchema = () =>
+  z.array(
+    z.object({
+      network: z.string(),
+      name: z.string(),
+      url: z.string().url(),
+      order: z.number(),
+    }),
+  )
+
 /**
  * =================================================================================
  *
@@ -170,20 +180,7 @@ const authorsCollection = defineCollection({
     name: z.string(),
     email: z.string().email(),
     avatar: z.string(),
-    social: z.object({
-      twitter: z.object({
-        name: z.string(),
-        url: z.string().url(),
-      }),
-      github: z.object({
-        name: z.string(),
-        url: z.string().url(),
-      }),
-      linkedin: z.object({
-        name: z.string(),
-        url: z.string().url(),
-      }),
-    }),
+    social: createSocialCollectionSchema(),
   }),
 })
 
@@ -202,14 +199,7 @@ const contactDataCollection = defineCollection({
     telephoneLocal: z.string(),
     telephoneMobile: z.string(),
     telephoneTollFree: z.string(),
-    social: z.array(
-      z.object({
-        network: z.string(),
-        name: z.string(),
-        url: z.string().url(),
-        order: z.number(),
-      }),
-    ),
+    social: createSocialCollectionSchema(),
   }),
 })
 
