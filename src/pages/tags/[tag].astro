@@ -155,7 +155,11 @@ const section = 'Tags'
     {
       paginatedContent.length > 0 ? (
         <>
-          <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12 mb-12">
+          <section
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12 mb-12"
+            aria-labelledby="tagged-content-title"
+          >
+            <h2 class="sr-only" id="tagged-content-title">Tagged content</h2>
             {paginatedContent.map(item => {
               const typeMeta = typeMetadata[item.type]
               const href = `/${typeMeta.hrefBase}/${item.id}`
@@ -188,7 +192,10 @@ const section = 'Tags'
                       >
                         {typeMeta.label}
                       </span>
-                      <time class="text-text-muted">
+                      <time
+                        class="text-text-muted"
+                        datetime={item.data.publishDate.toISOString()}
+                      >
                         {item.data.publishDate.toLocaleDateString('en-US', {
                           year: 'numeric',
                           month: 'long',
@@ -222,19 +229,21 @@ const section = 'Tags'
 
                       {/* Additional tags */}
                       {item.data.tags && item.data.tags.length > 1 && (
-                        <div class="flex flex-wrap gap-2">
+                        <ul class="flex flex-wrap gap-2 list-none p-0 m-0" aria-label="Related tags">
                           {item.data.tags
                             .filter((t: string) => t !== tag)
                             .slice(0, 3)
                             .map((relatedTag: string) => (
-                              <a
-                                href={`/tags/${relatedTag}`}
-                                class="text-xs font-medium text-text-muted bg-bg-offset hover:bg-border px-2 py-1 rounded-full transition-colors duration-200"
-                              >
-                                {getTagDisplayName(relatedTag)}
-                              </a>
+                              <li>
+                                <a
+                                  href={`/tags/${relatedTag}`}
+                                  class="text-xs font-medium text-text-muted bg-bg-offset hover:bg-border px-2 py-1 rounded-full transition-colors duration-200"
+                                >
+                                  {getTagDisplayName(relatedTag)}
+                                </a>
+                              </li>
                             ))}
-                        </div>
+                        </ul>
                       )}
                     </div>
                   </div>
