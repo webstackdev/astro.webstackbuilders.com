@@ -159,44 +159,9 @@ Needs to add real API key and test
 
 ## Astro 3rd-Party Integrations, Eleventy Migration
 
-- **`eleventy-plugin-external-links`**
+### **`eleventy-plugin-external-links`**
 
-### Adds `target="_blank" rel="noreferrer"` to all external links
-
-- **`eleventy-plugin-emoji`**
-
-### Time to Read
-
-Adds filter for analyzing content input into the filter and returning a time-to-read estimate to use in text like 'This will take 3 minutes to read'.
-
-```typescript
-{
-    speed: '200 words per minute',
-    /** 'long': 3 minutes and 10 seconds, 'short': 3 min & 10 sec, 'narrow': 3m, 10s */
-    style: 'narrow',src/layouts/BaseLayout.astro
-    /** Which time units to render */
-    hours: false,
-    minutes: true,
-    seconds: false,
-    /**
-     * Format returned string
-     *
-     * @param {object} data - An object with various keys, see docs
-     * @returns {string} Returns the formatted string to return from time-to-read shortcode
-     */
-    output: function (data) {
-      return data.timing
-    },
-  }
-```
-
-## An accessible Emoji component. Wraps emojis in a `<span>` with `aria-label` or `aria-hidden`, and `role` attributes
-
-[`astro-emoji`](https://github.com/seanmcp/astro-emoji#astro-emoji)
-
-### Table of Contents (ToC) generator
-
-[`astro-toc`](https://github.com/theisel/astro-toc#readme)
+Adds `target="_blank" rel="noreferrer"` to all external links
 
 ### Astro wrapper for the `@github/clipboard-copy-element` web component. Copies element text content or input values to the clipboard
 
@@ -217,10 +182,6 @@ Adds filter for analyzing content input into the filter and returning a time-to-
 [`astro-code-blocks`](https://www.npmjs.com/package/@thewebforge/astro-code-blocks)
 
 ## Miscellaneous
-
-### [`astro-auto-import`](https://www.npmjs.com/package/astro-auto-import)
-
-Allows you to auto-import components or other modules and access them in MDX files without importing them.
 
 ### [`astro-directives`](https://github.com/QuentinDutot/astro-directives)
 
@@ -245,7 +206,8 @@ Adds some custom directives:
 
 Allows any Mastodon instance to discover your Mastodon profile directly from your own domain.
 
-## Refactor social neworks in Authors collection to Contact collection format
+
+## Refactor social networks in Authors collection to Contact collection format
 
 The contact data collection uses an array of social networks, with keys:
 
@@ -259,36 +221,6 @@ The contact data collection uses an array of social networks, with keys:
 ```
 
 The authors collection is using named entries under a "social" property, like "twitter", "github", etc. This task is to refactor that to use an array like contact data collection. We also need to add a color for the social network icon, or some other approach to setting the color of it while enabling theming.
-
-We should also make sure the avatar key in the authors collection is being output as a responsive image tag.
-
-## Add Google Maps screenshot (or maps embed) to Contact Page
-
-src/assets/images/map.webp
-
-## Display a system font until font files load (Lighthouse improvements)
-
-Display a system font until font files load to improve FCP (First Contentful Paint) with `font-display: swap`. Need to make sure that web font doesn't render larger or smaller than the system font fallback to avoid CLS (Cumulative Layout Shift) issues.
-
-```css
-@font-face {
-  font-family: 'Pacifico';
-  font-style: normal;
-  font-weight: 400;
-  src: local('Pacifico Regular'), local('Pacifico-Regular'),
-    url(https://fonts.gstatic.com/s/pacifico/v12/FwZY7-Qmy14u9lezJ-6H6MmBp0u-.woff2) format('woff2');
-  font-display: swap;
-}
-```
-
-Preload fonts:
-
-```html
-<link rel="preload" as="font" />
-```
-
-TTI (Time to Interactive) measures time from when the page is painted until it becomes usefully interactive.
-Interactive can only have two in-flight network requests.
 
 ## Stuff from ZMarkdown, a prepackaged Unified config
 
@@ -330,10 +262,6 @@ Repo is in root of Corporate Websites
 - **remark-custom-blocks**
 
   This plugin parses custom Markdown syntax to create new custom blocks.
-
-- **remark-emoticons**
-
-  This plugins replaces ASCII emoticons with associated image. Compatible with [rehype][rehype]
 
 - **remark-escape--escaped**
 

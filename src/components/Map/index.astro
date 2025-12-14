@@ -1,0 +1,18 @@
+---
+import contactData from '@content/contact.json'
+
+const address = `${contactData.company.address}, ${contactData.company.city}, ${contactData.company.state} ${contactData.company.index}`
+const mapAriaLabel = `Map showing ${contactData.company.name} location`
+---
+
+<div class="w-full" data-company-map data-address={address} aria-label={mapAriaLabel}>
+  <gmpx-api-loader></gmpx-api-loader>
+  <gmp-map class="block w-full h-112" center="0,0" zoom="2" aria-label={mapAriaLabel}>
+    <gmp-advanced-marker></gmp-advanced-marker>
+  </gmp-map>
+</div>
+
+<script>
+  import { registerCompanyMap } from './client'
+  registerCompanyMap()
+</script>
