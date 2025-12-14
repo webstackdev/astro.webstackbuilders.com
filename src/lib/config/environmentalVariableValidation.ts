@@ -64,6 +64,16 @@ export const environmentalVariablesConfig: AstroUserConfig['env'] = {
       optional: true,
     }),
     /**
+     * Google Maps Platform
+     *
+     * Used by client-side map components (must be PUBLIC_ so Vite can bundle it)
+     */
+    PUBLIC_GOOGLE_MAPS_API_KEY: envField.string({
+      access: 'public',
+      context: 'client',
+      optional: false,
+    }),
+    /**
      * Site uses ConvertKit for managing newsletter subscriptions
      */
     CONVERTKIT_API_KEY: envField.string({

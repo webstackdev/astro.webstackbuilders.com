@@ -2,7 +2,7 @@
  * This file cannot be used in API endpoint code. See
  * src/lib/config/environmentServer.ts for details.
  */
-import { PACKAGE_RELEASE_VERSION, PRIVACY_POLICY_VERSION } from 'astro:env/client'
+import { PACKAGE_RELEASE_VERSION, PRIVACY_POLICY_VERSION, PUBLIC_GOOGLE_MAPS_API_KEY } from 'astro:env/client'
 import { ClientScriptError } from '@components/scripts/errors'
 
 /**
@@ -84,4 +84,18 @@ export function getPrivacyPolicyVersion(): string {
     )
   }
   return PRIVACY_POLICY_VERSION
+}
+
+/**
+ * Gets the Google Maps API key injected at build time.
+ * @throws {ClientScriptError} If PUBLIC_GOOGLE_MAPS_API_KEY is not set
+ */
+export function getGoogleMapsApiKey(): string {
+  if (!PUBLIC_GOOGLE_MAPS_API_KEY) {
+    throw new ClientScriptError(
+      'PUBLIC_GOOGLE_MAPS_API_KEY environment variable is not set. This is required to load Google Maps components in the browser.',
+    )
+  }
+
+  return PUBLIC_GOOGLE_MAPS_API_KEY
 }
