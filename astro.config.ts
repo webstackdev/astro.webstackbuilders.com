@@ -73,7 +73,7 @@ const standardIntegrations = [
   })] : []),
   sitemap({
     serialize: createSerializeFunction({
-      exclude: ['downloads', 'social-shares', '/articles/demo', 'testing'],
+      exclude: ['downloads', '/articles/demo', 'testing'],
     }),
   }),
   /** Validate links in built site output on astro:build:done integration hook */

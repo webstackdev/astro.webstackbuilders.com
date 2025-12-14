@@ -71,7 +71,6 @@ export const _sitePaths = {
   services: extractPaths('services'),
   tags: extractPaths('tags'),
   downloads: extractPaths('downloads'),
-  socialShares: extractPaths('social-shares'),
   singlePages: extractSinglePages(),
 }
 
@@ -81,7 +80,6 @@ export const sitePaths = {
   services: extractPaths('services'),
   tags: extractPaths('tags'),
   downloads: extractPaths('downloads'),
-  socialShares: extractPaths('social-shares'),
   singlePages: extractSinglePages(),
   allPages: [
     ..._sitePaths.articles,
@@ -89,7 +87,6 @@ export const sitePaths = {
     ..._sitePaths.services,
     ..._sitePaths.tags,
     ..._sitePaths.downloads,
-    ..._sitePaths.socialShares,
     ..._sitePaths.singlePages,
     '/non-existent-page',
   ],
@@ -104,7 +101,6 @@ export const test = baseTest.extend<{
   servicePaths: string[]
   tagPaths: string[]
   downloadPaths: string[]
-  socialSharePaths: string[]
   singlePagePaths: string[]
   allPaths: string[]
 }>({
@@ -123,9 +119,6 @@ export const test = baseTest.extend<{
   downloadPaths: async ({}, use) => {
     await use(sitePaths.downloads)
   },
-  socialSharePaths: async ({}, use) => {
-    await use(sitePaths.socialShares)
-  },
   singlePagePaths: async ({}, use) => {
     await use(sitePaths.singlePages)
   },
@@ -136,7 +129,6 @@ export const test = baseTest.extend<{
       ...sitePaths.services,
       ...sitePaths.tags,
       ...sitePaths.downloads,
-      ...sitePaths.socialShares,
       ...sitePaths.singlePages,
     ]
     await use(all)
