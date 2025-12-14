@@ -23,7 +23,13 @@ const statusMessages: Record<string, { type: 'success' | 'error' | 'info', messa
     <h1>My Data & Privacy Rights</h1>
 
     {status && statusMessages[status] && (
-      <div class:list={[
+      <div
+        id="status-message"
+        tabindex="-1"
+        role={statusMessages[status].type === 'error' ? 'alert' : 'status'}
+        aria-live={statusMessages[status].type === 'error' ? 'assertive' : 'polite'}
+        aria-atomic="true"
+        class:list={[
         'alert',
         statusMessages[status].type === 'success' && 'alert-success',
         statusMessages[status].type === 'error' && 'alert-error',
@@ -33,7 +39,8 @@ const statusMessages: Record<string, { type: 'success' | 'error' | 'info', messa
       </div>
     )}
 
-    <section class="intro">
+    <section class="intro" aria-labelledby="my-data-intro-title">
+      <h2 class="sr-only" id="my-data-intro-title">Overview</h2>
       <p>
         Under GDPR, you have the right to access and control your personal data.
         Use the forms below to request a copy of your data or request its deletion.
@@ -42,8 +49,10 @@ const statusMessages: Record<string, { type: 'success' | 'error' | 'info', messa
 
     <div class="data-requests">
       <!-- Access Data Request -->
-      <section class="request-card">
-        <h2>📥 Access My Data</h2>
+      <section class="request-card" aria-labelledby="my-data-access-title">
+        <h2 id="my-data-access-title">
+          <span aria-hidden="true">📥</span> Access My Data
+        </h2>
         <p>Request a copy of all personal data we have about you, including consent records and newsletter subscriptions.</p>
 
         <form id="access-form" class="data-form">
@@ -62,15 +71,24 @@ const statusMessages: Record<string, { type: 'success' | 'error' | 'info', messa
             Request My Data
           </button>
 
-          <div id="access-message" class="form-message" role="alert" aria-live="polite"></div>
+          <div
+            id="access-message"
+            class="form-message"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+            tabindex="-1"
+          ></div>
         </form>
       </section>
 
       <!-- Delete Data Request -->
-      <section class="request-card">
-        <h2>🗑️ Delete My Data</h2>
+      <section class="request-card" aria-labelledby="my-data-delete-title">
+        <h2 id="my-data-delete-title">
+          <span aria-hidden="true">🗑️</span> Delete My Data
+        </h2>
         <p class="warning">
-          <strong>⚠️ Warning:</strong> This will permanently delete all your data from our systems. This action cannot be undone.
+          <strong><span aria-hidden="true">⚠️</span> Warning:</strong> This will permanently delete all your data from our systems. This action cannot be undone.
         </p>
 
         <form id="delete-form" class="data-form">
@@ -96,13 +114,20 @@ const statusMessages: Record<string, { type: 'success' | 'error' | 'info', messa
             Delete My Data
           </button>
 
-          <div id="delete-message" class="form-message" role="alert" aria-live="polite"></div>
+          <div
+            id="delete-message"
+            class="form-message"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+            tabindex="-1"
+          ></div>
         </form>
       </section>
     </div>
 
-    <section class="info">
-      <h2>What Happens Next?</h2>
+    <section class="info" aria-labelledby="my-data-next-title">
+      <h2 id="my-data-next-title">What Happens Next?</h2>
       <ol>
         <li><strong>Verification Email:</strong> We'll send a verification link to your email address.</li>
         <li><strong>Click the Link:</strong> Click the link in the email to verify your request (expires in 24 hours).</li>
@@ -114,6 +139,26 @@ const statusMessages: Record<string, { type: 'success' | 'error' | 'info', messa
 </BaseLayout>
 
 <script>
+  const statusMessage = document.getElementById('status-message')
+
+  if (statusMessage instanceof HTMLElement) {
+    statusMessage.focus()
+  }
+
+  function setMessage(
+    accessibleEl: HTMLElement | null,
+    message: string,
+    type: 'success' | 'error' | 'info'
+  ) {
+    if (!(accessibleEl instanceof HTMLElement)) return
+
+    accessibleEl.setAttribute('role', type === 'error' ? 'alert' : 'status')
+    accessibleEl.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite')
+    accessibleEl.textContent = message
+    accessibleEl.className = `form-message ${type}`
+    accessibleEl.focus()
+  }
+
   // Handle access data form
   const accessForm = document.getElementById('access-form')
   const accessMessage = document.getElementById('access-message')
@@ -126,8 +171,7 @@ const statusMessages: Record<string, { type: 'success' | 'error' | 'info', messa
     const formData = new FormData(accessForm)
     const email = formData.get('email') as string
 
-    accessMessage.textContent = 'Sending request...'
-    accessMessage.className = 'form-message info'
+    setMessage(accessMessage, 'Sending request...', 'info')
 
     try {
       const response = await fetch('/api/gdpr/request-data', {
@@ -142,16 +186,13 @@ const statusMessages: Record<string, { type: 'success' | 'error' | 'info', messa
       const data = await response.json()
 
       if (data.success) {
-        accessMessage.textContent = data.message
-        accessMessage.className = 'form-message success'
+        setMessage(accessMessage, data.message, 'success')
         accessForm.reset()
       } else {
-        accessMessage.textContent = data.error?.message || 'Request failed'
-        accessMessage.className = 'form-message error'
+        setMessage(accessMessage, data.error?.message || 'Request failed', 'error')
       }
     } catch {
-      accessMessage.textContent = 'Network error. Please try again.'
-      accessMessage.className = 'form-message error'
+      setMessage(accessMessage, 'Network error. Please try again.', 'error')
     }
   })
 
@@ -167,8 +208,7 @@ const statusMessages: Record<string, { type: 'success' | 'error' | 'info', messa
     const formData = new FormData(deleteForm)
     const email = formData.get('email') as string
 
-    deleteMessage.textContent = 'Sending request...'
-    deleteMessage.className = 'form-message info'
+    setMessage(deleteMessage, 'Sending request...', 'info')
 
     try {
       const response = await fetch('/api/gdpr/request-data', {
@@ -183,16 +223,13 @@ const statusMessages: Record<string, { type: 'success' | 'error' | 'info', messa
       const data = await response.json()
 
       if (data.success) {
-        deleteMessage.textContent = data.message
-        deleteMessage.className = 'form-message success'
+        setMessage(deleteMessage, data.message, 'success')
         deleteForm.reset()
       } else {
-        deleteMessage.textContent = data.error?.message || 'Request failed'
-        deleteMessage.className = 'form-message error'
+        setMessage(deleteMessage, data.error?.message || 'Request failed', 'error')
       }
     } catch {
-      deleteMessage.textContent = 'Network error. Please try again.'
-      deleteMessage.className = 'form-message error'
+      setMessage(deleteMessage, 'Network error. Please try again.', 'error')
     }
   })
 </script>
