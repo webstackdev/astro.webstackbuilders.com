@@ -159,19 +159,11 @@ Needs to add real API key and test
 
 ## Astro 3rd-Party Integrations, Eleventy Migration
 
-- **`eleventy-plugin-inclusive-language`**
-
-### Outputs command line warnings for weasel words like "obviously", "basically", etc.
-
 - **`eleventy-plugin-external-links`**
 
 ### Adds `target="_blank" rel="noreferrer"` to all external links
 
 - **`eleventy-plugin-emoji`**
-
-### Accessible emoji shortcode and filter. Usage:
-
-```{% emoji "⚙️", "settings gear" %} or {{ "⚙️" | emoji: "settings gear" }}```
 
 ### Time to Read
 
