@@ -73,14 +73,19 @@ const section = 'Tags'
           const tagSlug = tag.data.slug
           const contentPreview = getContentPreviewForTag(tagSlug, 4)
           const displayName = tag.data.displayName
+          const sectionTitleId = `tags-${tagSlug}-title`
 
           return (
-            <section class="border-b border-border pb-12 last:border-b-0">
+            <section
+              class="border-b border-border pb-12 last:border-b-0"
+              aria-labelledby={sectionTitleId}
+            >
               <header class="mb-6">
                 <h2 class="text-2xl md:text-3xl font-bold text-text mb-2">
                   <a
                     href={`/tags/${tagSlug}`}
                     class="hover:text-primary transition-colors duration-300"
+                    id={sectionTitleId}
                   >
                     {displayName}
                   </a>
@@ -142,7 +147,10 @@ const section = 'Tags'
                                 ? 'Case Study'
                                 : item.type.charAt(0).toUpperCase() + item.type.slice(1)}
                             </span>
-                            <time class="text-text-muted">
+                            <time
+                              class="text-text-muted"
+                              datetime={item.data.publishDate.toISOString()}
+                            >
                               {item.data.publishDate.toLocaleDateString('en-US', {
                                 month: 'short',
                                 year: 'numeric',
@@ -208,7 +216,10 @@ const section = 'Tags'
                                 ? 'Case Study'
                                 : item.type.charAt(0).toUpperCase() + item.type.slice(1)}
                             </span>
-                            <time class="text-text-muted">
+                            <time
+                              class="text-text-muted"
+                              datetime={item.data.publishDate.toISOString()}
+                            >
                               {item.data.publishDate.toLocaleDateString('en-US', {
                                 month: 'long',
                                 year: 'numeric',
@@ -237,6 +248,8 @@ const section = 'Tags'
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
+                                aria-hidden="true"
+                                focusable="false"
                               >
                                 <path
                                   stroke-linecap="round"
