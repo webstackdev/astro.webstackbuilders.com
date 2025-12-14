@@ -207,7 +207,7 @@ Adds some custom directives:
 Allows any Mastodon instance to discover your Mastodon profile directly from your own domain.
 
 
-## Refactor social neworks in Authors collection to Contact collection format
+## Refactor social networks in Authors collection to Contact collection format
 
 The contact data collection uses an array of social networks, with keys:
 
@@ -221,15 +221,6 @@ The contact data collection uses an array of social networks, with keys:
 ```
 
 The authors collection is using named entries under a "social" property, like "twitter", "github", etc. This task is to refactor that to use an array like contact data collection. We also need to add a color for the social network icon, or some other approach to setting the color of it while enabling theming.
-
-## Preload fonts:
-
-```html
-<link rel="preload" as="font" />
-```
-
-TTI (Time to Interactive) measures time from when the page is painted until it becomes usefully interactive.
-Interactive can only have two in-flight network requests.
 
 ## Stuff from ZMarkdown, a prepackaged Unified config
 
