@@ -65,6 +65,9 @@ Object.defineProperty(remarkAttribution, 'name', { value: 'remarkAttribution' })
 import remarkReplacements from '../markdown/plugins/remark-replacements'
 Object.defineProperty(remarkReplacements, 'name', { value: 'remarkReplacements' })
 
+import remarkSmartypants, { type RemarkSmartypantsOptions } from '../markdown/plugins/remark-smartypants'
+Object.defineProperty(remarkSmartypants, 'name', { value: 'remarkSmartypants' })
+
 /** Add custom CSS classes to Markdown-generated elements in this file */
 import { rehypeTailwindClasses } from '../markdown/plugins/rehype-tailwind'
 Object.defineProperty(rehypeTailwindClasses, 'name', { value: 'rehypeTailwindClasses' })
@@ -108,6 +111,47 @@ export const rehypeAutolinkHeadingsConfig: RehypeAutolinkHeadingsOptions = {
       },
     ],
   },
+}
+
+/** remark-smartypants plugin */
+const remarkSmartypantsConfig: RemarkSmartypantsOptions = {
+  /**
+   * Transform backticks; when true, turns double backticks into an opening double quote
+   * and double straight single quotes into a closing double quote; when 'all', does that
+   * and turns single backticks into an opening single quote and a straight single quotes
+   * into a closing single smart quote; quotes: false must be used with backticks: 'all'.
+   */
+  backticks: true,
+  /**
+   * Closing quotes to use.
+   */
+  closingQuotes: {
+    double: '\u201D',
+    single: '\u2019',
+  },
+  /**
+   * Transform dashes; when true, turns two dashes into an em dash character; when
+   * 'oldschool', turns three dashes into an em dash and two into an en dash; when
+   * 'inverted', turns three dashes into an en dash and two into an em dash.
+   */
+  dashes: 'oldschool',
+  /**
+   * Transform triple dots; when 'spaced', turns triple dots with spaces into ellipses;
+   * when 'unspaced', turns triple dots without spaces into ellipses; when true, turns
+   * triple dots with or without spaces into ellipses.
+   */
+  ellipses: true,
+  /**
+   * Opening quotes to use.
+   */
+  openingQuotes: {
+    double: '\u201C',
+    single: '\u2018',
+  },
+  /**
+   * Transform straight quotes into smart quotes.
+   */
+  quotes: true,
 }
 
 export const shikiConfigOptions: ShikiConfig = {
@@ -156,8 +200,8 @@ export const remarkRehypeConfig = {
 export const markdownConfig: Partial<MdxOptions> = {
   /** Default is true. Enable GitHub Flavored Markdown */
   gfm: true,
-  /** Default is true. Swap characters for smart quotes, ©, ®, ™, ±, etc. */
-  smartypants: true,
+  /** Disabled because we include `remarkSmartypants` explicitly (test coverage + avoid double-processing). */
+  smartypants: false,
   /** Code syntax highlighting */
   syntaxHighlight: { type: 'shiki', excludeLangs: ['math'] },
   shikiConfig: shikiConfigOptions,
@@ -184,6 +228,8 @@ export const markdownConfig: Partial<MdxOptions> = {
      * Converts: -->, <--, <=>, 1/2, 2 x 4, +-, etc.
      */
     remarkReplacements,
+    /** Smart quotes, dashes, and ellipsis */
+    [remarkSmartypants, remarkSmartypantsConfig],
   ],
   rehypePlugins: [
     /** Inject heading ids before plugins that rely on them */

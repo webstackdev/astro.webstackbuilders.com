@@ -1,6 +1,6 @@
 import { remark } from 'remark'
 import remarkGfm from 'remark-gfm'
-import remarkSmartypants from 'remark-smartypants'
+import remarkSmartypants from '@lib/markdown/plugins/remark-smartypants'
 import remarkRehype from 'remark-rehype'
 import rehypeStringify from 'rehype-stringify'
 import { rehypeHeadingIds } from '@astrojs/markdown-remark'
@@ -78,7 +78,6 @@ export async function processWithAstroSettings(
   const processor = remark()
 
   processor.use(remarkGfm)
-  processor.use(remarkSmartypants)
 
   if (stage === 'remark') {
     if (pluginOptions !== undefined) {
@@ -87,6 +86,10 @@ export async function processWithAstroSettings(
       processor.use(plugin as never)
     }
   }
+
+  // Match our site markdownConfig ordering: run other remark plugins first,
+  // then apply smartypants so it doesn't interfere with token-based replacements.
+  processor.use(remarkSmartypants)
 
   processor.use(remarkRehype, markdownConfig.remarkRehype)
   processor.use(rehypeHeadingIds)
