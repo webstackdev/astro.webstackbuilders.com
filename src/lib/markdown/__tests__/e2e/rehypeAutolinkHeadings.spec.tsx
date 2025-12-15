@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 /**
- * Layer 4: E2E Tests - rehypeAutolinkHeadings
+ * Layer 3: E2E Tests - rehypeAutolinkHeadings
  *
  * Tests for the rehypeAutolinkHeadings plugin which adds anchor links
  * to heading elements for easy section linking.
@@ -30,7 +30,7 @@ Details.
   html = await renderMarkdown(markdown)
 })
 
-describe('Layer 4: E2E - rehypeAutolinkHeadings', () => {
+describe('Layer 3: E2E - rehypeAutolinkHeadings', () => {
   it('should add IDs to headings', () => {
     // Headings should have id attributes
     expect(html).toMatch(/<h[1-6][^>]*id=["'][^"']+["']/)

@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 /**
- * Layer 4: E2E Tests - Attribution Feature
+ * Layer 3: E2E Tests - Attribution Feature
  *
  * Tests for the remark-attribution plugin rendering through the complete Astro pipeline
  */
@@ -23,7 +23,7 @@ afterEach(() => {
   cleanup()
 })
 
-describe('Layer 4: E2E - Attribution', () => {
+describe('Layer 3: E2E - Attribution', () => {
   describe('Feature Tests', () => {
     it('should render blockquote attributions with semantic HTML', async () => {
       const { container } = render(<MarkdownOutput html={html} />)

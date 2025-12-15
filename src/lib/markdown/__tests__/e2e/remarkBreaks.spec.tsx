@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 /**
- * Layer 4: E2E Tests - remarkBreaks
+ * Layer 3: E2E Tests - remarkBreaks
  *
  * Tests for the remarkBreaks plugin which adds support for hard line breaks
  * without requiring double spaces or backslashes.
@@ -20,7 +20,7 @@ New paragraph`
   html = await renderMarkdown(markdown)
 })
 
-describe('Layer 4: E2E - remarkBreaks', () => {
+describe('Layer 3: E2E - remarkBreaks', () => {
   it('should convert single newlines to hard line breaks', () => {
     // The plugin should convert single newlines to <br> tags
     expect(html).toContain('<br>')

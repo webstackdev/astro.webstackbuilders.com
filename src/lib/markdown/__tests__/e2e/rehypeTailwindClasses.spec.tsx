@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 /**
- * Layer 4: E2E Tests - rehypeTailwindClasses
+ * Layer 3: E2E Tests - rehypeTailwindClasses
  *
  * Tests for the rehypeTailwindClasses plugin which adds Tailwind CSS
  * utility classes to HTML elements for consistent styling.
@@ -38,7 +38,7 @@ Check out [this link](https://example.com).
   html = await renderMarkdown(markdown)
 })
 
-describe('Layer 4: E2E - rehypeTailwindClasses', () => {
+describe('Layer 3: E2E - rehypeTailwindClasses', () => {
   it('should add Tailwind classes to headings', () => {
     // h2-h6 headings should have Tailwind typography classes
     // h1 may not have classes but h2 and below should

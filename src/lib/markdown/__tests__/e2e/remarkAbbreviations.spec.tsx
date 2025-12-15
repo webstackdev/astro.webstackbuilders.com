@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 /**
- * Layer 4: E2E Tests - Abbreviations Feature
+ * Layer 3: E2E Tests - Abbreviations Feature
  *
  * Tests for the remark-abbr plugin rendering through the complete Astro pipeline
  */
@@ -24,7 +24,7 @@ afterEach(() => {
   cleanup()
 })
 
-describe('Layer 4: E2E - Abbreviations', () => {
+describe('Layer 3: E2E - Abbreviations', () => {
   describe('Feature Tests', () => {
     it('should render abbreviations with proper HTML and accessibility', async () => {
       const { container } = render(<MarkdownOutput html={html} />)

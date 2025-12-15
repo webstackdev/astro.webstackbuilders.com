@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 /**
- * Layer 4: Unified Plugin Tests - rehype-accessible-emojis
+ * Layer 3: Unified Plugin Tests - rehype-accessible-emojis
  *
  * Tests for the rehype-accessible-emojis plugin which wraps emoji characters
  * with proper accessibility attributes (role="img" and aria-label).
@@ -24,7 +24,7 @@ afterEach(() => {
   cleanup()
 })
 
-describe('Layer 4: Unified Plugin - rehype-accessible-emojis', () => {
+describe('Layer 3: Unified Plugin - rehype-accessible-emojis', () => {
   it('should add accessibility attributes to emoji characters', async () => {
     const { container } = render(<MarkdownOutput html={html} />)
 

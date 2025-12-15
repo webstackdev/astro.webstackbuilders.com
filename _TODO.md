@@ -1,8 +1,6 @@
 <!-- markdownlint-disable-file -->
 # TODO
 
-continue
-
 ## Refactor API Endpoints to Astro Actions
 
 ### Action / Domain / Responder Pattern
@@ -73,7 +71,7 @@ If we want to make it feel less inconsistent, we could either (a) rename `_logge
 
 ## Mobile Social Shares UI
 
-See the example image in Social Shares.
+See the example image in Social Shares. The social shares UI on mobile should be a modal that slides in from the bottom.
 
 ## Performance
 
@@ -83,10 +81,20 @@ Implement mitigations in test/e2e/specs/07-performance/PERFORMANCE.md
 
 Vercel Analytics
 
+- Highlighter component
+- Social Shares component
+- Social Embeds: Track embed interactions
+- Cookie Consent
+- Download Form component
+
+npm i @vercel/analytics
+import Analytics from '@vercel/analytics/astro'
+https://vercel.com/docs/analytics/quickstart#add-the-analytics-component-to-your-app
+
 ## Themepicker tooltips, extra themes
 
 - Add additional themes
-- Add tooltip that makes use of the description field
+- Add tooltip that makes use of the description field for the theme, explaining what the intent of the theme is
 
 ## Sentry feedback, chat bot tying into my phone and email
 
@@ -157,35 +165,26 @@ Google Calendar, Apple Calendar,  Yahoo Calender,  Microsoft 365, Outlook, and T
 
 Needs to add real API key and test
 
-## Astro 3rd-Party Integrations, Eleventy Migration
+- Get API token from webmention.io
+- Add WEBMENTION_IO_TOKEN to .env
+- (Optional) Set up Bridgy for social media
+- Test with sample webmentions
 
-### **`eleventy-plugin-external-links`**
-
-Adds `target="_blank" rel="noreferrer"` to all external links
-
-### Astro wrapper for the `@github/clipboard-copy-element` web component. Copies element text content or input values to the clipboard
+## Astro wrapper for the `@github/clipboard-copy-element` web component. Copies element text content or input values to the clipboard
 
 [`clipboard-copy`](https://github.com/BryceRussell/astro-github-elements/tree/main/packages/clipboard-copy#astro-github-elementsclipboard-copy)
 
-### Astro wrapper for GitHub's relative time web component. Translates dates to past or future time phrases, like "*4 hours from now*" or "*20 days ago*"
+## Astro wrapper for GitHub's relative time web component. Translates dates to past or future time phrases, like "*4 hours from now*" or "*20 days ago*"
 
 [Relative Time](https://github.com/BryceRussell/astro-github-elements/tree/main/packages/time#readme)
 
-### Display text in a circular layout
+## Display text in a circular layout
 
 [TextCircle](https://github.com/LoStisWorld/astro-textcircle#astro-textcircle)
 
-## Markdown
+## Custom Directives
 
-### Custom version of the code block integration from Astro Docs. "Beautiful code blocks for your Astro site". Applied to the code blocks created in `.mdx` files
-
-[`astro-code-blocks`](https://www.npmjs.com/package/@thewebforge/astro-code-blocks)
-
-## Miscellaneous
-
-### [`astro-directives`](https://github.com/QuentinDutot/astro-directives)
-
-Adds some custom directives:
+[`astro-directives`](https://github.com/QuentinDutot/astro-directives)
 
 ```react
 <Component client:hover />
@@ -197,31 +196,105 @@ Adds some custom directives:
 | client:hover  | element mouseover event                |
 | client:scroll | window scroll event                    |
 
-### [Prefetch](https://www.npmjs.com/package/@astrojs/prefetch) (**`installed`**)
+## Prefetch Links
 
-1. Add `rel="prefetch"` to any `<a />` tags to prefetch when visible
-2. Add `rel="prefetch-intent"` to any `<a />` links on your page to prefetch them only when they are hovered over, touched, or focused.
+The default prefetch strategy when adding the data-astro-prefetch attribute is hover. To change it, you can configure prefetch.defaultStrategy in your astro.config.mjs file.
 
-## Stuff from ZMarkdown, a prepackaged Unified config
+hover (default): Prefetch when you hover over or focus on the link.
+tap: Prefetch just before you click on the link.
+viewport: Prefetch as the links enter the viewport.
+load: Prefetch all links on the page after the page is loaded.
 
-Repo is in root of Corporate Websites
+```html
+<a href="/about" data-astro-prefetch>
+<a href="/about" data-astro-prefetch="tap">About</a>
+```
+
+If you want to prefetch all links, including those without the data-astro-prefetch attribute, you can set prefetch.prefetchAll to true:
+
+```typescript
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  prefetch: {
+    prefetchAll: true
+  }
+})
+```
+
+You can then opt-out of prefetching for individual links by setting data-astro-prefetch="false":
+
+```html
+<a href="/about" data-astro-prefetch="false">About</a>
+```
+
+## Markdown
+
+Plugins already in stack:
+
+- `remark-breaks` - Line break handling
+- `remark-emoji` - Emoji shortcode conversion
+- `remark-linkify-regex` - URL auto-linking
+
+- `rehype-accessible-emojis` - Emoji accessibility attributes
+- `rehype-autolink-headings`
+
+Custom plugins:
+
+- `remark-abbreviations` - Abbreviation expansion
+- `remark-attributes` - Custom attributes on elements
+- `remark-attribution` - Blockquote attributions
+- `remark-replacements` - Heading anchor links
+
+- `rehype-tailwind` - Add custom CSS classes to Markdown-generated elements in this file
+
+
+### Markdown Not Working
+
+- color tabs like GFM when using HEX, RGB, or HSL values in backticks. This should generate a callout box around the hex color with a dot to the right showing the color.
+- Section link anchor icons
+- GFM Alert syntax doesn't work
+- Markdown E2E tests on demo test page fixture
+- Move GFM to our stack and turn it off in Astro. That way we can customize it and remove the middle layer of integration unit tests. That way the only change Astro will make is adding IDs to headings for TOC links.
+- Astro also includes remark-smartypants and shiki
+- We're adding 'rehype-autolink-headings', but Astro does too: https://docs.astro.build/en/guides/markdown-content/#heading-ids-and-plugins
+
+### Custom version of the code block integration from Astro Docs. "Beautiful code blocks for your Astro site". Applied to the code blocks created in `.mdx` files
+
+[`astro-code-blocks`](https://www.npmjs.com/package/@thewebforge/astro-code-blocks)
+
+### rehype-external-links
+
+npm install rehype-external-links
+
+Adds `target="_blank" rel="noreferrer"` to all external links in Markdown files
+
+```typescript
+rehypePlugins: [
+  [
+    rehypeExternalLinks,
+    {
+      target: '_blank',
+      rel: ['noopener', 'noreferrer'],
+    },
+  ],
+]
+```
 
 - **mdast-util-split-by-heading**
 
   A MDAST tool to split a markdown tree into list of subtrees representing the chapters. It relies on heading depth.
 
-- **rebber**
+- **LATEX**
 
-  transformation of MDAST into `latex` code. This code must be included inside a custom latex to be compiled.
-  Have a look at `https://github.com/zestedesavoir/latex-template/blob/master/zmdocument.cls` to get a working example.
+ rebber - transformation of MDAST into `latex` code. This code must be included inside a custom latex to be compiled.
+
+ Have a look at `https://github.com/zestedesavoir/latex-template/blob/master/zmdocument.cls` to get a working example.
 
 - **remark-abbr**
 
   This plugin parses `*[ABBR]: abbr definition` and then replace all ABBR instance in text with a new MDAST node so that `rehype` can parse it into `abbr` html tag.
-
-- **rehype-footnotes-title**
-
-  This plugin adds a `title` attribute to the footnote links, mainly for accessibility purpose.
 
 - **rehype-html-blocks**
 
@@ -270,9 +343,15 @@ Repo is in root of Corporate Websites
 
   This plugin changes how [mdast][mdast] footnotes are displayed by using sequential numbers as footnote references instead of user-specified strings.
 
+- **rehype-footnotes-title**
+
+  This plugin adds a `title` attribute to the footnote links, mainly for accessibility purpose.
+
 - **remark-sub-super**
 
   This plugin parses custom Markdown syntax to handle subscript and superscript.
+
+- **Also underline.**
 
 - **typographic-colon**
 
@@ -281,3 +360,238 @@ Repo is in root of Corporate Websites
 - **typographic-permille**
 
   Micro module to replace `%o` with `‰` and optionally replace the preceding space.
+
+- **KATEX**
+
+Math markup
+
+### Details/Summary elements
+
+These HTML elements aren't being processed by remarkGfm (they need to be raw HTML). Expandable and collapsible content using HTML <details> and <summary> elements.
+
+`rehype-details`
+
+### Add ==highlighted== syntax
+
+1. add remark-mark plugin
+2. Remove skip from integration test in
+
+### Add accessible name to section in footnotes plugin
+
+    const markdownFootnoteBlockOpen = () =>
+    '<hr className="footnotes-sep">\n' +
+    '<section class="footnotes" aria-label="footnotes">\n' +
+    '<ol class="footnotes-list">\n'
+
+### Code tabs plugin so Javascript and Typescript examples can both be show.
+
+There can only be white space between two code blocks. Display name is set by `tabName` and can only contain characters in [A-Za-z0-9_]. Syntax for the first line of the code block is:
+
+```js [group:tabName]
+```
+
+`markdown-it-codetabs`
+
+### Add copy button to code blocks
+
+`markdown-it-copy`
+
+Options for "copy" button added to code blocks
+
+```javascript
+const markdownCodeCopyConfig = {
+  /** Text shown on copy button */
+  btnText: `Copy`,
+  /** Text shown on copy failure */
+  failText: `Copy Failed`,
+  /** Text shown on copy success */
+  successText: `Success!`, // 'copy success' | copy-success text
+  /** Amount of time to show success message */
+  successTextDelay: 2000,
+  /** An HTML fragment included before <button> */
+  extraHtmlBeforeBtn: ``,
+  /** An HTML fragment included after <button> */
+  extraHtmlAfterBtn: ``,
+  /** Whether to show code language before the copy button */
+  showCodeLanguage: false,
+  /** Test to append after the copied text like a copyright notice */
+  attachText: ``,
+}
+```
+
+### Definition lists
+
+using indented ~ for definitions under definition header
+`markdown-it-deflist`
+
+### Apache ECharts interactive charting and data visualization library for browser
+
+@TODO: uses ES Modules, needs Jest config adjusted. See note in Mermaid plugin spec file.
+
+`markdown-it-echarts`
+
+### Add captions to markdown images
+
+```markdown
+![xx](yy "my caption") shows `my caption` as the caption
+```
+
+`markdown-it-image-caption`
+
+### Includes for markdown fragment files using !!![file.md]!!! syntax
+
+`markdown-it-include`
+
+### Syntax highlighting for marked text
+
+```
+==marked== => <mark>inserted</mark>
+```
+
+`markdown-it-mark`
+
+### Add Twitter like mentions in markdown using @twittername syntax
+
+`markdown-it-mentions`
+
+Options object including parse function for content generated by mentions plugin using `@twittername` syntax:
+
+```javascript
+const markdownMentionsConfig = {
+  parseURL: username => {
+    return `https://twitter.com/@${username}`
+  },
+  /** adds a target="_blank" attribute if it's true and target="_self" if it's false */
+  external: true,
+}
+```
+
+
+### TeX rendering using KaTeX for math symbols
+
+`markdown-it-texmath`
+
+```typescript
+const markdownTexmathConfig = {
+  engine: require('katex'),
+  delimiters: 'dollars',
+  katexOptions: { macros: { '\\RR': '\\mathbb{R}' } },
+}
+```
+
+- `remark-math`: A Remark plugin that parses LaTeX syntax within your Markdown files.
+- `rehype-katex` or `rehype-mathjax`: Rehype plugins that convert the parsed LaTeX into rendered HTML using either KaTeX or MathJax, respectively. KaTeX is often preferred for its performance and ability to allow text selection.
+
+### Mermaid JavaScript based diagramming and charting tool
+
+@TODO: uses ES Modules, needs Jest config adjusted. See note in spec file.
+
+`@liradb2000/markdown-it-mermaid`
+
+```typescript
+const markdownMermaidConfig = {
+  startOnLoad: false,
+  securityLevel: true,
+  theme: 'default',
+  flowchart: {
+    htmlLabels: false,
+    useMaxWidth: true,
+  },
+  dictionary: {
+    token: 'mermaid',
+    graph: 'graph',
+    sequenceDiagram: 'sequenceDiagram',
+  },
+  // ...or any other options
+}
+
+markdown.syntaxHighlight.excludeLangs
+Type: Array<string>
+Default: ['math']
+```
+
+### Excluded Languages
+
+An array of languages to exclude from the default syntax highlighting specified in markdown.syntaxHighlight.type. This can be useful when using tools that create diagrams from Markdown code blocks, such as Mermaid.js and D2.
+
+```javascript
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  markdown: {
+    syntaxHighlight: {
+      type: 'shiki',
+      excludeLangs: ['mermaid', 'math'],
+    },
+  },
+})
+```
+
+/** Add a curtain filename block into code blocks using ```js:<filename.js> syntax */
+// @TODO: conflicts with markdown-it-codetabs, need to debug
+//// markdown-it-named-code-blocks//
+
+/** Textmark-based parsing of code blocks using VS Code templates */
+// @TODO: gives error, maybe about ES Module syntax: TypeError: plugin.apply is not a function
+//// markdown-it-shiki'), markdownShikiConfig)
+
+/** Subscript text: 29^th^ => <p>29<sup>th</sup></p> */
+// markdown-it-sub//
+
+/** Superscript text: H~2~0 => <p>H<sub>2</sub>0</p> */
+// markdown-it-sup//
+
+/** Adds underline to markdown like _underline_ */
+// @TODO: conflicts with built-in markup for italics: _italics_ _underline_, change one
+//// markdown-it-underline//
+
+/** Embed video: @[youtube](dQw4w9WgXcQ) */
+// markdown-it-video'), markdownVideoConfig)
+/**
+ *
+ */
+/*const markdownVideoConfig = {
+  youtube: { width: 640, height: 390 },
+}*/
+
+/*
+ call out colors within a sentence by using backticks like Github-Flavored Markup on Github. A supported color model within backticks will display a visualization of the color.
+
+The background color is `#ffffff` for light mode and `#000000` for dark mode.
+
+The above will generate a callout box around the hex color with a dot to the right showing the color.
+*/
+
+// Alerts: Use specific block formats for different types of alerts, such as > [!IMPORTANT] or > [!WARNING].
+
+### Attribution
+
+`markdown-it-attribution`
+
+```markdown
+<attribution>
+This is some text that needs an attribution.
+</attribution>
+```
+
+### my-accessible-list-plugin
+
+```typescript
+import { visit } from 'unist-util-visit';
+
+export function myAccessibleListPlugin() {
+  return (tree) => {
+    visit(tree, 'list', (node) => {
+      // Example: Add an aria-label to lists
+      if (!node.data) {
+        node.data = {}
+      }
+      if (!node.data.hProperties) {
+        node.data.hProperties = {}
+      }
+      node.data.hProperties['aria-label'] = 'List of items'; // Customize this
+    })
+  }
+}
+```

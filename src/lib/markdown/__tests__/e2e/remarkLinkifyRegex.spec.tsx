@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 /**
- * Layer 4: E2E Tests - remarkLinkifyRegex
+ * Layer 3: E2E Tests - remarkLinkifyRegex
  *
  * Tests for the remarkLinkifyRegex plugin which automatically converts
  * URLs in text to clickable links.
@@ -20,7 +20,7 @@ Email me at user@example.com
   html = await renderMarkdown(markdown)
 })
 
-describe('Layer 4: E2E - remarkLinkifyRegex', () => {
+describe('Layer 3: E2E - remarkLinkifyRegex', () => {
   it('should convert URLs to links', () => {
     expect(html).toContain('<a')
     expect(html).toContain('https://example.com')

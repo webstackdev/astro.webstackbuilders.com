@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 /**
- * Layer 4: Unified Plugin Tests - remark-emoji
+ * Layer 3: Unified Plugin Tests - remark-emoji
  *
  * Tests for the remark-emoji plugin which converts emoji shortcodes like :heart:
  * to Unicode emoji characters (❤️).
@@ -23,7 +23,7 @@ afterEach(() => {
   cleanup()
 })
 
-describe('Layer 4: Unified Plugin - remark-emoji', () => {
+describe('Layer 3: Unified Plugin - remark-emoji', () => {
   it('should convert emoji shortcodes to Unicode emoji characters', async () => {
     const { container } = render(<MarkdownOutput html={html} />)
 

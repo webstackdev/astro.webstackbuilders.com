@@ -2,8 +2,8 @@
  * Test Coverage Validator
  *
  * Ensures every markdown plugin has appropriate test coverage across all test locations:
- * - External plugins (npm packages): units/, units_with_default_astro/, e2e/
- * - Local plugins (src/lib/markdown/plugins/*): plugins/{name}/__tests__/, units_with_default_astro/, e2e/
+ * - External plugins (npm packages): units/, integration/, e2e/
+ * - Local plugins (src/lib/markdown/plugins/*): plugins/{name}/__tests__/, integration/, e2e/
  */
 
 import { describe, it, beforeAll, expect } from 'vitest'
@@ -14,7 +14,7 @@ import { markdownConfig } from '@lib/config/markdown'
 
 interface TestFileMap {
   units: Set<string>
-  unitsWithAstro: Set<string>
+  integration: Set<string>
   e2e: Set<string>
   pluginUnits: Set<string>
 }
@@ -74,7 +74,7 @@ beforeAll(() => {
 
   testFiles = {
     units: scanDirectory(join(testRoot, 'units')),
-    unitsWithAstro: scanDirectory(join(testRoot, 'units_with_default_astro')),
+    integration: scanDirectory(join(testRoot, 'integration')),
     e2e: scanDirectory(join(testRoot, 'e2e')),
     pluginUnits: scanDirectory(pluginsRoot),
   }
@@ -105,11 +105,11 @@ describe('Markdown Plugin Test Coverage', () => {
     const remarkPlugins = buildPluginTestCases('remark')
 
     it.each(remarkPlugins)(
-      'should have units_with_default_astro test for $pluginName',
+      'should have integration test for $pluginName',
       ({ pluginNameKebab }) => {
         expect(
-          testFiles.unitsWithAstro.has(pluginNameKebab),
-          `Missing test in units_with_default_astro/${pluginNameKebab}-astro.spec.ts`
+          testFiles.integration.has(pluginNameKebab),
+          `Missing test in integration/${pluginNameKebab}-astro.spec.ts`
         ).toBe(true)
       }
     )
@@ -130,11 +130,11 @@ describe('Markdown Plugin Test Coverage', () => {
     const rehypePlugins = buildPluginTestCases('rehype')
 
     it.each(rehypePlugins)(
-      'should have units_with_default_astro test for $pluginName',
+      'should have integration test for $pluginName',
       ({ pluginNameKebab }) => {
         expect(
-          testFiles.unitsWithAstro.has(pluginNameKebab),
-          `Missing test in units_with_default_astro/${pluginNameKebab}-astro.spec.ts`
+          testFiles.integration.has(pluginNameKebab),
+          `Missing test in integration/${pluginNameKebab}-astro.spec.ts`
         ).toBe(true)
       }
     )

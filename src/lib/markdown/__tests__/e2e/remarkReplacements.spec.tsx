@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 /**
- * Layer 4: E2E Tests - remarkReplacements
+ * Layer 3: E2E Tests - remarkReplacements
  *
  * Tests for the remarkReplacements plugin which handles typographic
  * replacements like arrows, fractions, and multiplication signs.
@@ -23,7 +23,7 @@ Multiplication: 2 x 4 equals 8
   html = await renderMarkdown(markdown)
 })
 
-describe('Layer 4: E2E - remarkReplacements', () => {
+describe('Layer 3: E2E - remarkReplacements', () => {
   it('should convert arrow symbols', () => {
     // Plugin should convert --> to → and <-- to ←
     expect(html).toMatch(/→|&rarr;/)
