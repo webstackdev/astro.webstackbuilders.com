@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import remarkReplacements from '@lib/markdown/plugins/remark-replacements/index'
+import remarkReplacements from '@lib/markdown/plugins/remark-replacements'
 import { processWithAstroSettings } from '@lib/markdown/helpers/processors'
 
 describe('remark-replacements (Layer 2: With Astro Pipeline)', () => {

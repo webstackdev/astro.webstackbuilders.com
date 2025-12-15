@@ -231,7 +231,16 @@ You can then opt-out of prefetching for individual links by setting data-astro-p
 
 ## Markdown
 
-Plugins already in stack:
+### SmartyPants transformations
+
+- Straight quotes ( " and ' ) into "curly" quote HTML entities
+- Backticks-style quotes (``like this'') into "curly" quote HTML entities
+- Dashes (-- and ---) into en- and em-dash entities
+- Three consecutive dots (...) or dots with spaces (. . .) into an ellipsis entity
+
+SmartyPants does not modify characters within `<pre>`, `<code>`, `<kbd>`, `<math>`, or `<script>` tag blocks.
+
+### Plugins already in stack
 
 - `remark-breaks` - Line break handling
 - `remark-emoji` - Emoji shortcode conversion
@@ -240,7 +249,7 @@ Plugins already in stack:
 - `rehype-accessible-emojis` - Emoji accessibility attributes
 - `rehype-autolink-headings`
 
-Custom plugins:
+### Custom plugins
 
 - `remark-abbreviations` - Abbreviation expansion
 - `remark-attributes` - Custom attributes on elements

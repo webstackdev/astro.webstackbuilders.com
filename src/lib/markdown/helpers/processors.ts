@@ -2,7 +2,6 @@ import { remark } from 'remark'
 import remarkGfm from 'remark-gfm'
 import remarkSmartypants from 'remark-smartypants'
 import remarkRehype from 'remark-rehype'
-import rehypeSlug from 'rehype-slug'
 import rehypeStringify from 'rehype-stringify'
 import { rehypeHeadingIds } from '@astrojs/markdown-remark'
 import { markdownConfig } from '@lib/config/markdown'
@@ -135,10 +134,6 @@ export async function processWithFullPipeline(content: string): Promise<string> 
   // Insert remarkRehype conversion using the configured options
   // (this mirrors Astro's pipeline ordering)
   processor = processor.use(remarkRehype, markdownConfig.remarkRehype)
-
-  // rehypeSlug is added by Astro in the real pipeline before user rehype
-  // plugins; include it here to mirror that behavior for tests.
-  processor = processor.use(rehypeSlug)
 
   // Add rehype plugins from markdownConfig in order. Entries may be
   // either plugin functions or [plugin, options] tuples.
