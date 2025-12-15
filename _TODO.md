@@ -202,26 +202,6 @@ Adds some custom directives:
 1. Add `rel="prefetch"` to any `<a />` tags to prefetch when visible
 2. Add `rel="prefetch-intent"` to any `<a />` links on your page to prefetch them only when they are hovered over, touched, or focused.
 
-### [astro-webfinger](https://www.npmjs.com/package/astro-webfinger)
-
-Allows any Mastodon instance to discover your Mastodon profile directly from your own domain.
-
-
-## Refactor social networks in Authors collection to Contact collection format
-
-The contact data collection uses an array of social networks, with keys:
-
-```
-{
-  network: z.string(),
-  name: z.string(),
-  url: z.string().url(),
-  order: z.number(),
-}
-```
-
-The authors collection is using named entries under a "social" property, like "twitter", "github", etc. This task is to refactor that to use an array like contact data collection. We also need to add a color for the social network icon, or some other approach to setting the color of it while enabling theming.
-
 ## Stuff from ZMarkdown, a prepackaged Unified config
 
 Repo is in root of Corporate Websites
