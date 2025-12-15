@@ -8,14 +8,15 @@
 import { describe, it, expect, beforeAll, afterEach } from 'vitest'
 import { cleanup, render } from '@testing-library/preact'
 import { axe } from 'vitest-axe'
-import { loadFixture, renderMarkdown, MarkdownOutput } from '@lib/markdown/helpers/markdownLoader'
+import { loadFixture, MarkdownOutput } from '@lib/markdown/helpers/markdownLoader'
+import { processWithFullPipeline } from '@lib/markdown/helpers/processors'
 
 let html: string
 
 // Load fixture once for all tests (just the markdown string, not rendered)
 beforeAll(async () => {
   const markdown = loadFixture('attribution.md')
-  html = await renderMarkdown(markdown)
+  html = await processWithFullPipeline(markdown)
 })
 
 // Cleanup after each test

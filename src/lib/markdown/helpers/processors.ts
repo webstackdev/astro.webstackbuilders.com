@@ -2,9 +2,10 @@ import { remark } from 'remark'
 import remarkGfm from 'remark-gfm'
 import remarkSmartypants from 'remark-smartypants'
 import remarkRehype from 'remark-rehype'
+import rehypeSlug from 'rehype-slug'
 import rehypeStringify from 'rehype-stringify'
 import { rehypeHeadingIds } from '@astrojs/markdown-remark'
-import { remarkRehypeConfig } from '@lib/config/markdown'
+import { markdownConfig } from '@lib/config/markdown'
 
 export type ProcessStage = 'remark' | 'rehype'
 
@@ -88,7 +89,7 @@ export async function processWithAstroSettings(
     }
   }
 
-  processor.use(remarkRehype, remarkRehypeConfig)
+  processor.use(remarkRehype, markdownConfig.remarkRehype)
   processor.use(rehypeHeadingIds)
 
   if (stage === 'rehype') {
@@ -108,50 +109,52 @@ export async function processWithAstroSettings(
  * Process markdown through the complete Astro pipeline (Layer 3)
  * Includes all remark and rehype plugins in the correct order
  */
-export async function processWithFullPipeline(markdown: string): Promise<string> {
-  // Import all plugins - using our TypeScript versions (modern API)
-  const remarkAbbreviations = (await import('../plugins/remark-abbreviations/index')).default
-  const remarkAttributes = (await import('../plugins/remark-attributes/index')).default
-  const remarkAttribution = (await import('../plugins/remark-attribution/index')).default
-  const remarkBreaks = (await import('remark-breaks')).default
-  const remarkEmoji = (await import('remark-emoji')).default
-  const remarkLinkifyRegex = (await import('remark-linkify-regex')).default
-  const { rehypeAccessibleEmojis } = await import('rehype-accessible-emojis')
-  const rehypeAutolinkHeadings = (await import('rehype-autolink-headings')).default
-  const { rehypeTailwindClasses } = await import('../plugins/rehype-tailwind')
+export async function processWithFullPipeline(content: string): Promise<string> {
+  // Start with remark processor (type inferred as each plugin is added)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let processor: any = remark()
 
-  // Import configurations
-  const { remarkAttributesConfig, rehypeAutolinkHeadingsConfig } = await import('../../config/markdown')
-
-  try {
-    const processor = remark()
-      // Enable GFM (matches gfm: true)
-      .use(remarkGfm)
-
-      // Add all remark plugins in the same order as Astro
-      .use(remarkAbbreviations)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .use(remarkAttributes, remarkAttributesConfig as any)
-      .use(remarkAttribution)
-      .use(remarkBreaks)
-      .use(remarkEmoji)
-      // remarkLinkifyRegex is a factory function - call it with the regex first
-      .use(remarkLinkifyRegex(/^(https?:\/\/[^\s$.?#].[^\s]*)$/i))
-      .use(remarkRehype, remarkRehypeConfig)
-
-      // Add all rehype plugins in the same order as Astro
-      .use(rehypeHeadingIds)
-      .use(rehypeAccessibleEmojis)
-      .use(rehypeAutolinkHeadings, rehypeAutolinkHeadingsConfig)
-      .use(rehypeTailwindClasses)
-
-      // Convert to HTML string
-      .use(rehypeStringify)
-
-    const result = await processor.process(markdown)
-    return String(result)
-  } catch (error) {
-    console.error('ERROR in processWithFullPipeline:', error)
-    throw error
+  // Add remark plugins from markdownConfig in order. Entries may be
+  // either plugin functions or [plugin, options] tuples.
+  // Respect markdownConfig.gfm (Astro enables GFM when gfm: true)
+  if (markdownConfig.gfm !== false) {
+    processor = processor.use(remarkGfm)
   }
+
+  if (markdownConfig.remarkPlugins) {
+    for (const entry of markdownConfig.remarkPlugins) {
+      if (Array.isArray(entry)) {
+        // [plugin, options]
+        processor = processor.use(entry[0], entry[1])
+      } else {
+        processor = processor.use(entry)
+      }
+    }
+  }
+
+  // Insert remarkRehype conversion using the configured options
+  // (this mirrors Astro's pipeline ordering)
+  processor = processor.use(remarkRehype, markdownConfig.remarkRehype)
+
+  // rehypeSlug is added by Astro in the real pipeline before user rehype
+  // plugins; include it here to mirror that behavior for tests.
+  processor = processor.use(rehypeSlug)
+
+  // Add rehype plugins from markdownConfig in order. Entries may be
+  // either plugin functions or [plugin, options] tuples.
+  if (markdownConfig.rehypePlugins) {
+    for (const entry of markdownConfig.rehypePlugins) {
+      if (Array.isArray(entry)) {
+        processor = processor.use(entry[0], entry[1])
+      } else {
+        processor = processor.use(entry)
+      }
+    }
+  }
+
+  // Ensure output is stringified to HTML
+  processor = processor.use(rehypeStringify)
+
+  const result = await processor.process(content)
+  return String(result)
 }

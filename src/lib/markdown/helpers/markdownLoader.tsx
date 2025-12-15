@@ -8,7 +8,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { render } from '@testing-library/preact'
-import { renderMarkdown } from './pipeline'
+import { processWithFullPipeline } from './processors'
 
 // Get the directory path for fixtures relative to the e2e test directory
 const fixturesDir = join(__dirname, '../__fixtures__')
@@ -77,7 +77,7 @@ export async function renderFixture(fixtureName: string): Promise<{
   container: Element
 }> {
   const markdown = loadFixture(fixtureName)
-  const html = await renderMarkdown(markdown)
+  const html = await processWithFullPipeline(markdown)
   const { container } = render(<MarkdownOutput html={html} />)
 
   return { html, container }
@@ -86,4 +86,4 @@ export async function renderFixture(fixtureName: string): Promise<{
 /**
  * Re-export renderMarkdown for convenience
  */
-export { renderMarkdown } from './pipeline'
+export { processWithFullPipeline as renderMarkdown } from './processors'

@@ -16,7 +16,7 @@ describe('remark-replacements (Layer 2: With Astro Pipeline)', () => {
       const html = await processWithAstroSettings({ markdown, plugin: remarkReplacements })
 
       expect(html).toContain('<table')
-      expect(html).toContain('→') // getting full HTML
+      expect(html).toContain('→')
       expect(html).toContain('←')
       expect(html).toContain('↔')
     })
@@ -54,7 +54,7 @@ The arrow --> points right[^1]
 
   const html = await processWithAstroSettings({ markdown, plugin: remarkReplacements })
 
-      expect(html).toContain('→') // full html markup, not arrow
+      expect(html).toContain('→')
       expect(html).toContain('←')
     })
   })
@@ -78,7 +78,7 @@ The arrow --> points right[^1]
 
       expect(html).toContain('±')
       expect(html).toContain('×')
-      expect(html).toContain('→') // "<p>The value is ± 0.5 and the area is 2 × 3, pointing —></p>"
+      expect(html).toContain('→')
     })
   })
 })
