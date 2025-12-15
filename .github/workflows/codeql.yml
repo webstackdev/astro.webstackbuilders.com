@@ -12,6 +12,7 @@ on:
 jobs:
   analyze:
     name: Analyze Code
+    if: github.event_name != 'pull_request' || !startsWith(github.head_ref, 'hotfix/')
     runs-on: ubuntu-latest
     permissions:
       actions: read
