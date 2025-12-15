@@ -11,7 +11,7 @@ This uses MDAST with ~~strikethrough~~ text.
 *[MDAST]: Markdown Abstract Syntax Tree
       `.trim()
 
-      const html = await processWithAstroSettings(markdown, remarkAbbreviations)
+  const html = await processWithAstroSettings({ markdown, plugin: remarkAbbreviations })
 
       // Should have abbreviation
       expect(html).toContain('<abbr title="Markdown Abstract Syntax Tree">MDAST</abbr>')
@@ -28,7 +28,7 @@ This uses MDAST with ~~strikethrough~~ text.
 *[MDAST]: Markdown Abstract Syntax Tree
       `.trim()
 
-      const html = await processWithAstroSettings(markdown, remarkAbbreviations)
+  const html = await processWithAstroSettings({ markdown, plugin: remarkAbbreviations })
 
       expect(html).toContain('<table')
       expect(html).toContain('<abbr title="Markdown Abstract Syntax Tree">MDAST</abbr>')
@@ -41,7 +41,7 @@ Check https://example.com for MDAST info.
 *[MDAST]: Markdown Abstract Syntax Tree
       `.trim()
 
-      const html = await processWithAstroSettings(markdown, remarkAbbreviations)
+  const html = await processWithAstroSettings({ markdown, plugin: remarkAbbreviations })
 
       expect(html).toContain('<abbr')
       expect(html).toContain('https://example.com')
@@ -58,7 +58,7 @@ This uses MDAST[^1].
 *[MDAST]: Markdown Abstract Syntax Tree
       `.trim()
 
-      const html = await processWithAstroSettings(markdown, remarkAbbreviations)
+  const html = await processWithAstroSettings({ markdown, plugin: remarkAbbreviations })
 
       expect(html).toContain('<abbr title="Markdown Abstract Syntax Tree">MDAST</abbr>')
       // Footnote reference should be present
@@ -74,7 +74,7 @@ The "MDAST" format is great.
 *[MDAST]: Markdown Abstract Syntax Tree
       `.trim()
 
-      const html = await processWithAstroSettings(markdown, remarkAbbreviations)
+  const html = await processWithAstroSettings({ markdown, plugin: remarkAbbreviations })
 
       expect(html).toContain('<abbr title="Markdown Abstract Syntax Tree">MDAST</abbr>')
       // Note: smartypants is handled by Astro's internal processing, not in our test pipeline

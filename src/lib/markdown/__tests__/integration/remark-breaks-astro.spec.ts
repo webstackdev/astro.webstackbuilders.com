@@ -9,7 +9,7 @@ describe('remark-breaks (Layer 2: With Astro Pipeline)', () => {
 Line two
 Line three`
 
-      const html = await processWithAstroSettings(markdown, remarkBreaks)
+      const html = await processWithAstroSettings({ markdown, plugin: remarkBreaks })
 
       expect(html).toContain('Line one')
       expect(html).toContain('Line two')
@@ -26,7 +26,7 @@ Line three`
 ~~Second line~~
 Third line`
 
-      const html = await processWithAstroSettings(markdown, remarkBreaks)
+      const html = await processWithAstroSettings({ markdown, plugin: remarkBreaks })
 
       expect(html).toContain('First line')
       expect(html).toContain('<del>Second line</del>')
@@ -40,7 +40,7 @@ Line two[^1]
 
 [^1]: Footnote text`
 
-      const html = await processWithAstroSettings(markdown, remarkBreaks)
+  const html = await processWithAstroSettings({ markdown, plugin: remarkBreaks })
 
       expect(html).toContain('Line one')
       expect(html).toContain('Line two')
@@ -57,9 +57,9 @@ Paragraph line 2
 
 Another paragraph`
 
-      const html = await processWithAstroSettings(markdown, remarkBreaks)
+  const html = await processWithAstroSettings({ markdown, plugin: remarkBreaks })
 
-      expect(html).toContain('<h1>')
+      expect(html).toContain('<h1')
       expect(html).toContain('<p>')
       expect(html).toContain('Paragraph line 1')
     })

@@ -12,7 +12,7 @@ describe('remark-emoji (Layer 2: With Astro Pipeline)', () => {
 | Sad    | :cry: |
       `.trim()
 
-      const html = await processWithAstroSettings(markdown, remarkEmoji)
+      const html = await processWithAstroSettings({ markdown, plugin: remarkEmoji })
 
       expect(html).toContain('<table')
       expect(html).toContain('😄')
@@ -22,7 +22,7 @@ describe('remark-emoji (Layer 2: With Astro Pipeline)', () => {
     it('should work with GFM strikethrough and emojis', async () => {
       const markdown = 'I :heart: ~~hate~~ coding :rocket:'
 
-      const html = await processWithAstroSettings(markdown, remarkEmoji)
+      const html = await processWithAstroSettings({ markdown, plugin: remarkEmoji })
 
       expect(html).toContain('❤')
       expect(html).toContain('🚀')
@@ -35,7 +35,7 @@ describe('remark-emoji (Layer 2: With Astro Pipeline)', () => {
 - [ ] Pending task :hourglass:
       `.trim()
 
-      const html = await processWithAstroSettings(markdown, remarkEmoji)
+      const html = await processWithAstroSettings({ markdown, plugin: remarkEmoji })
 
       expect(html).toContain('✔')
     })
@@ -49,7 +49,7 @@ Text with emoji :wave:[^1]
 [^1]: Footnote with :smile:
       `.trim()
 
-      const html = await processWithAstroSettings(markdown, remarkEmoji)
+  const html = await processWithAstroSettings({ markdown, plugin: remarkEmoji })
 
       expect(html).toContain('👋')
       expect(html).toContain('😄')
@@ -60,7 +60,7 @@ Text with emoji :wave:[^1]
     it('should preserve emojis through remarkRehype conversion', async () => {
       const markdown = '# Heading :star:\n\nParagraph with :tada: emoji'
 
-      const html = await processWithAstroSettings(markdown, remarkEmoji)
+      const html = await processWithAstroSettings({ markdown, plugin: remarkEmoji })
 
       expect(html).toContain('⭐')
       expect(html).toContain('🎉')
@@ -69,7 +69,7 @@ Text with emoji :wave:[^1]
     it('should handle multiple emojis with GFM autolinks', async () => {
       const markdown = 'Check :link: https://example.com for more :information_source:'
 
-      const html = await processWithAstroSettings(markdown, remarkEmoji)
+      const html = await processWithAstroSettings({ markdown, plugin: remarkEmoji })
 
       expect(html).toContain('🔗')
       expect(html).toContain('https://example.com')

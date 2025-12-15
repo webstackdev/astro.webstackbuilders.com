@@ -12,7 +12,11 @@ describe('remark-attributes (Layer 2: With Astro Pipeline)', () => {
     it('should work with GFM strikethrough', async () => {
       const markdown = '[~~deleted text~~]{.highlight}'
 
-      const html = await processWithAstroSettings(markdown, remarkAttributes, remarkAttributesConfig)
+      const html = await processWithAstroSettings({
+        markdown,
+        plugin: remarkAttributes,
+        pluginOptions: remarkAttributesConfig,
+      })
 
       expect(html).toContain('<del')
       expect(html).toContain('deleted text')
@@ -24,7 +28,11 @@ describe('remark-attributes (Layer 2: With Astro Pipeline)', () => {
 - [x] Task 2
       `.trim()
 
-      const html = await processWithAstroSettings(markdown, remarkAttributes, remarkAttributesConfig)
+      const html = await processWithAstroSettings({
+        markdown,
+        plugin: remarkAttributes,
+        pluginOptions: remarkAttributesConfig,
+      })
 
       expect(html).toContain('Task 1')
       expect(html).toContain('Task 2')
@@ -39,7 +47,11 @@ Text with footnote[^1]{.footnote-ref}.
 [^1]: Footnote content
       `.trim()
 
-      const html = await processWithAstroSettings(markdown, remarkAttributes, remarkAttributesConfig)
+  const html = await processWithAstroSettings({
+    markdown,
+    plugin: remarkAttributes,
+    pluginOptions: remarkAttributesConfig,
+  })
 
       expect(html).toContain('footnote')
       expect(html).toContain('Footnote content')
@@ -50,7 +62,11 @@ Text with footnote[^1]{.footnote-ref}.
     it('should handle attributes on links with autolinks', async () => {
       const markdown = '[Visit](https://example.com){.external target=_blank}'
 
-      const html = await processWithAstroSettings(markdown, remarkAttributes, remarkAttributesConfig)
+      const html = await processWithAstroSettings({
+        markdown,
+        plugin: remarkAttributes,
+        pluginOptions: remarkAttributesConfig,
+      })
 
       expect(html).toContain('class="external"')
       expect(html).toContain('target="_blank"')
@@ -60,7 +76,11 @@ Text with footnote[^1]{.footnote-ref}.
     it('should preserve attributes through remarkRehype conversion', async () => {
       const markdown = '# Heading{.title #main-heading data-level=1}'
 
-      const html = await processWithAstroSettings(markdown, remarkAttributes, remarkAttributesConfig)
+      const html = await processWithAstroSettings({
+        markdown,
+        plugin: remarkAttributes,
+        pluginOptions: remarkAttributesConfig,
+      })
 
       expect(html).toContain('class="title"')
       expect(html).toContain('id="main-heading"')

@@ -13,10 +13,10 @@ describe('remark-replacements (Layer 2: With Astro Pipeline)', () => {
 | Both      | <-->   |
       `.trim()
 
-      const html = await processWithAstroSettings(markdown, remarkReplacements)
+      const html = await processWithAstroSettings({ markdown, plugin: remarkReplacements })
 
       expect(html).toContain('<table')
-      expect(html).toContain('→')
+      expect(html).toContain('→') // getting full HTML
       expect(html).toContain('←')
       expect(html).toContain('↔')
     })
@@ -24,7 +24,7 @@ describe('remark-replacements (Layer 2: With Astro Pipeline)', () => {
     it('should work with replacements in strikethrough', async () => {
       const markdown = 'The result is ~~+- 5~~ exactly +- 0.5'
 
-      const html = await processWithAstroSettings(markdown, remarkReplacements)
+      const html = await processWithAstroSettings({ markdown, plugin: remarkReplacements })
 
       expect(html).toContain('±')
       expect(html).toContain('<del>± 5</del>')
@@ -36,7 +36,7 @@ describe('remark-replacements (Layer 2: With Astro Pipeline)', () => {
 - [ ] Size is 4 x 5
       `.trim()
 
-      const html = await processWithAstroSettings(markdown, remarkReplacements)
+      const html = await processWithAstroSettings({ markdown, plugin: remarkReplacements })
 
       expect(html).toContain('×')
       expect(html).toContain('2 × 3')
@@ -52,9 +52,9 @@ The arrow --> points right[^1]
 [^1]: This arrow <-- points left
       `.trim()
 
-      const html = await processWithAstroSettings(markdown, remarkReplacements)
+  const html = await processWithAstroSettings({ markdown, plugin: remarkReplacements })
 
-      expect(html).toContain('→')
+      expect(html).toContain('→') // full html markup, not arrow
       expect(html).toContain('←')
     })
   })
@@ -63,7 +63,7 @@ The arrow --> points right[^1]
     it('should preserve replacements through remarkRehype conversion', async () => {
       const markdown = 'Double arrow ==> and bidirectional <==>'
 
-      const html = await processWithAstroSettings(markdown, remarkReplacements)
+      const html = await processWithAstroSettings({ markdown, plugin: remarkReplacements })
 
       expect(html).toContain('⇒')
       expect(html).toContain('⇔')
@@ -74,11 +74,11 @@ The arrow --> points right[^1]
     it('should work with multiple replacements in one paragraph', async () => {
       const markdown = 'The value is +- 0.5 and the area is 2 x 3, pointing -->'
 
-      const html = await processWithAstroSettings(markdown, remarkReplacements)
+      const html = await processWithAstroSettings({ markdown, plugin: remarkReplacements })
 
       expect(html).toContain('±')
       expect(html).toContain('×')
-      expect(html).toContain('→')
+      expect(html).toContain('→') // "<p>The value is ± 0.5 and the area is 2 × 3, pointing —></p>"
     })
   })
 })

@@ -9,7 +9,7 @@ describe('remark-linkify-regex (Layer 2: With Astro Pipeline)', () => {
     it('should work alongside GFM autolinks', async () => {
       const markdown = 'Visit https://example.com and <https://other.com>'
 
-      const html = await processWithAstroSettings(markdown, remarkLinkifyRegex(urlRegex))
+      const html = await processWithAstroSettings({ markdown, plugin: remarkLinkifyRegex(urlRegex) })
 
       expect(html).toContain('href="https://example.com"')
       expect(html).toContain('href="https://other.com"')
@@ -22,7 +22,7 @@ describe('remark-linkify-regex (Layer 2: With Astro Pipeline)', () => {
 | Example | https://example.com |
       `.trim()
 
-      const html = await processWithAstroSettings(markdown, remarkLinkifyRegex(urlRegex))
+      const html = await processWithAstroSettings({ markdown, plugin: remarkLinkifyRegex(urlRegex) })
 
       expect(html).toContain('<table')
       expect(html).toContain('https://example.com')
@@ -31,7 +31,7 @@ describe('remark-linkify-regex (Layer 2: With Astro Pipeline)', () => {
     it('should work with GFM strikethrough', async () => {
       const markdown = 'Visit ~~https://old.com~~ https://new.com instead'
 
-      const html = await processWithAstroSettings(markdown, remarkLinkifyRegex(urlRegex))
+      const html = await processWithAstroSettings({ markdown, plugin: remarkLinkifyRegex(urlRegex) })
 
       expect(html).toContain('href="https://new.com"')
       expect(html).toContain('<del>')
@@ -46,7 +46,7 @@ Reference link[^1]
 [^1]: See https://example.com for details
       `.trim()
 
-      const html = await processWithAstroSettings(markdown, remarkLinkifyRegex(urlRegex))
+  const html = await processWithAstroSettings({ markdown, plugin: remarkLinkifyRegex(urlRegex) })
 
       expect(html).toContain('https://example.com')
       expect(html).toContain('footnote')
@@ -57,7 +57,7 @@ Reference link[^1]
     it('should preserve URL links through remarkRehype conversion', async () => {
       const markdown = 'Documentation: https://example.com/docs'
 
-      const html = await processWithAstroSettings(markdown, remarkLinkifyRegex(urlRegex))
+      const html = await processWithAstroSettings({ markdown, plugin: remarkLinkifyRegex(urlRegex) })
 
       expect(html).toContain('<a')
       expect(html).toContain('href="https://example.com/docs"')
@@ -66,7 +66,7 @@ Reference link[^1]
     it('should handle URLs with query params and fragments', async () => {
       const markdown = 'Search: https://example.com?q=test#results'
 
-      const html = await processWithAstroSettings(markdown, remarkLinkifyRegex(urlRegex))
+      const html = await processWithAstroSettings({ markdown, plugin: remarkLinkifyRegex(urlRegex) })
 
       expect(html).toContain('href="https://example.com?q=test#results"')
     })

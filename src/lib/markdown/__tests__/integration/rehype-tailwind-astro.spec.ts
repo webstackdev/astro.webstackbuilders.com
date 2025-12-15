@@ -1,24 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { remark } from 'remark'
-import remarkGfm from 'remark-gfm'
-import remarkRehype from 'remark-rehype'
 import { rehypeTailwindClasses } from '@lib/markdown/plugins/rehype-tailwind'
-import rehypeStringify from 'rehype-stringify'
-import { remarkRehypeConfig } from '@lib/config/markdown'
-
-/**
- * Helper for testing rehype-tailwind with Astro settings
- */
-async function processWithAstroSettings(markdown: string): Promise<string> {
-  const result = await remark()
-    .use(remarkGfm)
-    .use(remarkRehype, remarkRehypeConfig)
-    .use(rehypeTailwindClasses)
-    .use(rehypeStringify)
-    .process(markdown)
-
-  return String(result)
-}
+import { processWithAstroSettings } from '@lib/markdown/helpers/processors'
 
 describe('rehype-tailwind-classes (Layer 2: With Astro Pipeline)', () => {
   describe('Tailwind classes with GFM', () => {
@@ -29,7 +11,7 @@ describe('rehype-tailwind-classes (Layer 2: With Astro Pipeline)', () => {
 | Cell 1   | Cell 2   |
       `.trim()
 
-      const html = await processWithAstroSettings(markdown)
+      const html = await processWithAstroSettings({ markdown, plugin: rehypeTailwindClasses, stage: 'rehype' })
 
       expect(html).toContain('<table')
       expect(html).toContain('Header 1')
@@ -39,7 +21,7 @@ describe('rehype-tailwind-classes (Layer 2: With Astro Pipeline)', () => {
     it('should work with GFM strikethrough', async () => {
       const markdown = 'Text with ~~strikethrough~~ formatting'
 
-      const html = await processWithAstroSettings(markdown)
+      const html = await processWithAstroSettings({ markdown, plugin: rehypeTailwindClasses, stage: 'rehype' })
 
       expect(html).toContain('<del>')
       expect(html).toContain('strikethrough')
@@ -51,7 +33,7 @@ describe('rehype-tailwind-classes (Layer 2: With Astro Pipeline)', () => {
 - [ ] Pending task
       `.trim()
 
-      const html = await processWithAstroSettings(markdown)
+      const html = await processWithAstroSettings({ markdown, plugin: rehypeTailwindClasses, stage: 'rehype' })
 
       // The output clearly contains <li> elements with classes
       expect(html).toContain('task-list-item')
@@ -61,7 +43,7 @@ describe('rehype-tailwind-classes (Layer 2: With Astro Pipeline)', () => {
     it('should work with GFM autolinks', async () => {
       const markdown = 'Visit https://example.com for info'
 
-      const html = await processWithAstroSettings(markdown)
+      const html = await processWithAstroSettings({ markdown, plugin: rehypeTailwindClasses, stage: 'rehype' })
 
       expect(html).toContain('<a')
       expect(html).toContain('https://example.com')
@@ -76,7 +58,7 @@ Text with footnote[^1]
 [^1]: Footnote content
       `.trim()
 
-      const html = await processWithAstroSettings(markdown)
+  const html = await processWithAstroSettings({ markdown, plugin: rehypeTailwindClasses, stage: 'rehype' })
 
       expect(html).toContain('footnote')
       expect(html).toContain('Footnote content')
@@ -89,7 +71,7 @@ Reference[^note]
 [^note]: Note content
       `.trim()
 
-      const html = await processWithAstroSettings(markdown)
+  const html = await processWithAstroSettings({ markdown, plugin: rehypeTailwindClasses, stage: 'rehype' })
 
       expect(html).toContain('footnote')
     })
@@ -115,7 +97,7 @@ const x = 1;
 - List item
       `.trim()
 
-      const html = await processWithAstroSettings(markdown)
+  const html = await processWithAstroSettings({ markdown, plugin: rehypeTailwindClasses, stage: 'rehype' })
 
       expect(html).toContain('<h1')
       expect(html).toContain('<p')
@@ -132,7 +114,7 @@ const x = 1;
 Content text
       `.trim()
 
-      const html = await processWithAstroSettings(markdown)
+  const html = await processWithAstroSettings({ markdown, plugin: rehypeTailwindClasses, stage: 'rehype' })
 
       expect(html).toContain('<h1')
       expect(html).toContain('Content text')

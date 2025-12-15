@@ -1,27 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { remark } from 'remark'
-import remarkGfm from 'remark-gfm'
-import remarkRehype from 'remark-rehype'
-import rehypeSlug from 'rehype-slug'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
-import rehypeStringify from 'rehype-stringify'
-import { remarkRehypeConfig, rehypeAutolinkHeadingsConfig } from '@lib/config/markdown'
-
-/**
- * Helper for testing rehype-autolink-headings with Astro settings
- * Note: rehype-slug must come before rehype-autolink-headings
- */
-async function processWithAstroSettings(markdown: string): Promise<string> {
-  const result = await remark()
-    .use(remarkGfm)
-    .use(remarkRehype, remarkRehypeConfig)
-    .use(rehypeSlug) // Add IDs to headings first
-    .use(rehypeAutolinkHeadings, rehypeAutolinkHeadingsConfig)
-    .use(rehypeStringify)
-    .process(markdown)
-
-  return String(result)
-}
+import { processWithAstroSettings } from '@lib/markdown/helpers/processors'
+import { rehypeAutolinkHeadingsConfig } from '@lib/config/markdown'
 
 describe('rehype-autolink-headings (Layer 2: With Astro Pipeline)', () => {
   describe('autolink with GFM', () => {
@@ -34,7 +14,12 @@ describe('rehype-autolink-headings (Layer 2: With Astro Pipeline)', () => {
 | Data   |
       `.trim()
 
-      const html = await processWithAstroSettings(markdown)
+  const html = await processWithAstroSettings({
+    markdown,
+    plugin: rehypeAutolinkHeadings,
+    pluginOptions: rehypeAutolinkHeadingsConfig,
+    stage: 'rehype',
+  })
 
       expect(html).toContain('<h2')
       expect(html).toContain('🔗')
@@ -45,7 +30,12 @@ describe('rehype-autolink-headings (Layer 2: With Astro Pipeline)', () => {
     it('should work with GFM strikethrough in headings', async () => {
       const markdown = '## ~~Old~~ New Approach'
 
-      const html = await processWithAstroSettings(markdown)
+      const html = await processWithAstroSettings({
+        markdown,
+        plugin: rehypeAutolinkHeadings,
+        pluginOptions: rehypeAutolinkHeadingsConfig,
+        stage: 'rehype',
+      })
 
       expect(html).toContain('<h2')
       expect(html).toContain('<del>Old</del>')
@@ -55,7 +45,12 @@ describe('rehype-autolink-headings (Layer 2: With Astro Pipeline)', () => {
     it('should work with GFM autolinks in headings', async () => {
       const markdown = '## Check https://example.com'
 
-      const html = await processWithAstroSettings(markdown)
+      const html = await processWithAstroSettings({
+        markdown,
+        plugin: rehypeAutolinkHeadings,
+        pluginOptions: rehypeAutolinkHeadingsConfig,
+        stage: 'rehype',
+      })
 
       expect(html).toContain('<h2')
       expect(html).toContain('href="https://example.com"')
@@ -71,7 +66,12 @@ describe('rehype-autolink-headings (Layer 2: With Astro Pipeline)', () => {
 [^1]: Additional context
       `.trim()
 
-      const html = await processWithAstroSettings(markdown)
+  const html = await processWithAstroSettings({
+    markdown,
+    plugin: rehypeAutolinkHeadings,
+    pluginOptions: rehypeAutolinkHeadingsConfig,
+    stage: 'rehype',
+  })
 
       expect(html).toContain('<h2')
       expect(html).toContain('🔗')
@@ -87,7 +87,12 @@ Content[^1]
 [^1]: Note
       `.trim()
 
-      const html = await processWithAstroSettings(markdown)
+  const html = await processWithAstroSettings({
+    markdown,
+    plugin: rehypeAutolinkHeadings,
+    pluginOptions: rehypeAutolinkHeadingsConfig,
+    stage: 'rehype',
+  })
 
       // Verify remarkRehype footnote settings are applied
       expect(html).toContain('footnote')
@@ -106,7 +111,12 @@ Content[^1]
 ## Section Two
       `.trim()
 
-      const html = await processWithAstroSettings(markdown)
+  const html = await processWithAstroSettings({
+    markdown,
+    plugin: rehypeAutolinkHeadings,
+    pluginOptions: rehypeAutolinkHeadingsConfig,
+    stage: 'rehype',
+  })
 
       const anchorCount = (html.match(/class="anchor-link"/g) || []).length
       expect(anchorCount).toBe(4) // All 4 headings should have anchors
@@ -115,7 +125,12 @@ Content[^1]
     it('should handle complex headings with mixed GFM features', async () => {
       const markdown = '## **Bold** ~~Strike~~ `code` [link](https://example.com)'
 
-      const html = await processWithAstroSettings(markdown)
+      const html = await processWithAstroSettings({
+        markdown,
+        plugin: rehypeAutolinkHeadings,
+        pluginOptions: rehypeAutolinkHeadingsConfig,
+        stage: 'rehype',
+      })
 
       expect(html).toContain('<h2')
       expect(html).toContain('<strong>Bold</strong>')

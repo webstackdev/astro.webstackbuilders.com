@@ -39,7 +39,7 @@ describe('rehype-accessible-emojis (Layer 1: Isolated)', () => {
 
       const html = await processIsolated({ markdown, stage: 'rehype', plugin: rehypeAccessibleEmojis })
 
-      expect(html).toContain('<h1>')
+      expect(html).toContain('<h1')
       expect(html).toContain('🌍')
       expect(html).toContain('role="img"')
     })

@@ -1,13 +1,14 @@
 import { remark } from 'remark'
 import remarkGfm from 'remark-gfm'
+import remarkSmartypants from 'remark-smartypants'
 import remarkRehype from 'remark-rehype'
 import rehypeStringify from 'rehype-stringify'
 import { rehypeHeadingIds } from '@astrojs/markdown-remark'
 import { remarkRehypeConfig } from '@lib/config/markdown'
 
-export type ProcessIsolatedStage = 'remark' | 'rehype'
+export type ProcessStage = 'remark' | 'rehype'
 
-export type ProcessIsolatedParams<TPluginOptions = unknown> = {
+export type ProcessParams<TPluginOptions = unknown> = {
   markdown: string
   /**
    * A Unified/remark/rehype plugin.
@@ -16,13 +17,7 @@ export type ProcessIsolatedParams<TPluginOptions = unknown> = {
    */
   plugin: unknown
   pluginOptions?: TPluginOptions
-  stage?: ProcessIsolatedStage
-  /**
-   * Generate heading ids (Astro-style) before running rehype-stage plugins.
-   * This matches how you'd order plugins in Astro config when a plugin requires
-   * heading ids (e.g. rehype-autolink-headings).
-   */
-  slugify?: boolean
+  stage?: ProcessStage
 }
 
 /**
@@ -30,7 +25,7 @@ export type ProcessIsolatedParams<TPluginOptions = unknown> = {
  * No GFM, no Astro settings - just the plugin being tested
  */
 export async function processIsolated(
-  params: ProcessIsolatedParams
+  params: ProcessParams & { slugify?: boolean }
 ): Promise<string> {
   const {
     markdown,
@@ -51,10 +46,7 @@ export async function processIsolated(
   }
 
   processor.use(remarkRehype)
-
-  if (slugify) {
-    processor.use(rehypeHeadingIds)
-  }
+  if (slugify) processor.use(rehypeHeadingIds)
 
   if (stage === 'rehype') {
     if (pluginOptions !== undefined) {
@@ -74,28 +66,40 @@ export async function processIsolated(
  * Includes GFM and Astro's remarkRehype settings
  */
 export async function processWithAstroSettings(
-  markdown: string,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  plugin: any,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  options?: any
+  params: ProcessParams
 ): Promise<string> {
-  const processor = remark()
-    // Enable GFM (matches Astro's gfm: true)
-    .use(remarkGfm)
+  const {
+    markdown,
+    plugin,
+    pluginOptions,
+    stage = 'remark',
+  } = params
 
-  // Add the plugin being tested
-  if (options !== undefined) {
-    processor.use(plugin, options)
-  } else {
-    processor.use(plugin)
+  const processor = remark()
+
+  processor.use(remarkGfm)
+  processor.use(remarkSmartypants)
+
+  if (stage === 'remark') {
+    if (pluginOptions !== undefined) {
+      processor.use(plugin as never, pluginOptions as never)
+    } else {
+      processor.use(plugin as never)
+    }
   }
 
-  const result = await processor
-    // Convert to rehype with Astro's configuration
-    .use(remarkRehype, remarkRehypeConfig)
-    .use(rehypeStringify)
-    .process(markdown)
+  processor.use(remarkRehype, remarkRehypeConfig)
+  processor.use(rehypeHeadingIds)
+
+  if (stage === 'rehype') {
+    if (pluginOptions !== undefined) {
+      processor.use(plugin as never, pluginOptions as never)
+    } else {
+      processor.use(plugin as never)
+    }
+  }
+
+  const result = await processor.use(rehypeStringify).process(markdown)
 
   return String(result)
 }
@@ -114,7 +118,6 @@ export async function processWithFullPipeline(markdown: string): Promise<string>
   const remarkLinkifyRegex = (await import('remark-linkify-regex')).default
   const { rehypeAccessibleEmojis } = await import('rehype-accessible-emojis')
   const rehypeAutolinkHeadings = (await import('rehype-autolink-headings')).default
-  const rehypeSlug = (await import('rehype-slug')).default
   const { rehypeTailwindClasses } = await import('../plugins/rehype-tailwind')
 
   // Import configurations
@@ -137,7 +140,7 @@ export async function processWithFullPipeline(markdown: string): Promise<string>
       .use(remarkRehype, remarkRehypeConfig)
 
       // Add all rehype plugins in the same order as Astro
-      .use(rehypeSlug) // Must come before rehypeAutolinkHeadings
+      .use(rehypeHeadingIds)
       .use(rehypeAccessibleEmojis)
       .use(rehypeAutolinkHeadings, rehypeAutolinkHeadingsConfig)
       .use(rehypeTailwindClasses)
