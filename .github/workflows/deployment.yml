@@ -12,6 +12,7 @@ permissions:
   pull-requests: write
   issues: write
   deployments: write
+  checks: write
 
 jobs:
   verify-ci:
@@ -24,14 +25,15 @@ jobs:
         uses: actions/github-script@v8
         with:
           script: |
+            const runId = context.payload.workflow_run.id;
             const workflowRun = context.payload.workflow_run;
-            const headBranch = workflowRun?.head_branch;
-            if (typeof headBranch === 'string' && headBranch.startsWith('hotfix/')) {
-              core.info('hotfix/* branch detected; skipping CI job verification.');
+            const branch = workflowRun?.head_branch ?? '';
+            const isHotfix = branch.startsWith('hotfix/');
+            if (workflowRun?.event === 'pull_request' && isHotfix) {
+              core.notice('Hotfix branch: skipping CI verification requirements.');
               return;
             }
 
-            const runId = workflowRun.id;
             const requiredJobs = ['Lint', 'Unit Tests'];
             const { data } = await github.rest.actions.listJobsForWorkflowRun({
               owner: context.repo.owner,
@@ -57,7 +59,11 @@ jobs:
     if: >-
       needs.verify-ci.result == 'success' &&
       github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'pull_request'
+      github.event.workflow_run.event == 'pull_request' &&
+      !startsWith(github.event.workflow_run.head_branch, 'hotfix/')
+
+    outputs:
+      previewUrl: ${{ steps.vercel-preview.outputs.preview-url }}
 
     steps:
       - name: Hotfix branch — skip preview deploy
@@ -371,6 +377,99 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: `❌ Preview deployment failed.${linkLine}\n\nPlease review the Vercel build logs for details.`
+            });
+
+  publish-preview-status:
+    name: Publish Preview Status
+    runs-on: ubuntu-latest
+    needs:
+      - verify-ci
+      - deploy-preview
+    if: always() && github.event.workflow_run.event == 'pull_request'
+    steps:
+      - name: Publish required check run
+        uses: actions/github-script@v8
+        env:
+          VERIFY_RESULT: ${{ needs.verify-ci.result }}
+          DEPLOY_RESULT: ${{ needs.deploy-preview.result }}
+          PREVIEW_URL: ${{ needs.deploy-preview.outputs.previewUrl }}
+        with:
+          script: |
+            const workflowRun = context.payload.workflow_run;
+            const sha = workflowRun?.head_sha;
+            if (!sha) {
+              core.warning('Missing workflow_run.head_sha; cannot publish check run.');
+              return;
+            }
+
+            const branch = workflowRun?.head_branch ?? '';
+            const isHotfix = branch.startsWith('hotfix/');
+            const verifyResult = process.env.VERIFY_RESULT || 'unknown';
+            const deployResult = process.env.DEPLOY_RESULT || 'unknown';
+            const previewUrl = (process.env.PREVIEW_URL || '').trim();
+
+            const checkName = 'Deploy Preview to Vercel';
+            const detailsUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+
+            let conclusion = 'success';
+            let summary = '';
+
+            if (isHotfix) {
+              conclusion = 'success';
+              summary = 'Hotfix branch: preview deploy intentionally skipped.';
+            } else if (verifyResult !== 'success') {
+              conclusion = 'failure';
+              summary = `CI verification failed (${verifyResult}).`;
+            } else if (deployResult === 'success') {
+              conclusion = 'success';
+              summary = previewUrl ? `Preview deployed: ${previewUrl}` : 'Preview deployed.';
+            } else {
+              conclusion = 'failure';
+              summary = `Preview deployment failed (${deployResult}).`;
+            }
+
+            const output = {
+              title: checkName,
+              summary: `${summary}\n\nDetails: ${detailsUrl}`
+            };
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const completed_at = new Date().toISOString();
+
+            const { data } = await github.rest.checks.listForRef({
+              owner,
+              repo,
+              ref: sha,
+              filter: 'latest',
+              per_page: 100
+            });
+
+            const existing = (data.check_runs || []).find((run) => run.name === checkName);
+            if (existing) {
+              await github.rest.checks.update({
+                owner,
+                repo,
+                check_run_id: existing.id,
+                status: 'completed',
+                conclusion,
+                completed_at,
+                output,
+                details_url: detailsUrl
+              });
+              return;
+            }
+
+            await github.rest.checks.create({
+              owner,
+              repo,
+              name: checkName,
+              head_sha: sha,
+              status: 'completed',
+              conclusion,
+              completed_at,
+              output,
+              details_url: detailsUrl
             });
 
   deploy-production:
