@@ -231,42 +231,18 @@ You can then opt-out of prefetching for individual links by setting data-astro-p
 
 ## Markdown
 
-### SmartyPants transformations
-
-- Straight quotes ( " and ' ) into "curly" quote HTML entities
-- Backticks-style quotes (``like this'') into "curly" quote HTML entities
-- Dashes (-- and ---) into en- and em-dash entities
-- Three consecutive dots (...) or dots with spaces (. . .) into an ellipsis entity
-
-SmartyPants does not modify characters within `<pre>`, `<code>`, `<kbd>`, `<math>`, or `<script>` tag blocks.
-
-### Plugins already in stack
-
-- `remark-breaks` - Line break handling
-- `remark-emoji` - Emoji shortcode conversion
-- `remark-linkify-regex` - URL auto-linking
-
-- `rehype-accessible-emojis` - Emoji accessibility attributes
-- `rehype-autolink-headings`
-
 ### Custom plugins
 
-- `remark-abbreviations` - Abbreviation expansion
-- `remark-attributes` - Custom attributes on elements
-- `remark-attribution` - Blockquote attributions
 - `remark-replacements` - Heading anchor links
 
 - `rehype-tailwind` - Add custom CSS classes to Markdown-generated elements in this file
-
 
 ### Markdown Not Working
 
 - color tabs like GFM when using HEX, RGB, or HSL values in backticks. This should generate a callout box around the hex color with a dot to the right showing the color.
 - Section link anchor icons
-- GFM Alert syntax doesn't work
 - Markdown E2E tests on demo test page fixture
-- Move GFM to our stack and turn it off in Astro. That way we can customize it and remove the middle layer of integration unit tests. That way the only change Astro will make is adding IDs to headings for TOC links.
-- Astro also includes remark-smartypants and shiki
+- Astro also includes shiki
 - We're adding 'rehype-autolink-headings', but Astro does too: https://docs.astro.build/en/guides/markdown-content/#heading-ids-and-plugins
 
 ### Custom version of the code block integration from Astro Docs. "Beautiful code blocks for your Astro site". Applied to the code blocks created in `.mdx` files

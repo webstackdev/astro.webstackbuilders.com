@@ -100,9 +100,19 @@ function buildPluginTestCases(pluginType: 'remark' | 'rehype') {
   return testCases
 }
 
+function maybeAddGfmRemarkTestCase(
+  testCases: Array<{ pluginName: string; pluginNameKebab: string; isLocal: boolean }>
+) {
+  // markdownConfig.gfm enables remark-gfm internally (Astro wires it), so ensure it has coverage.
+  if (markdownConfig.gfm !== false) {
+    testCases.push({ pluginName: 'remarkGfm', pluginNameKebab: 'remark-gfm', isLocal: false })
+  }
+}
+
 describe('Markdown Plugin Test Coverage', () => {
   describe('remarkPlugins', () => {
     const remarkPlugins = buildPluginTestCases('remark')
+    maybeAddGfmRemarkTestCase(remarkPlugins)
 
     it.each(remarkPlugins)(
       'should have integration test for $pluginName',
