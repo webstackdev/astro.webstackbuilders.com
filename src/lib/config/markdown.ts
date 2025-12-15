@@ -11,6 +11,9 @@ import type { MdxOptions } from '@astrojs/mdx'
 import type { ShikiConfig } from 'astro/'
 // import { transformerNotationDiff } from '@shiki/transformers'
 
+import { rehypeHeadingIds } from '@astrojs/markdown-remark'
+Object.defineProperty(rehypeHeadingIds, 'name', { value: 'rehypeHeadingIds' })
+
 /**
  * ==============================================================
  *
@@ -183,6 +186,8 @@ export const markdownConfig: Partial<MdxOptions> = {
     remarkReplacements,
   ],
   rehypePlugins: [
+    /** Inject heading ids before plugins that rely on them */
+    rehypeHeadingIds,
     /** Add accessible names to emojis */
     rehypeAccessibleEmojis,
     /**

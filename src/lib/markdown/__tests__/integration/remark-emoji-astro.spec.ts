@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import remarkEmoji from 'remark-emoji'
-import { processWithAstroSettings } from '@lib/markdown/helpers/test-utils'
+import { processWithAstroSettings } from '@lib/markdown/helpers/processors'
 
 describe('remark-emoji (Layer 2: With Astro Pipeline)', () => {
   describe('emoji with GFM', () => {

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import remarkLinkifyRegex from 'remark-linkify-regex'
-import { processWithAstroSettings } from '@lib/markdown/helpers/test-utils'
+import { processWithAstroSettings } from '@lib/markdown/helpers/processors'
 
 describe('remark-linkify-regex (Layer 2: With Astro Pipeline)', () => {
   const urlRegex = /^(https?:\/\/[^\s$.?#].[^\s]*)$/i

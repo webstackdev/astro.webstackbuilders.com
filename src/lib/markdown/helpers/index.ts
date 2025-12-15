@@ -12,4 +12,4 @@ export { loadFixture, MarkdownOutput, renderFixture, renderMarkdown } from './ma
 export { renderMarkdown as processMarkdownPipeline } from './pipeline'
 
 // Export test utilities
-export { processIsolated, processWithAstroSettings, processWithFullPipeline } from './test-utils'
+export { processIsolated, processWithAstroSettings, processWithFullPipeline } from './processors'

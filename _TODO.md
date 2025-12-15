@@ -231,6 +231,13 @@ You can then opt-out of prefetching for individual links by setting data-astro-p
 
 ## Markdown
 
+Astro built-in plugins:
+
+remark-collect-images
+rehype-images
+rehype-collect-headings
+rehype-shiki
+
 Plugins already in stack:
 
 - `remark-breaks` - Line break handling

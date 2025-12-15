@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import remarkAbbreviations from '@lib/markdown/plugins/remark-abbreviations/index'
-import { processWithAstroSettings } from '@lib/markdown/helpers/test-utils'
+import { processWithAstroSettings } from '@lib/markdown/helpers/processors'
 
 describe('remark-abbreviations (Layer 2: With Astro Pipeline)', () => {
   describe('abbreviations with GFM', () => {

@@ -2,31 +2,69 @@ import { remark } from 'remark'
 import remarkGfm from 'remark-gfm'
 import remarkRehype from 'remark-rehype'
 import rehypeStringify from 'rehype-stringify'
+import { rehypeHeadingIds } from '@astrojs/markdown-remark'
 import { remarkRehypeConfig } from '@lib/config/markdown'
+
+export type ProcessIsolatedStage = 'remark' | 'rehype'
+
+export type ProcessIsolatedParams<TPluginOptions = unknown> = {
+  markdown: string
+  /**
+   * A Unified/remark/rehype plugin.
+   * Kept intentionally permissive because ecosystem plugin typings vary
+   * (different AST roots and option shapes).
+   */
+  plugin: unknown
+  pluginOptions?: TPluginOptions
+  stage?: ProcessIsolatedStage
+  /**
+   * Generate heading ids (Astro-style) before running rehype-stage plugins.
+   * This matches how you'd order plugins in Astro config when a plugin requires
+   * heading ids (e.g. rehype-autolink-headings).
+   */
+  slugify?: boolean
+}
 
 /**
  * Process markdown through a minimal pipeline with a single plugin (Layer 1)
  * No GFM, no Astro settings - just the plugin being tested
  */
 export async function processIsolated(
-  markdown: string,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  plugin: any,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  options?: any
+  params: ProcessIsolatedParams
 ): Promise<string> {
+  const {
+    markdown,
+    plugin,
+    pluginOptions,
+    stage = 'remark',
+    slugify = false,
+  } = params
+
   const processor = remark()
 
-  if (options !== undefined) {
-    processor.use(plugin, options)
-  } else {
-    processor.use(plugin)
+  if (stage === 'remark') {
+    if (pluginOptions !== undefined) {
+      processor.use(plugin as never, pluginOptions as never)
+    } else {
+      processor.use(plugin as never)
+    }
   }
 
-  const result = await processor
-    .use(remarkRehype)
-    .use(rehypeStringify)
-    .process(markdown)
+  processor.use(remarkRehype)
+
+  if (slugify) {
+    processor.use(rehypeHeadingIds)
+  }
+
+  if (stage === 'rehype') {
+    if (pluginOptions !== undefined) {
+      processor.use(plugin as never, pluginOptions as never)
+    } else {
+      processor.use(plugin as never)
+    }
+  }
+
+  const result = await processor.use(rehypeStringify).process(markdown)
 
   return String(result)
 }
