@@ -10,7 +10,7 @@ describe('remark-attributes (Layer 2: With Astro Pipeline)', () => {
     // To add attributes to tables, they must be in a separate paragraph.
 
     it('should work with GFM strikethrough', async () => {
-      const markdown = '[~~deleted text~~]{.highlight}'
+      const markdown = '[~~deleted text~~][[.highlight]]'
 
       const html = await processWithAstroSettings({
         markdown,
@@ -24,7 +24,7 @@ describe('remark-attributes (Layer 2: With Astro Pipeline)', () => {
 
     it('should work with GFM task lists', async () => {
       const markdown = `
-- [ ] Task 1{.todo-item}
+    - [ ] Task 1[[.todo-item]]
 - [x] Task 2
       `.trim()
 
@@ -42,7 +42,7 @@ describe('remark-attributes (Layer 2: With Astro Pipeline)', () => {
   describe('attributes with Astro footnote settings', () => {
     it('should add attributes to footnote references', async () => {
       const markdown = `
-Text with footnote[^1]{.footnote-ref}.
+    Text with footnote[^1][[.footnote-ref]].
 
 [^1]: Footnote content
       `.trim()
@@ -60,7 +60,7 @@ Text with footnote[^1]{.footnote-ref}.
 
   describe('edge cases with Astro settings', () => {
     it('should handle attributes on links with autolinks', async () => {
-      const markdown = '[Visit](https://example.com){.external target=_blank}'
+      const markdown = '[Visit](https://example.com)[[.external target=_blank]]'
 
       const html = await processWithAstroSettings({
         markdown,
@@ -74,7 +74,7 @@ Text with footnote[^1]{.footnote-ref}.
     })
 
     it('should preserve attributes through remarkRehype conversion', async () => {
-      const markdown = '# Heading{.title #main-heading data-level=1}'
+      const markdown = '# Heading[[.title #main-heading data-level=1]]'
 
       const html = await processWithAstroSettings({
         markdown,

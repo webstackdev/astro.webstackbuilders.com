@@ -10,6 +10,7 @@
 import type {
   Root,
   Code,
+  Image,
   Emphasis,
   Strong,
   Delete,
@@ -32,6 +33,7 @@ import type { RemarkAttrOptions, SupportedElement, ParsedAttribute } from './typ
  * Set of supported elements
  */
 export const SUPPORTED_ELEMENTS = new Set<SupportedElement>([
+  'image',
   'link',
   'atxHeading',
   'strong',
@@ -49,6 +51,7 @@ export const SUPPORTED_ELEMENTS = new Set<SupportedElement>([
  * Mapping from mdast node types to our SupportedElement types
  */
 const NODE_TYPE_TO_ELEMENT: Record<string, SupportedElement> = {
+  image: 'image',
   link: 'link',
   heading: 'atxHeading', // Both ATX and setext headings use 'heading' type
   strong: 'strong',
@@ -202,12 +205,42 @@ function parseInlineAttributes(
   startIndex: number,
   mdAttrConfig: unknown
 ): ParsedAttribute | null {
-  if (startIndex >= text.length || text[startIndex] !== '{') {
+  if (startIndex >= text.length) return null
+
+  // Legacy syntax: `{.class #id key=value}`
+  if (text[startIndex] === '{') {
+    try {
+      return parseAttr(text, startIndex, mdAttrConfig) as ParsedAttribute
+    } catch {
+      return null
+    }
+  }
+
+  // MDX-safe syntax: `[[.class #id key=value]]`
+  // Also allow a single leading space before the marker: ` [[...]]`
+  const hasSingleLeadingSpace =
+    text[startIndex] === ' ' && text[startIndex + 1] === '[' && text[startIndex + 2] === '['
+  const openIndex = hasSingleLeadingSpace ? startIndex + 1 : startIndex
+
+  if (text[openIndex] !== '[' || text[openIndex + 1] !== '[') {
     return null
   }
 
+  const closeIndex = text.indexOf(']]', openIndex + 2)
+  if (closeIndex === -1) {
+    return null
+  }
+
+  const inner = text.slice(openIndex + 2, closeIndex)
+  const normalized = `{${inner}}`
+
   try {
-    return parseAttr(text, startIndex, mdAttrConfig) as ParsedAttribute
+    const parsed = parseAttr(normalized, 0, mdAttrConfig) as ParsedAttribute
+    if (!parsed) return null
+
+    const eatenLength = (closeIndex + 2 - openIndex) + (hasSingleLeadingSpace ? 1 : 0)
+    parsed.eaten = text.slice(startIndex, startIndex + eatenLength)
+    return parsed
   } catch {
     return null
   }
@@ -217,7 +250,7 @@ function parseInlineAttributes(
  * Process inline elements (emphasis, strong, delete, inlineCode, link)
  */
 function processInlineElement(
-  node: Emphasis | Strong | Delete | InlineCode | Link,
+  node: Emphasis | Strong | Delete | InlineCode | Link | Image,
   index: number | null,
   parent: Parent | undefined,
   config: InternalConfig
@@ -293,12 +326,15 @@ function processHeadingInline(node: Heading, config: InternalConfig): void {
   const textNode = lastChild as Text
   const text = textNode.value
 
-  if (!text || text.length === 0 || text[text.length - 1] !== '}') {
+  const endsWithCurly = text.endsWith('}')
+  const endsWithDoubleBrackets = text.endsWith(']]')
+
+  if (!text || text.length === 0 || (!endsWithCurly && !endsWithDoubleBrackets)) {
     return
   }
 
-  // Find the opening brace
-  const openIndex = text.lastIndexOf('{')
+  // Find the opening marker
+  const openIndex = endsWithCurly ? text.lastIndexOf('{') : text.lastIndexOf('[[')
   if (openIndex <= 0) {
     return
   }
@@ -448,12 +484,12 @@ const remarkAttr: Plugin<[RemarkAttrOptions?], Root> = (userConfig = {}) => {
 
   return tree => {
     // Process inline elements (emphasis, strong, delete, inlineCode, link)
-    visit(tree, ['emphasis', 'strong', 'delete', 'inlineCode', 'link'], (node, index, parent) => {
+    visit(tree, ['emphasis', 'strong', 'delete', 'inlineCode', 'link', 'image'], (node, index, parent) => {
       // Convert mdast node type to our element type
       const elementType = NODE_TYPE_TO_ELEMENT[node.type]
       if (elementType && config.elements.has(elementType)) {
         processInlineElement(
-          node as Emphasis | Strong | Delete | InlineCode | Link,
+          node as Emphasis | Strong | Delete | InlineCode | Link | Image,
           index ?? null,
           parent,
           config

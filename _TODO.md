@@ -235,28 +235,17 @@ You can then opt-out of prefetching for individual links by setting data-astro-p
 
 - color tabs like GFM when using HEX, RGB, or HSL values in backticks. This should generate a callout box around the hex color with a dot to the right showing the color.
 
+The background color is `#ffffff`
+
+<code class="bg-gray-100 rounded border border-gray-300 inline-block font-mono text-xs mx-1 px-2 py-1">#ffffff</code>
+
 - Astro also includes shiki
 
 - We're adding 'rehype-autolink-headings', but Astro does too: https://docs.astro.build/en/guides/markdown-content/#heading-ids-and-plugins
 
-- `remark-attributes` does not work because `{...}` in MDX embeds dynamic JavaScript logic or JSX components directly within Markdown content
-
-Must define escaping rules (what if the content legitimately includes `[[...]]`), and whether .md, .mdx, or both:
-
-```markdown
-### Heading [[.my-class #my-id]]
-![Image](url) [[width=300 .centered]]
-[Link](url) [[.btn target=_blank]]
-
-### Heading[[.my-class #my-id]]
-![Image](url)[[width=300 .centered]]
-[Link](url)[[.btn target=_blank]]
-```
-
 ### Youtube embedding
 
-- `rehype-video` for self-hosted videos, you have to pass the video filename into the unified `process()` pipeline along with the plugin
-- `@hongvanpc10/rehype-embed` works the same way - you have to pass the Youtube link into the config to be processed
+- `remark-video`
 
 
 

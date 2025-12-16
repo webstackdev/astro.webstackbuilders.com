@@ -12,7 +12,7 @@ The HTML and CSS specifications work together.
 
 ## Attributes
 
-[This link has a class](https://example.com){.custom-link}
+[This link has a class](https://example.com)[[.custom-link]]
 
 ## Attribution
 

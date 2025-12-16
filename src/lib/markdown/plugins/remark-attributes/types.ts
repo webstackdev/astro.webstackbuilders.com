@@ -16,6 +16,7 @@ export type AttributeScope =
  * Supported element types for attribute parsing
  */
 export type SupportedElement =
+  | 'image'
   | 'link'
   | 'atxHeading'
   | 'strong'

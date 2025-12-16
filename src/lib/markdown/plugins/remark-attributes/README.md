@@ -5,18 +5,22 @@ This plugin adds support for custom attributes to Markdown syntax.
 For **security reasons**, this plugin uses [html-element-attributes](https://github.com/wooorm/html-element-attributes).
 The use of JavaScript attributes (`onload` for example) is not allowed by default.
 
-## Default Syntax
+## Default Syntax (MDX-safe)
+
+This project uses a doubled-square-bracket postfix marker instead of `{...}` (curly braces are reserved by MDX):
+
+`[[.class #id key=value]]`
 
 ### Images
 
 ~~~markdown
-![alt](img){attrs} / ![alt](img){ height=50 }
+![alt](img)[[attrs]] / ![alt](img)[[ height=50 ]]
 ~~~
 
 ### Links
 
 ~~~markdown
-[rms with a computer](https://rms.sexy){rel="external"}
+[rms with a computer](https://rms.sexy)[[rel="external"]]
 ~~~
 
 ### Autolink
@@ -29,11 +33,11 @@ Email me at : <mailto:falseEmail@example.org>
 
 ~~~markdown
 ### This is a title
-{style="color:red;"}
+[[style="color:red;"]]
 
 or
 
-### This is a title {style="color:yellow;"}
+### This is a title [[style="color:yellow;"]]
 
 If option enableAtxHeaderInline is set to `true` (default value).
 ~~~
@@ -43,37 +47,37 @@ If option enableAtxHeaderInline is set to `true` (default value).
 ~~~markdown
 This is a title
 ---------------
-{style="color: pink;"}
+[[style="color: pink;"]]
 ~~~
 
 ### Emphasis
 
 ~~~markdown
-Npm stand for *node*{style="color:red"} packet manager.
+Npm stand for *node*[[style="color:red"]] packet manager.
 ~~~
 
 ### Strong
 
 ~~~markdown
-This is a **Unicorn**{awesome} !
+This is a **Unicorn**[[awesome]] !
 ~~~
 
 ### Delete
 
 ~~~markdown
-Your problem is ~~at line 18~~{style="color: grey"}. My mistake, it's at line 14.
+Your problem is ~~at line 18~~[[style="color: grey"]]. My mistake, it's at line 14.
 ~~~
 
 ### Code
 
 ~~~markdown
-You can use the `fprintf`{language=c} function to format the output to a file.
+You can use the `fprintf`[[language=c]] function to format the output to a file.
 ~~~
 
 ### Footnote (using [remark-footnotes](https://github.com/remarkjs/remark-footnotes))
 
 ~~~markdown
-This is a footnote[^ref]{style="opacity: 0.8;"}
+This is a footnote[^ref][[style="opacity: 0.8;"]]
 
 
 [^ref]: And the reference.
