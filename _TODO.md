@@ -231,6 +231,22 @@ You can then opt-out of prefetching for individual links by setting data-astro-p
 
 ## Markdown
 
+Next I'd like to add a series of Unified plugins to our stack, one by one. I'll install the package and give you a link to its NPM docs page. For each one:
+
+1. Add it to our configuration in src/lib/config/markdown.ts
+2. Add an example usage in src/content/articles/demo/index.mdx
+3. I'll QA it in a browser visually
+4. Add unit, integration, and e2e tests for it in src/lib/markdown
+5. Run npm run test:unit and fix any errors
+6. Add it to the src/content/test-fixtures/markdown/index.mdx test fixture
+7. Add a Playwright E2E test for it in test/e2e/specs/04-components/markdown.spec.ts
+8. Run the test and fix any errors
+9. Run npm run lint and npm run check and fix any errors
+
+The first plugin is rehype-external-links. It should be configured to add `target="_blank" rel="noreferrer"` to all external links in MDX files.
+
+https://www.npmjs.com/package/rehype-external-links
+
 ### Custom plugins
 
 - `remark-replacements` - Heading anchor links
@@ -239,7 +255,6 @@ You can then opt-out of prefetching for individual links by setting data-astro-p
 ### Markdown Not Working
 
 - color tabs like GFM when using HEX, RGB, or HSL values in backticks. This should generate a callout box around the hex color with a dot to the right showing the color.
-- Section link anchor icons
 - Astro also includes shiki
 - We're adding 'rehype-autolink-headings', but Astro does too: https://docs.astro.build/en/guides/markdown-content/#heading-ids-and-plugins
 - Youtube embedding - could use a custom component or `remark-iframes`
