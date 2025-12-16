@@ -249,16 +249,6 @@ Calculations: {Math.PI * 2}.
 Components: { <MyComponent /> }
 ```
 
-### remark-mark-plus
-
-Inserts indicated text in a pair of `<mark>` elements
-
-```markdown
-my ==marked== text
-```
-
-my ==marked== text
-
 ### Youtube embedding
 
 - `rehype-video` for self-hosted videos, you have to pass the video filename into the unified `process()` pipeline along with the plugin

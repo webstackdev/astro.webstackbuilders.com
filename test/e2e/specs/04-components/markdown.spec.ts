@@ -112,6 +112,15 @@ test.describe('Markdown (MDX) fixture page', () => {
     })
   })
 
+  test.describe('remark-mark-plus', () => {
+    test('renders mark elements from ==highlight== syntax', async () => {
+      await expect(markdownPage.heading('Mark Plus (remark-mark-plus)', 2)).toBeVisible()
+
+      const mark = markdownPage.prose.locator('mark', { hasText: 'marked' }).first()
+      await expect(mark).toBeVisible()
+    })
+  })
+
   test.describe('GFM', () => {
     test('renders autolinks, tables, task lists, strikethrough, and footnotes', async () => {
       await expect(markdownPage.heading('GFM', 2)).toBeVisible()

@@ -62,6 +62,9 @@ Object.defineProperty(remarkSupersub, 'name', { value: 'remarkSupersub' })
 import remarkCustomBlocks from '../markdown/plugins/remark-custom-blocks'
 Object.defineProperty(remarkCustomBlocks, 'name', { value: 'remarkCustomBlocks' })
 
+import remarkMarkPlus from '../markdown/plugins/remark-mark-plus'
+Object.defineProperty(remarkMarkPlus, 'name', { value: 'remarkMarkPlus' })
+
 import remarkLinkifyRegex from 'remark-linkify-regex'
 
 import remarkGridTables from '@adobe/remark-gridtables'
@@ -279,6 +282,8 @@ export const markdownConfig: Partial<MdxOptions> = {
     [remarkCustomBlocks, remarkCustomBlocksConfig],
     /** Subscript and superscript via ~sub~ and ^sup^ */
     remarkSupersub,
+    /** Highlights via ==marked== */
+    remarkMarkPlus,
     /** Definition lists (PHP Markdown Extra style) */
     remarkDeflist,
     /** Parse grid tables (+---+ / |...| syntax) into standard table nodes */
