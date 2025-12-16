@@ -84,6 +84,22 @@ test.describe('Markdown (MDX) fixture page', () => {
     })
   })
 
+  test.describe('remark-custom-blocks', () => {
+    test('renders details blocks with summary and contents', async () => {
+      await expect(markdownPage.heading('Custom Blocks (remark-custom-blocks)', 2)).toBeVisible()
+
+      const details = markdownPage.prose.locator('details').first()
+      await expect(details).toBeVisible()
+
+      const summary = details.locator('summary').first()
+      await expect(summary).toBeVisible()
+      await expect(summary).toHaveText('My summary')
+
+      await expect(details).toContainText('Some content for the detail')
+      await expect(details).toContainText('Second line')
+    })
+  })
+
   test.describe('GFM', () => {
     test('renders autolinks, tables, task lists, strikethrough, and footnotes', async () => {
       await expect(markdownPage.heading('GFM', 2)).toBeVisible()

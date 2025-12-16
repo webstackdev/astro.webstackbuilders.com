@@ -53,6 +53,9 @@ Object.defineProperty(remarkEmoji, 'name', { value: 'remarkEmoji' })
 import remarkDeflist from 'remark-deflist'
 Object.defineProperty(remarkDeflist, 'name', { value: 'remarkDeflist' })
 
+import remarkCustomBlocks from '../markdown/plugins/remark-custom-blocks'
+Object.defineProperty(remarkCustomBlocks, 'name', { value: 'remarkCustomBlocks' })
+
 import remarkLinkifyRegex from 'remark-linkify-regex'
 
 import remarkGridTables from '@adobe/remark-gridtables'
@@ -181,6 +184,18 @@ export const rehypeExternalLinksConfig: RehypeExternalLinksOptions = {
 /** rehype-footnotes-title plugin */
 export const rehypeFootnotesTitleConfig = 'Return to footnote $id' as const
 
+/** remark-custom-blocks plugin */
+export const remarkCustomBlocksConfig = {
+  details: {
+    classes: '',
+    title: 'required',
+    containerElement: 'details',
+    titleElement: 'summary',
+    contentsElement: 'div',
+    details: true,
+  },
+} as const
+
 export const shikiConfigOptions: ShikiConfig = {
   // Alternatively, provide multiple themes
   // See note below for using dual light/dark themes
@@ -246,6 +261,8 @@ export const markdownConfig: Partial<MdxOptions> = {
     remarkAbbreviations,
     /** Align blocks/paragraphs using -> / <- marker syntax */
     remarkAlign,
+    /** Custom blocks like [[details | Summary]] */
+    [remarkCustomBlocks, remarkCustomBlocksConfig],
     /** Definition lists (PHP Markdown Extra style) */
     remarkDeflist,
     /** Parse grid tables (+---+ / |...| syntax) into standard table nodes */

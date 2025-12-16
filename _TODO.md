@@ -249,51 +249,40 @@ Calculations: {Math.PI * 2}.
 Components: { <MyComponent /> }
 ```
 
-### THINGS TO WIRE INTO CUSTOM COMPONENTS IN STANDARD MARKDOWN OR ADD AS COMPONENTS
+### remark-supersub
 
-### remark-text-decoration
-
-This plugin lets you apply an element to text based on a marker defined in config. It could handle subscript, superscript, underline, and highlighting.
+Subscript and superscript text
 
 ```markdown
 ~subscript~, e.g. a~i~
 
 ^superscript^, e.g. e^x^
+```
 
+Subscript: a~i~
+
+Superscript: e^x^
+
+### remark-mark-plus
+
+Inserts indicated text in a pair of `<mark>` elements
+
+```markdown
+my ==marked== text
+```
+
+my ==marked== text
+
+###
+
+```markdown
 !!underline!!
-
-==marked== gives <mark>inserted</mark>
 ```
 
 ### Youtube embedding
 
 - `rehype-video` for self-hosted videos, you have to pass the video filename into the unified `process()` pipeline along with the plugin
 - `@hongvanpc10/rehype-embed` works the same way - you have to pass the Youtube link into the config to be processed
-
-
-### remark-custom-blocks
-
-This plugin parses custom Markdown syntax to create new custom blocks. It takes a config object with a name for the block, CSS classes to apply to it, and whether a title is required, optional, or the block does not have a title.
-
-These HTML elements aren't being processed by remarkGfm (they need to be raw HTML). Expandable and collapsible content using HTML <details> and <summary> elements.
-
-```markdown
-[[details | My summary]]
-| Some content for the detail
-```
-
-```typescript
-{
-  details: {
-    classes: '',
-    title: 'required',
-    containerElement: 'details',
-    titleElement: 'summary',
-    contentsElement: 'div',
-    details: true,
-  },
-}
-```
 
 ### remark-captions
 
