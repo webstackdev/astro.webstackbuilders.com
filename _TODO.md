@@ -254,7 +254,7 @@ Calculations: {Math.PI * 2}.
 Components: { <MyComponent /> }
 ```
 
-### THINGS TO WIRE INTO CUSTOM COMPONENTS IN STANDARD MARKDOWN OR ADD AS COMPNENTS
+### THINGS TO WIRE INTO CUSTOM COMPONENTS IN STANDARD MARKDOWN OR ADD AS COMPONENTS
 
 #### Details/Summary elements
 
@@ -323,34 +323,6 @@ By default it wraps the elements code, image, table and blockquote in a `<figure
 > Some blockquote text that will have a caption
 Source: The caption text that will appear under the blockquote
 ```
-
-### remark-align
-
-This plugin parses custom Markdown syntax to center- or right-align elements. Alignment is done by wrapping something in arrows indicating the alignment:
-
-```markdown
-->paragraph<-
-
-->paragraph->
-```
-
-produces:
-
-```html
-<div class="some-class"><p>paragraph</p></div>
-<div class="some-other-class"><p>paragraph</p></div>
-```
-
-```typescript
-.use(remarkAlign, {
-  right: 'align-right',
-  center: 'align-center'
-})
-```
-
-### Includes for markdown fragment files using !!![file.md]!!! syntax
-
-`markdown-it-include`
 
 ### Add Twitter like mentions in markdown using @twittername syntax
 

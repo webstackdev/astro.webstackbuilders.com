@@ -74,6 +74,9 @@ Object.defineProperty(remarkAttributes, 'name', { value: 'remarkAttributes' })
 import remarkAttribution from '../markdown/plugins/remark-attribution'
 Object.defineProperty(remarkAttribution, 'name', { value: 'remarkAttribution' })
 
+import remarkAlign from '../markdown/plugins/remark-align'
+Object.defineProperty(remarkAlign, 'name', { value: 'remarkAlign' })
+
 import remarkReplacements from '../markdown/plugins/remark-replacements'
 Object.defineProperty(remarkReplacements, 'name', { value: 'remarkReplacements' })
 
@@ -238,6 +241,8 @@ export const markdownConfig: Partial<MdxOptions> = {
   remarkPlugins: [
     /** Define abbreviations at bottom file, and wraps their usage in <abbr> tags */
     remarkAbbreviations,
+    /** Align blocks/paragraphs using -> / <- marker syntax */
+    remarkAlign,
     /** Parse grid tables (+---+ / |...| syntax) into standard table nodes */
     remarkGridTables,
     /**

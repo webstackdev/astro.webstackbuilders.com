@@ -8,8 +8,13 @@ publishDate: 2024-01-01
 tags: ["typescript"]
 isDraft: true
 ---
+import Demo from '@components/Test/Demo.mdx'
 
 ## Components
+
+### Includes from other Markdown files
+
+<Demo />
 
 ### Avatar Component
 
@@ -286,7 +291,19 @@ Nested lists:
 
 ### Escape Markup
 
-Let's rename \*our-new-project\* to \*our-old-project\*
+Unified uses the backslash character to treat special Markdown symbols as literal text, preventing them from being interpreted as formatting instructions.
+
+\\ (backslash): To display a literal backslash
+\* (asterisk): Used for emphasis (italics or bold) or lists
+\_ (underscore): Also used for emphasis
+\# (hash symbol): Used for headings
+\[ and \] (square brackets): Used for links
+\( and \) (parentheses): Used in links or for other extensions like superscripts
+\+, \-, \. (plus, minus, period): Used for lists
+\! (exclamation mark): Used for images (![]())
+\` (backtick): Used for inline code blocks
+\> (greater-than sign): Used for blockquotes
+\| (pipe): Used for tables in extended Markdown syntax
 
 ## Comments
 
@@ -302,7 +319,9 @@ The background color is `#ffffff` for light mode and `#000000` for dark mode. In
 
 I can link internally to [Markdown Features](#markdown-features) on the same page when writing Markdown.
 
-## remark-abbreviations
+## Unified Plugins
+
+### remark-abbreviations
 
 *[MDAST]: Markdown Abstract Syntax Tree.
 *[AST]: Abstract syntax tree
@@ -314,11 +333,43 @@ Should compile to the following HTML:
 implemented by <a href="https://github.com/remarkjs/remark">remark</a></p>
 ```
 
-## rehype-accessible-emojis
+### rehype-accessible-emojis
 
 :rocket:
 
-## remark-attributes
+### remark-align
+
+This plugin parses custom Markdown syntax to center- or right-align elements. Alignment is done by wrapping something in shortcode-style tags, applying Tailwind `text-right` or `text-center` classes:
+
+```markdown
+[center]paragraph[/center]
+
+[right]paragraph[/right]
+```
+
+[center]A centered paragraph[/center]
+
+[right]A right-aligned paragraph[/right]
+
+Block elements can be wrapped with their own tags to apply `flex flex-col items-end` or `flex flex-col items-center` classes:
+
+```markdown
+[center]
+> My blockquote
+[/center]
+```
+
+[center]
+### Centered block
+
+> My blockquote
+
+- a
+- b
+
+[/center]
+
+### remark-attributes
 
 @TODO: DOES NOT WORK
 
@@ -330,7 +381,7 @@ Add HTML attributes to any Markdown element using curly brace syntax:
 [Link](url){.btn target=_blank}
 ```
 
-## remark-attribution
+### remark-attribution
 
 The plugin allows to provide an attribution for a quotation:
 

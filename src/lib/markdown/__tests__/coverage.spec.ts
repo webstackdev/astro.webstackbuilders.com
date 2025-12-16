@@ -22,6 +22,7 @@ interface TestFileMap {
 // Local plugins maintained in this repo (don't need tests in units/)
 const LOCAL_PLUGINS = new Set([
   'remarkAbbreviations',
+  'remarkAlign',
   'remarkAttributes',
   'remarkAttribution',
   'remarkReplacements',

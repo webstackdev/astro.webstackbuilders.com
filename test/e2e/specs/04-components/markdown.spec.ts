@@ -58,6 +58,32 @@ test.describe('Markdown (MDX) fixture page', () => {
     })
   })
 
+  test.describe('remark-align', () => {
+    test('wraps inline and block ranges with Tailwind classes', async () => {
+      await expect(markdownPage.heading('Align (remark-align)', 2)).toBeVisible()
+
+      // Inline alignment wrapper
+      const inline = markdownPage.prose.locator('div.text-center').first()
+      await expect(inline).toBeVisible()
+      await expect(inline).toContainText('A centered paragraph')
+
+      // Block alignment wrapper (column layout)
+      const block = markdownPage.prose.locator('div.flex.flex-col.items-center').first()
+      await expect(block).toBeVisible()
+      await expect(block).toContainText('Centered block')
+      await expect(block.locator('li')).toHaveCount(2)
+
+      // Row variant (flex row + justify)
+      const row = markdownPage.prose.locator('div.flex.justify-end').first()
+      await expect(row).toBeVisible()
+      await expect(row).toContainText('Right row block')
+
+      // Tags should not leak into output text
+      await expect(markdownPage.prose).not.toContainText('[center]')
+      await expect(markdownPage.prose).not.toContainText('[/center]')
+    })
+  })
+
   test.describe('GFM', () => {
     test('renders autolinks, tables, task lists, strikethrough, and footnotes', async () => {
       await expect(markdownPage.heading('GFM', 2)).toBeVisible()
