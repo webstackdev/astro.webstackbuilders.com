@@ -12,7 +12,7 @@
  * - Skips processing inside certain MDX/HTML tags (`pre`, `code`, `kbd`, `math`, `script`, `style`)
  */
 
-import type { Root, Parent, Content, Html } from 'mdast'
+import type { Root, Parent, Html } from 'mdast'
 import type { Plugin } from 'unified'
 
 import type { Options as RetextSmartypantsOptions } from 'retext-smartypants'
@@ -43,6 +43,17 @@ type TransformState = {
   prevClass: CharClass
   openDouble: boolean
   openSingle: boolean
+}
+
+type AnyNode = {
+  type: string
+  children?: AnyNode[]
+  name?: unknown
+  value?: unknown
+} & Record<string, unknown>
+
+function isParentLikeNode(node: AnyNode): node is AnyNode & { children: AnyNode[] } {
+  return Array.isArray((node as { children?: unknown }).children)
 }
 
 const DEFAULT_STATE: TransformState = {
@@ -247,17 +258,20 @@ function walkParent(
   state: TransformState,
   rawHtmlStack: string[]
 ): void {
-  for (const child of parent.children as Content[]) {
+  for (const child of parent.children as unknown[]) {
+    if (!child || typeof child !== 'object') continue
+    const node = child as AnyNode
+
     // Skip subtree for MDX text elements like <code> in MDX.
-    if (child && typeof child === 'object' && (child as { type?: unknown }).type === 'mdxJsxTextElement') {
-      const name = (child as { name?: unknown }).name
+    if (node.type === 'mdxJsxTextElement') {
+      const name = node.name
       if (typeof name === 'string' && IGNORED_MDX_ELEMENTS.has(name)) {
         continue
       }
     }
 
-    if (isHtmlNode(child)) {
-      const parsed = parseHtmlTag(child.value)
+    if (isHtmlNode(node)) {
+      const parsed = parseHtmlTag(node.value)
       if (parsed && RAW_HTML_IGNORED_TAGS.has(parsed.tag)) {
         if (parsed.kind === 'open') rawHtmlStack.push(parsed.tag)
         if (parsed.kind === 'close') {
@@ -268,34 +282,37 @@ function walkParent(
       continue
     }
 
-    if (child.type === 'inlineCode') {
+    if (node.type === 'inlineCode') {
       // Inline code is "content" for quote closing, but we never modify it.
       state.prevClass = 'word'
       continue
     }
 
-    if (child.type === 'code') {
+    if (node.type === 'code') {
       // Code blocks are content but should not influence quotes outside.
       // Treat as a boundary.
       state.prevClass = 'none'
       continue
     }
 
-    if (child.type === 'text') {
+    if (node.type === 'text') {
       if (!shouldSkipTextInRawHtml(rawHtmlStack) && !isIgnoredMdxTextElementParent(parent)) {
-        child.value = transformTextValue(child.value, options, state)
+        const value = node.value
+        if (typeof value === 'string') {
+          ;(node as unknown as { value: string }).value = transformTextValue(value, options, state)
+        }
       }
       continue
     }
 
-    if ((child as unknown as Parent).children && Array.isArray((child as unknown as Parent).children)) {
+    if (isParentLikeNode(node)) {
       // Reset quote state at new block boundaries.
-      if (child.type === 'paragraph' || child.type === 'heading') {
+      if (node.type === 'paragraph' || node.type === 'heading') {
         state.prevClass = 'none'
         state.openDouble = false
         state.openSingle = false
       }
-      walkParent(child as unknown as Parent, options, state, rawHtmlStack)
+      walkParent(node as unknown as Parent, options, state, rawHtmlStack)
       continue
     }
   }
