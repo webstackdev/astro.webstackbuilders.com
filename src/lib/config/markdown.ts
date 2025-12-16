@@ -33,6 +33,9 @@ import type { Options as RehypeExternalLinksOptions } from 'rehype-external-link
 import rehypeExternalLinks from 'rehype-external-links'
 Object.defineProperty(rehypeExternalLinks, 'name', { value: 'rehypeExternalLinks' })
 
+import rehypeFootnotesTitle from '../markdown/plugins/rehype-footnotes-title'
+Object.defineProperty(rehypeFootnotesTitle, 'name', { value: 'rehypeFootnotesTitle' })
+
 /**
  * ==============================================================
  *
@@ -164,6 +167,9 @@ export const rehypeExternalLinksConfig: RehypeExternalLinksOptions = {
   rel: ['noreferrer'],
 }
 
+/** rehype-footnotes-title plugin */
+export const rehypeFootnotesTitleConfig = 'Return to footnote $id' as const
+
 export const shikiConfigOptions: ShikiConfig = {
   // Alternatively, provide multiple themes
   // See note below for using dual light/dark themes
@@ -248,6 +254,8 @@ export const markdownConfig: Partial<MdxOptions> = {
     rehypeAccessibleEmojis,
     /** Add target/rel to external links */
     [rehypeExternalLinks, rehypeExternalLinksConfig],
+    /** Add title attributes to footnote backrefs */
+    [rehypeFootnotesTitle, rehypeFootnotesTitleConfig],
     /**
      * Add a class and prepend an icon to heading tags that have an id attribute set.
      * Astro uses Github Flavored Markup to add id attribute to headings like h1,

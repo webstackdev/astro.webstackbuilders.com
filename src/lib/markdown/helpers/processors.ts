@@ -25,7 +25,7 @@ export type ProcessParams<TPluginOptions = unknown> = {
  * No GFM, no Astro settings - just the plugin being tested
  */
 export async function processIsolated(
-  params: ProcessParams & { slugify?: boolean }
+  params: ProcessParams & { slugify?: boolean; gfm?: boolean }
 ): Promise<string> {
   const {
     markdown,
@@ -33,9 +33,12 @@ export async function processIsolated(
     pluginOptions,
     stage = 'remark',
     slugify = false,
+    gfm = false,
   } = params
 
   const processor = remark()
+
+  if (gfm) processor.use(remarkGfm)
 
   if (stage === 'remark') {
     if (pluginOptions !== undefined) {
