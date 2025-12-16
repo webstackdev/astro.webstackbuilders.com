@@ -52,6 +52,11 @@ Object.defineProperty(remarkEmoji, 'name', { value: 'remarkEmoji' })
 
 import remarkLinkifyRegex from 'remark-linkify-regex'
 
+import remarkGridTables from '@adobe/remark-gridtables'
+Object.defineProperty(remarkGridTables, 'name', { value: 'remarkGridTables' })
+
+import { mdast2hastGridTablesHandler, TYPE_TABLE } from '@adobe/mdast-util-gridtables'
+
 /**
  * ==============================================================
  *
@@ -204,6 +209,10 @@ export const remarkRehypeConfig = {
   footnoteBackLabel: 'Back to reference 1',
   /** Footnote label displayed at start of footnote section */
   footnoteLabel: 'Footnotes',
+  /** Convert GridTables mdast nodes to standard HTML table output */
+  handlers: {
+    [TYPE_TABLE]: mdast2hastGridTablesHandler(),
+  },
 } as const
 
 /**
@@ -214,6 +223,11 @@ export const remarkRehypeConfig = {
  * ==============================================================
  */
 export const markdownConfig: Partial<MdxOptions> = {
+  /**
+   * IMPORTANT: If you change any plugin wiring in this file, restart the Astro
+   * dev server. We've seen the dev server serve stale markdown pipeline output
+   * after config edits.
+   */
   /** Default is true. Enable GitHub Flavored Markdown */
   gfm: true,
   /** Disabled because we include `remarkSmartypants` explicitly (test coverage + avoid double-processing). */
@@ -224,6 +238,8 @@ export const markdownConfig: Partial<MdxOptions> = {
   remarkPlugins: [
     /** Define abbreviations at bottom file, and wraps their usage in <abbr> tags */
     remarkAbbreviations,
+    /** Parse grid tables (+---+ / |...| syntax) into standard table nodes */
+    remarkGridTables,
     /**
      * Add HTML attributes to elements using {.class #id key=value} syntax
      * Supports: headings, links, images, code blocks, lists, and bracketed spans

@@ -83,6 +83,10 @@ test.describe('Markdown (MDX) fixture page', () => {
       await expect(table).toContainText('Feature')
       await expect(table).toContainText('Tables')
 
+      const gridTable = markdownPage.prose.locator('table', { hasText: 'Grid' }).first()
+      await expect(gridTable).toBeVisible()
+      await expect(gridTable.locator('em', { hasText: 'formatted' })).toBeVisible()
+
       const checkboxes = markdownPage.prose.locator('input[type="checkbox"]')
       const checkboxCount = await checkboxes.count()
       expect(checkboxCount).toBeGreaterThanOrEqual(2)

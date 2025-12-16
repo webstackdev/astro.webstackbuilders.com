@@ -239,9 +239,11 @@ You can then opt-out of prefetching for individual links by setting data-astro-p
 ### PROBLEMS: Markdown Not Working
 
 - color tabs like GFM when using HEX, RGB, or HSL values in backticks. This should generate a callout box around the hex color with a dot to the right showing the color.
+
 - Astro also includes shiki
+
 - We're adding 'rehype-autolink-headings', but Astro does too: https://docs.astro.build/en/guides/markdown-content/#heading-ids-and-plugins
-- Youtube embedding - could use a custom component or `remark-iframes`
+
 - `remark-attributes` does not work because `{...}` in MDX embeds dynamic JavaScript logic or JSX components directly within Markdown content
 
 ```markdown
@@ -267,30 +269,6 @@ const markdownFootnoteBlockOpen = () =>
   '<ol class="footnotes-list">\n'
 ```
 
-### @adobe/remark-gridtables
-
-```markdown
-+-------------------+------+
-| Table Headings    | Here |
-+--------+----------+------+
-| Sub    | Headings | Too  |
-+========+=================+
-| cell   | column spanning |
-| spans  +---------:+------+
-| rows   |   normal | cell |
-+---v----+:---------------:+
-|        | cells can be    |
-|        | *formatted*     |
-|        | **paragraphs**  |
-|        | ```             |
-| multi  | and contain     |
-| line   | blocks          |
-| cells  | ```             |
-+========+=========:+======+
-| footer |    cells |      |
-+--------+----------+------+
-```
-
 ### remark-text-decoration
 
 This plugin lets you apply an element to text based on a marker defined in config. It could handle subscript, superscript, underline, and highlighting.
@@ -314,6 +292,12 @@ Term 1
 
 : Definition 1
 ```
+
+### Youtube embedding
+
+- `rehype-video` for self-hosted videos, you have to pass the video filename into the unified `process()` pipeline along with the plugin
+- `@hongvanpc10/rehype-embed` works the same way - you have to pass the Youtube link into the config to be processed
+
 
 ### remark-custom-blocks
 
@@ -363,61 +347,6 @@ produces:
   center: 'align-center'
 })
 ```
-
-### Excluded Languages
-
-An array of languages to exclude from the default syntax highlighting specified in markdown.syntaxHighlight.type. This can be useful when using tools that create diagrams from Markdown code blocks, such as Mermaid.js and D2.
-
-```javascript
-// astro.config.mjs
-import { defineConfig } from 'astro/config'
-
-export default defineConfig({
-  markdown: {
-    syntaxHighlight: {
-      type: 'shiki',
-      excludeLangs: ['mermaid', 'math'],
-    },
-  },
-})
-```
-
-/** Add a curtain filename block into code blocks using ```js:<filename.js> syntax */
-// @TODO: conflicts with markdown-it-codetabs, need to debug
-//// markdown-it-named-code-blocks//
-
-/** Textmark-based parsing of code blocks using VS Code templates */
-// @TODO: gives error, maybe about ES Module syntax: TypeError: plugin.apply is not a function
-//// markdown-it-shiki'), markdownShikiConfig)
-
-/** Subscript text: 29^th^ => <p>29<sup>th</sup></p> */
-// markdown-it-sub//
-
-/** Superscript text: H~2~0 => <p>H<sub>2</sub>0</p> */
-// markdown-it-sup//
-
-/** Adds underline to markdown like _underline_ */
-// @TODO: conflicts with built-in markup for italics: _italics_ _underline_, change one
-//// markdown-it-underline//
-
-/** Embed video: @[youtube](dQw4w9WgXcQ) */
-// markdown-it-video'), markdownVideoConfig)
-/**
- *
- */
-/*const markdownVideoConfig = {
-  youtube: { width: 640, height: 390 },
-}*/
-
-/*
- call out colors within a sentence by using backticks like Github-Flavored Markup on Github. A supported color model within backticks will display a visualization of the color.
-
-The background color is `#ffffff` for light mode and `#000000` for dark mode.
-
-The above will generate a callout box around the hex color with a dot to the right showing the color.
-*/
-
-// Alerts: Use specific block formats for different types of alerts, such as > [!IMPORTANT] or > [!WARNING].
 
 ### Includes for markdown fragment files using !!![file.md]!!! syntax
 
@@ -502,6 +431,24 @@ const markdownCodeCopyConfig = {
 ```
 
 ## Math - LATEX / KATEX
+
+### Exclude Mermaid, Latex, etc. from Shiki syntax highlighting in code blocks
+
+An array of languages to exclude from the default syntax highlighting specified in markdown.syntaxHighlight.type. This can be useful when using tools that create diagrams from Markdown code blocks, such as Mermaid.js and D2.
+
+```javascript
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  markdown: {
+    syntaxHighlight: {
+      type: 'shiki',
+      excludeLangs: ['mermaid', 'math'],
+    },
+  },
+})
+```
 
  rebber - transformation of MDAST into `latex` code. This code must be included inside a custom latex to be compiled.
 

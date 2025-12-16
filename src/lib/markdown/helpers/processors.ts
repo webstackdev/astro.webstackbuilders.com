@@ -18,6 +18,8 @@ export type ProcessParams<TPluginOptions = unknown> = {
   plugin: unknown
   pluginOptions?: TPluginOptions
   stage?: ProcessStage
+  /** Optional override for remark-rehype options (useful for plugins that add custom mdast node types). */
+  remarkRehypeOptions?: unknown
 }
 
 /**
@@ -32,6 +34,7 @@ export async function processIsolated(
     plugin,
     pluginOptions,
     stage = 'remark',
+    remarkRehypeOptions,
     slugify = false,
     gfm = false,
   } = params
@@ -48,7 +51,11 @@ export async function processIsolated(
     }
   }
 
-  processor.use(remarkRehype)
+  if (remarkRehypeOptions !== undefined) {
+    processor.use(remarkRehype, remarkRehypeOptions as never)
+  } else {
+    processor.use(remarkRehype)
+  }
   if (slugify) processor.use(rehypeHeadingIds)
 
   if (stage === 'rehype') {
