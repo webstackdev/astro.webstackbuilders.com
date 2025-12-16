@@ -249,20 +249,6 @@ Calculations: {Math.PI * 2}.
 Components: { <MyComponent /> }
 ```
 
-### remark-supersub
-
-Subscript and superscript text
-
-```markdown
-~subscript~, e.g. a~i~
-
-^superscript^, e.g. e^x^
-```
-
-Subscript: a~i~
-
-Superscript: e^x^
-
 ### remark-mark-plus
 
 Inserts indicated text in a pair of `<mark>` elements
@@ -272,12 +258,6 @@ my ==marked== text
 ```
 
 my ==marked== text
-
-###
-
-```markdown
-!!underline!!
-```
 
 ### Youtube embedding
 

@@ -4,7 +4,7 @@ import remarkSmartypants from '@lib/markdown/plugins/remark-smartypants'
 import remarkRehype from 'remark-rehype'
 import rehypeStringify from 'rehype-stringify'
 import { rehypeHeadingIds } from '@astrojs/markdown-remark'
-import { markdownConfig } from '@lib/config/markdown'
+import { markdownConfig, remarkGfmConfig } from '@lib/config/markdown'
 
 export type ProcessStage = 'remark' | 'rehype'
 
@@ -41,7 +41,7 @@ export async function processIsolated(
 
   const processor = remark()
 
-  if (gfm) processor.use(remarkGfm)
+  if (gfm) processor.use(remarkGfm, remarkGfmConfig as never)
 
   if (stage === 'remark') {
     if (pluginOptions !== undefined) {
@@ -87,7 +87,7 @@ export async function processWithAstroSettings(
 
   const processor = remark()
 
-  processor.use(remarkGfm)
+  processor.use(remarkGfm, remarkGfmConfig as never)
 
   if (stage === 'remark') {
     if (pluginOptions !== undefined) {
@@ -130,7 +130,7 @@ export async function processWithFullPipeline(content: string): Promise<string> 
   // either plugin functions or [plugin, options] tuples.
   // Respect markdownConfig.gfm (Astro enables GFM when gfm: true)
   if (markdownConfig.gfm !== false) {
-    processor = processor.use(remarkGfm)
+    processor = processor.use(remarkGfm, remarkGfmConfig as never)
   }
 
   if (markdownConfig.remarkPlugins) {

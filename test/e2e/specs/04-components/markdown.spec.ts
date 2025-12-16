@@ -100,6 +100,18 @@ test.describe('Markdown (MDX) fixture page', () => {
     })
   })
 
+  test.describe('remark-supersub', () => {
+    test('renders subscript and superscript elements', async () => {
+      await expect(markdownPage.heading('Supersub (remark-supersub)', 2)).toBeVisible()
+
+      const sub = markdownPage.prose.locator('sub', { hasText: 'i' }).first()
+      await expect(sub).toBeVisible()
+
+      const sup = markdownPage.prose.locator('sup', { hasText: 'x' }).first()
+      await expect(sup).toBeVisible()
+    })
+  })
+
   test.describe('GFM', () => {
     test('renders autolinks, tables, task lists, strikethrough, and footnotes', async () => {
       await expect(markdownPage.heading('GFM', 2)).toBeVisible()

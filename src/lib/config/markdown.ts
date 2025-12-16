@@ -44,6 +44,9 @@ Object.defineProperty(rehypeFootnotesTitle, 'name', { value: 'rehypeFootnotesTit
  * ==============================================================
  */
 
+import remarkGfm from 'remark-gfm'
+Object.defineProperty(remarkGfm, 'name', { value: 'remarkGfm' })
+
 import remarkBreaks from 'remark-breaks'
 Object.defineProperty(remarkBreaks, 'name', { value: 'remarkBreaks' })
 
@@ -52,6 +55,9 @@ Object.defineProperty(remarkEmoji, 'name', { value: 'remarkEmoji' })
 
 import remarkDeflist from 'remark-deflist'
 Object.defineProperty(remarkDeflist, 'name', { value: 'remarkDeflist' })
+
+import remarkSupersub from 'remark-supersub'
+Object.defineProperty(remarkSupersub, 'name', { value: 'remarkSupersub' })
 
 import remarkCustomBlocks from '../markdown/plugins/remark-custom-blocks'
 Object.defineProperty(remarkCustomBlocks, 'name', { value: 'remarkCustomBlocks' })
@@ -196,6 +202,12 @@ export const remarkCustomBlocksConfig = {
   },
 } as const
 
+/** remark-gfm plugin (explicit config; we disable Astro's built-in GFM injection below) */
+export const remarkGfmConfig = {
+  // Reserve single-tilde syntax (~sub~) for remark-supersub; keep ~~strike~~.
+  singleTilde: false,
+} as const
+
 export const shikiConfigOptions: ShikiConfig = {
   // Alternatively, provide multiple themes
   // See note below for using dual light/dark themes
@@ -249,20 +261,24 @@ export const markdownConfig: Partial<MdxOptions> = {
    * dev server. We've seen the dev server serve stale markdown pipeline output
    * after config edits.
    */
-  /** Default is true. Enable GitHub Flavored Markdown */
-  gfm: true,
+  /** Disabled because we include `remarkGfm` explicitly (test coverage + custom options). */
+  gfm: false,
   /** Disabled because we include `remarkSmartypants` explicitly (test coverage + avoid double-processing). */
   smartypants: false,
   /** Code syntax highlighting */
   syntaxHighlight: { type: 'shiki', excludeLangs: ['math'] },
   shikiConfig: shikiConfigOptions,
   remarkPlugins: [
+    /** GitHub Flavored Markdown (explicit, configured) */
+    [remarkGfm, remarkGfmConfig],
     /** Define abbreviations at bottom file, and wraps their usage in <abbr> tags */
     remarkAbbreviations,
     /** Align blocks/paragraphs using -> / <- marker syntax */
     remarkAlign,
     /** Custom blocks like [[details | Summary]] */
     [remarkCustomBlocks, remarkCustomBlocksConfig],
+    /** Subscript and superscript via ~sub~ and ^sup^ */
+    remarkSupersub,
     /** Definition lists (PHP Markdown Extra style) */
     remarkDeflist,
     /** Parse grid tables (+---+ / |...| syntax) into standard table nodes */

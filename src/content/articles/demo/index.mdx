@@ -41,7 +41,9 @@ Avatar fallback if no image found:
 The Callout component highlights important information:
 
 ```markdown
-
+<Callout type="info">
+This is an informational callout. Use it to draw attention to helpful tips or additional context.
+</Callout>
 ```
 
 <Callout type="info">
@@ -49,7 +51,9 @@ This is an informational callout. Use it to draw attention to helpful tips or ad
 </Callout>
 
 ```markdown
-
+<Callout type="warning">
+This is a warning callout. Use it to highlight potential pitfalls or important considerations.
+</Callout>
 ```
 
 <Callout type="warning">
@@ -57,7 +61,9 @@ This is a warning callout. Use it to highlight potential pitfalls or important c
 </Callout>
 
 ```markdown
-
+<Callout type="success">
+This is a success callout. Perfect for highlighting achievements or positive outcomes.
+</Callout>
 ```
 
 <Callout type="success">
@@ -65,7 +71,9 @@ This is a success callout. Perfect for highlighting achievements or positive out
 </Callout>
 
 ```markdown
-
+<Callout type="danger">
+This is a danger callout. Use it for critical warnings or errors that need immediate attention.
+</Callout>
 ```
 
 <Callout type="danger">
@@ -77,7 +85,13 @@ This is a danger callout. Use it for critical warnings or errors that need immed
 Showcase related articles using the production carousel component:
 
 ```markdown
-
+<Carousel
+  title="Featured articles"
+  type="articles"
+  variant="suggested"
+  currentSlug="demo/index"
+  limit={3}
+/>
 ```
 
 <Carousel
@@ -107,34 +121,15 @@ const demo: DemoInterface = {
 };
 ```
 
-```markdown
-
-```
-
-[^1]: My reference.
-
-[^2]: To add line breaks within a footnote, add 2 spaces to the end of a line.
-  This is a second line.
-
-[^named]: My reference.
-
 ### Contact Callout
 
 Invite readers to get in touch:
-
-```markdown
-
-```
 
 <Contact />
 
 ### Featured Content
 
 Highlight featured articles or services:
-
-```markdown
-
-```
 
 <Featured
   title="Featured Content"
@@ -151,7 +146,9 @@ The Highlighter component allows you to <Highlighter>emphasize specific text</Hi
 Use SVG sprites for icons throughout your content:
 
 ```markdown
-
+<Icon name="check" class="w-6 h-6 text-success" />
+<Icon name="warning" class="w-6 h-6 text-warning" />
+<Icon name="info" class="w-6 h-6 text-info" />
 ```
 
 <Icon name="check" class="w-6 h-6 text-success" />
@@ -163,7 +160,10 @@ Use SVG sprites for icons throughout your content:
 #### YouTube Embed
 
 ```markdown
-
+<Embed
+  type="youtube"
+  url="https://www.youtube.com/watch?v=lSk-DWAJPbA"
+/>
 ```
 
 <Embed
@@ -174,7 +174,10 @@ Use SVG sprites for icons throughout your content:
 #### X (Twitter) Embed
 
 ```markdown
-
+<Embed
+  type="x"
+  url="https://x.com/WebstackDev/status/1717481221549445419"
+/>
 ```
 
 <Embed
@@ -185,7 +188,10 @@ Use SVG sprites for icons throughout your content:
 #### GitHub Gist Embed
 
 ```markdown
-
+<Embed
+  type="gist"
+  url="https://gist.github.com/webstackdev/455fb0b4e0d2332a8aaa02309563fb54"
+/>
 ```
 
 <Embed
@@ -197,10 +203,6 @@ Use SVG sprites for icons throughout your content:
 
 Encourage readers to subscribe to your newsletter:
 
-```markdown
-
-```
-
 <Newsletter />
 
 ### Social Sharing
@@ -208,7 +210,7 @@ Encourage readers to subscribe to your newsletter:
 Add social sharing buttons for the article:
 
 ```markdown
-
+<Shares />
 ```
 
 <Shares />
@@ -218,7 +220,7 @@ Add social sharing buttons for the article:
 Display customer feedback and testimonials:
 
 ```markdown
-
+<Testimonials count={3} />
 ```
 
 <Testimonials count={3} />
@@ -228,7 +230,7 @@ Display customer feedback and testimonials:
 ### Autolink literals
 
 ```markdown
-
+www.example.com, https://example.com, and contact@example.com.
 ```
 
 www.example.com, https://example.com, and contact@example.com.
@@ -236,7 +238,9 @@ www.example.com, https://example.com, and contact@example.com.
 ### Footnote
 
 ```markdown
-
+Here is a simple footnote[^1].
+A footnote can also have multiple lines[^2].
+It could also be [^named].
 ```
 
 Here is a simple footnote[^1].
@@ -245,6 +249,24 @@ It could also be [^named].
 
 Footnote backref links should include a `title` attribute for accessibility.
 
+The references can be anywhere in the document, before or after their use:
+
+```markdown
+[^1]: My reference.
+
+[^2]: To add line breaks within a footnote, add 2 spaces to the end of a line.
+  This is a second line.
+
+[^named]: My reference.
+```
+
+[^1]: My reference.
+
+[^2]: To add line breaks within a footnote, add 2 spaces to the end of a line.
+  This is a second line.
+
+[^named]: My reference.
+
 ### Strikethrough
 
 `~one~` or `~~two~~` tildes: ~one~ ~~two~~
@@ -252,7 +274,15 @@ Footnote backref links should include a `title` attribute for accessibility.
 ### Table
 
 ```markdown
+| a | b  |  c |  d  |
+| - | :- | -: | :-: |
 
+| Feature | Supported | Notes |
+|---------|-----------|-------|
+| Callouts | ✅ | Multiple types available |
+| Avatars | ✅ | Configurable sizes |
+| Carousels | ✅ | Auto-play optional |
+| Embeds | ✅ | Multiple platforms |
 ```
 
 | a | b  |  c |  d  |
@@ -268,7 +298,25 @@ Footnote backref links should include a `title` attribute for accessibility.
 ### Grid (Adobe) table
 
 ```markdown
-
++-------------------+------+
+| Table Headings    | Here |
++--------+----------+------+
+| Sub    | Headings | Too  |
++========+=================+
+| cell   | column spanning |
+| spans  +---------:+------+
+| rows   |   normal | cell |
++---v----+:---------------:+
+|        | cells can be    |
+|        | *formatted*     |
+|        | **paragraphs**  |
+|        | ```             |
+| multi  | and contain     |
+| line   | blocks          |
+| cells  | ```             |
++========+=========:+======+
+| footer |    cells |      |
++--------+----------+------+
 ```
 
 +-------------------+------+
@@ -294,7 +342,8 @@ Footnote backref links should include a `title` attribute for accessibility.
 ### Tasklist
 
 ```markdown
-
+* [ ] to do
+* [x] done
 ```
 
 * [ ] to do
@@ -320,7 +369,9 @@ Footnote backref links should include a `title` attribute for accessibility.
 Nested blockquotes:
 
 ```markdown
-
+> Dorothy followed her through many of the beautiful rooms in her castle.
+>
+>> The Witch bade her clean the pots and kettles and sweep the floor and keep the fire fed with wood.
 ```
 
 > Dorothy followed her through many of the beautiful rooms in her castle.
@@ -344,7 +395,7 @@ _________________
 ### Images
 
 ```markdown
-
+![Octocat](https://myoctocat.com/assets/images/base-octocat.svg)
 ```
 
 ![Octocat](https://myoctocat.com/assets/images/base-octocat.svg)
@@ -356,7 +407,9 @@ Linked image:
 ### Links
 
 ```markdown
+My favorite search engine is [Duck Duck Go](https://duckduckgo.com).
 
+Visit our [homepage](/) or read more [articles](/articles) to explore additional content.
 ```
 
 My favorite search engine is [Duck Duck Go](https://duckduckgo.com).
@@ -368,7 +421,10 @@ Visit our [homepage](/) or read more [articles](/articles) to explore additional
 Unordered lists:
 
 ```markdown
-
+- First item
+- Second item
+- Third item with **bold text**
+- Fourth item with *italic text*
 ```
 
 - First item
@@ -379,7 +435,9 @@ Unordered lists:
 Ordered lists:
 
 ```markdown
-
+1. First step
+2. Second step
+3. Third step
 ```
 
 1. First step
@@ -389,7 +447,12 @@ Ordered lists:
 Nested lists:
 
 ```markdown
-
+1. First list item
+   - First nested list item
+     - Second nested list item
+1. Second list item
+   - First nested list item
+     - Second nested list item
 ```
 
 1. First list item
@@ -402,7 +465,7 @@ Nested lists:
 ### Bold and Nested Strikethrough
 
 ```markdown
-
+**This text is _extremely_ important**
 ```
 
 **This text is _extremely_ important**
@@ -428,7 +491,7 @@ Unified uses the backslash character to treat special Markdown symbols as litera
 (works if nothing here)
 
 ```markdown
-
+{/* This content will not appear in the rendered Markdown */}
 ```
 
 {/* This content will not appear in the rendered Markdown */}
@@ -436,7 +499,7 @@ Unified uses the backslash character to treat special Markdown symbols as litera
 ## Colors
 
 ```markdown
-
+The background color is `#ffffff` for light mode and `#000000` for dark mode. In RGB 	`rgb(9, 105, 218)` and in HSL `hsl(212, 92%, 45%)`.
 ```
 
 The background color is `#ffffff` for light mode and `#000000` for dark mode. In RGB 	`rgb(9, 105, 218)` and in HSL `hsl(212, 92%, 45%)`.
@@ -444,7 +507,7 @@ The background color is `#ffffff` for light mode and `#000000` for dark mode. In
 ## Astro-generated heading ID links
 
 ```markdown
-
+I can link internally to [Markdown Features](#unified-plugins) on the same page when writing Markdown.
 ```
 
 I can link internally to [Markdown Features](#unified-plugins) on the same page when writing Markdown.
@@ -454,7 +517,8 @@ I can link internally to [Markdown Features](#unified-plugins) on the same page 
 ### remark-abbreviations
 
 ```markdown
-
+*[MDAST]: Markdown Abstract Syntax Tree.
+*[AST]: Abstract syntax tree
 ```
 
 *[MDAST]: Markdown Abstract Syntax Tree.
@@ -469,8 +533,10 @@ implemented by <a href="https://github.com/remarkjs/remark">remark</a></p>
 
 ### rehype-accessible-emojis
 
-```markdown
+There is a doc listing all available emojis in the /docs directory.
 
+```markdown
+:rocket:
 ```
 
 :rocket:
@@ -532,7 +598,8 @@ Add HTML attributes to any Markdown element using curly brace syntax:
 The plugin allows to provide an attribution for a quotation:
 
 ```markdown
-
+> That's one small step for [a] man, one giant leap for mankind.
+> — Neil Armstrong (1969, July 21)
 ```
 
 > That's one small step for [a] man, one giant leap for mankind.
@@ -580,3 +647,17 @@ Term 1
 Term 1
 
 : Definition 1
+
+### remark-supersub
+
+Subscript and superscript text
+
+```markdown
+~subscript~, e.g. a~i~
+
+^superscript^, e.g. e^x^
+```
+
+Subscript: a~i~
+
+Superscript: e^x^
