@@ -59,6 +59,9 @@ Object.defineProperty(remarkDeflist, 'name', { value: 'remarkDeflist' })
 import remarkSupersub from 'remark-supersub'
 Object.defineProperty(remarkSupersub, 'name', { value: 'remarkSupersub' })
 
+import remarkCaptions from 'remark-captions'
+Object.defineProperty(remarkCaptions, 'name', { value: 'remarkCaptions' })
+
 import remarkCustomBlocks from '../markdown/plugins/remark-custom-blocks'
 Object.defineProperty(remarkCustomBlocks, 'name', { value: 'remarkCustomBlocks' })
 
@@ -71,6 +74,9 @@ import remarkGridTables from '@adobe/remark-gridtables'
 Object.defineProperty(remarkGridTables, 'name', { value: 'remarkGridTables' })
 
 import { mdast2hastGridTablesHandler, TYPE_TABLE } from '@adobe/mdast-util-gridtables'
+
+import type { State as MdastToHastState } from 'mdast-util-to-hast'
+import type { Options as RemarkRehypeOptions } from 'remark-rehype'
 
 /**
  * ==============================================================
@@ -205,6 +211,18 @@ export const remarkCustomBlocksConfig = {
   },
 } as const
 
+/** remark-captions plugin (explicit defaults from upstream README) */
+export const remarkCaptionsConfig = {
+  external: {
+    table: 'Table:',
+    code: 'Code:',
+  },
+  internal: {
+    blockquote: 'Source:',
+    image: 'Figure:',
+  },
+} as const
+
 /** remark-gfm plugin (explicit config; we disable Astro's built-in GFM injection below) */
 export const remarkGfmConfig = {
   // Reserve single-tilde syntax (~sub~) for remark-supersub; keep ~~strike~~.
@@ -240,7 +258,7 @@ export const shikiConfigOptions: ShikiConfig = {
 }
 
 /** remark-rehype plugin (conversion from markdown to HTML AST) */
-export const remarkRehypeConfig = {
+export const remarkRehypeConfig: RemarkRehypeOptions = {
   /** Footnote label displayed to return to reference */
   footnoteBackLabel: 'Back to reference 1',
   /** Footnote label displayed at start of footnote section */
@@ -248,8 +266,26 @@ export const remarkRehypeConfig = {
   /** Convert GridTables mdast nodes to standard HTML table output */
   handlers: {
     [TYPE_TABLE]: mdast2hastGridTablesHandler(),
+    // remark-captions + remark-attribution emit mdast nodes with type "figure"/"figcaption".
+    // Without explicit handlers, mdast-util-to-hast may flatten block children (notably `code`) and drop captions.
+    figure: (state: MdastToHastState, node: unknown) => {
+      return {
+        type: 'element',
+        tagName: 'figure',
+        properties: {},
+        children: state.all(node as never),
+      }
+    },
+    figcaption: (state: MdastToHastState, node: unknown) => {
+      return {
+        type: 'element',
+        tagName: 'figcaption',
+        properties: {},
+        children: state.all(node as never),
+      }
+    },
   },
-} as const
+}
 
 /**
  * ==============================================================
@@ -269,7 +305,7 @@ export const markdownConfig: Partial<MdxOptions> = {
   /** Disabled because we include `remarkSmartypants` explicitly (test coverage + avoid double-processing). */
   smartypants: false,
   /** Code syntax highlighting */
-  syntaxHighlight: { type: 'shiki', excludeLangs: ['math'] },
+  syntaxHighlight: { type: 'shiki', excludeLangs: ['mermaid', 'math'] },
   shikiConfig: shikiConfigOptions,
   remarkPlugins: [
     /** GitHub Flavored Markdown (explicit, configured) */
@@ -284,6 +320,8 @@ export const markdownConfig: Partial<MdxOptions> = {
     remarkSupersub,
     /** Highlights via ==marked== */
     remarkMarkPlus,
+    /** Captions for code, images, tables, and blockquotes */
+    [remarkCaptions, remarkCaptionsConfig],
     /** Definition lists (PHP Markdown Extra style) */
     remarkDeflist,
     /** Parse grid tables (+---+ / |...| syntax) into standard table nodes */

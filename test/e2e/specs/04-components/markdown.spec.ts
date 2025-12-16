@@ -121,6 +121,32 @@ test.describe('Markdown (MDX) fixture page', () => {
     })
   })
 
+  test.describe('remark-captions', () => {
+    test('wraps captioned elements in figure/figcaption', async () => {
+      await expect(markdownPage.heading('Captions (remark-captions)', 2)).toBeVisible()
+
+      // Blockquote caption (internal)
+      const quoteFigure = markdownPage.prose.locator('figure', { has: markdownPage.prose.locator('blockquote') }).first()
+      await expect(quoteFigure).toBeVisible()
+      await expect(quoteFigure.locator('figcaption', { hasText: 'Yoda' })).toBeVisible()
+
+      // Table caption (external)
+      const tableFigure = markdownPage.prose.locator('figure', { has: markdownPage.prose.locator('table') }).first()
+      await expect(tableFigure).toBeVisible()
+      await expect(tableFigure.locator('figcaption', { hasText: 'My table caption' })).toBeVisible()
+
+      // Code caption (external)
+      const codeFigure = markdownPage.prose.locator('figure', { has: markdownPage.prose.locator('pre') }).first()
+      await expect(codeFigure).toBeVisible()
+      await expect(codeFigure.locator('figcaption', { hasText: 'My code caption' })).toBeVisible()
+
+      // Image caption (internal)
+      const imageFigure = markdownPage.prose.locator('figure', { has: markdownPage.prose.locator('img') }).first()
+      await expect(imageFigure).toBeVisible()
+      await expect(imageFigure.locator('figcaption', { hasText: 'My image caption' })).toBeVisible()
+    })
+  })
+
   test.describe('GFM', () => {
     test('renders autolinks, tables, task lists, strikethrough, and footnotes', async () => {
       await expect(markdownPage.heading('GFM', 2)).toBeVisible()
