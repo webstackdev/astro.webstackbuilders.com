@@ -50,6 +50,9 @@ Object.defineProperty(remarkBreaks, 'name', { value: 'remarkBreaks' })
 import remarkEmoji from 'remark-emoji'
 Object.defineProperty(remarkEmoji, 'name', { value: 'remarkEmoji' })
 
+import remarkDeflist from 'remark-deflist'
+Object.defineProperty(remarkDeflist, 'name', { value: 'remarkDeflist' })
+
 import remarkLinkifyRegex from 'remark-linkify-regex'
 
 import remarkGridTables from '@adobe/remark-gridtables'
@@ -243,6 +246,8 @@ export const markdownConfig: Partial<MdxOptions> = {
     remarkAbbreviations,
     /** Align blocks/paragraphs using -> / <- marker syntax */
     remarkAlign,
+    /** Definition lists (PHP Markdown Extra style) */
+    remarkDeflist,
     /** Parse grid tables (+---+ / |...| syntax) into standard table nodes */
     remarkGridTables,
     /**

@@ -231,11 +231,6 @@ You can then opt-out of prefetching for individual links by setting data-astro-p
 
 ## Markdown
 
-### Custom plugins
-
-- `remark-replacements` - Heading anchor links
-- `rehype-tailwind` - Add custom CSS classes to Markdown-generated elements in this file
-
 ### PROBLEMS: Markdown Not Working
 
 - color tabs like GFM when using HEX, RGB, or HSL values in backticks. This should generate a callout box around the hex color with a dot to the right showing the color.
@@ -256,19 +251,6 @@ Components: { <MyComponent /> }
 
 ### THINGS TO WIRE INTO CUSTOM COMPONENTS IN STANDARD MARKDOWN OR ADD AS COMPONENTS
 
-#### Details/Summary elements
-
-These HTML elements aren't being processed by remarkGfm (they need to be raw HTML). Expandable and collapsible content using HTML <details> and <summary> elements.
-
-### Add accessible name to section in footnotes plugin
-
-```typescript
-const markdownFootnoteBlockOpen = () =>
-  '<hr className="footnotes-sep">\n' +
-  '<section class="footnotes" aria-label="footnotes">\n' +
-  '<ol class="footnotes-list">\n'
-```
-
 ### remark-text-decoration
 
 This plugin lets you apply an element to text based on a marker defined in config. It could handle subscript, superscript, underline, and highlighting.
@@ -283,16 +265,6 @@ This plugin lets you apply an element to text based on a marker defined in confi
 ==marked== gives <mark>inserted</mark>
 ```
 
-### remark-deflist
-
-Definitions under definition header, stringified as `dl`, `dt`, and `dd`
-
-```markdown
-Term 1
-
-: Definition 1
-```
-
 ### Youtube embedding
 
 - `rehype-video` for self-hosted videos, you have to pass the video filename into the unified `process()` pipeline along with the plugin
@@ -303,16 +275,24 @@ Term 1
 
 This plugin parses custom Markdown syntax to create new custom blocks. It takes a config object with a name for the block, CSS classes to apply to it, and whether a title is required, optional, or the block does not have a title.
 
+These HTML elements aren't being processed by remarkGfm (they need to be raw HTML). Expandable and collapsible content using HTML <details> and <summary> elements.
+
 ```markdown
-[[bar | my **title**]]
-| content
+[[details | My summary]]
+| Some content for the detail
 ```
 
-```html
-<div class="custom-block something">
-  <div class="custom-block-heading">my <strong>title</strong></div>
-  <div class="custom-block-body"><p>content</p></div>
-</div>
+```typescript
+{
+  details: {
+    classes: '',
+    title: 'required',
+    containerElement: 'details',
+    titleElement: 'summary',
+    contentsElement: 'div',
+    details: true,
+  },
+}
 ```
 
 ### remark-captions

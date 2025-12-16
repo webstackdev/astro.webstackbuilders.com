@@ -118,6 +118,11 @@ test.describe('Markdown (MDX) fixture page', () => {
       expect(checkboxCount).toBeGreaterThanOrEqual(2)
       await expect(checkboxes.nth(1)).toBeChecked()
 
+      const definitionList = markdownPage.prose.locator('dl').first()
+      await expect(definitionList).toBeVisible()
+      await expect(definitionList).toContainText('Term 1')
+      await expect(definitionList).toContainText('Definition 1')
+
       await expect(markdownPage.footnoteRef).toBeVisible()
       const targetId = await markdownPage.getFootnoteTargetIdFromHref()
       expect(targetId).toBeTruthy()
