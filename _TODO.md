@@ -231,18 +231,6 @@ You can then opt-out of prefetching for individual links by setting data-astro-p
 
 ## Markdown
 
-MarkdownLayout.astro
-
-Cleaner options (discussion-only, no code changes):
-
-Option A: Split responsibilities: one layout that only accepts collectionItem (fully typed, no frontmatter coercion), and a separate loose MDX layout that does the coercion.
-
-Option B: Make MarkdownLayout a discriminated union: collectionItem branch uses schema types; non-collection branch uses a defined Frontmatter interface (no Record), and we only keep minimal runtime guards where truly needed.
-
-Option C: Stop using frontmatter in the layout: require callers to pass typed props (pageTitle, tags, etc.) and/or rely exclusively on collectionItem.data when present; then frontmatter becomes irrelevant.
-
-Which use-cases do you want MarkdownLayout to support going forward: only collection-backed content, or also standalone /pages/.../*.mdx with frontmatter? That answer determines whether the block is genuinely unnecessary or just the cost of supporting both paths.
-
 ### Custom plugins
 
 - `remark-replacements` - Heading anchor links
@@ -255,6 +243,15 @@ Which use-cases do you want MarkdownLayout to support going forward: only collec
 - Astro also includes shiki
 - We're adding 'rehype-autolink-headings', but Astro does too: https://docs.astro.build/en/guides/markdown-content/#heading-ids-and-plugins
 - Youtube embedding - could use a custom component or `remark-iframes`
+- `remark-attributes` does not work because `{...}` in MDX embeds dynamic JavaScript logic or JSX components directly within Markdown content
+
+```markdown
+![Image](url){width=300 .centered}
+
+Variables: # {postTitle}.
+Calculations: {Math.PI * 2}.
+Components: { <MyComponent /> }
+```
 
 ### Custom version of the code block integration from Astro Docs. "Beautiful code blocks for your Astro site". Applied to the code blocks created in `.mdx` files
 
