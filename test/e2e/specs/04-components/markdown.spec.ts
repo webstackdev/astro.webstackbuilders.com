@@ -1,0 +1,86 @@
+/**
+ * Markdown / MDX regression coverage
+ *
+ * Uses a dedicated MDX page fixture rendered through the production markdown pipeline.
+ * Goal: catch regressions if Astro MDX internals or Unified plugin wiring changes.
+ */
+
+import { test, expect } from '@test/e2e/helpers'
+import { MarkdownPage } from '@test/e2e/helpers/pageObjectModels/MarkdownPage'
+
+test.describe('Markdown (MDX) fixture page', () => {
+  let markdownPage: MarkdownPage
+
+  test.beforeEach(async ({ page }) => {
+    markdownPage = await MarkdownPage.init(page)
+    await markdownPage.gotoFixture()
+
+    await expect(markdownPage.article).toBeVisible()
+    await expect(markdownPage.articleTitle).toBeVisible()
+    await expect(markdownPage.articleTitle).toHaveText('Markdown E2E Fixture')
+  })
+
+  test.describe('Basic built-in markdown', () => {
+    test('renders emphasis, links, and code blocks', async () => {
+      await expect(markdownPage.heading('Basic Markdown', 2)).toBeVisible()
+      await expect(markdownPage.prose).toContainText('This is bold, italic, and inline code')
+
+      await expect(markdownPage.prose.locator('strong', { hasText: 'bold' })).toBeVisible()
+      await expect(markdownPage.prose.locator('em', { hasText: 'italic' })).toBeVisible()
+      await expect(markdownPage.prose.locator('code', { hasText: 'inline code' })).toBeVisible()
+
+      const homeLink = markdownPage.prose.getByRole('link', { name: 'homepage' })
+      await expect(homeLink).toHaveAttribute('href', '/')
+
+      await expect(markdownPage.prose.locator('pre code', { hasText: '"Hello" -- ...' })).toBeVisible()
+    })
+  })
+
+  test.describe('Heading anchors', () => {
+    test('adds slugified ids and in-heading anchor links', async () => {
+      await expect(markdownPage.heading('Heading Anchors', 2)).toBeVisible()
+
+      const sectionHeading = markdownPage.heading('My Section Heading', 3)
+      await expect(sectionHeading).toBeVisible()
+      await expect(sectionHeading).toHaveAttribute('id', 'my-section-heading')
+
+      const anchorInHeading = sectionHeading.locator('a')
+      await expect(anchorInHeading.first()).toHaveAttribute('href', '#my-section-heading')
+
+      const internalLink = markdownPage.prose.getByRole('link', { name: 'My Section Heading' })
+      await expect(internalLink).toHaveAttribute('href', '#my-section-heading')
+    })
+  })
+
+  test.describe('GFM', () => {
+    test('renders autolinks, tables, task lists, strikethrough, and footnotes', async () => {
+      await expect(markdownPage.heading('GFM', 2)).toBeVisible()
+
+      await expect(markdownPage.prose.locator('a[href="http://www.example.com"]')).toBeVisible()
+      await expect(markdownPage.prose.locator('a[href="https://example.com"]')).toBeVisible()
+      await expect(markdownPage.prose.locator('a[href^="mailto:"]', { hasText: 'contact@example.com' })).toBeVisible()
+
+      await expect(markdownPage.prose.locator('del', { hasText: 'This was mistaken text' })).toBeVisible()
+
+      const table = markdownPage.prose.locator('table').first()
+      await expect(table).toBeVisible()
+      await expect(table).toContainText('Feature')
+      await expect(table).toContainText('Tables')
+
+      const checkboxes = markdownPage.prose.locator('input[type="checkbox"]')
+      const checkboxCount = await checkboxes.count()
+      expect(checkboxCount).toBeGreaterThanOrEqual(2)
+      await expect(checkboxes.nth(1)).toBeChecked()
+
+      await expect(markdownPage.footnoteRef).toBeVisible()
+      const targetId = await markdownPage.getFootnoteTargetIdFromHref()
+      expect(targetId).toBeTruthy()
+
+      if (targetId) {
+        await expect(markdownPage.footnoteDefinitionById(targetId)).toBeVisible()
+      }
+
+      await expect(markdownPage.footnotesSection).toBeVisible()
+    })
+  })
+})

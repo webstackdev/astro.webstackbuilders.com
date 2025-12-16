@@ -231,25 +231,36 @@ You can then opt-out of prefetching for individual links by setting data-astro-p
 
 ## Markdown
 
+MarkdownLayout.astro
+
+Cleaner options (discussion-only, no code changes):
+
+Option A: Split responsibilities: one layout that only accepts collectionItem (fully typed, no frontmatter coercion), and a separate loose MDX layout that does the coercion.
+
+Option B: Make MarkdownLayout a discriminated union: collectionItem branch uses schema types; non-collection branch uses a defined Frontmatter interface (no Record), and we only keep minimal runtime guards where truly needed.
+
+Option C: Stop using frontmatter in the layout: require callers to pass typed props (pageTitle, tags, etc.) and/or rely exclusively on collectionItem.data when present; then frontmatter becomes irrelevant.
+
+Which use-cases do you want MarkdownLayout to support going forward: only collection-backed content, or also standalone /pages/.../*.mdx with frontmatter? That answer determines whether the block is genuinely unnecessary or just the cost of supporting both paths.
+
 ### Custom plugins
 
 - `remark-replacements` - Heading anchor links
-
 - `rehype-tailwind` - Add custom CSS classes to Markdown-generated elements in this file
 
 ### Markdown Not Working
 
 - color tabs like GFM when using HEX, RGB, or HSL values in backticks. This should generate a callout box around the hex color with a dot to the right showing the color.
 - Section link anchor icons
-- Markdown E2E tests on demo test page fixture
 - Astro also includes shiki
 - We're adding 'rehype-autolink-headings', but Astro does too: https://docs.astro.build/en/guides/markdown-content/#heading-ids-and-plugins
+- Youtube embedding - could use a custom component or `remark-iframes`
 
 ### Custom version of the code block integration from Astro Docs. "Beautiful code blocks for your Astro site". Applied to the code blocks created in `.mdx` files
 
 [`astro-code-blocks`](https://www.npmjs.com/package/@thewebforge/astro-code-blocks)
 
-### rehype-external-links
+### `rehype-external-links`
 
 npm install rehype-external-links
 
@@ -267,84 +278,94 @@ rehypePlugins: [
 ]
 ```
 
-- **mdast-util-split-by-heading**
-
-  A MDAST tool to split a markdown tree into list of subtrees representing the chapters. It relies on heading depth.
-
 - **LATEX**
 
  rebber - transformation of MDAST into `latex` code. This code must be included inside a custom latex to be compiled.
 
  Have a look at `https://github.com/zestedesavoir/latex-template/blob/master/zmdocument.cls` to get a working example.
 
-- **remark-abbr**
+### `remark-align`
 
-  This plugin parses `*[ABBR]: abbr definition` and then replace all ABBR instance in text with a new MDAST node so that `rehype` can parse it into `abbr` html tag.
+This plugin parses custom Markdown syntax to center- or right-align elements. Alignment is done by wrapping something in arrows indicating the alignment:
 
-- **rehype-html-blocks**
+```markdown
+->paragraph<-
 
-  This plugin wraps (multi-line) raw HTML in `p`.
+->paragraph->
+```
 
-- **remark-align**
+produces:
 
-  This plugin parses custom Markdown syntax to center- or right-align elements.
+```html
+<div class="some-class"><p>paragraph</p></div>
+<div class="some-other-class"><p>paragraph</p></div>
+```
 
-- **remark-captions**
+```typescript
+.use(remarkAlign, {
+  right: 'align-right',
+  center: 'align-center'
+})
+```
 
-  Allow to add caption to such element as image, table or blockquote.
+### `@adobe/remark-gridtables`
 
-- **remark-comments**
+```markdown
++-------------------+------+
+| Table Headings    | Here |
++--------+----------+------+
+| Sub    | Headings | Too  |
++========+=================+
+| cell   | column spanning |
+| spans  +---------:+------+
+| rows   |   normal | cell |
++---v----+:---------------:+
+|        | cells can be    |
+|        | *formatted*     |
+|        | **paragraphs**  |
+|        | ```             |
+| multi  | and contain     |
+| line   | blocks          |
+| cells  | ```             |
++========+=========:+======+
+| footer |    cells |      |
++--------+----------+------+
+```
 
-  This plugin parses custom Markdown syntax for Markdown source comments.
+### `remark-numbered-footnotes`
 
-- **remark-custom-blocks**
+This plugin replaces the footnote references with a number sequence (starting from 1) in the same order as the footnote definitions (not the footnote references).
 
-  This plugin parses custom Markdown syntax to create new custom blocks.
+Reordering the definitions (usually put at the end of the document in the Markdown source) will therefore let you reorder the sequence.
 
-- **remark-escape--escaped**
+This is useful if you want your footnotes to be superscript numbers without having to manually enter them while keeping the benefit of using strings that make sense to you in your Markdown source.
 
-  This plugin escapes HTML entities from Markdown input.
+### `rehype-footnotes-title`
 
-- **remark-grid-tables**
+This plugin adds a `title` attribute to the footnote links, mainly for accessibility purpose:
 
-  This plugin parses custom Markdown syntax to describe tables.
+```html
+<a href="#fnref-1" class="footnote-backref" title="Jump to reference">↩</a>
+```
 
-- **remark-heading-shift**
+```typescript
+.use(footnotesTitles, 'Jump to reference')
+.use(footnotesTitles, 'Going back to footnote with id $id')
+```
 
-  Allows to shift heading to custimize the way you will integrate the generated tree inside your application.
-
-- **remark-heading-trailing-spaces**
-  This plugin removes trailing spaces from Markdown headers.
-
-- **remark-iframes**
-
-  Allows to add `iframe` inclusion through `!(url)` code.
-
-- **remark-kbd**
-
-  This plugin parses custom Markdown syntax to handle keyboard keys.
-
-- **remark-numbered-footnotes**
-
-  This plugin changes how [mdast][mdast] footnotes are displayed by using sequential numbers as footnote references instead of user-specified strings.
-
-- **rehype-footnotes-title**
-
-  This plugin adds a `title` attribute to the footnote links, mainly for accessibility purpose.
-
-- **remark-sub-super**
+- **remark-sub-super** DO WE HAVE THIS NOW?
 
   This plugin parses custom Markdown syntax to handle subscript and superscript.
 
 - **Also underline.**
 
-- **typographic-colon**
+- **remark-captions**
 
-  Micro module to fix a common typographic issue that is hard to fix with most keyboard layouts.
+  Allow to add caption to such element as image, table or blockquote.
 
-- **typographic-permille**
+- **remark-custom-blocks**
 
-  Micro module to replace `%o` with `‰` and optionally replace the preceding space.
+  This plugin parses custom Markdown syntax to create new custom blocks.
 
 - **KATEX**
 
@@ -355,6 +376,12 @@ Math markup
 These HTML elements aren't being processed by remarkGfm (they need to be raw HTML). Expandable and collapsible content using HTML <details> and <summary> elements.
 
 `rehype-details`
+
+### Definition lists
+
+using indented ~ for definitions under definition header
+
+`markdown-it-deflist`
 
 ### Add ==highlighted== syntax
 
@@ -403,11 +430,6 @@ const markdownCodeCopyConfig = {
   attachText: ``,
 }
 ```
-
-### Definition lists
-
-using indented ~ for definitions under definition header
-`markdown-it-deflist`
 
 ### Apache ECharts interactive charting and data visualization library for browser
 
