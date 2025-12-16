@@ -29,6 +29,10 @@ import type { Options as RehypeAutolinkHeadingsOptions } from 'rehype-autolink-h
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 Object.defineProperty(rehypeAutolinkHeadings, 'name', { value: 'rehypeAutolinkHeadings' })
 
+import type { Options as RehypeExternalLinksOptions } from 'rehype-external-links'
+import rehypeExternalLinks from 'rehype-external-links'
+Object.defineProperty(rehypeExternalLinks, 'name', { value: 'rehypeExternalLinks' })
+
 /**
  * ==============================================================
  *
@@ -154,6 +158,12 @@ const remarkSmartypantsConfig: RemarkSmartypantsOptions = {
   quotes: true,
 }
 
+/** rehype-external-links plugin */
+export const rehypeExternalLinksConfig: RehypeExternalLinksOptions = {
+  target: '_blank',
+  rel: ['noreferrer'],
+}
+
 export const shikiConfigOptions: ShikiConfig = {
   // Alternatively, provide multiple themes
   // See note below for using dual light/dark themes
@@ -236,6 +246,8 @@ export const markdownConfig: Partial<MdxOptions> = {
     rehypeHeadingIds,
     /** Add accessible names to emojis */
     rehypeAccessibleEmojis,
+    /** Add target/rel to external links */
+    [rehypeExternalLinks, rehypeExternalLinksConfig],
     /**
      * Add a class and prepend an icon to heading tags that have an id attribute set.
      * Astro uses Github Flavored Markup to add id attribute to headings like h1,

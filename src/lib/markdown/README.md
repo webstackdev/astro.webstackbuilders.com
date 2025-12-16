@@ -2,6 +2,19 @@
 
 The testing strategy for Unified (Remark/Rehype) plugins is broken into three distinct areas. There is substantial overlap between the unit, integration, and e2e tests. This is because each plugin can have global side effects on the Markdown as it is transformed to HTML and interfere with each other. By breaking out into these layers, it's easier to determine where interference is occurring - especially with the built-in GFM and SmartyPants plugins installed in Astro by default that have a large footprint.
 
+## Steps to Add a New Unified (Remark, Rehype, or Remark-Rehype) Plugin
+
+1. Add it to our configuration in src/lib/config/markdown.ts
+2. Restart the dev server to pick up the new configuration
+3. Add an example usage in src/content/articles/demo/index.mdx
+4. I'll QA it in a browser visually
+5. Add unit, integration, and e2e tests for it in src/lib/markdown
+6. Run npm run test:unit and fix any errors
+7. Add it to the src/content/test-fixtures/markdown/index.mdx test fixture
+8. Add a Playwright E2E test for it in test/e2e/specs/04-components/markdown.spec.ts
+9. Run the test and fix any errors
+10. Run npm run lint and npm run check and fix any errors
+
 ## Astro Remark / Rehype Plugins Not Included
 
 The following plugins are added by Astro to the Markdown to HTML processing pipeline, and are not accounted for in these tests due to complexity. They depend on full E2E tests using Playwright to verify correct behavior of project Unified plugins.

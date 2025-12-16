@@ -231,28 +231,12 @@ You can then opt-out of prefetching for individual links by setting data-astro-p
 
 ## Markdown
 
-Next I'd like to add a series of Unified plugins to our stack, one by one. I'll install the package and give you a link to its NPM docs page. For each one:
-
-1. Add it to our configuration in src/lib/config/markdown.ts
-2. Add an example usage in src/content/articles/demo/index.mdx
-3. I'll QA it in a browser visually
-4. Add unit, integration, and e2e tests for it in src/lib/markdown
-5. Run npm run test:unit and fix any errors
-6. Add it to the src/content/test-fixtures/markdown/index.mdx test fixture
-7. Add a Playwright E2E test for it in test/e2e/specs/04-components/markdown.spec.ts
-8. Run the test and fix any errors
-9. Run npm run lint and npm run check and fix any errors
-
-The first plugin is rehype-external-links. It should be configured to add `target="_blank" rel="noreferrer"` to all external links in MDX files.
-
-https://www.npmjs.com/package/rehype-external-links
-
 ### Custom plugins
 
 - `remark-replacements` - Heading anchor links
 - `rehype-tailwind` - Add custom CSS classes to Markdown-generated elements in this file
 
-### Markdown Not Working
+### PROBLEMS: Markdown Not Working
 
 - color tabs like GFM when using HEX, RGB, or HSL values in backticks. This should generate a callout box around the hex color with a dot to the right showing the color.
 - Astro also includes shiki
@@ -268,59 +252,13 @@ Calculations: {Math.PI * 2}.
 Components: { <MyComponent /> }
 ```
 
-### Custom version of the code block integration from Astro Docs. "Beautiful code blocks for your Astro site". Applied to the code blocks created in `.mdx` files
+### THINGS TO WIRE INTO CUSTOM COMPONENTS IN STANDARD MARKDOWN OR ADD AS COMPNENTS
 
-[`astro-code-blocks`](https://www.npmjs.com/package/@thewebforge/astro-code-blocks)
+#### Details/Summary elements
 
-### `rehype-external-links`
+These HTML elements aren't being processed by remarkGfm (they need to be raw HTML). Expandable and collapsible content using HTML <details> and <summary> elements.
 
-npm install rehype-external-links
-
-Adds `target="_blank" rel="noreferrer"` to all external links in Markdown files
-
-```typescript
-rehypePlugins: [
-  [
-    rehypeExternalLinks,
-    {
-      target: '_blank',
-      rel: ['noopener', 'noreferrer'],
-    },
-  ],
-]
-```
-
-- **LATEX**
-
- rebber - transformation of MDAST into `latex` code. This code must be included inside a custom latex to be compiled.
-
- Have a look at `https://github.com/zestedesavoir/latex-template/blob/master/zmdocument.cls` to get a working example.
-
-### `remark-align`
-
-This plugin parses custom Markdown syntax to center- or right-align elements. Alignment is done by wrapping something in arrows indicating the alignment:
-
-```markdown
-->paragraph<-
-
-->paragraph->
-```
-
-produces:
-
-```html
-<div class="some-class"><p>paragraph</p></div>
-<div class="some-other-class"><p>paragraph</p></div>
-```
-
-```typescript
-.use(remarkAlign, {
-  right: 'align-right',
-  center: 'align-center'
-})
-```
-
-### `@adobe/remark-gridtables`
+### @adobe/remark-gridtables
 
 ```markdown
 +-------------------+------+
@@ -344,15 +282,7 @@ produces:
 +--------+----------+------+
 ```
 
-### `remark-numbered-footnotes`
-
-This plugin replaces the footnote references with a number sequence (starting from 1) in the same order as the footnote definitions (not the footnote references).
-
-Reordering the definitions (usually put at the end of the document in the Markdown source) will therefore let you reorder the sequence.
-
-This is useful if you want your footnotes to be superscript numbers without having to manually enter them while keeping the benefit of using strings that make sense to you in your Markdown source.
-
-### `rehype-footnotes-title`
+### rehype-footnotes-title
 
 This plugin adds a `title` attribute to the footnote links, mainly for accessibility purpose:
 
@@ -365,40 +295,41 @@ This plugin adds a `title` attribute to the footnote links, mainly for accessibi
 .use(footnotesTitles, 'Going back to footnote with id $id')
 ```
 
-- **remark-sub-super** DO WE HAVE THIS NOW?
+### /remark-text-decoration
 
-  This plugin parses custom Markdown syntax to handle subscript and superscript.
+This plugin lets you apply an element to text based on a marker defined in config. It could handle subscript, superscript, underline, and highlighting.
 
-- **Also underline.**
+```markdown
+~subscript~, e.g. a~i~
 
-- **remark-captions**
+^superscript^, e.g. e^x^
 
-  Allow to add caption to such element as image, table or blockquote.
+!!underline!!
 
-- **remark-custom-blocks**
-
-  This plugin parses custom Markdown syntax to create new custom blocks.
-
-- **KATEX**
-
-Math markup
-
-### Details/Summary elements
-
-These HTML elements aren't being processed by remarkGfm (they need to be raw HTML). Expandable and collapsible content using HTML <details> and <summary> elements.
-
-`rehype-details`
+==marked== gives <mark>inserted</mark>
+```
 
 ### Definition lists
 
 using indented ~ for definitions under definition header
 
-`markdown-it-deflist`
+remark-deflist
 
-### Add ==highlighted== syntax
+### remark-custom-blocks
 
-1. add remark-mark plugin
-2. Remove skip from integration test in
+This plugin parses custom Markdown syntax to create new custom blocks. It takes a config object with a name for the block, CSS classes to apply to it, and whether a title is required, optional, or the block does not have a title.
+
+```markdown
+[[bar | my **title**]]
+| content
+```
+
+```html
+<div class="custom-block something">
+  <div class="custom-block-heading">my <strong>title</strong></div>
+  <div class="custom-block-body"><p>content</p></div>
+</div>
+```
 
 ### Add accessible name to section in footnotes plugin
 
@@ -406,48 +337,6 @@ using indented ~ for definitions under definition header
     '<hr className="footnotes-sep">\n' +
     '<section class="footnotes" aria-label="footnotes">\n' +
     '<ol class="footnotes-list">\n'
-
-### Code tabs plugin so Javascript and Typescript examples can both be show.
-
-There can only be white space between two code blocks. Display name is set by `tabName` and can only contain characters in [A-Za-z0-9_]. Syntax for the first line of the code block is:
-
-```js [group:tabName]
-```
-
-`markdown-it-codetabs`
-
-### Add copy button to code blocks
-
-`markdown-it-copy`
-
-Options for "copy" button added to code blocks
-
-```javascript
-const markdownCodeCopyConfig = {
-  /** Text shown on copy button */
-  btnText: `Copy`,
-  /** Text shown on copy failure */
-  failText: `Copy Failed`,
-  /** Text shown on copy success */
-  successText: `Success!`, // 'copy success' | copy-success text
-  /** Amount of time to show success message */
-  successTextDelay: 2000,
-  /** An HTML fragment included before <button> */
-  extraHtmlBeforeBtn: ``,
-  /** An HTML fragment included after <button> */
-  extraHtmlAfterBtn: ``,
-  /** Whether to show code language before the copy button */
-  showCodeLanguage: false,
-  /** Test to append after the copied text like a copyright notice */
-  attachText: ``,
-}
-```
-
-### Apache ECharts interactive charting and data visualization library for browser
-
-@TODO: uses ES Modules, needs Jest config adjusted. See note in Mermaid plugin spec file.
-
-`markdown-it-echarts`
 
 ### Add captions to markdown images
 
@@ -457,17 +346,11 @@ const markdownCodeCopyConfig = {
 
 `markdown-it-image-caption`
 
+`remark-captions` - Allow to add caption to such element as image, table or blockquote.
+
 ### Includes for markdown fragment files using !!![file.md]!!! syntax
 
 `markdown-it-include`
-
-### Syntax highlighting for marked text
-
-```
-==marked== => <mark>inserted</mark>
-```
-
-`markdown-it-mark`
 
 ### Add Twitter like mentions in markdown using @twittername syntax
 
@@ -485,48 +368,28 @@ const markdownMentionsConfig = {
 }
 ```
 
+### remark-align
 
-### TeX rendering using KaTeX for math symbols
+This plugin parses custom Markdown syntax to center- or right-align elements. Alignment is done by wrapping something in arrows indicating the alignment:
 
-`markdown-it-texmath`
+```markdown
+->paragraph<-
 
-```typescript
-const markdownTexmathConfig = {
-  engine: require('katex'),
-  delimiters: 'dollars',
-  katexOptions: { macros: { '\\RR': '\\mathbb{R}' } },
-}
+->paragraph->
 ```
 
-- `remark-math`: A Remark plugin that parses LaTeX syntax within your Markdown files.
-- `rehype-katex` or `rehype-mathjax`: Rehype plugins that convert the parsed LaTeX into rendered HTML using either KaTeX or MathJax, respectively. KaTeX is often preferred for its performance and ability to allow text selection.
+produces:
 
-### Mermaid JavaScript based diagramming and charting tool
-
-@TODO: uses ES Modules, needs Jest config adjusted. See note in spec file.
-
-`@liradb2000/markdown-it-mermaid`
+```html
+<div class="some-class"><p>paragraph</p></div>
+<div class="some-other-class"><p>paragraph</p></div>
+```
 
 ```typescript
-const markdownMermaidConfig = {
-  startOnLoad: false,
-  securityLevel: true,
-  theme: 'default',
-  flowchart: {
-    htmlLabels: false,
-    useMaxWidth: true,
-  },
-  dictionary: {
-    token: 'mermaid',
-    graph: 'graph',
-    sequenceDiagram: 'sequenceDiagram',
-  },
-  // ...or any other options
-}
-
-markdown.syntaxHighlight.excludeLangs
-Type: Array<string>
-Default: ['math']
+.use(remarkAlign, {
+  right: 'align-right',
+  center: 'align-center'
+})
 ```
 
 ### Excluded Languages
@@ -584,16 +447,6 @@ The above will generate a callout box around the hex color with a dot to the rig
 
 // Alerts: Use specific block formats for different types of alerts, such as > [!IMPORTANT] or > [!WARNING].
 
-### Attribution
-
-`markdown-it-attribution`
-
-```markdown
-<attribution>
-This is some text that needs an attribution.
-</attribution>
-```
-
 ### my-accessible-list-plugin
 
 ```typescript
@@ -614,3 +467,99 @@ export function myAccessibleListPlugin() {
   }
 }
 ```
+
+### Custom version of the code block integration from Astro Docs. "Beautiful code blocks for your Astro site". Applied to the code blocks created in `.mdx` files
+
+[`astro-code-blocks`](https://www.npmjs.com/package/@thewebforge/astro-code-blocks)
+
+
+#### Code tabs plugin so Javascript and Typescript examples can both be show.
+
+There can only be white space between two code blocks. Display name is set by `tabName` and can only contain characters in [A-Za-z0-9_]. Syntax for the first line of the code block is:
+
+```js [group:tabName]
+```
+
+`markdown-it-codetabs`
+
+#### Add copy button to code blocks
+
+`markdown-it-copy`
+
+Options for "copy" button added to code blocks
+
+```javascript
+const markdownCodeCopyConfig = {
+  /** Text shown on copy button */
+  btnText: `Copy`,
+  /** Text shown on copy failure */
+  failText: `Copy Failed`,
+  /** Text shown on copy success */
+  successText: `Success!`, // 'copy success' | copy-success text
+  /** Amount of time to show success message */
+  successTextDelay: 2000,
+  /** An HTML fragment included before <button> */
+  extraHtmlBeforeBtn: ``,
+  /** An HTML fragment included after <button> */
+  extraHtmlAfterBtn: ``,
+  /** Whether to show code language before the copy button */
+  showCodeLanguage: false,
+  /** Test to append after the copied text like a copyright notice */
+  attachText: ``,
+}
+```
+
+## Math - LATEX / KATEX
+
+ rebber - transformation of MDAST into `latex` code. This code must be included inside a custom latex to be compiled.
+
+ Have a look at `https://github.com/zestedesavoir/latex-template/blob/master/zmdocument.cls` to get a working example.
+
+### TeX rendering using KaTeX for math symbols
+
+`markdown-it-texmath`
+
+```typescript
+const markdownTexmathConfig = {
+  engine: require('katex'),
+  delimiters: 'dollars',
+  katexOptions: { macros: { '\\RR': '\\mathbb{R}' } },
+}
+```
+
+- `remark-math`: A Remark plugin that parses LaTeX syntax within your Markdown files.
+- `rehype-katex` or `rehype-mathjax`: Rehype plugins that convert the parsed LaTeX into rendered HTML using either KaTeX or MathJax, respectively. KaTeX is often preferred for its performance and ability to allow text selection.
+
+### Mermaid JavaScript based diagramming and charting tool
+
+@TODO: uses ES Modules, needs Jest config adjusted. See note in spec file.
+
+`@liradb2000/markdown-it-mermaid`
+
+```typescript
+const markdownMermaidConfig = {
+  startOnLoad: false,
+  securityLevel: true,
+  theme: 'default',
+  flowchart: {
+    htmlLabels: false,
+    useMaxWidth: true,
+  },
+  dictionary: {
+    token: 'mermaid',
+    graph: 'graph',
+    sequenceDiagram: 'sequenceDiagram',
+  },
+  // ...or any other options
+}
+
+markdown.syntaxHighlight.excludeLangs
+Type: Array<string>
+Default: ['math']
+```
+
+### Apache ECharts interactive charting and data visualization library for browser
+
+@TODO: uses ES Modules, needs Jest config adjusted. See note in Mermaid plugin spec file.
+
+`markdown-it-echarts`

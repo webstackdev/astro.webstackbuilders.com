@@ -31,6 +31,12 @@ test.describe('Markdown (MDX) fixture page', () => {
 
       const homeLink = markdownPage.prose.getByRole('link', { name: 'homepage' })
       await expect(homeLink).toHaveAttribute('href', '/')
+      await expect(homeLink).not.toHaveAttribute('target', '_blank')
+
+      const externalLink = markdownPage.prose.getByRole('link', { name: 'Example', exact: true })
+      await expect(externalLink).toHaveAttribute('href', 'https://example.com')
+      await expect(externalLink).toHaveAttribute('target', '_blank')
+      await expect(externalLink).toHaveAttribute('rel', 'noreferrer')
 
       await expect(markdownPage.prose.locator('pre code', { hasText: '"Hello" -- ...' })).toBeVisible()
     })
@@ -56,9 +62,19 @@ test.describe('Markdown (MDX) fixture page', () => {
     test('renders autolinks, tables, task lists, strikethrough, and footnotes', async () => {
       await expect(markdownPage.heading('GFM', 2)).toBeVisible()
 
-      await expect(markdownPage.prose.locator('a[href="http://www.example.com"]')).toBeVisible()
-      await expect(markdownPage.prose.locator('a[href="https://example.com"]')).toBeVisible()
-      await expect(markdownPage.prose.locator('a[href^="mailto:"]', { hasText: 'contact@example.com' })).toBeVisible()
+      const httpAutolink = markdownPage.prose.locator('a[href="http://www.example.com"]')
+      await expect(httpAutolink).toBeVisible()
+      await expect(httpAutolink).toHaveAttribute('target', '_blank')
+      await expect(httpAutolink).toHaveAttribute('rel', 'noreferrer')
+
+      const httpsAutolink = markdownPage.prose.locator('a[href="https://example.com"]', { hasText: 'https://example.com' })
+      await expect(httpsAutolink).toBeVisible()
+      await expect(httpsAutolink).toHaveAttribute('target', '_blank')
+      await expect(httpsAutolink).toHaveAttribute('rel', 'noreferrer')
+
+      const mailtoAutolink = markdownPage.prose.locator('a[href^="mailto:"]', { hasText: 'contact@example.com' })
+      await expect(mailtoAutolink).toBeVisible()
+      await expect(mailtoAutolink).not.toHaveAttribute('target', '_blank')
 
       await expect(markdownPage.prose.locator('del', { hasText: 'This was mistaken text' })).toBeVisible()
 
