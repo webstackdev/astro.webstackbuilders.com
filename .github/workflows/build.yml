@@ -18,27 +18,9 @@ jobs:
       actions: read
     steps:
       - name: Ensure lint and unit tests succeeded
-        uses: actions/github-script@v8
+        uses: './.github/actions/lint-and-unit-tests-pass'
         with:
-          script: |
-            const runId = context.payload.workflow_run.id;
-            const requiredJobs = ['Lint', 'Unit Tests'];
-            const { data } = await github.rest.actions.listJobsForWorkflowRun({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              run_id: runId,
-              per_page: 100
-            });
-
-            const jobs = data.jobs || [];
-            const missing = requiredJobs.filter((jobName) => {
-              const job = jobs.find((entry) => entry.name === jobName);
-              return !job || job.conclusion !== 'success';
-            });
-
-            if (missing.length > 0) {
-              core.setFailed(`Required CI jobs missing or failed: ${missing.join(', ')}`);
-            }
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
   push-turso-migrations:
     name: Push Turso Production Migrations
@@ -52,12 +34,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v6.0.1
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v6.1.0
         with:
           node-version: '22.x'
           cache: 'npm'
