@@ -41,7 +41,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v6.0.1
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
 
@@ -69,7 +69,7 @@ jobs:
 
       - name: Comment preview failure on PR
         if: always() && steps.vercel-preview.outcome != 'success'
-        uses: './.github/actions/preview-failure-comment'
+        uses: './.github/actions/deploy-preview-failure-comment'
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
@@ -87,89 +87,12 @@ jobs:
     if: always() && github.event.workflow_run.event == 'pull_request'
     steps:
       - name: Publish required check run
-        uses: actions/github-script@v8
-        env:
-          VERIFY_RESULT: ${{ needs.verify-ci.result }}
-          DEPLOY_RESULT: ${{ needs.deploy-preview.result }}
-          PREVIEW_URL: ${{ needs.deploy-preview.outputs.previewUrl }}
+        uses: './.github/actions/publish-preview-status'
         with:
-          script: |
-            const workflowRun = context.payload.workflow_run;
-            const sha = workflowRun?.head_sha;
-            if (!sha) {
-              core.warning('Missing workflow_run.head_sha; cannot publish check run.');
-              return;
-            }
-
-            const branch = workflowRun?.head_branch ?? '';
-            const isHotfix = branch.startsWith('hotfix/');
-            const verifyResult = process.env.VERIFY_RESULT || 'unknown';
-            const deployResult = process.env.DEPLOY_RESULT || 'unknown';
-            const previewUrl = (process.env.PREVIEW_URL || '').trim();
-
-            const checkName = 'Deploy Preview to Vercel';
-            const detailsUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
-
-            let conclusion = 'success';
-            let summary = '';
-
-            if (isHotfix) {
-              conclusion = 'success';
-              summary = 'Hotfix branch: preview deploy intentionally skipped.';
-            } else if (verifyResult !== 'success') {
-              conclusion = 'failure';
-              summary = `CI verification failed (${verifyResult}).`;
-            } else if (deployResult === 'success') {
-              conclusion = 'success';
-              summary = previewUrl ? `Preview deployed: ${previewUrl}` : 'Preview deployed.';
-            } else {
-              conclusion = 'failure';
-              summary = `Preview deployment failed (${deployResult}).`;
-            }
-
-            const output = {
-              title: checkName,
-              summary: `${summary}\n\nDetails: ${detailsUrl}`
-            };
-
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-            const completed_at = new Date().toISOString();
-
-            const { data } = await github.rest.checks.listForRef({
-              owner,
-              repo,
-              ref: sha,
-              filter: 'latest',
-              per_page: 100
-            });
-
-            const existing = (data.check_runs || []).find((run) => run.name === checkName);
-            if (existing) {
-              await github.rest.checks.update({
-                owner,
-                repo,
-                check_run_id: existing.id,
-                status: 'completed',
-                conclusion,
-                completed_at,
-                output,
-                details_url: detailsUrl
-              });
-              return;
-            }
-
-            await github.rest.checks.create({
-              owner,
-              repo,
-              name: checkName,
-              head_sha: sha,
-              status: 'completed',
-              conclusion,
-              completed_at,
-              output,
-              details_url: detailsUrl
-            });
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          verify-result: ${{ needs.verify-ci.result }}
+          deploy-result: ${{ needs.deploy-preview.result }}
+          preview-url: ${{ needs.deploy-preview.outputs.previewUrl }}
 
   deploy-production:
     name: Deploy to Production (Vercel)
@@ -183,7 +106,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v6.0.1
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
 
@@ -206,16 +129,7 @@ jobs:
 
       - name: Comment production deployment failure on commit
         if: always() && steps.vercel-production.outcome != 'success'
-        uses: actions/github-script@v8
+        uses: './.github/actions/deploy-production-failure'
         with:
-          script: |
-            const targetUrl = '${{ steps.vercel-production.outputs.preview-url }}';
-            const body = targetUrl
-              ? `❌ Production deployment failed.\n\n🔗 ${targetUrl}\n\nPlease review the Vercel logs.`
-              : '❌ Production deployment failed. Please review the Vercel logs.';
-            await github.rest.repos.createCommitComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              commit_sha: context.payload.workflow_run.head_sha,
-              body,
-            });
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          preview-url: ${{ steps.vercel-production.outputs.preview-url }}

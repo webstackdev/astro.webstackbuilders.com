@@ -1,0 +1,166 @@
+import { writeFileSync } from 'fs'
+import { tmpdir } from 'os'
+import { resolve } from 'path'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+type CoreMock = {
+  getInput: ReturnType<typeof vi.fn>
+  info: ReturnType<typeof vi.fn>
+  warning: ReturnType<typeof vi.fn>
+  setFailed: ReturnType<typeof vi.fn>
+}
+
+const core: CoreMock = {
+  getInput: vi.fn(),
+  info: vi.fn(),
+  warning: vi.fn(),
+  setFailed: vi.fn(),
+}
+
+vi.mock('@actions/core', () => core)
+
+const createTempEventFile = (payload: unknown) => {
+  const filePath = resolve(tmpdir(), `deploy-production-failure-${Date.now()}-${Math.random().toString(16).slice(2)}.json`)
+  writeFileSync(filePath, JSON.stringify(payload), 'utf8')
+  return filePath
+}
+
+const createMockResponse = (params: { ok: boolean; status: number; json?: unknown }) => {
+  return {
+    ok: params.ok,
+    status: params.status,
+    json: async () => params.json,
+  }
+}
+
+describe('deploy-production-failure action', () => {
+  const originalEnv = process.env
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    process.env = { ...originalEnv }
+    delete process.env['GITHUB_EVENT_PATH']
+
+    core.getInput = vi.fn()
+    core.info = vi.fn()
+    core.warning = vi.fn()
+    core.setFailed = vi.fn()
+  })
+
+  afterEach(() => {
+    process.env = originalEnv
+    vi.unstubAllGlobals()
+  })
+
+  it('skips when head_sha is missing', async () => {
+    const { run } = await import('../src/index')
+
+    const eventPath = createTempEventFile({
+      'workflow_run': {},
+      repository: { owner: { login: 'webstackdev' }, name: 'astro.webstackbuilders.com' },
+    })
+
+    process.env['GITHUB_EVENT_PATH'] = eventPath
+
+    core.getInput.mockImplementation((name: string, options?: { required?: boolean }) => {
+      if (name === 'github-token') return 'ghs_test'
+      if (options?.required) throw new Error(`Missing required input: ${name}`)
+      return ''
+    })
+
+    const fetchMock = vi.fn(async () => createMockResponse({ ok: true, status: 200, json: {} }))
+    vi.stubGlobal('fetch', fetchMock as unknown as typeof fetch)
+
+    await run()
+
+    expect(core.warning).toHaveBeenCalledWith('Missing workflow_run.head_sha; skipping production failure comment.')
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(core.setFailed).not.toHaveBeenCalled()
+  })
+
+  it('creates commit comment with production url when provided', async () => {
+    const { run } = await import('../src/index')
+
+    const eventPath = createTempEventFile({
+      'workflow_run': { 'head_sha': '0123456789abcdef' },
+      repository: { owner: { login: 'webstackdev' }, name: 'astro.webstackbuilders.com' },
+    })
+
+    process.env['GITHUB_EVENT_PATH'] = eventPath
+
+    const inputs: Record<string, string> = {
+      'github-token': 'ghs_test',
+      'preview-url': 'https://example.vercel.app',
+    }
+
+    core.getInput.mockImplementation((name: string, options?: { required?: boolean }) => {
+      const value = (inputs[name] ?? '').trim()
+      if (options?.required && !value) {
+        throw new Error(`Missing required input: ${name}`)
+      }
+      return value
+    })
+
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      if (String(url).includes('/commits/0123456789abcdef/comments') && init?.method === 'POST') {
+        return createMockResponse({ ok: true, status: 201, json: { id: 1 } })
+      }
+      return createMockResponse({ ok: false, status: 404 })
+    })
+
+    vi.stubGlobal('fetch', fetchMock as unknown as typeof fetch)
+
+    await run()
+
+    const createCall = fetchMock.mock.calls.find(
+      ([url, init]) => String(url).includes('/commits/0123456789abcdef/comments') && (init as RequestInit | undefined)?.method === 'POST',
+    )
+    expect(createCall).toBeTruthy()
+
+    const [, init] = createCall as [string, RequestInit]
+    const body = JSON.parse(String(init.body)) as { body?: string }
+
+    expect(body.body).toContain('❌ Production deployment failed.')
+    expect(body.body).toContain('🔗 https://example.vercel.app')
+    expect(core.setFailed).not.toHaveBeenCalled()
+  })
+
+  it('creates commit comment without url when none provided', async () => {
+    const { run } = await import('../src/index')
+
+    const eventPath = createTempEventFile({
+      'workflow_run': { 'head_sha': '0123456789abcdef' },
+      repository: { owner: { login: 'webstackdev' }, name: 'astro.webstackbuilders.com' },
+    })
+
+    process.env['GITHUB_EVENT_PATH'] = eventPath
+
+    core.getInput.mockImplementation((name: string, options?: { required?: boolean }) => {
+      if (name === 'github-token') return 'ghs_test'
+      if (options?.required) throw new Error(`Missing required input: ${name}`)
+      return ''
+    })
+
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      if (String(url).includes('/commits/0123456789abcdef/comments') && init?.method === 'POST') {
+        return createMockResponse({ ok: true, status: 201, json: { id: 1 } })
+      }
+      return createMockResponse({ ok: false, status: 404 })
+    })
+
+    vi.stubGlobal('fetch', fetchMock as unknown as typeof fetch)
+
+    await run()
+
+    const createCall = fetchMock.mock.calls.find(
+      ([url, init]) => String(url).includes('/commits/0123456789abcdef/comments') && (init as RequestInit | undefined)?.method === 'POST',
+    )
+    expect(createCall).toBeTruthy()
+
+    const [, init] = createCall as [string, RequestInit]
+    const body = JSON.parse(String(init.body)) as { body?: string }
+
+    expect(body.body).toBe('❌ Production deployment failed. Please review the Vercel logs.')
+    expect(core.setFailed).not.toHaveBeenCalled()
+  })
+})
