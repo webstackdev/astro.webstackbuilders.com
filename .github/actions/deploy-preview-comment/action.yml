@@ -1,0 +1,15 @@
+name: Deploy Preview Comment
+description: Comment the Vercel preview URL on the PR for workflow_run deployments.
+
+inputs:
+  github-token:
+    description: GitHub token used to create/update PR comments.
+    required: true
+  preview-url:
+    description: Preview URL output from the Vercel deploy step (optional, action will fallback to Vercel API lookup).
+    required: false
+    default: ""
+
+runs:
+  using: node20
+  main: dist/index.mjs

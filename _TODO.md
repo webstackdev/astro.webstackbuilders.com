@@ -277,3 +277,12 @@ const markdownCodeCopyConfig = {
   attachText: ``,
 }
 ```
+
+Right now, we are doing CI on GitHub for the project and CD on Vercel. We are running "npm run build" on GitHub just to smoke screen that the build runs green, but the actual preview and production builds occur on Vercel.
+
+The smoke build runs successfully on GitHub after adding a step to install system dependencies for Chromium browser (required by our recent work to add Mermaid). But it fails on Vercel, adding it to the "build" command in Vercel's UI, because Vercel uses a minimal distro image that does not have apt installed. There is no option for using a custom build image on Vercel.
+
+We need to do the following, and move the build entirely onto GitHub:
+
+1. Cache the build artifacts generated in the "lint" job in test.yml workflow
+2.

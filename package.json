@@ -26,6 +26,7 @@
     "not IE 11"
   ],
   "scripts": {
+    "build:action": "FORCE_COLOR=1 bash .github/helpers/build-actions.sh",
     "build": "cross-env NODE_ENV=production npx astro build --remote",
     "build:ci": "cross-env npm run build",
     "check": "npx astro check",
@@ -40,7 +41,7 @@
     "format:json": "FORCE_COLOR=1 npx prettier --write '**/*.json' --cache --ignore-path .gitignore",
     "format:style": "FORCE_COLOR=1 npx stylelint --fix \"src/**/*.{css,astro}\"",
     "lint": "npm run lint:base && npm run check",
-    "lint:actions": "FORCE_COLOR=1 npx node-actionlint",
+    "lint:actions": "FORCE_COLOR=1 npx node-actionlint && FORCE_COLOR=1 npx eslint \".github/actions/**/*.ts\"",
     "lint:base": "npm run lint:json && npm run lint:style && npm run lint:tsc:check && npm run lint:code && npm run lint:actions && npm run lint:inclusive-language",
     "lint:code": "npx eslint \"@types/**/*.{js,ts}\" \"src/**/*.{js,ts,tsx,astro}\" \"test/**/*.{js,ts,tsx,astro}\"",
     "lint:inclusive-language": "npx alex src/content",
@@ -52,11 +53,15 @@
     "test": "npm run test:unit && npm run test:e2e",
     "test:coverage": "FORCE_COLOR=1 npx vitest run --coverage",
     "test:e2e": "FORCE_COLOR=1 npx playwright test",
-    "test:unit": "FORCE_COLOR=1 npx vitest run",
+    "test:unit": "npm run test:unit:actions && FORCE_COLOR=1 npx vitest run",
+    "test:unit:actions": "FORCE_COLOR=1 npm exec vitest -- run .github/actions/",
     "upgrade": "npx @astrojs/upgrade",
     "prepare": "node .husky/prepare.js"
   },
   "dependencies": {
+    "@actions/core": "^2.0.1",
+    "@actions/exec": "^2.0.0",
+    "@actions/http-client": "^3.0.0",
     "@adobe/remark-gridtables": "^3.0.16",
     "@astrojs/check": "0.9.6",
     "@astrojs/db": "^0.18.3",
