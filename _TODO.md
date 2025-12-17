@@ -233,7 +233,7 @@ You can then opt-out of prefetching for individual links by setting data-astro-p
 
 ### Video embedding
 
-### remark-video
+### remark-video, also needs remark-directive
 
 Embed videos in HTML5 markup that are in the `/public` folder
 
@@ -322,8 +322,12 @@ export default defineConfig({
 
 ### TeX rendering using KaTeX for math symbols
 
-- `rehype-katex` or `rehype-mathjax`: Rehype plugins that convert the parsed LaTeX into rendered HTML using either KaTeX or MathJax, respectively. KaTeX is often preferred for its performance and ability to allow text selection.
+- `rehype-katex`
+- `rehype-mathjax` and `remark-math`
 
+```math
+L = \frac{1}{2} \rho v^2 S C_L
+```
 
 
 ### Mermaid JavaScript based diagramming and charting tool
