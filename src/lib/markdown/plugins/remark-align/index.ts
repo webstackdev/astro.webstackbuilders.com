@@ -281,7 +281,7 @@ function serializeAlignParagraph(paragraph: MdastNode & { children: MdastNode[] 
 
 function stripStartMarker(paragraph: MdastNode & { children: MdastNode[] }, representation: string) {
   let remaining = representation
-  let index = 0
+  const index = 0
   while (remaining.length > 0 && index < paragraph.children.length) {
     const child = paragraph.children[index]
     if (!child) break

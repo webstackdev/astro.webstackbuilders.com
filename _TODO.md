@@ -231,14 +231,6 @@ You can then opt-out of prefetching for individual links by setting data-astro-p
 
 ## Markdown
 
-### remark-youtube
-
-```markdown
-https://youtu.be/enTFE2c68FQ
-
-https://www.youtube.com/watch?v=enTFE2c68FQ
-```
-
 ## Code Block and Highlighting
 
 ## Astro includes shiki, tweak config
