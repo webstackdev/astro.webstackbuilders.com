@@ -13,7 +13,7 @@ declare module 'mdast' {
     children: Array<PhrasingContent>
   }
 
-  /** Custom node emitted by @adobe/remark-gridtables */
+  /** Custom node emitted by `@adobe/remark-gridtables` */
   interface GridTable extends Parent {
     type: 'gridTable'
     children: Array<RootContent>

@@ -27,7 +27,7 @@ test.describe('Markdown (MDX) fixture page', () => {
 
       await expect(markdownPage.prose.locator('strong', { hasText: 'bold' })).toBeVisible()
       await expect(markdownPage.prose.locator('em', { hasText: 'italic' })).toBeVisible()
-      await expect(markdownPage.prose.locator('code', { hasText: 'inline code' })).toBeVisible()
+      await expect(markdownPage.prose.locator('code', { hasText: 'inline code' }).first()).toBeVisible()
 
       const homeLink = markdownPage.prose.getByRole('link', { name: 'homepage' })
       await expect(homeLink).toHaveAttribute('href', '/')
@@ -39,6 +39,31 @@ test.describe('Markdown (MDX) fixture page', () => {
       await expect(externalLink).toHaveAttribute('rel', 'noreferrer')
 
       await expect(markdownPage.prose.locator('pre code', { hasText: '"Hello" -- ...' })).toBeVisible()
+    })
+  })
+
+  test.describe('Inline code colors', () => {
+    test('adds GitHub-like swatches for backticked color literals only', async () => {
+      await expect(markdownPage.heading('Inline Code Colors', 2)).toBeVisible()
+
+      const hexInlineCode = markdownPage.prose.locator('p code', { hasText: '#ffffff' }).first()
+      await expect(hexInlineCode).toBeVisible()
+      await expect(hexInlineCode).toContainText('#ffffff')
+
+      const swatchWrapper = hexInlineCode.locator('span[data-color-swatch-wrapper="true"]').first()
+      await expect(swatchWrapper).toBeVisible()
+
+      const swatch = swatchWrapper.locator('span[data-color-swatch="true"]').first()
+      await expect(swatch).toBeVisible()
+      await expect(swatch).toHaveAttribute('style', /background-color:\s*#ffffff/i)
+
+      const nonColorInlineCode = markdownPage.prose.locator('p code', { hasText: 'inline code' }).first()
+      await expect(nonColorInlineCode).toBeVisible()
+      await expect(nonColorInlineCode.locator('span[data-color-swatch-wrapper="true"]')).toHaveCount(0)
+
+      const hexInCodeBlock = markdownPage.prose.locator('pre code', { hasText: '#ffffff' }).first()
+      await expect(hexInCodeBlock).toBeVisible()
+      await expect(hexInCodeBlock.locator('span[data-color-swatch-wrapper="true"]')).toHaveCount(0)
     })
   })
 
@@ -100,6 +125,36 @@ test.describe('Markdown (MDX) fixture page', () => {
     })
   })
 
+  test.describe('remark-attributes', () => {
+    test('applies [[...]] attributes to supported elements', async () => {
+      await expect(markdownPage.heading('Remark Attributes (remark-attributes)', 2)).toBeVisible()
+
+      const heading = markdownPage.prose.getByRole('heading', { name: 'Remark attributes heading', level: 3 })
+      await expect(heading).toBeVisible()
+      await expect(heading).toHaveAttribute('id', 'remark-attr-heading')
+      await expect(heading).toHaveAttribute('class', /\battr-heading\b/)
+      await expect(heading).toHaveAttribute('data-level', '1')
+
+      const link = markdownPage.prose.getByRole('link', { name: 'Home link with attrs', exact: true })
+      await expect(link).toBeVisible()
+      await expect(link).toHaveAttribute('href', '/')
+      await expect(link).toHaveAttribute('class', /\battr-link\b/)
+      await expect(link).toHaveAttribute('data-qa', 'remark-attr-link')
+
+      const image = markdownPage.prose.getByRole('img', { name: 'Remark attributes image' })
+      await expect(image).toBeVisible()
+      await expect(image).toHaveAttribute('width', '300')
+      await expect(image).toHaveAttribute('height', '64')
+      await expect(image).toHaveAttribute('class', /\battr-image\b/)
+      await expect(image).toHaveAttribute('data-qa', 'remark-attr-image')
+
+      const inlineCode = markdownPage.prose.locator('p code', { hasText: 'attr-code' }).first()
+      await expect(inlineCode).toBeVisible()
+      await expect(inlineCode).toHaveAttribute('class', /\battr-code\b/)
+      await expect(inlineCode).toHaveAttribute('data-qa', 'remark-attr-code')
+    })
+  })
+
   test.describe('remark-supersub', () => {
     test('renders subscript and superscript elements', async () => {
       await expect(markdownPage.heading('Supersub (remark-supersub)', 2)).toBeVisible()
@@ -126,22 +181,22 @@ test.describe('Markdown (MDX) fixture page', () => {
       await expect(markdownPage.heading('Captions (remark-captions)', 2)).toBeVisible()
 
       // Blockquote caption (internal)
-      const quoteFigure = markdownPage.prose.locator('figure', { has: markdownPage.prose.locator('blockquote') }).first()
+      const quoteFigure = markdownPage.prose.locator('figure:has(blockquote)').first()
       await expect(quoteFigure).toBeVisible()
       await expect(quoteFigure.locator('figcaption', { hasText: 'Yoda' })).toBeVisible()
 
       // Table caption (external)
-      const tableFigure = markdownPage.prose.locator('figure', { has: markdownPage.prose.locator('table') }).first()
+      const tableFigure = markdownPage.prose.locator('figure:has(table)').filter({ hasText: 'My table caption' }).first()
       await expect(tableFigure).toBeVisible()
       await expect(tableFigure.locator('figcaption', { hasText: 'My table caption' })).toBeVisible()
 
       // Code caption (external)
-      const codeFigure = markdownPage.prose.locator('figure', { has: markdownPage.prose.locator('pre') }).first()
+      const codeFigure = markdownPage.prose.locator('figure:has(pre)').filter({ hasText: 'My code caption' }).first()
       await expect(codeFigure).toBeVisible()
       await expect(codeFigure.locator('figcaption', { hasText: 'My code caption' })).toBeVisible()
 
       // Image caption (internal)
-      const imageFigure = markdownPage.prose.locator('figure', { has: markdownPage.prose.locator('img') }).first()
+      const imageFigure = markdownPage.prose.locator('figure:has(img)').filter({ hasText: 'My image caption' }).first()
       await expect(imageFigure).toBeVisible()
       await expect(imageFigure.locator('figcaption', { hasText: 'My image caption' })).toBeVisible()
     })
@@ -167,7 +222,7 @@ test.describe('Markdown (MDX) fixture page', () => {
 
       await expect(markdownPage.prose.locator('del', { hasText: 'This was mistaken text' })).toBeVisible()
 
-      const table = markdownPage.prose.locator('table').first()
+      const table = markdownPage.prose.locator('#table + table').first()
       await expect(table).toBeVisible()
       await expect(table).toContainText('Feature')
       await expect(table).toContainText('Tables')

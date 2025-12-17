@@ -231,23 +231,31 @@ You can then opt-out of prefetching for individual links by setting data-astro-p
 
 ## Markdown
 
-### PROBLEMS: Markdown Not Working
+### Video embedding
 
-- color tabs like GFM when using HEX, RGB, or HSL values in backticks. This should generate a callout box around the hex color with a dot to the right showing the color.
+### remark-video
 
-The background color is `#ffffff`
+Embed videos in HTML5 markup that are in the `/public` folder
 
-<code class="bg-gray-100 rounded border border-gray-300 inline-block font-mono text-xs mx-1 px-2 py-1">#ffffff</code>
+```markdown
+::video{src=/videos/sample-video-1.mp4}
 
-- Astro also includes shiki
+:::video
+/videos/sample-video-1.mp4
+:::
+```
 
-- We're adding 'rehype-autolink-headings', but Astro does too: https://docs.astro.build/en/guides/markdown-content/#heading-ids-and-plugins
+### remark-youtube
 
-### Youtube embedding
+```markdown
+https://youtu.be/enTFE2c68FQ
 
-- `remark-video`
+https://www.youtube.com/watch?v=enTFE2c68FQ
+```
 
+## Code Block and Highlighting
 
+## Astro includes shiki, tweak config
 
 ### Custom version of the code block integration from Astro Docs. "Beautiful code blocks for your Astro site". Applied to the code blocks created in `.mdx` files
 
@@ -312,24 +320,11 @@ export default defineConfig({
 })
 ```
 
- rebber - transformation of MDAST into `latex` code. This code must be included inside a custom latex to be compiled.
-
- Have a look at `https://github.com/zestedesavoir/latex-template/blob/master/zmdocument.cls` to get a working example.
-
 ### TeX rendering using KaTeX for math symbols
 
-`markdown-it-texmath`
-
-```typescript
-const markdownTexmathConfig = {
-  engine: require('katex'),
-  delimiters: 'dollars',
-  katexOptions: { macros: { '\\RR': '\\mathbb{R}' } },
-}
-```
-
-- `remark-math`: A Remark plugin that parses LaTeX syntax within your Markdown files.
 - `rehype-katex` or `rehype-mathjax`: Rehype plugins that convert the parsed LaTeX into rendered HTML using either KaTeX or MathJax, respectively. KaTeX is often preferred for its performance and ability to allow text selection.
+
+
 
 ### Mermaid JavaScript based diagramming and charting tool
 

@@ -36,6 +36,9 @@ Object.defineProperty(rehypeExternalLinks, 'name', { value: 'rehypeExternalLinks
 import rehypeFootnotesTitle from '../markdown/plugins/rehype-footnotes-title'
 Object.defineProperty(rehypeFootnotesTitle, 'name', { value: 'rehypeFootnotesTitle' })
 
+import { rehypeInlineCodeColorSwatch } from '../markdown/plugins/rehype-inline-code-color-swatch'
+Object.defineProperty(rehypeInlineCodeColorSwatch, 'name', { value: 'rehypeInlineCodeColorSwatch' })
+
 /**
  * ==============================================================
  *
@@ -358,6 +361,8 @@ export const markdownConfig: Partial<MdxOptions> = {
     [rehypeExternalLinks, rehypeExternalLinksConfig],
     /** Add title attributes to footnote backrefs */
     [rehypeFootnotesTitle, rehypeFootnotesTitleConfig],
+    /** Add GitHub-like color swatches for inline code color literals */
+    rehypeInlineCodeColorSwatch,
     /**
      * Add a class and prepend an icon to heading tags that have an id attribute set.
      * Astro uses Github Flavored Markup to add id attribute to headings like h1,

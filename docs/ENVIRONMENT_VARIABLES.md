@@ -43,13 +43,13 @@ There are two ways in an Astro project to type environmental variables in Astro:
 
 Import environment variables defined in `environmentalVariableValidation` directly.
 
-All variables:
+**All variables:**
 
 ```typescript
 import { ENV_VAR } from 'astro:env/server'
 ```
 
-Client side variables:
+**Client side variables:**
 
 ```typescript
 import { PUBLIC_ENV_VAR } from 'astro:env/client'
@@ -59,7 +59,7 @@ The `process.env` and `import.meta.env` methods of accessing environment variabl
 
 ## Determining Site URL
 
-The site URL can vary based on whether code is being ran from the Astro dev server, being ran in production (including being ran with `astro serve`), being ran from Vitest in unit files,
+The site URL can vary based on whether code is being ran from the Astro dev server, being ran in production (including being ran with `astro serve`), or being ran from Vitest in unit files.
 
 - Use the `getSiteUrl()` method from `src/components/scripts/utils/siteUrlClient.ts` to determine the site URL in **client code**.
 - Use the `getSiteUrl()` method from `src/lib/config/siteUrlServer.ts` to determine the site URL in **server code**.
