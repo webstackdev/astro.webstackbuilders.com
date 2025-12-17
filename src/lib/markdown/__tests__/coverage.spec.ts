@@ -2,8 +2,8 @@
  * Test Coverage Validator
  *
  * Ensures every markdown plugin has appropriate test coverage across all test locations:
- * - External plugins (npm packages): units/, units_with_default_astro/, e2e/
- * - Local plugins (src/lib/markdown/plugins/*): plugins/{name}/__tests__/, units_with_default_astro/, e2e/
+ * - External plugins (npm packages): units/, integration/, e2e/
+ * - Local plugins (src/lib/markdown/plugins/*): plugins/{name}/__tests__/, integration/, e2e/
  */
 
 import { describe, it, beforeAll, expect } from 'vitest'
@@ -14,7 +14,7 @@ import { markdownConfig } from '@lib/config/markdown'
 
 interface TestFileMap {
   units: Set<string>
-  unitsWithAstro: Set<string>
+  integration: Set<string>
   e2e: Set<string>
   pluginUnits: Set<string>
 }
@@ -22,9 +22,11 @@ interface TestFileMap {
 // Local plugins maintained in this repo (don't need tests in units/)
 const LOCAL_PLUGINS = new Set([
   'remarkAbbreviations',
+  'remarkAlign',
   'remarkAttributes',
   'remarkAttribution',
   'remarkReplacements',
+  'rehypeInlineCodeColorSwatch',
   'rehypeTailwindClasses',
 ])
 
@@ -59,7 +61,7 @@ beforeAll(() => {
           // Extract test name without extension or suffix
           // Units: remark-breaks.spec.ts -> remark-breaks
           // Units with Astro: remark-breaks-astro.spec.ts -> remark-breaks
-          // E2E: remarkBreaks.spec.tsx -> remarkBreaks
+          // E2E: remark-breaks.spec.tsx -> remark-breaks
           const testName = item
             .replace(/\.spec\.tsx?$/, '')
             .replace(/-astro$/, '')
@@ -74,7 +76,7 @@ beforeAll(() => {
 
   testFiles = {
     units: scanDirectory(join(testRoot, 'units')),
-    unitsWithAstro: scanDirectory(join(testRoot, 'units_with_default_astro')),
+    integration: scanDirectory(join(testRoot, 'integration')),
     e2e: scanDirectory(join(testRoot, 'e2e')),
     pluginUnits: scanDirectory(pluginsRoot),
   }
@@ -100,22 +102,33 @@ function buildPluginTestCases(pluginType: 'remark' | 'rehype') {
   return testCases
 }
 
+function maybeAddGfmRemarkTestCase(
+  testCases: Array<{ pluginName: string; pluginNameKebab: string; isLocal: boolean }>
+) {
+  // markdownConfig.gfm enables remark-gfm internally (Astro wires it), so ensure it has coverage.
+  if (markdownConfig.gfm !== false) {
+    testCases.push({ pluginName: 'remarkGfm', pluginNameKebab: 'remark-gfm', isLocal: false })
+  }
+}
+
 describe('Markdown Plugin Test Coverage', () => {
   describe('remarkPlugins', () => {
     const remarkPlugins = buildPluginTestCases('remark')
+    maybeAddGfmRemarkTestCase(remarkPlugins)
 
     it.each(remarkPlugins)(
-      'should have units_with_default_astro test for $pluginName',
+      'should have integration test for $pluginName',
       ({ pluginNameKebab }) => {
         expect(
-          testFiles.unitsWithAstro.has(pluginNameKebab),
-          `Missing test in units_with_default_astro/${pluginNameKebab}-astro.spec.ts`
+          testFiles.integration.has(pluginNameKebab),
+          `Missing test in integration/${pluginNameKebab}-astro.spec.ts`
         ).toBe(true)
       }
     )
 
     it.each(remarkPlugins)('should have e2e test for $pluginName', ({ pluginName }) => {
-      expect(testFiles.e2e.has(pluginName), `Missing test in e2e/unifiedPlugins/${pluginName}.spec.tsx`).toBe(true)
+      const pluginNameKebab = toKebabCase(pluginName)
+      expect(testFiles.e2e.has(pluginNameKebab), `Missing test in e2e/${pluginNameKebab}.spec.tsx`).toBe(true)
     })
 
     it.each(remarkPlugins.filter(p => !p.isLocal))(
@@ -130,17 +143,18 @@ describe('Markdown Plugin Test Coverage', () => {
     const rehypePlugins = buildPluginTestCases('rehype')
 
     it.each(rehypePlugins)(
-      'should have units_with_default_astro test for $pluginName',
+      'should have integration test for $pluginName',
       ({ pluginNameKebab }) => {
         expect(
-          testFiles.unitsWithAstro.has(pluginNameKebab),
-          `Missing test in units_with_default_astro/${pluginNameKebab}-astro.spec.ts`
+          testFiles.integration.has(pluginNameKebab),
+          `Missing test in integration/${pluginNameKebab}-astro.spec.ts`
         ).toBe(true)
       }
     )
 
     it.each(rehypePlugins)('should have e2e test for $pluginName', ({ pluginName }) => {
-      expect(testFiles.e2e.has(pluginName), `Missing test in e2e/unifiedPlugins/${pluginName}.spec.tsx`).toBe(true)
+      const pluginNameKebab = toKebabCase(pluginName)
+      expect(testFiles.e2e.has(pluginNameKebab), `Missing test in e2e/${pluginNameKebab}.spec.tsx`).toBe(true)
     })
 
     it.each(rehypePlugins.filter(p => !p.isLocal))(

@@ -1,15 +1,32 @@
 ---
-title: "Demo Article - Component Showcase"
+title: "Demo Article - Markdown Showcase"
 description: "This is a demonstration article showcasing all available markdown components. Feel free to explore the various components and their usage patterns."
 cover: "./cover.jpg"
-coverAlt: "Hero image for article"
+coverAlt: "Hero image for Markdown page test fixture"
 author: "kevin-brown"
 publishDate: 2024-01-01
-tags: ["typescript", "cms"]
+tags: ["typescript"]
 isDraft: true
 ---
+import Demo from '@components/Test/Demo.mdx'
 
-## Avatar Component
+## Components
+
+### Includes from other Markdown files
+
+```markdown
+import Demo from '@components/Test/Demo.mdx'
+
+<Demo />
+```
+
+<Demo />
+
+### Avatar Component
+
+```markdown
+<Avatar name="User Name" />
+```
 
 Display author or user avatars:
 
@@ -19,29 +36,63 @@ Avatar fallback if no image found:
 
 <Avatar name="Kevin Thomas" />
 
-## Callout Component
+### Callout Component
 
 The Callout component highlights important information:
+
+```markdown
+<Callout type="info">
+This is an informational callout. Use it to draw attention to helpful tips or additional context.
+</Callout>
+```
 
 <Callout type="info">
 This is an informational callout. Use it to draw attention to helpful tips or additional context.
 </Callout>
 
+```markdown
 <Callout type="warning">
 This is a warning callout. Use it to highlight potential pitfalls or important considerations.
 </Callout>
+```
+
+<Callout type="warning">
+This is a warning callout. Use it to highlight potential pitfalls or important considerations.
+</Callout>
+
+```markdown
+<Callout type="success">
+This is a success callout. Perfect for highlighting achievements or positive outcomes.
+</Callout>
+```
 
 <Callout type="success">
 This is a success callout. Perfect for highlighting achievements or positive outcomes.
 </Callout>
 
+```markdown
+<Callout type="danger">
+This is a danger callout. Use it for critical warnings or errors that need immediate attention.
+</Callout>
+```
+
 <Callout type="danger">
 This is a danger callout. Use it for critical warnings or errors that need immediate attention.
 </Callout>
 
-## Carousel Component
+### Carousel Component
 
 Showcase related articles using the production carousel component:
+
+```markdown
+<Carousel
+  title="Featured articles"
+  type="articles"
+  variant="suggested"
+  currentSlug="demo/index"
+  limit={3}
+/>
+```
 
 <Carousel
   title="Featured articles"
@@ -51,7 +102,7 @@ Showcase related articles using the production carousel component:
   limit={3}
 />
 
-## Code Examples
+### Code Examples
 
 Here's a standard code block for reference:
 
@@ -70,13 +121,13 @@ const demo: DemoInterface = {
 };
 ```
 
-## Contact Call-to-Action
+### Contact Callout
 
 Invite readers to get in touch:
 
 <Contact />
 
-## Featured Content
+### Featured Content
 
 Highlight featured articles or services:
 
@@ -86,77 +137,156 @@ Highlight featured articles or services:
   link={{ href: "/articles", text: "Browse Articles" }}
 />
 
-## Highlighter Component
+### Highlighter Component
 
 The Highlighter component allows you to <Highlighter>emphasize specific text</Highlighter> wit
 
-## Icon Component
+### Icon Component
 
 Use SVG sprites for icons throughout your content:
+
+```markdown
+<Icon name="check" class="w-6 h-6 text-success" />
+<Icon name="warning" class="w-6 h-6 text-warning" />
+<Icon name="info" class="w-6 h-6 text-info" />
+```
 
 <Icon name="check" class="w-6 h-6 text-success" />
 <Icon name="warning" class="w-6 h-6 text-warning" />
 <Icon name="info" class="w-6 h-6 text-info" />
 
-## Social Embeds
+### Social Embeds
 
-### YouTube Embed
+#### YouTube Embed
+
+```markdown
+<Embed
+  type="youtube"
+  url="https://www.youtube.com/watch?v=lSk-DWAJPbA"
+/>
+```
 
 <Embed
   type="youtube"
   url="https://www.youtube.com/watch?v=lSk-DWAJPbA"
 />
 
-### X (Twitter) Embed
+#### X (Twitter) Embed
+
+```markdown
+<Embed
+  type="x"
+  url="https://x.com/WebstackDev/status/1717481221549445419"
+/>
+```
 
 <Embed
   type="x"
   url="https://x.com/WebstackDev/status/1717481221549445419"
 />
 
-### GitHub Gist Embed
+#### GitHub Gist Embed
+
+```markdown
+<Embed
+  type="gist"
+  url="https://gist.github.com/webstackdev/455fb0b4e0d2332a8aaa02309563fb54"
+/>
+```
 
 <Embed
   type="gist"
   url="https://gist.github.com/webstackdev/455fb0b4e0d2332a8aaa02309563fb54"
 />
 
-## Newsletter Signup
+### Newsletter Signup
 
 Encourage readers to subscribe to your newsletter:
 
 <Newsletter />
 
-## Social Sharing
+### Social Sharing
 
 Add social sharing buttons for the article:
 
+```markdown
+<Shares />
+```
+
 <Shares />
 
-## Testimonials Component
+### Testimonials Component
 
 Display customer feedback and testimonials:
 
+```markdown
+<Testimonials count={3} />
+```
+
 <Testimonials count={3} />
 
-## Markdown Features
+## GFM
 
-### Lists
+### Autolink literals
 
-Unordered lists:
+```markdown
+www.example.com, https://example.com, and contact@example.com.
+```
 
-- First item
-- Second item
-- Third item with **bold text**
-- Fourth item with *italic text*
+www.example.com, https://example.com, and contact@example.com.
 
-Ordered lists:
+### Footnote
 
-1. First step
-2. Second step
-3. Third step
+```markdown
+Here is a simple footnote[^1].
+A footnote can also have multiple lines[^2].
+It could also be [^named].
+```
 
-### Tables
+Here is a simple footnote[^1].
+A footnote can also have multiple lines[^2].
+It could also be [^named].
+
+Footnote backref links should include a `title` attribute for accessibility.
+
+The references can be anywhere in the document, before or after their use:
+
+```markdown
+[^1]: My reference.
+
+[^2]: To add line breaks within a footnote, add 2 spaces to the end of a line.
+  This is a second line.
+
+[^named]: My reference.
+```
+
+[^1]: My reference.
+
+[^2]: To add line breaks within a footnote, add 2 spaces to the end of a line.
+  This is a second line.
+
+[^named]: My reference.
+
+### Strikethrough
+
+`~one~` or `~~two~~` tildes: ~one~ ~~two~~
+
+### Table
+
+```markdown
+| a | b  |  c |  d  |
+| - | :- | -: | :-: |
+
+| Feature | Supported | Notes |
+|---------|-----------|-------|
+| Callouts | ✅ | Multiple types available |
+| Avatars | ✅ | Configurable sizes |
+| Carousels | ✅ | Auto-play optional |
+| Embeds | ✅ | Multiple platforms |
+```
+
+| a | b  |  c |  d  |
+| - | :- | -: | :-: |
 
 | Feature | Supported | Notes |
 |---------|-----------|-------|
@@ -165,26 +295,459 @@ Ordered lists:
 | Carousels | ✅ | Auto-play optional |
 | Embeds | ✅ | Multiple platforms |
 
+### Grid (Adobe) table
+
+```markdown
++-------------------+------+
+| Table Headings    | Here |
++--------+----------+------+
+| Sub    | Headings | Too  |
++========+=================+
+| cell   | column spanning |
+| spans  +---------:+------+
+| rows   |   normal | cell |
++---v----+:---------------:+
+|        | cells can be    |
+|        | *formatted*     |
+|        | **paragraphs**  |
+|        | ```             |
+| multi  | and contain     |
+| line   | blocks          |
+| cells  | ```             |
++========+=========:+======+
+| footer |    cells |      |
++--------+----------+------+
+```
+
++-------------------+------+
+| Table Headings    | Here |
++--------+----------+------+
+| Sub    | Headings | Too  |
++========+=================+
+| cell   | column spanning |
+| spans  +---------:+------+
+| rows   |   normal | cell |
++---v----+:---------------:+
+|        | cells can be    |
+|        | *formatted*     |
+|        | **paragraphs**  |
+|        | ```             |
+| multi  | and contain     |
+| line   | blocks          |
+| cells  | ```             |
++========+=========:+======+
+| footer |    cells |      |
++--------+----------+------+
+
+### Tasklist
+
+```markdown
+* [ ] to do
+* [x] done
+```
+
+* [ ] to do
+* [x] done
+
+## Core Markdown
+
+| Style                  | Syntax             | Keyboard shortcut                         | Example                                  | Output                                   |
+| ---------------------- | ------------------ | ----------------------------------------- | ---------------------------------------- | ---------------------------------------- |
+| Bold                   | `** **` or `__ __` | Command+B (Mac) or Ctrl+B (Windows/Linux) | `**This is bold text**`                  | **This is bold text**                    |
+| Italic                 | `* *` or `_ _`     | Command+I (Mac) or Ctrl+I (Windows/Linux) | `_This text is italicized_`              | *This text is italicized*                |
+| Strikethrough          | `~~ ~~` or `~ ~`   | None                                      | `~~This was mistaken text~~`             | ~~This was mistaken text~~               |
+| Bold and nested italic | `** **` and `_ _`  | None                                      | `**This text is _extremely_ important**` | **This text is \*extremely\* important** |
+| All bold and italic    | `*** ***`          | None                                      | `***All this text is important***`       | ***All this text is important***         |
+| Subscript              | `<sub> </sub>`     | None                                      | `This is a <sub>subscript</sub> text`    | This is a <sub>subscript</sub>           |
+| Superscript            | `<sup> </sup>`     | None                                      | `This is a <sup>superscript</sup> text`  | This is a <sup>superscript</sup> text    |
+| Underline              | `<ins> </ins>`     | None                                      | `This is an <ins>underlined</ins> text`  | This is an <ins>underlined</ins> text    |
+
 ### Blockquotes
 
 > This is a blockquote. Use it for quotes, citations, or to highlight important statements from external sources.
 
+Nested blockquotes:
+
+```markdown
+> Dorothy followed her through many of the beautiful rooms in her castle.
+>
+>> The Witch bade her clean the pots and kettles and sweep the floor and keep the fire fed with wood.
+```
+
+> Dorothy followed her through many of the beautiful rooms in her castle.
+>
+>> The Witch bade her clean the pots and kettles and sweep the floor and keep the fire fed with wood.
+
+### Horizontal Rules
+
+Asterisks (`***`):
+
+***
+
+Dashes (`---`):
+
+---
+
+Underscores ()`___`):
+
+_________________
+
+### Images
+
+```markdown
+![Octocat](https://myoctocat.com/assets/images/base-octocat.svg)
+```
+
+![Octocat](https://myoctocat.com/assets/images/base-octocat.svg)
+
+Linked image:
+
+[![An old rock in the desert](/assets/images/shiprock.svg "Shiprock placeholder")](https://www.flickr.com/photos/beaurogers/31833779864/in/photolist-Qv3rFw-34mt9F-a9Cmfy-5Ha3Zi-9msKdv-o3hgjr-hWpUte-4WMsJ1-KUQ8N-deshUb-vssBD-6CQci6-8AFCiD-zsJWT-nNfsgB-dPDwZJ-bn9JGn-5HtSXY-6CUhAL-a4UTXB-ugPum-KUPSo-fBLNm-6CUmpy-4WMsc9-8a7D3T-83KJev-6CQ2bK-nNusHJ-a78rQH-nw3NvT-7aq2qf-8wwBso-3nNceh-ugSKP-4mh4kh-bbeeqH-a7biME-q3PtTf-brFpgb-cg38zw-bXMZc-nJPELD-f58Lmo-bXMYG-bz8AAi-bxNtNT-bXMYi-bXMY6-bXMYv)
+
 ### Links
+
+```markdown
+My favorite search engine is [Duck Duck Go](https://duckduckgo.com).
+
+Visit our [homepage](/) or read more [articles](/articles) to explore additional content.
+```
+
+My favorite search engine is [Duck Duck Go](https://duckduckgo.com).
 
 Visit our [homepage](/) or read more [articles](/articles) to explore additional content.
 
-## Platform Engineering
+### Lists
 
-DevOps with extra steps:
+Unordered lists:
 
-It's about providing a full environment, process and automation, for developers to build, secure, and run their applications. DevOps builds specific pieces, Platform is the whole package.
+```markdown
+- First item
+- Second item
+- Third item with **bold text**
+- Fourth item with *italic text*
+```
 
-I describe it as making internal devops products. I try to promote sound architecture, frequent deploys, data-driven ops and code as documentation into processes and opinionated tooling for our devs. I try to collect feedback and measure usage of those tools. Much like I would if I was selling a public SaaS.
+- First item
+- Second item
+- Third item with **bold text**
+- Fourth item with *italic text*
 
-platform eng as a team that provides holistic solutions including monitoring and alerting and uptime, working with eng teams to tune the solution.
+Ordered lists:
 
-Example the platform eng team does everything in K8's, so when u build ur app make sure it runs on k8's.
+```markdown
+1. First step
+2. Second step
+3. Third step
+```
 
-platform team is providing an end to end solution to abstract away complexity in favor of a standardization (or "opinionated" is another term you see used). think Heroku
+1. First step
+2. Second step
+3. Third step
 
-on the backend there's usually a plethora of tooling (usually need some homegrown solutions), CI/CD, versioning system, container orchestration, templating engine, IaC, monitoring / telemetry / instrumentation / logging (OTEL, DataDog, etc), alerting, etc. all this should be documented and available for developers to use in a self-service way. there should be zero need for any manual steps from your DevOps/tech ops/SRE/whatever team.
+Nested lists:
+
+```markdown
+1. First list item
+   - First nested list item
+     - Second nested list item
+1. Second list item
+   - First nested list item
+     - Second nested list item
+```
+
+1. First list item
+   - First nested list item
+     - Second nested list item
+1. Second list item
+   - First nested list item
+     - Second nested list item
+
+### Bold and Nested Strikethrough
+
+```markdown
+**This text is _extremely_ important**
+```
+
+**This text is _extremely_ important**
+
+### Escape Markup
+
+Unified uses the backslash character to treat special Markdown symbols as literal text, preventing them from being interpreted as formatting instructions.
+
+\\ (backslash): To display a literal backslash
+\* (asterisk): Used for emphasis (italics or bold) or lists
+\_ (underscore): Also used for emphasis
+\# (hash symbol): Used for headings
+\[ and \] (square brackets): Used for links
+\( and \) (parentheses): Used in links or for other extensions like superscripts
+\+, \-, \. (plus, minus, period): Used for lists
+\! (exclamation mark): Used for images (![]())
+\` (backtick): Used for inline code blocks
+\> (greater-than sign): Used for blockquotes
+\| (pipe): Used for tables in extended Markdown syntax
+
+## Comments
+
+(works if nothing here)
+
+```markdown
+{/* This content will not appear in the rendered Markdown */}
+```
+
+{/* This content will not appear in the rendered Markdown */}
+
+## Colors
+
+In single backtick code markers, applies a GitHub-like color dot:
+
+```markdown
+The background color is `#ffffff` for light mode and `#000000` for dark mode. In RGB `rgb(9, 105, 218)`, RGBA `rgba(255, 99, 71, 0.5)` in HSL `hsl(212, 92%, 45%)`, and in HSLA `hsla(240, 100%, 50%, 0.7)`.
+```
+
+The background color is `#ffffff` for light mode and `#000000` for dark mode. In RGB `rgb(9, 105, 218)`, RGBA `rgba(255, 99, 71, 0.5)` in HSL `hsl(212, 92%, 45%)`, and in HSLA `hsla(240, 100%, 50%, 0.7)`.
+
+## Astro-generated heading ID links
+
+```markdown
+I can link internally to [Markdown Features](#unified-plugins) on the same page when writing Markdown.
+```
+
+I can link internally to [Markdown Features](#unified-plugins) on the same page when writing Markdown.
+
+## Unified Plugins
+
+### remark-abbreviations
+
+```markdown
+*[MDAST]: Markdown Abstract Syntax Tree.
+*[AST]: Abstract syntax tree
+```
+
+*[MDAST]: Markdown Abstract Syntax Tree.
+*[AST]: Abstract syntax tree
+
+Should compile to the following HTML:
+
+```html
+<p>This plugin works on <abbr title="Markdown Abstract Syntax Tree.">MDAST</abbr>, a Markdown <abbr title="Abstract syntax tree">AST</abbr>
+implemented by <a href="https://github.com/remarkjs/remark">remark</a></p>
+```
+
+### rehype-accessible-emojis
+
+There is a doc listing all available emojis in the /docs directory.
+
+```markdown
+:rocket:
+```
+
+:rocket:
+
+### remark-align
+
+This custom plugin parses custom Markdown syntax to center- or right-align elements. Alignment is done by wrapping something in shortcode-style tags, applying Tailwind `text-right` or `text-center` classes:
+
+```markdown
+[center]paragraph[/center]
+
+[right]paragraph[/right]
+```
+
+[center]A centered paragraph[/center]
+
+[right]A right-aligned paragraph[/right]
+
+Block elements can be wrapped with their own tags to apply `flex flex-col items-end` or `flex flex-col items-center` classes:
+
+```markdown
+[center]
+> My blockquote
+[/center]
+```
+
+[center]
+
+> My blockquote
+
+- a
+- b
+
+[/center]
+
+[right]
+
+> My blockquote
+
+- a
+- b
+
+[/right]
+
+### remark-attributes
+
+Add HTML attributes to supported Markdown elements using a MDX-safe doubled-square-bracket postfix syntax:
+
+```markdown
+### Heading [[.my-class #my-id]]
+![Image](/assets/images/shiprock.svg) [[width=300 .centered]]
+[Link](url) [[.btn target=_blank]]
+```
+
+![Image](/assets/images/shiprock.svg) [[width=300 .centered]]
+[Link Example](/testing/markdown) [[.btn target=_blank]]
+
+### remark-attribution
+
+The plugin allows to provide an attribution for a quotation:
+
+```markdown
+> That's one small step for [a] man, one giant leap for mankind.
+> — Neil Armstrong (1969, July 21)
+```
+
+> That's one small step for [a] man, one giant leap for mankind.
+> — Neil Armstrong (1969, July 21)
+
+Should compile to the following HTML:
+
+```html
+The generated markup is not only accessible for screen readers but allows you to style the attribution line however you like:
+
+<figure class="c-blockquote">
+  <blockquote>
+    <p>
+      That's one small step for [a] man, one giant leap for mankind.
+    </p>
+  </blockquote>
+  <figcaption class="c-blockquote__attribution">
+    Neil Armstrong (1969, July 21)
+  </figcaption>
+</figure>
+```
+
+### remark-captions
+
+By default it wraps the elements code, image, table and blockquote in a `<figure>` element, and adds a `<figcaption>` block as the last child. You can configure it to work on other elements by changing the keywords.
+
+**Blockquote caption**
+
+```markdown
+> Some blockquote text that will have a caption
+> Source: The caption text that will appear under the blockquote
+```
+
+> Some blockquote text that will have a caption
+> Source: The caption text that will appear under the blockquote
+
+**Code caption**
+
+```ts
+export const answer = 42
+```
+Code: This caption appears under the code block
+
+**Table caption**
+
+Note: a blank line is required before `Table:` so it parses as a paragraph after the table.
+
+```markdown
+| a | b |
+| - | - |
+| 1 | 2 |
+
+Table: This caption appears under the table
+```
+
+| a | b |
+| - | - |
+| 1 | 2 |
+
+Table: This caption appears under the table
+
+**Image caption**
+
+Note: the `Figure:` caption must be in the same paragraph as the image (no blank line).
+
+```markdown
+![Wordmark](/assets/images/branding/wordmark.svg)
+Figure: This caption appears under the image
+```
+
+![Wordmark](/assets/images/branding/wordmark.svg)
+Figure: This caption appears under the image
+
+### remark-custom-blocks
+
+This plugin parses custom Markdown syntax to create new custom blocks. It takes a config object with a name for the block, CSS classes to apply to it, and whether a title is required, optional, or the block does not have a title. An initial block is defined for HTML `<details>` and `<summary>` elements.
+
+```markdown
+[[details | My summary for a `<details>` and `<summary>` block]]
+| Some content for the detail
+```
+
+[[details | My summary]]
+| Some content for the detail
+
+### remark-deflist
+
+Definitions under definition header, stringified as `dl`, `dt`, and `dd`
+
+```markdown
+Term 1
+
+: Definition 1
+```
+
+Term 1
+
+: Definition 1
+
+### remark-mark-plus
+
+Inserts indicated text in a pair of `<mark>` elements
+
+```markdown
+my ==marked== text
+```
+
+my ==marked== text
+
+### remark-supersub
+
+Subscript and superscript text
+
+```markdown
+~subscript~, e.g. a~i~
+
+^superscript^, e.g. e^x^
+```
+
+Subscript: a~i~
+
+Superscript: e^x^
+
+### remark-video
+
+Embed videos in HTML5 markup that are in the `/public` folder
+
+```markdown
+:::video
+/videos/sample-video-1.mp4
+:::
+```
+
+:::video
+/videos/sample-video-1.mp4
+:::
+
+### remark-youtube
+
+```markdown
+https://youtu.be/enTFE2c68FQ
+
+https://www.youtube.com/watch?v=enTFE2c68FQ
+```
+
+https://youtu.be/enTFE2c68FQ
+
+https://www.youtube.com/watch?v=enTFE2c68FQ

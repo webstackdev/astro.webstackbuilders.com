@@ -133,7 +133,7 @@ export class HighlighterElement extends LitElement {
                   title="${platform.ariaLabel}"
                 >
                   <svg class="share-icon" aria-hidden="true" focusable="false">
-                    <use href="/sprite.svg#${platform.icon}"></use>
+                    <use href="/assets/images/sprite.svg#${platform.icon}"></use>
                   </svg>
                 </button>
               `
@@ -146,7 +146,7 @@ export class HighlighterElement extends LitElement {
               title="Copy link"
             >
               <svg class="share-icon" aria-hidden="true" focusable="false">
-                <use href="/sprite.svg#link"></use>
+                <use href="/assets/images/sprite.svg#link"></use>
               </svg>
             </button>
           </div>
@@ -351,7 +351,7 @@ export class HighlighterElement extends LitElement {
       const originalHTML = copyButton.innerHTML
       copyButton.innerHTML = `
         <svg class="share-icon" aria-hidden="true" focusable="false">
-          <use href="/sprite.svg#check"></use>
+          <use href="/assets/images/sprite.svg#check"></use>
         </svg>
       `
 

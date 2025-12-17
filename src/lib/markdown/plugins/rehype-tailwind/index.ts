@@ -1,7 +1,7 @@
 /**
  * Rehype plugin to automatically add Tailwind classes to markdown-generated HTML elements
  */
-import { visit } from 'unist-util-visit'
+import { visit, SKIP } from 'unist-util-visit'
 import type { Root, Element } from 'hast'
 import { applyHtmlElementClasses, getElementConfig } from './visitors/simple.js'
 import { hasClass } from './utilities/index.js'
@@ -12,12 +12,12 @@ import { hasClass } from './utilities/index.js'
  */
 export function rehypeTailwindClasses() {
   return (tree: Root) => {
-    visit(tree, 'element', (node: Element) => {
+    visit(tree, 'element', (node: Element): void | typeof SKIP => {
       // Check if this is a simple HTML element from our configuration
       const elementConfig = getElementConfig(node.tagName)
       if (elementConfig) {
         applyHtmlElementClasses(node, elementConfig)
-        return // Skip to next node
+        return
       }
 
       // Add classes to links within paragraphs, list items, and blockquotes
@@ -124,6 +124,9 @@ export function rehypeTailwindClasses() {
 
         // Replace the iframe with the wrapper
         Object.assign(node, wrapper)
+
+        // Prevent re-processing the newly-added iframe child (would wrap infinitely)
+        return SKIP
       }
 
       // Add classes to blockquotes (migrated from .content blockquote)

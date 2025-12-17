@@ -149,6 +149,20 @@ const downloadsCollection = defineCollection({
 })
 
 /**
+ * Test fixtures (used for Playwright E2E coverage)
+ */
+const testFixtureCollection = defineCollection({
+  loader: glob({ pattern, base: './src/content/test-fixtures' }),
+  schema: context =>
+    withBreadcrumbTitleWarning(
+      createBaseCollectionSchema(context).extend({
+        showToc: z.boolean().default(false),
+      }),
+      'testFixtureCollection'
+    ),
+})
+
+/**
  * =================================================================================
  *
  * Secondary Content Collections
@@ -256,5 +270,6 @@ export const collections = {
   downloads: downloadsCollection,
   services: servicesCollection,
   tags: tagsCollection,
+  testFixtureCollection,
   testimonials: testimonialCollection,
 }

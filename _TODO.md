@@ -1,8 +1,6 @@
 <!-- markdownlint-disable-file -->
 # TODO
 
-continue
-
 ## Refactor API Endpoints to Astro Actions
 
 ### Action / Domain / Responder Pattern
@@ -73,7 +71,7 @@ If we want to make it feel less inconsistent, we could either (a) rename `_logge
 
 ## Mobile Social Shares UI
 
-See the example image in Social Shares.
+See the example image in Social Shares. The social shares UI on mobile should be a modal that slides in from the bottom.
 
 ## Performance
 
@@ -83,10 +81,20 @@ Implement mitigations in test/e2e/specs/07-performance/PERFORMANCE.md
 
 Vercel Analytics
 
+- Highlighter component
+- Social Shares component
+- Social Embeds: Track embed interactions
+- Cookie Consent
+- Download Form component
+
+npm i @vercel/analytics
+import Analytics from '@vercel/analytics/astro'
+https://vercel.com/docs/analytics/quickstart#add-the-analytics-component-to-your-app
+
 ## Themepicker tooltips, extra themes
 
 - Add additional themes
-- Add tooltip that makes use of the description field
+- Add tooltip that makes use of the description field for the theme, explaining what the intent of the theme is
 
 ## Sentry feedback, chat bot tying into my phone and email
 
@@ -157,35 +165,26 @@ Google Calendar, Apple Calendar,  Yahoo Calender,  Microsoft 365, Outlook, and T
 
 Needs to add real API key and test
 
-## Astro 3rd-Party Integrations, Eleventy Migration
+- Get API token from webmention.io
+- Add WEBMENTION_IO_TOKEN to .env
+- (Optional) Set up Bridgy for social media
+- Test with sample webmentions
 
-### **`eleventy-plugin-external-links`**
-
-Adds `target="_blank" rel="noreferrer"` to all external links
-
-### Astro wrapper for the `@github/clipboard-copy-element` web component. Copies element text content or input values to the clipboard
+## Astro wrapper for the `@github/clipboard-copy-element` web component. Copies element text content or input values to the clipboard
 
 [`clipboard-copy`](https://github.com/BryceRussell/astro-github-elements/tree/main/packages/clipboard-copy#astro-github-elementsclipboard-copy)
 
-### Astro wrapper for GitHub's relative time web component. Translates dates to past or future time phrases, like "*4 hours from now*" or "*20 days ago*"
+## Astro wrapper for GitHub's relative time web component. Translates dates to past or future time phrases, like "*4 hours from now*" or "*20 days ago*"
 
 [Relative Time](https://github.com/BryceRussell/astro-github-elements/tree/main/packages/time#readme)
 
-### Display text in a circular layout
+## Display text in a circular layout
 
 [TextCircle](https://github.com/LoStisWorld/astro-textcircle#astro-textcircle)
 
-## Markdown
+## Custom Directives
 
-### Custom version of the code block integration from Astro Docs. "Beautiful code blocks for your Astro site". Applied to the code blocks created in `.mdx` files
-
-[`astro-code-blocks`](https://www.npmjs.com/package/@thewebforge/astro-code-blocks)
-
-## Miscellaneous
-
-### [`astro-directives`](https://github.com/QuentinDutot/astro-directives)
-
-Adds some custom directives:
+[`astro-directives`](https://github.com/QuentinDutot/astro-directives)
 
 ```react
 <Component client:hover />
@@ -197,87 +196,107 @@ Adds some custom directives:
 | client:hover  | element mouseover event                |
 | client:scroll | window scroll event                    |
 
-### [Prefetch](https://www.npmjs.com/package/@astrojs/prefetch) (**`installed`**)
+## Prefetch Links
 
-1. Add `rel="prefetch"` to any `<a />` tags to prefetch when visible
-2. Add `rel="prefetch-intent"` to any `<a />` links on your page to prefetch them only when they are hovered over, touched, or focused.
+The default prefetch strategy when adding the data-astro-prefetch attribute is hover. To change it, you can configure prefetch.defaultStrategy in your astro.config.mjs file.
 
-## Stuff from ZMarkdown, a prepackaged Unified config
+hover (default): Prefetch when you hover over or focus on the link.
+tap: Prefetch just before you click on the link.
+viewport: Prefetch as the links enter the viewport.
+load: Prefetch all links on the page after the page is loaded.
 
-Repo is in root of Corporate Websites
+```html
+<a href="/about" data-astro-prefetch>
+<a href="/about" data-astro-prefetch="tap">About</a>
+```
 
-- **mdast-util-split-by-heading**
+If you want to prefetch all links, including those without the data-astro-prefetch attribute, you can set prefetch.prefetchAll to true:
 
-  A MDAST tool to split a markdown tree into list of subtrees representing the chapters. It relies on heading depth.
+```typescript
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
 
-- **rebber**
+export default defineConfig({
+  prefetch: {
+    prefetchAll: true
+  }
+})
+```
 
-  transformation of MDAST into `latex` code. This code must be included inside a custom latex to be compiled.
-  Have a look at `https://github.com/zestedesavoir/latex-template/blob/master/zmdocument.cls` to get a working example.
+You can then opt-out of prefetching for individual links by setting data-astro-prefetch="false":
 
-- **remark-abbr**
+```html
+<a href="/about" data-astro-prefetch="false">About</a>
+```
 
-  This plugin parses `*[ABBR]: abbr definition` and then replace all ABBR instance in text with a new MDAST node so that `rehype` can parse it into `abbr` html tag.
+## Markdown
 
-- **rehype-footnotes-title**
+## Code Block and Highlighting
 
-  This plugin adds a `title` attribute to the footnote links, mainly for accessibility purpose.
+## Astro includes shiki, tweak config
 
-- **rehype-html-blocks**
+### Custom version of the code block integration from Astro Docs. "Beautiful code blocks for your Astro site". Applied to the code blocks created in `.mdx` files
 
-  This plugin wraps (multi-line) raw HTML in `p`.
+[`astro-code-blocks`](https://www.npmjs.com/package/@thewebforge/astro-code-blocks)
 
-- **remark-align**
 
-  This plugin parses custom Markdown syntax to center- or right-align elements.
+#### Code tabs plugin so Javascript and Typescript examples can both be show.
 
-- **remark-captions**
+There can only be white space between two code blocks. Display name is set by `tabName` and can only contain characters in [A-Za-z0-9_]. Syntax for the first line of the code block is:
 
-  Allow to add caption to such element as image, table or blockquote.
+```js [group:tabName]
+```
 
-- **remark-comments**
+`markdown-it-codetabs`
 
-  This plugin parses custom Markdown syntax for Markdown source comments.
+#### Add copy button to code blocks
 
-- **remark-custom-blocks**
+`markdown-it-copy`
 
-  This plugin parses custom Markdown syntax to create new custom blocks.
+Options for "copy" button added to code blocks
 
-- **remark-escape--escaped**
+```javascript
+const markdownCodeCopyConfig = {
+  /** Text shown on copy button */
+  btnText: `Copy`,
+  /** Text shown on copy failure */
+  failText: `Copy Failed`,
+  /** Text shown on copy success */
+  successText: `Success!`, // 'copy success' | copy-success text
+  /** Amount of time to show success message */
+  successTextDelay: 2000,
+  /** An HTML fragment included before <button> */
+  extraHtmlBeforeBtn: ``,
+  /** An HTML fragment included after <button> */
+  extraHtmlAfterBtn: ``,
+  /** Whether to show code language before the copy button */
+  showCodeLanguage: false,
+  /** Test to append after the copied text like a copyright notice */
+  attachText: ``,
+}
+```
 
-  This plugin escapes HTML entities from Markdown input.
+### rehype-mathjax and remark-math
 
-- **remark-grid-tables**
+- `rehype-katex` is alternative but lacks accessibility
 
-  This plugin parses custom Markdown syntax to describe tables.
+```math
+L = \frac{1}{2} \rho v^2 S C_L
+```
 
-- **remark-heading-shift**
 
-  Allows to shift heading to custimize the way you will integrate the generated tree inside your application.
+### Mermaid JavaScript based diagramming and charting tool
 
-- **remark-heading-trailing-spaces**
-  This plugin removes trailing spaces from Markdown headers.
+```mermaid
+graph TD
+    A[Start] --> B{Is it working?}
+    B -->|Yes| C[Great!]
+    B -->|No| D[Debug]
+    D --> B
+```
 
-- **remark-iframes**
+### Apache ECharts interactive charting and data visualization library for browser
 
-  Allows to add `iframe` inclusion through `!(url)` code.
+@TODO: uses ES Modules, needs Jest config adjusted. See note in Mermaid plugin spec file.
 
-- **remark-kbd**
-
-  This plugin parses custom Markdown syntax to handle keyboard keys.
-
-- **remark-numbered-footnotes**
-
-  This plugin changes how [mdast][mdast] footnotes are displayed by using sequential numbers as footnote references instead of user-specified strings.
-
-- **remark-sub-super**
-
-  This plugin parses custom Markdown syntax to handle subscript and superscript.
-
-- **typographic-colon**
-
-  Micro module to fix a common typographic issue that is hard to fix with most keyboard layouts.
-
-- **typographic-permille**
-
-  Micro module to replace `%o` with `‰` and optionally replace the preceding space.
+`markdown-it-echarts`

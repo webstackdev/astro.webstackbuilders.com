@@ -143,5 +143,11 @@ export default defineConfig({
         fsevents: fileURLToPath(new URL('./src/shims/fsevents.ts', import.meta.url)),
       },
     },
-  }
+  },
+  experimental: {
+    /**
+     * Generate your styles and scripts in the order they are defined, instead of reversing them
+     */
+    preserveScriptOrder: true,
+  },
 })

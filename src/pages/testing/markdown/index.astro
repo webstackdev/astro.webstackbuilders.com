@@ -1,0 +1,26 @@
+---
+import { getCollection } from 'astro:content'
+import MarkdownLayout from '@layouts/MarkdownLayout.astro'
+
+const entries = await getCollection('testFixtureCollection')
+const fixture = entries.find(entry => entry.id === 'markdown' || entry.id === 'markdown/index')
+
+if (!fixture) {
+  throw new Error('Markdown E2E fixture content entry not found in testFixtureCollection')
+}
+
+const path = '/testing/markdown'
+const section = 'Testing'
+---
+
+<MarkdownLayout
+  collectionItem={fixture}
+  contentType="website"
+  description={fixture.data.description}
+  pageTitle={fixture.data.title}
+  path={path}
+  publishDate={fixture.data.publishDate}
+  section={section}
+  showToc={fixture.data.showToc}
+  tags={fixture.data.tags}
+/>

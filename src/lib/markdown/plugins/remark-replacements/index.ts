@@ -49,9 +49,11 @@ export const defaultReplacements: ReplacementRule[] = [
   { name: 'arrow_double_left', re: /<==(?!=)/g, sub: '⇐' },
 
   // Single arrows
-  { name: 'arrow_lr', re: /<-->/g, sub: '↔' },
-  { name: 'arrow_right', re: /-->/g, sub: '→' },
-  { name: 'arrow_left', re: /<--(?!-)/g, sub: '←' },
+  // Note: `remark-smartypants` can convert `--` into an em dash (`—`) before this
+  // plugin runs, so we support both ASCII and smartypants-transformed forms.
+  { name: 'arrow_lr', re: /<(?:--|—)>/g, sub: '↔' },
+  { name: 'arrow_right', re: /(?:--|—)>/g, sub: '→' },
+  { name: 'arrow_left', re: /<(?:(?:--)(?!-)|(?:—)(?!—))/g, sub: '←' },
 
   // Plus-minus
   { name: 'plusminus', re: /\+-/g, sub: '±' },

@@ -1,383 +1,129 @@
-<!-- markdownlint-disable -->
+# Markdown Pipeline Testing Strategy
 
-## LLMs
+The testing strategy for Unified (Remark/Rehype) plugins is broken into three distinct areas. There is substantial overlap between the unit, integration, and e2e tests. This is because each plugin can have global side effects on the Markdown as it is transformed to HTML and interfere with each other. By breaking out into these layers, it's easier to determine where interference is occurring - especially with the built-in GFM and SmartyPants plugins installed in Astro by default that have a large footprint.
 
-- qwen3-coder-30b-a3b-instruct
-- xAI: Grok 4 Fast
-- Z.AI: GLM 4.6
-- Google: Gemini 2.5 Flash Preview 09-2025
+## Steps to Add a New Unified (Remark, Rehype, or Remark-Rehype) Plugin
 
-## Misc ToDo Checklist
+1. Add it to our configuration in src/lib/config/markdown.ts
+2. Restart the dev server to pick up the new configuration
+3. Add an example usage in src/content/articles/demo/index.mdx
+4. I'll QA it in a browser visually
+5. Add unit, integration, and e2e tests for it in src/lib/markdown
+6. Run npm run test:unit and fix any errors
+7. Add it to the src/content/test-fixtures/markdown/index.mdx test fixture
+8. Add a Playwright E2E test for it in test/e2e/specs/04-components/markdown.spec.ts
+9. Run the test and fix any errors
+10. Run npm run lint and npm run check and fix any errors
 
-- manifest icons are 404
+## Astro Remark / Rehype Plugins Not Included
 
-## Webmention Component Next Steps:
+The following plugins are added by Astro to the Markdown to HTML processing pipeline, and are not accounted for in these tests due to complexity. They depend on full E2E tests using Playwright to verify correct behavior of project Unified plugins.
 
-Get API token from webmention.io
-Add WEBMENTION_IO_TOKEN to .env
-(Optional) Set up Bridgy for social media
-Test with sample webmentions
+- `remark-collect-images`
+- `rehype-images`
+- `rehype-collect-headings`
+- `rehype-shiki`
 
-## Download Form component
+## Unit Tests (Isolated)
 
-**API Integration**: The submit endpoint currently only logs to console. Integration with CRM/email service required for production use.
+This directory contains isolated unit tests for NPM package plugins to catch breaking changes from upstream updates. These tests verify that third-party markdown plugins work as expected in isolation, especially in edge cases that may not have test coverage in the package.
 
-## GDPR Compliance Module
+Only NPM packages are tested here. Custom plugins have their own test suites in their respective directories in `src/lib/markdown/plugins`.
 
-- Explicit consent checkboxes
-- Double opt-in flow
-- Right to erasure handling
-- **Component needed**: `<GDPRConsent />` checkbox group
-- Downloads, Cookie Consent, newsletter
+- Test one plugin at a time
+- Minimal pipeline (no GFM, no Astro settings)
+- Location: `__tests__/units/`
+- Speed: Milliseconds
 
-### Phase 4: Generated Content
+### Unit Test Purpose
 
-1. `sitemap.xml.ts`
-2. `robots.txt.ts`
-3. Search functionality
+- Test NPM package plugins independently before integration
+- Detect breaking changes from package upgrades
+- Verify expected behavior without interactions from other plugins
+- Serve as regression tests for dependency updates
 
-## Vercel Analytics
+### When to Add Unit Tests
 
-- Highlighter component
-- Social Shares component
-- Social Embeds: Track embed interactions
-- Cookie Consent
-- Download Form component
+Add tests to this directory when:
 
-npm i @vercel/analytics
-import Analytics from '@vercel/analytics/astro'
-https://vercel.com/docs/analytics/quickstart#add-the-analytics-component-to-your-app
+- ✅ Adding a new NPM package plugin to the pipeline
+- ✅ Upgrading an existing NPM package and want to verify behavior
+- ✅ Documenting expected behavior of third-party plugins
 
-## Markdown Config Updates
+### Do NOT add tests here for
 
-Details/Summary elements - These HTML elements aren't being processed by remarkGfm (they need to be raw HTML)
+- ❌ Custom plugins maintained in `plugins/` directory
+- ❌ Integration between multiple plugins (use `integration/` tests)
+- ❌ Full pipeline tests (use `e2e/` tests)
 
-/** Add ==highlighted== syntax */
+### Unit Test Approach
 
-1. add remark-mark plugin
-2. Remove skip from integration test in
+Tests use the `processIsolated()` helper from `../../helpers/test-utils.ts` which:
 
-/**
- * Add accessible name to section in footnotes plugin
- */
-    const markdownFootnoteBlockOpen = () =>
-    '<hr className="footnotes-sep">\n' +
-    '<section class="footnotes" aria-label="footnotes">\n' +
-    '<ol class="footnotes-list">\n'
+1. Processes markdown through a single plugin
+2. Converts to HTML
+3. Validates output without interference from other plugins
 
-* Code tabs plugin so Javascript and Typescript examples can both be show. There can only
-* be white space between two code blocks. Display name is set by `tabName` and can only
-* contain characters in [A-Za-z0-9_]. Syntax for the first line of the code block is:
-* ```js [group:tabName]
- */
-  // markdown-it-codetabs//
+## Integration Tests with Astro Defaults
 
-/** Add copy button to code blocks */
-// markdown-it-copy'), markdownCodeCopyConfig)
-/**
- * Options for "copy" button added to code blocks
- */
-    // const markdownCodeCopyConfig = {
-    /** Text shown on copy button */
-    // btnText: `Copy`,
-    /** Text shown on copy failure */
-    // failText: `Copy Failed`,
-    /** Text shown on copy success */
-    // successText: `Success!`, // 'copy success' | copy-success text
-    /** Amount of time to show success message */
-    // successTextDelay: 2000,
-    /** An HTML fragment included before <button> */
-    // extraHtmlBeforeBtn: ``,
-    /** An HTML fragment included after <button> */
-    // extraHtmlAfterBtn: ``,
-    /** Whether to show code language before the copy button */
-    // showCodeLanguage: false,
-    /** Test to append after the copied text like a copyright notice */
-    // attachText: ``,
-    // }
+Astro has several Unified plugins built-in, including SmartyPants, GitHub-Flavored Markup (GFM), Shiki code highlighting, and a slugify system to add IDs to <h1> through <h6> elements for use in table of contents. Each test file focuses on one plugin at a time with complete Astro settings (GFM + smartypants).
 
-/** Definition lists, using indented ~ for definitions under definition header */
-// markdown-it-deflist//
+The reason for doing this is that experience has shown that a lot of the friction in troubleshooting why a new plugin is not producing expected output involves interference from these built-in plugins.
 
-/** Apache ECharts interactive charting and data visualization library for browser  */
-// @TODO: uses ES Modules, needs Jest config adjusted. See note in Mermaid plugin spec file.
-//// markdown-it-echarts//
+This set of tests copies the configuration for each of those built-in Astro plugins and tests other plugins against that built-in stack.
 
-/** Expandable and collapsible content using HTML <details> and <summary> elements */
-// rehype-details
+- Test one plugin at a time
+- Full Astro settings (GFM + smartypants)
+- Location: `__tests__/integration/`
+- Speed: Seconds
+- Fail-fast: Identifies which plugin breaks
 
-/** Mark external, absolute links with appropriate rel & target attributes */
-// markdown-it-external-anchor'), markdownExternalAnchorConfig)
-/**
- * Mark external, absolute links with appropriate rel & target attributes
- */
-    // const markdownExternalAnchorConfig = {
-    /** The domain that is considered an internal link */
-    // domain: domain,
-    /** A class name added to anchors */
-    // class: 'external-link',
-    // }
+### Integration Test Purpose
 
-/** es, GFM footnotes are supported in Astro, and they are enabled by using the remark-gfm plugin. This plugin allows you to use the standard footnote syntax, where you define a footnote reference inline (e.g., [^1]) and the footnote content at the bottom of the document (e.g., [^1]: This is my footnote).  */
+- Test each plugin with the actual Astro configuration used in production
+- Verify plugins work correctly with GFM and smartypants enabled
+- Fail-fast debugging: When a test fails, you know exactly which plugin is broken
+- Catch integration issues between a single plugin and Astro's default settings
+- Serve as regression tests for plugin upgrades
 
-/** Add captions to markdown images: ![xx](yy "my caption") shows `my caption` as the caption */
-// markdown-it-image-caption//
+### When to Add Integration Tests
 
-/**Includes for markdown fragment files using !!![file.md]!!! syntax */
-// markdown-it-include'), './src/_layouts')
+Add tests to this directory when:
 
-/** Syntax highlighting to marked text: ==marked== => <mark>inserted</mark> */
-// markdown-it-mark//
+- ✅ Adding a new plugin to the markdown pipeline
+- ✅ Upgrading a plugin and want to verify it works with Astro
+- ✅ Debugging issues with a specific plugin
+- ✅ Documenting expected behavior with Astro settings
 
-/** Add Twitter like mentions in markdown using @twittername syntax */
-// markdown-it-mentions'), markdownMentionsConfig)
-/**
- * Options object including parse function for content generated
- * by mentions plugin using `@twittername` syntax.
- */
-    // const markdownMentionsConfig = {
-    // parseURL: username => {
-    // return `https://twitter.com/@${username}`
-    // },
-    /** adds a target="_blank" attribute if it's true and target="_self" if it's false */
-    // external: true,
-    // }
+### Pipeline Per Plugin (included in each test file)
 
-/** Mermaid JavaScript based diagramming and charting tool */
-// @TODO: uses ES Modules, needs Jest config adjusted. See note in spec file.
-//// @liradb2000/markdown-it-mermaid'), markdownMermaidConfig)
-/**
- * Mermaid JavaScript based diagramming and charting tool
- */
-    /*const markdownMermaidConfig = {
-    startOnLoad: false,
-    securityLevel: true,
-    theme: 'default',
-    flowchart: {
-    htmlLabels: false,
-    useMaxWidth: true,
-    },
-    dictionary: {
-    token: 'mermaid',
-    graph: 'graph',
-    sequenceDiagram: 'sequenceDiagram',
-    },
-    // ...or any other options
-    }*/
-    markdown.syntaxHighlight.excludeLangs
-    Type: Array<string>
-    Default: ['math']
+`remark` → `GFM` → `[single plugin]` → `remarkRehype(config)` → `rehypeStringify`
 
-Added in: astro@5.5.0
-An array of languages to exclude from the default syntax highlighting specified in markdown.syntaxHighlight.type. This can be useful when using tools that create diagrams from Markdown code blocks, such as Mermaid.js and D2.
+## E2E Component Rendering Tests
 
-astro.config.mjs
-import { defineConfig } from 'astro/config';
+- Test markdown rendered using Astro config
+- Component-based validation with fixtures
+- Purpose: E2E validation of plugins using the full Unified stack with accessibility tests
+- Location: `__tests__/e2e/`
+- Tools: Vitest + Testing Library + Axe
 
-export default defineConfig({
-  markdown: {
-    syntaxHighlight: {
-      type: 'shiki',
-      excludeLangs: ['mermaid', 'math'],
-    },
-  },
-});
+### E2E Test Architecture
 
+`Fixtures` → `Test Component (Astro)` → `Full Pipeline → HTML` → `Accessibility Check`
 
-/** Add a curtain filename block into code blocks using ```js:<filename.js> syntax */
-// @TODO: conflicts with markdown-it-codetabs, need to debug
-//// markdown-it-named-code-blocks//
+- Test component (`src/components/Test`):
+  - Accepts markdown content as prop
+  - Processes through production pipeline
+  - Returns rendered HTML
 
-/** Textmark-based parsing of code blocks using VS Code templates */
-// @TODO: gives error, maybe about ES Module syntax: TypeError: plugin.apply is not a function
-//// markdown-it-shiki'), markdownShikiConfig)
+- Accessibility testing (`vitest-axe`):
+  - Every test validates with Axe library
+  - Ensures WCAG compliance
+  - Validates ARIA attributes
+  - Checks semantic HTML structure
 
-/** Subscript text: 29^th^ => <p>29<sup>th</sup></p> */
-// markdown-it-sub//
+### Imports from `markdown.ts`
 
-/** Superscript text: H~2~0 => <p>H<sub>2</sub>0</p> */
-// markdown-it-sup//
-
-/** Github-stye Todo lists using checkboxes with - [ ] and - [x] markup */
-// markdown-it-task-lists'), { label: true, labelAfter: true })
-
-/** TeX rendering using KaTeX for math symbols */
-// markdown-it-texmath'), markdownTexmathConfig)
-/**
- * TeX rendering using KaTeX for math symbols
- */
-    /*const markdownTexmathConfig = {
-    engine: require('katex'),
-    delimiters: 'dollars',
-    katexOptions: { macros: { '\\RR': '\\mathbb{R}' } },
-    }*/
-    /*
-    remark-math: A Remark plugin that parses LaTeX syntax within your Markdown files.
-    rehype-katex or rehype-mathjax: Rehype plugins that convert the parsed LaTeX into rendered HTML using either KaTeX or MathJax, respectively. KaTeX is often preferred for its performance and ability to allow text selection.
-    To implement this:
-    Install the necessary packages.
-    Code
-
-    npm install remark-math rehype-katex katex
-    (or rehype-mathjax if you prefer MathJax).
-    Configure Astro: In your astro.config.mjs (or astro.config.ts), add remarkMath and rehypeKatex to your Markdown configuration:
-    */
-
-/** Adds underline to markdown like _underline_ */
-// @TODO: conflicts with built-in markup for italics: _italics_ _underline_, change one
-//// markdown-it-underline//
-
-/** Embed video: @[youtube](dQw4w9WgXcQ) */
-// markdown-it-video'), markdownVideoConfig)
-/**
- *
- */
-/*const markdownVideoConfig = {
-  youtube: { width: 640, height: 390 },
-}*/
-
-/*
- call out colors within a sentence by using backticks like Github-Flavored Markup on Github. A supported color model within backticks will display a visualization of the color.
-
-The background color is `#ffffff` for light mode and `#000000` for dark mode.
-
-The above will generate a callout box around the hex color with a dot to the right showing the color.
-*/
-
-// Alerts: Use specific block formats for different types of alerts, such as > [!IMPORTANT] or > [!WARNING].
-
-/*
-To add functionality like markdown-it-attribution in Astro MDX, you can create a custom component and render it using a remark or rehype plugin, or use a specialized integration like astro-plugin-mdx-components which specifically supports a syntax for custom components within MDX content. You'll need to:
-Install the MDX integration and the plugin:
-npx astro add mdx
-npm install astro-plugin-mdx-components
-Define a custom component (e.g., Attribution.astro).
-Configure the remark or rehype plugin to use your component:
-Import the plugin into astro.config.mjs.
-Use the remarkPlugins or rehypePlugins option to include your plugin.
-The plugin will process your markdown and inject the component where the syntax is used.
-JavaScript
-*/
-
-// astro.config.mjs
-import { defineConfig } from 'astro/config';
-import mdx from '@astrojs/mdx';
-import { attacher as mdxComponents } from 'astro-plugin-mdx-components';
-
-export default defineConfig({
-  integrations: [
-    mdx({
-      remarkPlugins: [
-        // Use the plugin to enable custom component syntax
-        mdxComponents({
-          // Define your components here
-          components: {
-            attribution: 'Attribution', // Map markdown syntax `attribution` to the component
-          },
-        }),
-      ],
-    }),
-  ],
-});
-Code
-
-/* your-file.mdx
-<attribution>
-This is some text that needs an attribution.
-</attribution>
-*/
-
-// my-accessible-list-plugin.mjs
-import { visit } from 'unist-util-visit';
-
-export function myAccessibleListPlugin() {
-  return (tree) => {
-    visit(tree, 'list', (node) => {
-      // Example: Add an aria-label to lists
-      if (!node.data) {
-        node.data = {};
-      }
-      if (!node.data.hProperties) {
-        node.data.hProperties = {};
-      }
-      node.data.hProperties['aria-label'] = 'List of items'; // Customize this
-    });
-  };
-}
-
-## Markdown Pipeline Testing Strategy
-
-┌─────────────────────────────────────────────────┐
-│  Unit Tests (Isolated)                          │
-│  • NPM PACKAGES ONLY (upstream regression tests)│
-│  • Test ONE plugin at a time                    │
-│  • Minimal pipeline (no GFM, no Astro settings) │
-│  • Purpose: Catch breaking changes from upgrades│
-│  • Location: __tests__/units/                   │
-│  • Speed: Milliseconds                          │
-│  • Run: On every save                           │
-│  • Example: remark-emoji.spec.ts                │
-│                                                 │
-│  Custom Plugins Tested in Plugin Directories:   │
-│  • remark-abbreviations → plugins/remark-abbr...│
-│  • remark-attributes → plugins/remark-attr...   │
-│  • remark-attribution → plugins/remark-attr...  │
-│  • rehype-tailwind → plugins/rehype-tailwind... │
-└─────────────────────────────────────────────────┘
-                     ↓
-┌─────────────────────────────────────────────────┐
-│  Unit Tests with Astro Defaults                 │
-│  • Test ONE plugin at a time                    │
-│  • Full Astro settings (GFM + smartypants)      │
-│  • Purpose: Verify plugin works with Astro      │
-│  • Location: __tests__/units_with_default_astro/│
-│  • Speed: Seconds                               │
-│  • Run: Before commits                          │
-│  • Fail-fast: Identifies WHICH plugin breaks    │
-│                                                 │
-│  Pipeline per plugin:                           │
-│  remark → GFM → [single plugin] →               │
-│  remarkRehype(config) → rehypeStringify         │
-│                                                 │
-│  Import from markdown.ts:                       │
-│  • remarkAttributesConfig                       │
-│  • rehypeAutolinkHeadingsConfig                 │
-│  • remarkRehypeConfig                           │
-└─────────────────────────────────────────────────┘
-                     ↓
-┌─────────────────────────────────────────────────┐
-│  E2E Component Rendering Tests                  │
-│  • Test markdown rendering through Astro        │
-│  • Component-based validation with fixtures     │
-│  • Purpose: E2E validation with accessibility   │
-│  • Location: __tests__/e2e/                     │
-│  • Speed: Seconds                               │
-│  • Run: Before commits / CI                     │
-│  • Tools: Vitest + Testing Library + Axe        │
-│                                                 │
-│  Test Architecture:                             │
-│  • Fixtures → Test Component (Astro) →          │
-│    Full Pipeline → HTML → Accessibility Check   │
-│                                                 │
-│  Test Component (src/components/Test):          │
-│  • Accepts markdown content as prop             │
-│  • Processes through production pipeline        │
-│  • Returns rendered HTML                        │
-│                                                 │
-│  Accessibility Testing (vitest-axe):            │
-│  ✅ Every test validates with Axe library       │
-│  ✅ Ensures WCAG compliance                     │
-│  ✅ Validates ARIA attributes                   │
-│  ✅ Checks semantic HTML structure              │
-│                                                 │
-│  Test Coverage (11 tests):                      │
-│  • Abbreviations with accessibility             │
-│  • Custom attributes on elements                │
-│  • Blockquote attributions semantic HTML        │
-│  • Emojis with ARIA attributes                  │
-│  • Full pipeline integration (3 tests)          │
-│  • Accessibility compliance (4 tests)           │
-│                                                 │
-│  Example: markdown-rendering.spec.tsx           │
-│  Run: npx vitest run src/lib/markdown/__tests__/e2e/
-└─────────────────────────────────────────────────┘
+- `remarkAttributesConfig`
+- `rehypeAutolinkHeadingsConfig`
+- `remarkRehypeConfig`

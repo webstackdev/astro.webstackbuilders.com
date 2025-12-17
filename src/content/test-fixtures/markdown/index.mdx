@@ -1,0 +1,171 @@
+---
+title: "Markdown E2E Fixture"
+description: "Playwright fixture page for validating Markdown/MDX rendering and plugin behavior."
+cover: "./cover.webp"
+coverAlt: "Hero image for the markdown fixture"
+featured: false
+isDraft: false
+publishDate: 2025-01-01
+tags: ["typescript"]
+showToc: false
+---
+
+This page exists only for Playwright E2E coverage.
+
+## Basic Markdown
+
+### Emphasis and inline code
+
+This is **bold**, *italic*, and `inline code`.
+
+### Links
+
+A relative link to the [homepage](/).
+
+An external link to [Example](https://example.com).
+
+### Code blocks
+
+```text
+"Hello" -- ...
+```
+
+## Inline Code Colors
+
+These should render swatches: `#ffffff`, `#000000`, `rgb(9, 105, 218)`, `rgba(255, 99, 71, 0.5)`, `hsl(212, 92%, 45%)`, `hsla(240, 100%, 50%, 0.7)`.
+
+This should not render a swatch: `inline code`.
+
+```text
+#ffffff
+```
+
+## Align (remark-align)
+
+
+[center]A centered paragraph[/center]
+
+[center]
+### Centered block
+
+- a
+- b
+
+[/center]
+
+[right:row]
+Right row block
+[/right:row]
+
+## Custom Blocks (remark-custom-blocks)
+
+### Details
+
+[[details | My summary]]
+| Some content for the detail
+| Second line
+
+## Remark Attributes (remark-attributes)
+
+### Remark attributes heading[[.attr-heading #remark-attr-heading data-level=1]]
+
+[Home link with attrs](/)[[.attr-link data-qa="remark-attr-link"]]
+
+![Remark attributes image](/assets/images/branding/wordmark.svg)[[width=300 height=64 .attr-image data-qa="remark-attr-image"]]
+
+Inline `attr-code`[[.attr-code data-qa="remark-attr-code"]] should have attributes.
+
+## Video (remark-video)
+
+:::video
+/videos/sample-video-1.mp4
+:::
+
+## YouTube (remark-youtube)
+
+https://youtu.be/enTFE2c68FQ
+
+https://www.youtube.com/watch?v=enTFE2c68FQ
+
+## Supersub (remark-supersub)
+
+Subscript: a~i~
+
+Superscript: e^x^
+
+## Mark Plus (remark-mark-plus)
+
+My ==marked== text.
+
+## Captions (remark-captions)
+
+> Do it or do it not, there is no try
+>
+> Source: Yoda
+
+| head1 | head2 |
+| ----- | ----- |
+| bla   | bla   |
+
+Table: My table caption
+
+```ts
+export const answer = 42
+```
+
+Code: My code caption
+
+![Placeholder image](/assets/images/branding/wordmark.svg)
+Figure: My image caption
+
+## Heading Anchors
+
+### My Section Heading
+
+I can link internally to [My Section Heading](#my-section-heading).
+
+## GFM
+
+### Autolink literals
+
+www.example.com, https://example.com, and contact@example.com.
+
+### Strikethrough
+
+~~This was mistaken text~~
+
+### Table
+
+| Feature | Supported |
+| --- | --- |
+| Tables | ✅ |
+| Task lists | ✅ |
+
+### Grid table
+
++----------+-------------+
+| Feature  | Notes       |
++==========+=============+
+| Grid     | *formatted* |
++----------+-------------+
+
+### Tasklist
+
+- [ ] to do
+- [x] done
+
+### Definition list
+
+Term 1
+
+: Definition 1
+
+### Footnotes
+
+Here is a simple footnote[^1].
+
+More content after the footnote reference.
+
+The footnote backref link should include a `title` attribute.
+
+[^1]: My reference.

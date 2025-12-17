@@ -1,32 +1,20 @@
 import { describe, it, expect } from 'vitest'
-import { remark } from 'remark'
-import remarkRehype from 'remark-rehype'
-import rehypeSlug from 'rehype-slug'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
-import rehypeStringify from 'rehype-stringify'
 import { rehypeAutolinkHeadingsConfig } from '@lib/config/markdown'
-
-/**
- * Helper for testing rehype-autolink-headings
- * Note: rehype-slug must run BEFORE rehype-autolink-headings
- */
-async function processRehype(markdown: string): Promise<string> {
-  const result = await remark()
-    .use(remarkRehype)
-    .use(rehypeSlug) // Generate IDs first
-    .use(rehypeAutolinkHeadings, rehypeAutolinkHeadingsConfig)
-    .use(rehypeStringify)
-    .process(markdown)
-
-  return String(result)
-}
+import { processIsolated } from '@lib/markdown/helpers/processors'
 
 describe('rehype-autolink-headings (Layer 1: Isolated)', () => {
   describe('basic autolink functionality', () => {
     it('should add anchor links to headings', async () => {
       const markdown = '# My Heading'
 
-      const html = await processRehype(markdown)
+      const html = await processIsolated({
+        markdown,
+        stage: 'rehype',
+        plugin: rehypeAutolinkHeadings,
+        pluginOptions: rehypeAutolinkHeadingsConfig,
+        slugify: true,
+      })
 
       expect(html).toContain('<h1')
       expect(html).toContain('<a')
@@ -36,7 +24,13 @@ describe('rehype-autolink-headings (Layer 1: Isolated)', () => {
     it('should use configured anchor content (emoji)', async () => {
       const markdown = '## Section Title'
 
-      const html = await processRehype(markdown)
+      const html = await processIsolated({
+        markdown,
+        stage: 'rehype',
+        plugin: rehypeAutolinkHeadings,
+        pluginOptions: rehypeAutolinkHeadingsConfig,
+        slugify: true,
+      })
 
       expect(html).toContain('🔗')
       expect(html).toContain('class="anchor-link"')
@@ -45,7 +39,13 @@ describe('rehype-autolink-headings (Layer 1: Isolated)', () => {
     it('should add aria-hidden to anchor content', async () => {
       const markdown = '### Subsection'
 
-      const html = await processRehype(markdown)
+      const html = await processIsolated({
+        markdown,
+        stage: 'rehype',
+        plugin: rehypeAutolinkHeadings,
+        pluginOptions: rehypeAutolinkHeadingsConfig,
+        slugify: true,
+      })
 
       expect(html).toContain('aria-hidden="true"')
     })
@@ -58,7 +58,13 @@ describe('rehype-autolink-headings (Layer 1: Isolated)', () => {
 ##### H5
 ###### H6`
 
-      const html = await processRehype(markdown)
+      const html = await processIsolated({
+        markdown,
+        stage: 'rehype',
+        plugin: rehypeAutolinkHeadings,
+        pluginOptions: rehypeAutolinkHeadingsConfig,
+        slugify: true,
+      })
 
       expect(html).toContain('<h1')
       expect(html).toContain('<h2')
@@ -77,7 +83,13 @@ describe('rehype-autolink-headings (Layer 1: Isolated)', () => {
     it('should generate IDs from heading text', async () => {
       const markdown = '## My Section Title'
 
-      const html = await processRehype(markdown)
+      const html = await processIsolated({
+        markdown,
+        stage: 'rehype',
+        plugin: rehypeAutolinkHeadings,
+        pluginOptions: rehypeAutolinkHeadingsConfig,
+        slugify: true,
+      })
 
       expect(html).toContain('id="')
       expect(html).toContain('href="#')
@@ -86,7 +98,13 @@ describe('rehype-autolink-headings (Layer 1: Isolated)', () => {
     it('should handle headings with special characters', async () => {
       const markdown = '## Section: Special & Chars!'
 
-      const html = await processRehype(markdown)
+      const html = await processIsolated({
+        markdown,
+        stage: 'rehype',
+        plugin: rehypeAutolinkHeadings,
+        pluginOptions: rehypeAutolinkHeadingsConfig,
+        slugify: true,
+      })
 
       expect(html).toContain('<h2')
       expect(html).toContain('id="')
@@ -95,7 +113,13 @@ describe('rehype-autolink-headings (Layer 1: Isolated)', () => {
     it('should handle headings with code', async () => {
       const markdown = '## Using `code` in headings'
 
-      const html = await processRehype(markdown)
+      const html = await processIsolated({
+        markdown,
+        stage: 'rehype',
+        plugin: rehypeAutolinkHeadings,
+        pluginOptions: rehypeAutolinkHeadingsConfig,
+        slugify: true,
+      })
 
       expect(html).toContain('<h2')
       expect(html).toContain('<code>')
@@ -106,7 +130,13 @@ describe('rehype-autolink-headings (Layer 1: Isolated)', () => {
     it('should handle empty headings', async () => {
       const markdown = '##'
 
-      const html = await processRehype(markdown)
+      const html = await processIsolated({
+        markdown,
+        stage: 'rehype',
+        plugin: rehypeAutolinkHeadings,
+        pluginOptions: rehypeAutolinkHeadingsConfig,
+        slugify: true,
+      })
 
       expect(html).toContain('<h2')
     })
@@ -114,7 +144,13 @@ describe('rehype-autolink-headings (Layer 1: Isolated)', () => {
     it('should handle headings with only whitespace', async () => {
       const markdown = '##   '
 
-      const html = await processRehype(markdown)
+      const html = await processIsolated({
+        markdown,
+        stage: 'rehype',
+        plugin: rehypeAutolinkHeadings,
+        pluginOptions: rehypeAutolinkHeadingsConfig,
+        slugify: true,
+      })
 
       expect(html).toContain('<h2')
     })
@@ -124,7 +160,13 @@ describe('rehype-autolink-headings (Layer 1: Isolated)', () => {
 ## Section
 ## Section`
 
-      const html = await processRehype(markdown)
+      const html = await processIsolated({
+        markdown,
+        stage: 'rehype',
+        plugin: rehypeAutolinkHeadings,
+        pluginOptions: rehypeAutolinkHeadingsConfig,
+        slugify: true,
+      })
 
       // Each should get a unique ID
       expect(html).toContain('<h2')

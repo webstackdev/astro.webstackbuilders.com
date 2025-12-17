@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import remarkLinkifyRegex from 'remark-linkify-regex'
-import { processIsolated } from '@lib/markdown/helpers/test-utils'
+import { processIsolated } from '@lib/markdown/helpers/processors'
 
 describe('remark-linkify-regex (Layer 1: Isolated)', () => {
   describe('basic URL detection', () => {
@@ -8,7 +8,7 @@ describe('remark-linkify-regex (Layer 1: Isolated)', () => {
       const markdown = 'Visit https://example.com for more info'
       const urlRegex = /^(https?:\/\/[^\s$.?#].[^\s]*)$/i
 
-      const html = await processIsolated(markdown, remarkLinkifyRegex(urlRegex))
+      const html = await processIsolated({ markdown, plugin: remarkLinkifyRegex(urlRegex) })
 
       expect(html).toContain('<a href="https://example.com"')
       expect(html).toContain('https://example.com</a>')
@@ -18,7 +18,7 @@ describe('remark-linkify-regex (Layer 1: Isolated)', () => {
       const markdown = 'Check http://example.com'
       const urlRegex = /^(https?:\/\/[^\s$.?#].[^\s]*)$/i
 
-      const html = await processIsolated(markdown, remarkLinkifyRegex(urlRegex))
+      const html = await processIsolated({ markdown, plugin: remarkLinkifyRegex(urlRegex) })
 
       expect(html).toContain('<a href="http://example.com"')
     })
@@ -27,7 +27,7 @@ describe('remark-linkify-regex (Layer 1: Isolated)', () => {
       const markdown = 'Visit https://example.com/path/to/page'
       const urlRegex = /^(https?:\/\/[^\s$.?#].[^\s]*)$/i
 
-      const html = await processIsolated(markdown, remarkLinkifyRegex(urlRegex))
+      const html = await processIsolated({ markdown, plugin: remarkLinkifyRegex(urlRegex) })
 
       expect(html).toContain('href="https://example.com/path/to/page"')
     })
@@ -38,7 +38,7 @@ describe('remark-linkify-regex (Layer 1: Isolated)', () => {
       const markdown = 'Search https://example.com?query=test&page=1'
       const urlRegex = /^(https?:\/\/[^\s$.?#].[^\s]*)$/i
 
-      const html = await processIsolated(markdown, remarkLinkifyRegex(urlRegex))
+      const html = await processIsolated({ markdown, plugin: remarkLinkifyRegex(urlRegex) })
 
       expect(html).toContain('href="https://example.com?query=test&#x26;page=1"')
     })
@@ -47,7 +47,7 @@ describe('remark-linkify-regex (Layer 1: Isolated)', () => {
       const markdown = 'Go to https://example.com#section'
       const urlRegex = /^(https?:\/\/[^\s$.?#].[^\s]*)$/i
 
-      const html = await processIsolated(markdown, remarkLinkifyRegex(urlRegex))
+      const html = await processIsolated({ markdown, plugin: remarkLinkifyRegex(urlRegex) })
 
       expect(html).toContain('href="https://example.com#section"')
     })
@@ -56,7 +56,7 @@ describe('remark-linkify-regex (Layer 1: Isolated)', () => {
       const markdown = '[Example](https://example.com)'
       const urlRegex = /^(https?:\/\/[^\s$.?#].[^\s]*)$/i
 
-      const html = await processIsolated(markdown, remarkLinkifyRegex(urlRegex))
+      const html = await processIsolated({ markdown, plugin: remarkLinkifyRegex(urlRegex) })
 
       expect(html).toContain('<a')
       expect(html).toContain('href="https://example.com"')
@@ -66,7 +66,7 @@ describe('remark-linkify-regex (Layer 1: Isolated)', () => {
       const markdown = 'Visit https://example.com or https://other.com'
       const urlRegex = /^(https?:\/\/[^\s$.?#].[^\s]*)$/i
 
-      const html = await processIsolated(markdown, remarkLinkifyRegex(urlRegex))
+      const html = await processIsolated({ markdown, plugin: remarkLinkifyRegex(urlRegex) })
 
       expect(html).toContain('href="https://example.com"')
       expect(html).toContain('href="https://other.com"')
