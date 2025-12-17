@@ -163,25 +163,6 @@ Needs to add real API key and test
 - (Optional) Set up Bridgy for social media
 - Test with sample webmentions
 
-## "Add to Calendar" button
-
-Google Calendar, Apple Calendar,  Yahoo Calender,  Microsoft 365, Outlook, and Teams, and generate iCal/ics files (for all other calendars and cases).
-
-`https://github.com/add2cal/add-to-calendar-button`
-`https://add-to-calendar-button.com/`
-
-## Astro wrapper for the `@github/clipboard-copy-element` web component. Copies element text content or input values to the clipboard
-
-[`clipboard-copy`](https://github.com/BryceRussell/astro-github-elements/tree/main/packages/clipboard-copy#astro-github-elementsclipboard-copy)
-
-## Astro wrapper for GitHub's relative time web component. Translates dates to past or future time phrases, like "*4 hours from now*" or "*20 days ago*"
-
-[Relative Time](https://github.com/BryceRussell/astro-github-elements/tree/main/packages/time#readme)
-
-## Display text in a circular layout
-
-[TextCircle](https://github.com/LoStisWorld/astro-textcircle#astro-textcircle)
-
 ## Custom Directives
 
 [`astro-directives`](https://github.com/QuentinDutot/astro-directives)
@@ -229,6 +210,27 @@ You can then opt-out of prefetching for individual links by setting data-astro-p
 <a href="/about" data-astro-prefetch="false">About</a>
 ```
 
+## Astro Components to Add
+
+### "Add to Calendar" button
+
+Google Calendar, Apple Calendar,  Yahoo Calender,  Microsoft 365, Outlook, and Teams, and generate iCal/ics files (for all other calendars and cases).
+
+`https://github.com/add2cal/add-to-calendar-button`
+`https://add-to-calendar-button.com/`
+
+### Astro wrapper for the `@github/clipboard-copy-element` web component. Copies element text content or input values to the clipboard
+
+[`clipboard-copy`](https://github.com/BryceRussell/astro-github-elements/tree/main/packages/clipboard-copy#astro-github-elementsclipboard-copy)
+
+### Astro wrapper for GitHub's relative time web component. Translates dates to past or future time phrases, like "*4 hours from now*" or "*20 days ago*"
+
+[Relative Time](https://github.com/BryceRussell/astro-github-elements/tree/main/packages/time#readme)
+
+### Display text in a circular layout
+
+[TextCircle](https://github.com/LoStisWorld/astro-textcircle#astro-textcircle)
+
 ## Markdown
 
 ## Code Block and Highlighting
@@ -274,20 +276,4 @@ const markdownCodeCopyConfig = {
   /** Test to append after the copied text like a copyright notice */
   attachText: ``,
 }
-```
-
-Next I'd like to setup the rehype-mermaid package. I've installed it already.
-1. Use the 'inline-svg' strategy
-2. Point the 'css' option key to a file src/styles/vendor/mermaid.css
-3. In the 'errorFallback' add a function that rethrows the error as a BuildError with descriptive text that Mermaid has encountered something it can't graph
-4. Evaluate whether we can set fontFamily in the mermaidConfig option property to use one of our fonts in public/fonts. The docs mention "You need to call mermaid.initialize() manually", I'm not sure if we can do this.
-
-### rehype-mermaid
-
-```mermaid
-graph TD
-    A[Start] --> B{Is it working?}
-    B -->|Yes| C[Great!]
-    B -->|No| D[Debug]
-    D --> B
 ```

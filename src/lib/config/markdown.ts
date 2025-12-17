@@ -28,6 +28,9 @@ Object.defineProperty(rehypeAccessibleEmojis, 'name', { value: 'rehypeAccessible
 import rehypeMathjax from 'rehype-mathjax'
 Object.defineProperty(rehypeMathjax, 'name', { value: 'rehypeMathjax' })
 
+import rehypeMermaid from 'rehype-mermaid'
+Object.defineProperty(rehypeMermaid, 'name', { value: 'rehypeMermaid' })
+
 import type { Options as RehypeAutolinkHeadingsOptions } from 'rehype-autolink-headings'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 Object.defineProperty(rehypeAutolinkHeadings, 'name', { value: 'rehypeAutolinkHeadings' })
@@ -123,6 +126,8 @@ Object.defineProperty(remarkSmartypants, 'name', { value: 'remarkSmartypants' })
 import { rehypeTailwindClasses } from '../markdown/plugins/rehype-tailwind'
 Object.defineProperty(rehypeTailwindClasses, 'name', { value: 'rehypeTailwindClasses' })
 
+import { BuildError } from '../errors/BuildError'
+
 /**
  * ==============================================================
  *
@@ -145,6 +150,25 @@ Object.defineProperty(remarkLinkifyRegexUrls, 'name', { value: 'remarkLinkifyReg
 
 /** remark-attributes plugin */
 export const remarkAttributesConfig = { scope: 'permissive' } as const
+
+/** rehype-mermaid plugin */
+export const rehypeMermaidConfig = {
+  strategy: 'inline-svg',
+  css: new URL('../../styles/vendor/mermaid.css', import.meta.url),
+  mermaidConfig: {
+    fontFamily: '"Onest Regular", arial, sans-serif',
+  },
+  errorFallback: (_element: unknown, _diagram: string, error: unknown, file: unknown) => {
+    const filePath =
+      typeof (file as { path?: unknown } | null)?.path === 'string' ? ((file as { path: string }).path as string) : undefined
+
+    throw new BuildError(new Error("Mermaid couldn't graph this diagram.", { cause: error }), {
+      phase: 'compilation',
+      tool: 'mermaid',
+      filePath,
+    })
+  },
+} as const
 
 /** rehype-autolink-headings plugin */
 export const rehypeAutolinkHeadingsConfig: RehypeAutolinkHeadingsOptions = {
@@ -401,6 +425,8 @@ export const markdownConfig: Partial<MdxOptions> = {
      * replaced with <mjx-container> before Tailwind class injection.
      */
     rehypeMathjax,
+    /** Render Mermaid diagrams to inline SVG at build-time */
+    [rehypeMermaid, rehypeMermaidConfig],
     /**
      * Automatically add Tailwind classes to markdown elements as
      * specified in src/lib/markdown/rehype-tailwind-classes.ts

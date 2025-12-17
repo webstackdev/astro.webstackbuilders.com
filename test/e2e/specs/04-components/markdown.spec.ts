@@ -216,6 +216,18 @@ test.describe('Markdown (MDX) fixture page', () => {
     })
   })
 
+  test.describe('Mermaid (rehype-mermaid)', () => {
+    test('renders Mermaid as inline SVG at build-time', async () => {
+      await expect(markdownPage.heading('Mermaid (rehype-mermaid)', 2)).toBeVisible()
+
+      const diagramSvg = markdownPage.prose.locator('svg[id^="mermaid-"]').first()
+      await expect(diagramSvg).toBeVisible()
+
+      await expect(markdownPage.prose.locator('code.language-mermaid')).toHaveCount(0)
+      await expect(markdownPage.prose.locator('pre.mermaid')).toHaveCount(0)
+    })
+  })
+
   test.describe('Math (remark-math + rehype-mathjax)', () => {
     test('renders TeX as SVG at build-time (no client-side MathJax)', async ({ page }) => {
       await expect(markdownPage.heading('Math (remark-math + rehype-mathjax)', 2)).toBeVisible()
