@@ -276,28 +276,6 @@ const markdownCodeCopyConfig = {
 }
 ```
 
-
-
-## Math - LATEX / KATEX
-
-### Exclude Mermaid, Latex, etc. from Shiki syntax highlighting in code blocks
-
-An array of languages to exclude from the default syntax highlighting specified in markdown.syntaxHighlight.type. This can be useful when using tools that create diagrams from Markdown code blocks, such as Mermaid.js and D2.
-
-```javascript
-// astro.config.mjs
-import { defineConfig } from 'astro/config'
-
-export default defineConfig({
-  markdown: {
-    syntaxHighlight: {
-      type: 'shiki',
-      excludeLangs: ['mermaid', 'math'],
-    },
-  },
-})
-```
-
 ### rehype-mathjax and remark-math
 
 - `rehype-katex` is alternative but lacks accessibility

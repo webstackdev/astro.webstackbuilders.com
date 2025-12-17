@@ -297,7 +297,6 @@ function stripStartMarker(paragraph: MdastNode & { children: MdastNode[] }, repr
         } else {
           child.value = nextValue
         }
-        remaining = ''
         break
       }
 
@@ -335,7 +334,6 @@ function stripEndMarker(paragraph: MdastNode & { children: MdastNode[] }, repres
         } else {
           child.value = nextValue
         }
-        remaining = ''
         break
       }
 

@@ -61,7 +61,7 @@ beforeAll(() => {
           // Extract test name without extension or suffix
           // Units: remark-breaks.spec.ts -> remark-breaks
           // Units with Astro: remark-breaks-astro.spec.ts -> remark-breaks
-          // E2E: remarkBreaks.spec.tsx -> remarkBreaks
+          // E2E: remark-breaks.spec.tsx -> remark-breaks
           const testName = item
             .replace(/\.spec\.tsx?$/, '')
             .replace(/-astro$/, '')
@@ -127,7 +127,8 @@ describe('Markdown Plugin Test Coverage', () => {
     )
 
     it.each(remarkPlugins)('should have e2e test for $pluginName', ({ pluginName }) => {
-      expect(testFiles.e2e.has(pluginName), `Missing test in e2e/unifiedPlugins/${pluginName}.spec.tsx`).toBe(true)
+      const pluginNameKebab = toKebabCase(pluginName)
+      expect(testFiles.e2e.has(pluginNameKebab), `Missing test in e2e/${pluginNameKebab}.spec.tsx`).toBe(true)
     })
 
     it.each(remarkPlugins.filter(p => !p.isLocal))(
@@ -152,7 +153,8 @@ describe('Markdown Plugin Test Coverage', () => {
     )
 
     it.each(rehypePlugins)('should have e2e test for $pluginName', ({ pluginName }) => {
-      expect(testFiles.e2e.has(pluginName), `Missing test in e2e/unifiedPlugins/${pluginName}.spec.tsx`).toBe(true)
+      const pluginNameKebab = toKebabCase(pluginName)
+      expect(testFiles.e2e.has(pluginNameKebab), `Missing test in e2e/${pluginNameKebab}.spec.tsx`).toBe(true)
     })
 
     it.each(rehypePlugins.filter(p => !p.isLocal))(

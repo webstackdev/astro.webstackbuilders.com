@@ -51,7 +51,7 @@ describe('Layer 3: E2E - remarkGfm', () => {
     const links = Array.from(container.querySelectorAll('a'))
     const hrefs = links.map(link => link.getAttribute('href') ?? '')
 
-    expect(hrefs.some(href => /^https?:\/\/www\.example\.com/.test(href))).toBe(true)
+    expect(hrefs.some(href => /^https?:\/\/www\.example\.com(?:\/|$)/.test(href))).toBe(true)
     expect(hrefs).toContain('https://example.com')
     expect(hrefs).toContain('mailto:contact@example.com')
   })
