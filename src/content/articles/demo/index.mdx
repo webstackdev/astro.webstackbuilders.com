@@ -227,14 +227,6 @@ Display customer feedback and testimonials:
 
 ## GFM
 
-### Autolink literals
-
-```markdown
-www.example.com, https://example.com, and contact@example.com.
-```
-
-www.example.com, https://example.com, and contact@example.com.
-
 ### Footnote
 
 ```markdown
@@ -311,9 +303,9 @@ The references can be anywhere in the document, before or after their use:
 |        | *formatted*     |
 |        | **paragraphs**  |
 |        | ```             |
-| multi  | and contain     |
-| line   | blocks          |
-| cells  | ```             |
+| multi  | and             |
+| line   | `contain`       |
+| cells  | blocks          |
 +========+=========:+======+
 | footer |    cells |      |
 +--------+----------+------+
@@ -332,9 +324,9 @@ The references can be anywhere in the document, before or after their use:
 |        | *formatted*     |
 |        | **paragraphs**  |
 |        | ```             |
-| multi  | and contain     |
-| line   | blocks          |
-| cells  | ```             |
+| multi  | and             |
+| line   | `contain`       |
+| cells  | blocks          |
 +========+=========:+======+
 | footer |    cells |      |
 +--------+----------+------+
@@ -481,20 +473,14 @@ Unified uses the backslash character to treat special Markdown symbols as litera
 \[ and \] (square brackets): Used for links
 \( and \) (parentheses): Used in links or for other extensions like superscripts
 \+, \-, \. (plus, minus, period): Used for lists
-\! (exclamation mark): Used for images (![]())
+\! (exclamation mark): Used for images (![Alt Text]())
 \` (backtick): Used for inline code blocks
 \> (greater-than sign): Used for blockquotes
 \| (pipe): Used for tables in extended Markdown syntax
 
 ## Comments
 
-(works if nothing here)
-
-```markdown
-{/* This content will not appear in the rendered Markdown */}
-```
-
-{/* This content will not appear in the rendered Markdown */}
+Comments are not available, because it requires using Astro layout syntax (jsdoc-style comment inside squiggly brackets), which triggers Markdownlint rule requiring no spaces inside emphasis markers like asterisk.
 
 ## Colors
 
@@ -712,6 +698,24 @@ my ==marked== text
 
 my ==marked== text
 
+### rehype-mathjax and remark-math
+
+- `rehype-katex` is alternative but lacks accessibility
+
+```markdown
+Lift($$L$$) can be determined by Lift Coefficient ($$C_L$$) like the following
+equation.
+```
+
+Lift($$L$$) can be determined by Lift Coefficient ($$C_L$$) like the following
+equation.
+
+The string `L = \frac{1}{2} \rho v^2 S C_L` within a fenced code black set to language `math`:
+
+```math
+L = \frac{1}{2} \rho v^2 S C_L
+```
+
 ### remark-supersub
 
 Subscript and superscript text
@@ -743,11 +747,11 @@ Embed videos in HTML5 markup that are in the `/public` folder
 ### remark-youtube
 
 ```markdown
-https://youtu.be/enTFE2c68FQ
+[Example Video 1](https://youtu.be/enTFE2c68FQ)
 
-https://www.youtube.com/watch?v=enTFE2c68FQ
+[Example Video 2](https://www.youtube.com/watch?v=enTFE2c68FQ)
 ```
 
-https://youtu.be/enTFE2c68FQ
+[Example Video 1](https://youtu.be/enTFE2c68FQ)
 
-https://www.youtube.com/watch?v=enTFE2c68FQ
+[Example Video 2](https://www.youtube.com/watch?v=enTFE2c68FQ)

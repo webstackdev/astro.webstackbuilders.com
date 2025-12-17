@@ -25,6 +25,9 @@ Object.defineProperty(rehypeHeadingIds, 'name', { value: 'rehypeHeadingIds' })
 import { rehypeAccessibleEmojis } from 'rehype-accessible-emojis'
 Object.defineProperty(rehypeAccessibleEmojis, 'name', { value: 'rehypeAccessibleEmojis' })
 
+import rehypeMathjax from 'rehype-mathjax'
+Object.defineProperty(rehypeMathjax, 'name', { value: 'rehypeMathjax' })
+
 import type { Options as RehypeAutolinkHeadingsOptions } from 'rehype-autolink-headings'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 Object.defineProperty(rehypeAutolinkHeadings, 'name', { value: 'rehypeAutolinkHeadings' })
@@ -49,6 +52,9 @@ Object.defineProperty(rehypeInlineCodeColorSwatch, 'name', { value: 'rehypeInlin
 
 import remarkGfm from 'remark-gfm'
 Object.defineProperty(remarkGfm, 'name', { value: 'remarkGfm' })
+
+import remarkMath from 'remark-math'
+Object.defineProperty(remarkMath, 'name', { value: 'remarkMath' })
 
 import remarkBreaks from 'remark-breaks'
 Object.defineProperty(remarkBreaks, 'name', { value: 'remarkBreaks' })
@@ -246,6 +252,9 @@ export const remarkGfmConfig = {
   singleTilde: false,
 } as const
 
+/** remark-math plugin (parse TeX math; avoid $...$ to prevent accidental currency parsing) */
+export const remarkMathConfig = { singleDollarTextMath: false } as const
+
 export const shikiConfigOptions: ShikiConfig = {
   // Alternatively, provide multiple themes
   // See note below for using dual light/dark themes
@@ -327,6 +336,8 @@ export const markdownConfig: Partial<MdxOptions> = {
   remarkPlugins: [
     /** GitHub Flavored Markdown (explicit, configured) */
     [remarkGfm, remarkGfmConfig],
+    /** TeX math blocks/inline (server-rendered later by rehype-mathjax) */
+    [remarkMath, remarkMathConfig],
     /** Define abbreviations at bottom file, and wraps their usage in <abbr> tags */
     remarkAbbreviations,
     /** Align blocks/paragraphs using -> / <- marker syntax */
@@ -389,6 +400,12 @@ export const markdownConfig: Partial<MdxOptions> = {
      * using the header title text converted to kebab-case
      */
     [rehypeAutolinkHeadings, rehypeAutolinkHeadingsConfig],
+    /**
+     * Render TeX math to SVG at build-time (no client-side MathJax).
+     * Keep this before rehypeTailwindClasses so math placeholders (<code>/<pre>) are
+     * replaced with <mjx-container> before Tailwind class injection.
+     */
+    rehypeMathjax,
     /**
      * Automatically add Tailwind classes to markdown elements as
      * specified in src/lib/markdown/rehype-tailwind-classes.ts

@@ -280,12 +280,22 @@ const markdownCodeCopyConfig = {
 
 - `rehype-katex` is alternative but lacks accessibility
 
+```markdown
+Lift($$L$$) can be determined by Lift Coefficient ($$C_L$$) like the following
+equation.
+```
+
+Lift($$L$$) can be determined by Lift Coefficient ($$C_L$$) like the following
+equation.
+
+The string `L = \frac{1}{2} \rho v^2 S C_L` within a fenced code black set to language `math`:
+
 ```math
 L = \frac{1}{2} \rho v^2 S C_L
 ```
 
 
-### Mermaid JavaScript based diagramming and charting tool
+### rehype-mermaid
 
 ```mermaid
 graph TD
@@ -294,9 +304,3 @@ graph TD
     B -->|No| D[Debug]
     D --> B
 ```
-
-### Apache ECharts interactive charting and data visualization library for browser
-
-@TODO: uses ES Modules, needs Jest config adjusted. See note in Mermaid plugin spec file.
-
-`markdown-it-echarts`

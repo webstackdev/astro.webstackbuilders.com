@@ -216,6 +216,25 @@ test.describe('Markdown (MDX) fixture page', () => {
     })
   })
 
+  test.describe('Math (remark-math + rehype-mathjax)', () => {
+    test('renders TeX as SVG at build-time (no client-side MathJax)', async ({ page }) => {
+      await expect(markdownPage.heading('Math (remark-math + rehype-mathjax)', 2)).toBeVisible()
+
+      const mjx = markdownPage.prose.locator('mjx-container[jax="SVG"]')
+      const mjxCount = await mjx.count()
+      expect(mjxCount).toBeGreaterThanOrEqual(1)
+
+      await expect(mjx.first().locator('svg')).toBeVisible()
+
+      await expect(markdownPage.prose.locator('code.language-math')).toHaveCount(0)
+
+      await expect(markdownPage.prose).toContainText('Single-dollar stays text')
+      await expect(markdownPage.prose).toContainText('$x$')
+
+      await expect(page.locator('script[src*="mathjax" i]')).toHaveCount(0)
+    })
+  })
+
   test.describe('remark-captions', () => {
     test('wraps captioned elements in figure/figcaption', async () => {
       await expect(markdownPage.heading('Captions (remark-captions)', 2)).toBeVisible()
