@@ -34,19 +34,4 @@ jobs:
         env:
           ASTRO_DB_REMOTE_URL: ${{ secrets.ASTRO_DB_REMOTE_URL }}
           ASTRO_DB_APP_TOKEN: ${{ secrets.ASTRO_DB_APP_TOKEN }}
-        run: |
-          node --input-type=module -e "\
-          import { createClient } from '@libsql/client';\
-          const url = process.env.ASTRO_DB_REMOTE_URL;\
-          const authToken = process.env.ASTRO_DB_APP_TOKEN;\
-          if (!url || !authToken) {\
-            throw new Error('Missing ASTRO_DB_REMOTE_URL or ASTRO_DB_APP_TOKEN');\
-          }\
-          const client = createClient({ url, authToken });\
-          try {\
-            await client.execute('SELECT 1');\
-            console.log('[ping-turso] OK');\
-          } finally {\
-            client.close();\
-          }\
-          "
+        uses: './.github/actions/ping-turso-keep-alive-query'
