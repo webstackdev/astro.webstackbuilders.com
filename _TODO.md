@@ -231,20 +231,6 @@ You can then opt-out of prefetching for individual links by setting data-astro-p
 
 ## Markdown
 
-### Video embedding
-
-### remark-video, also needs remark-directive
-
-Embed videos in HTML5 markup that are in the `/public` folder
-
-```markdown
-::video{src=/videos/sample-video-1.mp4}
-
-:::video
-/videos/sample-video-1.mp4
-:::
-```
-
 ### remark-youtube
 
 ```markdown
@@ -320,10 +306,9 @@ export default defineConfig({
 })
 ```
 
-### TeX rendering using KaTeX for math symbols
+### rehype-mathjax and remark-math
 
-- `rehype-katex`
-- `rehype-mathjax` and `remark-math`
+- `rehype-katex` is alternative but lacks accessibility
 
 ```math
 L = \frac{1}{2} \rho v^2 S C_L
@@ -332,30 +317,12 @@ L = \frac{1}{2} \rho v^2 S C_L
 
 ### Mermaid JavaScript based diagramming and charting tool
 
-@TODO: uses ES Modules, needs Jest config adjusted. See note in spec file.
-
-`@liradb2000/markdown-it-mermaid`
-
-```typescript
-const markdownMermaidConfig = {
-  startOnLoad: false,
-  securityLevel: true,
-  theme: 'default',
-  flowchart: {
-    htmlLabels: false,
-    useMaxWidth: true,
-  },
-  dictionary: {
-    token: 'mermaid',
-    graph: 'graph',
-    sequenceDiagram: 'sequenceDiagram',
-  },
-  // ...or any other options
-}
-
-markdown.syntaxHighlight.excludeLangs
-Type: Array<string>
-Default: ['math']
+```mermaid
+graph TD
+    A[Start] --> B{Is it working?}
+    B -->|Yes| C[Great!]
+    B -->|No| D[Debug]
+    D --> B
 ```
 
 ### Apache ECharts interactive charting and data visualization library for browser

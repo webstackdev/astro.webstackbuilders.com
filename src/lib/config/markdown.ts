@@ -68,6 +68,12 @@ Object.defineProperty(remarkCaptions, 'name', { value: 'remarkCaptions' })
 import remarkCustomBlocks from '../markdown/plugins/remark-custom-blocks'
 Object.defineProperty(remarkCustomBlocks, 'name', { value: 'remarkCustomBlocks' })
 
+import remarkDirective from 'remark-directive'
+Object.defineProperty(remarkDirective, 'name', { value: 'remarkDirective' })
+
+import remarkVideo, { type Config as RemarkVideoConfig } from 'remark-video'
+Object.defineProperty(remarkVideo, 'name', { value: 'remarkVideo' })
+
 import remarkMarkPlus from '../markdown/plugins/remark-mark-plus'
 Object.defineProperty(remarkMarkPlus, 'name', { value: 'remarkMarkPlus' })
 
@@ -226,6 +232,11 @@ export const remarkCaptionsConfig = {
   },
 } as const
 
+/** remark-video plugin */
+export const remarkVideoConfig: RemarkVideoConfig = {
+  publicDir: './public',
+}
+
 /** remark-gfm plugin (explicit config; we disable Astro's built-in GFM injection below) */
 export const remarkGfmConfig = {
   // Reserve single-tilde syntax (~sub~) for remark-supersub; keep ~~strike~~.
@@ -341,6 +352,10 @@ export const markdownConfig: Partial<MdxOptions> = {
     remarkBreaks,
     /** Convert emoji syntax like :heart: to emoji images */
     remarkEmoji,
+    /** Support generic directive syntax (required by remark-video) */
+    remarkDirective,
+    /** HTML5 video via MDX-safe :::video directive blocks */
+    [remarkVideo, remarkVideoConfig],
     /** Automatically convert URL-like text to links */
     remarkLinkifyRegexUrls,
     /**

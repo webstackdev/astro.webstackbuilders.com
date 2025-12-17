@@ -155,6 +155,26 @@ test.describe('Markdown (MDX) fixture page', () => {
     })
   })
 
+  test.describe('remark-video', () => {
+    test('renders an HTML5 video element from :::video directive syntax', async () => {
+      await expect(markdownPage.heading('Video (remark-video)', 2)).toBeVisible()
+
+      const figure = markdownPage.prose.locator('[data-remark-video-figure]').first()
+      await expect(figure).toBeVisible()
+
+      const video = figure.locator('video').first()
+      await expect(video).toBeVisible()
+      await expect(video).toHaveJSProperty('controls', true)
+      await expect(video).toHaveAttribute('preload', 'metadata')
+      await expect(video).toHaveAttribute('width', '100%')
+
+      const source = video.locator('source').first()
+      await expect(source).toHaveCount(1)
+      await expect(source).toHaveAttribute('src', '/videos/sample-video-1.mp4')
+      await expect(source).toHaveAttribute('type', 'video/mp4')
+    })
+  })
+
   test.describe('remark-supersub', () => {
     test('renders subscript and superscript elements', async () => {
       await expect(markdownPage.heading('Supersub (remark-supersub)', 2)).toBeVisible()

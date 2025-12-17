@@ -30,6 +30,7 @@ type Position = {
 type MdastNode = {
   type: string
   value?: string
+  name?: string
   children?: MdastNode[]
   data?:
     | (Data & {
@@ -107,24 +108,29 @@ function isEscapedAtOffset(raw: string, offset: number | undefined): boolean {
 
 function detectMarkerOnlyParagraph(node: MdastNode, raw: string): MarkerInfo | null {
   if (!isParagraph(node)) return null
-  if (node.children.length !== 1) return null
-  const only = node.children[0]
-  if (!only) return null
-  if (only.type !== 'text' || typeof only.value !== 'string') return null
-  if (only.data?.__remarkAlignEscaped) return null
-  const trimmed = only.value.trim()
+  const candidate = getMarkerOnlyCandidate(node)
+  if (!candidate) return null
+  const trimmed = candidate.trim()
 
-  // Support escaping tags for literal output: "\\[center]" -> "[center]".
-  if (trimmed.startsWith('\\')) {
-    const candidate = trimmed.slice(1)
-    const isKnown = START_TAGS.some(entry => entry.tag === candidate) || END_TAGS.some(entry => entry.tag === candidate)
-    if (isKnown) {
-      only.value = only.value.replace(trimmed, candidate)
-      only.data = { ...only.data, __remarkAlignEscaped: true }
-      return null
+  // NOTE: Escaping is only supported for the single-text-node marker form.
+  // When remark-directive is enabled, ":row" markers can be split into directive nodes;
+  // in that case, users should escape the entire tag if they need literal output.
+  if (node.children.length === 1) {
+    const only = node.children[0]
+    if (only && only.type === 'text' && typeof only.value === 'string') {
+      // Support escaping tags for literal output: "\\[center]" -> "[center]".
+      if (trimmed.startsWith('\\')) {
+        const unescaped = trimmed.slice(1)
+        const isKnown = START_TAGS.some(entry => entry.tag === unescaped) || END_TAGS.some(entry => entry.tag === unescaped)
+        if (isKnown) {
+          only.value = only.value.replace(trimmed, unescaped)
+          only.data = { ...only.data, __remarkAlignEscaped: true }
+          return null
+        }
+      }
+      if (isEscapedAtOffset(raw, only.position?.start?.offset)) return null
     }
   }
-  if (isEscapedAtOffset(raw, only.position?.start?.offset)) return null
 
   const start = START_TAGS.find(entry => entry.tag === trimmed)
   if (start) return { align: start.align, layout: start.layout, markerOnly: true, representation: start.tag }
@@ -135,11 +141,58 @@ function detectMarkerOnlyParagraph(node: MdastNode, raw: string): MarkerInfo | n
   return null
 }
 
+function isRowDirective(node: MdastNode): boolean {
+  if (!node) return false
+  // remark-directive uses: textDirective | leafDirective | containerDirective
+  if (node.type !== 'textDirective' && node.type !== 'leafDirective' && node.type !== 'containerDirective') return false
+  return node.name === 'row'
+}
+
+function serializeMarkerChild(node: MdastNode): string | null {
+  if (node.type === 'text' && typeof node.value === 'string') return node.value
+  if (isRowDirective(node)) return ':row'
+  return null
+}
+
+function getMarkerOnlyCandidate(paragraph: MdastNode & { children: MdastNode[] }): string | null {
+  if (paragraph.children.length === 0) return null
+  // Marker-only paragraphs must contain only text and (optionally) a single :row directive.
+  let directiveCount = 0
+  const parts: string[] = []
+  for (const child of paragraph.children) {
+    const serialized = serializeMarkerChild(child)
+    if (serialized === null) return null
+    if (serialized === ':row') directiveCount++
+    parts.push(serialized)
+  }
+  if (directiveCount > 1) return null
+  return parts.join('')
+}
+
 function detectStartMarker(node: MdastNode, raw: string): MarkerInfo | null {
   const markerOnly = detectMarkerOnlyParagraph(node, raw)
   if (markerOnly) return markerOnly
 
   if (!isParagraph(node)) return null
+
+  // If a marker was unescaped for literal output, never treat it as syntax.
+  if (node.children.some(child => child?.type === 'text' && child.data?.__remarkAlignEscaped)) return null
+
+  // Support tags where ":row" was parsed into directive nodes (e.g. "[right" + :row + "]").
+  // This can happen if a directive parser runs before this plugin.
+  const serialized = serializeAlignParagraph(node)
+  if (serialized) {
+    const start = START_TAGS.find(entry => serialized.startsWith(entry.tag))
+    if (start) {
+      return {
+        align: start.align,
+        layout: start.layout === 'blockRow' ? 'blockRow' : 'inline',
+        markerOnly: false,
+        representation: start.tag,
+      }
+    }
+  }
+
   const first = findFirstTextChild(node)
   if (!first) return null
   if (!first.node) return null
@@ -181,6 +234,17 @@ function detectEndMarker(node: MdastNode, raw: string): MarkerInfo | null {
   if (markerOnly) return markerOnly
 
   if (!isParagraph(node)) return null
+
+  // If a marker was unescaped for literal output, never treat it as syntax.
+  if (node.children.some(child => child?.type === 'text' && child.data?.__remarkAlignEscaped)) return null
+
+  // Support tags where ":row" was parsed into directive nodes (e.g. "[/right" + :row + "]").
+  const serialized = serializeAlignParagraph(node)
+  if (serialized) {
+    const end = END_TAGS.find(entry => serialized.endsWith(entry.tag))
+    if (end) return { align: end.align, layout: 'inline', markerOnly: false, representation: end.tag }
+  }
+
   const last = findLastTextChild(node)
   if (!last) return null
   if (!last.node) return null
@@ -203,31 +267,93 @@ function detectEndMarker(node: MdastNode, raw: string): MarkerInfo | null {
   return { align: end.align, layout: 'inline', markerOnly: false, representation: end.tag }
 }
 
+function serializeAlignParagraph(paragraph: MdastNode & { children: MdastNode[] }): string | null {
+  // We only serialize when the paragraph is made of plain text and row directives.
+  // If other nodes exist (links/emphasis/etc), we bail to avoid false matches.
+  const parts: string[] = []
+  for (const child of paragraph.children) {
+    const serialized = serializeMarkerChild(child)
+    if (serialized === null) return null
+    parts.push(serialized)
+  }
+  return parts.join('')
+}
+
 function stripStartMarker(paragraph: MdastNode & { children: MdastNode[] }, representation: string) {
-  const first = findFirstTextChild(paragraph)
-  if (!first) return
-  if (!first.node) return
-  const text = first.node.value as string
-  if (!text.startsWith(representation)) return
-  const next = text.slice(representation.length)
-  if (next.length === 0) {
-    paragraph.children.splice(first.index, 1)
-  } else {
-    first.node.value = next
+  let remaining = representation
+  let index = 0
+  while (remaining.length > 0 && index < paragraph.children.length) {
+    const child = paragraph.children[index]
+    if (!child) break
+
+    if (child.type === 'text' && typeof child.value === 'string') {
+      const value = child.value
+      if (!remaining.startsWith(value)) {
+        // Child might be longer than remaining; match prefix instead.
+        if (!value.startsWith(remaining)) break
+        const nextValue = value.slice(remaining.length)
+        if (nextValue.length === 0) {
+          paragraph.children.splice(index, 1)
+        } else {
+          child.value = nextValue
+        }
+        remaining = ''
+        break
+      }
+
+      remaining = remaining.slice(value.length)
+      paragraph.children.splice(index, 1)
+      continue
+    }
+
+    if (isRowDirective(child)) {
+      if (!remaining.startsWith(':row')) break
+      remaining = remaining.slice(':row'.length)
+      paragraph.children.splice(index, 1)
+      continue
+    }
+
+    break
   }
 }
 
 function stripEndMarker(paragraph: MdastNode & { children: MdastNode[] }, representation: string) {
-  const last = findLastTextChild(paragraph)
-  if (!last) return
-  if (!last.node) return
-  const text = last.node.value as string
-  if (!text.endsWith(representation)) return
-  const next = text.slice(0, -representation.length)
-  if (next.length === 0) {
-    paragraph.children.splice(last.index, 1)
-  } else {
-    last.node.value = next
+  let remaining = representation
+  let index = paragraph.children.length - 1
+  while (remaining.length > 0 && index >= 0) {
+    const child = paragraph.children[index]
+    if (!child) break
+
+    if (child.type === 'text' && typeof child.value === 'string') {
+      const value = child.value
+      if (!remaining.endsWith(value)) {
+        // Child might be longer than remaining; match suffix instead.
+        if (!value.endsWith(remaining)) break
+        const nextValue = value.slice(0, value.length - remaining.length)
+        if (nextValue.length === 0) {
+          paragraph.children.splice(index, 1)
+        } else {
+          child.value = nextValue
+        }
+        remaining = ''
+        break
+      }
+
+      remaining = remaining.slice(0, remaining.length - value.length)
+      paragraph.children.splice(index, 1)
+      index--
+      continue
+    }
+
+    if (isRowDirective(child)) {
+      if (!remaining.endsWith(':row')) break
+      remaining = remaining.slice(0, remaining.length - ':row'.length)
+      paragraph.children.splice(index, 1)
+      index--
+      continue
+    }
+
+    break
   }
 }
 
