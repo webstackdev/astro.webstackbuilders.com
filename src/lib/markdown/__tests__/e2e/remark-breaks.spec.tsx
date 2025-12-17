@@ -2,8 +2,10 @@
 /**
  * Layer 3: E2E Tests - remarkBreaks
  *
- * Tests for the remarkBreaks plugin which adds support for hard line breaks
- * without requiring double spaces or backslashes.
+ * Regression test:
+ * We intentionally do NOT convert single newlines to hard line breaks (<br>)
+ * in the site pipeline, because prose is often hard-wrapped and that would
+ * introduce visible mid-sentence line breaks.
  */
 
 import { describe, it, expect, beforeAll, afterEach } from 'vitest'
@@ -27,12 +29,11 @@ afterEach(() => {
 })
 
 describe('Layer 3: E2E - remarkBreaks', () => {
-  it('should convert single newlines to hard line breaks', () => {
+  it('should not convert single newlines to hard line breaks', () => {
     const { container } = render(<MarkdownOutput html={html} />)
 
-    // The plugin should convert single newlines to <br> tags
-    expect(html).toContain('<br>')
-    expect(container.querySelectorAll('br').length).toBeGreaterThan(0)
+    expect(html).not.toContain('<br>')
+    expect(container.querySelectorAll('br').length).toBe(0)
   })
 
   it('should preserve paragraph breaks for double newlines', () => {

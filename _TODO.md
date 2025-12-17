@@ -154,13 +154,6 @@ cat.structure: Rules related to the document's overall structure, like the prope
 cat.tables: Rules for data tables, including headers and associations.
 cat.text-alternatives: Rules for ensuring that text alternatives are provided for non-text content, such as images.
 
-## "Add to Calendar" button
-
-Google Calendar, Apple Calendar,  Yahoo Calender,  Microsoft 365, Outlook, and Teams, and generate iCal/ics files (for all other calendars and cases).
-
-`https://github.com/add2cal/add-to-calendar-button`
-`https://add-to-calendar-button.com/`
-
 ## Set up webmentions
 
 Needs to add real API key and test
@@ -169,6 +162,13 @@ Needs to add real API key and test
 - Add WEBMENTION_IO_TOKEN to .env
 - (Optional) Set up Bridgy for social media
 - Test with sample webmentions
+
+## "Add to Calendar" button
+
+Google Calendar, Apple Calendar,  Yahoo Calender,  Microsoft 365, Outlook, and Teams, and generate iCal/ics files (for all other calendars and cases).
+
+`https://github.com/add2cal/add-to-calendar-button`
+`https://add-to-calendar-button.com/`
 
 ## Astro wrapper for the `@github/clipboard-copy-element` web component. Copies element text content or input values to the clipboard
 
@@ -276,24 +276,11 @@ const markdownCodeCopyConfig = {
 }
 ```
 
-### rehype-mathjax and remark-math
-
-- `rehype-katex` is alternative but lacks accessibility
-
-```markdown
-Lift($$L$$) can be determined by Lift Coefficient ($$C_L$$) like the following
-equation.
-```
-
-Lift($$L$$) can be determined by Lift Coefficient ($$C_L$$) like the following
-equation.
-
-The string `L = \frac{1}{2} \rho v^2 S C_L` within a fenced code black set to language `math`:
-
-```math
-L = \frac{1}{2} \rho v^2 S C_L
-```
-
+Next I'd like to setup the rehype-mermaid package. I've installed it already.
+1. Use the 'inline-svg' strategy
+2. Point the 'css' option key to a file src/styles/vendor/mermaid.css
+3. In the 'errorFallback' add a function that rethrows the error as a BuildError with descriptive text that Mermaid has encountered something it can't graph
+4. Evaluate whether we can set fontFamily in the mermaidConfig option property to use one of our fonts in public/fonts. The docs mention "You need to call mermaid.initialize() manually", I'm not sure if we can do this.
 
 ### rehype-mermaid
 

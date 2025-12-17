@@ -233,6 +233,30 @@ test.describe('Markdown (MDX) fixture page', () => {
 
       await expect(page.locator('script[src*="mathjax" i]')).toHaveCount(0)
     })
+
+    test('does not force line breaks for hard-wrapped prose', async () => {
+      const paragraph = markdownPage.prose.locator('p', { hasText: 'Lift(' }).first()
+      await expect(paragraph).toBeVisible()
+
+      const renderedText = await paragraph.evaluate(node => {
+        if (node instanceof HTMLElement) {
+          return node.innerText ?? ''
+        }
+
+        return node.textContent ?? ''
+      })
+      expect(renderedText).toContain('like the following equation.')
+      expect(renderedText).not.toContain('like the following\nequation.')
+
+      const rawHtml = await paragraph.evaluate(node => node.innerHTML)
+      expect(rawHtml.toLowerCase()).not.toContain('<br')
+
+      const mjxSvg = paragraph.locator('mjx-container[jax="SVG"] svg').first()
+      await expect(mjxSvg).toBeVisible()
+
+      const svgDisplay = await mjxSvg.evaluate(node => window.getComputedStyle(node).display)
+      expect(svgDisplay).not.toBe('block')
+    })
   })
 
   test.describe('remark-captions', () => {

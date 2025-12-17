@@ -56,9 +56,6 @@ Object.defineProperty(remarkGfm, 'name', { value: 'remarkGfm' })
 import remarkMath from 'remark-math'
 Object.defineProperty(remarkMath, 'name', { value: 'remarkMath' })
 
-import remarkBreaks from 'remark-breaks'
-Object.defineProperty(remarkBreaks, 'name', { value: 'remarkBreaks' })
-
 import remarkEmoji from 'remark-emoji'
 Object.defineProperty(remarkEmoji, 'name', { value: 'remarkEmoji' })
 
@@ -362,8 +359,6 @@ export const markdownConfig: Partial<MdxOptions> = {
     [remarkAttributes, remarkAttributesConfig],
     /** Wrap blockquotes with attribution in semantic figure/figcaption markup */
     remarkAttribution,
-    /** Add <br/> tag to single line breaks */
-    remarkBreaks,
     /** Convert emoji syntax like :heart: to emoji images */
     remarkEmoji,
     /** Support generic directive syntax (required by remark-video) */
