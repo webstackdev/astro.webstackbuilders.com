@@ -1,6 +1,6 @@
-import { writeFileSync } from 'fs'
+import { mkdtempSync, rmSync, writeFileSync } from 'fs'
 import { tmpdir } from 'os'
-import { resolve } from 'path'
+import { join, resolve } from 'path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 type CoreMock = {
@@ -19,8 +19,12 @@ const core: CoreMock = {
 
 vi.mock('@actions/core', () => core)
 
+const tempDirs: string[] = []
+
 const createTempEventFile = (payload: unknown) => {
-  const filePath = resolve(tmpdir(), `publish-preview-status-${Date.now()}-${Math.random().toString(16).slice(2)}.json`)
+  const tempDir = mkdtempSync(resolve(tmpdir(), 'publish-preview-status-'))
+  tempDirs.push(tempDir)
+  const filePath = join(tempDir, 'event.json')
   writeFileSync(filePath, JSON.stringify(payload), 'utf8')
   return filePath
 }
@@ -53,6 +57,9 @@ describe('publish-preview-status action', () => {
 
   afterEach(() => {
     process.env = originalEnv
+    for (const dir of tempDirs.splice(0)) {
+      rmSync(dir, { recursive: true, force: true })
+    }
     vi.unstubAllGlobals()
   })
 

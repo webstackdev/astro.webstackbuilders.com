@@ -54,12 +54,30 @@ const createGitHubRequestHeaders = (token: string) => ({
   'User-Agent': 'webstackbuilders-publish-preview-status-action',
 })
 
+const githubApiBaseUrl = (() => {
+  const raw = (process.env['GITHUB_API_URL'] ?? 'https://api.github.com').trim()
+  const parsed = new URL(raw)
+  if (parsed.protocol !== 'https:') {
+    throw new Error(`Unsupported GITHUB_API_URL protocol: ${parsed.protocol}`)
+  }
+  return raw.endsWith('/') ? raw : `${raw}/`
+})()
+
+const isAllowedFetchUrl = (url: string): boolean => {
+  const parsed = new URL(url)
+  return parsed.protocol === 'https:' && parsed.hostname === new URL(githubApiBaseUrl).hostname
+}
+
 const fetchJson = async <T>(
   url: string,
   init: RequestInit,
 ): Promise<{ ok: boolean; status: number; data: T | null }> => {
   if (typeof fetch !== 'function') {
     throw new Error('Fetch API unavailable in this runtime.')
+  }
+
+  if (!isAllowedFetchUrl(url)) {
+    throw new Error(`Blocked outbound request to untrusted URL: ${url}`)
   }
 
   const response = await fetch(url, init)
@@ -81,7 +99,10 @@ const listCheckRunsForRef = async (params: {
   sha: string
   token: string
 }): Promise<CheckRun[]> => {
-  const url = `https://api.github.com/repos/${params.owner}/${params.repo}/commits/${params.sha}/check-runs?filter=latest&per_page=100`
+  const url = new URL(
+    `repos/${params.owner}/${params.repo}/commits/${params.sha}/check-runs?filter=latest&per_page=100`,
+    githubApiBaseUrl,
+  ).toString()
   const { ok, status, data } = await fetchJson<ListCheckRunsResponse>(url, {
     headers: createGitHubRequestHeaders(params.token),
   })
@@ -121,7 +142,10 @@ const upsertCheckRun = async (params: {
   })).find((run) => run.name === checkName)
 
   if (existing) {
-    const url = `https://api.github.com/repos/${params.owner}/${params.repo}/check-runs/${existing.id}`
+    const url = new URL(
+      `repos/${params.owner}/${params.repo}/check-runs/${existing.id}`,
+      githubApiBaseUrl,
+    ).toString()
     const { ok, status } = await fetchJson<unknown>(url, {
       method: 'PATCH',
       headers,
@@ -141,7 +165,7 @@ const upsertCheckRun = async (params: {
     return
   }
 
-  const url = `https://api.github.com/repos/${params.owner}/${params.repo}/check-runs`
+  const url = new URL(`repos/${params.owner}/${params.repo}/check-runs`, githubApiBaseUrl).toString()
   const { ok, status } = await fetchJson<unknown>(url, {
     method: 'POST',
     headers,
@@ -193,34 +217,36 @@ export const run = async (): Promise<void> => {
       ? `https://github.com/${owner}/${repo}/actions/runs/${runId}`
       : `https://github.com/${owner}/${repo}`
 
-    let conclusion: 'success' | 'failure' = 'success'
-    let summary = ''
+    const result: { conclusion: 'success' | 'failure'; summary: string } = (() => {
+      if (isHotfix) {
+        return { conclusion: 'success', summary: 'Hotfix branch: preview deploy intentionally skipped.' }
+      }
 
-    if (isHotfix) {
-      conclusion = 'success'
-      summary = 'Hotfix branch: preview deploy intentionally skipped.'
-    } else if (verifyResult !== 'success') {
-      conclusion = 'failure'
-      summary = `CI verification failed (${verifyResult}).`
-    } else if (deployResult === 'success') {
-      conclusion = 'success'
-      summary = previewUrl ? `Preview deployed: ${previewUrl}` : 'Preview deployed.'
-    } else {
-      conclusion = 'failure'
-      summary = `Preview deployment failed (${deployResult}).`
-    }
+      if (verifyResult !== 'success') {
+        return { conclusion: 'failure', summary: `CI verification failed (${verifyResult}).` }
+      }
+
+      if (deployResult === 'success') {
+        return {
+          conclusion: 'success',
+          summary: previewUrl ? `Preview deployed: ${previewUrl}` : 'Preview deployed.',
+        }
+      }
+
+      return { conclusion: 'failure', summary: `Preview deployment failed (${deployResult}).` }
+    })()
 
     await upsertCheckRun({
       owner,
       repo,
       sha,
       token: githubToken,
-      conclusion,
-      summary,
+      conclusion: result.conclusion,
+      summary: result.summary,
       detailsUrl,
     })
 
-    info(`Published check run: ${checkName} (${conclusion}).`)
+    info(`Published check run: ${checkName} (${result.conclusion}).`)
   } catch (error: unknown) {
     setFailed(error instanceof Error ? error.message : String(error))
   }

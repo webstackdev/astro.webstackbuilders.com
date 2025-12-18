@@ -113,12 +113,34 @@ const createGitHubRequestHeaders = (token: string) => ({
 	'User-Agent': 'webstackbuilders-deploy-preview-comment-action',
 })
 
+const githubApiBaseUrl = (() => {
+	const raw = (process.env['GITHUB_API_URL'] ?? 'https://api.github.com').trim()
+	const parsed = new URL(raw)
+	if (parsed.protocol !== 'https:') {
+		throw new Error(`Unsupported GITHUB_API_URL protocol: ${parsed.protocol}`)
+	}
+	return raw.endsWith('/') ? raw : `${raw}/`
+})()
+
+const isAllowedFetchUrl = (url: string): boolean => {
+	const parsed = new URL(url)
+	if (parsed.protocol !== 'https:') {
+		return false
+	}
+	const allowedHosts = new Set([new URL(githubApiBaseUrl).hostname, 'api.vercel.com'])
+	return allowedHosts.has(parsed.hostname)
+}
+
 const fetchJson = async <T>(
 	url: string,
 	init: RequestInit,
 ): Promise<{ ok: boolean, status: number, data: T | null }> => {
 	if (typeof fetch !== 'function') {
 		throw new Error('Fetch API unavailable in this runtime.')
+	}
+
+	if (!isAllowedFetchUrl(url)) {
+		throw new Error(`Blocked outbound request to untrusted URL: ${url}`)
 	}
 
 	const response = await fetch(url, init)
@@ -190,7 +212,10 @@ const findExistingComment = async (params: {
 	const headers = createGitHubRequestHeaders(params.token)
 
 	for (let page = 1; page <= 50; page += 1) {
-		const url = `https://api.github.com/repos/${params.owner}/${params.repo}/issues/${params.issueNumber}/comments?per_page=100&page=${page}`
+		const url = new URL(
+			`repos/${params.owner}/${params.repo}/issues/${params.issueNumber}/comments?per_page=100&page=${page}`,
+			githubApiBaseUrl,
+		).toString()
 		const { ok, status, data } = await fetchJson<GitHubComment[]>(url, { headers })
 		if (!ok) {
 			warning(`Unable to list PR comments (status ${status}).`)
@@ -223,7 +248,10 @@ const upsertComment = async (params: {
 	}
 
 	if (params.existingCommentId) {
-		const url = `https://api.github.com/repos/${params.owner}/${params.repo}/issues/comments/${params.existingCommentId}`
+		const url = new URL(
+			`repos/${params.owner}/${params.repo}/issues/comments/${params.existingCommentId}`,
+			githubApiBaseUrl,
+		).toString()
 		const { ok, status } = await fetchJson<unknown>(url, {
 			method: 'PATCH',
 			headers,
@@ -235,7 +263,10 @@ const upsertComment = async (params: {
 		return
 	}
 
-	const url = `https://api.github.com/repos/${params.owner}/${params.repo}/issues/${params.issueNumber}/comments`
+	const url = new URL(
+		`repos/${params.owner}/${params.repo}/issues/${params.issueNumber}/comments`,
+		githubApiBaseUrl,
+	).toString()
 	const { ok, status } = await fetchJson<unknown>(url, {
 		method: 'POST',
 		headers,

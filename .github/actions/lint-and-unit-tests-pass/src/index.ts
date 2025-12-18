@@ -45,12 +45,30 @@ const createGitHubRequestHeaders = (token: string) => ({
   'User-Agent': 'webstackbuilders-lint-and-unit-tests-pass-action',
 })
 
+const githubApiBaseUrl = (() => {
+  const raw = (process.env['GITHUB_API_URL'] ?? 'https://api.github.com').trim()
+  const parsed = new URL(raw)
+  if (parsed.protocol !== 'https:') {
+    throw new Error(`Unsupported GITHUB_API_URL protocol: ${parsed.protocol}`)
+  }
+  return raw.endsWith('/') ? raw : `${raw}/`
+})()
+
+const isAllowedFetchUrl = (url: string): boolean => {
+  const parsed = new URL(url)
+  return parsed.protocol === 'https:' && parsed.hostname === new URL(githubApiBaseUrl).hostname
+}
+
 const fetchJson = async <T>(
   url: string,
   init: RequestInit,
 ): Promise<{ ok: boolean; status: number; data: T | null }> => {
   if (typeof fetch !== 'function') {
     throw new Error('Fetch API unavailable in this runtime.')
+  }
+
+  if (!isAllowedFetchUrl(url)) {
+    throw new Error(`Blocked outbound request to untrusted URL: ${url}`)
   }
 
   const response = await fetch(url, init)
@@ -70,7 +88,10 @@ const listAllJobsForRun = async (params: {
 
   const allJobs: WorkflowJob[] = []
   for (let page = 1; page <= 10; page += 1) {
-    const url = `https://api.github.com/repos/${params.owner}/${params.repo}/actions/runs/${params.runId}/jobs?per_page=100&page=${page}`
+    const url = new URL(
+      `repos/${params.owner}/${params.repo}/actions/runs/${params.runId}/jobs?per_page=100&page=${page}`,
+      githubApiBaseUrl,
+    ).toString()
     const { ok, status, data } = await fetchJson<ListJobsResponse>(url, { headers })
 
     if (!ok) {

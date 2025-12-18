@@ -35,12 +35,34 @@ const getJsonFromFile = <T>(filePath: string): T => {
 const isVercelUrl = (value: unknown): value is string =>
   typeof value === 'string' && /vercel\.(app|com)/.test(value)
 
+const githubApiBaseUrl = (() => {
+  const raw = (process.env['GITHUB_API_URL'] ?? 'https://api.github.com').trim()
+  const parsed = new URL(raw)
+  if (parsed.protocol !== 'https:') {
+    throw new Error(`Unsupported GITHUB_API_URL protocol: ${parsed.protocol}`)
+  }
+  return raw.endsWith('/') ? raw : `${raw}/`
+})()
+
+const isAllowedFetchUrl = (url: string): boolean => {
+  const parsed = new URL(url)
+  if (parsed.protocol !== 'https:') {
+    return false
+  }
+  const allowedHosts = new Set([new URL(githubApiBaseUrl).hostname, 'api.vercel.com'])
+  return allowedHosts.has(parsed.hostname)
+}
+
 const fetchJson = async <T>(
   url: string,
   init: RequestInit,
 ): Promise<{ ok: boolean, status: number, data: T | null }> => {
   if (typeof fetch !== 'function') {
     throw new Error('Fetch API unavailable in this runtime.')
+  }
+
+  if (!isAllowedFetchUrl(url)) {
+    throw new Error(`Blocked outbound request to untrusted URL: ${url}`)
   }
 
   const response = await fetch(url, init)
@@ -118,7 +140,10 @@ const createPrComment = async (params: {
     'Content-Type': 'application/json',
   }
 
-  const url = `https://api.github.com/repos/${params.owner}/${params.repo}/issues/${params.issueNumber}/comments`
+  const url = new URL(
+    `repos/${params.owner}/${params.repo}/issues/${params.issueNumber}/comments`,
+    githubApiBaseUrl,
+  ).toString()
   const { ok, status } = await fetchJson<unknown>(url, {
     method: 'POST',
     headers,
