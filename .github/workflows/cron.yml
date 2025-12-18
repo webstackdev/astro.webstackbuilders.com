@@ -1,0 +1,28 @@
+name: Cron
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ping-turso
+  cancel-in-progress: true
+
+jobs:
+  ping:
+    name: Ping Turso Production DB
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6.0.1
+
+      - name: Execute keep-alive query
+        uses: './.github/actions/keep-alive'
+        with:
+          astro-db-remote-url: ${{ secrets.ASTRO_DB_REMOTE_URL }}
+          astro-db-app-token: ${{ secrets.ASTRO_DB_APP_TOKEN }}

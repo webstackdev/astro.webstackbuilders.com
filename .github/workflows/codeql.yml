@@ -3,11 +3,10 @@ name: CodeQL Advanced Security Scanning
 
 on:
   push:
-    branches:
-      - main
+    branches-ignore:
+      - 'hotfix/**'
   pull_request:
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
   analyze:
@@ -22,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: ['javascript']
+        language: ['javascript', 'actions']
 
     steps:
       - name: Checkout repository
@@ -35,6 +34,7 @@ jobs:
           queries: +security-and-quality
 
       - name: Autobuild
+        if: matrix.language == 'javascript'
         uses: github/codeql-action/autobuild@v4
 
       - name: Perform CodeQL Analysis

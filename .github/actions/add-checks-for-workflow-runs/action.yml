@@ -1,0 +1,23 @@
+name: Add Checks for Workflow Runs
+description: Publishes/updates required check runs (e.g. "Deploy Preview to Vercel") for workflow_run-triggered workflows.
+
+inputs:
+  github-token:
+    description: GitHub token used to create/update check runs.
+    required: true
+  verify-result:
+    description: Result of the verify-ci job (e.g., success/failure/skipped).
+    required: false
+    default: ""
+  deploy-result:
+    description: Result of the deploy-preview job (e.g., success/failure/skipped).
+    required: false
+    default: ""
+  preview-url:
+    description: Preview URL output from the deploy-preview job.
+    required: false
+    default: ""
+
+runs:
+  using: node20
+  main: dist/index.mjs

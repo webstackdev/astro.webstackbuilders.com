@@ -100,6 +100,8 @@ https://vercel.com/docs/analytics/quickstart#add-the-analytics-component-to-your
 
 See note in src/components/scripts/sentry/client.ts - "User Feedback - allow users to report issues"
 
+https://vercel.com/kevin-browns-projects-dd474f73/astro-webstackbuilders-com/ai-gateway
+
 ## Uppy file uploads from contact form
 
 docs/CONTACT_FORM.md
@@ -286,3 +288,212 @@ We need to do the following, and move the build entirely onto GitHub:
 
 1. Cache the build artifacts generated in the "lint" job in test.yml workflow
 2.
+
+https://github.com/webstackdev/astro.webstackbuilders.com/actions/runs/20321382632
+
+Issue of preview vs. production database access
+
+Need three environments on GitHub: testing, preview, production
+
+Need two environments on Vercel: preview, production
+
+Name            Branch Tracking                 Domains
+Production      No branch configuration         astro-webstackbuilders-com.vercel.app
+Preview         All unassigned git branches     No custom domains
+Development     Accessible via CLI              No custom domains
+
+```bash
+--target=production
+--target=preview
+--target=development
+```
+
+Need to remove all logic that's testing whether we're on GitHub or Vercel and use environment
+Need to make sure that all logic doing that locally is using the "testing" setting. Is there a difference between "development" and "testing" for local work?
+
+### How to get the Vercel CLI to authenticate in CI
+
+```bash
+# Build the project locally
+NODE_ENV=development npx vercel build --target=preview --token my-secret-access-token --yes
+
+# Deploy the pre-built project, archiving it as a .tgz file
+vercel deploy --prebuilt --target=preview --archive=tgz --token my-secret-access-token --yes
+```
+
+```bash
+# Build the project locally
+NODE_ENV=production npx vercel build --target=production --token my-secret-access-token --yes
+
+# Deploy the pre-built project, archiving it as a .tgz file
+vercel deploy --prebuilt --target=production --archive=tgz --token my-secret-access-token --yes
+```
+
+### Targeting default production environment on Vercel
+
+The `--prod` option can be used to create a deployment for a production domain specified in the Vercel project dashboard.
+
+`vercel deploy --prebuilt --prod`
+
+The `--no-wait` option does not wait for a deployment to finish before exiting from the deploy command. Currently about 18s to extract archive.
+
+### Vercel CLI
+
+Do we need to `npm i -g vercel@latest` in Action instead of installing vercel as a package and using npx?
+
+### Getting domain URL and errors
+
+```bash
+# save stdout and stderr to files
+vercel deploy >deployment-url.txt 2>error.txt
+
+# check the exit code
+code=$?
+if [ $code -eq 0 ]; then
+    # Now you can use the deployment url from stdout for the next step of your workflow
+    deploymentUrl=`cat deployment-url.txt`
+    vercel alias $deploymentUrl my-custom-domain.com
+else
+    # Handle the error
+    errorMessage=`cat error.txt`
+    echo "There was an error: $errorMessage"
+fi
+```
+
+Vercel isn't calling back to GitHub in this setup — GitHub Actions is.
+
+`deployment.yml` runs after the Test workflow completes (`on: workflow_run`).
+
+The deploy itself is kicked off by GitHub Actions via `amondnet/vercel-action@v41.1.4` (it runs the Vercel CLI using your `VERCEL_TOKEN`).
+
+After that, the workflow updates GitHub using the GitHub API with `GITHUB_TOKEN`:
+
+- `publish-preview-status` uses `checks: write` and upserts a check run named `Deploy Preview` to Vercel by calling `POST /repos/{owner}/{repo}/check-runs or PATCH /repos/{owner}/{repo}/check-runs/{id}`.
+
+The PR preview URL/failure messaging is posted by your local comment actions (`deploy-preview-success-comment`, `deploy-preview-failure-comment`), also from GitHub Actions — not from a Vercel webhook.
+
+### One or Two Files for Push Turso Migrations
+
+@TODO: Need to add a workflow check to make sure database migrations successfully publish
+
+You can do either, but I'd pick based on what you want the "unit of trust" to be.
+
+**One file (`push-turso-migrations.yml`) with two jobs (`preview` + `production`)**
+
+- Pros: one place to maintain; shared steps stay identical; easier to keep logic in sync.
+
+- Cons: more conditional logic (if: branching) and it's easier to accidentally run the wrong env's migration if a condition is off; harder to reason about from the Actions UI because both concerns live together.
+
+**Two files (`push-turso-preview-migrations.yml` + `push-turso-production-migrations.yml`)** — my recommendation
+
+- Pros: least ambiguity; each workflow can have minimal permissions/secrets; clearer UI/history (`Preview migrations` vs `Production migrations`); easier to gate production harder (manual approval, environment protection, branch rules) without touching preview.
+
+- Cons: some duplication (though you can mitigate with a reusable workflow `workflow_call` later if you want).
+
+**Recommendation**
+
+Given your requirement ("same workflow but different env var at two different points") and that this runs before two different deployment paths, separating them usually reduces risk and makes auditing simpler.
+
+**Two quick clarifiers**
+
+- Are preview deployments triggered only for PRs (via `workflow_run` in `deployment.yml`) and production only on main pushes?
+
+- Do both preview/prod migrations use the same Turso DB but different environments, or are they actually different databases (different tokens/URLs)?
+
+### Gating on "Merge" button pushed on GitHub
+
+Not exactly "after clicking Merge, decide whether to finish the merge" — GitHub doesn't let an arbitrary workflow run *after* the merge button is pressed and then retroactively block/allow that same merge. The gating point is *before* the merge is allowed.
+
+What you can do instead (the usual patterns):
+
+- **Branch protection + required checks (recommended)**
+
+  - Configure `main` branch protection to require specific status checks to pass.
+  - Those checks come from workflows triggered on `pull_request` (or `merge_group` if you use merge queue).
+  - Result: the Merge button is disabled until checks pass; if checks fail, merge is blocked and the UI shows why.
+
+- **Merge queue ("merge_group") for stricter gating**
+
+  - If you enable GitHub's merge queue, GitHub creates a temporary merge commit and runs workflows on `merge_group`.
+  - Only if they pass does GitHub merge to `main`. This is the closest to "I clicked merge and it runs checks on the exact merge result".
+
+- **Post-merge workflows can only react, not block**
+
+  - Workflows triggered by `push` to `main` (i.e., after merge) can deploy, run migrations, etc., but they can't stop the merge that already happened. They can only report failure and/or roll back.
+
+- **Programmatic merges**
+
+  - If you merge via API/CLI, you *can* implement your own "run workflow → only merge if success" logic in your tooling, but GitHub's UI merge button won't do that by itself.
+
+If you tell me whether you're using **branch protection only** or **merge queue**, and what the "must-pass" workflow is (tests, turso migrations, deploy preview), I can suggest the cleanest trigger (`pull_request` vs `merge_group`) and how to wire required checks so merges are blocked appropriately.
+
+### Merge Group Checks
+
+Yep — we can publish a custom Check Run that only exists for `merge_group` events, the same way `publish-preview-status` upserts `Deploy Preview to Vercel`.
+
+Plan:
+
+- Inspect whether you already have any `merge_group` workflow today.
+- Add a new local action (modeled on `publish-preview-status`) that refuses to run unless `GITHUB_EVENT_NAME === 'merge_group'`, and upserts a check run on `GITHUB_SHA`.
+
+### How GitHub Names Jobs in the Checks Dialog on a PR
+
+#### Checks produced by GitHub Actions workflow jobs
+
+These are named from your workflow YAML:
+
+1. Workflow name = top-level name: in the workflow file
+
+- `test.yml` has name: Test
+- `branch-protection.yml` has name: `Branch Protection`
+- `codeql.yml` has name: `CodeQL Advanced Security Scanning`
+- `dependency-review.yml` has name: `Dependency Review`
+
+2. Job name = jobs.<jobId>.name (if omitted, GitHub falls back to the job id)
+
+- `test.yml`: name: `Lint`, name: `Unit Tests`, name: `E2E Tests`
+
+In the merge box / "Some checks were not successful" widget, GitHub typically renders these as:
+
+`<workflow name> / <job name> (<event>)`
+
+That's why you see things like:
+
+- `Test / E2E Tests (pull_request)`
+- `Branch Protection / Validate Branch Name (pull_request)`
+- `CodeQL Advanced Security Scanning / Analyze Code (javascript) (pull_request)`
+
+In the older "Checks" list view (like your closed PR example), GitHub often shows just the job name ("Lint", "Unit Tests", etc.) with `@github-actions[bot]`, which is why the format looks different even when nothing was renamed.
+
+2) Checks created via the GitHub Checks API (not a workflow job)
+
+These are "check runs" created/updated by an app calling the API. The display name is whatever the API call sets as `check_run.name`.
+
+Your local action `publish-preview-status` explicitly creates/updates a check run with:
+
+`const checkName = 'Deploy Preview to Vercel'`
+
+So that check's name is "Deploy Preview to Vercel", regardless of workflow/job names, because it's not a job check at all.
+
+3) App-provided checks (Code scanning / GitGuardian)
+
+Examples:
+
+- `Code scanning results / CodeQL` is produced by GitHub's code scanning app (not your job name).
+- `GitGuardian Security Checks` is produced by GitGuardian's GitHub app.
+
+Those names are determined by the app, not by your workflow/job names.
+
+Why you're seeing "skipped" with a weird prefix
+
+If you see something like `CodeQL Advanced Security Scanning / Deploy Preview to Vercel (pull_request)` in the "skipped checks" section, that string is in the Actions-style workflow/job format (GitHub's `<check suite> / <check run>` display format) - meaning GitHub is treating it like a required workflow job check context, not your API-created "Deploy Preview to Vercel" check run. That usually happens when branch protection is configured to require a check whose context includes a workflow name/job name (and that exact context doesn't get produced on this PR, so it shows as skipped).
+
+Q: Can a job be a required check?
+
+A: Yes. A GitHub Actions job produces a check run. Requiring that check in a ruleset is the normal pattern.
+
+The PR "Checks" UI is primarily showing checks produced by workflows that ran on the PR event (e.g. `pull_request`, and `merge_group` if you use merge queue). A `workflow_run` workflow's jobs typically don't appear there as "PR checks" in the same way.
+
+Your publish-preview-status action avoids creating repeated ones by "upserting". It lists check runs on the `SHA`. If it finds one named `Deploy Preview to Vercel`, it updates it; otherwise it creates it.
+
+If you want to make this less confusing in the UI, the usual trick is to give the API-created check a distinct name (e.g. `Preview Deploy Gate`)

@@ -15,24 +15,23 @@ permissions:
   checks: write
 
 jobs:
-  verify-ci:
-    name: Verify CI Results
+  verify-tests-passed:
+    name: Verify Tests Passed
     runs-on: ubuntu-latest
     permissions:
       actions: read
     steps:
       - name: Ensure lint and unit tests succeeded
-        uses: './.github/actions/lint-and-unit-tests-pass'
+        uses: './.github/actions/verify-lint-and-unit-tests-passed'
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
   deploy-preview:
     name: Deploy Preview to Vercel
     runs-on: ubuntu-latest
-    needs: verify-ci
+    needs: verify-tests-passed
     if: >-
-      needs.verify-ci.result == 'success' &&
-      github.event.workflow_run.conclusion == 'success' &&
+      needs.verify-tests-passed.result == 'success' &&
       github.event.workflow_run.event == 'pull_request' &&
       !startsWith(github.event.workflow_run.head_branch, 'hotfix/')
 
@@ -56,9 +55,9 @@ jobs:
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
 
-      - name: Comment preview URL on PR
+      - name: Update Deployment Status on PR with Deploy URL (Preview)
         if: always() && steps.vercel-preview.outcome == 'success'
-        uses: './.github/actions/deploy-preview-comment'
+        uses: './.github/actions/update-status-on-preview-deployment-success'
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
@@ -67,9 +66,9 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           preview-url: ${{ steps.vercel-preview.outputs.preview-url }}
 
-      - name: Comment preview failure on PR
+      - name: Update Deployment Status on PR with Failure (Preview)
         if: always() && steps.vercel-preview.outcome != 'success'
-        uses: './.github/actions/deploy-preview-failure-comment'
+        uses: './.github/actions/update-status-on-preview-deployment-failure'
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
@@ -78,28 +77,28 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           preview-url: ${{ steps.vercel-preview.outputs.preview-url }}
 
-  publish-preview-status:
-    name: Publish Preview Status
+  add-check-for-preview-deployment-status:
+    name: Add Check for Preview Deployment Status
     runs-on: ubuntu-latest
     needs:
-      - verify-ci
+      - verify-tests-passed
       - deploy-preview
     if: always() && github.event.workflow_run.event == 'pull_request'
     steps:
-      - name: Publish required check run
-        uses: './.github/actions/publish-preview-status'
+      - name: Publish required check
+        uses: './.github/actions/add-checks-for-workflow-runs'
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          verify-result: ${{ needs.verify-ci.result }}
+          verify-result: ${{ needs.verify-tests-passed.result }}
           deploy-result: ${{ needs.deploy-preview.result }}
           preview-url: ${{ needs.deploy-preview.outputs.previewUrl }}
 
   deploy-production:
-    name: Deploy to Production (Vercel)
+    name: Deploy Production to Vercel
     runs-on: ubuntu-latest
-    needs: verify-ci
+    needs: verify-tests-passed
     if: >-
-      needs.verify-ci.result == 'success' &&
+      needs.verify-tests-passed.result == 'success' &&
       github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_branch == 'main'
@@ -118,18 +117,19 @@ jobs:
           vercel-args: '--prod'
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          github-comment: false
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
 
-      - name: Log production deployment
+      - name: Log production deployment (Production)
         if: always() && steps.vercel-production.outcome == 'success'
         run: |
           echo "🚀 Production deployment completed"
           echo "Production URL: ${{ steps.vercel-production.outputs.preview-url }}"
 
-      - name: Comment production deployment failure on commit
+      - name: Update Deployment Status on PR with Failure (Production)
         if: always() && steps.vercel-production.outcome != 'success'
-        uses: './.github/actions/deploy-production-failure'
+        uses: './.github/actions/update-status-on-production-deployment-failure'
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           preview-url: ${{ steps.vercel-production.outputs.preview-url }}
