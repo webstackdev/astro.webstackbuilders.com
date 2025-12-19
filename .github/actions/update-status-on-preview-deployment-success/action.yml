@@ -1,4 +1,4 @@
-name: Deployment Preview Comment (Success)
+name: Update Status on Preview Deployment Success
 description: Creates or updates a PR comment with the Vercel preview URL for workflow_run preview deployments.
 
 inputs:
@@ -11,5 +11,8 @@ inputs:
     default: ""
 
 runs:
-  using: node20
-  main: dist/index.mjs
+  using: composite
+  steps:
+    - name: Upsert preview deployment comment
+      run: python3 "${{ github.action_path }}/src/main.py"
+      shell: bash

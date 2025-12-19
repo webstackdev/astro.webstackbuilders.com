@@ -1,4 +1,4 @@
-name: Deployment Preview Comment (Failure)
+name: Update Status on Preview Deployment Failure
 description: Comments on the PR when a workflow_run preview deployment fails.
 
 inputs:
@@ -11,5 +11,8 @@ inputs:
     default: ""
 
 runs:
-  using: node20
-  main: dist/index.mjs
+  using: composite
+  steps:
+    - name: Create preview failure comment
+      run: python3 "${{ github.action_path }}/src/main.py"
+      shell: bash

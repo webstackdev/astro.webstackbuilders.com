@@ -1,4 +1,4 @@
-name: Deployment Production Comment (Failure)
+name: Update Status on Production Deployment Failure
 description: Comments on the commit when a workflow_run production deployment fails.
 
 inputs:
@@ -11,5 +11,8 @@ inputs:
     default: ""
 
 runs:
-  using: node20
-  main: dist/index.mjs
+  using: composite
+  steps:
+    - name: Create production failure commit comment
+      run: python3 "${{ github.action_path }}/src/main.py"
+      shell: bash
