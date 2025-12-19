@@ -1,5 +1,22 @@
 name: Deployment
 
+# NOTE: Fork PRs and preview deployments
+#
+# This workflow runs on `workflow_run` (after `Test`) and uses repository secrets
+# for deploy/comment/check steps. Running these steps against forked PR commits is
+# unsafe because the checked-out code is untrusted but the job is privileged (has
+# access to secrets and write permissions). GitHub Actions mitigates this via repo/
+# org settings.
+#
+# Policy: Preview deployments are only supported for PRs from branches within this
+# repo (non-fork PRs).
+#
+# If we ever need preview deploys for fork PRs, implement one of these safer designs:
+# - Dual-checkout: trusted checkout for local actions/tooling + untrusted checkout
+#   in a separate path, and point deploy tooling at the untrusted working directory.
+# - Artifact-based deploy: build/test in the untrusted workflow, upload a signed
+#   artifact, and only deploy the artifact in a trusted workflow.
+
 on:
   workflow_run:
     workflows:

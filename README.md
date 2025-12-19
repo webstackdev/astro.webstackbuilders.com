@@ -61,6 +61,16 @@ Astro DB schemas now live under `db/config.ts`. Applying those migrations requir
 - `npm run build` – Runs `astro build --remote`, hitting the production Turso database in read-only mode. Use this for Vercel deployments and any workflows that need to mirror production infrastructure.
 - `npm run build:ci` – Exports `ASTRO_DATABASE_FILE=./.astro/content.db` before delegating to `npm run build`, forcing the build to read from the local SQLite snapshot. Use this for local testing and the `Test` GitHub workflow so schema changes stay isolated until the Turso push workflow runs.
 
+## Fork PR Preview Deployments
+
+Preview deployments are intentionally restricted to pull requests from branches within this repository (non-fork PRs).
+
+Reason: our deployment pipeline runs in a privileged GitHub Actions context (it uses repository secrets for Vercel and has write permissions for checks/comments). Running those steps against forked PR commits would risk executing untrusted code with access to secrets.
+
+If we ever need fork PR preview deployments, implement a safer design first, such as:
+- Dual-checkout + `working-directory` (trusted checkout for local actions/tooling, untrusted checkout in a separate path for deploy input)
+- Artifact-based deploy (build/test in the untrusted workflow, upload a signed artifact, deploy the artifact in the trusted workflow)
+
 ## Coding Standards
 
 ### Component Architecture
