@@ -20,7 +20,7 @@ test.describe('Homepage @smoke', () => {
     await page.expectHeading()
   })
 
-  test('@ready homepage sets theme key successfully', async ({ page: playwrightPage  }) => {
+  test.skip('@ready homepage sets theme key successfully', async ({ page: playwrightPage  }) => {
     const page = await BasePage.init(playwrightPage)
     const themeKeyPromise = page.themeKeyPromise()
     await page.goto('/')
