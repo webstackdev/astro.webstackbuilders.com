@@ -36,6 +36,13 @@ export class SentryBootstrap {
     // Check analytics consent for PII handling
     const hasAnalyticsConsent = getAnalyticsConsentPreference()
 
+    /**
+@TODO: Environment Filtering (Crucial!)
+What: Set the environment tag in your Sentry configuration.
+How: Pass an environment variable like SENTRY_ENVIRONMENT: "preview" or NODE_ENV: "preview" to your Sentry SDK.
+Why: This lets you filter and view only preview errors in the Sentry dashboard, separate from staging/prod.
+    */
+
     const client = new BrowserClient({
       dsn: SENTRY_DSN,
       integrations: [

@@ -497,3 +497,98 @@ The PR "Checks" UI is primarily showing checks produced by workflows that ran on
 Your publish-preview-status action avoids creating repeated ones by "upserting". It lists check runs on the `SHA`. If it finds one named `Deploy Preview to Vercel`, it updates it; otherwise it creates it.
 
 If you want to make this less confusing in the UI, the usual trick is to give the API-created check a distinct name (e.g. `Preview Deploy Gate`)
+
+#### Bypass Jobs
+
+Right now the "hotfix bypass" is implemented purely inside Test (test.yml) by skipping the real jobs (lint, unit-test, e2e-test) when the branch starts with hotfix/, and instead running a trivial hotfix-bypass job that always succeeds.
+
+How gating actually works (important bit)
+
+- Branch protection / rulesets don't understand your intent ("hotfix should bypass").
+
+- They only look at required check names and whether each required check produced a successful conclusion on the PR's latest commit.
+
+- If a workflow/job is skipped, GitHub usually reports it as skipped/neutral, which will still block merge if that check name is required.
+
+So if you want "Dependency Review" and "CodeQL" to be required on main, and you want hotfix PRs to bypass them, you must ensure that for hotfix PRs there is still a successful check run with the same required name.
+
+Two workable patterns (pick one)
+
+1. Keep everything in each workflow (simplest)
+
+- Add if: !startsWith(..., 'hotfix/') to the real job(s)
+- Add a hotfix-bypass job in the same workflow whose job name: exactly matches the required check name (e.g., Review Dependencies, CodeQL)
+- Result: ruleset sees the required check names, and they pass on hotfix PRs.
+
+2. Create a separate bypass.yml (cleaner reuse, but slightly trickier)
+
+- You can create .github/workflows/bypass.yml that runs on pull_request and emits "bypass" jobs.
+- But the required checks must match the job names from bypass.yml, not the ones from the original workflows—unless you keep the required check names identical. That means coordinating names very carefully, or you'll end up with duplicates / still-blocking checks.
+
+### Untrusted Checkout Issues
+
+#### Difficulties with dual checkout / artifact-based deploy
+
+Difficulty involved in moving preview deployments off `workflow_run` PR head execution (dual-checkout / working-directory or artifact-based deploy):
+
+1. **Low difficulty (likely smooth)**
+
+- When the deploy tool supports a working-directory input (like `amondnet/vercel-action` does), and your repo doesn't rely on weird relative paths.
+
+- You can do:
+
+  - trusted checkout to get your local actions + pinned deps
+  - untrusted checkout into `./workspace/`
+  - run the deploy action with working-directory: `./workspace`
+
+2. Moderate difficulty (most common bumps)
+
+- **Anything that assumes repo-root paths, like:**
+
+  - `vercel.json` referencing files via relative paths
+  - build commands that expect `src` at root
+  - scripts that read files by relative path (e.g., `package.json`)
+
+- Fix is usually straightforward: set `working-directory` (`cwd`) consistently and make sure any path inputs are relative to that directory.
+
+3. **Higher difficulty (more debugging risk)**
+
+- If you need to run "repo tools" (node / python installs, build steps) across both trees and you accidentally:
+
+  - install deps from the untrusted checkout (reintroducing the issue)
+  - mix artifacts between trees (e.g., `node_modules` in the wrong place)
+  - Or if you use actions / tools that don't let you specify `working-directory`, forcing `cd`-style shell steps and careful path management.
+
+4. **Practical expectation**
+
+- For your case (Vercel deploy via `amondnet/vercel-action`), the presence of `working-directory` makes it much less risky.
+
+- The main debugging you'd likely do is ensuring Vercel sees the correct project root and build config under the untrusted checkout directory.
+
+If you want, I can sketch a minimal "dual checkout" snippet tailored to your existing deploy-preview job and point out exactly which steps must run in the trusted tree vs the untrusted tree.
+
+### Trust in workflow triggers
+
+1. `on: push` isn't "untrusted" the same way a PR is
+
+A workflow that runs on push runs on commits that land on branches you specify (in your `Test` workflow, only `main`). For someone to trigger it, they need permission to push to `main` (or be a maintainer merging a PR). At that point, they effectively already have high trust in the repo.
+
+
+You can't retroactively stop a push that already happened; post-merge deploy failure means main is already updated.
+
+The controls you have are:
+
+- Prevent merging unless pre-merge checks pass (build/test, maybe a dry run deploy, or smoke test against a staging/preview).
+- Make production deploy safe/atomic (or rollback) so a failed deploy doesn't break prod.
+- If you truly need merge only if production deploy succeeds, you need a pre-merge mechanism (merge queue/merge_group with a deploy-like validation, or a protected promote step gated by approvals).
+
+If you tell me whether you want (a) prod deploy auto on merge, (b) prod deploy requires approval, or (c) merge should be gated on a pre-prod deploy check, I can recommend the cleanest workflow layout for your merge-group plans.
+
+#nforce gates before the deploy job runs:
+
+Yes - your understanding is accurate if you mean "deploy happens outside GitHub when main updates".
+
+Environment protections (approvals/wait timers/branch restrictions) gate jobs that target an `environment:`. They pause that job before its steps execute.
+
+If there is no deploy job in GitHub (because a third-party watches main and deploys), GitHub can't gate that external deploy unless you add a GitHub job that either (a) performs the deploy, or (b) triggers/controls the third-party deploy, or (c) at least records/monitors it.
+Merges are blocked only by branch protection (required checks/reviews/rules). So a "deploy job" only affects merging if you make it a required check (or otherwise integrate it into the required checks flow).
