@@ -1,6 +1,6 @@
 import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
-import { getGoogleMapsApiKey } from '@components/scripts/utils/environmentClient'
+import { getGoogleMapsApiKey, isE2eTest } from '@components/scripts/utils/environmentClient'
 import { APILoader } from '@googlemaps/extended-component-library/api_loader.js'
 
 type MapInitContext = {
@@ -63,6 +63,10 @@ async function initAllMaps(): Promise<void> {
 }
 
 export function registerCompanyMap(): void {
+  if (isE2eTest()) {
+    return
+  }
+
   const context: MapInitContext = { scriptName: 'Map', operation: 'registerCompanyMap' }
   addScriptBreadcrumb(context)
 
