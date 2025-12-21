@@ -1,11 +1,8 @@
-# Runs unit tests to gate deployments
-name: Test
+# Runs Playwright E2E suite for merge-queue validation
+name: Playwright
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
+  merge_group:
     branches:
       - main
   workflow_dispatch:
@@ -13,17 +10,15 @@ on:
 permissions: {}
 
 jobs:
-  unit-test:
-    name: Unit Tests
+  e2e-test:
+    name: E2E Tests
     runs-on: ubuntu-latest
     environment: testing
     if: ${{ !startsWith(github.head_ref || github.ref_name, 'hotfix/') }}
 
     permissions:
       actions: write
-      checks: write
       contents: read
-      pull-requests: write
 
     env:
       ASTRO_DB_APP_TOKEN: ${{ vars.ASTRO_DB_APP_TOKEN }}
@@ -56,37 +51,57 @@ jobs:
       - name: Install dependencies
         run: npm ci --force
 
-      # Astro build runs sync, check, and integrations including verify links
-      - name: Verify green build (local DB snapshot)
-        run: npm run build:ci
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
 
-      - name: Run unit tests (Vitest — coverage with GitHub Actions reporter)
-        id: vitest
-        run: npm run test:coverage
+      - name: Start Astro dev server
+        run: |
+          npm run dev -- --host 0.0.0.0 --port "${DEV_SERVER_PORT}" > /tmp/astro-dev.log 2>&1 &
+          echo $! > /tmp/astro-dev.pid
 
-      - name: Report Coverage
-        if: steps.vitest.outcome == 'success' && hashFiles('coverage/coverage-summary.json') != ''
-        uses: davelosert/vitest-coverage-report-action@v2.9.0
-        with:
-          json-summary-path: './coverage/coverage-summary.json'
-          json-final-path: './coverage/coverage-final.json'
+      - name: Wait for Astro dev server
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS "http://${DEV_SERVER_HOST}:${DEV_SERVER_PORT}/" > /dev/null; then
+              echo "✅ Dev server is responding"
+              exit 0
+            fi
+            sleep 1
+          done
 
-      - name: Upload test coverage
-        if: always() && hashFiles('coverage/coverage-summary.json') != ''
+          echo "❌ Dev server did not start in time"
+          echo '--- Astro dev server log ---'
+          cat /tmp/astro-dev.log || true
+          exit 1
+
+      - name: Run Playwright E2E tests
+        run: npm run test:e2e
+        env:
+          CI: '1'
+
+      - name: Stop Astro dev server
+        if: always()
+        run: |
+          if [ -f /tmp/astro-dev.pid ]; then
+            kill $(cat /tmp/astro-dev.pid) || true
+            rm /tmp/astro-dev.pid
+          fi
+
+      - name: Upload Playwright report
+        if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: test-coverage
-          path: coverage/
+          name: playwright-report
+          path: playwright-report/
           retention-days: 30
 
   hotfix-bypass:
-    name: Hotfix Bypass
+    name: E2E Test Hotfix Bypass
     runs-on: ubuntu-latest
     if: ${{ startsWith(github.head_ref || github.ref_name, 'hotfix/') }}
 
     permissions: {}
 
     steps:
-      - name: Skip testing for hotfix branch
-        run: echo "hotfix/* branch detected; skipping lint, unit, and e2e workflows but allowing deployments."
-
+      - name: Skip E2E for hotfix branch
+        run: echo "hotfix/* branch detected; skipping e2e workflow but allowing deployments."

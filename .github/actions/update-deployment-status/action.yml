@@ -1,0 +1,30 @@
+name: Update Deployment Status
+description: Updates a GitHub Deployment status to success or failure, optionally setting environment_url.
+
+inputs:
+  github-token:
+    description: GitHub token used to create deployment statuses.
+    required: true
+  deployment-id:
+    description: Deployment id.
+    required: true
+  exit-code:
+    description: Exit code from deploy step.
+    required: true
+  environment-url:
+    description: URL to set as the environment_url.
+    required: false
+    default: ""
+  success-description:
+    description: Description for success status.
+    required: true
+  failure-description:
+    description: Description for failure status.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Update status
+      run: python3 "${{ github.action_path }}/src/main.py"
+      shell: bash

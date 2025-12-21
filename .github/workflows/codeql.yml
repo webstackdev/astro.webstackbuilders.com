@@ -1,5 +1,5 @@
 # Security policy for GitHub Security Advisories
-name: CodeQL Advanced Security Scanning
+name: CodeQL Security Scanning
 
 on:
   push:
@@ -32,6 +32,7 @@ jobs:
         with:
           languages: ${{ matrix.language }}
           queries: +security-and-quality
+          config-file: ./.github/codeql/codeql-config.yml
 
       - name: Autobuild
         if: matrix.language == 'javascript'

@@ -1,0 +1,14 @@
+name: Fail Workflow if Deploy Failed
+description: Fails the workflow if exit-code is non-zero.
+
+inputs:
+  exit-code:
+    description: Exit code from deploy step.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Fail if non-zero
+      run: python3 "${{ github.action_path }}/src/main.py"
+      shell: bash

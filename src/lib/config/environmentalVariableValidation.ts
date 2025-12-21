@@ -29,12 +29,21 @@ import type { AstroUserConfig } from 'astro'
 
 export const environmentalVariablesConfig: AstroUserConfig['env'] = {
   schema: {
+    /**
+     * The package release version (package name and version at build time from package.json)
+     * that is injected at build time via the PackageRelease Astro integration. This provides
+     * a release identifier for tracking regressions between numbered releases in monitoring
+     * services like Sentry.
+     */
     PACKAGE_RELEASE_VERSION: envField.string({
       access: 'public',
       context: 'client',
       default: 'unknown@0.0.0',
       optional: true,
     }),
+    /**
+     * Gets the privacy policy version injected at build time via the PrivacyPolicy integration.
+     */
     PRIVACY_POLICY_VERSION: envField.string({
       access: 'public',
       context: 'client',
@@ -79,12 +88,7 @@ export const environmentalVariablesConfig: AstroUserConfig['env'] = {
     CONVERTKIT_API_KEY: envField.string({
       access: 'public',
       context: 'server',
-      optional: false,
-    }),
-    CONVERTKIT_FORM_ID: envField.number({ // not currently used so set to secret
-      access: 'secret',
-      context: 'server',
-      optional: false,
+      optional: true,
     }),
     /**
      * Vercel uses optional cron secret to prevent abuse of services
@@ -92,7 +96,7 @@ export const environmentalVariablesConfig: AstroUserConfig['env'] = {
     CRON_SECRET: envField.string({
       access: 'public',
       context: 'server',
-      optional: false,
+      optional: true,
     }),
     /**
      * Site uses Resend for sending site emails
@@ -100,7 +104,7 @@ export const environmentalVariablesConfig: AstroUserConfig['env'] = {
     RESEND_API_KEY: envField.string({
       access: 'public',
       context: 'server',
-      optional: false,
+      optional: true,
     }),
     /**
      * Site uses Sentry for monitoring site errors and user path tracing
@@ -111,12 +115,17 @@ export const environmentalVariablesConfig: AstroUserConfig['env'] = {
     SENTRY_AUTH_TOKEN: envField.string({
       access: 'secret',
       context: 'server',
-      optional: false,
+      optional: true,
     }),
-    SENTRY_DSN: envField.string({
+    /**
+     * Sentry Data Source Name is a unique URL that tells the Sentry error
+     * monitoring SDK  where to send application error reports and events.
+     */
+    PUBLIC_SENTRY_DSN: envField.string({
       access: 'public',
       context: 'client',
-      optional: false, // Optional - Sentry only enabled if provided
+      /** Built into the site bundle by Vite */
+      optional: false,
     }),
     /**
      * Site uses ConvertKit for managing newsletter subscriptions

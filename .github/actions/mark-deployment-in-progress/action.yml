@@ -1,0 +1,20 @@
+name: Mark Deployment in Progress
+description: Sets deployment status to in_progress for a deployment id.
+
+inputs:
+  github-token:
+    description: GitHub token used to create deployment statuses.
+    required: true
+  deployment-id:
+    description: Deployment id.
+    required: true
+  description:
+    description: Status description.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Mark in progress
+      run: python3 "${{ github.action_path }}/src/main.py"
+      shell: bash

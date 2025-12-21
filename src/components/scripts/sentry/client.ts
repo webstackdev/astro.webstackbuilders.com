@@ -10,8 +10,10 @@ import {
   makeFetchTransport,
   linkedErrorsIntegration,
 } from '@sentry/browser'
-import { SENTRY_DSN } from 'astro:env/client'
-import { getPackageRelease } from '@components/scripts/utils/environmentClient'
+import {
+  getPackageRelease,
+  getSentryDsn
+} from '@components/scripts/utils/environmentClient'
 import { getAnalyticsConsentPreference } from '@components/scripts/store/consent'
 import { beforeSendHandler } from '@components/scripts/sentry/helpers'
 
@@ -35,16 +37,8 @@ export class SentryBootstrap {
   static init(): void {
     // Check analytics consent for PII handling
     const hasAnalyticsConsent = getAnalyticsConsentPreference()
-
-    /**
-@TODO: Environment Filtering (Crucial!)
-What: Set the environment tag in your Sentry configuration.
-How: Pass an environment variable like SENTRY_ENVIRONMENT: "preview" or NODE_ENV: "preview" to your Sentry SDK.
-Why: This lets you filter and view only preview errors in the Sentry dashboard, separate from staging/prod.
-    */
-
     const client = new BrowserClient({
-      dsn: SENTRY_DSN,
+      dsn: getSentryDsn(),
       integrations: [
         // Core integrations
         breadcrumbsIntegration({

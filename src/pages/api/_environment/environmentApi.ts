@@ -37,10 +37,6 @@ export const isProd = () => {
  * via the PrivacyPolicyVersion Astro integration.
  *
  * @see src/integrations/PrivacyPolicyVersion/index.ts
- */
-
-/**
- * Gets the privacy policy version from the build-time environment variable
  * @returns The privacy policy version in YYYY-MM-DD format
  * @throws {ApiFunctionError} If PRIVACY_POLICY_VERSION is not set
  */
@@ -57,17 +53,15 @@ export function getPrivacyPolicyVersion(): string {
 /**
  * Package Release Utility
  *
- * Provides access to the package release version that's injected at build time
- * via the PackageRelease Astro integration.
+ * Provides access to the package release version (package name and version
+ * at build time from package.json) that is injected at build time via the
+ * PackageRelease Astro integration. This provides a release identifier for
+ * tracking regressions between numbered releases in monitoring services like
+ * Sentry.
  *
  * @see src/integrations/PackageRelease/index.ts
- */
-
-/**
- * Gets the package release from the build-time environment variable
- *
  * @returns The package release in name@version format
- * @throws {ApiFunctionError} If PACKAGE_RELEASE_VERSION is not set
+ * @throws {ClientScriptError} If PACKAGE_RELEASE_VERSION is not set
  */
 export function getPackageRelease(): string {
   const release = import.meta.env['PACKAGE_RELEASE_VERSION']
@@ -133,13 +127,13 @@ export function getResendApiKey(): string {
  * Gets the Sentry DSN. This value is set in Vercel env vars and
  * made available to serverless functions by default.
  *
- * @throws {ApiFunctionError} If SENTRY_DSN is not set
+ * @throws {ApiFunctionError} If PUBLIC_SENTRY_DSN is not set
  */
 export function getSentryDsn(): string {
-  const key = process.env['SENTRY_DSN']
+  const key = process.env['PUBLIC_SENTRY_DSN']
   if (!key) {
     throw new ApiFunctionError(
-      'SENTRY_DSN environment variable is not set. This is either set in a .env file locally during development, in GitHub Secrets and made available in CI runs by the .github/workflows actions, or by Vercel as an env var made available to serverless functions in deployment.'
+      'PUBLIC_SENTRY_DSN environment variable is not set. This is either set in a .env file locally during development, in GitHub Secrets and made available in CI runs by the .github/workflows actions, or by Vercel as an env var made available to serverless functions in deployment.'
     )
   }
   return key

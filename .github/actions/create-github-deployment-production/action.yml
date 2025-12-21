@@ -1,0 +1,23 @@
+name: Create GitHub Deployment (Production)
+description: Creates a GitHub Deployment for production environment.
+
+inputs:
+  github-token:
+    description: GitHub token used to create the deployment.
+    required: true
+  sha:
+    description: Commit SHA to deploy.
+    required: true
+
+outputs:
+  deployment_id:
+    description: Created deployment id.
+    value: ${{ steps.run.outputs.deployment_id }}
+
+runs:
+  using: composite
+  steps:
+    - id: run
+      name: Create deployment
+      run: python3 "${{ github.action_path }}/src/main.py"
+      shell: bash

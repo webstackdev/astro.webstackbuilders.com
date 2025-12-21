@@ -1,0 +1,124 @@
+name: Deploy Preview
+
+on:
+  workflow_run:
+    workflows:
+      - Build Preview
+      - Lint
+      - Test
+      - Dependency Review
+      - CodeQL Security Scanning
+    types:
+      - completed
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  deploy-preview:
+    name: Deploy Preview
+    runs-on: ubuntu-latest
+    environment: preview
+
+    permissions:
+      actions: read
+      contents: read
+      deployments: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6.0.1
+        with:
+          ref: main
+
+      - name: Setup Python
+        uses: actions/setup-python@v6.1.0
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: python3 -m pip install -r requirements.txt
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6.1.0
+        with:
+          node-version: '22.x'
+          cache: 'npm'
+
+      - name: Resolve deploy SHA
+        id: context
+        uses: './.github/actions/resolve-deploy-sha'
+
+      - name: Check prerequisites and locate build artifact
+        id: verify
+        uses: './.github/actions/check-prerequisites-and-locate-build-artifact'
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          sha: ${{ steps.context.outputs.sha }}
+          trigger-event: ${{ steps.context.outputs.trigger_event }}
+          head-branch: ${{ steps.context.outputs.head_branch }}
+          is-fork: ${{ steps.context.outputs.is_fork }}
+          skip-hotfix: 'true'
+          skip-forks: 'true'
+          require-trigger-event: pull_request
+          build-workflow-file: build-preview.yml
+          artifact-name: vercel-build-preview
+          required-workflows-json: >-
+            [{"id":"build-preview.yml","label":"Build Preview"},{"id":"lint.yml","label":"Lint"},{"id":"test.yml","label":"Test"},{"id":"dependency-review.yml","label":"Dependency Review"},{"id":"codeql.yml","label":"CodeQL Security Scanning"}]
+
+      - name: Download build artifact
+        if: steps.verify.outputs.should_deploy == 'true'
+        uses: './.github/actions/download-build-artifact'
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          artifact-download-url: ${{ steps.verify.outputs.artifact_download_url }}
+
+      - name: Create GitHub deployment (preview)
+        if: steps.verify.outputs.should_deploy == 'true'
+        id: gh_deploy
+        uses: './.github/actions/create-github-deployment-preview'
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          sha: ${{ steps.context.outputs.sha }}
+
+      - name: Mark deployment in progress
+        if: steps.verify.outputs.should_deploy == 'true'
+        uses: './.github/actions/mark-deployment-in-progress'
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deployment-id: ${{ steps.gh_deploy.outputs.deployment_id }}
+          description: Deploying to Vercel (preview)
+
+      - name: Install Vercel CLI (pinned)
+        if: steps.verify.outputs.should_deploy == 'true'
+        uses: './.github/actions/install-vercel-cli-pinned'
+        with:
+          version: 50.1.3
+
+      - name: Deploy to Vercel (preview)
+        if: steps.verify.outputs.should_deploy == 'true'
+        id: vercel
+        uses: './.github/actions/deploy-to-vercel-preview'
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ vars.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ vars.VERCEL_PROJECT_ID }}
+
+      - name: Update deployment status
+        if: steps.verify.outputs.should_deploy == 'true'
+        uses: './.github/actions/update-deployment-status'
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deployment-id: ${{ steps.gh_deploy.outputs.deployment_id }}
+          exit-code: ${{ steps.vercel.outputs.exit_code }}
+          environment-url: ${{ steps.vercel.outputs.deploy_url }}
+          success-description: Deployed to Vercel (preview)
+          failure-description: Vercel deploy failed (preview)
+
+      - name: Fail workflow if deploy failed
+        if: steps.verify.outputs.should_deploy == 'true' && steps.vercel.outputs.exit_code != '0'
+        uses: './.github/actions/fail-workflow-if-deploy-failed'
+        with:
+          exit-code: ${{ steps.vercel.outputs.exit_code }}
+
