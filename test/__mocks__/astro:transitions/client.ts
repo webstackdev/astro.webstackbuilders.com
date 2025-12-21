@@ -8,5 +8,3 @@ export const navigate = vi.fn().mockImplementation((_url: string | URL) => {
   // Mock navigation - just resolve immediately
   return Promise.resolve()
 })
-
-export const isTransitionBeforeSwapEvent = vi.fn().mockReturnValue(false)

@@ -13,9 +13,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  ping:
+  ping-production:
     name: Ping Turso Production DB
     runs-on: ubuntu-latest
+    environment: production
 
     steps:
       - name: Checkout repository
@@ -33,5 +34,29 @@ jobs:
       - name: Execute keep-alive query
         uses: './.github/actions/keep-alive'
         with:
-          astro-db-remote-url: ${{ secrets.ASTRO_DB_REMOTE_URL }}
+          astro-db-remote-url: ${{ vars.ASTRO_DB_REMOTE_URL }}
+          astro-db-app-token: ${{ secrets.ASTRO_DB_APP_TOKEN }}
+
+  ping-preview:
+    name: Ping Turso Preview DB
+    runs-on: ubuntu-latest
+    environment: preview
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6.0.1
+
+      - name: Setup Python
+        uses: actions/setup-python@v6.1.0
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: python3 -m pip install -r requirements.txt
+
+      - name: Execute keep-alive query
+        uses: './.github/actions/keep-alive'
+        with:
+          astro-db-remote-url: ${{ vars.ASTRO_DB_REMOTE_URL }}
           astro-db-app-token: ${{ secrets.ASTRO_DB_APP_TOKEN }}

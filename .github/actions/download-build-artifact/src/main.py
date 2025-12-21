@@ -12,6 +12,23 @@ import requests
 from actions_toolkit import core
 
 
+def get_input_compat(name: str, *, required: bool = False) -> str:
+    value = core.get_input(name, required=False)
+    if value:
+        return value.strip()
+
+    normalized = name.replace(" ", "_").upper()
+    candidates = {normalized, normalized.replace("-", "_"), normalized.replace("_", "-")}
+    for candidate in candidates:
+        env_value = os.getenv(f"INPUT_{candidate}", "")
+        if env_value:
+            return env_value.strip()
+
+    if required:
+        return core.get_input(name, required=True)
+    return ""
+
+
 def get_github_api_base_url() -> str:
     raw = (os.environ.get("GITHUB_API_URL") or "https://api.github.com").strip()
     parsed = urlparse(raw)
@@ -27,8 +44,8 @@ def is_allowed_fetch_url(url: str, allowed_hosts: set[str]) -> bool:
 
 def run() -> None:
     try:
-        token = core.get_input("github-token", required=True)
-        download_url = core.get_input("artifact-download-url", required=True).strip()
+        token = get_input_compat("github-token", required=True)
+        download_url = get_input_compat("artifact-download-url", required=True).strip()
 
         allowed_hosts = {urlparse(get_github_api_base_url()).hostname}
         if not is_allowed_fetch_url(download_url, allowed_hosts):

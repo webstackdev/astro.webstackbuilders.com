@@ -16,6 +16,31 @@ class WorkflowDescriptor:
     label: str
 
 
+def get_input_compat(name: str, *, required: bool = False) -> str:
+    """Reads action inputs while tolerating runner normalization.
+
+    Unit tests for these actions frequently monkeypatch `core.get_input`.
+    We prefer `core.get_input` first, then fall back to direct env lookups
+    that accept both hyphen and underscore variants.
+    """
+
+    value = core.get_input(name, required=False)
+    if value:
+        return value.strip()
+
+    normalized = name.replace(" ", "_").upper()
+    candidates = {normalized, normalized.replace("-", "_"), normalized.replace("_", "-")}
+    for candidate in candidates:
+        env_value = os.getenv(f"INPUT_{candidate}", "")
+        if env_value:
+            return env_value.strip()
+
+    if required:
+        # Preserve the same error message format as actions_toolkit.
+        return core.get_input(name, required=True)
+    return ""
+
+
 def get_github_api_base_url() -> str:
     raw = (os.environ.get("GITHUB_API_URL") or "https://api.github.com").strip()
     parsed = urlparse(raw)
@@ -114,17 +139,17 @@ def find_artifact_download_url(
 
 def run() -> None:
     try:
-        token = core.get_input("github-token", required=True)
-        sha = core.get_input("sha", required=True).strip()
-        trigger_event = core.get_input("trigger-event")
-        head_branch = core.get_input("head-branch")
-        is_fork = (core.get_input("is-fork") or "false").strip().lower() == "true"
-        skip_hotfix = (core.get_input("skip-hotfix") or "false").strip().lower() == "true"
-        skip_forks = (core.get_input("skip-forks") or "false").strip().lower() == "true"
-        require_trigger_event = (core.get_input("require-trigger-event") or "").strip()
-        build_workflow_file = core.get_input("build-workflow-file", required=True).strip()
-        artifact_name = core.get_input("artifact-name", required=True).strip()
-        required_workflows = parse_required_workflows(core.get_input("required-workflows-json", required=True))
+        token = get_input_compat("github-token", required=True)
+        sha = get_input_compat("sha", required=True).strip()
+        trigger_event = get_input_compat("trigger-event")
+        head_branch = get_input_compat("head-branch")
+        is_fork = (get_input_compat("is-fork") or "false").strip().lower() == "true"
+        skip_hotfix = (get_input_compat("skip-hotfix") or "false").strip().lower() == "true"
+        skip_forks = (get_input_compat("skip-forks") or "false").strip().lower() == "true"
+        require_trigger_event = (get_input_compat("require-trigger-event") or "").strip()
+        build_workflow_file = get_input_compat("build-workflow-file", required=True).strip()
+        artifact_name = get_input_compat("artifact-name", required=True).strip()
+        required_workflows = parse_required_workflows(get_input_compat("required-workflows-json", required=True))
 
         if require_trigger_event and trigger_event and trigger_event != require_trigger_event:
             core.notice(
