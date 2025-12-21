@@ -10,8 +10,10 @@ import {
   makeFetchTransport,
   linkedErrorsIntegration,
 } from '@sentry/browser'
-import { SENTRY_DSN } from 'astro:env/client'
-import { getPackageRelease } from '@components/scripts/utils/environmentClient'
+import {
+  getPackageRelease,
+  getSentryDsn
+} from '@components/scripts/utils/environmentClient'
 import { getAnalyticsConsentPreference } from '@components/scripts/store/consent'
 import { beforeSendHandler } from '@components/scripts/sentry/helpers'
 
@@ -35,9 +37,8 @@ export class SentryBootstrap {
   static init(): void {
     // Check analytics consent for PII handling
     const hasAnalyticsConsent = getAnalyticsConsentPreference()
-
     const client = new BrowserClient({
-      dsn: SENTRY_DSN,
+      dsn: getSentryDsn(),
       integrations: [
         // Core integrations
         breadcrumbsIntegration({

@@ -5,7 +5,8 @@
 import {
   PACKAGE_RELEASE_VERSION,
   PRIVACY_POLICY_VERSION,
-  PUBLIC_GOOGLE_MAPS_API_KEY
+  PUBLIC_GOOGLE_MAPS_API_KEY,
+  PUBLIC_SENTRY_DSN,
 } from 'astro:env/client'
 import { ClientScriptError } from '@components/scripts/errors'
 
@@ -56,14 +57,13 @@ export const isProd = () => {
 /**
  * Package Release Utility
  *
- * Provides access to the package release version that is injected at build time
- * via the PackageRelease Astro integration.
+ * Provides access to the package release version (package name and version
+ * at build time from package.json) that is injected at build time via the
+ * PackageRelease Astro integration. This provides a release identifier for
+ * tracking regressions between numbered releases in monitoring services like
+ * Sentry.
  *
  * @see src/integrations/PackageRelease/index.ts
- */
-
-/**
- * Gets the package release from the build-time environment variable
  * @returns The package release in name@version format
  * @throws {ClientScriptError} If PACKAGE_RELEASE_VERSION is not set
  */
@@ -77,7 +77,12 @@ export function getPackageRelease(): string {
 }
 
 /**
- * Gets the privacy policy version injected at build time
+ * Privacy Policy Version Utility
+ *
+ * Provides access to the privacy policy version that's injected at build time
+ * via the PrivacyPolicyVersion Astro integration.
+ *
+ * @see src/integrations/PrivacyPolicyVersion/index.ts
  * @returns ISO timestamp string representing current privacy policy version
  * @throws {ClientScriptError} If PRIVACY_POLICY_VERSION is missing
  */
@@ -92,6 +97,7 @@ export function getPrivacyPolicyVersion(): string {
 
 /**
  * Gets the Google Maps API key injected at build time.
+ *
  * @throws {ClientScriptError} If PUBLIC_GOOGLE_MAPS_API_KEY is not set
  */
 export function getGoogleMapsApiKey(): string {
@@ -102,4 +108,21 @@ export function getGoogleMapsApiKey(): string {
   }
 
   return PUBLIC_GOOGLE_MAPS_API_KEY
+}
+
+/**
+ * Gets the Sentry DSN key injected at build time. The Data Source Name is
+ * a unique URL that tells the Sentry error monitoring SDK where to send
+ * the application's error reports and events.
+ *
+ * @throws {ClientScriptError} If PUBLIC_SENTRY_DSN is not set
+ */
+export function getSentryDsn(): string {
+  if (!PUBLIC_SENTRY_DSN) {
+    throw new ClientScriptError(
+      'PUBLIC_SENTRY_DSN environment variable is not set. This is required to initialize the Sentry client in the browser.',
+    )
+  }
+
+  return PUBLIC_SENTRY_DSN
 }

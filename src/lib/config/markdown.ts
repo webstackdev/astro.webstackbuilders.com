@@ -25,6 +25,12 @@ Object.defineProperty(rehypeHeadingIds, 'name', { value: 'rehypeHeadingIds' })
 import { rehypeAccessibleEmojis } from 'rehype-accessible-emojis'
 Object.defineProperty(rehypeAccessibleEmojis, 'name', { value: 'rehypeAccessibleEmojis' })
 
+import rehypeMathjax from 'rehype-mathjax'
+Object.defineProperty(rehypeMathjax, 'name', { value: 'rehypeMathjax' })
+
+import rehypeMermaid from 'rehype-mermaid'
+Object.defineProperty(rehypeMermaid, 'name', { value: 'rehypeMermaid' })
+
 import type { Options as RehypeAutolinkHeadingsOptions } from 'rehype-autolink-headings'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 Object.defineProperty(rehypeAutolinkHeadings, 'name', { value: 'rehypeAutolinkHeadings' })
@@ -50,8 +56,8 @@ Object.defineProperty(rehypeInlineCodeColorSwatch, 'name', { value: 'rehypeInlin
 import remarkGfm from 'remark-gfm'
 Object.defineProperty(remarkGfm, 'name', { value: 'remarkGfm' })
 
-import remarkBreaks from 'remark-breaks'
-Object.defineProperty(remarkBreaks, 'name', { value: 'remarkBreaks' })
+import remarkMath from 'remark-math'
+Object.defineProperty(remarkMath, 'name', { value: 'remarkMath' })
 
 import remarkEmoji from 'remark-emoji'
 Object.defineProperty(remarkEmoji, 'name', { value: 'remarkEmoji' })
@@ -120,6 +126,8 @@ Object.defineProperty(remarkSmartypants, 'name', { value: 'remarkSmartypants' })
 import { rehypeTailwindClasses } from '../markdown/plugins/rehype-tailwind'
 Object.defineProperty(rehypeTailwindClasses, 'name', { value: 'rehypeTailwindClasses' })
 
+import { BuildError } from '../errors/BuildError'
+
 /**
  * ==============================================================
  *
@@ -142,6 +150,25 @@ Object.defineProperty(remarkLinkifyRegexUrls, 'name', { value: 'remarkLinkifyReg
 
 /** remark-attributes plugin */
 export const remarkAttributesConfig = { scope: 'permissive' } as const
+
+/** rehype-mermaid plugin */
+export const rehypeMermaidConfig = {
+  strategy: 'inline-svg',
+  css: new URL('../../styles/vendor/mermaid.css', import.meta.url),
+  mermaidConfig: {
+    fontFamily: '"Onest Regular", arial, sans-serif',
+  },
+  errorFallback: (_element: unknown, _diagram: string, error: unknown, file: unknown) => {
+    const filePath =
+      typeof (file as { path?: unknown } | null)?.path === 'string' ? ((file as { path: string }).path as string) : undefined
+
+    throw new BuildError(new Error("Mermaid couldn't graph this diagram.", { cause: error }), {
+      phase: 'compilation',
+      tool: 'mermaid',
+      filePath,
+    })
+  },
+} as const
 
 /** rehype-autolink-headings plugin */
 export const rehypeAutolinkHeadingsConfig: RehypeAutolinkHeadingsOptions = {
@@ -246,6 +273,9 @@ export const remarkGfmConfig = {
   singleTilde: false,
 } as const
 
+/** remark-math plugin (parse TeX math; avoid $...$ to prevent accidental currency parsing) */
+export const remarkMathConfig = { singleDollarTextMath: false } as const
+
 export const shikiConfigOptions: ShikiConfig = {
   // Alternatively, provide multiple themes
   // See note below for using dual light/dark themes
@@ -327,6 +357,8 @@ export const markdownConfig: Partial<MdxOptions> = {
   remarkPlugins: [
     /** GitHub Flavored Markdown (explicit, configured) */
     [remarkGfm, remarkGfmConfig],
+    /** TeX math blocks/inline (server-rendered later by rehype-mathjax) */
+    [remarkMath, remarkMathConfig],
     /** Define abbreviations at bottom file, and wraps their usage in <abbr> tags */
     remarkAbbreviations,
     /** Align blocks/paragraphs using -> / <- marker syntax */
@@ -351,8 +383,6 @@ export const markdownConfig: Partial<MdxOptions> = {
     [remarkAttributes, remarkAttributesConfig],
     /** Wrap blockquotes with attribution in semantic figure/figcaption markup */
     remarkAttribution,
-    /** Add <br/> tag to single line breaks */
-    remarkBreaks,
     /** Convert emoji syntax like :heart: to emoji images */
     remarkEmoji,
     /** Support generic directive syntax (required by remark-video) */
@@ -389,6 +419,14 @@ export const markdownConfig: Partial<MdxOptions> = {
      * using the header title text converted to kebab-case
      */
     [rehypeAutolinkHeadings, rehypeAutolinkHeadingsConfig],
+    /**
+     * Render TeX math to SVG at build-time (no client-side MathJax).
+     * Keep this before rehypeTailwindClasses so math placeholders (<code>/<pre>) are
+     * replaced with <mjx-container> before Tailwind class injection.
+     */
+    rehypeMathjax,
+    /** Render Mermaid diagrams to inline SVG at build-time */
+    [rehypeMermaid, rehypeMermaidConfig],
     /**
      * Automatically add Tailwind classes to markdown elements as
      * specified in src/lib/markdown/rehype-tailwind-classes.ts

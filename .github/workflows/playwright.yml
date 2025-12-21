@@ -1,0 +1,107 @@
+# Runs Playwright E2E suite for merge-queue validation
+name: Playwright
+
+on:
+  merge_group:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  e2e-test:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    environment: testing
+    if: ${{ !startsWith(github.head_ref || github.ref_name, 'hotfix/') }}
+
+    permissions:
+      actions: write
+      contents: read
+
+    env:
+      ASTRO_DB_APP_TOKEN: ${{ vars.ASTRO_DB_APP_TOKEN }}
+      ASTRO_DB_REMOTE_URL: ${{ vars.ASTRO_DB_REMOTE_URL }}
+      COMPOSE_PROJECT_NAME: ${{ vars.COMPOSE_PROJECT_NAME }}
+      CONVERTKIT_API_KEY: ${{ vars.CONVERTKIT_API_KEY }}
+      CONVERTKIT_HTTP_PORT: ${{ vars.CONVERTKIT_HTTP_PORT }}
+      CRON_SECRET: ${{ vars.CRON_SECRET }}
+      DEV_SERVER_HOST: 127.0.0.1
+      DEV_SERVER_PORT: ${{ vars.DEV_SERVER_PORT }}
+      DISABLE_TELEMETRY: true
+      FORCE_COLOR: 3
+      PUBLIC_GOOGLE_MAPS_API_KEY: ${{ vars.PUBLIC_GOOGLE_MAPS_API_KEY }}
+      RESEND_API_KEY: ${{ vars.RESEND_API_KEY }}
+      RESEND_HTTP_PORT: ${{ vars.RESEND_HTTP_PORT }}
+      SENTRY_AUTH_TOKEN: ${{ vars.SENTRY_AUTH_TOKEN }}
+      PUBLIC_SENTRY_DSN: ${{ vars.PUBLIC_SENTRY_DSN }}
+      WEBMENTION_IO_TOKEN: ${{ vars.WEBMENTION_IO_TOKEN }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6.0.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6.1.0
+        with:
+          node-version: '22.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --force
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Start Astro dev server
+        run: |
+          npm run dev -- --host 0.0.0.0 --port "${DEV_SERVER_PORT}" > /tmp/astro-dev.log 2>&1 &
+          echo $! > /tmp/astro-dev.pid
+
+      - name: Wait for Astro dev server
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS "http://${DEV_SERVER_HOST}:${DEV_SERVER_PORT}/" > /dev/null; then
+              echo "✅ Dev server is responding"
+              exit 0
+            fi
+            sleep 1
+          done
+
+          echo "❌ Dev server did not start in time"
+          echo '--- Astro dev server log ---'
+          cat /tmp/astro-dev.log || true
+          exit 1
+
+      - name: Run Playwright E2E tests
+        run: npm run test:e2e
+        env:
+          CI: '1'
+
+      - name: Stop Astro dev server
+        if: always()
+        run: |
+          if [ -f /tmp/astro-dev.pid ]; then
+            kill $(cat /tmp/astro-dev.pid) || true
+            rm /tmp/astro-dev.pid
+          fi
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+  hotfix-bypass:
+    name: E2E Test Hotfix Bypass
+    runs-on: ubuntu-latest
+    if: ${{ startsWith(github.head_ref || github.ref_name, 'hotfix/') }}
+
+    permissions: {}
+
+    steps:
+      - name: Skip E2E for hotfix branch
+        run: echo "hotfix/* branch detected; skipping e2e workflow but allowing deployments."

@@ -40,15 +40,26 @@ export const isProd = () => {
   return isVercel()
 }
 
+/**
+ * GITHUB_ACTIONS is always set to true when GitHub Actions is running the
+ * workflow. You can use this variable to differentiate when tests are being
+ * run locally or by GitHub Actions.
+ */
 export const isGitHub = () => {
   return !!process.env['GITHUB_ACTIONS']
 }
 
-
+/**
+ * The default working directory on the runner for steps, and the default
+ * location of your repository when using the checkout action. For example,
+ * /home/runner/work/astro.webstackbuilders.com/astro.webstackbuilders.com
+ */
 export const getGitHubRepoPath = () => {
   return process.env['GITHUB_WORKSPACE']!
 }
 
+
+// VERCEL_ENV=production, preview, or development
 export const isVercel = () => {
   return !!process.env['VERCEL']
 }

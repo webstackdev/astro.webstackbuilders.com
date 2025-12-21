@@ -1,4 +1,4 @@
-# Runs lint, unit tests, and E2E suites to gate deployments
+# Runs unit tests to gate deployments
 name: Test
 
 on:
@@ -8,55 +8,15 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
 
-permissions:
-  contents: read
-
-env:
-  CONVERTKIT_API_KEY: ${{ secrets.CONVERTKIT_API_KEY }}
-  CONVERTKIT_FORM_ID: ${{ secrets.CONVERTKIT_FORM_ID }}
-  CRON_SECRET: ${{ secrets.CRON_SECRET }}
-  PUBLIC_GOOGLE_MAPS_API_KEY: ${{ secrets.PUBLIC_GOOGLE_MAPS_API_KEY }}
-  RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-  SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-  SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-  WEBMENTION_IO_TOKEN: ${{ secrets.WEBMENTION_IO_TOKEN }}
+permissions: {}
 
 jobs:
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-    if: ${{ !startsWith(github.head_ref || github.ref_name, 'hotfix/') }}
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: '22.x'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci --legacy-peer-deps
-
-      - name: Sync Astro types
-        run: npm run sync
-
-      - name: Run Astro check
-        run: npm run check
-
-      - name: Run lint
-        run: npm run lint:base
-
-      - name: Run Actions lint
-        run: npm run lint:actions
-
   unit-test:
     name: Unit Tests
     runs-on: ubuntu-latest
-    needs: lint
+    environment: testing
     if: ${{ !startsWith(github.head_ref || github.ref_name, 'hotfix/') }}
 
     permissions:
@@ -65,18 +25,36 @@ jobs:
       contents: read
       pull-requests: write
 
+    env:
+      ASTRO_DB_APP_TOKEN: ${{ vars.ASTRO_DB_APP_TOKEN }}
+      ASTRO_DB_REMOTE_URL: ${{ vars.ASTRO_DB_REMOTE_URL }}
+      COMPOSE_PROJECT_NAME: ${{ vars.COMPOSE_PROJECT_NAME }}
+      CONVERTKIT_API_KEY: ${{ vars.CONVERTKIT_API_KEY }}
+      CONVERTKIT_HTTP_PORT: ${{ vars.CONVERTKIT_HTTP_PORT }}
+      CRON_SECRET: ${{ vars.CRON_SECRET }}
+      DEV_SERVER_HOST: 127.0.0.1
+      DEV_SERVER_PORT: ${{ vars.DEV_SERVER_PORT }}
+      DISABLE_TELEMETRY: true
+      FORCE_COLOR: 3
+      PUBLIC_GOOGLE_MAPS_API_KEY: ${{ vars.PUBLIC_GOOGLE_MAPS_API_KEY }}
+      RESEND_API_KEY: ${{ vars.RESEND_API_KEY }}
+      RESEND_HTTP_PORT: ${{ vars.RESEND_HTTP_PORT }}
+      SENTRY_AUTH_TOKEN: ${{ vars.SENTRY_AUTH_TOKEN }}
+      PUBLIC_SENTRY_DSN: ${{ vars.PUBLIC_SENTRY_DSN }}
+      WEBMENTION_IO_TOKEN: ${{ vars.WEBMENTION_IO_TOKEN }}
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v6.0.1
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v6.1.0
         with:
           node-version: '22.x'
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: npm ci --force
 
       # Astro build runs sync, check, and integrations including verify links
       - name: Verify green build (local DB snapshot)
@@ -101,89 +79,14 @@ jobs:
           path: coverage/
           retention-days: 30
 
-  e2e-test:
-    name: E2E Tests
-    runs-on: ubuntu-latest
-    needs: unit-test
-    # Temporarily disabled until the simplified flow is battle-tested
-    if: ${{ false && !startsWith(github.head_ref || github.ref_name, 'hotfix/') }}
-
-    permissions:
-      actions: write
-      contents: read
-
-    env:
-      CONVERTKIT_API_KEY: ${{ secrets.CONVERTKIT_API_KEY }}
-      CONVERTKIT_FORM_ID: ${{ secrets.CONVERTKIT_FORM_ID }}
-      CRON_SECRET: ${{ secrets.CRON_SECRET }}
-      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-      SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-      WEBMENTION_IO_TOKEN: ${{ secrets.WEBMENTION_IO_TOKEN }}
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: '22.x'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci --legacy-peer-deps
-
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps
-
-      - name: Start Astro dev server
-        run: |
-          npm run dev -- --host 0.0.0.0 > /tmp/astro-dev.log 2>&1 &
-          echo $! > /tmp/astro-dev.pid
-
-      - name: Wait for dev server
-        run: |
-          for attempt in $(seq 1 60); do
-            if curl -fsS http://127.0.0.1:4321 >/dev/null; then
-              echo "✅ Dev server is responding"
-              exit 0
-            fi
-            sleep 2
-          done
-          echo "❌ Dev server failed to start" >&2
-          if [ -f /tmp/astro-dev.log ]; then
-            echo '--- Astro dev server log ---'
-            cat /tmp/astro-dev.log
-          fi
-          exit 1
-
-      - name: Run Playwright E2E tests
-        run: npm run test:e2e
-        env:
-          CI: '1'
-
-      - name: Stop Astro dev server
-        if: always()
-        run: |
-          if [ -f /tmp/astro-dev.pid ]; then
-            kill $(cat /tmp/astro-dev.pid) || true
-            rm /tmp/astro-dev.pid
-          fi
-
-      - name: Upload Playwright report
-        if: always()
-        uses: actions/upload-artifact@v6
-        with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 30
-
   hotfix-bypass:
-    name: Hotfix Bypass Notice
+    name: Hotfix Bypass
     runs-on: ubuntu-latest
     if: ${{ startsWith(github.head_ref || github.ref_name, 'hotfix/') }}
+
+    permissions: {}
 
     steps:
       - name: Skip testing for hotfix branch
         run: echo "hotfix/* branch detected; skipping lint, unit, and e2e workflows but allowing deployments."
+

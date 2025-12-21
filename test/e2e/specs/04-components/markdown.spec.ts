@@ -216,6 +216,61 @@ test.describe('Markdown (MDX) fixture page', () => {
     })
   })
 
+  test.describe('Mermaid (rehype-mermaid)', () => {
+    test('renders Mermaid as inline SVG at build-time', async () => {
+      await expect(markdownPage.heading('Mermaid (rehype-mermaid)', 2)).toBeVisible()
+
+      const diagramSvg = markdownPage.prose.locator('svg[id^="mermaid-"]').first()
+      await expect(diagramSvg).toBeVisible()
+
+      await expect(markdownPage.prose.locator('code.language-mermaid')).toHaveCount(0)
+      await expect(markdownPage.prose.locator('pre.mermaid')).toHaveCount(0)
+    })
+  })
+
+  test.describe('Math (remark-math + rehype-mathjax)', () => {
+    test('renders TeX as SVG at build-time (no client-side MathJax)', async ({ page }) => {
+      await expect(markdownPage.heading('Math (remark-math + rehype-mathjax)', 2)).toBeVisible()
+
+      const mjx = markdownPage.prose.locator('mjx-container[jax="SVG"]')
+      const mjxCount = await mjx.count()
+      expect(mjxCount).toBeGreaterThanOrEqual(1)
+
+      await expect(mjx.first().locator('svg')).toBeVisible()
+
+      await expect(markdownPage.prose.locator('code.language-math')).toHaveCount(0)
+
+      await expect(markdownPage.prose).toContainText('Single-dollar stays text')
+      await expect(markdownPage.prose).toContainText('$x$')
+
+      await expect(page.locator('script[src*="mathjax" i]')).toHaveCount(0)
+    })
+
+    test('does not force line breaks for hard-wrapped prose', async () => {
+      const paragraph = markdownPage.prose.locator('p', { hasText: 'Lift(' }).first()
+      await expect(paragraph).toBeVisible()
+
+      const renderedText = await paragraph.evaluate(node => {
+        if (node instanceof HTMLElement) {
+          return node.innerText ?? ''
+        }
+
+        return node.textContent ?? ''
+      })
+      expect(renderedText).toContain('like the following equation.')
+      expect(renderedText).not.toContain('like the following\nequation.')
+
+      const rawHtml = await paragraph.evaluate(node => node.innerHTML)
+      expect(rawHtml.toLowerCase()).not.toContain('<br')
+
+      const mjxSvg = paragraph.locator('mjx-container[jax="SVG"] svg').first()
+      await expect(mjxSvg).toBeVisible()
+
+      const svgDisplay = await mjxSvg.evaluate(node => window.getComputedStyle(node).display)
+      expect(svgDisplay).not.toBe('block')
+    })
+  })
+
   test.describe('remark-captions', () => {
     test('wraps captioned elements in figure/figcaption', async () => {
       await expect(markdownPage.heading('Captions (remark-captions)', 2)).toBeVisible()

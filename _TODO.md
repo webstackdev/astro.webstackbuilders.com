@@ -100,6 +100,8 @@ https://vercel.com/docs/analytics/quickstart#add-the-analytics-component-to-your
 
 See note in src/components/scripts/sentry/client.ts - "User Feedback - allow users to report issues"
 
+https://vercel.com/kevin-browns-projects-dd474f73/astro-webstackbuilders-com/ai-gateway
+
 ## Uppy file uploads from contact form
 
 docs/CONTACT_FORM.md
@@ -154,13 +156,6 @@ cat.structure: Rules related to the document's overall structure, like the prope
 cat.tables: Rules for data tables, including headers and associations.
 cat.text-alternatives: Rules for ensuring that text alternatives are provided for non-text content, such as images.
 
-## "Add to Calendar" button
-
-Google Calendar, Apple Calendar,  Yahoo Calender,  Microsoft 365, Outlook, and Teams, and generate iCal/ics files (for all other calendars and cases).
-
-`https://github.com/add2cal/add-to-calendar-button`
-`https://add-to-calendar-button.com/`
-
 ## Set up webmentions
 
 Needs to add real API key and test
@@ -169,18 +164,6 @@ Needs to add real API key and test
 - Add WEBMENTION_IO_TOKEN to .env
 - (Optional) Set up Bridgy for social media
 - Test with sample webmentions
-
-## Astro wrapper for the `@github/clipboard-copy-element` web component. Copies element text content or input values to the clipboard
-
-[`clipboard-copy`](https://github.com/BryceRussell/astro-github-elements/tree/main/packages/clipboard-copy#astro-github-elementsclipboard-copy)
-
-## Astro wrapper for GitHub's relative time web component. Translates dates to past or future time phrases, like "*4 hours from now*" or "*20 days ago*"
-
-[Relative Time](https://github.com/BryceRussell/astro-github-elements/tree/main/packages/time#readme)
-
-## Display text in a circular layout
-
-[TextCircle](https://github.com/LoStisWorld/astro-textcircle#astro-textcircle)
 
 ## Custom Directives
 
@@ -229,6 +212,27 @@ You can then opt-out of prefetching for individual links by setting data-astro-p
 <a href="/about" data-astro-prefetch="false">About</a>
 ```
 
+## Astro Components to Add
+
+### "Add to Calendar" button
+
+Google Calendar, Apple Calendar,  Yahoo Calender,  Microsoft 365, Outlook, and Teams, and generate iCal/ics files (for all other calendars and cases).
+
+`https://github.com/add2cal/add-to-calendar-button`
+`https://add-to-calendar-button.com/`
+
+### Astro wrapper for the `@github/clipboard-copy-element` web component. Copies element text content or input values to the clipboard
+
+[`clipboard-copy`](https://github.com/BryceRussell/astro-github-elements/tree/main/packages/clipboard-copy#astro-github-elementsclipboard-copy)
+
+### Astro wrapper for GitHub's relative time web component. Translates dates to past or future time phrases, like "*4 hours from now*" or "*20 days ago*"
+
+[Relative Time](https://github.com/BryceRussell/astro-github-elements/tree/main/packages/time#readme)
+
+### Display text in a circular layout
+
+[TextCircle](https://github.com/LoStisWorld/astro-textcircle#astro-textcircle)
+
 ## Markdown
 
 ## Code Block and Highlighting
@@ -275,28 +279,3 @@ const markdownCodeCopyConfig = {
   attachText: ``,
 }
 ```
-
-### rehype-mathjax and remark-math
-
-- `rehype-katex` is alternative but lacks accessibility
-
-```math
-L = \frac{1}{2} \rho v^2 S C_L
-```
-
-
-### Mermaid JavaScript based diagramming and charting tool
-
-```mermaid
-graph TD
-    A[Start] --> B{Is it working?}
-    B -->|Yes| C[Great!]
-    B -->|No| D[Debug]
-    D --> B
-```
-
-### Apache ECharts interactive charting and data visualization library for browser
-
-@TODO: uses ES Modules, needs Jest config adjusted. See note in Mermaid plugin spec file.
-
-`markdown-it-echarts`

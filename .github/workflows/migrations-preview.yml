@@ -1,0 +1,135 @@
+name: Migrations Preview
+
+on:
+  workflow_run:
+    workflows:
+      - Deploy Preview
+    types:
+      - completed
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  migrations-preview:
+    name: Migrations Preview
+    runs-on: ubuntu-latest
+    environment: preview
+
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository (trusted base)
+        uses: actions/checkout@v6.0.1
+        with:
+          ref: main
+
+      - name: Setup Python
+        uses: actions/setup-python@v6.1.0
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: python3 -m pip install -r requirements.txt
+
+      - name: Resolve deploy SHA
+        id: context
+        uses: './.github/actions/resolve-deploy-sha'
+
+      - name: Gate migrations (skip forks/hotfix/unexpected triggers)
+        id: gate
+        run: |
+          set -euo pipefail
+
+          # For workflow_dispatch we allow manual runs (environment protections still apply).
+          if [ "${GITHUB_EVENT_NAME}" = 'workflow_dispatch' ]; then
+            echo 'should_migrate=true' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # This workflow is intended to run after a successful preview deployment.
+          # Deploy Preview itself skips forks/hotfixes; we must repeat that gating here
+          # because the deploy workflow can still conclude 'success' when it skips.
+          if [ '${{ steps.context.outputs.trigger_event }}' != 'pull_request' ]; then
+            echo 'should_migrate=false' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ '${{ steps.context.outputs.is_fork }}' = 'true' ]; then
+            echo 'should_migrate=false' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          case '${{ steps.context.outputs.head_branch }}' in
+            hotfix/*)
+              echo 'should_migrate=false' >> "$GITHUB_OUTPUT"
+              exit 0
+              ;;
+          esac
+
+          echo 'should_migrate=true' >> "$GITHUB_OUTPUT"
+
+      - name: Checkout deployed SHA (validated)
+        # CodeQL can flag privileged workflows which checkout untrusted refs via actions/checkout.
+        # We checkout main first (trusted) to load local actions/tooling, then fetch+detach the
+        # deployed SHA. This SHA comes from the upstream Deploy workflow context.
+        if: steps.gate.outputs.should_migrate == 'true'
+        run: |
+          set -euo pipefail
+          sha='${{ steps.context.outputs.sha }}'
+          git fetch origin "$sha" --depth=1
+          git checkout --detach "$sha"
+
+      - name: Setup Node.js
+        if: steps.gate.outputs.should_migrate == 'true'
+        uses: actions/setup-node@v6.1.0
+        with:
+          node-version: '22.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        if: steps.gate.outputs.should_migrate == 'true'
+        run: npm ci --force
+
+      - name: Verify database schema is up to date
+        id: verify
+        if: steps.gate.outputs.should_migrate == 'true'
+        env:
+          ASTRO_DB_REMOTE_URL: ${{ vars.ASTRO_DB_REMOTE_URL }}
+          ASTRO_DB_APP_TOKEN: ${{ secrets.ASTRO_DB_APP_TOKEN }}
+        run: |
+          set -uo pipefail
+          set +e
+          output=$(npx astro db verify 2>&1)
+          exit_code=$?
+          set -e
+
+          printf '%s\n' "$output"
+
+          if [ "$exit_code" -ne 0 ]; then
+            exit "$exit_code"
+          fi
+
+          if printf '%s' "$output" | grep -Fq 'Database schema is up to date.'; then
+            echo 'needs_push=false' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if printf '%s' "$output" | grep -Fq 'Database schema is out of date.'; then
+            echo 'needs_push=true' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo 'Unexpected output from astro db verify' >&2
+          exit 1
+
+      - name: Push database migrations (preview)
+        if: steps.gate.outputs.should_migrate == 'true' && steps.verify.outputs.needs_push == 'true'
+        env:
+          ASTRO_DB_REMOTE_URL: ${{ vars.ASTRO_DB_REMOTE_URL }}
+          ASTRO_DB_APP_TOKEN: ${{ secrets.ASTRO_DB_APP_TOKEN }}
+        run: npx astro db push --remote

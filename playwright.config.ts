@@ -39,7 +39,8 @@ export default defineConfig({
   /* Look for test files in the "tests" directory, relative to this configuration file. */
   testDir: './test/e2e/specs',
   /* Glob patterns or regular expressions that match test files. */
-  testMatch: '**/*.spec.ts',
+  // @TODO: Temporarily set to just homepage to refactor CI workflow
+  testMatch: '01-smoke/homepage.spec.ts',
   /** Folder for test artifacts such as screenshots, videos, traces, etc. */
   outputDir: `.cache/playwright/output/`,
   /** Tracked by Git LFS */

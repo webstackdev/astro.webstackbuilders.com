@@ -379,6 +379,7 @@ export default [
 
   {
     files: [
+      '.github/actions/**/*',
       'src/lib/config/pwa.ts',
       'src/lib/config/serviceWorker.ts',
       'src/components/scripts/store/__tests__/socialEmbeds.spec.ts',
@@ -414,6 +415,7 @@ export default [
     /** These directories can use process.env, which is forbidden in other files */
     files: [
       '.eslintrc.js',
+      '.github/actions/**/*',
       'astro.config.ts',
       'playwright.config.ts',
       'vitest.config.ts',

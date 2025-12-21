@@ -42,6 +42,23 @@ const PROJECT_ROOT = getProjectRoot()
 const PRIVACY_POLICY_FILEPATH = posix.join('src', 'pages', 'privacy', 'index.astro')
 const GIT_DIRECTORY_PATH = join(PROJECT_ROOT, '.git')
 
+const debugListDirectory = (label: string, directoryPath: string): void => {
+  try {
+    const entries = fs.readdirSync(directoryPath)
+    const maxEntriesToLog = 60
+    const visibleEntries = entries.slice(0, maxEntriesToLog)
+    const suffix = entries.length > maxEntriesToLog ? ` … (+${entries.length - maxEntriesToLog} more)` : ''
+
+    console.log(
+      `[privacy-policy-version] Debug: ls ${label}: ${directoryPath} -> ${visibleEntries.join(', ')}${suffix}`,
+    )
+  } catch (error) {
+    console.log(
+      `[privacy-policy-version] Debug: ls ${label} failed for ${directoryPath}: ${error instanceof Error ? error.message : String(error)}`,
+    )
+  }
+}
+
 export const toIsoDateString = (date: Date): string => date.toISOString().slice(0, 10)
 
 const formatGitShortDate = (timestamp: number, timezoneOffset: number): string => {
@@ -116,6 +133,21 @@ export async function resolvePrivacyPolicyVersion(): Promise<string> {
     }
   } else {
     console.warn('[privacy-policy-version] Git metadata not found. Skipping git lookup.')
+
+    // Debugging for Vercel/CI environments where git history may be absent.
+    console.log(`[privacy-policy-version] Debug: pwd (process.cwd): ${process.cwd()}`)
+    console.log(`[privacy-policy-version] Debug: PROJECT_ROOT: ${PROJECT_ROOT}`)
+    console.log(`[privacy-policy-version] Debug: expected .git directory: ${GIT_DIRECTORY_PATH}`)
+
+    debugListDirectory('PROJECT_ROOT', PROJECT_ROOT)
+    debugListDirectory('process.cwd()', process.cwd())
+
+    const privacyPolicyAbsolute = join(PROJECT_ROOT, PRIVACY_POLICY_FILEPATH)
+    console.log(`[privacy-policy-version] Debug: privacy policy filepath (relative): ${PRIVACY_POLICY_FILEPATH}`)
+    console.log(`[privacy-policy-version] Debug: privacy policy filepath (absolute): ${privacyPolicyAbsolute}`)
+    console.log(
+      `[privacy-policy-version] Debug: privacy policy file exists: ${fs.existsSync(privacyPolicyAbsolute)}`,
+    )
   }
 
   const fallback = toIsoDateString(new Date())

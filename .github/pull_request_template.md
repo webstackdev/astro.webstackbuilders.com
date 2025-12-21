@@ -16,6 +16,3 @@
 - [ ] 🎨 Style/UI change
 - [ ] ♻️ Code refactoring
 
-## Changes Made
-
-<!-- List the main changes in this PR -->

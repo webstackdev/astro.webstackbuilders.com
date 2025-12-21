@@ -41,6 +41,7 @@ export default getViteConfig({
       'test/unit/**/*.spec.ts',
       'test/eslint/__tests__/**/*.spec.ts',
       'test/e2e/helpers/__tests__/**/*.spec.ts',
+      '.github/actions/**/__tests__/**/*.spec.ts',
     ],
     environmentMatchGlobs: [
       ['src/components/**', 'node'],
@@ -51,6 +52,7 @@ export default getViteConfig({
       ['test/unit/**', 'node'],
       ['test/eslint/__tests__/**', 'node'],
       ['test/e2e/helpers/__tests__/**', 'node'],
+      ['.github/actions/**', 'node'],
     ],
     env: {
       DEV: 'true',

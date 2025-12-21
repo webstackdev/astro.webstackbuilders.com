@@ -227,14 +227,6 @@ Display customer feedback and testimonials:
 
 ## GFM
 
-### Autolink literals
-
-```markdown
-www.example.com, https://example.com, and contact@example.com.
-```
-
-www.example.com, https://example.com, and contact@example.com.
-
 ### Footnote
 
 ```markdown
@@ -311,9 +303,9 @@ The references can be anywhere in the document, before or after their use:
 |        | *formatted*     |
 |        | **paragraphs**  |
 |        | ```             |
-| multi  | and contain     |
-| line   | blocks          |
-| cells  | ```             |
+| multi  | and             |
+| line   | `contain`       |
+| cells  | blocks          |
 +========+=========:+======+
 | footer |    cells |      |
 +--------+----------+------+
@@ -329,12 +321,12 @@ The references can be anywhere in the document, before or after their use:
 | rows   |   normal | cell |
 +---v----+:---------------:+
 |        | cells can be    |
-|        | *formatted*     |
+|        | _formatted_     |
 |        | **paragraphs**  |
 |        | ```             |
-| multi  | and contain     |
-| line   | blocks          |
-| cells  | ```             |
+| multi  | and             |
+| line   | `contain`       |
+| cells  | blocks          |
 +========+=========:+======+
 | footer |    cells |      |
 +--------+----------+------+
@@ -353,11 +345,11 @@ The references can be anywhere in the document, before or after their use:
 
 | Style                  | Syntax             | Keyboard shortcut                         | Example                                  | Output                                   |
 | ---------------------- | ------------------ | ----------------------------------------- | ---------------------------------------- | ---------------------------------------- |
-| Bold                   | `** **` or `__ __` | Command+B (Mac) or Ctrl+B (Windows/Linux) | `**This is bold text**`                  | **This is bold text**                    |
-| Italic                 | `* *` or `_ _`     | Command+I (Mac) or Ctrl+I (Windows/Linux) | `_This text is italicized_`              | *This text is italicized*                |
+| Bold                   | `** **`       | Command+B (Mac) or Ctrl+B (Windows/Linux) | `**This is bold text**`                  | **This is bold text**                    |
+| Italic                 | `_ _`         | Command+I (Mac) or Ctrl+I (Windows/Linux) | `_This text is italicized_`              | _This text is italicized_                |
 | Strikethrough          | `~~ ~~` or `~ ~`   | None                                      | `~~This was mistaken text~~`             | ~~This was mistaken text~~               |
 | Bold and nested italic | `** **` and `_ _`  | None                                      | `**This text is _extremely_ important**` | **This text is \*extremely\* important** |
-| All bold and italic    | `*** ***`          | None                                      | `***All this text is important***`       | ***All this text is important***         |
+| All bold and italic    | `*** ***`          | None                                      | `**_All this text is important_**`       | **_All this text is important_**         |
 | Subscript              | `<sub> </sub>`     | None                                      | `This is a <sub>subscript</sub> text`    | This is a <sub>subscript</sub>           |
 | Superscript            | `<sup> </sup>`     | None                                      | `This is a <sup>superscript</sup> text`  | This is a <sup>superscript</sup> text    |
 | Underline              | `<ins> </ins>`     | None                                      | `This is an <ins>underlined</ins> text`  | This is an <ins>underlined</ins> text    |
@@ -430,7 +422,7 @@ Unordered lists:
 - First item
 - Second item
 - Third item with **bold text**
-- Fourth item with *italic text*
+- Fourth item with _italic text_
 
 Ordered lists:
 
@@ -481,20 +473,14 @@ Unified uses the backslash character to treat special Markdown symbols as litera
 \[ and \] (square brackets): Used for links
 \( and \) (parentheses): Used in links or for other extensions like superscripts
 \+, \-, \. (plus, minus, period): Used for lists
-\! (exclamation mark): Used for images (![]())
+\! (exclamation mark): Used for images (![Alt Text]())
 \` (backtick): Used for inline code blocks
 \> (greater-than sign): Used for blockquotes
 \| (pipe): Used for tables in extended Markdown syntax
 
 ## Comments
 
-(works if nothing here)
-
-```markdown
-{/* This content will not appear in the rendered Markdown */}
-```
-
-{/* This content will not appear in the rendered Markdown */}
+Comments are not available, because it requires using Astro layout syntax (jsdoc-style comment inside squiggly brackets), which triggers Markdownlint rule requiring no spaces inside emphasis markers like asterisk.
 
 ## Colors
 
@@ -542,6 +528,26 @@ There is a doc listing all available emojis in the /docs directory.
 ```
 
 :rocket:
+
+### rehype-mermaid
+
+With Mermaid markup like this in a code block with "mermaid" set as the language:
+
+```text
+graph TD
+    A[Start&nbsp;] --> B{Is it working?&nbsp;}
+    B -->|Yes&nbsp;| C[Great!]
+    B -->|No&nbsp;| D[Debug&nbsp;]
+    D --> B
+```
+
+```mermaid
+graph TD
+    A[Start&nbsp;] --> B{Is it working?&nbsp;}
+    B -->|Yes&nbsp;| C[Great!&nbsp;]
+    B -->|No&nbsp;| D[Debug&nbsp;]
+    D --> B
+```
 
 ### remark-align
 
@@ -712,6 +718,24 @@ my ==marked== text
 
 my ==marked== text
 
+### rehype-mathjax and remark-math
+
+- `rehype-katex` is alternative but lacks accessibility
+
+```markdown
+Lift($$L$$) can be determined by Lift Coefficient ($$C_L$$) like the following
+equation.
+```
+
+Lift($$L$$) can be determined by Lift Coefficient ($$C_L$$) like the following
+equation.
+
+The string `L = \frac{1}{2} \rho v^2 S C_L` within a fenced code black set to language `math`:
+
+```math
+L = \frac{1}{2} \rho v^2 S C_L
+```
+
 ### remark-supersub
 
 Subscript and superscript text
@@ -743,11 +767,11 @@ Embed videos in HTML5 markup that are in the `/public` folder
 ### remark-youtube
 
 ```markdown
-https://youtu.be/enTFE2c68FQ
+[Example Video 1](https://youtu.be/enTFE2c68FQ)
 
-https://www.youtube.com/watch?v=enTFE2c68FQ
+[Example Video 2](https://www.youtube.com/watch?v=enTFE2c68FQ)
 ```
 
-https://youtu.be/enTFE2c68FQ
+[Example Video 1](https://youtu.be/enTFE2c68FQ)
 
-https://www.youtube.com/watch?v=enTFE2c68FQ
+[Example Video 2](https://www.youtube.com/watch?v=enTFE2c68FQ)
