@@ -229,10 +229,6 @@ Google Calendar, Apple Calendar,  Yahoo Calender,  Microsoft 365, Outlook, and T
 
 [Relative Time](https://github.com/BryceRussell/astro-github-elements/tree/main/packages/time#readme)
 
-### Display text in a circular layout
-
-[TextCircle](https://github.com/LoStisWorld/astro-textcircle#astro-textcircle)
-
 ## Markdown
 
 ## Code Block and Highlighting
