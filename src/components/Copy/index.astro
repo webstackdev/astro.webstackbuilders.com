@@ -1,0 +1,74 @@
+---
+import Icon from '@components/Icon/index.astro'
+
+export interface Props {
+  class?: string
+  title?: string
+  mode?: 'fixed' | 'float'
+  styles?:
+    | string
+    | {
+        wrapper?: string
+        button?: string
+        icon?: string
+        successIcon?: string
+      }
+}
+
+const { class: className, title = 'Copy to clipboard', mode = 'fixed', styles, ...rest } = Astro.props
+
+const wrapperExtraClass = typeof styles === 'string' ? styles : styles?.wrapper
+const buttonExtraClass = typeof styles === 'string' ? undefined : styles?.button
+const iconExtraClass = typeof styles === 'string' ? undefined : styles?.icon
+const successIconExtraClass = typeof styles === 'string' ? undefined : styles?.successIcon
+
+const wrapperClass = ['inline-flex items-center gap-2', wrapperExtraClass].filter(Boolean).join(' ')
+const buttonClass = ['copy-to-clipboard-button', className, buttonExtraClass]
+  .filter(Boolean)
+  .join(' ')
+
+const floatButtonClass =
+  mode === 'float'
+    ? [
+        'opacity-0 pointer-events-none',
+        'group-hover:opacity-100 group-hover:pointer-events-auto',
+        'group-focus-within:opacity-100 group-focus-within:pointer-events-auto',
+        'focus-visible:opacity-100 focus-visible:pointer-events-auto',
+      ].join(' ')
+    : ''
+
+const iconButtonColorClass = [
+  'text-text fill-text',
+  'hover:text-text-offset hover:fill-text-offset',
+  'focus-visible:text-text-offset focus-visible:fill-text-offset',
+  'cursor-pointer',
+].join(' ')
+---
+
+<copy-to-clipboard class="inline-block">
+  <span class:list={[wrapperClass, mode === 'float' ? 'group' : undefined]} data-copy-to-clipboard-wrapper>
+    <span data-copy-to-clipboard-content>
+      <slot />
+    </span>
+
+    <button
+      {...rest}
+      class:list={[buttonClass, iconButtonColorClass, floatButtonClass]}
+      data-copy-to-clipboard-button
+      title={title}
+      type="button"
+    >
+      <span data-copy-to-clipboard-icon class="shrink-0">
+        <Icon name="copy" variant="inherit" class={iconExtraClass ?? ''} />
+      </span>
+      <span data-copy-to-clipboard-success-icon hidden class="shrink-0">
+        <Icon name="check" variant="inherit" class={successIconExtraClass ?? ''} />
+      </span>
+    </button>
+  </span>
+</copy-to-clipboard>
+
+<script>
+  import { registerCopyToClipboard } from '@components/Copy/client'
+  registerCopyToClipboard()
+</script>
