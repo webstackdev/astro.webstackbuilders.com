@@ -17,15 +17,15 @@ inputs:
     required: false
     default: ""
   is-fork:
-    description: 'true' if PR head repo is a fork.
+    description: "'true' if PR head repo is a fork."
     required: false
     default: "false"
   skip-hotfix:
-    description: 'true' to skip when head branch starts with hotfix/.
+    description: "'true' to skip when head branch starts with hotfix/."
     required: false
     default: "false"
   skip-forks:
-    description: 'true' to skip when is-fork is true.
+    description: "'true' to skip when is-fork is true."
     required: false
     default: "false"
   require-trigger-event:
@@ -44,7 +44,7 @@ inputs:
 
 outputs:
   should_deploy:
-    description: 'true' if all prerequisites succeeded and artifact exists.
+    description: "'true' if all prerequisites succeeded and artifact exists."
     value: ${{ steps.run.outputs.should_deploy }}
   artifact_download_url:
     description: Artifact archive download URL.
@@ -55,5 +55,6 @@ runs:
   steps:
     - id: run
       name: Verify prerequisites
-      run: python3 "${{ github.action_path }}/src/main.py"
+      working-directory: ${{ github.action_path }}
+      run: python3 src/main.py
       shell: bash
