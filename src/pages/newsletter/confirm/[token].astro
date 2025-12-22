@@ -172,6 +172,8 @@ const subtitle = 'Please wait while we confirm your subscription'
   </div>
 
   <script>
+    import { actions } from 'astro:actions'
+
     // Get token from URL
     const pathParts = window.location.pathname.split('/')
     const token = pathParts[pathParts.length - 1]
@@ -254,8 +256,14 @@ const subtitle = 'Please wait while we confirm your subscription'
       announceStatus('Confirming subscription.')
 
       try {
-        const response = await fetch(`/api/newsletter/confirm?token=${encodeURIComponent(token)}`)
-        const data = await response.json()
+        const result = await actions.newsletter.confirm({ token })
+
+        if (result.error) {
+          showError('Confirmation Error', result.error.message || 'An error occurred while confirming your subscription.')
+          return
+        }
+
+        const data = result.data
 
         if (data.success) {
           showSuccess(data.email || 'your email')

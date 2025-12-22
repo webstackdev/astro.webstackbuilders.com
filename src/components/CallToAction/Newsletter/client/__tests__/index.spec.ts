@@ -7,6 +7,16 @@ import type { NewsletterFormElement } from '@components/CallToAction/Newsletter/
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { executeRender } from '@test/unit/helpers/litRuntime'
 
+const newsletterSubscribeMock = vi.fn()
+
+vi.mock('astro:actions', () => ({
+  actions: {
+    newsletter: {
+      subscribe: newsletterSubscribeMock,
+    },
+  },
+}))
+
 type NewsletterComponentModule = WebComponentModule<NewsletterFormElement>
 
 const flushPromises = async () => {
@@ -45,17 +55,13 @@ const getElements = (root: NewsletterFormElement) => {
 
 describe('NewsletterFormElement web component', () => {
   let container: AstroContainer
-  let fetchMock: ReturnType<typeof vi.fn>
-  const originalFetch = globalThis.fetch
 
   beforeEach(async () => {
-    fetchMock = vi.fn()
-    globalThis.fetch = fetchMock as unknown as typeof fetch
+    newsletterSubscribeMock.mockReset()
     container = await AstroContainer.create()
   })
 
   afterEach(() => {
-    globalThis.fetch = originalFetch
     vi.restoreAllMocks()
   })
 
@@ -128,9 +134,8 @@ describe('NewsletterFormElement web component', () => {
   })
 
   test('submits to the newsletter API and shows success feedback', async () => {
-    fetchMock.mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve({ success: true, message: 'Subscribed successfully!' }),
+    newsletterSubscribeMock.mockResolvedValueOnce({
+      data: { success: true, message: 'Subscribed successfully!' },
     })
 
     await renderNewsletter(async ({ elements }) => {
@@ -143,13 +148,7 @@ describe('NewsletterFormElement web component', () => {
       elements.form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
       await flushPromises()
 
-      expect(fetchMock).toHaveBeenCalledWith('/api/newsletter', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: 'test@example.com', consentGiven: true }),
-      })
+      expect(newsletterSubscribeMock).toHaveBeenCalledWith({ email: 'test@example.com', consentGiven: true })
       expect(elements.message.textContent).toBe('Subscribed successfully!')
       expect(elements.message.getAttribute('role')).toBe('status')
       expect(elements.message.getAttribute('aria-live')).toBe('polite')
@@ -162,9 +161,8 @@ describe('NewsletterFormElement web component', () => {
   })
 
   test('handles API error responses gracefully', async () => {
-    fetchMock.mockResolvedValueOnce({
-      ok: false,
-      json: () => Promise.resolve({ success: false, error: 'Subscription failed' }),
+    newsletterSubscribeMock.mockResolvedValueOnce({
+      error: { message: 'Subscription failed' },
     })
 
     await renderNewsletter(async ({ elements }) => {
@@ -174,13 +172,13 @@ describe('NewsletterFormElement web component', () => {
       elements.form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
       await flushPromises()
 
-      expect(fetchMock).toHaveBeenCalled()
+      expect(newsletterSubscribeMock).toHaveBeenCalled()
       expect(elements.message.textContent).toBe('Subscription failed')
     })
   })
 
   test('shows a network error message when fetch rejects', async () => {
-    fetchMock.mockRejectedValueOnce(new TestError('Network error'))
+    newsletterSubscribeMock.mockRejectedValueOnce(new TestError('Network error'))
 
     await renderNewsletter(async ({ elements }) => {
       elements.emailInput.value = 'test@example.com'
@@ -189,7 +187,7 @@ describe('NewsletterFormElement web component', () => {
       elements.form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
       await flushPromises()
 
-      expect(fetchMock).toHaveBeenCalled()
+      expect(newsletterSubscribeMock).toHaveBeenCalled()
       expect(elements.message.textContent).toBe('Network error. Please check your connection and try again.')
     })
   })

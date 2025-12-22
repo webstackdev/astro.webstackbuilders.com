@@ -8,7 +8,6 @@ const baseConfig: ContactFormConfig = {
   maxCharacters: 2000,
   warningThreshold: 1500,
   errorThreshold: 1800,
-  apiEndpoint: '/api/contact',
 }
 
 describe('ContactForm utils', () => {

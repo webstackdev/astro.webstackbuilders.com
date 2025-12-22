@@ -29,10 +29,7 @@
 
 ### Endpoints:
 
-- cron/cleanup-confirmations → GET
-- cron/cleanup-dsar-requests → GET
-- cron/run-all → GET
-- social-card/ → GET
+- social-card/ → GET // not refactoring to an action - this stays as an api endpoint
 
 - contact/ → POST (contact form submission) and OPTIONS (CORS pre-flight)
 - downloads/submit → POST
@@ -48,8 +45,6 @@
 
 - _utils/rateLimit.ts
 - _utils/rateLimitStore.ts
-- cron/cleanup-confirmations.ts
-- cron/cleanup-dsar-requests.ts
 - gdpr/_utils/consentStore.ts
 - gdpr/_utils/dsarStore.ts
 - newsletter/_token.ts
@@ -133,7 +128,7 @@ import { defineConfig } from 'astro/config'
 
 export default defineConfig({
   prefetch: {
-    prefetchAll: true
+    c: true
   }
 })
 ```
@@ -143,6 +138,10 @@ You can then opt-out of prefetching for individual links by setting data-astro-p
 ```html
 <a href="/about" data-astro-prefetch="false">About</a>
 ```
+
+## Service Worker
+
+Evaluate the service worker configuration for whether it's sensible.
 
 ## Email Templates
 
@@ -200,6 +199,8 @@ Add Upstash Search as a Vercel Marketplace Integration.
 ### "Add to Calendar" button
 
 Google Calendar, Apple Calendar,  Microsoft Outlook and Teams, and generate iCal/ics files (for all other calendars and cases).
+
+## Troubleshooting deploy workflow issues
 
 `https://github.com/add2cal/add-to-calendar-button`
 `https://add-to-calendar-button.com/`

@@ -2,8 +2,9 @@ import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { hideErrorBanner, showErrorBanner, clearFieldFeedback, type LabelController } from './feedback'
 import { validateGenericFields, validateNameField, validateMessageField } from './validation'
-import type { ContactFormConfig, ContactFormElements } from './@types'
+import type { ContactFormElements } from './@types'
 import { validateEmailField } from './email'
+import { actions } from 'astro:actions'
 
 interface SubmissionControllers {
   labelController: LabelController
@@ -62,7 +63,6 @@ const resetFormState = (elements: ContactFormElements, controllers: SubmissionCo
 
 export const initFormSubmission = (
   elements: ContactFormElements,
-  config: ContactFormConfig,
   controllers: SubmissionControllers,
 ): void => {
   const context = { scriptName: 'ContactFormElement', operation: 'handleFormSubmission' }
@@ -85,14 +85,9 @@ export const initFormSubmission = (
 
       try {
         const formData = new FormData(elements.form)
-        const response = await fetch(config.apiEndpoint, {
-          method: 'POST',
-          body: formData,
-        })
+        const result = await actions.contact.submit(formData)
 
-        const result = await response.json()
-
-        if (response.ok && result.success) {
+        if (result.data?.success) {
           showSuccessMessage(elements)
 
           elements.submitBtn.dispatchEvent(
@@ -104,7 +99,10 @@ export const initFormSubmission = (
 
           resetFormState(elements, controllers)
         } else {
-          showErrorMessage(elements, result.message || 'An error occurred while sending your message.')
+          showErrorMessage(
+            elements,
+            result.error?.message || result.data?.message || 'An error occurred while sending your message.',
+          )
         }
       } catch (error) {
         handleScriptError(error, context)

@@ -1,5 +1,15 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
-import { renderDownloadForm, type DownloadFormElements } from './testUtils'
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
+import type { DownloadFormElements } from './testUtils'
+
+const downloadsSubmitMock = vi.fn()
+
+vi.mock('astro:actions', () => ({
+  actions: {
+    downloads: {
+      submit: downloadsSubmitMock,
+    },
+  },
+}))
 
 // Mock the logger to suppress error output in tests
 vi.mock('@lib/logger', () => ({
@@ -11,6 +21,12 @@ vi.mock('@lib/logger', () => ({
   },
 }))
 const flushPromises = () => new Promise(resolve => setTimeout(resolve, 0))
+
+let renderDownloadForm: typeof import('./testUtils').renderDownloadForm
+
+beforeAll(async () => {
+  ;({ renderDownloadForm } = await import('./testUtils'))
+})
 
 const defaultFormValues = {
   firstName: 'Jane',
@@ -38,21 +54,14 @@ const submitForm = (window: Window & typeof globalThis, form: HTMLFormElement) =
   form.dispatchEvent(submitEvent)
 }
 
-const successfulResponse = (): Response =>
-  ({
-    ok: true,
-    json: async () => ({ success: true }),
-  } as Response)
-
 describe('download-form web component', () => {
   afterEach(() => {
     vi.restoreAllMocks()
+    downloadsSubmitMock.mockReset()
   })
 
   it('does not submit when native form validation fails', async () => {
     await renderDownloadForm(async ({ elements, window }) => {
-      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(successfulResponse())
-
       vi.spyOn(elements.form, 'checkValidity').mockReturnValue(false)
       vi.spyOn(elements.form, 'reportValidity').mockReturnValue(false)
 
@@ -60,44 +69,31 @@ describe('download-form web component', () => {
       submitForm(window, elements.form)
       await flushPromises()
 
-      expect(fetchSpy).not.toHaveBeenCalled()
+      expect(downloadsSubmitMock).not.toHaveBeenCalled()
       expect(elements.firstName.getAttribute('aria-invalid')).toBe('true')
 
       expect(elements.statusDiv.classList.contains('hidden')).toBe(false)
       expect(elements.statusDiv.classList.contains('error')).toBe(true)
       expect(elements.statusDiv.getAttribute('role')).toBe('alert')
       expect(elements.statusDiv.getAttribute('aria-live')).toBe('assertive')
-
-      fetchSpy.mockRestore()
     })
   })
 
-  it('submits download requests via fetch', async () => {
+  it('submits download requests via actions', async () => {
     await renderDownloadForm(async ({ elements, window }) => {
-      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(successfulResponse())
+      downloadsSubmitMock.mockResolvedValue({ data: { success: true } })
       const payload = fillDownloadForm(elements)
 
       submitForm(window, elements.form)
       await flushPromises()
 
-      expect(fetchSpy).toHaveBeenCalledWith(
-        '/api/downloads/submit',
-        expect.objectContaining({
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
-        }),
-      )
-
-      fetchSpy.mockRestore()
+      expect(downloadsSubmitMock).toHaveBeenCalledWith(payload)
     })
   })
 
   it('shows success message and reveals download button', async () => {
     await renderDownloadForm(async ({ elements, window }) => {
-      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(successfulResponse())
+      downloadsSubmitMock.mockResolvedValue({ data: { success: true } })
       fillDownloadForm(elements)
 
       submitForm(window, elements.form)
@@ -113,14 +109,12 @@ describe('download-form web component', () => {
       expect(elements.firstName.value).toBe('')
       expect(elements.lastName.value).toBe('')
       expect(elements.workEmail.value).toBe('')
-
-      fetchSpy.mockRestore()
     })
   })
 
   it('dispatches a confetti:fire event from the submit button on success', async () => {
     await renderDownloadForm(async ({ elements, window }) => {
-      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(successfulResponse())
+      downloadsSubmitMock.mockResolvedValue({ data: { success: true } })
       fillDownloadForm(elements)
 
       let confettiEvent: Event | undefined
@@ -135,23 +129,18 @@ describe('download-form web component', () => {
       expect(confettiEvent?.target).toBe(elements.submitButton)
       expect(confettiEvent?.bubbles).toBe(true)
       expect((confettiEvent as CustomEvent)?.composed).toBe(true)
-
-      fetchSpy.mockRestore()
     })
   })
 
   it('displays error state when API fails', async () => {
     await renderDownloadForm(async ({ elements, window }) => {
-      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
-        ok: false,
-        json: async () => ({ message: 'Server error' }),
-      } as Response)
+      downloadsSubmitMock.mockResolvedValue({ error: { message: 'Server error' } })
 
       fillDownloadForm(elements)
       submitForm(window, elements.form)
       await flushPromises()
 
-      expect(fetchSpy).toHaveBeenCalled()
+      expect(downloadsSubmitMock).toHaveBeenCalled()
       expect(elements.statusDiv.classList.contains('hidden')).toBe(false)
       expect(elements.statusDiv.classList.contains('error')).toBe(true)
       expect(elements.statusDiv.textContent).toContain('There was an error processing your request')
@@ -159,18 +148,16 @@ describe('download-form web component', () => {
       expect(elements.statusDiv.getAttribute('aria-live')).toBe('assertive')
       expect(elements.downloadButtonWrapper.classList.contains('hidden')).toBe(true)
       expect(elements.submitButton.classList.contains('hidden')).toBe(false)
-
-      fetchSpy.mockRestore()
     })
   })
 
   it('disables submit button while request is pending', async () => {
     await renderDownloadForm(async ({ elements, window }) => {
-      let resolveFetch: (() => void) | undefined
-      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(
+      let resolveSubmit: (() => void) | undefined
+      downloadsSubmitMock.mockImplementation(
         () =>
           new Promise(resolve => {
-            resolveFetch = () => resolve(successfulResponse())
+            resolveSubmit = () => resolve({ data: { success: true } })
           }),
       )
 
@@ -180,14 +167,12 @@ describe('download-form web component', () => {
       expect(elements.submitButton.disabled).toBe(true)
       expect(elements.submitButton.textContent).toBe('Processing...')
 
-      resolveFetch?.()
+      resolveSubmit?.()
       await flushPromises()
 
-      expect(fetchSpy).toHaveBeenCalled()
+      expect(downloadsSubmitMock).toHaveBeenCalled()
       expect(elements.submitButton.disabled).toBe(false)
       expect(elements.submitButton.textContent).toBe('Download Now')
-
-      fetchSpy.mockRestore()
     })
   })
 })
