@@ -199,11 +199,7 @@ Add Upstash Search as a Vercel Marketplace Integration.
 
 ### "Add to Calendar" button
 
-Google Calendar, Apple Calendar,  Yahoo Calender,  Microsoft 365, Outlook, and Teams, and generate iCal/ics files (for all other calendars and cases).
+Google Calendar, Apple Calendar,  Microsoft Outlook and Teams, and generate iCal/ics files (for all other calendars and cases).
 
 `https://github.com/add2cal/add-to-calendar-button`
 `https://add-to-calendar-button.com/`
-
-### Fix to Featured Pages Carousel
-
-Pause carousels on intersection observer, when part of the carousel is scrolled off the page

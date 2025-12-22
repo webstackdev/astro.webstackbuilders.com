@@ -32,10 +32,14 @@ class CodeTabsElement extends HTMLElement {
 
     this.codeBlocks = Array.from(this.querySelectorAll(':scope > pre'))
 
-    if (this.codeBlocks.length < 2) return
+    if (this.codeBlocks.length === 0) return
 
-    this.buildUi()
-    this.setActive(0)
+    const hasTabs = this.codeBlocks.length >= 2
+    this.buildUi(hasTabs)
+
+    if (hasTabs) {
+      this.setActive(0)
+    }
   }
 
   disconnectedCallback(): void {
@@ -45,36 +49,44 @@ class CodeTabsElement extends HTMLElement {
     }
   }
 
-  private buildUi(): void {
+  private buildUi(hasTabs: boolean): void {
     const header = document.createElement('div')
-    header.className = 'flex items-center justify-between border-b border-gray-200 bg-gray-50'
-
-    const list = document.createElement('ul')
-    list.className = 'p-0 whitespace-nowrap overflow-auto select-none'
+    header.className = 'flex w-full min-w-0 items-center justify-between border-b border-gray-200 bg-gray-50'
 
     const copyButton = this.createCopyButton()
 
-    this.tabButtons = this.codeBlocks.map((pre, index) => {
-      const tabLabel = pre.getAttribute('data-code-tabs-tab') || `Tab ${index + 1}`
+    if (hasTabs) {
+      const list = document.createElement('ul')
+      list.className = 'flex-1 min-w-0 p-0 whitespace-nowrap overflow-auto select-none'
 
-      const li = document.createElement('li')
-      li.className = 'list-none inline-block relative'
+      this.tabButtons = this.codeBlocks.map((pre, index) => {
+        const tabLabel = pre.getAttribute('data-code-tabs-tab') || `Tab ${index + 1}`
 
-      const button = document.createElement('button')
-      button.type = 'button'
-      button.className = 'inline-block px-2 py-1 m-2 text-gray-400 hover:text-gray-600'
-      button.textContent = tabLabel
-      button.setAttribute('data-code-tabs-button', String(index))
+        const li = document.createElement('li')
+        li.className = 'list-none inline-block relative'
 
-      addButtonEventListeners(button, () => this.setActive(index), this)
+        const button = document.createElement('button')
+        button.type = 'button'
+        button.className = 'inline-block px-2 py-1 m-2 text-gray-400 hover:text-gray-600'
+        button.textContent = tabLabel
+        button.setAttribute('data-code-tabs-button', String(index))
 
-      li.append(button)
-      list.append(li)
+        addButtonEventListeners(button, () => this.setActive(index), this)
 
-      return button
-    })
+        li.append(button)
+        list.append(li)
 
-    header.append(list)
+        return button
+      })
+
+      header.append(list)
+    } else {
+      const spacer = document.createElement('div')
+      spacer.className = 'flex-1 min-w-0'
+      header.append(spacer)
+      this.tabButtons = []
+    }
+
     header.append(copyButton)
 
     this.prepend(header)
@@ -87,7 +99,7 @@ class CodeTabsElement extends HTMLElement {
     const button = document.createElement('button')
     button.type = 'button'
     button.className =
-      'flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 border-l border-gray-200'
+      'flex shrink-0 items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 border-l border-gray-200'
     button.setAttribute('aria-label', tooltip)
     button.title = tooltip
 
@@ -110,9 +122,11 @@ class CodeTabsElement extends HTMLElement {
   private setActive(index: number): void {
     this.activeIndex = index
 
-    this.codeBlocks.forEach((pre, i) => {
-      pre.classList.toggle('hidden', i !== index)
-    })
+    if (this.codeBlocks.length > 1) {
+      this.codeBlocks.forEach((pre, i) => {
+        pre.classList.toggle('hidden', i !== index)
+      })
+    }
 
     this.tabButtons.forEach((btn, i) => {
       btn.classList.toggle('text-gray-900', i === index)

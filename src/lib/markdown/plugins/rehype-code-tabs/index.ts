@@ -7,6 +7,8 @@ type TabInfo = {
   tab: string
 }
 
+const EXCLUDED_SINGLE_WRAP_LANGS = new Set(['mermaid', 'math', 'text'])
+
 function toDataPropName(attributeName: string): string | null {
   // Convert `data-foo-bar` -> `dataFooBar` (some pipelines normalize this way)
   if (!attributeName.startsWith('data-')) return null
@@ -88,6 +90,42 @@ function isWhitespaceText(node: unknown): node is Text {
   return !!node && typeof node === 'object' && (node as Text).type === 'text' && !((node as Text).value || '').trim()
 }
 
+function getLanguageFromCode(code: Element): string | null {
+  const classNames = nodeToStringArray(code.properties?.['className'])
+  const langClass = classNames.find(cn => cn.startsWith('language-'))
+  if (langClass) return langClass.replace(/^language-/, '').trim() || null
+
+  const dataLang = code.properties?.['data-language']
+  if (typeof dataLang === 'string' && dataLang.trim()) return dataLang.trim()
+
+  return null
+}
+
+function nodeToStringArray(value: unknown): string[] {
+  if (Array.isArray(value)) return value.map(entry => String(entry))
+  if (typeof value === 'string' && value.trim()) return value.trim().split(/\s+/g)
+  return []
+}
+
+function getLanguageFromPre(pre: Element): string | null {
+  const dataLang = pre.properties?.['data-language']
+  if (typeof dataLang === 'string' && dataLang.trim()) return dataLang.trim()
+
+  const altLang = pre.properties?.['dataLanguage']
+  if (typeof altLang === 'string' && altLang.trim()) return altLang.trim()
+
+  const codeChild = pre.children.find((child): child is Element => isElement(child) && child.tagName === 'code')
+  if (!codeChild) return null
+
+  return getLanguageFromCode(codeChild)
+}
+
+function shouldSkipSingleWrap(pre: Element): boolean {
+  const lang = getLanguageFromPre(pre)
+  if (!lang) return false
+  return EXCLUDED_SINGLE_WRAP_LANGS.has(lang.toLowerCase())
+}
+
 function wrapCodeTabRuns(parent: Parent): void {
   if (isElement(parent) && parent.tagName === 'code-tabs') return
 
@@ -136,14 +174,41 @@ function wrapCodeTabRuns(parent: Parent): void {
   }
 }
 
+function wrapStandaloneCodeBlocks(parent: Parent): void {
+  if (isElement(parent) && parent.tagName === 'code-tabs') return
+
+  const children = parent.children
+
+  for (let i = 0; i < children.length; i += 1) {
+    const node = children[i]
+    if (!isElement(node) || node.tagName !== 'pre') continue
+    if (shouldSkipSingleWrap(node)) continue
+
+    const info = getTabInfoFromPre(node)
+    const wrapper: Element = {
+      type: 'element',
+      tagName: 'code-tabs',
+      properties: {
+        className: ['code-tabs'],
+        ...(info ? { 'data-code-tabs-group': info.group } : {}),
+      },
+      children: [node],
+    }
+
+    children.splice(i, 1, wrapper)
+  }
+}
+
 const rehypeCodeTabs: Plugin<[], Root> = () => {
   return tree => {
     wrapCodeTabRuns(tree as unknown as Parent)
+    wrapStandaloneCodeBlocks(tree as unknown as Parent)
 
     visit(tree, 'element', (node: Element): typeof SKIP | void => {
       if (node.tagName === 'code-tabs') return SKIP
       if (!isParent(node)) return
       wrapCodeTabRuns(node)
+      wrapStandaloneCodeBlocks(node)
     })
   }
 }

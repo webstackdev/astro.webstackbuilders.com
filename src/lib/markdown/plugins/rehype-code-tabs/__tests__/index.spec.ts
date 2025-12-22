@@ -54,6 +54,71 @@ describe('rehype-code-tabs (Layer 1: Isolated)', () => {
     expect(wrapper.children.length).toBe(2)
   })
 
+  it('should wrap a standalone <pre> block in <code-tabs> (single block mode)', async () => {
+    const pre: Element = {
+      type: 'element',
+      tagName: 'pre',
+      properties: {
+        'data-language': 'ts',
+      },
+      children: [
+        {
+          type: 'element',
+          tagName: 'code',
+          properties: {
+            className: ['language-ts'],
+          },
+          children: [{ type: 'text', value: 'const x: number = 1' }],
+        },
+      ],
+    }
+
+    const tree: Root = {
+      type: 'root',
+      children: [pre],
+    }
+
+    const processor = unified().use(rehypeCodeTabs)
+    await processor.run(tree as never)
+
+    const wrapper = tree.children[0] as Element
+    expect(wrapper.tagName).toBe('code-tabs')
+    expect((wrapper.properties?.['className'] as string[])?.includes('code-tabs')).toBe(true)
+    expect(wrapper.children.length).toBe(1)
+    expect((wrapper.children[0] as Element).tagName).toBe('pre')
+  })
+
+  it.each(['mermaid', 'math', 'text'])('should not wrap excluded language %s', async (lang) => {
+    const pre: Element = {
+      type: 'element',
+      tagName: 'pre',
+      properties: {
+        'data-language': lang,
+      },
+      children: [
+        {
+          type: 'element',
+          tagName: 'code',
+          properties: {
+            className: [`language-${lang}`],
+          },
+          children: [{ type: 'text', value: 'x' }],
+        },
+      ],
+    }
+
+    const tree: Root = {
+      type: 'root',
+      children: [pre],
+    }
+
+    const processor = unified().use(rehypeCodeTabs)
+    await processor.run(tree as never)
+
+    const first = tree.children[0] as Element
+    expect(first.tagName).toBe('pre')
+  })
+
   it('should not wrap blocks from different groups', async () => {
     const pre1: Element = {
       type: 'element',
@@ -98,7 +163,14 @@ describe('rehype-code-tabs (Layer 1: Isolated)', () => {
     await processor.run(tree as never)
 
     const first = tree.children[0] as Element
-    expect(first.tagName).toBe('pre')
+    expect(first.tagName).toBe('code-tabs')
+    expect(first.children.length).toBe(1)
+    expect((first.children[0] as Element).tagName).toBe('pre')
+
+    const second = tree.children[2] as Element
+    expect(second.tagName).toBe('code-tabs')
+    expect(second.children.length).toBe(1)
+    expect((second.children[0] as Element).tagName).toBe('pre')
   })
 
   it('should support camelCase data props (MDX-style) on <code>', async () => {
