@@ -25,7 +25,10 @@ const LOCAL_PLUGINS = new Set([
   'remarkAlign',
   'remarkAttributes',
   'remarkAttribution',
+  'remarkCodeTabs',
   'remarkReplacements',
+  'rehypeCodeTabs',
+  'rehypeShiki',
   'rehypeInlineCodeColorSwatch',
   'rehypeTailwindClasses',
 ])

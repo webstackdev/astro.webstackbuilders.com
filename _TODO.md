@@ -107,14 +107,9 @@ cat.structure: Rules related to the document's overall structure, like the prope
 cat.tables: Rules for data tables, including headers and associations.
 cat.text-alternatives: Rules for ensuring that text alternatives are provided for non-text content, such as images.
 
-## Set up webmentions
+## Performance
 
-Needs to add real API key and test
-
-- Get API token from webmention.io
-- Add WEBMENTION_IO_TOKEN to .env
-- (Optional) Set up Bridgy for social media
-- Test with sample webmentions
+Implement mitigations in test/e2e/specs/07-performance/PERFORMANCE.md
 
 ## Prefetch Links
 
@@ -149,13 +144,9 @@ You can then opt-out of prefetching for individual links by setting data-astro-p
 <a href="/about" data-astro-prefetch="false">About</a>
 ```
 
-## Mobile Social Shares UI
+## Email Templates
 
-See the example image in Social Shares. The social shares UI on mobile should be a modal that slides in from the bottom.
-
-## Performance
-
-Implement mitigations in test/e2e/specs/07-performance/PERFORMANCE.md
+Right now we're using string literals to define HTML email templates for site mails. We should use Nunjucks with the rule-checking for valid CSS in HTML emails like we have in the corporate email footer repo.
 
 ## Analytics
 
@@ -171,9 +162,23 @@ npm i @vercel/analytics
 import Analytics from '@vercel/analytics/astro'
 https://vercel.com/docs/analytics/quickstart#add-the-analytics-component-to-your-app
 
+## Set up webmentions
+
+Needs to add real API key and test
+
+- Get API token from webmention.io
+- Add WEBMENTION_IO_TOKEN to .env
+- (Optional) Set up Bridgy for social media
+- Test with sample webmentions
+
+## Mobile Social Shares UI
+
+See the example image in Social Shares. The social shares UI on mobile should be a modal that slides in from the bottom.
+
 ## Themepicker tooltips, extra themes
 
-- Add additional themes
+- Add additional themes (high contrast)
+- Add Carousel
 - Add tooltip that makes use of the description field for the theme, explaining what the intent of the theme is
 
 ## Sentry feedback, chat bot tying into my phone and email
@@ -192,18 +197,6 @@ Where to upload to?
 
 Add Upstash Search as a Vercel Marketplace Integration.
 
-Lunr is a JS search library using an inverted index. Client-side search for statically hosted pages.
-
-### [`@jackcarey/astro-lunr`](https://www.npmjs.com/package/@jackcarey/astro-lunr)
-
-### [`@siverv/astro-lunr`](https://www.npmjs.com/package/@siverv/astro-lunr)
-
-## Email Templates
-
-Right now we're using string literals to define HTML email templates for site mails. We should use Nunjucks with the rule-checking for valid CSS in HTML emails like we have in the corporate email footer repo.
-
-## Astro Components to Add
-
 ### "Add to Calendar" button
 
 Google Calendar, Apple Calendar,  Yahoo Calender,  Microsoft 365, Outlook, and Teams, and generate iCal/ics files (for all other calendars and cases).
@@ -211,49 +204,24 @@ Google Calendar, Apple Calendar,  Yahoo Calender,  Microsoft 365, Outlook, and T
 `https://github.com/add2cal/add-to-calendar-button`
 `https://add-to-calendar-button.com/`
 
-## Markdown
+### Privacy Policy and Package Release Refactor
 
-## Code Block and Highlighting
+Refactor privacy policy and package release integrations to use virtual modules instead of env vars
 
-## Astro includes shiki, tweak config
+### Markdown Unit Tests
 
-### Custom version of the code block integration from Astro Docs. "Beautiful code blocks for your Astro site". Applied to the code blocks created in `.mdx` files
+Figure out why coverage.spec.ts isn't erroring on no unit tests in these remark / rehype plugins lacking any tests:
 
-[`astro-code-blocks`](https://www.npmjs.com/package/@thewebforge/astro-code-blocks)
+remark-mark-plus
+remark-custom-blocks
+rehype-inline-code-color-swatch
+rehype-footnotes-title
 
+### CRON Job Failures
 
-#### Code tabs plugin so Javascript and Typescript examples can both be show.
+Error: 505, message='Invalid response status', url='wss://webstack-corporate-preview-webstackdev.aws-us-east-1.turso.io'
+Error: Process completed with exit code 1.
 
-There can only be white space between two code blocks. Display name is set by `tabName` and can only contain characters in [A-Za-z0-9_]. Syntax for the first line of the code block is:
+### Fix to Featured Pages Carousel
 
-```js [group:tabName]
-```
-
-`markdown-it-codetabs`
-
-#### Add copy button to code blocks
-
-`markdown-it-copy`
-
-Options for "copy" button added to code blocks
-
-```javascript
-const markdownCodeCopyConfig = {
-  /** Text shown on copy button */
-  btnText: `Copy`,
-  /** Text shown on copy failure */
-  failText: `Copy Failed`,
-  /** Text shown on copy success */
-  successText: `Success!`, // 'copy success' | copy-success text
-  /** Amount of time to show success message */
-  successTextDelay: 2000,
-  /** An HTML fragment included before <button> */
-  extraHtmlBeforeBtn: ``,
-  /** An HTML fragment included after <button> */
-  extraHtmlAfterBtn: ``,
-  /** Whether to show code language before the copy button */
-  showCodeLanguage: false,
-  /** Test to append after the copied text like a copyright notice */
-  attachText: ``,
-}
-```
+Pause carousels on intersection observer, when part of the carousel is scrolled off the page

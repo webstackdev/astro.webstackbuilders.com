@@ -102,23 +102,80 @@ Showcase related articles using the production carousel component:
   limit={3}
 />
 
-### Code Component
-
-Here's a standard code block for reference:
+### CodeTabs Component
 
 ```typescript
-// Example TypeScript code
-interface DemoInterface {
-  title: string;
-  description: string;
-  tags: string[];
-}
+  console.log("hello, world!")
+```
 
-const demo: DemoInterface = {
-  title: "Demo Article",
-  description: "This is a demo",
-  tags: ["typescript", "demo"]
-};
+#### Grouped Code Tabs
+
+The following examples substitute apostrophes for backticks so that they're not rendered to code blocks.
+
+There can only be white space between two code blocks. Display name is set by `tabName` and can only contain characters in `[A-Za-z0-9_]`. Syntax for the language block on the first line of the code block is `language [group:tabName]`
+
+```javascript [g1:Javascript]
+  console.log('Hello World')
+```
+```typescript [g1:Typescript]
+  type myType = "hello, world!"
+```
+
+#### Add a title to the code block
+
+You can add a title to the code block by adding a `title` prop to the code block like `js title="script.js"`:
+
+```js title="script.js"
+  console.log('Hello World')
+```
+
+Note: the `title` prop is optional. If you don't add it, the code block will not have a title.
+
+#### Highlight lines
+
+You can highlight lines in the code block by adding a prop to the code blocks as a list of comma separated numbers in curly brackets like `js {1,3,5}`:
+
+`{1}` will highlight line 1
+
+`{1,3}` will highlight lines 1 and 3
+
+`{2-5, 7}` will highlight lines 1 to 5(not included) and 7
+
+```js {1,3,5}
+  console.log('Hello World')
+  console.log('Hello World')
+  console.log('Hello World')
+  console.log('Hello World')
+  console.log('Hello World')
+```
+
+#### Highlight strings
+
+You can highlight strings in the code block by adding a prop to the code blocks as a regular expression. The following example will highlight all occurrences of "astro" using a language string like `sh /astro/`:
+
+`/astro/` will highlight all occurrences of "astro"
+`/\w*$/` will highlight the last word of each line
+
+```sh /astro/
+  # Using NPM
+  npx astro add @thewebforge/astro-code-blocks
+  # Using Yarn
+  yarn astro add @thewebforge/astro-code-blocks
+  # Using PNPM
+  pnpm astro add @thewebforge/astro-code-blocks
+```
+
+#### Insertions and Deletions
+
+You can highlight insertions and deletions in the code block by adding `ins` and / or `del` props to the code blocks as a list of lines in curly brackets with a language string like `sh ins={3,4} del={5,6}`:
+
+```sh ins={3,4} del={5,6}
+  # Using NPM
+  npx astro add @thewebforge/astro-code-blocks
+  # Using Yarn
+  yarn astro add @thewebforge/astro-code-blocks
+  # Using PNPM
+  pnpm astro add @thewebforge/astro-code-blocks
 ```
 
 ### Contact Callout Component
