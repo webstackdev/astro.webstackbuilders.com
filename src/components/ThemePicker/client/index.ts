@@ -64,7 +64,7 @@ export class ThemePickerElement extends LitElement {
   private emblaPrevBtn: HTMLButtonElement | null = null
   private emblaNextBtn: HTMLButtonElement | null = null
   private emblaApi: EmblaCarouselType | null = null
-  private emblaEvents: AbortController | null = null
+  private emblaControlsBound = false
   private lastIsOpen: boolean | null = null
   private lastTheme: ThemeId | null = null
 
@@ -218,29 +218,30 @@ export class ThemePickerElement extends LitElement {
       emblaWithEvents.on('select', this.emblaUpdateHandler)
       emblaWithEvents.on('reInit', this.emblaUpdateHandler)
 
-      this.emblaEvents = new AbortController()
-      const { signal } = this.emblaEvents
+      if (!this.emblaControlsBound) {
+        if (this.emblaPrevBtn) {
+          addButtonEventListeners(this.emblaPrevBtn, (event) => {
+            if (event.cancelable && !event.defaultPrevented) event.preventDefault()
+            try {
+              this.emblaApi?.scrollPrev()
+            } catch (error) {
+              handleScriptError(error, { scriptName: 'ThemePickerElement', operation: 'embla:scrollPrev' })
+            }
+          }, this)
+        }
 
-      if (this.emblaPrevBtn) {
-        this.emblaPrevBtn.addEventListener('click', (event) => {
-          event.preventDefault()
-          try {
-            this.emblaApi?.scrollPrev()
-          } catch (error) {
-            handleScriptError(error, { scriptName: 'ThemePickerElement', operation: 'embla:scrollPrev' })
-          }
-        }, { signal })
-      }
+        if (this.emblaNextBtn) {
+          addButtonEventListeners(this.emblaNextBtn, (event) => {
+            if (event.cancelable && !event.defaultPrevented) event.preventDefault()
+            try {
+              this.emblaApi?.scrollNext()
+            } catch (error) {
+              handleScriptError(error, { scriptName: 'ThemePickerElement', operation: 'embla:scrollNext' })
+            }
+          }, this)
+        }
 
-      if (this.emblaNextBtn) {
-        this.emblaNextBtn.addEventListener('click', (event) => {
-          event.preventDefault()
-          try {
-            this.emblaApi?.scrollNext()
-          } catch (error) {
-            handleScriptError(error, { scriptName: 'ThemePickerElement', operation: 'embla:scrollNext' })
-          }
-        }, { signal })
+        this.emblaControlsBound = true
       }
     } catch (error) {
       this.teardownEmbla()
@@ -249,11 +250,6 @@ export class ThemePickerElement extends LitElement {
   }
 
   private teardownEmbla(): void {
-    if (this.emblaEvents) {
-      this.emblaEvents.abort()
-      this.emblaEvents = null
-    }
-
     if (this.emblaApi) {
       this.emblaApi.destroy()
       this.emblaApi = null
