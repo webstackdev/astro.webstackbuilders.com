@@ -203,16 +203,3 @@ Google Calendar, Apple Calendar,  Microsoft Outlook and Teams, and generate iCal
 
 `https://github.com/add2cal/add-to-calendar-button`
 `https://add-to-calendar-button.com/`
-
-## Shiki config
-
-Shiki uses a TextMate grammar ID (tokenizer language id). In most setups:
-
-- `ts` and `typescript` both work
-- `js` and `javascript` both work
-
-What actually matters is whether that language id is loaded in your Shiki highlighter. If you only loaded ts but pass typescript (or vice versa), you can end up with no highlighting (or fallback highlighting).
-
-Best practice in our pipeline: normalize aliases to a canonical id before calling Shiki (e.g., map `typescript` → `ts`, `javascript` → `js`) and ensure those canonical ids are the ones you load.
-
-If you tell me where you're setting the language for Shiki (your `rehype-shiki` plugin file), I can point to the exact spot to normalize it (or confirm you're already safe).
