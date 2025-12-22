@@ -123,5 +123,32 @@ def test_prefers_inputs_over_env_vars(monkeypatch: pytest.MonkeyPatch) -> None:
 
     module.run()
 
-    assert captured["url"] == "libsql://input.turso.io"
+    assert captured["url"] == "libsql://input.turso.io/"
     assert captured["auth_token"] == "input_token"
+
+
+def test_normalizes_libsql_url_to_include_trailing_slash(monkeypatch: pytest.MonkeyPatch) -> None:
+    module = load_action_module()
+
+    monkeypatch.setenv("ASTRO_DB_REMOTE_URL", "libsql://example.turso.io")
+    monkeypatch.setenv("ASTRO_DB_APP_TOKEN", "token")
+    monkeypatch.setattr(module.core, "get_input", lambda name, required=False: "")
+
+    captured: dict[str, str] = {}
+
+    class MockClient:
+        def execute(self, sql: str) -> None:
+            pass
+
+        def close(self) -> None:
+            pass
+
+    def fake_create_client_sync(**kwargs):
+        captured.update({"url": kwargs.get("url"), "auth_token": kwargs.get("auth_token")})
+        return MockClient()
+
+    monkeypatch.setattr(module, "create_client_sync", fake_create_client_sync)
+
+    module.run()
+
+    assert captured["url"] == "libsql://example.turso.io/"
