@@ -1,5 +1,5 @@
 
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import CarouselComponent from '@components/Carousel/index.astro'
 import type { CarouselProps } from '@components/Carousel/@types'
@@ -39,6 +39,21 @@ let mockScrollSnaps = [0, 1, 2]
 const setMockScrollSnaps = (snapCount: number) => {
   const count = Math.max(1, snapCount)
   mockScrollSnaps = Array.from({ length: count }, (_, index) => index)
+}
+
+let intersectionObserverCallback: IntersectionObserverCallback | undefined
+
+const originalIntersectionObserver = (
+  globalThis as unknown as { IntersectionObserver?: typeof IntersectionObserver }
+).IntersectionObserver
+
+class IntersectionObserverMock {
+  observe = vi.fn()
+  disconnect = vi.fn()
+
+  constructor(callback: IntersectionObserverCallback) {
+    intersectionObserverCallback = callback
+  }
 }
 
 vi.mock('@components/scripts/store', () => ({
@@ -139,6 +154,18 @@ describe('Carousel component (server output)', () => {
     autoplayPluginInstances.length = 0
     createAutoplayPluginMock.mockClear()
     setMockScrollSnaps(3)
+    intersectionObserverCallback = undefined
+    ;(globalThis as unknown as { IntersectionObserver?: typeof IntersectionObserver }).IntersectionObserver =
+      IntersectionObserverMock as unknown as typeof IntersectionObserver
+  })
+
+  afterEach(() => {
+    const globalIntersection = globalThis as unknown as { IntersectionObserver?: typeof IntersectionObserver }
+    if (originalIntersectionObserver) {
+      globalIntersection.IntersectionObserver = originalIntersectionObserver
+      return
+    }
+    delete globalIntersection.IntersectionObserver
   })
 
   it('renders the provided title and respects the requested limit', async () => {
@@ -224,6 +251,44 @@ describe('Carousel component (server output)', () => {
         expect(pluginInstance).toBeDefined()
         expect(pluginInstance?.play).not.toHaveBeenCalled()
         await vi.runAllTimersAsync()
+        expect(pluginInstance?.play).toHaveBeenCalled()
+      }, { currentSlug: 'article-four' })
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('pauses autoplay when partially out of the viewport and resumes when fully visible again', async () => {
+    vi.useFakeTimers()
+    try {
+      await renderCarousel(async () => {
+        const pluginInstance = autoplayPluginInstances.at(-1)
+        expect(pluginInstance).toBeDefined()
+        expect(intersectionObserverCallback).toBeTypeOf('function')
+
+        intersectionObserverCallback?.(
+          [
+            {
+              isIntersecting: true,
+              intersectionRatio: 0.5,
+            } as unknown as IntersectionObserverEntry,
+          ],
+          {} as IntersectionObserver,
+        )
+
+        await vi.runAllTimersAsync()
+        expect(pluginInstance?.play).not.toHaveBeenCalled()
+
+        intersectionObserverCallback?.(
+          [
+            {
+              isIntersecting: true,
+              intersectionRatio: 1,
+            } as unknown as IntersectionObserverEntry,
+          ],
+          {} as IntersectionObserver,
+        )
+
         expect(pluginInstance?.play).toHaveBeenCalled()
       }, { currentSlug: 'article-four' })
     } finally {

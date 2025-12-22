@@ -45,6 +45,12 @@ Object.defineProperty(rehypeFootnotesTitle, 'name', { value: 'rehypeFootnotesTit
 import { rehypeInlineCodeColorSwatch } from '../markdown/plugins/rehype-inline-code-color-swatch'
 Object.defineProperty(rehypeInlineCodeColorSwatch, 'name', { value: 'rehypeInlineCodeColorSwatch' })
 
+import rehypeCodeTabs from '../markdown/plugins/rehype-code-tabs'
+Object.defineProperty(rehypeCodeTabs, 'name', { value: 'rehypeCodeTabs' })
+
+import rehypeShiki from '../markdown/plugins/rehype-shiki'
+Object.defineProperty(rehypeShiki, 'name', { value: 'rehypeShiki' })
+
 /**
  * ==============================================================
  *
@@ -115,6 +121,9 @@ Object.defineProperty(remarkAttribution, 'name', { value: 'remarkAttribution' })
 
 import remarkAlign from '../markdown/plugins/remark-align'
 Object.defineProperty(remarkAlign, 'name', { value: 'remarkAlign' })
+
+import remarkCodeTabs from '../markdown/plugins/remark-code-tabs'
+Object.defineProperty(remarkCodeTabs, 'name', { value: 'remarkCodeTabs' })
 
 import remarkReplacements from '../markdown/plugins/remark-replacements'
 Object.defineProperty(remarkReplacements, 'name', { value: 'remarkReplacements' })
@@ -352,8 +361,7 @@ export const markdownConfig: Partial<MdxOptions> = {
   /** Disabled because we include `remarkSmartypants` explicitly (test coverage + avoid double-processing). */
   smartypants: false,
   /** Code syntax highlighting */
-  syntaxHighlight: { type: 'shiki', excludeLangs: ['mermaid', 'math'] },
-  shikiConfig: shikiConfigOptions,
+  syntaxHighlight: false,
   remarkPlugins: [
     /** GitHub Flavored Markdown (explicit, configured) */
     [remarkGfm, remarkGfmConfig],
@@ -375,6 +383,8 @@ export const markdownConfig: Partial<MdxOptions> = {
     remarkDeflist,
     /** Parse grid tables (+---+ / |...| syntax) into standard table nodes */
     remarkGridTables,
+    /** Tab groups via fenced code meta: ```lang [group:Tab Name] */
+    remarkCodeTabs,
     /**
      * Add HTML attributes to elements using {.class #id key=value} syntax
      * Supports: headings, links, images, code blocks, lists, and bracketed spans
@@ -427,6 +437,16 @@ export const markdownConfig: Partial<MdxOptions> = {
     rehypeMathjax,
     /** Render Mermaid diagrams to inline SVG at build-time */
     [rehypeMermaid, rehypeMermaidConfig],
+    /** Wrap grouped code blocks in <code-tabs> containers */
+    rehypeCodeTabs,
+    /** Highlight fenced code blocks with Shiki (owned pipeline; skips mermaid/math) */
+    [rehypeShiki, {
+      themes: shikiConfigOptions.themes,
+      defaultColor: shikiConfigOptions.defaultColor,
+      langAlias: shikiConfigOptions.langAlias,
+      wrap: false,
+      excludeLangs: ['mermaid', 'math'],
+    }],
     /**
      * Automatically add Tailwind classes to markdown elements as
      * specified in src/lib/markdown/rehype-tailwind-classes.ts
