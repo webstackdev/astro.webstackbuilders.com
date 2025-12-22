@@ -41,7 +41,7 @@ def make_zip_bytes() -> bytes:
 def test_extracts_vercel_output(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     module = load_action_module()
 
-    inputs = {"github-token": "ghs_test", "artifact-download-url": "https://api.github.com/art.zip"}
+    inputs = {"token": "ghs_test", "artifact-download-url": "https://api.github.com/art.zip"}
     monkeypatch.setattr(module.core, "get_input", lambda name, required=False: inputs.get(name, ""))
 
     monkeypatch.setenv("GITHUB_API_URL", "https://api.github.com")

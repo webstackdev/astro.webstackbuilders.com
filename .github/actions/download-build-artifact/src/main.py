@@ -44,7 +44,7 @@ def is_allowed_fetch_url(url: str, allowed_hosts: set[str]) -> bool:
 
 def run() -> None:
     try:
-        token = get_input_compat("github-token", required=True)
+        token = get_input_compat("token", required=True)
         download_url = get_input_compat("artifact-download-url", required=True).strip()
 
         allowed_hosts = {urlparse(get_github_api_base_url()).hostname}

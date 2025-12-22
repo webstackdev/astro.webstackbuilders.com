@@ -38,7 +38,7 @@ def test_creates_preview_deployment(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("GITHUB_REPOSITORY", "webstackdev/astro.webstackbuilders.com")
     monkeypatch.setenv("GITHUB_API_URL", "https://api.github.com")
 
-    inputs = {"github-token": "ghs_test", "sha": "abc"}
+    inputs = {"token": "ghs_test", "sha": "abc"}
     monkeypatch.setattr(module.core, "get_input", lambda name, required=False: inputs.get(name, ""))
 
     captured: dict[str, Any] = {}

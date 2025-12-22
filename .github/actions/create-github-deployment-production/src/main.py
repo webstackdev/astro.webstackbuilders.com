@@ -34,7 +34,7 @@ def get_github_api_base_url() -> str:
 
 def run() -> None:
     try:
-        token = get_input_compat("github-token", required=True)
+        token = get_input_compat("token", required=True)
         sha = get_input_compat("sha", required=True).strip()
 
         repo_full = (os.environ.get("GITHUB_REPOSITORY") or "").strip()

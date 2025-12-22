@@ -203,3 +203,41 @@ Google Calendar, Apple Calendar,  Microsoft Outlook and Teams, and generate iCal
 
 `https://github.com/add2cal/add-to-calendar-button`
 `https://add-to-calendar-button.com/`
+
+Here are the most plausible causes, ranked, with evidence from your repo:
+
+1. Composite action inputs aren't being exported to `INPUT_*` for `run:` steps (so `actions_toolkit` can't read them)
+
+- Your passing action `check-prerequisites-and-locate-build-artifact` manually exports inputs into env: (e.g. `INPUT_GITHUB_TOKEN: ${{ inputs.github-token }}`).
+
+- The failing action `download-build-artifact` (and also `create-github-deployment-preview`, `mark-deployment-in-progress`, `update-deployment-status`) does not export any `INPUT_*` env vars.
+
+- If the runner doesn't auto-populate `INPUT_*` for composite `run:` steps (or changed behavior), then `core.get_input(...)` will think the input is missing and throw exactly what you're seeing.
+
+2. `actions_toolkit` is looking for `INPUT_GITHUB_TOKEN` (underscore), but only `INPUT_GITHUB-TOKEN` (dash) exists (or vice versa)
+
+- The fact that action.yml explicitly sets `INPUT_GITHUB_TOKEN` is a big hint that at least one of your toolchains expects the underscore variant.
+
+- If the runner provides only the dashed form but the toolkit reads only the underscored form (or the opposite), you'll get "Input required and not supplied" even though the workflow shows the with: value.
+
+3. The deploy workflow is executing main's actions, not the branch you think you fixed
+
+- `deployment-preview.yml` checks out ref: main. For a `workflow_run` trigger, that makes it easy to end up running local actions from main even if you "fixed it" elsewhere previously.
+
+- Symptom: you "keep fixing" but the preview run keeps behaving like an older version.
+
+4. The `"with: github-token: ***"` line can be misleading if the expression resolves empty
+
+- `github.token` should exist, but edge cases (permissions mis-specified, workflow context differences, or job-level permission not applied the way you expect for `workflow_run`) can produce a token that's unusable or empty.
+
+- This would be rarer than (1)/(2), but it still manifests as "required input missing".
+
+5. The error text is from the library's normalization, not a literal requested key
+
+- You don't have any repo code that calls `get_input("GITHUB-TOKEN")` literally; everything calls `get_input_compat("github-token", required=True)`.
+
+- Many toolkits uppercase / normalize the input name when reporting it, so `GITHUB-TOKEN` in the error can still correspond to `github-token` as defined.
+
+If you want a single "most likely" call: based on the repo evidence, (1) is the top suspect — it explains why the prereq action works (it exports env) and the next composite Python action fails (it doesn't).
+
+

@@ -3,13 +3,11 @@ description: Executes a keep-alive query (SELECT 1) against the Turso DB.
 
 inputs:
   astro-db-remote-url:
-    description: Turso DB URL (falls back to ASTRO_DB_REMOTE_URL env var).
-    required: false
-    default: ""
+    description: Turso DB URL.
+    required: true
   astro-db-app-token:
-    description: Turso auth token (falls back to ASTRO_DB_APP_TOKEN env var).
-    required: false
-    default: ""
+    description: Turso auth token.
+    required: true
 
 runs:
   using: composite
@@ -19,5 +17,5 @@ runs:
       run: python3 src/main.py
       shell: bash
       env:
-        ASTRO_DB_REMOTE_URL: ${{ inputs.astro-db-remote-url }}
-        ASTRO_DB_APP_TOKEN: ${{ inputs.astro-db-app-token }}
+        INPUT_ASTRO_DB_REMOTE_URL: ${{ inputs.astro-db-remote-url }}
+        INPUT_ASTRO_DB_APP_TOKEN: ${{ inputs.astro-db-app-token }}

@@ -2,7 +2,7 @@ name: Check Prerequisites and Locate Build Artifact
 description: Verifies required workflow runs succeeded for a SHA and returns the build artifact download URL.
 
 inputs:
-  github-token:
+  token:
     description: GitHub token used to query workflow runs and artifacts.
     required: true
   sha:
@@ -59,7 +59,7 @@ runs:
       run: python3 src/main.py
       shell: bash
       env:
-        INPUT_GITHUB_TOKEN: ${{ inputs.github-token }}
+        INPUT_TOKEN: ${{ inputs.token }}
         INPUT_SHA: ${{ inputs.sha }}
         INPUT_TRIGGER_EVENT: ${{ inputs.trigger-event }}
         INPUT_HEAD_BRANCH: ${{ inputs.head-branch }}

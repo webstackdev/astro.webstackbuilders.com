@@ -2,7 +2,7 @@ name: Download Build Artifact
 description: Downloads a workflow artifact zip and restores it to .vercel/output.
 
 inputs:
-  github-token:
+  token:
     description: GitHub token used to download the artifact.
     required: true
   artifact-download-url:
@@ -16,3 +16,6 @@ runs:
       working-directory: ${{ github.action_path }}
       run: python3 src/main.py
       shell: bash
+      env:
+        INPUT_TOKEN: ${{ inputs.token }}
+        INPUT_ARTIFACT_DOWNLOAD_URL: ${{ inputs.artifact-download-url }}

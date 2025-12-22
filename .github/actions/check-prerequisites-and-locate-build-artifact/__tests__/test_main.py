@@ -36,7 +36,7 @@ def test_sets_should_deploy_false_when_missing_required_runs(monkeypatch: pytest
     module = load_action_module()
 
     inputs = {
-        "github-token": "ghs_test",
+        "token": "ghs_test",
         "sha": "abc",
         "required-workflows-json": '[{"id":"lint.yml","label":"Lint"}]',
         "build-workflow-file": "build-preview.yml",
@@ -75,7 +75,7 @@ def test_outputs_artifact_download_url_when_all_prereqs_succeed(monkeypatch: pyt
     module = load_action_module()
 
     inputs = {
-        "github-token": "ghs_test",
+        "token": "ghs_test",
         "sha": "abc",
         "required-workflows-json": '[{"id":"build-preview.yml","label":"Build Preview"}]',
         "build-workflow-file": "build-preview.yml",

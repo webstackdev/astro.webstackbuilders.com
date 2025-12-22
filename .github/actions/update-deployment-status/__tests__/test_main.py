@@ -37,7 +37,7 @@ def test_sets_success_status(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("GITHUB_SERVER_URL", "https://github.com")
 
     inputs = {
-        "github-token": "ghs_test",
+        "token": "ghs_test",
         "deployment-id": "7",
         "exit-code": "0",
         "environment-url": "https://example",

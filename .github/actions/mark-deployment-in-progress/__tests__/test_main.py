@@ -36,7 +36,7 @@ def test_posts_in_progress_status(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("GITHUB_RUN_ID", "123")
     monkeypatch.setenv("GITHUB_SERVER_URL", "https://github.com")
 
-    inputs = {"github-token": "ghs_test", "deployment-id": "42", "description": "Deploying"}
+    inputs = {"token": "ghs_test", "deployment-id": "42", "description": "Deploying"}
     monkeypatch.setattr(module.core, "get_input", lambda name, required=False: inputs.get(name, ""))
 
     captured: dict[str, Any] = {}
