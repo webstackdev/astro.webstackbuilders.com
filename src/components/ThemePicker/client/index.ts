@@ -5,6 +5,7 @@
  */
 
 import { LitElement } from 'lit'
+import EmblaCarousel, { type EmblaCarouselType, type EmblaOptionsType } from 'embla-carousel'
 import {
   setTheme,
   toggleThemePicker,
@@ -30,6 +31,14 @@ export const CLASSES = {
   active: 'is-active',
 }
 
+const THEME_PICKER_EMBLA_OPTIONS: EmblaOptionsType = {
+  loop: false,
+  align: 'center',
+  containScroll: 'trimSnaps',
+  skipSnaps: false,
+  dragFree: false,
+}
+
 /**
  * ThemePicker Custom Element (Lit-based)
  * Uses Light DOM (no Shadow DOM) with Astro-rendered templates
@@ -51,6 +60,16 @@ export class ThemePickerElement extends LitElement {
   private closeBtn!: HTMLButtonElement
   private themeSelectBtns!: NodeListOf<HTMLButtonElement>
 
+  private emblaViewport: HTMLElement | null = null
+  private emblaPrevBtn: HTMLButtonElement | null = null
+  private emblaNextBtn: HTMLButtonElement | null = null
+  private emblaApi: EmblaCarouselType | null = null
+  private emblaEvents: AbortController | null = null
+  private lastIsOpen: boolean | null = null
+  private lastTheme: ThemeId | null = null
+
+  private readonly emblaUpdateHandler = () => this.updateEmblaNavState()
+
   // Track View Transitions
   private isTransitioning = false
   private isInitialized = false
@@ -70,6 +89,11 @@ export class ThemePickerElement extends LitElement {
     } else {
       this.initialize()
     }
+  }
+
+  override disconnectedCallback(): void {
+    super.disconnectedCallback()
+    this.teardownEmbla()
   }
 
   /**
@@ -124,6 +148,8 @@ export class ThemePickerElement extends LitElement {
 
     // Update active theme button
     this.updateActiveTheme(currentTheme)
+
+    this.syncThemeCarousel(isOpen, currentTheme)
   }
 
   /**
@@ -136,6 +162,145 @@ export class ThemePickerElement extends LitElement {
     this.toggleBtn = getThemePickerToggleBtn()
     this.closeBtn = getThemePickerCloseBtn(this)
     this.themeSelectBtns = getThemeSelectBtns(this)
+
+    this.emblaViewport = this.querySelector('[data-theme-embla-viewport]')
+    this.emblaPrevBtn = this.querySelector('[data-theme-embla-prev]')
+    this.emblaNextBtn = this.querySelector('[data-theme-embla-next]')
+  }
+
+  private syncThemeCarousel(isOpen: boolean, currentTheme: ThemeId): void {
+    const shouldInit = isOpen && !!this.emblaViewport
+
+    if (!shouldInit) {
+      if (this.lastIsOpen) {
+        this.teardownEmbla()
+      }
+      this.lastIsOpen = isOpen
+      this.lastTheme = currentTheme
+      return
+    }
+
+    const openChanged = this.lastIsOpen !== isOpen
+    const themeChanged = this.lastTheme !== currentTheme
+
+    if (openChanged) {
+      this.setupEmbla()
+      // Modal just opened; wait a frame so Embla sees correct sizing.
+      requestAnimationFrame(() => {
+        try {
+          this.emblaApi?.reInit()
+          this.updateEmblaNavState()
+          this.scrollThemeIntoView(currentTheme)
+        } catch (error) {
+          handleScriptError(error, { scriptName: 'ThemePickerElement', operation: 'embla:reInit' })
+        }
+      })
+    } else if (themeChanged) {
+      this.scrollThemeIntoView(currentTheme)
+    }
+
+    this.lastIsOpen = isOpen
+    this.lastTheme = currentTheme
+  }
+
+  private setupEmbla(): void {
+    this.teardownEmbla()
+    if (!this.emblaViewport) return
+
+    try {
+      this.emblaApi = EmblaCarousel(this.emblaViewport, THEME_PICKER_EMBLA_OPTIONS)
+      this.updateEmblaNavState()
+
+      const emblaWithEvents = this.emblaApi as EmblaCarouselType & {
+        on: (_event: string, _handler: () => void) => EmblaCarouselType
+      }
+
+      emblaWithEvents.on('select', this.emblaUpdateHandler)
+      emblaWithEvents.on('reInit', this.emblaUpdateHandler)
+
+      this.emblaEvents = new AbortController()
+      const { signal } = this.emblaEvents
+
+      if (this.emblaPrevBtn) {
+        this.emblaPrevBtn.addEventListener('click', (event) => {
+          event.preventDefault()
+          try {
+            this.emblaApi?.scrollPrev()
+          } catch (error) {
+            handleScriptError(error, { scriptName: 'ThemePickerElement', operation: 'embla:scrollPrev' })
+          }
+        }, { signal })
+      }
+
+      if (this.emblaNextBtn) {
+        this.emblaNextBtn.addEventListener('click', (event) => {
+          event.preventDefault()
+          try {
+            this.emblaApi?.scrollNext()
+          } catch (error) {
+            handleScriptError(error, { scriptName: 'ThemePickerElement', operation: 'embla:scrollNext' })
+          }
+        }, { signal })
+      }
+    } catch (error) {
+      this.teardownEmbla()
+      handleScriptError(error, { scriptName: 'ThemePickerElement', operation: 'embla:setup' })
+    }
+  }
+
+  private teardownEmbla(): void {
+    if (this.emblaEvents) {
+      this.emblaEvents.abort()
+      this.emblaEvents = null
+    }
+
+    if (this.emblaApi) {
+      this.emblaApi.destroy()
+      this.emblaApi = null
+    }
+  }
+
+  private updateEmblaNavState(): void {
+    if (!this.emblaApi || !this.emblaPrevBtn || !this.emblaNextBtn) return
+
+    const hasOverflow = this.emblaApi.scrollSnapList().length > 1
+    if (!hasOverflow) {
+      this.emblaPrevBtn.setAttribute('hidden', '')
+      this.emblaNextBtn.setAttribute('hidden', '')
+      this.emblaPrevBtn.setAttribute('disabled', 'true')
+      this.emblaNextBtn.setAttribute('disabled', 'true')
+      return
+    }
+
+    this.emblaPrevBtn.removeAttribute('hidden')
+    this.emblaNextBtn.removeAttribute('hidden')
+
+    if (this.emblaApi.canScrollPrev()) {
+      this.emblaPrevBtn.removeAttribute('disabled')
+    } else {
+      this.emblaPrevBtn.setAttribute('disabled', 'true')
+    }
+
+    if (this.emblaApi.canScrollNext()) {
+      this.emblaNextBtn.removeAttribute('disabled')
+    } else {
+      this.emblaNextBtn.setAttribute('disabled', 'true')
+    }
+  }
+
+  private scrollThemeIntoView(themeId: ThemeId): void {
+    if (!this.emblaApi) return
+
+    const buttons = Array.from(this.themeSelectBtns)
+    const index = buttons.findIndex(button => button.dataset['theme'] === themeId)
+    if (index < 0) return
+
+    try {
+      this.emblaApi.scrollTo(index, true)
+      this.updateEmblaNavState()
+    } catch (error) {
+      handleScriptError(error, { scriptName: 'ThemePickerElement', operation: 'embla:scrollToTheme' })
+    }
   }
 
   /**

@@ -37,6 +37,12 @@ const getThemeModal = (root: ThemePickerElement) =>
 const getThemeCloseButton = (root: ThemePickerElement) =>
   queryElement<HTMLButtonElement>(root, '[data-theme-close]')
 const getThemeList = (root: ThemePickerElement) => queryElement<HTMLElement>(root, '#theme-menu')
+const getEmblaViewport = (root: ThemePickerElement) =>
+  queryElement<HTMLElement>(root, '[data-theme-embla-viewport]')
+const getEmblaPrevButton = (root: ThemePickerElement) =>
+  queryElement<HTMLButtonElement>(root, '[data-theme-embla-prev]')
+const getEmblaNextButton = (root: ThemePickerElement) =>
+  queryElement<HTMLButtonElement>(root, '[data-theme-embla-next]')
 const getThemeListItems = (root: ThemePickerElement) =>
   queryElements<HTMLLIElement>(root, '.themepicker__item')
 const getThemeButtons = (root: ThemePickerElement) =>
@@ -119,6 +125,19 @@ describe('ThemePicker Component', () => {
         const themes = themeButtons.map((btn) => btn.getAttribute('data-theme'))
         expect(themes).toContain('light')
         expect(themes).toContain('dark')
+        expect(themes).toContain('a11y')
+      })
+    })
+
+    it('should render embla viewport and nav buttons', async () => {
+      await renderThemePickerDom(({ element }) => {
+        const viewport = getEmblaViewport(element)
+        expect(viewport.classList.contains('embla__viewport')).toBe(true)
+
+        const prev = getEmblaPrevButton(element)
+        const next = getEmblaNextButton(element)
+        expect(prev.getAttribute('aria-label')).toBe('Previous theme')
+        expect(next.getAttribute('aria-label')).toBe('Next theme')
       })
     })
 
@@ -212,7 +231,7 @@ describe('ThemePicker Component', () => {
         buttons.forEach((button) => {
           expect(button.hasAttribute('data-theme')).toBe(true)
           const theme = button.getAttribute('data-theme')
-          expect(['light', 'dark', 'holiday']).toContain(theme)
+          expect(['light', 'dark', 'holiday', 'a11y']).toContain(theme)
         })
       })
     })
@@ -223,6 +242,7 @@ describe('ThemePicker Component', () => {
       await renderThemePickerDom(({ element }) => {
         const list = getThemeList(element)
         expect(list.classList.contains('themepicker__list')).toBe(true)
+        expect(list.classList.contains('embla__container')).toBe(true)
       })
     })
 
@@ -301,18 +321,17 @@ describe('ThemePicker Component', () => {
   })
 
   describe('Responsive Design', () => {
-    it('should have horizontal scroll on theme list', async () => {
+    it('should use Embla viewport with overflow hidden', async () => {
       await renderThemePickerDom(({ element }) => {
-        const list = queryElement<HTMLElement>(element, '.themepicker__list')
-        expect(list.classList.contains('overflow-x-auto')).toBe(true)
-        expect(list.classList.contains('overflow-y-hidden')).toBe(true)
+        const viewport = getEmblaViewport(element)
+        expect(viewport.classList.contains('overflow-hidden')).toBe(true)
       })
     })
 
-    it('should have whitespace-nowrap for horizontal layout', async () => {
+    it('should render tooltip for themes with descriptions', async () => {
       await renderThemePickerDom(({ element }) => {
-        const list = queryElement<HTMLElement>(element, '.themepicker__list')
-        expect(list.classList.contains('whitespace-nowrap')).toBe(true)
+        const tooltips = queryElements<HTMLElement>(element, '[data-theme-tooltip]')
+        expect(tooltips.length).toBeGreaterThan(0)
       })
     })
   })
