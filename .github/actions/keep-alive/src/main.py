@@ -1,18 +1,9 @@
 from __future__ import annotations
 
-import os
 import urllib.parse
 
 from actions_toolkit import core
 from libsql_client import create_client_sync
-
-
-def get_optional_input_or_env(input_name: str, env_name: str) -> str:
-    value = core.get_input(input_name).strip()
-    if value:
-        return value
-    return (os.environ.get(env_name) or "").strip()
-
 
 def get_required_value(value: str, label: str) -> str:
     trimmed = value.strip()
@@ -36,11 +27,11 @@ def normalize_libsql_url(url: str) -> str:
 
 def run() -> None:
     try:
-        url = get_optional_input_or_env("astro-db-remote-url", "ASTRO_DB_REMOTE_URL")
-        auth_token = get_optional_input_or_env("astro-db-app-token", "ASTRO_DB_APP_TOKEN")
+        url = core.get_input("astro-db-remote-url", required=True)
+        auth_token = core.get_input("astro-db-app-token", required=True)
 
-        required_url = normalize_libsql_url(get_required_value(url, "ASTRO_DB_REMOTE_URL"))
-        required_auth_token = get_required_value(auth_token, "ASTRO_DB_APP_TOKEN")
+        required_url = normalize_libsql_url(get_required_value(url, "astro-db-remote-url"))
+        required_auth_token = get_required_value(auth_token, "astro-db-app-token")
 
         client = create_client_sync(url=required_url, auth_token=required_auth_token)
         try:

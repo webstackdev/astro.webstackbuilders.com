@@ -51,7 +51,7 @@ jobs:
         id: verify
         uses: './.github/actions/check-prerequisites-and-locate-build-artifact'
         with:
-          github-token: ${{ github.token }}
+          token: ${{ github.token }}
           sha: ${{ steps.context.outputs.sha }}
           trigger-event: ${{ steps.context.outputs.trigger_event }}
           head-branch: ${{ steps.context.outputs.head_branch }}
@@ -67,7 +67,7 @@ jobs:
         if: steps.verify.outputs.should_deploy == 'true'
         uses: './.github/actions/download-build-artifact'
         with:
-          github-token: ${{ github.token }}
+          token: ${{ github.token }}
           artifact-download-url: ${{ steps.verify.outputs.artifact_download_url }}
 
       - name: Create GitHub deployment (production)
@@ -75,14 +75,14 @@ jobs:
         id: gh_deploy
         uses: './.github/actions/create-github-deployment-production'
         with:
-          github-token: ${{ github.token }}
+          token: ${{ github.token }}
           sha: ${{ steps.context.outputs.sha }}
 
       - name: Mark deployment in progress
         if: steps.verify.outputs.should_deploy == 'true'
         uses: './.github/actions/mark-deployment-in-progress'
         with:
-          github-token: ${{ github.token }}
+          token: ${{ github.token }}
           deployment-id: ${{ steps.gh_deploy.outputs.deployment_id }}
           description: Deploying to Vercel (production)
 
@@ -105,7 +105,7 @@ jobs:
         if: steps.verify.outputs.should_deploy == 'true'
         uses: './.github/actions/update-deployment-status'
         with:
-          github-token: ${{ github.token }}
+          token: ${{ github.token }}
           deployment-id: ${{ steps.gh_deploy.outputs.deployment_id }}
           exit-code: ${{ steps.vercel.outputs.exit_code }}
           environment-url: ${{ steps.vercel.outputs.deploy_url }}

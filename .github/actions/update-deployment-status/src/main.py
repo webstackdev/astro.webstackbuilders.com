@@ -34,7 +34,7 @@ def get_github_api_base_url() -> str:
 
 def run() -> None:
     try:
-        token = get_input_compat("github-token", required=True)
+        token = get_input_compat("token", required=True)
         deployment_id = get_input_compat("deployment-id", required=True).strip()
         exit_code = int(get_input_compat("exit-code", required=True).strip() or "1")
         environment_url = (get_input_compat("environment-url") or "").strip()

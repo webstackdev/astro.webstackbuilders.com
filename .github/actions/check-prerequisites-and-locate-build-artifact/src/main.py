@@ -139,7 +139,7 @@ def find_artifact_download_url(
 
 def run() -> None:
     try:
-        token = get_input_compat("github-token", required=True)
+        token = get_input_compat("token", required=True)
         sha = get_input_compat("sha", required=True).strip()
         trigger_event = get_input_compat("trigger-event")
         head_branch = get_input_compat("head-branch")
