@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import TestWebComponentAstro from '@components/Test/webComponent.astro'
-import type { TestWebComponent as TestWebComponentInstance } from '@components/Test/webComponent'
+import type { TestWebComponent as TestWebComponentInstance } from '../webComponent'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { executeRender } from '@test/unit/helpers/litRuntime'
 
@@ -26,7 +26,7 @@ describe('TestWebComponent class behavior', () => {
     await executeRender<TestComponentModule>({
       container,
       component: TestWebComponentAstro,
-      moduleSpecifier: '@components/Test/webComponent',
+      moduleSpecifier: '@components/Test/client/webComponent',
       args: renderArgs,
       waitForReady: async (element: TestWebComponentInstance) => {
         await element.updateComplete

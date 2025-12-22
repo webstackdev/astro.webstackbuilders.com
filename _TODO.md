@@ -69,6 +69,86 @@ If we want to make it feel less inconsistent, we could either (a) rename `_logge
 - CallToAction/Newsletter
 - ContactForm
 
+## Refactor Theme Colors
+
+### Color vars
+
+brand primary:    #001733
+brand secondary:  #0062B6
+
+ring (1px), ring-2, ring-4
+accent
+
+text-white, other default Tailwind colors
+
+## Refactor E2E Test Suite
+
+### Files with Skipped Tests
+
+Blocked Categories (44 tests):
+
+Visual regression testing (18) - Needs Percy/Chromatic
+Lighthouse audits (6) - Integration pending
+Newsletter double opt-in (6) - Email testing infrastructure
+Axe accessibility (2) - axe-core integration
+
+### Axe tags
+
+cat.aria: Rules related to Accessible Rich Internet Applications (ARIA) attributes and roles.
+cat.color: Rules related to color contrast and meaning conveyed by color.
+cat.controls: Rules for interactive controls, such as form elements and links.
+cat.forms: Rules specifically for forms, form fields, and their labels.
+cat.keyboard: Rules related to keyboard operability.
+cat.links: Rules for links, including their names and destinations.
+cat.name-role-value: Rules that check if an element has a name, role, and value that can be correctly interpreted by assistive technologies.
+cat.semantics: Rules related to the semantic structure of a document, such as headings and landmarks.
+cat.sensory-and-visual-cues: Rules that deal with information conveyed by sensory or visual characteristics.
+cat.structure: Rules related to the document's overall structure, like the proper nesting of elements.
+cat.tables: Rules for data tables, including headers and associations.
+cat.text-alternatives: Rules for ensuring that text alternatives are provided for non-text content, such as images.
+
+## Set up webmentions
+
+Needs to add real API key and test
+
+- Get API token from webmention.io
+- Add WEBMENTION_IO_TOKEN to .env
+- (Optional) Set up Bridgy for social media
+- Test with sample webmentions
+
+## Prefetch Links
+
+The default prefetch strategy when adding the data-astro-prefetch attribute is hover. To change it, you can configure prefetch.defaultStrategy in your astro.config.mjs file.
+
+hover (default): Prefetch when you hover over or focus on the link.
+tap: Prefetch just before you click on the link.
+viewport: Prefetch as the links enter the viewport.
+load: Prefetch all links on the page after the page is loaded.
+
+```html
+<a href="/about" data-astro-prefetch>
+<a href="/about" data-astro-prefetch="tap">About</a>
+```
+
+If you want to prefetch all links, including those without the data-astro-prefetch attribute, you can set prefetch.prefetchAll to true:
+
+```typescript
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  prefetch: {
+    prefetchAll: true
+  }
+})
+```
+
+You can then opt-out of prefetching for individual links by setting data-astro-prefetch="false":
+
+```html
+<a href="/about" data-astro-prefetch="false">About</a>
+```
+
 ## Mobile Social Shares UI
 
 See the example image in Social Shares. The social shares UI on mobile should be a modal that slides in from the bottom.
@@ -122,96 +202,6 @@ Lunr is a JS search library using an inverted index. Client-side search for stat
 
 Right now we're using string literals to define HTML email templates for site mails. We should use Nunjucks with the rule-checking for valid CSS in HTML emails like we have in the corporate email footer repo.
 
-## Color vars
-
-brand primary:    #001733
-brand secondary:  #0062B6
-
-ring (1px), ring-2, ring-4
-accent
-
-text-white, other default Tailwind colors
-
-## Files with Skipped Tests
-
-Blocked Categories (44 tests):
-
-Visual regression testing (18) - Needs Percy/Chromatic
-Lighthouse audits (6) - Integration pending
-Newsletter double opt-in (6) - Email testing infrastructure
-Axe accessibility (2) - axe-core integration
-
-## Axe tags
-
-cat.aria: Rules related to Accessible Rich Internet Applications (ARIA) attributes and roles.
-cat.color: Rules related to color contrast and meaning conveyed by color.
-cat.controls: Rules for interactive controls, such as form elements and links.
-cat.forms: Rules specifically for forms, form fields, and their labels.
-cat.keyboard: Rules related to keyboard operability.
-cat.links: Rules for links, including their names and destinations.
-cat.name-role-value: Rules that check if an element has a name, role, and value that can be correctly interpreted by assistive technologies.
-cat.semantics: Rules related to the semantic structure of a document, such as headings and landmarks.
-cat.sensory-and-visual-cues: Rules that deal with information conveyed by sensory or visual characteristics.
-cat.structure: Rules related to the document's overall structure, like the proper nesting of elements.
-cat.tables: Rules for data tables, including headers and associations.
-cat.text-alternatives: Rules for ensuring that text alternatives are provided for non-text content, such as images.
-
-## Set up webmentions
-
-Needs to add real API key and test
-
-- Get API token from webmention.io
-- Add WEBMENTION_IO_TOKEN to .env
-- (Optional) Set up Bridgy for social media
-- Test with sample webmentions
-
-## Custom Directives
-
-[`astro-directives`](https://github.com/QuentinDutot/astro-directives)
-
-```react
-<Component client:hover />
-```
-
-| Attribute     | Load the javascript and hydrate on ... |
-| ------------- | -------------------------------------- |
-| client:click  | element click event                    |
-| client:hover  | element mouseover event                |
-| client:scroll | window scroll event                    |
-
-## Prefetch Links
-
-The default prefetch strategy when adding the data-astro-prefetch attribute is hover. To change it, you can configure prefetch.defaultStrategy in your astro.config.mjs file.
-
-hover (default): Prefetch when you hover over or focus on the link.
-tap: Prefetch just before you click on the link.
-viewport: Prefetch as the links enter the viewport.
-load: Prefetch all links on the page after the page is loaded.
-
-```html
-<a href="/about" data-astro-prefetch>
-<a href="/about" data-astro-prefetch="tap">About</a>
-```
-
-If you want to prefetch all links, including those without the data-astro-prefetch attribute, you can set prefetch.prefetchAll to true:
-
-```typescript
-// astro.config.mjs
-import { defineConfig } from 'astro/config'
-
-export default defineConfig({
-  prefetch: {
-    prefetchAll: true
-  }
-})
-```
-
-You can then opt-out of prefetching for individual links by setting data-astro-prefetch="false":
-
-```html
-<a href="/about" data-astro-prefetch="false">About</a>
-```
-
 ## Astro Components to Add
 
 ### "Add to Calendar" button
@@ -220,14 +210,6 @@ Google Calendar, Apple Calendar,  Yahoo Calender,  Microsoft 365, Outlook, and T
 
 `https://github.com/add2cal/add-to-calendar-button`
 `https://add-to-calendar-button.com/`
-
-### Astro wrapper for the `@github/clipboard-copy-element` web component. Copies element text content or input values to the clipboard
-
-[`clipboard-copy`](https://github.com/BryceRussell/astro-github-elements/tree/main/packages/clipboard-copy#astro-github-elementsclipboard-copy)
-
-### Astro wrapper for GitHub's relative time web component. Translates dates to past or future time phrases, like "*4 hours from now*" or "*20 days ago*"
-
-[Relative Time](https://github.com/BryceRussell/astro-github-elements/tree/main/packages/time#readme)
 
 ## Markdown
 
