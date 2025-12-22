@@ -89,6 +89,73 @@ describe('rehype-shiki', () => {
     expect(classNames).toEqual(expect.arrayContaining(['shiki', 'overflow-x-auto', 'whitespace-pre']))
   })
 
+  it('normalizes common language aliases by default', async () => {
+    const tree: Root = {
+      type: 'root',
+      children: [
+        {
+          type: 'element',
+          tagName: 'pre',
+          properties: {},
+          children: [
+            {
+              type: 'element',
+              tagName: 'code',
+              properties: {
+                className: ['language-ts'],
+              },
+              children: [{ type: 'text', value: 'const x: number = 1\n' }],
+            },
+          ],
+        },
+      ],
+    }
+
+    const transformer = (rehypeShiki as unknown as (_opts: unknown) => unknown)({
+      themes: { light: 'github-light', dark: 'github-dark' },
+    })
+
+    const run = transformer as unknown as (_tree: Root) => Promise<void>
+    await run(tree)
+
+    const pre = getPre(tree)
+    expect(pre.properties?.['data-language']).toBe('typescript')
+  })
+
+  it('treats js and javascript consistently via alias map', async () => {
+    const tree: Root = {
+      type: 'root',
+      children: [
+        {
+          type: 'element',
+          tagName: 'pre',
+          properties: {},
+          children: [
+            {
+              type: 'element',
+              tagName: 'code',
+              properties: {
+                className: ['language-javascript'],
+              },
+              children: [{ type: 'text', value: 'console.log(1)\n' }],
+            },
+          ],
+        },
+      ],
+    }
+
+    const transformer = (rehypeShiki as unknown as (_opts: unknown) => unknown)({
+      themes: { light: 'github-light', dark: 'github-dark' },
+      langAlias: { javascript: 'js' },
+    })
+
+    const run = transformer as unknown as (_tree: Root) => Promise<void>
+    await run(tree)
+
+    const pre = getPre(tree)
+    expect(pre.properties?.['data-language']).toBe('js')
+  })
+
   it('skips excluded languages', async () => {
     const originalPre: Element = {
       type: 'element',

@@ -86,10 +86,29 @@ function parseLanguageFromCode(code: Element): string | null {
   return null
 }
 
+const DEFAULT_LANG_ALIAS: Record<string, string> = {
+  js: 'javascript',
+  javascript: 'javascript',
+  ts: 'typescript',
+  typescript: 'typescript',
+}
+
+function normalizeAliasMap(alias: Record<string, string> | undefined): Record<string, string> {
+  if (!alias) return {}
+  return Object.fromEntries(
+    Object.entries(alias)
+      .map(([key, value]) => [key.trim().toLowerCase(), value.trim()])
+      .filter(([key, value]) => Boolean(key) && Boolean(value)),
+  )
+}
+
 function normalizeLanguage(lang: string, alias: Record<string, string> | undefined): string {
   const trimmed = lang.trim()
   if (!trimmed) return trimmed
-  return alias?.[trimmed] ?? trimmed
+
+  const key = trimmed.toLowerCase()
+  const mapped = alias?.[key]
+  return (mapped ?? key).trim()
 }
 
 function hasShikiClass(pre: Element): boolean {
@@ -153,6 +172,7 @@ const DEFAULT_EXCLUDED_LANGS = ['mermaid', 'math']
 const rehypeShiki: Plugin<[RehypeShikiOptions], Root> = (options: RehypeShikiOptions) => {
   const excluded = new Set([...(options.excludeLangs ?? DEFAULT_EXCLUDED_LANGS)].map(s => s.toLowerCase()))
   const wrap = options.wrap ?? false
+  const langAlias = normalizeAliasMap({ ...DEFAULT_LANG_ALIAS, ...(options.langAlias ?? {}) })
 
   let highlighterPromise: Promise<HighlighterLike> | null = null
 
@@ -203,7 +223,7 @@ const rehypeShiki: Plugin<[RehypeShikiOptions], Root> = (options: RehypeShikiOpt
       const rawLang = parseLanguageFromCode(codeChild)
       if (!rawLang) return
 
-      const lang = normalizeLanguage(rawLang, options.langAlias)
+      const lang = normalizeLanguage(rawLang, langAlias)
       if (excluded.has(lang.toLowerCase())) return
 
       const codeText = getText(codeChild)
