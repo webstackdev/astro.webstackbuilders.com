@@ -1,5 +1,5 @@
 
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import TestimonialsComponent from '@components/Testimonials/index.astro'
 import type { TestimonialsProps } from '@components/Testimonials/props'
@@ -33,6 +33,21 @@ const createAutoplayPluginMock = vi.fn(() => {
   autoplayPluginInstances.push(instance)
   return instance
 })
+
+let intersectionObserverCallback: IntersectionObserverCallback | undefined
+
+const originalIntersectionObserver = (
+  globalThis as unknown as { IntersectionObserver?: typeof IntersectionObserver }
+).IntersectionObserver
+
+class IntersectionObserverMock {
+  observe = vi.fn()
+  disconnect = vi.fn()
+
+  constructor(callback: IntersectionObserverCallback) {
+    intersectionObserverCallback = callback
+  }
+}
 
 vi.mock('@components/scripts/store', () => ({
   createAnimationController: createAnimationControllerMock,
@@ -107,6 +122,18 @@ describe('Testimonials component', () => {
     createAnimationControllerMock.mockClear()
     autoplayPluginInstances.length = 0
     createAutoplayPluginMock.mockClear()
+    intersectionObserverCallback = undefined
+    ;(globalThis as unknown as { IntersectionObserver?: typeof IntersectionObserver }).IntersectionObserver =
+      IntersectionObserverMock as unknown as typeof IntersectionObserver
+  })
+
+  afterEach(() => {
+    const globalIntersection = globalThis as unknown as { IntersectionObserver?: typeof IntersectionObserver }
+    if (originalIntersectionObserver) {
+      globalIntersection.IntersectionObserver = originalIntersectionObserver
+      return
+    }
+    delete globalIntersection.IntersectionObserver
   })
 
   it('renders the supplied title and respects the limit', async () => {
@@ -188,6 +215,44 @@ describe('Testimonials component', () => {
         const pluginInstance = autoplayPluginInstances.at(-1)
         expect(pluginInstance?.play).not.toHaveBeenCalled()
         await vi.runAllTimersAsync()
+        expect(pluginInstance?.play).toHaveBeenCalled()
+      })
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('pauses autoplay when partially out of the viewport and resumes when fully visible again', async () => {
+    vi.useFakeTimers()
+    try {
+      await renderTestimonials(async () => {
+        const pluginInstance = autoplayPluginInstances.at(-1)
+        expect(pluginInstance).toBeDefined()
+        expect(intersectionObserverCallback).toBeTypeOf('function')
+
+        intersectionObserverCallback?.(
+          [
+            {
+              isIntersecting: true,
+              intersectionRatio: 0.5,
+            } as unknown as IntersectionObserverEntry,
+          ],
+          {} as IntersectionObserver,
+        )
+
+        await vi.runAllTimersAsync()
+        expect(pluginInstance?.play).not.toHaveBeenCalled()
+
+        intersectionObserverCallback?.(
+          [
+            {
+              isIntersecting: true,
+              intersectionRatio: 1,
+            } as unknown as IntersectionObserverEntry,
+          ],
+          {} as IntersectionObserver,
+        )
+
         expect(pluginInstance?.play).toHaveBeenCalled()
       })
     } finally {

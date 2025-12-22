@@ -54,6 +54,9 @@ export class TestimonialsCarouselElement extends HTMLElement {
   private autoplayReady = false
   private autoplayReadyScheduled = false
   private autoplayReadyTimer: TimerHandle | null = null
+  private intersectionObserver: IntersectionObserver | undefined
+  private isFullyInViewport = true
+  private requestedAutoplayState: AnimationPlayState = 'paused'
   private readonly animationInstanceId: string
   private readonly domReadyHandler = () => {
     document.removeEventListener('DOMContentLoaded', this.domReadyHandler)
@@ -131,6 +134,7 @@ export class TestimonialsCarouselElement extends HTMLElement {
       this.hasAutoplaySupport = supportsAutoplay
       this.autoplayPlugin = supportsAutoplay ? requestedAutoplay : null
       this.setAutoplayState('paused')
+      this.requestedAutoplayState = 'paused'
 
       if (this.autoplayPlugin) {
         const emblaWithEvents = this.emblaApi as EmblaCarouselType & {
@@ -156,6 +160,7 @@ export class TestimonialsCarouselElement extends HTMLElement {
 
       if (this.hasAutoplaySupport) {
         this.registerAnimationLifecycle()
+        this.setupViewportObserver()
         this.scheduleAutoplayReady()
       }
     } catch (error) {
@@ -169,6 +174,7 @@ export class TestimonialsCarouselElement extends HTMLElement {
   }
 
   private teardown(): void {
+    this.teardownViewportObserver()
     if (this.emblaApi) {
       const emblaWithEvents = this.emblaApi as EmblaCarouselType & {
         off: (_event: string, _handler: () => void) => EmblaCarouselType
@@ -325,7 +331,8 @@ export class TestimonialsCarouselElement extends HTMLElement {
 
   pause(): void {
     try {
-      this.updateAutoplayState('paused')
+      this.requestedAutoplayState = 'paused'
+      this.syncAutoplayWithViewport()
     } catch (error) {
       handleScriptError(error, { scriptName: SCRIPT_NAME, operation: 'pause' })
     }
@@ -333,10 +340,54 @@ export class TestimonialsCarouselElement extends HTMLElement {
 
   resume(): void {
     try {
-      this.updateAutoplayState('playing')
+      this.requestedAutoplayState = 'playing'
+      this.syncAutoplayWithViewport()
     } catch (error) {
       handleScriptError(error, { scriptName: SCRIPT_NAME, operation: 'resume' })
     }
+  }
+
+  private setupViewportObserver(): void {
+    if (typeof document === 'undefined') return
+    if (this.intersectionObserver) return
+
+    try {
+      const IntersectionObserverCtor = (
+        globalThis as unknown as { IntersectionObserver?: typeof IntersectionObserver }
+      ).IntersectionObserver
+
+      if (typeof IntersectionObserverCtor !== 'function') return
+
+      this.intersectionObserver = new IntersectionObserverCtor(
+        (entries) => {
+          const entry = entries.at(0)
+          const ratio = entry?.intersectionRatio ?? 0
+          this.isFullyInViewport = Boolean(entry?.isIntersecting && ratio >= 0.999)
+          this.syncAutoplayWithViewport()
+        },
+        { threshold: [0, 0.999] },
+      )
+
+      const observedTarget = this.emblaRoot ?? this
+      this.intersectionObserver.observe(observedTarget)
+    } catch {
+      // Best effort only
+    }
+  }
+
+  private teardownViewportObserver(): void {
+    try {
+      this.intersectionObserver?.disconnect()
+      this.intersectionObserver = undefined
+      this.isFullyInViewport = true
+    } catch {
+      // Best effort only
+    }
+  }
+
+  private syncAutoplayWithViewport(): void {
+    const shouldPlay = this.requestedAutoplayState === 'playing' && this.isFullyInViewport
+    this.updateAutoplayState(shouldPlay ? 'playing' : 'paused')
   }
 
   private setAutoplayState(state: 'playing' | 'paused'): void {

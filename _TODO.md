@@ -204,24 +204,6 @@ Google Calendar, Apple Calendar,  Yahoo Calender,  Microsoft 365, Outlook, and T
 `https://github.com/add2cal/add-to-calendar-button`
 `https://add-to-calendar-button.com/`
 
-### Privacy Policy and Package Release Refactor
-
-Refactor privacy policy and package release integrations to use virtual modules instead of env vars
-
-### Markdown Unit Tests
-
-Figure out why coverage.spec.ts isn't erroring on no unit tests in these remark / rehype plugins lacking any tests:
-
-remark-mark-plus
-remark-custom-blocks
-rehype-inline-code-color-swatch
-rehype-footnotes-title
-
-### CRON Job Failures
-
-Error: 505, message='Invalid response status', url='wss://webstack-corporate-preview-webstackdev.aws-us-east-1.turso.io'
-Error: Process completed with exit code 1.
-
 ### Fix to Featured Pages Carousel
 
 Pause carousels on intersection observer, when part of the carousel is scrolled off the page

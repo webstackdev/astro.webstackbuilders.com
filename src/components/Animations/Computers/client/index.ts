@@ -171,10 +171,12 @@ export class ComputersAnimationElement extends LitElement {
         (entries) => {
           const entry = entries.at(0)
           const ratio = entry?.intersectionRatio ?? 0
-          this.isInViewport = Boolean(entry?.isIntersecting && ratio > 0)
+          // Pause as soon as the element is even partially out of view.
+          // Only consider it "in viewport" when it is fully visible.
+          this.isInViewport = Boolean(entry?.isIntersecting && ratio >= 0.999)
           this.syncPlaybackWithVisibility()
         },
-        { threshold: 0.01 },
+        { threshold: [0, 0.999] },
       )
 
       this.intersectionObserver.observe(this)
@@ -375,9 +377,9 @@ export class ComputersAnimationElement extends LitElement {
 
       this.timeline = gsap
         .timeline({
-          defaults: { duration: 1 },
+          defaults: { duration: 1, immediateRender: false },
           delay: 1,
-          paused: false,
+          paused: true,
           repeat: -1,
           yoyo: false,
         })
