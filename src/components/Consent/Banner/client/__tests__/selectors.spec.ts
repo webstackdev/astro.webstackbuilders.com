@@ -1,5 +1,5 @@
 
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import { TestError } from '@test/errors'
 import ConsentBanner from '@components/Consent/Banner/index.astro'
@@ -16,6 +16,13 @@ import {
   getConsentCustomizeLink,
 } from '@components/Consent/Banner/client/selectors'
 import { ClientScriptError } from '@components/scripts/errors'
+
+vi.mock('@components/scripts/store', () => ({
+  allowAllConsentCookies: vi.fn(),
+  hideConsentBanner: vi.fn(),
+  initConsentCookies: vi.fn(() => true),
+  showConsentBanner: vi.fn(),
+}))
 
 type ConsentBannerModule = WebComponentModule<ConsentBannerElement>
 

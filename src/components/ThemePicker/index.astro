@@ -32,71 +32,139 @@ const { closeComponent = 'close', label = 'Select theme' } = Astro.props
     >
       {label}
     </h3>
-    <ul
-      id="theme-menu"
-      class:list={[
-        styles.list,
-        'themepicker__list',
-        'block mb-[0.25em] overflow-x-auto overflow-y-hidden py-4 px-6 pb-8 text-center whitespace-nowrap w-full',
-      ]}
-    >
-      {
-        themes.map(theme => (
-          <li
-            class:list={[
-              styles.item,
-              'themepicker__item',
-              'inline-block relative rounded-lg scale-100 ml-4 first:ml-0 hover:shadow-md hover:scale-105 hover:z-1',
-            ]}
-          >
-            <button
-              class="themepicker__selectBtn block p-4 rounded-lg border border-bg-offset w-full text-center bg-bg-offset"
-              aria-label={`select color theme ${theme.name}`}
-              data-theme={theme.id}
-            >
-              <span class="block text-text">{theme.name}</span>
-              <span class="block py-0.5">
-                <span
-                  class:list={[
-                    styles.hue,
-                    'themepicker__hue',
-                    'rounded-full shadow-[0_0_0_2px_var(--color-text)] inline-block h-6 w-6 overflow-hidden text-left indent-full align-bottom whitespace-nowrap bg-primary',
-                  ]}
-                />
-                <span
-                  class:list={[
-                    styles.hue,
-                    'themepicker__hue',
-                    'rounded-full shadow-[0_0_0_2px_var(--color-text)] inline-block h-6 w-6 overflow-hidden text-left indent-full align-bottom whitespace-nowrap bg-secondary',
-                  ]}
-                />
-                <span
-                  class:list={[
-                    styles.hue,
-                    'themepicker__hue',
-                    'rounded-full shadow-[0_0_0_2px_var(--color-text)] inline-block h-6 w-6 overflow-hidden text-left indent-full align-bottom whitespace-nowrap bg-border',
-                  ]}
-                />
-                <span
-                  class:list={[
-                    styles.hue,
-                    'themepicker__hue',
-                    'rounded-full shadow-[0_0_0_2px_var(--color-text)] inline-block h-6 w-6 overflow-hidden text-left indent-full align-bottom whitespace-nowrap bg-text-offset',
-                  ]}
-                />
-                <span
-                  class:list={[
-                    styles.hue,
-                    'themepicker__hue',
-                    'rounded-full shadow-[0_0_0_2px_var(--color-text)] inline-block h-6 w-6 overflow-hidden text-left indent-full align-bottom whitespace-nowrap bg-text',
-                  ]}
-                />
-              </span>
-            </button>
-          </li>
-        ))
-      }
-    </ul>
+
+    <div class="embla relative" role="region" aria-labelledby="theme-picker-label" data-theme-embla>
+      <div class="embla__viewport overflow-hidden" data-theme-embla-viewport>
+        <ul
+          id="theme-menu"
+          class:list={[
+            styles.list,
+            'themepicker__list',
+            'embla__container flex gap-4 justify-center py-4 px-6 pb-8 w-full',
+          ]}
+        >
+          {
+            themes.map(theme => (
+              <li
+                class:list={[
+                  styles.item,
+                  'themepicker__item',
+                  'embla__slide flex-[0_0_auto] min-w-0 relative rounded-lg scale-100 hover:shadow-md hover:scale-105 hover:z-1',
+                ]}
+              >
+                <button
+                  class="themepicker__selectBtn group block p-4 rounded-lg border border-bg-offset w-full text-center bg-bg-offset"
+                  aria-label={`select color theme ${theme.name}`}
+                  data-theme={theme.id}
+                >
+                  <span class="block text-text">
+                    <span class="inline-block relative">
+                      <span class="themepicker__themeName">{theme.name}</span>
+                      {
+                        theme.description && (
+                          <span
+                            class="themepicker__tooltip absolute left-full top-full ml-1 mt-1 z-20 max-w-xs whitespace-normal break-words rounded-md border border-border bg-bg-inverse px-2 py-1 text-xs text-bg opacity-0 pointer-events-none group-hover:opacity-100 group-focus:opacity-100 group-focus-visible:opacity-100"
+                            data-theme-tooltip
+                          >
+                            {theme.description}
+                          </span>
+                        )
+                      }
+                    </span>
+                  </span>
+
+                  <span class="block py-0.5">
+                    <span
+                      class:list={[
+                        styles.hue,
+                        'themepicker__hue',
+                        'rounded-full shadow-[0_0_0_2px_var(--color-text)] inline-block h-6 w-6 overflow-hidden text-left indent-full align-bottom whitespace-nowrap bg-primary',
+                      ]}
+                    />
+                    <span
+                      class:list={[
+                        styles.hue,
+                        'themepicker__hue',
+                        'rounded-full shadow-[0_0_0_2px_var(--color-text)] inline-block h-6 w-6 overflow-hidden text-left indent-full align-bottom whitespace-nowrap bg-secondary',
+                      ]}
+                    />
+                    <span
+                      class:list={[
+                        styles.hue,
+                        'themepicker__hue',
+                        'rounded-full shadow-[0_0_0_2px_var(--color-text)] inline-block h-6 w-6 overflow-hidden text-left indent-full align-bottom whitespace-nowrap bg-border',
+                      ]}
+                    />
+                    <span
+                      class:list={[
+                        styles.hue,
+                        'themepicker__hue',
+                        'rounded-full shadow-[0_0_0_2px_var(--color-text)] inline-block h-6 w-6 overflow-hidden text-left indent-full align-bottom whitespace-nowrap bg-text-offset',
+                      ]}
+                    />
+                    <span
+                      class:list={[
+                        styles.hue,
+                        'themepicker__hue',
+                        'rounded-full shadow-[0_0_0_2px_var(--color-text)] inline-block h-6 w-6 overflow-hidden text-left indent-full align-bottom whitespace-nowrap bg-text',
+                      ]}
+                    />
+                  </span>
+                </button>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <button
+        type="button"
+        class="themepicker__navBtn themepicker__navBtn--prev absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 w-10 h-10 rounded-full bg-bg border-2 border-border shadow-lg hover:bg-primary hover:border-primary transition-all duration-300 flex items-center justify-center z-10 disabled:opacity-30 disabled:cursor-not-allowed"
+        aria-label="Previous theme"
+        data-theme-embla-prev
+        hidden
+      >
+        <svg
+          class="w-5 h-5 text-text"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M15 19l-7-7 7-7"
+          />
+        </svg>
+      </button>
+
+      <button
+        type="button"
+        class="themepicker__navBtn themepicker__navBtn--next absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 w-10 h-10 rounded-full bg-bg border-2 border-border shadow-lg hover:bg-primary hover:border-primary transition-all duration-300 flex items-center justify-center z-10 disabled:opacity-30 disabled:cursor-not-allowed"
+        aria-label="Next theme"
+        data-theme-embla-next
+        hidden
+      >
+        <svg
+          class="w-5 h-5 text-text"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 5l7 7-7 7"
+          />
+        </svg>
+      </button>
+    </div>
     <button
       class="themepicker__closeBtn bg-secondary border-none text-text flex p-1.5 absolute top-0 right-0 transition-all duration-150 ease-in-out hover:bg-secondary-offset hover:text-text focus:bg-secondary-offset focus:text-text"
       type="button"
