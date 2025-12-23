@@ -1,7 +1,7 @@
 ---
 import { type CollectionEntry, getCollection, getEntry } from 'astro:content'
 import { Picture } from 'astro:assets'
-import { isDev, isProd } from '@lib/config/environmentServer'
+import { isDev } from '@lib/config/environmentServer'
 import MarkdownLayout from '@layouts/MarkdownLayout.astro'
 import Shares from '@components/Social/Shares/index.astro'
 import Carousel from '@components/Carousel/index.astro'
@@ -14,7 +14,7 @@ export interface Props {
 /** Generate static paths for all articles */
 export async function getStaticPaths() {
   const articleEntries = await getCollection('articles', ({ data }) => {
-    return isDev() || (isProd() && data.isDraft !== true)
+    return isDev() || data.isDraft !== true
   })
   return articleEntries.map(article => ({
     params: { slug: article.id },

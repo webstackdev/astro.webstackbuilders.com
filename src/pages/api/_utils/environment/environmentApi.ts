@@ -6,13 +6,11 @@
  * functions with process.env.
  */
 import { ApiFunctionError } from '../errors/ApiFunctionError'
-import { isUnitTest } from '@lib/config/environmentServer'
 export {
   isCI,
   isE2eTest,
   isGitHub,
   isTest,
-  isUnitTest,
   isVercel,
 } from '@lib/config/environmentServer'
 
@@ -27,7 +25,7 @@ export const isDev = () => {
 }
 
 export const isProd = () => {
-  return import.meta.env.MODE === 'production' && !isUnitTest()
+  return import.meta.env.MODE === 'production'
 }
 
 /**

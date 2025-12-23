@@ -1,5 +1,5 @@
 import { Resend } from 'resend'
-import { getResendApiKey, isDev, isTest } from '@actions/_environment/environmentActions'
+import { getResendApiKey, isProd } from '@actions/_environment/environmentActions'
 import { getSiteUrl } from '@actions/_environment/siteUrlActions'
 import { ActionsFunctionError } from '@actions/_errors/ActionsFunctionError'
 
@@ -172,7 +172,8 @@ export async function sendConfirmationEmail(email: string, token: string, firstN
   const confirmUrl = `${siteUrl}/newsletter/confirm/${token}`
   const expiresIn = '24 hours'
 
-  if (isDev() || isTest()) {
+  /** Testing helper */
+  if (!isProd()) {
     console.log('[DEV/TEST MODE] Newsletter confirmation email would be sent:', { email, token })
     return
   }
@@ -217,7 +218,8 @@ export async function sendConfirmationEmail(email: string, token: string, firstN
 }
 
 export async function sendWelcomeEmail(email: string, firstName?: string): Promise<void> {
-  if (isDev() || isTest()) {
+  /** Testing helper */
+  if (!isProd()) {
     console.log('[DEV/TEST MODE] Newsletter welcome email would be sent:', { email })
     return
   }

@@ -6,7 +6,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 const sentryInitMock = vi.fn()
 const envMocks = vi.hoisted(() => ({
   isProd: vi.fn(() => false),
-  isDev: vi.fn(() => false),
   getSentryDsn: vi.fn(() => 'https://public@example.ingest.sentry.io/1'),
   getPackageRelease: vi.fn(() => 'pkg@1.0.0'),
 }))
@@ -22,9 +21,7 @@ describe('ensureApiSentry', () => {
     vi.resetModules()
     vi.clearAllMocks()
     envMocks.isProd.mockReset()
-    envMocks.isDev.mockReset()
     envMocks.isProd.mockReturnValue(false)
-    envMocks.isDev.mockReturnValue(false)
   })
 
   it('skips initialization outside production', async () => {
@@ -38,7 +35,6 @@ describe('ensureApiSentry', () => {
 
   it('initializes once when running in production', async () => {
     envMocks.isProd.mockReturnValue(true)
-    envMocks.isDev.mockReturnValue(false)
 
     const module = await import('@pages/api/_utils/sentry')
 
@@ -54,17 +50,16 @@ describe('ensureApiSentry', () => {
     expect(sentryInitMock).toHaveBeenCalledTimes(1)
   })
 
-  it('drops events when dev flag is true', async () => {
+  it('drops events when prod flag is false', async () => {
     envMocks.isProd.mockReturnValue(true)
-    envMocks.isDev.mockReturnValue(true)
 
     const module = await import('@pages/api/_utils/sentry')
     const config = sentryInitMock.mock.calls[0]![0]
 
     const event = {}
-    expect(config.beforeSend(event as any)).toBeNull()
-    envMocks.isDev.mockReturnValue(false)
     expect(config.beforeSend(event as any)).toBe(event)
+    envMocks.isProd.mockReturnValue(false)
+    expect(config.beforeSend(event as any)).toBeNull()
 
     module.ensureApiSentry()
     expect(sentryInitMock).toHaveBeenCalledTimes(1)

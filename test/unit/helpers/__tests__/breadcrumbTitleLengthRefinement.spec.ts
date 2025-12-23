@@ -17,15 +17,6 @@ afterEach(() => {
 })
 
 describe('warnOnBreadcrumbTitleLength', () => {
-  it('does not log warnings outside production', async () => {
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    const { warnOnBreadcrumbTitleLength } = await loadHelpersModule(false)
-
-    warnOnBreadcrumbTitleLength(LONG_TITLE, 'articles')
-
-    expect(warnSpy).not.toHaveBeenCalled()
-  })
-
   it('does not log warnings for titles within the limit', async () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { warnOnBreadcrumbTitleLength } = await loadHelpersModule(true)

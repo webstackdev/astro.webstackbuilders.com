@@ -1,5 +1,5 @@
 import { getCurrentScope, type BrowserOptions } from '@sentry/browser'
-import { isDev } from '@components/scripts/utils/environmentClient'
+import { isProd } from '@components/scripts/utils/environmentClient'
 import { getConsentSnapshot } from '@components/scripts/store/consent'
 
 type BeforeSendHandler = NonNullable<BrowserOptions['beforeSend']>
@@ -8,7 +8,7 @@ type BeforeSendHandler = NonNullable<BrowserOptions['beforeSend']>
  * Applies consent-aware filtering to Sentry events before they are sent.
  */
 export const beforeSendHandler: BeforeSendHandler = (event, _hint) => {
-  if (isDev()) {
+  if (!isProd()) {
     return null
   }
 
@@ -31,7 +31,8 @@ export const beforeSendHandler: BeforeSendHandler = (event, _hint) => {
 }
 
 /**
- * Sets Sentry scope context when consent changes to keep telemetry aligned with user preferences.
+ * Sets Sentry scope context when consent changes to keep
+ * telemetry aligned with user preferences.
  */
 export function updateConsentContext(hasAnalyticsConsent: boolean): void {
   const scope = getCurrentScope()

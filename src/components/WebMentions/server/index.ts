@@ -5,14 +5,14 @@
  * @see https://github.com/aaronpk/webmention.io
  */
 import { WEBMENTION_IO_TOKEN } from 'astro:env/server'
-import { isDev } from '@lib/config/environmentServer'
+import { isProd } from '@lib/config/environmentServer'
 import type { Webmention, WebmentionResponse } from '@components/WebMentions/@types'
 import sanitizeHtml from 'sanitize-html'
 
 const allowedTypes = new Set(['mention-of', 'in-reply-to', 'like-of', 'repost-of'])
 const PLACEHOLDER_TOKENS = new Set(['', 'updateme', 'your_api_token_here'])
 const SUCCESS_CACHE_TTL_MS = 5 * 60 * 1000
-const FAILURE_RETRY_COOLDOWN_MS = isDev() ? 60 * 1000 : 5 * 60 * 1000
+const FAILURE_RETRY_COOLDOWN_MS = isProd() ? 5 * 60 * 1000 : 60 * 1000
 const LOG_THROTTLE_WINDOW_MS = 60 * 1000
 const FETCH_TIMEOUT_MS = 10_000
 

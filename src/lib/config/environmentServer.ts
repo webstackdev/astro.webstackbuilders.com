@@ -26,11 +26,9 @@ export const isTest = () => {
   return isUnitTest() || isE2eTest()
 }
 
-/**
- * Production behaviors include functionality like using real API keys.
- * The only environment we want that behavior is during the production
- * build on Vercel.
- */
+export const isCI = () => {
+  return isGitHub() || isVercel()
+}
 
 export const isDev = () => {
   return !isVercel()
@@ -62,10 +60,6 @@ export const getGitHubRepoPath = () => {
 // VERCEL_ENV=production, preview, or development
 export const isVercel = () => {
   return !!process.env['VERCEL']
-}
-
-export const isCI = () => {
-  return isGitHub() || isVercel()
 }
 
 /**
