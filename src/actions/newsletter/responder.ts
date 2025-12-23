@@ -5,9 +5,9 @@ import { z } from 'astro:schema'
 import { getConvertkitApiKey, getPrivacyPolicyVersion, isDev, isTest } from '@actions/_environment/environmentActions'
 import { checkRateLimit, rateLimiters } from '@actions/_utils/rateLimit'
 import { buildRequestFingerprint, createRateLimitIdentifier } from '@actions/_utils/requestContext'
-import { createConsentRecord, markConsentRecordsVerified } from '@actions/gdpr/_utils/consentStore'
-import { createPendingSubscription, confirmSubscription } from '@actions/newsletter/_token'
-import { sendConfirmationEmail, sendWelcomeEmail } from '@actions/newsletter/_email'
+import { createConsentRecord, markConsentRecordsVerified } from '@actions/gdpr/domain/consentStore'
+import { createPendingSubscription, confirmSubscription } from './action'
+import { sendConfirmationEmail, sendWelcomeEmail } from '@actions/newsletter/entities'
 
 type NewsletterFormData = {
   email: string

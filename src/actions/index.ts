@@ -1,7 +1,7 @@
-import { contact } from './contact'
-import { downloads } from './downloads'
-import { gdpr } from './gdpr'
-import { newsletter } from './newsletter'
+import { contact } from './contact/responder'
+import { downloads } from './downloads/responder'
+import { gdpr } from './gdpr/responder'
+import { newsletter } from './newsletter/responder'
 
 export const server = {
   contact,

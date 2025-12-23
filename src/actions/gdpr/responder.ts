@@ -13,15 +13,15 @@ import {
   findConsentRecords,
   findConsentRecordsByEmail,
   type ConsentEventRecord,
-} from '@actions/gdpr/_utils/consentStore'
+} from '@actions/gdpr/domain/consentStore'
 import {
   createDsarRequest,
   findActiveRequestByEmail,
   findDsarRequestByToken,
   markDsarRequestFulfilled,
-} from '@actions/gdpr/_utils/dsarStore'
+} from '@actions/gdpr/domain/dsarStore'
 import { sendDsarVerificationEmail } from '@actions/gdpr/_dsarVerificationEmails'
-import { deleteNewsletterConfirmationsByEmail } from '@actions/newsletter/_token'
+import { deleteNewsletterConfirmationsByEmail } from '@actions/newsletter/action'
 
 const CONSENT_PURPOSES = ['contact', 'marketing', 'analytics', 'downloads'] as const
 type ConsentPurpose = (typeof CONSENT_PURPOSES)[number]

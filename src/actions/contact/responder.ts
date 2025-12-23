@@ -6,7 +6,7 @@ import { ActionError, defineAction } from 'astro:actions'
 import { checkContactRateLimit } from '@actions/_utils/rateLimit'
 import { buildRequestFingerprint, createRateLimitIdentifier } from '@actions/_utils/requestContext'
 import { getPrivacyPolicyVersion, getResendApiKey, isDev, isTest } from '@actions/_environment/environmentActions'
-import { createConsentRecord } from '@actions/gdpr/_utils/consentStore'
+import { createConsentRecord } from '@actions/gdpr/domain/consentStore'
 
 type ContactFormData = {
   name: string
