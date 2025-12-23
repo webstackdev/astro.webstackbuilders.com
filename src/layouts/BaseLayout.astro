@@ -83,6 +83,17 @@ const {
       {/* <VtBotDebug /> */}
       <ClientRouter />
       {/* <Linter expanded /> */}
+      <script>
+        const prefetch = (url: string) => {
+          fetch(url, { credentials: 'same-origin' }).catch(() => {})
+        }
+
+        if (typeof requestIdleCallback === 'function') {
+          requestIdleCallback(() => prefetch('/offline'))
+        } else {
+          setTimeout(() => prefetch('/offline'), 500)
+        }
+      </script>
     </head>
     {/* Visibility set to hidden is a FOUC trick. It is set to 'visible' once */}
     {/* the current data-theme value for the <> element is checked and set */}

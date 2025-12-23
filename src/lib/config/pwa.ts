@@ -74,20 +74,36 @@ export const pwaConfig: PwaOptions = {
     skipWaiting: true,
     // fallback for navigation requests
     navigateFallback: '/offline',
+    // ensure the offline page is always available for navigation fallback
+    additionalManifestEntries: [{ url: '/offline', revision: null }],
     // caching strategy configuration
     runtimeCaching: [
       {
-        urlPattern: /\.(?:html|css|js)$/,
+        urlPattern: /\.(?:css|js)$/,
         handler: 'StaleWhileRevalidate',
         options: {
-          cacheName: 'webstackbuilders-cache',
+          cacheName: 'webstackbuilders-assets',
+          cacheableResponse: {
+            statuses: [0, 200],
+          },
+          expiration: {
+            maxEntries: 60,
+            maxAgeSeconds: 60 * 60 * 24 * 30,
+          },
         },
       },
       {
         urlPattern: /\.(?:png|jpg|jpeg|gif|bmp|webp|svg|ico)$/,
         handler: 'CacheFirst',
         options: {
-          cacheName: 'webstackbuilders-cache',
+          cacheName: 'webstackbuilders-images',
+          cacheableResponse: {
+            statuses: [0, 200],
+          },
+          expiration: {
+            maxEntries: 200,
+            maxAgeSeconds: 60 * 60 * 24 * 30,
+          },
         },
       },
     ],
