@@ -8,8 +8,8 @@
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { execSync } from 'node:child_process'
-import { isCI } from '../src/lib/config/environmentServer'
 
+const isCI = !!process.env['GITHUB_ACTIONS'] || !!process.env['VERCEL']
 const projectRoot = process.cwd()
 
 /** Don't need Husky in CI environment */
