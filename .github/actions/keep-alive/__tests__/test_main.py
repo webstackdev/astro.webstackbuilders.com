@@ -60,9 +60,9 @@ def test_executes_select_1_and_closes_client(monkeypatch: pytest.MonkeyPatch) ->
     module = load_action_module()
 
     def fake_get_input(name: str, required: bool = False) -> str:
-        if name == "astro-db-remote-url":
+        if name == "url":
             return "libsql://example.turso.io"
-        if name == "astro-db-app-token":
+        if name == "token":
             return "token"
         return ""
 
@@ -103,9 +103,9 @@ def test_prefers_inputs_over_env_vars(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("ASTRO_DB_APP_TOKEN", "env_token")
 
     def fake_get_input(name: str, required: bool = False) -> str:
-        if name == "astro-db-remote-url":
+        if name == "url":
             return "libsql://input.turso.io"
-        if name == "astro-db-app-token":
+        if name == "token":
             return "input_token"
         return ""
 
@@ -136,9 +136,9 @@ def test_normalizes_libsql_url_to_include_trailing_slash(monkeypatch: pytest.Mon
     module = load_action_module()
 
     def fake_get_input(name: str, required: bool = False) -> str:
-        if name == "astro-db-remote-url":
+        if name == "url":
             return "libsql://example.turso.io"
-        if name == "astro-db-app-token":
+        if name == "token":
             return "token"
         return ""
 

@@ -15,7 +15,7 @@ vi.mock('@sentry/astro', () => ({
   init: sentryInitMock,
 }))
 
-vi.mock('@pages/api/_environment/environmentApi', () => envMocks)
+vi.mock('@pages/api/_utils/environment', () => envMocks)
 
 describe('ensureApiSentry', () => {
   beforeEach(() => {

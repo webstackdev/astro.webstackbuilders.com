@@ -5,7 +5,7 @@
  * routes to import it. Vercel exposes environment variables in Vercel serverless
  * functions with process.env.
  */
-import { ApiFunctionError } from '@pages/api/_utils/errors'
+import { ApiFunctionError } from '../errors/ApiFunctionError'
 import { isUnitTest } from '@lib/config/environmentServer'
 export {
   isCI,

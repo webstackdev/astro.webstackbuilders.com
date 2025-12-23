@@ -201,14 +201,14 @@ export class BasePage {
         if (modal) {
           modal.removeAttribute('open')
           modal.setAttribute('aria-hidden', 'true')
-          ;(modal as HTMLElement).style.display = 'none'
+          modal.style.display = 'none'
         }
 
         const dialogs = Array.from(document.querySelectorAll('dialog'))
         dialogs.forEach(dialog => {
           dialog.removeAttribute('open')
           dialog.setAttribute('aria-hidden', 'true')
-          ;(dialog as HTMLElement).style.display = 'none'
+          dialog.style.display = 'none'
         })
 
         const roleDialogs = Array.from(document.querySelectorAll<HTMLElement>('[role="dialog"]'))
@@ -229,7 +229,7 @@ export class BasePage {
         const main = document.getElementById('main-content')
         const roleDialogs = Array.from(document.querySelectorAll<HTMLElement>('[role="dialog"]'))
         const anyRoleDialogVisible = roleDialogs.some(dialog => dialog.style.display !== 'none' && dialog.getAttribute('aria-hidden') !== 'true')
-        const modalHidden = (!modal || (modal as HTMLElement).style.display === 'none' || modal.hasAttribute('hidden') || modal.getAttribute('aria-hidden') === 'true')
+        const modalHidden = (!modal || modal.style.display === 'none' || modal.hasAttribute('hidden') || modal.getAttribute('aria-hidden') === 'true')
           && !anyRoleDialogVisible
         const mainInteractive = !main || !main.hasAttribute('inert')
         return modalHidden && mainInteractive

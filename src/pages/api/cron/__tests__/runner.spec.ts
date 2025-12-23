@@ -5,9 +5,9 @@ import { GET as runAll } from '@pages/api/cron/run-all'
 const getCronSecretMock = vi.hoisted(() => vi.fn(() => 'cron-secret'))
 const getSiteUrlMock = vi.hoisted(() => vi.fn(() => 'https://example.com'))
 
-vi.mock('@pages/api/_environment/environmentApi', async () => {
-  const actual = await vi.importActual<typeof import('@pages/api/_utils/environment/environmentApi')>(
-    '@pages/api/_environment/environmentApi',
+vi.mock('@pages/api/_utils/environment', async () => {
+  const actual = await vi.importActual<typeof import('@pages/api/_utils/environment')>(
+    '@pages/api/_utils/environment',
   )
   return {
     ...actual,
