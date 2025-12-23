@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test'
+import type { Page, Route, Request } from '@playwright/test'
 
 export interface FetchOverrideHandle {
   restore: () => Promise<void>
@@ -41,167 +41,153 @@ type OverrideOptions =
 
 const generateOverrideKey = (): string => `fetch-override-${Date.now()}-${Math.random().toString(16).slice(2)}`
 
+const delay = async (delayMs: number): Promise<void> => {
+  await new Promise<void>(resolve => setTimeout(resolve, delayMs))
+}
+
+const withTimeout = async (promise: Promise<void>, timeoutMs: number, timeoutMessage: string): Promise<void> => {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined
+  const timeoutPromise = new Promise<void>((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(timeoutMessage)), timeoutMs)
+  })
+
+  try {
+    await Promise.race([promise, timeoutPromise])
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId)
+    }
+  }
+}
+
+const getRoutePattern = (endpoint: string): string => {
+  if (endpoint.includes('*')) {
+    return endpoint
+  }
+
+  // Match both absolute and relative URLs.
+  return `**${endpoint}**`
+}
+
+const safePostDataJson = (request: Request): unknown => {
+  try {
+    return request.postDataJSON()
+  } catch {
+    return null
+  }
+}
+
+const buildMockResponseBody = async (
+  request: Request,
+  config: MockResponseOverrideOptions,
+): Promise<unknown> => {
+  if (config.responseBuilder === 'echoRequestJson') {
+    const json = safePostDataJson(request)
+    return json ?? config.body ?? {}
+  }
+
+  if (config.responseBuilder === 'consentRecord') {
+    const payloadSource = safePostDataJson(request)
+    const payload = (payloadSource && typeof payloadSource === 'object') ? (payloadSource as Record<string, unknown>) : {}
+
+    const purposesSource = payload['purposes']
+    const purposes = Array.isArray(purposesSource) ? purposesSource : []
+
+    return {
+      success: true,
+      record: {
+        id: 'test-consent-record',
+        DataSubjectId: typeof payload['DataSubjectId'] === 'string' ? payload['DataSubjectId'] : 'test-subject-id',
+        purposes,
+        timestamp: new Date().toISOString(),
+        source: typeof payload['source'] === 'string' ? payload['source'] : 'cookies_modal',
+        userAgent: typeof payload['userAgent'] === 'string' ? payload['userAgent'] : 'playwright-test',
+        ipAddress: '127.0.0.1',
+        privacyPolicyVersion: 'test-policy-v1',
+        verified: Boolean(payload['verified']),
+      },
+    }
+  }
+
+  return config.body ?? {}
+}
+
 const createFetchOverride = async (page: Page, options: OverrideOptions): Promise<FetchOverrideHandle> => {
   const key = options.key ?? generateOverrideKey()
+  const urlPattern = getRoutePattern(options.endpoint)
 
-  await page.evaluate(({ config }) => {
-    const globalWindow = window as typeof window & {
-      __fetchOverrideStack?: Array<typeof window.fetch>
-      __fetchOverrideCallCounts?: Record<string, number>
+  let callCount = 0
+  let resolveFirstCall: (() => void) | null = null
+  const firstCallPromise = new Promise<void>(resolve => {
+    resolveFirstCall = resolve
+  })
+
+  const handler = async (route: Route, request: Request) => {
+    callCount += 1
+    if (resolveFirstCall) {
+      resolveFirstCall()
+      resolveFirstCall = null
     }
 
-    const getRequestUrl = (input: RequestInfo | URL): string => {
-      if (typeof input === 'string') {
-        return input
-      }
-      if (input instanceof Request) {
-        return input.url
-      }
-      if (input instanceof URL) {
-        return input.href
-      }
-      return String(input)
+    if (options.mode === 'spy') {
+      await route.continue()
+      return
     }
 
-    const ensureStateInitialized = () => {
-      globalWindow.__fetchOverrideStack = globalWindow.__fetchOverrideStack ?? []
-      globalWindow.__fetchOverrideCallCounts = globalWindow.__fetchOverrideCallCounts ?? {}
+    if (options.mode === 'delay') {
+      await delay(options.delayMs)
+      await route.continue()
+      return
     }
 
-    ensureStateInitialized()
-
-    const previousFetch = window.fetch
-    globalWindow.__fetchOverrideStack!.push(previousFetch)
-
-    window.fetch = async (...args) => {
-      const [input, init] = args
-      const url = getRequestUrl(input)
-
-      if (!url.includes(config.endpoint)) {
-        return previousFetch(...args)
+    if (options.mode === 'injectHeaders') {
+      const mergedHeaders = {
+        ...request.headers(),
+        ...options.headers,
       }
-
-      globalWindow.__fetchOverrideCallCounts![config.key] =
-        (globalWindow.__fetchOverrideCallCounts![config.key] ?? 0) + 1
-
-      if (config.mode === 'spy') {
-        return previousFetch(...args)
-      }
-
-      if (config.mode === 'delay') {
-        await new Promise(resolve => setTimeout(resolve, config.delayMs))
-        return previousFetch(...args)
-      }
-
-      const request = input instanceof Request ? input : new Request(input, init)
-
-      if (config.mode === 'injectHeaders') {
-        const mergedHeaders = new Headers(request.headers)
-        Object.entries(config.headers).forEach(([headerName, headerValue]) => {
-          mergedHeaders.set(headerName, headerValue)
-        })
-        const overriddenRequest = new Request(request, { headers: mergedHeaders })
-        return previousFetch(overriddenRequest)
-      }
-
-      if (config.mode === 'mockResponse') {
-        const headers = new Headers(config.headers ?? {})
-        const buildResponseBody = async (): Promise<unknown> => {
-          if (config.responseBuilder === 'echoRequestJson') {
-            try {
-              return await request.clone().json()
-            } catch {
-              return config.body ?? {}
-            }
-          }
-
-          if (config.responseBuilder === 'consentRecord') {
-            let payload: Record<string, unknown> = {}
-            try {
-              payload = await request.clone().json()
-            } catch {
-              payload = {}
-            }
-
-            const purposesSource = (payload as Record<string, unknown>)['purposes']
-            const purposes = Array.isArray(purposesSource) ? purposesSource : []
-
-            return {
-              success: true,
-              record: {
-                id: 'test-consent-record',
-                DataSubjectId: typeof payload['DataSubjectId'] === 'string' ? payload['DataSubjectId'] : 'test-subject-id',
-                purposes,
-                timestamp: new Date().toISOString(),
-                source: typeof payload['source'] === 'string' ? payload['source'] : 'cookies_modal',
-                userAgent: typeof payload['userAgent'] === 'string' ? payload['userAgent'] : 'playwright-test',
-                ipAddress: '127.0.0.1',
-                privacyPolicyVersion: 'test-policy-v1',
-                verified: Boolean(payload['verified']),
-              },
-            }
-          }
-
-          return config.body ?? {}
-        }
-
-        const resolvedBody = await buildResponseBody()
-        if (!headers.has('Content-Type')) {
-          headers.set('Content-Type', typeof resolvedBody === 'string' ? 'text/plain' : 'application/json')
-        }
-
-        const serializedBody = typeof resolvedBody === 'string' ? resolvedBody : JSON.stringify(resolvedBody)
-
-        return new Response(serializedBody, {
-          status: config.status ?? 200,
-          headers,
-        })
-      }
-
-      return previousFetch(...args)
+      await route.continue({ headers: mergedHeaders })
+      return
     }
-  }, { config: { ...options, key } })
+
+    if (options.mode === 'mockResponse') {
+      const resolvedBody = await buildMockResponseBody(request, options)
+      const headers: Record<string, string> = { ...(options.headers ?? {}) }
+
+      if (!Object.keys(headers).some((headerName) => headerName.toLowerCase() === 'content-type')) {
+        headers['Content-Type'] = typeof resolvedBody === 'string' ? 'text/plain' : 'application/json'
+      }
+
+      const body = typeof resolvedBody === 'string' ? resolvedBody : JSON.stringify(resolvedBody)
+
+      await route.fulfill({
+        status: options.status ?? 200,
+        headers,
+        body,
+      })
+      return
+    }
+
+    await route.continue()
+  }
+
+  await page.route(urlPattern, handler)
 
   const restore = async () => {
-    await page.evaluate(({ overrideKey }) => {
-      const globalWindow = window as typeof window & {
-        __fetchOverrideStack?: Array<typeof window.fetch>
-        __fetchOverrideCallCounts?: Record<string, number>
-      }
-
-      if (globalWindow.__fetchOverrideStack && globalWindow.__fetchOverrideStack.length > 0) {
-        const previousFetch = globalWindow.__fetchOverrideStack.pop()
-        if (previousFetch) {
-          window.fetch = previousFetch
-        }
-      }
-
-      if (globalWindow.__fetchOverrideCallCounts) {
-        delete globalWindow.__fetchOverrideCallCounts[overrideKey]
-      }
-    }, { overrideKey: key })
+    try {
+      await page.unroute(urlPattern, handler)
+    } catch {
+      // Ignore - page might already be closed.
+    }
   }
 
-  const getCallCount = async () => {
-    return await page.evaluate(({ overrideKey }) => {
-      const globalWindow = window as typeof window & {
-        __fetchOverrideCallCounts?: Record<string, number>
-      }
-      return globalWindow.__fetchOverrideCallCounts?.[overrideKey] ?? 0
-    }, { overrideKey: key })
-  }
+  const getCallCount = async () => callCount
 
   const waitForCall = async (timeout = 5000) => {
-    await page.waitForFunction(
-      (overrideKey) => {
-        const globalWindow = window as typeof window & {
-          __fetchOverrideCallCounts?: Record<string, number>
-        }
-        return (globalWindow.__fetchOverrideCallCounts?.[overrideKey] ?? 0) > 0
-      },
-      key,
-      { timeout },
-    )
+    if (callCount > 0) {
+      return
+    }
+
+    await withTimeout(firstCallPromise, timeout, `Timed out waiting for request match: ${urlPattern} (${key})`)
   }
 
   return { restore, getCallCount, waitForCall }

@@ -28,7 +28,6 @@ export class ContactFormElement extends LitElement {
     maxCharacters: 2000,
     warningThreshold: 1500,
     errorThreshold: 1800,
-    apiEndpoint: '/api/contact',
   }
 
   override createRenderRoot() {
@@ -58,7 +57,7 @@ export class ContactFormElement extends LitElement {
       initNameLengthHandler(elements.fields.name)
       initMssgLengthHandler(elements.fields.message)
       initGenericValidation(elements.form)
-      initFormSubmission(elements, this.config, {
+      initFormSubmission(elements, {
         labelController: this.labelController,
       })
       this.setViewTransitionsHandlers()

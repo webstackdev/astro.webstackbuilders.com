@@ -12,7 +12,7 @@ import type {
   DSARRequestInput,
   DSARResponse,
   ErrorResponse
-} from '@pages/api/_contracts/gdpr.contracts'
+} from '@actions/_contracts/gdpr.contracts'
 
 /**
  * Base API response type that all GDPR endpoints return

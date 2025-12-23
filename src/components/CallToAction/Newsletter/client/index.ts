@@ -6,6 +6,7 @@
 
 import { LitElement } from 'lit'
 import emailValidator from 'email-validator'
+import { actions } from 'astro:actions'
 import { addScriptBreadcrumb, ClientScriptError } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { getNewsletterElements } from './selectors'
@@ -256,22 +257,14 @@ export class NewsletterFormElement extends LitElement {
       this.showMessage('Sending confirmation email...', 'info')
 
       try {
-        const response = await fetch('/api/newsletter', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email,
-            consentGiven,
-          }),
+        const result = await actions.newsletter.subscribe({
+          email,
+          consentGiven,
         })
 
-        const data = await response.json()
-
-        if (response.ok && data.success) {
+        if (result.data?.success) {
           this.showMessage(
-            data.message || 'Check your email! Click the confirmation link to complete your subscription.',
+            result.data.message || 'Check your email! Click the confirmation link to complete your subscription.',
             'success'
           )
           this.submitButton.dispatchEvent(new CustomEvent('confetti:fire', { bubbles: true, composed: true }))
@@ -279,7 +272,7 @@ export class NewsletterFormElement extends LitElement {
           this.setFieldInvalid(this.emailInput, false)
           this.setFieldInvalid(this.consentCheckbox, false)
         } else {
-          this.showMessage(data.error || 'Failed to subscribe. Please try again.', 'error')
+          this.showMessage(result.error?.message || 'Failed to subscribe. Please try again.', 'error')
         }
       } catch (error) {
         handleScriptError(error, { scriptName: 'NewsletterFormElement', operation: 'apiSubmission' })

@@ -7,6 +7,9 @@ import { EvaluationError } from '@test/errors'
 import { TEST_EMAILS, ERROR_MESSAGES } from '@test/e2e/fixtures/test-data'
 import { NewsletterPage } from '@test/e2e/helpers/pageObjectModels/NewsletterPage'
 
+const newsletterSubscribeActionEndpoint = '/_actions/newsletter/subscribe'
+const actionsEndpointPrefix = '/_actions/'
+
 test.describe('Newsletter Subscription Form', () => {
   test('@ready form accepts valid email and shows success message', async ({ page: playwrightPage }) => {
     const newsletterPage = await NewsletterPage.init(playwrightPage)
@@ -37,25 +40,13 @@ test.describe('Newsletter Subscription Form', () => {
   test('@ready form requires GDPR consent', async ({ page: playwrightPage }) => {
     const newsletterPage = await NewsletterPage.init(playwrightPage)
     await newsletterPage.navigateToNewsletterForm()
-    const fetchSpy = await spyOnFetchEndpoint(newsletterPage.page, '/api/newsletter')
+    const fetchSpy = await spyOnFetchEndpoint(newsletterPage.page, newsletterSubscribeActionEndpoint)
 
     try {
-      // Wait for page to be fully loaded with scripts
-      await newsletterPage.waitForLoadState('networkidle')
-      await newsletterPage.waitForFunction(() => {
-        const button = document.querySelector('#newsletter-submit')
-        return button instanceof HTMLButtonElement && !button.disabled
-      }, undefined, { timeout: 3000 })
-
       await newsletterPage.fillEmail(TEST_EMAILS.valid)
-      // Don't check GDPR consent - leave it unchecked
+      // Ensure consent is explicitly unchecked (it can be pre-checked in some states)
+      await newsletterPage.uncheckGdprConsent()
       await newsletterPage.submitForm()
-
-      // Wait for client-side validation to show error message
-      await newsletterPage.waitForFunction(() => {
-        const message = document.getElementById('newsletter-message')
-        return message && message.textContent && message.textContent.includes('consent')
-      }, { timeout: 3000 })
 
       // Verify that no API call was made (client-side validation prevented it)
       const apiCallCount = await fetchSpy.getCallCount()
@@ -99,7 +90,7 @@ test.describe('Newsletter Subscription Form', () => {
     // Set up intercept for API call to slow it down
     const browserName = newsletterPage.context().browser()?.browserType().name()
     const delayMs = browserName === 'webkit' ? 300 : 100
-    const delayOverride = await delayFetchForEndpoint(newsletterPage.page, { endpoint: '/api/newsletter', delayMs })
+    const delayOverride = await delayFetchForEndpoint(newsletterPage.page, { endpoint: newsletterSubscribeActionEndpoint, delayMs })
 
     // Click submit and immediately check for spinner
     const submitButton = newsletterPage.locator('#newsletter-submit')
@@ -171,19 +162,11 @@ test.describe('Newsletter Subscription Form', () => {
     const newsletterPage = await NewsletterPage.init(playwrightPage)
     await newsletterPage.navigateToNewsletterForm()
 
-    // Set up response promise before submitting
-    const apiResponsePromise = newsletterPage.waitForResponse('/api/newsletter')
-
     await newsletterPage.fillEmail(TEST_EMAILS.valid)
     await newsletterPage.checkGdprConsent()
     await newsletterPage.submitForm()
 
-    // Verify API response
-    const apiResponse = await apiResponsePromise
-    expect(apiResponse.status()).toBe(200)
-    const responseData = await apiResponse.json()
-    expect(responseData.success).toBe(true)
-    expect(responseData.message).toContain('check your email')
+    await newsletterPage.expectMessageContains('check your email')
   })
 
   test('@ready API error preserves form state and surfaces message', async ({ page: playwrightPage }) => {
@@ -191,15 +174,25 @@ test.describe('Newsletter Subscription Form', () => {
     await newsletterPage.navigateToNewsletterForm()
 
     const mockResponse = await mockFetchEndpointResponse(newsletterPage.page, {
-      endpoint: '/api/newsletter',
+      endpoint: actionsEndpointPrefix,
       status: 429,
-      body: { success: false, error: 'Try again in 30 seconds.' },
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: {
+        type: 'AstroActionError',
+        code: 'TOO_MANY_REQUESTS',
+        status: 429,
+        message: 'Try again in 30 seconds.',
+      },
     })
 
     try {
       await newsletterPage.fillEmail(TEST_EMAILS.valid)
       await newsletterPage.checkGdprConsent()
       await newsletterPage.submitForm()
+
+      await mockResponse.waitForCall()
 
       await newsletterPage.expectMessageContains('Try again in 30 seconds.')
       await newsletterPage.expectEmailValue(TEST_EMAILS.valid)
@@ -223,11 +216,10 @@ test.describe('Newsletter Subscription Form', () => {
 
     const browserName = newsletterPage.context().browser()?.browserType().name()
     const delayMs = browserName === 'webkit' ? 400 : browserName === 'firefox' ? 600 : 200
-    const delayOverride = await delayFetchForEndpoint(newsletterPage.page, { endpoint: '/api/newsletter', delayMs })
+    const delayOverride = await delayFetchForEndpoint(newsletterPage.page, { endpoint: actionsEndpointPrefix, delayMs })
     const submitButton = newsletterPage.locator('#newsletter-submit')
     const stateTimeoutMs = 4000
     const stateTimeout = { timeout: stateTimeoutMs }
-    const apiResponsePromise = newsletterPage.page.waitForResponse('/api/newsletter')
     const submitPromise = submitButton.click()
     const fetchStarted = delayOverride.waitForCall(stateTimeoutMs)
 
@@ -236,7 +228,6 @@ test.describe('Newsletter Subscription Form', () => {
       await expect(submitButton).toHaveAttribute('data-e2e-state', 'loading', stateTimeout)
       await expect(submitButton).toBeDisabled({ timeout: 2000 })
       await submitPromise
-      await apiResponsePromise
       await expect(submitButton).toHaveAttribute('data-e2e-state', 'idle', stateTimeout)
       await expect(submitButton).toBeEnabled({ timeout: 2000 })
     } finally {

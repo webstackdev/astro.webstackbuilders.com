@@ -380,6 +380,7 @@ export default [
   {
     files: [
       '.github/actions/**/*',
+      'src/actions/newsletter.ts',
       'src/lib/config/pwa.ts',
       'src/lib/config/serviceWorker.ts',
       'src/components/scripts/store/__tests__/socialEmbeds.spec.ts',
@@ -422,7 +423,7 @@ export default [
       'vitest.setup.ts',
       'src/components/scripts/utils/environmentClient.ts',
       'src/lib/config/**/*',
-      'src/pages/api/_environment/**/*',
+      'src/pages/api/_utils/environment/**/*',
       'test/e2e/config/runtime/database.ts',
       'test/e2e/config/global-setup.ts',
       'test/e2e/config/runtime/mockState.ts',
@@ -468,8 +469,7 @@ export default [
       'src/components/scripts/utils/siteUrlClient.ts',
       'src/lib/config/environmentServer.ts',
       'src/lib/config/siteUrlServer.ts',
-      'src/pages/api/_environment/index.ts',
-      'src/pages/api/_environment/environmentApi.ts',
+      'src/pages/api/_utils/environment/environmentApi.ts',
       'test/e2e/config/global-setup.ts',
     ],
     rules: {
@@ -753,7 +753,7 @@ export default [
       'src/**/server/**/*',
       'src/lib/**/*.ts',
       'src/pages/**/*.astro',
-      'src/pages/api/_environment/environmentApi.ts',
+      'src/pages/api/_utils/environment/environmentApi.ts',
     ],
     rules: {
       'no-restricted-imports': [

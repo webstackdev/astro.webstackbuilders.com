@@ -1,4 +1,5 @@
 import { LitElement } from 'lit'
+import { actions } from 'astro:actions'
 import {
   getDownloadButtonWrapper,
   getDownloadFormElement,
@@ -114,21 +115,11 @@ export class DownloadFormElement extends LitElement {
       }
 
       try {
-        const response = await fetch('/api/downloads/submit', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
-        })
+        const result = await actions.downloads.submit(payload)
 
-        if (!response.ok) {
-          throw new ClientScriptError({
-            message: 'Failed to submit form',
-          })
+        if (result.error || !result.data?.success) {
+          throw new ClientScriptError({ message: result.error?.message || 'Failed to submit form' })
         }
-
-        await response.json()
 
         this.showStatus('success', 'Thank you! Click the button below to download your resource.')
 

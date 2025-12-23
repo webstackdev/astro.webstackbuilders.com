@@ -6,6 +6,8 @@ import { type Page, expect } from '@playwright/test'
 import { BasePage } from '@test/e2e/helpers'
 
 export class NewsletterPage extends BasePage {
+  private readonly subscribeActionEndpoint = '/_actions/newsletter/subscribe'
+
   // Selectors
   private readonly formSelector = '#newsletter-form'
   private readonly emailInputSelector = '#newsletter-email'
@@ -207,7 +209,7 @@ export class NewsletterPage extends BasePage {
    * Wait for API response and verify status
    */
   async expectApiResponse(expectedStatus: number): Promise<void> {
-    const responsePromise = this.page.waitForResponse('/api/newsletter')
+    const responsePromise = this.page.waitForResponse(response => response.url().includes(this.subscribeActionEndpoint))
     await this.submitForm()
     const response = await responsePromise
     expect(response.status()).toBe(expectedStatus)
@@ -217,7 +219,7 @@ export class NewsletterPage extends BasePage {
    * Wait for API response and get JSON data
    */
   async getApiResponse(): Promise<unknown> {
-    const responsePromise = this.page.waitForResponse('/api/newsletter')
+    const responsePromise = this.page.waitForResponse(response => response.url().includes(this.subscribeActionEndpoint))
     await this.submitForm()
     const response = await responsePromise
     return await response.json()

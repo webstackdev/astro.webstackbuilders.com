@@ -2,7 +2,6 @@
  * Newsletter Double Opt-In Flow E2E Tests
  * Tests for complete newsletter subscription flow including email confirmation
  */
-import type { Page } from '@playwright/test'
 import {
   BasePage,
   test,
@@ -11,7 +10,6 @@ import {
 import { markNewsletterTokenExpired, waitForLatestNewsletterConfirmationTokenByEmail } from '@test/e2e/db'
 
 const HOME_PATH = '/'
-const NEWSLETTER_ENDPOINT = '/api/newsletter'
 
 const waitForNewsletterForm = async (page: BasePage) => {
   await page.waitForSelector('#newsletter-email', { timeout: 5000 })
@@ -33,45 +31,25 @@ type NewsletterSubscriptionCapture = {
   email: string
   localConfirmationPath: string
   token: string
-  siteOrigin: string
 }
 
 const submitNewsletterSubscription = async (
   page: BasePage,
-  playwrightPage: Page,
   email = createUniqueEmail(),
 ): Promise<NewsletterSubscriptionCapture> => {
   await fillNewsletterForm(page, email)
 
-  const responsePromise = playwrightPage.waitForResponse((response) => {
-    return response.url().includes(NEWSLETTER_ENDPOINT) && response.request().method() === 'POST'
-  })
-
   await page.click('#newsletter-submit')
 
-  const response = await responsePromise
-  expect(response.status()).toBe(200)
   await expect(page.locator('#newsletter-message')).toContainText('confirm your subscription', { timeout: 5000 })
 
   const token = await waitForLatestNewsletterConfirmationTokenByEmail(email)
-  const siteOrigin = new URL(playwrightPage.url()).origin
 
   return {
     email,
     localConfirmationPath: `/newsletter/confirm/${token}`,
     token,
-    siteOrigin,
   }
-}
-
-const confirmTokenViaApi = async (
-  playwrightPage: Page,
-  token: string,
-  siteOrigin: string,
-) => {
-  return await playwrightPage.request.get(
-    `${siteOrigin}/api/newsletter/confirm?token=${encodeURIComponent(token)}`,
-  )
 }
 
 const markConfirmationTokenExpired = async (token: string): Promise<void> => {
@@ -85,16 +63,9 @@ test.describe('Newsletter Double Opt-In Flow', () => {
     const page = await BasePage.init(playwrightPage)
     await page.goto(HOME_PATH)
 
-    const subscription = await submitNewsletterSubscription(page, playwrightPage)
-
-    const confirmResponsePromise = playwrightPage.waitForResponse((apiResponse) => {
-      return apiResponse.url().includes('/api/newsletter/confirm') && apiResponse.request().method() === 'GET'
-    })
+    const subscription = await submitNewsletterSubscription(page)
 
     await page.goto(subscription.localConfirmationPath)
-
-    const confirmResponse = await confirmResponsePromise
-    expect(confirmResponse.status()).toBe(200)
 
     await expect(page.locator('#loading-state')).toHaveClass(/hidden/, { timeout: 5000 })
     await expect(page.locator('#success-state')).toBeVisible({ timeout: 5000 })
@@ -105,7 +76,7 @@ test.describe('Newsletter Double Opt-In Flow', () => {
     const page = await BasePage.init(playwrightPage)
     await page.goto(HOME_PATH)
 
-    const subscription = await submitNewsletterSubscription(page, playwrightPage)
+    const subscription = await submitNewsletterSubscription(page)
     await markConfirmationTokenExpired(subscription.token)
 
     await page.goto(subscription.localConfirmationPath)
@@ -119,9 +90,10 @@ test.describe('Newsletter Double Opt-In Flow', () => {
     const page = await BasePage.init(playwrightPage)
     await page.goto(HOME_PATH)
 
-    const subscription = await submitNewsletterSubscription(page, playwrightPage)
-    const confirmResponse = await confirmTokenViaApi(playwrightPage, subscription.token, subscription.siteOrigin)
-    expect(confirmResponse.status()).toBe(200)
+    const subscription = await submitNewsletterSubscription(page)
+
+    await page.goto(subscription.localConfirmationPath)
+    await expect(page.locator('#success-state')).toBeVisible({ timeout: 5000 })
 
     await page.goto(subscription.localConfirmationPath)
 

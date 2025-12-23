@@ -139,6 +139,8 @@ const statusMessages: Record<string, { type: 'success' | 'error' | 'info', messa
 </BaseLayout>
 
 <script>
+  import { actions } from 'astro:actions'
+
   const statusMessage = document.getElementById('status-message')
 
   if (statusMessage instanceof HTMLElement) {
@@ -159,6 +161,45 @@ const statusMessages: Record<string, { type: 'success' | 'error' | 'info', messa
     accessibleEl.focus()
   }
 
+  async function handleVerificationToken() {
+    const params = new URLSearchParams(window.location.search)
+    const token = params.get('token')
+    if (!token) return
+
+    try {
+      const result = await actions.gdpr.verifyDsar({ token })
+      if (result.error) {
+        window.location.replace('/privacy/my-data?status=error')
+        return
+      }
+
+      const data = result.data
+      if (data.status === 'download') {
+        const blob = new Blob([data.json], { type: 'application/json' })
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = data.filename
+        document.body.appendChild(link)
+        link.click()
+        link.remove()
+        URL.revokeObjectURL(url)
+
+        window.location.replace('/privacy/my-data?status=already-completed')
+        return
+      }
+
+      if (data.status === 'deleted') {
+        window.location.replace('/privacy/my-data?status=deleted')
+        return
+      }
+
+      window.location.replace(`/privacy/my-data?status=${encodeURIComponent(data.status)}`)
+    } catch {
+      window.location.replace('/privacy/my-data?status=error')
+    }
+  }
+
   // Handle access data form
   const accessForm = document.getElementById('access-form')
   const accessMessage = document.getElementById('access-message')
@@ -174,22 +215,13 @@ const statusMessages: Record<string, { type: 'success' | 'error' | 'info', messa
     setMessage(accessMessage, 'Sending request...', 'info')
 
     try {
-      const response = await fetch('/api/gdpr/request-data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email,
-          requestType: 'ACCESS'
-        })
-      })
+      const result = await actions.gdpr.requestData({ email, requestType: 'ACCESS' })
 
-      const data = await response.json()
-
-      if (data.success) {
-        setMessage(accessMessage, data.message, 'success')
+      if (result.data?.success) {
+        setMessage(accessMessage, result.data.message, 'success')
         accessForm.reset()
       } else {
-        setMessage(accessMessage, data.error?.message || 'Request failed', 'error')
+        setMessage(accessMessage, result.error?.message || 'Request failed', 'error')
       }
     } catch {
       setMessage(accessMessage, 'Network error. Please try again.', 'error')
@@ -211,27 +243,20 @@ const statusMessages: Record<string, { type: 'success' | 'error' | 'info', messa
     setMessage(deleteMessage, 'Sending request...', 'info')
 
     try {
-      const response = await fetch('/api/gdpr/request-data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email,
-          requestType: 'DELETE'
-        })
-      })
+      const result = await actions.gdpr.requestData({ email, requestType: 'DELETE' })
 
-      const data = await response.json()
-
-      if (data.success) {
-        setMessage(deleteMessage, data.message, 'success')
+      if (result.data?.success) {
+        setMessage(deleteMessage, result.data.message, 'success')
         deleteForm.reset()
       } else {
-        setMessage(deleteMessage, data.error?.message || 'Request failed', 'error')
+        setMessage(deleteMessage, result.error?.message || 'Request failed', 'error')
       }
     } catch {
       setMessage(deleteMessage, 'Network error. Please try again.', 'error')
     }
   })
+
+  handleVerificationToken()
 </script>
 
 <style>

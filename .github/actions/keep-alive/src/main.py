@@ -27,11 +27,11 @@ def normalize_libsql_url(url: str) -> str:
 
 def run() -> None:
     try:
-        url = core.get_input("astro-db-remote-url", required=True)
-        auth_token = core.get_input("astro-db-app-token", required=True)
+        url = core.get_input("url", required=True)
+        auth_token = core.get_input("token", required=True)
 
-        required_url = normalize_libsql_url(get_required_value(url, "astro-db-remote-url"))
-        required_auth_token = get_required_value(auth_token, "astro-db-app-token")
+        required_url = normalize_libsql_url(get_required_value(url, "url"))
+        required_auth_token = get_required_value(auth_token, "token")
 
         client = create_client_sync(url=required_url, auth_token=required_auth_token)
         try:

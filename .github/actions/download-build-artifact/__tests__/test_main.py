@@ -38,6 +38,13 @@ def make_zip_bytes() -> bytes:
     return mem.getvalue()
 
 
+def make_zip_bytes_with_top_level_dir() -> bytes:
+    mem = io.BytesIO()
+    with zipfile.ZipFile(mem, "w") as z:
+        z.writestr("vercel-build-preview/.vercel/output/config.json", "{}")
+    return mem.getvalue()
+
+
 def test_extracts_vercel_output(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     module = load_action_module()
 
@@ -47,6 +54,34 @@ def test_extracts_vercel_output(tmp_path: Path, monkeypatch: pytest.MonkeyPatch)
     monkeypatch.setenv("GITHUB_API_URL", "https://api.github.com")
 
     zip_bytes = make_zip_bytes()
+
+    def fake_get(url: str, **kwargs: Any) -> MockResponse:
+        return MockResponse(ok=True, status_code=200, content=zip_bytes)
+
+    monkeypatch.setattr(module.requests, "get", fake_get)
+
+    cwd = Path.cwd()
+    monkeypatch.chdir(tmp_path)
+
+    failures: list[str] = []
+    monkeypatch.setattr(module.core, "set_failed", lambda m: failures.append(m))
+
+    module.run()
+
+    assert failures == []
+    assert (tmp_path / ".vercel" / "output" / "config.json").exists()
+    monkeypatch.chdir(cwd)
+
+
+def test_extracts_vercel_output_when_nested_in_top_level_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    module = load_action_module()
+
+    inputs = {"token": "ghs_test", "artifact-download-url": "https://api.github.com/art.zip"}
+    monkeypatch.setattr(module.core, "get_input", lambda name, required=False: inputs.get(name, ""))
+
+    monkeypatch.setenv("GITHUB_API_URL", "https://api.github.com")
+
+    zip_bytes = make_zip_bytes_with_top_level_dir()
 
     def fake_get(url: str, **kwargs: Any) -> MockResponse:
         return MockResponse(ok=True, status_code=200, content=zip_bytes)

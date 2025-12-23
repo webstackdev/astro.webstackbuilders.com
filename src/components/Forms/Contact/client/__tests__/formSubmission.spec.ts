@@ -1,6 +1,16 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TestError } from '@test/errors'
-import { renderContactForm, type RenderContactFormContext } from './testUtils'
+import type { RenderContactFormContext } from './testUtils'
+
+const contactSubmitMock = vi.fn()
+
+vi.mock('astro:actions', () => ({
+  actions: {
+    contact: {
+      submit: contactSubmitMock,
+    },
+  },
+}))
 
 vi.mock('@components/scripts/errors', () => ({
   addScriptBreadcrumb: vi.fn(),
@@ -12,9 +22,16 @@ vi.mock('@components/scripts/errors/handler', () => ({
 
 const flushPromises = () => new Promise(resolve => setTimeout(resolve, 0))
 
+let renderContactForm: typeof import('./testUtils').renderContactForm
+
+beforeAll(async () => {
+  ;({ renderContactForm } = await import('./testUtils'))
+})
+
 describe('ContactForm submission', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    contactSubmitMock.mockReset()
   })
 
   const fillValidFields = (context: RenderContactFormContext): void => {
@@ -33,17 +50,13 @@ describe('ContactForm submission', () => {
 
   it('shows error banner and skips request when validations fail', async () => {
     await renderContactForm(async ({ elements, window }) => {
-      const fetchSpy = vi.spyOn(globalThis, 'fetch')
-
       const submitEvent = new window.Event('submit', { bubbles: true, cancelable: true })
       elements.form.dispatchEvent(submitEvent)
 
       await flushPromises()
 
-      expect(fetchSpy).not.toHaveBeenCalled()
+      expect(contactSubmitMock).not.toHaveBeenCalled()
       expect(elements.formErrorBanner.classList.contains('hidden')).toBe(false)
-
-      fetchSpy.mockRestore()
     })
   })
 
@@ -51,10 +64,9 @@ describe('ContactForm submission', () => {
     await renderContactForm(async context => {
       fillValidFields(context)
 
-      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
-        ok: true,
-        json: async () => ({ success: true }),
-      } as Response)
+      contactSubmitMock.mockResolvedValue({
+        data: { success: true, message: 'Thank you for your message. We will get back to you soon!' },
+      })
 
       let confettiEvent: Event | undefined
       context.elements.submitBtn.addEventListener('confetti:fire', (event) => {
@@ -66,11 +78,8 @@ describe('ContactForm submission', () => {
 
       await flushPromises()
 
-      expect(fetchSpy).toHaveBeenCalledTimes(1)
-      expect(fetchSpy).toHaveBeenCalledWith(
-        '/api/contact',
-        expect.objectContaining({ method: 'POST' }),
-      )
+      expect(contactSubmitMock).toHaveBeenCalledTimes(1)
+      expect(contactSubmitMock.mock.calls[0]?.[0]).toBeInstanceOf(FormData)
       expect(context.elements.messages.style.display).toBe('block')
       expect(context.elements.successMessage.classList.contains('hidden')).toBe(false)
       expect(context.elements.errorMessage.classList.contains('hidden')).toBe(true)
@@ -87,8 +96,6 @@ describe('ContactForm submission', () => {
       expect(confettiEvent?.target).toBe(context.elements.submitBtn)
       expect(confettiEvent?.bubbles).toBe(true)
       expect((confettiEvent as CustomEvent)?.composed).toBe(true)
-
-      fetchSpy.mockRestore()
     })
   })
 
@@ -97,17 +104,14 @@ describe('ContactForm submission', () => {
       fillValidFields(context)
       context.elements.charCount.textContent = '42'
 
-      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
-        ok: false,
-        json: async () => ({ success: false, message: 'Server error' }),
-      } as Response)
+      contactSubmitMock.mockResolvedValue({ error: { message: 'Server error' } })
 
       const submitEvent = new context.window.Event('submit', { bubbles: true, cancelable: true })
       context.elements.form.dispatchEvent(submitEvent)
 
       await flushPromises()
 
-      expect(fetchSpy).toHaveBeenCalled()
+      expect(contactSubmitMock).toHaveBeenCalled()
       expect(context.elements.messages.style.display).toBe('block')
       expect(context.elements.errorMessage.classList.contains('hidden')).toBe(false)
       expect(context.elements.errorMessage.style.display).toBe('flex')
@@ -115,8 +119,6 @@ describe('ContactForm submission', () => {
       expect(context.elements.successMessage.classList.contains('hidden')).toBe(true)
       expect(context.elements.charCount.textContent).toBe('42')
       expect(context.elements.submitBtn.disabled).toBe(false)
-
-      fetchSpy.mockRestore()
     })
   })
 })

@@ -4,7 +4,7 @@ import { ensureCronDependenciesHealthy } from '@test/e2e/helpers/cronHealth'
  * These env helpers are safe to use in E2E test as they call process.env
  * directly. Must use "npm run dev:env" for this test case to pass.
  */
-import { getCronSecret } from '@pages/api/_environment/environmentApi'
+import { getCronSecret } from '@pages/api/_utils/environment/environmentApi'
 import {
   deleteDsarRequestById,
   deleteNewsletterConfirmationById,

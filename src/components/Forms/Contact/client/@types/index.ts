@@ -34,5 +34,4 @@ export interface ContactFormConfig {
   maxCharacters: number
   warningThreshold: number
   errorThreshold: number
-  apiEndpoint: string
 }

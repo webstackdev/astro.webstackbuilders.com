@@ -1,9 +1,7 @@
 <!-- markdownlint-disable-file -->
 # TODO
 
-## Refactor API Endpoints to Astro Actions
-
-### Action / Domain / Responder Pattern
+## Astro Actions - Action / Domain / Responder Pattern
 
 - The action takes HTTP requests (URLs and their methods) and uses that input to interact with the domain, after which it passes the domain's output to one and only one responder.
 
@@ -26,48 +24,6 @@
 `/responders` or `responders.ts`
 
 - The responder builds the entire HTTP response from the domain's output which is given to it by the action. The Responder is responsible solely for formatting the final response (e.g., JSON, HTML) to be sent back to the client.
-
-### Endpoints:
-
-- cron/cleanup-confirmations → GET
-- cron/cleanup-dsar-requests → GET
-- cron/run-all → GET
-- social-card/ → GET
-
-- contact/ → POST (contact form submission) and OPTIONS (CORS pre-flight)
-- downloads/submit → POST
-- gdpr/consent → POST, GET, DELETE
-- gdpr/request-data → POST
-- gdpr/export → GET
-- gdpr/verify → GET
-- health/ → GET
-- newsletter/ → POST, OPTIONS
-- newsletter/confirm → GET
-
-### Files importing from `astro:db`
-
-- _utils/rateLimit.ts
-- _utils/rateLimitStore.ts
-- cron/cleanup-confirmations.ts
-- cron/cleanup-dsar-requests.ts
-- gdpr/_utils/consentStore.ts
-- gdpr/_utils/dsarStore.ts
-- newsletter/_token.ts
-
-### Cross-endpoint dependencies:
-
-gdpr: Mostly self-contained, but `verify.ts` does import `deleteNewsletterConfirmationsByEmail` from `@pages/api/newsletter/_token` (line 15). That's a direct dependency on the newsletter code.
-
-newsletter: `confirm.ts` pulls `markConsentRecordsVerified` from `@pages/api/gdpr/_utils/consentStore` (line 10) to mark double opt-in consent. That's the reciprocal dependency.
-
-Newsletter hits the gdpr consent endpoint using `recordConsent` in `src/pages/api/_logger/index.ts`.
-
-If we want to make it feel less inconsistent, we could either (a) rename `_logger` to something like `_consentClient` so its purpose is clearer, or (b) move to a microservices architecture and expose a protected `/api/gdpr/verify` endpoint and have newsletter call it over HTTP as well - but that would need additional auth to prevent abuse.
-
-**Affected components:**
-
-- CallToAction/Newsletter
-- ContactForm
 
 ## Refactor Theme Colors
 
@@ -111,39 +67,6 @@ cat.text-alternatives: Rules for ensuring that text alternatives are provided fo
 
 Implement mitigations in test/e2e/specs/07-performance/PERFORMANCE.md
 
-## Prefetch Links
-
-The default prefetch strategy when adding the data-astro-prefetch attribute is hover. To change it, you can configure prefetch.defaultStrategy in your astro.config.mjs file.
-
-hover (default): Prefetch when you hover over or focus on the link.
-tap: Prefetch just before you click on the link.
-viewport: Prefetch as the links enter the viewport.
-load: Prefetch all links on the page after the page is loaded.
-
-```html
-<a href="/about" data-astro-prefetch>
-<a href="/about" data-astro-prefetch="tap">About</a>
-```
-
-If you want to prefetch all links, including those without the data-astro-prefetch attribute, you can set prefetch.prefetchAll to true:
-
-```typescript
-// astro.config.mjs
-import { defineConfig } from 'astro/config'
-
-export default defineConfig({
-  prefetch: {
-    prefetchAll: true
-  }
-})
-```
-
-You can then opt-out of prefetching for individual links by setting data-astro-prefetch="false":
-
-```html
-<a href="/about" data-astro-prefetch="false">About</a>
-```
-
 ## Email Templates
 
 Right now we're using string literals to define HTML email templates for site mails. We should use Nunjucks with the rule-checking for valid CSS in HTML emails like we have in the corporate email footer repo.
@@ -175,12 +98,6 @@ Needs to add real API key and test
 
 See the example image in Social Shares. The social shares UI on mobile should be a modal that slides in from the bottom.
 
-## Themepicker tooltips, extra themes
-
-- Add additional themes (high contrast)
-- Add Carousel
-- Add tooltip that makes use of the description field for the theme, explaining what the intent of the theme is
-
 ## Sentry feedback, chat bot tying into my phone and email
 
 See note in src/components/scripts/sentry/client.ts - "User Feedback - allow users to report issues"
@@ -200,6 +117,8 @@ Add Upstash Search as a Vercel Marketplace Integration.
 ### "Add to Calendar" button
 
 Google Calendar, Apple Calendar,  Microsoft Outlook and Teams, and generate iCal/ics files (for all other calendars and cases).
+
+## Troubleshooting deploy workflow issues
 
 `https://github.com/add2cal/add-to-calendar-button`
 `https://add-to-calendar-button.com/`
