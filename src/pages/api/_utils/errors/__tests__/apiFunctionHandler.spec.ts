@@ -1,9 +1,9 @@
 import { describe, expect, test } from 'vitest'
-import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
 import {
+  ApiFunctionError,
   buildApiErrorResponse,
   formatApiErrorLogEntry,
-} from '@pages/api/_errors/apiFunctionHandler'
+} from '@pages/api/_utils/errors'
 
 describe(`formatApiErrorLogEntry`, () => {
   test(`returns structured log payload with metadata`, () => {

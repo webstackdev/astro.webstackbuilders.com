@@ -2,7 +2,10 @@ import { fileURLToPath } from 'node:url'
 import type { APIRoute } from 'astro'
 import { getCollection } from 'astro:content'
 import { generateOpenGraphImage } from 'astro-og-canvas'
-import { buildApiErrorResponse, handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
+import {
+  buildApiErrorResponse,
+  handleApiFunctionError
+} from '@pages/api/_utils/errors'
 import { createApiFunctionContext } from '@pages/api/_utils/requestContext'
 
 export const prerender = false

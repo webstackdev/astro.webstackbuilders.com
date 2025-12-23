@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto'
 import { captureException, withScope } from '@sentry/astro'
-import { ensureApiSentry } from '@pages/api/_sentry'
-import { isDev, isProd, isTest } from '@pages/api/_environment/environmentApi'
+import { ensureApiSentry } from '@pages/api/_utils/sentry'
+import { isDev, isProd, isTest } from '@pages/api/_utils/environment'
 import { ApiFunctionError, type ApiFunctionErrorParams } from './ApiFunctionError'
 
 ensureApiSentry()

@@ -1,5 +1,10 @@
 import { init as sentryInit } from '@sentry/astro'
-import { getPackageRelease, getSentryDsn, isDev, isProd } from '@pages/api/_environment/environmentApi'
+import {
+  getPackageRelease,
+  getSentryDsn,
+  isDev,
+  isProd
+} from '@pages/api/_utils/environment'
 
 let initialized = false
 

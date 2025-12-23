@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { TestError } from '@test/errors'
-import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
+import { ApiFunctionError } from '@pages/api/_utils/errors'
 
 describe(`ApiFunctionError basics`, () => {
   test(`captures stack, name, and custom metadata`, () => {

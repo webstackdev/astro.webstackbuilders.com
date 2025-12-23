@@ -4,7 +4,7 @@ import type {
   ApiFunctionContext,
   ApiFunctionConsent,
   ApiRequestMetadata,
-} from '@pages/api/_errors/apiFunctionHandler'
+} from '@pages/api/_utils/errors'
 
 export interface ApiFunctionContextOptions {
   route: string

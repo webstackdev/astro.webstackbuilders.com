@@ -30,7 +30,7 @@ describe('ensureApiSentry', () => {
   it('skips initialization outside production', async () => {
     envMocks.isProd.mockReturnValue(false)
 
-    const module = await import('@pages/api/_sentry')
+    const module = await import('@pages/api/_utils/sentry')
     module.ensureApiSentry()
 
     expect(sentryInitMock).not.toHaveBeenCalled()
@@ -40,7 +40,7 @@ describe('ensureApiSentry', () => {
     envMocks.isProd.mockReturnValue(true)
     envMocks.isDev.mockReturnValue(false)
 
-    const module = await import('@pages/api/_sentry')
+    const module = await import('@pages/api/_utils/sentry')
 
     expect(sentryInitMock).toHaveBeenCalledTimes(1)
     const initConfig = sentryInitMock.mock.calls[0]![0]
@@ -58,7 +58,7 @@ describe('ensureApiSentry', () => {
     envMocks.isProd.mockReturnValue(true)
     envMocks.isDev.mockReturnValue(true)
 
-    const module = await import('@pages/api/_sentry')
+    const module = await import('@pages/api/_utils/sentry')
     const config = sentryInitMock.mock.calls[0]![0]
 
     const event = {}

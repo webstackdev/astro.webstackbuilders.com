@@ -1,8 +1,11 @@
 import type { APIRoute } from 'astro'
 import { and, db, dsarRequests, isNull, lt } from 'astro:db'
-import { getCronSecret } from '@pages/api/_environment/environmentApi'
-import { ApiFunctionError } from '@pages/api/_errors/ApiFunctionError'
-import { buildApiErrorResponse, handleApiFunctionError } from '@pages/api/_errors/apiFunctionHandler'
+import { getCronSecret } from '@pages/api/_utils/environment'
+import {
+  ApiFunctionError,
+  buildApiErrorResponse,
+  handleApiFunctionError
+} from '@pages/api/_utils/errors'
 import { createApiFunctionContext } from '@pages/api/_utils/requestContext'
 
 export const prerender = false

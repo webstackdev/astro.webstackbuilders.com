@@ -2,7 +2,7 @@
  * Server-side method to determine correct URL
  */
 
-import packageJson from '../../../../package.json' with { type: 'json' }
+import packageJson from '../../../../../package.json' with { type: 'json' }
 import { isVercel } from './environmentApi'
 
 const devServerPort = process.env['DEV_SERVER_PORT']?.trim()

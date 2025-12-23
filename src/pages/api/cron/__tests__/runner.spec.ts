@@ -6,7 +6,7 @@ const getCronSecretMock = vi.hoisted(() => vi.fn(() => 'cron-secret'))
 const getSiteUrlMock = vi.hoisted(() => vi.fn(() => 'https://example.com'))
 
 vi.mock('@pages/api/_environment/environmentApi', async () => {
-  const actual = await vi.importActual<typeof import('@pages/api/_environment/environmentApi')>(
+  const actual = await vi.importActual<typeof import('@pages/api/_utils/environment/environmentApi')>(
     '@pages/api/_environment/environmentApi',
   )
   return {
