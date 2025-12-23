@@ -1,0 +1,22 @@
+---
+import VercelAnalytics from '@vercel/analytics/astro'
+import { isProd } from '@components/scripts/utils/environmentClient'
+
+const prod = isProd()
+const mode = prod ? 'production' : 'development'
+const debug = !prod
+---
+
+<script>
+  window.webAnalyticsBeforeSend = (event) => {
+    /** Ignore testing pages in tracking */
+    if (event?.url?.includes('/testing/')) {
+      return null
+    }
+    return event
+  }
+</script>
+<VercelAnalytics
+  debug={debug}
+  mode={mode}
+/>
