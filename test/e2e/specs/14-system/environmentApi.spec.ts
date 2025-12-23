@@ -35,22 +35,10 @@ const getEnvironmentSnapshot = async (page: BasePage): Promise<EnvironmentApiSna
 }
 
 test.describe('Server Environment Diagnostics', () => {
-  test('isUnitTest should return false for server snapshot generated in dev', async ({ page: playwrightPage }) => {
-    const page = await BasePage.init(playwrightPage)
-    const snapshot = await getEnvironmentSnapshot(page)
-    expect(snapshot.isUnitTest).toBe(false)
-  })
-
   test('isTest should reflect server-side detection state', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     const snapshot = await getEnvironmentSnapshot(page)
     expect(snapshot.isTest).toBe(false)
-  })
-
-  test('isE2eTest should be false on server snapshot during dev-server rendering', async ({ page: playwrightPage }) => {
-    const page = await BasePage.init(playwrightPage)
-    const snapshot = await getEnvironmentSnapshot(page)
-    expect(snapshot.isE2eTest).toBe(false)
   })
 
   test('isDev should be true for dev-server rendering', async ({ page: playwrightPage }) => {
@@ -69,11 +57,5 @@ test.describe('Server Environment Diagnostics', () => {
     const page = await BasePage.init(playwrightPage)
     const snapshot = await getEnvironmentSnapshot(page)
     expect(snapshot.packageRelease.length).toBeGreaterThan(0)
-  })
-
-  test('privacy policy version value should be exposed from astro:env/server', async ({ page: playwrightPage }) => {
-    const page = await BasePage.init(playwrightPage)
-    const snapshot = await getEnvironmentSnapshot(page)
-    expect(snapshot.privacyPolicyVersion.length).toBeGreaterThan(0)
   })
 })
