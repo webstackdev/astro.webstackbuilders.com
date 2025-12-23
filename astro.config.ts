@@ -1,6 +1,5 @@
 import AstroPWA from '@vite-pwa/astro'
 import db from '@astrojs/db'
-import directives from 'astro-directives'
 import icon from 'astro-icon'
 import linkValidator from 'astro-link-validator'
 import lit from '@semantic-ui/astro-lit'
@@ -52,9 +51,6 @@ const standardIntegrations = [
   /** Astro DB - uses Tursa for backing store in production */
   db(),
   ...sharedTestIntegrations,
-  /**
-   * Adds client:click, client:hover, and client:scroll custom client directives for components */
-  directives(),
   mdx(markdownConfig),
   /** Generate favicons and PWA icons from source SVG */
   faviconGenerator(),
