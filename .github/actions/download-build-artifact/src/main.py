@@ -42,6 +42,27 @@ def is_allowed_fetch_url(url: str, allowed_hosts: set[str]) -> bool:
     return parsed.scheme == "https" and parsed.hostname in allowed_hosts
 
 
+def find_vercel_output_dir(extract_dir: Path) -> Path | None:
+    direct_candidates = [extract_dir / ".vercel" / "output", extract_dir / "output"]
+    for candidate in direct_candidates:
+        if candidate.is_dir():
+            return candidate
+
+    # Common case: artifact contains a top-level folder (e.g. "vercel-build-preview/")
+    # and the output is nested under it.
+    nested_candidates = list(extract_dir.rglob(".vercel/output"))
+    for candidate in nested_candidates:
+        if candidate.is_dir():
+            return candidate
+
+    # Fallback: look for directories named "output" that contain Vercel output.
+    for candidate in extract_dir.rglob("output"):
+        if candidate.is_dir() and (candidate / "config.json").is_file():
+            return candidate
+
+    return None
+
+
 def run() -> None:
     try:
         token = get_input_compat("token", required=True)
@@ -73,10 +94,15 @@ def run() -> None:
             with zipfile.ZipFile(io.BytesIO(response.content)) as zip_ref:
                 zip_ref.extractall(extract_dir)
 
-            candidates = [extract_dir / ".vercel" / "output", extract_dir / "output"]
-            source = next((p for p in candidates if p.is_dir()), None)
+            source = find_vercel_output_dir(extract_dir)
             if not source:
-                raise RuntimeError("Downloaded artifact did not contain expected output directory.")
+                top_level = sorted(
+                    [p.name + ("/" if p.is_dir() else "") for p in extract_dir.iterdir()]
+                )
+                raise RuntimeError(
+                    "Downloaded artifact did not contain expected output directory. "
+                    f"Top-level entries: {top_level}"
+                )
 
             target = Path(".vercel") / "output"
             if target.exists():
