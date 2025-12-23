@@ -1,7 +1,7 @@
 import { Resend } from 'resend'
 import { dsarVerificationEmailHtml } from '@content/email/dsar.html'
 import { dsarVerificationEmailText } from '@content/email/dsar.text'
-import { getResendApiKey, isDev, isTest } from '@actions/_environment/environmentActions'
+import { getResendApiKey, isProd } from '@actions/_environment/environmentActions'
 import { getSiteUrl } from '@actions/_environment/siteUrlActions'
 import { ActionsFunctionError } from '@actions/_errors/ActionsFunctionError'
 
@@ -10,7 +10,8 @@ export async function sendDsarVerificationEmail(
   token: string,
   requestType: 'ACCESS' | 'DELETE',
 ): Promise<void> {
-  if (isDev() || isTest()) {
+  /** Testing helper */
+  if (!isProd()) {
     console.log('[DEV/TEST MODE] DSAR verification email would be sent:', { email, token, requestType })
     return
   }

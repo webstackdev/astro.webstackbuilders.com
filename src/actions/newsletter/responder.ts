@@ -2,7 +2,7 @@ import emailValidator from 'email-validator'
 import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
 import { ActionError, defineAction } from 'astro:actions'
 import { z } from 'astro:schema'
-import { getConvertkitApiKey, getPrivacyPolicyVersion, isDev, isTest } from '@actions/_environment/environmentActions'
+import { getConvertkitApiKey, getPrivacyPolicyVersion, isProd } from '@actions/_environment/environmentActions'
 import { checkRateLimit, rateLimiters } from '@actions/_utils/rateLimit'
 import { buildRequestFingerprint, createRateLimitIdentifier } from '@actions/_utils/requestContext'
 import { createConsentRecord, markConsentRecordsVerified } from '@actions/gdpr/domain/consentStore'
@@ -55,7 +55,8 @@ function validateEmail(email: string): string {
 }
 
 export async function subscribeToConvertKit(data: NewsletterFormData): Promise<ConvertKitResponse> {
-  if (isDev() || isTest()) {
+  /** Testing helper */
+  if (!isProd()) {
     console.log('[DEV/TEST MODE] Newsletter subscription would be created:', { email: data.email })
     return {
       subscriber: {

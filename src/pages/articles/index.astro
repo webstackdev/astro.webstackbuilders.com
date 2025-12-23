@@ -1,11 +1,11 @@
 ---
 import { getCollection } from 'astro:content'
 import { Picture } from 'astro:assets'
-import { isDev, isProd } from '@lib/config/environmentServer'
+import { isDev } from '@lib/config/environmentServer'
 import PageLayout from '@layouts/PageLayout.astro'
 
 const allArticles = await getCollection('articles', ({ data }) => {
-  return isDev() || (isProd() && data.isDraft !== true)
+  return isDev() || data.isDraft !== true
 })
 
 /** Sort by publish date (newest first) */

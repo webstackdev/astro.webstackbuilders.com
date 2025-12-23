@@ -2,18 +2,13 @@ import { init as sentryInit } from '@sentry/astro'
 import {
   getPackageRelease,
   getSentryDsn,
-  isDev,
   isProd
 } from '@pages/api/_utils/environment'
 
 let initialized = false
 
 export function ensureApiSentry(): void {
-  if (initialized) {
-    return
-  }
-
-  if (!isProd()) {
+  if (!isProd() || initialized) {
     return
   }
 
@@ -26,7 +21,7 @@ export function ensureApiSentry(): void {
     attachStacktrace: true,
     maxBreadcrumbs: 100,
     beforeSend(event) {
-      if (isDev()) {
+      if (!isProd()) {
         return null
       }
       return event

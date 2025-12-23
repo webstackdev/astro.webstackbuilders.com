@@ -8,30 +8,28 @@
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { execSync } from 'node:child_process'
+import { isCI } from '../src/lib/config/environmentServer'
 
 const projectRoot = process.cwd()
-const gitDirectory = join(projectRoot, '.git')
 
-const isCi = process.env.CI === '1' || process.env.CI === 'true'
-const isProduction = process.env.NODE_ENV === 'production'
-
-// In production installs, package managers commonly omit devDependencies.
-// Husky lives in devDependencies, so running it would fail the install.
-if (isCi || isProduction) {
-  console.warn(`✅ Skipping Husky install: CI=${String(process.env.CI ?? '')} NODE_ENV=${String(process.env.NODE_ENV ?? '')}`)
+/** Don't need Husky in CI environment */
+if (isCI()) {
+  console.warn(`✅ Skipping Husky install in CI environment`)
   process.exit(0)
 }
 
+const gitDirectory = join(projectRoot, '.git')
+
 if (!existsSync(gitDirectory)) {
-  console.warn(`✅ Skipping Husky install: missing .git directory at ${gitDirectory}`)
-  process.exit(0)
+  console.error(`❌ Skipping Husky install: missing .git directory at ${gitDirectory}`)
+  process.exit(1)
 }
 
 const huskyBin = join(projectRoot, 'node_modules', '.bin', process.platform === 'win32' ? 'husky.cmd' : 'husky')
 
 if (!existsSync(huskyBin)) {
-  console.warn(`✅ Skipping Husky install: missing husky binary at ${huskyBin}`)
-  process.exit(0)
+  console.error(`❌ Skipping Husky install: missing husky binary at ${huskyBin}`)
+  process.exit(1)
 }
 
 try {

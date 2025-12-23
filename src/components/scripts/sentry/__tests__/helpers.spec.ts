@@ -5,13 +5,13 @@ const mockScope = {
   setContext: vi.fn(),
 }
 
-const isDevMock = vi.hoisted(() => vi.fn(() => false))
+const isProdMock = vi.hoisted(() => vi.fn(() => true))
 const getConsentSnapshotMock = vi.hoisted(() => vi.fn(() => ({
   analytics: true,
 })))
 
 vi.mock('@components/scripts/utils/environmentClient', () => ({
-  isDev: isDevMock,
+  isProd: isProdMock,
 }))
 
 vi.mock('@components/scripts/store/consent', () => ({
@@ -36,14 +36,14 @@ const createHint = (): Parameters<typeof beforeSendHandler>[1] => ({}) as Parame
 describe('sentry helpers', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    isDevMock.mockReturnValue(false)
+    isProdMock.mockReturnValue(false)
     getConsentSnapshotMock.mockReturnValue({ analytics: true })
     consoleLogSpy.mockClear()
   })
 
   describe('beforeSendHandler', () => {
-    it('skips sending events in development', () => {
-      isDevMock.mockReturnValue(true)
+    it('skips sending events outside prod', () => {
+      isProdMock.mockReturnValue(false)
       const event = createEvent()
 
       const result = beforeSendHandler(event, createHint())
@@ -53,6 +53,7 @@ describe('sentry helpers', () => {
     })
 
     it('returns event unchanged when analytics consent exists', () => {
+      isProdMock.mockReturnValue(true)
       getConsentSnapshotMock.mockReturnValue({ analytics: true })
 
       const event = createEvent()
@@ -65,6 +66,7 @@ describe('sentry helpers', () => {
     })
 
     it('scrubs PII when analytics consent is missing', () => {
+      isProdMock.mockReturnValue(true)
       getConsentSnapshotMock.mockReturnValue({ analytics: false })
 
       const event = createEvent()

@@ -1,5 +1,5 @@
 import { isDbError } from 'astro:db'
-import { isDev, isTest } from '@actions/_environment/environmentActions'
+import { isProd } from '@actions/_environment/environmentActions'
 import { withRateLimitWindow } from '@actions/_utils/rateLimitStore'
 
 export type RateLimiter = {
@@ -46,7 +46,7 @@ export async function checkRateLimit(
 }
 
 export function checkContactRateLimit(ipFingerprint: string): boolean {
-  if (isDev() || isTest()) {
+  if (!isProd()) {
     return true
   }
 
@@ -77,7 +77,8 @@ async function applyRateLimit(
   config: RateLimiterConfig,
   identifier: string,
 ): Promise<{ success: boolean; reset: number | undefined }> {
-  if (isDev() || isTest()) {
+  /** Testing helper */
+  if (!isProd()) {
     return {
       success: true,
       reset: Date.now() + config.windowMs,

@@ -2,8 +2,8 @@
  * Simple logger for development mode and testing
  * In production, errors are sent to Sentry instead
  */
-import { isDev, isTest } from '@lib/config/environmentServer'
-const shouldLog = isDev() || isTest()
+import { isProd } from '@lib/config/environmentServer'
+const shouldLog = !isProd()
 
 export const logger = {
   /**

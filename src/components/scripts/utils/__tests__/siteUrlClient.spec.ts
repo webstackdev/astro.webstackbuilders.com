@@ -36,10 +36,8 @@ describe('getSiteUrl', () => {
 
     const url = getSiteUrl()
 
-    expect(url).toBe('https://demo.webstackbuilders.com')
-    expect(consoleSpy).toHaveBeenCalledWith(
-      'Using production environment with domain from astro config: demo.webstackbuilders.com'
-    )
+    expect(url).toBe('https://www.webstackbuilders.com')
+    expect(consoleSpy).not.toHaveBeenCalled()
   })
 
   it('falls back to localhost when running locally or during E2E', () => {

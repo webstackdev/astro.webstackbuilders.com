@@ -51,7 +51,7 @@ export const isDev = () => {
 }
 
 export const isProd = () => {
-  return import.meta.env.MODE === 'production' && !isUnitTest()
+  return import.meta.env.MODE === 'production'
 }
 
 /**

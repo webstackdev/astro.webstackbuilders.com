@@ -1,11 +1,9 @@
 import { z } from 'astro:content'
-import { isProd } from '@lib/config/environmentServer'
 
 const MAX_BREADCRUMB_TITLE_LENGTH = 55
 const loggedBreadcrumbTitleWarnings = new Set<string>()
 
 export const warnOnBreadcrumbTitleLength = (title: string, collectionName: string): void => {
-  if (!isProd()) return
   if (title.length <= MAX_BREADCRUMB_TITLE_LENGTH) return
 
   const warningKey = `${collectionName}:${title}`

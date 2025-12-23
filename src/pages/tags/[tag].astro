@@ -1,7 +1,7 @@
 ---
 import { type CollectionEntry, getCollection, render } from 'astro:content'
 import { Picture } from 'astro:assets'
-import { isDev, isProd } from '@lib/config/environmentServer'
+import { isDev } from '@lib/config/environmentServer'
 import BaseLayout from '@layouts/BaseLayout.astro'
 
 export interface Params {
@@ -23,17 +23,17 @@ export async function getStaticPaths() {
 
   // Get all content collections with tags
   const allArticles = await getCollection('articles', ({ data }) => {
-    return isDev() || (isProd() && data.isDraft !== true)
+    return isDev() || data.isDraft !== true
   })
 
   const allCaseStudies = await getCollection('caseStudies', ({ data }) => {
-    return isDev() || (isProd() && data.isDraft !== true)
+    return isDev() || data.isDraft !== true
   })
   const allServices = await getCollection('services', ({ data }) => {
-    return isDev() || (isProd() && data.isDraft !== true)
+    return isDev() || data.isDraft !== true
   })
   const allDownloads = await getCollection('downloads', ({ data }) => {
-    return isDev() || (isProd() && data.isDraft !== true)
+    return isDev() || data.isDraft !== true
   })
 
   // Combine all content and extract unique tags
