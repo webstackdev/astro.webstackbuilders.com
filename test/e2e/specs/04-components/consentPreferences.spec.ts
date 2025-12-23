@@ -5,7 +5,7 @@
 
 import type { Page } from '@playwright/test'
 import { BasePage, expect, test, mockFetchEndpointResponse, type FetchOverrideHandle } from '@test/e2e/helpers'
-import type { ConsentResponse } from '@pages/api/_contracts/gdpr.contracts'
+import type { ConsentResponse } from '@actions/_contracts/gdpr.contracts'
 import { deleteConsentRecordsBySubjectId, waitForConsentRecord } from '@test/e2e/db'
 
 const ALLOW_ALL_BUTTON = '#consent-allow-all'

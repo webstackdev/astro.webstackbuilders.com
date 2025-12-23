@@ -9,7 +9,6 @@ import {
   test,
   expect,
   spyOnFetchEndpoint,
-  mockFetchEndpointResponse,
 } from '@test/e2e/helpers'
 import { TEST_EMAILS } from '@test/e2e/fixtures/test-data'
 
@@ -24,6 +23,8 @@ const NEWSLETTER_PRIVACY_LINK_SELECTOR = `${NEWSLETTER_CONSENT_LABEL_SELECTOR} a
 const NEWSLETTER_CONSENT_ERROR_SELECTOR = '#newsletter-gdpr-consent-error'
 const NEWSLETTER_MESSAGE_SELECTOR = '#newsletter-message'
 const CONTACT_CONSENT_SELECTOR = '#contact-gdpr-consent'
+
+const newsletterSubscribeActionEndpoint = '/_actions/newsletter/subscribe'
 
 const waitForNewsletterSection = async (page: BasePage): Promise<void> => {
   await page.waitForLoadState('networkidle')
@@ -67,6 +68,9 @@ test.describe('Newsletter GDPR Consent', () => {
     pageUnderTest = await BasePage.init(page)
     await pageUnderTest.goto(HOME_PATH)
     await waitForNewsletterSection(pageUnderTest)
+
+    // Ensure a consistent starting state for tests (checkbox may be pre-checked).
+    await pageUnderTest.locator(NEWSLETTER_CONSENT_SELECTOR).uncheck({ force: true }).catch(() => undefined)
   })
 
   test('@ready GDPR consent checkbox is visible', async () => {
@@ -90,7 +94,7 @@ test.describe('Newsletter GDPR Consent', () => {
   })
 
   test('@ready form cannot submit without GDPR consent', async () => {
-    const fetchSpy = await spyOnFetchEndpoint(playwrightPage, '/api/newsletter')
+    const fetchSpy = await spyOnFetchEndpoint(playwrightPage, newsletterSubscribeActionEndpoint)
 
     try {
       await fillNewsletterEmail(pageUnderTest)
@@ -108,25 +112,11 @@ test.describe('Newsletter GDPR Consent', () => {
 
   test('@ready form can submit with GDPR consent', async () => {
     const subscriptionEmail = `consent-e2e-${Date.now()}@example.com`
-    const successOverride = await mockFetchEndpointResponse(playwrightPage, {
-      endpoint: '/api/newsletter',
-      status: 200,
-      body: {
-        success: true,
-        message: 'Please check your email to confirm your subscription',
-      },
-    })
+    await fillNewsletterEmail(pageUnderTest, subscriptionEmail)
+    await pageUnderTest.check(NEWSLETTER_CONSENT_SELECTOR)
+    await submitNewsletterForm(pageUnderTest)
 
-    try {
-      await fillNewsletterEmail(pageUnderTest, subscriptionEmail)
-      await pageUnderTest.check(NEWSLETTER_CONSENT_SELECTOR)
-      await submitNewsletterForm(pageUnderTest)
-      await successOverride.waitForCall()
-
-      await expect(pageUnderTest.locator(NEWSLETTER_MESSAGE_SELECTOR)).toContainText('confirm your subscription')
-    } finally {
-      await successOverride.restore()
-    }
+    await expect(pageUnderTest.locator(NEWSLETTER_MESSAGE_SELECTOR)).toContainText('confirm your subscription')
   })
 
   test('@ready GDPR checkbox is accessible via keyboard', async () => {

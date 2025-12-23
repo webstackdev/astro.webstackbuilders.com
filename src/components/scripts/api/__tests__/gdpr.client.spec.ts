@@ -11,7 +11,7 @@ import type {
   DSARRequestInput,
   DSARResponse,
   ErrorResponse,
-} from '@pages/api/_contracts/gdpr.contracts'
+} from '@actions/_contracts/gdpr.contracts'
 
 const fetchSpy = vi.fn()
 

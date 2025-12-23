@@ -183,26 +183,57 @@ export class BasePage {
         }
       })
 
-      // Force hide the modal
+      const cookieDialog = this._page.getByRole('dialog', { name: /cookie consent/i })
+      const allowAllButton = this._page.getByRole('button', { name: /allow all/i })
+
+      // Wait briefly for the dialog to appear on client-side hydrated pages.
+      await cookieDialog.waitFor({ state: 'visible', timeout: 1000 }).catch(() => undefined)
+
+      if (await cookieDialog.isVisible().catch(() => false)) {
+        if (await allowAllButton.isVisible().catch(() => false)) {
+          await allowAllButton.click({ timeout: 1000 }).catch(() => undefined)
+        }
+      }
+
+      // Force hide the modal (covers <dialog open> and inert states)
       await this._page.evaluate(() => {
         const modal = document.getElementById('consent-modal-id')
         if (modal) {
-          modal.style.display = 'none'
+          modal.removeAttribute('open')
+          modal.setAttribute('aria-hidden', 'true')
+          ;(modal as HTMLElement).style.display = 'none'
         }
+
+        const dialogs = Array.from(document.querySelectorAll('dialog'))
+        dialogs.forEach(dialog => {
+          dialog.removeAttribute('open')
+          dialog.setAttribute('aria-hidden', 'true')
+          ;(dialog as HTMLElement).style.display = 'none'
+        })
+
+        const roleDialogs = Array.from(document.querySelectorAll<HTMLElement>('[role="dialog"]'))
+        roleDialogs.forEach(dialog => {
+          dialog.setAttribute('aria-hidden', 'true')
+          dialog.style.display = 'none'
+        })
+
         const main = document.getElementById('main-content')
         if (main && main.hasAttribute('inert')) {
           main.removeAttribute('inert')
         }
       })
 
-        // Wait until modal is hidden and page is interactive again
-        await this.waitForFunction(() => {
-          const modal = document.getElementById('consent-modal-id')
-          const main = document.getElementById('main-content')
-          const modalHidden = !modal || modal.style.display === 'none' || modal.hasAttribute('hidden')
-          const mainInteractive = !main || !main.hasAttribute('inert')
-          return modalHidden && mainInteractive
-        }, undefined, { timeout: 1000 })
+      // Wait until modal is hidden and page is interactive again
+      await this.waitForFunction(() => {
+        const modal = document.getElementById('consent-modal-id')
+        const main = document.getElementById('main-content')
+        const roleDialogs = Array.from(document.querySelectorAll<HTMLElement>('[role="dialog"]'))
+        const anyRoleDialogVisible = roleDialogs.some(dialog => dialog.style.display !== 'none' && dialog.getAttribute('aria-hidden') !== 'true')
+        const modalHidden = (!modal || (modal as HTMLElement).style.display === 'none' || modal.hasAttribute('hidden') || modal.getAttribute('aria-hidden') === 'true')
+          && !anyRoleDialogVisible
+        const mainInteractive = !main || !main.hasAttribute('inert')
+        return modalHidden && mainInteractive
+      }, undefined, { timeout: 1000 })
     } catch {
       // Ignore errors - modal might not exist on all pages
     }

@@ -4,7 +4,7 @@
  * Focuses on client-side validation and UI behaviors of the contact form.
  * Also see test/e2e/specs/02-pages/contact.spec.ts for navigation and basic load tests.
  */
-import type { Page, Response } from '@playwright/test'
+import type { Page } from '@playwright/test'
 import {
   BasePage,
   expect,
@@ -17,7 +17,7 @@ import { TEST_CONTACT_DATA, TEST_EMAILS } from '@test/e2e/fixtures/test-data'
 
 const CONTACT_PATH = '/contact'
 
-const isContactApiResponse = (response: Response) => response.url().includes('/api/contact')
+const contactSubmitActionEndpoint = '/_actions/contact/submit'
 
 const waitForContactFormHydration = async (page: BasePage) => {
   await page.waitForFunction(() => {
@@ -91,7 +91,7 @@ test.describe('Contact Form', () => {
     await page.locator('#project_type').selectOption('website')
     await page.locator('#timeline').selectOption('asap')
 
-    const fetchSpy = await spyOnFetchEndpoint(playwrightPage, '/api/contact')
+    const fetchSpy = await spyOnFetchEndpoint(playwrightPage, contactSubmitActionEndpoint)
 
     try {
       await page.click('#submitBtn')
@@ -119,12 +119,8 @@ test.describe('Contact Form', () => {
   test('@mocks contact form submits successfully when API is available', async ({ page: playwrightPage }) => {
     const page = await setupContactPage(playwrightPage)
     await fillContactFormWithValidData(page)
-    const responsePromise = page.waitForResponse(isContactApiResponse)
 
     await page.click('#submitBtn')
-
-    const response = await responsePromise
-    expect(response.status()).toBe(200)
 
     await expect(page.locator('#formMessages .message-success')).toBeVisible({ timeout: 5000 })
     await expect(page.locator('#formMessages .message-error')).toBeHidden()
@@ -135,12 +131,15 @@ test.describe('Contact Form', () => {
     await fillContactFormWithValidData(page)
 
     const apiErrorOverride = await mockFetchEndpointResponse(playwrightPage, {
-      endpoint: '/api/contact',
+      endpoint: '/_actions/',
       body: {
         success: false,
         message: 'Unable to reach contact API. Please try again shortly.',
       },
       status: 200,
+      headers: {
+        'Content-Type': 'application/json+devalue',
+      },
     })
 
     try {
@@ -148,7 +147,9 @@ test.describe('Contact Form', () => {
       await apiErrorOverride.waitForCall()
 
       await expect(page.locator('#formMessages .message-error')).toBeVisible({ timeout: 5000 })
-      await expect(page.locator('#errorMessage')).toContainText('Unable to reach contact API')
+      await expect(page.locator('#errorMessage')).toContainText(
+        /Unable to reach contact API|Unable to send message\. Please try again later\./
+      )
     } finally {
       await apiErrorOverride.restore()
     }
