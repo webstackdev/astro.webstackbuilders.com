@@ -10,10 +10,12 @@ import {
 import {
   getHeaderElement,
   getMobileSplashElement,
+  getMobileNavFocusContainer,
   getNavMenuElement,
   getNavToggleBtnElement,
   getNavToggleWrapperElement,
   getNavWrapperElement,
+  queryNavLinks,
 } from '@components/Navigation/client/selectors'
 import TestNavigationComponent from '@components/Navigation/client/__tests__/TestNavigation.astro'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
@@ -54,7 +56,7 @@ describe('getHeaderElement selector works', () => {
 
   test(' throws with no results selected against DOM', async () => {
     await renderNavigationDom(async () => {
-      document.body.innerHTML = `<div></div>`
+      getHeaderElement().remove()
       expect(() => getHeaderElement()).toThrow()
     })
   })
@@ -70,7 +72,7 @@ describe('getMobileSplashElement selector works', () => {
 
   test(' throws with no results selected against DOM', async () => {
     await renderNavigationDom(async () => {
-      document.body.innerHTML = `<div></div>`
+      getMobileSplashElement().remove()
       expect(() => getMobileSplashElement()).toThrow()
     })
   })
@@ -86,7 +88,7 @@ describe('getNavWrapperElement selector works', () => {
 
   test(' throws with no results selected against DOM', async () => {
     await renderNavigationDom(async () => {
-      document.body.innerHTML = `<div></div>`
+      getNavWrapperElement().remove()
       expect(() => getNavWrapperElement()).toThrow()
     })
   })
@@ -102,7 +104,7 @@ describe('getNavMenuElement selector works', () => {
 
   test('getNavElement throws with no results selected against DOM', async () => {
     await renderNavigationDom(async () => {
-      document.body.innerHTML = `<nav class="main-nav" role="navigation"></nav>`
+      getNavMenuElement().remove()
       expect(() => getNavMenuElement()).toThrow()
     })
   })
@@ -118,7 +120,7 @@ describe('getNavToggleWrapperElement selector works', () => {
 
   test('getNavToggleWrapperElement throws with no results selected against DOM', async () => {
     await renderNavigationDom(async () => {
-      document.body.innerHTML = `<nav class="main-nav" role="navigation"></nav>`
+      getNavToggleWrapperElement().remove()
       expect(() => getNavToggleWrapperElement()).toThrow()
     })
   })
@@ -134,8 +136,30 @@ describe('getNavToggleBtnElement selector works', () => {
 
   test('getNavToggleBtnElement throws with no <slot> elements in the shadow DOM', async () => {
     await renderNavigationDom(async () => {
-      document.body.innerHTML = `<nav class="main-nav" role="navigation"></nav>`
+      getNavToggleBtnElement().remove()
       expect(() => getNavToggleBtnElement()).toThrow()
+    })
+  })
+})
+
+describe('Navigation selectors stay in sync with layout', () => {
+  test('finds all required elements and at least one nav link', async () => {
+    await renderNavigationDom(async () => {
+      expect(isHeaderElement(getHeaderElement()), 'Navigation should render within a real #header element').toBeTruthy()
+      expect(isDivElement(getMobileSplashElement()), 'Header should render a #mobile-splash backdrop element').toBeTruthy()
+      expect(
+        isDivElement(getMobileNavFocusContainer()),
+        'Navigation should render a #mobile-nav-focus-container focus trap container',
+      ).toBeTruthy()
+
+      const menu = getNavMenuElement()
+      const links = queryNavLinks(menu)
+
+      expect(links.length, 'Navigation menu should include at least one anchor link').toBeGreaterThan(0)
+      expect(
+        links.every((link) => Boolean(link.getAttribute('href'))),
+        'All navigation links discovered via selectors should have an href attribute',
+      ).toBe(true)
     })
   })
 })

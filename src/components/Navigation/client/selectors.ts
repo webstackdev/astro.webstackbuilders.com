@@ -3,6 +3,7 @@
  */
 import { ClientScriptError } from '@components/scripts/errors'
 import {
+  isAnchorElement,
   isButtonElement,
   isDivElement,
   isHeaderElement,
@@ -27,6 +28,15 @@ export const SELECTORS = {
   splash: '#mobile-splash',
   /** Focus trap container for mobile navigation */
   focusContainer: '#mobile-nav-focus-container',
+  /** All navigation links */
+  navLinks: 'a[href]',
+}
+
+/**
+ * Returns all anchor links within the provided menu context.
+ */
+export const queryNavLinks = (menuContext: ParentNode): HTMLAnchorElement[] => {
+  return Array.from(menuContext.querySelectorAll(SELECTORS.navLinks)).filter(isAnchorElement)
 }
 
 /**
