@@ -3,6 +3,7 @@ import {
   isButtonElement,
   isFormElement,
   isInputElement,
+  isType1Element,
 } from '@components/scripts/assertions/elements'
 import type { ContactFormElements, FieldElements } from './@types'
 
@@ -98,4 +99,24 @@ export const getContactFormElements = (): ContactFormElements => {
     formErrorBanner,
     fields,
   }
+}
+
+export type ContactFormGenericField = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+
+const GENERIC_FIELD_SELECTOR = 'input, select, textarea'
+const GENERATED_GENERIC_ERROR_SELECTOR = '.field-error'
+
+export const isContactFormGenericField = (element: unknown): element is ContactFormGenericField => {
+  if (!isType1Element(element)) return false
+  return element.tagName === 'INPUT' || element.tagName === 'SELECT' || element.tagName === 'TEXTAREA'
+}
+
+export const queryContactFormGenericFields = (form: HTMLFormElement): ContactFormGenericField[] => {
+  return Array.from(form.querySelectorAll(GENERIC_FIELD_SELECTOR)).filter(isContactFormGenericField)
+}
+
+export const queryContactFormGeneratedFieldError = (field: ContactFormGenericField): HTMLElement | null => {
+  const wrapper = field.parentNode instanceof HTMLElement ? field.parentNode : null
+  if (!wrapper) return null
+  return wrapper.querySelector<HTMLElement>(GENERATED_GENERIC_ERROR_SELECTOR)
 }
