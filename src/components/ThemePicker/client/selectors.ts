@@ -74,53 +74,41 @@ export const getThemeSelectBtns = (scope: ParentNode = document) => {
 }
 
 /**
- * Returns the Embla viewport element inside the theme picker.
- * Returns null when not present so theme picker can still function without Embla.
+ * Gets the Embla viewport element inside the theme picker.
  */
-export const queryThemePickerEmblaViewport = (scope: ParentNode = document): HTMLDivElement | null => {
+export const getThemePickerEmblaViewport = (scope: ParentNode = document): HTMLDivElement => {
   const viewport = scope.querySelector(SELECTORS.emblaViewport)
-  if (!viewport) {
-    return null
-  }
-
   if (!isDivElement(viewport)) {
-    return null
+    throw new ClientScriptError(
+      `Theme picker Embla viewport with selector '${SELECTORS.emblaViewport}' not found`
+    )
   }
-
   return viewport
 }
 
 /**
- * Returns the Embla previous button element inside the theme picker.
- * Returns null when not present.
+ * Gets the Embla previous button element inside the theme picker.
  */
-export const queryThemePickerEmblaPrevBtn = (scope: ParentNode = document): HTMLButtonElement | null => {
+export const getThemePickerEmblaPrevBtn = (scope: ParentNode = document): HTMLButtonElement => {
   const button = scope.querySelector(SELECTORS.emblaPrevBtn)
-  if (!button) {
-    return null
-  }
-
   if (!isButtonElement(button)) {
-    return null
+    throw new ClientScriptError(
+      `Theme picker Embla previous button with selector '${SELECTORS.emblaPrevBtn}' not found`
+    )
   }
-
   return button
 }
 
 /**
- * Returns the Embla next button element inside the theme picker.
- * Returns null when not present.
+ * Gets the Embla next button element inside the theme picker.
  */
-export const queryThemePickerEmblaNextBtn = (scope: ParentNode = document): HTMLButtonElement | null => {
+export const getThemePickerEmblaNextBtn = (scope: ParentNode = document): HTMLButtonElement => {
   const button = scope.querySelector(SELECTORS.emblaNextBtn)
-  if (!button) {
-    return null
-  }
-
   if (!isButtonElement(button)) {
-    return null
+    throw new ClientScriptError(
+      `Theme picker Embla next button with selector '${SELECTORS.emblaNextBtn}' not found`
+    )
   }
-
   return button
 }
 

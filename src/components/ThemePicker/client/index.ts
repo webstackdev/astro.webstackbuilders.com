@@ -23,9 +23,9 @@ import {
   getThemePickerCloseBtn,
   getThemeSelectBtns,
   queryMetaThemeColor,
-  queryThemePickerEmblaNextBtn,
-  queryThemePickerEmblaPrevBtn,
-  queryThemePickerEmblaViewport,
+  getThemePickerEmblaNextBtn,
+  getThemePickerEmblaPrevBtn,
+  getThemePickerEmblaViewport,
 } from './selectors'
 import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
@@ -64,9 +64,9 @@ export class ThemePickerElement extends LitElement {
   private closeBtn!: HTMLButtonElement
   private themeSelectBtns!: NodeListOf<HTMLButtonElement>
 
-  private emblaViewport: HTMLElement | null = null
-  private emblaPrevBtn: HTMLButtonElement | null = null
-  private emblaNextBtn: HTMLButtonElement | null = null
+  private emblaViewport!: HTMLDivElement
+  private emblaPrevBtn!: HTMLButtonElement
+  private emblaNextBtn!: HTMLButtonElement
   private emblaApi: EmblaCarouselType | null = null
   private emblaControlsBound = false
   private lastIsOpen: boolean | null = null
@@ -167,13 +167,13 @@ export class ThemePickerElement extends LitElement {
     this.closeBtn = getThemePickerCloseBtn(this)
     this.themeSelectBtns = getThemeSelectBtns(this)
 
-    this.emblaViewport = queryThemePickerEmblaViewport(this)
-    this.emblaPrevBtn = queryThemePickerEmblaPrevBtn(this)
-    this.emblaNextBtn = queryThemePickerEmblaNextBtn(this)
+    this.emblaViewport = getThemePickerEmblaViewport(this)
+    this.emblaPrevBtn = getThemePickerEmblaPrevBtn(this)
+    this.emblaNextBtn = getThemePickerEmblaNextBtn(this)
   }
 
   private syncThemeCarousel(isOpen: boolean, currentTheme: ThemeId): void {
-    const shouldInit = isOpen && !!this.emblaViewport
+    const shouldInit = isOpen
 
     if (!shouldInit) {
       if (this.lastIsOpen) {
@@ -209,7 +209,6 @@ export class ThemePickerElement extends LitElement {
 
   private setupEmbla(): void {
     this.teardownEmbla()
-    if (!this.emblaViewport) return
 
     try {
       this.emblaApi = EmblaCarousel(this.emblaViewport, THEME_PICKER_EMBLA_OPTIONS)
@@ -223,27 +222,23 @@ export class ThemePickerElement extends LitElement {
       emblaWithEvents.on('reInit', this.emblaUpdateHandler)
 
       if (!this.emblaControlsBound) {
-        if (this.emblaPrevBtn) {
-          addButtonEventListeners(this.emblaPrevBtn, (event) => {
-            if (event.cancelable && !event.defaultPrevented) event.preventDefault()
-            try {
-              this.emblaApi?.scrollPrev()
-            } catch (error) {
-              handleScriptError(error, { scriptName: 'ThemePickerElement', operation: 'embla:scrollPrev' })
-            }
-          }, this)
-        }
+        addButtonEventListeners(this.emblaPrevBtn, (event) => {
+          if (event.cancelable && !event.defaultPrevented) event.preventDefault()
+          try {
+            this.emblaApi?.scrollPrev()
+          } catch (error) {
+            handleScriptError(error, { scriptName: 'ThemePickerElement', operation: 'embla:scrollPrev' })
+          }
+        }, this)
 
-        if (this.emblaNextBtn) {
-          addButtonEventListeners(this.emblaNextBtn, (event) => {
-            if (event.cancelable && !event.defaultPrevented) event.preventDefault()
-            try {
-              this.emblaApi?.scrollNext()
-            } catch (error) {
-              handleScriptError(error, { scriptName: 'ThemePickerElement', operation: 'embla:scrollNext' })
-            }
-          }, this)
-        }
+        addButtonEventListeners(this.emblaNextBtn, (event) => {
+          if (event.cancelable && !event.defaultPrevented) event.preventDefault()
+          try {
+            this.emblaApi?.scrollNext()
+          } catch (error) {
+            handleScriptError(error, { scriptName: 'ThemePickerElement', operation: 'embla:scrollNext' })
+          }
+        }, this)
 
         this.emblaControlsBound = true
       }

@@ -5,13 +5,13 @@ import type { ThemePickerElement } from '@components/ThemePicker/client'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import {
   getThemePickerCloseBtn,
+  getThemePickerEmblaNextBtn,
+  getThemePickerEmblaPrevBtn,
+  getThemePickerEmblaViewport,
   getThemePickerModal,
   getThemePickerToggleBtn,
   getThemeSelectBtns,
   queryMetaThemeColor,
-  queryThemePickerEmblaNextBtn,
-  queryThemePickerEmblaPrevBtn,
-  queryThemePickerEmblaViewport,
 } from '@components/ThemePicker/client/selectors'
 import { executeRender } from '@test/unit/helpers/litRuntime'
 import { ClientScriptError } from '@components/scripts/errors'
@@ -124,9 +124,9 @@ describe('ThemePicker selectors', () => {
 
   it('exposes Embla selectors within the custom element scope', async () => {
     await renderThemePickerDom(({ element }) => {
-      const viewport = queryThemePickerEmblaViewport(element)
-      const prevBtn = queryThemePickerEmblaPrevBtn(element)
-      const nextBtn = queryThemePickerEmblaNextBtn(element)
+      const viewport = getThemePickerEmblaViewport(element)
+      const prevBtn = getThemePickerEmblaPrevBtn(element)
+      const nextBtn = getThemePickerEmblaNextBtn(element)
 
       expect(viewport, 'ThemePicker Embla viewport should exist with [data-theme-embla-viewport]').toBeInstanceOf(
         HTMLDivElement,
@@ -137,6 +137,18 @@ describe('ThemePicker selectors', () => {
       expect(nextBtn, 'ThemePicker Embla next button should exist with [data-theme-embla-next]').toBeInstanceOf(
         HTMLButtonElement,
       )
+    })
+  })
+
+  it('throws when Embla elements are missing', async () => {
+    await renderThemePickerDom(({ element }) => {
+      element.querySelector('[data-theme-embla-viewport]')?.remove()
+      element.querySelector('[data-theme-embla-prev]')?.remove()
+      element.querySelector('[data-theme-embla-next]')?.remove()
+
+      expect(() => getThemePickerEmblaViewport(element)).toThrowError(ClientScriptError)
+      expect(() => getThemePickerEmblaPrevBtn(element)).toThrowError(ClientScriptError)
+      expect(() => getThemePickerEmblaNextBtn(element)).toThrowError(ClientScriptError)
     })
   })
 
