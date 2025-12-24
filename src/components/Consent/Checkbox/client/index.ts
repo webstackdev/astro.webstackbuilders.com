@@ -8,6 +8,12 @@ import { handleScriptError } from '@components/scripts/errors/handler'
 import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { subscribeToFunctionalConsent, updateConsent } from '@components/scripts/store'
+import {
+  getConsentCheckboxErrorElement,
+  getConsentCheckboxInput,
+  queryConsentCheckboxFormIdData,
+  queryConsentCheckboxPurposeData,
+} from './selectors'
 
 const COMPONENT_TAG_NAME = 'consent-checkbox' as const
 const READY_EVENT = 'consent-checkbox:ready'
@@ -59,20 +65,13 @@ export class ConsentCheckboxElement extends HTMLElement {
     addScriptBreadcrumb(context)
 
     try {
-      const checkbox = this.querySelector<HTMLInputElement>('input[type="checkbox"]')
-      if (!checkbox) {
-        throw new ClientScriptError('Consent checkbox input not found inside component')
-      }
+      const checkbox = getConsentCheckboxInput(this)
 
       if (!checkbox.id) {
         throw new ClientScriptError('Consent checkbox input must include an id attribute')
       }
 
-      const errorElement = this.querySelector<HTMLDivElement>(`#${checkbox.id}-error`)
-
-      if (!errorElement) {
-        throw new ClientScriptError('Consent checkbox error element not found inside component')
-      }
+      const errorElement = getConsentCheckboxErrorElement(this, checkbox.id)
 
       this.checkbox = checkbox
       this.errorElement = errorElement
@@ -94,13 +93,11 @@ export class ConsentCheckboxElement extends HTMLElement {
   }
 
   private resolvePurpose(): string {
-    const dataSource = this.querySelector<HTMLElement>('[data-purpose]')
-    return this.getAttribute('data-purpose') ?? dataSource?.dataset['purpose'] ?? ''
+    return this.getAttribute('data-purpose') ?? queryConsentCheckboxPurposeData(this) ?? ''
   }
 
   private resolveFormId(): string | undefined {
-    const dataSource = this.querySelector<HTMLElement>('[data-form-id]')
-    return this.getAttribute('data-form-id') ?? dataSource?.dataset['formId'] ?? undefined
+    return this.getAttribute('data-form-id') ?? queryConsentCheckboxFormIdData(this) ?? undefined
   }
 
   private buildContext(operation: string) {
