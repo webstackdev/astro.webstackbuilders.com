@@ -9,10 +9,10 @@ import {
 } from '@components/scripts/store'
 import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
+import { queryConfettiCanvas } from './selectors'
 
 const SCRIPT_NAME = 'ConfettiAnimationElement'
 const COMPONENT_TAG_NAME = 'confetti-animation'
-const CANVAS_SELECTOR = '[data-confetti-canvas]'
 
 export type ConfettiOrigin = {
   /**
@@ -224,7 +224,7 @@ export class ConfettiAnimationElement extends LitElement {
     if (typeof window === 'undefined') return
     if (this.confettiInstance) return
 
-    const canvas = this.querySelector(CANVAS_SELECTOR) as HTMLCanvasElement | null
+    const canvas = queryConfettiCanvas(this)
     if (!canvas) return
 
     // Prefer a per-canvas instance so callers can place the canvas where they want.
