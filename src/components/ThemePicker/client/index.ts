@@ -22,6 +22,10 @@ import {
   getThemePickerToggleBtn,
   getThemePickerCloseBtn,
   getThemeSelectBtns,
+  queryMetaThemeColor,
+  queryThemePickerEmblaNextBtn,
+  queryThemePickerEmblaPrevBtn,
+  queryThemePickerEmblaViewport,
 } from './selectors'
 import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
@@ -163,9 +167,9 @@ export class ThemePickerElement extends LitElement {
     this.closeBtn = getThemePickerCloseBtn(this)
     this.themeSelectBtns = getThemeSelectBtns(this)
 
-    this.emblaViewport = this.querySelector('[data-theme-embla-viewport]')
-    this.emblaPrevBtn = this.querySelector('[data-theme-embla-prev]')
-    this.emblaNextBtn = this.querySelector('[data-theme-embla-next]')
+    this.emblaViewport = queryThemePickerEmblaViewport(this)
+    this.emblaPrevBtn = queryThemePickerEmblaPrevBtn(this)
+    this.emblaNextBtn = queryThemePickerEmblaNextBtn(this)
   }
 
   private syncThemeCarousel(isOpen: boolean, currentTheme: ThemeId): void {
@@ -541,7 +545,7 @@ export class ThemePickerElement extends LitElement {
     try {
       if (!window.metaColors) return
 
-      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const metaThemeColor = queryMetaThemeColor(document)
       const color = window.metaColors[themeId]
       if (metaThemeColor && color) {
         metaThemeColor.setAttribute('content', color)
