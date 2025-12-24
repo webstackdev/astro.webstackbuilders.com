@@ -1,12 +1,12 @@
 import { LitElement, html } from 'lit'
 import { ifDefined } from 'lit/directives/if-defined.js'
-import { isMetaElement } from '@components/scripts/assertions/elements'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { platforms, type SharePlatform, type ShareData } from '@components/Social/common'
 import styles from '../index.module.css'
+import { queryMetaDescription } from './selectors'
 
 const COMPONENT_TAG_NAME = 'social-share-element'
 const DEFAULT_NETWORKS = 'twitter,linkedin,bluesky,reddit,mastodon'
@@ -258,8 +258,7 @@ export class SocialShareElement extends LitElement {
       return ''
     }
 
-    const metaDescription = document.querySelector('meta[name="description"]')
-    return isMetaElement(metaDescription) ? metaDescription.content : ''
+    return queryMetaDescription()?.content ?? ''
   }
 }
 

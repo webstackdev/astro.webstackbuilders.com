@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
-import SearchBarFixture from '@components/SearchBar/client/__fixtures__/index.fixture.astro'
+import SearchBarFixture from '@components/Search/SearchBar/client/__fixtures__/index.fixture.astro'
 import type { SearchBarElement as SearchBarElementInstance } from '../index'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { executeRender } from '@test/unit/helpers/litRuntime'
@@ -40,7 +40,7 @@ describe('SearchBar web component', () => {
     await executeRender<SearchBarModule>({
       container,
       component: SearchBarFixture,
-      moduleSpecifier: '@components/SearchBar/client/index',
+      moduleSpecifier: '@components/Search/SearchBar/client/index',
       waitForReady: async (element: SearchBarElementInstance) => {
         await element.updateComplete
       },
