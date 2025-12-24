@@ -11,7 +11,7 @@ import {
   onVisibilityChange,
   showTableOfContents,
   type VisibilityListener,
-} from '@components/scripts/store/visibility'
+} from '@components/scripts/store/tableOfContents'
 import { getTableOfContentsElements } from './selectors'
 
 export class TableOfContentsElement extends LitElement {

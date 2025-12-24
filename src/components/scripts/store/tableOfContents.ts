@@ -11,13 +11,11 @@ import { handleScriptError } from '@components/scripts/errors/handler'
 // ============================================================================
 
 export interface VisibilityState {
-  consentBannerVisible: boolean
   tableOfContentsVisible: boolean
   tableOfContentsEnabled: boolean
 }
 
 const defaultVisibilityState: VisibilityState = {
-  consentBannerVisible: false,
   tableOfContentsVisible: false,
   tableOfContentsEnabled: true,
 }
@@ -31,33 +29,24 @@ const defaultVisibilityState: VisibilityState = {
  * Persisted to localStorage to survive page transitions and reloads
  * This keeps modals/overlays in their current state during navigation for better UX
  */
-export const $visibility = persistentAtom<VisibilityState>(
-  'visibility',
-  defaultVisibilityState,
-  {
-    encode: JSON.stringify,
-    decode: (value: string): VisibilityState => {
-      try {
-        const parsed = JSON.parse(value) as Partial<VisibilityState>
-        return {
-          ...defaultVisibilityState,
-          ...parsed,
-        }
-      } catch {
-        return defaultVisibilityState
+export const $visibility = persistentAtom<VisibilityState>('visibility', defaultVisibilityState, {
+  encode: JSON.stringify,
+  decode: (value: string): VisibilityState => {
+    try {
+      const parsed = JSON.parse(value) as Partial<VisibilityState>
+      return {
+        ...defaultVisibilityState,
+        ...parsed,
       }
-    },
-  }
-)
+    } catch {
+      return defaultVisibilityState
+    }
+  },
+})
 
 // ============================================================================
 // COMPUTED STORES
 // ============================================================================
-
-/**
- * Check if consent banner is visible
- */
-export const $isConsentBannerVisible = computed($visibility, (state) => state.consentBannerVisible)
 
 export const $isTableOfContentsVisible = computed($visibility, (state) => state.tableOfContentsVisible)
 
@@ -83,44 +72,6 @@ function updateVisibilityState(operation: string, updater: (_current: Visibility
   }
 }
 
-export function showConsentBanner(): void {
-  updateVisibilityState('showConsentBanner', (current) => ({
-    ...current,
-    consentBannerVisible: true,
-    tableOfContentsEnabled: false,
-    tableOfContentsVisible: false,
-  }))
-}
-
-/**
- * Hide the consent banner
- */
-export function hideConsentBanner(): void {
-  updateVisibilityState('hideConsentBanner', (current) => ({
-    ...current,
-    consentBannerVisible: false,
-    tableOfContentsEnabled: true,
-  }))
-}
-
-/**
- * Toggle the consent banner visibility
- */
-export function toggleConsentBanner(): void {
-  updateVisibilityState('toggleConsentBanner', (current) => {
-    const consentBannerVisible = !current.consentBannerVisible
-    return {
-      ...current,
-      consentBannerVisible,
-      tableOfContentsEnabled: consentBannerVisible ? false : true,
-      tableOfContentsVisible: consentBannerVisible ? false : current.tableOfContentsVisible,
-    }
-  })
-}
-
-/**
- * Get consent banner visibility state
- */
 export function showTableOfContents(): void {
   updateVisibilityState('showTableOfContents', (current) => {
     if (!current.tableOfContentsEnabled) {

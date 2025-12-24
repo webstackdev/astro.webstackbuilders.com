@@ -4,7 +4,7 @@ import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import TableOfContentsFixture from '@components/Toc/client/__fixtures__/toc.fixture.astro'
 import type { TocFixtureProps } from '@components/Toc/client/__fixtures__/toc.fixture.types'
 import type { TableOfContentsElement } from '@components/Toc/client'
-import type { VisibilityListener, VisibilityState } from '@components/scripts/store/visibility'
+import type { VisibilityListener, VisibilityState } from '@components/scripts/store/tableOfContents'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { executeRender, withJsdomEnvironment } from '@test/unit/helpers/litRuntime'
 
@@ -19,7 +19,7 @@ const unsubscribe = (listener: VisibilityListener) => {
   }
 }
 
-vi.mock('@components/scripts/store/visibility', () => ({
+vi.mock('@components/scripts/store/tableOfContents', () => ({
   hideTableOfContents,
   showTableOfContents,
   onVisibilityChange: vi.fn((listener: VisibilityListener) => {
@@ -35,7 +35,6 @@ const defaultHeadings: MarkdownHeading[] = [
 ]
 
 const baseVisibilityState: VisibilityState = {
-  consentBannerVisible: false,
   tableOfContentsVisible: false,
   tableOfContentsEnabled: true,
 }

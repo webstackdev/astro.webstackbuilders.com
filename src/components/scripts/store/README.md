@@ -1,18 +1,24 @@
 # Nanostore Best Practices
 
+## Observables
+
+Do not use observables outside of store files. Provide actions for UI code to consume instead. This means no `$store.*` code directly in client code.
+
+Expose derived values to client code from actions with naming to reflect their source. Do not use `computed()` outside of store files.
+
 ## Reduce `.get()` usage outside of tests
 
-According to [nanostore docs](https://github.com/nanostores/nanostores#reduce-get-usage-outside-of-tests), `.get()` should primarily be used in tests. In UI code and store logic, prefer:
+According to [nanostore docs](https://github.com/nanostores/nanostores#reduce-get-usage-outside-of-tests), `.get()` should primarily be used in tests. In UI code and store logic, prefer actions in the store file that expose:
 
-- `$store.listen()` or `$store.subscribe()` for reactive updates
+- `$store.listen()` or `$store.subscribe()` for reactive updates, exposed via actions in the store file.
 - `computed()` stores for derived values
 
-Where .get() is appropriate:
+Where `.get()` is appropriate:
 
 ✅ Tests (to assert current values)
 ✅ Inside action functions when computing new values (e.g., $counter.set($counter.get() + 1))
 
-Where to avoid .get():
+Where to avoid `.get()`:
 
 ❌ UI components - use useStore($store) instead
 ❌ Reactive logic - use $store.listen() or $store.subscribe()
@@ -30,31 +36,26 @@ import {
   getTestStorage,
 } from '@nanostores/persistent'
 
+/** Fake storage for tests, replaces localStorage with test engine */
 beforeAll(() => {
-  useTestStorageEngine()  // Replace localStorage with test engine
+  useTestStorageEngine()
 })
 
+/** Clear test storage between tests */
 afterEach(() => {
-  cleanTestStorage()  // Clear test storage between tests
+  cleanTestStorage()
 })
 
+/** Simulate pre-existing data */
 it('persists DataSubjectId to localStorage', () => {
   const id = getOrCreateDataSubjectId()
   expect(getTestStorage()).toHaveProperty('DataSubjectId', id)
 })
 
+/** Assert what was stored */
 it('retrieves DataSubjectId from test storage', () => {
   setTestStorageKey('DataSubjectId', 'test-uuid-123')
   const id = getOrCreateDataSubjectId()
   expect(id).toBe('test-uuid-123')
 })
 ```
-
-## Test API Documentation
-
-Added complete examples of using the @nanostores/persistent test API with:
-
-useTestStorageEngine() - Fake storage for tests
-cleanTestStorage() - Clean between tests
-setTestStorageKey() - Simulate pre-existing data
-getTestStorage() - Assert what was stored

@@ -106,17 +106,12 @@ Let's add unit tests for both Search component's selectors.ts file. We should im
 
 After these two, I want to go through several of the Lit web components we've added recently and make the same update - factoring selectors out to a selectors.ts file, and adding unit tests to verify the implementation stays in sync with code.
 
-Add lint that querySelector and querySelectorAll must be either in a file named "selectors.ts" or a file with *.spec.ts ending its file name
+### Lint rules
 
-Update ESLint rules to apply same rules to src/actions that we have for src/pages/api
+1. Add lint that querySelector and querySelectorAll must be either in a file named "selectors.ts" or a file with *.spec.ts ending its file name.
 
-## Accessibility
+Exceptions:
 
-The bigger risk for "screen reader / older engine / constrained UA" isn't the DOM selectors, it's unguarded platform features (missing browser API crash points):
+- src/components/Head/ThemeInit.astro
 
-- customElements
-- sessionStorage
-
-Please add an instruction in .vscode/instructions stating that we should prevent missing browser API crash points including Canvas, clipboard, CSS.supports, IntersectionObserver, and Workers by wrapping in try/catch and simply returning or retrying with { useWorker: false } if it fails, and keeping selectors dumb (no HTMLCanvasElement checks, no calling Canvas APIs) - just detect by tagName/attributes like we do now. Also consider other browser API crash points not mentioned, like using weak matchMedia presence checks that could still throw in screen readers. Our main concern is with screen readers, not odd UAs or older browsers.
-
-Reword that to be useful to you as an instruction.
+2. Update ESLint rules to apply same rules to src/actions that we have for src/pages/api

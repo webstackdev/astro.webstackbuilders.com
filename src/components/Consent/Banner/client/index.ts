@@ -12,6 +12,7 @@ import {
 } from '@components/scripts/elementListeners'
 import {
   allowAllConsentCookies,
+  getConsentBannerVisibility,
   hideConsentBanner,
   initConsentCookies,
   showConsentBanner,
@@ -126,11 +127,12 @@ export class ConsentBannerElement extends HTMLElement {
         const isVisible = this.wrapper.style.display === 'block' || this.wrapper.style.display === 'flex'
         if (isVisible) {
           ConsentBannerElement.isModalCurrentlyVisible = true
-          sessionStorage.setItem('consent-modal-visible', 'true')
-        } else {
-          ConsentBannerElement.isModalCurrentlyVisible = false
-          sessionStorage.removeItem('consent-modal-visible')
+          showConsentBanner()
+          return
         }
+
+        ConsentBannerElement.isModalCurrentlyVisible = false
+        hideConsentBanner()
       }
 
       this.afterSwapHandler = () => {
@@ -186,9 +188,6 @@ export class ConsentBannerElement extends HTMLElement {
     this.wrapper.style.display = 'none'
     hideConsentBanner()
     ConsentBannerElement.isModalCurrentlyVisible = false
-
-    sessionStorage.removeItem('consent-modal-visible')
-    sessionStorage.removeItem('consent-modal-shown')
   }
 
   private handleWrapperDismissModal = (event: Event): void => {
@@ -206,8 +205,6 @@ export class ConsentBannerElement extends HTMLElement {
 
       this.removeFocusTrap()
 
-      sessionStorage.removeItem('consent-modal-shown')
-      sessionStorage.removeItem('consent-modal-visible')
       this.wrapper.style.display = 'none'
       hideConsentBanner()
       ConsentBannerElement.isModalCurrentlyVisible = false
@@ -261,7 +258,7 @@ export class ConsentBannerElement extends HTMLElement {
       const wasVisible = this.wrapper.style.display === 'block' || this.wrapper.style.display === 'flex'
       const shouldBeVisible = wasVisible ||
         ConsentBannerElement.isModalCurrentlyVisible ||
-        sessionStorage.getItem('consent-modal-visible') === 'true'
+        getConsentBannerVisibility()
       const cookiesInitialized = initConsentCookies()
 
       if (this.isConsentRoute()) {
@@ -274,8 +271,6 @@ export class ConsentBannerElement extends HTMLElement {
         console.log('🍪 Restoring modal from previous navigation')
         this.initModal()
         this.bindEvents()
-        sessionStorage.setItem('consent-modal-visible', 'true')
-        sessionStorage.setItem('consent-modal-shown', 'true')
         return
       }
 
@@ -284,13 +279,9 @@ export class ConsentBannerElement extends HTMLElement {
         return
       }
 
-      if (sessionStorage.getItem('consent-modal-shown') !== 'true') {
-        console.log('🍪 Showing modal for first time')
-        this.initModal()
-        this.bindEvents()
-        sessionStorage.setItem('consent-modal-shown', 'true')
-        sessionStorage.setItem('consent-modal-visible', 'true')
-      }
+      console.log('🍪 Showing modal for first time')
+      this.initModal()
+      this.bindEvents()
     } catch (error) {
       handleScriptError(error, context)
     }
@@ -310,8 +301,6 @@ export class ConsentBannerElement extends HTMLElement {
     this.wrapper.style.display = 'none'
     hideConsentBanner()
     ConsentBannerElement.isModalCurrentlyVisible = false
-    sessionStorage.removeItem('consent-modal-visible')
-    sessionStorage.removeItem('consent-modal-shown')
   }
 
   private setupFocusTrap(): void {

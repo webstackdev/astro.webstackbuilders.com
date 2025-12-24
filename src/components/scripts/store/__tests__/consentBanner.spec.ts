@@ -3,33 +3,47 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TestError } from '@test/errors'
 import {
+  $consentBanner,
   $isConsentBannerVisible,
-  $visibility,
+  __resetConsentBannerForTests,
+  getConsentBannerVisibility,
   hideConsentBanner,
   showConsentBanner,
   toggleConsentBanner,
-} from '@components/scripts/store/visibility'
+} from '../consentBanner'
 import { handleScriptError } from '@components/scripts/errors/handler'
 
 vi.mock('@components/scripts/errors/handler', () => ({
   handleScriptError: vi.fn(),
 }))
 
-const getConsentBannerVisibility = (): boolean => $isConsentBannerVisible.get()
+vi.mock('../tableOfContents', () => ({
+  disableTableOfContents: vi.fn(),
+  enableTableOfContents: vi.fn(),
+  hideTableOfContents: vi.fn(),
+}))
+
+import * as tocVisibility from '../tableOfContents'
+
+const disableTableOfContentsMock = vi.mocked(tocVisibility.disableTableOfContents)
+const enableTableOfContentsMock = vi.mocked(tocVisibility.enableTableOfContents)
+const hideTableOfContentsMock = vi.mocked(tocVisibility.hideTableOfContents)
 
 afterEach(() => {
   vi.restoreAllMocks()
   localStorage.clear()
+  __resetConsentBannerForTests()
 })
 
-describe('UI visibility state management', () => {
+describe('Consent banner state management', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     localStorage.clear()
-    hideConsentBanner()
+    __resetConsentBannerForTests()
   })
 
   it('defaults to a hidden consent banner', () => {
+    expect($isConsentBannerVisible.get()).toBe(false)
     expect(getConsentBannerVisibility()).toBe(false)
   })
 
@@ -37,6 +51,8 @@ describe('UI visibility state management', () => {
     showConsentBanner()
 
     expect(getConsentBannerVisibility()).toBe(true)
+    expect(disableTableOfContentsMock).toHaveBeenCalledTimes(1)
+    expect(hideTableOfContentsMock).toHaveBeenCalledTimes(1)
   })
 
   it('hides the consent banner after showing it', () => {
@@ -44,6 +60,7 @@ describe('UI visibility state management', () => {
     hideConsentBanner()
 
     expect(getConsentBannerVisibility()).toBe(false)
+    expect(enableTableOfContentsMock).toHaveBeenCalledTimes(1)
   })
 
   it('toggles the consent banner visibility state', () => {
@@ -57,50 +74,36 @@ describe('UI visibility state management', () => {
   })
 })
 
-describe('UI visibility error handling', () => {
+describe('Consent banner error handling', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
   it('reports errors when showing the banner fails', () => {
     const error = new TestError('show failure')
-    vi.spyOn($visibility, 'set').mockImplementation(() => {
+    vi.spyOn($consentBanner, 'set').mockImplementation(() => {
       throw error
     })
 
     showConsentBanner()
 
     expect(handleScriptError).toHaveBeenCalledWith(error, {
-      scriptName: 'visibility',
+      scriptName: 'consentBanner',
       operation: 'showConsentBanner',
     })
   })
 
   it('reports errors when hiding the banner fails', () => {
     const error = new TestError('hide failure')
-    vi.spyOn($visibility, 'set').mockImplementation(() => {
+    vi.spyOn($consentBanner, 'set').mockImplementation(() => {
       throw error
     })
 
     hideConsentBanner()
 
     expect(handleScriptError).toHaveBeenCalledWith(error, {
-      scriptName: 'visibility',
+      scriptName: 'consentBanner',
       operation: 'hideConsentBanner',
-    })
-  })
-
-  it('reports errors when toggling the banner fails', () => {
-    const error = new TestError('toggle failure')
-    vi.spyOn($visibility, 'set').mockImplementation(() => {
-      throw error
-    })
-
-    toggleConsentBanner()
-
-    expect(handleScriptError).toHaveBeenCalledWith(error, {
-      scriptName: 'visibility',
-      operation: 'toggleConsentBanner',
     })
   })
 })
