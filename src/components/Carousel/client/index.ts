@@ -1,7 +1,7 @@
 import EmblaCarousel, { type EmblaCarouselType, type EmblaOptionsType } from 'embla-carousel'
 import Autoplay from 'embla-carousel-autoplay'
 import { addButtonEventListeners } from '@components/scripts/elementListeners'
-import { addScriptBreadcrumb, ClientScriptError } from '@components/scripts/errors'
+import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { defineCustomElement } from '@components/scripts/utils'
 import {
@@ -10,6 +10,16 @@ import {
   type AnimationPlayState,
 } from '@components/scripts/store'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
+import type { CarouselEmblaRootElement } from './selectors'
+import {
+  getCarouselEmblaRoot,
+  getCarouselViewport,
+  queryCarouselDotsContainer,
+  queryCarouselNextBtn,
+  queryCarouselPrevBtn,
+  queryCarouselSlides,
+  queryCarouselStatusRegion,
+} from './selectors'
 
 const SCRIPT_NAME = 'CarouselElement'
 
@@ -33,13 +43,12 @@ const AUTOPLAY_OPTIONS = {
   playOnInit: false,
 }
 
-type DebugEmblaElement = HTMLElement & { __emblaApi__?: EmblaCarouselType }
 type TimerHandle = ReturnType<typeof setTimeout> | number
 
 export class CarouselElement extends HTMLElement {
   private emblaApi: EmblaCarouselType | null = null
   private autoplayPlugin: ReturnType<typeof Autoplay> | null = null
-  private emblaRoot: DebugEmblaElement | null = null
+  private emblaRoot: CarouselEmblaRootElement | null = null
   private viewport: HTMLElement | null = null
   private dotsContainer: HTMLElement | null = null
   private statusRegion: HTMLElement | null = null
@@ -106,18 +115,14 @@ export class CarouselElement extends HTMLElement {
     })
 
     try {
-      this.emblaRoot = this.querySelector('.embla') as DebugEmblaElement | null
-      this.viewport = this.querySelector('.embla__viewport')
-      this.dotsContainer = this.querySelector('.embla__dots')
-      this.statusRegion = this.querySelector('[data-carousel-status]')
-      this.prevBtn = this.querySelector('.embla__button--prev')
-      this.nextBtn = this.querySelector('.embla__button--next')
+      this.emblaRoot = getCarouselEmblaRoot(this)
+      this.viewport = getCarouselViewport(this)
+      this.dotsContainer = queryCarouselDotsContainer(this)
+      this.statusRegion = queryCarouselStatusRegion(this)
+      this.prevBtn = queryCarouselPrevBtn(this)
+      this.nextBtn = queryCarouselNextBtn(this)
 
-      if (!this.emblaRoot || !this.viewport) {
-        throw new ClientScriptError('CarouselElement: Missing required DOM parts for initialization.')
-      }
-
-      const slideCount = this.querySelectorAll('[data-carousel-slide]').length
+      const slideCount = queryCarouselSlides(this).length
       const requestedAutoplay = slideCount > 1 ? Autoplay({ ...AUTOPLAY_OPTIONS }) : null
       this.autoplayReady = false
       this.autoplayReadyScheduled = false
