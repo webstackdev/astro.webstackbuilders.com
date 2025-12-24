@@ -364,7 +364,7 @@ export class TestimonialsCarouselElement extends HTMLElement {
 
       this.intersectionObserver = new IntersectionObserverCtor(
         (entries) => {
-          const entry = entries.at(0)
+          const entry = entries[0]
           const ratio = entry?.intersectionRatio ?? 0
           this.isFullyInViewport = Boolean(entry?.isIntersecting && ratio >= 0.999)
           this.syncAutoplayWithViewport()

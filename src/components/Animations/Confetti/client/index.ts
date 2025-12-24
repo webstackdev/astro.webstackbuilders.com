@@ -227,11 +227,26 @@ export class ConfettiAnimationElement extends LitElement {
     const canvas = queryConfettiCanvas(this)
     if (!canvas) return
 
-    // Prefer a per-canvas instance so callers can place the canvas where they want.
-    this.confettiInstance = createConfetti(canvas, {
-      resize: true,
-      useWorker: true,
-    })
+    const supportsWorker = typeof Worker !== 'undefined'
+
+    try {
+      // Prefer a per-canvas instance so callers can place the canvas where they want.
+      this.confettiInstance = createConfetti(canvas, {
+        resize: true,
+        useWorker: supportsWorker,
+      })
+    } catch {
+      try {
+        // Some environments expose Canvas but not Workers; retry without workers.
+        this.confettiInstance = createConfetti(canvas, {
+          resize: true,
+          useWorker: false,
+        })
+      } catch {
+        // Best effort only.
+        this.confettiInstance = undefined
+      }
+    }
   }
 
   private teardown(): void {

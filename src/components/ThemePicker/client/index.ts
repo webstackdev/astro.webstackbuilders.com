@@ -117,7 +117,7 @@ export class ThemePickerElement extends LitElement {
       this.findElements()
 
       // Check if CSS custom properties are supported (guard for non-browser envs like tests)
-      if (typeof CSS === 'undefined' || !CSS.supports('color', 'var(--fake-var)')) {
+      if (typeof CSS === 'undefined' || typeof CSS.supports !== 'function' || !CSS.supports('color', 'var(--fake-var)')) {
         console.log('ThemePicker: CSS custom properties not supported, theme picker disabled')
         return
       }
@@ -190,7 +190,16 @@ export class ThemePickerElement extends LitElement {
     if (openChanged) {
       this.setupEmbla()
       // Modal just opened; wait a frame so Embla sees correct sizing.
-      requestAnimationFrame(() => {
+      const scheduleNextFrame = (callback: () => void) => {
+        if (typeof requestAnimationFrame === 'function') {
+          requestAnimationFrame(() => callback())
+          return
+        }
+
+        callback()
+      }
+
+      scheduleNextFrame(() => {
         try {
           this.emblaApi?.reInit()
           this.updateEmblaNavState()
@@ -429,9 +438,13 @@ export class ThemePickerElement extends LitElement {
       this.toggleBtn.setAttribute('aria-expanded', 'true')
 
       // Wait for next frame so browser processes max-height: 0 before animating to 14em
-      requestAnimationFrame(() => {
+      if (typeof requestAnimationFrame === 'function') {
+        requestAnimationFrame(() => {
+          this.pickerModal.classList.add(CLASSES.isOpen)
+        })
+      } else {
         this.pickerModal.classList.add(CLASSES.isOpen)
-      })
+      }
     } else {
       this.pickerModal.classList.remove(CLASSES.isOpen)
 

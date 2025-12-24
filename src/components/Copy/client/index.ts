@@ -20,7 +20,16 @@ export class CopyToClipboardElement extends LitElement {
   override connectedCallback(): void {
     super.connectedCallback()
 
-    queueMicrotask(() => {
+    const scheduleMicrotask = (callback: () => void) => {
+      if (typeof queueMicrotask === 'function') {
+        queueMicrotask(callback)
+        return
+      }
+
+      void Promise.resolve().then(callback)
+    }
+
+    scheduleMicrotask(() => {
       this.cacheElements()
       this.bindEvents()
       this.resetIcons()

@@ -610,8 +610,33 @@ class EmbedInstance {
     }
   }
 
+  private encodeCacheKeyFragment(value: string): string {
+    try {
+      const btoaFn = (globalThis as unknown as { btoa?: (input: string) => string }).btoa
+      if (typeof btoaFn !== 'function') {
+        return encodeURIComponent(value)
+      }
+
+      const TextEncoderCtor = (globalThis as unknown as { TextEncoder?: typeof TextEncoder }).TextEncoder
+      if (typeof TextEncoderCtor === 'function') {
+        const bytes = new TextEncoderCtor().encode(value)
+        let binary = ''
+        bytes.forEach((b) => {
+          binary += String.fromCharCode(b)
+        })
+        return btoaFn(binary)
+      }
+
+      // Fallback for older engines without TextEncoder.
+      return btoaFn(unescape(encodeURIComponent(value)))
+    } catch {
+      return encodeURIComponent(value)
+    }
+  }
+
   private getCacheKey(): string {
-    return `${EmbedInstance.CACHE_PREFIX}${this.platform}_${Buffer.from(this.url, 'utf8').toString('base64').substring(0, 50)}`
+    const fragment = this.encodeCacheKeyFragment(this.url).substring(0, 50)
+    return `${EmbedInstance.CACHE_PREFIX}${this.platform}_${fragment}`
   }
 
   private getCachedData(): OEmbedResponse | null {

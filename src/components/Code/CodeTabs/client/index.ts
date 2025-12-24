@@ -1,6 +1,13 @@
 export function registerCodeTabsWebComponent(): void {
-  if (customElements.get('code-tabs')) return
-  customElements.define('code-tabs', CodeTabsElement)
+  const registry = (globalThis as unknown as { customElements?: CustomElementRegistry }).customElements
+  if (!registry) return
+
+  try {
+    if (registry.get('code-tabs')) return
+    registry.define('code-tabs', CodeTabsElement)
+  } catch {
+    // Best effort only.
+  }
 }
 
 import { addButtonEventListeners } from '@components/scripts/elementListeners'
@@ -18,6 +25,43 @@ function getCodeText(pre: HTMLPreElement): string {
   const code = pre.querySelector('code')
   const text = (code?.textContent ?? pre.textContent ?? '').replace(/\n$/, '')
   return text
+}
+
+async function writeToClipboard(text: string): Promise<boolean> {
+  try {
+    const nav = (globalThis as unknown as { navigator?: Navigator }).navigator
+    const clipboard = nav?.clipboard
+    if (clipboard && typeof clipboard.writeText === 'function') {
+      await clipboard.writeText(text)
+      return true
+    }
+  } catch {
+    // Continue to fallback.
+  }
+
+  try {
+    if (typeof document === 'undefined' || typeof document.execCommand !== 'function') {
+      return false
+    }
+
+    const textarea = document.createElement('textarea')
+    textarea.value = text
+    textarea.setAttribute('readonly', '')
+    textarea.style.position = 'fixed'
+    textarea.style.left = '-9999px'
+    textarea.style.top = '0'
+    textarea.style.opacity = '0'
+
+    document.body.appendChild(textarea)
+    textarea.select()
+    textarea.setSelectionRange(0, textarea.value.length)
+
+    const copied = document.execCommand('copy')
+    textarea.remove()
+    return copied
+  } catch {
+    return false
+  }
 }
 
 class CodeTabsElement extends HTMLElement {
@@ -141,7 +185,8 @@ class CodeTabsElement extends HTMLElement {
     const text = getCodeText(active)
     if (!text) return
 
-    await navigator.clipboard.writeText(text)
+    const copied = await writeToClipboard(text)
+    if (!copied) return
 
     this.toggleCopiedState(button, true)
 

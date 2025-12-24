@@ -169,7 +169,7 @@ export class ComputersAnimationElement extends LitElement {
 
       this.intersectionObserver = new IntersectionObserverCtor(
         (entries) => {
-          const entry = entries.at(0)
+          const entry = entries[0]
           const ratio = entry?.intersectionRatio ?? 0
           // Pause as soon as the element is even partially out of view.
           // Only consider it "in viewport" when it is fully visible.

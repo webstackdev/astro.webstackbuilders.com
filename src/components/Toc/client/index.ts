@@ -109,7 +109,7 @@ export class TableOfContentsElement extends LitElement {
       return false
     }
 
-    if (!('matchMedia' in window)) {
+    if (typeof window.matchMedia !== 'function') {
       return false
     }
 
@@ -172,7 +172,7 @@ export class TableOfContentsElement extends LitElement {
       return
     }
 
-    const firstLink = this.tocLinks.at(0)
+    const firstLink = this.tocLinks[0]
     firstLink?.focus()
   }
 
@@ -232,7 +232,10 @@ export class TableOfContentsElement extends LitElement {
       return
     }
 
-    if (!('IntersectionObserver' in window)) {
+    const IntersectionObserverCtor = (window as unknown as { IntersectionObserver?: typeof IntersectionObserver })
+      .IntersectionObserver
+
+    if (typeof IntersectionObserverCtor !== 'function') {
       return
     }
 
@@ -248,13 +251,13 @@ export class TableOfContentsElement extends LitElement {
       return
     }
 
-    const observer = new window.IntersectionObserver(
+    const observer = new IntersectionObserverCtor(
       (entries) => {
         const visible = entries
           .filter((entry) => entry.isIntersecting)
           .sort((a, b) => (b.intersectionRatio ?? 0) - (a.intersectionRatio ?? 0))
 
-        const next = visible.at(0)?.target
+        const next = visible[0]?.target
         const nextSlug = next instanceof HTMLElement ? next.id : null
         if (!nextSlug || nextSlug === this.activeSlug) {
           return
