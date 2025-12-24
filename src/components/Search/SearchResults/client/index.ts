@@ -1,0 +1,170 @@
+import { LitElement } from 'lit'
+import { actions } from 'astro:actions'
+import { defineCustomElement } from '@components/scripts/utils'
+import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
+import { getSearchResultsElements } from './selectors'
+
+type SearchHit = {
+	title: string
+	url: string
+	snippet?: string
+}
+
+const MIN_QUERY_LENGTH = 2
+
+export class SearchResultsElement extends LitElement {
+	static registeredName = 'search-results'
+
+	static override properties = {
+		query: { type: String, attribute: 'query' },
+		limit: { type: Number, attribute: 'limit' },
+	}
+
+	declare query?: string
+	declare limit: number
+
+	private meta: HTMLElement | null = null
+	private errorEl: HTMLElement | null = null
+	private resultsList: HTMLOListElement | null = null
+	private input: HTMLInputElement | null = null
+
+	protected override createRenderRoot() {
+		// Light DOM
+		return this
+	}
+
+	constructor() {
+		super()
+		this.limit = 20
+	}
+
+	override connectedCallback(): void {
+		super.connectedCallback()
+		this.cacheElements()
+		void this.run()
+	}
+
+	private cacheElements(): void {
+		const { meta, error, resultsList, input } = getSearchResultsElements(this)
+
+		this.meta = meta
+		this.errorEl = error
+		this.resultsList = resultsList
+		this.input = input
+	}
+
+	private setText(element: HTMLElement | null, text: string): void {
+		if (!element) {
+			return
+		}
+
+		element.textContent = text
+	}
+
+	private showError(message: string): void {
+		if (!this.errorEl) {
+			return
+		}
+
+		this.errorEl.classList.remove('hidden')
+		this.setText(this.errorEl, message)
+	}
+
+	private clearError(): void {
+		if (!this.errorEl) {
+			return
+		}
+
+		this.errorEl.classList.add('hidden')
+		this.setText(this.errorEl, '')
+	}
+
+	private renderResults(hits: SearchHit[]): void {
+		if (!this.resultsList) {
+			return
+		}
+
+		this.resultsList.innerHTML = ''
+
+		for (const hit of hits) {
+			const li = document.createElement('li')
+			li.className = 'space-y-1'
+
+			const link = document.createElement('a')
+			link.href = hit.url
+			link.className =
+				'text-lg font-semibold text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary'
+			link.textContent = hit.title
+
+			const url = document.createElement('div')
+			url.className = 'text-sm text-text-offset break-all'
+			url.textContent = hit.url
+
+			li.appendChild(link)
+			li.appendChild(url)
+
+			if (hit.snippet) {
+				const snippet = document.createElement('p')
+				snippet.className = 'text-sm text-text-offset leading-relaxed'
+				snippet.textContent = hit.snippet
+				li.appendChild(snippet)
+			}
+
+			this.resultsList.appendChild(li)
+		}
+	}
+
+	private getQueryFromLocation(): string {
+		return new URLSearchParams(window.location.search).get('q')?.trim() ?? ''
+	}
+
+	private getQuery(): string {
+		return (this.query ?? '').trim() || this.getQueryFromLocation()
+	}
+
+	private async run(): Promise<void> {
+		const query = this.getQuery()
+		this.clearError()
+
+		if (this.input && typeof this.input.value === 'string' && this.input.value !== query) {
+			this.input.value = query
+		}
+
+		if (!query) {
+			this.setText(this.meta, '')
+			this.renderResults([])
+			return
+		}
+
+		if (query.length < MIN_QUERY_LENGTH) {
+			this.setText(this.meta, 'Type at least 2 characters to search.')
+			this.renderResults([])
+			return
+		}
+
+		this.setText(this.meta, 'Searching…')
+
+		try {
+			const result = await actions.search.query({ q: query, limit: this.limit })
+			const hits = (result?.data?.hits ?? []) as SearchHit[]
+
+			this.renderResults(hits)
+			this.setText(this.meta, `${hits.length} result${hits.length === 1 ? '' : 's'} for ${query}`)
+		} catch (error) {
+			const message = error instanceof Error ? error.message : 'Search failed.'
+			this.renderResults([])
+			this.setText(this.meta, '')
+			this.showError(message)
+		}
+	}
+}
+
+export const registerSearchResultsComponent = async (tagName = SearchResultsElement.registeredName): Promise<void> => {
+	defineCustomElement(tagName, SearchResultsElement)
+}
+
+export const webComponentModule: WebComponentModule<SearchResultsElement> = {
+	registeredName: SearchResultsElement.registeredName,
+	componentCtor: SearchResultsElement,
+	registerWebComponent: registerSearchResultsComponent,
+}

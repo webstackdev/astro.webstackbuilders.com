@@ -1,9 +1,11 @@
-import { LitElement } from 'lit'
+import { LitElement, html, nothing } from 'lit'
+import { render } from 'lit/html.js'
 import { actions } from 'astro:actions'
 import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
+import { getSearchBarElements } from './selectors'
 
 type SearchHit = {
   title: string
@@ -43,10 +45,12 @@ export class SearchBarElement extends LitElement {
   }
 
   private cacheElements(): void {
-    this.form = this.querySelector('[data-search-form]') as HTMLFormElement | null
-    this.input = this.querySelector('[data-search-input]') as HTMLInputElement | null
-    this.resultsContainer = this.querySelector('[data-search-results]') as HTMLElement | null
-    this.resultsList = this.querySelector('[data-search-results-list]') as HTMLUListElement | null
+    const { form, input, resultsContainer, resultsList } = getSearchBarElements(this)
+
+    this.form = form
+    this.input = input
+    this.resultsContainer = resultsContainer
+    this.resultsList = resultsList
   }
 
   private attachListeners(): void {
@@ -137,7 +141,7 @@ export class SearchBarElement extends LitElement {
 
   private clearResults(): void {
     if (this.resultsList) {
-      this.resultsList.innerHTML = ''
+      render(nothing, this.resultsList)
     }
   }
 
@@ -146,24 +150,26 @@ export class SearchBarElement extends LitElement {
       return
     }
 
-    const items = hits
-      .map(hit => {
-        const url = hit.url || `/search?q=${encodeURIComponent(query)}`
-        const title = hit.title || query
+    const items = hits.map(hit => {
+      const url = hit.url || `/search?q=${encodeURIComponent(query)}`
+      const title = hit.title || query
 
-        return `
-<li class="px-4 py-3 hover:bg-bg-offset">
-  <a class="block text-sm text-text" href="${url}">${escapeHtml(title)}</a>
-</li>`
-      })
-      .join('')
+      return html`
+        <li class="px-4 py-3 hover:bg-bg-offset">
+          <a class="block text-sm text-text" href=${url}>${title}</a>
+        </li>
+      `
+    })
 
-    const searchFor = `
-<li class="px-4 py-3 hover:bg-bg-offset">
-  <a class="block text-sm text-text" href="/search?q=${encodeURIComponent(query)}">Search for &quot;${escapeHtml(query)}&quot;</a>
-</li>`
+    const searchFor = html`
+      <li class="px-4 py-3 hover:bg-bg-offset">
+        <a class="block text-sm text-text" href=${`/search?q=${encodeURIComponent(query)}`}>
+          Search for &quot;${query}&quot;
+        </a>
+      </li>
+    `
 
-    this.resultsList.innerHTML = `${items}${searchFor}`
+    render(html`${items}${searchFor}`, this.resultsList)
   }
 
   private async fetchAndRender(query: string): Promise<void> {
@@ -193,15 +199,6 @@ export class SearchBarElement extends LitElement {
       this.hideResults()
     }
   }
-}
-
-const escapeHtml = (value: string): string => {
-  return value
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;')
 }
 
 export const registerSearchBarComponent = async (tagName = SearchBarElement.registeredName): Promise<void> => {

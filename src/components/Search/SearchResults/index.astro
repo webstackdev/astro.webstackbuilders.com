@@ -1,0 +1,26 @@
+---
+import SearchBar from '@components/Search/SearchBar/index.astro'
+const { query: queryProp } = Astro.props
+const query = (queryProp ?? (Astro.url.searchParams.get('q') ?? '')).trim()
+---
+
+<search-results query={query} class="block">
+	<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
+		<header class="space-y-4" aria-labelledby="search-title">
+			<h1 id="search-title" class="text-3xl md:text-4xl font-bold text-text">Search</h1>
+			<div class="max-w-2xl">
+				<SearchBar initialQuery={query} />
+			</div>
+
+			<p data-search-meta class="text-sm text-text-offset" aria-live="polite"></p>
+			<p data-search-error class="text-sm text-text-offset hidden" role="alert"></p>
+		</header>
+
+		<ol data-search-results class="space-y-6" aria-label="Search results"></ol>
+	</div>
+</search-results>
+
+<script>
+  import { registerSearchResultsComponent } from '@components/Search/SearchResults/client'
+  registerSearchResultsComponent()
+</script>
