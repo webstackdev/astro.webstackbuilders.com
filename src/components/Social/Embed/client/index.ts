@@ -1,6 +1,15 @@
 import { cacheEmbed, getCachedEmbed } from '@components/scripts/store'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
+import {
+  assertHasEmbedPlaceholder,
+  queryFirstIframe,
+  queryIframes,
+  queryScripts,
+  queryUnmanagedEmbedElements,
+  queryVideos,
+  removeEmbedLoadingStatusNode,
+} from './selectors'
 
 /**
  * Platform types supported by the Embed component
@@ -162,12 +171,10 @@ export class EmbedManager {
     addScriptBreadcrumb(context)
 
     try {
-      const embedElements = document.querySelectorAll('[data-embed]:not([data-embed-managed])')
+      const embedElements = queryUnmanagedEmbedElements(document)
 
       embedElements.forEach((element, index) => {
         try {
-          if (!(element instanceof HTMLElement)) return
-
           const platform = element.dataset['embedPlatform'] as EmbedPlatform | undefined
           const url = element.dataset['embedUrl']
 
@@ -290,16 +297,13 @@ class EmbedInstance {
   }
 
   private removeLoadingStatusNode(): void {
-    const statusNode = this.container.querySelector('[data-embed-loading-status]')
-    if (statusNode instanceof HTMLElement) {
-      statusNode.remove()
-    }
+    removeEmbedLoadingStatusNode(this.container)
   }
 
   private ensureIframeTitles(root: ParentNode, fallbackTitle: string): void {
     const titleToUse = fallbackTitle.trim().length > 0 ? fallbackTitle : 'Embedded content'
 
-    root.querySelectorAll('iframe').forEach((iframe) => {
+    queryIframes(root).forEach((iframe) => {
       const title = iframe.getAttribute('title')
       if (!title || title.trim().length === 0) {
         iframe.setAttribute('title', titleToUse)
@@ -497,11 +501,7 @@ class EmbedInstance {
     addScriptBreadcrumb(context)
 
     try {
-      const placeholder = this.container.querySelector('[data-embed-placeholder]')
-      if (!placeholder) {
-        console.warn('Placeholder not found in embed container')
-        return
-      }
+      const placeholder = assertHasEmbedPlaceholder(this.container)
 
       // Create a wrapper for the embed HTML
       const wrapper = document.createElement('div')
@@ -541,17 +541,15 @@ class EmbedInstance {
     script.src = `${this.url}.js`
     wrapper.appendChild(script)
 
-    const placeholder = this.container.querySelector('[data-embed-placeholder]')
-    if (placeholder) {
-      placeholder.replaceWith(wrapper)
-      this.removeLoadingStatusNode()
-      this.setAriaBusy(false)
-    }
+    const placeholder = assertHasEmbedPlaceholder(this.container)
+    placeholder.replaceWith(wrapper)
+    this.removeLoadingStatusNode()
+    this.setAriaBusy(false)
   }
 
   private executeScripts(container: HTMLElement): void {
-    const scripts = container.querySelectorAll('script')
-    scripts.forEach(oldScript => {
+    const scripts = queryScripts(container)
+    scripts.forEach((oldScript) => {
       const newScript = document.createElement('script')
 
       // Copy attributes
@@ -574,7 +572,7 @@ class EmbedInstance {
     try {
       // LinkedIn embeds are already complete iframes slotted into the component
       // We just need to make them responsive
-      const iframe = this.container.querySelector('iframe')
+      const iframe = queryFirstIframe(this.container)
       if (!iframe) {
         console.warn('LinkedIn iframe not found')
         return
@@ -629,8 +627,8 @@ class EmbedInstance {
   pause(): void {
     this.paused = true
     // Pause any autoplay media in the embed
-    const videos = this.container.querySelectorAll('video')
-    videos.forEach(video => video.pause())
+    const videos = queryVideos(this.container)
+    videos.forEach((video) => video.pause())
   }
 
   resume(): void {
