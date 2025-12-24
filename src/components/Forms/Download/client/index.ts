@@ -5,6 +5,7 @@ import {
   getDownloadFormElement,
   getDownloadStatusDiv,
   getDownloadSubmitButton,
+  queryDownloadFormInvalidatableControls,
 } from './selectors'
 import { addScriptBreadcrumb, ClientScriptError } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
@@ -74,9 +75,7 @@ export class DownloadFormElement extends LitElement {
   }
 
   private syncAriaInvalidState(form: HTMLFormElement): void {
-    const invalidControls = form.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
-      'input, select, textarea',
-    )
+    const invalidControls = queryDownloadFormInvalidatableControls(form)
 
     invalidControls.forEach((control) => {
       if (control.willValidate && !control.checkValidity()) {
