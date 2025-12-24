@@ -1,26 +1,36 @@
 ---
+export interface Props {
+  placeholder?: string
+  initialQuery?: string
+}
 
+const { placeholder = 'Search…', initialQuery = '' } = Astro.props
 ---
 
-<input type="text" id="search-input" placeholder="Search..." />
-<ul id="results"></ul>
+<search-bar class="relative block" data-testid="search-bar">
+  <form data-search-form class="relative" role="search" aria-label="Site search">
+    <label class="sr-only" for="site-search-input">Search</label>
+    <input
+      id="site-search-input"
+      data-search-input
+      type="search"
+      inputmode="search"
+      autocomplete="off"
+      placeholder={placeholder}
+      value={initialQuery}
+      class="w-full rounded-lg border border-border bg-surface px-4 py-3 text-text placeholder:text-text-offset focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+    />
+  </form>
 
-<script>
-  // Add client-side logic to fetch from /api/search.json.ts when input changes
-  const input = document.getElementById('search-input');
-  const resultsList = document.getElementById('results');
+  <div
+    data-search-results
+    class="absolute left-0 right-0 z-50 mt-2 hidden overflow-hidden rounded-lg border border-border bg-bg shadow-elevated"
+  >
+    <ul data-search-results-list class="divide-y divide-border" aria-label="Search suggestions"></ul>
+  </div>
 
-  input.addEventListener('input', async (event) => {
-    const query = event.target.value;
-    if (query.length < 2) {
-      resultsList.innerHTML = '';
-      return;
-    }
-
-    const response = await fetch(`/api/search.json?q=${encodeURIComponent(query)}`);
-    const results = await response.json();
-
-    // Render results in resultsList
-    resultsList.innerHTML = results.map(item => `<li>${item.title}</li>`).join('');
-  });
-</script>
+  <script>
+    import { registerSearchBarComponent } from '@components/SearchBar/client'
+    registerSearchBarComponent()
+  </script>
+</search-bar>

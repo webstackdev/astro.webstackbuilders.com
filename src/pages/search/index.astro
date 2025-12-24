@@ -1,0 +1,64 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro'
+import SearchBar from '@components/SearchBar/index.astro'
+import { performSearch, type SearchHit } from '@actions/search/search'
+
+const query = (Astro.url.searchParams.get('q') ?? '').trim()
+
+let hits: SearchHit[] = []
+let errorMessage: string | undefined
+
+if (query.length >= 2) {
+	try {
+		hits = await performSearch(query, 20)
+	} catch (error) {
+		errorMessage = error instanceof Error ? error.message : 'Search failed.'
+	}
+}
+
+const pageTitle = 'Search'
+const path = '/search'
+const description = 'Search the site.'
+---
+
+<BaseLayout pageTitle={pageTitle} path={path} description={description}>
+	<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
+		<header class="space-y-4" aria-labelledby="search-title">
+			<h1 id="search-title" class="text-3xl md:text-4xl font-bold text-text">Search</h1>
+			<div class="max-w-2xl">
+				<SearchBar initialQuery={query} />
+			</div>
+
+			{query && query.length >= 2 && !errorMessage && (
+				<p class="text-sm text-text-offset">
+					{hits.length} result{hits.length === 1 ? '' : 's'} for <span class="font-medium">{query}</span>
+				</p>
+			)}
+
+			{query && query.length < 2 && (
+				<p class="text-sm text-text-offset">Type at least 2 characters to search.</p>
+			)}
+
+			{errorMessage && (
+				<p class="text-sm text-text-offset" role="alert">{errorMessage}</p>
+			)}
+		</header>
+
+		{query && query.length >= 2 && !errorMessage && (
+			<ol class="space-y-6" aria-label="Search results">
+				{hits.map(hit => (
+					<li class="space-y-1">
+						<a
+							href={hit.url}
+							class="text-lg font-semibold text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+						>
+							{hit.title}
+						</a>
+						<div class="text-sm text-text-offset break-all">{hit.url}</div>
+						{hit.snippet && <p class="text-sm text-text-offset leading-relaxed">{hit.snippet}</p>}
+					</li>
+				))}
+			</ol>
+		)}
+	</div>
+</BaseLayout>

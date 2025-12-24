@@ -1,0 +1,69 @@
+name: Prune Upstash Search
+description: Deletes Upstash Search documents for content removed since the last successful production deploy.
+
+inputs:
+  github_token:
+    description: GitHub token used to call the GitHub API.
+    required: true
+  workflow_file:
+    description: Workflow file name used for production deploy (used to find the last successful deploy run).
+    required: false
+    default: deployment-production.yml
+  base_branch:
+    description: Branch to consider for previous successful deploys.
+    required: false
+    default: main
+  current_run_id:
+    description: Current workflow_run id (used to exclude the triggering run from history).
+    required: true
+  head_sha:
+    description: SHA that was deployed (workflow_run.head_sha).
+    required: true
+
+  upstash_url:
+    description: Upstash Search REST URL.
+    required: true
+  upstash_token:
+    description: Upstash Search REST token.
+    required: true
+  index_name:
+    description: Upstash Search index name.
+    required: false
+    default: default
+
+  site_origin:
+    description: Site origin used to construct document URLs (e.g. https://www.webstackbuilders.com).
+    required: true
+  collection:
+    description: Content collection name (articles|services|case-studies).
+    required: true
+  content_root:
+    description: Root directory to consider for content changes.
+    required: false
+    default: src/content/
+
+outputs:
+  deleted_count:
+    description: Number of documents deleted from Upstash Search.
+    value: ${{ steps.run.outputs.deleted_count }}
+
+runs:
+  using: composite
+  steps:
+    - id: run
+      name: Prune removed documents
+      working-directory: ${{ github.action_path }}
+      env:
+        INPUT_GITHUB_TOKEN: ${{ inputs.github_token }}
+        INPUT_WORKFLOW_FILE: ${{ inputs.workflow_file }}
+        INPUT_BASE_BRANCH: ${{ inputs.base_branch }}
+        INPUT_CURRENT_RUN_ID: ${{ inputs.current_run_id }}
+        INPUT_HEAD_SHA: ${{ inputs.head_sha }}
+        INPUT_UPSTASH_URL: ${{ inputs.upstash_url }}
+        INPUT_UPSTASH_TOKEN: ${{ inputs.upstash_token }}
+        INPUT_INDEX_NAME: ${{ inputs.index_name }}
+        INPUT_SITE_ORIGIN: ${{ inputs.site_origin }}
+        INPUT_COLLECTION: ${{ inputs.collection }}
+        INPUT_CONTENT_ROOT: ${{ inputs.content_root }}
+      run: python3 src/main.py
+      shell: bash
