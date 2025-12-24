@@ -96,10 +96,6 @@ docs/CONTACT_FORM.md
 
 Where to upload to?
 
-## Search
-
-Add Upstash Search as a Vercel Marketplace Integration.
-
 ### "Add to Calendar" button
 
 Google Calendar, Apple Calendar,  Microsoft Outlook and Teams, and generate iCal/ics files (for all other calendars and cases).
