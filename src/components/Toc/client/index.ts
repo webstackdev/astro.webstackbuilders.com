@@ -6,13 +6,13 @@ import {
   addLinkEventListeners,
   addWrapperEventListeners,
 } from '@components/scripts/elementListeners'
-import { isDivElement } from '@components/scripts/assertions/elements'
 import {
   hideTableOfContents,
   onVisibilityChange,
   showTableOfContents,
   type VisibilityListener,
 } from '@components/scripts/store/visibility'
+import { getTableOfContentsElements } from './selectors'
 
 export class TableOfContentsElement extends LitElement {
   static registeredName = 'table-of-contents'
@@ -72,10 +72,11 @@ export class TableOfContentsElement extends LitElement {
   }
 
   private cacheElements(): void {
-    this.toggleButton = this.querySelector('[data-toc-toggle]') as HTMLButtonElement | null
-    this.overlay = this.querySelector('[data-toc-overlay]') as HTMLButtonElement | null
-    this.panel = this.querySelector('[data-toc-panel]') as HTMLElement | null
-    this.tocLinks = Array.from(this.querySelectorAll('[data-toc-link]')) as HTMLAnchorElement[]
+    const { toggleButton, overlay, panel, tocLinks } = getTableOfContentsElements(this)
+    this.toggleButton = toggleButton
+    this.overlay = overlay
+    this.panel = panel
+    this.tocLinks = tocLinks
   }
 
   private attachListeners(): void {
@@ -90,10 +91,8 @@ export class TableOfContentsElement extends LitElement {
     }
 
     if (this.panel && !this.panel.dataset['tocEscapeListener']) {
-      if (isDivElement(this.panel)) {
-        addWrapperEventListeners(this.panel, this.handleEscape, this)
-        this.panel.dataset['tocEscapeListener'] = 'true'
-      }
+      addWrapperEventListeners(this.panel, this.handleEscape, this)
+      this.panel.dataset['tocEscapeListener'] = 'true'
     }
 
     this.tocLinks.forEach((link) => {

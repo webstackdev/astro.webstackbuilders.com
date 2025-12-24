@@ -26,10 +26,15 @@ describe('SearchBar selectors', () => {
       assert: async ({ element }) => {
         const { form, input, resultsContainer, resultsList } = getSearchBarElements(element)
 
-        expect(form).toBeInstanceOf(HTMLFormElement)
-        expect(input).toBeInstanceOf(HTMLInputElement)
-        expect(resultsContainer).toBeInstanceOf(HTMLElement)
-        expect(resultsList.tagName).toBe('UL')
+        expect(form, 'SearchBar should render a <form> with [data-search-form]').toBeInstanceOf(HTMLFormElement)
+        expect(input, 'SearchBar should render an <input> with [data-search-input]').toBeInstanceOf(HTMLInputElement)
+        expect(
+          resultsContainer,
+          'SearchBar should render a results container with [data-search-results]',
+        ).toBeInstanceOf(HTMLElement)
+        expect(resultsList.tagName, 'SearchBar results list with [data-search-results-list] should be a <ul>').toBe(
+          'UL',
+        )
       },
     })
   })
