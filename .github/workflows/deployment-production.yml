@@ -1,12 +1,9 @@
 name: Deploy Production
 
 on:
-  workflow_run:
-    workflows:
-      - Build Production
-      - Playwright
-    types:
-      - completed
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions: {}
@@ -21,100 +18,70 @@ jobs:
       actions: read
       contents: read
       deployments: write
+      issues: write
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6.0.1
-        with:
-          ref: main
+        uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v6.1.0
-        with:
-          python-version: '3.13'
-          cache: 'pip'
+      - name: Require Playwright success
+        if: github.event_name == 'push'
+        env:
+          RUNS_URL: ${{ github.api_url }}/repos/${{ github.repository }}/actions/workflows/playwright.yml/runs?status=completed&per_page=50
+          GITHUB_TOKEN: ${{ github.token }}
+          EXPECTED_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
 
-      - name: Install Python dependencies
-        run: python3 -m pip install -r requirements.txt
+          python3 - <<'PY'
+          import json
+          import os
+          import sys
+          import urllib.request
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v6.1.0
-        with:
-          node-version: '22.x'
-          cache: 'npm'
+          url = os.environ["RUNS_URL"]
+          token = os.environ["GITHUB_TOKEN"]
+          expected_sha = os.environ["EXPECTED_SHA"]
 
-      - name: Resolve deploy SHA
-        id: context
-        uses: './.github/actions/resolve-deploy-sha'
+          req = urllib.request.Request(
+              url,
+              headers={
+                  "Authorization": f"Bearer {token}",
+                  "Accept": "application/vnd.github+json",
+                  "X-GitHub-Api-Version": "2022-11-28",
+                  "User-Agent": "webstackbuilders-deploy-production",
+              },
+          )
 
-      - name: Check prerequisites and locate build artifact
-        id: verify
-        uses: './.github/actions/check-prerequisites-and-locate-build-artifact'
-        with:
-          token: ${{ github.token }}
-          sha: ${{ steps.context.outputs.sha }}
-          trigger-event: ${{ steps.context.outputs.trigger_event }}
-          head-branch: ${{ steps.context.outputs.head_branch }}
-          is-fork: ${{ steps.context.outputs.is_fork }}
-          skip-hotfix: 'true'
-          skip-forks: 'true'
-          build-workflow-file: build-production.yml
-          artifact-name: vercel-build-production
-          required-workflows-json: >-
-            [{"id":"build-production.yml","label":"Build Production"},{"id":"playwright.yml","label":"Playwright"}]
+          with urllib.request.urlopen(req, timeout=30) as resp:
+              data = json.load(resp)
 
-      - name: Download build artifact
-        if: steps.verify.outputs.should_deploy == 'true'
-        uses: './.github/actions/download-build-artifact'
-        with:
-          token: ${{ github.token }}
-          artifact-download-url: ${{ steps.verify.outputs.artifact_download_url }}
+          runs = (data or {}).get("workflow_runs") or []
+          for workflow_run in runs:
+              if (workflow_run or {}).get("head_sha") != expected_sha:
+                  continue
+              if (workflow_run or {}).get("conclusion") == "success":
+                  print("✅ Playwright succeeded for this SHA")
+                  sys.exit(0)
 
-      - name: Create GitHub deployment (production)
-        if: steps.verify.outputs.should_deploy == 'true'
-        id: gh_deploy
-        uses: './.github/actions/create-github-deployment-production'
-        with:
-          token: ${{ github.token }}
-          sha: ${{ steps.context.outputs.sha }}
-
-      - name: Mark deployment in progress
-        if: steps.verify.outputs.should_deploy == 'true'
-        uses: './.github/actions/mark-deployment-in-progress'
-        with:
-          token: ${{ github.token }}
-          deployment-id: ${{ steps.gh_deploy.outputs.deployment_id }}
-          description: Deploying to Vercel (production)
-
-      - name: Install Vercel CLI (pinned)
-        if: steps.verify.outputs.should_deploy == 'true'
-        uses: './.github/actions/install-vercel-cli-pinned'
-        with:
-          version: 50.1.3
+          print("❌ Playwright has not completed successfully for this SHA; aborting deploy.", file=sys.stderr)
+          sys.exit(1)
+          PY
 
       - name: Deploy to Vercel (production)
-        if: steps.verify.outputs.should_deploy == 'true'
-        id: vercel
-        uses: './.github/actions/deploy-to-vercel-production'
+        # v1.10.0
+        uses: BetaHuhn/deploy-to-vercel-action@9893d875c782e1b4995a9399e8c4d660c33849c3
         with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ vars.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ vars.VERCEL_PROJECT_ID }}
-
-      - name: Update deployment status
-        if: steps.verify.outputs.should_deploy == 'true'
-        uses: './.github/actions/update-deployment-status'
-        with:
-          token: ${{ github.token }}
-          deployment-id: ${{ steps.gh_deploy.outputs.deployment_id }}
-          exit-code: ${{ steps.vercel.outputs.exit_code }}
-          environment-url: ${{ steps.vercel.outputs.deploy_url }}
-          success-description: Deployed to Vercel (production)
-          failure-description: Vercel deploy failed (production)
-
-      - name: Fail workflow if deploy failed
-        if: steps.verify.outputs.should_deploy == 'true' && steps.vercel.outputs.exit_code != '0'
-        uses: './.github/actions/fail-workflow-if-deploy-failed'
-        with:
-          exit-code: ${{ steps.vercel.outputs.exit_code }}
+          GITHUB_TOKEN: ${{ github.token }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+          PRODUCTION: true
+          GITHUB_DEPLOYMENT_ENV: Production
+          CREATE_COMMENT: false
+          BUILD_ENV: |
+            PUBLIC_GOOGLE_MAPS_API_KEY="${{ vars.PUBLIC_GOOGLE_MAPS_API_KEY }}"
+            PUBLIC_SENTRY_DSN="${{ vars.PUBLIC_SENTRY_DSN }}"
+            PUBLIC_UPSTASH_SEARCH_REST_URL="${{ vars.PUBLIC_UPSTASH_SEARCH_REST_URL }}"
+            PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN="${{ vars.PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN }}"
 

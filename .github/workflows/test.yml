@@ -45,10 +45,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6.0.1
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6.1.0
+        uses: actions/setup-node@v4
         with:
           node-version: '22.x'
           cache: 'npm'
@@ -66,14 +66,15 @@ jobs:
 
       - name: Report Coverage
         if: steps.vitest.outcome == 'success' && hashFiles('coverage/coverage-summary.json') != ''
-        uses: davelosert/vitest-coverage-report-action@v2.9.0
+        # v2.9.0
+        uses: davelosert/vitest-coverage-report-action@5b6122e3a819a3be7b27fc961b7faafb3bf00e4d
         with:
           json-summary-path: './coverage/coverage-summary.json'
           json-final-path: './coverage/coverage-final.json'
 
       - name: Upload test coverage
         if: always() && hashFiles('coverage/coverage-summary.json') != ''
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: test-coverage
           path: coverage/

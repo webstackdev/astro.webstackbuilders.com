@@ -1,0 +1,26 @@
+---
+
+---
+
+<input type="text" id="search-input" placeholder="Search..." />
+<ul id="results"></ul>
+
+<script>
+  // Add client-side logic to fetch from /api/search.json.ts when input changes
+  const input = document.getElementById('search-input');
+  const resultsList = document.getElementById('results');
+
+  input.addEventListener('input', async (event) => {
+    const query = event.target.value;
+    if (query.length < 2) {
+      resultsList.innerHTML = '';
+      return;
+    }
+
+    const response = await fetch(`/api/search.json?q=${encodeURIComponent(query)}`);
+    const results = await response.json();
+
+    // Render results in resultsList
+    resultsList.innerHTML = results.map(item => `<li>${item.title}</li>`).join('');
+  });
+</script>
