@@ -71,20 +71,6 @@ Implement mitigations in test/e2e/specs/07-performance/PERFORMANCE.md
 
 Right now we're using string literals to define HTML email templates for site mails. We should use Nunjucks with the rule-checking for valid CSS in HTML emails like we have in the corporate email footer repo.
 
-## Analytics
-
-Vercel Analytics
-
-- Highlighter component
-- Social Shares component
-- Social Embeds: Track embed interactions
-- Cookie Consent
-- Download Form component
-
-npm i @vercel/analytics
-import Analytics from '@vercel/analytics/astro'
-https://vercel.com/docs/analytics/quickstart#add-the-analytics-component-to-your-app
-
 ## Set up webmentions
 
 Needs to add real API key and test

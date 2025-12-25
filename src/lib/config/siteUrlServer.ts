@@ -9,6 +9,8 @@ const resolvedDevServerPort = devServerPort && devServerPort.length > 0 ? devSer
 
 /** Called from astro.config.ts to determine "site" config key */
 export const getSiteUrl = (): string => {
+  // Vercel tooling can set VERCEL env vars during CI builds; only treat this as an error
+  // when the config is evaluated on Vercel infrastructure (not GitHub Actions).
   if (isVercel()) {
     throw new BuildError('❌ Build runs on GitHub, so this build-time getSiteUrl() function should never be called on Vercel.')
   }

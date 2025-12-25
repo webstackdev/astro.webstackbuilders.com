@@ -59,7 +59,7 @@ export const getGitHubRepoPath = () => {
 
 // VERCEL_ENV=production, preview, or development
 export const isVercel = () => {
-  return !!process.env['VERCEL']
+  return !!process.env['VERCEL'] && !isGitHub()
 }
 
 /**

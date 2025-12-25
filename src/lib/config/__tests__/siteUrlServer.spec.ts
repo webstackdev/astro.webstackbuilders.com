@@ -6,11 +6,17 @@ const originalDevServerPort = process.env['DEV_SERVER_PORT']
 const importSiteUrlServer = async () => {
   vi.resetModules()
   const isVercelMock = vi.fn(() => false)
-  vi.doMock('../environmentServer', () => ({
-    isVercel: isVercelMock,
-  }))
+  const isGitHubMock = vi.fn(() => false)
+  vi.doMock('../environmentServer', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('../environmentServer')>()
+    return {
+      ...actual,
+      isVercel: isVercelMock,
+      isGitHub: isGitHubMock,
+    }
+  })
   const module = await import('../siteUrlServer')
-  return { getSiteUrl: module.getSiteUrl, isVercelMock }
+  return { getSiteUrl: module.getSiteUrl, isVercelMock, isGitHubMock }
 }
 
 afterEach(() => {
@@ -24,9 +30,10 @@ afterEach(() => {
 
 describe('getSiteUrl', () => {
   it('throws a BuildError when running on Vercel', async () => {
-    const { getSiteUrl, isVercelMock } = await importSiteUrlServer()
+    const { getSiteUrl, isVercelMock, isGitHubMock } = await importSiteUrlServer()
     const { BuildError } = await import('../../errors/BuildError')
     isVercelMock.mockReturnValue(true)
+    isGitHubMock.mockReturnValue(false)
 
     const invokeGetSiteUrl = () => getSiteUrl()
     expect(invokeGetSiteUrl).toThrowError(BuildError)
