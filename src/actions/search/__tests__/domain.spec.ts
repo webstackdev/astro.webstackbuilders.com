@@ -6,15 +6,8 @@ describe('performSearch', () => {
   it('queries Upstash Search with expected config', async () => {
     vi.resetModules()
 
-    const getOptionalEnv = vi.fn((key: string) => {
-      if (key === 'PUBLIC_UPSTASH_SEARCH_REST_URL') {
-        return 'https://example.upstash.io'
-      }
-      if (key === 'PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN') {
-        return 'readonly-token'
-      }
-      return undefined
-    })
+    const getUpstashUrl = vi.fn(() => 'https://example.upstash.io')
+    const getUpstashPublicToken = vi.fn(() => 'readonly-token')
 
     const searchFn = vi.fn(async () => upstashResponseFixture)
     const indexFn = vi.fn((indexName: string) => ({ search: searchFn, indexName }))
@@ -31,8 +24,23 @@ describe('performSearch', () => {
       }
     }
 
+    vi.doMock('@actions/utils/environment/environmentActions', async () => {
+      const actual = await vi.importActual<typeof import('@actions/utils/environment/environmentActions')>(
+        '@actions/utils/environment/environmentActions',
+      )
+
+      return {
+        ...actual,
+        getUpstashUrl,
+        getUpstashPublicToken,
+      }
+    })
+
     vi.doMock('@lib/config/environmentServer', () => ({
-      getOptionalEnv,
+      isUnitTest: vi.fn(() => true),
+      isTest: vi.fn(() => true),
+      isDev: vi.fn(() => false),
+      isProd: vi.fn(() => false),
     }))
     vi.doMock('@upstash/search', () => ({
       Search: SearchMock,
@@ -42,8 +50,8 @@ describe('performSearch', () => {
 
     const response = await performSearch('typescript', 4)
 
-    expect(getOptionalEnv).toHaveBeenCalledWith('PUBLIC_UPSTASH_SEARCH_REST_URL')
-    expect(getOptionalEnv).toHaveBeenCalledWith('PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN')
+    expect(getUpstashUrl).toHaveBeenCalledTimes(1)
+    expect(getUpstashPublicToken).toHaveBeenCalledTimes(1)
     expect(searchConstructor).toHaveBeenCalledWith({ url: 'https://example.upstash.io', token: 'readonly-token' })
     expect(indexFn).toHaveBeenCalledWith('default')
     expect(searchFn).toHaveBeenCalledWith({ query: 'typescript', limit: 4 })
@@ -53,8 +61,28 @@ describe('performSearch', () => {
   it('throws when Search is not configured', async () => {
     vi.resetModules()
 
+    const getUpstashUrl = vi.fn(() => {
+      throw new Error('Search is not configured.')
+    })
+    const getUpstashPublicToken = vi.fn(() => 'readonly-token')
+
+    vi.doMock('@actions/utils/environment/environmentActions', async () => {
+      const actual = await vi.importActual<typeof import('@actions/utils/environment/environmentActions')>(
+        '@actions/utils/environment/environmentActions',
+      )
+
+      return {
+        ...actual,
+        getUpstashUrl,
+        getUpstashPublicToken,
+      }
+    })
+
     vi.doMock('@lib/config/environmentServer', () => ({
-      getOptionalEnv: vi.fn(() => undefined),
+      isUnitTest: vi.fn(() => true),
+      isTest: vi.fn(() => true),
+      isDev: vi.fn(() => false),
+      isProd: vi.fn(() => false),
     }))
     vi.doMock('@upstash/search', () => ({
       Search: vi.fn(),
@@ -63,5 +91,7 @@ describe('performSearch', () => {
     const { performSearch } = await import('../domain')
 
     await expect(performSearch('hello', 2)).rejects.toThrow('Search is not configured.')
+    expect(getUpstashUrl).toHaveBeenCalledTimes(1)
+    expect(getUpstashPublicToken).toHaveBeenCalledTimes(0)
   })
 })

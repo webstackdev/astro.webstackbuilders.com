@@ -4,7 +4,7 @@ const MAX_ERROR_STATUS = 599
 const DEFAULT_ERROR_STATUS = 500
 const RETRYABLE_STATUS_CODES = new Set([408, 425, 429, 500, 502, 503, 504])
 
-export interface ActionsFunctionErrorParams {
+export interface ActionFunctionErrorParams {
   message: string
   stack?: string | undefined
   cause?: unknown
@@ -17,6 +17,8 @@ export interface ActionsFunctionErrorParams {
   details?: Record<string, unknown> | undefined
   retryable?: boolean | undefined
 }
+
+export type ActionsFunctionErrorParams = ActionFunctionErrorParams
 
 const cloneDetails = (details?: Record<string, unknown>): Record<string, unknown> | undefined =>
   details ? { ...details } : undefined
@@ -39,7 +41,7 @@ const normalizeStatus = (status?: number): number => {
 
 const isRetryableStatus = (status: number): boolean => RETRYABLE_STATUS_CODES.has(status)
 
-function normalizeActionsFunctionError(message: unknown): ActionsFunctionErrorParams {
+function normalizeActionFunctionError(message: unknown): ActionFunctionErrorParams {
   if (message instanceof ActionsFunctionError) {
     return message.toParams()
   }
@@ -58,7 +60,7 @@ function normalizeActionsFunctionError(message: unknown): ActionsFunctionErrorPa
   }
 
   if (message && typeof message === 'object') {
-    const params = message as Partial<ActionsFunctionErrorParams>
+    const params = message as Partial<ActionFunctionErrorParams>
     return {
       message:
         typeof params.message === 'string' && params.message.trim()
@@ -96,9 +98,9 @@ export class ActionsFunctionError extends Error {
   correlationId?: string | undefined
   details?: Record<string, unknown> | undefined
 
-  constructor(message?: unknown, context?: Partial<ActionsFunctionErrorParams>) {
-    const normalized = normalizeActionsFunctionError(message)
-    const merged: ActionsFunctionErrorParams = {
+  constructor(message?: unknown, context?: Partial<ActionFunctionErrorParams>) {
+    const normalized = normalizeActionFunctionError(message)
+    const merged: ActionFunctionErrorParams = {
       ...normalized,
       ...(context || {}),
     }
@@ -114,7 +116,6 @@ export class ActionsFunctionError extends Error {
     Object.setPrototypeOf(this, new.target.prototype)
 
     if ('captureStackTrace' in Error) Error.captureStackTrace(this, ActionsFunctionError)
-    if ('stackTraceLimit' in Error) Error.stackTraceLimit = Infinity
 
     this.message = merged.message
     this.cause = merged.cause
@@ -131,14 +132,14 @@ export class ActionsFunctionError extends Error {
     this.details = cloneDetails(merged.details)
   }
 
-  static from(error: unknown, overrides?: Partial<ActionsFunctionErrorParams>): ActionsFunctionError {
+  static from(error: unknown, overrides?: Partial<ActionFunctionErrorParams>): ActionsFunctionError {
     if (error instanceof ActionsFunctionError) {
       return new ActionsFunctionError(error.toParams(), overrides)
     }
     return new ActionsFunctionError(error, overrides)
   }
 
-  toParams(): ActionsFunctionErrorParams {
+  toParams(): ActionFunctionErrorParams {
     return {
       message: this.message,
       stack: this.stack,
@@ -158,3 +159,6 @@ export class ActionsFunctionError extends Error {
     return this.isClientError ? this.message : fallbackMessage
   }
 }
+
+// Backwards-compatible export (older API naming).
+export { ActionsFunctionError as ActionFunctionError }

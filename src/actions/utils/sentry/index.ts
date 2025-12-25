@@ -3,7 +3,7 @@ import { getPackageRelease, getSentryDsn, isDev, isProd } from '@actions/utils/e
 
 let initialized = false
 
-export function ensureActionsSentry(): void {
+export function ensureActionSentry(): void {
   if (initialized) {
     return
   }
@@ -30,5 +30,3 @@ export function ensureActionsSentry(): void {
 
   initialized = true
 }
-
-ensureActionsSentry()

@@ -83,7 +83,7 @@ export function isPreElement(element: unknown): element is HTMLPreElement {
   return false
 }
 
-export function isCodeElement(element: unknown): element is HTMLCodeElement {
+export function isCodeElement(element: unknown): element is HTMLElement {
   if (isType1Element(element) && element[`tagName`] === `CODE`) return true
   return false
 }
