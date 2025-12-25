@@ -105,3 +105,9 @@ Where to upload to?
 ### "Add to Calendar" button
 
 Google Calendar, Apple Calendar,  Microsoft Outlook and Teams, and generate iCal/ics files (for all other calendars and cases).
+
+## Deploy Action
+
+Let's shorten the run() method in main.py a little more to make it more readable:
+
+1. Let's move the deployment_urls logic starting on line 64
