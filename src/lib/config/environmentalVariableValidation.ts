@@ -128,6 +128,24 @@ export const environmentalVariablesConfig: AstroUserConfig['env'] = {
       optional: false,
     }),
     /**
+     * Upstash Search database read-only token for client search queries.
+     */
+    PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN: envField.string({
+      access: 'public',
+      context: 'client',
+      /** Built into the site bundle by Vite */
+      optional: false,
+    }),
+    /**
+     * Upstash Search database REST URL for client search queries.
+     */
+    PUBLIC_UPSTASH_SEARCH_REST_URL: envField.string({
+      access: 'public',
+      context: 'client',
+      /** Built into the site bundle by Vite */
+      optional: false,
+    }),
+    /**
      * Site uses ConvertKit for managing newsletter subscriptions
      */
     WEBMENTION_IO_TOKEN: envField.string({

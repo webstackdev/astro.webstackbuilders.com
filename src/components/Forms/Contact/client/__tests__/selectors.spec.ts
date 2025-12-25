@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { getContactFormElements } from '@components/Forms/Contact/client/selectors'
+import { getContactFormElements, queryContactFormGenericFields } from '@components/Forms/Contact/client/selectors'
 import { renderContactForm } from './testUtils'
 
 describe('ContactForm selectors', () => {
@@ -35,6 +35,28 @@ describe('ContactForm selectors', () => {
       expect(elements.submitBtn.id).toBe('submitBtn')
       expect(elements.btnText.classList.contains('btn-text')).toBe(true)
       expect(elements.btnLoading.classList.contains('btn-loading')).toBe(true)
+    })
+  })
+
+  it('exposes generic fields for validation helpers', async () => {
+    await renderContactForm(() => {
+      const elements = getContactFormElements()
+      const genericFields = queryContactFormGenericFields(elements.form)
+
+      expect(
+        genericFields.some((field) => field.id === 'company'),
+        'Generic fields should include #company for generic validation',
+      ).toBe(true)
+
+      expect(
+        genericFields.some((field) => field.id === 'budget'),
+        'Generic fields should include required #budget for generic validation',
+      ).toBe(true)
+
+      expect(
+        genericFields.some((field) => field.id === 'name'),
+        'Generic fields should still include #name so callers can filter custom fields',
+      ).toBe(true)
     })
   })
 })

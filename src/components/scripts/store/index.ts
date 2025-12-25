@@ -65,10 +65,18 @@ export {
 // Re-export visibility
 export {
   type VisibilityState,
+} from './tableOfContents'
+
+// Re-export consent banner
+export {
+  $consentBanner, // only allowed to use in tests
+  $isConsentBannerVisible,
+  __resetConsentBannerForTests,
+  getConsentBannerVisibility,
   hideConsentBanner,
   showConsentBanner,
   toggleConsentBanner,
-} from './visibility'
+} from './consentBanner'
 
 // Re-export themes
 export {

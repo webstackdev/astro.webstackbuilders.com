@@ -6,13 +6,13 @@ import {
   addLinkEventListeners,
   addWrapperEventListeners,
 } from '@components/scripts/elementListeners'
-import { isDivElement } from '@components/scripts/assertions/elements'
 import {
   hideTableOfContents,
   onVisibilityChange,
   showTableOfContents,
   type VisibilityListener,
-} from '@components/scripts/store/visibility'
+} from '@components/scripts/store/tableOfContents'
+import { getTableOfContentsElements } from './selectors'
 
 export class TableOfContentsElement extends LitElement {
   static registeredName = 'table-of-contents'
@@ -72,10 +72,11 @@ export class TableOfContentsElement extends LitElement {
   }
 
   private cacheElements(): void {
-    this.toggleButton = this.querySelector('[data-toc-toggle]') as HTMLButtonElement | null
-    this.overlay = this.querySelector('[data-toc-overlay]') as HTMLButtonElement | null
-    this.panel = this.querySelector('[data-toc-panel]') as HTMLElement | null
-    this.tocLinks = Array.from(this.querySelectorAll('[data-toc-link]')) as HTMLAnchorElement[]
+    const { toggleButton, overlay, panel, tocLinks } = getTableOfContentsElements(this)
+    this.toggleButton = toggleButton
+    this.overlay = overlay
+    this.panel = panel
+    this.tocLinks = tocLinks
   }
 
   private attachListeners(): void {
@@ -90,10 +91,8 @@ export class TableOfContentsElement extends LitElement {
     }
 
     if (this.panel && !this.panel.dataset['tocEscapeListener']) {
-      if (isDivElement(this.panel)) {
-        addWrapperEventListeners(this.panel, this.handleEscape, this)
-        this.panel.dataset['tocEscapeListener'] = 'true'
-      }
+      addWrapperEventListeners(this.panel, this.handleEscape, this)
+      this.panel.dataset['tocEscapeListener'] = 'true'
     }
 
     this.tocLinks.forEach((link) => {
@@ -110,7 +109,7 @@ export class TableOfContentsElement extends LitElement {
       return false
     }
 
-    if (!('matchMedia' in window)) {
+    if (typeof window.matchMedia !== 'function') {
       return false
     }
 
@@ -173,7 +172,7 @@ export class TableOfContentsElement extends LitElement {
       return
     }
 
-    const firstLink = this.tocLinks.at(0)
+    const firstLink = this.tocLinks[0]
     firstLink?.focus()
   }
 
@@ -233,7 +232,10 @@ export class TableOfContentsElement extends LitElement {
       return
     }
 
-    if (!('IntersectionObserver' in window)) {
+    const IntersectionObserverCtor = (window as unknown as { IntersectionObserver?: typeof IntersectionObserver })
+      .IntersectionObserver
+
+    if (typeof IntersectionObserverCtor !== 'function') {
       return
     }
 
@@ -249,13 +251,13 @@ export class TableOfContentsElement extends LitElement {
       return
     }
 
-    const observer = new window.IntersectionObserver(
+    const observer = new IntersectionObserverCtor(
       (entries) => {
         const visible = entries
           .filter((entry) => entry.isIntersecting)
           .sort((a, b) => (b.intersectionRatio ?? 0) - (a.intersectionRatio ?? 0))
 
-        const next = visible.at(0)?.target
+        const next = visible[0]?.target
         const nextSlug = next instanceof HTMLElement ? next.id : null
         if (!nextSlug || nextSlug === this.activeSlug) {
           return

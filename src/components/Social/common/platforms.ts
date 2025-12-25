@@ -91,10 +91,15 @@ export function getPlatform(id: string): SharePlatform | undefined {
  */
 export async function copyToClipboard(text: string): Promise<boolean> {
   try {
-    await navigator.clipboard.writeText(text)
+    const nav = (globalThis as unknown as { navigator?: Navigator }).navigator
+    const clipboard = nav?.clipboard
+    if (!clipboard || typeof clipboard.writeText !== 'function') {
+      return false
+    }
+
+    await clipboard.writeText(text)
     return true
-  } catch (err) {
-    console.error('Failed to copy to clipboard:', err)
+  } catch {
     return false
   }
 }
@@ -103,22 +108,20 @@ export async function copyToClipboard(text: string): Promise<boolean> {
  * Use Native Share API if available (mobile-first)
  */
 export async function nativeShare(data: ShareData): Promise<boolean> {
-  if (!navigator.share) {
+  const nav = (globalThis as unknown as { navigator?: Navigator }).navigator
+  if (!nav || typeof nav.share !== 'function') {
     return false
   }
 
   try {
-    await navigator.share({
+    await nav.share({
       title: data.title,
       text: data.text,
       url: data.url,
     })
     return true
-  } catch (err) {
+  } catch {
     // AbortError means user cancelled, which is fine
-    if ((err as Error).name !== 'AbortError') {
-      console.error('Native share failed:', err)
-    }
     return false
   }
 }

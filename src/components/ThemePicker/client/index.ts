@@ -22,6 +22,10 @@ import {
   getThemePickerToggleBtn,
   getThemePickerCloseBtn,
   getThemeSelectBtns,
+  queryMetaThemeColor,
+  getThemePickerEmblaNextBtn,
+  getThemePickerEmblaPrevBtn,
+  getThemePickerEmblaViewport,
 } from './selectors'
 import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
@@ -60,9 +64,9 @@ export class ThemePickerElement extends LitElement {
   private closeBtn!: HTMLButtonElement
   private themeSelectBtns!: NodeListOf<HTMLButtonElement>
 
-  private emblaViewport: HTMLElement | null = null
-  private emblaPrevBtn: HTMLButtonElement | null = null
-  private emblaNextBtn: HTMLButtonElement | null = null
+  private emblaViewport!: HTMLDivElement
+  private emblaPrevBtn!: HTMLButtonElement
+  private emblaNextBtn!: HTMLButtonElement
   private emblaApi: EmblaCarouselType | null = null
   private emblaControlsBound = false
   private lastIsOpen: boolean | null = null
@@ -113,7 +117,7 @@ export class ThemePickerElement extends LitElement {
       this.findElements()
 
       // Check if CSS custom properties are supported (guard for non-browser envs like tests)
-      if (typeof CSS === 'undefined' || !CSS.supports('color', 'var(--fake-var)')) {
+      if (typeof CSS === 'undefined' || typeof CSS.supports !== 'function' || !CSS.supports('color', 'var(--fake-var)')) {
         console.log('ThemePicker: CSS custom properties not supported, theme picker disabled')
         return
       }
@@ -163,13 +167,13 @@ export class ThemePickerElement extends LitElement {
     this.closeBtn = getThemePickerCloseBtn(this)
     this.themeSelectBtns = getThemeSelectBtns(this)
 
-    this.emblaViewport = this.querySelector('[data-theme-embla-viewport]')
-    this.emblaPrevBtn = this.querySelector('[data-theme-embla-prev]')
-    this.emblaNextBtn = this.querySelector('[data-theme-embla-next]')
+    this.emblaViewport = getThemePickerEmblaViewport(this)
+    this.emblaPrevBtn = getThemePickerEmblaPrevBtn(this)
+    this.emblaNextBtn = getThemePickerEmblaNextBtn(this)
   }
 
   private syncThemeCarousel(isOpen: boolean, currentTheme: ThemeId): void {
-    const shouldInit = isOpen && !!this.emblaViewport
+    const shouldInit = isOpen
 
     if (!shouldInit) {
       if (this.lastIsOpen) {
@@ -186,7 +190,16 @@ export class ThemePickerElement extends LitElement {
     if (openChanged) {
       this.setupEmbla()
       // Modal just opened; wait a frame so Embla sees correct sizing.
-      requestAnimationFrame(() => {
+      const scheduleNextFrame = (callback: () => void) => {
+        if (typeof requestAnimationFrame === 'function') {
+          requestAnimationFrame(() => callback())
+          return
+        }
+
+        callback()
+      }
+
+      scheduleNextFrame(() => {
         try {
           this.emblaApi?.reInit()
           this.updateEmblaNavState()
@@ -205,7 +218,6 @@ export class ThemePickerElement extends LitElement {
 
   private setupEmbla(): void {
     this.teardownEmbla()
-    if (!this.emblaViewport) return
 
     try {
       this.emblaApi = EmblaCarousel(this.emblaViewport, THEME_PICKER_EMBLA_OPTIONS)
@@ -219,27 +231,23 @@ export class ThemePickerElement extends LitElement {
       emblaWithEvents.on('reInit', this.emblaUpdateHandler)
 
       if (!this.emblaControlsBound) {
-        if (this.emblaPrevBtn) {
-          addButtonEventListeners(this.emblaPrevBtn, (event) => {
-            if (event.cancelable && !event.defaultPrevented) event.preventDefault()
-            try {
-              this.emblaApi?.scrollPrev()
-            } catch (error) {
-              handleScriptError(error, { scriptName: 'ThemePickerElement', operation: 'embla:scrollPrev' })
-            }
-          }, this)
-        }
+        addButtonEventListeners(this.emblaPrevBtn, (event) => {
+          if (event.cancelable && !event.defaultPrevented) event.preventDefault()
+          try {
+            this.emblaApi?.scrollPrev()
+          } catch (error) {
+            handleScriptError(error, { scriptName: 'ThemePickerElement', operation: 'embla:scrollPrev' })
+          }
+        }, this)
 
-        if (this.emblaNextBtn) {
-          addButtonEventListeners(this.emblaNextBtn, (event) => {
-            if (event.cancelable && !event.defaultPrevented) event.preventDefault()
-            try {
-              this.emblaApi?.scrollNext()
-            } catch (error) {
-              handleScriptError(error, { scriptName: 'ThemePickerElement', operation: 'embla:scrollNext' })
-            }
-          }, this)
-        }
+        addButtonEventListeners(this.emblaNextBtn, (event) => {
+          if (event.cancelable && !event.defaultPrevented) event.preventDefault()
+          try {
+            this.emblaApi?.scrollNext()
+          } catch (error) {
+            handleScriptError(error, { scriptName: 'ThemePickerElement', operation: 'embla:scrollNext' })
+          }
+        }, this)
 
         this.emblaControlsBound = true
       }
@@ -430,9 +438,13 @@ export class ThemePickerElement extends LitElement {
       this.toggleBtn.setAttribute('aria-expanded', 'true')
 
       // Wait for next frame so browser processes max-height: 0 before animating to 14em
-      requestAnimationFrame(() => {
+      if (typeof requestAnimationFrame === 'function') {
+        requestAnimationFrame(() => {
+          this.pickerModal.classList.add(CLASSES.isOpen)
+        })
+      } else {
         this.pickerModal.classList.add(CLASSES.isOpen)
-      })
+      }
     } else {
       this.pickerModal.classList.remove(CLASSES.isOpen)
 
@@ -541,7 +553,7 @@ export class ThemePickerElement extends LitElement {
     try {
       if (!window.metaColors) return
 
-      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const metaThemeColor = queryMetaThemeColor(document)
       const color = window.metaColors[themeId]
       if (metaThemeColor && color) {
         metaThemeColor.setAttribute('content', color)

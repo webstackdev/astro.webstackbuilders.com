@@ -3,6 +3,52 @@
  */
 import { ClientScriptError } from '@components/scripts/errors'
 
+const CHECKBOX_SELECTOR = 'input[type="checkbox"]'
+
+/**
+ * Get the consent checkbox input element within a consent-checkbox component.
+ */
+export function getConsentCheckboxInput(scope: ParentNode): HTMLInputElement {
+  const checkbox = scope.querySelector(CHECKBOX_SELECTOR)
+  if (!checkbox || !(checkbox instanceof HTMLInputElement)) {
+    throw new ClientScriptError({
+      message: 'Consent checkbox input not found inside component',
+    })
+  }
+  return checkbox
+}
+
+/**
+ * Get the consent checkbox error element within a consent-checkbox component.
+ */
+export function getConsentCheckboxErrorElement(scope: ParentNode, checkboxId: string): HTMLDivElement {
+  const errorElement = scope.querySelector(`#${checkboxId}-error`)
+  if (!errorElement || !(errorElement instanceof HTMLDivElement)) {
+    throw new ClientScriptError({
+      message: 'Consent checkbox error element not found inside component',
+    })
+  }
+  return errorElement
+}
+
+/**
+ * Query purpose from a descendant node that carries [data-purpose].
+ * Returns null when not present.
+ */
+export function queryConsentCheckboxPurposeData(scope: ParentNode): string | null {
+  const dataSource = scope.querySelector<HTMLElement>('[data-purpose]')
+  return dataSource?.dataset['purpose'] ?? null
+}
+
+/**
+ * Query formId from a descendant node that carries [data-form-id].
+ * Returns null when not present.
+ */
+export function queryConsentCheckboxFormIdData(scope: ParentNode): string | null {
+  const dataSource = scope.querySelector<HTMLElement>('[data-form-id]')
+  return dataSource?.dataset['formId'] ?? null
+}
+
 /**
  * Get the consent checkbox element
  */

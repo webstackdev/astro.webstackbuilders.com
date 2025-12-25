@@ -1,0 +1,16 @@
+---
+export const prerender = false
+
+import BaseLayout from '@layouts/BaseLayout.astro'
+import SearchResults from '@components/Search/SearchResults/index.astro'
+
+const query = (Astro.url.searchParams.get('q') ?? '').trim()
+
+const pageTitle = 'Search'
+const path = '/search'
+const description = 'Search the site.'
+---
+
+<BaseLayout pageTitle={pageTitle} path={path} description={description}>
+	<SearchResults query={query} />
+</BaseLayout>

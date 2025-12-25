@@ -2,6 +2,7 @@
  * Selectors for DownloadForm component elements
  */
 import { ClientScriptError } from '@components/scripts/errors'
+import { isType1Element } from '@components/scripts/assertions/elements'
 
 type SelectorRoot = Document | DocumentFragment | Element
 
@@ -97,4 +98,24 @@ export function getDownloadJobTitleInput(root?: SelectorRoot): HTMLInputElement 
 
 export function getDownloadCompanyNameInput(root?: SelectorRoot): HTMLInputElement {
   return queryInputElement('#companyName', 'Company name input not found', root)
+}
+
+export type DownloadFormInvalidatableControl =
+  | HTMLInputElement
+  | HTMLSelectElement
+  | HTMLTextAreaElement
+
+const CONTROL_SELECTOR = 'input, select, textarea'
+
+export const isDownloadFormInvalidatableControl = (
+  element: unknown,
+): element is DownloadFormInvalidatableControl => {
+  if (!isType1Element(element)) return false
+  return element.tagName === 'INPUT' || element.tagName === 'SELECT' || element.tagName === 'TEXTAREA'
+}
+
+export const queryDownloadFormInvalidatableControls = (
+  form: HTMLFormElement,
+): DownloadFormInvalidatableControl[] => {
+  return Array.from(form.querySelectorAll(CONTROL_SELECTOR)).filter(isDownloadFormInvalidatableControl)
 }

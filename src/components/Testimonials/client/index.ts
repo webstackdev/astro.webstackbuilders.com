@@ -1,9 +1,9 @@
 import EmblaCarousel, { type EmblaCarouselType, type EmblaOptionsType } from 'embla-carousel'
 import Autoplay from 'embla-carousel-autoplay'
 import { addButtonEventListeners } from '@components/scripts/elementListeners'
-import { addScriptBreadcrumb, ClientScriptError } from '@components/scripts/errors'
+import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
-import { isButtonElement, isType1Element } from '@components/scripts/assertions/elements'
+import { isType1Element } from '@components/scripts/assertions/elements'
 import { defineCustomElement } from '@components/scripts/utils'
 import {
   createAnimationController,
@@ -11,6 +11,16 @@ import {
   type AnimationPlayState,
 } from '@components/scripts/store'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
+import {
+  getTestimonialsEmblaSetupElements,
+  queryTestimonialsAutoplayPauseIcon,
+  queryTestimonialsAutoplayPlayIcon,
+  queryTestimonialsAutoplayToggleBtn,
+  queryTestimonialsDotsContainer,
+  queryTestimonialsNextBtn,
+  queryTestimonialsPrevBtn,
+  queryTestimonialsSlides,
+} from './selectors'
 
 const SCRIPT_NAME = 'TestimonialsCarouselElement'
 
@@ -107,22 +117,16 @@ export class TestimonialsCarouselElement extends HTMLElement {
     })
 
     try {
-      const scopedRoot = this.classList.contains('testimonials-embla')
-        ? (this as DebugEmblaElement)
-        : (this.querySelector('.testimonials-embla') as DebugEmblaElement | null)
+      const { emblaRoot, viewport } = getTestimonialsEmblaSetupElements(this)
 
-      this.emblaRoot = scopedRoot ?? null
-      this.viewport = this.querySelector('.embla__viewport')
-      this.dotsContainer = this.querySelector('.embla__dots')
-      this.prevBtn = this.resolveButton('.embla__button--prev')
-      this.nextBtn = this.resolveButton('.embla__button--next')
-      this.autoplayToggleBtn = this.resolveButton('[data-testimonials-autoplay-toggle]')
+      this.emblaRoot = emblaRoot as unknown as DebugEmblaElement
+      this.viewport = viewport
+      this.dotsContainer = queryTestimonialsDotsContainer(this)
+      this.prevBtn = queryTestimonialsPrevBtn(this)
+      this.nextBtn = queryTestimonialsNextBtn(this)
+      this.autoplayToggleBtn = queryTestimonialsAutoplayToggleBtn(this)
 
-      if (!this.emblaRoot || !this.viewport) {
-        throw new ClientScriptError('TestimonialsCarouselElement: Missing DOM nodes for Embla setup')
-      }
-
-      const slideCount = this.querySelectorAll('.embla__slide').length
+      const slideCount = queryTestimonialsSlides(this).length
       const requestedAutoplay = slideCount > 1 ? Autoplay({ ...AUTOPLAY_OPTIONS }) : null
       this.autoplayReady = false
       this.autoplayReadyScheduled = false
@@ -360,7 +364,7 @@ export class TestimonialsCarouselElement extends HTMLElement {
 
       this.intersectionObserver = new IntersectionObserverCtor(
         (entries) => {
-          const entry = entries.at(0)
+          const entry = entries[0]
           const ratio = entry?.intersectionRatio ?? 0
           this.isFullyInViewport = Boolean(entry?.isIntersecting && ratio >= 0.999)
           this.syncAutoplayWithViewport()
@@ -427,8 +431,8 @@ export class TestimonialsCarouselElement extends HTMLElement {
       return
     }
 
-    const pauseIcon = this.autoplayToggleBtn.querySelector('[data-testimonials-icon="pause"]')
-    const playIcon = this.autoplayToggleBtn.querySelector('[data-testimonials-icon="play"]')
+    const pauseIcon = queryTestimonialsAutoplayPauseIcon(this.autoplayToggleBtn)
+    const playIcon = queryTestimonialsAutoplayPlayIcon(this.autoplayToggleBtn)
 
     if (state === 'playing') {
       this.autoplayToggleBtn.setAttribute('aria-label', 'Pause testimonials')
@@ -453,14 +457,6 @@ export class TestimonialsCarouselElement extends HTMLElement {
     const nextId = existingId && existingId.length > 0 ? existingId : `${this.animationInstanceId}-viewport`
     this.viewport.setAttribute('id', nextId)
     this.viewportId = nextId
-  }
-
-  private resolveButton(selector: string): HTMLButtonElement | null {
-    const element = this.querySelector(selector)
-    if (!isButtonElement(element)) {
-      return null
-    }
-    return element
   }
 
   private updateAutoplayState(state: AnimationPlayState): void {

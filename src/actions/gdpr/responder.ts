@@ -2,10 +2,16 @@ import emailValidator from 'email-validator'
 import { validate as uuidValidate } from 'uuid'
 import { ActionError, defineAction } from 'astro:actions'
 import { z } from 'astro:schema'
-import { getPrivacyPolicyVersion } from '@actions/_environment/environmentActions'
-import { checkRateLimit, rateLimiters } from '@actions/_utils/rateLimit'
-import { buildRequestFingerprint, createRateLimitIdentifier } from '@actions/_utils/requestContext'
-import type { ConsentRequest, ConsentResponse, DSARRequest, DSARRequestInput, DSARResponse } from '@actions/_contracts/gdpr.contracts'
+import { getPrivacyPolicyVersion } from '@actions/utils/environment/environmentActions'
+import { checkRateLimit, rateLimiters } from '@actions/utils/rateLimit'
+import { buildRequestFingerprint, createRateLimitIdentifier } from '@actions/utils/requestContext'
+import type {
+  ConsentRequest,
+  ConsentResponse,
+  DSARRequest,
+  DSARRequestInput,
+  DSARResponse
+} from '@actions/gdpr/@types'
 import {
   createConsentRecord,
   deleteConsentRecords,
@@ -21,7 +27,7 @@ import {
   markDsarRequestFulfilled,
 } from '@actions/gdpr/domain/dsarStore'
 import { sendDsarVerificationEmail } from '@actions/gdpr/_dsarVerificationEmails'
-import { deleteNewsletterConfirmationsByEmail } from '@actions/newsletter/action'
+import { deleteNewsletterConfirmationsByEmail } from '@actions/newsletter/_action'
 
 const CONSENT_PURPOSES = ['contact', 'marketing', 'analytics', 'downloads'] as const
 type ConsentPurpose = (typeof CONSENT_PURPOSES)[number]

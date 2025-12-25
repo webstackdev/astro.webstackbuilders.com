@@ -1,0 +1,36 @@
+---
+export interface Props {
+  placeholder?: string
+  initialQuery?: string
+}
+
+const { placeholder = 'Search…', initialQuery = '' } = Astro.props
+---
+
+<search-bar class="relative block" data-testid="search-bar">
+  <form data-search-form class="relative" role="search" aria-label="Site search">
+    <label class="sr-only" for="site-search-input">Search</label>
+    <input
+      id="site-search-input"
+      data-search-input
+      type="search"
+      inputmode="search"
+      autocomplete="off"
+      placeholder={placeholder}
+      value={initialQuery}
+      class="w-full rounded-lg border border-border bg-surface px-4 py-3 text-text placeholder:text-text-offset focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+    />
+  </form>
+
+  <div
+    data-search-results
+    class="absolute left-0 right-0 z-50 mt-2 hidden overflow-hidden rounded-lg border border-border bg-bg shadow-elevated"
+  >
+    <ul data-search-results-list class="divide-y divide-border" aria-label="Search suggestions"></ul>
+  </div>
+
+  <script>
+    import { registerSearchBarComponent } from '@components/Search/SearchBar/client'
+    registerSearchBarComponent()
+  </script>
+</search-bar>

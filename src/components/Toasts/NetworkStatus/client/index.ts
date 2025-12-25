@@ -1,6 +1,7 @@
 import { LitElement, html } from 'lit'
 import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
+import { queryConnectionStatusIndicator } from './selectors'
 
 type ToastType = 'success' | 'error'
 
@@ -73,7 +74,7 @@ export class NetworkStatusToastElement extends LitElement {
       return
     }
 
-    const statusIndicator = document.querySelector('.connection-status')
+    const statusIndicator = queryConnectionStatusIndicator(document)
     if (!statusIndicator) {
       return
     }

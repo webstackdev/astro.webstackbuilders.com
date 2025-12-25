@@ -59,7 +59,7 @@ export default [
        */
       'custom-rules/enforce-centralized-events': 'error',
       'custom-rules/no-html-element-assertions': 'error',
-      'custom-rules/no-query-selector-outside-selectors': 'off', // TODO: Enable after extracting selectors
+      'custom-rules/no-query-selector-outside-selectors': 'off',
       /**
        * Common rule settings for all linted files
        */
@@ -158,6 +158,34 @@ export default [
       'security/detect-object-injection': 'off',
       'security/detect-unsafe-regex': 'off',
       'semi': ['error', 'never'],
+    },
+  },
+
+  /**
+   * =================================================================================================
+   *
+   * Enforce centralized DOM querying in client-side component code.
+   * querySelector/querySelectorAll are only allowed in `selectors.ts` or `*.spec.ts`.
+   *
+   * =================================================================================================
+   */
+
+  {
+    files: [
+      'src/components/**/*.{ts,astro}',
+      'src/components/scripts/**/*.{ts,astro}',
+    ],
+    rules: {
+      'custom-rules/no-query-selector-outside-selectors': [
+        level,
+        {
+          allowedFiles: [
+            'src/components/Head/ThemeInit.astro',
+            'src/components/Copy/client/utils.ts',
+            'src/components/scripts/store/themes.ts',
+          ],
+        },
+      ],
     },
   },
 
@@ -784,7 +812,7 @@ export default [
         {
           paths: [
             {
-              name: '@pages/api/_environment/environmentApi.ts',
+              name: '@pages/api/_utils/environment/environmentApi.ts',
               message: 'Non-API code must not import API-only helpers. Use either client-side or server-side env utilities as appropriate instead.',
             },
           ],

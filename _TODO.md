@@ -67,6 +67,12 @@ cat.text-alternatives: Rules for ensuring that text alternatives are provided fo
 
 Implement mitigations in test/e2e/specs/07-performance/PERFORMANCE.md
 
+## Search UI
+
+- Move search box into header. Should be an icon like theme picker and hamburger menu, and spread out when clicked.
+- On search results page, center results on page
+- Improve indexing and how contents are returned.
+
 ## Email Templates
 
 Right now we're using string literals to define HTML email templates for site mails. We should use Nunjucks with the rule-checking for valid CSS in HTML emails like we have in the corporate email footer repo.
@@ -95,10 +101,6 @@ https://vercel.com/kevin-browns-projects-dd474f73/astro-webstackbuilders-com/ai-
 docs/CONTACT_FORM.md
 
 Where to upload to?
-
-## Search
-
-Add Upstash Search as a Vercel Marketplace Integration.
 
 ### "Add to Calendar" button
 

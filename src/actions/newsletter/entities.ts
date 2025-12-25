@@ -1,7 +1,7 @@
 import { Resend } from 'resend'
-import { getResendApiKey, isProd } from '@actions/_environment/environmentActions'
-import { getSiteUrl } from '@actions/_environment/siteUrlActions'
-import { ActionsFunctionError } from '@actions/_errors/ActionsFunctionError'
+import { getResendApiKey, isProd } from '@actions/utils/environment/environmentActions'
+import { getSiteUrl } from '@actions/utils/environment/siteUrlActions'
+import { ActionsFunctionError } from '@actions/utils/errors/ActionFunctionError'
 
 function getResendClient(): Resend {
   return new Resend(getResendApiKey())

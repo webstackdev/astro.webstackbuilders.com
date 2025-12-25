@@ -1,0 +1,55 @@
+name: Determine Search Index Scope
+description: Determines which site sections should be crawled for Upstash Search based on src/content changes since the last successful production deploy.
+
+inputs:
+  token:
+    description: GitHub token used to call the GitHub API.
+    required: true
+  workflow_file:
+    description: Workflow file name used for production deploy (used to find the last successful deploy run).
+    required: false
+    default: deployment-production.yml
+  base_branch:
+    description: Branch to consider for previous successful deploys.
+    required: false
+    default: main
+  current_run_id:
+    description: Current workflow_run id (used to exclude the triggering run from history).
+    required: true
+  head_sha:
+    description: SHA that was deployed (workflow_run.head_sha).
+    required: true
+  content_root:
+    description: Root directory to gate indexing on.
+    required: false
+    default: src/content/
+
+outputs:
+  should_index:
+    description: Whether indexing should run at all.
+    value: ${{ steps.run.outputs.should_index }}
+  crawl_articles:
+    description: Whether to crawl /articles.
+    value: ${{ steps.run.outputs.crawl_articles }}
+  crawl_services:
+    description: Whether to crawl /services.
+    value: ${{ steps.run.outputs.crawl_services }}
+  crawl_case_studies:
+    description: Whether to crawl /case-studies.
+    value: ${{ steps.run.outputs.crawl_case_studies }}
+
+runs:
+  using: composite
+  steps:
+    - id: run
+      name: Determine scope
+      working-directory: ${{ github.action_path }}
+      env:
+        INPUT_TOKEN: ${{ inputs.token }}
+        INPUT_WORKFLOW_FILE: ${{ inputs.workflow_file }}
+        INPUT_BASE_BRANCH: ${{ inputs.base_branch }}
+        INPUT_CURRENT_RUN_ID: ${{ inputs.current_run_id }}
+        INPUT_HEAD_SHA: ${{ inputs.head_sha }}
+        INPUT_CONTENT_ROOT: ${{ inputs.content_root }}
+      run: python3 src/main.py
+      shell: bash

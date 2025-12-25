@@ -7,8 +7,8 @@ import {
   getNavMenuElement,
   getNavToggleBtnElement,
   getMobileNavFocusContainer,
+  queryNavLinks,
 } from '@components/Navigation/client/selectors'
-import { isAnchorElement } from '@components/scripts/assertions/elements'
 import { addScriptBreadcrumb, ClientScriptError } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { addButtonEventListeners, addLinkEventListeners } from '@components/scripts/elementListeners'
@@ -122,11 +122,9 @@ export class NavigationElement extends LitElement {
     addScriptBreadcrumb(context)
 
     try {
-      const navLinks = this.menu.querySelectorAll('a[href]')
+      const navLinks = queryNavLinks(this.menu)
 
       navLinks.forEach((link) => {
-        if (!isAnchorElement(link)) return
-
         try {
           addLinkEventListeners(link, (event) => {
             event.preventDefault()

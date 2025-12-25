@@ -10,6 +10,11 @@ import {
 } from '@components/scripts/store'
 import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
+import {
+  queryAnimationToggleButton,
+  queryAnimationTogglePauseIcon,
+  queryAnimationTogglePlayIcon,
+} from './selectors'
 
 const SCRIPT_NAME = 'ComputersAnimationElement'
 const COMPONENT_TAG_NAME = 'computers-animation'
@@ -96,7 +101,7 @@ export class ComputersAnimationElement extends LitElement {
 
     try {
       this.startAnimation()
-      this.toggleButton = this.querySelector('[data-animation-toggle]') as HTMLButtonElement | null
+      this.toggleButton = queryAnimationToggleButton(this)
 
       if (this.toggleButton) {
         addButtonEventListeners(this.toggleButton, this.toggleClickHandler, this)
@@ -169,7 +174,7 @@ export class ComputersAnimationElement extends LitElement {
 
       this.intersectionObserver = new IntersectionObserverCtor(
         (entries) => {
-          const entry = entries.at(0)
+          const entry = entries[0]
           const ratio = entry?.intersectionRatio ?? 0
           // Pause as soon as the element is even partially out of view.
           // Only consider it "in viewport" when it is fully visible.
@@ -253,8 +258,8 @@ export class ComputersAnimationElement extends LitElement {
     this.toggleButton.setAttribute('aria-label', state === 'paused' ? 'Play animation' : 'Pause animation')
     this.toggleButton.dataset['animationState'] = state
 
-    const pauseIcon = this.toggleButton.querySelector<HTMLElement>('[data-animation-icon="pause"]')
-    const playIcon = this.toggleButton.querySelector<HTMLElement>('[data-animation-icon="play"]')
+    const pauseIcon = queryAnimationTogglePauseIcon(this.toggleButton)
+    const playIcon = queryAnimationTogglePlayIcon(this.toggleButton)
 
     pauseIcon?.classList.toggle('hidden', state === 'paused')
     playIcon?.classList.toggle('hidden', state === 'playing')
@@ -267,8 +272,8 @@ export class ComputersAnimationElement extends LitElement {
     this.toggleButton.setAttribute('aria-label', 'Pause animation')
     this.toggleButton.setAttribute('aria-pressed', 'false')
 
-    const pauseIcon = this.toggleButton.querySelector<HTMLElement>('[data-animation-icon="pause"]')
-    const playIcon = this.toggleButton.querySelector<HTMLElement>('[data-animation-icon="play"]')
+    const pauseIcon = queryAnimationTogglePauseIcon(this.toggleButton)
+    const playIcon = queryAnimationTogglePlayIcon(this.toggleButton)
 
     pauseIcon?.classList.remove('hidden')
     playIcon?.classList.add('hidden')

@@ -4,6 +4,7 @@ import {
   isAnchorElement,
   isBodyElement,
   isButtonElement,
+  isCodeElement,
   isDivElement,
   isFormElement,
   isHeaderElement,
@@ -13,6 +14,9 @@ import {
   isLabelElement,
   isMetaElement,
   isNavElement,
+  isOrderedListElement,
+  isParagraphElement,
+  isPreElement,
   isShadowRoot,
   isSlotElement,
   isSpanElement,
@@ -37,6 +41,7 @@ describe('element assertions', () => {
     expect(isAnchorElement(createElement('a'))).toBe(true)
     expect(isBodyElement(document.body)).toBe(true)
     expect(isButtonElement(createElement('button'))).toBe(true)
+    expect(isCodeElement(createElement('code'))).toBe(true)
     expect(isDivElement(createElement('div'))).toBe(true)
     expect(isFormElement(createElement('form'))).toBe(true)
     expect(isHeaderElement(createElement('header'))).toBe(true)
@@ -46,6 +51,9 @@ describe('element assertions', () => {
     expect(isLabelElement(createElement('label'))).toBe(true)
     expect(isMetaElement(createElement('meta'))).toBe(true)
     expect(isNavElement(createElement('nav'))).toBe(true)
+    expect(isOrderedListElement(createElement('ol'))).toBe(true)
+    expect(isParagraphElement(createElement('p'))).toBe(true)
+    expect(isPreElement(createElement('pre'))).toBe(true)
     expect(isSlotElement(createElement('slot'))).toBe(true)
     expect(isSpanElement(createElement('span'))).toBe(true)
     expect(isUlElement(createElement('ul'))).toBe(true)

@@ -1,82 +1,108 @@
-/**
- * Type-safe HTML element selectors
- */
-import { ClientScriptError } from '@components/scripts/errors'
 import {
-  isBodyElement,
+  isButtonElement,
   isDivElement,
-  isHtmlElement,
-  isSlotElement,
+  isSpanElement,
+  isType1Element,
 } from '@components/scripts/assertions/elements'
+import { ClientScriptError } from '@components/scripts/errors'
 
-export const queryDocument = (selector: string): Element => {
-  const element = document.querySelector(selector)
-  if (element === null)
-    throw new ClientScriptError({
-      message: `Could not find document element for query selector ${selector}`
-    })
-  return element
+export const SELECTORS = {
+  wrapper: '.highlighter__wrapper',
+  trigger: '.highlighter__trigger',
+  dialog: '.share-dialog',
+  shareButton: '.share-button',
+  copyButton: '.copy-button',
+  status: '[data-highlighter-status]',
+} as const
+
+export const queryHighlighterWrapper = (context: Element): HTMLDivElement | null => {
+  const wrapper = context.querySelector(SELECTORS.wrapper)
+  return isDivElement(wrapper) ? wrapper : null
 }
 
-export const queryAllDocument = (selector: string): NodeListOf<Element> => {
-  const elements = document.querySelectorAll(selector)
-  if (elements.length === 0)
-    throw new ClientScriptError({
-      message: `Could not find any document elements for query selector ${selector}`
-    })
-  return elements
+export const queryHighlighterTrigger = (context: Element): HTMLButtonElement | null => {
+  const trigger = context.querySelector(SELECTORS.trigger)
+  return isButtonElement(trigger) ? trigger : null
 }
 
-/**
- * Getter for the document <body> HTML element
- */
-export const getBodyElement = (): HTMLBodyElement => {
-  if (!isBodyElement(document.body))
-    throw new ClientScriptError({
-      message: `Page is missing a <body> element, is the document empty?`
-    })
-  return document.body
+export const queryShareDialog = (context: Element): HTMLDivElement | null => {
+  const dialog = context.querySelector(SELECTORS.dialog)
+  return isDivElement(dialog) ? dialog : null
 }
 
-/**
- * Getter for the document <html> HTML element
- */
-export const getHtmlElement = (): HTMLHtmlElement => {
-  if (!isHtmlElement(document.documentElement))
-    throw new ClientScriptError({
-      message: `Page is missing a <html> element, is the document XML or XHTML?`
-    })
-  return document.documentElement
+export const queryShareButtons = (context: Element): HTMLButtonElement[] => {
+  return Array.from(context.querySelectorAll(SELECTORS.shareButton)).filter((node): node is HTMLButtonElement =>
+    isButtonElement(node),
+  )
 }
 
-/**
- * Getter for the first HTML <slot> element from a given shadowroot
- */
-export const getSlotElement = (shadowRoot: ShadowRoot): HTMLSlotElement => {
-  const slotElement = shadowRoot.querySelector('slot')
-  if (!isSlotElement(slotElement)) throw new ClientScriptError({
-    message: `<slot> element is missing in shadow root`
-  })
-  return slotElement
+export const queryCopyButton = (context: Element): HTMLButtonElement | null => {
+  const button = context.querySelector(SELECTORS.copyButton)
+  return isButtonElement(button) ? button : null
 }
 
-/**
- * Getter for general <div> HTML element
- */
-export const getDivElement = (selector: string): HTMLDivElement => {
-  const element = document.querySelector(selector)
-  if (!isDivElement(element))
-    throw new ClientScriptError({
-      message: `Could not find <div> element for query selector ${selector}`
-    })
-  return element
+export const queryHighlighterStatus = (context: Element): HTMLSpanElement | null => {
+  const status = context.querySelector(SELECTORS.status)
+  return isSpanElement(status) ? status : null
 }
 
-export const getDivElements = (selector: string): NodeListOf<HTMLDivElement> => {
-  const elements = document.querySelectorAll(selector)
-  if (elements.length === 0)
+export const queryElementById = (context: Element, id: string): Element | null => {
+  const safeId = id.replaceAll('"', '\\"')
+  const element = context.querySelector(`[id="${safeId}"]`)
+  return isType1Element(element) ? element : null
+}
+
+export const getHighlighterRenderElements = (context: Element) => {
+  const wrapper = queryHighlighterWrapper(context)
+  if (!wrapper) {
     throw new ClientScriptError({
-      message: `Could not find any <div> elements for query selector ${selector}`
+      scriptName: 'HighlighterElement',
+      operation: 'getHighlighterRenderElements',
+      message: 'Highlighter wrapper element not found',
     })
-  return elements as NodeListOf<HTMLDivElement>
+  }
+
+  const trigger = queryHighlighterTrigger(context)
+  if (!trigger) {
+    throw new ClientScriptError({
+      scriptName: 'HighlighterElement',
+      operation: 'getHighlighterRenderElements',
+      message: 'Highlighter trigger button not found',
+    })
+  }
+
+  const dialog = queryShareDialog(context)
+  if (!dialog) {
+    throw new ClientScriptError({
+      scriptName: 'HighlighterElement',
+      operation: 'getHighlighterRenderElements',
+      message: 'Highlighter share dialog not found',
+    })
+  }
+
+  const status = queryHighlighterStatus(context)
+  if (!status) {
+    throw new ClientScriptError({
+      scriptName: 'HighlighterElement',
+      operation: 'getHighlighterRenderElements',
+      message: 'Highlighter status element not found',
+    })
+  }
+
+  const shareButtons = queryShareButtons(context)
+  if (shareButtons.length === 0) {
+    throw new ClientScriptError({
+      scriptName: 'HighlighterElement',
+      operation: 'getHighlighterRenderElements',
+      message: 'Highlighter share buttons not found',
+    })
+  }
+
+  return {
+    wrapper,
+    trigger,
+    dialog,
+    status,
+    shareButtons,
+  }
 }

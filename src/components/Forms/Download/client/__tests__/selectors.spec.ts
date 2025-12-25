@@ -10,6 +10,7 @@ import {
   getDownloadStatusDiv,
   getDownloadSubmitButton,
   getDownloadWorkEmailInput,
+  queryDownloadFormInvalidatableControls,
 } from '@components/Forms/Download/client/selectors'
 import {
   isButtonElement,
@@ -193,6 +194,25 @@ describe.each(inputSelectorCases)('$name selector', ({ selector, id, errorMessag
     await renderDownloadForm(async ({ window }) => {
       removeElementById(window.document, id)
       expect(() => selector(window.document)).toThrow(errorMessage)
+    })
+  })
+})
+
+describe('queryDownloadFormInvalidatableControls selector', () => {
+  it('returns input controls from the rendered download form', async () => {
+    await renderDownloadForm(async ({ window }) => {
+      const form = getDownloadFormElement(window.document)
+      const controls = queryDownloadFormInvalidatableControls(form)
+
+      expect(
+        controls.length,
+        'Download form should expose invalidatable controls (input/select/textarea) for aria-invalid sync',
+      ).toBeGreaterThan(0)
+
+      expect(
+        controls.some((control) => control.id === 'firstName'),
+        'Download form invalidatable controls should include #firstName',
+      ).toBe(true)
     })
   })
 })

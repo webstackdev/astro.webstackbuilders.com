@@ -3,13 +3,14 @@ import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { addButtonEventListeners } from '@components/scripts/elementListeners'
 import { copyFromElement } from './utils'
+import { getCopyToClipboardButton, getCopyToClipboardIcon, getCopyToClipboardSuccessIcon } from './selectors'
 
 export class CopyToClipboardElement extends LitElement {
   static registeredName = 'copy-to-clipboard'
 
-  private button: HTMLButtonElement | undefined
-  private copyIcon: HTMLElement | undefined
-  private successIcon: HTMLElement | undefined
+  private button!: HTMLButtonElement
+  private copyIcon!: HTMLElement
+  private successIcon!: HTMLElement
   private resetTimerId: number | undefined
 
   protected override createRenderRoot(): HTMLElement {
@@ -19,7 +20,16 @@ export class CopyToClipboardElement extends LitElement {
   override connectedCallback(): void {
     super.connectedCallback()
 
-    queueMicrotask(() => {
+    const scheduleMicrotask = (callback: () => void) => {
+      if (typeof queueMicrotask === 'function') {
+        queueMicrotask(callback)
+        return
+      }
+
+      void Promise.resolve().then(callback)
+    }
+
+    scheduleMicrotask(() => {
       this.cacheElements()
       this.bindEvents()
       this.resetIcons()
@@ -35,21 +45,12 @@ export class CopyToClipboardElement extends LitElement {
   }
 
   private cacheElements(): void {
-    const button = this.querySelector('[data-copy-to-clipboard-button]')
-    this.button = button instanceof HTMLButtonElement ? button : undefined
-
-    const copyIcon = this.querySelector('[data-copy-to-clipboard-icon]')
-    this.copyIcon = copyIcon instanceof HTMLElement ? copyIcon : undefined
-
-    const successIcon = this.querySelector('[data-copy-to-clipboard-success-icon]')
-    this.successIcon = successIcon instanceof HTMLElement ? successIcon : undefined
+    this.button = getCopyToClipboardButton(this)
+    this.copyIcon = getCopyToClipboardIcon(this)
+    this.successIcon = getCopyToClipboardSuccessIcon(this)
   }
 
   private bindEvents(): void {
-    if (!this.button) {
-      return
-    }
-
     if (!this.button.dataset['copyToClipboardListener']) {
       addButtonEventListeners(this.button, this.handleCopy, this)
       this.button.dataset['copyToClipboardListener'] = 'true'

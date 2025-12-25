@@ -13,6 +13,14 @@ import { addButtonEventListeners, addWrapperEventListeners } from '@components/s
 import { LitElement, html } from 'lit'
 import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
+import {
+  queryCopyButton,
+  queryHighlighterStatus,
+  queryHighlighterTrigger,
+  queryHighlighterWrapper,
+  queryShareButtons,
+  queryShareDialog,
+} from './selectors'
 
 const SCRIPT_NAME = 'Highlighter'
 const COMPONENT_TAG_NAME = 'highlighter-element'
@@ -182,8 +190,8 @@ export class HighlighterElement extends LitElement {
   }
 
   private bindShareButtons(): void {
-    const buttons = this.querySelectorAll<HTMLButtonElement>('.share-button')
-    buttons.forEach(button => {
+    const buttons = queryShareButtons(this)
+    buttons.forEach((button) => {
       if (this.boundButtons.has(button)) return
       addButtonEventListeners(
         button,
@@ -201,7 +209,7 @@ export class HighlighterElement extends LitElement {
   }
 
   private bindTriggerButton(): void {
-    const trigger = this.querySelector<HTMLButtonElement>('.highlighter__trigger')
+    const trigger = queryHighlighterTrigger(this)
     if (!trigger || trigger === this.triggerButton) return
     this.triggerButton = trigger
     addButtonEventListeners(trigger, (event) => {
@@ -211,7 +219,7 @@ export class HighlighterElement extends LitElement {
   }
 
   private bindWrapperListeners(): void {
-    const wrapper = this.querySelector<HTMLDivElement>('.highlighter__wrapper')
+    const wrapper = queryHighlighterWrapper(this)
     if (!wrapper || wrapper === this.wrapperElement) return
     this.wrapperElement = wrapper
     addWrapperEventListeners(wrapper, () => {
@@ -229,11 +237,11 @@ export class HighlighterElement extends LitElement {
   }
 
   private getShareDialogElement(): HTMLElement | null {
-    return this.querySelector('.share-dialog')
+    return queryShareDialog(this)
   }
 
   private getStatusElement(): HTMLElement | null {
-    return this.querySelector<HTMLElement>(`#${this.statusId}`)
+    return queryHighlighterStatus(this)
   }
 
   private announceStatus(message: string): void {
@@ -346,7 +354,7 @@ export class HighlighterElement extends LitElement {
    * Show visual feedback for copy action
    */
   private showCopyFeedback(): void {
-    const copyButton = this.querySelector<HTMLButtonElement>('.copy-button')
+    const copyButton = queryCopyButton(this)
     if (copyButton) {
       const originalHTML = copyButton.innerHTML
       copyButton.innerHTML = `

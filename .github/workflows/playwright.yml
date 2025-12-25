@@ -32,6 +32,8 @@ jobs:
       DISABLE_TELEMETRY: true
       FORCE_COLOR: 3
       PUBLIC_GOOGLE_MAPS_API_KEY: ${{ vars.PUBLIC_GOOGLE_MAPS_API_KEY }}
+      PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN: ${{ vars.PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN }}
+      PUBLIC_UPSTASH_SEARCH_REST_URL: ${{ vars.PUBLIC_UPSTASH_SEARCH_REST_URL }}
       RESEND_API_KEY: ${{ vars.RESEND_API_KEY }}
       RESEND_HTTP_PORT: ${{ vars.RESEND_HTTP_PORT }}
       SENTRY_AUTH_TOKEN: ${{ vars.SENTRY_AUTH_TOKEN }}
@@ -40,10 +42,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6.0.1
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6.1.0
+        uses: actions/setup-node@v4
         with:
           node-version: '22.x'
           cache: 'npm'
@@ -89,7 +91,7 @@ jobs:
 
       - name: Upload Playwright report
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: playwright-report
           path: playwright-report/

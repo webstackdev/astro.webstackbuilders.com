@@ -6,6 +6,13 @@ import CopyAstro from '@components/Copy/index.astro'
 import type { CopyToClipboardElement as CopyToClipboardInstance } from '@components/Copy/client'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { executeRender } from '@test/unit/helpers/litRuntime'
+import {
+  getCopyToClipboardButton,
+  getCopyToClipboardContent,
+  getCopyToClipboardIcon,
+  getCopyToClipboardSuccessIcon,
+  getCopyToClipboardWrapper,
+} from '../selectors'
 
 type CopyComponentModule = WebComponentModule<CopyToClipboardInstance>
 
@@ -27,7 +34,7 @@ describe('CopyToClipboardElement', () => {
       args,
       waitForReady: async (element: CopyToClipboardInstance) => {
         await vi.waitFor(() => {
-          const button = element.querySelector('[data-copy-to-clipboard-button]') as HTMLButtonElement | null
+          const button = getCopyToClipboardButton(element)
           expect(button).toBeTruthy()
           expect(button?.dataset['copyToClipboardListener']).toBe('true')
         })
@@ -58,7 +65,7 @@ describe('CopyToClipboardElement', () => {
         const copied = vi.fn()
         element.addEventListener('clipboard-copy', copied)
 
-        const button = element.querySelector('[data-copy-to-clipboard-button]') as HTMLButtonElement | null
+        const button = getCopyToClipboardButton(element)
         expect(button).toBeTruthy()
 
         button?.click()
@@ -71,8 +78,8 @@ describe('CopyToClipboardElement', () => {
         })
 
         await vi.waitFor(() => {
-          const copyIcon = element.querySelector('[data-copy-to-clipboard-icon]') as HTMLElement | null
-          const successIcon = element.querySelector('[data-copy-to-clipboard-success-icon]') as HTMLElement | null
+          const copyIcon = getCopyToClipboardIcon(element)
+          const successIcon = getCopyToClipboardSuccessIcon(element)
           expect(copyIcon?.hasAttribute('hidden')).toBe(true)
           expect(successIcon?.hasAttribute('hidden')).toBe(false)
         })
@@ -104,7 +111,7 @@ describe('CopyToClipboardElement', () => {
 
         expect(window.document.getElementById('copy-target')?.textContent).toBe('Hello world!')
 
-        const button = element.querySelector('[data-copy-to-clipboard-button]') as HTMLButtonElement | null
+        const button = getCopyToClipboardButton(element)
         expect(button).toBeTruthy()
         expect(button?.getAttribute('for')).toBe('copy-target')
 
@@ -135,10 +142,10 @@ describe('CopyToClipboardElement', () => {
           configurable: true,
         })
 
-        const content = element.querySelector('[data-copy-to-clipboard-content]') as HTMLElement | null
+        const content = getCopyToClipboardContent(element)
         expect(content).toBeTruthy()
 
-        const button = element.querySelector('[data-copy-to-clipboard-button]') as HTMLButtonElement | null
+        const button = getCopyToClipboardButton(element)
         expect(button).toBeTruthy()
 
         content?.click()
@@ -165,11 +172,11 @@ describe('CopyToClipboardElement', () => {
         },
       },
       async ({ element }) => {
-        const wrapper = element.querySelector('[data-copy-to-clipboard-wrapper]') as HTMLElement | null
+        const wrapper = getCopyToClipboardWrapper(element)
         expect(wrapper).toBeTruthy()
         expect(wrapper?.className).toContain('group')
 
-        const button = element.querySelector('[data-copy-to-clipboard-button]') as HTMLButtonElement | null
+        const button = getCopyToClipboardButton(element)
         expect(button).toBeTruthy()
 
         const buttonClass = button?.getAttribute('class') ?? ''
@@ -198,22 +205,18 @@ describe('CopyToClipboardElement', () => {
         },
       },
       async ({ element }) => {
-        const wrapper = element.querySelector('[data-copy-to-clipboard-wrapper]') as HTMLElement | null
+        const wrapper = getCopyToClipboardWrapper(element)
         expect(wrapper).toBeTruthy()
         expect(wrapper?.className).toContain('my-wrapper')
 
-        const button = element.querySelector('[data-copy-to-clipboard-button]') as HTMLButtonElement | null
+        const button = getCopyToClipboardButton(element)
         expect(button).toBeTruthy()
         expect(button?.className).toContain('my-button')
 
-        const copySvg = element
-          .querySelector('[data-copy-to-clipboard-icon] svg')
-          ?.getAttribute('class')
+        const copySvg = getCopyToClipboardIcon(element)?.querySelector('svg')?.getAttribute('class')
         expect(copySvg ?? '').toContain('my-icon')
 
-        const successSvg = element
-          .querySelector('[data-copy-to-clipboard-success-icon] svg')
-          ?.getAttribute('class')
+        const successSvg = getCopyToClipboardSuccessIcon(element)?.querySelector('svg')?.getAttribute('class')
         expect(successSvg ?? '').toContain('my-success-icon')
       },
     )

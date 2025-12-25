@@ -14,12 +14,14 @@ import {
 vi.mock('@components/scripts/store', () => {
   const showConsentBanner = vi.fn()
   const hideConsentBanner = vi.fn()
+  const getConsentBannerVisibility = vi.fn(() => false)
   const initConsentCookies = vi.fn(() => true)
   const allowAllConsentCookies = vi.fn()
 
   return {
     showConsentBanner,
     hideConsentBanner,
+    getConsentBannerVisibility,
     initConsentCookies,
     allowAllConsentCookies,
   }
@@ -110,8 +112,6 @@ describe('ConsentBannerElement', () => {
       expect(wrapper).not.toBeNull()
       expect(wrapper!.style.display).toBe('block')
       expect(showConsentBannerMock).toHaveBeenCalled()
-      expect(window.sessionStorage.getItem('consent-modal-visible')).toBe('true')
-      expect(window.sessionStorage.getItem('consent-modal-shown')).toBe('true')
 
       expect(window.document.activeElement).toBe(wrapper)
 

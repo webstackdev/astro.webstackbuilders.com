@@ -12,6 +12,7 @@ import {
 } from '@components/scripts/store/mastodonInstances'
 import { buildShareUrl } from './config'
 import { getUrlDomain, isMastodonInstance, normalizeURL } from './detector'
+import { getMastodonModalElement, queryMastodonInstanceInput } from './selectors'
 
 const COMPONENT_TAG_NAME = 'mastodon-modal-element'
 
@@ -127,16 +128,20 @@ export class MastodonModalElement extends LitElement {
   }
 
   protected override firstUpdated(): void {
-    const modal = this.querySelector(`#${this.modalId}`) as HTMLDivElement | null
-    if (!modal) {
-      return
-    }
+    const context = { scriptName: 'MastodonModalElement', operation: 'firstUpdated' }
+    addScriptBreadcrumb(context)
 
-    this.focusTrap = createFocusTrap(modal, {
-      escapeDeactivates: true,
-      clickOutsideDeactivates: true,
-      onDeactivate: () => this.closeModal(true),
-    })
+    try {
+      const modal = getMastodonModalElement(this, this.modalId)
+
+      this.focusTrap = createFocusTrap(modal, {
+        escapeDeactivates: true,
+        clickOutsideDeactivates: true,
+        onDeactivate: () => this.closeModal(true),
+      })
+    } catch (error) {
+      handleScriptError(error, context)
+    }
   }
 
   private readonly handleExternalOpen = (event: CustomEvent<{ text: string }>): void => {
@@ -182,7 +187,7 @@ export class MastodonModalElement extends LitElement {
       this.updateComplete
         .then(() => {
           this.focusTrap?.activate()
-          this.querySelector<HTMLInputElement>('#mastodon-instance')?.focus()
+          queryMastodonInstanceInput(this)?.focus()
         })
         .catch((error) => {
           handleScriptError(error, context)

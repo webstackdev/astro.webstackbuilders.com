@@ -14,6 +14,7 @@ import {
   minLengthEmailAddressText,
   missingEmailAddressText,
 } from './errorMessages'
+import { queryContactFormGeneratedFieldError, queryContactFormGenericFields } from './selectors'
 
 type GenericField = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
 
@@ -130,7 +131,7 @@ export const initEmailValidationHandler = (field: FieldElements<HTMLInputElement
 
 const removeExistingError = (field: GenericField): void => {
   field.classList.remove('error')
-  const existing = field.parentNode instanceof HTMLElement ? field.parentNode.querySelector<HTMLElement>('.field-error') : null
+  const existing = queryContactFormGeneratedFieldError(field)
   existing?.remove()
   field.removeAttribute('aria-errormessage')
   field.setAttribute('aria-invalid', 'false')
@@ -193,8 +194,8 @@ export const validateGenericField = (field: GenericField): boolean => {
 }
 
 export const initGenericValidation = (form: HTMLFormElement): void => {
-  const inputs = form.querySelectorAll<GenericField>('input, select, textarea')
-  inputs.forEach(input => {
+  const inputs = queryContactFormGenericFields(form)
+  inputs.forEach((input) => {
     if (CUSTOM_FIELDS.has(input.id)) {
       return
     }
@@ -212,7 +213,7 @@ export const initGenericValidation = (form: HTMLFormElement): void => {
 }
 
 export const validateGenericFields = (form: HTMLFormElement): boolean => {
-  const inputs = form.querySelectorAll<GenericField>('input, select, textarea')
+  const inputs = queryContactFormGenericFields(form)
   return Array.from(inputs).reduce<boolean>((isValid, input) => {
     if (CUSTOM_FIELDS.has(input.id)) {
       return isValid

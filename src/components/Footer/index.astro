@@ -1,6 +1,6 @@
 ---
 import contactData from '@content/contact.json'
-import { absoluteUrl } from '@components/scripts/utils'
+import { getSiteUrl } from '@components/scripts/utils/siteUrlClient'
 import { formatPhoneNumber } from '@components/Footer/server'
 import Avatar from '@components/Avatar/index.astro'
 import Icon from '@components/Icon/index.astro'
@@ -126,7 +126,7 @@ const year = new Date().getFullYear()
       {/* Page footer RSS link */}
       <span class:list={[styles.footerFeedIcon, 'flex items-center w-12 lg:h-12 lg:w-12']}>
         <a
-          href={absoluteUrl('/feed.xml', Astro.site)}
+          href={`${getSiteUrl()}/feed.xml`}
           title="RSS Feed"
           class="text-text [&_.icon]:fill-text! [&_.icon]:stroke-text! [&_.icon]:h-10 [&_.icon]:w-10 hover:[&_.icon]:fill-secondary! hover:[&_.icon]:stroke-secondary! focus:[&_.icon]:fill-secondary! focus:[&_.icon]:stroke-secondary! focus:outline-none"
         >
@@ -141,7 +141,7 @@ const year = new Date().getFullYear()
         &copy; 2018&ndash;{year}
       </span>
       <span class="ml-4">
-        <a rel="me" href={absoluteUrl('/', Astro.site)} class="text-text underline decoration-dotted decoration-text underline-offset-4 hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary focus:outline-none">
+        <a rel="me" href={`${getSiteUrl()}/`} class="text-text underline decoration-dotted decoration-text underline-offset-4 hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary focus:outline-none">
           {contactData.company.name}
         </a>
       </span>

@@ -2,13 +2,18 @@ import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { getGoogleMapsApiKey, isE2eTest } from '@components/scripts/utils/environmentClient'
 import { APILoader } from '@googlemaps/extended-component-library/api_loader.js'
+import {
+  getCompanyMapAddress,
+  queryCompanyMapElement,
+  queryCompanyMapLoaderElement,
+  queryCompanyMapMarkerElement,
+  queryCompanyMapRoots,
+} from './selectors'
 
 type MapInitContext = {
   scriptName: 'Map'
   operation: string
 }
-
-const MAP_SELECTOR = '[data-company-map]'
 
 async function geocodeAddress(address: string): Promise<{ lat: number; lng: number } | null> {
   const geocodingLibrary = await APILoader.importLibrary('geocoding')
@@ -31,10 +36,10 @@ async function geocodeAddress(address: string): Promise<{ lat: number; lng: numb
 }
 
 async function initMapElement(root: HTMLElement): Promise<void> {
-  const loader = root.querySelector('gmpx-api-loader') as APILoader | null
-  const map = root.querySelector('gmp-map')
-  const marker = root.querySelector('gmp-advanced-marker')
-  const address = root.getAttribute('data-address') ?? ''
+  const loader = queryCompanyMapLoaderElement(root)
+  const map = queryCompanyMapElement(root)
+  const marker = queryCompanyMapMarkerElement(root)
+  const address = getCompanyMapAddress(root)
 
   if (!loader || !map || !marker || !address) {
     return
@@ -54,7 +59,7 @@ async function initMapElement(root: HTMLElement): Promise<void> {
 }
 
 async function initAllMaps(): Promise<void> {
-  const maps = Array.from(document.querySelectorAll<HTMLElement>(MAP_SELECTOR))
+  const maps = queryCompanyMapRoots(document)
   if (maps.length === 0) {
     return
   }

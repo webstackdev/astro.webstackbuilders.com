@@ -1,0 +1,137 @@
+name: Search Index Update
+
+on:
+  workflow_run:
+    workflows:
+      - Deploy Production
+    types:
+      - completed
+
+permissions: {}
+
+concurrency:
+  group: search-index-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+
+jobs:
+  upstash-search-index:
+    name: Upstash Search Index
+    runs-on: ubuntu-latest
+    environment: production
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'
+
+    permissions:
+      actions: read
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install Python dependencies
+        run: python3 -m pip install -r requirements.txt
+
+      - name: Determine sections to crawl
+        id: scope
+        uses: ./.github/actions/determine-search-index-scope
+        with:
+          token: ${{ github.token }}
+          workflow_file: deployment-production.yml
+          base_branch: main
+          current_run_id: ${{ github.event.workflow_run.id }}
+          head_sha: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Setup Node.js
+        if: steps.scope.outputs.should_index == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+
+      - name: Validate Upstash credentials
+        if: steps.scope.outputs.should_index == 'true'
+        run: |
+          if [ -z "${{ vars.UPSTASH_SEARCH_REST_URL }}" ]; then
+            echo "Missing UPSTASH_SEARCH_REST_URL variable" >&2
+            exit 1
+          fi
+          if [ -z "${{ secrets.UPSTASH_SEARCH_REST_TOKEN }}" ]; then
+            echo "Missing UPSTASH_SEARCH_REST_TOKEN secret" >&2
+            exit 1
+          fi
+
+      - name: Crawl /articles
+        if: steps.scope.outputs.should_index == 'true' && steps.scope.outputs.crawl_articles == 'true'
+        run: >-
+          npx -y @upstash/search-crawler
+          --upstash-url "${{ vars.UPSTASH_SEARCH_REST_URL }}"
+          --upstash-token "${{ secrets.UPSTASH_SEARCH_REST_TOKEN }}"
+          --index-name "default"
+          --doc-url "https://www.webstackbuilders.com/articles"
+
+      - name: Prune removed /articles
+        if: steps.scope.outputs.should_index == 'true' && steps.scope.outputs.crawl_articles == 'true'
+        uses: ./.github/actions/prune-upstash-search
+        with:
+          github_token: ${{ github.token }}
+          workflow_file: deployment-production.yml
+          base_branch: main
+          current_run_id: ${{ github.event.workflow_run.id }}
+          head_sha: ${{ github.event.workflow_run.head_sha }}
+          upstash_url: ${{ vars.UPSTASH_SEARCH_REST_URL }}
+          upstash_token: ${{ secrets.UPSTASH_SEARCH_REST_TOKEN }}
+          index_name: default
+          site_origin: https://www.webstackbuilders.com
+          collection: articles
+
+      - name: Crawl /services
+        if: steps.scope.outputs.should_index == 'true' && steps.scope.outputs.crawl_services == 'true'
+        run: >-
+          npx -y @upstash/search-crawler
+          --upstash-url "${{ vars.UPSTASH_SEARCH_REST_URL }}"
+          --upstash-token "${{ secrets.UPSTASH_SEARCH_REST_TOKEN }}"
+          --index-name "default"
+          --doc-url "https://www.webstackbuilders.com/services"
+
+      - name: Prune removed /services
+        if: steps.scope.outputs.should_index == 'true' && steps.scope.outputs.crawl_services == 'true'
+        uses: ./.github/actions/prune-upstash-search
+        with:
+          github_token: ${{ github.token }}
+          workflow_file: deployment-production.yml
+          base_branch: main
+          current_run_id: ${{ github.event.workflow_run.id }}
+          head_sha: ${{ github.event.workflow_run.head_sha }}
+          upstash_url: ${{ vars.UPSTASH_SEARCH_REST_URL }}
+          upstash_token: ${{ secrets.UPSTASH_SEARCH_REST_TOKEN }}
+          index_name: default
+          site_origin: https://www.webstackbuilders.com
+          collection: services
+
+      - name: Crawl /case-studies
+        if: steps.scope.outputs.should_index == 'true' && steps.scope.outputs.crawl_case_studies == 'true'
+        run: >-
+          npx -y @upstash/search-crawler
+          --upstash-url "${{ vars.UPSTASH_SEARCH_REST_URL }}"
+          --upstash-token "${{ secrets.UPSTASH_SEARCH_REST_TOKEN }}"
+          --index-name "default"
+          --doc-url "https://www.webstackbuilders.com/case-studies"
+
+      - name: Prune removed /case-studies
+        if: steps.scope.outputs.should_index == 'true' && steps.scope.outputs.crawl_case_studies == 'true'
+        uses: ./.github/actions/prune-upstash-search
+        with:
+          github_token: ${{ github.token }}
+          workflow_file: deployment-production.yml
+          base_branch: main
+          current_run_id: ${{ github.event.workflow_run.id }}
+          head_sha: ${{ github.event.workflow_run.head_sha }}
+          upstash_url: ${{ vars.UPSTASH_SEARCH_REST_URL }}
+          upstash_token: ${{ secrets.UPSTASH_SEARCH_REST_TOKEN }}
+          index_name: default
+          site_origin: https://www.webstackbuilders.com
+          collection: case-studies

@@ -24,7 +24,7 @@ import {
   getAnalyticsConsentPreference,
   initConsentSideEffects,
 } from '@components/scripts/store/consent'
-import { $isConsentBannerVisible } from '@components/scripts/store/visibility'
+import { $isConsentBannerVisible } from '@components/scripts/store/consentBanner'
 
 // Mock js-cookie
 vi.mock('js-cookie', () => ({

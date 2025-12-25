@@ -9,7 +9,7 @@ import { validate as uuidValidate } from 'uuid'
 import { getCookie, removeCookie, setCookie } from '@components/scripts/utils/cookies'
 import { ClientScriptError } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
-import { $isConsentBannerVisible } from '@components/scripts/store/visibility'
+import { $isConsentBannerVisible } from '@components/scripts/store/consentBanner'
 import { getOrCreateDataSubjectId, deleteDataSubjectId } from '@components/scripts/utils/dataSubjectId'
 
 // ============================================================================

@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { and, db, dsarRequests, eq, gt, isNull } from 'astro:db'
-import type { DSARRequestInput } from '@actions/_contracts/gdpr.contracts'
+import type { DSARRequestInput } from '@actions/gdpr/@types'
 
 export type DsarRequestRecord = typeof dsarRequests.$inferSelect
 

@@ -68,6 +68,26 @@ export function isLabelElement(element: unknown): element is HTMLLabelElement {
   return false
 }
 
+export function isOrderedListElement(element: unknown): element is HTMLOListElement {
+  if (isType1Element(element) && element[`tagName`] === `OL`) return true
+  return false
+}
+
+export function isParagraphElement(element: unknown): element is HTMLParagraphElement {
+  if (isType1Element(element) && element[`tagName`] === `P`) return true
+  return false
+}
+
+export function isPreElement(element: unknown): element is HTMLPreElement {
+  if (isType1Element(element) && element[`tagName`] === `PRE`) return true
+  return false
+}
+
+export function isCodeElement(element: unknown): element is HTMLElement {
+  if (isType1Element(element) && element[`tagName`] === `CODE`) return true
+  return false
+}
+
 export function isMetaElement(element: unknown): element is HTMLMetaElement {
   if (isType1Element(element) && element[`tagName`] === `META`) return true
   return false

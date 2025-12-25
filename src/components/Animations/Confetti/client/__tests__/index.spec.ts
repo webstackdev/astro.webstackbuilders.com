@@ -155,6 +155,29 @@ describe('ConfettiAnimationElement', () => {
     })
   })
 
+  it('degrades silently when confetti cannot initialize (unsupported canvas/worker)', async () => {
+    const originalImplementation = confettiCreateMock.getMockImplementation()
+
+    try {
+      confettiCreateMock.mockImplementation(() => {
+        throw new Error('canvas-confetti unsupported')
+      })
+
+      await renderConfetti(async ({ element }) => {
+        element.fire()
+
+        expect(handleScriptErrorMock, 'Confetti should not report errors for unsupported environments').not.toHaveBeenCalled()
+        expect(confettiInstanceMock, 'Confetti should not fire when no instance is available').not.toHaveBeenCalled()
+      })
+    } finally {
+      if (originalImplementation) {
+        confettiCreateMock.mockImplementation(originalImplementation)
+      } else {
+        confettiCreateMock.mockReset().mockImplementation(() => confettiInstanceMock)
+      }
+    }
+  })
+
   it('skips firing when controller pauses animations', async () => {
     await renderConfetti(async ({ element }) => {
       element.initialize()

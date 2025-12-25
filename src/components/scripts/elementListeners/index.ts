@@ -94,7 +94,7 @@ export const addLinkEventListeners = (
 }
 
 export const addWrapperEventListeners = (
-  element: HTMLDivElement,
+  element: HTMLElement,
   handler: eventHandler,
   context?: unknown,
 ) => {
