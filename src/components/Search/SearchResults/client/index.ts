@@ -96,12 +96,7 @@ export class SearchResultsElement extends LitElement {
 				'text-lg font-semibold text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary'
 			link.textContent = hit.title
 
-			const url = document.createElement('div')
-			url.className = 'text-sm text-text-offset break-all'
-			url.textContent = hit.url
-
 			li.appendChild(link)
-			li.appendChild(url)
 
 			if (hit.snippet) {
 				const snippet = document.createElement('p')

@@ -1,5 +1,13 @@
 import type { DefaultSearchResult, SearchHit } from '@actions/search/@types'
 
+const getExcerpt = (value: unknown, maxLength = 200): string | undefined => {
+  if (typeof value !== 'string') return undefined
+  const normalized = value.replace(/\s+/g, ' ').trim()
+  if (!normalized) return undefined
+  if (normalized.length <= maxLength) return normalized
+  return `${normalized.slice(0, Math.max(0, maxLength - 1))}…`
+}
+
 export const mapUpstashSearchResults = (raw: unknown, fallbackQuery: string): SearchHit[] => {
   const results: DefaultSearchResult = (() => {
     if (Array.isArray(raw)) {
@@ -28,8 +36,8 @@ export const mapUpstashSearchResults = (raw: unknown, fallbackQuery: string): Se
       const titleValue = (content['title'] ?? content['name'] ?? item.id) as unknown
       const title = typeof titleValue === 'string' && titleValue.trim() ? titleValue : fallbackQuery
 
-      const snippetValue = (content['description'] ?? content['excerpt'] ?? content['summary']) as unknown
-      const snippet = typeof snippetValue === 'string' && snippetValue.trim() ? snippetValue : undefined
+      const snippetValue = (content['description'] ?? content['excerpt'] ?? content['summary'] ?? content['fullContent']) as unknown
+      const snippet = getExcerpt(snippetValue)
 
       const hit: SearchHit = { title, url }
       if (snippet) {

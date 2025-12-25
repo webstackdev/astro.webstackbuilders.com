@@ -13,7 +13,8 @@ describe('mapUpstashSearchResults', () => {
       url: 'https://www.webstackbuilders.com/articles/typescript-best-practices',
       score: 1,
     })
-    expect(hits[0]).not.toHaveProperty('snippet')
+    expect(hits[0]?.snippet).toEqual(expect.any(String))
+    expect(hits[0]?.snippet?.length).toBeGreaterThan(0)
   })
 
   it('accepts a { results } wrapper shape', () => {
