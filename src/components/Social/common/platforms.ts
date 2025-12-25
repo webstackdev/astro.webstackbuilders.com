@@ -120,7 +120,7 @@ export async function nativeShare(data: ShareData): Promise<boolean> {
       url: data.url,
     })
     return true
-  } catch (err) {
+  } catch {
     // AbortError means user cancelled, which is fine
     return false
   }

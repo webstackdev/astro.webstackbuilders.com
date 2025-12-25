@@ -99,19 +99,3 @@ Where to upload to?
 ### "Add to Calendar" button
 
 Google Calendar, Apple Calendar,  Microsoft Outlook and Teams, and generate iCal/ics files (for all other calendars and cases).
-
-## Selector files and tests
-
-Let's add unit tests for both Search component's selectors.ts file. We should import the index.astro layout file using Astro's container API, following the pattern in components/Test webComponent. Do not use fixtures. The purpose of these tests is to detect when the layout implementation changes and selectors are broken, so fixtures are worthless.
-
-After these two, I want to go through several of the Lit web components we've added recently and make the same update - factoring selectors out to a selectors.ts file, and adding unit tests to verify the implementation stays in sync with code.
-
-### Lint rules
-
-1. Add lint that querySelector and querySelectorAll must be either in a file named "selectors.ts" or a file with *.spec.ts ending its file name.
-
-Exceptions:
-
-- src/components/Head/ThemeInit.astro
-
-2. Update ESLint rules to apply same rules to src/actions that we have for src/pages/api

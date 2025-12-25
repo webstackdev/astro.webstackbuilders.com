@@ -1,5 +1,6 @@
 export function registerCodeTabsWebComponent(): void {
-  const registry = (globalThis as unknown as { customElements?: CustomElementRegistry }).customElements
+  const globalRef = globalThis as unknown as { customElements?: CustomElementRegistry; window?: Window }
+  const registry = globalRef.customElements ?? globalRef.window?.customElements
   if (!registry) return
 
   try {
@@ -13,6 +14,12 @@ export function registerCodeTabsWebComponent(): void {
 import { addButtonEventListeners } from '@components/scripts/elementListeners'
 import copyIcon from '../../../../icons/copy.svg?raw'
 import checkIcon from '../../../../icons/check.svg?raw'
+import {
+  queryCheckIconElement,
+  queryCodeBlocks,
+  queryCodeElement,
+  queryCopyIconElement,
+} from './selectors'
 
 function getIconMarkup(svgRaw: string): string {
   // Ensure the icon inherits currentColor and sizing via Tailwind classes.
@@ -22,7 +29,7 @@ function getIconMarkup(svgRaw: string): string {
 }
 
 function getCodeText(pre: HTMLPreElement): string {
-  const code = pre.querySelector('code')
+  const code = queryCodeElement(pre)
   const text = (code?.textContent ?? pre.textContent ?? '').replace(/\n$/, '')
   return text
 }
@@ -36,32 +43,10 @@ async function writeToClipboard(text: string): Promise<boolean> {
       return true
     }
   } catch {
-    // Continue to fallback.
-  }
-
-  try {
-    if (typeof document === 'undefined' || typeof document.execCommand !== 'function') {
-      return false
-    }
-
-    const textarea = document.createElement('textarea')
-    textarea.value = text
-    textarea.setAttribute('readonly', '')
-    textarea.style.position = 'fixed'
-    textarea.style.left = '-9999px'
-    textarea.style.top = '0'
-    textarea.style.opacity = '0'
-
-    document.body.appendChild(textarea)
-    textarea.select()
-    textarea.setSelectionRange(0, textarea.value.length)
-
-    const copied = document.execCommand('copy')
-    textarea.remove()
-    return copied
-  } catch {
     return false
   }
+
+  return false
 }
 
 class CodeTabsElement extends HTMLElement {
@@ -74,7 +59,7 @@ class CodeTabsElement extends HTMLElement {
     if (this.dataset['enhanced'] === 'true') return
     this.dataset['enhanced'] = 'true'
 
-    this.codeBlocks = Array.from(this.querySelectorAll(':scope > pre'))
+    this.codeBlocks = queryCodeBlocks(this)
 
     if (this.codeBlocks.length === 0) return
 
@@ -199,8 +184,8 @@ class CodeTabsElement extends HTMLElement {
   }
 
   private toggleCopiedState(button: HTMLButtonElement, copied: boolean): void {
-    const copy = button.querySelector('[data-code-tabs-copy-icon="copy"]')
-    const check = button.querySelector('[data-code-tabs-copy-icon="check"]')
+    const copy = queryCopyIconElement(button)
+    const check = queryCheckIconElement(button)
 
     copy?.classList.toggle('hidden', copied)
     check?.classList.toggle('hidden', !copied)

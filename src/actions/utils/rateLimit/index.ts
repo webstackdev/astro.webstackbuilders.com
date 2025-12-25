@@ -1,6 +1,6 @@
 import { isDbError } from 'astro:db'
-import { isProd } from '@actions/_environment/environmentActions'
-import { withRateLimitWindow } from '@actions/_utils/rateLimitStore'
+import { isProd } from '@actions/utils/environment/environmentActions'
+import { withRateLimitWindow } from './store'
 
 export type RateLimiter = {
   limit: (_identifier: string) => Promise<{ success: boolean; reset: number | undefined }>

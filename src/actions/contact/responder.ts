@@ -3,9 +3,9 @@ import { Resend } from 'resend'
 import emailValidator from 'email-validator'
 import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
 import { ActionError, defineAction } from 'astro:actions'
-import { checkContactRateLimit } from '@actions/_utils/rateLimit'
-import { buildRequestFingerprint, createRateLimitIdentifier } from '@actions/_utils/requestContext'
-import { getPrivacyPolicyVersion, getResendApiKey, isProd } from '@actions/_environment/environmentActions'
+import { checkContactRateLimit } from '@actions/utils/rateLimit'
+import { buildRequestFingerprint, createRateLimitIdentifier } from '@actions/utils/requestContext'
+import { getPrivacyPolicyVersion, getResendApiKey, isProd } from '@actions/utils/environment/environmentActions'
 import { createConsentRecord } from '@actions/gdpr/domain/consentStore'
 
 type ContactFormData = {

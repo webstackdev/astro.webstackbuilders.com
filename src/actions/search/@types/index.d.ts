@@ -5,10 +5,32 @@ export type SearchHit = {
   score?: number
 }
 
-export type UpstashSearchResult = {
-  id?: string
-  score?: number
-  document?: Record<string, unknown>
-  content?: Record<string, unknown>
-  metadata?: Record<string, unknown>
+export interface SearchContent {
+  fullContent?: string
+  title?: string
+  url?: string
+  path?: string
+  description?: string
+  excerpt?: string
+  summary?: string
+  name?: string
 }
+
+export interface SearchMetadata {
+  contentLength?: number
+  crawledAt?: string
+  path?: string
+  url?: string
+}
+
+export type SearchDocument<TContent, TMetadata> = {
+  id: string
+  content: TContent
+  metadata?: TMetadata
+  score: number
+}
+
+export type SearchResult<TContent, TMetadata> = Array<SearchDocument<TContent, TMetadata>>
+
+export type DefaultSearchResult = SearchResult<SearchContent, SearchMetadata>
+

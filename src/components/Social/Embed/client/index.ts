@@ -612,7 +612,7 @@ class EmbedInstance {
 
   private encodeCacheKeyFragment(value: string): string {
     try {
-      const btoaFn = (globalThis as unknown as { btoa?: (input: string) => string }).btoa
+      const btoaFn = (globalThis as unknown as { btoa?: (_input: string) => string }).btoa
       if (typeof btoaFn !== 'function') {
         return encodeURIComponent(value)
       }
@@ -628,7 +628,7 @@ class EmbedInstance {
       }
 
       // Fallback for older engines without TextEncoder.
-      return btoaFn(unescape(encodeURIComponent(value)))
+      return encodeURIComponent(value)
     } catch {
       return encodeURIComponent(value)
     }

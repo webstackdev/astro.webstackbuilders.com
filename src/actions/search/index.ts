@@ -1,8 +1,8 @@
 import { ActionError, defineAction } from 'astro:actions'
 import { z } from 'astro:schema'
-import type { SearchHit } from './@types'
 import { performSearch } from './domain'
 import { mapUpstashSearchResults } from './responder'
+import type { SearchHit } from './@types'
 
 const inputSchema = z.object({
   q: z.string().trim().min(2),
@@ -15,9 +15,9 @@ export const search = {
     input: inputSchema,
     handler: async (input): Promise<{ hits: SearchHit[] }> => {
       try {
-        const results = await performSearch(input.q, input.limit ?? 8)
+        const raw = await performSearch(input.q, input.limit ?? 8)
         return {
-          hits: mapUpstashSearchResults(results, input.q),
+          hits: mapUpstashSearchResults(raw, input.q),
         }
       } catch (error) {
         throw new ActionError({

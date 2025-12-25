@@ -22,6 +22,7 @@ import {
   getConsentCloseBtn,
   getConsentCustomizeLink,
   getConsentWrapper,
+  queryConsentFocusableElements,
 } from '@components/Consent/Banner/client/selectors'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
@@ -308,16 +309,15 @@ export class ConsentBannerElement extends HTMLElement {
     addScriptBreadcrumb(context)
 
     try {
-      const focusableElements = this.wrapper.querySelectorAll(
-        'a[href], button, textarea, input[type="text"], input[type="radio"], input[type="checkbox"], select, [tabindex]:not([tabindex="-1"])'
-      )
-
+      const focusableElements = queryConsentFocusableElements(this.wrapper)
       if (focusableElements.length === 0) return
 
       const firstFocusable = focusableElements[0]
       const lastFocusable = focusableElements[focusableElements.length - 1]
 
-      if (!(firstFocusable instanceof HTMLElement) || !(lastFocusable instanceof HTMLElement)) return
+      if (!firstFocusable || !lastFocusable) {
+        return
+      }
 
       this.trapFocusHandler = (event: Event) => {
         const keyEvent = event as KeyboardEvent

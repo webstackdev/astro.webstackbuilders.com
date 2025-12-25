@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { and, db, eq, isNull, newsletterConfirmations } from 'astro:db'
-import { ActionsFunctionError } from '@actions/_errors/ActionsFunctionError'
+import { ActionsFunctionError } from '@actions/utils/errors/ActionsFunctionError'
 
 export interface PendingSubscription {
   email: string

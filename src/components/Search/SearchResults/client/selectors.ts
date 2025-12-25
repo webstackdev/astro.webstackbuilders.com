@@ -1,4 +1,4 @@
-import { isInputElement, isType1Element } from '@components/scripts/assertions/elements'
+import { isInputElement, isOrderedListElement, isParagraphElement } from '@components/scripts/assertions/elements'
 import { ClientScriptError } from '@components/scripts/errors'
 
 export const SELECTORS = {
@@ -13,7 +13,7 @@ export const SELECTORS = {
  */
 export function getSearchResultsElements(context: Element) {
   const meta = context.querySelector(SELECTORS.meta)
-  if (!(meta instanceof HTMLParagraphElement)) {
+  if (!isParagraphElement(meta)) {
     throw new ClientScriptError({
       scriptName: 'SearchResultsElement',
       operation: 'getSearchResultsElements',
@@ -22,7 +22,7 @@ export function getSearchResultsElements(context: Element) {
   }
 
   const error = context.querySelector(SELECTORS.error)
-  if (!(error instanceof HTMLParagraphElement)) {
+  if (!isParagraphElement(error)) {
     throw new ClientScriptError({
       scriptName: 'SearchResultsElement',
       operation: 'getSearchResultsElements',
@@ -31,7 +31,7 @@ export function getSearchResultsElements(context: Element) {
   }
 
   const resultsList = context.querySelector(SELECTORS.resultsList)
-  if (!(isType1Element(resultsList) && resultsList.tagName === 'OL')) {
+  if (!isOrderedListElement(resultsList)) {
     throw new ClientScriptError({
       scriptName: 'SearchResultsElement',
       operation: 'getSearchResultsElements',

@@ -1,14 +1,14 @@
-import type { SearchHit, UpstashSearchResult } from '@actions/search/@types'
+import type { DefaultSearchResult, SearchHit } from '@actions/search/@types'
 
 export const mapUpstashSearchResults = (raw: unknown, fallbackQuery: string): SearchHit[] => {
-  const results: UpstashSearchResult[] = (() => {
+  const results: DefaultSearchResult = (() => {
     if (Array.isArray(raw)) {
-      return raw as UpstashSearchResult[]
+      return raw as DefaultSearchResult
     }
 
     if (raw && typeof raw === 'object' && 'results' in raw) {
       const value = (raw as { results?: unknown }).results
-      return Array.isArray(value) ? (value as UpstashSearchResult[]) : []
+      return Array.isArray(value) ? (value as DefaultSearchResult) : []
     }
 
     return []
@@ -18,7 +18,7 @@ export const mapUpstashSearchResults = (raw: unknown, fallbackQuery: string): Se
 
   return results
     .map((item): SearchHit | null => {
-      const content = item.document ?? item.content ?? {}
+      const content = item.content ?? {}
       const metadata = item.metadata ?? {}
 
       const urlValue = (content['url'] ?? content['path'] ?? metadata['url'] ?? metadata['path'] ?? item.id) as unknown

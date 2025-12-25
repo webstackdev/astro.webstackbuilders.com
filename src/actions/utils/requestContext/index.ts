@@ -1,3 +1,24 @@
+/**
+ * Request context helpers for actions.
+ *
+ * This module builds a stable, privacy-aware request fingerprint that can be used for
+ * coarse-grained concerns like rate limiting (e.g. "per route + per visitor") without
+ * requiring user accounts.
+ *
+ * How it works:
+ * - Reads the `consent_functional` cookie to decide whether raw identifiers (IP address
+ * / user agent) may be included.
+ * - Extracts the best-effort client IP from common proxy/CDN headers (`x-forwarded-for`, `cf-connecting-ip`, etc.).
+ * - Uses `clientAddress` as a fallback when the runtime provides an address out-of-band.
+ * - Hashes identifiers with SHA-256 using a per-route salt (`route`) so the same identifier
+ * yields different hashes per route.
+ * - Does not store/return raw values unless functional consent is present.
+ * - Chooses a single fingerprint preferring `ipHash`, falling back to `userAgentHash`.
+ *
+ * Notes:
+ * - Fingerprints are for aggregation/rate limiting only; they are not authentication.
+ * - Header-based IP extraction is best-effort and can be spoofed depending on deployment.
+ */
 import { createHash } from 'node:crypto'
 import type { AstroCookies } from 'astro'
 

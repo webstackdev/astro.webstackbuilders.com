@@ -46,3 +46,11 @@ export const getConsentCustomizeLink = () => {
   }
   return customizeLink
 }
+
+export const queryConsentFocusableElements = (scope: ParentNode): HTMLElement[] => {
+  const focusableElements = scope.querySelectorAll(
+    'a[href], button, textarea, input[type="text"], input[type="radio"], input[type="checkbox"], select, [tabindex]:not([tabindex="-1"])'
+  )
+
+  return Array.from(focusableElements).filter((node): node is HTMLElement => node instanceof HTMLElement)
+}

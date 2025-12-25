@@ -1,6 +1,6 @@
 import { Search } from '@upstash/search'
-import { getOptionalEnv } from '@lib/config/environmentServer'
-
+import { getOptionalEnv } from '@actions/utils/environment/environmentActions'
+import type { SearchContent, SearchMetadata, SearchResult } from './@types'
 
 const getUpstashSearchConfig = (): { url: string; token: string } => {
   const url = getOptionalEnv('PUBLIC_UPSTASH_SEARCH_REST_URL')
@@ -13,11 +13,11 @@ const getUpstashSearchConfig = (): { url: string; token: string } => {
   return { url, token }
 }
 
-export const performSearch = async (q: string, limit = 8): Promise<SearchHit[]> => {
+export const performSearch = async (q: string, limit = 8): Promise<SearchResult<SearchContent, SearchMetadata>> => {
   const { url, token } = getUpstashSearchConfig()
   const client = new Search({ url, token })
 
   const response = await client.index('default').search({ query: q, limit })
 
-  return mapUpstashSearchResults(response, q)
+  return response
 }

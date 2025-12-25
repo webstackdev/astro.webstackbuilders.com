@@ -34,18 +34,6 @@ export interface ConsentResponse {
   record: ConsentRecord
 }
 
-export interface ErrorResponse {
-  success: false
-  error: {
-    code: string
-    message: string
-    requestId?: string
-    correlationId?: string
-    retryable?: boolean
-    details?: Record<string, unknown>
-  }
-}
-
 export interface DSARRequest {
   id: string
   token: string

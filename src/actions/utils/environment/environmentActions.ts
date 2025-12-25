@@ -1,4 +1,4 @@
-import { ActionsFunctionError } from '@actions/_errors/ActionsFunctionError'
+import { ActionsFunctionError } from '@actions/utils/errors/ActionsFunctionError'
 import { getOptionalEnv, isUnitTest } from '@lib/config/environmentServer'
 export {
   isCI,
@@ -8,6 +8,8 @@ export {
   isUnitTest,
   isVercel,
 } from '@lib/config/environmentServer'
+
+export { getOptionalEnv } from '@lib/config/environmentServer'
 
 export const isDev = () => {
   return import.meta.env.MODE === 'development'

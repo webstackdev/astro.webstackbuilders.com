@@ -42,18 +42,12 @@ describe('SearchResults selectors', () => {
       assert: async ({ element }) => {
         const { meta, error, resultsList, input } = getSearchResultsElements(element)
 
-        expect(meta, 'SearchResults should render a meta <p> with [data-search-meta]').toBeInstanceOf(
-          HTMLParagraphElement,
-        )
-        expect(error, 'SearchResults should render an error <p> with [data-search-error]').toBeInstanceOf(
-          HTMLParagraphElement,
-        )
+          expect(meta.tagName, 'SearchResults should render a meta <p> with [data-search-meta]').toBe('P')
+          expect(error.tagName, 'SearchResults should render an error <p> with [data-search-error]').toBe('P')
         expect(resultsList.tagName, 'SearchResults list with ol[data-search-results] should be an <ol>').toBe(
           'OL',
         )
-        expect(input, 'SearchResults should include a search input with [data-search-input]').toBeInstanceOf(
-          HTMLInputElement,
-        )
+          expect(input.tagName, 'SearchResults should include a search input with [data-search-input]').toBe('INPUT')
       },
     })
   })
