@@ -4,7 +4,18 @@ import { ActionsFunctionError } from '@actions/utils/errors'
 import { escapeHtml, formatFileSize } from './utils'
 import type { ContactFormData, ContactTimeline, FileAttachment } from '@actions/contact/@types'
 
-export const contactTimelineValues: ContactTimeline[] = ['asap', '1-month', '2-3-months', '3-6-months', '6-months-plus', 'flexible'] as const
+export const contactTimelineValues = [
+  'asap',
+  '1-month',
+  '2-3-months',
+  '3-6-months',
+  '6-months-plus',
+  'flexible',
+] as const satisfies readonly [ContactTimeline, ...ContactTimeline[]]
+
+export const isAllowedTimeline = (timeline: string): timeline is ContactTimeline => {
+  return (contactTimelineValues as readonly string[]).includes(timeline)
+}
 
 const readInputString = (input: Record<string, unknown>, key: string): string => {
   const value = input[key]
