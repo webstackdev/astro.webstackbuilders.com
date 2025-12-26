@@ -91,9 +91,10 @@ runs:
   steps:
     - name: Deploy to Vercel
       id: deploy
-      run: python3 ${{ github.action_path }}/src/main.py
+      run: python3 "$ACTION_PATH/src/main.py"
       shell: bash
       env:
+        ACTION_PATH: ${{ github.action_path }}
         INPUT_GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
         INPUT_VERCEL_TOKEN: ${{ inputs.VERCEL_TOKEN }}
         INPUT_VERCEL_PROJECT_ID: ${{ inputs.VERCEL_PROJECT_ID }}
