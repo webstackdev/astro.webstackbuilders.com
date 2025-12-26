@@ -38,6 +38,11 @@ def _mask_secrets(ctx) -> None:
     add_mask(ctx.public_upstash_search_readonly_token)
 
 
+def _is_github_comment_permission_error(error: Exception) -> bool:
+    message = str(error)
+    return "failed (403)" in message and "Resource not accessible by integration" in message
+
+
 def _handle_untrusted_fork_pr(ctx, github: GitHubClient) -> bool:
     if not ctx.is_fork:
         return False
@@ -49,11 +54,18 @@ def _handle_untrusted_fork_pr(ctx, github: GitHubClient) -> bool:
         **@{ctx.user}** This repository's deployment workflow does not deploy forked pull requests.
     """
 
-    comment = github.create_comment(body)
-    log_info(f"Comment created: {comment.get('html_url')}")
+    try:
+        comment = github.create_comment(body)
+        log_info(f"Comment created: {comment.get('html_url')}")
+        set_output("COMMENT_CREATED", "true")
+    except Exception as exc:
+        if _is_github_comment_permission_error(exc):
+            log_warning(f"Unable to comment on PR (permission denied): {exc}")
+            set_output("COMMENT_CREATED", "false")
+        else:
+            raise
 
     set_output("DEPLOYMENT_CREATED", "false")
-    set_output("COMMENT_CREATED", "true")
     log_info("Done")
     return True
 
@@ -111,26 +123,48 @@ def _create_pr_comment_body(*, ctx, preview_url: str, inspector_url: str) -> str
     """
 
 
-def _handle_pr_comment_and_labels(*, ctx, github: GitHubClient, preview_url: str, inspector_url: str) -> None:
+def _handle_pr_comment_and_labels(*, ctx, github: GitHubClient, preview_url: str, inspector_url: str) -> bool:
     if not ctx.is_pr:
-        return
+        return False
 
-    log_info("Checking for existing comment on PR")
-    deleted_comment_id = github.delete_existing_comment()
-    if deleted_comment_id:
-        log_info(f"Deleted existing comment #{deleted_comment_id}")
+    try:
+        log_info("Checking for existing comment on PR")
+        deleted_comment_id = github.delete_existing_comment()
+        if deleted_comment_id:
+            log_info(f"Deleted existing comment #{deleted_comment_id}")
+    except Exception as exc:
+        if _is_github_comment_permission_error(exc):
+            log_warning(f"Unable to manage PR comments (permission denied): {exc}")
+            return False
+        raise
 
-    log_info("Creating new comment on PR")
-    body = _create_pr_comment_body(ctx=ctx, preview_url=preview_url, inspector_url=inspector_url)
-    comment = github.create_comment(body)
-    log_info(f"Comment created: {comment.get('html_url')}")
+    comment_created = False
+    try:
+        log_info("Creating new comment on PR")
+        body = _create_pr_comment_body(ctx=ctx, preview_url=preview_url, inspector_url=inspector_url)
+        comment = github.create_comment(body)
+        log_info(f"Comment created: {comment.get('html_url')}")
+        comment_created = True
+    except Exception as exc:
+        if _is_github_comment_permission_error(exc):
+            log_warning(f"Unable to create PR comment (permission denied): {exc}")
+            return False
+        raise
 
     if ctx.pr_labels:
-        log_info("Adding label(s) to PR")
-        labels = github.add_labels(ctx.pr_labels)
-        names = [str((label or {}).get("name") or "").strip() for label in labels]
-        names = [name for name in names if name]
-        log_info(f"Label(s) \"{', '.join(names)}\" added")
+        try:
+            log_info("Adding label(s) to PR")
+            labels = github.add_labels(ctx.pr_labels)
+            names = [str((label or {}).get("name") or "").strip() for label in labels]
+            names = [name for name in names if name]
+            log_info(f"Label(s) \"{', '.join(names)}\" added")
+        except Exception as exc:
+            if _is_github_comment_permission_error(exc):
+                log_warning(f"Unable to add PR labels (permission denied): {exc}")
+            else:
+                raise
+
+    return comment_created
 
 
 def run() -> None:
@@ -188,7 +222,7 @@ def run() -> None:
             log_info('Changing GitHub deployment status to "success"')
             github.update_deployment("success", preview_url)
 
-            _handle_pr_comment_and_labels(
+            comment_created = _handle_pr_comment_and_labels(
                 ctx=ctx,
                 github=github,
                 preview_url=preview_url,
@@ -203,7 +237,7 @@ def run() -> None:
             if inspector_url:
                 set_output("DEPLOYMENT_INSPECTOR_URL", inspector_url)
             set_output("DEPLOYMENT_CREATED", "true")
-            set_output("COMMENT_CREATED", "true" if ctx.is_pr else "false")
+            set_output("COMMENT_CREATED", "true" if comment_created else "false")
 
             log_info("Done")
         except Exception as exc:

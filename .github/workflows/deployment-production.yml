@@ -6,7 +6,12 @@ on:
       - main
   workflow_dispatch:
 
-permissions: {}
+permissions:
+  actions: read
+  contents: read
+  deployments: write
+  issues: write
+  pull-requests: write
 
 jobs:
   deploy-production:
@@ -27,6 +32,7 @@ jobs:
       contents: read
       deployments: write
       issues: write
+      pull-requests: write
 
     steps:
       - name: Checkout repository
