@@ -34,6 +34,17 @@ def choose_event(events: set[str]) -> str:
   return "push"
 
 
+def _is_debug_enabled(*, environ: dict[str, str], variables: dict[str, str]) -> bool:
+  def _is_one(value: str) -> bool:
+    return value.strip() == "1"
+
+  if _is_one(environ.get("DEBUG", "")):
+    return True
+  if _is_one(variables.get("DEBUG", "")):
+    return True
+  return False
+
+
 def write_temp_secrets_file(secrets: dict[str, str], *, temp_paths: TempPaths | None = None) -> Path:
   temp_paths = temp_paths or default_temp_paths()
   fd, file_path = tempfile.mkstemp(prefix="gh-act-secrets-", suffix=".env")
@@ -76,6 +87,7 @@ def build_act_invocations(
   temp_paths: TempPaths | None = None,
 ) -> list[list[str]]:
   temp_paths = temp_paths or default_temp_paths()
+  environ = environ or dict(os.environ)
 
   workflow_file = workflow_path(repo_root, workflow_name)
   if not workflow_file.exists():
@@ -130,6 +142,9 @@ def build_act_invocations(
     if not var_file.exists():
       raise ValueError(f"Missing variables file for environment '{environment}': {var_file}")
 
+    variables = parse_key_value_file(var_file)
+    debug_enabled = _is_debug_enabled(environ=environ, variables=variables)
+
     combined_secrets: dict[str, str] = {}
     combined_secrets.update(shared)
     combined_secrets.update(parse_key_value_file(env_secret_file(repo_root, environment)))
@@ -153,10 +168,18 @@ def build_act_invocations(
         "gh",
         "act",
         event_name,
+      ]
+      if debug_enabled:
+        cmd.append("--verbose")
+        # `--var-file` controls the `vars.*` context, not process env.
+        # Also pass DEBUG into the container env so action code can detect it.
+        cmd.extend(["--env", "DEBUG=1"])
+
+      cmd.extend([
         "--pull=false",
         "--var-file",
         str(var_file),
-      ]
+      ])
 
       secret_file_to_use = secret_file_by_environment.get(environment)
       if secret_file_to_use is not None:
@@ -176,7 +199,11 @@ def build_act_invocations(
       invocations.append(cmd)
 
   if not invocations:
-    cmd = ["gh", "act", event_name, "--pull=false", "-W", str(workflow_file)]
+    cmd = ["gh", "act", event_name]
+    if _is_debug_enabled(environ=environ, variables={}):
+      cmd.append("--verbose")
+      cmd.extend(["--env", "DEBUG=1"])
+    cmd.extend(["--pull=false", "-W", str(workflow_file)])
     if event_payload is not None:
       cmd.extend(["-e", str(event_payload)])
     invocations.append(cmd)

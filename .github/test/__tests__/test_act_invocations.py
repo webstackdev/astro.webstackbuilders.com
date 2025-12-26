@@ -47,8 +47,8 @@ jobs:
   )
 
   _write(repo_root / ".github" / "test" / "events" / "push.events.json", "{}\n")
-  _write(repo_root / ".github" / "test" / "env" / ".env.github.production.variables", "FOO=bar\n")
-  _write(repo_root / ".github" / "test" / "env" / ".env.github.testing.variables", "BAZ=qux\n")
+  _write(repo_root / ".github" / "test" / "env" / ".env.github.production.variables", "FOO=bar\nDEBUG=1\n")
+  _write(repo_root / ".github" / "test" / "env" / ".env.github.testing.variables", "BAZ=qux\nDEBUG=1\n")
   _write(repo_root / ".github" / "test" / "env" / ".env", "# shared\n")
 
   temp_paths = TempPaths()
@@ -57,6 +57,8 @@ jobs:
   assert len(invocations) == 2
   all_cmds = "\n".join(" ".join(cmd) for cmd in invocations)
   assert "gh act push" in all_cmds
+  assert "--verbose" in all_cmds
+  assert "--env DEBUG=1" in all_cmds
   assert "--pull=false" in all_cmds
   assert "-W" in all_cmds
   assert str(repo_root / ".github" / "workflows" / "cron.yml") in all_cmds
@@ -126,7 +128,7 @@ jobs:
   _write(repo_root / ".github" / "test" / "inputs" / "manual.json", "{\"inputs\": {\"thing\": \"x\"}}\n")
 
   # jobs_to_environment is {run: None} so environment defaults to testing
-  _write(repo_root / ".github" / "test" / "env" / ".env.github.testing.variables", "X=1\n")
+  _write(repo_root / ".github" / "test" / "env" / ".env.github.testing.variables", "X=1\nDEBUG=1\n")
 
   invocations = build_act_invocations(repo_root=repo_root, workflow_name="manual", temp_paths=TempPaths())
   assert len(invocations) == 1
@@ -134,6 +136,8 @@ jobs:
   cmd = invocations[0]
   joined = " ".join(cmd)
   assert "gh act workflow_dispatch" in joined
+  assert "--verbose" in joined
+  assert "--env DEBUG=1" in joined
   assert "-e" in joined
   assert str(repo_root / ".github" / "test" / "inputs" / "manual.json") in joined
 
@@ -152,7 +156,7 @@ jobs:
     runs-on: ubuntu-latest
 """,
   )
-  _write(repo_root / ".github" / "test" / "env" / ".env.github.testing.variables", "X=1\n")
+  _write(repo_root / ".github" / "test" / "env" / ".env.github.testing.variables", "X=1\nDEBUG=1\n")
 
   event_payload_path = repo_root / ".github" / "test" / "events" / "push.events.json"
   assert event_payload_path.exists() is False
@@ -161,4 +165,54 @@ jobs:
   assert event_payload_path.exists() is True
 
   cmd = " ".join(invocations[0])
+  assert "--verbose" in cmd
+  assert "--env DEBUG=1" in cmd
   assert str(event_payload_path) in cmd
+
+
+def test_build_act_invocations_no_verbose_without_debug(tmp_path: Path) -> None:
+  build_act_invocations, _, TempPaths = _import_act_invocations()
+
+  repo_root = tmp_path
+  _write(
+    repo_root / ".github" / "workflows" / "push_only.yml",
+    """name: PushOnly
+on:
+  push:
+jobs:
+  run:
+    runs-on: ubuntu-latest
+""",
+  )
+  _write(repo_root / ".github" / "test" / "env" / ".env.github.testing.variables", "X=1\n")
+  _write(repo_root / ".github" / "test" / "events" / "push.events.json", "{}\n")
+
+  invocations = build_act_invocations(repo_root=repo_root, workflow_name="push_only", temp_paths=TempPaths())
+  assert len(invocations) == 1
+  assert "--verbose" not in " ".join(invocations[0])
+  assert "--env DEBUG=1" not in " ".join(invocations[0])
+
+
+def test_build_act_invocations_verbose_from_shell_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+  build_act_invocations, _, TempPaths = _import_act_invocations()
+
+  repo_root = tmp_path
+  _write(
+    repo_root / ".github" / "workflows" / "push_only.yml",
+    """name: PushOnly
+on:
+  push:
+jobs:
+  run:
+    runs-on: ubuntu-latest
+""",
+  )
+  _write(repo_root / ".github" / "test" / "env" / ".env.github.testing.variables", "X=1\n")
+  _write(repo_root / ".github" / "test" / "events" / "push.events.json", "{}\n")
+  monkeypatch.setenv("DEBUG", "1")
+
+  invocations = build_act_invocations(repo_root=repo_root, workflow_name="push_only", temp_paths=TempPaths())
+  assert len(invocations) == 1
+  joined = " ".join(invocations[0])
+  assert "--verbose" in joined
+  assert "--env DEBUG=1" in joined
