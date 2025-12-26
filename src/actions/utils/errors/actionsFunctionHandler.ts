@@ -55,7 +55,7 @@ export function handleActionsFunctionError(error: unknown, context: ActionsFunct
   if (context.requestId !== undefined) overrides.requestId = context.requestId
   if (context.correlationId !== undefined) overrides.correlationId = context.correlationId
   if (context.status !== undefined) overrides.status = context.status
-  if (context.code !== undefined) overrides.code = context.code
+  if (context.code !== undefined) overrides.appCode = context.code
 
   const normalizedError = ActionsFunctionError.from(error, overrides)
 

@@ -199,7 +199,7 @@ export async function sendConfirmationEmail(email: string, token: string, firstN
       console.error('[Newsletter Email] Failed to send confirmation:', result.error)
       throw new ActionsFunctionError({
         message: `Failed to send confirmation email: ${result.error.message}`,
-        code: 'NEWSLETTER_CONFIRMATION_EMAIL_FAILED',
+        appCode: 'NEWSLETTER_CONFIRMATION_EMAIL_FAILED',
         status: 502,
         route: 'actions:newsletter',
         operation: 'sendConfirmationEmail',
@@ -209,7 +209,7 @@ export async function sendConfirmationEmail(email: string, token: string, firstN
     console.error('[Newsletter Email] Error sending confirmation:', error)
     throw new ActionsFunctionError(error, {
       message: 'Failed to send confirmation email. Please try again later.',
-      code: 'NEWSLETTER_CONFIRMATION_EMAIL_FAILED',
+      appCode: 'NEWSLETTER_CONFIRMATION_EMAIL_FAILED',
       status: 502,
       route: 'actions:newsletter',
       operation: 'sendConfirmationEmail',
@@ -361,7 +361,7 @@ Questions? Reply to this email or contact us at hello@webstackbuilders.com
       console.error('[Newsletter Email] Failed to send welcome email:', result.error)
       throw new ActionsFunctionError({
         message: `Failed to send welcome email: ${result.error.message}`,
-        code: 'NEWSLETTER_WELCOME_EMAIL_FAILED',
+        appCode: 'NEWSLETTER_WELCOME_EMAIL_FAILED',
         status: 502,
         route: 'actions:newsletter',
         operation: 'sendWelcomeEmail',
@@ -371,7 +371,7 @@ Questions? Reply to this email or contact us at hello@webstackbuilders.com
     console.error('[Newsletter Email] Error sending welcome email:', error)
     throw new ActionsFunctionError(error, {
       message: 'Failed to send welcome email. Please try again later.',
-      code: 'NEWSLETTER_WELCOME_EMAIL_FAILED',
+      appCode: 'NEWSLETTER_WELCOME_EMAIL_FAILED',
       status: 502,
       route: 'actions:newsletter',
       operation: 'sendWelcomeEmail',

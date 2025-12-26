@@ -1,10 +1,11 @@
 import emailValidator from 'email-validator'
 import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
-import { ActionError, defineAction } from 'astro:actions'
+import { defineAction } from 'astro:actions'
 import { z } from 'astro:schema'
 import { getConvertkitApiKey, getPrivacyPolicyVersion, isProd } from '@actions/utils/environment/environmentActions'
 import { checkRateLimit, rateLimiters } from '@actions/utils/rateLimit'
 import { buildRequestFingerprint, createRateLimitIdentifier } from '@actions/utils/requestContext'
+import { ActionsFunctionError, handleActionsFunctionError, throwActionError } from '@actions/utils/errors'
 import { createConsentRecord, markConsentRecordsVerified } from '@actions/gdpr/domain/consentStore'
 import { createPendingSubscription, confirmSubscription } from './_action'
 import { sendConfirmationEmail, sendWelcomeEmail } from '@actions/newsletter/entities'
@@ -40,15 +41,15 @@ type ConvertKitErrorResponse = {
 
 function validateEmail(email: string): string {
   if (!email) {
-    throw new ActionError({ code: 'BAD_REQUEST', message: 'Email address is required.' })
+    throw new ActionsFunctionError('Email address is required.', { status: 400 })
   }
 
   if (email.length > 254) {
-    throw new ActionError({ code: 'BAD_REQUEST', message: 'Email address is too long' })
+    throw new ActionsFunctionError('Email address is too long', { status: 400 })
   }
 
   if (!emailValidator.validate(email)) {
-    throw new ActionError({ code: 'BAD_REQUEST', message: 'Email address is invalid' })
+    throw new ActionsFunctionError('Email address is invalid', { status: 400 })
   }
 
   return email.trim().toLowerCase()
@@ -93,22 +94,19 @@ export async function subscribeToConvertKit(data: NewsletterFormData): Promise<C
   if (response.status === 401) {
     const errorData = responseData as ConvertKitErrorResponse
     console.error('ConvertKit API authentication failed:', errorData.errors)
-    throw new ActionError({
-      code: 'BAD_GATEWAY',
-      message: 'Newsletter service configuration error. Please contact support.',
-    })
+    throw new ActionsFunctionError('Newsletter service configuration error. Please contact support.', { status: 502 })
   }
 
   if (response.status === 422) {
     const errorData = responseData as ConvertKitErrorResponse
-    throw new ActionError({ code: 'BAD_REQUEST', message: errorData.errors[0] || 'Invalid email address' })
+    throw new ActionsFunctionError(errorData.errors[0] || 'Invalid email address', { status: 400 })
   }
 
   if (response.status === 200 || response.status === 201 || response.status === 202) {
     return responseData as ConvertKitResponse
   }
 
-  throw new ActionError({ code: 'BAD_GATEWAY', message: 'An unexpected error occurred. Please try again later.' })
+  throw new ActionsFunctionError('An unexpected error occurred. Please try again later.', { status: 502 })
 }
 
 const subscribeSchema = z.object({
@@ -130,67 +128,73 @@ export const newsletter = {
       body: z.infer<typeof subscribeSchema>,
       context,
     ): Promise<{ success: true; message: string; requiresConfirmation: true }> => {
-      const { fingerprint } = buildRequestFingerprint({
-        route: '/_actions/newsletter/subscribe',
-        request: context.request,
-        cookies: context.cookies,
-        clientAddress: context.clientAddress,
-      })
+      const route = '/_actions/newsletter/subscribe'
 
-      const rateLimitIdentifier = createRateLimitIdentifier('newsletter:consent', fingerprint)
-      const { success, reset } = await checkRateLimit(rateLimiters.consent, rateLimitIdentifier)
-
-      if (!success) {
-        const retryAfterMs = typeof reset === 'number' ? Math.max(0, reset - Date.now()) : 0
-        const retryAfterSeconds = Math.max(1, Math.ceil(retryAfterMs / 1000))
-        throw new ActionError({ code: 'TOO_MANY_REQUESTS', message: `Try again in ${retryAfterSeconds}s` })
-      }
-
-      const validatedEmail = validateEmail(body.email)
-
-      if (!body.consentGiven) {
-        throw new ActionError({
-          code: 'BAD_REQUEST',
-          message: 'You must consent to receive marketing emails to subscribe.',
+      try {
+        const { fingerprint } = buildRequestFingerprint({
+          route,
+          request: context.request,
+          cookies: context.cookies,
+          clientAddress: context.clientAddress,
         })
-      }
 
-      const userAgent = context.request.headers.get('user-agent') || 'unknown'
+        const rateLimitIdentifier = createRateLimitIdentifier('newsletter:consent', fingerprint)
+        const { success, reset } = await checkRateLimit(rateLimiters.consent, rateLimitIdentifier)
 
-      let subjectId = body.DataSubjectId
-      if (!subjectId) {
-        subjectId = uuidv4()
-      } else if (!uuidValidate(subjectId)) {
-        throw new ActionError({ code: 'BAD_REQUEST', message: 'Invalid DataSubjectId format' })
-      }
+        if (!success) {
+          const retryAfterMs = typeof reset === 'number' ? Math.max(0, reset - Date.now()) : 0
+          const retryAfterSeconds = Math.max(1, Math.ceil(retryAfterMs / 1000))
+          throw new ActionsFunctionError(`Try again in ${retryAfterSeconds}s`, { status: 429 })
+        }
 
-      await createConsentRecord({
-        dataSubjectId: subjectId,
-        email: validatedEmail,
-        purposes: ['marketing'],
-        source: 'newsletter_form',
-        userAgent,
-        ipAddress: context.clientAddress && context.clientAddress !== 'unknown' ? context.clientAddress : null,
-        privacyPolicyVersion: getPrivacyPolicyVersion(),
-        consentText: null,
-        verified: false,
-      })
+        const validatedEmail = validateEmail(body.email)
 
-      const token = await createPendingSubscription({
-        email: validatedEmail,
-        ...(body.firstName && { firstName: body.firstName }),
-        DataSubjectId: subjectId,
-        userAgent,
-        ...(context.clientAddress && context.clientAddress !== 'unknown' && { ipAddress: context.clientAddress }),
-        source: 'newsletter_form',
-      })
+        if (!body.consentGiven) {
+          throw new ActionsFunctionError('You must consent to receive marketing emails to subscribe.', { status: 400 })
+        }
 
-      await sendConfirmationEmail(validatedEmail, token, body.firstName)
+        const userAgent = context.request.headers.get('user-agent') || 'unknown'
 
-      return {
-        success: true,
-        message: 'Please check your email to confirm your subscription.',
-        requiresConfirmation: true,
+        let subjectId = body.DataSubjectId
+        if (!subjectId) {
+          subjectId = uuidv4()
+        } else if (!uuidValidate(subjectId)) {
+          throw new ActionsFunctionError('Invalid DataSubjectId format', { status: 400 })
+        }
+
+        await createConsentRecord({
+          dataSubjectId: subjectId,
+          email: validatedEmail,
+          purposes: ['marketing'],
+          source: 'newsletter_form',
+          userAgent,
+          ipAddress: context.clientAddress && context.clientAddress !== 'unknown' ? context.clientAddress : null,
+          privacyPolicyVersion: getPrivacyPolicyVersion(),
+          consentText: null,
+          verified: false,
+        })
+
+        const token = await createPendingSubscription({
+          email: validatedEmail,
+          ...(body.firstName && { firstName: body.firstName }),
+          DataSubjectId: subjectId,
+          userAgent,
+          ...(context.clientAddress && context.clientAddress !== 'unknown' && { ipAddress: context.clientAddress }),
+          source: 'newsletter_form',
+        })
+
+        await sendConfirmationEmail(validatedEmail, token, body.firstName)
+
+        return {
+          success: true,
+          message: 'Please check your email to confirm your subscription.',
+          requiresConfirmation: true,
+        }
+      } catch (error) {
+        if (error instanceof ActionsFunctionError) {
+          throw error
+        }
+        throwActionError(error, { route, operation: 'subscribe' })
       }
     },
   }),
@@ -215,7 +219,7 @@ export const newsletter = {
       try {
         await sendWelcomeEmail(subscription.email, subscription.firstName)
       } catch (emailError) {
-        console.error('[newsletter.confirm] welcome email failed:', emailError)
+        handleActionsFunctionError(emailError, { route: '/_actions/newsletter/confirm', operation: 'sendWelcomeEmail' })
       }
 
       try {
@@ -224,7 +228,7 @@ export const newsletter = {
           ...(subscription.firstName ? { firstName: subscription.firstName } : {}),
         })
       } catch (convertKitError) {
-        console.error('[newsletter.confirm] convertkit subscribe failed:', convertKitError)
+        handleActionsFunctionError(convertKitError, { route: '/_actions/newsletter/confirm', operation: 'subscribeToConvertKit' })
       }
 
       return {

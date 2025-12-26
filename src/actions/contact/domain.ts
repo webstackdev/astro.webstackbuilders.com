@@ -1,10 +1,10 @@
 import { Buffer } from 'node:buffer'
 import emailValidator from 'email-validator'
-import { ActionError } from 'astro:actions'
+import { ActionsFunctionError } from '@actions/utils/errors'
 import { escapeHtml, formatFileSize } from './utils'
 import type { ContactFormData, FileAttachment } from '@actions/contact/@types'
 
-export  function generateEmailContent(data: ContactFormData, files: FileAttachment[]): string {
+export function generateEmailContent(data: ContactFormData, files: FileAttachment[]): string {
   const fields = [
     `<p><strong>Name:</strong> ${escapeHtml(data.name)}</p>`,
     `<p><strong>Email:</strong> ${escapeHtml(data.email)}</p>`,
@@ -68,15 +68,15 @@ export async function parseAttachments(form: FormData): Promise<FileAttachment[]
       fileCount++
 
       if (fileCount > maxFiles) {
-        throw new ActionError({ code: 'BAD_REQUEST', message: `Maximum ${maxFiles} files allowed` })
+        throw new ActionsFunctionError(`Maximum ${maxFiles} files allowed`, { status: 400 })
       }
 
       if (value.size > maxFileSize) {
-        throw new ActionError({ code: 'BAD_REQUEST', message: `File ${value.name} exceeds 10MB limit` })
+        throw new ActionsFunctionError(`File ${value.name} exceeds 10MB limit`, { status: 400 })
       }
 
       if (!allowedTypes.includes(value.type)) {
-        throw new ActionError({ code: 'BAD_REQUEST', message: `File type ${value.type} not allowed` })
+        throw new ActionsFunctionError(`File type ${value.type} not allowed`, { status: 400 })
       }
 
       const buffer = Buffer.from(await value.arrayBuffer())
