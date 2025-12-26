@@ -3,12 +3,7 @@ import { actions } from 'astro:actions'
 import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { getSearchResultsElements } from './selectors'
-
-type SearchHit = {
-	title: string
-	url: string
-	snippet?: string
-}
+import type { SearchHit } from '@actions/search/@types'
 
 const MIN_QUERY_LENGTH = 2
 
@@ -139,18 +134,26 @@ export class SearchResultsElement extends LitElement {
 
 		this.setText(this.meta, 'Searching…')
 
-		try {
-			const result = await actions.search.query({ q: query, limit: this.limit })
-			const hits = (result?.data?.hits ?? []) as SearchHit[]
+		const { data, error } = await actions.search.query({ q: query, limit: this.limit })
 
-			this.renderResults(hits)
-			this.setText(this.meta, `${hits.length} result${hits.length === 1 ? '' : 's'} for ${query}`)
-		} catch (error) {
+		// @TODO: Improve this error handling to be more user friendly. Should look at the types of errors that could occur, and give the user an idea of what to do.
+		if (error) {
 			const message = error instanceof Error ? error.message : 'Search failed.'
 			this.renderResults([])
 			this.setText(this.meta, '')
 			this.showError(message)
+			return
 		}
+
+		if (!data) {
+			this.renderResults([])
+			this.setText(this.meta, '')
+			return
+		}
+
+		const hits = (data.hits ?? []) as SearchHit[]
+		this.renderResults(hits)
+		this.setText(this.meta, `${hits.length} result${hits.length === 1 ? '' : 's'} for ${query}`)
 	}
 }
 

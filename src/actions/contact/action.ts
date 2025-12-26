@@ -1,14 +1,70 @@
 import { Resend } from 'resend'
 import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
 import { ActionError, defineAction } from 'astro:actions'
+import { z } from 'astro/zod'
 import { checkContactRateLimit } from '@actions/utils/rateLimit'
 import { buildRequestFingerprint, createRateLimitIdentifier } from '@actions/utils/requestContext'
 import { getPrivacyPolicyVersion, getResendApiKey, isProd } from '@actions/utils/environment/environmentActions'
 import { ActionsFunctionError, throwActionError } from '@actions/utils/errors'
 import { createConsentRecord } from '@actions/gdpr/domain/consentStore'
-import type { ContactFormData, FileAttachment, EmailData } from '@actions/contact/@types'
-import { generateEmailContent, parseAttachments, validateInput } from './domain'
-import { parseBoolean, readString } from './utils'
+import type { FileAttachment, EmailData } from '@actions/contact/@types'
+import {
+  contactTimelineValues,
+  generateEmailContent,
+  getFormDataFromInput,
+  parseAttachmentsFromInput,
+  validateInput
+} from './domain'
+
+const trimString = (value: unknown): unknown => (typeof value === 'string' ? value.trim() : value)
+
+const emptyStringToUndefined = (value: unknown): unknown => {
+  if (typeof value !== 'string') return value
+  const trimmed = value.trim()
+  return trimmed.length === 0 ? undefined : trimmed
+}
+
+const optionalTrimmedString = (maxLength?: number) => {
+  const base = z.string()
+  const limited = typeof maxLength === 'number' ? base.max(maxLength) : base
+  return z.preprocess(emptyStringToUndefined, limited.optional())
+}
+
+const requiredTrimmedString = (minLength = 1, maxLength?: number) => {
+  const base = z.preprocess(trimString, z.string().min(minLength))
+  return typeof maxLength === 'number' ? base.pipe(z.string().max(maxLength)) : base
+}
+
+const isFile = (value: unknown): value is File => typeof File !== 'undefined' && value instanceof File
+const optionalFile = () => z.custom<File>(isFile).optional()
+
+const contactFormInputSchema = z
+  .object({
+    /** Core fields used by the action. */
+    name: requiredTrimmedString(2, 100),
+    email: z.preprocess(trimString, z.string().email().max(254)),
+    message: requiredTrimmedString(10, 2000),
+    /** Extra fields submitted by the form UI. */
+    company: optionalTrimmedString(100),
+    phone: optionalTrimmedString(50),
+    'project_type': optionalTrimmedString(50),
+    budget: z.preprocess(trimString, z.enum(['5k-10k', '10k-25k', '25k-50k', '50k+'])),
+    timeline: z.preprocess(emptyStringToUndefined, z.enum(contactTimelineValues).optional()),
+    /** Consent checkbox: value="true" when checked, otherwise missing. */
+    consent: z.preprocess((value) => (value === 'true' ? true : false), z.boolean()).optional(),
+    /** Optional hidden field supported by the action. */
+    'DataSubjectId': z.preprocess(emptyStringToUndefined, z.string().uuid().optional()),
+    /** Backwards-compatible optional fields (older contact forms). */
+    service: optionalTrimmedString(100),
+    website: optionalTrimmedString(200),
+    /** File uploads (not implemented in the UI yet). When implemented, we expect keys like file1..file5. */
+    file1: optionalFile(),
+    file2: optionalFile(),
+    file3: optionalFile(),
+    file4: optionalFile(),
+    file5: optionalFile(),
+  })
+  .passthrough()
 
 async function sendEmail(emailData: EmailData, files: FileAttachment[]): Promise<void> {
   if (!isProd()) {
@@ -34,7 +90,8 @@ async function sendEmail(emailData: EmailData, files: FileAttachment[]): Promise
 export const contact = {
   submit: defineAction({
     accept: 'form',
-    handler: async (form: FormData, context): Promise<{ success: true; message: string }> => {
+    input: contactFormInputSchema,
+    handler: async (input, context): Promise<{ success: true; message: string }> => {
       const route = '/_actions/contact/submit'
 
       try {
@@ -50,26 +107,8 @@ export const contact = {
           throw new ActionsFunctionError('Too many form submissions. Please try again later.', { status: 429 })
         }
 
-        const formData: ContactFormData = {
-          name: readString(form, 'name'),
-          email: readString(form, 'email'),
-          message: readString(form, 'message'),
-          consent: parseBoolean(form.get('consent')),
-        }
-
-        const phone = readString(form, 'phone')
-        const service = readString(form, 'service')
-        const budget = readString(form, 'budget')
-        const timeline = readString(form, 'timeline')
-        const website = readString(form, 'website')
-
-        if (phone) formData.phone = phone
-        if (service) formData.service = service
-        if (budget) formData.budget = budget
-        if (timeline) formData.timeline = timeline
-        if (website) formData.website = website
-
-        const files = await parseAttachments(form)
+        const formData = getFormDataFromInput(input)
+        const files = await parseAttachmentsFromInput(input)
 
         const validationErrors = validateInput(formData)
         if (validationErrors.length > 0) {

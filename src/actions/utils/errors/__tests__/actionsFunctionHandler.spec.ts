@@ -32,7 +32,7 @@ vi.mock('@sentry/astro', () => ({
 
 describe('actionsFunctionHandler', () => {
   it('converts server errors into ActionError with fallback message', async () => {
-    const { ActionsFunctionError } = await import('../ActionFunctionError')
+    const { ActionsFunctionError } = await import('../ActionsFunctionError')
     const { toActionError } = await import('../actionsFunctionHandler')
 
     const err = new ActionsFunctionError('DB exploded', { status: 500, route: 'actions:test' })
@@ -45,7 +45,7 @@ describe('actionsFunctionHandler', () => {
   })
 
   it('preserves client error messages', async () => {
-    const { ActionsFunctionError } = await import('../ActionFunctionError')
+    const { ActionsFunctionError } = await import('../ActionsFunctionError')
     const { toActionError } = await import('../actionsFunctionHandler')
 
     const err = new ActionsFunctionError('Bad input', { status: 400, route: 'actions:test' })

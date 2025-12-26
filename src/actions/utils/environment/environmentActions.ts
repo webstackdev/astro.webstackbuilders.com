@@ -1,5 +1,4 @@
-import { ActionsFunctionError } from '../errors/ActionFunctionError'
-import { isUnitTest } from '@lib/config/environmentServer'
+import { ActionsFunctionError } from '../errors/ActionsFunctionError'
 import {
   DEV_SERVER_PORT,
   PACKAGE_RELEASE_VERSION,
@@ -23,11 +22,11 @@ export {
 } from '@lib/config/environmentServer'
 
 export const isDev = () => {
-  return import.meta.env.MODE === 'development'
+  return import.meta.env.MODE === 'development' || import.meta.env.MODE === 'testing'
 }
 
 export const isProd = () => {
-  return import.meta.env.MODE === 'production' && !isUnitTest()
+  return import.meta.env.MODE === 'production'
 }
 
 export function getDevServerPort(): number {

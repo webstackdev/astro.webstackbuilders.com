@@ -210,6 +210,3 @@ export class ActionsFunctionError extends ActionError {
     return this.isClientError ? this.message : fallbackMessage
   }
 }
-
-// Backwards-compatible export (older API naming).
-export { ActionsFunctionError as ActionFunctionError }

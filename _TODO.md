@@ -91,12 +91,6 @@ Google Calendar, Apple Calendar,  Microsoft Outlook and Teams, and generate iCal
 
 See the example image in Social Shares. The social shares UI on mobile should be a modal that slides in from the bottom.
 
-## Uppy file uploads from contact form
-
-docs/CONTACT_FORM.md
-
-Where to upload to?
-
 ## Set up webmentions
 
 Needs to add real API key and test
@@ -106,4 +100,8 @@ Needs to add real API key and test
 - (Optional) Set up Bridgy for social media
 - Test with sample webmentions
 
-python3 .github/test/runner.py cron
+## Uppy file uploads from contact form
+
+docs/CONTACT_FORM.md
+
+Where to upload to?

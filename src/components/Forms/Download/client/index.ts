@@ -11,6 +11,7 @@ import { addScriptBreadcrumb, ClientScriptError } from '@components/scripts/erro
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
+import type { DownloadsSubmitInput } from '@actions/downloads/responder'
 
 const scriptName = 'DownloadFormElement'
 
@@ -111,13 +112,14 @@ export class DownloadFormElement extends LitElement {
         workEmail: String(formData.get('workEmail') ?? ''),
         jobTitle: String(formData.get('jobTitle') ?? ''),
         companyName: String(formData.get('companyName') ?? ''),
-      }
+      } satisfies DownloadsSubmitInput
 
       try {
-        const result = await actions.downloads.submit(payload)
+        const { error } = await actions.downloads.submit(payload)
 
-        if (result.error || !result.data?.success) {
-          throw new ClientScriptError({ message: result.error?.message || 'Failed to submit form' })
+        // @TODO: Improve this error handling to be more user friendly. Also this is inconsistent with how we're handling errors in other forms, where we set a message and return. Should look at the types of errors that could occur, and give the user an idea of what to do.
+        if (error) {
+          throw new ClientScriptError({ message: error.message || 'Failed to submit form' })
         }
 
         this.showStatus('success', 'Thank you! Click the button below to download your resource.')

@@ -256,14 +256,13 @@ const subtitle = 'Please wait while we confirm your subscription'
       announceStatus('Confirming subscription.')
 
       try {
-        const result = await actions.newsletter.confirm({ token })
+        const { data, error } = await actions.newsletter.confirm({ token })
 
-        if (result.error) {
-          showError('Confirmation Error', result.error.message || 'An error occurred while confirming your subscription.')
+        // @TODO: Improve this error handling to be more user friendly. Should look at the types of errors that could occur, and give the user an idea of what to do.
+        if (error) {
+          showError('Confirmation Error', error.message || 'An error occurred while confirming your subscription.')
           return
         }
-
-        const data = result.data
 
         if (data.success) {
           showSuccess(data.email || 'your email')

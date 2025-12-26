@@ -10,19 +10,19 @@ It is intended for local debugging of GitHub Actions only. It is not an end-to-e
 Run a single workflow by name (the name is the workflow filename without extension from `.github/workflows/*.yml`):
 
 ```bash
-npm run test:action:runner -- <workflowName>
+npm run debug:action -- <workflowName>
 ```
 
 Example:
 
 ```bash
-npm run test:action:runner -- cron
+npm run debug:action -- cron
 ```
 
 Run all workflows (mostly useful when iterating on the runner itself):
 
 ```bash
-npm run test:action:runner
+npm run debug:action
 ```
 
 ## Events

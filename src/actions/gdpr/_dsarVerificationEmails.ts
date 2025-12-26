@@ -3,7 +3,7 @@ import { dsarVerificationEmailHtml } from '@content/email/dsar.html'
 import { dsarVerificationEmailText } from '@content/email/dsar.text'
 import { getResendApiKey, isProd } from '@actions/utils/environment/environmentActions'
 import { getSiteUrl } from '@actions/utils/environment/siteUrlActions'
-import { ActionsFunctionError } from '@actions/utils/errors/ActionFunctionError'
+import { ActionsFunctionError } from '@actions/utils/errors/ActionsFunctionError'
 
 export async function sendDsarVerificationEmail(
   email: string,

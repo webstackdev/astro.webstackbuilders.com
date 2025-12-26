@@ -10,4 +10,4 @@ export {
 export {
   type ActionFunctionErrorParams,
   ActionsFunctionError,
-} from './ActionFunctionError'
+} from './ActionsFunctionError'

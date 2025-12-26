@@ -1,14 +1,6 @@
 import emailValidator from 'email-validator'
 import { defineAction } from 'astro:actions'
-import { z } from 'astro:schema'
-
-type DownloadFormData = {
-  firstName: string
-  lastName: string
-  workEmail: string
-  jobTitle: string
-  companyName: string
-}
+import { z } from 'astro/zod'
 
 const inputSchema = z.object({
   firstName: z.string().trim().min(1),
@@ -22,18 +14,18 @@ const inputSchema = z.object({
   companyName: z.string().trim().min(1),
 })
 
+export type DownloadsSubmitInput = z.infer<typeof inputSchema>
+
 export const downloads = {
   submit: defineAction({
     accept: 'json',
     input: inputSchema,
     handler: async (input): Promise<{ success: true; message: string }> => {
-      const data = input as DownloadFormData
-
       console.log('Download form submission:', {
-        name: `${data.firstName} ${data.lastName}`,
-        email: data.workEmail,
-        jobTitle: data.jobTitle,
-        company: data.companyName,
+        name: `${input.firstName} ${input.lastName}`,
+        email: input.workEmail,
+        jobTitle: input.jobTitle,
+        company: input.companyName,
         timestamp: new Date().toISOString(),
       })
 

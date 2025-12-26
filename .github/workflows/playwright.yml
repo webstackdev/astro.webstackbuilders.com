@@ -27,7 +27,8 @@ jobs:
       CONVERTKIT_API_KEY: ${{ vars.CONVERTKIT_API_KEY }}
       CONVERTKIT_HTTP_PORT: ${{ vars.CONVERTKIT_HTTP_PORT }}
       CRON_SECRET: ${{ vars.CRON_SECRET }}
-      DEV_SERVER_HOST: 127.0.0.1
+      # Use localhost so IPv6-only listeners (e.g. ::1) are reachable under act.
+      DEV_SERVER_HOST: localhost
       DEV_SERVER_PORT: ${{ vars.DEV_SERVER_PORT }}
       DISABLE_TELEMETRY: true
       FORCE_COLOR: 3
@@ -58,20 +59,86 @@ jobs:
 
       - name: Start Astro dev server
         run: |
-          npm run dev -- --host 0.0.0.0 --port "${DEV_SERVER_PORT}" > /tmp/astro-dev.log 2>&1 &
+          echo "Starting Astro dev server on ${DEV_SERVER_HOST}:${DEV_SERVER_PORT}"
+
+          build_healthcheck_urls() {
+            echo "http://localhost:${DEV_SERVER_PORT}/"
+            echo "http://127.0.0.1:${DEV_SERVER_PORT}/"
+            echo "http://[::1]:${DEV_SERVER_PORT}/"
+          }
+
+          if [ "${DEBUG:-0}" = "1" ]; then
+            echo "[debug] DEBUG=1"
+            echo "[debug] DEV_SERVER_HOST=${DEV_SERVER_HOST:-<unset>}"
+            echo "[debug] DEV_SERVER_PORT=${DEV_SERVER_PORT:-<unset>}"
+            echo "[debug] node=$(node --version 2>/dev/null || true)"
+            echo "[debug] npm=$(npm --version 2>/dev/null || true)"
+          fi
+
+          nohup npm run dev -- --host 0.0.0.0 --port "${DEV_SERVER_PORT}" > /tmp/astro-dev.log 2>&1 &
           echo $! > /tmp/astro-dev.pid
+
+          sleep 1
+          if ! ps -p "$(cat /tmp/astro-dev.pid)" > /dev/null 2>&1; then
+            echo "❌ Astro dev server process exited immediately"
+            echo '--- Astro dev server log ---'
+            cat /tmp/astro-dev.log || true
+            exit 1
+          fi
+
+          if [ "${DEBUG:-0}" = "1" ]; then
+            echo "[debug] astro pid=$(cat /tmp/astro-dev.pid)"
+            ps -fp "$(cat /tmp/astro-dev.pid)" || true
+            echo "[debug] listening ports (ss -ltnp)"
+            ss -ltnp || true
+            echo "[debug] curl check (verbose)"
+            while read -r url; do
+              echo "[debug] probing ${url}"
+              curl -v "${url}" || true
+            done < <(build_healthcheck_urls)
+            echo "[debug] tail /tmp/astro-dev.log"
+            tail -n 200 /tmp/astro-dev.log || true
+          fi
 
       - name: Wait for Astro dev server
         run: |
-          for i in $(seq 1 60); do
-            if curl -fsS "http://${DEV_SERVER_HOST}:${DEV_SERVER_PORT}/" > /dev/null; then
-              echo "✅ Dev server is responding"
+          build_healthcheck_urls() {
+            echo "http://localhost:${DEV_SERVER_PORT}/"
+            echo "http://127.0.0.1:${DEV_SERVER_PORT}/"
+            echo "http://[::1]:${DEV_SERVER_PORT}/"
+          }
+
+          probe_dev_server() {
+            local url
+            while read -r url; do
+              if curl -fsS "${url}" > /dev/null; then
+                echo "✅ Dev server is responding at ${url}"
+                return 0
+              fi
+            done < <(build_healthcheck_urls)
+            return 1
+          }
+
+          # `npm run dev` runs `astro sync` first; allow time for it to finish.
+          for i in $(seq 1 120); do
+            if probe_dev_server; then
               exit 0
             fi
+
+            if [ "${DEBUG:-0}" = "1" ]; then
+              echo "[debug] still waiting... attempt=${i}/120"
+              if [ -f /tmp/astro-dev.pid ]; then
+                echo "[debug] pid=$(cat /tmp/astro-dev.pid)"
+                ps -fp "$(cat /tmp/astro-dev.pid)" || true
+              fi
+              ss -ltnp || true
+              tail -n 50 /tmp/astro-dev.log || true
+            fi
+
             sleep 1
           done
 
-          echo "❌ Dev server did not start in time"
+          echo "❌ Dev server did not start within 120 seconds"
           echo '--- Astro dev server log ---'
           cat /tmp/astro-dev.log || true
           exit 1

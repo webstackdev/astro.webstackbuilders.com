@@ -1,5 +1,5 @@
 import { defineAction } from 'astro:actions'
-import { z } from 'astro:schema'
+import { z } from 'astro/zod'
 import type { SearchHit } from './@types'
 import { performSearch } from './domain'
 import { mapUpstashSearchResults } from './responder'
@@ -9,6 +9,8 @@ const inputSchema = z.object({
   q: z.string().trim().min(2),
   limit: z.number().int().min(1).max(20).optional(),
 })
+
+export type SearchQueryInput = z.infer<typeof inputSchema>
 
 export const search = {
   query: defineAction({

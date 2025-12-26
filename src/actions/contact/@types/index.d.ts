@@ -7,9 +7,11 @@ export type ContactFormData = {
   DataSubjectId?: string
   service?: string
   budget?: string
-  timeline?: string
+  timeline?: ContactTimeline
   website?: string
 }
+
+export type ContactTimeline = 'asap' | '1-month' | '2-3-months' | '3-6-months' | '6-months-plus' | 'flexible'
 
 export type FileAttachment = {
   filename: string
