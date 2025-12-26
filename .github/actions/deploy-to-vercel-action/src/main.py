@@ -16,57 +16,142 @@ from deployment_urls import build_deployment_urls
 from github_client import GitHubClient
 from io_utils import add_mask, log_info, log_warning, set_failed, set_output
 from inputs import parse_bool, parse_disableable_list
+from utils import add_schema, parse_deployment_host, remove_schema, url_safe_parameter
 from vercel_client import VercelClient
 
-_reexports = (parse_bool, parse_disableable_list)
+_reexports = (
+    parse_bool,
+    parse_disableable_list,
+    add_schema,
+    remove_schema,
+    url_safe_parameter,
+    parse_deployment_host,
+)
+
+
+def _mask_secrets(ctx) -> None:
+    add_mask(ctx.github_token)
+    add_mask(ctx.vercel_token)
+    add_mask(ctx.public_google_maps_api_key)
+    add_mask(ctx.public_sentry_dsn)
+    add_mask(ctx.public_upstash_search_rest_url)
+    add_mask(ctx.public_upstash_search_readonly_token)
+
+
+def _handle_untrusted_fork_pr(ctx, github: GitHubClient) -> bool:
+    if not ctx.is_fork:
+        return False
+
+    log_warning("PR is from fork; refusing to deploy")
+    body = f"""
+        Refusing to deploy this Pull Request to Vercel because it originates from @{ctx.actor}'s fork.
+
+        **@{ctx.user}** This repository's deployment workflow does not deploy forked pull requests.
+    """
+
+    comment = github.create_comment(body)
+    log_info(f"Comment created: {comment.get('html_url')}")
+
+    set_output("DEPLOYMENT_CREATED", "false")
+    set_output("COMMENT_CREATED", "true")
+    log_info("Done")
+    return True
+
+
+def _create_github_deployment(github: GitHubClient) -> None:
+    log_info("Creating GitHub deployment")
+    deployment = github.create_deployment()
+    deployment_id = deployment.get("id")
+    log_info(f"Deployment #{deployment_id} created")
+    github.update_deployment("pending")
+    log_info(f"Deployment #{deployment_id} status changed to \"pending\"")
+
+
+def _fetch_commit_metadata(github: GitHubClient) -> dict[str, str] | None:
+    try:
+        return github.get_commit()
+    except Exception as exc:
+        log_warning(f"Failed to fetch commit metadata: {exc}")
+        return None
+
+
+def _log_alias_truncation(ctx, deployment_urls_result) -> None:
+    if not (ctx.is_pr and ctx.pr_preview_domain):
+        return
+
+    log_info("Assigning custom preview domain to PR")
+    if deployment_urls_result.truncated_preview_alias_from and deployment_urls_result.truncated_preview_alias_to:
+        log_warning(
+            f"The alias {deployment_urls_result.truncated_preview_alias_from} exceeds 60 chars in length, "
+            "truncating using vercel's rules."
+        )
+        log_info(f"Updated domain alias: {deployment_urls_result.truncated_preview_alias_to}")
+
+
+def _create_pr_comment_body(*, ctx, preview_url: str, inspector_url: str) -> str:
+    return f"""
+        This pull request has been deployed to Vercel.
+
+        <table>
+            <tr>
+                <td><strong>Latest commit:</strong></td>
+                <td><code>{ctx.sha[:7]}</code></td>
+            </tr>
+            <tr>
+                <td><strong>✅ Preview:</strong></td>
+                <td><a href='{preview_url}'>{preview_url}</a></td>
+            </tr>
+            <tr>
+                <td><strong>🔍 Inspect:</strong></td>
+                <td><a href='{inspector_url}'>{inspector_url}</a></td>
+            </tr>
+        </table>
+
+        [View Workflow Logs]({ctx.log_url})
+    """
+
+
+def _handle_pr_comment_and_labels(*, ctx, github: GitHubClient, preview_url: str, inspector_url: str) -> None:
+    if not ctx.is_pr:
+        return
+
+    log_info("Checking for existing comment on PR")
+    deleted_comment_id = github.delete_existing_comment()
+    if deleted_comment_id:
+        log_info(f"Deleted existing comment #{deleted_comment_id}")
+
+    log_info("Creating new comment on PR")
+    body = _create_pr_comment_body(ctx=ctx, preview_url=preview_url, inspector_url=inspector_url)
+    comment = github.create_comment(body)
+    log_info(f"Comment created: {comment.get('html_url')}")
+
+    if ctx.pr_labels:
+        log_info("Adding label(s) to PR")
+        labels = github.add_labels(ctx.pr_labels)
+        names = [str((label or {}).get("name") or "").strip() for label in labels]
+        names = [name for name in names if name]
+        log_info(f"Label(s) \"{', '.join(names)}\" added")
 
 
 def run() -> None:
     try:
         ctx = build_context()
-        add_mask(ctx.github_token)
-        add_mask(ctx.vercel_token)
-        add_mask(ctx.public_google_maps_api_key)
-        add_mask(ctx.public_sentry_dsn)
-        add_mask(ctx.public_upstash_search_rest_url)
-        add_mask(ctx.public_upstash_search_readonly_token)
+        _mask_secrets(ctx)
 
         github = GitHubClient(ctx)
 
         # Refuse to deploy an untrusted fork
-        if ctx.is_fork:
-            log_warning("PR is from fork; refusing to deploy")
-            body = f"""
-                Refusing to deploy this Pull Request to Vercel because it originates from @{ctx.actor}'s fork.
-
-                **@{ctx.user}** This repository's deployment workflow does not deploy forked pull requests.
-            """
-
-            comment = github.create_comment(body)
-            log_info(f"Comment created: {comment.get('html_url')}")
-
-            set_output("DEPLOYMENT_CREATED", "false")
-            set_output("COMMENT_CREATED", "true")
-            log_info("Done")
+        if _handle_untrusted_fork_pr(ctx, github):
             return
 
-        log_info("Creating GitHub deployment")
-        deployment = github.create_deployment()
-        deployment_id = deployment.get("id")
-        log_info(f"Deployment #{deployment_id} created")
-        github.update_deployment("pending")
-        log_info(f"Deployment #{deployment_id} status changed to \"pending\"")
+        _create_github_deployment(github)
 
         try:
             log_info("Creating deployment with Vercel CLI")
             log_info("Setting environment variables for Vercel CLI")
 
             vercel = VercelClient(ctx)
-            try:
-                commit = github.get_commit()
-            except Exception as exc:
-                log_warning(f"Failed to fetch commit metadata: {exc}")
-                commit = None
+            commit = _fetch_commit_metadata(github)
             deployment_host = vercel.deploy(commit)
 
             log_info("Successfully deployed to Vercel!")
@@ -83,14 +168,7 @@ def run() -> None:
                 sha=ctx.sha,
             )
 
-            if ctx.is_pr and ctx.pr_preview_domain:
-                log_info("Assigning custom preview domain to PR")
-                if result.truncated_preview_alias_from and result.truncated_preview_alias_to:
-                    log_warning(
-                        f"The alias {result.truncated_preview_alias_from} exceeds 60 chars in length, "
-                        "truncating using vercel's rules."
-                    )
-                    log_info(f"Updated domain alias: {result.truncated_preview_alias_to}")
+            _log_alias_truncation(ctx, result)
 
             if (not ctx.is_pr) and ctx.alias_domains:
                 log_info("Assigning custom domains to Vercel deployment")
@@ -110,43 +188,12 @@ def run() -> None:
             log_info('Changing GitHub deployment status to "success"')
             github.update_deployment("success", preview_url)
 
-            if ctx.is_pr:
-                log_info("Checking for existing comment on PR")
-                deleted_comment_id = github.delete_existing_comment()
-                if deleted_comment_id:
-                    log_info(f"Deleted existing comment #{deleted_comment_id}")
-
-                log_info("Creating new comment on PR")
-                body = f"""
-                                        This pull request has been deployed to Vercel.
-
-                                        <table>
-                                            <tr>
-                                                <td><strong>Latest commit:</strong></td>
-                                                <td><code>{ctx.sha[:7]}</code></td>
-                                            </tr>
-                                            <tr>
-                                                <td><strong>✅ Preview:</strong></td>
-                                                <td><a href='{preview_url}'>{preview_url}</a></td>
-                                            </tr>
-                                            <tr>
-                                                <td><strong>🔍 Inspect:</strong></td>
-                                                <td><a href='{inspector_url}'>{inspector_url}</a></td>
-                                            </tr>
-                                        </table>
-
-                                        [View Workflow Logs]({ctx.log_url})
-                """
-
-                comment = github.create_comment(body)
-                log_info(f"Comment created: {comment.get('html_url')}")
-
-                if ctx.pr_labels:
-                    log_info("Adding label(s) to PR")
-                    labels = github.add_labels(ctx.pr_labels)
-                    names = [str((label or {}).get("name") or "").strip() for label in labels]
-                    names = [name for name in names if name]
-                    log_info(f"Label(s) \"{', '.join(names)}\" added")
+            _handle_pr_comment_and_labels(
+                ctx=ctx,
+                github=github,
+                preview_url=preview_url,
+                inspector_url=inspector_url,
+            )
 
             set_output("PREVIEW_URL", preview_url)
             set_output("DEPLOYMENT_URLS", json.dumps(deployment_urls))
