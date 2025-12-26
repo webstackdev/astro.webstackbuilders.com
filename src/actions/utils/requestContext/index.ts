@@ -73,10 +73,13 @@ function buildRequestMetadata(
   const ip = extractClientIp(request) ?? clientAddress
   const userAgent = request.headers.get('user-agent') ?? undefined
 
+  const ipHash = ip ? safeHashIdentifier(ip, salt) : undefined
+  const userAgentHash = userAgent ? safeHashIdentifier(userAgent, salt) : undefined
+
   const metadata: RequestMetadata = {
     ...(method && { method }),
-    ...(ip && { ipHash: hashIdentifier(ip, salt) }),
-    ...(userAgent && { userAgentHash: hashIdentifier(userAgent, salt) }),
+    ...(ipHash && { ipHash }),
+    ...(userAgentHash && { userAgentHash }),
   }
 
   if (includeRawPII) {
@@ -115,6 +118,14 @@ function extractClientIp(request: Request): string | undefined {
   return undefined
 }
 
-function hashIdentifier(value: string, salt: string): string {
-  return createHash('sha256').update(`${salt}:${value}`).digest('hex')
+/**
+ * Hashes an identifier for use in fingerprints.
+ * Returns undefined when hashing fails so callers can safely fall back.
+ */
+function safeHashIdentifier(value: string, salt: string): string | undefined {
+  try {
+    return createHash('sha256').update(`${salt}:${value}`).digest('hex')
+  } catch {
+    return undefined
+  }
 }

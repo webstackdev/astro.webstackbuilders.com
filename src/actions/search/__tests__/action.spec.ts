@@ -29,6 +29,22 @@ vi.mock('astro:actions', () => {
   }
 })
 
+vi.mock('@actions/utils/errors', async () => {
+  const astro = await import('astro:actions')
+
+  function throwActionError(_error: unknown, _context: unknown, options?: { fallbackMessage?: string }): never {
+    const message = options?.fallbackMessage ?? 'Internal server error'
+    throw new (astro as unknown as { ActionError: new (_opts: { code: string; message: string }) => Error }).ActionError({
+      code: 'INTERNAL_SERVER_ERROR',
+      message,
+    })
+  }
+
+  return {
+    throwActionError: vi.fn(throwActionError),
+  }
+})
+
 describe('search.query.handler', () => {
   it('returns mapped hits', async () => {
     const mockHits: SearchHit[] = [{ title: 'Title', url: '/path', snippet: 'Snippet', score: 0.5 }]
@@ -80,11 +96,18 @@ describe('search.query.handler', () => {
     vi.doMock('../responder', () => ({ mapUpstashSearchResults }))
 
     const { search } = await import('../action')
+    const { throwActionError } = await import('@actions/utils/errors')
 
     await expect(getMockedHandler(search.query)({ q: 'typescript' })).rejects.toMatchObject({
       name: 'ActionError',
       code: 'INTERNAL_SERVER_ERROR',
-      message: 'Upstash down',
+      message: 'Search failed.',
     })
+
+    expect(throwActionError).toHaveBeenCalledWith(
+      expect.any(Error),
+      { route: '/_actions/search/query', operation: 'query' },
+      { fallbackMessage: 'Search failed.' },
+    )
   })
 })

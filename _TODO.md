@@ -77,6 +77,20 @@ Implement mitigations in test/e2e/specs/07-performance/PERFORMANCE.md
 
 Right now we're using string literals to define HTML email templates for site mails. We should use Nunjucks with the rule-checking for valid CSS in HTML emails like we have in the corporate email footer repo.
 
+## Sentry feedback, chat bot tying into my phone and email
+
+See note in src/components/scripts/sentry/client.ts - "User Feedback - allow users to report issues"
+
+https://vercel.com/kevin-browns-projects-dd474f73/astro-webstackbuilders-com/ai-gateway
+
+### "Add to Calendar" button
+
+Google Calendar, Apple Calendar,  Microsoft Outlook and Teams, and generate iCal/ics files (for all other calendars and cases).
+
+## Mobile Social Shares UI
+
+See the example image in Social Shares. The social shares UI on mobile should be a modal that slides in from the bottom.
+
 ## Set up webmentions
 
 Needs to add real API key and test
@@ -86,22 +100,8 @@ Needs to add real API key and test
 - (Optional) Set up Bridgy for social media
 - Test with sample webmentions
 
-## Mobile Social Shares UI
-
-See the example image in Social Shares. The social shares UI on mobile should be a modal that slides in from the bottom.
-
-## Sentry feedback, chat bot tying into my phone and email
-
-See note in src/components/scripts/sentry/client.ts - "User Feedback - allow users to report issues"
-
-https://vercel.com/kevin-browns-projects-dd474f73/astro-webstackbuilders-com/ai-gateway
-
 ## Uppy file uploads from contact form
 
 docs/CONTACT_FORM.md
 
 Where to upload to?
-
-### "Add to Calendar" button
-
-Google Calendar, Apple Calendar,  Microsoft Outlook and Teams, and generate iCal/ics files (for all other calendars and cases).

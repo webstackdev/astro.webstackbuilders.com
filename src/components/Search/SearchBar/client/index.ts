@@ -6,13 +6,7 @@ import type { WebComponentModule } from '@components/scripts/@types/webComponent
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { getSearchBarElements } from './selectors'
-
-type SearchHit = {
-  title: string
-  url: string
-  snippet?: string
-  score?: number
-}
+import type { SearchHit } from '@actions/search/@types'
 
 export class SearchBarElement extends LitElement {
   static registeredName = 'search-bar'
@@ -177,27 +171,35 @@ export class SearchBarElement extends LitElement {
     addScriptBreadcrumb(context)
 
     const requestId = ++this.latestRequestId
+    const { data, error } = await actions.search.query({ q: query, limit: 8 })
 
-    try {
-      const result = await actions.search.query({ q: query, limit: 8 })
-      if (requestId !== this.latestRequestId) {
-        return
-      }
-
-      const hits = (result.data?.hits ?? []) as SearchHit[]
-      if (hits.length === 0) {
-        this.clearResults()
-        this.hideResults()
-        return
-      }
-
-      this.renderResults(query, hits)
-      this.showResults()
-    } catch (error) {
+    // @TODO: Improve this error handling to be more user friendly. Should look at the types of errors that could occur, and give the user an idea of what to do.
+    if (error) {
       handleScriptError(error, context)
       this.clearResults()
       this.hideResults()
+      return
     }
+
+    if (!data) {
+      this.clearResults()
+      this.hideResults()
+      return
+    }
+
+    if (requestId !== this.latestRequestId) {
+      return
+    }
+
+    const hits = (data.hits ?? []) as SearchHit[]
+    if (hits.length === 0) {
+      this.clearResults()
+      this.hideResults()
+      return
+    }
+
+    this.renderResults(query, hits)
+    this.showResults()
   }
 }
 

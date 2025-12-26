@@ -1,10 +1,11 @@
 import emailValidator from 'email-validator'
 import { validate as uuidValidate } from 'uuid'
-import { ActionError, defineAction } from 'astro:actions'
+import { defineAction } from 'astro:actions'
 import { z } from 'astro:schema'
 import { getPrivacyPolicyVersion } from '@actions/utils/environment/environmentActions'
 import { checkRateLimit, rateLimiters } from '@actions/utils/rateLimit'
 import { buildRequestFingerprint, createRateLimitIdentifier } from '@actions/utils/requestContext'
+import { ActionsFunctionError, handleActionsFunctionError } from '@actions/utils/errors'
 import type {
   ConsentRequest,
   ConsentResponse,
@@ -60,10 +61,7 @@ const normalizeUserAgent = (value?: string | null): string => normalizeNullableS
 const buildRateLimitError = (reset: number | undefined, message?: string) => {
   const retryAfterMs = typeof reset === 'number' ? Math.max(0, reset - Date.now()) : 0
   const retryAfterSeconds = Math.max(1, Math.ceil(retryAfterMs / 1000))
-  throw new ActionError({
-    code: 'TOO_MANY_REQUESTS',
-    message: message ?? `Try again in ${retryAfterSeconds}s`,
-  })
+  throw new ActionsFunctionError(message ?? `Try again in ${retryAfterSeconds}s`, { status: 429 })
 }
 
 const mapConsentRecord = (record: ConsentEventRecord): ConsentResponse['record'] => {
@@ -193,7 +191,7 @@ export const gdpr = {
       try {
         return await verifyDsarToken(input.token)
       } catch (error) {
-        console.error('[gdpr.verifyDsar] failed:', error)
+        handleActionsFunctionError(error, { route: '/_actions/gdpr/verifyDsar', operation: 'verifyDsar' })
         return { status: 'error' }
       }
     },
@@ -217,7 +215,7 @@ export const gdpr = {
       }
 
       if (!uuidValidate(body.DataSubjectId)) {
-        throw new ActionError({ code: 'BAD_REQUEST', message: 'Invalid DataSubjectId' })
+        throw new ActionsFunctionError('Invalid DataSubjectId', { status: 400 })
       }
 
       const normalizedEmail = normalizeNullableString(body.email ?? null)
@@ -266,7 +264,7 @@ export const gdpr = {
       const { DataSubjectId, purpose } = input
 
       if (!DataSubjectId || !uuidValidate(DataSubjectId)) {
-        throw new ActionError({ code: 'BAD_REQUEST', message: 'Valid DataSubjectId required' })
+        throw new ActionsFunctionError('Valid DataSubjectId required', { status: 400 })
       }
 
       const fetched = await findConsentRecords(DataSubjectId)
@@ -312,7 +310,7 @@ export const gdpr = {
       }
 
       if (!uuidValidate(input.DataSubjectId)) {
-        throw new ActionError({ code: 'BAD_REQUEST', message: 'Valid DataSubjectId required' })
+        throw new ActionsFunctionError('Valid DataSubjectId required', { status: 400 })
       }
 
       const deletedCount = await deleteConsentRecords(input.DataSubjectId)
@@ -338,7 +336,7 @@ export const gdpr = {
       }
 
       if (!emailValidator.validate(input.email)) {
-        throw new ActionError({ code: 'BAD_REQUEST', message: 'Invalid email format' })
+        throw new ActionsFunctionError('Invalid email format', { status: 400 })
       }
 
       const email = input.email.toLowerCase().trim()
@@ -390,7 +388,7 @@ export const gdpr = {
       }
 
       if (!uuidValidate(input.DataSubjectId)) {
-        throw new ActionError({ code: 'BAD_REQUEST', message: 'Invalid DataSubjectId' })
+        throw new ActionsFunctionError('Invalid DataSubjectId', { status: 400 })
       }
 
       const consentRecords = await findConsentRecords(input.DataSubjectId)

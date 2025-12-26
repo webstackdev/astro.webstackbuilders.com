@@ -34,6 +34,7 @@
     "containers:down": "FORCE_COLOR=1 docker compose --env-file test/containers/.env -f test/containers/docker-compose.e2e.yml down -v",
     "containers:status": "FORCE_COLOR=1 docker compose --env-file test/containers/.env -f test/containers/docker-compose.e2e.yml ps",
     "containers:logs": "FORCE_COLOR=1 docker compose --env-file test/containers/.env -f test/containers/docker-compose.e2e.yml logs -f",
+    "debug:action": "python3 .github/test/runner.py",
     "dev": "npm run sync && cross-env NODE_ENV=development FORCE_COLOR=1 npx astro dev",
     "dev:env": "FORCE_COLOR=1 dotenv -e .env.development -- npm run dev",
     "dev:env:verbose": "FORCE_COLOR=1 dotenv -e .env.development -- npm run dev -- --verbose",
@@ -55,7 +56,7 @@
     "test:coverage": "FORCE_COLOR=1 npx vitest run --coverage",
     "test:e2e": "FORCE_COLOR=1 npx playwright test",
     "test:unit": "npm run test:unit:actions && FORCE_COLOR=1 npx vitest run",
-    "test:unit:actions": "FORCE_COLOR=1 python3 -m pytest --import-mode=importlib .github/actions",
+    "test:unit:actions": "FORCE_COLOR=1 python3 -m pytest --import-mode=importlib .github/actions .github/test",
     "upgrade": "npx @astrojs/upgrade",
     "prepare": "node .husky/prepare.js"
   },

@@ -10,13 +10,25 @@ on:
       - reopened
   workflow_dispatch:
 
-permissions: {}
+permissions:
+  contents: read
+  deployments: write
+  issues: write
+  pull-requests: write
 
 jobs:
   deploy-preview:
     name: Deploy Preview
     runs-on: ubuntu-latest
     environment: preview
+
+    env:
+      PUBLIC_GOOGLE_MAPS_API_KEY: ${{ vars.PUBLIC_GOOGLE_MAPS_API_KEY }}
+      PUBLIC_SENTRY_DSN: ${{ vars.PUBLIC_SENTRY_DSN }}
+      PUBLIC_UPSTASH_SEARCH_REST_URL: ${{ vars.PUBLIC_UPSTASH_SEARCH_REST_URL }}
+      PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN: ${{ vars.PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN }}
+      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
 
     # Secrets are not available to forked PRs. Also, we don't want to deploy untrusted forks.
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false
@@ -25,6 +37,7 @@ jobs:
       contents: read
       deployments: write
       issues: write
+      pull-requests: write
 
     steps:
       - name: Checkout repository
@@ -32,23 +45,42 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium (with system deps)
+        run: npx playwright install --with-deps chromium
+
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
+      - name: Vercel pull (preview)
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel pull --yes --environment=preview --token=${VERCEL_TOKEN}
+
+      - name: Vercel build (preview)
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel build --token=${VERCEL_TOKEN}
+
       - name: Deploy to Vercel (preview)
-        # v1.10.0
-        uses: BetaHuhn/deploy-to-vercel-action@9893d875c782e1b4995a9399e8c4d660c33849c3
+        uses: ./.github/actions/deploy-to-vercel-action
         with:
           GITHUB_TOKEN: ${{ github.token }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
           PRODUCTION: false
+          PUBLIC_GOOGLE_MAPS_API_KEY: ${{ vars.PUBLIC_GOOGLE_MAPS_API_KEY }}
+          PUBLIC_SENTRY_DSN: ${{ vars.PUBLIC_SENTRY_DSN }}
+          PUBLIC_UPSTASH_SEARCH_REST_URL: ${{ vars.PUBLIC_UPSTASH_SEARCH_REST_URL }}
+          PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN: ${{ vars.PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN }}
           GITHUB_DEPLOYMENT_ENV: Preview
-          CREATE_COMMENT: false
-          BUILD_ENV: |
-            PUBLIC_GOOGLE_MAPS_API_KEY="${{ vars.PUBLIC_GOOGLE_MAPS_API_KEY }}"
-            PUBLIC_SENTRY_DSN="${{ vars.PUBLIC_SENTRY_DSN }}"
-            PUBLIC_UPSTASH_SEARCH_REST_URL="${{ vars.PUBLIC_UPSTASH_SEARCH_REST_URL }}"
-            PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN="${{ vars.PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN }}"
 

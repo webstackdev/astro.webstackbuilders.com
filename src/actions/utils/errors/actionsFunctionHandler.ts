@@ -2,7 +2,7 @@ import { ActionError, type ActionErrorCode } from 'astro:actions'
 import { captureException, withScope } from '@sentry/astro'
 import { ensureActionSentry } from '@actions/utils/sentry'
 import { isDev, isProd, isTest, isUnitTest } from '@actions/utils/environment/environmentActions'
-import { ActionsFunctionError, type ActionsFunctionErrorParams } from './ActionFunctionError'
+import { ActionsFunctionError, type ActionsFunctionErrorParams } from './ActionsFunctionError'
 
 ensureActionSentry()
 
@@ -40,13 +40,25 @@ export interface ThrowActionErrorOptions {
   fallbackMessage?: string
 }
 
+/**
+ * Serializes an arbitrary error cause into a short string for logging.
+ * Prefers `Error.message` when available.
+ */
 const toCauseString = (cause: unknown): string | undefined => {
   if (!cause) return undefined
   if (cause instanceof Error) return cause.message
   return String(cause)
 }
 
-export function handleActionsFunctionError(error: unknown, context: ActionsFunctionContext): ActionsFunctionError {
+/**
+ * Normalizes an unknown thrown value into an `ActionsFunctionError`, logs it, and
+ * reports it to Sentry in production. This is the central entrypoint for server
+ * action error handling.
+ */
+export function handleActionsFunctionError(
+  error: unknown,
+  context: ActionsFunctionContext
+): ActionsFunctionError {
   const overrides: Partial<ActionsFunctionErrorParams> = {
     route: context.route,
   }
@@ -55,7 +67,7 @@ export function handleActionsFunctionError(error: unknown, context: ActionsFunct
   if (context.requestId !== undefined) overrides.requestId = context.requestId
   if (context.correlationId !== undefined) overrides.correlationId = context.correlationId
   if (context.status !== undefined) overrides.status = context.status
-  if (context.code !== undefined) overrides.code = context.code
+  if (context.code !== undefined) overrides.appCode = context.code
 
   const normalizedError = ActionsFunctionError.from(error, overrides)
 
@@ -65,7 +77,7 @@ export function handleActionsFunctionError(error: unknown, context: ActionsFunct
 
   logActionsError(normalizedError, context)
 
-  if (isProd() && !isTest() && !isUnitTest()) {
+  if (isProd()) {
     withScope((scope) => {
       scope.setTags({
         route: context.route,
@@ -90,6 +102,10 @@ export function handleActionsFunctionError(error: unknown, context: ActionsFunct
   return normalizedError
 }
 
+/**
+ * Formats a stable JSON log entry for an `ActionsFunctionError`. In dev (non-unit-test)
+ * it includes stack / cause details to speed up debugging.
+ */
 export function formatActionsErrorLogEntry(
   error: ActionsFunctionError,
   context: ActionsFunctionContext,
@@ -119,6 +135,9 @@ export function formatActionsErrorLogEntry(
   return entry
 }
 
+/**
+ * Writes the formatted actions error JSON to stderr. No-ops during tests to keep output clean.
+ */
 function logActionsError(error: ActionsFunctionError, context: ActionsFunctionContext): void {
   if (isTest() || isUnitTest()) {
     return
@@ -175,6 +194,10 @@ function statusToActionErrorCode(status: number): ActionErrorCode {
   return statusToCodeFallbackMap[status] ?? 'INTERNAL_SERVER_ERROR'
 }
 
+/**
+ * Converts an `ActionsFunctionError` into Astro's `ActionError`. The HTTP status is
+ * mapped to an `ActionErrorCode`, and the message is scrubbed via `getSafeMessage()`.
+ */
 export function toActionError(error: ActionsFunctionError, options?: ThrowActionErrorOptions): ActionError {
   const code = statusToActionErrorCode(error.status)
   const fallbackMessage = options?.fallbackMessage ?? 'Internal server error'
@@ -185,6 +208,10 @@ export function toActionError(error: ActionsFunctionError, options?: ThrowAction
   })
 }
 
+/**
+ * Convenience helper: normalize / log / report an unknown error and throw an
+ * `ActionError` for the client. Call this from `defineAction().handler` catch blocks.
+ */
 export function throwActionError(error: unknown, context: ActionsFunctionContext, options?: ThrowActionErrorOptions): never {
   const normalized = handleActionsFunctionError(error, context)
   throw toActionError(normalized, options)

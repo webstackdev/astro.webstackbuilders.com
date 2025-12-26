@@ -85,25 +85,26 @@ export const initFormSubmission = (
 
       try {
         const formData = new FormData(elements.form)
-        const result = await actions.contact.submit(formData)
-
-        if (result.data?.success) {
-          showSuccessMessage(elements)
-
-          elements.submitBtn.dispatchEvent(
-            new CustomEvent('confetti:fire', {
-              bubbles: true,
-              composed: true,
-            }),
-          )
-
-          resetFormState(elements, controllers)
-        } else {
+        const { data, error } = await actions.contact.submit(formData)
+        // @TODO: Improve this error handling to be more user friendly. Should look at the types of errors that could occur, and give the user an idea of what to do.
+        if (error || !data || !data.success) {
           showErrorMessage(
             elements,
-            result.error?.message || result.data?.message || 'An error occurred while sending your message.',
+            error?.message || data?.message || 'An error occurred while sending your message.',
           )
+          return
         }
+
+        showSuccessMessage(elements)
+
+        elements.submitBtn.dispatchEvent(
+          new CustomEvent('confetti:fire', {
+            bubbles: true,
+            composed: true,
+          }),
+        )
+
+        resetFormState(elements, controllers)
       } catch (error) {
         handleScriptError(error, context)
         showErrorMessage(elements, 'Unable to send message. Please try again later.')

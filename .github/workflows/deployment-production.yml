@@ -6,7 +6,12 @@ on:
       - main
   workflow_dispatch:
 
-permissions: {}
+permissions:
+  actions: read
+  contents: read
+  deployments: write
+  issues: write
+  pull-requests: write
 
 jobs:
   deploy-production:
@@ -14,77 +19,69 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
 
+    env:
+      PUBLIC_GOOGLE_MAPS_API_KEY: ${{ vars.PUBLIC_GOOGLE_MAPS_API_KEY }}
+      PUBLIC_SENTRY_DSN: ${{ vars.PUBLIC_SENTRY_DSN }}
+      PUBLIC_UPSTASH_SEARCH_REST_URL: ${{ vars.PUBLIC_UPSTASH_SEARCH_REST_URL }}
+      PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN: ${{ vars.PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN }}
+      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+
     permissions:
       actions: read
       contents: read
       deployments: write
       issues: write
+      pull-requests: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium (with system deps)
+        run: npx playwright install --with-deps chromium
+
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
+      - name: Vercel pull (production)
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel pull --yes --environment=production --token=${VERCEL_TOKEN}
+
+      - name: Vercel build (production)
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel build --prod --token=${VERCEL_TOKEN}
+
       - name: Require Playwright success
         if: github.event_name == 'push'
-        env:
-          RUNS_URL: ${{ github.api_url }}/repos/${{ github.repository }}/actions/workflows/playwright.yml/runs?status=completed&per_page=50
-          GITHUB_TOKEN: ${{ github.token }}
-          EXPECTED_SHA: ${{ github.sha }}
-        run: |
-          set -euo pipefail
-
-          python3 - <<'PY'
-          import json
-          import os
-          import sys
-          import urllib.request
-
-          url = os.environ["RUNS_URL"]
-          token = os.environ["GITHUB_TOKEN"]
-          expected_sha = os.environ["EXPECTED_SHA"]
-
-          req = urllib.request.Request(
-              url,
-              headers={
-                  "Authorization": f"Bearer {token}",
-                  "Accept": "application/vnd.github+json",
-                  "X-GitHub-Api-Version": "2022-11-28",
-                  "User-Agent": "webstackbuilders-deploy-production",
-              },
-          )
-
-          with urllib.request.urlopen(req, timeout=30) as resp:
-              data = json.load(resp)
-
-          runs = (data or {}).get("workflow_runs") or []
-          for workflow_run in runs:
-              if (workflow_run or {}).get("head_sha") != expected_sha:
-                  continue
-              if (workflow_run or {}).get("conclusion") == "success":
-                  print("✅ Playwright succeeded for this SHA")
-                  sys.exit(0)
-
-          print("❌ Playwright has not completed successfully for this SHA; aborting deploy.", file=sys.stderr)
-          sys.exit(1)
-          PY
+        uses: ./.github/actions/require-playwright-success
+        with:
+          github_token: ${{ github.token }}
+          expected_sha: ${{ github.sha }}
+          workflow_file: playwright.yml
 
       - name: Deploy to Vercel (production)
-        # v1.10.0
-        uses: BetaHuhn/deploy-to-vercel-action@9893d875c782e1b4995a9399e8c4d660c33849c3
+        uses: ./.github/actions/deploy-to-vercel-action
         with:
           GITHUB_TOKEN: ${{ github.token }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
           PRODUCTION: true
+          PUBLIC_GOOGLE_MAPS_API_KEY: ${{ vars.PUBLIC_GOOGLE_MAPS_API_KEY }}
+          PUBLIC_SENTRY_DSN: ${{ vars.PUBLIC_SENTRY_DSN }}
+          PUBLIC_UPSTASH_SEARCH_REST_URL: ${{ vars.PUBLIC_UPSTASH_SEARCH_REST_URL }}
+          PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN: ${{ vars.PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN }}
           GITHUB_DEPLOYMENT_ENV: Production
-          CREATE_COMMENT: false
-          BUILD_ENV: |
-            PUBLIC_GOOGLE_MAPS_API_KEY="${{ vars.PUBLIC_GOOGLE_MAPS_API_KEY }}"
-            PUBLIC_SENTRY_DSN="${{ vars.PUBLIC_SENTRY_DSN }}"
-            PUBLIC_UPSTASH_SEARCH_REST_URL="${{ vars.PUBLIC_UPSTASH_SEARCH_REST_URL }}"
-            PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN="${{ vars.PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN }}"
 

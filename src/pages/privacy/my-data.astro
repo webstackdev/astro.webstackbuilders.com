@@ -167,13 +167,12 @@ const statusMessages: Record<string, { type: 'success' | 'error' | 'info', messa
     if (!token) return
 
     try {
-      const result = await actions.gdpr.verifyDsar({ token })
-      if (result.error) {
+      const { data, error } = await actions.gdpr.verifyDsar({ token })
+      if (error) {
         window.location.replace('/privacy/my-data?status=error')
         return
       }
 
-      const data = result.data
       if (data.status === 'download') {
         const blob = new Blob([data.json], { type: 'application/json' })
         const url = URL.createObjectURL(blob)
@@ -214,17 +213,14 @@ const statusMessages: Record<string, { type: 'success' | 'error' | 'info', messa
 
     setMessage(accessMessage, 'Sending request...', 'info')
 
-    try {
-      const result = await actions.gdpr.requestData({ email, requestType: 'ACCESS' })
+    const { data, error } = await actions.gdpr.requestData({ email, requestType: 'ACCESS' })
 
-      if (result.data?.success) {
-        setMessage(accessMessage, result.data.message, 'success')
-        accessForm.reset()
-      } else {
-        setMessage(accessMessage, result.error?.message || 'Request failed', 'error')
-      }
-    } catch {
-      setMessage(accessMessage, 'Network error. Please try again.', 'error')
+    // @TODO: Improve this error handling to be more user friendly. Should look at the types of errors that could occur, and give the user an idea of what to do.
+    if (error) {
+      setMessage(accessMessage, error.message || 'Request failed', 'error')
+    } else {
+      setMessage(accessMessage, data.message, 'success')
+      accessForm.reset()
     }
   })
 
@@ -242,18 +238,15 @@ const statusMessages: Record<string, { type: 'success' | 'error' | 'info', messa
 
     setMessage(deleteMessage, 'Sending request...', 'info')
 
-    try {
-      const result = await actions.gdpr.requestData({ email, requestType: 'DELETE' })
+      const { data, error } = await actions.gdpr.requestData({ email, requestType: 'DELETE' })
 
-      if (result.data?.success) {
-        setMessage(deleteMessage, result.data.message, 'success')
-        deleteForm.reset()
+      if (error) {
+        // @TODO: Improve this error handling to be more user friendly. Should look at the types of errors that could occur, and give the user an idea of what to do.
+        setMessage(deleteMessage, error.message || 'Request failed', 'error')
       } else {
-        setMessage(deleteMessage, result.error?.message || 'Request failed', 'error')
+        setMessage(deleteMessage, data.message, 'success')
+        deleteForm.reset()
       }
-    } catch {
-      setMessage(deleteMessage, 'Network error. Please try again.', 'error')
-    }
   })
 
   handleVerificationToken()
