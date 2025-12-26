@@ -35,7 +35,7 @@ describe('Layer 4: E2E - Full Pipeline Integration', () => {
       expect(html).toContain('class="custom-link"') // Attributes
       expect(html).toContain('class="c-blockquote') // Attribution
       expect(html).toContain('❤️') // Emoji
-      expect(html).toContain('href="https://webstackbuilders.com"') // Auto-linking
+      expect(html).toContain('href="https://www.webstackbuilders.com"') // Auto-linking
       expect(html).toContain('class="anchor-link"') // Anchor headings
 
       // Check accessibility

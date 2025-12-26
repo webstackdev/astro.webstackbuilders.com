@@ -31,8 +31,8 @@ WEBMENTION_IO_TOKEN=your_api_token_here
 Add to `src/layouts/BaseLayout.astro` in the `<head>`:
 
 ```html
-<link rel="webmention" href="https://webmention.io/webstackbuilders.com/webmention" />
-<link rel="pingback" href="https://webmention.io/webstackbuilders.com/xmlrpc" />
+<link rel="webmention" href="https://webmention.io/www.webstackbuilders.com/webmention" />
+<link rel="pingback" href="https://webmention.io/www.webstackbuilders.com/xmlrpc" />
 ```
 
 ### Step 5: Use the Component
@@ -43,7 +43,7 @@ In your article/case-study/service pages:
 ---
 import { WebMentions } from '@components/WebMentions'
 
-const fullUrl = `https://webstackbuilders.com${Astro.url.pathname}`
+const fullUrl = `https://www.webstackbuilders.com${Astro.url.pathname}`
 ---
 
 <WebMentions url={fullUrl} />
@@ -58,7 +58,7 @@ Edit `/src/pages/articles/[...slug].astro`:
 import { WebMentions } from '@components/WebMentions'
 
 const path = `/articles/${article.id}/`
-const fullUrl = `https://webstackbuilders.com${path}`
+const fullUrl = `https://www.webstackbuilders.com${path}`
 ---
 
 <MarkdownLayout {...props}>
