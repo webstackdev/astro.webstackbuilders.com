@@ -113,7 +113,8 @@ test.describe('Contact Form', () => {
 
     const uppyContainer = page.locator('#uppyContainer')
     await expect(uppyContainer).toBeVisible()
-    await expect(uppyContainer).toContainText('File Upload Coming Soon')
+    await expect(page.locator('#uppyDashboard')).toBeVisible()
+    await expect(uppyContainer.locator('.uppy-Dashboard')).toBeVisible({ timeout: 5000 })
   })
 
   test('@mocks contact form submits successfully when API is available', async ({ page: playwrightPage }) => {

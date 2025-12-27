@@ -1,8 +1,9 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TestError } from '@test/errors'
 import type { RenderContactFormContext } from './testUtils'
+import { appendUploadFiles } from '@components/Forms/Contact/client/formSubmission'
 
-const contactSubmitMock = vi.fn()
+const contactSubmitMock = vi.hoisted(() => vi.fn())
 
 vi.mock('astro:actions', () => ({
   actions: {
@@ -32,6 +33,27 @@ describe('ContactForm submission', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     contactSubmitMock.mockReset()
+  })
+
+  it('appends uploaded files to FormData as file1..file5', async () => {
+    await renderContactForm(async ({ window }) => {
+      const formData = new window.FormData()
+      const files = [
+        new window.File(['one'], 'one.txt', { type: 'text/plain' }),
+        new window.File(['two'], 'two.txt', { type: 'text/plain' }),
+      ]
+
+      appendUploadFiles(formData, {
+        getFiles: () => files,
+        reset: () => undefined,
+        destroy: () => undefined,
+      })
+
+      expect(formData.get('file1')).toBeInstanceOf(window.File)
+      expect(formData.get('file2')).toBeInstanceOf(window.File)
+      expect((formData.get('file1') as File).name).toBe('one.txt')
+      expect((formData.get('file2') as File).name).toBe('two.txt')
+    })
   })
 
   const fillValidFields = (context: RenderContactFormContext): void => {

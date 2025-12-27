@@ -42,7 +42,7 @@ export default [
         typescript: {
           alwaysTryTypes: true,
           project: './tsconfig.json',
-          extensions: ['.ts', '.tsx', '.astro'],
+          extensions: ['.ts', '.tsx', '.astro', '.d.ts', '.js', '.mjs', '.cjs'],
         },
       },
     },
