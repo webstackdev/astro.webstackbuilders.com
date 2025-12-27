@@ -1,0 +1,106 @@
+---
+/**
+ * BugReporter
+ * Renders the Bug Reporter modal custom element and self-registers its web component.
+ *
+ * The trigger button lives in the Footer (near the RSS icon).
+ */
+
+const {
+  triggerId = 'bugReporterTrigger',
+  dialogId = 'bugReporterDialog',
+  statusId = 'bugReporterStatus',
+  formId = 'bugReporterForm',
+  closeButtonId = 'bugReporterClose',
+  cancelButtonId = 'bugReporterCancel',
+} = Astro.props
+---
+
+<bug-reporter-modal-element
+  trigger-id={triggerId}
+  dialog-id={dialogId}
+  status-id={statusId}
+  form-id={formId}
+  close-button-id={closeButtonId}
+  cancel-button-id={cancelButtonId}
+  data-testid="bug-reporter-modal"
+></bug-reporter-modal-element>
+
+<dialog
+  id={dialogId}
+  aria-label="Report a bug"
+  class="bg-bg text-text border border-border rounded-md p-4 max-w-xl w-[min(42rem,90vw)]"
+>
+  <div class="flex items-start justify-between gap-4">
+    <h2 class="text-xl font-bold">Report a bug</h2>
+    <button
+      id={closeButtonId}
+      type="button"
+      class="text-text underline decoration-dotted decoration-text underline-offset-4 hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary focus:outline-none"
+    >
+      Close
+    </button>
+  </div>
+
+  <p class="mt-2 text-base">
+    Tell us what happened and what you expected.
+  </p>
+
+  <form id={formId} class="mt-4">
+    <label class="block">
+      <span class="font-bold">Name</span>
+      <input
+        name="name"
+        autocomplete="name"
+        class="mt-1 w-full rounded-md border border-border bg-bg-offset text-text p-2"
+        placeholder="Your name"
+      />
+    </label>
+
+    <label class="block mt-3">
+      <span class="font-bold">Email</span>
+      <input
+        name="email"
+        type="email"
+        autocomplete="email"
+        class="mt-1 w-full rounded-md border border-border bg-bg-offset text-text p-2"
+        placeholder="your.email@example.org"
+      />
+    </label>
+
+    <label class="block mt-3">
+      <span class="font-bold">Description</span>
+      <textarea
+        name="message"
+        required
+        rows="5"
+        class="mt-1 w-full rounded-md border border-border bg-bg-offset text-text p-2"
+        placeholder="What's the bug? What did you expect?"
+      ></textarea>
+    </label>
+
+    <p id={statusId} class="mt-3 text-text hidden" aria-live="polite"></p>
+
+    <div class="mt-4 flex items-center gap-3">
+      <button
+        type="submit"
+        class="inline-flex items-center justify-center rounded-md px-4 py-2 bg-secondary text-bg hover:opacity-90 focus:outline-none disabled:opacity-60"
+      >
+        Send
+      </button>
+
+      <button
+        id={cancelButtonId}
+        type="button"
+        class="text-text underline decoration-dotted decoration-text underline-offset-4 hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary focus:outline-none"
+      >
+        Cancel
+      </button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+  import { registerBugReporterWebComponent } from '@components/BugReporter/client'
+  registerBugReporterWebComponent()
+</script>

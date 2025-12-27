@@ -3,6 +3,7 @@ import contactData from '@content/contact.json'
 import { getSiteUrl } from '@components/scripts/utils/siteUrlClient'
 import { formatPhoneNumber } from '@components/Footer/server'
 import Avatar from '@components/Avatar/index.astro'
+import BugReporter from '@components/BugReporter/index.astro'
 import Icon from '@components/Icon/index.astro'
 import styles from './footer.module.css'
 
@@ -174,6 +175,32 @@ const year = new Date().getFullYear()
           </a>
         </span>
       </div>
+      {/* Page footer RSS link */}
+      <span class:list={[styles.footerFeedIcon, 'flex items-center w-12 lg:h-12 lg:w-12']}>
+        <a
+          href={`${getSiteUrl()}/feed.xml`}
+          title="RSS Feed"
+          class="text-text [&_.icon]:fill-text! [&_.icon]:stroke-text! [&_.icon]:h-10 [&_.icon]:w-10 hover:[&_.icon]:fill-secondary! hover:[&_.icon]:stroke-secondary! focus:[&_.icon]:fill-secondary! focus:[&_.icon]:stroke-secondary! focus:outline-none"
+        >
+          <span class="sr-only">RSS Feed</span>
+          <span><Icon name="feed" variant="inherit" /></span>
+        </a>
+      </span>
+
+      {/* Page footer Bug Reporter trigger */}
+      <span class:list={[styles.footerFeedIcon, 'flex items-center w-12 lg:h-12 lg:w-12']}>
+        <button
+          id="bugReporterTrigger"
+          type="button"
+          title="Report a bug"
+          class="text-text [&_.icon]:fill-text! [&_.icon]:stroke-text! [&_.icon]:h-10 [&_.icon]:w-10 hover:[&_.icon]:fill-secondary! hover:[&_.icon]:stroke-secondary! focus:[&_.icon]:fill-secondary! focus:[&_.icon]:stroke-secondary! focus:outline-none"
+        >
+          <span class="sr-only">Report a bug</span>
+          <span><Icon name="bug" variant="inherit" /></span>
+        </button>
+      </span>
+
+      <BugReporter triggerId="bugReporterTrigger" />
     </div>
   </footer>
 </site-footer>

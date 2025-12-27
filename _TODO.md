@@ -51,13 +51,9 @@ Implement mitigations in test/e2e/specs/07-performance/PERFORMANCE.md
 
 Right now we're using string literals to define HTML email templates for site mails. We should use Nunjucks with the rule-checking for valid CSS in HTML emails like we have in the corporate email footer repo.
 
-## Astro Actions - Action / Domain / Responder Pattern
-
-Rework the actions with better error handling, type safety, solid pattern
-
 ## Chat bot tying into my phone and email
 
-See note in src/components/scripts/sentry/client.ts - "User Feedback - allow users to report issues"
+Vercel AI Gateway, maybe could use for a chatbot:
 
 Vercel AI Gateway, maybe could use for a chatbot:
 

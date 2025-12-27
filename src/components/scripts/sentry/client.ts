@@ -58,10 +58,9 @@ export class SentryBootstrap {
         }),
 
         // User Feedback - allow users to report issues
-        // @TODO: Implement a component for this
         feedbackIntegration({
-          colorScheme: 'system', // Match user's color scheme
-          showBranding: false, // Hide Sentry branding
+          /** Use site-owned UI (BugReporter modal) */
+          autoInject: false,
         }),
       ],
 
