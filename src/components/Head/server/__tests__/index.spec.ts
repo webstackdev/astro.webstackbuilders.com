@@ -18,7 +18,7 @@ describe('getSocialImageLink', () => {
 
   it('derives the slug from an absolute URL and slugifies spaces', () => {
     mockSiteUrl()
-    const url = headServer.getSocialImageLink('https://webstackbuilders.com/services/cloud consulting/')
+    const url = headServer.getSocialImageLink('https://www.webstackbuilders.com/services/cloud consulting/')
 
     expect(url).toBe('https://example.com/og/services/cloud-consulting.png')
   })

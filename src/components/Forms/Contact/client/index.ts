@@ -15,11 +15,13 @@ import { initFormSubmission } from './formSubmission'
 import { initGenericValidation, initNameLengthHandler, initMssgLengthHandler } from './validation'
 import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
+import { initUppyUpload, type UploadController } from './upload'
 
 const COMPONENT_TAG_NAME = 'contact-form' as const
 
 export class ContactFormElement extends LitElement {
   private labelController: LabelController | null = null
+  private uploadController: UploadController | null = null
   private viewTransitionHandlersRegistered = false
   private beforePreparationHandler: (() => void) | null = null
   private afterSwapHandler: (() => void) | null = null
@@ -41,6 +43,8 @@ export class ContactFormElement extends LitElement {
 
   override disconnectedCallback() {
     super.disconnectedCallback()
+    this.uploadController?.destroy()
+    this.uploadController = null
     this.removeViewTransitionsHandlers()
   }
 
@@ -49,16 +53,21 @@ export class ContactFormElement extends LitElement {
     addScriptBreadcrumb(context)
 
     try {
+      this.uploadController?.destroy()
+      this.uploadController = null
+
       const elements = getContactFormElements()
       this.labelController = initLabelHandlers(elements.fields)
       initCharacterCounter(elements, this.config)
       initUploadPlaceholder(elements)
+      this.uploadController = initUppyUpload(elements)
       initEmailValidationHandler(elements.fields.email)
       initNameLengthHandler(elements.fields.name)
       initMssgLengthHandler(elements.fields.message)
       initGenericValidation(elements.form)
       initFormSubmission(elements, {
         labelController: this.labelController,
+        uploadController: this.uploadController,
       })
       this.setViewTransitionsHandlers()
     } catch (error) {

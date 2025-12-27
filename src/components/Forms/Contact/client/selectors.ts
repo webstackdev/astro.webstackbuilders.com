@@ -120,3 +120,12 @@ export const queryContactFormGeneratedFieldError = (field: ContactFormGenericFie
   if (!wrapper) return null
   return wrapper.querySelector<HTMLElement>(GENERATED_GENERIC_ERROR_SELECTOR)
 }
+
+export const queryUppyDashboardTarget = (uppyContainer: HTMLElement | null): HTMLElement | null => {
+  if (!uppyContainer) {
+    return null
+  }
+
+  const dashboardTarget = uppyContainer.querySelector('#uppyDashboard')
+  return dashboardTarget instanceof HTMLElement ? dashboardTarget : null
+}

@@ -5,9 +5,19 @@ import { validateGenericFields, validateNameField, validateMessageField } from '
 import type { ContactFormElements } from './@types'
 import { validateEmailField } from './email'
 import { actions } from 'astro:actions'
+import type { UploadController } from './upload'
 
 interface SubmissionControllers {
   labelController: LabelController
+  uploadController?: UploadController | null
+}
+
+export const appendUploadFiles = (formData: FormData, uploadController?: UploadController | null): void => {
+  const files = uploadController?.getFiles() ?? []
+  const maxFiles = 5
+  files.slice(0, maxFiles).forEach((file, index) => {
+    formData.set(`file${index + 1}`, file)
+  })
 }
 
 const hideMessages = (elements: ContactFormElements): void => {
@@ -58,6 +68,7 @@ const resetFormState = (elements: ContactFormElements, controllers: SubmissionCo
   elements.charCount.textContent = '0'
   elements.charCount.removeAttribute('style')
   controllers.labelController.sync()
+  controllers.uploadController?.reset()
   Object.values(elements.fields).forEach(clearFieldFeedback)
 }
 
@@ -85,6 +96,7 @@ export const initFormSubmission = (
 
       try {
         const formData = new FormData(elements.form)
+        appendUploadFiles(formData, controllers.uploadController)
         const { data, error } = await actions.contact.submit(formData)
         // @TODO: Improve this error handling to be more user friendly. Should look at the types of errors that could occur, and give the user an idea of what to do.
         if (error || !data || !data.success) {

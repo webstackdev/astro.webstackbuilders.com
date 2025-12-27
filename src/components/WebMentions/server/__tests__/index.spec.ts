@@ -191,7 +191,7 @@ describe('Webmention helpers', () => {
       'wm-target': 'https://example.com/a',
       'wm-property': 'mention-of',
       published: '2024-01-01T00:00:00.000Z',
-      author: { name: 'Site Author', url: 'https://webstackbuilders.com/articles/launch' },
+      author: { name: 'Site Author', url: 'https://www.webstackbuilders.com/articles/launch' },
     },
     {
       'wm-id': 'helper-2',
