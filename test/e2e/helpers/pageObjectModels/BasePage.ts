@@ -6,31 +6,36 @@ import {
   type BrowserContext,
   type ConsoleMessage,
   type JSHandle,
-  type Locator,
   type Page,
-  type Response,
   expect,
 } from '@playwright/test'
 import { navigationItems } from '@components/Navigation/server'
 import { clearConsentCookies } from '@test/e2e/helpers'
 import { waitForHeaderComponents as waitForHeaderComponentsHelper } from '@test/e2e/helpers/waitHelpers'
 import { wait } from '@test/e2e/helpers/waitTimeouts'
+import type { BuiltInsGotoOptions } from './BuiltInsPage'
+import { BuiltInsPage } from './BuiltInsPage'
 
-export class BasePage {
-  readonly page: Page
+export class BasePage extends BuiltInsPage {
   private _consoleMessages: string[] = []
   public errors404: string[] = []
   public navigationItems = navigationItems
   private lastAstroPageLoadCount = 0
   private has404Listener = false
 
-  protected constructor(protected readonly _page: Page) {
-    this.page = _page
+  protected constructor(page: Page) {
+    super(page)
 
     // IMPORTANT: Register listener early
     this.page.on('console', (consoleMessage) => {
       this._consoleMessages.push(consoleMessage.text())
     })
+  }
+
+  protected override async afterGoto(_path: string, options?: BuiltInsGotoOptions): Promise<void> {
+    if (!options?.skipCookieDismiss) {
+      await this.dismissCookieModal()
+    }
   }
 
   protected static async setupPlaywrightGlobals(page: Page): Promise<void> {
@@ -113,57 +118,6 @@ export class BasePage {
    */
 
   /**
-   * Navigate to a specific path. Wait for page to be fully loaded.
-   * Module and deferred scripts have executed. Images, subframes,
-   * and async scripts may not have finished loading.
-   * Automatically dismisses cookie consent modal unless skipCookieDismiss is true.
-   */
-  async goto(
-    path: string,
-    options?: { skipCookieDismiss?: boolean; timeout?: number; waitUntil?: 'load' | 'domcontentloaded' | 'networkidle' }
-  ): Promise<null | Response> {
-    const requestedTimeout = options?.timeout ?? wait.defaultWait
-    const waitUntil = options?.waitUntil ?? 'domcontentloaded'
-
-    const navigate = async (timeout: number) => {
-      return await this._page.goto(path, {
-        timeout,
-        waitUntil,
-      })
-    }
-
-    let response: null | Response = null
-
-    try {
-      response = await navigate(requestedTimeout)
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error)
-      if (message.includes('ERR_ABORTED')) {
-        response = await navigate(requestedTimeout)
-      } else if (!options?.timeout && message.includes('Timeout')) {
-        // Allow a single retry with a longer timeout to absorb slow prerender navigations
-        response = await navigate(wait.navigation)
-      } else {
-        throw error
-      }
-    }
-
-    // Dismiss cookie modal to prevent it from blocking clicks (unless opted out)
-    if (!options?.skipCookieDismiss) {
-      await this.dismissCookieModal()
-    }
-
-    return response
-  }
-
-  /**
-   * Reload the current page
-   */
-  async reload(options?: { timeout?: number; waitUntil?: 'load' | 'domcontentloaded' | 'networkidle' }): Promise<null | Response> {
-    return await this._page.reload(options)
-  }
-
-  /**
    * Dismiss cookie consent modal if it's visible
    */
   private async dismissCookieModal(): Promise<void> {
@@ -237,65 +191,6 @@ export class BasePage {
     }
   }
 
-  /**
-   * Evaluate JS script in the browser
-   */
-  async evaluate<R, Arg = void>(
-    pageFunction: (_arg: Arg) => R | Promise<R>,
-    ...args: Arg extends void ? [] : [Arg]
-  ): Promise<R> {
-    type EvaluateCallback = Parameters<Page['evaluate']>[0]
-    type EvaluateArgument = Parameters<Page['evaluate']>[1]
-
-    const typedCallback = pageFunction as unknown as EvaluateCallback
-
-    if (args.length === 0) {
-      return (await this._page.evaluate(typedCallback)) as Awaited<R>
-    }
-
-    const [value] = args as [Arg]
-    return (await this._page.evaluate(typedCallback, value as EvaluateArgument)) as Awaited<R>
-  }
-
-  /**
-   * Check if element is visible
-   */
-  locator(selector: string, options?: {
-    has?: Locator;
-    hasNot?: Locator;
-    hasNotText?: string | RegExp;
-    hasText?: string | RegExp;
-}): Locator {
-    return this._page.locator(selector, options)
-  }
-
-  /**
-   * Check if element is visible
-   */
-  async isVisible(selector: string): Promise<boolean> {
-    return await this._page.locator(selector).isVisible()
-  }
-
-  /**
-   * Take a screenshot
-   */
-  async takeScreenshot(name: string): Promise<void> {
-    await this._page.screenshot({ path: `test/e2e/screenshots/${name}.png`, fullPage: true })
-  }
-
-  /**
-   * Set viewport size
-   */
-  async setViewport(width: number, height: number): Promise<void> {
-    await this._page.setViewportSize({ width, height })
-  }
-
-  /**
-   * Set viewport size using object parameter
-   */
-  async setViewportSize(size: { width: number; height: number }): Promise<void> {
-    await this._page.setViewportSize(size)
-  }
 
   /**
    * ================================================================
@@ -314,12 +209,6 @@ export class BasePage {
     await this._page.waitForFunction(() => document.readyState === 'complete')
   }
 
-  /**
-   * Wait for selector to be visible
-   */
-  async waitForSelector(selector: string, options?: { timeout?: number }): Promise<void> {
-    await this._page.waitForSelector(selector, options)
-  }
 
   /**
    * Wait for navigation to complete
@@ -336,54 +225,6 @@ export class BasePage {
    * ================================================================
    */
 
-  /**
-   * Click an element with optional wait
-   */
-  async click(selector: string, options?: { force?: boolean }): Promise<void> {
-    await this._page.click(selector, options)
-  }
-
-  /**
-   * Fill an input field
-   */
-  async fill(selector: string, value: string): Promise<void> {
-    await this._page.fill(selector, value)
-  }
-
-  /**
-   * Check a checkbox
-   */
-  async check(selector: string): Promise<void> {
-    await this._page.check(selector)
-  }
-
-  /**
-   * Uncheck a checkbox
-   */
-  async uncheck(selector: string): Promise<void> {
-    await this._page.uncheck(selector)
-  }
-
-  /**
-   * Scroll to element
-   */
-  async scrollToElement(selector: string): Promise<void> {
-    await this._page.locator(selector).scrollIntoViewIfNeeded()
-  }
-
-  /**
-   * Press keyboard key
-   */
-  async pressKey(key: string): Promise<void> {
-    await this._page.keyboard.press(key)
-  }
-
-  /**
-   * Type text using keyboard
-   */
-  async type(text: string): Promise<void> {
-    await this._page.keyboard.type(text)
-  }
 
   /**
    * Deterministically open the mobile navigation menu and wait for it to finish animating
@@ -456,78 +297,6 @@ export class BasePage {
     )
   }
 
-  /**
-   * Get keyboard object for advanced keyboard operations
-   */
-  get keyboard() {
-    return this._page.keyboard
-  }
-
-  /**
-   * Get mouse object for advanced mouse operations
-   */
-  get mouse() {
-    return this._page.mouse
-  }
-
-  /**
-   * Get touchscreen object for touch operations
-   */
-  get touchscreen() {
-    return this._page.touchscreen
-  }
-
-  /**
-   * Hover over element
-   */
-  async hover(selector: string): Promise<void> {
-    await this._page.hover(selector)
-  }
-
-  /**
-   * Wait for load state
-   */
-  async waitForLoadState(state?: 'load' | 'domcontentloaded' | 'networkidle'): Promise<void> {
-    await this._page.waitForLoadState(state)
-  }
-
-  /**
-   * Wait for specified timeout in milliseconds
-   * @deprecated Use event-based waits like waitForPageLoad() instead
-   */
-  async wait(timeout: number): Promise<void> {
-    await this._page.waitForTimeout(timeout)
-  }
-
-  /**
-   * Wait for specified timeout in milliseconds
-   * Alias for wait() method
-   * @deprecated Use event-based waits like waitForPageLoad() instead
-   */
-  async waitForTimeout(timeout: number): Promise<void> {
-    await this._page.waitForTimeout(timeout)
-  }
-
-  /**
-   * Wait for a custom function to return truthy value
-   */
-  async waitForFunction<R>(
-    pageFunction: () => R | Promise<R>,
-    arg?: unknown,
-    options?: { timeout?: number }
-  ): Promise<void> {
-    await this._page.waitForFunction(pageFunction, arg, options)
-  }
-
-  /**
-   * Intercept and modify network requests
-   */
-  async route(
-    targetUrl: string | RegExp | ((_url: URL) => boolean),
-    handler: (_route: import('@playwright/test').Route) => void
-  ): Promise<void> {
-    await this._page.route(targetUrl, handler)
-  }
 
   /**
    * Wait for Astro page load event
@@ -602,38 +371,6 @@ export class BasePage {
     await navLink.click()
   }
 
-  /**
-   * Wait for URL to change to match the expected pattern
-   *
-   * @param urlPattern - Glob pattern or regex to match against URL
-   * @param options - Timeout and other options
-   *
-   * @example
-   * ```ts
-   * await page.waitForURL('/articles')
-   * ```
-   */
-  async waitForURL(urlPattern: string | RegExp, options?: { timeout?: number }): Promise<void> {
-    await this._page.waitForURL(urlPattern, options)
-  }
-
-  /**
-   * Wait for a response matching the URL pattern
-   *
-   * @param urlPattern - URL or pattern to match
-   * @param options - Timeout and other options
-   *
-   * @example
-   * ```ts
-   * const response = await page.waitForResponse('/api/newsletter')
-   * ```
-   */
-  async waitForResponse(
-    urlPattern: string | RegExp | ((_response: Response) => boolean),
-    options?: { timeout?: number }
-  ): Promise<Response> {
-    return await this._page.waitForResponse(urlPattern, options)
-  }
 
   /**
    * ================================================================
@@ -642,45 +379,6 @@ export class BasePage {
    *
    * ================================================================
    */
-
-  /**
-   * Get current URL
-   */
-  getCurrentUrl(): string {
-    return this._page.url()
-  }
-
-  /**
-   * Get page URL (alias for getCurrentUrl)
-   */
-  url(): string {
-    return this._page.url()
-  }
-
-  /**
-   * Get page title
-   */
-  async title(): Promise<string> {
-    return this._page.title()
-  }
-
-  /**
-   * Get the browser context that the page belongs to
-   */
-  context() {
-    return this._page.context()
-  }
-
-  /**
-   * Emulate media features (e.g., prefers-color-scheme, reduced-motion)
-   */
-  async emulateMedia(options: {
-    colorScheme?: 'light' | 'dark' | 'no-preference'
-    reducedMotion?: 'reduce' | 'no-preference'
-    forcedColors?: 'active' | 'none'
-  }): Promise<void> {
-    await this._page.emulateMedia(options)
-  }
 
   /**
    * Verify page URL matches expected pattern
