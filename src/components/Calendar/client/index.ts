@@ -135,10 +135,28 @@ const buildOutlookCalendarUrl = (eventData: CalendarEventData): string => {
   return `https://outlook.office.com/calendar/0/deeplink/compose?${params.toString()}`
 }
 
+const createCalendarUid = (now: Date): string => {
+  // Use Web Crypto instead of Math.random() to avoid insecure-randomness findings.
+  const cryptoApi = globalThis.crypto
+
+  if (cryptoApi && 'randomUUID' in cryptoApi && typeof cryptoApi.randomUUID === 'function') {
+    return cryptoApi.randomUUID()
+  }
+
+  if (cryptoApi && 'getRandomValues' in cryptoApi && typeof cryptoApi.getRandomValues === 'function') {
+    const bytes = new Uint8Array(16)
+    cryptoApi.getRandomValues(bytes)
+    return Array.from(bytes, (value) => value.toString(16).padStart(2, '0')).join('')
+  }
+
+  // Extremely old/non-browser environment fallback: unique-enough without randomness.
+  return `${now.getTime()}`
+}
+
 const buildIcsText = (eventData: CalendarEventData): string => {
   const now = new Date()
   const dtStamp = formatUtcDateTimeForCalendar(now)
-  const uid = `${now.getTime()}-${Math.random().toString(16).slice(2)}`
+  const uid = createCalendarUid(now)
 
   const start = parseIsoUtcDate(eventData.startDate, eventData.startTime)
   const end = ((): Date => {
