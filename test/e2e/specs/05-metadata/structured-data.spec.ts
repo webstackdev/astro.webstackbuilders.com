@@ -7,6 +7,7 @@
 import { HeadPage, test, expect } from '@test/e2e/helpers'
 import { EvaluationError } from '@test/errors'
 import type { JsonLdSchema } from '@test/e2e/helpers/pageObjectModels/HeadPage'
+import { wait } from '@test/e2e/helpers/waitTimeouts'
 
 interface OrganizationSchema extends JsonLdSchema {
   name?: string
@@ -42,7 +43,7 @@ const expectAbsoluteUrl = (value: unknown): void => {
 }
 
 const getFirstContentLink = async (page: HeadPage, selector: string): Promise<string> => {
-  await page.waitForSelector(selector, { timeout: 5000 })
+  await page.waitForSelector(selector, { timeout: wait.defaultWait })
   const href = await page.evaluate(sel => {
     const element = document.querySelector(sel)
     return element?.getAttribute('href') ?? null

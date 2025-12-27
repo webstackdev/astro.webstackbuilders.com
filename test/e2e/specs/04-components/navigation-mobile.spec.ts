@@ -6,6 +6,7 @@
 
 import { BasePage, test, expect } from '@test/e2e/helpers'
 import { setupTestPage } from '@test/e2e/helpers/cookieHelper'
+import { wait } from '@test/e2e/helpers/waitTimeouts'
 
 test.describe('Mobile Navigation', () => {
   // Helper to wait for mobile menu animations to complete using clock manipulation
@@ -235,13 +236,13 @@ test.describe('Mobile Navigation', () => {
     await page.click('button[aria-label="toggle menu"]')
 
     // Wait for mobile menu animation with real timers for WebKit compatibility
-    await playwrightPage.waitForTimeout(600) // Wait for 550ms animation + buffer
+    await playwrightPage.waitForTimeout(wait.bespokeMobileMenuAnimationBuffer) // Wait for 550ms animation + buffer
 
     // Now navigation links should be visible and clickable
     await page.click('nav#main-nav a[href="/about"]')
 
     // Wait for navigation to complete and check for About page content instead of URL
-    await playwrightPage.waitForSelector('text=Building Developer-First Infrastructure', { timeout: 5000 })
+    await playwrightPage.waitForSelector('text=Building Developer-First Infrastructure', { timeout: wait.defaultWait })
 
     // Verify we're on the About page by checking breadcrumbs (using proper Playwright selector)
     await expect(playwrightPage.locator('nav[aria-label="Breadcrumb"]').getByText('About')).toBeVisible()
@@ -253,17 +254,17 @@ test.describe('Mobile Navigation', () => {
 
     await setupTestPage(playwrightPage, '/')
 
-    await page.openMobileMenu({ timeout: 15000 })
+    await page.openMobileMenu({ timeout: wait.navigation })
 
     const aboutLink = playwrightPage.locator('site-navigation a[href="/about"]').first()
-    await expect(aboutLink).toBeVisible({ timeout: 10000 })
+    await expect(aboutLink).toBeVisible({ timeout: wait.bespokeMobileAboutLinkVisible })
 
     // Focus on a navigation link and press Enter
     await aboutLink.focus()
     await playwrightPage.keyboard.press('Enter')
 
     // Wait for the view-transition navigation to finish and verify content
-    await page.waitForPageLoad({ requireNext: true, timeout: 15000 })
+    await page.waitForPageLoad({ requireNext: true, timeout: wait.navigation })
     await expect(playwrightPage.locator('nav[aria-label="Breadcrumb"]').getByText('About')).toBeVisible()
   })
 
@@ -287,7 +288,7 @@ test.describe('Mobile Navigation', () => {
 
     await setupTestPage(playwrightPage, '/')
 
-    await page.openMobileMenu({ timeout: 15000 })
+    await page.openMobileMenu({ timeout: wait.navigation })
 
     const headerExpandedBefore = await playwrightPage.locator('#header').evaluate((el) =>
       el.classList.contains('aria-expanded-true')
@@ -296,13 +297,13 @@ test.describe('Mobile Navigation', () => {
 
     // Navigate via View Transitions and wait for completion
     await page.navigateToPage('/about')
-    await page.waitForPageLoad({ requireNext: true, timeout: 15000 })
+    await page.waitForPageLoad({ requireNext: true, timeout: wait.navigation })
 
     // Menu should be closed after navigation
     await playwrightPage.waitForFunction(
       () => !(document.getElementById('header')?.classList.contains('aria-expanded-true') ?? false),
       undefined,
-      { timeout: 5000 }
+      { timeout: wait.defaultWait }
     )
   })
 
@@ -455,7 +456,7 @@ test.describe('Mobile Navigation', () => {
     await page.setViewport(375, 667)
     await setupTestPage(playwrightPage, '/')
 
-    await page.openMobileMenu({ timeout: 15000 })
+    await page.openMobileMenu({ timeout: wait.navigation })
 
     // Tab to first navigation link
     await playwrightPage.keyboard.press('Tab')

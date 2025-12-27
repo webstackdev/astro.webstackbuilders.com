@@ -5,6 +5,7 @@
 
 import { BasePage, test, expect } from '@test/e2e/helpers'
 import { waitForAnimationFrames } from '@test/e2e/helpers/waitHelpers'
+import { wait } from '@test/e2e/helpers/waitTimeouts'
 
 async function setTheme(page: BasePage, theme: string): Promise<void> {
   await page.evaluate((nextTheme) => {
@@ -60,7 +61,7 @@ test.describe('Theme Switching Visuals', () => {
     const initialTheme = await html.getAttribute('data-theme')
     await themePicker.click()
     await expect
-      .poll(async () => await html.getAttribute('data-theme'), { intervals: [200], timeout: 2000 })
+      .poll(async () => await html.getAttribute('data-theme'), { intervals: [200], timeout: wait.quickAssert })
       .not.toBe(initialTheme)
     await waitForAnimationFrames(page.page, 2)
 

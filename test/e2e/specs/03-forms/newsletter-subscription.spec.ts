@@ -3,6 +3,7 @@
  * Tests for newsletter signup functionality
  */
 import { test, expect, spyOnFetchEndpoint, delayFetchForEndpoint, mockFetchEndpointResponse } from '@test/e2e/helpers'
+import { wait } from '@test/e2e/helpers/waitTimeouts'
 import { EvaluationError } from '@test/errors'
 import { TEST_EMAILS, ERROR_MESSAGES } from '@test/e2e/fixtures/test-data'
 import { NewsletterPage } from '@test/e2e/helpers/pageObjectModels/NewsletterPage'
@@ -212,7 +213,7 @@ test.describe('Newsletter Subscription Form', () => {
     await newsletterPage.waitForFunction(() => {
       const button = document.querySelector('#newsletter-submit')
       return button instanceof HTMLButtonElement && button.disabled === false
-    }, undefined, { timeout: 3000 })
+    }, undefined, { timeout: wait.shortOperation })
 
     const browserName = newsletterPage.context().browser()?.browserType().name()
     const delayMs = browserName === 'webkit' ? 400 : browserName === 'firefox' ? 600 : 200
@@ -226,10 +227,10 @@ test.describe('Newsletter Subscription Form', () => {
     try {
       await fetchStarted
       await expect(submitButton).toHaveAttribute('data-e2e-state', 'loading', stateTimeout)
-      await expect(submitButton).toBeDisabled({ timeout: 2000 })
+      await expect(submitButton).toBeDisabled({ timeout: wait.quickAssert })
       await submitPromise
       await expect(submitButton).toHaveAttribute('data-e2e-state', 'idle', stateTimeout)
-      await expect(submitButton).toBeEnabled({ timeout: 2000 })
+      await expect(submitButton).toBeEnabled({ timeout: wait.quickAssert })
     } finally {
       await delayOverride.restore()
     }

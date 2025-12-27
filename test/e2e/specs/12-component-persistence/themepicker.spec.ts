@@ -16,6 +16,7 @@
 /* eslint-disable custom-rules/enforce-centralized-events -- Test file uses addEventListener to verify DOM persistence */
 
 import { ComponentPersistencePage, test, describe, expect } from '@test/e2e/helpers'
+import { wait } from '@test/e2e/helpers/waitTimeouts'
 
 describe('View Transitions - transition:persist on Web Components', () => {
   test('should persist ThemePicker web component identity across navigation', async ({
@@ -30,7 +31,7 @@ describe('View Transitions - transition:persist on Web Components', () => {
 
     // Navigate to a different page using Astro's View Transitions
     await page.navigateToPage('/articles')
-    await page.waitForURL('**/articles', { timeout: 5000 })
+    await page.waitForURL('**/articles', { timeout: wait.defaultWait })
     await page.waitForPageLoad()
 
     // Verify the element persisted with the same DOM identity
@@ -74,7 +75,7 @@ describe('View Transitions - transition:persist on Web Components', () => {
 
     // Navigate using View Transitions (not full reload)
     await page.navigateToPage('/articles')
-    await page.waitForURL('**/articles', { timeout: 5000 })
+    await page.waitForURL('**/articles', { timeout: wait.defaultWait })
     await page.waitForPageLoad()
 
     // Programmatically dispatch a click event to trigger the listener

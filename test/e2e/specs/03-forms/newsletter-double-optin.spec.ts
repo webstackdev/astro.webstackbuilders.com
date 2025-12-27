@@ -7,13 +7,14 @@ import {
   test,
   expect,
 } from '@test/e2e/helpers'
+import { wait } from '@test/e2e/helpers/waitTimeouts'
 import { markNewsletterTokenExpired, waitForLatestNewsletterConfirmationTokenByEmail } from '@test/e2e/db'
 
 const HOME_PATH = '/'
 
 const waitForNewsletterForm = async (page: BasePage) => {
-  await page.waitForSelector('#newsletter-email', { timeout: 5000 })
-  await page.waitForSelector('#newsletter-gdpr-consent', { timeout: 5000 })
+  await page.waitForSelector('#newsletter-email', { timeout: wait.defaultWait })
+  await page.waitForSelector('#newsletter-gdpr-consent', { timeout: wait.defaultWait })
 }
 
 const fillNewsletterForm = async (page: BasePage, email: string) => {
@@ -41,7 +42,7 @@ const submitNewsletterSubscription = async (
 
   await page.click('#newsletter-submit')
 
-  await expect(page.locator('#newsletter-message')).toContainText('confirm your subscription', { timeout: 5000 })
+  await expect(page.locator('#newsletter-message')).toContainText('confirm your subscription', { timeout: wait.defaultWait })
 
   const token = await waitForLatestNewsletterConfirmationTokenByEmail(email)
 
@@ -67,8 +68,8 @@ test.describe('Newsletter Double Opt-In Flow', () => {
 
     await page.goto(subscription.localConfirmationPath)
 
-    await expect(page.locator('#loading-state')).toHaveClass(/hidden/, { timeout: 5000 })
-    await expect(page.locator('#success-state')).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('#loading-state')).toHaveClass(/hidden/, { timeout: wait.defaultWait })
+    await expect(page.locator('#success-state')).toBeVisible({ timeout: wait.defaultWait })
     await expect(page.locator('#user-email')).toHaveText(subscription.email)
   })
 
@@ -81,8 +82,8 @@ test.describe('Newsletter Double Opt-In Flow', () => {
 
     await page.goto(subscription.localConfirmationPath)
 
-    await expect(page.locator('#loading-state')).toHaveClass(/hidden/, { timeout: 5000 })
-    await expect(page.locator('#expired-state')).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('#loading-state')).toHaveClass(/hidden/, { timeout: wait.defaultWait })
+    await expect(page.locator('#expired-state')).toBeVisible({ timeout: wait.defaultWait })
     await expect(page.locator('#success-state')).toHaveClass(/hidden/)
   })
 
@@ -93,11 +94,11 @@ test.describe('Newsletter Double Opt-In Flow', () => {
     const subscription = await submitNewsletterSubscription(page)
 
     await page.goto(subscription.localConfirmationPath)
-    await expect(page.locator('#success-state')).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('#success-state')).toBeVisible({ timeout: wait.defaultWait })
 
     await page.goto(subscription.localConfirmationPath)
 
-    await expect(page.locator('#expired-state')).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('#expired-state')).toBeVisible({ timeout: wait.defaultWait })
     await expect(page.locator('#success-state')).toHaveClass(/hidden/)
   })
 })

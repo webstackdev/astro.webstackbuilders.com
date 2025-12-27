@@ -12,6 +12,7 @@
 import { BasePage, test, expect } from '@test/e2e/helpers'
 import { setupTestPage } from '@test/e2e/helpers/cookieHelper'
 import { waitForAnimationFrames } from '@test/e2e/helpers/waitHelpers'
+import { wait } from '@test/e2e/helpers/waitTimeouts'
 
 test.describe('Hero Animation - Mobile Menu Pause Regression', () => {
   // Configure mobile viewport for all tests in this suite
@@ -38,7 +39,7 @@ test.describe('Hero Animation - Mobile Menu Pause Regression', () => {
     await setupTestPage(page.page, '/')
     await page.waitForHeaderComponents()
     // Wait for hero animation to load
-    await page.waitForSelector('#heroAnimation', { timeout: 5000 })
+    await page.waitForSelector('#heroAnimation', { timeout: wait.defaultWait })
   })
 
   test('hero animation should pause when mobile menu opens', async ({ page: playwrightPage }) => {
@@ -232,7 +233,7 @@ test.describe('Hero Animation - Mobile Menu Pause Regression', () => {
 
     // Wait for the first navigation link to animate in (splash takes 0.5s, then item delay)
     const navLink = page.locator('.main-nav-item a').first()
-    await navLink.waitFor({ state: 'visible', timeout: 2000 })
+    await navLink.waitFor({ state: 'visible', timeout: wait.quickAssert })
 
     // Click the navigation link
     await navLink.click()

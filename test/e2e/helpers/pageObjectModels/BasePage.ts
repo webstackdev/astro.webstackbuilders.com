@@ -14,9 +14,7 @@ import {
 import { navigationItems } from '@components/Navigation/server'
 import { clearConsentCookies } from '@test/e2e/helpers'
 import { waitForHeaderComponents as waitForHeaderComponentsHelper } from '@test/e2e/helpers/waitHelpers'
-
-const DEFAULT_NAVIGATION_TIMEOUT = 5000
-const EXTENDED_NAVIGATION_TIMEOUT = 15000
+import { wait } from '@test/e2e/helpers/waitTimeouts'
 
 export class BasePage {
   readonly page: Page
@@ -124,7 +122,7 @@ export class BasePage {
     path: string,
     options?: { skipCookieDismiss?: boolean; timeout?: number; waitUntil?: 'load' | 'domcontentloaded' | 'networkidle' }
   ): Promise<null | Response> {
-    const requestedTimeout = options?.timeout ?? DEFAULT_NAVIGATION_TIMEOUT
+    const requestedTimeout = options?.timeout ?? wait.defaultWait
     const waitUntil = options?.waitUntil ?? 'domcontentloaded'
 
     const navigate = async (timeout: number) => {
@@ -144,7 +142,7 @@ export class BasePage {
         response = await navigate(requestedTimeout)
       } else if (!options?.timeout && message.includes('Timeout')) {
         // Allow a single retry with a longer timeout to absorb slow prerender navigations
-        response = await navigate(EXTENDED_NAVIGATION_TIMEOUT)
+        response = await navigate(wait.navigation)
       } else {
         throw error
       }
@@ -187,11 +185,11 @@ export class BasePage {
       const allowAllButton = this._page.getByRole('button', { name: /allow all/i })
 
       // Wait briefly for the dialog to appear on client-side hydrated pages.
-      await cookieDialog.waitFor({ state: 'visible', timeout: 1000 }).catch(() => undefined)
+      await cookieDialog.waitFor({ state: 'visible', timeout: wait.tinyUi }).catch(() => undefined)
 
       if (await cookieDialog.isVisible().catch(() => false)) {
         if (await allowAllButton.isVisible().catch(() => false)) {
-          await allowAllButton.click({ timeout: 1000 }).catch(() => undefined)
+          await allowAllButton.click({ timeout: wait.tinyUi }).catch(() => undefined)
         }
       }
 
@@ -233,7 +231,7 @@ export class BasePage {
           && !anyRoleDialogVisible
         const mainInteractive = !main || !main.hasAttribute('inert')
         return modalHidden && mainInteractive
-      }, undefined, { timeout: 1000 })
+      }, undefined, { timeout: wait.tinyUi })
     } catch {
       // Ignore errors - modal might not exist on all pages
     }
@@ -391,7 +389,7 @@ export class BasePage {
    * Deterministically open the mobile navigation menu and wait for it to finish animating
    */
   async openMobileMenu(options?: { timeout?: number }): Promise<void> {
-    const timeout = options?.timeout ?? EXTENDED_NAVIGATION_TIMEOUT
+    const timeout = options?.timeout ?? wait.navigation
 
     await this.waitForHeaderComponents({ timeout })
     await this._page.waitForFunction(
@@ -429,7 +427,7 @@ export class BasePage {
    * Deterministically close the mobile navigation menu and wait for scroll lock to clear
    */
   async closeMobileMenu(options?: { timeout?: number }): Promise<void> {
-    const timeout = options?.timeout ?? DEFAULT_NAVIGATION_TIMEOUT
+    const timeout = options?.timeout ?? wait.defaultWait
     const toggleButton = this._page.locator('button[aria-label="toggle menu"]')
 
     await expect(toggleButton).toBeVisible({ timeout })
@@ -543,7 +541,7 @@ export class BasePage {
    */
   async waitForPageLoad(options?: { requireNext?: boolean; timeout?: number }): Promise<void> {
     const requireNext = options?.requireNext ?? false
-    const timeout = options?.timeout ?? DEFAULT_NAVIGATION_TIMEOUT
+    const timeout = options?.timeout ?? wait.defaultWait
     const currentCount = await this._page.evaluate(() => window.__astroPageLoadCounter ?? 0)
 
     if (!requireNext && currentCount > this.lastAstroPageLoadCount) {
@@ -595,10 +593,10 @@ export class BasePage {
       const navToggle = this._page.locator('.nav-toggle-btn').first()
       if (await navToggle.isVisible()) {
         await navToggle.click()
-        await expect(navToggle).toHaveAttribute('aria-expanded', 'true', { timeout: DEFAULT_NAVIGATION_TIMEOUT })
+        await expect(navToggle).toHaveAttribute('aria-expanded', 'true', { timeout: wait.defaultWait })
       }
 
-      await expect(navLink).toBeVisible({ timeout: DEFAULT_NAVIGATION_TIMEOUT })
+      await expect(navLink).toBeVisible({ timeout: wait.defaultWait })
     }
 
     await navLink.click()

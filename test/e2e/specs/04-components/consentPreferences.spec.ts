@@ -5,6 +5,7 @@
 
 import type { Page } from '@playwright/test'
 import { BasePage, expect, test, mockFetchEndpointResponse, type FetchOverrideHandle } from '@test/e2e/helpers'
+import { wait } from '@test/e2e/helpers/waitTimeouts'
 import type { ConsentResponse } from '@actions/gdpr/@types'
 import { deleteConsentRecordsBySubjectId, waitForConsentRecord } from '@test/e2e/db'
 
@@ -50,7 +51,7 @@ async function waitForConsentPreferences(page: BasePage): Promise<void> {
   await page.waitForFunction(() => {
     const element = document.querySelector<HTMLElement>('consent-preferences')
     return element?.dataset?.['consentPreferencesReady'] === 'true'
-  }, undefined, { timeout: 5_000 })
+  }, undefined, { timeout: wait.defaultWait })
 }
 
 test.describe('Consent Preferences Component', () => {
@@ -67,7 +68,7 @@ test.describe('Consent Preferences Component', () => {
     }
 
     await context.clearCookies()
-    await page.goto(CONSENT_PAGE_PATH, { timeout: 15000 })
+    await page.goto(CONSENT_PAGE_PATH, { timeout: wait.navigation })
     await playwrightPage.waitForLoadState('networkidle')
     await removeViteErrorOverlay(page)
     await waitForConsentPreferences(page)

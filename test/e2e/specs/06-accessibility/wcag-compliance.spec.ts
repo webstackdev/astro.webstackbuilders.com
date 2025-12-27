@@ -4,6 +4,7 @@
  */
 import { BasePage, test, expect } from '@test/e2e/helpers'
 import { waitForAnimationFrames } from '@test/e2e/helpers/waitHelpers'
+import { wait } from '@test/e2e/helpers/waitTimeouts'
 
 test.describe('WCAG Compliance', () => {
   /**
@@ -229,7 +230,7 @@ test.describe('WCAG Compliance', () => {
     const submitButton = page.page.locator('button[type="submit"]').first()
     await submitButton.click()
     const errors = page.page.locator('[data-error], .error, [role="alert"]')
-    await errors.first().waitFor({ state: 'visible', timeout: 2000 })
+    await errors.first().waitFor({ state: 'visible', timeout: wait.quickAssert })
     const count = await errors.count()
 
     expect(count).toBeGreaterThan(0)

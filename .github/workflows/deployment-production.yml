@@ -63,13 +63,20 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: vercel build --prod --token=${VERCEL_TOKEN}
 
-      - name: Require Playwright success
-        if: github.event_name == 'push'
-        uses: ./.github/actions/require-playwright-success
-        with:
-          github_token: ${{ github.token }}
-          expected_sha: ${{ github.sha }}
-          workflow_file: playwright.yml
+      ##
+      # This requires Playwright to succeed when triggering e2e tests from a merge_group
+      # event. This allows moving long-running jobs into a slot in the total workflow where
+      # they don't run on every push to a pull request, but are still required to deploy
+      # to production and merge to main. Merge groups are only available in organization
+      # repos so disabled for now.
+      ##
+      #- name: Require Playwright success
+      #  if: github.event_name == 'push'
+      #  uses: ./.github/actions/require-playwright-success
+      #  with:
+      #    github_token: ${{ github.token }}
+      #    expected_sha: ${{ github.sha }}
+      #    workflow_file: playwright.yml
 
       - name: Deploy to Vercel (production)
         uses: ./.github/actions/deploy-to-vercel-action

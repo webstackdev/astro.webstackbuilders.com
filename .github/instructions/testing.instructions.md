@@ -19,6 +19,8 @@ applyTo: "**/*.spec.ts"
 - **NEVER start dev server** - user maintains running server
 - **Use `BasePage.waitForPageLoad()`** to wait for `astro:page-load` event
 - **NEVER use `waitForTimeout()`** - use event-based waits
+- **NEVER use ad-hoc numeric timeouts** in E2E specs or page objects - use `wait.*` from `test/e2e/helpers/waitTimeouts.ts`.
+- If no existing `wait.*` knob fits, **ask what to do** before adding a new `wait.bespoke*` knob.
 - **transition:persist**: Apply to HTML elements in component definition, not on component usage
 
 ## View Transitions Testing

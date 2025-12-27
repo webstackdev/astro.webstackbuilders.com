@@ -16,6 +16,7 @@
 /* eslint-disable custom-rules/enforce-centralized-events -- Test file uses addEventListener to verify DOM persistence */
 
 import { ComponentPersistencePage, test, describe, expect } from '@test/e2e/helpers'
+import { wait } from '@test/e2e/helpers/waitTimeouts'
 
 const FOOTER_SELECTOR = '[data-testid="footer-component"], site-footer'
 
@@ -31,7 +32,7 @@ describe('Footer Component Persistence', () => {
 
     // Navigate to a different page using Astro View Transitions
     await page.navigateToPage('/articles')
-    await page.waitForURL('**/articles', { timeout: 5000 })
+    await page.waitForURL('**/articles', { timeout: wait.defaultWait })
     await page.waitForPageLoad()
 
     // Verify the element persisted with the same DOM identity
@@ -74,7 +75,7 @@ describe('Footer Component Persistence', () => {
 
     // Navigate using View Transitions
     await page.navigateToPage('/articles')
-    await page.waitForURL('**/articles', { timeout: 5000 })
+    await page.waitForURL('**/articles', { timeout: wait.defaultWait })
     await page.waitForPageLoad()
 
     // Dispatch click event to trigger the listener

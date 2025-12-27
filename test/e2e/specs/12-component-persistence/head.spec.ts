@@ -12,6 +12,7 @@
  */
 
 import { ComponentPersistencePage, test, describe, expect } from '@test/e2e/helpers'
+import { wait } from '@test/e2e/helpers/waitTimeouts'
 
 const navigateAndAwaitHydration = async (
   page: ComponentPersistencePage,
@@ -165,7 +166,7 @@ describe('View Transitions - transition:persist on meta theme-color', () => {
 
     // Home is not listed in the navigation menu, so reload the page to return
     await page.goto('/')
-    await page.waitForURL(/\/$/, { timeout: 5000 })
+    await page.waitForURL(/\/$/, { timeout: wait.defaultWait })
     await page.waitForHeaderComponents()
 
     // Verify theme-color is still the same

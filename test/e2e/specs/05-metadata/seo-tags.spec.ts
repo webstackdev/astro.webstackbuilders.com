@@ -5,6 +5,7 @@
  */
 
 import { BasePage, test, expect } from '@test/e2e/helpers'
+import { wait } from '@test/e2e/helpers/waitTimeouts'
 
 test.describe('SEO Meta Tags', () => {
   test('@ready all pages have meta description', async ({ page: playwrightPage }) => {
@@ -13,7 +14,7 @@ test.describe('SEO Meta Tags', () => {
     const pages = ['/', '/about', '/services', '/case-studies', '/contact']
 
     for (const url of pages) {
-      await page.goto(url, { timeout: 25000 })
+      await page.goto(url, { timeout: wait.slowNavigation })
       await page.expectAttribute('meta[name="description"]', 'content')
 
       const content = await page.getAttribute('meta[name="description"]', 'content')

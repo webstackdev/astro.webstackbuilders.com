@@ -5,6 +5,7 @@
  */
 
 import { BasePage, test, expect } from '@test/e2e/helpers'
+import { wait } from '@test/e2e/helpers/waitTimeouts'
 
 const REQUIRED_META_TAGS = ['og:title', 'og:description']
 
@@ -25,7 +26,7 @@ test.describe('Open Graph Metadata', () => {
     await page.goto('/articles')
 
     // Wait for articles to load
-    await page.waitForSelector('a[href*="/articles/"]', { timeout: 5000 })
+    await page.waitForSelector('a[href*="/articles/"]', { timeout: wait.defaultWait })
 
     // Get the first article URL
     const articleUrl = await page.evaluate(() => {
@@ -142,7 +143,7 @@ test.describe('Open Graph Metadata', () => {
     await page.goto('/articles')
 
     // Wait for articles to load
-    await page.waitForSelector('a[href*="/articles/"]', { timeout: 5000 })
+    await page.waitForSelector('a[href*="/articles/"]', { timeout: wait.defaultWait })
 
     // Get the first article URL
     const articleUrl = await page.evaluate(() => {
