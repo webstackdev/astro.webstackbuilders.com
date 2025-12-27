@@ -1,6 +1,11 @@
 import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
-import { hideErrorBanner, showErrorBanner, clearFieldFeedback, type LabelController } from './feedback'
+import {
+  hideErrorBanner,
+  showErrorBanner,
+  clearFieldFeedback,
+  type LabelController,
+} from './feedback'
 import { validateGenericFields, validateNameField, validateMessageField } from './validation'
 import type { ContactFormElements } from './@types'
 import { validateEmailField } from './email'
@@ -12,7 +17,10 @@ interface SubmissionControllers {
   uploadController?: UploadController | null
 }
 
-export const appendUploadFiles = (formData: FormData, uploadController?: UploadController | null): void => {
+export const appendUploadFiles = (
+  formData: FormData,
+  uploadController?: UploadController | null
+): void => {
   const files = uploadController?.getFiles() ?? []
   const maxFiles = 5
   files.slice(0, maxFiles).forEach((file, index) => {
@@ -63,7 +71,10 @@ const runFieldValidations = (elements: ContactFormElements): boolean => {
   return validations.every(Boolean)
 }
 
-const resetFormState = (elements: ContactFormElements, controllers: SubmissionControllers): void => {
+const resetFormState = (
+  elements: ContactFormElements,
+  controllers: SubmissionControllers
+): void => {
   elements.form.reset()
   elements.charCount.textContent = '0'
   elements.charCount.removeAttribute('style')
@@ -74,7 +85,7 @@ const resetFormState = (elements: ContactFormElements, controllers: SubmissionCo
 
 export const initFormSubmission = (
   elements: ContactFormElements,
-  controllers: SubmissionControllers,
+  controllers: SubmissionControllers
 ): void => {
   const context = { scriptName: 'ContactFormElement', operation: 'handleFormSubmission' }
 
@@ -102,7 +113,7 @@ export const initFormSubmission = (
         if (error || !data || !data.success) {
           showErrorMessage(
             elements,
-            error?.message || data?.message || 'An error occurred while sending your message.',
+            error?.message || data?.message || 'An error occurred while sending your message.'
           )
           return
         }
@@ -113,7 +124,7 @@ export const initFormSubmission = (
           new CustomEvent('confetti:fire', {
             bubbles: true,
             composed: true,
-          }),
+          })
         )
 
         resetFormState(elements, controllers)

@@ -7,10 +7,7 @@ import {
   PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN,
   PUBLIC_UPSTASH_SEARCH_REST_URL,
 } from 'astro:env/client'
-import {
-  CONVERTKIT_API_KEY,
-  RESEND_API_KEY,
-} from 'astro:env/server'
+import { CONVERTKIT_API_KEY, RESEND_API_KEY } from 'astro:env/server'
 
 export {
   isCI,

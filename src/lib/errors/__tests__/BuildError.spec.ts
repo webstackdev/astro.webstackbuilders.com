@@ -93,7 +93,7 @@ describe(`BuildError construction works with new`, () => {
       exitCode: 1,
       filePath: '/src/test.ts',
       lineNumber: 10,
-      columnNumber: 5
+      columnNumber: 5,
     })
     expect(sut).toHaveProperty(`name`, `BuildError`)
     expect(sut).toHaveProperty(`message`, `test message`)
@@ -129,12 +129,7 @@ describe(`toJSON behavior overridden`, () => {
 
 describe(`Static factory methods`, () => {
   test(`compilation creates error with compilation phase`, () => {
-    const sut = BuildError.compilation(
-      `TypeScript compilation failed`,
-      '/src/component.ts',
-      15,
-      5
-    )
+    const sut = BuildError.compilation(`TypeScript compilation failed`, '/src/component.ts', 15, 5)
     expect(sut.message).toBe('TypeScript compilation failed')
     expect(sut.phase).toBe('compilation')
     expect(sut.filePath).toBe('/src/component.ts')
@@ -143,22 +138,14 @@ describe(`Static factory methods`, () => {
   })
 
   test(`fileOperation creates error with file-operation phase`, () => {
-    const sut = BuildError.fileOperation(
-      `Could not read config file`,
-      '/astro.config.ts',
-      'read'
-    )
+    const sut = BuildError.fileOperation(`Could not read config file`, '/astro.config.ts', 'read')
     expect(sut.message).toBe('Could not read config file')
     expect(sut.phase).toBe('file-operation')
     expect(sut.filePath).toBe('/astro.config.ts')
   })
 
   test(`bundling creates error with bundling phase`, () => {
-    const sut = BuildError.bundling(
-      `Bundling failed`,
-      'vite',
-      1
-    )
+    const sut = BuildError.bundling(`Bundling failed`, 'vite', 1)
     expect(sut.message).toBe('Bundling failed')
     expect(sut.phase).toBe('bundling')
     expect(sut.tool).toBe('vite')

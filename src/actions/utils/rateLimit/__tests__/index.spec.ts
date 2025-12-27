@@ -84,16 +84,22 @@ describe('rateLimit utilities', () => {
     vi.setSystemTime(new Date('2025-01-01T00:00:00.000Z'))
 
     const resetWindow = vi.fn(
-      async (nextWindow: { hits: number; limit: number; windowMs: number; windowExpiresAt: number }) => ({
+      async (nextWindow: {
+        hits: number
+        limit: number
+        windowMs: number
+        windowExpiresAt: number
+      }) => ({
         windowExpiresAt: nextWindow.windowExpiresAt,
         hits: nextWindow.hits,
         limit: nextWindow.limit,
         windowMs: nextWindow.windowMs,
-      }),
+      })
     )
 
-    const withRateLimitWindow = vi.fn(async (_scope: string, _identifier: string, fn: (_ctx: unknown) => unknown) =>
-      fn({ window: undefined, resetWindow, incrementHits: vi.fn() }),
+    const withRateLimitWindow = vi.fn(
+      async (_scope: string, _identifier: string, fn: (_ctx: unknown) => unknown) =>
+        fn({ window: undefined, resetWindow, incrementHits: vi.fn() })
     )
 
     vi.doMock('@actions/utils/environment/environmentActions', () => ({
@@ -134,12 +140,13 @@ describe('rateLimit utilities', () => {
       windowMs: 60_000,
     }))
 
-    const withRateLimitWindow = vi.fn(async (_scope: string, _identifier: string, fn: (_ctx: unknown) => unknown) =>
-      fn({
-        window: { windowExpiresAt: Date.now() + 60_000, hits: 1, limit: 5, windowMs: 60_000 },
-        resetWindow: vi.fn(),
-        incrementHits,
-      }),
+    const withRateLimitWindow = vi.fn(
+      async (_scope: string, _identifier: string, fn: (_ctx: unknown) => unknown) =>
+        fn({
+          window: { windowExpiresAt: Date.now() + 60_000, hits: 1, limit: 5, windowMs: 60_000 },
+          resetWindow: vi.fn(),
+          incrementHits,
+        })
     )
 
     vi.doMock('@actions/utils/environment/environmentActions', () => ({
@@ -167,12 +174,13 @@ describe('rateLimit utilities', () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2025-01-01T00:00:00.000Z'))
 
-    const withRateLimitWindow = vi.fn(async (_scope: string, _identifier: string, fn: (_ctx: unknown) => unknown) =>
-      fn({
-        window: { windowExpiresAt: Date.now() + 60_000, hits: 10, limit: 10, windowMs: 60_000 },
-        resetWindow: vi.fn(),
-        incrementHits: vi.fn(),
-      }),
+    const withRateLimitWindow = vi.fn(
+      async (_scope: string, _identifier: string, fn: (_ctx: unknown) => unknown) =>
+        fn({
+          window: { windowExpiresAt: Date.now() + 60_000, hits: 10, limit: 10, windowMs: 60_000 },
+          resetWindow: vi.fn(),
+          incrementHits: vi.fn(),
+        })
     )
 
     vi.doMock('@actions/utils/environment/environmentActions', () => ({

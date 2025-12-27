@@ -41,7 +41,7 @@ describe('SocialShareElement web component', () => {
 
   const renderComponent = async (
     props: ComponentProps = defaultProps,
-    assertion: (_context: RenderContext) => Promise<void> | void,
+    assertion: (_context: RenderContext) => Promise<void> | void
   ) => {
     if (!SocialShareComponent) {
       throw new TestError('SocialShareComponent failed to load')
@@ -96,7 +96,7 @@ describe('SocialShareElement web component', () => {
   }
 
   const restoreBrowserGlobals = (
-    descriptors: Partial<Record<BrowserGlobalKey, PropertyDescriptor | undefined>>,
+    descriptors: Partial<Record<BrowserGlobalKey, PropertyDescriptor | undefined>>
   ) => {
     for (const key of Object.keys(descriptors) as BrowserGlobalKey[]) {
       const descriptor = descriptors[key]
@@ -118,7 +118,7 @@ describe('SocialShareElement web component', () => {
         const buttons = element.querySelectorAll('.social-share__button')
         expect(buttons).toHaveLength(2)
         expect(element.querySelector('[aria-label="Share on LinkedIn"]')).toBeTruthy()
-      },
+      }
     )
   })
 
@@ -162,7 +162,8 @@ describe('SocialShareElement web component', () => {
   test('opens Mastodon modal for Mastodon platform', async () => {
     await renderComponent(defaultProps, async ({ element, window }) => {
       const modalSpy = vi.fn()
-      ;(window as Window & { openMastodonModal?: (_text: string) => void }).openMastodonModal = modalSpy
+      ;(window as Window & { openMastodonModal?: (_text: string) => void }).openMastodonModal =
+        modalSpy
 
       const mastodonButton = element.querySelector('[data-platform="mastodon"]')
       expect(mastodonButton).toBeTruthy()
@@ -170,7 +171,9 @@ describe('SocialShareElement web component', () => {
       expect(mastodonButton?.getAttribute('aria-haspopup')).toBe('dialog')
       expect(mastodonButton?.getAttribute('aria-controls')).toBe('mastodon-modal')
 
-      mastodonButton?.dispatchEvent(new window.MouseEvent('click', { bubbles: true, cancelable: true }))
+      mastodonButton?.dispatchEvent(
+        new window.MouseEvent('click', { bubbles: true, cancelable: true })
+      )
 
       expect(modalSpy).toHaveBeenCalled()
       expect(modalSpy.mock.calls[0]?.[0]).toContain(defaultProps.url)
@@ -210,4 +213,3 @@ describe('SocialShareElement web component', () => {
     })
   })
 })
-

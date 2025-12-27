@@ -4,7 +4,7 @@ import { getCronSecret } from '@pages/api/_utils/environment'
 import {
   ApiFunctionError,
   buildApiErrorResponse,
-  handleApiFunctionError
+  handleApiFunctionError,
 } from '@pages/api/_utils/errors'
 import { createApiFunctionContext } from '@pages/api/_utils/requestContext'
 
@@ -15,7 +15,7 @@ const ROUTE = '/api/cron/cleanup-confirmations'
 const buildErrorResponse = (
   error: unknown,
   context: ReturnType<typeof createApiFunctionContext>['context'],
-  fallbackMessage: string,
+  fallbackMessage: string
 ) => buildApiErrorResponse(handleApiFunctionError(error, context), { fallbackMessage })
 
 /**
@@ -51,7 +51,7 @@ export const GET: APIRoute = async ({ request, clientAddress, cookies }) => {
         code: 'UNAUTHORIZED',
       }),
       apiContext,
-      'Unauthorized cron access',
+      'Unauthorized cron access'
     )
   }
 
@@ -96,7 +96,7 @@ export const GET: APIRoute = async ({ request, clientAddress, cookies }) => {
     const totalDeleted = expiredCount + confirmedCount
 
     console.log(
-      `Newsletter confirmations cleanup: deleted ${expiredCount} expired + ${confirmedCount} old confirmed = ${totalDeleted} total`,
+      `Newsletter confirmations cleanup: deleted ${expiredCount} expired + ${confirmedCount} old confirmed = ${totalDeleted} total`
     )
 
     return new Response(
@@ -109,7 +109,7 @@ export const GET: APIRoute = async ({ request, clientAddress, cookies }) => {
         },
         timestamp: now.toISOString(),
       }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } },
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
     )
   } catch (error) {
     apiContext.extra = {

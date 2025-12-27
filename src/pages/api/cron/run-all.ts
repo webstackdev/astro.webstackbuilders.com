@@ -3,22 +3,19 @@ import { getCronSecret, getSiteUrl } from '@pages/api/_utils/environment'
 import {
   ApiFunctionError,
   buildApiErrorResponse,
-  handleApiFunctionError
+  handleApiFunctionError,
 } from '@pages/api/_utils/errors'
 import { createApiFunctionContext } from '@pages/api/_utils/requestContext'
 
 export const prerender = false
 
 const ROUTE = '/api/cron/run-all'
-const CRON_ENDPOINTS = [
-  '/api/cron/cleanup-confirmations',
-  '/api/cron/cleanup-dsar-requests',
-]
+const CRON_ENDPOINTS = ['/api/cron/cleanup-confirmations', '/api/cron/cleanup-dsar-requests']
 
 const buildErrorResponse = (
   error: unknown,
   context: ReturnType<typeof createApiFunctionContext>['context'],
-  fallbackMessage: string,
+  fallbackMessage: string
 ) => buildApiErrorResponse(handleApiFunctionError(error, context), { fallbackMessage })
 
 async function triggerCronEndpoint(path: string) {
@@ -51,7 +48,7 @@ async function triggerCronEndpoint(path: string) {
         details: {
           body,
         },
-      },
+      }
     )
   }
 
@@ -87,7 +84,7 @@ export const GET: APIRoute = async ({ request, clientAddress, cookies }) => {
         code: 'UNAUTHORIZED',
       }),
       apiContext,
-      'Unauthorized cron access',
+      'Unauthorized cron access'
     )
   }
 
@@ -105,7 +102,7 @@ export const GET: APIRoute = async ({ request, clientAddress, cookies }) => {
         headers: {
           'Content-Type': 'application/json',
         },
-      },
+      }
     )
   } catch (error) {
     apiContext.extra = {

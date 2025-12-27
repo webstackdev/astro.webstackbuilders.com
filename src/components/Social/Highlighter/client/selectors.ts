@@ -31,8 +31,8 @@ export const queryShareDialog = (context: Element): HTMLDivElement | null => {
 }
 
 export const queryShareButtons = (context: Element): HTMLButtonElement[] => {
-  return Array.from(context.querySelectorAll(SELECTORS.shareButton)).filter((node): node is HTMLButtonElement =>
-    isButtonElement(node),
+  return Array.from(context.querySelectorAll(SELECTORS.shareButton)).filter(
+    (node): node is HTMLButtonElement => isButtonElement(node)
   )
 }
 

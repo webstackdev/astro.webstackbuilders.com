@@ -115,7 +115,10 @@ describe('extractSlugAndCollection', () => {
   })
 
   it('should detect dynamic routes with [...slug]', () => {
-    const result = extractSlugAndCollection('/src/pages/case-studies/[...slug].astro', 'case-studies')
+    const result = extractSlugAndCollection(
+      '/src/pages/case-studies/[...slug].astro',
+      'case-studies'
+    )
 
     expect(result).toEqual({
       collectionName: 'case-studies',

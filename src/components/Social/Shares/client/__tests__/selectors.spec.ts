@@ -34,21 +34,28 @@ describe('SocialShareElement selectors', () => {
       assert: async ({ element }) => {
         const { container: root, label, shareItems } = getSocialShareRenderElements(element)
 
-        expect(root, 'SocialShareElement should render a root container with .social-share').toBeInstanceOf(HTMLDivElement)
-        expect(label, 'SocialShareElement should render a label with .social-share__label').toBeInstanceOf(HTMLSpanElement)
+        expect(
+          root,
+          'SocialShareElement should render a root container with .social-share'
+        ).toBeInstanceOf(HTMLDivElement)
+        expect(
+          label,
+          'SocialShareElement should render a label with .social-share__label'
+        ).toBeInstanceOf(HTMLSpanElement)
 
         expect(
           shareItems.length,
-          'SocialShareElement should render one [data-share] item per configured social network',
+          'SocialShareElement should render one [data-share] item per configured social network'
         ).toBe(2)
 
         const shareIds = shareItems
-          .map((item) => item.getAttribute('data-share'))
+          .map(item => item.getAttribute('data-share'))
           .filter((value): value is string => typeof value === 'string' && value.length > 0)
 
-        expect(shareIds, 'SocialShareElement should render [data-share] attributes for each network').toEqual(
-          expect.arrayContaining(['twitter', 'linkedin']),
-        )
+        expect(
+          shareIds,
+          'SocialShareElement should render [data-share] attributes for each network'
+        ).toEqual(expect.arrayContaining(['twitter', 'linkedin']))
       },
     })
   })

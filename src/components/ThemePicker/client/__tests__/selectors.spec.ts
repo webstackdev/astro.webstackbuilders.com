@@ -34,14 +34,14 @@ beforeEach(async () => {
 })
 
 const renderThemePickerDom = async (
-  assertion: (_context: { element: ThemePickerElement }) => Promise<void> | void,
+  assertion: (_context: { element: ThemePickerElement }) => Promise<void> | void
 ) => {
   await executeRender<ThemePickerModule>({
     container,
     component: ThemePickerFixture,
     moduleSpecifier: '@components/ThemePicker/client/index',
     selector: 'theme-picker',
-    waitForReady: async (element) => {
+    waitForReady: async element => {
       await element.updateComplete
     },
     assert: async ({ element }) => {
@@ -55,8 +55,14 @@ describe('ThemePicker selectors', () => {
     await renderThemePickerDom(({ element }) => {
       const modal = getThemePickerModal(element)
 
-      expect(modal.hasAttribute('data-theme-modal'), 'ThemePicker modal should have [data-theme-modal]').toBe(true)
-      expect(modal.dataset['themeModal'], 'ThemePicker modal dataset.themeModal should be set').toBe('')
+      expect(
+        modal.hasAttribute('data-theme-modal'),
+        'ThemePicker modal should have [data-theme-modal]'
+      ).toBe(true)
+      expect(
+        modal.dataset['themeModal'],
+        'ThemePicker modal dataset.themeModal should be set'
+      ).toBe('')
     })
   })
 
@@ -72,12 +78,14 @@ describe('ThemePicker selectors', () => {
     await renderThemePickerDom(() => {
       const toggleBtn = getThemePickerToggleBtn()
 
-      expect(toggleBtn.classList.contains('theme-toggle-btn'), 'Theme toggle button should have .theme-toggle-btn').toBe(
-        true,
-      )
-      expect(toggleBtn.getAttribute('aria-label'), 'Theme toggle button should have an aria-label').toMatch(
-        /toggle theme switcher/i,
-      )
+      expect(
+        toggleBtn.classList.contains('theme-toggle-btn'),
+        'Theme toggle button should have .theme-toggle-btn'
+      ).toBe(true)
+      expect(
+        toggleBtn.getAttribute('aria-label'),
+        'Theme toggle button should have an aria-label'
+      ).toMatch(/toggle theme switcher/i)
     })
   })
 
@@ -93,12 +101,14 @@ describe('ThemePicker selectors', () => {
     await renderThemePickerDom(({ element }) => {
       const closeBtn = getThemePickerCloseBtn(element)
 
-      expect(closeBtn.matches('[data-theme-close]'), 'ThemePicker close button should match [data-theme-close]').toBe(
-        true,
-      )
-      expect(closeBtn.getAttribute('aria-label'), 'ThemePicker close button should have an aria-label').toMatch(
-        /close theme picker dialog/i,
-      )
+      expect(
+        closeBtn.matches('[data-theme-close]'),
+        'ThemePicker close button should match [data-theme-close]'
+      ).toBe(true)
+      expect(
+        closeBtn.getAttribute('aria-label'),
+        'ThemePicker close button should have an aria-label'
+      ).toMatch(/close theme picker dialog/i)
     })
   })
 
@@ -114,9 +124,13 @@ describe('ThemePicker selectors', () => {
     await renderThemePickerDom(({ element }) => {
       const buttons = getThemeSelectBtns(element)
 
-      expect(buttons.length, 'ThemePicker should render at least one theme button').toBeGreaterThan(0)
-      buttons.forEach((button) => {
-        expect(button.hasAttribute('data-theme'), 'Theme buttons should include [data-theme]').toBe(true)
+      expect(buttons.length, 'ThemePicker should render at least one theme button').toBeGreaterThan(
+        0
+      )
+      buttons.forEach(button => {
+        expect(button.hasAttribute('data-theme'), 'Theme buttons should include [data-theme]').toBe(
+          true
+        )
         expect(button.tagName, 'Theme buttons should be <button> elements').toBe('BUTTON')
       })
     })
@@ -128,15 +142,18 @@ describe('ThemePicker selectors', () => {
       const prevBtn = getThemePickerEmblaPrevBtn(element)
       const nextBtn = getThemePickerEmblaNextBtn(element)
 
-      expect(viewport, 'ThemePicker Embla viewport should exist with [data-theme-embla-viewport]').toBeInstanceOf(
-        HTMLDivElement,
-      )
-      expect(prevBtn, 'ThemePicker Embla prev button should exist with [data-theme-embla-prev]').toBeInstanceOf(
-        HTMLButtonElement,
-      )
-      expect(nextBtn, 'ThemePicker Embla next button should exist with [data-theme-embla-next]').toBeInstanceOf(
-        HTMLButtonElement,
-      )
+      expect(
+        viewport,
+        'ThemePicker Embla viewport should exist with [data-theme-embla-viewport]'
+      ).toBeInstanceOf(HTMLDivElement)
+      expect(
+        prevBtn,
+        'ThemePicker Embla prev button should exist with [data-theme-embla-prev]'
+      ).toBeInstanceOf(HTMLButtonElement)
+      expect(
+        nextBtn,
+        'ThemePicker Embla next button should exist with [data-theme-embla-next]'
+      ).toBeInstanceOf(HTMLButtonElement)
     })
   })
 
@@ -156,13 +173,16 @@ describe('ThemePicker selectors', () => {
     await renderThemePickerDom(() => {
       document.querySelector('meta[name="theme-color"]')?.remove()
 
-      expect(queryMetaThemeColor(document), 'queryMetaThemeColor should return null when meta tag is missing').toBeNull()
+      expect(
+        queryMetaThemeColor(document),
+        'queryMetaThemeColor should return null when meta tag is missing'
+      ).toBeNull()
     })
   })
 
   it('throws when no theme selection buttons are present', async () => {
     await renderThemePickerDom(({ element }) => {
-      element.querySelectorAll('[data-theme]').forEach((button) => button.remove())
+      element.querySelectorAll('[data-theme]').forEach(button => button.remove())
 
       expect(() => getThemeSelectBtns(element)).toThrowError(ClientScriptError)
     })

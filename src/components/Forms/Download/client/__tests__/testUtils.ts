@@ -39,12 +39,10 @@ export interface RenderDownloadFormContext {
 }
 
 export type RenderDownloadFormAssertion = (
-  _context: RenderDownloadFormContext,
+  _context: RenderDownloadFormContext
 ) => Promise<void> | void
 
-export const renderDownloadForm = async (
-  assertion: RenderDownloadFormAssertion,
-): Promise<void> => {
+export const renderDownloadForm = async (assertion: RenderDownloadFormAssertion): Promise<void> => {
   const container = await AstroContainer.create()
 
   await executeRender<DownloadFormModule>({

@@ -1,11 +1,13 @@
-
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import { TestError } from '@test/errors'
 import ComputersAnimationAstro from '@components/Animations/Computers/index.astro'
 import type { ComputersAnimationElement } from '@components/Animations/Computers/client'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
-import type { AnimationControllerConfig, AnimationControllerHandle } from '@components/scripts/store'
+import type {
+  AnimationControllerConfig,
+  AnimationControllerHandle,
+} from '@components/scripts/store'
 import { executeRender, withJsdomEnvironment } from '@test/unit/helpers/litRuntime'
 import { gsap } from 'gsap'
 
@@ -13,7 +15,9 @@ type ComputersAnimationModule = WebComponentModule<ComputersAnimationElement>
 type ComputersClientModule = typeof import('@components/Animations/Computers/client')
 
 let computersAnimationElementCtor: ComputersClientModule['ComputersAnimationElement'] | undefined
-let registerComputersAnimationWebComponentFn: ComputersClientModule['registerComputersAnimationWebComponent'] | undefined
+let registerComputersAnimationWebComponentFn:
+  | ComputersClientModule['registerComputersAnimationWebComponent']
+  | undefined
 let computersWebComponentModule: ComputersClientModule['webComponentModule'] | undefined
 
 const ensureComputersModuleLoaded = async (): Promise<void> => {
@@ -52,12 +56,14 @@ const getComputersModule = () => {
 const addScriptBreadcrumbMock = vi.hoisted(() => vi.fn())
 const handleScriptErrorMock = vi.hoisted(() => vi.fn())
 const createAnimationControllerMock = vi.hoisted(() =>
-  vi.fn((_config: AnimationControllerConfig): AnimationControllerHandle => ({
-    requestPlay: vi.fn(),
-    requestPause: vi.fn(),
-    clearUserPreference: vi.fn(),
-    destroy: vi.fn(),
-  }))
+  vi.fn(
+    (_config: AnimationControllerConfig): AnimationControllerHandle => ({
+      requestPlay: vi.fn(),
+      requestPause: vi.fn(),
+      clearUserPreference: vi.fn(),
+      destroy: vi.fn(),
+    })
+  )
 )
 
 vi.mock('@components/scripts/errors', () => ({
@@ -104,16 +110,22 @@ beforeEach(async () => {
   container = await AstroContainer.create()
   vi.clearAllMocks()
   timelineMock = createTimelineMock()
-  gsapMock.timeline.mockImplementation(() => timelineMock as unknown as ReturnType<typeof gsap.timeline>)
+  gsapMock.timeline.mockImplementation(
+    () => timelineMock as unknown as ReturnType<typeof gsap.timeline>
+  )
   intersectionObserverCallback = undefined
-  ;(globalThis as unknown as { IntersectionObserver?: typeof IntersectionObserver }).IntersectionObserver =
-    IntersectionObserverMock as unknown as typeof IntersectionObserver
+  ;(
+    globalThis as unknown as { IntersectionObserver?: typeof IntersectionObserver }
+  ).IntersectionObserver = IntersectionObserverMock as unknown as typeof IntersectionObserver
 })
 
 describe('ComputersAnimation web component module', () => {
   it('exposes metadata required by the loader', () => {
-    const { webComponentModule: module, ComputersAnimationElement: ctor, registerComputersAnimationWebComponent } =
-      getComputersModule()
+    const {
+      webComponentModule: module,
+      ComputersAnimationElement: ctor,
+      registerComputersAnimationWebComponent,
+    } = getComputersModule()
 
     expect(module.registeredName).toBe('computers-animation')
     expect(module.componentCtor).toBe(ctor)
@@ -121,7 +133,8 @@ describe('ComputersAnimation web component module', () => {
   })
 
   it('registers the custom element when window is available', async () => {
-    const { registerComputersAnimationWebComponent, ComputersAnimationElement: ctor } = getComputersModule()
+    const { registerComputersAnimationWebComponent, ComputersAnimationElement: ctor } =
+      getComputersModule()
 
     await withJsdomEnvironment(async ({ window }) => {
       const tagName = 'computers-animation'
@@ -169,7 +182,7 @@ describe('ComputersAnimationElement', () => {
       expect(timelineMock.timeScale).toHaveBeenCalledWith(3)
       expect(gsapMock.set).toHaveBeenCalledWith(
         '.monitorBottom',
-        expect.objectContaining({ transformOrigin: '50% 100%' }),
+        expect.objectContaining({ transformOrigin: '50% 100%' })
       )
       expect(createAnimationControllerMock).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -177,9 +190,11 @@ describe('ComputersAnimationElement', () => {
           debugLabel: 'ComputersAnimationElement',
           onPause: expect.any(Function),
           onPlay: expect.any(Function),
-        }),
+        })
       )
-      expect(getBreadcrumbOperations()).toEqual(expect.arrayContaining(['initialize', 'startAnimation']))
+      expect(getBreadcrumbOperations()).toEqual(
+        expect.arrayContaining(['initialize', 'startAnimation'])
+      )
     })
   })
 
@@ -275,7 +290,7 @@ describe('ComputersAnimationElement', () => {
             intersectionRatio: 0.5,
           } as unknown as IntersectionObserverEntry,
         ],
-        {} as IntersectionObserver,
+        {} as IntersectionObserver
       )
 
       expect(timelineMock.pause).toHaveBeenCalledTimes(1)
@@ -288,7 +303,7 @@ describe('ComputersAnimationElement', () => {
             intersectionRatio: 1,
           } as unknown as IntersectionObserverEntry,
         ],
-        {} as IntersectionObserver,
+        {} as IntersectionObserver
       )
 
       expect(timelineMock.play).toHaveBeenCalledTimes(1)
@@ -350,7 +365,10 @@ describe('ComputersAnimationElement', () => {
 
       expect(handleScriptErrorMock).toHaveBeenCalledWith(
         error,
-        expect.objectContaining({ operation: 'startAnimation', scriptName: 'ComputersAnimationElement' }),
+        expect.objectContaining({
+          operation: 'startAnimation',
+          scriptName: 'ComputersAnimationElement',
+        })
       )
     })
   })
@@ -363,11 +381,11 @@ interface RenderComputersAnimationContext {
 }
 
 type RenderComputersAnimationAssertion = (
-  _context: RenderComputersAnimationContext,
+  _context: RenderComputersAnimationContext
 ) => Promise<void> | void
 
 const renderComputersAnimation = async (
-  assertion: RenderComputersAnimationAssertion,
+  assertion: RenderComputersAnimationAssertion
 ): Promise<void> => {
   await executeRender<ComputersAnimationModule>({
     container,
@@ -409,7 +427,8 @@ function createTimelineMock() {
   return timeline
 }
 
-const generateUniqueTagName = (): string => `computers-animation-${Math.random().toString(36).slice(2)}`
+const generateUniqueTagName = (): string =>
+  `computers-animation-${Math.random().toString(36).slice(2)}`
 
 const getLastControllerHandle = (): AnimationControllerHandle | undefined =>
   createAnimationControllerMock.mock.results.at(-1)?.value

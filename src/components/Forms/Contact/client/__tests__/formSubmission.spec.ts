@@ -87,11 +87,14 @@ describe('ContactForm submission', () => {
       fillValidFields(context)
 
       contactSubmitMock.mockResolvedValue({
-        data: { success: true, message: 'Thank you for your message. We will get back to you soon!' },
+        data: {
+          success: true,
+          message: 'Thank you for your message. We will get back to you soon!',
+        },
       })
 
       let confettiEvent: Event | undefined
-      context.elements.submitBtn.addEventListener('confetti:fire', (event) => {
+      context.elements.submitBtn.addEventListener('confetti:fire', event => {
         confettiEvent = event
       })
 

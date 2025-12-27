@@ -140,7 +140,7 @@ describe('validatePageCtaRequirements', () => {
 
       // Should have both warnings: missing primary AND not enough CTAs
       expect(warnings.length).toBeGreaterThan(0)
-      expect(warnings.some((w) => w.type === 'missing-primary')).toBe(true)
+      expect(warnings.some(w => w.type === 'missing-primary')).toBe(true)
     })
   })
 
@@ -205,7 +205,7 @@ describe('validatePageCtaRequirements', () => {
 
       const warnings = validatePageCtaRequirements(analysis, 'many')
 
-      const tooFewWarning = warnings.find((w) => w.message.includes('requires 3+'))
+      const tooFewWarning = warnings.find(w => w.message.includes('requires 3+'))
       expect(tooFewWarning?.message).toContain('callToActionMode: "default"')
     })
   })

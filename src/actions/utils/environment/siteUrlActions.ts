@@ -1,7 +1,4 @@
-import {
-  getDevServerPort,
-  isVercel
-} from '@actions/utils/environment/environmentActions'
+import { getDevServerPort, isVercel } from '@actions/utils/environment/environmentActions'
 
 export const getSiteUrl = (): string => {
   if (isVercel()) {

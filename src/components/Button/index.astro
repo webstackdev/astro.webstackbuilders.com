@@ -53,48 +53,49 @@ const ariaAttributes = computedAriaLabel ? { 'aria-label': computedAriaLabel } :
 
 const linkHref = disabled ? undefined : href
 const linkOnClick = disabled ? undefined : onClick
-
 ---
 
 <div style="display: contents">
-  {href ? (
-    <a
-      href={linkHref}
-      class:list={buttonClassList}
-      id={id}
-      onclick={linkOnClick}
-      aria-disabled={disabled ? 'true' : undefined}
-      tabindex={disabled ? -1 : undefined}
-      {...ariaAttributes}
-      {...rest}
-    >
-      {
-        icon && (iconPosition === 'left' || iconPosition === 'only') && (
+  {
+    href ? (
+      <a
+        href={linkHref}
+        class:list={buttonClassList}
+        id={id}
+        onclick={linkOnClick}
+        aria-disabled={disabled ? 'true' : undefined}
+        tabindex={disabled ? -1 : undefined}
+        {...ariaAttributes}
+        {...rest}
+      >
+        {icon && (iconPosition === 'left' || iconPosition === 'only') && (
           <Icon name={icon} size={defaultIconSize} class={text ? 'mr-2' : ''} />
-        )
-      }
-      {text && <span>{text}</span>}
-      {icon && iconPosition === 'right' && <Icon name={icon} size={defaultIconSize} class="ml-2" />}
-      <slot />
-    </a>
-  ) : (
-    <button
-      type={type}
-      class:list={buttonClassList}
-      disabled={disabled}
-      id={id}
-      onclick={onClick}
-      {...ariaAttributes}
-      {...rest}
-    >
-      {
-        icon && (iconPosition === 'left' || iconPosition === 'only') && (
+        )}
+        {text && <span>{text}</span>}
+        {icon && iconPosition === 'right' && (
+          <Icon name={icon} size={defaultIconSize} class="ml-2" />
+        )}
+        <slot />
+      </a>
+    ) : (
+      <button
+        type={type}
+        class:list={buttonClassList}
+        disabled={disabled}
+        id={id}
+        onclick={onClick}
+        {...ariaAttributes}
+        {...rest}
+      >
+        {icon && (iconPosition === 'left' || iconPosition === 'only') && (
           <Icon name={icon} size={defaultIconSize} class={text ? 'mr-2' : ''} />
-        )
-      }
-      {text && <span>{text}</span>}
-      {icon && iconPosition === 'right' && <Icon name={icon} size={defaultIconSize} class="ml-2" />}
-      <slot />
-    </button>
-  )}
+        )}
+        {text && <span>{text}</span>}
+        {icon && iconPosition === 'right' && (
+          <Icon name={icon} size={defaultIconSize} class="ml-2" />
+        )}
+        <slot />
+      </button>
+    )
+  }
 </div>

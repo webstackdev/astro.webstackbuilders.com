@@ -9,7 +9,10 @@ import { platforms, copyToClipboard, nativeShare } from '@components/Social/comm
 import { MastodonModal } from '@components/Social/Mastodon/client'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
-import { addButtonEventListeners, addWrapperEventListeners } from '@components/scripts/elementListeners'
+import {
+  addButtonEventListeners,
+  addWrapperEventListeners,
+} from '@components/scripts/elementListeners'
 import { LitElement, html } from 'lit'
 import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
@@ -191,11 +194,11 @@ export class HighlighterElement extends LitElement {
 
   private bindShareButtons(): void {
     const buttons = queryShareButtons(this)
-    buttons.forEach((button) => {
+    buttons.forEach(button => {
       if (this.boundButtons.has(button)) return
       addButtonEventListeners(
         button,
-        (event) => {
+        event => {
           event.stopPropagation()
           const platformId = button.dataset['platform']
           if (platformId) {
@@ -212,19 +215,27 @@ export class HighlighterElement extends LitElement {
     const trigger = queryHighlighterTrigger(this)
     if (!trigger || trigger === this.triggerButton) return
     this.triggerButton = trigger
-    addButtonEventListeners(trigger, (event) => {
-      event.stopPropagation()
-      this.handleComponentActivation()
-    }, this)
+    addButtonEventListeners(
+      trigger,
+      event => {
+        event.stopPropagation()
+        this.handleComponentActivation()
+      },
+      this
+    )
   }
 
   private bindWrapperListeners(): void {
     const wrapper = queryHighlighterWrapper(this)
     if (!wrapper || wrapper === this.wrapperElement) return
     this.wrapperElement = wrapper
-    addWrapperEventListeners(wrapper, () => {
-      this.handleEscapeDismiss()
-    }, this)
+    addWrapperEventListeners(
+      wrapper,
+      () => {
+        this.handleEscapeDismiss()
+      },
+      this
+    )
   }
 
   private handleComponentActivation(): void {

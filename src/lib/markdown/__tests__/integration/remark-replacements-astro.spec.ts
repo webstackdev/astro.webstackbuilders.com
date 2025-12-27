@@ -52,7 +52,7 @@ The arrow --> points right[^1]
 [^1]: This arrow <-- points left
       `.trim()
 
-  const html = await processWithAstroSettings({ markdown, plugin: remarkReplacements })
+      const html = await processWithAstroSettings({ markdown, plugin: remarkReplacements })
 
       expect(html).toContain('→')
       expect(html).toContain('←')

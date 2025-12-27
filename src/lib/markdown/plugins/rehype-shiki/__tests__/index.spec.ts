@@ -86,7 +86,9 @@ describe('rehype-shiki', () => {
     expect(pre.properties?.['tabIndex']).toBe(0)
 
     const classNames = pre.properties?.['className'] as string[]
-    expect(classNames).toEqual(expect.arrayContaining(['shiki', 'overflow-x-auto', 'whitespace-pre']))
+    expect(classNames).toEqual(
+      expect.arrayContaining(['shiki', 'overflow-x-auto', 'whitespace-pre'])
+    )
   })
 
   it('normalizes common language aliases by default', async () => {

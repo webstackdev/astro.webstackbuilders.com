@@ -2,7 +2,7 @@
  * Client-side method to determine correct URL
  */
 
-import { DEV_SERVER_PORT } from "astro:env/client"
+import { DEV_SERVER_PORT } from 'astro:env/client'
 import { isProd, isE2eTest } from '@components/scripts/utils/environmentClient'
 
 export const getSiteUrl = () => {

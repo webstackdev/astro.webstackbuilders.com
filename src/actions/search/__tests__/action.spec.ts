@@ -32,9 +32,15 @@ vi.mock('astro:actions', () => {
 vi.mock('@actions/utils/errors', async () => {
   const astro = await import('astro:actions')
 
-  function throwActionError(_error: unknown, _context: unknown, options?: { fallbackMessage?: string }): never {
+  function throwActionError(
+    _error: unknown,
+    _context: unknown,
+    options?: { fallbackMessage?: string }
+  ): never {
     const message = options?.fallbackMessage ?? 'Internal server error'
-    throw new (astro as unknown as { ActionError: new (_opts: { code: string; message: string }) => Error }).ActionError({
+    throw new (
+      astro as unknown as { ActionError: new (_opts: { code: string; message: string }) => Error }
+    ).ActionError({
       code: 'INTERNAL_SERVER_ERROR',
       message,
     })
@@ -63,7 +69,7 @@ describe('search.query.handler', () => {
     expect(performSearch).toHaveBeenCalledWith('typescript', 8)
     expect(mapUpstashSearchResults).toHaveBeenCalledWith(
       [{ id: 'id-1', content: {}, metadata: {}, score: 1 }],
-      'typescript',
+      'typescript'
     )
     expect(response).toEqual({ hits: mockHits })
   })
@@ -107,7 +113,7 @@ describe('search.query.handler', () => {
     expect(throwActionError).toHaveBeenCalledWith(
       expect.any(Error),
       { route: '/_actions/search/query', operation: 'query' },
-      { fallbackMessage: 'Search failed.' },
+      { fallbackMessage: 'Search failed.' }
     )
   })
 })

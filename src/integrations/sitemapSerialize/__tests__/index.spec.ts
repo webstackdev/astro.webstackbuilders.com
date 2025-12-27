@@ -5,11 +5,7 @@
 import { describe, it, expect } from 'vitest'
 import type { SitemapItem } from '@astrojs/sitemap'
 import { EnumChangefreq } from 'sitemap'
-import {
-  createSerializeFunction,
-  serializePagesData,
-  transformPagesData,
-} from '../index'
+import { createSerializeFunction, serializePagesData, transformPagesData } from '../index'
 
 describe('createSerializeFunction', () => {
   const createSitemapItem = (url: string): SitemapItem => ({

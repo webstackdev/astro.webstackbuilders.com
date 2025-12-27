@@ -35,7 +35,7 @@ export interface BuiltApiFunctionContext {
 const FUNCTIONAL_CONSENT_COOKIE = 'consent_functional'
 
 export function createApiFunctionContext(
-  options: ApiFunctionContextOptions,
+  options: ApiFunctionContextOptions
 ): BuiltApiFunctionContext {
   const hashSalt = options.hashSalt ?? options.route
   const consentFunctional = readFunctionalConsent(options.cookies)
@@ -43,7 +43,7 @@ export function createApiFunctionContext(
     options.request,
     hashSalt,
     consentFunctional,
-    options.clientAddress,
+    options.clientAddress
   )
 
   const consent: ApiFunctionConsent = {
@@ -93,7 +93,7 @@ function buildRequestMetadata(
   request: Request,
   salt: string,
   includeRawPII: boolean,
-  clientAddress?: string,
+  clientAddress?: string
 ): ApiRequestMetadata {
   const method = request.method
   const ip = extractClientIp(request) ?? clientAddress

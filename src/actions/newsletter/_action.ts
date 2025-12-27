@@ -89,7 +89,9 @@ export async function validateToken(token: string): Promise<PendingSubscription 
   const [dbRecord] = await db
     .select()
     .from(newsletterConfirmations)
-    .where(and(eq(newsletterConfirmations.token, token), isNull(newsletterConfirmations.confirmedAt)))
+    .where(
+      and(eq(newsletterConfirmations.token, token), isNull(newsletterConfirmations.confirmedAt))
+    )
     .limit(1)
 
   if (dbRecord) {
@@ -140,7 +142,10 @@ export async function confirmSubscription(token: string): Promise<PendingSubscri
     return null
   }
 
-  await db.update(newsletterConfirmations).set({ confirmedAt: new Date() }).where(eq(newsletterConfirmations.token, token))
+  await db
+    .update(newsletterConfirmations)
+    .set({ confirmedAt: new Date() })
+    .where(eq(newsletterConfirmations.token, token))
 
   pending.verified = true
   pendingSubscriptions.delete(token)

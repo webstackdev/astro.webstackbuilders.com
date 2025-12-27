@@ -47,11 +47,11 @@ describe('remark-attributes (Layer 2: With Astro Pipeline)', () => {
 [^1]: Footnote content
       `.trim()
 
-  const html = await processWithAstroSettings({
-    markdown,
-    plugin: remarkAttributes,
-    pluginOptions: remarkAttributesConfig,
-  })
+      const html = await processWithAstroSettings({
+        markdown,
+        plugin: remarkAttributes,
+        pluginOptions: remarkAttributesConfig,
+      })
 
       expect(html).toContain('footnote')
       expect(html).toContain('Footnote content')

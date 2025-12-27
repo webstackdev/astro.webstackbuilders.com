@@ -15,7 +15,7 @@ export type CreateDsarRequestInput = {
 
 export async function findActiveRequestByEmail(
   email: string,
-  requestType: RequestType,
+  requestType: RequestType
 ): Promise<DsarRequestRecord | undefined> {
   const [record] = await db
     .select()
@@ -25,8 +25,8 @@ export async function findActiveRequestByEmail(
         eq(dsarRequests.email, email),
         eq(dsarRequests.requestType, requestType),
         isNull(dsarRequests.fulfilledAt),
-        gt(dsarRequests.expiresAt, new Date()),
-      ),
+        gt(dsarRequests.expiresAt, new Date())
+      )
     )
     .limit(1)
 
@@ -53,11 +53,20 @@ export async function createDsarRequest(input: CreateDsarRequestInput): Promise<
   return record
 }
 
-export async function findDsarRequestByToken(token: string): Promise<DsarRequestRecord | undefined> {
-  const [record] = await db.select().from(dsarRequests).where(eq(dsarRequests.token, token)).limit(1)
+export async function findDsarRequestByToken(
+  token: string
+): Promise<DsarRequestRecord | undefined> {
+  const [record] = await db
+    .select()
+    .from(dsarRequests)
+    .where(eq(dsarRequests.token, token))
+    .limit(1)
   return record
 }
 
 export async function markDsarRequestFulfilled(token: string): Promise<void> {
-  await db.update(dsarRequests).set({ fulfilledAt: new Date() }).where(eq(dsarRequests.token, token))
+  await db
+    .update(dsarRequests)
+    .set({ fulfilledAt: new Date() })
+    .where(eq(dsarRequests.token, token))
 }

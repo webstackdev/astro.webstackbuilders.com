@@ -48,7 +48,7 @@ const emitVisibilityState = (overrides: Partial<VisibilityState> = {}) => {
 
 const renderTableOfContents = async (
   assertion: (_ctx: { root: TableOfContentsElement; window: Window }) => Promise<void> | void,
-  headings: MarkdownHeading[] = defaultHeadings,
+  headings: MarkdownHeading[] = defaultHeadings
 ) => {
   const container = await AstroContainer.create()
 
@@ -62,7 +62,10 @@ const renderTableOfContents = async (
       } satisfies TocFixtureProps,
     },
     assert: async ({ element, window }) => {
-      await assertion({ root: element as TableOfContentsElement, window: window as unknown as Window })
+      await assertion({
+        root: element as TableOfContentsElement,
+        window: window as unknown as Window,
+      })
     },
   })
 }
@@ -76,7 +79,8 @@ afterEach(() => {
 describe('TableOfContents web component module', () => {
   it('exposes metadata for registration', async () => {
     await withJsdomEnvironment(async () => {
-      const { webComponentModule, TableOfContentsElement: ComponentCtor } = await import('@components/Toc/client')
+      const { webComponentModule, TableOfContentsElement: ComponentCtor } =
+        await import('@components/Toc/client')
 
       expect(webComponentModule.registeredName).toBe('table-of-contents')
       expect(webComponentModule.componentCtor).toBe(ComponentCtor)
@@ -85,16 +89,17 @@ describe('TableOfContents web component module', () => {
 
   it('registers the custom element when requested', async () => {
     await withJsdomEnvironment(async ({ window }) => {
-      const { registerTableOfContentsComponent, TableOfContentsElement: ComponentCtor } = await import(
-        '@components/Toc/client'
-      )
+      const { registerTableOfContentsComponent, TableOfContentsElement: ComponentCtor } =
+        await import('@components/Toc/client')
       const uniqueTag = `table-of-contents-${Math.random().toString(36).slice(2)}`
 
       const originalGet = window.customElements.get.bind(window.customElements)
       const getSpy = vi
         .spyOn(window.customElements, 'get')
         .mockImplementation(tagName => (tagName === uniqueTag ? undefined : originalGet(tagName)))
-      const defineSpy = vi.spyOn(window.customElements, 'define').mockImplementation(() => undefined)
+      const defineSpy = vi
+        .spyOn(window.customElements, 'define')
+        .mockImplementation(() => undefined)
 
       await registerTableOfContentsComponent(uniqueTag)
 
@@ -178,7 +183,8 @@ describe('TableOfContents component rendering', () => {
 
       expect(window.document.activeElement).toBe(firstLink)
 
-      const KeyboardEventCtor = (window as unknown as { KeyboardEvent: typeof KeyboardEvent }).KeyboardEvent
+      const KeyboardEventCtor = (window as unknown as { KeyboardEvent: typeof KeyboardEvent })
+        .KeyboardEvent
       const escapeEvent = new KeyboardEventCtor('keyup', { key: 'Escape', bubbles: true })
       panel?.dispatchEvent(escapeEvent)
       expect(hideTableOfContents).toHaveBeenCalledTimes(1)
@@ -245,7 +251,7 @@ describe('TableOfContents component rendering', () => {
             target: usageHeading as Element,
           } as IntersectionObserverEntry,
         ],
-        {} as IntersectionObserver,
+        {} as IntersectionObserver
       )
 
       const usageLink = links.find(link => link.dataset['tocSlug'] === 'usage')

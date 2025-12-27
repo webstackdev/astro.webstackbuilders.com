@@ -8,7 +8,10 @@ type MdastNode = {
   children?: MdastNode[]
 }
 
-function findNode(root: MdastNode, predicate: (_node: MdastNode) => boolean): MdastNode | undefined {
+function findNode(
+  root: MdastNode,
+  predicate: (_node: MdastNode) => boolean
+): MdastNode | undefined {
   if (predicate(root)) return root
   for (const child of root.children ?? []) {
     const found = findNode(child, predicate)
@@ -25,7 +28,10 @@ describe('remark-directive (Layer 1: Isolated)', () => {
     const tree = processor.parse(markdown)
     const transformed = await processor.run(tree)
 
-    const note = findNode(transformed as MdastNode, node => node.type === 'containerDirective' && node.name === 'note')
+    const note = findNode(
+      transformed as MdastNode,
+      node => node.type === 'containerDirective' && node.name === 'note'
+    )
     expect(note).toBeDefined()
   })
 })

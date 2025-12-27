@@ -2,18 +2,9 @@
  * Scripts Utils - Barrel Export
  * Single source for all utility functions
  */
-export {
-  type CookieOptions,
-  getCookie,
-  setCookie,
-  removeCookie,
-  getAllCookies,
-} from './cookies'
+export { type CookieOptions, getCookie, setCookie, removeCookie, getAllCookies } from './cookies'
 
-export {
-  getOrCreateDataSubjectId,
-  deleteDataSubjectId,
-} from './dataSubjectId'
+export { getOrCreateDataSubjectId, deleteDataSubjectId } from './dataSubjectId'
 
 export { absoluteUrl } from './absoluteUrl'
 export { defineCustomElement } from './defineCustomElement'

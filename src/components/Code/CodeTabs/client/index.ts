@@ -1,5 +1,8 @@
 export function registerCodeTabsWebComponent(): void {
-  const globalRef = globalThis as unknown as { customElements?: CustomElementRegistry; window?: Window }
+  const globalRef = globalThis as unknown as {
+    customElements?: CustomElementRegistry
+    window?: Window
+  }
   const registry = globalRef.customElements ?? globalRef.window?.customElements
   if (!registry) return
 
@@ -80,7 +83,8 @@ class CodeTabsElement extends HTMLElement {
 
   private buildUi(hasTabs: boolean): void {
     const header = document.createElement('div')
-    header.className = 'flex w-full min-w-0 items-center justify-between border-b border-gray-200 bg-gray-50'
+    header.className =
+      'flex w-full min-w-0 items-center justify-between border-b border-gray-200 bg-gray-50'
 
     const copyButton = this.createCopyButton()
 
@@ -141,9 +145,13 @@ class CodeTabsElement extends HTMLElement {
       <span class="text-sm">${title}</span>
     `
 
-    addButtonEventListeners(button, () => {
-      void this.copyActiveCode(button)
-    }, this)
+    addButtonEventListeners(
+      button,
+      () => {
+        void this.copyActiveCode(button)
+      },
+      this
+    )
 
     return button
   }

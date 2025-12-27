@@ -10,14 +10,8 @@ interface EnvClientValues {
 type EnvValueKey = 'package-release' | 'privacy-policy-version'
 type EnvElementState = 'ready' | 'error'
 
-const setValue = (
-  key: EnvValueKey,
-  value: string,
-  state: EnvElementState = 'ready'
-) => {
-  const element: HTMLOutputElement | null = (
-    document.querySelector(`[data-env-value="${key}"]`)
-  )
+const setValue = (key: EnvValueKey, value: string, state: EnvElementState = 'ready') => {
+  const element: HTMLOutputElement | null = document.querySelector(`[data-env-value="${key}"]`)
   if (!element) return
   element.textContent = value
   element.dataset['state'] = state

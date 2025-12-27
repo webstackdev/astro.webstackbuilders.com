@@ -67,7 +67,10 @@ const getInitialThemePreference = (): ThemeId => {
   }
 
   try {
-    if (typeof window.matchMedia === 'function' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches
+    ) {
       return 'dark'
     }
   } catch {
@@ -87,7 +90,7 @@ const getInitialThemePreference = (): ThemeId => {
  * Classified as 'necessary' - no consent required
  */
 export const $theme = persistentAtom<ThemeId>(themeStorageKey, getInitialThemePreference(), {
-  encode: (value) => value,
+  encode: value => value,
   decode: (value: string) => {
     const normalizedValue = normalizeThemeValue(value)
     if (normalizedValue) {
@@ -105,7 +108,7 @@ export const $theme = persistentAtom<ThemeId>(themeStorageKey, getInitialThemePr
  * and page reloads. This keeps the modal open during navigation for better UX.
  */
 export const $themePickerOpen = persistentAtom<boolean>('themePickerOpen', false, {
-  encode: (value) => JSON.stringify(value),
+  encode: value => JSON.stringify(value),
   decode: (value: string) => {
     try {
       return JSON.parse(value)
@@ -194,7 +197,9 @@ export function createThemeController(host: ReactiveControllerHost): StoreContro
  * Create a reactive StoreController for $themePickerOpen
  * For use in Lit components - automatically triggers re-render when picker state changes
  */
-export function createThemePickerOpenController(host: ReactiveControllerHost): StoreController<boolean> {
+export function createThemePickerOpenController(
+  host: ReactiveControllerHost
+): StoreController<boolean> {
   return new StoreController(host, $themePickerOpen)
 }
 

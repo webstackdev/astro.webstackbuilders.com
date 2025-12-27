@@ -71,7 +71,7 @@ interface SanitizedRequestMetadata {
 
 export function handleApiFunctionError(
   error: unknown,
-  context: ApiFunctionContext,
+  context: ApiFunctionContext
 ): ApiFunctionError {
   const overrides: Partial<ApiFunctionErrorParams> = {
     route: context.route,
@@ -109,7 +109,7 @@ export function handleApiFunctionError(
   })
 
   if (isProd() && !isTest()) {
-    withScope((scope) => {
+    withScope(scope => {
       scope.setTags({
         route: context.route,
         status: String(serverError.status),
@@ -165,7 +165,7 @@ export function formatApiErrorLogEntry(
     requestId?: string | undefined
     correlationId?: string | undefined
     requestMeta?: SanitizedRequestMetadata | undefined
-  },
+  }
 ): ApiErrorLogEntry {
   const entry: ApiErrorLogEntry = {
     level: 'error',
@@ -180,7 +180,8 @@ export function formatApiErrorLogEntry(
 
   if (isDev()) {
     if (error.stack) entry.stack = error.stack
-    if (error.cause) entry.cause = error.cause instanceof Error ? error.cause.message : String(error.cause)
+    if (error.cause)
+      entry.cause = error.cause instanceof Error ? error.cause.message : String(error.cause)
   }
 
   if (details.operation) entry.operation = details.operation
@@ -197,7 +198,7 @@ export function formatApiErrorLogEntry(
 
 export function buildApiErrorResponse(
   error: ApiFunctionError,
-  options?: ApiErrorResponseOptions,
+  options?: ApiErrorResponseOptions
 ): Response {
   const body = error.toResponseBody({
     ...(options?.fallbackMessage !== undefined && { fallbackMessage: options.fallbackMessage }),
@@ -237,7 +238,7 @@ function logApiError(error: ApiFunctionError, metadata: LogMetadata) {
 
 function sanitizeRequestMetadata(
   metadata: ApiRequestMetadata | undefined,
-  salt: string,
+  salt: string
 ): SanitizedRequestMetadata {
   if (!metadata) {
     return {}
@@ -248,13 +249,13 @@ function sanitizeRequestMetadata(
     ...(metadata.ipHash
       ? { ipHash: metadata.ipHash }
       : metadata.ip
-      ? { ipHash: hashIdentifier(metadata.ip, salt) }
-      : {}),
+        ? { ipHash: hashIdentifier(metadata.ip, salt) }
+        : {}),
     ...(metadata.userAgentHash
       ? { uaHash: metadata.userAgentHash }
       : metadata.userAgent
-      ? { uaHash: hashIdentifier(metadata.userAgent, salt) }
-      : {}),
+        ? { uaHash: hashIdentifier(metadata.userAgent, salt) }
+        : {}),
   }
 }
 

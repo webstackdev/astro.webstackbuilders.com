@@ -31,13 +31,13 @@ beforeEach(async () => {
 })
 
 const renderNavigationDom = async (
-  assertion: (_context: { element: NavigationComponent }) => Promise<void> | void,
+  assertion: (_context: { element: NavigationComponent }) => Promise<void> | void
 ) => {
   await executeRender<NavigationComponentModule>({
     container,
     component: TestNavigationComponent,
     moduleSpecifier: '@components/Navigation/client/index',
-    waitForReady: async (element) => {
+    waitForReady: async element => {
       await element.updateComplete
     },
     assert: async ({ element }) => {
@@ -145,20 +145,29 @@ describe('getNavToggleBtnElement selector works', () => {
 describe('Navigation selectors stay in sync with layout', () => {
   test('finds all required elements and at least one nav link', async () => {
     await renderNavigationDom(async () => {
-      expect(isHeaderElement(getHeaderElement()), 'Navigation should render within a real #header element').toBeTruthy()
-      expect(isDivElement(getMobileSplashElement()), 'Header should render a #mobile-splash backdrop element').toBeTruthy()
+      expect(
+        isHeaderElement(getHeaderElement()),
+        'Navigation should render within a real #header element'
+      ).toBeTruthy()
+      expect(
+        isDivElement(getMobileSplashElement()),
+        'Header should render a #mobile-splash backdrop element'
+      ).toBeTruthy()
       expect(
         isDivElement(getMobileNavFocusContainer()),
-        'Navigation should render a #mobile-nav-focus-container focus trap container',
+        'Navigation should render a #mobile-nav-focus-container focus trap container'
       ).toBeTruthy()
 
       const menu = getNavMenuElement()
       const links = queryNavLinks(menu)
 
-      expect(links.length, 'Navigation menu should include at least one anchor link').toBeGreaterThan(0)
       expect(
-        links.every((link) => Boolean(link.getAttribute('href'))),
-        'All navigation links discovered via selectors should have an href attribute',
+        links.length,
+        'Navigation menu should include at least one anchor link'
+      ).toBeGreaterThan(0)
+      expect(
+        links.every(link => Boolean(link.getAttribute('href'))),
+        'All navigation links discovered via selectors should have an href attribute'
       ).toBe(true)
     })
   })

@@ -35,27 +35,43 @@ describe('HighlighterElement selectors', () => {
         }
       },
       assert: async ({ element }) => {
-        const { wrapper, trigger, dialog, status, shareButtons } = getHighlighterRenderElements(element)
+        const { wrapper, trigger, dialog, status, shareButtons } =
+          getHighlighterRenderElements(element)
 
-        expect(wrapper, 'HighlighterElement should render a wrapper with .highlighter__wrapper').toBeInstanceOf(
-          HTMLDivElement,
-        )
-        expect(trigger, 'HighlighterElement should render a trigger with .highlighter__trigger').toBeInstanceOf(
-          HTMLButtonElement,
-        )
-        expect(dialog, 'HighlighterElement should render a share dialog with .share-dialog').toBeInstanceOf(HTMLDivElement)
-        expect(status, 'HighlighterElement should render a status element with [data-highlighter-status]').toBeInstanceOf(
-          HTMLSpanElement,
-        )
+        expect(
+          wrapper,
+          'HighlighterElement should render a wrapper with .highlighter__wrapper'
+        ).toBeInstanceOf(HTMLDivElement)
+        expect(
+          trigger,
+          'HighlighterElement should render a trigger with .highlighter__trigger'
+        ).toBeInstanceOf(HTMLButtonElement)
+        expect(
+          dialog,
+          'HighlighterElement should render a share dialog with .share-dialog'
+        ).toBeInstanceOf(HTMLDivElement)
+        expect(
+          status,
+          'HighlighterElement should render a status element with [data-highlighter-status]'
+        ).toBeInstanceOf(HTMLSpanElement)
 
-        expect(dialog.getAttribute('role'), 'HighlighterElement dialog should be role="toolbar"').toBe('toolbar')
-        expect(shareButtons.length, 'HighlighterElement should render at least one share button').toBeGreaterThan(0)
+        expect(
+          dialog.getAttribute('role'),
+          'HighlighterElement dialog should be role="toolbar"'
+        ).toBe('toolbar')
+        expect(
+          shareButtons.length,
+          'HighlighterElement should render at least one share button'
+        ).toBeGreaterThan(0)
 
         const describedBy = trigger.getAttribute('aria-describedby')
         expect(describedBy, 'HighlighterElement trigger should set aria-describedby').toBeTruthy()
 
         const hint = describedBy ? queryElementById(element, describedBy) : null
-        expect(hint, 'HighlighterElement should render a hint element referenced by aria-describedby').toBeTruthy()
+        expect(
+          hint,
+          'HighlighterElement should render a hint element referenced by aria-describedby'
+        ).toBeTruthy()
 
         const controls = trigger.getAttribute('aria-controls')
         expect(controls, 'HighlighterElement trigger should set aria-controls').toBeTruthy()

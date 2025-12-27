@@ -43,7 +43,7 @@ describe('Button (Astro)', () => {
           icon: 'close',
           iconPosition: 'only',
         },
-      }),
+      })
     ).rejects.toThrow('Button: icon-only buttons must provide ariaLabel')
   })
 

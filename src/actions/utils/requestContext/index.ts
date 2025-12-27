@@ -36,7 +36,12 @@ export function buildRequestFingerprint(options: {
 }): { fingerprint?: string; consentFunctional: boolean } {
   const hashSalt = options.route
   const consentFunctional = readFunctionalConsent(options.cookies)
-  const requestMeta = buildRequestMetadata(options.request, hashSalt, consentFunctional, options.clientAddress)
+  const requestMeta = buildRequestMetadata(
+    options.request,
+    hashSalt,
+    consentFunctional,
+    options.clientAddress
+  )
   const fingerprint = requestMeta.ipHash ?? requestMeta.userAgentHash
 
   const result: { fingerprint?: string; consentFunctional: boolean } = {
@@ -67,7 +72,7 @@ function buildRequestMetadata(
   request: Request,
   salt: string,
   includeRawPII: boolean,
-  clientAddress?: string,
+  clientAddress?: string
 ): RequestMetadata {
   const method = request.method
   const ip = extractClientIp(request) ?? clientAddress

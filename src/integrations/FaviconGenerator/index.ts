@@ -29,72 +29,80 @@ type IconGenerator = (_options: Metadata) => Promise<Buffer>
  * Generate ICO favicon with multiple resolutions (32x32, 64x64)
  * @internal
  */
-export const generateIcoFavicon = (faviconPath: string): IconGenerator => async ({ width, height, density }) => {
-  if (!width || !height || !density) {
-    throw new BuildError(
-      'Required metadata (width, height, density) not available for ICO generation',
-      { phase: 'favicon-generation', filePath: faviconPath }
+export const generateIcoFavicon =
+  (faviconPath: string): IconGenerator =>
+  async ({ width, height, density }) => {
+    if (!width || !height || !density) {
+      throw new BuildError(
+        'Required metadata (width, height, density) not available for ICO generation',
+        { phase: 'favicon-generation', filePath: faviconPath }
+      )
+    }
+    const faviconDimensions = [32, 64]
+
+    const buffers = await Promise.all(
+      faviconDimensions.map(dimension =>
+        sharp(faviconPath, {
+          density: (dimension / Math.max(width, height)) * density,
+        })
+          .resize(dimension, dimension)
+          .toBuffer()
+      )
     )
+
+    return toIco(buffers)
   }
-  const faviconDimensions = [32, 64]
-
-  const buffers = await Promise.all(
-    faviconDimensions.map(dimension =>
-      sharp(faviconPath, {
-        density: (dimension / Math.max(width, height)) * density,
-      })
-        .resize(dimension, dimension)
-        .toBuffer()
-    )
-  )
-
-  return toIco(buffers)
-}
 
 /**
  * Generate Apple Touch Icon (180x180)
  * @internal
  */
-export const generatePngFavicon = (faviconPath: string): IconGenerator => ({ density, width, height }) => {
-  if (!width || !height || !density) {
-    throw new BuildError(
-      'Required metadata (width, height, density) not available for PNG generation',
-      { phase: 'favicon-generation', filePath: faviconPath }
-    )
+export const generatePngFavicon =
+  (faviconPath: string): IconGenerator =>
+  ({ density, width, height }) => {
+    if (!width || !height || !density) {
+      throw new BuildError(
+        'Required metadata (width, height, density) not available for PNG generation',
+        { phase: 'favicon-generation', filePath: faviconPath }
+      )
+    }
+    return sharp(faviconPath, {
+      density: (180 / Math.max(width, height)) * density,
+    })
+      .resize(180, 180)
+      .png()
+      .toBuffer()
   }
-  return sharp(faviconPath, {
-    density: (180 / Math.max(width, height)) * density,
-  })
-    .resize(180, 180)
-    .png()
-    .toBuffer()
-}
 
 /**
  * Generate PWA icon at specified size
  * @internal
  */
-export const generatePwaIcon = (faviconPath: string, size: number): IconGenerator => ({ density, width, height }) => {
-  if (!width || !height || !density) {
-    throw new BuildError(
-      `Required metadata (width, height, density) not available for ${size}x${size} PWA icon generation`,
-      { phase: 'favicon-generation', filePath: faviconPath }
-    )
+export const generatePwaIcon =
+  (faviconPath: string, size: number): IconGenerator =>
+  ({ density, width, height }) => {
+    if (!width || !height || !density) {
+      throw new BuildError(
+        `Required metadata (width, height, density) not available for ${size}x${size} PWA icon generation`,
+        { phase: 'favicon-generation', filePath: faviconPath }
+      )
+    }
+    return sharp(faviconPath, {
+      density: (size / Math.max(width, height)) * density,
+    })
+      .resize(size, size)
+      .png()
+      .toBuffer()
   }
-  return sharp(faviconPath, {
-    density: (size / Math.max(width, height)) * density,
-  })
-    .resize(size, size)
-    .png()
-    .toBuffer()
-}
 
 /**
  * Save buffer to file
  */
-const saveFile = (destination: string) => async (buffer: Buffer): Promise<void> => {
-  await writeFile(destination, new Uint8Array(buffer))
-}
+const saveFile =
+  (destination: string) =>
+  async (buffer: Buffer): Promise<void> => {
+    await writeFile(destination, new Uint8Array(buffer))
+  }
 
 /**
  * Generate all favicon variants
@@ -112,10 +120,10 @@ async function generateFavicons(faviconPath: string, outputDir: string): Promise
 
   // Validate it's an SVG
   if (metadata.format !== 'svg') {
-    throw new BuildError(
-      `Source favicon must be SVG format, got ${metadata.format}`,
-      { phase: 'favicon-generation', filePath: faviconPath }
-    )
+    throw new BuildError(`Source favicon must be SVG format, got ${metadata.format}`, {
+      phase: 'favicon-generation',
+      filePath: faviconPath,
+    })
   }
 
   // Ensure output directory exists

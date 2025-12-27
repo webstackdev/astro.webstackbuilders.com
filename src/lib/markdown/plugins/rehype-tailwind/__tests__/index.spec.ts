@@ -14,7 +14,7 @@ describe('htmlElements configuration', () => {
   })
 
   test('each configuration has required properties', () => {
-    htmlElements.forEach((config) => {
+    htmlElements.forEach(config => {
       expect(config).toHaveProperty('tagName')
       expect(config).toHaveProperty('classes')
       expect(typeof config.tagName).toBe('string')
@@ -24,7 +24,7 @@ describe('htmlElements configuration', () => {
   })
 
   test('tag names are unique', () => {
-    const tagNames = htmlElements.map((config) => config.tagName)
+    const tagNames = htmlElements.map(config => config.tagName)
     const uniqueTagNames = new Set(tagNames)
     expect(uniqueTagNames.size).toBe(tagNames.length)
   })
@@ -48,8 +48,8 @@ describe('htmlElements configuration', () => {
       'details',
     ]
 
-    expectedElements.forEach((tagName) => {
-      const config = htmlElements.find((c) => c.tagName === tagName)
+    expectedElements.forEach(tagName => {
+      const config = htmlElements.find(c => c.tagName === tagName)
       expect(config).toBeDefined()
     })
   })

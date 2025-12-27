@@ -63,7 +63,9 @@ describe('Social platform utilities', () => {
       })
 
       const { nativeShare } = await import('@components/Social/common/platforms')
-      await expect(nativeShare({ title: 't', text: 'x', url: 'https://example.com' })).resolves.toBe(false)
+      await expect(
+        nativeShare({ title: 't', text: 'x', url: 'https://example.com' })
+      ).resolves.toBe(false)
     })
   })
 })

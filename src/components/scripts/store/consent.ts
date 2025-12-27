@@ -10,7 +10,10 @@ import { getCookie, removeCookie, setCookie } from '@components/scripts/utils/co
 import { ClientScriptError } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { $isConsentBannerVisible } from '@components/scripts/store/consentBanner'
-import { getOrCreateDataSubjectId, deleteDataSubjectId } from '@components/scripts/utils/dataSubjectId'
+import {
+  getOrCreateDataSubjectId,
+  deleteDataSubjectId,
+} from '@components/scripts/utils/dataSubjectId'
 
 // ============================================================================
 // TYPES
@@ -31,7 +34,8 @@ export interface ConsentState {
 const consentCookieCategories: ConsentCategories[] = ['analytics', 'marketing', 'functional']
 const CONSENT_COOKIE_PREFIX = 'consent_'
 
-const prefixConsentCookie = (category: ConsentCategories): string => `${CONSENT_COOKIE_PREFIX}${category}`
+const prefixConsentCookie = (category: ConsentCategories): string =>
+  `${CONSENT_COOKIE_PREFIX}${category}`
 
 const createDefaultConsentState = (): ConsentState => ({
   analytics: false,
@@ -58,15 +62,18 @@ const isConsentState = (value: unknown): value is ConsentState => {
   }
 
   const candidate = value as Partial<ConsentState>
-  const hasValidBooleans = typeof candidate.analytics === 'boolean'
-    && typeof candidate.marketing === 'boolean'
-    && typeof candidate.functional === 'boolean'
+  const hasValidBooleans =
+    typeof candidate.analytics === 'boolean' &&
+    typeof candidate.marketing === 'boolean' &&
+    typeof candidate.functional === 'boolean'
 
   if (!hasValidBooleans) {
     return false
   }
 
-  return typeof candidate.DataSubjectId === 'string' || typeof candidate.DataSubjectId === 'undefined'
+  return (
+    typeof candidate.DataSubjectId === 'string' || typeof candidate.DataSubjectId === 'undefined'
+  )
 }
 
 // ============================================================================
@@ -124,14 +131,14 @@ onMount($consent, () => {
 /**
  * Check if specific consent category is granted
  */
-export const $hasAnalyticsConsent = computed($consent, (consent) => consent.analytics)
-export const $hasFunctionalConsent = computed($consent, (consent) => consent.functional)
-export const $hasMarketingConsent = computed($consent, (consent) => consent.marketing)
+export const $hasAnalyticsConsent = computed($consent, consent => consent.analytics)
+export const $hasFunctionalConsent = computed($consent, consent => consent.functional)
+export const $hasMarketingConsent = computed($consent, consent => consent.marketing)
 
 /**
  * Check if any consent is granted
  */
-export const $hasAnyConsent = computed($consent, (consent) => {
+export const $hasAnyConsent = computed($consent, consent => {
   return consent.analytics || consent.functional || consent.marketing
 })
 
@@ -156,7 +163,7 @@ export function getConsentCookie(category: ConsentCategories): string | undefine
  */
 export function setConsentCookie(
   category: ConsentCategories,
-  preference: ConsentPreference = 'granted',
+  preference: ConsentPreference = 'granted'
 ): void {
   const granted = preference === 'granted'
   updateConsent(category, granted)
@@ -180,7 +187,7 @@ export function allowAllConsentCookies(): void {
  * Remove persisted consent cookies without mutating store state
  */
 export function removeConsentCookies(): void {
-  consentCookieCategories.forEach((category) => {
+  consentCookieCategories.forEach(category => {
     removeCookie(prefixConsentCookie(category))
   })
 }
@@ -273,7 +280,7 @@ export function updateConsent(category: ConsentCategory, value: ConsentValue): v
  */
 export function allowAllConsent(): void {
   const categories: ConsentCategory[] = ['analytics', 'marketing', 'functional']
-  categories.forEach((category) => updateConsent(category, true))
+  categories.forEach(category => updateConsent(category, true))
 }
 
 /**
@@ -338,7 +345,7 @@ export function initConsentFromCookies(): void {
 
 export function initConsentSideEffects(): void {
   // Side Effect 1: Show/hide cookie modal
-  $isConsentBannerVisible.subscribe((visible) => {
+  $isConsentBannerVisible.subscribe(visible => {
     try {
       const modal = document.getElementById('consent-modal-id')
       if (modal) {
@@ -440,11 +447,13 @@ export function initConsentSideEffects(): void {
 
     if (!response.ok) {
       const responseBody = await response.json().catch(() => null)
-      const serverError = responseBody && typeof responseBody === 'object' && 'error' in responseBody
-        ? (responseBody as { error: { message?: string } }).error
-        : null
-      const serverMessage = serverError?.message
-        ?? (responseBody && typeof (responseBody as { message?: string }).message === 'string'
+      const serverError =
+        responseBody && typeof responseBody === 'object' && 'error' in responseBody
+          ? (responseBody as { error: { message?: string } }).error
+          : null
+      const serverMessage =
+        serverError?.message ??
+        (responseBody && typeof (responseBody as { message?: string }).message === 'string'
           ? (responseBody as { message: string }).message
           : undefined)
 
@@ -465,7 +474,8 @@ export function initConsentSideEffects(): void {
     }
 
     const categoriesChanged = ['analytics', 'marketing', 'functional'].some(
-      (category) => consentState[category as ConsentCategory] !== oldConsentState[category as ConsentCategory],
+      category =>
+        consentState[category as ConsentCategory] !== oldConsentState[category as ConsentCategory]
     )
 
     if (!categoriesChanged) {
@@ -477,9 +487,10 @@ export function initConsentSideEffects(): void {
     if (consentState.marketing) purposes.push('marketing')
     if (consentState.functional) purposes.push('functional')
 
-    const userAgent = typeof navigator !== 'undefined' && typeof navigator.userAgent === 'string'
-      ? navigator.userAgent
-      : 'unknown'
+    const userAgent =
+      typeof navigator !== 'undefined' && typeof navigator.userAgent === 'string'
+        ? navigator.userAgent
+        : 'unknown'
 
     const dataSubjectId = ensureConsentDataSubjectId(consentState)
 
@@ -493,7 +504,7 @@ export function initConsentSideEffects(): void {
   })
 
   // Side Effect 3: Delete DataSubjectId when functional consent is revoked
-  $hasFunctionalConsent.subscribe((hasConsent) => {
+  $hasFunctionalConsent.subscribe(hasConsent => {
     if (!hasConsent) {
       try {
         deleteDataSubjectId()
@@ -507,15 +518,17 @@ export function initConsentSideEffects(): void {
   })
 
   // Side Effect 4: Update Sentry context when analytics consent changes
-  $hasAnalyticsConsent.subscribe((hasConsent) => {
+  $hasAnalyticsConsent.subscribe(hasConsent => {
     try {
       // Dynamically import to avoid circular dependencies and allow lazy loading
-      import('@components/scripts/sentry/helpers').then(({ updateConsentContext }) => {
-        updateConsentContext(hasConsent)
-      }).catch((error) => {
-        // Sentry may not be initialized in all environments
-        console.warn('Failed to update Sentry consent context:', error)
-      })
+      import('@components/scripts/sentry/helpers')
+        .then(({ updateConsentContext }) => {
+          updateConsentContext(hasConsent)
+        })
+        .catch(error => {
+          // Sentry may not be initialized in all environments
+          console.warn('Failed to update Sentry consent context:', error)
+        })
     } catch (error) {
       handleScriptError(error, {
         scriptName: 'cookieConsent',
@@ -533,7 +546,9 @@ export function initConsentSideEffects(): void {
  * Create a reactive StoreController for $consent
  * For use in Lit components - automatically triggers re-render when consent state changes
  */
-export function createConsentController(host: ReactiveControllerHost): StoreController<ConsentState> {
+export function createConsentController(
+  host: ReactiveControllerHost
+): StoreController<ConsentState> {
   return new StoreController(host, $consent)
 }
 
@@ -541,7 +556,9 @@ export function createConsentController(host: ReactiveControllerHost): StoreCont
  * Create a reactive StoreController for $hasAnalyticsConsent
  * For use in Lit components - automatically triggers re-render when analytics consent changes
  */
-export function createAnalyticsConsentController(host: ReactiveControllerHost): StoreController<boolean> {
+export function createAnalyticsConsentController(
+  host: ReactiveControllerHost
+): StoreController<boolean> {
   return new StoreController(host, $hasAnalyticsConsent)
 }
 
@@ -549,7 +566,9 @@ export function createAnalyticsConsentController(host: ReactiveControllerHost): 
  * Create a reactive StoreController for $hasFunctionalConsent
  * For use in Lit components - automatically triggers re-render when functional consent changes
  */
-export function createFunctionalConsentController(host: ReactiveControllerHost): StoreController<boolean> {
+export function createFunctionalConsentController(
+  host: ReactiveControllerHost
+): StoreController<boolean> {
   return new StoreController(host, $hasFunctionalConsent)
 }
 
@@ -557,7 +576,9 @@ export function createFunctionalConsentController(host: ReactiveControllerHost):
  * Create a reactive StoreController for $hasMarketingConsent
  * For use in Lit components - automatically triggers re-render when marketing consent changes
  */
-export function createMarketingConsentController(host: ReactiveControllerHost): StoreController<boolean> {
+export function createMarketingConsentController(
+  host: ReactiveControllerHost
+): StoreController<boolean> {
   return new StoreController(host, $hasMarketingConsent)
 }
 

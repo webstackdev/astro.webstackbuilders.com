@@ -38,7 +38,7 @@ const defaultFormValues = {
 
 const fillDownloadForm = (
   elements: DownloadFormElements,
-  overrides: Partial<typeof defaultFormValues> = {},
+  overrides: Partial<typeof defaultFormValues> = {}
 ) => {
   const values = { ...defaultFormValues, ...overrides }
   elements.firstName.value = values.firstName
@@ -118,7 +118,7 @@ describe('download-form web component', () => {
       fillDownloadForm(elements)
 
       let confettiEvent: Event | undefined
-      elements.submitButton.addEventListener('confetti:fire', (event) => {
+      elements.submitButton.addEventListener('confetti:fire', event => {
         confettiEvent = event
       })
 
@@ -158,7 +158,7 @@ describe('download-form web component', () => {
         () =>
           new Promise(resolve => {
             resolveSubmit = () => resolve({ data: { success: true } })
-          }),
+          })
       )
 
       fillDownloadForm(elements)
@@ -176,4 +176,3 @@ describe('download-form web component', () => {
     })
   })
 })
-

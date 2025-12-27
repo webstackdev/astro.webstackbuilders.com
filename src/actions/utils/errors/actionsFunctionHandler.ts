@@ -78,7 +78,7 @@ export function handleActionsFunctionError(
   logActionsError(normalizedError, context)
 
   if (isProd()) {
-    withScope((scope) => {
+    withScope(scope => {
       scope.setTags({
         route: context.route,
         status: String(normalizedError.status),
@@ -108,7 +108,7 @@ export function handleActionsFunctionError(
  */
 export function formatActionsErrorLogEntry(
   error: ActionsFunctionError,
-  context: ActionsFunctionContext,
+  context: ActionsFunctionContext
 ): ActionsErrorLogEntry {
   const entry: ActionsErrorLogEntry = {
     level: 'error',
@@ -189,7 +189,9 @@ const statusToCodeFallbackMap: Partial<Record<number, ActionErrorCode>> = {
 }
 
 function statusToActionErrorCode(status: number): ActionErrorCode {
-  const statusToCode = (ActionError as unknown as { statusToCode?: (_input: number) => ActionErrorCode }).statusToCode
+  const statusToCode = (
+    ActionError as unknown as { statusToCode?: (_input: number) => ActionErrorCode }
+  ).statusToCode
   if (statusToCode) return statusToCode(status)
   return statusToCodeFallbackMap[status] ?? 'INTERNAL_SERVER_ERROR'
 }
@@ -198,7 +200,10 @@ function statusToActionErrorCode(status: number): ActionErrorCode {
  * Converts an `ActionsFunctionError` into Astro's `ActionError`. The HTTP status is
  * mapped to an `ActionErrorCode`, and the message is scrubbed via `getSafeMessage()`.
  */
-export function toActionError(error: ActionsFunctionError, options?: ThrowActionErrorOptions): ActionError {
+export function toActionError(
+  error: ActionsFunctionError,
+  options?: ThrowActionErrorOptions
+): ActionError {
   const code = statusToActionErrorCode(error.status)
   const fallbackMessage = options?.fallbackMessage ?? 'Internal server error'
 
@@ -212,7 +217,11 @@ export function toActionError(error: ActionsFunctionError, options?: ThrowAction
  * Convenience helper: normalize / log / report an unknown error and throw an
  * `ActionError` for the client. Call this from `defineAction().handler` catch blocks.
  */
-export function throwActionError(error: unknown, context: ActionsFunctionContext, options?: ThrowActionErrorOptions): never {
+export function throwActionError(
+  error: unknown,
+  context: ActionsFunctionContext,
+  options?: ThrowActionErrorOptions
+): never {
   const normalized = handleActionsFunctionError(error, context)
   throw toActionError(normalized, options)
 }

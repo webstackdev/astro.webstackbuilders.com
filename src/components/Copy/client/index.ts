@@ -3,7 +3,11 @@ import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { addButtonEventListeners } from '@components/scripts/elementListeners'
 import { copyFromElement } from './utils'
-import { getCopyToClipboardButton, getCopyToClipboardIcon, getCopyToClipboardSuccessIcon } from './selectors'
+import {
+  getCopyToClipboardButton,
+  getCopyToClipboardIcon,
+  getCopyToClipboardSuccessIcon,
+} from './selectors'
 
 export class CopyToClipboardElement extends LitElement {
   static registeredName = 'copy-to-clipboard'
@@ -75,7 +79,7 @@ export class CopyToClipboardElement extends LitElement {
           detail: {
             text: copiedText,
           },
-        }),
+        })
       )
 
       this.showSuccess()

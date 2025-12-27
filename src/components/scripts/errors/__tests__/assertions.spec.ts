@@ -5,7 +5,12 @@
 import { describe, expect, test } from 'vitest'
 import { TestError } from '@test/errors'
 import { ClientScriptError } from '@components/scripts/errors'
-import { isError, isErrorEvent, isPromiseRejectionEvent, isClientScriptError } from '@components/scripts/errors/assertions'
+import {
+  isError,
+  isErrorEvent,
+  isPromiseRejectionEvent,
+  isClientScriptError,
+} from '@components/scripts/errors/assertions'
 import { PromiseRejectionEvent } from '@components/scripts/@types/PromiseRejectionEvent'
 
 const voidFn = () => {}

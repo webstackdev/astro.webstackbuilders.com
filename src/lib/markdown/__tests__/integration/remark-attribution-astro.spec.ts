@@ -10,7 +10,7 @@ describe('remark-attribution (Layer 2: With Astro Pipeline)', () => {
 > — Neil Armstrong
       `.trim()
 
-  const html = await processWithAstroSettings({ markdown, plugin: remarkAttribution })
+      const html = await processWithAstroSettings({ markdown, plugin: remarkAttribution })
 
       expect(html).toContain('<figure class="c-blockquote">')
       expect(html).toContain('<strong>definitely</strong>')
@@ -55,7 +55,7 @@ describe('remark-attribution (Layer 2: With Astro Pipeline)', () => {
 [^1]: Additional context
       `.trim()
 
-  const html = await processWithAstroSettings({ markdown, plugin: remarkAttribution })
+      const html = await processWithAstroSettings({ markdown, plugin: remarkAttribution })
 
       expect(html).toContain('<figure')
       expect(html).toContain('Author Name')
@@ -71,7 +71,7 @@ describe('remark-attribution (Layer 2: With Astro Pipeline)', () => {
 > — Attribution with URL https://example.com
       `.trim()
 
-    const html = await processWithAstroSettings({ markdown, plugin: remarkAttribution })
+      const html = await processWithAstroSettings({ markdown, plugin: remarkAttribution })
 
       expect(html).toContain('<figure class="c-blockquote">')
       expect(html).toContain('<figcaption')

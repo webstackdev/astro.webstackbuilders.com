@@ -75,15 +75,8 @@ export async function processIsolated(
  * Process markdown through Astro's pipeline with a single plugin (Layer 2)
  * Includes GFM and Astro's remarkRehype settings
  */
-export async function processWithAstroSettings(
-  params: ProcessParams
-): Promise<string> {
-  const {
-    markdown,
-    plugin,
-    pluginOptions,
-    stage = 'remark',
-  } = params
+export async function processWithAstroSettings(params: ProcessParams): Promise<string> {
+  const { markdown, plugin, pluginOptions, stage = 'remark' } = params
 
   const processor = remark()
 

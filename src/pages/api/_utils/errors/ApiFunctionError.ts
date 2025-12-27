@@ -178,10 +178,7 @@ export class ApiFunctionError extends Error {
     return this.isClientError ? this.message : fallbackMessage
   }
 
-  toResponseBody(options?: {
-    fallbackMessage?: string
-    includeDetails?: boolean
-  }) {
+  toResponseBody(options?: { fallbackMessage?: string; includeDetails?: boolean }) {
     const fallbackMessage = options?.fallbackMessage ?? DEFAULT_ERROR_MESSAGE
     const includeDetails = options?.includeDetails ?? this.isClientError
 
@@ -199,7 +196,10 @@ export class ApiFunctionError extends Error {
   }
 }
 
-export const normalizeUnknownApiError = (error: unknown, fallbackMessage = DEFAULT_ERROR_MESSAGE): Error => {
+export const normalizeUnknownApiError = (
+  error: unknown,
+  fallbackMessage = DEFAULT_ERROR_MESSAGE
+): Error => {
   if (error instanceof Error) {
     return error
   }

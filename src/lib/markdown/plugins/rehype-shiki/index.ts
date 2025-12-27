@@ -31,7 +31,7 @@ type HighlighterLike = {
       themes: ShikiThemes
       defaultColor?: 'light' | 'dark' | false
       wrap?: boolean
-    },
+    }
   ) => Root | Element
   loadLanguage: (_lang: string) => Promise<void>
 }
@@ -98,7 +98,7 @@ function normalizeAliasMap(alias: Record<string, string> | undefined): Record<st
   return Object.fromEntries(
     Object.entries(alias)
       .map(([key, value]) => [key.trim().toLowerCase(), value.trim()])
-      .filter(([key, value]) => Boolean(key) && Boolean(value)),
+      .filter(([key, value]) => Boolean(key) && Boolean(value))
   )
 }
 
@@ -112,14 +112,20 @@ function normalizeLanguage(lang: string, alias: Record<string, string> | undefin
 }
 
 function hasShikiClass(pre: Element): boolean {
-  const classNames = mergeClassNames(pre.properties?.['className'], toStringArray(pre.properties?.['class']))
+  const classNames = mergeClassNames(
+    pre.properties?.['className'],
+    toStringArray(pre.properties?.['class'])
+  )
   return classNames.some(cn => cn === 'shiki' || cn.startsWith('shiki-'))
 }
 
 function normalizeShikiProperties(pre: Element): void {
   pre.properties = pre.properties || {}
 
-  const classes = mergeClassNames(pre.properties['className'], toStringArray(pre.properties['class']))
+  const classes = mergeClassNames(
+    pre.properties['className'],
+    toStringArray(pre.properties['class'])
+  )
   if (classes.length > 0) {
     pre.properties['className'] = classes
   }
@@ -170,7 +176,9 @@ function extractPre(highlighted: Root | Element): Element | null {
 const DEFAULT_EXCLUDED_LANGS = ['mermaid', 'math']
 
 const rehypeShiki: Plugin<[RehypeShikiOptions], Root> = (options: RehypeShikiOptions) => {
-  const excluded = new Set([...(options.excludeLangs ?? DEFAULT_EXCLUDED_LANGS)].map(s => s.toLowerCase()))
+  const excluded = new Set(
+    [...(options.excludeLangs ?? DEFAULT_EXCLUDED_LANGS)].map(s => s.toLowerCase())
+  )
   const wrap = options.wrap ?? false
   const langAlias = normalizeAliasMap({ ...DEFAULT_LANG_ALIAS, ...(options.langAlias ?? {}) })
 
@@ -211,26 +219,30 @@ const rehypeShiki: Plugin<[RehypeShikiOptions], Root> = (options: RehypeShikiOpt
       codeText: string
     }> = []
 
-    visit(tree, 'element', (node: Element, index: number | undefined, parent: Parent | undefined) => {
-      if (!parent || index === undefined) return
-      if (node.tagName !== 'pre') return
-      if (!isParent(parent)) return
-      if (hasShikiClass(node)) return
+    visit(
+      tree,
+      'element',
+      (node: Element, index: number | undefined, parent: Parent | undefined) => {
+        if (!parent || index === undefined) return
+        if (node.tagName !== 'pre') return
+        if (!isParent(parent)) return
+        if (hasShikiClass(node)) return
 
-      const codeChild = node.children.find(isElement)
-      if (!codeChild || codeChild.tagName !== 'code') return
+        const codeChild = node.children.find(isElement)
+        if (!codeChild || codeChild.tagName !== 'code') return
 
-      const rawLang = parseLanguageFromCode(codeChild)
-      if (!rawLang) return
+        const rawLang = parseLanguageFromCode(codeChild)
+        if (!rawLang) return
 
-      const lang = normalizeLanguage(rawLang, langAlias)
-      if (excluded.has(lang.toLowerCase())) return
+        const lang = normalizeLanguage(rawLang, langAlias)
+        if (excluded.has(lang.toLowerCase())) return
 
-      const codeText = getText(codeChild)
-      if (!codeText.trim()) return
+        const codeText = getText(codeChild)
+        if (!codeText.trim()) return
 
-      replacements.push({ parent, index, original: node, lang, codeText })
-    })
+        replacements.push({ parent, index, original: node, lang, codeText })
+      }
+    )
 
     for (const replacement of replacements) {
       try {
@@ -286,10 +298,7 @@ const rehypeShiki: Plugin<[RehypeShikiOptions], Root> = (options: RehypeShikiOpt
 
       highlightedPre.properties['className'] = mergeClassNames(
         highlightedPre.properties['className'],
-        [
-          'overflow-x-auto',
-          wrap ? 'whitespace-pre-wrap' : 'whitespace-pre',
-        ],
+        ['overflow-x-auto', wrap ? 'whitespace-pre-wrap' : 'whitespace-pre']
       )
 
       replacement.parent.children[replacement.index] = highlightedPre

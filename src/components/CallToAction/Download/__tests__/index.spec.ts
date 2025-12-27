@@ -68,7 +68,7 @@ describe('Download CallToAction (Astro)', () => {
         props: {
           resource: '   ',
         } as any,
-      }),
+      })
     ).rejects.toMatchObject({
       name: 'BuildError',
     })

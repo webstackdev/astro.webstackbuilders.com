@@ -21,7 +21,10 @@ export function getConsentCheckboxInput(scope: ParentNode): HTMLInputElement {
 /**
  * Get the consent checkbox error element within a consent-checkbox component.
  */
-export function getConsentCheckboxErrorElement(scope: ParentNode, checkboxId: string): HTMLDivElement {
+export function getConsentCheckboxErrorElement(
+  scope: ParentNode,
+  checkboxId: string
+): HTMLDivElement {
   const errorElement = scope.querySelector(`#${checkboxId}-error`)
   if (!errorElement || !(errorElement instanceof HTMLDivElement)) {
     throw new ClientScriptError({
@@ -58,7 +61,7 @@ export function getConsentCheckbox(containerId?: string): HTMLInputElement {
 
   if (!element || !(element instanceof HTMLInputElement)) {
     throw new ClientScriptError({
-      message: `GDPR consent checkbox not found: #${id}`
+      message: `GDPR consent checkbox not found: #${id}`,
     })
   }
 
@@ -74,7 +77,7 @@ export function getConsentContainer(containerId?: string): HTMLDivElement {
 
   if (!element || !(element instanceof HTMLDivElement)) {
     throw new ClientScriptError({
-      message: `GDPR consent container not found: #${id}`
+      message: `GDPR consent container not found: #${id}`,
     })
   }
 
@@ -90,7 +93,7 @@ export function getConsentError(containerId?: string): HTMLDivElement {
 
   if (!element || !(element instanceof HTMLDivElement)) {
     throw new ClientScriptError({
-      message: `GDPR consent error element not found: #${id}`
+      message: `GDPR consent error element not found: #${id}`,
     })
   }
 
@@ -106,7 +109,7 @@ export function getConsentDescription(containerId?: string): HTMLSpanElement {
 
   if (!element || !(element instanceof HTMLSpanElement)) {
     throw new ClientScriptError({
-      message: `GDPR consent description not found: #${id}`
+      message: `GDPR consent description not found: #${id}`,
     })
   }
 

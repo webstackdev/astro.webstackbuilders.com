@@ -1,14 +1,17 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach } from 'vitest'
 import { validate as uuidValidate } from 'uuid'
-import { getOrCreateDataSubjectId, deleteDataSubjectId } from '@components/scripts/utils/dataSubjectId'
+import {
+  getOrCreateDataSubjectId,
+  deleteDataSubjectId,
+} from '@components/scripts/utils/dataSubjectId'
 
 describe('DataSubjectId Management', () => {
   beforeEach(() => {
     // Clear localStorage and cookies before each test
     localStorage.clear()
-    document.cookie.split(";").forEach((c) => {
-      const eqPos = c.indexOf("=")
+    document.cookie.split(';').forEach(c => {
+      const eqPos = c.indexOf('=')
       const name = eqPos > -1 ? c.slice(0, eqPos) : c
       document.cookie = `${name.trim()}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`
     })

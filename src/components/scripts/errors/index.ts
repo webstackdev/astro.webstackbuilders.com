@@ -1,9 +1,4 @@
-export {
-  isClientScriptError,
-  isError,
-  isErrorEvent,
-  isPromiseRejectionEvent,
-} from './assertions'
+export { isClientScriptError, isError, isErrorEvent, isPromiseRejectionEvent } from './assertions'
 export { ClientScriptError } from './ClientScriptError'
 export { type IClientScriptError, type ClientScriptErrorParams } from './@types/ClientScriptError'
 export { addScriptBreadcrumb } from './sentry'

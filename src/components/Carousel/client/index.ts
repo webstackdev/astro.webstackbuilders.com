@@ -23,7 +23,11 @@ import {
 
 const SCRIPT_NAME = 'CarouselElement'
 
-const logForE2E = (level: 'info' | 'error', message: string, details?: Record<string, unknown>): void => {
+const logForE2E = (
+  level: 'info' | 'error',
+  message: string,
+  details?: Record<string, unknown>
+): void => {
   if (typeof window === 'undefined' || window.isPlaywrightControlled !== true) return
   const payload = details ? [`[carousel] ${message}`, details] : [`[carousel] ${message}`]
   console[level](...payload)
@@ -222,7 +226,8 @@ export class CarouselElement extends HTMLElement {
     const target = event.target
     if (target instanceof HTMLElement) {
       const tag = target.tagName.toLowerCase()
-      if (tag === 'input' || tag === 'textarea' || tag === 'select' || target.isContentEditable) return
+      if (tag === 'input' || tag === 'textarea' || tag === 'select' || target.isContentEditable)
+        return
     }
 
     try {
@@ -260,21 +265,29 @@ export class CarouselElement extends HTMLElement {
       }
     }
 
-    addButtonEventListeners(this.prevBtn, () => {
-      try {
-        this.emblaApi?.scrollPrev()
-      } catch (error) {
-        handleScriptError(error, { scriptName: SCRIPT_NAME, operation: 'scrollPrev' })
-      }
-    }, this)
+    addButtonEventListeners(
+      this.prevBtn,
+      () => {
+        try {
+          this.emblaApi?.scrollPrev()
+        } catch (error) {
+          handleScriptError(error, { scriptName: SCRIPT_NAME, operation: 'scrollPrev' })
+        }
+      },
+      this
+    )
 
-    addButtonEventListeners(this.nextBtn, () => {
-      try {
-        this.emblaApi?.scrollNext()
-      } catch (error) {
-        handleScriptError(error, { scriptName: SCRIPT_NAME, operation: 'scrollNext' })
-      }
-    }, this)
+    addButtonEventListeners(
+      this.nextBtn,
+      () => {
+        try {
+          this.emblaApi?.scrollNext()
+        } catch (error) {
+          handleScriptError(error, { scriptName: SCRIPT_NAME, operation: 'scrollNext' })
+        }
+      },
+      this
+    )
 
     this.emblaApi.on('select', updateButtonStates)
     this.emblaApi.on('reInit', updateButtonStates)
@@ -297,16 +310,21 @@ export class CarouselElement extends HTMLElement {
         const dot = (this.ownerDocument ?? document).createElement('button')
         dot.type = 'button'
         dot.dataset['index'] = String(index)
-        dot.className = 'embla__dot w-2 h-2 rounded-full bg-[color:var(--color-text-offset)] transition-all duration-300 hover:bg-[color:var(--color-primary)]'
+        dot.className =
+          'embla__dot w-2 h-2 rounded-full bg-[color:var(--color-text-offset)] transition-all duration-300 hover:bg-[color:var(--color-primary)]'
         dot.setAttribute('aria-label', `Go to slide ${index + 1}`)
 
-        addButtonEventListeners(dot, () => {
-          try {
-            this.emblaApi?.scrollTo(index)
-          } catch (error) {
-            handleScriptError(error, { scriptName: SCRIPT_NAME, operation: 'scrollToDot' })
-          }
-        }, this)
+        addButtonEventListeners(
+          dot,
+          () => {
+            try {
+              this.emblaApi?.scrollTo(index)
+            } catch (error) {
+              handleScriptError(error, { scriptName: SCRIPT_NAME, operation: 'scrollToDot' })
+            }
+          },
+          this
+        )
 
         dotsContainer.appendChild(dot)
         dots.push(dot)
@@ -386,13 +404,13 @@ export class CarouselElement extends HTMLElement {
       if (typeof IntersectionObserverCtor !== 'function') return
 
       this.intersectionObserver = new IntersectionObserverCtor(
-        (entries) => {
+        entries => {
           const entry = entries[0]
           const ratio = entry?.intersectionRatio ?? 0
           this.isFullyInViewport = Boolean(entry?.isIntersecting && ratio >= 0.999)
           this.syncAutoplayWithViewport()
         },
-        { threshold: [0, 0.999] },
+        { threshold: [0, 0.999] }
       )
 
       const observedTarget = this.emblaRoot ?? this
@@ -422,7 +440,13 @@ export class CarouselElement extends HTMLElement {
   }
 
   private updateAutoplayState(state: AnimationPlayState): void {
-    if (!this.hasAutoplaySupport || !this.autoplayPlugin || !this.emblaApi || !this.initialized || !this.autoplayReady) {
+    if (
+      !this.hasAutoplaySupport ||
+      !this.autoplayPlugin ||
+      !this.emblaApi ||
+      !this.initialized ||
+      !this.autoplayReady
+    ) {
       if (this.hasAutoplaySupport) {
         this.pendingAutoplayState = state
         this.setAutoplayState(state)

@@ -84,11 +84,15 @@ export const dsarVerificationEmailHtml = (props: DSARVerificationEmailPropsHtml)
     <p>Or copy and paste this link into your browser:</p>
     <p style="word-break: break-all; color: #0066cc;">${verifyUrl}</p>
 
-    ${requestType === 'DELETE' ? `
+    ${
+      requestType === 'DELETE'
+        ? `
     <div class="warning">
       <strong>⚠️ Important:</strong> This action will permanently delete all your data from our systems. This cannot be undone.
     </div>
-    ` : ''}
+    `
+        : ''
+    }
 
     <p><strong>This link will expire in ${expiresIn}.</strong></p>
 

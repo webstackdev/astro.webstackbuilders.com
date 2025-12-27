@@ -15,7 +15,11 @@ import {
   revokeAllConsent,
   type ConsentState,
 } from '@components/scripts/store'
-import { getAllowAllBtn, getSavePreferencesBtn, getDenyAllBtn } from '@components/Consent/Preferences/client/selectors'
+import {
+  getAllowAllBtn,
+  getSavePreferencesBtn,
+  getDenyAllBtn,
+} from '@components/Consent/Preferences/client/selectors'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { defineCustomElement } from '@components/scripts/utils'

@@ -128,7 +128,9 @@ Object.defineProperty(remarkCodeTabs, 'name', { value: 'remarkCodeTabs' })
 import remarkReplacements from '../markdown/plugins/remark-replacements'
 Object.defineProperty(remarkReplacements, 'name', { value: 'remarkReplacements' })
 
-import remarkSmartypants, { type RemarkSmartypantsOptions } from '../markdown/plugins/remark-smartypants'
+import remarkSmartypants, {
+  type RemarkSmartypantsOptions,
+} from '../markdown/plugins/remark-smartypants'
 Object.defineProperty(remarkSmartypants, 'name', { value: 'remarkSmartypants' })
 
 /** Add custom CSS classes to Markdown-generated elements in this file */
@@ -169,7 +171,9 @@ export const rehypeMermaidConfig = {
   },
   errorFallback: (_element: unknown, _diagram: string, error: unknown, file: unknown) => {
     const filePath =
-      typeof (file as { path?: unknown } | null)?.path === 'string' ? ((file as { path: string }).path as string) : undefined
+      typeof (file as { path?: unknown } | null)?.path === 'string'
+        ? ((file as { path: string }).path as string)
+        : undefined
 
     throw new BuildError(new Error("Mermaid couldn't graph this diagram.", { cause: error }), {
       phase: 'compilation',
@@ -440,13 +444,16 @@ export const markdownConfig: Partial<MdxOptions> = {
     /** Wrap grouped code blocks in <code-tabs> containers */
     rehypeCodeTabs,
     /** Highlight fenced code blocks with Shiki (owned pipeline; skips mermaid/math) */
-    [rehypeShiki, {
-      themes: shikiConfigOptions.themes,
-      defaultColor: shikiConfigOptions.defaultColor,
-      langAlias: shikiConfigOptions.langAlias,
-      wrap: false,
-      excludeLangs: ['mermaid', 'math'],
-    }],
+    [
+      rehypeShiki,
+      {
+        themes: shikiConfigOptions.themes,
+        defaultColor: shikiConfigOptions.defaultColor,
+        langAlias: shikiConfigOptions.langAlias,
+        wrap: false,
+        excludeLangs: ['mermaid', 'math'],
+      },
+    ],
     /**
      * Automatically add Tailwind classes to markdown elements as
      * specified in src/lib/markdown/rehype-tailwind-classes.ts

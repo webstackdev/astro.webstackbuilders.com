@@ -11,7 +11,7 @@ import type {
   ConsentResponse,
   DSARRequest,
   DSARRequestInput,
-  DSARResponse
+  DSARResponse,
 } from '@actions/gdpr/@types'
 import {
   createConsentRecord,
@@ -33,7 +33,13 @@ import { deleteNewsletterConfirmationsByEmail } from '@actions/newsletter/_actio
 const CONSENT_PURPOSES = ['contact', 'marketing', 'analytics', 'downloads'] as const
 type ConsentPurpose = (typeof CONSENT_PURPOSES)[number]
 
-const CONSENT_SOURCES = ['contact_form', 'newsletter_form', 'download_form', 'cookies_modal', 'preferences_page'] as const
+const CONSENT_SOURCES = [
+  'contact_form',
+  'newsletter_form',
+  'download_form',
+  'cookies_modal',
+  'preferences_page',
+] as const
 type ConsentSource = (typeof CONSENT_SOURCES)[number]
 
 const DEFAULT_SOURCE: ConsentSource = 'cookies_modal'
@@ -45,8 +51,10 @@ const isConsentPurpose = (value: unknown): value is ConsentPurpose =>
 const isConsentSource = (value: unknown): value is ConsentSource =>
   typeof value === 'string' && CONSENT_SOURCES.includes(value as ConsentSource)
 
-const sanitizePurposes = (purposes: unknown): ConsentPurpose[] => (Array.isArray(purposes) ? purposes.filter(isConsentPurpose) : [])
-const sanitizeSource = (source: unknown): ConsentSource => (isConsentSource(source) ? source : DEFAULT_SOURCE)
+const sanitizePurposes = (purposes: unknown): ConsentPurpose[] =>
+  Array.isArray(purposes) ? purposes.filter(isConsentPurpose) : []
+const sanitizeSource = (source: unknown): ConsentSource =>
+  isConsentSource(source) ? source : DEFAULT_SOURCE
 
 const normalizeNullableString = (value?: string | null): string | null => {
   if (typeof value !== 'string') {
@@ -56,7 +64,8 @@ const normalizeNullableString = (value?: string | null): string | null => {
   return trimmed.length > 0 ? trimmed : null
 }
 
-const normalizeUserAgent = (value?: string | null): string => normalizeNullableString(value) ?? DEFAULT_USER_AGENT
+const normalizeUserAgent = (value?: string | null): string =>
+  normalizeNullableString(value) ?? DEFAULT_USER_AGENT
 
 const buildRateLimitError = (reset: number | undefined, message?: string) => {
   const retryAfterMs = typeof reset === 'number' ? Math.max(0, reset - Date.now()) : 0
@@ -73,7 +82,10 @@ const mapConsentRecord = (record: ConsentEventRecord): ConsentResponse['record']
     id: record.id,
     DataSubjectId: record.dataSubjectId,
     purposes: sanitizePurposes(record.purposes),
-    timestamp: record.createdAt instanceof Date ? record.createdAt.toISOString() : new Date(record.createdAt).toISOString(),
+    timestamp:
+      record.createdAt instanceof Date
+        ? record.createdAt.toISOString()
+        : new Date(record.createdAt).toISOString(),
     source: sanitizeSource(record.source),
     userAgent: normalizeUserAgent(record.userAgent),
     privacyPolicyVersion: record.privacyPolicyVersion ?? getPrivacyPolicyVersion(),
@@ -149,7 +161,8 @@ export async function verifyDsarToken(token: string): Promise<DsarVerifyResult> 
       requestDate: dsarRequest.createdAt,
       consentRecords: consentRecords.map(({ ipAddress: _ip, ...record }) => ({
         ...record,
-        createdAt: record.createdAt instanceof Date ? record.createdAt.toISOString() : record.createdAt,
+        createdAt:
+          record.createdAt instanceof Date ? record.createdAt.toISOString() : record.createdAt,
       })),
     }
 
@@ -191,7 +204,10 @@ export const gdpr = {
       try {
         return await verifyDsarToken(input.token)
       } catch (error) {
-        handleActionsFunctionError(error, { route: '/_actions/gdpr/verifyDsar', operation: 'verifyDsar' })
+        handleActionsFunctionError(error, {
+          route: '/_actions/gdpr/verifyDsar',
+          operation: 'verifyDsar',
+        })
         return { status: 'error' }
       }
     },
@@ -247,7 +263,15 @@ export const gdpr = {
   consentList: defineAction({
     accept: 'json',
     input: consentListSchema,
-    handler: async (input, context): Promise<{ success: true; records: ConsentResponse['record'][]; hasActive?: boolean; activeRecord?: ConsentResponse['record'] }> => {
+    handler: async (
+      input,
+      context
+    ): Promise<{
+      success: true
+      records: ConsentResponse['record'][]
+      hasActive?: boolean
+      activeRecord?: ConsentResponse['record']
+    }> => {
       const { fingerprint } = buildRequestFingerprint({
         route: '/_actions/gdpr/consentList',
         request: context.request,
@@ -268,7 +292,9 @@ export const gdpr = {
       }
 
       const fetched = await findConsentRecords(DataSubjectId)
-      const filteredRecords = purpose ? fetched.filter(record => record.purposes.includes(purpose)) : fetched
+      const filteredRecords = purpose
+        ? fetched.filter(record => record.purposes.includes(purpose))
+        : fetched
       const records = filteredRecords.map(mapConsentRecord)
 
       const response: {
@@ -394,15 +420,15 @@ export const gdpr = {
       const consentRecords = await findConsentRecords(input.DataSubjectId)
       const exportData = consentRecords.map(record => ({
         id: record.id,
-        'data_subject_id': record.dataSubjectId,
+        data_subject_id: record.dataSubjectId,
         email: record.email,
         purposes: record.purposes,
         source: record.source,
-        'user_agent': record.userAgent,
-        'privacy_policy_version': record.privacyPolicyVersion,
-        'consent_text': record.consentText,
+        user_agent: record.userAgent,
+        privacy_policy_version: record.privacyPolicyVersion,
+        consent_text: record.consentText,
         verified: record.verified,
-        'created_at': record.createdAt.toISOString(),
+        created_at: record.createdAt.toISOString(),
       }))
 
       return {

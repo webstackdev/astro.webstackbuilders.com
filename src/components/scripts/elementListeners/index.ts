@@ -71,7 +71,7 @@ const getEscapeKeyEventListener = (handler: eventHandler, context?: unknown) => 
 export const addButtonEventListeners = (
   element: HTMLButtonElement,
   handler: eventHandler,
-  context?: unknown,
+  context?: unknown
 ) => {
   element.addEventListener(`click`, getClickEventListener(handler, context))
   // Native <button> elements already trigger click events for keyboard interaction
@@ -84,7 +84,7 @@ export const addButtonEventListeners = (
 export const addLinkEventListeners = (
   element: HTMLAnchorElement,
   handler: eventHandler,
-  context?: unknown,
+  context?: unknown
 ) => {
   element.addEventListener(`click`, getClickEventListener(handler, context))
   element.addEventListener(`keyup`, getEnterKeyEventListener(handler, context))
@@ -96,7 +96,7 @@ export const addLinkEventListeners = (
 export const addWrapperEventListeners = (
   element: HTMLElement,
   handler: eventHandler,
-  context?: unknown,
+  context?: unknown
 ) => {
   element.addEventListener(`keyup`, getEscapeKeyEventListener(handler, context))
 }

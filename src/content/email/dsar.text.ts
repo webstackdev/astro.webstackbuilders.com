@@ -20,9 +20,13 @@ We received a request to ${actionText} from Webstack Builders. To complete this 
 
 ${verifyUrl}
 
-${requestType === 'DELETE' ? `
+${
+  requestType === 'DELETE'
+    ? `
 ⚠️ IMPORTANT: This action will permanently delete all your data from our systems. This cannot be undone.
-` : ''}
+`
+    : ''
+}
 
 This link will expire in ${expiresIn}.
 

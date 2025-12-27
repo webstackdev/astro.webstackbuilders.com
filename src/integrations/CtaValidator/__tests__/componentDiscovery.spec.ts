@@ -141,12 +141,7 @@ describe('discoverCallToActionComponents', () => {
     mockReaddir.mockRejectedValue(new TestError('Permission denied'))
 
     await expect(
-      discoverCallToActionComponents(
-        '/project',
-        'src/components/CallToAction',
-        mockLogger,
-        false
-      )
+      discoverCallToActionComponents('/project', 'src/components/CallToAction', mockLogger, false)
     ).rejects.toThrow(/Failed to read CallToAction components directory/)
   })
 
@@ -181,11 +176,6 @@ describe('discoverCallToActionComponents', () => {
     )
 
     expect(components).toHaveLength(4)
-    expect(components.map((c) => c.name)).toEqual([
-      'Contact',
-      'Newsletter',
-      'Download',
-      'Featured',
-    ])
+    expect(components.map(c => c.name)).toEqual(['Contact', 'Newsletter', 'Download', 'Featured'])
   })
 })

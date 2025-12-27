@@ -83,13 +83,14 @@ describe('Layer 3: E2E - remarkGfm', () => {
   it('should render footnotes with a reference and a definition', () => {
     const { container } = render(<MarkdownOutput html={html} />)
 
-    const footnoteSection = container.querySelector('section.footnotes')
-      ?? container.querySelector('section[data-footnotes]')
+    const footnoteSection =
+      container.querySelector('section.footnotes') ??
+      container.querySelector('section[data-footnotes]')
 
     expect(footnoteSection).not.toBeNull()
 
     const footnoteLink = container.querySelector(
-      'a[data-footnote-ref], a[href^="#user-content-fn-"], a[href^="#fn"]',
+      'a[data-footnote-ref], a[href^="#user-content-fn-"], a[href^="#fn"]'
     )
 
     expect(footnoteLink).not.toBeNull()

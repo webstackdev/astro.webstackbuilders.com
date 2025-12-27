@@ -2,10 +2,7 @@ import { fileURLToPath } from 'node:url'
 import type { APIRoute } from 'astro'
 import { getCollection } from 'astro:content'
 import { generateOpenGraphImage } from 'astro-og-canvas'
-import {
-  buildApiErrorResponse,
-  handleApiFunctionError
-} from '@pages/api/_utils/errors'
+import { buildApiErrorResponse, handleApiFunctionError } from '@pages/api/_utils/errors'
 import { createApiFunctionContext } from '@pages/api/_utils/requestContext'
 
 export const prerender = false
@@ -13,9 +10,7 @@ export const prerender = false
 const ROUTE = '/api/social-card'
 const DEFAULT_TITLE = 'Webstack Builders'
 const DEFAULT_DESCRIPTION = 'Professional Web Development Services'
-const LOGO_PATH = fileURLToPath(
-  new URL('../../../../assets/images/site/logo.png', import.meta.url)
-)
+const LOGO_PATH = fileURLToPath(new URL('../../../../assets/images/site/logo.png', import.meta.url))
 
 type CollectionKey = 'articles' | 'caseStudies' | 'services' | 'downloads'
 type PaletteKey = 'articles' | 'case-studies' | 'services' | 'downloads' | 'default'
@@ -78,7 +73,7 @@ const truncateText = (value: string, maxLength: number): string => {
 const resolveText = (
   candidates: Array<string | null | undefined>,
   fallback: string,
-  maxLength: number,
+  maxLength: number
 ): string => {
   for (const candidate of candidates) {
     if (typeof candidate === 'string') {
@@ -132,7 +127,7 @@ export const GET: APIRoute = async ({ request, clientAddress, cookies }) => {
     const description = resolveText(
       [matchedEntry?.description, descriptionOverride],
       DEFAULT_DESCRIPTION,
-      200,
+      200
     )
 
     const palette = matchedEntry?.palette ?? 'default'

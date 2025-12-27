@@ -49,7 +49,7 @@ vi.mock('embla-carousel', () => {
         const existing = handlers.get(event) ?? []
         handlers.set(
           event,
-          existing.filter(entry => entry !== handler),
+          existing.filter(entry => entry !== handler)
         )
         return api
       }),
@@ -88,7 +88,7 @@ const defaultCarouselProps: ConcreteCarouselProps = {
 
 const renderCarousel = async (
   assert: (_context: { root: CarouselElement }) => Promise<void> | void,
-  props: Partial<ConcreteCarouselProps> = {},
+  props: Partial<ConcreteCarouselProps> = {}
 ) => {
   const container = await AstroContainer.create()
 
@@ -114,40 +114,61 @@ describe('Carousel selectors', () => {
   })
 
   it('stays in sync with the Carousel layout', async () => {
-    await renderCarousel(({ root }) => {
-      const emblaRoot = getCarouselEmblaRoot(root)
-      const viewport = getCarouselViewport(root)
-      const slides = queryCarouselSlides(root)
-      const dots = queryCarouselDotsContainer(root)
-      const prevBtn = queryCarouselPrevBtn(root)
-      const nextBtn = queryCarouselNextBtn(root)
-      const statusRegion = queryCarouselStatusRegion(root)
+    await renderCarousel(
+      ({ root }) => {
+        const emblaRoot = getCarouselEmblaRoot(root)
+        const viewport = getCarouselViewport(root)
+        const slides = queryCarouselSlides(root)
+        const dots = queryCarouselDotsContainer(root)
+        const prevBtn = queryCarouselPrevBtn(root)
+        const nextBtn = queryCarouselNextBtn(root)
+        const statusRegion = queryCarouselStatusRegion(root)
 
-      expect(emblaRoot, 'Carousel should render an Embla root with .embla').toBeInstanceOf(HTMLElement)
-      expect(viewport, 'Carousel should render an Embla viewport with .embla__viewport').toBeInstanceOf(HTMLElement)
-      expect(slides.length, 'Carousel should render at least one slide with [data-carousel-slide]').toBeGreaterThan(0)
-      expect(dots, 'Carousel should render a dots container with .embla__dots').toBeInstanceOf(HTMLElement)
-      expect(prevBtn, 'Carousel should render a prev button with .embla__button--prev').toBeInstanceOf(HTMLButtonElement)
-      expect(nextBtn, 'Carousel should render a next button with .embla__button--next').toBeInstanceOf(HTMLButtonElement)
-      expect(statusRegion, 'Carousel should render a status region with [data-carousel-status]').toBeInstanceOf(
-        HTMLElement,
-      )
-    }, { currentSlug: 'article-four', limit: 2, title: 'Latest Reads' })
+        expect(emblaRoot, 'Carousel should render an Embla root with .embla').toBeInstanceOf(
+          HTMLElement
+        )
+        expect(
+          viewport,
+          'Carousel should render an Embla viewport with .embla__viewport'
+        ).toBeInstanceOf(HTMLElement)
+        expect(
+          slides.length,
+          'Carousel should render at least one slide with [data-carousel-slide]'
+        ).toBeGreaterThan(0)
+        expect(dots, 'Carousel should render a dots container with .embla__dots').toBeInstanceOf(
+          HTMLElement
+        )
+        expect(
+          prevBtn,
+          'Carousel should render a prev button with .embla__button--prev'
+        ).toBeInstanceOf(HTMLButtonElement)
+        expect(
+          nextBtn,
+          'Carousel should render a next button with .embla__button--next'
+        ).toBeInstanceOf(HTMLButtonElement)
+        expect(
+          statusRegion,
+          'Carousel should render a status region with [data-carousel-status]'
+        ).toBeInstanceOf(HTMLElement)
+      },
+      { currentSlug: 'article-four', limit: 2, title: 'Latest Reads' }
+    )
   })
 
   it('throws ClientScriptError when required nodes are missing', async () => {
     await renderCarousel(({ root }) => {
       root.querySelector('.embla')?.remove()
-      expect(() => getCarouselEmblaRoot(root), 'getCarouselEmblaRoot should throw when .embla is missing').toThrow(
-        ClientScriptError,
-      )
+      expect(
+        () => getCarouselEmblaRoot(root),
+        'getCarouselEmblaRoot should throw when .embla is missing'
+      ).toThrow(ClientScriptError)
     })
 
     await renderCarousel(({ root }) => {
       root.querySelector('.embla__viewport')?.remove()
       expect(
         () => getCarouselViewport(root),
-        'getCarouselViewport should throw when .embla__viewport is missing',
+        'getCarouselViewport should throw when .embla__viewport is missing'
       ).toThrow(ClientScriptError)
     })
   })

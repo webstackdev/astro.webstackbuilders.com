@@ -9,9 +9,13 @@ type SearchBarModule = WebComponentModule<SearchBarElementInstance>
 
 type ActionResult<TData> = { data?: TData; error?: { message?: string } }
 
-const searchQueryMock = vi.fn<
-  (_input: { q: string; limit?: number }) => Promise<ActionResult<{ hits: { title: string; url: string }[] }>>
->()
+const searchQueryMock =
+  vi.fn<
+    (_input: {
+      q: string
+      limit?: number
+    }) => Promise<ActionResult<{ hits: { title: string; url: string }[] }>>
+  >()
 
 vi.mock('astro:actions', () => ({
   actions: {
@@ -35,7 +39,10 @@ describe('SearchBar web component', () => {
   })
 
   const runComponentRender = async (
-    assertion: (_context: { element: SearchBarElementInstance; window: Window & typeof globalThis }) => Promise<void> | void,
+    assertion: (_context: {
+      element: SearchBarElementInstance
+      window: Window & typeof globalThis
+    }) => Promise<void> | void
   ): Promise<void> => {
     await executeRender<SearchBarModule>({
       container,
@@ -92,7 +99,9 @@ describe('SearchBar web component', () => {
       expect(searchQueryMock).toHaveBeenCalledWith({ q: 'ab', limit: 8 })
       expect(resultsContainer.classList.contains('hidden')).toBe(false)
 
-      const links = Array.from(element.querySelectorAll('[data-search-results-list] a')) as HTMLAnchorElement[]
+      const links = Array.from(
+        element.querySelectorAll('[data-search-results-list] a')
+      ) as HTMLAnchorElement[]
       expect(links.some(link => link.getAttribute('href') === '/about')).toBe(true)
       expect(links.some(link => link.getAttribute('href') === '/search?q=ab')).toBe(true)
     })

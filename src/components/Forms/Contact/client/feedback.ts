@@ -52,7 +52,10 @@ export interface LabelController {
 }
 
 export const initLabelHandlers = (fields: ContactFormFields): LabelController => {
-  const updateLabel = (input: HTMLInputElement | HTMLTextAreaElement, label: HTMLLabelElement): void => {
+  const updateLabel = (
+    input: HTMLInputElement | HTMLTextAreaElement,
+    label: HTMLLabelElement
+  ): void => {
     setOpacity(label, !!input.value.trim())
   }
 

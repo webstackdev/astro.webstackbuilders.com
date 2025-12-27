@@ -87,7 +87,12 @@ function isElement(node: unknown): node is Element {
 }
 
 function isWhitespaceText(node: unknown): node is Text {
-  return !!node && typeof node === 'object' && (node as Text).type === 'text' && !((node as Text).value || '').trim()
+  return (
+    !!node &&
+    typeof node === 'object' &&
+    (node as Text).type === 'text' &&
+    !((node as Text).value || '').trim()
+  )
 }
 
 function getLanguageFromCode(code: Element): string | null {
@@ -114,7 +119,9 @@ function getLanguageFromPre(pre: Element): string | null {
   const altLang = pre.properties?.['dataLanguage']
   if (typeof altLang === 'string' && altLang.trim()) return altLang.trim()
 
-  const codeChild = pre.children.find((child): child is Element => isElement(child) && child.tagName === 'code')
+  const codeChild = pre.children.find(
+    (child): child is Element => isElement(child) && child.tagName === 'code'
+  )
   if (!codeChild) return null
 
   return getLanguageFromCode(codeChild)

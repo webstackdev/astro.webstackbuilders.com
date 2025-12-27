@@ -408,10 +408,11 @@ export default [
   {
     files: [
       '.github/actions/**/*',
-      'src/actions/newsletter.ts',
+      'src/actions/**/*',
+      'src/components/scripts/sentry/__tests__/helpers.spec.ts',
+      'src/components/scripts/store/__tests__/socialEmbeds.spec.ts',
       'src/lib/config/pwa.ts',
       'src/lib/config/serviceWorker.ts',
-      'src/components/scripts/store/__tests__/socialEmbeds.spec.ts',
       'src/pages/api/**/*',
       'src/pages/manifest.json.ts',
       'test/e2e/specs/15-cron/cron.spec.ts',

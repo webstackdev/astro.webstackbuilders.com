@@ -25,7 +25,10 @@ describe('CopyToClipboardElement', () => {
 
   const runComponentRender = async (
     args: Parameters<AstroContainer['renderToString']>[1],
-    assertion: (_context: { element: CopyToClipboardInstance; window: Window }) => Promise<void> | void,
+    assertion: (_context: {
+      element: CopyToClipboardInstance
+      window: Window
+    }) => Promise<void> | void
   ): Promise<void> => {
     await executeRender<CopyComponentModule>({
       container,
@@ -83,7 +86,7 @@ describe('CopyToClipboardElement', () => {
           expect(copyIcon?.hasAttribute('hidden')).toBe(true)
           expect(successIcon?.hasAttribute('hidden')).toBe(false)
         })
-      },
+      }
     )
   })
 
@@ -121,7 +124,7 @@ describe('CopyToClipboardElement', () => {
         await vi.waitFor(() => {
           expect(writeText).toHaveBeenCalledWith('Hello world!')
         })
-      },
+      }
     )
   })
 
@@ -156,7 +159,7 @@ describe('CopyToClipboardElement', () => {
         await vi.waitFor(() => {
           expect(writeText).toHaveBeenCalledWith('hello world')
         })
-      },
+      }
     )
   })
 
@@ -184,7 +187,7 @@ describe('CopyToClipboardElement', () => {
         expect(buttonClass).toContain('pointer-events-none')
         expect(buttonClass).toContain('group-hover:opacity-100')
         expect(buttonClass).toContain('group-focus-within:opacity-100')
-      },
+      }
     )
   })
 
@@ -216,9 +219,11 @@ describe('CopyToClipboardElement', () => {
         const copySvg = getCopyToClipboardIcon(element)?.querySelector('svg')?.getAttribute('class')
         expect(copySvg ?? '').toContain('my-icon')
 
-        const successSvg = getCopyToClipboardSuccessIcon(element)?.querySelector('svg')?.getAttribute('class')
+        const successSvg = getCopyToClipboardSuccessIcon(element)
+          ?.querySelector('svg')
+          ?.getAttribute('class')
         expect(successSvg ?? '').toContain('my-success-icon')
-      },
+      }
     )
   })
 })

@@ -38,7 +38,7 @@ export function findComponentUsages(
 
   // Remove duplicate usages (same line number)
   const uniqueUsages = usages.reduce((acc, usage) => {
-    const existing = acc.find((u) => u.lineNumber === usage.lineNumber)
+    const existing = acc.find(u => u.lineNumber === usage.lineNumber)
     if (!existing) {
       acc.push(usage)
     }

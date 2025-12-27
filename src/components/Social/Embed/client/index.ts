@@ -67,7 +67,7 @@ const isUrlOnAllowedDomains = (value: string, allowedDomains: string[]): boolean
   const parsed = safeParseAbsoluteHttpUrl(value)
   if (!parsed) return false
 
-  return allowedDomains.some((domain) => hostMatchesDomain(parsed.hostname, domain))
+  return allowedDomains.some(domain => hostMatchesDomain(parsed.hostname, domain))
 }
 
 const mastodonStatusPathMatchers: RegExp[] = [
@@ -79,7 +79,7 @@ const isMastodonStatusUrl = (value: string): boolean => {
   const parsed = safeParseAbsoluteHttpUrl(value)
   if (!parsed) return false
 
-  return mastodonStatusPathMatchers.some((matcher) => matcher.test(parsed.pathname))
+  return mastodonStatusPathMatchers.some(matcher => matcher.test(parsed.pathname))
 }
 
 /**
@@ -163,8 +163,7 @@ export class EmbedManager {
     return EmbedManager.instance
   }
 
-  private constructor() {
-  }
+  private constructor() {}
 
   private discoverNewEmbeds(): void {
     const context = { scriptName: EmbedManager.scriptName, operation: 'discoverEmbeds' }
@@ -224,7 +223,10 @@ export class EmbedManager {
         try {
           embed.resume()
         } catch (error) {
-          handleScriptError(error, { scriptName: EmbedManager.scriptName, operation: 'resumeEmbed' })
+          handleScriptError(error, {
+            scriptName: EmbedManager.scriptName,
+            operation: 'resumeEmbed',
+          })
         }
       })
     } catch (error) {
@@ -246,7 +248,10 @@ export class EmbedManager {
             toRemove.push(element)
           }
         } catch (error) {
-          handleScriptError(error, { scriptName: EmbedManager.scriptName, operation: 'checkStaleEmbed' })
+          handleScriptError(error, {
+            scriptName: EmbedManager.scriptName,
+            operation: 'checkStaleEmbed',
+          })
         }
       })
 
@@ -254,7 +259,10 @@ export class EmbedManager {
         try {
           this.embeds.delete(element)
         } catch (error) {
-          handleScriptError(error, { scriptName: EmbedManager.scriptName, operation: 'deleteEmbed' })
+          handleScriptError(error, {
+            scriptName: EmbedManager.scriptName,
+            operation: 'deleteEmbed',
+          })
         }
       })
     } catch (error) {
@@ -286,7 +294,12 @@ class EmbedInstance {
   private static readonly CACHE_PREFIX = 'embed_cache_'
   private static readonly DEFAULT_TTL = 24 * 60 * 60 * 1000 // 24 hours
 
-  constructor(container: HTMLElement, url: string, platform: EmbedPlatform | undefined, _instanceId: number) {
+  constructor(
+    container: HTMLElement,
+    url: string,
+    platform: EmbedPlatform | undefined,
+    _instanceId: number
+  ) {
     this.container = container
     this.url = url
     this.platform = platform || this.detectPlatform(url)
@@ -303,7 +316,7 @@ class EmbedInstance {
   private ensureIframeTitles(root: ParentNode, fallbackTitle: string): void {
     const titleToUse = fallbackTitle.trim().length > 0 ? fallbackTitle : 'Embedded content'
 
-    queryIframes(root).forEach((iframe) => {
+    queryIframes(root).forEach(iframe => {
       const title = iframe.getAttribute('title')
       if (!title || title.trim().length === 0) {
         iframe.setAttribute('title', titleToUse)
@@ -356,7 +369,10 @@ class EmbedInstance {
                   this.observer?.unobserve(this.container)
                 }
               } catch (error) {
-                handleScriptError(error, { scriptName: 'EmbedInstance', operation: 'observerCallback' })
+                handleScriptError(error, {
+                  scriptName: 'EmbedInstance',
+                  operation: 'observerCallback',
+                })
               }
             })
           } catch (error) {
@@ -549,7 +565,7 @@ class EmbedInstance {
 
   private executeScripts(container: HTMLElement): void {
     const scripts = queryScripts(container)
-    scripts.forEach((oldScript) => {
+    scripts.forEach(oldScript => {
       const newScript = document.createElement('script')
 
       // Copy attributes
@@ -617,11 +633,12 @@ class EmbedInstance {
         return encodeURIComponent(value)
       }
 
-      const TextEncoderCtor = (globalThis as unknown as { TextEncoder?: typeof TextEncoder }).TextEncoder
+      const TextEncoderCtor = (globalThis as unknown as { TextEncoder?: typeof TextEncoder })
+        .TextEncoder
       if (typeof TextEncoderCtor === 'function') {
         const bytes = new TextEncoderCtor().encode(value)
         let binary = ''
-        bytes.forEach((b) => {
+        bytes.forEach(b => {
           binary += String.fromCharCode(b)
         })
         return btoaFn(binary)
@@ -653,7 +670,7 @@ class EmbedInstance {
     this.paused = true
     // Pause any autoplay media in the embed
     const videos = queryVideos(this.container)
-    videos.forEach((video) => video.pause())
+    videos.forEach(video => video.pause())
   }
 
   resume(): void {

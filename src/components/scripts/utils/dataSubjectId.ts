@@ -38,14 +38,16 @@ function syncToCookie(dataSubjectId: string): void {
     'max-age=31536000', // 1 year
     'SameSite=Strict',
     isProduction ? 'Secure' : '',
-  ].filter(Boolean).join('; ')
+  ]
+    .filter(Boolean)
+    .join('; ')
 }
 
 function getCookieValue(name: string): string | null {
   // For security: only allow safe cookie names (alphanumeric + underscore)
   if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
     throw new ClientScriptError({
-      message: `Invalid cookie name: ${name}`
+      message: `Invalid cookie name: ${name}`,
     })
   }
 

@@ -264,18 +264,27 @@ export class NewsletterFormElement extends LitElement {
 
         if (result.data?.success) {
           this.showMessage(
-            result.data.message || 'Check your email! Click the confirmation link to complete your subscription.',
+            result.data.message ||
+              'Check your email! Click the confirmation link to complete your subscription.',
             'success'
           )
-          this.submitButton.dispatchEvent(new CustomEvent('confetti:fire', { bubbles: true, composed: true }))
+          this.submitButton.dispatchEvent(
+            new CustomEvent('confetti:fire', { bubbles: true, composed: true })
+          )
           this.form?.reset()
           this.setFieldInvalid(this.emailInput, false)
           this.setFieldInvalid(this.consentCheckbox, false)
         } else {
-          this.showMessage(result.error?.message || 'Failed to subscribe. Please try again.', 'error')
+          this.showMessage(
+            result.error?.message || 'Failed to subscribe. Please try again.',
+            'error'
+          )
         }
       } catch (error) {
-        handleScriptError(error, { scriptName: 'NewsletterFormElement', operation: 'apiSubmission' })
+        handleScriptError(error, {
+          scriptName: 'NewsletterFormElement',
+          operation: 'apiSubmission',
+        })
         this.showMessage('Network error. Please check your connection and try again.', 'error')
       } finally {
         this.setLoading(false)
@@ -304,7 +313,10 @@ export class NewsletterFormElement extends LitElement {
         this.showMessage('Please enter a valid email address.', 'error')
       } else if (email) {
         this.setFieldInvalid(this.emailInput, false)
-        this.showMessage("You'll receive a confirmation email. Click the link to complete your subscription.", 'info')
+        this.showMessage(
+          "You'll receive a confirmation email. Click the link to complete your subscription.",
+          'info'
+        )
       } else {
         this.setFieldInvalid(this.emailInput, false)
       }
@@ -355,12 +367,12 @@ export class NewsletterFormElement extends LitElement {
   }
 }
 
-export const registerNewsletterFormWebComponent = (tagName = NewsletterFormElement.registeredName) =>
-  defineCustomElement(tagName, NewsletterFormElement)
+export const registerNewsletterFormWebComponent = (
+  tagName = NewsletterFormElement.registeredName
+) => defineCustomElement(tagName, NewsletterFormElement)
 
 export const webComponentModule: WebComponentModule<NewsletterFormElement> = {
   registeredName: NewsletterFormElement.registeredName,
   componentCtor: NewsletterFormElement,
   registerWebComponent: registerNewsletterFormWebComponent,
 }
-

@@ -51,10 +51,7 @@ describe('PackageRelease Integration', () => {
         config: {},
       })
 
-      expect(readFileSync).toHaveBeenCalledWith(
-        expect.stringContaining('package.json'),
-        'utf-8',
-      )
+      expect(readFileSync).toHaveBeenCalledWith(expect.stringContaining('package.json'), 'utf-8')
 
       expect(mockUpdateConfig).toHaveBeenCalledWith({
         vite: {
@@ -65,7 +62,7 @@ describe('PackageRelease Integration', () => {
       })
 
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Package release set to: webstackbuilders-corporate-website@1.2.3'),
+        expect.stringContaining('Package release set to: webstackbuilders-corporate-website@1.2.3')
       )
     })
 
@@ -85,7 +82,7 @@ describe('PackageRelease Integration', () => {
           updateConfig: mockUpdateConfig,
           // @ts-expect-error - Partial mock
           config: {},
-        }),
+        })
       ).rejects.toThrow('package.json is missing required fields')
     })
 
@@ -105,7 +102,7 @@ describe('PackageRelease Integration', () => {
           updateConfig: mockUpdateConfig,
           // @ts-expect-error - Partial mock
           config: {},
-        }),
+        })
       ).rejects.toThrow('package.json is missing required fields')
     })
 
@@ -125,7 +122,7 @@ describe('PackageRelease Integration', () => {
           updateConfig: mockUpdateConfig,
           // @ts-expect-error - Partial mock
           config: {},
-        }),
+        })
       ).rejects.toThrow('Could not read package.json for release version')
 
       expect(consoleWarnSpy).not.toHaveBeenCalled()
@@ -145,7 +142,7 @@ describe('PackageRelease Integration', () => {
           updateConfig: mockUpdateConfig,
           // @ts-expect-error - Partial mock
           config: {},
-        }),
+        })
       ).rejects.toThrow('Could not read package.json for release version')
 
       expect(consoleWarnSpy).not.toHaveBeenCalled()
@@ -167,7 +164,7 @@ describe('PackageRelease Integration', () => {
           updateConfig: mockUpdateConfig,
           // @ts-expect-error - Partial mock
           config: {},
-        }),
+        })
       ).rejects.toThrow('package.json is missing required fields')
     })
   })
@@ -211,10 +208,7 @@ describe('PackageRelease Integration', () => {
       })
 
       // Verify the path includes package.json
-      expect(readFileSync).toHaveBeenCalledWith(
-        expect.stringContaining('package.json'),
-        'utf-8',
-      )
+      expect(readFileSync).toHaveBeenCalledWith(expect.stringContaining('package.json'), 'utf-8')
     })
   })
 

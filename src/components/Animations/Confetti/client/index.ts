@@ -198,7 +198,7 @@ export class ConfettiAnimationElement extends LitElement {
   }
 
   private registerFireListener(): void {
-    this.addEventListener('confetti:fire', (event) => {
+    this.addEventListener('confetti:fire', event => {
       const detail = (event as CustomEvent<ConfettiFireOptions | undefined>).detail
 
       const target = event.target

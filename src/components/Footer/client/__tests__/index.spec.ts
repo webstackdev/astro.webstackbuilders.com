@@ -1,4 +1,3 @@
-
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import Footer from '@components/Footer/index.astro'
@@ -13,7 +12,7 @@ vi.mock('@components/scripts/utils/absoluteUrl', () => ({
 type FooterComponentModule = WebComponentModule<FooterElement>
 
 const renderFooter = async (
-  assertion: (_context: { element: FooterElement }) => Promise<void> | void,
+  assertion: (_context: { element: FooterElement }) => Promise<void> | void
 ) => {
   const container = await AstroContainer.create({
     astroConfig: {
@@ -47,7 +46,9 @@ describe('FooterElement web component', () => {
 
       expect(hireMeAnchor).toBeInstanceOf(HTMLAnchorElement)
       expect(hireMeAnchor?.innerHTML).toBe('Available September, 2024. Hire Me Now')
-      expect(hireMeAnchor?.getAttribute('aria-label')).toBe('Available September, 2024. Hire Me Now')
+      expect(hireMeAnchor?.getAttribute('aria-label')).toBe(
+        'Available September, 2024. Hire Me Now'
+      )
       expect(hireMeAnchor?.style.display).toBe('inline-block')
     })
   })

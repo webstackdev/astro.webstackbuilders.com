@@ -44,11 +44,20 @@ describe('Map selectors', () => {
       if (!root) {
         throw new Error('Missing Map root element after rendering Map/index.astro')
       }
-      expect(getCompanyMapAddress(root), 'Map should provide a non-empty data-address attribute').not.toBe('')
+      expect(
+        getCompanyMapAddress(root),
+        'Map should provide a non-empty data-address attribute'
+      ).not.toBe('')
 
-      expect(queryCompanyMapLoaderElement(root), 'Map should render a <gmpx-api-loader> element').toBeTruthy()
+      expect(
+        queryCompanyMapLoaderElement(root),
+        'Map should render a <gmpx-api-loader> element'
+      ).toBeTruthy()
       expect(queryCompanyMapElement(root), 'Map should render a <gmp-map> element').toBeTruthy()
-      expect(queryCompanyMapMarkerElement(root), 'Map should render a <gmp-advanced-marker> element').toBeTruthy()
+      expect(
+        queryCompanyMapMarkerElement(root),
+        'Map should render a <gmp-advanced-marker> element'
+      ).toBeTruthy()
     })
   })
 })

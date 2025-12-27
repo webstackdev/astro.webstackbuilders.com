@@ -11,7 +11,10 @@ import {
 } from '@components/Navigation/client/selectors'
 import { addScriptBreadcrumb, ClientScriptError } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
-import { addButtonEventListeners, addLinkEventListeners } from '@components/scripts/elementListeners'
+import {
+  addButtonEventListeners,
+  addLinkEventListeners,
+} from '@components/scripts/elementListeners'
 import { defineCustomElement } from '@components/scripts/utils'
 import { setOverlayPauseState } from '@components/scripts/store'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
@@ -63,7 +66,7 @@ export class NavigationElement extends LitElement {
       this.focusContainer = getMobileNavFocusContainer()
     } catch (error) {
       throw new ClientScriptError(
-        `NavigationElement: Failed to find required DOM elements - ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `NavigationElement: Failed to find required DOM elements - ${error instanceof Error ? error.message : 'Unknown error'}`
       )
     }
 
@@ -85,7 +88,7 @@ export class NavigationElement extends LitElement {
       })
     } catch (error) {
       throw new ClientScriptError(
-        `NavigationElement: Failed to create focus trap - ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `NavigationElement: Failed to create focus trap - ${error instanceof Error ? error.message : 'Unknown error'}`
       )
     }
   }
@@ -124,9 +127,9 @@ export class NavigationElement extends LitElement {
     try {
       const navLinks = queryNavLinks(this.menu)
 
-      navLinks.forEach((link) => {
+      navLinks.forEach(link => {
         try {
-          addLinkEventListeners(link, (event) => {
+          addLinkEventListeners(link, event => {
             event.preventDefault()
             const href = link.getAttribute('href')
 
@@ -162,7 +165,10 @@ export class NavigationElement extends LitElement {
 
     document.body.classList.toggle(CLASSES.noScroll, this.isMenuOpen)
     this.toggleBtn.setAttribute('aria-expanded', String(this.isMenuOpen))
-    this.toggleBtn.setAttribute('aria-label', this.isMenuOpen ? MENU_TOGGLE_LABELS.close : MENU_TOGGLE_LABELS.open)
+    this.toggleBtn.setAttribute(
+      'aria-label',
+      this.isMenuOpen ? MENU_TOGGLE_LABELS.close : MENU_TOGGLE_LABELS.open
+    )
     this.header.classList.toggle(CLASSES.navOpen, this.isMenuOpen)
 
     if (this.isMenuOpen) {

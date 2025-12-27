@@ -1,15 +1,15 @@
-
 import { beforeEach, describe, expect, it } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import { TestError } from '@test/errors'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import ConsentPreferencesComponent from '@components/Consent/Preferences/index.astro'
 import type { ConsentPreferencesElement } from '@components/Consent/Preferences/client'
-import { getAllowAllBtn, getSavePreferencesBtn, getDenyAllBtn } from '@components/Consent/Preferences/client/selectors'
 import {
-  executeRender,
-  withJsdomEnvironment,
-} from '@test/unit/helpers/litRuntime'
+  getAllowAllBtn,
+  getSavePreferencesBtn,
+  getDenyAllBtn,
+} from '@components/Consent/Preferences/client/selectors'
+import { executeRender, withJsdomEnvironment } from '@test/unit/helpers/litRuntime'
 
 type ConsentPreferencesModule = WebComponentModule<ConsentPreferencesElement>
 type JsdomWindow = Window & typeof globalThis
@@ -25,7 +25,7 @@ const waitForPreferencesReady = async (element: ConsentPreferencesElement) => {
   await new Promise<void>((resolve, reject) => {
     const timeoutId = setTimeout(() => {
       element.removeEventListener(CONSENT_PREFERENCES_READY_EVENT, onReady)
-            reject(new TestError('Consent preferences component never finished initializing'))
+      reject(new TestError('Consent preferences component never finished initializing'))
     }, CONSENT_READY_TIMEOUT_MS)
 
     function onReady() {
@@ -38,7 +38,10 @@ const waitForPreferencesReady = async (element: ConsentPreferencesElement) => {
 }
 
 const renderConsentPreferences = async (
-  assertion: (_context: { element: ConsentPreferencesElement; window: JsdomWindow }) => Promise<void> | void,
+  assertion: (_context: {
+    element: ConsentPreferencesElement
+    window: JsdomWindow
+  }) => Promise<void> | void
 ) => {
   const container = await AstroContainer.create()
 

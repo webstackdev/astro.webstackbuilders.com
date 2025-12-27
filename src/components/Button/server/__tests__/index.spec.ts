@@ -61,7 +61,7 @@ describe('Button server helpers', () => {
 
     it('throws when an icon-only button does not provide ariaLabel', () => {
       expect(() => resolveAriaLabel({ icon: 'arrow-right', iconPosition: 'only' })).toThrow(
-        'Button: icon-only buttons must provide ariaLabel',
+        'Button: icon-only buttons must provide ariaLabel'
       )
     })
   })

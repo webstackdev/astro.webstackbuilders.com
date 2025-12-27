@@ -1,4 +1,3 @@
-
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import { TestError } from '@test/errors'
@@ -36,7 +35,10 @@ const waitForPreferencesReady = async (element: ConsentPreferencesElement) => {
 }
 
 const renderConsentPreferences = async (
-  assertion: (_context: { element: ConsentPreferencesElement; window: JsdomWindow }) => Promise<void> | void,
+  assertion: (_context: {
+    element: ConsentPreferencesElement
+    window: JsdomWindow
+  }) => Promise<void> | void
 ) => {
   const container = await AstroContainer.create()
 
@@ -79,7 +81,7 @@ const consentMockHelpers = vi.hoisted(() => {
     },
     notify() {
       const snapshot: ConsentState = { ...state }
-      listeners.forEach((listener) => listener(snapshot))
+      listeners.forEach(listener => listener(snapshot))
     },
   }
 })
@@ -125,7 +127,9 @@ describe('ConsentPreferencesElement', () => {
   })
   it('wires the preferences center labels and switch semantics', async () => {
     await renderConsentPreferences(({ window }) => {
-      const section = window.document.querySelector('consent-preferences section') as HTMLElement | null
+      const section = window.document.querySelector(
+        'consent-preferences section'
+      ) as HTMLElement | null
       expect(section).not.toBeNull()
       expect(section!.getAttribute('aria-labelledby')).toBe('consent-preferences__title')
       expect(section!.getAttribute('aria-describedby')).toBe('consent-preferences__settings-desc')
@@ -136,37 +140,63 @@ describe('ConsentPreferencesElement', () => {
       const settingsDesc = window.document.getElementById('consent-preferences__settings-desc')
       expect(settingsDesc).not.toBeNull()
 
-      const analyticsSwitch = window.document.getElementById('analytics-cookies') as HTMLInputElement | null
+      const analyticsSwitch = window.document.getElementById(
+        'analytics-cookies'
+      ) as HTMLInputElement | null
       expect(analyticsSwitch).not.toBeNull()
       expect(analyticsSwitch!.getAttribute('role')).toBe('switch')
-      expect(analyticsSwitch!.getAttribute('aria-labelledby')).toBe('consent-preferences__analytics-title')
-      expect(analyticsSwitch!.getAttribute('aria-describedby')).toBe('consent-preferences__analytics-desc')
+      expect(analyticsSwitch!.getAttribute('aria-labelledby')).toBe(
+        'consent-preferences__analytics-title'
+      )
+      expect(analyticsSwitch!.getAttribute('aria-describedby')).toBe(
+        'consent-preferences__analytics-desc'
+      )
 
-      const functionalSwitch = window.document.getElementById('functional-cookies') as HTMLInputElement | null
+      const functionalSwitch = window.document.getElementById(
+        'functional-cookies'
+      ) as HTMLInputElement | null
       expect(functionalSwitch).not.toBeNull()
       expect(functionalSwitch!.getAttribute('role')).toBe('switch')
-      expect(functionalSwitch!.getAttribute('aria-labelledby')).toBe('consent-preferences__functional-title')
-      expect(functionalSwitch!.getAttribute('aria-describedby')).toBe('consent-preferences__functional-desc')
+      expect(functionalSwitch!.getAttribute('aria-labelledby')).toBe(
+        'consent-preferences__functional-title'
+      )
+      expect(functionalSwitch!.getAttribute('aria-describedby')).toBe(
+        'consent-preferences__functional-desc'
+      )
 
-      const marketingSwitch = window.document.getElementById('marketing-cookies') as HTMLInputElement | null
+      const marketingSwitch = window.document.getElementById(
+        'marketing-cookies'
+      ) as HTMLInputElement | null
       expect(marketingSwitch).not.toBeNull()
       expect(marketingSwitch!.getAttribute('role')).toBe('switch')
-      expect(marketingSwitch!.getAttribute('aria-labelledby')).toBe('consent-preferences__marketing-title')
-      expect(marketingSwitch!.getAttribute('aria-describedby')).toBe('consent-preferences__marketing-desc')
+      expect(marketingSwitch!.getAttribute('aria-labelledby')).toBe(
+        'consent-preferences__marketing-title'
+      )
+      expect(marketingSwitch!.getAttribute('aria-describedby')).toBe(
+        'consent-preferences__marketing-desc'
+      )
     })
   })
 
   it('grants all consent when Allow All is clicked', async () => {
     await renderConsentPreferences(({ window }) => {
-      const allowBtn = window.document.getElementById('consent-allow-all') as HTMLButtonElement | null
+      const allowBtn = window.document.getElementById(
+        'consent-allow-all'
+      ) as HTMLButtonElement | null
       expect(allowBtn).not.toBeNull()
 
       allowBtn!.dispatchEvent(new window.MouseEvent('click', { bubbles: true }))
 
       expect(allowAllConsent).toHaveBeenCalled()
-      expect((window.document.getElementById('analytics-cookies') as HTMLInputElement).checked).toBe(true)
-      expect((window.document.getElementById('functional-cookies') as HTMLInputElement).checked).toBe(true)
-      expect((window.document.getElementById('marketing-cookies') as HTMLInputElement).checked).toBe(true)
+      expect(
+        (window.document.getElementById('analytics-cookies') as HTMLInputElement).checked
+      ).toBe(true)
+      expect(
+        (window.document.getElementById('functional-cookies') as HTMLInputElement).checked
+      ).toBe(true)
+      expect(
+        (window.document.getElementById('marketing-cookies') as HTMLInputElement).checked
+      ).toBe(true)
     })
   })
 
@@ -178,17 +208,29 @@ describe('ConsentPreferencesElement', () => {
       denyBtn!.dispatchEvent(new window.MouseEvent('click', { bubbles: true }))
 
       expect(revokeAllConsent).toHaveBeenCalled()
-      expect((window.document.getElementById('analytics-cookies') as HTMLInputElement).checked).toBe(false)
-      expect((window.document.getElementById('functional-cookies') as HTMLInputElement).checked).toBe(false)
-      expect((window.document.getElementById('marketing-cookies') as HTMLInputElement).checked).toBe(false)
+      expect(
+        (window.document.getElementById('analytics-cookies') as HTMLInputElement).checked
+      ).toBe(false)
+      expect(
+        (window.document.getElementById('functional-cookies') as HTMLInputElement).checked
+      ).toBe(false)
+      expect(
+        (window.document.getElementById('marketing-cookies') as HTMLInputElement).checked
+      ).toBe(false)
     })
   })
 
   it('saves consent preferences when Save button is clicked', async () => {
     await renderConsentPreferences(({ window }) => {
-      const analyticsCheckbox = window.document.getElementById('analytics-cookies') as HTMLInputElement | null
-      const functionalCheckbox = window.document.getElementById('functional-cookies') as HTMLInputElement | null
-      const marketingCheckbox = window.document.getElementById('marketing-cookies') as HTMLInputElement | null
+      const analyticsCheckbox = window.document.getElementById(
+        'analytics-cookies'
+      ) as HTMLInputElement | null
+      const functionalCheckbox = window.document.getElementById(
+        'functional-cookies'
+      ) as HTMLInputElement | null
+      const marketingCheckbox = window.document.getElementById(
+        'marketing-cookies'
+      ) as HTMLInputElement | null
       expect(analyticsCheckbox).not.toBeNull()
       expect(functionalCheckbox).not.toBeNull()
       expect(marketingCheckbox).not.toBeNull()
@@ -197,7 +239,9 @@ describe('ConsentPreferencesElement', () => {
       functionalCheckbox!.checked = false
       marketingCheckbox!.checked = true
 
-      const saveBtn = window.document.getElementById('consent-save-preferences') as HTMLButtonElement | null
+      const saveBtn = window.document.getElementById(
+        'consent-save-preferences'
+      ) as HTMLButtonElement | null
       expect(saveBtn).not.toBeNull()
 
       saveBtn!.dispatchEvent(new window.MouseEvent('click', { bubbles: true }))

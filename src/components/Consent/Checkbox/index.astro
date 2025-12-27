@@ -27,10 +27,7 @@ const {
 } = Astro.props as ConsentCheckboxProps
 ---
 
-<consent-checkbox
-  data-purpose={purpose}
-  data-form-id={formId ?? undefined}
->
+<consent-checkbox data-purpose={purpose} data-form-id={formId ?? undefined}>
   <div
     class="bg-bg-offset border border-border rounded-lg my-6 p-4"
     id={`${id}-container`}
@@ -51,29 +48,33 @@ const {
       />
       <span id={`${id}-label`} class="sr-only">Consent to data processing</span>
       <span id={`${id}-description`} class="flex-1 text-sm leading-relaxed text-text">
-        {customText ? (
-          <Fragment set:html={customText} />
-        ) : (
-          <>
-            I consent to Webstack Builders processing my personal data for {purpose}. See our{' '}
-            <a
-              href={privacyPolicyUrl}
-              class="text-primary underline hover:text-primary-hover"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Privacy Policy
-            </a>{' '}and{' '}
-            <a
-              href={cookiePolicyUrl}
-              class="text-primary underline hover:text-primary-hover"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Cookie Policy
-            </a>.
-          </>
-        )}
+        {
+          customText ? (
+            <Fragment set:html={customText} />
+          ) : (
+            <>
+              I consent to Webstack Builders processing my personal data for {purpose}. See our{' '}
+              <a
+                href={privacyPolicyUrl}
+                class="text-primary underline hover:text-primary-hover"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Privacy Policy
+              </a>{' '}
+              and{' '}
+              <a
+                href={cookiePolicyUrl}
+                class="text-primary underline hover:text-primary-hover"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Cookie Policy
+              </a>
+              .
+            </>
+          )
+        }
       </span>
     </label>
     <div
@@ -81,7 +82,8 @@ const {
       id={`${id}-error`}
       role="alert"
       aria-live="assertive"
-    ></div>
+    >
+    </div>
   </div>
 </consent-checkbox>
 

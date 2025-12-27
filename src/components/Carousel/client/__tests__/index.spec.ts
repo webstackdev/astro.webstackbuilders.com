@@ -1,4 +1,3 @@
-
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import CarouselComponent from '@components/Carousel/index.astro'
@@ -86,7 +85,7 @@ vi.mock('embla-carousel', () => {
         const existing = handlers.get(event) ?? []
         handlers.set(
           event,
-          existing.filter(entry => entry !== handler),
+          existing.filter(entry => entry !== handler)
         )
         return api
       }),
@@ -127,7 +126,7 @@ const defaultCarouselProps: ConcreteCarouselProps = {
  */
 const renderCarousel = async (
   assertion: (_context: { root: CarouselElement }) => Promise<void> | void,
-  props: Partial<ConcreteCarouselProps> = {},
+  props: Partial<ConcreteCarouselProps> = {}
 ) => {
   const container = await AstroContainer.create()
 
@@ -155,12 +154,15 @@ describe('Carousel component (server output)', () => {
     createAutoplayPluginMock.mockClear()
     setMockScrollSnaps(3)
     intersectionObserverCallback = undefined
-    ;(globalThis as unknown as { IntersectionObserver?: typeof IntersectionObserver }).IntersectionObserver =
-      IntersectionObserverMock as unknown as typeof IntersectionObserver
+    ;(
+      globalThis as unknown as { IntersectionObserver?: typeof IntersectionObserver }
+    ).IntersectionObserver = IntersectionObserverMock as unknown as typeof IntersectionObserver
   })
 
   afterEach(() => {
-    const globalIntersection = globalThis as unknown as { IntersectionObserver?: typeof IntersectionObserver }
+    const globalIntersection = globalThis as unknown as {
+      IntersectionObserver?: typeof IntersectionObserver
+    }
     if (originalIntersectionObserver) {
       globalIntersection.IntersectionObserver = originalIntersectionObserver
       return
@@ -169,40 +171,46 @@ describe('Carousel component (server output)', () => {
   })
 
   it('renders the provided title and respects the requested limit', async () => {
-    await renderCarousel(({ root }) => {
-      const heading = root.querySelector('h2')
-      const slides = root.querySelectorAll('[data-carousel-slide]')
-      const region = root.querySelector('.embla')
-      const dotsContainer = root.querySelector('[data-carousel-pagination]')
-      const statusRegion = root.querySelector('[data-carousel-status]')
-      const prevIcon = root.querySelector('.embla__button--prev svg')
-      const nextIcon = root.querySelector('.embla__button--next svg')
-      const learnMoreIcon = root.querySelector('[data-carousel-slide] svg')
+    await renderCarousel(
+      ({ root }) => {
+        const heading = root.querySelector('h2')
+        const slides = root.querySelectorAll('[data-carousel-slide]')
+        const region = root.querySelector('.embla')
+        const dotsContainer = root.querySelector('[data-carousel-pagination]')
+        const statusRegion = root.querySelector('[data-carousel-status]')
+        const prevIcon = root.querySelector('.embla__button--prev svg')
+        const nextIcon = root.querySelector('.embla__button--next svg')
+        const learnMoreIcon = root.querySelector('[data-carousel-slide] svg')
 
-      expect(heading?.textContent).toBe('Latest Reads')
-      expect(slides).toHaveLength(2)
+        expect(heading?.textContent).toBe('Latest Reads')
+        expect(slides).toHaveLength(2)
 
-      expect(heading?.id).toBeTruthy()
-      expect(region?.getAttribute('aria-labelledby')).toBe(heading?.id)
-      expect(dotsContainer?.getAttribute('aria-label')).toBe('Latest Reads slide navigation')
+        expect(heading?.id).toBeTruthy()
+        expect(region?.getAttribute('aria-labelledby')).toBe(heading?.id)
+        expect(dotsContainer?.getAttribute('aria-label')).toBe('Latest Reads slide navigation')
 
-      expect(prevIcon?.getAttribute('aria-hidden')).toBe('true')
-      expect(nextIcon?.getAttribute('aria-hidden')).toBe('true')
-      expect(learnMoreIcon?.getAttribute('aria-hidden')).toBe('true')
+        expect(prevIcon?.getAttribute('aria-hidden')).toBe('true')
+        expect(nextIcon?.getAttribute('aria-hidden')).toBe('true')
+        expect(learnMoreIcon?.getAttribute('aria-hidden')).toBe('true')
 
-      expect(statusRegion?.getAttribute('role')).toBe('status')
-      expect(statusRegion?.getAttribute('aria-live')).toBe('polite')
-      expect(statusRegion?.textContent).toBe('Slide 1 of 3')
-    }, { title: 'Latest Reads', limit: 2, currentSlug: 'article-four' })
+        expect(statusRegion?.getAttribute('role')).toBe('status')
+        expect(statusRegion?.getAttribute('aria-live')).toBe('polite')
+        expect(statusRegion?.textContent).toBe('Slide 1 of 3')
+      },
+      { title: 'Latest Reads', limit: 2, currentSlug: 'article-four' }
+    )
   })
 
   it('excludes the current slug from rendered cards', async () => {
-    await renderCarousel(({ root }) => {
-      const links = Array.from(root.querySelectorAll('a[href^="/articles/"]'))
-      const hrefs = links.map(link => link.getAttribute('href'))
+    await renderCarousel(
+      ({ root }) => {
+        const links = Array.from(root.querySelectorAll('a[href^="/articles/"]'))
+        const hrefs = links.map(link => link.getAttribute('href'))
 
-      expect(hrefs).not.toContain('/articles/article-one')
-    }, { currentSlug: 'article-one' })
+        expect(hrefs).not.toContain('/articles/article-one')
+      },
+      { currentSlug: 'article-one' }
+    )
   })
 
   it('renders featured items with icons when available', async () => {
@@ -216,43 +224,57 @@ describe('Carousel component (server output)', () => {
   })
 
   it('orders suggested items by publish date when variant is suggested', async () => {
-    await renderCarousel(({ root }) => {
-      const cardTitles = Array.from(root.querySelectorAll('[data-carousel-slide] h3')).map(title =>
-        title.textContent?.trim(),
-      )
+    await renderCarousel(
+      ({ root }) => {
+        const cardTitles = Array.from(root.querySelectorAll('[data-carousel-slide] h3')).map(
+          title => title.textContent?.trim()
+        )
 
-      expect(cardTitles[0]).toBe('Article Four')
-      expect(cardTitles[1]).toBe('Article Three')
-    }, { variant: 'suggested', limit: 3 })
+        expect(cardTitles[0]).toBe('Article Four')
+        expect(cardTitles[1]).toBe('Article Three')
+      },
+      { variant: 'suggested', limit: 3 }
+    )
   })
 
   it('renders randomized order when variant is random', async () => {
-    await renderCarousel(({ root }) => {
-      const cardTitles = Array.from(root.querySelectorAll('[data-carousel-slide] h3')).map(title =>
-        title.textContent?.trim(),
-      )
+    await renderCarousel(
+      ({ root }) => {
+        const cardTitles = Array.from(root.querySelectorAll('[data-carousel-slide] h3')).map(
+          title => title.textContent?.trim()
+        )
 
-      expect(cardTitles).toHaveLength(3)
-      expect(new Set(cardTitles)).toEqual(new Set(['Article Four', 'Article Three', 'Article One']))
-    }, { variant: 'random', limit: 3 })
+        expect(cardTitles).toHaveLength(3)
+        expect(new Set(cardTitles)).toEqual(
+          new Set(['Article Four', 'Article Three', 'Article One'])
+        )
+      },
+      { variant: 'random', limit: 3 }
+    )
   })
 
   it('registers an animation lifecycle controller', async () => {
-    await renderCarousel(() => {
-      expect(createAnimationControllerMock).toHaveBeenCalled()
-    }, { currentSlug: 'article-four' })
+    await renderCarousel(
+      () => {
+        expect(createAnimationControllerMock).toHaveBeenCalled()
+      },
+      { currentSlug: 'article-four' }
+    )
   })
 
   it('defers autoplay activation until Embla is ready', async () => {
     vi.useFakeTimers()
     try {
-      await renderCarousel(async () => {
-        const pluginInstance = autoplayPluginInstances.at(-1)
-        expect(pluginInstance).toBeDefined()
-        expect(pluginInstance?.play).not.toHaveBeenCalled()
-        await vi.runAllTimersAsync()
-        expect(pluginInstance?.play).toHaveBeenCalled()
-      }, { currentSlug: 'article-four' })
+      await renderCarousel(
+        async () => {
+          const pluginInstance = autoplayPluginInstances.at(-1)
+          expect(pluginInstance).toBeDefined()
+          expect(pluginInstance?.play).not.toHaveBeenCalled()
+          await vi.runAllTimersAsync()
+          expect(pluginInstance?.play).toHaveBeenCalled()
+        },
+        { currentSlug: 'article-four' }
+      )
     } finally {
       vi.useRealTimers()
     }
@@ -261,36 +283,39 @@ describe('Carousel component (server output)', () => {
   it('pauses autoplay when partially out of the viewport and resumes when fully visible again', async () => {
     vi.useFakeTimers()
     try {
-      await renderCarousel(async () => {
-        const pluginInstance = autoplayPluginInstances.at(-1)
-        expect(pluginInstance).toBeDefined()
-        expect(intersectionObserverCallback).toBeTypeOf('function')
+      await renderCarousel(
+        async () => {
+          const pluginInstance = autoplayPluginInstances.at(-1)
+          expect(pluginInstance).toBeDefined()
+          expect(intersectionObserverCallback).toBeTypeOf('function')
 
-        intersectionObserverCallback?.(
-          [
-            {
-              isIntersecting: true,
-              intersectionRatio: 0.5,
-            } as unknown as IntersectionObserverEntry,
-          ],
-          {} as IntersectionObserver,
-        )
+          intersectionObserverCallback?.(
+            [
+              {
+                isIntersecting: true,
+                intersectionRatio: 0.5,
+              } as unknown as IntersectionObserverEntry,
+            ],
+            {} as IntersectionObserver
+          )
 
-        await vi.runAllTimersAsync()
-        expect(pluginInstance?.play).not.toHaveBeenCalled()
+          await vi.runAllTimersAsync()
+          expect(pluginInstance?.play).not.toHaveBeenCalled()
 
-        intersectionObserverCallback?.(
-          [
-            {
-              isIntersecting: true,
-              intersectionRatio: 1,
-            } as unknown as IntersectionObserverEntry,
-          ],
-          {} as IntersectionObserver,
-        )
+          intersectionObserverCallback?.(
+            [
+              {
+                isIntersecting: true,
+                intersectionRatio: 1,
+              } as unknown as IntersectionObserverEntry,
+            ],
+            {} as IntersectionObserver
+          )
 
-        expect(pluginInstance?.play).toHaveBeenCalled()
-      }, { currentSlug: 'article-four' })
+          expect(pluginInstance?.play).toHaveBeenCalled()
+        },
+        { currentSlug: 'article-four' }
+      )
     } finally {
       vi.useRealTimers()
     }
@@ -298,17 +323,23 @@ describe('Carousel component (server output)', () => {
 
   it('skips autoplay wiring when Embla reports a single snap', async () => {
     setMockScrollSnaps(1)
-    await renderCarousel(({ root }) => {
-      expect(createAnimationControllerMock).not.toHaveBeenCalled()
-      expect(root.getAttribute('data-carousel-autoplay')).toBe('paused')
-      expect(autoplayPluginInstances.at(-1)?.play).not.toHaveBeenCalled()
-    }, { currentSlug: 'article-four' })
+    await renderCarousel(
+      ({ root }) => {
+        expect(createAnimationControllerMock).not.toHaveBeenCalled()
+        expect(root.getAttribute('data-carousel-autoplay')).toBe('paused')
+        expect(autoplayPluginInstances.at(-1)?.play).not.toHaveBeenCalled()
+      },
+      { currentSlug: 'article-four' }
+    )
   })
 
   it('supports ArrowLeft/ArrowRight navigation when focus is inside the carousel', async () => {
     await renderCarousel(({ root }) => {
-      const emblaApi = (root.querySelector('.embla') as unknown as { __emblaApi__?: { scrollPrev: () => void; scrollNext: () => void } })
-        .__emblaApi__
+      const emblaApi = (
+        root.querySelector('.embla') as unknown as {
+          __emblaApi__?: { scrollPrev: () => void; scrollNext: () => void }
+        }
+      ).__emblaApi__
       expect(emblaApi).toBeDefined()
 
       const prevButton = root.querySelector('.embla__button--prev') as HTMLButtonElement | null

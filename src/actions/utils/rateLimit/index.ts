@@ -36,7 +36,7 @@ export const rateLimiters: RateLimiterMap = {
 
 export async function checkRateLimit(
   limiter: RateLimiter,
-  identifier: string,
+  identifier: string
 ): Promise<{ success: boolean; reset: number | undefined }> {
   const result = await limiter.limit(identifier)
   return {
@@ -75,7 +75,7 @@ function createLimiter(config: RateLimiterConfig): RateLimiter {
 
 async function applyRateLimit(
   config: RateLimiterConfig,
-  identifier: string,
+  identifier: string
 ): Promise<{ success: boolean; reset: number | undefined }> {
   /** Testing helper */
   if (!isProd()) {

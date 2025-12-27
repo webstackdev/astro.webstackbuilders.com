@@ -7,7 +7,4 @@ export {
   toActionError,
   throwActionError,
 } from './actionsFunctionHandler'
-export {
-  type ActionFunctionErrorParams,
-  ActionsFunctionError,
-} from './ActionsFunctionError'
+export { type ActionFunctionErrorParams, ActionsFunctionError } from './ActionsFunctionError'

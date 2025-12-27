@@ -39,7 +39,10 @@ function discoverLocalPlugins(pluginsRoot: string): Map<string, LocalPluginInfo>
 
   // Discover local plugin modules via Vite glob. This catches both default exports
   // and named exports (e.g. rehype-tailwind exports rehypeTailwindClasses).
-  const modules = import.meta.glob('../plugins/**/index.ts', { eager: true }) as Record<string, unknown>
+  const modules = import.meta.glob('../plugins/**/index.ts', { eager: true }) as Record<
+    string,
+    unknown
+  >
 
   for (const [modulePath, moduleExports] of Object.entries(modules)) {
     const match = modulePath.match(/\.\.\/plugins\/(?<dir>.+)\/index\.ts$/)
@@ -81,7 +84,9 @@ function discoverLocalPlugins(pluginsRoot: string): Map<string, LocalPluginInfo>
 }
 
 let testFiles: TestFileMap
-const localPlugins: Map<string, LocalPluginInfo> = discoverLocalPlugins(join(__dirname, '../plugins'))
+const localPlugins: Map<string, LocalPluginInfo> = discoverLocalPlugins(
+  join(__dirname, '../plugins')
+)
 
 beforeAll(() => {
   const testRoot = join(__dirname)
@@ -103,8 +108,7 @@ beforeAll(() => {
           // Extract test name without extension
           // Units: remark-breaks.spec.ts -> remark-breaks
           // E2E: remark-breaks.spec.tsx -> remark-breaks
-          const testName = item
-            .replace(/\.spec\.tsx?$/, '')
+          const testName = item.replace(/\.spec\.tsx?$/, '')
           files.add(testName)
         }
       }
@@ -125,7 +129,10 @@ beforeAll(() => {
  * Build test cases for each plugin
  */
 function buildPluginTestCases(pluginType: 'remark' | 'rehype') {
-  const plugins = pluginType === 'remark' ? markdownConfig.remarkPlugins || [] : markdownConfig.rehypePlugins || []
+  const plugins =
+    pluginType === 'remark'
+      ? markdownConfig.remarkPlugins || []
+      : markdownConfig.rehypePlugins || []
   const testCases: Array<{ pluginName: string; pluginNameKebab: string; isLocal: boolean }> = []
 
   for (let index = 0; index < plugins.length; index++) {
@@ -175,13 +182,19 @@ describe('Markdown Plugin Test Coverage', () => {
 
     it.each(remarkPlugins)('should have e2e test for $pluginName', ({ pluginName }) => {
       const pluginNameKebab = toKebabCase(pluginName)
-      expect(testFiles.e2e.has(pluginNameKebab), `Missing test in e2e/${pluginNameKebab}.spec.tsx`).toBe(true)
+      expect(
+        testFiles.e2e.has(pluginNameKebab),
+        `Missing test in e2e/${pluginNameKebab}.spec.tsx`
+      ).toBe(true)
     })
 
     it.each(remarkPlugins.filter(p => !p.isLocal))(
       'should have units test for $pluginName (external plugin)',
       ({ pluginNameKebab }) => {
-        expect(testFiles.units.has(pluginNameKebab), `Missing test in units/${pluginNameKebab}.spec.ts`).toBe(true)
+        expect(
+          testFiles.units.has(pluginNameKebab),
+          `Missing test in units/${pluginNameKebab}.spec.ts`
+        ).toBe(true)
       }
     )
 
@@ -191,7 +204,9 @@ describe('Markdown Plugin Test Coverage', () => {
         const info = localPlugins.get(pluginName)
         expect(
           info?.hasUnitTest,
-          info ? `Missing local plugin unit test: ${info.expectedUnitTestPath}` : `Missing local plugin folder: ${pluginNameKebab}`
+          info
+            ? `Missing local plugin unit test: ${info.expectedUnitTestPath}`
+            : `Missing local plugin folder: ${pluginNameKebab}`
         ).toBe(true)
       }
     )
@@ -203,7 +218,9 @@ describe('Markdown Plugin Test Coverage', () => {
         expect(info, `Expected local plugin metadata for ${pluginName}`).toBeTruthy()
         if (!info) return
 
-        const hasMisplaced = testFiles.units.has(info.pluginNameKebab) || testFiles.units.has(`${info.pluginNameKebab}-astro`)
+        const hasMisplaced =
+          testFiles.units.has(info.pluginNameKebab) ||
+          testFiles.units.has(`${info.pluginNameKebab}-astro`)
         expect(hasMisplaced, getFriendlyMisplacedLocalTestMessage(info)).toBe(false)
       }
     )
@@ -224,13 +241,19 @@ describe('Markdown Plugin Test Coverage', () => {
 
     it.each(rehypePlugins)('should have e2e test for $pluginName', ({ pluginName }) => {
       const pluginNameKebab = toKebabCase(pluginName)
-      expect(testFiles.e2e.has(pluginNameKebab), `Missing test in e2e/${pluginNameKebab}.spec.tsx`).toBe(true)
+      expect(
+        testFiles.e2e.has(pluginNameKebab),
+        `Missing test in e2e/${pluginNameKebab}.spec.tsx`
+      ).toBe(true)
     })
 
     it.each(rehypePlugins.filter(p => !p.isLocal))(
       'should have units test for $pluginName (external plugin)',
       ({ pluginNameKebab }) => {
-        expect(testFiles.units.has(pluginNameKebab), `Missing test in units/${pluginNameKebab}.spec.ts`).toBe(true)
+        expect(
+          testFiles.units.has(pluginNameKebab),
+          `Missing test in units/${pluginNameKebab}.spec.ts`
+        ).toBe(true)
       }
     )
 
@@ -240,7 +263,9 @@ describe('Markdown Plugin Test Coverage', () => {
         const info = localPlugins.get(pluginName)
         expect(
           info?.hasUnitTest,
-          info ? `Missing local plugin unit test: ${info.expectedUnitTestPath}` : `Missing local plugin folder: ${pluginNameKebab}`
+          info
+            ? `Missing local plugin unit test: ${info.expectedUnitTestPath}`
+            : `Missing local plugin folder: ${pluginNameKebab}`
         ).toBe(true)
       }
     )
@@ -252,7 +277,9 @@ describe('Markdown Plugin Test Coverage', () => {
         expect(info, `Expected local plugin metadata for ${pluginName}`).toBeTruthy()
         if (!info) return
 
-        const hasMisplaced = testFiles.units.has(info.pluginNameKebab) || testFiles.units.has(`${info.pluginNameKebab}-astro`)
+        const hasMisplaced =
+          testFiles.units.has(info.pluginNameKebab) ||
+          testFiles.units.has(`${info.pluginNameKebab}-astro`)
         expect(hasMisplaced, getFriendlyMisplacedLocalTestMessage(info)).toBe(false)
       }
     )

@@ -85,7 +85,9 @@ const statusToCodeFallbackMap: Partial<Record<number, ActionErrorCode>> = {
 }
 
 const statusToActionErrorCode = (status: number): ActionErrorCode => {
-  const statusToCode = (ActionError as unknown as { statusToCode?: (_input: number) => ActionErrorCode }).statusToCode
+  const statusToCode = (
+    ActionError as unknown as { statusToCode?: (_input: number) => ActionErrorCode }
+  ).statusToCode
   if (statusToCode) return statusToCode(status)
   return statusToCodeFallbackMap[status] ?? 'INTERNAL_SERVER_ERROR'
 }
@@ -118,7 +120,10 @@ function normalizeActionFunctionError(message: unknown): ActionFunctionErrorPara
       stack: params.stack,
       cause: params.cause,
       status: params.status,
-      appCode: typeof params.appCode === 'string' ? params.appCode : (params as unknown as { code?: string }).code,
+      appCode:
+        typeof params.appCode === 'string'
+          ? params.appCode
+          : (params as unknown as { code?: string }).code,
       route: params.route,
       operation: params.operation,
       requestId: params.requestId,
@@ -183,7 +188,10 @@ export class ActionsFunctionError extends ActionError {
     this.details = cloneDetails(merged.details)
   }
 
-  static from(error: unknown, overrides?: Partial<ActionFunctionErrorParams>): ActionsFunctionError {
+  static from(
+    error: unknown,
+    overrides?: Partial<ActionFunctionErrorParams>
+  ): ActionsFunctionError {
     if (error instanceof ActionsFunctionError) {
       return new ActionsFunctionError(error.toParams(), overrides)
     }

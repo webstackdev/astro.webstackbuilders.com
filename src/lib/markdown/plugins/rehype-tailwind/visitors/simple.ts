@@ -149,5 +149,5 @@ export function isSimpleHtmlElement(node: Element, tagName: string): boolean {
  * @returns The configuration object or undefined if not found
  */
 export function getElementConfig(tagName: string): ElementConfig | undefined {
-  return htmlElements.find((config) => config.tagName === tagName)
+  return htmlElements.find(config => config.tagName === tagName)
 }

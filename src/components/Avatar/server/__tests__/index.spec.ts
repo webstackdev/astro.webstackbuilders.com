@@ -9,7 +9,12 @@ const fixtureModules = import.meta.glob('../__fixtures__/avatars/*.{webp,jpg,png
 const fixtureAvatarNames = Array.from(
   new Set(
     Object.keys(fixtureModules)
-      .map((path) => path.split('/').pop()?.replace(/\.(webp|jpg|png)$/i, ''))
+      .map(path =>
+        path
+          .split('/')
+          .pop()
+          ?.replace(/\.(webp|jpg|png)$/i, '')
+      )
       .filter((name): name is string => Boolean(name))
   )
 )
@@ -380,7 +385,7 @@ describe('AvatarManager', () => {
   describe('Edge Cases', () => {
     it('should handle avatar with special characters in filename', () => {
       const instance = AvatarManager.getInstance()
-      const hyphenatedName = fixtureAvatarNames.find((name) => name.includes('-')) ?? primaryAvatar
+      const hyphenatedName = fixtureAvatarNames.find(name => name.includes('-')) ?? primaryAvatar
       expect(instance.hasAvatar(hyphenatedName)).toBe(true)
     })
 

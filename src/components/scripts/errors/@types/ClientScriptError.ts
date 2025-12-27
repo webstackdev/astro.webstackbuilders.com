@@ -1,9 +1,9 @@
 /**
  * Interface for ClientScriptError
- * 
+ *
  * This is a standalone interface file with no dependencies to avoid
  * circular import issues and path alias problems in browser contexts.
- * 
+ *
  * Used for type annotations where the full ClientScriptError class
  * cannot be imported due to dependency chain issues.
  */

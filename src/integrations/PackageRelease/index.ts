@@ -41,7 +41,7 @@ function getPackageRelease(): string {
     if (!name || !version) {
       throw new BuildError(
         `package.json is missing required fields. name: ${name ?? 'missing'}, version: ${version ?? 'missing'}`,
-        { phase: 'config-setup', filePath: packageJsonPath },
+        { phase: 'config-setup', filePath: packageJsonPath }
       )
     }
 
@@ -53,7 +53,7 @@ function getPackageRelease(): string {
     const packageJsonPath = resolve(process.cwd(), 'package.json')
     throw new BuildError(
       `Could not read package.json for release version: ${error instanceof Error ? error.message : String(error)}`,
-      { phase: 'config-setup', filePath: packageJsonPath, cause: error },
+      { phase: 'config-setup', filePath: packageJsonPath, cause: error }
     )
   }
 }

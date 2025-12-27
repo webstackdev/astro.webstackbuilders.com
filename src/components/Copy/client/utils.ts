@@ -22,13 +22,14 @@ export const copyFromElement = async (button: HTMLElement): Promise<string | nul
 
   const rootWindow = ownerDocument.defaultView
   const shadowRootCtor = rootWindow?.ShadowRoot
-  const isShadowRoot = Boolean(shadowRootCtor) && root instanceof (shadowRootCtor as unknown as typeof ShadowRoot)
+  const isShadowRoot =
+    Boolean(shadowRootCtor) && root instanceof (shadowRootCtor as unknown as typeof ShadowRoot)
   const isOwnerDocument = root === ownerDocument
 
   const nodeFromRoot = isOwnerDocument
     ? ownerDocument.getElementById(id)
     : isShadowRoot
-      ? (root as ShadowRoot).getElementById?.(id) ?? (root as ShadowRoot).querySelector(`#${id}`)
+      ? ((root as ShadowRoot).getElementById?.(id) ?? (root as ShadowRoot).querySelector(`#${id}`))
       : null
 
   const node = nodeFromRoot ?? ownerDocument.getElementById(id)
@@ -63,7 +64,12 @@ export function copyText(text: string): Promise<void> {
 }
 
 const getClipboard = (): Navigator['clipboard'] | null => {
-  const nav = typeof window !== 'undefined' ? window.navigator : typeof navigator !== 'undefined' ? navigator : undefined
+  const nav =
+    typeof window !== 'undefined'
+      ? window.navigator
+      : typeof navigator !== 'undefined'
+        ? navigator
+        : undefined
   if (!nav || !('clipboard' in nav)) {
     return null
   }

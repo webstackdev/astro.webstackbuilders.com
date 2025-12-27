@@ -7,7 +7,11 @@ describe('rehype-mathjax (Layer 2: With Astro Pipeline)', () => {
   it('should render fenced ```math blocks to SVG MathJax output', async () => {
     const markdown = ['```math', 'E = mc^2', '```'].join('\n')
 
-    const html = await processWithAstroSettings({ markdown, plugin: rehypeMathjax, stage: 'rehype' })
+    const html = await processWithAstroSettings({
+      markdown,
+      plugin: rehypeMathjax,
+      stage: 'rehype',
+    })
 
     expect(html).toContain('<mjx-container')
     expect(html).toContain('jax="SVG"')

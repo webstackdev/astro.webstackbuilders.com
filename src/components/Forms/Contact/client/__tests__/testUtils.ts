@@ -18,12 +18,10 @@ export interface RenderContactFormContext {
 }
 
 export type RenderContactFormAssertion = (
-  _context: RenderContactFormContext,
+  _context: RenderContactFormContext
 ) => Promise<void> | void
 
-export const renderContactForm = async (
-  assertion: RenderContactFormAssertion,
-): Promise<void> => {
+export const renderContactForm = async (assertion: RenderContactFormAssertion): Promise<void> => {
   const container = await AstroContainer.create()
 
   await executeRender<ContactFormModule>({

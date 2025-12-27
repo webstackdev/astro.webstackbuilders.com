@@ -15,7 +15,13 @@ export interface Props {
       }
 }
 
-const { class: className, title = 'Copy to clipboard', mode = 'fixed', styles, ...rest } = Astro.props
+const {
+  class: className,
+  title = 'Copy to clipboard',
+  mode = 'fixed',
+  styles,
+  ...rest
+} = Astro.props
 
 const wrapperExtraClass = typeof styles === 'string' ? styles : styles?.wrapper
 const buttonExtraClass = typeof styles === 'string' ? undefined : styles?.button
@@ -46,7 +52,10 @@ const iconButtonColorClass = [
 ---
 
 <copy-to-clipboard class="inline-block">
-  <span class:list={[wrapperClass, mode === 'float' ? 'group' : undefined]} data-copy-to-clipboard-wrapper>
+  <span
+    class:list={[wrapperClass, mode === 'float' ? 'group' : undefined]}
+    data-copy-to-clipboard-wrapper
+  >
     <span data-copy-to-clipboard-content>
       <slot />
     </span>

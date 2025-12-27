@@ -37,7 +37,8 @@ const remarkCodeTabs: Plugin<[], Root> = () => {
 
       node.data = node.data || {}
 
-      const existingProps = (node.data as { hProperties?: Record<string, unknown> }).hProperties || {}
+      const existingProps =
+        (node.data as { hProperties?: Record<string, unknown> }).hProperties || {}
 
       ;(node.data as { hProperties: Record<string, unknown> }).hProperties = {
         ...existingProps,

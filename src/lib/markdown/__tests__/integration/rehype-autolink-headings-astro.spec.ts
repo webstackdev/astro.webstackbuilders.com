@@ -14,12 +14,12 @@ describe('rehype-autolink-headings (Layer 2: With Astro Pipeline)', () => {
 | Data   |
       `.trim()
 
-  const html = await processWithAstroSettings({
-    markdown,
-    plugin: rehypeAutolinkHeadings,
-    pluginOptions: rehypeAutolinkHeadingsConfig,
-    stage: 'rehype',
-  })
+      const html = await processWithAstroSettings({
+        markdown,
+        plugin: rehypeAutolinkHeadings,
+        pluginOptions: rehypeAutolinkHeadingsConfig,
+        stage: 'rehype',
+      })
 
       expect(html).toContain('<h2')
       expect(html).toContain('🔗')
@@ -66,12 +66,12 @@ describe('rehype-autolink-headings (Layer 2: With Astro Pipeline)', () => {
 [^1]: Additional context
       `.trim()
 
-  const html = await processWithAstroSettings({
-    markdown,
-    plugin: rehypeAutolinkHeadings,
-    pluginOptions: rehypeAutolinkHeadingsConfig,
-    stage: 'rehype',
-  })
+      const html = await processWithAstroSettings({
+        markdown,
+        plugin: rehypeAutolinkHeadings,
+        pluginOptions: rehypeAutolinkHeadingsConfig,
+        stage: 'rehype',
+      })
 
       expect(html).toContain('<h2')
       expect(html).toContain('🔗')
@@ -87,12 +87,12 @@ Content[^1]
 [^1]: Note
       `.trim()
 
-  const html = await processWithAstroSettings({
-    markdown,
-    plugin: rehypeAutolinkHeadings,
-    pluginOptions: rehypeAutolinkHeadingsConfig,
-    stage: 'rehype',
-  })
+      const html = await processWithAstroSettings({
+        markdown,
+        plugin: rehypeAutolinkHeadings,
+        pluginOptions: rehypeAutolinkHeadingsConfig,
+        stage: 'rehype',
+      })
 
       // Verify remarkRehype footnote settings are applied
       expect(html).toContain('footnote')
@@ -111,12 +111,12 @@ Content[^1]
 ## Section Two
       `.trim()
 
-  const html = await processWithAstroSettings({
-    markdown,
-    plugin: rehypeAutolinkHeadings,
-    pluginOptions: rehypeAutolinkHeadingsConfig,
-    stage: 'rehype',
-  })
+      const html = await processWithAstroSettings({
+        markdown,
+        plugin: rehypeAutolinkHeadings,
+        pluginOptions: rehypeAutolinkHeadingsConfig,
+        stage: 'rehype',
+      })
 
       const anchorCount = (html.match(/class="anchor-link"/g) || []).length
       expect(anchorCount).toBe(4) // All 4 headings should have anchors

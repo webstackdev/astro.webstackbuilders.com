@@ -173,7 +173,7 @@ export class ComputersAnimationElement extends LitElement {
       }
 
       this.intersectionObserver = new IntersectionObserverCtor(
-        (entries) => {
+        entries => {
           const entry = entries[0]
           const ratio = entry?.intersectionRatio ?? 0
           // Pause as soon as the element is even partially out of view.
@@ -181,7 +181,7 @@ export class ComputersAnimationElement extends LitElement {
           this.isInViewport = Boolean(entry?.isIntersecting && ratio >= 0.999)
           this.syncPlaybackWithVisibility()
         },
-        { threshold: [0, 0.999] },
+        { threshold: [0, 0.999] }
       )
 
       this.intersectionObserver.observe(this)
@@ -255,7 +255,10 @@ export class ComputersAnimationElement extends LitElement {
     if (!this.toggleButton) return
 
     this.toggleButton.setAttribute('aria-pressed', state === 'paused' ? 'true' : 'false')
-    this.toggleButton.setAttribute('aria-label', state === 'paused' ? 'Play animation' : 'Pause animation')
+    this.toggleButton.setAttribute(
+      'aria-label',
+      state === 'paused' ? 'Play animation' : 'Pause animation'
+    )
     this.toggleButton.dataset['animationState'] = state
 
     const pauseIcon = queryAnimationTogglePauseIcon(this.toggleButton)
@@ -426,14 +429,11 @@ export class ComputersAnimationElement extends LitElement {
           },
           '-=1'
         )
-        .from(
-          '.monitorContentGroup path',
-          {
-            duration: 1,
-            scaleX: 0,
-            stagger: 0.1,
-          }
-        )
+        .from('.monitorContentGroup path', {
+          duration: 1,
+          scaleX: 0,
+          stagger: 0.1,
+        })
         .from('.monitorLogo', {
           scale: 0,
           ease: 'back(2)',
@@ -536,14 +536,11 @@ export class ComputersAnimationElement extends LitElement {
           },
           '-=2'
         )
-        .from(
-          '.laptopContentGroup path',
-          {
-            duration: 1,
-            scaleX: 0,
-            stagger: 0.1,
-          }
-        )
+        .from('.laptopContentGroup path', {
+          duration: 1,
+          scaleX: 0,
+          stagger: 0.1,
+        })
         .to('.laptopTrackpad', {
           duration: 0.3,
           alpha: 0,
@@ -664,15 +661,12 @@ export class ComputersAnimationElement extends LitElement {
         .set(['.tabletGroup', '.tabletContentGroup'], {
           alpha: 0,
         })
-        .from(
-          ['.phoneButton', '.phoneCamera', '.phoneSpeaker'],
-          {
-            duration: 1,
-            scale: 0,
-            ease: 'back',
-            stagger: 0.1,
-          }
-        )
+        .from(['.phoneButton', '.phoneCamera', '.phoneSpeaker'], {
+          duration: 1,
+          scale: 0,
+          ease: 'back',
+          stagger: 0.1,
+        })
         .to('.phoneGroup', {
           duration: 2,
           y: 80,

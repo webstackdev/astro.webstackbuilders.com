@@ -55,7 +55,9 @@ vi.mock('@components/Social/Mastodon/client/detector', () => ({
 }))
 
 vi.mock('@components/Social/Mastodon/client/config', () => ({
-  buildShareUrl: vi.fn((instance: string, text: string) => `https://${instance}/share?text=${encodeURIComponent(text)}`),
+  buildShareUrl: vi.fn(
+    (instance: string, text: string) => `https://${instance}/share?text=${encodeURIComponent(text)}`
+  ),
   mastodonConfig: { endpoint: 'share', params: { text: 'text' } },
 }))
 
@@ -66,10 +68,13 @@ const mockSaveInstance = vi.mocked(saveMastodonInstance)
 const mockSetCurrentInstance = vi.mocked(setCurrentMastodonInstance)
 const mockSubscribeInstances = vi.mocked(subscribeMastodonInstances)
 
-const flushMicrotasks = () => new Promise((resolve) => setTimeout(resolve, 0))
+const flushMicrotasks = () => new Promise(resolve => setTimeout(resolve, 0))
 
 const renderModal = async (
-  assertion: (_context: { element: MastodonModalElement; window: Window & typeof globalThis }) => Promise<void>
+  assertion: (_context: {
+    element: MastodonModalElement
+    window: Window & typeof globalThis
+  }) => Promise<void>
 ) => {
   const container = await AstroContainer.create()
 
@@ -77,7 +82,7 @@ const renderModal = async (
     container,
     component: MastodonFixture,
     moduleSpecifier: '@components/Social/Mastodon/client/index',
-    waitForReady: async (element) => {
+    waitForReady: async element => {
       await element.updateComplete
     },
     assert: async ({ element, window }) => {
@@ -103,14 +108,20 @@ describe('MastodonModalElement', () => {
 
       const labelledBy = dialog?.getAttribute('aria-labelledby')
       expect(labelledBy).toBe(`${element.modalId}-title`)
-      expect(element.querySelector(`#${element.modalId}-title`)?.textContent).toContain('Share to Mastodon')
+      expect(element.querySelector(`#${element.modalId}-title`)?.textContent).toContain(
+        'Share to Mastodon'
+      )
 
-      const closeIcon = element.querySelector('button[aria-label="Close modal"] svg') as SVGElement | null
+      const closeIcon = element.querySelector(
+        'button[aria-label="Close modal"] svg'
+      ) as SVGElement | null
       expect(closeIcon?.getAttribute('aria-hidden')).toBe('true')
       expect(closeIcon?.getAttribute('focusable')).toBe('false')
 
       const instanceInput = element.querySelector('#mastodon-instance') as HTMLInputElement | null
-      expect(instanceInput?.getAttribute('aria-describedby')).toBe(`${element.modalId}-instance-hint`)
+      expect(instanceInput?.getAttribute('aria-describedby')).toBe(
+        `${element.modalId}-instance-hint`
+      )
       const hint = element.querySelector(`#${element.modalId}-instance-hint`) as HTMLElement | null
       expect(hint?.textContent).toContain('Enter only the domain')
     })
@@ -152,7 +163,11 @@ describe('MastodonModalElement', () => {
       expect(mockIsMastodonInstance).toHaveBeenCalledWith('mastodon.social')
       expect(mockSaveInstance).toHaveBeenCalled()
       expect(mockSetCurrentInstance).toHaveBeenCalledWith('mastodon.social')
-      expect(openSpy).toHaveBeenCalledWith('https://mastodon.social/share?text=Test', '_blank', 'noopener,noreferrer')
+      expect(openSpy).toHaveBeenCalledWith(
+        'https://mastodon.social/share?text=Test',
+        '_blank',
+        'noopener,noreferrer'
+      )
     })
   })
 

@@ -195,7 +195,7 @@ export const validateGenericField = (field: GenericField): boolean => {
 
 export const initGenericValidation = (form: HTMLFormElement): void => {
   const inputs = queryContactFormGenericFields(form)
-  inputs.forEach((input) => {
+  inputs.forEach(input => {
     if (CUSTOM_FIELDS.has(input.id)) {
       return
     }

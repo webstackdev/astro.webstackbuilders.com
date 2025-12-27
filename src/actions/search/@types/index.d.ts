@@ -33,4 +33,3 @@ export type SearchDocument<TContent, TMetadata> = {
 export type SearchResult<TContent, TMetadata> = Array<SearchDocument<TContent, TMetadata>>
 
 export type DefaultSearchResult = SearchResult<SearchContent, SearchMetadata>
-

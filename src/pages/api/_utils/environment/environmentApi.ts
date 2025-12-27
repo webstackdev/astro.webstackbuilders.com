@@ -6,13 +6,7 @@
  * functions with process.env.
  */
 import { ApiFunctionError } from '../errors/ApiFunctionError'
-export {
-  isCI,
-  isE2eTest,
-  isGitHub,
-  isTest,
-  isVercel,
-} from '@lib/config/environmentServer'
+export { isCI, isE2eTest, isGitHub, isTest, isVercel } from '@lib/config/environmentServer'
 
 /**
  * The value of import.meta.env.MODE is included in the serverless function

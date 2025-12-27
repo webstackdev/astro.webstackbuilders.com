@@ -30,7 +30,7 @@ export const isE2eTest = () => {
  * method, for use in API endpoint serverless functions.
  */
 export const isE2eTestLambda = () => {
-  return  typeof process !== 'undefined' && process.env['PLAYWRIGHT'] === 'true'
+  return typeof process !== 'undefined' && process.env['PLAYWRIGHT'] === 'true'
 }
 
 /**
@@ -70,7 +70,7 @@ export const isProd = () => {
 export function getPackageRelease(): string {
   if (!PACKAGE_RELEASE_VERSION) {
     throw new ClientScriptError(
-      'PACKAGE_RELEASE_VERSION environment variable is not set. This should be injected by the PackageRelease integration.',
+      'PACKAGE_RELEASE_VERSION environment variable is not set. This should be injected by the PackageRelease integration.'
     )
   }
   return PACKAGE_RELEASE_VERSION
@@ -89,7 +89,7 @@ export function getPackageRelease(): string {
 export function getPrivacyPolicyVersion(): string {
   if (!PRIVACY_POLICY_VERSION) {
     throw new ClientScriptError(
-      'PRIVACY_POLICY_VERSION environment variable is not set. This should be injected by the PrivacyPolicyVersion integration.',
+      'PRIVACY_POLICY_VERSION environment variable is not set. This should be injected by the PrivacyPolicyVersion integration.'
     )
   }
   return PRIVACY_POLICY_VERSION
@@ -103,7 +103,7 @@ export function getPrivacyPolicyVersion(): string {
 export function getGoogleMapsApiKey(): string {
   if (!PUBLIC_GOOGLE_MAPS_API_KEY) {
     throw new ClientScriptError(
-      'PUBLIC_GOOGLE_MAPS_API_KEY environment variable is not set. This is required to load Google Maps components in the browser.',
+      'PUBLIC_GOOGLE_MAPS_API_KEY environment variable is not set. This is required to load Google Maps components in the browser.'
     )
   }
 
@@ -120,7 +120,7 @@ export function getGoogleMapsApiKey(): string {
 export function getSentryDsn(): string {
   if (!PUBLIC_SENTRY_DSN) {
     throw new ClientScriptError(
-      'PUBLIC_SENTRY_DSN environment variable is not set. This is required to initialize the Sentry client in the browser.',
+      'PUBLIC_SENTRY_DSN environment variable is not set. This is required to initialize the Sentry client in the browser.'
     )
   }
 

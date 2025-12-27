@@ -97,7 +97,10 @@ const remarkReplacements: Plugin<[RemarkReplacementsOptions?], Root> = (options 
   const activeRules = map.filter(rule => !disable.includes(rule.name))
 
   if (debug) {
-    console.log('[remark-replacements] Active rules:', activeRules.map(r => r.name))
+    console.log(
+      '[remark-replacements] Active rules:',
+      activeRules.map(r => r.name)
+    )
   }
 
   return tree => {

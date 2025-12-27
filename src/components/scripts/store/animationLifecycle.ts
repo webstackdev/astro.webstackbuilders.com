@@ -72,7 +72,7 @@ export const $animationPreferences = persistentAtom<AnimationPreferencesState>(
   {},
   {
     encode: JSON.stringify,
-    decode: (value) => {
+    decode: value => {
       try {
         return JSON.parse(value) as AnimationPreferencesState
       } catch {
@@ -163,7 +163,7 @@ function applyControllerState(controller: RegisteredController): void {
 }
 
 function updateAllControllers(): void {
-  controllerRegistry.forEach((controller) => {
+  controllerRegistry.forEach(controller => {
     applyControllerState(controller)
   })
 }
@@ -342,7 +342,9 @@ export function getAnimationPreference(animationId: AnimationId): AnimationPlayS
 /**
  * Register a controller that can respond to global animation lifecycle changes.
  */
-export function createAnimationController(config: AnimationControllerConfig): AnimationControllerHandle {
+export function createAnimationController(
+  config: AnimationControllerConfig
+): AnimationControllerHandle {
   initAnimationLifecycle()
 
   const key = getInstanceKey(config.animationId, config.instanceId)

@@ -3,18 +3,32 @@ import BaseLayout from '@layouts/BaseLayout.astro'
 
 const pageTitle = 'My Data - Privacy Rights'
 const path = 'privacy/my-data'
-const description = 'Exercise your GDPR rights by requesting a copy of your data or asking us to delete it.'
+const description =
+  'Exercise your GDPR rights by requesting a copy of your data or asking us to delete it.'
 
 // Get status from query params
 const status = Astro.url.searchParams.get('status')
 
-const statusMessages: Record<string, { type: 'success' | 'error' | 'info', message: string }> = {
-  'sent': { type: 'success', message: 'Verification email sent! Please check your inbox and click the link to complete your request.' },
-  'invalid': { type: 'error', message: 'Invalid or expired verification link. Please submit a new request.' },
-  'expired': { type: 'error', message: 'This verification link has expired. Please submit a new request.' },
+const statusMessages: Record<string, { type: 'success' | 'error' | 'info'; message: string }> = {
+  sent: {
+    type: 'success',
+    message:
+      'Verification email sent! Please check your inbox and click the link to complete your request.',
+  },
+  invalid: {
+    type: 'error',
+    message: 'Invalid or expired verification link. Please submit a new request.',
+  },
+  expired: {
+    type: 'error',
+    message: 'This verification link has expired. Please submit a new request.',
+  },
   'already-completed': { type: 'info', message: 'This request has already been completed.' },
-  'deleted': { type: 'success', message: 'Your data has been successfully deleted from our systems.' },
-  'error': { type: 'error', message: 'An error occurred. Please try again or contact support.' }
+  deleted: {
+    type: 'success',
+    message: 'Your data has been successfully deleted from our systems.',
+  },
+  error: { type: 'error', message: 'An error occurred. Please try again or contact support.' },
 }
 ---
 
@@ -22,28 +36,31 @@ const statusMessages: Record<string, { type: 'success' | 'error' | 'info', messa
   <div class="privacy-page">
     <h1>My Data & Privacy Rights</h1>
 
-    {status && statusMessages[status] && (
-      <div
-        id="status-message"
-        tabindex="-1"
-        role={statusMessages[status].type === 'error' ? 'alert' : 'status'}
-        aria-live={statusMessages[status].type === 'error' ? 'assertive' : 'polite'}
-        aria-atomic="true"
-        class:list={[
-        'alert',
-        statusMessages[status].type === 'success' && 'alert-success',
-        statusMessages[status].type === 'error' && 'alert-error',
-        statusMessages[status].type === 'info' && 'alert-info'
-      ]}>
-        {statusMessages[status].message}
-      </div>
-    )}
+    {
+      status && statusMessages[status] && (
+        <div
+          id="status-message"
+          tabindex="-1"
+          role={statusMessages[status].type === 'error' ? 'alert' : 'status'}
+          aria-live={statusMessages[status].type === 'error' ? 'assertive' : 'polite'}
+          aria-atomic="true"
+          class:list={[
+            'alert',
+            statusMessages[status].type === 'success' && 'alert-success',
+            statusMessages[status].type === 'error' && 'alert-error',
+            statusMessages[status].type === 'info' && 'alert-info',
+          ]}
+        >
+          {statusMessages[status].message}
+        </div>
+      )
+    }
 
     <section class="intro" aria-labelledby="my-data-intro-title">
       <h2 class="sr-only" id="my-data-intro-title">Overview</h2>
       <p>
-        Under GDPR, you have the right to access and control your personal data.
-        Use the forms below to request a copy of your data or request its deletion.
+        Under GDPR, you have the right to access and control your personal data. Use the forms below
+        to request a copy of your data or request its deletion.
       </p>
     </section>
 
@@ -53,7 +70,10 @@ const statusMessages: Record<string, { type: 'success' | 'error' | 'info', messa
         <h2 id="my-data-access-title">
           <span aria-hidden="true">📥</span> Access My Data
         </h2>
-        <p>Request a copy of all personal data we have about you, including consent records and newsletter subscriptions.</p>
+        <p>
+          Request a copy of all personal data we have about you, including consent records and
+          newsletter subscriptions.
+        </p>
 
         <form id="access-form" class="data-form">
           <div class="form-group">
@@ -67,9 +87,7 @@ const statusMessages: Record<string, { type: 'success' | 'error' | 'info', messa
             />
           </div>
 
-          <button type="submit" class="btn btn-primary">
-            Request My Data
-          </button>
+          <button type="submit" class="btn btn-primary"> Request My Data </button>
 
           <div
             id="access-message"
@@ -78,7 +96,8 @@ const statusMessages: Record<string, { type: 'success' | 'error' | 'info', messa
             aria-live="polite"
             aria-atomic="true"
             tabindex="-1"
-          ></div>
+          >
+          </div>
         </form>
       </section>
 
@@ -88,7 +107,8 @@ const statusMessages: Record<string, { type: 'success' | 'error' | 'info', messa
           <span aria-hidden="true">🗑️</span> Delete My Data
         </h2>
         <p class="warning">
-          <strong><span aria-hidden="true">⚠️</span> Warning:</strong> This will permanently delete all your data from our systems. This action cannot be undone.
+          <strong><span aria-hidden="true">⚠️</span> Warning:</strong> This will permanently delete all
+          your data from our systems. This action cannot be undone.
         </p>
 
         <form id="delete-form" class="data-form">
@@ -110,9 +130,7 @@ const statusMessages: Record<string, { type: 'success' | 'error' | 'info', messa
             </label>
           </div>
 
-          <button type="submit" class="btn btn-danger">
-            Delete My Data
-          </button>
+          <button type="submit" class="btn btn-danger"> Delete My Data </button>
 
           <div
             id="delete-message"
@@ -121,7 +139,8 @@ const statusMessages: Record<string, { type: 'success' | 'error' | 'info', messa
             aria-live="polite"
             aria-atomic="true"
             tabindex="-1"
-          ></div>
+          >
+          </div>
         </form>
       </section>
     </div>
@@ -129,10 +148,20 @@ const statusMessages: Record<string, { type: 'success' | 'error' | 'info', messa
     <section class="info" aria-labelledby="my-data-next-title">
       <h2 id="my-data-next-title">What Happens Next?</h2>
       <ol>
-        <li><strong>Verification Email:</strong> We'll send a verification link to your email address.</li>
-        <li><strong>Click the Link:</strong> Click the link in the email to verify your request (expires in 24 hours).</li>
-        <li><strong>For Access Requests:</strong> Your data will be automatically downloaded as a JSON file.</li>
-        <li><strong>For Deletion Requests:</strong> Your data will be permanently removed and you'll see a confirmation.</li>
+        <li>
+          <strong>Verification Email:</strong> We'll send a verification link to your email address.
+        </li>
+        <li>
+          <strong>Click the Link:</strong> Click the link in the email to verify your request (expires
+          in 24 hours).
+        </li>
+        <li>
+          <strong>For Access Requests:</strong> Your data will be automatically downloaded as a JSON file.
+        </li>
+        <li>
+          <strong>For Deletion Requests:</strong> Your data will be permanently removed and you'll see
+          a confirmation.
+        </li>
       </ol>
     </section>
   </div>
@@ -203,7 +232,7 @@ const statusMessages: Record<string, { type: 'success' | 'error' | 'info', messa
   const accessForm = document.getElementById('access-form')
   const accessMessage = document.getElementById('access-message')
 
-  accessForm?.addEventListener('submit', async (e) => {
+  accessForm?.addEventListener('submit', async e => {
     e.preventDefault()
 
     if (!(accessForm instanceof HTMLFormElement) || !(accessMessage instanceof HTMLElement)) return
@@ -228,7 +257,7 @@ const statusMessages: Record<string, { type: 'success' | 'error' | 'info', messa
   const deleteForm = document.getElementById('delete-form')
   const deleteMessage = document.getElementById('delete-message')
 
-  deleteForm?.addEventListener('submit', async (e) => {
+  deleteForm?.addEventListener('submit', async e => {
     e.preventDefault()
 
     if (!(deleteForm instanceof HTMLFormElement) || !(deleteMessage instanceof HTMLElement)) return
@@ -238,15 +267,15 @@ const statusMessages: Record<string, { type: 'success' | 'error' | 'info', messa
 
     setMessage(deleteMessage, 'Sending request...', 'info')
 
-      const { data, error } = await actions.gdpr.requestData({ email, requestType: 'DELETE' })
+    const { data, error } = await actions.gdpr.requestData({ email, requestType: 'DELETE' })
 
-      if (error) {
-        // @TODO: Improve this error handling to be more user friendly. Should look at the types of errors that could occur, and give the user an idea of what to do.
-        setMessage(deleteMessage, error.message || 'Request failed', 'error')
-      } else {
-        setMessage(deleteMessage, data.message, 'success')
-        deleteForm.reset()
-      }
+    if (error) {
+      // @TODO: Improve this error handling to be more user friendly. Should look at the types of errors that could occur, and give the user an idea of what to do.
+      setMessage(deleteMessage, error.message || 'Request failed', 'error')
+    } else {
+      setMessage(deleteMessage, data.message, 'success')
+      deleteForm.reset()
+    }
   })
 
   handleVerificationToken()
@@ -324,7 +353,7 @@ const statusMessages: Record<string, { type: 'success' | 'error' | 'info', messa
     margin-bottom: 0.5rem;
   }
 
-  .form-group input[type="email"] {
+  .form-group input[type='email'] {
     border: 1px solid var(--color-border);
     border-radius: 4px;
     padding: 0.5rem;
@@ -338,7 +367,7 @@ const statusMessages: Record<string, { type: 'success' | 'error' | 'info', messa
     gap: 0.5rem;
   }
 
-  .checkbox-label input[type="checkbox"] {
+  .checkbox-label input[type='checkbox'] {
     width: auto;
   }
 

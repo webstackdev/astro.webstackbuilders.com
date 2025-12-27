@@ -45,7 +45,7 @@ export async function buildContentMapping(projectRoot: string): Promise<Map<stri
             const entryDir = resolve(collectionDir, entry.name)
             try {
               const entryFiles = await readdir(entryDir, { withFileTypes: true })
-              const mdFile = entryFiles.find((file) => file.isFile() && file.name.endsWith('.md'))
+              const mdFile = entryFiles.find(file => file.isFile() && file.name.endsWith('.md'))
               if (mdFile) {
                 const contentPath = `src/content/${collection}/${entry.name}/${mdFile.name}`
                 contentFiles.push(contentPath)
@@ -91,7 +91,10 @@ export async function validateContentEntries(
   callToActionComponents: CallToActionComponent[],
   contentMapping: Map<string, string[]>,
   warnings: WarningIssue[],
-  validatePageCtaRequirementsFn: (_analysis: PageAnalysis, _mode: CallToActionMode) => WarningIssue[],
+  validatePageCtaRequirementsFn: (
+    _analysis: PageAnalysis,
+    _mode: CallToActionMode
+  ) => WarningIssue[],
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   logger: any,
   debug: boolean
@@ -163,8 +166,7 @@ async function findDynamicRouteTemplate(
 
     // Look for dynamic route patterns
     const dynamicRoutes = files.filter(
-      (file) =>
-        (file.includes('[slug]') || file.includes('[...slug]')) && file.endsWith('.astro')
+      file => (file.includes('[slug]') || file.includes('[...slug]')) && file.endsWith('.astro')
     )
 
     return dynamicRoutes.length > 0 ? dynamicRoutes[0] || null : null

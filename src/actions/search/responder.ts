@@ -29,14 +29,24 @@ export const mapUpstashSearchResults = (raw: unknown, fallbackQuery: string): Se
       const content = item.content ?? {}
       const metadata = item.metadata ?? {}
 
-      const urlValue = (content['url'] ?? content['path'] ?? metadata['url'] ?? metadata['path'] ?? item.id) as unknown
+      const urlValue = (content['url'] ??
+        content['path'] ??
+        metadata['url'] ??
+        metadata['path'] ??
+        item.id) as unknown
       const candidateUrl = typeof urlValue === 'string' ? urlValue.trim() : ''
-      const url = candidateUrl && (candidateUrl.startsWith('/') || candidateUrl.startsWith('http')) ? candidateUrl : fallbackUrl
+      const url =
+        candidateUrl && (candidateUrl.startsWith('/') || candidateUrl.startsWith('http'))
+          ? candidateUrl
+          : fallbackUrl
 
       const titleValue = (content['title'] ?? content['name'] ?? item.id) as unknown
       const title = typeof titleValue === 'string' && titleValue.trim() ? titleValue : fallbackQuery
 
-      const snippetValue = (content['description'] ?? content['excerpt'] ?? content['summary'] ?? content['fullContent']) as unknown
+      const snippetValue = (content['description'] ??
+        content['excerpt'] ??
+        content['summary'] ??
+        content['fullContent']) as unknown
       const snippet = getExcerpt(snippetValue)
 
       const hit: SearchHit = { title, url }

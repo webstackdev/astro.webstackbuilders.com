@@ -4,7 +4,10 @@ import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest'
 vi.mock('@components/scripts/utils/environmentClient', () => {
   return {
     isE2eTest: () => {
-      return typeof window !== 'undefined' && (window as unknown as { isPlaywrightControlled?: boolean }).isPlaywrightControlled === true
+      return (
+        typeof window !== 'undefined' &&
+        (window as unknown as { isPlaywrightControlled?: boolean }).isPlaywrightControlled === true
+      )
     },
     getGoogleMapsApiKey: () => 'test-google-maps-api-key',
   }
