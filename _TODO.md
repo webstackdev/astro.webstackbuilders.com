@@ -86,5 +86,3 @@ https://vercel.com/kevin-browns-projects-dd474f73/astro-webstackbuilders-com/ai-
 ### "Add to Calendar" button
 
 Google Calendar, Apple Calendar,  Microsoft Outlook and Teams, and generate iCal/ics files (for all other calendars and cases).
-
-I'd like to add the hotfix-bypass mechanism to the codeql.yml and dependency-review.yml action workflows, similar to how we've done that for test.yml and lint.yml

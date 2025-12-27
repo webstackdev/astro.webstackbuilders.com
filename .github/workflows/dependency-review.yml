@@ -13,6 +13,7 @@ jobs:
   dependency-review:
     name: Review Dependencies
     runs-on: ubuntu-latest
+    if: ${{ !startsWith(github.head_ref || github.ref_name, 'hotfix/') }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -22,3 +23,14 @@ jobs:
         with:
           fail-on-severity: critical
           comment-summary-in-pr: always
+
+  hotfix-bypass:
+    name: Dependency Review Hotfix Bypass
+    runs-on: ubuntu-latest
+    if: ${{ startsWith(github.head_ref || github.ref_name, 'hotfix/') }}
+
+    permissions: {}
+
+    steps:
+      - name: Skip dependency review for hotfix branch
+        run: echo "hotfix/* branch detected; skipping dependency review but allowing deployments."
