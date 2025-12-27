@@ -77,9 +77,7 @@ Implement mitigations in test/e2e/specs/07-performance/PERFORMANCE.md
 
 Right now we're using string literals to define HTML email templates for site mails. We should use Nunjucks with the rule-checking for valid CSS in HTML emails like we have in the corporate email footer repo.
 
-## Sentry feedback, chat bot tying into my phone and email
-
-See note in src/components/scripts/sentry/client.ts - "User Feedback - allow users to report issues"
+## Chat bot tying into my phone and email
 
 Vercel AI Gateway, maybe could use for a chatbot:
 
@@ -88,3 +86,5 @@ https://vercel.com/kevin-browns-projects-dd474f73/astro-webstackbuilders-com/ai-
 ### "Add to Calendar" button
 
 Google Calendar, Apple Calendar,  Microsoft Outlook and Teams, and generate iCal/ics files (for all other calendars and cases).
+
+I'd like to add the hotfix-bypass mechanism to the codeql.yml and dependency-review.yml action workflows, similar to how we've done that for test.yml and lint.yml
