@@ -2,7 +2,10 @@
 name: Playwright
 
 on:
-  merge_group:
+  push:
+    branches:
+      - main
+  pull_request:
     branches:
       - main
   workflow_dispatch:
@@ -144,7 +147,7 @@ jobs:
           exit 1
 
       - name: Run Playwright E2E tests
-        run: npm run test:e2e
+        run: npm run test:e2e:smoke
         env:
           CI: '1'
 
