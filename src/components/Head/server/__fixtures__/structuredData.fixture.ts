@@ -1,6 +1,6 @@
 import type { StructuredDataParams } from '../structuredData'
 
-const DEFAULT_SITE_URL = 'https://webstackbuilders.com'
+const DEFAULT_SITE_URL = 'https://www.webstackbuilders.com'
 
 const normalizeFixturePath = (value: string): string => {
   if (value === '') {

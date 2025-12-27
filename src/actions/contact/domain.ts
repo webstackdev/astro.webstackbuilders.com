@@ -112,9 +112,16 @@ export async function parseAttachments(form: FormData): Promise<FileAttachment[]
     'image/jpeg',
     'image/png',
     'image/gif',
+    'image/webp',
     'application/pdf',
     'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'audio/mpeg',
+    'audio/wav',
+    'video/mp4',
+    'video/quicktime',
+    'application/zip',
+    'text/plain',
   ]
   const maxFileSize = 10 * 1024 * 1024
   const maxFiles = 5
@@ -155,9 +162,16 @@ export async function parseAttachmentsFromInput(input: Record<string, unknown>):
     'image/jpeg',
     'image/png',
     'image/gif',
+    'image/webp',
     'application/pdf',
     'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'audio/mpeg',
+    'audio/wav',
+    'video/mp4',
+    'video/quicktime',
+    'application/zip',
+    'text/plain',
   ]
   const maxFileSize = 10 * 1024 * 1024
   const maxFiles = 5

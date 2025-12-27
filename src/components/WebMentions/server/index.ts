@@ -63,7 +63,7 @@ const sanitizeHTML = (html: string): string =>
  */
 export const isOwnWebmention = (
   webmention: Webmention,
-  ownUrls: string[] = ['https://webstackbuilders.com']
+  ownUrls: string[] = ['https://www.webstackbuilders.com']
 ): boolean => {
   const authorUrl = webmention.author?.url
   return Boolean(authorUrl && ownUrls.some(url => authorUrl.startsWith(url)))
