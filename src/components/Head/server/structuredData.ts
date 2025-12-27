@@ -35,12 +35,7 @@ export interface StructuredDataParams extends StructuredDataProps {
 }
 
 export type StructuredDataThing = WithContext<
-  | Organization
-  | WebSite
-  | Article
-  | BreadcrumbList
-  | Service
-  | ContactPage
+  Organization | WebSite | Article | BreadcrumbList | Service | ContactPage
 >
 
 interface SchemaContext {
@@ -69,7 +64,8 @@ export const getSchemas = (params: StructuredDataParams): string[] => {
 }
 
 const createSchemaContext = (params: StructuredDataParams): SchemaContext => {
-  const { astro, path, pageTitle, description, contentType, publishDate, modifiedDate, author } = params
+  const { astro, path, pageTitle, description, contentType, publishDate, modifiedDate, author } =
+    params
 
   if (!astro) {
     throw new BuildError('Astro context is required to generate structured data', {
@@ -211,12 +207,18 @@ const breadcrumbSchema: SchemaBuilder = context => {
       name: 'Home',
       item: resolveRoute('/', context.site),
     } satisfies ListItem,
-    ...context.pathSegments.slice(0, -1).map((segment, index) => ({
-      '@type': 'ListItem',
-      position: index + 2,
-      name: formatSegmentName(segment),
-      item: resolveRoute(`/${context.pathSegments.slice(0, index + 1).join('/')}`, context.site),
-    }) satisfies ListItem),
+    ...context.pathSegments.slice(0, -1).map(
+      (segment, index) =>
+        ({
+          '@type': 'ListItem',
+          position: index + 2,
+          name: formatSegmentName(segment),
+          item: resolveRoute(
+            `/${context.pathSegments.slice(0, index + 1).join('/')}`,
+            context.site
+          ),
+        }) satisfies ListItem
+    ),
   ]
 
   return {
@@ -227,7 +229,11 @@ const breadcrumbSchema: SchemaBuilder = context => {
 }
 
 const serviceSchema: SchemaBuilder = context => {
-  if (!context.path.startsWith('/services/') || context.path === '/services/' || context.path === '/services') {
+  if (
+    !context.path.startsWith('/services/') ||
+    context.path === '/services/' ||
+    context.path === '/services'
+  ) {
     return null
   }
 
@@ -278,10 +284,13 @@ const serializeSchema = (schema: StructuredDataThing, index: number, path: strin
   try {
     return JSON.stringify(schema)
   } catch (error) {
-    throw new BuildError(`Failed to serialize structured data schema at index ${index} for path ${path}`, {
-      filePath: STRUCTURED_DATA_FILE,
-      cause: error,
-    })
+    throw new BuildError(
+      `Failed to serialize structured data schema at index ${index} for path ${path}`,
+      {
+        filePath: STRUCTURED_DATA_FILE,
+        cause: error,
+      }
+    )
   }
 }
 
@@ -328,4 +337,3 @@ const resolveRoute = (route: string, site: URL): string => {
 const formatSegmentName = (segment: string): string => {
   return segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, ' ')
 }
-

@@ -17,15 +17,18 @@ export const registerServiceWorker = () => {
     return
   }
 
-  const disableForE2E = typeof window !== 'undefined' && window.__disableServiceWorkerForE2E === true
+  const disableForE2E =
+    typeof window !== 'undefined' && window.__disableServiceWorkerForE2E === true
   if (disableForE2E) {
     console.info('[pwa] skipping service worker registration for e2e tests')
     if (isPlaywrightRun) {
       console.info('[pwa-test] disable flag still true, skipping registration')
     }
-    void navigator.serviceWorker.getRegistrations().then((registrations) => {
-      registrations.forEach((registration) => {
-        console.info('[pwa] unregistering service worker (e2e disable)', { scope: registration.scope })
+    void navigator.serviceWorker.getRegistrations().then(registrations => {
+      registrations.forEach(registration => {
+        console.info('[pwa] unregistering service worker (e2e disable)', {
+          scope: registration.scope,
+        })
         void registration.unregister()
       })
     })
@@ -36,8 +39,8 @@ export const registerServiceWorker = () => {
   const allowDevServiceWorker = devMode && isE2eTest()
 
   if (devMode && !allowDevServiceWorker) {
-    void navigator.serviceWorker.getRegistrations().then((registrations) => {
-      registrations.forEach((registration) => {
+    void navigator.serviceWorker.getRegistrations().then(registrations => {
+      registrations.forEach(registration => {
         console.info('[pwa] unregistering dev service worker', { scope: registration.scope })
         void registration.unregister()
       })

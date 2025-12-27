@@ -20,9 +20,7 @@ const collections: {
   services: [],
   downloads: [],
 }
-const generateOpenGraphImageMock = vi.hoisted(() =>
-  vi.fn(async () => Buffer.from('mock-image')),
-)
+const generateOpenGraphImageMock = vi.hoisted(() => vi.fn(async () => Buffer.from('mock-image')))
 
 vi.mock('astro:content', () => ({
   getCollection: vi.fn(async (collection: string) => {

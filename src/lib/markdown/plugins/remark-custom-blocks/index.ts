@@ -73,10 +73,10 @@ function splitClasses(classString: string | undefined): string[] {
     .filter(Boolean)
 }
 
-const remarkCustomBlocks: Plugin<[RemarkCustomBlocksOptions?], Root> = (options) => {
+const remarkCustomBlocks: Plugin<[RemarkCustomBlocksOptions?], Root> = options => {
   const availableBlocks = options ?? {}
 
-  return (tree) => {
+  return tree => {
     visit(tree, 'paragraph', (node: Paragraph, index, parent) => {
       if (!parent || typeof index !== 'number') return
       if (node.children.length !== 1) return

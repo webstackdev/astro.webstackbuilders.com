@@ -42,27 +42,27 @@ describe('Copy selectors', () => {
 
       expect(
         getCopyToClipboardContent(window.document),
-        'Copy should render a [data-copy-to-clipboard-content] element',
+        'Copy should render a [data-copy-to-clipboard-content] element'
       ).toBeTruthy()
 
       expect(
         getCopyToClipboardButton(window.document),
-        'Copy should render a [data-copy-to-clipboard-button] element',
+        'Copy should render a [data-copy-to-clipboard-button] element'
       ).toBeTruthy()
 
       expect(
         getCopyToClipboardIcon(window.document),
-        'Copy should render a [data-copy-to-clipboard-icon] element',
+        'Copy should render a [data-copy-to-clipboard-icon] element'
       ).toBeTruthy()
 
       expect(
         getCopyToClipboardSuccessIcon(window.document),
-        'Copy should render a [data-copy-to-clipboard-success-icon] element',
+        'Copy should render a [data-copy-to-clipboard-success-icon] element'
       ).toBeTruthy()
 
       expect(
         wrapper?.querySelector('[data-copy-to-clipboard-button]'),
-        'Copy button should be inside wrapper',
+        'Copy button should be inside wrapper'
       ).toBeTruthy()
     })
   })

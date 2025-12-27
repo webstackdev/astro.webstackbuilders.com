@@ -23,7 +23,11 @@ export const search = {
           hits: mapUpstashSearchResults(results, input.q),
         }
       } catch (error) {
-        throwActionError(error, { route: '/_actions/search/query', operation: 'query' }, { fallbackMessage: 'Search failed.' })
+        throwActionError(
+          error,
+          { route: '/_actions/search/query', operation: 'query' },
+          { fallbackMessage: 'Search failed.' }
+        )
       }
     },
   }),

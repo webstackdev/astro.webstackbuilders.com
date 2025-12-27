@@ -55,7 +55,9 @@ Second paragraph.`
 Content below`
       const html = await processMarkdown(markdown)
 
-      expect(html).toContain('<hr class="bg-gray-300 border-0 border-gray-300 my-16 mx-auto text-center w-96 h-px">')
+      expect(html).toContain(
+        '<hr class="bg-gray-300 border-0 border-gray-300 my-16 mx-auto text-center w-96 h-px">'
+      )
     })
 
     it('should add styling classes to hr with asterisks', async () => {
@@ -66,7 +68,9 @@ Content below`
 Content below`
       const html = await processMarkdown(markdown)
 
-      expect(html).toContain('<hr class="bg-gray-300 border-0 border-gray-300 my-16 mx-auto text-center w-96 h-px">')
+      expect(html).toContain(
+        '<hr class="bg-gray-300 border-0 border-gray-300 my-16 mx-auto text-center w-96 h-px">'
+      )
     })
   })
 
@@ -126,7 +130,9 @@ Content below`
       `.trim()
       const html = await processMarkdown(markdown)
 
-      expect(html).toContain('<table class="w-full border-collapse border border-gray-300 dark:border-gray-600 my-6 rounded-lg overflow-hidden">')
+      expect(html).toContain(
+        '<table class="w-full border-collapse border border-gray-300 dark:border-gray-600 my-6 rounded-lg overflow-hidden">'
+      )
     })
 
     it('should add classes to table headers', async () => {
@@ -137,7 +143,9 @@ Content below`
       `.trim()
       const html = await processMarkdown(markdown)
 
-      expect(html).toContain('<th class="bg-gray-100 dark:bg-gray-700 px-4 py-2 text-left font-semibold border-b border-gray-300 dark:border-gray-600">')
+      expect(html).toContain(
+        '<th class="bg-gray-100 dark:bg-gray-700 px-4 py-2 text-left font-semibold border-b border-gray-300 dark:border-gray-600">'
+      )
     })
 
     it('should add classes to table cells', async () => {
@@ -178,10 +186,14 @@ This is a paragraph with **bold** text.
       expect(html).toContain('class="mb-1 last:mb-0"')
 
       // Verify hr classes
-      expect(html).toContain('class="bg-gray-300 border-0 border-gray-300 my-16 mx-auto text-center w-96 h-px"')
+      expect(html).toContain(
+        'class="bg-gray-300 border-0 border-gray-300 my-16 mx-auto text-center w-96 h-px"'
+      )
 
       // Verify table classes
-      expect(html).toContain('class="w-full border-collapse border border-gray-300 dark:border-gray-600 my-6 rounded-lg overflow-hidden"')
+      expect(html).toContain(
+        'class="w-full border-collapse border border-gray-300 dark:border-gray-600 my-6 rounded-lg overflow-hidden"'
+      )
     })
 
     it('should preserve markdown formatting while adding classes', async () => {

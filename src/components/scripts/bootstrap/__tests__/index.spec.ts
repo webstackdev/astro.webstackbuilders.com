@@ -107,19 +107,19 @@ describe('AppBootstrap', () => {
 
       expect(addScriptBreadcrumb).toHaveBeenCalledWith({
         scriptName: 'AppBootstrap',
-        operation: 'init'
+        operation: 'init',
       })
       expect(addScriptBreadcrumb).toHaveBeenCalledWith({
         scriptName: 'AppBootstrap',
-        operation: 'initAnimationLifecycle'
+        operation: 'initAnimationLifecycle',
       })
       expect(addScriptBreadcrumb).toHaveBeenCalledWith({
         scriptName: 'AppBootstrap',
-        operation: 'initConsentFromCookies'
+        operation: 'initConsentFromCookies',
       })
       expect(addScriptBreadcrumb).toHaveBeenCalledWith({
         scriptName: 'AppBootstrap',
-        operation: 'initConsentSideEffects'
+        operation: 'initConsentSideEffects',
       })
     })
 
@@ -153,15 +153,15 @@ describe('AppBootstrap', () => {
 
       expect(addScriptBreadcrumb).toHaveBeenCalledWith({
         scriptName: 'AppBootstrap',
-        operation: 'init'
+        operation: 'init',
       })
       expect(addScriptBreadcrumb).toHaveBeenCalledWith({
         scriptName: 'AppBootstrap',
-        operation: 'initAnimationLifecycle'
+        operation: 'initAnimationLifecycle',
       })
       expect(addScriptBreadcrumb).toHaveBeenCalledWith({
         scriptName: 'AppBootstrap',
-        operation: 'initConsentFromCookies'
+        operation: 'initConsentFromCookies',
       })
     })
 

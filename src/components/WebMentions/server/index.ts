@@ -81,7 +81,9 @@ const cleanWebmention = (entry: Webmention): Webmention => {
     // Really long html mentions, usually newsletters or compilations
     entry.content.value =
       html.length > 2000
-        ? sanitizeHTML(`mentioned this in <a href="${entry['wm-source']}">${entry['wm-source']}</a>`)
+        ? sanitizeHTML(
+            `mentioned this in <a href="${entry['wm-source']}">${entry['wm-source']}</a>`
+          )
         : sanitizeHTML(html)
   } else if (text) {
     entry.content.value = sanitizeHTML(text)
@@ -120,7 +122,7 @@ const logWithThrottle = (
   level: 'warn' | 'error',
   key: string,
   message: string,
-  error?: unknown,
+  error?: unknown
 ): void => {
   const lastLog = logTimestamps.get(key) ?? 0
   if (Date.now() - lastLog < LOG_THROTTLE_WINDOW_MS) {
@@ -171,7 +173,7 @@ const processResponse = (data: WebmentionResponse): Webmention[] => {
     new Date(a.published).getTime() - new Date(b.published).getTime()
 
   return data.children
-    .filter((entry) => allowedTypes.has(entry['wm-property']))
+    .filter(entry => allowedTypes.has(entry['wm-property']))
     .filter(checkRequiredFields)
     .sort(orderByDate)
     .map(cleanWebmention)
@@ -218,7 +220,7 @@ const shouldSkipBecauseOfCooldown = (url: string): boolean => {
   logWithThrottle(
     'warn',
     `webmentions-cooldown-${url}`,
-    `[WebMentions] Skipping fetch for ${url} after a recent failure. Will retry soon.`,
+    `[WebMentions] Skipping fetch for ${url} after a recent failure. Will retry soon.`
   )
 
   return true
@@ -259,18 +261,18 @@ export const fetchWebmentions = async (targetUrl: string): Promise<Webmention[]>
   }
 
   const requestPromise = requestWebmentions(normalizedUrl)
-    .then((mentions) => {
+    .then(mentions => {
       cacheMentions(normalizedUrl, mentions, SUCCESS_CACHE_TTL_MS)
       failureCooldowns.delete(normalizedUrl)
       return mentions
     })
-    .catch((error) => {
+    .catch(error => {
       failureCooldowns.set(normalizedUrl, Date.now() + FAILURE_RETRY_COOLDOWN_MS)
       logWithThrottle(
         'error',
         `webmentions-error-${normalizedUrl}`,
         `[WebMentions] Failed to fetch mentions for ${normalizedUrl}. Will retry in ${Math.round(FAILURE_RETRY_COOLDOWN_MS / 1000)}s.`,
-        error,
+        error
       )
 
       if (!mentionCache.has(normalizedUrl)) {
@@ -291,11 +293,8 @@ export const fetchWebmentions = async (targetUrl: string): Promise<Webmention[]>
  * Filter webmentions by URL
  * Useful if you're fetching mentions for multiple URLs at once
  */
-export const webmentionsByUrl = (
-  webmentions: Webmention[],
-  url: string
-): Webmention[] => {
-  return webmentions.filter((entry) => entry['wm-target'] === url)
+export const webmentionsByUrl = (webmentions: Webmention[], url: string): Webmention[] => {
+  return webmentions.filter(entry => entry['wm-target'] === url)
 }
 
 /**
@@ -307,6 +306,6 @@ export const webmentionCountByType = (
   ...types: string[]
 ): number => {
   return webmentions.filter(
-    (entry) => entry['wm-target'] === url && types.includes(entry['wm-property'])
+    entry => entry['wm-target'] === url && types.includes(entry['wm-property'])
   ).length
 }

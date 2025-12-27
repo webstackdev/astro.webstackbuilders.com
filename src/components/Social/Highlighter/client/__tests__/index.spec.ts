@@ -29,7 +29,8 @@ const mockPlatforms = vi.hoisted<MockPlatform[]>(() => [
     id: 'linkedin',
     ariaLabel: 'Share on LinkedIn',
     icon: 'linkedin',
-    getShareUrl: ({ url }) => `https://social.example/linkedin?url=${encodeURIComponent(url ?? '')}`,
+    getShareUrl: ({ url }) =>
+      `https://social.example/linkedin?url=${encodeURIComponent(url ?? '')}`,
   },
   {
     id: 'bluesky',
@@ -42,7 +43,8 @@ const mockPlatforms = vi.hoisted<MockPlatform[]>(() => [
     id: 'mastodon',
     ariaLabel: 'Share on Mastodon',
     icon: 'mastodon',
-    getShareUrl: ({ text }) => `https://social.example/mastodon?text=${encodeURIComponent(text ?? '')}`,
+    getShareUrl: ({ text }) =>
+      `https://social.example/mastodon?text=${encodeURIComponent(text ?? '')}`,
   },
 ])
 
@@ -93,7 +95,9 @@ const waitForShareDialog = async (element: HighlighterElement): Promise<void> =>
 }
 
 const getShareButton = (element: HighlighterElement, platformId: string): HTMLButtonElement => {
-  const button = element.querySelector<HTMLButtonElement>(`.share-button[data-platform="${platformId}"]`)
+  const button = element.querySelector<HTMLButtonElement>(
+    `.share-button[data-platform="${platformId}"]`
+  )
   if (!button) {
     throw new TestError(`Missing share button for ${platformId}`)
   }
@@ -110,7 +114,7 @@ const renderHighlighter = async (
     component: HighlighterFixture,
     moduleSpecifier: '@components/Social/Highlighter/client/index',
     args: { props: { ...defaultProps, ...overrides } },
-    waitForReady: async (element) => {
+    waitForReady: async element => {
       try {
         await element.updateComplete
       } catch (error) {
@@ -131,7 +135,9 @@ const renderHighlighter = async (
         throw new TestError('Rendered element is not an instance of HighlighterElement')
       }
       await flushMicrotasks()
-      const performUpdate = (element as HighlighterElement & { performUpdate?: () => Promise<void> }).performUpdate
+      const performUpdate = (
+        element as HighlighterElement & { performUpdate?: () => Promise<void> }
+      ).performUpdate
       if (performUpdate) {
         await performUpdate.call(element)
       } else {
@@ -206,7 +212,9 @@ describe('HighlighterElement', () => {
 
       await flushMicrotasks()
 
-      expect(mockCopyToClipboard).toHaveBeenCalledWith(`"${defaultProps.content}" ${window.location.href}`)
+      expect(mockCopyToClipboard).toHaveBeenCalledWith(
+        `"${defaultProps.content}" ${window.location.href}`
+      )
       expect(shareListener).toHaveBeenCalledTimes(1)
       expect(getLastShareEvent(shareListener)?.detail.platform).toBe('copy')
 
@@ -225,7 +233,11 @@ describe('HighlighterElement', () => {
       getShareButton(element, 'twitter').click()
       await flushMicrotasks()
 
-      expect(openSpy).toHaveBeenCalledWith(expect.stringContaining('https://social.example/twitter'), '_blank', 'noopener,noreferrer')
+      expect(openSpy).toHaveBeenCalledWith(
+        expect.stringContaining('https://social.example/twitter'),
+        '_blank',
+        'noopener,noreferrer'
+      )
       openSpy.mockRestore()
     })
   })
@@ -238,7 +250,9 @@ describe('HighlighterElement', () => {
       getShareButton(element, 'mastodon').click()
       await flushMicrotasks()
 
-      expect(mockMastodonModal.openModal).toHaveBeenCalledWith(expect.stringContaining(defaultProps.content))
+      expect(mockMastodonModal.openModal).toHaveBeenCalledWith(
+        expect.stringContaining(defaultProps.content)
+      )
       expect(getLastShareEvent(shareListener)?.detail.platform).toBe('mastodon')
 
       element.removeEventListener('highlighter:share', shareListener)
@@ -256,7 +270,9 @@ describe('Highlighter web component module contract', () => {
   })
 
   afterAll(() => {
-    defineCustomElementSpy.mockImplementation((tagName, ctor) => originalDefineCustomElement(tagName, ctor))
+    defineCustomElementSpy.mockImplementation((tagName, ctor) =>
+      originalDefineCustomElement(tagName, ctor)
+    )
   })
 
   test('exposes metadata for registration', async () => {
@@ -264,13 +280,16 @@ describe('Highlighter web component module contract', () => {
       const module = await import('@components/Social/Highlighter/client/index')
       expect(module.webComponentModule.registeredName).toBe('highlighter-element')
       expect(module.webComponentModule.componentCtor).toBe(module.HighlighterElement)
-      expect(module.webComponentModule.registerWebComponent).toBe(module.registerHighlighterWebComponent)
+      expect(module.webComponentModule.registerWebComponent).toBe(
+        module.registerHighlighterWebComponent
+      )
     })
   })
 
   test('registers the custom element when window exists', async () => {
     await withJsdomEnvironment(async () => {
-      const { registerHighlighterWebComponent, HighlighterElement } = await import('@components/Social/Highlighter/client/index')
+      const { registerHighlighterWebComponent, HighlighterElement } =
+        await import('@components/Social/Highlighter/client/index')
       const uniqueTag = `highlighter-element-${Math.random().toString(36).slice(2)}`
       registerHighlighterWebComponent(uniqueTag)
       expect(defineCustomElementSpy).toHaveBeenCalledWith(uniqueTag, HighlighterElement)
@@ -279,7 +298,8 @@ describe('Highlighter web component module contract', () => {
 
   test('skips registration on the server', async () => {
     await withJsdomEnvironment(async () => {
-      const { registerHighlighterWebComponent } = await import('@components/Social/Highlighter/client/index')
+      const { registerHighlighterWebComponent } =
+        await import('@components/Social/Highlighter/client/index')
       const globalWithWindow = globalThis as typeof globalThis & { window?: Window }
       const originalWindow = globalWithWindow.window
       delete globalWithWindow.window
@@ -295,4 +315,3 @@ describe('Highlighter web component module contract', () => {
     })
   })
 })
-

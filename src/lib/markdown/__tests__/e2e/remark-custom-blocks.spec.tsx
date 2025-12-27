@@ -11,7 +11,11 @@ import { processWithFullPipeline } from '@lib/markdown/helpers/processors'
 let html: string
 
 beforeAll(async () => {
-  const markdown = ['[[details | My summary]]', '| Some content for the detail', '| Second line'].join('\n')
+  const markdown = [
+    '[[details | My summary]]',
+    '| Some content for the detail',
+    '| Second line',
+  ].join('\n')
   html = await processWithFullPipeline(markdown)
 })
 

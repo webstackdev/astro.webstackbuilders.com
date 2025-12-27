@@ -5,16 +5,24 @@ import { ApiFunctionError } from './api/_utils/errors'
 
 export async function GET(context: APIContext) {
   if (!context.site) {
-    throw new ApiFunctionError('Missing site URL. Configure `site` in `astro.config.ts` to generate RSS links.', {
-      status: 500,
-      route: '/rss.xml',
-      operation: 'Generate RSS feed',
-    })
+    throw new ApiFunctionError(
+      'Missing site URL. Configure `site` in `astro.config.ts` to generate RSS links.',
+      {
+        status: 500,
+        route: '/rss.xml',
+        operation: 'Generate RSS feed',
+      }
+    )
   }
 
   const now = new Date()
-  const articles = await getCollection('articles', ({ data }) => !data.isDraft && data.publishDate <= now)
-  const sortedArticles = articles.sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf())
+  const articles = await getCollection(
+    'articles',
+    ({ data }) => !data.isDraft && data.publishDate <= now
+  )
+  const sortedArticles = articles.sort(
+    (a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf()
+  )
 
   return rss({
     title: 'Webstack Builders Website',

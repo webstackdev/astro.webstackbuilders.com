@@ -32,7 +32,8 @@ const IGNORED_MDX_ELEMENTS = new Set(['pre', 'code', 'kbd', 'math', 'script', 's
 
 function isIgnoredMdxTextElementParent(parent: unknown): boolean {
   if (!parent || typeof parent !== 'object') return false
-  if (!('type' in parent) || (parent as { type?: unknown }).type !== 'mdxJsxTextElement') return false
+  if (!('type' in parent) || (parent as { type?: unknown }).type !== 'mdxJsxTextElement')
+    return false
   const name = (parent as { name?: unknown }).name
   return typeof name === 'string' && IGNORED_MDX_ELEMENTS.has(name)
 }
@@ -88,22 +89,31 @@ function resolveDashOptions(options: RemarkSmartypantsOptions): {
   enDash: string
   mode: 'default' | 'oldschool' | 'inverted' | 'off'
 } {
-  const mode = options.dashes === false
-    ? 'off'
-    : options.dashes === 'oldschool'
-      ? 'oldschool'
-      : options.dashes === 'inverted'
-        ? 'inverted'
-        : 'default'
+  const mode =
+    options.dashes === false
+      ? 'off'
+      : options.dashes === 'oldschool'
+        ? 'oldschool'
+        : options.dashes === 'inverted'
+          ? 'inverted'
+          : 'default'
 
   return { emDash: '—', enDash: '–', mode }
 }
 
-function transformTextValue(value: string, options: RemarkSmartypantsOptions, state: TransformState): string {
-  const openingDouble = options.openingQuotes?.double ?? DEFAULT_OPTIONS.openingQuotes?.double ?? '\u201C'
-  const openingSingle = options.openingQuotes?.single ?? DEFAULT_OPTIONS.openingQuotes?.single ?? '\u2018'
-  const closingDouble = options.closingQuotes?.double ?? DEFAULT_OPTIONS.closingQuotes?.double ?? '\u201D'
-  const closingSingle = options.closingQuotes?.single ?? DEFAULT_OPTIONS.closingQuotes?.single ?? '\u2019'
+function transformTextValue(
+  value: string,
+  options: RemarkSmartypantsOptions,
+  state: TransformState
+): string {
+  const openingDouble =
+    options.openingQuotes?.double ?? DEFAULT_OPTIONS.openingQuotes?.double ?? '\u201C'
+  const openingSingle =
+    options.openingQuotes?.single ?? DEFAULT_OPTIONS.openingQuotes?.single ?? '\u2018'
+  const closingDouble =
+    options.closingQuotes?.double ?? DEFAULT_OPTIONS.closingQuotes?.double ?? '\u201D'
+  const closingSingle =
+    options.closingQuotes?.single ?? DEFAULT_OPTIONS.closingQuotes?.single ?? '\u2019'
   const dash = resolveDashOptions(options)
 
   const enableQuotes = options.quotes !== false
@@ -129,13 +139,7 @@ function transformTextValue(value: string, options: RemarkSmartypantsOptions, st
         continue
       }
 
-      if (
-        char === '.' &&
-        next === ' ' &&
-        next2 === '.' &&
-        get(3) === ' ' &&
-        get(4) === '.'
-      ) {
+      if (char === '.' && next === ' ' && next2 === '.' && get(3) === ' ' && get(4) === '.') {
         out.push('…')
         state.prevClass = 'punct'
         index += 5
@@ -172,7 +176,7 @@ function transformTextValue(value: string, options: RemarkSmartypantsOptions, st
         index += 2
         continue
       }
-      if (char === '\'' && next === '\'') {
+      if (char === "'" && next === "'") {
         out.push(closingDouble)
         state.prevClass = 'punct'
         state.openDouble = false
@@ -318,10 +322,10 @@ function walkParent(
   }
 }
 
-const remarkSmartypants: Plugin<[RemarkSmartypantsOptions?], Root> = (options) => {
+const remarkSmartypants: Plugin<[RemarkSmartypantsOptions?], Root> = options => {
   const resolvedOptions = { ...DEFAULT_OPTIONS, ...(options ?? {}) }
 
-  return (tree) => {
+  return tree => {
     // Keep traversal order deterministic; we mutate text nodes in-place.
     const state: TransformState = { ...DEFAULT_STATE }
     const rawHtmlStack: string[] = []

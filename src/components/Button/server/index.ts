@@ -72,7 +72,7 @@ export function buildButtonClassList({
     additionalClasses
       .split(/\s+/)
       .filter(Boolean)
-      .forEach((className) => {
+      .forEach(className => {
         classes[className] = true
       })
   }

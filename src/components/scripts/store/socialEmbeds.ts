@@ -35,16 +35,20 @@ export interface EmbedCacheState {
  * Persisted to localStorage automatically via nanostores/persistent
  * Classified as 'necessary' - no consent required
  */
-export const $embedCache = persistentAtom<EmbedCacheState>('socialEmbedCache', {}, {
-  encode: JSON.stringify,
-  decode: (value: string): EmbedCacheState => {
-    try {
-      return JSON.parse(value)
-    } catch {
-      return {}
-    }
-  },
-})
+export const $embedCache = persistentAtom<EmbedCacheState>(
+  'socialEmbedCache',
+  {},
+  {
+    encode: JSON.stringify,
+    decode: (value: string): EmbedCacheState => {
+      try {
+        return JSON.parse(value)
+      } catch {
+        return {}
+      }
+    },
+  }
+)
 
 // ============================================================================
 // ACTIONS
@@ -118,7 +122,7 @@ export function setEmbedCacheState(state: EmbedCacheState): void {
  * Call this once during app initialization
  */
 export function socialEmbedDataConsentRevokeListener(): void {
-  $hasFunctionalConsent.subscribe((hasConsent) => {
+  $hasFunctionalConsent.subscribe(hasConsent => {
     if (!hasConsent) {
       clearEmbedCache()
     }

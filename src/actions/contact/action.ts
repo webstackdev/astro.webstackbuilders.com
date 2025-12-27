@@ -4,7 +4,11 @@ import { ActionError, defineAction } from 'astro:actions'
 import { z } from 'astro/zod'
 import { checkContactRateLimit } from '@actions/utils/rateLimit'
 import { buildRequestFingerprint, createRateLimitIdentifier } from '@actions/utils/requestContext'
-import { getPrivacyPolicyVersion, getResendApiKey, isProd } from '@actions/utils/environment/environmentActions'
+import {
+  getPrivacyPolicyVersion,
+  getResendApiKey,
+  isProd,
+} from '@actions/utils/environment/environmentActions'
 import { ActionsFunctionError, throwActionError } from '@actions/utils/errors'
 import { createConsentRecord } from '@actions/gdpr/domain/consentStore'
 import type { FileAttachment, EmailData } from '@actions/contact/@types'
@@ -13,7 +17,7 @@ import {
   generateEmailContent,
   getFormDataFromInput,
   parseAttachmentsFromInput,
-  validateInput
+  validateInput,
 } from './domain'
 
 const trimString = (value: unknown): unknown => (typeof value === 'string' ? value.trim() : value)
@@ -35,7 +39,8 @@ const requiredTrimmedString = (minLength = 1, maxLength?: number) => {
   return typeof maxLength === 'number' ? base.pipe(z.string().max(maxLength)) : base
 }
 
-const isFile = (value: unknown): value is File => typeof File !== 'undefined' && value instanceof File
+const isFile = (value: unknown): value is File =>
+  typeof File !== 'undefined' && value instanceof File
 const optionalFile = () => z.custom<File>(isFile).optional()
 
 const contactFormInputSchema = z
@@ -47,13 +52,13 @@ const contactFormInputSchema = z
     /** Extra fields submitted by the form UI. */
     company: optionalTrimmedString(100),
     phone: optionalTrimmedString(50),
-    'project_type': optionalTrimmedString(50),
+    project_type: optionalTrimmedString(50),
     budget: z.preprocess(trimString, z.enum(['5k-10k', '10k-25k', '25k-50k', '50k+'])),
     timeline: z.preprocess(emptyStringToUndefined, z.enum(contactTimelineValues).optional()),
     /** Consent checkbox: value="true" when checked, otherwise missing. */
-    consent: z.preprocess((value) => (value === 'true' ? true : false), z.boolean()).optional(),
+    consent: z.preprocess(value => (value === 'true' ? true : false), z.boolean()).optional(),
     /** Optional hidden field supported by the action. */
-    'DataSubjectId': z.preprocess(emptyStringToUndefined, z.string().uuid().optional()),
+    DataSubjectId: z.preprocess(emptyStringToUndefined, z.string().uuid().optional()),
     /** Backwards-compatible optional fields (older contact forms). */
     service: optionalTrimmedString(100),
     website: optionalTrimmedString(200),
@@ -104,7 +109,9 @@ export const contact = {
 
         const rateLimitIdentifier = createRateLimitIdentifier('contact', fingerprint)
         if (!checkContactRateLimit(rateLimitIdentifier)) {
-          throw new ActionsFunctionError('Too many form submissions. Please try again later.', { status: 429 })
+          throw new ActionsFunctionError('Too many form submissions. Please try again later.', {
+            status: 429,
+          })
         }
 
         const formData = getFormDataFromInput(input)
@@ -112,7 +119,9 @@ export const contact = {
 
         const validationErrors = validateInput(formData)
         if (validationErrors.length > 0) {
-          throw new ActionsFunctionError(validationErrors[0] ?? 'Invalid form submission', { status: 400 })
+          throw new ActionsFunctionError(validationErrors[0] ?? 'Invalid form submission', {
+            status: 400,
+          })
         }
 
         const userAgent = context.request.headers.get('user-agent') || 'unknown'
@@ -151,7 +160,7 @@ export const contact = {
             subject: `Contact Form: ${formData.name}`,
             html: htmlContent,
           },
-          files,
+          files
         )
 
         return {

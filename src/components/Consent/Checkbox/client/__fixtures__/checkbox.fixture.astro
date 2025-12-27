@@ -8,16 +8,16 @@ const fixtureProps: CheckboxFixtureProps = {
   ...Astro.props,
 }
 
-const {
-  wrapInForm = true,
-  ...props
-} = fixtureProps
+const { wrapInForm = true, ...props } = fixtureProps
 ---
-{wrapInForm ? (
-  <form id="gdpr-consent-form" data-testid="gdpr-consent-form">
+
+{
+  wrapInForm ? (
+    <form id="gdpr-consent-form" data-testid="gdpr-consent-form">
+      <ConsentCheckbox {...props} />
+      <button type="submit">Submit</button>
+    </form>
+  ) : (
     <ConsentCheckbox {...props} />
-    <button type="submit">Submit</button>
-  </form>
-) : (
-  <ConsentCheckbox {...props} />
-)}
+  )
+}

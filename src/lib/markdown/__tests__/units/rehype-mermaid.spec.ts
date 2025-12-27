@@ -17,7 +17,9 @@ describe('rehype-mermaid (Layer 1: Isolated)', () => {
     const error = new Error('boom')
     const file = { path: '/fake/file.mdx' }
 
-    expect(() => rehypeMermaidConfig.errorFallback(element, diagram, error, file)).toThrow(BuildError)
+    expect(() => rehypeMermaidConfig.errorFallback(element, diagram, error, file)).toThrow(
+      BuildError
+    )
   })
 
   it('should render Mermaid code blocks to inline SVG', async () => {

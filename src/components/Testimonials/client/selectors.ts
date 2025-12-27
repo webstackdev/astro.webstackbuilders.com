@@ -72,7 +72,8 @@ export const queryTestimonialsAutoplayToggleBtn = (scope: ParentNode): HTMLButto
   return button
 }
 
-export const queryTestimonialsSlides = (scope: ParentNode): Element[] => Array.from(scope.querySelectorAll(SELECTORS.slides))
+export const queryTestimonialsSlides = (scope: ParentNode): Element[] =>
+  Array.from(scope.querySelectorAll(SELECTORS.slides))
 
 export const queryTestimonialsAutoplayPauseIcon = (toggleBtn: ParentNode): Element | null =>
   toggleBtn.querySelector(SELECTORS.autoplayPauseIcon)

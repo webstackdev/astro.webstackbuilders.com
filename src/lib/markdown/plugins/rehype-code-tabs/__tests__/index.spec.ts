@@ -88,7 +88,7 @@ describe('rehype-code-tabs (Layer 1: Isolated)', () => {
     expect((wrapper.children[0] as Element).tagName).toBe('pre')
   })
 
-  it.each(['mermaid', 'math', 'text'])('should not wrap excluded language %s', async (lang) => {
+  it.each(['mermaid', 'math', 'text'])('should not wrap excluded language %s', async lang => {
     const pre: Element = {
       type: 'element',
       tagName: 'pre',

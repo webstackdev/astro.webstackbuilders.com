@@ -78,7 +78,7 @@ export class DownloadFormElement extends LitElement {
   private syncAriaInvalidState(form: HTMLFormElement): void {
     const invalidControls = queryDownloadFormInvalidatableControls(form)
 
-    invalidControls.forEach((control) => {
+    invalidControls.forEach(control => {
       if (control.willValidate && !control.checkValidity()) {
         control.setAttribute('aria-invalid', 'true')
         return
@@ -128,7 +128,7 @@ export class DownloadFormElement extends LitElement {
           new CustomEvent('confetti:fire', {
             bubbles: true,
             composed: true,
-          }),
+          })
         )
 
         downloadButtonWrapper.classList.remove('hidden')

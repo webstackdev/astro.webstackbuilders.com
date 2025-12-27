@@ -1,7 +1,10 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
-import type { AnimationControllerConfig, AnimationControllerHandle } from '@components/scripts/store'
+import type {
+  AnimationControllerConfig,
+  AnimationControllerHandle,
+} from '@components/scripts/store'
 import { executeRender, withJsdomEnvironment } from '@test/unit/helpers/litRuntime'
 import ConfettiAstro from '@components/Animations/Confetti/index.astro'
 import type { ConfettiAnimationElement } from '@components/Animations/Confetti/client'
@@ -11,11 +14,17 @@ type ConfettiModule = WebComponentModule<ConfettiAnimationElement>
 type ConfettiClientModule = typeof import('@components/Animations/Confetti/client')
 
 let confettiElementCtor: ConfettiClientModule['ConfettiAnimationElement'] | undefined
-let registerConfettiAnimationWebComponentFn: ConfettiClientModule['registerConfettiAnimationWebComponent'] | undefined
+let registerConfettiAnimationWebComponentFn:
+  | ConfettiClientModule['registerConfettiAnimationWebComponent']
+  | undefined
 let confettiWebComponentModule: ConfettiClientModule['webComponentModule'] | undefined
 
 const ensureConfettiModuleLoaded = async (): Promise<void> => {
-  if (confettiElementCtor && registerConfettiAnimationWebComponentFn && confettiWebComponentModule) {
+  if (
+    confettiElementCtor &&
+    registerConfettiAnimationWebComponentFn &&
+    confettiWebComponentModule
+  ) {
     return
   }
 
@@ -28,7 +37,11 @@ const ensureConfettiModuleLoaded = async (): Promise<void> => {
 }
 
 const getConfettiModule = () => {
-  if (!confettiElementCtor || !registerConfettiAnimationWebComponentFn || !confettiWebComponentModule) {
+  if (
+    !confettiElementCtor ||
+    !registerConfettiAnimationWebComponentFn ||
+    !confettiWebComponentModule
+  ) {
     throw new Error('Confetti module was not initialized correctly')
   }
 
@@ -43,12 +56,14 @@ const addScriptBreadcrumbMock = vi.hoisted(() => vi.fn())
 const handleScriptErrorMock = vi.hoisted(() => vi.fn())
 
 const createAnimationControllerMock = vi.hoisted(() =>
-  vi.fn((_config: AnimationControllerConfig): AnimationControllerHandle => ({
-    requestPlay: vi.fn(),
-    requestPause: vi.fn(),
-    clearUserPreference: vi.fn(),
-    destroy: vi.fn(),
-  }))
+  vi.fn(
+    (_config: AnimationControllerConfig): AnimationControllerHandle => ({
+      requestPlay: vi.fn(),
+      requestPause: vi.fn(),
+      clearUserPreference: vi.fn(),
+      destroy: vi.fn(),
+    })
+  )
 )
 
 const confettiInstanceMock = vi.hoisted(() => vi.fn())
@@ -83,8 +98,11 @@ beforeEach(async () => {
 
 describe('Confetti web component module', () => {
   it('exposes metadata required by the loader', () => {
-    const { webComponentModule: module, ConfettiAnimationElement: ctor, registerConfettiAnimationWebComponent } =
-      getConfettiModule()
+    const {
+      webComponentModule: module,
+      ConfettiAnimationElement: ctor,
+      registerConfettiAnimationWebComponent,
+    } = getConfettiModule()
 
     expect(module.registeredName).toBe('confetti-animation')
     expect(module.componentCtor).toBe(ctor)
@@ -92,7 +110,8 @@ describe('Confetti web component module', () => {
   })
 
   it('registers the custom element when window is available', async () => {
-    const { registerConfettiAnimationWebComponent, ConfettiAnimationElement: ctor } = getConfettiModule()
+    const { registerConfettiAnimationWebComponent, ConfettiAnimationElement: ctor } =
+      getConfettiModule()
 
     await withJsdomEnvironment(async ({ window }) => {
       const tagName = 'confetti-animation'
@@ -104,14 +123,17 @@ describe('Confetti web component module', () => {
 
 describe('ConfettiAnimationElement', () => {
   const renderConfetti = async (
-    assertion: (_context: { element: ConfettiAnimationElement; window: Window }) => Promise<void> | void,
+    assertion: (_context: {
+      element: ConfettiAnimationElement
+      window: Window
+    }) => Promise<void> | void
   ): Promise<void> => {
     await executeRender<ConfettiModule>({
       container,
       component: ConfettiAstro,
       moduleSpecifier: '@components/Animations/Confetti/client/index',
       args: {},
-      waitForReady: async (element) => {
+      waitForReady: async element => {
         await element.updateComplete
       },
       assert: async ({ element, module, renderResult, window }) => {
@@ -131,7 +153,7 @@ describe('ConfettiAnimationElement', () => {
           debugLabel: 'ConfettiAnimationElement',
           onPause: expect.any(Function),
           onPlay: expect.any(Function),
-        }),
+        })
       )
     })
   })
@@ -150,7 +172,7 @@ describe('ConfettiAnimationElement', () => {
           particleCount: expect.any(Number),
           spread: expect.any(Number),
           startVelocity: expect.any(Number),
-        }),
+        })
       )
     })
   })
@@ -166,8 +188,14 @@ describe('ConfettiAnimationElement', () => {
       await renderConfetti(async ({ element }) => {
         element.fire()
 
-        expect(handleScriptErrorMock, 'Confetti should not report errors for unsupported environments').not.toHaveBeenCalled()
-        expect(confettiInstanceMock, 'Confetti should not fire when no instance is available').not.toHaveBeenCalled()
+        expect(
+          handleScriptErrorMock,
+          'Confetti should not report errors for unsupported environments'
+        ).not.toHaveBeenCalled()
+        expect(
+          confettiInstanceMock,
+          'Confetti should not fire when no instance is available'
+        ).not.toHaveBeenCalled()
       })
     } finally {
       if (originalImplementation) {
@@ -202,11 +230,13 @@ describe('ConfettiAnimationElement', () => {
       element.dispatchEvent(
         new CustomEvent('confetti:fire', {
           detail: { particleCount: 12 },
-        }),
+        })
       )
 
       expect(confettiInstanceMock).toHaveBeenCalledTimes(1)
-      expect(confettiInstanceMock).toHaveBeenCalledWith(expect.objectContaining({ particleCount: 12 }))
+      expect(confettiInstanceMock).toHaveBeenCalledWith(
+        expect.objectContaining({ particleCount: 12 })
+      )
     })
   })
 
@@ -238,7 +268,7 @@ describe('ConfettiAnimationElement', () => {
         new CustomEvent('confetti:fire', {
           bubbles: true,
           detail: { particleCount: 12 },
-        }),
+        })
       )
 
       expect(confettiInstanceMock).toHaveBeenCalledTimes(1)
@@ -264,7 +294,7 @@ describe('ConfettiAnimationElement', () => {
         expect.objectContaining({
           colors: ['#bada55', '#ff0000'],
           shapes: ['star'],
-        }),
+        })
       )
     })
   })

@@ -26,12 +26,14 @@ describe('NetworkStatusToast selectors', () => {
       assert: async ({ element }) => {
         const { toast, message } = getNetworkStatusToastElements(element)
 
-        expect(toast, 'NetworkStatusToast should render a root <div> with [data-network-status-toast]').toBeInstanceOf(
-          HTMLDivElement,
-        )
-        expect(message, 'NetworkStatusToast should render a message <span> with .toast-message').toBeInstanceOf(
-          HTMLSpanElement,
-        )
+        expect(
+          toast,
+          'NetworkStatusToast should render a root <div> with [data-network-status-toast]'
+        ).toBeInstanceOf(HTMLDivElement)
+        expect(
+          message,
+          'NetworkStatusToast should render a message <span> with .toast-message'
+        ).toBeInstanceOf(HTMLSpanElement)
       },
     })
   })

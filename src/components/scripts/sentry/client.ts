@@ -10,10 +10,7 @@ import {
   makeFetchTransport,
   linkedErrorsIntegration,
 } from '@sentry/browser'
-import {
-  getPackageRelease,
-  getSentryDsn
-} from '@components/scripts/utils/environmentClient'
+import { getPackageRelease, getSentryDsn } from '@components/scripts/utils/environmentClient'
 import { getAnalyticsConsentPreference } from '@components/scripts/store/consent'
 import { beforeSendHandler } from '@components/scripts/sentry/helpers'
 
@@ -112,5 +109,4 @@ export class SentryBootstrap {
 
     console.log('✅ Sentry monitoring initialized')
   }
-
 }

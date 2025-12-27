@@ -9,9 +9,15 @@ import { processWithFullPipeline } from '@lib/markdown/helpers/processors'
 let html: string
 
 beforeAll(async () => {
-  const markdown = ['This is $5 and not math: $x$.', '', 'Inline: $$a^2 + b^2$$', '', '$$', '\\frac{1}{2}', '$$'].join(
-    '\n'
-  )
+  const markdown = [
+    'This is $5 and not math: $x$.',
+    '',
+    'Inline: $$a^2 + b^2$$',
+    '',
+    '$$',
+    '\\frac{1}{2}',
+    '$$',
+  ].join('\n')
 
   html = await processWithFullPipeline(markdown)
 })

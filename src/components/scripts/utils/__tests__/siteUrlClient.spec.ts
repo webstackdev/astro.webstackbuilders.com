@@ -47,8 +47,6 @@ describe('getSiteUrl', () => {
     const url = getSiteUrl()
 
     expect(url).toBe(`http://localhost:${devPort}`)
-    expect(consoleSpy).toHaveBeenCalledWith(
-      `Using development environment on port ${devPort}.`
-    )
+    expect(consoleSpy).toHaveBeenCalledWith(`Using development environment on port ${devPort}.`)
   })
 })

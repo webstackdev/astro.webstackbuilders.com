@@ -8,7 +8,7 @@ const debug = !prod
 ---
 
 <script>
-  window.webAnalyticsBeforeSend = (event) => {
+  window.webAnalyticsBeforeSend = event => {
     /** Ignore testing pages in tracking */
     if (event?.url?.includes('/testing/')) {
       return null
@@ -16,7 +16,4 @@ const debug = !prod
     return event
   }
 </script>
-<VercelAnalytics
-  debug={debug}
-  mode={mode}
-/>
+<VercelAnalytics debug={debug} mode={mode} />

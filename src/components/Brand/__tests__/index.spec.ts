@@ -24,7 +24,7 @@ describe('Brand (Astro)', () => {
       const svgs = link?.querySelectorAll('svg')
       expect(svgs?.length).toBeGreaterThan(0)
 
-      svgs?.forEach((svg) => {
+      svgs?.forEach(svg => {
         expect(svg.getAttribute('aria-hidden')).toBe('true')
         expect(svg.getAttribute('focusable')).toBe('false')
       })

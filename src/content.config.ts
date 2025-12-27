@@ -65,7 +65,7 @@ const createSocialCollectionSchema = () =>
       name: z.string(),
       url: z.string().url(),
       order: z.number(),
-    }),
+    })
   )
 
 /**
@@ -189,13 +189,14 @@ const aboutCollection = defineCollection({
  */
 const authorsCollection = defineCollection({
   loader: glob({ pattern, base: './src/content/authors' }),
-  schema: () => z.object({
-    id: z.string(),
-    name: z.string(),
-    email: z.string().email(),
-    avatar: z.string(),
-    social: createSocialCollectionSchema(),
-  }),
+  schema: () =>
+    z.object({
+      id: z.string(),
+      name: z.string(),
+      email: z.string().email(),
+      avatar: z.string(),
+      social: createSocialCollectionSchema(),
+    }),
 })
 
 /**
@@ -216,7 +217,6 @@ const contactDataCollection = defineCollection({
     social: createSocialCollectionSchema(),
   }),
 })
-
 
 /**
  * Tags
@@ -239,20 +239,21 @@ const tagsCollection = defineCollection({
  */
 const testimonialCollection = defineCollection({
   loader: glob({ pattern, base: './src/content/testimonials' }),
-  schema: () => z.object({
-    name: z.string(),
-    organization: z.string().optional(),
-    tags: z.array(z.enum(validTags)),
-    avatar: z
-      .object({
-        src: z.string(),
-        alt: z.string(),
-      })
-      .optional(),
-    publishDate: z.date(),
-    active: z.boolean().default(false),
-    isDraft: z.boolean().default(false),
-  }),
+  schema: () =>
+    z.object({
+      name: z.string(),
+      organization: z.string().optional(),
+      tags: z.array(z.enum(validTags)),
+      avatar: z
+        .object({
+          src: z.string(),
+          alt: z.string(),
+        })
+        .optional(),
+      publishDate: z.date(),
+      active: z.boolean().default(false),
+      isDraft: z.boolean().default(false),
+    }),
 })
 
 /**

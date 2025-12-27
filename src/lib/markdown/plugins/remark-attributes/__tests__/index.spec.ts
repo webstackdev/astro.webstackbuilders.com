@@ -149,7 +149,8 @@ describe('remark-attr (Layer 1: Isolated)', () => {
     })
 
     it('should not add attributes to setext headings with inline syntax', async () => {
-      const input = 'Title of the article [[data-id="title"]]\n======================================'
+      const input =
+        'Title of the article [[data-id="title"]]\n======================================'
       const output = await process(input)
 
       // Setext headings don't support inline attributes

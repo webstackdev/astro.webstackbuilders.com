@@ -89,6 +89,7 @@ export const queryCarouselNextBtn = (scope: ParentNode): HTMLButtonElement | nul
   return button
 }
 
-export const queryCarouselSlides = (scope: ParentNode): Element[] => Array.from(scope.querySelectorAll(SELECTORS.slides))
+export const queryCarouselSlides = (scope: ParentNode): Element[] =>
+  Array.from(scope.querySelectorAll(SELECTORS.slides))
 
 export type { CarouselEmblaRootElement }

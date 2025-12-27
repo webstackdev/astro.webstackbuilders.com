@@ -15,7 +15,7 @@ import { ClientScriptError } from '@components/scripts/errors/ClientScriptError'
 export const absoluteUrl = (route: string, site?: URL) => {
   if (!route || !(site instanceof URL)) {
     throw new ClientScriptError({
-      message: `absoluteUrl helper called but either route or site not passed`
+      message: `absoluteUrl helper called but either route or site not passed`,
     })
   }
   const normalizedUrl = new URL(route, site.href)

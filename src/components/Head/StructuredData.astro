@@ -2,15 +2,7 @@
 import { getSchemas } from '@components/Head/server/structuredData'
 export type { StructuredDataProps as Props } from '@components/Head/server/structuredData'
 
-const {
-  path,
-  pageTitle,
-  description,
-  contentType,
-  publishDate,
-  modifiedDate,
-  author,
-} = Astro.props
+const { path, pageTitle, description, contentType, publishDate, modifiedDate, author } = Astro.props
 
 const schemas = getSchemas({
   astro: Astro,
@@ -24,6 +16,4 @@ const schemas = getSchemas({
 })
 ---
 
-{schemas.map(schema => (
-  <script is:inline type="application/ld+json" set:html={schema} />
-))}
+{schemas.map(schema => <script is:inline type="application/ld+json" set:html={schema} />)}

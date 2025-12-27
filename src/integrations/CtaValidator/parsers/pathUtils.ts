@@ -24,7 +24,7 @@ export function getContentTypeFromPath(pagePath: string): ValidatedContentType |
  * @returns Name of the first component alphabetically
  */
 export function getFirstComponent(components: CallToActionComponent[]): string {
-  return components.map((c) => c.name).sort()[0] || ''
+  return components.map(c => c.name).sort()[0] || ''
 }
 
 /**

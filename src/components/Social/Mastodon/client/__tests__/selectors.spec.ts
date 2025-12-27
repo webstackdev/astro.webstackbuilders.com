@@ -24,16 +24,25 @@ describe('MastodonModalElement selectors', () => {
         await element.updateComplete
       },
       assert: async ({ element }) => {
-        expect(element.modalId, 'MastodonModalElement should default modalId to mastodon-modal').toBe('mastodon-modal')
+        expect(
+          element.modalId,
+          'MastodonModalElement should default modalId to mastodon-modal'
+        ).toBe('mastodon-modal')
 
         const modal = getMastodonModalElement(element, element.modalId)
-        expect(modal, 'MastodonModalElement should render a modal root with the dynamic modalId').toBeInstanceOf(HTMLDivElement)
-        expect(modal.id, 'MastodonModalElement should set the modal root id to modalId').toBe('mastodon-modal')
+        expect(
+          modal,
+          'MastodonModalElement should render a modal root with the dynamic modalId'
+        ).toBeInstanceOf(HTMLDivElement)
+        expect(modal.id, 'MastodonModalElement should set the modal root id to modalId').toBe(
+          'mastodon-modal'
+        )
 
         const instanceInput = queryMastodonInstanceInput(element)
-        expect(instanceInput, 'MastodonModalElement should render an instance input with #mastodon-instance').toBeInstanceOf(
-          HTMLInputElement,
-        )
+        expect(
+          instanceInput,
+          'MastodonModalElement should render an instance input with #mastodon-instance'
+        ).toBeInstanceOf(HTMLInputElement)
       },
     })
   })

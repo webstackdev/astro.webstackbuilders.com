@@ -19,7 +19,7 @@ export type RateLimitWindowContext = {
 export async function withRateLimitWindow<T>(
   scope: string,
   identifier: string,
-  handler: (_context: RateLimitWindowContext) => Promise<T>,
+  handler: (_context: RateLimitWindowContext) => Promise<T>
 ): Promise<T> {
   return db.transaction(async tx => {
     const result = await tx
@@ -30,7 +30,9 @@ export async function withRateLimitWindow<T>(
 
     let currentWindow = result[0]
 
-    const resetWindow = async (input: RateLimitWindowResetInput): Promise<RateLimitWindowRecord> => {
+    const resetWindow = async (
+      input: RateLimitWindowResetInput
+    ): Promise<RateLimitWindowRecord> => {
       const upsertId = currentWindow?.id ?? randomUUID()
       const payload: RateLimitWindowRecord = {
         id: upsertId,

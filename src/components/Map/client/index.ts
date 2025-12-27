@@ -17,7 +17,17 @@ type MapInitContext = {
 
 async function geocodeAddress(address: string): Promise<{ lat: number; lng: number } | null> {
   const geocodingLibrary = await APILoader.importLibrary('geocoding')
-  const Geocoder = (geocodingLibrary as unknown as { Geocoder: new () => { geocode: (_request: { address: string }) => Promise<{ results?: Array<{ geometry?: { location?: { lat: () => number; lng: () => number } } }> }> } }).Geocoder
+  const Geocoder = (
+    geocodingLibrary as unknown as {
+      Geocoder: new () => {
+        geocode: (_request: {
+          address: string
+        }) => Promise<{
+          results?: Array<{ geometry?: { location?: { lat: () => number; lng: () => number } } }>
+        }>
+      }
+    }
+  ).Geocoder
 
   const geocoder = new Geocoder()
   const response = await geocoder.geocode({ address })
@@ -64,7 +74,7 @@ async function initAllMaps(): Promise<void> {
     return
   }
 
-  await Promise.all(maps.map((root) => initMapElement(root)))
+  await Promise.all(maps.map(root => initMapElement(root)))
 }
 
 export function registerCompanyMap(): void {
@@ -76,7 +86,7 @@ export function registerCompanyMap(): void {
   addScriptBreadcrumb(context)
 
   const init = () => {
-    initAllMaps().catch((error) => {
+    initAllMaps().catch(error => {
       handleScriptError(error, { scriptName: 'Map', operation: 'initAllMaps' })
     })
   }

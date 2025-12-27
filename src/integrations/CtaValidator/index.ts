@@ -156,7 +156,7 @@ export function callToActionValidator(
             logger.error('')
 
             throw new BuildError({
-              message: `CallToAction validation failed: Found multiple component instances on ${pagesWithErrors.length} page(s). Each CallToAction component should only appear once per page.`
+              message: `CallToAction validation failed: Found multiple component instances on ${pagesWithErrors.length} page(s). Each CallToAction component should only appear once per page.`,
             })
           }
 
@@ -171,7 +171,7 @@ export function callToActionValidator(
           }
           logger.error(`CallToAction Validator: Validation error: ${error}`)
           throw new BuildError({
-            message: `CallToAction validation failed: ${error}`
+            message: `CallToAction validation failed: ${error}`,
           })
         }
       },

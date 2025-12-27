@@ -166,7 +166,7 @@ export class NetworkStatusToastElement extends LitElement {
 }
 
 export const registerNetworkStatusToast = async (
-  tagName = NetworkStatusToastElement.registeredName,
+  tagName = NetworkStatusToastElement.registeredName
 ): Promise<void> => {
   defineCustomElement(tagName, NetworkStatusToastElement)
 }

@@ -17,14 +17,15 @@ const fixtureResponse = fixture as WebmentionResponse
 
 const createMockResponse = (
   overrides: Partial<Response> = {},
-  payload: WebmentionResponse = fixtureResponse,
-): Response => ({
-  ok: true,
-  status: 200,
-  statusText: 'OK',
-  json: async () => payload,
-  ...overrides,
-} as Response)
+  payload: WebmentionResponse = fixtureResponse
+): Response =>
+  ({
+    ok: true,
+    status: 200,
+    statusText: 'OK',
+    json: async () => payload,
+    ...overrides,
+  }) as Response
 
 describe('fetchWebmentions', () => {
   const targetUrl = 'https://example.com/blog/post'
@@ -70,7 +71,9 @@ describe('fetchWebmentions', () => {
     }
 
     expect(firstResult['wm-property']).toBe('mention-of')
-    expect(new Date(firstResult.published).getTime()).toBeLessThan(new Date(thirdResult.published).getTime())
+    expect(new Date(firstResult.published).getTime()).toBeLessThan(
+      new Date(thirdResult.published).getTime()
+    )
 
     const sanitizedHtml = secondResult.content?.value ?? ''
     expect(sanitizedHtml).toBe('<p>Love this post</p>')
@@ -92,8 +95,8 @@ describe('fetchWebmentions', () => {
               },
             } as Webmention,
           ],
-        },
-      ),
+        }
+      )
     )
 
     const injectedResults = await fetchAgain(secondTargetUrl)
@@ -106,7 +109,12 @@ describe('fetchWebmentions', () => {
   it('returns an empty array when the API responds with an error status', async () => {
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     fetchMock.mockResolvedValue(
-      createMockResponse({ ok: false, status: 500, statusText: 'Server Error', json: async () => ({}) }),
+      createMockResponse({
+        ok: false,
+        status: 500,
+        statusText: 'Server Error',
+        json: async () => ({}),
+      })
     )
     const { fetchWebmentions } = await importWebmentionsModule()
 
@@ -132,9 +140,10 @@ describe('fetchWebmentions', () => {
   it('deduplicates concurrent requests for the same URL', async () => {
     let resolveFetch: ((_response: Response) => void) | undefined
     fetchMock.mockImplementation(
-      () => new Promise<Response>((resolve) => {
-        resolveFetch = resolve
-      }),
+      () =>
+        new Promise<Response>(resolve => {
+          resolveFetch = resolve
+        })
     )
 
     const { fetchWebmentions } = await importWebmentionsModule()
@@ -226,12 +235,17 @@ describe('Webmention helpers', () => {
     const filtered = webmentionsByUrl(helperWebmentions, 'https://example.com/a')
 
     expect(filtered).toHaveLength(2)
-    expect(filtered.every((entry) => entry['wm-target'] === 'https://example.com/a')).toBe(true)
+    expect(filtered.every(entry => entry['wm-target'] === 'https://example.com/a')).toBe(true)
   })
 
   it('counts webmentions that match specific interaction types', async () => {
     const { webmentionCountByType } = await importWebmentionsModule()
-    const count = webmentionCountByType(helperWebmentions, 'https://example.com/a', 'mention-of', 'like-of')
+    const count = webmentionCountByType(
+      helperWebmentions,
+      'https://example.com/a',
+      'mention-of',
+      'like-of'
+    )
 
     expect(count).toBe(2)
   })

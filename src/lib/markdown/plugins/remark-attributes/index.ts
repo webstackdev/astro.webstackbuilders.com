@@ -238,7 +238,7 @@ function parseInlineAttributes(
     const parsed = parseAttr(normalized, 0, mdAttrConfig) as ParsedAttribute
     if (!parsed) return null
 
-    const eatenLength = (closeIndex + 2 - openIndex) + (hasSingleLeadingSpace ? 1 : 0)
+    const eatenLength = closeIndex + 2 - openIndex + (hasSingleLeadingSpace ? 1 : 0)
     parsed.eaten = text.slice(startIndex, startIndex + eatenLength)
     return parsed
   } catch {
@@ -484,19 +484,23 @@ const remarkAttr: Plugin<[RemarkAttrOptions?], Root> = (userConfig = {}) => {
 
   return tree => {
     // Process inline elements (emphasis, strong, delete, inlineCode, link)
-    visit(tree, ['emphasis', 'strong', 'delete', 'inlineCode', 'link', 'image'], (node, index, parent) => {
-      // Convert mdast node type to our element type
-      const elementType = NODE_TYPE_TO_ELEMENT[node.type]
-      if (elementType && config.elements.has(elementType)) {
-        processInlineElement(
-          node as Emphasis | Strong | Delete | InlineCode | Link | Image,
-          index ?? null,
-          parent,
-          config
-        )
+    visit(
+      tree,
+      ['emphasis', 'strong', 'delete', 'inlineCode', 'link', 'image'],
+      (node, index, parent) => {
+        // Convert mdast node type to our element type
+        const elementType = NODE_TYPE_TO_ELEMENT[node.type]
+        if (elementType && config.elements.has(elementType)) {
+          processInlineElement(
+            node as Emphasis | Strong | Delete | InlineCode | Link | Image,
+            index ?? null,
+            parent,
+            config
+          )
+        }
+        return SKIP // Don't visit children since we already processed them
       }
-      return SKIP // Don't visit children since we already processed them
-    })
+    )
 
     // Process headings with inline attributes
     if (

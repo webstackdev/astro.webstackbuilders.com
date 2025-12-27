@@ -42,5 +42,7 @@ export function updateConsentContext(hasAnalyticsConsent: boolean): void {
     timestamp: new Date().toISOString(),
   })
 
-  console.log(`🔒 Sentry PII ${hasAnalyticsConsent ? 'enabled' : 'disabled'} based on analytics consent`)
+  console.log(
+    `🔒 Sentry PII ${hasAnalyticsConsent ? 'enabled' : 'disabled'} based on analytics consent`
+  )
 }

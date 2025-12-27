@@ -40,7 +40,7 @@ const section = `Articles`
   section={section}
   showToc={article.data.showToc ?? true}
   tags={article.data.tags}
-  {...(article.data.readingTime && { readingTime: article.data.readingTime })}
+  {...article.data.readingTime && { readingTime: article.data.readingTime }}
 >
   {/** SLOT: hero-image */}
   {
@@ -96,7 +96,9 @@ const section = `Articles`
     slot="related-content"
   >
     <header class="mb-8">
-      <h2 class="text-2xl font-bold text-text" id="article-related-title">Other things I've written</h2>
+      <h2 class="text-2xl font-bold text-text" id="article-related-title">
+        Other things I've written
+      </h2>
     </header>
     <Carousel title="" variant="suggested" currentSlug={article.id} limit={5} type="articles" />
   </section>

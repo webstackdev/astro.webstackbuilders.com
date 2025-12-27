@@ -74,7 +74,6 @@ ${fields.join('\n')}
 `.trim()
 }
 
-
 export function getFormDataFromInput(input: Record<string, unknown>): ContactFormData {
   const formData: ContactFormData = {
     name: readInputString(input, 'name'),
@@ -156,7 +155,9 @@ export async function parseAttachments(form: FormData): Promise<FileAttachment[]
   return files
 }
 
-export async function parseAttachmentsFromInput(input: Record<string, unknown>): Promise<FileAttachment[]> {
+export async function parseAttachmentsFromInput(
+  input: Record<string, unknown>
+): Promise<FileAttachment[]> {
   const files: FileAttachment[] = []
   const allowedTypes = [
     'image/jpeg',

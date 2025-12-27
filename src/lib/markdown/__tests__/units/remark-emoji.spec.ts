@@ -52,7 +52,7 @@ Paragraph with :tada: emoji
 - List with :rocket:
 - Another :star:`
 
-  const html = await processIsolated({ markdown, plugin: remarkEmoji })
+      const html = await processIsolated({ markdown, plugin: remarkEmoji })
 
       expect(html).toContain('😄')
       expect(html).toContain('🎉')

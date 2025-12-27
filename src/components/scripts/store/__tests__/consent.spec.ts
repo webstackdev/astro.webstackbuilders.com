@@ -45,7 +45,10 @@ vi.mock('@components/scripts/utils/cookies', () => ({
 
 // Import mocked functions for spying
 import { getCookie, removeCookie, setCookie } from '@components/scripts/utils/cookies'
-import { deleteDataSubjectId, getOrCreateDataSubjectId } from '@components/scripts/utils/dataSubjectId'
+import {
+  deleteDataSubjectId,
+  getOrCreateDataSubjectId,
+} from '@components/scripts/utils/dataSubjectId'
 import { updateConsentContext } from '@components/scripts/sentry/helpers'
 
 vi.mock('@components/scripts/utils/dataSubjectId', () => ({
@@ -295,7 +298,7 @@ describe('Consent side effects', () => {
     document.body.appendChild(modal)
 
     let visibilityListener: ((_visible: boolean) => void) | undefined
-    vi.spyOn($isConsentBannerVisible, 'subscribe').mockImplementation((listener) => {
+    vi.spyOn($isConsentBannerVisible, 'subscribe').mockImplementation(listener => {
       visibilityListener = listener
       return () => {}
     })
@@ -321,7 +324,7 @@ describe('Consent side effects', () => {
     let consentListener:
       | ((_state: ConsentState, _oldState?: ConsentState) => Promise<void> | void)
       | undefined
-    vi.spyOn($consent, 'subscribe').mockImplementation((listener) => {
+    vi.spyOn($consent, 'subscribe').mockImplementation(listener => {
       consentListener = listener
       return () => {}
     })
@@ -381,7 +384,7 @@ describe('Consent side effects', () => {
     let consentListener:
       | ((_state: ConsentState, _oldState?: ConsentState) => Promise<void> | void)
       | undefined
-    vi.spyOn($consent, 'subscribe').mockImplementation((listener) => {
+    vi.spyOn($consent, 'subscribe').mockImplementation(listener => {
       consentListener = listener
       return () => {}
     })
@@ -433,7 +436,7 @@ describe('Consent side effects', () => {
     let consentListener:
       | ((_state: ConsentState, _oldState?: ConsentState) => Promise<void> | void)
       | undefined
-    vi.spyOn($consent, 'subscribe').mockImplementation((listener) => {
+    vi.spyOn($consent, 'subscribe').mockImplementation(listener => {
       consentListener = listener
       return () => {}
     })
@@ -472,7 +475,7 @@ describe('Consent side effects', () => {
 
   it('deletes the data subject id when functional consent is revoked', () => {
     let functionalListener: ((_hasConsent: boolean) => void) | undefined
-    vi.spyOn($hasFunctionalConsent, 'subscribe').mockImplementation((listener) => {
+    vi.spyOn($hasFunctionalConsent, 'subscribe').mockImplementation(listener => {
       functionalListener = listener
       return () => {}
     })
@@ -493,7 +496,7 @@ describe('Consent side effects', () => {
 
   it('updates the Sentry consent context when analytics consent changes', async () => {
     let analyticsListener: ((_hasConsent: boolean) => void) | undefined
-    vi.spyOn($hasAnalyticsConsent, 'subscribe').mockImplementation((listener) => {
+    vi.spyOn($hasAnalyticsConsent, 'subscribe').mockImplementation(listener => {
       analyticsListener = listener
       return () => {}
     })

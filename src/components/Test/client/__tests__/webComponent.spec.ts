@@ -21,7 +21,7 @@ describe('TestWebComponent class behavior', () => {
   }
 
   const runComponentRender = async (
-    assertion: (_context: { element: TestWebComponentInstance }) => Promise<void> | void,
+    assertion: (_context: { element: TestWebComponentInstance }) => Promise<void> | void
   ): Promise<void> => {
     await executeRender<TestComponentModule>({
       container,

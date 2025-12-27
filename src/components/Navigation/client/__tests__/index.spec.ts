@@ -55,7 +55,7 @@ describe('NavigationElement web component behavior', () => {
   })
 
   const renderNavigation = async (
-    assertion: (_context: { element: NavigationComponent }) => Promise<void> | void,
+    assertion: (_context: { element: NavigationComponent }) => Promise<void> | void
   ) => {
     await executeRender<NavigationComponentModule>({
       container,

@@ -14,7 +14,8 @@ describe('CodeTabs web component', () => {
       })
 
       try {
-        const { registerCodeTabsWebComponent } = await import('@components/Code/CodeTabs/client/index')
+        const { registerCodeTabsWebComponent } =
+          await import('@components/Code/CodeTabs/client/index')
         expect(() => registerCodeTabsWebComponent()).not.toThrow()
       } finally {
         Object.defineProperty(globalThis, 'customElements', {
@@ -44,7 +45,8 @@ describe('CodeTabs web component', () => {
       })
 
       try {
-        const { registerCodeTabsWebComponent } = await import('@components/Code/CodeTabs/client/index')
+        const { registerCodeTabsWebComponent } =
+          await import('@components/Code/CodeTabs/client/index')
         registerCodeTabsWebComponent()
 
         const element = window.document.createElement('code-tabs')
@@ -55,7 +57,9 @@ describe('CodeTabs web component', () => {
         element.appendChild(pre)
         window.document.body.appendChild(element)
 
-        const copyButton = element.querySelector('button[aria-label="Copy"]') as HTMLButtonElement | null
+        const copyButton = element.querySelector(
+          'button[aria-label="Copy"]'
+        ) as HTMLButtonElement | null
         expect(copyButton, 'CodeTabs should render a copy button').toBeTruthy()
 
         copyButton?.click()
@@ -80,7 +84,8 @@ describe('CodeTabs web component', () => {
         value: undefined,
       })
 
-      const { registerCodeTabsWebComponent } = await import('@components/Code/CodeTabs/client/index')
+      const { registerCodeTabsWebComponent } =
+        await import('@components/Code/CodeTabs/client/index')
       registerCodeTabsWebComponent()
 
       const element = window.document.createElement('code-tabs')
@@ -89,7 +94,9 @@ describe('CodeTabs web component', () => {
       element.appendChild(pre)
       window.document.body.appendChild(element)
 
-      const copyButton = element.querySelector('button[aria-label="Copy"]') as HTMLButtonElement | null
+      const copyButton = element.querySelector(
+        'button[aria-label="Copy"]'
+      ) as HTMLButtonElement | null
       expect(copyButton, 'CodeTabs should render a copy button').toBeTruthy()
 
       expect(() => copyButton?.click()).not.toThrow()

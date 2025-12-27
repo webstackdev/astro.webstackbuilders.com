@@ -2,16 +2,8 @@
  * Convert various errors to ClientScriptError
  */
 import { isString } from '../assertions'
-import {
-  isClientScriptError,
-  isError,
-  isErrorEvent,
-  isPromiseRejectionEvent,
-} from './assertions'
-import {
-  type IClientScriptError,
-  type ClientScriptErrorParams,
-} from './@types/ClientScriptError'
+import { isClientScriptError, isError, isErrorEvent, isPromiseRejectionEvent } from './assertions'
+import { type IClientScriptError, type ClientScriptErrorParams } from './@types/ClientScriptError'
 
 /**
  * Helper function to create ClientScriptErrorParams without undefined values
@@ -135,7 +127,9 @@ export const convertFromMessageObject = (input: MessageLikeObject): ClientScript
 /**
  * Convert ClientScriptError to ClientScriptErrorParams
  */
-export const convertFromClientScriptError = (input: IClientScriptError): ClientScriptErrorParams => {
+export const convertFromClientScriptError = (
+  input: IClientScriptError
+): ClientScriptErrorParams => {
   const { fileName, lineNumber, columnNumber } = extractMetadaFromStackTrace(input['stack'])
   return createErrorParams({
     message: input.message,

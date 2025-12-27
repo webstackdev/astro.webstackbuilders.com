@@ -48,9 +48,15 @@ export const $visibility = persistentAtom<VisibilityState>('visibility', default
 // COMPUTED STORES
 // ============================================================================
 
-export const $isTableOfContentsVisible = computed($visibility, (state) => state.tableOfContentsVisible)
+export const $isTableOfContentsVisible = computed(
+  $visibility,
+  state => state.tableOfContentsVisible
+)
 
-export const $isTableOfContentsEnabled = computed($visibility, (state) => state.tableOfContentsEnabled)
+export const $isTableOfContentsEnabled = computed(
+  $visibility,
+  state => state.tableOfContentsEnabled
+)
 
 // ============================================================================
 // ACTIONS
@@ -59,7 +65,10 @@ export const $isTableOfContentsEnabled = computed($visibility, (state) => state.
 /**
  * Show the consent banner
  */
-function updateVisibilityState(operation: string, updater: (_current: VisibilityState) => VisibilityState): void {
+function updateVisibilityState(
+  operation: string,
+  updater: (_current: VisibilityState) => VisibilityState
+): void {
   try {
     const current = $visibility.get()
     const next = updater(current)
@@ -73,7 +82,7 @@ function updateVisibilityState(operation: string, updater: (_current: Visibility
 }
 
 export function showTableOfContents(): void {
-  updateVisibilityState('showTableOfContents', (current) => {
+  updateVisibilityState('showTableOfContents', current => {
     if (!current.tableOfContentsEnabled) {
       return current
     }
@@ -86,14 +95,14 @@ export function showTableOfContents(): void {
 }
 
 export function hideTableOfContents(): void {
-  updateVisibilityState('hideTableOfContents', (current) => ({
+  updateVisibilityState('hideTableOfContents', current => ({
     ...current,
     tableOfContentsVisible: false,
   }))
 }
 
 export function toggleTableOfContents(): void {
-  updateVisibilityState('toggleTableOfContents', (current) => {
+  updateVisibilityState('toggleTableOfContents', current => {
     if (!current.tableOfContentsEnabled) {
       return current
     }
@@ -106,7 +115,7 @@ export function toggleTableOfContents(): void {
 }
 
 export function disableTableOfContents(): void {
-  updateVisibilityState('disableTableOfContents', (current) => ({
+  updateVisibilityState('disableTableOfContents', current => ({
     ...current,
     tableOfContentsEnabled: false,
     tableOfContentsVisible: false,
@@ -114,7 +123,7 @@ export function disableTableOfContents(): void {
 }
 
 export function enableTableOfContents(): void {
-  updateVisibilityState('enableTableOfContents', (current) => ({
+  updateVisibilityState('enableTableOfContents', current => ({
     ...current,
     tableOfContentsEnabled: true,
   }))

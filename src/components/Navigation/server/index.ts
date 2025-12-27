@@ -1,4 +1,3 @@
-
 // Create an array with (nested) navigation objects
 export const navigationItems = [
   { url: '/about', title: 'About' },

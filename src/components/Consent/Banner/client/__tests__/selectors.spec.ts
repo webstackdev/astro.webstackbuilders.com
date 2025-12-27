@@ -1,14 +1,10 @@
-
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import { TestError } from '@test/errors'
 import ConsentBanner from '@components/Consent/Banner/index.astro'
 import type { ConsentBannerElement } from '@components/Consent/Banner/client'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
-import {
-  executeRender,
-  withJsdomEnvironment,
-} from '@test/unit/helpers/litRuntime'
+import { executeRender, withJsdomEnvironment } from '@test/unit/helpers/litRuntime'
 import {
   getConsentWrapper,
   getConsentCloseBtn,
@@ -49,9 +45,7 @@ const waitForBannerReady = async (element: ConsentBannerElement) => {
   })
 }
 
-const renderConsentBanner = async (
-  assertion: () => Promise<void> | void,
-) => {
+const renderConsentBanner = async (assertion: () => Promise<void> | void) => {
   const container = await AstroContainer.create()
 
   await executeRender<ConsentBannerModule>({

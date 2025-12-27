@@ -2,10 +2,18 @@ import emailValidator from 'email-validator'
 import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
 import { defineAction } from 'astro:actions'
 import { z } from 'astro:schema'
-import { getConvertkitApiKey, getPrivacyPolicyVersion, isProd } from '@actions/utils/environment/environmentActions'
+import {
+  getConvertkitApiKey,
+  getPrivacyPolicyVersion,
+  isProd,
+} from '@actions/utils/environment/environmentActions'
 import { checkRateLimit, rateLimiters } from '@actions/utils/rateLimit'
 import { buildRequestFingerprint, createRateLimitIdentifier } from '@actions/utils/requestContext'
-import { ActionsFunctionError, handleActionsFunctionError, throwActionError } from '@actions/utils/errors'
+import {
+  ActionsFunctionError,
+  handleActionsFunctionError,
+  throwActionError,
+} from '@actions/utils/errors'
 import { createConsentRecord, markConsentRecordsVerified } from '@actions/gdpr/domain/consentStore'
 import { createPendingSubscription, confirmSubscription } from './_action'
 import { sendConfirmationEmail, sendWelcomeEmail } from '@actions/newsletter/entities'
@@ -18,8 +26,8 @@ type NewsletterFormData = {
 }
 
 type ConvertKitSubscriber = {
-  'email_address': string
-  'first_name'?: string
+  email_address: string
+  first_name?: string
   state?: 'active' | 'inactive'
   fields?: Record<string, string>
 }
@@ -27,10 +35,10 @@ type ConvertKitSubscriber = {
 type ConvertKitResponse = {
   subscriber: {
     id: number
-    'first_name': string | null
-    'email_address': string
+    first_name: string | null
+    email_address: string
     state: string
-    'created_at': string
+    created_at: string
     fields: Record<string, string>
   }
 }
@@ -63,16 +71,16 @@ export async function subscribeToConvertKit(data: NewsletterFormData): Promise<C
       subscriber: {
         id: 999999,
         state: 'active',
-        'email_address': data.email,
-        'first_name': data.firstName || null,
-        'created_at': new Date().toISOString(),
+        email_address: data.email,
+        first_name: data.firstName || null,
+        created_at: new Date().toISOString(),
         fields: {},
       },
     }
   }
 
   const subscriberData: ConvertKitSubscriber = {
-    'email_address': data.email,
+    email_address: data.email,
     state: 'active',
   }
 
@@ -94,7 +102,10 @@ export async function subscribeToConvertKit(data: NewsletterFormData): Promise<C
   if (response.status === 401) {
     const errorData = responseData as ConvertKitErrorResponse
     console.error('ConvertKit API authentication failed:', errorData.errors)
-    throw new ActionsFunctionError('Newsletter service configuration error. Please contact support.', { status: 502 })
+    throw new ActionsFunctionError(
+      'Newsletter service configuration error. Please contact support.',
+      { status: 502 }
+    )
   }
 
   if (response.status === 422) {
@@ -106,7 +117,9 @@ export async function subscribeToConvertKit(data: NewsletterFormData): Promise<C
     return responseData as ConvertKitResponse
   }
 
-  throw new ActionsFunctionError('An unexpected error occurred. Please try again later.', { status: 502 })
+  throw new ActionsFunctionError('An unexpected error occurred. Please try again later.', {
+    status: 502,
+  })
 }
 
 const subscribeSchema = z.object({
@@ -126,7 +139,7 @@ export const newsletter = {
     input: subscribeSchema,
     handler: async (
       body: z.infer<typeof subscribeSchema>,
-      context,
+      context
     ): Promise<{ success: true; message: string; requiresConfirmation: true }> => {
       const route = '/_actions/newsletter/subscribe'
 
@@ -150,7 +163,10 @@ export const newsletter = {
         const validatedEmail = validateEmail(body.email)
 
         if (!body.consentGiven) {
-          throw new ActionsFunctionError('You must consent to receive marketing emails to subscribe.', { status: 400 })
+          throw new ActionsFunctionError(
+            'You must consent to receive marketing emails to subscribe.',
+            { status: 400 }
+          )
         }
 
         const userAgent = context.request.headers.get('user-agent') || 'unknown'
@@ -168,7 +184,10 @@ export const newsletter = {
           purposes: ['marketing'],
           source: 'newsletter_form',
           userAgent,
-          ipAddress: context.clientAddress && context.clientAddress !== 'unknown' ? context.clientAddress : null,
+          ipAddress:
+            context.clientAddress && context.clientAddress !== 'unknown'
+              ? context.clientAddress
+              : null,
           privacyPolicyVersion: getPrivacyPolicyVersion(),
           consentText: null,
           verified: false,
@@ -179,7 +198,8 @@ export const newsletter = {
           ...(body.firstName && { firstName: body.firstName }),
           DataSubjectId: subjectId,
           userAgent,
-          ...(context.clientAddress && context.clientAddress !== 'unknown' && { ipAddress: context.clientAddress }),
+          ...(context.clientAddress &&
+            context.clientAddress !== 'unknown' && { ipAddress: context.clientAddress }),
           source: 'newsletter_form',
         })
 
@@ -202,7 +222,14 @@ export const newsletter = {
   confirm: defineAction({
     accept: 'json',
     input: confirmSchema,
-    handler: async (input): Promise<{ success: boolean; status: 'success' | 'expired'; email?: string; message: string }> => {
+    handler: async (
+      input
+    ): Promise<{
+      success: boolean
+      status: 'success' | 'expired'
+      email?: string
+      message: string
+    }> => {
       const token = input.token
       const subscription = await confirmSubscription(token)
 
@@ -219,7 +246,10 @@ export const newsletter = {
       try {
         await sendWelcomeEmail(subscription.email, subscription.firstName)
       } catch (emailError) {
-        handleActionsFunctionError(emailError, { route: '/_actions/newsletter/confirm', operation: 'sendWelcomeEmail' })
+        handleActionsFunctionError(emailError, {
+          route: '/_actions/newsletter/confirm',
+          operation: 'sendWelcomeEmail',
+        })
       }
 
       try {
@@ -228,7 +258,10 @@ export const newsletter = {
           ...(subscription.firstName ? { firstName: subscription.firstName } : {}),
         })
       } catch (convertKitError) {
-        handleActionsFunctionError(convertKitError, { route: '/_actions/newsletter/confirm', operation: 'subscribeToConvertKit' })
+        handleActionsFunctionError(convertKitError, {
+          route: '/_actions/newsletter/confirm',
+          operation: 'subscribeToConvertKit',
+        })
       }
 
       return {

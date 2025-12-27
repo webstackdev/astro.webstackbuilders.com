@@ -52,5 +52,7 @@ export const queryConsentFocusableElements = (scope: ParentNode): HTMLElement[] 
     'a[href], button, textarea, input[type="text"], input[type="radio"], input[type="checkbox"], select, [tabindex]:not([tabindex="-1"])'
   )
 
-  return Array.from(focusableElements).filter((node): node is HTMLElement => node instanceof HTMLElement)
+  return Array.from(focusableElements).filter(
+    (node): node is HTMLElement => node instanceof HTMLElement
+  )
 }

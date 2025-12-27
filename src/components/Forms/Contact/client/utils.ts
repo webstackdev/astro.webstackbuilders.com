@@ -4,7 +4,10 @@ const WARNING_COLOR = 'var(--color-warning)'
 const ERROR_COLOR = 'var(--color-danger)'
 const DEFAULT_COLOR = 'var(--color-text-offset)'
 
-export const initCharacterCounter = (elements: ContactFormElements, config: ContactFormConfig): void => {
+export const initCharacterCounter = (
+  elements: ContactFormElements,
+  config: ContactFormConfig
+): void => {
   elements.messageTextarea.addEventListener('input', () => {
     const count = elements.messageTextarea.value.length
     elements.charCount.textContent = count.toString()

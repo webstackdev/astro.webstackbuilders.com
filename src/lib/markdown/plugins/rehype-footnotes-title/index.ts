@@ -6,7 +6,9 @@ function getIdentifierFromBackrefHref(href: unknown): string | null {
 
   const trimmed = href.startsWith('#') ? href.slice(1) : href
 
-  const withoutClobberPrefix = trimmed.startsWith('user-content-') ? trimmed.slice('user-content-'.length) : trimmed
+  const withoutClobberPrefix = trimmed.startsWith('user-content-')
+    ? trimmed.slice('user-content-'.length)
+    : trimmed
 
   const fnrefPrefix = 'fnref-'
   const prefixIndex = withoutClobberPrefix.indexOf(fnrefPrefix)
@@ -32,7 +34,8 @@ export function rehypeFootnotesTitle(titleTemplate: RehypeFootnotesTitleOptions 
       const isBackref =
         'dataFootnoteBackref' in properties ||
         'data-footnote-backref' in properties ||
-        (Array.isArray(properties['className']) && properties['className'].includes('footnote-backref'))
+        (Array.isArray(properties['className']) &&
+          properties['className'].includes('footnote-backref'))
 
       if (!isBackref) return
 

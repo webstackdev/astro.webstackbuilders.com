@@ -1,4 +1,3 @@
-
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import Footer from '@components/Footer/index.astro'
@@ -25,7 +24,7 @@ describe('Footer selector utilities', () => {
   })
 
   const renderFooter = async (
-    assertion: (_context: { element: FooterElement }) => Promise<void> | void,
+    assertion: (_context: { element: FooterElement }) => Promise<void> | void
   ) => {
     await executeRender<FooterComponentModule>({
       container,
@@ -63,7 +62,7 @@ describe('Footer selector utilities', () => {
       element.querySelector(SELECTORS.hireMeAnchor)?.remove()
 
       expect(() => getHireMeAnchorElement(element)).toThrow(
-        'Footer anchor for "Hire Me" element, selector: #page-footer__hire-me-anchor',
+        'Footer anchor for "Hire Me" element, selector: #page-footer__hire-me-anchor'
       )
     })
   })

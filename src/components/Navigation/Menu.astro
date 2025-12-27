@@ -22,15 +22,22 @@ const activeMenuItem = (url: string) => {
       'main-nav-menu',
       styles.mainNavMenu,
       'w-full font-heading text-[0.85rem] uppercase tracking-[0.22em] text-primary',
-      'lg:relative lg:text-[0.8rem] lg:tracking-[0.12em]'
+      'lg:relative lg:text-[0.8rem] lg:tracking-[0.12em]',
     ]}
     tabindex="-1"
   >
     {
-      navigationItems.map((navItem) => {
+      navigationItems.map(navItem => {
         const isActive = isActiveMenuItem(navItem.url)
         return (
-          <li class:list={['main-nav-item', styles.mainNavItem, 'lg:relative', ...activeMenuItem(navItem.url)]}>
+          <li
+            class:list={[
+              'main-nav-item',
+              styles.mainNavItem,
+              'lg:relative',
+              ...activeMenuItem(navItem.url),
+            ]}
+          >
             <a
               href={navItem.url}
               aria-current={isActive ? 'page' : undefined}

@@ -1,4 +1,3 @@
-
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderConsentCheckbox } from '@components/Consent/Checkbox/client/__tests__/testUtils'
 import { withJsdomEnvironment } from '@test/unit/helpers/litRuntime'
@@ -10,7 +9,7 @@ vi.mock('@components/scripts/store', () => {
 
   const emitFunctionalConsent = (value: boolean) => {
     functionalConsent = value
-    listeners.forEach((listener) => listener(functionalConsent))
+    listeners.forEach(listener => listener(functionalConsent))
   }
 
   const subscribeToFunctionalConsent = vi.fn((listener: (_value: boolean) => void) => {
@@ -58,11 +57,15 @@ describe('ConsentCheckboxElement', () => {
       expect(checkbox, 'Consent checkbox input should exist').toBeTruthy()
 
       const labelId = checkbox!.getAttribute('aria-labelledby')
-      expect(labelId, 'Consent checkbox should reference its label via aria-labelledby').toBe('gdpr-consent-label')
+      expect(labelId, 'Consent checkbox should reference its label via aria-labelledby').toBe(
+        'gdpr-consent-label'
+      )
 
       const label = element.querySelector<HTMLElement>(`#${labelId}`)
       expect(label, 'Consent checkbox label element should exist').toBeTruthy()
-      expect(label!.textContent, 'Consent checkbox label text should be present').toContain('Consent to data processing')
+      expect(label!.textContent, 'Consent checkbox label text should be present').toContain(
+        'Consent to data processing'
+      )
     })
   })
 
@@ -74,10 +77,10 @@ describe('ConsentCheckboxElement', () => {
       checkbox!.checked = true
       checkbox!.dispatchEvent(new window.Event('change', { bubbles: true }))
 
-      expect(updateConsentMock, 'Checking the box should update functional consent').toHaveBeenCalledWith(
-        'functional',
-        true,
-      )
+      expect(
+        updateConsentMock,
+        'Checking the box should update functional consent'
+      ).toHaveBeenCalledWith('functional', true)
     })
   })
 
@@ -91,10 +94,10 @@ describe('ConsentCheckboxElement', () => {
       checkbox!.checked = false
       checkbox!.dispatchEvent(new window.Event('change', { bubbles: true }))
 
-      expect(updateConsentMock, 'Unchecking the box should revoke functional consent').toHaveBeenLastCalledWith(
-        'functional',
-        false,
-      )
+      expect(
+        updateConsentMock,
+        'Unchecking the box should revoke functional consent'
+      ).toHaveBeenLastCalledWith('functional', false)
     })
   })
 
@@ -104,7 +107,10 @@ describe('ConsentCheckboxElement', () => {
     await renderConsentCheckbox(({ element }) => {
       const checkbox = element.querySelector<HTMLInputElement>('input[type="checkbox"]')
       expect(checkbox, 'Consent checkbox input should exist').toBeTruthy()
-      expect(checkbox!.checked, 'Consent checkbox should pre-check when functional consent is true').toBe(true)
+      expect(
+        checkbox!.checked,
+        'Consent checkbox should pre-check when functional consent is true'
+      ).toBe(true)
     })
   })
 
@@ -117,7 +123,9 @@ describe('ConsentCheckboxElement', () => {
       expect(checkbox!.checked, 'Consent checkbox should reflect external consent=true').toBe(true)
 
       consentStoreMock.__test.emitFunctionalConsent(false)
-      expect(checkbox!.checked, 'Consent checkbox should reflect external consent=false').toBe(false)
+      expect(checkbox!.checked, 'Consent checkbox should reflect external consent=false').toBe(
+        false
+      )
     })
   })
 
@@ -134,13 +142,16 @@ describe('ConsentCheckboxElement', () => {
       const submitEvent = new window.Event('submit', { cancelable: true })
       form!.dispatchEvent(submitEvent)
 
-      expect(submitEvent.defaultPrevented, 'Submit should be blocked when consent is missing').toBe(true)
+      expect(submitEvent.defaultPrevented, 'Submit should be blocked when consent is missing').toBe(
+        true
+      )
       expect(errorElement!.textContent, 'Error message should mention missing consent').toContain(
-        'You must consent to data processing',
+        'You must consent to data processing'
       )
-      expect(checkbox!.getAttribute('aria-invalid'), 'aria-invalid should be set when submission is blocked').toBe(
-        'true',
-      )
+      expect(
+        checkbox!.getAttribute('aria-invalid'),
+        'aria-invalid should be set when submission is blocked'
+      ).toBe('true')
     })
   })
 
@@ -156,7 +167,10 @@ describe('ConsentCheckboxElement', () => {
       const submitEvent = new window.Event('submit', { cancelable: true })
       form!.dispatchEvent(submitEvent)
 
-      expect(submitEvent.defaultPrevented, 'Submit should not be blocked when consent is granted').toBe(false)
+      expect(
+        submitEvent.defaultPrevented,
+        'Submit should not be blocked when consent is granted'
+      ).toBe(false)
     })
   })
 
@@ -170,14 +184,18 @@ describe('ConsentCheckboxElement', () => {
 
       const submitEvent = new window.Event('submit', { cancelable: true })
       form!.dispatchEvent(submitEvent)
-      expect(checkbox!.getAttribute('aria-invalid'), 'aria-invalid should be true after blocked submit').toBe('true')
+      expect(
+        checkbox!.getAttribute('aria-invalid'),
+        'aria-invalid should be true after blocked submit'
+      ).toBe('true')
 
       checkbox!.checked = true
       checkbox!.dispatchEvent(new window.Event('change', { bubbles: true }))
 
-      expect(checkbox!.getAttribute('aria-invalid'), 'aria-invalid should clear after user grants consent').toBe(
-        'false',
-      )
+      expect(
+        checkbox!.getAttribute('aria-invalid'),
+        'aria-invalid should clear after user grants consent'
+      ).toBe('false')
     })
   })
 
@@ -197,56 +215,66 @@ describe('ConsentCheckboxElement', () => {
   })
 
   it('continues to operate when the checkbox is not inside a form', async () => {
-    await renderConsentCheckbox(({ element, window }) => {
-      const form = element.closest('form')
-      const checkbox = element.querySelector<HTMLInputElement>('input[type="checkbox"]')
+    await renderConsentCheckbox(
+      ({ element, window }) => {
+        const form = element.closest('form')
+        const checkbox = element.querySelector<HTMLInputElement>('input[type="checkbox"]')
 
-      expect(form, 'Fixture should not wrap the component in a form').toBeNull()
-      expect(checkbox, 'Consent checkbox input should exist').toBeTruthy()
+        expect(form, 'Fixture should not wrap the component in a form').toBeNull()
+        expect(checkbox, 'Consent checkbox input should exist').toBeTruthy()
 
-      checkbox!.checked = true
-      checkbox!.dispatchEvent(new window.Event('change', { bubbles: true }))
+        checkbox!.checked = true
+        checkbox!.dispatchEvent(new window.Event('change', { bubbles: true }))
 
-      expect(updateConsentMock, 'Checking the box should update consent even outside a form').toHaveBeenCalledWith(
-        'functional',
-        true,
-      )
-    }, { wrapInForm: false })
+        expect(
+          updateConsentMock,
+          'Checking the box should update consent even outside a form'
+        ).toHaveBeenCalledWith('functional', true)
+      },
+      { wrapInForm: false }
+    )
   })
 })
 
 describe('ConsentCheckbox web component module contract', () => {
   it('exposes metadata for registration', async () => {
     await withJsdomEnvironment(async () => {
-      const { webComponentModule, ConsentCheckboxElement } = await import('@components/Consent/Checkbox/client')
-      expect(webComponentModule.registeredName, 'Module should export the registered tag name').toBe(
-        'consent-checkbox',
-      )
+      const { webComponentModule, ConsentCheckboxElement } =
+        await import('@components/Consent/Checkbox/client')
+      expect(
+        webComponentModule.registeredName,
+        'Module should export the registered tag name'
+      ).toBe('consent-checkbox')
       expect(webComponentModule.componentCtor, 'Module should export the element constructor').toBe(
-        ConsentCheckboxElement,
+        ConsentCheckboxElement
       )
     })
   })
 
   it('registers the custom element when window is available', async () => {
     await withJsdomEnvironment(async ({ window }) => {
-      const { registerConsentCheckboxWebComponent, ConsentCheckboxElement } = await import('@components/Consent/Checkbox/client')
+      const { registerConsentCheckboxWebComponent, ConsentCheckboxElement } =
+        await import('@components/Consent/Checkbox/client')
       const uniqueTag = `consent-checkbox-${Math.random().toString(36).slice(2)}`
 
       const originalGet = window.customElements.get.bind(window.customElements)
-      const getSpy = vi.spyOn(window.customElements, 'get').mockImplementation((tagName: string) => {
-        if (tagName === uniqueTag) {
-          return undefined
-        }
-        return originalGet(tagName)
-      })
-      const defineSpy = vi.spyOn(window.customElements, 'define').mockImplementation(() => undefined)
+      const getSpy = vi
+        .spyOn(window.customElements, 'get')
+        .mockImplementation((tagName: string) => {
+          if (tagName === uniqueTag) {
+            return undefined
+          }
+          return originalGet(tagName)
+        })
+      const defineSpy = vi
+        .spyOn(window.customElements, 'define')
+        .mockImplementation(() => undefined)
 
       registerConsentCheckboxWebComponent(uniqueTag)
 
       expect(defineSpy, 'Registration should define the custom element tag').toHaveBeenCalledWith(
         uniqueTag,
-        ConsentCheckboxElement,
+        ConsentCheckboxElement
       )
 
       getSpy.mockRestore()

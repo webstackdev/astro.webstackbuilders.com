@@ -9,9 +9,13 @@ type SearchResultsModule = WebComponentModule<SearchResultsElementInstance>
 
 type ActionResult<TData> = { data?: TData; error?: { message?: string } }
 
-const searchQueryMock = vi.fn<
-  (_input: { q: string; limit?: number }) => Promise<ActionResult<{ hits: { title: string; url: string; snippet?: string }[] }>>
->()
+const searchQueryMock =
+  vi.fn<
+    (_input: {
+      q: string
+      limit?: number
+    }) => Promise<ActionResult<{ hits: { title: string; url: string; snippet?: string }[] }>>
+  >()
 
 vi.mock('astro:actions', () => ({
   actions: {
@@ -36,7 +40,10 @@ describe('SearchResults web component', () => {
 
   const runComponentRender = async (
     query: string,
-    assertion: (_context: { element: SearchResultsElementInstance; window: Window & typeof globalThis }) => Promise<void> | void,
+    assertion: (_context: {
+      element: SearchResultsElementInstance
+      window: Window & typeof globalThis
+    }) => Promise<void> | void
   ): Promise<void> => {
     await executeRender<SearchResultsModule>({
       container,
@@ -73,7 +80,11 @@ describe('SearchResults web component', () => {
     searchQueryMock.mockResolvedValue({
       data: {
         hits: [
-          { title: 'TypeScript Best Practices', url: '/articles/typescript-best-practices', snippet: '...' },
+          {
+            title: 'TypeScript Best Practices',
+            url: '/articles/typescript-best-practices',
+            snippet: '...',
+          },
           { title: 'Services', url: '/services', snippet: '...' },
         ],
       },
@@ -84,8 +95,12 @@ describe('SearchResults web component', () => {
 
       expect(searchQueryMock).toHaveBeenCalledWith({ q: 'typescript', limit: 20 })
 
-      const links = Array.from(element.querySelectorAll('[data-search-results] a')) as HTMLAnchorElement[]
-      expect(links.some(link => link.getAttribute('href') === '/articles/typescript-best-practices')).toBe(true)
+      const links = Array.from(
+        element.querySelectorAll('[data-search-results] a')
+      ) as HTMLAnchorElement[]
+      expect(
+        links.some(link => link.getAttribute('href') === '/articles/typescript-best-practices')
+      ).toBe(true)
 
       const meta = element.querySelector('[data-search-meta]')
       expect(meta?.textContent).toContain('result')

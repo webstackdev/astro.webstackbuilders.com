@@ -68,9 +68,7 @@ if (!tagEntry) {
 }
 
 const allTags = await getCollection('tags')
-const tagDisplayNameBySlug = Object.fromEntries(
-  allTags.map(t => [t.data.slug, t.data.displayName])
-)
+const tagDisplayNameBySlug = Object.fromEntries(allTags.map(t => [t.data.slug, t.data.displayName]))
 
 const { Content: TagContent } = await render(tagEntry)
 
@@ -119,7 +117,9 @@ const section = 'Tags'
     <header class="mb-12">
       <div class="flex flex-col gap-6 sm:flex-row sm:items-start">
         <div class="shrink-0">
-          <div class="relative w-28 sm:w-32 md:w-40 aspect-square overflow-hidden rounded-2xl bg-bg-offset">
+          <div
+            class="relative w-28 sm:w-32 md:w-40 aspect-square overflow-hidden rounded-2xl bg-bg-offset"
+          >
             <img
               src={tagEntry.data.cover.src}
               width={tagEntry.data.cover.width}
@@ -144,9 +144,7 @@ const section = 'Tags'
           </div>
 
           <nav class="mt-6">
-            <a href="/tags" class="text-primary hover:underline">
-              ← Browse all tags
-            </a>
+            <a href="/tags" class="text-primary hover:underline"> ← Browse all tags </a>
           </nav>
         </div>
       </div>
@@ -159,7 +157,9 @@ const section = 'Tags'
             class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12 mb-12"
             aria-labelledby="tagged-content-title"
           >
-            <h2 class="sr-only" id="tagged-content-title">Tagged content</h2>
+            <h2 class="sr-only" id="tagged-content-title">
+              Tagged content
+            </h2>
             {paginatedContent.map(item => {
               const typeMeta = typeMetadata[item.type]
               const href = `/${typeMeta.hrefBase}/${item.id}`
@@ -192,10 +192,7 @@ const section = 'Tags'
                       >
                         {typeMeta.label}
                       </span>
-                      <time
-                        class="text-text-muted"
-                        datetime={item.data.publishDate.toISOString()}
-                      >
+                      <time class="text-text-muted" datetime={item.data.publishDate.toISOString()}>
                         {item.data.publishDate.toLocaleDateString('en-US', {
                           year: 'numeric',
                           month: 'long',
@@ -229,7 +226,10 @@ const section = 'Tags'
 
                       {/* Additional tags */}
                       {item.data.tags && item.data.tags.length > 1 && (
-                        <ul class="flex flex-wrap gap-2 list-none p-0 m-0" aria-label="Related tags">
+                        <ul
+                          class="flex flex-wrap gap-2 list-none p-0 m-0"
+                          aria-label="Related tags"
+                        >
                           {item.data.tags
                             .filter((t: string) => t !== tag)
                             .slice(0, 3)
@@ -273,9 +273,7 @@ const section = 'Tags'
                   >
                     1
                   </a>
-                  {currentPage > 4 && (
-                    <span class="px-3 py-2 text-sm text-text-muted">…</span>
-                  )}
+                  {currentPage > 4 && <span class="px-3 py-2 text-sm text-text-muted">…</span>}
                 </>
               )}
 
@@ -329,9 +327,7 @@ const section = 'Tags'
         </>
       ) : (
         <div class="text-center py-12">
-          <p class="text-xl text-text-muted mb-4">
-            No content found for this tag.
-          </p>
+          <p class="text-xl text-text-muted mb-4">No content found for this tag.</p>
           <a href="/tags" class="text-primary hover:underline">
             Browse other tags
           </a>

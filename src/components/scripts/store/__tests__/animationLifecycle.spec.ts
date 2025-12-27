@@ -23,24 +23,27 @@ const installMatchMediaStub = () => {
   Object.defineProperty(window, 'matchMedia', {
     configurable: true,
     writable: true,
-    value: vi.fn(() => ({
-      matches: reducedMotionMatches,
-      addEventListener: (_event: string, handler: EventListenerOrEventListenerObject) => {
-        matchMediaListeners.add(handler as MatchMediaListener)
-      },
-      removeEventListener: (_event: string, handler: EventListenerOrEventListenerObject) => {
-        matchMediaListeners.delete(handler as MatchMediaListener)
-      },
-      addListener: (_handler: MatchMediaListener) => {
-        // Legacy API fallback; keep to satisfy potential consumers
-      },
-      removeListener: (_handler: MatchMediaListener) => {
-        // Legacy API fallback
-      },
-      media: '(prefers-reduced-motion: reduce)',
-      onchange: null,
-      dispatchEvent: () => true,
-    } satisfies MediaQueryList)),
+    value: vi.fn(
+      () =>
+        ({
+          matches: reducedMotionMatches,
+          addEventListener: (_event: string, handler: EventListenerOrEventListenerObject) => {
+            matchMediaListeners.add(handler as MatchMediaListener)
+          },
+          removeEventListener: (_event: string, handler: EventListenerOrEventListenerObject) => {
+            matchMediaListeners.delete(handler as MatchMediaListener)
+          },
+          addListener: (_handler: MatchMediaListener) => {
+            // Legacy API fallback; keep to satisfy potential consumers
+          },
+          removeListener: (_handler: MatchMediaListener) => {
+            // Legacy API fallback
+          },
+          media: '(prefers-reduced-motion: reduce)',
+          onchange: null,
+          dispatchEvent: () => true,
+        }) satisfies MediaQueryList
+    ),
   })
 }
 
@@ -57,7 +60,7 @@ const dispatchVisibilityChange = () => {
 
 const dispatchReducedMotionChange = (matches: boolean) => {
   reducedMotionMatches = matches
-  matchMediaListeners.forEach((listener) => {
+  matchMediaListeners.forEach(listener => {
     listener({ matches } as MediaQueryListEvent)
   })
 }

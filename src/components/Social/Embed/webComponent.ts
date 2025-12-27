@@ -95,7 +95,9 @@ export class SocialEmbedElement extends LitElement {
           <div class="h-3.5 w-[70%] bg-gray-300 dark:bg-gray-600 rounded"></div>
         </div>
         ${includeMedia
-          ? html`<div class="w-full aspect-video bg-gray-300 dark:bg-gray-600 rounded-lg mb-4"></div>`
+          ? html`<div
+              class="w-full aspect-video bg-gray-300 dark:bg-gray-600 rounded-lg mb-4"
+            ></div>`
           : null}
         <div class="flex gap-4 pt-3 border-t border-gray-200 dark:border-gray-700">
           <div class="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded"></div>

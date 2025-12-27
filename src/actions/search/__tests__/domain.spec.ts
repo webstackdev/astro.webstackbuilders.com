@@ -25,9 +25,9 @@ describe('performSearch', () => {
     }
 
     vi.doMock('@actions/utils/environment/environmentActions', async () => {
-      const actual = await vi.importActual<typeof import('@actions/utils/environment/environmentActions')>(
-        '@actions/utils/environment/environmentActions',
-      )
+      const actual = await vi.importActual<
+        typeof import('@actions/utils/environment/environmentActions')
+      >('@actions/utils/environment/environmentActions')
 
       return {
         ...actual,
@@ -52,7 +52,10 @@ describe('performSearch', () => {
 
     expect(getUpstashUrl).toHaveBeenCalledTimes(1)
     expect(getUpstashPublicToken).toHaveBeenCalledTimes(1)
-    expect(searchConstructor).toHaveBeenCalledWith({ url: 'https://example.upstash.io', token: 'readonly-token' })
+    expect(searchConstructor).toHaveBeenCalledWith({
+      url: 'https://example.upstash.io',
+      token: 'readonly-token',
+    })
     expect(indexFn).toHaveBeenCalledWith('default')
     expect(searchFn).toHaveBeenCalledWith({ query: 'typescript', limit: 4 })
     expect(response).toEqual(upstashResponseFixture)
@@ -67,9 +70,9 @@ describe('performSearch', () => {
     const getUpstashPublicToken = vi.fn(() => 'readonly-token')
 
     vi.doMock('@actions/utils/environment/environmentActions', async () => {
-      const actual = await vi.importActual<typeof import('@actions/utils/environment/environmentActions')>(
-        '@actions/utils/environment/environmentActions',
-      )
+      const actual = await vi.importActual<
+        typeof import('@actions/utils/environment/environmentActions')
+      >('@actions/utils/environment/environmentActions')
 
       return {
         ...actual,

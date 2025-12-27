@@ -33,7 +33,9 @@ const getFieldElements = <T extends HTMLInputElement | HTMLTextAreaElement>(
 export const getContactFormElements = (): ContactFormElements => {
   const form = document.getElementById('contactForm')
   if (!isFormElement(form)) {
-    throw new ClientScriptError('ContactForm: Form element not found. Contact form cannot function without the form element.')
+    throw new ClientScriptError(
+      'ContactForm: Form element not found. Contact form cannot function without the form element.'
+    )
   }
 
   const messages = document.getElementById('formMessages')
@@ -60,7 +62,9 @@ export const getContactFormElements = (): ContactFormElements => {
     !(charCount instanceof HTMLElement) ||
     !(formErrorBanner instanceof HTMLElement)
   ) {
-    throw new ClientScriptError('ContactForm: Required DOM elements not found. Form requires all elements to function.')
+    throw new ClientScriptError(
+      'ContactForm: Required DOM elements not found. Form requires all elements to function.'
+    )
   }
 
   const nameInput = document.getElementById('name')
@@ -108,14 +112,18 @@ const GENERATED_GENERIC_ERROR_SELECTOR = '.field-error'
 
 export const isContactFormGenericField = (element: unknown): element is ContactFormGenericField => {
   if (!isType1Element(element)) return false
-  return element.tagName === 'INPUT' || element.tagName === 'SELECT' || element.tagName === 'TEXTAREA'
+  return (
+    element.tagName === 'INPUT' || element.tagName === 'SELECT' || element.tagName === 'TEXTAREA'
+  )
 }
 
 export const queryContactFormGenericFields = (form: HTMLFormElement): ContactFormGenericField[] => {
   return Array.from(form.querySelectorAll(GENERIC_FIELD_SELECTOR)).filter(isContactFormGenericField)
 }
 
-export const queryContactFormGeneratedFieldError = (field: ContactFormGenericField): HTMLElement | null => {
+export const queryContactFormGeneratedFieldError = (
+  field: ContactFormGenericField
+): HTMLElement | null => {
   const wrapper = field.parentNode instanceof HTMLElement ? field.parentNode : null
   if (!wrapper) return null
   return wrapper.querySelector<HTMLElement>(GENERATED_GENERIC_ERROR_SELECTOR)

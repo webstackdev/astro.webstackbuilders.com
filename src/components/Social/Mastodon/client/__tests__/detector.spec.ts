@@ -2,9 +2,10 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { TestError } from '@test/errors'
 import { getSoftwareName, getUrlDomain, isMastodonInstance, normalizeURL } from '../detector'
 
-const createFetchResponse = <T>(data: T) => ({
-  json: vi.fn().mockResolvedValue(data),
-}) as unknown as Response
+const createFetchResponse = <T>(data: T) =>
+  ({
+    json: vi.fn().mockResolvedValue(data),
+  }) as unknown as Response
 
 describe('mastodon detector utilities', () => {
   const fetchMock = vi.fn<typeof fetch>()

@@ -10,7 +10,12 @@ export interface ConsentRecord {
   email?: string
   purposes: Array<'contact' | 'marketing' | 'analytics' | 'downloads'>
   timestamp: string
-  source: 'contact_form' | 'newsletter_form' | 'download_form' | 'cookies_modal' | 'preferences_page'
+  source:
+    | 'contact_form'
+    | 'newsletter_form'
+    | 'download_form'
+    | 'cookies_modal'
+    | 'preferences_page'
   userAgent: string
   ipAddress?: string
   privacyPolicyVersion: string

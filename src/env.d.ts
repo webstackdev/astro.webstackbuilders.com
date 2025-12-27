@@ -15,7 +15,7 @@ interface IdleRequestOptions {
 
 declare function requestIdleCallback(
   _callback: IdleRequestCallback,
-  _options?: IdleRequestOptions,
+  _options?: IdleRequestOptions
 ): RequestIdleCallbackHandle
 
 declare function cancelIdleCallback(_handle: RequestIdleCallbackHandle): void

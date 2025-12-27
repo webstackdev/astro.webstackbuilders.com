@@ -203,7 +203,9 @@ export class SearchBarElement extends LitElement {
   }
 }
 
-export const registerSearchBarComponent = async (tagName = SearchBarElement.registeredName): Promise<void> => {
+export const registerSearchBarComponent = async (
+  tagName = SearchBarElement.registeredName
+): Promise<void> => {
   defineCustomElement(tagName, SearchBarElement)
 }
 

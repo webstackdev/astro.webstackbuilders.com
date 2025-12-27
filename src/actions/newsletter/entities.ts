@@ -10,7 +10,7 @@ function getResendClient(): Resend {
 function generateConfirmationEmailHtml(
   firstName: string | undefined,
   confirmUrl: string,
-  expiresIn: string = '24 hours',
+  expiresIn: string = '24 hours'
 ): string {
   const greeting = firstName ? `Hi ${firstName}` : 'Hello'
 
@@ -133,7 +133,7 @@ function generateConfirmationEmailHtml(
 function generateConfirmationEmailText(
   firstName: string | undefined,
   confirmUrl: string,
-  expiresIn: string = '24 hours',
+  expiresIn: string = '24 hours'
 ): string {
   const greeting = firstName ? `Hi ${firstName}` : 'Hello'
 
@@ -167,7 +167,11 @@ Unsubscribe: ${getSiteUrl()}/privacy#unsubscribe
   `.trim()
 }
 
-export async function sendConfirmationEmail(email: string, token: string, firstName?: string): Promise<void> {
+export async function sendConfirmationEmail(
+  email: string,
+  token: string,
+  firstName?: string
+): Promise<void> {
   const siteUrl = getSiteUrl()
   const confirmUrl = `${siteUrl}/newsletter/confirm/${token}`
   const expiresIn = '24 hours'

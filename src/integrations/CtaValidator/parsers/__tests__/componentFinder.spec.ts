@@ -24,7 +24,7 @@ describe('generateImportPatterns', () => {
 
     // Should only have component tags, not import patterns
     expect(patterns).not.toContain('import')
-    expect(patterns.every((p) => p.startsWith('<'))).toBe(true)
+    expect(patterns.every(p => p.startsWith('<'))).toBe(true)
   })
 })
 

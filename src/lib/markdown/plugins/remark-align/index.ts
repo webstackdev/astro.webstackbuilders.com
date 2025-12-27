@@ -85,7 +85,9 @@ function isParagraph(node: MdastNode): node is MdastNode & { children: MdastNode
 }
 
 function findFirstTextChild(paragraph: MdastNode & { children: MdastNode[] }) {
-  const index = paragraph.children.findIndex(child => child?.type === 'text' && typeof child.value === 'string')
+  const index = paragraph.children.findIndex(
+    child => child?.type === 'text' && typeof child.value === 'string'
+  )
   if (index === -1) return null
   const node = paragraph.children[index]
   if (!node) return null
@@ -95,7 +97,8 @@ function findFirstTextChild(paragraph: MdastNode & { children: MdastNode[] }) {
 function findLastTextChild(paragraph: MdastNode & { children: MdastNode[] }) {
   for (let index = paragraph.children.length - 1; index >= 0; index--) {
     const child = paragraph.children[index]
-    if (child && child.type === 'text' && typeof child.value === 'string') return { node: child, index }
+    if (child && child.type === 'text' && typeof child.value === 'string')
+      return { node: child, index }
   }
   return null
 }
@@ -121,7 +124,9 @@ function detectMarkerOnlyParagraph(node: MdastNode, raw: string): MarkerInfo | n
       // Support escaping tags for literal output: "\\[center]" -> "[center]".
       if (trimmed.startsWith('\\')) {
         const unescaped = trimmed.slice(1)
-        const isKnown = START_TAGS.some(entry => entry.tag === unescaped) || END_TAGS.some(entry => entry.tag === unescaped)
+        const isKnown =
+          START_TAGS.some(entry => entry.tag === unescaped) ||
+          END_TAGS.some(entry => entry.tag === unescaped)
         if (isKnown) {
           only.value = only.value.replace(trimmed, unescaped)
           only.data = { ...only.data, __remarkAlignEscaped: true }
@@ -133,7 +138,8 @@ function detectMarkerOnlyParagraph(node: MdastNode, raw: string): MarkerInfo | n
   }
 
   const start = START_TAGS.find(entry => entry.tag === trimmed)
-  if (start) return { align: start.align, layout: start.layout, markerOnly: true, representation: start.tag }
+  if (start)
+    return { align: start.align, layout: start.layout, markerOnly: true, representation: start.tag }
 
   const end = END_TAGS.find(entry => entry.tag === trimmed)
   if (end) return { align: end.align, layout: 'inline', markerOnly: true, representation: end.tag }
@@ -144,7 +150,12 @@ function detectMarkerOnlyParagraph(node: MdastNode, raw: string): MarkerInfo | n
 function isRowDirective(node: MdastNode): boolean {
   if (!node) return false
   // remark-directive uses: textDirective | leafDirective | containerDirective
-  if (node.type !== 'textDirective' && node.type !== 'leafDirective' && node.type !== 'containerDirective') return false
+  if (
+    node.type !== 'textDirective' &&
+    node.type !== 'leafDirective' &&
+    node.type !== 'containerDirective'
+  )
+    return false
   return node.name === 'row'
 }
 
@@ -176,7 +187,8 @@ function detectStartMarker(node: MdastNode, raw: string): MarkerInfo | null {
   if (!isParagraph(node)) return null
 
   // If a marker was unescaped for literal output, never treat it as syntax.
-  if (node.children.some(child => child?.type === 'text' && child.data?.__remarkAlignEscaped)) return null
+  if (node.children.some(child => child?.type === 'text' && child.data?.__remarkAlignEscaped))
+    return null
 
   // Support tags where ":row" was parsed into directive nodes (e.g. "[right" + :row + "]").
   // This can happen if a directive parser runs before this plugin.
@@ -236,13 +248,15 @@ function detectEndMarker(node: MdastNode, raw: string): MarkerInfo | null {
   if (!isParagraph(node)) return null
 
   // If a marker was unescaped for literal output, never treat it as syntax.
-  if (node.children.some(child => child?.type === 'text' && child.data?.__remarkAlignEscaped)) return null
+  if (node.children.some(child => child?.type === 'text' && child.data?.__remarkAlignEscaped))
+    return null
 
   // Support tags where ":row" was parsed into directive nodes (e.g. "[/right" + :row + "]").
   const serialized = serializeAlignParagraph(node)
   if (serialized) {
     const end = END_TAGS.find(entry => serialized.endsWith(entry.tag))
-    if (end) return { align: end.align, layout: 'inline', markerOnly: false, representation: end.tag }
+    if (end)
+      return { align: end.align, layout: 'inline', markerOnly: false, representation: end.tag }
   }
 
   const last = findLastTextChild(node)
@@ -279,7 +293,10 @@ function serializeAlignParagraph(paragraph: MdastNode & { children: MdastNode[] 
   return parts.join('')
 }
 
-function stripStartMarker(paragraph: MdastNode & { children: MdastNode[] }, representation: string) {
+function stripStartMarker(
+  paragraph: MdastNode & { children: MdastNode[] },
+  representation: string
+) {
   let remaining = representation
   const index = 0
   while (remaining.length > 0 && index < paragraph.children.length) {
@@ -358,7 +375,9 @@ function stripEndMarker(paragraph: MdastNode & { children: MdastNode[] }, repres
 function isEmptyParagraph(node: MdastNode): boolean {
   if (!isParagraph(node)) return false
   if (node.children.length === 0) return true
-  return node.children.every(child => child.type === 'text' && typeof child.value === 'string' && child.value.trim() === '')
+  return node.children.every(
+    child => child.type === 'text' && typeof child.value === 'string' && child.value.trim() === ''
+  )
 }
 
 function wrapNodesInDiv(nodes: MdastNode[], classes: string): MdastNode {

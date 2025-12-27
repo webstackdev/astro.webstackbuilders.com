@@ -52,7 +52,9 @@ describe('Layer 3: E2E - rehypeTailwindClasses', () => {
     // h1 may not have classes but h2 and below should
     expect(html).toMatch(/<h[2-6][^>]*class=["'][^"']*/)
 
-    const headingWithClass = container.querySelector('h2[class],h3[class],h4[class],h5[class],h6[class]')
+    const headingWithClass = container.querySelector(
+      'h2[class],h3[class],h4[class],h5[class],h6[class]'
+    )
     expect(headingWithClass).toBeTruthy()
   })
 

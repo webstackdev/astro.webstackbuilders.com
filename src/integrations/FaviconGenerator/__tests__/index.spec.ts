@@ -108,10 +108,7 @@ describe('FaviconGenerator Integration', () => {
       })
 
       // Verify mkdir was called to create output directory
-      expect(mkdir).toHaveBeenCalledWith(
-        expect.stringContaining('public'),
-        { recursive: true }
-      )
+      expect(mkdir).toHaveBeenCalledWith(expect.stringContaining('public'), { recursive: true })
 
       // Verify writeFile was called 5 times (one for each favicon variant)
       expect(writeFile).toHaveBeenCalledTimes(5)
@@ -362,8 +359,7 @@ describe('FaviconGenerator Integration', () => {
 
       // Verify density calculation: (180 / 512) * 72
       const sharpCalls = (sharp as unknown as Mock).mock.calls
-      const density180 = sharpCalls
-        .find(call => call[1]?.density === (180 / 512) * 72)
+      const density180 = sharpCalls.find(call => call[1]?.density === (180 / 512) * 72)
 
       expect(density180).toBeDefined()
     })
@@ -485,12 +481,8 @@ describe('FaviconGenerator Integration', () => {
       })
 
       // Verify existsSync was called with decoded path
-      expect(existsSync).toHaveBeenCalledWith(
-        expect.stringContaining('My Project')
-      )
-      expect(existsSync).not.toHaveBeenCalledWith(
-        expect.stringContaining('My%20Project')
-      )
+      expect(existsSync).toHaveBeenCalledWith(expect.stringContaining('My Project'))
+      expect(existsSync).not.toHaveBeenCalledWith(expect.stringContaining('My%20Project'))
     })
 
     it('should handle Windows paths correctly', async () => {

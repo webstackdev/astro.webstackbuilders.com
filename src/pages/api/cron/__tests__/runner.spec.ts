@@ -7,7 +7,7 @@ const getSiteUrlMock = vi.hoisted(() => vi.fn(() => 'https://example.com'))
 
 vi.mock('@pages/api/_utils/environment', async () => {
   const actual = await vi.importActual<typeof import('@pages/api/_utils/environment')>(
-    '@pages/api/_utils/environment',
+    '@pages/api/_utils/environment'
   )
   return {
     ...actual,
@@ -28,7 +28,8 @@ describe('cron runner', () => {
   let fetchMock: ReturnType<typeof vi.fn>
   let warnSpy: ReturnType<typeof vi.spyOn>
 
-  const run = (request: Request) => runAll(buildContext(request) as unknown as Parameters<APIRoute>[0])
+  const run = (request: Request) =>
+    runAll(buildContext(request) as unknown as Parameters<APIRoute>[0])
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -96,7 +97,7 @@ describe('cron runner', () => {
           status: 500,
           statusText: 'Internal Server Error',
           headers: new Headers(),
-        }),
+        })
       )
       .mockResolvedValueOnce(createResponse('/api/cron/cleanup-dsar-requests'))
 

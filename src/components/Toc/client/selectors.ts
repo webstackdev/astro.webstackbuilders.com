@@ -1,4 +1,8 @@
-import { isAnchorElement, isButtonElement, isDivElement } from '@components/scripts/assertions/elements'
+import {
+  isAnchorElement,
+  isButtonElement,
+  isDivElement,
+} from '@components/scripts/assertions/elements'
 import { ClientScriptError } from '@components/scripts/errors'
 
 export const SELECTORS = {

@@ -89,34 +89,48 @@ describe('Testimonials selectors', () => {
         const nextBtn = queryTestimonialsNextBtn(element)
         const autoplayToggle = queryTestimonialsAutoplayToggleBtn(element)
 
-        expect(emblaRoot, 'Testimonials should render an Embla root with .testimonials-embla').toBeInstanceOf(
-          HTMLElement,
-        )
-        expect(viewport, 'Testimonials should render an Embla viewport with .embla__viewport').toBeInstanceOf(
-          HTMLElement,
-        )
-        expect(slides.length, 'Testimonials should render at least one slide with .embla__slide').toBeGreaterThan(0)
+        expect(
+          emblaRoot,
+          'Testimonials should render an Embla root with .testimonials-embla'
+        ).toBeInstanceOf(HTMLElement)
+        expect(
+          viewport,
+          'Testimonials should render an Embla viewport with .embla__viewport'
+        ).toBeInstanceOf(HTMLElement)
+        expect(
+          slides.length,
+          'Testimonials should render at least one slide with .embla__slide'
+        ).toBeGreaterThan(0)
 
-        expect(dots, 'Testimonials should render a dots container with .embla__dots when >1 slide').toBeInstanceOf(
-          HTMLElement,
-        )
-        expect(prevBtn, 'Testimonials should render a prev button with .embla__button--prev when >1 slide').toBeInstanceOf(
-          HTMLButtonElement,
-        )
-        expect(nextBtn, 'Testimonials should render a next button with .embla__button--next when >1 slide').toBeInstanceOf(
-          HTMLButtonElement,
-        )
+        expect(
+          dots,
+          'Testimonials should render a dots container with .embla__dots when >1 slide'
+        ).toBeInstanceOf(HTMLElement)
+        expect(
+          prevBtn,
+          'Testimonials should render a prev button with .embla__button--prev when >1 slide'
+        ).toBeInstanceOf(HTMLButtonElement)
+        expect(
+          nextBtn,
+          'Testimonials should render a next button with .embla__button--next when >1 slide'
+        ).toBeInstanceOf(HTMLButtonElement)
         expect(
           autoplayToggle,
-          'Testimonials should render an autoplay toggle button with [data-testimonials-autoplay-toggle] when >1 slide',
+          'Testimonials should render an autoplay toggle button with [data-testimonials-autoplay-toggle] when >1 slide'
         ).toBeInstanceOf(HTMLButtonElement)
 
         if (autoplayToggle) {
           const pauseIcon = queryTestimonialsAutoplayPauseIcon(autoplayToggle)
           const playIcon = queryTestimonialsAutoplayPlayIcon(autoplayToggle)
 
-          expect(pauseIcon, 'Autoplay toggle should include [data-testimonials-icon="pause"]').toBeTruthy()
-          expect(playIcon, 'Autoplay toggle should include [data-testimonials-icon="play"]').toBeTruthy()
+          expect(
+            pauseIcon,
+            'Autoplay toggle should include [data-testimonials-icon="pause"]'
+          ).toBeTruthy()
+          expect(
+            playIcon,
+            'Autoplay toggle should include [data-testimonials-icon="play"]'
+          ).toBeTruthy()
         }
       },
     })

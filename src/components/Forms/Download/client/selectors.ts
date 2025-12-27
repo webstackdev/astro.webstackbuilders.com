@@ -18,7 +18,7 @@ function queryInputElement(
   const element = resolveRoot(root).querySelector(selector)
   if (!element || !(element instanceof HTMLInputElement)) {
     throw new ClientScriptError({
-      message: errorMessage
+      message: errorMessage,
     })
   }
   return element
@@ -32,7 +32,7 @@ export function getDownloadFormElement(root?: SelectorRoot): HTMLFormElement {
   const form = resolveRoot(root).querySelector('#downloadForm')
   if (!form || !(form instanceof HTMLFormElement)) {
     throw new ClientScriptError({
-      message: `Download form element not found`
+      message: `Download form element not found`,
     })
   }
   return form
@@ -46,7 +46,7 @@ export function getDownloadSubmitButton(root?: SelectorRoot): HTMLButtonElement 
   const button = resolveRoot(root).querySelector('#downloadSubmitBtn')
   if (!button || !(button instanceof HTMLButtonElement)) {
     throw new ClientScriptError({
-      message: `Download submit button not found`
+      message: `Download submit button not found`,
     })
   }
   return button
@@ -60,7 +60,7 @@ export function getDownloadStatusDiv(root?: SelectorRoot): HTMLElement {
   const statusDiv = resolveRoot(root).querySelector('#downloadFormStatus')
   if (!statusDiv || !(statusDiv instanceof HTMLElement)) {
     throw new ClientScriptError({
-      message: `Download status div not found`
+      message: `Download status div not found`,
     })
   }
   return statusDiv
@@ -74,7 +74,7 @@ export function getDownloadButtonWrapper(root?: SelectorRoot): HTMLElement {
   const wrapper = resolveRoot(root).querySelector('#downloadButtonWrapper')
   if (!wrapper || !(wrapper instanceof HTMLElement)) {
     throw new ClientScriptError({
-      message: `Download button wrapper not found`
+      message: `Download button wrapper not found`,
     })
   }
   return wrapper
@@ -108,14 +108,18 @@ export type DownloadFormInvalidatableControl =
 const CONTROL_SELECTOR = 'input, select, textarea'
 
 export const isDownloadFormInvalidatableControl = (
-  element: unknown,
+  element: unknown
 ): element is DownloadFormInvalidatableControl => {
   if (!isType1Element(element)) return false
-  return element.tagName === 'INPUT' || element.tagName === 'SELECT' || element.tagName === 'TEXTAREA'
+  return (
+    element.tagName === 'INPUT' || element.tagName === 'SELECT' || element.tagName === 'TEXTAREA'
+  )
 }
 
 export const queryDownloadFormInvalidatableControls = (
-  form: HTMLFormElement,
+  form: HTMLFormElement
 ): DownloadFormInvalidatableControl[] => {
-  return Array.from(form.querySelectorAll(CONTROL_SELECTOR)).filter(isDownloadFormInvalidatableControl)
+  return Array.from(form.querySelectorAll(CONTROL_SELECTOR)).filter(
+    isDownloadFormInvalidatableControl
+  )
 }

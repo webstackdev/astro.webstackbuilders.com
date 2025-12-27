@@ -1,7 +1,11 @@
 /**
  * Selectors for the theme picker elements
  */
-import { isButtonElement, isDivElement, isMetaElement } from '@components/scripts/assertions/elements'
+import {
+  isButtonElement,
+  isDivElement,
+  isMetaElement,
+} from '@components/scripts/assertions/elements'
 import { ClientScriptError } from '@components/scripts/errors'
 
 export const SELECTORS = {
@@ -61,7 +65,9 @@ export const getThemePickerCloseBtn = (scope: ParentNode = document) => {
 export const getThemeSelectBtns = (scope: ParentNode = document) => {
   const buttons = scope.querySelectorAll(SELECTORS.themeBtn)
   if (buttons.length === 0) {
-    throw new ClientScriptError(`Theme selection buttons with selector '${SELECTORS.themeBtn}' not found`)
+    throw new ClientScriptError(
+      `Theme selection buttons with selector '${SELECTORS.themeBtn}' not found`
+    )
   }
 
   // Validate all buttons are actually button elements

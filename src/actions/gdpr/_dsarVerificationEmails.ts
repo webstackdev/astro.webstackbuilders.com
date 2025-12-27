@@ -8,11 +8,15 @@ import { ActionsFunctionError } from '@actions/utils/errors/ActionsFunctionError
 export async function sendDsarVerificationEmail(
   email: string,
   token: string,
-  requestType: 'ACCESS' | 'DELETE',
+  requestType: 'ACCESS' | 'DELETE'
 ): Promise<void> {
   /** Testing helper */
   if (!isProd()) {
-    console.log('[DEV/TEST MODE] DSAR verification email would be sent:', { email, token, requestType })
+    console.log('[DEV/TEST MODE] DSAR verification email would be sent:', {
+      email,
+      token,
+      requestType,
+    })
     return
   }
 
@@ -35,7 +39,10 @@ export async function sendDsarVerificationEmail(
   const verifyUrl = `${getSiteUrl()}/privacy/my-data?token=${token}`
   const expiresIn = '24 hours'
   const actionText = requestType === 'ACCESS' ? 'access your data' : 'delete your data'
-  const subject = requestType === 'ACCESS' ? 'Verify Your Data Access Request' : 'Verify Your Data Deletion Request'
+  const subject =
+    requestType === 'ACCESS'
+      ? 'Verify Your Data Access Request'
+      : 'Verify Your Data Deletion Request'
 
   const html = dsarVerificationEmailHtml({
     subject,

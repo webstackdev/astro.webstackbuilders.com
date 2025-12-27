@@ -40,15 +40,22 @@ describe('TableOfContents selectors', () => {
 
         expect(
           toggleButton,
-          'ToC toggle button element with data attribute [data-toc-toggle] not found',
+          'ToC toggle button element with data attribute [data-toc-toggle] not found'
         ).toBeInstanceOf(HTMLButtonElement)
         expect(
           overlay,
-          'ToC overlay button element with data attribute [data-toc-overlay] not found',
+          'ToC overlay button element with data attribute [data-toc-overlay] not found'
         ).toBeInstanceOf(HTMLButtonElement)
-        expect(panel.tagName, 'ToC panel element with [data-toc-panel] should be a <div>').toBe('DIV')
-        expect(tocLinks.length, 'ToC should render at least one link with [data-toc-link]').toBeGreaterThan(0)
-        expect(tocLinks[0], 'First ToC link should be an <a> element').toBeInstanceOf(HTMLAnchorElement)
+        expect(panel.tagName, 'ToC panel element with [data-toc-panel] should be a <div>').toBe(
+          'DIV'
+        )
+        expect(
+          tocLinks.length,
+          'ToC should render at least one link with [data-toc-link]'
+        ).toBeGreaterThan(0)
+        expect(tocLinks[0], 'First ToC link should be an <a> element').toBeInstanceOf(
+          HTMLAnchorElement
+        )
       },
     })
   })

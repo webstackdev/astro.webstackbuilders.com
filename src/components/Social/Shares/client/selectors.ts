@@ -1,4 +1,9 @@
-import { isDivElement, isMetaElement, isSpanElement, isType1Element } from '@components/scripts/assertions/elements'
+import {
+  isDivElement,
+  isMetaElement,
+  isSpanElement,
+  isType1Element,
+} from '@components/scripts/assertions/elements'
 import { ClientScriptError } from '@components/scripts/errors'
 
 export const SELECTORS = {
@@ -29,7 +34,8 @@ export function getSocialShareRenderElements(context: Element) {
 
   const shareItems = Array.from(context.querySelectorAll(SELECTORS.shareItem)).filter(
     (node): node is HTMLAnchorElement | HTMLButtonElement =>
-      isType1Element(node) && (node instanceof HTMLAnchorElement || node instanceof HTMLButtonElement),
+      isType1Element(node) &&
+      (node instanceof HTMLAnchorElement || node instanceof HTMLButtonElement)
   )
 
   if (shareItems.length === 0) {

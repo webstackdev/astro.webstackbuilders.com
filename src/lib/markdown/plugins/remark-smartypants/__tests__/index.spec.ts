@@ -15,9 +15,7 @@ it('implements SmartyPants', async () => {
 })
 
 it('handles quotes around links', async () => {
-  const file = await process(
-    `"wow". go to '[single](/foo)' today "[double](/bar)". . .`,
-  )
+  const file = await process(`"wow". go to '[single](/foo)' today "[double](/bar)". . .`)
   expect(file.toString()).toMatchInlineSnapshot(`
     "“wow”. go to ‘[single](/foo)’ today “[double](/bar)”…
     "
@@ -25,9 +23,7 @@ it('handles quotes around links', async () => {
 })
 
 it('handles quotes around bold text', async () => {
-  const file = await process(
-    `foo '**Bolded -- \`\`part** of --- this quote' bar`,
-  )
+  const file = await process(`foo '**Bolded -- \`\`part** of --- this quote' bar`)
   expect(file.toString()).toMatchInlineSnapshot(`
     "foo ‘**Bolded – “part** of — this quote’ bar
     "

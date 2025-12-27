@@ -2,7 +2,9 @@ import { describe, it, expect } from 'vitest'
 import { remark } from 'remark'
 import remarkRehype from 'remark-rehype'
 import rehypeStringify from 'rehype-stringify'
-import remarkAttribution, { type AttributionOptions } from '@lib/markdown/plugins/remark-attribution'
+import remarkAttribution, {
+  type AttributionOptions,
+} from '@lib/markdown/plugins/remark-attribution'
 
 /**
  * Helper function to process markdown through the attribution plugin

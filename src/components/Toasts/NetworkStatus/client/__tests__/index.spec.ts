@@ -22,13 +22,16 @@ describe('NetworkStatusToastElement', () => {
   type TestWindow = JsdomEnvironmentContext['window']
 
   const renderComponent = async (
-    assertion: (_context: { element: NetworkStatusToastElement; window: TestWindow }) => Promise<void> | void
+    assertion: (_context: {
+      element: NetworkStatusToastElement
+      window: TestWindow
+    }) => Promise<void> | void
   ): Promise<void> => {
     await executeRender<NetworkStatusModule>({
       container,
       component: NetworkStatusComponent,
       moduleSpecifier: '@components/Toasts/NetworkStatus/client/index',
-      waitForReady: async (element) => {
+      waitForReady: async element => {
         await element.updateComplete
       },
       assert: async ({ element, window }) => {
@@ -51,7 +54,7 @@ describe('NetworkStatusToastElement', () => {
       expect(toast?.getAttribute('aria-atomic')).toBe('true')
 
       const svgs = toast?.querySelectorAll('svg') ?? []
-      svgs.forEach((svg) => {
+      svgs.forEach(svg => {
         expect(svg.getAttribute('focusable')).toBe('false')
       })
     })

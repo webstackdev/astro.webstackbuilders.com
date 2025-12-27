@@ -26,10 +26,7 @@ export interface ScriptErrorContext {
  * }
  * ```
  */
-export function handleScriptError(
-  error: unknown,
-  context: ScriptErrorContext,
-): ClientScriptError {
+export function handleScriptError(error: unknown, context: ScriptErrorContext): ClientScriptError {
   // Transform to ClientScriptError (normalizes message internally)
   const clientError = new ClientScriptError(error)
   if (isProd()) {
@@ -43,7 +40,7 @@ export function handleScriptError(
     // Log it for debugging
     console.error(
       `[${context.scriptName}]${context.operation ? ` ${context.operation}` : ''}:`,
-      clientError,
+      clientError
     )
   }
   return clientError

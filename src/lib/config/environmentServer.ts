@@ -56,7 +56,6 @@ export const getGitHubRepoPath = () => {
   return process.env['GITHUB_WORKSPACE']!
 }
 
-
 // VERCEL_ENV=production, preview, or development
 export const isVercel = () => {
   return !!process.env['VERCEL'] && !isGitHub()
@@ -71,7 +70,7 @@ export function getSentryAuthToken(): string {
   if (!token) {
     throw new BuildError(
       'SENTRY_AUTH_TOKEN environment variable is not set. This is required for Sentry integration.',
-      { phase: 'config-setup' },
+      { phase: 'config-setup' }
     )
   }
   return token

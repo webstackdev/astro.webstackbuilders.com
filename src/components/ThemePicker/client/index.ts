@@ -117,7 +117,11 @@ export class ThemePickerElement extends LitElement {
       this.findElements()
 
       // Check if CSS custom properties are supported (guard for non-browser envs like tests)
-      if (typeof CSS === 'undefined' || typeof CSS.supports !== 'function' || !CSS.supports('color', 'var(--fake-var)')) {
+      if (
+        typeof CSS === 'undefined' ||
+        typeof CSS.supports !== 'function' ||
+        !CSS.supports('color', 'var(--fake-var)')
+      ) {
         console.log('ThemePicker: CSS custom properties not supported, theme picker disabled')
         return
       }
@@ -231,23 +235,37 @@ export class ThemePickerElement extends LitElement {
       emblaWithEvents.on('reInit', this.emblaUpdateHandler)
 
       if (!this.emblaControlsBound) {
-        addButtonEventListeners(this.emblaPrevBtn, (event) => {
-          if (event.cancelable && !event.defaultPrevented) event.preventDefault()
-          try {
-            this.emblaApi?.scrollPrev()
-          } catch (error) {
-            handleScriptError(error, { scriptName: 'ThemePickerElement', operation: 'embla:scrollPrev' })
-          }
-        }, this)
+        addButtonEventListeners(
+          this.emblaPrevBtn,
+          event => {
+            if (event.cancelable && !event.defaultPrevented) event.preventDefault()
+            try {
+              this.emblaApi?.scrollPrev()
+            } catch (error) {
+              handleScriptError(error, {
+                scriptName: 'ThemePickerElement',
+                operation: 'embla:scrollPrev',
+              })
+            }
+          },
+          this
+        )
 
-        addButtonEventListeners(this.emblaNextBtn, (event) => {
-          if (event.cancelable && !event.defaultPrevented) event.preventDefault()
-          try {
-            this.emblaApi?.scrollNext()
-          } catch (error) {
-            handleScriptError(error, { scriptName: 'ThemePickerElement', operation: 'embla:scrollNext' })
-          }
-        }, this)
+        addButtonEventListeners(
+          this.emblaNextBtn,
+          event => {
+            if (event.cancelable && !event.defaultPrevented) event.preventDefault()
+            try {
+              this.emblaApi?.scrollNext()
+            } catch (error) {
+              handleScriptError(error, {
+                scriptName: 'ThemePickerElement',
+                operation: 'embla:scrollNext',
+              })
+            }
+          },
+          this
+        )
 
         this.emblaControlsBound = true
       }
@@ -303,7 +321,10 @@ export class ThemePickerElement extends LitElement {
       this.emblaApi.scrollTo(index, true)
       this.updateEmblaNavState()
     } catch (error) {
-      handleScriptError(error, { scriptName: 'ThemePickerElement', operation: 'embla:scrollToTheme' })
+      handleScriptError(error, {
+        scriptName: 'ThemePickerElement',
+        operation: 'embla:scrollToTheme',
+      })
     }
   }
 
@@ -316,38 +337,49 @@ export class ThemePickerElement extends LitElement {
 
     try {
       // Toggle button - stop propagation to prevent "click outside" handler
-      addButtonEventListeners(this.toggleBtn, (e) => {
-        e.stopPropagation()
-        this.handleToggle()
-      }, this)
+      addButtonEventListeners(
+        this.toggleBtn,
+        e => {
+          e.stopPropagation()
+          this.handleToggle()
+        },
+        this
+      )
 
       // Close button
       addButtonEventListeners(this.closeBtn, () => this.handleClose(), this)
 
       // Theme selection buttons
-      this.themeSelectBtns.forEach((button) => {
+      this.themeSelectBtns.forEach(button => {
         try {
           if (!('theme' in button.dataset)) {
             throw new ClientScriptError({
-              message: `Theme item ${button.name} is missing the 'data-theme' attribute`
+              message: `Theme item ${button.name} is missing the 'data-theme' attribute`,
             })
           }
 
           const themeId = button.dataset['theme'] as ThemeId
           if (themeId) {
-            addButtonEventListeners(button, (e) => {
-              // Stop ALL event propagation to prevent "click outside" handler
-              e.stopImmediatePropagation()
-              this.applyTheme(themeId)
-            }, this)
+            addButtonEventListeners(
+              button,
+              e => {
+                // Stop ALL event propagation to prevent "click outside" handler
+                e.stopImmediatePropagation()
+                this.applyTheme(themeId)
+              },
+              this
+            )
           }
         } catch (error) {
-          handleScriptError(error, { scriptName: 'ThemePickerElement', operation: 'bindThemeButton' })
+          handleScriptError(error, {
+            scriptName: 'ThemePickerElement',
+            operation: 'bindThemeButton',
+          })
         }
       })
 
       // Close on Escape key
-      document.addEventListener('keydown', (e) => {
+      document.addEventListener('keydown', e => {
         if (e.key === 'Escape' && this.themePickerOpenStore.value) {
           this.handleClose()
         }
@@ -355,7 +387,7 @@ export class ThemePickerElement extends LitElement {
 
       // Close on click outside (but not during View Transitions)
       // Use bubble phase (default) so button handlers run first and can stopPropagation
-      document.addEventListener('click', (e) => {
+      document.addEventListener('click', e => {
         // Skip if transitioning or if toggle button is actively being clicked
         if (this.isTransitioning) return
         if (this.isTogglingViaButton) return
@@ -375,7 +407,7 @@ export class ThemePickerElement extends LitElement {
 
       // Mobile-specific: Handle touchend separately since it fires before click
       // and can have different event targets due to SVG children
-      document.addEventListener('touchend', (e) => {
+      document.addEventListener('touchend', e => {
         // Skip if transitioning or if toggle button is actively being clicked
         if (this.isTransitioning) return
         if (this.isTogglingViaButton) return
@@ -394,9 +426,11 @@ export class ThemePickerElement extends LitElement {
     } catch (error) {
       handleScriptError(error, context)
     }
-  }  /**
-      * Set up View Transition handlers
-      */
+  }
+
+  /**
+   * Set up View Transition handlers
+   */
   private setViewTransitionHandlers(): void {
     document.addEventListener('astro:before-preparation', () => {
       this.isTransitioning = true
@@ -466,7 +500,7 @@ export class ThemePickerElement extends LitElement {
    */
   private updateActiveTheme(currentTheme: ThemeId): void {
     try {
-      this.themeSelectBtns.forEach((button) => {
+      this.themeSelectBtns.forEach(button => {
         const themeId = button.dataset['theme']
         const parentLi = button.closest('li')
 

@@ -1,0 +1,68 @@
+---
+import Icon from '@components/Icon/index.astro'
+
+const { ...rest } = Astro.props
+---
+
+<add-to-calendar {...rest} data-testid="add-to-calendar">
+  <button
+    type="button"
+    data-calendar-trigger
+    aria-expanded="false"
+    class="inline-flex items-center text-text underline decoration-dotted decoration-text underline-offset-4 hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary focus:outline-none [&_.icon]:fill-text! [&_.icon]:stroke-text! hover:[&_.icon]:fill-secondary! hover:[&_.icon]:stroke-secondary! focus:[&_.icon]:fill-secondary! focus:[&_.icon]:stroke-secondary!"
+  >
+    <span class="[&_.icon]:h-5 [&_.icon]:w-5">
+      <Icon name="calendar-generic-ical" variant="inherit" />
+    </span>
+    <span class="ml-2"><slot>Add to calendar</slot></span>
+  </button>
+
+  <div
+    data-calendar-menu
+    class="hidden mt-2 border border-border rounded-md bg-bg text-text p-3 w-[min(22rem,90vw)]"
+    role="menu"
+    aria-label="Add this event to your calendar"
+  >
+    <div class="flex flex-col gap-2">
+      <a
+        data-calendar-link="google"
+        href="https://calendar.google.com/calendar/render"
+        rel="noopener"
+        class="flex items-center text-text underline decoration-dotted decoration-text underline-offset-4 hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary focus:outline-none [&_.icon]:fill-text! [&_.icon]:stroke-text! hover:[&_.icon]:fill-secondary! hover:[&_.icon]:stroke-secondary! focus:[&_.icon]:fill-secondary! focus:[&_.icon]:stroke-secondary!"
+      >
+        <span class="[&_.icon]:h-5 [&_.icon]:w-5">
+          <Icon name="calendar-google" variant="inherit" />
+        </span>
+        <span class="ml-2">Google Calendar</span>
+      </a>
+
+      <a
+        data-calendar-link="outlook"
+        href="https://outlook.office.com/calendar/0/deeplink/compose"
+        rel="noopener"
+        class="flex items-center text-text underline decoration-dotted decoration-text underline-offset-4 hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary focus:outline-none [&_.icon]:fill-text! [&_.icon]:stroke-text! hover:[&_.icon]:fill-secondary! hover:[&_.icon]:stroke-secondary! focus:[&_.icon]:fill-secondary! focus:[&_.icon]:stroke-secondary!"
+      >
+        <span class="[&_.icon]:h-5 [&_.icon]:w-5">
+          <Icon name="calendar-outlook" variant="inherit" />
+        </span>
+        <span class="ml-2">Outlook</span>
+      </a>
+
+      <button
+        type="button"
+        data-calendar-download-ics
+        class="flex items-center text-text underline decoration-dotted decoration-text underline-offset-4 hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary focus:outline-none [&_.icon]:fill-text! [&_.icon]:stroke-text! hover:[&_.icon]:fill-secondary! hover:[&_.icon]:stroke-secondary! focus:[&_.icon]:fill-secondary! focus:[&_.icon]:stroke-secondary!"
+      >
+        <span class="[&_.icon]:h-5 [&_.icon]:w-5">
+          <Icon name="calendar_apple" variant="inherit" />
+        </span>
+        <span class="ml-2">Download .ics</span>
+      </button>
+    </div>
+  </div>
+</add-to-calendar>
+
+<script>
+  import { registerAddToCalendarWebComponent } from '@components/Calendar/client'
+  registerAddToCalendarWebComponent()
+</script>

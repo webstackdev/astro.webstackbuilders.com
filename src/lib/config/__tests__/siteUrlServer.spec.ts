@@ -7,7 +7,7 @@ const importSiteUrlServer = async () => {
   vi.resetModules()
   const isVercelMock = vi.fn(() => false)
   const isGitHubMock = vi.fn(() => false)
-  vi.doMock('../environmentServer', async (importOriginal) => {
+  vi.doMock('../environmentServer', async importOriginal => {
     const actual = await importOriginal<typeof import('../environmentServer')>()
     return {
       ...actual,

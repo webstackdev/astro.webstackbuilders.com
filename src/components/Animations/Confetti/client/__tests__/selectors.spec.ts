@@ -9,7 +9,7 @@ import { queryConfettiCanvas } from '../selectors'
 type ConfettiModule = WebComponentModule<ConfettiAnimationElement>
 
 const renderConfetti = async (
-  assert: (_context: { element: ConfettiAnimationElement }) => Promise<void> | void,
+  assert: (_context: { element: ConfettiAnimationElement }) => Promise<void> | void
 ): Promise<void> => {
   const container = await AstroContainer.create()
 
@@ -18,11 +18,13 @@ const renderConfetti = async (
     component: ConfettiAstro,
     moduleSpecifier: '@components/Animations/Confetti/client/index',
     args: {},
-    waitForReady: async (element) => {
+    waitForReady: async element => {
       await element.updateComplete
     },
     assert: async ({ element, module, renderResult }) => {
-      expect(renderResult, 'Should render the confetti custom element').toContain(`<${module.registeredName}`)
+      expect(renderResult, 'Should render the confetti custom element').toContain(
+        `<${module.registeredName}`
+      )
       await assert({ element })
     },
   })

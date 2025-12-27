@@ -31,7 +31,7 @@ function normalizeMessage(message: unknown): BuildErrorParams {
     return {
       message: message.message,
       stack: message.stack,
-      cause: message.cause
+      cause: message.cause,
     }
   }
 
@@ -95,13 +95,18 @@ export class BuildError extends Error {
   /**
    * Create a BuildError for compilation failures
    */
-  static compilation(message: string, filePath?: string, lineNumber?: number, columnNumber?: number): BuildError {
+  static compilation(
+    message: string,
+    filePath?: string,
+    lineNumber?: number,
+    columnNumber?: number
+  ): BuildError {
     return new BuildError(message, {
       phase: 'compilation',
       tool: 'typescript',
       filePath,
       lineNumber,
-      columnNumber
+      columnNumber,
     })
   }
 
@@ -112,7 +117,7 @@ export class BuildError extends Error {
     return new BuildError(message, {
       phase: 'file-operation',
       tool: operation || 'filesystem',
-      filePath
+      filePath,
     })
   }
 
@@ -123,7 +128,7 @@ export class BuildError extends Error {
     return new BuildError(message, {
       phase: 'bundling',
       tool: tool || 'bundler',
-      exitCode
+      exitCode,
     })
   }
 
@@ -138,7 +143,7 @@ export class BuildError extends Error {
         tool: this.tool,
         lineNumber: this.lineNumber,
         columnNumber: this.columnNumber,
-        exitCode: this.exitCode
+        exitCode: this.exitCode,
       },
     }
   }

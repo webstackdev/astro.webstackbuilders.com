@@ -15,7 +15,7 @@ export const SELECTORS = {
  */
 export const queryUnmanagedEmbedElements = (root: ParentNode = document): HTMLElement[] => {
   return Array.from(root.querySelectorAll(SELECTORS.unmanagedEmbed)).filter(
-    (node): node is HTMLElement => node instanceof HTMLElement,
+    (node): node is HTMLElement => node instanceof HTMLElement
   )
 }
 
@@ -42,24 +42,26 @@ export const removeEmbedLoadingStatusNode = (root: ParentNode): void => {
 
 export const queryIframes = (root: ParentNode): HTMLIFrameElement[] => {
   return Array.from(root.querySelectorAll(SELECTORS.iframe)).filter(
-    (node): node is HTMLIFrameElement => isType1Element(node) && node.tagName === 'IFRAME',
+    (node): node is HTMLIFrameElement => isType1Element(node) && node.tagName === 'IFRAME'
   ) as HTMLIFrameElement[]
 }
 
 export const queryFirstIframe = (root: ParentNode): HTMLIFrameElement | null => {
   const iframe = root.querySelector(SELECTORS.iframe)
-  return isType1Element(iframe) && iframe.tagName === 'IFRAME' ? (iframe as HTMLIFrameElement) : null
+  return isType1Element(iframe) && iframe.tagName === 'IFRAME'
+    ? (iframe as HTMLIFrameElement)
+    : null
 }
 
 export const queryVideos = (root: ParentNode): HTMLVideoElement[] => {
   return Array.from(root.querySelectorAll(SELECTORS.video)).filter(
-    (node): node is HTMLVideoElement => isType1Element(node) && node.tagName === 'VIDEO',
+    (node): node is HTMLVideoElement => isType1Element(node) && node.tagName === 'VIDEO'
   ) as HTMLVideoElement[]
 }
 
 export const queryScripts = (root: ParentNode): HTMLScriptElement[] => {
   return Array.from(root.querySelectorAll(SELECTORS.script)).filter(
-    (node): node is HTMLScriptElement => isType1Element(node) && node.tagName === 'SCRIPT',
+    (node): node is HTMLScriptElement => isType1Element(node) && node.tagName === 'SCRIPT'
   ) as HTMLScriptElement[]
 }
 

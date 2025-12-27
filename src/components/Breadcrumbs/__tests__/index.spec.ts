@@ -30,7 +30,7 @@ describe('Breadcrumbs (Astro)', () => {
 
       const links = window.document.querySelectorAll('nav[aria-label="Breadcrumbs"] a[href]')
       expect(links.length).toBeGreaterThan(0)
-      links.forEach((link) => {
+      links.forEach(link => {
         expect(link.className).toContain('focus:underline')
         expect(link.className).toContain('focus:outline-none')
       })

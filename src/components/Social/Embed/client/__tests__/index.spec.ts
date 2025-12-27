@@ -18,14 +18,14 @@ describe('SocialEmbed component', () => {
   const renderComponent = async (
     props: { url: string; platform?: string },
     assertion: (_params: { element: SocialEmbedElement }) => Promise<void> | void,
-    componentOverride: typeof SocialEmbed = SocialEmbed,
+    componentOverride: typeof SocialEmbed = SocialEmbed
   ) => {
     await executeRender<SocialEmbedModule>({
       container,
       component: componentOverride,
       moduleSpecifier: '@components/Social/Embed/webComponent',
       args: { props },
-      waitForReady: async (element) => {
+      waitForReady: async element => {
         await element.updateComplete
       },
       assert: async ({ element, renderResult }) => {
@@ -38,24 +38,21 @@ describe('SocialEmbed component', () => {
   test('renders placeholder content and data attributes for default platform', async () => {
     const url = 'https://twitter.com/user/status/1234567890'
 
-    await renderComponent(
-      { url },
-      async ({ element }) => {
-        expect(element.dataset['embed']).toBeDefined()
-        expect(element.dataset['embedUrl']).toBe(url)
-        expect(element.dataset['embedPlatform']).toBeUndefined()
-        expect(element.getAttribute('aria-busy')).toBe('true')
+    await renderComponent({ url }, async ({ element }) => {
+      expect(element.dataset['embed']).toBeDefined()
+      expect(element.dataset['embedUrl']).toBe(url)
+      expect(element.dataset['embedPlatform']).toBeUndefined()
+      expect(element.getAttribute('aria-busy')).toBe('true')
 
-        const status = element.querySelector('[data-embed-loading-status]')
-        expect(status).not.toBeNull()
-        expect(status?.getAttribute('role')).toBe('status')
-        expect(status?.getAttribute('aria-live')).toBe('polite')
+      const status = element.querySelector('[data-embed-loading-status]')
+      expect(status).not.toBeNull()
+      expect(status?.getAttribute('role')).toBe('status')
+      expect(status?.getAttribute('aria-live')).toBe('polite')
 
-        const placeholder = element.querySelector('[data-embed-placeholder]')
-        expect(placeholder).not.toBeNull()
-        expect(placeholder?.getAttribute('aria-hidden')).toBe('true')
-      },
-    )
+      const placeholder = element.querySelector('[data-embed-placeholder]')
+      expect(placeholder).not.toBeNull()
+      expect(placeholder?.getAttribute('aria-hidden')).toBe('true')
+    })
   })
 
   test('renders slot content for LinkedIn embeds', async () => {
@@ -69,42 +66,36 @@ describe('SocialEmbed component', () => {
         expect(element.querySelector('iframe')?.getAttribute('src')).toBe(url)
         expect(element.querySelector('[data-embed-placeholder]')).toBeNull()
       },
-      LinkedInFixture,
+      LinkedInFixture
     )
   })
 
   test('includes media preview section for video platforms', async () => {
     const url = 'https://youtube.com/watch?v=dQw4w9WgXcQ'
 
-    await renderComponent(
-      { url, platform: 'youtube' },
-      async ({ element }) => {
-        expect(element.dataset['embedPlatform']).toBe('youtube')
-        expect(element.getAttribute('aria-busy')).toBe('true')
-        const placeholder = element.querySelector('[data-embed-placeholder]')
-        expect(placeholder).not.toBeNull()
-        expect(placeholder?.querySelector('.aspect-video')).not.toBeNull()
-      },
-    )
+    await renderComponent({ url, platform: 'youtube' }, async ({ element }) => {
+      expect(element.dataset['embedPlatform']).toBe('youtube')
+      expect(element.getAttribute('aria-busy')).toBe('true')
+      const placeholder = element.querySelector('[data-embed-placeholder]')
+      expect(placeholder).not.toBeNull()
+      expect(placeholder?.querySelector('.aspect-video')).not.toBeNull()
+    })
   })
 
   test('syncs dataset attributes when url or platform change after render', async () => {
     const url = 'https://reddit.com/r/webdev/comments/abc123'
     const updatedUrl = 'https://reddit.com/r/webdev/comments/xyz789'
 
-    await renderComponent(
-      { url, platform: 'reddit' },
-      async ({ element }) => {
-        expect(element.dataset['embedPlatform']).toBe('reddit')
-        expect(element.dataset['embedUrl']).toBe(url)
+    await renderComponent({ url, platform: 'reddit' }, async ({ element }) => {
+      expect(element.dataset['embedPlatform']).toBe('reddit')
+      expect(element.dataset['embedUrl']).toBe(url)
 
-        element.url = updatedUrl
-        element.platform = undefined
-        await element.updateComplete
+      element.url = updatedUrl
+      element.platform = undefined
+      await element.updateComplete
 
-        expect(element.dataset['embedUrl']).toBe(updatedUrl)
-        expect(element.dataset['embedPlatform']).toBeUndefined()
-      },
-    )
+      expect(element.dataset['embedUrl']).toBe(updatedUrl)
+      expect(element.dataset['embedPlatform']).toBeUndefined()
+    })
   })
 })

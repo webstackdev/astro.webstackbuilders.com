@@ -5,19 +5,25 @@
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import Cookies from 'js-cookie'
-import { getCookie, setCookie, removeCookie, getAllCookies, hasCookie } from '@components/scripts/utils/cookies'
+import {
+  getCookie,
+  setCookie,
+  removeCookie,
+  getAllCookies,
+  hasCookie,
+} from '@components/scripts/utils/cookies'
 
 describe('Cookie Utilities', () => {
   beforeEach(() => {
     // Clear all cookies before each test
-    Object.keys(Cookies.get()).forEach((cookieName) => {
+    Object.keys(Cookies.get()).forEach(cookieName => {
       Cookies.remove(cookieName)
     })
   })
 
   afterEach(() => {
     // Clean up after each test
-    Object.keys(Cookies.get()).forEach((cookieName) => {
+    Object.keys(Cookies.get()).forEach(cookieName => {
       Cookies.remove(cookieName)
     })
   })
@@ -234,7 +240,7 @@ describe('Cookie Utilities', () => {
       })
 
       // Verify all exist
-      Object.keys(cookies).forEach((name) => {
+      Object.keys(cookies).forEach(name => {
         expect(hasCookie(name)).toBe(true)
       })
 

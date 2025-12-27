@@ -24,7 +24,11 @@ import {
 
 const SCRIPT_NAME = 'TestimonialsCarouselElement'
 
-const logForE2E = (level: 'info' | 'error', message: string, details?: Record<string, unknown>): void => {
+const logForE2E = (
+  level: 'info' | 'error',
+  message: string,
+  details?: Record<string, unknown>
+): void => {
   if (typeof window === 'undefined' || window.isPlaywrightControlled !== true) return
   const payload = details ? [`[testimonials] ${message}`, details] : [`[testimonials] ${message}`]
   console[level](...payload)
@@ -241,21 +245,29 @@ export class TestimonialsCarouselElement extends HTMLElement {
       }
     }
 
-    addButtonEventListeners(this.prevBtn, () => {
-      try {
-        this.emblaApi?.scrollPrev()
-      } catch (error) {
-        handleScriptError(error, { scriptName: SCRIPT_NAME, operation: 'scrollPrev' })
-      }
-    }, this)
+    addButtonEventListeners(
+      this.prevBtn,
+      () => {
+        try {
+          this.emblaApi?.scrollPrev()
+        } catch (error) {
+          handleScriptError(error, { scriptName: SCRIPT_NAME, operation: 'scrollPrev' })
+        }
+      },
+      this
+    )
 
-    addButtonEventListeners(this.nextBtn, () => {
-      try {
-        this.emblaApi?.scrollNext()
-      } catch (error) {
-        handleScriptError(error, { scriptName: SCRIPT_NAME, operation: 'scrollNext' })
-      }
-    }, this)
+    addButtonEventListeners(
+      this.nextBtn,
+      () => {
+        try {
+          this.emblaApi?.scrollNext()
+        } catch (error) {
+          handleScriptError(error, { scriptName: SCRIPT_NAME, operation: 'scrollNext' })
+        }
+      },
+      this
+    )
 
     if (this.viewportId) {
       this.prevBtn.setAttribute('aria-controls', this.viewportId)
@@ -293,13 +305,17 @@ export class TestimonialsCarouselElement extends HTMLElement {
           dot.setAttribute('aria-controls', this.viewportId)
         }
 
-        addButtonEventListeners(dot, () => {
-          try {
-            this.emblaApi?.scrollTo(index)
-          } catch (error) {
-            handleScriptError(error, { scriptName: SCRIPT_NAME, operation: 'scrollToDot' })
-          }
-        }, this)
+        addButtonEventListeners(
+          dot,
+          () => {
+            try {
+              this.emblaApi?.scrollTo(index)
+            } catch (error) {
+              handleScriptError(error, { scriptName: SCRIPT_NAME, operation: 'scrollToDot' })
+            }
+          },
+          this
+        )
 
         dotsContainer.appendChild(dot)
         dots.push(dot)
@@ -363,13 +379,13 @@ export class TestimonialsCarouselElement extends HTMLElement {
       if (typeof IntersectionObserverCtor !== 'function') return
 
       this.intersectionObserver = new IntersectionObserverCtor(
-        (entries) => {
+        entries => {
           const entry = entries[0]
           const ratio = entry?.intersectionRatio ?? 0
           this.isFullyInViewport = Boolean(entry?.isIntersecting && ratio >= 0.999)
           this.syncAutoplayWithViewport()
         },
-        { threshold: [0, 0.999] },
+        { threshold: [0, 0.999] }
       )
 
       const observedTarget = this.emblaRoot ?? this
@@ -419,10 +435,11 @@ export class TestimonialsCarouselElement extends HTMLElement {
         }
         this.resume()
       },
-      this,
+      this
     )
 
-    const initialState = (this.getAttribute('data-carousel-autoplay') as 'playing' | 'paused' | null) ?? 'paused'
+    const initialState =
+      (this.getAttribute('data-carousel-autoplay') as 'playing' | 'paused' | null) ?? 'paused'
     this.syncAutoplayToggleButton(initialState)
   }
 
@@ -454,13 +471,20 @@ export class TestimonialsCarouselElement extends HTMLElement {
     }
 
     const existingId = this.viewport.getAttribute('id')
-    const nextId = existingId && existingId.length > 0 ? existingId : `${this.animationInstanceId}-viewport`
+    const nextId =
+      existingId && existingId.length > 0 ? existingId : `${this.animationInstanceId}-viewport`
     this.viewport.setAttribute('id', nextId)
     this.viewportId = nextId
   }
 
   private updateAutoplayState(state: AnimationPlayState): void {
-    if (!this.hasAutoplaySupport || !this.autoplayPlugin || !this.emblaApi || !this.initialized || !this.autoplayReady) {
+    if (
+      !this.hasAutoplaySupport ||
+      !this.autoplayPlugin ||
+      !this.emblaApi ||
+      !this.initialized ||
+      !this.autoplayReady
+    ) {
       if (this.hasAutoplaySupport) {
         this.pendingAutoplayState = state
         this.setAutoplayState(state)

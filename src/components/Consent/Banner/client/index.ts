@@ -37,7 +37,7 @@ export class ConsentBannerElement extends HTMLElement {
   private closeBtn!: HTMLButtonElement
   private allowBtn!: HTMLButtonElement
   private customizeLink!: HTMLAnchorElement
-  private trapFocusHandler: (((_event: Event) => void) | null) = null
+  private trapFocusHandler: ((_event: Event) => void) | null = null
   private domReadyHandler: (() => void) | null = null
   private beforeSwapHandler: (() => void) | null = null
   private afterSwapHandler: (() => void) | null = null
@@ -125,7 +125,8 @@ export class ConsentBannerElement extends HTMLElement {
       this.beforeSwapHandler = () => {
         if (!this.wrapper) return
 
-        const isVisible = this.wrapper.style.display === 'block' || this.wrapper.style.display === 'flex'
+        const isVisible =
+          this.wrapper.style.display === 'block' || this.wrapper.style.display === 'flex'
         if (isVisible) {
           ConsentBannerElement.isModalCurrentlyVisible = true
           showConsentBanner()
@@ -256,10 +257,10 @@ export class ConsentBannerElement extends HTMLElement {
     addScriptBreadcrumb(context)
 
     try {
-      const wasVisible = this.wrapper.style.display === 'block' || this.wrapper.style.display === 'flex'
-      const shouldBeVisible = wasVisible ||
-        ConsentBannerElement.isModalCurrentlyVisible ||
-        getConsentBannerVisibility()
+      const wasVisible =
+        this.wrapper.style.display === 'block' || this.wrapper.style.display === 'flex'
+      const shouldBeVisible =
+        wasVisible || ConsentBannerElement.isModalCurrentlyVisible || getConsentBannerVisibility()
       const cookiesInitialized = initConsentCookies()
 
       if (this.isConsentRoute()) {
@@ -340,7 +341,7 @@ export class ConsentBannerElement extends HTMLElement {
         }
       }
 
-  document.addEventListener('keydown', this.trapFocusHandler)
+      document.addEventListener('keydown', this.trapFocusHandler)
     } catch (error) {
       handleScriptError(error, context)
     }

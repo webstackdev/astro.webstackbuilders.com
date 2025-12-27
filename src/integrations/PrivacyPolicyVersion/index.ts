@@ -47,14 +47,15 @@ const debugListDirectory = (label: string, directoryPath: string): void => {
     const entries = fs.readdirSync(directoryPath)
     const maxEntriesToLog = 60
     const visibleEntries = entries.slice(0, maxEntriesToLog)
-    const suffix = entries.length > maxEntriesToLog ? ` … (+${entries.length - maxEntriesToLog} more)` : ''
+    const suffix =
+      entries.length > maxEntriesToLog ? ` … (+${entries.length - maxEntriesToLog} more)` : ''
 
     console.log(
-      `[privacy-policy-version] Debug: ls ${label}: ${directoryPath} -> ${visibleEntries.join(', ')}${suffix}`,
+      `[privacy-policy-version] Debug: ls ${label}: ${directoryPath} -> ${visibleEntries.join(', ')}${suffix}`
     )
   } catch (error) {
     console.log(
-      `[privacy-policy-version] Debug: ls ${label} failed for ${directoryPath}: ${error instanceof Error ? error.message : String(error)}`,
+      `[privacy-policy-version] Debug: ls ${label} failed for ${directoryPath}: ${error instanceof Error ? error.message : String(error)}`
     )
   }
 }
@@ -82,7 +83,7 @@ async function getPrivacyPolicyVersionFromGit(filepath: string): Promise<string 
     const latest = entries[0]
     if (!latest) {
       console.warn(
-        `[privacy-policy-version] No git commits found for privacy policy file: ${filepath}. Falling back to current date.`,
+        `[privacy-policy-version] No git commits found for privacy policy file: ${filepath}. Falling back to current date.`
       )
       return null
     }
@@ -91,7 +92,7 @@ async function getPrivacyPolicyVersionFromGit(filepath: string): Promise<string 
     return formatGitShortDate(timestamp, timezoneOffset)
   } catch (error) {
     console.warn(
-      `[privacy-policy-version] Could not get privacy policy version from git: ${error instanceof Error ? error.message : String(error)}`,
+      `[privacy-policy-version] Could not get privacy policy version from git: ${error instanceof Error ? error.message : String(error)}`
     )
     return null
   }
@@ -108,7 +109,7 @@ function hasGitRepository(): boolean {
     return fs.existsSync(GIT_DIRECTORY_PATH)
   } catch (error) {
     console.warn(
-      `[privacy-policy-version] Unable to verify git repository: ${error instanceof Error ? error.message : String(error)}`,
+      `[privacy-policy-version] Unable to verify git repository: ${error instanceof Error ? error.message : String(error)}`
     )
     return false
   }
@@ -143,10 +144,14 @@ export async function resolvePrivacyPolicyVersion(): Promise<string> {
     debugListDirectory('process.cwd()', process.cwd())
 
     const privacyPolicyAbsolute = join(PROJECT_ROOT, PRIVACY_POLICY_FILEPATH)
-    console.log(`[privacy-policy-version] Debug: privacy policy filepath (relative): ${PRIVACY_POLICY_FILEPATH}`)
-    console.log(`[privacy-policy-version] Debug: privacy policy filepath (absolute): ${privacyPolicyAbsolute}`)
     console.log(
-      `[privacy-policy-version] Debug: privacy policy file exists: ${fs.existsSync(privacyPolicyAbsolute)}`,
+      `[privacy-policy-version] Debug: privacy policy filepath (relative): ${PRIVACY_POLICY_FILEPATH}`
+    )
+    console.log(
+      `[privacy-policy-version] Debug: privacy policy filepath (absolute): ${privacyPolicyAbsolute}`
+    )
+    console.log(
+      `[privacy-policy-version] Debug: privacy policy file exists: ${fs.existsSync(privacyPolicyAbsolute)}`
     )
   }
 

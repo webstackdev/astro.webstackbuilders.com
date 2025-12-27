@@ -8,9 +8,11 @@ const SELECTORS = {
 } as const
 
 export function queryCodeBlocks(scope: ParentNode): HTMLPreElement[] {
-  return Array.from(scope.querySelectorAll(SELECTORS.preBlocks)).filter((node): node is HTMLPreElement => {
-    return isPreElement(node)
-  })
+  return Array.from(scope.querySelectorAll(SELECTORS.preBlocks)).filter(
+    (node): node is HTMLPreElement => {
+      return isPreElement(node)
+    }
+  )
 }
 
 export function queryCodeElement(pre: HTMLPreElement): HTMLElement | null {

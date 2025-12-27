@@ -21,7 +21,7 @@ let html: string
 beforeAll(async () => {
   const markdown = [
     'He said, "Hello" and \'goodbye\'.',
-    'He said, ``like this\'\'.',
+    "He said, ``like this''.",
     'One -- two --- three.',
     'Wait... and wait . . .',
     '',

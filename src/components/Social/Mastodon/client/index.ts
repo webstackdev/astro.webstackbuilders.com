@@ -68,7 +68,7 @@ export class MastodonModalElement extends LitElement {
   declare statusMessage: string
   declare statusType: 'error' | 'success' | ''
   declare isSubmitting: boolean
-  protected declare savedInstances: string[]
+  declare protected savedInstances: string[]
 
   private focusTrap: FocusTrap | null = null
   private unsubscribeSavedInstances: (() => void) | null = null
@@ -189,7 +189,7 @@ export class MastodonModalElement extends LitElement {
           this.focusTrap?.activate()
           queryMastodonInstanceInput(this)?.focus()
         })
-        .catch((error) => {
+        .catch(error => {
           handleScriptError(error, context)
         })
 
@@ -324,7 +324,9 @@ export class MastodonModalElement extends LitElement {
           class="modal-backdrop absolute inset-0 bg-black/50 backdrop-blur-sm"
           @click=${(event: Event) => this.handleBackdropClick(event)}
         ></div>
-        <div class="modal-content relative w-full max-w-2xl max-h-[90vh] overflow-auto bg-bg rounded-lg shadow-2xl">
+        <div
+          class="modal-content relative w-full max-w-2xl max-h-[90vh] overflow-auto bg-bg rounded-lg shadow-2xl"
+        >
           <div class="flex items-center justify-between p-6 border-b border-border">
             <h2 id=${modalTitleId} class="m-0 text-xl font-semibold">Share to Mastodon</h2>
             <button
@@ -348,7 +350,11 @@ export class MastodonModalElement extends LitElement {
             </button>
           </div>
 
-          <form id="mastodon-share-form" class="flex flex-col gap-6 p-6" @submit=${(event: Event) => this.handleSubmit(event)}>
+          <form
+            id="mastodon-share-form"
+            class="flex flex-col gap-6 p-6"
+            @submit=${(event: Event) => this.handleSubmit(event)}
+          >
             <div class="flex flex-col gap-2">
               <label for="share-text" class="font-medium">Text to share</label>
               <textarea
@@ -364,7 +370,9 @@ export class MastodonModalElement extends LitElement {
             <div class="flex flex-col gap-4">
               <label for="mastodon-instance" class="flex flex-col gap-2 font-medium">
                 <span>Mastodon Instance</span>
-                <span id=${instanceHintId} class="sr-only">Enter only the domain, without https://</span>
+                <span id=${instanceHintId} class="sr-only"
+                  >Enter only the domain, without https://</span
+                >
                 <div
                   class="flex items-stretch border border-border rounded-md overflow-hidden bg-bg-input focus-within:outline-2 focus-within:outline-primary focus-within:outline-offset-2"
                 >
@@ -393,13 +401,14 @@ export class MastodonModalElement extends LitElement {
                     <p class="m-0 text-sm font-medium text-text-muted">Previously used:</p>
                     <div class="saved-list flex flex-wrap gap-2">
                       ${this.savedInstances.map(
-                        (instance) => html`<button
-                          type="button"
-                          class="saved-instance"
-                          @click=${() => this.handleSavedInstanceClick(instance)}
-                        >
-                          ${instance}
-                        </button>`
+                        instance =>
+                          html`<button
+                            type="button"
+                            class="saved-instance"
+                            @click=${() => this.handleSavedInstanceClick(instance)}
+                          >
+                            ${instance}
+                          </button>`
                       )}
                     </div>
                   </div>`

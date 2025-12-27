@@ -11,7 +11,11 @@ describe('rehype-tailwind-classes (Layer 2: With Astro Pipeline)', () => {
 | Data 1   | Data 2   |
       `.trim()
 
-      const html = await processWithAstroSettings({ markdown, plugin: rehypeTailwindClasses, stage: 'rehype' })
+      const html = await processWithAstroSettings({
+        markdown,
+        plugin: rehypeTailwindClasses,
+        stage: 'rehype',
+      })
 
       expect(html).toContain('<table')
       expect(html).toContain('class=')
@@ -21,7 +25,11 @@ describe('rehype-tailwind-classes (Layer 2: With Astro Pipeline)', () => {
     it('should add classes to paragraphs with GFM strikethrough', async () => {
       const markdown = 'This has ~~strikethrough~~ text'
 
-      const html = await processWithAstroSettings({ markdown, plugin: rehypeTailwindClasses, stage: 'rehype' })
+      const html = await processWithAstroSettings({
+        markdown,
+        plugin: rehypeTailwindClasses,
+        stage: 'rehype',
+      })
 
       expect(html).toContain('<del>')
       expect(html).toContain('strikethrough')
@@ -34,7 +42,11 @@ describe('rehype-tailwind-classes (Layer 2: With Astro Pipeline)', () => {
 - [ ] Pending task
       `.trim()
 
-      const html = await processWithAstroSettings({ markdown, plugin: rehypeTailwindClasses, stage: 'rehype' })
+      const html = await processWithAstroSettings({
+        markdown,
+        plugin: rehypeTailwindClasses,
+        stage: 'rehype',
+      })
 
       expect(html).toContain('<ul')
       expect(html).toMatch(/class="[^"]*list-/)
@@ -49,7 +61,11 @@ Text with footnote[^1]
 [^1]: Footnote content
       `.trim()
 
-  const html = await processWithAstroSettings({ markdown, plugin: rehypeTailwindClasses, stage: 'rehype' })
+      const html = await processWithAstroSettings({
+        markdown,
+        plugin: rehypeTailwindClasses,
+        stage: 'rehype',
+      })
 
       expect(html).toContain('class=')
       expect(html).toMatch(/mb-8|text-lg/)
@@ -66,7 +82,11 @@ Paragraph with **bold** and *italic*.
 - List item
       `.trim()
 
-  const html = await processWithAstroSettings({ markdown, plugin: rehypeTailwindClasses, stage: 'rehype' })
+      const html = await processWithAstroSettings({
+        markdown,
+        plugin: rehypeTailwindClasses,
+        stage: 'rehype',
+      })
 
       expect(html).toContain('<h1')
       expect(html).toContain('<p')
@@ -85,7 +105,11 @@ code block
 \`\`\`
       `.trim()
 
-  const html = await processWithAstroSettings({ markdown, plugin: rehypeTailwindClasses, stage: 'rehype' })
+      const html = await processWithAstroSettings({
+        markdown,
+        plugin: rehypeTailwindClasses,
+        stage: 'rehype',
+      })
 
       expect(html).toContain('<blockquote')
       expect(html).toContain('<pre')

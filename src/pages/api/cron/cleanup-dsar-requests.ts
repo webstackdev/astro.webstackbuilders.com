@@ -4,7 +4,7 @@ import { getCronSecret } from '@pages/api/_utils/environment'
 import {
   ApiFunctionError,
   buildApiErrorResponse,
-  handleApiFunctionError
+  handleApiFunctionError,
 } from '@pages/api/_utils/errors'
 import { createApiFunctionContext } from '@pages/api/_utils/requestContext'
 
@@ -15,7 +15,7 @@ const ROUTE = '/api/cron/cleanup-dsar-requests'
 const buildErrorResponse = (
   error: unknown,
   context: ReturnType<typeof createApiFunctionContext>['context'],
-  fallbackMessage: string,
+  fallbackMessage: string
 ) => buildApiErrorResponse(handleApiFunctionError(error, context), { fallbackMessage })
 
 export const GET: APIRoute = async ({ request, clientAddress, cookies }) => {
@@ -43,7 +43,7 @@ export const GET: APIRoute = async ({ request, clientAddress, cookies }) => {
         code: 'UNAUTHORIZED',
       }),
       apiContext,
-      'Unauthorized cron access',
+      'Unauthorized cron access'
     )
   }
 
@@ -73,12 +73,7 @@ export const GET: APIRoute = async ({ request, clientAddress, cookies }) => {
     try {
       const expiredData = await db
         .delete(dsarRequests)
-        .where(
-          and(
-            isNull(dsarRequests.fulfilledAt),
-            lt(dsarRequests.createdAt, sevenDaysAgo),
-          ),
-        )
+        .where(and(isNull(dsarRequests.fulfilledAt), lt(dsarRequests.createdAt, sevenDaysAgo)))
         .returning({ id: dsarRequests.id })
 
       expiredCount = expiredData.length
@@ -94,7 +89,7 @@ export const GET: APIRoute = async ({ request, clientAddress, cookies }) => {
     const totalDeleted = fulfilledCount + expiredCount
 
     console.log(
-      `DSAR requests cleanup: deleted ${fulfilledCount} old fulfilled + ${expiredCount} expired unfulfilled = ${totalDeleted} total`,
+      `DSAR requests cleanup: deleted ${fulfilledCount} old fulfilled + ${expiredCount} expired unfulfilled = ${totalDeleted} total`
     )
 
     return new Response(
@@ -107,7 +102,7 @@ export const GET: APIRoute = async ({ request, clientAddress, cookies }) => {
         },
         timestamp: now.toISOString(),
       }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } },
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
     )
   } catch (error) {
     apiContext.extra = {

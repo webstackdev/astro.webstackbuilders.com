@@ -67,7 +67,7 @@ describe('Theme Management', () => {
   it('should support all theme variants', () => {
     const themes: ThemeId[] = ['light', 'dark', 'holiday', 'a11y']
 
-    themes.forEach((theme) => {
+    themes.forEach(theme => {
       setTheme(theme)
       expect($theme.get()).toBe(theme)
       expect(localStorage.getItem('theme')).toBe(theme)
@@ -76,7 +76,7 @@ describe('Theme Management', () => {
 
   it('should update DOM attribute when theme changes via store subscription', () => {
     // Manually call the side effect since it's not auto-initialized in tests
-    $theme.subscribe((themeId) => {
+    $theme.subscribe(themeId => {
       document.documentElement.setAttribute('data-theme', themeId)
     })
 
@@ -98,7 +98,9 @@ describe('Theme Management', () => {
     // Simulate re-initialization by getting the decode function
     const storedValue = localStorage.getItem('theme')
     const validThemes: ThemeId[] = ['light', 'dark', 'holiday', 'a11y']
-    const decoded = validThemes.includes(storedValue as ThemeId) ? storedValue as ThemeId : 'light'
+    const decoded = validThemes.includes(storedValue as ThemeId)
+      ? (storedValue as ThemeId)
+      : 'light'
 
     expect(decoded).toBe('dark')
   })
@@ -109,7 +111,9 @@ describe('Theme Management', () => {
     // Simulate decode with invalid value
     const storedValue = localStorage.getItem('theme')
     const validThemes: ThemeId[] = ['light', 'dark', 'holiday', 'a11y']
-    const decoded = validThemes.includes(storedValue as ThemeId) ? storedValue as ThemeId : 'light'
+    const decoded = validThemes.includes(storedValue as ThemeId)
+      ? (storedValue as ThemeId)
+      : 'light'
 
     expect(decoded).toBe('light')
   })
@@ -221,7 +225,7 @@ describe('themeKeyChangeSideEffectsListener', () => {
     meta.setAttribute('name', 'theme-color')
     document.head.appendChild(meta)
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    vi.spyOn($theme, 'listen').mockImplementation((callback) => {
+    vi.spyOn($theme, 'listen').mockImplementation(callback => {
       callback('dark', 'light')
       return () => {}
     })
@@ -233,7 +237,7 @@ describe('themeKeyChangeSideEffectsListener', () => {
 
     expect(consoleSpy).toHaveBeenCalledWith(
       '❌ Could not update localstorage with theme change:',
-      error,
+      error
     )
 
     document.head.removeChild(meta)

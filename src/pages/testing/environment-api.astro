@@ -1,11 +1,6 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro'
-import {
-  getPackageRelease,
-  isDev,
-  isProd,
-  isTest,
-} from '@pages/api/_utils/environment'
+import { getPackageRelease, isDev, isProd, isTest } from '@pages/api/_utils/environment'
 
 /**
  * This testing page intentionally renders as part of the client bundle so
@@ -31,7 +26,8 @@ const scriptContent = `window.environmentApiSnapshot = ${JSON.stringify(snapshot
 <BaseLayout pageTitle={pageTitle} path={pagePath} description={pageDescription} noindex>
   <section class="mx-auto mb-6 max-w-3xl space-y-3 text-lg text-offset">
     <p>
-      Use this fixture to validate the server-side environment helpers without relying on marketing pages.
+      Use this fixture to validate the server-side environment helpers without relying on marketing
+      pages.
     </p>
     <p data-testid="environment-api-notice">
       The JSON payload below mirrors the runtime snapshot that client scripts can also read via
@@ -42,9 +38,8 @@ const scriptContent = `window.environmentApiSnapshot = ${JSON.stringify(snapshot
   <section class="mx-auto max-w-3xl">
     <pre
       id="environment-api-json"
-      class="overflow-auto rounded border border-border bg-bg-offset p-4 font-mono text-sm text-text"
-    >{formattedSnapshot}</pre>
+      class="overflow-auto rounded border border-border bg-bg-offset p-4 font-mono text-sm text-text">{formattedSnapshot}</pre>
   </section>
 
-  <script type="module" is:inline set:html={scriptContent}></script>
+  <script type="module" is:inline set:html={scriptContent} />
 </BaseLayout>

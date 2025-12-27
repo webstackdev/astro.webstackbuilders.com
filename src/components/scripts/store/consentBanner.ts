@@ -7,7 +7,11 @@
 import { computed } from 'nanostores'
 import { persistentAtom } from '@nanostores/persistent'
 import { handleScriptError } from '@components/scripts/errors/handler'
-import { disableTableOfContents, enableTableOfContents, hideTableOfContents } from './tableOfContents'
+import {
+  disableTableOfContents,
+  enableTableOfContents,
+  hideTableOfContents,
+} from './tableOfContents'
 
 export interface ConsentBannerState {
   visible: boolean
@@ -36,9 +40,12 @@ export const $consentBanner = persistentAtom<ConsentBannerState>(
   }
 )
 
-export const $isConsentBannerVisible = computed($consentBanner, (state) => state.visible)
+export const $isConsentBannerVisible = computed($consentBanner, state => state.visible)
 
-function updateConsentBanner(operation: string, updater: (_current: ConsentBannerState) => ConsentBannerState): void {
+function updateConsentBanner(
+  operation: string,
+  updater: (_current: ConsentBannerState) => ConsentBannerState
+): void {
   try {
     const current = $consentBanner.get()
     const next = updater(current)
@@ -56,7 +63,7 @@ export function getConsentBannerVisibility(): boolean {
 }
 
 export function showConsentBanner(): void {
-  updateConsentBanner('showConsentBanner', (current) => ({
+  updateConsentBanner('showConsentBanner', current => ({
     ...current,
     visible: true,
   }))
@@ -67,7 +74,7 @@ export function showConsentBanner(): void {
 }
 
 export function hideConsentBanner(): void {
-  updateConsentBanner('hideConsentBanner', (current) => ({
+  updateConsentBanner('hideConsentBanner', current => ({
     ...current,
     visible: false,
   }))

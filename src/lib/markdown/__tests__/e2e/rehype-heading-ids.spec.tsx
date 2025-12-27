@@ -43,7 +43,9 @@ describe('Layer 3: E2E - rehypeHeadingIds', () => {
   it('generates slug ids from heading text and deduplicates repeats', () => {
     const { container } = render(<MarkdownOutput html={html} />)
 
-    const ids = Array.from(container.querySelectorAll('h1[id],h2[id],h3[id]')).map((h) => h.getAttribute('id'))
+    const ids = Array.from(container.querySelectorAll('h1[id],h2[id],h3[id]')).map(h =>
+      h.getAttribute('id')
+    )
 
     expect(ids).toContain('hello-world')
     expect(ids).toContain('hello-world-1')

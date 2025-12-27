@@ -7,7 +7,8 @@ afterEach(() => {
 })
 
 describe('getSocialImageLink', () => {
-  const mockSiteUrl = () => vi.spyOn(siteUrlServer, 'getSiteUrl').mockReturnValue('https://example.com')
+  const mockSiteUrl = () =>
+    vi.spyOn(siteUrlServer, 'getSiteUrl').mockReturnValue('https://example.com')
 
   it('normalizes whitespace and slashes within the slug', () => {
     mockSiteUrl()
@@ -18,7 +19,9 @@ describe('getSocialImageLink', () => {
 
   it('derives the slug from an absolute URL and slugifies spaces', () => {
     mockSiteUrl()
-    const url = headServer.getSocialImageLink('https://www.webstackbuilders.com/services/cloud consulting/')
+    const url = headServer.getSocialImageLink(
+      'https://www.webstackbuilders.com/services/cloud consulting/'
+    )
 
     expect(url).toBe('https://example.com/og/services/cloud-consulting.png')
   })

@@ -1,4 +1,7 @@
-export const defineCustomElement = (tagName: string, elementClass: CustomElementConstructor): void => {
+export const defineCustomElement = (
+  tagName: string,
+  elementClass: CustomElementConstructor
+): void => {
   if (typeof customElements === 'undefined') {
     return
   }

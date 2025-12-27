@@ -11,7 +11,11 @@ describe('rehype-accessible-emojis (Layer 2: With Astro Pipeline)', () => {
 | Happy  | 😊   |
       `.trim()
 
-      const html = await processWithAstroSettings({ markdown, plugin: rehypeAccessibleEmojis, stage: 'rehype' })
+      const html = await processWithAstroSettings({
+        markdown,
+        plugin: rehypeAccessibleEmojis,
+        stage: 'rehype',
+      })
 
       expect(html).toContain('<table')
       expect(html).toContain('role="img"')
@@ -21,7 +25,11 @@ describe('rehype-accessible-emojis (Layer 2: With Astro Pipeline)', () => {
     it('should work with GFM strikethrough containing emojis', async () => {
       const markdown = '~~Not happy 😢~~ Happy now 😄'
 
-      const html = await processWithAstroSettings({ markdown, plugin: rehypeAccessibleEmojis, stage: 'rehype' })
+      const html = await processWithAstroSettings({
+        markdown,
+        plugin: rehypeAccessibleEmojis,
+        stage: 'rehype',
+      })
 
       expect(html).toContain('<del>')
       expect(html).toContain('role="img"')
@@ -34,7 +42,11 @@ describe('rehype-accessible-emojis (Layer 2: With Astro Pipeline)', () => {
 - [ ] Pending ⏳
       `.trim()
 
-      const html = await processWithAstroSettings({ markdown, plugin: rehypeAccessibleEmojis, stage: 'rehype' })
+      const html = await processWithAstroSettings({
+        markdown,
+        plugin: rehypeAccessibleEmojis,
+        stage: 'rehype',
+      })
 
       expect(html).toContain('role="img"')
       expect(html).toContain('✅')
@@ -49,7 +61,11 @@ Text with emoji 👋[^1]
 [^1]: Footnote with 😊
       `.trim()
 
-  const html = await processWithAstroSettings({ markdown, plugin: rehypeAccessibleEmojis, stage: 'rehype' })
+      const html = await processWithAstroSettings({
+        markdown,
+        plugin: rehypeAccessibleEmojis,
+        stage: 'rehype',
+      })
 
       expect(html).toContain('role="img"')
       expect(html).toContain('👋')
@@ -63,7 +79,11 @@ Reference[^1]
 [^1]: Content
       `.trim()
 
-  const html = await processWithAstroSettings({ markdown, plugin: rehypeAccessibleEmojis, stage: 'rehype' })
+      const html = await processWithAstroSettings({
+        markdown,
+        plugin: rehypeAccessibleEmojis,
+        stage: 'rehype',
+      })
 
       // Verify footnote structure is preserved
       expect(html).toContain('footnote')
@@ -81,7 +101,11 @@ Paragraph with 🚀 emoji
 - Another item
       `.trim()
 
-  const html = await processWithAstroSettings({ markdown, plugin: rehypeAccessibleEmojis, stage: 'rehype' })
+      const html = await processWithAstroSettings({
+        markdown,
+        plugin: rehypeAccessibleEmojis,
+        stage: 'rehype',
+      })
 
       const roleCount = (html.match(/role="img"/g) || []).length
       expect(roleCount).toBeGreaterThan(0)

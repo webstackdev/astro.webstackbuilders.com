@@ -139,7 +139,7 @@ describe('PrivacyPolicyVersion Integration', () => {
           dir: process.cwd(),
           filepath: 'src/pages/privacy/index.astro',
           depth: 1,
-        }),
+        })
       )
 
       expect(mockUpdateConfig).toHaveBeenCalledWith({
@@ -181,7 +181,7 @@ describe('PrivacyPolicyVersion Integration', () => {
         expect.objectContaining({
           dir: '/github/workspace',
           filepath: 'src/pages/privacy/index.astro',
-        }),
+        })
       )
     })
 
@@ -203,7 +203,7 @@ describe('PrivacyPolicyVersion Integration', () => {
 
       expect(gitLog).not.toHaveBeenCalled()
       expect(consoleWarnSpy).toHaveBeenCalledWith(
-        '[privacy-policy-version] Git metadata not found. Skipping git lookup.',
+        '[privacy-policy-version] Git metadata not found. Skipping git lookup.'
       )
       expect(mockUpdateConfig).toHaveBeenCalledWith({
         vite: {

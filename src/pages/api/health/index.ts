@@ -6,10 +6,7 @@
  */
 
 import type { APIRoute } from 'astro'
-import {
-  buildApiErrorResponse,
-  handleApiFunctionError
-} from '@pages/api/_utils/errors'
+import { buildApiErrorResponse, handleApiFunctionError } from '@pages/api/_utils/errors'
 import { createApiFunctionContext } from '@pages/api/_utils/requestContext'
 
 export const prerender = false

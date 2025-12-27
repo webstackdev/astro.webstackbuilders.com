@@ -15,7 +15,7 @@ export const formatPhoneNumber = (phoneNumber: string) => {
   const parsedPhoneNumber = parsePhoneNumber(phoneNumber)
   if (!parsedPhoneNumber) {
     throw new BuildError({
-      message: `Trying to format invalid phone number: ${phoneNumber}`
+      message: `Trying to format invalid phone number: ${phoneNumber}`,
     })
   }
   return parsedPhoneNumber.format('NATIONAL')

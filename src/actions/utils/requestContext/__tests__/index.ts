@@ -7,7 +7,8 @@ const sha256 = (value: string): string => createHash('sha256').update(value).dig
 
 const createCookies = (value: string | undefined) =>
   ({
-    get: (key: string) => (key === 'consent_functional' && value !== undefined ? { value } : undefined),
+    get: (key: string) =>
+      key === 'consent_functional' && value !== undefined ? { value } : undefined,
   }) as unknown as import('astro').AstroCookies
 
 describe('requestContext', () => {

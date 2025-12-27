@@ -66,9 +66,11 @@ describe('NewsletterFormElement web component', () => {
   })
 
   const renderNewsletter = async (
-    assertion: (_context: { element: NewsletterFormElement; elements: ReturnType<typeof getElements> }) =>
-      Promise<void> | void,
-    props: Partial<NewsletterProps> = {},
+    assertion: (_context: {
+      element: NewsletterFormElement
+      elements: ReturnType<typeof getElements>
+    }) => Promise<void> | void,
+    props: Partial<NewsletterProps> = {}
   ) => {
     await executeRender<NewsletterComponentModule>({
       container,
@@ -127,7 +129,9 @@ describe('NewsletterFormElement web component', () => {
       elements.consentCheckbox.checked = false
 
       elements.form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
-      expect(elements.message.textContent).toBe('Please consent to receive marketing communications.')
+      expect(elements.message.textContent).toBe(
+        'Please consent to receive marketing communications.'
+      )
       expect(elements.emailInput.getAttribute('aria-invalid')).toBe(null)
       expect(elements.consentCheckbox.getAttribute('aria-invalid')).toBe('true')
     })
@@ -148,7 +152,10 @@ describe('NewsletterFormElement web component', () => {
       elements.form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
       await flushPromises()
 
-      expect(newsletterSubscribeMock).toHaveBeenCalledWith({ email: 'test@example.com', consentGiven: true })
+      expect(newsletterSubscribeMock).toHaveBeenCalledWith({
+        email: 'test@example.com',
+        consentGiven: true,
+      })
       expect(elements.message.textContent).toBe('Subscribed successfully!')
       expect(elements.message.getAttribute('role')).toBe('status')
       expect(elements.message.getAttribute('aria-live')).toBe('polite')
@@ -188,7 +195,9 @@ describe('NewsletterFormElement web component', () => {
       await flushPromises()
 
       expect(newsletterSubscribeMock).toHaveBeenCalled()
-      expect(elements.message.textContent).toBe('Network error. Please check your connection and try again.')
+      expect(elements.message.textContent).toBe(
+        'Network error. Please check your connection and try again.'
+      )
     })
   })
 

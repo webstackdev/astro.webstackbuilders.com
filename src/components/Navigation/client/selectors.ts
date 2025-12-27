@@ -46,7 +46,7 @@ export const getHeaderElement = (): HTMLElement => {
   const header = document.querySelector(SELECTORS.header)
   if (!isHeaderElement(header)) {
     throw new ClientScriptError({
-      message: `Site main <header> is missing in document, selector: ${SELECTORS.header}`
+      message: `Site main <header> is missing in document, selector: ${SELECTORS.header}`,
     })
   }
   return header
@@ -59,7 +59,7 @@ export const getMobileSplashElement = (): HTMLDivElement => {
   const splash = document.querySelector(SELECTORS.splash)
   if (!isDivElement(splash)) {
     throw new ClientScriptError({
-      message: `Mobile nav splash <div> is missing in document, selector: ${SELECTORS.splash}`
+      message: `Mobile nav splash <div> is missing in document, selector: ${SELECTORS.splash}`,
     })
   }
   return splash
@@ -72,7 +72,7 @@ export const getNavWrapperElement = (): HTMLSpanElement => {
   const navWrapper = document.querySelector(SELECTORS.navWrapper)
   if (!isSpanElement(navWrapper)) {
     throw new ClientScriptError({
-      message: `Main nav menu <span> wrapper is missing in document, selector: ${SELECTORS.navWrapper}`
+      message: `Main nav menu <span> wrapper is missing in document, selector: ${SELECTORS.navWrapper}`,
     })
   }
   return navWrapper
@@ -86,7 +86,7 @@ export const getNavMenuElement = (): HTMLUListElement => {
   const menu = navWrapper.querySelector(SELECTORS.menu)
   if (!isUlElement(menu)) {
     throw new ClientScriptError({
-      message: `<ul> element is missing under <nav> element in document, class: ${SELECTORS.menu}`
+      message: `<ul> element is missing under <nav> element in document, class: ${SELECTORS.menu}`,
     })
   }
   return menu
@@ -99,7 +99,7 @@ export const getNavToggleWrapperElement = (): HTMLSpanElement => {
   const toggleWrapper = document.querySelector(SELECTORS.toggleWrapper)
   if (!isSpanElement(toggleWrapper)) {
     throw new ClientScriptError({
-      message: `<span> element with class ${SELECTORS.toggleWrapper} is missing in document`
+      message: `<span> element with class ${SELECTORS.toggleWrapper} is missing in document`,
     })
   }
   return toggleWrapper
@@ -113,7 +113,7 @@ export const getNavToggleBtnElement = (): HTMLButtonElement => {
   const toggleBtn = toggleWrapper.querySelector(SELECTORS.toggleBtn)
   if (!isButtonElement(toggleBtn)) {
     throw new ClientScriptError({
-      message: `<button> element with class ${SELECTORS.toggleBtn} is missing in document`
+      message: `<button> element with class ${SELECTORS.toggleBtn} is missing in document`,
     })
   }
   return toggleBtn
@@ -126,7 +126,7 @@ export const getMobileNavFocusContainer = (): HTMLDivElement => {
   const focusContainer = document.querySelector(SELECTORS.focusContainer)
   if (!isDivElement(focusContainer)) {
     throw new ClientScriptError({
-      message: `<div> element with id ${SELECTORS.focusContainer} is missing in document`
+      message: `<div> element with id ${SELECTORS.focusContainer} is missing in document`,
     })
   }
   return focusContainer

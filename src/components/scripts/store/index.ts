@@ -8,9 +8,7 @@ import { saveMastodonInstance } from './mastodonInstances'
 import { setOverlayPauseState } from './animationLifecycle'
 
 // Re-export types
-export type {
-
-} from './@types'
+export type {} from './@types'
 
 // Re-export animation lifecycle store
 export {
@@ -63,9 +61,7 @@ export {
 } from './consent'
 
 // Re-export visibility
-export {
-  type VisibilityState,
-} from './tableOfContents'
+export { type VisibilityState } from './tableOfContents'
 
 // Re-export consent banner
 export {

@@ -13,7 +13,11 @@ import { processWithFullPipeline } from '@lib/markdown/helpers/processors'
 let html: string
 
 beforeAll(async () => {
-  const markdown = ['https://youtu.be/enTFE2c68FQ', '', 'https://www.youtube.com/watch?v=enTFE2c68FQ'].join('\n')
+  const markdown = [
+    'https://youtu.be/enTFE2c68FQ',
+    '',
+    'https://www.youtube.com/watch?v=enTFE2c68FQ',
+  ].join('\n')
   html = await processWithFullPipeline(markdown)
 })
 

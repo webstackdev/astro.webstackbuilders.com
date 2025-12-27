@@ -42,7 +42,7 @@ const removeElementById = (root: Document | Element, id: string) => {
 const replaceElementWith = (
   root: Document | Element,
   id: string,
-  createNode: (_doc: Document) => HTMLElement,
+  createNode: (_doc: Document) => HTMLElement
 ) => {
   const doc = resolveDocument(root)
   const original = doc.querySelector<HTMLElement>(`#${id}`)
@@ -66,14 +66,18 @@ describe('getDownloadFormElement selector', () => {
   it('throws with no form in DOM', async () => {
     await renderDownloadForm(async ({ window }) => {
       removeElementById(window.document, 'downloadForm')
-      expect(() => getDownloadFormElement(window.document)).toThrow('Download form element not found')
+      expect(() => getDownloadFormElement(window.document)).toThrow(
+        'Download form element not found'
+      )
     })
   })
 
   it('throws with wrong element type', async () => {
     await renderDownloadForm(async ({ window }) => {
-      replaceElementWith(window.document, 'downloadForm', (doc) => doc.createElement('div'))
-      expect(() => getDownloadFormElement(window.document)).toThrow('Download form element not found')
+      replaceElementWith(window.document, 'downloadForm', doc => doc.createElement('div'))
+      expect(() => getDownloadFormElement(window.document)).toThrow(
+        'Download form element not found'
+      )
     })
   })
 
@@ -102,14 +106,18 @@ describe('getDownloadSubmitButton selector', () => {
   it('throws with no button in DOM', async () => {
     await renderDownloadForm(async ({ window }) => {
       removeElementById(window.document, 'downloadSubmitBtn')
-      expect(() => getDownloadSubmitButton(window.document)).toThrow('Download submit button not found')
+      expect(() => getDownloadSubmitButton(window.document)).toThrow(
+        'Download submit button not found'
+      )
     })
   })
 
   it('throws with wrong element type', async () => {
     await renderDownloadForm(async ({ window }) => {
-      replaceElementWith(window.document, 'downloadSubmitBtn', (doc) => doc.createElement('div'))
-      expect(() => getDownloadSubmitButton(window.document)).toThrow('Download submit button not found')
+      replaceElementWith(window.document, 'downloadSubmitBtn', doc => doc.createElement('div'))
+      expect(() => getDownloadSubmitButton(window.document)).toThrow(
+        'Download submit button not found'
+      )
     })
   })
 })
@@ -143,7 +151,9 @@ describe('getDownloadButtonWrapper selector', () => {
   it('throws with no wrapper in DOM', async () => {
     await renderDownloadForm(async ({ window }) => {
       removeElementById(window.document, 'downloadButtonWrapper')
-      expect(() => getDownloadButtonWrapper(window.document)).toThrow('Download button wrapper not found')
+      expect(() => getDownloadButtonWrapper(window.document)).toThrow(
+        'Download button wrapper not found'
+      )
     })
   })
 })
@@ -206,12 +216,12 @@ describe('queryDownloadFormInvalidatableControls selector', () => {
 
       expect(
         controls.length,
-        'Download form should expose invalidatable controls (input/select/textarea) for aria-invalid sync',
+        'Download form should expose invalidatable controls (input/select/textarea) for aria-invalid sync'
       ).toBeGreaterThan(0)
 
       expect(
-        controls.some((control) => control.id === 'firstName'),
-        'Download form invalidatable controls should include #firstName',
+        controls.some(control => control.id === 'firstName'),
+        'Download form invalidatable controls should include #firstName'
       ).toBe(true)
     })
   })

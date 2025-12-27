@@ -4,7 +4,11 @@ import SocialEmbed from '@components/Social/Embed/index.astro'
 import type { SocialEmbedElement as SocialEmbedElementInstance } from '@components/Social/Embed/webComponent'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { executeRender } from '@test/unit/helpers/litRuntime'
-import { queryEmbedLoadingStatus, queryEmbedPlaceholder, queryUnmanagedEmbedElements } from '../selectors'
+import {
+  queryEmbedLoadingStatus,
+  queryEmbedPlaceholder,
+  queryUnmanagedEmbedElements,
+} from '../selectors'
 
 type SocialEmbedModule = WebComponentModule<SocialEmbedElementInstance>
 
@@ -27,7 +31,7 @@ describe('EmbedManager selectors', () => {
           url,
         },
       },
-      waitForReady: async (element) => {
+      waitForReady: async element => {
         await element.updateComplete
       },
       assert: async ({ element, window }) => {
@@ -37,16 +41,28 @@ describe('EmbedManager selectors', () => {
 
         const unmanagedEmbeds = queryUnmanagedEmbedElements(window.document)
 
-        expect(unmanagedEmbeds.length, 'EmbedManager should discover at least one unmanaged [data-embed] element').toBe(1)
+        expect(
+          unmanagedEmbeds.length,
+          'EmbedManager should discover at least one unmanaged [data-embed] element'
+        ).toBe(1)
         expect(
           unmanagedEmbeds[0],
-          'EmbedManager should discover the rendered <social-embed> element as an unmanaged embed',
+          'EmbedManager should discover the rendered <social-embed> element as an unmanaged embed'
         ).toBe(element)
 
-        expect(element.dataset['embedUrl'], 'social-embed should sync data-embed-url from url attribute').toBe(url)
+        expect(
+          element.dataset['embedUrl'],
+          'social-embed should sync data-embed-url from url attribute'
+        ).toBe(url)
 
-        expect(queryEmbedLoadingStatus(element), 'social-embed should render a loading status node while busy').toBeTruthy()
-        expect(queryEmbedPlaceholder(element), 'social-embed should render a placeholder node while busy').toBeTruthy()
+        expect(
+          queryEmbedLoadingStatus(element),
+          'social-embed should render a loading status node while busy'
+        ).toBeTruthy()
+        expect(
+          queryEmbedPlaceholder(element),
+          'social-embed should render a placeholder node while busy'
+        ).toBeTruthy()
       },
     })
   })

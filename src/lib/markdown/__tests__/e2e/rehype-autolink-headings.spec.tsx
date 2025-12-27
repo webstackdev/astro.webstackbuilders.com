@@ -63,9 +63,9 @@ describe('Layer 3: E2E - rehypeAutolinkHeadings', () => {
     // IDs should be based on heading text
     expect(html).toMatch(/id=["']main-title["']|id=["']section-one["']|id=["']section-two["']/)
 
-    const ids = Array.from(container.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]')).map((h) =>
-      h.getAttribute('id')
-    )
+    const ids = Array.from(
+      container.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]')
+    ).map(h => h.getAttribute('id'))
     expect(ids.join(' ')).toMatch(/main-title|section-one|section-two/)
   })
 

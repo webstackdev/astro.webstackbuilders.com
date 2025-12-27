@@ -3,13 +3,7 @@
  * Tests the wrapper functions around js-cookie library
  */
 import { describe, it, expect } from 'vitest'
-import {
-  isDev,
-  isE2eTest,
-  isProd,
-  isTest,
-  isUnitTest,
-} from '@lib/config'
+import { isDev, isE2eTest, isProd, isTest, isUnitTest } from '@lib/config'
 
 describe('Build-time environment handling utilities', () => {
   it('should always report running in Vitest in a unit test', () => {

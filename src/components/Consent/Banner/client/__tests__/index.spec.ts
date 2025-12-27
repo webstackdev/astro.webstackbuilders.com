@@ -1,4 +1,3 @@
-
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import { TestError } from '@test/errors'
@@ -62,7 +61,10 @@ const waitForBannerReady = async (element: ConsentBannerElement) => {
 type JsdomWindow = Window & typeof globalThis
 
 const renderConsentBanner = async (
-  assertion: (_context: { element: ConsentBannerElement; window: JsdomWindow }) => Promise<void> | void,
+  assertion: (_context: {
+    element: ConsentBannerElement
+    window: JsdomWindow
+  }) => Promise<void> | void
 ) => {
   const container = await AstroContainer.create()
 
@@ -94,7 +96,7 @@ beforeEach(async () => {
     window.localStorage.clear()
 
     const module = await loadWebComponentModule<ConsentBannerModule>(
-      '@components/Consent/Banner/client/index',
+      '@components/Consent/Banner/client/index'
     )
 
     const bannerCtor = module.componentCtor as typeof ConsentBannerElement
@@ -115,10 +117,12 @@ describe('ConsentBannerElement', () => {
 
       expect(window.document.activeElement).toBe(wrapper)
 
-      await new Promise<void>((resolve) => {
+      await new Promise<void>(resolve => {
         setTimeout(resolve, 0)
       })
-      const allowBtn = window.document.querySelector('.consent-modal__btn-allow') as HTMLButtonElement | null
+      const allowBtn = window.document.querySelector(
+        '.consent-modal__btn-allow'
+      ) as HTMLButtonElement | null
       expect(allowBtn).not.toBeNull()
       expect(window.document.activeElement).toBe(allowBtn)
     })
@@ -137,7 +141,9 @@ describe('ConsentBannerElement', () => {
 
   it('hides the banner when the close button is clicked', async () => {
     await renderConsentBanner(({ window }) => {
-      const closeBtn = window.document.querySelector('.consent-modal__close-btn') as HTMLButtonElement | null
+      const closeBtn = window.document.querySelector(
+        '.consent-modal__close-btn'
+      ) as HTMLButtonElement | null
       expect(closeBtn).not.toBeNull()
 
       closeBtn!.dispatchEvent(new window.MouseEvent('click', { bubbles: true }))
@@ -150,7 +156,9 @@ describe('ConsentBannerElement', () => {
 
   it('grants all consent when Allow All is triggered', async () => {
     await renderConsentBanner(({ window }) => {
-      const allowBtn = window.document.querySelector('.consent-modal__btn-allow') as HTMLButtonElement | null
+      const allowBtn = window.document.querySelector(
+        '.consent-modal__btn-allow'
+      ) as HTMLButtonElement | null
       expect(allowBtn).not.toBeNull()
 
       allowBtn!.dispatchEvent(new window.MouseEvent('click', { bubbles: true }))
@@ -162,7 +170,9 @@ describe('ConsentBannerElement', () => {
 
   it('navigates to the consent page when Customize is triggered', async () => {
     await renderConsentBanner(({ element, window }) => {
-      const customizeLink = window.document.querySelector('.consent-modal__btn-customize') as HTMLAnchorElement | null
+      const customizeLink = window.document.querySelector(
+        '.consent-modal__btn-customize'
+      ) as HTMLAnchorElement | null
       expect(customizeLink).not.toBeNull()
 
       const bannerCtor = element.constructor as typeof HTMLElement & {

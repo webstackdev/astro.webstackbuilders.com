@@ -49,7 +49,7 @@ Text with emoji :wave:[^1]
 [^1]: Footnote with :smile:
       `.trim()
 
-  const html = await processWithAstroSettings({ markdown, plugin: remarkEmoji })
+      const html = await processWithAstroSettings({ markdown, plugin: remarkEmoji })
 
       expect(html).toContain('👋')
       expect(html).toContain('😄')

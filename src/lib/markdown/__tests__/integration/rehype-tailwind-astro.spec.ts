@@ -11,7 +11,11 @@ describe('rehype-tailwind-classes (Layer 2: With Astro Pipeline)', () => {
 | Cell 1   | Cell 2   |
       `.trim()
 
-      const html = await processWithAstroSettings({ markdown, plugin: rehypeTailwindClasses, stage: 'rehype' })
+      const html = await processWithAstroSettings({
+        markdown,
+        plugin: rehypeTailwindClasses,
+        stage: 'rehype',
+      })
 
       expect(html).toContain('<table')
       expect(html).toContain('Header 1')
@@ -21,7 +25,11 @@ describe('rehype-tailwind-classes (Layer 2: With Astro Pipeline)', () => {
     it('should work with GFM strikethrough', async () => {
       const markdown = 'Text with ~~strikethrough~~ formatting'
 
-      const html = await processWithAstroSettings({ markdown, plugin: rehypeTailwindClasses, stage: 'rehype' })
+      const html = await processWithAstroSettings({
+        markdown,
+        plugin: rehypeTailwindClasses,
+        stage: 'rehype',
+      })
 
       expect(html).toContain('<del>')
       expect(html).toContain('strikethrough')
@@ -33,7 +41,11 @@ describe('rehype-tailwind-classes (Layer 2: With Astro Pipeline)', () => {
 - [ ] Pending task
       `.trim()
 
-      const html = await processWithAstroSettings({ markdown, plugin: rehypeTailwindClasses, stage: 'rehype' })
+      const html = await processWithAstroSettings({
+        markdown,
+        plugin: rehypeTailwindClasses,
+        stage: 'rehype',
+      })
 
       // The output clearly contains <li> elements with classes
       expect(html).toContain('task-list-item')
@@ -43,7 +55,11 @@ describe('rehype-tailwind-classes (Layer 2: With Astro Pipeline)', () => {
     it('should work with GFM autolinks', async () => {
       const markdown = 'Visit https://example.com for info'
 
-      const html = await processWithAstroSettings({ markdown, plugin: rehypeTailwindClasses, stage: 'rehype' })
+      const html = await processWithAstroSettings({
+        markdown,
+        plugin: rehypeTailwindClasses,
+        stage: 'rehype',
+      })
 
       expect(html).toContain('<a')
       expect(html).toContain('https://example.com')
@@ -58,7 +74,11 @@ Text with footnote[^1]
 [^1]: Footnote content
       `.trim()
 
-  const html = await processWithAstroSettings({ markdown, plugin: rehypeTailwindClasses, stage: 'rehype' })
+      const html = await processWithAstroSettings({
+        markdown,
+        plugin: rehypeTailwindClasses,
+        stage: 'rehype',
+      })
 
       expect(html).toContain('footnote')
       expect(html).toContain('Footnote content')
@@ -71,7 +91,11 @@ Reference[^note]
 [^note]: Note content
       `.trim()
 
-  const html = await processWithAstroSettings({ markdown, plugin: rehypeTailwindClasses, stage: 'rehype' })
+      const html = await processWithAstroSettings({
+        markdown,
+        plugin: rehypeTailwindClasses,
+        stage: 'rehype',
+      })
 
       expect(html).toContain('footnote')
     })
@@ -97,7 +121,11 @@ const x = 1;
 - List item
       `.trim()
 
-  const html = await processWithAstroSettings({ markdown, plugin: rehypeTailwindClasses, stage: 'rehype' })
+      const html = await processWithAstroSettings({
+        markdown,
+        plugin: rehypeTailwindClasses,
+        stage: 'rehype',
+      })
 
       expect(html).toContain('<h1')
       expect(html).toContain('<p')
@@ -114,7 +142,11 @@ const x = 1;
 Content text
       `.trim()
 
-  const html = await processWithAstroSettings({ markdown, plugin: rehypeTailwindClasses, stage: 'rehype' })
+      const html = await processWithAstroSettings({
+        markdown,
+        plugin: rehypeTailwindClasses,
+        stage: 'rehype',
+      })
 
       expect(html).toContain('<h1')
       expect(html).toContain('Content text')

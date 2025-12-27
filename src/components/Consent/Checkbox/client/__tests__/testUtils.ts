@@ -47,12 +47,12 @@ export interface RenderConsentCheckboxContext {
 }
 
 export type RenderConsentCheckboxAssertion = (
-  _context: RenderConsentCheckboxContext,
+  _context: RenderConsentCheckboxContext
 ) => Promise<void> | void
 
 export const renderConsentCheckbox = async (
   assertion: RenderConsentCheckboxAssertion,
-  props: Partial<CheckboxFixtureProps> = {},
+  props: Partial<CheckboxFixtureProps> = {}
 ): Promise<void> => {
   const container = await AstroContainer.create()
 

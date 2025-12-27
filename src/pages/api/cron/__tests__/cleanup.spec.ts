@@ -23,7 +23,7 @@ vi.mock('astro:db', () => ({
 
 vi.mock('@pages/api/_utils/environment', async () => {
   const actual = await vi.importActual<typeof import('@pages/api/_utils/environment')>(
-    '@pages/api/_utils/environment',
+    '@pages/api/_utils/environment'
   )
   return {
     ...actual,
@@ -181,5 +181,4 @@ describe('Cron cleanup endpoints', () => {
       expect(body.error.code).toBe('CRON_DELETE_CONFIRMED_TOKENS_FAILED')
     })
   })
-
 })

@@ -5,5 +5,5 @@ export {
   type ApiRequestMetadata,
   formatApiErrorLogEntry,
   buildApiErrorResponse,
-  handleApiFunctionError
+  handleApiFunctionError,
 } from './apiFunctionHandler'

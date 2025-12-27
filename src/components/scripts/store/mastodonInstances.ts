@@ -99,7 +99,7 @@ export function subscribeMastodonInstances(
  * Call this once during app initialization
  */
 export function mastodonDataConsentRevokeListener(): void {
-  $hasFunctionalConsent.subscribe((hasConsent) => {
+  $hasFunctionalConsent.subscribe(hasConsent => {
     if (!hasConsent) {
       clearMastodonInstances()
       $currentMastodonInstance.set(undefined)

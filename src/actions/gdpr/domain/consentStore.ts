@@ -24,7 +24,9 @@ export type CreateConsentRecordInput = {
   verified: boolean
 }
 
-export async function createConsentRecord(input: CreateConsentRecordInput): Promise<ConsentEventRecord> {
+export async function createConsentRecord(
+  input: CreateConsentRecordInput
+): Promise<ConsentEventRecord> {
   const [record] = await db
     .insert(consentEvents)
     .values({
@@ -83,7 +85,10 @@ export async function deleteConsentRecordsByEmail(email: string): Promise<number
   return deleted.length
 }
 
-export async function markConsentRecordsVerified(email: string, dataSubjectId: string): Promise<number> {
+export async function markConsentRecordsVerified(
+  email: string,
+  dataSubjectId: string
+): Promise<number> {
   const normalizedEmail = normalizeEmail(email)
   const updated = await db
     .update(consentEvents)
@@ -92,8 +97,8 @@ export async function markConsentRecordsVerified(email: string, dataSubjectId: s
       and(
         eq(consentEvents.email, normalizedEmail),
         eq(consentEvents.dataSubjectId, dataSubjectId),
-        eq(consentEvents.verified, false),
-      ),
+        eq(consentEvents.verified, false)
+      )
     )
     .returning({ id: consentEvents.id })
 

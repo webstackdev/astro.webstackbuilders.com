@@ -1,5 +1,8 @@
 import { describe, it, expect, vi } from 'vitest'
-import { initMssgLengthHandler, validateMessageField } from '@components/Forms/Contact/client/validation'
+import {
+  initMssgLengthHandler,
+  validateMessageField,
+} from '@components/Forms/Contact/client/validation'
 import { renderContactForm } from './testUtils'
 
 describe('Message Validation', () => {

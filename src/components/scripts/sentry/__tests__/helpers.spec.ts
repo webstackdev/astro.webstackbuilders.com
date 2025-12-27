@@ -6,9 +6,11 @@ const mockScope = {
 }
 
 const isProdMock = vi.hoisted(() => vi.fn(() => true))
-const getConsentSnapshotMock = vi.hoisted(() => vi.fn(() => ({
-  analytics: true,
-})))
+const getConsentSnapshotMock = vi.hoisted(() =>
+  vi.fn(() => ({
+    analytics: true,
+  }))
+)
 
 vi.mock('@components/scripts/utils/environmentClient', () => ({
   isProd: isProdMock,
@@ -24,14 +26,16 @@ vi.mock('@sentry/browser', () => ({
 
 const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
-const createEvent = (): Parameters<typeof beforeSendHandler>[0] => ({
-  type: 'error',
-  user: { 'ip_address': '127.0.0.1' },
-  request: { headers: { 'user-agent': 'test' } },
-  breadcrumbs: [{ message: 'clicked' }],
-}) as unknown as Parameters<typeof beforeSendHandler>[0]
+const createEvent = (): Parameters<typeof beforeSendHandler>[0] =>
+  ({
+    type: 'error',
+    user: { ip_address: '127.0.0.1' },
+    request: { headers: { 'user-agent': 'test' } },
+    breadcrumbs: [{ message: 'clicked' }],
+  }) as unknown as Parameters<typeof beforeSendHandler>[0]
 
-const createHint = (): Parameters<typeof beforeSendHandler>[1] => ({}) as Parameters<typeof beforeSendHandler>[1]
+const createHint = (): Parameters<typeof beforeSendHandler>[1] =>
+  ({}) as Parameters<typeof beforeSendHandler>[1]
 
 describe('sentry helpers', () => {
   beforeEach(() => {
@@ -87,9 +91,7 @@ describe('sentry helpers', () => {
         analytics: true,
         timestamp: expect.any(String),
       })
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        '🔒 Sentry PII enabled based on analytics consent'
-      )
+      expect(consoleLogSpy).toHaveBeenCalledWith('🔒 Sentry PII enabled based on analytics consent')
     })
   })
 })

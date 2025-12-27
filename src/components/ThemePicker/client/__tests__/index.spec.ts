@@ -63,7 +63,7 @@ beforeAll(() => {
 
 const renderThemePickerDom = async (
   assertion: (_context: { element: ThemePickerElement; window: Window }) => Promise<void> | void,
-  props?: ThemePickerFixtureProps,
+  props?: ThemePickerFixtureProps
 ) => {
   const renderArgs = props ? { props: props as Record<string, unknown> } : undefined
 
@@ -73,7 +73,7 @@ const renderThemePickerDom = async (
     moduleSpecifier: '@components/ThemePicker/client/index',
     args: renderArgs,
     selector: 'theme-picker',
-    waitForReady: async (element) => {
+    waitForReady: async element => {
       await element.updateComplete
     },
     assert: async ({ element, window }) => {
@@ -122,7 +122,7 @@ describe('ThemePicker Component', () => {
         const themeButtons = getThemeButtons(element)
         expect(themeButtons.length).toBeGreaterThan(0)
 
-        const themes = themeButtons.map((btn) => btn.getAttribute('data-theme'))
+        const themes = themeButtons.map(btn => btn.getAttribute('data-theme'))
         expect(themes).toContain('light')
         expect(themes).toContain('dark')
         expect(themes).toContain('a11y')
@@ -162,7 +162,7 @@ describe('ThemePicker Component', () => {
     it('should have accessible labels on theme buttons', async () => {
       await renderThemePickerDom(({ element }) => {
         const themeButtons = getThemeButtons(element)
-        themeButtons.forEach((button) => {
+        themeButtons.forEach(button => {
           const label = button.getAttribute('aria-label')
           expect(label).toBeTruthy()
           expect(label).toMatch(/select color theme/i)
@@ -180,10 +180,13 @@ describe('ThemePicker Component', () => {
 
   describe('Component Props', () => {
     it('should accept custom label prop', async () => {
-      await renderThemePickerDom(({ element }) => {
-        const heading = queryElement<HTMLHeadingElement>(element, '.themepicker h3')
-        expect(heading.textContent?.trim()).toBe('Custom Theme Label')
-      }, { label: 'Custom Theme Label' })
+      await renderThemePickerDom(
+        ({ element }) => {
+          const heading = queryElement<HTMLHeadingElement>(element, '.themepicker h3')
+          expect(heading.textContent?.trim()).toBe('Custom Theme Label')
+        },
+        { label: 'Custom Theme Label' }
+      )
     })
 
     it('should use default label when not provided', async () => {
@@ -209,7 +212,7 @@ describe('ThemePicker Component', () => {
     it('should have hover classes on theme items', async () => {
       await renderThemePickerDom(({ element }) => {
         const items = getThemeListItems(element)
-        items.forEach((item) => {
+        items.forEach(item => {
           expect(item.classList.contains('hover:shadow-md')).toBe(true)
           expect(item.classList.contains('hover:scale-105')).toBe(true)
         })
@@ -228,7 +231,7 @@ describe('ThemePicker Component', () => {
     it('should have data-theme attributes on selection buttons', async () => {
       await renderThemePickerDom(({ element }) => {
         const buttons = getThemeSelectButtons(element)
-        buttons.forEach((button) => {
+        buttons.forEach(button => {
           expect(button.hasAttribute('data-theme')).toBe(true)
           const theme = button.getAttribute('data-theme')
           expect(['light', 'dark', 'holiday', 'a11y']).toContain(theme)
@@ -249,7 +252,7 @@ describe('ThemePicker Component', () => {
     it('should render theme items as list elements', async () => {
       await renderThemePickerDom(({ element }) => {
         const items = getThemeListItems(element)
-        items.forEach((item) => {
+        items.forEach(item => {
           expect(item.tagName).toBe('LI')
         })
       })
@@ -258,7 +261,7 @@ describe('ThemePicker Component', () => {
     it('should have proper button structure in each theme item', async () => {
       await renderThemePickerDom(({ element }) => {
         const items = getThemeListItems(element)
-        items.forEach((item) => {
+        items.forEach(item => {
           const button = item.querySelector('button') as HTMLButtonElement | null
           expect(button).toBeTruthy()
           expect(button?.classList.contains('themepicker__selectBtn')).toBe(true)
@@ -271,7 +274,7 @@ describe('ThemePicker Component', () => {
     it('should display color hues for each theme', async () => {
       await renderThemePickerDom(({ element }) => {
         const items = getThemeListItems(element)
-        items.forEach((item) => {
+        items.forEach(item => {
           const hues = item.querySelectorAll('.themepicker__hue')
           expect(hues.length).toBe(5)
         })
@@ -288,7 +291,13 @@ describe('ThemePicker Component', () => {
         }
 
         const hues = Array.from(firstItem.querySelectorAll('.themepicker__hue')) as HTMLElement[]
-        const expectedClasses = ['bg-primary', 'bg-secondary', 'bg-border', 'bg-text-offset', 'bg-text']
+        const expectedClasses = [
+          'bg-primary',
+          'bg-secondary',
+          'bg-border',
+          'bg-text-offset',
+          'bg-text',
+        ]
 
         expectedClasses.forEach((className, index) => {
           const hue = hues[index]

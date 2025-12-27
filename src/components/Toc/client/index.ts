@@ -51,7 +51,7 @@ export class TableOfContentsElement extends LitElement {
     this.cacheElements()
     this.attachListeners()
     this.initializeScrollSpy()
-    this.visibilityListener = (state) => {
+    this.visibilityListener = state => {
       this.open = state.tableOfContentsVisible
       this.disabled = !state.tableOfContentsEnabled
     }
@@ -95,7 +95,7 @@ export class TableOfContentsElement extends LitElement {
       this.panel.dataset['tocEscapeListener'] = 'true'
     }
 
-    this.tocLinks.forEach((link) => {
+    this.tocLinks.forEach(link => {
       if (link.dataset['tocListener']) {
         return
       }
@@ -162,7 +162,7 @@ export class TableOfContentsElement extends LitElement {
 
   private setPanelFocusable(isFocusable: boolean): void {
     const focusableLinks = this.tocLinks
-    focusableLinks.forEach((link) => {
+    focusableLinks.forEach(link => {
       link.tabIndex = isFocusable ? 0 : -1
     })
   }
@@ -232,19 +232,20 @@ export class TableOfContentsElement extends LitElement {
       return
     }
 
-    const IntersectionObserverCtor = (window as unknown as { IntersectionObserver?: typeof IntersectionObserver })
-      .IntersectionObserver
+    const IntersectionObserverCtor = (
+      window as unknown as { IntersectionObserver?: typeof IntersectionObserver }
+    ).IntersectionObserver
 
     if (typeof IntersectionObserverCtor !== 'function') {
       return
     }
 
     const slugs = this.tocLinks
-      .map((link) => link.dataset['tocSlug'])
+      .map(link => link.dataset['tocSlug'])
       .filter((slug): slug is string => Boolean(slug))
 
     const headings = slugs
-      .map((slug) => window.document.getElementById(slug))
+      .map(slug => window.document.getElementById(slug))
       .filter((heading): heading is HTMLElement => Boolean(heading))
 
     if (headings.length === 0) {
@@ -252,9 +253,9 @@ export class TableOfContentsElement extends LitElement {
     }
 
     const observer = new IntersectionObserverCtor(
-      (entries) => {
+      entries => {
         const visible = entries
-          .filter((entry) => entry.isIntersecting)
+          .filter(entry => entry.isIntersecting)
           .sort((a, b) => (b.intersectionRatio ?? 0) - (a.intersectionRatio ?? 0))
 
         const next = visible[0]?.target
@@ -269,17 +270,17 @@ export class TableOfContentsElement extends LitElement {
         root: null,
         threshold: [0.25, 0.5, 0.75],
         rootMargin: '0px 0px -60% 0px',
-      },
+      }
     )
 
-    headings.forEach((heading) => observer.observe(heading))
+    headings.forEach(heading => observer.observe(heading))
     this.headingObserver = observer
   }
 
   private setCurrentSlug(slug: string): void {
     this.activeSlug = slug
 
-    this.tocLinks.forEach((link) => {
+    this.tocLinks.forEach(link => {
       const linkSlug = link.dataset['tocSlug']
       const isCurrent = Boolean(linkSlug && linkSlug === slug)
       if (isCurrent) {
@@ -295,7 +296,7 @@ export class TableOfContentsElement extends LitElement {
 }
 
 export const registerTableOfContentsComponent = async (
-  tagName = TableOfContentsElement.registeredName,
+  tagName = TableOfContentsElement.registeredName
 ): Promise<void> => {
   defineCustomElement(tagName, TableOfContentsElement)
 }

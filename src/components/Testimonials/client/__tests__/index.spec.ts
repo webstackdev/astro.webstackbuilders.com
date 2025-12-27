@@ -1,4 +1,3 @@
-
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import TestimonialsComponent from '@components/Testimonials/index.astro'
@@ -96,7 +95,7 @@ const defaultProps: TestimonialsProps = {
 
 const renderTestimonials = async (
   assertion: (_context: { root: TestimonialsCarouselElement }) => Promise<void> | void,
-  props: Partial<TestimonialsProps> = {},
+  props: Partial<TestimonialsProps> = {}
 ) => {
   const container = await AstroContainer.create()
 
@@ -123,12 +122,15 @@ describe('Testimonials component', () => {
     autoplayPluginInstances.length = 0
     createAutoplayPluginMock.mockClear()
     intersectionObserverCallback = undefined
-    ;(globalThis as unknown as { IntersectionObserver?: typeof IntersectionObserver }).IntersectionObserver =
-      IntersectionObserverMock as unknown as typeof IntersectionObserver
+    ;(
+      globalThis as unknown as { IntersectionObserver?: typeof IntersectionObserver }
+    ).IntersectionObserver = IntersectionObserverMock as unknown as typeof IntersectionObserver
   })
 
   afterEach(() => {
-    const globalIntersection = globalThis as unknown as { IntersectionObserver?: typeof IntersectionObserver }
+    const globalIntersection = globalThis as unknown as {
+      IntersectionObserver?: typeof IntersectionObserver
+    }
     if (originalIntersectionObserver) {
       globalIntersection.IntersectionObserver = originalIntersectionObserver
       return
@@ -137,34 +139,40 @@ describe('Testimonials component', () => {
   })
 
   it('renders the supplied title and respects the limit', async () => {
-    await renderTestimonials(({ root }) => {
-      const heading = root.querySelector('h2')
-      const slides = root.querySelectorAll('.embla__slide')
-      const quoteIcon = root.querySelector('article svg')
+    await renderTestimonials(
+      ({ root }) => {
+        const heading = root.querySelector('h2')
+        const slides = root.querySelectorAll('.embla__slide')
+        const quoteIcon = root.querySelector('article svg')
 
-      expect(heading?.textContent).toBe('Trusted Partners')
-      expect(slides).toHaveLength(2)
+        expect(heading?.textContent).toBe('Trusted Partners')
+        expect(slides).toHaveLength(2)
 
-      expect(root.getAttribute('role')).toBe('region')
-      expect(root.getAttribute('aria-roledescription')).toBe('carousel')
-      expect(root.getAttribute('aria-label')).toBe('Trusted Partners')
+        expect(root.getAttribute('role')).toBe('region')
+        expect(root.getAttribute('aria-roledescription')).toBe('carousel')
+        expect(root.getAttribute('aria-label')).toBe('Trusted Partners')
 
-      const firstSlide = slides.item(0)
-      expect(firstSlide.getAttribute('role')).toBe('group')
-      expect(firstSlide.getAttribute('aria-roledescription')).toBe('slide')
-      expect(firstSlide.getAttribute('aria-label')).toBe('Testimonial 1 of 2')
+        const firstSlide = slides.item(0)
+        expect(firstSlide.getAttribute('role')).toBe('group')
+        expect(firstSlide.getAttribute('aria-roledescription')).toBe('slide')
+        expect(firstSlide.getAttribute('aria-label')).toBe('Testimonial 1 of 2')
 
-      expect(quoteIcon?.getAttribute('aria-hidden')).toBe('true')
-      expect(quoteIcon?.getAttribute('focusable')).toBe('false')
-    }, { title: 'Trusted Partners', limit: 2 })
+        expect(quoteIcon?.getAttribute('aria-hidden')).toBe('true')
+        expect(quoteIcon?.getAttribute('focusable')).toBe('false')
+      },
+      { title: 'Trusted Partners', limit: 2 }
+    )
   })
 
   it('omits navigation controls when only one testimonial is present', async () => {
-    await renderTestimonials(({ root }) => {
-      expect(root.querySelector('.embla__button--prev')).toBeNull()
-      expect(root.querySelector('.embla__dots')).toBeNull()
-      expect(root.querySelector('[data-testimonials-autoplay-toggle]')).toBeNull()
-    }, { limit: 1 })
+    await renderTestimonials(
+      ({ root }) => {
+        expect(root.querySelector('.embla__button--prev')).toBeNull()
+        expect(root.querySelector('.embla__dots')).toBeNull()
+        expect(root.querySelector('[data-testimonials-autoplay-toggle]')).toBeNull()
+      },
+      { limit: 1 }
+    )
   })
 
   it('registers the web component and generates pagination dots', async () => {
@@ -185,7 +193,7 @@ describe('Testimonials component', () => {
       const viewportId = viewport?.getAttribute('id')
       expect(viewportId).toBeTruthy()
 
-      dots.forEach((dot) => {
+      dots.forEach(dot => {
         expect(dot.getAttribute('aria-controls')).toBe(viewportId)
       })
       expect(prevBtn?.getAttribute('aria-controls')).toBe(viewportId)
@@ -237,7 +245,7 @@ describe('Testimonials component', () => {
               intersectionRatio: 0.5,
             } as unknown as IntersectionObserverEntry,
           ],
-          {} as IntersectionObserver,
+          {} as IntersectionObserver
         )
 
         await vi.runAllTimersAsync()
@@ -250,7 +258,7 @@ describe('Testimonials component', () => {
               intersectionRatio: 1,
             } as unknown as IntersectionObserverEntry,
           ],
-          {} as IntersectionObserver,
+          {} as IntersectionObserver
         )
 
         expect(pluginInstance?.play).toHaveBeenCalled()

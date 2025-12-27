@@ -40,9 +40,15 @@ const hasInteractions = likes.length > 0 || reposts.length > 0
 
 {
   (hasMentions || hasInteractions) && (
-    <section class="mt-12 pt-8 border-t border-border" id="webmentions" aria-labelledby="webmentions-heading">
+    <section
+      class="mt-12 pt-8 border-t border-border"
+      id="webmentions"
+      aria-labelledby="webmentions-heading"
+    >
       <header class="flex items-start justify-between mb-6 flex-wrap gap-4 flex-col sm:flex-row sm:items-center">
-        <h3 class="text-2xl font-bold text-text m-0" id="webmentions-heading">Webmentions</h3>
+        <h3 class="text-2xl font-bold text-text m-0" id="webmentions-heading">
+          Webmentions
+        </h3>
 
         {hasInteractions && (
           <div class="flex gap-6 items-center w-full sm:w-auto justify-start">
@@ -99,7 +105,7 @@ const hasInteractions = likes.length > 0 || reposts.length > 0
               {displayMentions
                 .slice(0, facepileLimit)
                 .reverse()
-                .map((mention) => (
+                .map(mention => (
                   <Image
                     {...buildAvatarImageProps(mention.author?.photo)}
                     alt={mention.author?.name || 'Anonymous'}
@@ -124,7 +130,7 @@ const hasInteractions = likes.length > 0 || reposts.length > 0
           )}
 
           <ol class="list-none p-0 m-0 flex flex-col gap-6">
-            {displayMentions.reverse().map((mention) => (
+            {displayMentions.reverse().map(mention => (
               <li class="m-0">
                 <WebMentionItem mention={mention} />
               </li>

@@ -90,7 +90,7 @@ async function collectFiles(dir: string, extensions: string[], files: string[]):
 
       if (entry.isDirectory()) {
         await collectFiles(fullPath, extensions, files)
-      } else if (entry.isFile() && extensions.some((ext) => entry.name.endsWith(ext))) {
+      } else if (entry.isFile() && extensions.some(ext => entry.name.endsWith(ext))) {
         files.push(fullPath)
       }
     }

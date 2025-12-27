@@ -9,7 +9,7 @@ import { executeRender } from '@test/unit/helpers/litRuntime'
 
 type SocialEmbedModule = WebComponentModule<SocialEmbedElement>
 
-const flushPromises = () => new Promise<void>((resolve) => setTimeout(resolve, 0))
+const flushPromises = () => new Promise<void>(resolve => setTimeout(resolve, 0))
 
 class ImmediateIntersectionObserver {
   private readonly callback: IntersectionObserverCallback
@@ -31,7 +31,7 @@ class ImmediateIntersectionObserver {
           rootBounds: null,
         } as IntersectionObserverEntry,
       ],
-      this as unknown as IntersectionObserver,
+      this as unknown as IntersectionObserver
     )
   }
 
@@ -60,12 +60,13 @@ describe('EmbedManager', () => {
           platform: 'youtube',
         },
       },
-      waitForReady: async (element) => {
+      waitForReady: async element => {
         await element.updateComplete
       },
       assert: async ({ element, window }) => {
-        const previousIntersectionObserver = (globalThis as unknown as { IntersectionObserver?: unknown })
-          .IntersectionObserver
+        const previousIntersectionObserver = (
+          globalThis as unknown as { IntersectionObserver?: unknown }
+        ).IntersectionObserver
         ;(globalThis as unknown as { IntersectionObserver?: unknown }).IntersectionObserver =
           ImmediateIntersectionObserver as unknown as typeof IntersectionObserver
 
@@ -111,7 +112,7 @@ describe('EmbedManager', () => {
           url: 'https://www.linkedin.com/embed/feed/update/urn:li:share:123',
         },
       },
-      waitForReady: async (element) => {
+      waitForReady: async element => {
         await element.updateComplete
       },
       assert: async ({ element }) => {
