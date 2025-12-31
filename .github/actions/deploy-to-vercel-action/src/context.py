@@ -51,47 +51,79 @@ def load_event_payload() -> dict[str, Any]:
         return {}
 
 
-def build_context() -> Context:
-    github_repository = get_env("GITHUB_REPOSITORY")
+def _parse_repository_slug(github_repository: str) -> tuple[str, str]:
     if "/" not in github_repository:
         raise ValueError("GITHUB_REPOSITORY is not in 'owner/repo' format")
     user, repo = github_repository.split("/", 1)
+    return user, repo
+
+
+def _require_input(name: str) -> str:
+    value = get_input(name)
+    if not value:
+        raise ValueError(f"Missing required input: {name}")
+    return value
+
+
+def _require_one_of_inputs(primary: str, fallback: str, *, display_name: str) -> str:
+    value = get_input(primary) or get_input(fallback)
+    if not value:
+        raise ValueError(f"Missing required input: {display_name}")
+    return value
+
+
+def _extract_pr_context(
+    *,
+    payload: dict[str, Any],
+    github_repository: str,
+    default_user: str,
+) -> tuple[str, str, str, str, int | None, bool]:
+    pr = (payload or {}).get("pull_request") or {}
+
+    pr_number = int((payload or {}).get("number") or 0) or None
+
+    head = (pr.get("head") or {})
+    sha = str(head.get("sha") or "").strip() or "XXXXXXX"
+    branch = str(head.get("ref") or "").strip()
+    ref = branch
+    actor = str(((pr.get("user") or {}).get("login") or "")).strip() or default_user
+
+    head_repo_full_name = str(((head.get("repo") or {}).get("full_name") or "")).strip()
+    is_fork = bool(head_repo_full_name and head_repo_full_name != github_repository)
+
+    return branch, sha, ref, actor, pr_number, is_fork
+
+
+def _extract_push_context(*, default_user: str) -> tuple[str, str, str, str, int | None, bool]:
+    actor = get_env("GITHUB_ACTOR") or default_user
+    ref = get_env("GITHUB_REF")
+    sha = get_env("GITHUB_SHA") or "XXXXXXX"
+
+    # refs/heads/<branch>
+    branch = ref[11:] if ref.startswith("refs/heads/") else ref
+
+    return branch, sha, ref, actor, None, False
+
+
+def build_context() -> Context:
+    github_repository = get_env("GITHUB_REPOSITORY")
+    user, repo = _parse_repository_slug(github_repository)
 
     event_name = get_env("GITHUB_EVENT_NAME")
     is_pr = event_name in {"pull_request", "pull_request_target"}
 
-    github_token = get_input("GITHUB_TOKEN") or get_input("GH_PAT")
-    vercel_token = get_input("VERCEL_TOKEN")
-    vercel_org_id = get_input("VERCEL_ORG_ID")
-    vercel_project_id = get_input("VERCEL_PROJECT_ID")
-
-    if not github_token:
-        raise ValueError("Missing required input: GITHUB_TOKEN")
-    if not vercel_token:
-        raise ValueError("Missing required input: VERCEL_TOKEN")
-    if not vercel_org_id:
-        raise ValueError("Missing required input: VERCEL_ORG_ID")
-    if not vercel_project_id:
-        raise ValueError("Missing required input: VERCEL_PROJECT_ID")
+    github_token = _require_one_of_inputs("GITHUB_TOKEN", "GH_PAT", display_name="GITHUB_TOKEN")
+    vercel_token = _require_input("VERCEL_TOKEN")
+    vercel_org_id = _require_input("VERCEL_ORG_ID")
+    vercel_project_id = _require_input("VERCEL_PROJECT_ID")
 
     production = parse_bool(get_input("PRODUCTION"), default=not is_pr)
 
-    public_google_maps_api_key = get_input("PUBLIC_GOOGLE_MAPS_API_KEY")
-    public_google_map_id = get_input("PUBLIC_GOOGLE_MAP_ID")
-    public_sentry_dsn = get_input("PUBLIC_SENTRY_DSN")
-    public_upstash_search_rest_url = get_input("PUBLIC_UPSTASH_SEARCH_REST_URL")
-    public_upstash_search_readonly_token = get_input("PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN")
-
-    if not public_google_maps_api_key:
-        raise ValueError("Missing required input: PUBLIC_GOOGLE_MAPS_API_KEY")
-    if not public_google_map_id:
-        raise ValueError("Missing required input: PUBLIC_GOOGLE_MAP_ID")
-    if not public_sentry_dsn:
-        raise ValueError("Missing required input: PUBLIC_SENTRY_DSN")
-    if not public_upstash_search_rest_url:
-        raise ValueError("Missing required input: PUBLIC_UPSTASH_SEARCH_REST_URL")
-    if not public_upstash_search_readonly_token:
-        raise ValueError("Missing required input: PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN")
+    public_google_maps_api_key = _require_input("PUBLIC_GOOGLE_MAPS_API_KEY")
+    public_google_map_id = _require_input("PUBLIC_GOOGLE_MAP_ID")
+    public_sentry_dsn = _require_input("PUBLIC_SENTRY_DSN")
+    public_upstash_search_rest_url = _require_input("PUBLIC_UPSTASH_SEARCH_REST_URL")
+    public_upstash_search_readonly_token = _require_input("PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN")
 
     pr_labels = parse_disableable_list(get_input("PR_LABELS"), default=["deployed"])
     alias_domains = parse_disableable_list(get_input("ALIAS_DOMAINS"), default=None)
@@ -104,34 +136,14 @@ def build_context() -> Context:
     log_url = f"https://github.com/{user}/{repo}/actions/runs/{run_id}" if run_id else f"https://github.com/{user}/{repo}"
 
     payload = load_event_payload()
-
-    pr_number: int | None = None
-    branch = ""
-    sha = ""
-    ref = ""
-    actor = ""
-    is_fork = False
-
     if is_pr:
-        pr = (payload or {}).get("pull_request") or {}
-        pr_number = int((payload or {}).get("number") or 0) or None
-        head = (pr.get("head") or {})
-        sha = str(head.get("sha") or "").strip()
-        branch = str(head.get("ref") or "").strip()
-        ref = branch
-        actor = str(((pr.get("user") or {}).get("login") or "")).strip() or user
-
-        head_repo_full_name = str(((head.get("repo") or {}).get("full_name") or "")).strip()
-        is_fork = bool(head_repo_full_name and head_repo_full_name != github_repository)
+        branch, sha, ref, actor, pr_number, is_fork = _extract_pr_context(
+            payload=payload,
+            github_repository=github_repository,
+            default_user=user,
+        )
     else:
-        actor = get_env("GITHUB_ACTOR") or user
-        ref = get_env("GITHUB_REF")
-        sha = get_env("GITHUB_SHA")
-        # refs/heads/<branch>
-        branch = ref[11:] if ref.startswith("refs/heads/") else ref
-
-    if not sha:
-        sha = "XXXXXXX"
+        branch, sha, ref, actor, pr_number, is_fork = _extract_push_context(default_user=user)
 
     return Context(
         github_token=github_token,
