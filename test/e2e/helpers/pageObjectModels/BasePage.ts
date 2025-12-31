@@ -17,7 +17,6 @@ import type { BuiltInsGotoOptions } from './BuiltInsPage'
 import { BuiltInsPage } from './BuiltInsPage'
 
 export class BasePage extends BuiltInsPage {
-  private _consoleMessages: string[] = []
   public errors404: string[] = []
   public navigationItems = navigationItems
   private lastAstroPageLoadCount = 0
@@ -25,16 +24,91 @@ export class BasePage extends BuiltInsPage {
 
   protected constructor(page: Page) {
     super(page)
-
-    // IMPORTANT: Register listener early
-    this.page.on('console', (consoleMessage) => {
-      this._consoleMessages.push(consoleMessage.text())
-    })
   }
 
   protected override async afterGoto(_path: string, options?: BuiltInsGotoOptions): Promise<void> {
     if (!options?.skipCookieDismiss) {
       await this.dismissCookieModal()
+    }
+  }
+
+  /**
+   * Dismiss cookie consent modal if it's visible
+   */
+  private async dismissCookieModal(): Promise<void> {
+    try {
+      // Set consent cookies
+      await this._page.evaluate(() => {
+        document.cookie = 'consent_analytics=true; path=/; max-age=31536000'
+        document.cookie = 'consent_marketing=true; path=/; max-age=31536000'
+        document.cookie = 'consent_functional=true; path=/; max-age=31536000'
+
+        // Clear localStorage
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem('cookieConsent')
+          localStorage.removeItem('gdprConsent')
+        }
+      })
+
+      const cookieDialog = this._page.getByRole('dialog', { name: /cookie consent/i })
+      const allowAllButton = this._page.getByRole('button', { name: /allow all/i })
+
+      // Wait briefly for the dialog to appear on client-side hydrated pages.
+      await cookieDialog.waitFor({ state: 'visible', timeout: wait.tinyUi }).catch(() => undefined)
+
+      if (await cookieDialog.isVisible().catch(() => false)) {
+        if (await allowAllButton.isVisible().catch(() => false)) {
+          await allowAllButton.click({ timeout: wait.tinyUi }).catch(() => undefined)
+        }
+      }
+
+      // Force hide the modal (covers <dialog open> and inert states)
+      await this._page.evaluate(() => {
+        const modal = document.getElementById('consent-modal-id')
+        if (modal) {
+          modal.removeAttribute('open')
+          modal.setAttribute('aria-hidden', 'true')
+          modal.style.display = 'none'
+        }
+
+        const dialogs = Array.from(document.querySelectorAll('dialog'))
+        dialogs.forEach(dialog => {
+          dialog.removeAttribute('open')
+          dialog.setAttribute('aria-hidden', 'true')
+          dialog.style.display = 'none'
+        })
+
+        const roleDialogs = Array.from(document.querySelectorAll<HTMLElement>('[role="dialog"]'))
+        roleDialogs.forEach(dialog => {
+          dialog.setAttribute('aria-hidden', 'true')
+          dialog.style.display = 'none'
+        })
+
+        const main = document.getElementById('main-content')
+        if (main && main.hasAttribute('inert')) {
+          main.removeAttribute('inert')
+        }
+      })
+
+      // Wait until modal is hidden and page is interactive again
+      await this.waitForFunction(() => {
+        const modal = document.getElementById('consent-modal-id')
+        const main = document.getElementById('main-content')
+        const roleDialogs = Array.from(document.querySelectorAll<HTMLElement>('[role="dialog"]'))
+        const anyRoleDialogVisible = roleDialogs.some(
+          dialog => dialog.style.display !== 'none' && dialog.getAttribute('aria-hidden') !== 'true'
+        )
+        const modalHidden =
+          (!modal ||
+            modal.style.display === 'none' ||
+            modal.hasAttribute('hidden') ||
+            modal.getAttribute('aria-hidden') === 'true') &&
+          !anyRoleDialogVisible
+        const mainInteractive = !main || !main.hasAttribute('inert')
+        return modalHidden && mainInteractive
+      }, undefined, { timeout: wait.tinyUi })
+    } catch {
+      // Ignore errors - modal might not exist on all pages
     }
   }
 
@@ -112,89 +186,6 @@ export class BasePage extends BuiltInsPage {
   /**
    * ================================================================
    *
-   * Page Methods
-   *
-   * ================================================================
-   */
-
-  /**
-   * Dismiss cookie consent modal if it's visible
-   */
-  private async dismissCookieModal(): Promise<void> {
-    try {
-      // Set consent cookies
-      await this._page.evaluate(() => {
-        document.cookie = 'consent_analytics=true; path=/; max-age=31536000'
-        document.cookie = 'consent_marketing=true; path=/; max-age=31536000'
-        document.cookie = 'consent_functional=true; path=/; max-age=31536000'
-
-        // Clear localStorage
-        if (typeof localStorage !== 'undefined') {
-          localStorage.removeItem('cookieConsent')
-          localStorage.removeItem('gdprConsent')
-        }
-      })
-
-      const cookieDialog = this._page.getByRole('dialog', { name: /cookie consent/i })
-      const allowAllButton = this._page.getByRole('button', { name: /allow all/i })
-
-      // Wait briefly for the dialog to appear on client-side hydrated pages.
-      await cookieDialog.waitFor({ state: 'visible', timeout: wait.tinyUi }).catch(() => undefined)
-
-      if (await cookieDialog.isVisible().catch(() => false)) {
-        if (await allowAllButton.isVisible().catch(() => false)) {
-          await allowAllButton.click({ timeout: wait.tinyUi }).catch(() => undefined)
-        }
-      }
-
-      // Force hide the modal (covers <dialog open> and inert states)
-      await this._page.evaluate(() => {
-        const modal = document.getElementById('consent-modal-id')
-        if (modal) {
-          modal.removeAttribute('open')
-          modal.setAttribute('aria-hidden', 'true')
-          modal.style.display = 'none'
-        }
-
-        const dialogs = Array.from(document.querySelectorAll('dialog'))
-        dialogs.forEach(dialog => {
-          dialog.removeAttribute('open')
-          dialog.setAttribute('aria-hidden', 'true')
-          dialog.style.display = 'none'
-        })
-
-        const roleDialogs = Array.from(document.querySelectorAll<HTMLElement>('[role="dialog"]'))
-        roleDialogs.forEach(dialog => {
-          dialog.setAttribute('aria-hidden', 'true')
-          dialog.style.display = 'none'
-        })
-
-        const main = document.getElementById('main-content')
-        if (main && main.hasAttribute('inert')) {
-          main.removeAttribute('inert')
-        }
-      })
-
-      // Wait until modal is hidden and page is interactive again
-      await this.waitForFunction(() => {
-        const modal = document.getElementById('consent-modal-id')
-        const main = document.getElementById('main-content')
-        const roleDialogs = Array.from(document.querySelectorAll<HTMLElement>('[role="dialog"]'))
-        const anyRoleDialogVisible = roleDialogs.some(dialog => dialog.style.display !== 'none' && dialog.getAttribute('aria-hidden') !== 'true')
-        const modalHidden = (!modal || modal.style.display === 'none' || modal.hasAttribute('hidden') || modal.getAttribute('aria-hidden') === 'true')
-          && !anyRoleDialogVisible
-        const mainInteractive = !main || !main.hasAttribute('inert')
-        return modalHidden && mainInteractive
-      }, undefined, { timeout: wait.tinyUi })
-    } catch {
-      // Ignore errors - modal might not exist on all pages
-    }
-  }
-
-
-  /**
-   * ================================================================
-   *
    * Wait For Methods
    *
    * ================================================================
@@ -213,9 +204,6 @@ export class BasePage extends BuiltInsPage {
   /**
    * Wait for navigation to complete
    */
-  async waitForNavigation(): Promise<void> {
-    await this._page.waitForLoadState('networkidle')
-  }
 
   /**
    * ================================================================
@@ -393,19 +381,6 @@ export class BasePage extends BuiltInsPage {
   /**
    * Check if meta tag exists with specific content
    */
-  async getMetaContent(property: string): Promise<string | null> {
-    const selector = `meta[property="${property}"], meta[name="${property}"]`
-    return await this._page.getAttribute(selector, 'content')
-  }
-
-  /**
-   * Verify meta tag exists and has content
-   */
-  async expectMetaTag(property: string): Promise<void> {
-    const content = await this.getMetaContent(property)
-    expect(content).toBeTruthy()
-    expect(content).not.toBe('')
-  }
 
   /**
    * Verify page title contains expected text
@@ -465,20 +440,9 @@ export class BasePage extends BuiltInsPage {
   /**
    * Get text content of an element
    */
-  async getText(selector: string): Promise<string | null> {
-    return await this._page.textContent(selector)
-  }
-
   /**
    * Get all links on the page
    */
-  async getAllLinks(): Promise<string[]> {
-    return await this._page.$$eval('a[href]', (links) =>
-      links
-        .filter((link): link is HTMLAnchorElement => link instanceof HTMLAnchorElement)
-        .map((link) => link.href)
-    )
-  }
 
   /**
    * ================================================================
@@ -715,39 +679,6 @@ export class BasePage extends BuiltInsPage {
    *
    * ================================================================
    */
-
-  /**
-   * Add a listener for console messages. Add before page navigation like .goto()
-   */
-  async setupConsoleListener(): Promise<void> {
-    this._page.on('console', msg => {
-      this._consoleMessages.push(msg.text())
-    })
-  }
-
-  /**
-   * Find a specific message in the console output. Note that there is a timing
-   * issue with this method. It does not wait to make sure that your expected
-   * output has had an opportunity to be executed. If you want to check for either
-   * a success or a failure message, pass both in an array.
-   */
-  getConsoleMessage(searchStr: string | string[]): string {
-    const messages = this._consoleMessages
-    if (Array.isArray(searchStr)) {
-      return messages.find(msg => searchStr.some(term => msg.includes(term))) || ''
-    }
-    return messages.find(msg => msg.includes(searchStr)) || ''
-  }
-
-  /**
-   * Get all console messages. Note there is a timing issue with using this. It
-   * does not wait to make sure that your expected output has had an opportunity
-   * to be executed. To catch a specific message, use getConsoleMessage() which
-   * waits for that message to appear.
-   */
-  getConsoleMessages(): string[] {
-    return this._consoleMessages
-  }
 
   /**
    * Wait for specific console messages to appear up to a timeout value. Usage:

@@ -4,6 +4,7 @@ import type { RenderContactFormContext } from './testUtils'
 import { appendUploadFiles } from '@components/Forms/Contact/client/formSubmission'
 
 const contactSubmitMock = vi.hoisted(() => vi.fn())
+const isInputErrorMock = vi.hoisted(() => vi.fn())
 
 vi.mock('astro:actions', () => ({
   actions: {
@@ -11,6 +12,7 @@ vi.mock('astro:actions', () => ({
       submit: contactSubmitMock,
     },
   },
+  isInputError: isInputErrorMock,
 }))
 
 vi.mock('@components/scripts/errors', () => ({
@@ -33,6 +35,7 @@ describe('ContactForm submission', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     contactSubmitMock.mockReset()
+    isInputErrorMock.mockReset()
   })
 
   it('appends uploaded files to FormData as file1..file5', async () => {
@@ -129,6 +132,7 @@ describe('ContactForm submission', () => {
       fillValidFields(context)
       context.elements.charCount.textContent = '42'
 
+      isInputErrorMock.mockReturnValue(false)
       contactSubmitMock.mockResolvedValue({ error: { message: 'Server error' } })
 
       const submitEvent = new context.window.Event('submit', { bubbles: true, cancelable: true })
@@ -144,6 +148,42 @@ describe('ContactForm submission', () => {
       expect(context.elements.successMessage.classList.contains('hidden')).toBe(true)
       expect(context.elements.charCount.textContent).toBe('42')
       expect(context.elements.submitBtn.disabled).toBe(false)
+    })
+  })
+
+  it('displays field errors when Astro action returns input errors', async () => {
+    await renderContactForm(async context => {
+      fillValidFields(context)
+
+      const inputError = {
+        fields: {
+          email: ['Enter a valid email address.'],
+        },
+      }
+
+      isInputErrorMock.mockImplementation((error: unknown) => {
+        return typeof error === 'object' && error !== null && 'fields' in error
+      })
+
+      contactSubmitMock.mockResolvedValue({ error: inputError })
+
+      const submitEvent = new context.window.Event('submit', { bubbles: true, cancelable: true })
+      context.elements.form.dispatchEvent(submitEvent)
+
+      await flushPromises()
+
+      expect(contactSubmitMock).toHaveBeenCalled()
+      expect(context.elements.formErrorBanner.classList.contains('hidden')).toBe(false)
+      expect(context.elements.messages.style.display).toBe('block')
+      expect(context.elements.errorMessage.classList.contains('hidden')).toBe(false)
+      expect(context.elements.errorText.textContent).toBe(
+        'Please correct the highlighted fields and try again.'
+      )
+
+      expect(context.elements.fields.email.feedback.classList.contains('hidden')).toBe(false)
+      expect(context.elements.fields.email.feedback.textContent).toBe('Enter a valid email address.')
+      expect(context.elements.fields.email.input.getAttribute('aria-invalid')).toBe('true')
+      expect(context.elements.fields.email.input.classList.contains('error')).toBe(true)
     })
   })
 })

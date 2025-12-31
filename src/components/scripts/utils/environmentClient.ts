@@ -6,6 +6,7 @@ import {
   PACKAGE_RELEASE_VERSION,
   PRIVACY_POLICY_VERSION,
   PUBLIC_GOOGLE_MAPS_API_KEY,
+  PUBLIC_GOOGLE_MAP_ID,
   PUBLIC_SENTRY_DSN,
 } from 'astro:env/client'
 import { ClientScriptError } from '@components/scripts/errors'
@@ -108,6 +109,24 @@ export function getGoogleMapsApiKey(): string {
   }
 
   return PUBLIC_GOOGLE_MAPS_API_KEY
+}
+
+
+/**
+ * Gets the Google Maps Map ID injected at build time.
+ *
+ * Map IDs are required for vector maps + Advanced Markers.
+ *
+ * @throws {ClientScriptError} If PUBLIC_GOOGLE_MAP_ID is not set
+ */
+export function getGoogleMapId(): string {
+  if (!PUBLIC_GOOGLE_MAP_ID) {
+    throw new ClientScriptError(
+      'PUBLIC_GOOGLE_MAP_ID environment variable is not set. This is required to initialize Google Maps with Advanced Markers.'
+    )
+  }
+
+  return PUBLIC_GOOGLE_MAP_ID
 }
 
 /**

@@ -1,5 +1,6 @@
 /**
  * Contact Form Handler
+ *
  * Manages form submission, validation, and user interactions for the contact form
  */
 

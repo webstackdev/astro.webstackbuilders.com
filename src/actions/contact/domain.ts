@@ -1,246 +1,127 @@
-import { Buffer } from 'node:buffer'
 import emailValidator from 'email-validator'
-import { ActionsFunctionError } from '@actions/utils/errors'
-import { escapeHtml, formatFileSize } from './utils'
-import type { ContactFormData, ContactTimeline, FileAttachment } from '@actions/contact/@types'
+import { z } from 'astro/zod'
+import type { ContactTimeline } from '@actions/contact/@types'
+import { isAllowedTimeline } from './responder'
 
-export const contactTimelineValues = [
-  'asap',
-  '1-month',
-  '2-3-months',
-  '3-6-months',
-  '6-months-plus',
-  'flexible',
-] as const satisfies readonly [ContactTimeline, ...ContactTimeline[]]
+const trimString = (value: unknown): unknown => (typeof value === 'string' ? value.trim() : value)
 
-export const isAllowedTimeline = (timeline: string): timeline is ContactTimeline => {
-  return (contactTimelineValues as readonly string[]).includes(timeline)
+const emptyStringToUndefined = (value: unknown): unknown => {
+  if (typeof value !== 'string') return value
+  const trimmed = value.trim()
+  return trimmed.length === 0 ? undefined : trimmed
 }
 
-const readInputString = (input: Record<string, unknown>, key: string): string => {
-  const value = input[key]
-  return typeof value === 'string' ? value : ''
+const optionalTrimmedString = (maxLength?: number) => {
+  const base = z.string()
+  const limited = typeof maxLength === 'number' ? base.max(maxLength) : base
+  return z.preprocess(emptyStringToUndefined, limited.optional())
 }
 
-const readInputBoolean = (input: Record<string, unknown>, key: string): boolean => {
-  const value = input[key]
-  if (typeof value === 'boolean') return value
-  if (typeof value === 'string') return value === 'true'
-  return false
+interface RequiredStringOptions {
+  required_error: string
+  invalid_type_error: string
+  min: { value: number; message: string }
+  max: { value: number; message: string }
 }
 
-export function generateEmailContent(data: ContactFormData, files: FileAttachment[]): string {
-  const fields = [
-    `<p><strong>Name:</strong> ${escapeHtml(data.name)}</p>`,
-    `<p><strong>Email:</strong> ${escapeHtml(data.email)}</p>`,
-  ]
-
-  if (data.phone) fields.push(`<p><strong>Phone:</strong> ${escapeHtml(data.phone)}</p>`)
-  if (data.service) fields.push(`<p><strong>Service:</strong> ${escapeHtml(data.service)}</p>`)
-  if (data.budget) fields.push(`<p><strong>Budget:</strong> ${escapeHtml(data.budget)}</p>`)
-  if (data.timeline) fields.push(`<p><strong>Timeline:</strong> ${escapeHtml(data.timeline)}</p>`)
-  if (data.website) fields.push(`<p><strong>Website:</strong> ${escapeHtml(data.website)}</p>`)
-
-  fields.push('<p><strong>Message:</strong></p>')
-  fields.push(`<p>${escapeHtml(data.message).replace(/\n/g, '<br>')}</p>`)
-
-  if (files.length > 0) {
-    fields.push('<p><strong>Attachments:</strong></p>')
-    fields.push('<ul>')
-    files.forEach(file => {
-      fields.push(`<li>${escapeHtml(file.filename)} (${formatFileSize(file.size)})</li>`)
-    })
-    fields.push('</ul>')
-  }
-
-  fields.push(`<p><strong>Consent Given:</strong> ${data.consent ? 'Yes' : 'No'}</p>`)
-
-  return `
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<style>
-body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
-p { margin: 10px 0; }
-</style>
-</head>
-<body>
-<h1>New Contact Form Submission</h1>
-${fields.join('\n')}
-</body>
-</html>
-`.trim()
+const requiredString = (options: RequiredStringOptions) => {
+  return z.preprocess(
+    emptyStringToUndefined,
+    z
+      .string({
+        required_error: options.required_error,
+        invalid_type_error: options.invalid_type_error,
+      })
+      .min(options.min.value, { message: options.min.message })
+      .max(options.max.value, { message: options.max.message })
+  )
 }
 
-export function getFormDataFromInput(input: Record<string, unknown>): ContactFormData {
-  const formData: ContactFormData = {
-    name: readInputString(input, 'name'),
-    email: readInputString(input, 'email'),
-    message: readInputString(input, 'message'),
-    consent: readInputBoolean(input, 'consent'),
-  }
+const isFile = (value: unknown): value is File => typeof File !== 'undefined' && value instanceof File
+const optionalFile = () => z.custom<File>(isFile).optional()
 
-  const phone = readInputString(input, 'phone')
-  const budget = readInputString(input, 'budget')
-  const timeline = readInputString(input, 'timeline')
-  const website = readInputString(input, 'website')
+const contactTimelineSchema = z.preprocess(
+  emptyStringToUndefined,
+  z
+    .custom<ContactTimeline>(
+      (value): value is ContactTimeline => typeof value === 'string' && isAllowedTimeline(value),
+      { message: 'Invalid project timeline' }
+    )
+    .optional()
+)
 
-  // The current Contact form uses `project_type`; map it into `service` for now.
-  const projectType = readInputString(input, 'project_type')
-  const legacyService = readInputString(input, 'service')
-  const service = projectType || legacyService
+const spamPatterns = ['viagra', 'cialis', 'casino', 'poker', 'lottery']
 
-  const dataSubjectId = readInputString(input, 'DataSubjectId')
-
-  if (phone) formData.phone = phone
-  if (budget) formData.budget = budget
-  // Assertion OK because it is validated by Zod
-  if (timeline) formData.timeline = timeline as (typeof contactTimelineValues)[number]
-  if (website) formData.website = website
-  if (service) formData.service = service
-  if (dataSubjectId) formData.DataSubjectId = dataSubjectId
-
-  return formData
+const containsSpam = (text: string): boolean => {
+  const normalized = text.toLowerCase()
+  return spamPatterns.some(pattern => normalized.includes(pattern))
 }
 
-export async function parseAttachments(form: FormData): Promise<FileAttachment[]> {
-  const files: FileAttachment[] = []
-  const allowedTypes = [
-    'image/jpeg',
-    'image/png',
-    'image/gif',
-    'image/webp',
-    'application/pdf',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'audio/mpeg',
-    'audio/wav',
-    'video/mp4',
-    'video/quicktime',
-    'application/zip',
-    'text/plain',
-  ]
-  const maxFileSize = 10 * 1024 * 1024
-  const maxFiles = 5
+export const contactFormInputSchema = z
+  .object({
+    /** Core fields used by the action. */
+    name: requiredString({
+      required_error: 'Name is required',
+      invalid_type_error: 'Invalid name format',
+      min: { value: 2, message: 'Name must be at least 2 characters' },
+      max: { value: 100, message: 'Name must be less than 100 characters' },
+    }),
+    email: z.preprocess(
+      emptyStringToUndefined,
+      z
+        .string({
+          required_error: 'Email is required',
+          invalid_type_error: 'Invalid email format',
+        })
+        .max(254, { message: 'Email must be less than 254 characters' })
+        .superRefine((value, context) => {
+          if (!emailValidator.validate(value)) {
+            context.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: 'Invalid email address',
+            })
+          }
+        })
+    ),
+    message: requiredString({
+      required_error: 'Message is required',
+      invalid_type_error: 'Invalid message format',
+      min: { value: 10, message: 'Message must be at least 10 characters' },
+      max: { value: 2000, message: 'Message must be less than 2000 characters' },
+    }),
 
-  let fileCount = 0
-  for (const [key, value] of form.entries()) {
-    if (key.startsWith('file') && value instanceof File && value.size > 0) {
-      fileCount++
+    /** Extra fields submitted by the form UI. */
+    company: optionalTrimmedString(100),
+    phone: optionalTrimmedString(50),
+    project_type: optionalTrimmedString(50),
+    budget: z.preprocess(trimString, z.enum(['5k-10k', '10k-25k', '25k-50k', '50k+'])),
+    timeline: contactTimelineSchema,
 
-      if (fileCount > maxFiles) {
-        throw new ActionsFunctionError(`Maximum ${maxFiles} files allowed`, { status: 400 })
-      }
+    /** Consent checkbox: value="true" when checked, otherwise missing. */
+    consent: z.preprocess(value => (value === 'true' ? true : false), z.boolean()).optional(),
 
-      if (value.size > maxFileSize) {
-        throw new ActionsFunctionError(`File ${value.name} exceeds 10MB limit`, { status: 400 })
-      }
+    /** Optional hidden field supported by the action. */
+    DataSubjectId: z.preprocess(emptyStringToUndefined, z.string().uuid().optional()),
 
-      if (!allowedTypes.includes(value.type)) {
-        throw new ActionsFunctionError(`File type ${value.type} not allowed`, { status: 400 })
-      }
+    /** Backwards-compatible optional fields (older contact forms). */
+    service: optionalTrimmedString(100),
+    website: optionalTrimmedString(200),
 
-      const buffer = Buffer.from(await value.arrayBuffer())
-      files.push({
-        filename: value.name,
-        content: buffer,
-        contentType: value.type,
-        size: value.size,
+    /** File uploads (not implemented in the UI yet). When implemented, we expect keys like file1..file5. */
+    file1: optionalFile(),
+    file2: optionalFile(),
+    file3: optionalFile(),
+    file4: optionalFile(),
+    file5: optionalFile(),
+  })
+  .passthrough()
+  .superRefine((data, context) => {
+    const messageContent = `${data.name} ${data.email} ${data.message}`
+    if (containsSpam(messageContent)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Message appears to contain spam',
+        path: ['message'],
       })
     }
-  }
-
-  return files
-}
-
-export async function parseAttachmentsFromInput(
-  input: Record<string, unknown>
-): Promise<FileAttachment[]> {
-  const files: FileAttachment[] = []
-  const allowedTypes = [
-    'image/jpeg',
-    'image/png',
-    'image/gif',
-    'image/webp',
-    'application/pdf',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'audio/mpeg',
-    'audio/wav',
-    'video/mp4',
-    'video/quicktime',
-    'application/zip',
-    'text/plain',
-  ]
-  const maxFileSize = 10 * 1024 * 1024
-  const maxFiles = 5
-
-  let fileCount = 0
-  for (const [key, value] of Object.entries(input)) {
-    if (!key.startsWith('file')) continue
-    if (!(value instanceof File) || value.size <= 0) continue
-
-    fileCount++
-    if (fileCount > maxFiles) {
-      throw new ActionsFunctionError(`Maximum ${maxFiles} files allowed`, { status: 400 })
-    }
-
-    if (value.size > maxFileSize) {
-      throw new ActionsFunctionError(`File ${value.name} exceeds 10MB limit`, { status: 400 })
-    }
-
-    if (!allowedTypes.includes(value.type)) {
-      throw new ActionsFunctionError(`File type ${value.type} not allowed`, { status: 400 })
-    }
-
-    const buffer = Buffer.from(await value.arrayBuffer())
-    files.push({
-      filename: value.name,
-      content: buffer,
-      contentType: value.type,
-      size: value.size,
-    })
-  }
-
-  return files
-}
-
-export function validateInput(body: ContactFormData): string[] {
-  const errors: string[] = []
-
-  if (!body.name?.trim()) {
-    errors.push('Name is required')
-  } else if (body.name.length < 2) {
-    errors.push('Name must be at least 2 characters')
-  } else if (body.name.length > 100) {
-    errors.push('Name must be less than 100 characters')
-  }
-
-  if (!body.email?.trim()) {
-    errors.push('Email is required')
-  } else if (!emailValidator.validate(body.email.trim())) {
-    errors.push('Invalid email address')
-  }
-
-  if (!body.message?.trim()) {
-    errors.push('Message is required')
-  } else if (body.message.length < 10) {
-    errors.push('Message must be at least 10 characters')
-  } else if (body.message.length > 2000) {
-    errors.push('Message must be less than 2000 characters')
-  }
-
-  if (body.timeline && !isAllowedTimeline(body.timeline)) {
-    errors.push('Invalid project timeline')
-  }
-
-  const spamPatterns = ['viagra', 'cialis', 'casino', 'poker', 'lottery']
-  const messageContent = `${body.name} ${body.email} ${body.message}`.toLowerCase()
-  if (spamPatterns.some(pattern => messageContent.includes(pattern))) {
-    errors.push('Message appears to contain spam')
-  }
-
-  return errors
-}
+  })

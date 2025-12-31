@@ -1,8 +1,7 @@
-import './uppy-core.css'
-import './uppy-dashboard.css'
-
 import Dashboard from '@uppy/dashboard'
 import Uppy from '@uppy/core'
+import Audio from '@uppy/audio'
+import Webcam from '@uppy/webcam'
 
 import type { ContactFormElements } from './@types'
 import { queryUppyDashboardTarget } from './selectors'
@@ -70,14 +69,17 @@ export const initUppyUpload = (elements: ContactFormElements): UploadController 
       allowedFileTypes: [...allowedMimeTypes],
     },
   })
-
-  uppy.use(Dashboard, {
-    inline: true,
-    target: dashboardTarget,
-    proudlyDisplayPoweredByUppy: false,
-    hideUploadButton: true,
-    hideProgressDetails: false,
-  })
+    .use(Dashboard, {
+      inline: true,
+      target: dashboardTarget,
+      proudlyDisplayPoweredByUppy: false,
+      hideUploadButton: true,
+      hideProgressDetails: false,
+      showProgressDetails: true,
+      note: `Maximum ${MAX_FILES} files. Each file up to ${MAX_FILE_SIZE_BYTES / (1024 * 1024)} MB.`,
+    })
+    .use(Audio)
+    .use(Webcam)
 
   const reset = (): void => {
     uppy.cancelAll()

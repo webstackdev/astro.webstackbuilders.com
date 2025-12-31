@@ -16,6 +16,7 @@ export { BasePage } from './pageObjectModels/BasePage'
 export { ComponentPersistencePage } from './pageObjectModels/ComponentPersistencePage'
 export { HeadPage } from './pageObjectModels/HeadPage'
 export { BreadCrumbPage } from './pageObjectModels/BreadCrumbPage'
+export { LighthousePage } from './pageObjectModels/LighthousePage'
 export {
   spyOnFetchEndpoint,
   mockFetchEndpointResponse,

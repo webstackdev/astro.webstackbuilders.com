@@ -4,12 +4,13 @@ import {
   hideErrorBanner,
   showErrorBanner,
   clearFieldFeedback,
+  showFieldFeedback,
   type LabelController,
 } from './feedback'
 import { validateGenericFields, validateNameField, validateMessageField } from './validation'
 import type { ContactFormElements } from './@types'
 import { validateEmailField } from './email'
-import { actions } from 'astro:actions'
+import { actions, isInputError } from 'astro:actions'
 import type { UploadController } from './upload'
 
 interface SubmissionControllers {
@@ -71,6 +72,35 @@ const runFieldValidations = (elements: ContactFormElements): boolean => {
   return validations.every(Boolean)
 }
 
+type ContactActionInputError = {
+  fields: Record<string, string[]>
+}
+
+const showActionInputErrors = (elements: ContactFormElements, error: unknown): boolean => {
+  if (!isInputError(error)) return false
+
+  // Astro Actions input errors provide per-field messages via `error.fields`.
+  // We surface those messages through the existing field feedback UI.
+  Object.values(elements.fields).forEach(clearFieldFeedback)
+
+  const fields = (error as ContactActionInputError).fields
+  Object.entries(fields).forEach(([fieldName, messages]) => {
+    const fieldKey = fieldName as keyof typeof elements.fields
+    const field = elements.fields[fieldKey]
+    if (!field) return
+
+    const message = Array.isArray(messages) ? messages.filter(Boolean).join(' ') : ''
+    if (!message) return
+    // Field-level feedback is already styled and sets `aria-invalid`.
+    // We keep it as a single string to avoid adding extra DOM nodes.
+    showFieldFeedback(field, message, 'error')
+  })
+
+  showErrorBanner(elements.formErrorBanner)
+  showErrorMessage(elements, 'Please correct the highlighted fields and try again.')
+  return true
+}
+
 const resetFormState = (
   elements: ContactFormElements,
   controllers: SubmissionControllers
@@ -94,6 +124,7 @@ export const initFormSubmission = (
     addScriptBreadcrumb(context)
 
     try {
+      Object.values(elements.fields).forEach(clearFieldFeedback)
       const isValid = runFieldValidations(elements)
 
       if (!isValid) {
@@ -109,7 +140,10 @@ export const initFormSubmission = (
         const formData = new FormData(elements.form)
         appendUploadFiles(formData, controllers.uploadController)
         const { data, error } = await actions.contact.submit(formData)
-        // @TODO: Improve this error handling to be more user friendly. Should look at the types of errors that could occur, and give the user an idea of what to do.
+        if (showActionInputErrors(elements, error)) {
+          return
+        }
+
         if (error || !data || !data.success) {
           showErrorMessage(
             elements,

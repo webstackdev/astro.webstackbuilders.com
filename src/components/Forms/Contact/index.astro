@@ -1,22 +1,17 @@
 ---
-// ContactForm.astro - Reusable contact form component
 import GDPRConsent from '@components/Consent/Checkbox/index.astro'
 import Confetti from '@components/Animations/Confetti/index.astro'
-import UploadPlaceholder from './upload.astro'
+import './uppy-audio.css'
+import './uppy-core.css'
+import './uppy-dashboard.css'
+import './uppy-webcam.css'
 ---
 
 <contact-form>
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 items-start">
     <!-- Contact Form -->
     <div class="lg:col-span-2 bg-bg p-6 md:p-8 rounded-2xl shadow-lg">
-      <div class="mb-8">
-        <h2 class="text-2xl md:text-3xl font-semibold text-text mb-3">
-          Tell us about your project
-        </h2>
-        <p class="text-text-offset text-lg">
-          We'll get back to you within 24 hours with a detailed proposal.
-        </p>
-      </div>
+      <slot name="contact-form-header" />
 
       <form
         class="space-y-8"
@@ -232,7 +227,7 @@ import UploadPlaceholder from './upload.astro'
             class="border-2 border-dashed border-border rounded-xl p-8 text-center bg-bg-offset hover:border-primary-hover transition-colors duration-200"
           >
             <div id="uppyContainer" hidden>
-              <UploadPlaceholder />
+              <div id="uppyDashboard"></div>
             </div>
             <div class="mt-4 space-y-2">
               <p class="text-sm text-text-offset">
@@ -264,8 +259,8 @@ import UploadPlaceholder from './upload.astro'
           <p>
             <strong>Your Rights:</strong> You can request access, correction, or deletion of your data
             at any time by contacting <a
-              href="mailto:kevin@webstackbuilders.com"
-              class="text-primary hover:underline">kevin@webstackbuilders.com</a
+              href="mailto:gdpr@webstackbuilders.com"
+              class="text-primary hover:underline">gdpr@webstackbuilders.com</a
             >.
           </p>
         </div>
@@ -338,158 +333,7 @@ import UploadPlaceholder from './upload.astro'
       </div>
     </div>
 
-    <!-- Contact Information -->
-    <div class="bg-bg p-6 md:p-8 rounded-2xl shadow-lg h-fit sticky top-8">
-      <div class="space-y-8">
-        <div>
-          <h3 class="text-xl font-semibold text-text mb-6">Get In Touch</h3>
-
-          <div class="space-y-6">
-            <div class="flex items-start gap-4">
-              <div
-                class="shrink-0 w-11 h-11 bg-linear-to-br from-primary to-accent text-white rounded-xl flex items-center justify-center"
-              >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  aria-hidden="true"
-                  focusable="false"
-                >
-                  <path
-                    d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
-                  ></path>
-                  <polyline points="22,6 12,13 2,6"></polyline>
-                </svg>
-              </div>
-              <div>
-                <h4 class="font-semibold text-text mb-1">Email</h4>
-                <p class="text-text-offset">kevin@webstackbuilders.com</p>
-              </div>
-            </div>
-
-            <div class="flex items-start gap-4">
-              <div
-                class="shrink-0 w-11 h-11 bg-linear-to-br from-primary to-accent text-white rounded-xl flex items-center justify-center"
-              >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  aria-hidden="true"
-                  focusable="false"
-                >
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                  <circle cx="12" cy="10" r="3"></circle>
-                </svg>
-              </div>
-              <div>
-                <h4 class="font-semibold text-text mb-1">Location</h4>
-                <p class="text-text-offset">Remote • Worldwide</p>
-              </div>
-            </div>
-
-            <div class="flex items-start gap-4">
-              <div
-                class="shrink-0 w-11 h-11 bg-linear-to-br from-primary to-accent text-white rounded-xl flex items-center justify-center"
-              >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  aria-hidden="true"
-                  focusable="false"
-                >
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <polyline points="12,6 12,12 16,14"></polyline>
-                </svg>
-              </div>
-              <div>
-                <h4 class="font-semibold text-text mb-1">Response Time</h4>
-                <p class="text-text-offset">Within 24 hours</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <h3 class="text-xl font-semibold text-text mb-6">Our Expertise</h3>
-          <ul class="space-y-3">
-            <li class="flex items-center text-text-offset pl-4 relative">
-              <span class="absolute left-0 w-2 h-2 bg-primary rounded-full"></span>
-              Custom Web Development
-            </li>
-            <li class="flex items-center text-text-offset pl-4 relative">
-              <span class="absolute left-0 w-2 h-2 bg-primary rounded-full"></span>
-              E-commerce Solutions
-            </li>
-            <li class="flex items-center text-text-offset pl-4 relative">
-              <span class="absolute left-0 w-2 h-2 bg-primary rounded-full"></span>
-              Progressive Web Apps
-            </li>
-            <li class="flex items-center text-text-offset pl-4 relative">
-              <span class="absolute left-0 w-2 h-2 bg-primary rounded-full"></span>
-              API Development & Integration
-            </li>
-            <li class="flex items-center text-text-offset pl-4 relative">
-              <span class="absolute left-0 w-2 h-2 bg-primary rounded-full"></span>
-              Database Design & Optimization
-            </li>
-            <li class="flex items-center text-text-offset pl-4 relative">
-              <span class="absolute left-0 w-2 h-2 bg-primary rounded-full"></span>
-              Performance & SEO Optimization
-            </li>
-            <li class="flex items-center text-text-offset pl-4 relative">
-              <span class="absolute left-0 w-2 h-2 bg-primary rounded-full"></span>
-              Maintenance & Support
-            </li>
-            <li class="flex items-center text-text-offset pl-4 relative">
-              <span class="absolute left-0 w-2 h-2 bg-primary rounded-full"></span>
-              Technical Consulting
-            </li>
-          </ul>
-        </div>
-
-        <div>
-          <h3 class="text-xl font-semibold text-text mb-6">Why Choose Us?</h3>
-          <ul class="space-y-3">
-            <li class="flex items-center text-text-offset pl-4 relative">
-              <span class="absolute left-0 w-2 h-2 bg-primary rounded-full"></span>
-              15+ years of experience
-            </li>
-            <li class="flex items-center text-text-offset pl-4 relative">
-              <span class="absolute left-0 w-2 h-2 bg-primary rounded-full"></span>
-              Modern tech stack
-            </li>
-            <li class="flex items-center text-text-offset pl-4 relative">
-              <span class="absolute left-0 w-2 h-2 bg-primary rounded-full"></span>
-              Performance-focused
-            </li>
-            <li class="flex items-center text-text-offset pl-4 relative">
-              <span class="absolute left-0 w-2 h-2 bg-primary rounded-full"></span>
-              SEO optimized
-            </li>
-            <li class="flex items-center text-text-offset pl-4 relative">
-              <span class="absolute left-0 w-2 h-2 bg-primary rounded-full"></span>
-              Mobile-first approach
-            </li>
-            <li class="flex items-center text-text-offset pl-4 relative">
-              <span class="absolute left-0 w-2 h-2 bg-primary rounded-full"></span>
-              Ongoing support
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
+    <slot name="contact-information" />
   </div>
 </contact-form>
 

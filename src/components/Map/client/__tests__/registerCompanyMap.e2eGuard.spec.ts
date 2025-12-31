@@ -10,6 +10,7 @@ vi.mock('@components/scripts/utils/environmentClient', () => {
       )
     },
     getGoogleMapsApiKey: () => 'test-google-maps-api-key',
+    getGoogleMapId: () => 'test-google-map-id',
   }
 })
 
