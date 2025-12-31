@@ -6,7 +6,7 @@ test.describe('Lighthouse Performance', () => {
 
   test.describe.configure({ mode: 'serial' })
 
-  test('run Lighthouse audit on homepage', async (_fixtures, testInfo) => {
+  test('run Lighthouse audit on homepage', async ({ page: _page }, testInfo) => {
     const baseURL = testInfo.project.use.baseURL
 
     if (!baseURL || typeof baseURL !== 'string') {
