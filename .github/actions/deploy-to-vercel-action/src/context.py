@@ -17,6 +17,7 @@ class Context:
     vercel_project_id: str
     production: bool
     public_google_maps_api_key: str
+    public_google_map_id: str
     public_sentry_dsn: str
     public_upstash_search_rest_url: str
     public_upstash_search_readonly_token: str
@@ -76,12 +77,15 @@ def build_context() -> Context:
     production = parse_bool(get_input("PRODUCTION"), default=not is_pr)
 
     public_google_maps_api_key = get_input("PUBLIC_GOOGLE_MAPS_API_KEY")
+    public_google_map_id = get_input("PUBLIC_GOOGLE_MAP_ID")
     public_sentry_dsn = get_input("PUBLIC_SENTRY_DSN")
     public_upstash_search_rest_url = get_input("PUBLIC_UPSTASH_SEARCH_REST_URL")
     public_upstash_search_readonly_token = get_input("PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN")
 
     if not public_google_maps_api_key:
         raise ValueError("Missing required input: PUBLIC_GOOGLE_MAPS_API_KEY")
+    if not public_google_map_id:
+        raise ValueError("Missing required input: PUBLIC_GOOGLE_MAP_ID")
     if not public_sentry_dsn:
         raise ValueError("Missing required input: PUBLIC_SENTRY_DSN")
     if not public_upstash_search_rest_url:
@@ -136,6 +140,7 @@ def build_context() -> Context:
         vercel_project_id=vercel_project_id,
         production=production,
         public_google_maps_api_key=public_google_maps_api_key,
+        public_google_map_id=public_google_map_id,
         public_sentry_dsn=public_sentry_dsn,
         public_upstash_search_rest_url=public_upstash_search_rest_url,
         public_upstash_search_readonly_token=public_upstash_search_readonly_token,
