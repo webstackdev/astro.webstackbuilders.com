@@ -15,6 +15,10 @@ def load_module(module_file: str, name: str):
     import importlib.util
     import sys
 
+    action_src = str(action_root / "src")
+    if action_src not in sys.path:
+        sys.path.insert(0, action_src)
+
     spec = importlib.util.spec_from_file_location(name, module_path)
     assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)
@@ -178,6 +182,7 @@ def test_context_build_context_pr(monkeypatch: pytest.MonkeyPatch, tmp_path: Pat
     monkeypatch.setenv("INPUT_VERCEL_ORG_ID", "oid")
     monkeypatch.setenv("INPUT_VERCEL_PROJECT_ID", "pid")
     monkeypatch.setenv("INPUT_PUBLIC_GOOGLE_MAPS_API_KEY", "maps")
+    monkeypatch.setenv("INPUT_PUBLIC_GOOGLE_MAP_ID", "mapid")
     monkeypatch.setenv("INPUT_PUBLIC_SENTRY_DSN", "dsn")
     monkeypatch.setenv("INPUT_PUBLIC_UPSTASH_SEARCH_REST_URL", "https://upstash")
     monkeypatch.setenv("INPUT_PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN", "ro")
@@ -219,6 +224,7 @@ def test_context_build_context_non_pr_branch_extract(monkeypatch: pytest.MonkeyP
     monkeypatch.setenv("INPUT_VERCEL_ORG_ID", "oid")
     monkeypatch.setenv("INPUT_VERCEL_PROJECT_ID", "pid")
     monkeypatch.setenv("INPUT_PUBLIC_GOOGLE_MAPS_API_KEY", "maps")
+    monkeypatch.setenv("INPUT_PUBLIC_GOOGLE_MAP_ID", "mapid")
     monkeypatch.setenv("INPUT_PUBLIC_SENTRY_DSN", "dsn")
     monkeypatch.setenv("INPUT_PUBLIC_UPSTASH_SEARCH_REST_URL", "https://upstash")
     monkeypatch.setenv("INPUT_PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN", "ro")
@@ -252,6 +258,7 @@ def test_context_build_context_requires_tokens(monkeypatch: pytest.MonkeyPatch) 
     monkeypatch.setenv("INPUT_VERCEL_ORG_ID", "oid")
     monkeypatch.setenv("INPUT_VERCEL_PROJECT_ID", "pid")
     monkeypatch.setenv("INPUT_PUBLIC_GOOGLE_MAPS_API_KEY", "maps")
+    monkeypatch.setenv("INPUT_PUBLIC_GOOGLE_MAP_ID", "mapid")
     monkeypatch.setenv("INPUT_PUBLIC_SENTRY_DSN", "dsn")
     monkeypatch.setenv("INPUT_PUBLIC_UPSTASH_SEARCH_REST_URL", "https://upstash")
     monkeypatch.setenv("INPUT_PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN", "ro")
@@ -283,6 +290,7 @@ def test_context_build_context_requires_vercel_inputs(
     monkeypatch.setenv("INPUT_VERCEL_ORG_ID", "oid")
     monkeypatch.setenv("INPUT_VERCEL_PROJECT_ID", "pid")
     monkeypatch.setenv("INPUT_PUBLIC_GOOGLE_MAPS_API_KEY", "maps")
+    monkeypatch.setenv("INPUT_PUBLIC_GOOGLE_MAP_ID", "mapid")
     monkeypatch.setenv("INPUT_PUBLIC_SENTRY_DSN", "dsn")
     monkeypatch.setenv("INPUT_PUBLIC_UPSTASH_SEARCH_REST_URL", "https://upstash")
     monkeypatch.setenv("INPUT_PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN", "ro")
@@ -305,6 +313,7 @@ def test_context_build_context_sets_placeholder_sha(monkeypatch: pytest.MonkeyPa
     monkeypatch.setenv("INPUT_VERCEL_ORG_ID", "oid")
     monkeypatch.setenv("INPUT_VERCEL_PROJECT_ID", "pid")
     monkeypatch.setenv("INPUT_PUBLIC_GOOGLE_MAPS_API_KEY", "maps")
+    monkeypatch.setenv("INPUT_PUBLIC_GOOGLE_MAP_ID", "mapid")
     monkeypatch.setenv("INPUT_PUBLIC_SENTRY_DSN", "dsn")
     monkeypatch.setenv("INPUT_PUBLIC_UPSTASH_SEARCH_REST_URL", "https://upstash")
     monkeypatch.setenv("INPUT_PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN", "ro")

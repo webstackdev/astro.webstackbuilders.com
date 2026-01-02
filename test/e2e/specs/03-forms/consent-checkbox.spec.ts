@@ -10,6 +10,7 @@ import {
   expect,
   spyOnFetchEndpoint,
 } from '@test/e2e/helpers'
+import { wait } from '@test/e2e/helpers/waitTimeouts'
 import { TEST_EMAILS } from '@test/e2e/fixtures/test-data'
 
 const HOME_PATH = '/'
@@ -33,7 +34,7 @@ const waitForNewsletterSection = async (page: BasePage): Promise<void> => {
     const consentCheckbox = document.querySelector<HTMLInputElement>('#newsletter-gdpr-consent')
     const emailInput = document.querySelector<HTMLInputElement>('#newsletter-email')
     return Boolean(consentCheckbox && emailInput)
-  }, undefined, { timeout: 5000 })
+  }, undefined, { timeout: wait.defaultWait })
   await page.scrollToElement(NEWSLETTER_FORM_SELECTOR)
 }
 
@@ -41,7 +42,7 @@ const waitForContactForm = async (page: BasePage): Promise<void> => {
   await page.waitForFunction(() => {
     const container = document.getElementById('uppyContainer')
     return Boolean(container && container.hidden === false)
-  }, undefined, { timeout: 5000 })
+  }, undefined, { timeout: wait.defaultWait })
   await page.locator(CONTACT_CONSENT_SELECTOR).waitFor({ state: 'visible' })
   await page.scrollToElement(CONTACT_CONSENT_SELECTOR)
 }

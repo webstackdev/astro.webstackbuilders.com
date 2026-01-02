@@ -50,11 +50,7 @@ test.describe('Critical Paths @smoke', () => {
 
       const { url: path } = item
       await page.goto('/')
-
-      // Open mobile menu before each navigation
       await page.openMobileMenu()
-
-      // Click navigation link
       const navigationComplete = page.waitForPageLoad({ requireNext: true })
       await page.click(`a[href="${path}"]`)
       await navigationComplete
@@ -86,9 +82,6 @@ test.describe('Critical Paths @smoke', () => {
 
   test('@ready newsletter form is present on homepage', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
-    // Expected: Newsletter form should be visible on homepage
-    // Actual: Unknown - needs testing
-
     await page.goto('/')
     await page.expectNewsletterForm()
     await page.expectNewsletterEmailInput()
@@ -103,7 +96,6 @@ test.describe('Critical Paths @smoke', () => {
 
   test('@ready cookie consent banner appears', async ({ page: playwrightPage, context }) => {
     const page = await BasePage.init(playwrightPage)
-    // Clear consent cookies to force banner to appear
     await page.clearConsentCookies(context)
     await page.goto('/', { skipCookieDismiss: true })
     await page.expectCookiesContactForm()

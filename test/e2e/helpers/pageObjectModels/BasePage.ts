@@ -6,33 +6,110 @@ import {
   type BrowserContext,
   type ConsoleMessage,
   type JSHandle,
-  type Locator,
   type Page,
-  type Response,
   expect,
 } from '@playwright/test'
 import { navigationItems } from '@components/Navigation/server'
 import { clearConsentCookies } from '@test/e2e/helpers'
 import { waitForHeaderComponents as waitForHeaderComponentsHelper } from '@test/e2e/helpers/waitHelpers'
+import { wait } from '@test/e2e/helpers/waitTimeouts'
+import type { BuiltInsGotoOptions } from './BuiltInsPage'
+import { BuiltInsPage } from './BuiltInsPage'
 
-const DEFAULT_NAVIGATION_TIMEOUT = 5000
-const EXTENDED_NAVIGATION_TIMEOUT = 15000
-
-export class BasePage {
-  readonly page: Page
-  private _consoleMessages: string[] = []
+export class BasePage extends BuiltInsPage {
   public errors404: string[] = []
   public navigationItems = navigationItems
   private lastAstroPageLoadCount = 0
   private has404Listener = false
 
-  protected constructor(protected readonly _page: Page) {
-    this.page = _page
+  protected constructor(page: Page) {
+    super(page)
+  }
 
-    // IMPORTANT: Register listener early
-    this.page.on('console', (consoleMessage) => {
-      this._consoleMessages.push(consoleMessage.text())
-    })
+  protected override async afterGoto(_path: string, options?: BuiltInsGotoOptions): Promise<void> {
+    if (!options?.skipCookieDismiss) {
+      await this.dismissCookieModal()
+    }
+  }
+
+  /**
+   * Dismiss cookie consent modal if it's visible
+   */
+  private async dismissCookieModal(): Promise<void> {
+    try {
+      // Set consent cookies
+      await this._page.evaluate(() => {
+        document.cookie = 'consent_analytics=true; path=/; max-age=31536000'
+        document.cookie = 'consent_marketing=true; path=/; max-age=31536000'
+        document.cookie = 'consent_functional=true; path=/; max-age=31536000'
+
+        // Clear localStorage
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem('cookieConsent')
+          localStorage.removeItem('gdprConsent')
+        }
+      })
+
+      const cookieDialog = this._page.getByRole('dialog', { name: /cookie consent/i })
+      const allowAllButton = this._page.getByRole('button', { name: /allow all/i })
+
+      // Wait briefly for the dialog to appear on client-side hydrated pages.
+      await cookieDialog.waitFor({ state: 'visible', timeout: wait.tinyUi }).catch(() => undefined)
+
+      if (await cookieDialog.isVisible().catch(() => false)) {
+        if (await allowAllButton.isVisible().catch(() => false)) {
+          await allowAllButton.click({ timeout: wait.tinyUi }).catch(() => undefined)
+        }
+      }
+
+      // Force hide the modal (covers <dialog open> and inert states)
+      await this._page.evaluate(() => {
+        const modal = document.getElementById('consent-modal-id')
+        if (modal) {
+          modal.removeAttribute('open')
+          modal.setAttribute('aria-hidden', 'true')
+          modal.style.display = 'none'
+        }
+
+        const dialogs = Array.from(document.querySelectorAll('dialog'))
+        dialogs.forEach(dialog => {
+          dialog.removeAttribute('open')
+          dialog.setAttribute('aria-hidden', 'true')
+          dialog.style.display = 'none'
+        })
+
+        const roleDialogs = Array.from(document.querySelectorAll<HTMLElement>('[role="dialog"]'))
+        roleDialogs.forEach(dialog => {
+          dialog.setAttribute('aria-hidden', 'true')
+          dialog.style.display = 'none'
+        })
+
+        const main = document.getElementById('main-content')
+        if (main && main.hasAttribute('inert')) {
+          main.removeAttribute('inert')
+        }
+      })
+
+      // Wait until modal is hidden and page is interactive again
+      await this.waitForFunction(() => {
+        const modal = document.getElementById('consent-modal-id')
+        const main = document.getElementById('main-content')
+        const roleDialogs = Array.from(document.querySelectorAll<HTMLElement>('[role="dialog"]'))
+        const anyRoleDialogVisible = roleDialogs.some(
+          dialog => dialog.style.display !== 'none' && dialog.getAttribute('aria-hidden') !== 'true'
+        )
+        const modalHidden =
+          (!modal ||
+            modal.style.display === 'none' ||
+            modal.hasAttribute('hidden') ||
+            modal.getAttribute('aria-hidden') === 'true') &&
+          !anyRoleDialogVisible
+        const mainInteractive = !main || !main.hasAttribute('inert')
+        return modalHidden && mainInteractive
+      }, undefined, { timeout: wait.tinyUi })
+    } catch {
+      // Ignore errors - modal might not exist on all pages
+    }
   }
 
   protected static async setupPlaywrightGlobals(page: Page): Promise<void> {
@@ -109,199 +186,6 @@ export class BasePage {
   /**
    * ================================================================
    *
-   * Page Methods
-   *
-   * ================================================================
-   */
-
-  /**
-   * Navigate to a specific path. Wait for page to be fully loaded.
-   * Module and deferred scripts have executed. Images, subframes,
-   * and async scripts may not have finished loading.
-   * Automatically dismisses cookie consent modal unless skipCookieDismiss is true.
-   */
-  async goto(
-    path: string,
-    options?: { skipCookieDismiss?: boolean; timeout?: number; waitUntil?: 'load' | 'domcontentloaded' | 'networkidle' }
-  ): Promise<null | Response> {
-    const requestedTimeout = options?.timeout ?? DEFAULT_NAVIGATION_TIMEOUT
-    const waitUntil = options?.waitUntil ?? 'domcontentloaded'
-
-    const navigate = async (timeout: number) => {
-      return await this._page.goto(path, {
-        timeout,
-        waitUntil,
-      })
-    }
-
-    let response: null | Response = null
-
-    try {
-      response = await navigate(requestedTimeout)
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error)
-      if (message.includes('ERR_ABORTED')) {
-        response = await navigate(requestedTimeout)
-      } else if (!options?.timeout && message.includes('Timeout')) {
-        // Allow a single retry with a longer timeout to absorb slow prerender navigations
-        response = await navigate(EXTENDED_NAVIGATION_TIMEOUT)
-      } else {
-        throw error
-      }
-    }
-
-    // Dismiss cookie modal to prevent it from blocking clicks (unless opted out)
-    if (!options?.skipCookieDismiss) {
-      await this.dismissCookieModal()
-    }
-
-    return response
-  }
-
-  /**
-   * Reload the current page
-   */
-  async reload(options?: { timeout?: number; waitUntil?: 'load' | 'domcontentloaded' | 'networkidle' }): Promise<null | Response> {
-    return await this._page.reload(options)
-  }
-
-  /**
-   * Dismiss cookie consent modal if it's visible
-   */
-  private async dismissCookieModal(): Promise<void> {
-    try {
-      // Set consent cookies
-      await this._page.evaluate(() => {
-        document.cookie = 'consent_analytics=true; path=/; max-age=31536000'
-        document.cookie = 'consent_marketing=true; path=/; max-age=31536000'
-        document.cookie = 'consent_functional=true; path=/; max-age=31536000'
-
-        // Clear localStorage
-        if (typeof localStorage !== 'undefined') {
-          localStorage.removeItem('cookieConsent')
-          localStorage.removeItem('gdprConsent')
-        }
-      })
-
-      const cookieDialog = this._page.getByRole('dialog', { name: /cookie consent/i })
-      const allowAllButton = this._page.getByRole('button', { name: /allow all/i })
-
-      // Wait briefly for the dialog to appear on client-side hydrated pages.
-      await cookieDialog.waitFor({ state: 'visible', timeout: 1000 }).catch(() => undefined)
-
-      if (await cookieDialog.isVisible().catch(() => false)) {
-        if (await allowAllButton.isVisible().catch(() => false)) {
-          await allowAllButton.click({ timeout: 1000 }).catch(() => undefined)
-        }
-      }
-
-      // Force hide the modal (covers <dialog open> and inert states)
-      await this._page.evaluate(() => {
-        const modal = document.getElementById('consent-modal-id')
-        if (modal) {
-          modal.removeAttribute('open')
-          modal.setAttribute('aria-hidden', 'true')
-          modal.style.display = 'none'
-        }
-
-        const dialogs = Array.from(document.querySelectorAll('dialog'))
-        dialogs.forEach(dialog => {
-          dialog.removeAttribute('open')
-          dialog.setAttribute('aria-hidden', 'true')
-          dialog.style.display = 'none'
-        })
-
-        const roleDialogs = Array.from(document.querySelectorAll<HTMLElement>('[role="dialog"]'))
-        roleDialogs.forEach(dialog => {
-          dialog.setAttribute('aria-hidden', 'true')
-          dialog.style.display = 'none'
-        })
-
-        const main = document.getElementById('main-content')
-        if (main && main.hasAttribute('inert')) {
-          main.removeAttribute('inert')
-        }
-      })
-
-      // Wait until modal is hidden and page is interactive again
-      await this.waitForFunction(() => {
-        const modal = document.getElementById('consent-modal-id')
-        const main = document.getElementById('main-content')
-        const roleDialogs = Array.from(document.querySelectorAll<HTMLElement>('[role="dialog"]'))
-        const anyRoleDialogVisible = roleDialogs.some(dialog => dialog.style.display !== 'none' && dialog.getAttribute('aria-hidden') !== 'true')
-        const modalHidden = (!modal || modal.style.display === 'none' || modal.hasAttribute('hidden') || modal.getAttribute('aria-hidden') === 'true')
-          && !anyRoleDialogVisible
-        const mainInteractive = !main || !main.hasAttribute('inert')
-        return modalHidden && mainInteractive
-      }, undefined, { timeout: 1000 })
-    } catch {
-      // Ignore errors - modal might not exist on all pages
-    }
-  }
-
-  /**
-   * Evaluate JS script in the browser
-   */
-  async evaluate<R, Arg = void>(
-    pageFunction: (_arg: Arg) => R | Promise<R>,
-    ...args: Arg extends void ? [] : [Arg]
-  ): Promise<R> {
-    type EvaluateCallback = Parameters<Page['evaluate']>[0]
-    type EvaluateArgument = Parameters<Page['evaluate']>[1]
-
-    const typedCallback = pageFunction as unknown as EvaluateCallback
-
-    if (args.length === 0) {
-      return (await this._page.evaluate(typedCallback)) as Awaited<R>
-    }
-
-    const [value] = args as [Arg]
-    return (await this._page.evaluate(typedCallback, value as EvaluateArgument)) as Awaited<R>
-  }
-
-  /**
-   * Check if element is visible
-   */
-  locator(selector: string, options?: {
-    has?: Locator;
-    hasNot?: Locator;
-    hasNotText?: string | RegExp;
-    hasText?: string | RegExp;
-}): Locator {
-    return this._page.locator(selector, options)
-  }
-
-  /**
-   * Check if element is visible
-   */
-  async isVisible(selector: string): Promise<boolean> {
-    return await this._page.locator(selector).isVisible()
-  }
-
-  /**
-   * Take a screenshot
-   */
-  async takeScreenshot(name: string): Promise<void> {
-    await this._page.screenshot({ path: `test/e2e/screenshots/${name}.png`, fullPage: true })
-  }
-
-  /**
-   * Set viewport size
-   */
-  async setViewport(width: number, height: number): Promise<void> {
-    await this._page.setViewportSize({ width, height })
-  }
-
-  /**
-   * Set viewport size using object parameter
-   */
-  async setViewportSize(size: { width: number; height: number }): Promise<void> {
-    await this._page.setViewportSize(size)
-  }
-
-  /**
-   * ================================================================
-   *
    * Wait For Methods
    *
    * ================================================================
@@ -316,19 +200,10 @@ export class BasePage {
     await this._page.waitForFunction(() => document.readyState === 'complete')
   }
 
-  /**
-   * Wait for selector to be visible
-   */
-  async waitForSelector(selector: string, options?: { timeout?: number }): Promise<void> {
-    await this._page.waitForSelector(selector, options)
-  }
 
   /**
    * Wait for navigation to complete
    */
-  async waitForNavigation(): Promise<void> {
-    await this._page.waitForLoadState('networkidle')
-  }
 
   /**
    * ================================================================
@@ -338,60 +213,12 @@ export class BasePage {
    * ================================================================
    */
 
-  /**
-   * Click an element with optional wait
-   */
-  async click(selector: string, options?: { force?: boolean }): Promise<void> {
-    await this._page.click(selector, options)
-  }
-
-  /**
-   * Fill an input field
-   */
-  async fill(selector: string, value: string): Promise<void> {
-    await this._page.fill(selector, value)
-  }
-
-  /**
-   * Check a checkbox
-   */
-  async check(selector: string): Promise<void> {
-    await this._page.check(selector)
-  }
-
-  /**
-   * Uncheck a checkbox
-   */
-  async uncheck(selector: string): Promise<void> {
-    await this._page.uncheck(selector)
-  }
-
-  /**
-   * Scroll to element
-   */
-  async scrollToElement(selector: string): Promise<void> {
-    await this._page.locator(selector).scrollIntoViewIfNeeded()
-  }
-
-  /**
-   * Press keyboard key
-   */
-  async pressKey(key: string): Promise<void> {
-    await this._page.keyboard.press(key)
-  }
-
-  /**
-   * Type text using keyboard
-   */
-  async type(text: string): Promise<void> {
-    await this._page.keyboard.type(text)
-  }
 
   /**
    * Deterministically open the mobile navigation menu and wait for it to finish animating
    */
   async openMobileMenu(options?: { timeout?: number }): Promise<void> {
-    const timeout = options?.timeout ?? EXTENDED_NAVIGATION_TIMEOUT
+    const timeout = options?.timeout ?? wait.navigation
 
     await this.waitForHeaderComponents({ timeout })
     await this._page.waitForFunction(
@@ -429,7 +256,7 @@ export class BasePage {
    * Deterministically close the mobile navigation menu and wait for scroll lock to clear
    */
   async closeMobileMenu(options?: { timeout?: number }): Promise<void> {
-    const timeout = options?.timeout ?? DEFAULT_NAVIGATION_TIMEOUT
+    const timeout = options?.timeout ?? wait.defaultWait
     const toggleButton = this._page.locator('button[aria-label="toggle menu"]')
 
     await expect(toggleButton).toBeVisible({ timeout })
@@ -458,78 +285,6 @@ export class BasePage {
     )
   }
 
-  /**
-   * Get keyboard object for advanced keyboard operations
-   */
-  get keyboard() {
-    return this._page.keyboard
-  }
-
-  /**
-   * Get mouse object for advanced mouse operations
-   */
-  get mouse() {
-    return this._page.mouse
-  }
-
-  /**
-   * Get touchscreen object for touch operations
-   */
-  get touchscreen() {
-    return this._page.touchscreen
-  }
-
-  /**
-   * Hover over element
-   */
-  async hover(selector: string): Promise<void> {
-    await this._page.hover(selector)
-  }
-
-  /**
-   * Wait for load state
-   */
-  async waitForLoadState(state?: 'load' | 'domcontentloaded' | 'networkidle'): Promise<void> {
-    await this._page.waitForLoadState(state)
-  }
-
-  /**
-   * Wait for specified timeout in milliseconds
-   * @deprecated Use event-based waits like waitForPageLoad() instead
-   */
-  async wait(timeout: number): Promise<void> {
-    await this._page.waitForTimeout(timeout)
-  }
-
-  /**
-   * Wait for specified timeout in milliseconds
-   * Alias for wait() method
-   * @deprecated Use event-based waits like waitForPageLoad() instead
-   */
-  async waitForTimeout(timeout: number): Promise<void> {
-    await this._page.waitForTimeout(timeout)
-  }
-
-  /**
-   * Wait for a custom function to return truthy value
-   */
-  async waitForFunction<R>(
-    pageFunction: () => R | Promise<R>,
-    arg?: unknown,
-    options?: { timeout?: number }
-  ): Promise<void> {
-    await this._page.waitForFunction(pageFunction, arg, options)
-  }
-
-  /**
-   * Intercept and modify network requests
-   */
-  async route(
-    targetUrl: string | RegExp | ((_url: URL) => boolean),
-    handler: (_route: import('@playwright/test').Route) => void
-  ): Promise<void> {
-    await this._page.route(targetUrl, handler)
-  }
 
   /**
    * Wait for Astro page load event
@@ -543,7 +298,7 @@ export class BasePage {
    */
   async waitForPageLoad(options?: { requireNext?: boolean; timeout?: number }): Promise<void> {
     const requireNext = options?.requireNext ?? false
-    const timeout = options?.timeout ?? DEFAULT_NAVIGATION_TIMEOUT
+    const timeout = options?.timeout ?? wait.defaultWait
     const currentCount = await this._page.evaluate(() => window.__astroPageLoadCounter ?? 0)
 
     if (!requireNext && currentCount > this.lastAstroPageLoadCount) {
@@ -595,47 +350,15 @@ export class BasePage {
       const navToggle = this._page.locator('.nav-toggle-btn').first()
       if (await navToggle.isVisible()) {
         await navToggle.click()
-        await expect(navToggle).toHaveAttribute('aria-expanded', 'true', { timeout: DEFAULT_NAVIGATION_TIMEOUT })
+        await expect(navToggle).toHaveAttribute('aria-expanded', 'true', { timeout: wait.defaultWait })
       }
 
-      await expect(navLink).toBeVisible({ timeout: DEFAULT_NAVIGATION_TIMEOUT })
+      await expect(navLink).toBeVisible({ timeout: wait.defaultWait })
     }
 
     await navLink.click()
   }
 
-  /**
-   * Wait for URL to change to match the expected pattern
-   *
-   * @param urlPattern - Glob pattern or regex to match against URL
-   * @param options - Timeout and other options
-   *
-   * @example
-   * ```ts
-   * await page.waitForURL('/articles')
-   * ```
-   */
-  async waitForURL(urlPattern: string | RegExp, options?: { timeout?: number }): Promise<void> {
-    await this._page.waitForURL(urlPattern, options)
-  }
-
-  /**
-   * Wait for a response matching the URL pattern
-   *
-   * @param urlPattern - URL or pattern to match
-   * @param options - Timeout and other options
-   *
-   * @example
-   * ```ts
-   * const response = await page.waitForResponse('/api/newsletter')
-   * ```
-   */
-  async waitForResponse(
-    urlPattern: string | RegExp | ((_response: Response) => boolean),
-    options?: { timeout?: number }
-  ): Promise<Response> {
-    return await this._page.waitForResponse(urlPattern, options)
-  }
 
   /**
    * ================================================================
@@ -644,45 +367,6 @@ export class BasePage {
    *
    * ================================================================
    */
-
-  /**
-   * Get current URL
-   */
-  getCurrentUrl(): string {
-    return this._page.url()
-  }
-
-  /**
-   * Get page URL (alias for getCurrentUrl)
-   */
-  url(): string {
-    return this._page.url()
-  }
-
-  /**
-   * Get page title
-   */
-  async title(): Promise<string> {
-    return this._page.title()
-  }
-
-  /**
-   * Get the browser context that the page belongs to
-   */
-  context() {
-    return this._page.context()
-  }
-
-  /**
-   * Emulate media features (e.g., prefers-color-scheme, reduced-motion)
-   */
-  async emulateMedia(options: {
-    colorScheme?: 'light' | 'dark' | 'no-preference'
-    reducedMotion?: 'reduce' | 'no-preference'
-    forcedColors?: 'active' | 'none'
-  }): Promise<void> {
-    await this._page.emulateMedia(options)
-  }
 
   /**
    * Verify page URL matches expected pattern
@@ -697,19 +381,6 @@ export class BasePage {
   /**
    * Check if meta tag exists with specific content
    */
-  async getMetaContent(property: string): Promise<string | null> {
-    const selector = `meta[property="${property}"], meta[name="${property}"]`
-    return await this._page.getAttribute(selector, 'content')
-  }
-
-  /**
-   * Verify meta tag exists and has content
-   */
-  async expectMetaTag(property: string): Promise<void> {
-    const content = await this.getMetaContent(property)
-    expect(content).toBeTruthy()
-    expect(content).not.toBe('')
-  }
 
   /**
    * Verify page title contains expected text
@@ -769,20 +440,9 @@ export class BasePage {
   /**
    * Get text content of an element
    */
-  async getText(selector: string): Promise<string | null> {
-    return await this._page.textContent(selector)
-  }
-
   /**
    * Get all links on the page
    */
-  async getAllLinks(): Promise<string[]> {
-    return await this._page.$$eval('a[href]', (links) =>
-      links
-        .filter((link): link is HTMLAnchorElement => link instanceof HTMLAnchorElement)
-        .map((link) => link.href)
-    )
-  }
 
   /**
    * ================================================================
@@ -1019,39 +679,6 @@ export class BasePage {
    *
    * ================================================================
    */
-
-  /**
-   * Add a listener for console messages. Add before page navigation like .goto()
-   */
-  async setupConsoleListener(): Promise<void> {
-    this._page.on('console', msg => {
-      this._consoleMessages.push(msg.text())
-    })
-  }
-
-  /**
-   * Find a specific message in the console output. Note that there is a timing
-   * issue with this method. It does not wait to make sure that your expected
-   * output has had an opportunity to be executed. If you want to check for either
-   * a success or a failure message, pass both in an array.
-   */
-  getConsoleMessage(searchStr: string | string[]): string {
-    const messages = this._consoleMessages
-    if (Array.isArray(searchStr)) {
-      return messages.find(msg => searchStr.some(term => msg.includes(term))) || ''
-    }
-    return messages.find(msg => msg.includes(searchStr)) || ''
-  }
-
-  /**
-   * Get all console messages. Note there is a timing issue with using this. It
-   * does not wait to make sure that your expected output has had an opportunity
-   * to be executed. To catch a specific message, use getConsoleMessage() which
-   * waits for that message to appear.
-   */
-  getConsoleMessages(): string[] {
-    return this._consoleMessages
-  }
 
   /**
    * Wait for specific console messages to appear up to a timeout value. Usage:

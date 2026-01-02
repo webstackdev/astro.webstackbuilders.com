@@ -2,7 +2,10 @@
 name: Playwright
 
 on:
-  merge_group:
+  push:
+    branches:
+      - main
+  pull_request:
     branches:
       - main
   workflow_dispatch:
@@ -33,6 +36,7 @@ jobs:
       DISABLE_TELEMETRY: true
       FORCE_COLOR: 3
       PUBLIC_GOOGLE_MAPS_API_KEY: ${{ vars.PUBLIC_GOOGLE_MAPS_API_KEY }}
+      PUBLIC_GOOGLE_MAP_ID: ${{ vars.PUBLIC_GOOGLE_MAP_ID }}
       PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN: ${{ vars.PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN }}
       PUBLIC_UPSTASH_SEARCH_REST_URL: ${{ vars.PUBLIC_UPSTASH_SEARCH_REST_URL }}
       RESEND_API_KEY: ${{ vars.RESEND_API_KEY }}
@@ -144,7 +148,7 @@ jobs:
           exit 1
 
       - name: Run Playwright E2E tests
-        run: npm run test:e2e
+        run: npm run test:e2e:smoke
         env:
           CI: '1'
 

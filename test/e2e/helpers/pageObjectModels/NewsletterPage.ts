@@ -79,6 +79,10 @@ export class NewsletterPage extends BasePage {
     return await this.getText(this.messageSelector)
   }
 
+  private async getText(selector: string): Promise<string | null> {
+    return await this.page.textContent(selector)
+  }
+
   /**
    * Submit valid newsletter subscription
    */

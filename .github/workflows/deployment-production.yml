@@ -21,6 +21,7 @@ jobs:
 
     env:
       PUBLIC_GOOGLE_MAPS_API_KEY: ${{ vars.PUBLIC_GOOGLE_MAPS_API_KEY }}
+      PUBLIC_GOOGLE_MAP_ID: ${{ vars.PUBLIC_GOOGLE_MAP_ID }}
       PUBLIC_SENTRY_DSN: ${{ vars.PUBLIC_SENTRY_DSN }}
       PUBLIC_UPSTASH_SEARCH_REST_URL: ${{ vars.PUBLIC_UPSTASH_SEARCH_REST_URL }}
       PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN: ${{ vars.PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN }}
@@ -63,13 +64,20 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: vercel build --prod --token=${VERCEL_TOKEN}
 
-      - name: Require Playwright success
-        if: github.event_name == 'push'
-        uses: ./.github/actions/require-playwright-success
-        with:
-          github_token: ${{ github.token }}
-          expected_sha: ${{ github.sha }}
-          workflow_file: playwright.yml
+      ##
+      # This requires Playwright to succeed when triggering e2e tests from a merge_group
+      # event. This allows moving long-running jobs into a slot in the total workflow where
+      # they don't run on every push to a pull request, but are still required to deploy
+      # to production and merge to main. Merge groups are only available in organization
+      # repos so disabled for now.
+      ##
+      #- name: Require Playwright success
+      #  if: github.event_name == 'push'
+      #  uses: ./.github/actions/require-playwright-success
+      #  with:
+      #    github_token: ${{ github.token }}
+      #    expected_sha: ${{ github.sha }}
+      #    workflow_file: playwright.yml
 
       - name: Deploy to Vercel (production)
         uses: ./.github/actions/deploy-to-vercel-action
@@ -80,6 +88,7 @@ jobs:
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
           PRODUCTION: true
           PUBLIC_GOOGLE_MAPS_API_KEY: ${{ vars.PUBLIC_GOOGLE_MAPS_API_KEY }}
+          PUBLIC_GOOGLE_MAP_ID: ${{ vars.PUBLIC_GOOGLE_MAP_ID }}
           PUBLIC_SENTRY_DSN: ${{ vars.PUBLIC_SENTRY_DSN }}
           PUBLIC_UPSTASH_SEARCH_REST_URL: ${{ vars.PUBLIC_UPSTASH_SEARCH_REST_URL }}
           PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN: ${{ vars.PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN }}

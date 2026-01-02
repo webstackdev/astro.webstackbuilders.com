@@ -12,6 +12,7 @@ import {
   spyOnFetchEndpoint,
   mockFetchEndpointResponse,
 } from '@test/e2e/helpers'
+import { wait } from '@test/e2e/helpers/waitTimeouts'
 import { TestError } from '@test/errors'
 import { TEST_CONTACT_DATA, TEST_EMAILS } from '@test/e2e/fixtures/test-data'
 
@@ -23,7 +24,7 @@ const waitForContactFormHydration = async (page: BasePage) => {
   await page.waitForFunction(() => {
     const container = document.getElementById('uppyContainer')
     return !!container && container.hidden === false
-  }, undefined, { timeout: 3000 })
+  }, undefined, { timeout: wait.shortOperation })
 }
 
 const setupContactPage = async (playwrightPage: Page): Promise<BasePage> => {
@@ -114,7 +115,7 @@ test.describe('Contact Form', () => {
     const uppyContainer = page.locator('#uppyContainer')
     await expect(uppyContainer).toBeVisible()
     await expect(page.locator('#uppyDashboard')).toBeVisible()
-    await expect(uppyContainer.locator('.uppy-Dashboard')).toBeVisible({ timeout: 5000 })
+    await expect(uppyContainer.locator('.uppy-Dashboard')).toBeVisible({ timeout: wait.defaultWait })
   })
 
   test('@mocks contact form submits successfully when API is available', async ({ page: playwrightPage }) => {
@@ -123,7 +124,7 @@ test.describe('Contact Form', () => {
 
     await page.click('#submitBtn')
 
-    await expect(page.locator('#formMessages .message-success')).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('#formMessages .message-success')).toBeVisible({ timeout: wait.defaultWait })
     await expect(page.locator('#formMessages .message-error')).toBeHidden()
   })
 
@@ -147,7 +148,7 @@ test.describe('Contact Form', () => {
       await page.click('#submitBtn')
       await apiErrorOverride.waitForCall()
 
-      await expect(page.locator('#formMessages .message-error')).toBeVisible({ timeout: 5000 })
+      await expect(page.locator('#formMessages .message-error')).toBeVisible({ timeout: wait.defaultWait })
       await expect(page.locator('#errorMessage')).toContainText(
         /Unable to reach contact API|Unable to send message\. Please try again later\./
       )

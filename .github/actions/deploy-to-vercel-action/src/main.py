@@ -33,6 +33,7 @@ def _mask_secrets(ctx) -> None:
     add_mask(ctx.github_token)
     add_mask(ctx.vercel_token)
     add_mask(ctx.public_google_maps_api_key)
+    add_mask(ctx.public_google_map_id)
     add_mask(ctx.public_sentry_dsn)
     add_mask(ctx.public_upstash_search_rest_url)
     add_mask(ctx.public_upstash_search_readonly_token)

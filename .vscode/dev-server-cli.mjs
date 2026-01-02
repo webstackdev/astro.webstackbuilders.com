@@ -8,7 +8,7 @@ import yargs from 'yargs/yargs'
 import { hideBin } from 'yargs/helpers'
 
 const pidFile = `${tempDir}/debug-server-hmDAr917.pid`
-const port = 3000
+const port = 4321
 
 /**
  * Ensure we do not start a duplicate dev server instance

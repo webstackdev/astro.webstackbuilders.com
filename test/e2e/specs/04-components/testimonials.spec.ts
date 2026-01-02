@@ -6,6 +6,7 @@
 
 import { BasePage, test, expect } from '@test/e2e/helpers'
 import { waitForAnimationFrames } from '@test/e2e/helpers/waitHelpers'
+import { wait } from '@test/e2e/helpers/waitTimeouts'
 
 const testimonialsCarouselSelector = 'testimonials-carousel'
 const testimonialsEmblaSelector = '.testimonials-embla'
@@ -254,7 +255,7 @@ test.describe('Testimonials Component', () => {
     })
 
     await expect
-      .poll(getSelectedDotIndex, { intervals: [500], timeout: 8000 })
+      .poll(getSelectedDotIndex, { intervals: [500], timeout: wait.polling })
       .not.toBe(initialIndex)
   })
 

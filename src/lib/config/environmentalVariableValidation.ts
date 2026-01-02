@@ -83,6 +83,16 @@ export const environmentalVariablesConfig: AstroUserConfig['env'] = {
       optional: false,
     }),
     /**
+     * Google Maps Platform
+     *
+     * Map ID required for vector maps + Advanced Markers (gmp-advanced-marker).
+     */
+    PUBLIC_GOOGLE_MAP_ID: envField.string({
+      access: 'public',
+      context: 'client',
+      optional: false,
+    }),
+    /**
      * Site uses ConvertKit for managing newsletter subscriptions
      */
     CONVERTKIT_API_KEY: envField.string({

@@ -155,9 +155,7 @@ export const GET: APIRoute = async ({ request, clientAddress, cookies }) => {
       format: 'PNG',
     })
 
-    const payload = new Uint8Array(imageBuffer)
-
-    return new Response(payload, {
+    return new Response(imageBuffer, {
       headers: {
         'Content-Type': 'image/png',
         'Cache-Control': 'public, max-age=3600',

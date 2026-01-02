@@ -5,13 +5,14 @@
  */
 
 import { BasePage, test, expect } from '@test/e2e/helpers'
+import { wait } from '@test/e2e/helpers/waitTimeouts'
 
 const consentModalSelector = '#consent-modal-id'
 
 const getConsentBanner = (page: BasePage) => page.locator(consentModalSelector)
 
 async function waitForConsentBannerHidden(page: BasePage): Promise<void> {
-  await expect(getConsentBanner(page)).toBeHidden({ timeout: 5000 })
+  await expect(getConsentBanner(page)).toBeHidden({ timeout: wait.defaultWait })
 }
 
 async function removeViteErrorOverlay(page: BasePage): Promise<void> {
@@ -91,7 +92,7 @@ test.describe('Consent Banner', () => {
     await context.clearCookies()
 
     // Navigate to page without auto-dismissing the consent banner
-    await page.goto('/', { skipCookieDismiss: true, timeout: 15000 })
+    await page.goto('/', { skipCookieDismiss: true, timeout: wait.navigation })
     await resetConsentState(page)
 
     // Reload so the modal logic re-runs with a clean browser state across all engines
@@ -103,7 +104,7 @@ test.describe('Consent Banner', () => {
     await page.waitForFunction(() => {
       const element = document.querySelector<HTMLElement & { isInitialized?: boolean }>('consent-banner')
       return element?.isInitialized === true
-    }, { timeout: 5000 })
+    }, { timeout: wait.defaultWait })
 
     await removeViteErrorOverlay(page)
   })
@@ -159,7 +160,7 @@ test.describe('Consent Banner', () => {
     const cookieBanner = getConsentBanner(page)
     await acceptAllCookies(page)
 
-    await page.goto('/about', { timeout: 15000 })
+    await page.goto('/about', { timeout: wait.navigation })
     await page.waitForLoadState('networkidle')
     await removeViteErrorOverlay(page)
 

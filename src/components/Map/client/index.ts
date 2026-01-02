@@ -1,7 +1,7 @@
+import { APILoader } from '@googlemaps/extended-component-library/api_loader.js'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
-import { getGoogleMapsApiKey, isE2eTest } from '@components/scripts/utils/environmentClient'
-import { APILoader } from '@googlemaps/extended-component-library/api_loader.js'
+import { getGoogleMapId, getGoogleMapsApiKey, isE2eTest } from '@components/scripts/utils/environmentClient'
 import {
   getCompanyMapAddress,
   queryCompanyMapElement,
@@ -56,6 +56,7 @@ async function initMapElement(root: HTMLElement): Promise<void> {
   }
 
   loader.key = getGoogleMapsApiKey()
+  map.setAttribute('map-id', getGoogleMapId())
 
   const location = await geocodeAddress(address)
   if (!location) {

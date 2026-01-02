@@ -4,6 +4,7 @@
 import type { Page } from '@playwright/test'
 import { EvaluationError } from '@test/errors'
 import { BasePage, setupTestPage } from '@test/e2e/helpers'
+import { wait } from '@test/e2e/helpers/waitTimeouts'
 
 export class BreadCrumbPage extends BasePage {
   protected constructor(page: Page) {
@@ -71,7 +72,7 @@ export class BreadCrumbPage extends BasePage {
 
     const navigationPromise = this.page.waitForURL(
       (url: URL) => url.pathname === targetHref,
-      { waitUntil: 'domcontentloaded', timeout: 15000 },
+      { waitUntil: 'domcontentloaded', timeout: wait.navigation },
     )
     await this.click(`a[href="${targetHref}"]`)
     await navigationPromise
