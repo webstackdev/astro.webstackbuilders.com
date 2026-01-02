@@ -18,7 +18,7 @@ import { TEST_CONTACT_DATA, TEST_EMAILS } from '@test/e2e/fixtures/test-data'
 
 const CONTACT_PATH = '/contact'
 
-const contactSubmitActionEndpoint = '/_actions/contact/submit'
+const contactSubmitActionEndpoint = '/_actions/contact.submit'
 
 const waitForContactFormHydration = async (page: BasePage) => {
   await page.waitForFunction(() => {

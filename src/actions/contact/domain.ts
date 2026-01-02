@@ -6,6 +6,7 @@ import { isAllowedTimeline } from './responder'
 const trimString = (value: unknown): unknown => (typeof value === 'string' ? value.trim() : value)
 
 const emptyStringToUndefined = (value: unknown): unknown => {
+  if (value === null) return undefined
   if (typeof value !== 'string') return value
   const trimmed = value.trim()
   return trimmed.length === 0 ? undefined : trimmed
