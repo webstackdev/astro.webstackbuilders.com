@@ -39,9 +39,9 @@ export class BasePage extends BuiltInsPage {
     try {
       // Set consent cookies
       await this._page.evaluate(() => {
-        document.cookie = 'consent_analytics=true; path=/; max-age=31536000'
-        document.cookie = 'consent_marketing=true; path=/; max-age=31536000'
-        document.cookie = 'consent_functional=true; path=/; max-age=31536000'
+        document.cookie = 'consent_analytics=false; path=/; max-age=31536000'
+        document.cookie = 'consent_marketing=false; path=/; max-age=31536000'
+        document.cookie = 'consent_functional=false; path=/; max-age=31536000'
 
         // Clear localStorage
         if (typeof localStorage !== 'undefined') {
@@ -51,14 +51,14 @@ export class BasePage extends BuiltInsPage {
       })
 
       const cookieDialog = this._page.getByRole('dialog', { name: /cookie consent/i })
-      const allowAllButton = this._page.getByRole('button', { name: /allow all/i })
 
       // Wait briefly for the dialog to appear on client-side hydrated pages.
       await cookieDialog.waitFor({ state: 'visible', timeout: wait.tinyUi }).catch(() => undefined)
 
       if (await cookieDialog.isVisible().catch(() => false)) {
-        if (await allowAllButton.isVisible().catch(() => false)) {
-          await allowAllButton.click({ timeout: wait.tinyUi }).catch(() => undefined)
+        const closeButton = this._page.getByRole('button', { name: /close cookie consent/i })
+        if (await closeButton.isVisible().catch(() => false)) {
+          await closeButton.click({ timeout: wait.tinyUi }).catch(() => undefined)
         }
       }
 
@@ -117,6 +117,21 @@ export class BasePage extends BuiltInsPage {
       window.isPlaywrightControlled = true
       if (typeof window.__disableServiceWorkerForE2E === 'undefined') {
         window.__disableServiceWorkerForE2E = true
+      }
+
+      // Establish a deterministic consent baseline before any app scripts run.
+      // GDPR form consent uses the `functional` consent store.
+      try {
+        document.cookie = 'consent_analytics=false; path=/; max-age=31536000'
+        document.cookie = 'consent_marketing=false; path=/; max-age=31536000'
+        document.cookie = 'consent_functional=false; path=/; max-age=31536000'
+
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem('cookieConsent')
+          localStorage.removeItem('gdprConsent')
+        }
+      } catch {
+        // Ignore failures (e.g. blocked storage in some browser modes)
       }
 
       if (typeof window.__astroPageLoadCounter !== 'number') {
@@ -720,22 +735,6 @@ export class BasePage extends BuiltInsPage {
       },
       timeout,
     })
-  }
-
-  /**
-   * ================================================================
-   *
-   * CoPilot-Added Methods
-   *
-   * ================================================================
-   */
-
-  /**
-   * Verify hero section is present and visible
-   */
-  async expectHeroSection(): Promise<void> {
-    const hero = this._page.locator('[data-component="hero"], section').first()
-    await expect(hero).toBeVisible()
   }
 
   /**

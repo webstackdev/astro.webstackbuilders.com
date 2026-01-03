@@ -45,8 +45,6 @@ test.describe('Newsletter Subscription Form', () => {
 
     try {
       await newsletterPage.fillEmail(TEST_EMAILS.valid)
-      // Ensure consent is explicitly unchecked (it can be pre-checked in some states)
-      await newsletterPage.uncheckGdprConsent()
       await newsletterPage.submitForm()
 
       // Verify that no API call was made (client-side validation prevented it)
@@ -56,7 +54,9 @@ test.describe('Newsletter Subscription Form', () => {
       }
 
       // Should show consent required error message
-      await newsletterPage.expectMessageContains('Please consent to receive marketing communications')
+      const consentError = newsletterPage.locator('#newsletter-gdpr-consent-error')
+      await expect(consentError).toBeVisible()
+      await expect(consentError).toContainText('consent')
     } finally {
       await fetchSpy.restore()
     }

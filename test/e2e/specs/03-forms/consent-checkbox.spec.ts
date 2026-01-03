@@ -69,9 +69,6 @@ test.describe('Newsletter GDPR Consent', () => {
     pageUnderTest = await BasePage.init(page)
     await pageUnderTest.goto(HOME_PATH)
     await waitForNewsletterSection(pageUnderTest)
-
-    // Ensure a consistent starting state for tests (checkbox may be pre-checked).
-    await pageUnderTest.locator(NEWSLETTER_CONSENT_SELECTOR).uncheck({ force: true }).catch(() => undefined)
   })
 
   test('@ready GDPR consent checkbox is visible', async () => {
@@ -100,8 +97,6 @@ test.describe('Newsletter GDPR Consent', () => {
     try {
       await fillNewsletterEmail(pageUnderTest)
       await submitNewsletterForm(pageUnderTest)
-
-      await expect(pageUnderTest.locator(NEWSLETTER_MESSAGE_SELECTOR)).toContainText('Please consent')
       await expectConsentErrorVisible(pageUnderTest)
 
       const callCount = await fetchSpy.getCallCount()
@@ -122,13 +117,20 @@ test.describe('Newsletter GDPR Consent', () => {
 
   test('@ready GDPR checkbox is accessible via keyboard', async () => {
     const checkbox = pageUnderTest.locator(NEWSLETTER_CONSENT_SELECTOR)
+    await expect(checkbox).toBeVisible()
+    await expect(checkbox).toBeEnabled()
+    await expect(checkbox).not.toBeChecked()
     await checkbox.focus()
 
     await pageUnderTest.keyboard.press('Space')
     await expect(checkbox).toBeChecked()
 
+    // ConsentCheckboxElement disables the checkbox once consent is granted.
+    // The second keypress should not revoke consent.
+    await expect(checkbox).toBeDisabled()
+
     await pageUnderTest.keyboard.press('Space')
-    await expect(checkbox).not.toBeChecked()
+    await expect(checkbox).toBeChecked()
   })
 
   test('@ready GDPR error message is displayed', async () => {

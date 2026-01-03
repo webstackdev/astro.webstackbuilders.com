@@ -91,6 +91,7 @@ test.describe('Contact Form', () => {
     await fillRequiredFields(page)
     await page.locator('#project_type').selectOption('website')
     await page.locator('#timeline').selectOption('asap')
+    await page.check('#contact-gdpr-consent')
 
     const fetchSpy = await spyOnFetchEndpoint(playwrightPage, contactSubmitActionEndpoint)
 
