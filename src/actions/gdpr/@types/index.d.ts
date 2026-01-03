@@ -27,7 +27,7 @@ export interface ConsentRecord {
   id: string
   DataSubjectId: string
   email?: string
-  purposes: Array<'contact' | 'marketing' | 'analytics' | 'downloads'>
+  purposes: Array<'contact' | 'marketing' | 'analytics' | 'functional' | 'downloads'>
   timestamp: string
   source:
     | 'contact_form'
@@ -45,7 +45,7 @@ export interface ConsentRecord {
 export interface ConsentRequest {
   DataSubjectId: string
   email?: string
-  purposes: Array<'contact' | 'marketing' | 'analytics' | 'downloads'>
+  purposes: Array<'contact' | 'marketing' | 'analytics' | 'functional' | 'downloads'>
   source: string
   userAgent: string
   ipAddress?: string

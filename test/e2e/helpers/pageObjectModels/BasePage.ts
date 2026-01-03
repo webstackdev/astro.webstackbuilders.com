@@ -121,18 +121,10 @@ export class BasePage extends BuiltInsPage {
 
       // Establish a deterministic consent baseline before any app scripts run.
       // GDPR form consent uses the `functional` consent store.
-      try {
-        document.cookie = 'consent_analytics=false; path=/; max-age=31536000'
-        document.cookie = 'consent_marketing=false; path=/; max-age=31536000'
-        document.cookie = 'consent_functional=false; path=/; max-age=31536000'
-
-        if (typeof localStorage !== 'undefined') {
-          localStorage.removeItem('cookieConsent')
-          localStorage.removeItem('gdprConsent')
-        }
-      } catch {
-        // Ignore failures (e.g. blocked storage in some browser modes)
-      }
+      // NOTE: We intentionally do not pre-seed consent cookies here.
+      // Some E2E specs validate the first-visit consent banner behavior and need
+      // a truly empty cookie jar. Most specs rely on `dismissCookieModal()` to
+      // establish an opt-out baseline after navigation.
 
       if (typeof window.__astroPageLoadCounter !== 'number') {
         window.__astroPageLoadCounter = 0
@@ -242,7 +234,7 @@ export class BasePage extends BuiltInsPage {
       { timeout }
     )
 
-    const toggleButton = this._page.locator('button[aria-label="toggle menu"]')
+    const toggleButton = this._page.locator('button#nav-toggle')
     await expect(toggleButton).toBeVisible({ timeout })
 
     const expanded = await toggleButton.getAttribute('aria-expanded')
@@ -272,7 +264,7 @@ export class BasePage extends BuiltInsPage {
    */
   async closeMobileMenu(options?: { timeout?: number }): Promise<void> {
     const timeout = options?.timeout ?? wait.defaultWait
-    const toggleButton = this._page.locator('button[aria-label="toggle menu"]')
+    const toggleButton = this._page.locator('button#nav-toggle')
 
     await expect(toggleButton).toBeVisible({ timeout })
 

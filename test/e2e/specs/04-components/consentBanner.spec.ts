@@ -182,7 +182,7 @@ test.describe('Consent Banner', () => {
     const cookieBanner = getConsentBanner(page)
     await expect(cookieBanner).toBeVisible()
 
-    const closeButton = cookieBanner.getByRole('button', { name: /close cookie consent dialog/i })
+    const closeButton = cookieBanner.getByRole('button', { name: /close cookie consent/i })
     const allowAllButton = cookieBanner.locator('button:has-text("Allow All")')
 
     await cookieBanner.focus()
@@ -210,9 +210,13 @@ test.describe('Consent Banner', () => {
     const cookieBanner = page.locator('#consent-modal-id')
 
     const role = await cookieBanner.getAttribute('role')
-    const ariaLabel = await cookieBanner.getAttribute('aria-label')
+    const ariaLabelledBy = await cookieBanner.getAttribute('aria-labelledby')
+    const ariaDescribedBy = await cookieBanner.getAttribute('aria-describedby')
+    const ariaModal = await cookieBanner.getAttribute('aria-modal')
 
     expect(role).toBe('dialog')
-    expect(ariaLabel).toBeTruthy()
+    expect(ariaLabelledBy).toBeTruthy()
+    expect(ariaDescribedBy).toBeTruthy()
+    expect(ariaModal).toBe('true')
   })
 })

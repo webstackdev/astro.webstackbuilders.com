@@ -14,15 +14,21 @@ export interface Props {
   size?: number | string
   /** Color variant for the icon */
   variant?: IconVariant
+  /** Optional accessible title for the rendered SVG */
+  title?: string
 }
 
-const { class: className, name, size = 24, variant = 'default' as IconVariant } = Astro.props
+const { class: className, name, size = 24, variant = 'default' as IconVariant, title } = Astro.props
+
+const a11yProps = title
+  ? { title, 'aria-label': title }
+  : { 'aria-hidden': 'true' as const }
 ---
 
 <Icon
   name={name}
   class:list={['inline-block align-middle', colorClasses[variant], `icon--${name}`, className]}
   size={size}
-  aria-hidden="true"
+  {...a11yProps}
   focusable="false"
 />

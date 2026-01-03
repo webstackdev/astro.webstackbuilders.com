@@ -59,18 +59,13 @@ Latest run (Dec 2, 2025):
 
 ## Total Blocking Time (TBT) regressions (Chromium desktop + mobile)
 
-- Every carousel (`src/components/Carousel/client/index.ts`) hydrates on DOMContentLoaded, instantiating Embla + Autoplay even when sliders sit below the fold. Each instance builds navigation buttons, dots, and animation controllers synchronously, adding 180–220 ms of blocking time on Mobile Chrome and >450 ms on Edge when three carousels initialize back-to-back.
 
-- `createAnimationController` registers nanostore observers, `matchMedia('(prefers-reduced-motion)')`, and localStorage writes for every animation (hero + each carousel). Those listeners run before the page becomes interactive and stack up inside the 5 s TBT window.
 
-- Hero GSAP initialization plus consent logging (`initConsentSideEffects` immediately fetches `/api/gdpr/consent`) execute in the same navigation task, so the long-task observer inside `measureTBT` still sees 200–400 ms of blocking work even after we wait for `networkidle`.
+ Hero GSAP initialization plus consent logging (`initConsentSideEffects` immediately fetches `/_actions/gdpr.consentCreate`) execute in the same navigation task, so the long-task observer inside `measureTBT` still sees 200–400 ms of blocking work even after we wait for `networkidle`.
 
 **Mitigations**
-
 - Lazily hydrate carousels/testimonials (intersection observer + dynamic `import('embla-carousel')`) and skip Autoplay during CI/perf runs so fewer long tasks fall inside the measurement window.
-
 - Only create animation controllers once an animation actually needs lifecycle hooks, and wrap registration in `requestIdleCallback` so it lands outside the navigation task.
-
 - Guard consent logging and hero animation hydration with `window.isPlaywrightControlled` so Playwright perf tests can bypass those fetches and GSAP timelines when only static markup is required.
 
 ## Next steps

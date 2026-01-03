@@ -35,6 +35,10 @@ applyTo: "**"
 - **API utility files** go specifically in the `_utils/` folder
 - **API contract/type files** go in `_contracts/` folder for centralized type definitions
 
+## API Endpoints (Permission Required)
+- **Do not create, recreate, or restore `src/pages/api/*` endpoints without explicit user permission.**
+- Prefer Astro Actions (`/_actions/...`) for new backend behavior unless instructed otherwise.
+
 ## Mixed Concern Files
 - Files that straddle server-side API and client-side concerns (like API client wrappers) require clarification
 - **Ask before placing such files** - they may need special handling or alternative organization
