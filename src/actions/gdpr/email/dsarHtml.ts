@@ -2,13 +2,7 @@
  * Template for DSAR (Data Subject Access Request) verification
  * emails for data access and deletion requests
  */
-interface DSARVerificationEmailPropsHtml {
-  subject: string
-  requestType: 'ACCESS' | 'DELETE'
-  actionText: string
-  verifyUrl: string
-  expiresIn: string
-}
+import type { DSARVerificationEmailPropsHtml } from '@actions/gdpr/@types'
 
 export const dsarVerificationEmailHtml = (props: DSARVerificationEmailPropsHtml) => {
   const { subject, requestType, actionText, verifyUrl, expiresIn } = props

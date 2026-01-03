@@ -1,32 +1,10 @@
 import { randomUUID } from 'node:crypto'
 import { and, db, eq, isNull, newsletterConfirmations } from 'astro:db'
 import { ActionsFunctionError } from '@actions/utils/errors/ActionsFunctionError'
-
-export interface PendingSubscription {
-  email: string
-  firstName?: string | undefined
-  DataSubjectId: string
-  token: string
-  createdAt: string
-  expiresAt: string
-  consentTimestamp: string
-  userAgent: string
-  ipAddress?: string | undefined
-  verified: boolean
-  source: 'newsletter_form' | 'contact_form'
-}
+import { type PendingSubscription } from '@actions/newsletter/@types'
+import { generateConfirmationToken } from '@actions/newsletter/utils'
 
 const pendingSubscriptions = new Map<string, PendingSubscription>()
-
-export function generateConfirmationToken(): string {
-  const array = new Uint8Array(32)
-  crypto.getRandomValues(array)
-  return Buffer.from(array)
-    .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=/g, '')
-}
 
 export async function createPendingSubscription(data: {
   email: string

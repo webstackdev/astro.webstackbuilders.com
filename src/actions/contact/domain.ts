@@ -1,62 +1,14 @@
 import emailValidator from 'email-validator'
 import { z } from 'astro/zod'
-import type { ContactTimeline } from '@actions/contact/@types'
-import { isAllowedTimeline } from './responder'
-
-const trimString = (value: unknown): unknown => (typeof value === 'string' ? value.trim() : value)
-
-const emptyStringToUndefined = (value: unknown): unknown => {
-  if (value === null) return undefined
-  if (typeof value !== 'string') return value
-  const trimmed = value.trim()
-  return trimmed.length === 0 ? undefined : trimmed
-}
-
-const optionalTrimmedString = (maxLength?: number) => {
-  const base = z.string()
-  const limited = typeof maxLength === 'number' ? base.max(maxLength) : base
-  return z.preprocess(emptyStringToUndefined, limited.optional())
-}
-
-interface RequiredStringOptions {
-  required_error: string
-  invalid_type_error: string
-  min: { value: number; message: string }
-  max: { value: number; message: string }
-}
-
-const requiredString = (options: RequiredStringOptions) => {
-  return z.preprocess(
-    emptyStringToUndefined,
-    z
-      .string({
-        required_error: options.required_error,
-        invalid_type_error: options.invalid_type_error,
-      })
-      .min(options.min.value, { message: options.min.message })
-      .max(options.max.value, { message: options.max.message })
-  )
-}
-
-const isFile = (value: unknown): value is File => typeof File !== 'undefined' && value instanceof File
-const optionalFile = () => z.custom<File>(isFile).optional()
-
-const contactTimelineSchema = z.preprocess(
+import {
+  requiredString,
+  optionalTrimmedString,
+  trimString,
   emptyStringToUndefined,
-  z
-    .custom<ContactTimeline>(
-      (value): value is ContactTimeline => typeof value === 'string' && isAllowedTimeline(value),
-      { message: 'Invalid project timeline' }
-    )
-    .optional()
-)
-
-const spamPatterns = ['viagra', 'cialis', 'casino', 'poker', 'lottery']
-
-const containsSpam = (text: string): boolean => {
-  const normalized = text.toLowerCase()
-  return spamPatterns.some(pattern => normalized.includes(pattern))
-}
+  optionalFile,
+  contactTimelineSchema,
+  containsSpam,
+} from '@actions/contact/utils'
 
 export const contactFormInputSchema = z
   .object({

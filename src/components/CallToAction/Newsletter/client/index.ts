@@ -228,7 +228,12 @@ export class NewsletterFormElement extends LitElement {
       this.setFieldInvalid(this.consentCheckbox, false)
 
       const email = this.emailInput.value.trim()
-      const consentGiven = this.consentCheckbox.checked
+      const formData = this.form ? new FormData(this.form) : null
+      const consentGiven = formData?.get('consent') === 'true'
+
+      const dataSubjectIdRaw = formData?.get('DataSubjectId')
+      const dataSubjectId = typeof dataSubjectIdRaw === 'string' ? dataSubjectIdRaw.trim() : ''
+      const DataSubjectId = dataSubjectId.length > 0 ? dataSubjectId : undefined
 
       // Client-side validation
       if (!email) {
@@ -260,6 +265,7 @@ export class NewsletterFormElement extends LitElement {
         const result = await actions.newsletter.subscribe({
           email,
           consentGiven,
+          ...(DataSubjectId ? { DataSubjectId } : {}),
         })
 
         if (result.data?.success) {

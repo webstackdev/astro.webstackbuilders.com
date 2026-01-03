@@ -1,27 +1,36 @@
 import { randomUUID } from 'node:crypto'
 import { and, consentEvents, db, desc, eq } from 'astro:db'
+import { getPrivacyPolicyVersion } from '@actions/utils/environment/environmentActions'
+import type {
+  ConsentEventRecord,
+  ConsentRequest,
+  CreateConsentRecordInput,
+  DbConsentRecord
+} from '@actions/gdpr/@types'
+import {
+  normalizeNullableString,
+  normalizeUserAgent,
+  sanitizePurposes,
+  sanitizeSource,
+} from '@actions/gdpr/utils'
 
-type DbConsentRecord = typeof consentEvents.$inferSelect
-
-export type ConsentEventRecord = Omit<DbConsentRecord, 'purposes'> & {
-  purposes: string[]
-}
-
-const toConsentRecord = (record: DbConsentRecord): ConsentEventRecord => ({
+export const toConsentRecord = (record: DbConsentRecord): ConsentEventRecord => ({
   ...record,
   purposes: record.purposes as string[],
 })
 
-export type CreateConsentRecordInput = {
-  dataSubjectId: string
-  email: string | null
-  purposes: string[]
-  source: string
-  userAgent: string
-  ipAddress: string | null
-  privacyPolicyVersion: string
-  consentText: string | null
-  verified: boolean
+export function createConsentRecordInput(body: ConsentRequest): CreateConsentRecordInput {
+  return {
+    dataSubjectId: body.DataSubjectId,
+    email: normalizeNullableString(body.email ?? null),
+    purposes: sanitizePurposes(body.purposes),
+    source: sanitizeSource(body.source),
+    userAgent: normalizeUserAgent(body.userAgent),
+    ipAddress: normalizeNullableString(body.ipAddress ?? null),
+    privacyPolicyVersion: getPrivacyPolicyVersion(),
+    consentText: normalizeNullableString(body.consentText ?? null),
+    verified: body.verified ?? false,
+  }
 }
 
 export async function createConsentRecord(

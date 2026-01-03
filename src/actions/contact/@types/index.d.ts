@@ -32,3 +32,10 @@ export type EmailData = {
   subject: string
   html: string
 }
+
+interface RequiredStringOptions {
+  required_error: string
+  invalid_type_error: string
+  min: { value: number; message: string }
+  max: { value: number; message: string }
+}

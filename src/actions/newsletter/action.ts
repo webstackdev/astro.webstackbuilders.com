@@ -1,12 +1,7 @@
-import emailValidator from 'email-validator'
 import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
 import { defineAction } from 'astro:actions'
 import { z } from 'astro:schema'
-import {
-  getConvertkitApiKey,
-  getPrivacyPolicyVersion,
-  isProd,
-} from '@actions/utils/environment/environmentActions'
+import { getPrivacyPolicyVersion } from '@actions/utils/environment/environmentActions'
 import { checkRateLimit, rateLimiters } from '@actions/utils/rateLimit'
 import { buildRequestFingerprint, createRateLimitIdentifier } from '@actions/utils/requestContext'
 import {
@@ -14,113 +9,11 @@ import {
   handleActionsFunctionError,
   throwActionError,
 } from '@actions/utils/errors'
-import { createConsentRecord, markConsentRecordsVerified } from '@actions/gdpr/domain/consentStore'
-import { createPendingSubscription, confirmSubscription } from './_action'
-import { sendConfirmationEmail, sendWelcomeEmail } from '@actions/newsletter/entities'
-
-type NewsletterFormData = {
-  email: string
-  firstName?: string
-  consentGiven?: boolean
-  DataSubjectId?: string
-}
-
-type ConvertKitSubscriber = {
-  email_address: string
-  first_name?: string
-  state?: 'active' | 'inactive'
-  fields?: Record<string, string>
-}
-
-type ConvertKitResponse = {
-  subscriber: {
-    id: number
-    first_name: string | null
-    email_address: string
-    state: string
-    created_at: string
-    fields: Record<string, string>
-  }
-}
-
-type ConvertKitErrorResponse = {
-  errors: string[]
-}
-
-function validateEmail(email: string): string {
-  if (!email) {
-    throw new ActionsFunctionError('Email address is required.', { status: 400 })
-  }
-
-  if (email.length > 254) {
-    throw new ActionsFunctionError('Email address is too long', { status: 400 })
-  }
-
-  if (!emailValidator.validate(email)) {
-    throw new ActionsFunctionError('Email address is invalid', { status: 400 })
-  }
-
-  return email.trim().toLowerCase()
-}
-
-export async function subscribeToConvertKit(data: NewsletterFormData): Promise<ConvertKitResponse> {
-  /** Testing helper */
-  if (!isProd()) {
-    console.log('[DEV/TEST MODE] Newsletter subscription would be created:', { email: data.email })
-    return {
-      subscriber: {
-        id: 999999,
-        state: 'active',
-        email_address: data.email,
-        first_name: data.firstName || null,
-        created_at: new Date().toISOString(),
-        fields: {},
-      },
-    }
-  }
-
-  const subscriberData: ConvertKitSubscriber = {
-    email_address: data.email,
-    state: 'active',
-  }
-
-  if (data.firstName) {
-    subscriberData['first_name'] = data.firstName.trim()
-  }
-
-  const response = await fetch('https://api.kit.com/v4/subscribers', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Kit-Api-Key': getConvertkitApiKey(),
-    },
-    body: JSON.stringify(subscriberData),
-  })
-
-  const responseData = await response.json()
-
-  if (response.status === 401) {
-    const errorData = responseData as ConvertKitErrorResponse
-    console.error('ConvertKit API authentication failed:', errorData.errors)
-    throw new ActionsFunctionError(
-      'Newsletter service configuration error. Please contact support.',
-      { status: 502 }
-    )
-  }
-
-  if (response.status === 422) {
-    const errorData = responseData as ConvertKitErrorResponse
-    throw new ActionsFunctionError(errorData.errors[0] || 'Invalid email address', { status: 400 })
-  }
-
-  if (response.status === 200 || response.status === 201 || response.status === 202) {
-    return responseData as ConvertKitResponse
-  }
-
-  throw new ActionsFunctionError('An unexpected error occurred. Please try again later.', {
-    status: 502,
-  })
-}
+import { createConsentRecord, markConsentRecordsVerified } from '@actions/gdpr/entities/consent'
+import { createPendingSubscription, confirmSubscription } from '@actions/newsletter/domain'
+import { validateEmail } from '@actions/newsletter/utils'
+import { sendConfirmationEmail, sendWelcomeEmail } from '@actions/newsletter/entities/email'
+import { subscribeToConvertKit } from '@actions/newsletter/entities/subscribe'
 
 const subscribeSchema = z.object({
   email: z.string(),

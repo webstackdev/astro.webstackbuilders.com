@@ -1,6 +1,6 @@
 import { Resend } from 'resend'
-import { dsarVerificationEmailHtml } from '@content/email/dsar.html'
-import { dsarVerificationEmailText } from '@content/email/dsar.text'
+import { dsarVerificationEmailHtml } from '@actions/gdpr/email/dsarHtml'
+import { dsarVerificationEmailText } from '@actions/gdpr/email/dsarText'
 import { getResendApiKey, isProd } from '@actions/utils/environment/environmentActions'
 import { getSiteUrl } from '@actions/utils/environment/siteUrlActions'
 import { ActionsFunctionError } from '@actions/utils/errors/ActionsFunctionError'
