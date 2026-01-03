@@ -55,6 +55,4 @@ Right now we're using string literals to define HTML email templates for site ma
 
 Vercel AI Gateway, maybe could use for a chatbot:
 
-Vercel AI Gateway, maybe could use for a chatbot:
-
 https://vercel.com/kevin-browns-projects-dd474f73/astro-webstackbuilders-com/ai-gateway
