@@ -170,55 +170,42 @@ export default defineConfig({
       name: 'chromium-serial',
       use: { ...devices['Desktop Chrome'] },
       testMatch: testMatchSerial,
-      workers: 1,
     },
 
     {
       name: 'firefox-serial',
       use: { ...devices['Desktop Firefox'] },
-      dependencies: ['chromium-serial'],
       testMatch: testMatchSerial,
-      workers: 1,
     },
 
     {
       name: 'webkit-serial',
       use: { ...devices['Desktop Safari'] },
-      dependencies: ['firefox-serial'],
       testMatch: testMatchSerial,
-      workers: 1,
     },
 
     /** Test against mobile viewports. */
     {
       name: 'mobile-chrome-serial',
       use: { ...devices['Pixel 5'] },
-      dependencies: ['webkit-serial'],
       testMatch: testMatchSerial,
-      workers: 1,
     },
     {
       name: 'mobile-safari-serial',
       use: { ...devices['iPhone 12'] },
-      dependencies: ['mobile-chrome-serial'],
       testMatch: testMatchSerial,
-      workers: 1,
     },
 
     /** Test against branded browsers. */
     {
       name: 'microsoft-edge-serial',
       use: { ...devices['Desktop Edge'], channel: 'msedge' },
-      dependencies: ['mobile-safari-serial'],
       testMatch: testMatchSerial,
-      workers: 1,
     },
     {
       name: 'google-chrome-serial',
       use: { ...devices['Desktop Chrome'], channel: 'chrome' },
-      dependencies: ['microsoft-edge-serial'],
       testMatch: testMatchSerial,
-      workers: 1,
     },
 
     /**
