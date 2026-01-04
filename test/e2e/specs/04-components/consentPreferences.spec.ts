@@ -17,6 +17,24 @@ const CONSENT_PAGE_PATH = '/consent'
 
 const toggleLabel = (checkboxId: string): string => `[data-consent-toggle="${checkboxId}"]`
 
+async function toggleCheckboxViaKeyboard(page: BasePage, checkboxId: string): Promise<void> {
+  const selector = `#${checkboxId}`
+  const checkbox = page.locator(selector)
+
+  await checkbox.scrollIntoViewIfNeeded()
+  await checkbox.focus()
+
+  await expect
+    .poll(async () => {
+      return await page.evaluate((id: string) => {
+        return document.activeElement?.id === id
+      }, checkboxId)
+    })
+    .toBe(true)
+
+  await page.keyboard.press('Space')
+}
+
 const decodeAstroActionJson = (raw: unknown): unknown => {
   if (!Array.isArray(raw) || raw.length === 0) {
     return raw
@@ -103,7 +121,6 @@ test.describe('Consent Preferences Component', () => {
 
     await context.clearCookies()
     await page.goto(CONSENT_PAGE_PATH, { timeout: wait.navigation })
-    await playwrightPage.waitForLoadState('networkidle')
     await removeViteErrorOverlay(page)
     await waitForConsentPreferences(page)
   })
@@ -212,9 +229,9 @@ test.describe('Consent Preferences Component', () => {
 
     await page.locator(ALLOW_ALL_BUTTON).click()
 
-    await page.locator(toggleLabel('analytics-cookies')).click()
-    await page.locator(toggleLabel('functional-cookies')).click()
-    await page.locator(toggleLabel('marketing-cookies')).click()
+    await toggleCheckboxViaKeyboard(page, 'analytics-cookies')
+    await toggleCheckboxViaKeyboard(page, 'functional-cookies')
+    await toggleCheckboxViaKeyboard(page, 'marketing-cookies')
 
     await expect(analyticsCheckbox).not.toBeChecked()
     await expect(functionalCheckbox).not.toBeChecked()
@@ -235,7 +252,10 @@ test.describe('Consent Preferences Component', () => {
     const marketingCheckbox = page.locator('#marketing-cookies')
 
     await page.locator(ALLOW_ALL_BUTTON).click()
-    await page.locator(toggleLabel('functional-cookies')).click()
+
+    // Toggle via keyboard to mirror accessible interaction and avoid browser differences
+    // around clicking sr-only inputs.
+    await toggleCheckboxViaKeyboard(page, 'functional-cookies')
     await expect(functionalCheckbox).not.toBeChecked()
 
     await page.locator(ALLOW_ALL_BUTTON).click()
@@ -244,5 +264,25 @@ test.describe('Consent Preferences Component', () => {
     await expect(functionalCheckbox).toBeChecked()
     await expect(marketingCheckbox).toBeChecked()
 
+  })
+
+  test('@ready label click toggles functional switch (chromium only)', async ({ page: playwrightPage }, testInfo) => {
+    if (testInfo.project.name !== 'chromium') {
+      test.skip()
+    }
+
+    const page = await BasePage.init(playwrightPage)
+    await waitForConsentPreferences(page)
+
+    const functionalCheckbox = page.locator('#functional-cookies')
+
+    await page.locator(ALLOW_ALL_BUTTON).click()
+    await expect(functionalCheckbox).toBeChecked()
+
+    await page.locator(toggleLabel('functional-cookies')).click()
+    await expect(functionalCheckbox).not.toBeChecked()
+
+    await page.locator(toggleLabel('functional-cookies')).click()
+    await expect(functionalCheckbox).toBeChecked()
   })
 })

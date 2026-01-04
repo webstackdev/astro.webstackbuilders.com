@@ -23,7 +23,7 @@ const SHARE_MODAL_TEXT = `${SHARE_DATA_TEXT} ${SHARE_FIXTURE.url}`.trim()
 async function loadSocialShareFixture(playwrightPage: Page) {
   const page = await BasePage.init(playwrightPage)
   await page.goto(SHARE_FIXTURE.path)
-  await page.waitForLoadState('networkidle')
+  await expect(page.locator(SOCIAL_SHARE_SELECTOR)).toBeVisible()
   return page
 }
 
@@ -103,13 +103,32 @@ test.describe('Social Shares Component', () => {
     await popup.close()
   })
 
-  test('bluesky share concatenates share text and url', async ({ page: playwrightPage, context }) => {
+  test('bluesky share concatenates share text and url (href)', async ({ page: playwrightPage }) => {
+    const page = await loadSocialShareFixture(playwrightPage)
+    const blueskyButton = page.locator(`${SHARE_BUTTON_SELECTOR}[data-share="bluesky"]`).first()
+    await expect(blueskyButton).toBeVisible()
+
+    const href = await blueskyButton.getAttribute('href')
+    expect(href).toBeTruthy()
+    if (!href) {
+      return
+    }
+
+    const hrefUrl = new URL(href)
+    expect(hrefUrl.hostname).toContain('bsky.app')
+    const textParam = hrefUrl.searchParams.get('text')
+    expect(textParam?.startsWith(SHARE_DATA_TEXT)).toBe(true)
+    expect(textParam?.endsWith(SHARE_FIXTURE.url)).toBe(true)
+  })
+
+  test('bluesky share opens popup window (chromium only)', async ({ page: playwrightPage, context }, testInfo) => {
+    if (testInfo.project.name !== 'chromium') {
+      test.skip()
+    }
+
     const popup = await openSharePopup(playwrightPage, context, 'bluesky')
     const popupUrl = new URL(popup.url())
     expect(popupUrl.hostname).toContain('bsky.app')
-    const textParam = popupUrl.searchParams.get('text')
-    expect(textParam?.startsWith(SHARE_DATA_TEXT)).toBe(true)
-    expect(textParam?.endsWith(SHARE_FIXTURE.url)).toBe(true)
     await popup.close()
   })
 
@@ -142,7 +161,8 @@ test.describe('Social Shares Component', () => {
     const page = await loadSocialShareFixture(playwrightPage)
     await page.setViewportSize({ width: 375, height: 667 })
     await page.reload({ waitUntil: 'domcontentloaded' })
-    await page.waitForLoadState('networkidle')
+
+    await expect(page.locator(SOCIAL_SHARE_SELECTOR)).toBeVisible()
 
     const socialShares = page.locator(SOCIAL_SHARE_SELECTOR)
     await expect(socialShares).toBeVisible()

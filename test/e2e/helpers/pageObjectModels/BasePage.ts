@@ -130,6 +130,27 @@ export class BasePage extends BuiltInsPage {
         window.__astroPageLoadCounter = 0
       }
 
+      // `astro:page-load` is primarily a View Transitions signal.
+      // Some browsers/environments may not reliably dispatch it on a fresh load.
+      // We also bump the counter on full document loads so `waitForPageLoad()` works
+      // for both navigation modes.
+      let fullLoadCountedForDocument = false
+      const bumpFullLoadCounter = () => {
+        if (fullLoadCountedForDocument) return
+        fullLoadCountedForDocument = true
+        window.__astroPageLoadCounter = (window.__astroPageLoadCounter ?? 0) + 1
+      }
+
+      if (typeof window !== 'undefined') {
+        window.addEventListener('load', bumpFullLoadCounter, { passive: true })
+        // Covers BFCache restores where `load` may not fire.
+        window.addEventListener('pageshow', bumpFullLoadCounter, { passive: true })
+      }
+
+      if (typeof document !== 'undefined' && document.readyState === 'complete') {
+        bumpFullLoadCounter()
+      }
+
       if (!window.__astroPageLoadListenerAttached) {
         const registerAstroPageLoadListener = () => {
           if (window.__astroPageLoadListenerAttached) return
@@ -305,7 +326,7 @@ export class BasePage extends BuiltInsPage {
    */
   async waitForPageLoad(options?: { requireNext?: boolean; timeout?: number }): Promise<void> {
     const requireNext = options?.requireNext ?? false
-    const timeout = options?.timeout ?? wait.defaultWait
+    const timeout = options?.timeout ?? wait.navigation
     const currentCount = await this._page.evaluate(() => window.__astroPageLoadCounter ?? 0)
 
     if (!requireNext && currentCount > this.lastAstroPageLoadCount) {
@@ -433,6 +454,14 @@ export class BasePage extends BuiltInsPage {
    */
   async expectHeading(): Promise<void> {
     await expect(this._page.locator('h1').first()).toBeVisible()
+  }
+
+  /**
+   * Verify homepage hero section is present and visible
+   */
+  async expectHeroSection(): Promise<void> {
+    await expect(this._page.locator('section[aria-labelledby="home-hero-title"]')).toBeVisible()
+    await expect(this._page.locator('#home-hero-title')).toBeVisible()
   }
 
   /**

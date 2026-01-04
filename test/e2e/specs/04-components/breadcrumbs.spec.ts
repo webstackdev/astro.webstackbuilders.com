@@ -9,6 +9,7 @@ import {
   expect,
   test,
 } from '@test/e2e/helpers'
+import { wait } from '@test/e2e/helpers/waitTimeouts'
 
 test.describe('Breadcrumbs Component', () => {
   test('@ready breadcrumbs display on article pages', async ({ page: playwrightPage }) => {
@@ -48,8 +49,25 @@ test.describe('Breadcrumbs Component', () => {
     const page = await BreadCrumbPage.init(playwrightPage)
     await page.openFirstArticleDetail()
 
-    await page.click('nav[aria-label="Breadcrumbs"] a')
-    await page.waitForLoadState('networkidle')
+    const supportsViewTransitions = await page.evaluate(() => {
+      if (typeof document === 'undefined') {
+        return false
+      }
+      return typeof document.startViewTransition === 'function'
+    })
+
+    if (supportsViewTransitions) {
+      const waitForLoad = page.waitForPageLoad({ requireNext: true, timeout: wait.navigation })
+      await page.click('nav[aria-label="Breadcrumbs"] a')
+      await waitForLoad
+    } else {
+      const navigationPromise = page.page.waitForURL((url: URL) => url.pathname === '/', {
+        waitUntil: 'domcontentloaded',
+        timeout: wait.navigation,
+      })
+      await page.click('nav[aria-label="Breadcrumbs"] a')
+      await navigationPromise
+    }
 
     await page.expectUrlContains('localhost:4321/')
   })

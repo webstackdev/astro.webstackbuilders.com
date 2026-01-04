@@ -88,16 +88,16 @@ test.describe('Consent Banner', () => {
    */
   test.beforeEach(async ({ page: playwrightPage, context }) => {
     const page = await BasePage.init(playwrightPage)
-    // Clear all cookies and storage before navigation
+    // Clear cookies first so our initial origin visit is clean
     await context.clearCookies()
 
-    // Navigate to page without auto-dismissing the consent banner
+    // Establish origin so we can clear localStorage/sessionStorage deterministically
     await page.goto('/', { skipCookieDismiss: true, timeout: wait.navigation })
     await resetConsentState(page)
+    await context.clearCookies()
 
-    // Reload so the modal logic re-runs with a clean browser state across all engines
-    await page.reload({ waitUntil: 'domcontentloaded' })
-    await page.waitForLoadState('networkidle')
+    // Fresh navigation so consent logic runs with a fully reset state
+    await page.goto('/', { skipCookieDismiss: true, timeout: wait.navigation })
     await page.waitForPageLoad()
 
     // Wait for consent banner custom element to be initialized
@@ -148,7 +148,6 @@ test.describe('Consent Banner', () => {
     await acceptAllCookies(page)
 
     await page.reload({ waitUntil: 'domcontentloaded' })
-    await page.waitForLoadState('networkidle')
     await removeViteErrorOverlay(page)
 
     await expect(cookieBanner).toBeHidden()
@@ -161,7 +160,6 @@ test.describe('Consent Banner', () => {
     await acceptAllCookies(page)
 
     await page.goto('/about', { timeout: wait.navigation })
-    await page.waitForLoadState('networkidle')
     await removeViteErrorOverlay(page)
 
     await expect(cookieBanner).toBeHidden()

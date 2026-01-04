@@ -16,7 +16,9 @@ const NETWORK_STATUS_FIXTURE = {
 async function loadNetworkStatusFixture(playwrightPage: Page) {
   const page = await BasePage.init(playwrightPage)
   await page.goto(NETWORK_STATUS_FIXTURE.path)
-  await page.waitForLoadState('networkidle')
+
+  await page.locator(NETWORK_STATUS_FIXTURE.toastSelector).waitFor({ state: 'attached' })
+  await page.locator(NETWORK_STATUS_FIXTURE.indicatorSelector).waitFor({ state: 'visible' })
   return page
 }
 

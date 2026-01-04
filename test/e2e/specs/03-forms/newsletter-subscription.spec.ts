@@ -21,8 +21,8 @@ test.describe('Newsletter Subscription Form', () => {
     await newsletterPage.checkGdprConsent()
     await newsletterPage.submitForm()
 
-    // Should show confirmation message (using partial match to handle variations)
-    await newsletterPage.expectMessageContains('check your email')
+    // Should show confirmation message (wording varies)
+    await newsletterPage.expectSuccessConfirmation()
   })
 
   test('@ready form rejects invalid email format', async ({ page: playwrightPage }) => {
@@ -119,8 +119,7 @@ test.describe('Newsletter Subscription Form', () => {
     await newsletterPage.checkGdprConsent()
     await newsletterPage.submitForm()
 
-    // Wait for success message (updated to match actual API response)
-    await newsletterPage.expectMessageContains('Please check your email to confirm your subscription')
+    await newsletterPage.expectSuccessConfirmation()
 
     // Verify form is cleared
     await newsletterPage.expectFormReset()
@@ -167,7 +166,7 @@ test.describe('Newsletter Subscription Form', () => {
     await newsletterPage.checkGdprConsent()
     await newsletterPage.submitForm()
 
-    await newsletterPage.expectMessageContains('check your email')
+    await newsletterPage.expectSuccessConfirmation()
   })
 
   test('@ready API error preserves form state and surfaces message', async ({ page: playwrightPage }) => {
