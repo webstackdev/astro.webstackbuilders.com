@@ -11,29 +11,8 @@ export class PwaPage extends BasePage {
     super(page)
   }
 
-  private static async enableServiceWorkerForE2E(page: Page): Promise<void> {
-    const enableScript = () => {
-      if (typeof window !== 'undefined' && window.isPlaywrightControlled) {
-        const current = window.__disableServiceWorkerForE2E
-        console.info('[pwa-test] enableServiceWorkerForE2E called', { current })
-      }
-      window.__disableServiceWorkerForE2E = false
-      if (typeof window !== 'undefined' && window.isPlaywrightControlled) {
-        console.info('[pwa-test] window.__disableServiceWorkerForE2E set to false')
-      }
-    }
-
-    await page.addInitScript(enableScript)
-    try {
-      await page.evaluate(enableScript)
-    } catch {
-      // ignore: evaluate can fail on about:blank in some browsers before first navigation
-    }
-  }
-
   static override async init(page: Page): Promise<PwaPage> {
     await this.setupPlaywrightGlobals(page)
-    await this.enableServiceWorkerForE2E(page)
     const instance = new PwaPage(page)
     await instance.onInit()
     return instance

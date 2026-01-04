@@ -58,11 +58,6 @@ declare global {
     isPlaywrightControlled?: boolean
 
     /**
-     * Allows Playwright tests to disable PWA service worker registration
-     */
-    __disableServiceWorkerForE2E?: boolean
-
-    /**
      * Snapshot of environment-client results for Playwright assertions
      */
     environmentClientSnapshot?: EnvironmentClientSnapshot

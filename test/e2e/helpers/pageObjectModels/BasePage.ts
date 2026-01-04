@@ -115,9 +115,6 @@ export class BasePage extends BuiltInsPage {
   protected static async setupPlaywrightGlobals(page: Page): Promise<void> {
     await page.addInitScript(() => {
       window.isPlaywrightControlled = true
-      if (typeof window.__disableServiceWorkerForE2E === 'undefined') {
-        window.__disableServiceWorkerForE2E = true
-      }
 
       // Establish a deterministic consent baseline before any app scripts run.
       // GDPR form consent uses the `functional` consent store.

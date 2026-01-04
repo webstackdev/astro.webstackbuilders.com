@@ -17,7 +17,7 @@ Latest run (Dec 2, 2025):
 
 - `astro.config.ts` enables `prefetch: true`, so the client router prefetches every in-viewport `<a>` after `DOMContentLoaded`. The home page exposes 30+ internal links (hero CTAs, three carousels, CTA blocks, footer), meaning the hero image request is queued behind dozens of route/module fetches, delaying paint.
 
-- Playwright perf runs disable the service worker (`window.__disableServiceWorkerForE2E = true`), so every test is a cold navigation that redownloads fonts and hero artwork. When that happens concurrently with GSAP initialization, the hero frequently lands outside the 2.5 s budget.
+- Playwright perf runs are effectively cold navigations (service worker caching is not relied on), so each test may redownload fonts and hero artwork. When that happens concurrently with GSAP initialization, the hero frequently lands outside the 2.5 s budget.
 
 **Mitigations:**
 
