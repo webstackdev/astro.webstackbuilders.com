@@ -24,6 +24,7 @@ export const linkValidatorPlugin = linkValidator({
     /** Dummy link in demo page */
     '/path/to#my-blob',
     /** Skip any links in testing-only pages */
+    'articles/demo',
     'https://www.webstackbuilders.com/testing/*',
     /** Skip hard-coded site URLs due to timeouts from CI to Vercel */
     'https://www.webstackbuilders.com',
