@@ -56,33 +56,3 @@ Right now we're using string literals to define HTML email templates for site ma
 Vercel AI Gateway, maybe could use for a chatbot:
 
 https://vercel.com/kevin-browns-projects-dd474f73/astro-webstackbuilders-com/ai-gateway
-
-1. Firefox/WebKit locator.setChecked(...) “did not change its state”
-
-With your markup, the checkbox is sr-only and the visual switch is a separate element (peer-based). In Firefox/WebKit, a forced click on a clipped/visually-hidden checkbox can “click” without producing the native toggle behavior Playwright expects (or the component’s JS is not wired to the checkbox click in a way that actually flips the DOM checked state).
-
-Most deterministic alternatives (conceptually):
-
-- Don’t uncheck via the hidden input. Use the “Deny All” control (it exists as #consent-deny-all), then click “Allow All”, then assert all are checked. This tests the same behavior (“Allow All enables every category”) without the fragile intermediate toggle interaction.
-
-- If you truly need to uncheck just one category, do it by setting state via JS (checked = false + dispatch input/change) because that bypasses the click/geometry issues and targets the state machine the component is likely listening to.
-
-2. mobile-safari consent banner: waitForPageLoad() still times out (15s)
-
-Important observation: in consentBanner.spec.ts, you already wait on a much more direct readiness signal right after waitForPageLoad():
-
-consent-banner.isInitialized === true
-So the likely story here is: waitForPageLoad() is unnecessary for these tests, and when it flakes it blocks the entire suite.
-
-3. mobile-safari store persistence beforeEach timeouts + Edge footer page.goto('/') timeouts
-
-These are pure navigation-level failures (timeouts in page.goto or in a beforeEach that presumably can’t get through its startup navigation). The usual causes are:
-
-a global readiness wait that never resolves (which can cascade into beforeEach timing out)
-
-- Two questions so we pick the right fixes
-
-For the consent “Allow All enables every category” test: are you okay with changing the test to use #consent-deny-all instead of unchecking a single toggle (still verifies Allow All enables everything, but avoids the hidden-switch interaction entirely)?
-
-For the navigation timeouts (mobile-safari + Edge): were these runs executed while npm run dev was definitely running and stable, or is it possible the server wasn’t up / got interrupted?
-

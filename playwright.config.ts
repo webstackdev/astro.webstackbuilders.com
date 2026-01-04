@@ -35,7 +35,7 @@ const buildWebServerEnv = () => {
   return env
 }
 
-const workersHighParallel = process.env['GITHUB_ACTIONS'] ? 1 : 2
+//const workersHighParallel = process.env['GITHUB_ACTIONS'] ? 1 : 1
 const testMatchHighParallel = '**/*.spec.ts'
 const testIgnoreHighParallel = [
   '03-forms/**/*.spec.ts',
@@ -66,9 +66,13 @@ export default defineConfig({
   forbidOnly: !!process.env['GITHUB_ACTIONS'],
   /** Retry on CI only */
   retries: process.env['GITHUB_ACTIONS'] ? 2 : 0,
-  /** Opt out of high parallelism in CI-mode runs. */
-  workers: workersHighParallel,
-  /** Only run @ready tests in CI, all tests locally */
+  /**
+   * Global maximum workers. Setting to 1 forces serial mode for tests. Setting
+   * higher causes flakiness especially in mobile-safari tests due to resource
+   * contention on Vite dev server.
+   */
+  workers: 1,
+  /** Only run `@ready` tests in CI, all tests locally */
   ...(process.env['GITHUB_ACTIONS'] ? { grep: /@ready/ } : {}),
   /** Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: process.env['GITHUB_ACTIONS']
