@@ -4,7 +4,7 @@
  * Tests the environment detection functions in a Vitest/jsdom context
  */
 import { describe, it, expect } from 'vitest'
-import { isUnitTest, isE2eTest, isTest, isDev, isProd } from '@lib/config/environmentServer'
+import { isUnitTest, isE2eTest, isTest, isProd } from '@lib/config/environmentServer'
 
 describe('Environment detection utilities', () => {
   it('isUnitTest should return true when running in Vitest', () => {
@@ -19,9 +19,7 @@ describe('Environment detection utilities', () => {
     expect(isTest()).toBe(true)
   })
 
-  it('isDev() should return true when running in Vitest', () => {
-    expect(isDev()).toBe(true)
-  })
+  // Can't test isDev() - result varies between local and GH Action runner
 
   it('isProd() should return false when running in Vitest', () => {
     expect(isProd()).toBe(false)

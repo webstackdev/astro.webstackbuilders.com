@@ -3,7 +3,7 @@
  * Tests the wrapper functions around js-cookie library
  */
 import { describe, it, expect } from 'vitest'
-import { isDev, isE2eTest, isProd, isTest, isUnitTest } from '@lib/config'
+import { isE2eTest, isProd, isTest, isUnitTest } from '@lib/config'
 
 describe('Build-time environment handling utilities', () => {
   it('should always report running in Vitest in a unit test', () => {
@@ -18,9 +18,7 @@ describe('Build-time environment handling utilities', () => {
     expect(isTest()).toBeTruthy()
   })
 
-  it('isDev() should return true when running in Vitest', () => {
-    expect(isDev()).toBeTruthy()
-  })
+  // Can't test isDev() - result varies between local and GH Action runner
 
   it('isProd() should return false when running in Vitest', () => {
     expect(isProd()).toBeFalsy()
