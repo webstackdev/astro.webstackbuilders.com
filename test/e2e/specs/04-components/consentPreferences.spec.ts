@@ -17,9 +17,61 @@ const CONSENT_PAGE_PATH = '/consent'
 
 const toggleLabel = (checkboxId: string): string => `[data-consent-toggle="${checkboxId}"]`
 
+async function toggleCheckboxViaKeyboard(page: BasePage, checkboxId: string): Promise<void> {
+  const selector = `#${checkboxId}`
+  const checkbox = page.locator(selector)
+
+  await checkbox.scrollIntoViewIfNeeded()
+  await checkbox.focus()
+
+  await expect
+    .poll(async () => {
+      return await page.evaluate((id: string) => {
+        return document.activeElement?.id === id
+      }, checkboxId)
+    })
+    .toBe(true)
+
+  await page.keyboard.press('Space')
+}
+
+const decodeAstroActionJson = (raw: unknown): unknown => {
+  if (!Array.isArray(raw) || raw.length === 0) {
+    return raw
+  }
+
+  const table = raw
+
+  const decodeAt = (index: number): unknown => {
+    const value = table[index]
+
+    if (Array.isArray(value)) {
+      return value.map((entry) => {
+        if (typeof entry === 'number') {
+          return decodeAt(entry)
+        }
+        return entry
+      })
+    }
+
+    if (value && typeof value === 'object') {
+      const obj = value as Record<string, unknown>
+      const decoded: Record<string, unknown> = {}
+      for (const [key, ref] of Object.entries(obj)) {
+        decoded[key] = typeof ref === 'number' ? decodeAt(ref) : ref
+      }
+      return decoded
+    }
+
+    return value
+  }
+
+  return decodeAt(0)
+}
+
 const interceptConsentApi = async (page: Page): Promise<FetchOverrideHandle> => {
   return await mockFetchEndpointResponse(page, {
-    endpoint: '/api/gdpr/consent',
+    endpoint: '/_actions/gdpr.consentCreate',
     responseBuilder: 'consentRecord',
   })
 }
@@ -69,7 +121,6 @@ test.describe('Consent Preferences Component', () => {
 
     await context.clearCookies()
     await page.goto(CONSENT_PAGE_PATH, { timeout: wait.navigation })
-    await playwrightPage.waitForLoadState('networkidle')
     await removeViteErrorOverlay(page)
     await waitForConsentPreferences(page)
   })
@@ -92,7 +143,7 @@ test.describe('Consent Preferences Component', () => {
     const expectedPurposes = ['analytics', 'functional', 'marketing']
 
     const consentResponsePromise = page.waitForResponse((response) => {
-      if (!response.url().includes('/api/gdpr/consent')) return false
+      if (!response.url().includes('/_actions/gdpr.consentCreate')) return false
       if (response.request().method() !== 'POST') return false
 
       try {
@@ -114,7 +165,26 @@ test.describe('Consent Preferences Component', () => {
     const consentResponse = await consentResponsePromise
     expect(consentResponse.ok()).toBeTruthy()
 
-    const responseBody = (await consentResponse.json()) as ConsentResponse
+    const rawBody = (await consentResponse.json()) as unknown
+    const responseBody = (() => {
+      const decoded = decodeAstroActionJson(rawBody)
+
+      if (decoded && typeof decoded === 'object') {
+        if ('success' in decoded) {
+          return decoded as ConsentResponse
+        }
+
+        if ('data' in decoded) {
+          const data = (decoded as { data?: unknown }).data
+          if (data && typeof data === 'object' && 'success' in data) {
+            return data as ConsentResponse
+          }
+        }
+      }
+
+      throw new Error(`Unexpected consent action response shape: ${JSON.stringify(rawBody).slice(0, 500)}`)
+    })()
+
     expect(responseBody.success).toBeTruthy()
 
     const dataSubjectId = responseBody.record?.DataSubjectId
@@ -159,9 +229,9 @@ test.describe('Consent Preferences Component', () => {
 
     await page.locator(ALLOW_ALL_BUTTON).click()
 
-    await page.locator(toggleLabel('analytics-cookies')).click()
-    await page.locator(toggleLabel('functional-cookies')).click()
-    await page.locator(toggleLabel('marketing-cookies')).click()
+    await toggleCheckboxViaKeyboard(page, 'analytics-cookies')
+    await toggleCheckboxViaKeyboard(page, 'functional-cookies')
+    await toggleCheckboxViaKeyboard(page, 'marketing-cookies')
 
     await expect(analyticsCheckbox).not.toBeChecked()
     await expect(functionalCheckbox).not.toBeChecked()
@@ -182,7 +252,10 @@ test.describe('Consent Preferences Component', () => {
     const marketingCheckbox = page.locator('#marketing-cookies')
 
     await page.locator(ALLOW_ALL_BUTTON).click()
-    await page.locator(toggleLabel('functional-cookies')).click()
+
+    // Toggle via keyboard to mirror accessible interaction and avoid browser differences
+    // around clicking sr-only inputs.
+    await toggleCheckboxViaKeyboard(page, 'functional-cookies')
     await expect(functionalCheckbox).not.toBeChecked()
 
     await page.locator(ALLOW_ALL_BUTTON).click()
@@ -191,5 +264,25 @@ test.describe('Consent Preferences Component', () => {
     await expect(functionalCheckbox).toBeChecked()
     await expect(marketingCheckbox).toBeChecked()
 
+  })
+
+  test('@ready label click toggles functional switch (chromium only)', async ({ page: playwrightPage }, testInfo) => {
+    if (testInfo.project.name !== 'chromium') {
+      test.skip()
+    }
+
+    const page = await BasePage.init(playwrightPage)
+    await waitForConsentPreferences(page)
+
+    const functionalCheckbox = page.locator('#functional-cookies')
+
+    await page.locator(ALLOW_ALL_BUTTON).click()
+    await expect(functionalCheckbox).toBeChecked()
+
+    await page.locator(toggleLabel('functional-cookies')).click()
+    await expect(functionalCheckbox).not.toBeChecked()
+
+    await page.locator(toggleLabel('functional-cookies')).click()
+    await expect(functionalCheckbox).toBeChecked()
   })
 })

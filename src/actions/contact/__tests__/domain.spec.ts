@@ -3,6 +3,24 @@ import { describe, expect, it } from 'vitest'
 import { contactFormInputSchema } from '../domain'
 
 describe('contact domain validation', () => {
+  it('accepts null optional fields from Astro Actions form parsing', () => {
+    const result = contactFormInputSchema.safeParse({
+      name: 'Jane Doe',
+      email: 'jane@example.com',
+      message: 'This is a valid message with enough detail.',
+      budget: '5k-10k',
+      consent: false,
+      company: null,
+      phone: null,
+      timeline: null,
+      website: null,
+      service: null,
+      DataSubjectId: null,
+    })
+
+    expect(result.success).toBe(true)
+  })
+
   it('accepts valid timeline values', () => {
     const result = contactFormInputSchema.safeParse({
       name: 'Jane Doe',

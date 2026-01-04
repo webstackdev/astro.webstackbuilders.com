@@ -1,7 +1,6 @@
 import AstroPWA from '@vite-pwa/astro'
 import db from '@astrojs/db'
 import icon from 'astro-icon'
-import linkValidator from 'astro-link-validator'
 import lit from '@semantic-ui/astro-lit'
 import mdx from '@astrojs/mdx'
 import sentry from '@sentry/astro'
@@ -25,9 +24,11 @@ import {
   environmentalVariablesConfig,
   getSentryAuthToken,
   getSiteUrl,
-  isGitHub,
+  isDev,
+  isProd,
   isUnitTest,
   isVercel,
+  linkValidatorPlugin,
   markdownConfig,
   pwaConfig,
   vercelConfig,
@@ -76,12 +77,12 @@ const standardIntegrations = [
       exclude: ['downloads', '/articles/demo', 'testing'],
     }),
   }),
-  /** Validate links in built site output on astro:build:done integration hook */
-  linkValidator({
-    checkExternal: isGitHub(),
-    failOnBrokenLinks: false,
-    verbose: true,
-  }),
+  /**
+   * Validate links in built site output on astro:build:done integration hook. Ran locally
+   * and on GitHub production builds because links can't be determined at build time in
+   * GitHub preview environments.
+   */
+  ...(isDev() || isProd() ? [linkValidatorPlugin] : []),
   /** Integration to write pages.json after build so E2E tests can discover what pages exist */
   pagesJsonWriter(),
   /** Debugging tools for Astro View Transition API */

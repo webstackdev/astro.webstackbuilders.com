@@ -11,7 +11,7 @@ import { addScriptBreadcrumb, ClientScriptError } from '@components/scripts/erro
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
-import type { DownloadsSubmitInput } from '@actions/downloads/responder'
+import type { DownloadsSubmitInput } from '@actions/downloads/action'
 
 const scriptName = 'DownloadFormElement'
 
@@ -106,12 +106,22 @@ export class DownloadFormElement extends LitElement {
       submitButton.textContent = 'Processing...'
 
       const formData = new FormData(form)
+      const consentRaw = formData.get('consent')
+      const consent = consentRaw === 'true' ? true : undefined
+
+      const dataSubjectIdRaw = formData.get('DataSubjectId')
+      const dataSubjectId =
+        typeof dataSubjectIdRaw === 'string' ? dataSubjectIdRaw.trim() : ''
+      const DataSubjectId = dataSubjectId.length > 0 ? dataSubjectId : undefined
+
       const payload = {
         firstName: String(formData.get('firstName') ?? ''),
         lastName: String(formData.get('lastName') ?? ''),
         workEmail: String(formData.get('workEmail') ?? ''),
         jobTitle: String(formData.get('jobTitle') ?? ''),
         companyName: String(formData.get('companyName') ?? ''),
+        consent,
+        DataSubjectId,
       } satisfies DownloadsSubmitInput
 
       try {

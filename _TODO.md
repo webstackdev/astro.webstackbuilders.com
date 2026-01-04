@@ -55,6 +55,11 @@ Right now we're using string literals to define HTML email templates for site ma
 
 Vercel AI Gateway, maybe could use for a chatbot:
 
-Vercel AI Gateway, maybe could use for a chatbot:
-
 https://vercel.com/kevin-browns-projects-dd474f73/astro-webstackbuilders-com/ai-gateway
+
+
+## Testimonials on mobile
+
+We have E2E errors again testimonials slide on mobile chrome and safari. I think the problem is that we are pausing carousels when part of the carousel is outside of the viewport, and the testimonials are too large to display on mobile without being off viewport.
+
+`test/e2e/specs/04-components/testimonials.spec.ts`:244:3 › Testimonials Component › @ready testimonials auto-rotate changes slide index

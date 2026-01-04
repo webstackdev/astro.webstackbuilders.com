@@ -35,6 +35,42 @@ export function getConsentCheckboxErrorElement(
 }
 
 /**
+ * Query the consent checkbox container element within a consent-checkbox component.
+ * Returns null when not present.
+ */
+export function queryConsentCheckboxContainer(
+  scope: ParentNode,
+  checkboxId: string
+): HTMLDivElement | null {
+  const container = scope.querySelector(`#${checkboxId}-container`)
+  return container instanceof HTMLDivElement ? container : null
+}
+
+/**
+ * Query the hidden consent input within a consent-checkbox component.
+ * Returns null when not present.
+ */
+export function queryConsentCheckboxHiddenConsentInput(
+  scope: ParentNode,
+  checkboxId: string
+): HTMLInputElement | null {
+  const hiddenConsentInput = scope.querySelector(`#${checkboxId}-hidden`)
+  return hiddenConsentInput instanceof HTMLInputElement ? hiddenConsentInput : null
+}
+
+/**
+ * Query the DataSubjectId hidden input within a consent-checkbox component.
+ * Returns null when not present.
+ */
+export function queryConsentCheckboxDataSubjectIdInput(
+  scope: ParentNode,
+  checkboxId: string
+): HTMLInputElement | null {
+  const dataSubjectIdInput = scope.querySelector(`#${checkboxId}-data-subject-id`)
+  return dataSubjectIdInput instanceof HTMLInputElement ? dataSubjectIdInput : null
+}
+
+/**
  * Query purpose from a descendant node that carries [data-purpose].
  * Returns null when not present.
  */

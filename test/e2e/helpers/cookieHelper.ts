@@ -37,7 +37,7 @@ export async function dismissCookieModal(page: Page): Promise<void> {
     await page.evaluate(() => {
       document.cookie = 'consent_analytics=true; path=/; max-age=31536000'
       document.cookie = 'consent_marketing=true; path=/; max-age=31536000'
-      document.cookie = 'consent_functional=true; path=/; max-age=31536000'
+      document.cookie = 'consent_functional=false; path=/; max-age=31536000'
 
       // Clear localStorage
       if (typeof localStorage !== 'undefined') {
@@ -74,7 +74,7 @@ export async function setConsentCookies(page: Page): Promise<void> {
   await page.evaluate(() => {
     document.cookie = 'consent_analytics=true; path=/; max-age=31536000'
     document.cookie = 'consent_marketing=true; path=/; max-age=31536000'
-    document.cookie = 'consent_functional=true; path=/; max-age=31536000'
+    document.cookie = 'consent_functional=false; path=/; max-age=31536000'
   })
 }
 

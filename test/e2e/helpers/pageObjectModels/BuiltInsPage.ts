@@ -40,7 +40,7 @@ export class BuiltInsPage {
    * via `afterGoto` (without re-implementing retry logic everywhere).
    */
   async goto(path: string, options?: BuiltInsGotoOptions): Promise<null | Response> {
-    const requestedTimeout = options?.timeout ?? wait.defaultWait
+    const requestedTimeout = options?.timeout ?? wait.navigation
     const waitUntil = options?.waitUntil ?? 'domcontentloaded'
 
     const navigate = async (timeout: number) => {
@@ -58,7 +58,7 @@ export class BuiltInsPage {
       const message = error instanceof Error ? error.message : String(error)
       if (message.includes('ERR_ABORTED')) {
         response = await navigate(requestedTimeout)
-      } else if (!options?.timeout && message.includes('Timeout')) {
+      } else if (!options?.timeout && message.includes('Timeout') && requestedTimeout < wait.navigation) {
         // Allow a single retry with a longer timeout to absorb slow prerender navigations
         response = await navigate(wait.navigation)
       } else {

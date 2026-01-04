@@ -7,10 +7,17 @@ import { addScriptBreadcrumb, ClientScriptError } from '@components/scripts/erro
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
-import { subscribeToFunctionalConsent, updateConsent } from '@components/scripts/store'
+import {
+  getConsentSnapshot,
+  subscribeToFunctionalConsent,
+  updateConsent,
+} from '@components/scripts/store'
 import {
   getConsentCheckboxErrorElement,
   getConsentCheckboxInput,
+  queryConsentCheckboxContainer,
+  queryConsentCheckboxDataSubjectIdInput,
+  queryConsentCheckboxHiddenConsentInput,
   queryConsentCheckboxFormIdData,
   queryConsentCheckboxPurposeData,
 } from './selectors'
@@ -22,6 +29,9 @@ const COMPONENT_SCRIPT_NAME = 'ConsentCheckboxElement'
 export class ConsentCheckboxElement extends HTMLElement {
   private domReadyHandler: (() => void) | null = null
   private checkbox: HTMLInputElement | null = null
+  private container: HTMLDivElement | null = null
+  private hiddenConsentInput: HTMLInputElement | null = null
+  private dataSubjectIdInput: HTMLInputElement | null = null
   private errorElement: HTMLDivElement | null = null
   private form: HTMLFormElement | null = null
   private consentUnsubscribe: (() => void) | null = null
@@ -73,11 +83,17 @@ export class ConsentCheckboxElement extends HTMLElement {
 
       const errorElement = getConsentCheckboxErrorElement(this, checkbox.id)
 
+      this.container = queryConsentCheckboxContainer(this, checkbox.id)
+      this.hiddenConsentInput = queryConsentCheckboxHiddenConsentInput(this, checkbox.id)
+      this.dataSubjectIdInput = queryConsentCheckboxDataSubjectIdInput(this, checkbox.id)
+
       this.checkbox = checkbox
       this.errorElement = errorElement
       this.form = checkbox.closest('form')
       this.componentPurpose = this.resolvePurpose()
       this.componentFormId = this.resolveFormId()
+
+      this.seedDataSubjectId()
 
       this.subscribeToConsentChanges()
       this.bindCheckboxChange()
@@ -116,20 +132,56 @@ export class ConsentCheckboxElement extends HTMLElement {
     }
 
     const syncConsentState = (hasConsent: boolean) => {
-      if (!this.checkbox) {
-        return
-      }
-
-      this.checkbox.checked = hasConsent
-      if (hasConsent) {
-        this.clearError()
-      }
+      this.applyConsentUIState(hasConsent)
     }
 
     try {
       this.consentUnsubscribe = subscribeToFunctionalConsent(syncConsentState)
     } catch (error) {
       handleScriptError(error, this.buildContext('syncConsentState'))
+    }
+  }
+
+  private seedDataSubjectId(): void {
+    if (!this.dataSubjectIdInput) {
+      return
+    }
+
+    const context = this.buildContext('seedDataSubjectId')
+    addScriptBreadcrumb(context)
+
+    try {
+      const snapshot = getConsentSnapshot()
+      const value = typeof snapshot.DataSubjectId === 'string' ? snapshot.DataSubjectId.trim() : ''
+      if (!value) {
+        return
+      }
+
+      this.dataSubjectIdInput.value = value
+      this.dataSubjectIdInput.disabled = false
+    } catch (error) {
+      handleScriptError(error, context)
+    }
+  }
+
+  private applyConsentUIState(hasConsent: boolean): void {
+    if (!this.checkbox) {
+      return
+    }
+
+    this.checkbox.checked = hasConsent
+    this.checkbox.disabled = hasConsent
+
+    if (this.container) {
+      this.container.style.display = hasConsent ? 'none' : ''
+    }
+
+    if (this.hiddenConsentInput) {
+      this.hiddenConsentInput.disabled = !hasConsent
+    }
+
+    if (hasConsent) {
+      this.clearError()
     }
   }
 
@@ -176,16 +228,22 @@ export class ConsentCheckboxElement extends HTMLElement {
       try {
         if (!this.validateConsent()) {
           event.preventDefault()
+          event.stopImmediatePropagation()
+          event.stopPropagation()
           this.checkbox?.focus()
         }
       } catch (error) {
         handleScriptError(error, submitContext)
         event.preventDefault()
+        event.stopImmediatePropagation()
+        event.stopPropagation()
       }
     }
 
     try {
-      this.form.addEventListener('submit', this.submitHandler)
+      // Capture-phase ensures consent validation runs before other submit handlers
+      // registered in the bubble phase (e.g. form submission logic).
+      this.form.addEventListener('submit', this.submitHandler, true)
     } catch (error) {
       handleScriptError(error, this.buildContext('bindSubmitEvent'))
     }
@@ -266,7 +324,7 @@ export class ConsentCheckboxElement extends HTMLElement {
 
     if (this.form && this.submitHandler) {
       try {
-        this.form.removeEventListener('submit', this.submitHandler)
+        this.form.removeEventListener('submit', this.submitHandler, true)
       } catch {
         // Ignore cleanup errors
       }
@@ -281,6 +339,9 @@ export class ConsentCheckboxElement extends HTMLElement {
     }
 
     this.checkbox = null
+    this.container = null
+    this.hiddenConsentInput = null
+    this.dataSubjectIdInput = null
     this.errorElement = null
     this.form = null
     this.changeHandler = null

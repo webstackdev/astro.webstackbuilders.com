@@ -168,13 +168,6 @@ export class ConsentBannerElement extends HTMLElement {
       this.wrapper.style.display = 'block'
       this.setupFocusTrap()
       this.wrapper.focus()
-      setTimeout(() => {
-        if (this.wrapper.style.display === 'none') {
-          return
-        }
-
-        this.allowBtn.focus()
-      }, 0)
       showConsentBanner()
       ConsentBannerElement.isModalCurrentlyVisible = true
     } catch (error) {
@@ -327,6 +320,17 @@ export class ConsentBannerElement extends HTMLElement {
         }
 
         if (!(event.target instanceof Node) || !this.wrapper.contains(event.target)) {
+          return
+        }
+
+        if (document.activeElement === this.wrapper) {
+          keyEvent.preventDefault()
+          if (keyEvent.shiftKey) {
+            lastFocusable.focus()
+            return
+          }
+
+          firstFocusable.focus()
           return
         }
 

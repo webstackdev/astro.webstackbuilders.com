@@ -1,20 +1,7 @@
 import rss from '@astrojs/rss'
 import { getCollection } from 'astro:content'
-import type { APIContext } from 'astro'
-import { ApiFunctionError } from './api/_utils/errors'
 
-export async function GET(context: APIContext) {
-  if (!context.site) {
-    throw new ApiFunctionError(
-      'Missing site URL. Configure `site` in `astro.config.ts` to generate RSS links.',
-      {
-        status: 500,
-        route: '/rss.xml',
-        operation: 'Generate RSS feed',
-      }
-    )
-  }
-
+export async function GET() {
   const now = new Date()
   const articles = await getCollection(
     'articles',
@@ -28,7 +15,11 @@ export async function GET(context: APIContext) {
     title: 'Webstack Builders Website',
     description:
       'Webstack Builders is a solo software development agency specializing in platform engineering.',
-    site: context.site,
+    /**
+     * This always runs in the context of astro build, which always occurs in
+     * production mode so links always are generated with the production URL
+     */
+    site: 'https://www.webstackbuilders.com',
     trailingSlash: false,
     items: sortedArticles.map(article => ({
       title: article.data.title,

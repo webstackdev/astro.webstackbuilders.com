@@ -9,14 +9,16 @@ import { BasePage, expect, test } from '@test/e2e/helpers'
 
 const NETWORK_STATUS_FIXTURE = {
   path: '/testing/network-status',
-  toastSelector: '#network-status-toast',
+  toastSelector: '[data-network-status-toast]',
   indicatorSelector: '[data-testid="connection-indicator"]',
 }
 
 async function loadNetworkStatusFixture(playwrightPage: Page) {
   const page = await BasePage.init(playwrightPage)
   await page.goto(NETWORK_STATUS_FIXTURE.path)
-  await page.waitForLoadState('networkidle')
+
+  await page.locator(NETWORK_STATUS_FIXTURE.toastSelector).waitFor({ state: 'attached' })
+  await page.locator(NETWORK_STATUS_FIXTURE.indicatorSelector).waitFor({ state: 'visible' })
   return page
 }
 
@@ -27,7 +29,7 @@ async function dispatchConnectionEvent(page: BasePage, eventName: 'online' | 'of
 }
 
 test.describe('Network Status Component', () => {
-  test('renders toast host and connection indicator in testing fixture', async ({ page: playwrightPage }) => {
+  test('renders toast and connection indicator in testing fixture', async ({ page: playwrightPage }) => {
     const page = await loadNetworkStatusFixture(playwrightPage)
     const toast = page.locator(NETWORK_STATUS_FIXTURE.toastSelector)
     const indicator = page.locator(NETWORK_STATUS_FIXTURE.indicatorSelector)

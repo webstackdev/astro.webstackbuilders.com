@@ -9,7 +9,7 @@ import {
   isProd,
 } from '@actions/utils/environment/environmentActions'
 import { ActionsFunctionError, throwActionError } from '@actions/utils/errors'
-import { createConsentRecord } from '@actions/gdpr/domain/consentStore'
+import { createConsentRecord } from '@actions/gdpr/entities/consent'
 import type { FileAttachment, EmailData } from '@actions/contact/@types'
 import { contactFormInputSchema } from './domain'
 import {

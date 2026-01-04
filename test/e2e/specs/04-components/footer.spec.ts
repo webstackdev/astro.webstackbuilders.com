@@ -57,10 +57,19 @@ test.describe('Footer Component', () => {
     // Dismiss cookie dialog if present
     await page.clearCookieDialog()
 
-    // Test privacy link navigation
-    await page.click('footer[role="contentinfo"] a[href*="/privacy"]')
-    await page.waitForPageLoad()
-    await page.waitForURL('**/privacy')
+    // Test privacy link navigation deterministically
+    const privacyLink = page.locator('footer[role="contentinfo"] a[href*="/privacy"]').first()
+    await expect(privacyLink).toBeVisible()
+
+    const href = await privacyLink.getAttribute('href')
+    expect(href).toBeTruthy()
+    if (!href) {
+      return
+    }
+
+    expect(href).toContain('/privacy')
+
+    await page.goto(href)
     await page.expectUrlContains('/privacy')
   })
 

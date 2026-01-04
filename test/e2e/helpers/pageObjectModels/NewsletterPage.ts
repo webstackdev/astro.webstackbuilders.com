@@ -4,6 +4,7 @@
  */
 import { type Page, expect } from '@playwright/test'
 import { BasePage } from '@test/e2e/helpers'
+import { wait } from '@test/e2e/helpers/waitTimeouts'
 
 export class NewsletterPage extends BasePage {
   private readonly subscribeActionEndpoint = '/_actions/newsletter/subscribe'
@@ -33,7 +34,7 @@ export class NewsletterPage extends BasePage {
    */
   async navigateToNewsletterForm(): Promise<void> {
     await this.goto(this.fixturePath)
-    await this.waitForLoadState('networkidle') // Ensure all scripts are loaded
+    await this.page.waitForSelector(this.formSelector, { state: 'visible', timeout: wait.navigation })
     await this.expectNewsletterForm()
   }
 
@@ -134,6 +135,18 @@ export class NewsletterPage extends BasePage {
   }
 
   /**
+   * Assert the newsletter form reached a successful confirmation state.
+   * Copy can vary; this checks semantics and avoids coupling tests to exact wording.
+   */
+  async expectSuccessConfirmation(): Promise<void> {
+    const message = this.page.locator(this.messageSelector)
+
+    await expect(message).toBeVisible({ timeout: wait.defaultWait })
+    await expect(message).not.toContainText(/sending confirmation email/i, { timeout: wait.polling })
+    await expect(message).toContainText(/check your email|confirmation email|confirm your subscription/i)
+  }
+
+  /**
    * Verify loading spinner is visible
    */
   async expectLoadingSpinnerVisible(): Promise<void> {
@@ -150,7 +163,7 @@ export class NewsletterPage extends BasePage {
   /**
    * Wait for the spinner to enter the loading state at least once
    */
-  async waitForSpinnerLoadingState(timeout = 2000): Promise<void> {
+  async waitForSpinnerLoadingState(timeout = wait.quickAssert): Promise<void> {
     await this.page.waitForFunction(
       selector => {
         const spinner = document.querySelector(selector)

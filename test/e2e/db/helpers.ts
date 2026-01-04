@@ -230,8 +230,24 @@ export const deleteDsarRequestById = async (id: string) => {
 
 export const deleteConsentRecordsBySubjectId = async (dataSubjectId: string) => {
   const libsql = getLibsqlClient()
-  await libsql.execute({
-    sql: `DELETE FROM consentEvents WHERE dataSubjectId = ?`,
-    args: [dataSubjectId],
-  })
+
+  const maxAttempts = 5
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      await libsql.execute({
+        sql: `DELETE FROM consentEvents WHERE dataSubjectId = ?`,
+        args: [dataSubjectId],
+      })
+      return
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      const isBusy = message.includes('SQLITE_BUSY') || message.toLowerCase().includes('database is locked')
+      if (!isBusy || attempt === maxAttempts) {
+        throw error
+      }
+
+      // Yield briefly to let another worker release its write lock.
+      await new Promise<void>((resolve) => setTimeout(resolve, 50 * attempt))
+    }
+  }
 }

@@ -11,6 +11,7 @@ export {
   isVercel,
 } from './environmentServer'
 export { getSiteUrl } from './siteUrlServer'
+export { linkValidatorPlugin } from './linkValidator'
 export { markdownConfig } from './markdown'
 export { pwaConfig } from './pwa'
 export { vercelConfig } from './vercel'

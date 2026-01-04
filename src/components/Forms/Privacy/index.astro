@@ -1,0 +1,158 @@
+---
+import { statusMessages } from '@components/Forms/Privacy/server'
+
+export interface Props {
+  status?: string | null
+}
+
+const { status } = Astro.props
+const statusMessage = status ? statusMessages[status] : undefined
+---
+
+<privacy-form class="block" status={status ?? undefined}>
+  <div class="container mx-auto px-4 py-16 max-w-5xl space-y-10">
+    <header class="space-y-3">
+      <h1 class="text-3xl md:text-4xl font-bold text-text">My Data &amp; Privacy Rights</h1>
+      <p class="text-text-offset max-w-2xl">
+        Under GDPR, you have the right to access and control your personal data.
+      </p>
+    </header>
+
+    {
+      statusMessage && (
+        <div
+          id="status-message"
+          tabindex="-1"
+          role={statusMessage.type === 'error' ? 'alert' : 'status'}
+          aria-live={statusMessage.type === 'error' ? 'assertive' : 'polite'}
+          aria-atomic="true"
+          class:list={[
+            'rounded-xl border px-4 py-3 text-sm',
+            statusMessage.type === 'success' && 'border-success bg-success-bg text-success',
+            statusMessage.type === 'error' && 'border-danger bg-danger-bg text-danger',
+            statusMessage.type === 'info' && 'border-info bg-info-bg text-info',
+          ]}
+        >
+          {statusMessage.message}
+        </div>
+      )
+    }
+
+    <section class="bg-bg-offset border border-border rounded-2xl p-6" aria-labelledby="my-data-intro-title">
+      <h2 class="sr-only" id="my-data-intro-title">Overview</h2>
+      <p class="text-text-offset">
+        Use the forms below to request a copy of your data or request its deletion.
+      </p>
+    </section>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <section class="bg-bg border border-border rounded-2xl p-6 md:p-8" aria-labelledby="my-data-access-title">
+        <h2 id="my-data-access-title" class="text-xl font-semibold text-text mb-3">
+          <span aria-hidden="true">📥</span> Access My Data
+        </h2>
+        <p class="text-text-offset">
+          Request a copy of personal data we have about you, including consent records and newsletter subscriptions.
+        </p>
+
+        <form id="access-form" class="mt-6 space-y-4" novalidate>
+          <div class="space-y-2">
+            <label for="access-email" class="block text-sm font-semibold text-text">Email Address</label>
+            <input
+              type="email"
+              id="access-email"
+              name="email"
+              required
+              placeholder="your@email.com"
+              class="w-full rounded-md border border-border bg-bg px-3 py-2 text-text placeholder:text-text-offset focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200"
+            />
+          </div>
+
+          <button
+            type="submit"
+            class="inline-flex items-center justify-center rounded-xl px-6 py-3 bg-primary hover:bg-primary-hover text-white font-semibold transition-colors"
+          >
+            Request My Data
+          </button>
+
+          <div
+            id="access-message"
+            class="hidden rounded-xl border px-4 py-3 text-sm"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+            tabindex="-1"
+          ></div>
+        </form>
+      </section>
+
+      <section class="bg-bg border border-border rounded-2xl p-6 md:p-8" aria-labelledby="my-data-delete-title">
+        <h2 id="my-data-delete-title" class="text-xl font-semibold text-text mb-3">
+          <span aria-hidden="true">🗑️</span> Delete My Data
+        </h2>
+
+        <div class="rounded-xl border border-warning bg-warning-bg text-warning px-4 py-3 text-sm mb-4">
+          <strong><span aria-hidden="true">⚠️</span> Warning:</strong> This will permanently delete all your data from our systems.
+          This action cannot be undone.
+        </div>
+
+        <form id="delete-form" class="mt-6 space-y-4" novalidate>
+          <div class="space-y-2">
+            <label for="delete-email" class="block text-sm font-semibold text-text">Email Address</label>
+            <input
+              type="email"
+              id="delete-email"
+              name="email"
+              required
+              placeholder="your@email.com"
+              class="w-full rounded-md border border-border bg-bg px-3 py-2 text-text placeholder:text-text-offset focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200"
+            />
+          </div>
+
+          <label class="flex items-start gap-3 text-sm text-text">
+            <input type="checkbox" id="confirm-delete" required class="mt-1" />
+            <span>I understand this will permanently delete all my data</span>
+          </label>
+
+          <button
+            type="submit"
+            class="inline-flex items-center justify-center rounded-xl px-6 py-3 bg-danger text-white font-semibold hover:opacity-90 transition-colors"
+          >
+            Delete My Data
+          </button>
+
+          <div
+            id="delete-message"
+            class="hidden rounded-xl border px-4 py-3 text-sm"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+            tabindex="-1"
+          ></div>
+        </form>
+      </section>
+    </div>
+
+    <section class="bg-bg-offset border border-border rounded-2xl p-6" aria-labelledby="my-data-next-title">
+      <h2 id="my-data-next-title" class="text-xl font-semibold text-text">What Happens Next?</h2>
+      <ol class="mt-4 list-decimal ml-6 space-y-3 text-text-offset">
+        <li>
+          <strong class="text-text">Verification Email:</strong> We'll send a verification link to your email address.
+        </li>
+        <li>
+          <strong class="text-text">Click the Link:</strong> Click the link in the email to verify your request (expires in 24 hours).
+        </li>
+        <li>
+          <strong class="text-text">For Access Requests:</strong> Your data will be automatically downloaded as a JSON file.
+        </li>
+        <li>
+          <strong class="text-text">For Deletion Requests:</strong> Your data will be permanently removed and you'll see a confirmation.
+        </li>
+      </ol>
+    </section>
+  </div>
+</privacy-form>
+
+<script>
+  import { registerPrivacyForm } from '@components/Forms/Privacy/client/index'
+  registerPrivacyForm()
+</script>

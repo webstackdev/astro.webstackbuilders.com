@@ -6,6 +6,7 @@ import * as consentStore from '@components/scripts/store'
 vi.mock('@components/scripts/store', () => {
   const listeners = new Set<(_value: boolean) => void>()
   let functionalConsent = false
+  const dataSubjectId = '0f7b3f2a-3d2f-4f4a-9d13-1c3f6f0c8b2a'
 
   const emitFunctionalConsent = (value: boolean) => {
     functionalConsent = value
@@ -26,6 +27,12 @@ vi.mock('@components/scripts/store', () => {
     }),
     subscribeToFunctionalConsent,
     getFunctionalConsentPreference: vi.fn(() => functionalConsent),
+    getConsentSnapshot: vi.fn(() => ({
+      analytics: false,
+      marketing: false,
+      functional: functionalConsent,
+      DataSubjectId: dataSubjectId,
+    })),
     __test: {
       emitFunctionalConsent,
       resetConsent: () => emitFunctionalConsent(false),
@@ -111,6 +118,29 @@ describe('ConsentCheckboxElement', () => {
         checkbox!.checked,
         'Consent checkbox should pre-check when functional consent is true'
       ).toBe(true)
+
+      const container = element.querySelector<HTMLDivElement>('#gdpr-consent-container')
+      expect(container, 'Consent container should exist').toBeTruthy()
+      expect(container!.style.display, 'Consent container should hide when consent exists').toBe(
+        'none'
+      )
+
+      const hiddenConsent = element.querySelector<HTMLInputElement>('#gdpr-consent-hidden')
+      expect(hiddenConsent, 'Hidden consent input should exist').toBeTruthy()
+      expect(
+        hiddenConsent!.disabled,
+        'Hidden consent input should be enabled when consent exists'
+      ).toBe(false)
+
+      const dataSubjectId = element.querySelector<HTMLInputElement>('#gdpr-consent-data-subject-id')
+      expect(dataSubjectId, 'DataSubjectId hidden input should exist').toBeTruthy()
+      expect(
+        dataSubjectId!.disabled,
+        'DataSubjectId hidden input should be enabled when available'
+      ).toBe(false)
+      expect(dataSubjectId!.value, 'DataSubjectId should be populated from consent snapshot').toBe(
+        '0f7b3f2a-3d2f-4f4a-9d13-1c3f6f0c8b2a'
+      )
     })
   })
 

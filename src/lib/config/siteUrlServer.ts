@@ -2,7 +2,10 @@
  * Server-side method to determine correct URL
  */
 import { BuildError } from '../errors/BuildError'
-import { isVercel } from './environmentServer'
+import {
+  isProd,
+  isVercel
+} from './environmentServer'
 
 const devServerPort = process.env['DEV_SERVER_PORT']?.trim()
 const resolvedDevServerPort = devServerPort && devServerPort.length > 0 ? devServerPort : '4321'
@@ -15,6 +18,10 @@ export const getSiteUrl = (): string => {
     throw new BuildError(
       '❌ Build runs on GitHub, so this build-time getSiteUrl() function should never be called on Vercel.'
     )
+  }
+
+  if (isProd()) {
+    return 'https://www.webstackbuilders.com'
   }
 
   return `http://localhost:${resolvedDevServerPort}`
