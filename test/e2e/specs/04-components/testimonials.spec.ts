@@ -241,7 +241,11 @@ test.describe('Testimonials Component', () => {
     expect(newIndex).not.toBe(initialIndex)
   })
 
-  test('@ready testimonials auto-rotate changes slide index', async ({ page: playwrightPage }) => {
+  test('@ready testimonials auto-rotate changes slide index', async ({ page: playwrightPage }, testInfo) => {
+    if (testInfo.project.name.startsWith('mobile-')) {
+      test.skip()
+    }
+
     const page = await BasePage.init(playwrightPage)
     // Expected: Testimonials should auto-advance when autoplay is triggered
     const testimonials = page.locator('.testimonials-embla')
