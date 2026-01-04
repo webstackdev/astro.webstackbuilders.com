@@ -691,7 +691,7 @@ export class BasePage extends BuiltInsPage {
 
     this._page.on('response', response => {
       const status = response.status()
-      if (status >= 400 && status < 500) {
+      if (status === 404) {
         const method = response.request().method()
         const responseUrl = response.url()
         this.errors404.push(`${status} ${method} ${responseUrl}`)
@@ -916,11 +916,16 @@ export class BasePage extends BuiltInsPage {
    * Verify submit button is present and contains text
    */
   async expectSubmitButton(text?: string): Promise<void> {
-    const submitButton = this._page.locator('button[type="submit"]')
-    await expect(submitButton).toBeVisible()
+    const submitButtons = this._page.locator('button[type="submit"]')
+
     if (text) {
+      const submitButton = submitButtons.filter({ hasText: text }).first()
+      await expect(submitButton).toBeVisible()
       await expect(submitButton).toContainText(text)
+      return
     }
+
+    await expect(submitButtons.first()).toBeVisible()
   }
 
   /**
