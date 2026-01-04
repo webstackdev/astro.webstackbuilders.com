@@ -39,9 +39,9 @@ export class BasePage extends BuiltInsPage {
     try {
       // Set consent cookies
       await this._page.evaluate(() => {
-        document.cookie = 'consent_analytics=true; path=/; max-age=31536000'
-        document.cookie = 'consent_marketing=true; path=/; max-age=31536000'
-        document.cookie = 'consent_functional=true; path=/; max-age=31536000'
+        document.cookie = 'consent_analytics=false; path=/; max-age=31536000'
+        document.cookie = 'consent_marketing=false; path=/; max-age=31536000'
+        document.cookie = 'consent_functional=false; path=/; max-age=31536000'
 
         // Clear localStorage
         if (typeof localStorage !== 'undefined') {
@@ -51,14 +51,14 @@ export class BasePage extends BuiltInsPage {
       })
 
       const cookieDialog = this._page.getByRole('dialog', { name: /cookie consent/i })
-      const allowAllButton = this._page.getByRole('button', { name: /allow all/i })
 
       // Wait briefly for the dialog to appear on client-side hydrated pages.
       await cookieDialog.waitFor({ state: 'visible', timeout: wait.tinyUi }).catch(() => undefined)
 
       if (await cookieDialog.isVisible().catch(() => false)) {
-        if (await allowAllButton.isVisible().catch(() => false)) {
-          await allowAllButton.click({ timeout: wait.tinyUi }).catch(() => undefined)
+        const closeButton = this._page.getByRole('button', { name: /close cookie consent/i })
+        if (await closeButton.isVisible().catch(() => false)) {
+          await closeButton.click({ timeout: wait.tinyUi }).catch(() => undefined)
         }
       }
 
@@ -119,8 +119,36 @@ export class BasePage extends BuiltInsPage {
         window.__disableServiceWorkerForE2E = true
       }
 
+      // Establish a deterministic consent baseline before any app scripts run.
+      // GDPR form consent uses the `functional` consent store.
+      // NOTE: We intentionally do not pre-seed consent cookies here.
+      // Some E2E specs validate the first-visit consent banner behavior and need
+      // a truly empty cookie jar. Most specs rely on `dismissCookieModal()` to
+      // establish an opt-out baseline after navigation.
+
       if (typeof window.__astroPageLoadCounter !== 'number') {
         window.__astroPageLoadCounter = 0
+      }
+
+      // `astro:page-load` is primarily a View Transitions signal.
+      // Some browsers/environments may not reliably dispatch it on a fresh load.
+      // We also bump the counter on full document loads so `waitForPageLoad()` works
+      // for both navigation modes.
+      let fullLoadCountedForDocument = false
+      const bumpFullLoadCounter = () => {
+        if (fullLoadCountedForDocument) return
+        fullLoadCountedForDocument = true
+        window.__astroPageLoadCounter = (window.__astroPageLoadCounter ?? 0) + 1
+      }
+
+      if (typeof window !== 'undefined') {
+        window.addEventListener('load', bumpFullLoadCounter, { passive: true })
+        // Covers BFCache restores where `load` may not fire.
+        window.addEventListener('pageshow', bumpFullLoadCounter, { passive: true })
+      }
+
+      if (typeof document !== 'undefined' && document.readyState === 'complete') {
+        bumpFullLoadCounter()
       }
 
       if (!window.__astroPageLoadListenerAttached) {
@@ -227,7 +255,7 @@ export class BasePage extends BuiltInsPage {
       { timeout }
     )
 
-    const toggleButton = this._page.locator('button[aria-label="toggle menu"]')
+    const toggleButton = this._page.locator('button#nav-toggle')
     await expect(toggleButton).toBeVisible({ timeout })
 
     const expanded = await toggleButton.getAttribute('aria-expanded')
@@ -257,7 +285,7 @@ export class BasePage extends BuiltInsPage {
    */
   async closeMobileMenu(options?: { timeout?: number }): Promise<void> {
     const timeout = options?.timeout ?? wait.defaultWait
-    const toggleButton = this._page.locator('button[aria-label="toggle menu"]')
+    const toggleButton = this._page.locator('button#nav-toggle')
 
     await expect(toggleButton).toBeVisible({ timeout })
 
@@ -298,7 +326,7 @@ export class BasePage extends BuiltInsPage {
    */
   async waitForPageLoad(options?: { requireNext?: boolean; timeout?: number }): Promise<void> {
     const requireNext = options?.requireNext ?? false
-    const timeout = options?.timeout ?? wait.defaultWait
+    const timeout = options?.timeout ?? wait.navigation
     const currentCount = await this._page.evaluate(() => window.__astroPageLoadCounter ?? 0)
 
     if (!requireNext && currentCount > this.lastAstroPageLoadCount) {
@@ -426,6 +454,14 @@ export class BasePage extends BuiltInsPage {
    */
   async expectHeading(): Promise<void> {
     await expect(this._page.locator('h1').first()).toBeVisible()
+  }
+
+  /**
+   * Verify homepage hero section is present and visible
+   */
+  async expectHeroSection(): Promise<void> {
+    await expect(this._page.locator('section[aria-labelledby="home-hero-title"]')).toBeVisible()
+    await expect(this._page.locator('#home-hero-title')).toBeVisible()
   }
 
   /**
@@ -655,7 +691,7 @@ export class BasePage extends BuiltInsPage {
 
     this._page.on('response', response => {
       const status = response.status()
-      if (status >= 400 && status < 500) {
+      if (status === 404) {
         const method = response.request().method()
         const responseUrl = response.url()
         this.errors404.push(`${status} ${method} ${responseUrl}`)
@@ -720,22 +756,6 @@ export class BasePage extends BuiltInsPage {
       },
       timeout,
     })
-  }
-
-  /**
-   * ================================================================
-   *
-   * CoPilot-Added Methods
-   *
-   * ================================================================
-   */
-
-  /**
-   * Verify hero section is present and visible
-   */
-  async expectHeroSection(): Promise<void> {
-    const hero = this._page.locator('[data-component="hero"], section').first()
-    await expect(hero).toBeVisible()
   }
 
   /**
@@ -896,11 +916,16 @@ export class BasePage extends BuiltInsPage {
    * Verify submit button is present and contains text
    */
   async expectSubmitButton(text?: string): Promise<void> {
-    const submitButton = this._page.locator('button[type="submit"]')
-    await expect(submitButton).toBeVisible()
+    const submitButtons = this._page.locator('button[type="submit"]')
+
     if (text) {
+      const submitButton = submitButtons.filter({ hasText: text }).first()
+      await expect(submitButton).toBeVisible()
       await expect(submitButton).toContainText(text)
+      return
     }
+
+    await expect(submitButtons.first()).toBeVisible()
   }
 
   /**

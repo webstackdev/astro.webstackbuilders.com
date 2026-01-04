@@ -52,7 +52,7 @@ test.describe('Mobile Navigation', () => {
     const page = await BasePage.init(playwrightPage)
     await page.setViewport(375, 667)
     await setupTestPage(playwrightPage, '/')
-    await page.expectElementVisible('button[aria-label="toggle menu"]')
+    await page.expectElementVisible('button#nav-toggle')
   })
 
   test('@ready main navigation is hidden on mobile by default', async ({ page: playwrightPage }) => {
@@ -73,7 +73,7 @@ test.describe('Mobile Navigation', () => {
     await setupTestPage(playwrightPage, '/')
 
     // Open mobile menu
-    await page.click('button[aria-label="toggle menu"]')
+    await page.click('button#nav-toggle')
 
     // Use clock manipulation to speed through animations
     await waitForMobileMenuAnimation(playwrightPage)
@@ -91,7 +91,7 @@ test.describe('Mobile Navigation', () => {
     await playwrightPage.clock.install()
     await setupTestPage(playwrightPage, '/')
 
-    await page.click('button[aria-label="toggle menu"]')
+    await page.click('button#nav-toggle')
 
     // Use clock manipulation to speed through splash animation
     await playwrightPage.clock.fastForward(600)
@@ -113,7 +113,7 @@ test.describe('Mobile Navigation', () => {
     await setupTestPage(playwrightPage, '/')
 
     // Open menu
-    await page.click('button[aria-label="toggle menu"]')
+    await page.click('button#nav-toggle')
     await playwrightPage.clock.fastForward(600)
 
     let hasExpandedClass = await playwrightPage.locator('header#header').evaluate((el) => {
@@ -122,7 +122,7 @@ test.describe('Mobile Navigation', () => {
     expect(hasExpandedClass).toBe(true)
 
     // Close menu
-    await page.click('button[aria-label="toggle menu"]')
+  await page.click('button#nav-toggle')
     await playwrightPage.clock.fastForward(600)
 
     hasExpandedClass = await playwrightPage.locator('header#header').evaluate((el) => {
@@ -139,14 +139,14 @@ test.describe('Mobile Navigation', () => {
     await playwrightPage.clock.install()
     await setupTestPage(playwrightPage, '/')
 
-    const initialExpanded = await page.getAttribute('button[aria-label="toggle menu"]', 'aria-expanded')
+    const initialExpanded = await page.getAttribute('button#nav-toggle', 'aria-expanded')
     expect(initialExpanded).toBe('false')
 
     // Toggle menu
-    await page.click('button[aria-label="toggle menu"]')
+    await page.click('button#nav-toggle')
     await playwrightPage.clock.fastForward(600)
 
-    const expandedState = await page.getAttribute('button[aria-label="toggle menu"]', 'aria-expanded')
+    const expandedState = await page.getAttribute('button#nav-toggle', 'aria-expanded')
     expect(expandedState).toBe('true')
   })
 
@@ -159,11 +159,11 @@ test.describe('Mobile Navigation', () => {
     await setupTestPage(playwrightPage, '/')
 
     // Open menu
-    await page.click('button[aria-label="toggle menu"]')
+    await page.click('button#nav-toggle')
     await waitForMobileMenuAnimation(playwrightPage)
 
     // Verify button is still visible and accessible
-    const button = playwrightPage.locator('button[aria-label="toggle menu"]')
+    const button = playwrightPage.locator('button#nav-toggle')
     await expect(button).toBeVisible()
 
     // Start with toggle button focused
@@ -176,6 +176,9 @@ test.describe('Mobile Navigation', () => {
     for (let i = 0; i < maxTabs; i++) {
       const focused = await playwrightPage.evaluate(() => {
         const el = document.activeElement as HTMLElement
+        if (el?.id === 'nav-toggle') {
+          return 'nav-toggle'
+        }
         const ariaLabel = el?.getAttribute('aria-label')
         const href = el?.getAttribute('href')
         return ariaLabel || href || `unknown-${el?.tagName}`
@@ -184,7 +187,7 @@ test.describe('Mobile Navigation', () => {
       focusableElements.push(focused)
 
       // Break if we've cycled back to the toggle button after visiting nav links
-      if (i > 0 && focused === 'toggle menu') {
+      if (i > 0 && focused === 'nav-toggle') {
         break
       }
 
@@ -192,7 +195,7 @@ test.describe('Mobile Navigation', () => {
     }
 
     // The toggle button should appear at least twice in the sequence (start and after cycling through nav links)
-    const toggleButtonCount = focusableElements.filter(el => el === 'toggle menu').length
+    const toggleButtonCount = focusableElements.filter(el => el === 'nav-toggle').length
     expect(toggleButtonCount).toBeGreaterThanOrEqual(2)
 
     // Should have visited some navigation links too
@@ -209,11 +212,11 @@ test.describe('Mobile Navigation', () => {
     await setupTestPage(playwrightPage, '/')
 
     // Open menu
-    await page.click('button[aria-label="toggle menu"]')
+    await page.click('button#nav-toggle')
     await waitForMobileMenuAnimation(playwrightPage)
 
     // Verify button is still visible and clickable
-    const button = playwrightPage.locator('button[aria-label="toggle menu"]')
+    const button = playwrightPage.locator('button#nav-toggle')
     await expect(button).toBeVisible()
 
     // The button should still be clickable to close the menu
@@ -233,7 +236,7 @@ test.describe('Mobile Navigation', () => {
     await setupTestPage(playwrightPage, '/')
 
     // Open mobile menu first
-    await page.click('button[aria-label="toggle menu"]')
+    await page.click('button#nav-toggle')
 
     // Wait for mobile menu animation with real timers for WebKit compatibility
     await playwrightPage.waitForTimeout(wait.bespokeMobileMenuAnimationBuffer) // Wait for 550ms animation + buffer
@@ -245,7 +248,7 @@ test.describe('Mobile Navigation', () => {
     await playwrightPage.waitForSelector('text=Building Developer-First Infrastructure', { timeout: wait.defaultWait })
 
     // Verify we're on the About page by checking breadcrumbs (using proper Playwright selector)
-    await expect(playwrightPage.locator('nav[aria-label="Breadcrumb"]').getByText('About')).toBeVisible()
+    await expect(playwrightPage.locator('nav[aria-label="Breadcrumbs"]').getByText('About')).toBeVisible()
   })
 
   test('@ready can navigate using keyboard Enter on focused link', async ({ page: playwrightPage }) => {
@@ -265,7 +268,7 @@ test.describe('Mobile Navigation', () => {
 
     // Wait for the view-transition navigation to finish and verify content
     await page.waitForPageLoad({ requireNext: true, timeout: wait.navigation })
-    await expect(playwrightPage.locator('nav[aria-label="Breadcrumb"]').getByText('About')).toBeVisible()
+    await expect(playwrightPage.locator('nav[aria-label="Breadcrumbs"]').getByText('About')).toBeVisible()
   })
 
   test('@ready mobile menu has proper ARIA attributes', async ({ page: playwrightPage }) => {
@@ -273,13 +276,13 @@ test.describe('Mobile Navigation', () => {
     await page.setViewport(375, 667)
     await setupTestPage(playwrightPage, '/')
 
-    const ariaLabel = await page.getAttribute('button[aria-label="toggle menu"]', 'aria-label')
+    const ariaLabel = await page.getAttribute('button#nav-toggle', 'aria-label')
     const navRole = await page.getAttribute('nav#main-nav', 'role')
-    const ariaOwns = await page.getAttribute('button[aria-label="toggle menu"]', 'aria-owns')
+    const ariaControls = await page.getAttribute('button#nav-toggle', 'aria-controls')
 
-    expect(ariaLabel).toBe('toggle menu')
+    expect(ariaLabel).toBe('Open main menu')
     expect(navRole).toBe('navigation')
-    expect(ariaOwns).toBe('main-nav')
+    expect(ariaControls).toBe('main-nav')
   })
 
   test('@ready mobile menu closes after navigation', async ({ page: playwrightPage }) => {
@@ -327,7 +330,7 @@ test.describe('Mobile Navigation', () => {
     })
 
     // Open menu to activate backdrop
-    await page.click('button[aria-label="toggle menu"]')
+    await page.click('button#nav-toggle')
     await waitForMobileMenuAnimation(playwrightPage)
 
     // After opening menu, splash should be expanded and clickable
@@ -363,7 +366,7 @@ test.describe('Mobile Navigation', () => {
     await setupTestPage(playwrightPage, '/')
 
     // Open menu first
-    await page.click('button[aria-label="toggle menu"]')
+    await page.click('button#nav-toggle')
     await waitForMobileMenuAnimation(playwrightPage)
 
     // Verify menu is open
@@ -384,7 +387,7 @@ test.describe('Mobile Navigation', () => {
     expect(hasExpandedClassAfter).toBe(true)
 
     // Verify aria-expanded attribute is still true
-    const ariaExpanded = await page.getAttribute('button[aria-label="toggle menu"]', 'aria-expanded')
+    const ariaExpanded = await page.getAttribute('button#nav-toggle', 'aria-expanded')
     expect(ariaExpanded).toBe('true')
   })
 
@@ -428,7 +431,7 @@ test.describe('Mobile Navigation', () => {
     await setupTestPage(playwrightPage, '/')
 
     // Focus on toggle button using keyboard
-    await playwrightPage.locator('button[aria-label="toggle menu"]').focus()
+    await playwrightPage.locator('button#nav-toggle').focus()
 
     // Open menu with Enter key
     await playwrightPage.keyboard.press('Enter')
@@ -483,11 +486,16 @@ test.describe('Mobile Navigation', () => {
       const ariaLabel = el?.getAttribute('aria-label')
       const tag = el?.tagName
       // Check if focus is on toggle button OR a nav link (both are in the focus trap)
-      return { ariaLabel, tag, isInNav: el?.closest('nav#main-nav') !== null }
+      return {
+        ariaLabel,
+        tag,
+        isToggle: el?.id === 'nav-toggle',
+        isInNav: el?.closest('nav#main-nav') !== null,
+      }
     })
 
     // Focus should be either on the toggle button or a nav link (both are in the focus trap)
-    const isTrapped = finalFocusedElement.ariaLabel === 'toggle menu' || finalFocusedElement.isInNav
+    const isTrapped = finalFocusedElement.isToggle || finalFocusedElement.isInNav
     expect(isTrapped).toBe(true)
   })
 
@@ -500,7 +508,7 @@ test.describe('Mobile Navigation', () => {
     await setupTestPage(playwrightPage, '/')
 
     // Open menu
-    await page.click('button[aria-label="toggle menu"]')
+    await page.click('button#nav-toggle')
     await playwrightPage.clock.fastForward(600)
 
     // Menu should be open
@@ -529,7 +537,7 @@ test.describe('Mobile Navigation', () => {
     await setupTestPage(playwrightPage, '/')
 
     // Open menu
-    await page.click('button[aria-label="toggle menu"]')
+    await page.click('button#nav-toggle')
     await waitForMobileMenuAnimation(playwrightPage)
 
     // Menu should be open
@@ -539,7 +547,7 @@ test.describe('Mobile Navigation', () => {
     expect(hasExpandedClassBefore).toBe(true)
 
     // Focus on the close button and press Enter
-    await playwrightPage.locator('button[aria-label="toggle menu"]').focus()
+    await playwrightPage.locator('button#nav-toggle').focus()
     await playwrightPage.keyboard.press('Enter')
     await playwrightPage.clock.fastForward(600)
 
@@ -559,7 +567,7 @@ test.describe('Mobile Navigation', () => {
     await setupTestPage(playwrightPage, '/')
 
     // Open menu
-    await page.click('button[aria-label="toggle menu"]')
+    await page.click('button#nav-toggle')
     await waitForMobileMenuAnimation(playwrightPage)
 
     // Menu should be open
@@ -569,7 +577,7 @@ test.describe('Mobile Navigation', () => {
     expect(hasExpandedClassBefore).toBe(true)
 
     // Focus on the close button and press Space
-    await playwrightPage.locator('button[aria-label="toggle menu"]').focus()
+    await playwrightPage.locator('button#nav-toggle').focus()
     await playwrightPage.keyboard.press(' ')
     await playwrightPage.clock.fastForward(600)
 

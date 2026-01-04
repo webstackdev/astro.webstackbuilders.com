@@ -439,7 +439,7 @@ export function initConsentSideEffects(): void {
   }
 
   const sendConsentPayload = async (payload: ConsentLogPayload) => {
-    const response = await fetch('/api/gdpr/consent', {
+    const response = await fetch('/_actions/gdpr.consentCreate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),

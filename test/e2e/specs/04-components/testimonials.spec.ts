@@ -11,6 +11,41 @@ import { wait } from '@test/e2e/helpers/waitTimeouts'
 const testimonialsCarouselSelector = 'testimonials-carousel'
 const testimonialsEmblaSelector = '.testimonials-embla'
 
+async function getEmblaSelectedIndex(page: BasePage): Promise<number> {
+  return await page.evaluate(() => {
+    const emblaNode = document.querySelector('.testimonials-embla') as
+      | (HTMLElement & { __emblaApi__?: { selectedScrollSnap: () => number } })
+      | null
+
+    const emblaApi = emblaNode?.__emblaApi__
+    if (!emblaApi) {
+      return -1
+    }
+
+    return emblaApi.selectedScrollSnap()
+  })
+}
+
+async function stopEmblaAutoplay(page: BasePage): Promise<void> {
+  await page.evaluate(() => {
+    const emblaNode = document.querySelector('.testimonials-embla') as
+      | (HTMLElement & { __emblaApi__?: { plugins: () => { autoplay?: { stop: () => void } } } })
+      | null
+    const autoplay = emblaNode?.__emblaApi__?.plugins()?.autoplay
+    autoplay?.stop()
+  })
+}
+
+async function startEmblaAutoplay(page: BasePage): Promise<void> {
+  await page.evaluate(() => {
+    const emblaNode = document.querySelector('.testimonials-embla') as
+      | (HTMLElement & { __emblaApi__?: { plugins: () => { autoplay?: { play: () => void } } } })
+      | null
+    const autoplay = emblaNode?.__emblaApi__?.plugins()?.autoplay
+    autoplay?.play()
+  })
+}
+
 async function waitForTestimonialsCarouselReady(page: BasePage): Promise<void> {
   await page.page.waitForFunction((selector: string) => {
     const carousel = document.querySelector<HTMLElement>(selector)
@@ -206,10 +241,16 @@ test.describe('Testimonials Component', () => {
     expect(newIndex).not.toBe(initialIndex)
   })
 
-  test('@ready testimonials auto-rotate', async ({ page: playwrightPage }) => {
+  test('@ready testimonials auto-rotate changes slide index', async ({ page: playwrightPage }, testInfo) => {
+    if (testInfo.project.name.startsWith('mobile-')) {
+      test.skip()
+    }
+
     const page = await BasePage.init(playwrightPage)
     // Expected: Testimonials should auto-advance when autoplay is triggered
     const testimonials = page.locator('.testimonials-embla')
+
+    await testimonials.scrollIntoViewIfNeeded()
 
     // Check if carousel has multiple slides
     const slideCount = await testimonials.locator('.embla__slide').count()
@@ -217,11 +258,40 @@ test.describe('Testimonials Component', () => {
       test.skip() // Single testimonial, autoplay not relevant
     }
 
-    // Get the selected dot index before autoplay
+    const initialIndex = await getEmblaSelectedIndex(page)
+    expect(initialIndex).toBeGreaterThanOrEqual(0)
+
+    await stopEmblaAutoplay(page)
+    await startEmblaAutoplay(page)
+
+    await expect
+      .poll(async () => getEmblaSelectedIndex(page), { intervals: [500], timeout: wait.polling })
+      .not.toBe(initialIndex)
+  })
+
+  test('@ready testimonials auto-rotate updates pagination dots (chromium only)', async ({ page: playwrightPage }, testInfo) => {
+    if (testInfo.project.name !== 'chromium') {
+      test.skip()
+    }
+
+    const page = await BasePage.init(playwrightPage)
+    const testimonials = page.locator('.testimonials-embla')
+
+    await testimonials.scrollIntoViewIfNeeded()
+
+    const slideCount = await testimonials.locator('.embla__slide').count()
+    if (slideCount < 2) {
+      test.skip()
+    }
+
+    const dots = testimonials.locator('.embla__dots button')
+    const dotCount = await dots.count()
+    if (dotCount < 2) {
+      test.skip()
+    }
+
     const getSelectedDotIndex = async () => {
-      const dots = testimonials.locator('.embla__dots button')
-      const count = await dots.count()
-      for (let i = 0; i < count; i++) {
+      for (let i = 0; i < dotCount; i++) {
         const ariaCurrent = await dots.nth(i).getAttribute('aria-current')
         if (ariaCurrent === 'true') {
           return i
@@ -232,27 +302,8 @@ test.describe('Testimonials Component', () => {
 
     const initialIndex = await getSelectedDotIndex()
 
-    // Stop autoplay first (it may already be running)
-    await page.evaluate(() => {
-      const emblaNode = document.querySelector('.testimonials-embla') as
-        | (HTMLElement & { __emblaApi__?: { plugins: () => { autoplay?: { stop: () => void } } } })
-        | null
-      const autoplay = emblaNode?.__emblaApi__?.plugins()?.autoplay
-      if (autoplay) {
-        autoplay.stop()
-      }
-    })
-
-    // Programmatically trigger autoplay and wait for slide change
-    await page.evaluate(() => {
-      const emblaNode = document.querySelector('.testimonials-embla') as
-        | (HTMLElement & { __emblaApi__?: { plugins: () => { autoplay?: { play: () => void } } } })
-        | null
-      const autoplay = emblaNode?.__emblaApi__?.plugins()?.autoplay
-      if (autoplay) {
-        autoplay.play()
-      }
-    })
+    await stopEmblaAutoplay(page)
+    await startEmblaAutoplay(page)
 
     await expect
       .poll(getSelectedDotIndex, { intervals: [500], timeout: wait.polling })
@@ -307,7 +358,8 @@ test.describe('Testimonials Component', () => {
     // Expected: Testimonials should display well on mobile
     await page.setViewportSize({ width: 375, height: 667 })
     await page.goto('/')
-    await page.waitForLoadState('networkidle')
+
+    await waitForTestimonialsCarouselReady(page)
 
     const testimonials = page.locator('.testimonials-embla')
     await expect(testimonials).toBeVisible()

@@ -24,14 +24,7 @@ const skipReason = (() => {
 })()
 
 const cronAuthHeader = CRON_SECRET ? `Bearer ${CRON_SECRET}` : null
-
-const skipUnlessChromiumProject = () => {
-  const projectName = test.info().project.name
-  test.skip(projectName !== 'chromium', 'Cron tests run once via chromium project to avoid duplicates')
-}
-
 const dayInMs = 24 * 60 * 60 * 1000
-
 const createdConfirmationIds: string[] = []
 const createdDsarIds: string[] = []
 
@@ -101,8 +94,6 @@ test.describe('Cron API endpoints @ready', () => {
   })
 
   test('@ready cleanup-confirmations removes expired and stale rows', async ({ request }) => {
-    skipUnlessChromiumProject()
-
     const now = Date.now()
     const expiredId = await seedNewsletterConfirmation({
       expiresAt: new Date(now - 60 * 60 * 1000),
@@ -119,8 +110,11 @@ test.describe('Cron API endpoints @ready', () => {
       },
     })
 
-    expect(response.ok()).toBeTruthy()
-    const body = (await response.json()) as {
+    const status = response.status()
+    const rawBody = await response.text()
+    expect(response.ok(), `Cron request failed: ${status} ${rawBody}`).toBeTruthy()
+
+    const body = JSON.parse(rawBody) as {
       deleted: { expired: number; oldConfirmed: number; total: number }
     }
 
@@ -132,8 +126,6 @@ test.describe('Cron API endpoints @ready', () => {
   })
 
   test('@ready cleanup-dsar-requests prunes fulfilled and expired items', async ({ request }) => {
-    skipUnlessChromiumProject()
-
     const now = Date.now()
     const fulfilledId = await seedDsarRequest({
       fulfilledAt: new Date(now - 31 * dayInMs),
@@ -150,8 +142,11 @@ test.describe('Cron API endpoints @ready', () => {
       },
     })
 
-    expect(response.ok()).toBeTruthy()
-    const body = (await response.json()) as {
+    const status = response.status()
+    const rawBody = await response.text()
+    expect(response.ok(), `Cron request failed: ${status} ${rawBody}`).toBeTruthy()
+
+    const body = JSON.parse(rawBody) as {
       deleted: { fulfilled: number; expired: number; total: number }
     }
 

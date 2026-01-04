@@ -6,6 +6,7 @@
 
 import { BasePage, test, expect } from '@test/e2e/helpers'
 import { selectTheme } from '@test/e2e/helpers/cookieHelper'
+import { wait } from '@test/e2e/helpers/waitTimeouts'
 
 const getLocalStorageItem = (page: BasePage, key: string) => {
   return page.evaluate((storageKey) => localStorage.getItem(storageKey), key)
@@ -74,7 +75,7 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     await context.clearCookies()
     // Reload page so stores re-initialize with cleared storage
     await page.reload()
-    await page.waitForLoadState('networkidle')
+    await page.waitForHeaderComponents({ timeout: wait.navigation })
     await disableConsentModal(page)
   })
 
@@ -82,7 +83,7 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     const page = await BasePage.init(playwrightPage)
     // Go to homepage
     await gotoWithoutGrantingConsent(page)
-    await page.waitForLoadState('networkidle')
+    await page.waitForHeaderComponents({ timeout: wait.navigation })
 
     // Select dark theme using helper
     await selectTheme(page.page, 'dark')
@@ -113,7 +114,7 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     const page = await BasePage.init(playwrightPage)
     // Go to homepage
     await gotoWithoutGrantingConsent(page)
-    await page.waitForLoadState('networkidle')
+    await page.waitForHeaderComponents({ timeout: wait.navigation })
 
     // Open theme picker modal
     const themeToggle = page.locator('[data-theme-toggle]')
@@ -139,7 +140,7 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     const page = await BasePage.init(playwrightPage)
     // Go to homepage
     await gotoWithoutGrantingConsent(page)
-    await page.waitForLoadState('networkidle')
+    await page.waitForHeaderComponents({ timeout: wait.navigation })
 
     // Accept functional consent
     const consentHelpersAvailable = await page.evaluate(() => {
@@ -185,7 +186,7 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     const page = await BasePage.init(playwrightPage)
     // Go to a page with social embeds (if available)
     await gotoWithoutGrantingConsent(page)
-    await page.waitForLoadState('networkidle')
+    await page.waitForHeaderComponents({ timeout: wait.navigation })
 
     // First enable functional consent (required for caching)
     const functionalConsentApplied = await page.evaluate(() => {
@@ -244,7 +245,7 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     const page = await BasePage.init(playwrightPage)
     // Go to homepage
     await gotoWithoutGrantingConsent(page)
-    await page.waitForLoadState('networkidle')
+    await page.waitForHeaderComponents({ timeout: wait.navigation })
 
     // First enable functional consent (required for persistence)
     const functionalConsentEnabled = await page.evaluate(() => {
@@ -303,7 +304,7 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     const page = await BasePage.init(playwrightPage)
     // Go to homepage and set up all stores
     await gotoWithoutGrantingConsent(page)
-    await page.waitForLoadState('networkidle')
+    await page.waitForHeaderComponents({ timeout: wait.navigation })
 
     // Set theme
     const themeToggle = page.locator('[data-theme-toggle]')
@@ -349,7 +350,7 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     const page = await BasePage.init(playwrightPage)
     // Go to homepage
     await gotoWithoutGrantingConsent(page)
-    await page.waitForLoadState('networkidle')
+    await page.waitForHeaderComponents({ timeout: wait.navigation })
 
     // Corrupt localStorage entries
     await page.evaluate(() => {
@@ -359,7 +360,7 @@ test.describe('Nanostore Persistence Across Navigation', () => {
 
     // Reload page to trigger store initialization
     await page.reload()
-    await page.waitForLoadState('networkidle')
+    await page.waitForHeaderComponents({ timeout: wait.navigation })
     await expect.poll(async () => {
       return await getLocalStorageItem(page, 'theme')
     }).toBe('light')

@@ -12,6 +12,12 @@ import {
  } from '@test/e2e/helpers'
 
 test.describe('Desktop Navigation', () => {
+  test.beforeEach(async ({}, testInfo) => {
+    if (testInfo.project.name.startsWith('mobile-')) {
+      test.skip()
+    }
+  })
+
   test('@ready navigation is visible on desktop', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     await page.setViewport(1280, 720)
@@ -56,7 +62,6 @@ test.describe('Desktop Navigation', () => {
 
     // Navigate directly
     await page.goto(aboutUrl!)
-    await page.waitForLoadState('networkidle')
 
     await page.expectUrlContains('/about')
   })

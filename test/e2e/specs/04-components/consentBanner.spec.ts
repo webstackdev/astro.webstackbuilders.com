@@ -88,16 +88,16 @@ test.describe('Consent Banner', () => {
    */
   test.beforeEach(async ({ page: playwrightPage, context }) => {
     const page = await BasePage.init(playwrightPage)
-    // Clear all cookies and storage before navigation
+    // Clear cookies first so our initial origin visit is clean
     await context.clearCookies()
 
-    // Navigate to page without auto-dismissing the consent banner
+    // Establish origin so we can clear localStorage/sessionStorage deterministically
     await page.goto('/', { skipCookieDismiss: true, timeout: wait.navigation })
     await resetConsentState(page)
+    await context.clearCookies()
 
-    // Reload so the modal logic re-runs with a clean browser state across all engines
-    await page.reload({ waitUntil: 'domcontentloaded' })
-    await page.waitForLoadState('networkidle')
+    // Fresh navigation so consent logic runs with a fully reset state
+    await page.goto('/', { skipCookieDismiss: true, timeout: wait.navigation })
     await page.waitForPageLoad()
 
     // Wait for consent banner custom element to be initialized
@@ -148,7 +148,6 @@ test.describe('Consent Banner', () => {
     await acceptAllCookies(page)
 
     await page.reload({ waitUntil: 'domcontentloaded' })
-    await page.waitForLoadState('networkidle')
     await removeViteErrorOverlay(page)
 
     await expect(cookieBanner).toBeHidden()
@@ -161,7 +160,6 @@ test.describe('Consent Banner', () => {
     await acceptAllCookies(page)
 
     await page.goto('/about', { timeout: wait.navigation })
-    await page.waitForLoadState('networkidle')
     await removeViteErrorOverlay(page)
 
     await expect(cookieBanner).toBeHidden()
@@ -182,7 +180,7 @@ test.describe('Consent Banner', () => {
     const cookieBanner = getConsentBanner(page)
     await expect(cookieBanner).toBeVisible()
 
-    const closeButton = cookieBanner.getByRole('button', { name: /close cookie consent dialog/i })
+    const closeButton = cookieBanner.getByRole('button', { name: /close cookie consent/i })
     const allowAllButton = cookieBanner.locator('button:has-text("Allow All")')
 
     await cookieBanner.focus()
@@ -210,9 +208,13 @@ test.describe('Consent Banner', () => {
     const cookieBanner = page.locator('#consent-modal-id')
 
     const role = await cookieBanner.getAttribute('role')
-    const ariaLabel = await cookieBanner.getAttribute('aria-label')
+    const ariaLabelledBy = await cookieBanner.getAttribute('aria-labelledby')
+    const ariaDescribedBy = await cookieBanner.getAttribute('aria-describedby')
+    const ariaModal = await cookieBanner.getAttribute('aria-modal')
 
     expect(role).toBe('dialog')
-    expect(ariaLabel).toBeTruthy()
+    expect(ariaLabelledBy).toBeTruthy()
+    expect(ariaDescribedBy).toBeTruthy()
+    expect(ariaModal).toBe('true')
   })
 })

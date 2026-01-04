@@ -23,7 +23,7 @@ async function navigateWithMobileSupport(basePage: BasePage, href: string = getD
   const page = basePage.page
   const viewport = page.viewportSize()
   const isMobile = viewport && viewport.width < 768
-  const navToggle = page.locator('button[aria-label="toggle menu"]')
+  const navToggle = page.locator('button#nav-toggle')
   const header = page.locator('#header')
 
   if (isMobile) {

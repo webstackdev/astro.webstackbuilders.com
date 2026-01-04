@@ -9,38 +9,39 @@ import {
   expect,
   test,
 } from '@test/e2e/helpers'
+import { wait } from '@test/e2e/helpers/waitTimeouts'
 
 test.describe('Breadcrumbs Component', () => {
   test('@ready breadcrumbs display on article pages', async ({ page: playwrightPage }) => {
     const page = await BreadCrumbPage.init(playwrightPage)
     await page.openFirstArticleDetail()
 
-    await page.expectElementVisible('nav[aria-label="Breadcrumb"]')
+    await page.expectElementVisible('nav[aria-label="Breadcrumbs"]')
   })
 
   test('@ready breadcrumbs display on service pages', async ({ page: playwrightPage }) => {
     const page = await BreadCrumbPage.init(playwrightPage)
     await page.openFirstServiceDetail()
 
-    await page.expectElementVisible('nav[aria-label="Breadcrumb"]')
+    await page.expectElementVisible('nav[aria-label="Breadcrumbs"]')
   })
 
   test('@ready breadcrumbs display on case study pages', async ({ page: playwrightPage }) => {
     const page = await BreadCrumbPage.init(playwrightPage)
     await page.openFirstCaseStudyDetail()
 
-    await page.expectElementVisible('nav[aria-label="Breadcrumb"]')
+    await page.expectElementVisible('nav[aria-label="Breadcrumbs"]')
   })
 
   test('@ready breadcrumbs show correct path', async ({ page: playwrightPage }) => {
     const page = await BreadCrumbPage.init(playwrightPage)
     await page.openFirstArticleDetail()
 
-    const count = await page.countElements('nav[aria-label="Breadcrumb"] a')
+    const count = await page.countElements('nav[aria-label="Breadcrumbs"] a')
     expect(count).toBeGreaterThan(0)
 
     // First link should be Home
-    const firstLinkText = await page.getTextContent('nav[aria-label="Breadcrumb"] a')
+    const firstLinkText = await page.getTextContent('nav[aria-label="Breadcrumbs"] a')
     expect(firstLinkText?.toLowerCase()).toContain('home')
   })
 
@@ -48,8 +49,25 @@ test.describe('Breadcrumbs Component', () => {
     const page = await BreadCrumbPage.init(playwrightPage)
     await page.openFirstArticleDetail()
 
-    await page.click('nav[aria-label="Breadcrumb"] a')
-    await page.waitForLoadState('networkidle')
+    const supportsViewTransitions = await page.evaluate(() => {
+      if (typeof document === 'undefined') {
+        return false
+      }
+      return typeof document.startViewTransition === 'function'
+    })
+
+    if (supportsViewTransitions) {
+      const waitForLoad = page.waitForPageLoad({ requireNext: true, timeout: wait.navigation })
+      await page.click('nav[aria-label="Breadcrumbs"] a')
+      await waitForLoad
+    } else {
+      const navigationPromise = page.page.waitForURL((url: URL) => url.pathname === '/', {
+        waitUntil: 'domcontentloaded',
+        timeout: wait.navigation,
+      })
+      await page.click('nav[aria-label="Breadcrumbs"] a')
+      await navigationPromise
+    }
 
     await page.expectUrlContains('localhost:4321/')
   })
@@ -59,10 +77,10 @@ test.describe('Breadcrumbs Component', () => {
     await page.openFirstArticleDetail()
 
     // Last item should have aria-current="page" on the span, not be a link
-    await page.expectElementVisible('nav[aria-label="Breadcrumb"] li:last-child span[aria-current="page"]')
+    await page.expectElementVisible('nav[aria-label="Breadcrumbs"] li:last-child span[aria-current="page"]')
 
     // Verify no link in last item
-    const linkCount = await page.countElements('nav[aria-label="Breadcrumb"] li:last-child a')
+    const linkCount = await page.countElements('nav[aria-label="Breadcrumbs"] li:last-child a')
     expect(linkCount).toBe(0)
   })
 
@@ -70,11 +88,11 @@ test.describe('Breadcrumbs Component', () => {
     const page = await BreadCrumbPage.init(playwrightPage)
     await page.openFirstArticleDetail()
 
-    const itemCount = await page.countElements('nav[aria-label="Breadcrumb"] li')
+    const itemCount = await page.countElements('nav[aria-label="Breadcrumbs"] li')
     expect(itemCount).toBeGreaterThan(1)
 
     // Check for SVG separator icon
-    const separatorCount = await page.countElements('nav[aria-label="Breadcrumb"] svg[aria-hidden="true"]')
+    const separatorCount = await page.countElements('nav[aria-label="Breadcrumbs"] svg[aria-hidden="true"]')
     expect(separatorCount).toBeGreaterThan(0)
   })
 
@@ -82,10 +100,10 @@ test.describe('Breadcrumbs Component', () => {
     const page = await BreadCrumbPage.init(playwrightPage)
     await page.openFirstArticleDetail()
 
-    await page.expectElementVisible('nav[aria-label="Breadcrumb"]')
+    await page.expectElementVisible('nav[aria-label="Breadcrumbs"]')
 
     // Should contain ordered list
-    await page.expectElementVisible('nav[aria-label="Breadcrumb"] ol')
+    await page.expectElementVisible('nav[aria-label="Breadcrumbs"] ol')
   })
 
   test('@ready breadcrumbs are responsive', async ({ page: playwrightPage }) => {
@@ -93,7 +111,7 @@ test.describe('Breadcrumbs Component', () => {
     await page.setViewport(375, 667)
     await page.openFirstArticleDetail()
 
-    await page.expectElementVisible('nav[aria-label="Breadcrumb"]')
+    await page.expectElementVisible('nav[aria-label="Breadcrumbs"]')
   })
 
   test('@ready breadcrumbs have structured data', async ({ page: playwrightPage }) => {

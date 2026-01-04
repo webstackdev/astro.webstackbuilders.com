@@ -35,11 +35,18 @@ const buildWebServerEnv = () => {
   return env
 }
 
+//const workersHighParallel = process.env['GITHUB_ACTIONS'] ? 1 : 1
+const testMatchHighParallel = '**/*.spec.ts'
+const testIgnoreHighParallel = [
+  '03-forms/**/*.spec.ts',
+  '05-api/**/*.spec.ts',
+  '06-actions/**/*.spec.ts',
+]
+const testMatchSerial = ['03-forms/**/*.spec.ts']
+
 export default defineConfig({
-  /* Look for test files in the "tests" directory, relative to this configuration file. */
+  /** Look for test files in the "tests" directory, relative to this configuration file. */
   testDir: './test/e2e/specs',
-  /* Glob patterns or regular expressions that match test files. */
-  testMatch: '**/*.spec.ts',
   /** Folder for test artifacts such as screenshots, videos, traces, etc. */
   outputDir: `.cache/playwright/output/`,
   /** Tracked by Git LFS */
@@ -53,17 +60,21 @@ export default defineConfig({
      */
     timeout: 5000,
   },
-  /* Run tests in files in parallel */
+  /** Run tests in files in parallel */
   fullyParallel: true,
-  /* Fail the build on CI if you accidentally left test.only in the source code. */
+  /** Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env['GITHUB_ACTIONS'],
-  /* Retry on CI only */
+  /** Retry on CI only */
   retries: process.env['GITHUB_ACTIONS'] ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
-  workers: process.env['GITHUB_ACTIONS'] ? 1 : '75%',
-  /* Only run @ready tests in CI, all tests locally */
+  /**
+   * Global maximum workers. Setting to 1 forces serial mode for tests. Setting
+   * higher causes flakiness especially in mobile-safari tests due to resource
+   * contention on Vite dev server.
+   */
+  workers: 1,
+  /** Only run `@ready` tests in CI, all tests locally */
   ...(process.env['GITHUB_ACTIONS'] ? { grep: /@ready/ } : {}),
-  /* Reporter to use. See https://playwright.dev/docs/test-reporters */
+  /** Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: process.env['GITHUB_ACTIONS']
     ? 'github'
     : isCIMode
@@ -76,59 +87,153 @@ export default defineConfig({
           ['html', { outputFolder: `.cache/playwright/reports/` }],
           ['json', { outputFile: '.cache/playwright/results.json' }],
         ],
-  /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
+  /** Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
       /** Maximum time each action such as `click()` can take. Defaults to 0 (no limit). */
     actionTimeout: 0,
-    /* Base URL to use in actions like `await page.goto('/')`. */
+    /** Base URL to use in actions like `await page.goto('/')`. */
     baseURL: 'http://localhost:4321',
     ignoreHTTPSErrors: true,
     /** Capture screenshot after each test failure, other options are 'on' and 'off'. */
     screenshot: 'only-on-failure',
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
+    /** Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
   },
 
-  /* Configure projects for major browsers */
   projects: [
+    /**
+     * ===========================================================================================
+     *
+     * Most tests run in parallel across all major browsers
+     *
+     * ==========================================================================================
+     */
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+      testMatch: testMatchHighParallel,
+      testIgnore: testIgnoreHighParallel,
     },
 
     {
       name: 'firefox',
       use: { ...devices['Desktop Firefox'] },
+      testMatch: testMatchHighParallel,
+      testIgnore: testIgnoreHighParallel,
     },
 
     {
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
+      testMatch: testMatchHighParallel,
+      testIgnore: testIgnoreHighParallel,
     },
 
-    /* Test against mobile viewports. */
+    /** Test against mobile viewports. */
     {
-      name: 'Mobile Chrome',
+      name: 'mobile-chrome',
       use: { ...devices['Pixel 5'] },
+      testMatch: testMatchHighParallel,
+      testIgnore: testIgnoreHighParallel,
     },
     {
-      name: 'Mobile Safari',
+      name: 'mobile-safari',
       use: { ...devices['iPhone 12'] },
+      testMatch: testMatchHighParallel,
+      testIgnore: testIgnoreHighParallel,
     },
 
-    /* Test against branded browsers. */
+    /** Test against branded browsers. */
     {
-      name: 'Microsoft Edge',
+      name: 'microsoft-edge',
       use: { ...devices['Desktop Edge'], channel: 'msedge' },
+      testMatch: testMatchHighParallel,
+      testIgnore: testIgnoreHighParallel,
     },
     {
-      name: 'Google Chrome',
+      name: 'google-chrome',
       use: { ...devices['Desktop Chrome'], channel: 'chrome' },
+      testMatch: testMatchHighParallel,
+      testIgnore: testIgnoreHighParallel,
+    },
+
+    /**
+     * ===========================================================================================
+     *
+     * These projects are designed to run serially due to database contention issues.
+     * We use SQLite in tests, which has limited support for concurrent writes.
+     *
+     * ===========================================================================================
+     */
+
+    {
+      name: 'chromium-serial',
+      use: { ...devices['Desktop Chrome'] },
+      testMatch: testMatchSerial,
+    },
+
+    {
+      name: 'firefox-serial',
+      use: { ...devices['Desktop Firefox'] },
+      testMatch: testMatchSerial,
+    },
+
+    {
+      name: 'webkit-serial',
+      use: { ...devices['Desktop Safari'] },
+      testMatch: testMatchSerial,
+    },
+
+    /** Test against mobile viewports. */
+    {
+      name: 'mobile-chrome-serial',
+      use: { ...devices['Pixel 5'] },
+      testMatch: testMatchSerial,
+    },
+    {
+      name: 'mobile-safari-serial',
+      use: { ...devices['iPhone 12'] },
+      testMatch: testMatchSerial,
+    },
+
+    /** Test against branded browsers. */
+    {
+      name: 'microsoft-edge-serial',
+      use: { ...devices['Desktop Edge'], channel: 'msedge' },
+      testMatch: testMatchSerial,
+    },
+    {
+      name: 'google-chrome-serial',
+      use: { ...devices['Desktop Chrome'], channel: 'chrome' },
+      testMatch: testMatchSerial,
+    },
+
+    /**
+     * ===========================================================================================
+     *
+     * API and Actions tests are only using the browser to fetch so no need to run
+     * across browsers. They run serially to avoid SQLite write contention issues.
+     *
+     * ===========================================================================================
+     */
+
+    {
+      name: 'api-serial',
+      use: { ...devices['Desktop Chrome'] },
+      testMatch: '05-api/**/*.spec.ts',
+      workers: 1,
+    },
+
+    {
+      name: 'actions-serial',
+      use: { ...devices['Desktop Chrome'] },
+      testMatch: '06-actions/**/*.spec.ts',
+      workers: 1,
     },
   ],
 
-  /* Run your local dev server before starting the tests */
-  /* In debug mode, assume server is already running */
+  /** Run your local dev server before starting the tests */
+  /** In debug mode, assume server is already running */
   ...(isCIMode
     ? {}
     : {
@@ -144,10 +249,4 @@ export default defineConfig({
 
   globalSetup: './test/e2e/config/global-setup.ts',
   globalTeardown: './test/e2e/config/global-teardown.ts',
-
-  // path to the global teardown files.
-  //globalTeardown: require.resolve('./global-teardown'),
-
-  // Each test is given 30 seconds.
-  //timeout: 30000,
 })

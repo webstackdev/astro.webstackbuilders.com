@@ -1,7 +1,7 @@
 import { ActionError, type ActionErrorCode } from 'astro:actions'
 import { captureException, withScope } from '@sentry/astro'
 import { ensureActionSentry } from '@actions/utils/sentry'
-import { isDev, isProd, isTest, isUnitTest } from '@actions/utils/environment/environmentActions'
+import { isDev, isProd, isUnitTest } from '@actions/utils/environment/environmentActions'
 import { ActionsFunctionError, type ActionsFunctionErrorParams } from './ActionsFunctionError'
 
 ensureActionSentry()
@@ -136,13 +136,9 @@ export function formatActionsErrorLogEntry(
 }
 
 /**
- * Writes the formatted actions error JSON to stderr. No-ops during tests to keep output clean.
+ * Writes the formatted actions error JSON to stderr.
  */
 function logActionsError(error: ActionsFunctionError, context: ActionsFunctionContext): void {
-  if (isTest() || isUnitTest()) {
-    return
-  }
-
   const entry = formatActionsErrorLogEntry(error, context)
   console.error(JSON.stringify(entry))
 }

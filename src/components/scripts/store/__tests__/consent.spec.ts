@@ -358,7 +358,7 @@ describe('Consent side effects', () => {
       throw new TestError('Expected consent logging fetch to be called once')
     }
     const [url, options] = firstFetchCall
-    expect(url).toBe('/api/gdpr/consent')
+    expect(url).toBe('/_actions/gdpr.consentCreate')
     expect(options?.method).toBe('POST')
     const payload = JSON.parse(options?.body as string)
     expect(payload).toMatchObject({

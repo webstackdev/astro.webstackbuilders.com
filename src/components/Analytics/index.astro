@@ -1,10 +1,8 @@
 ---
 import VercelAnalytics from '@vercel/analytics/astro'
-import { isProd } from '@components/scripts/utils/environmentClient'
+import { isDev, isProd } from '@components/scripts/utils/environmentClient'
 
-const prod = isProd()
-const mode = prod ? 'production' : 'development'
-const debug = !prod
+const mode = isProd() ? 'production' : 'development'
 ---
 
 <script>
@@ -16,4 +14,4 @@ const debug = !prod
     return event
   }
 </script>
-<VercelAnalytics debug={debug} mode={mode} />
+<VercelAnalytics debug={isDev()} mode={mode} />

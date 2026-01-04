@@ -29,9 +29,8 @@
     "servers/*"
   ],
   "scripts": {
-    "build:action": "FORCE_COLOR=1 bash .github/helpers/build-actions.sh",
     "build": "cross-env NODE_ENV=production npx astro build --remote",
-    "build:ci": "cross-env npm run build",
+    "build:ci": "cross-env NODE_ENV=production ASTRO_DATABASE_FILE=\"file:./.astro/content.db\" npx astro build",
     "check": "npx astro check",
     "clean": "FORCE_COLOR=1 npx rimraf dist && FORCE_COLOR=1 npx rimraf .astro",
     "containers:down": "FORCE_COLOR=1 docker compose --env-file test/containers/.env -f test/containers/docker-compose.e2e.yml down -v",
@@ -39,8 +38,8 @@
     "containers:logs": "FORCE_COLOR=1 docker compose --env-file test/containers/.env -f test/containers/docker-compose.e2e.yml logs -f",
     "debug:action": "python3 .github/test/runner.py",
     "dev": "npm run sync && cross-env NODE_ENV=development FORCE_COLOR=1 npx astro dev",
-    "dev:env": "FORCE_COLOR=1 dotenv -e .env.development -- npm run dev",
-    "dev:env:verbose": "FORCE_COLOR=1 dotenv -e .env.development -- npm run dev -- --verbose",
+    "dev:local": "FORCE_COLOR=1 dotenv -e .env.development -- npm run dev",
+    "dev:local:verbose": "FORCE_COLOR=1 dotenv -e .env.development -- npm run dev -- --verbose",
     "format": "npm run format:code && npm run format:style",
     "format:code": "FORCE_COLOR=1 npx prettier --write \"@types/**/*.{js,ts}\" \"src/**/*.{js,ts,tsx,astro}\" --plugin=prettier-plugin-astro",
     "format:style": "FORCE_COLOR=1 npx stylelint --fix \"src/**/*.{css,astro}\"",
