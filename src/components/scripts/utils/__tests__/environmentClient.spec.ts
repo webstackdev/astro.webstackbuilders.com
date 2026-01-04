@@ -15,15 +15,15 @@ describe('Environment detection utilities', () => {
     expect(isE2eTest()).toBe(false)
   })
 
-  it('isTest should return true when ran in unit test', () => {
+  it('isTest() should return true when running in Vitest', () => {
     expect(isTest()).toBe(true)
   })
 
-  it('isDev should return true when ran in unit test', () => {
+  it('isDev() should return true when running in Vitest', () => {
     expect(isDev()).toBe(true)
   })
 
-  it('isProd should return false when ran in unit test', () => {
+  it('isProd() should return false when running in Vitest', () => {
     expect(isProd()).toBe(false)
   })
 })

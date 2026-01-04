@@ -14,15 +14,15 @@ describe('Build-time environment handling utilities', () => {
     expect(isE2eTest()).toBeFalsy()
   })
 
-  it('should report isTest is true when running in Vitest', () => {
+  it('isTest() should return true when running in Vitest', () => {
     expect(isTest()).toBeTruthy()
   })
 
-  it('should report running in development environment when running in Vitest', () => {
+  it('isDev() should return true when running in Vitest', () => {
     expect(isDev()).toBeTruthy()
   })
 
-  it('should report not running in production environment when running in Vitest', () => {
+  it('isProd() should return false when running in Vitest', () => {
     expect(isProd()).toBeFalsy()
   })
 })

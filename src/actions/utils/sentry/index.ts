@@ -2,7 +2,6 @@ import { init as sentryInit } from '@sentry/astro'
 import {
   getPackageRelease,
   getSentryDsn,
-  isDev,
   isProd,
 } from '@actions/utils/environment/environmentActions'
 
@@ -26,9 +25,7 @@ export function ensureActionSentry(): void {
     attachStacktrace: true,
     maxBreadcrumbs: 100,
     beforeSend(event) {
-      if (isDev()) {
-        return null
-      }
+      // any logic to modify the event before sending to Sentry
       return event
     },
   })

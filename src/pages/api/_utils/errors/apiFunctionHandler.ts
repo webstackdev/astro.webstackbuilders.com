@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto'
 import { captureException, withScope } from '@sentry/astro'
 import { ensureApiSentry } from '@pages/api/_utils/sentry'
-import { isDev, isProd, isTest } from '@pages/api/_utils/environment'
+import { isDev, isProd } from '@pages/api/_utils/environment'
 import { ApiFunctionError, type ApiFunctionErrorParams } from './ApiFunctionError'
 
 ensureApiSentry()
@@ -108,7 +108,7 @@ export function handleApiFunctionError(
     requestMeta: sanitizedMetadata,
   })
 
-  if (isProd() && !isTest()) {
+  if (isProd()) {
     withScope(scope => {
       scope.setTags({
         route: context.route,
@@ -228,10 +228,6 @@ type LogMetadata = {
 }
 
 function logApiError(error: ApiFunctionError, metadata: LogMetadata) {
-  if (isTest()) {
-    return
-  }
-
   const entry = formatApiErrorLogEntry(error, metadata)
   console.error(JSON.stringify(entry))
 }

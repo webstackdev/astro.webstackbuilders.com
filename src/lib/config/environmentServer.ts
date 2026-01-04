@@ -31,7 +31,7 @@ export const isCI = () => {
 }
 
 export const isDev = () => {
-  return !isVercel() && !isGitHub()
+  return !isVercel() && !isGitHub() && process.env['NODE_ENV'] !== 'production'
 }
 
 export const isProd = () => {

@@ -35,10 +35,9 @@ export const registerServiceWorker = () => {
     return
   }
 
-  const devMode = isDev()
-  const allowDevServiceWorker = devMode && isE2eTest()
+  const allowDevServiceWorker = isDev() && isE2eTest()
 
-  if (devMode && !allowDevServiceWorker) {
+  if (isDev() && !allowDevServiceWorker) {
     void navigator.serviceWorker.getRegistrations().then(registrations => {
       registrations.forEach(registration => {
         console.info('[pwa] unregistering dev service worker', { scope: registration.scope })
