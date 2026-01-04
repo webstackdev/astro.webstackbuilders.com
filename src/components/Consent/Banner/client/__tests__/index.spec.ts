@@ -117,14 +117,14 @@ describe('ConsentBannerElement', () => {
 
       expect(window.document.activeElement).toBe(wrapper)
 
-      await new Promise<void>(resolve => {
-        setTimeout(resolve, 0)
-      })
-      const allowBtn = window.document.querySelector(
-        '.consent-modal__btn-allow'
+      // Tab from the modal wrapper moves focus to the first focusable element.
+      wrapper!.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Tab', bubbles: true }))
+
+      const closeBtn = window.document.querySelector(
+        '.consent-modal__close-btn'
       ) as HTMLButtonElement | null
-      expect(allowBtn).not.toBeNull()
-      expect(window.document.activeElement).toBe(allowBtn)
+      expect(closeBtn).not.toBeNull()
+      expect(window.document.activeElement).toBe(closeBtn)
     })
   })
 
@@ -181,7 +181,7 @@ describe('ConsentBannerElement', () => {
       const navigateSpy = vi.spyOn(bannerCtor, 'navigateToUrl').mockImplementation(() => {})
 
       try {
-        customizeLink!.dispatchEvent(new window.MouseEvent('click', { bubbles: true }))
+        customizeLink!.dispatchEvent(new window.MouseEvent('click', { bubbles: true, cancelable: true }))
 
         expect(navigateSpy).toHaveBeenCalledTimes(1)
         expect(navigateSpy).toHaveBeenCalledWith(expect.stringContaining('/consent'))
