@@ -12,7 +12,7 @@ import {
  } from '@test/e2e/helpers'
 
 test.describe('Desktop Navigation', () => {
-  test.beforeEach(async (_fixtures, testInfo) => {
+  test.beforeEach(async ({}, testInfo) => {
     if (testInfo.project.name.startsWith('mobile-')) {
       test.skip()
     }

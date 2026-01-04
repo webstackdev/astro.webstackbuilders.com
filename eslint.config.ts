@@ -134,6 +134,7 @@ export default [
       'jsdoc/require-returns-type': 'off',
       'jsdoc/valid-types': 'off',
       'new-cap': [level, { newIsCap: true, capIsNew: false }],
+      'no-empty-pattern': [level, { "allowObjectPatternsAsParameters": true }],
       'no-new': level,
       'no-restricted-globals': ['error'].concat(restrictedGlobals),
       'no-restricted-imports': [

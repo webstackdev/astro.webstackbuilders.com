@@ -24,6 +24,6 @@ export const linkValidatorPlugin = linkValidator({
     /** Dummy link in demo page */
     '/path/to#my-blob',
   ],
-  failOnBrokenLinks: false,
+  failOnBrokenLinks: true,
   verbose: true,
 })
