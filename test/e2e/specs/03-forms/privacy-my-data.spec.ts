@@ -41,7 +41,7 @@ test.describe('Privacy My Data Form', () => {
       await expect(deleteMessage).toBeFocused({ timeout: wait.defaultWait })
 
       const callCount = await requestSpy.getCallCount()
-      await expect(callCount).toBe(0)
+      expect(callCount).toBe(0)
     } finally {
       await requestSpy.restore()
     }
