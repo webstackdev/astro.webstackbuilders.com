@@ -50,7 +50,7 @@ test.describe('Theme Switching Visuals', () => {
     const lightColors = await page.evaluate(() => {
       const styles = window.getComputedStyle(document.documentElement)
       return {
-        bg: styles.getPropertyValue('--color-bg') || styles.backgroundColor,
+        bg: styles.getPropertyValue('--color-page-base') || styles.backgroundColor,
         text: styles.getPropertyValue('--color-text') || styles.color,
       }
     })
@@ -69,7 +69,7 @@ test.describe('Theme Switching Visuals', () => {
     const darkColors = await page.evaluate(() => {
       const styles = window.getComputedStyle(document.documentElement)
       return {
-        bg: styles.getPropertyValue('--color-bg') || styles.backgroundColor,
+        bg: styles.getPropertyValue('--color-page-base') || styles.backgroundColor,
         text: styles.getPropertyValue('--color-text') || styles.color,
       }
     })

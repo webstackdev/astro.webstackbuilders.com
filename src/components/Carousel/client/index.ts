@@ -311,7 +311,7 @@ export class CarouselElement extends HTMLElement {
         dot.type = 'button'
         dot.dataset['index'] = String(index)
         dot.className =
-          'embla__dot w-2 h-2 rounded-full bg-[color:var(--color-text-offset)] transition-all duration-300 hover:bg-[color:var(--color-primary)]'
+          'embla__dot w-2 h-2 rounded-full bg-content-active transition-all duration-300 hover:bg-primary'
         dot.setAttribute('aria-label', `Go to slide ${index + 1}`)
 
         addButtonEventListeners(
@@ -337,12 +337,12 @@ export class CarouselElement extends HTMLElement {
 
       dots.forEach((dot, index) => {
         if (index === selectedIndex) {
-          dot.classList.add('is-active', 'bg-[color:var(--color-primary)]', 'w-8')
-          dot.classList.remove('bg-[color:var(--color-text-offset)]', 'w-2')
+          dot.classList.add('is-active', 'bg-primary', 'w-8')
+          dot.classList.remove('bg-content-active', 'w-2')
           dot.setAttribute('aria-current', 'true')
         } else {
-          dot.classList.remove('is-active', 'bg-[color:var(--color-primary)]', 'w-8')
-          dot.classList.add('bg-[color:var(--color-text-offset)]', 'w-2')
+          dot.classList.remove('is-active', 'bg-primary', 'w-8')
+          dot.classList.add('bg-content-active', 'w-2')
           dot.removeAttribute('aria-current')
         }
       })

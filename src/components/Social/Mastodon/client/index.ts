@@ -325,13 +325,13 @@ export class MastodonModalElement extends LitElement {
           @click=${(event: Event) => this.handleBackdropClick(event)}
         ></div>
         <div
-          class="modal-content relative w-full max-w-2xl max-h-[90vh] overflow-auto bg-bg rounded-lg shadow-2xl"
+          class="modal-content relative w-full max-w-2xl max-h-[90vh] overflow-auto bg-content-inverse rounded-lg shadow-2xl"
         >
           <div class="flex items-center justify-between p-6 border-b border-border">
             <h2 id=${modalTitleId} class="m-0 text-xl font-semibold">Share to Mastodon</h2>
             <button
               type="button"
-              class="modal-close flex items-center justify-center w-8 h-8 p-0 border-0 bg-transparent rounded text-text-muted cursor-pointer transition-all duration-150 hover:bg-bg-muted hover:text-text"
+              class="modal-close flex items-center justify-center w-8 h-8 p-0 border-0 bg-transparent rounded text-text-muted cursor-pointer transition-all duration-150 hover:bg-content-inverse-muted hover:text-text"
               aria-label="Close modal"
               @click=${() => this.closeModal()}
             >
@@ -362,7 +362,7 @@ export class MastodonModalElement extends LitElement {
                 name="text"
                 rows="4"
                 readonly
-                class="w-full p-3 border border-border rounded-md bg-bg-muted font-[inherit] text-sm leading-6 resize-y focus:outline-2 focus:outline-primary focus:outline-offset-2"
+                class="w-full p-3 border border-border rounded-md bg-content-inverse-muted font-[inherit] text-sm leading-6 resize-y focus:outline-2 focus:outline-primary focus:outline-offset-2"
                 .value=${this.shareText}
               ></textarea>
             </div>
@@ -374,10 +374,10 @@ export class MastodonModalElement extends LitElement {
                   >Enter only the domain, without https://</span
                 >
                 <div
-                  class="flex items-stretch border border-border rounded-md overflow-hidden bg-bg-input focus-within:outline-2 focus-within:outline-primary focus-within:outline-offset-2"
+                  class="flex items-stretch border border-border rounded-md overflow-hidden bg-content-inverse-input focus-within:outline-2 focus-within:outline-primary focus-within:outline-offset-2"
                 >
                   <span
-                    class="flex items-center px-3 py-2 bg-bg-muted text-text-muted text-sm select-none"
+                    class="flex items-center px-3 py-2 bg-content-inverse-muted text-text-muted text-sm select-none"
                     aria-hidden="true"
                   >
                     https://
@@ -430,7 +430,7 @@ export class MastodonModalElement extends LitElement {
             <div class="flex gap-3 justify-end">
               <button
                 type="button"
-                class="btn-secondary modal-cancel px-4 py-2 border border-border rounded-md font-medium cursor-pointer transition-all duration-150 bg-transparent text-text hover:bg-bg-muted"
+                class="btn-secondary modal-cancel px-4 py-2 border border-border rounded-md font-medium cursor-pointer transition-all duration-150 bg-transparent text-text hover:bg-content-inverse-muted"
                 @click=${() => this.closeModal()}
               >
                 Cancel
@@ -457,7 +457,7 @@ export class MastodonModalElement extends LitElement {
       </div>
       <style>
         .saved-list :global(.saved-instance) {
-          background: var(--color-bg-muted);
+          background: var(--color-page-base-offset);
           border: 1px solid var(--color-border);
           border-radius: 0.25rem;
           color: var(--color-primary);
@@ -469,7 +469,7 @@ export class MastodonModalElement extends LitElement {
 
         .saved-list :global(.saved-instance:hover) {
           background: var(--color-primary);
-          color: var(--color-bg);
+          color: var(--color-page-base);
         }
 
         .modal-status.error {

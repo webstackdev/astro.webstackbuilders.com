@@ -298,7 +298,7 @@ export class TestimonialsCarouselElement extends HTMLElement {
         dot.type = 'button'
         dot.dataset['index'] = String(index)
         dot.className =
-          'embla__dot w-3 h-3 rounded-full bg-[color:var(--color-text-offset)] transition-all duration-300 hover:bg-[color:var(--color-primary)]'
+          'embla__dot w-3 h-3 rounded-full bg-content-active transition-all duration-300 hover:bg-primary'
         dot.setAttribute('aria-label', `Go to testimonial ${index + 1}`)
 
         if (this.viewportId) {
@@ -328,12 +328,12 @@ export class TestimonialsCarouselElement extends HTMLElement {
 
       dots.forEach((dot, index) => {
         if (index === selectedIndex) {
-          dot.classList.add('bg-[color:var(--color-primary)]', 'w-6')
-          dot.classList.remove('bg-[color:var(--color-text-offset)]', 'w-3')
+          dot.classList.add('bg-primary', 'w-6')
+          dot.classList.remove('bg-content-active', 'w-3')
           dot.setAttribute('aria-current', 'true')
         } else {
-          dot.classList.remove('bg-[color:var(--color-primary)]', 'w-6')
-          dot.classList.add('bg-[color:var(--color-text-offset)]', 'w-3')
+          dot.classList.remove('bg-primary', 'w-6')
+          dot.classList.add('bg-content-active', 'w-3')
           dot.removeAttribute('aria-current')
         }
       })

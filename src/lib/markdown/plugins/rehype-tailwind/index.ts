@@ -208,10 +208,10 @@ export function rehypeTailwindClasses() {
           'text-sm',
           'font-sans',
           'italic',
-          'text-[var(--color-text-offset)]',
+          'text-content-active',
           // Em dash before attribution
           'before:content-["—_"]',
-          'before:text-[var(--color-primary)]',
+          'before:text-primary',
         ])
       }
 

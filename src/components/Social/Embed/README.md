@@ -153,12 +153,6 @@ Theme-aware placeholders that approximate each platform's layout:
 - **Media Platforms** (YouTube, CodePen): Above + media preview area
 - **Code Platforms** (GitHub Gist): Monospace font family
 
-Colors use CSS custom properties from theme system:
-
-- Background: `var(--color-bg)`
-- Border: `var(--color-border)`
-- Skeleton elements: `var(--color-text-offset)`
-
 Includes pulse animation for loading state.
 
 ## Caching Strategy
