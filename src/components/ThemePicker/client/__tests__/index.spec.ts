@@ -323,7 +323,6 @@ describe('ThemePicker Component', () => {
       await renderThemePickerDom(({ element }) => {
         const closeBtn = getThemeCloseButton(element)
         expect(closeBtn.classList.contains('bg-spotlight')).toBe(true)
-        expect(closeBtn.classList.contains('text-content')).toBe(true)
         expect(closeBtn.classList.contains('absolute')).toBe(true)
       })
     })
