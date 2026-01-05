@@ -327,19 +327,6 @@ export function rehypeTailwindClasses() {
           'text-xs',
         ])
       }
-
-      // Share highlight custom element
-      if (node.tagName === 'share-highlight') {
-        node.properties = node.properties || {}
-        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          '[--share-highlight-text-color:var(--color-gray-800)]',
-          '[--share-highlight-bg-color:var(--color-gray-200)]',
-          '[--share-highlight-text-color-active:var(--color-white)]',
-          '[--share-highlight-bg-color-active:var(--color-blue-600)]',
-          '[--share-highlight-tooltip-text-color:var(--color-white)]',
-          '[--share-highlight-tooltip-bg-color:var(--color-gray-800)]',
-        ])
-      }
     })
   }
 }
