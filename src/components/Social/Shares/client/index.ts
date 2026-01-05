@@ -97,7 +97,7 @@ export class SocialShareElement extends LitElement {
 
     const labelClassList = [
       styles.label,
-      'social-share__label text-sm font-semibold text-text-offset mr-2 self-center',
+      'social-share__label text-sm font-semibold text-content-active mr-2 self-center',
     ]
       .filter(Boolean)
       .join(' ')

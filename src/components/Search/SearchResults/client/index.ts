@@ -95,7 +95,7 @@ export class SearchResultsElement extends LitElement {
 
       if (hit.snippet) {
         const snippet = document.createElement('p')
-        snippet.className = 'text-sm text-text-offset leading-relaxed'
+        snippet.className = 'text-sm text-content-active leading-relaxed'
         snippet.textContent = hit.snippet
         li.appendChild(snippet)
       }

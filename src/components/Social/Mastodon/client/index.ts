@@ -331,7 +331,7 @@ export class MastodonModalElement extends LitElement {
             <h2 id=${modalTitleId} class="m-0 text-xl font-semibold">Share to Mastodon</h2>
             <button
               type="button"
-              class="modal-close flex items-center justify-center w-8 h-8 p-0 border-0 bg-transparent rounded text-text-muted cursor-pointer transition-all duration-150 hover:bg-content-inverse-muted hover:text-text"
+              class="modal-close flex items-center justify-center w-8 h-8 p-0 border-0 bg-transparent rounded text-content-muted cursor-pointer transition-all duration-150 hover:bg-content-inverse-muted hover:text-content"
               aria-label="Close modal"
               @click=${() => this.closeModal()}
             >
@@ -377,7 +377,7 @@ export class MastodonModalElement extends LitElement {
                   class="flex items-stretch border border-border rounded-md overflow-hidden bg-content-inverse-input focus-within:outline-2 focus-within:outline-primary focus-within:outline-offset-2"
                 >
                   <span
-                    class="flex items-center px-3 py-2 bg-content-inverse-muted text-text-muted text-sm select-none"
+                    class="flex items-center px-3 py-2 bg-content-inverse-muted text-content-muted text-sm select-none"
                     aria-hidden="true"
                   >
                     https://
@@ -398,7 +398,7 @@ export class MastodonModalElement extends LitElement {
 
               ${this.savedInstances.length > 0
                 ? html`<div id="saved-instances" class="flex flex-col gap-2">
-                    <p class="m-0 text-sm font-medium text-text-muted">Previously used:</p>
+                    <p class="m-0 text-sm font-medium text-content-muted">Previously used:</p>
                     <div class="saved-list flex flex-wrap gap-2">
                       ${this.savedInstances.map(
                         instance =>

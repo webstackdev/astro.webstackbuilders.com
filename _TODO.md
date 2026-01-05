@@ -80,3 +80,126 @@ window.addEventListener('afterprint', (event) => {
   // You can also use this event to send an AJAX request to a server for print tracking.
 })
 ```
+
+or listen for changes:
+
+```typescript
+if (window.matchMedia) {
+    var mediaQueryList = window.matchMedia('print');
+    mediaQueryList.addListener(function(mql) {
+        if (mql.matches) {
+            // Equivalent to onbeforeprint
+            console.log('Entering print mode (before print dialog)');
+        } else {
+            // Equivalent to onafterprint
+            console.log('Exiting print mode (after print dialog)');
+        }
+    });
+}
+```
+
+```bash
+1) [mobile-chrome] › test/e2e/specs/01-smoke/critical-paths.spec.ts:38:3 › Critical Paths @smoke › @ready mobile navigation works across main pages
+
+TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.
+
+    at ../helpers/pageObjectModels/BasePage.ts:263
+
+  261 |     }
+  262 |
+> 263 |     await this._page.waitForFunction(
+      |                      ^
+  264 |       () => {
+  265 |         const header = document.getElementById('header')
+  266 |         const menu = document.querySelector('.main-nav-menu')
+    at BasePage.openMobileMenu (/home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/test/e2e/helpers/pageObjectModels/BasePage.ts:263:22)
+    at /home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/test/e2e/specs/01-smoke/critical-paths.spec.ts:53:7
+
+attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+.cache/playwright/output/01-smoke-critical-paths-Cr-fda54-ion-works-across-main-pages-mobile-chrome/test-failed-1.png
+────────────────────────────────────────────────────────────────────────────────────────────────
+
+Error Context: .cache/playwright/output/01-smoke-critical-paths-Cr-fda54-ion-works-across-main-pages-mobile-chrome/error-context.md
+
+2) [mobile-safari] › test/e2e/specs/01-smoke/critical-paths.spec.ts:114:3 › Critical Paths @smoke › @ready main pages have no errors
+
+Error: expect(received).toHaveLength(expected)
+
+Expected length: 0
+Received length: 1
+Received array:  [[Fetch API cannot load http: /localhost:4321/offline due to access control checks.]]
+
+    at ../helpers/pageObjectModels/BasePage.ts:665
+
+  663 |     const errors = await this._page.pageErrors()
+  664 |     const filteredErrors = errors.filter((error) => !this.isIgnorablePageError(error))
+> 665 |     expect(filteredErrors).toHaveLength(0)
+      |                            ^
+  666 |     return filteredErrors
+  667 |   }
+  668 |
+    at BasePage.expectNoErrors (/home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/test/e2e/helpers/pageObjectModels/BasePage.ts:665:28)
+    at /home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/test/e2e/specs/01-smoke/critical-paths.spec.ts:118:7
+
+attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+.cache/playwright/output/01-smoke-critical-paths-Cr-4a53f-y-main-pages-have-no-errors-mobile-safari/test-failed-1.png
+────────────────────────────────────────────────────────────────────────────────────────────────
+
+Error Context: .cache/playwright/output/01-smoke-critical-paths-Cr-4a53f-y-main-pages-have-no-errors-mobile-safari/error-context.md
+
+2 failed
+[mobile-chrome] › test/e2e/specs/01-smoke/critical-paths.spec.ts:38:3 › Critical Paths @smoke › @ready mobile navigation works across main pages
+[mobile-safari] › test/e2e/specs/01-smoke/critical-paths.spec.ts:114:3 › Critical Paths @smoke › @ready main pages have no errors
+
+
+
+  1) [webkit] › test/e2e/specs/01-smoke/dynamic-pages.spec.ts:171:3 › Dynamic Pages @smoke › @ready dynamic pages have no console errors
+
+Error: expect(received).toHaveLength(expected)
+
+Expected length: 0
+Received length: 1
+Received array:  ["Failed to load resource: the server responded with a status of 403 (Forbidden)"]
+
+  192 |
+  193 |     // Fail if there are any unexpected 404s or errors
+> 194 |     expect(errorChecker.getFilteredErrors()).toHaveLength(0)
+      |                                              ^
+  195 |     expect(errorChecker.getFiltered404s()).toHaveLength(0)
+  196 |   })
+  197 | })
+    at /home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/test/e2e/specs/01-smoke/dynamic-pages.spec.ts:194:46
+
+attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+.cache/playwright/output/01-smoke-dynamic-pages-Dyn-8a015-ages-have-no-console-errors-webkit/test-failed-1.png
+────────────────────────────────────────────────────────────────────────────────────────────────
+
+Error Context: .cache/playwright/output/01-smoke-dynamic-pages-Dyn-8a015-ages-have-no-console-errors-webkit/error-context.md
+
+2) [mobile-safari] › test/e2e/specs/01-smoke/dynamic-pages.spec.ts:171:3 › Dynamic Pages @smoke › @ready dynamic pages have no console errors
+
+Error: expect(received).toHaveLength(expected)
+
+Expected length: 0
+Received length: 1
+Received array:  ["Failed to load resource: the server responded with a status of 403 (Forbidden)"]
+
+  192 |
+  193 |     // Fail if there are any unexpected 404s or errors
+> 194 |     expect(errorChecker.getFilteredErrors()).toHaveLength(0)
+      |                                              ^
+  195 |     expect(errorChecker.getFiltered404s()).toHaveLength(0)
+  196 |   })
+  197 | })
+    at /home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/test/e2e/specs/01-smoke/dynamic-pages.spec.ts:194:46
+
+attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+.cache/playwright/output/01-smoke-dynamic-pages-Dyn-8a015-ages-have-no-console-errors-mobile-safari/test-failed-1.png
+────────────────────────────────────────────────────────────────────────────────────────────────
+
+Error Context: .cache/playwright/output/01-smoke-dynamic-pages-Dyn-8a015-ages-have-no-console-errors-mobile-safari/error-context.md
+
+2 failed
+[webkit] › test/e2e/specs/01-smoke/dynamic-pages.spec.ts:171:3 › Dynamic Pages @smoke › @ready dynamic pages have no console errors
+[mobile-safari] › test/e2e/specs/01-smoke/dynamic-pages.spec.ts:171:3 › Dynamic Pages @smoke › @ready dynamic pages have no console errors
+```
