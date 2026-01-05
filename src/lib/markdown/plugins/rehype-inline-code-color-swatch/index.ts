@@ -117,7 +117,7 @@ function createSwatch(color: string): Element {
         'h-3',
         'p-px',
         'rounded-sm',
-        'bg-text-offset',
+        'bg-gray-offset',
         'border',
         'border-border',
         'align-middle',

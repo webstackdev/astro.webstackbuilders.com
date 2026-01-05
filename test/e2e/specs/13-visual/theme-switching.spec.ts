@@ -51,7 +51,7 @@ test.describe('Theme Switching Visuals', () => {
       const styles = window.getComputedStyle(document.documentElement)
       return {
         bg: styles.getPropertyValue('--color-page-base') || styles.backgroundColor,
-        text: styles.getPropertyValue('--color-text') || styles.color,
+        text: styles.getPropertyValue('--color-content') || styles.color,
       }
     })
 
@@ -70,7 +70,7 @@ test.describe('Theme Switching Visuals', () => {
       const styles = window.getComputedStyle(document.documentElement)
       return {
         bg: styles.getPropertyValue('--color-page-base') || styles.backgroundColor,
-        text: styles.getPropertyValue('--color-text') || styles.color,
+        text: styles.getPropertyValue('--color-content') || styles.color,
       }
     })
 

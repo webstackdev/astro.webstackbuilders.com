@@ -71,7 +71,7 @@ The component uses CSS custom properties for theming:
 
 - `--color-primary`: Primary brand color
 - `--color-accent`: Accent color for gradients
-- `--color-text`: Text color (used for button text)
+- `--color-content`: Text color (used for button text)
 
 ### Layout
 

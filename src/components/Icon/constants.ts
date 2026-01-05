@@ -1,5 +1,5 @@
 export const colorClasses = {
-  default: 'text-text fill-text',
+  default: 'text-content fill-text',
   muted: 'text-text-offset fill-text-offset',
   primary: 'text-primary fill-primary',
   accent: 'text-accent fill-accent',

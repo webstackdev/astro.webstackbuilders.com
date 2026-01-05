@@ -294,8 +294,8 @@ describe('ThemePicker Component', () => {
         const expectedClasses = [
           'bg-primary',
           'bg-secondary',
-          'bg-border',
-          'bg-text-offset',
+          'bg-gray-offset',
+          'bg-gray-offset',
           'bg-text',
         ]
 

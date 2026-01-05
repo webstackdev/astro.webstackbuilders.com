@@ -189,7 +189,7 @@ export function rehypeTailwindClasses() {
                 'font-serif',
                 'text-xl',
                 'italic',
-                'text-[var(--color-text)]',
+                'text-[var(--color-content)]',
               ]
             }
           })

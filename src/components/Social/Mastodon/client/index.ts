@@ -389,7 +389,7 @@ export class MastodonModalElement extends LitElement {
                     placeholder="mastodon.social"
                     required
                     aria-describedby=${instanceHintId}
-                    class="flex-1 min-w-0 px-3 py-2 border-0 bg-transparent text-base text-text focus:outline-none"
+                    class="flex-1 min-w-0 px-3 py-2 border-0 bg-transparent text-base text-content focus:outline-none"
                     .value=${this.instanceValue}
                     @input=${(event: Event) => this.handleInstanceInput(event)}
                   />
@@ -430,14 +430,14 @@ export class MastodonModalElement extends LitElement {
             <div class="flex gap-3 justify-end">
               <button
                 type="button"
-                class="btn-secondary modal-cancel px-4 py-2 border border-border rounded-md font-medium cursor-pointer transition-all duration-150 bg-transparent text-text hover:bg-content-inverse-muted"
+                class="btn-secondary modal-cancel px-4 py-2 border border-border rounded-md font-medium cursor-pointer transition-all duration-150 bg-transparent text-content hover:bg-content-inverse-muted"
                 @click=${() => this.closeModal()}
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                class="btn-primary px-4 py-2 border-0 rounded-md font-medium cursor-pointer transition-all duration-150 bg-primary text-white hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed"
+                class="btn-primary px-4 py-2 border-0 rounded-md font-medium cursor-pointer transition-all duration-150 bg-spotlight text-white hover:bg-primary-offset disabled:opacity-50 disabled:cursor-not-allowed"
                 ?disabled=${this.isSubmitting}
               >
                 Share
