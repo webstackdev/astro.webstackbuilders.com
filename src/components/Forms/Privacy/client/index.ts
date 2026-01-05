@@ -128,7 +128,7 @@ export class PrivacyFormElement extends LitElement {
 
     const variantClasses = [
       'border-success',
-      'bg-success-inverse ',
+      'bg-success-inverse',
       'text-success',
       'border-danger',
       'bg-danger-offset',
@@ -140,7 +140,7 @@ export class PrivacyFormElement extends LitElement {
     target.classList.remove(...variantClasses)
 
     if (type === 'success') {
-      target.classList.add('border-success', 'bg-success-inverse ', 'text-success')
+      target.classList.add('border-success', 'bg-success-inverse', 'text-success')
     }
 
     if (type === 'error') {

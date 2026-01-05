@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import SocialEmbed from '@components/Social/Embed/index.astro'
-import type { SocialEmbedElement as SocialEmbedElementInstance } from '@components/Social/Embed/webComponent'
+import type { SocialEmbedElement as SocialEmbedElementInstance } from '@components/Social/Embed/client/webComponent'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { executeRender } from '@test/unit/helpers/litRuntime'
 import {

@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import SocialEmbed from '@components/Social/Embed/index.astro'
 import LinkedInFixture from '@components/Social/Embed/client/__fixtures__/linkedin.fixture.astro'
-import type { SocialEmbedElement } from '@components/Social/Embed/webComponent'
+import type { SocialEmbedElement } from '@components/Social/Embed/client/webComponent'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { executeRender } from '@test/unit/helpers/litRuntime'
 

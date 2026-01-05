@@ -16,7 +16,7 @@ type ComponentProps = {
   url: string
   title: string
   description?: string
-  socialNetworks?: ('twitter' | 'linkedin' | 'bluesky' | 'reddit' | 'mastodon')[]
+  socialNetworks?: ('x' | 'linkedin' | 'bluesky' | 'reddit' | 'mastodon')[]
 }
 
 let SocialShareComponent: typeof import('@components/Social/Shares/index.astro').default
@@ -112,7 +112,7 @@ describe('SocialShareElement web component', () => {
     await renderComponent(
       {
         ...defaultProps,
-        socialNetworks: ['twitter', 'linkedin'],
+        socialNetworks: ['x', 'linkedin'],
       },
       async ({ element }) => {
         const buttons = element.querySelectorAll('.social-share__button')
@@ -146,13 +146,13 @@ describe('SocialShareElement web component', () => {
       const gtagSpy = vi.fn()
       windowWithAnalytics.gtag = gtagSpy
 
-      const twitterButton = element.querySelector('[aria-label="Share on X (Twitter)"]')
-      expect(twitterButton).toBeTruthy()
+      const xButton = element.querySelector('[aria-label="Share on X"]')
+      expect(xButton).toBeTruthy()
 
-      twitterButton?.dispatchEvent(new window.MouseEvent('click', { bubbles: true }))
+      xButton?.dispatchEvent(new window.MouseEvent('click', { bubbles: true }))
 
       expect(gtagSpy).toHaveBeenCalledWith('event', 'share', {
-        method: 'x (twitter)',
+        method: 'x',
         contentType: 'article',
         contentId: '/',
       })
@@ -195,8 +195,8 @@ describe('SocialShareElement web component', () => {
       metaDescription.content = 'Meta description copy'
       window.document.head.appendChild(metaDescription)
 
-      const twitterButton = element.querySelector('[aria-label="Share on X (Twitter)"]')
-      expect(twitterButton).toBeTruthy()
+      const xButton = element.querySelector('[aria-label="Share on X"]')
+      expect(xButton).toBeTruthy()
 
       const shiftClick = new window.MouseEvent('click', {
         bubbles: true,
@@ -204,7 +204,7 @@ describe('SocialShareElement web component', () => {
         shiftKey: true,
       })
 
-      twitterButton?.dispatchEvent(shiftClick)
+      xButton?.dispatchEvent(shiftClick)
       expect(shareSpy).toHaveBeenCalledWith({
         title: defaultProps.title,
         text: 'Meta description copy',
