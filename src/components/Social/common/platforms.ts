@@ -33,13 +33,13 @@ export interface ShareData {
  */
 export const platforms: SharePlatform[] = [
   {
-    name: 'X (Twitter)',
-    id: 'twitter',
+    name: 'X',
+    id: 'x',
     getShareUrl: ({ text, url }) =>
       `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
-    ariaLabel: 'Share on X (Twitter)',
-    icon: 'twitter',
-    colorClasses: 'bg-[#1DA1F2] hover:bg-[#1a91da] text-white',
+    ariaLabel: 'Share on X',
+    icon: 'x',
+    colorClasses: 'bg-x hover:bg-x-active text-white',
   },
   {
     name: 'LinkedIn',
@@ -48,7 +48,7 @@ export const platforms: SharePlatform[] = [
       `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
     ariaLabel: 'Share on LinkedIn',
     icon: 'linkedin',
-    colorClasses: 'bg-[#0077b5] hover:bg-[#005885] text-white',
+    colorClasses: 'bg-linkedin hover:bg-linkedin-active text-white',
   },
   {
     name: 'Bluesky',
@@ -57,7 +57,7 @@ export const platforms: SharePlatform[] = [
       `https://bsky.app/intent/compose?text=${encodeURIComponent(`${text} ${url}`)}`,
     ariaLabel: 'Share on Bluesky',
     icon: 'bluesky',
-    colorClasses: 'bg-[#00A8E8] hover:bg-[#0087bd] text-white',
+    colorClasses: 'bg-bluesky hover:bg-bluesky-active text-white',
   },
   {
     name: 'Reddit',
@@ -66,7 +66,7 @@ export const platforms: SharePlatform[] = [
       `https://reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`,
     ariaLabel: 'Share on Reddit',
     icon: 'reddit',
-    colorClasses: 'bg-[#FF4500] hover:bg-[#e03d00] text-white',
+    colorClasses: 'bg-reddit hover:bg-reddit-active text-white',
   },
   {
     name: 'Mastodon',
@@ -74,7 +74,7 @@ export const platforms: SharePlatform[] = [
     getShareUrl: () => '', // Modal handles URL generation
     ariaLabel: 'Share on Mastodon',
     icon: 'mastodon',
-    colorClasses: 'bg-[#6364FF] hover:bg-[#5557e6] text-white',
+    colorClasses: 'bg-mastodon hover:bg-mastodon-active text-white',
     useModal: true,
   },
 ]
