@@ -63,3 +63,20 @@ https://vercel.com/kevin-browns-projects-dd474f73/astro-webstackbuilders-com/ai-
 We have E2E errors again testimonials slide on mobile chrome and safari. I think the problem is that we are pausing carousels when part of the carousel is outside of the viewport, and the testimonials are too large to display on mobile without being off viewport.
 
 `test/e2e/specs/04-components/testimonials.spec.ts`:244:3 › Testimonials Component › @ready testimonials auto-rotate changes slide index
+
+## Improve print layout by hiding header and footer for articles, add tracking
+
+```typescript
+window.addEventListener('beforeprint', (event) => {
+  console.log('Before print dialog opens, run this script.')
+  // Example: change content or hide elements
+  document.getElementById('hide-on-print').style.display = 'none'
+})
+
+window.addEventListener('afterprint', (event) => {
+  console.log('After print dialog closes, run this script to revert changes.')
+  // Example: revert changes
+  document.getElementById('hide-on-print').style.display = ''
+  // You can also use this event to send an AJAX request to a server for print tracking.
+})
+```
