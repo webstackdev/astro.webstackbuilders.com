@@ -28,6 +28,7 @@ const MENU_TOGGLE_LABELS = {
 
 export const CLASSES = {
   noScroll: 'no-scroll',
+  ariaExpandedTrue: 'aria-expanded-true',
 }
 
 export const ATTRIBUTES = {
@@ -167,6 +168,7 @@ export class NavigationElement extends LitElement {
     }
 
     document.body.classList.toggle(CLASSES.noScroll, this.isMenuOpen)
+    this.header.classList.toggle(CLASSES.ariaExpandedTrue, this.isMenuOpen)
     this.toggleBtn.setAttribute('aria-expanded', String(this.isMenuOpen))
     this.toggleBtn.setAttribute(
       'aria-label',
