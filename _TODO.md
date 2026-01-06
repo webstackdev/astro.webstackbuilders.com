@@ -219,8 +219,7 @@ Singles: --color-error, --color-error-bg, --color-error-border, --color-error-te
 Tailwind Color Utilities Not Backed By Theme Tokens (quoted class strings)
 High-frequency / likely broken given the @theme contract:
 
-(47): e.g. index.astro:20
-text-offset (13): e.g. index.astro:39
+text-content-offset (13): e.g. index.astro:39
 bg-primary-bg (7): e.g. index.astro:67
 stroke-text (not a theme token) (seen in class attrs): e.g. index.astro:94
 bg-text (2): index.astro:111, index.spec.ts:299
