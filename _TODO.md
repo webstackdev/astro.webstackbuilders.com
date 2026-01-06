@@ -219,9 +219,7 @@ Singles: --color-error, --color-error-bg, --color-error-border, --color-error-te
 Tailwind Color Utilities Not Backed By Theme Tokens (quoted class strings)
 High-frequency / likely broken given the @theme contract:
 
-border-trim (91): e.g. index.astro:23, index.astro:22
-Theme has --color-trim for borders, not --color-border.
-bg-content-inverse-offset (52): e.g. index.astro:134, index.astro:14
+bg-page-base-offset (52): e.g. index.astro:134, index.astro:14
 text-content-muted (47): e.g. index.astro:20
 text-offset (13): e.g. index.astro:39
 bg-primary-bg (7): e.g. index.astro:67
