@@ -213,3 +213,30 @@ Error Context: .cache/playwright/output/01-smoke-dynamic-pages-Dyn-8a015-ages-ha
 --color-orange-100
 --color-purple-100
 --color-purple-600
+
+Good Next Cascade Candidates (similar spirit to the text-* cleanup)
+
+Global/link-default underline styling (biggest repetition)
+
+Evidence: the exact pattern underline decoration-dotted decoration-content underline-offset-4 ... shows up 15 times across just 3 components (Footer/Calendar/BugReporter).
+What to cascade: give “normal text links” a default underline style (dotted + decoration-content + offset) via base CSS (or a shared wrapper scope), and then only override the exceptions.
+Tradeoff: global a { … } is powerful but can surprise you (nav links, button-like links). A scoped approach (e.g., only inside markdown/content areas or only inside certain layout wrappers) is safer.
+Forms: default label + help text styling
+
+Evidence: text-content-active in forms is still repeated ~25 times across 3 form components (Contact/Download/Privacy), often paired with text-sm font-medium.
+What to cascade: set label default to color: var(--color-content-active) and font-weight/size inside a form wrapper (e.g. .form root), so individual labels don’t need to specify it.
+Tradeoff: safest when scoped to the Forms components (not global label { … } site-wide).
+Inline style in JS validation errors (small but “smelly”)
+
+Evidence: validation.ts sets errorDiv.style.cssText = 'color: var(--color-danger); font-size: 0.85rem; ...'.
+What to cascade: assign a class and style it in CSS (then it inherits font family/line-height etc), instead of embedding presentation in JS.
+Tradeoff: not a huge volume win, but it’s a maintainability win and keeps styling consistent.
+Not worth it (yet)
+
+Placeholder color: only 4 placeholder:text-content-active occurrences right now, so the cascade win is small unless you want a stronger “form system” anyway.
+Font families: very few font-sans/serif/mono usages in components; most appear intentional.
+If you want me to implement, pick one:
+
+Scoped link cascade (safest)
+Forms label/microcopy cascade
+Both, but in small, surgical patches
