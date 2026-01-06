@@ -1,5 +1,6 @@
 ---
 import { statusMessages } from '@components/Forms/Privacy/server'
+import styles from '../forms.module.css'
 
 export interface Props {
   status?: string | null
@@ -54,9 +55,9 @@ const statusMessage = status ? statusMessages[status] : undefined
           Request a copy of personal data we have about you, including consent records and newsletter subscriptions.
         </p>
 
-        <form id="access-form" class="mt-6 space-y-4" novalidate>
+        <form id="access-form" class:list={[styles.formScope, 'mt-6 space-y-4']} novalidate>
           <div class="space-y-2">
-            <label for="access-email" class="block text-sm font-semibold">Email Address</label>
+            <label for="access-email" class="block">Email Address</label>
             <input
               type="email"
               id="access-email"
@@ -95,9 +96,9 @@ const statusMessage = status ? statusMessages[status] : undefined
           This action cannot be undone.
         </div>
 
-        <form id="delete-form" class="mt-6 space-y-4" novalidate>
+        <form id="delete-form" class:list={[styles.formScope, 'mt-6 space-y-4']} novalidate>
           <div class="space-y-2">
-            <label for="delete-email" class="block text-sm font-semibold">Email Address</label>
+            <label for="delete-email" class="block">Email Address</label>
             <input
               type="email"
               id="delete-email"

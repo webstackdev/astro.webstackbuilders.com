@@ -144,7 +144,6 @@ const showGenericError = (field: GenericField, message: string): void => {
   const errorDiv = document.createElement('div')
   errorDiv.className = 'field-error'
   errorDiv.textContent = message
-  errorDiv.style.cssText = 'color: var(--color-danger); font-size: 0.85rem; margin-top: 0.25rem;'
   errorDiv.setAttribute('aria-live', 'polite')
 
   if (field.id) {
