@@ -29,7 +29,7 @@ describe('Header (Astro)', () => {
 
       const menu = window.document.querySelector('ul.main-nav-menu')
       expect(menu).toBeTruthy()
-      expect(menu?.getAttribute('aria-label')).toBeNull()
+      expect(menu?.getAttribute('aria-label')).toBe('main navigation')
 
       const activeLink = window.document.querySelector('a[href="/about"]')
       expect(activeLink?.getAttribute('aria-current')).toBe('page')

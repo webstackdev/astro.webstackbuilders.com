@@ -16,7 +16,7 @@ const SHARE_FIXTURE = {
 
 const SOCIAL_SHARE_SELECTOR = '[data-social-shares]'
 const SHARE_BUTTON_SELECTOR = `${SOCIAL_SHARE_SELECTOR} [data-share]`
-const EXPECTED_PLATFORMS = ['twitter', 'linkedin', 'bluesky', 'reddit', 'mastodon'] as const
+const EXPECTED_PLATFORMS = ['x', 'linkedin', 'bluesky', 'reddit', 'mastodon'] as const
 const SHARE_DATA_TEXT = `${SHARE_FIXTURE.title} - ${SHARE_FIXTURE.description}`.trim()
 const SHARE_MODAL_TEXT = `${SHARE_DATA_TEXT} ${SHARE_FIXTURE.url}`.trim()
 
@@ -70,11 +70,11 @@ test.describe('Social Shares Component', () => {
     }
   })
 
-  test('twitter share encodes fixture title and url', async ({ page: playwrightPage, context }) => {
-    const popup = await openSharePopup(playwrightPage, context, 'twitter')
+  test('x share encodes fixture title and url', async ({ page: playwrightPage, context }) => {
+    const popup = await openSharePopup(playwrightPage, context, 'x')
     const popupUrl = new URL(popup.url())
-    const validTwitterHosts = ['twitter.com', 'x.com']
-    expect(validTwitterHosts).toContain(popupUrl.hostname)
+    const validXHosts = ['twitter.com', 'x.com']
+    expect(validXHosts).toContain(popupUrl.hostname)
     expect(popupUrl.searchParams.get('url')).toBe(SHARE_FIXTURE.url)
     expect(popupUrl.searchParams.get('text')).toBe(SHARE_DATA_TEXT)
     await popup.close()

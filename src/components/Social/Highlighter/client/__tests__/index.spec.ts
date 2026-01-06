@@ -19,11 +19,11 @@ type MockPlatform = {
 // Use vi.hoisted so the mock data exists before mocked modules evaluate
 const mockPlatforms = vi.hoisted<MockPlatform[]>(() => [
   {
-    id: 'twitter',
-    ariaLabel: 'Share on Twitter',
-    icon: 'twitter',
+    id: 'x',
+    ariaLabel: 'Share on X',
+    icon: 'x',
     getShareUrl: ({ text, url }) =>
-      `https://social.example/twitter?text=${encodeURIComponent(text ?? '')}&url=${encodeURIComponent(url ?? '')}`,
+      `https://social.example/x?text=${encodeURIComponent(text ?? '')}&url=${encodeURIComponent(url ?? '')}`,
   },
   {
     id: 'linkedin',
@@ -230,11 +230,11 @@ describe('HighlighterElement', () => {
       mockNativeShare.mockResolvedValueOnce(false)
       const openSpy = vi.spyOn(window, 'open').mockReturnValue(null)
 
-      getShareButton(element, 'twitter').click()
+      getShareButton(element, 'x').click()
       await flushMicrotasks()
 
       expect(openSpy).toHaveBeenCalledWith(
-        expect.stringContaining('https://social.example/twitter'),
+        expect.stringContaining('https://social.example/x'),
         '_blank',
         'noopener,noreferrer'
       )

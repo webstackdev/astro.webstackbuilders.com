@@ -36,13 +36,11 @@ const buildWebServerEnv = () => {
 }
 
 //const workersHighParallel = process.env['GITHUB_ACTIONS'] ? 1 : 1
-const testMatchHighParallel = '**/*.spec.ts'
-const testIgnoreHighParallel = [
-  '03-forms/**/*.spec.ts',
+const testMatch = '**/*.spec.ts'
+const testIgnore = [
   '05-api/**/*.spec.ts',
   '06-actions/**/*.spec.ts',
 ]
-const testMatchSerial = ['03-forms/**/*.spec.ts']
 
 export default defineConfig({
   /** Look for test files in the "tests" directory, relative to this configuration file. */
@@ -111,101 +109,50 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
-      testMatch: testMatchHighParallel,
-      testIgnore: testIgnoreHighParallel,
+      testMatch,
+      testIgnore,
     },
 
     {
       name: 'firefox',
       use: { ...devices['Desktop Firefox'] },
-      testMatch: testMatchHighParallel,
-      testIgnore: testIgnoreHighParallel,
+      testMatch,
+      testIgnore,
     },
 
     {
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
-      testMatch: testMatchHighParallel,
-      testIgnore: testIgnoreHighParallel,
+      testMatch,
+      testIgnore,
     },
 
     /** Test against mobile viewports. */
     {
       name: 'mobile-chrome',
       use: { ...devices['Pixel 5'] },
-      testMatch: testMatchHighParallel,
-      testIgnore: testIgnoreHighParallel,
+      testMatch,
+      testIgnore,
     },
     {
       name: 'mobile-safari',
       use: { ...devices['iPhone 12'] },
-      testMatch: testMatchHighParallel,
-      testIgnore: testIgnoreHighParallel,
+      testMatch,
+      testIgnore,
     },
 
     /** Test against branded browsers. */
     {
       name: 'microsoft-edge',
       use: { ...devices['Desktop Edge'], channel: 'msedge' },
-      testMatch: testMatchHighParallel,
-      testIgnore: testIgnoreHighParallel,
+      testMatch,
+      testIgnore,
     },
     {
       name: 'google-chrome',
       use: { ...devices['Desktop Chrome'], channel: 'chrome' },
-      testMatch: testMatchHighParallel,
-      testIgnore: testIgnoreHighParallel,
-    },
-
-    /**
-     * ===========================================================================================
-     *
-     * These projects are designed to run serially due to database contention issues.
-     * We use SQLite in tests, which has limited support for concurrent writes.
-     *
-     * ===========================================================================================
-     */
-
-    {
-      name: 'chromium-serial',
-      use: { ...devices['Desktop Chrome'] },
-      testMatch: testMatchSerial,
-    },
-
-    {
-      name: 'firefox-serial',
-      use: { ...devices['Desktop Firefox'] },
-      testMatch: testMatchSerial,
-    },
-
-    {
-      name: 'webkit-serial',
-      use: { ...devices['Desktop Safari'] },
-      testMatch: testMatchSerial,
-    },
-
-    /** Test against mobile viewports. */
-    {
-      name: 'mobile-chrome-serial',
-      use: { ...devices['Pixel 5'] },
-      testMatch: testMatchSerial,
-    },
-    {
-      name: 'mobile-safari-serial',
-      use: { ...devices['iPhone 12'] },
-      testMatch: testMatchSerial,
-    },
-
-    /** Test against branded browsers. */
-    {
-      name: 'microsoft-edge-serial',
-      use: { ...devices['Desktop Edge'], channel: 'msedge' },
-      testMatch: testMatchSerial,
-    },
-    {
-      name: 'google-chrome-serial',
-      use: { ...devices['Desktop Chrome'], channel: 'chrome' },
-      testMatch: testMatchSerial,
+      testMatch,
+      testIgnore,
     },
 
     /**
@@ -218,17 +165,15 @@ export default defineConfig({
      */
 
     {
-      name: 'api-serial',
+      name: 'api',
       use: { ...devices['Desktop Chrome'] },
       testMatch: '05-api/**/*.spec.ts',
-      workers: 1,
     },
 
     {
-      name: 'actions-serial',
+      name: 'actions',
       use: { ...devices['Desktop Chrome'] },
       testMatch: '06-actions/**/*.spec.ts',
-      workers: 1,
     },
   ],
 

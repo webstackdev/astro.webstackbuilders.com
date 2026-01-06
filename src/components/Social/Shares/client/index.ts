@@ -1,5 +1,4 @@
-import { LitElement, html } from 'lit'
-import { ifDefined } from 'lit/directives/if-defined.js'
+import { LitElement, html, nothing } from 'lit'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { defineCustomElement } from '@components/scripts/utils'
@@ -108,8 +107,8 @@ export class SocialShareElement extends LitElement {
       <div
         class="${containerClassList}"
         role="group"
-        aria-labelledby=${ifDefined(hasLabelText ? this.labelId : undefined)}
-        aria-label=${ifDefined(hasLabelText ? undefined : 'Share this content')}
+        aria-labelledby=${hasLabelText ? this.labelId : nothing}
+        aria-label=${hasLabelText ? nothing : 'Share this content'}
       >
         <span id=${this.labelId} class="${labelClassList}">${this.labelText}</span>
         ${this.selectedPlatforms.map(platform =>
@@ -159,8 +158,8 @@ export class SocialShareElement extends LitElement {
           type="button"
           class="${buttonClassList}"
           aria-label="${platform.ariaLabel}"
-          aria-haspopup=${ifDefined(isMastodon ? 'dialog' : undefined)}
-          aria-controls=${ifDefined(isMastodon ? MASTODON_MODAL_ID : undefined)}
+          aria-haspopup=${isMastodon ? 'dialog' : nothing}
+          aria-controls=${isMastodon ? MASTODON_MODAL_ID : nothing}
           data-platform="${platform.id}"
           data-share="${platform.id}"
           data-share-text="${shareText}"
