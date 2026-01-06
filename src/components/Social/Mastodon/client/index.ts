@@ -327,7 +327,7 @@ export class MastodonModalElement extends LitElement {
         <div
           class="modal-content relative w-full max-w-2xl max-h-[90vh] overflow-auto bg-content-inverse rounded-lg shadow-2xl"
         >
-          <div class="flex items-center justify-between p-6 border-b border-border">
+          <div class="flex items-center justify-between p-6 border-b border-trim">
             <h2 id=${modalTitleId} class="m-0 text-xl font-semibold">Share to Mastodon</h2>
             <button
               type="button"
@@ -362,7 +362,7 @@ export class MastodonModalElement extends LitElement {
                 name="text"
                 rows="4"
                 readonly
-                class="w-full p-3 border border-border rounded-md bg-content-inverse-muted font-[inherit] text-sm leading-6 resize-y focus:outline-2 focus:outline-primary focus:outline-offset-2"
+                class="w-full p-3 border border-trim rounded-md bg-content-inverse-muted font-[inherit] text-sm leading-6 resize-y focus:outline-2 focus:outline-primary focus:outline-offset-2"
                 .value=${this.shareText}
               ></textarea>
             </div>
@@ -374,7 +374,7 @@ export class MastodonModalElement extends LitElement {
                   >Enter only the domain, without https://</span
                 >
                 <div
-                  class="flex items-stretch border border-border rounded-md overflow-hidden bg-content-inverse-input focus-within:outline-2 focus-within:outline-primary focus-within:outline-offset-2"
+                  class="flex items-stretch border border-trim rounded-md overflow-hidden bg-content-inverse-input focus-within:outline-2 focus-within:outline-primary focus-within:outline-offset-2"
                 >
                   <span
                     class="flex items-center px-3 py-2 bg-content-inverse-muted text-content-muted text-sm select-none"
@@ -430,7 +430,7 @@ export class MastodonModalElement extends LitElement {
             <div class="flex gap-3 justify-end">
               <button
                 type="button"
-                class="btn-secondary modal-cancel px-4 py-2 border border-border rounded-md font-medium cursor-pointer transition-all duration-150 bg-transparent text-content hover:bg-content-inverse-muted"
+                class="btn-secondary modal-cancel px-4 py-2 border border-trim rounded-md font-medium cursor-pointer transition-all duration-150 bg-transparent text-content hover:bg-content-inverse-muted"
                 @click=${() => this.closeModal()}
               >
                 Cancel

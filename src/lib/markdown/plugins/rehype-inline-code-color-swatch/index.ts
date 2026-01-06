@@ -119,7 +119,7 @@ function createSwatch(color: string): Element {
         'rounded-sm',
         'bg-gray-offset',
         'border',
-        'border-border',
+        'border-trim',
         'align-middle',
         'ml-1',
       ],
