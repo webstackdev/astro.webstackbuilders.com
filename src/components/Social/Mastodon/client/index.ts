@@ -458,7 +458,7 @@ export class MastodonModalElement extends LitElement {
       <style>
         .saved-list :global(.saved-instance) {
           background: var(--color-page-base-offset);
-          border: 1px solid var(--color-border);
+          border: 1px solid var(--color-trim);
           border-radius: 0.25rem;
           color: var(--color-primary);
           cursor: pointer;
@@ -473,7 +473,7 @@ export class MastodonModalElement extends LitElement {
         }
 
         .modal-status.error {
-          color: var(--color-error);
+          color: var(--color-danger);
         }
 
         .modal-status.success {

@@ -296,7 +296,7 @@ describe('ThemePicker Component', () => {
           'bg-secondary',
           'bg-gray-offset',
           'bg-gray-offset',
-          'bg-text',
+          'bg-gray-700',
         ]
 
         expectedClasses.forEach((className, index) => {

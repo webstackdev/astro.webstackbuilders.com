@@ -204,29 +204,12 @@ Error Context: .cache/playwright/output/01-smoke-dynamic-pages-Dyn-8a015-ages-ha
 [mobile-safari] › test/e2e/specs/01-smoke/dynamic-pages.spec.ts:171:3 › Dynamic Pages @smoke › @ready dynamic pages have no console errors
 ```
 
-Undefined var(--color-…) Tokens (definitely not in theme-inline.css)
-
---color-text (9): index.astro:47, button.module.css:56
---color-bg-offset (4): index.astro:36, button.module.css:150
---color-danger-bg (4): index.astro:33, index.module.css:12
---color-success-bg (3): index.astro:38, index.astro:198
---color-twitter (3): button.module.css:93
---color-border (2): themePicker.module.css:51, index.ts:461
---color-gray-500 (2): uppy-dashboard.css:3292
---color-link-shadow (2): index.ts:30
-Singles: --color-error, --color-error-bg, --color-error-border, --color-error-text (all in index.astro:205); --color-gray-100 (uppy-dashboard.css:3112); --color-info-bg (index.astro:35); --color-success-border, --color-success-text (index.astro:199); --color-theme-sprites (ADDING_ICONS.md:50)
-
-Tailwind Color Utilities Not Backed By Theme Tokens (quoted class strings)
-High-frequency / likely broken given the @theme contract:
-
-bg-blue-100 (7): e.g. index.astro:67
-stroke-text (not a theme token) (seen in class attrs): e.g. index.astro:94
-bg-text (2): index.astro:111, index.spec.ts:299
-
-Default-palette style utilities that don’t exist in theme-inline.css (so likely broken now unless reintroduced elsewhere):
-
-bg-gray-100 (4): e.g. index.astro:166
-text-blue-400 (16): e.g. index.astro:205
-bg-blue-50 (5): e.g. index.astro:147
-border-blue-200 (3): e.g. index.astro:826
-Similar one-offs: bg-purple-100, text-purple-600, border-blue-500, bg-orange-100, etc. (all in the scan output)
+--color-blue-200
+--color-blue-400
+--color-blue-50
+--color-blue-500
+--color-gray-100
+--color-gray-500
+--color-orange-100
+--color-purple-100
+--color-purple-600
