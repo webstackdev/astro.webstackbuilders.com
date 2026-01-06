@@ -123,8 +123,17 @@ test.describe('Dynamic Pages @smoke', () => {
     expect(Array.isArray(manifest.icons)).toBe(true)
   })
 
-  test('@ready dynamic pages have no 404 errors', async ({ page: playwrightPage }) => {
+  test('@ready dynamic pages have no 404 errors', async ({ page: playwrightPage }, testInfo) => {
     const page = await BasePage.init(playwrightPage)
+
+    const errorChecker = setupConsoleErrorChecker(page.page)
+    const failures: string[] = []
+
+    const resetChecker = () => {
+      errorChecker.consoleErrors.length = 0
+      errorChecker.failed404s.length = 0
+    }
+
     // Test article page
     await page.goto('/articles')
     await page.waitForLoadState('networkidle')
@@ -133,10 +142,14 @@ test.describe('Dynamic Pages @smoke', () => {
     const articleUrl = await firstArticleLink.getAttribute('href')
 
     if (articleUrl) {
-      const articleChecker = setupConsoleErrorChecker(page.page)
+      resetChecker()
       await page.goto(articleUrl)
       await page.waitForLoadState('networkidle')
-      expect(articleChecker.failed404s).toHaveLength(0)
+
+      const filtered404s = errorChecker.getFiltered404s()
+      if (filtered404s.length > 0) {
+        failures.push(`article: ${articleUrl}\n${filtered404s.map((url) => `  - ${url}`).join('\n')}`)
+      }
     }
 
     // Test service page
@@ -147,10 +160,14 @@ test.describe('Dynamic Pages @smoke', () => {
     const serviceUrl = await firstServiceLink.getAttribute('href')
 
     if (serviceUrl) {
-      const serviceChecker = setupConsoleErrorChecker(page.page)
+      resetChecker()
       await page.goto(serviceUrl)
       await page.waitForLoadState('networkidle')
-      expect(serviceChecker.failed404s).toHaveLength(0)
+
+      const filtered404s = errorChecker.getFiltered404s()
+      if (filtered404s.length > 0) {
+        failures.push(`service: ${serviceUrl}\n${filtered404s.map((url) => `  - ${url}`).join('\n')}`)
+      }
     }
 
     // Test case study page
@@ -161,14 +178,30 @@ test.describe('Dynamic Pages @smoke', () => {
     const caseStudyUrl = await firstCaseStudyLink.getAttribute('href')
 
     if (caseStudyUrl) {
-      const caseStudyChecker = setupConsoleErrorChecker(page.page)
+      resetChecker()
       await page.goto(caseStudyUrl)
       await page.waitForLoadState('networkidle')
-      expect(caseStudyChecker.failed404s).toHaveLength(0)
+
+      const filtered404s = errorChecker.getFiltered404s()
+      if (filtered404s.length > 0) {
+        failures.push(`case-study: ${caseStudyUrl}\n${filtered404s.map((url) => `  - ${url}`).join('\n')}`)
+      }
     }
+
+    if (failures.length > 0) {
+      await testInfo.attach('404-errors', {
+        body: failures.join('\n\n'),
+        contentType: 'text/plain',
+      })
+    }
+
+    expect(
+      failures,
+      failures.length > 0 ? `Unexpected 404 resources:\n\n${failures.join('\n\n')}` : undefined
+    ).toHaveLength(0)
   })
 
-  test('@ready dynamic pages have no console errors', async ({ page: playwrightPage }) => {
+  test('@ready dynamic pages have no console errors', async ({ page: playwrightPage }, testInfo) => {
     const page = await BasePage.init(playwrightPage)
     // First, get actual article URL
     await page.goto('/articles')
@@ -191,7 +224,35 @@ test.describe('Dynamic Pages @smoke', () => {
     logConsoleErrors(errorChecker)
 
     // Fail if there are any unexpected 404s or errors
-    expect(errorChecker.getFilteredErrors()).toHaveLength(0)
-    expect(errorChecker.getFiltered404s()).toHaveLength(0)
+    const filteredErrors = errorChecker.getFilteredErrors()
+    const filtered404s = errorChecker.getFiltered404s()
+
+    if (filteredErrors.length > 0) {
+      await testInfo.attach('console-errors', {
+        body: filteredErrors.join('\n'),
+        contentType: 'text/plain',
+      })
+    }
+
+    if (filtered404s.length > 0) {
+      await testInfo.attach('404-errors', {
+        body: filtered404s.join('\n'),
+        contentType: 'text/plain',
+      })
+    }
+
+    expect(
+      filteredErrors,
+      filteredErrors.length > 0
+        ? `Unexpected console errors:\n\n${filteredErrors.map((error) => `  - ${error}`).join('\n')}`
+        : undefined
+    ).toHaveLength(0)
+
+    expect(
+      filtered404s,
+      filtered404s.length > 0
+        ? `Unexpected 404 resources:\n\n${filtered404s.map((url) => `  - ${url}`).join('\n')}`
+        : undefined
+    ).toHaveLength(0)
   })
 })

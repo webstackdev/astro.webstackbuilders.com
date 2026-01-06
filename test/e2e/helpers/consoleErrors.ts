@@ -42,7 +42,11 @@ export function setupConsoleErrorChecker(page: Page): ConsoleErrorChecker {
   page.on('console', (msg) => {
     if (msg.type() === 'error') {
       const text = msg.text()
-      consoleErrors.push(text)
+      const location = msg.location()
+      const locationLabel = location.url
+        ? `${location.url}:${location.lineNumber}:${location.columnNumber}`
+        : 'unknown-location'
+      consoleErrors.push(`${locationLabel} ${text}`)
     }
   })
 

@@ -658,11 +658,27 @@ export class BasePage extends BuiltInsPage {
   /**
    * Returns up to (currently) 200 last uncaught exceptions from this page
    */
-  async expectNoErrors(): Promise<Array<Error>> {
+  async getFilteredPageErrors(): Promise<Array<Error>> {
     await this.waitForPageComplete()
     const errors = await this._page.pageErrors()
-    const filteredErrors = errors.filter((error) => !this.isIgnorablePageError(error))
-    expect(filteredErrors).toHaveLength(0)
+    return errors.filter((error) => !this.isIgnorablePageError(error))
+  }
+
+  async expectNoErrors(): Promise<Array<Error>> {
+    const filteredErrors = await this.getFilteredPageErrors()
+
+    const formattedErrors = filteredErrors
+      .map((error, index) => {
+        const header = `[${index + 1}] ${error.name}: ${error.message}`
+        const stack = error.stack ? `\n${error.stack}` : ''
+        return `${header}${stack}`
+      })
+      .join('\n\n')
+
+    expect(
+      filteredErrors,
+      formattedErrors.length > 0 ? `Unexpected page errors:\n\n${formattedErrors}` : undefined
+    ).toHaveLength(0)
     return filteredErrors
   }
 

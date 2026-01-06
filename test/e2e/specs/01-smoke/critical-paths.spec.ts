@@ -101,21 +101,64 @@ test.describe('Critical Paths @smoke', () => {
     await page.expectCookiesContactForm()
   })
 
-  test('@ready main pages have no 404 errors', async ({ page: playwrightPage}) => {
+  test('@ready main pages have no 404 errors', async ({ page: playwrightPage }, testInfo) => {
     const page = await BasePage.init(playwrightPage)
     await page.enable404Listener()
+
+    const failures: string[] = []
     for (const { url: path } of page.navigationItems) {
       page.reset404Errors()
       await page.goto(path)
-      expect(page.errors404, `Received 404 errors for:\n${page.errors404.join("\n")}`).toHaveLength(0)
+
+      if (page.errors404.length > 0) {
+        failures.push(`${path}\n${page.errors404.map((error) => `  - ${error}`).join('\n')}`)
+      }
     }
+
+    if (failures.length > 0) {
+      await testInfo.attach('404-errors', {
+        body: failures.join('\n\n'),
+        contentType: 'text/plain',
+      })
+    }
+
+    expect(
+      failures,
+      failures.length > 0 ? `Received 404 errors:\n\n${failures.join('\n\n')}` : undefined
+    ).toHaveLength(0)
   })
 
-  test('@ready main pages have no errors', async ({ page: playwrightPage }) => {
+  test('@ready main pages have no errors', async ({ page: playwrightPage }, testInfo) => {
     const page = await BasePage.init(playwrightPage)
+
+    const failures: string[] = []
     for (const { url: path } of page.navigationItems) {
       await page.goto(path)
-      await page.expectNoErrors()
+
+      const errors = await page.getFilteredPageErrors()
+      if (errors.length > 0) {
+        const formattedErrors = errors
+          .map((error, index) => {
+            const header = `[${index + 1}] ${error.name}: ${error.message}`
+            const stack = error.stack ? `\n${error.stack}` : ''
+            return `${header}${stack}`
+          })
+          .join('\n\n')
+
+        failures.push(`${path}\n${formattedErrors}`)
+      }
     }
+
+    if (failures.length > 0) {
+      await testInfo.attach('page-errors', {
+        body: failures.join('\n\n'),
+        contentType: 'text/plain',
+      })
+    }
+
+    expect(
+      failures,
+      failures.length > 0 ? `Unexpected page errors:\n\n${failures.join('\n\n')}` : undefined
+    ).toHaveLength(0)
   })
 })

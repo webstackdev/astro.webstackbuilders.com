@@ -98,142 +98,32 @@ if (window.matchMedia) {
 }
 ```
 
+## Playwright 01-smoke errors
+
 ```bash
-1) [mobile-chrome] › test/e2e/specs/01-smoke/critical-paths.spec.ts:38:3 › Critical Paths @smoke › @ready mobile navigation works across main pages
-
-TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.
-
-    at ../helpers/pageObjectModels/BasePage.ts:263
-
-  261 |     }
-  262 |
-> 263 |     await this._page.waitForFunction(
-      |                      ^
-  264 |       () => {
-  265 |         const header = document.getElementById('header')
-  266 |         const menu = document.querySelector('.main-nav-menu')
-    at BasePage.openMobileMenu (/home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/test/e2e/helpers/pageObjectModels/BasePage.ts:263:22)
-    at /home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/test/e2e/specs/01-smoke/critical-paths.spec.ts:53:7
-
-attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-.cache/playwright/output/01-smoke-critical-paths-Cr-fda54-ion-works-across-main-pages-mobile-chrome/test-failed-1.png
-────────────────────────────────────────────────────────────────────────────────────────────────
-
-Error Context: .cache/playwright/output/01-smoke-critical-paths-Cr-fda54-ion-works-across-main-pages-mobile-chrome/error-context.md
-
-2) [mobile-safari] › test/e2e/specs/01-smoke/critical-paths.spec.ts:114:3 › Critical Paths @smoke › @ready main pages have no errors
-
-Error: expect(received).toHaveLength(expected)
-
-Expected length: 0
-Received length: 1
-Received array:  [[Fetch API cannot load http: /localhost:4321/offline due to access control checks.]]
-
-    at ../helpers/pageObjectModels/BasePage.ts:665
-
-  663 |     const errors = await this._page.pageErrors()
-  664 |     const filteredErrors = errors.filter((error) => !this.isIgnorablePageError(error))
-> 665 |     expect(filteredErrors).toHaveLength(0)
-      |                            ^
-  666 |     return filteredErrors
-  667 |   }
-  668 |
-    at BasePage.expectNoErrors (/home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/test/e2e/helpers/pageObjectModels/BasePage.ts:665:28)
-    at /home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/test/e2e/specs/01-smoke/critical-paths.spec.ts:118:7
-
-attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-.cache/playwright/output/01-smoke-critical-paths-Cr-4a53f-y-main-pages-have-no-errors-mobile-safari/test-failed-1.png
-────────────────────────────────────────────────────────────────────────────────────────────────
-
-Error Context: .cache/playwright/output/01-smoke-critical-paths-Cr-4a53f-y-main-pages-have-no-errors-mobile-safari/error-context.md
-
-2 failed
-[mobile-chrome] › test/e2e/specs/01-smoke/critical-paths.spec.ts:38:3 › Critical Paths @smoke › @ready mobile navigation works across main pages
-[mobile-safari] › test/e2e/specs/01-smoke/critical-paths.spec.ts:114:3 › Critical Paths @smoke › @ready main pages have no errors
-
-
-
-  1) [webkit] › test/e2e/specs/01-smoke/dynamic-pages.spec.ts:171:3 › Dynamic Pages @smoke › @ready dynamic pages have no console errors
-
-Error: expect(received).toHaveLength(expected)
-
-Expected length: 0
-Received length: 1
-Received array:  ["Failed to load resource: the server responded with a status of 403 (Forbidden)"]
-
-  192 |
-  193 |     // Fail if there are any unexpected 404s or errors
-> 194 |     expect(errorChecker.getFilteredErrors()).toHaveLength(0)
-      |                                              ^
-  195 |     expect(errorChecker.getFiltered404s()).toHaveLength(0)
-  196 |   })
-  197 | })
-    at /home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/test/e2e/specs/01-smoke/dynamic-pages.spec.ts:194:46
-
-attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-.cache/playwright/output/01-smoke-dynamic-pages-Dyn-8a015-ages-have-no-console-errors-webkit/test-failed-1.png
-────────────────────────────────────────────────────────────────────────────────────────────────
-
-Error Context: .cache/playwright/output/01-smoke-dynamic-pages-Dyn-8a015-ages-have-no-console-errors-webkit/error-context.md
-
-2) [mobile-safari] › test/e2e/specs/01-smoke/dynamic-pages.spec.ts:171:3 › Dynamic Pages @smoke › @ready dynamic pages have no console errors
-
-Error: expect(received).toHaveLength(expected)
-
-Expected length: 0
-Received length: 1
-Received array:  ["Failed to load resource: the server responded with a status of 403 (Forbidden)"]
-
-  192 |
-  193 |     // Fail if there are any unexpected 404s or errors
-> 194 |     expect(errorChecker.getFilteredErrors()).toHaveLength(0)
-      |                                              ^
-  195 |     expect(errorChecker.getFiltered404s()).toHaveLength(0)
-  196 |   })
-  197 | })
-    at /home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/test/e2e/specs/01-smoke/dynamic-pages.spec.ts:194:46
-
-attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-.cache/playwright/output/01-smoke-dynamic-pages-Dyn-8a015-ages-have-no-console-errors-mobile-safari/test-failed-1.png
-────────────────────────────────────────────────────────────────────────────────────────────────
-
-Error Context: .cache/playwright/output/01-smoke-dynamic-pages-Dyn-8a015-ages-have-no-console-errors-mobile-safari/error-context.md
-
-2 failed
-[webkit] › test/e2e/specs/01-smoke/dynamic-pages.spec.ts:171:3 › Dynamic Pages @smoke › @ready dynamic pages have no console errors
-[mobile-safari] › test/e2e/specs/01-smoke/dynamic-pages.spec.ts:171:3 › Dynamic Pages @smoke › @ready dynamic pages have no console errors
 ```
 
---color-blue-200
---color-blue-400
---color-blue-50
---color-blue-500
---color-gray-100
---color-gray-500
---color-orange-100
---color-purple-100
---color-purple-600
 
 Good Next Cascade Candidates (similar spirit to the text-* cleanup)
 
 Global/link-default underline styling (biggest repetition)
 
 Evidence: the exact pattern underline decoration-dotted decoration-content underline-offset-4 ... shows up 15 times across just 3 components (Footer/Calendar/BugReporter).
-What to cascade: give “normal text links” a default underline style (dotted + decoration-content + offset) via base CSS (or a shared wrapper scope), and then only override the exceptions.
+What to cascade: give "normal text links" a default underline style (dotted + decoration-content + offset) via base CSS (or a shared wrapper scope), and then only override the exceptions.
 Tradeoff: global a { … } is powerful but can surprise you (nav links, button-like links). A scoped approach (e.g., only inside markdown/content areas or only inside certain layout wrappers) is safer.
 Forms: default label + help text styling
 
 Evidence: text-content-active in forms is still repeated ~25 times across 3 form components (Contact/Download/Privacy), often paired with text-sm font-medium.
-What to cascade: set label default to color: var(--color-content-active) and font-weight/size inside a form wrapper (e.g. .form root), so individual labels don’t need to specify it.
+What to cascade: set label default to color: var(--color-content-active) and font-weight/size inside a form wrapper (e.g. .form root), so individual labels don't need to specify it.
 Tradeoff: safest when scoped to the Forms components (not global label { … } site-wide).
-Inline style in JS validation errors (small but “smelly”)
+Inline style in JS validation errors (small but "smelly")
 
 Evidence: validation.ts sets errorDiv.style.cssText = 'color: var(--color-danger); font-size: 0.85rem; ...'.
 What to cascade: assign a class and style it in CSS (then it inherits font family/line-height etc), instead of embedding presentation in JS.
-Tradeoff: not a huge volume win, but it’s a maintainability win and keeps styling consistent.
+Tradeoff: not a huge volume win, but it's a maintainability win and keeps styling consistent.
 Not worth it (yet)
 
-Placeholder color: only 4 placeholder:text-content-active occurrences right now, so the cascade win is small unless you want a stronger “form system” anyway.
+Placeholder color: only 4 placeholder:text-content-active occurrences right now, so the cascade win is small unless you want a stronger "form system" anyway.
 Font families: very few font-sans/serif/mono usages in components; most appear intentional.
 If you want me to implement, pick one:
 
