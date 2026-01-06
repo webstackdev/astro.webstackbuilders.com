@@ -8,6 +8,20 @@ export default {
       files: ['**/*.astro'],
       customSyntax: 'postcss-html',
     },
+    {
+      files: ['src/components/**/*.module.css'],
+      rules: {
+        /** Prefer component-scoped classes; avoid IDs in component styles. */
+        'selector-max-id': 0,
+      },
+    },
+    {
+      files: ['src/styles/print.css', 'src/styles/vendor/**/*.css', 'src/components/Forms/Contact/uppy-dashboard.css'],
+      rules: {
+        /** Allow vendor/print CSS to use !important when necessary. */
+        'declaration-no-important': null,
+      },
+    },
   ],
   plugins: [
     'stylelint-declaration-block-no-ignored-properties',
@@ -15,6 +29,9 @@ export default {
   ],
   rules: {
     ...standardConfig.rules,
+
+    /** Prefer solving conflicts via layering/specificity, not !important. */
+    'declaration-no-important': true,
 
     // Value notation
     'alpha-value-notation': [

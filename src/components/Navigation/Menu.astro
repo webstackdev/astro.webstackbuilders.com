@@ -28,8 +28,9 @@ const activeMenuItem = (url: string) => {
     tabindex="-1"
   >
     {
-      navigationItems.map(navItem => {
+      navigationItems.map((navItem, index) => {
         const isActive = isActiveMenuItem(navItem.url)
+        const delaySeconds = 0.15 + index * 0.05
         return (
           <li
             class:list={[
@@ -38,12 +39,13 @@ const activeMenuItem = (url: string) => {
               'lg:relative',
               ...activeMenuItem(navItem.url),
             ]}
+            style={`--nav-item-delay: ${delaySeconds}s`}
           >
             <a
               href={navItem.url}
               aria-current={isActive ? 'page' : undefined}
               class:list={[
-                'block text-primary text-xl font-bold tracking-[5px] uppercase no-underline text-center p-4 focus:outline-0',
+                'block text-primary text-xl font-bold tracking-[5px] uppercase no-underline text-center p-4',
                 'lg:text-lg lg:lowercase lg:tracking-normal lg:px-5 lg:py-3 lg:flex lg:items-center lg:relative lg:whitespace-nowrap lg:z-10',
                 styles.mainNavLink,
               ]}

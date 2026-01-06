@@ -44,7 +44,7 @@
     --font-size-5xl: 3.25rem;
     --font-size-6xl: 3.5rem;
     --font-size-7xl: 4rem;
-    }
+  }
 }
 
 @layer base {
@@ -52,15 +52,50 @@
    * Typography for base elements
    */
   body {
+    background-color: var(--color-page-base);
     color: var(--color-content);
+
+    /** Create a new block formatting context on the <body> element */
+    display: flow-root;
     font-family: var(--font-family-sans);
     font-size: var(--font-size-base);
     line-height: var(--line-height-normal);
+    min-height: 100vh;
+
+    /**
+     * Overflow must be hidden on both <html> and <body> to avoid triggering
+     * horizontal scrolling
+     */
+    overflow-x: hidden;
+    transition: color 0.15s, background-color 0.15s;
   }
 
   /** Reset font-style for address elements */
   address {
     font-style: normal;
+  }
+
+  /**
+  * Appearance of selected DOM nodes
+  * (Custom selection styling)
+  */
+  ::selection {
+    background: var(--color-primary-offset);
+    color: var(--color-primary);
+  }
+
+  /** Default link styling (single source of truth) */
+  a {
+    color: var(--color-content);
+    text-decoration-color: var(--color-primary);
+    text-decoration-line: underline;
+    text-decoration-style: dotted;
+    text-underline-offset: 4px;
+  }
+
+  a:hover,
+  a:focus-visible {
+    color: var(--color-secondary);
   }
 
   /** Ensure proper font weight for bold elements */
@@ -72,6 +107,12 @@
   /** Paragraph text styling */
   p {
     font-size: var(--font-size-lg);
+
+    /**
+    * Help prevent overflow of long words/names/URLs
+    * (Enhancement not in Tailwind Preflight)
+    */
+    hyphens: auto;
   }
 
   /** Blockquote styling */
@@ -120,7 +161,13 @@
   h4,
   h5,
   h6 {
+    /**
+    * Help prevent overflow of long words/names/URLs
+    * (Enhancement not in Tailwind Preflight)
+    */
+    hyphens: auto;
     line-height: var(--line-height-tight);
+    overflow-wrap: break-word;
   }
 
   h1,
@@ -166,6 +213,16 @@
     line-height: inherit;
   }
 
+  /**
+  * Help prevent overflow of long words/names/URLs
+  * (Enhancement not in Tailwind Preflight)
+  */
+  li {
+    /** Allow hyphens */
+    hyphens: auto;
+    overflow-wrap: break-word;
+  }
+
   /** Optgroup font weight */
   optgroup {
     font-weight: var(--font-weight-normal);
@@ -176,14 +233,5 @@
   sup {
     font-size: 0.75em;
     line-height: 0;
-  }
-}
-
-@layer utilities {
-  a {
-    text-decoration-color: var(--color-content);
-    text-decoration-line: underline;
-    text-decoration-style: dotted;
-    text-underline-offset: 4px;
   }
 }

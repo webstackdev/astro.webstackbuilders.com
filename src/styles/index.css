@@ -4,19 +4,29 @@
 @import "./themes/a11y.css";
 @import "./themes/light.css";
 
-/** Import CSS files - order matters */
-@import "./reset.css";
-@import "./fonts.css";
-@import "./typography.css";
-@import "./focus.css";
-@import "./markdown.css";
-@import "./print.css";
-@import "./shiki.css";
-@import "./vendor/carousel.css";
-@import "./general.css";
+/**
+ * Explicit cascade layer order.
+ * Tailwind defines its layers (base/components/utilities) internally.
+ * We keep our overrides layered and imported after Tailwind.
+ */
+@layer reset, base, components, utilities;
 
 /** Tailwind CSS base, components, and utilities */
 @import "tailwindcss";
+
+/**
+ * Global CSS overrides.
+ * These load after Tailwind so single-class selectors win predictably.
+ */
+@import "./reset.css" layer(reset);
+@import "./fonts.css" layer(base);
+@import "./typography.css";
+@import "./focus.css";
+@import "./markdown.css" layer(components);
+@import "./shiki.css" layer(components);
+@import "./vendor/carousel.css" layer(components);
+@import "./general.css" layer(components);
+@import "./print.css" layer(utilities);
 
 /** Replaces "content" key in Tailwind config */
 @source "../../src/**/*.{astro,ts,tsx,md,mdx}";

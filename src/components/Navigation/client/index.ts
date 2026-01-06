@@ -27,8 +27,11 @@ const MENU_TOGGLE_LABELS = {
 }
 
 export const CLASSES = {
-  navOpen: 'aria-expanded-true',
   noScroll: 'no-scroll',
+}
+
+export const ATTRIBUTES = {
+  navOpen: 'data-nav-open',
 }
 
 export class NavigationElement extends LitElement {
@@ -169,7 +172,7 @@ export class NavigationElement extends LitElement {
       'aria-label',
       this.isMenuOpen ? MENU_TOGGLE_LABELS.close : MENU_TOGGLE_LABELS.open
     )
-    this.header.classList.toggle(CLASSES.navOpen, this.isMenuOpen)
+    this.toggleAttribute(ATTRIBUTES.navOpen, this.isMenuOpen)
 
     if (this.isMenuOpen) {
       this.focusTrap?.activate()

@@ -1,23 +1,13 @@
 /**
  * Default Focus styles
  */
-a:focus,
-button:focus,
-input:focus,
-textarea:focus {
-  outline: 2px solid var(--color-secondary);
-}
+@layer base {
+  :where(a, button, input, textarea, select):focus-visible {
+    outline: 2px solid var(--color-secondary);
+  }
 
-/**
- * Sections excluded from the tabindex
- */
-[tabindex='-1']:focus {
-  outline: none !important;
-}
-
-/**
- * Links that are both focused and hovered
- */
-a:focus:hover {
-  outline: none;
+  /** Allow programmatic focus without a visible ring */
+  [tabindex='-1']:focus:not(:focus-visible) {
+    outline: none;
+  }
 }
