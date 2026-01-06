@@ -1,4 +1,6 @@
 ---
+import { ClientRouter } from 'astro:transitions'
+import { isProd } from '@lib/config/environmentServer'
 import Analytics from '@components/Analytics/index.astro'
 import Breadcrumbs from '@components/Breadcrumbs/index.astro'
 import Container from '@components/Layout/Container/index.astro'
@@ -12,7 +14,6 @@ import PwaTitleBar from '@components/Pwa/TitleBar/index.astro'
 import RegisterServiceWorker from '@components/Pwa/ServiceWorker/index.astro'
 import Skip from '@components/Layout/Skip/index.astro'
 import ThemePicker from '@components/ThemePicker/index.astro'
-import { ClientRouter } from 'astro:transitions'
 //import VtBotDebug from 'astro-vtbot/components/VtBotDebug.astro'
 //import Linter from 'astro-vtbot/components/Linter.astro'
 
@@ -107,12 +108,13 @@ const {
         </Content>
         <Footer />
       </Container>
-      {/** Vercel Analytics */}
-      <Analytics />
-      {/* Register the service worker via @vite-pwa/astro virtual module */}
-      <RegisterServiceWorker />
-      {/* Prefetch offline page during idle time for service worker */}
-      <PrefetchOfflinePage />
+      {isProd() && (
+        <>
+          <Analytics />
+          <RegisterServiceWorker />
+          <PrefetchOfflinePage />
+        </>
+      )}
     </body>
   </>
 </html>

@@ -25,6 +25,7 @@ import {
   getSentryAuthToken,
   getSiteUrl,
   isDev,
+  isE2eTest,
   isProd,
   isUnitTest,
   isVercel,
@@ -121,6 +122,18 @@ export default defineConfig({
       hmr: {
         clientPort: devServerPort,
       },
+    },
+    optimizeDeps: {
+      /**
+       * Force Vite dependency pre-bundling during Playwright E2E runs.
+       * This avoids flaky dev-server behavior where optimized deps can be stale or served inconsistently.
+       */
+      force: isE2eTest(),
+      /**
+       * Explicitly include known problematic ESM entrypoints so they're always pre-bundled.
+       * Related historical flake: optimized Lit directive module served with incorrect MIME type.
+       */
+      include: ['lit', 'lit/directives/if-defined.js'],
     },
     build: {
       /** Source map generation must be turned on for Sentry. */

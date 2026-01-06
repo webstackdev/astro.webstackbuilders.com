@@ -23,6 +23,13 @@ applyTo: "**/*.spec.ts"
 - If no existing `wait.*` knob fits, **ask what to do** before adding a new `wait.bespoke*` knob.
 - **transition:persist**: Apply to HTML elements in component definition, not on component usage
 
+## Vite Optimized Deps (E2E Determinism)
+
+- If Playwright E2E becomes flaky due to Vite "optimized deps" issues (e.g., stale/outdated optimized modules, wrong MIME type, 504 "Outdated Optimize Dep"), fix it by:
+	- Adding the problematic package/entrypoint to `vite.optimizeDeps.include` in `astro.config.ts`
+	- Enabling `vite.optimizeDeps.force` for Playwright runs (`PLAYWRIGHT=true`)
+- Priority is deterministic E2E runs over dev startup time.
+
 ## View Transitions Testing
 
 - `page.goto(url)` = Full page reload (no View Transitions)
