@@ -103,16 +103,6 @@ if (window.matchMedia) {
 ```bash
 ```
 
-
-Good Next Cascade Candidates (similar spirit to the text-* cleanup)
-
-Global/link-default underline styling (biggest repetition)
-
-Evidence: the exact pattern underline decoration-dotted decoration-content underline-offset-4 ... shows up 15 times across just 3 components (Footer/Calendar/BugReporter).
-What to cascade: give "normal text links" a default underline style (dotted + decoration-content + offset) via base CSS (or a shared wrapper scope), and then only override the exceptions.
-Tradeoff: global a { … } is powerful but can surprise you (nav links, button-like links). A scoped approach (e.g., only inside markdown/content areas or only inside certain layout wrappers) is safer.
-Forms: default label + help text styling
-
 Evidence: text-content-active in forms is still repeated ~25 times across 3 form components (Contact/Download/Privacy), often paired with text-sm font-medium.
 What to cascade: set label default to color: var(--color-content-active) and font-weight/size inside a form wrapper (e.g. .form root), so individual labels don't need to specify it.
 Tradeoff: safest when scoped to the Forms components (not global label { … } site-wide).
