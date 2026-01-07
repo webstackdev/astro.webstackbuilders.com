@@ -41,8 +41,7 @@
     transition: transform 0.3s cubic-bezier(0.86, 0, 0.07, 1) 0.1s;
   }
 
-  .mainNavItem:hover::after,
-  .mainNavItem:focus-within::after {
+  .mainNavItem:hover::after {
     transform: scaleX(1);
   }
 
@@ -60,13 +59,21 @@
   .mainNavLink {
     color: var(--color-primary-offset);
     text-decoration: underline dotted var(--color-primary-offset) 2px;
+    text-decoration-color: var(--color-primary-offset);
     text-underline-offset: 8px;
+    transition: color 0.2s ease, text-decoration-color 0s linear 0.4s;
   }
 
   .mainNavLink:hover,
-  .mainNavLink:focus {
+  .mainNavLink:focus-visible {
     color: var(--color-primary);
     text-decoration-color: transparent;
+    transition: color 0.2s ease, text-decoration-color 0s linear 0s;
+  }
+
+  .mainNavLink:focus-visible {
+    outline: 2px solid var(--color-spotlight);
+    outline-offset: 4px;
   }
 
   .navItemActive a,
