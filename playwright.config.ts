@@ -8,7 +8,9 @@ import { testDatabaseFile } from './test/e2e/config/runtime/paths'
 import dotenv from 'dotenv'
 import { isCI } from 'src/lib/config/environmentServer'
 
-if ( !isCI() ) dotenv.config({ path: '.env.development' })
+if (!isCI()) {
+  dotenv.config({ path: '.env.development', quiet: true })
+}
 
 process.env['ASTRO_DATABASE_FILE'] = process.env['ASTRO_DATABASE_FILE'] ?? testDatabaseFile
 process.env['PLAYWRIGHT'] = process.env['PLAYWRIGHT'] ?? 'true'

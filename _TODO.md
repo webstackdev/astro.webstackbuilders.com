@@ -97,7 +97,3 @@ if (window.matchMedia) {
     });
 }
 ```
-
-```bash
-
-```

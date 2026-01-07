@@ -90,21 +90,18 @@ test.describe('Newsletter Subscription Form', () => {
 
     // Set up intercept for API call to slow it down
     const browserName = newsletterPage.context().browser()?.browserType().name()
-    const delayMs = browserName === 'webkit' ? 300 : 100
-    const delayOverride = await delayFetchForEndpoint(newsletterPage.page, { endpoint: newsletterSubscribeActionEndpoint, delayMs })
+    const delayMs = browserName === 'firefox' ? 500 : browserName === 'webkit' ? 300 : 100
+    const delayOverride = await delayFetchForEndpoint(newsletterPage.page, { endpoint: actionsEndpointPrefix, delayMs })
 
     // Click submit and immediately check for spinner
     const submitButton = newsletterPage.locator('#newsletter-submit')
 
-    // Submit form and check loading state immediately
-    const submitPromise = submitButton.click()
-
     try {
       // The spinner should enter the loading state during the API call
-      await newsletterPage.waitForSpinnerLoadingState()
-
-      // Wait for the submit to complete
-      await submitPromise
+      await Promise.all([
+        newsletterPage.waitForSpinnerLoadingState(),
+        submitButton.click(),
+      ])
     } finally {
       await delayOverride.restore()
     }
