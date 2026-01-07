@@ -4,7 +4,7 @@ import Audio from '@uppy/audio'
 import Webcam from '@uppy/webcam'
 
 import type { ContactFormElements } from './@types'
-import { queryUppyDashboardTarget } from './selectors'
+import { queryAccessibilityLabelTargets, queryUppyDashboardTarget } from './selectors'
 import { isUnitTest } from '@components/scripts/utils/environmentClient'
 
 export interface UploadController {
@@ -41,6 +41,47 @@ const toFile = (value: Blob | File, name: string): File => {
 }
 
 const isNonNullable = <T>(value: T | null | undefined): value is T => value != null
+
+const ensureUppyTextInputsAreLabeled = (root: ParentNode & Node): MutationObserver => {
+  const labelIfMissing = (element: Element): void => {
+    if (!(element instanceof HTMLElement)) return
+    if (!element.matches('input[type="text"], input[type="email"], textarea')) return
+
+    const hasId = element.hasAttribute('id')
+    const ariaLabel = element.getAttribute('aria-label')
+    const ariaLabelledBy = element.getAttribute('aria-labelledby')
+    if (hasId || ariaLabel || ariaLabelledBy) return
+
+    const placeholder =
+      element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement
+        ? element.placeholder
+        : ''
+    const fallback = placeholder || element.getAttribute('name') || 'File upload'
+
+    element.setAttribute('aria-label', fallback)
+  }
+
+  queryAccessibilityLabelTargets(root).forEach(labelIfMissing)
+
+  const observer = new MutationObserver(mutations => {
+    mutations.forEach(mutation => {
+      mutation.addedNodes.forEach(node => {
+        if (!(node instanceof Element)) return
+        if (node.matches('input[type="text"], input[type="email"], textarea')) {
+          labelIfMissing(node)
+          return
+        }
+
+        if ('querySelectorAll' in node) {
+          queryAccessibilityLabelTargets(node as ParentNode).forEach(labelIfMissing)
+        }
+      })
+    })
+  })
+
+  observer.observe(root, { childList: true, subtree: true })
+  return observer
+}
 
 export const initUppyUpload = (elements: ContactFormElements): UploadController | null => {
   if (!elements.uppyContainer) {
@@ -81,6 +122,10 @@ export const initUppyUpload = (elements: ContactFormElements): UploadController 
     .use(Audio)
     .use(Webcam)
 
+  // Uppy renders several UI inputs dynamically and may also place auxiliary UI outside the
+  // immediate dashboard target. Ensure any text/email inputs are given an accessible name.
+  const ariaObserver = ensureUppyTextInputsAreLabeled(document)
+
   const reset = (): void => {
     uppy.cancelAll()
     const fileIds = uppy.getFiles().map(file => file.id)
@@ -100,6 +145,9 @@ export const initUppyUpload = (elements: ContactFormElements): UploadController 
         .filter(isNonNullable)
     },
     reset,
-    destroy: () => uppy.destroy(),
+    destroy: () => {
+      ariaObserver.disconnect()
+      uppy.destroy()
+    },
   }
 }

@@ -137,3 +137,19 @@ export const queryUppyDashboardTarget = (uppyContainer: HTMLElement | null): HTM
   const dashboardTarget = uppyContainer.querySelector('#uppyDashboard')
   return dashboardTarget instanceof HTMLElement ? dashboardTarget : null
 }
+
+export type AccessibilityLabelTarget = HTMLInputElement | HTMLTextAreaElement
+
+const isAccessibilityLabelTarget = (element: Element): element is AccessibilityLabelTarget => {
+  if (isInputElement(element)) {
+    return element.type === 'text' || element.type === 'email'
+  }
+
+  return element.tagName === 'TEXTAREA'
+}
+
+export const queryAccessibilityLabelTargets = (root: ParentNode): AccessibilityLabelTarget[] => {
+  return Array.from(root.querySelectorAll('input[type="text"], input[type="email"], textarea')).filter(
+    isAccessibilityLabelTarget
+  )
+}
