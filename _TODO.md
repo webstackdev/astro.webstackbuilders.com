@@ -1,41 +1,23 @@
 <!-- markdownlint-disable-file -->
 # TODO
 
-## Refactor E2E Test Suite
-
-### Files with Skipped Tests
+## E2E Files with Skipped Tests
 
 Blocked Categories (44 tests):
 
-Visual regression testing (18) - Needs Percy/Chromatic
-Lighthouse audits (6) - Integration pending
-Newsletter double opt-in (6) - Email testing infrastructure
+Visual regression testing (18)
+
+Playwright's Built-in Visual Testing
+
+Playwright has a built-in visual comparison feature using await expect(page).toHaveScreenshot().
+
+How it works: On the first run, Playwright saves a baseline screenshot. Subsequent runs compare the actual screenshot to this baseline, failing the test if there are pixel differences.
+
+Pros: It's free, everything stays local (no third-party services needed), setup is simple, and you retain full control over the baseline images in your repository.
+
+Cons: Browser rendering can be inconsistent across different operating systems and machines, leading to "flaky" tests or false positives. Managing baselines for multiple browsers and resolutions manually can also be challenging at scale.
+
 Axe accessibility (2) - axe-core integration
-
-### Axe tags
-
-cat.aria: Rules related to Accessible Rich Internet Applications (ARIA) attributes and roles.
-cat.color: Rules related to color contrast and meaning conveyed by color.
-cat.controls: Rules for interactive controls, such as form elements and links.
-cat.forms: Rules specifically for forms, form fields, and their labels.
-cat.keyboard: Rules related to keyboard operability.
-cat.links: Rules for links, including their names and destinations.
-cat.name-role-value: Rules that check if an element has a name, role, and value that can be correctly interpreted by assistive technologies.
-cat.semantics: Rules related to the semantic structure of a document, such as headings and landmarks.
-cat.sensory-and-visual-cues: Rules that deal with information conveyed by sensory or visual characteristics.
-cat.structure: Rules related to the document's overall structure, like the proper nesting of elements.
-cat.tables: Rules for data tables, including headers and associations.
-cat.text-alternatives: Rules for ensuring that text alternatives are provided for non-text content, such as images.
-
-## Content Redo - Tag Groups
-
-- Platform Engineering
-- DevOps
-- Kubernetes
-- Infrastructure as Code
-- Containers
-- API Management
-- SRE
 
 ## Search UI
 
@@ -81,7 +63,7 @@ window.addEventListener('afterprint', (event) => {
 })
 ```
 
-or listen for changes:
+Or listen for changes:
 
 ```typescript
 if (window.matchMedia) {
@@ -97,3 +79,7 @@ if (window.matchMedia) {
     });
 }
 ```
+
+Please analyze the document CONTENT_PLANNING_OPUS.md
+
+Please add a suggested set of tag groups that would be appropriate for the content goals of the site, as described in the document. These are top-level content organization categories like "DevOps". Then, sketch out 30+ article ideas organized by the tag group they most relate to (they can fall under more than one tag group).
