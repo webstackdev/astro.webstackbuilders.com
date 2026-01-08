@@ -1,24 +1,67 @@
 ---
+import { getCollection } from 'astro:content'
+
 export interface Props {
   tags: string[]
 }
 
 const { tags } = Astro.props
+
+const allTags = await getCollection('tags')
+
+type TagMeta = {
+  slug: string
+  displayName: string
+}
+
+const tagMetaByIdentifier = new Map<string, TagMeta>()
+
+for (const tagEntry of allTags) {
+  const meta: TagMeta = {
+    slug: tagEntry.data.slug,
+    displayName: tagEntry.data.displayName,
+  }
+
+  tagMetaByIdentifier.set(tagEntry.id, meta)
+  tagMetaByIdentifier.set(tagEntry.data.slug, meta)
+
+  if (tagEntry.id.endsWith('/index')) {
+    tagMetaByIdentifier.set(tagEntry.id.replace(/\/index$/, ''), meta)
+  }
+
+  tagMetaByIdentifier.set(`${tagEntry.data.slug}/index`, meta)
+  tagMetaByIdentifier.set(`${tagEntry.data.slug}/index.mdx`, meta)
+  tagMetaByIdentifier.set(`${tagEntry.data.slug}/index.md`, meta)
+}
+
+const resolveTagMeta = (rawTag: string) => {
+  return (
+    tagMetaByIdentifier.get(rawTag) ??
+    tagMetaByIdentifier.get(rawTag.replace(/\.(md|mdx)$/, '')) ??
+    tagMetaByIdentifier.get(rawTag.replace(/\/index$/, ''))
+  )
+}
 ---
 
 <ul class="flex flex-wrap gap-1 list-none p-0 m-0" aria-label="Article tags">
   {
-    tags.map(tag => (
-      <li>
-        <a
-          href={`/tags/${tag}`}
-          rel="tag"
-          itemprop="keywords"
-          class="inline-block px-2 py-0.5 bg-page-active rounded text-xs no-underline transition-colors hover:bg-spotlight hover:text-primary focus:bg-spotlight focus:text-primary"
-        >
-          {tag}
-        </a>
-      </li>
-    ))
+    tags.map(rawTag => {
+      const meta = resolveTagMeta(rawTag)
+      const href = meta ? `/tags/${meta.slug}` : `/tags/${rawTag}`
+      const label = meta ? meta.displayName : rawTag
+
+      return (
+        <li>
+          <a
+            href={href}
+            rel="tag"
+            itemprop="keywords"
+            class="inline-block px-2 py-0.5 bg-page-active rounded text-xs no-underline transition-colors hover:bg-spotlight hover:text-primary focus:bg-spotlight focus:text-primary"
+          >
+            {label}
+          </a>
+        </li>
+      )
+    })
   }
 </ul>

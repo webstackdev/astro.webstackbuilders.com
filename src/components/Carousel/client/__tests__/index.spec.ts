@@ -60,7 +60,7 @@ vi.mock('@components/scripts/store', () => ({
 }))
 
 type CarouselComponentModule = WebComponentModule<CarouselElement>
-type ConcreteCarouselProps = Required<CarouselProps<'articles'>>
+type ConcreteCarouselProps = CarouselProps<'articles'>
 
 vi.mock('astro:content', () => ({
   getCollection: vi.fn(async () => sampleCollection),

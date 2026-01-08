@@ -10,21 +10,25 @@ import { prepareItems } from './server'
 
 export interface Props {
   title?: string
+  titleHref?: string
   limit?: number
   variant?: CarouselVariant
   currentSlug: string
   type: CollectionSlug
+  items?: ItemType[]
 }
 
 const {
   title = 'Featured Content',
+  titleHref,
   limit = 3,
   variant = 'featured',
   currentSlug,
   type,
+  items: itemsOverride,
 } = Astro.props
 
-const allItems = await getCollection(collectionMap[type])
+const allItems = itemsOverride ?? (await getCollection(collectionMap[type]))
 const items = prepareItems(allItems, variant, currentSlug, limit)
 
 const carouselId = `carousel-${type}-${variant}-${currentSlug}`
@@ -36,7 +40,13 @@ const carouselId = `carousel-${type}-${variant}-${currentSlug}`
       <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <header class="text-center mb-12">
           <h2 id={`${carouselId}-title`} class="text-3xl md:text-4xl font-bold">
-            {title}
+            {titleHref ? (
+              <a href={titleHref} class="hover:text-primary transition-colors duration-200">
+                {title}
+              </a>
+            ) : (
+              title
+            )}
           </h2>
         </header>
 

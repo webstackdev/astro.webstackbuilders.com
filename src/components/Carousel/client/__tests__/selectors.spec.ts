@@ -76,7 +76,7 @@ vi.mock('embla-carousel-autoplay', () => ({
 
 type CarouselModule = WebComponentModule<CarouselElement>
 
-type ConcreteCarouselProps = Required<CarouselProps<'articles'>>
+type ConcreteCarouselProps = CarouselProps<'articles'>
 
 const defaultCarouselProps: ConcreteCarouselProps = {
   title: 'Featured Articles',

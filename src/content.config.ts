@@ -10,41 +10,17 @@
  */
 import { defineCollection, reference, z, type SchemaContext } from 'astro:content'
 import { glob, file } from 'astro/loaders'
-import { existsSync, readdirSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
 /**
- * Wraps a collection schema with a refinement that enforces breadcrumb title length limits */
+ * Wraps a collection schema with a refinement that enforces breadcrumb title length limits
+ */
 import { withBreadcrumbTitleWarning } from '@lib/helpers/breadcrumbTitleLengthRefinement'
 
 /**
- * NOTE: In YAML, dates written without quotes around them are interpreted as Date objects */
+ * NOTE: In YAML, dates written without quotes around them are interpreted as Date objects
+ */
 
-/** Only load markdown and MDX files that do not start with an underscore */
-const pattern = '**\/[^_]*.{md,mdx}'
-
-function fsExists(url: URL) {
-  return existsSync(fileURLToPath(url))
-}
-
-const getValidTags = () => {
-  const tagContentDir = fileURLToPath(new URL('./content/tags', import.meta.url))
-  const tagSlugs = readdirSync(tagContentDir, { withFileTypes: true })
-    .filter(entry => entry.isDirectory() && !entry.name.startsWith('_'))
-    .filter(entry => {
-      const indexMd = new URL(`./content/tags/${entry.name}/index.md`, import.meta.url)
-      const indexMdx = new URL(`./content/tags/${entry.name}/index.mdx`, import.meta.url)
-      return fsExists(indexMd) || fsExists(indexMdx)
-    })
-    .map(entry => entry.name)
-    .sort((a, b) => a.localeCompare(b, 'en'))
-
-  if (tagSlugs.length === 0) {
-    throw new Error('No tags found. Add markdown files under src/content/tags.')
-  }
-  return tagSlugs as [string, ...string[]]
-}
-
-const validTags = getValidTags()
+const pattern = '**/index.{md,mdx}'
+const flatMarkdownPattern = '**/*.{md,mdx}'
 
 const createBaseCollectionSchema = ({ image }: SchemaContext) =>
   z.object({
@@ -55,7 +31,6 @@ const createBaseCollectionSchema = ({ image }: SchemaContext) =>
     featured: z.boolean().default(false),
     isDraft: z.boolean().default(false),
     publishDate: z.date(),
-    tags: z.array(z.enum(validTags)),
   })
 
 const createSocialCollectionSchema = () =>
@@ -87,6 +62,7 @@ const articlesCollection = defineCollection({
         author: reference('authors'),
         readingTime: z.string().optional(),
         showToc: z.boolean().default(true),
+        tags: reference('tags').array(),
       }),
       'articles'
     ),
@@ -188,7 +164,7 @@ const aboutCollection = defineCollection({
  * Authors
  */
 const authorsCollection = defineCollection({
-  loader: glob({ pattern, base: './src/content/authors' }),
+  loader: glob({ pattern: flatMarkdownPattern, base: './src/content/authors' }),
   schema: () =>
     z.object({
       id: z.string(),
@@ -222,7 +198,7 @@ const contactDataCollection = defineCollection({
  * Tags
  */
 const tagsCollection = defineCollection({
-  loader: glob({ pattern: '**/index.{md,mdx}', base: './src/content/tags' }),
+  loader: glob({ pattern, base: './src/content/tags' }),
   schema: ({ image }) =>
     z.object({
       slug: z.string(),
@@ -243,7 +219,6 @@ const testimonialCollection = defineCollection({
     z.object({
       name: z.string(),
       organization: z.string().optional(),
-      tags: z.array(z.enum(validTags)),
       avatar: z
         .object({
           src: z.string(),

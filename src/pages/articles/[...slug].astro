@@ -39,7 +39,7 @@ const section = `Articles`
   publishDate={article.data.publishDate}
   section={section}
   showToc={article.data.showToc ?? true}
-  tags={article.data.tags}
+  tags={article.data.tags?.map(t => (typeof t === 'string' ? t : t.id)) ?? []}
   {...article.data.readingTime && { readingTime: article.data.readingTime }}
 >
   {/** SLOT: hero-image */}

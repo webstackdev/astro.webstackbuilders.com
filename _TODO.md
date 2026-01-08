@@ -88,6 +88,14 @@ if (window.matchMedia) {
 }
 ```
 
-## Tags cards
+Our site has tag pages that are categories for article content. Each of the individual tag pages should have a paragraph or two in the markdown field that describes what the tag (category) is about and covers. Right now at the top of the content area on each page, there are some bullet points or a brief description. Please refer to ./CONTENT.md for the voice and focus of content on the site. Then please do the following:
 
-Put the tags on the all-categories top level page into carousels by category
+1. Rewrite the content between the last frontmatter code fence (`---`) and the "Article Ideas" header as described above, into an introduction to this category.
+
+2. Rewrite the "TODO" in the "description" front matter to feature a brief description of the category that can be shown in tooltips when a user hovers over a tag name on an article page and that's used in SEO metadata like OpenGraph descriptions.
+
+3. In the "Cover Prompt" header, add four or five AI prompts that can be used to generate a cover image for this category. I don't have a defined visual style for the site yet except that it is technical, modern, interesting (so cartoon balloon speech tags are ok), and highly professional. The suggested AI prompts for image generation should be very detailed. I'm hoping to find a visual style from evaluating prompt suggestions for images.
+
+4. At the very bottom of the tag / category page, add a header named "Slug and displayName Suggestions" and add four or five alternate suggestions for the slug and displayName (alternatives to the `slug` and `displayName` already defined in frontmatter properties and the slug the directory the index.mdx file is named after).
+
+5. On most tag / category pages, ignore the content between the "Article Ideas" header and the "Cover Prompt" header. However, for api-platforms-and-edge, we are very weak on article ideas. Please add 8 more article ideas for this tag / category. It seems like maybe we should have something about swagger, and something about managing costs associated with API endpoints.

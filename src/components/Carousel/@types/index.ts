@@ -15,10 +15,12 @@ type CollectionEntryMap = {
 
 export interface CarouselProps<T extends CollectionSlug = CollectionSlug> {
   title?: string
+  titleHref?: string
   limit?: number
   variant?: CarouselVariant
   currentSlug: string
   type: T
+  items?: Array<ItemType<T>>
 }
 
 export type ItemType<T extends CollectionSlug = CollectionSlug> = CollectionEntryMap[T]
