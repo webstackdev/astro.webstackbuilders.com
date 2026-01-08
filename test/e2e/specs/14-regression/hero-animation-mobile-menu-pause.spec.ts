@@ -157,12 +157,11 @@ test.describe('Hero Animation - Mobile Menu Pause Regression', () => {
     const hamburgerButton = page.locator('.nav-toggle-btn').first()
     const header = page.locator('#header')
 
-    // Get initial transform of the splash ::after pseudo-element (should be scale(0))
+    // Get initial transform of the splash backdrop element (should be scale(0))
     const initialTransform = await page.evaluate(() => {
-      const splash = document.querySelector('#mobile-splash')
-      if (!splash) return null
-      const afterStyles = window.getComputedStyle(splash, '::after')
-      return afterStyles.transform
+      const backdrop = document.querySelector('#mobile-splash-backdrop') as HTMLElement | null
+      if (!backdrop) return null
+      return window.getComputedStyle(backdrop).transform
     })
 
     expect(initialTransform).toContain('matrix') // Should have a transform
@@ -177,12 +176,11 @@ test.describe('Hero Animation - Mobile Menu Pause Regression', () => {
     // Wait for animation to start (give it ~100ms via animation frames)
     await waitForAnimationFrames(page.page, 6)
 
-    // Check that splash ::after is now scaling up (transform should change)
+    // Check that splash backdrop is now scaling up (transform should change)
     const expandedTransform = await page.evaluate(() => {
-      const splash = document.querySelector('#mobile-splash')
-      if (!splash) return null
-      const afterStyles = window.getComputedStyle(splash, '::after')
-      return afterStyles.transform
+      const backdrop = document.querySelector('#mobile-splash-backdrop') as HTMLElement | null
+      if (!backdrop) return null
+      return window.getComputedStyle(backdrop).transform
     })
 
     // The transform should have changed from initial state (animation is running/complete)

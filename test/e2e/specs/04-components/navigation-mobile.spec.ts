@@ -324,9 +324,9 @@ test.describe('Mobile Navigation', () => {
 
     // Splash should not be expanded initially
     const initialTransform = await playwrightPage.evaluate(() => {
-      const splash = document.querySelector('#mobile-splash')
-      const computedStyle = window.getComputedStyle(splash!, '::after')
-      return computedStyle.transform
+      const backdrop = document.querySelector('#mobile-splash-backdrop') as HTMLElement | null
+      if (!backdrop) return null
+      return window.getComputedStyle(backdrop).transform
     })
 
     // Open menu to activate backdrop
@@ -335,9 +335,9 @@ test.describe('Mobile Navigation', () => {
 
     // After opening menu, splash should be expanded and clickable
     const expandedTransform = await playwrightPage.evaluate(() => {
-      const splash = document.querySelector('#mobile-splash')
-      const computedStyle = window.getComputedStyle(splash!, '::after')
-      return computedStyle.transform
+      const backdrop = document.querySelector('#mobile-splash-backdrop') as HTMLElement | null
+      if (!backdrop) return null
+      return window.getComputedStyle(backdrop).transform
     })
 
     // The backdrop overlay exists and is displayed

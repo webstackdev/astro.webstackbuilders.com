@@ -46,6 +46,14 @@ We have E2E errors again testimonials slide on mobile chrome and safari. I think
 
 `test/e2e/specs/04-components/testimonials.spec.ts`:244:3 › Testimonials Component › @ready testimonials auto-rotate changes slide index
 
+## Move containers to dev server from Playwright
+
+We should start the mock containers with the dev server instead of with Playwright so that they're useable in a dev environment.
+
+## Add Tooltip component
+
+We need a Tooltip component. It should apply to the existing tooltips on the theme picker palettes.
+
 ## Improve print layout by hiding header and footer for articles, add tracking
 
 ```typescript
@@ -79,7 +87,3 @@ if (window.matchMedia) {
     });
 }
 ```
-
-Please analyze the document CONTENT_PLANNING_OPUS.md
-
-Please add a suggested set of tag groups that would be appropriate for the content goals of the site, as described in the document. These are top-level content organization categories like "DevOps". Then, sketch out 30+ article ideas organized by the tag group they most relate to (they can fall under more than one tag group).

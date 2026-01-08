@@ -71,13 +71,18 @@ describe('NavigationElement web component behavior', () => {
   }
 
   test('toggleMenu toggles menu visibility classes', async () => {
-    vi.useFakeTimers()
     await renderNavigation(async () => {
       const menu = document.querySelector('.main-nav-menu')
       const header = document.querySelector('#header')
       const toggleButton = document.querySelector('.nav-toggle-btn')
+      const splashBackdrop = document.querySelector('#mobile-splash-backdrop')
 
-      if (!isUlElement(menu) || !isHeaderElement(header) || !isButtonElement(toggleButton)) {
+      if (
+        !isUlElement(menu) ||
+        !isHeaderElement(header) ||
+        !isButtonElement(toggleButton) ||
+        !(splashBackdrop instanceof HTMLDivElement)
+      ) {
         throw new TestError('Navigation DOM structure is missing expected elements')
       }
 
@@ -90,7 +95,7 @@ describe('NavigationElement web component behavior', () => {
       expect(menu.classList.contains('menu-visible')).toBe(false)
       expect(setOverlayPauseStateMock).toHaveBeenNthCalledWith(1, 'navigation', true)
 
-      vi.advanceTimersByTime(600)
+      splashBackdrop.dispatchEvent(new Event('transitionend'))
       expect(menu.classList.contains('menu-visible')).toBe(true)
 
       toggleButton.click()
@@ -100,7 +105,6 @@ describe('NavigationElement web component behavior', () => {
       expect(menu.classList.contains('menu-visible')).toBe(false)
       expect(setOverlayPauseStateMock).toHaveBeenNthCalledWith(2, 'navigation', false)
     })
-    vi.useRealTimers()
   })
 
   test('Escape key closes the menu', async () => {
