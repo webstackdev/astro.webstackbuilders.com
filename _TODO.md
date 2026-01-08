@@ -96,7 +96,6 @@ test/e2e/specs/03-forms/newsletter-double-optin.spec.ts
 test/e2e/specs/04-components/animations-computers.spec.ts
 test/e2e/specs/04-components/social-shares.spec.ts
 test/e2e/specs/04-components/theme-picker.spec.ts
-test/e2e/specs/05-api/cron.spec.ts
 test/e2e/specs/10-system/package-release.spec.ts
 test/e2e/specs/14-regression/hero-animation-mobile-menu-pause.spec.ts
 

@@ -9,26 +9,9 @@ const allArticles = await getCollection('articles', ({ data }) => isDev() || dat
 
 const allTags = await getCollection('tags')
 
-const getTagIdentifiers = (tagEntry: CollectionEntry<'tags'>) => {
-  const identifiers = new Set<string>([tagEntry.id, tagEntry.data.slug])
-
-  if (tagEntry.id.endsWith('/index')) {
-    identifiers.add(tagEntry.id.replace(/\/index$/, ''))
-  }
-
-  identifiers.add(`${tagEntry.data.slug}/index`)
-  identifiers.add(`${tagEntry.data.slug}/index.mdx`)
-  identifiers.add(`${tagEntry.data.slug}/index.md`)
-
-  return identifiers
-}
-
 const getArticlesForTag = (tagEntry: CollectionEntry<'tags'>) => {
-  const identifiers = getTagIdentifiers(tagEntry)
-
   return allArticles.filter(article => {
-    const tags = (article.data.tags ?? []) as unknown as string[]
-    return tags.some(t => identifiers.has(t))
+    return article.data.tags.some(tagRef => tagRef.id === tagEntry.id)
   })
 }
 
@@ -42,7 +25,7 @@ for (const tag of tagsWithNoContent) {
   )
 }
 
-const pageDescription = 'Webstack Builders Services List'
+const pageDescription = 'Browse all article tags'
 const pageTitle = 'All Tags'
 const path = '/tags'
 const section = 'Tags'
