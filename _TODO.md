@@ -90,8 +90,6 @@ if (window.matchMedia) {
 
 ## E2E Test Errors
 
-test/e2e/specs/02-pages/tags.spec.ts
-test/e2e/specs/03-forms/consent-checkbox.spec.ts
 test/e2e/specs/03-forms/newsletter-double-optin.spec.ts
 test/e2e/specs/04-components/animations-computers.spec.ts
 test/e2e/specs/04-components/social-shares.spec.ts
@@ -99,21 +97,123 @@ test/e2e/specs/04-components/theme-picker.spec.ts
 test/e2e/specs/10-system/package-release.spec.ts
 test/e2e/specs/14-regression/hero-animation-mobile-menu-pause.spec.ts
 
+  1) [mobile-safari] › test/e2e/specs/03-forms/consent-checkbox.spec.ts:82:3 › Newsletter GDPR Consent › @ready GDPR label contains privacy policy link
+
+    Test timeout of 30000ms exceeded while running "beforeEach" hook.
+
+      65 |   let playwrightPage: Page
+      66 |
+    > 67 |   test.beforeEach(async ({ page }) => {
+         |        ^
+      68 |     playwrightPage = page
+      69 |     pageUnderTest = await BasePage.init(page)
+      70 |     await pageUnderTest.goto(HOME_PATH)
+        at /home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/test/e2e/specs/03-forms/consent-checkbox.spec.ts:67:8
+
+    Error: page.waitForLoadState: Test timeout of 30000ms exceeded.
+
+       at ../helpers/pageObjectModels/BuiltInsPage.ts:229
+
+      227 |    */
+      228 |   async waitForLoadState(state?: Parameters<Page['waitForLoadState']>[0]): Promise<void> {
+    > 229 |     await this._page.waitForLoadState(state)
+          |                      ^
+      230 |   }
+      231 |
+      232 |   /**
+        at BasePage.waitForLoadState (/home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/test/e2e/helpers/pageObjectModels/BuiltInsPage.ts:229:22)
+        at waitForNewsletterSection (/home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/test/e2e/specs/03-forms/consent-checkbox.spec.ts:31:14)
+        at /home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/test/e2e/specs/03-forms/consent-checkbox.spec.ts:71:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    .cache/playwright/output/03-forms-consent-checkbox--fb743-ontains-privacy-policy-link-mobile-safari/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: .cache/playwright/output/03-forms-consent-checkbox--fb743-ontains-privacy-policy-link-mobile-safari/error-context.md
+
+  2) [mobile-safari] › test/e2e/specs/03-forms/consent-checkbox.spec.ts:88:3 › Newsletter GDPR Consent › @ready privacy policy link opens in new tab
+
+    Test timeout of 30000ms exceeded while running "beforeEach" hook.
+
+      65 |   let playwrightPage: Page
+      66 |
+    > 67 |   test.beforeEach(async ({ page }) => {
+         |        ^
+      68 |     playwrightPage = page
+      69 |     pageUnderTest = await BasePage.init(page)
+      70 |     await pageUnderTest.goto(HOME_PATH)
+        at /home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/test/e2e/specs/03-forms/consent-checkbox.spec.ts:67:8
+
+    Error: page.waitForLoadState: Test timeout of 30000ms exceeded.
+
+       at ../helpers/pageObjectModels/BuiltInsPage.ts:229
+
+      227 |    */
+      228 |   async waitForLoadState(state?: Parameters<Page['waitForLoadState']>[0]): Promise<void> {
+    > 229 |     await this._page.waitForLoadState(state)
+          |                      ^
+      230 |   }
+      231 |
+      232 |   /**
+        at BasePage.waitForLoadState (/home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/test/e2e/helpers/pageObjectModels/BuiltInsPage.ts:229:22)
+        at waitForNewsletterSection (/home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/test/e2e/specs/03-forms/consent-checkbox.spec.ts:31:14)
+        at /home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/test/e2e/specs/03-forms/consent-checkbox.spec.ts:71:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    .cache/playwright/output/03-forms-consent-checkbox--876dc-olicy-link-opens-in-new-tab-mobile-safari/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: .cache/playwright/output/03-forms-consent-checkbox--876dc-olicy-link-opens-in-new-tab-mobile-safari/error-context.md
+
+  3) [mobile-safari] › test/e2e/specs/03-forms/consent-checkbox.spec.ts:136:3 › Newsletter GDPR Consent › @ready GDPR error message is displayed
+
+    Test timeout of 30000ms exceeded while running "beforeEach" hook.
+
+      65 |   let playwrightPage: Page
+      66 |
+    > 67 |   test.beforeEach(async ({ page }) => {
+         |        ^
+      68 |     playwrightPage = page
+      69 |     pageUnderTest = await BasePage.init(page)
+      70 |     await pageUnderTest.goto(HOME_PATH)
+        at /home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/test/e2e/specs/03-forms/consent-checkbox.spec.ts:67:8
+
+    Error: page.waitForLoadState: Test timeout of 30000ms exceeded.
+
+       at ../helpers/pageObjectModels/BuiltInsPage.ts:229
+
+      227 |    */
+      228 |   async waitForLoadState(state?: Parameters<Page['waitForLoadState']>[0]): Promise<void> {
+    > 229 |     await this._page.waitForLoadState(state)
+          |                      ^
+      230 |   }
+      231 |
+      232 |   /**
+        at BasePage.waitForLoadState (/home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/test/e2e/helpers/pageObjectModels/BuiltInsPage.ts:229:22)
+        at waitForNewsletterSection (/home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/test/e2e/specs/03-forms/consent-checkbox.spec.ts:31:14)
+        at /home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/test/e2e/specs/03-forms/consent-checkbox.spec.ts:71:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    .cache/playwright/output/03-forms-consent-checkbox--b0ace--error-message-is-displayed-mobile-safari/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: .cache/playwright/output/03-forms-consent-checkbox--b0ace--error-message-is-displayed-mobile-safari/error-context.md
+
+  3 failed
+    [mobile-safari] › test/e2e/specs/03-forms/consent-checkbox.spec.ts:82:3 › Newsletter GDPR Consent › @ready GDPR label contains privacy policy link
+    [mobile-safari] › test/e2e/specs/03-forms/consent-checkbox.spec.ts:88:3 › Newsletter GDPR Consent › @ready privacy policy link opens in new tab
+    [mobile-safari] › test/e2e/specs/03-forms/consent-checkbox.spec.ts:136:3 › Newsletter GDPR Consent › @ready GDPR error message is displayed
+
 ## Image generation models
 
-- dall-e
-- flux pro
-- nano banana
-- sd3
+- dall-e (OpenAI)
+- flux pro - text-to-image and image-to-image generation, developed by Black Forest Labs, known for its exceptional speed, high visual quality, and superior prompt adherence, offering features like advanced editing, video generation, and context-aware understanding through platforms like Flux.ai, Fal.ai, and Skywork.ai. It serves as a professional-grade creative tool, balancing performance with user-friendly access for detailed content creation.
+- nano banana (Google)
+- sd3 (Stability AI's Stable Diffusion 3, open source)
 
 ## Content Instructions
 
-Our site has tag pages that are categories for article content. Each of the individual tag pages should have a paragraph or two in the markdown field that describes what the tag (category) is about and covers. Right now at the top of the content area on each page, there are some bullet points or a brief description. Please refer to ./CONTENT.md for the voice and focus of content on the site. Then please do the following for src/content/tags/api-platforms-and-edge/index.mdx
-
-1. Rewrite the content between the last frontmatter code fence (`---`) and the "Article Ideas" header as described above, into an introduction to this category.
-
-2. Rewrite the "TODO" in the "description" front matter to feature a brief description of the category that can be shown in tooltips when a user hovers over a tag name on an article page and that's used in SEO metadata like OpenGraph descriptions.
-
-3. In the "Cover Prompt" header, add four or five AI prompts that can be used to generate a cover image for this category. I don't have a defined visual style for the site yet except that it is technical, modern, interesting (so cartoon balloon speech tags are ok), and highly professional. The suggested AI prompts for image generation should be very detailed. I'm hoping to find a visual style from evaluating prompt suggestions for images.
-
-4. At the very bottom of each article page, add a header named "Slug and displayName Suggestions" and add four or five alternate suggestions for the slug and displayName (alternatives to the `slug` and `displayName` already defined in frontmatter properties and the slug the directory the index.mdx file is named after).
+- building-with-astro
+- typescript-best-practices
+- useful-vs-code-extensions
+- writing-library-code
