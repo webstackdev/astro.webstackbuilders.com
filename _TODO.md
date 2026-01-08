@@ -88,7 +88,28 @@ if (window.matchMedia) {
 }
 ```
 
-Our site has tag pages that are categories for article content. Each of the individual tag pages should have a paragraph or two in the markdown field that describes what the tag (category) is about and covers. Right now at the top of the content area on each page, there are some bullet points or a brief description. Please refer to ./CONTENT.md for the voice and focus of content on the site. Then please do the following:
+## E2E Test Errors
+
+test/e2e/specs/02-pages/tags.spec.ts
+test/e2e/specs/03-forms/consent-checkbox.spec.ts
+test/e2e/specs/03-forms/newsletter-double-optin.spec.ts
+test/e2e/specs/04-components/animations-computers.spec.ts
+test/e2e/specs/04-components/social-shares.spec.ts
+test/e2e/specs/04-components/theme-picker.spec.ts
+test/e2e/specs/05-api/cron.spec.ts
+test/e2e/specs/10-system/package-release.spec.ts
+test/e2e/specs/14-regression/hero-animation-mobile-menu-pause.spec.ts
+
+## Image generation models
+
+- dall-e
+- flux pro
+- nano banana
+- sd3
+
+## Content Instructions
+
+Our site has tag pages that are categories for article content. Each of the individual tag pages should have a paragraph or two in the markdown field that describes what the tag (category) is about and covers. Right now at the top of the content area on each page, there are some bullet points or a brief description. Please refer to ./CONTENT.md for the voice and focus of content on the site. Then please do the following for src/content/tags/api-platforms-and-edge/index.mdx
 
 1. Rewrite the content between the last frontmatter code fence (`---`) and the "Article Ideas" header as described above, into an introduction to this category.
 
@@ -96,6 +117,4 @@ Our site has tag pages that are categories for article content. Each of the indi
 
 3. In the "Cover Prompt" header, add four or five AI prompts that can be used to generate a cover image for this category. I don't have a defined visual style for the site yet except that it is technical, modern, interesting (so cartoon balloon speech tags are ok), and highly professional. The suggested AI prompts for image generation should be very detailed. I'm hoping to find a visual style from evaluating prompt suggestions for images.
 
-4. At the very bottom of the tag / category page, add a header named "Slug and displayName Suggestions" and add four or five alternate suggestions for the slug and displayName (alternatives to the `slug` and `displayName` already defined in frontmatter properties and the slug the directory the index.mdx file is named after).
-
-5. On most tag / category pages, ignore the content between the "Article Ideas" header and the "Cover Prompt" header. However, for api-platforms-and-edge, we are very weak on article ideas. Please add 8 more article ideas for this tag / category. It seems like maybe we should have something about swagger, and something about managing costs associated with API endpoints.
+4. At the very bottom of each article page, add a header named "Slug and displayName Suggestions" and add four or five alternate suggestions for the slug and displayName (alternatives to the `slug` and `displayName` already defined in frontmatter properties and the slug the directory the index.mdx file is named after).
