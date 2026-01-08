@@ -87,3 +87,7 @@ if (window.matchMedia) {
     });
 }
 ```
+
+## Tags cards
+
+Put the tags on the all-categories top level page into carousels by category

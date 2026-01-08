@@ -7,4 +7,15 @@ coverAlt: "CRM"
 featured: false
 ---
 
-CRM content will be curated here.
+
+## GPT
+
+### GPT Article Ideas
+
+## Gemini
+
+### Gemini Article Ideas
+
+## Opus
+
+### Opus Article Ideas

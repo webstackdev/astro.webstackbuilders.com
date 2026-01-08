@@ -1,10 +1,27 @@
 ---
-slug: "online-learning"
+slug: "observability"
 displayName: "Online Learning"
-description: "Content tagged with Online Learning."
+description: "TODO"
 cover: "./cover.png"
-coverAlt: "Online Learning"
+coverAlt: "TODO"
 featured: false
 ---
 
-Online Learning content will be curated here.
+## GPT
+
+### Observability and Telemetry
+
+- Logging: structured logs, sampling, correlation, redaction
+- Metrics: cardinality, exemplars, aggregation choices
+- Tracing: propagation, span design, tail-based sampling
+- Alerting: signal design, paging policies, noise reduction
+
+### GPT Article Ideas
+
+## Gemini
+
+### Gemini Article Ideas
+
+## Opus
+
+### Opus Article Ideas
