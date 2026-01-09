@@ -1,6 +1,8 @@
 <!-- markdownlint-disable-file -->
 # TODO
 
+Clear All Workspace Chats
+
 ## E2E Files with Skipped Tests
 
 Blocked Categories (44 tests):
@@ -94,14 +96,25 @@ if (window.matchMedia) {
 - flux pro - text-to-image and image-to-image generation, developed by Black Forest Labs, known for its exceptional speed, high visual quality, and superior prompt adherence, offering features like advanced editing, video generation, and context-aware understanding through platforms like Flux.ai, Fal.ai, and Skywork.ai. It serves as a professional-grade creative tool, balancing performance with user-friendly access for detailed content creation.
 - nano banana (Google)
 - sd3 (Stability AI's Stable Diffusion 3, open source)
+- Seedream 4.0 model from ByteDance
+
+Considered excellent for text-to-image (T2I) tasks and is a top competitor in the field. It has been highly rated in benchmarks and is praised for its high-quality, realistic output and strong prompt adherence.
+
+Key Features for Text-to-Image Generation
+
+High Performance: The model performs well across core dimensions like prompt adherence, alignment, and aesthetics, often ranking first in internal and public evaluations.
+
+Aesthetics and Realism: It generates images that are very realistic, with impressive texture, lighting, and color, making it difficult to distinguish them from real photographs in some cases.
+
+High Resolution: Seedream 4.0 is capable of generating native high-resolution images, up to 4K (4096px), which is a significant advantage over many competing models that are often capped at 2K.
+
+Complex Text and Instruction Following: The model demonstrates an enhanced understanding of complex semantic prompts and excels in rendering dense and accurate text within the generated images, a common weakness in other AI image models.
 
 ## Move Tags Page
 
 The /tags route is really just the /articles route but better. We should redirect from /tags to /articles, and fix the breadcrumb so that it goes to /articles if someone clicks on the /tags part.
 
 ## Content Instructions
-
-
 
 We have generated detailed outlines for each of the MDX proposed articles we have in src/content/articles. It's time to write our articles. Review ./CONTENT.md for the goals and voice to use in our website. Each outline includes various components we use on our site that can be incorporated into the final article but do not have to be included if they don't fit into the content well or are excessive.
 
