@@ -8,7 +8,8 @@ const selectors = {
   toggle: '[data-animation-toggle]',
 }
 
-const overlaySource = 'e2e-computers-animation'
+// Matches the source used by the Navigation component when opening/closing the mobile menu.
+const overlaySource = 'navigation'
 
 interface FixtureOptions {
   reducedMotion?: 'no-preference' | 'reduce'

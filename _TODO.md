@@ -88,10 +88,6 @@ if (window.matchMedia) {
 }
 ```
 
-## E2E Test Errors
-
-test/e2e/specs/14-regression/hero-animation-mobile-menu-pause.spec.ts
-
 ## Image generation models
 
 - dall-e (OpenAI)
@@ -106,9 +102,9 @@ test/e2e/specs/14-regression/hero-animation-mobile-menu-pause.spec.ts
 - useful-vs-code-extensions
 - writing-library-code
 
-I want to generate detailed outlines in each of the MDX proposed articles we have in src/content/articles. Add the outline in the content section of the file. At the bottom of the file, add a "Cover Prompt" heading and add five detailed AI prompts to use with Flux Pro LLM to generate a cover image for the article. Each article should make use of the various components we have for MDX in src/content/articles/demo/index.mdx: Callouts, Grouped Code Tabs (if code examples in multiple programming languages make sense), otherwise single code examples in code fences (including highlights, insertions, and deletions in code examples), tables, footnotes, blockquotes with captions, lists, abbreviations, diagrams, charts, math examples, and images.
+I want to generate detailed outlines in each of the MDX proposed articles we have in src/content/articles. Review ./CONTENT.md for the goals and voice to use in our website. Add the outline in the content section of the file. At the bottom of the file, add a "Cover Prompt" heading and add five detailed AI prompts to use with Flux Pro LLM to generate a cover image for the article. Each article should make use of the various components we have for MDX in src/content/articles/demo/index.mdx: Callouts, Grouped Code Tabs (if code examples in multiple programming languages make sense), otherwise single code examples in code fences (including highlights, insertions, and deletions in code examples), tables, footnotes, blockquotes with captions, lists, abbreviations, diagrams, charts, math examples, and images.
 
-Make sure each article has multiple suggestions for including various components - especially code, diagrams, and charts. Include the suggestions in the outline along with detailed AI prompts to use in generating them, whether code, diagrams, or images.
+Make sure each article has multiple suggestions for including various of our astro components - especially code, diagrams, and charts. Include the suggestions in the outline along with detailed AI prompts to use in generating them, whether code, diagrams, or images.
 
 1.  The output must be a detailed, multi-level outline using Markdown headings (H1, H2, H3).
 2.  Start with a clear H1 title.
@@ -119,24 +115,6 @@ Make sure each article has multiple suggestions for including various components
 
 For context, You are a seasoned technical writer and content strategist with expertise in platform engineering. Your task is to generate a comprehensive, structured outline for a technical article. The outline should be detailed enough for another writer to produce the final content. I'll give you the article to outline one-by-one. The first is alert-fatigue-reduction-triage-actionable-alerts
 
-
-api-deprecation-sunset-headers-consumer-migration
-api-gateway-metrics-traces-logs-debugging
-api-usage-metering-quotas-cost-attribution
-api-versioning-deprecation-sunset-headers-migration
-argocd-sync-failures-gitops-debugging-troubleshooting
-availability-targets-five-nines-cost-benefit-analysis
-backpressure-load-shedding-admission-control-overload
-blameless-postmortem-incident-analysis-systemic-causes
-blue-green-canary-deployment-strategy-comparison
-cdn-edge-caching-cache-keys-vary-headers
-chaos-engineering-failure-injection-low-cost-experiments
-ci-pipeline-caching-docker-layers-dependency-cache
-circuit-breaker-retry-budget-cascade-failure-prevention
-consumer-driven-contract-testing-pact-internal-apis
-container-vulnerability-scanning-ci-shift-left-security
-contract-testing-consumer-driven-api-breaking-changes
-database-schema-migrations-continuous-deployment-zero-downtime
 dead-letter-queue-design-replay-debugging
 deployment-rollback-state-dependencies-feature-flags
 distributed-tracing-sampling-strategies-head-tail
