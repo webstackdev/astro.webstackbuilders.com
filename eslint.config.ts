@@ -461,6 +461,7 @@ export default [
       'test/e2e/db/libsqlClient.ts',
       'test/e2e/helpers/pageObjectModels/**/*',
       'test/e2e/helpers/mockServices.ts',
+      'test/e2e/specs/05-api/cron.spec.ts',
     ],
     rules: {
       'no-process-env': 'off',

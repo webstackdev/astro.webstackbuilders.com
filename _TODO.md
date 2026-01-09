@@ -115,16 +115,6 @@ Make sure each article has multiple suggestions for including various of our ast
 
 For context, You are a seasoned technical writer and content strategist with expertise in platform engineering. Your task is to generate a comprehensive, structured outline for a technical article. The outline should be detailed enough for another writer to produce the final content. I'll give you the article to outline one-by-one. The first is alert-fatigue-reduction-triage-actionable-alerts
 
-dead-letter-queue-design-replay-debugging
-deployment-rollback-state-dependencies-feature-flags
-distributed-tracing-sampling-strategies-head-tail
-eol-runtime-upgrade-dependency-hell-migration
-ephemeral-preview-environments-cost-control-cleanup
-error-budget-policy-slo-velocity-reliability-tradeoffs
-event-schema-versioning-compatibility-evolution
-flaky-test-diagnosis-race-conditions-e2e-stabilization
-golden-paths-developer-experience-standardization-autonomy
-grafana-dashboard-hygiene-pruning-actionable-metrics
 graphql-federation-caching-challenges-vs-rest
 helm-release-management-drift-detection-debugging
 idempotent-message-handlers-deduplication-retries
