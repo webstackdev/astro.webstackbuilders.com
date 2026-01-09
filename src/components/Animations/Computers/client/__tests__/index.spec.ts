@@ -257,6 +257,35 @@ describe('ComputersAnimationElement', () => {
     })
   })
 
+  it('does not start the animation when it is hidden on the current viewport', async () => {
+    await renderComputersAnimation(async ({ element, window }) => {
+      const originalGetComputedStyle = window.getComputedStyle
+
+      // The element auto-initializes via connectedCallback during rendering.
+      // Tear it down so we can re-initialize with a mocked display:none state.
+      element.disconnectedCallback()
+
+      gsapMock.timeline.mockClear()
+      gsapMock.set.mockClear()
+      createAnimationControllerMock.mockClear()
+
+      const getComputedStyleSpy = vi
+        .spyOn(window, 'getComputedStyle')
+        .mockReturnValue({ display: 'none' } as unknown as CSSStyleDeclaration)
+
+      try {
+        element.initialize()
+
+        expect(gsapMock.timeline).not.toHaveBeenCalled()
+        expect(createAnimationControllerMock).not.toHaveBeenCalled()
+        expect(element.getAttribute('data-animation-state')).toBe('paused')
+      } finally {
+        getComputedStyleSpy.mockRestore()
+        window.getComputedStyle = originalGetComputedStyle
+      }
+    })
+  })
+
   it('delegates pause and resume helpers to the GSAP timeline', async () => {
     await renderComputersAnimation(async ({ element }) => {
       element.initialize()

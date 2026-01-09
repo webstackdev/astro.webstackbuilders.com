@@ -100,12 +100,22 @@ export class ComputersAnimationElement extends LitElement {
     addScriptBreadcrumb(context)
 
     try {
-      this.startAnimation()
       this.toggleButton = queryAnimationToggleButton(this)
 
       if (this.toggleButton) {
         addButtonEventListeners(this.toggleButton, this.toggleClickHandler, this)
       }
+
+      // The component is `hidden lg:flex` in production markup.
+      // Avoid starting the animation (and registering lifecycle listeners) when the viewport
+      // is below the `lg` breakpoint, because it is not shown.
+      if (this.isHiddenOnThisViewport()) {
+        this.setAnimationState('paused')
+        this.initialized = true
+        return
+      }
+
+      this.startAnimation()
 
       const defaultState = this.getDefaultAnimationState()
       this.setAnimationState(defaultState)
@@ -130,6 +140,22 @@ export class ComputersAnimationElement extends LitElement {
       this.initialized = true
     } catch (error) {
       handleScriptError(error, context)
+    }
+  }
+
+  private isHiddenOnThisViewport(): boolean {
+    try {
+      if (typeof window === 'undefined') {
+        return false
+      }
+
+      if (typeof window.getComputedStyle !== 'function') {
+        return false
+      }
+
+      return window.getComputedStyle(this).display === 'none'
+    } catch {
+      return false
     }
   }
 

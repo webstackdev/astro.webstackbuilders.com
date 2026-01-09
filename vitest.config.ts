@@ -4,7 +4,7 @@ import { config as loadEnv } from 'dotenv'
 import { resolve } from 'path'
 import { getSiteUrl } from './src/lib/config'
 
-loadEnv({ path: resolve(process.cwd(), '.env.development'), override: false })
+loadEnv({ path: resolve(process.cwd(), '.env.development'), override: false, quiet: true } as never)
 
 /**
  * Needed to be able to skip running integrations in astro.config.ts
