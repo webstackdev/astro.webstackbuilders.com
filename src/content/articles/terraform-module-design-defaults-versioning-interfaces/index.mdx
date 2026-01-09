@@ -9,6 +9,1061 @@ tags: ["cloud-platforms"]
 featured: true
 ---
 
+*[API]: Application Programming Interface
+*[CI]: Continuous Integration
+*[HCL]: HashiCorp Configuration Language
+*[IAM]: Identity and Access Management
+*[IaC]: Infrastructure as Code
+*[RBAC]: Role-Based Access Control
+*[SemVer]: Semantic Versioning
+*[VPC]: Virtual Private Cloud
+
 Input variable design, sensible defaults, output contracts, and versioning strategies that let modules evolve.
 
 Good defaults make modules usable; good interfaces make them maintainable.
+
+## The Module Interface Contract
+
+A module's interface is a promise to its consumers—break it carelessly and you break their infrastructure.
+
+### What Constitutes a Module Interface
+
+The surface area that consumers depend on.
+
+```hcl
+# Module interface components
+#
+# 1. INPUT VARIABLES - The parameters consumers provide
+# 2. OUTPUT VALUES - The data consumers can reference
+# 3. RESOURCE BEHAVIOR - What gets created and how
+# 4. PROVIDER REQUIREMENTS - Version constraints and configuration
+# 5. IMPLICIT CONTRACTS - Naming conventions, tagging, etc.
+
+# A module's interface is everything a consumer can observe or depend on
+```
+
+```typescript
+// Interface contract analysis
+interface ModuleContract {
+  inputs: {
+    required: InputVariable[]
+    optional: InputVariable[]
+  }
+  outputs: OutputVariable[]
+  resources: {
+    created: string[]
+    dataSourcesRead: string[]
+  }
+  providers: ProviderRequirement[]
+  implicitContracts: {
+    namingPattern: string
+    taggingStrategy: string
+    networkAssumptions: string[]
+  }
+}
+
+interface InputVariable {
+  name: string
+  type: string
+  description: string
+  default?: unknown
+  validation?: ValidationRule[]
+  sensitive: boolean
+  nullable: boolean
+}
+
+interface OutputVariable {
+  name: string
+  type: string
+  description: string
+  sensitive: boolean
+  dependsOn: string[]  // Which resources must exist
+}
+```
+
+```
+Mermaid diagram: Module interface boundary.
+┌─────────────────────────────────────────────────┐
+│              Module Consumer                     │
+│                                                 │
+│   module "vpc" {                                │
+│     source  = "company/vpc/aws"                 │
+│     version = "~> 2.0"                          │
+│     ─────────────────────────────────────────   │
+│     # INPUTS (Promise: these parameters work)   │
+│     cidr_block    = "10.0.0.0/16"              │
+│     environment   = "production"                │
+│   }                                             │
+│   ─────────────────────────────────────────     │
+│   # OUTPUTS (Promise: these values exist)       │
+│   resource "aws_instance" "app" {               │
+│     subnet_id = module.vpc.private_subnet_ids[0]│
+│   }                                             │
+└─────────────────────────────────────────────────┘
+                    │
+                    ▼
+┌─────────────────────────────────────────────────┐
+│              Module Implementation               │
+│  (Internal details are NOT part of contract)    │
+│                                                 │
+│  • How subnets are calculated                   │
+│  • Which availability zones are used            │
+│  • Internal resource naming                     │
+│  • Implementation of security groups            │
+└─────────────────────────────────────────────────┘
+```
+
+### Breaking vs Non-Breaking Changes
+
+Understanding what changes are safe.
+
+| Change Type | Breaking? | Example | Migration Path |
+|-------------|-----------|---------|----------------|
+| Add optional input with default | No | `variable "tags" { default = {} }` | None needed |
+| Remove input variable | Yes | Delete `variable "legacy_flag"` | Major version bump |
+| Change input type | Yes | `string` → `list(string)` | Major version bump |
+| Add new output | No | `output "new_arn" { ... }` | None needed |
+| Remove output | Yes | Delete `output "old_id"` | Major version bump |
+| Change output type | Yes | `string` → `object` | Major version bump |
+| Add new resource | Usually no | Add `aws_cloudwatch_log_group` | None if no side effects |
+| Remove resource | Yes | Delete `aws_s3_bucket` | Major version; state migration |
+| Rename resource | Yes | `aws_instance.main` → `aws_instance.primary` | Requires `moved` block |
+| Change provider version | Maybe | `>= 4.0` → `>= 5.0` | Depends on provider changes |
+
+:::warning[Outputs Are Promises]
+Every output in your module is a promise that consumers may depend on. Even if you think nobody uses an output, removing it is a breaking change. Deprecate outputs for at least one major version before removal.
+:::
+
+## Input Variable Design
+
+Crafting inputs that guide users toward correct usage.
+
+### Required vs Optional Variables
+
+The art of choosing sensible defaults.
+
+```hcl
+# Required variables: Things the module cannot guess
+variable "environment" {
+  description = "Deployment environment (e.g., production, staging, development)"
+  type        = string
+
+  validation {
+    condition     = contains(["production", "staging", "development"], var.environment)
+    error_message = "Environment must be production, staging, or development."
+  }
+}
+
+variable "vpc_id" {
+  description = "ID of the VPC where resources will be created"
+  type        = string
+  # No default - module cannot guess which VPC to use
+}
+
+# Optional variables with sensible defaults
+variable "instance_type" {
+  description = "EC2 instance type for the application servers"
+  type        = string
+  default     = "t3.medium"  # Reasonable starting point
+
+  validation {
+    condition     = can(regex("^[a-z][0-9][.][a-z0-9]+$", var.instance_type))
+    error_message = "Instance type must be a valid EC2 instance type format."
+  }
+}
+
+variable "enable_monitoring" {
+  description = "Enable detailed CloudWatch monitoring"
+  type        = bool
+  default     = true  # Safe default: more visibility is better
+}
+
+variable "backup_retention_days" {
+  description = "Number of days to retain automated backups"
+  type        = number
+  default     = 7  # Safe default: some retention
+
+  validation {
+    condition     = var.backup_retention_days >= 0 && var.backup_retention_days <= 35
+    error_message = "Backup retention must be between 0 and 35 days."
+  }
+}
+
+# Optional with null default (explicitly opt-in features)
+variable "custom_domain" {
+  description = "Custom domain for the application (optional)"
+  type        = string
+  default     = null  # null = feature disabled
+}
+```
+
+### Default Value Principles
+
+Rules for choosing good defaults.
+
+```typescript
+// Default value decision framework
+interface DefaultValueDecision {
+  variable: string
+  considerations: string[]
+  recommendation: 'required' | 'default_value' | 'null_default'
+  rationale: string
+}
+
+const defaultDecisions: DefaultValueDecision[] = [
+  {
+    variable: 'environment',
+    considerations: [
+      'Different environments have different security requirements',
+      'No safe assumption about deployment context',
+      'Critical for tagging and resource configuration'
+    ],
+    recommendation: 'required',
+    rationale: 'Cannot safely guess; misconfiguration has serious consequences'
+  },
+  {
+    variable: 'instance_type',
+    considerations: [
+      't3.medium works for most workloads initially',
+      'Easy to change later',
+      'Cost implications are manageable'
+    ],
+    recommendation: 'default_value',
+    rationale: 'Safe starting point; consumer can override when they know their needs'
+  },
+  {
+    variable: 'enable_deletion_protection',
+    considerations: [
+      'Production databases should have it enabled',
+      'Development databases should have it disabled',
+      'Depends on environment context'
+    ],
+    recommendation: 'default_value',
+    rationale: 'Default to true (safe); consumer explicitly opts out for dev'
+  },
+  {
+    variable: 'custom_kms_key_arn',
+    considerations: [
+      'Most users are fine with AWS-managed keys',
+      'Custom keys are an advanced use case',
+      'null means "use default encryption"'
+    ],
+    recommendation: 'null_default',
+    rationale: 'Feature is opt-in; null = use platform default'
+  }
+]
+```
+
+```hcl
+# Pattern: Environment-aware defaults using locals
+variable "deletion_protection" {
+  description = "Enable deletion protection. Defaults to true for production, false otherwise."
+  type        = bool
+  default     = null  # null = use environment-based default
+}
+
+locals {
+  # Compute actual value based on environment if not explicitly set
+  deletion_protection = coalesce(
+    var.deletion_protection,
+    var.environment == "production" ? true : false
+  )
+}
+
+resource "aws_db_instance" "main" {
+  # ... other config
+  deletion_protection = local.deletion_protection
+}
+```
+
+### Complex Variable Types
+
+Using objects and maps effectively.
+
+```hcl
+# Pattern 1: Object with optional attributes (Terraform 1.3+)
+variable "database_config" {
+  description = "Database configuration options"
+  type = object({
+    instance_class    = optional(string, "db.t3.medium")
+    allocated_storage = optional(number, 20)
+    engine_version    = optional(string, "14.7")
+    multi_az          = optional(bool, false)
+    backup_window     = optional(string, "03:00-04:00")
+
+    # Nested optional object
+    performance_insights = optional(object({
+      enabled          = optional(bool, true)
+      retention_period = optional(number, 7)
+    }), {})  # Default to empty object (uses nested defaults)
+  })
+  default = {}  # All defaults apply if not specified
+}
+
+# Usage in resources
+resource "aws_db_instance" "main" {
+  instance_class               = var.database_config.instance_class
+  allocated_storage            = var.database_config.allocated_storage
+  engine_version               = var.database_config.engine_version
+  multi_az                     = var.database_config.multi_az
+  backup_window                = var.database_config.backup_window
+
+  performance_insights_enabled          = var.database_config.performance_insights.enabled
+  performance_insights_retention_period = var.database_config.performance_insights.retention_period
+}
+
+# Pattern 2: Map for dynamic resources
+variable "additional_security_groups" {
+  description = "Map of additional security group configurations"
+  type = map(object({
+    description = string
+    ingress_rules = list(object({
+      from_port   = number
+      to_port     = number
+      protocol    = string
+      cidr_blocks = list(string)
+    }))
+  }))
+  default = {}
+
+  # Validation for all entries
+  validation {
+    condition = alltrue([
+      for name, sg in var.additional_security_groups :
+      length(name) <= 64 && can(regex("^[a-z0-9-]+$", name))
+    ])
+    error_message = "Security group names must be lowercase alphanumeric with hyphens, max 64 chars."
+  }
+}
+```
+
+### Input Validation Patterns
+
+Catching errors before apply.
+
+```hcl
+# Validation patterns for common scenarios
+
+# Pattern: CIDR block validation
+variable "vpc_cidr" {
+  type = string
+  validation {
+    condition     = can(cidrhost(var.vpc_cidr, 0))
+    error_message = "VPC CIDR must be a valid IPv4 CIDR block."
+  }
+  validation {
+    condition     = tonumber(split("/", var.vpc_cidr)[1]) >= 16 && tonumber(split("/", var.vpc_cidr)[1]) <= 28
+    error_message = "VPC CIDR must have a prefix between /16 and /28."
+  }
+}
+
+# Pattern: ARN format validation
+variable "kms_key_arn" {
+  type    = string
+  default = null
+  validation {
+    condition = var.kms_key_arn == null || can(regex(
+      "^arn:aws:kms:[a-z0-9-]+:[0-9]{12}:key/[a-f0-9-]+$",
+      var.kms_key_arn
+    ))
+    error_message = "KMS key ARN must be a valid AWS KMS key ARN."
+  }
+}
+
+# Pattern: Mutual exclusivity
+variable "use_nat_gateway" {
+  type    = bool
+  default = true
+}
+
+variable "use_nat_instance" {
+  type    = bool
+  default = false
+}
+
+variable "nat_configuration" {
+  type = object({
+    use_nat_gateway  = optional(bool, true)
+    use_nat_instance = optional(bool, false)
+  })
+  default = {}
+
+  validation {
+    condition = !(var.nat_configuration.use_nat_gateway && var.nat_configuration.use_nat_instance)
+    error_message = "Cannot enable both NAT Gateway and NAT Instance. Choose one."
+  }
+}
+
+# Pattern: Conditional requirements
+variable "enable_ssl" {
+  type    = bool
+  default = true
+}
+
+variable "ssl_certificate_arn" {
+  type    = string
+  default = null
+}
+
+# Use precondition in resource for runtime validation
+resource "aws_lb_listener" "https" {
+  count = var.enable_ssl ? 1 : 0
+
+  lifecycle {
+    precondition {
+      condition     = var.ssl_certificate_arn != null
+      error_message = "ssl_certificate_arn is required when enable_ssl is true."
+    }
+  }
+
+  # ... rest of configuration
+}
+```
+
+:::info[Validate Early, Fail Fast]
+Input validation runs during `terraform plan`, before any resources are created. Well-designed validations save users from waiting for API errors during apply. Validate everything that can be validated statically.
+:::
+
+## Output Design
+
+Exposing the right data in the right format.
+
+### Output Contract Principles
+
+What makes outputs useful for consumers.
+
+```hcl
+# Output design principles demonstrated
+
+# 1. Output identifiers consumers will need to reference
+output "vpc_id" {
+  description = "The ID of the VPC"
+  value       = aws_vpc.main.id
+}
+
+# 2. Output collections that maintain order/structure
+output "private_subnet_ids" {
+  description = "List of private subnet IDs, ordered by availability zone"
+  value       = aws_subnet.private[*].id
+}
+
+output "private_subnets" {
+  description = "Map of private subnets by availability zone"
+  value = {
+    for subnet in aws_subnet.private :
+    subnet.availability_zone => {
+      id         = subnet.id
+      cidr_block = subnet.cidr_block
+      arn        = subnet.arn
+    }
+  }
+}
+
+# 3. Output computed values that would be hard to derive
+output "nat_gateway_public_ips" {
+  description = "Public IP addresses of the NAT gateways"
+  value       = aws_nat_gateway.main[*].public_ip
+}
+
+# 4. Output ARNs for IAM policies
+output "log_group_arn" {
+  description = "ARN of the CloudWatch log group for IAM policy attachment"
+  value       = aws_cloudwatch_log_group.main.arn
+}
+
+# 5. Output connection strings for convenience
+output "database_connection_string" {
+  description = "PostgreSQL connection string (without password)"
+  value       = "postgresql://${aws_db_instance.main.username}@${aws_db_instance.main.endpoint}/${aws_db_instance.main.db_name}"
+  sensitive   = false  # Username and endpoint are not secret
+}
+
+# 6. Output entire resource for advanced consumers
+output "database_instance" {
+  description = "Full database instance resource for advanced configuration"
+  value       = aws_db_instance.main
+  sensitive   = true  # Contains potentially sensitive attributes
+}
+```
+
+### Stable Output Contracts
+
+Designing outputs that don't break when implementation changes.
+
+```hcl
+# Problem: Output tied to implementation detail
+# If you refactor from count to for_each, this breaks consumers
+output "instance_ids_fragile" {
+  value = aws_instance.app[*].id  # Breaks if implementation changes
+}
+
+# Solution: Stable output abstraction
+output "instance_ids" {
+  description = "IDs of all application instances"
+  value       = [for instance in aws_instance.app : instance.id]
+}
+
+# Problem: Output exposes internal naming
+output "bucket_name_fragile" {
+  value = aws_s3_bucket.logs.id  # "mycompany-logs-prod-us-east-1-abc123"
+}
+
+# Solution: Structured output with clear semantics
+output "logging" {
+  description = "Logging configuration details"
+  value = {
+    bucket_name = aws_s3_bucket.logs.id
+    bucket_arn  = aws_s3_bucket.logs.arn
+    prefix      = "application-logs/"
+  }
+}
+
+# Pattern: Output object for related values
+output "networking" {
+  description = "Network configuration for downstream modules"
+  value = {
+    vpc_id             = aws_vpc.main.id
+    vpc_cidr           = aws_vpc.main.cidr_block
+    private_subnet_ids = aws_subnet.private[*].id
+    public_subnet_ids  = aws_subnet.public[*].id
+    availability_zones = data.aws_availability_zones.available.names
+
+    # Security groups that can be attached
+    security_groups = {
+      allow_internal = aws_security_group.internal.id
+      allow_https    = aws_security_group.https.id
+    }
+  }
+}
+```
+
+### Deprecating Outputs
+
+Signaling to consumers that an output will be removed.
+
+```hcl
+# Deprecated output with migration guidance
+output "cluster_endpoint" {
+  description = <<-EOT
+    DEPRECATED: Use 'database.endpoint' instead.
+    This output will be removed in v3.0.0.
+
+    Migration: Replace module.db.cluster_endpoint with module.db.database.endpoint
+  EOT
+  value = aws_rds_cluster.main.endpoint
+}
+
+# New preferred output
+output "database" {
+  description = "Database connection information"
+  value = {
+    endpoint        = aws_rds_cluster.main.endpoint
+    reader_endpoint = aws_rds_cluster.main.reader_endpoint
+    port            = aws_rds_cluster.main.port
+    database_name   = aws_rds_cluster.main.database_name
+  }
+}
+```
+
+## Versioning Strategy
+
+Managing module evolution without breaking consumers.
+
+### Semantic Versioning for Modules
+
+Applying SemVer principles to infrastructure modules.
+
+```typescript
+// Semantic versioning for Terraform modules
+interface ModuleVersion {
+  major: number  // Breaking changes to interface
+  minor: number  // New features, backward compatible
+  patch: number  // Bug fixes, no interface changes
+}
+
+const versioningRules = {
+  majorBump: [
+    'Remove or rename input variable',
+    'Change input variable type',
+    'Remove output',
+    'Change output type',
+    'Remove resource (causes state issues)',
+    'Change provider minimum version with breaking changes',
+    'Change behavior in backward-incompatible way'
+  ],
+  minorBump: [
+    'Add new input variable with default',
+    'Add new output',
+    'Add new resource (no side effects)',
+    'Add new optional feature',
+    'Deprecate (but not remove) input or output'
+  ],
+  patchBump: [
+    'Fix bug without interface change',
+    'Update documentation',
+    'Internal refactoring (no state changes)',
+    'Update provider version constraint (compatible)'
+  ]
+}
+```
+
+```
+Mermaid diagram: Module version selection.
+Consumer Configuration:
+┌─────────────────────────────────────────┐
+│ module "vpc" {                          │
+│   source  = "company/vpc/aws"           │
+│   version = "~> 2.0"  # >= 2.0, < 3.0   │
+│ }                                       │
+└─────────────────────────────────────────┘
+
+Available Versions:
+1.0.0 ─ 1.1.0 ─ 1.2.0 ─ 2.0.0 ─ 2.1.0 ─ 2.2.0 ─ 3.0.0
+                        ▲       ▲       ▲
+                        │       │       │
+                        └───────┴───────┘
+                         "~> 2.0" matches these
+
+Version Constraint Patterns:
+"2.1.0"   - Exact version (not recommended)
+"~> 2.0"  - Compatible with 2.x (recommended)
+">= 2.0"  - Any version 2.0+ (risky)
+">= 2.0, < 3.0" - Equivalent to ~> 2.0
+```
+
+### Migration Paths with Moved Blocks
+
+Helping consumers migrate between versions.
+
+```hcl
+# Module v1.0.0 - Original structure
+resource "aws_instance" "web" {
+  count = var.instance_count
+  # ...
+}
+
+# Module v2.0.0 - Refactored to for_each
+# Include moved blocks to help consumers upgrade
+
+moved {
+  from = aws_instance.web
+  to   = aws_instance.application
+}
+
+resource "aws_instance" "application" {
+  for_each = toset(var.instance_names)
+  # ...
+}
+
+# Complex migration: count to for_each
+# This requires consumers to also update their state
+# Document in CHANGELOG:
+#
+# ## Migration from v1.x to v2.0
+#
+# The instance resource has been refactored from count-based to for_each.
+# Run the following commands after upgrading:
+#
+# terraform state mv 'module.app.aws_instance.web[0]' 'module.app.aws_instance.application["web-1"]'
+# terraform state mv 'module.app.aws_instance.web[1]' 'module.app.aws_instance.application["web-2"]'
+```
+
+### Changelog and Upgrade Guides
+
+Documenting changes for consumers.
+
+```markdown
+# CHANGELOG.md
+
+## [3.0.0] - 2024-01-15
+
+### ⚠️ BREAKING CHANGES
+
+- **REMOVED** `cluster_endpoint` output. Use `database.endpoint` instead.
+- **CHANGED** `instance_type` variable type from `string` to `object`. See upgrade guide.
+- **REMOVED** `enable_legacy_mode` variable. Legacy mode is no longer supported.
+
+### Upgrade Guide
+
+#### From 2.x to 3.0
+
+1. **Update output references**
+   ```hcl
+   # Before
+   endpoint = module.db.cluster_endpoint
+
+   # After
+   endpoint = module.db.database.endpoint
+   ```
+
+2. **Update instance_type variable**
+   ```hcl
+   # Before
+   instance_type = "db.r5.large"
+
+   # After
+   instance_type = {
+     class = "db.r5.large"
+     # New options available:
+     # performance_tier = "standard"
+   }
+   ```
+
+3. **Remove legacy_mode references**
+   ```hcl
+   # Remove this line - no longer supported
+   # enable_legacy_mode = true
+   ```
+
+## [2.3.0] - 2024-01-01
+
+### Added
+
+- New `monitoring_config` variable for custom CloudWatch configuration
+- Output `cloudwatch_log_group_name` for log aggregation
+
+### Deprecated
+
+- `cluster_endpoint` output - use `database.endpoint` instead (removal in 3.0)
+
+## [2.2.1] - 2023-12-15
+
+### Fixed
+
+- Fixed incorrect subnet CIDR calculation for edge case with /28 prefix
+```
+
+### Version Constraint Strategies
+
+Guiding consumers toward safe version selection.
+
+```hcl
+# Recommended: Pessimistic constraint (most common)
+module "vpc" {
+  source  = "company/vpc/aws"
+  version = "~> 2.0"  # Allows 2.0.0, 2.1.0, 2.99.0, but not 3.0.0
+}
+
+# For critical infrastructure: Pin exact version
+module "database" {
+  source  = "company/rds/aws"
+  version = "2.3.1"  # Exact version, update deliberately
+}
+
+# For development/testing: Allow any compatible
+module "monitoring" {
+  source  = "company/cloudwatch/aws"
+  version = ">= 1.0.0, < 2.0.0"
+}
+
+# Lock file ensures reproducibility regardless of constraint
+# .terraform.lock.hcl is generated by terraform init
+# Commit this file to version control!
+```
+
+| Strategy | Constraint | Use Case | Trade-off |
+|----------|-----------|----------|-----------|
+| Pessimistic | `~> 2.0` | Most modules | Gets patches, no surprises |
+| Exact | `2.3.1` | Critical infrastructure | Maximum stability, manual updates |
+| Range | `>= 2.0, < 3.0` | Same as pessimistic | More explicit |
+| Minimum | `>= 2.0` | Development only | Gets latest, may break |
+
+:::danger[Never Use >= Without Upper Bound in Production]
+A constraint like `>= 2.0` means Terraform will use the latest version, including major versions with breaking changes. Always specify an upper bound for production modules.
+:::
+
+## Module Composition Patterns
+
+Designing modules that work well together.
+
+### Layered Module Architecture
+
+Building complex infrastructure from composable modules.
+
+```hcl
+# Layer 1: Foundation module (network primitives)
+module "foundation" {
+  source  = "company/foundation/aws"
+  version = "~> 1.0"
+
+  environment = var.environment
+  vpc_cidr    = var.vpc_cidr
+}
+
+# Layer 2: Platform module (uses foundation outputs)
+module "platform" {
+  source  = "company/eks-platform/aws"
+  version = "~> 2.0"
+
+  vpc_id             = module.foundation.vpc_id
+  private_subnet_ids = module.foundation.private_subnet_ids
+  environment        = var.environment
+}
+
+# Layer 3: Application module (uses platform outputs)
+module "application" {
+  source  = "company/microservice/aws"
+  version = "~> 1.0"
+
+  cluster_name       = module.platform.cluster_name
+  namespace          = "production"
+  service_account    = module.platform.application_service_account
+}
+```
+
+```
+Mermaid diagram: Module composition layers.
+┌────────────────────────────────────────────────────┐
+│                 Root Module                         │
+│  (Composes layers, passes variables between them)  │
+└────────────────────────────────────────────────────┘
+                        │
+        ┌───────────────┼───────────────┐
+        ▼               ▼               ▼
+┌──────────────┐ ┌──────────────┐ ┌──────────────┐
+│  Foundation  │ │   Platform   │ │ Application  │
+│   Module     │ │   Module     │ │   Module     │
+├──────────────┤ ├──────────────┤ ├──────────────┤
+│ • VPC        │ │ • EKS Cluster│ │ • Deployment │
+│ • Subnets    │ │ • Node Groups│ │ • Service    │
+│ • NAT        │ │ • IAM Roles  │ │ • Ingress    │
+│ • Routes     │ │ • Add-ons    │ │ • ConfigMap  │
+└──────────────┘ └──────────────┘ └──────────────┘
+        │               │               │
+        └───────────────┴───────────────┘
+                        │
+                   Outputs flow
+                   upward for
+                   composition
+```
+
+### Pass-Through Variables
+
+Enabling customization without interface bloat.
+
+```hcl
+# Pattern: Pass-through for optional customization
+variable "tags" {
+  description = "Tags to apply to all resources"
+  type        = map(string)
+  default     = {}
+}
+
+variable "additional_security_group_ids" {
+  description = "Additional security groups to attach (pass-through to resources)"
+  type        = list(string)
+  default     = []
+}
+
+# Usage in resource
+resource "aws_instance" "main" {
+  # Module-managed configuration
+  instance_type = local.instance_type
+  ami           = data.aws_ami.latest.id
+
+  # Pass-through: let consumer extend without modifying module
+  vpc_security_group_ids = concat(
+    [aws_security_group.default.id],
+    var.additional_security_group_ids
+  )
+
+  tags = merge(
+    local.default_tags,
+    var.tags
+  )
+}
+
+# Pattern: Expose escape hatch for advanced users
+variable "instance_overrides" {
+  description = "Override any instance attribute (advanced)"
+  type        = any
+  default     = {}
+}
+
+resource "aws_instance" "main" {
+  # Normal attributes
+  instance_type = local.instance_type
+  ami           = data.aws_ami.latest.id
+
+  # Merge overrides (advanced users can customize anything)
+  dynamic "root_block_device" {
+    for_each = lookup(var.instance_overrides, "root_block_device", null) != null ? [1] : []
+    content {
+      volume_size = var.instance_overrides.root_block_device.volume_size
+      volume_type = var.instance_overrides.root_block_device.volume_type
+    }
+  }
+}
+```
+
+### Output Forwarding
+
+Exposing nested module outputs cleanly.
+
+```hcl
+# Child module outputs need to be explicitly forwarded
+# Don't expose internal module references directly
+
+# Bad: Exposes implementation detail
+output "database_module" {
+  value = module.database  # Leaks internal structure
+}
+
+# Good: Curated output interface
+output "database" {
+  description = "Database connection information"
+  value = {
+    endpoint = module.database.endpoint
+    port     = module.database.port
+    name     = module.database.database_name
+
+    # Only expose what consumers need
+    security_group_id = module.database.security_group_id
+  }
+}
+
+# Pattern: Aggregate outputs from multiple child modules
+output "endpoints" {
+  description = "Service endpoints for application configuration"
+  value = {
+    database = module.database.endpoint
+    cache    = module.elasticache.endpoint
+    queue    = module.sqs.queue_url
+    storage  = module.s3.bucket_domain_name
+  }
+}
+```
+
+## Testing Module Interfaces
+
+Validating that interfaces work as documented.
+
+### Contract Testing
+
+Verifying inputs and outputs match expectations.
+
+```hcl
+# tests/contract.tftest.hcl
+
+# Test: Required variables are enforced
+run "required_variables" {
+  command = plan
+
+  # Omit required variable
+  variables {
+    # environment intentionally missing
+    vpc_cidr = "10.0.0.0/16"
+  }
+
+  expect_failures = [
+    var.environment
+  ]
+}
+
+# Test: Default values work correctly
+run "defaults_applied" {
+  command = plan
+
+  variables {
+    environment = "development"
+    vpc_cidr    = "10.0.0.0/16"
+  }
+
+  # Verify defaults are applied
+  assert {
+    condition     = aws_instance.main.instance_type == "t3.medium"
+    error_message = "Default instance_type should be t3.medium"
+  }
+}
+
+# Test: Validation rules catch bad input
+run "validation_cidr" {
+  command = plan
+
+  variables {
+    environment = "development"
+    vpc_cidr    = "invalid-cidr"
+  }
+
+  expect_failures = [
+    var.vpc_cidr
+  ]
+}
+
+# Test: Outputs have expected structure
+run "outputs_structure" {
+  command = apply
+
+  variables {
+    environment = "development"
+    vpc_cidr    = "10.0.0.0/16"
+  }
+
+  # Verify output exists and has expected type
+  assert {
+    condition     = can(output.networking.vpc_id)
+    error_message = "networking output must include vpc_id"
+  }
+
+  assert {
+    condition     = length(output.networking.private_subnet_ids) > 0
+    error_message = "networking output must include private_subnet_ids"
+  }
+}
+```
+
+### Upgrade Testing
+
+Verifying version migrations don't break state.
+
+```hcl
+# tests/upgrade.tftest.hcl
+
+# Test: Upgrade from v1.x to v2.0 preserves resources
+run "upgrade_from_v1" {
+  command = plan
+
+  # Use state from v1.x deployment
+  # (state file generated by CI from previous version)
+
+  variables {
+    environment = "test"
+    vpc_cidr    = "10.0.0.0/16"
+  }
+
+  # Verify no resources are destroyed unexpectedly
+  assert {
+    condition     = length([for r in plan.resource_changes : r if r.change.actions == ["delete"]]) == 0
+    error_message = "Upgrade should not destroy any resources"
+  }
+
+  # Verify moved blocks work
+  assert {
+    condition     = !contains([for r in plan.resource_changes : r.address], "aws_instance.web")
+    error_message = "Old resource name should not appear after move"
+  }
+}
+```
+
+## Conclusion
+
+A Terraform module's interface is a contract with its consumers—the inputs they provide, the outputs they depend on, and the behavior they expect. Design inputs with sensible defaults that work for 80% of use cases while allowing customization for the rest; make required variables truly required only when the module cannot safely assume a value. Use validation blocks to catch errors at plan time, before expensive API calls fail. Outputs are promises: every output you expose may become a dependency, so think carefully before adding them and deprecate gracefully before removing. Apply semantic versioning strictly—changing a type or removing a variable is a breaking change regardless of how minor it seems. Document migrations with moved blocks and detailed upgrade guides. Test your interface contracts to catch regressions before consumers do. A well-designed module interface makes the right thing easy and the wrong thing hard, guiding users toward correct infrastructure without requiring them to understand the implementation.
+
+---
+
+## Cover Image Prompts
+
+### Prompt 1: Modular Building Blocks with Connectors
+Photograph of precision-engineered building blocks with standardized connection points—each block different internally but with identical interface points. The LEGO-like interoperability of well-designed modules.
+
+### Prompt 2: Blueprint with Version Annotations
+Architectural blueprint or technical drawing with version numbers, revision marks, and change annotations in the margins. The documentation of interface evolution over time. Clean technical aesthetic.
+
+### Prompt 3: Electrical Plug and Socket Standards
+Collection photograph of electrical plugs and sockets from different countries—all solving the same problem with different interfaces. The challenge of interface standardization. Clean product photography style.
+
+### Prompt 4: Contract Document with Seal
+Stylized photograph of a formal contract document with a wax seal or notary stamp. Clean, professional, suggesting binding agreement. The module interface as a promise between producer and consumer.
+
+### Prompt 5: API Gateway Visualization
+Abstract visualization of requests flowing through a gateway/interface layer—chaotic inputs on one side, organized outputs on the other. The transformation and standardization that good interfaces provide.

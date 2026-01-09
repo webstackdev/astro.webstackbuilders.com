@@ -9,6 +9,1335 @@ tags: ["system-modernization"]
 featured: true
 ---
 
+*[API]: Application Programming Interface
+*[CDC]: Change Data Capture
+*[CI]: Continuous Integration
+*[DDL]: Data Definition Language
+*[DML]: Data Manipulation Language
+*[FK]: Foreign Key
+*[ORM]: Object-Relational Mapping
+*[PK]: Primary Key
+*[RDBMS]: Relational Database Management System
+*[SQL]: Structured Query Language
+*[UUID]: Universally Unique Identifier
+
 Migration sequencing, backward compatibility, rollback procedures, and the coordination between schema and code changes.
 
 Backward compatibility is non-negotiable.
+
+## The Problem with Traditional Migrations
+
+Traditional schema migrations assume downtime—a maintenance window where the application stops, the schema changes, and the application restarts with new code.
+
+### Why Downtime Migrations Fail at Scale
+
+The assumptions that break in production systems.
+
+```typescript
+// Traditional migration approach (broken at scale)
+interface TraditionalMigration {
+  steps: [
+    'Schedule maintenance window',
+    'Notify users of downtime',
+    'Stop application',
+    'Run schema migration',
+    'Deploy new application code',
+    'Start application',
+    'Hope nothing broke'
+  ]
+
+  assumptions: {
+    migrationTime: 'predictable'      // False: varies with data size
+    rollbackPossible: 'always'        // False: some changes are irreversible
+    coordinationSimple: 'one deploy'  // False: microservices deploy independently
+    dataLoss: 'acceptable'            // False: business continuity required
+  }
+}
+
+// What happens when assumptions fail
+const migrationFailures = [
+  {
+    scenario: 'Migration takes longer than window',
+    impact: 'Extended downtime, missed SLA',
+    frequency: 'Common with large tables'
+  },
+  {
+    scenario: 'New code has bug, need rollback',
+    impact: 'Cannot roll back schema, stuck',
+    frequency: 'Discovered post-migration'
+  },
+  {
+    scenario: 'Partial deployment (some services updated)',
+    impact: 'Schema mismatch, errors',
+    frequency: 'Always with microservices'
+  },
+  {
+    scenario: 'Migration fails midway',
+    impact: 'Inconsistent state, manual recovery',
+    frequency: 'Network issues, locks, space'
+  }
+]
+```
+
+| Migration Type | Downtime Required | Rollback Difficulty | Data Risk |
+|---------------|-------------------|---------------------|-----------|
+| Add nullable column | None | Easy | None |
+| Add non-nullable column | Traditional: Yes | Hard | Data loss on rollback |
+| Rename column | Traditional: Yes | Very hard | High |
+| Change column type | Traditional: Yes | Very hard | Potential data loss |
+| Drop column | Traditional: Yes | Impossible | Permanent |
+| Split table | Traditional: Yes | Very hard | High |
+
+### The Expand/Contract Pattern
+
+Decomposing dangerous migrations into safe, reversible steps.
+
+```
+Mermaid diagram: Expand/Contract migration phases.
+Traditional Migration:
+┌─────────────────────────────────────────────────────────────┐
+│ DOWNTIME                                                     │
+│ ┌─────────┐    ┌─────────────┐    ┌─────────────┐          │
+│ │ Stop    │───►│ Migrate     │───►│ Deploy new  │          │
+│ │ Service │    │ Schema      │    │ Code        │          │
+│ └─────────┘    └─────────────┘    └─────────────┘          │
+└─────────────────────────────────────────────────────────────┘
+
+Expand/Contract Pattern:
+┌─────────────────────────────────────────────────────────────┐
+│ ZERO DOWNTIME                                                │
+│                                                             │
+│ Phase 1: EXPAND (backward compatible)                       │
+│ ┌─────────────┐    ┌─────────────┐                         │
+│ │ Add new     │───►│ Deploy code │  Old + new columns     │
+│ │ Column      │    │ writes both │  both work             │
+│ └─────────────┘    └─────────────┘                         │
+│                                                             │
+│ Phase 2: MIGRATE (background)                               │
+│ ┌─────────────────────────────────────────┐                │
+│ │ Backfill data from old column to new    │                │
+│ │ (batched, throttled, resumable)         │                │
+│ └─────────────────────────────────────────┘                │
+│                                                             │
+│ Phase 3: CONTRACT (cleanup)                                 │
+│ ┌─────────────┐    ┌─────────────┐                         │
+│ │ Deploy code │───►│ Drop old    │  Only new column      │
+│ │ reads new   │    │ Column      │  remains              │
+│ └─────────────┘    └─────────────┘                         │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Expand Phase: Adding New Structures
+
+Creating new schema elements without breaking existing code.
+
+### Adding Columns Safely
+
+Column additions that maintain backward compatibility.
+
+```sql
+-- SAFE: Add nullable column
+-- Old code ignores it, new code can use it
+ALTER TABLE users ADD COLUMN email_verified_at TIMESTAMP NULL;
+
+-- SAFE: Add column with default
+-- Existing rows get default, new rows can override
+ALTER TABLE orders ADD COLUMN priority VARCHAR(20) DEFAULT 'normal';
+
+-- UNSAFE without expand/contract: Add non-nullable column
+-- Existing rows have no value!
+-- ALTER TABLE users ADD COLUMN phone VARCHAR(20) NOT NULL; -- FAILS
+
+-- SAFE approach for non-nullable: Add nullable first
+ALTER TABLE users ADD COLUMN phone VARCHAR(20) NULL;
+-- Then backfill, then add constraint (in contract phase)
+```
+
+```typescript
+// Database migration with expand phase
+// migrations/20240115_001_expand_add_phone_column.ts
+
+import { Knex } from 'knex'
+
+export async function up(knex: Knex): Promise<void> {
+  // Expand: Add nullable column
+  await knex.schema.alterTable('users', (table) => {
+    table.string('phone', 20).nullable()
+    table.index('phone', 'idx_users_phone')
+  })
+
+  // Add trigger to populate from legacy source during transition
+  await knex.raw(`
+    CREATE OR REPLACE FUNCTION sync_user_phone()
+    RETURNS TRIGGER AS $$
+    BEGIN
+      -- If phone not provided, try to get from legacy profile
+      IF NEW.phone IS NULL THEN
+        SELECT phone INTO NEW.phone
+        FROM user_profiles
+        WHERE user_id = NEW.id;
+      END IF;
+      RETURN NEW;
+    END;
+    $$ LANGUAGE plpgsql;
+
+    CREATE TRIGGER trg_sync_user_phone
+    BEFORE INSERT OR UPDATE ON users
+    FOR EACH ROW
+    EXECUTE FUNCTION sync_user_phone();
+  `)
+}
+
+export async function down(knex: Knex): Promise<void> {
+  await knex.raw('DROP TRIGGER IF EXISTS trg_sync_user_phone ON users')
+  await knex.raw('DROP FUNCTION IF EXISTS sync_user_phone')
+  await knex.schema.alterTable('users', (table) => {
+    table.dropIndex('idx_users_phone')
+    table.dropColumn('phone')
+  })
+}
+```
+
+### Adding Tables and Relationships
+
+New tables that coexist with existing schema.
+
+```sql
+-- Expand: Add new table for future feature
+CREATE TABLE user_preferences (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id),
+  preference_key VARCHAR(100) NOT NULL,
+  preference_value JSONB NOT NULL DEFAULT '{}',
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+
+  CONSTRAINT uq_user_preference UNIQUE (user_id, preference_key)
+);
+
+CREATE INDEX idx_user_preferences_user_id ON user_preferences(user_id);
+
+-- Old code completely unaware of this table
+-- New code can start using it immediately
+```
+
+```typescript
+// Application code during expand phase
+// Both old and new data access patterns work
+
+interface UserRepository {
+  // Old method: still works, unchanged
+  async getUser(id: string): Promise<User> {
+    return db.query('SELECT * FROM users WHERE id = $1', [id])
+  }
+
+  // New method: uses new table, gracefully handles missing data
+  async getUserWithPreferences(id: string): Promise<UserWithPreferences> {
+    const user = await this.getUser(id)
+
+    // New table might not have data yet
+    const preferences = await db.query(
+      'SELECT * FROM user_preferences WHERE user_id = $1',
+      [id]
+    ).catch(() => [])  // Graceful fallback
+
+    return {
+      ...user,
+      preferences: preferences.reduce((acc, p) => ({
+        ...acc,
+        [p.preference_key]: p.preference_value
+      }), {})
+    }
+  }
+}
+```
+
+:::info[Expand Phase Checklist]
+Before completing the expand phase:
+- [ ] New schema elements are nullable or have safe defaults
+- [ ] Old application code continues to work unchanged
+- [ ] New code handles missing/null data gracefully
+- [ ] Indexes added for new query patterns
+- [ ] Migration is reversible (can drop new elements)
+:::
+
+## Dual-Write Implementation
+
+Writing to both old and new structures during transition.
+
+### Dual-Write Pattern
+
+Code that writes to old and new locations simultaneously.
+
+```typescript
+// Dual-write implementation for column rename: name → full_name
+
+interface DualWriteConfig {
+  enabled: boolean
+  oldColumn: string
+  newColumn: string
+  readFromNew: boolean  // Feature flag for cutover
+}
+
+class UserService {
+  private config: DualWriteConfig = {
+    enabled: true,
+    oldColumn: 'name',
+    newColumn: 'full_name',
+    readFromNew: false  // Start reading from old
+  }
+
+  async updateUser(id: string, updates: Partial<User>): Promise<User> {
+    // Dual-write: update both columns
+    if (this.config.enabled && 'name' in updates) {
+      const fullName = updates.name
+
+      await db.query(`
+        UPDATE users
+        SET name = $1,        -- Old column
+            full_name = $1,   -- New column
+            updated_at = NOW()
+        WHERE id = $2
+      `, [fullName, id])
+    } else {
+      // Normal update (non-dual-write fields)
+      await db.query(
+        'UPDATE users SET name = $1, updated_at = NOW() WHERE id = $2',
+        [updates.name, id]
+      )
+    }
+
+    return this.getUser(id)
+  }
+
+  async getUser(id: string): Promise<User> {
+    // Read from configured source
+    const column = this.config.readFromNew
+      ? this.config.newColumn
+      : this.config.oldColumn
+
+    const result = await db.query(`
+      SELECT id, ${column} as name, email, created_at
+      FROM users WHERE id = $1
+    `, [id])
+
+    return result.rows[0]
+  }
+
+  async createUser(user: CreateUserInput): Promise<User> {
+    // Dual-write on insert
+    if (this.config.enabled) {
+      const result = await db.query(`
+        INSERT INTO users (email, name, full_name, created_at)
+        VALUES ($1, $2, $2, NOW())
+        RETURNING id, name, email, created_at
+      `, [user.email, user.name])
+
+      return result.rows[0]
+    }
+
+    // Legacy path
+    const result = await db.query(`
+      INSERT INTO users (email, name, created_at)
+      VALUES ($1, $2, NOW())
+      RETURNING *
+    `, [user.email, user.name])
+
+    return result.rows[0]
+  }
+}
+```
+
+### Database Triggers for Dual-Write
+
+Using triggers when application changes are complex.
+
+```sql
+-- Trigger-based dual-write (alternative to application code)
+-- Useful when multiple applications write to the same table
+
+-- Sync from old column to new column
+CREATE OR REPLACE FUNCTION sync_name_to_full_name()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Only sync if full_name wasn't explicitly set
+  IF NEW.full_name IS NULL OR NEW.full_name = OLD.full_name THEN
+    NEW.full_name := NEW.name;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_sync_name_to_full_name
+BEFORE INSERT OR UPDATE OF name ON users
+FOR EACH ROW
+EXECUTE FUNCTION sync_name_to_full_name();
+
+-- Sync from new column to old column (reverse sync for safety)
+CREATE OR REPLACE FUNCTION sync_full_name_to_name()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- If full_name changed but name didn't, sync back
+  IF NEW.full_name IS DISTINCT FROM OLD.full_name
+     AND NEW.name IS NOT DISTINCT FROM OLD.name THEN
+    NEW.name := NEW.full_name;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_sync_full_name_to_name
+BEFORE UPDATE OF full_name ON users
+FOR EACH ROW
+EXECUTE FUNCTION sync_full_name_to_name();
+```
+
+```
+Mermaid diagram: Dual-write data flow.
+Application Write
+       │
+       ▼
+┌─────────────────────────────────────────┐
+│         Dual-Write Layer                 │
+│                                         │
+│  if (dualWriteEnabled) {                │
+│    write(oldColumn, value)              │
+│    write(newColumn, value)              │
+│  }                                      │
+└─────────────────────────────────────────┘
+       │                    │
+       ▼                    ▼
+┌─────────────┐      ┌─────────────┐
+│ Old Column  │      │ New Column  │
+│ "name"      │      │ "full_name" │
+│             │◄────►│             │
+│ Legacy apps │      │ New apps    │
+│ still read  │      │ can read    │
+└─────────────┘      └─────────────┘
+       │                    │
+       │   DB Triggers      │
+       │   keep in sync     │
+       └────────────────────┘
+```
+
+### Consistency Verification
+
+Ensuring dual-write maintains data consistency.
+
+```typescript
+// Consistency checker for dual-write verification
+interface ConsistencyReport {
+  totalRecords: number
+  consistentRecords: number
+  inconsistentRecords: InconsistentRecord[]
+  nullInNewColumn: number
+  consistencyPercentage: number
+}
+
+interface InconsistentRecord {
+  id: string
+  oldValue: string | null
+  newValue: string | null
+  mismatchType: 'value_different' | 'old_null' | 'new_null'
+}
+
+async function verifyDualWriteConsistency(
+  table: string,
+  oldColumn: string,
+  newColumn: string
+): Promise<ConsistencyReport> {
+  // Find all inconsistencies
+  const inconsistencies = await db.query(`
+    SELECT
+      id,
+      ${oldColumn} as old_value,
+      ${newColumn} as new_value,
+      CASE
+        WHEN ${oldColumn} IS NULL AND ${newColumn} IS NOT NULL THEN 'old_null'
+        WHEN ${oldColumn} IS NOT NULL AND ${newColumn} IS NULL THEN 'new_null'
+        ELSE 'value_different'
+      END as mismatch_type
+    FROM ${table}
+    WHERE ${oldColumn} IS DISTINCT FROM ${newColumn}
+  `)
+
+  const totalCount = await db.query(`SELECT COUNT(*) as count FROM ${table}`)
+  const nullCount = await db.query(`
+    SELECT COUNT(*) as count FROM ${table} WHERE ${newColumn} IS NULL
+  `)
+
+  const total = parseInt(totalCount.rows[0].count)
+  const inconsistent = inconsistencies.rows.length
+
+  return {
+    totalRecords: total,
+    consistentRecords: total - inconsistent,
+    inconsistentRecords: inconsistencies.rows,
+    nullInNewColumn: parseInt(nullCount.rows[0].count),
+    consistencyPercentage: ((total - inconsistent) / total) * 100
+  }
+}
+
+// Run verification before proceeding to contract phase
+async function validateReadyForContract(): Promise<boolean> {
+  const report = await verifyDualWriteConsistency('users', 'name', 'full_name')
+
+  console.log(`Consistency: ${report.consistencyPercentage.toFixed(2)}%`)
+  console.log(`Null in new column: ${report.nullInNewColumn}`)
+
+  if (report.consistencyPercentage < 100) {
+    console.error('Inconsistencies found:')
+    report.inconsistentRecords.slice(0, 10).forEach(r => {
+      console.error(`  ID ${r.id}: "${r.oldValue}" vs "${r.newValue}"`)
+    })
+    return false
+  }
+
+  return true
+}
+```
+
+:::warning[Dual-Write Performance Impact]
+Dual-write doubles write operations and can impact performance. Monitor:
+- Write latency increase
+- Transaction duration
+- Lock contention on the table
+- Trigger execution time (if using database triggers)
+Consider batching dual-writes or using async sync for high-throughput tables.
+:::
+
+## Data Backfill Strategies
+
+Migrating existing data to new schema structures.
+
+### Batched Backfill
+
+Processing existing data in manageable chunks.
+
+```typescript
+// Batched backfill implementation
+interface BackfillConfig {
+  table: string
+  sourceColumn: string
+  targetColumn: string
+  batchSize: number
+  throttleMs: number
+  transform?: (value: unknown) => unknown
+}
+
+async function backfillColumn(config: BackfillConfig): Promise<BackfillResult> {
+  const { table, sourceColumn, targetColumn, batchSize, throttleMs, transform } = config
+
+  let totalUpdated = 0
+  let lastId: string | null = null
+
+  while (true) {
+    // Get next batch of records needing backfill
+    const batch = await db.query(`
+      SELECT id, ${sourceColumn} as source_value
+      FROM ${table}
+      WHERE ${targetColumn} IS NULL
+        AND ${sourceColumn} IS NOT NULL
+        ${lastId ? `AND id > $1` : ''}
+      ORDER BY id
+      LIMIT ${batchSize}
+    `, lastId ? [lastId] : [])
+
+    if (batch.rows.length === 0) {
+      break  // Done
+    }
+
+    // Update batch
+    for (const row of batch.rows) {
+      const targetValue = transform
+        ? transform(row.source_value)
+        : row.source_value
+
+      await db.query(`
+        UPDATE ${table}
+        SET ${targetColumn} = $1
+        WHERE id = $2 AND ${targetColumn} IS NULL
+      `, [targetValue, row.id])
+
+      totalUpdated++
+      lastId = row.id
+    }
+
+    console.log(`Backfilled ${totalUpdated} records, last ID: ${lastId}`)
+
+    // Throttle to reduce database load
+    await sleep(throttleMs)
+  }
+
+  return {
+    totalUpdated,
+    completedAt: new Date()
+  }
+}
+
+// Usage with transformation
+await backfillColumn({
+  table: 'users',
+  sourceColumn: 'name',
+  targetColumn: 'full_name',
+  batchSize: 1000,
+  throttleMs: 100,
+  transform: (name) => String(name).trim()  // Clean up data during migration
+})
+```
+
+### Resumable Backfill with Checkpointing
+
+Handling failures in long-running backfills.
+
+```typescript
+// Resumable backfill with checkpoint storage
+interface BackfillCheckpoint {
+  migrationId: string
+  table: string
+  lastProcessedId: string
+  processedCount: number
+  startedAt: Date
+  updatedAt: Date
+  status: 'running' | 'paused' | 'completed' | 'failed'
+  errorMessage?: string
+}
+
+class ResumableBackfill {
+  private checkpoint: BackfillCheckpoint
+
+  constructor(
+    private migrationId: string,
+    private config: BackfillConfig
+  ) {}
+
+  async run(): Promise<void> {
+    // Load or create checkpoint
+    this.checkpoint = await this.loadCheckpoint() || {
+      migrationId: this.migrationId,
+      table: this.config.table,
+      lastProcessedId: '',
+      processedCount: 0,
+      startedAt: new Date(),
+      updatedAt: new Date(),
+      status: 'running'
+    }
+
+    if (this.checkpoint.status === 'completed') {
+      console.log('Backfill already completed')
+      return
+    }
+
+    this.checkpoint.status = 'running'
+    await this.saveCheckpoint()
+
+    try {
+      await this.processInBatches()
+
+      this.checkpoint.status = 'completed'
+      await this.saveCheckpoint()
+
+    } catch (error) {
+      this.checkpoint.status = 'failed'
+      this.checkpoint.errorMessage = error.message
+      await this.saveCheckpoint()
+      throw error
+    }
+  }
+
+  private async processInBatches(): Promise<void> {
+    const { table, sourceColumn, targetColumn, batchSize, throttleMs } = this.config
+
+    while (true) {
+      const batch = await db.query(`
+        SELECT id, ${sourceColumn} as source_value
+        FROM ${table}
+        WHERE ${targetColumn} IS NULL
+          AND ${sourceColumn} IS NOT NULL
+          AND id > $1
+        ORDER BY id
+        LIMIT ${batchSize}
+      `, [this.checkpoint.lastProcessedId || ''])
+
+      if (batch.rows.length === 0) break
+
+      // Process in transaction for consistency
+      await db.transaction(async (trx) => {
+        for (const row of batch.rows) {
+          await trx.query(`
+            UPDATE ${table}
+            SET ${targetColumn} = $1
+            WHERE id = $2
+          `, [row.source_value, row.id])
+        }
+      })
+
+      // Update checkpoint after each batch
+      this.checkpoint.lastProcessedId = batch.rows[batch.rows.length - 1].id
+      this.checkpoint.processedCount += batch.rows.length
+      this.checkpoint.updatedAt = new Date()
+      await this.saveCheckpoint()
+
+      console.log(`Progress: ${this.checkpoint.processedCount} records`)
+
+      await sleep(throttleMs)
+    }
+  }
+
+  private async loadCheckpoint(): Promise<BackfillCheckpoint | null> {
+    const result = await db.query(
+      'SELECT * FROM migration_checkpoints WHERE migration_id = $1',
+      [this.migrationId]
+    )
+    return result.rows[0] || null
+  }
+
+  private async saveCheckpoint(): Promise<void> {
+    await db.query(`
+      INSERT INTO migration_checkpoints (
+        migration_id, table_name, last_processed_id,
+        processed_count, started_at, updated_at, status, error_message
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      ON CONFLICT (migration_id) DO UPDATE SET
+        last_processed_id = $3,
+        processed_count = $4,
+        updated_at = $6,
+        status = $7,
+        error_message = $8
+    `, [
+      this.checkpoint.migrationId,
+      this.checkpoint.table,
+      this.checkpoint.lastProcessedId,
+      this.checkpoint.processedCount,
+      this.checkpoint.startedAt,
+      this.checkpoint.updatedAt,
+      this.checkpoint.status,
+      this.checkpoint.errorMessage
+    ])
+  }
+}
+```
+
+### Online Schema Change Tools
+
+Using specialized tools for large tables.
+
+```bash
+# gh-ost: GitHub's online schema change tool for MySQL
+gh-ost \
+  --host=db.example.com \
+  --database=myapp \
+  --table=users \
+  --alter="ADD COLUMN full_name VARCHAR(255)" \
+  --execute \
+  --allow-on-master \
+  --chunk-size=1000 \
+  --max-load=Threads_running=25 \
+  --critical-load=Threads_running=50
+
+# pt-online-schema-change: Percona toolkit
+pt-online-schema-change \
+  --alter "ADD COLUMN full_name VARCHAR(255)" \
+  --execute \
+  --chunk-size=1000 \
+  --max-lag=1s \
+  D=myapp,t=users
+
+# pg_repack: PostgreSQL table reorganization
+# Useful for reclaiming space after large updates
+pg_repack --table users --jobs 4 myapp
+```
+
+```typescript
+// Monitoring backfill progress
+interface BackfillProgress {
+  table: string
+  totalRows: number
+  processedRows: number
+  remainingRows: number
+  percentComplete: number
+  estimatedTimeRemaining: string
+  currentRate: number  // rows per second
+}
+
+async function getBackfillProgress(
+  table: string,
+  targetColumn: string,
+  startTime: Date
+): Promise<BackfillProgress> {
+  const [total, remaining] = await Promise.all([
+    db.query(`SELECT COUNT(*) as count FROM ${table}`),
+    db.query(`SELECT COUNT(*) as count FROM ${table} WHERE ${targetColumn} IS NULL`)
+  ])
+
+  const totalRows = parseInt(total.rows[0].count)
+  const remainingRows = parseInt(remaining.rows[0].count)
+  const processedRows = totalRows - remainingRows
+
+  const elapsedSeconds = (Date.now() - startTime.getTime()) / 1000
+  const rate = processedRows / elapsedSeconds
+  const remainingSeconds = remainingRows / rate
+
+  return {
+    table,
+    totalRows,
+    processedRows,
+    remainingRows,
+    percentComplete: (processedRows / totalRows) * 100,
+    estimatedTimeRemaining: formatDuration(remainingSeconds),
+    currentRate: Math.round(rate)
+  }
+}
+```
+
+## Contract Phase: Removing Old Structures
+
+Safely removing deprecated schema elements after migration completes.
+
+### Pre-Contract Verification
+
+Ensuring it's safe to remove old structures.
+
+```typescript
+// Contract phase readiness checklist
+interface ContractReadiness {
+  backfillComplete: boolean
+  consistencyVerified: boolean
+  allAppsUpdated: boolean
+  readFromNewColumn: boolean
+  noRecentOldColumnReads: boolean
+  rollbackWindowPassed: boolean
+}
+
+async function verifyContractReadiness(
+  table: string,
+  oldColumn: string,
+  newColumn: string
+): Promise<ContractReadiness> {
+  // Check backfill completion
+  const nullCount = await db.query(`
+    SELECT COUNT(*) as count FROM ${table} WHERE ${newColumn} IS NULL
+  `)
+  const backfillComplete = parseInt(nullCount.rows[0].count) === 0
+
+  // Check consistency
+  const inconsistentCount = await db.query(`
+    SELECT COUNT(*) as count FROM ${table}
+    WHERE ${oldColumn} IS DISTINCT FROM ${newColumn}
+  `)
+  const consistencyVerified = parseInt(inconsistentCount.rows[0].count) === 0
+
+  // Check if old column is still being read (requires query logging)
+  const recentQueries = await db.query(`
+    SELECT COUNT(*) as count FROM pg_stat_statements
+    WHERE query LIKE '%SELECT%${oldColumn}%FROM ${table}%'
+      AND calls > 0
+      AND last_call > NOW() - INTERVAL '7 days'
+  `)
+  const noRecentOldColumnReads = parseInt(recentQueries.rows[0].count) === 0
+
+  return {
+    backfillComplete,
+    consistencyVerified,
+    allAppsUpdated: true,  // Verify via deployment tracking
+    readFromNewColumn: true,  // Verify via feature flag status
+    noRecentOldColumnReads,
+    rollbackWindowPassed: true  // Based on deployment policy
+  }
+}
+```
+
+### Dropping Columns Safely
+
+The contract migration to remove old structures.
+
+```sql
+-- Contract migration: Remove old column
+-- Only run after verification passes
+
+-- Step 1: Remove any triggers syncing to old column
+DROP TRIGGER IF EXISTS trg_sync_full_name_to_name ON users;
+DROP FUNCTION IF EXISTS sync_full_name_to_name();
+
+-- Step 2: Remove any indexes on old column
+DROP INDEX IF EXISTS idx_users_name;
+
+-- Step 3: Remove any constraints referencing old column
+-- (if any exist)
+
+-- Step 4: Drop the old column
+ALTER TABLE users DROP COLUMN name;
+
+-- Step 5: Rename new column if needed (optional)
+-- ALTER TABLE users RENAME COLUMN full_name TO name;
+
+-- Step 6: Add NOT NULL constraint if required
+ALTER TABLE users ALTER COLUMN full_name SET NOT NULL;
+```
+
+```typescript
+// Contract migration with safety checks
+// migrations/20240115_003_contract_remove_name_column.ts
+
+import { Knex } from 'knex'
+
+export async function up(knex: Knex): Promise<void> {
+  // Pre-flight checks
+  const nullCount = await knex('users').whereNull('full_name').count('* as count')
+  if (parseInt(nullCount[0].count) > 0) {
+    throw new Error('Cannot contract: full_name column has NULL values')
+  }
+
+  const inconsistent = await knex.raw(`
+    SELECT COUNT(*) as count FROM users
+    WHERE name IS DISTINCT FROM full_name
+  `)
+  if (parseInt(inconsistent.rows[0].count) > 0) {
+    throw new Error('Cannot contract: name and full_name columns are inconsistent')
+  }
+
+  // Remove sync triggers
+  await knex.raw('DROP TRIGGER IF EXISTS trg_sync_name_to_full_name ON users')
+  await knex.raw('DROP FUNCTION IF EXISTS sync_name_to_full_name()')
+
+  // Drop old column
+  await knex.schema.alterTable('users', (table) => {
+    table.dropColumn('name')
+  })
+
+  // Add NOT NULL constraint to new column
+  await knex.raw('ALTER TABLE users ALTER COLUMN full_name SET NOT NULL')
+}
+
+export async function down(knex: Knex): Promise<void> {
+  // Recreate old column (data will be lost!)
+  await knex.schema.alterTable('users', (table) => {
+    table.string('name', 255).nullable()
+  })
+
+  // Copy data back
+  await knex.raw('UPDATE users SET name = full_name')
+
+  // Recreate triggers
+  await knex.raw(`
+    CREATE OR REPLACE FUNCTION sync_name_to_full_name()
+    RETURNS TRIGGER AS $$
+    BEGIN
+      IF NEW.full_name IS NULL THEN
+        NEW.full_name := NEW.name;
+      END IF;
+      RETURN NEW;
+    END;
+    $$ LANGUAGE plpgsql;
+
+    CREATE TRIGGER trg_sync_name_to_full_name
+    BEFORE INSERT OR UPDATE OF name ON users
+    FOR EACH ROW
+    EXECUTE FUNCTION sync_name_to_full_name();
+  `)
+}
+```
+
+:::danger[Contract Phase is Irreversible]
+Dropping columns permanently deletes data. Ensure:
+- Backfill is 100% complete
+- All applications read from new column
+- Rollback window has passed (typically 1-2 weeks)
+- You have database backups
+The contract phase down migration cannot fully restore data that was only in the dropped column.
+:::
+
+## Complex Migration Examples
+
+Applying expand/contract to challenging schema changes.
+
+### Table Splitting
+
+Moving columns to a new normalized table.
+
+```sql
+-- Scenario: Split user profile data from users table
+-- Original: users (id, email, password_hash, name, bio, avatar_url, preferences)
+-- Target: users (id, email, password_hash) + user_profiles (user_id, name, bio, avatar_url, preferences)
+
+-- EXPAND PHASE
+-- Step 1: Create new table
+CREATE TABLE user_profiles (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  name VARCHAR(255),
+  bio TEXT,
+  avatar_url VARCHAR(500),
+  preferences JSONB DEFAULT '{}',
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+
+  CONSTRAINT uq_user_profiles_user_id UNIQUE (user_id)
+);
+
+-- Step 2: Create sync trigger (old table → new table)
+CREATE OR REPLACE FUNCTION sync_user_to_profile()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO user_profiles (user_id, name, bio, avatar_url, preferences)
+  VALUES (NEW.id, NEW.name, NEW.bio, NEW.avatar_url, NEW.preferences)
+  ON CONFLICT (user_id) DO UPDATE SET
+    name = EXCLUDED.name,
+    bio = EXCLUDED.bio,
+    avatar_url = EXCLUDED.avatar_url,
+    preferences = EXCLUDED.preferences,
+    updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_sync_user_to_profile
+AFTER INSERT OR UPDATE ON users
+FOR EACH ROW
+EXECUTE FUNCTION sync_user_to_profile();
+```
+
+```typescript
+// Application code for table split - dual read/write
+class UserService {
+  private useNewSchema: boolean = featureFlags.get('user_profile_new_schema')
+
+  async getUser(id: string): Promise<User> {
+    if (this.useNewSchema) {
+      // Read from both tables (new schema)
+      const result = await db.query(`
+        SELECT u.id, u.email,
+               p.name, p.bio, p.avatar_url, p.preferences
+        FROM users u
+        LEFT JOIN user_profiles p ON p.user_id = u.id
+        WHERE u.id = $1
+      `, [id])
+      return result.rows[0]
+    } else {
+      // Read from old schema
+      const result = await db.query(
+        'SELECT * FROM users WHERE id = $1',
+        [id]
+      )
+      return result.rows[0]
+    }
+  }
+
+  async updateProfile(userId: string, profile: ProfileUpdate): Promise<void> {
+    // Always dual-write during transition
+    await db.transaction(async (trx) => {
+      // Write to old table
+      await trx.query(`
+        UPDATE users SET
+          name = COALESCE($1, name),
+          bio = COALESCE($2, bio),
+          avatar_url = COALESCE($3, avatar_url),
+          preferences = COALESCE($4, preferences)
+        WHERE id = $5
+      `, [profile.name, profile.bio, profile.avatarUrl, profile.preferences, userId])
+
+      // Write to new table (trigger also does this, but explicit is clearer)
+      await trx.query(`
+        INSERT INTO user_profiles (user_id, name, bio, avatar_url, preferences)
+        VALUES ($1, $2, $3, $4, $5)
+        ON CONFLICT (user_id) DO UPDATE SET
+          name = COALESCE(EXCLUDED.name, user_profiles.name),
+          bio = COALESCE(EXCLUDED.bio, user_profiles.bio),
+          avatar_url = COALESCE(EXCLUDED.avatar_url, user_profiles.avatar_url),
+          preferences = COALESCE(EXCLUDED.preferences, user_profiles.preferences),
+          updated_at = NOW()
+      `, [userId, profile.name, profile.bio, profile.avatarUrl, profile.preferences])
+    })
+  }
+}
+```
+
+### Column Type Change
+
+Changing from integer to UUID primary key.
+
+```sql
+-- Scenario: Migrate from auto-increment INT to UUID
+-- This is one of the most complex migrations
+
+-- EXPAND PHASE
+-- Step 1: Add UUID column
+ALTER TABLE orders ADD COLUMN uuid UUID DEFAULT gen_random_uuid();
+
+-- Step 2: Ensure all existing rows have UUID
+UPDATE orders SET uuid = gen_random_uuid() WHERE uuid IS NULL;
+
+-- Step 3: Add unique constraint
+ALTER TABLE orders ADD CONSTRAINT uq_orders_uuid UNIQUE (uuid);
+
+-- Step 4: Create mapping table for foreign key migration
+CREATE TABLE order_id_mapping (
+  old_id INTEGER PRIMARY KEY,
+  new_uuid UUID NOT NULL
+);
+
+INSERT INTO order_id_mapping (old_id, new_uuid)
+SELECT id, uuid FROM orders;
+
+-- Step 5: Add UUID foreign key to related tables
+ALTER TABLE order_items ADD COLUMN order_uuid UUID;
+
+-- Step 6: Backfill foreign keys
+UPDATE order_items oi
+SET order_uuid = m.new_uuid
+FROM order_id_mapping m
+WHERE oi.order_id = m.old_id;
+
+-- Step 7: Add foreign key constraint
+ALTER TABLE order_items
+ADD CONSTRAINT fk_order_items_order_uuid
+FOREIGN KEY (order_uuid) REFERENCES orders(uuid);
+```
+
+```typescript
+// Application code for primary key migration
+class OrderRepository {
+  // During transition: Accept both ID types
+  async getOrder(identifier: string | number): Promise<Order> {
+    if (typeof identifier === 'string' && identifier.includes('-')) {
+      // UUID format
+      return db.query('SELECT * FROM orders WHERE uuid = $1', [identifier])
+    } else {
+      // Integer format (legacy)
+      return db.query('SELECT * FROM orders WHERE id = $1', [identifier])
+    }
+  }
+
+  // Return both IDs during transition
+  async createOrder(order: CreateOrderInput): Promise<Order> {
+    const result = await db.query(`
+      INSERT INTO orders (customer_id, total, uuid)
+      VALUES ($1, $2, gen_random_uuid())
+      RETURNING id, uuid, customer_id, total, created_at
+    `, [order.customerId, order.total])
+
+    return {
+      ...result.rows[0],
+      // Expose UUID as primary identifier in API
+      id: result.rows[0].uuid,
+      legacyId: result.rows[0].id
+    }
+  }
+}
+```
+
+```
+Mermaid diagram: Column type migration phases.
+Phase 1: Add UUID column
+┌─────────────────────────────────────┐
+│ orders                               │
+│ ├─ id (INT PK) ◄─── Still primary   │
+│ ├─ uuid (UUID)  ◄─── New, unique    │
+│ └─ ...                              │
+└─────────────────────────────────────┘
+
+Phase 2: Update foreign keys
+┌─────────────────┐     ┌─────────────────┐
+│ orders          │     │ order_items     │
+│ ├─ id (INT PK)  │◄────│ ├─ order_id     │ Legacy FK
+│ ├─ uuid (UUID)  │◄────│ ├─ order_uuid   │ New FK
+│ └─ ...          │     │ └─ ...          │
+└─────────────────┘     └─────────────────┘
+
+Phase 3: Swap primary key
+┌─────────────────────────────────────┐
+│ orders                               │
+│ ├─ id (INT)     ◄─── Keep for audit │
+│ ├─ uuid (UUID PK) ◄─── Now primary  │
+│ └─ ...                              │
+└─────────────────────────────────────┘
+
+Phase 4: Contract
+┌─────────────────┐     ┌─────────────────┐
+│ orders          │     │ order_items     │
+│ ├─ id (UUID PK) │◄────│ ├─ order_id     │ UUID FK
+│ └─ ...          │     │ └─ ...          │
+└─────────────────┘     └─────────────────┘
+```
+
+## Rollback Strategies
+
+Recovering when migrations go wrong.
+
+### Phase-Specific Rollback
+
+Different rollback approaches for each phase.
+
+| Phase | Rollback Difficulty | Approach |
+|-------|---------------------|----------|
+| Expand | Easy | Drop new columns/tables |
+| Dual-write | Easy | Disable dual-write, rely on old path |
+| Backfill | Medium | Stop backfill, optionally clear new data |
+| Read migration | Easy | Toggle feature flag back |
+| Contract | Hard/Impossible | Restore from backup |
+
+```typescript
+// Rollback procedures for each phase
+interface MigrationRollback {
+  phase: 'expand' | 'dual_write' | 'backfill' | 'read_migration' | 'contract'
+  procedure: () => Promise<void>
+  dataLoss: boolean
+  estimatedTime: string
+}
+
+const rollbackProcedures: Record<string, MigrationRollback> = {
+  expand: {
+    phase: 'expand',
+    procedure: async () => {
+      // Simply drop the new column/table
+      await db.query('DROP TABLE IF EXISTS user_profiles')
+      // or
+      await db.query('ALTER TABLE users DROP COLUMN IF EXISTS full_name')
+    },
+    dataLoss: false,  // New column had no critical data yet
+    estimatedTime: 'Seconds'
+  },
+
+  dual_write: {
+    phase: 'dual_write',
+    procedure: async () => {
+      // Disable dual-write in application
+      await featureFlags.set('dual_write_user_name', false)
+      // Remove sync triggers
+      await db.query('DROP TRIGGER IF EXISTS trg_sync_name_to_full_name ON users')
+    },
+    dataLoss: false,  // Old column still has all data
+    estimatedTime: 'Seconds'
+  },
+
+  backfill: {
+    phase: 'backfill',
+    procedure: async () => {
+      // Stop any running backfill jobs
+      await jobQueue.cancel('backfill_user_names')
+      // Optionally clear partially backfilled data
+      // await db.query('UPDATE users SET full_name = NULL')
+    },
+    dataLoss: false,  // Old column still authoritative
+    estimatedTime: 'Seconds to minutes'
+  },
+
+  read_migration: {
+    phase: 'read_migration',
+    procedure: async () => {
+      // Switch reads back to old column
+      await featureFlags.set('read_user_full_name', false)
+    },
+    dataLoss: false,
+    estimatedTime: 'Seconds'
+  },
+
+  contract: {
+    phase: 'contract',
+    procedure: async () => {
+      // Cannot easily rollback - need backup restoration
+      throw new Error('Contract phase rollback requires database restore')
+    },
+    dataLoss: true,  // Any data written only to new structure is lost
+    estimatedTime: 'Hours (backup restore)'
+  }
+}
+```
+
+### Monitoring for Rollback Triggers
+
+Detecting when rollback is needed.
+
+```typescript
+// Migration health monitoring
+interface MigrationHealthMetrics {
+  errorRate: number           // Application errors related to migration
+  latencyIncrease: number     // Percentage increase in query latency
+  inconsistencyRate: number   // Data inconsistency percentage
+  backfillProgress: number    // Percentage complete
+}
+
+interface RollbackTrigger {
+  metric: keyof MigrationHealthMetrics
+  threshold: number
+  comparison: 'gt' | 'lt'
+  message: string
+}
+
+const rollbackTriggers: RollbackTrigger[] = [
+  {
+    metric: 'errorRate',
+    threshold: 0.01,  // 1% error rate
+    comparison: 'gt',
+    message: 'Error rate exceeded 1% - consider rollback'
+  },
+  {
+    metric: 'latencyIncrease',
+    threshold: 50,    // 50% latency increase
+    comparison: 'gt',
+    message: 'Query latency increased >50% - investigate dual-write impact'
+  },
+  {
+    metric: 'inconsistencyRate',
+    threshold: 0.001, // 0.1% inconsistency
+    comparison: 'gt',
+    message: 'Data inconsistency detected - pause migration'
+  }
+]
+
+async function checkMigrationHealth(): Promise<{
+  healthy: boolean
+  triggeredAlerts: string[]
+}> {
+  const metrics = await collectMigrationMetrics()
+  const triggeredAlerts: string[] = []
+
+  for (const trigger of rollbackTriggers) {
+    const value = metrics[trigger.metric]
+    const triggered = trigger.comparison === 'gt'
+      ? value > trigger.threshold
+      : value < trigger.threshold
+
+    if (triggered) {
+      triggeredAlerts.push(trigger.message)
+    }
+  }
+
+  return {
+    healthy: triggeredAlerts.length === 0,
+    triggeredAlerts
+  }
+}
+```
+
+:::success[Always Have a Rollback Plan]
+Before starting any migration:
+1. Document the rollback procedure for each phase
+2. Test rollback in staging environment
+3. Ensure monitoring is in place to detect issues
+4. Set clear rollback trigger thresholds
+5. Have database backups verified and accessible
+:::
+
+## Conclusion
+
+Zero-downtime database migrations require abandoning the traditional "stop, migrate, start" approach in favor of careful decomposition into safe, reversible steps. The expand/contract pattern provides this framework: expand by adding new schema elements that don't break existing code; implement dual-write to keep old and new structures synchronized; backfill existing data with batched, resumable processes; migrate reads to the new structure via feature flags; and only contract after confirming complete migration and allowing a rollback window. Each phase should be independently deployable and reversible—if something goes wrong during dual-write, you can disable it without data loss; if backfill fails, you can resume from a checkpoint. The contract phase is the point of no return, so it requires the most verification: 100% backfill completion, consistency checks, confirmation that all applications read from new structures, and expiration of the rollback window. Complex migrations like table splits or primary key changes require multiple expand/contract cycles, but the same principles apply. Invest the time upfront to plan each phase, write comprehensive verification queries, and test rollback procedures. The alternative—a maintenance window that runs long, a migration that fails halfway, or a rollback that loses data—is far more expensive than the discipline of zero-downtime migration patterns.
+
+---
+
+## Cover Image Prompts
+
+### Prompt 1: Bridge Under Construction with Traffic Flowing
+Aerial photograph of a highway bridge being expanded—new lanes under construction adjacent to existing lanes with traffic still flowing. The essence of zero-downtime migration.
+
+### Prompt 2: Database Tables Morphing
+Abstract visualization of database table structures smoothly transforming—columns stretching, splitting, merging like liquid metal. Gradient colors showing old (amber) transitioning to new (blue).
+
+### Prompt 3: Two Railway Tracks Converging
+Photograph of parallel railway tracks that gradually merge into one—representing dual-write convergence. Industrial, precise engineering aesthetic with strong perspective lines.
+
+### Prompt 4: Surgical Operation with Precision Instruments
+Medical photograph showing surgical instruments during a delicate operation—representing the precision required for database surgery. Clean, focused, high-stakes environment.
+
+### Prompt 5: Caterpillar to Butterfly Metamorphosis
+Time-lapse style composite showing database schema transformation—old schema as chrysalis, new schema emerging as butterfly. Technical diagrams blended with organic transformation imagery.

@@ -9,6 +9,1230 @@ tags: ["observability-and-telemetry"]
 featured: true
 ---
 
+*[APM]: Application Performance Monitoring
+*[CEE]: Common Event Expression
+*[CLF]: Common Log Format
+*[ECS]: Elastic Common Schema
+*[ELK]: Elasticsearch, Logstash, Kibana
+*[GDPR]: General Data Protection Regulation
+*[JSON]: JavaScript Object Notation
+*[OTEL]: OpenTelemetry
+*[PII]: Personally Identifiable Information
+*[RFC]: Request for Comments
+*[SIEM]: Security Information and Event Management
+*[UUID]: Universally Unique Identifier
+
 Log schema design, correlation propagation, redaction policies, and collector-side filtering that drops noise before storage.
 
 Consistency in logging pays off when debugging at 3 AM.
+
+## Why Structured Logging Matters
+
+Plain text logs become unsearchable noise at scale—structured logging transforms logs into queryable data.
+
+### The Unstructured Logging Problem
+
+What happens when each service logs differently.
+
+```typescript
+// The chaos of unstructured logging
+const unstucturedExamples = [
+  // Service A: printf style
+  'User 12345 logged in from 192.168.1.1',
+
+  // Service B: different format
+  '[INFO] Login successful - user_id=12345, ip=192.168.1.1',
+
+  // Service C: JSON but different schema
+  '{"user":"12345","action":"login","source_ip":"192.168.1.1"}',
+
+  // Service D: timestamp variation
+  '2024-01-15 14:30:00 INFO user 12345 authenticated',
+
+  // Service E: multiline exception
+  'Error processing request\nStack trace:\n  at Handler.process()',
+]
+
+// Trying to find all logins for user 12345 requires 5 different regex patterns
+```
+
+```
+Mermaid diagram: Query complexity with inconsistent logs.
+Query: "Find all user 12345 logins"
+
+With Unstructured Logs:
+├── Service A: grep "User 12345 logged in"
+├── Service B: grep "user_id=12345" | grep "Login"
+├── Service C: jq 'select(.user=="12345" and .action=="login")'
+├── Service D: grep "user 12345 authenticated"
+└── Result: 5 different patterns, likely missing some
+
+With Structured Logs (ECS):
+└── Query: user.id:12345 AND event.action:login
+    └── Works across all services
+```
+
+### The Business Case for Standardization
+
+Quantifying the value of consistent log schemas.
+
+| Metric | Unstructured | Structured | Improvement |
+|--------|--------------|------------|-------------|
+| Mean time to find relevant logs | 15 min | 2 min | 87% faster |
+| Query accuracy | ~70% | 99%+ | False negatives eliminated |
+| Storage cost | Baseline | 0.7x | 30% reduction (better compression) |
+| Dashboard creation time | Hours | Minutes | Reusable field mappings |
+| Cross-service correlation | Manual | Automatic | Correlation IDs |
+| Compliance audit time | Days | Hours | Queryable sensitive fields |
+
+:::info[Structured Logging Is Not Just JSON]
+JSON is a format, not a schema. Two services can both emit JSON logs with completely incompatible field names. Structured logging requires both a consistent format AND a shared schema.
+:::
+
+## Designing Your Log Schema
+
+Building a schema that works across all services and use cases.
+
+### Schema Design Principles
+
+Rules that prevent future pain.
+
+```typescript
+// Core schema design principles
+interface SchemaDesignPrinciples {
+  principle: string
+  rationale: string
+  example: string
+  antiPattern: string
+}
+
+const principles: SchemaDesignPrinciples[] = [
+  {
+    principle: 'Use namespaced field names',
+    rationale: 'Prevents collisions, enables discovery',
+    example: 'http.request.method, user.id, service.name',
+    antiPattern: 'method, id, name (ambiguous)'
+  },
+  {
+    principle: 'Consistent data types per field',
+    rationale: 'Enables indexing and aggregation',
+    example: 'user.id: always string, http.status_code: always integer',
+    antiPattern: 'user.id sometimes string, sometimes integer'
+  },
+  {
+    principle: 'ISO 8601 timestamps',
+    rationale: 'Timezone-aware, sortable, universal',
+    example: '2024-01-15T14:30:00.123Z',
+    antiPattern: '01/15/2024 2:30 PM, epoch milliseconds'
+  },
+  {
+    principle: 'Flat over nested for queryability',
+    rationale: 'Most log platforms query flat fields better',
+    example: 'http.request.headers.content_type',
+    antiPattern: 'http: { request: { headers: { content_type: ... } } }'
+  },
+  {
+    principle: 'Enums for categorical fields',
+    rationale: 'Enables faceted search, prevents typos',
+    example: 'log.level: "error" | "warn" | "info" | "debug"',
+    antiPattern: 'level: "ERROR", "Error", "err", "E"'
+  },
+  {
+    principle: 'Document units in field names',
+    rationale: 'Prevents confusion and calculation errors',
+    example: 'http.response.time_ms, file.size_bytes',
+    antiPattern: 'response_time (seconds? milliseconds?)'
+  }
+]
+```
+
+### Adopting Elastic Common Schema (ECS)
+
+Leveraging an existing standard rather than inventing your own.
+
+```typescript
+// ECS-compliant log structure
+interface ECSLogEntry {
+  // Required base fields
+  '@timestamp': string      // ISO 8601
+  'log.level': 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal'
+  'message': string         // Human-readable summary
+
+  // Service identification (ECS service.* namespace)
+  'service.name': string
+  'service.version': string
+  'service.environment': 'production' | 'staging' | 'development'
+  'service.node.name'?: string  // Instance/pod ID
+
+  // Tracing correlation (ECS trace.* namespace)
+  'trace.id'?: string
+  'span.id'?: string
+  'transaction.id'?: string
+
+  // Error details (ECS error.* namespace)
+  'error.type'?: string
+  'error.message'?: string
+  'error.stack_trace'?: string
+  'error.code'?: string
+
+  // HTTP request context (ECS http.* namespace)
+  'http.request.method'?: string
+  'http.request.path'?: string
+  'http.response.status_code'?: number
+  'http.response.body.bytes'?: number
+
+  // User context (ECS user.* namespace)
+  'user.id'?: string
+  'user.name'?: string
+  'user.roles'?: string[]
+
+  // Host information (ECS host.* namespace)
+  'host.name'?: string
+  'host.ip'?: string[]
+
+  // Event categorization (ECS event.* namespace)
+  'event.category'?: string[]
+  'event.type'?: string[]
+  'event.action'?: string
+  'event.outcome'?: 'success' | 'failure' | 'unknown'
+
+  // Custom fields (use labels.* for custom key-value pairs)
+  'labels'?: Record<string, string>
+}
+```
+
+```typescript
+// ECS logger implementation
+import pino from 'pino'
+
+const logger = pino({
+  formatters: {
+    level(label) {
+      return { 'log.level': label }
+    },
+  },
+  messageKey: 'message',
+  timestamp: () => `,"@timestamp":"${new Date().toISOString()}"`,
+  base: {
+    'service.name': process.env.SERVICE_NAME,
+    'service.version': process.env.SERVICE_VERSION,
+    'service.environment': process.env.NODE_ENV,
+    'service.node.name': process.env.HOSTNAME || process.env.POD_NAME,
+  },
+})
+
+// Usage produces ECS-compliant output
+logger.info({
+  'http.request.method': 'POST',
+  'http.request.path': '/api/orders',
+  'http.response.status_code': 201,
+  'user.id': 'usr_12345',
+  'event.category': ['web'],
+  'event.action': 'order_created',
+  'event.outcome': 'success',
+}, 'Order created successfully')
+```
+
+### Custom Fields and Extensions
+
+Extending ECS for domain-specific needs.
+
+```typescript
+// Domain-specific extensions following ECS conventions
+interface OrderLogFields {
+  // Use custom namespace for business domain
+  'order.id': string
+  'order.status': 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled'
+  'order.total_cents': number
+  'order.item_count': number
+  'order.payment_method': string
+
+  // Customer extends user.*
+  'customer.tier': 'free' | 'premium' | 'enterprise'
+  'customer.lifetime_orders': number
+}
+
+interface PaymentLogFields {
+  'payment.id': string
+  'payment.provider': 'stripe' | 'paypal' | 'braintree'
+  'payment.amount_cents': number
+  'payment.currency': string
+  'payment.status': 'pending' | 'authorized' | 'captured' | 'failed' | 'refunded'
+}
+
+// Extension registry for documentation
+const customFieldRegistry = {
+  namespaces: ['order', 'payment', 'customer', 'inventory'],
+  documentation: 'https://internal.docs/logging/custom-fields',
+  owner: 'platform-team',
+  lastUpdated: '2024-01-15'
+}
+```
+
+:::warning[Don't Overextend ECS]
+Custom namespaces should be rare. Most use cases fit within ECS standard fields. Before adding a custom field, check if an ECS field already covers it. Custom fields increase cognitive load and reduce interoperability.
+:::
+
+## Correlation ID Implementation
+
+Connecting logs across services and request boundaries.
+
+### Correlation ID Types
+
+Different identifiers for different scopes.
+
+```typescript
+// Correlation ID hierarchy
+interface CorrelationContext {
+  // Request-level: entire user request across all services
+  requestId: string       // Generated at edge/API gateway
+
+  // Trace-level: distributed trace context (OpenTelemetry)
+  traceId: string         // Propagated via W3C Trace Context
+  spanId: string          // Current operation within trace
+  parentSpanId?: string   // Parent operation
+
+  // Session-level: user session across multiple requests
+  sessionId?: string      // From session cookie or JWT
+
+  // Business transaction: logical operation across requests
+  transactionId?: string  // e.g., order fulfillment saga
+
+  // Causation: what triggered this operation
+  causationId?: string    // ID of the event/message that caused this
+}
+
+// Example log showing all correlation levels
+const logEntry = {
+  '@timestamp': '2024-01-15T14:30:00.123Z',
+  'message': 'Payment authorized',
+
+  // All correlation IDs present
+  'trace.id': '4bf92f3577b34da6a3ce929d0e0e4736',
+  'span.id': '00f067aa0ba902b7',
+  'transaction.id': 'order-12345',           // Business transaction
+  'request.id': 'req_abc123',                // Edge-assigned request ID
+  'session.id': 'sess_xyz789',               // User session
+  'event.causation_id': 'order_created_evt', // What triggered this
+
+  // Makes it possible to:
+  // - Find all logs for this request across services
+  // - See the full distributed trace in Jaeger/Zipkin
+  // - Track the entire order saga
+  // - See all activity in this user's session
+  // - Understand causal chains
+}
+```
+
+```
+Mermaid diagram: Correlation ID flow through services.
+User Request
+     ↓
+API Gateway
+├── Generates: request.id = req_abc123
+├── Extracts: session.id from cookie
+└── Starts: trace.id = 4bf92f...
+     ↓
+Order Service (span.id = 00f067...)
+├── Creates: transaction.id = order-12345
+├── Logs: All IDs present
+└── Publishes: OrderCreated event
+     ↓                          ↓
+Payment Service              Inventory Service
+├── span.id = new            ├── span.id = new
+├── trace.id = same          ├── trace.id = same
+├── transaction.id = same    ├── transaction.id = same
+├── causation_id = event     └── causation_id = event
+└── Logs: traceable back
+
+Query: trace.id:4bf92f* shows ALL logs across ALL services
+```
+
+### Propagation Mechanisms
+
+Passing correlation IDs between services.
+
+```typescript
+// HTTP header propagation
+const correlationHeaders = {
+  // W3C Trace Context (standard)
+  traceparent: '00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01',
+  tracestate: 'vendor=value',
+
+  // Custom headers for non-trace IDs
+  'x-request-id': 'req_abc123',
+  'x-session-id': 'sess_xyz789',
+  'x-transaction-id': 'order-12345',
+  'x-causation-id': 'order_created_evt',
+}
+
+// Express middleware for extraction and injection
+import { AsyncLocalStorage } from 'async_hooks'
+
+interface RequestContext {
+  traceId: string
+  spanId: string
+  requestId: string
+  sessionId?: string
+  transactionId?: string
+}
+
+const contextStorage = new AsyncLocalStorage<RequestContext>()
+
+function correlationMiddleware(req: Request, res: Response, next: NextFunction) {
+  // Extract or generate IDs
+  const traceHeader = req.headers['traceparent'] as string
+  const { traceId, spanId } = parseTraceParent(traceHeader) || {
+    traceId: generateTraceId(),
+    spanId: generateSpanId()
+  }
+
+  const context: RequestContext = {
+    traceId,
+    spanId,
+    requestId: req.headers['x-request-id'] as string || generateRequestId(),
+    sessionId: req.headers['x-session-id'] as string,
+    transactionId: req.headers['x-transaction-id'] as string,
+  }
+
+  // Set response headers for debugging
+  res.setHeader('x-trace-id', traceId)
+  res.setHeader('x-request-id', context.requestId)
+
+  // Run request with context
+  contextStorage.run(context, () => next())
+}
+
+// Get current context from anywhere
+function getCorrelationContext(): RequestContext | undefined {
+  return contextStorage.getStore()
+}
+
+// HTTP client that propagates context
+async function fetchWithCorrelation(url: string, options: RequestInit = {}) {
+  const context = getCorrelationContext()
+
+  const headers = new Headers(options.headers)
+
+  if (context) {
+    headers.set('traceparent', formatTraceParent(context.traceId, generateSpanId()))
+    headers.set('x-request-id', context.requestId)
+    if (context.sessionId) headers.set('x-session-id', context.sessionId)
+    if (context.transactionId) headers.set('x-transaction-id', context.transactionId)
+  }
+
+  return fetch(url, { ...options, headers })
+}
+```
+
+### Message Queue Correlation
+
+Propagating IDs through async messaging.
+
+```typescript
+// Message envelope with correlation
+interface MessageEnvelope<T> {
+  // Message metadata
+  messageId: string
+  timestamp: string
+  type: string
+
+  // Correlation context
+  correlation: {
+    traceId: string
+    causationId: string  // Message ID that caused this
+    transactionId?: string
+    originRequestId?: string  // Original HTTP request
+  }
+
+  // Payload
+  payload: T
+}
+
+// Producer: wrap message with correlation
+async function publishEvent<T>(type: string, payload: T): Promise<void> {
+  const context = getCorrelationContext()
+
+  const envelope: MessageEnvelope<T> = {
+    messageId: generateMessageId(),
+    timestamp: new Date().toISOString(),
+    type,
+    correlation: {
+      traceId: context?.traceId || generateTraceId(),
+      causationId: context?.causationId || 'http_request',
+      transactionId: context?.transactionId,
+      originRequestId: context?.requestId,
+    },
+    payload,
+  }
+
+  await messageQueue.publish(type, envelope)
+
+  logger.info({
+    'message': `Published ${type}`,
+    'event.action': 'message_published',
+    'messaging.message_id': envelope.messageId,
+    'trace.id': envelope.correlation.traceId,
+    'transaction.id': envelope.correlation.transactionId,
+  })
+}
+
+// Consumer: restore correlation context
+async function handleMessage<T>(envelope: MessageEnvelope<T>): Promise<void> {
+  const context: RequestContext = {
+    traceId: envelope.correlation.traceId,
+    spanId: generateSpanId(),
+    requestId: envelope.correlation.originRequestId || envelope.messageId,
+    transactionId: envelope.correlation.transactionId,
+    causationId: envelope.messageId,  // This message is now the cause
+  }
+
+  // Run handler with restored context
+  await contextStorage.run(context, async () => {
+    logger.info({
+      'message': `Processing ${envelope.type}`,
+      'event.action': 'message_received',
+      'messaging.message_id': envelope.messageId,
+      'trace.id': context.traceId,
+    })
+
+    await processMessage(envelope.payload)
+  })
+}
+```
+
+## Logger Implementation Patterns
+
+Building loggers that enforce schema compliance.
+
+### Type-Safe Logger Factory
+
+Ensuring logs conform to schema at compile time.
+
+```typescript
+// Type-safe logger with required and optional fields
+interface BaseLogFields {
+  '@timestamp': string
+  'log.level': string
+  'message': string
+  'service.name': string
+  'service.version': string
+  'trace.id'?: string
+  'span.id'?: string
+}
+
+interface HttpLogFields {
+  'http.request.method': string
+  'http.request.path': string
+  'http.response.status_code': number
+  'http.response.time_ms': number
+}
+
+interface ErrorLogFields {
+  'error.type': string
+  'error.message': string
+  'error.stack_trace'?: string
+}
+
+// Logger that enforces field types
+class StructuredLogger {
+  private baseFields: Partial<BaseLogFields>
+
+  constructor(config: { serviceName: string; serviceVersion: string }) {
+    this.baseFields = {
+      'service.name': config.serviceName,
+      'service.version': config.serviceVersion,
+    }
+  }
+
+  private log(level: string, message: string, fields: Record<string, unknown>) {
+    const context = getCorrelationContext()
+
+    const entry = {
+      '@timestamp': new Date().toISOString(),
+      'log.level': level,
+      'message': message,
+      ...this.baseFields,
+      ...(context && {
+        'trace.id': context.traceId,
+        'span.id': context.spanId,
+        'request.id': context.requestId,
+      }),
+      ...fields,
+    }
+
+    // Output as single-line JSON
+    console.log(JSON.stringify(entry))
+  }
+
+  info(message: string, fields?: Record<string, unknown>) {
+    this.log('info', message, fields || {})
+  }
+
+  warn(message: string, fields?: Record<string, unknown>) {
+    this.log('warn', message, fields || {})
+  }
+
+  error(message: string, error: Error, fields?: Record<string, unknown>) {
+    this.log('error', message, {
+      'error.type': error.name,
+      'error.message': error.message,
+      'error.stack_trace': error.stack,
+      ...fields,
+    })
+  }
+
+  // Typed helper for HTTP request logging
+  httpRequest(message: string, fields: HttpLogFields & Record<string, unknown>) {
+    this.log('info', message, {
+      'event.category': ['web'],
+      ...fields,
+    })
+  }
+
+  // Child logger with bound fields
+  child(fields: Record<string, unknown>): StructuredLogger {
+    const child = Object.create(this)
+    child.baseFields = { ...this.baseFields, ...fields }
+    return child
+  }
+}
+
+// Usage
+const logger = new StructuredLogger({
+  serviceName: 'order-service',
+  serviceVersion: '1.2.3',
+})
+
+const orderLogger = logger.child({ 'order.id': 'ord_12345' })
+
+orderLogger.httpRequest('Order created', {
+  'http.request.method': 'POST',
+  'http.request.path': '/api/orders',
+  'http.response.status_code': 201,
+  'http.response.time_ms': 45,
+  'event.action': 'order_created',
+})
+```
+
+### Request-Scoped Logging
+
+Automatic context attachment for all logs within a request.
+
+```typescript
+// Request logger with automatic field binding
+function createRequestLogger(req: Request): StructuredLogger {
+  const context = getCorrelationContext()
+
+  return logger.child({
+    // Request context
+    'http.request.method': req.method,
+    'http.request.path': req.path,
+    'http.request.id': context?.requestId,
+    'client.ip': req.ip,
+    'user_agent.original': req.headers['user-agent'],
+
+    // User context if authenticated
+    ...(req.user && {
+      'user.id': req.user.id,
+      'user.name': req.user.email,
+    }),
+
+    // Trace context
+    'trace.id': context?.traceId,
+    'span.id': context?.spanId,
+  })
+}
+
+// Middleware that creates and attaches logger
+function loggingMiddleware(req: Request, res: Response, next: NextFunction) {
+  const requestLogger = createRequestLogger(req)
+
+  // Attach to request for handlers to use
+  req.log = requestLogger
+
+  // Log request start
+  requestLogger.info('Request started', {
+    'event.action': 'http_request_started',
+  })
+
+  // Capture response timing and status
+  const startTime = Date.now()
+
+  res.on('finish', () => {
+    const duration = Date.now() - startTime
+
+    requestLogger.httpRequest('Request completed', {
+      'http.request.method': req.method,
+      'http.request.path': req.path,
+      'http.response.status_code': res.statusCode,
+      'http.response.time_ms': duration,
+      'event.action': 'http_request_completed',
+      'event.outcome': res.statusCode < 400 ? 'success' : 'failure',
+    })
+  })
+
+  next()
+}
+
+// Handler uses req.log automatically
+app.post('/api/orders', async (req, res) => {
+  req.log.info('Processing order', {
+    'order.item_count': req.body.items.length,
+  })
+
+  try {
+    const order = await createOrder(req.body)
+
+    req.log.info('Order created successfully', {
+      'order.id': order.id,
+      'order.total_cents': order.totalCents,
+      'event.action': 'order_created',
+    })
+
+    res.status(201).json(order)
+  } catch (error) {
+    req.log.error('Order creation failed', error, {
+      'event.action': 'order_creation_failed',
+    })
+    throw error
+  }
+})
+```
+
+## Sensitive Data Handling
+
+Protecting PII and secrets while maintaining log utility.
+
+### Redaction Strategies
+
+Approaches to handling sensitive fields.
+
+```typescript
+// Redaction configuration
+interface RedactionConfig {
+  // Fields to completely remove
+  remove: string[]
+
+  // Fields to mask (show partial value)
+  mask: {
+    field: string
+    pattern: 'email' | 'phone' | 'card' | 'custom'
+    customMask?: (value: string) => string
+  }[]
+
+  // Fields to hash (one-way, for correlation without exposure)
+  hash: string[]
+
+  // Fields to encrypt (reversible, for authorized access)
+  encrypt: string[]
+}
+
+const redactionConfig: RedactionConfig = {
+  remove: [
+    'password',
+    'secret',
+    'api_key',
+    'authorization',
+    'cookie',
+    'token',
+    'credential',
+  ],
+  mask: [
+    { field: 'email', pattern: 'email' },           // u***@example.com
+    { field: 'phone', pattern: 'phone' },           // ***-***-1234
+    { field: 'card_number', pattern: 'card' },      // ****-****-****-1234
+    { field: 'ssn', pattern: 'custom', customMask: () => '[REDACTED]' },
+  ],
+  hash: [
+    'user.id',      // Allows correlation without exposing real ID
+    'session.id',
+  ],
+  encrypt: [
+    'customer.address',  // Encrypted, decryptable by security team
+  ],
+}
+
+// Redaction implementation
+class LogRedactor {
+  private sensitivePatterns = /password|secret|key|token|auth|credential/i
+
+  redact(obj: Record<string, unknown>): Record<string, unknown> {
+    const result: Record<string, unknown> = {}
+
+    for (const [key, value] of Object.entries(obj)) {
+      // Check against patterns
+      if (this.sensitivePatterns.test(key)) {
+        result[key] = '[REDACTED]'
+        continue
+      }
+
+      // Recurse for nested objects
+      if (typeof value === 'object' && value !== null) {
+        result[key] = this.redact(value as Record<string, unknown>)
+        continue
+      }
+
+      // Apply specific masking
+      if (typeof value === 'string') {
+        result[key] = this.maskValue(key, value)
+        continue
+      }
+
+      result[key] = value
+    }
+
+    return result
+  }
+
+  private maskValue(key: string, value: string): string {
+    // Email masking
+    if (key.includes('email')) {
+      const [local, domain] = value.split('@')
+      return `${local[0]}***@${domain}`
+    }
+
+    // Phone masking
+    if (key.includes('phone')) {
+      return value.replace(/\d(?=\d{4})/g, '*')
+    }
+
+    // Card number masking
+    if (key.includes('card')) {
+      return value.replace(/\d(?=\d{4})/g, '*')
+    }
+
+    return value
+  }
+}
+```
+
+### Field-Level Encryption
+
+Encrypting sensitive fields that need to be recoverable.
+
+```typescript
+// Field encryption for recoverable sensitive data
+import { createCipheriv, createDecipheriv, randomBytes } from 'crypto'
+
+class FieldEncryptor {
+  private algorithm = 'aes-256-gcm'
+  private keyId: string
+
+  constructor(private key: Buffer, keyId: string) {
+    this.keyId = keyId
+  }
+
+  encrypt(value: string): EncryptedField {
+    const iv = randomBytes(16)
+    const cipher = createCipheriv(this.algorithm, this.key, iv)
+
+    let encrypted = cipher.update(value, 'utf8', 'base64')
+    encrypted += cipher.final('base64')
+
+    const authTag = cipher.getAuthTag()
+
+    return {
+      _encrypted: true,
+      keyId: this.keyId,
+      iv: iv.toString('base64'),
+      authTag: authTag.toString('base64'),
+      ciphertext: encrypted,
+    }
+  }
+
+  decrypt(field: EncryptedField): string {
+    const iv = Buffer.from(field.iv, 'base64')
+    const authTag = Buffer.from(field.authTag, 'base64')
+
+    const decipher = createDecipheriv(this.algorithm, this.key, iv)
+    decipher.setAuthTag(authTag)
+
+    let decrypted = decipher.update(field.ciphertext, 'base64', 'utf8')
+    decrypted += decipher.final('utf8')
+
+    return decrypted
+  }
+}
+
+// Usage in logger
+const encryptor = new FieldEncryptor(encryptionKey, 'key-2024-01')
+
+logger.info('Customer registered', {
+  'user.id': userId,
+  'customer.email': redactor.maskEmail(email),
+  'customer.address': encryptor.encrypt(address),  // Encrypted, recoverable
+  'event.action': 'customer_registered',
+})
+```
+
+:::danger[Never Log Secrets in Any Form]
+Passwords, API keys, tokens, and secrets should never appear in logs—not even hashed or encrypted. There's no legitimate debugging need for them. If they're appearing in logs, the logging location is wrong.
+:::
+
+## Collector-Side Processing
+
+Filtering, enriching, and routing logs before storage.
+
+### Log Pipeline Architecture
+
+Processing logs between applications and storage.
+
+```
+Mermaid diagram: Log pipeline architecture.
+Applications (emit JSON logs)
+     ↓
+Log Shipper (Fluentd/Vector/Filebeat)
+├── Parse JSON
+├── Validate schema
+├── Add metadata (pod, node, region)
+└── Forward to pipeline
+     ↓
+Log Processor (Logstash/Vector/Fluentd)
+├── Enrich (geo-IP, user lookup)
+├── Redact sensitive fields
+├── Sample/drop noisy logs
+├── Route by log level/service
+└── Format for storage
+     ↓
+     ├── Hot storage (Elasticsearch) ← High-priority logs
+     ├── Cold storage (S3) ← All logs, compressed
+     └── SIEM (Splunk) ← Security-relevant logs
+```
+
+### Vector Configuration for Processing
+
+Modern log pipeline with Vector.
+
+```toml
+# vector.toml - Log processing pipeline
+
+# Sources: collect from Kubernetes pods
+[sources.kubernetes_logs]
+type = "kubernetes_logs"
+auto_partial_merge = true
+
+# Transform: parse JSON and validate schema
+[transforms.parse_json]
+type = "remap"
+inputs = ["kubernetes_logs"]
+source = '''
+# Parse JSON log line
+. = parse_json!(.message)
+
+# Validate required fields
+if !exists(.["@timestamp"]) {
+  .["@timestamp"] = now()
+}
+if !exists(.["log.level"]) {
+  .["log.level"] = "info"
+}
+if !exists(.message) {
+  .message = "No message provided"
+}
+
+# Add Kubernetes metadata
+.kubernetes.pod_name = .kubernetes.pod_name
+.kubernetes.namespace = .kubernetes.namespace
+.kubernetes.node_name = .kubernetes.node_name
+'''
+
+# Transform: enrich with service metadata
+[transforms.enrich]
+type = "remap"
+inputs = ["parse_json"]
+source = '''
+# Add environment from namespace
+.service.environment = if contains(.kubernetes.namespace, "prod") {
+  "production"
+} else if contains(.kubernetes.namespace, "staging") {
+  "staging"
+} else {
+  "development"
+}
+
+# Add region from node labels
+.cloud.region = get_env_var("AWS_REGION") ?? "unknown"
+'''
+
+# Transform: redact sensitive fields
+[transforms.redact]
+type = "remap"
+inputs = ["enrich"]
+source = '''
+# Remove sensitive fields entirely
+del(.password)
+del(.secret)
+del(.api_key)
+del(.authorization)
+del(.cookie)
+
+# Mask email addresses
+if exists(.["user.email"]) {
+  parts = split!(.["user.email"], "@")
+  .["user.email"] = slice!(parts[0], 0, 1) + "***@" + parts[1]
+}
+
+# Mask credit card numbers
+if exists(.["payment.card_number"]) {
+  .["payment.card_number"] = "****-****-****-" + slice!(.["payment.card_number"], -4)
+}
+'''
+
+# Transform: filter noisy logs
+[transforms.filter_noise]
+type = "filter"
+inputs = ["redact"]
+condition = '''
+# Drop health check logs
+!(.http.request.path == "/health" || .http.request.path == "/ready") &&
+# Drop debug logs in production
+!(.["log.level"] == "debug" && .service.environment == "production") &&
+# Drop high-volume low-value logs
+!(.event.action == "cache_hit" && .["log.level"] == "info")
+'''
+
+# Transform: sample high-volume logs
+[transforms.sample_high_volume]
+type = "sample"
+inputs = ["filter_noise"]
+rate = 10  # Keep 10% of matching logs
+condition = '.["log.level"] == "info" && .service.name == "api-gateway"'
+
+# Sink: Elasticsearch for hot storage
+[sinks.elasticsearch]
+type = "elasticsearch"
+inputs = ["sample_high_volume"]
+endpoints = ["https://elasticsearch:9200"]
+index = "logs-%Y.%m.%d"
+compression = "gzip"
+
+# Sink: S3 for cold storage (all logs)
+[sinks.s3_archive]
+type = "aws_s3"
+inputs = ["redact"]  # Before filtering, capture everything
+bucket = "logs-archive"
+key_prefix = "logs/{{ service.name }}/{{ @timestamp | date(format: '%Y/%m/%d') }}"
+compression = "gzip"
+encoding.codec = "json"
+
+# Sink: Security logs to SIEM
+[sinks.siem]
+type = "splunk_hec"
+inputs = ["redact"]
+condition = '''
+.["log.level"] == "error" ||
+.event.category == "authentication" ||
+.event.category == "authorization" ||
+contains(string!(.event.action), "failed")
+'''
+endpoint = "https://splunk:8088"
+token = "${SPLUNK_HEC_TOKEN}"
+```
+
+### Noise Reduction Strategies
+
+Dropping low-value logs before storage.
+
+```typescript
+// Noise classification and handling
+interface NoiseClassification {
+  pattern: LogPattern
+  action: 'drop' | 'sample' | 'aggregate' | 'keep'
+  sampleRate?: number
+  aggregateWindow?: string
+  rationale: string
+}
+
+const noiseRules: NoiseClassification[] = [
+  {
+    pattern: { 'http.request.path': '/health' },
+    action: 'drop',
+    rationale: 'Health checks generate high volume, rarely useful'
+  },
+  {
+    pattern: { 'http.request.path': '/metrics' },
+    action: 'drop',
+    rationale: 'Metrics endpoint requests are noise'
+  },
+  {
+    pattern: { 'log.level': 'debug', 'service.environment': 'production' },
+    action: 'drop',
+    rationale: 'Debug logs should not reach production storage'
+  },
+  {
+    pattern: { 'event.action': 'cache_hit' },
+    action: 'sample',
+    sampleRate: 0.01,  // Keep 1%
+    rationale: 'Cache hits are high volume, sample for trends'
+  },
+  {
+    pattern: { 'event.action': 'connection_established' },
+    action: 'aggregate',
+    aggregateWindow: '1m',
+    rationale: 'Connection events can be counted, not logged individually'
+  },
+  {
+    pattern: { 'log.level': 'error' },
+    action: 'keep',
+    rationale: 'All errors are valuable for debugging'
+  },
+  {
+    pattern: { 'event.category': 'authentication' },
+    action: 'keep',
+    rationale: 'Security-relevant events must be retained'
+  },
+]
+
+// Aggregation example: count instead of individual logs
+interface AggregatedLog {
+  '@timestamp': string
+  'log.level': 'info'
+  'message': string
+  'event.action': string
+  'aggregation.count': number
+  'aggregation.window_seconds': number
+  'aggregation.first_seen': string
+  'aggregation.last_seen': string
+}
+
+// Instead of 1000 "cache_hit" logs per minute:
+const aggregatedCacheLog: AggregatedLog = {
+  '@timestamp': '2024-01-15T14:31:00Z',
+  'log.level': 'info',
+  'message': 'Cache hits aggregated',
+  'event.action': 'cache_hit_aggregated',
+  'aggregation.count': 1247,
+  'aggregation.window_seconds': 60,
+  'aggregation.first_seen': '2024-01-15T14:30:00Z',
+  'aggregation.last_seen': '2024-01-15T14:30:59Z',
+}
+```
+
+## Schema Governance and Evolution
+
+Managing schema changes across teams and time.
+
+### Schema Registry
+
+Central source of truth for log field definitions.
+
+```typescript
+// Log schema registry
+interface FieldDefinition {
+  name: string
+  type: 'string' | 'integer' | 'float' | 'boolean' | 'object' | 'array'
+  required: boolean
+  description: string
+  example: unknown
+  source: 'ecs' | 'custom'
+  addedVersion: string
+  deprecatedVersion?: string
+  owner: string
+}
+
+const schemaRegistry: FieldDefinition[] = [
+  {
+    name: '@timestamp',
+    type: 'string',
+    required: true,
+    description: 'Event timestamp in ISO 8601 format',
+    example: '2024-01-15T14:30:00.123Z',
+    source: 'ecs',
+    addedVersion: '1.0.0',
+    owner: 'platform-team'
+  },
+  {
+    name: 'order.id',
+    type: 'string',
+    required: false,
+    description: 'Unique order identifier',
+    example: 'ord_12345',
+    source: 'custom',
+    addedVersion: '1.5.0',
+    owner: 'commerce-team'
+  },
+  {
+    name: 'user.email_hash',
+    type: 'string',
+    required: false,
+    description: 'SHA-256 hash of user email for correlation without PII',
+    example: 'abc123def456...',
+    source: 'custom',
+    addedVersion: '1.3.0',
+    deprecatedVersion: '2.0.0',  // Use user.id instead
+    owner: 'platform-team'
+  },
+]
+
+// Schema validation
+function validateLogEntry(entry: Record<string, unknown>): ValidationResult {
+  const errors: string[] = []
+
+  // Check required fields
+  for (const field of schemaRegistry.filter(f => f.required)) {
+    if (!hasNestedProperty(entry, field.name)) {
+      errors.push(`Missing required field: ${field.name}`)
+    }
+  }
+
+  // Check types
+  for (const field of schemaRegistry) {
+    const value = getNestedProperty(entry, field.name)
+    if (value !== undefined && !isType(value, field.type)) {
+      errors.push(`Field ${field.name} has wrong type: expected ${field.type}`)
+    }
+  }
+
+  // Warn about deprecated fields
+  const warnings: string[] = []
+  for (const field of schemaRegistry.filter(f => f.deprecatedVersion)) {
+    if (hasNestedProperty(entry, field.name)) {
+      warnings.push(`Field ${field.name} is deprecated as of ${field.deprecatedVersion}`)
+    }
+  }
+
+  return { valid: errors.length === 0, errors, warnings }
+}
+```
+
+### Schema Evolution Process
+
+Adding and deprecating fields without breaking consumers.
+
+| Phase | Duration | Action |
+|-------|----------|--------|
+| Proposal | 1 week | RFC for new field, review by platform team |
+| Addition | Immediate | Add field as optional, update registry |
+| Adoption | 2-4 weeks | Teams start using new field |
+| Promotion | After adoption | Consider making field required if universal |
+| Deprecation Notice | 1 month | Mark field deprecated, log warnings |
+| Migration Period | 3 months | Teams migrate to replacement field |
+| Removal | After migration | Remove field from registry, update parsers |
+
+:::success[Backward Compatibility]
+New fields must be optional. Parsers must ignore unknown fields. Type changes require a new field name. These rules keep old logs queryable and prevent producer/consumer version coupling.
+:::
+
+## Conclusion
+
+Structured logging at scale requires discipline across three dimensions: schema consistency, correlation propagation, and noise management. Adopt ECS rather than inventing a schema—it handles most use cases and enables cross-organization tooling compatibility. Implement correlation IDs at every boundary: HTTP headers for synchronous calls, message envelopes for async, and AsyncLocalStorage for automatic propagation within services. Redact sensitive data at the source, not the sink—assume logs will be accessed by anyone with read permissions. Use collector-side processing to filter noise before storage: drop health checks and debug logs, sample high-volume events, aggregate repetitive patterns. Establish schema governance early; field naming decisions made in month one will constrain querying for years. The investment in structured logging pays off at 3 AM when you can query `trace.id:abc123 AND log.level:error` and see every error across every service for a single user request, instead of grepping through incompatible text logs from a dozen services.
+
+---
+
+## Cover Image Prompts
+
+### Prompt 1: Network of Connected Nodes with IDs
+Abstract visualization of interconnected nodes, each labeled with unique identifiers, trace lines connecting them in a web pattern. Clean digital aesthetic with glowing connection lines. Representing correlation across distributed systems.
+
+### Prompt 2: Library Card Catalog Modernized
+Photograph of a vintage wooden library card catalog transitioning into digital holographic displays—the physical drawers morphing into structured data fields. The organization of information metaphor.
+
+### Prompt 3: Signal vs Noise Visualization
+Split image showing chaotic static/noise on one side transitioning to clean, organized waveforms on the other. The filtering and structuring of raw data into useful signals.
+
+### Prompt 4: DNA Double Helix as Data Structure
+Stylized DNA double helix where the base pairs are replaced with field names and values—the genetic structure of log data. Biological meets digital aesthetic, representing the schema as the genetic code of observability.
+
+### Prompt 5: Breadcrumb Trail Through Forest
+Photograph or illustration of illuminated breadcrumbs creating a clear path through a dark, dense forest. Each breadcrumb glowing with a small identifier. The trail that lets you trace your way back through complexity.
