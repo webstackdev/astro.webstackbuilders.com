@@ -19,7 +19,8 @@ const environmentClientFixturePath = '/testing/environment-client-values'
 
 const getEnvironmentClientValues = async (page: BasePage): Promise<EnvironmentClientValues> => {
   await page.goto(environmentClientFixturePath, { skipCookieDismiss: true })
-  await page.waitForLoadState('networkidle')
+  // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
+  await page.waitForNetworkIdleBestEffort()
   await page.waitForFunction(() => {
     const values = window.environmentClientValues
     if (!values) {
@@ -81,12 +82,14 @@ test.describe('Package Release Integration', () => {
 
     // Get release from home page
     await page.goto('/')
-    await page.waitForLoadState('networkidle')
+    // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
+    await page.waitForNetworkIdleBestEffort()
     const releaseFromHome = await getPackageReleaseValue(page)
 
     // Get release from privacy page
     await page.goto('/privacy')
-    await page.waitForLoadState('networkidle')
+    // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
+    await page.waitForNetworkIdleBestEffort()
     const releaseFromPrivacy = await getPackageReleaseValue(page)
 
     // Both should be identical

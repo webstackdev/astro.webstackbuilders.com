@@ -29,7 +29,8 @@ export class PwaPage extends BasePage {
    */
   async navigateToHomeAndWaitForSW(): Promise<void> {
     await this.goto('/')
-    await this.waitForLoadState('networkidle')
+    // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
+    await this.waitForNetworkIdleBestEffort()
     await this.waitForServiceWorkerReady()
   }
 
@@ -91,7 +92,8 @@ export class PwaPage extends BasePage {
           throw error
         }
 
-        await this.waitForLoadState('networkidle')
+        // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
+        await this.waitForNetworkIdleBestEffort()
       }
     }
   }

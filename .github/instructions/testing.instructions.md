@@ -21,6 +21,9 @@ applyTo: "**/*.spec.ts"
 - **NEVER use `waitForTimeout()`** - use event-based waits
 - **NEVER use ad-hoc numeric timeouts** in E2E specs or page objects - use `wait.*` from `test/e2e/helpers/waitTimeouts.ts`.
 - If no existing `wait.*` knob fits, **ask what to do** before adding a new `wait.bespoke*` knob.
+- **Avoid `waitForLoadState('networkidle')` for gating**: WebKit/mobile-safari can hang indefinitely due to long-lived requests.
+	- Prefer deterministic readiness signals: `waitForSelector`, `waitForFunction` on app-ready attributes, or `BasePage.waitForPageLoad()`.
+	- If you truly need a network-idle-ish gate, use `BasePage.waitForNetworkIdleBestEffort()`.
 - **transition:persist**: Apply to HTML elements in component definition, not on component usage
 
 ## Vite Optimized Deps (E2E Determinism)

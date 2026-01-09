@@ -149,7 +149,8 @@ test.describe('SEO Meta Tags', () => {
     const page = await BasePage.init(playwrightPage)
     await page.goto('/articles')
     await page.click('a[href*="/articles/"]')
-    await page.waitForLoadState('networkidle')
+    // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
+    await page.waitForNetworkIdleBestEffort()
 
     const content = await page.getAttribute('meta[name="author"]', 'content')
     expect(content?.trim().length).toBeGreaterThan(0)
@@ -185,6 +186,7 @@ test.describe('SEO Meta Tags', () => {
   test('@ready pages have language attribute', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     await page.goto('/')
+    // NOTE: Prefer 'domcontentloaded' over 'networkidle' for WebKit/mobile-safari reliability.
     await page.waitForLoadState('domcontentloaded')
 
     const lang = await playwrightPage.evaluate(() => document.documentElement.getAttribute('lang'))

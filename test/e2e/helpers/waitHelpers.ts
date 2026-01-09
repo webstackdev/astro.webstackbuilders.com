@@ -29,6 +29,7 @@ export async function waitForAnimationFrames(page: Page, frameCount: number = 2)
       remaining -= 1
     } catch (error) {
       if (isContextDestroyedError(error)) {
+        // NOTE: Prefer domcontentloaded as a reliable recovery point (networkidle can hang on WebKit/mobile-safari).
         await page.waitForLoadState('domcontentloaded')
         continue
       }

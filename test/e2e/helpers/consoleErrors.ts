@@ -20,7 +20,8 @@ export interface ConsoleErrorChecker {
  * @example
  * const errorChecker = setupConsoleErrorChecker(page)
  * await page.goto('/some-page')
- * await page.waitForLoadState('networkidle')
+ * // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
+ * await page.waitForNetworkIdleBestEffort()
  * logConsoleErrors(errorChecker)
  * expect(errorChecker.getFilteredErrors()).toHaveLength(0)
  * expect(errorChecker.getFiltered404s()).toHaveLength(0)

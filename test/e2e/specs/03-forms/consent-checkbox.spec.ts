@@ -28,7 +28,8 @@ const CONTACT_CONSENT_SELECTOR = '#contact-gdpr-consent'
 const newsletterSubscribeActionEndpoint = '/_actions/newsletter/subscribe'
 
 const waitForNewsletterSection = async (page: BasePage): Promise<void> => {
-  await page.waitForLoadState('networkidle')
+  // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
+  await page.waitForNetworkIdleBestEffort()
   await page.locator(NEWSLETTER_FORM_SELECTOR).waitFor({ state: 'visible' })
   await page.waitForFunction(() => {
     const consentCheckbox = document.querySelector<HTMLInputElement>('#newsletter-gdpr-consent')

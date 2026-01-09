@@ -133,7 +133,8 @@ test.describe('Responsive Layout Visuals', () => {
     await page.goto("/articles")
     const firstArticle = page.locator('a[href*="/articles/"]').first()
     await firstArticle.click()
-    await page.waitForLoadState('networkidle')
+    // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
+    await page.waitForNetworkIdleBestEffort()
 
     for (const [_name, viewport] of Object.entries(VIEWPORTS)) {
       await page.setViewportSize(viewport)

@@ -237,7 +237,8 @@ test.describe('Hero Animation - Mobile Menu Pause Regression', () => {
     await navLink.click()
 
     // Wait for navigation
-    await page.waitForLoadState('networkidle')
+    // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
+    await page.waitForNetworkIdleBestEffort()
     await page.waitForHeaderComponents()
 
     // Menu should close after navigation

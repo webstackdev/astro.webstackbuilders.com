@@ -142,7 +142,8 @@ test.describe('Theme Switching Visuals', () => {
     await page.goto("/articles")
     const firstArticle = page.locator('a[href*="/articles/"]').first()
     await firstArticle.click()
-    await page.waitForLoadState('networkidle')
+    // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
+    await page.waitForNetworkIdleBestEffort()
 
     // Light
     await setTheme(page, 'light')
