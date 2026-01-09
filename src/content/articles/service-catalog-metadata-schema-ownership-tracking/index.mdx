@@ -9,6 +9,1541 @@ tags: ["platform-engineering"]
 featured: true
 ---
 
+*[API]: Application Programming Interface
+*[CI]: Continuous Integration
+*[CMDB]: Configuration Management Database
+*[DORA]: DevOps Research and Assessment
+*[IDP]: Internal Developer Platform
+*[MTTR]: Mean Time To Recovery
+*[PII]: Personally Identifiable Information
+*[RACI]: Responsible, Accountable, Consulted, Informed
+*[SLA]: Service Level Agreement
+*[SLO]: Service Level Objective
+*[YAML]: YAML Ain't Markup Language
+
 Metadata modeling, enforcement automation, ownership tracking, and keeping catalog data fresh as services change.
 
 Catalog value depends entirely on metadata quality.
+
+## The Service Catalog Problem
+
+Why most service catalogs become graveyards of stale data, and what makes the difference between useful and useless.
+
+### Catalog Failure Modes
+
+Understanding how catalogs go wrong before designing one that stays useful.
+
+```
+Mermaid diagram: Catalog decay timeline.
+Month 1: Catalog launched with 90% coverage, high enthusiasm.
+Month 3: New services added without catalog entries, 85% coverage.
+Month 6: Ownership changes not reflected, 70% accurate.
+Year 1: Teams stop trusting catalog, check Slack instead, 50% accurate.
+Year 2: Catalog becomes "that thing we're supposed to update," <30% accurate.
+Show trust line declining as accuracy drops, crossing "useless threshold."
+```
+
+A catalog with 80% accurate data is worse than no catalog—it gives false confidence.
+
+| Failure Mode | Symptom | Root Cause |
+|--------------|---------|------------|
+| Stale ownership | Paging wrong team during incidents | No ownership update workflow |
+| Missing services | Services not in catalog exist in prod | Catalog not in deployment path |
+| Wrong dependencies | Dependency graph incomplete | Manual entry, no validation |
+| Outdated metadata | Descriptions don't match reality | No freshness enforcement |
+| Orphaned entries | Deleted services still listed | No lifecycle management |
+
+:::warning[The 100% Problem]
+Catalogs are only valuable at near-100% coverage. A catalog missing 20% of services means you can never trust it—you always have to verify elsewhere.
+:::
+
+### What Makes Catalogs Actually Useful
+
+The specific use cases that justify catalog investment, and the metadata each requires.
+
+```typescript
+// Catalog value proposition by use case
+interface CatalogUseCase {
+  name: string
+  requiredMetadata: string[]
+  accuracyThreshold: number  // Minimum accuracy to be useful
+  valueDelivered: string
+}
+
+const useCases: CatalogUseCase[] = [
+  {
+    name: 'Incident Response',
+    requiredMetadata: ['owner', 'oncall', 'runbook', 'dependencies'],
+    accuracyThreshold: 0.98,  // Wrong owner during incident = extended outage
+    valueDelivered: 'Reduces MTTR by routing to correct team immediately'
+  },
+  {
+    name: 'Security Scanning',
+    requiredMetadata: ['repository', 'runtime', 'dataClassification'],
+    accuracyThreshold: 0.95,
+    valueDelivered: 'Enables automated vulnerability scanning and compliance'
+  },
+  {
+    name: 'Cost Attribution',
+    requiredMetadata: ['owner', 'costCenter', 'environment'],
+    accuracyThreshold: 0.90,
+    valueDelivered: 'Accurate cloud cost allocation to teams/products'
+  },
+  {
+    name: 'Dependency Analysis',
+    requiredMetadata: ['dependencies', 'consumers', 'api'],
+    accuracyThreshold: 0.85,
+    valueDelivered: 'Impact analysis for changes, migration planning'
+  },
+  {
+    name: 'Developer Onboarding',
+    requiredMetadata: ['description', 'documentation', 'owner'],
+    accuracyThreshold: 0.80,
+    valueDelivered: 'New engineers can discover and understand services'
+  }
+]
+```
+
+### Catalog vs CMDB vs Service Mesh
+
+Distinguishing service catalogs from other infrastructure tracking approaches.
+
+| Aspect | Service Catalog | CMDB | Service Mesh |
+|--------|-----------------|------|--------------|
+| Primary audience | Developers, SREs | IT Operations | Runtime systems |
+| Data source | Declarative + discovered | Manual entry | Runtime observation |
+| Update frequency | On deploy/change | Periodic audits | Real-time |
+| Ownership tracking | Primary purpose | Often missing | Not applicable |
+| Dependency data | Declared + inferred | Declared only | Observed only |
+| Accuracy model | Continuous validation | Point-in-time | Always current |
+
+## Schema Design Principles
+
+Designing metadata schemas that balance completeness with maintainability.
+
+### Core Entity Model
+
+The fundamental entities and relationships in a service catalog schema.
+
+```
+Mermaid diagram: Entity relationship diagram.
+Service (central entity) has:
+- 1:N relationship to Team (ownership)
+- N:N relationship to other Services (dependencies)
+- 1:N relationship to API (exposes)
+- 1:N relationship to Repository (source)
+- N:1 relationship to Domain (belongs to)
+- 1:N relationship to Environment deployments
+
+Team has:
+- 1:N relationship to Person (members)
+- N:N relationship to Service (owns)
+
+Show cardinality and key attributes on each entity.
+```
+
+```typescript
+// Core schema types
+interface Service {
+  // Identity
+  id: string                    // Immutable, system-generated
+  name: string                  // Human-readable, unique within org
+  slug: string                  // URL-safe identifier
+
+  // Classification
+  tier: 'tier-1' | 'tier-2' | 'tier-3' | 'tier-4'
+  lifecycle: 'development' | 'beta' | 'production' | 'deprecated' | 'retired'
+  domain: string                // Business domain
+  type: 'service' | 'library' | 'website' | 'job' | 'infrastructure'
+
+  // Ownership
+  owner: TeamReference          // Primary owning team
+  contacts: ContactList         // Escalation contacts
+
+  // Technical
+  repository: RepositoryReference
+  language: string
+  framework?: string
+  runtime: RuntimeInfo
+
+  // Relationships
+  dependencies: DependencyList
+  consumers: ConsumerList       // Services that depend on this
+  apis: APIReference[]
+
+  // Operational
+  documentation: DocumentationLinks
+  runbook?: string
+  slo?: SLOReference
+
+  // Metadata
+  tags: string[]
+  labels: Record<string, string>
+  annotations: Record<string, string>
+
+  // Audit
+  createdAt: Date
+  updatedAt: Date
+  lastVerified: Date
+}
+
+interface TeamReference {
+  id: string
+  name: string
+  slack?: string              // Slack channel for contact
+  email?: string              // Team email alias
+  oncallSchedule?: string     // PagerDuty/Opsgenie schedule ID
+}
+```
+
+### Required vs Optional Fields
+
+Balancing data quality with adoption friction through careful field requirements.
+
+```typescript
+// Field requirement strategy
+interface FieldRequirement {
+  field: string
+  required: RequirementLevel
+  enforcedAt: EnforcementPoint[]
+  rationale: string
+}
+
+type RequirementLevel =
+  | 'required'           // Must have before merge/deploy
+  | 'required-by-tier'   // Required for tier-1/2, optional for tier-3/4
+  | 'recommended'        // Shown as warning, not blocked
+  | 'optional'           // Nice to have
+
+type EnforcementPoint =
+  | 'ci-check'           // PR/merge validation
+  | 'deploy-gate'        // Deployment pipeline
+  | 'periodic-audit'     // Weekly/monthly compliance check
+  | 'manual-review'      // Requires human approval
+
+const fieldRequirements: FieldRequirement[] = [
+  {
+    field: 'owner',
+    required: 'required',
+    enforcedAt: ['ci-check', 'deploy-gate'],
+    rationale: 'Cannot route incidents without owner'
+  },
+  {
+    field: 'repository',
+    required: 'required',
+    enforcedAt: ['ci-check'],
+    rationale: 'Source of truth for service definition'
+  },
+  {
+    field: 'tier',
+    required: 'required',
+    enforcedAt: ['ci-check'],
+    rationale: 'Determines SLO requirements and incident priority'
+  },
+  {
+    field: 'dependencies',
+    required: 'required-by-tier',
+    enforcedAt: ['ci-check', 'periodic-audit'],
+    rationale: 'Critical for impact analysis on tier-1/2 services'
+  },
+  {
+    field: 'runbook',
+    required: 'required-by-tier',
+    enforcedAt: ['deploy-gate'],
+    rationale: 'Tier-1/2 services need documented incident response'
+  },
+  {
+    field: 'slo',
+    required: 'recommended',
+    enforcedAt: ['periodic-audit'],
+    rationale: 'Best practice but not blocking'
+  },
+  {
+    field: 'documentation',
+    required: 'recommended',
+    enforcedAt: ['periodic-audit'],
+    rationale: 'Improves discoverability but doesn\'t block deployment'
+  }
+]
+```
+
+:::info[Start Minimal, Add Requirements Gradually]
+Launching with too many required fields kills adoption. Start with 5-7 required fields that enable your most critical use case (usually incident routing), then add requirements as catalog coverage improves.
+:::
+
+### Extension Points and Custom Metadata
+
+Allowing teams to add domain-specific metadata without breaking the core schema.
+
+```typescript
+// Extension mechanism
+interface ServiceExtension {
+  namespace: string           // e.g., 'compliance', 'finops', 'security'
+  schema: JSONSchema          // Validation schema for extension data
+  required: boolean
+  appliesTo?: ServiceFilter   // Which services need this extension
+}
+
+// Example extensions
+const complianceExtension: ServiceExtension = {
+  namespace: 'compliance',
+  schema: {
+    type: 'object',
+    properties: {
+      dataClassification: {
+        type: 'string',
+        enum: ['public', 'internal', 'confidential', 'restricted']
+      },
+      piiHandled: { type: 'boolean' },
+      pciScope: { type: 'boolean' },
+      hipaaScope: { type: 'boolean' },
+      lastAuditDate: { type: 'string', format: 'date' },
+      auditFindings: { type: 'array', items: { type: 'string' } }
+    },
+    required: ['dataClassification']
+  },
+  required: true,
+  appliesTo: { lifecycle: ['production'] }
+}
+
+const finopsExtension: ServiceExtension = {
+  namespace: 'finops',
+  schema: {
+    type: 'object',
+    properties: {
+      costCenter: { type: 'string', pattern: '^CC-[0-9]{4}$' },
+      budgetOwner: { type: 'string' },
+      monthlyBudget: { type: 'number' },
+      alertThreshold: { type: 'number', minimum: 0, maximum: 1 }
+    },
+    required: ['costCenter']
+  },
+  required: false
+}
+
+// Service definition with extensions
+const serviceWithExtensions = {
+  name: 'payment-processor',
+  owner: { id: 'team-payments' },
+  // ... core fields ...
+
+  extensions: {
+    compliance: {
+      dataClassification: 'restricted',
+      piiHandled: true,
+      pciScope: true,
+      hipaaScope: false
+    },
+    finops: {
+      costCenter: 'CC-4521',
+      budgetOwner: 'jane.smith',
+      monthlyBudget: 15000
+    }
+  }
+}
+```
+
+## Ownership Model Design
+
+Getting ownership right is the single most important aspect of a service catalog.
+
+### Ownership Hierarchy
+
+Defining different levels and types of ownership for clear accountability.
+
+```typescript
+// Multi-level ownership model
+interface OwnershipModel {
+  // Primary owner: responsible for service health and development
+  primaryOwner: TeamReference
+
+  // Secondary owner: backup, often platform or SRE team
+  secondaryOwner?: TeamReference
+
+  // Specific role assignments
+  roles: {
+    // Who gets paged for incidents
+    oncall: OncallAssignment
+
+    // Who approves production changes
+    changeApprover: PersonReference[]
+
+    // Who handles security issues
+    securityContact: PersonReference | TeamReference
+
+    // Who manages costs
+    costOwner?: PersonReference
+
+    // Who handles compliance/audit requests
+    complianceContact?: PersonReference
+  }
+
+  // RACI matrix for key activities
+  raci: {
+    incidentResponse: RACIAssignment
+    deployment: RACIAssignment
+    capacityPlanning: RACIAssignment
+    securityPatching: RACIAssignment
+    costOptimization: RACIAssignment
+  }
+}
+
+interface OncallAssignment {
+  type: 'team-rotation' | 'individual' | 'follow-the-sun'
+  primary: string              // PagerDuty schedule ID or team ID
+  escalation: string[]         // Escalation path
+  coverage: 'business-hours' | '24x7'
+}
+
+interface RACIAssignment {
+  responsible: string[]        // Does the work
+  accountable: string          // Single point of accountability
+  consulted: string[]          // Provides input
+  informed: string[]           // Kept updated
+}
+```
+
+### Ownership Transfer Workflows
+
+Automating the handoff process when services change ownership.
+
+```
+Mermaid diagram: Ownership transfer workflow.
+Trigger: Team requests ownership transfer
+  ↓
+Step 1: Current owner confirms transfer (approval required)
+  ↓
+Step 2: New owner accepts responsibility (approval required)
+  ↓
+Step 3: Knowledge transfer checklist
+  - Runbook review completed
+  - Access provisioned
+  - Oncall schedule updated
+  - Documentation reviewed
+  ↓
+Step 4: Transition period (2 weeks default)
+  - Both teams on escalation path
+  - Metrics tracked for new team
+  ↓
+Step 5: Transfer complete
+  - Old owner removed from escalation
+  - Ownership officially changed
+  - Notification to stakeholders
+```
+
+```typescript
+// Ownership transfer automation
+interface OwnershipTransfer {
+  serviceId: string
+  fromTeam: string
+  toTeam: string
+  status: TransferStatus
+  requestedAt: Date
+  requestedBy: string
+
+  approvals: {
+    currentOwner: ApprovalStatus
+    newOwner: ApprovalStatus
+  }
+
+  checklist: TransferChecklist
+  transitionPeriod: {
+    startDate: Date
+    endDate: Date
+    escalationPath: string[]  // Both teams during transition
+  }
+}
+
+type TransferStatus =
+  | 'pending-current-owner'
+  | 'pending-new-owner'
+  | 'checklist-in-progress'
+  | 'transition-period'
+  | 'completed'
+  | 'cancelled'
+
+interface TransferChecklist {
+  items: {
+    name: string
+    required: boolean
+    completedAt?: Date
+    completedBy?: string
+  }[]
+}
+
+const standardChecklist: TransferChecklist = {
+  items: [
+    { name: 'Runbook review completed', required: true },
+    { name: 'Access provisioned for new team', required: true },
+    { name: 'Oncall schedule updated', required: true },
+    { name: 'CI/CD permissions transferred', required: true },
+    { name: 'Documentation reviewed', required: true },
+    { name: 'Stakeholders notified', required: true },
+    { name: 'Cost center updated', required: false },
+    { name: 'Compliance contacts updated', required: false }
+  ]
+}
+```
+
+### Orphan Detection and Resolution
+
+Finding services without valid owners and forcing resolution.
+
+```typescript
+// Orphan detection rules
+interface OrphanDetectionRule {
+  name: string
+  condition: (service: Service, teams: Team[]) => boolean
+  severity: 'warning' | 'critical'
+  autoResolution?: (service: Service) => Partial<Service>
+}
+
+const orphanRules: OrphanDetectionRule[] = [
+  {
+    name: 'team-dissolved',
+    condition: (service, teams) =>
+      !teams.find(t => t.id === service.owner.id),
+    severity: 'critical',
+    // Auto-escalate to parent team or domain owner
+    autoResolution: (service) => ({
+      owner: findParentTeam(service) || getDomainOwner(service.domain)
+    })
+  },
+  {
+    name: 'empty-team',
+    condition: (service, teams) => {
+      const team = teams.find(t => t.id === service.owner.id)
+      return team ? team.members.length === 0 : false
+    },
+    severity: 'critical'
+  },
+  {
+    name: 'inactive-team',
+    condition: (service, teams) => {
+      const team = teams.find(t => t.id === service.owner.id)
+      return team ? daysSince(team.lastActive) > 90 : false
+    },
+    severity: 'warning'
+  },
+  {
+    name: 'no-oncall',
+    condition: (service) =>
+      service.tier === 'tier-1' && !service.contacts?.oncallSchedule,
+    severity: 'critical'
+  }
+]
+
+// Weekly orphan report
+async function generateOrphanReport(): Promise<OrphanReport> {
+  const services = await catalogApi.listServices()
+  const teams = await catalogApi.listTeams()
+
+  const orphans: OrphanedService[] = []
+
+  for (const service of services) {
+    for (const rule of orphanRules) {
+      if (rule.condition(service, teams)) {
+        orphans.push({
+          service: service.id,
+          rule: rule.name,
+          severity: rule.severity,
+          detectedAt: new Date(),
+          suggestedResolution: rule.autoResolution?.(service)
+        })
+      }
+    }
+  }
+
+  return {
+    generatedAt: new Date(),
+    totalServices: services.length,
+    orphanedCount: orphans.length,
+    criticalCount: orphans.filter(o => o.severity === 'critical').length,
+    orphans
+  }
+}
+```
+
+:::danger[Orphaned Tier-1 Services Are Emergencies]
+A tier-1 service without a valid owner means the next incident has no one to page. Treat orphan detection for critical services as a P1 issue.
+:::
+
+## Dependency Tracking
+
+Capturing and maintaining accurate service dependency information.
+
+### Dependency Types and Metadata
+
+Distinguishing different types of dependencies and their characteristics.
+
+```typescript
+// Comprehensive dependency model
+interface ServiceDependency {
+  // What service we depend on
+  target: ServiceReference
+
+  // Type of dependency
+  type: DependencyType
+
+  // How critical is this dependency
+  criticality: 'critical' | 'degraded' | 'optional'
+
+  // What happens if dependency is unavailable
+  failureMode: FailureMode
+
+  // Technical details
+  protocol: 'http' | 'grpc' | 'kafka' | 'sqs' | 'database' | 'other'
+  endpoint?: string
+
+  // Traffic characteristics
+  traffic: {
+    pattern: 'sync' | 'async' | 'batch'
+    estimatedRps?: number
+    p99LatencyMs?: number
+  }
+
+  // Data flow
+  dataFlow: 'reads' | 'writes' | 'bidirectional'
+  dataClassification?: string
+
+  // Discovery metadata
+  discoveredAt: Date
+  discoveryMethod: 'declared' | 'observed' | 'inferred'
+  lastObserved?: Date
+  confidence: number  // 0-1, how confident we are this is accurate
+}
+
+type DependencyType =
+  | 'runtime'            // Needs to be up for this service to function
+  | 'startup'            // Needed at startup but not ongoing
+  | 'background'         // Used for background processing
+  | 'fallback'           // Used only when primary fails
+  | 'development'        // Only used in dev/test
+
+interface FailureMode {
+  behavior: 'fail' | 'degrade' | 'retry' | 'fallback' | 'cache'
+  gracePeriod?: number   // Seconds before failure mode kicks in
+  fallbackService?: ServiceReference
+}
+```
+
+### Automated Dependency Discovery
+
+Combining declared dependencies with runtime observation.
+
+```
+Mermaid diagram: Dependency discovery pipeline.
+Sources:
+- Declared (catalog.yaml) → Parser
+- Service mesh (Istio) → Traffic analyzer
+- APM (traces) → Span analyzer
+- DNS queries → DNS analyzer
+- Database connections → Connection analyzer
+
+Processing:
+- Merge and deduplicate
+- Calculate confidence scores
+- Detect conflicts
+- Flag undeclared dependencies
+
+Output:
+- Validated dependency graph
+- Alerts for undeclared deps
+- Stale dependency warnings
+```
+
+```typescript
+// Multi-source dependency reconciliation
+interface DependencySource {
+  name: string
+  priority: number         // Higher = more trusted
+  fetch: (serviceId: string) => Promise<RawDependency[]>
+}
+
+const dependencySources: DependencySource[] = [
+  {
+    name: 'declared',
+    priority: 100,         // Declared deps are ground truth
+    fetch: async (serviceId) => {
+      const catalog = await fetchCatalogEntry(serviceId)
+      return catalog.dependencies
+    }
+  },
+  {
+    name: 'service-mesh',
+    priority: 80,
+    fetch: async (serviceId) => {
+      const traffic = await queryIstioMetrics(serviceId, '7d')
+      return traffic.outbound.map(t => ({
+        target: t.destination,
+        confidence: calculateTrafficConfidence(t),
+        lastObserved: t.lastSeen
+      }))
+    }
+  },
+  {
+    name: 'distributed-tracing',
+    priority: 70,
+    fetch: async (serviceId) => {
+      const traces = await queryJaegerDependencies(serviceId, '7d')
+      return traces.map(t => ({
+        target: t.child,
+        confidence: t.sampleCount > 100 ? 0.9 : 0.5,
+        latencyP99: t.p99
+      }))
+    }
+  },
+  {
+    name: 'dns-queries',
+    priority: 50,
+    fetch: async (serviceId) => {
+      const queries = await queryCoreDnsLogs(serviceId, '7d')
+      return queries
+        .filter(q => isInternalService(q.domain))
+        .map(q => ({
+          target: extractServiceFromDns(q.domain),
+          confidence: 0.6
+        }))
+    }
+  }
+]
+
+async function reconcileDependencies(
+  serviceId: string
+): Promise<ReconciledDependency[]> {
+  const allDeps = new Map<string, DependencyEvidence[]>()
+
+  // Collect from all sources
+  for (const source of dependencySources) {
+    const deps = await source.fetch(serviceId)
+    for (const dep of deps) {
+      if (!allDeps.has(dep.target)) {
+        allDeps.set(dep.target, [])
+      }
+      allDeps.get(dep.target)!.push({
+        source: source.name,
+        priority: source.priority,
+        ...dep
+      })
+    }
+  }
+
+  // Reconcile and score
+  const reconciled: ReconciledDependency[] = []
+
+  for (const [target, evidence] of allDeps) {
+    const isDeclared = evidence.some(e => e.source === 'declared')
+    const isObserved = evidence.some(e => e.source !== 'declared')
+
+    reconciled.push({
+      target,
+      status: isDeclared && isObserved ? 'validated' :
+              isDeclared && !isObserved ? 'declared-not-observed' :
+              !isDeclared && isObserved ? 'undeclared' : 'unknown',
+      confidence: calculateAggregateConfidence(evidence),
+      evidence: evidence.length,
+      alert: !isDeclared && isObserved // Undeclared dependency alert
+    })
+  }
+
+  return reconciled
+}
+```
+
+### Dependency Graph Queries
+
+Enabling useful queries over the dependency graph.
+
+```typescript
+// Graph query interface
+interface DependencyGraphQueries {
+  // What does this service depend on (direct and transitive)
+  getDependencies(serviceId: string, options?: {
+    depth?: number          // How many levels deep
+    includeOptional?: boolean
+    runtimeOnly?: boolean
+  }): Promise<DependencyTree>
+
+  // What services depend on this one
+  getConsumers(serviceId: string, options?: {
+    depth?: number
+    runtimeOnly?: boolean
+  }): Promise<ConsumerTree>
+
+  // What's the blast radius if this service fails
+  getBlastRadius(serviceId: string): Promise<BlastRadiusAnalysis>
+
+  // Find all paths between two services
+  findPaths(from: string, to: string): Promise<DependencyPath[]>
+
+  // Detect circular dependencies
+  detectCycles(): Promise<DependencyCycle[]>
+
+  // Find critical dependencies (single points of failure)
+  findCriticalDependencies(): Promise<CriticalDependency[]>
+}
+
+interface BlastRadiusAnalysis {
+  directlyAffected: ServiceReference[]
+  transitivelyAffected: ServiceReference[]
+  affectedByTier: {
+    'tier-1': number
+    'tier-2': number
+    'tier-3': number
+    'tier-4': number
+  }
+  estimatedUserImpact: 'critical' | 'major' | 'minor' | 'none'
+  criticalPaths: DependencyPath[]
+}
+
+// Example: Impact analysis before maintenance
+async function analyzeMaintenanceImpact(
+  serviceId: string,
+  maintenanceWindow: { start: Date; end: Date }
+): Promise<MaintenanceImpactReport> {
+  const blastRadius = await graphQueries.getBlastRadius(serviceId)
+  const consumers = await graphQueries.getConsumers(serviceId)
+
+  // Find affected teams
+  const affectedTeams = new Set<string>()
+  for (const consumer of consumers.all) {
+    affectedTeams.add(consumer.owner.id)
+  }
+
+  // Check for conflicts with other maintenance windows
+  const conflicts = await findMaintenanceConflicts(
+    [...blastRadius.directlyAffected, ...blastRadius.transitivelyAffected],
+    maintenanceWindow
+  )
+
+  return {
+    serviceId,
+    maintenanceWindow,
+    blastRadius,
+    affectedTeams: Array.from(affectedTeams),
+    tier1ServicesAffected: blastRadius.affectedByTier['tier-1'],
+    conflicts,
+    recommendedNotifications: generateNotificationList(affectedTeams),
+    riskLevel: calculateRiskLevel(blastRadius)
+  }
+}
+```
+
+## Automation and Enforcement
+
+Making catalog accuracy automatic rather than relying on human discipline.
+
+### Catalog-as-Code Pattern
+
+Storing service definitions in code repositories for version control and review.
+
+```yaml
+# catalog.yaml in each service repository
+apiVersion: catalog.example.com/v1
+kind: Service
+metadata:
+  name: payment-processor
+  namespace: payments
+spec:
+  # Classification
+  tier: tier-1
+  lifecycle: production
+  domain: payments
+  type: service
+
+  # Ownership
+  owner:
+    team: payments-team
+    slack: "#payments-oncall"
+    email: payments@example.com
+
+  contacts:
+    oncall:
+      schedule: payments-oncall-schedule
+      coverage: 24x7
+    security: security-team
+    compliance: jane.smith
+
+  # Technical
+  repository: github.com/example/payment-processor
+  language: typescript
+  framework: nestjs
+  runtime:
+    type: kubernetes
+    cluster: production-us-east
+
+  # Dependencies
+  dependencies:
+    - target: user-service
+      type: runtime
+      criticality: critical
+      protocol: grpc
+    - target: postgres-payments
+      type: runtime
+      criticality: critical
+      protocol: database
+    - target: kafka
+      type: runtime
+      criticality: degraded
+      protocol: kafka
+    - target: fraud-detection
+      type: runtime
+      criticality: optional
+      protocol: http
+
+  # Operational
+  documentation: https://docs.example.com/payment-processor
+  runbook: https://runbooks.example.com/payment-processor
+  slo: payment-processor-slo
+
+  # Extensions
+  extensions:
+    compliance:
+      dataClassification: restricted
+      pciScope: true
+      piiHandled: true
+    finops:
+      costCenter: CC-4521
+```
+
+### CI/CD Integration
+
+Validating catalog entries as part of the deployment pipeline.
+
+```typescript
+// CI validation for catalog.yaml
+interface CatalogValidationResult {
+  valid: boolean
+  errors: ValidationError[]
+  warnings: ValidationWarning[]
+}
+
+async function validateCatalogEntry(
+  catalogPath: string
+): Promise<CatalogValidationResult> {
+  const catalog = yaml.load(fs.readFileSync(catalogPath, 'utf8'))
+  const errors: ValidationError[] = []
+  const warnings: ValidationWarning[] = []
+
+  // Schema validation
+  const schemaErrors = validateAgainstSchema(catalog, catalogSchema)
+  errors.push(...schemaErrors)
+
+  // Reference validation
+  if (catalog.spec.owner?.team) {
+    const teamExists = await catalogApi.teamExists(catalog.spec.owner.team)
+    if (!teamExists) {
+      errors.push({
+        field: 'spec.owner.team',
+        message: `Team '${catalog.spec.owner.team}' does not exist`
+      })
+    }
+  }
+
+  // Dependency validation
+  for (const dep of catalog.spec.dependencies || []) {
+    const targetExists = await catalogApi.serviceExists(dep.target)
+    if (!targetExists) {
+      errors.push({
+        field: `spec.dependencies[${dep.target}]`,
+        message: `Dependency '${dep.target}' not found in catalog`
+      })
+    }
+  }
+
+  // Tier-specific requirements
+  if (catalog.spec.tier === 'tier-1' || catalog.spec.tier === 'tier-2') {
+    if (!catalog.spec.runbook) {
+      errors.push({
+        field: 'spec.runbook',
+        message: 'Runbook required for tier-1/tier-2 services'
+      })
+    }
+    if (!catalog.spec.contacts?.oncall) {
+      errors.push({
+        field: 'spec.contacts.oncall',
+        message: 'Oncall schedule required for tier-1/tier-2 services'
+      })
+    }
+  }
+
+  // Freshness warnings
+  const lastModified = await getFileLastModified(catalogPath)
+  if (daysSince(lastModified) > 90) {
+    warnings.push({
+      field: 'metadata',
+      message: 'Catalog entry not updated in 90+ days, may be stale'
+    })
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors,
+    warnings
+  }
+}
+```
+
+```yaml
+# GitHub Action for catalog validation
+name: Catalog Validation
+
+on:
+  pull_request:
+    paths:
+      - 'catalog.yaml'
+      - 'catalog/*.yaml'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate catalog entry
+        run: |
+          npx @example/catalog-cli validate catalog.yaml
+
+      - name: Check for breaking changes
+        run: |
+          # Compare with main branch
+          git fetch origin main
+          git show origin/main:catalog.yaml > catalog.main.yaml
+          npx @example/catalog-cli diff catalog.main.yaml catalog.yaml
+
+      - name: Verify references
+        run: |
+          # Check that all referenced teams/services exist
+          npx @example/catalog-cli verify-refs catalog.yaml
+        env:
+          CATALOG_API_TOKEN: ${{ secrets.CATALOG_API_TOKEN }}
+```
+
+:::info[Blocking Deploys on Catalog Issues]
+For tier-1/2 services, block deployments when catalog validation fails. For tier-3/4, warn but allow deploy to reduce friction.
+:::
+
+### Automated Freshness Enforcement
+
+Ensuring catalog data doesn't go stale through automated checks.
+
+```typescript
+// Freshness enforcement job
+interface FreshnessCheck {
+  field: string
+  maxAge: Duration
+  appliesTo: ServiceFilter
+  action: 'warn' | 'block-deploy' | 'escalate'
+}
+
+const freshnessChecks: FreshnessCheck[] = [
+  {
+    field: 'owner',
+    maxAge: { days: 180 },
+    appliesTo: { lifecycle: ['production'] },
+    action: 'escalate'
+  },
+  {
+    field: 'dependencies',
+    maxAge: { days: 90 },
+    appliesTo: { tier: ['tier-1', 'tier-2'] },
+    action: 'block-deploy'
+  },
+  {
+    field: 'runbook',
+    maxAge: { days: 90 },
+    appliesTo: { tier: ['tier-1', 'tier-2'] },
+    action: 'warn'
+  },
+  {
+    field: 'lastVerified',
+    maxAge: { days: 180 },
+    appliesTo: { lifecycle: ['production'] },
+    action: 'escalate'
+  }
+]
+
+async function enforceFreshness(): Promise<FreshnessReport> {
+  const services = await catalogApi.listServices()
+  const violations: FreshnessViolation[] = []
+
+  for (const service of services) {
+    for (const check of freshnessChecks) {
+      if (!matchesFilter(service, check.appliesTo)) continue
+
+      const fieldAge = getFieldAge(service, check.field)
+      if (fieldAge > check.maxAge) {
+        violations.push({
+          service: service.id,
+          field: check.field,
+          age: fieldAge,
+          maxAge: check.maxAge,
+          action: check.action,
+          owner: service.owner
+        })
+
+        // Take action
+        switch (check.action) {
+          case 'warn':
+            await sendSlackWarning(service.owner.slack, violation)
+            break
+          case 'block-deploy':
+            await blockDeployments(service.id)
+            break
+          case 'escalate':
+            await createEscalationTicket(violation)
+            break
+        }
+      }
+    }
+  }
+
+  return {
+    checkedAt: new Date(),
+    servicesChecked: services.length,
+    violations,
+    byAction: groupBy(violations, 'action')
+  }
+}
+```
+
+### Drift Detection
+
+Finding discrepancies between declared catalog state and actual system state.
+
+```typescript
+// Drift detection between catalog and reality
+interface DriftDetector {
+  name: string
+  detect: (service: Service) => Promise<DriftResult[]>
+}
+
+const driftDetectors: DriftDetector[] = [
+  {
+    name: 'kubernetes-deployment',
+    detect: async (service) => {
+      const drifts: DriftResult[] = []
+
+      // Check if declared K8s deployment exists
+      const deployment = await k8s.getDeployment(service.name)
+      if (!deployment && service.runtime?.type === 'kubernetes') {
+        drifts.push({
+          type: 'missing-resource',
+          message: `Kubernetes deployment '${service.name}' not found`
+        })
+      }
+
+      // Check if running services match catalog
+      if (deployment) {
+        const actualImage = deployment.spec.template.spec.containers[0].image
+        const catalogRepository = service.repository
+        if (!actualImage.includes(catalogRepository)) {
+          drifts.push({
+            type: 'image-mismatch',
+            message: `Running image doesn't match catalog repository`
+          })
+        }
+      }
+
+      return drifts
+    }
+  },
+  {
+    name: 'dependency-drift',
+    detect: async (service) => {
+      const drifts: DriftResult[] = []
+
+      // Compare declared vs observed dependencies
+      const declared = new Set(service.dependencies.map(d => d.target))
+      const observed = await observeDependencies(service.id)
+
+      // Undeclared dependencies
+      for (const obs of observed) {
+        if (!declared.has(obs) && obs.confidence > 0.8) {
+          drifts.push({
+            type: 'undeclared-dependency',
+            message: `Observed dependency to '${obs}' not declared in catalog`
+          })
+        }
+      }
+
+      // Declared but not observed (may be stale)
+      for (const dec of declared) {
+        if (!observed.has(dec)) {
+          drifts.push({
+            type: 'possibly-stale-dependency',
+            message: `Declared dependency to '${dec}' not observed in traffic`
+          })
+        }
+      }
+
+      return drifts
+    }
+  },
+  {
+    name: 'owner-validity',
+    detect: async (service) => {
+      const drifts: DriftResult[] = []
+
+      // Check team still exists
+      const team = await catalogApi.getTeam(service.owner.id)
+      if (!team) {
+        drifts.push({
+          type: 'invalid-owner',
+          message: `Owner team '${service.owner.id}' no longer exists`
+        })
+      }
+
+      // Check oncall schedule is valid
+      if (service.contacts?.oncallSchedule) {
+        const schedule = await pagerduty.getSchedule(
+          service.contacts.oncallSchedule
+        )
+        if (!schedule) {
+          drifts.push({
+            type: 'invalid-oncall',
+            message: `Oncall schedule '${service.contacts.oncallSchedule}' not found`
+          })
+        }
+      }
+
+      return drifts
+    }
+  }
+]
+```
+
+## Catalog API and Integrations
+
+Making catalog data accessible to other systems.
+
+### API Design for Catalog Consumers
+
+Designing APIs that make catalog data useful for downstream systems.
+
+```typescript
+// Catalog API endpoints
+interface CatalogAPI {
+  // Service CRUD
+  listServices(filter?: ServiceFilter): Promise<ServiceList>
+  getService(id: string): Promise<Service>
+  createService(spec: ServiceSpec): Promise<Service>
+  updateService(id: string, spec: Partial<ServiceSpec>): Promise<Service>
+  deleteService(id: string): Promise<void>
+
+  // Ownership
+  getOwner(serviceId: string): Promise<OwnershipInfo>
+  transferOwnership(request: OwnershipTransferRequest): Promise<Transfer>
+
+  // Dependencies
+  getDependencies(serviceId: string): Promise<DependencyList>
+  getConsumers(serviceId: string): Promise<ConsumerList>
+  getDependencyGraph(): Promise<DependencyGraph>
+
+  // Search and discovery
+  search(query: string, options?: SearchOptions): Promise<SearchResults>
+  listByOwner(teamId: string): Promise<ServiceList>
+  listByDomain(domain: string): Promise<ServiceList>
+  listByTag(tag: string): Promise<ServiceList>
+
+  // Validation
+  validateSpec(spec: ServiceSpec): Promise<ValidationResult>
+  checkHealth(serviceId: string): Promise<HealthStatus>
+
+  // Webhooks
+  registerWebhook(config: WebhookConfig): Promise<Webhook>
+  listWebhooks(): Promise<Webhook[]>
+}
+
+// GraphQL schema for flexible queries
+const catalogGraphQL = `
+type Service {
+  id: ID!
+  name: String!
+  tier: Tier!
+  lifecycle: Lifecycle!
+  owner: Team!
+  dependencies: [Dependency!]!
+  consumers: [Service!]!
+
+  # Computed fields
+  blastRadius: BlastRadiusAnalysis
+  healthStatus: HealthStatus
+  freshnessScore: Float
+}
+
+type Query {
+  service(id: ID!): Service
+  services(filter: ServiceFilter): [Service!]!
+
+  # Graph queries
+  dependencyPath(from: ID!, to: ID!): [DependencyPath!]!
+  circularDependencies: [DependencyCycle!]!
+
+  # Impact analysis
+  blastRadius(serviceId: ID!): BlastRadiusAnalysis
+
+  # Search
+  search(query: String!, limit: Int): [Service!]!
+}
+
+type Mutation {
+  createService(input: ServiceInput!): Service!
+  updateService(id: ID!, input: ServiceInput!): Service!
+  transferOwnership(input: OwnershipTransferInput!): Transfer!
+  verifyService(id: ID!): Service!
+}
+
+type Subscription {
+  serviceUpdated(filter: ServiceFilter): Service
+  ownershipChanged: OwnershipChange
+  dependencyChanged: DependencyChange
+}
+`
+```
+
+### Integration Patterns
+
+Connecting the catalog to incident management, CI/CD, and observability systems.
+
+```typescript
+// PagerDuty integration: auto-route incidents based on catalog
+async function routeIncident(alert: Alert): Promise<IncidentRouting> {
+  // Extract service name from alert
+  const serviceName = extractServiceName(alert)
+
+  // Look up in catalog
+  const service = await catalogApi.getService(serviceName)
+
+  if (!service) {
+    // Unknown service, route to platform team
+    return {
+      service: 'unknown',
+      team: 'platform-team',
+      priority: 'high',
+      note: `Service '${serviceName}' not found in catalog`
+    }
+  }
+
+  // Get oncall for this service
+  const oncall = await pagerduty.getCurrentOncall(
+    service.contacts.oncallSchedule
+  )
+
+  return {
+    service: service.id,
+    team: service.owner.id,
+    oncall: oncall.userId,
+    priority: tierToPriority(service.tier),
+    runbook: service.runbook,
+    dependencies: service.dependencies.map(d => d.target),
+    escalationPolicy: service.owner.escalationPolicy
+  }
+}
+
+// Datadog integration: sync service tags
+async function syncDatadogTags(): Promise<void> {
+  const services = await catalogApi.listServices()
+
+  for (const service of services) {
+    await datadog.updateServiceDefinition({
+      name: service.name,
+      team: service.owner.name,
+      tier: service.tier,
+      contacts: [
+        { type: 'slack', value: service.owner.slack },
+        { type: 'email', value: service.owner.email }
+      ],
+      links: [
+        { type: 'runbook', url: service.runbook },
+        { type: 'repo', url: service.repository },
+        { type: 'doc', url: service.documentation }
+      ],
+      tags: [
+        `domain:${service.domain}`,
+        `tier:${service.tier}`,
+        `lifecycle:${service.lifecycle}`,
+        ...service.tags
+      ]
+    })
+  }
+}
+
+// Grafana integration: generate dashboards from catalog
+async function generateServiceDashboard(
+  serviceId: string
+): Promise<GrafanaDashboard> {
+  const service = await catalogApi.getService(serviceId)
+  const dependencies = await catalogApi.getDependencies(serviceId)
+
+  return {
+    title: `${service.name} Service Dashboard`,
+    tags: ['auto-generated', 'service-catalog', service.domain],
+    panels: [
+      // Golden signals for this service
+      createGoldenSignalsPanel(service),
+      // Dependency health
+      createDependencyHealthPanel(dependencies),
+      // SLO status if defined
+      service.slo ? createSLOPanel(service.slo) : null,
+      // Recent deployments
+      createDeploymentPanel(service),
+    ].filter(Boolean),
+    annotations: {
+      list: [
+        { name: 'Deployments', datasource: 'deployments' },
+        { name: 'Incidents', datasource: 'pagerduty' }
+      ]
+    }
+  }
+}
+```
+
+## Measuring Catalog Health
+
+Metrics and dashboards for tracking catalog effectiveness.
+
+### Catalog Coverage Metrics
+
+Tracking what percentage of the estate is cataloged and accurate.
+
+```typescript
+// Catalog health metrics
+interface CatalogHealthMetrics {
+  // Coverage
+  totalServices: number
+  catalogedServices: number
+  coveragePercent: number
+
+  // Accuracy
+  servicesWithOwner: number
+  servicesWithValidOwner: number  // Owner team actually exists
+  ownerAccuracyPercent: number
+
+  dependenciesDeclared: number
+  dependenciesValidated: number  // Declared and observed match
+  dependencyAccuracyPercent: number
+
+  // Freshness
+  updatedLast30Days: number
+  updatedLast90Days: number
+  staleLast90Days: number
+  freshnessPercent: number
+
+  // Completeness by tier
+  tier1Completeness: CompletenessScore
+  tier2Completeness: CompletenessScore
+  tier3Completeness: CompletenessScore
+
+  // Orphan tracking
+  orphanedServices: number
+  servicesWithNoOncall: number
+}
+
+interface CompletenessScore {
+  total: number
+  withOwner: number
+  withDependencies: number
+  withRunbook: number
+  withSLO: number
+  withDocumentation: number
+  overallScore: number  // Weighted average
+}
+
+// Prometheus metrics exposition
+const catalogMetrics = `
+# Coverage
+catalog_services_total{} ${metrics.totalServices}
+catalog_services_cataloged{} ${metrics.catalogedServices}
+catalog_coverage_ratio{} ${metrics.coveragePercent / 100}
+
+# Accuracy
+catalog_owner_accuracy_ratio{} ${metrics.ownerAccuracyPercent / 100}
+catalog_dependency_accuracy_ratio{} ${metrics.dependencyAccuracyPercent / 100}
+
+# Freshness
+catalog_services_fresh{window="30d"} ${metrics.updatedLast30Days}
+catalog_services_fresh{window="90d"} ${metrics.updatedLast90Days}
+catalog_services_stale{window="90d"} ${metrics.staleLast90Days}
+
+# Completeness by tier
+catalog_completeness_score{tier="1"} ${metrics.tier1Completeness.overallScore}
+catalog_completeness_score{tier="2"} ${metrics.tier2Completeness.overallScore}
+catalog_completeness_score{tier="3"} ${metrics.tier3Completeness.overallScore}
+
+# Orphans
+catalog_orphaned_services{} ${metrics.orphanedServices}
+catalog_services_no_oncall{tier="1"} ${tier1NoOncall}
+catalog_services_no_oncall{tier="2"} ${tier2NoOncall}
+`
+```
+
+### Alerting on Catalog Quality
+
+Proactive alerts when catalog health degrades.
+
+```yaml
+# Prometheus alerting rules for catalog health
+groups:
+  - name: catalog-health
+    rules:
+      - alert: CatalogCoverageLow
+        expr: catalog_coverage_ratio < 0.95
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "Service catalog coverage below 95%"
+          description: "{{ $value | humanizePercentage }} of services are in the catalog"
+
+      - alert: Tier1ServiceNoOncall
+        expr: catalog_services_no_oncall{tier="1"} > 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Tier-1 service without oncall coverage"
+          description: "{{ $value }} tier-1 services have no oncall schedule"
+
+      - alert: OrphanedServicesIncreasing
+        expr: |
+          increase(catalog_orphaned_services[7d]) > 5
+        labels:
+          severity: warning
+        annotations:
+          summary: "Number of orphaned services increasing"
+          description: "{{ $value }} new orphaned services in the past week"
+
+      - alert: CatalogFreshnessDecay
+        expr: |
+          catalog_services_stale{window="90d"}
+          / catalog_services_cataloged > 0.2
+        for: 24h
+        labels:
+          severity: warning
+        annotations:
+          summary: "More than 20% of catalog entries are stale"
+```
+
+## Conclusion
+
+A service catalog's value is determined entirely by the accuracy and freshness of its metadata. Schema design should start minimal with 5-7 required fields that enable your most critical use case (usually incident routing), then expand as coverage improves. Ownership is the most important field—without knowing who owns a service, you can't route incidents, assign responsibility, or track accountability. Dependencies should combine declared sources with runtime observation for validation and drift detection. Automation is essential: validate catalog entries in CI, block deploys for critical issues, detect orphans and stale data automatically, and integrate with downstream systems so the catalog becomes the single source of truth. Measure catalog health obsessively—coverage, accuracy, and freshness should be tracked and alerted on like any other critical system metric.
+
+---
+
+## Cover Image Prompts
+
+### Prompt 1: Card Catalog Drawers
+Photograph of vintage library card catalog cabinet, wooden drawers with brass handles partially open showing organized index cards. Warm incandescent lighting creating soft shadows. The cards visible show typed labels suggesting organization system. Rich wood grain texture, nostalgic library aesthetic representing systematic organization of knowledge.
+
+### Prompt 2: Network Topology Map
+Technical illustration of a network topology diagram rendered as a three-dimensional visualization. Nodes represented as illuminated spheres connected by glowing lines of varying thickness (representing traffic/importance). Cool blue and cyan color palette with occasional orange/amber nodes marking key services. Clean dark background with subtle grid.
+
+### Prompt 3: Ownership Org Chart Abstract
+Abstract minimalist representation of organizational hierarchy using connected geometric shapes. Clean lines connecting circles and squares in a tree structure. Corporate blue and grey color scheme with one branch highlighted in gold/amber to show ownership path. White background with subtle drop shadows creating depth.
+
+### Prompt 4: Registry Book Detail
+Close-up photograph of a leather-bound registry or ledger book lying open, showing handwritten entries in columns (dates, names, values). Vintage fountain pen resting across pages. Warm sepia tones with dramatic side lighting. The sense of official record-keeping and accountability.
+
+### Prompt 5: Digital Filing System
+Isometric 3D illustration of a modern digital filing system concept—floating translucent folders with glowing document icons, connected by thin lines suggesting relationships. Gradient background from deep purple to dark blue. Clean, modern aesthetic with glass-like transparency effects. Represents digital organization and metadata structure.

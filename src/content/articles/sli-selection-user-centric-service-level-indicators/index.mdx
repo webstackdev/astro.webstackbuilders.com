@@ -9,6 +9,1413 @@ tags: ["reliability-and-testing"]
 featured: true
 ---
 
+*[API]: Application Programming Interface
+*[CUJ]: Critical User Journey
+*[FCP]: First Contentful Paint
+*[LCP]: Largest Contentful Paint
+*[MTTR]: Mean Time To Recovery
+*[P50]: 50th Percentile (Median)
+*[P99]: 99th Percentile
+*[SLA]: Service Level Agreement
+*[SLI]: Service Level Indicator
+*[SLO]: Service Level Objective
+*[TTFB]: Time To First Byte
+
 SLI selection criteria, measurement approaches, user-centric indicators, and avoiding metrics that look good but miss real problems.
 
 An SLI you cannot explain to stakeholders is useless.
+
+## What Makes a Good SLI
+
+The characteristics that separate useful SLIs from vanity metrics that make dashboards green while users suffer.
+
+### The User-Centric Test
+
+An SLI should fail when users are unhappy and pass when users are satisfied—nothing more, nothing less.
+
+```
+Mermaid diagram: SLI quality quadrant.
+                    Users Happy
+                        │
+         Good SLI       │      False Negative
+         (Green)        │      (Green but broken)
+                        │      DANGEROUS
+────────────────────────┼────────────────────────
+         False Positive │      Good SLI
+         (Red but fine) │      (Red)
+         ANNOYING       │
+                        │
+                    Users Unhappy
+
+Best SLIs live in top-left and bottom-right quadrants.
+False negatives (green during outages) erode trust.
+False positives (red during normal ops) cause alert fatigue.
+```
+
+The worst SLI is one that stays green while users complain. The second worst is one that alerts constantly during normal operation.
+
+### SLI Selection Criteria
+
+Evaluating potential SLIs against essential characteristics.
+
+| Criterion | Question | Why It Matters |
+|-----------|----------|----------------|
+| User-centric | Does it measure what users experience? | Internal metrics often hide user pain |
+| Measurable | Can we collect this data reliably? | Can't set objectives without data |
+| Specific | Does it target a single failure mode? | Composite metrics hide root causes |
+| Actionable | Can we improve it when it degrades? | Unactionable metrics cause learned helplessness |
+| Understandable | Can non-engineers grasp it? | Stakeholder buy-in requires clarity |
+| Stable | Does normal operation stay within bounds? | Noisy metrics get ignored |
+
+```typescript
+// SLI evaluation framework
+interface SLICandidate {
+  name: string
+  description: string
+  measurement: MeasurementMethod
+  userImpact: UserImpactMapping
+}
+
+interface SLIEvaluation {
+  candidate: SLICandidate
+  scores: {
+    userCentric: Score      // 1-5: How directly does this reflect user experience?
+    measurable: Score       // 1-5: How reliably can we measure this?
+    specific: Score         // 1-5: How targeted is the failure mode?
+    actionable: Score       // 1-5: Can engineering improve this?
+    understandable: Score   // 1-5: Can product/leadership understand it?
+    stable: Score           // 1-5: How much noise in normal operation?
+  }
+  overallScore: number
+  recommendation: 'adopt' | 'improve' | 'reject'
+  notes: string
+}
+
+function evaluateSLI(candidate: SLICandidate): SLIEvaluation {
+  const scores = {
+    userCentric: scoreUserCentricity(candidate),
+    measurable: scoreMeasurability(candidate),
+    specific: scoreSpecificity(candidate),
+    actionable: scoreActionability(candidate),
+    understandable: scoreUnderstandability(candidate),
+    stable: scoreStability(candidate)
+  }
+
+  // User-centric is weighted highest—an SLI that doesn't reflect
+  // user experience is worthless regardless of other scores
+  const weights = {
+    userCentric: 3,
+    measurable: 2,
+    specific: 1,
+    actionable: 2,
+    understandable: 1,
+    stable: 1
+  }
+
+  const overallScore = Object.entries(scores)
+    .reduce((sum, [key, score]) => sum + score * weights[key], 0) /
+    Object.values(weights).reduce((a, b) => a + b, 0)
+
+  return {
+    candidate,
+    scores,
+    overallScore,
+    recommendation: overallScore >= 4 ? 'adopt' :
+                    overallScore >= 2.5 ? 'improve' : 'reject',
+    notes: generateEvaluationNotes(scores)
+  }
+}
+```
+
+### Common SLI Anti-Patterns
+
+Metrics that look like SLIs but fail the user-centric test.
+
+```typescript
+// Anti-patterns with explanations
+const sliAntiPatterns = [
+  {
+    pattern: 'CPU utilization as availability proxy',
+    problem: 'High CPU doesn\'t mean users are affected; low CPU doesn\'t mean service is working',
+    example: 'SLI: CPU < 80%',
+    better: 'SLI: Successful requests / Total requests',
+    whyItFails: 'Service can return errors at 20% CPU; service can be healthy at 90% CPU'
+  },
+  {
+    pattern: 'Internal health check success',
+    problem: 'Health checks often test infrastructure, not user-facing functionality',
+    example: 'SLI: /health returns 200',
+    better: 'SLI: Actual user requests succeed',
+    whyItFails: 'Database might be up (health check passes) but queries timeout'
+  },
+  {
+    pattern: 'Average latency',
+    problem: 'Averages hide tail latency that affects many users',
+    example: 'SLI: Average response time < 200ms',
+    better: 'SLI: P99 response time < 500ms',
+    whyItFails: '1% of users waiting 10 seconds is invisible in a 200ms average'
+  },
+  {
+    pattern: 'Uptime percentage without error rate',
+    problem: 'Process running doesn\'t mean it\'s serving correctly',
+    example: 'SLI: Service uptime > 99.9%',
+    better: 'SLI: Error rate < 0.1% AND latency P99 < target',
+    whyItFails: 'Service can be "up" while returning 500s to every request'
+  },
+  {
+    pattern: 'Deployment success rate',
+    problem: 'Measures engineering process, not user experience',
+    example: 'SLI: Deployments without rollback',
+    better: 'SLI: Error rate during and after deployment',
+    whyItFails: 'A "successful" deployment can still degrade user experience'
+  }
+]
+```
+
+:::warning[Averages Lie]
+Average latency of 100ms with P99 of 5000ms means 1% of your users wait 50x longer than the "average" suggests. Always use percentiles for latency SLIs.
+:::
+
+## The Four Golden SLI Categories
+
+Most services can be adequately covered by SLIs in these four categories.
+
+### Availability: Are Requests Succeeding?
+
+The most fundamental SLI: what proportion of requests complete successfully.
+
+```typescript
+// Availability SLI definition
+interface AvailabilitySLI {
+  name: 'availability'
+  definition: 'Proportion of valid requests that complete successfully'
+
+  formula: {
+    numerator: 'Successful requests (status 2xx, expected 4xx)'
+    denominator: 'Total valid requests'
+    excludes: ['Health checks', 'Invalid requests (malformed)', 'Rate-limited requests']
+  }
+
+  measurement: {
+    // Count at the edge (load balancer) for accuracy
+    source: 'Load balancer access logs'
+    // Or from application metrics
+    alternateSource: 'Application request counters'
+  }
+}
+
+// Prometheus query for availability
+const availabilityQuery = `
+  # Successful requests (2xx + expected 4xx like 404)
+  sum(rate(http_requests_total{status=~"2..|404"}[5m]))
+  /
+  # Total requests excluding health checks
+  sum(rate(http_requests_total{endpoint!="/health"}[5m]))
+`
+
+// What counts as "successful"?
+interface SuccessCriteria {
+  // Always success
+  always: ['2xx responses']
+
+  // Success if expected
+  conditional: [
+    '404 for GET requests (resource not found is valid)',
+    '400 for invalid input (client error, not server)',
+  ]
+
+  // Never success
+  never: [
+    '5xx responses (server errors)',
+    '429 (rate limited—our fault for not scaling)',
+    'Timeouts (request didn\'t complete)',
+  ]
+
+  // Excluded from denominator entirely
+  excluded: [
+    'Health check requests',
+    'Requests to /metrics endpoint',
+    'Requests from load balancer probes',
+    'Malformed requests (can\'t parse)',
+  ]
+}
+```
+
+### Latency: Are Requests Fast Enough?
+
+How long users wait for responses, measured as percentile distributions.
+
+```typescript
+// Latency SLI definition
+interface LatencySLI {
+  name: 'latency'
+  definition: 'Proportion of requests served faster than threshold'
+
+  // Multiple thresholds for different user expectations
+  thresholds: {
+    // Different operations have different expectations
+    interactive: {
+      percentile: 'P99',
+      threshold: '200ms',
+      rationale: 'User-facing requests need to feel instant'
+    },
+    background: {
+      percentile: 'P99',
+      threshold: '5s',
+      rationale: 'Background jobs have more patience'
+    },
+    reporting: {
+      percentile: 'P95',
+      threshold: '30s',
+      rationale: 'Report generation can take time'
+    }
+  }
+
+  measurement: {
+    // Measure from user perspective, not internal timing
+    startPoint: 'Request received at edge',
+    endPoint: 'Response bytes sent',
+    includesNetworkTime: false  // Only what we control
+  }
+}
+
+// Prometheus query for latency SLI
+const latencyQuery = `
+  # Requests under threshold (e.g., 200ms)
+  sum(rate(http_request_duration_seconds_bucket{le="0.2"}[5m]))
+  /
+  # Total requests
+  sum(rate(http_request_duration_seconds_count[5m]))
+`
+
+// Why percentiles, not averages
+const percentileRationale = {
+  problem: 'Average hides distribution',
+  example: {
+    scenario: '99 requests at 100ms, 1 request at 10s',
+    average: '199ms (looks fine)',
+    p99: '10s (reveals the problem)',
+    userImpact: '1% of users have terrible experience'
+  },
+  recommendation: 'P50 for typical experience, P99 for worst acceptable'
+}
+```
+
+```
+Mermaid diagram: Latency distribution visualization.
+Y-axis: Number of requests
+X-axis: Response time (ms)
+
+Show histogram with:
+- Large peak at 50-100ms (P50)
+- Long tail extending to 500ms (P95), 1s (P99), 5s (P99.9)
+- Mark each percentile on the x-axis
+- Annotate: "Average (150ms) hides the tail"
+- Annotate: "P99 (1s) shows real user pain"
+```
+
+### Quality: Are Responses Correct?
+
+Beyond success/failure: is the response actually what the user needed?
+
+```typescript
+// Quality/Correctness SLI definition
+interface QualitySLI {
+  name: 'quality'
+  definition: 'Proportion of responses that are complete and correct'
+
+  examples: [
+    {
+      service: 'Search',
+      indicator: 'Search results returned within expected count range',
+      measurement: 'Requests returning 0 results for queries that should match'
+    },
+    {
+      service: 'Data API',
+      indicator: 'Response contains all requested fields',
+      measurement: 'Responses with missing or null required fields'
+    },
+    {
+      service: 'Image service',
+      indicator: 'Images render correctly',
+      measurement: 'Broken image responses (truncated, wrong format)'
+    },
+    {
+      service: 'Payment',
+      indicator: 'Transactions process correctly',
+      measurement: 'Successful charges that fail to create orders'
+    }
+  ]
+}
+
+// Example: Search quality SLI
+const searchQualitySLI = {
+  name: 'search_result_quality',
+  definition: 'Proportion of searches returning expected results',
+
+  // What makes a search "quality"
+  qualityCriteria: {
+    hasResults: 'Non-empty result set for known-good queries',
+    relevantResults: 'Top result matches query intent (sampled)',
+    completeResults: 'All expected fields populated',
+    timeliness: 'Results include recent content (< 5 min old)'
+  },
+
+  // Measurement approach
+  measurement: {
+    // Synthetic queries with known-good answers
+    syntheticQueries: {
+      frequency: 'Every 1 minute',
+      queries: ['test queries with expected results'],
+      validation: 'Expected product appears in top 3'
+    },
+    // Real traffic sampling
+    trafficSampling: {
+      sampleRate: 0.01,  // 1% of queries
+      validation: 'Result count > 0 for non-empty queries'
+    }
+  }
+}
+```
+
+:::info[Quality SLIs Are Service-Specific]
+Unlike availability and latency (which are universal), quality SLIs require understanding what "correct" means for your specific service. A search returning 0 results might be correct (nothing matches) or broken (index is empty).
+:::
+
+### Freshness: Is Data Current?
+
+For services that serve data, how stale is the information users receive?
+
+```typescript
+// Freshness SLI definition
+interface FreshnessSLI {
+  name: 'freshness'
+  definition: 'Proportion of requests served with data updated within threshold'
+
+  applicability: [
+    'Data pipelines and ETL',
+    'Search indexes',
+    'Caches and CDNs',
+    'Replicated databases',
+    'Event-driven systems'
+  ]
+
+  thresholds: {
+    realtime: '< 1 second (trading, chat)',
+    nearRealtime: '< 1 minute (dashboards, feeds)',
+    periodic: '< 1 hour (reports, analytics)',
+    daily: '< 24 hours (batch processes)'
+  }
+}
+
+// Example: Search index freshness
+const searchFreshnessSLI = {
+  name: 'search_index_freshness',
+  definition: 'Proportion of indexed documents updated within SLO',
+
+  measurement: {
+    approach: 'Canary documents',
+    method: `
+      1. Insert canary document with timestamp
+      2. Search for canary document
+      3. Measure time between insert and searchable
+      4. Delete canary document
+    `,
+    frequency: 'Every 1 minute'
+  },
+
+  prometheusQuery: `
+    # Time since last successful index update
+    time() - search_index_last_update_timestamp_seconds
+  `,
+
+  threshold: {
+    target: '300 seconds',  // 5 minutes
+    rationale: 'Users expect new content to be searchable within 5 minutes'
+  }
+}
+
+// Example: Database replication lag freshness
+const replicationFreshnessSLI = {
+  name: 'replica_freshness',
+  definition: 'Proportion of time replicas are within acceptable lag',
+
+  measurement: {
+    source: 'Database replication metrics',
+    query: 'pg_stat_replication lag_seconds'
+  },
+
+  // Different thresholds for different use cases
+  thresholds: {
+    readReplica: {
+      target: '< 1 second',
+      rationale: 'Read-after-write consistency expectations'
+    },
+    analyticsReplica: {
+      target: '< 5 minutes',
+      rationale: 'Analytics queries tolerate some staleness'
+    }
+  }
+}
+```
+
+## Measuring SLIs Correctly
+
+Where and how you measure determines whether your SLI reflects reality.
+
+### Measurement Points
+
+Choosing the right vantage point for SLI measurement.
+
+```
+Mermaid diagram: SLI measurement points in request flow.
+User → CDN → Load Balancer → API Gateway → Service → Database
+
+Measurement points (labeled):
+1. Synthetic monitoring (outside your infra)
+   - Measures full user experience including CDN/DNS
+   - Most accurate for user perspective
+   - Requires external service
+
+2. Edge/Load balancer (first entry point)
+   - Sees all traffic including failures before reaching service
+   - Catches infrastructure failures
+   - Recommended for availability SLIs
+
+3. Application metrics (inside service)
+   - Most detail about internal behavior
+   - Misses failures that don't reach the service
+   - Good for latency and quality SLIs
+
+4. Database metrics (backend)
+   - Backend performance only
+   - Doesn't reflect full user experience
+   - Good for freshness SLIs
+```
+
+```typescript
+// Measurement point selection
+interface MeasurementPointSelection {
+  sliType: string
+  recommendedPoint: MeasurementPoint
+  rationale: string
+  tradeoffs: string
+}
+
+const measurementRecommendations: MeasurementPointSelection[] = [
+  {
+    sliType: 'availability',
+    recommendedPoint: 'edge',
+    rationale: 'Catches all failures including those before service',
+    tradeoffs: 'May include failures outside your control (CDN, DNS)'
+  },
+  {
+    sliType: 'latency',
+    recommendedPoint: 'edge + synthetic',
+    rationale: 'Edge for real traffic, synthetic for consistent baseline',
+    tradeoffs: 'Synthetic may not reflect real user patterns'
+  },
+  {
+    sliType: 'quality',
+    recommendedPoint: 'application',
+    rationale: 'Need application context to validate correctness',
+    tradeoffs: 'Requires instrumentation in application code'
+  },
+  {
+    sliType: 'freshness',
+    recommendedPoint: 'synthetic probes',
+    rationale: 'Need to measure end-to-end data flow',
+    tradeoffs: 'Probes may not represent all data paths'
+  }
+]
+```
+
+### Client vs Server Measurement
+
+Understanding why client-side and server-side measurements differ.
+
+```typescript
+// Client vs server measurement comparison
+interface MeasurementComparison {
+  metric: string
+  serverSide: number
+  clientSide: number
+  difference: string
+  implication: string
+}
+
+const measurementDifferences: MeasurementComparison[] = [
+  {
+    metric: 'Availability',
+    serverSide: 99.99,  // Server logged success
+    clientSide: 99.5,   // Client saw failures
+    difference: '0.49% of requests never reached server',
+    implication: 'Network issues, DNS failures, client timeouts'
+  },
+  {
+    metric: 'Latency P99',
+    serverSide: 150,    // Server measured 150ms
+    clientSide: 800,    // Client measured 800ms
+    difference: '650ms in network + client processing',
+    implication: 'Server metrics miss network latency'
+  }
+]
+
+// When to use each
+const measurementGuidance = {
+  serverSide: {
+    advantages: [
+      'Easy to implement',
+      'Consistent measurement point',
+      'High fidelity (all requests logged)'
+    ],
+    disadvantages: [
+      'Misses failures before reaching server',
+      'Doesn\'t include network latency to client',
+      'Can\'t measure client-side rendering'
+    ],
+    bestFor: ['Backend services', 'API availability', 'Server processing time']
+  },
+
+  clientSide: {
+    advantages: [
+      'Measures actual user experience',
+      'Captures end-to-end latency',
+      'Includes network and client factors'
+    ],
+    disadvantages: [
+      'Requires client instrumentation',
+      'Sampling may be incomplete',
+      'Privacy concerns with detailed tracking'
+    ],
+    bestFor: ['User-facing applications', 'Core Web Vitals', 'Full journey measurement']
+  },
+
+  synthetic: {
+    advantages: [
+      'Consistent, controlled measurement',
+      'Can test from multiple locations',
+      'Available even during outages'
+    ],
+    disadvantages: [
+      'Doesn\'t reflect real user patterns',
+      'May miss issues affecting only some users',
+      'Additional cost and complexity'
+    ],
+    bestFor: ['Baseline monitoring', 'SLA reporting', 'Geographic coverage']
+  }
+}
+```
+
+### Handling Measurement Gaps
+
+What to do when you can't measure what you want to measure.
+
+```typescript
+// Dealing with unmeasurable ideal SLIs
+interface MeasurementGapStrategy {
+  idealSLI: string
+  problem: string
+  proxyApproach: ProxySLI
+  validationMethod: string
+}
+
+const measurementGapStrategies: MeasurementGapStrategy[] = [
+  {
+    idealSLI: 'User successfully completed purchase',
+    problem: 'Multi-step journey spans multiple services',
+    proxyApproach: {
+      name: 'Critical step completion rate',
+      measurement: 'order_confirmed events / checkout_started events',
+      correlation: 'Validated against actual revenue'
+    },
+    validationMethod: 'Compare proxy SLI with weekly revenue reports'
+  },
+  {
+    idealSLI: 'User perceived page as fast',
+    problem: 'Perception is subjective and unmeasurable',
+    proxyApproach: {
+      name: 'Largest Contentful Paint (LCP)',
+      measurement: 'Browser performance API',
+      correlation: 'Research shows LCP correlates with perceived speed'
+    },
+    validationMethod: 'User satisfaction surveys correlated with LCP'
+  },
+  {
+    idealSLI: 'API response was correct',
+    problem: 'Correctness requires business logic validation',
+    proxyApproach: {
+      name: 'Schema validation pass rate',
+      measurement: 'Responses passing JSON schema validation',
+      correlation: 'Catches structural errors, not semantic ones'
+    },
+    validationMethod: 'Sample audit comparing proxy to manual review'
+  }
+]
+```
+
+:::warning[Proxy SLIs Need Validation]
+When you can't measure the ideal SLI, choose a proxy—but validate that the proxy actually correlates with user experience. A proxy that diverges from reality is worse than no SLI.
+:::
+
+## SLIs for Different Service Types
+
+Tailoring SLI selection to service characteristics.
+
+### Request-Driven Services (APIs)
+
+The most common service type with well-established SLI patterns.
+
+```typescript
+// Standard API service SLI set
+interface APIServiceSLIs {
+  availability: {
+    definition: 'Proportion of requests returning 2xx/expected 4xx',
+    target: 0.999,
+    measurement: 'Load balancer metrics',
+    query: `
+      sum(rate(requests_total{status=~"2..|4[01][04]"}[5m]))
+      / sum(rate(requests_total[5m]))
+    `
+  }
+
+  latency: {
+    definition: 'Proportion of requests completing under threshold',
+    tiers: {
+      fast: { percentile: 'P50', threshold: '100ms', target: 0.99 },
+      acceptable: { percentile: 'P99', threshold: '500ms', target: 0.99 }
+    },
+    measurement: 'Application histogram',
+    query: `
+      sum(rate(request_duration_bucket{le="0.5"}[5m]))
+      / sum(rate(request_duration_count[5m]))
+    `
+  }
+
+  errorRate: {
+    definition: 'Proportion of requests NOT returning 5xx',
+    target: 0.9999,  // 4 nines = 0.01% error rate
+    measurement: 'Application counters',
+    query: `
+      1 - (
+        sum(rate(requests_total{status=~"5.."}[5m]))
+        / sum(rate(requests_total[5m]))
+      )
+    `
+  }
+}
+```
+
+### Data Pipeline Services
+
+SLIs focused on throughput, freshness, and correctness.
+
+```typescript
+// Data pipeline SLI set
+interface PipelineSLIs {
+  freshness: {
+    definition: 'Proportion of time data is within staleness threshold',
+    target: 0.99,
+    measurement: 'Watermark age tracking',
+    query: `
+      # Time since last successful pipeline run
+      (time() - pipeline_last_success_timestamp) < 3600
+    `
+  }
+
+  throughput: {
+    definition: 'Proportion of expected records processed',
+    target: 0.999,
+    measurement: 'Record count comparison',
+    query: `
+      sum(records_processed_total)
+      / sum(records_expected_total)
+    `
+  }
+
+  correctness: {
+    definition: 'Proportion of records passing validation',
+    target: 0.9999,
+    measurement: 'Validation checks in pipeline',
+    query: `
+      sum(records_valid_total)
+      / sum(records_processed_total)
+    `
+  }
+
+  completeness: {
+    definition: 'Proportion of data sources successfully ingested',
+    target: 0.99,
+    measurement: 'Source availability tracking',
+    query: `
+      sum(sources_ingested_successfully)
+      / sum(sources_expected)
+    `
+  }
+}
+```
+
+### Storage Services
+
+SLIs focused on durability, availability, and consistency.
+
+```typescript
+// Storage service SLI set
+interface StorageSLIs {
+  availability: {
+    definition: 'Proportion of read/write operations succeeding',
+    targets: {
+      reads: 0.9999,   // Reads should almost always work
+      writes: 0.999    // Writes may need quorum
+    },
+    measurement: 'Storage system metrics'
+  }
+
+  durability: {
+    definition: 'Proportion of stored data that remains retrievable',
+    target: 0.999999999,  // 9 nines
+    measurement: 'Periodic data integrity checks',
+    note: 'Hardest to measure—usually inferred from storage design'
+  }
+
+  latency: {
+    definition: 'Operation latency by type',
+    targets: {
+      read: { p99: '50ms' },
+      write: { p99: '100ms' },
+      list: { p99: '500ms' }
+    },
+    measurement: 'Client-side latency histograms'
+  }
+
+  consistency: {
+    definition: 'Proportion of reads returning latest write',
+    target: 0.9999,  // For strongly consistent mode
+    measurement: 'Read-after-write test probes',
+    note: 'Only applicable for strong consistency guarantees'
+  }
+}
+```
+
+### Streaming/Event Services
+
+SLIs focused on delivery, ordering, and processing.
+
+```typescript
+// Event streaming SLI set
+interface StreamingSLIs {
+  deliverySuccess: {
+    definition: 'Proportion of events successfully delivered',
+    target: 0.9999,
+    measurement: 'Producer acknowledgments vs attempts'
+  }
+
+  deliveryLatency: {
+    definition: 'Time from publish to consumer receipt',
+    target: { p99: '1s' },
+    measurement: 'End-to-end timestamp tracking'
+  }
+
+  orderingPreservation: {
+    definition: 'Proportion of events delivered in order',
+    target: 0.9999,
+    measurement: 'Sequence number validation at consumer',
+    note: 'Per-partition ordering only'
+  }
+
+  consumerLag: {
+    definition: 'Proportion of time consumer lag is within threshold',
+    target: 0.99,
+    threshold: '< 1000 messages or < 1 minute',
+    measurement: 'Kafka consumer group lag metrics'
+  }
+
+  processingSuccess: {
+    definition: 'Proportion of events processed without error',
+    target: 0.999,
+    measurement: 'Dead letter queue rate',
+    query: `
+      1 - (
+        sum(rate(events_to_dlq_total[5m]))
+        / sum(rate(events_consumed_total[5m]))
+      )
+    `
+  }
+}
+```
+
+## Critical User Journeys as SLIs
+
+Measuring end-to-end user experiences rather than individual service metrics.
+
+### Defining Critical User Journeys
+
+Identifying the user flows that matter most to the business.
+
+```typescript
+// Critical User Journey definition
+interface CriticalUserJourney {
+  name: string
+  description: string
+  businessValue: string
+  steps: JourneyStep[]
+  sli: JourneySLI
+}
+
+interface JourneyStep {
+  name: string
+  service: string
+  expectedLatency: Duration
+  successCriteria: string
+}
+
+// Example: E-commerce purchase journey
+const purchaseJourney: CriticalUserJourney = {
+  name: 'Complete Purchase',
+  description: 'User adds item to cart and completes checkout',
+  businessValue: 'Direct revenue generation',
+
+  steps: [
+    {
+      name: 'Add to cart',
+      service: 'cart-service',
+      expectedLatency: { ms: 200 },
+      successCriteria: 'Item added, cart updated'
+    },
+    {
+      name: 'View cart',
+      service: 'cart-service',
+      expectedLatency: { ms: 300 },
+      successCriteria: 'Cart contents displayed with correct totals'
+    },
+    {
+      name: 'Enter payment',
+      service: 'checkout-service',
+      expectedLatency: { ms: 500 },
+      successCriteria: 'Payment form submitted'
+    },
+    {
+      name: 'Process payment',
+      service: 'payment-service',
+      expectedLatency: { ms: 2000 },
+      successCriteria: 'Payment authorized'
+    },
+    {
+      name: 'Create order',
+      service: 'order-service',
+      expectedLatency: { ms: 500 },
+      successCriteria: 'Order created, confirmation shown'
+    }
+  ],
+
+  sli: {
+    name: 'purchase_completion_rate',
+    definition: 'Proportion of checkout attempts that complete successfully',
+    measurement: {
+      numerator: 'order_created events',
+      denominator: 'checkout_started events',
+      window: '30 minutes'  // Journey timeout
+    },
+    target: 0.95,
+    excludes: [
+      'User abandonment (closed browser)',
+      'Payment declined (user\'s bank)',
+      'Invalid payment info (user error)'
+    ]
+  }
+}
+```
+
+### Journey SLI Implementation
+
+Measuring journeys that span multiple services.
+
+```typescript
+// Journey tracking implementation
+interface JourneyTracker {
+  journeyId: string
+  userId: string
+  journeyType: string
+  startTime: Date
+  steps: CompletedStep[]
+  status: 'in-progress' | 'completed' | 'failed' | 'abandoned'
+}
+
+// Track journey progress across services
+async function trackJourneyStep(
+  journeyId: string,
+  stepName: string,
+  success: boolean,
+  metadata?: Record<string, any>
+): Promise<void> {
+  const step: CompletedStep = {
+    name: stepName,
+    timestamp: new Date(),
+    success,
+    latencyMs: calculateStepLatency(journeyId, stepName),
+    metadata
+  }
+
+  await journeyStore.addStep(journeyId, step)
+
+  // Emit metrics for SLI calculation
+  journeyStepCounter.inc({
+    journey_type: getJourneyType(journeyId),
+    step: stepName,
+    success: String(success)
+  })
+
+  // Check if journey is complete
+  const journey = await journeyStore.get(journeyId)
+  if (isJourneyComplete(journey)) {
+    await finalizeJourney(journey)
+  }
+}
+
+// Calculate journey SLI from completed journeys
+function calculateJourneySLI(
+  journeyType: string,
+  window: Duration
+): number {
+  const journeys = getCompletedJourneys(journeyType, window)
+
+  const successful = journeys.filter(j => j.status === 'completed')
+
+  // Exclude user-caused failures
+  const validDenominator = journeys.filter(j =>
+    j.status !== 'abandoned' &&
+    !isUserError(j)
+  )
+
+  return successful.length / validDenominator.length
+}
+```
+
+```
+Mermaid diagram: Journey SLI measurement flow.
+Browser: checkout_started event (journey begins)
+  ↓
+Cart Service: cart_viewed step
+  ↓
+Checkout Service: payment_entered step
+  ↓
+Payment Service: payment_processed step
+  ↓
+Order Service: order_created event (journey complete)
+
+Journey Aggregator collects all events, correlates by journey_id.
+Calculates: Completed journeys / Started journeys (excluding abandonment)
+```
+
+### Balancing Journey and Component SLIs
+
+Using both journey-level and service-level SLIs effectively.
+
+| Level | What It Tells You | Limitation |
+|-------|-------------------|------------|
+| Journey SLI | Overall user experience | Hard to diagnose which service caused failure |
+| Component SLI | Individual service health | Good service SLIs can still mean bad journeys |
+
+```typescript
+// Layered SLI approach
+interface SLIHierarchy {
+  // Top level: User journey success
+  journeySLIs: {
+    purchase: { target: 0.95, measurement: 'end-to-end' },
+    search: { target: 0.99, measurement: 'end-to-end' },
+    login: { target: 0.999, measurement: 'end-to-end' }
+  }
+
+  // Middle level: Service availability
+  serviceSLIs: {
+    'cart-service': { availability: 0.999, latencyP99: '200ms' },
+    'payment-service': { availability: 0.9999, latencyP99: '2s' },
+    'order-service': { availability: 0.999, latencyP99: '500ms' }
+  }
+
+  // Bottom level: Dependency health
+  dependencySLIs: {
+    'database': { availability: 0.9999, latencyP99: '50ms' },
+    'cache': { availability: 0.999, latencyP99: '10ms' },
+    'payment-gateway': { availability: 0.999, latencyP99: '1s' }
+  }
+}
+
+// When journey SLI degrades, drill down to find cause
+async function diagnoseJourneyDegradation(
+  journeyType: string
+): Promise<DiagnosisResult> {
+  const journeySLI = await getJourneySLI(journeyType)
+
+  if (journeySLI.current < journeySLI.target) {
+    // Find which step is failing
+    const stepMetrics = await getStepBreakdown(journeyType)
+    const failingSteps = stepMetrics.filter(s =>
+      s.successRate < s.target
+    )
+
+    // For each failing step, check service SLI
+    const causes: ServiceCause[] = []
+    for (const step of failingSteps) {
+      const serviceSLI = await getServiceSLI(step.service)
+      if (serviceSLI.current < serviceSLI.target) {
+        causes.push({
+          step: step.name,
+          service: step.service,
+          sliValue: serviceSLI.current,
+          target: serviceSLI.target
+        })
+      }
+    }
+
+    return { journeyType, causes }
+  }
+
+  return { journeyType, causes: [] }
+}
+```
+
+## Setting SLI Targets (SLOs)
+
+How to set realistic, useful targets for your SLIs.
+
+### Target Setting Principles
+
+Guidance for choosing SLO values that are achievable and meaningful.
+
+```typescript
+// SLO setting framework
+interface SLOSettingProcess {
+  steps: [
+    'Measure current performance (baseline)',
+    'Understand user expectations',
+    'Consider business constraints',
+    'Set initial target slightly below baseline',
+    'Iterate based on experience'
+  ]
+
+  antiPatterns: [
+    'Copying industry benchmarks without context',
+    'Setting targets before measuring baseline',
+    'Using round numbers without justification',
+    'Setting unachievable targets to "stretch"',
+    'Setting trivially achievable targets'
+  ]
+}
+
+// Example: Setting latency SLO
+const latencySLOProcess = {
+  step1_baseline: {
+    measurement: 'P99 latency over 30 days',
+    result: '450ms'
+  },
+
+  step2_userExpectation: {
+    research: 'User research shows frustration above 500ms',
+    competitive: 'Competitors deliver in ~400ms',
+    technical: 'Theoretical minimum is ~200ms'
+  },
+
+  step3_businessConstraint: {
+    infrastructure: 'Current infra can reliably do 400ms',
+    cost: 'Sub-300ms requires significant investment',
+    priority: 'Other features more valuable than speed'
+  },
+
+  step4_initialTarget: {
+    value: '500ms P99',
+    rationale: 'Slightly better than baseline, achievable, meets user needs',
+    errorBudget: '0.1% of requests can exceed 500ms'
+  },
+
+  step5_iteration: {
+    reviewCadence: 'Quarterly',
+    adjustmentCriteria: [
+      'Consistently meeting target with margin → tighten',
+      'Frequently burning error budget → loosen or invest',
+      'User complaints despite meeting target → wrong metric'
+    ]
+  }
+}
+```
+
+:::info[Start Conservative, Tighten Over Time]
+It's easier to tighten an SLO after proving you can meet it than to loosen one after committing to stakeholders. Start with achievable targets.
+:::
+
+### Error Budget Calculation
+
+Translating SLO targets into actionable error budgets.
+
+```typescript
+// Error budget calculation
+interface ErrorBudget {
+  slo: number           // e.g., 0.999 (99.9%)
+  period: Duration      // e.g., 30 days
+
+  // Calculated values
+  totalMinutes: number
+  allowedDowntimeMinutes: number
+  allowedFailedRequests: number
+
+  // Current state
+  consumedMinutes: number
+  consumedRequests: number
+  remainingPercent: number
+}
+
+function calculateErrorBudget(
+  slo: number,
+  periodDays: number,
+  currentMetrics: CurrentMetrics
+): ErrorBudget {
+  const totalMinutes = periodDays * 24 * 60
+  const allowedDowntimeMinutes = totalMinutes * (1 - slo)
+
+  // For request-based SLOs
+  const totalRequests = currentMetrics.totalRequests
+  const allowedFailedRequests = totalRequests * (1 - slo)
+
+  // Current consumption
+  const consumedMinutes = currentMetrics.downtimeMinutes
+  const consumedRequests = currentMetrics.failedRequests
+
+  return {
+    slo,
+    period: { days: periodDays },
+    totalMinutes,
+    allowedDowntimeMinutes,
+    allowedFailedRequests,
+    consumedMinutes,
+    consumedRequests,
+    remainingPercent: (1 - consumedMinutes / allowedDowntimeMinutes) * 100
+  }
+}
+
+// Example: 99.9% availability over 30 days
+const exampleBudget = calculateErrorBudget(0.999, 30, {
+  totalRequests: 10_000_000,
+  downtimeMinutes: 15,
+  failedRequests: 5000
+})
+
+// Result:
+// totalMinutes: 43,200
+// allowedDowntimeMinutes: 43.2 minutes
+// allowedFailedRequests: 10,000
+// remainingPercent: 65.3% (15 of 43.2 minutes consumed)
+```
+
+| SLO Target | Monthly Error Budget | Daily Error Budget |
+|------------|---------------------|-------------------|
+| 99% | 7.3 hours | 14.4 minutes |
+| 99.5% | 3.6 hours | 7.2 minutes |
+| 99.9% | 43.8 minutes | 1.4 minutes |
+| 99.95% | 21.9 minutes | 43.8 seconds |
+| 99.99% | 4.4 minutes | 8.6 seconds |
+
+## SLI Documentation and Communication
+
+Making SLIs understandable to everyone who needs to use them.
+
+### SLI Specification Template
+
+Documenting SLIs in a consistent, complete format.
+
+```markdown
+# SLI Specification: [Service Name] Availability
+
+## Definition
+**What it measures:** The proportion of HTTP requests that complete successfully.
+
+**Formula:**
+```
+(Requests with status 2xx + Requests with status 404)
+÷
+(All requests - Health check requests - Metrics requests)
+```
+
+## Measurement
+
+**Data source:** Load balancer access logs (nginx)
+
+**Query:**
+```promql
+sum(rate(nginx_http_requests_total{status=~"2..|404"}[5m]))
+/
+sum(rate(nginx_http_requests_total{path!~"/health|/metrics"}[5m]))
+```
+
+**Measurement frequency:** Continuous (5-minute rolling window)
+
+## Targets
+
+| Environment | SLO | Error Budget (30d) |
+|-------------|-----|-------------------|
+| Production | 99.9% | 43.2 minutes |
+| Staging | 99% | 7.3 hours |
+
+## Inclusions and Exclusions
+
+**Included:**
+- All user-initiated requests
+- API requests from partner integrations
+- Mobile app requests
+
+**Excluded:**
+- Health check requests (/health, /ready)
+- Metrics endpoint (/metrics)
+- Requests from internal monitoring tools
+- Requests blocked by WAF (not our fault)
+
+## Ownership
+
+**SLI owner:** Platform Team
+**Escalation:** #platform-oncall
+**Review cadence:** Monthly
+
+## Related SLIs
+- [Service Name] Latency P99
+- [Service Name] Error Rate
+- [Upstream Service] Availability
+```
+
+### Communicating SLI Status
+
+Making SLI status visible and understandable to stakeholders.
+
+```typescript
+// SLI status report generation
+interface SLIStatusReport {
+  period: DateRange
+  summary: {
+    totalSLIs: number
+    meetingTarget: number
+    atRisk: number      // < 20% budget remaining
+    breached: number    // Budget exhausted
+  }
+
+  details: SLIDetail[]
+
+  narrative: string     // Human-readable summary
+}
+
+function generateSLIReport(
+  slis: SLI[],
+  period: DateRange
+): SLIStatusReport {
+  const details = slis.map(sli => ({
+    name: sli.name,
+    target: sli.target,
+    current: calculateCurrentValue(sli, period),
+    budgetRemaining: calculateBudgetRemaining(sli, period),
+    status: determineStatus(sli, period),
+    trend: calculateTrend(sli, period)
+  }))
+
+  const meetingTarget = details.filter(d => d.status === 'healthy').length
+  const atRisk = details.filter(d => d.status === 'at-risk').length
+  const breached = details.filter(d => d.status === 'breached').length
+
+  return {
+    period,
+    summary: {
+      totalSLIs: slis.length,
+      meetingTarget,
+      atRisk,
+      breached
+    },
+    details,
+    narrative: generateNarrative(details)
+  }
+}
+
+function generateNarrative(details: SLIDetail[]): string {
+  const breached = details.filter(d => d.status === 'breached')
+  const atRisk = details.filter(d => d.status === 'at-risk')
+
+  if (breached.length === 0 && atRisk.length === 0) {
+    return 'All SLIs are healthy with comfortable error budget remaining.'
+  }
+
+  let narrative = ''
+
+  if (breached.length > 0) {
+    narrative += `${breached.length} SLIs have exhausted their error budget: `
+    narrative += breached.map(d => d.name).join(', ') + '. '
+    narrative += 'Feature development should pause until reliability improves. '
+  }
+
+  if (atRisk.length > 0) {
+    narrative += `${atRisk.length} SLIs are at risk: `
+    narrative += atRisk.map(d => `${d.name} (${d.budgetRemaining}% remaining)`).join(', ') + '. '
+  }
+
+  return narrative
+}
+```
+
+### Executive SLI Dashboard
+
+Presenting SLI status for non-technical stakeholders.
+
+```typescript
+// Executive dashboard components
+const executiveDashboardPanels = [
+  {
+    title: 'Reliability Score',
+    type: 'gauge',
+    description: 'Overall service health based on SLI performance',
+    calculation: 'Weighted average of all SLIs meeting targets',
+    colors: {
+      green: '>= 95%',
+      yellow: '80-95%',
+      red: '< 80%'
+    }
+  },
+  {
+    title: 'Customer Impact',
+    type: 'stat',
+    description: 'Estimated user-hours affected by reliability issues',
+    calculation: 'Downtime minutes × active users × impacted percentage',
+    context: 'Lower is better. Industry average: X hours/month'
+  },
+  {
+    title: 'Error Budget Status',
+    type: 'bar-chart',
+    description: 'Budget remaining for each critical journey',
+    bars: ['Purchase flow', 'Search', 'Login', 'Checkout'],
+    interpretation: 'When a bar reaches zero, we pause features to fix reliability'
+  },
+  {
+    title: 'Trend',
+    type: 'sparkline',
+    description: '90-day reliability trend',
+    goodNews: 'Trending up means fewer reliability issues',
+    badNews: 'Trending down means we\'re getting less reliable'
+  }
+]
+```
+
+## Conclusion
+
+Good SLIs share five characteristics: they measure what users experience (not internal metrics), they're measurable with available tools, they target specific failure modes, they're actionable when they degrade, and they're understandable to non-engineers. Start with the four golden SLI categories—availability, latency, quality, and freshness—customized to your service type. Measure at the edge for availability, use percentiles for latency, and validate proxy SLIs against actual user experience. For complex products, add Critical User Journey SLIs that track end-to-end flows. Set targets based on measured baselines and user expectations, not aspirational round numbers. Document SLIs thoroughly so anyone can understand what they measure and why they matter. The best SLI is one you can explain to an executive during an incident: "This number dropped because users can't complete purchases, and we're working to restore it."
+
+---
+
+## Cover Image Prompts
+
+### Prompt 1: Precision Measurement Instruments
+Close-up photograph of high-precision measurement instruments—dial indicators, micrometers, and gauge blocks arranged on a machinist's surface plate. Dramatic side lighting emphasizing the precision graduations and chrome surfaces. Deep blacks and metallic highlights. The essence of accurate measurement.
+
+### Prompt 2: User Experience Heatmap Abstract
+Abstract visualization of a heatmap showing user experience metrics across a surface. Gradient colors from cool blue (good) through yellow to hot red (problem areas). Clean geometric layout suggesting a dashboard or interface. Dark background with the heatmap as focal point. Data visualization aesthetic.
+
+### Prompt 3: Quality Control Inspection
+Photograph of a quality control inspection station with a magnifying lamp illuminating a component being examined. Clean industrial environment with the inspector's hands visible using precision tools. Soft overhead lighting with bright task lighting on the work area. The careful scrutiny of measurement.
+
+### Prompt 4: Signal Strength Indicator
+Minimalist illustration of a signal strength indicator (like WiFi bars) rendered in 3D with depth and shadows. Five bars transitioning from empty/grey on left to full/green on right. Clean white background with subtle gradients. The visual language of status indication and health metrics.
+
+### Prompt 5: Control Room Dashboard
+Photograph or render of a modern operations control room with multiple screens displaying graphs, gauges, and status indicators. Blue ambient lighting with screens providing main illumination. Wide angle showing the scale of monitoring. The sense of comprehensive visibility into system health.

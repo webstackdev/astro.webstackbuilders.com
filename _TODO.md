@@ -108,29 +108,10 @@ writing-library-code
 
 We have generated detailed outlines for each of the MDX proposed articles we have in src/content/articles. It's time to write our articles. Review ./CONTENT.md for the goals and voice to use in our website. Each outline includes various components we use on our site that can be incorporated into the final article but do not have to be included if they don't fit into the content well or are excessive.
 
-Act as a principal software engineer. Your goal is to write a detailed technical article based on the provided outline. Context: The target audience is Senior DevOps and infrastructure Engineers. The tone should be authoritative, professional, and concise, avoiding fluff or filler words. Think step-by-step before writing to improve the accuracy of technical explanations. Use a friendly first-person voice, but anything that reads like generic marketing copy is not what we want.
+Act as a principal software engineer. Your goal is to write a detailed technical article based on the provided outline. Context: The target audience is Senior DevOps and infrastructure Engineers. The tone should be authoritative, professional, and concise, avoiding fluff or filler words. Think step-by-step before writing to improve the accuracy of technical explanations. Use a friendly first-person voice. Anything that reads like generic marketing copy is not what we want but we still want the effect of being "real" and approachable - try not to sound like technical documentation. We want to show empathy for our readers.
 
-Let's work through each article section by section based on the H2 headers in the outline.
+Let's work through each article section by section based on the H2 headers in the outline. If the section looks good as-is, I'll just type "ok" so you know to continue to the next section.
 
-nginx-haproxy-reverse-proxy-production-tuning
-on-call-rotation-small-teams-sustainable-coverage
-opa-conftest-policy-as-code-infrastructure-guardrails
-openapi-spec-documentation-sdk-generation-validation
-opentelemetry-span-design-granularity-overhead
-performance-testing-load-models-benchmark-accuracy
-platform-architecture-control-plane-data-plane-separation
-platform-engineering-metrics-lead-time-developer-friction
-postgresql-connection-pooling-saturation-sizing
-private-networking-dns-routing-tls-debugging
-prometheus-high-cardinality-metrics-label-design
-rate-limiting-token-bucket-leaky-bucket-implementation
-release-quality-gates-automated-deployment-validation
-retry-storm-prevention-exponential-backoff-jitter
-reverse-engineering-documentation-legacy-systems
-service-catalog-metadata-schema-ownership-tracking
-service-decommissioning-scream-test-shutdown
-sli-selection-user-centric-service-level-indicators
-slo-adoption-internal-services-reliability-culture
 slsa-build-provenance-artifact-signing-supply-chain
 strangler-fig-migration-observability-traffic-shifting
 strangler-fig-monolith-auth-extraction-migration
@@ -141,3 +122,28 @@ terraform-module-design-defaults-versioning-interfaces
 terraform-state-locking-corruption-recovery-backend
 workload-identity-federation-keyless-cloud-authentication
 zero-downtime-database-migration-expand-contract
+
+
+Each of our the index.mdx files in our articles folders in src/content/articles has some content that I want to copy into COVERS.md, and some content that I want to cut and remove from the index.mdx file and past into COVERS.md. I've done the first one (src/content/articles/alert-fatigue-reduction-triage-actionable-alerts/index.mdx) so you can see what it should look like.
+
+Ignore the following four folders in src/content/articles: building-with-astro, demo, typescript-best-practices, useful-vs-code-extensions, and writing-library-code.
+
+1. Copy the folder name to an H2 heading in COVERS.md, for example:
+
+## alert-fatigue-reduction-triage-actionable-alerts
+
+2. Copy the "title" key and its value from the index.mdx file and paste it into COVERS.md, for example:
+
+title: "Alert Fatigue: From 200 Alerts to 5 Pages"
+
+3. Cut and remove the content at the bottom of each article index.mdx file that begins with a markdown HR and includes its H2 header and the five H3 headers for prompts. The starting text looks like:
+
+---
+
+## Cover Prompt
+
+### Prompt 1: [...]
+
+4. Delete the HR and the H2 labeled "Cover Prompt" in the COVERS.md file, so that the five H3 "Prompt" headings begin directly below the H2 heading with the directory folder name.
+
+5. Make sure the index.mdx ends with a single blank line and has the "Cover Prompt" text with its related HR markdown element and H3 headings and paragraph text removed.
