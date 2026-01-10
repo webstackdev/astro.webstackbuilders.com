@@ -12,6 +12,9 @@ import Avatar from '@components/Avatar/index.astro'
 <!-- Basic usage - name is automatically normalized -->
 <Avatar name="Kevin Brown" />
 
+<!-- Lead avatar (40x40) -->
+<Avatar name="Kevin Brown" lead />
+
 <!-- If avatar doesn't exist, shows initials visually but stays labeled by name -->
 <Avatar name="Jane Doe" />
 

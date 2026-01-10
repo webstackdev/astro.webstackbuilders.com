@@ -1,25 +1,57 @@
 ---
-import Author from '@components/Layout/Markdown/Author/index.astro'
-import ModifiedDate from '@components/Layout/Markdown/ModifiedDate/index.astro'
-import PublishDate from '@components/Layout/Markdown/PublishDate/index.astro'
-import ReadingTime from '@components/Layout/Markdown/ReadingTime/index.astro'
-import Tags from '@components/Layout/Markdown/Tags/index.astro'
+import Avatar from '@components/Avatar/index.astro'
 
 export interface Props {
   author?: string
   modifiedDate?: Date
   publishDate?: Date
   readingTime?: string
-  tags?: string[]
 }
 
-const { modifiedDate, publishDate, author, readingTime, tags } = Astro.props
+const { modifiedDate, publishDate, author, readingTime } = Astro.props
+
+const formatShortDate = (date: Date) =>
+  date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  })
+
+const publishDateText = publishDate ? formatShortDate(publishDate) : null
+const shouldShowModifiedDate = Boolean(modifiedDate && publishDate && modifiedDate.getTime() !== publishDate.getTime())
+const modifiedDateText = shouldShowModifiedDate && modifiedDate ? formatShortDate(modifiedDate) : null
 ---
 
-<div class="flex flex-wrap gap-2 items-center text-sm mt-4 pt-4 border-trim">
-  {publishDate && <PublishDate publishDate={publishDate} />}
-  {modifiedDate && modifiedDate !== publishDate && <ModifiedDate modifiedDate={modifiedDate} />}
-  {author && <Author author={author} />}
-  {readingTime && <ReadingTime readingTime={readingTime} />}
-  {tags && tags.length > 0 && <Tags {...{ tags }} />}
+<div class="mt-4 pt-4 border-t border-trim">
+  <div class="flex items-center gap-3">
+    {author && <Avatar name={author} lead />}
+
+    <div class="flex flex-col justify-center text-sm">
+      <div class="text-primary">
+        {author && (
+          <a
+            href="/about"
+            class="font-medium underline decoration-dotted decoration-current hover:text-secondary focus:text-secondary"
+          >
+            {author}
+          </a>
+        )}
+        {author && publishDateText && <span class="text-content-offset">{' '}on{' '}</span>}
+        {publishDateText && (
+          <time itemprop="datePublished" datetime={publishDate?.toISOString()}>
+            {publishDateText}
+          </time>
+        )}
+      </div>
+
+      {modifiedDateText && (
+        <time class="text-content-offset" itemprop="dateModified" datetime={modifiedDate?.toISOString()}>
+          Updated on {modifiedDateText}
+        </time>
+      )}
+
+      {readingTime && <div class="text-content-offset">{readingTime}</div>}
+    </div>
+  </div>
 </div>
