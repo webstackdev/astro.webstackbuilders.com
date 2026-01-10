@@ -38,22 +38,22 @@ Explain the iceberg problem.
 
 ```mermaid
 graph TD
-    A[Your Application] --> B[express@4.18]
-    A --> C[prisma@5.0]
-    A --> D[winston@3.8]
+  A[Your Application] --> B[express 4.18]
+  A --> C[prisma 5.0]
+  A --> D[winston 3.8]
 
-    B --> E[body-parser@1.20]
-    B --> F[cookie-parser@1.4]
-    C --> G[@prisma/client@5.0]
-    C --> H[@prisma/engines@5.0]
-    D --> I[logform@2.4]
+    B --> E[body-parser 1.20]
+    B --> F[cookie-parser 1.4]
+    C --> G[prisma-client 5.0]
+    C --> H[prisma-engines 5.0]
+    D --> I[logform 2.4]
 
-    E --> J[raw-body@2.5]
-    F --> K[cookie@0.5]
+    E --> J[raw-body 2.5]
+    F --> K[cookie 0.5]
     H --> L[Native Binary - Node 16+]
-    J --> M[iconv-lite@0.4]
+    J --> M[iconv-lite 0.4]
 
-    M --> N[safer-buffer@2.1]
+    M --> N[safer-buffer 2.1]
 
     style A fill:#4CAF50
     style B fill:#81C784
@@ -61,13 +61,13 @@ graph TD
     style D fill:#81C784
     style L fill:#FF5722
 
-    subgraph "Direct (3)"
+    subgraph direct[Direct 3]
         B
         C
         D
     end
 
-    subgraph "Transitive (10+)"
+    subgraph transitive[Transitive 10 plus]
         E
         F
         G
@@ -218,17 +218,17 @@ Code: Version compatibility matrix for upgrade planning.
 
 ```mermaid
 graph LR
-    subgraph "Phase 1: Unblock"
+    subgraph phase1[Phase 1: Unblock]
         A[Replace node-sass] --> B[Upgrade webpack]
         B --> C[Update native modules]
     end
 
-    subgraph "Phase 2: Core"
+    subgraph phase2[Phase 2: Core]
         D[Upgrade Prisma] --> E[Update auth libs]
         E --> F[Upgrade test framework]
     end
 
-    subgraph "Phase 3: Runtime"
+    subgraph phase3[Phase 3: Runtime]
         G[Node 18 intermediate] --> H[Soak test 1 week]
         H --> I[Node 20 final]
     end

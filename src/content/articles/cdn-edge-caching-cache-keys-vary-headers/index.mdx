@@ -231,7 +231,7 @@ Each unique combination = separate cache entry
 
 ```mermaid
 graph TD
-    A[/products] --> B{Vary: Accept-Language}
+  A["/products"] --> B{Vary: Accept-Language}
     B -->|en-US| C[English Response]
     B -->|es-ES| D[Spanish Response]
     B -->|fr-FR| E[French Response]
@@ -279,7 +279,7 @@ caching:
 Code: Vary header configuration with normalization.
 
 <Callout type="danger">
-`Vary: *` means "this response is unique to every request"—it effectively disables caching. Never use `Vary: *` unless you truly intend to make the response uncacheable.
+`Vary: *` means "this response is unique to every request"—it effectively disables caching. Never use `Vary: *` unless you truly intend to make the response noncacheable.
 </Callout>
 
 ### The Cookie Vary Trap
@@ -458,10 +458,10 @@ graph TD
     A[Product 123 Updated] --> B[Purge tag: product-123]
     B --> C[All URLs with tag invalidated]
 
-    C --> D[/products/123]
-    C --> E[/api/products/123]
-    C --> F[/categories/shoes includes 123]
-    C --> G[/brands/nike includes 123]
+  C --> D["/products/123"]
+  C --> E["/api/products/123"]
+  C --> F["/categories/shoes includes 123"]
+  C --> G["/brands/nike includes 123"]
 ```
 Figure: Tag-based purging invalidating all related content.
 
@@ -738,8 +738,8 @@ Key metrics and what they indicate.
 |--------|------|---------|----------------|
 | Cache Hit Ratio | >90% | 70-90% | Analyze cache keys, extend TTL |
 | Origin Load | Low, stable | Spiky | Check for cache misses, warming |
-| TTFB (cached) | <50ms | 50-200ms | Check PoP coverage, edge compute |
-| Purge Latency | <5s | 5-30s | Consider cache tags |
+| TTFB (cached) | &lt50ms | 50-200ms | Check PoP coverage, edge compute |
+| Purge Latency | &lt5s | 5-30s | Consider cache tags |
 | Cache Fill Rate | Low | High | Check TTL, invalidation frequency |
 
 Table: Cache performance metrics and targets.

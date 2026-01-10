@@ -793,24 +793,26 @@ baselines:
 Code: Metric pitfalls.
 
 ```mermaid
-quadrantChart
-    title Metric Quality Assessment
-    x-axis Low Actionability --> High Actionability
-    y-axis Low Specificity --> High Specificity
+graph TD
+  subgraph ideal[Ideal Metrics high specificity high actionability]
+    A[Time to deploy]
+    B[Self-service rate]
+    C[Build duration]
+  end
 
-    quadrant-1 Ideal Metrics
-    quadrant-2 Need Context
-    quadrant-3 Vanity Metrics
-    quadrant-4 Need Refinement
+  subgraph needContext[Need Context high specificity low actionability]
+    D[Ticket volume]
+  end
 
-    "API calls": [0.2, 0.3]
-    "User count": [0.1, 0.2]
-    "Uptime %": [0.3, 0.4]
-    "Ticket volume": [0.5, 0.5]
-    "Time to deploy": [0.8, 0.8]
-    "Self-service rate": [0.7, 0.7]
-    "NPS score": [0.6, 0.4]
-    "Build duration": [0.9, 0.9]
+  subgraph vanity[Vanity Metrics low specificity low actionability]
+    E[API calls]
+    F[User count]
+    G[Uptime percent]
+  end
+
+  subgraph needRefinement[Need Refinement low specificity high actionability]
+    H[NPS score]
+  end
 ```
 Figure: Metric quality quadrant.
 

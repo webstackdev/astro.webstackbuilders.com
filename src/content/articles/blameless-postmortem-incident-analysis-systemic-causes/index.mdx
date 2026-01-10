@@ -95,13 +95,13 @@ Explain how knowing the outcome distorts our analysis of the decision-making pro
 
 ```mermaid
 graph LR
-    subgraph "At Decision Time"
+    subgraph decision[At Decision Time]
         A[Multiple Options] --> B[Reasonable Choice]
         C[Incomplete Information] --> B
         D[Time Pressure] --> B
     end
 
-    subgraph "After Incident (Hindsight)"
+    subgraph hindsight[After Incident Hindsight]
         B --> E[Outcome Known]
         E --> F["Obviously wrong choice"]
         E --> G["Should have known better"]
@@ -419,20 +419,20 @@ Introduce systems-theoretic analysis for complex incidents.
 
 ```mermaid
 graph TD
-    subgraph "Control Structure"
+    subgraph control[Control Structure]
         A[Company Leadership] -->|Sets priorities| B[Engineering Management]
         B -->|Allocates resources| C[Platform Team]
         C -->|Creates tools| D[Deploy Pipeline]
         D -->|Enables| E[Engineer Actions]
     end
 
-    subgraph "Feedback Loops"
+    subgraph feedback[Feedback Loops]
         E -->|Incident reports| C
         C -->|Metrics| B
         B -->|Performance data| A
     end
 
-    subgraph "Analysis Questions"
+    subgraph questions[Analysis Questions]
         F[What control was missing?]
         G[What feedback was absent?]
         H[What constraint was violated?]
@@ -491,19 +491,23 @@ Explain how to prioritize remediations when there are many potential actions.
 Table: Prioritization matrix for remediation action items.
 
 ```mermaid
-quadrantChart
-    title Remediation Prioritization
-    x-axis Low Effort --> High Effort
-    y-axis Low Impact --> High Impact
-    quadrant-1 Do Now (P0)
-    quadrant-2 Plan (P1)
-    quadrant-3 Defer (P3-P4)
-    quadrant-4 Quick Wins (P2)
-    Add config validation: [0.2, 0.9]
-    Canary deployments: [0.8, 0.95]
-    Update runbook: [0.15, 0.4]
-    Redesign config system: [0.9, 0.6]
-    Better error messages: [0.3, 0.3]
+graph TD
+  subgraph doNow[Do Now P0 High impact low effort]
+    A[Add config validation]
+  end
+
+  subgraph plan[Plan P1 High impact high effort]
+    B[Canary deployments]
+  end
+
+  subgraph quickWins[Quick Wins P2 Medium impact low effort]
+    C[Update runbook]
+    D[Better error messages]
+  end
+
+  subgraph defer[Defer P3 P4 Medium low impact high effort]
+    E[Redesign config system]
+  end
 ```
 Figure: Quadrant chart for visualizing remediation prioritization.
 

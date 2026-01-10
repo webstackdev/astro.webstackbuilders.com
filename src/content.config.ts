@@ -31,6 +31,7 @@ const createBaseCollectionSchema = ({ image }: SchemaContext) =>
     featured: z.boolean().default(false),
     isDraft: z.boolean().default(false),
     publishDate: z.date(),
+    modifiedDate: z.date().optional(),
   })
 
 const createSocialCollectionSchema = () =>

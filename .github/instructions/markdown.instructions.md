@@ -1,5 +1,5 @@
 ---
-applyTo: "**/*.md"
+applyTo: "**/*.{md,mdx}"
 ---
 
 # Markdown Linting Instructions
@@ -23,6 +23,26 @@ applyTo: "**/*.md"
 - Lists should be surrounded by blank lines (`MD032`). Always add a blank line before and after lists (both ordered and unordered).
 - Ordered lists should use consistent numbering (`MD029`). Either use sequential numbering (1, 2, 3) or all ones (1, 1, 1). Do not mix styles (e.g., 1, 2, 3, 4 is correct; 1, 2, 3, 4 where one item is numbered 2 when it should be 3 is incorrect).
 - No trailing spaces on lines (`MD009`), except when intentionally using two trailing spaces for a line break.
+
+## MDX And Inline Code Safety
+
+- When you mean the less-than operator (e.g. `a < b`), do not write a raw `<` in prose.
+	- Prefer `&lt;` (and `&gt;` when needed), or wrap the expression in backticks.
+- Always wrap code-y snippets in backticks so the Markdown/MDX parser doesn’t treat them as HTML/JSX.
+	- Examples: `{ param, ... }`, `generic<T>`, `Array<string>`, `T extends Foo`.
+
+## Mermaid Diagram Authoring
+
+- This repo renders Mermaid during builds; invalid or unsupported Mermaid syntax will fail `npm run build`.
+- Subgraphs:
+	- Do not use quoted subgraph titles like `subgraph "Title"`.
+	- Prefer a simple subgraph id with a simple label in brackets: `subgraph myGroup[My Group]`.
+	- Avoid punctuation-heavy labels in subgraph brackets (parentheses, `+`, `%`, em-dashes). Keep labels plain words.
+- Labels:
+	- Avoid double quotes inside node labels like `A[When is a trace "complete"?]`.
+	- Avoid `@` in node labels (it can be parsed as a reserved token in some Mermaid flowchart grammars).
+- Diagram types:
+	- Do not use `quadrantChart` (not supported by the current renderer); use `graph TD` (or another supported type) instead.
 
 ## How to Apply These Rules
 

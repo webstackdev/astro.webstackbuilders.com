@@ -37,6 +37,7 @@ const section = `Articles`
   pageTitle={article.data.title}
   path={path}
   publishDate={article.data.publishDate}
+  {...article.data.modifiedDate && { modifiedDate: article.data.modifiedDate }}
   section={section}
   showToc={article.data.showToc ?? true}
   tags={article.data.tags?.map(t => (typeof t === 'string' ? t : t.id)) ?? []}
@@ -46,14 +47,15 @@ const section = `Articles`
   {
     article.data.cover && (
       <div
-        class="relative aspect-video max-w-3xl mx-auto rounded-2xl overflow-hidden shadow-lg mb-8"
+        class="relative w-full overflow-hidden mb-8"
+        style="aspect-ratio: 1564 / 670;"
         slot="hero-image"
       >
         <Picture
           src={article.data.cover}
           alt={article.data.coverAlt}
-          widths={[320, 640, 960, 1280]}
-          sizes="(min-width: 1024px) 66vw, 100vw"
+          widths={[480, 768, 1024, 1280, 1564]}
+          sizes="100vw"
           formats={['avif', 'webp', 'jpeg']}
           layout="constrained"
           fit="cover"

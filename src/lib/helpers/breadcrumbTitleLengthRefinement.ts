@@ -1,6 +1,6 @@
 import { z } from 'astro:content'
 
-const MAX_BREADCRUMB_TITLE_LENGTH = 55
+const MAX_BREADCRUMB_TITLE_LENGTH = 60
 const loggedBreadcrumbTitleWarnings = new Set<string>()
 
 export const warnOnBreadcrumbTitleLength = (title: string, collectionName: string): void => {

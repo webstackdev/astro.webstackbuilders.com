@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { z } from 'astro:content'
 
-const LONG_TITLE = 'A'.repeat(60)
+const LONG_TITLE = 'A'.repeat(61)
 const SHORT_TITLE = 'Short title'
 
 const loadHelpersModule = async (isProdValue: boolean) => {
