@@ -9,7 +9,9 @@ export interface Props {
 }
 
 const { path, pageTitle } = Astro.props
-const site = Astro.site
+// Astro.site is only available when the project is configured with a `site` value.
+// In unit tests (Astro Container API), that config may be unavailable, so fall back to the request URL origin.
+const site = Astro.site ?? (Astro.url ? new URL(Astro.url.origin) : undefined)
 
 // Don't show breadcrumbs on home page
 if (path === '/' || path === '') {
