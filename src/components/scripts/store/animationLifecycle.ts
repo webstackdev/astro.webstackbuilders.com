@@ -11,6 +11,8 @@ export interface AnimationControllerConfig {
   animationId: AnimationId
   instanceId?: string
   defaultState?: AnimationPlayState
+  /** The real current state of the animation at registration time (used to avoid no-op mismatches). */
+  initialState?: AnimationPlayState
   debugLabel?: string
   onPlay: () => void
   onPause: () => void
@@ -48,6 +50,9 @@ const REDUCED_MOTION_SOURCE = 'reduced-motion'
 const DOCUMENT_HIDDEN_SOURCE = 'document-hidden'
 const PAGEHIDE_SOURCE = 'pagehide'
 const STORAGE_KEY = 'animation-preferences'
+
+const PREFERENCES_VERSION_KEY = 'animation-preferences-version'
+const CURRENT_PREFERENCES_VERSION = 2
 
 const blockingPauseSources = new Set<string>()
 const suggestedPauseSources = new Set<string>()
@@ -253,6 +258,28 @@ function setupAstroNavigationListener(): void {
   document.addEventListener('astro:page-load', astroPageLoadListener)
 }
 
+function migrateAnimationPreferences(): void {
+  if (typeof window === 'undefined') return
+
+  try {
+    const storedVersionRaw = window.localStorage.getItem(PREFERENCES_VERSION_KEY)
+    const storedVersion = storedVersionRaw ? Number(storedVersionRaw) : 0
+    if (Number.isFinite(storedVersion) && storedVersion >= CURRENT_PREFERENCES_VERSION) {
+      return
+    }
+
+    // Migration: earlier builds could incorrectly persist a paused preference for the
+    // home hero computers animation before any user interaction.
+    if (getAnimationPreference('computers-animation') === 'paused') {
+      clearAnimationPreference('computers-animation')
+    }
+
+    window.localStorage.setItem(PREFERENCES_VERSION_KEY, String(CURRENT_PREFERENCES_VERSION))
+  } catch {
+    // Best effort only; do not block initialization.
+  }
+}
+
 function cleanupListeners(): void {
   if (reducedMotionMediaQuery && reducedMotionListener) {
     reducedMotionMediaQuery.removeEventListener('change', reducedMotionListener)
@@ -293,6 +320,8 @@ export function initAnimationLifecycle(): void {
 
   lifecycleInitialized = true
   addScriptBreadcrumb({ scriptName: 'animationLifecycle', operation: 'init' })
+
+  migrateAnimationPreferences()
 
   setupReducedMotionListener()
   setupVisibilityListeners()
@@ -352,7 +381,7 @@ export function createAnimationController(
     key,
     animationId: config.animationId,
     defaultState: config.defaultState ?? 'playing',
-    currentState: 'paused',
+    currentState: config.initialState ?? 'paused',
     play: config.onPlay,
     pause: config.onPause,
     ...(config.debugLabel ? { debugLabel: config.debugLabel } : {}),

@@ -9,10 +9,16 @@ describe('Home Hero (Astro)', () => {
     container = await AstroContainer.create()
   })
 
-  test('labels the hero section and hides decorative CTA arrow svgs', async () => {
+  test('labels the hero section and renders the hardcoded CTAs', async () => {
     const HomeHero = (await import('@components/Hero/Home/index.astro')).default
 
-    const renderedHtml = await container.renderToString(HomeHero)
+    const renderedHtml = await container.renderToString(HomeHero, {
+      props: {
+        pretitle:
+          'I turn deployment nightmares into one-click operations. Legacy migrations, CI/CD pipelines, observability stacks—built to survive production.',
+        benefits: ['Zero-downtime migrations', 'Self-healing infrastructure', 'Developer-friendly golden paths'],
+      },
+    })
 
     await withJsdomEnvironment(async ({ window }) => {
       window.document.body.innerHTML = renderedHtml
@@ -24,17 +30,17 @@ describe('Home Hero (Astro)', () => {
       const title = window.document.getElementById('home-hero-title')
       expect(title?.tagName).toBe('H1')
 
-      const primaryLink = window.document.querySelector('a[href="/services/web-development"]')
+      const primaryLink = window.document.querySelector('a[href="/about"]')
       expect(primaryLink).toBeTruthy()
-      const primaryArrow = primaryLink?.querySelector('svg')
-      expect(primaryArrow?.getAttribute('aria-hidden')).toBe('true')
-      expect(primaryArrow?.getAttribute('focusable')).toBe('false')
+      expect(primaryLink?.getAttribute('class')).toContain('bg-success')
 
-      const secondaryLink = window.document.querySelector('a[href="/services/consulting"]')
+      const secondaryLink = window.document.querySelector('a[href="/contact"]')
       expect(secondaryLink).toBeTruthy()
-      const secondaryArrow = secondaryLink?.querySelector('svg')
-      expect(secondaryArrow?.getAttribute('aria-hidden')).toBe('true')
-      expect(secondaryArrow?.getAttribute('focusable')).toBe('false')
+      const secondaryClass = secondaryLink?.getAttribute('class') || ''
+      expect(secondaryClass).toContain('decoration-dotted')
+      expect(secondaryClass).toContain('focus-visible:decoration-dotted')
+      expect(secondaryClass).toContain('hover:decoration-content-offset')
+      expect(secondaryClass).toContain('focus-visible:decoration-content-offset')
     })
   })
 })

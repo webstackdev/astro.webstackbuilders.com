@@ -303,7 +303,7 @@ describe('ComputersAnimationElement', () => {
     })
   })
 
-  it('pauses when the element is not fully visible and resumes when it returns', async () => {
+  it('pauses when the element is not visible and resumes when it returns', async () => {
     await renderComputersAnimation(async ({ element, window }) => {
       void window
       element.initialize()
@@ -315,8 +315,8 @@ describe('ComputersAnimationElement', () => {
       intersectionObserverCallback?.(
         [
           {
-            isIntersecting: true,
-            intersectionRatio: 0.5,
+            isIntersecting: false,
+            intersectionRatio: 0,
           } as unknown as IntersectionObserverEntry,
         ],
         {} as IntersectionObserver

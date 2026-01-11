@@ -18,11 +18,7 @@ Design an abstract visualization of a wide funnel at the top receiving hundreds 
 
 ### Prompt 4: Signal Amplification Through Reduction
 
-Create a visual metaphor showing a radar or sonar screen with a single bright, clear ping in the center, surrounded by a faded halo showing where noise used to be. The clear ping should be labeled or styled to suggest it represents a critical, actionable alert. Style: military-tech aesthetic, dark background with green/cyan glow, vintage CRT monitor texture, 16:9 aspect ratio.
-
-### Prompt 5: The Alert Audit Dashboard
-
-Illustrate a stylized cloud monitoring dashboard showing alert metrics transforming from chaotic (left side: crowded charts, red indicators, overwhelmed UI) to clean (right side: sparse, green indicators, clear hierarchy). The transition should flow naturally across the image. Style: UI/UX focused illustration, modern SaaS aesthetic, subtle gradients, professional color palette, 16:9 aspect ratio.
+Create a visual metaphor showing a radar or sonar screen with a single bright, clear ping in the center, surrounded by a faded halo showing where noise used to be. The clear ping should be labeled or styled to suggest it represents a critical, actionable cloud monitoring alert. Style: military-tech aesthetic, dark background with green/cyan glow, vintage CRT monitor texture, 16:9 aspect ratio.
 
 ## api-deprecation-sunset-headers-consumer-migration
 
