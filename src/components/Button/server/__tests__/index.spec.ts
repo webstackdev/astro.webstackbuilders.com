@@ -1,50 +1,44 @@
 import { describe, expect, it } from 'vitest'
-import {
-  buildButtonClassList,
-  resolveAriaLabel,
-  isIconOnly,
-  type ButtonStyleModule,
-} from '../index'
+import { buildButtonClassList, resolveAriaLabel, isIconOnly } from '../index'
 
 type ClassList = Record<string, boolean>
-
-const mockStyles: ButtonStyleModule = {
-  button: 'btn',
-  sizeSmall: 'btn--small',
-  sizeMedium: 'btn--medium',
-  sizeLarge: 'btn--large',
-  variantPrimary: 'btn--primary',
-  variantSecondary: 'btn--secondary',
-  variantTwitter: 'btn--twitter',
-  variantSuccess: 'btn--success',
-  variantWarning: 'btn--warning',
-  variantIcon: 'btn--icon',
-}
 
 describe('Button server helpers', () => {
   describe('buildButtonClassList', () => {
     it('includes base, size, and variant classes', () => {
       const classList = buildButtonClassList({
-        styles: mockStyles,
         variant: 'secondary',
         size: 'large',
       })
 
       expect(classList).toMatchObject<ClassList>({
-        [mockStyles.button]: true,
-        [mockStyles.sizeLarge]: true,
-        [mockStyles.variantSecondary]: true,
+        'inline-flex': true,
+        'py-4': true,
+        'px-8': true,
+        'bg-secondary': true,
       })
     })
 
     it('appends additional classes when provided', () => {
       const classList = buildButtonClassList({
-        styles: mockStyles,
         additionalClasses: 'custom extra-class',
       })
 
       expect(classList['custom']).toBe(true)
       expect(classList['extra-class']).toBe(true)
+    })
+
+    it('supports the spotlight variant', () => {
+      const classList = buildButtonClassList({
+        variant: 'spotlight',
+      })
+
+      expect(classList).toMatchObject<ClassList>({
+        'bg-spotlight': true,
+        'hover:bg-spotlight-offset': true,
+        'focus-visible:bg-spotlight-offset': true,
+        'active:bg-spotlight-offset': true,
+      })
     })
   })
 

@@ -18,7 +18,7 @@ When used with Astro's MDX and the `rehype-tailwind` Markdown plugin, the output
 
 ```html
 <figure class="c-blockquote relative my-12 px-8 py-6 rounded-lg bg-gray-100 dark:bg-gray-800 border-l-4 border-primary before:content-['"'] before:absolute before:top-2 before:left-2 before:text-6xl before:font-serif before:leading-none before:text-primary before:opacity-30">
-  <blockquote class="relative z-10 pl-8 border-0 my-0 font-serif text-xl italic text-content">
+  <blockquote class="relative z-(--z-raised) pl-8 border-0 my-0 font-serif text-xl italic text-content">
     <p class="mb-8 text-lg leading-relaxed">
       That's one small step for [a] man, one giant leap for mankind.
     </p>

@@ -182,7 +182,7 @@ export function rehypeTailwindClasses() {
               child.properties = child.properties || {}
               child.properties['className'] = [
                 'relative',
-                'z-10',
+                'z-(--z-raised)',
                 'pl-8',
                 'border-0',
                 'my-0',

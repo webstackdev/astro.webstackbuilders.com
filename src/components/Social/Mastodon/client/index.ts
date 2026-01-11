@@ -314,7 +314,7 @@ export class MastodonModalElement extends LitElement {
     return html`
       <div
         id=${this.modalId}
-        class="fixed inset-0 z-9999 flex items-center justify-center p-4"
+        class="fixed inset-0 z-(--z-modal) flex items-center justify-center p-4"
         role="dialog"
         aria-modal="true"
         aria-labelledby=${modalTitleId}

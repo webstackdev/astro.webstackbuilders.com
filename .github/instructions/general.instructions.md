@@ -21,6 +21,13 @@ applyTo: "**"
 - Prefer destructured imports over namespace imports when importing specific functions from modules (e.g., `import { resolve } from 'path'` instead of `import * as path from 'path'`).
 - Do not access nanostore observables (e.g., `$consent`) directly from components; expose helper/action methods in `@components/scripts/store` and import those instead.
 - Preact exists only for the Markdown E2E harness under `src/lib/markdown/__tests__/e2e`; all production UI components must use Lit web components instead of Preact.
+- Z-index: never hard-code numeric z-index values (including Tailwind `z-*` utilities). Always use the CSS variables in `src/styles/index.css` (e.g., `z-index: var(--z-nav)` or `z-(--z-nav)`). If no existing token fits, ask the user what z-layer to use before adding/changing tokens.
+
+## Tailwind CSS variable shorthand
+
+- Our linting rules (Tailwind ESLint) require using Tailwind's custom property shorthand form: `fill-(--my-brand-color)`.
+- Do not use the bracket form: `fill-[var(--my-brand-color)]`.
+- This applies broadly to Tailwind arbitrary-value utilities such as `fill-*`, `stroke-*`, `text-*`, `bg-*`, `border-*`, `ring-*`, `outline-*`, `w-*`, `h-*`, `z-*`, `transition-*`, etc.
 
 # Code Organization and Directory Structure
 
