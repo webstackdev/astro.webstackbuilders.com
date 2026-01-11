@@ -35,6 +35,9 @@ function addClassNames(classList: ClassList, classNames: string) {
 const baseButtonClasses =
   'inline-flex items-center justify-center text-center align-middle whitespace-nowrap select-none ' +
   'no-underline ' +
+  'relative focus-visible:outline-none ' +
+  "after:pointer-events-none after:absolute after:content-[''] after:inset-0 after:rounded-none after:border-2 after:border-transparent after:opacity-0 after:transition-opacity after:duration-150 after:ease-out " +
+  'focus-visible:after:opacity-100 focus-visible:after:[inset:-6px] focus-visible:after:border-spotlight ' +
   'border-2 border-solid border-transparent rounded-md ' +
   'font-semibold uppercase tracking-[0.08em] ' +
   'text-sm leading-5 ' +
