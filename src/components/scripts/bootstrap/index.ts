@@ -8,6 +8,7 @@ import {
   initAnimationLifecycle,
   initConsentFromCookies,
   initConsentSideEffects,
+  initHeaderSearchSideEffects,
   exposeStoreActionsForTesting,
 } from '@components/scripts/store'
 import { SentryBootstrap } from '@components/scripts/sentry/client'
@@ -56,6 +57,10 @@ export class AppBootstrap {
       // 3. Setup all module-specific side effects (runs once per page load)
       addScriptBreadcrumb({ scriptName: 'AppBootstrap', operation: 'initConsentSideEffects' })
       initConsentSideEffects()
+
+      // 3b. Setup header search UI side effects
+      addScriptBreadcrumb({ scriptName: 'AppBootstrap', operation: 'initHeaderSearchSideEffects' })
+      initHeaderSearchSideEffects()
 
       // 4. Expose limited store actions for Playwright-driven E2E tests
       exposeStoreActionsForTesting()

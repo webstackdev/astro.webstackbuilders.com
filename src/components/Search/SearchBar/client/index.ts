@@ -7,6 +7,12 @@ import { handleScriptError } from '@components/scripts/errors/handler'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { getSearchBarElements, getSearchBarOptionalElements } from './selectors'
 import type { SearchHit } from '@actions/search/@types'
+import {
+  closeHeaderSearch,
+  getHeaderSearchExpanded,
+  openHeaderSearch,
+  subscribeHeaderSearchExpanded,
+} from '@components/scripts/store'
 
 export class SearchBarElement extends LitElement {
   static registeredName = 'search-bar'
@@ -21,6 +27,7 @@ export class SearchBarElement extends LitElement {
   private isExpanded = true
 
   private isOutsideListenersAttached = false
+  private unsubscribeHeaderSearchExpanded: (() => void) | null = null
 
   private debounceHandle: ReturnType<typeof setTimeout> | null = null
   private latestRequestId = 0
@@ -32,6 +39,7 @@ export class SearchBarElement extends LitElement {
   override connectedCallback(): void {
     super.connectedCallback()
     this.cacheElements()
+    this.initHeaderExpandedState()
     this.attachListeners()
   }
 
@@ -39,6 +47,11 @@ export class SearchBarElement extends LitElement {
     if (this.debounceHandle) {
       clearTimeout(this.debounceHandle)
       this.debounceHandle = null
+    }
+
+    if (this.unsubscribeHeaderSearchExpanded) {
+      this.unsubscribeHeaderSearchExpanded()
+      this.unsubscribeHeaderSearchExpanded = null
     }
 
     this.detachOutsideListeners()
@@ -57,7 +70,43 @@ export class SearchBarElement extends LitElement {
 
     this.toggleBtn = toggleBtn
     this.panel = panel
-    this.isExpanded = this.getIsExpandedFromDom()
+    this.isExpanded = this.toggleBtn ? getHeaderSearchExpanded() : this.getIsExpandedFromDom()
+  }
+
+  private initHeaderExpandedState(): void {
+    if (!this.toggleBtn) {
+      return
+    }
+
+    const query = this.getQuery()
+    const storeExpanded = getHeaderSearchExpanded()
+
+    // If the input is pre-populated, force-open so the user can see/edit it.
+    const desiredExpanded = query.length > 0 ? true : storeExpanded
+
+    if (desiredExpanded && !storeExpanded) {
+      openHeaderSearch()
+    }
+
+    if (!desiredExpanded && storeExpanded) {
+      closeHeaderSearch()
+    }
+
+    this.setExpandedState(desiredExpanded, { updateStore: false })
+
+    if (!this.unsubscribeHeaderSearchExpanded) {
+      this.unsubscribeHeaderSearchExpanded = subscribeHeaderSearchExpanded(nextExpanded => {
+        if (!this.toggleBtn) {
+          return
+        }
+
+        if (nextExpanded === this.isExpanded) {
+          return
+        }
+
+        this.setExpandedState(nextExpanded, { updateStore: false })
+      })
+    }
   }
 
   private getIsExpandedFromDom(): boolean {
@@ -101,8 +150,16 @@ export class SearchBarElement extends LitElement {
     }
   }
 
-  private setExpandedState(isExpanded: boolean): void {
+  private setExpandedState(isExpanded: boolean, { updateStore = true }: { updateStore?: boolean } = {}): void {
     this.isExpanded = isExpanded
+
+    if (updateStore && this.toggleBtn) {
+      if (isExpanded) {
+        openHeaderSearch()
+      } else {
+        closeHeaderSearch()
+      }
+    }
 
     if (this.toggleBtn) {
       this.toggleBtn.setAttribute('aria-expanded', isExpanded ? 'true' : 'false')
