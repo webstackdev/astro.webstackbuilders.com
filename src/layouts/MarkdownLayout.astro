@@ -154,13 +154,13 @@ const shouldRenderToc = showToc !== false && tocHeadings.length > 0
     {/** SLOT: default (unnamed) */}
     <div
       id="content"
-      class={`${shouldRenderToc ? 'grid gap-8 lg:grid-cols-[250px_1fr]' : 'flex flex-col gap-8'}`}
+      class={`${shouldRenderToc ? 'grid gap-8 lg:grid-cols-[1fr_250px]' : 'flex flex-col gap-8'}`}
       itemprop="articleBody"
     >
-      {shouldRenderToc && <Toc items={tocHeadings} />}
       <div class="markdown-content__prose min-w-0 leading-relaxed">
         <Content components={{ ...Components }} />
       </div>
+      {shouldRenderToc && <Toc items={tocHeadings} />}
     </div>
 
     {/** SLOT: after-content, includes social shares and web mentions */}

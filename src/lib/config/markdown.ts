@@ -185,6 +185,7 @@ export const rehypeMermaidConfig = {
 
 /** rehype-autolink-headings plugin */
 export const rehypeAutolinkHeadingsConfig: RehypeAutolinkHeadingsOptions = {
+  behavior: 'append',
   content: {
     type: 'element',
     tagName: 'span',

@@ -9,6 +9,13 @@ export default {
       customSyntax: 'postcss-html',
     },
     {
+      files: ['src/styles/index.css'],
+      rules: {
+        /** Tailwind v4 directives (e.g., `@theme`, `@plugin`, `@source`) can precede `@import` in source CSS. */
+        'no-invalid-position-at-import-rule': null,
+      },
+    },
+    {
       files: ['src/components/**/*.module.css'],
       rules: {
         /** Prefer component-scoped classes; avoid IDs in component styles. */

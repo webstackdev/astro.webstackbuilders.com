@@ -100,9 +100,15 @@ if (window.matchMedia) {
 - Latest Articles
 - Primary CTA ("Ready to Transform Your Development Process?") with links to /contact and /services
 - Newsletter Signup
-- Skills/Technologies Preview
+- Skills/Technologies Preview (__move to after "About Preview"__)
 
 Maybe change the "ready..." in the hero to "get in touch..."
+
+## Tags
+
+Add a "coreCategory" boolean prop to tags, and sort to only show those on the /articles path. That way we can have languages like Terraform or tech like Helm as tag categories.
+
+Link to the second-order category from the "Skills/Technologies Preview" icons on the home page. They should have descriptions of the tech.
 
 ## Search Box
 
