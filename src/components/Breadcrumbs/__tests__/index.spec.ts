@@ -24,18 +24,15 @@ describe('Breadcrumbs (Astro)', () => {
     const renderedHtml = await response.text()
 
     await withJsdomEnvironment(async ({ window }) => {
-      // Prefer document.write here so any hoisted tags (e.g., JSON-LD scripts) are also available.
-      window.document.open()
-      window.document.write(renderedHtml)
-      window.document.close()
+      const doc = new window.DOMParser().parseFromString(renderedHtml, 'text/html')
 
-      const nav = window.document.querySelector('nav[aria-label="Breadcrumbs"]')
+      const nav = doc.querySelector('nav[aria-label="Breadcrumbs"]')
       expect(nav).toBeTruthy()
 
-      const current = window.document.querySelector('[aria-current="page"]')
+      const current = doc.querySelector('[aria-current="page"]')
       expect(current?.textContent).toContain('My Post Title')
 
-      const links = window.document.querySelectorAll('nav[aria-label="Breadcrumbs"] a[href]')
+      const links = doc.querySelectorAll<HTMLAnchorElement>('nav[aria-label="Breadcrumbs"] a[href]')
       expect(links.length).toBeGreaterThan(0)
       links.forEach(link => {
         expect(link.getAttribute('href')?.trim().length).toBeGreaterThan(0)
@@ -46,7 +43,7 @@ describe('Breadcrumbs (Astro)', () => {
         expect(link.tabIndex).toBeGreaterThanOrEqual(0)
       })
 
-      const jsonLdScripts = window.document.querySelectorAll('script[type="application/ld+json"]')
+      const jsonLdScripts = doc.querySelectorAll('script[type="application/ld+json"]')
       expect(jsonLdScripts.length).toBe(1)
 
       const jsonLdScript = jsonLdScripts.item(0)

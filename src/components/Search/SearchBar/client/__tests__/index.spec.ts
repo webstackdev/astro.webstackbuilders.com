@@ -57,8 +57,8 @@ describe('SearchBar web component', () => {
     container = await AstroContainer.create()
     searchQueryMock.mockReset()
 
-    delete (globalThis as unknown as Record<string, unknown>).SpeechRecognition
-    delete (globalThis as unknown as Record<string, unknown>).webkitSpeechRecognition
+    delete (globalThis as unknown as Record<string, unknown>)['SpeechRecognition']
+    delete (globalThis as unknown as Record<string, unknown>)['webkitSpeechRecognition']
   })
 
   const runComponentRender = async (
