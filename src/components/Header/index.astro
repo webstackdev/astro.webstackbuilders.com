@@ -18,10 +18,10 @@ const { path } = Astro.props
     --header-icon-size: calc(3.5em * 0.75);
     --header-icon-svg-size: calc(var(--header-icon-size) * 0.7);
     --circle-stroke: calc(var(--header-icon-size) * 2 * 3.1416);
-    --header-search-panel-width: 18rem;
+    --header-search-panel-width: calc(18rem - 45px);
     --header-search-panel-overhang: calc(var(--header-icon-size) + 0.5rem);
-    --header-search-panel-width-open: var(--header-search-panel-width);
-    --header-search-panel-right: calc(-1 * var(--header-search-panel-overhang));
+    --header-search-panel-width-open: calc(var(--header-search-panel-width) + var(--header-search-panel-overhang) + 1px);
+    --header-search-panel-right: calc(-1 * var(--header-search-panel-overhang) - 1px);
   }
 
   @media (width >= 640px) {
@@ -98,7 +98,7 @@ const { path } = Astro.props
   {/* Header search icon that expands left into a search panel */}
   <span
     id="header__search-icon"
-    class="order-4 lg:order-5 mr-2 lg:mr-0 block shrink-0 w-(--header-icon-size) h-(--header-icon-size) relative z-(--z-content-overlay) lg:z-(--z-nav)"
+    class="order-4 lg:order-5 mr-2 lg:mr-0 block shrink-0 w-(--header-icon-size) h-(--header-icon-size) relative z-(--z-content-overlay) group-data-[header-search-open=true]:z-(--z-modal) lg:z-(--z-nav)"
   >
     <SearchBar variant="header" />
   </span>
