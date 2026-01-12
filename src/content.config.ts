@@ -148,20 +148,6 @@ const testFixtureCollection = defineCollection({
  */
 
 /**
- * About
- */
-const aboutCollection = defineCollection({
-  loader: glob({ pattern, base: './src/content/about' }),
-  schema: withBreadcrumbTitleWarning(
-    z.object({
-      id: z.string(),
-      title: z.string(),
-    }),
-    'about'
-  ),
-})
-
-/**
  * Authors
  */
 const authorsCollection = defineCollection({
@@ -239,7 +225,6 @@ const testimonialCollection = defineCollection({
  */
 
 export const collections = {
-  about: aboutCollection,
   articles: articlesCollection,
   authors: authorsCollection,
   caseStudies: caseStudiesCollection,

@@ -5,9 +5,11 @@ declare const styles: {
   readonly footerSocialList: string
   readonly footerSocialItem: string
   readonly footerSocialLink: string
+  readonly footerSocialHeaderRow: string
   readonly footerSocialIcon: string
   readonly footerSocialPlatform: string
   readonly footerSocialBlurb: string
+  readonly footerSocialBlurbText: string
   readonly footerBottomRow: string
   readonly footerBottomGrid: string
   readonly footerBottomPrimary: string

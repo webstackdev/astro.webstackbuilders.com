@@ -74,7 +74,7 @@ const year = new Date().getFullYear()
           id="page-footer__hire-me-anchor"
           class:list={[
             styles.footerHireMeAnchor,
-            "hidden uppercase hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary after:content-['>']",
+            "hidden uppercase hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary after:ml-1 after:content-['>']",
           ]}
           aria-label="Available Now. Hire Me"
         >
@@ -84,7 +84,7 @@ const year = new Date().getFullYear()
 
       {/* Page footer Social Share links */}
       <nav class={styles.footerSocial} aria-label="Social links">
-        <ul class:list={[styles.footerSocialList, 'm-0 p-0 list-none']}>
+        <ul class:list={[styles.footerSocialList, 'mt-4 sm:m-0 p-0 list-none']}>
           {
             contactData.company.social
               .sort((a, b) => a.order - b.order)
@@ -96,19 +96,23 @@ const year = new Date().getFullYear()
                     rel="me"
                     class:list={[
                       styles.footerSocialLink,
-                      'flex items-baseline uppercase hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary',
+                      'group flex flex-col hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary',
                     ]}
                   >
-                    <span class={styles.footerSocialIcon}>
-                      <Icon name={social.iconName} variant="inherit" />
+                    <span class:list={[styles.footerSocialHeaderRow, 'flex items-baseline']}>
+                      <span class={styles.footerSocialIcon}>
+                        <Icon name={social.iconName} variant="inherit" />
+                      </span>
+                      <span class:list={[styles.footerSocialPlatform, 'ml-2 mt-4 uppercase']}>
+                        {social.displayName}
+                      </span>
                     </span>
-                    <span class:list={[styles.footerSocialPlatform, 'ml-2 mt-4']}>
-                      {social.displayName}
+                    <span class:list={[styles.footerSocialBlurb, 'font-serif leading-tight']}>
+                      <span class={styles.footerSocialBlurbText}>
+                        {social.blurb}
+                      </span>
                     </span>
                   </a>
-                  <div class:list={[styles.footerSocialBlurb, 'font-serif leading-tight']}>
-                    {social.blurb}
-                  </div>
                 </li>
               ))
           }
