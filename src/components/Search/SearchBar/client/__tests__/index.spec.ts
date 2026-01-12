@@ -34,9 +34,31 @@ const flushMicrotasks = async () => {
 describe('SearchBar web component', () => {
   let container: AstroContainer
 
+  class MockSpeechRecognition {
+    public continuous = false
+    public interimResults = false
+    public lang = 'en-US'
+
+    public onstart: (() => void) | null = null
+    public onend: (() => void) | null = null
+    public onerror: ((event: { error: string }) => void) | null = null
+    public onresult: ((event: unknown) => void) | null = null
+
+    public start = vi.fn(() => {
+      this.onstart?.()
+    })
+
+    public stop = vi.fn(() => {
+      this.onend?.()
+    })
+  }
+
   beforeEach(async () => {
     container = await AstroContainer.create()
     searchQueryMock.mockReset()
+
+    delete (globalThis as unknown as Record<string, unknown>).SpeechRecognition
+    delete (globalThis as unknown as Record<string, unknown>).webkitSpeechRecognition
   })
 
   const runComponentRender = async (
@@ -166,8 +188,10 @@ describe('SearchBar web component', () => {
       const toggleBtn = element.querySelector('[data-search-toggle]') as HTMLButtonElement
       const input = element.querySelector('[data-search-input]') as HTMLInputElement
       const clearBtn = element.querySelector('[data-search-clear]') as HTMLButtonElement
+      const micBtn = element.querySelector('[data-search-mic]') as HTMLButtonElement
 
       expect(clearBtn.hasAttribute('hidden')).toBe(true)
+      expect(micBtn.hasAttribute('hidden')).toBe(true)
 
       toggleBtn.click()
       await flushMicrotasks()
@@ -177,6 +201,8 @@ describe('SearchBar web component', () => {
       await flushMicrotasks()
 
       expect(clearBtn.hasAttribute('hidden')).toBe(false)
+      // Mic stays hidden unless the browser supports speech recognition.
+      expect(micBtn.hasAttribute('hidden')).toBe(true)
 
       clearBtn.click()
       await flushMicrotasks()
@@ -184,6 +210,36 @@ describe('SearchBar web component', () => {
       expect(input.value).toBe('')
       // Still open; button switches to "Close search" mode.
       expect(clearBtn.hasAttribute('hidden')).toBe(false)
+    })
+  })
+
+  it('fills the query from speech recognition when available', async () => {
+    await runHeaderComponentRender(async ({ element, window }) => {
+      ;(window as unknown as { SpeechRecognition?: unknown }).SpeechRecognition = MockSpeechRecognition as unknown
+      ;(window as unknown as { webkitSpeechRecognition?: unknown }).webkitSpeechRecognition =
+        MockSpeechRecognition as unknown
+
+      const toggleBtn = element.querySelector('[data-search-toggle]') as HTMLButtonElement
+      const input = element.querySelector('[data-search-input]') as HTMLInputElement
+      const micBtn = element.querySelector('[data-search-mic]') as HTMLButtonElement
+
+      toggleBtn.click()
+      await flushMicrotasks()
+
+      micBtn.click()
+      await flushMicrotasks()
+
+      // Simulate a recognition result.
+      const recognition = (element as unknown as { speechRecognition?: MockSpeechRecognition }).speechRecognition
+      expect(recognition).toBeTruthy()
+
+      recognition?.onresult?.({
+        resultIndex: 0,
+        results: [[{ transcript: 'hello world' }]],
+      } as unknown)
+
+      await flushMicrotasks()
+      expect(input.value).toBe('hello world')
     })
   })
 })

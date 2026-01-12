@@ -24,8 +24,12 @@ export class SearchBarElement extends LitElement {
 
   private toggleBtn: HTMLButtonElement | null = null
   private panel: HTMLElement | null = null
+  private micBtn: HTMLButtonElement | null = null
   private clearBtn: HTMLButtonElement | null = null
   private isExpanded = true
+
+  private speechRecognition: SpeechRecognition | null = null
+  private isListening = false
 
   private isOutsideListenersAttached = false
   private unsubscribeHeaderSearchExpanded: (() => void) | null = null
@@ -62,7 +66,7 @@ export class SearchBarElement extends LitElement {
 
   private cacheElements(): void {
     const { form, input, resultsContainer, resultsList } = getSearchBarElements(this)
-    const { toggleBtn, panel, clearBtn } = getSearchBarOptionalElements(this)
+    const { toggleBtn, panel, micBtn, clearBtn } = getSearchBarOptionalElements(this)
 
     this.form = form
     this.input = input
@@ -71,10 +75,12 @@ export class SearchBarElement extends LitElement {
 
     this.toggleBtn = toggleBtn
     this.panel = panel
+    this.micBtn = micBtn
     this.clearBtn = clearBtn
     this.isExpanded = this.toggleBtn ? getHeaderSearchExpanded() : this.getIsExpandedFromDom()
 
     this.updateClearButtonVisibility()
+    this.updateMicButtonVisibility()
   }
 
   private initHeaderExpandedState(): void {
@@ -153,6 +159,11 @@ export class SearchBarElement extends LitElement {
       this.clearBtn.dataset['searchListener'] = 'true'
     }
 
+    if (this.micBtn && !this.micBtn.dataset['searchListener']) {
+      this.micBtn.addEventListener('click', this.handleMicClick)
+      this.micBtn.dataset['searchListener'] = 'true'
+    }
+
     if (!this.dataset['searchKeyListener']) {
       this.addEventListener('keydown', this.handleKeyDown)
       this.dataset['searchKeyListener'] = 'true'
@@ -189,6 +200,7 @@ export class SearchBarElement extends LitElement {
     }
 
     if (!isExpanded) {
+      this.stopSpeechRecognition()
       this.clearResults()
       this.hideResults()
       this.detachOutsideListeners()
@@ -197,6 +209,7 @@ export class SearchBarElement extends LitElement {
     }
 
     this.updateClearButtonVisibility()
+    this.updateMicButtonVisibility()
   }
 
   private updateClearButtonVisibility(): void {
@@ -208,6 +221,141 @@ export class SearchBarElement extends LitElement {
     const shouldShow = this.isExpanded
     this.clearBtn.toggleAttribute('hidden', !shouldShow)
     this.clearBtn.setAttribute('aria-label', query.length > 0 ? 'Clear search' : 'Close search')
+  }
+
+  private getSpeechRecognitionCtor(): (new () => SpeechRecognition) | null {
+    const view = (this.ownerDocument?.defaultView ?? null) as
+      | {
+          SpeechRecognition?: new () => SpeechRecognition
+          webkitSpeechRecognition?: new () => SpeechRecognition
+        }
+      | null
+
+    const globalAny = globalThis as unknown as {
+      SpeechRecognition?: new () => SpeechRecognition
+      webkitSpeechRecognition?: new () => SpeechRecognition
+      window?: {
+        SpeechRecognition?: new () => SpeechRecognition
+        webkitSpeechRecognition?: new () => SpeechRecognition
+      }
+    }
+
+    return (
+      view?.SpeechRecognition ??
+      view?.webkitSpeechRecognition ??
+      globalAny.SpeechRecognition ??
+      globalAny.webkitSpeechRecognition ??
+      globalAny.window?.SpeechRecognition ??
+      globalAny.window?.webkitSpeechRecognition ??
+      null
+    )
+  }
+
+  private updateMicButtonVisibility(): void {
+    if (!this.micBtn) {
+      return
+    }
+
+    const supported = this.getSpeechRecognitionCtor() !== null
+    const shouldShow = supported && this.isExpanded
+    this.micBtn.toggleAttribute('hidden', !shouldShow)
+    this.micBtn.setAttribute('aria-label', this.isListening ? 'Stop voice search' : 'Voice search')
+  }
+
+  private ensureSpeechRecognition(): SpeechRecognition | null {
+    if (this.speechRecognition) {
+      return this.speechRecognition
+    }
+
+    const ctor = this.getSpeechRecognitionCtor()
+    if (!ctor) {
+      return null
+    }
+
+    // Lazily create recognition; keeps SSR/older browsers safe.
+    const recognition = new ctor()
+    recognition.continuous = false
+    recognition.interimResults = true
+
+    const docLang = document.documentElement.getAttribute('lang')
+    recognition.lang = docLang && docLang.length > 0 ? docLang : 'en-US'
+
+    recognition.onstart = () => {
+      this.isListening = true
+      this.updateMicButtonVisibility()
+    }
+
+    recognition.onend = () => {
+      this.isListening = false
+      this.updateMicButtonVisibility()
+    }
+
+    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+      const context = { scriptName: 'SearchBarElement', operation: 'speechRecognition.onerror' }
+      handleScriptError(new Error(`Speech recognition error: ${event.error}`), context)
+      this.stopSpeechRecognition()
+    }
+
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      if (!this.input) {
+        return
+      }
+
+      const transcript = this.getTranscriptFromSpeechEvent(event)
+      if (!transcript) {
+        return
+      }
+
+      this.input.value = transcript
+      this.input.dispatchEvent(new Event('input', { bubbles: true }))
+      this.input.focus()
+    }
+
+    this.speechRecognition = recognition
+    return recognition
+  }
+
+  private getTranscriptFromSpeechEvent(event: SpeechRecognitionEvent): string {
+    // Note: Safari exposes only `webkitSpeechRecognition` and can behave differently.
+    // We keep the extraction defensive so it works across implementations and in tests.
+    const eventAny = event as unknown as {
+      resultIndex?: number
+      results?: ArrayLike<ArrayLike<{ transcript?: string } & { confidence?: number }> & { isFinal?: boolean }>
+    }
+
+    const resultIndex = eventAny.resultIndex ?? 0
+    const result = eventAny.results?.[resultIndex]
+    const firstAlternative = result?.[0]
+    return (firstAlternative?.transcript ?? '').trim()
+  }
+
+  private startSpeechRecognition(): void {
+    const recognition = this.ensureSpeechRecognition()
+    if (!recognition) {
+      this.updateMicButtonVisibility()
+      return
+    }
+
+    try {
+      recognition.start()
+    } catch (error) {
+      // Some implementations throw if start() is called while already active.
+      handleScriptError(error, { scriptName: 'SearchBarElement', operation: 'speechRecognition.start' })
+    }
+  }
+
+  private stopSpeechRecognition(): void {
+    if (!this.speechRecognition) {
+      this.isListening = false
+      this.updateMicButtonVisibility()
+      return
+    }
+
+    try {
+      this.speechRecognition.stop()
+    } catch (error) {
+      handleScriptError(error, { scriptName: 'SearchBarElement', operation: 'speechRecognition.stop' })
+    }
   }
 
   private expand(): void {
@@ -401,6 +549,23 @@ export class SearchBarElement extends LitElement {
     this.clearResults()
     this.hideResults()
     this.input.focus()
+  }
+
+  private readonly handleMicClick = () => {
+    if (!this.input) {
+      return
+    }
+
+    if (!this.isExpanded) {
+      this.expand()
+    }
+
+    if (this.isListening) {
+      this.stopSpeechRecognition()
+      return
+    }
+
+    this.startSpeechRecognition()
   }
 
   private showResults(): void {

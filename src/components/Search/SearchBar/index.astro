@@ -1,6 +1,7 @@
 ---
 import Icon from '@components/Icon/index.astro'
 import closeSvg from '../../../icons/close.svg?raw'
+import microphoneSvg from '../../../icons/microphone.svg?raw'
 import styles from './index.module.css'
 
 export interface Props {
@@ -55,6 +56,16 @@ const clearButtonLabel = hasInitialQuery ? 'Clear search' : 'Close search'
               !isExpandedOnLoad && 'hidden',
             ]}
           />
+
+          <button
+            data-search-mic
+            type="button"
+            aria-label="Voice search"
+            hidden
+            class="relative inline-flex items-center justify-center w-(--header-icon-size) h-(--header-icon-size) shrink-0 rounded-full border-0 bg-transparent text-content-active hover:text-primary focus:outline-none focus-visible:text-primary transition-colors duration-150 ease-linear"
+          >
+            <span aria-hidden="true" set:html={microphoneSvg} />
+          </button>
 
           <button
             data-search-clear
