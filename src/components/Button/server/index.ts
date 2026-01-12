@@ -39,7 +39,7 @@ const baseButtonClasses =
   "after:pointer-events-none after:absolute after:content-[''] after:inset-0 after:rounded-none after:border-2 after:border-transparent after:opacity-0 after:transition-opacity after:duration-150 after:ease-out " +
   'focus-visible:after:opacity-100 focus-visible:after:[inset:-6px] focus-visible:after:border-spotlight ' +
   'border-2 border-solid border-transparent rounded-md ' +
-  'font-semibold uppercase tracking-[0.08em] ' +
+  'font-bold uppercase tracking-[0.08em] ' +
   'text-sm leading-5 ' +
   '[box-shadow:var(--shadow-sm)] [text-shadow:var(--shadow-text)] ' +
   'transition-[color,background-color,border-color,box-shadow,transform] duration-200 ease-in-out ' +
@@ -47,9 +47,12 @@ const baseButtonClasses =
   'aria-disabled:cursor-not-allowed aria-disabled:opacity-[0.65] aria-disabled:pointer-events-none'
 
 const sizeClasses: Record<ButtonSize, string> = {
-  small: 'text-xs leading-4 py-2 px-4',
-  medium: 'py-3 px-6',
-  large: 'text-base leading-6 py-4 px-8',
+  small:
+    'text-xs leading-4 py-1.5 px-3 sm:py-2 sm:px-4',
+  medium:
+    'text-xs leading-4 py-1.5 px-4 sm:py-3 sm:px-6 lg:px-5',
+  large:
+    'text-sm sm:text-base leading-5 sm:leading-6 py-3 px-7 sm:py-4 sm:px-8',
 }
 
 const variantClasses: Record<ButtonVariant, string> = {

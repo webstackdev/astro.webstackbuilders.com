@@ -10,7 +10,7 @@ describe('Home Hero (Astro)', () => {
   })
 
   test('labels the hero section and renders the hardcoded CTAs', async () => {
-    const HomeHero = (await import('@components/Hero/Home/index.astro')).default
+    const HomeHero = (await import('@components/Animations/Hero/index.astro')).default
 
     const renderedHtml = await container.renderToString(HomeHero, {
       props: {
@@ -34,13 +34,25 @@ describe('Home Hero (Astro)', () => {
       expect(primaryLink).toBeTruthy()
       expect(primaryLink?.getAttribute('class')).toContain('bg-success')
 
-      const secondaryLink = window.document.querySelector('a[href="/contact"]')
+      const secondaryLink = window.document.querySelector(
+        'a[href="/contact"]:not([data-hero-ready-link])'
+      )
       expect(secondaryLink).toBeTruthy()
       const secondaryClass = secondaryLink?.getAttribute('class') || ''
       expect(secondaryClass).toContain('decoration-dotted')
       expect(secondaryClass).toContain('focus-visible:decoration-dotted')
       expect(secondaryClass).toContain('hover:decoration-content-offset')
       expect(secondaryClass).toContain('focus-visible:decoration-content-offset')
+
+      const readyLink = window.document.querySelector('a[data-hero-ready-link]')
+      expect(readyLink).toBeTruthy()
+      expect(readyLink?.getAttribute('href')).toBe('/contact')
+
+      const readyClass = readyLink?.getAttribute('class') || ''
+      expect(readyClass).toContain('no-underline')
+      expect(readyClass).toContain('text-success')
+      expect(readyClass).toContain('hover:text-success-offset')
+      expect(readyClass).toContain('focus-visible:text-success-offset')
     })
   })
 })

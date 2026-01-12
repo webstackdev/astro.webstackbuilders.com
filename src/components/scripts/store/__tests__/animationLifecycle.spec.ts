@@ -138,15 +138,15 @@ describe('animation lifecycle store', () => {
       onPause,
     })
 
-    expect(onPause).not.toHaveBeenCalled()
+    expect(onPause).toHaveBeenCalledTimes(1)
     expect(onPlay).not.toHaveBeenCalled()
 
     controller.requestPlay()
     expect(onPlay).toHaveBeenCalledTimes(1)
-    expect(onPause).not.toHaveBeenCalled()
+    expect(onPause).toHaveBeenCalledTimes(1)
 
     controller.requestPause()
-    expect(onPause).toHaveBeenCalledTimes(1)
+    expect(onPause).toHaveBeenCalledTimes(2)
 
     clearAnimationPreference('computers')
     expect(getAnimationPreference('computers')).toBeUndefined()

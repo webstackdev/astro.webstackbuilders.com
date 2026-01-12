@@ -41,7 +41,7 @@ interface RegisteredController {
   animationId: AnimationId
   debugLabel?: string
   defaultState: AnimationPlayState
-  currentState: AnimationPlayState
+  currentState: AnimationPlayState | 'unknown'
   play: () => void
   pause: () => void
 }
@@ -381,7 +381,7 @@ export function createAnimationController(
     key,
     animationId: config.animationId,
     defaultState: config.defaultState ?? 'playing',
-    currentState: config.initialState ?? 'paused',
+    currentState: config.initialState ?? 'unknown',
     play: config.onPlay,
     pause: config.onPause,
     ...(config.debugLabel ? { debugLabel: config.debugLabel } : {}),
