@@ -5,6 +5,7 @@ import SearchBarHeaderFixture from '@components/Search/SearchBar/client/__fixtur
 import type { SearchBarElement as SearchBarElementInstance } from '../index'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { executeRender } from '@test/unit/helpers/litRuntime'
+import { __resetHeaderSearchForTests } from '@components/scripts/store/search'
 
 type SearchBarModule = WebComponentModule<SearchBarElementInstance>
 
@@ -56,6 +57,8 @@ describe('SearchBar web component', () => {
   beforeEach(async () => {
     container = await AstroContainer.create()
     searchQueryMock.mockReset()
+
+    __resetHeaderSearchForTests()
 
     delete (globalThis as unknown as Record<string, unknown>)['SpeechRecognition']
     delete (globalThis as unknown as Record<string, unknown>)['webkitSpeechRecognition']
@@ -173,7 +176,7 @@ describe('SearchBar web component', () => {
       expect(toggleBtn.hasAttribute('hidden')).toBe(true)
       expect(clearBtn.hasAttribute('hidden')).toBe(false)
 
-      input.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+      input.dispatchEvent(new window.KeyboardEvent('keyup', { key: 'Escape', bubbles: true }))
       await flushMicrotasks()
 
       expect(toggleBtn.getAttribute('aria-expanded')).toBe('false')

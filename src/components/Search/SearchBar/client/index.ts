@@ -434,11 +434,13 @@ export class SearchBarElement extends LitElement {
       return
     }
 
-    if (!(event instanceof KeyboardEvent)) {
+    if (!(typeof (event as KeyboardEvent).key === 'string')) {
       return
     }
 
-    if (event.key !== 'Escape') {
+    const keyboardEvent = event as KeyboardEvent
+
+    if (keyboardEvent.key !== 'Escape') {
       return
     }
 
@@ -446,7 +448,7 @@ export class SearchBarElement extends LitElement {
       return
     }
 
-    event.preventDefault()
+    keyboardEvent.preventDefault()
     this.collapse({ restoreFocus: true })
   }
 
