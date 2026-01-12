@@ -428,14 +428,14 @@ export class SearchBarElement extends LitElement {
 
       return html`
         <li class="px-4 py-3 hover:bg-page-base-offset">
-          <a class="block text-sm" href=${url}>${title}</a>
+          <a class="block text-body" href=${url}>${title}</a>
         </li>
       `
     })
 
     const searchFor = html`
       <li class="px-4 py-3 hover:bg-page-base-offset">
-        <a class="block text-sm" href=${`/search?q=${encodeURIComponent(query)}`}>
+        <a class="block text-body" href=${`/search?q=${encodeURIComponent(query)}`}>
           Search for &quot;${query}&quot;
         </a>
       </li>
