@@ -72,6 +72,13 @@ export class ThemePickerElement extends LitElement {
   private lastIsOpen: boolean | null = null
   private lastTheme: ThemeId | null = null
 
+  private tooltipPortal: HTMLDivElement | null = null
+  private tooltipPortalContent: HTMLDivElement | null = null
+  private tooltipActiveButton: HTMLButtonElement | null = null
+  private tooltipRafId: number | null = null
+
+  private readonly tooltipId = 'theme-picker-tooltip'
+
   private readonly emblaUpdateHandler = () => this.updateEmblaNavState()
 
   // Track View Transitions
@@ -98,6 +105,7 @@ export class ThemePickerElement extends LitElement {
   override disconnectedCallback(): void {
     super.disconnectedCallback()
     this.teardownEmbla()
+    this.teardownTooltipPortal()
   }
 
   /**
@@ -127,6 +135,7 @@ export class ThemePickerElement extends LitElement {
       }
 
       this.bindEvents()
+      this.setupTooltipPortal()
       this.setViewTransitionHandlers()
       this.isInitialized = true
       this.setAttribute('data-theme-picker-ready', 'true')
@@ -423,9 +432,189 @@ export class ThemePickerElement extends LitElement {
           this.handleClose()
         }
       })
+
+      // Tooltip (hover/focus) uses a portal outside overflow-hidden containers.
+      // Use capture for pointer events so we can react early and avoid flicker.
+      this.addEventListener(
+        'pointerover',
+        event => {
+          const target = event.target
+          if (!(target instanceof HTMLElement)) return
+          const button = target.closest<HTMLButtonElement>('[data-theme]')
+          if (!button) return
+          this.showTooltipForThemeButton(button)
+        },
+        true
+      )
+
+      this.addEventListener(
+        'pointerout',
+        event => {
+          const relatedTarget = (event as PointerEvent).relatedTarget
+          if (relatedTarget instanceof HTMLElement) {
+            const stillInside = relatedTarget.closest('[data-theme]')
+            if (stillInside && stillInside === this.tooltipActiveButton) return
+          }
+
+          this.hideTooltip()
+        },
+        true
+      )
+
+      this.addEventListener(
+        'focusin',
+        event => {
+          const target = event.target
+          if (!(target instanceof HTMLElement)) return
+          const button = target.closest<HTMLButtonElement>('[data-theme]')
+          if (!button) return
+          this.showTooltipForThemeButton(button)
+        },
+        true
+      )
+
+      this.addEventListener(
+        'focusout',
+        () => {
+          this.hideTooltip()
+        },
+        true
+      )
+
+      window.addEventListener('scroll', () => this.updateTooltipPosition(), true)
+      window.addEventListener('resize', () => this.updateTooltipPosition(), true)
     } catch (error) {
       handleScriptError(error, context)
     }
+  }
+
+  /**
+   * Create a tooltip portal outside overflow-hidden containers.
+   * This allows the tooltip to float like a modal without affecting layout.
+   */
+  private setupTooltipPortal(): void {
+    const context = { scriptName: 'ThemePickerElement', operation: 'setupTooltipPortal' }
+    addScriptBreadcrumb(context)
+
+    try {
+      if (typeof document === 'undefined') return
+      if (this.tooltipPortal) return
+
+      const portal = document.createElement('div')
+      portal.setAttribute('data-theme-tooltip-portal', 'true')
+      portal.setAttribute('id', this.tooltipId)
+      portal.setAttribute('role', 'tooltip')
+      portal.className =
+        'fixed left-0 top-0 z-(--z-modal) pointer-events-none opacity-0 transition-opacity duration-150 ease-out'
+
+      const content = document.createElement('div')
+      content.className =
+        'rounded-md border border-trim bg-content px-3 py-2 text-xs text-content-inverse shadow-lg'
+
+      portal.append(content)
+      document.body.append(portal)
+
+      this.tooltipPortal = portal
+      this.tooltipPortalContent = content
+    } catch (error) {
+      handleScriptError(error, context)
+    }
+  }
+
+  private teardownTooltipPortal(): void {
+    if (this.tooltipRafId !== null && typeof cancelAnimationFrame === 'function') {
+      cancelAnimationFrame(this.tooltipRafId)
+    }
+
+    this.tooltipRafId = null
+
+    if (this.tooltipPortal) {
+      this.tooltipPortal.remove()
+    }
+
+    this.tooltipPortal = null
+    this.tooltipPortalContent = null
+    this.tooltipActiveButton = null
+  }
+
+  private showTooltipForThemeButton(button: HTMLButtonElement): void {
+    if (!this.tooltipPortal || !this.tooltipPortalContent) return
+
+    const tooltipSource = button.querySelector<HTMLElement>('[data-theme-tooltip]')
+    if (!tooltipSource) {
+      this.hideTooltip()
+      return
+    }
+
+    const tooltipText = tooltipSource.textContent?.trim()
+    if (!tooltipText) {
+      this.hideTooltip()
+      return
+    }
+
+    this.tooltipPortalContent.textContent = tooltipText
+    this.tooltipActiveButton = button
+
+    // Make it accessible when visible.
+    button.setAttribute('aria-describedby', this.tooltipId)
+
+    this.updateTooltipPosition()
+    this.tooltipPortal.style.opacity = '1'
+
+    this.scheduleTooltipPositionUpdates()
+  }
+
+  private hideTooltip(): void {
+    if (!this.tooltipPortal) return
+
+    if (this.tooltipActiveButton?.getAttribute('aria-describedby') === this.tooltipId) {
+      this.tooltipActiveButton.removeAttribute('aria-describedby')
+    }
+
+    this.tooltipActiveButton = null
+    this.tooltipPortal.style.opacity = '0'
+
+    if (this.tooltipRafId !== null && typeof cancelAnimationFrame === 'function') {
+      cancelAnimationFrame(this.tooltipRafId)
+    }
+
+    this.tooltipRafId = null
+  }
+
+  /**
+   * Position the tooltip below the active theme item.
+   * Width matches the item width; clamped to viewport to avoid off-screen rendering.
+   */
+  private updateTooltipPosition(): void {
+    if (!this.tooltipPortal || !this.tooltipActiveButton) return
+
+    const rect = this.tooltipActiveButton.getBoundingClientRect()
+
+    const viewportPadding = 8
+    const gap = 4
+    const maxLeft = Math.max(viewportPadding, window.innerWidth - viewportPadding - rect.width)
+    const left = Math.min(Math.max(rect.left, viewportPadding), maxLeft)
+
+    this.tooltipPortal.style.left = `${left}px`
+    this.tooltipPortal.style.top = `${rect.bottom + gap}px`
+    this.tooltipPortal.style.width = `${rect.width}px`
+  }
+
+  /**
+   * Embla uses transforms; scheduling position updates keeps the tooltip attached while scrolling.
+   */
+  private scheduleTooltipPositionUpdates(): void {
+    if (this.tooltipRafId !== null) return
+    if (typeof requestAnimationFrame !== 'function') return
+
+    const loop = () => {
+      this.tooltipRafId = null
+      if (!this.tooltipActiveButton) return
+      this.updateTooltipPosition()
+      this.tooltipRafId = requestAnimationFrame(loop)
+    }
+
+    this.tooltipRafId = requestAnimationFrame(loop)
   }
 
   /**

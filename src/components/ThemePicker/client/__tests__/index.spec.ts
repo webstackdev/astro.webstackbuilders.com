@@ -292,11 +292,11 @@ describe('ThemePicker Component', () => {
 
         const hues = Array.from(firstItem.querySelectorAll('.themepicker__hue')) as HTMLElement[]
         const expectedClasses = [
-          'bg-primary',
           'bg-secondary',
-          'bg-gray-offset',
-          'bg-gray-offset',
-          'bg-gray-700',
+          'bg-spotlight',
+          'bg-content-inverse',
+          'bg-content-offset',
+          'bg-content',
         ]
 
         expectedClasses.forEach((className, index) => {
