@@ -26,6 +26,7 @@ import {
   getThemePickerEmblaNextBtn,
   getThemePickerEmblaPrevBtn,
   getThemePickerEmblaViewport,
+  queryThemeButtonTooltipSource,
 } from './selectors'
 import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
@@ -540,7 +541,7 @@ export class ThemePickerElement extends LitElement {
   private showTooltipForThemeButton(button: HTMLButtonElement): void {
     if (!this.tooltipPortal || !this.tooltipPortalContent) return
 
-    const tooltipSource = button.querySelector<HTMLElement>('[data-theme-tooltip]')
+    const tooltipSource = queryThemeButtonTooltipSource(button)
     if (!tooltipSource) {
       this.hideTooltip()
       return

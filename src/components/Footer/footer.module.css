@@ -4,6 +4,131 @@
   }
 }
 
+.footerSocialList {
+  display: grid;
+  gap: 0.75rem 1rem;
+}
+
+@media (width >= 1024px) {
+  .footerSocialList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.footerSocialIcon :global([data-icon]) {
+  height: 2rem;
+  width: 2rem;
+}
+
+.footerSocialLink :global([data-icon]) {
+  fill: var(--color-content);
+  stroke: var(--color-content);
+}
+
+.footerSocialLink:hover :global([data-icon]),
+.footerSocialLink:focus-visible :global([data-icon]) {
+  fill: var(--color-secondary);
+  stroke: var(--color-secondary);
+}
+
+.footerSocialBlurb {
+  margin-top: 0.25rem;
+}
+
+.footerBottomGrid {
+  display: grid;
+  gap: 0.75rem 1rem;
+  grid-template-columns: 1fr 1fr;
+}
+
+.footerBottomPrimary {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.footerBottomSecondary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.footerBottomActions {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  grid-column: 1 / -1;
+  grid-row: 2;
+  justify-content: center;
+}
+
+@media (width >= 1024px) {
+  .footerBottomGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .footerBottomPrimary,
+  .footerBottomSecondary,
+  .footerBottomActions {
+    grid-column: 1;
+  }
+
+  .footerBottomSecondary {
+    grid-row: 2;
+  }
+
+  .footerBottomActions {
+    grid-row: 4;
+    justify-content: center;
+  }
+}
+
+.footerBottomLink {
+  text-decoration: none;
+}
+
+.footerBottomLinkTitle {
+  text-decoration: underline;
+  text-decoration-style: dotted;
+}
+
+.footerBottomLink:hover .footerBottomLinkTitle,
+.footerBottomLink:focus .footerBottomLinkTitle {
+  text-decoration-color: var(--color-secondary);
+}
+
+.footerBottomLinkDescription {
+  text-decoration: none;
+}
+
+.footerIconButton :global([data-icon]) {
+  fill: var(--color-content);
+  height: 2rem;
+  stroke: var(--color-content);
+  width: 2rem;
+}
+
+.footerIconButton {
+  cursor: pointer;
+  display: inline-flex;
+  justify-content: center;
+  line-height: 1;
+  padding: 0.25rem;
+}
+
+.footerIconButton:hover :global([data-icon]),
+.footerIconButton:focus-visible :global([data-icon]) {
+  fill: var(--color-secondary);
+  stroke: var(--color-secondary);
+}
+
+.footerGrid :global(a:focus-visible),
+.footerGrid :global(button:focus-visible) {
+  outline: 2px solid var(--color-spotlight);
+  outline-offset: 2px;
+}
+
 @media (width >= 640px) {
   .footerGrid {
     display: grid;
@@ -39,7 +164,7 @@
       "hire-me social bottom-row" 2rem
       "contact social bottom-row" auto
       "copyright copyright copyright" auto
-      / 2fr 1fr 1fr;
+      / 1fr 1fr 1fr;
   }
 
   .footerHireMe {
@@ -56,10 +181,4 @@
 .footerHireMeAnchor:hover::after,
 .footerHireMeAnchor:focus::after {
   animation: arrowBounce 1s alternate;
-}
-
-.footerFeedIcon:hover :global(.icon),
-.footerFeedIcon:focus :global(.icon) {
-  height: 3em;
-  width: 3em;
 }

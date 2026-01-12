@@ -41,8 +41,8 @@ describe('SearchBar web component', () => {
 
     public onstart: (() => void) | null = null
     public onend: (() => void) | null = null
-    public onerror: ((event: { error: string }) => void) | null = null
-    public onresult: ((event: unknown) => void) | null = null
+    public onerror: ((_event: { error: string }) => void) | null = null
+    public onresult: ((_event: unknown) => void) | null = null
 
     public start = vi.fn(() => {
       this.onstart?.()

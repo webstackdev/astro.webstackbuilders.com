@@ -22,8 +22,8 @@ const year = new Date().getFullYear()
       {/* Page footer company contact */}
       <div class:list={[styles.footerContact, 'mt-3 sm:mt-0 sm:flex sm:items-center']}>
         {/* Mobile: avatar and company name in same row, Desktop: avatar on left side */}
-        <div class="flex items-center sm:block sm:mr-4 sm:w-[clamp(5em,25%,8em)]">
-          <div class="mr-3 w-16 sm:mr-0 sm:w-full">
+        <div class="flex items-center sm:block">
+          <div class="mr-3 w-16">
             <Avatar name="Kevin Brown" />
           </div>
           <h2 class="text-2xl font-bold sm:hidden">{contactData.company.name}</h2>
@@ -41,7 +41,7 @@ const year = new Date().getFullYear()
           <p class="hyphens-none">
             <a
               href={`mailto:${contactData.company.email}`}
-              class="hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary focus:outline-none"
+              class="hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary"
             >
               {contactData.company.email}
             </a>
@@ -50,7 +50,7 @@ const year = new Date().getFullYear()
             <a
               href={`tel:${contactData.company.telephoneTollFree}`}
               rel="nofollow"
-              class="hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary focus:outline-none"
+              class="hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary"
             >
               Toll Free {formatPhoneNumber(contactData.company.telephoneTollFree)}
             </a>
@@ -59,13 +59,14 @@ const year = new Date().getFullYear()
             <a
               href={`tel:${contactData.company.telephoneLocal}`}
               rel="nofollow"
-              class="hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary focus:outline-none"
+              class="hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary"
             >
               Local {formatPhoneNumber(contactData.company.telephoneLocal)}
             </a>
           </p>
         </address>
       </div>
+
       {/* "Hire Me" block with current month and year set by script */}
       <div class:list={[styles.footerHireMe, 'hidden lg:block']}>
         <a
@@ -73,96 +74,129 @@ const year = new Date().getFullYear()
           id="page-footer__hire-me-anchor"
           class:list={[
             styles.footerHireMeAnchor,
-            "hidden uppercase hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary focus:outline-none after:content-['>']",
+            "hidden uppercase hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary after:content-['>']",
           ]}
           aria-label="Available Now. Hire Me"
         >
           Available Now. Hire Me
         </a>
       </div>
+
       {/* Page footer Social Share links */}
       <nav class={styles.footerSocial} aria-label="Social links">
-        <ul class="m-0 p-0 list-none">
+        <ul class:list={[styles.footerSocialList, 'm-0 p-0 list-none']}>
           {
             contactData.company.social
               .sort((a, b) => a.order - b.order)
               .map(social => (
-                <li class="footer-social-channel list-none">
+                <li class:list={[styles.footerSocialItem, 'list-none']}>
                   <a
                     href={social.url}
                     title={social.displayName}
                     rel="me"
-                    class="flex items-baseline uppercase hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary focus:outline-none [&_.icon]:fill-content! [&_.icon]:stroke-icons! hover:[&_.icon]:fill-secondary! hover:[&_.icon]:stroke-secondary! focus:[&_.icon]:fill-secondary! focus:[&_.icon]:stroke-secondary!"
+                    class:list={[
+                      styles.footerSocialLink,
+                      'flex items-baseline uppercase hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary',
+                    ]}
                   >
-                    <span class="[&_.icon]:h-4 [&_.icon]:w-4">
+                    <span class={styles.footerSocialIcon}>
                       <Icon name={social.iconName} variant="inherit" />
                     </span>
-                    <span class="footer-social-platform ml-2 mt-4">{social.displayName}</span>
+                    <span class:list={[styles.footerSocialPlatform, 'ml-2 mt-4']}>
+                      {social.displayName}
+                    </span>
                   </a>
-                  <div class="footer-social-blurb font-serif leading-tight">{social.blurb}</div>
+                  <div class:list={[styles.footerSocialBlurb, 'font-serif leading-tight']}>
+                    {social.blurb}
+                  </div>
                 </li>
               ))
           }
         </ul>
       </nav>
-      <div
-        class:list={[
-          styles.footerBottomRow,
-          'flex justify-between sm:justify-evenly lg:flex-col px-1 pt-4 pb-3 sm:p-0 lg:pl-8',
-        ]}
-      >
-        {/* Page footer Subscribe link */}
-        <span class="flex flex-col justify-center lg:pt-3">
-          <a
-            href="/#newsletter"
-            class="hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary focus:outline-none"
-          >
-            <div class="lg:hidden">Subscribe to</div>
-            <span class="lg:font-bold lg:uppercase">Mailing List</span>
-            <span class="hidden lg:block">
-              Sign up to stay in touch and get great content
-            </span>
-          </a>
-        </span>
-        {/* Page footer Privacy Policy links */}
-        <span class="flex flex-col justify-center lg:pt-3">
-          <span>
+
+      <div class:list={[styles.footerBottomRow, 'mt-4 px-1 pt-4 pb-3 sm:p-0 lg:pl-8']}>
+        <div class={styles.footerBottomGrid}>
+          <div class={styles.footerBottomPrimary}>
+            {/* Page footer Subscribe link */}
+            <a
+              href="/#newsletter"
+              class:list={[
+                styles.footerBottomLink,
+                'group hover:text-secondary focus:text-secondary',
+              ]}
+            >
+              <div class="lg:hidden">Subscribe to</div>
+              <span class={styles.footerBottomLinkTitle}>Mailing List</span>
+              <span class:list={[styles.footerBottomLinkDescription, 'hidden lg:block']}>
+                Sign up to stay in touch and get great content
+              </span>
+            </a>
+          </div>
+
+          <div class={styles.footerBottomSecondary}>
+            {/* Page footer Consent link */}
             <a
               href="/consent"
-              class="hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary focus:outline-none"
+              class:list={[
+                styles.footerBottomLink,
+                'group hover:text-secondary focus:text-secondary',
+              ]}
             >
-              <span class="lg:font-bold lg:uppercase">Consent</span>
-              <span class="hidden lg:block">
+              <span class={styles.footerBottomLinkTitle}>Consent</span>
+              <span class:list={[styles.footerBottomLinkDescription, 'hidden lg:block']}>
                 Manage your privacy preferences and data consent
               </span>
             </a>
-          </span>
-          <span>
+
+            {/* Page footer Privacy Policy link */}
             <a
               href="/privacy"
-              class="hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary focus:outline-none"
+              class:list={[
+                styles.footerBottomLink,
+                'group hover:text-secondary focus:text-secondary',
+              ]}
             >
-              <span class="lg:font-bold lg:uppercase">Privacy Policy</span>
-              <span class="hidden lg:block">
+              <span class={styles.footerBottomLinkTitle}>Privacy Policy</span>
+              <span class:list={[styles.footerBottomLinkDescription, 'hidden lg:block']}>
                 Learn what data we collect and how we use it
               </span>
             </a>
-          </span>
-        </span>
-        {/* Page footer RSS link */}
-        <span class:list={[styles.footerFeedIcon, 'flex items-center w-12 lg:h-12 lg:w-12']}>
-          <a
-            href={`${getSiteUrl()}/rss.xml`}
-            title="RSS Feed"
-            class="[&_.icon]:fill-content! [&_.icon]:stroke-icons! [&_.icon]:h-10 [&_.icon]:w-10 hover:[&_.icon]:fill-secondary! hover:[&_.icon]:stroke-secondary! focus:[&_.icon]:fill-secondary! focus:[&_.icon]:stroke-secondary! focus:outline-none"
-          >
-            <span class="sr-only">RSS Feed</span>
-            <span><Icon name="feed" variant="inherit" /></span>
-          </a>
-        </span>
+          </div>
+
+          <div class={styles.footerBottomActions}>
+            {/* Page footer RSS link */}
+            <a
+              href={`${getSiteUrl()}/rss.xml`}
+              title="RSS Feed"
+              class:list={[
+                styles.footerFeedIcon,
+                styles.footerIconButton,
+              ]}
+            >
+              <span class="sr-only">RSS Feed</span>
+              <Icon name="feed" variant="inherit" />
+            </a>
+
+            {/* Page footer Bug Reporter trigger */}
+            <button
+              id="bugReporterTrigger"
+              type="button"
+              title="Report a bug"
+              class:list={[
+                styles.footerFeedIcon,
+                styles.footerIconButton,
+              ]}
+            >
+              <span class="sr-only">Report a bug</span>
+              <Icon name="bug" variant="inherit" />
+            </button>
+          </div>
+        </div>
       </div>
+
       {/* Page footer Author link and Date */}
-      <div class:list={[styles.footerCopyright, 'flex justify-center py-4 sm:p-0 lg:mt-2']}>
+      <div class:list={[styles.footerCopyright, 'flex justify-center py-4 sm:p-0 lg:mt-4']}>
         <span>
           &copy; 2018&ndash;{year}
         </span>
@@ -170,36 +204,12 @@ const year = new Date().getFullYear()
           <a
             rel="me"
             href={getSiteUrl()}
-            class="hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary focus:outline-none"
+            class="hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary"
           >
             {contactData.company.name}
           </a>
         </span>
       </div>
-      {/* Page footer RSS link */}
-      <span class:list={[styles.footerFeedIcon, 'flex items-center w-12 lg:h-12 lg:w-12']}>
-        <a
-          href={`${getSiteUrl()}/rss.xml`}
-          title="RSS Feed"
-          class="[&_.icon]:fill-content! [&_.icon]:stroke-icons! [&_.icon]:h-10 [&_.icon]:w-10 hover:[&_.icon]:fill-secondary! hover:[&_.icon]:stroke-secondary! focus:[&_.icon]:fill-secondary! focus:[&_.icon]:stroke-secondary! focus:outline-none"
-        >
-          <span class="sr-only">RSS Feed</span>
-          <span><Icon name="feed" variant="inherit" /></span>
-        </a>
-      </span>
-
-      {/* Page footer Bug Reporter trigger */}
-      <span class:list={[styles.footerFeedIcon, 'flex items-center w-12 lg:h-12 lg:w-12']}>
-        <button
-          id="bugReporterTrigger"
-          type="button"
-          title="Report a bug"
-          class="[&_.icon]:fill-content! [&_.icon]:stroke-icons! [&_.icon]:h-10 [&_.icon]:w-10 hover:[&_.icon]:fill-secondary! hover:[&_.icon]:stroke-secondary! focus:[&_.icon]:fill-secondary! focus:[&_.icon]:stroke-secondary! focus:outline-none"
-        >
-          <span class="sr-only">Report a bug</span>
-          <span><Icon name="bug" variant="inherit" /></span>
-        </button>
-      </span>
 
       <BugReporter triggerId="bugReporterTrigger" />
     </div>

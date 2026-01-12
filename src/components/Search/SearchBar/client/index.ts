@@ -5,6 +5,7 @@ import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
+import { addButtonEventListeners, addWrapperEventListeners } from '@components/scripts/elementListeners'
 import { getSearchBarElements, getSearchBarOptionalElements } from './selectors'
 import type { SearchHit } from '@actions/search/@types'
 import {
@@ -150,22 +151,22 @@ export class SearchBarElement extends LitElement {
     }
 
     if (this.toggleBtn && !this.toggleBtn.dataset['searchListener']) {
-      this.toggleBtn.addEventListener('click', this.handleToggleClick)
+      addButtonEventListeners(this.toggleBtn, this.handleToggleClick)
       this.toggleBtn.dataset['searchListener'] = 'true'
     }
 
     if (this.clearBtn && !this.clearBtn.dataset['searchListener']) {
-      this.clearBtn.addEventListener('click', this.handleClearClick)
+      addButtonEventListeners(this.clearBtn, this.handleClearClick)
       this.clearBtn.dataset['searchListener'] = 'true'
     }
 
     if (this.micBtn && !this.micBtn.dataset['searchListener']) {
-      this.micBtn.addEventListener('click', this.handleMicClick)
+      addButtonEventListeners(this.micBtn, this.handleMicClick)
       this.micBtn.dataset['searchListener'] = 'true'
     }
 
     if (!this.dataset['searchKeyListener']) {
-      this.addEventListener('keydown', this.handleKeyDown)
+      addWrapperEventListeners(this, this.handleEscapeKeyUp)
       this.dataset['searchKeyListener'] = 'true'
     }
   }
@@ -267,13 +268,13 @@ export class SearchBarElement extends LitElement {
       return this.speechRecognition
     }
 
-    const ctor = this.getSpeechRecognitionCtor()
-    if (!ctor) {
+    const Ctor = this.getSpeechRecognitionCtor()
+    if (!Ctor) {
       return null
     }
 
     // Lazily create recognition; keeps SSR/older browsers safe.
-    const recognition = new ctor()
+    const recognition = new Ctor()
     recognition.continuous = false
     recognition.interimResults = true
 
@@ -428,8 +429,12 @@ export class SearchBarElement extends LitElement {
     this.expand()
   }
 
-  private readonly handleKeyDown = (event: KeyboardEvent) => {
+  private readonly handleEscapeKeyUp = (event: Event) => {
     if (!this.toggleBtn) {
+      return
+    }
+
+    if (!(event instanceof KeyboardEvent)) {
       return
     }
 
