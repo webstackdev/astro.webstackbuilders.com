@@ -24,6 +24,8 @@ export interface Props {
   author?: string
   /** Optional title override for the breadcrumbs UI */
   breadcrumbTitle?: string
+  /** Hide breadcrumbs on mobile viewports (sm and below) */
+  hideBreadcrumbsOnMobile?: boolean
   /** Enforce that child is passed to slot */
   children: unknown
   /** Optional metadata for articles */
@@ -54,6 +56,7 @@ const {
   breadcrumbTitle,
   contentType,
   description,
+  hideBreadcrumbsOnMobile = false,
   modifiedDate,
   noindex,
   pageTitle,
@@ -101,7 +104,9 @@ const {
       <Container id="main-content">
         <ThemePicker />
         <Header path={path} />
-        <Breadcrumbs path={path} pageTitle={breadcrumbTitle ?? pageTitle} />
+        <div class:list={[hideBreadcrumbsOnMobile ? 'hidden sm:block' : 'block']}>
+          <Breadcrumbs path={path} pageTitle={breadcrumbTitle ?? pageTitle} />
+        </div>
         {/* SLOT: default (unnamed) - Main page content */}
         <Content>
           <slot />

@@ -79,6 +79,8 @@ export interface Props {
   section: string
   /** Whether to show table of contents */
   showToc?: boolean
+  /** Hide breadcrumbs on mobile viewports (sm and below) */
+  hideBreadcrumbsOnMobile?: boolean
   /** Optional page subtitle or excerpt */
   subtitle?: string
   /** Content tags */
@@ -91,6 +93,7 @@ const {
   contentClass = '',
   contentType = 'article',
   description,
+  hideBreadcrumbsOnMobile = false,
   modifiedDate,
   pageTitle,
   path,
@@ -115,18 +118,19 @@ const shouldRenderToc = showToc !== false && tocHeadings.length > 0
   path={path}
   description={description}
   contentType={contentType}
+  hideBreadcrumbsOnMobile={hideBreadcrumbsOnMobile}
   {...publishDate && { publishDate }}
   {...modifiedDate && { modifiedDate }}
   {...author && { author }}
   {...tags && { tags }}
 >
   <article
-    class={`mx-auto py-8 ${contentClass}`}
+    class={`mx-auto py-4 ${contentClass}`}
     itemscope
     itemtype={schemaType}
     aria-labelledby="article-title"
   >
-    <header class="mb-8">
+    <header class="mb-4 sm:mb-6">
       <Title pageTitle={pageTitle} />
       {subtitle && <Subtitle subtitle={subtitle} />}
       {
