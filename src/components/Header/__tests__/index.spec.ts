@@ -50,6 +50,11 @@ describe('Header (Astro)', () => {
       expect(themeSvg?.getAttribute('aria-hidden')).toBe('true')
       expect(themeSvg?.getAttribute('focusable')).toBe('false')
       expect(themeSvg?.querySelector('title')).toBeNull()
+
+      const searchToggleButton = window.document.querySelector('button[data-search-toggle]')
+      expect(searchToggleButton).toBeTruthy()
+      expect(searchToggleButton?.getAttribute('aria-label')).toBe('Search')
+      expect(searchToggleButton?.getAttribute('aria-expanded')).toBe('false')
     })
   })
 })

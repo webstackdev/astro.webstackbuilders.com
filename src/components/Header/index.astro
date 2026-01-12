@@ -1,6 +1,7 @@
 ---
 import Brand from '@components/Brand/index.astro'
 import Navigation from '@components/Navigation/index.astro'
+import SearchBar from '@components/Search/SearchBar/index.astro'
 import ThemeButton from '@components/ThemePicker/ThemeButton.astro'
 
 export interface Props {
@@ -17,17 +18,26 @@ const { path } = Astro.props
     --header-icon-size: calc(3.5em * 0.75);
     --header-icon-svg-size: calc(var(--header-icon-size) * 0.7);
     --circle-stroke: calc(var(--header-icon-size) * 2 * 3.1416);
+    --header-search-panel-width: 18rem;
+    --header-search-panel-overhang: calc(var(--header-icon-size) + 0.5rem);
+    --header-search-panel-width-open: calc(var(--header-search-panel-width) + var(--header-search-panel-overhang));
+    --header-search-panel-right: calc(-1 * var(--header-search-panel-overhang));
   }
 
   @media (width >= 640px) {
     :root {
       --header-icon-size: calc(3.5em * 0.85);
+      --header-search-panel-width: 20rem;
     }
   }
 
   @media (width >= 1024px) {
     :root {
       --header-icon-size: calc(3.5em);
+      --header-search-panel-width: 24rem;
+      --header-search-panel-overhang: 0px;
+      --header-search-panel-width-open: var(--header-search-panel-width);
+      --header-search-panel-right: 0px;
     }
   }
 
@@ -79,8 +89,16 @@ const { path } = Astro.props
   {/* Theme picker toggle button to show modal */}
   <span
     id="header__theme-icon"
-    class="order-3 lg:order-4 ml-2 mr-2 lg:mr-0 shrink-0 w-(--header-icon-size) relative z-(--z-content-overlay)"
+    class="order-3 lg:order-4 ml-2 mr-2 block shrink-0 w-(--header-icon-size) h-(--header-icon-size) relative z-(--z-content-overlay)"
   >
     <ThemeButton />
+  </span>
+
+  {/* Header search icon that expands left into a search panel */}
+  <span
+    id="header__search-icon"
+    class="order-4 lg:order-5 mr-2 lg:mr-0 block shrink-0 w-(--header-icon-size) h-(--header-icon-size) relative z-(--z-content-overlay) lg:z-(--z-nav)"
+  >
+    <SearchBar variant="header" />
   </span>
 </header>

@@ -1,34 +1,121 @@
 ---
+import Icon from '@components/Icon/index.astro'
+
 export interface Props {
   placeholder?: string
   initialQuery?: string
+  variant?: 'page' | 'header'
+  initialExpanded?: boolean
 }
 
-const { placeholder = 'Search…', initialQuery = '' } = Astro.props
+const {
+  placeholder = 'Search…',
+  initialQuery = '',
+  variant = 'page',
+  initialExpanded = false,
+} = Astro.props
+
+const isHeaderVariant = variant === 'header'
+const isExpandedOnLoad = isHeaderVariant ? initialExpanded || initialQuery.trim().length > 0 : true
 ---
 
-<search-bar class="relative block" data-testid="search-bar">
-  <form data-search-form class="relative" role="search" aria-label="Site search">
-    <label class="sr-only" for="site-search-input">Search</label>
-    <input
-      id="site-search-input"
-      data-search-input
-      type="search"
-      inputmode="search"
-      autocomplete="off"
-      placeholder={placeholder}
-      value={initialQuery}
-      class="w-full rounded-lg border border-trim bg-page-base px-4 py-3 placeholder:text-content-active focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-    />
-  </form>
+<style>
+  search-bar[data-search-variant='header'] button[data-search-toggle][data-state='open'] .icon--search {
+    color: var(--color-primary);
+    fill: var(--color-primary);
+  }
 
-  <div
-    data-search-results
-    class="absolute left-0 right-0 z-(--z-content-floating) mt-2 hidden overflow-hidden rounded-lg border border-trim bg-content-inverse shadow-elevated"
-  >
-    <ul data-search-results-list class="divide-y divide-border" aria-label="Search suggestions">
-    </ul>
-  </div>
+  /* Tailwind Forms normalizes inputs with appearance resets, which removes the native
+     type="search" clear (X). Restore searchfield appearance for the header search. */
+  search-bar[data-search-variant='header'] input[type='search'] {
+    -webkit-appearance: searchfield;
+    appearance: searchfield;
+  }
+
+  search-bar[data-search-variant='header'] input[type='search']::-webkit-search-cancel-button {
+    height: 1.25rem;
+    width: 1.25rem;
+    cursor: pointer;
+  }
+</style>
+
+<search-bar class="relative block" data-testid="search-bar" data-search-variant={variant}>
+  {
+    isHeaderVariant ? (
+      <div
+        data-search-panel
+        data-state={isExpandedOnLoad ? 'open' : 'closed'}
+        class="relative z-(--z-content-overlay) w-(--header-icon-size) h-(--header-icon-size) data-[state=open]:absolute data-[state=open]:top-0 data-[state=open]:right-(--header-search-panel-right) data-[state=open]:w-(--header-search-panel-width-open) data-[state=open]:z-(--z-modal)"
+      >
+        <form
+          data-search-form
+          data-state={isExpandedOnLoad ? 'open' : 'closed'}
+          class="flex items-center w-full h-(--header-icon-size) overflow-hidden rounded-full data-[state=open]:border data-[state=open]:border-trim data-[state=open]:bg-page-base data-[state=open]:shadow-elevated"
+          role="search"
+          aria-label="Site search"
+        >
+          <input
+            data-search-input
+            type="search"
+            inputmode="search"
+            autocomplete="off"
+            aria-label="Search"
+            placeholder={placeholder}
+            value={initialQuery}
+            class:list={[
+              'min-w-0 flex-1 h-(--header-icon-size) bg-transparent px-4 text-sm placeholder:text-content-active border-0 focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 focus:ring-offset-0 focus-visible:ring-offset-0',
+              !isExpandedOnLoad && 'hidden',
+            ]}
+          />
+
+          <button
+            data-search-toggle
+            type="button"
+            aria-label="Search"
+            aria-expanded={isExpandedOnLoad ? 'true' : 'false'}
+            data-state={isExpandedOnLoad ? 'open' : 'closed'}
+            class="relative inline-flex items-center justify-center w-(--header-icon-size) h-(--header-icon-size) shrink-0 rounded-full border-0 bg-primary hover:bg-primary-offset focus:bg-primary-offset focus:outline-none focus-visible:bg-primary-offset transition-colors duration-150 ease-linear data-[state=open]:bg-transparent data-[state=open]:hover:bg-transparent data-[state=open]:focus:bg-transparent data-[state=open]:focus-visible:bg-transparent"
+          >
+            <Icon
+              name="search"
+              size="var(--header-icon-svg-size)"
+              variant="custom"
+              class="fill-page-base text-page-base"
+            />
+          </button>
+        </form>
+
+        <div
+          data-search-results
+          class="absolute left-0 right-0 z-(--z-content-floating) mt-2 hidden overflow-hidden rounded-lg border border-trim bg-content-inverse shadow-elevated"
+        >
+          <ul data-search-results-list class="divide-y divide-border" aria-label="Search suggestions"></ul>
+        </div>
+      </div>
+    ) : (
+      <>
+        <form data-search-form class="relative" role="search" aria-label="Site search">
+          <input
+            data-search-input
+            type="search"
+            inputmode="search"
+            autocomplete="off"
+            aria-label="Search"
+            placeholder={placeholder}
+            value={initialQuery}
+            class="w-full rounded-lg border border-trim bg-page-base px-4 py-3 placeholder:text-content-active focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          />
+        </form>
+
+        <div
+          data-search-results
+          class="absolute left-0 right-0 z-(--z-content-floating) mt-2 hidden overflow-hidden rounded-lg border border-trim bg-content-inverse shadow-elevated"
+        >
+          <ul data-search-results-list class="divide-y divide-border" aria-label="Search suggestions"></ul>
+        </div>
+      </>
+    )
+  }
 
   <script>
     import { registerSearchBarComponent } from '@components/Search/SearchBar/client'

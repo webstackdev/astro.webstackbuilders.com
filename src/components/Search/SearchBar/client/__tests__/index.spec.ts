@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import SearchBarFixture from '@components/Search/SearchBar/client/__fixtures__/index.fixture.astro'
+import SearchBarHeaderFixture from '@components/Search/SearchBar/client/__fixtures__/header.fixture.astro'
 import type { SearchBarElement as SearchBarElementInstance } from '../index'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { executeRender } from '@test/unit/helpers/litRuntime'
@@ -47,6 +48,28 @@ describe('SearchBar web component', () => {
     await executeRender<SearchBarModule>({
       container,
       component: SearchBarFixture,
+      moduleSpecifier: '@components/Search/SearchBar/client/index',
+      waitForReady: async (element: SearchBarElementInstance) => {
+        await element.updateComplete
+      },
+      assert: async ({ element, window }) => {
+        if (!window) {
+          throw new Error('Missing JSDOM window for SearchBar test.')
+        }
+        await assertion({ element, window })
+      },
+    })
+  }
+
+  const runHeaderComponentRender = async (
+    assertion: (_context: {
+      element: SearchBarElementInstance
+      window: Window & typeof globalThis
+    }) => Promise<void> | void
+  ): Promise<void> => {
+    await executeRender<SearchBarModule>({
+      container,
+      component: SearchBarHeaderFixture,
       moduleSpecifier: '@components/Search/SearchBar/client/index',
       waitForReady: async (element: SearchBarElementInstance) => {
         await element.updateComplete
@@ -107,5 +130,27 @@ describe('SearchBar web component', () => {
     })
 
     vi.useRealTimers()
+  })
+
+  it('toggles open and closes on Escape in header variant', async () => {
+    await runHeaderComponentRender(async ({ element, window }) => {
+      const toggleBtn = element.querySelector('[data-search-toggle]') as HTMLButtonElement
+      const input = element.querySelector('[data-search-input]') as HTMLInputElement
+
+      expect(toggleBtn.getAttribute('aria-expanded')).toBe('false')
+      expect(input.classList.contains('hidden')).toBe(true)
+
+      toggleBtn.click()
+      await flushMicrotasks()
+
+      expect(toggleBtn.getAttribute('aria-expanded')).toBe('true')
+      expect(input.classList.contains('hidden')).toBe(false)
+
+      input.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+      await flushMicrotasks()
+
+      expect(toggleBtn.getAttribute('aria-expanded')).toBe('false')
+      expect(input.classList.contains('hidden')).toBe(true)
+    })
   })
 })

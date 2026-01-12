@@ -90,6 +90,31 @@ if (window.matchMedia) {
 }
 ```
 
+## Home Page Ordering
+
+- Hero
+- About Preview ("Building the Future of Software Development")
+- Featured Services
+- (Todo) Turn-Key Backstage IDP Implementation
+- Testimonials
+- Latest Articles
+- Primary CTA ("Ready to Transform Your Development Process?") with links to /contact and /services
+- Newsletter Signup
+- Skills/Technologies Preview
+
+Maybe change the "ready..." in the hero to "get in touch..."
+
+## Search Box
+
+1. Need to make sure we have an action to update the search index on content changes
+2. Need to get the "x" back to clear search terms
+3. Maybe need a 1px border
+4. Hide the nav link items on desktop and the company name is hidden on mobile when the search box is out
+5. Make sure state is being kept in nanostores
+6. What happens when search query exceeds size of search box? Drop down to second line?
+7. Need to improve quality of search results in drop down box - maybe some description text for each item
+8. Style drop down box of search results from search box
+
 ## Image generation models
 
 - dall-e (OpenAI)
@@ -109,10 +134,6 @@ Aesthetics and Realism: It generates images that are very realistic, with impres
 High Resolution: Seedream 4.0 is capable of generating native high-resolution images, up to 4K (4096px), which is a significant advantage over many competing models that are often capped at 2K.
 
 Complex Text and Instruction Following: The model demonstrates an enhanced understanding of complex semantic prompts and excels in rendering dense and accurate text within the generated images, a common weakness in other AI image models.
-
-## Move Tags Page
-
-The /tags route is really just the /articles route but better. We should redirect from /tags to /articles, and fix the breadcrumb so that it goes to /articles if someone clicks on the /tags part.
 
 ## Content Instructions
 

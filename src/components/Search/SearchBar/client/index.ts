@@ -5,7 +5,7 @@ import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
-import { getSearchBarElements } from './selectors'
+import { getSearchBarElements, getSearchBarOptionalElements } from './selectors'
 import type { SearchHit } from '@actions/search/@types'
 
 export class SearchBarElement extends LitElement {
@@ -15,6 +15,12 @@ export class SearchBarElement extends LitElement {
   private input: HTMLInputElement | null = null
   private resultsContainer: HTMLElement | null = null
   private resultsList: HTMLUListElement | null = null
+
+  private toggleBtn: HTMLButtonElement | null = null
+  private panel: HTMLElement | null = null
+  private isExpanded = true
+
+  private isOutsideListenersAttached = false
 
   private debounceHandle: ReturnType<typeof setTimeout> | null = null
   private latestRequestId = 0
@@ -35,16 +41,32 @@ export class SearchBarElement extends LitElement {
       this.debounceHandle = null
     }
 
+    this.detachOutsideListeners()
+
     super.disconnectedCallback()
   }
 
   private cacheElements(): void {
     const { form, input, resultsContainer, resultsList } = getSearchBarElements(this)
+    const { toggleBtn, panel } = getSearchBarOptionalElements(this)
 
     this.form = form
     this.input = input
     this.resultsContainer = resultsContainer
     this.resultsList = resultsList
+
+    this.toggleBtn = toggleBtn
+    this.panel = panel
+    this.isExpanded = this.getIsExpandedFromDom()
+  }
+
+  private getIsExpandedFromDom(): boolean {
+    if (!this.toggleBtn) {
+      return true
+    }
+
+    const expanded = this.toggleBtn.getAttribute('aria-expanded')
+    return expanded === 'true'
   }
 
   private attachListeners(): void {
@@ -67,6 +89,156 @@ export class SearchBarElement extends LitElement {
       this.resultsContainer.addEventListener('mousedown', this.handleResultsMouseDown)
       this.resultsContainer.dataset['searchListener'] = 'true'
     }
+
+    if (this.toggleBtn && !this.toggleBtn.dataset['searchListener']) {
+      this.toggleBtn.addEventListener('click', this.handleToggleClick)
+      this.toggleBtn.dataset['searchListener'] = 'true'
+    }
+
+    if (!this.dataset['searchKeyListener']) {
+      this.addEventListener('keydown', this.handleKeyDown)
+      this.dataset['searchKeyListener'] = 'true'
+    }
+  }
+
+  private setExpandedState(isExpanded: boolean): void {
+    this.isExpanded = isExpanded
+
+    if (this.toggleBtn) {
+      this.toggleBtn.setAttribute('aria-expanded', isExpanded ? 'true' : 'false')
+      this.toggleBtn.setAttribute('data-state', isExpanded ? 'open' : 'closed')
+    }
+
+    const state = isExpanded ? 'open' : 'closed'
+    this.panel?.setAttribute('data-state', state)
+    this.form?.setAttribute('data-state', state)
+
+    if (this.input) {
+      if (isExpanded) {
+        this.input.classList.remove('hidden')
+      } else {
+        this.input.classList.add('hidden')
+      }
+    }
+
+    if (!isExpanded) {
+      this.clearResults()
+      this.hideResults()
+      this.detachOutsideListeners()
+    } else {
+      this.attachOutsideListeners()
+    }
+  }
+
+  private expand(): void {
+    if (!this.toggleBtn) {
+      return
+    }
+
+    this.setExpandedState(true)
+    this.input?.focus()
+  }
+
+  private collapse({ restoreFocus = true }: { restoreFocus?: boolean } = {}): void {
+    if (!this.toggleBtn) {
+      return
+    }
+
+    this.setExpandedState(false)
+
+    if (restoreFocus) {
+      this.toggleBtn.focus()
+    }
+  }
+
+  private attachOutsideListeners(): void {
+    if (!this.toggleBtn) {
+      return
+    }
+
+    if (this.isOutsideListenersAttached) {
+      return
+    }
+
+    document.addEventListener('pointerdown', this.handleDocumentPointerDown, true)
+    document.addEventListener('focusin', this.handleDocumentFocusIn, true)
+    this.isOutsideListenersAttached = true
+  }
+
+  private detachOutsideListeners(): void {
+    if (!this.isOutsideListenersAttached) {
+      return
+    }
+
+    document.removeEventListener('pointerdown', this.handleDocumentPointerDown, true)
+    document.removeEventListener('focusin', this.handleDocumentFocusIn, true)
+    this.isOutsideListenersAttached = false
+  }
+
+  private isEventTargetInsideSelf(eventTarget: EventTarget | null): boolean {
+    if (!eventTarget) {
+      return false
+    }
+
+    if (!(eventTarget instanceof Node)) {
+      return false
+    }
+
+    return this.contains(eventTarget)
+  }
+
+  private readonly handleToggleClick = () => {
+    if (!this.toggleBtn) {
+      return
+    }
+
+    if (this.isExpanded) {
+      this.collapse({ restoreFocus: true })
+      return
+    }
+
+    this.expand()
+  }
+
+  private readonly handleKeyDown = (event: KeyboardEvent) => {
+    if (!this.toggleBtn) {
+      return
+    }
+
+    if (event.key !== 'Escape') {
+      return
+    }
+
+    if (!this.isExpanded) {
+      return
+    }
+
+    event.preventDefault()
+    this.collapse({ restoreFocus: true })
+  }
+
+  private readonly handleDocumentPointerDown = (event: PointerEvent) => {
+    if (!this.toggleBtn || !this.isExpanded) {
+      return
+    }
+
+    if (this.isEventTargetInsideSelf(event.target)) {
+      return
+    }
+
+    this.collapse({ restoreFocus: false })
+  }
+
+  private readonly handleDocumentFocusIn = (event: FocusEvent) => {
+    if (!this.toggleBtn || !this.isExpanded) {
+      return
+    }
+
+    if (this.isEventTargetInsideSelf(event.target)) {
+      return
+    }
+
+    this.collapse({ restoreFocus: false })
   }
 
   private readonly handleResultsMouseDown = () => {
@@ -94,6 +266,11 @@ export class SearchBarElement extends LitElement {
 
   private readonly handleSubmit = (event: Event) => {
     event.preventDefault()
+
+    if (this.toggleBtn && !this.isExpanded) {
+      this.expand()
+      return
+    }
 
     const query = this.getQuery()
     if (!query) {
