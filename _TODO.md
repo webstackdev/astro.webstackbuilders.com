@@ -106,10 +106,7 @@ Maybe change the "ready..." in the hero to "get in touch..."
 
 ## Search Box
 
-2. Need to get the "x" back to clear search terms
 3. Maybe need a 1px border
-4. Hide the nav link items on desktop and the company name is hidden on mobile when the search box is out
-5. Make sure state is being kept in nanostores
 6. What happens when search query exceeds size of search box? Drop down to second line?
 7. Need to improve quality of search results in drop down box - maybe some description text for each item
 8. Style drop down box of search results from search box

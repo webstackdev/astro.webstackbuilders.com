@@ -11,6 +11,7 @@ export const SELECTORS = {
 export const OPTIONAL_SELECTORS = {
   toggleBtn: '[data-search-toggle]',
   panel: '[data-search-panel]',
+  clearBtn: '[data-search-clear]',
 } as const
 
 /**
@@ -64,9 +65,11 @@ export function getSearchBarElements(context: Element) {
 export function getSearchBarOptionalElements(context: Element) {
   const toggleBtn = context.querySelector(OPTIONAL_SELECTORS.toggleBtn)
   const panel = context.querySelector(OPTIONAL_SELECTORS.panel)
+  const clearBtn = context.querySelector(OPTIONAL_SELECTORS.clearBtn)
 
   return {
     toggleBtn: toggleBtn instanceof HTMLButtonElement ? toggleBtn : null,
     panel: panel instanceof HTMLElement ? panel : null,
+    clearBtn: clearBtn instanceof HTMLButtonElement ? clearBtn : null,
   }
 }

@@ -24,6 +24,7 @@ export class SearchBarElement extends LitElement {
 
   private toggleBtn: HTMLButtonElement | null = null
   private panel: HTMLElement | null = null
+  private clearBtn: HTMLButtonElement | null = null
   private isExpanded = true
 
   private isOutsideListenersAttached = false
@@ -61,7 +62,7 @@ export class SearchBarElement extends LitElement {
 
   private cacheElements(): void {
     const { form, input, resultsContainer, resultsList } = getSearchBarElements(this)
-    const { toggleBtn, panel } = getSearchBarOptionalElements(this)
+    const { toggleBtn, panel, clearBtn } = getSearchBarOptionalElements(this)
 
     this.form = form
     this.input = input
@@ -70,7 +71,10 @@ export class SearchBarElement extends LitElement {
 
     this.toggleBtn = toggleBtn
     this.panel = panel
+    this.clearBtn = clearBtn
     this.isExpanded = this.toggleBtn ? getHeaderSearchExpanded() : this.getIsExpandedFromDom()
+
+    this.updateClearButtonVisibility()
   }
 
   private initHeaderExpandedState(): void {
@@ -144,6 +148,11 @@ export class SearchBarElement extends LitElement {
       this.toggleBtn.dataset['searchListener'] = 'true'
     }
 
+    if (this.clearBtn && !this.clearBtn.dataset['searchListener']) {
+      this.clearBtn.addEventListener('click', this.handleClearClick)
+      this.clearBtn.dataset['searchListener'] = 'true'
+    }
+
     if (!this.dataset['searchKeyListener']) {
       this.addEventListener('keydown', this.handleKeyDown)
       this.dataset['searchKeyListener'] = 'true'
@@ -164,6 +173,7 @@ export class SearchBarElement extends LitElement {
     if (this.toggleBtn) {
       this.toggleBtn.setAttribute('aria-expanded', isExpanded ? 'true' : 'false')
       this.toggleBtn.setAttribute('data-state', isExpanded ? 'open' : 'closed')
+      this.toggleBtn.toggleAttribute('hidden', isExpanded)
     }
 
     const state = isExpanded ? 'open' : 'closed'
@@ -185,6 +195,19 @@ export class SearchBarElement extends LitElement {
     } else {
       this.attachOutsideListeners()
     }
+
+    this.updateClearButtonVisibility()
+  }
+
+  private updateClearButtonVisibility(): void {
+    if (!this.clearBtn) {
+      return
+    }
+
+    const query = this.getQuery()
+    const shouldShow = this.isExpanded
+    this.clearBtn.toggleAttribute('hidden', !shouldShow)
+    this.clearBtn.setAttribute('aria-label', query.length > 0 ? 'Clear search' : 'Close search')
   }
 
   private expand(): void {
@@ -338,6 +361,8 @@ export class SearchBarElement extends LitElement {
   }
 
   private readonly handleInput = () => {
+    this.updateClearButtonVisibility()
+
     const query = this.getQuery()
 
     if (!query || query.length < 2) {
@@ -357,6 +382,25 @@ export class SearchBarElement extends LitElement {
 
   private getQuery(): string {
     return (this.input?.value ?? '').trim()
+  }
+
+  private readonly handleClearClick = () => {
+    if (!this.input) {
+      return
+    }
+
+    const query = this.getQuery()
+
+    if (query.length === 0) {
+      this.collapse({ restoreFocus: true })
+      return
+    }
+
+    this.input.value = ''
+    this.updateClearButtonVisibility()
+    this.clearResults()
+    this.hideResults()
+    this.input.focus()
   }
 
   private showResults(): void {

@@ -136,21 +136,54 @@ describe('SearchBar web component', () => {
     await runHeaderComponentRender(async ({ element, window }) => {
       const toggleBtn = element.querySelector('[data-search-toggle]') as HTMLButtonElement
       const input = element.querySelector('[data-search-input]') as HTMLInputElement
+      const clearBtn = element.querySelector('[data-search-clear]') as HTMLButtonElement
 
       expect(toggleBtn.getAttribute('aria-expanded')).toBe('false')
       expect(input.classList.contains('hidden')).toBe(true)
+      expect(toggleBtn.hasAttribute('hidden')).toBe(false)
+      expect(clearBtn.hasAttribute('hidden')).toBe(true)
 
       toggleBtn.click()
       await flushMicrotasks()
 
       expect(toggleBtn.getAttribute('aria-expanded')).toBe('true')
       expect(input.classList.contains('hidden')).toBe(false)
+      expect(toggleBtn.hasAttribute('hidden')).toBe(true)
+      expect(clearBtn.hasAttribute('hidden')).toBe(false)
 
       input.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
       await flushMicrotasks()
 
       expect(toggleBtn.getAttribute('aria-expanded')).toBe('false')
       expect(input.classList.contains('hidden')).toBe(true)
+      expect(toggleBtn.hasAttribute('hidden')).toBe(false)
+      expect(clearBtn.hasAttribute('hidden')).toBe(true)
+    })
+  })
+
+  it('shows a custom clear button and clears the query in header variant', async () => {
+    await runHeaderComponentRender(async ({ element, window }) => {
+      const toggleBtn = element.querySelector('[data-search-toggle]') as HTMLButtonElement
+      const input = element.querySelector('[data-search-input]') as HTMLInputElement
+      const clearBtn = element.querySelector('[data-search-clear]') as HTMLButtonElement
+
+      expect(clearBtn.hasAttribute('hidden')).toBe(true)
+
+      toggleBtn.click()
+      await flushMicrotasks()
+
+      input.value = 'ab'
+      input.dispatchEvent(new window.Event('input', { bubbles: true }))
+      await flushMicrotasks()
+
+      expect(clearBtn.hasAttribute('hidden')).toBe(false)
+
+      clearBtn.click()
+      await flushMicrotasks()
+
+      expect(input.value).toBe('')
+      // Still open; button switches to "Close search" mode.
+      expect(clearBtn.hasAttribute('hidden')).toBe(false)
     })
   })
 })
