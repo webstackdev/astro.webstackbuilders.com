@@ -9,6 +9,7 @@ import type { MarkdownHeading } from 'astro'
 import BaseLayout from '@layouts/BaseLayout.astro'
 import Lead from '@components/Layout/Markdown/Lead/index.astro'
 import Subtitle from '@components/Layout/Markdown/Subtitle/index.astro'
+import Tags from '@components/Layout/Markdown/Tags/index.astro'
 import Title from '@components/Layout/Markdown/Title/index.astro'
 import Toc from '@components/Toc/index.astro'
 
@@ -131,6 +132,11 @@ const shouldRenderToc = showToc !== false && tocHeadings.length > 0
     aria-labelledby="article-title"
   >
     <header class="mb-4 sm:mb-6">
+      {tags && tags.length > 0 && (
+        <div class="mb-2">
+          <Tags tags={tags} />
+        </div>
+      )}
       <Title pageTitle={pageTitle} />
       {subtitle && <Subtitle subtitle={subtitle} />}
       {
