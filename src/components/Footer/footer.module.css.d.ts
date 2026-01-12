@@ -16,6 +16,7 @@ declare const styles: {
   readonly footerBottomLink: string
   readonly footerBottomLinkTitle: string
   readonly footerBottomLinkDescription: string
+  readonly footerBottomLinkDescriptionText: string
   readonly footerCopyright: string
   readonly footerHireMe: string
   readonly footerHireMeAnchor: string
