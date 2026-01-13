@@ -124,7 +124,7 @@ describe('CodeTabs web component', () => {
       expect(tabButton, 'CodeTabs should render a tab button for a single named code block').toBeTruthy()
       expect(tabButton?.textContent).toBe('TypeScript')
       expect(
-        tabButton?.className.includes('hover:text-gray-600'),
+        tabButton?.className.includes('hover:text-content-active'),
         'Single-tab UI should not change text color on hover'
       ).toBe(false)
     })
@@ -159,12 +159,12 @@ describe('CodeTabs web component', () => {
       expect(inactiveButton).toBeTruthy()
 
       expect(
-        activeButton?.className.includes('hover:text-gray-600'),
+        activeButton?.className.includes('hover:text-content-active'),
         'Active tab should not change text color on hover'
       ).toBe(false)
 
       expect(
-        inactiveButton?.className.includes('hover:text-gray-600'),
+        inactiveButton?.className.includes('hover:text-content-active'),
         'Inactive tab should change text color on hover'
       ).toBe(true)
     })

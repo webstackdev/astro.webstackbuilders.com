@@ -120,7 +120,7 @@ class CodeTabsElement extends HTMLElement {
   private buildUi(args: { shouldRenderTabs: boolean; labels: string[] }): void {
     const header = document.createElement('div')
     header.className =
-      'flex w-full min-w-0 items-center justify-between border-b border-gray-200 bg-gray-50'
+      'flex w-full min-w-0 items-center justify-between bg-page-base-offset'
 
     const copyButton = this.createCopyButton()
 
@@ -136,7 +136,7 @@ class CodeTabsElement extends HTMLElement {
 
         const button = document.createElement('button')
         button.type = 'button'
-        button.className = 'inline-block px-2 py-1 m-2 text-gray-400'
+        button.className = 'inline-block px-2 py-1 m-2 text-content-offset'
         button.textContent = tabLabel
         button.setAttribute('data-code-tabs-button', String(index))
 
@@ -168,7 +168,7 @@ class CodeTabsElement extends HTMLElement {
     const button = document.createElement('button')
     button.type = 'button'
     button.className =
-      'flex shrink-0 items-center gap-2 mr-2 px-3 py-2 text-gray-600 hover:text-gray-900 border-l border-gray-200'
+      'flex shrink-0 items-center gap-2 mr-2 px-3 py-2 text-content hover:text-content-active'
     button.setAttribute('aria-label', tooltip)
     button.title = tooltip
 
@@ -203,18 +203,18 @@ class CodeTabsElement extends HTMLElement {
 
     this.tabButtons.forEach((btn, i) => {
       const isActive = i === index
-      btn.classList.toggle('text-gray-900', isActive)
-      btn.classList.toggle('text-gray-400', !isActive)
+      btn.classList.toggle('text-content', isActive)
+      btn.classList.toggle('text-content-offset', !isActive)
 
       // Hover color behavior:
       // - Single-tab UI: no hover color change.
       // - Multi-tab UI: inactive tabs change color on hover; active tab does not.
       if (!this.isInteractiveTabs) {
-        btn.classList.remove('hover:text-gray-600')
+        btn.classList.remove('hover:text-content-active')
         return
       }
 
-      btn.classList.toggle('hover:text-gray-600', !isActive)
+      btn.classList.toggle('hover:text-content-active', !isActive)
     })
   }
 

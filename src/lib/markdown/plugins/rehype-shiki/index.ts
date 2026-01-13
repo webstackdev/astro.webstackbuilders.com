@@ -304,7 +304,6 @@ const rehypeShiki: Plugin<[RehypeShikiOptions], Root> = (options: RehypeShikiOpt
         highlightedPre.properties[key] = value as never
       }
 
-      highlightedPre.properties['tabIndex'] = 0
       highlightedPre.properties['data-language'] = replacement.lang
 
       highlightedPre.properties['className'] = mergeClassNames(

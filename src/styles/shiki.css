@@ -14,30 +14,28 @@
 pre.shiki code {
   counter-increment: step calc(var(--start, 1) - 1);
   counter-reset: step;
-  /* Prevent Shiki's inter-line text nodes ("\n") from becoming visual blank lines. */
   white-space: normal;
 }
 
+/* Prevent Shiki's inter-line text nodes ("\n") from becoming visual blank lines. */
 pre.shiki code .line {
   display: block;
-  position: relative;
-  padding-left: 3rem;
-  /* Ensure empty source lines still take up vertical space for line numbers. */
   min-height: 1.25em;
-  /* Allow long tokens to wrap inside the code column. */
-  white-space: pre-wrap;
   overflow-wrap: anywhere;
+  padding-left: 3rem;
+  position: relative;
+  white-space: pre-wrap;
 }
 
 pre.shiki code .line::before {
   color: rgb(from var(--color-content-active) r g b / 40%);
   content: counter(step);
   counter-increment: step;
-  position: absolute;
   left: 0;
-  top: 0;
-  width: 2rem;
+  position: absolute;
   text-align: right;
+  top: 0;
+  width: 1.5rem;
 }
 
 /* Query based dark mode */
