@@ -191,7 +191,6 @@ describe('Paragraph (p) element', () => {
   test('has spacing and typography classes', () => {
     const config = getElementConfig('p')
     expect(config?.classes).toContain('mb-8')
-    expect(config?.classes).toContain('text-lg')
     expect(config?.classes).toContain('leading-relaxed')
   })
 })

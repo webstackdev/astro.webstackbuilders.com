@@ -198,6 +198,7 @@ export const rehypeAutolinkHeadingsConfig: RehypeAutolinkHeadingsOptions = {
       'focus-visible:no-underline',
       'transition-colors',
     ],
+    ariaLabel: 'Link to this section',
   },
   content: {
     type: 'element',

@@ -23,29 +23,29 @@ const iconMap = {
   action: 'warning',
   info: 'info',
   tip: 'lightbulb',
-  note: 'question',
+  note: 'info',
   success: 'check',
   danger: 'warning',
 } as const
 
 // Map callout types to their background color CSS custom properties
 const backgroundColorMap = {
-  warning: 'var(--color-danger-inverse)',
-  action: 'var(--color-danger-inverse)',
+  warning: 'var(--color-warning-inverse)',
+  action: 'var(--color-warning-inverse)',
   info: 'var(--color-info-inverse)',
-  tip: 'var(--color-page-base-offset)',
-  note: 'var(--color-page-base-offset)',
+  tip: 'var(--color-success-inverse)',
+  note: 'var(--color-note-inverse)',
   success: 'var(--color-success-inverse)',
   danger: 'var(--color-danger-inverse)',
 } as const
 
 // Map callout types to their border/icon color CSS custom properties
 const borderColorMap = {
-  warning: 'var(--color-danger)',
-  action: 'var(--color-danger)',
+  warning: 'var(--color-warning)',
+  action: 'var(--color-warning)',
   info: 'var(--color-info)',
-  tip: 'var(--color-content)',
-  note: 'var(--color-content)',
+  tip: 'var(--color-success)',
+  note: 'var(--color-note)',
   success: 'var(--color-success)',
   danger: 'var(--color-danger)',
 } as const
@@ -54,33 +54,59 @@ const icon = iconMap[type] ?? iconMap.info
 const backgroundColor = backgroundColorMap[type] ?? backgroundColorMap.info
 const borderColor = borderColorMap[type] ?? borderColorMap.info
 const typeLabel = typeLabelMap[type] ?? typeLabelMap.info
+const typeLabelUpper = typeLabel.toUpperCase()
 ---
 
 <style define:vars={{ backgroundColor, borderColor }}>
   .callout {
     background-color: var(--backgroundColor);
-    border-left-color: var(--borderColor);
+    border: 0;
+    border-left: 6px solid var(--borderColor);
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .callout__header {
+    align-items: center;
+    display: flex;
+    gap: 0.5rem;
   }
 
   .callout__icon {
     color: var(--borderColor);
+    transform: translateY(-2px);
+  }
+
+  .callout__icon :global(svg) {
+    fill: currentcolor;
+  }
+
+  .callout__label {
+    color: var(--borderColor);
+    font-size: 1rem;
+    font-weight: bold;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
 
   /* Spacing for nested elements */
-  /* stylelint-disable-next-line selector-max-universal */
-  .callout__content > * + * {
+  .callout__content > :not(.sr-only) + :not(.sr-only) {
     margin-top: 2rem;
   }
 </style>
 
-<div class="callout border border--border border-l-0 rounded-r-lg relative pl-6" role="note">
-  <div
-    class="callout__icon bg-bg rounded-full absolute left-0 top-0 ml-0.5 p-1 -translate-x-1/2 -translate-y-1/2"
-  >
-    <Icon name={icon} size={20} />
+<div class="callout" role="note">
+  <div class="callout__header">
+    <div class="callout__icon">
+      <Icon name={icon} size={20} variant="custom" />
+    </div>
+    <div class="callout__label" aria-hidden="true">{typeLabelUpper}</div>
   </div>
 
-  <div class="callout__content border-l-4 p-4 md:pl-8">
+  <div class="callout__content">
     <span class="sr-only">{typeLabel} callout:</span>
     <slot />
   </div>

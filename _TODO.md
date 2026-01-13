@@ -142,6 +142,12 @@ Need a tooltip component for consistency. List to add tooltips to:
 - /tags/[tag]
 - Bug reporter modal
 
+## Text on Images
+
+A scrim is an elliptical gradient from translucent black (center) to transparent black (edges), strategically placed behind white text. The scrim is probably the most subtle way of reliably overlaying text on images out there, and very few designs use this technique.
+
+To overlay an article title and published date on a cover image, use CSS positioning, specifically position: relative on the container and position: absolute on the text elements, combined with design techniques to ensure readability such as a semi-transparent overlay or text shadows.
+
 ## Image generation models
 
 - dall-e (OpenAI)

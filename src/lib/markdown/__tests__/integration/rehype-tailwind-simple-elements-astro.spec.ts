@@ -31,7 +31,7 @@ describe('rehype-tailwind: Simple HTML Elements (Astro Pipeline)', () => {
       const markdown = 'This is a test paragraph.'
       const html = await processMarkdown(markdown)
 
-      expect(html).toContain('<p class="mb-8 text-lg leading-relaxed">')
+      expect(html).toContain('<p class="mb-8 leading-relaxed">')
       expect(html).toContain('This is a test paragraph.')
     })
 
@@ -41,7 +41,7 @@ describe('rehype-tailwind: Simple HTML Elements (Astro Pipeline)', () => {
 Second paragraph.`
       const html = await processMarkdown(markdown)
 
-      const paragraphMatches = html.match(/<p class="mb-8 text-lg leading-relaxed">/g)
+  const paragraphMatches = html.match(/<p class="mb-8 leading-relaxed">/g)
       expect(paragraphMatches).toHaveLength(2)
     })
   })
@@ -179,7 +179,7 @@ This is a paragraph with **bold** text.
       const html = await processMarkdown(markdown)
 
       // Verify paragraph classes
-      expect(html).toContain('class="mb-8 text-lg leading-relaxed"')
+      expect(html).toContain('class="mb-8 leading-relaxed"')
 
       // Verify list classes
       expect(html).toContain('class="list-disc list-outside pl-4 mb-8"')
@@ -209,7 +209,7 @@ This paragraph has *italic* and **bold** text.
       expect(html).toContain('<strong>')
       // @TODO: there is work to improve this entire approach away from string-based in a branch
       //expect(html).toContain('<code>')
-      expect(html).toContain('class="mb-8 text-lg leading-relaxed"')
+      expect(html).toContain('class="mb-8 leading-relaxed"')
       expect(html).toContain('class="list-disc list-outside pl-4 mb-8"')
     })
   })
