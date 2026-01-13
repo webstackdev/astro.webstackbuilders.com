@@ -186,11 +186,24 @@ export const rehypeMermaidConfig = {
 /** rehype-autolink-headings plugin */
 export const rehypeAutolinkHeadingsConfig: RehypeAutolinkHeadingsOptions = {
   behavior: 'append',
+  /**
+   * Set explicit classes on the injected <a> so we can style heading anchors
+   * independently from the generic <a> handling in rehypeTailwindClasses.
+   */
+  properties: {
+    className: [
+      'heading-anchor',
+      'no-underline',
+      'hover:no-underline',
+      'focus-visible:no-underline',
+      'transition-colors',
+    ],
+  },
   content: {
     type: 'element',
     tagName: 'span',
     properties: {
-      className: 'anchor-link',
+      className: ['anchor-link', 'text-md', 'sm:text-lg'],
       ariaHidden: 'true',
     },
     children: [

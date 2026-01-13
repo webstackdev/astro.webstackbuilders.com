@@ -3,17 +3,23 @@
  * plugin, shows when hovering over the heading
  */
 .anchor-link {
-  margin-left: 0.5rem;
+  margin-left: 0.2rem;
+  display: inline-block;
   opacity: 0;
-  text-decoration: none;
   transition: opacity 0.2s ease-in-out;
+  transform: translateY(-4px);
 }
 
-/* Also show when the anchor link itself is focused (keyboard navigation) */
-.anchor-link:focus {
+/* Ensure the injected heading anchor never inherits the global dotted underline. */
+.heading-anchor,
+.heading-anchor:hover,
+.heading-anchor:focus-visible {
+  text-decoration: none;
+}
+
+/* Also show when the *anchor* itself is focused (keyboard navigation/click focus). */
+.heading-anchor:focus-visible .anchor-link {
   opacity: 1;
-  outline: 2px solid var(--color-spotlight);
-  outline-offset: 2px;
 }
 
 h1:hover .anchor-link,

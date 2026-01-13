@@ -33,7 +33,8 @@ describe('rehype-autolink-headings (Layer 1: Isolated)', () => {
       })
 
       expect(html).toContain('🔗')
-      expect(html).toContain('class="anchor-link"')
+      expect(html).toContain('class="anchor-link')
+      expect(html).toContain('class="heading-anchor')
     })
 
     it('should add aria-hidden to anchor content', async () => {
@@ -74,7 +75,7 @@ describe('rehype-autolink-headings (Layer 1: Isolated)', () => {
       expect(html).toContain('<h6')
 
       // Should have anchor links for each
-      const anchorCount = (html.match(/class="anchor-link"/g) || []).length
+      const anchorCount = (html.match(/class="anchor-link\b/g) || []).length
       expect(anchorCount).toBe(6)
     })
   })

@@ -14,7 +14,7 @@ import { applyClasses } from '../utilities'
 export const htmlElements: ElementConfig[] = [
   {
     tagName: 'p',
-    classes: ['mb-8', 'text-lg', 'leading-relaxed'],
+    classes: ['mb-8', 'leading-relaxed'],
   },
   {
     tagName: 'img',

@@ -21,18 +21,20 @@ export function rehypeTailwindClasses() {
       }
 
       // Add classes to links within paragraphs, list items, and blockquotes
-      if (node.tagName === 'a' && node.properties && !hasClass(node, 'btn')) {
+      if (
+        node.tagName === 'a' &&
+        node.properties &&
+        !hasClass(node, 'btn') &&
+        !hasClass(node, 'heading-anchor')
+      ) {
         node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          'border-b',
-          'border-current',
-          'shadow-[inset_0_-2px_0_0_currentColor]',
-          'hover:border-blue-600',
-          'hover:shadow-[inset_0_-2px_0_0_var(--color-blue-600)]',
-          'hover:text-gray-900',
-          'focus:border-blue-600',
-          'focus:shadow-[inset_0_-2px_0_0_var(--color-blue-600)]',
-          'focus:text-gray-900',
+          'hover:text-content-active',
+          'hover:decoration-content-active',
+          'focus:text-content-active',
           'focus:outline-none',
+          'focus-visible:outline-none',
+          'focus:border-spotlight',
+          'focus:border-2',
           'transition-colors',
         ])
       }
@@ -50,29 +52,6 @@ export function rehypeTailwindClasses() {
         ])
       }
 
-      // Add classes to anchor links within headings (heading-anchor class replacement)
-      if (node.tagName === 'a' && hasClass(node, 'heading-anchor')) {
-        node.properties = node.properties || {}
-        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          // Hide by default, show on medium screens and up
-          'hidden',
-          'md:block',
-          // Positioning
-          'absolute',
-          '-left-4',
-          'top-0',
-          'w-4',
-          // Opacity and transitions
-          'opacity-0',
-          'group-hover:opacity-75',
-          'hover:!opacity-100',
-          'focus:!opacity-100',
-          // Remove default link styling
-          'border-0',
-          'shadow-none',
-        ])
-      }
-
       // Add classes to inline code
       if (node.tagName === 'code' && !isWithinPre(node)) {
         node.properties = node.properties || {}
@@ -87,6 +66,118 @@ export function rehypeTailwindClasses() {
           'mx-1',
           'px-2',
           'py-1',
+        ])
+      }
+
+
+      // Add classes to code blocks (pre > code) with responsive margins
+      if (node.tagName === 'pre') {
+        node.properties = node.properties || {}
+        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
+          'block',
+          'text-base',
+          'px-6',
+          'py-8',
+          'overflow-x-auto',
+          'bg-gray-900',
+          'text-gray-100',
+          'rounded-lg',
+          'my-8',
+          'lg:px-12',
+        ])
+
+        const parentHasNamedFence =
+          hasClass(node, 'named-fence-block') || (node.properties?.['data-filename'] as string)
+
+        if (parentHasNamedFence) {
+          node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
+            'relative',
+            'pt-8',
+          ])
+        }
+      }
+
+      // Named code block filename
+      if (hasClass(node, 'named-fence-filename')) {
+        node.properties = node.properties || {}
+        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
+          'absolute',
+          'top-0',
+          'left-0',
+          'px-1',
+          'font-bold',
+          'text-black',
+          'bg-gray-300',
+          'opacity-60',
+          'text-xs',
+        ])
+      }
+
+      // Code tabs - container
+      if (hasClass(node, 'code-tabs')) {
+        node.properties = node.properties || {}
+        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
+          'border',
+          'border-gray-200',
+          'rounded-md',
+          'overflow-hidden',
+        ])
+      }
+
+      // Code tabs - show pre when input is checked (handled via CSS)
+      if (node.tagName === 'pre' && isWithinCodeTabs(node)) {
+        node.properties = node.properties || {}
+        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
+          'hidden',
+          'peer-checked:block',
+        ])
+      }
+
+      // Code tabs - hide inputs and pre elements by default
+      if (node.tagName === 'input' && isWithinCodeTabs(node)) {
+        node.properties = node.properties || {}
+        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
+          'hidden',
+        ])
+      }
+
+      // Code tabs - tab navigation list
+      if (node.tagName === 'ul' && isWithinCodeTabs(node)) {
+        node.properties = node.properties || {}
+        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
+          'p-0',
+          'whitespace-nowrap',
+          'overflow-auto',
+          'select-none',
+          'border-b',
+          'border-gray-200',
+          'bg-gray-50',
+        ])
+      }
+
+      // Code tabs - individual tab items
+      if (node.tagName === 'li' && isWithinCodeTabs(node)) {
+        node.properties = node.properties || {}
+        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
+          'list-none',
+          'inline-block',
+          'relative',
+        ])
+      }
+
+      // Code tabs - tab labels
+      if (node.tagName === 'label' && isWithinCodeTabs(node)) {
+        node.properties = node.properties || {}
+        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
+          'cursor-pointer',
+          'select-none',
+          'inline-block',
+          'px-2',
+          'py-1',
+          'm-2',
+          'text-gray-400',
+          'hover:text-gray-600',
+          'peer-checked:text-gray-900',
         ])
       }
 
@@ -212,119 +303,6 @@ export function rehypeTailwindClasses() {
           // Em dash before attribution
           'before:content-["—_"]',
           'before:text-primary',
-        ])
-      }
-
-      // Add classes to code blocks (pre > code) with responsive margins
-      if (node.tagName === 'pre') {
-        node.properties = node.properties || {}
-        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          'block',
-          'text-base',
-          'px-6',
-          'py-8',
-          'overflow-x-auto',
-          'bg-gray-900',
-          'text-gray-100',
-          'rounded-lg',
-          'my-8',
-          'lg:px-12',
-        ])
-
-        const parentHasNamedFence =
-          hasClass(node, 'named-fence-block') || (node.properties?.['data-filename'] as string)
-
-        if (parentHasNamedFence) {
-          node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-            'relative',
-            'pt-8',
-          ])
-        }
-      }
-
-      // Handle vendor-specific markdown elements
-
-      // Code tabs - container
-      if (hasClass(node, 'code-tabs')) {
-        node.properties = node.properties || {}
-        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          'border',
-          'border-gray-200',
-          'rounded-md',
-          'overflow-hidden',
-        ])
-      }
-
-      // Code tabs - hide inputs and pre elements by default
-      if (node.tagName === 'input' && isWithinCodeTabs(node)) {
-        node.properties = node.properties || {}
-        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          'hidden',
-        ])
-      }
-
-      // Code tabs - show pre when input is checked (handled via CSS)
-      if (node.tagName === 'pre' && isWithinCodeTabs(node)) {
-        node.properties = node.properties || {}
-        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          'hidden',
-          'peer-checked:block',
-        ])
-      }
-
-      // Code tabs - tab navigation list
-      if (node.tagName === 'ul' && isWithinCodeTabs(node)) {
-        node.properties = node.properties || {}
-        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          'p-0',
-          'whitespace-nowrap',
-          'overflow-auto',
-          'select-none',
-          'border-b',
-          'border-gray-200',
-          'bg-gray-50',
-        ])
-      }
-
-      // Code tabs - individual tab items
-      if (node.tagName === 'li' && isWithinCodeTabs(node)) {
-        node.properties = node.properties || {}
-        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          'list-none',
-          'inline-block',
-          'relative',
-        ])
-      }
-
-      // Code tabs - tab labels
-      if (node.tagName === 'label' && isWithinCodeTabs(node)) {
-        node.properties = node.properties || {}
-        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          'cursor-pointer',
-          'select-none',
-          'inline-block',
-          'px-2',
-          'py-1',
-          'm-2',
-          'text-gray-400',
-          'hover:text-gray-600',
-          'peer-checked:text-gray-900',
-        ])
-      }
-
-      // Named code block filename
-      if (hasClass(node, 'named-fence-filename')) {
-        node.properties = node.properties || {}
-        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          'absolute',
-          'top-0',
-          'left-0',
-          'px-1',
-          'font-bold',
-          'text-black',
-          'bg-gray-300',
-          'opacity-60',
-          'text-xs',
         ])
       }
     })

@@ -128,16 +128,19 @@ Need a tooltip component for consistency. List to add tooltips to:
 
 ## Support Pages to Style
 
-- /offline
-- /404
-- Bug reporter modal
-- /search
-- /consent
-- /privacy
-- /tags/[tag]
-- /about
-- /contact
 - /
+- /404
+- /about
+- /consent
+- /contact
+- /downloads/[slug]
+- /newsletter/confirm/[token]
+- /offline
+- /privacy
+- /privacy/my-data
+- /search
+- /tags/[tag]
+- Bug reporter modal
 
 ## Image generation models
 

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { rehypeTailwindClasses } from '@lib/markdown/plugins/rehype-tailwind'
-import { processWithAstroSettings } from '@lib/markdown/helpers/processors'
+import { processWithAstroSettings, processWithFullPipeline } from '@lib/markdown/helpers/processors'
 
 describe('rehype-tailwind-classes (Layer 2: With Astro Pipeline)', () => {
   describe('Tailwind classes with GFM', () => {
@@ -63,6 +63,8 @@ describe('rehype-tailwind-classes (Layer 2: With Astro Pipeline)', () => {
 
       expect(html).toContain('<a')
       expect(html).toContain('https://example.com')
+      expect(html).toContain('hover:decoration-content-active')
+      expect(html).toContain('focus-visible:outline-none')
     })
   })
 
@@ -150,6 +152,22 @@ Content text
 
       expect(html).toContain('<h1')
       expect(html).toContain('Content text')
+    })
+
+    it('should not apply generic link classes to heading anchors', async () => {
+      const markdown = `
+## Components
+
+Paragraph with a [regular link](https://example.com)
+      `.trim()
+
+      const html = await processWithFullPipeline(markdown)
+
+      // Heading anchors are created by rehype-autolink-headings and should be styled via its config.
+      expect(html).toContain('class="heading-anchor')
+      // Regular links should not be marked as heading anchors.
+      expect(html).toContain('href="https://example.com"')
+      expect(html).not.toMatch(/href="https:\/\/example\.com"[^>]*class="[^"]*heading-anchor/)
     })
   })
 })
