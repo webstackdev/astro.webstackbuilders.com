@@ -5,18 +5,41 @@
 import { Picture } from 'astro:assets'
 import { getCollection } from 'astro:content'
 
-import { type CollectionSlug, type CarouselVariant, type ItemType, collectionMap } from './@types'
+import {
+  type CarouselNavigationMode,
+  type CarouselVariant,
+  type ItemType,
+  type KnownCollectionSlug,
+  collectionMap,
+} from './@types'
 import { prepareItems } from './server'
 
-export interface Props {
+type BaseProps = {
   title?: string
+  /** A link to apply to the carousel title */
   titleHref?: string
+  /** Return first 'limit' number of items from the filtered collection */
   limit?: number
+  /** Variant controls what items to filter based on featured, latest, random */
   variant?: CarouselVariant
-  currentSlug: string
-  type: CollectionSlug
-  items?: ItemType[]
+  /** Used to filter out current item from collection used in carousel */
+  currentSlug?: string
+  /** Controls whether navigation wraps around */
+  navigationMode?: CarouselNavigationMode
 }
+
+export type Props =
+  | (BaseProps & {
+      /** Type of collection: articles, case-studies, or services */
+      type: KnownCollectionSlug
+      /** Caller can pass items in or let the component fetch them */
+      items?: ItemType[]
+    })
+  | (BaseProps & {
+      /** Unknown type requires explicit items */
+      type: 'unknown'
+      items: ItemType[]
+    })
 
 const {
   title = 'Featured Content',
@@ -26,22 +49,34 @@ const {
   currentSlug,
   type,
   items: itemsOverride,
+  navigationMode = 'wrap',
 } = Astro.props
 
-const allItems = itemsOverride ?? (await getCollection(collectionMap[type]))
+const allItems: ItemType[] = itemsOverride
+  ? itemsOverride
+  : type === 'unknown'
+    ? (() => {
+        throw new Error('Carousel: type="unknown" requires `items` to be provided')
+      })()
+    : await getCollection(collectionMap[type])
+
 const items = prepareItems(allItems, variant, currentSlug, limit)
 
-const carouselId = `carousel-${type}-${variant}-${currentSlug}`
+const carouselId = `carousel-${type}-${variant}-${currentSlug ?? 'all'}`
 ---
 
 {
   items.length > 0 && (
-    <carousel-slider data-carousel class="block">
-      <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <header class="text-center mb-12">
-          <h2 id={`${carouselId}-title`} class="text-3xl md:text-4xl font-bold">
+    <carousel-slider
+      data-carousel
+      data-carousel-navigation-mode={navigationMode}
+      class="block"
+    >
+      <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <header class="text-center mb-6">
+          <h2 id={`${carouselId}-title`} class="font-bold">
             {titleHref ? (
-              <a href={titleHref} class="hover:text-primary transition-colors duration-200">
+              <a href={titleHref} class="hover:text-primary transition-colors duration-200 no-underline">
                 {title}
               </a>
             ) : (
@@ -52,18 +87,18 @@ const carouselId = `carousel-${type}-${variant}-${currentSlug}`
 
         {/* Embla Carousel */}
         <div class="embla relative" role="region" aria-labelledby={`${carouselId}-title`}>
-          <div class="embla__viewport overflow-hidden">
-            <div class="embla__container flex gap-4 md:gap-6">
+          <div class="embla__viewport overflow-hidden p-4">
+            <div class="embla__container flex -ml-4 md:-ml-6">
               {items.map((item: ItemType, index) => (
                 <div
-                  class="embla__slide flex-[0_0_100%] md:flex-[0_0_50%] lg:flex-[0_0_33.333%] min-w-0"
+                  class="embla__slide pl-4 md:pl-6 flex-[0_0_100%] md:flex-[0_0_50%] lg:flex-[0_0_33.333%] min-w-0"
                   data-carousel-slide
                   data-index={String(index)}
                 >
-                  <article class="group h-full">
+                  <article class="group h-full relative after:pointer-events-none after:absolute after:content-[''] after:inset-0 after:rounded-none after:border-2 after:border-transparent after:opacity-0 after:transition-opacity after:duration-150 after:ease-out focus-within:after:opacity-100 focus-within:after:-inset-1.5 focus-within:after:border-spotlight">
                     <a
-                      href={`/${type}/${item.id}`}
-                      class="block h-full bg-content-inverse rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-trim hover:border-primary transform hover:-translate-y-2"
+                      href={'href' in item ? item.href : `/${type}/${item.id}`}
+                      class="block h-full bg-content-inverse rounded-xl shadow-lg transition-all duration-300 overflow-hidden border border-trim transform hover:-translate-y-2 no-underline hover:no-underline focus-visible:no-underline focus-visible:outline-none focus-visible:shadow-none"
                     >
                       {item.data.cover && (
                         <div class="relative aspect-video overflow-hidden">
@@ -116,7 +151,7 @@ const carouselId = `carousel-${type}-${variant}-${currentSlug}`
           {/* Navigation Buttons */}
           <button
             type="button"
-            class="embla__button embla__button--prev absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-12 h-12 rounded-full bg-content-inverse border-2 border-trim shadow-lg hover:bg-spotlight hover:border-primary transition-all duration-300 flex items-center justify-center z-(--z-raised) disabled:opacity-30 disabled:cursor-not-allowed"
+            class="embla__button embla__button--prev absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-12 h-12 rounded-full bg-content-inverse border-2 border-trim shadow-lg hover:bg-gray-200 hover:border-gray-200 transition-all duration-300 flex items-center justify-center z-(--z-raised) disabled:opacity-30 disabled:cursor-not-allowed focus-visible:outline-none after:pointer-events-none after:absolute after:-inset-0.5 after:rounded-none after:content-[''] focus-visible:after:border-2 focus-visible:after:border-spotlight"
             aria-label="Previous slide"
             data-carousel-prev
           >
@@ -139,7 +174,7 @@ const carouselId = `carousel-${type}-${variant}-${currentSlug}`
 
           <button
             type="button"
-            class="embla__button embla__button--next absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-12 h-12 rounded-full bg-content-inverse border-2 border-trim shadow-lg hover:bg-spotlight hover:border-primary transition-all duration-300 flex items-center justify-center z-(--z-raised) disabled:opacity-30 disabled:cursor-not-allowed"
+            class="embla__button embla__button--next absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-12 h-12 rounded-full bg-content-inverse border-2 border-trim shadow-lg hover:bg-gray-200 hover:border-gray-200 transition-all duration-300 flex items-center justify-center z-(--z-raised) disabled:opacity-30 disabled:cursor-not-allowed focus-visible:outline-none after:pointer-events-none after:absolute after:-inset-0.5 after:rounded-none after:content-[''] focus-visible:after:border-2 focus-visible:after:border-spotlight"
             aria-label="Next slide"
             data-carousel-next
           >

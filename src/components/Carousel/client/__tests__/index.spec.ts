@@ -60,7 +60,6 @@ vi.mock('@components/scripts/store', () => ({
 }))
 
 type CarouselComponentModule = WebComponentModule<CarouselElement>
-type ConcreteCarouselProps = CarouselProps<'articles'>
 
 vi.mock('astro:content', () => ({
   getCollection: vi.fn(async () => sampleCollection),
@@ -113,7 +112,7 @@ vi.mock('embla-carousel-autoplay', () => ({
   default: createAutoplayPluginMock,
 }))
 
-const defaultCarouselProps: ConcreteCarouselProps = {
+const defaultCarouselProps: CarouselProps = {
   title: 'Featured Articles',
   limit: 3,
   variant: 'featured',
@@ -126,7 +125,7 @@ const defaultCarouselProps: ConcreteCarouselProps = {
  */
 const renderCarousel = async (
   assertion: (_context: { root: CarouselElement }) => Promise<void> | void,
-  props: Partial<ConcreteCarouselProps> = {}
+  props: Partial<CarouselProps> = {}
 ) => {
   const container = await AstroContainer.create()
 

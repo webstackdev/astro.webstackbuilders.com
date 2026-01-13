@@ -21,6 +21,8 @@ export interface AnimationControllerConfig {
 export interface AnimationControllerHandle {
   requestPlay: () => void
   requestPause: () => void
+  /** Set a temporary, instance-scoped pause source (does not persist user preference). */
+  setInstancePauseState: (_source: string, _isPaused: boolean) => void
   clearUserPreference: () => void
   destroy: () => void
 }
@@ -57,6 +59,7 @@ const CURRENT_PREFERENCES_VERSION = 2
 const blockingPauseSources = new Set<string>()
 const suggestedPauseSources = new Set<string>()
 const controllerRegistry = new Map<string, RegisteredController>()
+const instanceBlockingPauseSources = new Map<string, Set<string>>()
 
 let controllerInstanceCounter = 0
 let lifecycleInitialized = false
@@ -121,6 +124,11 @@ function updateLifecycleStore(): void {
 
 function shouldPauseController(controller: RegisteredController): boolean {
   if (blockingPauseSources.size > 0) {
+    return true
+  }
+
+  const instanceBlockers = instanceBlockingPauseSources.get(controller.key)
+  if (instanceBlockers && instanceBlockers.size > 0) {
     return true
   }
 
@@ -198,6 +206,28 @@ function updateSuggestedSource(source: string, active: boolean): void {
   }
 
   updateLifecycleStore()
+  updateAllControllers()
+}
+
+function updateInstanceBlockingSource(controllerKey: string, source: string, active: boolean): void {
+  const existingSources = instanceBlockingPauseSources.get(controllerKey)
+  const sources = existingSources ?? new Set<string>()
+
+  const hasSource = sources.has(source)
+  if (active && !hasSource) {
+    sources.add(source)
+  } else if (!active && hasSource) {
+    sources.delete(source)
+  } else {
+    return
+  }
+
+  if (sources.size === 0) {
+    instanceBlockingPauseSources.delete(controllerKey)
+  } else if (!existingSources) {
+    instanceBlockingPauseSources.set(controllerKey, sources)
+  }
+
   updateAllControllers()
 }
 
@@ -399,11 +429,15 @@ export function createAnimationController(
       setAnimationPreference(config.animationId, 'paused')
       updateAllControllers()
     },
+    setInstancePauseState: (source: string, isPaused: boolean) => {
+      updateInstanceBlockingSource(key, `instance:${source}`, isPaused)
+    },
     clearUserPreference: () => {
       clearAnimationPreference(config.animationId)
       updateAllControllers()
     },
     destroy: () => {
+      instanceBlockingPauseSources.delete(key)
       controllerRegistry.delete(key)
     },
   }
@@ -418,6 +452,7 @@ export function __resetAnimationLifecycleForTests(): void {
   blockingPauseSources.clear()
   suggestedPauseSources.clear()
   controllerRegistry.clear()
+  instanceBlockingPauseSources.clear()
   controllerInstanceCounter = 0
   lifecycleInitialized = false
   reducedMotionMediaQuery = undefined

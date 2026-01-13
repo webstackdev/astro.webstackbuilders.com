@@ -60,6 +60,7 @@ const createAnimationControllerMock = vi.hoisted(() =>
     (_config: AnimationControllerConfig): AnimationControllerHandle => ({
       requestPlay: vi.fn(),
       requestPause: vi.fn(),
+      setInstancePauseState: vi.fn(),
       clearUserPreference: vi.fn(),
       destroy: vi.fn(),
     })

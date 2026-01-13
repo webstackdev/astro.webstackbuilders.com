@@ -142,6 +142,11 @@ Need a tooltip component for consistency. List to add tooltips to:
 - /tags/[tag]
 - Bug reporter modal
 
+## Keyboard Navigation
+
+- Should header links be in the tab order?
+- Does the total page tab order make sense?
+
 ## Text on Images
 
 A scrim is an elliptical gradient from translucent black (center) to transparent black (edges), strategically placed behind white text. The scrim is probably the most subtle way of reliably overlaying text on images out there, and very few designs use this technique.
@@ -149,6 +154,8 @@ A scrim is an elliptical gradient from translucent black (center) to transparent
 To overlay an article title and published date on a cover image, use CSS positioning, specifically position: relative on the container and position: absolute on the text elements, combined with design techniques to ensure readability such as a semi-transparent overlay or text shadows.
 
 ## Image generation models
+
+I think we want more human images, with less video-gamey graphics and more likeable human figures.
 
 - dall-e (OpenAI)
 - flux pro - text-to-image and image-to-image generation, developed by Black Forest Labs, known for its exceptional speed, high visual quality, and superior prompt adherence, offering features like advanced editing, video generation, and context-aware understanding through platforms like Flux.ai, Fal.ai, and Skywork.ai. It serves as a professional-grade creative tool, balancing performance with user-friendly access for detailed content creation.
@@ -175,3 +182,13 @@ We have generated detailed outlines for each of the MDX proposed articles we hav
 Act as a principal software engineer. Your goal is to write a detailed technical article based on the provided outline. Context: The target audience is Senior DevOps and infrastructure Engineers. The tone should be authoritative, professional, and concise, avoiding fluff or filler words. Think step-by-step before writing to improve the accuracy of technical explanations. Use a friendly first-person voice. Anything that reads like generic marketing copy is not what we want but we still want the effect of being "real" and approachable - try not to sound like technical documentation. We want to show empathy for our readers.
 
 Let's work through each article section by section based on the H2 headers in the outline. If the section looks good as-is, I'll just type "ok" so you know to continue to the next section.
+
+## Link Check
+
+Should we disable external link checking? Or maybe require allow-listing them?
+
+## Carousel
+
+- On hover when it rises, the corners get cut off and squared. It should raise to a higher index and move up.
+- The focus outline should just replace the existing border with the highlight border.
+- The card background isn't distinct enough - maybe it needs shadow all the way around, or a darker color.

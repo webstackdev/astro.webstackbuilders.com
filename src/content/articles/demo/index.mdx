@@ -13,117 +13,44 @@ import Demo from '@components/Test/Demo.mdx'
 
 ## Components
 
-### Includes from [other Markdown]('/articles/demo') files
-
-```markdown
-import Demo from '@components/Test/Demo.mdx'
-
-<Demo />
-```
-
-<Demo />
-
-### Avatar Component
-
-```markdown
-<Avatar name="User Name" />
-```
-
-Display author or user avatars:
-
-<Avatar name="Kevin Brown" />
-
-Avatar fallback if no image found:
-
-<Avatar name="Kevin Thomas" />
-
-### Calendar
-
-import Calendar from '@components/Calendar/index.astro'
-
-<Calendar />
-
-### Callout Component
-
-The Callout component highlights important information:
-
-```markdown
-<Callout type="info">
-This is an informational callout. Use it to draw attention to helpful tips or additional context.
-</Callout>
-```
-
-<Callout type="info">
-This is an informational callout. Use it to draw attention to helpful tips or additional context.
-</Callout>
-
-```markdown
-<Callout type="warning">
-This is a warning callout. Use it to highlight potential pitfalls or important considerations.
-</Callout>
-```
-
-<Callout type="warning">
-This is a warning callout. Use it to highlight potential pitfalls or important considerations.
-</Callout>
-
-```markdown
-<Callout type="success">
-This is a success callout. Perfect for highlighting achievements or positive outcomes.
-</Callout>
-```
-
-<Callout type="success">
-This is a success callout. Perfect for highlighting achievements or positive outcomes.
-</Callout>
-
-```markdown
-<Callout type="danger">
-This is a danger callout. Use it for critical warnings or errors that need immediate attention.
-</Callout>
-```
-
-<Callout type="danger">
-This is a danger callout. Use it for critical warnings or errors that need immediate attention.
-</Callout>
-
-
-```markdown
-<Callout type="note">
-This is a note callout.
-</Callout>
-```
-
-<Callout type="note">
-This is a note callout.
-</Callout>
-
-### Carousel Component
-
-Showcase related articles using the production carousel component:
-
-```markdown
-<Carousel
-  title="Featured articles"
-  type="articles"
-  variant="suggested"
-  currentSlug="demo/index"
-  limit={3}
-/>
-```
-
-<Carousel
-  title="Featured articles"
-  type="articles"
-  variant="suggested"
-  currentSlug="demo/index"
-  limit={3}
-/>
-
 ### CodeTabs Component
 
 ```typescript
   console.log("hello, world!")
+```
+
+```bash
+#!/bin/bash
+
+LOG_DIR="/var/log/myapp"
+
+# Function to clean up old files in a specified directory
+cleanup_old_files() {
+    local target_dir=$1
+    local days=$2
+
+    if [[ ! -d "$target_dir" ]]; then
+        log_error "Directory not found: $target_dir"
+        return 1
+    fi
+
+    log_info "Starting cleanup in: $target_dir (keeping files less than $days days old)"
+
+    find "$target_dir" -type f -mtime +$days -print0 | while IFS= read -r -d '' file; do
+        if $DRY_RUN; then
+            echo "[DRY RUN] Would delete: $file"
+        else
+            echo "[DELETING] $file"
+            rm "$file"
+            if [[ $? -ne 0 ]]; then # Check the exit status of the last command
+                log_error "Failed to delete $file"
+            fi
+        fi
+    done
+
+    log_info "Cleanup finished for $target_dir"
+    return 0
+}
 ```
 
 #### Grouped Code Tabs
@@ -133,10 +60,169 @@ The following examples substitute apostrophes for backticks so that they're not 
 There can only be white space between two code blocks. Display name is set by `tabName` and can only contain characters in `[A-Za-z0-9_]`. Syntax for the language block on the first line of the code block is `language [group:tabName]`
 
 ```javascript [g1:Javascript]
-  console.log('Hello World')
+function fetchUserData(userId) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      if (userId === 123) {
+        resolve({ id: 123, name: 'John Doe', postId: 456 })
+      } else {
+        reject(new Error('User not found'))
+      }
+    }, 500) // Simulate network delay
+  })
+}
 ```
 ```typescript [g1:Typescript]
-  type myType = "hello, world!"
+class TypedEventEmitter<T extends Record<keyof T, any>> implements EventEmitter<T> {
+  // Use a Mapped Type to create a structure for handlers
+  private handlers: {
+    [K in keyof T]?: Array<(payload: T[K]) => void>;
+  } = {};
+
+  subscribe<K extends keyof T>(eventName: K, handler: (payload: T[K]) => void): () => void {
+    if (!this.handlers[eventName]) {
+      this.handlers[eventName] = [];
+    }
+    // Type safety is maintained within the array
+    this.handlers[eventName]!.push(handler);
+
+    // Return an unsubscribe function (cleanup)
+    return () => {
+      const index = this.handlers[eventName]!.indexOf(handler);
+      if (index > -1) {
+        this.handlers[eventName]!.splice(index, 1);
+      }
+    };
+  }
+}
+```
+
+```ruby [g2:Ruby]
+class Tree
+  def initialize(*d)
+    @d = d[0] # The current node's data
+  end
+
+  # A custom string representation of the tree
+  def to_s
+    @l || @r ? "< #{@d},<#{@l}>,<#{@r}>>" : @d
+  end
+
+  # Recursively calculates the total sum of all numeric nodes
+  def total
+    # Add current node if numeric, otherwise 0
+    (@d.is_a?(Numeric) ? @d : 0) +
+    # Recursively call total on left and right children if they exist
+    (@l ? @l.total : 0) +
+    (@r ? @r.total : 0)
+  end
+end
+```
+```python [g2:Python]
+import functools
+from typing import Generator, Optional
+
+class UniqueIDGenerator:
+    """A generator for creating unique, hashed identifiers."""
+
+    def __init__(self, salt: str = "default_salt"):
+        self.salt = salt
+        self._generated_ids = set() # Store generated IDs to check for uniqueness
+
+    @staticmethod
+    def _hash_data(data: str) -> str:
+        """Static method to create an MD5 hash."""
+        return hashlib.md5(data.encode('utf-8')).hexdigest()
+```
+```golang [g2:GoLang]
+package main
+
+import (
+  "fmt"
+  "sync"
+  "time"
+)
+
+// Job represents the work to be done.
+type Job struct {
+  ID      int
+  Payload string
+}
+
+// Worker processes jobs from a channel and sends results to another channel.
+func Worker(id int, jobs <-chan Job, results chan<- string, wg *sync.WaitGroup) {
+  defer wg.Done() // Signal the WaitGroup that this worker is done when the function returns
+  for job := range jobs {
+    fmt.Printf("Worker %d starting job %d\n", id, job.ID)
+    // Simulate a time-consuming task
+    time.Sleep(time.Millisecond * 500)
+    result := fmt.Sprintf("Worker %d finished job %d with payload: %s", id, job.ID, job.Payload)
+    fmt.Println(result)
+    results <- result // Send the result to the results channel
+  }
+}
+```
+
+```markdown [g3:Markdown]
+# Complex Markdown Example
+
+This is a paragraph with **bold text**, *italic text*, and ~~strikethrough text~~. You can also use `inline code` for small snippets.
+
+---
+
+## Unordered List of Features
+
+*   **Headers:** Use `#` symbols.
+*   **Lists:** Both ordered and unordered are simple to create.
+*   **Links & Images:** Embed web content easily.
+    *   [Visit Google](https://www.google.com) for more information.
+
+## Ordered List (Checklist)
+
+1.  [x] Complete basic formatting.
+2.  [ ] Add a table.
+3.  [x] Include a code block.
+```
+```yaml [g3:Yaml]
+app_name: "OrderProcessingService"
+
+# --- Microservice Features & Settings ---
+features:
+  - name: "PaymentGateway"
+    enabled: true
+    config:
+      provider: "Stripe"
+      api_key_secret: "stripe-prod-key"
+  - name: "InventoryCheck"
+    enabled: true
+    config:
+      redis_host: "cache.prod.example.com"
+      timeout_ms: 500
+  - name: "EmailNotifications"
+    enabled: false # Disabled feature
+```
+```json [g3:JSON]
+{
+  "organization_details": {
+    "name": "TechCorp Solutions Inc.",
+    "industry": "Software Development",
+    "established_year": 2005,
+    "ceo": null,
+    "is_publicly_traded": false,
+    "address": {
+      "street": "456 Innovation Drive",
+      "city": "Menlo Park",
+      "state": "CA",
+      "postalCode": "94025",
+      "country": "USA"
+    },
+    "contacts": {
+      "email": "info@techcorp.com",
+      "phone": "+1-555-1234",
+      "support_url": "techcorp.com"
+    }
+  }
+}
 ```
 
 #### Add a title to the code block
@@ -940,3 +1026,120 @@ Embed videos in HTML5 markup that are in the `/public` folder
 [Example Video 1](https://youtu.be/enTFE2c68FQ)
 
 [Example Video 2](https://www.youtube.com/watch?v=enTFE2c68FQ)
+
+### Includes from [other Markdown]('/articles/demo') files
+
+```markdown
+import Demo from '@components/Test/Demo.mdx'
+
+<Demo />
+```
+
+<Demo />
+
+### Avatar Component
+
+```markdown
+<Avatar name="User Name" />
+```
+
+Display author or user avatars:
+
+<Avatar name="Kevin Brown" />
+
+Avatar fallback if no image found:
+
+<Avatar name="Kevin Thomas" />
+
+### Calendar
+
+import Calendar from '@components/Calendar/index.astro'
+
+<Calendar />
+
+### Callout Component
+
+The Callout component highlights important information:
+
+```markdown
+<Callout type="info">
+This is an informational callout. Use it to draw attention to helpful tips or additional context.
+</Callout>
+```
+
+<Callout type="info">
+This is an informational callout. Use it to draw attention to helpful tips or additional context.
+</Callout>
+
+```markdown
+<Callout type="warning">
+This is a warning callout. Use it to highlight potential pitfalls or important considerations.
+</Callout>
+```
+
+<Callout type="warning">
+This is a warning callout. Use it to highlight potential pitfalls or important considerations.
+</Callout>
+
+```markdown
+<Callout type="success">
+This is a success callout. Perfect for highlighting achievements or positive outcomes.
+</Callout>
+```
+
+<Callout type="success">
+This is a success callout. Perfect for highlighting achievements or positive outcomes.
+</Callout>
+
+```markdown
+<Callout type="danger">
+This is a danger callout. Use it for critical warnings or errors that need immediate attention.
+</Callout>
+```
+
+<Callout type="danger">
+This is a danger callout. Use it for critical warnings or errors that need immediate attention.
+</Callout>
+
+```markdown
+<Callout type="note">
+This is a note callout.
+</Callout>
+```
+
+<Callout type="note">
+This is a note callout.
+</Callout>
+
+### Carousel Component
+
+Showcase related articles using the production carousel component:
+
+```markdown
+<Carousel
+  title="My Title"
+  titleHref="/articles"
+  type="articles"
+  variant="suggested"
+  currentSlug="demo/index"
+  limit={6}
+/>
+```
+
+<Carousel
+  title="With Title Link"
+  titleHref="/articles"
+  type="articles"
+  variant="suggested"
+  currentSlug="demo/index"
+  limit={6}
+/>
+
+<Carousel
+  title="Without Title Link and in Bounded Mode"
+  type="articles"
+  variant="suggested"
+  currentSlug="demo/index"
+  limit={6}
+  navigationMode="bounded"
+/>

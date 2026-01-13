@@ -45,4 +45,9 @@ describe('prepareItems', () => {
     expect(randomItems).toHaveLength(3)
     expect(randomItems.find(item => item.id === 'article-charlie')).toBeUndefined()
   })
+
+  it('does not filter when currentSlug is undefined', () => {
+    const result = prepareItems(createItems(), 'suggested')
+    expect(result).toHaveLength(4)
+  })
 })

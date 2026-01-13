@@ -189,4 +189,36 @@ describe('animation lifecycle store', () => {
     dispatchReducedMotionChange(false)
     expect(onPlay).toHaveBeenCalledTimes(2)
   })
+
+  it('pauses only the targeted instance when using instance pause sources', () => {
+    const onPlayA = vi.fn()
+    const onPauseA = vi.fn()
+    const onPlayB = vi.fn()
+    const onPauseB = vi.fn()
+
+    const controllerA = createAnimationController({
+      animationId: 'carousel',
+      instanceId: 'carousel-a',
+      onPlay: onPlayA,
+      onPause: onPauseA,
+    })
+
+    createAnimationController({
+      animationId: 'carousel',
+      instanceId: 'carousel-b',
+      onPlay: onPlayB,
+      onPause: onPauseB,
+    })
+
+    expect(onPlayA).toHaveBeenCalledTimes(1)
+    expect(onPlayB).toHaveBeenCalledTimes(1)
+
+    controllerA.setInstancePauseState('focus-visible', true)
+    expect(onPauseA).toHaveBeenCalledTimes(1)
+    expect(onPauseB).toHaveBeenCalledTimes(0)
+
+    controllerA.setInstancePauseState('focus-visible', false)
+    expect(onPlayA).toHaveBeenCalledTimes(2)
+    expect(onPlayB).toHaveBeenCalledTimes(1)
+  })
 })

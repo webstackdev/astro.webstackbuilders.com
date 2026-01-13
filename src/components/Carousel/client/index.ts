@@ -14,6 +14,7 @@ import type { CarouselEmblaRootElement } from './selectors'
 import {
   getCarouselEmblaRoot,
   getCarouselViewport,
+  hasCarouselFocusVisibleSlide,
   queryCarouselDotsContainer,
   queryCarouselNextBtn,
   queryCarouselPrevBtn,
@@ -69,6 +70,7 @@ export class CarouselElement extends HTMLElement {
   private isFullyInViewport = true
   private requestedAutoplayState: AnimationPlayState = 'paused'
   private readonly animationInstanceId: string
+  private focusVisibleCheckRafId: number | null = null
   private readonly domReadyHandler = () => {
     document.removeEventListener('DOMContentLoaded', this.domReadyHandler)
     this.initialize()
@@ -76,6 +78,8 @@ export class CarouselElement extends HTMLElement {
   private readonly autoplayPlayHandler = () => this.setAutoplayState('playing')
   private readonly autoplayStopHandler = () => this.setAutoplayState('paused')
   private readonly keydownHandler = (event: KeyboardEvent) => this.handleKeydown(event)
+  private readonly focusInHandler = (event: FocusEvent) => this.handleFocusIn(event)
+  private readonly focusOutHandler = () => this.scheduleFocusVisiblePauseSync()
 
   private static instanceCounter = 0
 
@@ -153,6 +157,8 @@ export class CarouselElement extends HTMLElement {
       this.setupDotsNavigation()
       this.setupStatusRegion()
       this.addEventListener('keydown', this.keydownHandler)
+      this.addEventListener('focusin', this.focusInHandler)
+      this.addEventListener('focusout', this.focusOutHandler)
 
       this.initialized = true
       this.setAttribute('data-carousel-ready', 'true')
@@ -165,6 +171,7 @@ export class CarouselElement extends HTMLElement {
         this.registerAnimationLifecycle()
         this.setupViewportObserver()
         this.scheduleAutoplayReady()
+        this.scheduleFocusVisiblePauseSync()
       }
     } catch (error) {
       this.teardown()
@@ -179,6 +186,12 @@ export class CarouselElement extends HTMLElement {
   private teardown(): void {
     this.teardownViewportObserver()
     this.removeEventListener('keydown', this.keydownHandler)
+    this.removeEventListener('focusin', this.focusInHandler)
+    this.removeEventListener('focusout', this.focusOutHandler)
+    if (typeof window !== 'undefined' && this.focusVisibleCheckRafId !== null) {
+      window.cancelAnimationFrame(this.focusVisibleCheckRafId)
+      this.focusVisibleCheckRafId = null
+    }
     if (this.emblaApi) {
       const emblaWithEvents = this.emblaApi as EmblaCarouselType & {
         off: (_event: string, _handler: () => void) => EmblaCarouselType
@@ -199,6 +212,7 @@ export class CarouselElement extends HTMLElement {
     this.initialized = false
     this.removeAttribute('data-carousel-ready')
     this.removeAttribute('data-carousel-autoplay')
+    this.animationController?.setInstancePauseState('focus-visible', false)
     this.animationController?.destroy()
     this.animationController = undefined
     this.pendingAutoplayState = null
@@ -239,6 +253,54 @@ export class CarouselElement extends HTMLElement {
       event.preventDefault()
     } catch (error) {
       handleScriptError(error, { scriptName: SCRIPT_NAME, operation: 'handleKeydown' })
+    }
+  }
+
+  private handleFocusIn(event: FocusEvent): void {
+    if (!this.hasAutoplaySupport) return
+    if (!this.animationController) return
+
+    const target = event.target
+    if (!(target instanceof HTMLElement)) return
+
+    const slideContainer = target.closest('[data-carousel-slide]')
+    if (!slideContainer) return
+
+    const isFocusVisible = this.isElementFocusVisible(target)
+    if (!isFocusVisible) return
+
+    this.animationController.setInstancePauseState('focus-visible', true)
+  }
+
+  private scheduleFocusVisiblePauseSync(): void {
+    if (!this.hasAutoplaySupport) return
+    if (!this.animationController) return
+
+    if (typeof window === 'undefined' || typeof window.requestAnimationFrame !== 'function') {
+      this.syncFocusVisiblePauseState()
+      return
+    }
+
+    if (this.focusVisibleCheckRafId !== null) {
+      window.cancelAnimationFrame(this.focusVisibleCheckRafId)
+    }
+
+    this.focusVisibleCheckRafId = window.requestAnimationFrame(() => {
+      this.focusVisibleCheckRafId = null
+      this.syncFocusVisiblePauseState()
+    })
+  }
+
+  private syncFocusVisiblePauseState(): void {
+    if (!this.animationController) return
+    this.animationController.setInstancePauseState('focus-visible', hasCarouselFocusVisibleSlide(this))
+  }
+
+  private isElementFocusVisible(element: HTMLElement): boolean {
+    try {
+      return element.matches(':focus-visible')
+    } catch {
+      return false
     }
   }
 
@@ -310,8 +372,10 @@ export class CarouselElement extends HTMLElement {
         const dot = (this.ownerDocument ?? document).createElement('button')
         dot.type = 'button'
         dot.dataset['index'] = String(index)
+        dot.tabIndex = -1
+        dot.setAttribute('tabindex', '-1')
         dot.className =
-          'embla__dot w-2 h-2 rounded-full bg-content-active transition-all duration-300 hover:bg-primary'
+          'embla__dot w-3 h-3 rounded-full bg-content-active transition-all duration-300 hover:bg-primary'
         dot.setAttribute('aria-label', `Go to slide ${index + 1}`)
 
         addButtonEventListeners(
@@ -337,12 +401,12 @@ export class CarouselElement extends HTMLElement {
 
       dots.forEach((dot, index) => {
         if (index === selectedIndex) {
-          dot.classList.add('is-active', 'bg-primary', 'w-8')
-          dot.classList.remove('bg-content-active', 'w-2')
+          dot.classList.add('is-active', 'bg-primary')
+          dot.classList.remove('bg-content-active')
           dot.setAttribute('aria-current', 'true')
         } else {
-          dot.classList.remove('is-active', 'bg-primary', 'w-8')
-          dot.classList.add('bg-content-active', 'w-2')
+          dot.classList.remove('is-active', 'bg-primary')
+          dot.classList.add('bg-content-active')
           dot.removeAttribute('aria-current')
         }
       })
