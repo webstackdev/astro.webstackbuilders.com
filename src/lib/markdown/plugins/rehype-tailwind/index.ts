@@ -90,16 +90,11 @@ export function rehypeTailwindClasses() {
       if (node.tagName === 'code' && isCodeInline(node, getParent)) {
         node.properties = node.properties || {}
         node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          'bg-gray-100',
-          'rounded',
-          'border',
-          'border-gray-300',
+          'bg-page-base-offset',
           'inline-block',
           'font-mono',
-          'text-xs',
           'mx-1',
-          'px-2',
-          'py-1',
+          'pb-1',
         ])
       }
 
@@ -112,45 +107,12 @@ export function rehypeTailwindClasses() {
         node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
           'block',
           'text-base',
-          'px-6',
-          'py-8',
-          'overflow-x-auto',
-          'bg-gray-900',
-          'text-gray-100',
-          'rounded-lg',
-          'my-8',
-          'lg:px-12',
-        ])
-
-        const parentHasNamedFence =
-          hasClass(node, 'named-fence-block') || (node.properties?.['data-filename'] as string)
-
-        if (parentHasNamedFence) {
-          node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-            'relative',
-            'pt-8',
-          ])
-        }
-      }
-
-      /**
-       * Named Code Block filename stylings
-       */
-      if (hasClass(node, 'named-fence-filename')) {
-        node.properties = node.properties || {}
-        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          'absolute',
-          'top-0',
-          'left-0',
-          'px-1',
-          'font-bold',
-          'text-black',
-          'bg-gray-300',
-          'opacity-60',
-          'text-xs',
+          'px-4',
+          'py-4',
+          'bg-page-base-offset',
+          'mb-6',
         ])
       }
-
 
       /**
        * Code Tabs container stylings

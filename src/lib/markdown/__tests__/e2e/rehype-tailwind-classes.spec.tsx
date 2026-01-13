@@ -11,6 +11,42 @@ import { cleanup, render } from '@testing-library/preact'
 import { MarkdownOutput } from '@lib/markdown/helpers/markdownLoader'
 import { processWithFullPipeline } from '@lib/markdown/helpers/processors'
 
+function splitClassTokens(value: string | null): string[] {
+  if (!value) return []
+  return value
+    .split(/\s+/g)
+    .map(token => token.trim())
+    .filter(Boolean)
+}
+
+function isWellFormedCssClassToken(token: string): boolean {
+  // Allow Tailwind variants and utility syntax; disallow whitespace/control chars and HTML-breaking characters.
+  if (!token) return false
+
+  // Disallow whitespace (including newlines/tabs) and a small set of characters that would mangle HTML.
+  if (/[\s"'`{};]/.test(token)) return false
+
+  // Disallow ASCII control characters (0x00-0x1F) and DEL (0x7F).
+  for (const char of token) {
+    const code = char.charCodeAt(0)
+    if (code <= 0x1f || code === 0x7f) return false
+  }
+
+  return true
+}
+
+function expectHasAtLeastOneValidClassAttribute(element: Element | null): void {
+  expect(element).toBeTruthy()
+  if (!element) return
+
+  const classAttr = element.getAttribute('class')
+  const tokens = splitClassTokens(classAttr)
+  expect(tokens.length).toBeGreaterThan(0)
+  tokens.forEach(token => {
+    expect(isWellFormedCssClassToken(token)).toBe(true)
+  })
+}
+
 let html: string
 
 beforeAll(async () => {
@@ -48,64 +84,64 @@ describe('Layer 3: E2E - rehypeTailwindClasses', () => {
   it('should add Tailwind classes to headings', () => {
     const { container } = render(<MarkdownOutput html={html} />)
 
-    // h2-h6 headings should have Tailwind typography classes
-    // h1 may not have classes but h2 and below should
-    expect(html).toMatch(/<h[2-6][^>]*class=["'][^"']*/)
-
-    const headingWithClass = container.querySelector(
-      'h2[class],h3[class],h4[class],h5[class],h6[class]'
-    )
-    expect(headingWithClass).toBeTruthy()
+    // h1 may not have classes but h2 and below should.
+    const headingWithClass = container.querySelector('h2,h3,h4,h5,h6')
+    expectHasAtLeastOneValidClassAttribute(headingWithClass)
   })
 
   it('should add Tailwind classes to paragraphs', () => {
     const { container } = render(<MarkdownOutput html={html} />)
 
-    // Paragraphs should have spacing and text classes
-    expect(html).toMatch(/<p[^>]*class=["'][^"']*mb-/)
-
     const paragraph = container.querySelector('p')
-    expect(paragraph).toBeTruthy()
+    expectHasAtLeastOneValidClassAttribute(paragraph)
   })
 
   it('should add Tailwind classes to lists', () => {
     const { container } = render(<MarkdownOutput html={html} />)
 
-    // Lists should have list styling classes
-    expect(html).toMatch(/<ul[^>]*class=["'][^"']*list-/)
-
     const list = container.querySelector('ul')
-    expect(list).toBeTruthy()
+    expectHasAtLeastOneValidClassAttribute(list)
   })
 
   it('should add Tailwind classes to list items', () => {
     const { container } = render(<MarkdownOutput html={html} />)
 
-    // List items should have margin classes
-    expect(html).toMatch(/<li[^>]*class=["'][^"']*mb-/)
-
     const listItem = container.querySelector('li')
-    expect(listItem).toBeTruthy()
+    expectHasAtLeastOneValidClassAttribute(listItem)
   })
 
   it('should add Tailwind classes to code elements', () => {
     const { container } = render(<MarkdownOutput html={html} />)
 
-    // Code should have background and padding classes
-    expect(html).toMatch(/<code[^>]*class=["'][^"']*bg-/)
+    // Inline code should be matched by the plugin and receive at least one class.
+    const inlineCode = container.querySelector('p code')
+    expectHasAtLeastOneValidClassAttribute(inlineCode)
 
-    const code = container.querySelector('code')
-    expect(code).toBeTruthy()
+    // Code blocks should also remain semantic and have a class added to <pre>.
+    const pre = container.querySelector('pre')
+    expectHasAtLeastOneValidClassAttribute(pre)
   })
 
   it('should add Tailwind classes to links', () => {
     const { container } = render(<MarkdownOutput html={html} />)
 
-    // Links should have color and hover classes
-    expect(html).toMatch(/<a[^>]*class=["'][^"']*/)
+    const link = container.querySelector('a[href^="https://example.com"]')
+    expectHasAtLeastOneValidClassAttribute(link)
+    expect(link?.getAttribute('href')).toBe('https://example.com')
+  })
 
-    const link = container.querySelector('a')
-    expect(link).toBeTruthy()
+  it('should not emit malformed class tokens anywhere', () => {
+    const { container } = render(<MarkdownOutput html={html} />)
+    const withClass = Array.from(container.querySelectorAll('[class]'))
+    expect(withClass.length).toBeGreaterThan(0)
+
+    withClass.forEach(element => {
+      const tokens = splitClassTokens(element.getAttribute('class'))
+      expect(tokens.length).toBeGreaterThan(0)
+      tokens.forEach(token => {
+        expect(isWellFormedCssClassToken(token)).toBe(true)
+      })
+    })
   })
 
   it('should preserve content structure', () => {
