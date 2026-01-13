@@ -21,6 +21,7 @@ vi.mock('@components/scripts/store', () => ({
   createAnimationController: vi.fn(() => ({
     requestPlay: vi.fn(),
     requestPause: vi.fn(),
+    setInstancePauseState: vi.fn(),
     clearUserPreference: vi.fn(),
     destroy: vi.fn(),
   })),
