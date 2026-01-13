@@ -2,6 +2,7 @@
 import { type CollectionEntry, getCollection, getEntry } from 'astro:content'
 import { Picture } from 'astro:assets'
 import { isDev } from '@lib/config/environmentServer'
+import { getReadingTimeLabel } from '@lib/markdown/utils/readingTime'
 import MarkdownLayout from '@layouts/MarkdownLayout.astro'
 import Shares from '@components/Social/Shares/index.astro'
 import Carousel from '@components/Carousel/index.astro'
@@ -25,6 +26,9 @@ export async function getStaticPaths() {
 const { article } = Astro.props
 const author = await getEntry(article.data.author)
 
+const articleBody = article.body ?? ''
+const readingTime = article.data.readingTime ?? getReadingTimeLabel(articleBody)
+
 const path = `/articles/${article.id}`
 const section = `Articles`
 ---
@@ -42,7 +46,7 @@ const section = `Articles`
   section={section}
   showToc={article.data.showToc ?? true}
   tags={article.data.tags?.map(t => (typeof t === 'string' ? t : t.id)) ?? []}
-  {...article.data.readingTime && { readingTime: article.data.readingTime }}
+  {...readingTime && { readingTime }}
 >
   {/** SLOT: hero-image */}
   {
