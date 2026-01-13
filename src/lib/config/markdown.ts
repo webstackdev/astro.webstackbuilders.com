@@ -465,8 +465,8 @@ export const markdownConfig: Partial<MdxOptions> = {
         themes: shikiConfigOptions.themes,
         defaultColor: shikiConfigOptions.defaultColor,
         langAlias: shikiConfigOptions.langAlias,
-        wrap: false,
-        excludeLangs: ['mermaid', 'math'],
+        wrap: true,
+        excludeLangs: ['text', 'mermaid', 'math'],
       },
     ],
     /**

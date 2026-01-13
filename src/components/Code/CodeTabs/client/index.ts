@@ -37,6 +37,37 @@ function getCodeText(pre: HTMLPreElement): string {
   return text
 }
 
+const EXCLUDED_SINGLE_TAB_LANGUAGES = new Set(['text', 'mermaid', 'math'])
+
+function formatLanguageLabel(language: string): string {
+  const normalized = language.trim().toLowerCase()
+  const labelMap: Record<string, string> = {
+    js: 'JavaScript',
+    javascript: 'JavaScript',
+    ts: 'TypeScript',
+    typescript: 'TypeScript',
+    html: 'HTML',
+    css: 'CSS',
+    json: 'JSON',
+    yaml: 'YAML',
+    yml: 'YAML',
+    md: 'Markdown',
+  }
+
+  return labelMap[normalized] ?? (language.trim() || language)
+}
+
+function getTabLabel(pre: HTMLPreElement, index: number): string | null {
+  const explicit = pre.getAttribute('data-code-tabs-tab')
+  if (explicit && explicit.trim()) return explicit.trim()
+
+  const language = pre.getAttribute('data-language')
+  if (!language || !language.trim()) return null
+  if (EXCLUDED_SINGLE_TAB_LANGUAGES.has(language.trim().toLowerCase())) return null
+
+  return formatLanguageLabel(language)
+}
+
 async function writeToClipboard(text: string): Promise<boolean> {
   try {
     const nav = (globalThis as unknown as { navigator?: Navigator }).navigator
@@ -57,6 +88,7 @@ class CodeTabsElement extends HTMLElement {
   private codeBlocks: HTMLPreElement[] = []
   private activeIndex = 0
   private copyTimer: number | null = null
+  private isInteractiveTabs = false
 
   connectedCallback(): void {
     if (this.dataset['enhanced'] === 'true') return
@@ -66,12 +98,16 @@ class CodeTabsElement extends HTMLElement {
 
     if (this.codeBlocks.length === 0) return
 
-    const hasTabs = this.codeBlocks.length >= 2
-    this.buildUi(hasTabs)
+    const labels = this.codeBlocks
+      .map((pre, index) => getTabLabel(pre, index))
+      .filter((label): label is string => Boolean(label))
 
-    if (hasTabs) {
-      this.setActive(0)
-    }
+    this.isInteractiveTabs = this.codeBlocks.length >= 2
+    const shouldRenderTabs = this.isInteractiveTabs || (this.codeBlocks.length === 1 && labels.length === 1)
+
+    this.buildUi({ shouldRenderTabs, labels })
+
+    if (shouldRenderTabs) this.setActive(0)
   }
 
   disconnectedCallback(): void {
@@ -81,26 +117,26 @@ class CodeTabsElement extends HTMLElement {
     }
   }
 
-  private buildUi(hasTabs: boolean): void {
+  private buildUi(args: { shouldRenderTabs: boolean; labels: string[] }): void {
     const header = document.createElement('div')
     header.className =
       'flex w-full min-w-0 items-center justify-between border-b border-gray-200 bg-gray-50'
 
     const copyButton = this.createCopyButton()
 
-    if (hasTabs) {
+    if (args.shouldRenderTabs) {
       const list = document.createElement('ul')
       list.className = 'flex-1 min-w-0 p-0 whitespace-nowrap overflow-auto select-none'
 
-      this.tabButtons = this.codeBlocks.map((pre, index) => {
-        const tabLabel = pre.getAttribute('data-code-tabs-tab') || `Tab ${index + 1}`
+      this.tabButtons = this.codeBlocks.map((_, index) => {
+        const tabLabel = args.labels[index] || `Tab ${index + 1}`
 
         const li = document.createElement('li')
         li.className = 'list-none inline-block relative'
 
         const button = document.createElement('button')
         button.type = 'button'
-        button.className = 'inline-block px-2 py-1 m-2 text-gray-400 hover:text-gray-600'
+        button.className = 'inline-block px-2 py-1 m-2 text-gray-400'
         button.textContent = tabLabel
         button.setAttribute('data-code-tabs-button', String(index))
 
@@ -132,7 +168,7 @@ class CodeTabsElement extends HTMLElement {
     const button = document.createElement('button')
     button.type = 'button'
     button.className =
-      'flex shrink-0 items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 border-l border-gray-200'
+      'flex shrink-0 items-center gap-2 mr-2 px-3 py-2 text-gray-600 hover:text-gray-900 border-l border-gray-200'
     button.setAttribute('aria-label', tooltip)
     button.title = tooltip
 
@@ -166,8 +202,19 @@ class CodeTabsElement extends HTMLElement {
     }
 
     this.tabButtons.forEach((btn, i) => {
-      btn.classList.toggle('text-gray-900', i === index)
-      btn.classList.toggle('text-gray-400', i !== index)
+      const isActive = i === index
+      btn.classList.toggle('text-gray-900', isActive)
+      btn.classList.toggle('text-gray-400', !isActive)
+
+      // Hover color behavior:
+      // - Single-tab UI: no hover color change.
+      // - Multi-tab UI: inactive tabs change color on hover; active tab does not.
+      if (!this.isInteractiveTabs) {
+        btn.classList.remove('hover:text-gray-600')
+        return
+      }
+
+      btn.classList.toggle('hover:text-gray-600', !isActive)
     })
   }
 

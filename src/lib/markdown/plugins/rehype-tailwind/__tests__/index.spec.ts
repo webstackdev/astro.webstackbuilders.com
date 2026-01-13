@@ -22,8 +22,8 @@ function isWellFormedCssClassToken(token: string): boolean {
   // The main goal is to ensure we never emit whitespace/control chars or HTML-breaking characters.
   if (!token) return false
 
-  // Disallow whitespace (including newlines/tabs) and a small set of characters that would mangle HTML.
-  if (/[\s"'`{};]/.test(token)) return false
+  const invalid = /[\s"'`{};]/.test(token)
+  if (invalid) return false
 
   // Disallow ASCII control characters (0x00-0x1F) and DEL (0x7F).
   for (const char of token) {

@@ -73,6 +73,7 @@ function fetchUserData(userId) {
     }, 500) // Simulate network delay
   })
 }
+
 ```
 ```typescript [g1:Typescript]
 class TypedEventEmitter<T extends Record<keyof T, any>> implements EventEmitter<T> {
@@ -225,6 +226,39 @@ features:
     }
   }
 }
+```
+```html [g3:HTML]
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+</head>
+<body style="margin: 0 auto; max-width: 520px;">
+  <h1>Hi there!</h1>
+  <div>I'm your cool new webpage! Use the toggle in the <dark-mode style="border: 2px solid blue"></dark-mode> 👈  button to switch my theme.</div>
+  Github: <a href="https://github.com/jaywcjlove/dark-mode.git" target="__blank">@jaywcjlove/dark-mode</a>
+  <script>
+    const toggle = document.querySelector('dark-mode');
+    const button = document.createElement('button');
+    button.textContent = 'Change Theme';
+    button.style = 'line-height: 16px';
+    button.onclick = () => {
+      const theme = document.documentElement.dataset.colorMode;
+      toggle.mode = theme === 'light' ? 'dark' : 'light';
+      // document.documentElement.setAttribute('data-color-mode', theme === 'light' ? 'dark' : 'light');
+    }
+    document.body.appendChild(button);
+    document.addEventListener('colorschemechange', (e) => {
+      console.log(`colorschemechange: Color scheme changed to "${e.detail.colorScheme}" or .`);
+      button.textContent = toggle.mode === 'dark' ? 'Change Theme 🌞' : 'Change Theme 🌒';
+    });
+    document.addEventListener('permanentcolorscheme', (e) => {
+      console.log(`~permanentcolorscheme: Color scheme changed to "${e.detail.colorScheme}" or .`);
+    });
+    const removePermanent = () => document.querySelectorAll('dark-mode').forEach((item) => item.removeAttribute('permanent'));
+  </script>
+</body>
+</html>
 ```
 
 #### Add a title to the code block
@@ -972,8 +1006,6 @@ my ==marked== text
 my ==marked== text
 
 ### rehype-mathjax and remark-math
-
-- `rehype-katex` is alternative but lacks accessibility
 
 ```markdown
 Lift($$L$$) can be determined by Lift Coefficient ($$C_L$$) like the following

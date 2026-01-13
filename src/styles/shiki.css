@@ -7,23 +7,37 @@
  */
 
 /**
- * Each line is wrapped in a <span class='line'> so line number can be done
- * like this, here with a different starting number:
- * <code style="--start: 13;">...</code>
+ * Shiki emits each line as <span class="line">…</span>.
+ * We keep line numbers in a fixed gutter so wrapped lines align under the code,
+ * not under the line number column.
  */
-code {
-	counter-increment: step calc(var(--start, 1) - 1);
-	counter-reset: step;
+pre.shiki code {
+  counter-increment: step calc(var(--start, 1) - 1);
+  counter-reset: step;
+  /* Prevent Shiki's inter-line text nodes ("\n") from becoming visual blank lines. */
+  white-space: normal;
 }
 
-code .line::before {
+pre.shiki code .line {
+  display: block;
+  position: relative;
+  padding-left: 3rem;
+  /* Ensure empty source lines still take up vertical space for line numbers. */
+  min-height: 1.25em;
+  /* Allow long tokens to wrap inside the code column. */
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+pre.shiki code .line::before {
   color: rgb(from var(--color-content-active) r g b / 40%);
   content: counter(step);
   counter-increment: step;
-  display: inline-block;
-  margin-right: 1.5rem;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2rem;
   text-align: right;
-  width: 1rem
 }
 
 /* Query based dark mode */

@@ -21,12 +21,6 @@ Cons: Browser rendering can be inconsistent across different operating systems a
 
 Axe accessibility (2) - axe-core integration
 
-## Search UI
-
-- Move search box into header. Should be an icon like theme picker and hamburger menu, and spread out when clicked.
-- On search results page, center results on page
-- Improve indexing and how contents are returned.
-
 ## Performance
 
 Implement mitigations in test/e2e/specs/07-performance/PERFORMANCE.md
@@ -41,7 +35,6 @@ Vercel AI Gateway, maybe could use for a chatbot:
 
 https://vercel.com/kevin-browns-projects-dd474f73/astro-webstackbuilders-com/ai-gateway
 
-
 ## Testimonials on mobile
 
 We have E2E errors again testimonials slide on mobile chrome and safari. I think the problem is that we are pausing carousels when part of the carousel is outside of the viewport, and the testimonials are too large to display on mobile without being off viewport.
@@ -51,10 +44,6 @@ We have E2E errors again testimonials slide on mobile chrome and safari. I think
 ## Move containers to dev server from Playwright
 
 We should start the mock containers with the dev server instead of with Playwright so that they're useable in a dev environment.
-
-## Add Tooltip component
-
-We need a Tooltip component. It should apply to the existing tooltips on the theme picker palettes.
 
 ## Improve print layout by hiding header and footer for articles, add tracking
 
@@ -114,7 +103,13 @@ Link to the second-order category from the "Skills/Technologies Preview" icons o
 
 - Show article titles only in drop-down search result box, and dedupe results
 
+## Header
+
 Title box - need to squish to 75% and have it absolute in place as you scroll down, go back to 100% when you scroll back up
+
+## Themepicker
+
+Need to tweak 1px border for non-active theme cards
 
 ## ToolTips
 
@@ -182,13 +177,3 @@ We have generated detailed outlines for each of the MDX proposed articles we hav
 Act as a principal software engineer. Your goal is to write a detailed technical article based on the provided outline. Context: The target audience is Senior DevOps and infrastructure Engineers. The tone should be authoritative, professional, and concise, avoiding fluff or filler words. Think step-by-step before writing to improve the accuracy of technical explanations. Use a friendly first-person voice. Anything that reads like generic marketing copy is not what we want but we still want the effect of being "real" and approachable - try not to sound like technical documentation. We want to show empathy for our readers.
 
 Let's work through each article section by section based on the H2 headers in the outline. If the section looks good as-is, I'll just type "ok" so you know to continue to the next section.
-
-## Link Check
-
-Should we disable external link checking? Or maybe require allow-listing them?
-
-## Carousel
-
-- On hover when it rises, the corners get cut off and squared. It should raise to a higher index and move up.
-- The focus outline should just replace the existing border with the highlight border.
-- The card background isn't distinct enough - maybe it needs shadow all the way around, or a darker color.

@@ -75,6 +75,17 @@ function getText(node: unknown): string {
   return typed.children.map(getText).join('')
 }
 
+function stripTrailingFenceNewline(codeText: string): string {
+  // Markdown fenced code blocks typically include a trailing newline due to the closing fence being
+  // on the next line. Shiki turns a trailing newline into an extra empty `.line`.
+  // Remove exactly one trailing newline (supports both \n and \r\n) so that:
+  // - regular code blocks don't gain an extra blank line
+  // - intentional trailing blank lines are preserved (e.g., code ending in "\n\n" keeps one)
+  if (codeText.endsWith('\r\n')) return codeText.slice(0, -2)
+  if (codeText.endsWith('\n')) return codeText.slice(0, -1)
+  return codeText
+}
+
 function parseLanguageFromCode(code: Element): string | null {
   const classNames = toStringArray(code.properties?.['className'])
   const langClass = classNames.find(cn => cn.startsWith('language-'))
@@ -240,7 +251,7 @@ const rehypeShiki: Plugin<[RehypeShikiOptions], Root> = (options: RehypeShikiOpt
         const codeText = getText(codeChild)
         if (!codeText.trim()) return
 
-        replacements.push({ parent, index, original: node, lang, codeText })
+        replacements.push({ parent, index, original: node, lang, codeText: stripTrailingFenceNewline(codeText) })
       }
     )
 
@@ -298,7 +309,11 @@ const rehypeShiki: Plugin<[RehypeShikiOptions], Root> = (options: RehypeShikiOpt
 
       highlightedPre.properties['className'] = mergeClassNames(
         highlightedPre.properties['className'],
-        ['overflow-x-auto', wrap ? 'whitespace-pre-wrap' : 'whitespace-pre']
+        [
+          wrap ? 'overflow-x-hidden' : 'overflow-x-auto',
+          wrap ? 'whitespace-pre-wrap' : 'whitespace-pre',
+          wrap ? 'break-words' : '',
+        ]
       )
 
       replacement.parent.children[replacement.index] = highlightedPre

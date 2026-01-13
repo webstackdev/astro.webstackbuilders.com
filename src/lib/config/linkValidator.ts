@@ -29,6 +29,10 @@ export const linkValidatorPlugin = linkValidator({
     /** Skip hard-coded site URLs due to timeouts from CI to Vercel */
     'https://www.webstackbuilders.com',
     'https://www.webstackbuilders.com/rss.xml',
+    /** Allow-listed external links to avoid timeouts */
+    'https://webstackdev.github.io/',
+    'https://www.keithcirkel.co.uk/metaprogramming-in-es6-part-3-proxies/',
+    'https://typedoc.org',
   ],
   externalTimeout: 15000,
   failOnBrokenLinks: true,
