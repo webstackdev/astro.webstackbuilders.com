@@ -2,9 +2,9 @@
  * Rehype plugin to automatically add Tailwind classes to markdown-generated HTML elements
  */
 import { visit, SKIP } from 'unist-util-visit'
-import type { Root, Element } from 'hast'
+import type { Root, Element, Parent } from 'hast'
 import { applyHtmlElementClasses, getElementConfig } from './visitors/simple.js'
-import { hasClass } from './utilities/index.js'
+import { hasClass, isCodeInline } from './utils.js'
 
 /**
  * Rehype plugin that adds Tailwind CSS classes to HTML elements
@@ -12,15 +12,29 @@ import { hasClass } from './utilities/index.js'
  */
 export function rehypeTailwindClasses() {
   return (tree: Root) => {
-    visit(tree, 'element', (node: Element): void | typeof SKIP => {
-      // Check if this is a simple HTML element from our configuration
+    const parentByNode = new WeakMap<Element, Parent>()
+
+    const getParent = (node: Element): Parent | undefined => parentByNode.get(node)
+
+    visit(tree, 'element', (node: Element, _index, parent): void | typeof SKIP => {
+      if (parent) {
+        parentByNode.set(node, parent)
+      }
+
+      /** Check if this is a simple HTML element from our configuration */
       const elementConfig = getElementConfig(node.tagName)
       if (elementConfig) {
         applyHtmlElementClasses(node, elementConfig)
         return
       }
 
-      // Add classes to links within paragraphs, list items, and blockquotes
+      /**
+       * =============================================================================
+       *
+       * Anchor link stylings for links within paragraphs, list items, and blockquotes
+       *
+       * =============================================================================
+       */
       if (
         node.tagName === 'a' &&
         node.properties &&
@@ -28,32 +42,52 @@ export function rehypeTailwindClasses() {
         !hasClass(node, 'heading-anchor')
       ) {
         node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          'hover:text-content-active',
-          'hover:decoration-content-active',
-          'focus:text-content-active',
-          'focus:outline-none',
           'focus-visible:outline-none',
-          'focus:border-spotlight',
           'focus:border-2',
+          'focus:border-spotlight',
+          'focus:outline-none',
+          'focus:text-content-active',
+          'hover:decoration-content-active',
+          'hover:text-content-active',
           'transition-colors',
         ])
       }
 
-      // Add classes to headings with proper spacing and relative positioning
+      /**
+       * =============================================================================
+       *
+       * Heading stylings with proper spacing and relative positioning
+       *
+       * =============================================================================
+       */
       if (['h2', 'h3', 'h4'].includes(node.tagName)) {
         node.properties = node.properties || {}
         node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
           'mb-2',
           'mt-6',
           'relative',
+          /**
+           * Remove top margin from first child element of headings since we're
+           * controlling bottom margin here.
+           */
           'first:mt-0',
-          // Add hover state for heading anchors
+          /** Used to add hover state to heading anchors with Tailwind's group-* utility. */
           'group',
         ])
       }
 
-      // Add classes to inline code
-      if (node.tagName === 'code' && !isWithinPre(node)) {
+      /**
+       * =============================================================================
+       *
+       * Code Block Stylings
+       *
+       * =============================================================================
+       */
+
+      /**
+       * Inline code stylings
+       */
+      if (node.tagName === 'code' && isCodeInline(node, getParent)) {
         node.properties = node.properties || {}
         node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
           'bg-gray-100',
@@ -70,7 +104,9 @@ export function rehypeTailwindClasses() {
       }
 
 
-      // Add classes to code blocks (pre > code) with responsive margins
+      /**
+       * Code blocks (pre > code) stylings with responsive margins
+       */
       if (node.tagName === 'pre') {
         node.properties = node.properties || {}
         node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
@@ -97,7 +133,9 @@ export function rehypeTailwindClasses() {
         }
       }
 
-      // Named code block filename
+      /**
+       * Named Code Block filename stylings
+       */
       if (hasClass(node, 'named-fence-filename')) {
         node.properties = node.properties || {}
         node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
@@ -113,8 +151,11 @@ export function rehypeTailwindClasses() {
         ])
       }
 
-      // Code tabs - container
-      if (hasClass(node, 'code-tabs')) {
+
+      /**
+       * Code Tabs container stylings
+       */
+      if (node.tagName === 'code-tabs') {
         node.properties = node.properties || {}
         node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
           'border',
@@ -124,66 +165,15 @@ export function rehypeTailwindClasses() {
         ])
       }
 
-      // Code tabs - show pre when input is checked (handled via CSS)
-      if (node.tagName === 'pre' && isWithinCodeTabs(node)) {
-        node.properties = node.properties || {}
-        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          'hidden',
-          'peer-checked:block',
-        ])
-      }
-
-      // Code tabs - hide inputs and pre elements by default
-      if (node.tagName === 'input' && isWithinCodeTabs(node)) {
-        node.properties = node.properties || {}
-        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          'hidden',
-        ])
-      }
-
-      // Code tabs - tab navigation list
-      if (node.tagName === 'ul' && isWithinCodeTabs(node)) {
-        node.properties = node.properties || {}
-        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          'p-0',
-          'whitespace-nowrap',
-          'overflow-auto',
-          'select-none',
-          'border-b',
-          'border-gray-200',
-          'bg-gray-50',
-        ])
-      }
-
-      // Code tabs - individual tab items
-      if (node.tagName === 'li' && isWithinCodeTabs(node)) {
-        node.properties = node.properties || {}
-        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          'list-none',
-          'inline-block',
-          'relative',
-        ])
-      }
-
-      // Code tabs - tab labels
-      if (node.tagName === 'label' && isWithinCodeTabs(node)) {
-        node.properties = node.properties || {}
-        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          'cursor-pointer',
-          'select-none',
-          'inline-block',
-          'px-2',
-          'py-1',
-          'm-2',
-          'text-gray-400',
-          'hover:text-gray-600',
-          'peer-checked:text-gray-900',
-        ])
-      }
-
-      // Handle iframe embeds - wrap them in a responsive container with embed styles
+      /**
+       * =============================================================================
+       *
+       * Iframe embeds are wrapped in a responsive container with styling
+       *
+       * =============================================================================
+       */
       if (node.tagName === 'iframe') {
-        // Create wrapper div with aspect ratio (migrated from .embed class)
+        /** Create wrapper div with aspect ratio (migrated from .embed class) */
         const wrapper: Element = {
           type: 'element',
           tagName: 'div',
@@ -213,19 +203,28 @@ export function rehypeTailwindClasses() {
           ],
         }
 
-        // Replace the iframe with the wrapper
+        /** Replace the iframe with the wrapper */
         Object.assign(node, wrapper)
 
-        // Prevent re-processing the newly-added iframe child (would wrap infinitely)
+        /** Prevent re-processing the newly-added iframe child (would wrap infinitely) */
         return SKIP
       }
 
-      // Add classes to blockquotes (migrated from .content blockquote)
+      /**
+       * =============================================================================
+       *
+       * Blockquotes Stylings
+       *
+       * =============================================================================
+       */
       if (node.tagName === 'blockquote') {
         node.properties = node.properties || {}
-        // Check if parent might be a c-blockquote figure (will be styled differently)
+        /**
+         * Check if parent is an attribution quote and abort if so. Attribution
+         * quotes won't have classes yet.
+         */
         const existingClasses = (node.properties['className'] as string[]) || []
-        const isAttributionQuote = existingClasses.length === 0 // Attribution quotes won't have classes yet
+        const isAttributionQuote = existingClasses.length === 0
 
         if (!isAttributionQuote) {
           node.properties['className'] = existingClasses.concat([
@@ -241,7 +240,13 @@ export function rehypeTailwindClasses() {
         }
       }
 
-      // Add classes to figure elements with c-blockquote class (attribution blockquotes)
+      /**
+       * =============================================================================
+       *
+       * Attribution Blockquote Stylings
+       *
+       * =============================================================================
+       */
       if (node.tagName === 'figure' && hasClass(node, 'c-blockquote')) {
         node.properties = node.properties || {}
         node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
@@ -266,7 +271,7 @@ export function rehypeTailwindClasses() {
           'before:opacity-30',
         ])
 
-        // Style the blockquote child within the figure
+        /** Style the blockquote child within the figure */
         if (node.children) {
           visit(node, 'element', (child: Element) => {
             if (child.tagName === 'blockquote') {
@@ -287,7 +292,7 @@ export function rehypeTailwindClasses() {
         }
       }
 
-      // Add classes to figcaption with c-blockquote__attribution class
+      /** Add classes to figcaption with c-blockquote__attribution class */
       if (node.tagName === 'figcaption' && hasClass(node, 'c-blockquote__attribution')) {
         node.properties = node.properties || {}
         node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
@@ -307,29 +312,4 @@ export function rehypeTailwindClasses() {
       }
     })
   }
-}
-
-/**
- * Helper function to check if a code element is within a pre element
- */
-function isWithinPre(_node: Element): boolean {
-  // This is a simplified check - in a real implementation you'd need to traverse up the tree
-  // For now, we'll rely on the pre > code selector being handled separately
-  return false
-}
-
-/**
- * Helper function to check if an element is within a code-tabs container
- */
-function isWithinCodeTabs(node: Element): boolean {
-  // Check if the element has code-tabs related classes or data attributes
-  const classes = node.properties?.['className'] as string[] | string | undefined
-  if (Array.isArray(classes)) {
-    return classes.some(cls => cls.includes('code-tab'))
-  }
-  if (typeof classes === 'string') {
-    return classes.includes('code-tab')
-  }
-  // Could also check parent elements in a more complete implementation
-  return false
 }

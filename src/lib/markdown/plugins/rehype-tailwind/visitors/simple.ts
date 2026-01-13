@@ -5,7 +5,7 @@
 import type { Element } from 'hast'
 import type { ElementConfig } from '@lib/markdown/plugins/rehype-tailwind/@types'
 // path alias for utilities folder causes self referential error
-import { applyClasses } from '../utilities'
+import { applyClasses } from '../utils'
 
 /**
  * Simple HTML elements configuration
