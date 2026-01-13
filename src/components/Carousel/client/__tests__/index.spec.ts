@@ -12,6 +12,7 @@ const createAnimationControllerMock = vi.fn((config?: { onPlay?: () => void }) =
   return {
     requestPlay: vi.fn(),
     requestPause: vi.fn(),
+    setInstancePauseState: vi.fn(),
     clearUserPreference: vi.fn(),
     destroy: vi.fn(),
   }

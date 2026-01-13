@@ -60,7 +60,7 @@
     "test:e2e": "FORCE_COLOR=1 CI=1 npx playwright test",
     "test:e2e:smoke": "FORCE_COLOR=1 CI=1 npx playwright test --grep \"@smoke\"",
     "test:unit": "npm run test:unit:actions && FORCE_COLOR=1 npx vitest run",
-    "test:unit:actions": "FORCE_COLOR=1 python3 -m pytest --import-mode=importlib .github/actions .github/test",
+    "test:unit:actions": "FORCE_COLOR=1 ANSIBLE_DEPRECATION_WARNINGS=False PYTHONWARNINGS=ignore::DeprecationWarning:ansible.* python3 -m pytest --import-mode=importlib .github/actions .github/test",
     "upgrade": "npx @astrojs/upgrade",
     "prepare": "node .husky/prepare.js"
   },
@@ -180,6 +180,7 @@
     "rehype-external-links": "^3.0.0",
     "rehype-mathjax": "^7.1.0",
     "rehype-mermaid": "^3.0.0",
+    "rehype-parse": "^9.0.1",
     "rehype-slug": "^6.0.0",
     "rehype-stringify": "^10.0.1",
     "remark": "^15.0.1",
