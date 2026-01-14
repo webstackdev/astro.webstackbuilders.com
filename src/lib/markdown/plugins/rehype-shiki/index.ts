@@ -14,6 +14,8 @@ export type RehypeShikiOptions = {
   themes: ShikiThemes
   defaultColor?: 'light' | 'dark' | false
   langAlias?: Record<string, string>
+  /** Shiki transformers to apply (e.g. meta-based highlighting). */
+  transformers?: unknown[]
   /**
    * Use Tailwind for wrapping instead of Shiki inline wrap styles.
    * Defaults to false (no wrap).
@@ -26,12 +28,9 @@ export type RehypeShikiOptions = {
 type HighlighterLike = {
   codeToHast: (
     _code: string,
-    _options: {
-      lang: string
-      themes: ShikiThemes
-      defaultColor?: 'light' | 'dark' | false
-      wrap?: boolean
-    }
+    // Keep the options permissive; Shiki option shapes evolve across versions.
+    // We only rely on a few keys (lang, themes, meta, transformers, defaultColor, tabindex).
+    _options: Record<string, unknown>
   ) => Root | Element
   loadLanguage: (_lang: string) => Promise<void>
 }
@@ -228,6 +227,7 @@ const rehypeShiki: Plugin<[RehypeShikiOptions], Root> = (options: RehypeShikiOpt
       original: Element
       lang: string
       codeText: string
+      metaRaw: string | undefined
     }> = []
 
     visit(
@@ -251,7 +251,20 @@ const rehypeShiki: Plugin<[RehypeShikiOptions], Root> = (options: RehypeShikiOpt
         const codeText = getText(codeChild)
         if (!codeText.trim()) return
 
-        replacements.push({ parent, index, original: node, lang, codeText: stripTrailingFenceNewline(codeText) })
+        const metaValue =
+          getDataPropValue(node, 'data-shiki-meta') ??
+          getDataPropValue(codeChild, 'data-shiki-meta')
+
+        const metaRaw = typeof metaValue === 'string' && metaValue.trim() ? metaValue.trim() : undefined
+
+        replacements.push({
+          parent,
+          index,
+          original: node,
+          lang,
+          codeText: stripTrailingFenceNewline(codeText),
+          metaRaw,
+        })
       }
     )
 
@@ -263,19 +276,25 @@ const rehypeShiki: Plugin<[RehypeShikiOptions], Root> = (options: RehypeShikiOpt
         continue
       }
 
-      const shikiOptions: {
-        lang: string
-        themes: ShikiThemes
-        defaultColor?: 'light' | 'dark' | false
-        wrap?: boolean
-      } = {
+      const shikiOptions: Record<string, unknown> = {
         lang: replacement.lang,
         themes: options.themes,
+        // We manage wrapping via Tailwind classes on the output, not via Shiki.
         wrap: false,
+        // Keep code blocks out of keyboard tab order.
+        tabindex: false,
       }
 
       if (options.defaultColor !== undefined) {
-        shikiOptions.defaultColor = options.defaultColor
+        shikiOptions['defaultColor'] = options.defaultColor
+      }
+
+      if (options.transformers && Array.isArray(options.transformers) && options.transformers.length > 0) {
+        shikiOptions['transformers'] = options.transformers
+      }
+
+      if (replacement.metaRaw) {
+        shikiOptions['meta'] = { __raw: replacement.metaRaw }
       }
 
       const highlighted = highlighter.codeToHast(replacement.codeText, shikiOptions)
@@ -301,8 +320,11 @@ const rehypeShiki: Plugin<[RehypeShikiOptions], Root> = (options: RehypeShikiOpt
       for (const [key, value] of Object.entries(existingProps)) {
         if (key === 'className' || key === 'class') continue
         if (key === 'data-code-tabs-group' || key === 'data-code-tabs-tab') continue
+        if (key === 'data-shiki-meta') continue
         highlightedPre.properties[key] = value as never
       }
+
+      delete (highlightedPre.properties as Record<string, unknown>)['data-shiki-meta']
 
       highlightedPre.properties['data-language'] = replacement.lang
 

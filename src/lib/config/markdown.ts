@@ -8,8 +8,7 @@
  * self referential compile error
  */
 import type { MdxOptions } from '@astrojs/mdx'
-import type { ShikiConfig } from 'astro/'
-// import { transformerNotationDiff } from '@shiki/transformers'
+import { shikiConfigOptions, shikiTransformers } from './shiki'
 
 import { rehypeHeadingIds } from '@astrojs/markdown-remark'
 Object.defineProperty(rehypeHeadingIds, 'name', { value: 'rehypeHeadingIds' })
@@ -124,6 +123,9 @@ Object.defineProperty(remarkAlign, 'name', { value: 'remarkAlign' })
 
 import remarkCodeTabs from '../markdown/plugins/remark-code-tabs'
 Object.defineProperty(remarkCodeTabs, 'name', { value: 'remarkCodeTabs' })
+
+import remarkShikiMeta from '../markdown/plugins/remark-shiki-meta'
+Object.defineProperty(remarkShikiMeta, 'name', { value: 'remarkShikiMeta' })
 
 import remarkReplacements from '../markdown/plugins/remark-replacements'
 Object.defineProperty(remarkReplacements, 'name', { value: 'remarkReplacements' })
@@ -304,33 +306,6 @@ export const remarkGfmConfig = {
 /** remark-math plugin (parse TeX math; avoid $...$ to prevent accidental currency parsing) */
 export const remarkMathConfig = { singleDollarTextMath: false } as const
 
-export const shikiConfigOptions: ShikiConfig = {
-  // Alternatively, provide multiple themes
-  // See note below for using dual light/dark themes
-  themes: {
-    light: 'github-light',
-    dark: 'github-dark',
-  },
-  // Disable the default colors
-  // https://shiki.style/guide/dual-themes#without-default-color
-  // (Added in v4.12.0)
-  defaultColor: 'light',
-  // Add custom aliases for languages
-  // Map an alias to a Shiki language ID: https://shiki.style/languages#bundled-languages
-  // https://shiki.style/guide/load-lang#custom-language-aliases
-  langAlias: {
-    js: 'javascript',
-    ts: 'typescript',
-    md: 'markdown',
-  },
-  // Enable word wrap to prevent horizontal scrolling
-  wrap: true,
-  // Add custom transformers: https://shiki.style/guide/transformers
-  // Find common transformers: https://shiki.style/packages/transformers
-  // transformers: [
-  //   transformerNotationDiff,
-  // ],
-}
 
 /** remark-rehype plugin (conversion from markdown to HTML AST) */
 export const remarkRehypeConfig: RemarkRehypeOptions = {
@@ -404,6 +379,8 @@ export const markdownConfig: Partial<MdxOptions> = {
     remarkGridTables,
     /** Tab groups via fenced code meta: ```lang [group:Tab Name] */
     remarkCodeTabs,
+    /** Preserve remaining fenced-code meta for Shiki transformers (e.g. {1,3}, /word/, ins={...}) */
+    remarkShikiMeta,
     /**
      * Add HTML attributes to elements using {.class #id key=value} syntax
      * Supports: headings, links, images, code blocks, lists, and bracketed spans
@@ -466,6 +443,7 @@ export const markdownConfig: Partial<MdxOptions> = {
         defaultColor: shikiConfigOptions.defaultColor,
         langAlias: shikiConfigOptions.langAlias,
         wrap: true,
+        transformers: shikiTransformers,
         excludeLangs: ['text', 'mermaid', 'math'],
       },
     ],

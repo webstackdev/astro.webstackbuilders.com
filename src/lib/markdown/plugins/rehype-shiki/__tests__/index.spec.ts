@@ -10,7 +10,7 @@ vi.mock('shiki', () => {
           const highlightedPre: Element = {
             type: 'element',
             tagName: 'pre',
-            properties: { class: 'shiki', tabindex: '0' },
+            properties: { class: 'shiki' },
             children: [
               {
                 type: 'element',
@@ -83,7 +83,7 @@ describe('rehype-shiki', () => {
     expect(pre.properties?.['data-code-tabs-group']).toBe('g1')
     expect(pre.properties?.['data-code-tabs-tab']).toBe('JavaScript')
     expect(pre.properties?.['data-language']).toBe('javascript')
-    expect(pre.properties?.['tabIndex']).toBe(0)
+    expect(pre.properties?.['tabIndex']).toBeUndefined()
 
     const classNames = pre.properties?.['className'] as string[]
     expect(classNames).toEqual(

@@ -57,7 +57,7 @@ function formatLanguageLabel(language: string): string {
   return labelMap[normalized] ?? (language.trim() || language)
 }
 
-function getTabLabel(pre: HTMLPreElement, index: number): string | null {
+function getTabLabel(pre: HTMLPreElement): string | null {
   const explicit = pre.getAttribute('data-code-tabs-tab')
   if (explicit && explicit.trim()) return explicit.trim()
 
@@ -99,7 +99,7 @@ class CodeTabsElement extends HTMLElement {
     if (this.codeBlocks.length === 0) return
 
     const labels = this.codeBlocks
-      .map((pre, index) => getTabLabel(pre, index))
+      .map(pre => getTabLabel(pre))
       .filter((label): label is string => Boolean(label))
 
     this.isInteractiveTabs = this.codeBlocks.length >= 2
