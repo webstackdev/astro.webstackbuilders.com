@@ -36,5 +36,8 @@ const normalizeSocialSlug = (rawPath?: string | null): string => {
 
 export const getSocialImageLink = (path?: string | null): string => {
   const slug = normalizeSocialSlug(path)
-  return `${getSiteUrl()}/og/${slug}.png`
+
+  const url = new URL('/api/social-card', getSiteUrl())
+  url.searchParams.set('slug', slug)
+  return url.toString()
 }

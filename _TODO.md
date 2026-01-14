@@ -107,6 +107,16 @@ Link to the second-order category from the "Skills/Technologies Preview" icons o
 
 Title box - need to squish to 75% and have it absolute in place as you scroll down, go back to 100% when you scroll back up
 
+[example](https://thenewstack.io/)
+
+## Mobile Table of Contents
+
+There are six examples of TOC drawers on mobile. We have an implementation currently, but it's not very good. We should improve the component to use one of the patterns show in the examples.
+
+## Lead on Hero for Articles
+
+There's an [example screen shot](src/components/Layout/Markdown/Lead/lead-on-hero-example.png) from CSS-Tricks showing a layout of the author avatar, author name, published date, and title overlaid on the cover image. It would save space on the page. Probably should have it above the image on mobile to avoid visibility issues.
+
 ## Themepicker
 
 Need to tweak 1px border for non-active theme cards
@@ -120,6 +130,16 @@ Need a tooltip component for consistency. List to add tooltips to:
 - Abbreviations in markdown
 - "Report a Bug" in footer
 - RSS feed icon in footer
+
+## Services
+
+COAK has two pricing tiers:
+
+- Continuous Workstream, $9,500 per month. For ongoing development and long-term partnership. Steady progress on your roadmap without the pressure of hard deadlines.
+
+- Full Workstream, $19,500 per month. For hard deadlines and high velocity projects. When you need to move fast and can't afford to wait.
+
+"We guarantee you we can build it in 30 days for a budget you can afford."
 
 ## Support Pages to Style
 

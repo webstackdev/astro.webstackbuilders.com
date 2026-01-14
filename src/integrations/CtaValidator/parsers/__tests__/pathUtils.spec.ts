@@ -3,7 +3,12 @@
  */
 
 import { describe, it, expect } from 'vitest'
-import { getContentTypeFromPath, getFirstComponent, extractSlugAndCollection } from '../pathUtils'
+import {
+  getContentTypeFromPath,
+  getFirstComponent,
+  extractSlugAndCollection,
+  shouldIgnoreCtaValidation,
+} from '../pathUtils'
 
 describe('getContentTypeFromPath', () => {
   it('should detect articles content type', () => {
@@ -152,5 +157,23 @@ describe('extractSlugAndCollection', () => {
       collectionName: 'services',
       isDynamicRoute: false,
     })
+  })
+})
+
+describe('shouldIgnoreCtaValidation', () => {
+  it('should ignore the internal /articles/demo content page', () => {
+    expect(
+      shouldIgnoreCtaValidation(
+        '/home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/src/content/articles/demo/index.mdx'
+      )
+    ).toBe(true)
+  })
+
+  it('should not ignore other articles content pages', () => {
+    expect(
+      shouldIgnoreCtaValidation(
+        '/home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/src/content/articles/some-article/index.mdx'
+      )
+    ).toBe(false)
   })
 })
