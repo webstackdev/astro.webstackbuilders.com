@@ -61,6 +61,17 @@ This is a paragraph with some text.
 - List item two
 - List item three
 
+## Horizontal rule
+
+---
+
+## Table
+
+| Col A | Col B |
+| --- | --- |
+| A1 | B1 |
+| A2 | B2 |
+
 ## Code
 
 Here is some \`inline code\`.
@@ -128,6 +139,31 @@ describe('Layer 3: E2E - rehypeTailwindClasses', () => {
     const link = container.querySelector('a[href^="https://example.com"]')
     expectHasAtLeastOneValidClassAttribute(link)
     expect(link?.getAttribute('href')).toBe('https://example.com')
+  })
+
+  it('should add Tailwind classes to horizontal rules', () => {
+    const { container } = render(<MarkdownOutput html={html} />)
+
+    const hr = container.querySelector('hr')
+    expectHasAtLeastOneValidClassAttribute(hr)
+  })
+
+  it('should add Tailwind classes to tables (table/th/td)', () => {
+    const { container } = render(<MarkdownOutput html={html} />)
+
+    const table = container.querySelector('table')
+    expectHasAtLeastOneValidClassAttribute(table)
+
+    const header = container.querySelector('th')
+    expectHasAtLeastOneValidClassAttribute(header)
+
+    const cell = container.querySelector('td')
+    expectHasAtLeastOneValidClassAttribute(cell)
+
+    // Ensure table structure and content remain intact.
+    expect(container.textContent).toContain('Col A')
+    expect(container.textContent).toContain('A1')
+    expect(container.textContent).toContain('B2')
   })
 
   it('should not emit malformed class tokens anywhere', () => {

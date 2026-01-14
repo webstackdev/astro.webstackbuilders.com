@@ -85,9 +85,6 @@ Object.defineProperty(remarkDirective, 'name', { value: 'remarkDirective' })
 import remarkVideo, { type Config as RemarkVideoConfig } from 'remark-video'
 Object.defineProperty(remarkVideo, 'name', { value: 'remarkVideo' })
 
-import remarkYoutube from 'remark-youtube'
-Object.defineProperty(remarkYoutube, 'name', { value: 'remarkYoutube' })
-
 import remarkMarkPlus from '../markdown/plugins/remark-mark-plus'
 Object.defineProperty(remarkMarkPlus, 'name', { value: 'remarkMarkPlus' })
 
@@ -403,8 +400,6 @@ export const markdownConfig: Partial<MdxOptions> = {
      * Converts: -->, <--, <=>, 1/2, 2 x 4, +-, etc.
      */
     remarkReplacements,
-    /** Convert YouTube URLs into embedded iframes */
-    remarkYoutube,
     /** Smart quotes, dashes, and ellipsis */
     [remarkSmartypants, remarkSmartypantsConfig],
   ],

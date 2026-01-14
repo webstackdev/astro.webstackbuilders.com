@@ -220,11 +220,11 @@ export function rehypeTailwindClasses() {
         if (isAttributionQuote) return
 
         node.properties['className'] = existingClasses.concat([
-          'border-l-4',
+          'border-l-2',
           'border-blue-600',
           'my-8',
           'pl-14',
-          '-ml-14',
+          '-ml-4',
           'font-serif',
           'text-2xl',
           'italic',

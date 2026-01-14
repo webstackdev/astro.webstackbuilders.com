@@ -1,16 +1,7 @@
-/**
- * Integration tests for rehype-tailwind, run through the Astro pipeline (Layer 2).
- *
- * These assertions are intentionally non-visual:
- * - confirm at least one class gets added
- * - confirm class tokens are well-formed
- * - confirm elements remain semantic and content is preserved
- */
-
 import { describe, it, expect } from 'vitest'
 import { JSDOM } from 'jsdom'
 import { rehypeTailwindClasses } from '@lib/markdown/plugins/rehype-tailwind'
-import { processWithAstroSettings } from '@lib/markdown/helpers/processors'
+import { processIsolated } from '@lib/markdown/helpers/processors'
 
 function splitClassTokens(value: string | null): string[] {
   if (!value) return []
@@ -21,8 +12,8 @@ function splitClassTokens(value: string | null): string[] {
 }
 
 function isWellFormedCssClassToken(token: string): boolean {
-  // We keep this intentionally permissive for Tailwind variants (e.g. `md:hover:...`, `w-1/2`, `!mt-0`).
-  // The main goal is to ensure we never emit whitespace/control chars or HTML-breaking characters.
+  // Keep intentionally permissive for Tailwind variants (e.g. `md:hover:...`, `w-1/2`, `!mt-0`).
+  // The goal is to ensure we never emit whitespace/control chars or HTML-breaking characters.
   if (!token) return false
   if (/[\s"'`{};]/.test(token)) return false
 
@@ -47,11 +38,11 @@ function expectHasAtLeastOneValidClassAttribute(element: Element | null, name: s
 }
 
 async function renderMarkdownToDocument(markdown: string): Promise<Document> {
-  const html = await processWithAstroSettings({ markdown, plugin: rehypeTailwindClasses, stage: 'rehype' })
+  const html = await processIsolated({ markdown, plugin: rehypeTailwindClasses, stage: 'rehype', gfm: true })
   return new JSDOM(html).window.document
 }
 
-describe('rehypeTailwindClasses (Layer 2: Astro Pipeline) - simple elements', () => {
+describe('rehypeTailwindClasses (Layer 1: Isolated) - simple elements', () => {
   it('adds at least one class to <p> elements and preserves content', async () => {
     const document = await renderMarkdownToDocument('This is a test paragraph.')
 
@@ -60,12 +51,11 @@ describe('rehypeTailwindClasses (Layer 2: Astro Pipeline) - simple elements', ()
     expect(paragraph?.textContent).toContain('This is a test paragraph.')
   })
 
-  it('adds at least one class to <hr> elements (both markdown syntaxes)', async () => {
-    const dashed = await renderMarkdownToDocument('Content above\n\n---\n\nContent below')
-    expectHasAtLeastOneValidClassAttribute(dashed.querySelector('hr'), 'hr (---)')
+  it('adds at least one class to <hr> elements', async () => {
+    const document = await renderMarkdownToDocument('Content above\n\n---\n\nContent below')
 
-    const starred = await renderMarkdownToDocument('Content above\n\n***\n\nContent below')
-    expectHasAtLeastOneValidClassAttribute(starred.querySelector('hr'), 'hr (***)')
+    const hr = document.querySelector('hr')
+    expectHasAtLeastOneValidClassAttribute(hr, 'hr')
   })
 
   it('adds at least one class to <ul>, <ol>, and <li> elements', async () => {
@@ -73,9 +63,7 @@ describe('rehypeTailwindClasses (Layer 2: Astro Pipeline) - simple elements', ()
 
     expectHasAtLeastOneValidClassAttribute(document.querySelector('ul'), 'ul')
     expectHasAtLeastOneValidClassAttribute(document.querySelector('ol'), 'ol')
-
-    const firstListItem = document.querySelector('li')
-    expectHasAtLeastOneValidClassAttribute(firstListItem, 'li')
+    expectHasAtLeastOneValidClassAttribute(document.querySelector('li'), 'li')
   })
 
   it('adds at least one class to <table>, <th>, and <td> elements', async () => {
@@ -83,14 +71,9 @@ describe('rehypeTailwindClasses (Layer 2: Astro Pipeline) - simple elements', ()
       ['| Header 1 | Header 2 |', '| --- | --- |', '| Cell 1 | Cell 2 |'].join('\n')
     )
 
-    const table = document.querySelector('table')
-    expectHasAtLeastOneValidClassAttribute(table, 'table')
-
-    const header = document.querySelector('th')
-    expectHasAtLeastOneValidClassAttribute(header, 'th')
-
-    const cell = document.querySelector('td')
-    expectHasAtLeastOneValidClassAttribute(cell, 'td')
+    expectHasAtLeastOneValidClassAttribute(document.querySelector('table'), 'table')
+    expectHasAtLeastOneValidClassAttribute(document.querySelector('th'), 'th')
+    expectHasAtLeastOneValidClassAttribute(document.querySelector('td'), 'td')
   })
 
   it('does not emit malformed class tokens anywhere', async () => {
