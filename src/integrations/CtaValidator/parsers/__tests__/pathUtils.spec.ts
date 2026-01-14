@@ -46,11 +46,11 @@ describe('getFirstComponent', () => {
   })
 
   it('should handle single component', () => {
-    const components = [{ name: 'Featured', path: '/path', importPatterns: [] }]
+    const components = [{ name: 'Download', path: '/path', importPatterns: [] }]
 
     const result = getFirstComponent(components)
 
-    expect(result).toBe('Featured')
+    expect(result).toBe('Download')
   })
 
   it('should return empty string for empty array', () => {

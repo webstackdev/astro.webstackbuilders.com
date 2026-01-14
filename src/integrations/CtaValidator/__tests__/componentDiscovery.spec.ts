@@ -101,7 +101,7 @@ describe('discoverCallToActionComponents', () => {
 
   it('should log discovery when debug is enabled', async () => {
     mockReaddir.mockResolvedValue([
-      { name: 'Featured', isDirectory: () => true, isFile: () => false },
+      { name: 'Contact', isDirectory: () => true, isFile: () => false },
     ] as any)
 
     mockReadFile.mockResolvedValue('component content')
@@ -114,7 +114,7 @@ describe('discoverCallToActionComponents', () => {
     )
 
     expect(mockLogger.info).toHaveBeenCalledWith(
-      expect.stringContaining("Found component 'Featured'")
+      expect.stringContaining("Found component 'Contact'")
     )
   })
 
@@ -163,7 +163,6 @@ describe('discoverCallToActionComponents', () => {
       { name: 'Contact', isDirectory: () => true, isFile: () => false },
       { name: 'Newsletter', isDirectory: () => true, isFile: () => false },
       { name: 'Download', isDirectory: () => true, isFile: () => false },
-      { name: 'Featured', isDirectory: () => true, isFile: () => false },
     ] as any)
 
     mockReadFile.mockResolvedValue('component content')
@@ -175,7 +174,7 @@ describe('discoverCallToActionComponents', () => {
       false
     )
 
-    expect(components).toHaveLength(4)
-    expect(components.map(c => c.name)).toEqual(['Contact', 'Newsletter', 'Download', 'Featured'])
+    expect(components).toHaveLength(3)
+    expect(components.map(c => c.name)).toEqual(['Contact', 'Newsletter', 'Download'])
   })
 })
