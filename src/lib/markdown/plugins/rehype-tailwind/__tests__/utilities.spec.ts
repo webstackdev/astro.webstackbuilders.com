@@ -57,6 +57,17 @@ describe('rehype-tailwind utils (fixture-driven)', () => {
     expect(code.getAttribute('class')).toContain('language-ts')
   })
 
+  it('adds wrapping classes to <pre><code class="language-text"> blocks', async () => {
+    const document = await renderFixtureToDocument('code-block-language-text.html')
+
+    const pre = getRequiredElement(document.querySelector('pre'), 'pre')
+    expect(pre.getAttribute('class')).toContain('overflow-x-hidden')
+
+    const code = getRequiredElement(pre.querySelector('code'), 'pre > code')
+    expect(code.getAttribute('class')).toContain('whitespace-pre-wrap')
+    expect(code.getAttribute('class')).toContain('break-words')
+  })
+
   it('supports <code-tabs> web component markup', async () => {
     const document = await renderFixtureToDocument('code-tabs-element.html')
 

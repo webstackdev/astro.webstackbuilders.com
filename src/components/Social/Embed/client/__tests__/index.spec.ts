@@ -83,11 +83,11 @@ describe('SocialEmbed component', () => {
   })
 
   test('syncs dataset attributes when url or platform change after render', async () => {
-    const url = 'https://reddit.com/r/webdev/comments/abc123'
-    const updatedUrl = 'https://reddit.com/r/webdev/comments/xyz789'
+    const url = 'https://codepen.io/webstackdev/pen/JaEgxM'
+    const updatedUrl = 'https://codepen.io/webstackdev/pen/0OEqyQ'
 
-    await renderComponent({ url, platform: 'reddit' }, async ({ element }) => {
-      expect(element.dataset['embedPlatform']).toBe('reddit')
+    await renderComponent({ url, platform: 'codepen' }, async ({ element }) => {
+      expect(element.dataset['embedPlatform']).toBe('codepen')
       expect(element.dataset['embedUrl']).toBe(url)
 
       element.url = updatedUrl

@@ -8,14 +8,13 @@
  * - LinkedIn (requires embed code from post menu)
  * - Bluesky (requires explicit platform prop)
  * - Mastodon
- * - Reddit
  * - YouTube
  * - GitHub Gist
  * - CodePen
  *
  * Usage in MDX:
  *
- * Auto-detection (X, Reddit, YouTube, GitHub Gist, CodePen, Mastodon):
+ * Auto-detection (X, YouTube, GitHub Gist, CodePen, Mastodon):
  * <Embed url="https://twitter.com/user/status/123456789" />
  *
  * Explicit platform (Bluesky):
@@ -30,29 +29,64 @@
 import type { EmbedPlatform } from '@components/Social/Embed/client'
 import './index.css'
 
+type EmbedType = EmbedPlatform | 'gist'
+
 export interface Props {
   url: string
   platform?: EmbedPlatform
+  /** Alias for platform (backwards-compat for `type` usage in content). */
+  type?: EmbedType
+  /** Optional iframe dimensions for media platforms (e.g., YouTube). */
+  width?: number
+  /** Optional iframe dimensions for media platforms (e.g., YouTube). */
+  height?: number
   className?: string
 }
 
-const { url, platform, className = '' } = Astro.props
+const { url, platform, type, width: widthProp, height: heightProp, className = '' } = Astro.props
+
+const normalizeEmbedPlatform = (value: EmbedType | undefined): EmbedPlatform | undefined => {
+  if (!value) return undefined
+  if (value === 'gist') return 'github-gist'
+  return value
+}
+
+const requestedPlatform = normalizeEmbedPlatform(platform) ?? normalizeEmbedPlatform(type)
+
+const youtubeDefaults = { width: 560, height: 315 }
+const resolvedWidth =
+  typeof widthProp === 'number'
+    ? widthProp
+    : requestedPlatform === 'youtube'
+      ? youtubeDefaults.width
+      : undefined
+const resolvedHeight =
+  typeof heightProp === 'number'
+    ? heightProp
+    : requestedPlatform === 'youtube'
+      ? youtubeDefaults.height
+      : undefined
 
 // Determine the platform for placeholder styling
-const detectedPlatform = platform || 'x' // Default to X for auto-detection
+const detectedPlatform = requestedPlatform || 'x' // Default to X for auto-detection
 
 // Platform-specific max-width classes
 const platformMaxWidth: Record<string, string> = {
   youtube: 'max-w-[640px]',
   codepen: 'max-w-[640px]',
-  reddit: 'max-w-[800px]',
   'github-gist': 'max-w-full font-mono',
 }
 const maxWidthClass = platformMaxWidth[detectedPlatform] || 'max-w-[550px]'
 ---
 
-<social-embed class={`my-8 mx-auto ${maxWidthClass} ${className}`} url={url} platform={platform}>
-  {platform === 'linkedin' ? <slot /> : null}
+<social-embed
+  class={`my-8 mx-auto ${maxWidthClass} ${className}`}
+  url={url}
+  platform={requestedPlatform}
+  data-embed-width={resolvedWidth}
+  data-embed-height={resolvedHeight}
+>
+  {requestedPlatform === 'linkedin' ? <slot /> : null}
 </social-embed>
 
 <script>

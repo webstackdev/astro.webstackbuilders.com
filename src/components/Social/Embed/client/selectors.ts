@@ -8,6 +8,7 @@ export const SELECTORS = {
   iframe: 'iframe',
   script: 'script',
   video: 'video',
+  stylesheetLink: 'link[rel="stylesheet"]',
 } as const
 
 /**
@@ -63,6 +64,21 @@ export const queryScripts = (root: ParentNode): HTMLScriptElement[] => {
   return Array.from(root.querySelectorAll(SELECTORS.script)).filter(
     (node): node is HTMLScriptElement => isType1Element(node) && node.tagName === 'SCRIPT'
   ) as HTMLScriptElement[]
+}
+
+export const hasScriptWithSrc = (src: string, root: ParentNode = document): boolean => {
+  return queryScripts(root).some(script => script.getAttribute('src') === src)
+}
+
+export const queryStylesheetLinks = (root: ParentNode = document): HTMLLinkElement[] => {
+  return Array.from(root.querySelectorAll(SELECTORS.stylesheetLink)).filter(
+    (node): node is HTMLLinkElement => isType1Element(node) && node.tagName === 'LINK'
+  ) as HTMLLinkElement[]
+}
+
+export const queryStylesheetLinkByHref = (href: string, root: ParentNode = document): HTMLLinkElement | null => {
+  const links = queryStylesheetLinks(root)
+  return links.find(link => link.getAttribute('href') === href) ?? null
 }
 
 export const assertHasEmbedPlaceholder = (root: ParentNode): HTMLElement => {

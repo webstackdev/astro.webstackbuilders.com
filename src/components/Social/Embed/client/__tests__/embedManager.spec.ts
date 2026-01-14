@@ -87,6 +87,12 @@ describe('EmbedManager', () => {
         await flushPromises()
         await flushPromises()
 
+        expect(fetchSpy).toHaveBeenCalled()
+        const calledUrl = String(fetchSpy.mock.calls[0]?.[0] ?? '')
+        expect(calledUrl).toContain('www.youtube.com/oembed')
+        expect(calledUrl).toContain('maxwidth=560')
+        expect(calledUrl).toContain('maxheight=315')
+
         const iframe = window?.document.querySelector('social-embed iframe')
         expect(iframe).not.toBeNull()
         expect(iframe?.getAttribute('title')).toBe('Example embed title')
@@ -94,6 +100,54 @@ describe('EmbedManager', () => {
         expect(element.querySelector('[data-embed-placeholder]')).toBeNull()
         expect(element.querySelector('[data-embed-loading-status]')).toBeNull()
         expect(element.getAttribute('aria-busy')).toBe('false')
+
+        fetchSpy.mockRestore()
+        ;(globalThis as unknown as { IntersectionObserver?: unknown }).IntersectionObserver =
+          previousIntersectionObserver
+      },
+    })
+  })
+
+  test('uses custom width/height for YouTube oEmbed requests', async () => {
+    await executeRender<SocialEmbedModule>({
+      container,
+      component: SocialEmbed,
+      moduleSpecifier: '@components/Social/Embed/webComponent',
+      args: {
+        props: {
+          url: 'https://youtube.com/watch?v=customVideoId123456',
+          platform: 'youtube',
+          width: 640,
+          height: 360,
+        },
+      },
+      waitForReady: async element => {
+        await element.updateComplete
+      },
+      assert: async () => {
+        const previousIntersectionObserver = (
+          globalThis as unknown as { IntersectionObserver?: unknown }
+        ).IntersectionObserver
+        ;(globalThis as unknown as { IntersectionObserver?: unknown }).IntersectionObserver =
+          ImmediateIntersectionObserver as unknown as typeof IntersectionObserver
+
+        const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+          ok: true,
+          json: async () => ({
+            title: 'Example embed title',
+            html: '<iframe src="https://example.com/embed"></iframe>',
+          }),
+        } as Response)
+
+        EmbedManager.reset()
+        EmbedManager.init()
+        await flushPromises()
+        await flushPromises()
+
+        expect(fetchSpy).toHaveBeenCalled()
+        const calledUrl = String(fetchSpy.mock.calls[0]?.[0] ?? '')
+        expect(calledUrl).toContain('maxwidth=640')
+        expect(calledUrl).toContain('maxheight=360')
 
         fetchSpy.mockRestore()
         ;(globalThis as unknown as { IntersectionObserver?: unknown }).IntersectionObserver =

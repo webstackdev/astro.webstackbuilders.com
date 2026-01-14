@@ -13,474 +13,6 @@ import Demo from '@components/Test/Demo.mdx'
 
 ## Components
 
-### Code
-
-The project contains the full bundle of Shiki languages. They are dynamically loaded individually. Some common languages: `asm` for Assembly, `astro`, `awk`, `blade`, `clojure`, `cmake`, `cpp` for C++, `csharp` for C#, `css`, `diff`, `docker` for Dockerfiles, `dotenv`, `erlang`, `go`, `graphql`, `haskell`, `html`, `http`, `ini`, `java`, `javascript` / `js`, `json`, `json5`, `jsx`, `kotlin`, `log`, `lua`, `make`, `markdown`, `mdx`, `php`, `powershell`, `puppet`, `python`, `r`, `regexp`, `ruby`, `rust`, `scala`, `scss`, `sql`, `svelte`, `swift`, `systemd`, `terraform`, `toml`, `tsx`, `typescript` / `ts`, `vue`, `xml`, `yaml`
-
-This `console.log("hello, world!")` statement is inline code.
-
-```typescript
-  console.log("hello, world!")
-```
-
-```bash [g8:BASH]
-#!/bin/bash
-
-LOG_DIR="/var/log/myapp"
-
-# This is a super long line to make sure that text wrapping works, and doesn't result in a new numbered line. Rather, when a super long line is wider than the available area in a code block, the next line number should be pushed down and the super long line should should wrap onto an un-numbered line below the numbered line that it is originally on.
-cleanup_old_files() {
-    local target_dir=$1
-    local days=$2
-
-    if [[ ! -d "$target_dir" ]]; then
-        log_error "Directory not found: $target_dir"
-        return 1
-    fi
-
-    log_info "Starting cleanup in: $target_dir (keeping files less than $days days old)"
-
-    find "$target_dir" -type f -mtime +$days -print0 | while IFS= read -r -d '' file; do
-        if $DRY_RUN; then
-            echo "[DRY RUN] Would delete: $file"
-        else
-            echo "[DELETING] $file"
-            rm "$file"
-            if [[ $? -ne 0 ]]; then # Check the exit status of the last command
-                log_error "Failed to delete $file"
-            fi
-        fi
-    done
-
-    log_info "Cleanup finished for $target_dir"
-    return 0
-}
-```
-
-```text
-A text code block
-```
-
-#### Grouped Code Tabs
-
-The following examples substitute apostrophes for backticks so that they're not rendered to code blocks.
-
-There can only be white space between two code blocks. Syntax for the language block on the first line of the code block is `language [group:tabName]`. Display name is set by `tabName` and can only contain characters in `[A-Za-z0-9_]`.
-
-```javascript [g1:Javascript]
-function fetchUserData(userId) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (userId === 123) {
-        resolve({ id: 123, name: 'John Doe', postId: 456 })
-      } else {
-        reject(new Error('User not found'))
-      }
-    }, 500) // Simulate network delay
-  })
-}
-
-```
-```typescript [g1:Typescript]
-class TypedEventEmitter<T extends Record<keyof T, any>> implements EventEmitter<T> {
-  // Use a Mapped Type to create a structure for handlers
-  private handlers: {
-    [K in keyof T]?: Array<(payload: T[K]) => void>;
-  } = {};
-
-  subscribe<K extends keyof T>(eventName: K, handler: (payload: T[K]) => void): () => void {
-    if (!this.handlers[eventName]) {
-      this.handlers[eventName] = [];
-    }
-    // Type safety is maintained within the array
-    this.handlers[eventName]!.push(handler);
-
-    // Return an unsubscribe function (cleanup)
-    return () => {
-      const index = this.handlers[eventName]!.indexOf(handler);
-      if (index > -1) {
-        this.handlers[eventName]!.splice(index, 1);
-      }
-    };
-  }
-}
-```
-
-```ruby [g2:Ruby]
-class Tree
-  def initialize(*d)
-    @d = d[0] # The current node's data
-  end
-
-  # A custom string representation of the tree
-  def to_s
-    @l || @r ? "< #{@d},<#{@l}>,<#{@r}>>" : @d
-  end
-
-  # Recursively calculates the total sum of all numeric nodes
-  def total
-    # Add current node if numeric, otherwise 0
-    (@d.is_a?(Numeric) ? @d : 0) +
-    # Recursively call total on left and right children if they exist
-    (@l ? @l.total : 0) +
-    (@r ? @r.total : 0)
-  end
-end
-```
-```python [g2:Python]
-import functools
-from typing import Generator, Optional
-
-class UniqueIDGenerator:
-    """A generator for creating unique, hashed identifiers."""
-
-    def __init__(self, salt: str = "default_salt"):
-        self.salt = salt
-        self._generated_ids = set() # Store generated IDs to check for uniqueness
-
-    @staticmethod
-    def _hash_data(data: str) -> str:
-        """Static method to create an MD5 hash."""
-        return hashlib.md5(data.encode('utf-8')).hexdigest()
-```
-```go [g2:Go]
-package main
-
-import (
-  "fmt"
-  "sync"
-  "time"
-)
-
-// Job represents the work to be done.
-type Job struct {
-  ID      int
-  Payload string
-}
-
-// Worker processes jobs from a channel and sends results to another channel.
-func Worker(id int, jobs <-chan Job, results chan<- string, wg *sync.WaitGroup) {
-  defer wg.Done() // Signal the WaitGroup that this worker is done when the function returns
-  for job := range jobs {
-    fmt.Printf("Worker %d starting job %d\n", id, job.ID)
-    // Simulate a time-consuming task
-    time.Sleep(time.Millisecond * 500)
-    result := fmt.Sprintf("Worker %d finished job %d with payload: %s", id, job.ID, job.Payload)
-    fmt.Println(result)
-    results <- result // Send the result to the results channel
-  }
-}
-```
-
-```markdown [g3:Markdown]
-# Complex Markdown Example
-
-This is a paragraph with **bold text**, *italic text*, and ~~strikethrough text~~. You can also use `inline code` for small snippets.
-
----
-
-## Unordered List of Features
-
-*   **Headers:** Use `#` symbols.
-*   **Lists:** Both ordered and unordered are simple to create.
-*   **Links & Images:** Embed web content easily.
-    *   [Visit Google](https://www.google.com) for more information.
-
-## Ordered List (Checklist)
-
-1.  [x] Complete basic formatting.
-2.  [ ] Add a table.
-3.  [x] Include a code block.
-```
-```yaml [g3:Yaml]
-app_name: "OrderProcessingService"
-
-# --- Microservice Features & Settings ---
-features:
-  - name: "PaymentGateway"
-    enabled: true
-    config:
-      provider: "Stripe"
-      api_key_secret: "stripe-prod-key"
-  - name: "InventoryCheck"
-    enabled: true
-    config:
-      redis_host: "cache.prod.example.com"
-      timeout_ms: 500
-  - name: "EmailNotifications"
-    enabled: false # Disabled feature
-```
-```json [g3:JSON]
-{
-  "organization_details": {
-    "name": "TechCorp Solutions Inc.",
-    "industry": "Software Development",
-    "established_year": 2005,
-    "ceo": null,
-    "is_publicly_traded": false,
-    "address": {
-      "street": "456 Innovation Drive",
-      "city": "Menlo Park",
-      "state": "CA",
-      "postalCode": "94025",
-      "country": "USA"
-    },
-    "contacts": {
-      "email": "info@techcorp.com",
-      "phone": "+1-555-1234",
-      "support_url": "techcorp.com"
-    }
-  }
-}
-```
-```html [g3:HTML]
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-</head>
-<body style="margin: 0 auto; max-width: 520px;">
-  <h1>Hi there!</h1>
-  <div>I'm your cool new webpage! Use the toggle in the <dark-mode style="border: 2px solid blue"></dark-mode> 👈  button to switch my theme.</div>
-  Github: <a href="https://github.com/jaywcjlove/dark-mode.git" target="__blank">@jaywcjlove/dark-mode</a>
-  <script>
-    const toggle = document.querySelector('dark-mode');
-    const button = document.createElement('button');
-    button.textContent = 'Change Theme';
-    button.style = 'line-height: 16px';
-    button.onclick = () => {
-      const theme = document.documentElement.dataset.colorMode;
-      toggle.mode = theme === 'light' ? 'dark' : 'light';
-      // document.documentElement.setAttribute('data-color-mode', theme === 'light' ? 'dark' : 'light');
-    }
-    document.body.appendChild(button);
-    document.addEventListener('colorschemechange', (e) => {
-      console.log(`colorschemechange: Color scheme changed to "${e.detail.colorScheme}" or .`);
-      button.textContent = toggle.mode === 'dark' ? 'Change Theme 🌞' : 'Change Theme 🌒';
-    });
-    document.addEventListener('permanentcolorscheme', (e) => {
-      console.log(`~permanentcolorscheme: Color scheme changed to "${e.detail.colorScheme}" or .`);
-    });
-    const removePermanent = () => document.querySelectorAll('dark-mode').forEach((item) => item.removeAttribute('permanent'));
-  </script>
-</body>
-</html>
-```
-
-#### Add a title to the code block
-
-You can add a title to the code block by using it for the name in the group block like `[g7:/src/script.js]`:
-
-```js [g7:/src/script.js]
-  console.log('Hello World')
-```
-
-Note: the `title` prop is optional. If you don't add it, the code block will not have a title.
-
-#### Highlight lines
-
-You can highlight lines in the code block by adding a prop to the code blocks as a list of comma separated numbers in curly brackets like `js {1,3,5}`.
-
-`{1}` will highlight line 1
-
-`{1,3}` will highlight lines 1 and 3
-
-`{2-5, 7}` will highlight lines 1 to 5(not included) and 7
-
-```js {1,3,5}
-  console.log('Hello World')
-  console.log('Hello World')
-  console.log('Hello World')
-  console.log('Hello World')
-  console.log('Hello World')
-```
-
-#### Error highlights
-
-Use `warning={5,6}` and `error={3,4}` to mark a line with an error and warning levels.
-
-```ts error={3,4} warning={5,6}
-  # Using NPM
-  npx astro add @thewebforge/astro-code-blocks
-  # Using Yarn
-  yarn astro add @thewebforge/astro-code-blocks
-  # Using PNPM
-  pnpm astro add @thewebforge/astro-code-blocks
-```
-
-#### Highlight strings
-
-You can highlight strings in the code block by adding a prop to the code blocks as a regular expression. The following example will highlight all occurrences of "astro" using a language string like `sh /astro/`:
-
-`/astro/` will highlight all occurrences of "astro"
-`/\w*$/` will highlight the last word of each line
-
-```sh /astro/
-  # Using NPM
-  npx astro add @thewebforge/astro-code-blocks
-  # Using Yarn
-  yarn astro add @thewebforge/astro-code-blocks
-  # Using PNPM
-  pnpm astro add @thewebforge/astro-code-blocks
-```
-
-#### Insertions and Deletions
-
-You can highlight insertions and deletions in the code block by adding `ins` and / or `del` props to the code blocks as a list of lines in curly brackets with a language string like `sh ins={3,4} del={5,6}`:
-
-```sh ins={3,4} del={5,6}
-  # Using NPM
-  npx astro add @thewebforge/astro-code-blocks
-  # Using Yarn
-  yarn astro add @thewebforge/astro-code-blocks
-  # Using PNPM
-  pnpm astro add @thewebforge/astro-code-blocks
-```
-
-### Contact Callout Component
-
-Invite readers to get in touch:
-
-<Contact />
-
-### Copy To Clipboard Component
-
-#### Attribute
-
-```markdown
-<Copy value="src/index.js">Copy</Copy>
-```
-
-<Copy value="src/index.js">Copy</Copy>
-
-Float mode:
-
-```markdown
-<Copy value="src/index.js" mode="float">Copy</Copy>
-```
-
-<Copy value="src/index.js" mode="float">Copy</Copy>
-
-#### Element content
-
-```markdown
-<Copy for="blob-path"><div id="blob-path">Copy</div></Copy>
-```
-
-<Copy for="blob-path"><div id="blob-path">Copy</div></Copy>
-
-Float mode:
-
-```markdown
-<Copy for="blob-path" mode="float"><div id="blob-path">Copy</div></Copy>
-```
-
-<Copy for="blob-path" mode="float"><div id="blob-path">Copy</div></Copy>
-
-#### Form input
-
-```markdown
-<Copy for="blob-path"><input id="blob-path" value="src/index.js" /></Copy>
-```
-
-<Copy for="blob-path"><input id="blob-path" value="src/index.js" /></Copy>
-
-Float mode:
-
-```markdown
-<Copy for="blob-path" mode="float"><input id="blob-path" value="src/index.js" /></Copy>
-```
-
-<Copy for="blob-path" mode="float"><input id="blob-path" value="src/index.js" /></Copy>
-
-#### Hyperlink href
-
-```markdown
-<Copy for="blob-path"><a id="blob-path" href="/path/to#my-blob">Link text will not be copied</a></Copy>
-```
-
-<Copy for="blob-path"><a id="blob-path" href="/path/to#my-blob">Link text will not be copied</a></Copy>
-
-Float mode:
-
-```markdown
-<Copy for="blob-path" mode="float"><a id="blob-path" href="/path/to#my-blob">Link text will not be copied</a></Copy>
-```
-
-<Copy for="blob-path" mode="float"><a id="blob-path" href="/path/to#my-blob">Link text will not be copied</a></Copy>
-
-### Featured Content Component
-
-Highlight featured articles or services:
-
-<Featured
-  title="Featured Content"
-  description="Discover more articles and resources."
-  link={{ href: "/articles", text: "Browse Articles" }}
-/>
-
-### Highlighter Component
-
-The Highlighter component allows you to <Highlighter>emphasize specific text</Highlighter> wit
-
-### Icon Component
-
-Use SVG sprites for icons throughout your content:
-
-```markdown
-<Icon name="check" class="w-6 h-6 text-success" />
-<Icon name="warning" class="w-6 h-6 text-warning" />
-<Icon name="info" class="w-6 h-6 text-info" />
-```
-
-<Icon name="check" class="w-6 h-6 text-success" />
-<Icon name="warning" class="w-6 h-6 text-warning" />
-<Icon name="info" class="w-6 h-6 text-info" />
-
-### Social Embeds Component
-
-#### YouTube Embed
-
-```markdown
-<Embed
-  type="youtube"
-  url="https://www.youtube.com/watch?v=lSk-DWAJPbA"
-/>
-```
-
-<Embed
-  type="youtube"
-  url="https://www.youtube.com/watch?v=lSk-DWAJPbA"
-/>
-
-#### X (Twitter) Embed
-
-```markdown
-<Embed
-  type="x"
-  url="https://x.com/WebstackDev/status/1717481221549445419"
-/>
-```
-
-<Embed
-  type="x"
-  url="https://x.com/WebstackDev/status/1717481221549445419"
-/>
-
-#### GitHub Gist Embed
-
-```markdown
-<Embed
-  type="gist"
-  url="https://gist.github.com/webstackdev/455fb0b4e0d2332a8aaa02309563fb54"
-/>
-```
-
-<Embed
-  type="gist"
-  url="https://gist.github.com/webstackdev/455fb0b4e0d2332a8aaa02309563fb54"
-/>
-
 ### Newsletter Signup Component
 
 Encourage readers to subscribe to your newsletter:
@@ -1195,4 +727,490 @@ Showcase related articles using the production carousel component:
   currentSlug="demo/index"
   limit={6}
   navigationMode="bounded"
+/>
+
+### Code
+
+The project contains the full bundle of Shiki languages. They are dynamically loaded individually. Some common languages: `asm` for Assembly, `astro`, `awk`, `blade`, `clojure`, `cmake`, `cpp` for C++, `csharp` for C#, `css`, `diff`, `docker` for Dockerfiles, `dotenv`, `erlang`, `go`, `graphql`, `haskell`, `html`, `http`, `ini`, `java`, `javascript` / `js`, `json`, `json5`, `jsx`, `kotlin`, `log`, `lua`, `make`, `markdown`, `mdx`, `php`, `powershell`, `puppet`, `python`, `r`, `regexp`, `ruby`, `rust`, `scala`, `scss`, `sql`, `svelte`, `swift`, `systemd`, `terraform`, `toml`, `tsx`, `typescript` / `ts`, `vue`, `xml`, `yaml`
+
+This `console.log("hello, world!")` statement is inline code.
+
+```typescript
+  console.log("hello, world!")
+```
+
+```bash [g8:BASH]
+#!/bin/bash
+
+LOG_DIR="/var/log/myapp"
+
+# This is a super long line to make sure that text wrapping works, and doesn't result in a new numbered line. Rather, when a super long line is wider than the available area in a code block, the next line number should be pushed down and the super long line should should wrap onto an un-numbered line below the numbered line that it is originally on.
+cleanup_old_files() {
+    local target_dir=$1
+    local days=$2
+
+    if [[ ! -d "$target_dir" ]]; then
+        log_error "Directory not found: $target_dir"
+        return 1
+    fi
+
+    log_info "Starting cleanup in: $target_dir (keeping files less than $days days old)"
+
+    find "$target_dir" -type f -mtime +$days -print0 | while IFS= read -r -d '' file; do
+        if $DRY_RUN; then
+            echo "[DRY RUN] Would delete: $file"
+        else
+            echo "[DELETING] $file"
+            rm "$file"
+            if [[ $? -ne 0 ]]; then # Check the exit status of the last command
+                log_error "Failed to delete $file"
+            fi
+        fi
+    done
+
+    log_info "Cleanup finished for $target_dir"
+    return 0
+}
+```
+
+```text
+A text code block
+```
+
+#### Grouped Code Tabs
+
+The following examples substitute apostrophes for backticks so that they're not rendered to code blocks.
+
+There can only be white space between two code blocks. Syntax for the language block on the first line of the code block is `language [group:tabName]`. Display name is set by `tabName` and can only contain characters in `[A-Za-z0-9_]`.
+
+```javascript [g1:Javascript]
+function fetchUserData(userId) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      if (userId === 123) {
+        resolve({ id: 123, name: 'John Doe', postId: 456 })
+      } else {
+        reject(new Error('User not found'))
+      }
+    }, 500) // Simulate network delay
+  })
+}
+
+```
+```typescript [g1:Typescript]
+class TypedEventEmitter<T extends Record<keyof T, any>> implements EventEmitter<T> {
+  // Use a Mapped Type to create a structure for handlers
+  private handlers: {
+    [K in keyof T]?: Array<(payload: T[K]) => void>;
+  } = {};
+
+  subscribe<K extends keyof T>(eventName: K, handler: (payload: T[K]) => void): () => void {
+    if (!this.handlers[eventName]) {
+      this.handlers[eventName] = [];
+    }
+    // Type safety is maintained within the array
+    this.handlers[eventName]!.push(handler);
+
+    // Return an unsubscribe function (cleanup)
+    return () => {
+      const index = this.handlers[eventName]!.indexOf(handler);
+      if (index > -1) {
+        this.handlers[eventName]!.splice(index, 1);
+      }
+    };
+  }
+}
+```
+
+```ruby [g2:Ruby]
+class Tree
+  def initialize(*d)
+    @d = d[0] # The current node's data
+  end
+
+  # A custom string representation of the tree
+  def to_s
+    @l || @r ? "< #{@d},<#{@l}>,<#{@r}>>" : @d
+  end
+
+  # Recursively calculates the total sum of all numeric nodes
+  def total
+    # Add current node if numeric, otherwise 0
+    (@d.is_a?(Numeric) ? @d : 0) +
+    # Recursively call total on left and right children if they exist
+    (@l ? @l.total : 0) +
+    (@r ? @r.total : 0)
+  end
+end
+```
+```python [g2:Python]
+import functools
+from typing import Generator, Optional
+
+class UniqueIDGenerator:
+    """A generator for creating unique, hashed identifiers."""
+
+    def __init__(self, salt: str = "default_salt"):
+        self.salt = salt
+        self._generated_ids = set() # Store generated IDs to check for uniqueness
+
+    @staticmethod
+    def _hash_data(data: str) -> str:
+        """Static method to create an MD5 hash."""
+        return hashlib.md5(data.encode('utf-8')).hexdigest()
+```
+```go [g2:Go]
+package main
+
+import (
+  "fmt"
+  "sync"
+  "time"
+)
+
+// Job represents the work to be done.
+type Job struct {
+  ID      int
+  Payload string
+}
+
+// Worker processes jobs from a channel and sends results to another channel.
+func Worker(id int, jobs <-chan Job, results chan<- string, wg *sync.WaitGroup) {
+  defer wg.Done() // Signal the WaitGroup that this worker is done when the function returns
+  for job := range jobs {
+    fmt.Printf("Worker %d starting job %d\n", id, job.ID)
+    // Simulate a time-consuming task
+    time.Sleep(time.Millisecond * 500)
+    result := fmt.Sprintf("Worker %d finished job %d with payload: %s", id, job.ID, job.Payload)
+    fmt.Println(result)
+    results <- result // Send the result to the results channel
+  }
+}
+```
+
+```markdown [g3:Markdown]
+# Complex Markdown Example
+
+This is a paragraph with **bold text**, *italic text*, and ~~strikethrough text~~. You can also use `inline code` for small snippets.
+
+---
+
+## Unordered List of Features
+
+*   **Headers:** Use `#` symbols.
+*   **Lists:** Both ordered and unordered are simple to create.
+*   **Links & Images:** Embed web content easily.
+    *   [Visit Google](https://www.google.com) for more information.
+
+## Ordered List (Checklist)
+
+1.  [x] Complete basic formatting.
+2.  [ ] Add a table.
+3.  [x] Include a code block.
+```
+```yaml [g3:Yaml]
+app_name: "OrderProcessingService"
+
+# --- Microservice Features & Settings ---
+features:
+  - name: "PaymentGateway"
+    enabled: true
+    config:
+      provider: "Stripe"
+      api_key_secret: "stripe-prod-key"
+  - name: "InventoryCheck"
+    enabled: true
+    config:
+      redis_host: "cache.prod.example.com"
+      timeout_ms: 500
+  - name: "EmailNotifications"
+    enabled: false # Disabled feature
+```
+```json [g3:JSON]
+{
+  "organization_details": {
+    "name": "TechCorp Solutions Inc.",
+    "industry": "Software Development",
+    "established_year": 2005,
+    "ceo": null,
+    "is_publicly_traded": false,
+    "address": {
+      "street": "456 Innovation Drive",
+      "city": "Menlo Park",
+      "state": "CA",
+      "postalCode": "94025",
+      "country": "USA"
+    },
+    "contacts": {
+      "email": "info@techcorp.com",
+      "phone": "+1-555-1234",
+      "support_url": "techcorp.com"
+    }
+  }
+}
+```
+```html [g3:HTML]
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+</head>
+<body style="margin: 0 auto; max-width: 520px;">
+  <h1>Hi there!</h1>
+  <div>I'm your cool new webpage! Use the toggle in the <dark-mode style="border: 2px solid blue"></dark-mode> 👈  button to switch my theme.</div>
+  Github: <a href="https://github.com/jaywcjlove/dark-mode.git" target="__blank">@jaywcjlove/dark-mode</a>
+  <script>
+    const toggle = document.querySelector('dark-mode');
+    const button = document.createElement('button');
+    button.textContent = 'Change Theme';
+    button.style = 'line-height: 16px';
+    button.onclick = () => {
+      const theme = document.documentElement.dataset.colorMode;
+      toggle.mode = theme === 'light' ? 'dark' : 'light';
+      // document.documentElement.setAttribute('data-color-mode', theme === 'light' ? 'dark' : 'light');
+    }
+    document.body.appendChild(button);
+    document.addEventListener('colorschemechange', (e) => {
+      console.log(`colorschemechange: Color scheme changed to "${e.detail.colorScheme}" or .`);
+      button.textContent = toggle.mode === 'dark' ? 'Change Theme 🌞' : 'Change Theme 🌒';
+    });
+    document.addEventListener('permanentcolorscheme', (e) => {
+      console.log(`~permanentcolorscheme: Color scheme changed to "${e.detail.colorScheme}" or .`);
+    });
+    const removePermanent = () => document.querySelectorAll('dark-mode').forEach((item) => item.removeAttribute('permanent'));
+  </script>
+</body>
+</html>
+```
+
+#### Add a title to the code block
+
+You can add a title to the code block by using it for the name in the group block like `[g7:/src/script.js]`:
+
+```js [g7:/src/script.js]
+  console.log('Hello World')
+```
+
+Note: the `title` prop is optional. If you don't add it, the code block will not have a title.
+
+#### Highlight lines
+
+You can highlight lines in the code block by adding a prop to the code blocks as a list of comma separated numbers in curly brackets like `js {1,3,5}`.
+
+`{1}` will highlight line 1
+
+`{1,3}` will highlight lines 1 and 3
+
+`{2-5, 7}` will highlight lines 1 to 5(not included) and 7
+
+```js {1,3,5}
+  console.log('Hello World')
+  console.log('Hello World')
+  console.log('Hello World')
+  console.log('Hello World')
+  console.log('Hello World')
+```
+
+#### Error highlights
+
+Use `warning={5,6}` and `error={3,4}` to mark a line with an error and warning levels.
+
+```ts error={3,4} warning={5,6}
+  # Using NPM
+  npx astro add @thewebforge/astro-code-blocks
+  # Using Yarn
+  yarn astro add @thewebforge/astro-code-blocks
+  # Using PNPM
+  pnpm astro add @thewebforge/astro-code-blocks
+```
+
+#### Highlight strings
+
+You can highlight strings in the code block by adding a prop to the code blocks as a regular expression. The following example will highlight all occurrences of "astro" using a language string like `sh /astro/`:
+
+`/astro/` will highlight all occurrences of "astro"
+`/\w*$/` will highlight the last word of each line
+
+```sh /astro/
+  # Using NPM
+  npx astro add @thewebforge/astro-code-blocks
+  # Using Yarn
+  yarn astro add @thewebforge/astro-code-blocks
+  # Using PNPM
+  pnpm astro add @thewebforge/astro-code-blocks
+```
+
+#### Insertions and Deletions
+
+You can highlight insertions and deletions in the code block by adding `ins` and / or `del` props to the code blocks as a list of lines in curly brackets with a language string like `sh ins={3,4} del={5,6}`:
+
+```sh ins={3,4} del={5,6}
+  # Using NPM
+  npx astro add @thewebforge/astro-code-blocks
+  # Using Yarn
+  yarn astro add @thewebforge/astro-code-blocks
+  # Using PNPM
+  pnpm astro add @thewebforge/astro-code-blocks
+```
+
+### Contact Callout Component
+
+Invite readers to get in touch:
+
+<Contact />
+
+### Copy To Clipboard Component
+
+#### Attribute
+
+```markdown
+<Copy value="src/index.js">Copy</Copy>
+```
+
+<Copy value="src/index.js">Copy</Copy>
+
+#### Attribute - Float mode
+
+```markdown
+<Copy value="src/index.js" mode="float">Copy</Copy>
+```
+
+<Copy value="src/index.js" mode="float">Copy</Copy>
+
+#### Element content
+
+```markdown
+<Copy for="blob-path"><div id="blob-path">Copy</div></Copy>
+```
+
+<Copy for="blob-path"><div id="blob-path">Copy</div></Copy>
+
+#### Element content - Float mode
+
+```markdown
+<Copy for="blob-path" mode="float"><div id="blob-path">Copy</div></Copy>
+```
+
+<Copy for="blob-path" mode="float"><div id="blob-path">Copy</div></Copy>
+
+#### Form input
+
+```markdown
+<Copy for="blob-path"><input id="blob-path" value="src/index.js" /></Copy>
+```
+
+<Copy for="blob-path"><input id="blob-path" value="src/index.js" /></Copy>
+
+#### Form input - Float mode
+
+```markdown
+<Copy for="blob-path" mode="float"><input id="blob-path" value="src/index.js" /></Copy>
+```
+
+<Copy for="blob-path" mode="float"><input id="blob-path" value="src/index.js" /></Copy>
+
+#### Hyperlink href
+
+```markdown
+<Copy for="blob-path"><a id="blob-path" href="/path/to#my-blob">Link text will not be copied</a></Copy>
+```
+
+<Copy for="blob-path"><a id="blob-path" href="/path/to#my-blob">Link text will not be copied</a></Copy>
+
+#### Hyperlink href - Float mode
+
+```markdown
+<Copy for="blob-path" mode="float"><a id="blob-path" href="/path/to#my-blob">Link text will not be copied</a></Copy>
+```
+
+<Copy for="blob-path" mode="float"><a id="blob-path" href="/path/to#my-blob">Link text will not be copied</a></Copy>
+
+### Featured Content Component
+
+Highlight featured articles or services:
+
+<Featured
+  title="Featured Content"
+  description="Discover more articles and resources."
+  link={{ href: "/articles", text: "Browse Articles" }}
+/>
+
+### Highlighter Component
+
+```text
+The Highlighter component allows you to <Highlighter>emphasize specific text</Highlighter> with the text in a slot.
+```
+
+The Highlighter component allows you to <Highlighter>emphasize specific text</Highlighter> with the text in a slot.
+
+### Icon Component
+
+Use SVG sprites for icons throughout your content:
+
+```markdown
+<Icon name="check" size="36" class="text-success" />
+<Icon name="warning" size="36" class="text-warning" />
+<Icon name="info" size="36" class="text-info" />
+```
+
+<Icon name="check" size="36" class="text-success" />
+<Icon name="warning" size="36" class="text-warning" />
+<Icon name="info" size="36" class="text-info" />
+
+### Social Embeds Component
+
+#### YouTube Embed
+
+```markdown
+<Embed
+  type="youtube"
+  url="https://www.youtube.com/watch?v=lSk-DWAJPbA"
+/>
+```
+
+<Embed
+  type="youtube"
+  url="https://www.youtube.com/watch?v=lSk-DWAJPbA"
+/>
+
+#### X (Twitter) Embed
+
+```markdown
+<Embed
+  type="x"
+  url="https://x.com/WebstackDev/status/1717481221549445419"
+/>
+```
+
+<Embed
+  type="x"
+  url="https://x.com/WebstackDev/status/1717481221549445419"
+/>
+
+#### GitHub Gist Embed
+
+```markdown
+<Embed
+  type="gist"
+  url="https://gist.github.com/webstackdev/455fb0b4e0d2332a8aaa02309563fb54"
+/>
+```
+
+<Embed
+  type="gist"
+  url="https://gist.github.com/webstackdev/455fb0b4e0d2332a8aaa02309563fb54"
+/>
+
+#### Codepen Embed
+
+```markdown
+<Embed
+  type="codepen"
+  url="https://codepen.io/webstackdev/pen/JaEgxM"
+/>
+```
+
+<Embed
+  type="codepen"
+  url="https://codepen.io/webstackdev/pen/JaEgxM"
 />

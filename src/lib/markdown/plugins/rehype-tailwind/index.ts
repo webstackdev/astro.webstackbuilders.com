@@ -6,6 +6,10 @@ import type { Root, Element, Parent } from 'hast'
 import { applyHtmlElementClasses, getElementConfig } from './visitors/simple.js'
 import { hasClass, isCodeInline } from './utils.js'
 
+function isHastElement(node: Parent | undefined): node is Element {
+  return Boolean(node && (node as Element).type === 'element')
+}
+
 /**
  * Rehype plugin that adds Tailwind CSS classes to HTML elements
  * @returns Transformer function for rehype
@@ -112,6 +116,27 @@ export function rehypeTailwindClasses() {
           'bg-page-base-offset',
           'mb-6',
         ])
+      }
+
+      /**
+       * Code blocks (pre > code.language-text) should wrap text instead of forcing horizontal scrolling.
+       * This keeps the existing <pre> styles but allows future styling specifically for text blocks.
+       */
+      if (node.tagName === 'code' && hasClass(node, 'language-text')) {
+        const parent = getParent(node)
+
+        if (isHastElement(parent) && parent.tagName === 'pre') {
+          node.properties = node.properties || {}
+          node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
+            'whitespace-pre-wrap',
+            'break-words',
+          ])
+
+          parent.properties = parent.properties || {}
+          parent.properties['className'] = ((parent.properties['className'] as string[]) || []).concat([
+            'overflow-x-hidden',
+          ])
+        }
       }
 
       /**

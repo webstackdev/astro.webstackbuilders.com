@@ -6,14 +6,13 @@ import { shikiConfigOptions, shikiTransformers } from '../shiki'
 describe('shiki transformers', () => {
   it('supports meta-based error and warning line highlights', async () => {
     const highlighter = await createHighlighter({
-      themes: [shikiConfigOptions.themes.dark, shikiConfigOptions.themes.light],
+      themes: [...shikiConfigOptions.themeRegistrations],
       langs: ['bash'],
     })
 
     const html = highlighter.codeToHtml(['echo ok', 'echo bad', 'echo warn'].join('\n'), {
       lang: 'bash',
-      themes: shikiConfigOptions.themes,
-      defaultColor: shikiConfigOptions.defaultColor,
+      theme: shikiConfigOptions.theme,
       transformers: shikiTransformers,
       meta: { __raw: 'error={2} warning={3}' },
     })
@@ -24,14 +23,13 @@ describe('shiki transformers', () => {
 
   it('supports meta-based ins/del markers', async () => {
     const highlighter = await createHighlighter({
-      themes: [shikiConfigOptions.themes.dark, shikiConfigOptions.themes.light],
+      themes: [...shikiConfigOptions.themeRegistrations],
       langs: ['bash'],
     })
 
     const html = highlighter.codeToHtml(['echo add', 'echo remove'].join('\n'), {
       lang: 'bash',
-      themes: shikiConfigOptions.themes,
-      defaultColor: shikiConfigOptions.defaultColor,
+      theme: shikiConfigOptions.theme,
       transformers: shikiTransformers,
       meta: { __raw: 'ins={1} del={2}' },
     })
@@ -42,7 +40,7 @@ describe('shiki transformers', () => {
 
   it('supports notation-based error and warning via inline comments', async () => {
     const highlighter = await createHighlighter({
-      themes: [shikiConfigOptions.themes.dark, shikiConfigOptions.themes.light],
+      themes: [...shikiConfigOptions.themeRegistrations],
       langs: ['typescript'],
     })
 
@@ -54,8 +52,7 @@ describe('shiki transformers', () => {
       ].join('\n'),
       {
         lang: 'typescript',
-        themes: shikiConfigOptions.themes,
-        defaultColor: shikiConfigOptions.defaultColor,
+        theme: shikiConfigOptions.theme,
         transformers: shikiTransformers,
       }
     )

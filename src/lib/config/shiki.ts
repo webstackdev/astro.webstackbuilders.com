@@ -1,6 +1,6 @@
-import type { ShikiConfig } from 'astro/'
 import type { ShikiTransformer } from '@shikijs/types'
 import type { Element } from 'hast'
+import { createCssVariablesTheme } from 'shiki/core'
 import {
   parseMetaHighlightString,
   transformerMetaHighlight,
@@ -109,15 +109,18 @@ export const shikiTransformers: ShikiTransformer[] = [
 ]
 
 export const shikiConfigOptions = {
-  themes: {
-    light: 'github-light',
-    dark: 'github-dark',
-  },
-  defaultColor: 'light',
+  theme: 'css-variables',
+  themeRegistrations: [
+    createCssVariablesTheme({
+      name: 'css-variables',
+      variablePrefix: '--shiki-',
+      fontStyle: true,
+    }),
+  ],
   langAlias: {
     js: 'javascript',
     ts: 'typescript',
     md: 'markdown',
   },
   wrap: true,
-} as const satisfies ShikiConfig
+} as const

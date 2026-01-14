@@ -439,8 +439,8 @@ export const markdownConfig: Partial<MdxOptions> = {
     [
       rehypeShiki,
       {
-        themes: shikiConfigOptions.themes,
-        defaultColor: shikiConfigOptions.defaultColor,
+        theme: shikiConfigOptions.theme,
+        themeRegistrations: shikiConfigOptions.themeRegistrations,
         langAlias: shikiConfigOptions.langAlias,
         wrap: true,
         transformers: shikiTransformers,

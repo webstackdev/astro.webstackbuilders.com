@@ -11,7 +11,19 @@ type ShikiThemes =
     }
 
 export type RehypeShikiOptions = {
-  themes: ShikiThemes
+  /**
+   * Single theme name.
+   * Prefer this when using a CSS variables theme so the site theme system owns colors.
+   */
+  theme?: string
+  /**
+   * Multi-theme config (e.g. light/dark). This lets Shiki emit per-token theme variables.
+   */
+  themes?: ShikiThemes
+  /**
+   * Custom theme registrations to load into Shiki's highlighter (e.g. createCssVariablesTheme()).
+   */
+  themeRegistrations?: unknown[]
   defaultColor?: 'light' | 'dark' | false
   langAlias?: Record<string, string>
   /** Shiki transformers to apply (e.g. meta-based highlighting). */
@@ -35,11 +47,25 @@ type HighlighterLike = {
   loadLanguage: (_lang: string) => Promise<void>
 }
 
-function getThemeNames(themes: ShikiThemes): string[] {
+function getThemeNames(themes: ShikiThemes | undefined): string[] {
+  if (!themes) return []
   if (typeof themes === 'string') return [themes]
 
   const names = [themes.light, themes.dark].filter(Boolean)
   return Array.from(new Set(names))
+}
+
+function getHighlighterThemes(options: RehypeShikiOptions): unknown[] {
+  if (Array.isArray(options.themeRegistrations) && options.themeRegistrations.length > 0) {
+    return options.themeRegistrations
+  }
+
+  const fromThemes = getThemeNames(options.themes)
+  if (fromThemes.length > 0) return fromThemes
+
+  if (typeof options.theme === 'string' && options.theme.trim()) return [options.theme.trim()]
+
+  throw new Error('rehype-shiki: expected theme, themes, or themeRegistrations')
 }
 
 function toStringArray(value: unknown): string[] {
@@ -200,7 +226,7 @@ const rehypeShiki: Plugin<[RehypeShikiOptions], Root> = (options: RehypeShikiOpt
     highlighterPromise = (async () => {
       // Shiki requires themes to be loaded before use.
       const highlighter = await createHighlighter({
-        themes: getThemeNames(options.themes),
+        themes: getHighlighterThemes(options) as never,
         langs: [],
       })
 
@@ -278,7 +304,8 @@ const rehypeShiki: Plugin<[RehypeShikiOptions], Root> = (options: RehypeShikiOpt
 
       const shikiOptions: Record<string, unknown> = {
         lang: replacement.lang,
-        themes: options.themes,
+        ...(options.themes ? { themes: options.themes } : {}),
+        ...(options.themes ? {} : options.theme ? { theme: options.theme } : {}),
         // We manage wrapping via Tailwind classes on the output, not via Shiki.
         wrap: false,
         // Keep code blocks out of keyboard tab order.
