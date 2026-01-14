@@ -1,11 +1,12 @@
 ---
 type Common = {
-  format: 'datetime' | 'relative' | 'duration'
+  format?: 'datetime' | 'relative' | 'duration'
   tense?: 'auto' | 'past' | 'future'
   precision?: 'year' | 'month' | 'day' | 'hour' | 'minute' | 'second'
   threshold?: string
   prefix?: string
   formatStyle?: 'long' | 'short' | 'narrow'
+  timeZone?: string
   second?: 'numeric' | '2-digit'
   minute?: 'numeric' | '2-digit'
   hour?: 'numeric' | '2-digit'
@@ -21,8 +22,76 @@ export interface Props extends Common {
   now?: boolean
 }
 
-const { now, datetime, formatStyle, timeZoneName, ...attrs } = Astro.props as Props
+const {
+  now,
+  datetime,
+  format = 'datetime',
+  formatStyle,
+  timeZone,
+  timeZoneName,
+  weekday,
+  year,
+  month,
+  day,
+  hour,
+  minute,
+  second,
+  ...attrs
+} = Astro.props as Props
 const resolvedDatetime = datetime ?? (now ? new Date() : undefined)
+
+const resolvedDatetimeString =
+  resolvedDatetime instanceof Date ? resolvedDatetime.toISOString() : resolvedDatetime
+
+const parsedDate =
+  typeof resolvedDatetimeString === 'string' ? new Date(resolvedDatetimeString) : undefined
+
+const isValidDate = parsedDate instanceof Date && !Number.isNaN(parsedDate.getTime())
+
+const dateStyleByFormatStyle: Record<NonNullable<Props['formatStyle']>, Intl.DateTimeFormatOptions['dateStyle']> = {
+  long: 'long',
+  short: 'short',
+  narrow: 'short',
+}
+
+const hasExplicitParts = Boolean(weekday || year || month || day || hour || minute || second || timeZoneName)
+
+const fallbackText = (() => {
+  if (!resolvedDatetimeString) {
+    return ''
+  }
+
+  if (format === 'duration') {
+    return typeof resolvedDatetimeString === 'string' ? resolvedDatetimeString : ''
+  }
+
+  if (!isValidDate || !parsedDate) {
+    return ''
+  }
+
+  const options: Intl.DateTimeFormatOptions = hasExplicitParts
+    ? {
+        weekday,
+        year,
+        month,
+        day,
+        hour,
+        minute,
+        second,
+        timeZoneName,
+        timeZone,
+      }
+    : {
+        dateStyle: formatStyle ? dateStyleByFormatStyle[formatStyle] : 'medium',
+        timeZone,
+      }
+
+  try {
+    return new Intl.DateTimeFormat(undefined, options).format(parsedDate)
+  } catch {
+    return ''
+  }
+})()
 ---
 
 <script>
@@ -30,12 +99,14 @@ const resolvedDatetime = datetime ?? (now ? new Date() : undefined)
 </script>
 
 <relative-time
-  datetime={resolvedDatetime instanceof Date ? resolvedDatetime.toISOString() : resolvedDatetime}
+  datetime={resolvedDatetimeString}
   {...{
     ...attrs,
+    format,
     'format-style': formatStyle,
     'time-zone-name': timeZoneName,
+    'time-zone': timeZone,
   }}
 >
-  <slot />
-</relative-time>
+  {/** Closing tag must be on same line to prevent trailing space */ }
+  <slot>{fallbackText}</slot></relative-time>{timeZone ? ` (${timeZone})` : ''}

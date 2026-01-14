@@ -38,6 +38,7 @@ import { callToActionValidator } from './src/integrations/CtaValidator'
 import { faviconGenerator } from './src/integrations/FaviconGenerator'
 import { packageRelease } from './src/integrations/PackageRelease'
 import { privacyPolicyVersion } from './src/integrations/PrivacyPolicyVersion'
+import { testimonialsLengthWarning } from './src/integrations/TestimonialsLengthWarning'
 import { pwaDevAssetServer } from './src/lib/plugins/pwaDevAssetServer'
 import { createSerializeFunction, pagesJsonWriter } from './src/integrations/sitemapSerialize'
 
@@ -67,6 +68,8 @@ const standardIntegrations = [
   packageRelease(),
   /** Inject privacy policy version from git commit date for GDPR record keeping */
   privacyPolicyVersion(),
+  /** Warn when testimonial bodies are too short/too long (helps keep carousel cards consistent) */
+  testimonialsLengthWarning({ min: 350, max: 400 }),
   /** Only include Sentry integration in Vercel environments */
   ...(isVercel() ? [sentry({
     project: "webstack-builders-corporate-website",

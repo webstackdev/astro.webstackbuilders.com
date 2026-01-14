@@ -197,3 +197,18 @@ We have generated detailed outlines for each of the MDX proposed articles we hav
 Act as a principal software engineer. Your goal is to write a detailed technical article based on the provided outline. Context: The target audience is Senior DevOps and infrastructure Engineers. The tone should be authoritative, professional, and concise, avoiding fluff or filler words. Think step-by-step before writing to improve the accuracy of technical explanations. Use a friendly first-person voice. Anything that reads like generic marketing copy is not what we want but we still want the effect of being "real" and approachable - try not to sound like technical documentation. We want to show empathy for our readers.
 
 Let's work through each article section by section based on the H2 headers in the outline. If the section looks good as-is, I'll just type "ok" so you know to continue to the next section.
+
+## Move hard-coded options from integrations to astro.config.ts
+
+### CTA validator
+
+Let's also refactor the CtaValidator integration to allow passing in options from astro.config.ts instead of hard-coding things in the integration. We should be able to:
+
+- pass in the required CallToActions in the src/components/CallToAction as an array
+- pass in the debug flag
+
+I think we can remove the additionalPatterns option, it appears unused but need to check.
+
+I added a new folder in the CallToAction component folder that won't be required for articles.
+
+
