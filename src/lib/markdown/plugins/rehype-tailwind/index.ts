@@ -98,6 +98,7 @@ export function rehypeTailwindClasses() {
           'inline-block',
           'font-mono',
           'mx-1',
+          'px-1',
           'pb-1',
         ])
       }
@@ -206,25 +207,28 @@ export function rehypeTailwindClasses() {
        */
       if (node.tagName === 'blockquote') {
         node.properties = node.properties || {}
-        /**
-         * Check if parent is an attribution quote and abort if so. Attribution
-         * quotes won't have classes yet.
-         */
         const existingClasses = (node.properties['className'] as string[]) || []
-        const isAttributionQuote = existingClasses.length === 0
 
-        if (!isAttributionQuote) {
-          node.properties['className'] = existingClasses.concat([
-            'border-l-4',
-            'border-blue-600',
-            'my-8',
-            'pl-14',
-            '-ml-14',
-            'font-serif',
-            'text-2xl',
-            'italic',
-          ])
-        }
+        /**
+         * remark-attribution wraps quotes in `<figure class="c-blockquote">`.
+         * Those are styled separately below.
+         */
+        const parent = getParent(node)
+        const isAttributionQuote =
+          isHastElement(parent) && parent.tagName === 'figure' && hasClass(parent, 'c-blockquote')
+
+        if (isAttributionQuote) return
+
+        node.properties['className'] = existingClasses.concat([
+          'border-l-4',
+          'border-blue-600',
+          'my-8',
+          'pl-14',
+          '-ml-14',
+          'font-serif',
+          'text-2xl',
+          'italic',
+        ])
       }
 
       /**

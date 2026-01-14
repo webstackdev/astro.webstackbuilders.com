@@ -44,3 +44,61 @@
 .markdown-content__prose sub {
   margin-left: 0.15rem;
 }
+
+/* Task lists (remark-gfm)
+ * rehype-tailwind adds `list-disc` + `pl-4` to all `ul`, so we override just task lists.
+ */
+.markdown-content__prose ul.contains-task-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+.markdown-content__prose li.task-list-item {
+  align-items: flex-start;
+  display: flex;
+  gap: 0.6rem;
+  list-style: none;
+}
+
+.markdown-content__prose li.task-list-item > input[type='checkbox'] {
+  appearance: none;
+  background-color: var(--color-page-base-offset);
+  border: 2px solid var(--color-content-offset);
+  border-radius: var(--radius-sm, 0.25rem);
+  box-sizing: border-box;
+  display: inline-grid;
+  flex: 0 0 auto;
+  height: 1.15em;
+  margin-top: 0.25em;
+  place-content: center;
+  width: 1.15em;
+}
+
+.markdown-content__prose li.task-list-item > input[type='checkbox']::before {
+  border-bottom: 0.18em solid var(--color-success-inverse);
+  border-right: 0.18em solid var(--color-success-inverse);
+  content: '';
+  height: 0.55em;
+  opacity: 0;
+  transform: rotate(45deg);
+  width: 0.35em;
+}
+
+.markdown-content__prose li.task-list-item > input[type='checkbox']:checked {
+  background-color: var(--color-success);
+  border-color: var(--color-success);
+}
+
+.markdown-content__prose li.task-list-item > input[type='checkbox']:checked::before {
+  opacity: 1;
+}
+
+.markdown-content__prose li.task-list-item > input[type='checkbox']:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+.markdown-content__prose li.task-list-item > input[type='checkbox']:focus-visible {
+  outline: 2px solid var(--color-spotlight);
+  outline-offset: 2px;
+}

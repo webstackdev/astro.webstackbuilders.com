@@ -60,7 +60,7 @@ export const htmlElements: ElementConfig[] = [
       'bg-gray-300',
       'border-0',
       'border-gray-300',
-      'my-16',
+      'my-4',
       'mx-auto',
       'text-center',
       'w-96',

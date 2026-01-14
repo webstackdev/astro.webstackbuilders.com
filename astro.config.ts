@@ -69,7 +69,7 @@ const standardIntegrations = [
   /** Inject privacy policy version from git commit date for GDPR record keeping */
   privacyPolicyVersion(),
   /** Warn when testimonial bodies are too short/too long (helps keep carousel cards consistent) */
-  testimonialsLengthWarning({ min: 350, max: 400 }),
+  testimonialsLengthWarning({ min: 300, max: 400 }),
   /** Only include Sentry integration in Vercel environments */
   ...(isVercel() ? [sentry({
     project: "webstack-builders-corporate-website",

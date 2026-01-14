@@ -134,6 +134,7 @@ const x = 1;
       expect(html).toContain('<table')
       expect(html).toContain('<code')
       expect(html).toContain('<blockquote')
+      expect(html).toContain('border-l-4')
       expect(html).toContain('<ul')
     })
 
