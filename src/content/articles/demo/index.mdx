@@ -13,146 +13,6 @@ import Demo from '@components/Test/Demo.mdx'
 
 ## Components (looping)
 
-### Blockquotes
-
-Quotation marks are added by CSS, so should not be included on the blockquote text.
-
-> This is a blockquote. Use it for quotes, citations, or to highlight important statements from external sources.
-
-Nested blockquotes:
-
-```markdown
-> Dorothy followed her through many of the beautiful rooms in her castle.
->
->> The Witch bade her clean the pots and kettles and sweep the floor and keep the fire fed with wood.
-```
-
-> Dorothy followed her through many of the beautiful rooms in her castle.
->
->> The Witch bade her clean the pots and kettles and sweep the floor and keep the fire fed with wood.
-
-__Blockquotes with attribution__
-
-The pluginwill provide an attribution for a quotation if it is prefixed with an em dash. To include a date, put them in trailing parentheses:
-
-```markdown
-> That's one small step for [a] man, one giant leap for mankind.
-> — Neil Armstrong (1969, July 21)
-```
-
-> That's one small step for [a] man, one giant leap for mankind.
-> — Neil Armstrong (1969, July 21)
-
-```markdown
-> That's one small step for [a] man, one giant leap for mankind.
-> — Neil Armstrong
-```
-
-> Nothing inspires forgiveness quite like revenge.
-> — Scott Adams
-
-Compiles to the following HTML:
-
-```html
-<figure class="blockquote">
-  <blockquote>
-    <p>
-      That's one small step for [a] man, one giant leap for mankind.
-    </p>
-  </blockquote>
-  <figcaption class="blockquote-attribution">
-    Neil Armstrong (1969, July 21)
-  </figcaption>
-</figure>
-```
-
-__Blockquotes with captions__
-
-For blockquotes, captions are handled by the internal `remark-blockquote` plugin so they can be combined with an attribution.
-
-**Blockquote caption**
-
-```markdown
-> Some blockquote text that will have a caption
-> Source: The caption text that will appear under the blockquote
-```
-
-> Some blockquote text that will have a caption
-> Source: The caption text that will appear under the blockquote
-
-Compiles to the following HTML (ignoring styles):
-
-```html
-<figure class="blockquote-figure">
-  <blockquote>
-    <p>
-      Some blockquote text that will have a caption
-    </p>
-  </blockquote>
-  <figcaption class="blockquote-caption">
-    The caption text that will appear under the blockquote
-  </figcaption>
-</figure>
-```
-
-__Blockquotes with both attribution and caption__
-
-```markdown
-> That's one small step for [a] man, one giant leap for mankind.
-> — Neil Armstrong (1969, July 21)
-> Source: The caption text that will appear under the blockquote
-```
-
-> That's one small step for [a] man, one giant leap for mankind.
-> — Neil Armstrong (1969, July 21)
-> Source: The caption text that will appear under the blockquote
-
-Should compile to the following HTML:
-
-```html
-<figure class="blockquote-figure">
-  <blockquote>
-    <p>
-      That's one small step for [a] man, one giant leap for mankind.
-    </p>
-  </blockquote>
-  <div class="blockquote-attribution">
-    Neil Armstrong (1969, July 21)
-  </div>
-  <figcaption class="blockquote-caption">
-    The caption text that will appear under the blockquote
-  </figcaption>
-</figure>
-```
-
-### Detail and Summary
-
-```markdown
-<details>
-  <summary>Details</summary>
-  Something small enough to escape casual notice.
-</details>
-```
-
-<details>
-  <summary>Details</summary>
-  Something small enough to escape casual notice.
-</details>
-
-### Horizontal Rules
-
-Asterisks (`***`):
-
-***
-
-Dashes (`---`):
-
----
-
-Underscores ()`___`):
-
-_________________
-
 ### Images
 
 ```markdown
@@ -571,6 +431,58 @@ Embed videos in HTML5 markup that are in the `/public` folder
 /videos/sample-video-1.mp4
 :::
 
+### Call To Action Components
+
+There is an integration that verifies that each CTA component is used at most one time on a page, and also that each content page (articles, case studies, and services) has at least one CTA component.
+
+#### Contact Callout CTA Component
+
+Invite readers to get in touch.
+
+```markdown
+<Contact />
+```
+
+<Contact />
+
+#### Download Component
+
+Download PDF files
+
+```markdown
+<Download
+  resource="lakehouse-analytics-guide"
+  title="Master Lakehouse Analytics"
+  description="Learn how to build modern data architectures that combine the best of data lakes and warehouses."
+  buttonText="Download the Guide"
+  secondaryLink={{
+    href: "/services/consulting",
+    text: "Learn More"
+  }}
+/>
+```
+
+<Download
+  resource="lakehouse-analytics-guide"
+  title="Master Lakehouse Analytics"
+  description="Learn how to build modern data architectures that combine the best of data lakes and warehouses."
+  buttonText="Download the Guide"
+  secondaryLink={{
+    href: "/services/consulting",
+    text: "Learn More"
+  }}
+/>
+
+#### Newsletter Signup Component
+
+Encourage readers to subscribe to the newsletter.
+
+```markdown
+<Newsletter />
+```
+
+<Newsletter />
+
 ## Components
 
 ### Includes from [other Markdown]('/articles/demo') files
@@ -612,6 +524,8 @@ The Callout component highlights important information:
 This is an informational callout. Use it to draw attention to helpful tips or additional context.
 </Callout>
 ```
+
+Text to show spacing from paragraph element to callout:
 
 <Callout type="info">
 This is an informational callout. Use it to draw attention to helpful tips or additional context.
@@ -1014,12 +928,6 @@ You can highlight insertions and deletions in the code block by adding `ins` and
   pnpm astro add @thewebforge/astro-code-blocks
 ```
 
-### Contact Callout Component
-
-Invite readers to get in touch:
-
-<Contact />
-
 ### Copy To Clipboard Component
 
 #### Attribute
@@ -1086,39 +994,13 @@ Invite readers to get in touch:
 
 <Copy for="blob-path" mode="float"><a id="blob-path" href="/path/to#my-blob">Link text will not be copied</a></Copy>
 
-### Download Component
-
-```markdown
-<Download
-  resource="lakehouse-analytics-guide"
-  title="Master Lakehouse Analytics"
-  description="Learn how to build modern data architectures that combine the best of data lakes and warehouses."
-  buttonText="Download the Guide"
-  secondaryLink={{
-    href: "/services/consulting",
-    text: "Learn More"
-  }}
-/>
-```
-
-<Download
-  resource="lakehouse-analytics-guide"
-  title="Master Lakehouse Analytics"
-  description="Learn how to build modern data architectures that combine the best of data lakes and warehouses."
-  buttonText="Download the Guide"
-  secondaryLink={{
-    href: "/services/consulting",
-    text: "Learn More"
-  }}
-/>
-
 ### Highlighter Component
 
 ```text
-The Highlighter component allows you to <Highlighter>emphasize specific text</Highlighter> with the text in a slot.
+A shareable text <Highlighter ariaLabel="Share this insight">highlighter component</Highlighter> for MDX that displays a hover dialog with social sharing options. The custom label is optional.
 ```
 
-The Highlighter component allows you to <Highlighter>emphasize specific text</Highlighter> with the text in a slot.
+A shareable text <Highlighter ariaLabel="Share this insight">highlighter component</Highlighter> for MDX that displays a hover dialog with social sharing options. The custom label is optional.
 
 ### Icon Component
 
@@ -1191,12 +1073,6 @@ Use SVG sprites for icons throughout your content:
   type="codepen"
   url="https://codepen.io/webstackdev/pen/JaEgxM"
 />
-
-### Newsletter Signup Component
-
-Encourage readers to subscribe to your newsletter:
-
-<Newsletter />
 
 ### Social Sharing Component
 
@@ -1397,4 +1273,144 @@ Subscript and superscript text is from `remark-supersub`.
 | All bold and italic | `*** ***` | None | `**_All this text is important_**` | **_All this text is important_** |
 | Subscript | `~subscript~` | None | `This is a ~subscript~ text` | This is a ~subscript~ |
 | Superscript | `^superscript^` | None | `This is a ^superscript^ text` | This is a ^superscript^ text |
-| Underline | `__   __` | None | `This is an __underlined__ text` | This is an __underlined__ text |
+| Underline | Avoid | None | Avoid underlining text | Avoid underlining text |
+
+### Blockquotes
+
+Quotation marks are added by CSS, so should not be included on the blockquote text.
+
+> This is a blockquote. Use it for quotes, citations, or to highlight important statements from external sources.
+
+Nested blockquotes:
+
+```markdown
+> Dorothy followed her through many of the beautiful rooms in her castle.
+>
+>> The Witch bade her clean the pots and kettles and sweep the floor and keep the fire fed with wood.
+```
+
+> Dorothy followed her through many of the beautiful rooms in her castle.
+>
+>> The Witch bade her clean the pots and kettles and sweep the floor and keep the fire fed with wood.
+
+__Blockquotes with attribution__
+
+The pluginwill provide an attribution for a quotation if it is prefixed with an em dash. To include a date, put them in trailing parentheses:
+
+```markdown
+> That's one small step for [a] man, one giant leap for mankind.
+> — Neil Armstrong (1969, July 21)
+```
+
+> That's one small step for [a] man, one giant leap for mankind.
+> — Neil Armstrong (1969, July 21)
+
+```markdown
+> That's one small step for [a] man, one giant leap for mankind.
+> — Neil Armstrong
+```
+
+> Nothing inspires forgiveness quite like revenge.
+> — Scott Adams
+
+Compiles to the following HTML:
+
+```html
+<figure class="blockquote">
+  <blockquote>
+    <p>
+      That's one small step for [a] man, one giant leap for mankind.
+    </p>
+  </blockquote>
+  <figcaption class="blockquote-attribution">
+    Neil Armstrong (1969, July 21)
+  </figcaption>
+</figure>
+```
+
+__Blockquotes with captions__
+
+For blockquotes, captions are handled by the internal `remark-blockquote` plugin so they can be combined with an attribution.
+
+**Blockquote caption**
+
+```markdown
+> Some blockquote text that will have a caption
+> Source: The caption text that will appear under the blockquote
+```
+
+> Some blockquote text that will have a caption
+> Source: The caption text that will appear under the blockquote
+
+Compiles to the following HTML (ignoring styles):
+
+```html
+<figure class="blockquote-figure">
+  <blockquote>
+    <p>
+      Some blockquote text that will have a caption
+    </p>
+  </blockquote>
+  <figcaption class="blockquote-caption">
+    The caption text that will appear under the blockquote
+  </figcaption>
+</figure>
+```
+
+__Blockquotes with both attribution and caption__
+
+```markdown
+> That's one small step for [a] man, one giant leap for mankind.
+> — Neil Armstrong (1969, July 21)
+> Source: The caption text that will appear under the blockquote
+```
+
+> That's one small step for [a] man, one giant leap for mankind.
+> — Neil Armstrong (1969, July 21)
+> Source: The caption text that will appear under the blockquote
+
+Should compile to the following HTML:
+
+```html
+<figure class="blockquote-figure">
+  <blockquote>
+    <p>
+      That's one small step for [a] man, one giant leap for mankind.
+    </p>
+  </blockquote>
+  <div class="blockquote-attribution">
+    Neil Armstrong (1969, July 21)
+  </div>
+  <figcaption class="blockquote-caption">
+    The caption text that will appear under the blockquote
+  </figcaption>
+</figure>
+```
+
+### Detail and Summary
+
+```markdown
+<details>
+  <summary>Details</summary>
+  Something small enough to escape casual notice.
+</details>
+```
+
+<details>
+  <summary>Details</summary>
+  Something small enough to escape casual notice.
+</details>
+
+### Horizontal Rules
+
+Asterisks (`***`):
+
+***
+
+Dashes (`---`):
+
+---
+
+Underscores ()`___`):
+
+_________________

@@ -28,68 +28,37 @@ const iconMap = {
   danger: 'warning',
 } as const
 
-// Map callout types to their background color CSS custom properties
-const backgroundColorMap = {
-  warning: 'var(--color-warning-inverse)',
-  action: 'var(--color-warning-inverse)',
-  info: 'var(--color-info-inverse)',
-  tip: 'var(--color-success-inverse)',
-  note: 'var(--color-note-inverse)',
-  success: 'var(--color-success-inverse)',
-  danger: 'var(--color-danger-inverse)',
+const typeContainerClassMap = {
+  warning: 'bg-warning-inverse border-warning',
+  action: 'bg-warning-inverse border-warning',
+  info: 'bg-info-inverse border-info',
+  tip: 'bg-success-inverse border-success',
+  note: 'bg-note-inverse border-note',
+  success: 'bg-success-inverse border-success',
+  danger: 'bg-danger-inverse border-danger',
 } as const
 
-// Map callout types to their border/icon color CSS custom properties
-const borderColorMap = {
-  warning: 'var(--color-warning)',
-  action: 'var(--color-warning)',
-  info: 'var(--color-info)',
-  tip: 'var(--color-success)',
-  note: 'var(--color-note)',
-  success: 'var(--color-success)',
-  danger: 'var(--color-danger)',
+const typeAccentTextClassMap = {
+  warning: 'text-warning',
+  action: 'text-warning',
+  info: 'text-info',
+  tip: 'text-success',
+  note: 'text-note',
+  success: 'text-success',
+  danger: 'text-danger',
 } as const
 
 const icon = iconMap[type] ?? iconMap.info
-const backgroundColor = backgroundColorMap[type] ?? backgroundColorMap.info
-const borderColor = borderColorMap[type] ?? borderColorMap.info
 const typeLabel = typeLabelMap[type] ?? typeLabelMap.info
 const typeLabelUpper = typeLabel.toUpperCase()
+
+const containerClasses = typeContainerClassMap[type] ?? typeContainerClassMap.info
+const accentTextClasses = typeAccentTextClassMap[type] ?? typeAccentTextClassMap.info
 ---
 
-<style define:vars={{ backgroundColor, borderColor }}>
-  .callout {
-    background-color: var(--backgroundColor);
-    border: 0;
-    border-left: 6px solid var(--borderColor);
-    border-radius: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    padding: 1rem;
-  }
-
-  .callout__header {
-    align-items: center;
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .callout__icon {
-    color: var(--borderColor);
-    transform: translateY(-2px);
-  }
-
+<style>
   .callout__icon :global(svg) {
     fill: currentcolor;
-  }
-
-  .callout__label {
-    color: var(--borderColor);
-    font-size: 1rem;
-    font-weight: bold;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
   }
 
   /* Spacing for nested elements */
@@ -98,12 +67,43 @@ const typeLabelUpper = typeLabel.toUpperCase()
   }
 </style>
 
-<div class="callout" role="note">
-  <div class="callout__header">
-    <div class="callout__icon">
+<div
+  class:list={[
+    containerClasses,
+    'callout',
+    'flex',
+    'flex-col',
+    'gap-3',
+    'mb-6',
+    'p-4',
+    'border-0',
+    'border-l-[6px]',
+    'rounded-none',
+  ]}
+  role="note"
+>
+  <div class="flex items-center gap-2">
+    <div
+      class:list={[
+        accentTextClasses,
+        'callout__icon',
+        '-translate-y-0.5',
+      ]}
+    >
       <Icon name={icon} size={20} variant="custom" />
     </div>
-    <div class="callout__label" aria-hidden="true">{typeLabelUpper}</div>
+    <div
+      class:list={[
+        accentTextClasses,
+        'text-base',
+        'font-bold',
+        'tracking-[0.08em]',
+        'uppercase',
+      ]}
+      aria-hidden="true"
+    >
+      {typeLabelUpper}
+    </div>
   </div>
 
   <div class="callout__content">

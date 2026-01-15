@@ -206,7 +206,6 @@ Let's work through each article section by section based on the H2 headers in th
 - Remove dotted underline from abbr elements? Or some other way of indicating abbreviations?
 - [Link](url) [[color=pink target=_blank .centered]] is not picking up styles
 - We have remark-mark-plus to create marked text like ==mark me==. Is the Highlighter component our social highlighter?
-- Make sure underline style in Core Markdown section is correct
 - Are we using breakpoints correctly - isn't iPhone wider than our `sm` breakpoint?
 - Mermaid theming, horizontal layout for desktop, vertical for mobile, using groups like in Code Tabs to add the media selectors e.g. `[g1:desktop]`
 
