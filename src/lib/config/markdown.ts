@@ -112,8 +112,8 @@ Object.defineProperty(remarkAbbreviations, 'name', { value: 'remarkAbbreviations
 import remarkAttributes from '../markdown/plugins/remark-attributes'
 Object.defineProperty(remarkAttributes, 'name', { value: 'remarkAttributes' })
 
-import remarkAttribution from '../markdown/plugins/remark-attribution'
-Object.defineProperty(remarkAttribution, 'name', { value: 'remarkAttribution' })
+import remarkBlockquote from '../markdown/plugins/remark-blockquote'
+Object.defineProperty(remarkBlockquote, 'name', { value: 'remarkBlockquote' })
 
 import remarkAlign from '../markdown/plugins/remark-align'
 Object.defineProperty(remarkAlign, 'name', { value: 'remarkAlign' })
@@ -277,21 +277,23 @@ export const remarkCustomBlocksConfig = {
   },
 } as const
 
-/** remark-captions plugin (explicit defaults from upstream README) */
+/**
+ * remark-captions plugin
+ *
+ * NOTE: This plugin's options are `external` and `internal`.
+ * We intentionally disable its built-in blockquote handling so our
+ * `remarkBlockquote` plugin owns blockquote caption/attribution semantics.
+ */
 export const remarkCaptionsConfig = {
-  /**
-   * Caption is rendered outside the captioned element or inside its wrapping paragraph
-   */
   external: {
-    table: 'Table:',
     code: 'Code:',
+    table: 'Table:',
   },
-  /**
-   * Caption is rendered inside the captioned element or inside its wrapping paragraph
-   */
   internal: {
-    blockquote: 'Source:',
     image: 'Figure:',
+    // Prevent remark-captions from wrapping blockquotes (default is 'Source:').
+    // Blockquotes are handled by `remarkBlockquote` instead.
+    blockquote: '__BLOCKQUOTE_CAPTIONS_DISABLED__',
   },
 } as const
 
@@ -319,7 +321,7 @@ export const remarkRehypeConfig: RemarkRehypeOptions = {
   /** Convert GridTables mdast nodes to standard HTML table output */
   handlers: {
     [TYPE_TABLE]: mdast2hastGridTablesHandler(),
-    // remark-captions + remark-attribution emit mdast nodes with type "figure"/"figcaption".
+    // remark-captions + remark-blockquote emit mdast nodes with type "figure"/"figcaption".
     // Without explicit handlers, mdast-util-to-hast may flatten block children (notably `code`) and drop captions.
     figure: (state: MdastToHastState, node: unknown) => {
       return {
@@ -374,7 +376,7 @@ export const markdownConfig: Partial<MdxOptions> = {
     remarkSupersub,
     /** Highlights via ==marked== */
     remarkMarkPlus,
-    /** Captions for code, images, tables, and blockquotes */
+    /** Captions for code, images, and tables */
     [remarkCaptions, remarkCaptionsConfig],
     /** Definition lists (PHP Markdown Extra style) */
     remarkDeflist,
@@ -390,8 +392,8 @@ export const markdownConfig: Partial<MdxOptions> = {
      * Example: [text content]{.class #id attr=value} creates <span> with attributes
      */
     [remarkAttributes, remarkAttributesConfig],
-    /** Wrap blockquotes with attribution in semantic figure/figcaption markup */
-    remarkAttribution,
+    /** Wrap blockquotes with caption/attribution in semantic figure markup */
+    remarkBlockquote,
     /** Convert emoji syntax like :heart: to emoji images */
     remarkEmoji,
     /** Support generic directive syntax (required by remark-video) */

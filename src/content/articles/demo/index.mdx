@@ -15,6 +15,8 @@ import Demo from '@components/Test/Demo.mdx'
 
 ### Blockquotes
 
+Quotation marks are added by CSS, so should not be included on the blockquote text.
+
 > This is a blockquote. Use it for quotes, citations, or to highlight important statements from external sources.
 
 Nested blockquotes:
@@ -29,9 +31,9 @@ Nested blockquotes:
 >
 >> The Witch bade her clean the pots and kettles and sweep the floor and keep the fire fed with wood.
 
-#### Blockquotes with internal remark-attribution plugin
+__Blockquotes with attribution__
 
-The plugin allows to provide an attribution for a quotation:
+The pluginwill provide an attribution for a quotation if it is prefixed with an em dash. To include a date, put them in trailing parentheses:
 
 ```markdown
 > That's one small step for [a] man, one giant leap for mankind.
@@ -41,26 +43,32 @@ The plugin allows to provide an attribution for a quotation:
 > That's one small step for [a] man, one giant leap for mankind.
 > — Neil Armstrong (1969, July 21)
 
+```markdown
+> That's one small step for [a] man, one giant leap for mankind.
+> — Neil Armstrong
+```
+
+> Nothing inspires forgiveness quite like revenge.
+> — Scott Adams
+
 Compiles to the following HTML:
 
 ```html
-The generated markup is not only accessible for screen readers but allows you to style the attribution line however you like:
-
-<figure class="c-blockquote">
+<figure class="blockquote">
   <blockquote>
     <p>
       That's one small step for [a] man, one giant leap for mankind.
     </p>
   </blockquote>
-  <figcaption class="c-blockquote__attribution">
+  <figcaption class="blockquote-attribution">
     Neil Armstrong (1969, July 21)
   </figcaption>
 </figure>
 ```
 
-#### Blockquotes with remark-captions
+__Blockquotes with captions__
 
-By default it wraps the elements code, image, table and blockquote in a `<figure>` element, and adds a `<figcaption>` block as the last child. You can configure it to work on other elements by changing the keywords.
+For blockquotes, captions are handled by the internal `remark-blockquote` plugin so they can be combined with an attribution.
 
 **Blockquote caption**
 
@@ -72,16 +80,46 @@ By default it wraps the elements code, image, table and blockquote in a `<figure
 > Some blockquote text that will have a caption
 > Source: The caption text that will appear under the blockquote
 
-Compiles to the following HTML:
+Compiles to the following HTML (ignoring styles):
 
 ```html
-<figure class="my-8 mx-auto max-w-none text-center">
-  <blockquote class="border-l-2 border-blue-600 my-8 pl-14 -ml-4 font-serif text-2xl italic">
-    <p class="mb-8 leading-relaxed">
+<figure class="blockquote-figure">
+  <blockquote>
+    <p>
       Some blockquote text that will have a caption
     </p>
   </blockquote>
-  <figcaption class="text-base italic pt-3">
+  <figcaption class="blockquote-caption">
+    The caption text that will appear under the blockquote
+  </figcaption>
+</figure>
+```
+
+__Blockquotes with both attribution and caption__
+
+```markdown
+> That's one small step for [a] man, one giant leap for mankind.
+> — Neil Armstrong (1969, July 21)
+> Source: The caption text that will appear under the blockquote
+```
+
+> That's one small step for [a] man, one giant leap for mankind.
+> — Neil Armstrong (1969, July 21)
+> Source: The caption text that will appear under the blockquote
+
+Should compile to the following HTML:
+
+```html
+<figure class="blockquote-figure">
+  <blockquote>
+    <p>
+      That's one small step for [a] man, one giant leap for mankind.
+    </p>
+  </blockquote>
+  <div class="blockquote-attribution">
+    Neil Armstrong (1969, July 21)
+  </div>
+  <figcaption class="blockquote-caption">
     The caption text that will appear under the blockquote
   </figcaption>
 </figure>
@@ -397,9 +435,9 @@ Add HTML attributes to supported Markdown elements using a MDX-safe doubled-squa
 ![Image](/assets/images/shiprock.svg) [[width=300 .centered]]
 [Link Example](/testing/markdown) [[.btn target=_blank]]
 
-### remark-attribution
+### remark-blockquote
 
-The plugin allows to provide an attribution for a quotation:
+The plugin allows you to provide an attribution for a quotation:
 
 ```markdown
 > That's one small step for [a] man, one giant leap for mankind.
@@ -412,15 +450,13 @@ The plugin allows to provide an attribution for a quotation:
 Should compile to the following HTML:
 
 ```html
-The generated markup is not only accessible for screen readers but allows you to style the attribution line however you like:
-
-<figure class="c-blockquote">
+<figure class="blockquote">
   <blockquote>
     <p>
       That's one small step for [a] man, one giant leap for mankind.
     </p>
   </blockquote>
-  <figcaption class="c-blockquote__attribution">
+  <figcaption class="blockquote-attribution">
     Neil Armstrong (1969, July 21)
   </figcaption>
 </figure>
@@ -428,11 +464,11 @@ The generated markup is not only accessible for screen readers but allows you to
 
 ### remark-captions
 
-By default it wraps the elements code, image, table and blockquote in a `<figure>` element, and adds a `<figcaption>` block as the last child. You can configure it to work on other elements by changing the keywords.
-
-__Blockquote example is moved to the Blockquote section.__
+By default it wraps the elements code, image, and table in a `<figure>` element, and adds a `<figcaption>` block as the last child. You can configure it to work on other elements by changing the keywords.
 
 **Code caption**
+
+The caption line is prefixed with `Code:` and added below the code block with no blank line:
 
 ```ts
 export const answer = 42
@@ -441,7 +477,7 @@ Code: This caption appears under the code block
 
 **Table caption**
 
-Note: a blank line is required before `Table:` so it parses as a paragraph after the table.
+Note: a blank line is required before tje `Table:` prefixed line so it parses as a paragraph after the table.
 
 ```markdown
 | a | b |
@@ -459,7 +495,7 @@ Table: This caption appears under the table
 
 **Image caption**
 
-Note: the `Figure:` caption must be in the same paragraph as the image (no blank line).
+Note: the `Figure:` prefixed line must be in the same paragraph as the image (no blank line).
 
 ```markdown
 ![Wordmark](/assets/images/branding/wordmark.svg)

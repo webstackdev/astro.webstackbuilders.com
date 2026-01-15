@@ -20,6 +20,36 @@ export function rehypeTailwindClasses() {
 
     const getParent = (node: Element): Parent | undefined => parentByNode.get(node)
 
+    const hasAttributionFigcaption = (figure: Element): boolean => {
+      return figure.children.some(child => {
+        return (
+          isHastElement(child as Parent | undefined) &&
+          (child as Element).tagName === 'figcaption' &&
+          hasClass(child as Element, 'blockquote-attribution')
+        )
+      })
+    }
+
+    const hasInlineAttribution = (blockquote: Element): boolean => {
+      return blockquote.children.some(child => {
+        return (
+          isHastElement(child as Parent | undefined) &&
+          hasClass(child as Element, 'blockquote-attribution')
+        )
+      })
+    }
+
+    const isInsideBlockquoteAttribution = (node: Element): boolean => {
+      let currentParent = getParent(node)
+
+      while (isHastElement(currentParent)) {
+        if (hasClass(currentParent, 'blockquote-attribution')) return true
+        currentParent = getParent(currentParent)
+      }
+
+      return false
+    }
+
     visit(tree, 'element', (node: Element, _index, parent): void | typeof SKIP => {
       if (parent) {
         parentByNode.set(node, parent)
@@ -29,7 +59,55 @@ export function rehypeTailwindClasses() {
       const elementConfig = getElementConfig(node.tagName)
       if (elementConfig) {
         applyHtmlElementClasses(node, elementConfig)
-        return
+
+        // Some elements (like <figure>/<figcaption>) need additional conditional styling.
+        if (!['figure', 'figcaption'].includes(node.tagName)) return
+      }
+
+      /**
+       * =============================================================================
+       *
+       * Figure / Figcaption stylings
+       *
+       * =============================================================================
+       */
+      if (node.tagName === 'figure' && !hasClass(node, 'blockquote')) {
+        node.properties = node.properties || {}
+        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
+          'my-8',
+          'mx-auto',
+          'max-w-none',
+        ])
+      }
+
+      // For captions added by the remark-captions plugin (and other non-blockquote figcaptions).
+      if (
+        node.tagName === 'figcaption' &&
+        !hasClass(node, 'blockquote-attribution') &&
+        !hasClass(node, 'blockquote-caption')
+      ) {
+        node.properties = node.properties || {}
+        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
+          'italic',
+          'mt-[-0.25rem]',
+          'text-base',
+          'text-center',
+        ])
+      }
+
+      /**
+       * =============================================================================
+       *
+       * Paragraph stylings
+       *
+       * =============================================================================
+       */
+      if (node.tagName === 'p' && !isInsideBlockquoteAttribution(node)) {
+        node.properties = node.properties || {}
+        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
+          'mb-6',
+          'leading-relaxed',
+        ])
       }
 
       /**
@@ -97,7 +175,7 @@ export function rehypeTailwindClasses() {
           'inline-block',
           'font-mono',
           'mx-1',
-          'px-1',
+          'px-2',
           'pb-1',
         ])
       }
@@ -112,15 +190,24 @@ export function rehypeTailwindClasses() {
 
         if (isHastElement(parent) && parent.tagName === 'pre') {
           node.properties = node.properties || {}
-          node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-            'my-2',
-            'whitespace-pre-wrap',
-            'break-words',
+          parent.properties = parent.properties || {}
+
+          /** Styles for the <pre> element within a text code block */
+          parent.properties['className'] = ((parent.properties['className'] as string[]) || []).concat([
+            'bg-[var(--shiki-background)]',
+            'block',
+            'max-w-full',
+            'overflow-x-hidden',
+            'pr-3',
+            'py-3',
           ])
 
-          parent.properties = parent.properties || {}
-          parent.properties['className'] = ((parent.properties['className'] as string[]) || []).concat([
-            'overflow-x-hidden',
+          /** Styles for the <code> element within a text code block */
+          node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
+            'break-words',
+            'my-2',
+            'whitespace-pre-wrap',
+            'text-[var(--shiki-foreground)]',
           ])
         }
       }
@@ -130,6 +217,8 @@ export function rehypeTailwindClasses() {
        */
       if (node.tagName === 'code-tabs') {
         node.properties = node.properties || {}
+
+        /** Outer code-tabs custom web component container */
         node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
           'block',
           'border-page-base-offset',
@@ -141,12 +230,56 @@ export function rehypeTailwindClasses() {
           'rounded-md',
           'w-full',
         ])
+
+        visit(node, 'element', (child: Element, _childIndex, childParent) => {
+          if (child.tagName === 'pre') {
+            child.properties = child.properties || {}
+
+            /** Styles for the <pre> element within a code-tabs block */
+            child.properties['className'] = ((child.properties['className'] as string[]) || []).concat([
+              'bg-[var(--shiki-background)]',
+              'block',
+              'max-w-full',
+              'pr-3',
+              'py-3',
+            ])
+          }
+
+          if (
+            child.tagName === 'code' &&
+            isHastElement(childParent) &&
+            childParent.tagName === 'pre' &&
+            !hasClass(child, 'language-text')
+          ) {
+            child.properties = child.properties || {}
+
+            /** Styles for the <code> element within a code-tabs block */
+            child.properties['className'] = ((child.properties['className'] as string[]) || []).concat([
+              'text-[var(--shiki-foreground)]',
+            ])
+          }
+        })
       }
 
       /**
-       * Code blocks (pre > code) stylings with responsive margins
+       * Generic code blocks with no language tag (pre > code) stylings
        */
       if (node.tagName === 'pre') {
+        const parent = getParent(node)
+
+        // Code tabs manage their own <pre>/<code> styling.
+        if (isHastElement(parent) && parent.tagName === 'code-tabs') return
+
+        // Text code blocks (pre > code.language-text) are handled in the language-text branch.
+        const hasTextChild = node.children?.some(child => {
+          return (
+            isHastElement(child as Parent | undefined) &&
+            (child as Element).tagName === 'code' &&
+            hasClass(child as Element, 'language-text')
+          )
+        })
+        if (hasTextChild) return
+
         node.properties = node.properties || {}
         node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
           'block',
@@ -213,90 +346,213 @@ export function rehypeTailwindClasses() {
         node.properties = node.properties || {}
         const existingClasses = (node.properties['className'] as string[]) || []
 
-        /**
-         * remark-attribution wraps quotes in `<figure class="c-blockquote">`.
-         * Those are styled separately below.
-         */
         const parent = getParent(node)
-        const isAttributionQuote =
-          isHastElement(parent) && parent.tagName === 'figure' && hasClass(parent, 'c-blockquote')
+        const isWrappedFigure = isHastElement(parent) && parent.tagName === 'figure' && hasClass(parent, 'blockquote')
+        const isCaptionFigure = isHastElement(parent) && parent.tagName === 'figure' && hasClass(parent, 'blockquote-figure')
+        const isAttributionFigure = isWrappedFigure && !isCaptionFigure && isHastElement(parent) && hasAttributionFigcaption(parent)
+        const hasInlineAttributionInCaptionedBlockquote = isCaptionFigure && hasInlineAttribution(node)
 
-        if (isAttributionQuote) return
-
-        node.properties['className'] = existingClasses.concat([
-          'border-l-2',
-          'border-blue-600',
+        // Default: plain blockquote (not wrapped by remark-blockquote)
+        // Center the blockquote box and center its content.
+        const defaultClasses = [
           'my-8',
-          'pl-14',
-          '-ml-4',
+          'mx-auto',
+          'max-w-4xl',
+          'border-2',
+          'border-dashed',
+          'border-primary/20',
+          'rounded-md',
+          'p-8',
+          'text-center',
+          'text-xl',
+          'text-content',
           'font-serif',
-          'text-2xl',
           'italic',
-        ])
+          'leading-relaxed',
+        ]
+
+        // Wrapped: attribution-only figure layout (side-by-side)
+        const attributionOnlyClasses = [
+          'flex-1',
+          'text-center',
+          'text-xl',
+          'text-content',
+          'font-serif',
+          'italic',
+          'leading-relaxed',
+        ]
+
+        // Wrapped: caption figure layout (border on the blockquote so caption sits outside)
+        const captionedClasses = [
+          'border-2',
+          'border-dashed',
+          'border-primary/20',
+          'rounded-md',
+          'p-8',
+          'text-center',
+          'text-xl',
+          'text-content',
+          'font-serif',
+          'italic',
+          'leading-relaxed',
+          // If we also have an inline attribution element, use the same side-by-side layout
+          // as attribution-only blockquotes, but inside the bordered blockquote.
+          ...(hasInlineAttributionInCaptionedBlockquote ? ['md:flex', 'md:items-center', 'md:gap-8'] : []),
+        ]
+
+        const classesToAdd = isAttributionFigure
+          ? attributionOnlyClasses
+          : isCaptionFigure
+            ? captionedClasses
+            : defaultClasses
+
+        node.properties['className'] = existingClasses.concat(classesToAdd)
       }
 
-      /** Attribution Blockquote Stylings */
-      if (node.tagName === 'figure' && hasClass(node, 'c-blockquote')) {
+      /** remark-blockquote: Attribution-only figure layout */
+      if (
+        node.tagName === 'figure' &&
+        hasClass(node, 'blockquote') &&
+        !hasClass(node, 'blockquote-figure') &&
+        hasAttributionFigcaption(node)
+      ) {
         node.properties = node.properties || {}
-        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          'relative',
-          'my-12',
-          'px-8',
-          'py-6',
-          'rounded-lg',
-          'bg-gray-100',
-          'dark:bg-gray-800',
-          'border-l-4',
-          'border-[var(--color-primary)]',
-          // Opening quote decoration
-          'before:content-["""]',
-          'before:absolute',
-          'before:top-2',
-          'before:left-2',
-          'before:text-6xl',
-          'before:font-serif',
-          'before:leading-none',
-          'before:text-[var(--color-primary)]',
-          'before:opacity-30',
-        ])
 
-        /** Style the blockquote child within the figure */
-        if (node.children) {
-          visit(node, 'element', (child: Element) => {
-            if (child.tagName === 'blockquote') {
-              child.properties = child.properties || {}
-              child.properties['className'] = [
-                'relative',
-                'z-(--z-raised)',
-                'pl-8',
-                'border-0',
-                'my-0',
-                'font-serif',
-                'text-xl',
-                'italic',
-                'text-[var(--color-content)]',
-              ]
-            }
-          })
-        }
+        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
+          'mx-auto',
+          'my-8',
+          'max-w-4xl',
+          'md:flex',
+          'md:items-center',
+          'md:gap-8',
+          'border-2',
+          'border-dashed',
+          'border-primary/20',
+          'rounded-md',
+          'p-8',
+        ])
       }
 
-      /** Add classes to figcaption with c-blockquote__attribution class */
-      if (node.tagName === 'figcaption' && hasClass(node, 'c-blockquote__attribution')) {
+      /** remark-blockquote: Captioned figure layout (no border on figure) */
+      if (node.tagName === 'figure' && hasClass(node, 'blockquote-figure')) {
+        node.properties = node.properties || {}
+
+        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
+          'mx-auto',
+          'my-8',
+          'max-w-4xl',
+        ])
+      }
+
+      /** remark-blockquote: Attribution styling (figcaption variant) */
+      if (node.tagName === 'figcaption' && hasClass(node, 'blockquote-attribution')) {
+        node.properties = node.properties || {}
+
+        const existing = (node.properties['className'] as string[]) || []
+
+        node.properties['className'] = existing.concat([
+          'mt-4',
+          'md:mt-0',
+          'md:w-auto',
+          'shrink-0',
+          'flex',
+          'items-center',
+          'gap-3',
+          'text-sm',
+          'border-t',
+          'md:border-t-0',
+          'md:border-l',
+          'border-trim',
+          'pt-4',
+          'md:pt-0',
+          'md:pl-8',
+          'not-italic',
+        ])
+
+        // Style the generated <p> lines inside the attribution container.
+        let attributionLineIndex = 0
+        visit(node, 'element', (child: Element) => {
+          if (child.tagName !== 'p') return
+
+          child.properties = child.properties || {}
+          const childClasses = (child.properties['className'] as string[]) || []
+
+          attributionLineIndex += 1
+          child.properties['className'] = childClasses.concat(
+            attributionLineIndex === 1 ? ['font-bold', 'text-content'] : ['text-xs', 'text-content-offset']
+          )
+        })
+      }
+
+      /** remark-blockquote: Attribution styling (div variant for caption+attribution) */
+      if (node.tagName === 'div' && hasClass(node, 'blockquote-attribution')) {
         node.properties = node.properties || {}
         node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
           'mt-4',
-          'pt-4',
-          'border-t',
-          'border-gray-300',
-          'dark:border-gray-600',
+          'md:mt-0',
+          'md:w-auto',
+          'shrink-0',
+          'flex',
+          'items-center',
+          'gap-3',
           'text-sm',
+          'border-t',
+          'md:border-t-0',
+          'md:border-l',
+          'border-trim',
+          'pt-4',
+          'md:pt-0',
+          'md:pl-8',
+          'not-italic',
+          // Override quote typography inherited from the blockquote.
           'font-sans',
+          'text-left',
+        ])
+
+        let attributionLineIndex = 0
+        visit(node, 'element', (child: Element) => {
+          if (child.tagName !== 'p') return
+
+          child.properties = child.properties || {}
+          const childClasses = (child.properties['className'] as string[]) || []
+
+          attributionLineIndex += 1
+          child.properties['className'] = childClasses.concat(
+            attributionLineIndex === 1 ? ['font-bold', 'text-content'] : ['text-xs', 'text-content-offset']
+          )
+        })
+      }
+
+      /** remark-blockquote: Caption + attribution layout tweaks */
+      if (node.tagName === 'p') {
+        const parent = getParent(node)
+        if (!isHastElement(parent) || parent.tagName !== 'blockquote') return
+
+        const figure = getParent(parent as Element)
+        const isCaptionFigure = isHastElement(figure) && figure.tagName === 'figure' && hasClass(figure, 'blockquote-figure')
+        if (!isCaptionFigure) return
+
+        if (!hasInlineAttribution(parent as Element)) return
+
+        node.properties = node.properties || {}
+        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
+          'md:flex-1',
+          'md:mb-0',
+        ])
+      }
+
+      /** remark-blockquote: Caption styling */
+      if (node.tagName === 'figcaption' && hasClass(node, 'blockquote-caption')) {
+        node.properties = node.properties || {}
+
+        const existing = (node.properties['className'] as string[]) || []
+
+        node.properties['className'] = existing.concat([
+          'mt-4',
+          'text-center',
+          'text-base',
+          'text-content-offset',
           'italic',
-          'text-content-active',
-          // Em dash before attribution
-          'before:content-["—_"]',
-          'before:text-primary',
         ])
       }
     })

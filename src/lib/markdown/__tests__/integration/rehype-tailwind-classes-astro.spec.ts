@@ -33,7 +33,7 @@ describe('rehype-tailwind-classes (Layer 2: With Astro Pipeline)', () => {
 
       expect(html).toContain('<del>')
       expect(html).toContain('strikethrough')
-      expect(html).toMatch(/class="[^"]*mb-8/)
+      expect(html).toMatch(/class="[^"]*mb-/)
     })
 
     it('should add classes to lists with GFM task lists', async () => {

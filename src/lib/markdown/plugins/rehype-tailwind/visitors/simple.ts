@@ -17,14 +17,6 @@ export const htmlElements: ElementConfig[] = [
     classes: ['[&>*:not(summary)]:pl-5'],
   },
   {
-    tagName: 'figure',
-    classes: ['my-8', 'mx-auto', 'max-w-none', 'text-center'],
-  },
-  {
-    tagName: 'figcaption',
-    classes: ['text-base', 'italic', 'pt-3'],
-  },
-  {
     tagName: 'hr',
     classes: [
       'bg-gray-300',
@@ -42,7 +34,7 @@ export const htmlElements: ElementConfig[] = [
     classes: [
       'block',
       'mx-auto',
-      'mb-8',
+      'mb-6',
       'max-w-full',
       'h-auto',
       'rounded-lg',
@@ -57,55 +49,62 @@ export const htmlElements: ElementConfig[] = [
     classes: ['bg-gray-300', 'text-gray-900'],
   },
   {
-    tagName: 'p',
-    classes: ['mb-8', 'leading-relaxed'],
-  },
-  {
     tagName: 'summary',
     classes: ['outline-none', 'select-none', 'cursor-pointer', 'list-none', 'marker:hidden'],
   },
   {
     tagName: 'table',
     classes: [
-      'w-full',
       'border-collapse',
-      'border',
-      'border-gray-300',
-      'dark:border-gray-600',
-      'my-6',
-      'rounded-lg',
+      'mx-auto',
+      'mb-6',
       'overflow-hidden',
+      'max-w-full',
+      'w-fit',
     ],
   },
   {
     tagName: 'th',
     classes: [
-      'bg-gray-100',
-      'dark:bg-gray-700',
+      'bg-page-base-offset',
       'px-4',
       'py-2',
       'text-left',
       'font-semibold',
-      'border-b',
-      'border-gray-300',
-      'dark:border-gray-600',
     ],
   },
   {
     tagName: 'td',
-    classes: ['px-4', 'py-2', 'border-b', 'border-gray-200', 'dark:border-gray-700'],
+    classes: [
+      'px-4',
+      'py-2',
+      'bg-[var(--shiki-background)]',
+    ],
   },
   {
     tagName: 'ul',
-    classes: ['list-disc', 'list-outside', 'pl-4', 'mb-8'],
+    classes: [
+      'list-disc',
+      'list-outside',
+      'pl-4',
+      'mb-8'
+    ],
   },
   {
     tagName: 'ol',
-    classes: ['list-decimal', 'list-outside', 'pl-4', 'mb-8'],
+    classes: [
+      'list-decimal',
+      'list-outside',
+      'pl-4',
+      'mb-8'
+    ],
   },
   {
     tagName: 'li',
-    classes: ['mb-1', 'last:mb-0'],
+    classes: [
+      'mb-1',
+      'last:mb-0'
+    ],
   },
   {
     tagName: 'video',
