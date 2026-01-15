@@ -13,38 +13,8 @@ import { applyClasses } from '../utils'
  */
 export const htmlElements: ElementConfig[] = [
   {
-    tagName: 'p',
-    classes: ['mb-8', 'leading-relaxed'],
-  },
-  {
-    tagName: 'img',
-    classes: [
-      'block',
-      'mx-auto',
-      'mb-8',
-      'max-w-full',
-      'h-auto',
-      'rounded-lg',
-      'shadow-md',
-      'text-gray-500',
-      'italic',
-      'text-center',
-    ],
-  },
-  {
-    tagName: 'video',
-    classes: [
-      'block',
-      'mx-auto',
-      'mb-8',
-      'max-w-full',
-      'h-auto',
-      'rounded-lg',
-      'shadow-md',
-      'text-gray-500',
-      'italic',
-      'text-center',
-    ],
+    tagName: 'details',
+    classes: ['[&>*:not(summary)]:pl-5'],
   },
   {
     tagName: 'figure',
@@ -68,20 +38,31 @@ export const htmlElements: ElementConfig[] = [
     ],
   },
   {
-    tagName: 'ul',
-    classes: ['list-disc', 'list-outside', 'pl-4', 'mb-8'],
-  },
-  {
-    tagName: 'ol',
-    classes: ['list-decimal', 'list-outside', 'pl-4', 'mb-8'],
-  },
-  {
-    tagName: 'li',
-    classes: ['mb-1', 'last:mb-0'],
+    tagName: 'img',
+    classes: [
+      'block',
+      'mx-auto',
+      'mb-8',
+      'max-w-full',
+      'h-auto',
+      'rounded-lg',
+      'shadow-md',
+      'text-gray-500',
+      'italic',
+      'text-center',
+    ],
   },
   {
     tagName: 'mark',
     classes: ['bg-gray-300', 'text-gray-900'],
+  },
+  {
+    tagName: 'p',
+    classes: ['mb-8', 'leading-relaxed'],
+  },
+  {
+    tagName: 'summary',
+    classes: ['outline-none', 'select-none', 'cursor-pointer', 'list-none', 'marker:hidden'],
   },
   {
     tagName: 'table',
@@ -115,12 +96,31 @@ export const htmlElements: ElementConfig[] = [
     classes: ['px-4', 'py-2', 'border-b', 'border-gray-200', 'dark:border-gray-700'],
   },
   {
-    tagName: 'summary',
-    classes: ['outline-none', 'select-none', 'cursor-pointer', 'list-none', 'marker:hidden'],
+    tagName: 'ul',
+    classes: ['list-disc', 'list-outside', 'pl-4', 'mb-8'],
   },
   {
-    tagName: 'details',
-    classes: ['[&>*:not(summary)]:pl-5'],
+    tagName: 'ol',
+    classes: ['list-decimal', 'list-outside', 'pl-4', 'mb-8'],
+  },
+  {
+    tagName: 'li',
+    classes: ['mb-1', 'last:mb-0'],
+  },
+  {
+    tagName: 'video',
+    classes: [
+      'block',
+      'mx-auto',
+      'mb-8',
+      'max-w-full',
+      'h-auto',
+      'rounded-lg',
+      'shadow-md',
+      'text-gray-500',
+      'italic',
+      'text-center',
+    ],
   },
 ]
 

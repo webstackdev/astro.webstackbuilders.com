@@ -1,52 +1,49 @@
-/* Global styles for prose content - keep responsive and accessible */
-.markdown-content__prose img {
-  border-radius: var(--radius-md);
-  height: auto;
-  max-width: 100%;
-}
+/**
+ * Global styles for content in Markdown layout
+ */
 
-.markdown-content__prose pre {
-  border-radius: var(--radius-md);
-  overflow-x: auto;
-}
-
-.markdown-content__prose code-tabs {
-  display: block;
-  max-width: 100%;
-  min-width: 0;
-  overflow: hidden;
-  width: 100%;
-}
-
-.markdown-content__prose code-tabs pre {
-  max-width: 100%;
-}
-
-.markdown-content__prose table {
-  display: block;
-  overflow-x: auto;
-  width: 100%;
-}
-
-/* Tailwind preflight makes all svg elements `display: block`, which breaks inline MathJax SVGs */
-.markdown-content__prose mjx-container svg {
-  display: inline-block;
-}
-
-/* Ensure components have proper spacing */
+/**
+ * Ensure components have proper spacing
+ */
 .markdown-content__prose .callout,
 .markdown-content__prose .carousel,
 .markdown-content__prose .testimonials {
   margin-block: var(--space-lg);
 }
 
-/** Space subscript slightly off content */
+.markdown-content__prose img {
+  height: auto;
+  max-width: 100%;
+}
+
+/**
+ * Tailwind preflight makes all svg elements `display: block`,
+ * which breaks inline MathJax SVGs
+ */
+.markdown-content__prose mjx-container svg {
+  display: inline-block;
+}
+
+/**
+ * Space subscript slightly off content
+ */
 .markdown-content__prose sub {
   margin-left: 0.15rem;
 }
 
-/* Task lists (remark-gfm)
- * rehype-tailwind adds `list-disc` + `pl-4` to all `ul`, so we override just task lists.
+/**
+ * Tables
+ */
+.markdown-content__prose table {
+  display: block;
+  overflow-x: auto;
+  width: 100%;
+}
+
+/**
+ * Task lists (remark-gfm)
+ * rehype-tailwind adds `list-disc` + `pl-4` to all `ul`, so we
+ * override just task lists.
  */
 .markdown-content__prose ul.contains-task-list {
   list-style: none;

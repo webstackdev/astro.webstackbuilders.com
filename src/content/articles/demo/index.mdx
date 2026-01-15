@@ -29,6 +29,78 @@ Nested blockquotes:
 >
 >> The Witch bade her clean the pots and kettles and sweep the floor and keep the fire fed with wood.
 
+#### Blockquotes with internal remark-attribution plugin
+
+The plugin allows to provide an attribution for a quotation:
+
+```markdown
+> That's one small step for [a] man, one giant leap for mankind.
+> — Neil Armstrong (1969, July 21)
+```
+
+> That's one small step for [a] man, one giant leap for mankind.
+> — Neil Armstrong (1969, July 21)
+
+Compiles to the following HTML:
+
+```html
+The generated markup is not only accessible for screen readers but allows you to style the attribution line however you like:
+
+<figure class="c-blockquote">
+  <blockquote>
+    <p>
+      That's one small step for [a] man, one giant leap for mankind.
+    </p>
+  </blockquote>
+  <figcaption class="c-blockquote__attribution">
+    Neil Armstrong (1969, July 21)
+  </figcaption>
+</figure>
+```
+
+#### Blockquotes with remark-captions
+
+By default it wraps the elements code, image, table and blockquote in a `<figure>` element, and adds a `<figcaption>` block as the last child. You can configure it to work on other elements by changing the keywords.
+
+**Blockquote caption**
+
+```markdown
+> Some blockquote text that will have a caption
+> Source: The caption text that will appear under the blockquote
+```
+
+> Some blockquote text that will have a caption
+> Source: The caption text that will appear under the blockquote
+
+Compiles to the following HTML:
+
+```html
+<figure class="my-8 mx-auto max-w-none text-center">
+  <blockquote class="border-l-2 border-blue-600 my-8 pl-14 -ml-4 font-serif text-2xl italic">
+    <p class="mb-8 leading-relaxed">
+      Some blockquote text that will have a caption
+    </p>
+  </blockquote>
+  <figcaption class="text-base italic pt-3">
+    The caption text that will appear under the blockquote
+  </figcaption>
+</figure>
+```
+
+### Detail and Summary
+
+```markdown
+<details>
+  <summary>Details</summary>
+  Something small enough to escape casual notice.
+</details>
+```
+
+<details>
+  <summary>Details</summary>
+  Something small enough to escape casual notice.
+</details>
+
 ### Horizontal Rules
 
 Asterisks (`***`):
@@ -52,6 +124,10 @@ _________________
 ![Octocat](https://myoctocat.com/assets/images/base-octocat.svg)
 
 Linked image:
+
+```markdown
+[![An old rock in the desert](/assets/images/shiprock.svg "Shiprock placeholder")](https://www.flickr.com/photos/beaurogers/31833779864/in/photolist-Qv3rFw-34mt9F-a9Cmfy-5Ha3Zi-9msKdv-o3hgjr-hWpUte-4WMsJ1-KUQ8N-deshUb-vssBD-6CQci6-8AFCiD-zsJWT-nNfsgB-dPDwZJ-bn9JGn-5HtSXY-6CUhAL-a4UTXB-ugPum-KUPSo-fBLNm-6CUmpy-4WMsc9-8a7D3T-83KJev-6CQ2bK-nNusHJ-a78rQH-nw3NvT-7aq2qf-8wwBso-3nNceh-ugSKP-4mh4kh-bbeeqH-a7biME-q3PtTf-brFpgb-cg38zw-bXMZc-nJPELD-f58Lmo-bXMYG-bz8AAi-bxNtNT-bXMYi-bXMY6-bXMYv)
+```
 
 [![An old rock in the desert](/assets/images/shiprock.svg "Shiprock placeholder")](https://www.flickr.com/photos/beaurogers/31833779864/in/photolist-Qv3rFw-34mt9F-a9Cmfy-5Ha3Zi-9msKdv-o3hgjr-hWpUte-4WMsJ1-KUQ8N-deshUb-vssBD-6CQci6-8AFCiD-zsJWT-nNfsgB-dPDwZJ-bn9JGn-5HtSXY-6CUhAL-a4UTXB-ugPum-KUPSo-fBLNm-6CUmpy-4WMsc9-8a7D3T-83KJev-6CQ2bK-nNusHJ-a78rQH-nw3NvT-7aq2qf-8wwBso-3nNceh-ugSKP-4mh4kh-bbeeqH-a7biME-q3PtTf-brFpgb-cg38zw-bXMZc-nJPELD-f58Lmo-bXMYG-bz8AAi-bxNtNT-bXMYi-bXMY6-bXMYv)
 
@@ -200,6 +276,8 @@ Should compile to the following HTML:
 implemented by <a href="https://github.com/remarkjs/remark">remark</a></p>
 ```
 
+This plugin works on MDAST, a Markdown AST implemented by [remark](https://github.com/remarkjs/remark).
+
 ### rehype-accessible-emojis
 
 There is a doc listing all available emojis in the /docs directory.
@@ -236,34 +314,70 @@ This custom plugin parses custom Markdown syntax to center- or right-align eleme
 
 ```markdown
 [center]paragraph[/center]
-
-[right]paragraph[/right]
 ```
 
 [center]A centered paragraph[/center]
 
-[right]A right-aligned paragraph[/right]
+```markdown
+[right]paragraph[/right]
+```
 
-Block elements can be wrapped with their own tags to apply `flex flex-col items-end` or `flex flex-col items-center` classes:
+[right]A right-aligned paragraph[/right]
 
 ```markdown
 [center]
+
 > My blockquote
+
 [/center]
 ```
 
 [center]
 
 > My blockquote
+
+[/center]
+
+```markdown
+[center]
+
+- a
+- b
+
+[/center]
+```
+
+[center]
 
 - a
 - b
 
 [/center]
 
+```markdown
 [right]
 
 > My blockquote
+
+[/right]
+```
+
+[right]
+
+> My blockquote
+
+[/right]
+
+```markdown
+[right]
+
+- a
+- b
+
+[/right]
+```
+
+[right]
 
 - a
 - b
@@ -275,9 +389,9 @@ Block elements can be wrapped with their own tags to apply `flex flex-col items-
 Add HTML attributes to supported Markdown elements using a MDX-safe doubled-square-bracket postfix syntax:
 
 ```markdown
-### Heading [[.my-class #my-id]]
 ![Image](/assets/images/shiprock.svg) [[width=300 .centered]]
-[Link](url) [[.btn target=_blank]]
+
+[Link](url) [[color=pink target=_blank .centered]]
 ```
 
 ![Image](/assets/images/shiprock.svg) [[width=300 .centered]]
@@ -316,15 +430,7 @@ The generated markup is not only accessible for screen readers but allows you to
 
 By default it wraps the elements code, image, table and blockquote in a `<figure>` element, and adds a `<figcaption>` block as the last child. You can configure it to work on other elements by changing the keywords.
 
-**Blockquote caption**
-
-```markdown
-> Some blockquote text that will have a caption
-> Source: The caption text that will appear under the blockquote
-```
-
-> Some blockquote text that will have a caption
-> Source: The caption text that will appear under the blockquote
+__Blockquote example is moved to the Blockquote section.__
 
 **Code caption**
 
@@ -414,20 +520,6 @@ The string `L = \frac{1}{2} \rho v^2 S C_L` within a fenced code black set to la
 ```math
 L = \frac{1}{2} \rho v^2 S C_L
 ```
-
-### remark-supersub
-
-Subscript and superscript text
-
-```markdown
-~subscript~, e.g. a~i~
-
-^superscript^, e.g. e^x^
-```
-
-Subscript: a~i~
-
-Superscript: e^x^
 
 ### remark-video
 
@@ -1258,6 +1350,8 @@ The references can be anywhere in the document, before or after their use:
 
 ## Core Markdown
 
+Subscript and superscript text is from `remark-supersub`.
+
 | Style | Syntax | Keyboard shortcut | Example | Output |
 | --- | --- | --- | --- | --- |
 | Bold | `** **` | Command+B (Mac) or Ctrl+B (Windows/Linux) | `**This is bold text**` | **This is bold text** |
@@ -1265,6 +1359,6 @@ The references can be anywhere in the document, before or after their use:
 | Strikethrough | `~~ ~~` or `~ ~` | None | `~~This was mistaken text~~` | ~~This was mistaken text~~ |
 | Bold and nested italic | `** **` and `_ _` | None | `**This text is _extremely_ important**` | **This text is \*extremely\* important** |
 | All bold and italic | `*** ***` | None | `**_All this text is important_**` | **_All this text is important_** |
-| Subscript | `<sub> </sub>` | None | `This is a <sub>subscript</sub> text` | This is a <sub>subscript</sub> |
-| Superscript | `<sup> </sup>` | None | `This is a <sup>superscript</sup> text` | This is a <sup>superscript</sup> text |
-| Underline | `<ins> </ins>` | None | `This is an <ins>underlined</ins> text` | This is an <ins>underlined</ins> text |
+| Subscript | `~subscript~` | None | `This is a ~subscript~ text` | This is a ~subscript~ |
+| Superscript | `^superscript^` | None | `This is a ^superscript^ text` | This is a ^superscript^ text |
+| Underline | `__   __` | None | `This is an __underlined__ text` | This is an __underlined__ text |

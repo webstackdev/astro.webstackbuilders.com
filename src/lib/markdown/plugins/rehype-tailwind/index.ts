@@ -67,9 +67,8 @@ export function rehypeTailwindClasses() {
       if (['h2', 'h3', 'h4'].includes(node.tagName)) {
         node.properties = node.properties || {}
         node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          'mb-2',
-          'mt-6',
           'relative',
+          'my-6',
           /**
            * Remove top margin from first child element of headings since we're
            * controlling bottom margin here.
@@ -103,25 +102,10 @@ export function rehypeTailwindClasses() {
         ])
       }
 
-
       /**
-       * Code blocks (pre > code) stylings with responsive margins
-       */
-      if (node.tagName === 'pre') {
-        node.properties = node.properties || {}
-        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          'block',
-          'text-base',
-          'px-4',
-          'py-4',
-          'bg-page-base-offset',
-          'mb-6',
-        ])
-      }
-
-      /**
-       * Code blocks (pre > code.language-text) should wrap text instead of forcing horizontal scrolling.
-       * This keeps the existing <pre> styles but allows future styling specifically for text blocks.
+       * Non-Code Tabs Text Code blocks (pre > code.language-text) should wrap text
+       * instead of forcing horizontal scrolling. This keeps the existing <pre>
+       * styles but allows future styling specifically for text blocks.
        */
       if (node.tagName === 'code' && hasClass(node, 'language-text')) {
         const parent = getParent(node)
@@ -129,6 +113,7 @@ export function rehypeTailwindClasses() {
         if (isHastElement(parent) && parent.tagName === 'pre') {
           node.properties = node.properties || {}
           node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
+            'my-2',
             'whitespace-pre-wrap',
             'break-words',
           ])
@@ -146,10 +131,29 @@ export function rehypeTailwindClasses() {
       if (node.tagName === 'code-tabs') {
         node.properties = node.properties || {}
         node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
+          'block',
+          'border-page-base-offset',
           'border',
-          'border-gray-200',
-          'rounded-md',
+          'max-w-full',
+          'mb-4',
+          'min-w-0',
           'overflow-hidden',
+          'rounded-md',
+          'w-full',
+        ])
+      }
+
+      /**
+       * Code blocks (pre > code) stylings with responsive margins
+       */
+      if (node.tagName === 'pre') {
+        node.properties = node.properties || {}
+        node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
+          'block',
+          'bg-page-base-offset',
+          'max-w-full',
+          'pr-3',
+          'py-3',
         ])
       }
 
@@ -231,13 +235,7 @@ export function rehypeTailwindClasses() {
         ])
       }
 
-      /**
-       * =============================================================================
-       *
-       * Attribution Blockquote Stylings
-       *
-       * =============================================================================
-       */
+      /** Attribution Blockquote Stylings */
       if (node.tagName === 'figure' && hasClass(node, 'c-blockquote')) {
         node.properties = node.properties || {}
         node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([

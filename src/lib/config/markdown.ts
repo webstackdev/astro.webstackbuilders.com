@@ -279,10 +279,16 @@ export const remarkCustomBlocksConfig = {
 
 /** remark-captions plugin (explicit defaults from upstream README) */
 export const remarkCaptionsConfig = {
+  /**
+   * Caption is rendered outside the captioned element or inside its wrapping paragraph
+   */
   external: {
     table: 'Table:',
     code: 'Code:',
   },
+  /**
+   * Caption is rendered inside the captioned element or inside its wrapping paragraph
+   */
   internal: {
     blockquote: 'Source:',
     image: 'Figure:',
