@@ -8,5 +8,35 @@
 
 <script>
   import { registerCodeTabsWebComponent } from './client'
+  import { hasHighlighterElement, hasMastodonModalElement } from './client/selectors'
   registerCodeTabsWebComponent()
+
+  const registerOptionalMarkdownWebComponents = async () => {
+    if (hasHighlighterElement()) {
+      try {
+        const { registerHighlighterWebComponent } = await import(
+          '@components/Social/Highlighter/client'
+        )
+        registerHighlighterWebComponent()
+      } catch {
+        // Best effort only.
+      }
+    }
+
+    if (hasMastodonModalElement()) {
+      try {
+        const { registerMastodonModalWebComponent } = await import(
+          '@components/Social/Mastodon/client'
+        )
+        registerMastodonModalWebComponent()
+      } catch {
+        // Best effort only.
+      }
+    }
+  }
+
+  registerOptionalMarkdownWebComponents()
+  document.addEventListener('astro:page-load', () => {
+    registerOptionalMarkdownWebComponents()
+  })
 </script>

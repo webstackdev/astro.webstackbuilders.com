@@ -10,8 +10,11 @@ export const SELECTORS = {
   wrapper: '.highlighter__wrapper',
   trigger: '.highlighter__trigger',
   dialog: '.share-dialog',
+  dialogArrow: '.share-dialog__arrow',
   shareButton: '.share-button',
-  copyButton: '.copy-button',
+  shareIcon: 'svg.share-icon',
+  xIconTilePath: '.xTile',
+  xIconGlyphPath: '.xGlyph',
   status: '[data-highlighter-status]',
 } as const
 
@@ -36,9 +39,37 @@ export const queryShareButtons = (context: Element): HTMLButtonElement[] => {
   )
 }
 
-export const queryCopyButton = (context: Element): HTMLButtonElement | null => {
-  const button = context.querySelector(SELECTORS.copyButton)
-  return isButtonElement(button) ? button : null
+export const queryShareDialogArrow = (context: Element): HTMLDivElement | null => {
+  const arrow = context.querySelector(SELECTORS.dialogArrow)
+  return isDivElement(arrow) ? arrow : null
+}
+
+export const queryShareIcon = (context: Element): SVGSVGElement | null => {
+  const icon = context.querySelector(SELECTORS.shareIcon)
+  return icon instanceof SVGSVGElement ? icon : null
+}
+
+export const queryXIconTilePath = (context: Element): SVGPathElement | null => {
+  const path = context.querySelector(SELECTORS.xIconTilePath)
+  if (!path) {
+    return null
+  }
+
+  const isSvgPath =
+    path instanceof Element &&
+    path.namespaceURI === 'http://www.w3.org/2000/svg' &&
+    path.tagName.toLowerCase() === 'path'
+
+  return isSvgPath ? (path as unknown as SVGPathElement) : null
+}
+
+export const queryXIconGlyphPaths = (context: Element): SVGPathElement[] => {
+  return Array.from(context.querySelectorAll(SELECTORS.xIconGlyphPath)).filter(
+    (node): node is SVGPathElement =>
+      node instanceof Element &&
+      node.namespaceURI === 'http://www.w3.org/2000/svg' &&
+      node.tagName.toLowerCase() === 'path'
+  )
 }
 
 export const queryHighlighterStatus = (context: Element): HTMLSpanElement | null => {

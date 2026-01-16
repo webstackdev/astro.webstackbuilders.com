@@ -46,7 +46,11 @@ export const htmlElements: ElementConfig[] = [
   },
   {
     tagName: 'mark',
-    classes: ['bg-gray-300', 'text-gray-900'],
+    classes: [
+      'bg-content',
+      'px-1',
+      'text-content-inverse',
+    ],
   },
   {
     tagName: 'summary',

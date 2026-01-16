@@ -12,6 +12,87 @@
 }
 
 /**
+ * Footnote reference numbers should not have dotted underlines (normal or hover).
+ */
+.markdown-content__prose sup a[data-footnote-ref],
+.markdown-content__prose sup a.footnote-ref,
+.markdown-content__prose sup a[data-footnote-ref]:hover,
+.markdown-content__prose sup a.footnote-ref:hover {
+  text-decoration: none;
+}
+
+/**
+ * Details and Summary stylings
+ */
+.markdown-content__prose details {
+  border-block-end: 1px solid var(--theme-color-content);
+  margin-block: .5rem;
+  padding-block: .5rem;
+  interpolate-size: allow-keywords;
+}
+
+/** Details closed state */
+.markdown-content__prose details::details-content {
+  block-size: 0;
+  transition: content-visibility, block-size;
+  transition-duration: 750ms;
+  transition-behavior: allow-discrete;
+  overflow: hidden;
+}
+
+/** Details open state */
+.markdown-content__prose details[open]::details-content {
+  block-size: auto;
+}
+
+.markdown-content__prose summary {
+  /** Pin the custom marker to the container */
+  position: relative;
+  /** Register summary as an anchor element */
+  anchor-name: --summary;
+  
+  &::marker {
+    content: "";
+  }
+  
+  &::before,
+  &::after {
+    /** Custom marker dimensions */
+    content: "";
+    border-block-start: 3px solid var(--theme-color-content-active);
+    height: 0;
+    width: 1rem;
+    
+    /** Positions the lines */
+    inset-block-start: 50%;
+    inset-inline-end: 0;
+    
+    /** Anchor the shape to the summary */
+    position: absolute;
+    position-anchor: --summary;
+    position-area: top end;
+  }
+  
+  /** Rotate just the ::after line to create a "+"" shape */
+  &::after {
+    transform: rotate(90deg);
+    transform-origin: 50%;
+  }
+}
+
+/** Rotate the line when open */
+.markdown-content__prose details[open] summary::after {
+  transform: rotate(0deg);
+}
+
+@media (prefers-reduced-motion) {
+  .markdown-content__prose details::details-content {
+     /** slower speed */
+    transition-duration: 0.8s;
+  }
+}
+
+/**
  * Image styling
  */
 .markdown-content__prose img {
@@ -20,13 +101,10 @@
 }
 
 /**
- * Footnote reference numbers should not have dotted underlines (normal or hover).
+ * Space subscript slightly off content
  */
-.markdown-content__prose sup a[data-footnote-ref],
-.markdown-content__prose sup a.footnote-ref,
-.markdown-content__prose sup a[data-footnote-ref]:hover,
-.markdown-content__prose sup a.footnote-ref:hover {
-  text-decoration: none;
+.markdown-content__prose sub {
+  margin-left: 0.15rem;
 }
 
 /**
@@ -38,13 +116,6 @@
 }
 
 /**
- * Space subscript slightly off content
- */
-.markdown-content__prose sub {
-  margin-left: 0.15rem;
-}
-
-/**
  * Tables
  */
 .markdown-content__prose table {
@@ -52,7 +123,6 @@
   overflow-x: auto;
   width: 100%;
 }
-
 
 /**
  * Lists
@@ -62,8 +132,6 @@
   margin-bottom: var(--space-lg);
   margin-left: 1rem;
 }
-
-
 
 /**
  * Ordered list "steps" styling (markdown <ol>)

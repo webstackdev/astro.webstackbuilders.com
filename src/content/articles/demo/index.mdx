@@ -13,230 +13,13 @@ import Demo from '@components/Test/Demo.mdx'
 
 ## Components (looping)
 
-### Lists
-
-Unordered lists:
-
-```markdown
-- First item
-- Second item
-- Third item with **bold text**
-- Fourth item with *italic text*
-```
-
-- First item
-- Second item
-- Third item with **bold text**
-- Fourth item with _italic text_
-
-Ordered lists:
-
-```markdown
-1. First step
-2. Second step
-3. Third step
-```
-
-1. First step
-2. Second step
-3. Third step
-
-Nested lists:
-
-```markdown
-1. First list item
-   - First nested list item
-     - Second nested list item
-1. Second list item
-   - First nested list item
-     - Second nested list item
-```
-
-1. First list item
-   - First nested list item
-     - Second nested list item
-1. Second list item
-   - First nested list item
-     - Second nested list item
-
-### Bold and Nested Strikethrough
-
-```markdown
-**This text is _extremely_ important**
-```
-
-**This text is _extremely_ important**
-
-### Escape Markup
-
-Unified uses the backslash character to treat special Markdown symbols as literal text, preventing them from being interpreted as formatting instructions.
+### Highlighter Component
 
 ```text
-\\ (backslash): To display a literal backslash
-\* (asterisk): Used for emphasis (italics or bold) or lists
-\_ (underscore): Also used for emphasis
-\# (hash symbol): Used for headings
-\[ and \] (square brackets): Used for links
-\( and \) (parentheses): Used in links or for other extensions like superscripts
-\+, \-, \. (plus, minus, period): Used for lists
-\! (exclamation mark): Used for images (![Alt Text]())
-\` (backtick): Used for inline code blocks
-\> (greater-than sign): Used for blockquotes
-\| (pipe): Used for tables in extended Markdown syntax
+A shareable text <Highlighter ariaLabel="Share this insight">highlighter component</Highlighter> for MDX that displays a hover dialog with social sharing options. The custom label is optional.
 ```
 
-## Comments
-
-Comments are not available, because it requires using Astro layout syntax (jsdoc-style comment inside squiggly brackets), which triggers Markdownlint rule requiring no spaces inside emphasis markers like asterisk.
-
-## Colors
-
-In single backtick code markers, applies a GitHub-like color dot:
-
-```markdown
-The background color is `#ffffff` for light mode and `#000000` for dark mode.
-
-In RGB `rgb(9, 105, 218)`, RGBA `rgba(255, 99, 71, 0.5)` in HSL `hsl(212, 92%, 45%)`, and in HSLA `hsla(240, 100%, 50%, 0.7)`.
-```
-
-The background color is `#ffffff` for light mode and `#000000` for dark mode.
-
-In RGB `rgb(9, 105, 218)`, RGBA `rgba(255, 99, 71, 0.5)` in HSL `hsl(212, 92%, 45%)`, and in HSLA `hsla(240, 100%, 50%, 0.7)`.
-
-## Astro-generated heading ID links
-
-```markdown
-I can link internally to [Markdown Features](#unified-plugins) on the same page when writing Markdown.
-```
-
-I can link internally to [Markdown Features](#unified-plugins) on the same page when writing Markdown.
-
-## Unified Plugins
-
-### remark-abbreviations
-
-```markdown
-*[MDAST]: Markdown Abstract Syntax Tree.
-*[AST]: Abstract syntax tree
-```
-
-*[MDAST]: Markdown Abstract Syntax Tree.
-*[AST]: Abstract syntax tree
-
-Should compile to the following HTML:
-
-```html
-<p>This plugin works on <abbr title="Markdown Abstract Syntax Tree.">MDAST</abbr>, a Markdown <abbr title="Abstract syntax tree">AST</abbr>
-implemented by <a href="https://github.com/remarkjs/remark">remark</a></p>
-```
-
-This plugin works on MDAST, a Markdown AST implemented by [remark](https://github.com/remarkjs/remark).
-
-### rehype-accessible-emojis
-
-There is a doc listing all available emojis in the /docs directory.
-
-```markdown
-:rocket:
-```
-
-:rocket:
-
-### rehype-mermaid
-
-With Mermaid markup like this in a code block with "mermaid" set as the language:
-
-```text
-graph TD
-    A[Start&nbsp;] --> B{Is it working?&nbsp;}
-    B -->|Yes&nbsp;| C[Great!]
-    B -->|No&nbsp;| D[Debug&nbsp;]
-    D --> B
-```
-
-```mermaid
-graph TD
-    A[Start&nbsp;] --> B{Is it working?&nbsp;}
-    B -->|Yes&nbsp;| C[Great!&nbsp;]
-    B -->|No&nbsp;| D[Debug&nbsp;]
-    D --> B
-```
-
-### remark-align
-
-This custom plugin parses custom Markdown syntax to center- or right-align elements. Alignment is done by wrapping something in shortcode-style tags, applying Tailwind `text-right` or `text-center` classes:
-
-```markdown
-[center]paragraph[/center]
-```
-
-[center]A centered paragraph[/center]
-
-```markdown
-[right]paragraph[/right]
-```
-
-[right]A right-aligned paragraph[/right]
-
-```markdown
-[center]
-
-> My blockquote
-
-[/center]
-```
-
-[center]
-
-> My blockquote
-
-[/center]
-
-```markdown
-[center]
-
-- a
-- b
-
-[/center]
-```
-
-[center]
-
-- a
-- b
-
-[/center]
-
-```markdown
-[right]
-
-> My blockquote
-
-[/right]
-```
-
-[right]
-
-> My blockquote
-
-[/right]
-
-```markdown
-[right]
-
-- a
-- b
-
-[/right]
-```
-
-[right]
-
-- a
-- b
-
-[/right]
+A shareable text <Highlighter ariaLabel="Share this insight">highlighter component</Highlighter> for MDX that displays a hover dialog with social sharing options. The custom label is optional.
 
 ### remark-attributes
 
@@ -250,142 +33,6 @@ Add HTML attributes to supported Markdown elements using a MDX-safe doubled-squa
 
 ![Image](/assets/images/shiprock.svg) [[width=300 .centered]]
 [Link Example](/testing/markdown) [[.btn target=_blank]]
-
-### remark-blockquote
-
-The plugin allows you to provide an attribution for a quotation:
-
-```markdown
-> That's one small step for [a] man, one giant leap for mankind.
-> — Neil Armstrong (1969, July 21)
-```
-
-> That's one small step for [a] man, one giant leap for mankind.
-> — Neil Armstrong (1969, July 21)
-
-Should compile to the following HTML:
-
-```html
-<figure class="blockquote">
-  <blockquote>
-    <p>
-      That's one small step for [a] man, one giant leap for mankind.
-    </p>
-  </blockquote>
-  <figcaption class="blockquote-attribution">
-    Neil Armstrong (1969, July 21)
-  </figcaption>
-</figure>
-```
-
-### remark-captions
-
-By default it wraps the elements code, image, and table in a `<figure>` element, and adds a `<figcaption>` block as the last child. You can configure it to work on other elements by changing the keywords.
-
-**Code caption**
-
-The caption line is prefixed with `Code:` and added below the code block with no blank line:
-
-```ts
-export const answer = 42
-```
-Code: This caption appears under the code block
-
-**Table caption**
-
-Note: a blank line is required before tje `Table:` prefixed line so it parses as a paragraph after the table.
-
-```markdown
-| a | b |
-| - | - |
-| 1 | 2 |
-
-Table: This caption appears under the table
-```
-
-| a | b |
-| - | - |
-| 1 | 2 |
-
-Table: This caption appears under the table
-
-**Image caption**
-
-Note: the `Figure:` prefixed line must be in the same paragraph as the image (no blank line).
-
-```markdown
-![Wordmark](/assets/images/branding/wordmark.svg)
-Figure: This caption appears under the image
-```
-
-![Wordmark](/assets/images/branding/wordmark.svg)
-Figure: This caption appears under the image
-
-### remark-custom-blocks
-
-This plugin parses custom Markdown syntax to create new custom blocks. It takes a config object with a name for the block, CSS classes to apply to it, and whether a title is required, optional, or the block does not have a title. An initial block is defined for HTML `<details>` and `<summary>` elements.
-
-```markdown
-[[details | My summary for a `<details>` and `<summary>` block]]
-| Some content for the detail
-```
-
-[[details | My summary]]
-| Some content for the detail
-
-### remark-deflist
-
-Definitions under definition header, stringified as `dl`, `dt`, and `dd`
-
-```markdown
-Term 1
-
-: Definition 1
-```
-
-Term 1
-
-: Definition 1
-
-### remark-mark-plus
-
-Inserts indicated text in a pair of `<mark>` elements
-
-```markdown
-my ==marked== text
-```
-
-my ==marked== text
-
-### rehype-mathjax and remark-math
-
-```markdown
-Lift($$L$$) can be determined by Lift Coefficient ($$C_L$$) like the following
-equation.
-```
-
-Lift($$L$$) can be determined by Lift Coefficient ($$C_L$$) like the following
-equation.
-
-The string `L = \frac{1}{2} \rho v^2 S C_L` within a fenced code black set to language `math`:
-
-```math
-L = \frac{1}{2} \rho v^2 S C_L
-```
-
-### remark-video
-
-Embed videos in HTML5 markup that are in the `/public` folder
-
-```markdown
-:::video
-/videos/sample-video-1.mp4
-:::
-```
-
-:::video
-/videos/sample-video-1.mp4
-:::
 
 ### Call To Action Components
 
@@ -1216,7 +863,7 @@ The references can be anywhere in the document, before or after their use:
 * [ ] to do
 * [x] done
 
-## Core Markdown
+## Basic Markdown Formatting
 
 Subscript and superscript text is from `remark-supersub`.
 
@@ -1230,6 +877,26 @@ Subscript and superscript text is from `remark-supersub`.
 | Subscript | `~subscript~` | None | `This is a ~subscript~ text` | This is a ~subscript~ |
 | Superscript | `^superscript^` | None | `This is a ^superscript^ text` | This is a ^superscript^ text |
 | Underline | Avoid | None | Avoid underlining text | Avoid underlining text |
+
+
+### Abbreviations
+
+Provided by the `remark-abbreviations` plugin.
+
+```markdown
+*[MDAST]: Markdown Abstract Syntax Tree.
+*[AST]: Abstract syntax tree
+```
+
+*[MDAST]: Markdown Abstract Syntax Tree.
+*[AST]: Abstract syntax tree
+
+Should compile to the following HTML:
+
+```html
+<p>This plugin works on <abbr title="Markdown Abstract Syntax Tree.">MDAST</abbr>, a Markdown <abbr title="Abstract syntax tree">AST</abbr>
+implemented by <a href="https://github.com/remarkjs/remark">remark</a></p>
+```
 
 ### Blockquotes
 
@@ -1343,6 +1010,89 @@ Should compile to the following HTML:
 </figure>
 ```
 
+### Bold and Nested Strikethrough
+
+```markdown
+**This text is _extremely_ important**
+```
+
+**This text is _extremely_ important**
+
+### Captions
+
+By default it wraps the elements code, image, and table in a `<figure>` element, and adds a `<figcaption>` block as the last child. You can configure it to work on other elements by changing the keywords. Provided by teh `remark-captions` plugin.
+
+**Code caption**
+
+The caption line is prefixed with `Code:` and added below the code block with no blank line:
+
+```ts
+export const answer = 42
+```
+Code: This caption appears under the code block
+
+**Table caption**
+
+Note: a blank line is required before tje `Table:` prefixed line so it parses as a paragraph after the table.
+
+```markdown
+| a | b |
+| - | - |
+| 1 | 2 |
+
+Table: This caption appears under the table
+```
+
+| a | b |
+| - | - |
+| 1 | 2 |
+
+Table: This caption appears under the table
+
+**Image caption**
+
+Note: the `Figure:` prefixed line must be in the same paragraph as the image (no blank line).
+
+```markdown
+![Wordmark](/assets/images/branding/wordmark.svg)
+Figure: This caption appears under the image
+```
+
+![Wordmark](/assets/images/branding/wordmark.svg)
+Figure: This caption appears under the image
+
+## Comments
+
+Comments are not available, because it requires using Astro layout syntax (jsdoc-style comment inside squiggly brackets), which triggers Markdownlint rule requiring no spaces inside emphasis markers like asterisk.
+
+## Colors
+
+In single backtick code markers, applies a GitHub-like color dot:
+
+```markdown
+The background color is `#ffffff` for light mode and `#000000` for dark mode.
+
+In RGB `rgb(9, 105, 218)`, RGBA `rgba(255, 99, 71, 0.5)` in HSL `hsl(212, 92%, 45%)`, and in HSLA `hsla(240, 100%, 50%, 0.7)`.
+```
+
+The background color is `#ffffff` for light mode and `#000000` for dark mode.
+
+In RGB `rgb(9, 105, 218)`, RGBA `rgba(255, 99, 71, 0.5)` in HSL `hsl(212, 92%, 45%)`, and in HSLA `hsla(240, 100%, 50%, 0.7)`.
+
+### Definition Lists
+
+Definitions under definition header, stringified as `dl`, `dt`, and `dd`. Provided by the `remark-deflist` plugin.
+
+```markdown
+Term 1
+
+: Definition 1
+```
+
+Term 1
+
+: Definition 1
+
 ### Detail and Summary
 
 ```markdown
@@ -1356,6 +1106,44 @@ Should compile to the following HTML:
   <summary>Details</summary>
   Something small enough to escape casual notice.
 </details>
+
+The `remark-custom-blocks` plugin parses custom Markdown syntax to create new custom blocks. It takes a config object with a name for the block, CSS classes to apply to it, and whether a title is required, optional, or the block does not have a title. An initial block is defined for HTML `<details>` and `<summary>` elements.
+
+```markdown
+[[details | My summary for a `<details>` and `<summary>` block]]
+| Some content for the detail
+```
+
+[[details | My summary for a `<details>` and `<summary>` block]]
+| Some content for the detail
+
+### Escape Markup
+
+Unified uses the backslash character to treat special Markdown symbols as literal text, preventing them from being interpreted as formatting instructions.
+
+```text
+\\ (backslash): To display a literal backslash
+\* (asterisk): Used for emphasis (italics or bold) or lists
+\_ (underscore): Also used for emphasis
+\# (hash symbol): Used for headings
+\[ and \] (square brackets): Used for links
+\( and \) (parentheses): Used in links or for other extensions like superscripts
+\+, \-, \. (plus, minus, period): Used for lists
+\! (exclamation mark): Used for images (![Alt Text]())
+\` (backtick): Used for inline code blocks
+\> (greater-than sign): Used for blockquotes
+\| (pipe): Used for tables in extended Markdown syntax
+```
+
+## Heading ID links
+
+Generated by Astro internally.
+
+```markdown
+I can link internally to [Markdown Features](#unified-plugins) on the same page when writing Markdown.
+```
+
+I can link internally to [Markdown Features](#unified-plugins) on the same page when writing Markdown.
 
 ### Horizontal Rules
 
@@ -1416,3 +1204,199 @@ Visit our [homepage](/) or read more [articles](/articles) to explore additional
 My favorite search engine is [Duck Duck Go](https://duckduckgo.com).
 
 Visit our [homepage](/) or read more [articles](/articles) to explore additional content.
+
+### Lists
+
+Unordered lists:
+
+```markdown
+- First item
+- Second item
+- Third item with **bold text**
+- Fourth item with *italic text*
+```
+
+- First item
+- Second item
+- Third item with **bold text**
+- Fourth item with _italic text_
+
+Ordered lists:
+
+```markdown
+1. First step
+2. Second step
+3. Third step
+```
+
+1. First step
+2. Second step
+3. Third step
+
+Nested lists:
+
+```markdown
+1. First list item
+   - First nested list item
+     - Second nested list item
+1. Second list item
+   - First nested list item
+     - Second nested list item
+```
+
+1. First list item
+   - First nested list item
+     - Second nested list item
+1. Second list item
+   - First nested list item
+     - Second nested list item
+
+### Marks
+
+Inserts indicated text in a pair of `<mark>` elements. Provided by the `remark-mark-plus` plugin.
+
+```markdown
+my ==marked== text
+```
+
+my ==marked== text
+
+### Math
+
+Provided by the `rehype-mathjax` and `remark-math` plugins.
+
+```markdown
+Lift($$L$$) can be determined by Lift Coefficient ($$C_L$$) like the following
+equation.
+```
+
+Lift($$L$$) can be determined by Lift Coefficient ($$C_L$$) like the following
+equation.
+
+The string `L = \frac{1}{2} \rho v^2 S C_L` within a fenced code black set to language `math`:
+
+```math
+L = \frac{1}{2} \rho v^2 S C_L
+```
+
+### Video
+
+Embed videos in HTML5 markup that are in the `/public` folder. Provided by the `remark-video` plugin.
+
+```markdown
+:::video
+/videos/sample-video-1.mp4
+:::
+```
+
+:::video
+/videos/sample-video-1.mp4
+:::
+
+## Unified Plugins
+
+### rehype-accessible-emojis
+
+There is a doc listing all available emojis in the /docs directory.
+
+```markdown
+:rocket:
+```
+
+:rocket:
+
+### rehype-mermaid
+
+With Mermaid markup like this in a code block with "mermaid" set as the language:
+
+```text
+graph TD
+    A[Start&nbsp;] --> B{Is it working?&nbsp;}
+    B -->|Yes&nbsp;| C[Great!]
+    B -->|No&nbsp;| D[Debug&nbsp;]
+    D --> B
+```
+
+```mermaid
+graph TD
+    A[Start&nbsp;] --> B{Is it working?&nbsp;}
+    B -->|Yes&nbsp;| C[Great!&nbsp;]
+    B -->|No&nbsp;| D[Debug&nbsp;]
+    D --> B
+```
+
+### remark-align
+
+This custom plugin parses custom Markdown syntax to center- or right-align elements. Alignment is done by wrapping something in shortcode-style tags, applying Tailwind `text-right` or `text-center` classes:
+
+```markdown
+[center]paragraph[/center]
+```
+
+[center]A centered paragraph[/center]
+
+```markdown
+[right]paragraph[/right]
+```
+
+[right]A right-aligned paragraph[/right]
+
+```markdown
+[center]
+
+> My blockquote
+
+[/center]
+```
+
+[center]
+
+> My blockquote
+
+[/center]
+
+```markdown
+[center]
+
+- a
+- b
+
+[/center]
+```
+
+[center]
+
+- a
+- b
+
+[/center]
+
+```markdown
+[right]
+
+> My blockquote
+
+[/right]
+```
+
+[right]
+
+> My blockquote
+
+[/right]
+
+```markdown
+[right]
+
+- a
+- b
+
+[/right]
+```
+
+[right]
+
+- a
+- b
+
+[/right]

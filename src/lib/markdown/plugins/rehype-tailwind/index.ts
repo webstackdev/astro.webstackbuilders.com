@@ -161,7 +161,6 @@ export function rehypeTailwindClasses() {
         node.properties = node.properties || {}
         node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
           'mb-6',
-          'leading-relaxed',
         ])
       }
 
@@ -253,6 +252,7 @@ export function rehypeTailwindClasses() {
             'block',
             'max-w-full',
             'overflow-x-hidden',
+            'mb-6',
             'pr-3',
             'py-3',
           ])
