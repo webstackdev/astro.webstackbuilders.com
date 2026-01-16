@@ -167,6 +167,32 @@ A scrim is an elliptical gradient from translucent black (center) to transparent
 
 To overlay an article title and published date on a cover image, use CSS positioning, specifically position: relative on the container and position: absolute on the text elements, combined with design techniques to ensure readability such as a semi-transparent overlay or text shadows.
 
+## Stylings
+
+- Add 'featured' to tags to filter, and move tags page to articles
+- Need to make tables responsive on mobile
+
+## Reading position indicator
+
+[Add scroll bar under header](https://css-tricks.com/reading-position-indicator/) to show how far down you are on the page while reading
+
+## Print
+
+- Need a workflow to generate PDF files from Markdown for downloads.
+- Add a QR code at the bottom of printed pages so it's easier for someone to navigate to from a printed page.
+- Need a layout alternative to Markup that formats for print. It needs to handle TOC differently as a full-width page. Need a fixed cover page format that adds article title, subtitle, and date.
+- We have two print scenarios: black and white, and color for PDF output. Can use two different media queries to accomplish getting colored variables.
+
+[Paged.js](https://pagedjs.org/en/documentation/) polyfills `@page` properties, and lays out an HTML document in print format where it can have page numbers generated to update in a table of contents.
+
+[This article](https://excessivelyadequate.com/posts/print.html) shows how to control the following properties in Chrome's Print Properties dialog box from CSS: Layout, Paper size, Margins, Headers and footers, and Background graphics. Headers and footers is the checkbox that by default is enabled and adds information on printed pages. It also shows how to use Chrome from the terminal in headless mode to output a PDF file from an HTML page.
+
+This article has different approaches to [print pagination](https://www.customjs.space/blog/html-print-pagination-footer/). One approach overlaps with PagedJS's approach.
+
+## Downloads Collection
+
+Remove the `content/downloads` folder, and point the content collection to look for a `download.astro` file in the `contents/articles` folder. Exclude the `pdf.astro` file from the Articles collection.
+
 ## Image generation models
 
 I think we want more human images, with less video-gamey graphics and more likeable human figures.
@@ -195,12 +221,4 @@ We have generated detailed outlines for each of the MDX proposed articles we hav
 
 Act as a principal software engineer. Your goal is to write a detailed technical article based on the provided outline. Context: The target audience is Senior DevOps and infrastructure Engineers. The tone should be authoritative, professional, and concise, avoiding fluff or filler words. Think step-by-step before writing to improve the accuracy of technical explanations. Use a friendly first-person voice. Anything that reads like generic marketing copy is not what we want but we still want the effect of being "real" and approachable - try not to sound like technical documentation. We want to show empathy for our readers.
 
-Let's work through each article section by section based on the H2 headers in the outline. If the section looks good as-is, I'll just type "ok" so you know to continue to the next section.
-
-## Stylings
-
-- [Link](url) [[color=pink target=_blank .centered]] is not picking up styles
-- Are we using breakpoints correctly - isn't iPhone wider than our `sm` breakpoint? (logical width of iphone 15 is logical width remains 393 or 430 points)
-- Add scroll bar under header to show how far down you are on the page while reading
-- Add 'featured' to tags
-- Need to make tables responsive on mobile
+Let's work through each article section by section based on the H2 headers in the outline. If the section looks good as-is, I'll just type "ok" so you know to continue to the next section. I'll give you the name of the next article when we finish one. The first is src/content/articles/alert-fatigue-reduction-triage-actionable-alerts/index.mdx

@@ -1,4 +1,124 @@
+/** Print colors on color-capable printers */
+@media print and (color) {
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+/*
+To make it so that 3 lines will always carry over to the next page if text is split, we can apply orphans: 3 to an element. widows are similar to orphans, but they are the lines of text at the top, rather than those at the bottom.
+
+Element borders can look a tad broken when fragmented across pages. We can use box-decoration-break to make it look a bit nicer. By default, it is assigned slice which looks poorly, however, we can make things look a tad more cohesive with box-decoration-break: clone;
+
+Take care with content housed within a scrolling container. It can be worth applying some print-specific CSS to set overflow: visible or to extend the size of a container.
+
+Add borders to containers in print that are identified by color contrast with no border for web.
+
+Hide web mentions, social shares, any interactive elements
+
+Things to do on Playwright for printing to PDF:
+
+- Change scaling in print dialogue to get something close to an 11pt font in Microsoft Word
+- Turn off Headers & Footers in print dialogue
+*/
+
 @media print {
+  body {
+    color: var(--color-content);
+    display: block;
+    margin: 0 0.6cm;
+    padding: 3mm 0;
+  }
+
+  /** Don't print pseudo-element images for any on printed page */
+  img::after,
+  img::before {
+    display: none !important;
+  }
+
+  body::after {
+    clear: both;
+    content: ' ';
+    height: 0;
+
+    /* background: */
+    visibility: hidden;
+  }
+
+  /** Ensure that articles always start on a fresh page */
+  article {
+    break-before: always;
+  }
+
+  /** We're expanding external links in articles, no other links need styling */
+  a {
+    text-decoration: none;
+  }
+
+  /** Expand only outbound links in articles, and suppress internal ones */
+  a[href^="http"]::after,
+  a[href^="https"]::after {
+    content:" <" attr(href) "> ";
+  }
+
+  /** Suppress internal links (relative paths, anchors) */
+  article a[href^="/"], /** Relative internal links */
+  article a[href^="#"] { /** Anchor links */
+    content: ""; /** Remove any added content */
+  }
+
+  /** Don't expand links that contain images */
+  a:has(img)::after {
+    content: "";
+  }
+
+  /** Print abbreviation definitions in parantheses */
+  abbr[title]::after {
+    content: " (" attr(title) ")";
+  }
+
+  /** Make sure a header isn't the last element on a printed page */
+  h2, h3, h4 {
+    break-after: avoid;
+  }
+
+  /** Prevent images from bleeding over the edge of the printed page */
+  img {
+    max-width: 100% !important;
+  }
+
+  /** Prevent large elements from being split across multiple pages. */
+  ul, img {
+    break-inside: avoid;
+  }
+
+  /** Hide Call to Actions */
+  .cta {
+    display: none;
+  }
+
+
+  /** Don't print the header and footer */
+  .header,
+  .footer {
+    display: none;
+  }
+
+  /** Applied to the main layout wrapper */
+  .layout {
+    background-color: var(--color-page-base) !important;
+    margin: 0 !important; /* page containing everything will get margin */
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  /** Applied to individual printed pages */
+  @page {
+    /** Margin in physical units for printed pages */
+    margin: 2cm;
+  }
+
   html {
     --theme-color-primary: var(--a11y-theme-color-primary);
     --theme-color-primary-offset: var(--a11y-theme-color-primary-offset);
@@ -83,60 +203,4 @@
     --shiki-ansi-bright-cyan: var(--a11y-theme-shiki-ansi-bright-cyan);
     --shiki-ansi-bright-white: var(--a11y-theme-shiki-ansi-bright-white);
   }
-
-  body {
-    color: var(--color-content);
-    display: block;
-    margin: 0 0.6cm;
-    padding: 3mm 0;
-  }
-
-  img::after,
-  img::before {
-    display: none !important;
-  }
-
-  body::after {
-    clear: both;
-    content: ' ';
-    height: 0;
-
-    /* background: */
-    visibility: hidden;
-  }
-
-  .featured-cta {
-    display: none;
-  }
-
-  a[href] {
-    text-decoration: underline !important;
-  }
-
-  a {
-    background: 0 0 !important;
-    text-shadow: none !important;
-  }
-
-  .layout {
-    background-color: var(--color-page-base) !important;
-    margin: 0 !important; /* page containing everything will get margin */
-    padding: 0 !important;
-    width: 100% !important;
-  }
-
-  /** Display links for print with the URL in parentheses */
-  .layout a::after {
-    content: "("attr(href)")" !important;
-  }
-
-  .layout .header,
-  .layout .footer {
-    display: none;
-  }
-}
-
-/** Applied to individual printed pages */
-@page {
-  margin: 2cm;
 }

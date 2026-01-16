@@ -4,7 +4,7 @@ displayName: "Systems and Development"
 description: "TypeScript, Linux administration, messaging systems, databases, and the foundational technologies that platform engineers work with daily."
 cover: "./cover.png"
 coverAlt: "Systems and Development"
-featured: false
+featured: true
 ---
 
 Platform engineering sits at the intersection of software development and systems administration. This category covers the foundational technologies that do not fit neatly into infrastructure-as-code or observability buckets but are essential to the work: TypeScript for tooling and automation, Linux for everything that runs on servers, messaging systems like RabbitMQ and Kafka for async communication, and databases like PostgreSQL for persistent state.
