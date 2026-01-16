@@ -221,4 +221,24 @@ We have generated detailed outlines for each of the MDX proposed articles we hav
 
 Act as a principal software engineer. Your goal is to write a detailed technical article based on the provided outline. Context: The target audience is Senior DevOps and infrastructure Engineers. The tone should be authoritative, professional, and concise, avoiding fluff or filler words. Think step-by-step before writing to improve the accuracy of technical explanations. Use a friendly first-person voice. Anything that reads like generic marketing copy is not what we want but we still want the effect of being "real" and approachable - try not to sound like technical documentation. We want to show empathy for our readers.
 
-Let's work through each article section by section based on the H2 headers in the outline. If the section looks good as-is, I'll just type "ok" so you know to continue to the next section. I'll give you the name of the next article when we finish one. The first is src/content/articles/alert-fatigue-reduction-triage-actionable-alerts/index.mdx
+Let's work through each article section by section based on the H2 headers in the outline. Write directly into the *.astro article file, not into the chat window (it's difficult to read). If the section looks good as-is, I'll just type "ok" so you know to continue to the next section. I'll give you the name of the next article when we finish one. The first is src/content/articles/alert-fatigue-reduction-triage-actionable-alerts/index.mdx
+
+Ignore the coverAlt frontmatter line that has "TODO". It will be added later when cover art is added. Use a single underscore for emphasis style, not asterisks. Use plain quotations and apostrophes, not smart quotes. Do not start the article with an H1 in the Markdown - the system automatically adds the title frontmatter key as an H1 header.
+
+__review__
+
+We implemented our article by first generating an outline, and then writing each of the sections one by one. Please review the document in its entirety now, and make any suggestions you find that would improve the readability or quality of the article. Do not make any changes - just review and put together a list of suggestions to discuss.
+
+__reduce__
+
+We're going to use the document we just created as a PDF download deep-dive on this topic. Let's generate a shorter article from the document. It should be about 1500 words, have a compelling hook, and cover 2-3 sections of the longer document that carry the weight. Please generate an outline for this article.
+
+__implement_article__
+
+I renamed our longer article to pdf.mdx and created an empty index.mdx template. Ignore the coverAlt frontmatter line that has "TODO". It will be added later when cover art is added. Use a single underscore for emphasis style, not asterisks. Use plain quotations and apostrophes, not smart quotes. Do not start the article with an H1 in the Markdown - the system automatically adds the title frontmatter key as an H1 header. Let's implement the article we just outlined. Add suggested text for a call to action to download the longer PDF at the bottom of the article under an HR.
+
+__review_article__
+
+Let's review the article in its entirety now, and make any suggestions you find that would improve the readability or quality of the article. Do not make any changes - just review and put together a list of suggestions to discuss.
+
+## Review
