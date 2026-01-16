@@ -191,7 +191,12 @@ This article has different approaches to [print pagination](https://www.customjs
 
 ## Downloads Collection
 
-Remove the `content/downloads` folder, and point the content collection to look for a `download.astro` file in the `contents/articles` folder. Exclude the `pdf.astro` file from the Articles collection.
+Remove the `content/downloads` folder, and point the content collection to look for a `download.astro` file in the `contents/articles` folder. Exclude the `pdf.astro` file from the Articles collection. Generated PDFs go into the public directory maybe? See the note on gating below.
+
+## Downloads / Gated Content
+
+- The PDF downloads are going to be gated - the user has to sign up for them and give an email address. How do we handle the keywords in these from a search perspective?
+- We need a gating system, where the user gets a token to be able to download a PDF and the token is checked before downloading.
 
 ## Image generation models
 
@@ -217,11 +222,11 @@ Complex Text and Instruction Following: The model demonstrates an enhanced under
 
 ## Content Instructions
 
-We have generated detailed outlines for each of the MDX proposed articles we have in src/content/articles. It's time to write our articles. Review ./CONTENT.md for the goals and voice to use in our website. Each outline includes various components we use on our site that can be incorporated into the final article but do not have to be included if they don't fit into the content well or are excessive.
+Let's write our next article. Review ./CONTENT.md for the goals and voice to use in our website. Each article outline includes various components we use on our site that can be incorporated into the final article but do not have to be included if they don't fit into the content well or are excessive.
 
 Act as a principal software engineer. Your goal is to write a detailed technical article based on the provided outline. Context: The target audience is Senior DevOps and infrastructure Engineers. The tone should be authoritative, professional, and concise, avoiding fluff or filler words. Think step-by-step before writing to improve the accuracy of technical explanations. Use a friendly first-person voice. Anything that reads like generic marketing copy is not what we want but we still want the effect of being "real" and approachable - try not to sound like technical documentation. We want to show empathy for our readers.
 
-Let's work through each article section by section based on the H2 headers in the outline. Write directly into the *.astro article file, not into the chat window (it's difficult to read). If the section looks good as-is, I'll just type "ok" so you know to continue to the next section. I'll give you the name of the next article when we finish one. The first is src/content/articles/alert-fatigue-reduction-triage-actionable-alerts/index.mdx
+Let's work through each article section by section based on the H2 headers in the outline. Write directly into the *.astro article file, not into the chat window (it's difficult to read). If the section looks good as-is, I'll just type "ok" so you know to continue to the next section.
 
 Ignore the coverAlt frontmatter line that has "TODO". It will be added later when cover art is added. Use a single underscore for emphasis style, not asterisks. Use plain quotations and apostrophes, not smart quotes. Do not start the article with an H1 in the Markdown - the system automatically adds the title frontmatter key as an H1 header.
 
@@ -235,10 +240,8 @@ We're going to use the document we just created as a PDF download deep-dive on t
 
 __implement_article__
 
-I renamed our longer article to pdf.mdx and created an empty index.mdx template. Ignore the coverAlt frontmatter line that has "TODO". It will be added later when cover art is added. Use a single underscore for emphasis style, not asterisks. Use plain quotations and apostrophes, not smart quotes. Do not start the article with an H1 in the Markdown - the system automatically adds the title frontmatter key as an H1 header. Let's implement the article we just outlined. Add suggested text for a call to action to download the longer PDF at the bottom of the article under an HR.
+I renamed our longer article to pdf.mdx and created an empty index.mdx template. Ignore the coverAlt frontmatter line that has "TODO". It will be added later when cover art is added. Use a single underscore for emphasis style, not asterisks. Use plain quotations and apostrophes, not smart quotes. Do not start the article with an H1 in the Markdown - the system automatically adds the title frontmatter key as an H1 header. Let's implement the article we just outlined. Add suggested text for a call to action to download the longer PDF at the bottom of the article under an HR. Use "/" as the link so we avoid problems with our link validator, since the PDF doesn't exist yet. The captions for tables and other elements use a prefix like ("Table: ") to let the unified markdown pipeline know to convert this into a caption - don't worry about the prefixes, they'll be normalized later.
 
 __review_article__
 
 Let's review the article in its entirety now, and make any suggestions you find that would improve the readability or quality of the article. Do not make any changes - just review and put together a list of suggestions to discuss.
-
-## Review
