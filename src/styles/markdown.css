@@ -26,18 +26,18 @@
  */
 .markdown-content__prose details {
   border-block-end: 1px solid var(--theme-color-content);
+  interpolate-size: allow-keywords;
   margin-block: .5rem;
   padding-block: .5rem;
-  interpolate-size: allow-keywords;
 }
 
 /** Details closed state */
 .markdown-content__prose details::details-content {
   block-size: 0;
-  transition: content-visibility, block-size;
-  transition-duration: 750ms;
-  transition-behavior: allow-discrete;
   overflow: hidden;
+  transition: content-visibility, block-size;
+  transition-behavior: allow-discrete;
+  transition-duration: 750ms;
 }
 
 /** Details open state */
@@ -46,33 +46,34 @@
 }
 
 .markdown-content__prose summary {
-  /** Pin the custom marker to the container */
-  position: relative;
   /** Register summary as an anchor element */
   anchor-name: --summary;
-  
+
+  /** Pin the custom marker to the container */
+  position: relative;
+
   &::marker {
     content: "";
   }
-  
+
   &::before,
   &::after {
+    border-block-start: 3px solid var(--theme-color-content-active);
+
     /** Custom marker dimensions */
     content: "";
-    border-block-start: 3px solid var(--theme-color-content-active);
     height: 0;
-    width: 1rem;
-    
+
     /** Positions the lines */
     inset-block-start: 50%;
     inset-inline-end: 0;
-    
+
     /** Anchor the shape to the summary */
     position: absolute;
     position-anchor: --summary;
-    position-area: top end;
+    width: 1rem;
   }
-  
+
   /** Rotate just the ::after line to create a "+"" shape */
   &::after {
     transform: rotate(90deg);

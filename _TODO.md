@@ -203,3 +203,4 @@ Let's work through each article section by section based on the H2 headers in th
 - Are we using breakpoints correctly - isn't iPhone wider than our `sm` breakpoint? (logical width of iphone 15 is logical width remains 393 or 430 points)
 - Add scroll bar under header to show how far down you are on the page while reading
 - Add 'featured' to tags
+- Need to make tables responsive on mobile

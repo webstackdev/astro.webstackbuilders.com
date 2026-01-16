@@ -4,6 +4,7 @@ import remarkRehype from 'remark-rehype'
 import rehypeStringify from 'rehype-stringify'
 import remarkAttr from '@lib/markdown/plugins/remark-attributes'
 import type { RemarkAttrOptions } from '@lib/markdown/plugins/remark-attributes/types'
+import { SKIP, visit } from 'unist-util-visit'
 
 /**
  * Helper function to process markdown through the attr plugin
@@ -103,6 +104,58 @@ describe('remark-attr (Layer 1: Isolated)', () => {
       expect(output).toContain('href="https://google.com"')
       expect(output).toContain('hreflang="en"')
       expect(output).toContain('>Google</a>')
+    })
+
+    it('should add attributes to links when there is a single space before the marker', async () => {
+      const input = '[Link Example](/testing/markdown) [[.btn target=_blank]]'
+      const output = await processPermissive(input)
+
+      expect(output).toContain('href="/testing/markdown"')
+      expect(output).toContain('class="btn"')
+      expect(output).toContain('target="_blank"')
+      expect(output).toContain('>Link Example</a>')
+    })
+
+    it('should add attributes even if a prior transform splits the whitespace into a separate text node', async () => {
+      const input = '[Link Example](/testing/markdown) [[.btn target=_blank]]'
+
+      const splitWhitespaceBeforeAttrMarker = () => {
+        return (tree: unknown) => {
+          visit(tree as never, 'text', (node: { value?: unknown }, index: number | null, parent) => {
+            if (index === null || !parent || !Array.isArray((parent as { children?: unknown }).children)) {
+              return
+            }
+
+            const value = typeof node.value === 'string' ? node.value : ''
+            if (!value.startsWith(' [[')) {
+              return
+            }
+
+            ;(parent as { children: unknown[] }).children.splice(
+              index,
+              1,
+              { type: 'text', value: ' ' },
+              { type: 'text', value: value.slice(1) }
+            )
+
+            return [SKIP, index + 2]
+          })
+        }
+      }
+
+      const output = String(
+        await remark()
+          .use(splitWhitespaceBeforeAttrMarker)
+          .use(remarkAttr, { scope: 'permissive' })
+          .use(remarkRehype)
+          .use(rehypeStringify)
+          .process(input)
+      )
+
+      expect(output).toContain('href="/testing/markdown"')
+      expect(output).toContain('class="btn"')
+      expect(output).toContain('target="_blank"')
+      expect(output).toContain('>Link Example</a>')
     })
   })
 

@@ -73,6 +73,20 @@ describe('remark-attributes (Layer 2: With Astro Pipeline)', () => {
       expect(html).toContain('href="https://example.com"')
     })
 
+    it('should handle attributes on links with a single space before the marker', async () => {
+      const markdown = '[Link Example](/testing/markdown) [[.btn target=_blank]]'
+
+      const html = await processWithAstroSettings({
+        markdown,
+        plugin: remarkAttributes,
+        pluginOptions: remarkAttributesConfig,
+      })
+
+      expect(html).toContain('href="/testing/markdown"')
+      expect(html).toContain('class="btn"')
+      expect(html).toContain('target="_blank"')
+    })
+
     it('should preserve attributes through remarkRehype conversion', async () => {
       const markdown = '# Heading[[.title #main-heading data-level=1]]'
 

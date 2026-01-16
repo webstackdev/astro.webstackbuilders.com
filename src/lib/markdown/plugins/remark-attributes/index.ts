@@ -259,16 +259,39 @@ function processInlineElement(
     return
   }
 
-  // Check if the next sibling is text starting with {
+  // Check if the next sibling is text starting with an attribute marker.
+  // Some remark transforms may split whitespace into its own text node, e.g.:
+  //   [Link](/url) [[.btn]]
+  // becoming:
+  //   link, text(" "), text("[[.btn]]")
   const nextNode = parent.children[index + 1]
-  if (!nextNode || nextNode.type !== 'text') {
-    return
+  const nextNextNode = parent.children[index + 2]
+
+  let attributeTextNodeIndex: number | null = null
+  let attributeTextNode: Text | null = null
+  let parsedAttr: ParsedAttribute | null = null
+  let whitespaceOnlyNodeIndex: number | null = null
+
+  if (nextNode?.type === 'text') {
+    const candidate = nextNode as Text
+    const candidateParsed = parseInlineAttributes(candidate.value, 0, config.mdAttrConfig)
+    if (candidateParsed) {
+      attributeTextNodeIndex = index + 1
+      attributeTextNode = candidate
+      parsedAttr = candidateParsed
+    } else if (candidate.value.trim().length === 0 && nextNextNode?.type === 'text') {
+      const nextCandidate = nextNextNode as Text
+      const nextParsed = parseInlineAttributes(nextCandidate.value, 0, config.mdAttrConfig)
+      if (nextParsed) {
+        whitespaceOnlyNodeIndex = index + 1
+        attributeTextNodeIndex = index + 2
+        attributeTextNode = nextCandidate
+        parsedAttr = nextParsed
+      }
+    }
   }
 
-  const textNode = nextNode as Text
-  const parsedAttr = parseInlineAttributes(textNode.value, 0, config.mdAttrConfig)
-
-  if (!parsedAttr) {
+  if (!attributeTextNodeIndex || !attributeTextNode || !parsedAttr) {
     return
   }
 
@@ -289,13 +312,22 @@ function processInlineElement(
   // Merge filtered properties
   Object.assign(node.data.hProperties, filteredProps)
 
-  // Remove the attribute text from the next text node
-  textNode.value = textNode.value.slice(parsedAttr.eaten.length)
+  // Remove the attribute text from the attribute text node
+  attributeTextNode.value = attributeTextNode.value.slice(parsedAttr.eaten.length)
 
-  // If the text node is now empty, remove it
-  if (textNode.value.length === 0) {
-    parent.children.splice(index + 1, 1)
+  const indicesToRemove: number[] = []
+  if (whitespaceOnlyNodeIndex !== null) {
+    indicesToRemove.push(whitespaceOnlyNodeIndex)
   }
+  if (attributeTextNode.value.length === 0) {
+    indicesToRemove.push(attributeTextNodeIndex)
+  }
+
+  indicesToRemove
+    .sort((a, b) => b - a)
+    .forEach(removeIndex => {
+      parent.children.splice(removeIndex, 1)
+    })
 }
 
 /**
