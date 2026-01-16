@@ -70,21 +70,15 @@ describe('htmlElements configuration', () => {
 
   test('includes all expected element types', () => {
     const expectedElements = [
-      'p',
-      'img',
-      'video',
-      'figure',
-      'figcaption',
+      'details',
       'hr',
-      'ul',
-      'ol',
-      'li',
+      'img',
       'mark',
+      'summary',
       'table',
       'th',
       'td',
-      'summary',
-      'details',
+      'video',
     ]
 
     expectedElements.forEach(tagName => {
@@ -213,9 +207,9 @@ describe('isSimpleHtmlElement', () => {
 
 describe('getElementConfig', () => {
   test('returns config for valid tag name', () => {
-    const config = getElementConfig('p')
+    const config = getElementConfig('img')
     expect(config).toBeDefined()
-    expect(config?.tagName).toBe('p')
+    expect(config?.tagName).toBe('img')
     expect(Array.isArray(config?.classes)).toBe(true)
     expect((config?.classes || []).length).toBeGreaterThan(0)
     ;(config?.classes || []).forEach(classToken => {

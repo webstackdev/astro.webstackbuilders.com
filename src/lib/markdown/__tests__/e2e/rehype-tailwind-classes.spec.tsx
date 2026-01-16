@@ -47,6 +47,20 @@ function expectHasAtLeastOneValidClassAttribute(element: Element | null): void {
   })
 }
 
+function expectClassTokensAreWellFormedIfPresent(element: Element | null): void {
+  expect(element).toBeTruthy()
+  if (!element) return
+
+  const classAttr = element.getAttribute('class')
+  if (!classAttr) return
+
+  const tokens = splitClassTokens(classAttr)
+  expect(tokens.length).toBeGreaterThan(0)
+  tokens.forEach(token => {
+    expect(isWellFormedCssClassToken(token)).toBe(true)
+  })
+}
+
 let html: string
 
 beforeAll(async () => {
@@ -107,18 +121,21 @@ describe('Layer 3: E2E - rehypeTailwindClasses', () => {
     expectHasAtLeastOneValidClassAttribute(paragraph)
   })
 
-  it('should add Tailwind classes to lists', () => {
+  it('should wrap markdown lists for scoped styling', () => {
     const { container } = render(<MarkdownOutput html={html} />)
 
-    const list = container.querySelector('ul')
-    expectHasAtLeastOneValidClassAttribute(list)
+    const listWrapper = container.querySelector('div.markdown-list')
+    expectHasAtLeastOneValidClassAttribute(listWrapper)
+
+    const list = listWrapper?.querySelector('ul')
+    expect(list).toBeTruthy()
   })
 
-  it('should add Tailwind classes to list items', () => {
+  it('should keep list items semantic (classes optional)', () => {
     const { container } = render(<MarkdownOutput html={html} />)
 
     const listItem = container.querySelector('li')
-    expectHasAtLeastOneValidClassAttribute(listItem)
+    expectClassTokensAreWellFormedIfPresent(listItem)
   })
 
   it('should add Tailwind classes to code elements', () => {

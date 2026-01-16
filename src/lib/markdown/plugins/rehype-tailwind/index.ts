@@ -50,9 +50,64 @@ export function rehypeTailwindClasses() {
       return false
     }
 
-    visit(tree, 'element', (node: Element, _index, parent): void | typeof SKIP => {
+    const isInsideCodeBlockOrTabs = (node: Element): boolean => {
+      let currentParent = getParent(node)
+
+      while (isHastElement(currentParent)) {
+        if (['pre', 'code', 'code-tabs'].includes(currentParent.tagName)) return true
+        currentParent = getParent(currentParent as Element)
+      }
+
+      return false
+    }
+
+    const hasListAncestor = (node: Element): boolean => {
+      let currentParent = getParent(node)
+
+      while (isHastElement(currentParent)) {
+        if (currentParent.tagName === 'ul' || currentParent.tagName === 'ol') return true
+        currentParent = getParent(currentParent as Element)
+      }
+
+      return false
+    }
+
+    visit(tree, 'element', (node: Element, index, parent): void | typeof SKIP => {
       if (parent) {
         parentByNode.set(node, parent)
+      }
+
+      /**
+       * =============================================================================
+       *
+       * Markdown list container
+       *
+       * Wrap top-level markdown lists in a container we can style without affecting
+       * component-internal lists (e.g. <code-tabs> uses <ul> for tab headers).
+       *
+       * =============================================================================
+       */
+      if ((node.tagName === 'ul' || node.tagName === 'ol') && typeof index === 'number') {
+        const isInsideCode = isInsideCodeBlockOrTabs(node)
+        const isNestedList = hasListAncestor(node)
+
+        if (!isInsideCode && !isNestedList && parent && Array.isArray(parent.children)) {
+          const wrapper: Element = {
+            type: 'element',
+            tagName: 'div',
+            properties: {
+              className: [
+                'markdown-list',
+                'mb-6',
+              ],
+            },
+            children: [node],
+          }
+
+          parent.children.splice(index, 1, wrapper)
+          parentByNode.set(wrapper, parent)
+          parentByNode.set(node, wrapper)
+        }
       }
 
       /** Check if this is a simple HTML element from our configuration */

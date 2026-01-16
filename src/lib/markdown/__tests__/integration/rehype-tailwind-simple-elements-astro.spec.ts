@@ -47,7 +47,12 @@ function expectHasAtLeastOneValidClassAttribute(element: Element | null, name: s
 }
 
 async function renderMarkdownToDocument(markdown: string): Promise<Document> {
-  const html = await processWithAstroSettings({ markdown, plugin: rehypeTailwindClasses, stage: 'rehype' })
+  const html = await processWithAstroSettings({
+    markdown,
+    plugin: rehypeTailwindClasses,
+    stage: 'rehype',
+  })
+
   return new JSDOM(html).window.document
 }
 
@@ -68,14 +73,19 @@ describe('rehypeTailwindClasses (Layer 2: Astro Pipeline) - simple elements', ()
     expectHasAtLeastOneValidClassAttribute(starred.querySelector('hr'), 'hr (***)')
   })
 
-  it('adds at least one class to <ul>, <ol>, and <li> elements', async () => {
-    const document = await renderMarkdownToDocument(['- Item 1', '- Item 2', '', '1. First', '2. Second'].join('\n'))
+  it('wraps top-level lists in a .markdown-list container', async () => {
+    const markdown = ['- Item 1', '- Item 2', '', '1. First', '2. Second'].join('\n')
+    const document = await renderMarkdownToDocument(markdown)
 
-    expectHasAtLeastOneValidClassAttribute(document.querySelector('ul'), 'ul')
-    expectHasAtLeastOneValidClassAttribute(document.querySelector('ol'), 'ol')
+    const listWrappers = Array.from(document.querySelectorAll('div.markdown-list'))
+    expect(listWrappers.length).toBeGreaterThanOrEqual(2)
+    listWrappers.forEach((wrapper, index) => {
+      expectHasAtLeastOneValidClassAttribute(wrapper, `div.markdown-list[${index}]`)
+    })
 
-    const firstListItem = document.querySelector('li')
-    expectHasAtLeastOneValidClassAttribute(firstListItem, 'li')
+    expect(document.querySelector('ul')).toBeTruthy()
+    expect(document.querySelector('ol')).toBeTruthy()
+    expect(document.querySelector('li')).toBeTruthy()
   })
 
   it('adds at least one class to <table>, <th>, and <td> elements', async () => {
@@ -95,9 +105,19 @@ describe('rehypeTailwindClasses (Layer 2: Astro Pipeline) - simple elements', ()
 
   it('does not emit malformed class tokens anywhere', async () => {
     const document = await renderMarkdownToDocument(
-      ['# Heading', '', 'Paragraph text.', '', '- List item', '', '---', '', '| A | B |', '| --- | --- |', '| 1 | 2 |'].join(
-        '\n'
-      )
+      [
+        '# Heading',
+        '',
+        'Paragraph text.',
+        '',
+        '- List item',
+        '',
+        '---',
+        '',
+        '| A | B |',
+        '| --- | --- |',
+        '| 1 | 2 |',
+      ].join('\n')
     )
 
     const withClass = Array.from(document.querySelectorAll('[class]'))

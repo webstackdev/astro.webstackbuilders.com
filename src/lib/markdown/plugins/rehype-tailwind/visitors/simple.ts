@@ -82,31 +82,6 @@ export const htmlElements: ElementConfig[] = [
     ],
   },
   {
-    tagName: 'ul',
-    classes: [
-      'list-disc',
-      'list-outside',
-      'pl-4',
-      'mb-8'
-    ],
-  },
-  {
-    tagName: 'ol',
-    classes: [
-      'list-decimal',
-      'list-outside',
-      'pl-4',
-      'mb-8'
-    ],
-  },
-  {
-    tagName: 'li',
-    classes: [
-      'mb-1',
-      'last:mb-0'
-    ],
-  },
-  {
     tagName: 'video',
     classes: [
       'block',

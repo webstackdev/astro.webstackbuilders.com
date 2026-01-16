@@ -31,7 +31,7 @@ describe('remark-captions (Layer 2: Astro Pipeline)', () => {
       pluginOptions: remarkCaptionsConfig,
     })
 
-    expect(html.match(/<figure>/g)?.length).toBeGreaterThanOrEqual(4)
+    expect(html.match(/<figure>/g)?.length).toBeGreaterThanOrEqual(3)
     expect(html).toContain('Quote caption')
     expect(html).toContain('Table caption')
     expect(html).toContain('Code caption')

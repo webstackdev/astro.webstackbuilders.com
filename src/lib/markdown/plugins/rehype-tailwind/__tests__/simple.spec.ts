@@ -38,7 +38,13 @@ function expectHasAtLeastOneValidClassAttribute(element: Element | null, name: s
 }
 
 async function renderMarkdownToDocument(markdown: string): Promise<Document> {
-  const html = await processIsolated({ markdown, plugin: rehypeTailwindClasses, stage: 'rehype', gfm: true })
+  const html = await processIsolated({
+    markdown,
+    plugin: rehypeTailwindClasses,
+    stage: 'rehype',
+    gfm: true,
+  })
+
   return new JSDOM(html).window.document
 }
 
@@ -58,12 +64,19 @@ describe('rehypeTailwindClasses (Layer 1: Isolated) - simple elements', () => {
     expectHasAtLeastOneValidClassAttribute(hr, 'hr')
   })
 
-  it('adds at least one class to <ul>, <ol>, and <li> elements', async () => {
-    const document = await renderMarkdownToDocument(['- Item 1', '- Item 2', '', '1. First', '2. Second'].join('\n'))
+  it('wraps top-level lists in a .markdown-list container', async () => {
+    const markdown = ['- Item 1', '- Item 2', '', '1. First', '2. Second'].join('\n')
+    const document = await renderMarkdownToDocument(markdown)
 
-    expectHasAtLeastOneValidClassAttribute(document.querySelector('ul'), 'ul')
-    expectHasAtLeastOneValidClassAttribute(document.querySelector('ol'), 'ol')
-    expectHasAtLeastOneValidClassAttribute(document.querySelector('li'), 'li')
+    const listWrappers = Array.from(document.querySelectorAll('div.markdown-list'))
+    expect(listWrappers.length).toBeGreaterThanOrEqual(2)
+    listWrappers.forEach((wrapper, index) => {
+      expectHasAtLeastOneValidClassAttribute(wrapper, `div.markdown-list[${index}]`)
+    })
+
+    expect(document.querySelector('ul')).toBeTruthy()
+    expect(document.querySelector('ol')).toBeTruthy()
+    expect(document.querySelector('li')).toBeTruthy()
   })
 
   it('adds at least one class to <table>, <th>, and <td> elements', async () => {
@@ -78,9 +91,19 @@ describe('rehypeTailwindClasses (Layer 1: Isolated) - simple elements', () => {
 
   it('does not emit malformed class tokens anywhere', async () => {
     const document = await renderMarkdownToDocument(
-      ['# Heading', '', 'Paragraph text.', '', '- List item', '', '---', '', '| A | B |', '| --- | --- |', '| 1 | 2 |'].join(
-        '\n'
-      )
+      [
+        '# Heading',
+        '',
+        'Paragraph text.',
+        '',
+        '- List item',
+        '',
+        '---',
+        '',
+        '| A | B |',
+        '| --- | --- |',
+        '| 1 | 2 |',
+      ].join('\n')
     )
 
     const withClass = Array.from(document.querySelectorAll('[class]'))
