@@ -8,6 +8,7 @@ import Carousel from '@components/Carousel/index.astro'
 const allArticles = await getCollection('articles', ({ data }) => isDev() || data.isDraft !== true)
 
 const allTags = await getCollection('tags')
+const featuredTags = allTags.filter(tag => tag.data.featured === true)
 
 const getArticlesForTag = (tagEntry: CollectionEntry<'tags'>) => {
   return allArticles.filter(article => {
@@ -15,7 +16,7 @@ const getArticlesForTag = (tagEntry: CollectionEntry<'tags'>) => {
   })
 }
 
-const tagsWithContent = allTags.filter(tag => getArticlesForTag(tag).length > 0)
+const tagsWithContent = featuredTags.filter(tag => getArticlesForTag(tag).length > 0)
 
 const tagsWithNoContent = allTags.filter(tag => getArticlesForTag(tag).length === 0)
 
@@ -25,8 +26,8 @@ for (const tag of tagsWithNoContent) {
   )
 }
 
-const pageDescription = 'Browse all article tags'
-const pageTitle = 'All Tags'
+const pageDescription = 'Browse all articles by tag'
+const pageTitle = 'All Articles'
 const path = '/tags'
 const section = 'Tags'
 ---

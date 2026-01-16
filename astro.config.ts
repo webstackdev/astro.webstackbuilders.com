@@ -117,6 +117,9 @@ export default defineConfig({
       { protocol: 'http' },
     ],
   },
+  redirects: {
+    '/tags': '/articles',
+  },
   /** Change URL between development and production environments */
   site: getSiteUrl(),
   trailingSlash: 'never',
