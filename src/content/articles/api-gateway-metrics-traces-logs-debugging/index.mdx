@@ -1,6 +1,6 @@
 ---
-title: "API Gateway Observability That Actually Helps"
-description: "Metrics, traces, and logs from your gateway that help debug production issues instead of generating noise."
+title: "The Gateway Latency Problem You Can't See"
+description: "Your gateway dashboards show healthy 200ms latency, but users report 5-second delays. The problem isn't the gateway—it's what you're measuring."
 cover: "./cover.png"
 coverAlt: "TODO"
 author: "kevin-brown"
@@ -9,705 +9,296 @@ tags: ["apis-and-gateways"]
 featured: true
 ---
 
+import Callout from '@components/Callout/index.astro'
+
 *[API]: Application Programming Interface
 *[RED]: Rate, Errors, Duration
-*[USE]: Utilization, Saturation, Errors
-*[SLI]: Service Level Indicator
-*[SLO]: Service Level Objective
-*[OTEL]: OpenTelemetry
 *[W3C]: World Wide Web Consortium
 *[HTTP]: Hypertext Transfer Protocol
-*[gRPC]: Google Remote Procedure Call
 *[P99]: 99th Percentile
-
-# API Gateway Observability That Actually Helps
 
 ## Introduction
 
-Brief overview of why gateway observability is both critical and frequently broken: gateways sit at the intersection of every request but often generate metrics that answer the wrong questions, traces that stop at the gateway boundary, and logs that cannot be correlated with upstream or downstream activity. This section frames the problem as making the gateway transparent rather than a black box.
+Last month I spent four hours debugging what turned out to be a 30-second problem. Users reported 5-second delays on uploads. The gateway dashboard showed P99 latency at 200ms. Every backend claimed sub-100ms response times.
 
-_Include a real-world scenario: a latency spike where the gateway metrics show everything is fine, but users are experiencing 5-second delays because the gateway is not measuring what matters._
+The problem: we measured the wrong interval. Our gateway tracked time from "request received" to "response sent," but spent 4 seconds waiting for slow consumers to upload request bodies _before the timer started_. The gateway wasn't slow—we were measuring the wrong thing.
 
-<Callout type="warning">
-Gateway observability is useless if it does not connect to upstream and downstream services. A gateway that only measures itself is a black box in the middle of your request path.
-</Callout>
+Gateway observability is useless if it doesn't connect upstream and downstream. You see total latency when you need to know whether the gateway or the backend is slow. You see disconnected traces that stop at the gateway boundary when the problem is downstream.
 
-## The Three Pillars at the Gateway
+When you're debugging at 3am, the difference between a 5-minute resolution and a 5-hour slog comes down to answering three questions instantly: Is the problem in the gateway or the backend? Is it affecting everyone or one consumer? Is it getting worse?
 
-### Why Gateways Are Special
+This article covers the most important gateway metric (latency breakdown), how distributed tracing makes request flows visible, and a 5-step debugging workflow.
 
-Explain why gateway observability differs from service observability: every request passes through, aggregation hides individual service problems, and the gateway often adds its own latency that gets blamed on backends.
+## The Gateway Time vs. Backend Time Problem
+
+The most valuable gateway metric isn't total request duration. It's the breakdown of _where time went_. When someone reports "the API is slow," you need to immediately answer: is the gateway slow, or is the backend slow?
+
+Without this distinction, you're guessing. A request that takes 3 seconds total could be 2.9 seconds in the gateway and 100ms in the backend (gateway problem), or 10ms in the gateway and 2.99 seconds in the backend (backend problem). The fix is completely different, but aggregate latency metrics can't tell them apart.
+
+The request lifecycle through a gateway has distinct phases, each consuming time:
 
 ```mermaid
 graph LR
-    A[Client] --> B[API Gateway]
-    B --> C[Auth Service]
-    B --> D[Rate Limiter]
-    B --> E[Backend A]
-    B --> F[Backend B]
+    A[Request Received] --> B[Authentication<br/>~2ms]
+    B --> C[Rate Limiting<br/>~1ms]
+    C --> D[Route Matching<br/>~0.5ms]
+    D --> E[Upstream Call<br/>~500ms]
+    E --> F[Response Processing<br/>~1ms]
+    F --> G[Response Sent]
 
-    subgraph "Gateway Boundary"
+    subgraph "Gateway Time: ~5ms"
         B
         C
         D
+        F
+    end
+
+    subgraph "Backend Time: ~500ms"
+        E
     end
 ```
-Figure: API gateway as the central observation point for all traffic.
 
-### Metrics, Traces, and Logs: What Each Provides
+Figure: Request lifecycle showing gateway overhead vs. backend latency with typical durations.
 
-Brief overview of what each pillar contributes to gateway debugging. Metrics for trends and alerting, traces for request flow, logs for detailed context.
+At minimum, instrument these separately:
 
-| Pillar | Answers | Limitations |
-|--------|---------|-------------|
-| Metrics | How many? How fast? What percentage? | Aggregated, loses individual request detail |
-| Traces | What path did this request take? Where did time go? | Sampling may miss rare events |
-| Logs | What exactly happened? What were the values? | High volume, hard to correlate without IDs |
+- _Gateway overhead_: Total request time minus upstream time
+- _Upstream time_: Time from sending the backend request until receiving the complete response
+- _Auth time_: Time spent on authentication and authorization
+- _Rate limit time_: Time spent checking rate limits
 
-Table: Observability pillar strengths and limitations for gateway debugging.
+Here is how to instrument this in Prometheus:
 
-## Gateway Metrics That Matter
-
-### The RED Method for Gateways
-
-Detail the RED method (Rate, Errors, Duration) applied specifically to API gateways. Include what dimensions to capture: by route, by upstream, by consumer, by response code.
-
-```yaml title="gateway-red-metrics.yaml"
+```yaml title="gateway-latency-metrics.yaml"
+# Prometheus metric definitions for Kong Gateway or similar
+# Export via gateway metrics plugin or OpenTelemetry sidecar
 metrics:
-  # Rate: requests per second
-  - name: gateway_requests_total
-    type: counter
-    labels: [method, route, upstream, status_code, consumer_id]
-
-  # Errors: error rate by type
-  - name: gateway_errors_total
-    type: counter
-    labels: [method, route, upstream, error_type, consumer_id]
-
-  # Duration: latency distribution
+  # Total request duration (includes everything)
   - name: gateway_request_duration_seconds
     type: histogram
-    labels: [method, route, upstream, consumer_id]
+    labels: [method, route, upstream]
     buckets: [0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10]
+
+  # Upstream call duration (backend time only)
+  - name: gateway_upstream_duration_seconds
+    type: histogram
+    labels: [method, route, upstream]
+    buckets: [0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10]
+
+  # Auth phase duration
+  - name: gateway_auth_duration_seconds
+    type: histogram
+    labels: [auth_provider]
+    buckets: [0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5]
 ```
-Code: Gateway metric definitions using RED method with appropriate labels.
 
-### Breaking Down Latency
+Code: Prometheus metrics for separating gateway and backend latency.
 
-Explain how to decompose gateway latency into its components: client read time, authentication, rate limiting, upstream selection, backend request, response transformation, and client write time.
+With these metrics, you can calculate gateway overhead in PromQL:
 
-```mermaid
-graph LR
-    A[Request Received] --> B[TLS Handshake]
-    B --> C[Request Parse]
-    C --> D[Auth Check]
-    D --> E[Rate Limit Check]
-    E --> F[Route Match]
-    F --> G[Upstream Request]
-    G --> H[Backend Processing]
-    H --> I[Response Transform]
-    I --> J[Response Sent]
-
-    subgraph "Gateway Time"
-        B
-        C
-        D
-        E
-        F
-        G
-        I
-        J
-    end
-
-    subgraph "Backend Time"
-        H
-    end
-```
-Figure: Request lifecycle showing gateway vs. backend latency components.
-
-<Callout type="info">
-Most "gateway latency" complaints are actually backend latency. Instrument each phase separately so you can prove where the time goes.
-</Callout>
-
-```prometheus title="latency-breakdown-queries.promql"
-# Gateway overhead (excluding backend)
+```promql
+# Gateway overhead only (excludes backend time)
+# Result in seconds
 gateway_overhead_seconds =
   gateway_request_duration_seconds - gateway_upstream_duration_seconds
 
-# Auth latency specifically
-histogram_quantile(0.99,
-  sum(rate(gateway_auth_duration_seconds_bucket[5m])) by (le, auth_provider)
-)
-
-# Rate limiter latency
-histogram_quantile(0.99,
-  sum(rate(gateway_ratelimit_duration_seconds_bucket[5m])) by (le, limiter)
-)
+# Backend time only (for inverse calculation)
+backend_time_seconds = gateway_upstream_duration_seconds
 ```
-Code: PromQL queries to isolate gateway overhead from backend latency.
 
-### Consumer-Level Metrics
+For AWS API Gateway, use CloudWatch metrics (`Latency` and `IntegrationLatency`) to achieve the same breakdown—the concepts are identical.
 
-Discuss why per-consumer metrics matter: identifying abusive consumers, debugging consumer-specific issues, and supporting usage-based billing.
+When latency increases, this breakdown immediately narrows your investigation:
 
-| Metric | Purpose | Alert Example |
-|--------|---------|---------------|
-| Requests by Consumer | Usage tracking, abuse detection | Consumer exceeds 10x normal rate |
-| Errors by Consumer | Consumer-specific issues | Single consumer > 50% error rate |
-| Latency by Consumer | Performance isolation | Consumer P99 > 2x global P99 |
-| Quota Usage | Rate limit tracking | Consumer at 90% of quota |
+- **Total latency is 3.2 seconds**: Is that a problem with the gateway or the backend?
+- **Gateway time is 5ms, backend time is 3.2 seconds**: The backend is slow. Don't investigate the gateway. (Good gateway time is typically under 10ms for simple auth and routing.)
+- **Gateway time is 3 seconds, backend time is 200ms**: The gateway has a problem (slow auth plugin, connection pool exhaustion, rate limiter blocking).
 
-Table: Consumer-level metrics for gateway debugging and alerting.
+- **Gateway overhead spiked, upstream time flat**: Problem is in the gateway itself—check CPU, memory, connection pools, or auth provider latency.
+- **Upstream time spiked, gateway overhead flat**: Problem is in the backend—check backend service metrics, database performance, or downstream API calls.
+- **Both spiked**: Problem is systemic—check network issues, load balancer health, or cascading failures.
 
-<Callout type="danger">
-High-cardinality consumer labels can explode metric storage. Use consumer ID labels only on aggregate metrics, not on high-frequency histograms. Consider sampling or rollup for consumer-level detail.
+The real-world impact: I once investigated a "slow gateway" complaint where P99 latency was 3.2 seconds. The breakdown showed 2ms gateway overhead and 3.198 seconds upstream time. The problem was a slow database query in the backend, not the gateway. Without the breakdown, we would have spent days optimizing the wrong component.
+
+<Callout type="info">
+Most "gateway latency" complaints are backend latency. Instrument each phase separately so you can prove where time actually goes.
 </Callout>
 
-### Upstream Health Metrics
+## Distributed Tracing: Connecting the Dots
 
-Detail metrics that track the health of backend services from the gateway's perspective: connection pool status, circuit breaker state, retry rates, and timeout frequencies.
+Metrics show aggregate health, but when something goes wrong, you need to see what happened to _specific requests_. Distributed tracing provides that request-level visibility by tracking individual requests across services.
 
-```yaml title="upstream-health-metrics.yaml"
-metrics:
-  # Connection pool utilization
-  - name: gateway_upstream_connections_active
-    type: gauge
-    labels: [upstream]
-
-  - name: gateway_upstream_connections_idle
-    type: gauge
-    labels: [upstream]
-
-  # Circuit breaker state
-  - name: gateway_circuit_breaker_state
-    type: gauge
-    labels: [upstream]
-    values: {closed: 0, half_open: 1, open: 2}
-
-  # Retry behavior
-  - name: gateway_upstream_retries_total
-    type: counter
-    labels: [upstream, retry_reason]
-
-  # Timeout tracking
-  - name: gateway_upstream_timeouts_total
-    type: counter
-    labels: [upstream, timeout_type]
-```
-Code: Upstream health metrics for monitoring backend availability from the gateway.
-
-## Distributed Tracing Through Gateways
+The gateway is the most critical point for trace context propagation. If the gateway doesn't forward trace headers to backends, your traces stop at the gateway boundary—you see the consumer-to-gateway span, but not the gateway-to-backend spans. The request flow becomes invisible exactly where you need it most.
 
 ### Trace Context Propagation
 
-Explain how trace context must flow through the gateway to connect client requests with backend spans. Cover W3C Trace Context, B3, and the pitfalls when gateways do not propagate headers.
+The W3C Trace Context standard defines the `traceparent` header, which carries the trace ID, span ID, and sampling decision. Modern tracing systems (Jaeger, Tempo, AWS X-Ray) support this standard.
 
-```http title="trace-propagation-headers.http"
-# Incoming request with W3C Trace Context
+```http title="w3c-trace-context.http"
+# Incoming request from consumer
 GET /api/users HTTP/1.1
 Host: api.example.com
 traceparent: 00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01
-tracestate: vendor=value
+#            ^^ ^^^^^^^^(trace-id)^^^^^^^^ ^^^^(span-id)^^^^ ^^
+#         version                                          sampled
 
-# Gateway must forward to upstream
+# Gateway must forward to upstream (with new span ID)
 GET /users HTTP/1.1
 Host: users-service.internal
-traceparent: 00-0af7651916cd43dd8448eb211c80319c-new-span-id-here-01
-tracestate: vendor=value
+traceparent: 00-0af7651916cd43dd8448eb211c80319c-00f067aa0ba902b7-01
+#            ^^ ^^^^^^^^(same trace-id)^^^^^ ^^^^(new span-id)^^ ^^
 ```
-Code: W3C Trace Context header propagation through API gateway.
 
-```mermaid
-sequenceDiagram
-    participant Client
-    participant Gateway
-    participant Auth
-    participant Backend
+Code: W3C Trace Context propagation from consumer through gateway to backend.
 
-    Client->>Gateway: Request (traceparent: abc-123)
-    Gateway->>Gateway: Create span (parent: 123)
-    Gateway->>Auth: Auth check (traceparent: abc-456)
-    Auth-->>Gateway: Auth response
-    Gateway->>Backend: Forward (traceparent: abc-789)
-    Backend-->>Gateway: Response
-    Gateway-->>Client: Response
+The trace ID (`0af765...`) stays the same across all spans, connecting the entire request flow. The span ID changes for each service to identify individual operations. The sampling flag (`01`) tells all services that this trace should be included in sampling (vs `00` for "don't sample").
 
-    Note over Client,Backend: All spans share trace ID "abc"
-```
-Figure: Trace context propagation creating connected spans across gateway boundary.
+These tracing systems are interoperable via W3C Trace Context—you can trace from AWS X-Ray through a Kong gateway to a backend using Jaeger, all using the same trace ID.
 
-### Gateway Span Design
-
-Detail what information gateway spans should capture: route matched, upstream selected, transformations applied, authentication results, and rate limit decisions.
-
-```json title="gateway-span-attributes.json"
-{
-  "span_name": "gateway.request",
-  "attributes": {
-    "http.method": "POST",
-    "http.route": "/api/v2/users",
-    "http.status_code": 201,
-    "gateway.route.name": "users-create",
-    "gateway.upstream.name": "users-service",
-    "gateway.upstream.address": "10.0.1.50:8080",
-    "gateway.auth.method": "oauth2",
-    "gateway.auth.consumer_id": "client-abc123",
-    "gateway.ratelimit.remaining": 847,
-    "gateway.transform.request": true,
-    "gateway.transform.response": false
-  },
-  "events": [
-    {"name": "auth.validated", "timestamp": "..."},
-    {"name": "ratelimit.checked", "timestamp": "..."},
-    {"name": "upstream.selected", "timestamp": "..."}
-  ]
-}
-```
-Code: Gateway span attributes capturing routing, auth, and transformation decisions.
-
-<Callout type="info">
-Add span events for each gateway processing phase. Events with timestamps let you see exactly where time went without creating separate child spans for every operation.
+<Callout type="tip">
+**Tool Compatibility**: Kong Gateway, NGINX, and Envoy support W3C Trace Context out of the box. AWS API Gateway doesn't propagate `traceparent` automatically—you must forward it manually using mapping templates or Lambda authorizers.
 </Callout>
 
-### Sampling Strategies at the Gateway
+Common propagation failures that break traces:
 
-Discuss trace sampling decisions: head-based vs. tail-based, always sampling errors, and the tradeoff between coverage and cost.
+- _No propagation_: Gateway doesn't forward `traceparent` to backends. Traces end at the gateway.
+- _Mixed formats_: Consumer sends W3C format, gateway converts to B3 format for some backends but not others. Traces fragment.
+- _Sampling ignored_: Consumer marks trace as "don't sample" but gateway samples anyway, or vice versa.
 
-| Strategy | When to Use | Tradeoff |
-|----------|-------------|----------|
-| Head-based (1%) | High traffic, cost-sensitive | Misses rare errors |
-| Tail-based | Need all errors | Requires collector buffering |
-| Error sampling (100%) | Debugging priority | Higher storage for errors |
-| Consumer-based | Enterprise customer debugging | Selective high coverage |
+Verify propagation by checking a trace end-to-end in your tracing UI. You should see a single trace with spans from consumer, gateway, and all backends. If you see disconnected traces, propagation is broken.
 
-Table: Trace sampling strategies for API gateways.
+### What to Put in Gateway Spans
 
-```yaml title="otel-collector-sampling.yaml" {8-15}
+A minimal span that just records "request happened" is useless. A well-designed span captures the context needed to understand the request:
+
+| Span Attribute | Source | Example Value |
+|----------------|--------|---------------|
+| `http.method` | Request | `POST` |
+| `http.route` | Route match | `/users/:id` |
+| `http.status_code` | Response | `200` |
+| `gateway.upstream.name` | Routing decision | `users-service` |
+| `gateway.consumer_id` | Auth plugin | `consumer-abc123` (opaque ID, not PII) |
+| `gateway.retry_count` | Retry logic | `2` |
+| `gateway.circuit_breaker.state` | Circuit breaker | `closed` |
+| `auth.method` | Auth plugin | `jwt`, `api-key` |
+
+Table: Essential gateway span attributes for debugging.
+
+These attributes let you filter traces by consumer, route, or upstream in your tracing UI. When investigating a consumer complaint, you can immediately find all their traces and see which routes they hit and which backends served them.
+
+### Tail Sampling Strategy
+
+At high traffic volumes, you can't keep every trace. Tail sampling makes the decision _after_ a trace completes, allowing you to keep all errors and slow requests while sampling only 1% of fast successful requests. The tradeoff is that the collector must buffer spans in memory before making the decision, which increases memory usage and adds latency to trace delivery (usually 5-10 seconds).
+
+Configure this in an OpenTelemetry Collector:
+
+```yaml title="otel-tail-sampling.yaml"
+# OpenTelemetry Collector tail sampling configuration
+# Deployed as sidecar or separate collector service
 processors:
   tail_sampling:
     decision_wait: 10s
-    num_traces: 100000
     policies:
-      # Always sample errors
       - name: errors
         type: status_code
         status_code: {status_codes: [ERROR]}
-      # Always sample slow requests
-      - name: slow-requests
+      - name: slow
         type: latency
         latency: {threshold_ms: 2000}
-      # Sample 1% of everything else
-      - name: probabilistic
+      - name: sample-fast-success
         type: probabilistic
         probabilistic: {sampling_percentage: 1}
 ```
-Code: OpenTelemetry Collector tail sampling configuration for gateway traces.
 
-## Structured Logging for Correlation
+Code: Tail sampling configuration to keep all errors and slow requests.
 
-### Log Schema for Gateway Requests
+This captures the traces you actually need for debugging—failures and performance problems—without storing millions of routine successful requests.
 
-Define a consistent log schema that enables correlation across gateway, upstream, and downstream services. Include required fields: trace ID, request ID, consumer ID, route, upstream, and timing breakdowns.
+## A Quick Debugging Workflow
 
-```json title="gateway-log-schema.json"
-{
-  "timestamp": "2024-01-15T10:30:00.000Z",
-  "level": "info",
-  "message": "request completed",
-  "trace_id": "0af7651916cd43dd8448eb211c80319c",
-  "span_id": "b7ad6b7169203331",
-  "request_id": "req-abc123",
-  "consumer_id": "client-xyz",
-  "http": {
-    "method": "POST",
-    "path": "/api/v2/users",
-    "status_code": 201,
-    "request_size_bytes": 1024,
-    "response_size_bytes": 256
-  },
-  "gateway": {
-    "route": "users-create",
-    "upstream": "users-service",
-    "upstream_address": "10.0.1.50:8080"
-  },
-  "timing": {
-    "total_ms": 145,
-    "gateway_ms": 12,
-    "upstream_ms": 133,
-    "auth_ms": 3,
-    "ratelimit_ms": 1
-  },
-  "auth": {
-    "method": "oauth2",
-    "scopes": ["users:write"]
-  }
-}
-```
-Code: Structured log schema for gateway requests with correlation fields.
+When latency alerts fire, follow this pattern: metrics narrow scope → traces show detail → logs explain why.
 
-### Correlation ID Propagation
+### Step 1: Identify Scope
 
-Explain how to ensure correlation IDs flow through the entire request chain. Include generating IDs at the gateway when clients do not provide them.
+Is latency high for all routes or specific routes?
 
-```yaml title="gateway-correlation-config.yaml" {5-12}
-http:
-  request_headers:
-    # Accept client-provided correlation ID
-    - name: X-Request-ID
-      propagate: true
-      generate_if_missing: true
-      generator: uuid
-
-    # Always propagate trace context
-    - name: traceparent
-      propagate: true
-    - name: tracestate
-      propagate: true
-
-  response_headers:
-    # Return correlation ID to client for support requests
-    - name: X-Request-ID
-      source: request
-```
-Code: Gateway configuration for correlation ID generation and propagation.
-
-### Error Context in Logs
-
-Detail what additional context to log when errors occur. Include upstream error details, retry history, and circuit breaker state.
-
-```json title="gateway-error-log.json" {12-28}
-{
-  "timestamp": "2024-01-15T10:30:00.000Z",
-  "level": "error",
-  "message": "upstream request failed",
-  "trace_id": "0af7651916cd43dd8448eb211c80319c",
-  "request_id": "req-abc123",
-  "http": {
-    "method": "POST",
-    "path": "/api/v2/users",
-    "status_code": 503
-  },
-  "error": {
-    "type": "upstream_error",
-    "upstream": "users-service",
-    "upstream_status": 500,
-    "upstream_error": "database connection timeout",
-    "retries_attempted": 2,
-    "retry_history": [
-      {"attempt": 1, "status": 500, "latency_ms": 5023},
-      {"attempt": 2, "status": 500, "latency_ms": 5018}
-    ],
-    "circuit_breaker": {
-      "state": "half_open",
-      "failures": 47,
-      "last_success": "2024-01-15T10:25:00.000Z"
-    }
-  }
-}
-```
-Code: Error log with upstream failure context, retry history, and circuit breaker state.
-
-## Dashboards That Answer Questions
-
-### The Gateway Overview Dashboard
-
-Define the panels for a gateway overview dashboard that answers: Is the gateway healthy? What is the traffic pattern? Are backends responding?
-
-| Panel | Visualization | Query |
-|-------|---------------|-------|
-| Request Rate | Time series | `sum(rate(gateway_requests_total[5m]))` |
-| Error Rate | Time series | `sum(rate(gateway_requests_total{status=~"5.."}[5m])) / sum(rate(gateway_requests_total[5m]))` |
-| P50/P95/P99 Latency | Time series | `histogram_quantile(0.99, sum(rate(gateway_request_duration_seconds_bucket[5m])) by (le))` |
-| Upstream Health | Status map | Circuit breaker states by upstream |
-| Top Routes | Bar chart | Request rate by route, sorted |
-| Error Breakdown | Pie chart | Errors by type and upstream |
-
-Table: Gateway overview dashboard panels with purpose and queries.
-
-```mermaid
-graph TD
-    subgraph "Row 1: Health Overview"
-        A[Request Rate]
-        B[Error Rate]
-        C[P99 Latency]
-    end
-
-    subgraph "Row 2: Upstream Status"
-        D[Upstream Health Map]
-        E[Circuit Breaker States]
-    end
-
-    subgraph "Row 3: Traffic Breakdown"
-        F[Top Routes]
-        G[Top Consumers]
-        H[Error Distribution]
-    end
-
-    subgraph "Row 4: Latency Analysis"
-        I[Gateway vs Backend Latency]
-        J[Latency by Route]
-        K[Slow Request %]
-    end
-```
-Figure: Gateway dashboard layout with logical panel grouping.
-
-### The Debugging Dashboard
-
-Design a dashboard for active incident debugging. Focus on drill-down capabilities: from aggregate metrics to specific routes to individual requests.
-
-<Callout type="info">
-The debugging dashboard should start with the symptom (high latency, errors) and drill down to the cause (specific upstream, specific consumer, specific route). Every panel should link to more detail.
-</Callout>
-
-```json title="grafana-drilldown-link.json"
-{
-  "links": [
-    {
-      "title": "View traces for this route",
-      "url": "/explore?left=[\"now-1h\",\"now\",\"jaeger\",{\"query\":\"service=gateway route=${__data.fields.route}\"}]",
-      "targetBlank": true
-    },
-    {
-      "title": "View logs for this request",
-      "url": "/explore?left=[\"now-1h\",\"now\",\"loki\",{\"expr\":\"{service=\\\"gateway\\\"} |= \\\"${__data.fields.request_id}\\\"\"}]",
-      "targetBlank": true
-    }
-  ]
-}
-```
-Code: Grafana data link configuration for drilling from metrics to traces and logs.
-
-### Consumer-Specific Views
-
-Describe dashboards for debugging consumer-specific issues. Include templating for consumer selection and comparison views.
-
-| Panel | Purpose |
-|-------|---------|
-| Consumer Traffic vs. Global | Is this consumer's pattern unusual? |
-| Consumer Error Rate vs. Global | Are errors consumer-specific or systemic? |
-| Consumer Latency Distribution | Is this consumer hitting slow endpoints? |
-| Consumer Route Usage | What endpoints is this consumer using? |
-| Consumer Quota Status | Is rate limiting affecting this consumer? |
-
-Table: Consumer debugging dashboard panels.
-
-## Alerting on Gateway Signals
-
-### SLI-Based Alerts
-
-Define alerts based on gateway SLIs rather than arbitrary thresholds. Include availability, latency, and throughput alerts.
-
-```yaml title="gateway-sli-alerts.yaml"
-groups:
-  - name: gateway-slis
-    rules:
-      # Availability: error rate exceeds error budget burn
-      - alert: GatewayHighErrorRate
-        expr: |
-          (
-            sum(rate(gateway_requests_total{status=~"5.."}[5m]))
-            /
-            sum(rate(gateway_requests_total[5m]))
-          ) > 0.01
-        for: 2m
-        labels:
-          severity: page
-        annotations:
-          summary: "Gateway error rate {{ $value | humanizePercentage }} exceeds 1% SLO"
-
-      # Latency: P99 exceeds target
-      - alert: GatewayHighLatency
-        expr: |
-          histogram_quantile(0.99,
-            sum(rate(gateway_request_duration_seconds_bucket[5m])) by (le)
-          ) > 2
-        for: 5m
-        labels:
-          severity: warning
-        annotations:
-          summary: "Gateway P99 latency {{ $value | humanizeDuration }} exceeds 2s target"
-```
-Code: Gateway SLI-based alert rules for availability and latency.
-
-### Upstream-Specific Alerts
-
-Detail alerts that detect upstream degradation before it affects overall gateway metrics.
-
-```yaml title="upstream-alerts.yaml" {5-12}
-groups:
-  - name: gateway-upstreams
-    rules:
-      # Circuit breaker opened
-      - alert: UpstreamCircuitOpen
-        expr: gateway_circuit_breaker_state == 2
-        for: 0m
-        labels:
-          severity: warning
-        annotations:
-          summary: "Circuit breaker open for {{ $labels.upstream }}"
-          runbook: "https://wiki/runbooks/gateway-circuit-breaker"
-
-      # High retry rate indicates upstream instability
-      - alert: UpstreamHighRetryRate
-        expr: |
-          sum(rate(gateway_upstream_retries_total[5m])) by (upstream)
-          /
-          sum(rate(gateway_requests_total[5m])) by (upstream)
-          > 0.1
-        for: 5m
-        labels:
-          severity: warning
-        annotations:
-          summary: "{{ $labels.upstream }} retry rate {{ $value | humanizePercentage }}"
-```
-Code: Upstream health alerts detecting circuit breaker state and retry rates.
-
-<Callout type="warning">
-Alert on upstream health separately from overall gateway health. A single unhealthy upstream should not page if the gateway is correctly routing around it.
-</Callout>
-
-### Consumer Abuse Detection
-
-Configure alerts for detecting consumer behavior that indicates abuse or misconfiguration.
-
-| Alert | Condition | Action |
-|-------|-----------|--------|
-| Consumer Rate Spike | 10x normal request rate | Investigate, possible abuse |
-| Consumer Error Spike | > 50% error rate for consumer | Contact consumer, likely misconfiguration |
-| Consumer Quota Exhaustion | 95% of quota used | Notify consumer, offer quota increase |
-| New Consumer High Volume | New API key with > 1000 req/min | Review registration, possible bot |
-
-Table: Consumer behavior alerts for abuse and misconfiguration detection.
-
-## Common Gateway Debugging Scenarios
-
-### Scenario: Latency Spike Investigation
-
-Walk through debugging a latency spike using gateway observability. Start with metrics, narrow to specific routes/upstreams, examine traces, correlate with logs.
-
-```markdown title="latency-debug-runbook.md"
-# Gateway Latency Spike Investigation
-
-## Step 1: Identify Scope
-Query: Is latency high for all routes or specific routes?
 ```promql
+# P99 latency by route
 histogram_quantile(0.99,
   sum(rate(gateway_request_duration_seconds_bucket[5m])) by (le, route)
 )
 ```
 
-## Step 2: Gateway vs. Backend
-Query: Is the gateway slow, or is a backend slow?
+If one route is slow, focus there. If all routes are slow, the problem is gateway-wide.
+
+### Step 2: Gateway vs. Backend
+
+Is the gateway slow, or is a backend slow?
+
 ```promql
 # Gateway overhead only
 avg(gateway_request_duration_seconds - gateway_upstream_duration_seconds) by (route)
 ```
 
-## Step 3: Examine Traces
-Find slow traces for the affected route in Jaeger/Tempo.
-Look for: long spans, retries, connection waits.
+If gateway overhead is high, check gateway resources (CPU, memory, connection pools). If upstream time is high, the problem is in the backend.
 
-## Step 4: Check Upstream Health
-Query: Are circuit breakers tripping? Connection pools exhausted?
+### Step 3: Examine Traces
+
+Find slow traces for the affected route in your tracing UI (Jaeger, Tempo, AWS X-Ray). Sort by duration. Look for:
+
+- Long spans indicating slow backend calls
+- Multiple retry attempts
+- Time spent waiting for connections (connection pool exhaustion)
+- Slow auth or rate limiting checks
+
+### Step 4: Check Upstream Health
+
+Are circuit breakers tripping? Connection pools exhausted?
+
 ```promql
+# Circuit breaker state (0=closed, 1=half-open, 2=open)
 gateway_circuit_breaker_state{upstream="affected-service"}
+
+# Connection pool utilization
 gateway_upstream_connections_active / gateway_upstream_connections_max
 ```
 
-## Step 5: Correlate with Logs
-Search logs for the affected time range and route.
-Look for: error messages, timeout logs, retry logs.
-```
-Code: Latency spike investigation runbook using gateway observability.
+If circuit breakers are open, the gateway's protecting itself from a failing backend. If connection pools are at capacity, the gateway's connection-starved.
 
-### Scenario: Intermittent 503 Errors
+### Step 5: Correlate with Logs
 
-Detail debugging intermittent errors that are hard to reproduce. Use trace sampling, error logging, and consumer correlation.
+Search logs for the affected time range and route. Look for:
 
-<Callout type="info">
-Intermittent errors are often consumer-specific (malformed requests), upstream-specific (one unhealthy instance), or timing-specific (connection pool exhaustion under load). Check each dimension separately.
-</Callout>
+- Error messages from backends
+- Timeout logs
+- Retry attempts
+- Connection errors or exhausted connection pool warnings
 
-### Scenario: Consumer Reports Slow API
-
-Describe how to debug when a specific consumer reports performance issues that do not appear in aggregate metrics.
-
-```promql title="consumer-specific-queries.promql"
-# Consumer's error rate vs. global
-sum(rate(gateway_requests_total{consumer_id="client-abc", status=~"5.."}[1h]))
-/
-sum(rate(gateway_requests_total{consumer_id="client-abc"}[1h]))
-
-# Consumer's latency distribution
-histogram_quantile(0.99,
-  sum(rate(gateway_request_duration_seconds_bucket{consumer_id="client-abc"}[1h])) by (le)
-)
-
-# Consumer's route usage pattern
-topk(10,
-  sum(rate(gateway_requests_total{consumer_id="client-abc"}[1h])) by (route)
-)
-```
-Code: PromQL queries for investigating consumer-specific performance issues.
-
-## Implementation Considerations
-
-### Cardinality Management
-
-Discuss the tension between rich labels and metric cardinality. Include strategies for managing high-cardinality dimensions like consumer ID and request path.
-
-| Dimension | Cardinality Risk | Mitigation |
-|-----------|------------------|------------|
-| Consumer ID | High (thousands) | Use only on counters, not histograms |
-| Route | Medium (hundreds) | Use route pattern, not full path |
-| Upstream Instance | Medium | Aggregate to upstream name |
-| Status Code | Low (tens) | Safe to use everywhere |
-| Method | Very Low (< 10) | Safe to use everywhere |
-
-Table: Label cardinality management strategies for gateway metrics.
-
-### Performance Impact
-
-Address the performance overhead of observability. Include guidelines for what to measure synchronously vs. asynchronously.
-
-<Callout type="danger">
-Synchronous logging and tracing in the request path adds latency. Use buffered/async exporters for logs and traces. Metrics counters are cheap; histograms are more expensive.
-</Callout>
-
-### Vendor-Agnostic Instrumentation
-
-Recommend using OpenTelemetry for vendor-agnostic instrumentation that can export to multiple backends.
-
-```yaml title="otel-gateway-config.yaml"
-exporters:
-  prometheus:
-    endpoint: "0.0.0.0:9090"
-  otlp:
-    endpoint: "tempo.monitoring:4317"
-  loki:
-    endpoint: "http://loki.monitoring:3100/loki/api/v1/push"
-
-service:
-  pipelines:
-    metrics:
-      receivers: [otlp]
-      processors: [batch]
-      exporters: [prometheus]
-    traces:
-      receivers: [otlp]
-      processors: [batch, tail_sampling]
-      exporters: [otlp]
-    logs:
-      receivers: [otlp]
-      processors: [batch]
-      exporters: [loki]
-```
-Code: OpenTelemetry Collector configuration for multi-backend gateway observability.
+The pattern is always the same: start broad with metrics, zoom in with traces, explain with logs.
 
 ## Conclusion
 
-Summarize the key principles: measure what matters for debugging (not vanity metrics), propagate context through the gateway boundary, design dashboards that answer questions, and alert on symptoms that require action. Emphasize that good gateway observability makes the gateway invisible—you see through it to the actual problem.
+Gateway observability isn't about collecting more data—it's about making the gateway transparent so you can answer three questions in seconds instead of hours:
 
-<Callout type="success">
-The goal of gateway observability is to make the gateway transparent. When debugging, you should see the request flow through the gateway as clearly as if the gateway were not there.
-</Callout>
+1. **Is the problem in the gateway or the backend?** Latency breakdown and span timing answer this.
+2. **Is it affecting everyone or one consumer?** Per-consumer metrics and trace attributes answer this.
+3. **Is it getting worse?** Time-series metrics and trace sampling answer this.
+
+The comprehensive guide (linked below) covers additional topics: structured logging with correlation IDs, dashboard design for debugging instead of monitoring, alerting strategies to reduce noise, handling high-cardinality consumers, and controlling costs in production.
+
+_Start with latency breakdown metrics. Add distributed tracing once you need request-level visibility. Everything else is details. The difference between a 5-minute fix and a 5-hour nightmare is knowing which side of the gateway is slow._
+
+---
+
+## Want the Complete Guide?
+
+This article covered the fundamentals of gateway latency visibility and distributed tracing. The complete deep-dive guide includes:
+
+- **Complete metric instrumentation**: RED method metrics, consumer-level metrics, upstream health tracking
+- **Structured logging with correlation IDs**: Request ID propagation, error context logging, log aggregation strategies
+- **Dashboard design for debugging**: Overview dashboards, drill-down workflows, consumer-specific views
+- **Alert strategies**: SLI-based alerts, upstream-specific alerts, consumer abuse detection
+- **Three complete debugging scenarios**: Latency spikes, intermittent 503 errors, consumer-specific performance issues
+- **Implementation considerations**: Cardinality management, performance impact, cost considerations, security and privacy, testing your observability, vendor-agnostic instrumentation with OpenTelemetry
+
+**[Download the complete guide (PDF)](/)**—over 8,800 words of in-depth coverage with code examples, diagrams, and real-world debugging workflows.

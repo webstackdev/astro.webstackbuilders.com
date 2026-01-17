@@ -172,6 +172,11 @@ To overlay an article title and published date on a cover image, use CSS positio
 - Add 'featured' to tags to filter, and move tags page to articles
 - Need to make tables responsive on mobile
 
+## Project Stuff
+
+- Need to allow escaping a code fence inside a markdown code fence, see src/content/articles/api-gateway-metrics-traces-logs-debugging/index.mdx "Latency Spike Investigation" section and the demo article.
+- I aliased 'promql' to 'go'. When a code fence using the alias is rendered with the language set to 'promql', it shows as 'go' incorrectly because of the alias. Also we need custom handling for all language names that are displayed: html should be uppercase, typescript as TypeScript, etc. Also we don't want all aliased names to show the alias - for example using the aliases 'ts', 'js', and 'md' would be better to show the full language names.
+
 ## Reading position indicator
 
 [Add scroll bar under header](https://css-tricks.com/reading-position-indicator/) to show how far down you are on the page while reading
@@ -228,7 +233,21 @@ Act as a principal software engineer. Your goal is to write a detailed technical
 
 Let's work through each article section by section based on the H2 headers in the outline. Write directly into the *.astro article file, not into the chat window (it's difficult to read). If the section looks good as-is, I'll just type "ok" so you know to continue to the next section.
 
-Ignore the coverAlt frontmatter line that has "TODO". It will be added later when cover art is added. Use a single underscore for emphasis style, not asterisks. Use plain quotations and apostrophes, not smart quotes. Do not start the article with an H1 in the Markdown - the system automatically adds the title frontmatter key as an H1 header.
+- Ignore the coverAlt frontmatter line that has "TODO". It will be added later when cover art is added.
+- Use a single underscore for emphasis style, not asterisks.
+- Use plain quotations and apostrophes, not smart quotes. Do not start the article with an H1 in the Markdown - the system automatically adds the title frontmatter key as an H1 header.
+- Prefer contracted forms like "Here's" instead of "Here is". The content is so technical I want to make it a little more approachable.
+- If it's necessary to show a nested code fence inside a markdown code fence in the document (for example, a markdown runbook that has a prometheus config example inside the runbook), escape the backticks for the nested code fence so that our system handles it correctly. Ensure there is a blank line before and after the escaped code fence. For example:
+
+```markdown title="some-runbook.md"
+# An example runbook in an article
+
+\`\`\`promql
+some config
+\`\`\`
+```
+
+For code examples like YAML config, use a concrete tool context so readers can understand where they would deploy or use the code. A single comment line or reference to the tool, or a descriptive file name, is sufficient. Prefer showing usage for AWS but a small amount of variety showing open source tools is the optimal case. So, for example, if there were four config examples, three might apply to AWS and one to an alternative tool. It is unnecessary to give complete examples - just enough to convey what we would inform the reader of by using a generic code or config example, and an appropriate marker (like ellipses or a comment saying a cut is made) to show that the example is not complete. An explanatory paragraph is good too.
 
 __review__
 
@@ -240,7 +259,9 @@ We're going to use the document we just created as a PDF download deep-dive on t
 
 __implement_article__
 
-I renamed our longer article to pdf.mdx and created an empty index.mdx template. Ignore the coverAlt frontmatter line that has "TODO". It will be added later when cover art is added. Use a single underscore for emphasis style, not asterisks. Use plain quotations and apostrophes, not smart quotes. Do not start the article with an H1 in the Markdown - the system automatically adds the title frontmatter key as an H1 header. Let's implement the article we just outlined. Add suggested text for a call to action to download the longer PDF at the bottom of the article under an HR. Use "/" as the link so we avoid problems with our link validator, since the PDF doesn't exist yet. The captions for tables and other elements use a prefix like ("Table: ") to let the unified markdown pipeline know to convert this into a caption - don't worry about the prefixes, they'll be normalized later.
+I renamed our longer article to pdf.mdx and created an empty index.mdx template. Ignore the coverAlt frontmatter line that has "TODO". It will be added later when cover art is added. Use a single underscore for emphasis style, not asterisks. Use plain quotations and apostrophes, not smart quotes. Do not start the article with an H1 in the Markdown - the system automatically adds the title frontmatter key as an H1 header. Let's implement the article we just outlined. The captions for tables and other elements use a prefix like ("Table: ") to let the unified markdown pipeline know to convert this into a caption - don't worry about the prefixes, they'll be normalized later.
+
+Add suggested text for a call to action to download the longer PDF at the bottom of the article under an HR. Do not worry about optimizing this text for the total word count of the article - it is not included in the word count since it will be used in a CTA, and I will handle deducting so there's no need to worry about complex calculations to the word count. Use "/" as the link so we avoid problems with our link validator, since the PDF doesn't exist yet. Do not mention the word length. Do not worry about formatting - the content will be used as props for a dedicated Component. It should have a lead hook (title), subtitle introducing what the deep dive is about, then a number of bullet points in the format of `- <topic>: enumeration of subtopics`, and a closing hook sentence.
 
 __review_article__
 

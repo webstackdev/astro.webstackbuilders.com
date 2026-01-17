@@ -121,6 +121,7 @@ export const shikiConfigOptions = {
     js: 'javascript',
     ts: 'typescript',
     md: 'markdown',
+    promql: 'go',
   },
   wrap: true,
 } as const
