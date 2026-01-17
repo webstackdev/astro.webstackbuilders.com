@@ -171,6 +171,7 @@ To overlay an article title and published date on a cover image, use CSS positio
 
 - Add 'featured' to tags to filter, and move tags page to articles
 - Need to make tables responsive on mobile
+- Investigate why we're getting hyphenate breaks within words across lines, like or- ders and us- age
 
 ## Project Stuff
 
@@ -261,7 +262,7 @@ __implement_article__
 
 I renamed our longer article to pdf.mdx and created an empty index.mdx template. Ignore the coverAlt frontmatter line that has "TODO". It will be added later when cover art is added. Use a single underscore for emphasis style, not asterisks. Use plain quotations and apostrophes, not smart quotes. Do not start the article with an H1 in the Markdown - the system automatically adds the title frontmatter key as an H1 header. Let's implement the article we just outlined. The captions for tables and other elements use a prefix like ("Table: ") to let the unified markdown pipeline know to convert this into a caption - don't worry about the prefixes, they'll be normalized later.
 
-Add suggested text for a call to action to download the longer PDF at the bottom of the article under an HR. Do not worry about optimizing this text for the total word count of the article - it is not included in the word count since it will be used in a CTA, and I will handle deducting so there's no need to worry about complex calculations to the word count. Use "/" as the link so we avoid problems with our link validator, since the PDF doesn't exist yet. Do not mention the word length. Do not worry about formatting - the content will be used as props for a dedicated Component. It should have a lead hook (title), subtitle introducing what the deep dive is about, then a number of bullet points in the format of `- <topic>: enumeration of subtopics`, and a closing hook sentence.
+Add suggested text for a call to action to download the longer PDF at the bottom of the article under an HR. Do not worry about optimizing this text for the total word count of the article - it is not included in the word count since it will be used in a CTA, and I will handle deducting so there's no need to worry about complex calculations to the word count. Don't include a link in the CTA. Do not mention the word length. Do not worry about formatting - the content will be used as props for a dedicated Component.
 
 __review_article__
 
