@@ -157,3 +157,25 @@ Create an image of a hydroelectric dam with water flowing through controlled spi
 ### Prompt 5: Graceful Degradation Tiers
 
 Design a visualization of a building with multiple floors, each representing a degradation tier. The ground floor (emergency) is fortified and always lit. Higher floors (normal operations) have more features but can be "powered down" during stress. Power flows upward from a stable base. Style: architectural cutaway, blueprint meets modern infographic, warm to cool gradient from bottom to top, 16:9 aspect ratio.
+
+## blameless-postmortem-incident-analysis-systemic-causes
+
+### Prompt 1: The System Lens
+
+Create an image of a magnifying glass examining a complex system diagram (interconnected nodes and lines). Through the lens, the viewer sees system components highlighted; outside the lens, shadowy human figures are visible but not the focus. Style: technical illustration, clean lines, blue and white color scheme with subtle gold highlights, 16:9 aspect ratio.
+
+### Prompt 2: The Investigation Table
+
+Design an image of a large conference table viewed from above, covered with timeline cards, diagrams, and documents. Multiple hands point at different system factors (servers, pipelines, alerts) rather than at any person. Collaborative investigation aesthetic. Style: overhead view, warm lighting, paper and digital elements mixed, 16:9 aspect ratio.
+
+### Prompt 3: The Iceberg of Causation
+
+Illustrate an iceberg where "Human Action" is the small visible tip above water, and below the waterline are much larger layers labeled with systemic factors: "Process Gaps," "Tool Limitations," "Organizational Pressures," "System Design." Style: cross-section illustration, cool blue tones, clear labeling, dramatic scale contrast, 16:9 aspect ratio.
+
+### Prompt 4: The Root System
+
+Create an image of a single incident (represented as a fallen tree or withered plant) with an extensive root system visible underground. Each root represents a contributing factor, spreading in different directions, all connecting to the surface event. Style: botanical illustration meets technical diagram, earth tones with technical overlays, 16:9 aspect ratio.
+
+### Prompt 5: The Learning Loop
+
+Design a visualization of a continuous improvement cycle: Incident → Analysis → Learning → Improvement → Resilience → (back to start but at a higher level, spiral upward). The emphasis is on forward motion and growth, not punishment or backward-looking blame. Style: abstract/geometric, upward spiral motion, gradient from darker (incident) to lighter (resilience), 16:9 aspect ratio.

@@ -186,6 +186,8 @@ To overlay an article title and published date on a cover image, use CSS positio
 - The title for a code block with yaml as the language type in "Sync wave annotations controlling resource application order" section of src/content/articles/argocd-sync-failures-gitops-debugging-troubleshooting/index.mdx is not displaying, it's showing the YAML language tag instead of the title. Also, the word "app" is being highlighted for some reason in this code block.
 - Code block formatting for 'text' language is very plain.
 - Mathjax not working on inline formulas: "Where $L$ is the average number of items in the system (queue depth), $\lambda$ is the arrival rate (requests per second), and $W$ is the average time in system (latency)." In src/content/articles/backpressure-load-shedding-admission-control-overload/index.mdx
+- Uppy, Tus server, whatever other server needed
+- Need a Q & A format to use in blameless-postmortem-incident-analysis-systemic-causes
 
 ## Reading position indicator
 
