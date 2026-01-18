@@ -135,3 +135,25 @@ Create an artistic interpretation of a cost-benefit curve. The X-axis shows avai
 ### Prompt 5: Nine Lives of Availability
 
 Design a creative illustration showing nine cat lives/figures, with each successive "life" requiring more protection, armor, and support systems. The first few cats are simple, middle ones have helmets and shields, the last ones are in elaborate protective bubbles with life support. Style: whimsical tech illustration, playful but making a serious point, warm color palette, 16:9 aspect ratio.
+
+## backpressure-load-shedding-admission-control-overload
+
+### Prompt 1: The Pressure Valve
+
+Create a dramatic visualization of an industrial pressure system with multiple valves. Some valves are releasing steam (representing load shedding), pressure gauges show different zones (green/yellow/red), and the system remains intact despite high pressure. Style: industrial/mechanical illustration, warm metal tones with steam effects, dramatic lighting, 16:9 aspect ratio.
+
+### Prompt 2: The Bouncer at the Door
+
+Design an image of a stylized nightclub entrance with a velvet rope. A bouncer (represented abstractly) controls a queue of requests (shown as glowing orbs or data packets). Some are admitted, others are politely turned away with a "come back later" gesture. Style: neon-lit urban scene, cyberpunk aesthetic, purple and blue color scheme, 16:9 aspect ratio.
+
+### Prompt 3: Traffic Flow Control
+
+Illustrate a complex highway interchange with traffic signals, on-ramps with metering lights, and flow indicators. Some lanes are moving smoothly while overflow traffic is redirected. The system maintains flow despite heavy load. Style: aerial view, architectural/urban planning aesthetic, clean lines, blue and orange traffic indicators, 16:9 aspect ratio.
+
+### Prompt 4: The Dam and Spillway
+
+Create an image of a hydroelectric dam with water flowing through controlled spillways. The dam represents capacity limits, spillways represent load shedding, and the reservoir shows queue depth. Everything is operating in controlled fashion despite high water levels. Style: engineering illustration, cross-section view, blue water tones contrasting with concrete gray, 16:9 aspect ratio.
+
+### Prompt 5: Graceful Degradation Tiers
+
+Design a visualization of a building with multiple floors, each representing a degradation tier. The ground floor (emergency) is fortified and always lit. Higher floors (normal operations) have more features but can be "powered down" during stress. Power flows upward from a stable base. Style: architectural cutaway, blueprint meets modern infographic, warm to cool gradient from bottom to top, 16:9 aspect ratio.
