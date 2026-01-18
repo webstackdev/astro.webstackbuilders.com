@@ -92,26 +92,24 @@ Create an isometric illustration of ascending staircases/platforms representing 
 
 Illustrate a horizontal timeline showing the billing cycle: usage events flowing in continuously, aggregation checkpoints, end-of-period invoice generation, and payment processing. Each stage represented as a distinct station on the timeline with appropriate iconography. Style: timeline infographic, process visualization, dark theme with accent colors for each stage, modern fintech aesthetic, 16:9 aspect ratio.
 
-## api-versioning-deprecation-sunset-headers-migration
+## argocd-sync-failures-gitops-debugging-troubleshooting
 
-title: "API Versioning: Deprecation Without Breaking Consumers"
+### Prompt 1: Broken Sync Chain
 
-### Prompt 1: Version Branches Diverging
+Create a visualization of a sync process as a chain of connected gears. Most gears are turning smoothly (green glow), but one gear is jammed/broken (red glow, sparks), causing downstream gears to stop. Labels on gears show sync phases (PreSync, Sync, PostSync). Style: mechanical/industrial illustration, dark background with metallic textures, dramatic lighting on the broken gear, 16:9 aspect ratio.
 
-Create an illustration of a single path (representing an API) that branches into multiple diverging roads labeled v1, v2, v3. The v1 road is fading/becoming overgrown (deprecated), v2 is a well-maintained highway (current), and v3 is under construction (preview). Signposts show sunset dates and migration directions. Style: stylized map/journey illustration, warm earth tones with blue accents, bird's eye view perspective, 16:9 aspect ratio.
+### Prompt 2: GitOps Pipeline Obstruction
 
-### Prompt 2: Version Lifecycle State Machine
+Illustrate a pipeline carrying Git commits (represented as glowing packages) toward a Kubernetes cluster. The pipeline has a blockage/obstruction point where packages are backing up. A diagnostic panel shows error messages. Style: pipeline/plumbing visualization, tech-industrial aesthetic, blue-green color scheme with red warning indicators, cross-section view, 16:9 aspect ratio.
 
-Design a visualization of the API version lifecycle as interconnected glowing nodes: Preview (blue/experimental), Stable (green/solid), Deprecated (amber/warning), Sunset (red/fading). Animated particle flows show versions transitioning between states. Dark background with neon-style glowing connections. Style: abstract state machine visualization, tech-forward aesthetic, dark mode with vibrant state colors, 16:9 aspect ratio.
+### Prompt 3: Dependency Graph Tangle
 
-### Prompt 3: Migration Bridge Construction
+Design an abstract visualization of a resource dependency graph with some nodes connected properly (green lines) and others with broken/missing connections (red dashed lines). The tangled center represents the complexity hidden by GitOps. Style: network graph visualization, dark background, nodes as glowing orbs, connection lines with varying opacity, 16:9 aspect ratio.
 
-Illustrate engineers building a bridge from an old API platform (v1, showing wear) to a new modern platform (v2, clean and bright). Some traffic (data packets/consumers) is already crossing, others are waiting on the v1 side. Construction cranes represent migration tooling. Style: isometric illustration, construction meets technology, warm to cool color transition left to right, 16:9 aspect ratio.
+### Prompt 4: ArgoCD Dashboard Warning State
 
-### Prompt 4: Sunset Header Beacon
+Create a stylized ArgoCD-inspired dashboard interface showing an application in degraded state. Multiple sync waves displayed as horizontal tracks, with one track showing a stuck/failed resource. Warning indicators and error messages visible. Style: UI/dashboard illustration, dark mode interface, status indicator colors (red, yellow, green), modern DevOps aesthetic, 16:9 aspect ratio.
 
-Create a lighthouse scene where the lighthouse beam sweeps over an API landscape, illuminating deprecated endpoints with warning light. Ships (consumers) navigate toward the newer, well-lit harbor (v2). The sunset colors in the sky reinforce the "sunset" theme. Style: nautical meets tech, dramatic sunset lighting, warm orange/purple sky gradient, beacon light cutting through, 16:9 aspect ratio.
+### Prompt 5: Debugging Detective Scene
 
-### Prompt 5: Version Timeline Evolution
-
-Design a horizontal timeline showing API version evolution as geological strata or tree rings. Oldest versions (v1) at the bottom/center showing fossil-like imprints, current version (v2) as the active growing layer, future version (v3) as emerging growth. Cross-section view reveals the layered history. Style: natural history meets technology, earth tones with tech highlights, scientific illustration aesthetic, 16:9 aspect ratio.
+Illustrate a detective/investigator silhouette examining a complex Kubernetes cluster diagram with a magnifying glass. The magnifying glass reveals hidden sync issues within the cluster. Clues (log snippets, error codes) scattered around. Style: noir detective meets tech, dramatic shadows, blue and amber accent lighting, investigative atmosphere, 16:9 aspect ratio.

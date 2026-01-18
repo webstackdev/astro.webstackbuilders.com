@@ -172,11 +172,17 @@ To overlay an article title and published date on a cover image, use CSS positio
 - Add 'featured' to tags to filter, and move tags page to articles
 - Need to make tables responsive on mobile
 - Investigate why we're getting hyphenate breaks within words across lines, like or- ders and us- age
+- Need to remove automatic abbr handling when the abbreviation is used in a header, also the abbr presentation needs improved - right now it gives a question mark pointer and long delay to appear
+- When adding backticks in a callout, it gets the standard grey background for a code block in light theme. But it should get an offset of the callout color, like "info-offset".
+- Inline code blocks are not wrapping. They're breaking to a new line. An example is in the "Scenario: CRD Sync Order Problem" section of argocd-sync-failures-gitops-debugging-troubleshooting#specific-failure-scenarios.
 
 ## Project Stuff
 
 - Need to allow escaping a code fence inside a markdown code fence, see src/content/articles/api-gateway-metrics-traces-logs-debugging/index.mdx "Latency Spike Investigation" section and the demo article.
 - I aliased 'promql' to 'go'. When a code fence using the alias is rendered with the language set to 'promql', it shows as 'go' incorrectly because of the alias. Also we need custom handling for all language names that are displayed: html should be uppercase, typescript as TypeScript, etc. Also we don't want all aliased names to show the alias - for example using the aliases 'ts', 'js', and 'md' would be better to show the full language names.
+- The "go" language code block in src/content/articles/api-versioning-deprecation-sunset-headers-migration/index.mdx is not being combined with the "typescript", "python", and "ruby" tabbed code block.
+- Add people who sign up for newsletter, download, or fill out contact form to Hubspot tracking. Need to configure it to remove them if they do the GDPR remove me. Also remove them from the newsletter.
+- The title for a code block with yaml as the language type in "Sync wave annotations controlling resource application order" section of src/content/articles/argocd-sync-failures-gitops-debugging-troubleshooting/index.mdx is not displaying, it's showing the YAML language tag instead of the title. Also, the word "app" is being highlighted for some reason in this code block.
 
 ## Reading position indicator
 
@@ -188,6 +194,8 @@ To overlay an article title and published date on a cover image, use CSS positio
 - Add a QR code at the bottom of printed pages so it's easier for someone to navigate to from a printed page.
 - Need a layout alternative to Markup that formats for print. It needs to handle TOC differently as a full-width page. Need a fixed cover page format that adds article title, subtitle, and date.
 - We have two print scenarios: black and white, and color for PDF output. Can use two different media queries to accomplish getting colored variables.
+- Generate mermaid graphs for PDF from AI image generator to improve looks.
+- Need to make sure that on print, when we have a tabbed code block with multiple languages, only the first language is printed and the other language tabs are hidden.
 
 [Paged.js](https://pagedjs.org/en/documentation/) polyfills `@page` properties, and lays out an HTML document in print format where it can have page numbers generated to update in a table of contents.
 
@@ -248,7 +256,7 @@ some config
 \`\`\`
 ```
 
-For code examples like YAML config, use a concrete tool context so readers can understand where they would deploy or use the code. A single comment line or reference to the tool, or a descriptive file name, is sufficient. Prefer showing usage for AWS but a small amount of variety showing open source tools is the optimal case. So, for example, if there were four config examples, three might apply to AWS and one to an alternative tool. It is unnecessary to give complete examples - just enough to convey what we would inform the reader of by using a generic code or config example, and an appropriate marker (like ellipses or a comment saying a cut is made) to show that the example is not complete. An explanatory paragraph is good too.
+For code examples like YAML config, use a concrete tool context so readers can understand where they would deploy or use the code. A single comment line or reference to the tool, or a descriptive file name, is sufficient. Prefer showing usage for AWS but a small amount of variety showing open source tools is the optimal case. So, for example, if there were four config examples, three might apply to AWS and one to an alternative tool. Do not include multiple tables, code blocks, or mermaid diagrams in a row without text between them to break them up.
 
 __review__
 
@@ -262,7 +270,7 @@ __implement_article__
 
 I renamed our longer article to pdf.mdx and created an empty index.mdx template. Ignore the coverAlt frontmatter line that has "TODO". It will be added later when cover art is added. Use a single underscore for emphasis style, not asterisks. Use plain quotations and apostrophes, not smart quotes. Do not start the article with an H1 in the Markdown - the system automatically adds the title frontmatter key as an H1 header. Let's implement the article we just outlined. The captions for tables and other elements use a prefix like ("Table: ") to let the unified markdown pipeline know to convert this into a caption - don't worry about the prefixes, they'll be normalized later.
 
-Add suggested text for a call to action to download the longer PDF at the bottom of the article under an HR. Do not worry about optimizing this text for the total word count of the article - it is not included in the word count since it will be used in a CTA, and I will handle deducting so there's no need to worry about complex calculations to the word count. Don't include a link in the CTA. Do not mention the word length. Do not worry about formatting - the content will be used as props for a dedicated Component.
+Add suggested text for a call to action to download the longer PDF at the bottom of the article under an HR. Do not worry about optimizing this text for the total word count of the article - it is not included in the word count since it will be used in a CTA, and I will handle deducting so there's no need to worry about complex calculations to the word count. Don't include a link in the CTA. Do not mention the word length. Do not worry about formatting - the content will be used as props for a dedicated Component. Do not include multiple tables, code blocks, or mermaid diagrams in a row without text between them to break them up.
 
 __review_article__
 
