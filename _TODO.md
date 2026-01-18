@@ -175,6 +175,7 @@ To overlay an article title and published date on a cover image, use CSS positio
 - Need to remove automatic abbr handling when the abbreviation is used in a header, also the abbr presentation needs improved - right now it gives a question mark pointer and long delay to appear
 - When adding backticks in a callout, it gets the standard grey background for a code block in light theme. But it should get an offset of the callout color, like "info-offset".
 - Inline code blocks are not wrapping. They're breaking to a new line. An example is in the "Scenario: CRD Sync Order Problem" section of argocd-sync-failures-gitops-debugging-troubleshooting#specific-failure-scenarios.
+- The spacing on unordered task lists nested in an ordered list is wrong, see "Questions to Ask Before Setting Targets" in src/content/articles/availability-targets-five-nines-cost-benefit-analysis/index.mdx
 
 ## Project Stuff
 
@@ -183,6 +184,7 @@ To overlay an article title and published date on a cover image, use CSS positio
 - The "go" language code block in src/content/articles/api-versioning-deprecation-sunset-headers-migration/index.mdx is not being combined with the "typescript", "python", and "ruby" tabbed code block.
 - Add people who sign up for newsletter, download, or fill out contact form to Hubspot tracking. Need to configure it to remove them if they do the GDPR remove me. Also remove them from the newsletter.
 - The title for a code block with yaml as the language type in "Sync wave annotations controlling resource application order" section of src/content/articles/argocd-sync-failures-gitops-debugging-troubleshooting/index.mdx is not displaying, it's showing the YAML language tag instead of the title. Also, the word "app" is being highlighted for some reason in this code block.
+- Code block formatting for 'text' language is very plain.
 
 ## Reading position indicator
 

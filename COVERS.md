@@ -113,3 +113,25 @@ Create a stylized ArgoCD-inspired dashboard interface showing an application in 
 ### Prompt 5: Debugging Detective Scene
 
 Illustrate a detective/investigator silhouette examining a complex Kubernetes cluster diagram with a magnifying glass. The magnifying glass reveals hidden sync issues within the cluster. Clues (log snippets, error codes) scattered around. Style: noir detective meets tech, dramatic shadows, blue and amber accent lighting, investigative atmosphere, 16:9 aspect ratio.
+
+## availability-targets-five-nines-cost-benefit-analysis
+
+### Prompt 1: The Exponential Cost Staircase
+
+Create a dramatic visualization of a staircase where each step (representing a "nine" of availability) is exponentially taller and more ornate than the last. A figure stands at 99.9% looking up at the towering steps above. The 99.999% step reaches into clouds with a price tag visible. Style: architectural illustration, dramatic perspective looking up, warm to cool gradient as steps rise, 16:9 aspect ratio.
+
+### Prompt 2: Balance Scale of Availability
+
+Design an image of an ornate balance scale. One side holds infrastructure elements (servers, databases, globe icons) representing availability costs. The other side holds business elements (money bags, users, clocks). The scale is tipped showing imbalance. Style: classical illustration meets tech iconography, gold and blue color scheme, centered composition, 16:9 aspect ratio.
+
+### Prompt 3: The Nines Ruler/Measurement
+
+Illustrate a stylized ruler or measuring tape marked with availability percentages (99%, 99.9%, 99.99%, 99.999%). The gaps between marks increase exponentially. Dollar signs accumulate in the gaps. A magnifying glass focuses on the tiny gap between 99.99% and 99.999%. Style: technical illustration, blueprint aesthetic with highlight colors, clean lines, 16:9 aspect ratio.
+
+### Prompt 4: Diminishing Returns Graph Visualization
+
+Create an artistic interpretation of a cost-benefit curve. The X-axis shows availability increasing (99% to 99.999%), the Y-axis shows cost rising exponentially. The "value zone" in the middle is highlighted green, while the extreme right (five nines) is highlighted red as "diminishing returns." Style: data visualization art, chart becomes abstract landscape, dark background with glowing curve, 16:9 aspect ratio.
+
+### Prompt 5: Nine Lives of Availability
+
+Design a creative illustration showing nine cat lives/figures, with each successive "life" requiring more protection, armor, and support systems. The first few cats are simple, middle ones have helmets and shields, the last ones are in elaborate protective bubbles with life support. Style: whimsical tech illustration, playful but making a serious point, warm color palette, 16:9 aspect ratio.
