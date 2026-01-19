@@ -179,3 +179,25 @@ Create an image of a single incident (represented as a fallen tree or withered p
 ### Prompt 5: The Learning Loop
 
 Design a visualization of a continuous improvement cycle: Incident → Analysis → Learning → Improvement → Resilience → (back to start but at a higher level, spiral upward). The emphasis is on forward motion and growth, not punishment or backward-looking blame. Style: abstract/geometric, upward spiral motion, gradient from darker (incident) to lighter (resilience), 16:9 aspect ratio.
+
+## blue-green-canary-deployment-strategy-comparison
+
+### Prompt 1: The Two Paths
+
+Create an image showing two distinct deployment paths from a single source. One path (blue/green) shows a clean switchover between two parallel environments. The other path (canary) shows a gradual flow splitting and merging. Both lead to a "Production" destination. Style: clean technical illustration, blue and green on one side, yellow/gold (canary) on the other, 16:9 aspect ratio.
+
+### Prompt 2: The Traffic Controller
+
+Design an image of an air traffic control tower overlooking a runway (representing production). Two planes (blue and green) are on the ground, while small birds (canaries) fly in a test pattern. The controller decides which traffic to route. Style: stylized aviation illustration, clean lines, blue sky background, 16:9 aspect ratio.
+
+### Prompt 3: The Deployment Spectrum
+
+Illustrate a horizontal spectrum/gradient showing deployment strategies from simple (left) to complex (right). Recreate → Rolling → Blue/Green → Canary → Progressive. Each strategy is represented by an abstract icon showing its traffic pattern. Style: infographic art, gradient colors from warm to cool, minimalist icons, 16:9 aspect ratio.
+
+### Prompt 4: The Safety Net Comparison
+
+Create a split-screen image. Left side shows blue/green: a tightrope walker with a complete safety net below (instant rollback). Right side shows canary: a tightrope walker with spotters gradually increasing support (gradual validation). Both are crossing safely but with different safety mechanisms. Style: circus/performance art aesthetic, dramatic lighting, 16:9 aspect ratio.
+
+### Prompt 5: The Decision Tree
+
+Design an image of an elegant decision tree where a path forks based on questions (traffic control available? instant rollback needed? observability mature?). Different paths lead to different deployment strategy icons. The tree grows from "requirements" soil into "strategy" branches. Style: botanical illustration meets flowchart, organic shapes with technical elements, earth and sky tones, 16:9 aspect ratio.
