@@ -189,6 +189,7 @@ To overlay an article title and published date on a cover image, use CSS positio
 - Mathjax not working on inline formulas: "Where $L$ is the average number of items in the system (queue depth), $\lambda$ is the arrival rate (requests per second), and $W$ is the average time in system (latency)." In src/content/articles/backpressure-load-shedding-admission-control-overload/index.mdx
 - Uppy, Tus server, whatever other server needed
 - Need a Q & A format to use in blameless-postmortem-incident-analysis-systemic-causes
+- Numbering for ordered lists breaks when there are code blocks in between numbered list elements, like in src/content/articles/cdn-edge-caching-cache-keys-vary-headers/index.mdx
 
 ## Reading position indicator
 
@@ -240,6 +241,10 @@ High Resolution: Seedream 4.0 is capable of generating native high-resolution im
 
 Complex Text and Instruction Following: The model demonstrates an enhanced understanding of complex semantic prompts and excels in rendering dense and accurate text within the generated images, a common weakness in other AI image models.
 
+## Content Issues
+
+- "### Geographic/Currency Mismatches" in src/content/articles/cdn-edge-caching-cache-keys-vary-headers/index.mdx
+
 ## Content Instructions
 
 Let's write our next article. Review ./CONTENT.md for the goals and voice to use in our website. Each article outline includes various components we use on our site that can be incorporated into the final article but do not have to be included if they don't fit into the content well or are excessive.
@@ -262,7 +267,7 @@ some config
 \`\`\`
 ```
 
-For code examples like YAML config, use a concrete tool context so readers can understand where they would deploy or use the code. A single comment line or reference to the tool, or a descriptive file name, is sufficient. Prefer showing usage for AWS but a small amount of variety showing open source tools is the optimal case. So, for example, if there were four config examples, three might apply to AWS and one to an alternative tool. Do not include multiple tables, code blocks, or mermaid diagrams in a row without text between them to break them up.
+For code examples like YAML config, use a concrete tool context so readers can understand where they would deploy or use the code. A single comment line or reference to the tool, or a descriptive file name, is sufficient. Prefer showing usage for AWS but a small amount of variety showing open source tools is the optimal case. So, for example, if there were four config examples, three might apply to AWS and one to an alternative tool. Do not include multiple tables, code blocks, or mermaid diagrams in a row without text between them to break them up. Do not import the Callout component, it is automatic.
 
 __review__
 

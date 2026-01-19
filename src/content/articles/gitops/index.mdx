@@ -1,0 +1,49 @@
+---
+title: "Gitops Description"
+description: "Gitops Description"
+cover: "./cover.png"
+coverAlt: "TODO"
+author: "kevin-brown"
+publishDate: 2024-01-15
+tags: ["apis-and-gateways"]
+featured: true
+---
+
+In 2026, separating application code from infrastructure as code (IaC) is standard operational hygiene for ensuring security, governance, and stable automation.
+
+1. What's in the Infrastructure Config Repo?
+
+This repository (often called a "GitOps repo") contains the declarative state of your environment. It typically includes:
+
+- Infrastructure Definitions: Terraform files, OpenTofu modules, or Crossplane compositions that provision the "hardware" (VPC, databases, clusters).
+- Kubernetes Manifests: Helm charts, Kustomize overlays, or raw YAML that define how the app runs (CPU/memory limits, ingress rules, environment variables).
+- Environment Overlays: Specific folders for dev, staging, and prod to manage differences between environments without duplicating code.
+- Policy-as-Code: Rules (e.g., OPA/Rego) that enforce security standards, such as "no public S3 buckets".
+
+2. Changes to Your Application Repo
+
+Your application repo remains the home for feature development, but its CD portion changes significantly:
+
+- CI Stage (Stays Mostly Same): Continues to handle builds, linting, vulnerability scans, and unit/E2E tests.
+- CD Stage (Changes): Instead of "pushing" a deployment to Vercel or a cluster, the final step in the application pipeline is now to update the GitOps repo.
+- It builds the container image and pushes it to a registry.
+- It then creates a Pull Request or directly commits to the Infrastructure Repo, updating the image tag in the manifests (e.g., changing image: v1.0 to image: v1.1).
+
+3. CI/CD in the Infrastructure Repo
+
+The infrastructure repo has its own dedicated lifecycle to ensure changes don't "break the world":
+
+Infra CI Stage:
+
+- Linting/Validation: Tools like tflint or kube-linter check for syntax errors.
+- Security Scans: Scanners like tfsec or Checkov search for misconfigurations.
+- Dry Runs: Generates a "Plan" (e.g., terraform plan) to show exactly what will be changed before it happens.
+
+Infra CD Stage:
+
+In a GitOps model, there is no traditional "push" CD. Instead, a GitOps Controller (like Argo CD or Flux) inside the cluster watches this repo. The moment it sees a new commit (like the image tag update from your app repo), it pulls and applies those changes to the cluster automatically.
+
+Why this separation?
+
+Security: Developers can have full access to app code but restricted access to production infrastructure.
+Stability: Infrastructure changes (like scaling a DB) can be tested and audited separately from code changes (like fixing a typo).

@@ -201,3 +201,25 @@ Create a split-screen image. Left side shows blue/green: a tightrope walker with
 ### Prompt 5: The Decision Tree
 
 Design an image of an elegant decision tree where a path forks based on questions (traffic control available? instant rollback needed? observability mature?). Different paths lead to different deployment strategy icons. The tree grows from "requirements" soil into "strategy" branches. Style: botanical illustration meets flowchart, organic shapes with technical elements, earth and sky tones, 16:9 aspect ratio.
+
+## cdn-edge-caching-cache-keys-vary-headers
+
+### Prompt 1: The Edge Network Globe
+
+Create an image of a stylized globe with glowing edge nodes (PoPs) distributed across continents. Lines connect users to their nearest edge, with some paths showing "HIT" indicators (fast, glowing) and others showing "MISS" indicators (path continues to central origin). Style: technical network visualization, dark background with neon highlights, blue and cyan color scheme, 16:9 aspect ratio.
+
+### Prompt 2: The Cache Key Anatomy
+
+Design a visualization of a cache key being constructed from its components. Show URL parts (scheme, host, path, query) assembling like puzzle pieces, with some components (cookies, user-agent) being filtered out. The assembled key unlocks a cache vault. Style: technical diagram meets lock/key metaphor, clean lines, warm metal tones for key, cool tones for components, 16:9 aspect ratio.
+
+### Prompt 3: The Vary Header Explosion
+
+Illustrate the combinatorial explosion of cache variants. A single cached response at the top branches into multiple variants based on Accept-Encoding × Accept-Language × Device-Type, showing exponential growth. Some branches are pruned (good), others grow wild (bad). Style: tree/branching diagram, organic growth pattern, green (good) vs red (problematic) branches, 16:9 aspect ratio.
+
+### Prompt 4: The Invalidation Wave
+
+Create an image showing a "purge wave" propagating across a network of edge nodes. The origin sends a signal that ripples outward, each edge node updating as the wave passes. Some nodes update immediately, others lag slightly. Style: ripple effect visualization, concentric circles emanating from center, gradient from fresh (bright) to stale (dim), 16:9 aspect ratio.
+
+### Prompt 5: The Correctness vs Performance Balance
+
+Design a balance scale where one side holds "Performance" (represented by speed/lightning icons, high CHR numbers) and the other holds "Correctness" (represented by checkmarks, security shields). The scale is balanced but precarious. Below the scale, "cache misconfiguration" tips it dangerously toward performance. Style: classical balance scale with modern tech iconography, warning colors where imbalanced, 16:9 aspect ratio.
