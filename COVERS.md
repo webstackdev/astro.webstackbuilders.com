@@ -291,3 +291,25 @@ Create an image of a stylized fuel gauge or budget meter labeled "Retry Budget."
 ### Prompt 5: The Firebreak
 
 Design an image showing a forest fire (cascade failure) being stopped by a firebreak (circuit breaker). The protected side of the forest is lush and healthy, while the contained fire burns on the other side. Firefighters monitor the break. Style: dramatic landscape illustration, warm fire colors contrasting with cool greens, 16:9 aspect ratio.
+
+## consumer-driven-contract-testing-pact-internal-apis
+
+### Prompt 1: The Handshake Agreement
+
+Create an image of two robotic hands performing a handshake, with a glowing contract document floating between them. The contract has checkmarks and verification seals. Digital streams of data flow between the hands. Style: futuristic business agreement, blue and teal tones, clean geometric design, 16:9 aspect ratio.
+
+### Prompt 2: The Puzzle Pieces
+
+Design an image showing API puzzle pieces from different services clicking together perfectly. Each piece has an endpoint label (/users, /orders, /payments). A magnifying glass inspects the connection points, showing green checkmarks where they fit. Style: colorful technical illustration, satisfying fit visualization, clean lines, 16:9 aspect ratio.
+
+### Prompt 3: The Safety Net
+
+Illustrate a trapeze artist (representing code deployment) with a safety net below made of interwoven contract documents. The net is labeled with consumer names. The artist performs confidently knowing the net will catch breaking changes. Style: circus safety metaphor, dramatic lighting, warm and cool color contrast, 16:9 aspect ratio.
+
+### Prompt 4: The Blueprint Verification
+
+Create an image of an architect comparing a building under construction against blueprints. The blueprints represent the contract, the building represents the provider implementation. Green checkmarks appear where they match. Style: architectural comparison, technical blueprint aesthetic, clean professional look, 16:9 aspect ratio.
+
+### Prompt 5: The Two-Way Mirror
+
+Design an image showing a consumer service on one side of a two-way mirror and a provider service on the other. Between them, a contract document glows, showing what each side expects from the other. Both sides see their view clearly. Style: split-screen technology visualization, symmetric composition, purple and blue gradient, 16:9 aspect ratio.
