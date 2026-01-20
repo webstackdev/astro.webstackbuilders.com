@@ -186,7 +186,7 @@ To overlay an article title and published date on a cover image, use CSS positio
 - Add people who sign up for newsletter, download, or fill out contact form to Hubspot tracking. Need to configure it to remove them if they do the GDPR remove me. Also remove them from the newsletter.
 - The title for a code block with yaml as the language type in "Sync wave annotations controlling resource application order" section of src/content/articles/argocd-sync-failures-gitops-debugging-troubleshooting/index.mdx is not displaying, it's showing the YAML language tag instead of the title. Also, the word "app" is being highlighted for some reason in this code block.
 - Code block formatting for 'text' language is very plain.
-- Mathjax not working on inline formulas: "Where $L$ is the average number of items in the system (queue depth), $\lambda$ is the arrival rate (requests per second), and $W$ is the average time in system (latency)." In src/content/articles/backpressure-load-shedding-admission-control-overload/index.mdx
+- Mathjax not working on inline formulas: "Where $L$ is the average number of items in the system (queue depth), $\lambda$ is the arrival rate (requests per second), and $W$ is the average time in system (latency)." In backpressure-load-shedding-admission-control-overload, also "The Retry Amplification Problem" section in circuit-breaker-retry-budget-cascade-failure-prevention.
 - Uppy, Tus server, whatever other server needed
 - Need a Q & A format to use in blameless-postmortem-incident-analysis-systemic-causes
 - Numbering for ordered lists breaks when there are code blocks in between numbered list elements, like in src/content/articles/cdn-edge-caching-cache-keys-vary-headers/index.mdx
@@ -269,7 +269,7 @@ some config
 \`\`\`
 ```
 
-For code examples like YAML config, use a concrete tool context so readers can understand where they would deploy or use the code. A single comment line or reference to the tool, or a descriptive file name, is sufficient. Prefer showing usage for AWS but a small amount of variety showing open source tools is the optimal case. So, for example, if there were four config examples, three might apply to AWS and one to an alternative tool. Do not include multiple tables, code blocks, or mermaid diagrams in a row without text between them to break them up. Do not import the Callout component, it is automatic.
+For code examples like YAML config, use a concrete tool context so readers can understand where they would deploy or use the code. A single comment line or reference to the tool, or a descriptive file name, is sufficient. Prefer showing usage for AWS but a small amount of variety showing open source tools is the optimal case. So, for example, if there were four config examples, three might apply to AWS and one to an alternative tool. Do not include multiple tables, code blocks, or mermaid diagrams in a row without text between them to break them up. Do not import the Callout component, it is automatic. Don't use code blocks just for presentation, only for true pseudocode or real code examples. If there is info in a code block in the outline that is only for presentation purposes, redo it in a better presentation format.
 
 __review__
 

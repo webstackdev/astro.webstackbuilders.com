@@ -267,3 +267,27 @@ Create an image of a CI pipeline as a racing track where builds are cars. Cached
 ### Prompt 5: The Domino Effect (Invalidation)
 
 Design an image showing a line of dominoes where one change (a single modified file) triggers a cascade of cache invalidations down the line. Some dominoes are protected by barriers (good layer ordering), showing how proper structure prevents unnecessary rebuilds. Style: dramatic domino visualization, cause-and-effect clear, red for invalidation cascade, blue for protected sections, 16:9 aspect ratio.
+
+## circuit-breaker-retry-budget-cascade-failure-prevention
+
+Need to generate an image for the "Circuit Breaker Dashboard Layout" section
+
+### Prompt 1: The Electrical Circuit Breaker
+
+Create an image of a large industrial electrical circuit breaker panel with multiple breakers, some in the "ON" (closed) position, some tripped to "OFF" (open), and one in a middle testing position (half-open). LED indicators show system status. Style: industrial electrical equipment, clean technical illustration, blue and orange status lights, 16:9 aspect ratio.
+
+### Prompt 2: The Cascading Dominoes Stopped
+
+Design an image showing a line of dominoes where the first few have fallen (cascade failure), but a protective barrier (circuit breaker) has stopped the cascade, leaving the remaining dominoes standing. The stopped section glows with protection. Style: dramatic domino visualization, clear cause-and-effect, red fallen dominoes, blue protected dominoes, 16:9 aspect ratio.
+
+### Prompt 3: The Traffic Control System
+
+Illustrate a highway interchange with smart traffic signals. Some routes are open (green), some are closed due to congestion (red), and some are in testing mode (yellow). Traffic flows smoothly around the closed routes. Style: aerial view traffic management, clean lines, green/yellow/red indicators, modern city aesthetic, 16:9 aspect ratio.
+
+### Prompt 4: The Budget Meter
+
+Create an image of a stylized fuel gauge or budget meter labeled "Retry Budget." The needle shows partial depletion. As the meter empties, requests are diverted away. A replenishment pipe (successful requests) feeds back into the meter. Style: dashboard gauge aesthetic, analog meets digital, green full zone to red empty zone, 16:9 aspect ratio.
+
+### Prompt 5: The Firebreak
+
+Design an image showing a forest fire (cascade failure) being stopped by a firebreak (circuit breaker). The protected side of the forest is lush and healthy, while the contained fire burns on the other side. Firefighters monitor the break. Style: dramatic landscape illustration, warm fire colors contrasting with cool greens, 16:9 aspect ratio.
