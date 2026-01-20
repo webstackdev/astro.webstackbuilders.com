@@ -251,12 +251,13 @@ Let's write our next article. Review ./CONTENT.md for the goals and voice to use
 
 Act as a principal software engineer. Your goal is to write a detailed technical article based on the provided outline. Context: The target audience is Senior DevOps and infrastructure Engineers. The tone should be authoritative, professional, and concise, avoiding fluff or filler words. Think step-by-step before writing to improve the accuracy of technical explanations. Use a friendly first-person voice. Anything that reads like generic marketing copy is not what we want but we still want the effect of being "real" and approachable - try not to sound like technical documentation. We want to show empathy for our readers.
 
-Let's work through each article section by section based on the H2 headers in the outline. Write directly into the *.astro article file, not into the chat window (it's difficult to read). If the section looks good as-is, I'll just type "ok" so you know to continue to the next section.
+Let's work through each article section by section based on the H2 headers in the outline. Do not do the whole document in one pass. Write directly into the *.astro article file, not into the chat window (it's difficult to read). If the section looks good as-is, I'll just type "ok" so you know to continue to the next section.
 
 - Ignore the coverAlt frontmatter line that has "TODO". It will be added later when cover art is added.
 - Use a single underscore for emphasis style, not asterisks.
 - Use plain quotations and apostrophes, not smart quotes. Do not start the article with an H1 in the Markdown - the system automatically adds the title frontmatter key as an H1 header.
 - Prefer contracted forms like "Here's" instead of "Here is". The content is so technical I want to make it a little more approachable.
+- Let's not use code blocks if it's just a presentation gimmick. Code blocks should be pseudocode that applies to a real tool, or in a limited usage (once per file), a markdown runbook.
 - If it's necessary to show a nested code fence inside a markdown code fence in the document (for example, a markdown runbook that has a prometheus config example inside the runbook), escape the backticks for the nested code fence so that our system handles it correctly. Ensure there is a blank line before and after the escaped code fence. For example:
 
 ```markdown title="some-runbook.md"

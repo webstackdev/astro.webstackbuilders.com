@@ -47,3 +47,43 @@ Why this separation?
 
 Security: Developers can have full access to app code but restricted access to production infrastructure.
 Stability: Infrastructure changes (like scaling a DB) can be tested and audited separately from code changes (like fixing a typo).
+
+## Typical GitOps Repository Structure (2026)
+
+A production-grade GitOps repository uses a "Base and Overlays" pattern (often with Kustomize or Helm)
+
+```bash
+gitops-repo/
+├── infrastructure/               # Shared infra-level resources
+│   ├── base/                     # Core definitions
+│   │   ├── networking.yaml       # VPC/Subnet definitions (Crossplane/Terraform)
+│   │   └── database.yaml         # RDS/DB instances
+│   └── overlays/                 # Environment-specific tweaks
+│       ├── dev/
+│       └── prod/                 # e.g., larger DB instance for prod
+├── apps/                         # Application manifests
+│   ├── my-web-app/
+│   │   ├── base/
+│   │   │   ├── deployment.yaml   # Basic pod/container spec
+│   │   │   └── service.yaml
+│   │   └── overlays/
+│   │       ├── staging/          # deployment-patch.yaml (low replicas)
+│   │       └── production/       # deployment-patch.yaml (high replicas)
+├── policies/                     # Policy as Code (PaC)
+│   ├── security-rules.rego       # OPA policies (e.g., "no root containers")
+│   └── resource-limits.yaml      # Kyverno or Gatekeeper rules
+└── clusters/                     # Root entry points for GitOps controller
+    ├── staging-cluster/
+    │   └── kustomization.yaml    # Points to apps/my-web-app/overlays/staging
+    └── prod-cluster/
+        └── kustomization.yaml    # Points to apps/my-web-app/overlays/production
+
+```
+
+Immutable Tags: In 2026, standard practice is to use unique, immutable tags—typically the Git Commit SHA (e.g., my-app:a3f5b2c).
+
+OPA, Kyverno, and Gatekeeper
+
+- OPA (Open Policy Agent): An open-source, general-purpose policy engine that unifies policy enforcement across the stack. It uses a declarative language called Rego to define complex rules.
+- Gatekeeper: A specialized project that integrates OPA into Kubernetes. It acts as a validating admission controller, intercepting requests to the Kubernetes API and checking them against OPA policies before resources are created or modified.
+- Kyverno: A Kubernetes-native policy engine. Unlike Gatekeeper, it does not require learning Rego; policies are written in standard YAML. It can validate, mutate (modify), and generate resources, as well as verify container image signatures.

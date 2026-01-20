@@ -223,3 +223,25 @@ Create an image showing a "purge wave" propagating across a network of edge node
 ### Prompt 5: The Correctness vs Performance Balance
 
 Design a balance scale where one side holds "Performance" (represented by speed/lightning icons, high CHR numbers) and the other holds "Correctness" (represented by checkmarks, security shields). The scale is balanced but precarious. Below the scale, "cache misconfiguration" tips it dangerously toward performance. Style: classical balance scale with modern tech iconography, warning colors where imbalanced, 16:9 aspect ratio.
+
+## chaos-engineering-failure-injection-low-cost-experiments
+
+### Prompt 1: The Controlled Demolition
+
+Create an image of a controlled building demolition where specific structural elements are being strategically removed while engineers observe from a safe distance with monitoring equipment. The building remains standing but reveals its structure. Style: architectural illustration, dramatic but controlled, dust and debris contained, blue safety barriers visible, 16:9 aspect ratio.
+
+### Prompt 2: The Lab Experiment
+
+Design an image of a scientific laboratory where engineers in lab coats are conducting controlled experiments on miniature server infrastructure. Beakers and test tubes are replaced with small server racks and network diagrams. Safety goggles, controlled environment, careful observation. Style: scientific illustration meets tech infrastructure, clean lab aesthetic, blue and white colors, 16:9 aspect ratio.
+
+### Prompt 3: The Stress Test
+
+Illustrate a system (represented as interconnected glowing nodes) being deliberately stressed in one area while monitors display the ripple effects. The stress point is contained (visible barrier) while the rest of the system continues operating. Data flows around the stress point. Style: abstract network visualization, glowing connections, red stress point with blue healthy areas, 16:9 aspect ratio.
+
+### Prompt 4: The Fire Drill
+
+Create an image of a modern office building during a fire drill—orderly evacuation, clear signage, safety equipment visible—as a metaphor for chaos engineering. People are calm because they practiced. The "fire" is controlled (small flames in a training area). Style: architectural cutaway showing organized response, warm safety colors against cool building tones, 16:9 aspect ratio.
+
+### Prompt 5: The Vaccine Metaphor
+
+Design an illustration showing a small, controlled "virus" (representing failure) being introduced to a system that develops "antibodies" (resilience improvements) in response. The system becomes stronger after exposure. Scientific/medical aesthetic applied to infrastructure. Style: biological illustration meets system architecture, microscope view aesthetic, greens and blues, 16:9 aspect ratio.
