@@ -245,3 +245,25 @@ Create an image of a modern office building during a fire drill—orderly evacua
 ### Prompt 5: The Vaccine Metaphor
 
 Design an illustration showing a small, controlled "virus" (representing failure) being introduced to a system that develops "antibodies" (resilience improvements) in response. The system becomes stronger after exposure. Scientific/medical aesthetic applied to infrastructure. Style: biological illustration meets system architecture, microscope view aesthetic, greens and blues, 16:9 aspect ratio.
+
+## ci-pipeline-caching-docker-layers-dependency-cache
+
+### Prompt 1: The Layer Cake
+
+Create an image of a stylized layer cake where each layer represents a Docker/build layer. Some layers are highlighted as "cached" (stable, perhaps crystallized or frozen), while the top layers show activity (being built). A speedometer or timer shows time saved. Style: technical illustration meets culinary art, cool blues for cached layers, warm colors for active build, 16:9 aspect ratio.
+
+### Prompt 2: The Warehouse of Artifacts
+
+Design an image of a vast automated warehouse with organized shelves of cached artifacts. Robotic arms retrieve items (cache hits) instantly while some items are being newly stored (cache misses). Efficiency and organization emphasized. Style: futuristic logistics illustration, clean industrial aesthetic, blue and white color scheme, 16:9 aspect ratio.
+
+### Prompt 3: The Key and Lock System
+
+Illustrate a sophisticated lock system where carefully crafted keys (cache keys) open specific vaults (cache storage). Some keys fit perfectly (exact match), others fit partially (restore keys). Wrong keys are rejected. Emphasis on precision and correctness. Style: steampunk meets modern tech, intricate key details, golden keys on dark background, 16:9 aspect ratio.
+
+### Prompt 4: The Pipeline Speedway
+
+Create an image of a CI pipeline as a racing track where builds are cars. Cached sections of the track are "fast lanes" with blur effects showing speed. Uncached sections show slower movement. Finish line shows dramatically reduced build times. Style: dynamic racing illustration, motion blur, green fast lanes vs. orange slow lanes, 16:9 aspect ratio.
+
+### Prompt 5: The Domino Effect (Invalidation)
+
+Design an image showing a line of dominoes where one change (a single modified file) triggers a cascade of cache invalidations down the line. Some dominoes are protected by barriers (good layer ordering), showing how proper structure prevents unnecessary rebuilds. Style: dramatic domino visualization, cause-and-effect clear, red for invalidation cascade, blue for protected sections, 16:9 aspect ratio.

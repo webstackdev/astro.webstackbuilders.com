@@ -202,7 +202,8 @@ To overlay an article title and published date on a cover image, use CSS positio
 - Need a layout alternative to Markup that formats for print. It needs to handle TOC differently as a full-width page. Need a fixed cover page format that adds article title, subtitle, and date.
 - We have two print scenarios: black and white, and color for PDF output. Can use two different media queries to accomplish getting colored variables.
 - Generate mermaid graphs for PDF from AI image generator to improve looks.
-- Need to make sure that on print, when we have a tabbed code block with multiple languages, only the first language is printed and the other language tabs are hidden.
+- Need to make sure that on print, when we have a tabbed code block with multiple languages, only the first language is printed and the other language tabs are hidden. The styling should be different for print for the code block.
+- Need to only load print style sheet when needed.
 
 [Paged.js](https://pagedjs.org/en/documentation/) polyfills `@page` properties, and lays out an HTML document in print format where it can have page numbers generated to update in a table of contents.
 
