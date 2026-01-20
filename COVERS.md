@@ -313,3 +313,25 @@ Create an image of an architect comparing a building under construction against 
 ### Prompt 5: The Two-Way Mirror
 
 Design an image showing a consumer service on one side of a two-way mirror and a provider service on the other. Between them, a contract document glows, showing what each side expects from the other. Both sides see their view clearly. Style: split-screen technology visualization, symmetric composition, purple and blue gradient, 16:9 aspect ratio.
+
+## container-vulnerability-scanning-ci-shift-left-security
+
+### Prompt 1: The Security Checkpoint
+
+Create an image of a modern airport-style security checkpoint, but for containers. Digital containers pass through a scanner showing X-ray views with green checkmarks and red warning icons for detected issues. Clean, professional security aesthetic. Style: futuristic security technology, blue and white with red alert highlights, 16:9 aspect ratio.
+
+### Prompt 2: The Shield Builder
+
+Design an image of a developer at a workstation building a protective shield layer by layer around a container. Each layer represents a security check (vulnerability scan, SBOM, policy gate). The shield glows with protective energy. Style: developer empowerment theme, warm and cool color contrast, clean geometric design, 16:9 aspect ratio.
+
+### Prompt 3: The Early Warning System
+
+Illustrate a radar or early warning display showing incoming threats (CVEs) being detected far from a protected city (production). Some threats are intercepted early (shift-left), while a few slip through requiring runtime detection. Style: military radar aesthetic, green phosphor screen, concentric circles, 16:9 aspect ratio.
+
+### Prompt 4: The Quality Gate
+
+Create an image of a medieval castle gate with a modern twist—digital scanners integrated into the ancient stone. Containers line up to pass through, some getting green approval stamps, others being turned away with red rejection marks. Style: medieval meets modern, stone and digital fusion, dramatic lighting, 16:9 aspect ratio.
+
+### Prompt 5: The Microscope View
+
+Design an image showing a container image under a microscope, with its layers visible like geological strata. A security researcher examines the layers, highlighting vulnerable packages in red and safe packages in green. Style: scientific examination aesthetic, laboratory visualization, clean and precise, 16:9 aspect ratio.
