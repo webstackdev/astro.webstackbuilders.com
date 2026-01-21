@@ -190,6 +190,8 @@ To overlay an article title and published date on a cover image, use CSS positio
 - Uppy, Tus server, whatever other server needed
 - Need a Q & A format to use in blameless-postmortem-incident-analysis-systemic-causes
 - Numbering for ordered lists breaks when there are code blocks in between numbered list elements, like in src/content/articles/cdn-edge-caching-cache-keys-vary-headers/index.mdx
+- Add a cloud of tags on articles list view at top for quick navigation. Add a ToC for featured tags so it's available on mobile, but with something different on desktop view - maybe hide tag cloud on mobile, and show it with an HR between all tags cloud and featured on desktop.
+- The "❌" symbol is not showing in sql code block, it's rendering as a plain "X". But "✅" renders okay. src/content/articles/database-schema-migrations-continuous-deployment-zero-downtime/index.mdx
 
 ## Reading position indicator
 

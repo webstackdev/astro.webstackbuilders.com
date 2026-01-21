@@ -335,3 +335,25 @@ Create an image of a medieval castle gate with a modern twist—digital scanners
 ### Prompt 5: The Microscope View
 
 Design an image showing a container image under a microscope, with its layers visible like geological strata. A security researcher examines the layers, highlighting vulnerable packages in red and safe packages in green. Style: scientific examination aesthetic, laboratory visualization, clean and precise, 16:9 aspect ratio.
+
+## database-schema-migrations-continuous-deployment-zero-downtime
+
+### Prompt 1: The Gradual Transform
+
+Create an image of a database table transforming like a caterpillar into a butterfly, but in stages. Each stage is visible—cocoon phases representing expand, migrate, contract. The transformation happens without disrupting the data particles flowing through it. Style: metamorphosis visualization, organic meets digital, warm transformation colors, 16:9 aspect ratio.
+
+### Prompt 2: The Bridge Construction
+
+Design an image of workers building a new bridge lane next to an existing one while traffic continues flowing. The old lane is labeled "old schema," the new lane "new schema." Traffic (data) flows uninterrupted. Style: engineering blueprint aesthetic, infrastructure metaphor, clean lines, blue and orange highlights, 16:9 aspect ratio.
+
+### Prompt 3: The Surgical Precision
+
+Illustrate a surgical operation on a beating heart (database), with surgeons (migration tools) carefully making changes while monitors show stable vital signs (uptime metrics). The heart continues beating throughout. Style: medical precision imagery, dramatic operating room lighting, blue surgical tones, 16:9 aspect ratio.
+
+### Prompt 4: The Train Track Switch
+
+Create an image of a train track switching mechanism, smoothly redirecting traffic from old tracks to new tracks without stopping the trains. Some trains are on old tracks, some on new, during the transition. Signals show green. Style: railway infrastructure, mechanical precision, motion blur on trains, 16:9 aspect ratio.
+
+### Prompt 5: The Locksmith's Patience
+
+Design an image of a master locksmith carefully replacing the lock on a door while the door remains functional. Old lock components sit neatly organized, new components being installed. A sign shows "Open During Renovation." Style: craftsman precision, detailed mechanical work, warm workshop lighting, 16:9 aspect ratio.
