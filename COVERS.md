@@ -357,3 +357,25 @@ Create an image of a train track switching mechanism, smoothly redirecting traff
 ### Prompt 5: The Locksmith's Patience
 
 Design an image of a master locksmith carefully replacing the lock on a door while the door remains functional. Old lock components sit neatly organized, new components being installed. A sign shows "Open During Renovation." Style: craftsman precision, detailed mechanical work, warm workshop lighting, 16:9 aspect ratio.
+
+## dead-letter-queue-design-replay-debugging
+
+### Prompt 1: The Hospital Recovery Ward
+
+Create an image of a hospital recovery ward for data messages. Injured messages (with bandages and casts) rest in beds while nurse-bots attend to them. Monitors show vital signs and recovery progress. Some messages are being discharged (replayed) healthy. Style: medical care meets data visualization, warm healing colors, clean and professional, 16:9 aspect ratio.
+
+### Prompt 2: The Forensic Laboratory
+
+Design an image of a forensic science laboratory where failed messages are being analyzed. Microscopes examine error details, evidence boards show failure patterns, and investigators piece together what went wrong. X-ray light boxes show message internals. Style: detective investigation aesthetic, blue forensic lighting, analytical atmosphere, 16:9 aspect ratio.
+
+### Prompt 3: The Message Rehabilitation Center
+
+Illustrate a rehabilitation gym where failed messages work to get healthy again. Some are on treadmills (retry queues), some are working with physical therapists (debugging tools), and some are graduating (being replayed). A scoreboard shows recovery statistics. Style: athletic rehabilitation imagery, motivational poster aesthetic, bright and optimistic, 16:9 aspect ratio.
+
+### Prompt 4: The Rescue Operation
+
+Create an image of a mountain rescue scene where messages that fell (failed) are being rescued from a crevasse (DLQ). Rescue teams with detailed equipment (metadata capture) carefully extract and stabilize each message before airlifting (replaying) them. Style: dramatic rescue photography, action and care combined, mountain rescue aesthetic, 16:9 aspect ratio.
+
+### Prompt 5: The Evidence Archive
+
+Design an image of an organized evidence archive room where each failed message is carefully cataloged in labeled boxes on shelves. Investigators can easily find and retrieve any case. A retrieval robot helps locate specific messages. Digital terminals allow searching. Style: organized archive aesthetic, library meets evidence room, systematic and accessible, 16:9 aspect ratio.
