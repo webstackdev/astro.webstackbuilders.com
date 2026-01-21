@@ -401,3 +401,25 @@ Create an image of a scale balancing "Observability Value" on one side (represen
 ### Prompt 5: The Haystack Problem
 
 Design an image of a massive haystack (routine traces) with several golden needles (interesting traces) hidden within. A smart detection system with sensors identifies and extracts only the needles without processing the entire haystack. Style: needle in haystack metaphor, agricultural meets technology, warm golden tones, 16:9 aspect ratio.
+
+## eol-runtime-upgrade-dependency-hell-migration
+
+### Prompt 1: The Dependency Maze
+
+Create an image of a developer navigating a complex maze where the walls are made of stacked package boxes labeled with version numbers. Some paths are blocked by red "EOL" barriers. A glowing path through the maze represents the upgrade path. Style: isometric 3D maze, package box aesthetic, red barriers, golden path, 16:9 aspect ratio.
+
+### Prompt 2: The Iceberg of Dependencies
+
+Design an image of an iceberg where the tip above water shows 3-4 direct dependency boxes, but below the waterline is a massive tangle of hundreds of transitive dependency boxes, some glowing red as blockers. Style: iceberg cross-section, package visualization, blue water tones, red warning highlights, 16:9 aspect ratio.
+
+### Prompt 3: The Version Timeline
+
+Illustrate a timeline showing runtime versions from EOL (grayed out, crumbling) through current (stable) to future (bright). Applications are shown migrating along the timeline, with some stuck at EOL boundaries. Style: horizontal timeline, version progression, decay-to-renewal gradient, 16:9 aspect ratio.
+
+### Prompt 4: The Upgrade Surgery
+
+Create an image of a surgical operation where surgeons (developers) are carefully replacing components in a complex system (application). Monitors show dependency graphs, and replacement parts are staged nearby. One surgeon holds up an old component labeled "EOL". Style: medical operating theater, technical precision, clean aesthetic, 16:9 aspect ratio.
+
+### Prompt 5: Breaking the Chains
+
+Design an image of chains connecting runtime boxes (Node 16, .NET Framework, CentOS 7) to an application, with some chains being cut by bolt cutters, freeing the application to float toward newer runtime boxes above. Style: chain and lock metaphor, breaking free visual, upward movement, 16:9 aspect ratio.

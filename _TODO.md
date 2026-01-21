@@ -192,6 +192,7 @@ To overlay an article title and published date on a cover image, use CSS positio
 - Numbering for ordered lists breaks when there are code blocks in between numbered list elements, like in src/content/articles/cdn-edge-caching-cache-keys-vary-headers/index.mdx
 - Add a cloud of tags on articles list view at top for quick navigation. Add a ToC for featured tags so it's available on mobile, but with something different on desktop view - maybe hide tag cloud on mobile, and show it with an HR between all tags cloud and featured on desktop.
 - The "❌" symbol is not showing in sql code block, it's rendering as a plain "X". But "✅" renders okay. src/content/articles/database-schema-migrations-continuous-deployment-zero-downtime/index.mdx
+- Use an in-project Image component to wrap Astro's Image and Picture. Show a magnifying glass with a "+" for the cursor on hover, and a modal to show a magnified view of images on click.
 
 ## Reading position indicator
 
@@ -329,6 +330,8 @@ some config
 ```
 
 For code examples like YAML config, use a concrete tool context so readers can understand where they would deploy or use the code. A single comment line or reference to the tool, or a descriptive file name, is sufficient. Prefer showing usage for AWS but a small amount of variety showing open source tools is the optimal case. So, for example, if there were four config examples, three might apply to AWS and one to an alternative tool. Do not include multiple tables, code blocks, or mermaid diagrams in a row without text between them to break them up. Do not import the Callout component, it is automatic. Don't use code blocks just for presentation, only for true pseudocode or real code examples. If there is info in a code block in the outline that is only for presentation purposes, redo it in a better presentation format.
+
+We are writing an article based on an outline, not just merely adding a few lines of text around existing outline elements like code blocks, diagrams, etc. We should evaluate whether the element makes any sense to keep - in some cases, they do not. We want to talk to the reader, not just introduce some element that already exists. But do keep elements that add value - the reason we have them in the outline is to give some ideas to help us avoid a "wall of text" which is where we've ended up also. We need to find a happy medium ground between "text only" that is difficult to work through, and just introductory sentences added for code blocks, diagrams, and other elements that are added to the diagram to give us something to work with and provide variety.
 
 __review__
 
