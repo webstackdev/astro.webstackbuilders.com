@@ -193,6 +193,7 @@ To overlay an article title and published date on a cover image, use CSS positio
 - Add a cloud of tags on articles list view at top for quick navigation. Add a ToC for featured tags so it's available on mobile, but with something different on desktop view - maybe hide tag cloud on mobile, and show it with an HR between all tags cloud and featured on desktop.
 - The "❌" symbol is not showing in sql code block, it's rendering as a plain "X". But "✅" renders okay. src/content/articles/database-schema-migrations-continuous-deployment-zero-downtime/index.mdx
 - Use an in-project Image component to wrap Astro's Image and Picture. Show a magnifying glass with a "+" for the cursor on hover, and a modal to show a magnified view of images on click.
+- Add a copyright notice to content
 
 ## Reading position indicator
 
@@ -247,10 +248,9 @@ Complex Text and Instruction Following: The model demonstrates an enhanced under
 
 ## Content
 
-ephemeral-preview-environments-cost-control-cleanup
 error-budget-policy-slo-velocity-reliability-tradeoffs
 event-schema-versioning-compatibility-evolution
-flaky-test-diagnosis-race-conditions-e2e-stabilization
+
 golden-paths-developer-experience-standardization-autonomy
 grafana-dashboard-hygiene-pruning-actionable-metrics
 helm-release-management-drift-detection-debugging

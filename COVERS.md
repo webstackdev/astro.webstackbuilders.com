@@ -445,3 +445,69 @@ Create an image of a hotel where each room is a preview environment. The front d
 ### Prompt 5: The Hibernation Pods
 
 Design an image of a futuristic facility with rows of hibernation pods. Active environments glow with activity, while hibernated ones are dimmed but intact. When someone approaches a hibernated pod, it begins to wake up with lights activating. A control panel shows power (cost) savings. Style: sci-fi hibernation facility, energy efficiency visualization, wake-on-demand aesthetic, 16:9 aspect ratio.
+
+## error-budget-policy-slo-velocity-reliability-tradeoffs
+
+### Prompt 1: The Reliability Bank Account
+
+Create an image of a bank vault with "Error Budget" on the door. Inside, stacks of time currency (labeled in minutes) sit on shelves. A developer makes a withdrawal (deployment), while a monitor shows the remaining balance. Some shelves are full (healthy), others nearly empty (critical). Style: bank vault aesthetic, time as currency, balance meter, 16:9 aspect ratio.
+
+### Prompt 2: The Velocity-Reliability Scale
+
+Design an image of a large balance scale. On one side, features and velocity (rockets, new product boxes). On the other side, reliability and stability (shields, solid foundations). The fulcrum is labeled "Error Budget." The scale tips based on budget status. Style: classical balance scale, modern tech items, dynamic balance, 16:9 aspect ratio.
+
+### Prompt 3: The Budget Speedometer
+
+Illustrate a car dashboard where the speedometer shows "Deployment Velocity" and the fuel gauge shows "Error Budget Remaining." Warning lights activate as budget depletes. The driver (team) must balance speed with fuel consumption. Style: automotive dashboard, gauges and warning lights, driver perspective, 16:9 aspect ratio.
+
+### Prompt 4: The Three-Way Negotiation
+
+Create an image of three figures at a round table: Product (holding feature list), Engineering (holding architecture diagram), and SRE (holding stability metrics). In the center of the table, a glowing orb represents the error budget, illuminating their discussion. Style: negotiation scene, collaborative meeting, central focus on budget, 16:9 aspect ratio.
+
+### Prompt 5: The Budget Seasons
+
+Design an image showing four quadrants representing budget states like seasons: Spring (healthy, green, growth), Summer (spending, active deployments), Autumn (warning, orange leaves falling), Winter (exhausted, frozen, minimal activity). A wheel in the center shows the current state. Style: four seasons metaphor, lifecycle visualization, nature meets technology, 16:9 aspect ratio.
+
+## event-schema-versioning-compatibility-evolution
+
+### Prompt 1: The Evolving Contract
+
+Create an image of two hands holding opposite ends of a contract/scroll. The scroll is being stretched as new clauses (fields) are added in the middle, but the original agreement at both ends remains intact. Glowing lines connect old and new sections showing compatibility. Style: contract metaphor, legal document aesthetic, evolution visualization, 16:9 aspect ratio.
+
+### Prompt 2: The Version Tree
+
+Design an image of a tree where the trunk represents the original schema, and branches represent versions. Some branches grow naturally (compatible changes), while others split off completely (breaking changes). Leaves on each branch represent consumers attached to that version. Style: tree of life meets version control, organic growth, branching visualization, 16:9 aspect ratio.
+
+### Prompt 3: The Bridge Between Versions
+
+Illustrate two islands representing schema V1 and V2. A bridge (compatibility layer) connects them, with data packets traveling both directions. Some data transforms as it crosses. Engineers work to maintain the bridge while building a new island (V3) in the distance. Style: bridge engineering metaphor, data flow visualization, construction aesthetic, 16:9 aspect ratio.
+
+### Prompt 4: The Schema Registry Tower
+
+Create an image of a central tower (schema registry) with beams of light connecting it to surrounding buildings (producers and consumers). Each beam carries a version number. The tower's core shows stacked schema versions, with compatibility checks happening at the entrance. Style: lighthouse/control tower, centralized coordination, connection visualization, 16:9 aspect ratio.
+
+### Prompt 5: The Dual Write Stream
+
+Design an image of a river splitting into two parallel streams (V1 and V2 topics). The source (producer) feeds both streams simultaneously. Consumers line both banks, some crossing from the old stream to the new via stepping stones. The old stream gradually narrows as consumers migrate. Style: river delta metaphor, migration flow, parallel streams, 16:9 aspect ratio.
+
+## flaky-test-diagnosis-race-conditions-e2e-stabilization
+
+### Prompt 1: The Coin Flip Test
+
+Create an image of a scientist in a lab coat flipping a coin above a computer monitor showing a test result. The coin is mid-air, blurred between heads (green checkmark) and tails (red X). Multiple ghostly afterimages of past flips float behind. Style: scientific experimentation meets randomness, probability visualization, 16:9 aspect ratio.
+
+### Prompt 2: The Race Condition
+
+Design an image of two runners (labeled "Test" and "App") racing toward a finish line (labeled "Assert"). The Test runner is about to cross but the App runner hasn't arrived yet. A stopwatch shows milliseconds. Multiple exposure shows sometimes Test wins, sometimes App. Style: athletics meets timing diagram, motion blur, competition aesthetic, 16:9 aspect ratio.
+
+### Prompt 3: The Quarantine Ward
+
+Illustrate a hospital ward where tests are patients in beds. Some beds are in a quarantined section behind glass. Doctors (developers) examine charts showing flake rates. A test being released from quarantine looks healthy. Style: medical metaphor, quarantine visualization, diagnostic charts, 16:9 aspect ratio.
+
+### Prompt 4: The Stability Laboratory
+
+Create an image of a lab with multiple test tubes, each containing a miniature test scenario. Some tubes are stable (clear liquid), others are bubbling chaotically (flaky). A scientist uses instruments to stabilize the bubbling tubes. Monitors show success/failure graphs. Style: chemistry lab meets software testing, stability experimentation, 16:9 aspect ratio.
+
+### Prompt 5: The Signal vs Noise
+
+Design an image of a radio operator trying to tune into a signal. The dial shows "Real Failures" on one end and "Flaky Noise" on the other. Static and clear signals compete on the display. The operator adjusts to filter out noise and find the true signal. Style: vintage radio meets data analysis, signal processing aesthetic, 16:9 aspect ratio.
