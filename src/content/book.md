@@ -1,5 +1,7 @@
 # Platform Engineering Fundamentals
 
+Repo idea: A GitHub Action that calculates and updates a preview environment cost on a PR
+
 - 
   Module 1: Intro to platform engineering
 

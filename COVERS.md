@@ -423,3 +423,25 @@ Create an image of a surgical operation where surgeons (developers) are carefull
 ### Prompt 5: Breaking the Chains
 
 Design an image of chains connecting runtime boxes (Node 16, .NET Framework, CentOS 7) to an application, with some chains being cut by bolt cutters, freeing the application to float toward newer runtime boxes above. Style: chain and lock metaphor, breaking free visual, upward movement, 16:9 aspect ratio.
+
+## ephemeral-preview-environments-cost-control-cleanup
+
+### Prompt 1: The Environment Garden
+
+Create an image of a garden with small plant pods (preview environments) sprouting from the ground. A robotic gardener automatically prunes dead plants and waters active ones. Some pods have wilted (expired TTL), while others flourish. A meter shows water (cost) usage. Style: whimsical tech garden, automated gardening robot, lifecycle visualization, 16:9 aspect ratio.
+
+### Prompt 2: The Cloud Bill Monster
+
+Design an image showing a small developer happily creating preview environments (represented as bubbles), while behind them a shadow grows into a monster made of cloud bills and receipts. A cleanup bot stands guard with a broom, keeping the monster at bay. Style: playful warning illustration, shadow monster aesthetic, balance of creation and cleanup, 16:9 aspect ratio.
+
+### Prompt 3: The Lifecycle Clock
+
+Illustrate a large clock where each hour represents a stage in the preview environment lifecycle. Environments move around the clock face from "Created" through "Active" to "Idle" to "Destroyed." Some environments try to escape the clock but are caught by cleanup automation. Style: clock face visualization, lifecycle stages as hours, automation as clock mechanism, 16:9 aspect ratio.
+
+### Prompt 4: The Resource Hotel
+
+Create an image of a hotel where each room is a preview environment. The front desk shows check-in/check-out (TTL), some rooms have "Do Not Disturb" signs (extended TTL), and a cleaning crew systematically cleans empty rooms. A billing counter tallies room charges in real-time. Style: hotel management metaphor, orderly hospitality, visible cost tracking, 16:9 aspect ratio.
+
+### Prompt 5: The Hibernation Pods
+
+Design an image of a futuristic facility with rows of hibernation pods. Active environments glow with activity, while hibernated ones are dimmed but intact. When someone approaches a hibernated pod, it begins to wake up with lights activating. A control panel shows power (cost) savings. Style: sci-fi hibernation facility, energy efficiency visualization, wake-on-demand aesthetic, 16:9 aspect ratio.

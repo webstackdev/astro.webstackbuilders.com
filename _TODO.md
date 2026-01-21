@@ -247,7 +247,6 @@ Complex Text and Instruction Following: The model demonstrates an enhanced under
 
 ## Content
 
-eol-runtime-upgrade-dependency-hell-migration
 ephemeral-preview-environments-cost-control-cleanup
 error-budget-policy-slo-velocity-reliability-tradeoffs
 event-schema-versioning-compatibility-evolution
