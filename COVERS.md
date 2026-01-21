@@ -379,3 +379,25 @@ Create an image of a mountain rescue scene where messages that fell (failed) are
 ### Prompt 5: The Evidence Archive
 
 Design an image of an organized evidence archive room where each failed message is carefully cataloged in labeled boxes on shelves. Investigators can easily find and retrieve any case. A retrieval robot helps locate specific messages. Digital terminals allow searching. Style: organized archive aesthetic, library meets evidence room, systematic and accessible, 16:9 aspect ratio.
+
+## distributed-tracing-sampling-strategies-head-tail
+
+### Prompt 1: The Signal Amidst Noise
+
+Create an image of a vast field of identical white dots (routine traces) with a few distinct colored dots (errors, slow requests) scattered throughout. A magnifying lens hovers over the field, automatically highlighting only the colored dots. Style: minimalist data visualization, high contrast, clean lines, 16:9 aspect ratio.
+
+### Prompt 2: The Funnel of Insights
+
+Design an image of a large funnel receiving a torrent of data streams (all traces) at the top. The funnel filters, and only a refined stream of golden traces emerges at the bottom. Labels on the funnel show "Errors," "Slow," "Important Users." Style: industrial processing aesthetic, data flow visualization, metallic and gold tones, 16:9 aspect ratio.
+
+### Prompt 3: Head and Tail Decision Points
+
+Illustrate a timeline showing a request flowing through services. At the head (start), a dice is rolled for the sampling decision. At the tail (end), a judge evaluates the complete trace. Two parallel paths show the different decision points. Style: timeline diagram, decision tree aesthetic, contrasting colors for head/tail, 16:9 aspect ratio.
+
+### Prompt 4: The Budget Balance
+
+Create an image of a scale balancing "Observability Value" on one side (represented by magnifying glass, insights) against "Cost" on the other (represented by storage icons, money). A dial labeled "Sample Rate" controls the balance point. Style: balance/scale metaphor, financial aesthetic, equilibrium visualization, 16:9 aspect ratio.
+
+### Prompt 5: The Haystack Problem
+
+Design an image of a massive haystack (routine traces) with several golden needles (interesting traces) hidden within. A smart detection system with sensors identifies and extracts only the needles without processing the entire haystack. Style: needle in haystack metaphor, agricultural meets technology, warm golden tones, 16:9 aspect ratio.

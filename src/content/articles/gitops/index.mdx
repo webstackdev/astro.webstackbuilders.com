@@ -6,7 +6,7 @@ coverAlt: "TODO"
 author: "kevin-brown"
 publishDate: 2024-01-15
 tags: ["apis-and-gateways"]
-featured: true
+isDraft: true
 ---
 
 In 2026, separating application code from infrastructure as code (IaC) is standard operational hygiene for ensuring security, governance, and stable automation.
@@ -116,26 +116,26 @@ Cloud Integrations
 
 - Enterprise wide, though, K8s is not very standardized on. But even in a lot of teams that have it, they just see it as a cloud…those that are creative enough to understand what you could do with controllers and operators beyond just managing workloads are much further and fewer in between. That's the big gap to overcome for Crossplane, IMHO.
 
-In the context of that Reddit thread, users are describing a shift from **Infrastructure as Code (IaC)** as a task to **Kubernetes (K8s) as a Control Plane** as a permanent state. 
+In the context of that Reddit thread, users are describing a shift from **Infrastructure as Code (IaC)** as a task to **Kubernetes (K8s) as a Control Plane** as a permanent state.
 
-While Terraform and Crossplane both use code to define infrastructure, they operate with fundamentally different philosophies: 
+While Terraform and Crossplane both use code to define infrastructure, they operate with fundamentally different philosophies:
 
 1. "Push" vs. "Reconciliation"
 
 - **Terraform (Push):** You run a command (`terraform apply`), Terraform creates the resources, and then it stops. If someone manually deletes an S3 bucket 10 minutes later, Terraform won't know or fix it until you manually run the command again.
-- **Crossplane (Reconciliation):** It uses the Kubernetes **Control Loop**. It is "always on." If a resource is deleted or changed manually, the Crossplane controller detects the "drift" and immediately recreates or fixes it to match your code without human intervention. 
+- **Crossplane (Reconciliation):** It uses the Kubernetes **Control Loop**. It is "always on." If a resource is deleted or changed manually, the Crossplane controller detects the "drift" and immediately recreates or fixes it to match your code without human intervention.
 - Infrastructure as Data (The Kubernetes API)
 
-The "mental agility" comment refers to seeing K8s not just as a place to run Docker containers, but as a **universal API**. 
+The "mental agility" comment refers to seeing K8s not just as a place to run Docker containers, but as a **universal API**.
 
 - **Custom Resources:** Crossplane extends the K8s API using Custom Resource Definitions (CRDs). An AWS database or an Azure storage bucket becomes a native K8s object, just like a Pod.
-- **Standardized Tooling:** You can manage your cloud databases using `kubectl`, apply RBAC policies to them, and manage them with GitOps tools like ArgoCD or Flux, just as you do for your apps. 
+- **Standardized Tooling:** You can manage your cloud databases using `kubectl`, apply RBAC policies to them, and manage them with GitOps tools like ArgoCD or Flux, just as you do for your apps.
 - Separation of Concerns (Compositions)
 
-This is the "extensible" part mentioned in the thread. Crossplane allows platform teams to create **Compositions**—high-level abstractions of complex infrastructure. 
+This is the "extensible" part mentioned in the thread. Crossplane allows platform teams to create **Compositions**—high-level abstractions of complex infrastructure.
 
 - **Platform Team:** Defines a "Standard-DB" composition that includes a database, specific firewall rules, and backup policies.
-- **Developers:** Simply request a `Standard-DB` via a small YAML file without needing to know the low-level cloud provider details or having direct access to the cloud console. 
+- **Developers:** Simply request a `Standard-DB` via a small YAML file without needing to know the low-level cloud provider details or having direct access to the cloud console.
 
 Key Differences at a Glance
 
@@ -147,6 +147,6 @@ Key Differences at a Glance
 | **Drift**     | Found during next `plan`   | Automatically corrected             |
 
 **Why the "gap"?**
-The commenters mean that most people see K8s only as a "hosting platform" (a cloud). They find it difficult to transition to seeing K8s as the **orchestrator for everything**—where the cluster itself acts as a robot that constantly manages all your AWS/GCP/Azure resources. 
+The commenters mean that most people see K8s only as a "hosting platform" (a cloud). They find it difficult to transition to seeing K8s as the **orchestrator for everything**—where the cluster itself acts as a robot that constantly manages all your AWS/GCP/Azure resources.
 
 "Until composition functions land in Crossplane it’ll still have some major operational holes, like being able to look up which VPC the EKS cluster is in to place the RDS instance in it etc."
