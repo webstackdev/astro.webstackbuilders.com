@@ -511,3 +511,25 @@ Create an image of a lab with multiple test tubes, each containing a miniature t
 ### Prompt 5: The Signal vs Noise
 
 Design an image of a radio operator trying to tune into a signal. The dial shows "Real Failures" on one end and "Flaky Noise" on the other. Static and clear signals compete on the display. The operator adjusts to filter out noise and find the true signal. Style: vintage radio meets data analysis, signal processing aesthetic, 16:9 aspect ratio.
+
+## golden-paths-developer-experience-standardization-autonomy
+
+### Prompt 1: The Paved Road
+
+Create an image of a beautifully paved highway through a landscape, with clear signage and rest stops. Beside it, a rougher dirt road exists for those who need it—not blocked, just less maintained. Travelers on both paths are visible, with most choosing the highway. Style: infrastructure metaphor, choice visualization, journey aesthetic, 16:9 aspect ratio.
+
+### Prompt 2: The Garden Path
+
+Design an image of a well-maintained garden path with stepping stones, flowers, and lighting. Other paths branch off into wilder areas—still accessible but requiring more effort. A gardener (platform engineer) tends the main path while hikers explore both options. Style: garden design meets navigation, curated vs wild paths, 16:9 aspect ratio.
+
+### Prompt 3: The Guardrails
+
+Illustrate a mountain road with guardrails along the edge. The guardrails protect travelers but don't prevent them from stopping, taking photos, or even carefully going beyond them to explore viewpoints. An overlook area shows where going off-path is sanctioned. Style: safety meets freedom, mountain driving aesthetic, protection without restriction, 16:9 aspect ratio.
+
+### Prompt 4: The Choice Architecture
+
+Create an image of a modern transit hub where multiple routes are visible. The recommended route is highlighted, well-lit, and signed. Alternative routes exist—clearly marked but requiring more navigation. Information boards help travelers choose. Style: transit design, wayfinding systems, choice architecture, 16:9 aspect ratio.
+
+### Prompt 5: The Open Door
+
+Design an image of a welcoming open door marked "Recommended Path" leading into a well-lit, furnished room with tools and resources. Other doors along the hallway are labeled but not locked—they lead to less equipped rooms. Developers are choosing which door to enter. Style: threshold metaphor, welcome vs restriction, choice and consequence, 16:9 aspect ratio.

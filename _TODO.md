@@ -251,7 +251,6 @@ Complex Text and Instruction Following: The model demonstrates an enhanced under
 error-budget-policy-slo-velocity-reliability-tradeoffs
 event-schema-versioning-compatibility-evolution
 
-golden-paths-developer-experience-standardization-autonomy
 grafana-dashboard-hygiene-pruning-actionable-metrics
 helm-release-management-drift-detection-debugging
 idempotent-message-handlers-deduplication-retries
