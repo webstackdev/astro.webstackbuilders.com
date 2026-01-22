@@ -533,3 +533,25 @@ Create an image of a modern transit hub where multiple routes are visible. The r
 ### Prompt 5: The Open Door
 
 Design an image of a welcoming open door marked "Recommended Path" leading into a well-lit, furnished room with tools and resources. Other doors along the hallway are labeled but not locked—they lead to less equipped rooms. Developers are choosing which door to enter. Style: threshold metaphor, welcome vs restriction, choice and consequence, 16:9 aspect ratio.
+
+## grafana-dashboard-hygiene-pruning-actionable-metrics
+
+### Prompt 1: The Overgrown Garden
+
+Create an image of a garden that has become overgrown with weeds, with a gardener beginning to prune and clear paths. Some well-maintained flower beds are visible among the overgrowth. Pruning shears cut away dead growth to reveal healthy plants beneath. Style: garden maintenance metaphor, order from chaos, careful cultivation, 16:9 aspect ratio.
+
+### Prompt 2: The Cluttered Control Room
+
+Design an image of a control room with dozens of monitors, but most are dusty or showing static. An operator focuses on the few screens that matter, while others are being unplugged and removed. Clear labels mark the essential displays. Style: mission control meets decluttering, signal vs noise, operational focus, 16:9 aspect ratio.
+
+### Prompt 3: The Library Stacks
+
+Illustrate a library with towering bookshelves, some sections well-organized and lit, others dusty and cobwebbed. A librarian reviews books, placing some in an archive box and others on a "discard" cart. A patron easily finds a book in the organized section. Style: library organization, curation process, knowledge management, 16:9 aspect ratio.
+
+### Prompt 4: The Dashboard Graveyard
+
+Create an image of abandoned dashboards as gravestones in a misty graveyard, with dates like "Created: 2019, Last Viewed: 2020." A curator walks through, marking some for preservation and others for removal. New, healthy dashboards grow like trees nearby. Style: digital archaeology, lifecycle visualization, maintenance metaphor, 16:9 aspect ratio.
+
+### Prompt 5: The Signal Fire
+
+Design an image of a watchtower with a clear signal fire burning bright. Around its base, numerous smaller, dimmer fires create smoke and confusion. A keeper extinguishes the unhelpful fires while ensuring the main signal remains visible for miles. Style: signal vs noise, focus and clarity, lighthouse aesthetic, 16:9 aspect ratio.

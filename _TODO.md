@@ -251,7 +251,6 @@ Complex Text and Instruction Following: The model demonstrates an enhanced under
 error-budget-policy-slo-velocity-reliability-tradeoffs
 event-schema-versioning-compatibility-evolution
 
-grafana-dashboard-hygiene-pruning-actionable-metrics
 helm-release-management-drift-detection-debugging
 idempotent-message-handlers-deduplication-retries
 internal-cli-kubectl-terraform-wrapper-abstraction
