@@ -251,8 +251,6 @@ Complex Text and Instruction Following: The model demonstrates an enhanced under
 error-budget-policy-slo-velocity-reliability-tradeoffs
 event-schema-versioning-compatibility-evolution
 
-internal-cli-kubectl-terraform-wrapper-abstraction
-internal-developer-portal-platform-self-service-actions
 internal-platform-api-versioning-deprecation-breaking-changes
 kubernetes-cluster-upgrade-playbook-risk-reduction
 kubernetes-cost-optimization-resource-sizing-spot-instances

@@ -19,13 +19,13 @@ featured: true
 *[PR]: Pull Request
 *[SLA]: Service Level Agreement
 
-# Portal vs Platform: Why Your IDP Is Just Links
+Last month I watched a developer spend three days getting a PostgreSQL database. The company had a beautiful internal developer portal - Backstage, fully themed, comprehensive service catalog, scorecards showing tech debt metrics. The developer found the "Database Provisioning" page in under 30 seconds. Then he read the instructions: file a Jira ticket with the DBA team, wait for triage, attend a 15-minute review meeting to justify the request, and receive credentials via a separate ticket once provisioning completed. Three to five business days, assuming no holidays or sick leave on the DBA team.
 
-## Introduction
+The portal worked perfectly. The developer knew exactly where to go and what to do. And yet the outcome was identical to not having a portal at all - the same tickets, the same meetings, the same waiting.
 
-Frame the portal-vs-platform distinction: many organizations build an "Internal Developer Portal" that's essentially a wiki with links—service catalogs, runbook pointers, team contact lists. These are useful but don't reduce toil. A true platform does things: provisions infrastructure, creates repositories, deploys services, grants access. The difference is between "here's the documentation for how to request a database" and "click here to get a database." This section establishes that self-service actions are what transform a portal from a directory into a platform.
+That's the portal-versus-platform distinction that trips up most organizations. A portal _indexes_ things: it aggregates links, surfaces documentation, shows who owns what. A platform _does_ things: it provisions infrastructure, creates repositories, grants access. The portal tells you how to request a database. The platform gives you a database.
 
-_Include a scenario: a developer needs a new PostgreSQL database for a feature. In a portal-only world, they find a Confluence page with instructions to file a Jira ticket, wait for the DBA team, attend a review meeting, and get credentials in 3-5 business days. In a platform world, they select "New Database" in the portal, fill out a form, and have a provisioned database with credentials in 15 minutes._
+The difference matters because it determines whether your internal developer platform actually reduces toil or just makes toil easier to find. Self-service actions are what transform a directory into a platform. Without them, you've built a prettier wiki.
 
 <Callout type="warning">
 If your "platform" requires developers to read documentation and file tickets to get things done, you've built a directory, not a platform. Platforms execute workflows. Directories point to workflows that humans execute.
@@ -33,97 +33,24 @@ If your "platform" requires developers to read documentation and file tickets to
 
 ## The Portal Maturity Model
 
-### From Links to Actions
+Most internal developer portals evolve through predictable stages. Understanding where you are helps clarify where to invest next - and where most organizations get stuck.
 
-```mermaid
-graph LR
-    subgraph "Level 1: Directory"
-        A1[Service Catalog] --> B1[Links to Docs]
-        A1 --> C1[Team Contacts]
-        A1 --> D1[Runbook Links]
-    end
+_Level 1: Directory._ This is the starting point - a central place that aggregates links to documentation, team contacts, and runbooks. Think Confluence home pages, GitHub wikis with service lists, or spreadsheets tracking ownership. The value is real: developers know where to look. But they still have to do everything manually. Finding the database provisioning doc doesn't provision the database.
 
-    subgraph "Level 2: Search"
-        A2[Unified Search] --> B2[API Discovery]
-        A2 --> C2[Dependency Graph]
-        A2 --> D2[Documentation Search]
-    end
+_Level 2: Search._ The directory becomes searchable and indexed. Backstage with a service catalog lives here, along with API registries and dependency graph visualizations. Discovery is faster. Context switching drops. But finding something quickly doesn't mean you can act on it quickly. The developer who locates the database docs in 30 seconds still files the same ticket and waits the same 3-5 days.
 
-    subgraph "Level 3: Insights"
-        A3[Service Health] --> B3[Ownership Data]
-        A3 --> C3[Quality Metrics]
-        A3 --> D3[Cost Attribution]
-    end
+_Level 3: Insights._ Now the portal shows health metrics, ownership data, and quality scorecards. You can see which services have test coverage gaps, which teams own what, and how much each service costs. Visibility improves dramatically. But seeing problems doesn't fix them. The dashboard showing your DBA team has a 47-ticket backlog doesn't get your database provisioned faster.
 
-    subgraph "Level 4: Platform"
-        A4[Self-Service Actions] --> B4[Automated Workflows]
-        A4 --> C4[Guardrails Built-in]
-        A4 --> D4[Integrated Approvals]
-    end
+_Level 4: Platform._ Self-service actions with automation. Developers can provision databases, create services, and request access - not by finding documentation, but by clicking buttons and filling forms that trigger real workflows. The difference isn't incremental. It's the difference between "3-5 business days" and "15 minutes."
 
-    A1 --> A2 --> A3 --> A4
-```
-Figure: Portal maturity progression.
-
-```yaml title="maturity-levels.yaml"
-portal_maturity:
-  level_1_directory:
-    description: "Aggregated links and documentation"
-    value: "Single place to find information"
-    limitation: "Developers still do all the work"
-    examples:
-      - "Confluence home page"
-      - "GitHub wiki with service list"
-      - "Spreadsheet of services and owners"
-    developer_experience: "I know where to look, but I still have to do everything manually"
-
-  level_2_search:
-    description: "Searchable, indexed knowledge"
-    value: "Faster discovery, less context switching"
-    limitation: "Finding doesn't mean doing"
-    examples:
-      - "Backstage with service catalog"
-      - "Searchable API registry"
-      - "Dependency graph visualization"
-    developer_experience: "I can find what I need quickly, but getting things done still requires tickets"
-
-  level_3_insights:
-    description: "Aggregated metrics and health data"
-    value: "Visibility into system state"
-    limitation: "Seeing problems doesn't fix them"
-    examples:
-      - "Service scorecards"
-      - "Tech debt tracking"
-      - "Ownership and coverage reports"
-    developer_experience: "I can see what's wrong, but fixing it requires navigating multiple systems"
-
-  level_4_platform:
-    description: "Self-service actions with automation"
-    value: "Developers can do, not just see"
-    limitation: "Requires significant investment"
-    examples:
-      - "One-click service creation"
-      - "Automated environment provisioning"
-      - "Self-service access requests with auto-approval"
-    developer_experience: "I can get what I need without waiting for other teams"
-
-value_comparison:
-  metric: "Time to provision new database"
-  level_1: "3-5 business days (ticket, review, manual provisioning)"
-  level_2: "3-5 business days (easier to find docs, same process)"
-  level_3: "3-5 business days (can see queue length, same process)"
-  level_4: "15 minutes (self-service with guardrails)"
-```
-Code: Portal maturity levels with concrete examples.
-
-| Level | What Developers Can Do | What Developers Still Can't Do |
-|-------|------------------------|-------------------------------|
+| Level | What Developers Can Do | What They Still Can't Do |
+|-------|------------------------|--------------------------|
 | Directory | Find documentation | Execute workflows |
 | Search | Quickly find services and APIs | Provision or modify resources |
 | Insights | See health and ownership | Fix issues without tickets |
 | Platform | Self-service common tasks | Only edge cases need tickets |
 
-Table: Capability comparison across maturity levels.
+Table: Portal maturity levels.
 
 <Callout type="info">
 Most organizations plateau at Level 2 or 3. They build beautiful service catalogs with scorecards and graphs, but developers still file tickets for everything. The jump to Level 4 requires different thinking: instead of "what should developers know?" ask "what should developers be able to do?"
@@ -131,239 +58,85 @@ Most organizations plateau at Level 2 or 3. They build beautiful service catalog
 
 ## Self-Service Action Design
 
+The difference between a good self-service action and a frustrating one often comes down to design decisions that seem minor but compound. A database provisioning action that takes 30 seconds to fill out and 15 minutes to complete feels magical. The same action with a confusing form, unclear outcomes, and no progress visibility feels like a different kind of ticket system.
+
 ### Anatomy of a Good Action
 
-```yaml title="action-anatomy.yaml"
-# Well-designed self-service action structure
+A well-designed action has clear structure: identity (what it is), inputs (what the user provides), workflow (what happens), and outputs (what the user gets back). Here's what that looks like for database provisioning:
 
-action:
-  id: "provision-postgresql-database"
-  name: "Create PostgreSQL Database"
-  description: "Provision a new PostgreSQL database with configured access"
+```yaml title="backstage-action-definition.yaml"
+# Backstage scaffolder action for PostgreSQL provisioning
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: provision-postgresql-database
+  title: Create PostgreSQL Database
+  description: Provision a new PostgreSQL database with configured access
+  tags: ["postgresql", "database", "self-service"]
+spec:
+  owner: platform-data-team
+  type: database
 
-  # Clear categorization
-  category: "Databases"
-  tags: ["postgresql", "data", "self-service"]
+  parameters:
+    - title: Database Configuration
+      required: [name, environment, size]
+      properties:
+        name:
+          title: Database Name
+          type: string
+          pattern: "^[a-z][a-z0-9-]{2,30}$"
+          description: Lowercase letters, numbers, hyphens. 3-31 chars.
+        environment:
+          title: Environment
+          type: string
+          enum: [dev, staging, production]
+          default: dev
+        size:
+          title: Instance Size
+          type: string
+          enum: [small, medium, large]
+          enumNames:
+            - Small (2 vCPU, 8GB) - $50/mo
+            - Medium (4 vCPU, 16GB) - $150/mo
+            - Large (8 vCPU, 32GB) - $400/mo
+          default: small
 
-  # Ownership and support
-  owner: "platform-data-team"
-  support_channel: "#data-platform-help"
-  documentation: "https://wiki/database-provisioning"
+  steps:
+    - id: create-terraform-pr
+      name: Create Infrastructure PR
+      action: publish:github:pull-request
+      input:
+        repoUrl: github.com?repo=infrastructure&owner=myorg
+        branchName: db-${{ parameters.name }}
+        title: "Provision database: ${{ parameters.name }}"
 
-  # Input form
-  inputs:
-    - id: "name"
-      label: "Database Name"
-      type: "string"
-      required: true
-      validation:
-        pattern: "^[a-z][a-z0-9-]{2,30}$"
-        message: "Lowercase letters, numbers, hyphens. 3-31 chars."
+    - id: wait-for-apply
+      name: Apply Infrastructure
+      action: terraform:wait-for-apply
+      input:
+        prUrl: ${{ steps.create-terraform-pr.output.remoteUrl }}
 
-    - id: "environment"
-      label: "Environment"
-      type: "select"
-      required: true
-      options:
-        - value: "dev"
-          label: "Development"
-        - value: "staging"
-          label: "Staging"
-        - value: "production"
-          label: "Production"
-          requires_approval: true
-
-    - id: "size"
-      label: "Instance Size"
-      type: "select"
-      required: true
-      options:
-        - value: "small"
-          label: "Small (2 vCPU, 8GB RAM) - $50/mo"
-        - value: "medium"
-          label: "Medium (4 vCPU, 16GB RAM) - $150/mo"
-        - value: "large"
-          label: "Large (8 vCPU, 32GB RAM) - $400/mo"
-          requires_approval: true
-
-    - id: "owner_team"
-      label: "Owning Team"
-      type: "team_picker"
-      required: true
-      default: "{{current_user.team}}"
-
-  # What happens when submitted
-  workflow:
-    steps:
-      - name: "Validate request"
-        action: "validate"
-        checks:
-          - "User has database provisioning permission"
-          - "Team hasn't exceeded database quota"
-          - "Name not already in use"
-
-      - name: "Create Terraform PR"
-        action: "create_pull_request"
-        repository: "infrastructure/databases"
-        template: "postgresql-instance"
-        variables:
-          db_name: "{{inputs.name}}"
-          environment: "{{inputs.environment}}"
-          instance_class: "{{inputs.size}}"
-          owner_team: "{{inputs.owner_team}}"
-
-      - name: "Auto-merge if approved"
-        action: "conditional_merge"
-        condition: "{{inputs.environment}} != 'production'"
-
-      - name: "Wait for Terraform apply"
-        action: "wait_for_pipeline"
-        timeout: "15m"
-
-      - name: "Store credentials"
-        action: "create_secret"
-        vault_path: "databases/{{inputs.name}}"
-
-      - name: "Notify user"
-        action: "notify"
-        channels: ["email", "slack"]
-        message: "Database {{inputs.name}} is ready. Credentials at {{vault_path}}"
-
-  # What the user sees
-  outputs:
-    - name: "connection_string"
-      label: "Connection String"
-      sensitive: true
-    - name: "credentials_location"
-      label: "Credentials Location"
-    - name: "dashboard_link"
-      label: "Monitoring Dashboard"
+    - id: store-credentials
+      name: Store Credentials
+      action: vault:create-secret
+      input:
+        path: databases/${{ parameters.name }}
 ```
-Code: Well-designed self-service action structure.
+Code: Backstage scaffolder action for database provisioning.
 
-### Action Design Principles
+The YAML is straightforward, but the design decisions matter. Notice the sensible defaults (dev environment, small size), the clear cost indication in the enum labels, and the validation pattern that prevents naming mistakes before submission. For more on Backstage scaffolder actions, see the [Backstage documentation on software templates](https://backstage.io/docs/features/software-templates/).
 
-```typescript title="action-design-principles.ts"
-// Principles for designing self-service actions
+### Action Design Guidelines
 
-interface ActionDesignPrinciples {
-  // Principle 1: Obvious outcomes
-  obviousOutcomes: {
-    rule: 'User should know exactly what will happen before clicking submit';
-    implementation: [
-      'Show preview of resources to be created',
-      'Display cost estimates',
-      'List permissions that will be granted',
-      'Show timeline for completion',
-    ];
-    antiPattern: 'Submit and pray - user has no idea what happens next';
-  };
+_Obvious outcomes._ Users should know exactly what will happen before clicking submit. Show a preview of resources to be created, display cost estimates, list permissions that will be granted. The anti-pattern is "submit and pray" - the user clicks a button and has no idea what happens next.
 
-  // Principle 2: Sensible defaults
-  sensibleDefaults: {
-    rule: 'Most fields should have good defaults for common cases';
-    implementation: [
-      'Pre-fill team from user context',
-      'Default to smallest viable size',
-      'Default to dev environment',
-      'Pre-select common options',
-    ];
-    antiPattern: 'Blank form requiring research to fill out';
-  };
+_Sensible defaults._ Most fields should have good defaults for the common case. Pre-fill the team from user context. Default to the smallest viable size. Default to dev environment. A blank form requiring research to fill out is a friction multiplier.
 
-  // Principle 3: Guardrails, not gates
-  guardrailsNotGates: {
-    rule: 'Prevent mistakes, dont block legitimate work';
-    implementation: [
-      'Validate inputs in real-time',
-      'Warn about expensive choices',
-      'Block only truly dangerous operations',
-      'Auto-approve within policy bounds',
-    ];
-    antiPattern: 'Every request requires manual approval';
-  };
+_Guardrails, not gates._ Prevent mistakes without blocking legitimate work. Validate inputs in real-time. Warn about expensive choices. But auto-approve within policy bounds - if every request requires manual approval, you haven't built self-service, you've built a ticket system with a nicer UI.
 
-  // Principle 4: Transparent execution
-  transparentExecution: {
-    rule: 'User can see what is happening and why';
-    implementation: [
-      'Show workflow steps and progress',
-      'Link to underlying PR/pipeline',
-      'Explain approval requirements',
-      'Surface errors clearly',
-    ];
-    antiPattern: 'Black box - submitted, no visibility';
-  };
+_Transparent execution._ Users can see what's happening and why. Show workflow steps and progress. Link to the underlying PR or pipeline. Explain approval requirements when they apply. Surface errors clearly with remediation steps.
 
-  // Principle 5: Recoverable failures
-  recoverableFailures: {
-    rule: 'Failures should be fixable without starting over';
-    implementation: [
-      'Retry failed steps',
-      'Edit and resubmit',
-      'Clear error messages with remediation',
-      'Partial completion handling',
-    ];
-    antiPattern: 'Failure requires filing a ticket';
-  };
-}
-
-// Example: Database provisioning form with good UX
-const databaseProvisioningForm: ActionForm = {
-  sections: [
-    {
-      title: 'Basic Information',
-      description: 'Name and environment for your database',
-      fields: [
-        {
-          id: 'name',
-          type: 'text',
-          label: 'Database Name',
-          placeholder: 'my-service-db',
-          helpText: 'Lowercase, hyphens allowed. Will be prefixed with team name.',
-          validation: {
-            pattern: /^[a-z][a-z0-9-]{2,20}$/,
-            realtime: true,  // Validate as user types
-          },
-          preview: (value, context) =>
-            `Full name: ${context.team}-${value}-${context.environment}`,
-        },
-      ],
-    },
-    {
-      title: 'Sizing',
-      description: 'Choose based on expected load',
-      helpLink: '/docs/database-sizing-guide',
-      fields: [
-        {
-          id: 'size',
-          type: 'select',
-          label: 'Instance Size',
-          options: DATABASE_SIZES,
-          default: 'small',
-          onChange: (value, form) => {
-            // Update cost estimate when size changes
-            form.setCostEstimate(calculateCost(value, form.values.environment));
-          },
-        },
-      ],
-    },
-  ],
-
-  // Show what will be created before submit
-  preview: (values) => ({
-    resources: [
-      { type: 'RDS Instance', name: `${values.team}-${values.name}` },
-      { type: 'Security Group', name: `${values.name}-sg` },
-      { type: 'IAM Role', name: `${values.name}-access` },
-      { type: 'Vault Secret', name: `databases/${values.name}` },
-    ],
-    cost: calculateMonthlyCost(values),
-    timeline: values.environment === 'production' ? '~30 min (requires approval)' : '~15 min',
-  }),
-};
-```
-Code: Action design principles with implementation examples.
+_Recoverable failures._ Failures should be fixable without starting over. Allow retrying failed steps. Let users edit and resubmit. Provide clear error messages with remediation guidance. If a failure requires filing a support ticket, the action has failed its purpose.
 
 <Callout type="success">
 The best self-service actions feel like filling out a form to order something online: clear options, sensible defaults, transparent pricing, and a tracking number when you submit. If your action feels like filling out a government form, redesign it.
@@ -371,34 +144,40 @@ The best self-service actions feel like filling out a form to order something on
 
 ## Workflow Automation
 
-### Orchestrating Multi-Step Actions
+Self-service actions rarely involve a single step. Provisioning a new service might mean creating a repository, generating infrastructure-as-code, waiting for Terraform to apply, storing credentials in Vault, and registering the service in the catalog. Each step can fail. Each step depends on outputs from previous steps. And if something fails halfway through, you need a plan for the orphaned resources.
+
+This is workflow orchestration - coordinating multi-step processes with proper error handling, progress visibility, and rollback support.
+
+### The Anatomy of a Multi-Step Workflow
+
+Consider what happens when a developer requests a new service. The portal validates their inputs and permissions, creates a repository from a template, generates a Terraform PR for the service's infrastructure, waits for approval (or auto-approves for non-production), applies the Terraform changes, stores the resulting credentials, and notifies the developer. That's seven steps with dependencies between them.
 
 ```mermaid
 sequenceDiagram
     participant D as Developer
-    participant P as Portal
+    participant Plt as Platform
     participant G as Git
     participant CI as CI/CD
     participant I as Infrastructure
     participant V as Vault
 
-    D->>P: Submit "Create Service" action
-    P->>P: Validate inputs + permissions
+    D->>Plt: Submit "Create Service" action
+    Plt->>Plt: Validate inputs + permissions
 
-    P->>G: Create repository from template
-    G-->>P: Repo created
+    Plt->>G: Create repository from template
+    G-->>Plt: Repo created
 
-    P->>G: Create infrastructure PR
+    Plt->>G: Create infrastructure PR
     G->>CI: Trigger plan
-    CI-->>P: Plan output
+    CI-->>Plt: Plan output
 
     alt Auto-approve (dev/staging)
-        P->>G: Merge PR
+        Plt->>G: Merge PR
     else Requires approval (production)
-        P->>P: Create approval request
-        P-->>D: Notify: approval needed
-        Note over P: Wait for approval
-        P->>G: Merge PR after approval
+        Plt->>Plt: Create approval request
+        Plt-->>D: Notify: approval needed
+        Note over Plt: Wait for approval
+        Plt->>G: Merge PR after approval
     end
 
     G->>CI: Trigger apply
@@ -408,223 +187,22 @@ sequenceDiagram
     CI->>V: Store credentials
     V-->>CI: Credentials stored
 
-    CI-->>P: Workflow complete
-    P-->>D: Notify: service ready
+    CI-->>Plt: Workflow complete
+    Plt-->>D: Notify: service ready
 ```
 Figure: Multi-step service creation workflow.
 
-```typescript title="workflow-orchestration.ts"
-// Workflow orchestration engine for self-service actions
+The sequence diagram shows the happy path, but real workflows need to handle failures at every step. What if the repository creation succeeds but the Terraform PR fails? What if the apply times out? What if credential storage fails after infrastructure is already provisioned?
 
-interface WorkflowStep {
-  id: string;
-  name: string;
-  action: string;
-  inputs: Record<string, any>;
-  onSuccess?: string;  // Next step ID
-  onFailure?: 'retry' | 'abort' | 'skip' | string;
-  timeout?: string;
-  retries?: number;
-}
+### Designing for Failure
 
-interface Workflow {
-  id: string;
-  name: string;
-  steps: WorkflowStep[];
-  rollback?: WorkflowStep[];
-}
+Each workflow step needs three things: a clear action, defined failure behavior, and (where appropriate) a rollback action.
 
-class WorkflowEngine {
-  async execute(
-    workflow: Workflow,
-    context: WorkflowContext
-  ): Promise<WorkflowResult> {
-    const execution = await this.createExecution(workflow, context);
+_Failure behaviors_ fall into a few categories. Some failures should abort the entire workflow - if validation fails, there's no point continuing. Some should retry - transient API errors often resolve on the second attempt. Some should skip - failing to send a notification shouldn't block an otherwise successful provisioning. And some should trigger manual intervention - edge cases that automation can't handle.
 
-    for (const step of workflow.steps) {
-      try {
-        // Update status
-        await this.updateStepStatus(execution.id, step.id, 'running');
-        this.notifyProgress(context.user, step.name, 'running');
+_Rollback steps_ clean up resources created by earlier steps when a later step fails. If you create a repository in step 2 but the infrastructure PR fails in step 3, the rollback should delete that repository. Without rollback, failed workflows leave orphaned resources that accumulate over time - repositories nobody uses, partial infrastructure deployments, dangling secrets.
 
-        // Execute step
-        const result = await this.executeStep(step, context);
-
-        // Store result for subsequent steps
-        context.stepResults[step.id] = result;
-
-        await this.updateStepStatus(execution.id, step.id, 'completed', result);
-        this.notifyProgress(context.user, step.name, 'completed');
-
-      } catch (error) {
-        await this.updateStepStatus(execution.id, step.id, 'failed', { error });
-
-        // Handle failure based on configuration
-        switch (step.onFailure) {
-          case 'retry':
-            const retried = await this.retryStep(step, context, step.retries || 3);
-            if (!retried.success) {
-              return this.handleWorkflowFailure(workflow, execution, step, context);
-            }
-            break;
-
-          case 'skip':
-            // Continue to next step
-            break;
-
-          case 'abort':
-          default:
-            return this.handleWorkflowFailure(workflow, execution, step, context);
-        }
-      }
-    }
-
-    return {
-      success: true,
-      executionId: execution.id,
-      outputs: this.collectOutputs(workflow, context),
-    };
-  }
-
-  private async handleWorkflowFailure(
-    workflow: Workflow,
-    execution: WorkflowExecution,
-    failedStep: WorkflowStep,
-    context: WorkflowContext
-  ): Promise<WorkflowResult> {
-    // Execute rollback if defined
-    if (workflow.rollback) {
-      this.notifyProgress(context.user, 'Rolling back...', 'running');
-
-      for (const rollbackStep of workflow.rollback) {
-        try {
-          await this.executeStep(rollbackStep, context);
-        } catch (rollbackError) {
-          // Log but continue rollback
-          console.error('Rollback step failed:', rollbackError);
-        }
-      }
-    }
-
-    return {
-      success: false,
-      executionId: execution.id,
-      failedStep: failedStep.id,
-      error: `Workflow failed at step: ${failedStep.name}`,
-      rollbackCompleted: !!workflow.rollback,
-    };
-  }
-}
-
-// Example: Service creation workflow
-const createServiceWorkflow: Workflow = {
-  id: 'create-service',
-  name: 'Create New Service',
-  steps: [
-    {
-      id: 'validate',
-      name: 'Validate Request',
-      action: 'validate-service-request',
-      inputs: {
-        serviceName: '{{inputs.name}}',
-        team: '{{inputs.team}}',
-      },
-      onFailure: 'abort',
-    },
-    {
-      id: 'create-repo',
-      name: 'Create Repository',
-      action: 'github-create-repo',
-      inputs: {
-        name: '{{inputs.name}}',
-        template: '{{inputs.template}}',
-        team: '{{inputs.team}}',
-      },
-      onFailure: 'abort',
-    },
-    {
-      id: 'create-infra-pr',
-      name: 'Create Infrastructure PR',
-      action: 'create-terraform-pr',
-      inputs: {
-        repository: 'infrastructure',
-        template: 'service-resources',
-        variables: {
-          service_name: '{{inputs.name}}',
-          environment: '{{inputs.environment}}',
-        },
-      },
-      onFailure: 'abort',
-    },
-    {
-      id: 'wait-for-approval',
-      name: 'Wait for Approval',
-      action: 'wait-for-pr-approval',
-      inputs: {
-        prUrl: '{{steps.create-infra-pr.outputs.pr_url}}',
-        autoApprove: '{{inputs.environment}} != "production"',
-      },
-      timeout: '24h',
-      onFailure: 'abort',
-    },
-    {
-      id: 'apply-terraform',
-      name: 'Apply Infrastructure',
-      action: 'wait-for-pipeline',
-      inputs: {
-        pipelineUrl: '{{steps.create-infra-pr.outputs.pipeline_url}}',
-      },
-      timeout: '30m',
-      onFailure: 'retry',
-      retries: 2,
-    },
-    {
-      id: 'register-service',
-      name: 'Register in Service Catalog',
-      action: 'register-service',
-      inputs: {
-        name: '{{inputs.name}}',
-        repository: '{{steps.create-repo.outputs.repo_url}}',
-        owner: '{{inputs.team}}',
-      },
-      onFailure: 'skip',  // Non-critical
-    },
-    {
-      id: 'notify',
-      name: 'Send Notification',
-      action: 'notify-user',
-      inputs: {
-        user: '{{context.user}}',
-        message: 'Service {{inputs.name}} is ready!',
-        links: {
-          repository: '{{steps.create-repo.outputs.repo_url}}',
-          dashboard: '{{steps.apply-terraform.outputs.dashboard_url}}',
-        },
-      },
-      onFailure: 'skip',
-    },
-  ],
-  rollback: [
-    {
-      id: 'delete-repo',
-      name: 'Delete Repository',
-      action: 'github-delete-repo',
-      inputs: {
-        name: '{{inputs.name}}',
-      },
-    },
-    {
-      id: 'close-pr',
-      name: 'Close Infrastructure PR',
-      action: 'github-close-pr',
-      inputs: {
-        prUrl: '{{steps.create-infra-pr.outputs.pr_url}}',
-      },
-    },
-  ],
-};
-```
-Code: Workflow orchestration with rollback support.
+The key insight is that _non-critical steps should fail gracefully_. Registering a service in the catalog is nice to have, but if it fails, the service still exists and works. Mark these steps as "skip on failure" so they don't block the overall workflow.
 
 <Callout type="warning">
 Every workflow needs a rollback plan. If step 4 fails, what happens to resources created in steps 1-3? Orphaned repositories, half-provisioned infrastructure, and dangling credentials erode trust in self-service. Design for failure from the start.
@@ -632,228 +210,27 @@ Every workflow needs a rollback plan. If step 4 fails, what happens to resources
 
 ## Approval Workflows
 
-### Smart Approval Routing
+Approvals are where self-service platforms often regress into ticket systems. The instinct is understandable - production changes are risky, expensive resources need oversight, compliance requires audit trails. But if every request routes through a manual approval queue, you've just built Jira with a different skin.
 
-```yaml title="approval-policies.yaml"
-# Approval policy configuration
+The solution is _policy-based approval routing_: define rules that auto-approve low-risk requests while routing high-risk ones to the right approvers. Most requests should flow through automatically. Approvals become the exception, not the rule.
 
-approval_policies:
-  # Policy 1: Environment-based
-  environment_based:
-    description: "Production changes require approval"
-    rules:
-      - condition: "environment == 'production'"
-        requires_approval: true
-        approvers:
-          - type: "team_lead"
-            team: "{{request.team}}"
-          - type: "role"
-            role: "platform-approver"
-        approval_count: 1
+### Approval Policy Dimensions
 
-      - condition: "environment == 'staging'"
-        requires_approval: false
-        auto_approve: true
+Different situations warrant different approval requirements. Here are the dimensions that typically matter:
 
-      - condition: "environment == 'dev'"
-        requires_approval: false
-        auto_approve: true
+_Environment-based._ Dev and staging requests auto-approve instantly. Production requests require team lead approval. This is the most common pattern and handles the majority of cases.
 
-  # Policy 2: Cost-based
-  cost_based:
-    description: "Expensive resources require approval"
-    rules:
-      - condition: "estimated_monthly_cost > 500"
-        requires_approval: true
-        approvers:
-          - type: "team_lead"
-            team: "{{request.team}}"
-          - type: "finance"
-        approval_count: 2
+_Cost-based._ Resources under $100/month auto-approve. Resources between $100-500 need team lead sign-off. Resources over $500 require team lead plus finance approval. Thresholds vary by organization, but the principle is consistent: more expensive means more oversight.
 
-      - condition: "estimated_monthly_cost > 100"
-        requires_approval: true
-        approvers:
-          - type: "team_lead"
-            team: "{{request.team}}"
-        approval_count: 1
+_Scope-based._ Changes affecting only your own team auto-approve. Changes affecting multiple teams require approval from each affected team's lead. This prevents one team from unilaterally impacting another's infrastructure.
 
-      - condition: "estimated_monthly_cost <= 100"
-        requires_approval: false
-        auto_approve: true
+_Risk-based._ Standard operations auto-approve. High-risk operations - deleting databases, modifying IAM permissions, changing network configs, rotating encryption keys - require security review regardless of environment.
 
-  # Policy 3: Scope-based
-  scope_based:
-    description: "Changes affecting multiple teams require broader approval"
-    rules:
-      - condition: "affected_teams.length > 1"
-        requires_approval: true
-        approvers:
-          - type: "each_team_lead"
-            teams: "{{affected_teams}}"
-        approval_count: "all"
+_Time-based._ Normal business hours follow standard policies. Change freeze windows require explicit exception approval. This prevents well-meaning developers from deploying during critical periods.
 
-  # Policy 4: Time-based
-  time_based:
-    description: "Off-hours changes require additional approval"
-    rules:
-      - condition: "is_change_freeze_window()"
-        requires_approval: true
-        approvers:
-          - type: "role"
-            role: "change-freeze-exception"
-        approval_count: 1
-        message: "Change freeze is active. Exception required."
+These dimensions combine. A production database deletion during change freeze might require team lead approval _and_ security review _and_ change freeze exception - three separate approvers. A dev environment S3 bucket during business hours? Instant auto-approval.
 
-  # Policy 5: Risk-based
-  risk_based:
-    description: "High-risk operations require senior approval"
-    high_risk_operations:
-      - "delete_database"
-      - "modify_iam_permissions"
-      - "change_network_config"
-      - "modify_encryption_keys"
-    rules:
-      - condition: "operation in high_risk_operations"
-        requires_approval: true
-        approvers:
-          - type: "role"
-            role: "security-reviewer"
-          - type: "team_lead"
-            team: "{{request.team}}"
-        approval_count: 2
-```
-Code: Flexible approval policy configuration.
-
-### Approval UX
-
-```typescript title="approval-system.ts"
-interface ApprovalRequest {
-  id: string;
-  workflowExecutionId: string;
-  actionName: string;
-  requestedBy: User;
-  requestedAt: Date;
-
-  // What's being requested
-  summary: string;
-  details: Record<string, any>;
-  impact: ImpactAssessment;
-
-  // Approval requirements
-  requiredApprovals: ApprovalRequirement[];
-  currentApprovals: Approval[];
-  status: 'pending' | 'approved' | 'rejected' | 'expired';
-
-  // Context for approvers
-  links: {
-    terraformPlan?: string;
-    costEstimate?: string;
-    documentation?: string;
-  };
-}
-
-interface ImpactAssessment {
-  environment: string;
-  affectedServices: string[];
-  estimatedCost: number;
-  riskLevel: 'low' | 'medium' | 'high';
-  rollbackPossible: boolean;
-}
-
-class ApprovalService {
-  async createApprovalRequest(
-    execution: WorkflowExecution,
-    policy: ApprovalPolicy
-  ): Promise<ApprovalRequest> {
-    const request: ApprovalRequest = {
-      id: generateId(),
-      workflowExecutionId: execution.id,
-      actionName: execution.workflow.name,
-      requestedBy: execution.context.user,
-      requestedAt: new Date(),
-
-      summary: this.generateSummary(execution),
-      details: execution.context.inputs,
-      impact: await this.assessImpact(execution),
-
-      requiredApprovals: policy.getRequiredApprovers(execution),
-      currentApprovals: [],
-      status: 'pending',
-
-      links: {
-        terraformPlan: execution.stepResults['create-infra-pr']?.planUrl,
-        costEstimate: execution.stepResults['validate']?.costEstimate,
-      },
-    };
-
-    await this.store.save(request);
-    await this.notifyApprovers(request);
-
-    return request;
-  }
-
-  private async notifyApprovers(request: ApprovalRequest): Promise<void> {
-    const approvers = this.resolveApprovers(request.requiredApprovals);
-
-    for (const approver of approvers) {
-      await this.notifications.send(approver, {
-        type: 'approval_request',
-        title: `Approval needed: ${request.actionName}`,
-        body: `
-${request.requestedBy.name} is requesting approval for:
-
-**${request.summary}**
-
-Environment: ${request.impact.environment}
-Estimated Cost: $${request.impact.estimatedCost}/month
-Risk Level: ${request.impact.riskLevel}
-
-[Review and Approve](${this.getApprovalUrl(request)})
-        `,
-        actions: [
-          { label: 'Approve', action: 'approve', primary: true },
-          { label: 'Reject', action: 'reject' },
-          { label: 'View Details', action: 'view' },
-        ],
-      });
-    }
-  }
-
-  async approve(
-    requestId: string,
-    approver: User,
-    comment?: string
-  ): Promise<ApprovalRequest> {
-    const request = await this.store.get(requestId);
-
-    // Validate approver is authorized
-    if (!this.isAuthorizedApprover(approver, request)) {
-      throw new Error('User is not authorized to approve this request');
-    }
-
-    // Add approval
-    request.currentApprovals.push({
-      approver,
-      decision: 'approved',
-      comment,
-      timestamp: new Date(),
-    });
-
-    // Check if all requirements met
-    if (this.isFullyApproved(request)) {
-      request.status = 'approved';
-      await this.resumeWorkflow(request.workflowExecutionId);
-    }
-
-    await this.store.save(request);
-    await this.notifyRequestor(request, 'approval_received');
-
-    return request;
-  }
-}
-```
-Code: Approval system with notification and tracking.
+In Backstage, you'd implement these rules through a custom approval plugin or integrate with Open Policy Agent (OPA) for policy-as-code. The scaffolder evaluates the policy before executing steps, routing to the appropriate approval workflow or proceeding automatically based on the policy decision.
 
 | Approval Type | Use Case | SLA | Auto-Escalation |
 |---------------|----------|-----|-----------------|
@@ -864,338 +241,91 @@ Code: Approval system with notification and tracking.
 
 Table: Approval types and SLAs.
 
+### Making Approvals Fast
+
+Even when manual approval is required, it shouldn't be slow. A few practices help:
+
+_Give approvers context._ The approval notification should include everything needed to make a decision: what's being requested, who's requesting it, what environment, estimated cost, risk level, and links to the Terraform plan or other details. Approvers shouldn't need to dig through systems to understand the request.
+
+_Set SLAs with auto-escalation._ A production approval that sits in queue for 6 hours is blocking a developer. Set expectations (e.g., 4-hour SLA for standard production requests) and auto-escalate to backup approvers when SLAs are at risk.
+
+_Enable approval from notifications._ If your platform sends Slack notifications, include approve/reject buttons in the message. If it sends emails, include one-click approval links. Every click required to approve is friction that slows the process.
+
+_Track approval metrics._ Measure time-to-approval by policy type. If production approvals consistently take 8 hours when the SLA is 4, you either need more approvers, faster approvers, or a policy change.
+
 <Callout type="info">
-Approvals should be the exception, not the rule. If most requests require manual approval, you haven't built self-service—you've built a ticket system with a nicer UI. Use policy-based auto-approval aggressively for low-risk operations.
+Approvals should be the exception, not the rule. If most requests require manual approval, you haven't built self-service - you've built a ticket system with a nicer UI. Use policy-based auto-approval aggressively for low-risk operations.
 </Callout>
 
 ## Integration Patterns
 
-### Connecting to Existing Systems
+A self-service platform doesn't exist in isolation. It needs to talk to your Git provider to create repositories, your infrastructure tooling to provision resources, your secrets manager to store credentials, your observability stack to set up monitoring, and your communication tools to send notifications. The integration layer is where the platform connects to reality.
 
-```yaml title="integration-architecture.yaml"
-integration_patterns:
-  git_provider:
-    purpose: "Repository creation, PR management"
-    integrations:
-      - name: "GitHub"
-        capabilities:
-          - "Create repositories from templates"
-          - "Create/merge pull requests"
-          - "Manage team permissions"
-          - "Trigger workflows"
-        auth: "GitHub App"
+### Integration Categories
 
-      - name: "GitLab"
-        capabilities:
-          - "Create projects from templates"
-          - "Create/merge merge requests"
-          - "Manage group access"
-          - "Trigger pipelines"
-        auth: "Access Token"
+Most platforms need integrations across five categories:
 
-  infrastructure:
-    purpose: "Resource provisioning"
-    integrations:
-      - name: "Terraform Cloud"
-        capabilities:
-          - "Create workspaces"
-          - "Queue plans/applies"
-          - "Read state outputs"
-        auth: "API Token"
+_Git providers_ handle repository creation, pull request management, and team permissions. GitHub and GitLab are the common choices. The platform creates repos from templates, opens PRs for infrastructure changes, and manages who can access what. Authentication typically uses GitHub Apps or access tokens with appropriate scopes.
 
-      - name: "AWS"
-        capabilities:
-          - "Direct resource creation"
-          - "Read resource state"
-        auth: "IAM Role (assume role)"
+_Infrastructure provisioning_ is where resources actually get created. Terraform Cloud (or Atlantis for self-hosted) handles the IaC workflow - creating workspaces, queuing plans and applies, reading state outputs. For direct resource creation, you need AWS/GCP/Azure SDK access via IAM roles or service accounts. Kubernetes clusters need ServiceAccount tokens for applying manifests and managing RBAC.
 
-      - name: "Kubernetes"
-        capabilities:
-          - "Apply manifests"
-          - "Create namespaces"
-          - "Manage RBAC"
-        auth: "ServiceAccount"
+_Secrets management_ stores and distributes credentials securely. HashiCorp Vault is the most common choice, using AppRole authentication for the platform to create secrets and generate dynamic credentials. AWS Secrets Manager is simpler if you're already AWS-native.
 
-  secrets:
-    purpose: "Credential management"
-    integrations:
-      - name: "HashiCorp Vault"
-        capabilities:
-          - "Create secrets"
-          - "Generate credentials"
-          - "Manage policies"
-        auth: "AppRole"
+_Observability_ integration means the platform can provision monitoring alongside infrastructure. Datadog or Prometheus for metrics, PagerDuty for alerting. When a new service is created, its dashboards and alerts should be created automatically - not added manually weeks later when someone remembers.
 
-      - name: "AWS Secrets Manager"
-        capabilities:
-          - "Create/read secrets"
-          - "Automatic rotation"
-        auth: "IAM Role"
+_Communication_ enables notifications and interactive approvals. Slack integration with a bot token lets the platform send messages, create channels, and handle approval buttons directly in chat. Email provides fallback notifications.
 
-  observability:
-    purpose: "Monitoring and alerting"
-    integrations:
-      - name: "Datadog"
-        capabilities:
-          - "Create dashboards"
-          - "Configure monitors"
-          - "Set up SLOs"
-        auth: "API Key"
+### The Adapter Pattern
 
-      - name: "PagerDuty"
-        capabilities:
-          - "Create services"
-          - "Configure escalations"
-        auth: "API Key"
+The key architectural insight is that actions shouldn't know which specific provider they're using. A "create repository" step should work whether you use GitHub, GitLab, or Bitbucket. This means designing integrations as adapters with standard interfaces.
 
-  communication:
-    purpose: "Notifications"
-    integrations:
-      - name: "Slack"
-        capabilities:
-          - "Send messages"
-          - "Interactive approvals"
-          - "Channel creation"
-        auth: "Bot Token"
+Each adapter declares its capabilities (what actions it can perform), implements a standard execution interface, and handles provider-specific authentication. The platform's action definitions reference abstract capabilities like `createRepository(name, template, visibility)` and `createPullRequest(repo, branch, title, body)` rather than provider-specific APIs. The GitHub adapter implements these by calling the GitHub API; the GitLab adapter calls the GitLab API. The action definition doesn't know or care which one runs.
 
-      - name: "Email"
-        capabilities:
-          - "Send notifications"
-        auth: "SMTP/SendGrid"
-```
-Code: Portal integration architecture.
+This abstraction pays off when you need to swap providers. Moving from GitHub to GitLab, or from Terraform Cloud to Atlantis, becomes a configuration change rather than a rewrite of every action that touches those systems.
 
-```typescript title="integration-adapter.ts"
-// Integration adapter pattern for extensible platform
+| Integration Type | Common Providers | Authentication | Key Capabilities |
+|------------------|------------------|----------------|------------------|
+| Git provider | GitHub, GitLab | GitHub App, Access Token | Repos, PRs, permissions |
+| Infrastructure | Terraform Cloud, AWS | API Token, IAM Role | Provision, state, outputs |
+| Secrets | Vault, AWS Secrets Manager | AppRole, IAM Role | Create, rotate, policies |
+| Observability | Datadog, Prometheus | API Key | Dashboards, monitors, SLOs |
+| Communication | Slack, Email | Bot Token, SMTP | Messages, approvals |
 
-interface IntegrationAdapter {
-  id: string;
-  type: string;
-  capabilities: string[];
-
-  // Standard methods all adapters implement
-  healthCheck(): Promise<HealthStatus>;
-  execute(action: string, params: Record<string, any>): Promise<ActionResult>;
-}
-
-// GitHub adapter implementation
-class GitHubAdapter implements IntegrationAdapter {
-  id = 'github';
-  type = 'git_provider';
-  capabilities = [
-    'create_repository',
-    'create_pull_request',
-    'merge_pull_request',
-    'add_team_to_repo',
-  ];
-
-  constructor(private octokit: Octokit) {}
-
-  async execute(action: string, params: Record<string, any>): Promise<ActionResult> {
-    switch (action) {
-      case 'create_repository':
-        return this.createRepository(params);
-      case 'create_pull_request':
-        return this.createPullRequest(params);
-      default:
-        throw new Error(`Unknown action: ${action}`);
-    }
-  }
-
-  private async createRepository(params: {
-    name: string;
-    template?: string;
-    team: string;
-    visibility: 'public' | 'private' | 'internal';
-  }): Promise<ActionResult> {
-    let repo;
-
-    if (params.template) {
-      // Create from template
-      repo = await this.octokit.repos.createUsingTemplate({
-        template_owner: this.config.templateOrg,
-        template_repo: params.template,
-        name: params.name,
-        owner: this.config.org,
-        private: params.visibility === 'private',
-        include_all_branches: false,
-      });
-    } else {
-      repo = await this.octokit.repos.createInOrg({
-        org: this.config.org,
-        name: params.name,
-        private: params.visibility === 'private',
-        auto_init: true,
-      });
-    }
-
-    // Add team access
-    await this.octokit.teams.addOrUpdateRepoPermissionsInOrg({
-      org: this.config.org,
-      team_slug: params.team,
-      owner: this.config.org,
-      repo: params.name,
-      permission: 'push',
-    });
-
-    return {
-      success: true,
-      outputs: {
-        repo_url: repo.data.html_url,
-        clone_url: repo.data.clone_url,
-        repo_id: repo.data.id,
-      },
-    };
-  }
-}
-
-// Registry of all integrations
-class IntegrationRegistry {
-  private adapters: Map<string, IntegrationAdapter> = new Map();
-
-  register(adapter: IntegrationAdapter): void {
-    this.adapters.set(adapter.id, adapter);
-  }
-
-  async executeAction(
-    integrationId: string,
-    action: string,
-    params: Record<string, any>
-  ): Promise<ActionResult> {
-    const adapter = this.adapters.get(integrationId);
-    if (!adapter) {
-      throw new Error(`Integration not found: ${integrationId}`);
-    }
-
-    if (!adapter.capabilities.includes(action)) {
-      throw new Error(`Integration ${integrationId} does not support action: ${action}`);
-    }
-
-    return adapter.execute(action, params);
-  }
-}
-```
-Code: Integration adapter pattern.
+Table: Common integration patterns.
 
 <Callout type="success">
-Design integrations as adapters with standard interfaces. This lets you swap providers (GitHub → GitLab, Terraform Cloud → Atlantis) without rewriting actions. The action definition shouldn't care which Git provider you use.
+Design integrations as adapters with standard interfaces. This lets you swap providers (GitHub to GitLab, Terraform Cloud to Atlantis) without rewriting actions. The action definition shouldn't care which Git provider you use.
 </Callout>
 
 ## Measuring Portal Value
 
-### Platform Metrics
+Building a platform is an investment - in tooling, integrations, and ongoing maintenance. Justifying that investment requires metrics that show the platform is actually delivering value. The trap is measuring what's easy (action count) instead of what matters (developer productivity).
 
-```yaml title="platform-metrics.yaml"
-platform_metrics:
-  adoption_metrics:
-    action_usage:
-      description: "Number of self-service actions executed"
-      query: "count(workflow_executions) by action, team"
-      target: "Growing month-over-month"
+### Metric Categories
 
-    unique_users:
-      description: "Developers using self-service actions"
-      query: "count(distinct user_id) from workflow_executions"
-      target: "> 80% of engineering org"
+_Adoption metrics_ tell you whether developers are actually using the platform. Track the number of self-service actions executed, the percentage of the engineering org using actions, and the coverage of common tasks available as actions. Growing adoption means the platform is solving real problems. Flat or declining adoption means something's wrong - either discoverability, trust, or the actions themselves.
 
-    action_coverage:
-      description: "Percentage of common tasks available as actions"
-      calculation: "available_actions / identified_common_tasks"
-      target: "> 70% coverage"
+_Efficiency metrics_ measure time savings. Compare time-to-provision before and after the platform: how long did it take to get a database via tickets versus via self-service? Track approval wait times. Measure what percentage of requests auto-approve versus requiring manual intervention. The goal is dramatic improvement - not 20% faster, but 95% faster.
 
-  efficiency_metrics:
-    time_to_provision:
-      description: "Time from request to resource ready"
-      before_portal: "3-5 business days (ticket-based)"
-      with_portal: "< 30 minutes (self-service)"
-      target: "< 15 minutes for standard requests"
+_Quality metrics_ track whether the platform is reliable. Action success rate should be above 95% - if actions fail frequently, developers stop trusting them. Rollback rate indicates how often workflows fail partway through and need cleanup. Support ticket reduction shows whether the platform is actually offloading work from the platform team or just creating different work.
 
-    approval_wait_time:
-      description: "Time waiting for human approval"
-      target: "< 4 hours for production requests"
+_Satisfaction metrics_ capture developer perception. Net Promoter Score for the platform overall, ratings for individual actions, and satisfaction when escalation is needed. High efficiency with low satisfaction means the platform works but feels bad to use - maybe the UX is confusing or errors are frustrating.
 
-    automation_rate:
-      description: "Percentage of requests auto-approved"
-      target: "> 70% auto-approved"
+### Interpreting Metric Combinations
 
-  quality_metrics:
-    action_success_rate:
-      description: "Percentage of actions completing successfully"
-      target: "> 95%"
+Metrics are most useful in combination. Here's what different patterns indicate:
 
-    rollback_rate:
-      description: "Percentage of actions requiring rollback"
-      target: "< 2%"
+_High efficiency, low adoption_ - the platform works but developers don't trust it or can't find it. Improve discoverability, add more actions for common tasks, or investigate why developers prefer the old way.
 
-    support_ticket_reduction:
-      description: "Reduction in platform team tickets"
-      calculation: "1 - (current_tickets / baseline_tickets)"
-      target: "> 50% reduction"
+_High adoption, low efficiency_ - developers use the platform but it's slow. Actions need optimization, approval policies are too strict, or workflows have bottlenecks.
 
-  satisfaction_metrics:
-    developer_nps:
-      description: "Net Promoter Score for platform"
-      target: "> 30"
+_High adoption, high efficiency, low satisfaction_ - the platform works and is fast, but developers don't like using it. UX problems, confusing errors, or missing features they expected.
 
-    action_rating:
-      description: "Average rating of individual actions"
-      target: "> 4.0 / 5.0"
+_Declining adoption with stable efficiency_ - something changed. Maybe a competing tool emerged, a key action broke, or the platform team shipped something unpopular. Investigate quickly.
 
-    support_satisfaction:
-      description: "Satisfaction when escalation needed"
-      target: "> 4.0 / 5.0"
+### The Metrics That Matter Most
 
-dashboard_queries:
-  weekly_action_volume: |
-    SELECT
-      date_trunc('week', created_at) as week,
-      action_name,
-      count(*) as executions,
-      avg(case when status = 'success' then 1 else 0 end) as success_rate,
-      avg(duration_seconds) as avg_duration
-    FROM workflow_executions
-    WHERE created_at > now() - interval '12 weeks'
-    GROUP BY 1, 2
-    ORDER BY 1, 3 desc
-
-  time_savings: |
-    SELECT
-      action_name,
-      count(*) as executions,
-      avg(duration_seconds) / 60 as avg_minutes,
-      sum(estimated_manual_hours) as saved_hours
-    FROM workflow_executions
-    WHERE status = 'success'
-      AND created_at > now() - interval '30 days'
-    GROUP BY 1
-    ORDER BY 4 desc
-```
-Code: Platform metrics and measurement.
-
-```mermaid
-graph TD
-    subgraph "Portal Value Equation"
-        A[Self-Service Actions] --> B[Time Saved]
-        A --> C[Errors Prevented]
-        A --> D[Compliance Automated]
-
-        B --> E[Developer Productivity]
-        C --> E
-        D --> E
-
-        E --> F[Platform ROI]
-
-        G[Platform Team Cost] --> F
-    end
-
-    subgraph "Metrics"
-        H[Actions/month] --> B
-        I[Success rate] --> C
-        J[Auto-approval rate] --> D
-        K[Ticket reduction] --> E
-    end
-```
-Figure: Portal value measurement model.
+If you can only track a few things, focus on these:
 
 | Metric | Baseline (Portal) | Target (Platform) | Value |
 |--------|-------------------|-------------------|-------|
@@ -1206,38 +336,22 @@ Figure: Portal value measurement model.
 
 Table: Portal vs platform value comparison.
 
+The first two metrics (time to provision) are the most compelling for stakeholders. "We reduced database provisioning from 3-5 days to 15 minutes" is a story everyone understands. The last two metrics (ticket reduction, auto-approval rate) show operational efficiency - the platform team can do more with less manual intervention.
+
 <Callout type="info">
 Track both efficiency metrics (time saved) and adoption metrics (who's using it). High efficiency with low adoption means developers don't trust the platform. High adoption with low efficiency means actions need optimization. You need both.
 </Callout>
 
 ## Conclusion
 
-Summarize the portal-vs-platform distinction: a portal indexes and links; a platform executes and provisions. The difference is measured in developer time—are they reading docs and filing tickets, or clicking buttons and getting resources? Key practices include designing actions with obvious outcomes and sensible defaults, automating approvals through policy rather than defaulting to manual review, building robust workflow orchestration with rollback support, and measuring platform value through adoption, efficiency, and satisfaction metrics. Emphasize that Level 4 platform maturity requires significant investment but delivers proportional returns in developer productivity and platform team leverage.
+The distinction between portal and platform comes down to one question: what happens after a developer finds what they need? In a portal, they read documentation and file tickets. In a platform, they click a button and get resources.
+
+That developer waiting three days for a database? In a real platform, they'd have filled out a form, seen a preview of what would be created, clicked submit, and had credentials in their hands within 15 minutes. No tickets. No meetings. No waiting for another team's availability.
+
+Getting there requires intentional design. Actions need obvious outcomes and sensible defaults. Approval policies should auto-approve aggressively and only route exceptions to humans. Workflow orchestration must handle failures gracefully and clean up after itself. Integrations should abstract away provider specifics so you can evolve the underlying systems without rewriting everything.
+
+Level 4 platform maturity isn't cheap. It requires investment in tooling, integration work, and ongoing maintenance. But the returns are proportional: developer productivity multiplied across the organization, platform team leverage instead of ticket-by-ticket toil, and the compounding benefits of standardization and automation.
 
 <Callout type="success">
-The test of a real platform: can a new developer join, need a database, and have it provisioned without asking anyone for help? If yes, you've built a platform. If no—if they need to read Confluence, file a Jira ticket, or ping someone on Slack—you've built a prettier ticket system.
+The test of a real platform: can a new developer join, need a database, and have it provisioned without asking anyone for help? If yes, you've built a platform. If no - if they need to read Confluence, file a Jira ticket, or ping someone on Slack - you've built a prettier ticket system.
 </Callout>
-
----
-
-## Cover Prompt
-
-### Prompt 1: The Vending Machine vs Information Desk
-
-Create an image showing two contrasts: on the left, an information desk with a person pointing at directories and pamphlets labeled "How to Request Things." On the right, a modern vending machine where developers select what they need (databases, services, environments) and receive them immediately. Style: service contrast, self-service automation, immediate fulfillment, 16:9 aspect ratio.
-
-### Prompt 2: The Control Tower
-
-Design an image of an air traffic control tower for developer workflows. Screens show actions in progress, approval requests, and completed provisions. Controllers route requests through automated channels, with only exceptional cases requiring human attention. Planes (requests) land smoothly on runways (completed actions). Style: control tower aesthetic, workflow orchestration, automation visibility, 16:9 aspect ratio.
-
-### Prompt 3: The Ticket Graveyard vs Action Pipeline
-
-Illustrate a split scene: on the left, a graveyard of Jira tickets with headstones showing "DB Request - 5 days waiting," "New Service - 2 weeks pending." On the right, a modern pipeline where identical requests flow through automated stages and emerge as provisioned resources in minutes. Style: contrast metaphor, queue elimination, automation transformation, 16:9 aspect ratio.
-
-### Prompt 4: The Self-Service Marketplace
-
-Create an image of a modern marketplace storefront where developers browse and select platform offerings like products: "New Kubernetes Namespace - 5 min," "PostgreSQL Database - 15 min," "Complete Service - 1 hour." Each product has clear pricing and delivery time. A developer checks out with a shopping cart. Style: marketplace aesthetic, product catalog, clear offerings, 16:9 aspect ratio.
-
-### Prompt 5: The Approval Funnel
-
-Design an image of a funnel where many requests enter at the top. Most (labeled "auto-approve") flow straight through the center. Only a few (labeled "production," "high-cost," "high-risk") are diverted to a side channel where approvers review them. The funnel outputs provisioned resources at scale. Style: funnel visualization, policy-based routing, approval efficiency, 16:9 aspect ratio.

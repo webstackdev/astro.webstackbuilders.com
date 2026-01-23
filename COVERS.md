@@ -621,3 +621,25 @@ Create an image showing the lifecycle of a wrapper: born as a helpful assistant,
 ### Prompt 5: The Transparent Toolbox
 
 Design an image of a transparent toolbox that holds regular tools (kubectl, terraform, helm) but has smart compartments that organize them, label them by environment, and prevent certain tools from being used in certain areas. The tools themselves are unchanged—just better organized. Style: transparent container, organization system, smart storage, 16:9 aspect ratio.
+
+## internal-developer-portal-platform-self-service-actions
+
+### Prompt 1: The Vending Machine vs Information Desk
+
+Create an image showing two contrasts: on the left, an information desk with a person pointing at directories and pamphlets labeled "How to Request Things." On the right, a modern vending machine where developers select what they need (databases, services, environments) and receive them immediately. Style: service contrast, self-service automation, immediate fulfillment, 16:9 aspect ratio.
+
+### Prompt 2: The Control Tower
+
+Design an image of an air traffic control tower for developer workflows. Screens show actions in progress, approval requests, and completed provisions. Controllers route requests through automated channels, with only exceptional cases requiring human attention. Planes (requests) land smoothly on runways (completed actions). Style: control tower aesthetic, workflow orchestration, automation visibility, 16:9 aspect ratio.
+
+### Prompt 3: The Ticket Graveyard vs Action Pipeline
+
+Illustrate a split scene: on the left, a graveyard of Jira tickets with headstones showing "DB Request - 5 days waiting," "New Service - 2 weeks pending." On the right, a modern pipeline where identical requests flow through automated stages and emerge as provisioned resources in minutes. Style: contrast metaphor, queue elimination, automation transformation, 16:9 aspect ratio.
+
+### Prompt 4: The Self-Service Marketplace
+
+Create an image of a modern marketplace storefront where developers browse and select platform offerings like products: "New Kubernetes Namespace - 5 min," "PostgreSQL Database - 15 min," "Complete Service - 1 hour." Each product has clear pricing and delivery time. A developer checks out with a shopping cart. Style: marketplace aesthetic, product catalog, clear offerings, 16:9 aspect ratio.
+
+### Prompt 5: The Approval Funnel
+
+Design an image of a funnel where many requests enter at the top. Most (labeled "auto-approve") flow straight through the center. Only a few (labeled "production," "high-cost," "high-risk") are diverted to a side channel where approvers review them. The funnel outputs provisioned resources at scale. Style: funnel visualization, policy-based routing, approval efficiency, 16:9 aspect ratio.
