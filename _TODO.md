@@ -251,7 +251,6 @@ Complex Text and Instruction Following: The model demonstrates an enhanced under
 error-budget-policy-slo-velocity-reliability-tradeoffs
 event-schema-versioning-compatibility-evolution
 
-helm-release-management-drift-detection-debugging
 idempotent-message-handlers-deduplication-retries
 internal-cli-kubectl-terraform-wrapper-abstraction
 internal-developer-portal-platform-self-service-actions
@@ -328,7 +327,7 @@ some config
 
 For code examples like YAML config, use a concrete tool context so readers can understand where they would deploy or use the code. A single comment line or reference to the tool, or a descriptive file name, is sufficient. Prefer showing usage for AWS but a small amount of variety showing open source tools is the optimal case. So, for example, if there were four config examples, three might apply to AWS and one to an alternative tool. Do not include multiple tables, code blocks, or mermaid diagrams in a row without text between them to break them up. Do not import the Callout component, it is automatic. Don't use code blocks just for presentation, only for true pseudocode or real code examples. If there is info in a code block in the outline that is only for presentation purposes, redo it in a better presentation format.
 
-We are writing an article based on an outline, not just merely adding a few lines of text around existing outline elements like code blocks, diagrams, etc. We should evaluate whether the element makes any sense to keep - in some cases, they do not. We want to talk to the reader, not just introduce some element that already exists. But do keep elements that add value - the reason we have them in the outline is to give some ideas to help us avoid a "wall of text" which is where we've ended up also. We need to find a happy medium ground between "text only" that is difficult to work through, and just introductory sentences added for code blocks, diagrams, and other elements that are added to the diagram to give us something to work with and provide variety.
+We are writing an article based on an outline, not just merely adding a few lines of text around existing outline elements like code blocks, diagrams, etc. We should evaluate whether the element makes any sense to keep - in some cases, they do not. We want to talk to the reader, not just introduce some element that already exists. But do keep elements that add value - the reason we have them in the outline is to give some ideas to help us avoid a "wall of text" which is where we've ended up also. We need to find a happy medium ground between "text only" that is difficult to work through, and just introductory sentences added for code blocks, diagrams, and other elements that are added to the diagram to give us something to work with and provide variety. You can rewrite code block and table captions or first-line comments in code blocks explaining what the code is for especially what tooling it applies to, but don't remove them entirely.
 
 __review__
 

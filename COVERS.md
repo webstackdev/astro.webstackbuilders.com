@@ -555,3 +555,47 @@ Create an image of abandoned dashboards as gravestones in a misty graveyard, wit
 ### Prompt 5: The Signal Fire
 
 Design an image of a watchtower with a clear signal fire burning bright. Around its base, numerous smaller, dimmer fires create smoke and confusion. A keeper extinguishes the unhelpful fires while ensuring the main signal remains visible for miles. Style: signal vs noise, focus and clarity, lighthouse aesthetic, 16:9 aspect ratio.
+
+## helm-release-management-drift-detection-debugging
+
+### Prompt 1: The Release Map
+
+Create an image of a captain's navigation room with a large map table showing multiple clusters as islands. Ships (releases) are tracked with pins showing their versions and status. Some pins are green (healthy), some yellow (drift detected), some red (failed). A navigator updates the map. Style: maritime cartography, fleet tracking, status visualization, 16:9 aspect ratio.
+
+### Prompt 2: The Drift Detection Radar
+
+Design an image of a radar screen in a control room. The radar shows Kubernetes clusters as regions, with releases as blips. Some blips are steady (in sync), others are flickering or shifting position (drift detected). An operator monitors the screen, ready to respond to anomalies. Style: military radar aesthetic, detection systems, monitoring station, 16:9 aspect ratio.
+
+### Prompt 3: The Upgrade Pipeline
+
+Illustrate a factory assembly line where Helm charts enter one end and deployed releases exit the other. Quality control stations (validation, diff, testing) check each release. A conveyor shows the progression: lint → template → diff → upgrade → verify. Rejected releases are diverted to a repair station. Style: manufacturing process, quality control, pipeline visualization, 16:9 aspect ratio.
+
+### Prompt 4: The Archaeology Dig
+
+Create an image of archaeologists excavating layers of Helm release history. Each layer represents a revision, with artifacts (manifests, values, hooks) being carefully cataloged. Some layers show successful deployments, others show evidence of failures. Tools labeled "helm history" and "helm get" are used for excavation. Style: archaeological dig, historical layers, discovery process, 16:9 aspect ratio.
+
+### Prompt 5: The Reconciliation Engine
+
+Design an image of a balance scale where one side holds "Git State" and the other holds "Cluster State." A mechanical system (GitOps controller) continuously adjusts weights to keep them balanced. When drift occurs, the system automatically corrects. Flux and ArgoCD logos visible on the machinery. Style: mechanical balance, continuous adjustment, automated correction, 16:9 aspect ratio.
+
+## idempotent-message-handlers-deduplication-retries
+
+### Prompt 1: The Message Echo Chamber
+
+Create an image of a message bouncing between walls in an echo chamber, with multiple copies of the same message visible. In the center, a handler catches messages, but a filter only allows one through while absorbing duplicates. The filter glows with idempotency keys. Style: sound wave visualization, echo effects, filtering mechanism, 16:9 aspect ratio.
+
+### Prompt 2: The Deduplication Vault
+
+Design an image of a secure vault where messages enter. A guardian checks each message against a ledger of processed keys. Duplicate messages are politely returned at the door, while new messages proceed inside. The vault contains completed transactions. Style: bank vault aesthetic, ledger books, key matching, 16:9 aspect ratio.
+
+### Prompt 3: The Retry Storm
+
+Illustrate a storm of identical messages raining down on a server. The server has an umbrella labeled "Idempotency" that deflects duplicate raindrops while allowing unique ones through a funnel. Below, a calm pool shows exactly-once processing results. Style: weather metaphor, storm protection, calm after chaos, 16:9 aspect ratio.
+
+### Prompt 4: The Assembly Line Inspector
+
+Create an image of a factory assembly line where messages pass through quality control. An inspector stamps each message with a unique key and checks against a database. Duplicate messages are diverted to a "Already Processed" bin while originals continue to production. Style: manufacturing quality control, inspection station, sorting mechanism, 16:9 aspect ratio.
+
+### Prompt 5: The Time-Aware Gatekeeper
+
+Design an image of a gatekeeper at a castle gate with a memory book. The gatekeeper checks each arriving message against recent entries. Some messages show "I was just here!" while the gatekeeper calmly responds "Yes, and your request was already fulfilled." A clock shows the TTL window. Style: medieval gatekeeper, memory ledger, temporal awareness, 16:9 aspect ratio.
