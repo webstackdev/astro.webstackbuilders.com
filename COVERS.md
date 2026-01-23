@@ -599,3 +599,25 @@ Create an image of a factory assembly line where messages pass through quality c
 ### Prompt 5: The Time-Aware Gatekeeper
 
 Design an image of a gatekeeper at a castle gate with a memory book. The gatekeeper checks each arriving message against recent entries. Some messages show "I was just here!" while the gatekeeper calmly responds "Yes, and your request was already fulfilled." A clock shows the TTL window. Style: medieval gatekeeper, memory ledger, temporal awareness, 16:9 aspect ratio.
+
+## internal-cli-kubectl-terraform-wrapper-abstraction
+
+### Prompt 1: The Thin Layer
+
+Create an image of a transparent glass layer sitting between a developer's hands and a complex tool dashboard. The glass layer simplifies the view—filtering, organizing, highlighting important controls—but the underlying tool is still visible through it. Arrows show passthrough of commands. Style: transparent interface, layered visualization, clarity through abstraction, 16:9 aspect ratio.
+
+### Prompt 2: The Translation Bridge
+
+Design an image of a bridge connecting two lands: "Developer Intent" on one side and "Tool Complexity" on the other. The bridge has translators who convert simple requests into complex commands, but there's also a direct path for those who want to cross without translation. Style: bridge metaphor, translation service, optional assistance, 16:9 aspect ratio.
+
+### Prompt 3: The Guard Rail Highway
+
+Illustrate a highway with guard rails along the edges. Vehicles (commands) travel freely on the main road, but the rails prevent driving off cliffs labeled "Production Delete" and "Accidental Destroy." Emergency exits exist with gates that require keys (tickets). Style: highway safety, protective barriers, escape hatches, 16:9 aspect ratio.
+
+### Prompt 4: The Wrapper Lifecycle
+
+Create an image showing the lifecycle of a wrapper: born as a helpful assistant, growing with features, becoming bloated with complexity, and finally transforming into documentation as users outgrow it. A timeline shows healthy metrics at each stage. Style: lifecycle visualization, evolution metaphor, graceful sunset, 16:9 aspect ratio.
+
+### Prompt 5: The Transparent Toolbox
+
+Design an image of a transparent toolbox that holds regular tools (kubectl, terraform, helm) but has smart compartments that organize them, label them by environment, and prevent certain tools from being used in certain areas. The tools themselves are unchanged—just better organized. Style: transparent container, organization system, smart storage, 16:9 aspect ratio.
