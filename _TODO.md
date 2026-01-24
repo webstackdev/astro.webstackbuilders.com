@@ -251,7 +251,6 @@ Complex Text and Instruction Following: The model demonstrates an enhanced under
 error-budget-policy-slo-velocity-reliability-tradeoffs
 event-schema-versioning-compatibility-evolution
 
-kubernetes-cost-optimization-resource-sizing-spot-instances
 kubernetes-decision-framework-when-not-to-use
 kubernetes-dns-debugging-ndots-coredns-troubleshooting
 kubernetes-hpa-autoscaling-metrics-tuning-latency

@@ -687,3 +687,25 @@ Create an image of a relay race where a "blue" runner (old nodes) passes the bat
 ### Prompt 5: The Upgrade Playbook
 
 Design an image of an open playbook/strategy book labeled "Kubernetes Upgrade Playbook." Pages show diagrams of upgrade sequences, checklists, and decision trees. A coach (platform engineer) reviews the plays with the team before the "game" (upgrade). The playbook is well-worn from practice. Style: sports playbook, strategy planning, team preparation, 16:9 aspect ratio.
+
+## kubernetes-cost-optimization-resource-sizing-spot-instances
+
+### Prompt 1: The Resource Scale
+
+Create an image of a balance scale where one side holds Kubernetes pods (represented as small containers) and the other side holds coins/money. The scale is perfectly balanced. A platform engineer adjusts weights labeled "Requests" and "Limits" to maintain balance. Style: balance scale, resource equilibrium, financial balance, 16:9 aspect ratio.
+
+### Prompt 2: The Spot Market Floor
+
+Design an image of a stock trading floor where traders bid on cloud compute. Large screens show "SPOT PRICE" fluctuating. Some traders grab cheap "SPOT" tickets while others pay premium for "ON-DEMAND" tickets. A warning light labeled "INTERRUPTION" blinks occasionally. Style: trading floor energy, price competition, risk/reward, 16:9 aspect ratio.
+
+### Prompt 3: The Resource Efficiency Thermometer
+
+Illustrate a large thermometer-style gauge showing "Resource Efficiency." The scale goes from "20% WASTE" (red zone) through "50% EFFICIENCY" (yellow) to "80% OPTIMIZED" (green). A platform engineer adjusts a dial that moves the mercury up. Wasted resources (empty server racks) fade as efficiency increases. Style: efficiency gauge, waste visualization, improvement metric, 16:9 aspect ratio.
+
+### Prompt 4: The Bin Packing Tetris
+
+Create an image of a Tetris-like game where different-shaped blocks (representing pods with various resource profiles) are being efficiently packed into rectangular containers (nodes). A scoreboard shows "COST SAVED" increasing as blocks fit tighter. Poorly packed configurations show wasted space highlighted in red. Style: Tetris puzzle, efficient packing, space optimization, 16:9 aspect ratio.
+
+### Prompt 5: The Cloud Wallet
+
+Design an image of a wallet labeled "Cloud Budget" with Kubernetes pods as currency. Some pods are marked "RIGHT-SIZED" (green, efficient), others "OVER-PROVISIONED" (red, wasteful). A magnifying glass examines pod sizes against actual usage graphs. Optimized pods stretch the wallet further. Style: budget management, resource currency, financial efficiency, 16:9 aspect ratio.
