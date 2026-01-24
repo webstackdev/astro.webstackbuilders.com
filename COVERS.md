@@ -709,3 +709,25 @@ Create an image of a Tetris-like game where different-shaped blocks (representin
 ### Prompt 5: The Cloud Wallet
 
 Design an image of a wallet labeled "Cloud Budget" with Kubernetes pods as currency. Some pods are marked "RIGHT-SIZED" (green, efficient), others "OVER-PROVISIONED" (red, wasteful). A magnifying glass examines pod sizes against actual usage graphs. Optimized pods stretch the wallet further. Style: budget management, resource currency, financial efficiency, 16:9 aspect ratio.
+
+## kubernetes-decision-framework-when-not-to-use
+
+### Prompt 1: The Complexity Scale
+
+Create an image of a scale weighing Kubernetes (represented as a complex gear mechanism) against simpler alternatives (a single clean gear). The Kubernetes side is heavy with add-ons, YAML files, and complexity. The simpler side is lighter but still functional. A thoughtful engineer considers which side to choose. Style: balance scale, complexity visualization, thoughtful decision, 16:9 aspect ratio.
+
+### Prompt 2: The Tool Shed
+
+Design an image of a tool shed where a developer chooses between tools. A massive industrial machine labeled "Kubernetes" sits next to simpler tools: a hammer (VMs), a screwdriver (PaaS), and a multi-tool (Serverless). The task at hand is a simple nail—the industrial machine is overkill. Style: tool selection, right-sizing decisions, practical choice, 16:9 aspect ratio.
+
+### Prompt 3: The Fork in the Road
+
+Illustrate a fork in a road where a team decides between two paths. One path leads to Kubernetes (complex, winding, requires equipment). The other path leads directly to "Product" (simpler, shorter). Signs show "Complexity Ahead" vs "Ship Faster." Some teams need the complex path; others don't. Style: decision crossroads, path comparison, journey metaphor, 16:9 aspect ratio.
+
+### Prompt 4: The Iceberg
+
+Create an image of the Kubernetes iceberg. Above water: "Container Orchestration." Below water (much larger): networking, storage, security, upgrades, monitoring, debugging, YAML, team training, incident response. A small boat (small team) considers whether to navigate around or through. Style: iceberg metaphor, hidden complexity, awareness, 16:9 aspect ratio.
+
+### Prompt 5: The Fitness Test
+
+Design an image of a "Kubernetes Fitness Test" where workloads are evaluated. Some workloads pass easily (many services, scaling needs). Others fail the test (single app, small team, stateful). A coach points some workloads to the Kubernetes track and others to simpler alternatives. Style: fitness evaluation, workload assessment, appropriate placement, 16:9 aspect ratio.
