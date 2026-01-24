@@ -731,3 +731,25 @@ Create an image of the Kubernetes iceberg. Above water: "Container Orchestration
 ### Prompt 5: The Fitness Test
 
 Design an image of a "Kubernetes Fitness Test" where workloads are evaluated. Some workloads pass easily (many services, scaling needs). Others fail the test (single app, small team, stateful). A coach points some workloads to the Kubernetes track and others to simpler alternatives. Style: fitness evaluation, workload assessment, appropriate placement, 16:9 aspect ratio.
+
+## kubernetes-dns-debugging-ndots-coredns-troubleshooting
+
+### Prompt 1: The DNS Maze
+
+Create an image of a maze where a query packet tries to find its destination. The maze paths are labeled with search domains (default.svc.cluster.local, svc.cluster.local, cluster.local). Dead ends have "NXDOMAIN" signs. The exit is labeled "api.stripe.com" but requires navigating through unnecessary paths first. Style: maze puzzle, query navigation, complexity visualization, 16:9 aspect ratio.
+
+### Prompt 2: The Resolution Pipeline
+
+Design an image of a water treatment facility representing DNS resolution. Water (queries) flows through filters labeled "resolv.conf," "CoreDNS," "Cache," and "Upstream." Some water gets recycled (cached), some goes through multiple unnecessary filters (ndots overhead). Clean water emerges as resolved IPs. Style: industrial pipeline, filtering process, efficiency visualization, 16:9 aspect ratio.
+
+### Prompt 3: The DNS Detective
+
+Illustrate a detective (SRE/engineer) with a magnifying glass examining DNS clues. Evidence board shows "ndots:5," "search domains," "CoreDNS logs," and "NXDOMAIN." The detective traces the path of a failed query with red string connecting clues. Case file labeled "Why is DNS slow?" Style: detective investigation, clue tracking, mystery solving, 16:9 aspect ratio.
+
+### Prompt 4: The Query Multiplication
+
+Create an image showing one DNS query entering a machine labeled "Kubernetes DNS" and five queries emerging from the other side. Each output query is stamped with a different search domain suffix. An engineer looks frustrated at the multiplication. A switch labeled "ndots" controls the multiplication factor. Style: query multiplication, overhead visualization, tuning control, 16:9 aspect ratio.
+
+### Prompt 5: The DNS Layers
+
+Design an image of a layered cake representing DNS stack. Bottom layer: "Node DNS." Middle layer: "CoreDNS." Top layer: "Pod resolv.conf." Each layer has its own configuration knobs. A diagnostic probe checks each layer. Some layers have "ISSUE" flags. Style: layered architecture, diagnostic probing, stack visualization, 16:9 aspect ratio.
