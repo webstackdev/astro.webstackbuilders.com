@@ -665,3 +665,25 @@ Create an image of a well-organized toolkit labeled "Migration Kit." Tools insid
 ### Prompt 5: The Version Timeline
 
 Design an image of a timeline path through a landscape. Milestones mark "Announcement," "New Version Release," "90-Day Warning," "30-Day Warning," and "Sunset." Travelers (consumers) move along the path at different speeds. Guides at each milestone help stragglers catch up. The path is well-lit and clearly marked. Style: journey timeline, milestone markers, progression visualization, 16:9 aspect ratio.
+
+## kubernetes-cluster-upgrade-playbook-risk-reduction
+
+### Prompt 1: The Upgrade Ladder
+
+Create an image of a ladder with rungs labeled with Kubernetes versions (1.27, 1.28, 1.29, 1.30). A climber ascends one rung at a time, with safety equipment attached. Below, someone tries to jump multiple rungs and struggles. A safety net (rollback) is visible below. Style: ladder climbing, incremental progress, safety equipment, 16:9 aspect ratio.
+
+### Prompt 2: The Control Tower
+
+Design an image of an air traffic control tower managing a Kubernetes upgrade. Screens show cluster health, node status, and upgrade progress. Controllers guide "planes" (pods) to land safely while runways (nodes) are upgraded one at a time. A "Go/No-Go" decision board is visible. Style: air traffic control, coordination, safety protocols, 16:9 aspect ratio.
+
+### Prompt 3: The Version Conveyor Belt
+
+Illustrate a factory assembly line where clusters move through upgrade stations: "Pre-Check," "Control Plane," "Add-ons," "Workers," "Validation." Quality inspectors check at each station. Defective clusters are diverted to a "Rollback" lane. Successfully upgraded clusters exit with a "Certified" stamp. Style: manufacturing process, quality control stations, certification, 16:9 aspect ratio.
+
+### Prompt 4: The Blue-Green Handoff
+
+Create an image of a relay race where a "blue" runner (old nodes) passes the baton (workloads) to a "green" runner (new nodes). The handoff zone is carefully marked. Judges (monitoring) watch the exchange. If the green runner stumbles, the blue runner can take the baton back. Style: relay race, careful handoff, backup ready, 16:9 aspect ratio.
+
+### Prompt 5: The Upgrade Playbook
+
+Design an image of an open playbook/strategy book labeled "Kubernetes Upgrade Playbook." Pages show diagrams of upgrade sequences, checklists, and decision trees. A coach (platform engineer) reviews the plays with the team before the "game" (upgrade). The playbook is well-worn from practice. Style: sports playbook, strategy planning, team preparation, 16:9 aspect ratio.

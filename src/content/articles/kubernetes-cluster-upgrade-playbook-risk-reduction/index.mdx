@@ -7,6 +7,7 @@ author: "kevin-brown"
 publishDate: 2024-01-15
 tags: ["cloud-platforms"]
 featured: true
+modifiedDate: 2025-01-15
 ---
 
 *[K8s]: Kubernetes
@@ -21,13 +22,13 @@ featured: true
 *[HPA]: Horizontal Pod Autoscaler
 *[PVC]: Persistent Volume Claim
 
-# Kubernetes Upgrades: Making Them Boring
+Kubernetes releases new versions roughly every four months. Each version brings new features, deprecates old APIs, and eventually removes them. Fall behind and you're accumulating upgrade debt: missed security patches, deprecated APIs piling up in your manifests, and eventually a multi-version jump that's far riskier than incremental updates would have been.
 
-## Introduction
+Yet upgrades feel scary. The control plane manages everything - one mistake can take down the entire cluster. So teams delay. "Everything is working fine" becomes the justification for running a version that's a year out of support.
 
-Frame the Kubernetes upgrade challenge: Kubernetes releases new versions roughly every 4 months. Each version brings new features, deprecates old APIs, and eventually removes them. Falling behind means accumulating upgrade debt, missing security patches, and eventually facing a multi-version jump that's far riskier than incremental updates. Yet upgrades feel scary—the control plane manages everything, and mistakes can take down the entire cluster. This section establishes that the goal is making upgrades boring through preparation, validation, and practiced procedures.
+I watched this play out at a company that avoided upgrades for 18 months. When they finally _had_ to upgrade for security compliance, they faced a five-version jump. Deprecated APIs were everywhere. Custom controllers broke. Workloads failed in ways nobody expected. What should have been four routine 2-hour maintenance windows became a three-week crisis involving weekend war rooms and executive escalations.
 
-_Include a scenario: a team delayed upgrades for 18 months because "everything is working fine." When they finally must upgrade for security compliance, they face a 5-version jump. Deprecated APIs are everywhere, controllers break, workloads fail. What should have been four 2-hour maintenance windows becomes a 3-week crisis. The lesson: frequent, incremental upgrades are less risky than infrequent large jumps._
+The lesson: frequent, incremental upgrades are _less_ risky than infrequent large jumps. The goal of this playbook is to make upgrades boring - predictable procedures that happen quarterly without drama.
 
 <Callout type="warning">
 The riskiest upgrade is the one you've been avoiding. Each version you skip accumulates: deprecated APIs, changed behaviors, incompatible add-ons. A cluster 3+ versions behind is an emergency waiting to happen.
@@ -37,182 +38,72 @@ The riskiest upgrade is the one you've been avoiding. Each version you skip accu
 
 ### Pre-Upgrade Checklist
 
-```yaml title="pre-upgrade-checklist.yaml"
-pre_upgrade_checklist:
-  timing_and_planning:
-    - item: "Review release notes for target version"
-      why: "Understand what's changing"
-      link: "https://kubernetes.io/releases/"
+Most upgrade failures trace back to skipped preparation. Before touching the cluster, work through four categories of readiness checks.
 
-    - item: "Check deprecation warnings"
-      why: "Identify APIs that will break"
-      command: "kubectl get --raw /metrics | grep apiserver_requested_deprecated_apis"
+_Timing and planning_ comes first. Review the release notes for your target version - not just the highlights, but the deprecations and breaking changes. Kubernetes only supports upgrading one minor version at a time (1.28 to 1.29 is fine, 1.28 to 1.30 isn't), so verify your upgrade path. Schedule a maintenance window with buffer time: even "zero-downtime" upgrades can hit unexpected issues that need investigation.
 
-    - item: "Verify upgrade path is supported"
-      why: "Can only upgrade one minor version at a time"
-      rule: "1.27 → 1.28 ✓, 1.27 → 1.29 ✗"
+_Cluster health_ establishes your baseline. All nodes should show Ready status. There shouldn't be unexpected pending pods. Control plane components and etcd should be healthy. Resource utilization should be below 70% - upgrades temporarily reduce capacity as nodes drain and restart, so you need headroom.
 
-    - item: "Schedule maintenance window"
-      why: "Even with zero-downtime, have buffer for issues"
-      recommendation: "2-4 hours depending on cluster size"
+_Backup and recovery_ is your safety net. Take an etcd snapshot before starting. Document current cluster state with `kubectl get all -A -o yaml`. Most importantly, document and _test_ your rollback procedure in a non-production environment before you need it.
 
-  cluster_health:
-    - item: "All nodes Ready"
-      command: "kubectl get nodes"
-      expected: "All nodes show Ready status"
+```bash
+# Take etcd backup before upgrade (kubeadm clusters)
+etcdctl snapshot save /backup/etcd-pre-upgrade-$(date +%Y%m%d).db \
+  --endpoints=https://127.0.0.1:2379 \
+  --cacert=/etc/kubernetes/pki/etcd/ca.crt \
+  --cert=/etc/kubernetes/pki/etcd/server.crt \
+  --key=/etc/kubernetes/pki/etcd/server.key
 
-    - item: "No pending pods"
-      command: "kubectl get pods -A --field-selector=status.phase=Pending"
-      expected: "No unexpected pending pods"
-
-    - item: "Control plane healthy"
-      command: "kubectl get componentstatuses"
-      expected: "All components healthy"
-
-    - item: "etcd healthy"
-      command: "etcdctl endpoint health --cluster"
-      expected: "All endpoints healthy"
-
-    - item: "Sufficient resource headroom"
-      why: "Upgrades temporarily reduce capacity"
-      check: "Node CPU/memory < 70% utilization"
-
-  backup_and_recovery:
-    - item: "etcd backup taken"
-      command: "etcdctl snapshot save /backup/etcd-$(date +%Y%m%d).db"
-      retention: "Keep until upgrade validated"
-
-    - item: "Cluster state documented"
-      includes:
-        - "kubectl get all -A -o yaml > cluster-state.yaml"
-        - "Helm list all releases"
-        - "Document custom configurations"
-
-    - item: "Rollback procedure documented"
-      why: "Know how to revert before you start"
-      test: "Practiced in non-prod environment"
-
-  compatibility_verification:
-    - item: "Add-ons compatible with target version"
-      check_list:
-        - "CNI plugin (Calico, Cilium, etc.)"
-        - "CSI drivers"
-        - "Ingress controller"
-        - "Cert-manager"
-        - "Monitoring stack"
-      how: "Check add-on documentation for version matrix"
-
-    - item: "Custom controllers tested"
-      why: "May use deprecated APIs or changed behaviors"
-      test: "Run in staging against target version"
-
-    - item: "Workload manifests validated"
-      command: "kubectl convert -f manifests/ --output-version apps/v1"
-      why: "Catch deprecated APIs before upgrade"
+# Verify backup is valid
+etcdctl snapshot status /backup/etcd-pre-upgrade-$(date +%Y%m%d).db
 ```
-Code: Comprehensive pre-upgrade checklist.
+Code: etcd backup before upgrade.
+
+_Compatibility verification_ catches the issues that break workloads. Check that your add-ons - CNI plugin, CSI drivers, ingress controller, cert-manager, monitoring stack - are compatible with the target version. Run custom controllers against the target version in staging. Validate workload manifests for deprecated APIs.
+
+| Category | Key Checks | Abort If |
+|----------|-----------|----------|
+| Timing | Release notes reviewed, upgrade path valid | Multi-version jump required |
+| Health | Nodes Ready, pods running, etcd healthy | Unhealthy components |
+| Backup | etcd snapshot taken, rollback tested | Backup failed |
+| Compatibility | Add-ons verified, deprecated APIs addressed | Incompatible add-ons |
+
+Table: Pre-upgrade checklist summary.
 
 ### Deprecated API Detection
 
-```bash title="deprecated-api-detection.sh"
+Deprecated APIs are the most common source of upgrade failures. An API that works today returns 404 after upgrade, breaking deployments, controllers, and CI pipelines. Catching these before the upgrade is essential.
+
+The API server tracks which deprecated APIs are being actively used. Query the metrics endpoint to see what's at risk:
+
+```bash
+kubectl get --raw /metrics | grep apiserver_requested_deprecated_apis
+```
+Code: Check which deprecated APIs are being called in your cluster.
+
+This shows runtime usage, but it won't catch APIs in manifests that haven't been applied recently. For static analysis, Pluto scans manifests and Helm releases against a target Kubernetes version:
+
+```bash title="deprecated-api-scan.sh"
 #!/bin/bash
-# Detect deprecated API usage before upgrade
+# Scan for deprecated APIs targeting Kubernetes 1.29
+# Note: helm template without values files may miss APIs used only with custom values
+TARGET_VERSION="1.29"
 
-set -euo pipefail
+# Scan all cluster resources
+kubectl get all -A -o yaml | pluto detect -t k8s=v${TARGET_VERSION} -
 
-TARGET_VERSION="${1:-1.29}"
-
-echo "=== Checking for deprecated API usage ==="
-
-# Method 1: Check API server metrics (runtime usage)
-echo ""
-echo "APIs being actively used that are deprecated:"
-kubectl get --raw /metrics 2>/dev/null | \
-  grep apiserver_requested_deprecated_apis | \
-  grep -v "^#" | \
-  sort -t'"' -k2
-
-# Method 2: Static analysis with pluto
-echo ""
-echo "Scanning manifests with pluto..."
-if command -v pluto &> /dev/null; then
-  # Scan all resources in cluster
-  kubectl get all -A -o yaml | pluto detect -t k8s=v${TARGET_VERSION} -
-
-  # Scan Helm releases
-  for release in $(helm list -A -q); do
-    namespace=$(helm list -A | grep "^$release" | awk '{print $2}')
-    echo "Checking Helm release: $release in $namespace"
-    helm template "$release" --namespace "$namespace" | \
-      pluto detect -t k8s=v${TARGET_VERSION} - 2>/dev/null || true
-  done
-else
-  echo "pluto not installed - install from https://github.com/FairwindsOps/pluto"
-fi
-
-# Method 3: Check specific known deprecations
-echo ""
-echo "Checking for specific deprecations in ${TARGET_VERSION}..."
-
-# Example: PodSecurityPolicy removed in 1.25
-if [[ "$TARGET_VERSION" > "1.24" ]]; then
-  psp_count=$(kubectl get psp 2>/dev/null | wc -l || echo "0")
-  if [[ "$psp_count" -gt 1 ]]; then
-    echo "⚠️  PodSecurityPolicy in use - removed in 1.25"
-    echo "   Migrate to Pod Security Admission"
-  fi
-fi
-
-# Example: Ingress v1beta1 removed in 1.22
-if [[ "$TARGET_VERSION" > "1.21" ]]; then
-  beta_ingress=$(kubectl get ingress.v1beta1.networking.k8s.io -A 2>/dev/null | wc -l || echo "0")
-  if [[ "$beta_ingress" -gt 1 ]]; then
-    echo "⚠️  Ingress v1beta1 in use - removed in 1.22"
-    echo "   Migrate to networking.k8s.io/v1"
-  fi
-fi
-
-# Method 4: Check kubelet version skew
-echo ""
-echo "Checking version skew..."
-control_plane_version=$(kubectl version -o json | jq -r '.serverVersion.minor' | tr -d '+')
-kubectl get nodes -o json | jq -r '.items[] | "\(.metadata.name): \(.status.nodeInfo.kubeletVersion)"' | while read line; do
-  node_version=$(echo "$line" | grep -oP '\d+\.\d+' | head -1 | cut -d. -f2)
-  skew=$((control_plane_version - node_version))
-  if [[ "$skew" -gt 2 ]]; then
-    echo "⚠️  $line - version skew > 2"
-  else
-    echo "✓ $line"
-  fi
+# Scan Helm releases (uses default values only)
+for release in $(helm list -A -q); do
+  namespace=$(helm list -A | grep "^$release" | awk '{print $2}')
+  helm template "$release" --namespace "$namespace" | \
+    pluto detect -t k8s=v${TARGET_VERSION} - 2>/dev/null || true
 done
-
-echo ""
-echo "=== Pre-upgrade API check complete ==="
 ```
-Code: Deprecated API detection script.
+Code: Scan manifests and Helm releases for deprecated APIs.
 
-```mermaid
-flowchart TD
-    A[Plan Upgrade] --> B{Check deprecation<br/>metrics}
+Some deprecations are particularly disruptive. PodSecurityPolicy was removed in 1.25 - clusters using PSP need to migrate to Pod Security Admission before upgrading past 1.24. Ingress v1beta1 was removed in 1.22. CronJob v1beta1 was removed in 1.25. Check the Kubernetes deprecation guide for your specific upgrade path.
 
-    B -->|APIs deprecated| C[Identify affected workloads]
-    B -->|None| D[Check add-on compatibility]
-
-    C --> E{Can migrate<br/>before upgrade?}
-    E -->|Yes| F[Update manifests]
-    E -->|No| G[Document as known issue]
-
-    F --> D
-    G --> D
-
-    D --> H{All add-ons<br/>compatible?}
-    H -->|Yes| I[Proceed with upgrade]
-    H -->|No| J[Update add-ons first]
-
-    J --> D
-    I --> K[Execute upgrade]
-```
-Figure: Pre-upgrade validation flow.
+Also verify version skew between the control plane and worker nodes. Kubernetes supports kubelets up to two minor versions older than the control plane. If you're upgrading from 1.28 to 1.29 but some nodes are still on 1.26, you'll hit skew limits.
 
 <Callout type="info">
 Run deprecated API detection continuously, not just before upgrades. Pluto in CI catches new deprecated API usage in PRs before it reaches the cluster. The best time to fix a deprecated API is when the PR is open, not during upgrade prep.
@@ -220,165 +111,60 @@ Run deprecated API detection continuously, not just before upgrades. Pluto in CI
 
 ## Upgrade Ordering
 
+Kubernetes components have strict version compatibility requirements. The API server can be at most one minor version ahead of the controller-manager and scheduler, which can be at most one minor version ahead of the kubelet. This means you can't upgrade everything simultaneously - there's a required sequence, and during parts of the upgrade you'll have components at different versions running together.
+
+The good news: this is by design and fully supported. Kubernetes explicitly allows version skew during upgrades. If you're upgrading from 1.28 to 1.29, you'll temporarily have 1.29 API servers serving requests alongside 1.28 kubelets on worker nodes - and that's fine. Worker nodes continue operating normally while the control plane upgrades - they just can't create new pods or update existing ones until the API server is back. For HA clusters with multiple control plane nodes, you upgrade them one at a time, so at least one API server is always available (though there may be brief gaps during leader election).
+
 ### Component Upgrade Sequence
 
-```mermaid
-sequenceDiagram
-    participant Prep as Preparation
-    participant CP as Control Plane
-    participant AN as Add-ons
-    participant W as Workers
-    participant V as Validation
+The order of operations matters. Upgrade in the wrong sequence and you'll hit version skew limits, incompatible components, or cascading failures. The sequence is: control plane first, then add-ons, then worker nodes.
 
-    Prep->>Prep: Backup etcd
-    Prep->>Prep: Document current state
+_Phase 1: Preparation_ (30 minutes). Run final health checks - all nodes Ready, no unexpected pending pods. Take a fresh etcd backup. Notify on-call, update the status page, and pause non-critical deployments.
 
-    Note over CP: Upgrade control plane first
-    CP->>CP: Upgrade first control plane node
-    CP->>V: Validate API server
-    V-->>CP: Healthy
-    CP->>CP: Upgrade remaining control plane nodes
-    CP->>V: Validate all control plane
-    V-->>CP: Healthy
+_Phase 2: Control plane_ (30-60 minutes). This is the highest-risk phase, and the mechanics vary by cluster type.
 
-    Note over AN: Upgrade cluster add-ons
-    AN->>AN: Upgrade CNI plugin
-    AN->>V: Validate networking
-    V-->>AN: Healthy
-    AN->>AN: Upgrade other add-ons
+For _self-managed HA clusters_ (kubeadm with multiple control plane nodes), you upgrade one control plane node at a time. The first node gets `kubeadm upgrade apply`, which upgrades the API server, controller-manager, scheduler, and etcd on that node. Remaining control plane nodes get `kubeadm upgrade node`. During each node's upgrade (typically 2-5 minutes), that node's API server is unavailable, but other control plane nodes continue serving requests. There's brief disruption during leader election when the active controller-manager or scheduler node upgrades, but workloads aren't affected.
 
-    Note over W: Upgrade workers (rolling)
-    W->>W: Cordon node 1
-    W->>W: Drain node 1
-    W->>W: Upgrade node 1
-    W->>W: Uncordon node 1
-    W->>V: Validate node 1
-    V-->>W: Healthy
-    W->>W: Repeat for remaining nodes
+For _single control plane clusters_, the API server is unavailable during the upgrade. Existing workloads continue running - pods don't restart just because the API server is down - but nothing can deploy, scale, or update until the control plane is back. This is why single control plane clusters should have short maintenance windows.
 
-    V->>V: Full cluster validation
+For _managed Kubernetes_ (EKS, GKE, AKS), the cloud provider handles the mechanics. They typically use a similar rolling approach internally, but you don't control the timing. EKS and AKS upgrade the control plane atomically from your perspective - you run the command and wait. GKE gives more visibility into the process. In all cases, there's a period (typically 10-30 minutes) where control plane operations may be slow or unavailable.
+
+```bash
+# Self-managed (kubeadm)
+kubeadm upgrade apply v1.29.0
+
+# EKS
+eksctl upgrade cluster --name my-cluster --version 1.29
+
+# GKE
+gcloud container clusters upgrade my-cluster --master --cluster-version 1.29
+
+# AKS
+az aks upgrade -g my-rg -n my-cluster --control-plane-only --kubernetes-version 1.29
 ```
-Figure: Upgrade component sequence.
+Code: Control plane upgrade commands by platform.
 
-```yaml title="upgrade-sequence.yaml"
-upgrade_sequence:
-  phase_1_preparation:
-    duration: "30 minutes"
-    steps:
-      - name: "Final health check"
-        commands:
-          - "kubectl get nodes"
-          - "kubectl get pods -A | grep -v Running"
-        abort_if: "Unhealthy nodes or critical pods"
+_Phase 3: Add-ons_ (15-30 minutes). Upgrade cluster add-ons to versions compatible with the new control plane. CNI plugin first - it must be compatible with the new kubelet version you're about to deploy. Check your CNI's compatibility matrix (Calico, Cilium, and AWS VPC CNI all publish version support tables). Then CoreDNS, metrics-server, cert-manager, ingress controller, and monitoring stack. Verify each one works before proceeding to the next - a failed CoreDNS upgrade will break DNS resolution cluster-wide.
 
-      - name: "Take etcd backup"
-        command: "etcdctl snapshot save /backup/pre-upgrade-$(date +%s).db"
-        verify: "etcdctl snapshot status /backup/pre-upgrade-*.db"
+_Phase 4: Worker nodes_ (10-15 minutes per node). For each worker node: cordon it (prevent new pod scheduling), drain it (evict existing pods), upgrade the kubelet, then uncordon it. Verify the node shows Ready before moving to the next one.
 
-      - name: "Enable maintenance mode"
-        actions:
-          - "Notify on-call"
-          - "Update status page"
-          - "Pause non-critical deployments"
+```bash
+# Worker node upgrade sequence
+NODE="worker-1"
+kubectl cordon $NODE
+kubectl drain $NODE --ignore-daemonsets --delete-emptydir-data --timeout=300s
 
-  phase_2_control_plane:
-    duration: "30-60 minutes"
-    warning: "API server will be unavailable briefly during each node upgrade"
-    steps:
-      - name: "Upgrade first control plane node"
-        tool_specific:
-          kubeadm: "kubeadm upgrade apply v1.29.0"
-          eks: "eksctl upgrade cluster"
-          gke: "gcloud container clusters upgrade --master"
-          aks: "az aks upgrade --control-plane-only"
+# On the node itself (kubeadm clusters)
+apt-get update && apt-get install -y kubelet=1.29.0-00 kubectl=1.29.0-00
+systemctl daemon-reload && systemctl restart kubelet
 
-      - name: "Verify API server"
-        commands:
-          - "kubectl version"
-          - "kubectl get nodes"
-          - "kubectl get componentstatuses"
-        wait: "60 seconds between checks"
-
-      - name: "Upgrade remaining control plane nodes"
-        note: "For HA clusters with multiple control plane nodes"
-        command: "kubeadm upgrade node"
-
-  phase_3_addons:
-    duration: "15-30 minutes"
-    steps:
-      - name: "Upgrade CNI"
-        why: "Must be compatible with new kubelet"
-        verify: "Pod networking works"
-
-      - name: "Upgrade CoreDNS"
-        why: "Often has version requirements"
-        verify: "DNS resolution works"
-
-      - name: "Upgrade other add-ons"
-        order:
-          - "metrics-server"
-          - "cert-manager"
-          - "ingress-controller"
-          - "monitoring stack"
-        verify_each: true
-
-  phase_4_worker_nodes:
-    duration: "10-15 minutes per node"
-    steps:
-      - name: "Cordon node"
-        command: "kubectl cordon <node-name>"
-        effect: "No new pods scheduled"
-
-      - name: "Drain node"
-        command: |
-          kubectl drain <node-name> \
-            --ignore-daemonsets \
-            --delete-emptydir-data \
-            --timeout=300s
-        wait_for: "All pods evicted or timeout"
-
-      - name: "Upgrade kubelet and kubectl"
-        tool_specific:
-          kubeadm: |
-            apt-get update
-            apt-get install -y kubelet=1.29.0-00 kubectl=1.29.0-00
-            systemctl daemon-reload
-            systemctl restart kubelet
-          managed: "Node pool upgrade or node replacement"
-
-      - name: "Uncordon node"
-        command: "kubectl uncordon <node-name>"
-        effect: "Node available for scheduling"
-
-      - name: "Verify node"
-        commands:
-          - "kubectl get node <node-name>"
-          - "kubectl describe node <node-name> | grep -A5 Conditions"
-        wait: "Until Ready"
-
-  phase_5_validation:
-    duration: "15-30 minutes"
-    steps:
-      - name: "Cluster health check"
-        checks:
-          - "All nodes Ready"
-          - "All system pods Running"
-          - "No pending pods"
-
-      - name: "Application smoke tests"
-        checks:
-          - "Sample API calls succeed"
-          - "Ingress routing works"
-          - "DNS resolution works"
-          - "Storage access works"
-
-      - name: "Monitoring verification"
-        checks:
-          - "Metrics collecting"
-          - "Logs streaming"
-          - "Alerts configured"
+# Back on a machine with kubectl access
+kubectl uncordon $NODE
+kubectl wait --for=condition=Ready node/$NODE --timeout=120s
 ```
-Code: Detailed upgrade sequence by phase.
+Code: Worker node upgrade sequence.
+
+_Phase 5: Validation_ (15-30 minutes). Run comprehensive health checks: all nodes Ready, all system pods Running, no unexpected pending pods. Run application smoke tests: API calls, ingress routing, DNS resolution, storage access. Verify monitoring is collecting metrics and logs.
 
 | Phase | Duration | Risk Level | Rollback Difficulty |
 |-------|----------|------------|---------------------|
@@ -398,192 +184,79 @@ Control plane upgrades are the highest-risk phase. API server downtime affects a
 
 ### Canary Cluster Pattern
 
-```yaml title="canary-cluster-strategy.yaml"
-canary_cluster_pattern:
-  description: "Upgrade non-critical clusters first to catch issues"
+If you have multiple clusters, don't upgrade them all at once. Use a tiered approach where non-critical clusters serve as canaries for critical ones.
 
-  cluster_tiers:
-    tier_1_canary:
-      examples:
-        - "dev-cluster"
-        - "staging-cluster"
-        - "internal-tools-cluster"
-      upgrade_timing: "Day 1"
-      soak_period: "3-5 business days"
-      monitoring:
-        - "Error rates"
-        - "API server latency"
-        - "Node stability"
-        - "Workload health"
-      proceed_if: "No issues after soak period"
+_Tier 1: Canary clusters_ (dev, staging, internal tools). Upgrade these first on day one. Let them soak for 3-5 business days while monitoring error rates, API server latency, node stability, and workload health. If issues surface, you've caught them before touching production.
 
-    tier_2_non_critical_prod:
-      examples:
-        - "prod-secondary-region"
-        - "batch-processing-cluster"
-      upgrade_timing: "After tier 1 soak"
-      soak_period: "5-7 business days"
-      monitoring:
-        - "Same as tier 1"
-        - "Business metrics"
-      proceed_if: "No issues after soak period"
+_Tier 2: Non-critical production_ (secondary regions, batch processing clusters). Upgrade after tier 1 completes its soak period successfully. Monitor for 5-7 business days. Include business metrics alongside infrastructure metrics.
 
-    tier_3_critical_prod:
-      examples:
-        - "prod-primary-region"
-        - "customer-facing-cluster"
-      upgrade_timing: "After tier 2 soak"
-      soak_period: "7-14 business days"
-      extra_precautions:
-        - "Reduced blast radius (upgrade during low traffic)"
-        - "Extra monitoring"
-        - "Immediate rollback capability"
+_Tier 3: Critical production_ (primary region, customer-facing clusters). Upgrade last, after tier 2 soaks. Take extra precautions: upgrade during low-traffic windows, add extra monitoring, ensure immediate rollback capability is ready.
 
-  rollback_triggers:
-    automatic:
-      - "Control plane unreachable > 5 minutes"
-      - "Error rate increase > 50%"
-      - "Node failure rate > 10%"
-    manual:
-      - "Unexpected workload behavior"
-      - "Performance degradation"
-      - "Team judgment call"
-```
-Code: Canary cluster upgrade strategy.
+| Cluster Tier | Upgrade Timing | Soak Period | Proceed If |
+|--------------|----------------|-------------|------------|
+| Canary (dev, staging) | Day 1 | 3-5 business days | No issues observed |
+| Non-critical prod | After tier 1 soak | 5-7 business days | Metrics stable |
+| Critical prod | After tier 2 soak | 7-14 business days | Full confidence |
+
+Table: Canary cluster upgrade schedule.
+
+Define rollback triggers in advance. Automatic triggers should fire on clear failures: control plane unreachable for more than 5 minutes, error rate increase over 50%, node failure rate over 10%. Manual triggers require judgment: unexpected workload behavior, performance degradation, or anything that doesn't feel right. It's better to roll back unnecessarily than to push through a bad upgrade.
 
 ### Node Pool Strategies
 
-```typescript title="node-pool-upgrade.ts"
-// Node pool upgrade strategies for managed Kubernetes
+For managed Kubernetes (EKS, GKE, AKS), node pool strategy significantly affects upgrade risk and rollback options. Three approaches dominate:
 
-interface NodePoolUpgradeStrategy {
-  name: string;
-  description: string;
-  pros: string[];
-  cons: string[];
-  bestFor: string;
-}
+_In-place rolling upgrade_ upgrades nodes one at a time within the existing pool. Pros: no IP address changes, minimal disruption, no extra cost. Cons: slower (sequential), reduced capacity during upgrade, harder to roll back. Best for small clusters or environments with tight capacity constraints.
 
-const strategies: NodePoolUpgradeStrategy[] = [
-  {
-    name: 'In-place rolling upgrade',
-    description: 'Upgrade nodes one at a time within existing pool',
-    pros: [
-      'No IP address changes',
-      'Minimal disruption',
-      'Lower cost (no extra nodes)',
-    ],
-    cons: [
-      'Slower (sequential)',
-      'Reduced capacity during upgrade',
-      'Harder to rollback',
-    ],
-    bestFor: 'Small clusters, tight capacity',
-  },
+_Blue-green node pools_ creates a new pool at the target version, migrates workloads, then deletes the old pool. Pros: easy rollback (just keep the old pool), no capacity reduction, clean nodes with no accumulated state. Cons: temporarily doubles node costs, IP addresses change, more complex orchestration. Best for production clusters with stateless workloads.
 
-  {
-    name: 'Blue-green node pools',
-    description: 'Create new pool at new version, migrate workloads, delete old',
-    pros: [
-      'Easy rollback (keep old pool)',
-      'No capacity reduction',
-      'Clean nodes (no state accumulation)',
-    ],
-    cons: [
-      'Temporary double cost',
-      'IP addresses change',
-      'More complex orchestration',
-    ],
-    bestFor: 'Production clusters, stateless workloads',
-  },
+_Surge upgrade_ creates extra nodes temporarily, upgrades, then removes the extras. This is the middle ground - faster than pure rolling, maintains capacity, balances speed and safety. Most managed Kubernetes services support configuring surge percentages.
 
-  {
-    name: 'Surge upgrade',
-    description: 'Create extra nodes, upgrade, remove extras',
-    pros: [
-      'Faster than pure rolling',
-      'Maintains capacity',
-      'Balance of speed and safety',
-    ],
-    cons: [
-      'Temporary extra cost',
-      'Some IP churn',
-    ],
-    bestFor: 'Most production scenarios',
-  },
-];
+| Strategy | Rollback Ease | Cost During Upgrade | Best For |
+|----------|---------------|---------------------|----------|
+| In-place rolling | Hard | None | Small clusters, tight budgets |
+| Blue-green pools | Easy | 2x nodes temporarily | Production, stateless workloads |
+| Surge upgrade | Medium | +N% nodes temporarily | Most production scenarios |
 
-// Blue-green node pool implementation
-class BlueGreenNodePoolUpgrade {
-  async upgrade(
-    cluster: string,
-    currentPool: string,
-    targetVersion: string
-  ): Promise<void> {
-    const newPoolName = `${currentPool}-${targetVersion.replace(/\./g, '-')}`;
+Table: Node pool upgrade strategy comparison.
 
-    // Step 1: Create new node pool at target version
-    console.log(`Creating new node pool: ${newPoolName}`);
-    await this.createNodePool({
-      cluster,
-      name: newPoolName,
-      version: targetVersion,
-      size: await this.getPoolSize(cluster, currentPool),
-      taints: [{ key: 'upgrade', value: 'in-progress', effect: 'NoSchedule' }],
-    });
+For production clusters, I recommend blue-green node pools. The sequence:
 
-    // Step 2: Wait for nodes to be ready
-    await this.waitForNodesReady(cluster, newPoolName);
+1. Create new node pool at target version (with a `NoSchedule` taint to prevent scheduling)
+2. Wait for all new nodes to show Ready
+3. Remove the taint from the new pool
+4. Cordon the old pool (no new pods scheduled)
+5. Drain the old pool (pods migrate to new pool)
+6. Validate workloads are healthy on the new pool
+7. If healthy, delete the old pool. If not, uncordon the old pool and delete the new one.
 
-    // Step 3: Remove taint to allow scheduling
-    await this.removeTaint(cluster, newPoolName, 'upgrade');
+```bash title="blue-green-node-pool.sh"
+# Blue-green node pool upgrade for EKS
+OLD_POOL="workers-1-28"
+NEW_POOL="workers-1-29"
 
-    // Step 4: Cordon old pool
-    console.log(`Cordoning old pool: ${currentPool}`);
-    await this.cordonPool(cluster, currentPool);
+# Create new node pool
+eksctl create nodegroup --cluster my-cluster --name $NEW_POOL \
+  --node-type m5.large --nodes 3 --kubernetes-version 1.29
 
-    // Step 5: Drain old pool (workloads move to new pool)
-    console.log(`Draining old pool: ${currentPool}`);
-    await this.drainPool(cluster, currentPool);
+# Wait for nodes to be ready
+kubectl wait --for=condition=Ready nodes -l eks.amazonaws.com/nodegroup=$NEW_POOL --timeout=600s
 
-    // Step 6: Validate workloads on new pool
-    const healthy = await this.validateWorkloads(cluster);
-    if (!healthy) {
-      // Rollback: uncordon old pool, delete new pool
-      console.error('Validation failed, rolling back');
-      await this.uncordonPool(cluster, currentPool);
-      await this.deleteNodePool(cluster, newPoolName);
-      throw new Error('Upgrade validation failed');
-    }
+# Cordon and drain old pool
+for node in $(kubectl get nodes -l eks.amazonaws.com/nodegroup=$OLD_POOL -o name); do
+  kubectl cordon $node
+  kubectl drain $node --ignore-daemonsets --delete-emptydir-data --timeout=300s
+done
 
-    // Step 7: Delete old pool
-    console.log(`Deleting old pool: ${currentPool}`);
-    await this.deleteNodePool(cluster, currentPool);
+# Validate workloads - run your infrastructure validation script
+./validate-cluster.sh || { echo "Validation failed - rolling back"; \
+  kubectl uncordon -l eks.amazonaws.com/nodegroup=$OLD_POOL; \
+  eksctl delete nodegroup --cluster my-cluster --name $NEW_POOL; exit 1; }
 
-    console.log('Upgrade complete');
-  }
-}
+# If validation passes, delete old pool
+eksctl delete nodegroup --cluster my-cluster --name $OLD_POOL
 ```
-Code: Blue-green node pool upgrade strategy.
-
-```mermaid
-graph TD
-    subgraph "Blue-Green Node Pool Upgrade"
-        A[Start: Pool v1.28] --> B[Create Pool v1.29]
-        B --> C[Wait for v1.29 nodes ready]
-        C --> D[Cordon v1.28 pool]
-        D --> E[Drain v1.28 pool]
-        E --> F{Workloads healthy<br/>on v1.29?}
-
-        F -->|Yes| G[Delete v1.28 pool]
-        F -->|No| H[Rollback: Uncordon v1.28]
-
-        G --> I[Complete: Only v1.29]
-        H --> J[Delete v1.29 pool]
-        J --> K[Failed: Back to v1.28]
-    end
-```
-Figure: Blue-green node pool upgrade flow.
+Code: Blue-green node pool upgrade for EKS.
 
 <Callout type="success">
 Blue-green node pools give you the easiest rollback path: if anything goes wrong, uncordon the old pool and delete the new one. The cost of running both pools temporarily is insurance against upgrade failures.
@@ -593,150 +266,92 @@ Blue-green node pools give you the easiest rollback path: if anything goes wrong
 
 ### Control Plane Rollback
 
-```yaml title="control-plane-rollback.yaml"
-control_plane_rollback:
-  when_to_rollback:
-    immediate_triggers:
-      - "API server won't start after upgrade"
-      - "etcd cluster unhealthy"
-      - "Control plane components crash looping"
-    considered_triggers:
-      - "Significant API latency increase"
-      - "Intermittent failures"
-      - "Unexpected behavior"
+Control plane rollback is the nuclear option. It's disruptive, risky, and should be avoided if possible. But when you need it - API server won't start, etcd is unhealthy, control plane components are crash looping - you need to act quickly.
 
-  etcd_restore_procedure:
-    warning: "This resets cluster state to backup time"
-    steps:
-      - name: "Stop all control plane components"
-        commands:
-          - "systemctl stop kube-apiserver"
-          - "systemctl stop kube-controller-manager"
-          - "systemctl stop kube-scheduler"
-          - "systemctl stop etcd"
+For self-managed clusters (kubeadm), rollback means restoring from the etcd backup you took before upgrading. This is why that backup isn't optional.
 
-      - name: "Restore etcd from backup"
-        command: |
-          etcdctl snapshot restore /backup/pre-upgrade.db \
-            --data-dir=/var/lib/etcd-restore \
-            --name=$(hostname) \
-            --initial-cluster=$(hostname)=https://$(hostname):2380 \
-            --initial-advertise-peer-urls=https://$(hostname):2380
+```bash title="etcd-restore.sh"
+# Stop all control plane components
+systemctl stop kube-apiserver kube-controller-manager kube-scheduler etcd
 
-      - name: "Replace etcd data directory"
-        commands:
-          - "mv /var/lib/etcd /var/lib/etcd-failed"
-          - "mv /var/lib/etcd-restore /var/lib/etcd"
-          - "chown -R etcd:etcd /var/lib/etcd"
+# Restore etcd from pre-upgrade backup
+etcdctl snapshot restore /backup/pre-upgrade.db \
+  --data-dir=/var/lib/etcd-restore \
+  --name=$(hostname) \
+  --initial-cluster=$(hostname)=https://$(hostname):2380 \
+  --initial-advertise-peer-urls=https://$(hostname):2380
 
-      - name: "Restore previous control plane binaries"
-        note: "Depends on how upgrade was performed"
-        kubeadm: |
-          apt-get install -y kubelet=1.28.0-00 kubeadm=1.28.0-00 kubectl=1.28.0-00
-          # Or restore from backup
+# Replace etcd data directory
+mv /var/lib/etcd /var/lib/etcd-failed
+mv /var/lib/etcd-restore /var/lib/etcd
+chown -R etcd:etcd /var/lib/etcd
 
-      - name: "Start etcd"
-        command: "systemctl start etcd"
-        verify: "etcdctl endpoint health"
+# Downgrade control plane binaries
+apt-get install -y kubelet=1.28.0-00 kubeadm=1.28.0-00 kubectl=1.28.0-00
 
-      - name: "Start control plane components"
-        commands:
-          - "systemctl start kube-apiserver"
-          - "systemctl start kube-controller-manager"
-          - "systemctl start kube-scheduler"
-        verify: "kubectl get componentstatuses"
+# Start etcd first, verify it's healthy
+systemctl start etcd
+etcdctl endpoint health
 
-      - name: "Verify cluster state"
-        commands:
-          - "kubectl get nodes"
-          - "kubectl get pods -A"
-        note: "State reflects backup time, not current"
+# Start remaining control plane components
+systemctl start kube-apiserver kube-controller-manager kube-scheduler
 
-  managed_kubernetes_rollback:
-    eks:
-      note: "EKS doesn't support control plane downgrade"
-      options:
-        - "Restore from Terraform/CloudFormation"
-        - "Create new cluster, migrate workloads"
-
-    gke:
-      note: "GKE supports rollback within maintenance window"
-      command: |
-        gcloud container clusters upgrade CLUSTER_NAME \
-          --master \
-          --cluster-version=PREVIOUS_VERSION
-
-    aks:
-      note: "AKS doesn't support control plane downgrade"
-      options:
-        - "Create new cluster"
-        - "Azure support ticket"
+# Verify cluster state
+kubectl get componentstatuses
+kubectl get nodes
 ```
-Code: Control plane rollback procedures.
+Code: etcd restore procedure for kubeadm clusters.
+
+Be aware that restoring from an etcd backup resets cluster state to the backup time. Any workloads deployed, scaled, or modified after the backup will reflect their pre-backup state. This is usually acceptable during an upgrade window when deployments are paused, but it's a significant caveat.
+
+For managed Kubernetes, rollback options are more limited:
+
+- _EKS_ doesn't support control plane downgrades. Your options are restoring the cluster from Terraform/CloudFormation state or creating a new cluster and migrating workloads.
+- _GKE_ supports rollback within the maintenance window using `gcloud container clusters upgrade --cluster-version=PREVIOUS_VERSION`.
+- _AKS_ doesn't support control plane downgrades. You'll need to create a new cluster or open an Azure support ticket.
 
 ### Worker Node Rollback
 
-```bash title="worker-rollback.sh"
-#!/bin/bash
-# Worker node rollback script
+Worker node rollback is much simpler than control plane rollback. If a node is misbehaving after upgrade, you can downgrade its kubelet without affecting the rest of the cluster.
 
-set -euo pipefail
+The procedure mirrors the upgrade: cordon, drain, downgrade, uncordon. For kubeadm clusters, use your configuration management tool (Ansible, Salt, Puppet) to downgrade the kubelet on target nodes. For managed Kubernetes, you typically replace the node or node pool rather than downgrading in place.
 
-NODE_NAME="${1:?Node name required}"
-PREVIOUS_VERSION="${2:?Previous version required}"
+```yaml title="rollback-worker.yml"
+# Ansible playbook for worker node rollback
+- hosts: "{{ target_node }}"
+  become: yes
+  vars:
+    previous_version: "1.28.0-00"
+  tasks:
+    - name: Unhold kubelet and kubectl packages
+      dpkg_selections:
+        name: "{{ item }}"
+        selection: install
+      loop: [kubelet, kubectl]
 
-echo "=== Rolling back $NODE_NAME to $PREVIOUS_VERSION ==="
+    - name: Downgrade kubelet and kubectl
+      apt:
+        name:
+          - "kubelet={{ previous_version }}"
+          - "kubectl={{ previous_version }}"
+        state: present
+        update_cache: yes
 
-# Step 1: Cordon the node
-echo "Cordoning node..."
-kubectl cordon "$NODE_NAME"
+    - name: Hold packages at downgraded version
+      dpkg_selections:
+        name: "{{ item }}"
+        selection: hold
+      loop: [kubelet, kubectl]
 
-# Step 2: Drain the node
-echo "Draining node..."
-kubectl drain "$NODE_NAME" \
-  --ignore-daemonsets \
-  --delete-emptydir-data \
-  --timeout=300s
-
-# Step 3: SSH and downgrade kubelet
-echo "Downgrading kubelet..."
-ssh "$NODE_NAME" << EOF
-  # Hold packages at specific version
-  apt-mark unhold kubelet kubectl
-
-  # Install previous version
-  apt-get update
-  apt-get install -y kubelet=${PREVIOUS_VERSION}-00 kubectl=${PREVIOUS_VERSION}-00
-
-  # Hold at this version
-  apt-mark hold kubelet kubectl
-
-  # Restart kubelet
-  systemctl daemon-reload
-  systemctl restart kubelet
-EOF
-
-# Step 4: Wait for node to be ready
-echo "Waiting for node to be ready..."
-kubectl wait --for=condition=Ready node/"$NODE_NAME" --timeout=300s
-
-# Step 5: Verify version
-echo "Verifying version..."
-node_version=$(kubectl get node "$NODE_NAME" -o jsonpath='{.status.nodeInfo.kubeletVersion}')
-if [[ "$node_version" == *"$PREVIOUS_VERSION"* ]]; then
-  echo "✓ Node rolled back to $node_version"
-else
-  echo "✗ Version mismatch: expected $PREVIOUS_VERSION, got $node_version"
-  exit 1
-fi
-
-# Step 6: Uncordon the node
-echo "Uncordoning node..."
-kubectl uncordon "$NODE_NAME"
-
-echo "=== Rollback complete ==="
+    - name: Restart kubelet
+      systemd:
+        name: kubelet
+        state: restarted
+        daemon_reload: yes
 ```
-Code: Worker node rollback script.
+Code: Ansible playbook for worker node rollback.
+
+If you used blue-green node pools for the upgrade, rollback is trivial: uncordon the old pool and delete the new one. This is one of the strongest arguments for blue-green upgrades in production.
 
 | Rollback Scenario | Complexity | Data Loss Risk | Downtime |
 |-------------------|------------|----------------|----------|
@@ -753,299 +368,76 @@ Managed Kubernetes services (EKS, GKE, AKS) often don't support control plane do
 
 ## Post-Upgrade Validation
 
-### Comprehensive Validation Suite
+The upgrade isn't complete when the last node reports Ready. It's complete when you've verified that workloads are running correctly, networking is functioning, storage is accessible, and monitoring is collecting data. Skipping validation is how small problems become production incidents.
 
-```typescript title="post-upgrade-validation.ts"
-interface ValidationCheck {
-  name: string;
-  category: 'infrastructure' | 'networking' | 'storage' | 'workloads' | 'addons';
-  critical: boolean;
-  check: () => Promise<ValidationResult>;
-}
+### Validation Categories
 
-const postUpgradeValidation: ValidationCheck[] = [
-  // Infrastructure checks
-  {
-    name: 'All nodes Ready',
-    category: 'infrastructure',
-    critical: true,
-    check: async () => {
-      const nodes = await kubectl.getNodes();
-      const notReady = nodes.filter(n =>
-        !n.status.conditions.find(c => c.type === 'Ready' && c.status === 'True')
-      );
-      return {
-        passed: notReady.length === 0,
-        details: notReady.length > 0
-          ? `Nodes not ready: ${notReady.map(n => n.metadata.name).join(', ')}`
-          : 'All nodes ready',
-      };
-    },
-  },
-  {
-    name: 'Control plane components healthy',
-    category: 'infrastructure',
-    critical: true,
-    check: async () => {
-      const health = await kubectl.getComponentStatuses();
-      const unhealthy = health.filter(c => c.conditions[0]?.status !== 'True');
-      return {
-        passed: unhealthy.length === 0,
-        details: unhealthy.map(c => `${c.metadata.name}: ${c.conditions[0]?.message}`),
-      };
-    },
-  },
-  {
-    name: 'API server responding',
-    category: 'infrastructure',
-    critical: true,
-    check: async () => {
-      const start = Date.now();
-      try {
-        await kubectl.version();
-        const latency = Date.now() - start;
-        return {
-          passed: latency < 1000,
-          details: `API server latency: ${latency}ms`,
-        };
-      } catch (error) {
-        return { passed: false, details: `API server unreachable: ${error}` };
-      }
-    },
-  },
+I organize post-upgrade checks into five categories, run in order of criticality:
 
-  // Networking checks
-  {
-    name: 'DNS resolution working',
-    category: 'networking',
-    critical: true,
-    check: async () => {
-      const result = await kubectl.exec(
-        'test-pod', 'default',
-        ['nslookup', 'kubernetes.default']
-      );
-      return {
-        passed: result.exitCode === 0,
-        details: result.stdout,
-      };
-    },
-  },
-  {
-    name: 'Pod-to-pod networking',
-    category: 'networking',
-    critical: true,
-    check: async () => {
-      // Deploy test pods on different nodes, verify connectivity
-      const result = await runNetworkTest();
-      return {
-        passed: result.allPassed,
-        details: result.summary,
-      };
-    },
-  },
-  {
-    name: 'Ingress routing',
-    category: 'networking',
-    critical: true,
-    check: async () => {
-      const response = await fetch('https://test-app.internal/health');
-      return {
-        passed: response.ok,
-        details: `Ingress health check: ${response.status}`,
-      };
-    },
-  },
+_Infrastructure checks_ verify the cluster itself is healthy. All nodes should be Ready, control plane components should show healthy status, and the API server should respond quickly. These are blocking - don't proceed if any fail.
 
-  // Storage checks
-  {
-    name: 'PVCs bound',
-    category: 'storage',
-    critical: true,
-    check: async () => {
-      const pvcs = await kubectl.getPVCs('--all-namespaces');
-      const unbound = pvcs.filter(p => p.status.phase !== 'Bound');
-      return {
-        passed: unbound.length === 0,
-        details: unbound.length > 0
-          ? `Unbound PVCs: ${unbound.map(p => p.metadata.name).join(', ')}`
-          : 'All PVCs bound',
-      };
-    },
-  },
-  {
-    name: 'Storage class available',
-    category: 'storage',
-    critical: false,
-    check: async () => {
-      const storageClasses = await kubectl.getStorageClasses();
-      const defaultSC = storageClasses.find(sc =>
-        sc.metadata.annotations?.['storageclass.kubernetes.io/is-default-class'] === 'true'
-      );
-      return {
-        passed: !!defaultSC,
-        details: defaultSC
-          ? `Default storage class: ${defaultSC.metadata.name}`
-          : 'No default storage class',
-      };
-    },
-  },
+```bash
+# Infrastructure validation
+echo "=== Infrastructure Checks ==="
 
-  // Workload checks
-  {
-    name: 'System pods running',
-    category: 'workloads',
-    critical: true,
-    check: async () => {
-      const pods = await kubectl.getPods('kube-system');
-      const notRunning = pods.filter(p => p.status.phase !== 'Running');
-      return {
-        passed: notRunning.length === 0,
-        details: notRunning.length > 0
-          ? `System pods not running: ${notRunning.map(p => p.metadata.name).join(', ')}`
-          : 'All system pods running',
-      };
-    },
-  },
-  {
-    name: 'No pending pods',
-    category: 'workloads',
-    critical: false,
-    check: async () => {
-      const pending = await kubectl.getPods('--all-namespaces', '--field-selector=status.phase=Pending');
-      return {
-        passed: pending.length === 0,
-        details: pending.length > 0
-          ? `Pending pods: ${pending.map(p => `${p.metadata.namespace}/${p.metadata.name}`).join(', ')}`
-          : 'No pending pods',
-      };
-    },
-  },
-];
+# All nodes ready
+NOT_READY=$(kubectl get nodes --no-headers | grep -v " Ready" | wc -l)
+echo "Nodes not Ready: $NOT_READY"
+[[ $NOT_READY -gt 0 ]] && kubectl get nodes | grep -v " Ready"
 
-// Run all validations
-async function runPostUpgradeValidation(): Promise<ValidationReport> {
-  const results: ValidationResult[] = [];
+# Control plane health (modern approach - componentstatuses deprecated in 1.19+)
+echo "Control plane readiness:"
+kubectl get --raw='/readyz?verbose' | grep -E '^\[|check passed'
 
-  for (const check of postUpgradeValidation) {
-    console.log(`Running: ${check.name}...`);
-    try {
-      const result = await check.check();
-      results.push({
-        ...result,
-        name: check.name,
-        category: check.category,
-        critical: check.critical,
-      });
-      console.log(result.passed ? '✓' : '✗', check.name);
-    } catch (error) {
-      results.push({
-        name: check.name,
-        category: check.category,
-        critical: check.critical,
-        passed: false,
-        details: `Check failed with error: ${error}`,
-      });
-      console.log('✗', check.name, error);
-    }
-  }
+# API server latency
+START=$(date +%s%N)
+kubectl version > /dev/null
+END=$(date +%s%N)
+LATENCY=$(( ($END - $START) / 1000000 ))
+echo "API server latency: ${LATENCY}ms"
 
-  const criticalFailures = results.filter(r => r.critical && !r.passed);
-
-  return {
-    passed: criticalFailures.length === 0,
-    results,
-    summary: {
-      total: results.length,
-      passed: results.filter(r => r.passed).length,
-      failed: results.filter(r => !r.passed).length,
-      criticalFailures: criticalFailures.length,
-    },
-  };
-}
+# System pods running
+SYSTEM_NOT_RUNNING=$(kubectl get pods -n kube-system --no-headers | grep -v "Running\|Completed" | wc -l)
+echo "System pods not Running: $SYSTEM_NOT_RUNNING"
 ```
-Code: Comprehensive post-upgrade validation suite.
+Code: Basic infrastructure validation script.
 
-```yaml title="smoke-tests.yaml"
-# Application-level smoke tests to run after upgrade
+_Networking checks_ confirm that cluster DNS resolves, pods can reach each other across nodes, and ingress routes traffic correctly. DNS failures are the most common post-upgrade issue I see - usually caused by CoreDNS pods not rescheduling properly.
 
-smoke_tests:
-  - name: "API health endpoint"
-    type: "http"
-    endpoint: "https://api.internal/health"
-    expected_status: 200
-    timeout: 10s
+_Storage checks_ verify that PersistentVolumeClaims are bound and that volume attachments are working. The storage provider (EBS CSI driver, Azure Disk CSI, etc.) may need upgrades alongside the cluster, and version mismatches cause attachment failures.
 
-  - name: "Database connectivity"
-    type: "tcp"
-    endpoint: "postgres.database:5432"
-    timeout: 5s
+_Workload checks_ confirm that your applications are running. Look for pending pods, crashloops, and increased error rates. Deployments should have their expected replica counts, and StatefulSets should show all pods ready.
 
-  - name: "Cache connectivity"
-    type: "tcp"
-    endpoint: "redis.cache:6379"
-    timeout: 5s
+_Observability checks_ ensure that metrics are being collected and logs are flowing. If your monitoring breaks during the upgrade, you won't know about problems until users report them. Check that Prometheus is scraping, alerting rules are evaluating, and log collectors are shipping.
 
-  - name: "Queue connectivity"
-    type: "tcp"
-    endpoint: "rabbitmq.messaging:5672"
-    timeout: 5s
+### Automation Is Essential
 
-  - name: "Authentication service"
-    type: "http"
-    endpoint: "https://auth.internal/health"
-    expected_status: 200
+Validation should be automated and fast. If checking takes an hour, you won't check after each phase - you'll rush through the upgrade and validate once at the end, when problems are hardest to diagnose. A comprehensive validation suite that runs in 5 minutes lets you validate after each phase, catching issues early when they're easiest to fix.
 
-  - name: "Sample API call"
-    type: "http"
-    endpoint: "https://api.internal/v1/users/me"
-    headers:
-      Authorization: "Bearer ${TEST_TOKEN}"
-    expected_status: 200
+| Validation Category | Critical Checks | Non-Critical Checks | Target Time |
+|---------------------|-----------------|---------------------|-------------|
+| Infrastructure | Nodes Ready, API healthy | Node resource pressure | 30 seconds |
+| Networking | DNS, pod-to-pod | External egress | 60 seconds |
+| Storage | PVCs bound | Storage class default | 30 seconds |
+| Workloads | System pods, no crashloops | Pending pods | 60 seconds |
+| Observability | Metrics scraping | Dashboard loading | 60 seconds |
 
-  - name: "Metrics collection"
-    type: "prometheus_query"
-    query: "up{job='kubernetes-nodes'}"
-    expected: "all values = 1"
+Table: Validation checks by category.
 
-  - name: "Log collection"
-    type: "log_query"
-    query: "kubernetes.namespace:kube-system"
-    expected: "recent logs present"
-```
-Code: Application smoke tests.
+For application-level validation, run smoke tests against your key services. Hit the health endpoints, verify database connectivity, confirm cache is responding. These tests catch application-level issues that infrastructure checks miss - like when an app depends on a deprecated API that still worked during the upgrade but fails on first restart.
 
 <Callout type="info">
-Validation should be automated and fast. If checking takes hours, you won't check often enough. A comprehensive validation suite that runs in 5 minutes lets you validate after each phase, catching issues early.
+The goal is confidence. If your validation suite passes, you should feel comfortable declaring the upgrade successful. If you find yourself doing manual checks "just to be sure," those checks should be in the automated suite.
 </Callout>
 
 ## Conclusion
 
-Summarize the key practices for boring Kubernetes upgrades: prepare thoroughly with deprecated API detection and compatibility checks; follow strict upgrade ordering (control plane → add-ons → workers); use canary clusters and blue-green node pools to reduce risk; have tested rollback procedures ready before starting; and validate comprehensively after each phase. Emphasize that the investment in upgrade infrastructure pays dividends—teams that upgrade frequently and incrementally have fewer incidents than teams that do rare, large upgrades.
+Kubernetes upgrades don't have to be scary. The teams I've seen handle them best share a few common practices: they prepare thoroughly with deprecated API detection and compatibility checks; they follow strict upgrade ordering; they use canary clusters and staged rollouts to limit blast radius; they have tested rollback procedures ready _before_ they start; and they validate comprehensively after each phase.
+
+The investment in upgrade infrastructure pays for itself quickly. Automated API scanning, blue-green node pools, practiced rollbacks, and comprehensive validation all reduce risk and build confidence.
+
+The pattern is clear: small, regular upgrades beat large, infrequent ones. A quarterly 1.28→1.29 upgrade with well-tested procedures is dramatically safer than an annual 1.25→1.29 jump with four versions of changelog to audit and four times the deprecations to handle.
 
 <Callout type="success">
 The goal is making upgrades so routine they're boring. Quarterly upgrades, practiced procedures, automated validation, and quick rollback capability transform upgrades from scary events into regular maintenance. The teams that upgrade often are the teams that upgrade well.
 </Callout>
-
----
-
-## Cover Prompt
-
-### Prompt 1: The Upgrade Ladder
-
-Create an image of a ladder with rungs labeled with Kubernetes versions (1.27, 1.28, 1.29, 1.30). A climber ascends one rung at a time, with safety equipment attached. Below, someone tries to jump multiple rungs and struggles. A safety net (rollback) is visible below. Style: ladder climbing, incremental progress, safety equipment, 16:9 aspect ratio.
-
-### Prompt 2: The Control Tower
-
-Design an image of an air traffic control tower managing a Kubernetes upgrade. Screens show cluster health, node status, and upgrade progress. Controllers guide "planes" (pods) to land safely while runways (nodes) are upgraded one at a time. A "Go/No-Go" decision board is visible. Style: air traffic control, coordination, safety protocols, 16:9 aspect ratio.
-
-### Prompt 3: The Version Conveyor Belt
-
-Illustrate a factory assembly line where clusters move through upgrade stations: "Pre-Check," "Control Plane," "Add-ons," "Workers," "Validation." Quality inspectors check at each station. Defective clusters are diverted to a "Rollback" lane. Successfully upgraded clusters exit with a "Certified" stamp. Style: manufacturing process, quality control stations, certification, 16:9 aspect ratio.
-
-### Prompt 4: The Blue-Green Handoff
-
-Create an image of a relay race where a "blue" runner (old nodes) passes the baton (workloads) to a "green" runner (new nodes). The handoff zone is carefully marked. Judges (monitoring) watch the exchange. If the green runner stumbles, the blue runner can take the baton back. Style: relay race, careful handoff, backup ready, 16:9 aspect ratio.
-
-### Prompt 5: The Upgrade Playbook
-
-Design an image of an open playbook/strategy book labeled "Kubernetes Upgrade Playbook." Pages show diagrams of upgrade sequences, checklists, and decision trees. A coach (platform engineer) reviews the plays with the team before the "game" (upgrade). The playbook is well-worn from practice. Style: sports playbook, strategy planning, team preparation, 16:9 aspect ratio.
