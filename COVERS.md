@@ -643,3 +643,25 @@ Create an image of a modern marketplace storefront where developers browse and s
 ### Prompt 5: The Approval Funnel
 
 Design an image of a funnel where many requests enter at the top. Most (labeled "auto-approve") flow straight through the center. Only a few (labeled "production," "high-cost," "high-risk") are diverted to a side channel where approvers review them. The funnel outputs provisioned resources at scale. Style: funnel visualization, policy-based routing, approval efficiency, 16:9 aspect ratio.
+
+## internal-platform-api-versioning-deprecation-breaking-changes
+
+### Prompt 1: The Version Bridge
+
+Create an image of two islands labeled "v1" and "v2" connected by a well-constructed bridge. On the v1 island, people pack their belongings (code). On the bridge, helpers guide them across with maps and tools. The v2 island has modern infrastructure and welcoming signs. Some boats (emergency migration) are available for stragglers. Style: bridge crossing, migration journey, helpful guidance, 16:9 aspect ratio.
+
+### Prompt 2: The Deprecation Countdown
+
+Design an image of a control room with a large countdown display showing "Days Until Sunset: 30." Screens show migration progress bars for different teams, some at 100%, others lagging. Operators send messages to teams still on the old version. A "Sunset Protocol" document is visible. Style: mission control, countdown aesthetic, progress tracking, 16:9 aspect ratio.
+
+### Prompt 3: The Breaking Change Alarm
+
+Illustrate a factory quality control station where API changes are inspected. A "Breaking Change Detector" machine scans changes and sorts them: green path for "safe" changes, red path with alarm for "breaking" changes. The red path leads to a full review process with documentation and communication stations. Style: factory inspection, sorting mechanism, quality gates, 16:9 aspect ratio.
+
+### Prompt 4: The Migration Toolkit
+
+Create an image of a well-organized toolkit labeled "Migration Kit." Tools inside include a "Codemod Wrench," "Compatibility Adapter," "Validation Scanner," and "Documentation Guide." A developer selects tools for their migration project. The toolkit has a "Platform Team Support" badge. Style: toolkit organization, helpful tools, migration support, 16:9 aspect ratio.
+
+### Prompt 5: The Version Timeline
+
+Design an image of a timeline path through a landscape. Milestones mark "Announcement," "New Version Release," "90-Day Warning," "30-Day Warning," and "Sunset." Travelers (consumers) move along the path at different speeds. Guides at each milestone help stragglers catch up. The path is well-lit and clearly marked. Style: journey timeline, milestone markers, progression visualization, 16:9 aspect ratio.
