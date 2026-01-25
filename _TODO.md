@@ -252,7 +252,6 @@ Complex Text and Instruction Following: The model demonstrates an enhanced under
 error-budget-policy-slo-velocity-reliability-tradeoffs
 event-schema-versioning-compatibility-evolution
 
-kubernetes-secrets-external-secrets-operator-csi-vault
 legacy-code-testing-characterization-tests-seams
 monorepo-affected-builds-remote-caching-ci-optimization
 mtls-certificate-rotation-service-mesh-authentication

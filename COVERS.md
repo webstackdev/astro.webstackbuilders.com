@@ -863,3 +863,25 @@ Create an image of an orchestra pit with assigned seating. Principal musicians (
 ### Prompt 5: The Airplane Classes
 
 Design an image of an airplane with three classes: first (Guaranteed), business (Burstable), and economy (BestEffort). During overbooking, economy passengers are bumped first. First class passengers have guaranteed seats and meals. A boarding display shows class prioritization. Style: airline class system, priority boarding, resource tiering, 16:9 aspect ratio.
+
+## kubernetes-secrets-external-secrets-operator-csi-vault
+
+### Prompt 1: The Vault Delivery Service
+
+Create an image of a secure vault with three different delivery mechanisms: a periodic mail truck (ESO), an on-demand courier (CSI), and a custom robot (init container). Each mechanism has different characteristics—the truck delivers on schedule, the courier waits at the door, the robot has custom logic. A factory (pods) receives packages differently from each. Style: secure delivery, multiple channels, tradeoff visualization, 16:9 aspect ratio.
+
+### Prompt 2: The Safe Deposit Box
+
+Design an image of a bank vault with safety deposit boxes (secrets). Three access methods: a scheduled escort (ESO syncs periodically), direct access requiring presence (CSI at pod start), and a custom retrieval system with robots (init container). Each method shows different wait times and failure scenarios. Style: bank security, access patterns, reliability differences, 16:9 aspect ratio.
+
+### Prompt 3: The Secret Pipeline
+
+Illustrate a secure pipeline with multiple valves and paths. One path has a holding tank (ESO caching), another is direct flow (CSI real-time), a third has custom pumps and filters (init container). Each path shows what happens when the source is interrupted. Style: industrial pipeline, flow control, failure modes, 16:9 aspect ratio.
+
+### Prompt 4: The Medication Dispensary
+
+Create an image of a hospital pharmacy with three dispensing methods: daily pill packs prepared in advance (ESO), on-demand dispensing at the bedside (CSI), and custom compounding for special needs (init container). Shows what happens when the pharmacy is temporarily closed for each method. Style: pharmacy dispensing, preparation methods, availability patterns, 16:9 aspect ratio.
+
+### Prompt 5: The Intelligence Network
+
+Design an image of a spy network with three communication methods: dead drops with periodic checks (ESO), direct handler meetings (CSI), and custom encrypted channels (init container). Each method shows different reliability, latency, and failure scenarios when the network is compromised. Style: espionage, communication channels, security tradeoffs, 16:9 aspect ratio.
