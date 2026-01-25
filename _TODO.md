@@ -195,6 +195,7 @@ To overlay an article title and published date on a cover image, use CSS positio
 - Use an in-project Image component to wrap Astro's Image and Picture. Show a magnifying glass with a "+" for the cursor on hover, and a modal to show a magnified view of images on click.
 - Add a copyright notice to content
 - Probably a duplicate, but need to stop system from adding abbreviation html when used in headings
+- DownloadLayout to wrap downloads.mdx in each folder, generate content for each
 
 ## Reading position indicator
 
@@ -247,12 +248,20 @@ High Resolution: Seedream 4.0 is capable of generating native high-resolution im
 
 Complex Text and Instruction Following: The model demonstrates an enhanced understanding of complex semantic prompts and excels in rendering dense and accurate text within the generated images, a common weakness in other AI image models.
 
+## Services
+
+These are the services I specialize in and offer as package deals.
+
+There are two pricing variants: part-time stream and full-time stream. How to handle a part-time stream effectively since it might be hard to find two to bundle together? Maybe full time gets a weekend day of on-call and daytime hours, part-time gets evening hours?
+
+- Backstage implementation. How to do this so I'm delivering platforms, not portals? What's the scope - pipeline design, etc.?
+- Refactoring legacy code bases, "lift and shifts"
+
 ## Content
 
 error-budget-policy-slo-velocity-reliability-tradeoffs
 event-schema-versioning-compatibility-evolution
 
-legacy-code-testing-characterization-tests-seams
 monorepo-affected-builds-remote-caching-ci-optimization
 mtls-certificate-rotation-service-mesh-authentication
 nginx-haproxy-reverse-proxy-production-tuning

@@ -885,3 +885,25 @@ Create an image of a hospital pharmacy with three dispensing methods: daily pill
 ### Prompt 5: The Intelligence Network
 
 Design an image of a spy network with three communication methods: dead drops with periodic checks (ESO), direct handler meetings (CSI), and custom encrypted channels (init container). Each method shows different reliability, latency, and failure scenarios when the network is compromised. Style: espionage, communication channels, security tradeoffs, 16:9 aspect ratio.
+
+## legacy-code-testing-characterization-tests-seams
+
+### Prompt 1: The Archaeological Dig
+
+Create an image of archaeologists carefully excavating an ancient codebase. They use brushes (characterization tests) to reveal buried structures, place markers (seams) at extraction points, and document findings (test assertions) on clipboards. Layers of sediment represent years of accumulated code. Style: archaeological excavation, careful documentation, layer-by-layer discovery, 16:9 aspect ratio.
+
+### Prompt 2: The Strangler Fig Tree
+
+Design an image of a strangler fig tree growing around an old host tree (legacy code). New roots (tested services) gradually wrap the trunk, while the original tree remains standing but increasingly hollow. A gardener (developer) tends to the new growth. Labels show which parts are legacy vs new. Style: botanical metaphor, gradual replacement, living architecture, 16:9 aspect ratio.
+
+### Prompt 3: The Bomb Disposal
+
+Illustrate a bomb disposal expert (developer) approaching a complex device (legacy code). They use mirrors (characterization tests) to see without touching, identify safe cutting points (seams) with careful analysis, and have protective equipment (test safety net) ready. Each wire represents a dependency. Style: precision work, careful analysis, safety first, 16:9 aspect ratio.
+
+### Prompt 4: The Ship Repair
+
+Create an image of workers repairing a sailing ship while at sea (production). They build scaffolding (test harnesses) around sections, replace planks one at a time (strangler fig), and test each repair (characterization) before moving on. The ship must keep sailing throughout. Style: repair in motion, gradual replacement, continuous operation, 16:9 aspect ratio.
+
+### Prompt 5: The Code Surgeon
+
+Design an image of a surgeon (developer) operating on legacy code represented as a patient. Monitors show vital signs (test coverage, bug rates). The surgeon identifies incision points (seams), uses minimal invasive techniques (dependency breaking), and has a team ready with recovery tools (CI/CD). Style: surgical precision, careful intervention, monitoring, 16:9 aspect ratio.
