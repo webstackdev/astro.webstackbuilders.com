@@ -251,7 +251,6 @@ Complex Text and Instruction Following: The model demonstrates an enhanced under
 error-budget-policy-slo-velocity-reliability-tradeoffs
 event-schema-versioning-compatibility-evolution
 
-kubernetes-hpa-autoscaling-metrics-tuning-latency
 kubernetes-ingress-gateway-api-comparison-migration
 kubernetes-multi-cluster-fleet-management-configuration
 kubernetes-pod-disruption-budget-autoscaler-node-rotation

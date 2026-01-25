@@ -753,3 +753,25 @@ Create an image showing one DNS query entering a machine labeled "Kubernetes DNS
 ### Prompt 5: The DNS Layers
 
 Design an image of a layered cake representing DNS stack. Bottom layer: "Node DNS." Middle layer: "CoreDNS." Top layer: "Pod resolv.conf." Each layer has its own configuration knobs. A diagnostic probe checks each layer. Some layers have "ISSUE" flags. Style: layered architecture, diagnostic probing, stack visualization, 16:9 aspect ratio.
+
+## kubernetes-hpa-autoscaling-metrics-tuning-latency
+
+### Prompt 1: The Reaction Race
+
+Create an image of a race track where an HPA controller (represented as a robot) chases a traffic spike (represented as a wave). The wave is ahead, causing visible stress on the application. Markers show "Metrics Delay," "Stabilization," "Pod Startup" as hurdles the robot must clear. Style: racing pursuit, time delay visualization, catch-up challenge, 16:9 aspect ratio.
+
+### Prompt 2: The Scaling Dashboard
+
+Design an image of a control room with dashboards showing traffic patterns and replica counts. Operators adjust knobs labeled "Stabilization," "Scale-Up %," "Min Replicas." Graphs show traffic (jagged line) and capacity (stepped line) with gaps between them. The goal is minimizing the gap. Style: control room, metric visualization, tuning interface, 16:9 aspect ratio.
+
+### Prompt 3: The Asymmetric Scales
+
+Illustrate a balance scale where one side (scale-up) has a rocket booster attached, and the other side (scale-down) has an anchor. A traffic chart shows spikes up and gradual decline. The asymmetric treatment reflects the different risks of under vs. over-provisioning. Style: weighted balance, asymmetric response, risk visualization, 16:9 aspect ratio.
+
+### Prompt 4: The Traffic Wave
+
+Create an image of a surfer (application) riding a traffic wave. Behind them, a fleet of pods paddles to catch up. Some pods are ready (on surfboards), others are still starting up (in the water). A timer shows the delay between wave rise and pod readiness. Style: surfing metaphor, wave timing, capacity pursuit, 16:9 aspect ratio.
+
+### Prompt 5: The Oscillation Dampener
+
+Design an image of a sine wave (oscillating HPA) being smoothed by a dampener labeled "Stabilization Window." Without dampening, the wave is chaotic. With dampening, it's smooth but slightly delayed. An engineer adjusts the dampener dial. Style: wave dampening, oscillation control, stability tuning, 16:9 aspect ratio.
