@@ -841,3 +841,25 @@ Create an image of an orchestra where musicians (pods) take breaks in rotation. 
 ### Prompt 5: The Factory Shift Change
 
 Design an image of a factory floor during shift change. Some workers leave (node drain) while others arrive (new pods). A capacity board shows minimum workers required per station (minAvailable). Supervisors coordinate to never drop below minimum. Stuck workers unable to leave because minimum isn't met yet. Style: shift coordination, factory operations, capacity constraints, 16:9 aspect ratio.
+
+## kubernetes-pod-resource-requests-limits-qos-classes
+
+### Prompt 1: The Reservation System
+
+Create an image of a hotel reservation system where rooms (resources) are being allocated to guests (pods). Some guests have guaranteed reservations (Guaranteed QoS), others are on standby (Burstable), and walk-ins (BestEffort) wait in the lobby. During high demand, standby guests are moved to smaller rooms while walk-ins are turned away. Style: hotel management, reservation prioritization, capacity allocation, 16:9 aspect ratio.
+
+### Prompt 2: The Buffet Line
+
+Design an image of a buffet with three lines: VIP (Guaranteed), regular (Burstable), and budget (BestEffort). Each line has a plate size limit (memory limit) and time limit (CPU limit). When food runs low, budget diners are asked to leave first. VIP diners have reserved portions. Style: buffet resource allocation, priority queuing, fair sharing, 16:9 aspect ratio.
+
+### Prompt 3: The Parking Garage
+
+Illustrate a parking garage where cars (pods) have different parking levels. Reserved spots (Guaranteed) are always available. General parking (Burstable) can be used but may be asked to move. Street parking (BestEffort) is first to be towed when space is needed. A control tower monitors capacity. Style: parking management, space allocation, eviction hierarchy, 16:9 aspect ratio.
+
+### Prompt 4: The Orchestra Seating
+
+Create an image of an orchestra pit with assigned seating. Principal musicians (Guaranteed) have permanent chairs with their name. Section members (Burstable) have assigned areas but may shift. Substitutes (BestEffort) stand at the back and leave first if space is tight. A capacity board shows available seats. Style: orchestra seating, priority allocation, space management, 16:9 aspect ratio.
+
+### Prompt 5: The Airplane Classes
+
+Design an image of an airplane with three classes: first (Guaranteed), business (Burstable), and economy (BestEffort). During overbooking, economy passengers are bumped first. First class passengers have guaranteed seats and meals. A boarding display shows class prioritization. Style: airline class system, priority boarding, resource tiering, 16:9 aspect ratio.

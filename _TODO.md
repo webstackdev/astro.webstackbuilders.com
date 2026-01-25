@@ -252,7 +252,6 @@ Complex Text and Instruction Following: The model demonstrates an enhanced under
 error-budget-policy-slo-velocity-reliability-tradeoffs
 event-schema-versioning-compatibility-evolution
 
-kubernetes-pod-resource-requests-limits-qos-classes
 kubernetes-secrets-external-secrets-operator-csi-vault
 legacy-code-testing-characterization-tests-seams
 monorepo-affected-builds-remote-caching-ci-optimization
@@ -320,7 +319,7 @@ We are writing an article based on an outline, not just merely adding a few line
 
 __review__
 
-We implemented our article by first generating an outline, and then writing each of the sections one by one. Please review the document in its entirety now, and make any suggestions you find that would improve the readability or quality of the article. Do not make any changes - just review and put together a list of suggestions to discuss. Ignore table, diagram, and code block caption prefixes like "Code:", "Table:", and "Figure:". They're used by the system to recognize the caption text.
+We implemented our article by first generating an outline, and then writing each of the sections one by one. Please review the document in its entirety now, and make any suggestions you find that would improve the readability or quality of the article. Do not make any changes - just review and put together a list of suggestions to discuss. Ignore table, diagram, and code block caption prefixes like "Code:", "Table:", and "Figure:". They're used by the system to recognize the caption text. Ignore frontmatter properties.
 
 __reduce__
 
