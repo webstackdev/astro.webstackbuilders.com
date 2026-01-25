@@ -672,7 +672,7 @@ Design an image of a timeline path through a landscape. Milestones mark "Announc
 
 Create an image of a ladder with rungs labeled with Kubernetes versions (1.27, 1.28, 1.29, 1.30). A climber ascends one rung at a time, with safety equipment attached. Below, someone tries to jump multiple rungs and struggles. A safety net (rollback) is visible below. Style: ladder climbing, incremental progress, safety equipment, 16:9 aspect ratio.
 
-### Prompt 2: The Control Tower
+### Prompt 2: The Control Tower Cluster Upgrade
 
 Design an image of an air traffic control tower managing a Kubernetes upgrade. Screens show cluster health, node status, and upgrade progress. Controllers guide "planes" (pods) to land safely while runways (nodes) are upgraded one at a time. A "Go/No-Go" decision board is visible. Style: air traffic control, coordination, safety protocols, 16:9 aspect ratio.
 
@@ -775,3 +775,25 @@ Create an image of a surfer (application) riding a traffic wave. Behind them, a 
 ### Prompt 5: The Oscillation Dampener
 
 Design an image of a sine wave (oscillating HPA) being smoothed by a dampener labeled "Stabilization Window." Without dampening, the wave is chaotic. With dampening, it's smooth but slightly delayed. An engineer adjusts the dampener dial. Style: wave dampening, oscillation control, stability tuning, 16:9 aspect ratio.
+
+## kubernetes-ingress-gateway-api-comparison-migration
+
+### Prompt 1: The Two Paths Ingress
+
+Create an image of a fork in a road where a traveler (platform engineer) chooses between two paths. One path is labeled "Ingress" (shorter, simpler, well-worn). The other is labeled "Gateway API" (longer, more features along the way, newer pavement). Signposts show what each path offers. Style: crossroads decision, path comparison, feature signposts, 16:9 aspect ratio.
+
+### Prompt 2: The Layered Cake vs Flat Bread
+
+Design an image comparing two approaches to building: a flat bread (Ingress—simple, single layer) and a layered cake (Gateway API—multiple tiers with different flavors/roles). A baker considers which to make based on the occasion. The cake is more impressive but requires more ingredients. Style: baking metaphor, complexity comparison, appropriate choice, 16:9 aspect ratio.
+
+### Prompt 3: The Control Tower
+
+Illustrate an air traffic control tower (Gateway) managing multiple runways (listeners) with planes (requests) being directed to different terminals (services). Controllers at different levels (GatewayClass, Gateway, HTTPRoute) have different responsibilities. Compare with a simpler single-runway airport (Ingress). Style: aviation control, layered management, traffic coordination, 16:9 aspect ratio.
+
+### Prompt 4: The Migration Bridge
+
+Create an image of a bridge being built between two islands: "Ingress Island" (established, smaller) and "Gateway API Island" (newer, larger). Some traffic still uses boats (legacy Ingress), while the bridge (migration path) allows gradual transition. Workers (engineers) build the bridge incrementally. Style: bridge construction, gradual migration, parallel operation, 16:9 aspect ratio.
+
+### Prompt 5: The Team Handoff
+
+Design an image of a relay race with three runners representing different teams (Infra → Platform → App). The first runner carries a baton labeled "GatewayClass," hands off to "Gateway," who hands off to "HTTPRoute." Compare with a single runner doing everything (Ingress). Style: relay teamwork, role separation, handoff coordination, 16:9 aspect ratio.
