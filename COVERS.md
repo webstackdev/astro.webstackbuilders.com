@@ -819,3 +819,25 @@ Create an image of a manufacturing facility with multiple production lines (clus
 ### Prompt 5: The Wave Deployment
 
 Design an image of waves rolling onto a beach, each wave representing a deployment wave (canary → staging → production regions). A surfer (platform engineer) rides the first wave, checking conditions before the next wave arrives. Warning flags mark any issues that should stop subsequent waves. Style: wave progression, phased rollout, validation checkpoints, 16:9 aspect ratio.
+
+## kubernetes-pod-disruption-budget-autoscaler-node-rotation
+
+### Prompt 1: The Traffic Controller
+
+Create an image of an air traffic controller managing planes (pods) on runways (nodes). The controller uses a board showing minimum planes that must remain airborne (minAvailable). Some runways are closed for maintenance while ensuring enough planes stay flying. Style: air traffic control, managed disruption, operational continuity, 16:9 aspect ratio.
+
+### Prompt 2: The Hospital Capacity
+
+Design an image of a hospital administrator managing bed capacity during renovations. A board shows minimum beds that must stay available (PDB). Workers renovate some rooms while patients are carefully moved to maintain minimum capacity. Style: hospital management, capacity planning, controlled renovation, 16:9 aspect ratio.
+
+### Prompt 3: The Bridge Lanes
+
+Illustrate a bridge with multiple lanes where some lanes are closed for maintenance. A sign shows "Minimum 3 lanes open at all times" (minAvailable). Traffic controllers manage which lanes can be closed while maintaining flow. Workers blocked from closing more lanes until traffic redistributes. Style: traffic management, lane closure coordination, 16:9 aspect ratio.
+
+### Prompt 4: The Orchestra Rotation
+
+Create an image of an orchestra where musicians (pods) take breaks in rotation. The conductor (PDB) ensures minimum players per section remain at all times. Some musicians rest while others play, with a display showing "Minimum 4 violins required." Style: orchestra coordination, rotation scheduling, ensemble management, 16:9 aspect ratio.
+
+### Prompt 5: The Factory Shift Change
+
+Design an image of a factory floor during shift change. Some workers leave (node drain) while others arrive (new pods). A capacity board shows minimum workers required per station (minAvailable). Supervisors coordinate to never drop below minimum. Stuck workers unable to leave because minimum isn't met yet. Style: shift coordination, factory operations, capacity constraints, 16:9 aspect ratio.
