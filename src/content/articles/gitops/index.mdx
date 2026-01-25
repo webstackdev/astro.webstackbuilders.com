@@ -80,6 +80,41 @@ gitops-repo/
 
 ```
 
+```bash
+/
+├── clusters/               # Entry points for GitOps controllers (ArgoCD/Flux)
+│   ├── production/         # Specific configuration for the production cluster
+│   │   ├── flux-system/    # Flux-specific bootstrap (if using Flux)
+│   │   └── kustomization.yaml
+│   └── staging/            # Specific configuration for the staging cluster
+│
+├── infrastructure/         # Core cluster services (shared across environments)
+│   ├── base/               # Global defaults (e.g., ingress-nginx, cert-manager)
+│   ├── production/         # Production-specific infrastructure overrides
+│   └── staging/            # Staging-specific infrastructure overrides
+│
+├── apps/                   # Application workloads
+│   ├── base/               # Common manifest templates for all environments
+│   ├── production/         # Overlays/patches for production (e.g., more replicas)
+│   └── staging/            # Overlays/patches for staging (e.g., debug mode)
+│
+└── components/             # Reusable manifest snippets (RBAC, Quotas, etc.)
+```
+
+Core Components
+
+- clusters/: Contains the bootstrap configuration for each unique cluster. It acts as the "root" that the GitOps controller watches to discover which other directories to apply.
+- infrastructure/: Managed primarily by DevOps/SRE teams, this folder contains middleware and platform services like monitoring stacks, service meshes, or ingress controllers.
+- apps/: Managed by application developers or release engineers, containing the actual business logic workloads.
+- base/ and overlays/: A standard pattern using Kustomize where common YAML resides in base and environment-specific changes (like image tags or resource limits) are defined in overlays.
+
+Best Practices for 2026
+
+- Environment-per-Folder: Use a single branch (usually main) and separate environments by directory to simplify release promotion and visibility.
+- Separate Repos for Code and Config: Keep application source code in its own repository and use the GitOps repo strictly for Kubernetes manifests to decouple build and deployment lifecycles.
+- App-of-Apps Pattern: Use a "root" application or ArgoCD ApplicationSets to automatically discover and deploy new services added to the directory structure.
+- Secret Management: Never store raw secrets in the repo. Use tools like SOPS or External Secrets Operator to pull values from a secure vault.
+
 Immutable Tags: In 2026, standard practice is to use unique, immutable tags—typically the Git Commit SHA (e.g., my-app:a3f5b2c).
 
 OPA, Kyverno, and Gatekeeper

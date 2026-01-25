@@ -797,3 +797,25 @@ Create an image of a bridge being built between two islands: "Ingress Island" (e
 ### Prompt 5: The Team Handoff
 
 Design an image of a relay race with three runners representing different teams (Infra → Platform → App). The first runner carries a baton labeled "GatewayClass," hands off to "Gateway," who hands off to "HTTPRoute." Compare with a single runner doing everything (Ingress). Style: relay teamwork, role separation, handoff coordination, 16:9 aspect ratio.
+
+## kubernetes-multi-cluster-fleet-management-configuration
+
+### Prompt 1: The Fleet Admiral
+
+Create an image of a naval admiral (platform engineer) overlooking a fleet of ships (Kubernetes clusters) from a control tower. Some ships are in formation (consistent), others slightly off course (drifted). The admiral uses a telescope (monitoring) to check each ship's position against a map (desired state). Style: naval command, fleet coordination, oversight visualization, 16:9 aspect ratio.
+
+### Prompt 2: The Configuration Tree
+
+Design an image of a tree where the trunk represents base configuration, main branches represent environments (dev, staging, prod), and smaller branches represent individual clusters. Leaves on each branch show cluster-specific settings. A gardener (platform engineer) prunes branches to maintain consistency while allowing growth. Style: tree metaphor, inheritance visualization, maintenance, 16:9 aspect ratio.
+
+### Prompt 3: The Synchronized Orchestra
+
+Illustrate an orchestra where each section (cluster) plays from the same sheet music (Git repository) but with section-specific dynamics (environment overrides). A conductor (GitOps controller) ensures they stay synchronized. Musicians who drift off tempo are highlighted. Style: orchestral coordination, synchronization, drift detection, 16:9 aspect ratio.
+
+### Prompt 4: The Manufacturing Line
+
+Create an image of a manufacturing facility with multiple production lines (clusters) all producing the same product (platform services). Quality inspectors (drift detectors) check each line's output against a reference standard. Lines showing variance are flagged for adjustment. Style: manufacturing consistency, quality control, standardization, 16:9 aspect ratio.
+
+### Prompt 5: The Wave Deployment
+
+Design an image of waves rolling onto a beach, each wave representing a deployment wave (canary → staging → production regions). A surfer (platform engineer) rides the first wave, checking conditions before the next wave arrives. Warning flags mark any issues that should stop subsequent waves. Style: wave progression, phased rollout, validation checkpoints, 16:9 aspect ratio.
