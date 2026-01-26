@@ -197,6 +197,7 @@ To overlay an article title and published date on a cover image, use CSS positio
 - Probably a duplicate, but need to stop system from adding abbreviation html when used in headings
 - DownloadLayout to wrap downloads.mdx in each folder, generate content for each
 - Time in prose is causing a line break, and the colon and minutes to be removed - "2:47 AM" in src/content/articles/mtls-certificate-rotation-service-mesh-authentication/pdf.mdx
+- Language "haproxy" is not highlighting Shiki, need to adjust allowed languages in config
 
 ## Reading position indicator
 

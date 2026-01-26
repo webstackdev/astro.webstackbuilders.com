@@ -954,3 +954,22 @@ Design an image of a glowing mesh network where each node has a small certificat
 
 ## nginx-haproxy-reverse-proxy-production-tuning
 
+### Prompt 1: The Control Room
+
+Create an image of a high-tech control room with multiple screens showing proxy metrics—connection counts, latency graphs, error rates. An engineer adjusts dials labeled "Timeouts," "Buffers," and "Connections." Traffic flows through visualized pipelines, some smooth, some congested. Style: control room operations, metric dashboards, traffic visualization, 16:9 aspect ratio.
+
+### Prompt 2: The Water Treatment Plant
+
+Design an image of a water treatment facility where water (requests) flows through filters (proxies), buffers (tanks), and valves (connection limits). Some pipes show pressure gauges (latency), others show flow meters (throughput). Engineers adjust valve settings. Style: industrial water processing, flow control, capacity management, 16:9 aspect ratio.
+
+### Prompt 3: The Traffic Intersection
+
+Illustrate a complex traffic intersection with signals (proxies) controlling flow. Timing displays show timeout settings. Some lanes have metering lights (rate limiting). A traffic control center monitors camera feeds showing vehicle counts and queue lengths. Style: traffic management, signal timing, flow optimization, 16:9 aspect ratio.
+
+### Prompt 4: The Server Room
+
+Create an image of a server room with glowing rack servers connected by fiber optic cables. Overlay displays show buffer usage, connection pools, and timeout timers. Some connections pulse green (healthy), others flash yellow (slow). A technician reviews configuration on a terminal. Style: data center, connection visualization, real-time monitoring, 16:9 aspect ratio.
+
+### Prompt 5: The Switchboard
+
+Design an image of a vintage telephone switchboard merged with modern technology. Operators (proxies) connect incoming calls (requests) to backends. Queue boards show waiting calls. Timer displays show connection duration. Some circuits glow indicating active connections. Style: retro-modern switchboard, connection routing, queue management, 16:9 aspect ratio.
