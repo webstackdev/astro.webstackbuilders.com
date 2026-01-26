@@ -907,3 +907,25 @@ Create an image of workers repairing a sailing ship while at sea (production). T
 ### Prompt 5: The Code Surgeon
 
 Design an image of a surgeon (developer) operating on legacy code represented as a patient. Monitors show vital signs (test coverage, bug rates). The surgeon identifies incision points (seams), uses minimal invasive techniques (dependency breaking), and has a team ready with recovery tools (CI/CD). Style: surgical precision, careful intervention, monitoring, 16:9 aspect ratio.
+
+## monorepo-affected-builds-remote-caching-ci-optimization
+
+### Prompt 1: The Assembly Line
+
+Create an image of a modern assembly line where products (builds) move through stations. Some stations (cached steps) have pre-made components ready. Workers (CI agents) only work on stations where custom work is needed. A display shows "78% from cache, 22% built." Style: manufacturing efficiency, selective work, skip optimization, 16:9 aspect ratio.
+
+### Prompt 2: The Library Network
+
+Design an image of interconnected libraries (packages) where books (changes) trigger chain reactions. A change in one library lights up connected libraries (affected). Some libraries have "cached" stamps showing they don't need updates. A control room monitors which libraries need attention. Style: library network, change propagation, dependency visualization, 16:9 aspect ratio.
+
+### Prompt 3: The Construction Site
+
+Illustrate a construction site where prefabricated components (cached builds) are delivered and installed quickly, while custom work (cache misses) happens on-site. A project board shows which components are ready vs. need building. Cranes move cached components into place. Style: construction efficiency, prefab delivery, selective building, 16:9 aspect ratio.
+
+### Prompt 4: The Restaurant Kitchen
+
+Create an image of a restaurant kitchen with prep stations (packages). Some ingredients (builds) are pre-prepped and stored (cached). When orders come in (PRs), chefs only prepare what's not already ready. A ticket system shows "3 from cache, 1 fresh." Style: kitchen efficiency, mise en place, selective preparation, 16:9 aspect ratio.
+
+### Prompt 5: The Neural Network
+
+Design an image of a neural network where nodes (packages) light up when activated (affected). Changes at one node propagate through connections. Some nodes show "cached" with stored values. Only activated nodes without cache perform computation. A dashboard shows cache hit percentages. Style: neural network, selective activation, cached pathways, 16:9 aspect ratio.

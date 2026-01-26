@@ -262,7 +262,6 @@ There are two pricing variants: part-time stream and full-time stream. How to ha
 error-budget-policy-slo-velocity-reliability-tradeoffs
 event-schema-versioning-compatibility-evolution
 
-monorepo-affected-builds-remote-caching-ci-optimization
 mtls-certificate-rotation-service-mesh-authentication
 nginx-haproxy-reverse-proxy-production-tuning
 on-call-rotation-small-teams-sustainable-coverage
