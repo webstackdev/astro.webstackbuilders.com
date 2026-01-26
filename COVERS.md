@@ -973,3 +973,25 @@ Create an image of a server room with glowing rack servers connected by fiber op
 ### Prompt 5: The Switchboard
 
 Design an image of a vintage telephone switchboard merged with modern technology. Operators (proxies) connect incoming calls (requests) to backends. Queue boards show waiting calls. Timer displays show connection duration. Some circuits glow indicating active connections. Style: retro-modern switchboard, connection routing, queue management, 16:9 aspect ratio.
+
+## on-call-rotation-small-teams-sustainable-coverage
+
+### Prompt 1: The Night Watch
+
+Create an image of three people taking turns as a night watchperson, with two sleeping peacefully while one keeps watch from a tower with binoculars. A moon shows phase progression indicating rotation. Alert lights are few and meaningful—no false alarms. Style: night watch rotation, peaceful vigilance, sustainable coverage, 16:9 aspect ratio.
+
+### Prompt 2: The Signal Fire
+
+Design an image of a mountain communication network where signal fires only light for true emergencies. Most peaks are dark and quiet. One fire burns bright while a lone watchperson responds. Nearby, relieved watchpeople rest. Style: signal fire network, meaningful alerts, mountain communication, 16:9 aspect ratio.
+
+### Prompt 3: The Quality Filter
+
+Illustrate a filtration system where many incoming alerts (colorful balls) pass through filters, with only a few critical ones (red) making it through to a bell. Most alerts are captured by automation filters or routed to "morning" and "ticket" buckets. Style: alert filtration, quality focus, automated triage, 16:9 aspect ratio.
+
+### Prompt 4: The Three Guardians
+
+Create an image of three guardian figures in a rotation, with one active (glowing), one resting (dim), and one fully off (faded). A calendar wheel shows their rotation. The active guardian protects a small village (service) from a manageable number of threats. Style: guardian rotation, sustainable protection, team coverage, 16:9 aspect ratio.
+
+### Prompt 5: The Balanced Scale
+
+Design an image of a scale balancing "Alert Volume" on one side against "Team Wellbeing" on the other. The scale is balanced with a small number of high-quality alerts. Discarded noisy alerts pile up below the scale. Three team members observe the balance with satisfaction. Style: balance metaphor, quality vs quantity, team sustainability, 16:9 aspect ratio.
