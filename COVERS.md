@@ -929,3 +929,28 @@ Create an image of a restaurant kitchen with prep stations (packages). Some ingr
 ### Prompt 5: The Neural Network
 
 Design an image of a neural network where nodes (packages) light up when activated (affected). Changes at one node propagate through connections. Some nodes show "cached" with stored values. Only activated nodes without cache perform computation. A dashboard shows cache hit percentages. Style: neural network, selective activation, cached pathways, 16:9 aspect ratio.
+
+## mtls-certificate-rotation-service-mesh-authentication
+
+### Prompt 1: The Handshake
+
+Create an image of two robotic hands reaching toward each other, each holding glowing certificates. Between them, a secure encrypted tunnel forms. Digital locks and chains represent the mutual verification. A clock in the background shows time passing, with certificates automatically refreshing. Style: mechanical handshake, mutual trust establishment, certificate exchange, 16:9 aspect ratio.
+
+### Prompt 2: The Trust Tree
+
+Design an image of a massive tree where the roots represent the root CA, the trunk is the intermediate CA, and branches are issuing CAs. Leaves are individual service certificates, some falling (expiring) while new ones grow. A gardener (automation) tends to the tree, pruning and planting. Style: certificate hierarchy tree, lifecycle visualization, organic growth, 16:9 aspect ratio.
+
+### Prompt 3: The Security Checkpoint
+
+Illustrate a high-tech security checkpoint where services must present ID badges (certificates) to pass through. Guards verify badges against a trust list. Some badges glow green (valid), some flash red (expired). A clock shows certificates auto-renewing before expiration. Style: checkpoint security, identity verification, automated renewal, 16:9 aspect ratio.
+
+### Prompt 4: The Key Exchange
+
+Create an image of two vaults opening toward each other, exchanging golden keys that transform into encrypted data streams. Certificate chains connect the vaults to a central authority tower. Expired keys crumble to dust while new keys are minted. Style: vault security, key lifecycle, trust anchors, 16:9 aspect ratio.
+
+### Prompt 5: The Mesh Network
+
+Design an image of a glowing mesh network where each node has a small certificate badge. Lines between nodes show encrypted connections with padlock icons. A central authority broadcasts trust updates. Some connections flash as certificates rotate seamlessly. Style: service mesh, encrypted connections, trust distribution, 16:9 aspect ratio.
+
+## nginx-haproxy-reverse-proxy-production-tuning
+

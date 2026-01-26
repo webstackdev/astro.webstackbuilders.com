@@ -196,6 +196,7 @@ To overlay an article title and published date on a cover image, use CSS positio
 - Add a copyright notice to content
 - Probably a duplicate, but need to stop system from adding abbreviation html when used in headings
 - DownloadLayout to wrap downloads.mdx in each folder, generate content for each
+- Time in prose is causing a line break, and the colon and minutes to be removed - "2:47 AM" in src/content/articles/mtls-certificate-rotation-service-mesh-authentication/pdf.mdx
 
 ## Reading position indicator
 
@@ -262,8 +263,6 @@ There are two pricing variants: part-time stream and full-time stream. How to ha
 error-budget-policy-slo-velocity-reliability-tradeoffs
 event-schema-versioning-compatibility-evolution
 
-mtls-certificate-rotation-service-mesh-authentication
-nginx-haproxy-reverse-proxy-production-tuning
 on-call-rotation-small-teams-sustainable-coverage
 opa-conftest-policy-as-code-infrastructure-guardrails
 openapi-spec-documentation-sdk-generation-validation
