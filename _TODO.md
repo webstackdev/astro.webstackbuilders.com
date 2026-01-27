@@ -199,6 +199,7 @@ To overlay an article title and published date on a cover image, use CSS positio
 - Time in prose is causing a line break, and the colon and minutes to be removed - "2:47 AM" in src/content/articles/mtls-certificate-rotation-service-mesh-authentication/pdf.mdx
 - Language "haproxy" is not highlighting Shiki, need to adjust allowed languages in config
 - Should we exclude "Footnotes" from the ToC list? Right now it shows at the bottom if there's a Footnotes H2.
+- If a reader has already given their email address - newsletter signup, contact form, download registration - the download CTA on short form articles should go directly to the HTML version of the deep dive, and it should have a PDF download button.
 
 ## Reading position indicator
 
@@ -265,7 +266,6 @@ There are two pricing variants: part-time stream and full-time stream. How to ha
 error-budget-policy-slo-velocity-reliability-tradeoffs
 event-schema-versioning-compatibility-evolution
 
-opa-conftest-policy-as-code-infrastructure-guardrails
 openapi-spec-documentation-sdk-generation-validation
 opentelemetry-span-design-granularity-overhead
 performance-testing-load-models-benchmark-accuracy

@@ -995,3 +995,25 @@ Create an image of three guardian figures in a rotation, with one active (glowin
 ### Prompt 5: The Balanced Scale
 
 Design an image of a scale balancing "Alert Volume" on one side against "Team Wellbeing" on the other. The scale is balanced with a small number of high-quality alerts. Discarded noisy alerts pile up below the scale. Three team members observe the balance with satisfaction. Style: balance metaphor, quality vs quantity, team sustainability, 16:9 aspect ratio.
+
+## opa-conftest-policy-as-code-infrastructure-guardrails
+
+### Prompt 1: The Security Checkpoint
+
+Create an image of an automated security checkpoint where infrastructure configurations (documents) pass through scanners. Green checkmarks appear on compliant configs, while violations are flagged with helpful fix suggestions on screens. The checkpoint is fast—no queues. Style: automated security, fast scanning, helpful feedback, 16:9 aspect ratio.
+
+### Prompt 2: The Policy Garden
+
+Design an image of a garden where policies grow as structured trees with clear branches (rules). Gardeners (developers) tend the garden, pruning and adding rules. Some plants have exception tags allowing them to grow differently. A dashboard shows garden health metrics. Style: organic policy growth, structured rules, exception handling, 16:9 aspect ratio.
+
+### Prompt 3: The Assembly Line Inspector
+
+Illustrate an assembly line where infrastructure components pass inspection stations. Inspectors (policies) check specific aspects—security, resources, naming. Compliant components get green stamps and proceed. Non-compliant ones get yellow tags with fix instructions and route to a repair station. Style: factory inspection, quality control, fix guidance, 16:9 aspect ratio.
+
+### Prompt 4: The Code Guardian
+
+Create an image of a digital guardian figure reviewing scrolling code/configuration. The guardian highlights issues with glowing markers, each marker containing fix suggestions. Some areas have approved exception shields. A speed meter shows fast evaluation time. Style: code review, helpful guardian, exception shields, 16:9 aspect ratio.
+
+### Prompt 5: The Guardrail Highway
+
+Design an image of a highway with clear guardrails guiding traffic (deployments). The guardrails are transparent—you can see through them. Some vehicles have special passes for restricted lanes (exceptions). Signs show clear messages about road rules. Traffic flows smoothly. Style: infrastructure highway, transparent guardrails, smooth flow, 16:9 aspect ratio.
