@@ -266,8 +266,6 @@ There are two pricing variants: part-time stream and full-time stream. How to ha
 error-budget-policy-slo-velocity-reliability-tradeoffs
 event-schema-versioning-compatibility-evolution
 
-openapi-spec-documentation-sdk-generation-validation
-opentelemetry-span-design-granularity-overhead
 performance-testing-load-models-benchmark-accuracy
 platform-architecture-control-plane-data-plane-separation
 platform-engineering-metrics-lead-time-developer-friction

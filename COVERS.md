@@ -1017,3 +1017,25 @@ Create an image of a digital guardian figure reviewing scrolling code/configurat
 ### Prompt 5: The Guardrail Highway
 
 Design an image of a highway with clear guardrails guiding traffic (deployments). The guardrails are transparent—you can see through them. Some vehicles have special passes for restricted lanes (exceptions). Signs show clear messages about road rules. Traffic flows smoothly. Style: infrastructure highway, transparent guardrails, smooth flow, 16:9 aspect ratio.
+
+## openapi-spec-documentation-sdk-generation-validation
+
+### Prompt 1: The Single Source
+
+Create an image of a glowing central document (OpenAPI spec) with multiple streams flowing outward to different artifacts—documentation pages, code files in various languages, validation shields. All artifacts share the same glow, showing they come from the same source. Style: source of truth, artifact generation, unified origin, 16:9 aspect ratio.
+
+### Prompt 2: The API Blueprint
+
+Design an image of an architect's drafting table with an API blueprint (spec). From the blueprint, holographic projections show: a documentation website, SDK packages in different colored boxes (languages), and a validation checkpoint. Tools and rulers surround the blueprint. Style: architectural blueprint, API design, precision planning, 16:9 aspect ratio.
+
+### Prompt 3: The Contract Stamp
+
+Illustrate a formal contract being stamped with an official seal. Multiple copies of the contract (SDKs, docs, validators) are created from the stamped original. A quality inspector verifies each copy matches the original. Broken copies (drift) are rejected. Style: contract enforcement, official documentation, quality assurance, 16:9 aspect ratio.
+
+### Prompt 4: The Translation Bureau
+
+Create an image of a translation bureau where a single document (spec) is being translated into multiple languages simultaneously. Translators (generators) work at desks, producing TypeScript, Python, Java outputs. A central quality checker ensures all translations match the original meaning. Style: translation accuracy, multi-language output, consistency verification, 16:9 aspect ratio.
+
+### Prompt 5: The API Factory
+
+Design an image of a modern factory assembly line where raw specifications enter one end. Different stations produce: documentation (book press), SDKs (code printers), validation rules (shield forge). All products have the same serial number showing common origin. Quality control inspects each output. Style: automated generation, factory efficiency, quality control, 16:9 aspect ratio.
