@@ -266,7 +266,6 @@ There are two pricing variants: part-time stream and full-time stream. How to ha
 error-budget-policy-slo-velocity-reliability-tradeoffs
 event-schema-versioning-compatibility-evolution
 
-performance-testing-load-models-benchmark-accuracy
 platform-architecture-control-plane-data-plane-separation
 platform-engineering-metrics-lead-time-developer-friction
 postgresql-connection-pooling-saturation-sizing

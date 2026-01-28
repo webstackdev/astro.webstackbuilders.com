@@ -1061,3 +1061,47 @@ Create an image of an astronomer adjusting a telescope. When zoomed in too far (
 ### Prompt 5: The Story Thread
 
 Design an image of a storyteller holding threads that represent traces. Some threads are tangled masses of tiny knots (over-instrumented traces). Other threads have clear beads at intervals (well-designed spans) telling a readable story. Listeners understand the clear threads but are confused by the tangled ones. Style: narrative clarity, story structure, trace as narrative, 16:9 aspect ratio.
+
+## performance-testing-load-models-benchmark-accuracy
+
+### Prompt 1: The Truth Scales
+
+Create an image of a scale of justice where one side holds a glowing "accurate" test result (realistic load model, proper warmup, statistical rigor) and the other holds a flashy but hollow "impressive" result (synthetic benchmarks). The accurate side is heavier, more valuable. A developer chooses the accurate side. Style: truth vs appearance, measurement integrity, honest data, 16:9 aspect ratio.
+
+### Prompt 2: The Load Model Blueprint
+
+Design an image of an architect studying blueprints that show traffic patterns—peaks, valleys, bursts, quiet periods. The blueprints overlay a city with roads showing traffic flow. Some roads are jammed (hot paths), others empty (cold paths). The architect designs tests that match this reality. Style: traffic modeling, realistic patterns, architectural planning, 16:9 aspect ratio.
+
+### Prompt 3: The Warmup Gauge
+
+Illustrate a complex machine with temperature gauges showing different systems warming up: JIT compiler, caches, connection pools. Some gauges are in the red (cold), transitioning to green (warm). A technician waits patiently, not starting measurements until all gauges are green. Style: warmup visualization, system readiness, patience in testing, 16:9 aspect ratio.
+
+### Prompt 4: The Statistical Lens
+
+Create an image of a scientist looking through a lens that transforms a single number (average) into a full distribution (histogram, percentiles). Without the lens, data appears simple but misleading. Through the lens, the true story emerges—outliers, tail latency, variance. Style: statistical insight, seeing the full picture, data interpretation, 16:9 aspect ratio.
+
+### Prompt 5: The Mirror Environment
+
+Design an image of two server rooms facing each other like mirrors—production on one side, test environment on the other. The mirror is slightly distorted where environments differ (smaller database, mocked services). A engineer adjusts the test environment to make the reflection perfect. Style: environment parity, mirror matching, configuration alignment, 16:9 aspect ratio.
+
+## platform-architecture-control-plane-data-plane-separation
+
+### Prompt 1: The Two Towers
+
+Create an image of two distinct towers connected by bridges. The left tower (Control Tower) has antennae, screens, and control panels—it makes decisions. The right tower (Data Tower) has pipes, containers, and flowing traffic—it does work. Bridges carry configurations down and status up. Style: architectural separation, clear responsibilities, connected but distinct, 16:9 aspect ratio.
+
+### Prompt 2: The Orchestra Conductor
+
+Design an image of an orchestra performance. The conductor (control plane) stands elevated with a score, directing the music. The musicians (data plane) play their instruments, producing the actual sound. The conductor doesn't make music directly but ensures coordination. The audience only hears the musicians. Style: coordination metaphor, separation of concerns, orchestration vs execution, 16:9 aspect ratio.
+
+### Prompt 3: The Air Traffic Control
+
+Illustrate an airport control tower overlooking runways with planes. The tower (control plane) has radar, schedules, and controllers making decisions. The runways and planes (data plane) handle actual traffic. Tower can be upgraded without closing runways. Plane delays don't crash the tower. Style: aviation control, independent operation, safe separation, 16:9 aspect ratio.
+
+### Prompt 4: The Nervous System
+
+Create an image showing the human nervous system: brain (control plane) connected to muscles and organs (data plane) via nerves. The brain makes decisions; the body executes. If the brain is busy, the body still maintains heartbeat and breathing. Different scaling—brain doesn't grow when muscles do. Style: biological architecture, autonomous function, hierarchical control, 16:9 aspect ratio.
+
+### Prompt 5: The Platform Layers
+
+Design an image showing a platform as literal architectural layers, like a parking structure or stadium. Each level is labeled: Infrastructure, Orchestration, Platform Services, Developer Interface. Elevators (APIs) connect levels. Some levels can be rebuilt without affecting others. Style: layered architecture, platform structure, clear boundaries, 16:9 aspect ratio.

@@ -1,3 +1,19 @@
+# AWS Bedrock and Lex
+
+Amazon Lex is a service for building conversational, voice-and-chat interfaces (chatbots) using Natural Language Understanding (NLU), while Amazon Bedrock is a managed service providing API access to foundation models (LLMs) for generating content and reasoning. Lex acts as the conversational "front-end," whereas Bedrock acts as the AI "brain" that powers advanced, generative responses. 
+
+**Key Differences:**
+
+- **Primary Function:** Lex manages intent classification, slot filling (collecting information), and dialogue management (flow). Bedrock provides access to generative models (e.g., Anthropic Claude, Amazon Titan) to answer complex queries or generate text.
+- **Use Case:** Use Lex for structured, transactional tasks (e.g., "book a flight" or "check account balance"). Use Bedrock for unstructured, creative, or knowledge-based tasks (e.g., summarizing documents or drafting emails).
+- **Control vs. Flexibility:** Lex allows for precise, deterministic control over bot conversations. Bedrock offers flexibility in choosing from multiple, powerful, but non-deterministic models.
+- **Integration:** Lex can use Bedrock to power its `QnAIntent` for retrieving answers from company data (via RAG - Retrieval-Augmented Generation). 
+
+**How They Work Together:**
+In modern applications, they are often combined, with Lex acting as the user interface and Bedrock providing intelligent, dynamic responses. A Lex bot can handle basic inputs and, when faced with a complex question, call upon Bedrock to generate an answer, thus combining structured dialogue with generative AI, say sources at Amazon Web Services. 
+
+## RAG
+
 As a software engineer already using AWS, the most efficient approach in 2026 is to build a serverless **RAG (Retrieval-Augmented Generation)** application using **Amazon Bedrock**. This bypasses the limitations of HubSpot’s built-in rule-based bots while maintaining full control over your logic and data.
 
 **Architecture Overview**
