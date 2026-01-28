@@ -1105,3 +1105,47 @@ Create an image showing the human nervous system: brain (control plane) connecte
 ### Prompt 5: The Platform Layers
 
 Design an image showing a platform as literal architectural layers, like a parking structure or stadium. Each level is labeled: Infrastructure, Orchestration, Platform Services, Developer Interface. Elevators (APIs) connect levels. Some levels can be rebuilt without affecting others. Style: layered architecture, platform structure, clear boundaries, 16:9 aspect ratio.
+
+## platform-engineering-metrics-lead-time-developer-friction
+
+### Prompt 1: The Friction Meter
+
+Create an image of a gauge or meter showing "Developer Friction" with zones from green (smooth) to red (painful). A needle points toward the green zone after platform improvements. Before/after indicators show the needle moving from red to green. Style: measurement visualization, friction reduction, improvement tracking, 16:9 aspect ratio.
+
+### Prompt 2: The Dashboard Observatory
+
+Design an image of a control room where engineers observe multiple screens showing developer productivity metrics—deployment graphs, satisfaction scores, lead time charts. The screens glow with positive trends (upward lines in green). A central display shows "Developer Happiness: Healthy." Style: mission control, data-driven decisions, platform monitoring, 16:9 aspect ratio.
+
+### Prompt 3: The Time Compression
+
+Illustrate a before/after comparison: on the left, a developer surrounded by clocks showing weeks passing for a simple task. On the right, the same task with clocks showing hours. A stopwatch in the center measures the difference. The platform logo bridges the two scenarios. Style: time savings visualization, efficiency gain, before/after contrast, 16:9 aspect ratio.
+
+### Prompt 4: The Feedback Loop
+
+Create an image of a circular feedback loop: developers provide input (surveys, tickets), the platform team analyzes metrics on screens, implements changes, and developers experience improvements. The loop is labeled with metric names: NPS, Lead Time, Ticket Volume. Style: continuous improvement, feedback cycle, iterative enhancement, 16:9 aspect ratio.
+
+### Prompt 5: The Value Ladder
+
+Design an image of developers climbing a ladder labeled with platform benefits: "Self-service" at the bottom, "Faster Deploys" in the middle, "Innovation Time" at the top. Each rung has a metric attached. Some developers are higher on the ladder (mature platform users), others just starting. Style: progression metaphor, value demonstration, platform maturity, 16:9 aspect ratio.
+
+## postgresql-connection-pooling-saturation-sizing
+
+### Prompt 1: The Pool Overflow
+
+Create an image of a swimming pool connected to pipes from multiple buildings (application instances). The pool has a water level gauge showing capacity. Some pipes are throttled by valves (connection pooler). Without valves, water overflows; with valves, level stays controlled. Style: resource management visualization, flow control, capacity limits, 16:9 aspect ratio.
+
+### Prompt 2: The Queue at the Gate
+
+Design an image of a stadium entrance with limited gates (database connections). A large crowd (requests) queues outside. Some gates have express lanes (pooled connections) that recycle quickly. A crowd monitor (metrics) watches queue length. When queues get long, signs redirect to other venues (circuit breaker). Style: queuing metaphor, throughput limits, crowd management, 16:9 aspect ratio.
+
+### Prompt 3: The Power Grid
+
+Illustrate an electrical grid with a central power station (PostgreSQL) connected to neighborhoods (applications). The station has limited output capacity. Without transformers (poolers), neighborhoods draw too much and cause blackouts. With transformers, power is distributed efficiently. Meters show utilization levels. Style: resource distribution, capacity planning, grid management, 16:9 aspect ratio.
+
+### Prompt 4: The Multiplexer
+
+Create an image of a traffic intersection where many cars (connections from apps) need to cross, but only a few lanes (database connections) exist. A traffic controller (PgBouncer) efficiently schedules which cars cross when, maximizing throughput without gridlock. Style: traffic management, multiplexing efficiency, flow optimization, 16:9 aspect ratio.
+
+### Prompt 5: The Saturation Warning
+
+Design an image of a pressure vessel (database) with multiple gauges: connections, memory, CPU. Warning lights transition from green to yellow to red as pressure increases. An operator watches dashboards, adjusting valves (pool settings) to relieve pressure before critical. Style: system monitoring, pressure management, early warning, 16:9 aspect ratio.

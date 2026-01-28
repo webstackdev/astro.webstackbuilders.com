@@ -9,1101 +9,128 @@ tags: ["platform-engineering"]
 featured: true
 ---
 
-*[IDP]: Internal Developer Platform
-*[K8s]: Kubernetes
 *[CRD]: Custom Resource Definition
+*[HPA]: Horizontal Pod Autoscaler
 *[RBAC]: Role-Based Access Control
-*[SLA]: Service Level Agreement
-*[RPS]: Requests Per Second
-*[TLS]: Transport Layer Security
+*[VPC]: Virtual Private Cloud
 
-# Platform Architecture: Control Plane vs Data Plane
+A platform team I worked with hit a wall at fifty teams. Their internal Kubernetes platform had grown organically—API server, controllers, etcd, worker nodes all running together because it was simpler that way. Then Monday mornings started hurting. Everyone deploying at once slowed the API server enough that running workloads couldn't get their service endpoints updated. A bug in a custom controller caused repeated panics that prevented all controllers from reconciling—deployments wouldn't scale, services wouldn't update, affecting _all_ tenants. Control plane upgrades required scheduling maintenance windows across every team.
 
-## Introduction
+The fix wasn't more hardware. It was architectural: dedicated control plane cluster, separate data plane clusters per environment, GitOps for configuration sync. The pattern that made this possible comes from networking, where routers have long separated the control plane (where routing decisions happen) from the data plane (where packets actually flow). Platform engineering borrowed this separation because it solves the same fundamental problem—scaling decision-making independently from execution.
 
-Frame the fundamental architectural pattern borrowed from networking and now essential to platform engineering: separating the control plane (where decisions are made, configurations stored, policies enforced) from the data plane (where actual work happens, traffic flows, applications run). This separation isn't organizational preference—it's an architectural requirement for platforms that serve multiple teams, scale independently, and evolve without breaking consumers. The control plane changes slowly but must never fail. The data plane changes constantly and must handle variable load. This section establishes that treating them as one system creates coupling that prevents both from scaling.
+## The Separation That Scales
 
-_Include a scenario: a platform team builds an internal Kubernetes platform. Initially, the API server, controller manager, and etcd run alongside worker nodes. As adoption grows to 50 teams and 500 services, problems emerge. A control plane upgrade requires scheduling maintenance windows across all teams. A surge in deployment activity slows the API server, affecting running workloads. A bug in a custom controller crashes, taking down the reconciliation loop for all tenants. They refactor: dedicated control plane cluster, separate data plane clusters per environment/team, GitOps for configuration sync. Control plane upgrades happen independently. Data plane issues are isolated. Each plane scales according to its needs. The lesson: separation isn't premature optimization—it's the foundation for multi-tenant platform operations._
+Understanding what distinguishes control from data helps explain why separating them works.
 
-<Callout type="warning">
-The most common platform architecture mistake: building for single-tenant simplicity, then retrofitting multi-tenancy. Control plane and data plane separation should be designed from the start, even if initially deployed together.
-</Callout>
+In platform terms, the _control plane_ is where configuration lives, policies get enforced, and orchestration decisions happen. It stores desired state, accepts and validates requests, makes scheduling decisions, and reconciles what you asked for against what actually exists. In Kubernetes, this means the API server, etcd, and controller manager. In a service mesh, it's the control plane component like Istio's istiod.
 
-## Architectural Concepts
+The _data plane_ is where actual work happens. It executes workloads, routes traffic, stores and retrieves data, and processes user requests. Kubernetes worker nodes (with their kubelets that keep containers running), Envoy sidecar proxies handling request routing, load balancers distributing traffic, and your application instances all live here. The data plane is inherently stateless from the platform's perspective—any component can be replaced because the control plane holds the source of truth about what should be running.
 
-### Control Plane vs Data Plane Defined
+The characteristics differ in ways that matter for architecture:
 
-```yaml title="plane-definitions.yaml"
-# Control plane vs data plane characteristics
+| Aspect | Control Plane | Data Plane |
+|--------|---------------|------------|
+| Change frequency | Slow (configuration changes) | Constant (traffic, deployments) |
+| Failure impact | Changes blocked; running workloads unaffected | Workloads fail, users impacted |
+| Scaling trigger | Managed resource count, API request rate | Traffic volume, workload count |
+| State | Stateful (source of truth) | Ephemeral (rebuildable from control plane) |
 
-control_plane:
-  definition: "Where configuration, policy, and orchestration decisions happen"
+Table: Control plane vs data plane characteristics.
 
-  responsibilities:
-    - "Store desired state (configurations, policies)"
-    - "Accept and validate user requests"
-    - "Make scheduling and placement decisions"
-    - "Enforce policies and quotas"
-    - "Reconcile desired vs actual state"
-    - "Provide APIs for platform consumers"
-
-  characteristics:
-    change_frequency: "Relatively slow (config changes)"
-    availability: "Critical - must never be unavailable"
-    consistency: "Strong consistency required"
-    scaling: "Scales with number of resources managed"
-    state: "Stateful (source of truth)"
-
-  examples:
-    - "Kubernetes API server + etcd + controllers"
-    - "Service mesh control plane (Istio pilot)"
-    - "Database management plane"
-    - "Platform portal and APIs"
-
-data_plane:
-  definition: "Where actual work happens and traffic flows"
-
-  responsibilities:
-    - "Execute workloads (containers, functions)"
-    - "Route traffic (proxies, load balancers)"
-    - "Store and retrieve data"
-    - "Process user requests"
-    - "Report metrics and logs"
-
-  characteristics:
-    change_frequency: "Constant (traffic, deployments)"
-    availability: "Critical - user-facing"
-    consistency: "Eventually consistent often acceptable"
-    scaling: "Scales with traffic and workload volume"
-    state: "Ephemeral (can be rebuilt from control plane)"
-
-  examples:
-    - "Kubernetes worker nodes"
-    - "Envoy sidecar proxies"
-    - "Database replicas"
-    - "Application instances"
-
----
-# Key differences
-comparison:
-  failure_impact:
-    control_plane: "Can't make changes, but existing workloads continue"
-    data_plane: "Workloads fail, users impacted"
-
-  upgrade_strategy:
-    control_plane: "Careful, rolling, often requires coordination"
-    data_plane: "Aggressive, canary, can be replaced"
-
-  scaling_trigger:
-    control_plane: "Number of managed resources, API request rate"
-    data_plane: "Traffic volume, workload count"
-```
-Code: Control plane vs data plane definitions.
+The failure impact row is the critical insight: when the control plane goes down, running workloads continue serving traffic. When the data plane fails, users notice immediately. This asymmetry is the foundation of the pattern. The control plane pushes desired state to the data plane; the data plane reports actual state back. They communicate but don't depend on each other moment-to-moment.
 
 ```mermaid
 graph TB
-    subgraph "Control Plane"
+    subgraph CP[Control Plane]
         A[API Server] --> B[State Store]
         A --> C[Controllers]
-        C --> D[Policy Engine]
-        C --> E[Scheduler]
     end
 
-    subgraph "Data Plane"
+    D[Isolation Boundary]
+
+    subgraph DP[Data Plane]
         F[Worker Node 1]
         G[Worker Node 2]
         H[Worker Node 3]
-        I[Load Balancer]
-        J[Service Mesh Proxies]
     end
 
-    C -->|"Desired State"| F
-    C -->|"Desired State"| G
-    C -->|"Desired State"| H
-
-    F -->|"Actual State"| C
-    G -->|"Actual State"| C
-    H -->|"Actual State"| C
-
-    style A fill:#9cf,color:#000
-    style B fill:#9cf,color:#000
-    style C fill:#9cf,color:#000
-    style F fill:#f9c,color:#000
-    style G fill:#f9c,color:#000
-    style H fill:#f9c,color:#000
-```
-Figure: Control plane and data plane separation.
-
-### Platform Layers
-
-```yaml title="platform-layers.yaml"
-# Platform architecture layers
-
-layers:
-  layer_1_infrastructure:
-    name: "Infrastructure Layer"
-    plane: "Data Plane (mostly)"
-    components:
-      - "Compute (VMs, bare metal)"
-      - "Storage (block, object, file)"
-      - "Network (VPCs, load balancers)"
-    providers:
-      - "Cloud providers (AWS, GCP, Azure)"
-      - "On-premise infrastructure"
-      - "Hybrid configurations"
-
-  layer_2_orchestration:
-    name: "Orchestration Layer"
-    plane: "Control Plane + Data Plane"
-    control_components:
-      - "Kubernetes control plane"
-      - "Cluster management APIs"
-      - "Multi-cluster federation"
-    data_components:
-      - "Container runtime"
-      - "Kubelet"
-      - "kube-proxy"
-
-  layer_3_platform_services:
-    name: "Platform Services Layer"
-    plane: "Control Plane (primarily)"
-    components:
-      - "Service mesh control plane"
-      - "Secrets management"
-      - "Certificate management"
-      - "Observability backends"
-      - "CI/CD orchestration"
-
-  layer_4_developer_interface:
-    name: "Developer Interface Layer"
-    plane: "Control Plane"
-    components:
-      - "Platform portal"
-      - "Self-service APIs"
-      - "GitOps repositories"
-      - "Documentation and catalogs"
-
-  layer_5_applications:
-    name: "Application Layer"
-    plane: "Data Plane"
-    components:
-      - "Application workloads"
-      - "Databases and caches"
-      - "Message queues"
-      - "User-facing services"
-
----
-# Separation boundaries
-boundaries:
-  infrastructure_orchestration:
-    interface: "Cloud APIs, Terraform"
-    coupling: "Loose - infrastructure can be replaced"
-
-  orchestration_platform:
-    interface: "Kubernetes API, CRDs"
-    coupling: "Medium - platform depends on K8s"
-
-  platform_developer:
-    interface: "Platform APIs, GitOps"
-    coupling: "Loose - developers don't see internals"
-
-  developer_application:
-    interface: "Application frameworks"
-    coupling: "Varies by platform abstraction level"
-```
-Code: Platform layers.
-
-| Layer | Primary Plane | Changes | Scaling Factor |
-|-------|---------------|---------|----------------|
-| Infrastructure | Data | Slow | Capacity needs |
-| Orchestration | Both | Medium | Cluster count |
-| Platform Services | Control | Slow | Teams/tenants |
-| Developer Interface | Control | Fast | Feature velocity |
-| Applications | Data | Constant | Traffic/users |
-
-Table: Platform layer characteristics.
-
-<Callout type="info">
-Each layer has different change velocities and scaling needs. A well-designed platform allows each layer to evolve independently. Tight coupling between layers creates upgrade dependencies that slow everyone down.
-</Callout>
-
-## API Design for Platforms
-
-### Platform API Principles
-
-```yaml title="platform-api-design.yaml"
-# Platform API design principles
-
-principles:
-  declarative_over_imperative:
-    description: "Accept desired state, not commands"
-    example:
-      imperative: "POST /deploy { image: 'app:v2' }"
-      declarative: "PUT /services/my-app { spec: { image: 'app:v2' } }"
-    benefits:
-      - "Idempotent operations"
-      - "State can be reconciled"
-      - "GitOps friendly"
-      - "Audit trail from state history"
-
-  resource_oriented:
-    description: "Everything is a resource with standard operations"
-    operations:
-      - "Create (POST)"
-      - "Read (GET)"
-      - "Update (PUT/PATCH)"
-      - "Delete (DELETE)"
-      - "List (GET collection)"
-      - "Watch (WebSocket/SSE)"
-    example: |
-      /api/v1/namespaces/{ns}/services/{name}
-      /api/v1/namespaces/{ns}/deployments/{name}
-      /api/v1/namespaces/{ns}/secrets/{name}
-
-  versioned:
-    description: "APIs evolve without breaking consumers"
-    strategies:
-      - "URL versioning: /api/v1/, /api/v2/"
-      - "Header versioning: Accept: application/vnd.platform.v2+json"
-    lifecycle:
-      - "alpha → beta → stable → deprecated → removed"
-
-  self_describing:
-    description: "APIs document themselves"
-    mechanisms:
-      - "OpenAPI specifications"
-      - "Discovery endpoints"
-      - "Resource schemas"
-      - "Status subresources"
-
----
-# API structure example
-api_structure:
-  base_url: "https://platform.internal/api"
-
-  resources:
-    teams:
-      path: "/v1/teams/{team}"
-      operations: ["create", "get", "list", "update", "delete"]
-      subresources:
-        - "members"
-        - "quotas"
-        - "environments"
-
-    environments:
-      path: "/v1/teams/{team}/environments/{env}"
-      operations: ["create", "get", "list", "update", "delete"]
-      subresources:
-        - "services"
-        - "secrets"
-        - "deployments"
-
-    services:
-      path: "/v1/teams/{team}/environments/{env}/services/{service}"
-      operations: ["create", "get", "list", "update", "delete"]
-      subresources:
-        - "revisions"
-        - "traffic"
-        - "metrics"
-```
-Code: Platform API principles.
-
-### Resource Schemas
-
-```typescript title="resource-schemas.ts"
-// Platform resource schema design
-
-// === Base resource structure ===
-interface Resource<TSpec, TStatus> {
-  apiVersion: string;
-  kind: string;
-  metadata: ResourceMetadata;
-  spec: TSpec;
-  status?: TStatus;
-}
-
-interface ResourceMetadata {
-  name: string;
-  namespace?: string;
-  uid: string;
-  resourceVersion: string;
-  creationTimestamp: string;
-  labels?: Record<string, string>;
-  annotations?: Record<string, string>;
-  ownerReferences?: OwnerReference[];
-}
-
-// === Service resource example ===
-interface ServiceSpec {
-  // What the user wants
-  image: string;
-  replicas: number;
-  resources: {
-    cpu: string;
-    memory: string;
-  };
-  ports: Array<{
-    name: string;
-    port: number;
-    protocol: 'HTTP' | 'GRPC' | 'TCP';
-  }>;
-  env?: Array<{
-    name: string;
-    value?: string;
-    valueFrom?: {
-      secretKeyRef?: { name: string; key: string };
-      configMapKeyRef?: { name: string; key: string };
-    };
-  }>;
-  scaling?: {
-    minReplicas: number;
-    maxReplicas: number;
-    targetCPUUtilization: number;
-  };
-}
-
-interface ServiceStatus {
-  // What the system reports
-  phase: 'Pending' | 'Running' | 'Failed' | 'Unknown';
-  conditions: Condition[];
-  availableReplicas: number;
-  readyReplicas: number;
-  currentRevision: string;
-  endpoints: string[];
-  lastUpdated: string;
-}
-
-interface Condition {
-  type: string;
-  status: 'True' | 'False' | 'Unknown';
-  reason: string;
-  message: string;
-  lastTransitionTime: string;
-}
-
-// === Example resource instance ===
-const exampleService: Resource<ServiceSpec, ServiceStatus> = {
-  apiVersion: 'platform.company.io/v1',
-  kind: 'Service',
-  metadata: {
-    name: 'order-service',
-    namespace: 'team-commerce',
-    uid: 'abc-123',
-    resourceVersion: '12345',
-    creationTimestamp: '2024-01-15T10:00:00Z',
-    labels: {
-      'app': 'order-service',
-      'team': 'commerce',
-      'tier': 'backend',
-    },
-  },
-  spec: {
-    image: 'registry.internal/commerce/order-service:v2.1.0',
-    replicas: 3,
-    resources: {
-      cpu: '500m',
-      memory: '512Mi',
-    },
-    ports: [
-      { name: 'http', port: 8080, protocol: 'HTTP' },
-      { name: 'grpc', port: 9090, protocol: 'GRPC' },
-    ],
-    scaling: {
-      minReplicas: 2,
-      maxReplicas: 10,
-      targetCPUUtilization: 70,
-    },
-  },
-  status: {
-    phase: 'Running',
-    conditions: [
-      {
-        type: 'Available',
-        status: 'True',
-        reason: 'MinimumReplicasAvailable',
-        message: '3 of 3 replicas are available',
-        lastTransitionTime: '2024-01-15T10:05:00Z',
-      },
-    ],
-    availableReplicas: 3,
-    readyReplicas: 3,
-    currentRevision: 'order-service-abc123',
-    endpoints: ['order-service.team-commerce.svc.cluster.local'],
-    lastUpdated: '2024-01-15T12:00:00Z',
-  },
-};
-```
-Code: Resource schema design.
-
-```mermaid
-graph LR
-    subgraph "User Request"
-        A[Spec<br/>Desired State]
-    end
-
-    subgraph "Control Plane"
-        B[API Server]
-        C[Validator]
-        D[Controller]
-        E[State Store]
-    end
-
-    subgraph "Data Plane"
-        F[Reconciler]
-        G[Runtime]
-    end
-
-    subgraph "Response"
-        H[Status<br/>Actual State]
-    end
-
-    A --> B
-    B --> C
-    C --> E
-    D --> E
+    C -->|"Desired State"| D
     D --> F
-    F --> G
-    G --> H
-    H --> E
+    D --> G
+    D --> H
+
+    F -->|"Actual State"| D
+    G -->|"Actual State"| D
+    H -->|"Actual State"| D
+    D --> C
 ```
-Figure: Spec and status flow.
 
-<Callout type="success">
-Separate spec (what users want) from status (what exists). Users write spec; the system writes status. This separation enables declarative operations, reconciliation loops, and clear responsibility boundaries.
-</Callout>
+Figure: Control plane pushes desired state to data plane; data plane reports actual state back.
 
-## Multi-Tenancy Models
+## Multi-Tenancy Patterns
 
-### Tenancy Patterns
+Control plane and data plane separation exists to serve multi-tenancy. Without multiple teams sharing the platform, you don't need the complexity—a single team can tolerate tighter coupling. But once you're building for multiple tenants, the separation enables isolation patterns that would be impossible otherwise.
 
-```yaml title="tenancy-patterns.yaml"
-# Multi-tenancy patterns for platforms
+The fundamental question: how much isolation do tenants need, and what are you willing to pay for it?
 
-patterns:
-  namespace_per_tenant:
-    description: "Tenants share cluster, isolated by namespace"
-    isolation: "Logical (K8s namespace, RBAC)"
+__Namespace per tenant__ is the simplest approach. All tenants share a single cluster. Isolation comes from Kubernetes namespaces, RBAC, resource quotas, and network policies. The control plane is shared—same API server, same controllers, same etcd. This pattern is resource-efficient and operationally simple, but the isolation is logical, not physical. A noisy neighbor—a tenant whose workloads consume excessive CPU, memory, or I/O—can exhaust shared resources despite quotas, affecting other tenants on the same nodes.
 
-    control_plane:
-      sharing: "Shared API server and controllers"
-      isolation: "RBAC, admission control"
+__Cluster per tenant__ is the opposite extreme. Each tenant gets a dedicated Kubernetes cluster with its own control plane and data plane. Isolation is complete—there's no shared infrastructure beyond the underlying cloud account. This provides strong isolation and per-tenant customization, but the cost is substantial: every tenant pays for control plane resources.
 
-    data_plane:
-      sharing: "Shared nodes (typically)"
-      isolation: "Resource quotas, network policies"
+__Virtual clusters__ split the difference. Tools like vCluster create lightweight Kubernetes control planes that run as workloads inside a host cluster. Each tenant gets their own API server, but pods actually run on the shared host cluster's nodes. Isolation is better than namespace-per-tenant because each virtual cluster has its own control plane state. The tradeoff: host cluster upgrades affect all virtual clusters simultaneously, and some advanced Kubernetes features don't translate cleanly across the virtualization boundary.
 
-    advantages:
-      - "Resource efficient"
-      - "Simple operations"
-      - "Quick tenant onboarding"
-    disadvantages:
-      - "Noisy neighbor risk"
-      - "Limited customization per tenant"
-      - "Blast radius includes all tenants"
-
-    best_for:
-      - "Internal teams"
-      - "Trusted tenants"
-      - "Cost-sensitive deployments"
-
-  cluster_per_tenant:
-    description: "Each tenant gets dedicated cluster"
-    isolation: "Physical (separate clusters)"
-
-    control_plane:
-      sharing: "None - dedicated per tenant"
-      management: "Fleet management layer"
-
-    data_plane:
-      sharing: "None - dedicated nodes"
-      isolation: "Complete"
-
-    advantages:
-      - "Strong isolation"
-      - "Per-tenant customization"
-      - "Independent upgrades"
-    disadvantages:
-      - "Resource overhead"
-      - "Complex operations"
-      - "Higher cost"
-
-    best_for:
-      - "Enterprise customers"
-      - "Compliance requirements"
-      - "Large tenants with specific needs"
-
-  virtual_cluster_per_tenant:
-    description: "Virtual clusters share infrastructure"
-    isolation: "Strong logical (vCluster, Loft)"
-
-    control_plane:
-      sharing: "Host cluster control plane"
-      virtual: "Virtual API server per tenant"
-
-    data_plane:
-      sharing: "Shared nodes"
-      isolation: "Synced resources, quotas"
-
-    advantages:
-      - "Strong isolation"
-      - "Efficient resource use"
-      - "Tenant gets 'real' cluster experience"
-    disadvantages:
-      - "Additional complexity"
-      - "Sync latency"
-      - "Debugging across layers"
-
-    best_for:
-      - "Platform-as-a-Service offerings"
-      - "CI/CD ephemeral environments"
-      - "Balancing isolation and efficiency"
-
----
-# Isolation mechanisms
-isolation_mechanisms:
-  network:
-    - "Network policies"
-    - "Service mesh mTLS"
-    - "Separate VPCs/subnets"
-
-  compute:
-    - "Node pools per tenant"
-    - "Taints and tolerations"
-    - "Resource quotas"
-
-  storage:
-    - "Storage classes per tenant"
-    - "Encryption keys per tenant"
-    - "Separate storage backends"
-
-  identity:
-    - "RBAC per namespace"
-    - "Service accounts per tenant"
-    - "External identity integration"
-```
-Code: Tenancy patterns.
+__Node pool per tenant__ is a middle ground for compute isolation specifically. Tenants share the control plane but get dedicated nodes via taints and tolerations.
 
 | Pattern | Isolation | Cost | Operations Complexity |
 |---------|-----------|------|----------------------|
 | Namespace per tenant | Logical | Low | Low |
-| Node pool per tenant | Compute | Medium | Medium |
 | Cluster per tenant | Physical | High | High |
 | Virtual cluster | Strong logical | Medium | Medium |
+| Node pool per tenant | Compute | Medium | Medium |
 
 Table: Tenancy pattern comparison.
 
-### Tenant Onboarding
+To put concrete numbers on "cost" using AWS EKS pricing: a dedicated Kubernetes control plane costs roughly $70–150/month before any worker nodes. Namespace-per-tenant adds near-zero marginal cost per tenant. Virtual clusters consume roughly 1 CPU core and 1GB memory each on the host cluster. For 100 tenants, that's the difference between $100/month (shared) and $10,000/month (dedicated clusters) in control plane costs alone.
 
-```yaml title="tenant-onboarding.yaml"
-# Tenant onboarding workflow
+Regardless of which pattern you choose, multiple isolation mechanisms layer together: network policies default-deny cross-namespace traffic, resource quotas limit what each tenant can consume, RBAC rules scope permissions to specific namespaces, and for stronger isolation, separate VPCs[^vpc] provide network-level boundaries that don't depend on Kubernetes enforcement.
 
-onboarding_workflow:
-  step_1_request:
-    trigger: "Self-service form or API call"
-    inputs:
-      - "Team name and identifier"
-      - "Owner information"
-      - "Initial quota requirements"
-      - "Environment types needed"
-    validation:
-      - "Team doesn't already exist"
-      - "Owner is valid identity"
-      - "Quotas within platform limits"
+[^vpc]: VPC (Virtual Private Cloud) is cloud provider terminology for an isolated virtual network—AWS VPCs, Azure VNets, Google Cloud VPCs all provide the same fundamental isolation primitive.
 
-  step_2_provisioning:
-    control_plane_resources:
-      - name: "Team namespace"
-        type: "Kubernetes Namespace"
-        config:
-          labels:
-            team: "{{ team_id }}"
-            tier: "{{ tier }}"
+## When Things Go Wrong
 
-      - name: "Resource quota"
-        type: "ResourceQuota"
-        config:
-          hard:
-            requests.cpu: "{{ cpu_quota }}"
-            requests.memory: "{{ memory_quota }}"
-            persistentvolumeclaims: "{{ pvc_quota }}"
+Separating control plane from data plane creates natural failure boundaries, but you need to design explicitly for how failures propagate—or don't—across those boundaries. The goal is _blast radius containment_: ensuring that failures in one part of the system don't cascade into others.
 
-      - name: "Network policy"
-        type: "NetworkPolicy"
-        config:
-          # Default deny, allow specific
+__Control plane failures__ prevent changes but don't stop running workloads. If the API server goes down, you can't deploy new code or modify configurations, but existing pods keep serving traffic. The kubelet continues running containers using cached pod specs. Services keep routing. This is the fundamental benefit of separation—the data plane operates autonomously once configured.
 
-      - name: "RBAC bindings"
-        type: "RoleBinding"
-        config:
-          subjects: "{{ team_members }}"
-          role: "team-developer"
+__Data plane failures__ affect workloads in that failure domain. A node crash evicts all pods on that node. A zone outage takes down everything in that zone. Unlike control plane failures, these directly impact user traffic.
 
-    data_plane_resources:
-      - name: "Node pool (if dedicated)"
-        type: "NodePool"
-        config:
-          taints:
-            - key: "team"
-              value: "{{ team_id }}"
-              effect: "NoSchedule"
+__Tenant failures__ shouldn't affect other tenants. Resource quotas prevent a runaway tenant from exhausting cluster resources—if one tenant's deployment enters a crash loop creating thousands of pods, quotas cap the damage. Network policies prevent a compromised tenant workload from attacking others. Rate limiting at the API level prevents one tenant's automation from overwhelming the control plane.
 
-  step_3_integration:
-    git_repositories:
-      - "Create team GitOps repo"
-      - "Configure ArgoCD application"
-
-    observability:
-      - "Create Grafana folder"
-      - "Provision default dashboards"
-      - "Configure alert routing"
-
-    secrets:
-      - "Create Vault namespace"
-      - "Configure auth method"
-      - "Grant initial policies"
-
----
-# Terraform module for tenant provisioning
-terraform_module: |
-  module "tenant" {
-    source = "./modules/platform-tenant"
-
-    team_id     = "team-commerce"
-    team_name   = "Commerce Team"
-    tier        = "standard"  # standard, premium, enterprise
-
-    owners      = ["user:alice@company.com"]
-    members     = ["group:commerce-developers@company.com"]
-
-    quotas = {
-      cpu_requests    = "100"
-      memory_requests = "200Gi"
-      pvcs           = 50
-    }
-
-    environments = ["dev", "staging", "prod"]
-
-    features = {
-      dedicated_nodes  = false
-      custom_domains   = true
-      gpu_access       = false
-    }
-  }
-```
-Code: Tenant onboarding.
-
-<Callout type="info">
-Automate tenant onboarding completely. A new team should go from request to fully provisioned environment in minutes, not days. Self-service with guardrails scales; manual provisioning doesn't.
-</Callout>
-
-## Scaling Considerations
-
-### Control Plane Scaling
-
-```yaml title="control-plane-scaling.yaml"
-# Control plane scaling patterns
-
-scaling_dimensions:
-  api_request_rate:
-    description: "Requests to platform API per second"
-    scaling_approach:
-      - "Horizontal: multiple API server replicas"
-      - "Caching: read-through cache for GET requests"
-      - "Rate limiting: per-tenant quotas"
-    bottlenecks:
-      - "State store (etcd) write throughput"
-      - "Webhook validation latency"
-      - "Authentication overhead"
-
-  managed_resource_count:
-    description: "Total resources under management"
-    scaling_approach:
-      - "Sharding: partition resources across controllers"
-      - "Informer optimization: filtered watches"
-      - "State store: etcd cluster size"
-    limits:
-      kubernetes: "~5,000 nodes, ~150,000 pods per cluster"
-      etcd: "~8GB database size recommended"
-
-  tenant_count:
-    description: "Number of independent tenants"
-    scaling_approach:
-      - "Namespace per tenant: scales to hundreds"
-      - "Virtual clusters: scales to thousands"
-      - "Cluster per tenant: scales with fleet management"
-    overhead_per_tenant:
-      - "RBAC rules"
-      - "Quota tracking"
-      - "Audit logging"
-
----
-# Scaling architecture
-scaling_architecture:
-  small:
-    tenants: "< 10"
-    resources: "< 1,000"
-    architecture: "Single cluster, shared control plane"
-
-  medium:
-    tenants: "10-100"
-    resources: "1,000-10,000"
-    architecture: |
-      - Dedicated control plane nodes
-      - Multiple controller replicas
-      - Sharded informers
-
-  large:
-    tenants: "100-1,000"
-    resources: "10,000-100,000"
-    architecture: |
-      - Regional control planes
-      - Federated configuration
-      - Per-tenant virtual clusters
-
-  enterprise:
-    tenants: "> 1,000"
-    resources: "> 100,000"
-    architecture: |
-      - Multi-cluster fleet
-      - Hierarchical management
-      - Dedicated clusters for large tenants
-```
-Code: Control plane scaling.
-
-### Data Plane Scaling
-
-```yaml title="data-plane-scaling.yaml"
-# Data plane scaling patterns
-
-scaling_patterns:
-  horizontal_pod_autoscaling:
-    description: "Scale pods based on metrics"
-    triggers:
-      - "CPU utilization"
-      - "Memory utilization"
-      - "Custom metrics (queue depth, RPS)"
-    configuration: |
-      apiVersion: autoscaling/v2
-      kind: HorizontalPodAutoscaler
-      spec:
-        minReplicas: 2
-        maxReplicas: 100
-        metrics:
-          - type: Resource
-            resource:
-              name: cpu
-              target:
-                type: Utilization
-                averageUtilization: 70
-
-  cluster_autoscaling:
-    description: "Scale nodes based on pending pods"
-    configuration:
-      min_nodes: 3
-      max_nodes: 100
-      scale_down_delay: "10m"
-      scale_down_utilization_threshold: 0.5
-    considerations:
-      - "Node pool segmentation"
-      - "Spot/preemptible instances"
-      - "Zone balancing"
-
-  multi_cluster:
-    description: "Scale by adding clusters"
-    patterns:
-      - "Regional clusters for latency"
-      - "Tier-based clusters (prod vs non-prod)"
-      - "Tenant-based clusters"
-    management:
-      - "Fleet management (GKE Fleet, Rancher)"
-      - "GitOps per cluster"
-      - "Federated observability"
-
----
-# Capacity planning
-capacity_planning:
-  compute:
-    formula: |
-      Required nodes =
-        (Total pod CPU requests / Node allocatable CPU) * safety_margin
-    safety_margin: 1.3  # 30% headroom
-
-  network:
-    considerations:
-      - "Pod-to-pod bandwidth"
-      - "Ingress capacity"
-      - "Service mesh overhead"
-    sizing: |
-      Envoy sidecar: ~50MB memory, ~10% CPU overhead
-
-  storage:
-    considerations:
-      - "IOPS requirements"
-      - "Throughput requirements"
-      - "Capacity growth rate"
-```
-Code: Data plane scaling.
-
-```mermaid
-graph TB
-    subgraph "Small Scale"
-        S1[Shared Control Plane]
-        S2[Shared Data Plane]
-    end
-
-    subgraph "Medium Scale"
-        M1[Dedicated Control Plane]
-        M2[Data Plane Pool 1]
-        M3[Data Plane Pool 2]
-    end
-
-    subgraph "Large Scale"
-        L1[Regional Control Plane 1]
-        L2[Regional Control Plane 2]
-        L3[Data Plane Cluster 1]
-        L4[Data Plane Cluster 2]
-        L5[Data Plane Cluster 3]
-        L6[Data Plane Cluster 4]
-    end
-
-    S1 --> S2
-    M1 --> M2
-    M1 --> M3
-    L1 --> L3
-    L1 --> L4
-    L2 --> L5
-    L2 --> L6
-```
-Figure: Scaling progression.
-
-<Callout type="warning">
-Control plane and data plane scale differently. Control plane scales with managed resources and API requests. Data plane scales with traffic and workload count. Design for independent scaling from the start.
-</Callout>
-
-## Failure Isolation
-
-### Blast Radius Containment
-
-```yaml title="blast-radius.yaml"
-# Blast radius containment strategies
-
-failure_domains:
-  control_plane_failure:
-    impact: "Cannot make changes, but workloads continue"
-    containment:
-      - "Redundant API servers"
-      - "etcd cluster across availability zones"
-      - "Cached credentials in data plane"
-      - "Graceful degradation in controllers"
-    recovery:
-      - "Automatic failover"
-      - "State restore from backup"
-
-  data_plane_failure:
-    impact: "Workloads in affected area fail"
-    containment:
-      - "Multiple availability zones"
-      - "Pod anti-affinity"
-      - "Circuit breakers"
-      - "Graceful degradation"
-    recovery:
-      - "Automatic pod rescheduling"
-      - "Traffic failover"
-
-  tenant_failure:
-    impact: "One tenant's issue shouldn't affect others"
-    containment:
-      - "Resource quotas prevent resource exhaustion"
-      - "Network policies prevent lateral movement"
-      - "Rate limiting prevents API abuse"
-      - "Noisy neighbor detection and throttling"
-    isolation:
-      namespace: "Logical isolation"
-      node_pool: "Compute isolation"
-      cluster: "Complete isolation"
-
----
-# Failure isolation architecture
-isolation_architecture:
-  zones:
-    description: "Spread across availability zones"
-    implementation:
-      - "Control plane: 3 AZs"
-      - "Data plane: minimum 2 AZs"
-      - "Storage: replicated across AZs"
-
-  clusters:
-    description: "Separate clusters for failure domains"
-    patterns:
-      - "Prod vs non-prod clusters"
-      - "Regional clusters"
-      - "Per-tenant clusters for enterprise"
-
-  namespaces:
-    description: "Logical isolation within cluster"
-    mechanisms:
-      - "RBAC boundaries"
-      - "Network policies"
-      - "Resource quotas"
-      - "Pod security standards"
-```
-Code: Blast radius containment.
-
-### Graceful Degradation
-
-```typescript title="graceful-degradation.ts"
-// Platform API graceful degradation
-
-import { Request, Response, NextFunction } from 'express';
-
-// === Circuit breaker for control plane dependencies ===
-class ControlPlaneCircuitBreaker {
-  private failures = 0;
-  private lastFailure: number = 0;
-  private state: 'closed' | 'open' | 'half-open' = 'closed';
-
-  private readonly threshold = 5;
-  private readonly timeout = 30000; // 30 seconds
-
-  async call<T>(fn: () => Promise<T>, fallback: () => T): Promise<T> {
-    if (this.state === 'open') {
-      if (Date.now() - this.lastFailure > this.timeout) {
-        this.state = 'half-open';
-      } else {
-        // Circuit open, use fallback
-        return fallback();
-      }
-    }
-
-    try {
-      const result = await fn();
-      this.onSuccess();
-      return result;
-    } catch (error) {
-      this.onFailure();
-      return fallback();
-    }
-  }
-
-  private onSuccess() {
-    this.failures = 0;
-    this.state = 'closed';
-  }
-
-  private onFailure() {
-    this.failures++;
-    this.lastFailure = Date.now();
-    if (this.failures >= this.threshold) {
-      this.state = 'open';
-    }
-  }
-}
-
-// === Cached reads for control plane outage ===
-class CachedResourceStore {
-  private cache: Map<string, { data: unknown; timestamp: number }> = new Map();
-  private readonly ttl = 300000; // 5 minutes
-
-  async get(key: string, fetcher: () => Promise<unknown>): Promise<unknown> {
-    const cached = this.cache.get(key);
-
-    try {
-      const fresh = await fetcher();
-      this.cache.set(key, { data: fresh, timestamp: Date.now() });
-      return fresh;
-    } catch (error) {
-      // Control plane unavailable, serve stale
-      if (cached && Date.now() - cached.timestamp < this.ttl * 2) {
-        console.warn(`Serving stale data for ${key} due to control plane unavailability`);
-        return cached.data;
-      }
-      throw error;
-    }
-  }
-}
-
-// === Rate limiting per tenant ===
-class TenantRateLimiter {
-  private requests: Map<string, number[]> = new Map();
-  private readonly limits: Record<string, number> = {
-    standard: 100,  // requests per minute
-    premium: 500,
-    enterprise: 2000,
-  };
-
-  isAllowed(tenantId: string, tier: string): boolean {
-    const now = Date.now();
-    const windowStart = now - 60000; // 1 minute window
-
-    const tenantRequests = this.requests.get(tenantId) || [];
-    const recentRequests = tenantRequests.filter(t => t > windowStart);
-
-    const limit = this.limits[tier] || this.limits.standard;
-
-    if (recentRequests.length >= limit) {
-      return false;
-    }
-
-    recentRequests.push(now);
-    this.requests.set(tenantId, recentRequests);
-    return true;
-  }
-}
-
-// === Middleware combining all patterns ===
-function resilienceMiddleware(
-  circuitBreaker: ControlPlaneCircuitBreaker,
-  cache: CachedResourceStore,
-  rateLimiter: TenantRateLimiter
-) {
-  return async (req: Request, res: Response, next: NextFunction) => {
-    const tenantId = req.headers['x-tenant-id'] as string;
-    const tier = req.headers['x-tenant-tier'] as string || 'standard';
-
-    // Rate limiting
-    if (!rateLimiter.isAllowed(tenantId, tier)) {
-      return res.status(429).json({
-        error: 'Rate limit exceeded',
-        retryAfter: 60,
-      });
-    }
-
-    // Circuit breaker with cache fallback
-    try {
-      req.controlPlane = {
-        circuitBreaker,
-        cache,
-      };
-      next();
-    } catch (error) {
-      res.status(503).json({
-        error: 'Service temporarily unavailable',
-        degraded: true,
-      });
-    }
-  };
-}
-```
-Code: Graceful degradation patterns.
+The containment hierarchy: namespaces provide logical isolation (cheapest, weakest). Node pools provide compute isolation—tenant workloads run on separate nodes. Separate clusters provide complete isolation—no shared infrastructure at all.
 
 | Failure | Impact | Mitigation | Recovery Time |
 |---------|--------|------------|---------------|
 | API server down | No new changes | Redundant replicas | Seconds |
-| etcd corruption | State loss | Backups, snapshots | Minutes-hours |
-| Controller crash | No reconciliation | Restart, leader election | Seconds |
+| etcd corruption | State loss | Backups, snapshots | Minutes–hours |
 | Node failure | Pod eviction | Rescheduling | Minutes |
 | Zone outage | Partial capacity loss | Multi-AZ deployment | Automatic |
 
-Table: Failure scenarios.
+Table: Failure scenarios and recovery characteristics.
+
+Design for graceful degradation. Platform services that need configuration from the control plane should cache aggressively—when the control plane is unreachable, serve stale data rather than failing entirely. The kubelet already does this (it's why containers keep running during API server outages). Service meshes cache endpoint information in their sidecars. Custom platform services should implement their own caching layer.
 
 <Callout type="success">
-Design for control plane unavailability. Data plane should continue operating with cached configuration. Control plane failures shouldn't crash running workloads—only prevent changes.
+Assume the control plane will be unavailable sometimes. Build data plane components to operate autonomously using cached state. A control plane outage should block deployments, not crash production.
 </Callout>
 
 ## Conclusion
 
-Summarize control plane and data plane separation as the architectural foundation for scalable, multi-tenant platforms. The control plane handles configuration, policy, and orchestration—it must be highly available but handles relatively low request rates. The data plane handles traffic and workloads—it must scale with demand and tolerate failures gracefully. Separating these concerns enables independent scaling, isolated failures, and evolution without breaking consumers. The investment in clean separation pays off as the platform grows: control plane upgrades don't require data plane downtime, tenant issues don't cascade, and each plane can be optimized for its specific workload characteristics.
+Not every platform needs this separation. A single team running their own Kubernetes cluster? Keep it simple—the overhead of separate planes isn't worth it. But once you're serving multiple teams with different requirements, the investment pays off as adoption grows. Multi-tenancy becomes manageable because you've designed isolation boundaries from the start. Scaling becomes predictable when you understand what drives load in each plane—the control plane scales with managed resources and API requests, the data plane scales with traffic and workload count. Failures stay contained because blast radius is built into the architecture.
 
-<Callout type="info">
-Start with separation in mind, even if you deploy together initially. The abstractions (APIs, resource boundaries, tenancy models) are harder to add later than the physical separation. Design for multi-tenancy from day one.
-</Callout>
+The key insight: separation is about abstractions, not just deployment topology. You can deploy everything together initially, but APIs, resource boundaries, and tenancy models need to support eventual separation. A namespace-per-tenant model with clear RBAC boundaries can evolve into virtual clusters or dedicated clusters. A monolithic control plane can split into federated regional control planes. But an architecture that treats control and data as one undifferentiated blob? That requires a rewrite.
+
+---
+
+__CTA Title:__ Get the Complete Guide
+
+__CTA Body:__ This article covers the core patterns, but there's more to implementing control plane and data plane separation effectively. The complete guide includes upgrade strategies for both planes, observability patterns for troubleshooting across plane boundaries, developer interface options (custom Kubernetes controllers vs. Backstage), detailed tenant onboarding automation with Terraform examples, and cost modeling for different tenancy patterns at scale.
