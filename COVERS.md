@@ -1039,3 +1039,25 @@ Create an image of a translation bureau where a single document (spec) is being 
 ### Prompt 5: The API Factory
 
 Design an image of a modern factory assembly line where raw specifications enter one end. Different stations produce: documentation (book press), SDKs (code printers), validation rules (shield forge). All products have the same serial number showing common origin. Quality control inspects each output. Style: automated generation, factory efficiency, quality control, 16:9 aspect ratio.
+
+## opentelemetry-span-design-granularity-overhead
+
+### Prompt 1: The Signal Tower
+
+Create an image of a tower with multiple signal lights. At the base, many dim lights (too many spans) create noise. At the top, a few bright beacons (well-designed spans) provide clear signals. An operator easily sees the bright signals but struggles with the noise below. Style: signal clarity, noise reduction, focused visibility, 16:9 aspect ratio.
+
+### Prompt 2: The Readable Map
+
+Design an image of two city maps side by side. One map has every building, tree, and sidewalk marked (over-instrumented)—completely unreadable. The other shows major roads, landmarks, and districts (appropriate granularity)—clear navigation. A navigator easily uses the simple map but is overwhelmed by the detailed one. Style: map clarity, information hierarchy, usable detail, 16:9 aspect ratio.
+
+### Prompt 3: The Waterfall Balance
+
+Illustrate a balance scale where one side has a massive pile of tiny spans (many small coins) weighing down the scale. The other side has fewer, larger spans (gold bars) perfectly balanced. A developer looks frustrated at the overflowing side but satisfied with the balanced side. Style: balance metaphor, quantity vs quality, overhead visualization, 16:9 aspect ratio.
+
+### Prompt 4: The Telescope Focus
+
+Create an image of an astronomer adjusting a telescope. When zoomed in too far (too granular), the view is blurry static. When zoomed out appropriately (right granularity), stars and constellations are clearly visible. The astronomer adjusts the focus dial labeled "Span Granularity." Style: focus adjustment, clarity at the right level, observability metaphor, 16:9 aspect ratio.
+
+### Prompt 5: The Story Thread
+
+Design an image of a storyteller holding threads that represent traces. Some threads are tangled masses of tiny knots (over-instrumented traces). Other threads have clear beads at intervals (well-designed spans) telling a readable story. Listeners understand the clear threads but are confused by the tangled ones. Style: narrative clarity, story structure, trace as narrative, 16:9 aspect ratio.
