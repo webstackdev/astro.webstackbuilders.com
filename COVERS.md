@@ -1171,3 +1171,25 @@ Create an image of a border crossing where guards (TLS verification) check trave
 ### Prompt 5: The Network Maze
 
 Design an image of a complex maze (private network) with multiple paths. Some paths are blocked (no route), some have locked doors (security groups), some require keys (TLS). A map (debugging playbook) shows how to navigate. Without the map, travelers wander lost. Style: navigation complexity, systematic pathfinding, layered obstacles, 16:9 aspect ratio.
+
+## prometheus-high-cardinality-metrics-label-design
+
+### Prompt 1: The Exponential Growth
+
+Create an image of a small seed (metric) planted in soil, with labels written on tags attached to branches. Each label tag causes exponential branching, rapidly filling the frame with an overwhelming tree. A gardener (engineer) prunes tags labeled "user_id" and "request_id" to control growth. Style: exponential growth visualization, pruning metaphor, controlled cultivation, 16:9 aspect ratio.
+
+### Prompt 2: The Memory Pressure
+
+Design an image of a pressure cooker (Prometheus) with gauges showing memory pressure. Labels are being added as fuel, some small (bounded) and some massive (unbounded). The unbounded labels cause the pressure gauge to spike into the red zone. A safety valve releases steam. Style: pressure dynamics, system limits, overload prevention, 16:9 aspect ratio.
+
+### Prompt 3: The Multiplication Table
+
+Illustrate a multiplication table where rows and columns are labels (method, endpoint, status, user_id). Small values multiply to reasonable numbers. When user_id row appears with 100,000 entries, the resulting cell numbers become astronomically large, breaking out of the table frame. Style: mathematical visualization, combinatorial explosion, dimensional scaling, 16:9 aspect ratio.
+
+### Prompt 4: The Bounded Garden
+
+Create an image of two gardens side by side. The bounded garden has neat rows with labeled sections (method: 5, status: 4) growing in organized patterns. The unbounded garden has wild, uncontrolled growth with "user_id: ∞" signs, choking everything else. Style: controlled vs chaos contrast, gardening organization, growth management, 16:9 aspect ratio.
+
+### Prompt 5: The Label Filter
+
+Design an image of a water filtration system where raw metrics flow in with many labels attached. Filters remove unbounded labels (user_id, request_id falling into reject bin). Clean, bounded metrics flow through. The reject bin overflows but the output stream is controlled. Style: filtration process, data hygiene, separation mechanics, 16:9 aspect ratio.

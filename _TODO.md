@@ -199,7 +199,10 @@ To overlay an article title and published date on a cover image, use CSS positio
 - Time in prose is causing a line break, and the colon and minutes to be removed - "2:47 AM" in src/content/articles/mtls-certificate-rotation-service-mesh-authentication/pdf.mdx
 - Language "haproxy" is not highlighting Shiki, need to adjust allowed languages in config
 - Should we exclude "Footnotes" from the ToC list? Right now it shows at the bottom if there's a Footnotes H2.
-- If a reader has already given their email address - newsletter signup, contact form, download registration - the download CTA on short form articles should go directly to the HTML version of the deep dive, and it should have a PDF download button.
+- If a reader has already given their email address - newsletter signup, contact form, download registration, then the download CTA on short form articles should go directly to the HTML version of the deep dive, and it should have a PDF download button. Think this workflow through - maybe a "Short / Deep-Dive" slider button on top and don't show the CTA + the PDF download button.
+- The articles list page should show tags at top for quick navigation. There's another note about this. Show the count of articles per tag unless they're all the same on the tag.
+- Maybe duplicate - scrunch the header and set at absolute position when you scroll down, expand back when scroll up
+- 404 page should show search results based on query
 
 ## Reading position indicator
 
@@ -268,7 +271,7 @@ event-schema-versioning-compatibility-evolution
 
 rate-limiting-token-bucket-leaky-bucket-implementation
 release-quality-gates-automated-deployment-validation
-* retry-storm-prevention-exponential-backoff-jitter
+retry-storm-prevention-exponential-backoff-jitter
 reverse-engineering-documentation-legacy-systems
 service-catalog-metadata-schema-ownership-tracking
 service-decommissioning-scream-test-shutdown
@@ -318,7 +321,7 @@ We are writing an article based on an outline, not just merely adding a few line
 
 __review__
 
-We implemented our article by first generating an outline, and then writing each of the sections one by one. Please review the document in its entirety now, and make any suggestions you find that would improve the readability or quality of the article. Do not make any changes - just review and put together a list of suggestions to discuss. Ignore table, diagram, and code block caption prefixes like "Code:", "Table:", and "Figure:". They're used by the system to recognize the caption text. Ignore frontmatter properties.
+We implemented our article by first generating an outline, and then writing each of the sections one by one. Please review the document in its entirety now, and make any suggestions you find that would improve the readability or quality of the article. Do not make any changes - just review and put together a list of suggestions to discuss. Ignore table, diagram, and code block caption prefixes like "Code:", "Table:", and "Figure:" but let's make sure every table, diagram, and code block does have a caption. They're used by the system to recognize the caption text. Ignore frontmatter properties.
 
 __reduce__
 
