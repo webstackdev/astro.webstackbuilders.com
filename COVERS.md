@@ -1149,3 +1149,25 @@ Create an image of a traffic intersection where many cars (connections from apps
 ### Prompt 5: The Saturation Warning
 
 Design an image of a pressure vessel (database) with multiple gauges: connections, memory, CPU. Warning lights transition from green to yellow to red as pressure increases. An operator watches dashboards, adjusting valves (pool settings) to relieve pressure before critical. Style: system monitoring, pressure management, early warning, 16:9 aspect ratio.
+
+## private-networking-dns-routing-tls-debugging
+
+### Prompt 1: The Private Tunnel
+
+Create an image of a secure tunnel through a mountain (private network) with multiple checkpoints inside: a name registry (DNS), traffic directors (routing), security gates (firewalls), and ID verification (TLS). A vehicle (request) must pass all checkpoints. Outside the tunnel, the same destinations are reachable by open roads but exposed. Style: infrastructure security visualization, checkpoint layers, protected transit, 16:9 aspect ratio.
+
+### Prompt 2: The Debugging Layers
+
+Design an image of an archaeological dig site with distinct stratified layers, each labeled: DNS, Routing, Connectivity, TLS, Application. A researcher (debugger) carefully excavates from top to bottom, using different tools at each layer. Skipping layers causes cave-ins. Style: systematic investigation, layered analysis, methodical approach, 16:9 aspect ratio.
+
+### Prompt 3: The Private Address Book
+
+Illustrate a split address book where the same name has different addresses on different pages (split-horizon DNS). A librarian (resolver) must check which section they're in before looking up an address. Wrong section, wrong address. Style: directory metaphor, context-dependent lookup, dual systems, 16:9 aspect ratio.
+
+### Prompt 4: The Certificate Inspector
+
+Create an image of a border crossing where guards (TLS verification) check traveler documents (certificates). Documents must have correct names (SAN), not be expired, and be issued by trusted authorities (CA). Private crossings require different documents than public ones. Style: identity verification, document inspection, trust validation, 16:9 aspect ratio.
+
+### Prompt 5: The Network Maze
+
+Design an image of a complex maze (private network) with multiple paths. Some paths are blocked (no route), some have locked doors (security groups), some require keys (TLS). A map (debugging playbook) shows how to navigate. Without the map, travelers wander lost. Style: navigation complexity, systematic pathfinding, layered obstacles, 16:9 aspect ratio.
