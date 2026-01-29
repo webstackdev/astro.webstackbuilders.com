@@ -203,6 +203,7 @@ To overlay an article title and published date on a cover image, use CSS positio
 - The articles list page should show tags at top for quick navigation. There's another note about this. Show the count of articles per tag unless they're all the same on the tag.
 - Maybe duplicate - scrunch the header and set at absolute position when you scroll down, expand back when scroll up
 - 404 page should show search results based on query
+- Times like "11:59:59" are breaking across two lines - src/content/articles/rate-limiting-token-bucket-leaky-bucket-implementation/index.mdx in "Algorithm Overview" section
 
 ## Reading position indicator
 
@@ -269,7 +270,6 @@ There are two pricing variants: part-time stream and full-time stream. How to ha
 error-budget-policy-slo-velocity-reliability-tradeoffs
 event-schema-versioning-compatibility-evolution
 
-rate-limiting-token-bucket-leaky-bucket-implementation
 release-quality-gates-automated-deployment-validation
 retry-storm-prevention-exponential-backoff-jitter
 reverse-engineering-documentation-legacy-systems

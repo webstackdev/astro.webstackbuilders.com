@@ -1193,3 +1193,25 @@ Create an image of two gardens side by side. The bounded garden has neat rows wi
 ### Prompt 5: The Label Filter
 
 Design an image of a water filtration system where raw metrics flow in with many labels attached. Filters remove unbounded labels (user_id, request_id falling into reject bin). Clean, bounded metrics flow through. The reject bin overflows but the output stream is controlled. Style: filtration process, data hygiene, separation mechanics, 16:9 aspect ratio.
+
+## rate-limiting-token-bucket-leaky-bucket-implementation
+
+### Prompt 1: The Token Bucket
+
+Create an image of a literal bucket being filled with tokens (coins) from above at a steady rate. Requests are hands reaching into the bucket, each taking a token. When the bucket is full, tokens overflow. When empty, hands wait. A gauge shows current token count. Style: resource allocation metaphor, flow control, capacity management, 16:9 aspect ratio.
+
+### Prompt 2: The Leaky Bucket
+
+Design an image of a bucket with a hole at the bottom. Water (requests) pours in from multiple sources at different rates. Water leaks out at a constant rate. The bucket smooths the chaotic input into steady output. Overflow spills when input exceeds capacity. Style: traffic smoothing, flow regulation, queue visualization, 16:9 aspect ratio.
+
+### Prompt 3: The Sliding Window
+
+Illustrate a window frame sliding across a timeline, with requests represented as dots. The window counts dots within its frame as it moves. Fixed windows show harsh boundaries; sliding windows show smooth transitions. Style: time-series visualization, windowing concept, temporal smoothing, 16:9 aspect ratio.
+
+### Prompt 4: The Fair Queue
+
+Create an image of multiple lanes (per-client buckets) merging into a single highway (backend). Each lane has its own gate (rate limit). Cars (requests) queue in their lanes. No single lane can dominate the merge. Style: traffic management, fairness enforcement, multi-tenant queuing, 16:9 aspect ratio.
+
+### Prompt 5: The Protection Shield
+
+Design an image of a service protected by a shield made of interconnected gates. Each gate has a meter showing capacity. Normal traffic flows through easily. A flood of malicious traffic hits the shield, most deflected, only controlled amounts passing through. The service behind remains calm. Style: defensive infrastructure, protection layers, controlled access, 16:9 aspect ratio.
