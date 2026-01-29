@@ -1215,3 +1215,25 @@ Create an image of multiple lanes (per-client buckets) merging into a single hig
 ### Prompt 5: The Protection Shield
 
 Design an image of a service protected by a shield made of interconnected gates. Each gate has a meter showing capacity. Normal traffic flows through easily. A flood of malicious traffic hits the shield, most deflected, only controlled amounts passing through. The service behind remains calm. Style: defensive infrastructure, protection layers, controlled access, 16:9 aspect ratio.
+
+## release-quality-gates-automated-deployment-validation
+
+### Prompt 1: The Traffic Light
+
+Create an image of a highway with multiple quality checkpoints represented as traffic lights. Green lights (passing gates) allow smooth traffic flow. A red light (failing gate) stops one lane for inspection while others continue. An override lane exists with security checkpoint. Style: traffic flow management, checkpoint inspection, controlled passage, 16:9 aspect ratio.
+
+### Prompt 2: The Safety Net
+
+Design an image of a trapeze performance where safety nets at different heights represent quality gates. The lowest, strongest net (critical tests) catches major falls. Higher, finer nets (advisory gates) catch smaller issues. A performer successfully passes through gaps while dangerous falls are caught. Style: layered safety, proportional protection, graceful failure, 16:9 aspect ratio.
+
+### Prompt 3: The Water Lock
+
+Illustrate a canal lock system where ships (deployments) pass through sequential chambers (stages). Each chamber has gates that only open when water level (metrics) reaches the right level. Ships progress through safely; those that would flood are held back. Style: staged progression, controlled transit, level validation, 16:9 aspect ratio.
+
+### Prompt 4: The Quality Funnel
+
+Create an image of a multi-stage filter funnel where code flows through. Early stages (build, lint) have coarse filters catching obvious issues. Later stages (security, performance) have finer filters. Good code flows through; problematic code is caught at appropriate stages. Style: staged filtration, progressive refinement, appropriate granularity, 16:9 aspect ratio.
+
+### Prompt 5: The Trust Dashboard
+
+Design an image of a control room with multiple screens showing gate status. Most screens show green (passing). One shows yellow (advisory warning). Operators focus on the yellow, investigating before it becomes red. Historical graphs show gate accuracy over time. Style: monitoring center, signal quality, trust calibration, 16:9 aspect ratio.

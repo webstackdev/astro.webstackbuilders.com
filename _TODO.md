@@ -270,8 +270,6 @@ There are two pricing variants: part-time stream and full-time stream. How to ha
 error-budget-policy-slo-velocity-reliability-tradeoffs
 event-schema-versioning-compatibility-evolution
 
-release-quality-gates-automated-deployment-validation
-retry-storm-prevention-exponential-backoff-jitter
 reverse-engineering-documentation-legacy-systems
 service-catalog-metadata-schema-ownership-tracking
 service-decommissioning-scream-test-shutdown
