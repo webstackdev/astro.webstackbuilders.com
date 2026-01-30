@@ -1241,16 +1241,43 @@ Design an image of a control room with multiple screens showing gate status. Mos
 ## reverse-engineering-documentation-legacy-systems
 
 ### Prompt 1: Archaeological Dig Site Abstraction
+
 Aerial photograph of an archaeological excavation site at dusk, showing distinct grid sections with partially revealed artifacts and structures. Warm amber lighting from work lamps contrasts with cool blue twilight sky. The grid pattern evokes code structure while the layered earth suggests accumulated history and hidden complexity waiting to be uncovered.
 
 ### Prompt 2: Palimpsest Manuscript
+
 Close-up photograph of an ancient palimpsest manuscript showing multiple layers of text bleeding through each other—older erased writing visible beneath newer text. Captured under specialized lighting that reveals the hidden layers. Warm parchment tones with faded iron gall ink in various browns and blacks. Metaphor for code with hidden history.
 
 ### Prompt 3: Map Making Instruments
+
 Still life arrangement of antique cartography tools: compass, dividers, magnifying glass, and partially completed hand-drawn map on aged paper. Dramatic side lighting creating long shadows. The map shows coastlines emerging from fog-like blank areas—discovered regions versus unexplored territory. Rich wood tones and brass instruments.
 
 ### Prompt 4: X-Ray of Complex Mechanism
+
 X-ray or CT scan image of a complex mechanical device (vintage clock or typewriter mechanism), revealing internal structure invisible from outside. Blue-white radiographic aesthetic with layered transparency showing gears, springs, and linkages. Technical and revelatory—seeing hidden internal architecture.
 
 ### Prompt 5: Cave Painting to Blueprint Transition
+
 Split composition: left side shows primitive cave painting style (ochre and charcoal on stone texture) depicting simple process flow. Right side shows the same flow as a modern technical blueprint with precise lines and annotations. The transition zone in the middle shows the transformation from informal knowledge to formal documentation. Warm earth tones transitioning to cool technical blue.
+
+## service-catalog-metadata-schema-ownership-tracking
+
+### Prompt 1: Card Catalog Drawers
+
+Photograph of vintage library card catalog cabinet, wooden drawers with brass handles partially open showing organized index cards. Warm incandescent lighting creating soft shadows. The cards visible show typed labels suggesting organization system. Rich wood grain texture, nostalgic library aesthetic representing systematic organization of knowledge.
+
+### Prompt 2: Network Topology Map
+
+Technical illustration of a network topology diagram rendered as a three-dimensional visualization. Nodes represented as illuminated spheres connected by glowing lines of varying thickness (representing traffic/importance). Cool blue and cyan color palette with occasional orange/amber nodes marking key services. Clean dark background with subtle grid.
+
+### Prompt 3: Ownership Org Chart Abstract
+
+Abstract minimalist representation of organizational hierarchy using connected geometric shapes. Clean lines connecting circles and squares in a tree structure. Corporate blue and grey color scheme with one branch highlighted in gold/amber to show ownership path. White background with subtle drop shadows creating depth.
+
+### Prompt 4: Registry Book Detail
+
+Close-up photograph of a leather-bound registry or ledger book lying open, showing handwritten entries in columns (dates, names, values). Vintage fountain pen resting across pages. Warm sepia tones with dramatic side lighting. The sense of official record-keeping and accountability.
+
+### Prompt 5: Digital Filing System
+
+Isometric 3D illustration of a modern digital filing system concept—floating translucent folders with glowing document icons, connected by thin lines suggesting relationships. Gradient background from deep purple to dark blue. Clean, modern aesthetic with glass-like transparency effects. Represents digital organization and metadata structure.

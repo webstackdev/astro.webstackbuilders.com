@@ -85,9 +85,9 @@ const compromiseTimeline = [
 | Key with excessive permissions | Lateral movement | Medium—IAM analysis |
 | Key owner left company | Orphaned access | Easy—compare to HR data |
 
-:::danger[Keys Are Attack Surface]
+<Callout type="danger">
 Every long-lived credential is an attack vector. Service account keys have been the root cause of major cloud breaches. Workload identity federation eliminates this entire category of risk by replacing static keys with short-lived, automatically-rotated tokens.
-:::
+</Callout>
 
 ### The Federation Alternative
 
@@ -913,9 +913,9 @@ jobs:
         run: ./deploy.sh
 ```
 
-:::info[Monitor Key Usage During Migration]
+<Callout type="info">
 Enable CloudTrail (AWS), Cloud Audit Logs (GCP), or Azure Activity Logs to monitor which authentication method is being used. Look for `AssumeRoleWithWebIdentity` vs `AssumeRole` or direct key authentication to track migration progress.
-:::
+</Callout>
 
 ### Key Retirement Checklist
 
@@ -1116,14 +1116,14 @@ debugTokenClaims(oidcToken, {
 })
 ```
 
-:::warning[Subject Claim Format Varies by Context]
+<Callout type="warning">
 The `sub` claim format changes based on workflow context:
 - Branch push: `repo:owner/repo:ref:refs/heads/branch`
 - Tag push: `repo:owner/repo:ref:refs/tags/v1.0.0`
 - Pull request: `repo:owner/repo:pull_request`
 - Environment: `repo:owner/repo:environment:production`
 Ensure your trust policy conditions match the actual claim format for your use case.
-:::
+</Callout>
 
 ## Conclusion
 

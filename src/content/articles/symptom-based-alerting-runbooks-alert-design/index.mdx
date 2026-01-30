@@ -152,9 +152,9 @@ const alertMetricQueries = {
 }
 ```
 
-:::warning[The 5-Alerts-Per-Day Rule]
+<Callout type="warning">
 If your on-call receives more than 5 pages per day on average, you have an alerting problem. Each additional alert reduces the attention given to all alerts. Fix the noisy alerts before adding new ones.
-:::
+</Callout>
 
 ## Symptom vs Cause Alerting
 
@@ -392,9 +392,9 @@ const burnRateWindows: MultiWindowBurnRate[] = [
 // - Long-resolved issues alerting (short window recovers)
 ```
 
-:::info[Multi-Window Prevents Alert Storms]
+<Callout type="info">
 Requiring both a short AND long window to breach reduces false positives. A 1-minute spike won't trigger if the 1-hour window is healthy. A long-resolved issue won't keep alerting if the short window has recovered.
-:::
+</Callout>
 
 ## Alert Signal Selection
 
@@ -855,9 +855,9 @@ async function validateAlertRunbooks(alertRules: AlertRule[]): Promise<RunbookVa
 }
 ```
 
-:::success[Runbook Requirement Policy]
+<Callout type="success">
 No alert can be merged to production without a corresponding runbook. CI checks validate that `runbook_url` annotation exists and points to a valid document. Stale runbooks (> 90 days) trigger review tickets.
-:::
+</Callout>
 
 ## Alert Routing and Escalation
 
@@ -1147,9 +1147,9 @@ From creation to retirement.
 | Review | Quarterly assessment, update or retire | Team |
 | Retirement | Remove alert, archive runbook | Alert owner |
 
-:::warning[The Delete Button Is Your Friend]
+<Callout type="warning">
 An alert that hasn't fired in 6 months or has < 50% actionable rate should be deleted or converted to a dashboard. Unused alerts create maintenance burden and false confidence. Be aggressive about pruning.
-:::
+</Callout>
 
 ## Conclusion
 

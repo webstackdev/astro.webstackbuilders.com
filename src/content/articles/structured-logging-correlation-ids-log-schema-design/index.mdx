@@ -85,9 +85,9 @@ Quantifying the value of consistent log schemas.
 | Cross-service correlation | Manual | Automatic | Correlation IDs |
 | Compliance audit time | Days | Hours | Queryable sensitive fields |
 
-:::info[Structured Logging Is Not Just JSON]
+<Callout type="info">
 JSON is a format, not a schema. Two services can both emit JSON logs with completely incompatible field names. Structured logging requires both a consistent format AND a shared schema.
-:::
+</Callout>
 
 ## Designing Your Log Schema
 
@@ -269,9 +269,9 @@ const customFieldRegistry = {
 }
 ```
 
-:::warning[Don't Overextend ECS]
+<Callout type="warning">
 Custom namespaces should be rare. Most use cases fit within ECS standard fields. Before adding a custom field, check if an ECS field already covers it. Custom fields increase cognitive load and reduce interoperability.
-:::
+</Callout>
 
 ## Correlation ID Implementation
 
@@ -866,9 +866,9 @@ logger.info('Customer registered', {
 })
 ```
 
-:::danger[Never Log Secrets in Any Form]
+<Callout type="danger">
 Passwords, API keys, tokens, and secrets should never appear in logs—not even hashed or encrypted. There's no legitimate debugging need for them. If they're appearing in logs, the logging location is wrong.
-:::
+</Callout>
 
 ## Collector-Side Processing
 
@@ -1210,9 +1210,9 @@ Adding and deprecating fields without breaking consumers.
 | Migration Period | 3 months | Teams migrate to replacement field |
 | Removal | After migration | Remove field from registry, update parsers |
 
-:::success[Backward Compatibility]
+<Callout type="success">
 New fields must be optional. Parsers must ignore unknown fields. Type changes require a new field name. These rules keep old logs queryable and prevent producer/consumer version coupling.
-:::
+</Callout>
 
 ## Conclusion
 

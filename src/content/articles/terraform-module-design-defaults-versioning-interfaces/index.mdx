@@ -130,9 +130,9 @@ Understanding what changes are safe.
 | Rename resource | Yes | `aws_instance.main` → `aws_instance.primary` | Requires `moved` block |
 | Change provider version | Maybe | `>= 4.0` → `>= 5.0` | Depends on provider changes |
 
-:::warning[Outputs Are Promises]
+<Callout type="warning">
 Every output in your module is a promise that consumers may depend on. Even if you think nobody uses an output, removing it is a breaking change. Deprecate outputs for at least one major version before removal.
-:::
+</Callout>
 
 ## Input Variable Design
 
@@ -420,9 +420,9 @@ resource "aws_lb_listener" "https" {
 }
 ```
 
-:::info[Validate Early, Fail Fast]
+<Callout type="info">
 Input validation runs during `terraform plan`, before any resources are created. Well-designed validations save users from waiting for API errors during apply. Validate everything that can be validated statically.
-:::
+</Callout>
 
 ## Output Design
 
@@ -768,9 +768,9 @@ module "monitoring" {
 | Range | `>= 2.0, < 3.0` | Same as pessimistic | More explicit |
 | Minimum | `>= 2.0` | Development only | Gets latest, may break |
 
-:::danger[Never Use >= Without Upper Bound in Production]
+<Callout type="danger">
 A constraint like `>= 2.0` means Terraform will use the latest version, including major versions with breaking changes. Always specify an upper bound for production modules.
-:::
+</Callout>
 
 ## Module Composition Patterns
 

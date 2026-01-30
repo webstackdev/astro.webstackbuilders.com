@@ -140,9 +140,9 @@ The problems state solves and the problems it creates.
 | Collaboration | Shared state enables team workflows | Concurrent writes = corruption |
 | Drift detection | Compares state to reality | State-reality mismatch = confusion |
 
-:::warning[State Contains Secrets]
+<Callout type="warning">
 State files contain sensitive data in plaintext: database passwords, API keys, private keys. Treat state as a secret. Encrypt at rest, restrict access, and never commit to version control.
-:::
+</Callout>
 
 ## State Locking Mechanisms
 
@@ -485,9 +485,9 @@ async function checkStateHealth(statePath: string): Promise<HealthReport> {
 }
 ```
 
-:::danger[Never Edit State Manually Unless Absolutely Necessary]
+<Callout type="danger">
 Direct state file editing is error-prone and can cause corruption. Use `terraform state` commands instead: `terraform state mv`, `terraform state rm`, `terraform state import`. Manual editing is a last resort, always with a backup.
-:::
+</Callout>
 
 ## Recovery Procedures
 
@@ -1032,9 +1032,9 @@ aws s3 rm "s3://${BACKUP_BUCKET}/backups/" \
   --include "$(date -d '30 days ago' +%Y-%m-%d)/*"
 ```
 
-:::success[Test Your Recovery Procedures]
+<Callout type="success">
 Having backups is not enough—you must verify you can restore from them. Schedule quarterly recovery drills: restore state to a test environment and verify `terraform plan` shows no changes against the real infrastructure.
-:::
+</Callout>
 
 ## Conclusion
 

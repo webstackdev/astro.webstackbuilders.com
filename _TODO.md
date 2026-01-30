@@ -268,12 +268,8 @@ There are two pricing variants: part-time stream and full-time stream. How to ha
 
 ## Content
 
-error-budget-policy-slo-velocity-reliability-tradeoffs
-sli-selection-user-centric-service-level-indicators
-slo-adoption-internal-services-reliability-culture
-
-service-catalog-metadata-schema-ownership-tracking
 service-decommissioning-scream-test-shutdown
+slo-error-budget-practical-guide
 slsa-build-provenance-artifact-signing-supply-chain
 strangler-fig-migration-observability-traffic-shifting
 strangler-fig-monolith-auth-extraction-migration

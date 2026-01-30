@@ -69,7 +69,7 @@ The characteristics that separate useful SLIs from vanity metrics that make dash
 
 An SLI should fail when users are unhappy and pass when users are satisfied—nothing more, nothing less. The worst SLI is one that stays green while users complain. The second worst is one that alerts constantly during normal operation.
 
-\`\`\`mermaid
+```mermaid
 quadrantChart
     title SLI Quality Assessment
     x-axis Low User Satisfaction --> High User Satisfaction
@@ -78,7 +78,7 @@ quadrantChart
     quadrant-2 Good SLI
     quadrant-3 Good SLI
     quadrant-4 False Positive (Annoying)
-\`\`\`
+```
 
 Figure: SLI quality quadrant—aim for correlation between SLI status and user experience.
 
@@ -115,12 +115,12 @@ Most services can be adequately covered by SLIs in these four categories. Not ev
 
 The most fundamental SLI: what proportion of requests complete successfully.
 
-\`\`\`promql
+```promql
 # Availability SLI
 sum(rate(http_requests_total{status=~"2..|404"}[5m]))
 /
 sum(rate(http_requests_total{endpoint!="/health"}[5m]))
-\`\`\`
+```
 
 Code: Prometheus query for availability SLI.
 
@@ -130,12 +130,12 @@ What counts as "successful"? 2xx responses always. 404 for GET requests (resourc
 
 How long users wait for responses, measured as percentile distributions.
 
-\`\`\`promql
+```promql
 # Latency SLI: proportion of requests under 200ms
 sum(rate(http_request_duration_seconds_bucket{le="0.2"}[5m]))
 /
 sum(rate(http_request_duration_seconds_count[5m]))
-\`\`\`
+```
 
 Code: Prometheus query for latency SLI using histogram buckets.
 
@@ -163,7 +163,7 @@ For services that serve data: how stale is the information users receive?
 
 The "current state minus" approach: measure current performance, then set the SLO slightly below what you're already achieving. This avoids setting aspirational targets you'll immediately fail.
 
-\`\`\`typescript
+```typescript
 // Example: Deriving initial SLO from measurements
 const measurements = {
   availability: 0.9985,  // 99.85% over past 30 days
@@ -176,7 +176,7 @@ const initialSLO = {
   latencyP99: 200,       // 200ms (slightly above current)
   rationale: "Based on 30-day measurement, achievable with current architecture"
 }
-\`\`\`
+```
 
 Code: Deriving initial SLO targets from current performance.
 
@@ -206,7 +206,7 @@ Avoid: legacy monoliths, services with hostile owners, services that are already
 
 ### The Math
 
-\`\`\`text
+```text
 SLO:           99.9% availability
 Error Budget:  100% - 99.9% = 0.1% allowed downtime
 
@@ -215,9 +215,9 @@ Budget:        43,200 × 0.001 = 43.2 minutes of downtime
 
 This 43 minutes is your error budget.
 Every outage, every degradation, every error consumes from this budget.
-\`\`\`
+```
 
-\`\`\`mermaid
+```mermaid
 flowchart LR
     A[SLI: Actual Measurements] --> B[SLO: Target Level]
     B --> C[Error Budget: 100% - SLO]
@@ -225,7 +225,7 @@ flowchart LR
     D --> E{Budget Remaining?}
     E -->|Yes| F[Ship Features]
     E -->|No| G[Focus on Reliability]
-\`\`\`
+```
 
 Figure: From SLI to error budget decision flow.
 
@@ -247,7 +247,7 @@ Table: Common SLO types and their error budgets.
 
 Burn rate measures how fast you're consuming error budget relative to plan. A burn rate of 1x means you'll exactly exhaust budget at period end. 2x means you'll exhaust in half the time.
 
-\`\`\`mermaid
+```mermaid
 flowchart TD
     A[Current Burn Rate] --> B{Rate Assessment}
     B -->|< 1x| C[Healthy: Under budget pace]
@@ -259,7 +259,7 @@ flowchart TD
     D --> H[Monitor closely]
     E --> I[Investigate and remediate]
     F --> J[Incident response]
-\`\`\`
+```
 
 Figure: Burn rate assessment and response thresholds.
 
@@ -267,7 +267,7 @@ Figure: Burn rate assessment and response thresholds.
 
 Fast burn alerts catch acute incidents (2% of monthly budget in 1 hour). Slow burn alerts catch chronic degradation (10% of budget in 3 days). Both are necessary—a service can slowly leak budget through minor issues that never trigger traditional alerts.
 
-\`\`\`yaml
+```yaml
 # prometheus-alerts.yaml
 groups:
   - name: error-budget-alerts
@@ -293,7 +293,7 @@ groups:
           severity: warning
         annotations:
           summary: "Slow error budget burn detected"
-\`\`\`
+```
 
 Code: Prometheus alerting rules for multi-window burn rate monitoring.
 
@@ -317,7 +317,7 @@ Table: Error budget policy thresholds.
 
 Integrate budget checks into CI/CD pipelines. When budget is healthy, deployments proceed normally. When budget is critical, require additional approvals or block entirely.
 
-\`\`\`typescript
+```typescript
 // Pseudocode for CI integration
 async function evaluateDeployment(service: string, risk: 'low' | 'medium' | 'high') {
   const budget = await getBudgetStatus(service)
@@ -340,7 +340,7 @@ async function evaluateDeployment(service: string, risk: 'low' | 'medium' | 'hig
     exception: 'Requires VP approval'
   }
 }
-\`\`\`
+```
 
 Code: Deployment gating based on error budget status.
 
@@ -378,7 +378,7 @@ Poor investments:
 
 Weekly budget status updates keep everyone informed before problems become political:
 
-\`\`\`text
+```text
 ## Error Budget Status - Week of {date}
 
 Service: payment-api
@@ -394,7 +394,7 @@ Planned budget consumption this week:
 - Feature flag rollout (Thursday): ~5% estimated
 
 Remaining budget after planned work: ~60%
-\`\`\`
+```
 
 ## Bootstrapping Observability
 
@@ -415,7 +415,7 @@ Table: Bootstrapping SLIs from existing data sources.
 
 If you need to add instrumentation, start minimal. Two metrics cover most SLO needs:
 
-\`\`\`typescript
+```typescript
 // Express middleware for minimal SLI instrumentation
 import { Counter, Histogram, register } from 'prom-client'
 
@@ -445,7 +445,7 @@ function sliMiddleware(req, res, next) {
 
   next()
 }
-\`\`\`
+```
 
 Code: Minimal Prometheus instrumentation for Node.js services.
 

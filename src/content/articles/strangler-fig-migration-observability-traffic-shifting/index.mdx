@@ -144,9 +144,9 @@ function prioritizeMigrationOrder(
 | Third wave | High traffic, high criticality | Higher | Lower (execution focus) |
 | Last wave | Core business logic, high dependencies | Highest | N/A (must succeed) |
 
-:::info[Start with Read-Only Endpoints]
+<Callout type="info">
 Read-only endpoints (GET requests, queries) are ideal first migration candidates. They have no state modification risk, easy to compare responses, and can be rolled back instantly without data consistency concerns.
-:::
+</Callout>
 
 ### The Observability-First Principle
 
@@ -886,9 +886,9 @@ const shadowDashboard = {
 }
 ```
 
-:::warning[Shadow Traffic Gotchas]
+<Callout type="warning">
 Shadow traffic works for read operations but is dangerous for writes. Duplicating POST/PUT/DELETE requests can cause double-writes, duplicate charges, or data corruption. Use request tagging or synthetic data for write operation testing.
-:::
+</Callout>
 
 ## Traffic Shifting Strategies
 
@@ -1435,9 +1435,9 @@ const retrospectiveTemplate: MigrationRetrospective = {
 }
 ```
 
-:::success[Migration Success Indicators]
+<Callout type="success">
 A successful strangler fig migration has these characteristics: zero extended outages, fewer than 3 rollbacks, less than 50% schedule overrun, and the team says they'd use the same approach again.
-:::
+</Callout>
 
 ## Conclusion
 

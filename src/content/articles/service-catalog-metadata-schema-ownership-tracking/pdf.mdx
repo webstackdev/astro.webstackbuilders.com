@@ -1,0 +1,1004 @@
+---
+title: "Service Catalog Schema: Metadata That Gets Used"
+description: "Designing catalog schemas with ownership, lifecycle, and dependency data that stays accurate over time."
+cover: "./cover.png"
+coverAlt: "TODO"
+author: "kevin-brown"
+publishDate: 2024-01-15
+tags: ["platform-engineering"]
+featured: true
+---
+
+*[CMDB]: Configuration Management Database
+*[CMDBs]: Configuration Management Databases
+*[DORA]: DevOps Research and Assessment
+*[IDP]: Internal Developer Platform
+*[MTTR]: Mean Time To Recovery
+*[PII]: Personally Identifiable Information
+*[RACI]: Responsible, Accountable, Consulted, Informed
+*[SLA]: Service Level Agreement
+*[SLO]: Service Level Objective
+
+Service catalogs follow a depressingly predictable arc. Leadership announces a new catalog initiative, teams dutifully enter their services, and six months later nobody trusts the data. The catalog becomes that thing you're supposed to update but don't, because checking Slack is faster than hoping the ownership field is current.
+
+The failure isn't discipline or tooling—it's schema design and enforcement. A catalog that relies on humans remembering to update it will decay. One that validates data at deploy time, discovers dependencies from runtime traffic, and alerts on drift has a chance of staying accurate. The difference between a useful catalog and an expensive spreadsheet comes down to whether you treat metadata quality as a system property you measure and enforce, or a cultural goal you hope teams will adopt.
+
+## The Service Catalog Problem
+
+Every service catalog I've inherited has been partially abandoned. The enthusiastic launch gave way to gradual neglect, until what should have been an asset turned into a liability. Understanding _why_ catalogs fail is the first step toward building one that doesn't.
+
+### Catalog Failure Modes
+
+The decay follows a predictable timeline. Month one sees high coverage and enthusiasm—everyone's entering their services because the initiative has leadership attention. By month three, new services are being deployed without catalog entries because it's not in the critical path. Month six brings the ownership rot: reorgs happen, people leave, but the catalog still points to teams that no longer exist. By year one, engineers have learned they can't trust the data, so they ask in Slack instead. Year two? The catalog is a punchline in onboarding jokes.
+
+| Time | Coverage | Accuracy | Team trust |
+|------|----------|----------|------------|
+| Launch | 90% | 95% | 85% |
+| Month 3 | 85% | 80% | 70% |
+| Month 6 | 78% | 70% | 50% |
+| Year 1 | 65% | 50% | 25% |
+| Year 2 | 45% | 30% | 10% |
+
+Table: Catalog trust decay over time.
+
+Here's the thing that makes this worse: a catalog with 80% accurate data is more dangerous than no catalog at all. It gives you false confidence. You page the listed owner at 3 AM, confident you've got the right team, and waste twenty minutes before discovering they handed off the service six months ago.
+
+| Failure Mode | Symptom | Root Cause |
+|--------------|---------|------------|
+| Stale ownership | Paging wrong team during incidents | No ownership update workflow |
+| Missing services | Services in prod not in catalog | Catalog not in deployment path |
+| Wrong dependencies | Dependency graph incomplete | Manual entry, no validation |
+| Outdated metadata | Descriptions don't match reality | No freshness enforcement |
+| Orphaned entries | Deleted services still listed | No lifecycle management |
+
+Table: Common catalog failure modes and their root causes.
+
+### What Makes Catalogs Actually Useful
+
+Before designing a schema, you need to know what questions the catalog should answer. I've found that catalogs justify their maintenance cost when they enable specific workflows that would otherwise require manual investigation. Each workflow has different accuracy requirements, and getting this wrong means either over-engineering (requiring fields nobody uses) or under-engineering (missing data when it matters).
+
+| Use Case | Required Fields | Accuracy Needed | Why It Matters |
+|----------|----------------|-----------------|----------------|
+| Incident response | owner, oncall, runbook, dependencies | 98%+ | Wrong owner during incident extends MTTR by 15-30 minutes |
+| Security scanning | repository, runtime, data classification | 95% | Missing services mean unscanned attack surface |
+| Cost attribution | owner, cost center, environment | 90% | 10% error in cloud bills is acceptable for most orgs |
+| Dependency analysis | dependencies, consumers, API endpoints | 85% | Used for planning, not emergencies |
+| Developer onboarding | description, documentation, owner | 80% | Stale docs annoy but don't cause outages |
+
+Table: Accuracy requirements by use case.
+
+The accuracy thresholds aren't arbitrary. Incident response has the highest bar because getting it wrong has immediate, measurable consequences—every minute spent paging the wrong team is a minute your users are affected. Security scanning needs high accuracy because you can't secure what you don't know exists. Cost attribution can tolerate more noise because finance teams already expect some allocation disputes.
+
+This framing helps with prioritization. If your primary use case is incident routing, you can defer the cost center fields until you've nailed ownership. If you're trying to pass a SOC 2 audit, data classification[^1] becomes required immediately.
+
+[^1]: Data classification is the process of labeling the types of data a service handles (e.g., Public, Internal, Confidential, or Restricted). It serves as a policy-driven tag that tells the platform what security controls must be applied to a service's underlying infrastructure.
+
+### Catalog vs CMDB vs Service Mesh
+
+Service catalogs often get confused with CMDBs or service mesh observability. They serve different purposes and have different data models.
+
+A CMDB is an IT operations tool, typically focused on hardware and infrastructure components with manual entry and periodic audits. CMDBs excel at tracking physical assets and their relationships but struggle with the pace of change in microservices environments. A service catalog is developer-facing: it tracks logical services, their ownership, and how they relate to each other.
+
+Service mesh observability (from tools like Istio or Linkerd) provides real-time traffic data but doesn't know about ownership, business context, or services that aren't currently receiving traffic. It tells you _what's calling what_ right now, not _who's responsible_ or _what should be calling what_.
+
+| Aspect | Service Catalog | CMDB | Service Mesh |
+|--------|-----------------|------|--------------|
+| Primary audience | Developers, SREs | IT Operations | Runtime systems |
+| Data source | Declarative + discovered | Manual entry | Runtime observation |
+| Update frequency | On deploy/change | Periodic audits | Real-time |
+| Ownership tracking | Primary purpose | Often missing | Not applicable |
+| Dependency data | Declared + inferred | Declared only | Observed only |
+| Accuracy model | Continuous validation | Point-in-time | Always current (for running services) |
+
+Table: Catalog vs CMDB vs service mesh.
+
+The ideal setup uses all three: the catalog declares intent and ownership, the service mesh observes actual traffic, and the CMDB tracks underlying infrastructure. Drift between catalog declarations and mesh observations surfaces undeclared dependencies or stale entries.
+
+## Schema Design Principles
+
+Schema design is where most catalog initiatives go wrong. Teams either start with a sprawling schema that nobody wants to fill out, or they start too minimal and realize six months later they're missing critical fields. The goal is a schema that's small enough to achieve high adoption but complete enough to answer the questions you actually need answered.
+
+### Core Entity Model
+
+A service catalog schema centers on the _service_ as the primary entity, with relationships to teams, other services, repositories, and runtime environments. The relationships matter as much as the entities themselves.
+
+| Entity | Key relationships |
+|--------|-------------------|
+| Service | Owned by Team, depends on Service, sourced from Repository, belongs to Domain |
+| Team | Owns Service, has Person members |
+| Repository | Source of Service definition |
+| Domain | Business grouping for Service ownership and reporting |
+
+Table: Core catalog entities and relationships.
+
+The service entity needs several categories of fields:
+
+| Category | Fields | Purpose |
+|----------|--------|--------|
+| Identity | id, name, slug | Establish uniqueness |
+| Classification | tier, lifecycle, domain, type | Determine automation behavior |
+| Ownership | owner, contacts | Enable incident routing |
+| Technical | repository, language, runtime | Support security scanning and dependency analysis |
+| Operational | runbook, documentation, SLO reference | Support incident response |
+
+Table: Service entity field categories.
+
+Here's a concrete example using Backstage's `catalog-info.yaml` format, which has become a de facto standard:
+
+```yaml title="catalog-info.yaml"
+# Backstage service catalog entry
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: payment-processor
+  description: Processes credit card transactions
+  annotations:
+    github.com/project-slug: acme/payment-processor
+    pagerduty.com/service-id: PABC123
+    datadoghq.com/dashboard-url: https://app.datadoghq.com/dashboard/abc-123
+  tags:
+    - payments
+    - pci-scope
+spec:
+  type: service
+  lifecycle: production
+  owner: team-payments
+  system: checkout
+  dependsOn:
+    - component:user-service
+    - resource:payments-postgres
+  providesApis:
+    - payment-api
+```
+
+Code: Backstage catalog entry with ownership, dependencies, and tool integrations.
+
+### Required vs Optional Fields
+
+The biggest adoption killer is requiring too many fields upfront. I've seen catalogs launch with 30+ required fields—teams take one look and decide they'll "get to it later." Start with the absolute minimum that enables your primary use case.
+
+For incident routing (the most common primary use case), you need exactly five required fields:
+
+- **owner**: Which team is responsible
+- **tier**: How critical is this service (determines incident priority)
+- **repository**: Where's the code
+- **oncall_schedule**: Who gets paged (can be on owner team)
+- **lifecycle**: Is this in production, deprecated, etc.
+
+Everything else can be recommended or optional at launch. Once you hit 90%+ coverage on those five fields, you can start requiring additional fields like runbooks for tier-1 services or dependency declarations.
+
+| Field | Requirement Level | Enforcement Point | Rationale |
+|-------|-------------------|-------------------|-----------|
+| owner | Required | CI + deploy gate | Can't route incidents without it |
+| tier | Required | CI | Determines SLO requirements |
+| repository | Required | CI | Source of truth for service |
+| lifecycle | Required | CI | Prevents paging for deprecated services |
+| dependencies | Required for tier-1/tier-2 | Periodic audit | Impact analysis for critical services |
+| runbook | Required for tier-1/tier-2 | Deploy gate | tier-1 incidents need documented response |
+| documentation | Recommended | Periodic audit | Improves discoverability |
+| SLO | Recommended | Periodic audit | Best practice, not blocking |
+
+Table: Field requirements with enforcement points.
+
+<Callout type="info">
+Launch with 5-7 required fields that enable incident routing. Add requirements as catalog coverage improves. A catalog with 95% coverage on five fields beats one with 60% coverage on twenty fields.
+</Callout>
+
+### Extension Points and Custom Metadata
+
+Different teams have different metadata needs. The security team wants data classification and compliance scope. FinOps wants cost centers and budget owners. Platform teams want runtime details. Rather than cramming everything into the core schema, design an extension mechanism.
+
+The pattern I've seen work best uses namespaced extensions with their own validation schemas. Each extension has an owner (usually a platform team like security or FinOps), defines which services it applies to, and specifies whether it's required or optional.
+
+```yaml title="catalog-info.yaml"
+# Service with compliance and finops extensions
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: payment-processor
+  annotations:
+    # Compliance extension (required for production services)
+    compliance.acme.com/data-classification: restricted
+    compliance.acme.com/pci-scope: "true"
+    compliance.acme.com/pii-handled: "true"
+    compliance.acme.com/last-audit: "2024-11-15"
+
+    # FinOps extension (optional)
+    finops.acme.com/cost-center: CC-4521
+    finops.acme.com/budget-owner: jane.smith
+spec:
+  type: service
+  lifecycle: production
+  owner: team-payments
+```
+
+Code: Namespace extensions via annotations in Backstage.
+
+The key is that core catalog fields stay stable while extensions can evolve independently. The security team can add new compliance fields without coordinating with every service owner. Extensions can have their own validation rules—the compliance extension might require `data-classification` for all production services, while the FinOps extension remains fully optional.
+
+This separation also helps with adoption. Teams can satisfy the core requirements quickly, then fill in extensions as they have time or as specific compliance deadlines approach.
+
+<Callout type="info">
+Version your extension schemas. When the security team adds a new required field, give teams a migration window rather than breaking all CI pipelines at once.
+</Callout>
+
+## Ownership Model Design
+
+If I had to pick one field that determines whether a catalog succeeds or fails, it's ownership. Every other use case—incident routing, cost attribution, security scanning—depends on knowing who's responsible. Get ownership wrong and you've built an expensive spreadsheet.
+
+But "ownership" is deceptively simple. A service might have a development team that writes the code, an SRE team that handles production incidents, a security contact for vulnerability disclosures, and a cost owner for budget decisions. Flattening all of that into a single `owner` field creates ambiguity during incidents.
+
+### Ownership Hierarchy
+
+The ownership model needs to distinguish between different types of responsibility. I've found that a two-tier approach works well: a _primary owner_ who's responsible for the service's existence and development, plus _role-specific contacts_ for specialized functions.
+
+| Role | Responsibility | When they're contacted |
+|------|----------------|------------------------|
+| Primary owner | Service development, roadmap, architecture decisions | Default for anything not covered by a specific role |
+| Oncall | Incident response, production issues | Automated alerts, P1/P2 incidents |
+| Security contact | Vulnerability remediation, security reviews | CVE notifications, penetration test findings |
+| Change approver | Production deployment approval | Release management workflows |
+| Cost owner | Budget decisions, optimization | FinOps alerts, capacity planning |
+
+Table: Ownership roles and their triggers.
+
+The primary owner is usually the team that writes the code. They're accountable for the service's health, performance, and continued development. Role-specific contacts handle specialized functions—the security contact might be a designated engineer on the team, or it might be a security team member embedded with the product organization.
+
+Here's how this looks in a Backstage catalog entry:
+
+```yaml title="catalog-info.yaml"
+# Service ownership with role-specific contacts
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: payment-processor
+  annotations:
+    pagerduty.com/service-id: P123ABC
+    opsgenie.com/team: payments-oncall
+spec:
+  type: service
+  lifecycle: production
+  owner: team-payments
+
+  # Role-specific contacts via custom extension
+  x-contacts:
+    oncall: payments-oncall-schedule
+    security: alice.chen
+    change-approver: team-payments-leads
+    cost-owner: payments-engineering-manager
+```
+
+Code: Backstage entry with primary owner and role-specific contacts.
+
+For most services, the primary owner handles all roles. You only need role-specific contacts when there's a reason to route differently—a shared SRE oncall rotation, a dedicated security champion, or a manager who approves production changes.
+
+### Ownership Transfer Workflows
+
+Services change hands. Teams get reorganized, people leave, priorities shift. Without a formal transfer process, ownership data rots—the catalog still says Team A owns the service, but Team A disbanded six months ago.
+
+The transfer workflow needs to ensure that:
+
+1. The current owner explicitly releases responsibility
+2. The new owner explicitly accepts it
+3. Critical knowledge transfers before the handoff completes
+4. Both teams are on the escalation path during transition
+
+A two-week transition period where both teams receive pages has saved me more than once. The new team gets exposure to real incidents while the old team is still available to help. It surfaces knowledge gaps before they become 3 AM surprises.
+
+| Transfer phase | Duration | Who's on-call | What happens |
+|----------------|----------|---------------|--------------|
+| Pending approval | Until both approve | Old team only | Transfer request sits in queue |
+| Knowledge transfer | 1 week typical | Old team only | Runbook review, access provisioning, documentation walkthrough |
+| Transition period | 2 weeks default | Both teams | New team primary, old team escalation |
+| Complete | — | New team only | Old team removed, catalog updated |
+
+Table: Ownership transfer phases.
+
+The knowledge transfer checklist should cover:
+
+| Item | Details | Automatable? |
+|------|---------|-------------|
+| Runbook review | Walk through incident procedures | No |
+| Access provisioning | AWS, Kubernetes, CI/CD, monitoring | Yes (via IDP) |
+| Oncall schedule | Update PagerDuty/Opsgenie rotation | Yes (via API) |
+| Documentation review | Answer questions, update gaps | No |
+| Stakeholder notification | Dependent service owners, PMs | Yes (via catalog) |
+| Cost center update | FinOps allocation change | Yes (via API) |
+
+Table: Knowledge transfer checklist.
+
+Automate as much of this as possible. The transfer request can trigger access provisioning workflows, update the oncall schedule via API, and notify stakeholders automatically. Manual steps are where transfers stall.
+
+### Orphan Detection and Resolution
+
+Services become orphaned when their owning team dissolves, empties out, or goes inactive. This happens more often than you'd think—reorgs, layoffs, and attrition all create orphans. A tier-1 service with no valid owner is a ticking time bomb.
+
+Run orphan detection weekly. The rules should catch:
+
+- **Dissolved teams**: The team ID in the catalog no longer exists in your identity provider
+- **Empty teams**: The team exists but has zero members
+- **Inactive teams**: The team hasn't deployed, committed, or responded to incidents in 90+ days
+- **Missing oncall**: tier-1/tier-2 services without a valid oncall schedule
+
+```yaml title="orphan-detection-config.yaml"
+# AWS EventBridge rule for weekly orphan detection
+Resources:
+  OrphanDetectionRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: catalog-orphan-detection
+      Description: Weekly check for orphaned services
+      ScheduleExpression: "cron(0 9 ? * MON *)"
+      State: ENABLED
+      Targets:
+        - Id: orphan-detection-lambda
+          # Lambda queries catalog API and identity provider to find
+          # services with dissolved teams, empty teams, or missing oncall
+          Arn: !GetAtt OrphanDetectionLambda.Arn
+          Input: |
+            {
+              "rules": ["dissolved-team", "empty-team", "inactive-team", "missing-oncall"],
+              "notify": ["platform-team-slack", "engineering-directors"],
+              "autoEscalate": {
+                "tier-1": "domain-owner",
+                "tier-2": "domain-owner"
+              }
+            }
+```
+
+Code: AWS EventBridge rule for scheduled orphan detection.
+
+For critical services, consider auto-escalation. When a tier-1 service is orphaned, automatically assign it to the domain owner or a catch-all platform team until proper ownership is established. This ensures someone gets paged even when the original team no longer exists.
+
+<Callout type="danger">
+A tier-1 service without a valid owner means the next incident has no one to page. Treat orphan detection failures for critical services as a P1 issue.
+</Callout>
+
+With ownership properly tracked and enforced, you have the foundation for the second most valuable catalog data: dependencies.
+
+## Dependency Tracking
+
+Dependencies are the second most valuable data in a service catalog, after ownership. Knowing what depends on what enables impact analysis before maintenance, blast radius calculation during incidents, and migration planning for deprecations. But dependency data has a shelf life—services add new dependencies constantly, and declared dependencies go stale when code changes but the catalog doesn't.
+
+### Dependency Types and Metadata
+
+Not all dependencies are equal. A service that can't function without its database has a _critical_ dependency. A service that falls back to cached data when a recommendation engine is down has an _optional_ dependency. Capturing this distinction matters for incident response and maintenance planning.
+
+| Dependency type | Description | Example |
+|-----------------|-------------|---------|
+| Runtime critical | Service fails if dependency is unavailable | Database, auth service |
+| Runtime degraded | Service works with reduced functionality | Recommendation engine, analytics |
+| Startup only | Needed at boot but not ongoing | Config service, secrets manager |
+| Async/background | Used for non-blocking operations | Message queue, batch processor |
+| Development only | Not used in production | Mock services, test fixtures |
+
+Table: Dependency types by criticality.
+
+Beyond type, you want to capture the _failure mode_: what happens when this dependency is unavailable? Does the service fail hard, degrade gracefully, retry with backoff, or serve cached responses? This information is invaluable during incidents—it tells you whether a downstream outage will cascade or be contained.
+
+Here's how to declare dependencies in a Backstage catalog entry:
+
+```yaml title="catalog-info.yaml"
+# Service dependencies with criticality metadata
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: checkout-service
+  annotations:
+    # Dependency metadata via custom annotations
+    deps.acme.com/user-service: "critical,sync,grpc"
+    deps.acme.com/inventory-service: "critical,sync,http"
+    deps.acme.com/recommendations: "optional,sync,http"
+    deps.acme.com/analytics-queue: "optional,async,sqs"
+spec:
+  type: service
+  lifecycle: production
+  owner: team-checkout
+  dependsOn:
+    - component:user-service
+    - component:inventory-service
+    - component:recommendations
+    - resource:analytics-queue
+    - resource:checkout-postgres
+```
+
+Code: Backstage dependencies with criticality annotations.
+
+### Automated Dependency Discovery
+
+Declared dependencies are only half the picture. Services add dependencies all the time—a new API call here, a database connection there—and developers don't always remember to update the catalog. Runtime observation catches what declarations miss.
+
+The best approach combines multiple data sources:
+
+| Source | What it catches | Confidence | Limitations |
+|--------|-----------------|------------|-------------|
+| Catalog declarations | Intentional dependencies | High (if maintained) | Goes stale without enforcement |
+| Service mesh (Istio/Linkerd) | HTTP/gRPC traffic between services | High | Misses non-mesh traffic |
+| Distributed tracing[^2] | Cross-service calls in traced requests | Medium-high | Sampling may miss infrequent calls |
+| DNS query logs | Service discovery lookups | Medium | Can't distinguish used from resolved |
+| Database connection logs | Direct database dependencies | High | Requires database-level logging |
+
+Table: Dependency discovery sources and their tradeoffs.
+
+[^2]: OpenTelemetry (OTel) has become the standard for distributed tracing, replacing vendor-specific implementations like Jaeger and Zipkin with a unified API. If you're starting fresh, instrument with OTel SDKs and export to your backend of choice.
+
+The reconciliation logic compares declared dependencies against observed traffic. Four outcomes are possible:
+
+- **Validated**: Declared and observed—this dependency is real and documented
+- **Declared but not observed**: In the catalog but no recent traffic—possibly stale or only used in specific scenarios
+- **Undeclared**: Observed in traffic but not in catalog—shadow dependency, needs to be declared
+- **Unknown**: Neither declared nor observed—shouldn't exist in the graph
+
+Undeclared dependencies are the dangerous ones. They represent hidden coupling that won't show up in impact analysis. When you're planning maintenance on a service, you need to know _everything_ that depends on it, not just what's documented.
+
+```yaml title="prometheus-dependency-alert.yaml"
+# Alert on undeclared dependencies detected via service mesh
+groups:
+  - name: catalog-dependency-drift
+    rules:
+      - alert: UndeclaredDependencyDetected
+        expr: |
+          catalog_dependency_status{status="undeclared"} > 0
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "Undeclared dependency from {{ $labels.source }} to {{ $labels.target }}"
+          description: "Traffic observed but dependency not declared in catalog. Update catalog-info.yaml."
+          runbook: https://runbooks.acme.com/undeclared-dependency
+```
+
+Code: Prometheus alert for undeclared dependencies.
+
+### Dependency Graph Queries
+
+Once you have dependency data, the catalog needs to answer questions about it. The most common queries:
+
+- **What does service X depend on?** (direct and transitive)
+- **What depends on service X?** (consumers/reverse dependencies)
+- **What's the blast radius if service X fails?**
+- **Are there circular dependencies?**
+- **What's the critical path between service A and service B?**
+
+Blast radius is particularly useful for incident response and maintenance planning. When a tier-1 database goes down, you want to immediately know how many services are affected and which teams need to be notified.
+
+| Query | Use case | Output |
+|-------|----------|--------|
+| getDependencies(serviceId, depth=2) | Pre-deployment impact check | Tree of downstream services |
+| getConsumers(serviceId) | Maintenance notification list | List of teams to notify |
+| getBlastRadius(serviceId) | Incident severity assessment | Affected services by tier |
+| detectCycles() | Architecture health check | List of circular dependency chains |
+| findCriticalPath(from, to) | Migration planning | Shortest dependency chain |
+
+Table: Common dependency graph queries.
+
+For blast radius specifically, group results by tier. If a service failure affects three tier-1 services, that's a critical incident regardless of how many tier-4 services are also impacted. The tier breakdown helps incident commanders prioritize communication and recovery efforts.
+
+<Callout type="info">
+Include blast radius queries in your service runbooks. When an incident starts, the on-call engineer should immediately know which other services and teams are affected.
+</Callout>
+
+## Automation and Enforcement
+
+The catalogs that survive are the ones that don't rely on human memory. If updating the catalog is a manual step that happens after deployment, it won't happen consistently. The only way to maintain accuracy is to make the catalog part of the deployment path—validate entries in CI, block deploys when critical data is missing, and detect drift automatically.
+
+### Catalog-as-Code Pattern
+
+Store service definitions in the same repository as the service code. This gives you version control, code review, and the ability to enforce changes through CI/CD. When the catalog entry lives next to the code, updating it becomes part of the normal development workflow rather than a separate chore.
+
+The Backstage `catalog-info.yaml` pattern works well here. Each service repository contains its own catalog entry, and a central catalog aggregates entries from all repositories. Changes to catalog metadata go through the same PR process as code changes.
+
+```yaml title="catalog-info.yaml"
+# Lives in the service repository root
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: payment-processor
+  description: Processes credit card transactions for checkout
+  annotations:
+    github.com/project-slug: acme/payment-processor
+    pagerduty.com/service-id: PABC123
+spec:
+  type: service
+  lifecycle: production
+  owner: team-payments
+  system: checkout
+
+  # Dependencies declared alongside code
+  dependsOn:
+    - component:user-service
+    - component:fraud-detection
+    - resource:payments-postgres
+    - resource:kafka-payments
+```
+
+Code: Catalog entry in the service repository.
+
+The benefits of catalog-as-code:
+
+- **Audit trail**: Git history shows who changed what and when
+- **Review process**: Catalog changes get the same scrutiny as code changes
+- **Atomic updates**: Code and catalog changes ship together
+- **Developer ownership**: Teams maintain their own entries rather than relying on a central team
+
+### CI/CD Integration
+
+Validate catalog entries on every PR. This catches issues before they reach production: missing required fields, references to teams that don't exist, dependencies on services that aren't in the catalog.
+
+```yaml title=".github/workflows/catalog-validation.yaml"
+# GitHub Action for catalog validation
+name: Catalog Validation
+
+on:
+  pull_request:
+    paths:
+      - 'catalog-info.yaml'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate schema
+        run: |
+          npx @backstage/cli catalog:validate catalog-info.yaml
+
+      - name: Check owner exists
+        run: |
+          OWNER=$(yq '.spec.owner' catalog-info.yaml)
+          curl -sf "$CATALOG_API/teams/$OWNER" || \
+            (echo "Owner team '$OWNER' not found" && exit 1)
+        env:
+          CATALOG_API: ${{ vars.CATALOG_API_URL }}
+
+      - name: Validate dependencies exist
+        run: |
+          for dep in $(yq '.spec.dependsOn[]' catalog-info.yaml); do
+            curl -sf "$CATALOG_API/entities/$dep" || \
+              (echo "Dependency '$dep' not found" && exit 1)
+          done
+        env:
+          CATALOG_API: ${{ vars.CATALOG_API_URL }}
+```
+
+Code: GitHub Action for catalog validation on PRs.
+
+For tier-1 and tier-2 services, make validation failures blocking. For tier-3 and tier-4, warn but allow the PR to merge—you want to reduce friction for less critical services while maintaining strict standards for critical ones.
+
+| Service tier | Missing owner | Missing runbook | Missing dependencies |
+|--------------|---------------|-----------------|----------------------|
+| tier-1 | Block deploy | Block deploy | Block deploy |
+| tier-2 | Block deploy | Block deploy | Warn |
+| tier-3 | Block deploy | Warn | Warn |
+| tier-4 | Warn | Optional | Optional |
+
+Table: Validation enforcement by tier.
+
+### Automated Freshness Enforcement
+
+Even with CI validation, catalog entries go stale. A service's dependencies change, the team reorganizes, the runbook falls out of date. Freshness enforcement catches entries that pass validation but haven't been reviewed recently.
+
+Run freshness checks weekly. The rules should enforce:
+
+- **Ownership verification**: Every 6 months, require teams to confirm they still own their services
+- **Dependency review**: Every 90 days for tier-1/2 services, flag declared dependencies not observed in traffic
+- **Runbook freshness**: Every 90 days, remind owners to review runbooks for accuracy
+
+```yaml title="prometheus-freshness-alerts.yaml"
+# Prometheus alerts for stale catalog data
+groups:
+  - name: catalog-freshness
+    rules:
+      - alert: CatalogEntryStale
+        expr: |
+          (time() - catalog_entry_last_updated_timestamp) / 86400 > 90
+          and on(service) catalog_service_tier{tier=~"tier-1|tier-2"}
+        for: 24h
+        labels:
+          severity: warning
+        annotations:
+          summary: "Catalog entry for {{ $labels.service }} not updated in 90+ days"
+          runbook: https://runbooks.acme.com/catalog-freshness
+
+      - alert: OwnershipNotVerified
+        expr: |
+          (time() - catalog_ownership_verified_timestamp) / 86400 > 180
+        for: 24h
+        labels:
+          severity: warning
+        annotations:
+          summary: "Ownership of {{ $labels.service }} not verified in 180+ days"
+```
+
+Code: Prometheus alerts for stale catalog entries.
+
+The verification workflow should be low-friction. Send a Slack message to the owning team's channel with a link to confirm ownership. If no response in a week, escalate to the team's manager. If still no response, flag the service as potentially orphaned.
+
+### Drift Detection
+
+Drift detection compares catalog declarations against actual system state. It catches discrepancies that validation can't: a service that exists in Kubernetes but not in the catalog, a team that was deleted from the identity provider, an oncall schedule that was removed from PagerDuty.
+
+| Drift type | What it catches | Data sources |
+|------------|-----------------|--------------|
+| Missing service | Running in prod, not in catalog | Kubernetes API, catalog API |
+| Invalid owner | Team ID doesn't exist | Identity provider, catalog API |
+| Invalid oncall | Schedule ID not found | PagerDuty/Opsgenie API, catalog API |
+| Undeclared dependency | Traffic observed, not declared | Service mesh, catalog API |
+| Stale dependency | Declared, no recent traffic | Service mesh, catalog API |
+
+Table: Drift detection types and data sources.
+
+Run drift detection daily. For critical drift (invalid owner on tier-1 service, missing oncall), alert immediately. For less critical drift (undeclared dependency on tier-3 service), batch into a weekly report.
+
+<Callout type="warning">
+Drift detection requires API access to your identity provider, oncall system, and runtime infrastructure. Budget time for integrations when planning your catalog implementation.
+</Callout>
+
+## Catalog API and Integrations
+
+A catalog that exists in isolation is just a document repository. The catalog becomes valuable when other systems can query it programmatically—incident management systems routing alerts, CI/CD pipelines validating ownership, observability tools enriching telemetry with service metadata. The API design determines how useful the catalog can be to these downstream consumers.
+
+### API Design for Catalog Consumers
+
+Backstage provides a catalog API out of the box, but understanding the API surface helps whether you're using Backstage or building something custom. The core operations fall into three categories: entity CRUD, relationship queries, and search.
+
+| API category | Operations | Primary consumers |
+|--------------|------------|-------------------|
+| Entity CRUD | Get, list, create, update, delete | CI/CD pipelines, automation scripts |
+| Relationship queries | Dependencies, consumers, ancestry | Incident tools, impact analysis |
+| Search | Full-text, filtered, by owner/tag | Developer portals, discovery tools |
+
+Table: Catalog API operation categories.
+
+Backstage exposes a REST API at `/api/catalog/entities` with filtering via query parameters. You can query by kind, namespace, owner, or any annotation:
+
+```bash
+# List all services owned by a specific team
+curl "http://backstage:7007/api/catalog/entities?filter=kind=component,spec.owner=team:payments"
+# Returns: [{"metadata":{"name":"payment-api",...},"spec":{"owner":"team:payments",...}}]
+
+# Get a specific entity by its reference
+curl "http://backstage:7007/api/catalog/entities/by-name/component:default/payment-api"
+# Returns: {"metadata":{"name":"payment-api",...},"spec":{...}}
+```
+
+Code: Backstage catalog API queries.
+
+For more complex queries—dependency graphs, transitive relationships, impact analysis—GraphQL works better than REST. Backstage supports GraphQL through a plugin, or you can add a GraphQL layer on top of any catalog backend:
+
+```graphql
+# Query service with its dependencies and their owners
+query ServiceImpact($id: ID!) {
+  service(id: $id) {
+    name
+    tier
+    owner { name slack }
+    dependencies {
+      target { name tier owner { name } }
+      type
+    }
+    consumers {
+      name
+      tier
+    }
+  }
+}
+```
+
+Code: GraphQL query for impact analysis.
+
+<Callout type="info">
+GraphQL shines for client-driven queries where different consumers need different projections of the same data. Incident tools might need owner contact info; CI pipelines might only need dependency lists. One GraphQL endpoint serves both without custom REST endpoints for each.
+</Callout>
+
+### Integration Patterns
+
+The highest-value catalog integrations connect to systems that already have operational context: incident management, observability, and deployment pipelines.
+
+**PagerDuty event routing** uses catalog metadata to direct alerts to the right team. PagerDuty's Event Orchestration can query external APIs, including your catalog, to enrich events before routing:
+
+```yaml
+# PagerDuty Event Orchestration rule
+# Routes based on catalog tier and owner
+orchestration_path:
+  sets:
+    - id: "catalog-enrichment"
+      rules:
+        - label: "Enrich from catalog"
+          actions:
+            # Call catalog API to get service metadata
+            webhook:
+              url: "https://catalog.internal/api/enrich"
+              # Passes alert payload, expects owner/tier back
+          conditions:
+            - expression: "event.custom_details.service exists"
+        - label: "Route tier-1 critical"
+          actions:
+            escalation_policy:
+              id: "P123ABC"  # Tier-1 escalation policy
+          conditions:
+            - expression: "event.custom_details.tier == '1'"
+            - expression: "event.severity == 'critical'"
+```
+
+Code: PagerDuty orchestration with catalog enrichment.
+
+**Datadog Service Catalog** can sync with your internal catalog through their API. Instead of maintaining ownership in two places, export from your catalog to Datadog nightly:
+
+```yaml
+# Datadog Service Definition (generated from internal catalog)
+# https://docs.datadoghq.com/service_catalog/
+schema-version: v2.2
+dd-service: payment-api
+team: payments
+contacts:
+  - type: slack
+    contact: "#payments-oncall"
+  - type: email
+    contact: payments-team@company.com
+links:
+  - name: Runbook
+    type: runbook
+    url: https://wiki.internal/runbooks/payment-api
+  - name: Repository
+    type: repo
+    url: https://github.com/company/payment-api
+tags:
+  - "tier:1"
+  - "domain:commerce"
+  - "lifecycle:production"
+integrations:
+  pagerduty:
+    service-url: https://company.pagerduty.com/services/PABC123
+```
+
+Code: Datadog service definition synced from catalog.
+
+**Grafana dashboard generation** uses catalog metadata to create per-service dashboards automatically. With Grafana's provisioning API, you can template dashboards using Jsonnet or Grafonnet that pull service metadata:
+
+```jsonnet
+// Grafonnet template for service dashboard
+// Generates a dashboard per service using catalog metadata
+local grafana = import 'grafonnet/grafana.libsonnet';
+local dashboard = grafana.dashboard;
+local graphPanel = grafana.graphPanel;
+local prometheus = grafana.prometheus;
+local annotation = grafana.annotation;
+
+// Service metadata injected from catalog at generation time
+local service = std.extVar('service');
+
+dashboard.new(
+  title='%s Service Dashboard' % service.name,
+  tags=['auto-generated', 'catalog', service.domain],
+  editable=false,
+  time_from='now-6h',
+)
+.addAnnotation(
+  annotation.datasource(
+    name='Deployments',
+    datasource='-- Grafana --',
+    tags=['deploy', service.name],
+    enable=true,
+  )
+)
+.addAnnotation(
+  annotation.datasource(
+    name='Incidents',
+    datasource='pagerduty',
+    tags=['incident', service.name],
+    enable=true,
+  )
+)
+.addPanel(
+  graphPanel.new(
+    title='Request Rate',
+    datasource='prometheus',
+    span=6,
+  )
+  .addTarget(
+    prometheus.target(
+      'rate(http_requests_total{service="%s"}[5m])' % service.name,
+      legendFormat='{{method}} {{status}}'
+    )
+  ),
+  gridPos={ x: 0, y: 0, w: 12, h: 8 }
+)
+.addPanel(
+  graphPanel.new(
+    title='Error Rate',
+    datasource='prometheus',
+    span=6,
+  )
+  .addTarget(
+    prometheus.target(
+      'rate(http_requests_total{service="%s",status=~"5.."}[5m])' % service.name,
+      legendFormat='{{method}}'
+    )
+  ),
+  gridPos={ x: 12, y: 0, w: 12, h: 8 }
+)
+```
+
+Code: Complete Grafonnet template for catalog-driven dashboards.
+
+| Integration | Sync frequency | Primary benefit |
+|-------------|----------------|-----------------|
+| PagerDuty | Real-time (webhook) | Correct incident routing |
+| Datadog | Daily batch | Unified service metadata |
+| Grafana | On catalog change | Auto-generated dashboards |
+| Terraform | Per deploy | Infrastructure tagging |
+| Slack | Real-time | Ownership lookups in chat |
+
+Table: Common catalog integrations.
+
+## Measuring Catalog Health
+
+A catalog without health metrics will silently decay. You'll assume coverage is good because no one's complained, then discover during an incident that half the tier-1 services have stale owner information. Measuring catalog health requires tracking three dimensions: coverage (what percentage is cataloged), accuracy (does the data reflect reality), and freshness (when was it last updated).
+
+### Catalog Coverage Metrics
+
+Coverage measures how much of your infrastructure exists in the catalog. Start by defining the denominator—what _should_ be cataloged. For services, the Kubernetes API or your deployment system provides ground truth. Compare that against what's actually in the catalog.
+
+```yaml
+# Prometheus recording rules for catalog coverage
+groups:
+  - name: catalog-coverage
+    rules:
+      - record: catalog:coverage_ratio
+        expr: |
+          catalog_services_total
+          / kubernetes_services_total{namespace!~"kube-.*"}
+      - record: catalog:coverage_by_tier
+        expr: |
+          catalog_services_total
+          / on(tier) kubernetes_services_total
+```
+
+Code: Prometheus recording rules for coverage metrics.
+
+Beyond simple counts, measure _completeness_—what percentage of cataloged services have all required fields populated. A service that exists in the catalog but lacks an owner isn't really cataloged for incident response purposes.
+
+| Metric | Formula | Target |
+|--------|---------|--------|
+| Coverage ratio | Cataloged / Total | > 95% |
+| Owner completeness | With valid owner / Cataloged | 100% |
+| Oncall completeness (tier-1) | With oncall / tier-1 services | 100% |
+| Dependency completeness | With dependencies / Cataloged | > 80% |
+| Freshness (30-day) | Updated in 30d / Cataloged | > 70% |
+
+Table: Core catalog health metrics.
+
+Export these metrics to Prometheus so they're available alongside your other infrastructure metrics:
+
+```yaml
+# Prometheus metrics exporter (runs as CronJob)
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: catalog-metrics-exporter
+spec:
+  schedule: "*/15 * * * *"  # Every 15 minutes
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: exporter
+              image: company/catalog-metrics:latest
+              env:
+                - name: CATALOG_API_URL
+                  value: "http://backstage:7007/api/catalog"
+                - name: PUSHGATEWAY_URL
+                  value: "http://prometheus-pushgateway:9091"
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  BASE_URL="$CATALOG_API_URL/entities?filter=kind=component"
+
+                  # Fetch metrics
+                  TOTAL=$(curl -s "$BASE_URL" | jq length)
+                  WITH_OWNER=$(curl -s "${BASE_URL},spec.owner" | jq length)
+                  TIER1_NO_ONCALL=$(curl -s "${BASE_URL},spec.tier=1" | jq '
+                    [.[] | select(.spec.oncall == null)] | length
+                  ')
+
+                  # Push to Prometheus
+                  PG_URL="$PUSHGATEWAY_URL/metrics/job/catalog"
+                  cat <<EOF | curl --data-binary @- "$PG_URL"
+                  catalog_services_total $TOTAL
+                  catalog_services_with_owner $WITH_OWNER
+                  catalog_tier1_no_oncall $TIER1_NO_ONCALL
+                  EOF
+          restartPolicy: OnFailure
+```
+
+Code: Kubernetes CronJob for catalog metrics export.
+
+### Alerting on Catalog Quality
+
+With metrics in Prometheus, you can alert when catalog health degrades. Treat catalog coverage like any other SLO—set targets and alert on breaches.
+
+```yaml
+# Prometheus alerting rules
+groups:
+  - name: catalog-health
+    interval: 5m
+    rules:
+      # Coverage dropped below threshold
+      - alert: CatalogCoverageLow
+        expr: |
+          catalog_services_total
+          / on() kubernetes_services_total{namespace!~"kube-.*"}
+          < 0.95
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "Service catalog coverage below 95%"
+          description: >-
+            Only {{ $value | humanizePercentage }} of services are cataloged.
+            Run drift detection to identify missing services.
+
+      # tier-1 service without oncall is critical
+      - alert: Tier1MissingOncall
+        expr: catalog_tier1_no_oncall > 0
+        for: 5m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "tier-1 service without oncall schedule"
+          description: >-
+            {{ $value }} tier-1 services have no oncall schedule configured.
+            These services cannot be properly supported during incidents.
+
+      # Orphan count increasing suggests process breakdown
+      - alert: OrphanServicesIncreasing
+        expr: |
+          increase(catalog_orphaned_services_total[7d]) > 5
+        labels:
+          severity: warning
+        annotations:
+          summary: "Orphaned services increasing"
+          description: >-
+            {{ $value }} new orphaned services in the past week.
+            Review team offboarding process.
+
+      # Staleness indicates catalog abandonment
+      - alert: CatalogStalenessHigh
+        expr: |
+          catalog_services_stale_90d
+          / catalog_services_total
+          > 0.20
+        for: 24h
+        labels:
+          severity: warning
+        annotations:
+          summary: "More than 20% of catalog entries are stale"
+          description: >-
+            {{ $value | humanizePercentage }} of services haven't been
+            updated in 90 days. Consider automated freshness enforcement.
+```
+
+Code: Prometheus alerting rules for catalog health.
+
+<Callout type="warning">
+Don't set coverage targets at 100% on day one. Start with tier-1 services, get those to 100% coverage and accuracy, then expand. A realistic progression: tier-1 at 100% in month one, tier-2 at 95% in month three, full estate at 90% by month six.
+</Callout>
+
+Build a Grafana dashboard that shows catalog health at a glance. Include panels for coverage ratio over time, a list of tier-1 services missing oncall schedules, orphan count trends, and a staleness heatmap by team. The platform team should review it weekly; leadership should see a monthly summary. When catalog health becomes visible, it gets attention.
+
+## Conclusion
+
+A service catalog's value comes entirely from the accuracy and freshness of its metadata. Start with a minimal schema focused on your most critical use case—usually incident routing. Name, owner, tier, oncall schedule. That's enough to answer "who do I call when this breaks?" Once you've achieved high coverage with the core fields, expand to dependencies, documentation links, and domain classification.
+
+Ownership is the single most important field. Without knowing who owns a service, you can't route incidents, assign responsibility, or track accountability. Model ownership hierarchically (team → group → org) to survive reorgs without mass updates. Build ownership transfer workflows that enforce handoffs rather than leaving orphaned services behind. Run orphan detection on a schedule and escalate services without valid owners—they're liabilities during incidents.
+
+Dependencies require both declared sources and runtime observation. Developers declare what they _think_ they depend on; service mesh telemetry reveals what actually happens in production. When declared and observed don't match, you've found either a documentation bug or an undiscovered dependency. Both are worth investigating.
+
+Automation makes the catalog self-sustaining. Validate catalog entries in CI before merging. Block deploys when tier-1 services lack oncall schedules. Detect drift between catalog declarations and runtime reality daily. Integrate the catalog with downstream systems—PagerDuty, Datadog, Grafana—so it becomes the single source of truth that other tools consume rather than duplicate.
+
+Finally, measure catalog health obsessively. Coverage, accuracy, and freshness should be tracked and alerted on like any other critical system metric. When you can demonstrate that 98% of tier-1 services have valid owners and oncall schedules, the catalog stops being a documentation project and becomes infrastructure.
