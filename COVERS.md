@@ -1320,3 +1320,25 @@ Architectural photograph of a building mid-demolition, showing the controlled na
 ### Prompt 5: Archive Storage Facility
 
 Photograph of long rows of archive storage boxes on industrial shelving, extending into the distance with dramatic perspective. Warm incandescent lighting creating pools of light between shadows. Labels visible on nearest boxes suggesting organized retirement. The sense of data preserved but no longer active.
+
+## slo-error-budget-practical-guide
+
+### Prompt 1: Precision Measurement Instruments
+
+Close-up photograph of high-precision measurement instruments—dial indicators, micrometers, and gauge blocks arranged on a machinist's surface plate. Dramatic side lighting emphasizing the precision graduations and chrome surfaces. Deep blacks and metallic highlights. The essence of accurate measurement.
+
+### Prompt 2: User Experience Heatmap Abstract
+
+Abstract visualization of a heatmap showing user experience metrics across a surface. Gradient colors from cool blue (good) through yellow to hot red (problem areas). Clean geometric layout suggesting a dashboard or interface. Dark background with the heatmap as focal point. Data visualization aesthetic.
+
+### Prompt 3: Quality Control Inspection
+
+Photograph of a quality control inspection station with a magnifying lamp illuminating a component being examined. Clean industrial environment with the inspector's hands visible using precision tools. Soft overhead lighting with bright task lighting on the work area. The careful scrutiny of measurement.
+
+### Prompt 4: Signal Strength Indicator
+
+Minimalist illustration of a signal strength indicator (like WiFi bars) rendered in 3D with depth and shadows. Five bars transitioning from empty/grey on left to full/green on right. Clean white background with subtle gradients. The visual language of status indication and health metrics.
+
+### Prompt 5: Control Room Dashboard
+
+Photograph or render of a modern operations control room with multiple screens displaying graphs, gauges, and status indicators. Blue ambient lighting with screens providing main illumination. Wide angle showing the scale of monitoring. The sense of comprehensive visibility into system health.

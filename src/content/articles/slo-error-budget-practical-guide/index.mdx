@@ -1,6 +1,6 @@
 ---
-title: "SLIs, SLOs, and Error Budgets: A Practical Guide"
-description: "From choosing user-centric metrics to negotiating reliability tradeoffs with stakeholders—the complete framework for service level management."
+title: "Error Budgets: The Math That Ends Reliability Arguments"
+description: "Stop debating whether deployments are 'safe enough.' Error budgets convert reliability from an opinion into a number you can spend."
 cover: "./cover.png"
 coverAlt: "TODO"
 author: "kevin-brown"
@@ -9,213 +9,34 @@ tags: ["reliability-and-testing"]
 featured: true
 ---
 
-*[CUJ]: Critical User Journey
-*[MTTR]: Mean Time To Recovery
-*[P50]: 50th Percentile (Median)
-*[P95]: 95th Percentile
-*[P99]: 99th Percentile
 *[SLA]: Service Level Agreement
 *[SLI]: Service Level Indicator
+*[SLIs]: Service Level Indicators
 *[SLO]: Service Level Objective
+*[SLOs]: Service Level Objectives
 *[SRE]: Site Reliability Engineering
 
-## Introduction
+Every deployment becomes a political negotiation. "Is this change safe enough?" gets answered by whoever argues loudest or has more organizational capital. Product wants to ship. Engineering wants to experiment. Operations—or SRE, as the discipline has evolved—wants stability. Without a shared framework, these conversations become battles of opinion where the most senior person in the room wins—not the most informed decision.
 
-Frame the core problem: engineering teams want to ship faster, SRE/ops teams want stability, and without a shared framework these conversations become political. SLOs transform "should we ship this risky change?" into "do we have budget to spend on this risk?"
-
-The hierarchy: SLIs measure what matters, SLOs set targets, error budgets create a shared language for tradeoffs. This article covers all three as an integrated practice.
-
-_Include the insight that 100% reliability is neither achievable nor desirable. The question isn't "how do we prevent all failures?" but "how much unreliability can we tolerate, and how do we spend that allowance wisely?"_
+Error budgets change the game. Instead of "should we ship this risky change?" the question becomes "do we have budget to spend on this risk?" The answer is a number, not an opinion. And that number creates alignment where politics used to create friction.
 
 <Callout type="info">
-An error budget isn't permission to break things—it's a shared understanding of how much risk the business can tolerate, converted into a spendable resource.
+100% reliability is neither achievable nor desirable. Every additional nine costs exponentially more than the last, while providing diminishing returns to users. The question isn't "how do we prevent all failures?" but "how much unreliability can we tolerate?"
 </Callout>
 
-## Why Teams Resist SLOs (And How to Get Buy-In)
+## From Targets to Budgets
 
-Address the cultural barriers before diving into technical implementation. Teams that skip this section often fail at adoption.
+The hierarchy works like this: SLIs measure what matters to users. SLOs set targets for those measurements. Error budgets convert the gap between 100% and your SLO into a spendable resource.
 
-### The "It Works for Us" Problem
+The math is straightforward. If your SLO is 99.9% availability over a 30-day window (using a simplified month for easy calculation):
 
-Internal services often operate without SLOs because their consumers have no leverage and failures stay invisible. No paying customers means no contractual SLAs, which means no forcing function for reliability investment.
+- Error budget = 100% - 99.9% = 0.1%
+- Minutes in month = 30 days × 24 hours × 60 minutes = 43,200
+- Allowed downtime = 43,200 × 0.001 = 43.2 minutes
 
-_Include the hidden cost framing: internal services without SLOs create a hidden tax on every team that depends on them. Each consumer builds defensive code, retry logic, and workarounds. The total cost across all consumers often exceeds what reliability investment would cost._
+Those 43 minutes are yours to spend however you want. A 10-minute deployment that causes errors? That's 10 minutes of budget consumed. A 30-minute outage? You've used most of your month's budget in one incident.
 
-### Common Objections
-
-| Objection | What They Mean | How to Respond |
-|-----------|---------------|----------------|
-| "We don't have time for this" | SLOs seem like extra work | SLOs reduce fire-fighting time |
-| "Our service is simple" | Reliability seems like overkill | Simple services still have consumers waiting |
-| "Nobody has complained" | No complaints = no problem | Consumers have given up complaining |
-| "We'd need to hire SREs" | SLOs require special skills | Basic SLOs need basic math, not specialists |
-| "Management won't care" | No executive sponsorship | Frame as developer productivity, not reliability |
-
-Table: Common SLO objections and responses.
-
-### Reframing for Stakeholders
-
-The trick is translating reliability into terms each stakeholder cares about:
-
-- _Engineering managers_: "Engineers spend 8 hours/week debugging integration issues with flaky dependencies"
-- _Product managers_: "Deployments fail unpredictably because internal services are unstable"
-- _Finance_: "CI pipelines are slow because internal tools timeout randomly—here's the compute cost"
-
-## Choosing SLIs That Reflect Reality
-
-The characteristics that separate useful SLIs from vanity metrics that make dashboards green while users suffer.
-
-### The User-Centric Test
-
-An SLI should fail when users are unhappy and pass when users are satisfied—nothing more, nothing less. The worst SLI is one that stays green while users complain. The second worst is one that alerts constantly during normal operation.
-
-```mermaid
-quadrantChart
-    title SLI Quality Assessment
-    x-axis Low User Satisfaction --> High User Satisfaction
-    y-axis SLI Red --> SLI Green
-    quadrant-1 False Negative (Dangerous)
-    quadrant-2 Good SLI
-    quadrant-3 Good SLI
-    quadrant-4 False Positive (Annoying)
-```
-
-Figure: SLI quality quadrant—aim for correlation between SLI status and user experience.
-
-### SLI Selection Criteria
-
-| Criterion | Question | Why It Matters |
-|-----------|----------|----------------|
-| User-centric | Does it measure what users experience? | Internal metrics often hide user pain |
-| Measurable | Can we collect this data reliably? | Can't set objectives without data |
-| Specific | Does it target a single failure mode? | Composite metrics hide root causes |
-| Actionable | Can we improve it when it degrades? | Unactionable metrics cause learned helplessness |
-| Understandable | Can non-engineers grasp it? | Stakeholder buy-in requires clarity |
-
-Table: SLI evaluation criteria.
-
-### Common SLI Anti-Patterns
-
-Metrics that look like SLIs but fail the user-centric test:
-
-- _CPU utilization as availability proxy_: High CPU doesn't mean users are affected; service can return errors at 20% CPU
-- _Internal health check success_: Health checks often test infrastructure, not user-facing functionality
-- _Average latency_: Averages hide tail latency—1% of users waiting 10 seconds is invisible in a 200ms average
-- _Uptime percentage without error rate_: Process running doesn't mean it's serving correctly
-
-<Callout type="warning">
-Average latency of 100ms with P99 of 5000ms means 1% of your users wait 50x longer than the "average" suggests. Always use percentiles for latency SLIs.
-</Callout>
-
-## The Four Golden SLI Categories
-
-Most services can be adequately covered by SLIs in these four categories. Not every service needs all four—pick the ones that matter for your users.
-
-### Availability: Are Requests Succeeding?
-
-The most fundamental SLI: what proportion of requests complete successfully.
-
-```promql
-# Availability SLI
-sum(rate(http_requests_total{status=~"2..|404"}[5m]))
-/
-sum(rate(http_requests_total{endpoint!="/health"}[5m]))
-```
-
-Code: Prometheus query for availability SLI.
-
-What counts as "successful"? 2xx responses always. 404 for GET requests (resource not found is valid). Never 5xx, 429 (rate limited), or timeouts. Exclude health checks and metrics endpoints from the denominator.
-
-### Latency: Are Requests Fast Enough?
-
-How long users wait for responses, measured as percentile distributions.
-
-```promql
-# Latency SLI: proportion of requests under 200ms
-sum(rate(http_request_duration_seconds_bucket{le="0.2"}[5m]))
-/
-sum(rate(http_request_duration_seconds_count[5m]))
-```
-
-Code: Prometheus query for latency SLI using histogram buckets.
-
-Different operations have different expectations: interactive requests need P99 < 200ms, background jobs can tolerate P99 < 5s, report generation might allow P95 < 30s.
-
-### Quality: Are Responses Correct?
-
-Beyond success/failure: is the response actually what the user needed? Quality SLIs are service-specific:
-
-- _Search_: Results returned within expected count range
-- _Data API_: Response contains all requested fields
-- _Payment_: Successful charges create orders correctly
-
-### Freshness: Is Data Current?
-
-For services that serve data: how stale is the information users receive?
-
-- _Real-time_: < 1 second (trading, chat)
-- _Near real-time_: < 1 minute (dashboards, feeds)
-- _Periodic_: < 1 hour (reports, analytics)
-
-## Setting Your First SLO
-
-### Start with Current Performance
-
-The "current state minus" approach: measure current performance, then set the SLO slightly below what you're already achieving. This avoids setting aspirational targets you'll immediately fail.
-
-```typescript
-// Example: Deriving initial SLO from measurements
-const measurements = {
-  availability: 0.9985,  // 99.85% over past 30 days
-  latencyP99: 180,       // 180ms
-}
-
-const initialSLO = {
-  // Round down to achievable target with headroom
-  availability: 0.999,   // 99.9% (slightly below current)
-  latencyP99: 200,       // 200ms (slightly above current)
-  rationale: "Based on 30-day measurement, achievable with current architecture"
-}
-```
-
-Code: Deriving initial SLO targets from current performance.
-
-### Avoiding Analysis Paralysis
-
-Common mistake: spending months debating the "right" SLO target. Better approach:
-
-1. Measure current state for 2-4 weeks
-2. Set initial SLO at roughly current performance
-3. Run for one quarter
-4. Adjust based on actual experience
-
-_The first SLO is never perfect. The goal is to start the feedback loop, not to achieve perfection._
-
-### The Goldilocks Candidate
-
-When introducing SLOs to an organization, choose a first service that's:
-
-- _Broken enough_ to demonstrate value when fixed
-- _Not so broken_ that fixing seems impossible
-- _Visible enough_ that success will influence others
-- _Owned by a willing team_ (hostile teams sabotage pilots)
-
-Avoid: legacy monoliths, services with hostile owners, services that are already perfectly reliable, services dominated by external dependencies you can't control.
-
-## From SLOs to Error Budgets
-
-### The Math
-
-```text
-SLO:           99.9% availability
-Error Budget:  100% - 99.9% = 0.1% allowed downtime
-
-Per Month (30 days = 43,200 minutes):
-Budget:        43,200 × 0.001 = 43.2 minutes of downtime
-
-This 43 minutes is your error budget.
-Every outage, every degradation, every error consumes from this budget.
-```
+The mental shift matters more than the math: you're not trying to prevent all failures. You're trying to fail less often than your budget allows. Reliability becomes a resource to manage, not an absolute to pursue.
 
 ```mermaid
 flowchart LR
@@ -227,238 +48,58 @@ flowchart LR
     E -->|No| G[Focus on Reliability]
 ```
 
-Figure: From SLI to error budget decision flow.
-
-### Multi-Dimensional Budgets
+Figure: Error budget decision flow—when budget is healthy, ship. When it's depleted, invest in reliability.
 
-Multiple SLOs mean multiple budgets, but they're not independent. A database outage might simultaneously consume availability budget (service down), latency budget (slow queries during recovery), and error rate budget (failed requests).
-
-| SLO Type | Target | Monthly Budget | Typical Consumers |
-|----------|--------|----------------|-------------------|
-| Availability | 99.9% | 43 minutes | Outages, deployments, maintenance |
-| Latency (P95) | < 200ms | 5% slow requests | Traffic spikes, DB issues, cold starts |
-| Error Rate | < 0.1% | 1 in 1000 errors | Bugs, dependency failures, bad data |
-
-Table: Common SLO types and their error budgets.
-
-## Burn Rate Monitoring
-
-### What Burn Rate Tells You
-
-Burn rate measures how fast you're consuming error budget relative to plan. A burn rate of 1x means you'll exactly exhaust budget at period end. 2x means you'll exhaust in half the time.
-
-```mermaid
-flowchart TD
-    A[Current Burn Rate] --> B{Rate Assessment}
-    B -->|< 1x| C[Healthy: Under budget pace]
-    B -->|1x - 2x| D[Watch: At or slightly over pace]
-    B -->|2x - 10x| E[Warning: Accelerated burn]
-    B -->|> 10x| F[Critical: Rapid depletion]
+## Spending Budget Wisely
 
-    C --> G[Continue normal operations]
-    D --> H[Monitor closely]
-    E --> I[Investigate and remediate]
-    F --> J[Incident response]
-```
+Not all budget consumption is equal. Some spending generates value; some is just waste.
 
-Figure: Burn rate assessment and response thresholds.
+Good investments include feature launches (up to 20% of monthly budget), infrastructure migrations (up to 30%, scheduled when budget is healthy), and dependency upgrades (up to 15%). These percentages roughly reflect what I've seen work at mid-sized SaaS companies, but they're starting points rather than rules. A pre-revenue startup might spend 50% on feature launches. A payment processor might cap any single change at 10%. Calibrate based on your risk tolerance and what you learn from actual deployments.
 
-### Multi-Window Alerting
+Poor investments include untested deployments (unpredictable budget impact), Friday deployments (limited recovery time if issues arise), and large batch deployments (high risk that should be split into smaller changes). The distinction: intentional spending that generates value versus uncontrolled consumption that just drains the budget.
 
-Fast burn alerts catch acute incidents (2% of monthly budget in 1 hour). Slow burn alerts catch chronic degradation (10% of budget in 3 days). Both are necessary—a service can slowly leak budget through minor issues that never trigger traditional alerts.
+## The Budget Conversation
 
-```yaml
-# prometheus-alerts.yaml
-groups:
-  - name: error-budget-alerts
-    rules:
-      # Fast burn: 2% of monthly budget in 1 hour (14.4x burn rate)
-      - alert: ErrorBudgetFastBurn
-        expr: |
-          (1 - (sum(rate(http_requests_total{status=~"2.."}[1h]))
-                / sum(rate(http_requests_total[1h])))) > (14.4 * 0.001)
-        for: 2m
-        labels:
-          severity: critical
-        annotations:
-          summary: "Fast error budget burn detected"
+This is where error budgets prove their worth. Product wants to launch a new payment flow next week. Engineering estimates the change is medium-risk—it touches the checkout path and historically similar changes cause 5-10 minutes of elevated errors during rollout. SRE checks the dashboard: 25 minutes of budget remaining this month.
 
-      # Slow burn: 5% of monthly budget in 6 hours
-      - alert: ErrorBudgetSlowBurn
-        expr: |
-          (1 - (sum(rate(http_requests_total{status=~"2.."}[6h]))
-                / sum(rate(http_requests_total[6h])))) > (1 * 0.001)
-        for: 30m
-        labels:
-          severity: warning
-        annotations:
-          summary: "Slow error budget burn detected"
-```
+| Without Error Budgets | With Error Budgets |
+|-----------------------|-------------------|
+| "Is this safe?" | "We have 25 minutes of budget remaining." |
+| Opinion-based arguments about risk tolerance | "This change historically costs 5-10 minutes." |
+| Whoever argues loudest wins | "If we hit the high end, we'll have 15 minutes left." |
+| Lingering resentment from overruled parties | "Are we comfortable with that margin?" |
 
-Code: Prometheus alerting rules for multi-window burn rate monitoring.
+Table: How error budgets transform deployment conversations.
 
-## Error Budget Policies
+The answer might still be yes—but now it's an informed yes, with shared understanding of the tradeoff. Everyone sees the same number. Everyone understands what's being spent and what's left. The decision is collaborative rather than political.
 
-### Threshold-Based Actions
+## When Budget Gets Low
 
-Define what happens at each budget level before you need to make the decision under pressure.
+An error budget without a policy is just a dashboard. The policy defines what happens when budget gets low—and critically, it defines this _before_ you're in crisis mode making decisions under pressure.
 
-| Budget Remaining | Status | Actions |
-|------------------|--------|---------|
-| > 50% | Green | Normal development velocity, feature work prioritized |
-| 25% - 50% | Yellow | Increased deployment scrutiny, reliability work prioritized equally |
-| 10% - 25% | Orange | Feature freeze for high-risk changes, SRE approval required |
-| 0% - 10% | Red | Complete feature freeze, only reliability improvements deployed |
-| Exhausted | Black | Emergency measures, VP approval for any deployment |
+| Budget Remaining | Status | What Changes |
+|------------------|--------|--------------|
+| > 50% | Green | Normal velocity. Feature work prioritized. Deploy at will. |
+| 25% - 50% | Yellow | Increased scrutiny. Reliability work gets equal priority. |
+| 10% - 25% | Orange | Feature freeze for high-risk changes. SRE approval required. |
+| < 10% | Red | Complete feature freeze. Only reliability improvements deployed. |
 
-Table: Error budget policy thresholds.
+Table: Error budget policy thresholds—define these before you need them.
 
-### Automated Enforcement
+The specific thresholds will vary by organization and service criticality. A payment system might trigger Orange at 30% remaining; an internal tool might not freeze features until budget is exhausted. The important thing is having agreed-upon rules before you need them.
 
-Integrate budget checks into CI/CD pipelines. When budget is healthy, deployments proceed normally. When budget is critical, require additional approvals or block entirely.
+One critical detail: automated enforcement must have escape hatches. Sometimes you need to deploy a critical security patch even with exhausted budget. Build in exception workflows with appropriate approvals and audit trails—but make exceptions visible and uncomfortable enough that they don't become the norm.
 
-```typescript
-// Pseudocode for CI integration
-async function evaluateDeployment(service: string, risk: 'low' | 'medium' | 'high') {
-  const budget = await getBudgetStatus(service)
+## Getting Started
 
-  if (budget.remaining > 50) {
-    return { allowed: true, approvals: [] }
-  }
+Error budgets succeed when they create alignment, not compliance. The goal isn't to hit arbitrary targets—it's to have a shared language for reliability that lets engineering, product, and SRE make informed tradeoffs together.
 
-  if (budget.remaining > 25 && risk !== 'high') {
-    return { allowed: true, approvals: ['tech-lead'] }
-  }
+Start simple: one service, two SLIs (availability and latency), one quarter of measurement. Pick a service that's broken enough to demonstrate value when improved but not so broken that fixing it seems impossible—you want a quick win, not a multi-quarter project. Set your initial SLO slightly below your current performance so you have a target you can hit from day one while leaving room for normal variation.
 
-  if (budget.remaining > 10 && risk === 'low') {
-    return { allowed: true, approvals: ['sre-on-call'] }
-  }
+After a quarter, you'll know whether the SLO is too tight (constant breaches, alert fatigue), too loose (never breaches, no useful signal), or about right. Most teams need 2-3 iterations to find the right level. That's expected—the first SLO is never perfect, and it doesn't need to be.
 
-  return {
-    allowed: false,
-    reason: 'Budget critical - only reliability improvements allowed',
-    exception: 'Requires VP approval'
-  }
-}
-```
+The value is in the conversation it enables, not the number itself.
 
-Code: Deployment gating based on error budget status.
+---
 
-<Callout type="warning">
-Automated enforcement must have escape hatches. Sometimes you need to deploy a critical security patch even with exhausted budget. Build in exception workflows with appropriate approvals and audit trails.
-</Callout>
-
-## Negotiating Reliability vs Velocity
-
-### The Product/Engineering/SRE Triangle
-
-Error budgets provide a shared language for the three parties who most often conflict over reliability:
-
-- _Product_ wants features shipped fast
-- _Engineering_ wants to try new things (which sometimes break)
-- _SRE/Ops_ wants stability
-
-Without error budgets, these conversations become political ("we need to slow down" vs "we need to ship"). With error budgets, they become mathematical ("we have 30 minutes of budget remaining, this deployment historically causes 5 minutes of degradation, do we spend it?").
-
-### Spending Budget Intentionally
-
-Good investments of error budget:
-
-- _Feature launches_: Up to 20% of monthly budget
-- _Infrastructure migrations_: Up to 30%, scheduled when budget is healthy
-- _Dependency upgrades_: Up to 15%
-
-Poor investments:
-
-- _Untested deployments_: Unpredictable budget impact
-- _Friday deployments_: Limited recovery time if issues arise
-- _Large batch deployments_: High risk, split into smaller changes
-
-### Stakeholder Communication
-
-Weekly budget status updates keep everyone informed before problems become political:
-
-```text
-## Error Budget Status - Week of {date}
-
-Service: payment-api
-Budget Window: 30 days rolling
-
-| Metric | Target | Current | Budget Used | Status |
-|--------|--------|---------|-------------|--------|
-| Availability | 99.9% | 99.95% | 15% | ✅ Healthy |
-| Latency P99 | 200ms | 180ms | 10% | ✅ Healthy |
-
-Planned budget consumption this week:
-- Database migration (Tuesday): ~10% estimated
-- Feature flag rollout (Thursday): ~5% estimated
-
-Remaining budget after planned work: ~60%
-```
-
-## Bootstrapping Observability
-
-### Start with What Exists
-
-Teams without observability can't set SLOs, but often won't invest in observability without SLOs to justify it. Break the cycle by starting with what you already have:
-
-| Source | What It Provides | SLIs Possible |
-|--------|------------------|---------------|
-| Access logs (nginx) | Request count by status, response time | Availability, Latency |
-| Application logs | Error messages, business logic failures | Error rate |
-| Cloud provider metrics | Request counts, latency percentiles | Availability, Latency |
-| Database slow query log | Queries exceeding threshold | Latency contribution |
-
-Table: Bootstrapping SLIs from existing data sources.
-
-### Minimal Instrumentation
-
-If you need to add instrumentation, start minimal. Two metrics cover most SLO needs:
-
-```typescript
-// Express middleware for minimal SLI instrumentation
-import { Counter, Histogram, register } from 'prom-client'
-
-const requestsTotal = new Counter({
-  name: 'http_requests_total',
-  help: 'Total HTTP requests',
-  labelNames: ['method', 'path', 'status']
-})
-
-const requestDuration = new Histogram({
-  name: 'http_request_duration_seconds',
-  help: 'HTTP request duration',
-  labelNames: ['method', 'path'],
-  buckets: [0.01, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10]
-})
-
-function sliMiddleware(req, res, next) {
-  const start = process.hrtime.bigint()
-
-  res.on('finish', () => {
-    const duration = Number(process.hrtime.bigint() - start) / 1e9
-    const path = normalizePath(req.path)  // Avoid cardinality explosion
-
-    requestsTotal.inc({ method: req.method, path, status: res.statusCode })
-    requestDuration.observe({ method: req.method, path }, duration)
-  })
-
-  next()
-}
-```
-
-Code: Minimal Prometheus instrumentation for Node.js services.
-
-## Conclusion
-
-SLOs work when they create alignment, not compliance. The goal isn't to hit arbitrary targets—it's to have a shared language for reliability that lets engineering, product, and operations make informed tradeoffs together.
-
-Start simple: one service, two SLIs (availability and latency), one quarter of measurement. Adjust based on what you learn. The first SLO is never perfect, and that's fine. The value is in the conversation it enables, not the number itself.
-
-_Key principles:_
-
-- SLIs must reflect user experience, not internal metrics
-- SLOs should be achievable with current architecture (start with reality, improve over time)
-- Error budgets convert reliability into a spendable resource
-- Budget policies remove politics from reliability decisions
-- When budget is healthy, spend it on velocity; when depleted, invest in reliability
+This article covers the core mechanics of error budgets. The complete guide goes deeper: choosing SLIs that actually reflect user experience (and the anti-patterns that don't), the four golden SLI categories with Prometheus query examples, burn rate monitoring with multi-window alerting, and bootstrapping observability when you're starting from scratch. Download the full guide for implementation details, code samples, and the complete policy framework.
