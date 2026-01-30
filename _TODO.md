@@ -204,6 +204,7 @@ To overlay an article title and published date on a cover image, use CSS positio
 - Maybe duplicate - scrunch the header and set at absolute position when you scroll down, expand back when scroll up
 - 404 page should show search results based on query
 - Times like "11:59:59" are breaking across two lines - src/content/articles/rate-limiting-token-bucket-leaky-bucket-implementation/index.mdx in "Algorithm Overview" section
+- Remove the dynamic Services page, and show it all on a single page. Three services: full time workflow, part time workflow, on-call support + onboarding fee.
 
 ## Reading position indicator
 
@@ -268,13 +269,11 @@ There are two pricing variants: part-time stream and full-time stream. How to ha
 ## Content
 
 error-budget-policy-slo-velocity-reliability-tradeoffs
-event-schema-versioning-compatibility-evolution
-
-reverse-engineering-documentation-legacy-systems
-service-catalog-metadata-schema-ownership-tracking
-service-decommissioning-scream-test-shutdown
 sli-selection-user-centric-service-level-indicators
 slo-adoption-internal-services-reliability-culture
+
+service-catalog-metadata-schema-ownership-tracking
+service-decommissioning-scream-test-shutdown
 slsa-build-provenance-artifact-signing-supply-chain
 strangler-fig-migration-observability-traffic-shifting
 strangler-fig-monolith-auth-extraction-migration
@@ -284,7 +283,6 @@ synthetic-test-data-pii-anonymization-fixtures
 terraform-module-design-defaults-versioning-interfaces
 terraform-state-locking-corruption-recovery-backend
 workload-identity-federation-keyless-cloud-authentication
-zero-downtime-database-migration-expand-contract
 
 ## Content Issues
 

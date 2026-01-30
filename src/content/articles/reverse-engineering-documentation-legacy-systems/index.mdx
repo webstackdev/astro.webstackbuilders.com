@@ -1,6 +1,6 @@
 ---
-title: "Documenting Undocumented Systems"
-description: "Reverse-engineering architecture from running code when documentation is missing or wrong."
+title: "When the Documentation Lies: Extracting Truth from Legacy Code"
+description: "Your codebase contains more reliable documentation than any wiki page. Git history, characterization tests, and targeted interviews reveal what prose documentation gets wrong."
 cover: "./cover.png"
 coverAlt: "TODO"
 author: "kevin-brown"
@@ -10,788 +10,82 @@ featured: true
 ---
 
 *[ADR]: Architecture Decision Record
-*[AST]: Abstract Syntax Tree
 *[API]: Application Programming Interface
-*[DDD]: Domain-Driven Design
-*[ERD]: Entity Relationship Diagram
-*[IDE]: Integrated Development Environment
-*[ORM]: Object-Relational Mapping
-*[SQL]: Structured Query Language
-*[UML]: Unified Modeling Language
 
-Code archaeology techniques, runtime observation, diagram generation, and tests as executable documentation.
+You've inherited a system with a README that was last updated three years ago. The architecture diagrams reference services that no longer exist. The wiki has seventeen conflicting pages about deployment, and no one's sure which ones are current. The original architects left two reorganizations ago.
 
-Diagrams rot; tests document behavior.
+Here's the uncomfortable truth: outdated documentation isn't just unhelpful—it's actively harmful. When a new team member reads that architecture diagram and forms a mental model of how the system works, they're building on outdated assumptions that will take months to unlearn. When an on-call engineer follows a runbook during an incident, they might make things worse by following steps that no longer apply.
 
-## The Reality of Legacy Documentation
+But there's good news. The codebase itself contains more reliable documentation than any wiki page ever will. Git history records what changed, when, and often why. Tests that pass demonstrate working behavior that prose documentation might get wrong. And the engineers who've kept the system alive hold knowledge that's never been written down.
 
-Why most legacy system documentation is either missing, wrong, or dangerously outdated—and why that's expected.
+The trick is knowing how to extract it.
 
-### Documentation Decay Lifecycle
+## Code Archaeology: Mining Version History
 
-Understanding how documentation becomes stale and why traditional documentation strategies fail for long-lived systems.
+Every commit in your repository is a documentation artifact. Unlike wiki pages that silently become wrong, git history is immutable. It tells you not just what changed, but when, by whom, and—if commit messages are decent—why.
 
-```
-Mermaid diagram: Timeline showing documentation decay.
-Day 1: System built, documentation written, 100% accuracy.
-Month 6: First undocumented change, 95% accuracy.
-Year 1: Multiple features added without doc updates, 80% accuracy.
-Year 3: Architecture drift begins, 60% accuracy.
-Year 5: Major refactor, docs now describe ghost architecture, 30% accuracy.
-Year 10: Documentation actively misleading, negative value.
-Show accuracy line declining with "danger zone" threshold marked.
-```
-
-Documentation that isn't continuously validated becomes a liability faster than an asset.
-
-### Categories of Documentation Debt
-
-Distinguishing between missing, outdated, and actively wrong documentation—each requires different remediation approaches.
-
-| Category | Description | Risk Level | Remediation Effort |
-|----------|-------------|------------|-------------------|
-| Missing | Never documented | Medium | Discovery required |
-| Outdated | Was correct, now stale | High | Verification required |
-| Actively Wrong | Describes different system | Critical | Unlearning required |
-| Tribal Knowledge | In heads, not written | High | Interview extraction |
-| Scattered | Exists but unfindable | Medium | Consolidation required |
-
-:::warning[Wrong Documentation Is Worse Than None]
-Missing documentation forces you to investigate. Wrong documentation lets you confidently make incorrect assumptions. The second failure mode is far more dangerous.
-:::
-
-### Assessing Current Documentation State
-
-A systematic approach to evaluating what documentation exists and how trustworthy it is.
-
-```typescript
-// Documentation audit checklist
-interface DocumentationAudit {
-  location: string
-  lastModified: Date
-  lastVerified: Date | null
-  coverageAreas: DocumentationCoverage[]
-  trustScore: number  // 0-100, based on verification
-  owner: string | null
-}
-
-interface DocumentationCoverage {
-  area: 'architecture' | 'api' | 'data-model' | 'deployment' |
-        'operations' | 'business-rules' | 'integrations'
-  exists: boolean
-  lastVerified: Date | null
-  knownGaps: string[]
-}
-
-function calculateTrustScore(audit: DocumentationAudit): number {
-  const daysSinceModified = daysBetween(audit.lastModified, new Date())
-  const daysSinceVerified = audit.lastVerified
-    ? daysBetween(audit.lastVerified, new Date())
-    : Infinity
-
-  // Trust decays exponentially with age
-  const agePenalty = Math.exp(-daysSinceModified / 365) * 50
-  const verificationBonus = audit.lastVerified
-    ? Math.exp(-daysSinceVerified / 90) * 50
-    : 0
-
-  return Math.round(agePenalty + verificationBonus)
-}
-```
-
-## Code Archaeology: Reading the Codebase
-
-Techniques for extracting architectural understanding from source code when documentation fails.
-
-### Static Analysis for Structure Discovery
-
-Using code analysis tools to map module dependencies, class hierarchies, and data flow.
-
-```typescript
-// Example: Extracting module dependency graph from imports
-import { parse } from '@babel/parser'
-import traverse from '@babel/traverse'
-import * as fs from 'fs'
-import * as path from 'path'
-
-interface ModuleDependency {
-  source: string
-  target: string
-  importType: 'default' | 'named' | 'namespace' | 'side-effect'
-  importedNames: string[]
-}
-
-function extractDependencies(filePath: string): ModuleDependency[] {
-  const code = fs.readFileSync(filePath, 'utf-8')
-  const ast = parse(code, {
-    sourceType: 'module',
-    plugins: ['typescript', 'jsx']
-  })
-
-  const dependencies: ModuleDependency[] = []
-
-  traverse(ast, {
-    ImportDeclaration(nodePath) {
-      const source = nodePath.node.source.value
-      const specifiers = nodePath.node.specifiers
-
-      if (specifiers.length === 0) {
-        dependencies.push({
-          source: filePath,
-          target: source,
-          importType: 'side-effect',
-          importedNames: []
-        })
-        return
-      }
-
-      const importedNames: string[] = []
-      let importType: ModuleDependency['importType'] = 'named'
-
-      for (const spec of specifiers) {
-        if (spec.type === 'ImportDefaultSpecifier') {
-          importType = 'default'
-          importedNames.push(spec.local.name)
-        } else if (spec.type === 'ImportNamespaceSpecifier') {
-          importType = 'namespace'
-          importedNames.push(`* as ${spec.local.name}`)
-        } else if (spec.type === 'ImportSpecifier') {
-          importedNames.push(spec.imported.name)
-        }
-      }
-
-      dependencies.push({
-        source: filePath,
-        target: source,
-        importType,
-        importedNames
-      })
-    }
-  })
-
-  return dependencies
-}
-```
-
-### Git Archaeology: Mining Version History
-
-Using git history to understand how the system evolved and identify knowledge holders.
+Start with the most-changed files. This single command reveals the heartbeat of your codebase:
 
 ```bash
-# Find the most-changed files (likely core business logic)
+# Find the most-changed files (likely core business logic or problem areas)
 git log --pretty=format: --name-only | sort | uniq -c | sort -rg | head -20
+```
 
+Code: Identifying the most frequently modified files in a repository.
+
+The files at the top of this list deserve your attention. They're either core business logic that everyone touches, or poorly designed modules that require constant patching. Either way, understanding them is essential.
+
+Once you've identified a critical file, find out who has the deepest knowledge of it:
+
+```bash
 # Find who knows the most about a specific file
 git shortlog -sn -- path/to/critical/file.ts
-
-# Find when major changes happened (look for large commits)
-git log --stat --oneline | grep -E "^\w+ .* \| [0-9]{3,} "
-
-# Find deleted files that might explain current weirdness
-git log --diff-filter=D --summary | grep delete
-
-# Trace the history of a specific function
-git log -p -S "functionName" -- "*.ts"
-
-# Find commits that touched multiple related files together
-git log --pretty=format:"%h %s" --name-only | \
-  awk '/^[a-f0-9]/ {commit=$0; next} /\.ts$/ {print commit, $0}'
 ```
 
-:::info[Git Blame Is Your Friend]
-`git blame` tells you who wrote each line, but more importantly, the commit message tells you why. A commit message like "fix prod issue #1234" points you to the ticket with context.
-:::
+Code: Finding the engineers with the most commits to a specific file.
+
+That person is your first interview target. They may have moved to another team or even left the company, but they're often reachable and willing to help explain their past work.
+
+<Callout type="info">
+`git blame` tells you who wrote each line, but the commit message tells you _why_. A message like "fix prod issue #1234" points you to a ticket with context. Follow those breadcrumbs.
+</Callout>
+
+The pickaxe search is invaluable for tracing how specific logic evolved:
+
+```bash
+# Trace the history of a specific function through refactors and file moves
+git log -p -S "calculateDiscount" -- "*.ts"
+```
+
+Code: Using pickaxe search to trace function history.
+
+This finds every commit that added or removed the string "calculateDiscount"—letting you see how the discount calculation evolved, who changed it, and what tickets or discussions prompted those changes. When the current implementation seems weird, this history often explains why.
+
+I also extract ticket references from commit messages. If your team uses Jira, GitHub issues, or similar tools, those tickets contain requirements discussions, bug reports, and context that never made it into code comments:
+
+```bash
+# Extract Jira ticket references from a file's commit history
+git log --format="%s" -- src/billing/invoice.ts | grep -oE '[A-Z]+-[0-9]+' | sort -u
+```
+
+Code: Extracting issue tracker references from git history.
+
+Reading through a dozen related tickets often teaches you more about a module than reading the code itself.
+
+## Tests That Never Lie
+
+Documentation rots silently. Tests break loudly. That asymmetry makes tests the most reliable form of documentation for system behavior.
+
+When you're inheriting code and don't know whether observed behavior is intentional or accidental, _characterization tests_ capture the truth. The pattern is simple: poke the system with inputs, record the outputs, assert that future runs produce the same outputs. You're not testing that the code is correct—you're testing that it hasn't changed.
 
 ```typescript
-// Automating git archaeology
-import { execSync } from 'child_process'
-
-interface FileKnowledge {
-  filePath: string
-  primaryAuthors: { name: string; commits: number }[]
-  changeFrequency: number  // commits per month
-  lastModified: Date
-  associatedTickets: string[]
-}
-
-function analyzeFileKnowledge(filePath: string): FileKnowledge {
-  // Get author statistics
-  const authorsRaw = execSync(
-    `git shortlog -sn --all -- "${filePath}"`,
-    { encoding: 'utf-8' }
-  )
-
-  const primaryAuthors = authorsRaw
-    .trim()
-    .split('\n')
-    .slice(0, 5)
-    .map(line => {
-      const match = line.trim().match(/^(\d+)\s+(.+)$/)
-      return match
-        ? { name: match[2], commits: parseInt(match[1]) }
-        : null
-    })
-    .filter(Boolean) as { name: string; commits: number }[]
-
-  // Get commit history for frequency calculation
-  const historyRaw = execSync(
-    `git log --format="%H %s" -- "${filePath}"`,
-    { encoding: 'utf-8' }
-  )
-
-  const commits = historyRaw.trim().split('\n')
-
-  // Extract ticket references (JIRA-style)
-  const ticketPattern = /[A-Z]+-\d+/g
-  const associatedTickets = [...new Set(
-    commits.flatMap(c => c.match(ticketPattern) || [])
-  )]
-
-  return {
-    filePath,
-    primaryAuthors,
-    changeFrequency: commits.length / getFileAgeMonths(filePath),
-    lastModified: getLastModifiedDate(filePath),
-    associatedTickets
-  }
-}
-```
-
-### Reading Code for Intent
-
-Techniques for understanding business logic encoded in conditionals, naming, and structure.
-
-```typescript
-// Pattern: Extracting business rules from conditional logic
-interface BusinessRule {
-  location: { file: string; line: number }
-  condition: string
-  outcome: string
-  confidence: 'high' | 'medium' | 'low'
-  suggestedName?: string
-}
-
-// Example of documented business rule extraction
-function extractBusinessRules(code: string): BusinessRule[] {
-  // Look for patterns that suggest business logic:
-  // 1. Named boolean functions (isEligible, canProcess, shouldApply)
-  // 2. Complex conditionals with domain terms
-  // 3. Magic numbers with comments
-  // 4. Switch statements on status/type fields
-
-  const rules: BusinessRule[] = []
-
-  // Pattern: isX/canX/shouldX functions
-  const booleanFunctionPattern =
-    /function (is|can|should|has|allows?|requires?)\w+\([^)]*\)/g
-
-  // Pattern: Status/type switch statements
-  const switchPattern =
-    /switch\s*\(\w+\.(status|type|state|category)\)/g
-
-  // Pattern: Threshold comparisons with domain terms
-  const thresholdPattern =
-    /if\s*\([^)]*(?:amount|balance|limit|threshold|max|min)[^)]*[<>=]/gi
-
-  // Extract and categorize each pattern...
-  return rules
-}
-```
-
-## Runtime Observation: Watching the System
-
-Understanding behavior by observing the running system rather than reading static code.
-
-### Traffic Analysis and Request Mapping
-
-Capturing and analyzing real traffic to understand actual system behavior.
-
-```
-Mermaid diagram: Request flow observation setup.
-Production Traffic → Load Balancer → Mirror/Tap
-                                   ↓
-                            Analysis Pipeline
-                                   ↓
-            ┌──────────────────────┼──────────────────────┐
-            ↓                      ↓                      ↓
-    Endpoint Inventory    Dependency Graph      Data Flow Map
-    (all routes used)    (service calls)     (what data moves)
-```
-
-```typescript
-// Express middleware for request/response logging (non-production)
-interface CapturedRequest {
-  timestamp: Date
-  method: string
-  path: string
-  pathPattern: string  // Normalized: /users/123 → /users/:id
-  queryParams: Record<string, string>
-  headers: Record<string, string>
-  bodySchema?: object  // JSON Schema of body
-  responseStatus: number
-  responseTimeMs: number
-  downstreamCalls: DownstreamCall[]
-}
-
-interface DownstreamCall {
-  service: string
-  endpoint: string
-  method: string
-  responseTimeMs: number
-}
-
-function createObservationMiddleware(
-  onCapture: (req: CapturedRequest) => void
-) {
-  return (req: Request, res: Response, next: NextFunction) => {
-    const startTime = Date.now()
-    const downstreamCalls: DownstreamCall[] = []
-
-    // Patch fetch to capture downstream calls
-    const originalFetch = global.fetch
-    global.fetch = async (url, options) => {
-      const callStart = Date.now()
-      const result = await originalFetch(url, options)
-      downstreamCalls.push({
-        service: new URL(url as string).hostname,
-        endpoint: new URL(url as string).pathname,
-        method: options?.method || 'GET',
-        responseTimeMs: Date.now() - callStart
-      })
-      return result
-    }
-
-    res.on('finish', () => {
-      global.fetch = originalFetch
-
-      onCapture({
-        timestamp: new Date(),
-        method: req.method,
-        path: req.path,
-        pathPattern: normalizePath(req.path),
-        queryParams: req.query as Record<string, string>,
-        headers: filterSensitiveHeaders(req.headers),
-        bodySchema: req.body ? generateSchema(req.body) : undefined,
-        responseStatus: res.statusCode,
-        responseTimeMs: Date.now() - startTime,
-        downstreamCalls
-      })
-    })
-
-    next()
-  }
-}
-
-function normalizePath(path: string): string {
-  // Replace UUIDs, numeric IDs, etc. with parameter placeholders
-  return path
-    .replace(/\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, '/:uuid')
-    .replace(/\/\d+/g, '/:id')
-}
-```
-
-### Database Query Analysis
-
-Understanding data models and relationships through actual query patterns.
-
-```typescript
-// PostgreSQL query logging and analysis
-interface QueryCapture {
-  query: string
-  normalizedQuery: string  // Parameters replaced with $N
-  tables: string[]
-  queryType: 'SELECT' | 'INSERT' | 'UPDATE' | 'DELETE' | 'OTHER'
-  executionTimeMs: number
-  rowsAffected: number
-  calledFrom: string  // Stack trace location
-}
-
-class QueryAnalyzer {
-  private captures: QueryCapture[] = []
-
-  // Analyze captured queries to infer schema relationships
-  inferRelationships(): TableRelationship[] {
-    const joins = this.captures
-      .filter(c => c.normalizedQuery.includes('JOIN'))
-      .map(c => this.extractJoinInfo(c.normalizedQuery))
-
-    // Group by table pairs to find relationships
-    const relationshipMap = new Map<string, TableRelationship>()
-
-    for (const join of joins) {
-      const key = [join.leftTable, join.rightTable].sort().join('↔')
-
-      if (!relationshipMap.has(key)) {
-        relationshipMap.set(key, {
-          tableA: join.leftTable,
-          tableB: join.rightTable,
-          joinConditions: [],
-          frequency: 0
-        })
-      }
-
-      const rel = relationshipMap.get(key)!
-      rel.frequency++
-      if (!rel.joinConditions.includes(join.condition)) {
-        rel.joinConditions.push(join.condition)
-      }
-    }
-
-    return Array.from(relationshipMap.values())
-      .sort((a, b) => b.frequency - a.frequency)
-  }
-
-  // Identify likely primary/foreign key columns
-  inferKeyColumns(): ColumnAnalysis[] {
-    const columnUsage = new Map<string, ColumnUsageStats>()
-
-    for (const capture of this.captures) {
-      // Track columns used in WHERE clauses
-      // Track columns used in JOIN conditions
-      // Track columns in ORDER BY
-      // Track columns that are always selected
-    }
-
-    return Array.from(columnUsage.entries())
-      .map(([col, stats]) => ({
-        column: col,
-        likelyPrimaryKey: stats.inJoinCondition > 10 && stats.name.endsWith('_id'),
-        likelyForeignKey: stats.inJoinCondition > 5,
-        frequentlyFiltered: stats.inWhereClause > 20,
-        alwaysSelected: stats.selectedRatio > 0.9
-      }))
-  }
-}
-```
-
-:::warning[Production Query Logging]
-Full query logging in production creates massive log volume and may capture sensitive data. Use sampling and ensure PII filtering before enabling in production environments.
-:::
-
-### Event and Message Flow Tracing
-
-Mapping asynchronous communication patterns through event observation.
-
-```typescript
-// Kafka consumer wrapper for message flow documentation
-interface MessageFlowCapture {
-  topic: string
-  partition: number
-  messageSchema: object  // Inferred JSON Schema
-  producerService: string | null  // From headers if available
-  consumerService: string
-  processingTimeMs: number
-  downstreamEffects: string[]  // Database writes, API calls triggered
-}
-
-class MessageFlowAnalyzer {
-  private flows: MessageFlowCapture[] = []
-
-  generateFlowDiagram(): string {
-    // Group by topic to find producers and consumers
-    const topicFlows = new Map<string, {
-      producers: Set<string>,
-      consumers: Set<string>
-    }>()
-
-    for (const flow of this.flows) {
-      if (!topicFlows.has(flow.topic)) {
-        topicFlows.set(flow.topic, {
-          producers: new Set(),
-          consumers: new Set()
-        })
-      }
-
-      const tf = topicFlows.get(flow.topic)!
-      if (flow.producerService) {
-        tf.producers.add(flow.producerService)
-      }
-      tf.consumers.add(flow.consumerService)
-    }
-
-    // Generate Mermaid diagram
-    let mermaid = 'graph LR\n'
-
-    for (const [topic, { producers, consumers }] of topicFlows) {
-      for (const producer of producers) {
-        mermaid += `  ${producer} -->|publishes| ${topic}[${topic}]\n`
-      }
-      for (const consumer of consumers) {
-        mermaid += `  ${topic} -->|consumed by| ${consumer}\n`
-      }
-    }
-
-    return mermaid
-  }
-}
-```
-
-## Automated Diagram Generation
-
-Creating visual documentation that stays synchronized with the actual system.
-
-### Generating Architecture Diagrams from Code
-
-Tools and techniques for extracting diagrams directly from source code.
-
-```typescript
-// Generate C4 model from code analysis
-interface C4Container {
-  name: string
-  technology: string
-  description: string
-  dependencies: { target: string; description: string }[]
-}
-
-function generateC4FromPackageJson(
-  rootDir: string
-): { containers: C4Container[] } {
-  const containers: C4Container[] = []
-
-  // Find all package.json files (each represents a potential container)
-  const packageFiles = glob.sync('**/package.json', {
-    cwd: rootDir,
-    ignore: ['**/node_modules/**']
-  })
-
-  for (const pkgPath of packageFiles) {
-    const pkg = JSON.parse(fs.readFileSync(
-      path.join(rootDir, pkgPath),
-      'utf-8'
-    ))
-
-    // Infer technology from dependencies
-    const technology = inferTechnology(pkg.dependencies || {})
-
-    // Extract internal dependencies
-    const dependencies = Object.keys(pkg.dependencies || {})
-      .filter(dep => dep.startsWith('@myorg/'))
-      .map(dep => ({
-        target: dep.replace('@myorg/', ''),
-        description: 'Internal dependency'
-      }))
-
-    containers.push({
-      name: pkg.name,
-      technology,
-      description: pkg.description || 'No description',
-      dependencies
-    })
-  }
-
-  return { containers }
-}
-
-function inferTechnology(deps: Record<string, string>): string {
-  if (deps['express'] || deps['fastify']) return 'Node.js API'
-  if (deps['react'] || deps['vue']) return 'SPA Frontend'
-  if (deps['@nestjs/core']) return 'NestJS API'
-  if (deps['next']) return 'Next.js'
-  return 'Node.js Service'
-}
-```
-
-### Database Schema Visualization
-
-Generating ERD diagrams from live database introspection.
-
-```typescript
-// PostgreSQL schema introspection
-interface TableInfo {
-  name: string
-  columns: ColumnInfo[]
-  primaryKey: string[]
-  foreignKeys: ForeignKeyInfo[]
-  indexes: IndexInfo[]
-}
-
-interface ForeignKeyInfo {
-  columns: string[]
-  referencedTable: string
-  referencedColumns: string[]
-  constraintName: string
-}
-
-async function introspectSchema(pool: Pool): Promise<TableInfo[]> {
-  // Get all tables
-  const tablesResult = await pool.query(`
-    SELECT table_name
-    FROM information_schema.tables
-    WHERE table_schema = 'public'
-      AND table_type = 'BASE TABLE'
-  `)
-
-  const tables: TableInfo[] = []
-
-  for (const row of tablesResult.rows) {
-    const tableName = row.table_name
-
-    // Get columns
-    const columnsResult = await pool.query(`
-      SELECT
-        column_name,
-        data_type,
-        is_nullable,
-        column_default
-      FROM information_schema.columns
-      WHERE table_name = $1
-      ORDER BY ordinal_position
-    `, [tableName])
-
-    // Get foreign keys
-    const fkResult = await pool.query(`
-      SELECT
-        kcu.column_name,
-        ccu.table_name AS foreign_table_name,
-        ccu.column_name AS foreign_column_name,
-        tc.constraint_name
-      FROM information_schema.table_constraints AS tc
-      JOIN information_schema.key_column_usage AS kcu
-        ON tc.constraint_name = kcu.constraint_name
-      JOIN information_schema.constraint_column_usage AS ccu
-        ON ccu.constraint_name = tc.constraint_name
-      WHERE tc.constraint_type = 'FOREIGN KEY'
-        AND tc.table_name = $1
-    `, [tableName])
-
-    tables.push({
-      name: tableName,
-      columns: columnsResult.rows,
-      primaryKey: await getPrimaryKey(pool, tableName),
-      foreignKeys: groupForeignKeys(fkResult.rows),
-      indexes: await getIndexes(pool, tableName)
-    })
-  }
-
-  return tables
-}
-
-function generateMermaidERD(tables: TableInfo[]): string {
-  let mermaid = 'erDiagram\n'
-
-  for (const table of tables) {
-    // Define entity with columns
-    mermaid += `  ${table.name} {\n`
-    for (const col of table.columns) {
-      const pk = table.primaryKey.includes(col.column_name) ? 'PK' : ''
-      const fk = table.foreignKeys.some(
-        fk => fk.columns.includes(col.column_name)
-      ) ? 'FK' : ''
-      mermaid += `    ${col.data_type} ${col.column_name} ${pk}${fk}\n`
-    }
-    mermaid += '  }\n'
-
-    // Define relationships
-    for (const fk of table.foreignKeys) {
-      mermaid += `  ${table.name} }o--|| ${fk.referencedTable} : "${fk.constraintName}"\n`
-    }
-  }
-
-  return mermaid
-}
-```
-
-### Service Dependency Graphs
-
-Generating service topology from runtime observations.
-
-```
-Mermaid diagram: Service dependency graph generation pipeline.
-Input Sources:
-- Service mesh telemetry (Istio/Linkerd)
-- APM data (Datadog/New Relic)
-- Log correlation IDs
-- Kubernetes service discovery
-
-Processing:
-- Aggregate call patterns
-- Calculate call frequency
-- Measure latency percentiles
-- Identify critical paths
-
-Output:
-- Mermaid/PlantUML diagrams
-- D2 diagrams for interactive exploration
-- Graphviz for large graphs
-```
-
-```typescript
-// Generate service graph from distributed tracing data
-interface ServiceCall {
-  source: string
-  target: string
-  operation: string
-  callCount: number
-  p50LatencyMs: number
-  p99LatencyMs: number
-  errorRate: number
-}
-
-function generateServiceGraph(calls: ServiceCall[]): string {
-  // D2 diagram for service dependencies
-  let d2 = `direction: right
-
-vars: {
-  d2-config: {
-    layout-engine: elk
-  }
-}
-
-`
-
-  // Group calls by service pair
-  const serviceEdges = new Map<string, ServiceCall[]>()
-
-  for (const call of calls) {
-    const key = `${call.source}->${call.target}`
-    if (!serviceEdges.has(key)) {
-      serviceEdges.set(key, [])
-    }
-    serviceEdges.get(key)!.push(call)
-  }
-
-  // Generate nodes with styling based on error rate
-  const services = new Set<string>()
-  for (const call of calls) {
-    services.add(call.source)
-    services.add(call.target)
-  }
-
-  for (const service of services) {
-    d2 += `${service}: {\n  shape: rectangle\n}\n`
-  }
-
-  // Generate edges with labels
-  for (const [edge, edgeCalls] of serviceEdges) {
-    const [source, target] = edge.split('->')
-    const totalCalls = edgeCalls.reduce((sum, c) => sum + c.callCount, 0)
-    const avgErrorRate = edgeCalls.reduce((sum, c) => sum + c.errorRate, 0) / edgeCalls.length
-
-    const style = avgErrorRate > 0.05 ? '; style.stroke: red' : ''
-    d2 += `${source} -> ${target}: "${totalCalls} calls/day"${style}\n`
-  }
-
-  return d2
-}
-```
-
-## Tests as Executable Documentation
-
-Writing tests that serve as living documentation of system behavior.
-
-### Characterization Tests
-
-Capturing current behavior without judging correctness—documenting what the system does, not what it should do.
-
-```typescript
-// Characterization test pattern: capture behavior, then assert it
+// Characterization tests for OrderProcessor
+// These document discovered behavior, not requirements
 describe('OrderProcessor characterization', () => {
-  // These tests document discovered behavior, not requirements
-
   describe('discount calculation (discovered behavior)', () => {
     it('applies 10% discount for orders over $100', async () => {
-      // This behavior was discovered through observation
-      // Original requirements document said 15%, but code does 10%
+      // NOTE: Requirements doc says 15%, but code does 10%
+      // Verified with product team - code is correct, docs are stale
       const order = createOrder({ subtotal: 150 })
       const result = await orderProcessor.calculateTotal(order)
 
@@ -800,121 +94,46 @@ describe('OrderProcessor characterization', () => {
     })
 
     it('does not apply discount for exactly $100', async () => {
-      // Edge case discovered through testing
-      // Threshold is > 100, not >= 100
+      // Edge case: threshold is > 100, not >= 100
       const order = createOrder({ subtotal: 100 })
       const result = await orderProcessor.calculateTotal(order)
 
       expect(result.discount).toBe(0)
-      expect(result.total).toBe(100)
-    })
-
-    it('applies discount before tax calculation', async () => {
-      // Order of operations discovered through debugging
-      const order = createOrder({ subtotal: 200, taxRate: 0.08 })
-      const result = await orderProcessor.calculateTotal(order)
-
-      // Discount: 200 * 0.10 = 20
-      // After discount: 180
-      // Tax: 180 * 0.08 = 14.40
-      // Total: 194.40
-      expect(result.total).toBeCloseTo(194.40)
     })
   })
 })
 ```
 
-:::success[Characterization Tests Are Not Approval]
-A characterization test documents "the system does X" not "the system should do X." They're a snapshot of current behavior, not validation of correct behavior. Include comments noting when behavior seems wrong.
-:::
+Code: Characterization tests documenting discovered discount behavior.
 
-### Approval Testing for Complex Outputs
+Notice the comments. When I discovered that the code applies a 10% discount while the requirements doc claims 15%, I noted it. When I found that the threshold is strictly greater than $100 (not greater-than-or-equal), I documented that edge case. These comments matter as much as the assertions.
 
-Using snapshot-style testing to document complex outputs that are hard to specify manually.
+<Callout type="success">
+Run characterization tests against production data snapshots when possible. Synthetic test data often misses the edge cases that real data reveals—the customer with a null address, the order with negative quantity from a bug three years ago, the account that predates a schema migration.
+</Callout>
 
-```typescript
-import { verify } from 'approvals'
-
-describe('Report Generator documentation', () => {
-  it('generates monthly summary report', async () => {
-    const report = await reportGenerator.generateMonthlySummary({
-      month: 3,
-      year: 2024,
-      includeDetails: true
-    })
-
-    // Approval test: human reviews output once,
-    // then test ensures it doesn't change unexpectedly
-    verify(report, {
-      name: 'monthly-summary-report-format'
-    })
-  })
-
-  it('handles edge case: month with no transactions', async () => {
-    const report = await reportGenerator.generateMonthlySummary({
-      month: 12,
-      year: 2020,  // Known month with no data
-      includeDetails: true
-    })
-
-    verify(report, {
-      name: 'empty-month-report-format'
-    })
-  })
-})
-```
-
-### Example-Based Documentation
-
-Using tests as executable examples that demonstrate API usage.
+Well-written tests also serve as executable API examples. Unlike documentation that might be wrong, tests that pass demonstrate working code. I organize these around use cases:
 
 ```typescript
-/**
- * @example
- * // Basic usage documented through test
- * const client = new PaymentClient({ apiKey: 'test_key' })
- * const result = await client.charge({
- *   amount: 1000,  // cents
- *   currency: 'usd',
- *   source: 'tok_visa'
- * })
- */
+// Tests structured as API usage examples
 describe('PaymentClient usage examples', () => {
-  describe('basic charge flow', () => {
+  describe('basic charge', () => {
     it('charges a card with minimum required parameters', async () => {
-      // This test IS the documentation
-      const client = new PaymentClient({ apiKey: testApiKey })
+      const client = new PaymentClient({ apiKey: process.env.STRIPE_TEST_KEY })
 
       const result = await client.charge({
-        amount: 1000,
+        amount: 1000,        // Amount in cents
         currency: 'usd',
-        source: 'tok_visa'
+        source: 'tok_visa'   // Test token for Visa
       })
 
       expect(result.status).toBe('succeeded')
-      expect(result.amount).toBe(1000)
-    })
-
-    it('includes metadata for order tracking', async () => {
-      const client = new PaymentClient({ apiKey: testApiKey })
-
-      const result = await client.charge({
-        amount: 2500,
-        currency: 'usd',
-        source: 'tok_visa',
-        metadata: {
-          orderId: 'order_123',
-          customerId: 'cust_456'
-        }
-      })
-
-      expect(result.metadata.orderId).toBe('order_123')
     })
   })
 
-  describe('error handling examples', () => {
+  describe('error handling', () => {
     it('throws CardDeclinedError for declined cards', async () => {
-      const client = new PaymentClient({ apiKey: testApiKey })
+      const client = new PaymentClient({ apiKey: process.env.STRIPE_TEST_KEY })
 
       await expect(
         client.charge({
@@ -928,328 +147,65 @@ describe('PaymentClient usage examples', () => {
 })
 ```
 
-## Knowledge Extraction from People
+Code: Tests structured as API usage documentation.
 
-Techniques for extracting undocumented knowledge from the humans who built and maintain the system.
+The test names read like a table of contents: "basic charge," "error handling." Someone integrating with this API can scan the test file and find exactly what they need—with working code they can copy.
 
-### Structured Interview Techniques
+## Before They Leave
 
-Conducting effective interviews to extract architectural and historical knowledge.
+Code analysis gets you far, but some knowledge exists only in people's heads. The engineer who remembers why the cron job runs at 3:47 AM instead of midnight. The architect who knows about the constraint that was never documented. The on-call engineer who's seen failure modes that aren't in any runbook.
 
-```typescript
-// Interview question templates by knowledge type
-const interviewTemplates = {
-  architectural: [
-    "Walk me through what happens when [common user action]",
-    "What's the most complex part of this system?",
-    "What would break if [component X] went down?",
-    "Why was [technology choice] made instead of [alternative]?",
-    "What's the scariest part of the codebase to change?"
-  ],
+This knowledge has an expiration date: when the person leaves. Extracting it requires targeted questions organized by what you're trying to learn.
 
-  operational: [
-    "What's the most common thing that pages you at night?",
-    "What manual steps are required for deployments?",
-    "What happens when [dependency] is unavailable?",
-    "Where do you look first when debugging [problem type]?",
-    "What's the recovery procedure for [failure scenario]?"
-  ],
+For _architectural knowledge_:
 
-  historical: [
-    "What major changes happened in the last 2 years?",
-    "What was the original design before the rewrites?",
-    "Why does [weird thing] exist?",
-    "What features were removed and why?",
-    "What's the oldest code that's still running?"
-  ],
+- "What happens when a user places an order?"
+- "What breaks if the payment service goes down?"
+- "What's the scariest part of this codebase to change?"
 
-  businessRules: [
-    "What business rules are in code that aren't written anywhere?",
-    "What calculations or formulas does the system use?",
-    "What edge cases have special handling?",
-    "What compliance requirements affect this code?",
-    "What integrations have special business requirements?"
-  ]
-}
-```
+For _operational knowledge_:
 
-| Interview Type | Best Participants | Key Artifacts to Request |
-|----------------|-------------------|-------------------------|
-| Architecture | Original architects, senior devs | Design docs, ADRs, whiteboard photos |
-| Operations | SREs, on-call engineers | Runbooks, incident reports, dashboards |
-| Business Logic | Product managers, domain experts | Requirements docs, user stories |
-| History | Long-tenured engineers | Old wiki pages, email threads, tickets |
+- "What pages you most often at night?"
+- "What manual steps do deployments require?"
+- "Where do you look first when API responses slow down?"
 
-### Knowledge Mapping Sessions
+For _business rules encoded in code_:
 
-Facilitated sessions to capture system knowledge in real-time.
+- "What business rules live in code but not in any document?"
+- "What edge cases have special handling?"
+- "What compliance requirements shaped this code?"
 
-```
-Mermaid diagram: Knowledge mapping session flow.
-Preparation:
-- Identify knowledge holders
-- Prepare blank architecture template
-- Set up recording (with permission)
+| Interview Focus | Best Participants | Knowledge Domain |
+|-----------------|-------------------|------------------|
+| Architecture | Original architects, senior engineers | How components connect and why |
+| Operations | SREs, on-call engineers | Failure modes and recovery procedures |
+| Business Logic | Product managers, business analysts | Rules encoded in code but not in docs |
+| History | Long-tenured engineers | Why weird things exist |
 
-Session (2 hours max):
-- Whiteboard architecture walkthrough (45 min)
-- Scenario walkthroughs: "What happens when..." (45 min)
-- Edge cases and gotchas (30 min)
+Table: Interview types matched to knowledge domains.
 
-Post-Session:
-- Transcribe whiteboard photos
-- Convert to digital diagrams
-- Review and validate with participants
-- Integrate into documentation
-```
+The questions about fear are particularly revealing. "What's the scariest part of this codebase to change?" surfaces the areas with the most hidden complexity, the fewest tests, and the highest consequences for mistakes—exactly where documentation gaps hurt most.
 
-:::info[Record Everything]
-With permission, record knowledge mapping sessions. The casual asides ("oh, and watch out for X") often contain the most valuable information.
-:::
+<Callout type="warning">
+Capture tribal knowledge _before_ someone announces they're leaving. By the time there's a departure date, they're focused on transition tasks and their memory is already fading. Build documentation interviews into onboarding: new hires ask the questions, tenured engineers answer, and you get written artifacts from the exchange.
+</Callout>
 
-### Capturing Tribal Knowledge
+## Where to Start
 
-Systematic approaches to documenting knowledge that exists only in people's heads.
+With git history mined, tests written, and interviews conducted, the question becomes: what do you document first? You can't cover everything, and you shouldn't try. Focus on three categories:
 
-```typescript
-// Tribal knowledge capture template
-interface TribalKnowledgeEntry {
-  id: string
-  topic: string
-  category: 'gotcha' | 'workaround' | 'history' | 'undocumented-feature' |
-            'business-rule' | 'performance-tip' | 'debugging-tip'
-  description: string
-  source: string  // Who shared this knowledge
-  capturedDate: Date
-  affectedComponents: string[]
-  verificationStatus: 'unverified' | 'verified' | 'outdated'
-  relatedCode?: string  // File paths or function names
-  relatedTickets?: string[]
-}
+_The dangerous parts_: Code that everyone's afraid to change. Mistakes here have outsized consequences, so documentation provides essential guardrails.
 
-// Example entries
-const tribalKnowledge: TribalKnowledgeEntry[] = [
-  {
-    id: 'tk-001',
-    topic: 'Order sync timing dependency',
-    category: 'gotcha',
-    description: `Orders must be synced to the warehouse system before
-      11:59 PM EST for same-day processing. The sync job runs at 11:45 PM
-      but can take up to 20 minutes during high volume. If orders aren't
-      in WMS by midnight, they get pushed to next day regardless of
-      promised delivery date.`,
-    source: 'Jane Smith (Operations)',
-    capturedDate: new Date('2024-01-15'),
-    affectedComponents: ['order-service', 'wms-sync-job'],
-    verificationStatus: 'verified',
-    relatedCode: 'src/jobs/wms-sync.ts',
-    relatedTickets: ['OPS-1234', 'INCIDENT-567']
-  }
-]
-```
+_The confusing parts_: Code that requires explanation to understand. If every new team member asks the same questions, write down the answers once.
 
-## Creating Living Documentation
+_The business-critical parts_: Code where mistakes cost money or trigger compliance violations. The stakes justify the documentation investment.
 
-Documentation strategies that stay current as the system evolves.
+Tests as documentation have an advantage that prose never will: they break when behavior changes. A characterization test that fails is more valuable than a wiki page that silently becomes wrong. Where possible, encode knowledge in tests rather than documents.
 
-### Architecture Decision Records
-
-Capturing the context behind decisions for future maintainers.
-
-```markdown
-# ADR-0015: Switch from REST to GraphQL for Mobile API
-
-## Status
-Accepted (2023-06-15)
-
-## Context
-Mobile apps make multiple sequential REST calls to render single screens,
-resulting in:
-- High latency on poor connections (each call = 1 RTT)
-- Over-fetching: REST endpoints return full objects when mobile needs 3 fields
-- N+1 patterns in app code to assemble related data
-
-## Decision
-Implement GraphQL API specifically for mobile clients. Keep REST for:
-- Server-to-server communication
-- Simple integrations
-- Webhook endpoints
-
-## Consequences
-### Positive
-- Single request per screen
-- Clients request exactly needed fields
-- Strong typing with codegen
-
-### Negative
-- Two API surfaces to maintain
-- Team needs GraphQL training
-- Caching more complex (no HTTP caching)
-
-### Risks
-- Query complexity could enable DoS
-- Mitigation: implement query depth and cost limits
-
-## Alternatives Considered
-1. **BFF pattern**: Rejected - still requires backend changes for each mobile view
-2. **REST with sparse fieldsets**: Rejected - doesn't solve N+1 or related data issues
-3. **gRPC**: Rejected - poor browser support, mobile team unfamiliar
-```
-
-### Documentation-as-Code Patterns
-
-Keeping documentation in the repository alongside code.
-
-```typescript
-// JSDoc as living documentation
-/**
- * Processes refund requests for completed orders.
- *
- * Business Rules:
- * - Full refunds allowed within 30 days of delivery
- * - Partial refunds allowed within 90 days
- * - Refunds over $500 require manager approval (status: pending_approval)
- * - Digital goods are non-refundable after download
- *
- * Integration Notes:
- * - Calls payment-service for actual refund processing
- * - Triggers inventory-service restock for physical goods
- * - Sends notification via notification-service
- *
- * @param orderId - The order to refund
- * @param refundRequest - Refund details including reason and amount
- * @throws {OrderNotFoundError} If order doesn't exist
- * @throws {RefundWindowExpiredError} If outside refund window
- * @throws {NonRefundableItemError} If order contains non-refundable items
- *
- * @example
- * // Full refund
- * const result = await refundService.processRefund('order_123', {
- *   type: 'full',
- *   reason: 'customer_request'
- * })
- *
- * @example
- * // Partial refund for damaged item
- * const result = await refundService.processRefund('order_123', {
- *   type: 'partial',
- *   amount: 2500,
- *   lineItems: ['item_456'],
- *   reason: 'damaged_in_shipping'
- * })
- */
-async function processRefund(
-  orderId: string,
-  refundRequest: RefundRequest
-): Promise<RefundResult> {
-  // Implementation...
-}
-```
-
-### Automated Documentation Validation
-
-Ensuring documentation stays synchronized with code.
-
-```typescript
-// Documentation validation in CI
-interface DocValidation {
-  file: string
-  type: 'api-doc' | 'architecture-diagram' | 'adr'
-  lastCodeChange: Date
-  lastDocUpdate: Date
-  staleDays: number
-  status: 'current' | 'stale' | 'critical'
-}
-
-async function validateDocumentation(): Promise<DocValidation[]> {
-  const validations: DocValidation[] = []
-
-  // Check API documentation against OpenAPI spec
-  const openApiSpec = await loadOpenApiSpec()
-  const implementedEndpoints = await scanImplementedEndpoints()
-
-  for (const endpoint of implementedEndpoints) {
-    const documented = openApiSpec.paths[endpoint.path]?.[endpoint.method]
-    if (!documented) {
-      console.error(`Undocumented endpoint: ${endpoint.method} ${endpoint.path}`)
-    }
-  }
-
-  // Check architecture diagrams
-  const diagrams = glob.sync('docs/architecture/*.md')
-  for (const diagram of diagrams) {
-    const diagramModified = getFileModifiedDate(diagram)
-    const relatedCodeModified = await getRelatedCodeModifiedDate(diagram)
-
-    const staleDays = daysBetween(diagramModified, relatedCodeModified)
-
-    validations.push({
-      file: diagram,
-      type: 'architecture-diagram',
-      lastCodeChange: relatedCodeModified,
-      lastDocUpdate: diagramModified,
-      staleDays,
-      status: staleDays > 90 ? 'critical' : staleDays > 30 ? 'stale' : 'current'
-    })
-  }
-
-  return validations
-}
-
-// GitHub Action for documentation staleness
-const githubAction = `
-name: Documentation Freshness Check
-
-on:
-  schedule:
-    - cron: '0 9 * * 1'  # Weekly on Monday
-
-jobs:
-  check-docs:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Full history for date comparison
-
-      - name: Check documentation freshness
-        run: npm run validate-docs
-
-      - name: Create issue for stale docs
-        if: failure()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const staleDocs = JSON.parse(process.env.STALE_DOCS)
-            await github.rest.issues.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: 'Documentation freshness alert',
-              body: staleDocs.map(d => \`- \${d.file}: \${d.staleDays} days stale\`).join('\\n'),
-              labels: ['documentation', 'tech-debt']
-            })
-`
-```
-
-## Conclusion
-
-Reverse-engineering documentation from legacy systems requires a multi-layered approach: static code analysis reveals structure, runtime observation reveals behavior, git archaeology reveals history and context, and knowledge extraction from people reveals intent and gotchas. The goal isn't comprehensive documentation of everything—it's capturing the knowledge most likely to prevent the next incident or unblock the next feature. Prioritize documenting the dangerous parts (the code everyone's afraid to touch), the confusing parts (the code that requires explanation), and the business-critical parts (the code where mistakes cost money). Tests as documentation have the advantage of breaking when behavior changes, making them self-maintaining in ways that prose documentation never will be.
+The documentation you create today will decay. Accept that reality. Choose formats that break visibly when they become stale—tests, generated diagrams, validated specs—and reserve prose documentation for the knowledge that can't be captured any other way.
 
 ---
 
-## Cover Image Prompts
+CTA Title: Go Deeper: The Complete Guide to Documenting Undocumented Systems
 
-### Prompt 1: Archaeological Dig Site Abstraction
-Aerial photograph of an archaeological excavation site at dusk, showing distinct grid sections with partially revealed artifacts and structures. Warm amber lighting from work lamps contrasts with cool blue twilight sky. The grid pattern evokes code structure while the layered earth suggests accumulated history and hidden complexity waiting to be uncovered.
-
-### Prompt 2: Palimpsest Manuscript
-Close-up photograph of an ancient palimpsest manuscript showing multiple layers of text bleeding through each other—older erased writing visible beneath newer text. Captured under specialized lighting that reveals the hidden layers. Warm parchment tones with faded iron gall ink in various browns and blacks. Metaphor for code with hidden history.
-
-### Prompt 3: Map Making Instruments
-Still life arrangement of antique cartography tools: compass, dividers, magnifying glass, and partially completed hand-drawn map on aged paper. Dramatic side lighting creating long shadows. The map shows coastlines emerging from fog-like blank areas—discovered regions versus unexplored territory. Rich wood tones and brass instruments.
-
-### Prompt 4: X-Ray of Complex Mechanism
-X-ray or CT scan image of a complex mechanical device (vintage clock or typewriter mechanism), revealing internal structure invisible from outside. Blue-white radiographic aesthetic with layered transparency showing gears, springs, and linkages. Technical and revelatory—seeing hidden internal architecture.
-
-### Prompt 5: Cave Painting to Blueprint Transition
-Split composition: left side shows primitive cave painting style (ochre and charcoal on stone texture) depicting simple process flow. Right side shows the same flow as a modern technical blueprint with precise lines and annotations. The transition zone in the middle shows the transformation from informal knowledge to formal documentation. Warm earth tones transitioning to cool technical blue.
+CTA Body: This article covers the fundamentals, but there's much more to systematic documentation recovery. The complete guide includes runtime observation techniques for understanding system behavior under real traffic, automated diagram generation from code and infrastructure, creating living documentation that stays current through CI validation, and detailed interview frameworks for extracting tribal knowledge. Download the PDF for the full methodology.
