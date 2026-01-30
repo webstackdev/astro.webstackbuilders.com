@@ -1242,6 +1242,23 @@ Design an image of a control room with multiple screens showing gate status. Mos
 
 ### Prompt 1: Archaeological Dig Site Abstraction
 
+## Cover Image Prompts
+
+### Prompt 1: Industrial Shutdown Sequence
+Photograph of an industrial control panel with illuminated switches and buttons, some in the off position with red indicators. Steam or mist in the background suggesting shutdown of machinery. Dramatic low-key lighting with highlights on the metal switches. The sense of controlled, deliberate deactivation.
+
+### Prompt 2: Unplugged Server Cables
+Close-up photograph of disconnected ethernet and power cables hanging loose against a server rack background. Shallow depth of field with the disconnected ends in sharp focus. Cool blue data center lighting with warm accent from status LEDs on distant equipment. The finality of disconnection.
+
+### Prompt 3: Fading Signal Visualization
+Abstract visualization of a signal or waveform gradually fading from strong to flat. Left side shows vibrant, active waveform in bright colors (green/cyan). Right side shows the same signal diminishing through yellow to orange to a flat red line. Clean dark background with subtle grid suggesting monitoring interface.
+
+### Prompt 4: Demolition in Progress
+Architectural photograph of a building mid-demolition, showing the controlled nature of the process. Partial structure remaining with clean cuts where sections have been removed. Clear blue sky contrasting with the industrial scene. The idea of planned, methodical removal rather than destruction.
+
+### Prompt 5: Archive Storage Facility
+Photograph of long rows of archive storage boxes on industrial shelving, extending into the distance with dramatic perspective. Warm incandescent lighting creating pools of light between shadows. Labels visible on nearest boxes suggesting organized retirement. The sense of data preserved but no longer active.
+
 Aerial photograph of an archaeological excavation site at dusk, showing distinct grid sections with partially revealed artifacts and structures. Warm amber lighting from work lamps contrasts with cool blue twilight sky. The grid pattern evokes code structure while the layered earth suggests accumulated history and hidden complexity waiting to be uncovered.
 
 ### Prompt 2: Palimpsest Manuscript
@@ -1281,3 +1298,25 @@ Close-up photograph of a leather-bound registry or ledger book lying open, showi
 ### Prompt 5: Digital Filing System
 
 Isometric 3D illustration of a modern digital filing system concept—floating translucent folders with glowing document icons, connected by thin lines suggesting relationships. Gradient background from deep purple to dark blue. Clean, modern aesthetic with glass-like transparency effects. Represents digital organization and metadata structure.
+
+## service-decommissioning-scream-test-shutdown
+
+### Prompt 1: Industrial Shutdown Sequence
+
+Photograph of an industrial control panel with illuminated switches and buttons, some in the off position with red indicators. Steam or mist in the background suggesting shutdown of machinery. Dramatic low-key lighting with highlights on the metal switches. The sense of controlled, deliberate deactivation.
+
+### Prompt 2: Unplugged Server Cables
+
+Close-up photograph of disconnected ethernet and power cables hanging loose against a server rack background. Shallow depth of field with the disconnected ends in sharp focus. Cool blue data center lighting with warm accent from status LEDs on distant equipment. The finality of disconnection.
+
+### Prompt 3: Fading Signal Visualization
+
+Abstract visualization of a signal or waveform gradually fading from strong to flat. Left side shows vibrant, active waveform in bright colors (green/cyan). Right side shows the same signal diminishing through yellow to orange to a flat red line. Clean dark background with subtle grid suggesting monitoring interface.
+
+### Prompt 4: Demolition in Progress
+
+Architectural photograph of a building mid-demolition, showing the controlled nature of the process. Partial structure remaining with clean cuts where sections have been removed. Clear blue sky contrasting with the industrial scene. The idea of planned, methodical removal rather than destruction.
+
+### Prompt 5: Archive Storage Facility
+
+Photograph of long rows of archive storage boxes on industrial shelving, extending into the distance with dramatic perspective. Warm incandescent lighting creating pools of light between shadows. Labels visible on nearest boxes suggesting organized retirement. The sense of data preserved but no longer active.
