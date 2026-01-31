@@ -261,16 +261,23 @@ Complex Text and Instruction Following: The model demonstrates an enhanced under
 
 These are the services I specialize in and offer as package deals.
 
-There are two pricing variants: part-time stream and full-time stream. How to handle a part-time stream effectively since it might be hard to find two to bundle together? Maybe full time gets a weekend day of on-call and daytime hours, part-time gets evening hours?
+There are four pricing variants:
+- part-time stream out of hours evening weekdays
+- full-time stream in hours weekdays
+- on call rotation
+- ad-hoc projects on time available
+
+Ad hoc:
 
 - Backstage implementation. How to do this so I'm delivering platforms, not portals? What's the scope - pipeline design, etc.?
 - Refactoring legacy code bases, "lift and shifts"
 
+On-call rates:
+
+$2500 onboarding + $500 just for being on call for the week + hours paid for actually being called : 150% hourly rate on week nights or 200% hourly rate on weekends/holidays, for each call I received (1 call = 1 hour paid, even if I worked 10minutes on the problem). RCAs (root cause analysis) done after calls, to identify the underlying issue.
+
 ## Content
 
-service-decommissioning-scream-test-shutdown
-slo-error-budget-practical-guide
-slsa-build-provenance-artifact-signing-supply-chain
 strangler-fig-migration-observability-traffic-shifting
 strangler-fig-monolith-auth-extraction-migration
 structured-logging-correlation-ids-log-schema-design

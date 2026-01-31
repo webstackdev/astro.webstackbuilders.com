@@ -1342,3 +1342,25 @@ Minimalist illustration of a signal strength indicator (like WiFi bars) rendered
 ### Prompt 5: Control Room Dashboard
 
 Photograph or render of a modern operations control room with multiple screens displaying graphs, gauges, and status indicators. Blue ambient lighting with screens providing main illumination. Wide angle showing the scale of monitoring. The sense of comprehensive visibility into system health.
+
+## slsa-build-provenance-artifact-signing-supply-chain
+
+### Prompt 1: Chain Links with Digital Overlay
+
+Close-up photograph of heavy industrial chain links with a digital holographic overlay showing code signatures and checksums. Blue-green digital glow on metallic surfaces. Dark background with dramatic lighting. The fusion of physical security metaphor with digital verification.
+
+### Prompt 2: Wax Seal on Digital Document
+
+Artistic render of a traditional red wax seal stamped on a digital document or code file. The seal shows cryptographic symbols instead of traditional heraldry. Blend of antique and modern aesthetics. Parchment texture transitioning to pixel grid.
+
+### Prompt 3: Factory Assembly Line with QR Codes
+
+Photograph of a modern manufacturing assembly line where each product has a visible QR code or digital tag being scanned. Clean, well-lit industrial environment. The concept of provenance and tracking through production.
+
+### Prompt 4: Fingerprint on Circuit Board
+
+Macro photograph of a human fingerprint pattern overlaid on or etched into a circuit board surface. Green PCB with copper traces. The fingerprint as metaphor for unique identity and verification.
+
+### Prompt 5: Notary Stamp and Keyboard
+
+Photograph of a traditional notary public embosser/stamp next to a modern keyboard or laptop. Documents with both physical embossed seals and printed cryptographic hashes. The evolution of attestation from physical to digital.
