@@ -1364,3 +1364,25 @@ Macro photograph of a human fingerprint pattern overlaid on or etched into a cir
 ### Prompt 5: Notary Stamp and Keyboard
 
 Photograph of a traditional notary public embosser/stamp next to a modern keyboard or laptop. Documents with both physical embossed seals and printed cryptographic hashes. The evolution of attestation from physical to digital.
+
+## strangler-fig-migration-observability-traffic-shifting
+
+### Prompt 1: Strangler Fig Tree on Ancient Ruins
+
+Photograph of a strangler fig tree wrapped around ancient temple ruins (like Ta Prohm in Cambodia). Massive roots engulfing stone architecture. Dappled sunlight through the canopy. The organic taking over the structural—the perfect metaphor for the pattern's namesake.
+
+### Prompt 2: Traffic Flow Split Visualization
+
+Abstract visualization of traffic flow splitting like a river delta or arterial system. Bright streams dividing from one into two paths of different sizes. Dark background with luminous blue/green flow lines. Data visualization aesthetic showing the percentage split.
+
+### Prompt 3: Bridge Construction with Traffic
+
+Photograph of a highway bridge being rebuilt alongside an existing bridge with traffic still flowing. The old and new structures parallel to each other. Construction equipment visible. The reality of maintaining service while building the replacement.
+
+### Prompt 4: Dual Dashboard Comparison
+
+Photograph or render of a control room with two large monitors side by side showing identical dashboard layouts with different metrics. One labeled "Legacy" one labeled "New". Operators studying the comparison. The visual comparison that drives migration confidence.
+
+### Prompt 5: Migration Timeline Visualization
+
+Infographic-style illustration showing a horizontal timeline with gradual color transition from orange (legacy) to blue (new). Key milestones marked along the timeline. Clean minimal design. The progressive nature of strangler fig migration over time.

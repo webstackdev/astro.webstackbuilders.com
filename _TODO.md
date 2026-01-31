@@ -278,8 +278,6 @@ $2500 onboarding + $500 just for being on call for the week + hours paid for act
 
 ## Content
 
-strangler-fig-migration-observability-traffic-shifting
-strangler-fig-monolith-auth-extraction-migration
 structured-logging-correlation-ids-log-schema-design
 symptom-based-alerting-runbooks-alert-design
 synthetic-test-data-pii-anonymization-fixtures
