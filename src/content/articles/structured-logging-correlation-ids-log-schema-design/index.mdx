@@ -1217,22 +1217,3 @@ New fields must be optional. Parsers must ignore unknown fields. Type changes re
 ## Conclusion
 
 Structured logging at scale requires discipline across three dimensions: schema consistency, correlation propagation, and noise management. Adopt ECS rather than inventing a schema—it handles most use cases and enables cross-organization tooling compatibility. Implement correlation IDs at every boundary: HTTP headers for synchronous calls, message envelopes for async, and AsyncLocalStorage for automatic propagation within services. Redact sensitive data at the source, not the sink—assume logs will be accessed by anyone with read permissions. Use collector-side processing to filter noise before storage: drop health checks and debug logs, sample high-volume events, aggregate repetitive patterns. Establish schema governance early; field naming decisions made in month one will constrain querying for years. The investment in structured logging pays off at 3 AM when you can query `trace.id:abc123 AND log.level:error` and see every error across every service for a single user request, instead of grepping through incompatible text logs from a dozen services.
-
----
-
-## Cover Image Prompts
-
-### Prompt 1: Network of Connected Nodes with IDs
-Abstract visualization of interconnected nodes, each labeled with unique identifiers, trace lines connecting them in a web pattern. Clean digital aesthetic with glowing connection lines. Representing correlation across distributed systems.
-
-### Prompt 2: Library Card Catalog Modernized
-Photograph of a vintage wooden library card catalog transitioning into digital holographic displays—the physical drawers morphing into structured data fields. The organization of information metaphor.
-
-### Prompt 3: Signal vs Noise Visualization
-Split image showing chaotic static/noise on one side transitioning to clean, organized waveforms on the other. The filtering and structuring of raw data into useful signals.
-
-### Prompt 4: DNA Double Helix as Data Structure
-Stylized DNA double helix where the base pairs are replaced with field names and values—the genetic structure of log data. Biological meets digital aesthetic, representing the schema as the genetic code of observability.
-
-### Prompt 5: Breadcrumb Trail Through Forest
-Photograph or illustration of illuminated breadcrumbs creating a clear path through a dark, dense forest. Each breadcrumb glowing with a small identifier. The trail that lets you trace your way back through complexity.

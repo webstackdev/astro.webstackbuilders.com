@@ -205,6 +205,7 @@ To overlay an article title and published date on a cover image, use CSS positio
 - 404 page should show search results based on query
 - Times like "11:59:59" are breaking across two lines - src/content/articles/rate-limiting-token-bucket-leaky-bucket-implementation/index.mdx in "Algorithm Overview" section
 - Remove the dynamic Services page, and show it all on a single page. Three services: full time workflow, part time workflow, on-call support + onboarding fee.
+- add "cel" language to code blocks
 
 ## Reading position indicator
 
@@ -282,8 +283,6 @@ structured-logging-correlation-ids-log-schema-design
 symptom-based-alerting-runbooks-alert-design
 synthetic-test-data-pii-anonymization-fixtures
 terraform-module-design-defaults-versioning-interfaces
-terraform-state-locking-corruption-recovery-backend
-workload-identity-federation-keyless-cloud-authentication
 
 ## Content Issues
 

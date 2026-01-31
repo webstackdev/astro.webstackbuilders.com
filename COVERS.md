@@ -1240,24 +1240,7 @@ Design an image of a control room with multiple screens showing gate status. Mos
 
 ## reverse-engineering-documentation-legacy-systems
 
-### Prompt 1: Archaeological Dig Site Abstraction
-
-## Cover Image Prompts
-
-### Prompt 1: Industrial Shutdown Sequence
-Photograph of an industrial control panel with illuminated switches and buttons, some in the off position with red indicators. Steam or mist in the background suggesting shutdown of machinery. Dramatic low-key lighting with highlights on the metal switches. The sense of controlled, deliberate deactivation.
-
-### Prompt 2: Unplugged Server Cables
-Close-up photograph of disconnected ethernet and power cables hanging loose against a server rack background. Shallow depth of field with the disconnected ends in sharp focus. Cool blue data center lighting with warm accent from status LEDs on distant equipment. The finality of disconnection.
-
-### Prompt 3: Fading Signal Visualization
-Abstract visualization of a signal or waveform gradually fading from strong to flat. Left side shows vibrant, active waveform in bright colors (green/cyan). Right side shows the same signal diminishing through yellow to orange to a flat red line. Clean dark background with subtle grid suggesting monitoring interface.
-
-### Prompt 4: Demolition in Progress
-Architectural photograph of a building mid-demolition, showing the controlled nature of the process. Partial structure remaining with clean cuts where sections have been removed. Clear blue sky contrasting with the industrial scene. The idea of planned, methodical removal rather than destruction.
-
-### Prompt 5: Archive Storage Facility
-Photograph of long rows of archive storage boxes on industrial shelving, extending into the distance with dramatic perspective. Warm incandescent lighting creating pools of light between shadows. Labels visible on nearest boxes suggesting organized retirement. The sense of data preserved but no longer active.
+### Prompt 1
 
 Aerial photograph of an archaeological excavation site at dusk, showing distinct grid sections with partially revealed artifacts and structures. Warm amber lighting from work lamps contrasts with cool blue twilight sky. The grid pattern evokes code structure while the layered earth suggests accumulated history and hidden complexity waiting to be uncovered.
 
@@ -1386,3 +1369,113 @@ Photograph or render of a control room with two large monitors side by side show
 ### Prompt 5: Migration Timeline Visualization
 
 Infographic-style illustration showing a horizontal timeline with gradual color transition from orange (legacy) to blue (new). Key milestones marked along the timeline. Clean minimal design. The progressive nature of strangler fig migration over time.
+
+## structured-logging-correlation-ids-log-schema-design
+
+### Prompt 1: Network of Connected Nodes with IDs
+
+Abstract visualization of interconnected nodes, each labeled with unique identifiers, trace lines connecting them in a web pattern. Clean digital aesthetic with glowing connection lines. Representing correlation across distributed systems.
+
+### Prompt 2: Library Card Catalog Modernized
+
+Photograph of a vintage wooden library card catalog transitioning into digital holographic displays—the physical drawers morphing into structured data fields. The organization of information metaphor.
+
+### Prompt 3: Signal vs Noise Visualization
+
+Split image showing chaotic static/noise on one side transitioning to clean, organized waveforms on the other. The filtering and structuring of raw data into useful signals.
+
+### Prompt 4: DNA Double Helix as Data Structure
+
+Stylized DNA double helix where the base pairs are replaced with field names and values—the genetic structure of log data. Biological meets digital aesthetic, representing the schema as the genetic code of observability.
+
+### Prompt 5: Breadcrumb Trail Through Forest
+
+Photograph or illustration of illuminated breadcrumbs creating a clear path through a dark, dense forest. Each breadcrumb glowing with a small identifier. The trail that lets you trace your way back through complexity.
+
+## symptom-based-alerting-runbooks-alert-design
+
+### Prompt 1: Signal Emerging from Noise
+
+Abstract visualization of a clean, bright signal wave emerging from chaotic static/noise. The contrast between random noise on one side and clear, interpretable signal on the other. Representing actionable alerts rising above noise.
+
+### Prompt 2: Control Room with Single Active Alert
+
+Photograph of a modern operations center with many monitors, all green/calm except for one displaying a clear, specific alert. The focus on signal in a sea of potential noise. Professional, high-tech environment.
+
+### Prompt 3: Alarm Bell with Precision Mechanism
+
+Close-up photograph of a vintage alarm bell with its internal mechanism visible—precise gears and springs. The engineering that ensures an alarm only sounds when it should. Mechanical precision metaphor.
+
+### Prompt 4: Firefighter's Decision Moment
+
+Stylized photograph of a firefighter at a control panel or dispatch board, finger hovering over specific buttons. The moment of deciding which emergency deserves response. Focus and prioritization under pressure.
+
+### Prompt 5: Lighthouse Beam Cutting Through Fog
+
+Dramatic photograph of a lighthouse beam cutting through dense fog, creating a clear path of light. The beacon that provides clarity in confusion, guiding to what matters. Night scene with atmospheric conditions.
+
+## synthetic-test-data-pii-anonymization-fixtures
+
+### Prompt 1: Mannequin Factory with Individual Features
+
+Photograph of mannequins being manufactured, each with slightly different features—realistic enough for display but clearly not real people. Assembly line of synthetic humans. The parallel to synthetic data that looks real but represents no one.
+
+### Prompt 2: Redacted Document with Visible Structure
+
+Close-up photograph of a heavily redacted document where black bars cover sensitive text but the document structure (headings, bullet points, tables) remains visible. The balance between privacy and utility.
+
+### Prompt 3: Mask Collection Display
+
+Artistic photograph of theatrical masks arranged in a display—diverse faces, none real, all serving a purpose. The persona without the person. Privacy through abstraction.
+
+### Prompt 4: Data Points Transforming
+
+Abstract visualization showing data points (represented as small spheres or particles) passing through a transformation barrier—one color/shape on entry, different on exit. The anonymization process visualized.
+
+### Prompt 5: Laboratory Test Tubes with Synthetic Specimens
+
+Photograph of laboratory test tubes containing synthetic or artificial specimens—clearly lab-created but useful for testing. Clean, clinical environment. The controlled creation of test materials that replace real samples.
+
+## terraform-module-design-defaults-versioning-interfaces
+
+### Prompt 1: Modular Building Blocks with Connectors
+
+Photograph of precision-engineered building blocks with standardized connection points—each block different internally but with identical interface points. The LEGO-like interoperability of well-designed modules.
+
+### Prompt 2: Blueprint with Version Annotations
+
+Architectural blueprint or technical drawing with version numbers, revision marks, and change annotations in the margins. The documentation of interface evolution over time. Clean technical aesthetic.
+
+### Prompt 3: Electrical Plug and Socket Standards
+
+Collection photograph of electrical plugs and sockets from different countries—all solving the same problem with different interfaces. The challenge of interface standardization. Clean product photography style.
+
+### Prompt 4: Contract Document with Seal
+
+Stylized photograph of a formal contract document with a wax seal or notary stamp. Clean, professional, suggesting binding agreement. The module interface as a promise between producer and consumer.
+
+### Prompt 5: API Gateway Visualization
+
+Abstract visualization of requests flowing through a gateway/interface layer—chaotic inputs on one side, organized outputs on the other. The transformation and standardization that good interfaces provide.
+
+## terraform-state-locking-corruption-recovery-backend
+
+### Prompt 1: Broken Key vs Digital Identity
+
+Split image showing an old physical key broken in half on one side, and flowing digital identity patterns (biometric, tokens, waves) on the other. The transition from physical to digital authentication.
+
+### Prompt 2: Identity Federation Handshake
+
+Abstract visualization of two systems exchanging trust—one representing a CI platform (GitHub logo stylized), one representing cloud (AWS/GCP/Azure abstract), with glowing tokens passing between them through secure channels.
+
+### Prompt 3: Vault Door with Expiring Access
+
+Modern bank vault door with a prominent digital countdown timer showing "00:59:42" remaining. Short-lived access vs permanent keys. Clean, minimal, high-security aesthetic.
+
+### Prompt 4: Chain of Trust Visualization
+
+Abstract art showing a chain made of interlocking digital certificates and tokens, each link glowing with verification status, representing the chain of trust from workload to cloud.
+
+### Prompt 5: Key Graveyard at Sunset
+
+Atmospheric photograph of old-fashioned metal keys scattered and abandoned in grass, with a sunset sky. The end of the era of long-lived credentials. Melancholic but hopeful tone.
