@@ -1479,3 +1479,23 @@ Abstract art showing a chain made of interlocking digital certificates and token
 ### Prompt 5: Key Graveyard at Sunset
 
 Atmospheric photograph of old-fashioned metal keys scattered and abandoned in grass, with a sunset sky. The end of the era of long-lived credentials. Melancholic but hopeful tone.
+
+### Prompt 1: Vault Door with Combination Lock
+
+Dramatic photograph of a bank vault door with complex locking mechanism—multiple bolts, combination dial, time lock visible. The protection of critical state data. Heavy, secure, serious.
+
+### Prompt 2: Database Recovery Operation
+
+Photograph of a server room with technicians working on recovery—screens showing data, cables, focused activity. The intensity of state recovery operations. Blue-lit, technical environment.
+
+### Prompt 3: Corrupted File Visualization
+
+Abstract digital art showing a document or file fragmenting or corrupting—clean data on one side dissolving into chaos on the other. The visual representation of state corruption.
+
+### Prompt 4: Lock and Key with Timestamp
+
+Stylized photograph of an antique lock with a key, overlaid with digital timestamp displays. The combination of locking mechanism and temporal nature of state operations.
+
+### Prompt 5: Surgeon Operating with Precision
+
+Medical photograph of surgical instruments during a precise operation—the careful, methodical nature of state surgery. Clean, focused, high-stakes environment.
