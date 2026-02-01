@@ -279,10 +279,8 @@ $2500 onboarding + $500 just for being on call for the week + hours paid for act
 
 ## Content
 
-structured-logging-correlation-ids-log-schema-design
 symptom-based-alerting-runbooks-alert-design
 synthetic-test-data-pii-anonymization-fixtures
-terraform-module-design-defaults-versioning-interfaces
 
 ## Content Issues
 
@@ -332,3 +330,29 @@ Add suggested text for a call to action to download the longer PDF at the bottom
 __review_article__
 
 Let's review the article in its entirety now, and make any suggestions you find that would improve the readability or quality of the article. Do not make any changes - just review and put together a list of suggestions to discuss. Ignore the call to action at the bottom of the article.
+
+
+```1
+---
+config:
+  flowchart:
+    nodeSpacing: 35
+    rankSpacing: 35
+---
+flowchart TB
+  subgraph inconsistent[Unstructured: 5 Queries, Uncertain Coverage]
+    A1["grep 'User 12345'"]
+    A2["grep 'user_id=12345'"]
+    A3["jq '.user==\"12345\"'"]
+    A4["grep 'user 12345'"]
+    A5["grep 'userId.*12345'"]
+    A1 ~~~ A2 ~~~ A3 ~~~ A4 ~~~ A5
+  end
+
+  subgraph consistent[Structured: 1 Query, Full Coverage]
+    B1["user.id:12345 AND event.action:login"]
+  end
+
+  inconsistent --> result1["~70% accuracy, false negatives unknown"]
+  consistent --> result2["99%+ accuracy, all services covered"]
+```
