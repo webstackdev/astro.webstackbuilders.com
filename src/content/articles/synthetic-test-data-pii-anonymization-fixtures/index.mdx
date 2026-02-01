@@ -1,6 +1,6 @@
 ---
 title: "Test Data Without PII Leaks"
-description: "Realistic fixtures for ephemeral environments that do not expose production data or violate privacy."
+description: "Generate realistic test fixtures without copying production data or risking compliance violations."
 cover: "./cover.png"
 coverAlt: "TODO"
 author: "kevin-brown"
@@ -9,1075 +9,167 @@ tags: ["reliability-and-testing"]
 featured: true
 ---
 
-*[CCPA]: California Consumer Privacy Act
 *[GDPR]: General Data Protection Regulation
-*[HIPAA]: Health Insurance Portability and Accountability Act
-*[PCI]: Payment Card Industry
-*[PHI]: Protected Health Information
 *[PII]: Personally Identifiable Information
-*[RBAC]: Role-Based Access Control
 
-Synthetic data generation, anonymization approaches, seed data management, and compliance considerations.
+Three weeks into a new engagement, I found 47,000 real customer records in the staging database. Names, emails, phone numbers, addresses—everything. The dev team's rationale was familiar: "We needed realistic data for testing." When I asked about their data retention policy for non-production environments, the room went quiet.
 
-Synthetic data requires discipline but enables safe testing.
+That staging database had been copied from production eighteen months ago and never refreshed. It had survived three contractor rotations, two security group misconfigurations, and one laptop theft. Nobody knew where copies of it lived.
 
-## The Production Data Trap
+This is the production data trap. Copying real data feels like the path of least resistance, but it creates legal liability that compounds silently until an auditor or attacker finds it. GDPR fines can reach €20 million or 4% of global revenue. HIPAA penalties can exceed $50,000 per violation. And beyond fines, there's the breach notification process: legal fees, customer communication, credit monitoring services, and the reputational damage that follows.
 
-Copying production to lower environments is easy, dangerous, and often illegal.
+The escape route is synthetic data—but it's harder than the blog posts make it look.
 
-### Why Teams Use Production Data
+## The Schema Relationship Problem
 
-The path of least resistance creates the biggest risks.
+Most tutorials show you how to create a fake user: `fake.name()`, `fake.email()`, done. But real databases don't have isolated tables. They have foreign keys, check constraints, and business rules that span entities. Generate data that violates those relationships and your tests fail for reasons that have nothing to do with what you're testing.
 
-```typescript
-// Common justifications for production data in testing
-interface ProductionDataJustification {
-  justification: string
-  realityCheck: string
-  betterApproach: string
-}
+Consider an e-commerce schema where orders reference customers, order items reference both orders and products, and payments reference orders. You can't insert an order without a valid customer. You can't insert a payment without a valid order. The generation order matters.
 
-const justifications: ProductionDataJustification[] = [
-  {
-    justification: 'We need realistic data for testing',
-    realityCheck: 'Synthetic data can be equally realistic with proper generation',
-    betterApproach: 'Use Faker with domain-specific generators'
-  },
-  {
-    justification: 'Our schema is too complex to fake',
-    realityCheck: 'If you cannot generate test data, you cannot test effectively anyway',
-    betterApproach: 'Build generators incrementally as you build features'
-  },
-  {
-    justification: 'We need to reproduce production bugs',
-    realityCheck: 'You need the *pattern* that caused the bug, not actual user data',
-    betterApproach: 'Extract and anonymize the minimal reproduction case'
-  },
-  {
-    justification: 'Performance testing requires real volumes',
-    realityCheck: 'Synthetic data at scale tests performance equally well',
-    betterApproach: 'Generate data with production-like distributions'
-  },
-  {
-    justification: 'It is just internal/staging—nobody will see it',
-    realityCheck: 'Staging breaches happen; compliance does not care about intent',
-    betterApproach: 'Treat all environments as potentially compromised'
-  }
-]
+The solution is to extract this dependency graph from your database and generate data in topological order—parents before children:
+
+```python title="schema_discovery.py"
+# Extract foreign key relationships from PostgreSQL
+def get_foreign_keys(conn) -> dict[str, list[str]]:
+    """Returns {child_table: [parent_tables]} mapping."""
+    query = """
+        SELECT tc.table_name AS child,
+               ccu.table_name AS parent
+        FROM information_schema.table_constraints tc
+        JOIN information_schema.constraint_column_usage ccu
+          ON tc.constraint_name = ccu.constraint_name
+        WHERE tc.constraint_type = 'FOREIGN KEY'
+    """
+    rows = conn.execute(query).fetchall()
+    deps = {}
+    for child, parent in rows:
+        deps.setdefault(child, []).append(parent)
+    return deps
 ```
 
-### The Cost of PII in Test Data
+Code: Extracting foreign key dependencies from PostgreSQL
 
-What can go wrong and what it costs.
+This query returns a dictionary mapping each child table to its parent dependencies. For the e-commerce schema, you'd get something like `{"orders": ["customers"], "order_items": ["orders", "products"], "payments": ["orders"]}`.
 
-| Risk | Consequence | Real-World Example |
-|------|-------------|-------------------|
-| Data breach in staging | GDPR fines up to €20M or 4% revenue | Staging DB exposed via misconfigured security group |
-| Developer laptop theft | Customer data compromise, notification requirements | Laptop with local DB copy stolen from car |
-| Log aggregation exposure | PII in logs indexed by third-party service | Customer names in error messages sent to Datadog |
-| Contractor access | PII exposure to untrusted parties | Offshore QA team with full production clone |
-| Backup retention | Production data in test backups subject to retention | Test DB backup stored for years, breached |
-| Compliance audit failure | Failed SOC2/HIPAA audit, lost enterprise deals | Auditor finds real SSNs in staging environment |
+Once you have the dependency graph, a topological sort gives you the safe generation order. Topological sorting arranges nodes so that every parent appears before its children—exactly what we need for insert ordering. For the e-commerce example, the sort might produce: `["customers", "products", "orders", "order_items", "payments"]`. Generate data in that sequence, and foreign key constraints never complain.
 
-```
-Mermaid diagram: PII exposure surface in non-production.
-Production Database
-        ↓
-   Copy to Staging
-        ↓
-   ┌────────────────────────────────────┐
-   │     Exposure Points                │
-   ├────────────────────────────────────┤
-   │ • Developer local copies           │
-   │ • CI/CD pipeline artifacts         │
-   │ • Log aggregation services         │
-   │ • Error tracking (Sentry)          │
-   │ • APM tools (New Relic)            │
-   │ • Database backups                 │
-   │ • Contractor access                │
-   │ • Shared demo environments         │
-   │ • Feature branch deployments       │
-   └────────────────────────────────────┘
+```python title="generation_order.py"
+from graphlib import TopologicalSorter
 
-Each point is a potential breach vector.
-Real data = Real liability.
+def get_generation_order(deps: dict[str, list[str]]) -> list[str]:
+    """Return tables in dependency-safe insertion order."""
+    ts = TopologicalSorter(deps)
+    return list(ts.static_order())
+
+# With the e-commerce schema:
+# get_generation_order(deps) -> ["customers", "products", "orders", ...]
 ```
 
-<Callout type="danger">
-Under GDPR, using production personal data for testing without explicit consent violates the purpose limitation principle. HIPAA requires PHI to be de-identified before use in development. PCI DSS prohibits real card numbers in non-production. The convenience is not worth the risk.
-</Callout>
+Code: Python's graphlib handles topological sorting
 
-## Synthetic Data Generation
+With the generation order in hand, iterate through tables and generate rows. For each child table, randomly select valid parent IDs from the rows you've already inserted. This approach scales to schemas with dozens of tables and complex constraint chains. The database already knows its own structure—you just need to ask it.
 
-Building realistic fake data from scratch.
+## Deterministic Anonymization
 
-### Faker-Based Generation
+Synthetic generation is the right choice for most test scenarios: unit tests, integration tests, and new feature development. But sometimes you genuinely need production data patterns. You're debugging a bug that only manifests with certain data distributions, reproducing a customer-reported issue, or running analytics tests that need realistic statistical properties. In these cases, synthetic generation won't cut it.
 
-Using faker libraries to generate realistic field values.
+The answer is deterministic anonymization: transform real values into fake ones using a hash-based seed. The same input always produces the same output, so relationships survive the transformation. Customer #12345 becomes "Jennifer Martinez" in every table, every time. Foreign keys still work because the IDs don't change—only the PII fields do.
 
-```typescript
-import { faker } from '@faker-js/faker'
+```python title="deterministic_anonymizer.py"
+from faker import Faker
+import hashlib
 
-// Basic user generation
-interface GeneratedUser {
-  id: string
-  email: string
-  firstName: string
-  lastName: string
-  phone: string
-  address: Address
-  dateOfBirth: Date
-  createdAt: Date
-}
+class DeterministicAnonymizer:
+    """Anonymize PII with consistent, reproducible fake values."""
 
-function generateUser(seed?: number): GeneratedUser {
-  if (seed !== undefined) {
-    faker.seed(seed)
-  }
+    def __init__(self, salt: str):
+        self.salt = salt
 
-  const firstName = faker.person.firstName()
-  const lastName = faker.person.lastName()
+    def _seeded_faker(self, value: str) -> Faker:
+        """Create a Faker instance seeded by the input value."""
+        hash_input = f"{self.salt}:{value}".encode()
+        seed = int(hashlib.sha256(hash_input).hexdigest()[:8], 16)
+        return Faker()._set_seed(seed)
 
-  return {
-    id: faker.string.uuid(),
-    email: faker.internet.email({ firstName, lastName }),
-    firstName,
-    lastName,
-    phone: faker.phone.number(),
-    address: {
-      street: faker.location.streetAddress(),
-      city: faker.location.city(),
-      state: faker.location.state({ abbreviated: true }),
-      zipCode: faker.location.zipCode(),
-      country: 'US'
-    },
-    dateOfBirth: faker.date.birthdate({ min: 18, max: 80, mode: 'age' }),
-    createdAt: faker.date.past({ years: 3 })
-  }
-}
+    def anonymize_email(self, real_email: str) -> str:
+        fake = self._seeded_faker(real_email)
+        return fake.email()
 
-// Seeded generation for reproducible fixtures
-function generateUserFixtures(count: number, baseSeed: number): GeneratedUser[] {
-  return Array.from({ length: count }, (_, i) =>
-    generateUser(baseSeed + i)
-  )
-}
-
-// Generate same users every time for snapshot testing
-const fixtureUsers = generateUserFixtures(100, 12345)
+    def anonymize_name(self, real_name: str) -> str:
+        fake = self._seeded_faker(real_name)
+        return fake.name()
 ```
 
-### Domain-Specific Generators
+Code: Hash-seeded Faker produces consistent fake values
 
-Creating generators that understand your business logic.
+The salt parameter is critical. It ensures that even if someone knows your anonymization technique, they can't reverse-engineer the mapping without the salt. Store it separately from the anonymized data—ideally in a secrets manager that test environments can't access.
 
-```typescript
-// E-commerce domain generators
-interface Order {
-  id: string
-  userId: string
-  items: OrderItem[]
-  subtotal: number
-  tax: number
-  shipping: number
-  total: number
-  status: OrderStatus
-  shippingAddress: Address
-  createdAt: Date
-  updatedAt: Date
+:::info
+For fields like SSNs, credit card numbers, and other regulatory-sensitive identifiers, don't anonymize—generate fresh fake values. This includes HIPAA-protected health identifiers (medical record numbers, health plan IDs), financial account numbers, and passport or driver's license numbers. These identifiers are too sensitive for any transformation that preserves a deterministic link to the original. Use Faker's `ssn()` and `credit_card_number()` methods to create syntactically valid but completely fictional values.
+:::
+
+You can also push anonymization into the database itself using PostgreSQL immutable functions, creating anonymized views that never expose raw PII to application code. The deep-dive PDF walks through this approach in detail.
+
+## Automated Compliance Scanning
+
+Even with proper generation and anonymization pipelines, PII sneaks in. A developer hardcodes a test email that happens to be real. An error message logs a customer name. A debug statement dumps a request body. You need automated scanning to catch what process misses.
+
+Build scanning into your CI pipeline so it runs on every commit:
+
+```python title="pii_scanner.py"
+import re
+
+PII_PATTERNS = {
+    "email": re.compile(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z]{2,}"),
+    "ssn": re.compile(r"\b\d{3}-\d{2}-\d{4}\b"),
+    "phone": re.compile(r"\b\d{3}[-.]?\d{3}[-.]?\d{4}\b"),
 }
 
-type OrderStatus = 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled'
-
-class EcommerceDataGenerator {
-  private productCatalog: Product[]
-
-  constructor(products: Product[]) {
-    this.productCatalog = products
-  }
-
-  generateOrder(userId: string, options: OrderOptions = {}): Order {
-    const itemCount = options.itemCount ?? faker.number.int({ min: 1, max: 5 })
-    const items = this.generateOrderItems(itemCount)
-
-    const subtotal = items.reduce((sum, item) => sum + item.total, 0)
-    const tax = Math.round(subtotal * 0.08 * 100) / 100
-    const shipping = subtotal > 5000 ? 0 : 499  // Free shipping over $50
-    const total = subtotal + tax + shipping
-
-    const createdAt = options.createdAt ?? faker.date.recent({ days: 30 })
-
-    return {
-      id: `ord_${faker.string.alphanumeric(12)}`,
-      userId,
-      items,
-      subtotal,
-      tax,
-      shipping,
-      total,
-      status: this.generateStatus(createdAt),
-      shippingAddress: this.generateAddress(),
-      createdAt,
-      updatedAt: this.generateUpdatedAt(createdAt)
-    }
-  }
-
-  private generateOrderItems(count: number): OrderItem[] {
-    // Select random products, avoiding duplicates
-    const selectedProducts = faker.helpers.arrayElements(
-      this.productCatalog,
-      Math.min(count, this.productCatalog.length)
-    )
-
-    return selectedProducts.map(product => {
-      const quantity = faker.number.int({ min: 1, max: 3 })
-      return {
-        productId: product.id,
-        productName: product.name,
-        sku: product.sku,
-        quantity,
-        unitPrice: product.price,
-        total: product.price * quantity
-      }
-    })
-  }
-
-  private generateStatus(createdAt: Date): OrderStatus {
-    const daysSinceCreation = (Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24)
-
-    // Status progression based on age
-    if (daysSinceCreation < 1) {
-      return faker.helpers.weightedArrayElement([
-        { value: 'pending', weight: 0.3 },
-        { value: 'confirmed', weight: 0.5 },
-        { value: 'cancelled', weight: 0.2 }
-      ])
-    } else if (daysSinceCreation < 3) {
-      return faker.helpers.weightedArrayElement([
-        { value: 'confirmed', weight: 0.3 },
-        { value: 'shipped', weight: 0.6 },
-        { value: 'cancelled', weight: 0.1 }
-      ])
-    } else {
-      return faker.helpers.weightedArrayElement([
-        { value: 'shipped', weight: 0.2 },
-        { value: 'delivered', weight: 0.75 },
-        { value: 'cancelled', weight: 0.05 }
-      ])
-    }
-  }
-
-  // Generate realistic distributions
-  generateOrderHistory(userId: string, months: number): Order[] {
-    // Users order 1-4 times per month on average
-    const ordersPerMonth = faker.number.float({ min: 0.5, max: 4 })
-    const totalOrders = Math.round(ordersPerMonth * months)
-
-    return Array.from({ length: totalOrders }, () => {
-      const createdAt = faker.date.recent({ days: months * 30 })
-      return this.generateOrder(userId, { createdAt })
-    }).sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
-  }
-}
+def scan_for_pii(content: str) -> list[dict]:
+    """Scan content for potential PII patterns."""
+    findings = []
+    for pii_type, pattern in PII_PATTERNS.items():
+        for match in pattern.finditer(content):
+            findings.append({
+                "type": pii_type,
+                "value": match.group()[:20] + "...",  # Truncate for safety
+                "position": match.start()
+            })
+    return findings
 ```
 
-### Constrained Generation
+Code: Basic PII pattern scanner for CI integration
 
-Generating data that satisfies business rules and constraints.
+For credit cards specifically, regex alone produces too many false positives—any 16-digit number matches. Add Luhn validation to distinguish real card numbers from random digits:
 
-```typescript
-// Constraint-based generation
-interface GenerationConstraints {
-  field: string
-  constraint: Constraint
-}
-
-type Constraint =
-  | { type: 'unique' }
-  | { type: 'range'; min: number; max: number }
-  | { type: 'enum'; values: string[] }
-  | { type: 'pattern'; regex: RegExp }
-  | { type: 'dependent'; dependsOn: string; rule: (value: unknown) => unknown }
-  | { type: 'foreignKey'; table: string; column: string }
-
-class ConstrainedGenerator {
-  private usedValues: Map<string, Set<unknown>> = new Map()
-  private generatedRecords: Map<string, unknown[]> = new Map()
-
-  generate<T>(schema: GenerationSchema<T>, count: number): T[] {
-    const results: T[] = []
-
-    for (let i = 0; i < count; i++) {
-      const record = this.generateRecord(schema)
-      results.push(record)
-      this.trackRecord(schema.table, record)
-    }
-
-    return results
-  }
-
-  private generateRecord<T>(schema: GenerationSchema<T>): T {
-    const record: Record<string, unknown> = {}
-
-    // Generate fields in dependency order
-    const sortedFields = this.topologicalSort(schema.fields)
-
-    for (const field of sortedFields) {
-      record[field.name] = this.generateField(field, record)
-    }
-
-    return record as T
-  }
-
-  private generateField(field: FieldSchema, partialRecord: Record<string, unknown>): unknown {
-    let value: unknown
-    let attempts = 0
-    const maxAttempts = 100
-
-    do {
-      value = this.generateRawValue(field, partialRecord)
-      attempts++
-
-      if (attempts > maxAttempts) {
-        throw new Error(`Cannot generate unique value for ${field.name} after ${maxAttempts} attempts`)
-      }
-    } while (field.unique && this.isUsed(field.name, value))
-
-    if (field.unique) {
-      this.markUsed(field.name, value)
-    }
-
-    return value
-  }
-
-  private generateRawValue(field: FieldSchema, partialRecord: Record<string, unknown>): unknown {
-    // Handle dependent fields
-    if (field.dependsOn) {
-      const dependentValue = partialRecord[field.dependsOn]
-      return field.deriveFn!(dependentValue)
-    }
-
-    // Handle foreign keys
-    if (field.foreignKey) {
-      const foreignRecords = this.generatedRecords.get(field.foreignKey.table) || []
-      if (foreignRecords.length === 0) {
-        throw new Error(`No records in ${field.foreignKey.table} for foreign key`)
-      }
-      const foreignRecord = faker.helpers.arrayElement(foreignRecords) as Record<string, unknown>
-      return foreignRecord[field.foreignKey.column]
-    }
-
-    // Handle enum constraints
-    if (field.enum) {
-      return faker.helpers.arrayElement(field.enum)
-    }
-
-    // Handle pattern constraints
-    if (field.pattern) {
-      return faker.helpers.fromRegExp(field.pattern)
-    }
-
-    // Default generation by type
-    return field.generator()
-  }
-}
-
-// Usage example
-const userSchema: GenerationSchema<User> = {
-  table: 'users',
-  fields: [
-    { name: 'id', generator: () => faker.string.uuid(), unique: true },
-    { name: 'email', generator: () => faker.internet.email(), unique: true },
-    { name: 'username', dependsOn: 'email', deriveFn: (email) => (email as string).split('@')[0] },
-    { name: 'status', enum: ['active', 'inactive', 'suspended'] },
-    { name: 'tier', enum: ['free', 'pro', 'enterprise'] }
-  ]
-}
-
-const orderSchema: GenerationSchema<Order> = {
-  table: 'orders',
-  fields: [
-    { name: 'id', generator: () => `ord_${faker.string.alphanumeric(12)}`, unique: true },
-    { name: 'userId', foreignKey: { table: 'users', column: 'id' } },
-    { name: 'status', enum: ['pending', 'confirmed', 'shipped', 'delivered'] }
-  ]
-}
+```python title="luhn_check.py"
+def is_valid_card(number: str) -> bool:
+    """Luhn algorithm validates credit card checksums."""
+    digits = [int(d) for d in number if d.isdigit()]
+    checksum = 0
+    for i, d in enumerate(reversed(digits)):
+        if i % 2 == 1:
+            d *= 2
+            if d > 9:
+                d -= 9
+        checksum += d
+    return checksum % 10 == 0
 ```
 
-## Production Data Anonymization
+Code: Luhn validation distinguishes real card numbers from random digits
 
-When you must start from production, transform it safely.
+The scanner won't catch everything—you'll need allowlists for legitimate test fixtures. For example, `test@example.com` is a valid email pattern but not real PII. Maintain an allowlist of known-safe values and exclude them from findings. You'll also need domain-specific patterns for your business data that regex can't detect.
 
-### Anonymization Techniques
+Run scans in multiple places: CI pipelines on every commit, scheduled jobs against database dumps, and log aggregation pipelines before data reaches third-party services. Flag findings as CI failures so they block deployment. The goal isn't perfect detection; it's making PII leaks harder than doing it right.
 
-Different approaches for different data types.
+## Getting It Right
 
-```typescript
-// Anonymization strategy per field type
-interface AnonymizationStrategy {
-  fieldType: string
-  technique: string
-  example: { original: string; anonymized: string }
-  preserves: string[]
-  destroys: string[]
-}
+Escaping the production data trap requires three capabilities: synthetic generation that respects schema relationships, deterministic anonymization for when you need production patterns, and automated scanning to catch what slips through.
 
-const anonymizationStrategies: AnonymizationStrategy[] = [
-  {
-    fieldType: 'Email',
-    technique: 'Format-preserving pseudonymization',
-    example: { original: 'john.doe@company.com', anonymized: 'user_8f3k2@example.com' },
-    preserves: ['Format validity', 'Uniqueness'],
-    destroys: ['Actual identity', 'Domain information']
-  },
-  {
-    fieldType: 'Name',
-    technique: 'Consistent fake replacement',
-    example: { original: 'John Doe', anonymized: 'Michael Smith' },
-    preserves: ['Linguistic plausibility', 'Cross-record consistency'],
-    destroys: ['Actual identity']
-  },
-  {
-    fieldType: 'Phone',
-    technique: 'Format-preserving randomization',
-    example: { original: '555-123-4567', anonymized: '555-987-6543' },
-    preserves: ['Format', 'Area code patterns'],
-    destroys: ['Actual number']
-  },
-  {
-    fieldType: 'Address',
-    technique: 'Generalization + fake details',
-    example: { original: '123 Main St, Springfield IL', anonymized: '456 Oak Ave, Springfield IL' },
-    preserves: ['Geographic region', 'Format'],
-    destroys: ['Specific location']
-  },
-  {
-    fieldType: 'Date of Birth',
-    technique: 'Bucketing or perturbation',
-    example: { original: '1985-03-15', anonymized: '1985-01-01' },
-    preserves: ['Age range', 'Decade'],
-    destroys: ['Exact date']
-  },
-  {
-    fieldType: 'SSN/ID numbers',
-    technique: 'Complete replacement with valid format',
-    example: { original: '123-45-6789', anonymized: '987-65-4321' },
-    preserves: ['Format validity for validation testing'],
-    destroys: ['Actual identifier']
-  },
-  {
-    fieldType: 'Free text/Notes',
-    technique: 'NLP-based entity replacement',
-    example: { original: 'John called about his order', anonymized: 'Customer called about their order' },
-    preserves: ['Sentence structure', 'Context'],
-    destroys: ['Embedded PII']
-  }
-]
-```
+The upfront investment pays off quickly. You stop worrying about which environments have real data. Compliance audits become routine instead of panic-inducing. New developers can work with test data on day one without signing additional agreements.
 
-### Consistent Anonymization
+Here's how to start: pick a leaf table in your schema—one that nothing else depends on, like `audit_logs` or `email_templates`. Write a generator for it using Faker, create one test that uses the generated data, and verify it works. Then pick a table that references your leaf table and repeat. Work backward through the dependency graph until you've covered the tables that actually contain PII. You don't need to convert everything at once. Every table you move to synthetic data is one less liability waiting to surface.
 
-Ensuring the same real value always maps to the same fake value.
+---
 
-```typescript
-import { createHash } from 'crypto'
-
-class ConsistentAnonymizer {
-  private salt: string
-  private mappingCache: Map<string, Map<string, string>> = new Map()
-
-  constructor(salt: string) {
-    this.salt = salt
-  }
-
-  // Deterministic mapping: same input always produces same output
-  anonymize(fieldName: string, value: string, generator: () => string): string {
-    const fieldCache = this.mappingCache.get(fieldName) || new Map()
-
-    // Check cache first
-    if (fieldCache.has(value)) {
-      return fieldCache.get(value)!
-    }
-
-    // Generate deterministic seed from value
-    const seed = this.hashToSeed(fieldName, value)
-    faker.seed(seed)
-
-    // Generate fake value
-    const anonymized = generator()
-
-    // Cache for consistency within this run
-    fieldCache.set(value, anonymized)
-    this.mappingCache.set(fieldName, fieldCache)
-
-    return anonymized
-  }
-
-  private hashToSeed(fieldName: string, value: string): number {
-    const hash = createHash('sha256')
-      .update(`${this.salt}:${fieldName}:${value}`)
-      .digest('hex')
-
-    // Convert first 8 hex chars to number for seed
-    return parseInt(hash.substring(0, 8), 16)
-  }
-
-  // Anonymize email while preserving format
-  anonymizeEmail(email: string): string {
-    return this.anonymize('email', email, () => {
-      const username = faker.internet.userName().toLowerCase()
-      return `${username}@example.com`
-    })
-  }
-
-  // Anonymize name with consistent mapping
-  anonymizeName(name: string): string {
-    return this.anonymize('name', name, () => {
-      return `${faker.person.firstName()} ${faker.person.lastName()}`
-    })
-  }
-
-  // Anonymize with referential integrity
-  anonymizeWithRelations(records: Record<string, unknown>[], fieldMappings: FieldMapping[]): Record<string, unknown>[] {
-    return records.map(record => {
-      const anonymized = { ...record }
-
-      for (const mapping of fieldMappings) {
-        const originalValue = record[mapping.field] as string
-        if (originalValue) {
-          anonymized[mapping.field] = this.anonymize(
-            mapping.field,
-            originalValue,
-            mapping.generator
-          )
-        }
-      }
-
-      return anonymized
-    })
-  }
-}
-
-// Usage: same email always maps to same fake email
-const anonymizer = new ConsistentAnonymizer('my-secret-salt-2024')
-
-const orders = [
-  { id: 1, customerEmail: 'john@real.com', total: 100 },
-  { id: 2, customerEmail: 'john@real.com', total: 200 },  // Same customer
-  { id: 3, customerEmail: 'jane@real.com', total: 150 },
-]
-
-const anonymizedOrders = orders.map(order => ({
-  ...order,
-  customerEmail: anonymizer.anonymizeEmail(order.customerEmail)
-}))
-
-// Result: john@real.com -> user_abc@example.com (consistent)
-//         jane@real.com -> user_xyz@example.com
-```
-
-### Database-Level Anonymization
-
-Anonymizing data during database copy operations.
-
-```sql
--- PostgreSQL anonymization during COPY
--- Create anonymization functions
-
-CREATE OR REPLACE FUNCTION anon.fake_email(real_email TEXT)
-RETURNS TEXT AS $$
-DECLARE
-  hash_val TEXT;
-  username TEXT;
-BEGIN
-  -- Deterministic hash for consistency
-  hash_val := md5(real_email || 'salt-2024');
-  username := 'user_' || substring(hash_val from 1 for 8);
-  RETURN username || '@example.com';
-END;
-$$ LANGUAGE plpgsql IMMUTABLE;
-
-CREATE OR REPLACE FUNCTION anon.fake_name(real_name TEXT)
-RETURNS TEXT AS $$
-DECLARE
-  names TEXT[] := ARRAY['John Smith', 'Jane Doe', 'Bob Wilson', 'Alice Brown'];
-  hash_val INTEGER;
-BEGIN
-  hash_val := abs(hashtext(real_name || 'salt-2024'));
-  RETURN names[1 + (hash_val % array_length(names, 1))];
-END;
-$$ LANGUAGE plpgsql IMMUTABLE;
-
--- Create anonymized view
-CREATE VIEW staging.users_anonymized AS
-SELECT
-  id,
-  anon.fake_email(email) AS email,
-  anon.fake_name(full_name) AS full_name,
-  -- Preserve non-PII fields
-  status,
-  created_at,
-  -- Generalize sensitive dates
-  date_trunc('month', date_of_birth) AS date_of_birth,
-  -- Nullify truly sensitive fields
-  NULL AS ssn,
-  NULL AS credit_card_hash
-FROM production.users;
-
--- Export anonymized data
-COPY (SELECT * FROM staging.users_anonymized)
-TO '/tmp/users_anonymized.csv' WITH CSV HEADER;
-```
-
-```
-Mermaid diagram: Anonymization pipeline.
-Production DB
-     ↓
-Extract (pg_dump or SELECT)
-     ↓
-┌─────────────────────────────┐
-│   Anonymization Pipeline    │
-├─────────────────────────────┤
-│ 1. Identify PII columns     │
-│ 2. Apply transformation     │
-│    - Emails → fake_email()  │
-│    - Names → fake_name()    │
-│    - Dates → date_trunc()   │
-│    - IDs → preserve or null │
-│ 3. Validate constraints     │
-│ 4. Verify no PII leakage    │
-└─────────────────────────────┘
-     ↓
-Staging/Test DB
-
-Never: Direct copy without transformation
-Always: Automated pipeline with validation
-```
-
-<Callout type="warning">
-Even anonymized data can be re-identified through correlation. An anonymized record with unique purchase history, location patterns, and timestamps may still identify someone. Consider k-anonymity: each record should be indistinguishable from at least k-1 other records on quasi-identifiers.
-</Callout>
-
-## Fixture Management
-
-Organizing and versioning test data.
-
-### Fixture Organization Patterns
-
-Structuring fixtures for maintainability.
-
-```typescript
-// Fixture directory structure
-const fixtureStructure = `
-fixtures/
-├── base/                    # Minimal data for any test
-│   ├── users.json
-│   └── products.json
-│
-├── scenarios/               # Test-specific data sets
-│   ├── empty-cart/
-│   │   └── seed.ts
-│   ├── checkout-flow/
-│   │   ├── users.json
-│   │   ├── products.json
-│   │   └── cart.json
-│   ├── high-volume/
-│   │   └── generator.ts
-│   └── edge-cases/
-│       ├── unicode-names.json
-│       └── max-values.json
-│
-├── factories/               # Data generation functions
-│   ├── user.factory.ts
-│   ├── order.factory.ts
-│   └── product.factory.ts
-│
-└── seeds/                   # Database seed scripts
-    ├── development.ts
-    ├── staging.ts
-    └── e2e.ts
-`
-
-// Factory pattern for flexible fixture generation
-class UserFactory {
-  private defaults: Partial<User> = {
-    status: 'active',
-    tier: 'free',
-    emailVerified: true
-  }
-
-  build(overrides: Partial<User> = {}): User {
-    return {
-      id: faker.string.uuid(),
-      email: faker.internet.email(),
-      firstName: faker.person.firstName(),
-      lastName: faker.person.lastName(),
-      ...this.defaults,
-      ...overrides,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-  }
-
-  buildMany(count: number, overrides: Partial<User> = {}): User[] {
-    return Array.from({ length: count }, () => this.build(overrides))
-  }
-
-  // Preset configurations
-  admin(): User {
-    return this.build({ role: 'admin', tier: 'enterprise' })
-  }
-
-  unverified(): User {
-    return this.build({ emailVerified: false, status: 'pending' })
-  }
-
-  suspended(): User {
-    return this.build({ status: 'suspended', suspendedAt: new Date() })
-  }
-
-  withOrders(orderCount: number): User & { orders: Order[] } {
-    const user = this.build()
-    const orderFactory = new OrderFactory()
-    return {
-      ...user,
-      orders: orderFactory.buildMany(orderCount, { userId: user.id })
-    }
-  }
-}
-
-// Usage in tests
-describe('User Dashboard', () => {
-  const userFactory = new UserFactory()
-
-  it('shows upgrade prompt for free users', async () => {
-    const user = userFactory.build({ tier: 'free' })
-    await seedUser(user)
-    // test...
-  })
-
-  it('hides upgrade prompt for enterprise users', async () => {
-    const user = userFactory.build({ tier: 'enterprise' })
-    await seedUser(user)
-    // test...
-  })
-
-  it('shows suspension notice for suspended users', async () => {
-    const user = userFactory.suspended()
-    await seedUser(user)
-    // test...
-  })
-})
-```
-
-### Seed Scripts and Migrations
-
-Managing fixture data alongside schema.
-
-```typescript
-// Seed script with idempotency
-import { PrismaClient } from '@prisma/client'
-import { UserFactory } from './factories/user.factory'
-import { ProductFactory } from './factories/product.factory'
-
-const prisma = new PrismaClient()
-
-async function seedDevelopment() {
-  console.log('Seeding development database...')
-
-  // Clear existing data (development only!)
-  if (process.env.NODE_ENV !== 'production') {
-    await prisma.order.deleteMany()
-    await prisma.user.deleteMany()
-    await prisma.product.deleteMany()
-  }
-
-  // Seed with deterministic data for consistency
-  faker.seed(12345)
-
-  const userFactory = new UserFactory()
-  const productFactory = new ProductFactory()
-
-  // Create base users
-  const users = await Promise.all([
-    prisma.user.create({ data: userFactory.admin() }),
-    prisma.user.create({ data: userFactory.build({ email: 'test@example.com' }) }),
-    ...userFactory.buildMany(50).map(u => prisma.user.create({ data: u }))
-  ])
-
-  // Create products
-  const products = await Promise.all(
-    productFactory.buildMany(100).map(p => prisma.product.create({ data: p }))
-  )
-
-  // Create orders with realistic distribution
-  const orderFactory = new OrderFactory(products)
-  for (const user of users) {
-    const orderCount = faker.number.int({ min: 0, max: 10 })
-    const orders = orderFactory.buildMany(orderCount, { userId: user.id })
-    await Promise.all(orders.map(o => prisma.order.create({ data: o })))
-  }
-
-  console.log(`Seeded: ${users.length} users, ${products.length} products`)
-}
-
-async function seedE2E() {
-  // Minimal, predictable data for E2E tests
-  faker.seed(99999)
-
-  const userFactory = new UserFactory()
-
-  // Known test users for E2E
-  await prisma.user.create({
-    data: userFactory.build({
-      id: 'e2e-user-1',
-      email: 'e2e-test@example.com',
-      firstName: 'Test',
-      lastName: 'User'
-    })
-  })
-
-  // ... minimal additional data
-}
-
-// Run appropriate seed
-const seedFn = {
-  development: seedDevelopment,
-  e2e: seedE2E,
-  staging: seedStaging
-}[process.env.SEED_ENV || 'development']
-
-seedFn()
-  .catch(console.error)
-  .finally(() => prisma.$disconnect())
-```
-
-### Fixture Versioning
-
-Keeping fixtures in sync with schema changes.
-
-```typescript
-// Fixture version manifest
-interface FixtureManifest {
-  version: string
-  schemaVersion: string
-  generatedAt: string
-  fixtures: {
-    name: string
-    recordCount: number
-    checksum: string
-  }[]
-}
-
-// Generate fixture with manifest
-async function generateVersionedFixtures(): Promise<void> {
-  const schemaVersion = await getCurrentSchemaVersion()
-  const fixtureVersion = `${schemaVersion}-${Date.now()}`
-
-  faker.seed(12345)  // Deterministic generation
-
-  const users = new UserFactory().buildMany(100)
-  const products = new ProductFactory().buildMany(500)
-  const orders = new OrderFactory(products).buildMany(1000)
-
-  // Write fixtures
-  await writeJSON('fixtures/users.json', users)
-  await writeJSON('fixtures/products.json', products)
-  await writeJSON('fixtures/orders.json', orders)
-
-  // Write manifest
-  const manifest: FixtureManifest = {
-    version: fixtureVersion,
-    schemaVersion,
-    generatedAt: new Date().toISOString(),
-    fixtures: [
-      { name: 'users', recordCount: users.length, checksum: hash(users) },
-      { name: 'products', recordCount: products.length, checksum: hash(products) },
-      { name: 'orders', recordCount: orders.length, checksum: hash(orders) }
-    ]
-  }
-
-  await writeJSON('fixtures/manifest.json', manifest)
-}
-
-// Validate fixtures match current schema
-async function validateFixtures(): Promise<ValidationResult> {
-  const manifest = await readJSON<FixtureManifest>('fixtures/manifest.json')
-  const currentSchema = await getCurrentSchemaVersion()
-
-  if (manifest.schemaVersion !== currentSchema) {
-    return {
-      valid: false,
-      error: `Fixtures are for schema ${manifest.schemaVersion}, current is ${currentSchema}`,
-      action: 'Regenerate fixtures with: npm run fixtures:generate'
-    }
-  }
-
-  // Validate checksums
-  for (const fixture of manifest.fixtures) {
-    const data = await readJSON(`fixtures/${fixture.name}.json`)
-    if (hash(data) !== fixture.checksum) {
-      return {
-        valid: false,
-        error: `Fixture ${fixture.name} has been modified`,
-        action: 'Restore from version control or regenerate'
-      }
-    }
-  }
-
-  return { valid: true }
-}
-```
-
-## Compliance Considerations
-
-Meeting regulatory requirements for test data.
-
-### Regulatory Requirements by Framework
-
-What different regulations require for test data.
-
-| Regulation | Test Data Requirement | Key Provision |
-|------------|----------------------|---------------|
-| GDPR | Cannot use personal data without consent | Article 5(1)(b) - Purpose limitation |
-| CCPA | Must honor opt-out for non-essential processing | §1798.120 - Right to opt out |
-| HIPAA | PHI must be de-identified (Safe Harbor or Expert) | §164.514 - De-identification standard |
-| PCI DSS | No real PANs in non-production | Requirement 6.4.3 |
-| SOX | Data accuracy for financial testing | §302 - Corporate responsibility |
-| FERPA | Student records must be de-identified | §99.31 - Disclosure requirements |
-
-```typescript
-// Compliance validation for test data
-interface ComplianceCheck {
-  regulation: string
-  check: (data: unknown) => ComplianceResult
-  severity: 'blocking' | 'warning'
-}
-
-const complianceChecks: ComplianceCheck[] = [
-  {
-    regulation: 'GDPR',
-    severity: 'blocking',
-    check: (data) => {
-      const emailPattern = /[a-z0-9._%+-]+@(?!example\.com)[a-z0-9.-]+\.[a-z]{2,}/gi
-      const found = JSON.stringify(data).match(emailPattern)
-      return {
-        passed: !found || found.length === 0,
-        findings: found || [],
-        message: 'Real email addresses found (non-example.com domain)'
-      }
-    }
-  },
-  {
-    regulation: 'PCI',
-    severity: 'blocking',
-    check: (data) => {
-      // Luhn-valid card numbers (excluding known test ranges)
-      const cardPattern = /\b(?:4[0-9]{15}|5[1-5][0-9]{14}|3[47][0-9]{13})\b/g
-      const found = JSON.stringify(data).match(cardPattern)?.filter(isLuhnValid)
-      return {
-        passed: !found || found.length === 0,
-        findings: found || [],
-        message: 'Valid credit card numbers found'
-      }
-    }
-  },
-  {
-    regulation: 'HIPAA',
-    severity: 'blocking',
-    check: (data) => {
-      // Check for SSN patterns
-      const ssnPattern = /\b\d{3}-\d{2}-\d{4}\b/g
-      // Check for MRN patterns (medical record numbers)
-      const mrnPattern = /\b(MRN|mrn)[:\s]*\d{6,}\b/gi
-
-      const ssns = JSON.stringify(data).match(ssnPattern)
-      const mrns = JSON.stringify(data).match(mrnPattern)
-
-      return {
-        passed: (!ssns || ssns.length === 0) && (!mrns || mrns.length === 0),
-        findings: [...(ssns || []), ...(mrns || [])],
-        message: 'PHI identifiers found (SSN or MRN patterns)'
-      }
-    }
-  }
-]
-
-// Run compliance scan before seeding
-async function scanForCompliance(fixtures: unknown): Promise<void> {
-  const results = complianceChecks.map(check => ({
-    regulation: check.regulation,
-    severity: check.severity,
-    result: check.check(fixtures)
-  }))
-
-  const failures = results.filter(r => !r.result.passed && r.severity === 'blocking')
-
-  if (failures.length > 0) {
-    console.error('COMPLIANCE FAILURE - Cannot proceed with seeding')
-    for (const failure of failures) {
-      console.error(`[${failure.regulation}] ${failure.result.message}`)
-      console.error(`Found: ${failure.result.findings.slice(0, 5).join(', ')}...`)
-    }
-    process.exit(1)
-  }
-}
-```
-
-### Audit Trail for Test Data
-
-Documenting data provenance for compliance audits.
-
-```typescript
-// Test data audit log
-interface TestDataAuditEntry {
-  timestamp: string
-  environment: string
-  action: 'generated' | 'anonymized' | 'seeded' | 'deleted'
-  dataSource: 'synthetic' | 'anonymized_production' | 'fixture_file'
-  recordCounts: Record<string, number>
-  operator: string
-  justification: string
-  complianceScanResult: 'passed' | 'failed'
-  retentionPolicy: string
-}
-
-async function logTestDataAction(entry: Omit<TestDataAuditEntry, 'timestamp'>): Promise<void> {
-  const auditEntry: TestDataAuditEntry = {
-    ...entry,
-    timestamp: new Date().toISOString()
-  }
-
-  // Append to audit log
-  await appendToAuditLog('test-data-audit.jsonl', auditEntry)
-
-  // Also send to central audit system if configured
-  if (process.env.AUDIT_ENDPOINT) {
-    await fetch(process.env.AUDIT_ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(auditEntry)
-    })
-  }
-}
-
-// Usage
-await logTestDataAction({
-  environment: 'staging',
-  action: 'seeded',
-  dataSource: 'synthetic',
-  recordCounts: { users: 100, orders: 500, products: 200 },
-  operator: process.env.CI ? 'CI/CD Pipeline' : os.userInfo().username,
-  justification: 'Automated staging environment refresh',
-  complianceScanResult: 'passed',
-  retentionPolicy: '30 days'
-})
-```
-
-<Callout type="info">
-When an auditor asks "how do you ensure no customer data in testing?", you need to show: 1) Policy documents, 2) Technical controls (scanning), 3) Audit logs proving controls are followed, 4) Evidence of regular review. Synthetic data with good documentation passes audits easily.
-</Callout>
-
-## Conclusion
-
-Production data in non-production environments is a liability disguised as convenience. Synthetic data generation with Faker and domain-specific factories creates realistic fixtures without legal risk—the same email in your test database always mapping to the same fake email through consistent anonymization preserves referential integrity for testing. When you must work from production data, anonymize it through automated pipelines with deterministic transformations, never ad-hoc copies. Organize fixtures with factories and version manifests that tie test data to schema versions, regenerating when schemas change. Run compliance scans before every seed operation, blocking deployment if real PII patterns are detected. The upfront investment in synthetic data infrastructure pays dividends in audit confidence, breach prevention, and the peace of mind that comes from knowing your staging database is legally safe to expose. Build generators as you build features; do not wait until you have a compliance incident to retrofit synthetic data onto a codebase addicted to production copies.
+Want the complete implementation? The deep-dive PDF covers the full fixture management system including factory patterns, database-level anonymization functions, k-anonymity techniques, and audit logging for compliance documentation. Download it to get production-ready code you can adapt to your schema.
