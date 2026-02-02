@@ -88,24 +88,6 @@ const caseStudiesCollection = defineCollection({
 })
 
 /**
- * Services
- */
-const servicesCollection = defineCollection({
-  loader: glob({ pattern, base: './src/content/services' }),
-  schema: context =>
-    withBreadcrumbTitleWarning(
-      createBaseCollectionSchema(context).extend({
-        category: z.string().optional(),
-        deliverables: z.array(z.string()).optional(),
-        duration: z.string().optional(),
-        pricing: z.string().optional(),
-        showToc: z.boolean().default(false),
-      }),
-      'services'
-    ),
-})
-
-/**
  * Downloads
  */
 const downloadsCollection = defineCollection({
@@ -118,8 +100,6 @@ const downloadsCollection = defineCollection({
         fileSize: z.string().optional(),
         fileType: z.enum(['PDF', 'eBook', 'Whitepaper', 'Guide', 'Report', 'Template']),
         pages: z.number().optional(),
-        readingTime: z.string().optional(),
-        showToc: z.boolean().default(false),
       }),
       'downloads'
     ),
@@ -137,6 +117,27 @@ const testFixtureCollection = defineCollection({
       }),
       'testFixtureCollection'
     ),
+})
+
+/**
+ * =================================================================================
+ *
+ * Stand-Alone Content Collections
+ *
+ * =================================================================================
+ */
+
+/**
+ * Services
+ */
+const servicesCollection = defineCollection({
+  loader: glob({ pattern, base: './src/content/services' }),
+  schema: () =>
+    z.object({
+      title: z.string(),
+      description: z.string(),
+      isDraft: z.boolean().default(false),
+    }),
 })
 
 /**
