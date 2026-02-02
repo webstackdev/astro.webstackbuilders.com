@@ -1,0 +1,85 @@
+---
+title: "Cloud Migration for a Regional Logistics Platform"
+description: "Migrating a legacy on-premises infrastructure to AWS while maintaining 24/7 operations for a logistics company processing 50,000 daily shipments"
+cover: "./cover.png"
+coverAlt: "Hero image for case study"
+client: "Regional Logistics Provider"
+duration: "6 months"
+industry: "Logistics & Supply Chain"
+projectType: "Cloud Migration"
+publishDate: 2024-08-15
+isDraft: true
+---
+
+## Overview
+
+A regional logistics company needed to migrate their entire infrastructure to AWS before their data center lease expired, without disrupting the 24/7 operations that processed 50,000 shipments daily. We completed the migration in six months with zero unplanned downtime, reduced infrastructure costs by 35%, and enabled the real-time tracking capabilities their customers had been demanding.
+
+## The Challenge
+
+The company was losing bids. Competitors were offering real-time package tracking, enterprise customers were asking for API integrations that the legacy system couldn't support, and RFP after RFP came back with "does not meet technical requirements." The business pressure was undeniable.
+
+The client was a mid-sized regional logistics provider with 200+ employees running on a 15-year-old data center. Their lease was expiring in eight months, and the landlord wasn't renewing. Even without that deadline, the infrastructure was struggling. The hardware was aging out of support, peak season traffic brought the tracking system to its knees, and every maintenance window meant a 4-hour gap where drivers couldn't update delivery status.
+
+What made this harder: logistics never stops. Trucks roll 24/7, 365 days a year. The dispatch system, the tracking platform, and the warehouse management software all needed to keep running throughout the migration. The internal IT team had managed the on-prem environment for years but had limited cloud experience. And the budget didn't allow for running both environments in parallel for long.
+
+## The Approach
+
+We started with a two-week assessment phase. I mapped every application, database, and integration point in the existing environment. This audit surfaced 47 distinct applications, three core databases, and a dozen undocumented integrations with carrier EDI systems that nobody on the current team had built—a discovery that significantly shaped our timeline.
+
+The strategy was lift-and-shift first, optimize later. Trying to modernize applications during a migration with a hard deadline is how projects fail. We'd move everything to AWS in a state as close to the original as possible, prove it worked, then iterate.
+
+We chose AWS primarily because two of the senior developers had some experience with it from side projects. That familiarity meant faster ramp-up and fewer mistakes during the critical cutover period.
+
+The migration happened in three phases:
+
+| Phase | Weeks | Focus | Risk Level |
+|-------|-------|-------|------------|
+| 1 | 1-8 | Non-critical systems: internal tools, reporting databases, dev environments | Low |
+| 2 | 9-16 | Databases and batch processing: PostgreSQL via DMS, invoicing jobs | Medium |
+| 3 | 17-24 | Core tracking platform and dispatch application | High |
+
+Table: Migration Phase Timeline
+
+Phase 1 let the team build muscle memory with AWS services before touching anything customer-facing. Phase 2 moved the PostgreSQL databases via AWS Database Migration Service with ongoing replication, keeping data synchronized until cutover. Phase 3 was the highest-risk work—the customer-facing tracking system and the dispatch application that drivers depended on.
+
+The EDI integrations were the biggest obstacle. These connections to FedEx, UPS, and regional carriers had been built by a contractor who'd left years ago. Documentation was nonexistent. We had to reverse-engineer the protocols by capturing traffic and analyzing message formats, then rebuilt the integration layer using API Gateway with Lambda functions to translate between the legacy EDI formats and modern REST APIs. AWS PrivateLink provided secure connectivity to carrier endpoints without exposing traffic to the public internet.
+
+## The Solution
+
+The target architecture used AWS services that balanced operational simplicity with the team's learning curve:
+
+- _Multi-AZ deployment_ across us-east-1 for resilience. Every critical component ran in at least two availability zones.
+- _Amazon RDS for PostgreSQL_ (db.r5.xlarge instances) replaced the self-managed database servers. Automated backups, point-in-time recovery, and managed patching removed a significant operational burden.
+- _Amazon ECS with Fargate_ for the containerized services. Fargate eliminated the need to manage underlying EC2 instances, and we containerized applications during the migration rather than running them on raw EC2—a small modernization that paid off immediately in deployment consistency.
+- _Application Load Balancers_ with health checks enabled the blue-green deployment strategy we needed for zero-downtime cutovers.
+
+For the migration itself, AWS Migration Hub tracked progress across all workloads. Database Migration Service handled the PostgreSQL migration with change data capture, keeping the cloud database synchronized with on-prem until we were ready to cut over. CloudWatch provided monitoring from day one, and we set up dashboards that mirrored the metrics the operations team was used to watching.
+
+The cutover for the tracking platform used a blue-green approach. We ran both environments in parallel for 72 hours, with traffic gradually shifting from on-prem to AWS. Operations monitored both dashboards, ready to roll back instantly. The rollback was never needed.
+
+## The Results
+
+The migration completed two weeks ahead of the lease deadline. The quantified outcomes:
+
+- _Infrastructure costs reduced by 35%_. The combination of eliminating the data center lease, avoiding a hardware refresh cycle, and right-sizing instances in AWS dropped monthly infrastructure spend from $89,000 to $58,000.
+- _Deployment frequency increased from monthly to daily_. The containerized architecture and CI/CD pipeline we built during migration enabled the development team to ship updates without scheduling maintenance windows.
+- _System availability improved from 99.5% to 99.95%_. Multi-AZ deployment and automated failover eliminated the single points of failure that had caused outages in the legacy environment.
+- _Peak season scaling became automatic_. The following holiday season, the tracking system auto-scaled to handle 3x normal traffic. Previously, this would have required ordering hardware two months in advance.
+- _Real-time tracking launched within 60 days of migration_. The team shipped the feature their customers had been asking for—something that would have taken a year on the legacy platform.
+
+## Key Takeaways
+
+- _Lift-and-shift is a valid strategy when you have a deadline_. Trying to modernize and migrate simultaneously is tempting but risky. Get to the cloud first, then optimize. We containerized applications during migration because it made deployment easier, not because we were trying to re-architect.
+- _Undocumented integrations will surprise you_. Budget time for discovery. The EDI integrations we found added three weeks to the timeline. Every legacy environment has these hidden dependencies.
+- _Train the team before the critical phases_. Moving non-critical systems first wasn't just about reducing risk—it was about building confidence and competence. By the time we migrated the tracking platform, the team had already done a dozen smaller migrations successfully.
+
+## Cover Prompts
+
+1. Abstract visualization of data flowing from an old brick building to a modern cloud formation, with package tracking icons and delivery truck silhouettes integrated into the data stream, cool blue and orange color palette, corporate tech illustration style
+
+2. Split-screen composition showing a dimly lit server room on the left transforming into bright, organized cloud infrastructure symbols on the right, with logistics elements like shipping routes and warehouse icons bridging the transition, isometric design
+
+3. A stylized highway interchange at night with glowing data packets traveling along the roads, some routes leading to traditional data center towers and others curving upward into cloud formations, suggesting migration in motion, cinematic lighting
+
+4. Network topology diagram reimagined as a city map, with legacy infrastructure shown as older buildings being connected by modern transit lines to sleek cloud district towers, logistics trucks visible on the streets below, blueprint aesthetic with accent colors

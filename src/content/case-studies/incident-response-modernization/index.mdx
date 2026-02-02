@@ -1,0 +1,181 @@
+---
+title: "Modernizing Incident Response for a 24/7 Platform"
+description: "Transforming ad-hoc firefighting into a structured incident management process with clear escalation, runbooks, and blameless postmortems"
+cover: "./cover.png"
+coverAlt: "Hero image for case study"
+client: "Online Marketplace"
+duration: "4 months"
+industry: "E-commerce / Marketplace"
+projectType: "Incident Response"
+isDraft: true
+publishDate: 2024-02-28
+---
+
+## Overview
+
+I helped a high-traffic online marketplace transform their chaotic incident response culture into a structured, sustainable process—reducing mean time to resolution by 72% while dramatically improving engineer satisfaction with on-call duties.
+
+## The Challenge
+
+The marketplace processed thousands of transactions daily across multiple time zones. With 40 engineers and a platform that couldn't afford downtime, they were drowning in incidents handled differently every single time.
+
+### The Firefighting Culture
+
+When I started, there was no incident process—just whoever noticed a problem first would start debugging in a shared Slack channel. Sometimes three engineers would investigate the same issue. Other times, critical alerts went unnoticed because everyone assumed someone else was handling it.
+
+The same incidents kept recurring. Database connection pool exhaustion happened monthly. Payment gateway timeouts appeared after every traffic spike. Cache invalidation bugs caused stale data issues weekly. Without postmortems, nobody documented root causes or preventive measures. Institutional knowledge existed only in the heads of senior engineers who'd seen the problem before.
+
+### The Human Cost
+
+The toll on the team was severe. On-call meant constant anxiety—engineers averaged 15 pages per week, many during sleeping hours. There was no escalation path, so the on-call engineer was expected to handle everything regardless of expertise or severity.
+
+In team interviews, the pattern was clear: senior engineers were burned out. Two had left in the past six months, both citing on-call burden in exit interviews. A third was actively job hunting. The remaining senior engineers had started avoiding complex deployments because any change felt like it might trigger another 3 AM page.
+
+Worse, a blame culture had developed. After outages, conversations focused on "who broke it" rather than "how do we prevent this." Engineers became risk-averse, preferring to let problems fester rather than make changes that might cause incidents they'd be blamed for.
+
+### The Constraints
+
+The company couldn't afford a dedicated SRE team. Whatever we built needed to work within the existing engineering organization—people who were primarily focused on shipping features, not managing infrastructure. The solution had to be sustainable without creating a separate operations function.
+
+## The Approach
+
+### Understanding the Current State
+
+I started with an incident archaeology exercise. I reviewed three months of Slack history, git commits, and the scattered incident notes that existed. I categorized every incident by type, severity, time to resolution, and—crucially—recurrence.
+
+The data told a story: 40% of incidents were repeats. The same 12 issue types caused 80% of pages. Mean time to resolution was 90 minutes, but variance was enormous—some incidents resolved in 5 minutes, others dragged on for 8 hours because the right person wasn't available.
+
+I also conducted one-on-ones with every engineer. I needed to understand not just the technical problems but the cultural ones. People were hesitant at first—years of blame culture had taught them to be careful about admitting mistakes. Building trust took time.
+
+### The Transformation Plan
+
+The core insight was that incident response is a skill that can be learned and a process that can be designed. We didn't need heroes; we needed systems.
+
+I proposed a phased approach:
+
+1. **Severity definitions and escalation paths** - Stop treating every alert as critical
+2. **On-call rotation restructuring** - Distribute load fairly with clear backup support
+3. **Runbook library** - Capture institutional knowledge in executable documentation
+4. **Blameless postmortem process** - Learn from incidents instead of assigning fault
+5. **Training program** - Teach incident management as an explicit skill
+
+Leadership buy-in was critical. I presented data on engineer attrition costs—replacing the two departed seniors had cost roughly $300K in recruiting and lost productivity. Investing in incident response wasn't just about reliability; it was about retention.
+
+## The Solution
+
+### Severity Levels and Escalation
+
+We defined four severity levels with clear criteria:
+
+| Level | Definition | Response Time | Escalation |
+|-------|------------|---------------|------------|
+| SEV1 | Customer-facing outage, revenue impact | Immediate | All hands, exec notification |
+| SEV2 | Degraded service, partial impact | 15 minutes | On-call + backup |
+| SEV3 | Internal tooling, no customer impact | 1 hour | On-call only |
+| SEV4 | Non-urgent, can wait for business hours | Next business day | Ticket queue |
+
+Table: Severity level definitions and escalation paths
+
+The escalation paths were equally important. A SEV1 automatically paged the on-call engineer's backup plus the engineering manager. No more lone engineers struggling with major outages at 3 AM.
+
+### The Incident Commander Model
+
+For SEV1 and SEV2 incidents, we introduced an Incident Commander (IC) role. The IC doesn't debug—they coordinate. They run the incident channel, keep stakeholders informed, and ensure the right people are engaged.
+
+This was transformative. Before, senior engineers spent incidents both debugging and fielding questions from product and support. Now they could focus on the technical problem while the IC handled communication.
+
+I created an IC rotation separate from the debugging on-call. Engineers volunteered initially, and we trained them explicitly in incident coordination—running a war room, writing status updates, knowing when to escalate.
+
+### Runbook Library
+
+The runbooks were the most labor-intensive but highest-impact investment. I identified the top 20 incident types from my archaeology work and paired with engineers who had tribal knowledge of each.
+
+Every runbook followed the same template:
+
+```markdown
+# Database Connection Pool Exhaustion
+
+## Symptoms
+- Error rate spike on checkout service
+- Logs showing "Connection pool exhausted"
+- Database connection count at max
+
+## Immediate Mitigation
+1. Scale checkout service horizontally (adds pool capacity)
+2. If scaling insufficient, enable connection queue (config change)
+3. If still failing, activate read replica failover
+
+## Root Cause Investigation
+- Check slow query log for long-running transactions
+- Review recent deployments for connection leaks
+- Check for credential rotation issues
+
+## Prevention Checklist
+- [ ] Connection leak fixed or config adjusted
+- [ ] Monitoring threshold updated if needed
+- [ ] Postmortem scheduled
+```
+
+Code: Example runbook template for database connection pool exhaustion
+
+The magic wasn't just documentation—it was executable steps anyone could follow. A junior engineer at 2 AM could resolve issues that previously required waking up a senior.
+
+### Blameless Postmortems
+
+This was the cultural shift that made everything else sustainable. I introduced a postmortem template focused on system failures, not human failures:
+
+- **What happened?** (timeline, not blame)
+- **What went well?** (recognize good incident response)
+- **What could be improved?** (process, not people)
+- **Action items** (specific, assigned, deadlined)
+
+The first few postmortems were awkward. People instinctively wanted to discuss who made the mistake. I consistently redirected: "Let's assume everyone acted reasonably given what they knew. How could the system have prevented this or made recovery easier?"
+
+We held monthly incident review meetings where teams presented their postmortems. This normalized talking about failures and spread learnings across the organization. When a team found a clever mitigation, everyone benefited.
+
+### PagerDuty and Tooling
+
+We standardized on PagerDuty for alerting and scheduling. The tool wasn't as important as the configuration:
+
+- Alerts deduplicated and grouped to reduce noise
+- Escalation policies that actually escalated
+- On-call schedules visible to everyone
+- Automatic Slack channel creation for incidents
+
+I built a simple Slack bot in Python that, when an incident was declared, created a dedicated channel, invited the on-call and their backup, posted the relevant runbook, and started a timeline. Reducing ceremony meant faster response.
+
+## The Results
+
+After four months, the transformation was measurable:
+
+| Metric | Before | After | Change |
+|--------|--------|-------|--------|
+| Mean time to resolution | 90 minutes | 25 minutes | 72% reduction |
+| Recurring incidents | Baseline | -60% | Through postmortem action items |
+| Pages per on-call week | 15 | 4 | 73% reduction |
+| Engineer on-call satisfaction | 2.5/5 | 4.0/5 | 60% improvement |
+| On-call cited in exit interviews | #2 reason | Zero | Eliminated |
+
+Table: Incident response transformation outcomes
+
+The qualitative changes mattered as much as the metrics. In the six months following the engagement, zero engineers cited on-call as a reason for leaving. Engineers started proposing improvements to runbooks and alerting. The fear of making changes dissipated as people saw that incidents led to learning, not blame.
+
+One moment captured the shift: a junior engineer resolved a SEV2 incident at midnight using a runbook, then wrote the postmortem that identified a monitoring gap. Six months earlier, that incident would have meant waking a senior engineer and no documentation.
+
+## Key Takeaways
+
+- **Process beats heroics**: Reliable incident response comes from systems and documentation, not from having senior engineers available 24/7. Invest in runbooks and training so anyone can respond effectively.
+
+- **Blameless culture is a precondition**: Without psychological safety, you can't learn from incidents. Getting leadership commitment to blameless postmortems was the foundation everything else built on.
+
+- **Measure what matters**: Tracking MTTR, recurrence rates, and on-call burden gave us data to demonstrate progress and identify what needed attention. What gets measured gets improved.
+
+## Cover Prompts
+
+1. A chaotic firefighting scene with scattered alerts and stressed figures on one side, transforming into a calm command center with organized screens and structured workflow on the other, showing the shift from reactive to proactive, warm-to-cool color gradient
+
+2. A stylized runbook or playbook being opened, with clear step-by-step instructions flowing out and connecting to different incident types, suggesting documentation as the solution to chaos, clean vector illustration
+
+3. Abstract representation of an on-call rotation wheel with clear escalation paths branching out, severity levels color-coded, and backup engineers visible at each tier, organized and reassuring design
+
+4. Split image showing a lone engineer overwhelmed by a storm of alerts at night versus a coordinated team with an Incident Commander directing response during daylight, emphasizing the shift from isolation to structured support

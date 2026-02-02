@@ -1,0 +1,173 @@
+---
+title: "Self-Service Infrastructure for Product Teams"
+description: "Enabling development teams to safely provision their own AWS resources through guardrails, templates, and automated compliance checks"
+cover: "./cover.png"
+coverAlt: "Hero image for case study"
+client: "Digital Media Company"
+duration: "5 months"
+industry: "Media & Entertainment"
+projectType: "Self-Service Infrastructure"
+publishDate: 2024-04-22
+isDraft: true
+---
+
+## Overview
+
+A digital media company's two-person platform team had become the bottleneck for 120 engineers across 8 product teams. We built a self-service infrastructure system that let teams provision their own AWS resources safely, reducing request lead time from two weeks to under an hour while maintaining SOC2 compliance with zero policy violations.
+
+## The Challenge
+
+The platform team was drowning in tickets.
+
+The client was a digital media company with 120 engineers spread across 8 product teams. Two platform engineers supported all of them. Every database, every S3 bucket, every Lambda function—if it touched AWS, it went through the platform team's ticket queue.
+
+The backlog was brutal. Average wait time for infrastructure requests was two weeks. Product teams would submit a ticket for a new RDS instance, then wait. And wait. The platform engineers weren't slow—they were just outnumbered 60 to 1.
+
+Product deadlines were slipping. Teams planned features, started building, then discovered they needed infrastructure that wouldn't be ready for weeks. Some teams learned to front-load infrastructure requests at the start of every sprint, even if they weren't sure exactly what they'd need. This created waste and still didn't solve the timing problem.
+
+Shadow IT had emerged. Frustrated engineers started creating resources directly in AWS using personal IAM credentials that had been provisioned for debugging. The security team discovered S3 buckets and Lambda functions that weren't in the official inventory. Nobody knew who owned them or what they were for. Some had public access enabled.
+
+The platform team was miserable too. They'd joined to build platforms, not to process tickets. Most of their day was spent on repetitive provisioning tasks that required their expertise to do safely but not their expertise to design. They wanted to work on interesting problems, but the ticket queue never let them.
+
+The constraints made this tricky. The company had SOC2 compliance requirements, which meant security guardrails weren't optional. We couldn't just give product teams AWS console access and hope for the best. Every resource needed encryption, proper network isolation, and audit logging. The solution had to be both self-service and secure.
+
+## The Approach
+
+I started by understanding what teams actually needed. I cataloged every infrastructure ticket from the past six months—487 requests total. The distribution was revealing:
+
+| Resource Type | % of Requests |
+|--------------|---------------|
+| S3 buckets | 28% |
+| RDS databases | 24% |
+| Lambda functions | 19% |
+| SQS queues | 12% |
+| ElastiCache | 8% |
+| Other | 9% |
+
+Table: Infrastructure request distribution by resource type
+
+Five resource types accounted for 91% of all requests. And within each type, the configurations were remarkably similar. Most RDS requests were for PostgreSQL with the same encryption and backup settings. Most S3 buckets needed the same access policies. Teams weren't asking for exotic infrastructure—they were asking for the same things over and over.
+
+This was the insight that shaped the solution: we didn't need to give teams full AWS access. We needed to give them access to _approved patterns_ that handled the security requirements automatically.
+
+The key decisions:
+
+_Terraform modules over custom portal_. We considered building a web interface, but Terraform modules offered more flexibility and lower maintenance. Engineers already understood infrastructure as code. We'd meet them where they were.
+
+_Policy as code with OPA_. Security requirements would be codified as Open Policy Agent policies. Every Terraform plan would be checked against these policies before apply. Compliance became automated, not manual.
+
+_CI/CD-driven provisioning_. Teams would provision infrastructure by opening PRs, not by clicking in a portal. This gave us audit trails, review workflows, and integration with existing development processes.
+
+The implementation happened in five phases:
+
+_Month 1: Core modules_. We built Terraform modules for the top five resource types with security best practices baked in. Each module exposed only the configuration options teams actually needed—you couldn't accidentally create a public S3 bucket because the module didn't have a parameter for that.
+
+_Month 2: Policy layer_. We wrote OPA policies encoding SOC2 requirements: encryption at rest, encryption in transit, no public access, proper tagging. We integrated Conftest to run these policies as part of the CI pipeline.
+
+_Month 3: CI/CD wrapper_. We set up Atlantis to run Terraform plans and applies on PR events. Teams got plan output as PR comments. Applies required approval from at least one platform team member initially.
+
+_Month 4: Self-service rollout_. We onboarded teams one by one. Each team got a repository with module references they could customize. We trained them on the workflow and supported their first few requests closely.
+
+_Month 5: Refinement and autonomy_. As teams proved they could use the system safely, we removed the approval requirement for pre-approved patterns. Platform team review became optional for standard resources.
+
+The security team was initially skeptical. "You want to let developers provision their own databases?" We addressed this by showing them the policy layer in action. We demonstrated that developers literally couldn't create non-compliant resources—the CI pipeline would reject them. The policies enforced what reviews had previously caught manually.
+
+## The Solution
+
+### Module Architecture
+
+The Terraform modules lived in a central repository owned by the platform team. Each module encapsulated security best practices and exposed a simplified interface:
+
+```hcl
+# Example: What a team's Terraform looks like
+module "user_uploads" {
+  source = "git::https://github.com/company/tf-modules//s3-bucket?ref=v2.1.0"
+
+  name        = "user-uploads"
+  team        = "content-platform"
+  environment = "production"
+
+  versioning_enabled = true
+  lifecycle_rules    = "standard-90-day"
+}
+```
+
+Code: Self-service S3 bucket provisioning using approved module
+
+The module handled everything else: encryption with KMS, blocking public access, access logging, proper IAM policies, and required tags. Teams specified what they needed; the module ensured it was built correctly.
+
+We versioned modules using Git tags. Teams pinned to specific versions, and the platform team could release new versions with improvements without breaking existing infrastructure. Major version bumps required team action to upgrade.
+
+### Policy Enforcement
+
+OPA policies ran on every Terraform plan. A sample policy for S3:
+
+```rego
+# Deny S3 buckets without encryption
+deny[msg] {
+  resource := input.planned_values.root_module.resources[_]
+  resource.type == "aws_s3_bucket"
+  not resource.values.server_side_encryption_configuration
+  msg := sprintf("S3 bucket '%s' must have encryption enabled", [resource.name])
+}
+```
+
+Code: OPA policy enforcing S3 encryption requirement
+
+The policies covered encryption, network isolation, tagging requirements, and naming conventions. Conftest (a CLI tool for running OPA policies against structured data like Terraform plans) ran these policies as a GitHub Actions step before Atlantis could apply anything. Failed policies blocked the PR with clear error messages explaining what needed to change.
+
+### Cost Controls
+
+Infracost estimated the monthly cost of each infrastructure change and posted it as a PR comment. Teams saw immediately if their new RDS instance would cost $500/month or $5,000/month.
+
+We also implemented per-team budgets. Each team had a monthly infrastructure allocation. The system tracked provisioned resources against these budgets and warned when teams approached their limits. This prevented surprise bills and encouraged teams to think about cost as a design constraint.
+
+### Workflow
+
+The day-to-day workflow for a product team:
+
+1. Engineer creates a branch in their team's infrastructure repo
+2. Adds or modifies Terraform configuration using approved modules
+3. Opens a PR
+4. GitHub Actions runs `terraform plan`, OPA policy checks, and Infracost
+5. PR comment shows the plan, any policy violations, and cost estimate
+6. For standard patterns, engineer merges after self-review
+7. Atlantis applies the changes automatically
+8. Resources are provisioned, tagged, and compliant
+
+For non-standard requests—anything outside the pre-approved modules—the PR required platform team review. This kept the escape hatch available while ensuring experts reviewed novel infrastructure.
+
+## The Results
+
+Five months after starting, the transformation was complete:
+
+| Metric | Before | After |
+|--------|--------|-------|
+| Infrastructure request lead time | 2 weeks | <1 hour |
+| Platform team ticket volume | Baseline | -75% |
+| Security policy violations | Unknown (shadow IT) | Zero |
+| Self-sufficient product teams | 0 of 8 | 6 of 8 |
+| Shadow IT resources | Discovered during audit | Eliminated |
+| Infrastructure spend | Baseline | -12% |
+
+Table: Self-service infrastructure outcomes
+
+For standard resources, most requests completed in 15-30 minutes. The remaining 25% of tickets were non-standard requests that genuinely required platform expertise—interesting problems, not repetitive provisioning. With ticket volume down 75%, the platform engineers finally had time for the work they wanted to do: improving observability, building deployment tooling, and designing the next generation of infrastructure patterns.
+
+The cost visibility produced an unexpected but significant benefit. When teams could see infrastructure costs in their PR comments, behavior changed. One team realized their staging environment was costing as much as production and voluntarily downsized. Another team chose smaller RDS instance types after seeing the monthly estimates. Total infrastructure spend dropped 12% despite increased provisioning volume—the opposite of what typically happens when you make provisioning easier. Visibility drove accountability.
+
+## Key Takeaways
+
+- _Self-service doesn't mean uncontrolled_. The key insight was that teams didn't need full AWS access—they needed access to approved patterns. Constrained self-service is often more valuable than unconstrained freedom because it removes the cognitive load of security and compliance decisions.
+- _Codified policies beat manual reviews_. When security requirements are code, they're consistent and fast. Manual reviews are slow, inconsistent, and create bottlenecks. Automate the rules, review the exceptions.
+- _Meet teams where they are_. We used Terraform and Git because that's what engineers already knew. A custom portal might have looked nicer but would have added friction and required training. Familiar tools with new capabilities beat new tools with new capabilities.
+
+## Cover Prompts
+
+1. A stylized ticket queue transforming into a self-service kiosk or vending machine dispensing infrastructure components (databases, storage buckets, functions), showing the shift from waiting to instant provisioning, clean vector illustration
+
+2. Abstract representation of guardrails—a wide pathway with clear boundaries containing infrastructure icons flowing freely within the safe zone, suggesting freedom within constraints, isometric design with blue and green accents
+
+3. Split view showing a two-person team overwhelmed by a mountain of tickets on one side, transforming to the same team relaxed while automated conveyor belts provision resources on the other, before/after transformation concept
+
+4. A Terraform module as a building block being assembled by multiple hands from different teams, with security shields and compliance checkmarks automatically attached, collaborative infrastructure concept, modern tech illustration

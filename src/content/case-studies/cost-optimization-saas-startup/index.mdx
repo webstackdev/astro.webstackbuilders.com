@@ -1,0 +1,99 @@
+---
+title: "60% Infrastructure Cost Reduction for a Growing SaaS Startup"
+description: "Right-sizing, reserved instances, and architectural changes that cut monthly AWS spend from $180K to $72K without sacrificing performance"
+cover: "./cover.png"
+coverAlt: "Hero image for case study"
+client: "Series B SaaS Startup"
+duration: "3 months"
+industry: "Software / SaaS"
+projectType: "Cost Optimization"
+publishDate: 2024-09-20
+isDraft: true
+---
+
+## Overview
+
+We reduced a SaaS startup's monthly AWS bill from $180,000 to $72,000—a 60% reduction—without sacrificing performance or reliability. The $1.3M in annual savings extended their runway by eight months and eliminated the need for the engineering layoffs the board had been discussing.
+
+## The Challenge
+
+The client was a Series B SaaS company with 50 engineers and a product that had found strong market fit. Growth was good. The problem was that their AWS bill was growing faster than their revenue.
+
+When I came in, they were spending $180,000 per month on AWS. That number had doubled in the past year, and nobody could explain why. The finance team had flagged it. The board was asking hard questions. The CEO was starting to talk about cutting engineering headcount to extend runway—the opposite of what a growing company should be doing.
+
+The engineering team knew the bill was too high but didn't have time to investigate. They were shipping features as fast as they could. Cost optimization kept getting deprioritized. And honestly, nobody had visibility into what was actually driving the spend. The AWS bill was a wall of line items that nobody understood.
+
+The constraints were clear: we couldn't slow down feature development, we couldn't sacrifice performance (customers were paying for an SLA), and we needed to show results quickly. The board wanted to see progress within 90 days.
+
+## The Results
+
+Three months later, the numbers told the story:
+
+- _Monthly spend dropped from $180,000 to $72,000_—a 60% reduction.
+- _Annual savings of $1.3M_, which extended runway by eight months at current burn rate.
+- _Zero degradation in performance_. P99 latency actually improved slightly due to right-sizing reducing noisy neighbor effects.
+- _No reduction in reliability_. Uptime remained at 99.95% throughout and after the optimization work.
+
+The breakdown of where the savings came from:
+
+| Category | Monthly Savings | % of Total |
+|----------|-----------------|------------|
+| Right-sizing instances | $45,000 | 42% |
+| Reserved instance commitments | $36,000 | 33% |
+| Architecture changes | $18,000 | 17% |
+| Unused resource cleanup | $9,000 | 8% |
+
+Table: Savings breakdown by optimization category
+
+The engineering layoffs never happened. Instead, the company used part of the savings to hire two additional engineers.
+
+## The Approach
+
+The first two weeks were pure discovery. I ran AWS Cost Explorer reports going back 12 months, audited resource utilization across every account, and checked the state of their tagging. The tagging audit was revealing—40% of their spend couldn't be attributed to any team or product because the resources weren't tagged.
+
+The analysis surfaced clear patterns of waste:
+
+- _Oversized instances everywhere_. Production databases running on r5.4xlarge with 15% average CPU utilization—these could safely drop to r5.xlarge. Application servers on m5.2xlarge that never exceeded 30% memory usage went to m5.large.
+- _Dev environments running 24/7_. Eight complete environment stacks that developers used maybe 20 hours per week, burning money the other 148 hours.
+- _Zombie resources_. EBS volumes from terminated instances, unused Elastic IPs, load balancers pointing at nothing, snapshots from two years ago.
+- _No reserved capacity_. Everything running on-demand pricing despite predictable baseline workloads.
+
+I structured the work in three phases:
+
+_Weeks 1-2: Quick wins_. Delete the zombies. This is the easiest money you'll ever save. We recovered $9,000/month just by cleaning up unused resources. No risk, no code changes, immediate impact.
+
+_Weeks 3-6: Reserved capacity and right-sizing_. For workloads with predictable usage patterns, we purchased 1-year reserved instances. For everything else, we right-sized based on actual utilization data. This phase required more analysis but was still low-risk.
+
+_Weeks 7-12: Architecture changes_. The bigger wins required code and infrastructure changes—moving batch processing to spot instances, consolidating dev environments, implementing auto-scaling policies that actually worked.
+
+The resistance came from the right-sizing phase. Engineers were nervous about smaller instances. "What if we get a traffic spike?" We addressed this by load testing the right-sized configuration before making changes. In every case, the smaller instances handled the load fine. The previous sizing had been based on guesses, not data.
+
+## The Solution
+
+Beyond the immediate cost cuts, we built systems to prevent the problem from recurring:
+
+_Visibility tooling_. We implemented Kubecost (a Kubernetes cost monitoring tool that attributes spend to namespaces and workloads) and set up custom CloudWatch dashboards for non-containerized resources. Every team could now see exactly what their services cost. Accountability changed behavior—teams started optimizing on their own once they could see the numbers.
+
+_Automated scaling_. The existing auto-scaling policies were either missing or misconfigured. We implemented target tracking scaling for the application tier and scheduled scaling for the dev environments (scale to zero nights and weekends).
+
+_Spot instances for batch_. Their data pipeline ran nightly batch jobs that were perfect for spot instances—fault-tolerant, flexible on timing, and not customer-facing. Moving these workloads to spot cut that portion of the bill by 70%.
+
+_Governance_. We established tagging standards and enforced them through AWS Service Control Policies. New resources without proper tags couldn't be created. Monthly cost review meetings became part of the engineering rhythm, with each team responsible for their spend.
+
+The dev environment consolidation deserves special mention. Eight separate environments became two shared environments with namespace isolation—a 75% reduction in infrastructure footprint (8 → 2). Developers could still work independently, but the compute, database, and networking costs dropped proportionally. Scheduled scaling meant those environments cost almost nothing outside business hours.
+
+## Key Takeaways
+
+- _Start with visibility_. You can't optimize what you can't measure. The tagging audit and cost attribution work was unsexy but essential. Once teams could see their costs, optimization happened organically.
+- _Quick wins build credibility_. Cleaning up unused resources in the first two weeks saved $9,000/month and proved we were making progress. That credibility made the harder conversations about architecture changes easier.
+- _Right-sizing fears are usually unfounded_. Engineers oversize instances because they're worried about the unknown. Actual utilization data almost always shows massive headroom. Load test to prove it, then make the change.
+
+## Cover Prompts
+
+1. An abstract bar chart transforming from tall expensive columns to shorter optimized ones, with cloud infrastructure icons and dollar signs floating around, gradient from red (expensive) to green (optimized), modern corporate illustration style
+
+2. A stylized AWS billing dashboard being squeezed or compressed by hands, with savings pouring out the bottom like coins, clean vector illustration with orange and teal color palette
+
+3. Isometric view of a cloud data center with some server racks fading out or becoming transparent while remaining ones glow brighter and more efficiently, representing consolidation and optimization, tech illustration style
+
+4. A magnifying glass examining cloud infrastructure icons, revealing hidden waste items (zombie resources, oversized servers) being swept away, transformation from cluttered to clean, minimalist design with accent colors

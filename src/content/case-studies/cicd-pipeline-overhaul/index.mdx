@@ -1,0 +1,141 @@
+---
+title: "CI/CD Pipeline Overhaul: From 45-Minute Builds to 8 Minutes"
+description: "Redesigning a monorepo CI/CD pipeline to reduce build times by 80% and eliminate flaky tests blocking deployments"
+cover: "./cover.png"
+coverAlt: "Hero image for case study"
+client: "B2B SaaS Platform"
+duration: "3 months"
+industry: "Software / SaaS"
+projectType: "CI/CD Optimization"
+publishDate: 2024-05-18
+isDraft: true
+---
+
+## Overview
+
+A B2B SaaS company's CI/CD pipeline had become a bottleneck—45-minute builds and a 30% flaky test rate meant engineers spent more time waiting and re-running than coding. We reduced build times to 8 minutes (82% improvement), dropped flaky failures to under 2%, and increased deployment frequency from twice weekly to multiple times daily.
+
+## The Challenge
+
+The client was a B2B SaaS company with 80 engineers working in a TypeScript monorepo. Twelve packages shared code, dependencies, and a single CI pipeline. In theory, the monorepo made code sharing easy. In practice, it had become a bottleneck that was strangling productivity.
+
+Builds took 45 minutes. Every pull request triggered a full build of the entire monorepo—all 12 packages, all tests, every time. Engineers would push a one-line change to a utility function, then wait 45 minutes to find out if it worked. Many had developed the habit of pushing changes and going to lunch.
+
+The flaky tests were worse. About 30% of builds failed for reasons that had nothing to do with the code being tested. Tests that passed locally would fail in CI, then pass when re-run. Engineers learned to automatically re-trigger failed builds without even looking at the logs. "Just retry it" became muscle memory.
+
+The combination was devastating. A simple PR that should have taken an hour consumed half a day. Push, wait 45 minutes, see a flaky failure, retry, wait another 45 minutes, finally get a green build, merge. Deployments had become weekly events that required coordination and courage. Nobody wanted to deploy on a Friday—or a Thursday, just to be safe.
+
+When I interviewed engineers about their development experience, the CI system came up in every conversation. "I hate our CI" was a common opener. Developer satisfaction surveys rated the CI experience 2.1 out of 5. One senior engineer told me she structured her entire workday around CI wait times—she'd batch up PRs and submit them all at once, then work on something else while they crawled through the pipeline.
+
+The constraint was that we couldn't split the monorepo. The company had considered it, but the code sharing between packages was deep and intentional. Extracting packages into separate repos would have created a dependency management nightmare. We needed to make the monorepo work, not abandon it.
+
+## The Approach
+
+The first week was diagnostic. I needed to understand where the time actually went before I could fix it.
+
+I analyzed three months of CI runs using GitHub Actions' timing data and Datadog traces. The breakdown was illuminating:
+
+| Phase | Average Time | % of Total |
+|-------|--------------|------------|
+| Dependency installation | 8 min | 18% |
+| Build (all packages) | 15 min | 33% |
+| Tests (all packages) | 18 min | 40% |
+| Linting and type checking | 4 min | 9% |
+
+Table: Build time breakdown before optimization
+
+The tests were the biggest chunk, but everything was slower than it needed to be. Dependencies were installed fresh on every run despite rarely changing. Builds compiled every package even when only one had changed. Tests ran sequentially when they could have run in parallel.
+
+The flaky test analysis revealed 47 tests that had failed and then passed on retry at least once in the past month. Some failed intermittently due to timing issues. Others depended on test execution order. A few made network calls to external services that occasionally timed out.
+
+The strategy crystallized into four phases:
+
+_Phase 1: Caching_ (weeks 1-2). Low-hanging fruit. Cache dependencies, cache build outputs, stop doing work we'd already done.
+
+_Phase 2: Parallelization_ (weeks 3-5). Run tests in parallel across multiple runners. Split the monolithic test suite into shards that could execute concurrently.
+
+_Phase 3: Affected-only testing_ (weeks 6-9). Stop testing packages that hadn't changed. If a PR only touches one package, only build and test that package and its dependents.
+
+_Phase 4: Flaky test program_ (weeks 10-12). Quarantine flaky tests, fix them systematically, and prevent new ones from being introduced.
+
+## The Solution
+
+### Caching Everything
+
+The dependency installation taking 8 minutes on every build was absurd. The `node_modules` folder contained 1.2 GB of packages that changed maybe once a week.
+
+We implemented aggressive caching with GitHub Actions' cache action (`actions/cache`), keyed on the `package-lock.json` hash. Cache hits dropped dependency installation to under 30 seconds. We did the same for the TypeScript build cache—compiled outputs persisted between runs and only changed files recompiled.
+
+The caching alone cut build times from 45 minutes to 28 minutes. Not revolutionary, but meaningful—and it required no changes to the codebase itself.
+
+### Parallelization
+
+The test suite ran sequentially on a single GitHub Actions runner. Each test file waited for the previous one to finish. With 2,400 tests, this was painfully slow.
+
+We restructured the workflow to use a matrix strategy with 8 parallel runners. Each runner received roughly 300 tests to execute. The test splitting used timing data from previous runs to balance the shards—slow test files went to different runners to prevent one shard from becoming a bottleneck.
+
+Parallelization cut the test phase from 18 minutes to 4 minutes. Combined with caching, we were down to about 15 minutes total.
+
+### Affected-Only Testing with Nx
+
+This was the biggest win. We adopted Nx for monorepo tooling, specifically for its affected commands. Nx understands the dependency graph between packages and can determine which packages are affected by a given change.
+
+A PR that modifies only the `ui-components` package now runs builds and tests for `ui-components` and any package that depends on it—not the entire monorepo. For most PRs (which touch one or two packages), this reduced the scope of CI work by 70-80%.
+
+Implementing this required adding Nx configuration and refactoring the GitHub Actions workflow to use `nx affected:test` instead of `nx test`. We also set up remote caching with Nx Cloud so that build artifacts could be shared across branches—if another PR had already built a package with the same inputs, we'd reuse that build.
+
+The combination of affected-only testing and remote caching dropped typical PR build times to 8 minutes.
+
+### Flaky Test Program
+
+The flaky tests required a different approach. These weren't going to be fixed by caching or parallelization.
+
+We implemented a three-part program:
+
+_Quarantine_. We created a quarantine label for known-flaky tests. Quarantined tests still ran, but their failures didn't block the build. This immediately stopped flaky tests from wasting engineer time with retries.
+
+_Dashboard_. We built a Datadog dashboard tracking test stability over time. Each test had a reliability score based on its pass rate across the last 100 runs. Tests below 95% reliability were automatically flagged for investigation.
+
+_Prevention_. We added a check that detected new flaky tests. If a test failed and then passed on retry, it was automatically added to a triage list. Engineers couldn't ignore new flakiness—they had to either fix it or explicitly acknowledge it.
+
+Fixing the existing flaky tests took the full three weeks. The issues fell into predictable categories:
+
+- _Timing dependencies_: Tests that used `setTimeout` or depended on operations completing in a specific order. Fixed with proper async/await patterns and explicit waits.
+- _Shared state_: Tests that polluted global state or didn't properly reset between runs. Fixed with better test isolation.
+- _External dependencies_: Tests that called real external APIs. Fixed by mocking the network calls.
+- _Order dependencies_: Tests that only passed when run after another specific test. Fixed by making each test fully independent.
+
+We also upgraded to larger GitHub Actions runners (4 CPU cores instead of 2) for the test phase. This reduced intermittent timing failures caused by resource contention.
+
+## The Results
+
+Three months of work produced dramatic improvements:
+
+| Metric | Before | After | Change |
+|--------|--------|-------|--------|
+| Average build time | 45 minutes | 8 minutes | 82% reduction |
+| Flaky test rate | 30% | <2% | 93% reduction |
+| Deployment frequency | 2x/week | 3x/day | 10x improvement |
+| Developer CI satisfaction | 2.1/5 | 4.2/5 | 100% improvement |
+
+Table: CI/CD optimization outcomes
+
+For most PRs touching one or two packages, builds complete in under 5 minutes. The remaining flaky tests are quarantined and tracked, and new flakiness is caught and addressed immediately. With fast, reliable CI, engineers deploy when they're ready—deployments became routine instead of events.
+
+The cultural change was notable too. Engineers started making smaller, more frequent PRs because the feedback cycle was fast enough to support that workflow. Code review turnaround improved because reviewers weren't dreading the CI wait after approval.
+
+## Key Takeaways
+
+- _Measure before you optimize_. The build time breakdown revealed that tests were 40% of the problem, but caching would give quick wins. Without that analysis, we might have spent weeks on the wrong thing.
+- _Affected-only testing is transformative for monorepos_. Running everything on every change is the default, but it's wrong. Nx or similar tooling that understands your dependency graph can reduce CI scope by 70-80% for typical PRs.
+- _Flaky tests require a program, not a heroic fix_. You can't fix 47 flaky tests in a weekend. Quarantine to stop the bleeding, dashboard to track progress, prevention to stop the leak. Systematic beats heroic.
+
+## Cover Prompts
+
+1. A stylized pipeline visualization transforming from a long, winding maze with bottlenecks to a short, direct flow with parallel streams, showing acceleration and efficiency, gradient from red (slow) to green (fast), tech illustration style
+
+2. Abstract representation of time compression—a clock face being squeezed from 45 to 8, with build artifacts and test icons flowing through rapidly, suggesting speed improvement, clean vector design with motion blur effects
+
+3. Split view showing chaotic, failing test results and retry buttons on the left side, transforming into clean green checkmarks and parallel execution lanes on the right, before/after transformation concept
+
+4. Isometric view of a monorepo structure with packages connected by dependency lines, some paths highlighted showing the "affected only" optimization concept, with speed indicators and caching symbols, technical but approachable illustration
