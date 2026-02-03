@@ -280,3 +280,28 @@ $2500 onboarding + $500 just for being on call for the week + hours paid for act
 ## Content Issues
 
 - "### Geographic/Currency Mismatches" in src/content/articles/cdn-edge-caching-cache-keys-vary-headers/index.mdx
+
+
+There are some cover prompts under H2 headers prefixed with "case-studies/" that just have numbers. I want to change those to sequential numbers using the above pattern, where it's an H3. They should continue the numbering from the earlier group like so:
+
+### 1564x670 21:9
+
+And be given an appropriate image name that is currently missing.
+
+Then we need to do the same thing for the prompts that are under H2s prefixed with "tags/"
+
+Ultrawide 21:9 panoramic image (1564x670), Flat Material UI design. Background: Primary Deep Navy (#001A39). Elements: Secondary Blue (#006DCA) and Offset Blue (#1894FF) UI components. Accents: Sophisticated Purple (#7C3AED) and Spotlight Yellow (#FACC15) for high-contrast icons and data points. Palette utilizes soft gray shadows (#9CA3AF) on page-base cards (#F3F4F6). Professional vector illustration, tech-oriented minimalism, high-quality 2K render, matte texture, crisp edge lighting, ultra-wide field of view."
+
+Pro Tip for PromeAI: If you find the image too "bright," try adding "low-key lighting" to the prompt. If you want it to feel more like a software mockup, add "isometric data visualization" after "dashboard elements."
+
+Dark Wrapper: ...in a Dark Mode Material UI setting. Palette: Navy (#001A39) and Secondary Blue (#006DCA) with Luminous Violet (#7C3AED) and Spotlight Yellow (#FACC15) highlights. soft depth, flat vector style, 21:9 ultrawide panoramic composition, high-fidelity, utilizing an 'Ultrawide Rule of Thirds' composition with elements distributed horizontally across the frame.
+
+Light Wrapper: ...in a Light Mode Material UI setting. Palette: Clean Gray (#F3F4F6) and White background. UI elements in Primary Navy (#001A39). Accents in Violet and Gold. Crisp vector lines, flat design, minimalistic, 21:9 ultrawide panoramic composition, utilizing an 'Ultrawide Rule of Thirds' composition with elements distributed horizontally across the frame.
+
+Monochrome Wrapper: ...in a high-contrast monochromatic flat design. High-resolution grayscale. Deep Charcoal (#1F2937) and Light Gray (#D1D5DB). Bold stencil-style vector shapes, no gradients, sharp silhouettes, 21:9 ultrawide panoramic composition, utilizing an 'Ultrawide Rule of Thirds' composition with elements distributed horizontally across the frame.
+
+Switch to "Dynamic": This style focuses on compositional movement. It will make the "storm of icons" in Prompt 1 feel more fluid and wide-angled, which works well for the 21:9 aspect ratio.
+
+Flat design illustration of [cover prompt]. Use clean lines, simple geometric shapes, a limited color palette of #001A39, #006DCA, #1894FF, #7C3AED, #FACC15, #9CA3AF, #F3F4F6 with no gradients, shadows, or 3D effects. Minimalist background, vector graphic, highly stylized, no texture. Utilize an 'Ultrawide Rule of Thirds' composition with elements distributed horizontally across the frame.
+
+A vector illustration of three glowing pillars (metrics, traces, logs) supporting an API gateway structure. Data flows through the gateway as luminous streams, with each pillar capturing different aspects of the flow. The pillars should be interconnected with subtle light bridges representing correlation. Use a mid-century modern aesthetic, a limited color palette (#001A39, #006DCA, #1894FF, #7C3AED, #FACC15, #9CA3AF, #F3F4F6). Incorporate the 'long shadow' design trend. The art style should be minimalist, flat illustration, highly stylized, clean lines, no texture.
