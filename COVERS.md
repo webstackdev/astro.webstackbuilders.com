@@ -1499,3 +1499,219 @@ Stylized photograph of an antique lock with a key, overlaid with digital timesta
 ### Prompt 5: Surgeon Operating with Precision
 
 Medical photograph of surgical instruments during a precise operation—the careful, methodical nature of state surgery. Clean, focused, high-stakes environment.
+
+## case-studies/cicd-pipeline-overhaul
+
+1. A stylized pipeline visualization transforming from a long, winding maze with bottlenecks to a short, direct flow with parallel streams, showing acceleration and efficiency, gradient from red (slow) to green (fast), tech illustration style
+
+2. Abstract representation of time compression—a clock face being squeezed from 45 to 8, with build artifacts and test icons flowing through rapidly, suggesting speed improvement, clean vector design with motion blur effects
+
+3. Split view showing chaotic, failing test results and retry buttons on the left side, transforming into clean green checkmarks and parallel execution lanes on the right, before/after transformation concept
+
+4. Isometric view of a monorepo structure with packages connected by dependency lines, some paths highlighted showing the "affected only" optimization concept, with speed indicators and caching symbols, technical but approachable illustration
+
+## case-studies/cloud-migration-logistics-platform
+
+1. Abstract visualization of data flowing from an old brick building to a modern cloud formation, with package tracking icons and delivery truck silhouettes integrated into the data stream, cool blue and orange color palette, corporate tech illustration style
+
+2. Split-screen composition showing a dimly lit server room on the left transforming into bright, organized cloud infrastructure symbols on the right, with logistics elements like shipping routes and warehouse icons bridging the transition, isometric design
+
+3. A stylized highway interchange at night with glowing data packets traveling along the roads, some routes leading to traditional data center towers and others curving upward into cloud formations, suggesting migration in motion, cinematic lighting
+
+4. Network topology diagram reimagined as a city map, with legacy infrastructure shown as older buildings being connected by modern transit lines to sleek cloud district towers, logistics trucks visible on the streets below, blueprint aesthetic with accent colors
+
+## case-studies/compliance-automation-hipaa
+
+1. A digital shield with a medical cross symbol at its center, surrounded by flowing streams of encrypted binary code and lock icons, healthcare blue and secure green color palette, abstract cybersecurity visualization
+
+2. Isometric illustration of a hospital building connected to cloud infrastructure with visible security layers, automated compliance checkmarks appearing along data pathways, clean modern tech illustration style
+
+3. Abstract visualization of policy documents transforming into glowing code blocks, medical symbols integrated into a circuit board pattern, representing compliance as code, blue and teal gradient background
+
+4. Split composition showing manual paper-based audit process on left transforming into automated digital dashboard on right, healthcare and technology fusion, progress and modernization theme
+
+## case-studies/cost-optimization-saas-startup
+
+1. An abstract bar chart transforming from tall expensive columns to shorter optimized ones, with cloud infrastructure icons and dollar signs floating around, gradient from red (expensive) to green (optimized), modern corporate illustration style
+
+2. A stylized AWS billing dashboard being squeezed or compressed by hands, with savings pouring out the bottom like coins, clean vector illustration with orange and teal color palette
+
+3. Isometric view of a cloud data center with some server racks fading out or becoming transparent while remaining ones glow brighter and more efficiently, representing consolidation and optimization, tech illustration style
+
+4. A magnifying glass examining cloud infrastructure icons, revealing hidden waste items (zombie resources, oversized servers) being swept away, transformation from cluttered to clean, minimalist design with accent colors
+
+## case-studies/event-driven-architecture-migration
+
+1. Abstract visualization of data flowing from multiple source nodes through a central streaming pipeline to multiple consumer endpoints, real-time pulse effects, dark background with glowing data streams in blue and orange
+
+2. Split composition showing tangled synchronous API call chains on left transforming into clean event-driven architecture on right, before/after visual metaphor, technical diagram aesthetic
+
+3. Isometric illustration of a Kafka cluster as a central hub with producers and consumers orbiting around it, event messages visualized as packets flowing through topics, modern tech infrastructure style
+
+4. Real-time dashboard display showing live metrics updating, overlaid with flowing event stream visualization, adtech/analytics aesthetic with graphs and data points, dynamic motion blur effects
+
+## case-studies/incident-response-modernization
+
+1. A chaotic firefighting scene with scattered alerts and stressed figures on one side, transforming into a calm command center with organized screens and structured workflow on the other, showing the shift from reactive to proactive, warm-to-cool color gradient
+
+2. A stylized runbook or playbook being opened, with clear step-by-step instructions flowing out and connecting to different incident types, suggesting documentation as the solution to chaos, clean vector illustration
+
+3. Abstract representation of an on-call rotation wheel with clear escalation paths branching out, severity levels color-coded, and backup engineers visible at each tier, organized and reassuring design
+
+4. Split image showing a lone engineer overwhelmed by a storm of alerts at night versus a coordinated team with an Incident Commander directing response during daylight, emphasizing the shift from isolation to structured support
+
+## case-studies/infrastructure-as-code-transformation
+
+1. Abstract transformation from chaotic scattered AWS console icons and manual click cursors on one side, morphing into organized, structured code blocks and Git branch diagrams on the other, gradient from messy orange to clean blue, modern tech illustration
+
+2. A stylized construction blueprint being digitized, with infrastructure icons (servers, databases, networks) appearing as clean architectural drawings emerging from paper into holographic code, blueprint aesthetic with tech accents
+
+3. Split image showing a tangled web of cloud resources connected by chaotic lines on the left, transforming into the same resources neatly organized in a version-controlled tree structure on the right, isometric design
+
+4. A keyboard key labeled "Apply" being pressed, with organized infrastructure blocks cascading out in formation like digital dominoes, suggesting automated provisioning, clean vector style with depth
+
+## case-studies/internal-developer-platform-backstage
+
+1. A central glowing hub with multiple pathways radiating outward, each pathway connecting to different service icons (databases, APIs, frontends), representing the unified developer portal, clean isometric design with purple and teal accents
+
+2. Abstract visualization of scattered documentation pages, code repositories, and service icons being pulled together by magnetic force into an organized catalog structure, showing transformation from chaos to order, modern tech illustration
+
+3. A stylized compass or wayfinding interface surrounded by microservice nodes, suggesting navigation and discovery through a complex ecosystem, Backstage-inspired color palette with gradients
+
+4. Multiple browser windows and terminal screens consolidating into a single unified dashboard view, with developer avatars finding their way through a clear pathway, emphasizing the "single pane of glass" concept
+
+## case-studies/kubernetes-adoption-fintech
+
+1. Abstract visualization of containerized applications arranged in a Kubernetes pod structure, with payment card icons and encrypted data streams flowing between them, deep blue and gold color palette suggesting finance and security, modern tech illustration
+
+2. A stylized ship's helm (Kubernetes logo reference) steering through a sea of financial data streams and transaction symbols, with security shields and compliance checkmarks integrated into the waves, nautical meets fintech aesthetic
+
+3. Isometric view of a secure vault or fortress made of interconnected containers, with payment processing symbols visible inside, mesh network connections between components representing the service mesh, corporate security illustration style
+
+4. Split composition showing chaotic scattered EC2 instance boxes on one side transforming into organized, orchestrated container pods on the other, with a PCI compliance badge prominently displayed, clean vector illustration with gradients
+
+## case-studies/observability-stack-implementation
+
+1. Three interconnected streams (metrics, logs, traces) converging into a unified dashboard view, with a magnifying glass revealing correlated insights, gradient colors representing the three signals merging, modern data visualization aesthetic
+
+2. Abstract neural network visualization where nodes represent services and connections show traces flowing between them, with a central Grafana-style dashboard synthesizing the information, healthcare-tech color palette with blues and greens
+
+3. A stylized detective's workspace with multiple screens showing different data types (graphs, log lines, trace waterfalls) all connected by glowing correlation lines, suggesting the shift from investigation to immediate insight
+
+4. Split composition showing scattered, disconnected monitoring tools on one side transforming into a unified observability platform on the other, with the OpenTelemetry logo as the bridge between them, clean vector illustration
+
+## case-studies/self-service-infrastructure
+
+1. A stylized ticket queue transforming into a self-service kiosk or vending machine dispensing infrastructure components (databases, storage buckets, functions), showing the shift from waiting to instant provisioning, clean vector illustration
+
+2. Abstract representation of guardrails—a wide pathway with clear boundaries containing infrastructure icons flowing freely within the safe zone, suggesting freedom within constraints, isometric design with blue and green accents
+
+3. Split view showing a two-person team overwhelmed by a mountain of tickets on one side, transforming to the same team relaxed while automated conveyor belts provision resources on the other, before/after transformation concept
+
+4. A Terraform module as a building block being assembled by multiple hands from different teams, with security shields and compliance checkmarks automatically attached, collaborative infrastructure concept, modern tech illustration
+
+## case-studies/zero-trust-network-architecture
+
+1. A network diagram transforming from an open perimeter with a single firewall wall to a mesh of interconnected nodes each with their own shields and identity badges, showing the shift from perimeter to zero trust, security-focused color palette with blues and greens
+
+2. Abstract visualization of encrypted tunnels (mTLS) connecting service pods, with SPIFFE identity certificates visible at each endpoint, suggesting cryptographic verification at every connection, modern tech illustration with lock icons
+
+3. Split composition showing a castle-and-moat architecture on one side (single wall, open interior) versus a segmented mesh architecture on the other (every node verified), illustrating the zero trust paradigm shift
+
+4. Isometric view of a Kubernetes cluster with Envoy sidecars visible as protective shells around each service, policy enforcement checkpoints between connections, and a central identity authority, technical but approachable illustration
+
+## tags/apis-and-gateways
+
+1. _Isometric technical illustration of a glowing API gateway node at the center of a network mesh, with stylized request/response arrows flowing through rate limiters and authentication checkpoints. Clean vector art style with a dark navy background, electric blue and cyan accent colors, subtle grid pattern overlay. Modern, technical, highly detailed, no text._
+
+2. _Abstract visualization of edge computing infrastructure: a world map rendered as a circuit board with glowing CDN nodes at major cities, connected by pulsing data streams. Minimalist geometric style, dark background with teal and orange highlights, professional and modern aesthetic suitable for a technical consultancy. 16:9 aspect ratio._
+
+3. _Technical diagram style illustration showing layered API architecture: client requests flowing through WAF, load balancer, API gateway, and microservices layers. Each layer rendered as a translucent panel with icons representing its function. Subtle depth of field effect, dark theme with purple and green neon accents, clean sans-serif labels. Enterprise technical aesthetic._
+
+4. _Stylized 3D render of interconnected API endpoints represented as glowing hexagonal nodes, with rate limit gauges and authentication shields visible on each connection. Cyberpunk-influenced color palette (deep purple, electric pink, cyan) on matte black background. High detail, technical but visually striking, suitable for modern developer audience._
+
+5. _Split-panel illustration: left side shows chaotic, tangled API spaghetti with timeout errors and failed requests; right side shows clean, organized gateway architecture with healthy metrics. Before/after transformation concept. Technical illustration style with blueprint grid background, warm orange (chaos) vs cool blue (order) color coding._
+
+## tags/build-and-deploy
+
+1. _Isometric technical illustration of a CI/CD pipeline: code commit flowing through build, test, and deploy stages represented as connected nodes with status indicators. Artifacts moving along conveyor-belt-style paths, with caching layers and quality gates visible. Dark slate background, green and blue accents, clean vector style. Modern, technical, DevOps aesthetic._
+
+2. _Abstract visualization of deployment strategies: three parallel tracks showing blue/green (two environments swapping), canary (gradual traffic shift), and rolling (sequential pod replacement). Traffic flow rendered as glowing streams with percentage indicators. Dark background with teal and amber highlights, professional technical illustration style._
+
+3. _Split composition showing pipeline optimization: left side displays a slow, sequential build with redundant steps and cache misses; right side shows an optimized parallel pipeline with smart caching and fast feedback. Before/after concept, dark theme with red (slow) to green (fast) color progression, timing indicators visible._
+
+4. _Technical diagram of GitOps architecture: Git repository at center connected to ArgoCD controller, which syncs to Kubernetes clusters. Sync status indicators, webhook triggers, and rollback paths clearly marked. Blueprint aesthetic, dark navy background, declarative flow rendered as clean arrows with state annotations._
+
+5. _Stylized 3D render of a release health dashboard: deployment timeline with health gates at key stages, metrics panels showing error rates and latency, and a prominent rollback button. Some gates glowing green (passed), one amber (warning). Dark background, electric blue and safety orange accents, technical but actionable aesthetic._
+
+## tags/cloud-platforms
+
+1. _Isometric technical illustration of a Kubernetes cluster: control plane nodes connected to worker nodes via glowing network lines, with pod icons distributed across nodes showing resource utilization gauges. Clean vector style, dark slate background with blue and teal accents, subtle hexagonal grid pattern. Modern, technical, enterprise-grade aesthetic, no text._
+
+2. _Abstract visualization of cloud infrastructure layers: stylized cloud shapes at the top flowing down through container symbols, orchestration nodes, and physical server racks at the bottom. Layered depth effect with translucent panels, dark background with gradient from deep purple (cloud) to electric blue (metal). Professional technical illustration style._
+
+3. _Technical diagram showing Terraform state flow: code files transforming through plan/apply stages into deployed infrastructure icons (VPCs, clusters, databases). Rendered as a glowing flowchart on dark background, with green (success) and amber (drift) status indicators. Blueprint aesthetic with clean sans-serif labels, suitable for infrastructure documentation._
+
+4. _Stylized 3D render of interconnected Kubernetes pods represented as glowing cubes within a cluster mesh, with service mesh connections shown as neon threads. Namespace boundaries visible as translucent walls. Cyberpunk-influenced palette (deep blue, cyan, magenta accents) on matte black. High detail, technical but visually striking._
+
+5. _Split composition: left side shows a tangled mess of manually provisioned servers with inconsistent configurations; right side shows clean infrastructure-as-code with version-controlled, repeatable deployments. Before/after transformation concept. Technical illustration style, warm orange (chaos) vs cool blue (order), dark background with subtle grid._
+
+## tags/observability-and-telemetry
+
+1. _Isometric technical illustration of an observability stack: three pillars (logs, metrics, traces) rendered as glowing vertical columns feeding into a central dashboard node. Data streams flowing upward through each pillar, correlation lines connecting them. Dark slate background, teal and amber accents, clean vector style. Modern, technical, enterprise aesthetic._
+
+2. _Abstract visualization of distributed tracing: a request path rendered as a glowing thread weaving through multiple service nodes, with span timing bars visible at each hop. Latency hotspots highlighted in warm orange, healthy paths in cool blue. Dark background with subtle grid pattern, professional technical illustration style._
+
+3. _Split composition showing signal vs noise: left side displays a wall of unstructured logs and alert spam with red warning icons; right side shows clean structured logs, curated dashboards, and actionable alerts. Before/after transformation concept, dark theme with red (chaos) to green (clarity) color progression._
+
+4. _Technical diagram of metrics aggregation pipeline: application instances emitting metrics through collectors, aggregators, and into time-series storage, with cardinality warnings displayed at key choke points. Blueprint aesthetic, dark navy background, data flow rendered as glowing streams with gauge indicators._
+
+5. _Stylized 3D render of a Grafana-style dashboard floating in space, with some panels glowing bright (actively used) and others dimmed or crossed out (dashboard rot). Audit trail indicators and usage metrics visible as overlays. Dark background, electric blue and muted grey contrast, technical but visually striking.
+
+## tags/platform-engineering
+
+1. _Isometric technical illustration of an internal developer platform: a central portal node connected to self-service action buttons (deploy, provision, scaffold) with developer avatars interacting from workstations. Golden path highlighted as a glowing route through the system. Dark slate background, teal and amber accents, clean vector style. Modern, technical, product-focused aesthetic._
+
+2. _Abstract visualization of a service catalog: interconnected service nodes with ownership badges, dependency lines, and lifecycle status indicators. Metadata panels floating beside each node showing team, SLO, and documentation links. Dark background with blue and green accents, professional technical illustration style._
+
+3. _Split composition showing developer experience transformation: left side displays a developer navigating a maze of documentation, tickets, and manual processes; right side shows the same developer using a streamlined platform with one-click actions and clear golden paths. Before/after concept, dark theme with red (friction) to green (flow) color progression._
+
+4. _Technical diagram of platform architecture: control plane layer at top (catalog, policies, templates) connected to data plane layer below (clusters, databases, queues) with API boundaries clearly marked. Blueprint aesthetic, dark navy background, layers rendered as translucent panels with glowing connection lines._
+
+5. _Stylized 3D render of a developer portal dashboard with action cards (create service, request access, view logs) prominently displayed, surrounded by dimmed legacy links and documentation indexes. Contrast between actionable platform vs passive portal. Dark background, electric blue highlights on active elements, muted grey on passive elements._
+
+## tags/reliability-and-testing
+
+1. _Isometric technical illustration of an incident response war room: monitoring dashboards showing error spikes, team members coordinating via chat, runbooks and escalation paths visualized as connected nodes. SLO budget gauges prominent. Dark slate background, red and green status accents, clean vector style. Modern, technical, high-stakes aesthetic._
+
+2. _Abstract visualization of system resilience: a service mesh with circuit breakers, retry logic, and backpressure valves rendered as mechanical components. Traffic flow shown as streams that get throttled, rerouted, or shed under load. Dark background with teal and amber highlights, professional technical illustration style._
+
+3. _Split composition showing on-call transformation: left side displays an engineer drowning in alert noise with pager fatigue indicators; right side shows curated alerts, clear runbooks, and healthy error budget. Before/after concept, dark theme with red (burnout) to green (sustainable) color progression._
+
+4. _Technical diagram of SLO architecture: user journey at top flowing through SLIs (latency, error rate, throughput) into error budget calculations and alerting thresholds. Budget burn rate visualized as a gauge with policy triggers. Blueprint aesthetic, dark navy background, metrics rendered as glowing data streams._
+
+5. _Stylized 3D render of a testing pyramid with E2E tests at the apex showing flaky test indicators, contract tests in the middle with schema compatibility checks, and unit tests at the base. Some tests glowing green (stable), others amber (flaky). Dark background, electric blue and warning orange accents, quality-focused aesthetic._
+
+## tags/system-modernization
+
+1. _Isometric technical illustration of a legacy monolith being incrementally wrapped by modern microservices: a large grey server block at center with vines (strangler fig metaphor) of glowing blue service nodes growing around it. Dark background, teal and amber accents, clean vector style. Modern, technical, transformation narrative._
+
+2. _Split composition showing code archaeology: left side displays tangled spaghetti code with question marks and missing documentation icons; right side shows the same system with test coverage indicators, dependency graphs, and documentation layers added. Before/after concept, dark theme with red (legacy) to green (stabilized) gradient._
+
+3. _Abstract visualization of a migration timeline: old infrastructure icons (on-prem servers, outdated frameworks) on the left transforming through intermediate stages into cloud-native architecture on the right. Rendered as a flowing ribbon with milestone markers, dark background with orange-to-blue color progression. Professional technical illustration._
+
+4. _Technical diagram showing expand/contract database migration pattern: two database schemas side by side with dual-write arrows, version indicators, and rollback paths highlighted. Blueprint aesthetic with dark navy background, schema tables rendered as glowing panels, green (new) and amber (old) color coding._
+
+5. _Stylized 3D render of a test harness being constructed around legacy code: scaffolding and safety nets wrapping an older monolithic structure, with test coverage percentage indicators glowing on each section. Construction site metaphor meets software engineering. Dark background, safety orange and electric blue accents._
+
+## tags/systems-and-development
+
+1. _Isometric technical illustration of a developer workstation: code editor showing TypeScript, terminal with Linux commands, and service icons (database, message queue, container) connected via data flow lines. Dark slate background, blue and teal accents, clean vector style. Modern, technical, full-stack aesthetic._
+
+2. _Abstract visualization of system components: a central application node connected to PostgreSQL (elephant icon), RabbitMQ (rabbit), Kafka (streaming arrows), and Linux servers (penguin). Data flowing between components as glowing streams. Dark background with colorful service-specific accents, professional technical illustration style._
+
+3. _Split composition showing development workflow: left side displays raw code and system logs; right side shows typed interfaces, structured queries, and organized message flows. Code-to-production concept, dark theme with syntax highlighting colors (TypeScript blue, terminal green, error red)._
+
+4. _Technical diagram of a typical platform stack: TypeScript tooling layer at top, application services in middle, backing services (databases, queues, caches) at bottom, all running on Linux hosts. Blueprint aesthetic, dark navy background, layers rendered as translucent panels with glowing connection lines._
+
+5. _Stylized 3D render of interconnected technology logos arranged as nodes in a network: TypeScript, Linux (Tux), PostgreSQL, RabbitMQ, Kafka. Each node glowing with its brand color, connected by data flow ribbons. Dark background, vibrant but professional color palette, foundational technology aesthetic._
