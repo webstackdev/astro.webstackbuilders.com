@@ -1,10 +1,10 @@
 ---
-title: ""
-description: ""
+title: "Download Your CI Pipeline Caching Guide"
+description: "Get the e-book: Docker layer caching, dependency caching, and cache invalidation patterns that speed up builds without breaking them."
 author: "kevin-brown"
 cover: "./download.png"
 coverAlt: ""
-publishDate: 2025-01-15
+publishDate: 2025-09-06
 isDraft: false
 fileType: "Whitepaper"
 fileSize: "2.3 MB"
@@ -12,3 +12,20 @@ pages: 24
 fileName: "*.pdf"
 ---
 
+A team aggressively cached everything and cut 45-minute builds down to 8 minutes. Three weeks later, a security patch landed in a transitive dependency. They ran `npm audit fix` but the cache key only hashed `package-lock.json`—which didn't change because the patch was already in the allowed semver range. The cache hit and restored the old, vulnerable version. The vulnerability made it to production.
+
+CI caching is an optimization that trades correctness guarantees for speed. Every cache hit assumes the cached artifact is identical to what a fresh build would produce. When that assumption is wrong, you're shipping artifacts that don't match your source code.
+
+This complete guide teaches you how to implement caching that speeds up builds without breaking them.
+
+Read this e-book to understand:
+
+- Cache correctness principles: completeness, determinism, isolation to prevent serving stale artifacts
+- Cache key design: static prefixes, dynamic components, restore key fallbacks across ecosystems
+- Docker layer caching and BuildKit: optimizing Dockerfiles for dependency and layer caching
+- Transitive dependency updates and lock files: when package managers guarantee reproducibility
+- Cache invalidation strategies: TTL, purge APIs, versioning, and manual invalidation
+- Measuring effectiveness: cache hit ratios, build time savings, and practical ROI
+- Production debugging: diagnosing cache misses, stale artifacts, and distribution backends
+
+Download Your CI Pipeline Caching Guide now to implement caching that actually works without breaking your builds.

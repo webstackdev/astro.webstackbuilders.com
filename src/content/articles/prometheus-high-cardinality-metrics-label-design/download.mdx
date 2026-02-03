@@ -1,14 +1,31 @@
 ---
-title: ""
-description: ""
+title: "High-Cardinality Metrics: Prometheus Label Horror"
+description: "What happens when unbounded label values explode your metrics storage, and how to design around it."
 author: "kevin-brown"
-cover: "./download.png"
-coverAlt: ""
-publishDate: 2025-01-15
+cover: "./cover.png"
+coverAlt: "TODO"
+publishDate: 2022-09-18
 isDraft: false
-fileType: "Whitepaper"
-fileSize: "2.3 MB"
-pages: 24
-fileName: "*.pdf"
+fileType: "PDF"
+fileSize: "1.6 MB"
+pages: 33
+fileName: "prometheus-high-cardinality-metrics-label-design.pdf"
 ---
 
+Every unique combination of metric name and label values creates a separate time series in Prometheus. Add three labels each with 100 values and you've created up to one million time series. A team added user_id to their API response time histogram—with 50 endpoints, 10 status codes, and 100,000 users, they created 50 million potential time series. Initial memory usage was fine (only active users generated metrics), but over months more users became active, and a traffic spike caused Prometheus to OOM during an incident. The fix: remove user_id, add it to traces, implement cardinality limits. Prometheus stabilized at 50,000 series.
+
+Labels are multiplicative, not additive. A single unbounded label can destroy your Prometheus deployment.
+
+This complete guide teaches you:
+
+- Time series math: how label combinations create cardinality explosions
+- Cardinality limits: setting hard boundaries in Prometheus and scrape configs
+- Label design patterns: structuring labels for debugging without cardinality risk
+- Histograms and cardinality: why they're especially dangerous with high-cardinality labels
+- Bounded versus unbounded labels: user IDs, request IDs, and what not to label
+- Prometheus internals: head blocks, indexing, and memory overhead
+- Monitoring cardinality: tsdb info queries and cardinality tracking
+- Cardinality troubleshooting: identifying the worst offenders
+- Alternatives to high-cardinality labels: traces, logs, and out-of-band metadata
+
+Download Your Prometheus Cardinality Guide now to design labels that don't explode your metrics storage.

@@ -1,14 +1,29 @@
 ---
-title: ""
-description: ""
+title: "Pod Sizing: Requests, Limits, and QoS Classes"
+description: "How Kubernetes scheduling and eviction actually work, and how to size pods to survive node pressure."
 author: "kevin-brown"
-cover: "./download.png"
-coverAlt: ""
-publishDate: 2025-01-15
+cover: "./cover.png"
+coverAlt: "TODO"
+publishDate: 2022-10-02
 isDraft: false
-fileType: "Whitepaper"
-fileSize: "2.3 MB"
-pages: 24
-fileName: "*.pdf"
+fileType: "PDF"
+fileSize: "1.3 MB"
+pages: 26
+fileName: "kubernetes-pod-resource-requests-limits-qos-classes.pdf"
 ---
 
+Every pod in Kubernetes consumes CPU and memory, but how you declare those resources determines where pods land, how they behave under pressure, and which pods die when nodes run low. Requests and limits aren't optional—they're the contract between your workload and the cluster. A production incident saw random pod evictions at 3 AM: 60% of pods had no memory limits, a few memory hogs consumed all RAM, and the well-behaved pods with requests but no limits were evicted first because they were marked "Burstable" QoS.
+
+QoS class determines eviction order, but most teams don't realize what class their pods belong to until they're debugging an outage. Understanding the resource model and QoS classification is essential for reliability.
+
+This complete guide teaches you:
+
+- Requests vs limits: how they affect scheduling and runtime behavior
+- CPU as a compressible resource: throttling symptoms and performance impact
+- Memory as incompressible: OOM kills, exit code 137, and why limits need headroom
+- QoS class assignment: Guaranteed, Burstable, and BestEffort
+- Eviction order during node pressure and how to avoid it
+- Right-sizing requests and limits without waste or risk
+- Using metrics and VPA to determine optimal resource specifications
+
+Download Your Kubernetes Pod Resource Sizing Guide now to allocate resources that prevent evictions and eliminate waste.

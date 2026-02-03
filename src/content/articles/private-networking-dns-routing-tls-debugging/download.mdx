@@ -1,14 +1,30 @@
 ---
-title: ""
-description: ""
+title: "Private Networking: DNS, Routing, and TLS Failures"
+description: "Debugging the networking issues that appear when services move to private connectivity."
 author: "kevin-brown"
-cover: "./download.png"
-coverAlt: ""
-publishDate: 2025-01-15
+cover: "./cover.png"
+coverAlt: "TODO"
+publishDate: 2024-05-19
 isDraft: false
-fileType: "Whitepaper"
-fileSize: "2.3 MB"
-pages: 24
-fileName: "*.pdf"
+fileType: "PDF"
+fileSize: "1.0 MB"
+pages: 16
+fileName: "private-networking-dns-routing-tls-debugging.pdf"
 ---
 
+Moving workloads to private networks makes sense for security—no public IPs, traffic stays within cloud boundaries. But private networking introduces failure modes that don't exist with public connectivity. DNS resolution fails with private endpoints. Routing requires explicit configuration. TLS certificates get rejected privately. A database migration to a private endpoint led to a 3-day debugging marathon: DNS resolved to the wrong IP, routes were missing, NAT masked the real connection origin, and certificates lacked the private DNS name. Each layer had its own failure masked by generic error messages. After that, every subsequent migration followed a debugging checklist: DNS → routing → connectivity → TLS → application.
+
+Private networking is a fundamentally different debugging domain where familiar tools give unfamiliar results.
+
+This complete guide teaches you:
+
+- Private DNS: resolution architectures, VPC resolvers, and hosted zones
+- DNS failure modes: NXDOMAIN, split-horizon DNS, and caching issues
+- Private routing: subnet routes, NACLs, security groups, and asymmetric paths
+- Network connectivity testing: tcpdump, netcat, and mTLS validation
+- TLS failures in private networks: SNI, SANs, and self-signed certificates
+- NAT and source IP masking: effects on authentication and firewall rules
+- Service discovery: private endpoints, load balancers, and alias records
+- Debugging tools and techniques for private networks
+
+Download Your Private Networking Debugging Guide now to resolve DNS, routing, and TLS issues when moving to private connectivity.

@@ -1,14 +1,30 @@
 ---
-title: ""
-description: ""
+title: "Platform Architecture: Control Plane vs Data Plane"
+description: "Separating platform control surfaces from runtime infrastructure for multi-team boundaries and scaling."
 author: "kevin-brown"
-cover: "./download.png"
-coverAlt: ""
-publishDate: 2025-01-15
+cover: "./cover.png"
+coverAlt: "TODO"
+publishDate: 2023-01-15
 isDraft: false
-fileType: "Whitepaper"
-fileSize: "2.3 MB"
-pages: 24
-fileName: "*.pdf"
+fileType: "PDF"
+fileSize: "1.2 MB"
+pages: 20
+fileName: "platform-architecture-control-plane-data-plane-separation.pdf"
 ---
 
+Networking separates routers into control planes (routing decisions) and data planes (packet flow). Platform engineering borrowed this pattern to solve the same scaling problem. The control plane handles configuration, policy, and orchestration—changing slowly with low request volume. The data plane runs actual work—containers executing, traffic flowing, databases serving queries. Coupling them prevents both from scaling. A platform team grew from initial single-cluster deployment to 50 teams with 500 services. Control plane upgrades required maintenance windows, surges in deployment activity slowed the API server, and controller bugs crashed reconciliation for all tenants. After refactoring to dedicated control and data planes, upgrades happened independently, issues isolated, and each plane scaled per its needs.
+
+Design separation into abstractions from the start, even if you deploy together initially.
+
+This complete guide teaches you:
+
+- Control plane vs data plane: roles, failure modes, and scaling characteristics
+- Platform layers: infrastructure, orchestration, and platform services
+- Multi-tenancy patterns: team isolation and resource boundaries
+- State management: control plane consistency versus data plane resiliency
+- API design for separation: abstractions that support eventual decoupling
+- Deployment strategies: monolithic versus distributed topologies
+- Observability across planes: monitoring control and data plane health
+- Failure scenarios: partial control plane outages and data plane recovery
+
+Download Your Platform Architecture Guide now to design control and data planes that scale independently.
