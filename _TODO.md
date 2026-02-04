@@ -280,6 +280,7 @@ $2500 onboarding + $500 just for being on call for the week + hours paid for act
 ## Content Issues
 
 - "### Geographic/Currency Mismatches" in src/content/articles/cdn-edge-caching-cache-keys-vary-headers/index.mdx
+- cover.jpg for reliability-and-testing needs touch up in GIMP
 
 
 There are some cover prompts under H2 headers prefixed with "case-studies/" that just have numbers. I want to change those to sequential numbers using the above pattern, where it's an H3. They should continue the numbering from the earlier group like so:

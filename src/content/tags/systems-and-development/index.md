@@ -2,8 +2,8 @@
 slug: "systems-and-development"
 displayName: "Systems and Development"
 description: "TypeScript, Linux administration, messaging systems, databases, and the foundational technologies that platform engineers work with daily."
-cover: "./cover.png"
-coverAlt: "Systems and Development"
+cover: "./cover.jpg"
+coverAlt: "System architecture showing central application node connected to PostgreSQL, RabbitMQ, Kafka, and Linux servers with data flow streams"
 featured: true
 ---
 
