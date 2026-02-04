@@ -1,14 +1,16 @@
 import type { CarouselVariant, ItemType } from '@components/Carousel/@types'
 
 const getPublishDateMs = (item: ItemType): number => {
-  const publishDate = item.data?.publishDate
+  if (!('publishDate' in item.data)) return 0
+  const { publishDate } = item.data
   if (!publishDate) return 0
   if (publishDate instanceof Date) return publishDate.getTime()
   const parsed = new Date(publishDate).getTime()
   return Number.isFinite(parsed) ? parsed : 0
 }
 
-const isFeatured = (item: ItemType): boolean => item.data?.featured === true
+const isFeatured = (item: ItemType): boolean =>
+  'featured' in item.data && item.data.featured === true
 
 export const prepareItems = (
   allItems: ItemType[],

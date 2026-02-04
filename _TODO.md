@@ -249,3 +249,9 @@ $2500 onboarding + $500 just for being on call for the week + hours paid for act
 
 - "### Geographic/Currency Mismatches" in src/content/articles/cdn-edge-caching-cache-keys-vary-headers/index.mdx
 - cover.jpg for reliability-and-testing needs touch up in GIMP
+
+## Errors
+
+[WARN] [glob-loader] Duplicate id "systems-and-development" found in /home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/src/content/tags/systems-and-development/index.md. Later items with the same id will overwrite earlier ones.
+
+
