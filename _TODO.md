@@ -129,16 +129,6 @@ Need a tooltip component for consistency. List to add tooltips to:
 [mermaid init](https://github.com/hbstack/mermaid/blob/main/assets/hb/modules/mermaid/init.ts)
 [theming](https://mermaid.ai/open-source/config/theming.html)
 
-## Services
-
-COAK has two pricing tiers:
-
-- Continuous Workstream, $9,500 per month. For ongoing development and long-term partnership. Steady progress on your roadmap without the pressure of hard deadlines.
-
-- Full Workstream, $19,500 per month. For hard deadlines and high velocity projects. When you need to move fast and can't afford to wait.
-
-"We guarantee you we can build it in 30 days for a budget you can afford."
-
 ## Support Pages to Style
 
 - /
@@ -236,28 +226,6 @@ Remove the `content/downloads` folder, and point the content collection to look 
 - The PDF downloads are going to be gated - the user has to sign up for them and give an email address. How do we handle the keywords in these from a search perspective?
 - We need a gating system, where the user gets a token to be able to download a PDF and the token is checked before downloading.
 
-## Image generation models
-
-I think we want more human images, with less video-gamey graphics and more likeable human figures.
-
-- dall-e (OpenAI)
-- flux pro - text-to-image and image-to-image generation, developed by Black Forest Labs, known for its exceptional speed, high visual quality, and superior prompt adherence, offering features like advanced editing, video generation, and context-aware understanding through platforms like Flux.ai, Fal.ai, and Skywork.ai. It serves as a professional-grade creative tool, balancing performance with user-friendly access for detailed content creation.
-- nano banana (Google)
-- sd3 (Stability AI's Stable Diffusion 3, open source)
-- Seedream 4.0 model from ByteDance
-
-Considered excellent for text-to-image (T2I) tasks and is a top competitor in the field. It has been highly rated in benchmarks and is praised for its high-quality, realistic output and strong prompt adherence.
-
-Key Features for Text-to-Image Generation
-
-High Performance: The model performs well across core dimensions like prompt adherence, alignment, and aesthetics, often ranking first in internal and public evaluations.
-
-Aesthetics and Realism: It generates images that are very realistic, with impressive texture, lighting, and color, making it difficult to distinguish them from real photographs in some cases.
-
-High Resolution: Seedream 4.0 is capable of generating native high-resolution images, up to 4K (4096px), which is a significant advantage over many competing models that are often capped at 2K.
-
-Complex Text and Instruction Following: The model demonstrates an enhanced understanding of complex semantic prompts and excels in rendering dense and accurate text within the generated images, a common weakness in other AI image models.
-
 ## Services
 
 These are the services I specialize in and offer as package deals.
@@ -281,28 +249,3 @@ $2500 onboarding + $500 just for being on call for the week + hours paid for act
 
 - "### Geographic/Currency Mismatches" in src/content/articles/cdn-edge-caching-cache-keys-vary-headers/index.mdx
 - cover.jpg for reliability-and-testing needs touch up in GIMP
-
-
-There are some cover prompts under H2 headers prefixed with "case-studies/" that just have numbers. I want to change those to sequential numbers using the above pattern, where it's an H3. They should continue the numbering from the earlier group like so:
-
-### 1564x670 21:9
-
-And be given an appropriate image name that is currently missing.
-
-Then we need to do the same thing for the prompts that are under H2s prefixed with "tags/"
-
-Ultrawide 21:9 panoramic image (1564x670), Flat Material UI design. Background: Primary Deep Navy (#001A39). Elements: Secondary Blue (#006DCA) and Offset Blue (#1894FF) UI components. Accents: Sophisticated Purple (#7C3AED) and Spotlight Yellow (#FACC15) for high-contrast icons and data points. Palette utilizes soft gray shadows (#9CA3AF) on page-base cards (#F3F4F6). Professional vector illustration, tech-oriented minimalism, high-quality 2K render, matte texture, crisp edge lighting, ultra-wide field of view."
-
-Pro Tip for PromeAI: If you find the image too "bright," try adding "low-key lighting" to the prompt. If you want it to feel more like a software mockup, add "isometric data visualization" after "dashboard elements."
-
-Dark Wrapper: ...in a Dark Mode Material UI setting. Palette: Navy (#001A39) and Secondary Blue (#006DCA) with Luminous Violet (#7C3AED) and Spotlight Yellow (#FACC15) highlights. soft depth, flat vector style, 21:9 ultrawide panoramic composition, high-fidelity, utilizing an 'Ultrawide Rule of Thirds' composition with elements distributed horizontally across the frame.
-
-Light Wrapper: ...in a Light Mode Material UI setting. Palette: Clean Gray (#F3F4F6) and White background. UI elements in Primary Navy (#001A39). Accents in Violet and Gold. Crisp vector lines, flat design, minimalistic, 21:9 ultrawide panoramic composition, utilizing an 'Ultrawide Rule of Thirds' composition with elements distributed horizontally across the frame.
-
-Monochrome Wrapper: ...in a high-contrast monochromatic flat design. High-resolution grayscale. Deep Charcoal (#1F2937) and Light Gray (#D1D5DB). Bold stencil-style vector shapes, no gradients, sharp silhouettes, 21:9 ultrawide panoramic composition, utilizing an 'Ultrawide Rule of Thirds' composition with elements distributed horizontally across the frame.
-
-Switch to "Dynamic": This style focuses on compositional movement. It will make the "storm of icons" in Prompt 1 feel more fluid and wide-angled, which works well for the 21:9 aspect ratio.
-
-Flat design illustration of [cover prompt]. Use clean lines, simple geometric shapes, a limited color palette of #001A39, #006DCA, #1894FF, #7C3AED, #FACC15, #9CA3AF, #F3F4F6 with no gradients, shadows, or 3D effects. Minimalist background, vector graphic, highly stylized, no texture. Utilize an 'Ultrawide Rule of Thirds' composition with elements distributed horizontally across the frame.
-
-A vector illustration of three glowing pillars (metrics, traces, logs) supporting an API gateway structure. Data flows through the gateway as luminous streams, with each pillar capturing different aspects of the flow. The pillars should be interconnected with subtle light bridges representing correlation. Use a mid-century modern aesthetic, a limited color palette (#001A39, #006DCA, #1894FF, #7C3AED, #FACC15, #9CA3AF, #F3F4F6). Incorporate the 'long shadow' design trend. The art style should be minimalist, flat illustration, highly stylized, clean lines, no texture.
