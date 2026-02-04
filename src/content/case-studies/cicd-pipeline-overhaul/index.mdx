@@ -1,8 +1,8 @@
 ---
 title: "CI/CD Pipeline Overhaul: From 45-Minute Builds to 8 Minutes"
 description: "Redesigning a monorepo CI/CD pipeline to reduce build times by 80% and eliminate flaky tests blocking deployments"
-cover: "./cover.png"
-coverAlt: "Hero image for case study"
+cover: "./cover.jpg"
+coverAlt: "Clock showing build time compression from 45 to 8 minutes with build artifacts and test icons"
 client: "B2B SaaS Platform"
 duration: "3 months"
 industry: "Software / SaaS"
@@ -13,7 +13,7 @@ isDraft: true
 
 ## Overview
 
-A B2B SaaS company's CI/CD pipeline had become a bottleneck—45-minute builds and a 30% flaky test rate meant engineers spent more time waiting and re-running than coding. We reduced build times to 8 minutes (82% improvement), dropped flaky failures to under 2%, and increased deployment frequency from twice weekly to multiple times daily.
+A B2B SaaS company's CI/CD pipeline had become a bottleneck — 45-minute builds and a 30% flaky test rate meant engineers spent more time waiting and re-running than coding. We reduced build times to 8 minutes (82% improvement), dropped flaky failures to under 2%, and increased deployment frequency from twice weekly to multiple times daily.
 
 ## The Challenge
 
@@ -23,7 +23,7 @@ Builds took 45 minutes. Every pull request triggered a full build of the entire 
 
 The flaky tests were worse. About 30% of builds failed for reasons that had nothing to do with the code being tested. Tests that passed locally would fail in CI, then pass when re-run. Engineers learned to automatically re-trigger failed builds without even looking at the logs. "Just retry it" became muscle memory.
 
-The combination was devastating. A simple PR that should have taken an hour consumed half a day. Push, wait 45 minutes, see a flaky failure, retry, wait another 45 minutes, finally get a green build, merge. Deployments had become weekly events that required coordination and courage. Nobody wanted to deploy on a Friday—or a Thursday, just to be safe.
+The combination was devastating. A simple PR that should have taken an hour consumed half a day. Push, wait 45 minutes, see a flaky failure, retry, wait another 45 minutes, finally get a green build, merge. Deployments had become weekly events that required coordination and courage. Nobody wanted to deploy on a Friday — or a Thursday, just to be safe.
 
 When I interviewed engineers about their development experience, the CI system came up in every conversation. "I hate our CI" was a common opener. Developer satisfaction surveys rated the CI experience 2.1 out of 5. One senior engineer told me she structured her entire workday around CI wait times—she'd batch up PRs and submit them all at once, then work on something else while they crawled through the pipeline.
 
@@ -50,13 +50,13 @@ The flaky test analysis revealed 47 tests that had failed and then passed on ret
 
 The strategy crystallized into four phases:
 
-_Phase 1: Caching_ (weeks 1-2). Low-hanging fruit. Cache dependencies, cache build outputs, stop doing work we'd already done.
+__Phase 1: Caching__ (weeks 1-2). Low-hanging fruit. Cache dependencies, cache build outputs, stop doing work we'd already done.
 
-_Phase 2: Parallelization_ (weeks 3-5). Run tests in parallel across multiple runners. Split the monolithic test suite into shards that could execute concurrently.
+__Phase 2: Parallelization__ (weeks 3-5). Run tests in parallel across multiple runners. Split the monolithic test suite into shards that could execute concurrently.
 
-_Phase 3: Affected-only testing_ (weeks 6-9). Stop testing packages that hadn't changed. If a PR only touches one package, only build and test that package and its dependents.
+__Phase 3: Affected-only testing__ (weeks 6-9). Stop testing packages that hadn't changed. If a PR only touches one package, only build and test that package and its dependents.
 
-_Phase 4: Flaky test program_ (weeks 10-12). Quarantine flaky tests, fix them systematically, and prevent new ones from being introduced.
+__Phase 4: Flaky test program__ (weeks 10-12). Quarantine flaky tests, fix them systematically, and prevent new ones from being introduced.
 
 ## The Solution
 
@@ -92,18 +92,18 @@ The flaky tests required a different approach. These weren't going to be fixed b
 
 We implemented a three-part program:
 
-_Quarantine_. We created a quarantine label for known-flaky tests. Quarantined tests still ran, but their failures didn't block the build. This immediately stopped flaky tests from wasting engineer time with retries.
+__Quarantine__. We created a quarantine label for known-flaky tests. Quarantined tests still ran, but their failures didn't block the build. This immediately stopped flaky tests from wasting engineer time with retries.
 
-_Dashboard_. We built a Datadog dashboard tracking test stability over time. Each test had a reliability score based on its pass rate across the last 100 runs. Tests below 95% reliability were automatically flagged for investigation.
+__Dashboard__. We built a Datadog dashboard tracking test stability over time. Each test had a reliability score based on its pass rate across the last 100 runs. Tests below 95% reliability were automatically flagged for investigation.
 
-_Prevention_. We added a check that detected new flaky tests. If a test failed and then passed on retry, it was automatically added to a triage list. Engineers couldn't ignore new flakiness—they had to either fix it or explicitly acknowledge it.
+__Prevention__. We added a check that detected new flaky tests. If a test failed and then passed on retry, it was automatically added to a triage list. Engineers couldn't ignore new flakiness—they had to either fix it or explicitly acknowledge it.
 
 Fixing the existing flaky tests took the full three weeks. The issues fell into predictable categories:
 
-- _Timing dependencies_: Tests that used `setTimeout` or depended on operations completing in a specific order. Fixed with proper async/await patterns and explicit waits.
-- _Shared state_: Tests that polluted global state or didn't properly reset between runs. Fixed with better test isolation.
-- _External dependencies_: Tests that called real external APIs. Fixed by mocking the network calls.
-- _Order dependencies_: Tests that only passed when run after another specific test. Fixed by making each test fully independent.
+- __Timing dependencies:__ Tests that used `setTimeout` or depended on operations completing in a specific order. Fixed with proper async/await patterns and explicit waits.
+- __Shared state:__ Tests that polluted global state or didn't properly reset between runs. Fixed with better test isolation.
+- __External dependencies:__ Tests that called real external APIs. Fixed by mocking the network calls.
+- __Order dependencies:__ Tests that only passed when run after another specific test. Fixed by making each test fully independent.
 
 We also upgraded to larger GitHub Actions runners (4 CPU cores instead of 2) for the test phase. This reduced intermittent timing failures caused by resource contention.
 
@@ -126,6 +126,6 @@ The cultural change was notable too. Engineers started making smaller, more freq
 
 ## Key Takeaways
 
-- _Measure before you optimize_. The build time breakdown revealed that tests were 40% of the problem, but caching would give quick wins. Without that analysis, we might have spent weeks on the wrong thing.
-- _Affected-only testing is transformative for monorepos_. Running everything on every change is the default, but it's wrong. Nx or similar tooling that understands your dependency graph can reduce CI scope by 70-80% for typical PRs.
-- _Flaky tests require a program, not a heroic fix_. You can't fix 47 flaky tests in a weekend. Quarantine to stop the bleeding, dashboard to track progress, prevention to stop the leak. Systematic beats heroic.
+- __Measure before you optimize__. The build time breakdown revealed that tests were 40% of the problem, but caching would give quick wins. Without that analysis, we might have spent weeks on the wrong thing.
+- __Affected-only testing is transformative for monorepos__. Running everything on every change is the default, but it's wrong. Nx or similar tooling that understands your dependency graph can reduce CI scope by 70-80% for typical PRs.
+- __Flaky tests require a program, not a heroic fix__. You can't fix 47 flaky tests in a weekend. Quarantine to stop the bleeding, dashboard to track progress, prevention to stop the leak. Systematic beats heroic.

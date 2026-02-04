@@ -1,8 +1,8 @@
 ---
 title: "Self-Service Infrastructure for Product Teams"
 description: "Enabling development teams to safely provision their own AWS resources through guardrails, templates, and automated compliance checks"
-cover: "./cover.png"
-coverAlt: "Hero image for case study"
+cover: "./cover.jpg"
+coverAlt: "Terraform module being assembled by multiple teams with automated security shields and compliance checks"
 client: "Digital Media Company"
 duration: "5 months"
 industry: "Media & Entertainment"
@@ -19,7 +19,7 @@ A digital media company's two-person platform team had become the bottleneck for
 
 The platform team was drowning in tickets.
 
-The client was a digital media company with 120 engineers spread across 8 product teams. Two platform engineers supported all of them. Every database, every S3 bucket, every Lambda function—if it touched AWS, it went through the platform team's ticket queue.
+The client was a digital media company with 120 engineers spread across 8 product teams. Two platform engineers supported all of them. Every database, every S3 bucket, every Lambda function — if it touched AWS, it went through the platform team's ticket queue.
 
 The backlog was brutal. Average wait time for infrastructure requests was two weeks. Product teams would submit a ticket for a new RDS instance, then wait. And wait. The platform engineers weren't slow—they were just outnumbered 60 to 1.
 
@@ -52,23 +52,23 @@ This was the insight that shaped the solution: we didn't need to give teams full
 
 The key decisions:
 
-_Terraform modules over custom portal_. We considered building a web interface, but Terraform modules offered more flexibility and lower maintenance. Engineers already understood infrastructure as code. We'd meet them where they were.
+__Terraform modules over custom portal.__ We considered building a web interface, but Terraform modules offered more flexibility and lower maintenance. Engineers already understood infrastructure as code. We'd meet them where they were.
 
-_Policy as code with OPA_. Security requirements would be codified as Open Policy Agent policies. Every Terraform plan would be checked against these policies before apply. Compliance became automated, not manual.
+__Policy as code with OPA.__ Security requirements would be codified as Open Policy Agent policies. Every Terraform plan would be checked against these policies before apply. Compliance became automated, not manual.
 
-_CI/CD-driven provisioning_. Teams would provision infrastructure by opening PRs, not by clicking in a portal. This gave us audit trails, review workflows, and integration with existing development processes.
+__CI/CD-driven provisioning.__ Teams would provision infrastructure by opening PRs, not by clicking in a portal. This gave us audit trails, review workflows, and integration with existing development processes.
 
 The implementation happened in five phases:
 
-_Month 1: Core modules_. We built Terraform modules for the top five resource types with security best practices baked in. Each module exposed only the configuration options teams actually needed—you couldn't accidentally create a public S3 bucket because the module didn't have a parameter for that.
+__Month 1: Core modules.__ We built Terraform modules for the top five resource types with security best practices baked in. Each module exposed only the configuration options teams actually needed—you couldn't accidentally create a public S3 bucket because the module didn't have a parameter for that.
 
-_Month 2: Policy layer_. We wrote OPA policies encoding SOC2 requirements: encryption at rest, encryption in transit, no public access, proper tagging. We integrated Conftest to run these policies as part of the CI pipeline.
+__Month 2: Policy layer.__ We wrote OPA policies encoding SOC2 requirements: encryption at rest, encryption in transit, no public access, proper tagging. We integrated Conftest to run these policies as part of the CI pipeline.
 
-_Month 3: CI/CD wrapper_. We set up Atlantis to run Terraform plans and applies on PR events. Teams got plan output as PR comments. Applies required approval from at least one platform team member initially.
+__Month 3: CI/CD wrapper.__ We set up Atlantis to run Terraform plans and applies on PR events. Teams got plan output as PR comments. Applies required approval from at least one platform team member initially.
 
-_Month 4: Self-service rollout_. We onboarded teams one by one. Each team got a repository with module references they could customize. We trained them on the workflow and supported their first few requests closely.
+__Month 4: Self-service rollout.__ We onboarded teams one by one. Each team got a repository with module references they could customize. We trained them on the workflow and supported their first few requests closely.
 
-_Month 5: Refinement and autonomy_. As teams proved they could use the system safely, we removed the approval requirement for pre-approved patterns. Platform team review became optional for standard resources.
+__Month 5: Refinement and autonomy.__ As teams proved they could use the system safely, we removed the approval requirement for pre-approved patterns. Platform team review became optional for standard resources.
 
 The security team was initially skeptical. "You want to let developers provision their own databases?" We addressed this by showing them the policy layer in action. We demonstrated that developers literally couldn't create non-compliant resources—the CI pipeline would reject them. The policies enforced what reviews had previously caught manually.
 
@@ -158,6 +158,6 @@ The cost visibility produced an unexpected but significant benefit. When teams c
 
 ## Key Takeaways
 
-- _Self-service doesn't mean uncontrolled_. The key insight was that teams didn't need full AWS access—they needed access to approved patterns. Constrained self-service is often more valuable than unconstrained freedom because it removes the cognitive load of security and compliance decisions.
-- _Codified policies beat manual reviews_. When security requirements are code, they're consistent and fast. Manual reviews are slow, inconsistent, and create bottlenecks. Automate the rules, review the exceptions.
-- _Meet teams where they are_. We used Terraform and Git because that's what engineers already knew. A custom portal might have looked nicer but would have added friction and required training. Familiar tools with new capabilities beat new tools with new capabilities.
+- __Self-service doesn't mean uncontrolled.__ The key insight was that teams didn't need full AWS access—they needed access to approved patterns. Constrained self-service is often more valuable than unconstrained freedom because it removes the cognitive load of security and compliance decisions.
+- __Codified policies beat manual reviews.__ When security requirements are code, they're consistent and fast. Manual reviews are slow, inconsistent, and create bottlenecks. Automate the rules, review the exceptions.
+- __Meet teams where they are.__ We used Terraform and Git because that's what engineers already knew. A custom portal might have looked nicer but would have added friction and required training. Familiar tools with new capabilities beat new tools with new capabilities.

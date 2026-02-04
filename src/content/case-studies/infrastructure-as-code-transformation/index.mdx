@@ -1,8 +1,8 @@
 ---
 title: "From ClickOps to Code: Infrastructure as Code Transformation"
 description: "Converting years of manual AWS console changes into version-controlled Terraform, eliminating configuration drift and enabling reproducible environments"
-cover: "./cover.png"
-coverAlt: "Hero image for case study"
+cover: "./cover.jpg"
+coverAlt: "Manual AWS console management transforming into organized infrastructure as code with Git workflows"
 client: "E-commerce Platform"
 duration: "4 months"
 industry: "Retail / E-commerce"
@@ -27,7 +27,7 @@ Configuration drift was constant. Production and staging were supposed to be ide
 
 Provisioning new environments took two weeks. When the team needed a new staging environment for a large feature, an engineer would spend days clicking through the console, trying to replicate production from memory and tribal knowledge. The result was never quite right.
 
-They'd tried Terraform before. Two years earlier, a previous engineer had started a Terraform project. It ended badly—a state file corruption wiped out the mapping between Terraform and real resources, and the team spent a week recovering. The project was abandoned, and the word "Terraform" became taboo.
+They'd tried Terraform before. Two years earlier, a previous engineer had started a Terraform project. It ended badly — a state file corruption wiped out the mapping between Terraform and real resources, and the team spent a week recovering. The project was abandoned, and the word "Terraform" became taboo.
 
 The breaking point came when a production change went wrong. Someone modified a security group in the console, didn't realize it was shared across services, and took down the payment system for 45 minutes. The incident report recommended infrastructure as code. This time, it had executive sponsorship.
 
@@ -41,13 +41,13 @@ The inventory revealed 847 distinct resources that mattered—everything from VP
 
 The key decisions shaped the rest of the project:
 
-_Terraform over Pulumi_. The team had some familiarity with HCL from the failed previous attempt. Terraform's ecosystem was also more mature for our use case, with better tooling for importing existing resources.
+__Terraform over Pulumi.__ The team had some familiarity with HCL from the failed previous attempt. Terraform's ecosystem was also more mature for our use case, with better tooling for importing existing resources.
 
-_Remote state from day one_. The previous failure was partly due to local state files. We set up S3 backend with DynamoDB locking before importing a single resource. State file problems would not sink this project.
+__Remote state from day one.__ The previous failure was partly due to local state files. We set up S3 backend with DynamoDB locking before importing a single resource. State file problems would not sink this project.
 
-_Import first, refactor later_. We'd import resources into Terraform exactly as they existed, even if the configuration was messy. Cleaning up the HCL could happen after we had everything under control.
+__Import first, refactor later.__ We'd import resources into Terraform exactly as they existed, even if the configuration was messy. Cleaning up the HCL could happen after we had everything under control.
 
-_Atlantis for workflow_. Every infrastructure change would go through a pull request, with Atlantis running `terraform plan` automatically and requiring approval before `terraform apply`. This gave us audit trails and prevented the "quick console fix" that had caused the incident.
+__Atlantis for workflow.__ Every infrastructure change would go through a pull request, with Atlantis running `terraform plan` automatically and requiring approval before `terraform apply`. This gave us audit trails and prevented the "quick console fix" that had caused the incident.
 
 The implementation happened in phases:
 
@@ -130,16 +130,16 @@ Four months after starting, the transformation was complete:
 
 Table: Transformation outcomes
 
-- _100% of production infrastructure in version control_. Every VPC, instance, database, and security group existed in Terraform. The AWS console became read-only for the team.
-- _New environment provisioning dropped from 2 weeks to 2 hours_. The team spun up a complete staging environment by running `terraform apply` with different variables. What used to take a senior engineer days of clicking now took anyone on the team a couple of hours, mostly waiting for RDS to provision.
-- _Configuration drift incidents went from weekly to zero_. With all changes going through PRs, environments stayed in sync. The "works in staging, fails in production" problem disappeared.
-- _All infrastructure changes require PR review_. No more surprise security group modifications. Every change was visible, reviewed, and reversible.
-- _Mean time to recover from infrastructure issues dropped by 70%_. When something went wrong, engineers could read the Terraform code to understand the current state, check Git history to see what changed, and roll back with confidence.
+- __100% of production infrastructure in version control.__ Every VPC, instance, database, and security group existed in Terraform. The AWS console became read-only for the team.
+- __New environment provisioning dropped from 2 weeks to 2 hours.__ The team spun up a complete staging environment by running `terraform apply` with different variables. What used to take a senior engineer days of clicking now took anyone on the team a couple of hours, mostly waiting for RDS to provision.
+- __Configuration drift incidents went from weekly to zero.__ With all changes going through PRs, environments stayed in sync. The "works in staging, fails in production" problem disappeared.
+- __All infrastructure changes require PR review.__ No more surprise security group modifications. Every change was visible, reviewed, and reversible.
+- __Mean time to recover from infrastructure issues dropped by 70%.__ When something went wrong, engineers could read the Terraform code to understand the current state, check Git history to see what changed, and roll back with confidence.
 
 The abandoned resources got cleaned up too. We identified 180 resources that were genuinely unused and deleted them over the following month, saving $12,000/month in wasted spend.
 
 ## Key Takeaways
 
-- _Import before you refactor_. The instinct is to design a beautiful module structure and rebuild everything cleanly. Resist it. Import what exists first, prove it works, then refactor incrementally. You can't improve what you don't control.
-- _Remote state and locking are non-negotiable_. The previous failed attempt taught this lesson painfully. State file corruption or conflicts will happen if you don't prevent them. S3 + DynamoDB locking is table stakes.
-- _PR-based workflows change behavior_. Once all changes required a PR, the "quick fix in the console" pattern stopped. Engineers adapted because the new process was actually easier—running `atlantis apply` is less work than clicking through the console, and rollback is trivial.
+- __Import before you refactor.__ The instinct is to design a beautiful module structure and rebuild everything cleanly. Resist it. Import what exists first, prove it works, then refactor incrementally. You can't improve what you don't control.
+- __Remote state and locking are non-negotiable.__ The previous failed attempt taught this lesson painfully. State file corruption or conflicts will happen if you don't prevent them. S3 + DynamoDB locking is table stakes.
+- __PR-based workflows change behavior.__ Once all changes required a PR, the "quick fix in the console" pattern stopped. Engineers adapted because the new process was actually easier—running `atlantis apply` is less work than clicking through the console, and rollback is trivial.

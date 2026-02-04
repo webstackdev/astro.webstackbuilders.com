@@ -1,8 +1,8 @@
 ---
 title: "60% Infrastructure Cost Reduction for a Growing SaaS Startup"
 description: "Right-sizing, reserved instances, and architectural changes that cut monthly AWS spend from $180K to $72K without sacrificing performance"
-cover: "./cover.png"
-coverAlt: "Hero image for case study"
+cover: "./cover.jpg"
+coverAlt: "Cloud data center with some server racks fading out while others glow brighter, representing resource consolidation and optimization"
 client: "Series B SaaS Startup"
 duration: "3 months"
 industry: "Software / SaaS"
@@ -13,7 +13,7 @@ isDraft: true
 
 ## Overview
 
-We reduced a SaaS startup's monthly AWS bill from $180,000 to $72,000—a 60% reduction—without sacrificing performance or reliability. The $1.3M in annual savings extended their runway by eight months and eliminated the need for the engineering layoffs the board had been discussing.
+We reduced a SaaS startup's monthly AWS bill from $180,000 to $72,000—a 60% reduction — without sacrificing performance or reliability. The $1.3M in annual savings extended their runway by eight months and eliminated the need for the engineering layoffs the board had been discussing.
 
 ## The Challenge
 
@@ -29,10 +29,10 @@ The constraints were clear: we couldn't slow down feature development, we couldn
 
 Three months later, the numbers told the story:
 
-- _Monthly spend dropped from $180,000 to $72,000_—a 60% reduction.
-- _Annual savings of $1.3M_, which extended runway by eight months at current burn rate.
-- _Zero degradation in performance_. P99 latency actually improved slightly due to right-sizing reducing noisy neighbor effects.
-- _No reduction in reliability_. Uptime remained at 99.95% throughout and after the optimization work.
+- __Monthly spend dropped from $180,000 to $72,000__ — a 60% reduction.
+- __Annual savings of $1.3M__, which extended runway by eight months at current burn rate.
+- __Zero degradation in performance.__ P99 latency actually improved slightly due to right-sizing reducing noisy neighbor effects.
+- __No reduction in reliability.__ Uptime remained at 99.95% throughout and after the optimization work.
 
 The breakdown of where the savings came from:
 
@@ -53,18 +53,18 @@ The first two weeks were pure discovery. I ran AWS Cost Explorer reports going b
 
 The analysis surfaced clear patterns of waste:
 
-- _Oversized instances everywhere_. Production databases running on r5.4xlarge with 15% average CPU utilization—these could safely drop to r5.xlarge. Application servers on m5.2xlarge that never exceeded 30% memory usage went to m5.large.
-- _Dev environments running 24/7_. Eight complete environment stacks that developers used maybe 20 hours per week, burning money the other 148 hours.
-- _Zombie resources_. EBS volumes from terminated instances, unused Elastic IPs, load balancers pointing at nothing, snapshots from two years ago.
-- _No reserved capacity_. Everything running on-demand pricing despite predictable baseline workloads.
+- __Oversized instances everywhere.__ Production databases running on r5.4xlarge with 15% average CPU utilization—these could safely drop to r5.xlarge. Application servers on m5.2xlarge that never exceeded 30% memory usage went to m5.large.
+- __Dev environments running 24/7.__ Eight complete environment stacks that developers used maybe 20 hours per week, burning money the other 148 hours.
+- __Zombie resources.__ EBS volumes from terminated instances, unused Elastic IPs, load balancers pointing at nothing, snapshots from two years ago.
+- __No reserved capacity.__ Everything running on-demand pricing despite predictable baseline workloads.
 
 I structured the work in three phases:
 
-_Weeks 1-2: Quick wins_. Delete the zombies. This is the easiest money you'll ever save. We recovered $9,000/month just by cleaning up unused resources. No risk, no code changes, immediate impact.
+__Weeks 1-2: Quick wins.__ Delete the zombies. This is the easiest money you'll ever save. We recovered $9,000/month just by cleaning up unused resources. No risk, no code changes, immediate impact.
 
-_Weeks 3-6: Reserved capacity and right-sizing_. For workloads with predictable usage patterns, we purchased 1-year reserved instances. For everything else, we right-sized based on actual utilization data. This phase required more analysis but was still low-risk.
+__Weeks 3-6: Reserved capacity and right-sizing.__ For workloads with predictable usage patterns, we purchased 1-year reserved instances. For everything else, we right-sized based on actual utilization data. This phase required more analysis but was still low-risk.
 
-_Weeks 7-12: Architecture changes_. The bigger wins required code and infrastructure changes—moving batch processing to spot instances, consolidating dev environments, implementing auto-scaling policies that actually worked.
+__Weeks 7-12: Architecture changes.__ The bigger wins required code and infrastructure changes—moving batch processing to spot instances, consolidating dev environments, implementing auto-scaling policies that actually worked.
 
 The resistance came from the right-sizing phase. Engineers were nervous about smaller instances. "What if we get a traffic spike?" We addressed this by load testing the right-sized configuration before making changes. In every case, the smaller instances handled the load fine. The previous sizing had been based on guesses, not data.
 
@@ -72,18 +72,18 @@ The resistance came from the right-sizing phase. Engineers were nervous about sm
 
 Beyond the immediate cost cuts, we built systems to prevent the problem from recurring:
 
-_Visibility tooling_. We implemented Kubecost (a Kubernetes cost monitoring tool that attributes spend to namespaces and workloads) and set up custom CloudWatch dashboards for non-containerized resources. Every team could now see exactly what their services cost. Accountability changed behavior—teams started optimizing on their own once they could see the numbers.
+__Visibility tooling.__ We implemented Kubecost (a Kubernetes cost monitoring tool that attributes spend to namespaces and workloads) and set up custom CloudWatch dashboards for non-containerized resources. Every team could now see exactly what their services cost. Accountability changed behavior—teams started optimizing on their own once they could see the numbers.
 
-_Automated scaling_. The existing auto-scaling policies were either missing or misconfigured. We implemented target tracking scaling for the application tier and scheduled scaling for the dev environments (scale to zero nights and weekends).
+__Automated scaling.__ The existing auto-scaling policies were either missing or misconfigured. We implemented target tracking scaling for the application tier and scheduled scaling for the dev environments (scale to zero nights and weekends).
 
-_Spot instances for batch_. Their data pipeline ran nightly batch jobs that were perfect for spot instances—fault-tolerant, flexible on timing, and not customer-facing. Moving these workloads to spot cut that portion of the bill by 70%.
+__Spot instances for batch.__ Their data pipeline ran nightly batch jobs that were perfect for spot instances—fault-tolerant, flexible on timing, and not customer-facing. Moving these workloads to spot cut that portion of the bill by 70%.
 
-_Governance_. We established tagging standards and enforced them through AWS Service Control Policies. New resources without proper tags couldn't be created. Monthly cost review meetings became part of the engineering rhythm, with each team responsible for their spend.
+__Governance.__ We established tagging standards and enforced them through AWS Service Control Policies. New resources without proper tags couldn't be created. Monthly cost review meetings became part of the engineering rhythm, with each team responsible for their spend.
 
 The dev environment consolidation deserves special mention. Eight separate environments became two shared environments with namespace isolation—a 75% reduction in infrastructure footprint (8 → 2). Developers could still work independently, but the compute, database, and networking costs dropped proportionally. Scheduled scaling meant those environments cost almost nothing outside business hours.
 
 ## Key Takeaways
 
-- _Start with visibility_. You can't optimize what you can't measure. The tagging audit and cost attribution work was unsexy but essential. Once teams could see their costs, optimization happened organically.
-- _Quick wins build credibility_. Cleaning up unused resources in the first two weeks saved $9,000/month and proved we were making progress. That credibility made the harder conversations about architecture changes easier.
-- _Right-sizing fears are usually unfounded_. Engineers oversize instances because they're worried about the unknown. Actual utilization data almost always shows massive headroom. Load test to prove it, then make the change.
+- __Start with visibility__. You can't optimize what you can't measure. The tagging audit and cost attribution work was unsexy but essential. Once teams could see their costs, optimization happened organically.
+- __Quick wins build credibility__. Cleaning up unused resources in the first two weeks saved $9,000/month and proved we were making progress. That credibility made the harder conversations about architecture changes easier.
+- __Right-sizing fears are usually unfounded__. Engineers oversize instances because they're worried about the unknown. Actual utilization data almost always shows massive headroom. Load test to prove it, then make the change.

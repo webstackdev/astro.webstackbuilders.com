@@ -1,8 +1,8 @@
 ---
 title: "Full-Stack Observability for a Microservices Architecture"
 description: "Implementing unified metrics, logs, and traces across 60+ services to reduce mean time to detection from hours to minutes"
-cover: "./cover.png"
-coverAlt: "Hero image for case study"
+cover: "./cover.jpg"
+coverAlt: "Neural network visualization showing services as nodes with trace connections, central dashboard synthesizing observability data"
 client: "Healthcare Technology Company"
 duration: "6 months"
 industry: "Healthcare Technology"
@@ -45,21 +45,21 @@ The core problem was clear: multiple tools with no correlation. Even where data 
 
 The key decisions shaped everything that followed:
 
-_OpenTelemetry for instrumentation_. We needed vendor-neutral instrumentation that would work across all three languages and let us change backends later if needed. OpenTelemetry was the clear choice—it had become the industry standard, with solid SDKs for Node.js, Python, and Go.
+__OpenTelemetry for instrumentation.__ We needed vendor-neutral instrumentation that would work across all three languages and let us change backends later if needed. OpenTelemetry was the clear choice—it had become the industry standard, with solid SDKs for Node.js, Python, and Go.
 
-_Grafana stack for backends_. We evaluated Datadog, New Relic, and the Grafana stack (Prometheus, Loki, Tempo). Datadog would have cost $180K/year at their scale (60+ services, 45 engineers, approximately 500GB of logs and 2 billion metric data points per month). The Grafana stack, self-hosted on their existing Kubernetes infrastructure, cost about $30K/year in compute and storage. The feature gap was real—Datadog's UI is better—but not $150K/year better.
+__Grafana stack for backends.__ We evaluated Datadog, New Relic, and the Grafana stack (Prometheus, Loki, Tempo). Datadog would have cost $180K/year at their scale (60+ services, 45 engineers, approximately 500GB of logs and 2 billion metric data points per month). The Grafana stack, self-hosted on their existing Kubernetes infrastructure, cost about $30K/year in compute and storage. The feature gap was real—Datadog's UI is better—but not $150K/year better.
 
-_Correlation IDs everywhere_. Every request entering the system would get a trace ID that propagated through all services, appeared in all logs, and linked metrics to specific requests. This was the foundation that would make debugging possible.
+__Correlation IDs everywhere.__ Every request entering the system would get a trace ID that propagated through all services, appeared in all logs, and linked metrics to specific requests. This was the foundation that would make debugging possible.
 
 The implementation rolled out over six months:
 
-_Months 1-2: Foundation_. We deployed the Grafana stack—Prometheus for metrics, Loki for logs, Tempo for traces, Grafana for visualization. We built the infrastructure and validated it worked before touching any application code.
+__Months 1-2: Foundation.__ We deployed the Grafana stack—Prometheus for metrics, Loki for logs, Tempo for traces, Grafana for visualization. We built the infrastructure and validated it worked before touching any application code.
 
-_Months 3-4: Instrumentation_. We added OpenTelemetry SDKs to all services, starting with the most critical paths. Auto-instrumentation handled HTTP and database calls. We added custom spans for business logic that needed visibility.
+__Months 3-4: Instrumentation.__ We added OpenTelemetry SDKs to all services, starting with the most critical paths. Auto-instrumentation handled HTTP and database calls. We added custom spans for business logic that needed visibility.
 
-_Month 5: Log aggregation and compliance_. We migrated all services to ship logs to Loki with proper formatting. We built a redaction pipeline to strip PHI before logs reached the aggregation layer.
+__Month 5: Log aggregation and compliance.__ We migrated all services to ship logs to Loki with proper formatting. We built a redaction pipeline to strip PHI before logs reached the aggregation layer.
 
-_Month 6: Alerting and dashboards_. We created service dashboards, built alerting rules based on SLOs, and integrated with PagerDuty. We trained the engineering team on the new tools.
+__Month 6: Alerting and dashboards.__ We created service dashboards, built alerting rules based on SLOs, and integrated with PagerDuty. We trained the engineering team on the new tools.
 
 The legacy services were the biggest obstacle. About 15 services were old enough that adding OpenTelemetry would have required significant refactoring. For these, we used a lighter-touch approach: log parsing to extract what correlation we could, and proxy-level tracing to at least see them in request flows.
 
@@ -180,9 +180,9 @@ Grafana's Loki datasource recognized the `trace_id` field (this is the default f
 
 We replaced the scattered alerting setup with Alertmanager routing to PagerDuty. Alerts were defined based on SLOs rather than arbitrary thresholds:
 
-- _Error rate alerts_: Fire when error rate exceeds SLO burn rate
-- _Latency alerts_: Fire when P99 latency degrades beyond SLO
-- _Availability alerts_: Fire when synthetic checks fail
+- __Error rate alerts:__ Fire when error rate exceeds SLO burn rate
+- __Latency alerts:__ Fire when P99 latency degrades beyond SLO
+- __Availability alerts:__ Fire when synthetic checks fail
 
 We implemented alert correlation to reduce noise. Multiple alerts from the same underlying incident grouped together, and engineers received one page with full context rather than a storm of individual alerts.
 
@@ -190,11 +190,11 @@ We implemented alert correlation to reduce noise. Multiple alerts from the same 
 
 The Grafana stack had real limitations compared to Datadog:
 
-_UI polish_. Datadog's interface is more intuitive. Grafana required more training.
+__UI polish.__ Datadog's interface is more intuitive. Grafana required more training.
 
-_APM features_. Datadog's automatic service maps and dependency detection are better. We built our own service map using trace data, but it required manual maintenance.
+__APM features.__ Datadog's automatic service maps and dependency detection are better. We built our own service map using trace data, but it required manual maintenance.
 
-_Log search speed_. Loki's query performance on large time ranges was slower than Datadog's. We mitigated this with better indexing and query optimization, but it remained a gap.
+__Log search speed.__ Loki's query performance on large time ranges was slower than Datadog's. We mitigated this with better indexing and query optimization, but it remained a gap.
 
 The $150K annual savings justified these tradeoffs for this client. For a company with a larger budget, Datadog might have been worth it.
 
@@ -219,6 +219,6 @@ The cultural change was significant too. Engineers started adding custom instrum
 
 ## Key Takeaways
 
-- _Correlation is the foundation_. Individual metrics, logs, and traces have limited value. Connected signals that tell a coherent story are transformative. Start with trace IDs everywhere, then build on that foundation.
-- _OpenTelemetry is the right bet_. Vendor-neutral instrumentation means you can change backends without re-instrumenting. We chose the Grafana stack today, but if requirements change, we can switch without touching application code.
-- _Self-hosted can work_. The conventional wisdom is that observability should be SaaS. But for cost-conscious organizations with compliance requirements, self-hosted solutions like the Grafana stack are mature enough for production. The tradeoff is operational overhead, not capability.
+- __Correlation is the foundation.__ Individual metrics, logs, and traces have limited value. Connected signals that tell a coherent story are transformative. Start with trace IDs everywhere, then build on that foundation.
+- __OpenTelemetry is the right bet.__ Vendor-neutral instrumentation means you can change backends without re-instrumenting. We chose the Grafana stack today, but if requirements change, we can switch without touching application code.
+- __Self-hosted can work.__ The conventional wisdom is that observability should be SaaS. But for cost-conscious organizations with compliance requirements, self-hosted solutions like the Grafana stack are mature enough for production. The tradeoff is operational overhead, not capability.

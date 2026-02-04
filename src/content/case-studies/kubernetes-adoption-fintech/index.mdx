@@ -1,8 +1,8 @@
 ---
 title: "Kubernetes Adoption for a High-Volume Payment Processor"
 description: "Migrating 40+ microservices from EC2 instances to EKS while maintaining PCI compliance and sub-100ms latency requirements"
-cover: "./cover.png"
-coverAlt: "Hero image for case study"
+cover: "./cover.jpg"
+coverAlt: "Kubernetes helm steering through financial data streams with security shields and compliance checkmarks"
 client: "Payment Processing Fintech"
 duration: "9 months"
 industry: "Financial Services"
@@ -31,13 +31,13 @@ We started with a month of assessment work. I mapped service dependencies, analy
 
 The key architectural decisions came out of that assessment:
 
-_EKS over self-managed Kubernetes_. The team didn't have the capacity to manage control plane operations alongside their regular work. EKS shifted that burden to AWS and gave us a clear compliance story for the control plane.
+__EKS over self-managed Kubernetes.__ The team didn't have the capacity to manage control plane operations alongside their regular work. EKS shifted that burden to AWS and gave us a clear compliance story for the control plane.
 
-_Istio for service mesh_. We needed mTLS between all services for PCI compliance. Istio also gave us traffic management capabilities that would make the migration safer—we could shift traffic gradually between old and new deployments.
+__Istio for service mesh.__ We needed mTLS between all services for PCI compliance. Istio also gave us traffic management capabilities that would make the migration safer—we could shift traffic gradually between old and new deployments.
 
-_ArgoCD for GitOps_. Every configuration change would go through Git. This gave us audit trails for compliance, easy rollbacks, and a deployment model the team could understand and trust.
+__ArgoCD for GitOps.__ Every configuration change would go through Git. This gave us audit trails for compliance, easy rollbacks, and a deployment model the team could understand and trust.
 
-_Karpenter over Cluster Autoscaler_. Payment traffic has spiky patterns. Karpenter's faster provisioning and bin-packing would handle those spikes better and reduce costs.
+__Karpenter over Cluster Autoscaler.__ Payment traffic has spiky patterns. Karpenter's faster provisioning and bin-packing would handle those spikes better and reduce costs.
 
 The migration happened in four phases over nine months:
 
@@ -90,11 +90,11 @@ Datadog provided unified metrics, logs, and traces. We instrumented all services
 
 ### Tradeoffs We Made
 
-_Istio's overhead_. Istio adds roughly 2-3ms of latency per hop. For payment processing with a 100ms SLA, this mattered. We accepted it because the security and traffic management benefits outweighed the cost, and the services still met SLA comfortably.
+__Istio's overhead.__ Istio adds roughly 2-3ms of latency per hop. For payment processing with a 100ms SLA, this mattered. We accepted it because the security and traffic management benefits outweighed the cost, and the services still met SLA comfortably.
 
-_Managed node groups vs. Karpenter_. We started with managed node groups for simplicity, then migrated to Karpenter in month 4 when we understood our workload patterns better. Karpenter's flexibility was worth the additional operational complexity.
+__Managed node groups vs. Karpenter.__ We started with managed node groups for simplicity, then migrated to Karpenter in month 4 when we understood our workload patterns better. Karpenter's flexibility was worth the additional operational complexity.
 
-_Single cluster vs. multi-cluster_. We considered separate clusters for CDE and non-CDE workloads. The compliance team ultimately accepted namespace-level isolation with network policies, which reduced operational overhead significantly.
+__Single cluster vs. multi-cluster.__ We considered separate clusters for CDE and non-CDE workloads. The compliance team ultimately accepted namespace-level isolation with network policies, which reduced operational overhead significantly.
 
 ## The Results
 
@@ -111,15 +111,15 @@ Nine months after starting, the migration was complete and certified:
 
 Table: Migration outcomes summary
 
-- _Deployment frequency increased from bi-weekly to 15+ times daily_. Teams now deployed independently without coordinating release windows. Most deployments were fully automated with manual approval only for production.
-- _Mean time to recovery dropped from 45 minutes to 8 minutes_. Kubernetes self-healing, combined with proper health checks and Istio's traffic management, meant most issues resolved automatically. When human intervention was needed, rollback was a single click in ArgoCD.
-- _Infrastructure costs reduced by 30%_. Better bin-packing from Karpenter, automatic scaling that actually worked, and elimination of over-provisioned EC2 instances drove the savings.
-- _PCI-DSS audit passed with zero findings_. The QSA specifically called out the mTLS implementation and audit logging as exemplary.
-- _On-call pages reduced by 60%_. The self-healing capabilities and improved observability meant engineers weren't woken up for issues the platform could handle itself.
-- _P99 latency improved from 85ms to 72ms_. Despite Istio's overhead, the consistent performance from dedicated node pools and better resource allocation actually improved latency.
+- __Deployment frequency increased from bi-weekly to 15+ times daily.__ Teams now deployed independently without coordinating release windows. Most deployments were fully automated with manual approval only for production.
+- __Mean time to recovery dropped from 45 minutes to 8 minutes.__ Kubernetes self-healing, combined with proper health checks and Istio's traffic management, meant most issues resolved automatically. When human intervention was needed, rollback was a single click in ArgoCD.
+- __Infrastructure costs reduced by 30%.__ Better bin-packing from Karpenter, automatic scaling that actually worked, and elimination of over-provisioned EC2 instances drove the savings.
+- __PCI-DSS audit passed with zero findings.__ The QSA specifically called out the mTLS implementation and audit logging as exemplary.
+- __On-call pages reduced by 60%.__ The self-healing capabilities and improved observability meant engineers weren't woken up for issues the platform could handle itself.
+- __P99 latency improved from 85ms to 72ms.__ Despite Istio's overhead, the consistent performance from dedicated node pools and better resource allocation actually improved latency.
 
 ## Key Takeaways
 
-- _Compliance constraints can drive better architecture_. The PCI requirements forced us to implement mTLS, network segmentation, and comprehensive audit logging. These practices made the system more secure and more observable than it would have been otherwise.
-- _Migrate incrementally with traffic shifting_. Running old and new systems in parallel with gradual traffic migration eliminated big-bang risk. When we found issues, we shifted traffic back. No customer ever noticed a migration-related problem.
-- _Invest in the platform before migrating workloads_. The three months we spent building the platform foundation—observability, CI/CD, security controls—before migrating any production traffic paid off. Teams trusted the platform because it was proven before they depended on it.
+- __Compliance constraints can drive better architecture.__ The PCI requirements forced us to implement mTLS, network segmentation, and comprehensive audit logging. These practices made the system more secure and more observable than it would have been otherwise.
+- __Migrate incrementally with traffic shifting.__ Running old and new systems in parallel with gradual traffic migration eliminated big-bang risk. When we found issues, we shifted traffic back. No customer ever noticed a migration-related problem.
+- __Invest in the platform before migrating workloads.__ The three months we spent building the platform foundation—observability, CI/CD, security controls—before migrating any production traffic paid off. Teams trusted the platform because it was proven before they depended on it.
