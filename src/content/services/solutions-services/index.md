@@ -1,6 +1,7 @@
 ---
 title: "Solutions Services"
 description: "Bounded infrastructure projects with clear deliverables. Architecture reviews, security audits, migration plans, and documentation—scoped work that ships on a predictable timeline."
+order: 3
 ---
 
 ## What You Get

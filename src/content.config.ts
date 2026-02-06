@@ -19,8 +19,8 @@ import { withBreadcrumbTitleWarning } from '@lib/helpers/breadcrumbTitleLengthRe
  * NOTE: In YAML, dates written without quotes around them are interpreted as Date objects
  */
 
-const pattern = '**/index.{md,mdx}'
-const flatMarkdownPattern = '**/*.{md,mdx}'
+const pattern = '**/index.mdx'
+const flatMarkdownPattern = '**/*.mdx'
 
 const createBaseCollectionSchema = ({ image }: SchemaContext) =>
   z.object({
@@ -91,7 +91,10 @@ const caseStudiesCollection = defineCollection({
  * Downloads
  */
 const downloadsCollection = defineCollection({
-  loader: glob({ pattern, base: './src/content/downloads' }),
+  loader: glob({
+    pattern: '**/download.mdx',
+    base: './src/content/articles',
+  }),
   schema: context =>
     withBreadcrumbTitleWarning(
       createBaseCollectionSchema(context).extend({
@@ -131,12 +134,16 @@ const testFixtureCollection = defineCollection({
  * Services
  */
 const servicesCollection = defineCollection({
-  loader: glob({ pattern, base: './src/content/services' }),
+  loader: glob({
+    pattern: '**/index.md',
+    base: './src/content/services',
+  }),
   schema: () =>
     z.object({
       title: z.string(),
       description: z.string(),
       isDraft: z.boolean().default(false),
+      order: z.number(),
     }),
 })
 

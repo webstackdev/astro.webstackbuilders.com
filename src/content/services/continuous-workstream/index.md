@@ -1,6 +1,7 @@
 ---
 title: "Continuous Workstream"
 description: "Steady platform engineering progress without full-time commitment. I work evenings EST on your infrastructure backlog—CI/CD improvements, IaC refactors, monitoring gaps, and the reliability work that keeps slipping."
+order: 2
 ---
 
 ## What You Get

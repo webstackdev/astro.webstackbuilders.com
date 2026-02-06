@@ -1,6 +1,7 @@
 ---
 title: "Full Workstream"
 description: "Dedicated platform engineering capacity for teams building or stabilizing infrastructure. I embed with your team during business hours to ship CI/CD pipelines, Kubernetes deployments, observability stacks, and reliability improvements."
+order: 1
 ---
 
 ## What You Get
