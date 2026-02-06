@@ -1,20 +1,22 @@
 ---
 import GDPRConsent from '@components/Consent/Checkbox/index.astro'
 import Confetti from '@components/Animations/Confetti/index.astro'
+import styles from '../forms.module.css'
 import './uppy-audio.css'
 import './uppy-core.css'
 import './uppy-dashboard.css'
 import './uppy-webcam.css'
+import './validation.css'
 ---
 
 <contact-form>
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 items-start">
     <!-- Contact Form -->
-    <div class="lg:col-span-2 bg-bg p-6 md:p-8 rounded-2xl shadow-lg">
+    <div class="lg:col-span-2 bg-content-inverse p-6 md:p-8 rounded-2xl shadow-lg">
       <slot name="contact-form-header" />
 
       <form
-        class="space-y-8"
+      class:list={[styles.formScope, 'space-y-8']}
         id="contactForm"
         method="post"
         enctype="multipart/form-data"
@@ -30,22 +32,22 @@ import './uppy-webcam.css'
         </div>
 
         <!-- Personal Information -->
-        <div class="pb-6 border-b border-border">
-          <h3 class="flex items-center text-xl font-semibold text-text mb-6">
-            <div class="w-1 h-5 bg-primary rounded-full mr-3"></div>
+        <div class="pb-6 border-b border-trim">
+          <h3 class="flex items-center text-xl font-semibold mb-6">
+            <div class="w-1 h-5 bg-spotlight rounded-full mr-3"></div>
             Contact Information
           </h3>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-2">
-              <label for="name" class="block text-sm font-medium text-text-offset"
+              <label for="name" class="block"
                 >Full Name *</label
               >
               <input
                 type="text"
                 id="name"
                 name="name"
-                class="w-full px-4 py-3 border-2 border-border rounded-xl bg-bg text-text focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200"
+                class="w-full px-4 py-3 border-2 border-trim rounded-xl bg-content-inverse focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200"
                 required
                 placeholder="Your full name"
                 minlength="2"
@@ -63,14 +65,14 @@ import './uppy-webcam.css'
             </div>
 
             <div class="space-y-2">
-              <label for="email" class="block text-sm font-medium text-text-offset"
+              <label for="email" class="block"
                 >Email Address *</label
               >
               <input
                 type="email"
                 id="email"
                 name="email"
-                class="w-full px-4 py-3 border-2 border-border rounded-xl bg-bg text-text focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200"
+                class="w-full px-4 py-3 border-2 border-trim rounded-xl bg-content-inverse focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200"
                 required
                 placeholder="your.email@example.com"
                 aria-invalid="false"
@@ -88,28 +90,28 @@ import './uppy-webcam.css'
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-2">
-              <label for="company" class="block text-sm font-medium text-text-offset"
+              <label for="company" class="block"
                 >Company Name</label
               >
               <input
                 type="text"
                 id="company"
                 name="company"
-                class="w-full px-4 py-3 border-2 border-border rounded-xl bg-bg text-text focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200"
+                class="w-full px-4 py-3 border-2 border-trim rounded-xl bg-content-inverse focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200"
                 placeholder="Your company name"
                 maxlength="100"
               />
             </div>
 
             <div class="space-y-2">
-              <label for="phone" class="block text-sm font-medium text-text-offset"
+              <label for="phone" class="block"
                 >Phone Number</label
               >
               <input
                 type="tel"
                 id="phone"
                 name="phone"
-                class="w-full px-4 py-3 border-2 border-border rounded-xl bg-bg text-text focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200"
+                class="w-full px-4 py-3 border-2 border-trim rounded-xl bg-content-inverse focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200"
                 placeholder="+1 (555) 123-4567"
               />
             </div>
@@ -117,21 +119,21 @@ import './uppy-webcam.css'
         </div>
 
         <!-- Project Information -->
-        <div class="pb-6 border-b border-border">
-          <h3 class="flex items-center text-xl font-semibold text-text mb-6">
-            <div class="w-1 h-5 bg-primary rounded-full mr-3"></div>
+        <div class="pb-6 border-b border-trim">
+          <h3 class="flex items-center text-xl font-semibold mb-6">
+            <div class="w-1 h-5 bg-spotlight rounded-full mr-3"></div>
             Project Details
           </h3>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-2">
-              <label for="project_type" class="block text-sm font-medium text-text-offset"
+              <label for="project_type" class="block"
                 >Project Type</label
               >
               <select
                 id="project_type"
                 name="project_type"
-                class="w-full px-4 py-3 border-2 border-border rounded-xl bg-bg text-text focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200 cursor-pointer"
+                class="w-full px-4 py-3 border-2 border-trim rounded-xl bg-content-inverse focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200 cursor-pointer"
               >
                 <option value="">Select project type</option>
                 <option value="website">New Website</option>
@@ -147,14 +149,14 @@ import './uppy-webcam.css'
             </div>
 
             <div class="space-y-2">
-              <label for="budget" class="block text-sm font-medium text-text-offset"
+              <label for="budget" class="block"
                 >Budget Range *</label
               >
               <select
                 id="budget"
                 name="budget"
                 required
-                class="w-full px-4 py-3 border-2 border-border rounded-xl bg-bg text-text focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200 cursor-pointer"
+                class="w-full px-4 py-3 border-2 border-trim rounded-xl bg-content-inverse focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200 cursor-pointer"
               >
                 <option value="">Select budget range</option>
                 <option value="5k-10k">$5,000 - $10,000</option>
@@ -166,13 +168,13 @@ import './uppy-webcam.css'
           </div>
 
           <div class="space-y-2">
-            <label for="timeline" class="block text-sm font-medium text-text-offset"
+            <label for="timeline" class="block"
               >Project Timeline *</label
             >
             <select
               id="timeline"
               name="timeline"
-              class="w-full px-4 py-3 border-2 border-border rounded-xl bg-bg text-text focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200 cursor-pointer"
+              class="w-full px-4 py-3 border-2 border-trim rounded-xl bg-content-inverse focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200 cursor-pointer"
             >
               <option value="">Select timeline</option>
               <option value="asap">ASAP</option>
@@ -185,13 +187,13 @@ import './uppy-webcam.css'
           </div>
 
           <div class="space-y-2">
-            <label for="message" class="block text-sm font-medium text-text-offset"
+            <label for="message" class="block"
               >Project Description *</label
             >
             <textarea
               id="message"
               name="message"
-              class="w-full px-4 py-3 border-2 border-border rounded-xl bg-bg text-text focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200 resize-vertical min-h-30"
+              class="w-full px-4 py-3 border-2 border-trim rounded-xl bg-content-inverse focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200 resize-vertical min-h-30"
               rows="6"
               required
               placeholder="Describe your project, goals, target audience, and any specific requirements..."
@@ -206,7 +208,7 @@ import './uppy-webcam.css'
               id="message-error"
             >
             </p>
-            <div class="text-right text-sm text-text-offset">
+            <div class="text-right text-sm text-content-active">
               <span id="charCount">0</span>/2000 characters
             </div>
           </div>
@@ -214,27 +216,27 @@ import './uppy-webcam.css'
 
         <!-- File Upload Section -->
         <div class="pb-6">
-          <h3 class="flex items-center text-xl font-semibold text-text mb-4">
-            <div class="w-1 h-5 bg-primary rounded-full mr-3"></div>
+          <h3 class="flex items-center text-xl font-semibold mb-4">
+            <div class="w-1 h-5 bg-spotlight rounded-full mr-3"></div>
             Project Files (Optional)
           </h3>
-          <p class="text-text-offset text-sm mb-6">
+          <p class="text-content-active text-sm mb-6">
             Upload any relevant files like mockups, specifications, existing designs, or reference
             materials.
           </p>
 
           <div
-            class="border-2 border-dashed border-border rounded-xl p-8 text-center bg-bg-offset hover:border-primary-hover transition-colors duration-200"
+            class="border-2 border-dashed border-trim rounded-xl p-8 text-center bg-page-base-offset hover:border-primary-hover transition-colors duration-200"
           >
             <div id="uppyContainer" hidden>
               <div id="uppyDashboard"></div>
             </div>
             <div class="mt-4 space-y-2">
-              <p class="text-sm text-text-offset">
+              <p class="text-sm text-content-active">
                 <strong>Supported formats:</strong> PDF, DOC, DOCX, JPG, PNG, GIF, WebP, MP3, WAV, MP4,
                 MOV, ZIP, TXT
               </p>
-              <p class="text-sm text-text-offset">
+              <p class="text-sm text-content-active">
                 <strong>Max file size:</strong> 10MB per file • <strong>Max files:</strong> 5
               </p>
             </div>
@@ -250,7 +252,7 @@ import './uppy-webcam.css'
 
         <!-- Data Retention Notice -->
         <div
-          class="text-sm text-text-offset space-y-2 bg-bg-offset p-4 rounded-lg border border-border"
+          class="text-sm text-content-active space-y-2 bg-page-base-offset p-4 rounded-lg border border-trim"
         >
           <p>
             <strong>Data Retention:</strong> Your contact information will be stored for 90 days to respond
@@ -269,7 +271,7 @@ import './uppy-webcam.css'
           <div class="flex justify-end">
             <button
               type="submit"
-              class="inline-flex items-center justify-center px-8 py-4 bg-primary hover:bg-primary-hover text-white font-semibold rounded-xl transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none min-w-50"
+              class="inline-flex items-center justify-center px-8 py-4 bg-spotlight hover:bg-spotlight-offset text-white font-semibold rounded-xl transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none min-w-50"
               id="submitBtn"
             >
               <span class="btn-text">Send Project Details</span>
@@ -300,7 +302,7 @@ import './uppy-webcam.css'
       <!-- Form Messages -->
       <div id="formMessages" class="mt-8 rounded-xl overflow-hidden" style="display: none;">
         <div class="message-success hidden" role="status" aria-live="polite" aria-atomic="true">
-          <div class="flex items-start p-6 bg-success-bg border border-success gap-4">
+          <div class="flex items-start p-6 bg-success-inverse  border border-success gap-4">
             <div
               class="shrink-0 w-6 h-6 bg-success text-white rounded-full flex items-center justify-center text-sm font-bold"
             >
@@ -308,7 +310,7 @@ import './uppy-webcam.css'
             </div>
             <div>
               <h3 class="text-lg font-semibold text-success mb-2">Thank you!</h3>
-              <p class="text-text">
+              <p>
                 Your project details have been sent successfully. We'll review everything and get
                 back to you within 24 hours with a detailed proposal.
               </p>
@@ -316,7 +318,7 @@ import './uppy-webcam.css'
           </div>
         </div>
         <div class="message-error hidden" role="alert" aria-live="assertive" aria-atomic="true">
-          <div class="flex items-start p-6 bg-danger-bg border border-danger gap-4">
+          <div class="flex items-start p-6 bg-danger-offset border border-danger gap-4">
             <div
               class="shrink-0 w-6 h-6 bg-danger text-white rounded-full flex items-center justify-center text-sm font-bold"
             >
@@ -324,7 +326,7 @@ import './uppy-webcam.css'
             </div>
             <div>
               <h3 class="text-lg font-semibold text-danger mb-2">Oops!</h3>
-              <p class="text-text" id="errorMessage">
+              <p id="errorMessage">
                 Something went wrong. Please try again later.
               </p>
             </div>

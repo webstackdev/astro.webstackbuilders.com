@@ -1,24 +1,69 @@
 ---
+import { getCollection } from 'astro:content'
+
 export interface Props {
   tags: string[]
 }
 
 const { tags } = Astro.props
+
+const allTags = await getCollection('tags')
+
+type TagMeta = {
+  slug: string
+  displayName: string
+}
+
+const tagMetaByIdentifier = new Map<string, TagMeta>()
+
+for (const tagEntry of allTags) {
+  const meta: TagMeta = {
+    slug: tagEntry.data.slug,
+    displayName: tagEntry.data.displayName,
+  }
+
+  tagMetaByIdentifier.set(tagEntry.id, meta)
+  tagMetaByIdentifier.set(tagEntry.data.slug, meta)
+
+  if (tagEntry.id.endsWith('/index')) {
+    tagMetaByIdentifier.set(tagEntry.id.replace(/\/index$/, ''), meta)
+  }
+
+  tagMetaByIdentifier.set(`${tagEntry.data.slug}/index`, meta)
+  tagMetaByIdentifier.set(`${tagEntry.data.slug}/index.mdx`, meta)
+  tagMetaByIdentifier.set(`${tagEntry.data.slug}/index.md`, meta)
+}
+
+const resolveTagMeta = (rawTag: string) => {
+  return (
+    tagMetaByIdentifier.get(rawTag) ??
+    tagMetaByIdentifier.get(rawTag.replace(/\.(md|mdx)$/, '')) ??
+    tagMetaByIdentifier.get(rawTag.replace(/\/index$/, ''))
+  )
+}
+
+// {tags && tags.length > 0 && <Tags {...{ tags }} />}
 ---
 
 <ul class="flex flex-wrap gap-1 list-none p-0 m-0" aria-label="Article tags">
   {
-    tags.map(tag => (
-      <li>
-        <a
-          href={`/tags/${tag}`}
-          rel="tag"
-          itemprop="keywords"
-          class="inline-block px-2 py-0.5 bg-surface-raised rounded text-xs no-underline transition-colors hover:bg-primary hover:text-primary focus:bg-primary focus:text-primary"
-        >
-          {tag}
-        </a>
-      </li>
-    ))
+    tags.map(rawTag => {
+      const meta = resolveTagMeta(rawTag)
+      const href = meta ? `/tags/${meta.slug}` : `/tags/${rawTag}`
+      const label = meta ? meta.displayName : rawTag
+
+      return (
+        <li>
+          <a
+            href={href}
+            rel="tag"
+            itemprop="keywords"
+            class="uppercase inline-block pr-2 sm:pr-3 py-0.5 text-xs sm:text-sm no-underline transition-colors hover:text-secondary focus-visible:px-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-spotlight focus-visible:text-secondary"
+          >
+            {label}
+          </a>
+        </li>
+      )
+    })
   }
 </ul>

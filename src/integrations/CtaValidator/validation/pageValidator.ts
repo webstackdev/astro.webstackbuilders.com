@@ -7,7 +7,7 @@ import { readdir, readFile } from 'fs/promises'
 import { join, resolve, relative } from 'path'
 import type { AstroConfig } from 'astro'
 import type { CallToActionComponent, PageValidationResult } from '@integrations/CtaValidator/@types'
-import { findComponentUsages } from '../parsers'
+import { findComponentUsages, shouldIgnoreCtaValidation } from '../parsers'
 
 /**
  * Validate all pages in the project
@@ -71,7 +71,7 @@ async function getPageFiles(
     // Content directory doesn't exist, that's fine
   }
 
-  return pageFiles
+  return pageFiles.filter(filePath => !shouldIgnoreCtaValidation(filePath))
 }
 
 /**

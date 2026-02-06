@@ -128,27 +128,27 @@ export class PrivacyFormElement extends LitElement {
 
     const variantClasses = [
       'border-success',
-      'bg-success-bg',
+      'bg-success-inverse',
       'text-success',
       'border-danger',
-      'bg-danger-bg',
+      'bg-danger-offset',
       'text-danger',
       'border-info',
-      'bg-info-bg',
+      'bg-info-inverse',
       'text-info',
     ]
     target.classList.remove(...variantClasses)
 
     if (type === 'success') {
-      target.classList.add('border-success', 'bg-success-bg', 'text-success')
+      target.classList.add('border-success', 'bg-success-inverse', 'text-success')
     }
 
     if (type === 'error') {
-      target.classList.add('border-danger', 'bg-danger-bg', 'text-danger')
+      target.classList.add('border-danger', 'bg-danger-offset', 'text-danger')
     }
 
     if (type === 'info') {
-      target.classList.add('border-info', 'bg-info-bg', 'text-info')
+      target.classList.add('border-info', 'bg-info-inverse', 'text-info')
     }
 
     target.focus()

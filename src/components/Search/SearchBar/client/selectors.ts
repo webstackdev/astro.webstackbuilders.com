@@ -8,6 +8,13 @@ export const SELECTORS = {
   resultsList: '[data-search-results-list]',
 } as const
 
+export const OPTIONAL_SELECTORS = {
+  toggleBtn: '[data-search-toggle]',
+  panel: '[data-search-panel]',
+  micBtn: '[data-search-mic]',
+  clearBtn: '[data-search-clear]',
+} as const
+
 /**
  * Get search bar elements with type validation
  */
@@ -53,5 +60,19 @@ export function getSearchBarElements(context: Element) {
     input,
     resultsContainer,
     resultsList,
+  }
+}
+
+export function getSearchBarOptionalElements(context: Element) {
+  const toggleBtn = context.querySelector(OPTIONAL_SELECTORS.toggleBtn)
+  const panel = context.querySelector(OPTIONAL_SELECTORS.panel)
+  const micBtn = context.querySelector(OPTIONAL_SELECTORS.micBtn)
+  const clearBtn = context.querySelector(OPTIONAL_SELECTORS.clearBtn)
+
+  return {
+    toggleBtn: toggleBtn instanceof HTMLButtonElement ? toggleBtn : null,
+    panel: panel instanceof HTMLElement ? panel : null,
+    micBtn: micBtn instanceof HTMLButtonElement ? micBtn : null,
+    clearBtn: clearBtn instanceof HTMLButtonElement ? clearBtn : null,
   }
 }

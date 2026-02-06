@@ -1,0 +1,152 @@
+---
+title: "Adding Tests to Untestable Legacy Code"
+description: "The two techniques that make any legacy codebase testable: characterization tests and seam identification."
+cover: "./cover.jpg"
+coverAlt: "Bomb disposal expert analyzing complex device with mirrors and identifying safe cutting points, representing careful legacy code refactoring with characterization tests"
+author: "kevin-brown"
+publishDate: 2023-03-19
+tags: ["system-modernization"]
+featured: true
+---
+
+*[DI]: Dependency Injection
+*[API]: Application Programming Interface
+*[OOP]: Object-Oriented Programming
+
+You've inherited a codebase with no tests. The classes are tightly coupled, dependencies are created inline, and methods run hundreds of lines. You need to make changes, but touching anything feels like defusing a bomb blindfolded.
+
+Here's the paradox every developer faces with legacy code: you can't refactor safely without tests, but you can't write tests without refactoring first. Every attempt to instantiate a class pulls in a database connection, an email client, three external APIs, and a configuration file. A previous developer tried to add tests and gave up after realizing every test required a running database, mail server, and network access to production systems.
+
+The code is "untestable." Except it isn't.
+
+Two techniques unlock almost any legacy codebase: _characterization tests_ and _seam identification_. You don't need to understand the code to test it, and you don't need to refactor before you can write your first test. These techniques form the foundation that makes everything else possible.
+
+## Characterization Tests: Document Before You Judge
+
+Traditional unit tests verify that code does what it _should_ do—you write a test based on a specification, and the test fails if the code doesn't match. Characterization tests flip this: they capture what the code _actually_ does, regardless of intent. You're not testing against a spec; you're documenting observed behavior.
+
+The distinction matters for legacy code. You don't have a spec. The original authors are gone. The code has undocumented edge cases, implicit business rules buried in conditionals, and behaviors that might be bugs or might be features—you can't tell. Characterization tests don't try to answer "is this correct?" They answer "what does this do?" and lock it in.
+
+### The Discovery Process
+
+The technique is deliberately low-tech: write a test with an obviously wrong expected value, run it, and let the failure message tell you the actual output. Then update the test with the real value.
+
+```ruby title="behavior_discovery_spec.rb"
+RSpec.describe 'LegacyPriceCalculator (discovery)' do
+  let(:calculator) { LegacyPriceCalculator.new }
+
+  it 'discovers behavior for standard order' do
+    order = OrderFactory.create(items: 3, subtotal: 100, customer: 'regular')
+    expect(calculator.calculate(order)).to eq(94.50)
+  end
+
+  it 'discovers edge case - zero items' do
+    order = OrderFactory.create(items: 0, subtotal: 0, customer: 'regular')
+    expect(calculator.calculate(order)).to eq(5.00)
+  end
+end
+```
+Code: Using failing tests to discover actual behavior.
+
+That last test—the $5.00 minimum fee for empty orders—is exactly the kind of thing characterization tests reveal. Is it a bug? Intentional? You don't know, and for now, you don't care. You're building a safety net, not making judgments. Document it with a comment, move on, and address it later when you have coverage.
+
+This approach works because you're observing rather than specifying. You run the code, capture what happens, and write it down. The tests become documentation of actual behavior. When you later refactor and a test fails, you know you changed something—then you investigate whether that change was intentional.
+
+<Callout type="info">
+Characterization tests are not about correctness—they're about documenting current behavior. If you discover a bug during characterization, document it with a comment but don't "fix" the test. Fix the bug later, after you have your safety net in place.
+</Callout>
+
+## Finding Seams: Injection Points Without Refactoring
+
+Michael Feathers introduced the concept of seams in _Working Effectively with Legacy Code_, and it remains the most useful mental model for making untestable code testable. A seam is a place where you can alter program behavior without editing the code at that location. The seam itself doesn't change—you change behavior at what Feathers calls the "enabling point."
+
+The distinction matters because legacy code often can't be edited safely. You don't have tests, so any edit risks breaking something. Seams let you substitute behavior for testing purposes without touching the production logic you're trying to protect.
+
+Consider a method that sends emails. The email-sending code is deep inside a 500-line method that also processes orders, updates inventory, and logs analytics. You can't easily extract the email logic—too risky without tests. But if you can find a seam, you can replace the email sender with a test double that captures what _would_ have been sent, without changing the method itself.
+
+### The Four Seam Types
+
+_Object seams_ are the most common and usually the cleanest. You pass a dependency through a constructor or method parameter, and the enabling point is the call site where you can pass a different implementation. This is the foundation of dependency injection. Most languages and frameworks have idiomatic ways to create object seams:
+
+| Language/Framework | Object Seam Technique |
+| ------------------ | --------------------- |
+| Ruby | Default arguments in `initialize` |
+| C# / Java | Constructor overloads or optional parameters |
+| PHP | Default parameter values |
+| TypeScript | Optional parameters with nullish coalescing (`??`) |
+| Spring Boot | `@Autowired` with test `@Configuration` bindings |
+| Laravel | Service container with `$this->app->bind()` in tests |
+| .NET | `IServiceCollection` with test service registration |
+
+Table: Object seam techniques by language and framework.
+
+_Link seams_ operate at the module level. In Ruby, you can use `stub_const` to replace a class entirely. In TypeScript/JavaScript, Jest's `jest.mock()` intercepts imports. The enabling point is the test setup. Link seams are powerful but fragile—they couple tests to implementation details like class names.
+
+_Subclass seams_ work by extracting behavior into a protected method, then overriding it in a test subclass. This technique is underrated for legacy code because it requires minimal changes—you extract one line into a method, and suddenly you have a seam.
+
+_Preprocessor seams_ apply anywhere you use environment-based branching. Rails' `Rails.env.test?`, Laravel's `app()->environment('testing')`, and Node's `process.env.NODE_ENV === 'test'` are all effectively preprocessor seams. Use them sparingly—they litter production code with test concerns.
+
+### Identifying Seams in Legacy Code
+
+When you're staring at a tightly coupled class, finding seams requires a systematic scan. Look for object instantiation with `new` or `.new`—each one is a potential object seam waiting to be parameterized. Look for class method calls like `SomeClass.do_thing`—each one could become an instance delegator. Look for global access patterns: singletons, environment variables, file reads, network calls.
+
+```ruby title="seam_identification.rb"
+# BEFORE: Tightly coupled, no seams
+class LegacyOrderProcessor
+  def process_order(order_id)
+    db = DatabaseConnection.new(CONFIG[:connection_string])  # <- potential seam
+    order = db.query("SELECT * FROM orders WHERE id = '#{order_id}'")
+
+    config = JSON.parse(File.read('/etc/app/config.json'))   # <- potential seam
+
+    inventory = InventoryApi.check(order[:sku])              # <- potential seam
+
+    mailer = SmtpMailer.new(config['smtp'])                  # <- potential seam
+    mailer.send(order[:customer_email], 'Order Confirmation', template)
+  end
+end
+
+# Each instantiation and external call is a seam candidate
+# Object seams: inject db, config, inventory client, mailer via constructor
+# Link seams: mock InventoryApi at module level
+# Subclass seams: extract each call to protected method, override in tests
+```
+Code: Identifying potential seams in legacy code.
+
+When choosing which seam type to use, prefer object seams for long-term maintainability—they make dependencies explicit. But when you need tests _now_ and can't change constructor signatures, link seams or subclass seams get you there faster. You can always refactor toward cleaner patterns once you have tests.
+
+<Callout type="success">
+Look for the `new` keyword and class method calls—these are often where seams are missing. Every `.new` inside a method is a dependency that's hard to test. Every `SomeClass.method` call is a hidden dependency.
+</Callout>
+
+## Putting It Together
+
+These two techniques work as a one-two punch. Characterization tests give you the safety net—you can observe and document behavior without understanding every line. Seams give you the injection points—you can substitute test doubles for external dependencies without rewriting the code.
+
+The workflow looks like this: First, identify the behavior you need to protect. Run the code through various inputs, capture what comes out, and write characterization tests that lock in those outputs. Don't worry about whether the behavior is correct—that's a problem for later. Next, find the seams. Look for `new` calls, class method invocations, and external dependencies. Pick the seam type that requires the least change: object seams if you can modify constructors, link seams if you need to mock at the module level, subclass seams if you need surgical precision. Finally, inject test doubles through those seams and verify the code routes to them correctly.
+
+With both in place, you can isolate and test without understanding the full system. The code is no longer untestable—it's testable through observation and substitution.
+
+This is the foundation. Deeper techniques—Extract and Override for quick dependency breaking, Parameterize Constructor for clean DI patterns, Strangler Fig for system-level migration—all build on characterization tests and seams. But start here. Get your first characterization test passing. Find your first seam. The rest follows.
+
+## Conclusion
+
+The myth of "untestable" code usually means "code that's hard to test with conventional techniques." Characterization tests and seams change the equation entirely—they let you observe, document, and isolate without first having to understand every line.
+
+Start with characterization tests. Run the code, capture what happens, lock it down. Don't judge whether the behavior is correct—just document it. Then find seams: the constructor parameters, the class methods, the environment flags that let you substitute behavior without editing the code you're protecting.
+
+These foundations enable everything else: dependency breaking, incremental extraction, system-level migration. But they're also sufficient on their own to turn "untestable" into testable. The question isn't _can_ you test legacy code—it's whether the investment is worth it for code that may never change.
+
+---
+
+**Go Deeper: The Complete Legacy Code Testing Guide**
+
+This article covers the foundational techniques, but there's much more to legacy code testing. The complete guide includes:
+
+- _Dependency breaking techniques_: Extract and Override, Parameterize Constructor, and Instance Delegator patterns with full code examples
+- _The Strangler Fig pattern_: How to incrementally replace legacy systems at the module and service level
+- _Golden master testing_: Capturing complex outputs when individual assertions aren't practical
+- _Coverage prioritization_: Where to focus testing effort based on change risk and bug history
+- _Test organization_: Structuring characterization tests, regression tests, and unit tests for legacy codebases
+
+Download the complete PDF guide for the full deep-dive with extended code examples and decision frameworks.

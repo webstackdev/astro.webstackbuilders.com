@@ -1,0 +1,151 @@
+---
+title: "Portal vs Platform: Why Your IDP Is Just Links"
+description: "The difference between a portal that indexes things and a platform that does things for developers."
+cover: "./cover.jpg"
+coverAlt: "Developer platform marketplace showing self-service offerings like Kubernetes namespaces and databases with delivery times and shopping cart checkout"
+author: "kevin-brown"
+publishDate: 2022-02-06
+tags: ["platform-engineering"]
+featured: true
+---
+
+*[IDP]: Internal Developer Portal/Platform
+*[RBAC]: Role-Based Access Control
+
+Last month I watched a developer spend three days getting a PostgreSQL database. The company had a beautiful internal developer portal - Backstage, fully themed, comprehensive service catalog, scorecards showing tech debt metrics. The developer found the "Database Provisioning" page in under 30 seconds. Then he read the instructions: file a Jira ticket with the DBA team, wait for triage, attend a 15-minute review meeting to justify the request, and receive credentials via a separate ticket once provisioning completed. Three to five business days.
+
+And yet the outcome was identical to not having a portal at all - the same tickets, the same meetings, the same waiting.
+
+That's the portal-versus-platform distinction that trips up most organizations. A portal _indexes_ things: it aggregates links, surfaces documentation, shows who owns what. A platform _does_ things: it provisions infrastructure, creates repositories, grants access. The portal tells you how to request a database. The platform gives you a database.
+
+Self-service actions are what transform a directory into a platform. Without them, you've built a prettier wiki.
+
+<Callout type="warning">
+If your "platform" requires developers to read documentation and file tickets to get things done, you've built a directory, not a platform. Platforms execute workflows. Directories point to workflows that humans execute.
+</Callout>
+
+## The Portal Maturity Model
+
+Most internal developer portals evolve through predictable stages. Understanding where you are helps clarify where to invest next - and where most organizations get stuck.
+
+_Level 1: Directory._ This is the starting point - a central place that aggregates links to documentation, team contacts, and runbooks. Think Confluence home pages, GitHub wikis with service lists, or spreadsheets tracking ownership. The value is real: developers know where to look. But they still have to do everything manually. Finding the database provisioning doc doesn't provision the database.
+
+At _Level 2: Search_, the directory becomes searchable and indexed. Backstage with a service catalog lives here, along with API registries and dependency graph visualizations. Discovery is faster. Context switching drops. But finding something fast doesn't mean you can act on it fast. The developer who locates the database docs in 30 seconds still files the same ticket and waits the same 3-5 days.
+
+At _Level 3: Insights_, the portal shows health metrics, ownership data, and quality scorecards. You can see which services have test coverage gaps, which teams own what, and how much each service costs. Visibility improves dramatically. But seeing problems doesn't fix them. The dashboard showing your DBA team has a 47-ticket backlog doesn't get your database provisioned faster.
+
+At _Level 4: Platform_, you get self-service actions with automation. Developers can provision databases, create services, and request access - not by finding documentation, but by clicking buttons and filling forms that trigger real workflows. The difference isn't incremental. It's the difference between "3-5 business days" and "15 minutes."
+
+| Level | What They Can Do | What They Still Can't Do |
+|-------|------------------------|--------------------------|
+| Directory | Find documentation | Execute workflows |
+| Search | Quickly find services and APIs | Provision or modify resources |
+| Insights | See health and ownership | Fix issues without tickets |
+| Platform | Self-service common tasks | Only edge cases need tickets |
+
+Table: Portal maturity levels.
+
+Most organizations plateau at Level 2 or 3. They build beautiful service catalogs with scorecards and graphs, but developers still file tickets for everything. The jump to Level 4 requires different thinking: instead of "what should developers know?" ask "what should developers be able to do?"
+
+## What Good Self-Service Actions Look Like
+
+The difference between a good self-service action and a frustrating one often comes down to design decisions that seem minor but compound. A database provisioning action that takes 30 seconds to fill out and 15 minutes to complete feels magical. The same action with a confusing form, unclear outcomes, and no progress visibility feels just as frustrating as the old process.
+
+A well-designed action has clear structure: identity (what it is), inputs (what the user provides), workflow (what happens), and outputs (what the user gets back). Here's what that looks like for database provisioning in Backstage:
+
+```yaml title="backstage-action-definition.yaml"
+# Backstage scaffolder action for PostgreSQL provisioning
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: provision-postgresql-database
+  title: Create PostgreSQL Database
+  description: Provision a new PostgreSQL database with configured access
+spec:
+  owner: platform-data-team
+  type: database
+
+  parameters:
+    - title: Database Configuration
+      required: [name, environment, size]
+      properties:
+        name:
+          title: Database Name
+          type: string
+          pattern: "^[a-z][a-z0-9-]{2,30}$"
+          description: Lowercase letters, numbers, hyphens. 3-31 chars.
+        environment:
+          title: Environment
+          type: string
+          enum: [dev, staging, production]
+          default: dev
+        size:
+          title: Instance Size
+          type: string
+          enum: [small, medium, large]
+          enumNames:
+            - Small (2 vCPU, 8GB) - $50/mo
+            - Medium (4 vCPU, 16GB) - $150/mo
+            - Large (8 vCPU, 32GB) - $400/mo
+          default: small
+
+  steps:
+    - id: create-terraform-pr
+      name: Create Infrastructure PR
+      action: publish:github:pull-request
+      input:
+        repoUrl: github.com?repo=infrastructure&owner=myorg
+        branchName: db-${{ parameters.name }}
+        title: "Provision database: ${{ parameters.name }}"
+```
+Code: Backstage scaffolder action for database provisioning.
+
+The YAML is straightforward, but the design decisions matter. Notice the sensible defaults (dev environment, small size), the clear cost indication in the enum labels, and the validation pattern that prevents naming mistakes before submission.
+
+Five principles separate good actions from frustrating ones.
+
+_Obvious outcomes._ Show a preview of resources to be created. Display cost estimates. List permissions that will be granted. Users should know exactly what will happen before clicking submit.
+
+_Sensible defaults._ Pre-fill the team from user context. Default to the smallest viable size. Most fields should have good defaults for the common case - a blank form requiring research to fill out is a friction multiplier.
+
+_Guardrails, not gates._ Validate inputs in real-time. Warn about expensive choices. Auto-approve within policy bounds. Prevent mistakes without blocking legitimate work - if every request requires manual approval, you haven't built self-service.
+
+_Transparent execution._ Show workflow steps and progress. Link to the underlying PR or pipeline. Surface errors clearly with remediation steps. Users should see what's happening and why.
+
+_Recoverable failures._ Allow retrying failed steps. Let users edit and resubmit. Make failures fixable without starting over - if a failure requires filing a support ticket, the action has failed its purpose.
+
+<Callout type="success">
+The best self-service actions feel like filling out a form to order something online: clear options, sensible defaults, transparent pricing, and a tracking number when you submit. If your action feels like filling out a government form, redesign it.
+</Callout>
+
+## The Approval Trap
+
+Approvals are where self-service platforms regress into ticket systems. The instinct is understandable - production changes are risky, expensive resources need oversight, compliance requires audit trails. But if every request routes through a manual approval queue, you've just built Jira with a different skin.
+
+The solution is _policy-based approval routing_: define rules that auto-approve low-risk requests while routing high-risk ones to the right approvers. Most requests should flow through automatically. Approvals become the exception, not the rule.
+
+The dimensions that typically matter:
+
+- _Environment-based_: dev auto-approves, production needs sign-off
+- _Cost-based_: under $100/month auto-approves, over $500 needs finance
+- _Risk-based_: standard operations auto-approve, IAM changes need security review
+
+These dimensions combine - a production database deletion might need team lead _and_ security review, while a dev environment S3 bucket gets instant approval.
+
+Even when manual approval is required, it shouldn't be slow. Give approvers full context in the notification so they don't need to dig through systems. Set SLAs with auto-escalation - a 6-hour wait blocks a developer. Enable approval from notifications directly: Slack buttons, one-click email links. Every click required to approve is friction.
+
+<Callout type="warning">
+If most requests require manual approval, you haven't built self-service - you've built a ticket system with a nicer UI. Use policy-based auto-approval aggressively for low-risk operations.
+</Callout>
+
+## The Platform Test
+
+The distinction between portal and platform comes down to one question: what happens after a developer finds what they need? In a portal, they read documentation and file tickets. In a platform, they click a button and get resources.
+
+That developer waiting three days for a database? In a real platform, they'd have filled out a form, seen a preview of what would be created, clicked submit, and had credentials in their hands within 15 minutes. No tickets. No meetings. No waiting for another team's availability.
+
+The test of a real platform: can a new developer join, need a database, and have it provisioned without asking anyone for help? If yes, you've built a platform. If no - if they need to read Confluence, file a Jira ticket, or ping someone on Slack - you've built a prettier directory.
+
+---
+
+This article covers the maturity model and action design principles. The complete guide goes deeper on workflow orchestration for multi-step processes (handling failures and rollbacks), integration patterns for connecting to Git providers, Terraform, Vault, and observability tools, approval policy implementation with Open Policy Agent, and metrics for measuring and justifying platform investment. Download the PDF for the full implementation details.

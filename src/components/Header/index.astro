@@ -1,6 +1,7 @@
 ---
 import Brand from '@components/Brand/index.astro'
 import Navigation from '@components/Navigation/index.astro'
+import SearchBar from '@components/Search/SearchBar/index.astro'
 import ThemeButton from '@components/ThemePicker/ThemeButton.astro'
 
 export interface Props {
@@ -17,22 +18,31 @@ const { path } = Astro.props
     --header-icon-size: calc(3.5em * 0.75);
     --header-icon-svg-size: calc(var(--header-icon-size) * 0.7);
     --circle-stroke: calc(var(--header-icon-size) * 2 * 3.1416);
+    --header-search-panel-width: calc(18rem - 45px);
+    --header-search-panel-overhang: calc(var(--header-icon-size) + 0.5rem);
+    --header-search-panel-width-open: calc(var(--header-search-panel-width) + var(--header-search-panel-overhang) + 1px);
+    --header-search-panel-right: calc(-1 * var(--header-search-panel-overhang) - 1px);
   }
 
-  @media (width >= 640px) {
+  @media (width >= 40em) {
     :root {
       --header-icon-size: calc(3.5em * 0.85);
+      --header-search-panel-width: 20rem;
     }
   }
 
-  @media (width >= 1024px) {
+  @media (width >= 64em) {
     :root {
       --header-icon-size: calc(3.5em);
+      --header-search-panel-width: 24rem;
+      --header-search-panel-overhang: 0px;
+      --header-search-panel-width-open: var(--header-search-panel-width);
+      --header-search-panel-right: 0px;
     }
   }
 
   #header::after {
-    background-color: var(--color-bg-offset);
+    background-color: var(--color-page-base-offset);
     box-sizing: border-box;
     content: '';
     display: block;
@@ -42,7 +52,7 @@ const { path } = Astro.props
     top: 0;
     transform: translateX(-52%);
     width: 102vw;
-    z-index: -1;
+    z-index: var(--z-underlay);
   }
 </style>
 
@@ -50,7 +60,8 @@ const { path } = Astro.props
 {/* Header for all pages */}
 <header
   id="header"
-  class="flex flex-row items-center justify-between py-2 lg:py-3 relative mx-auto max-w-300 w-[90%] px-4 sm:px-6 lg:px-8"
+  data-header-search-open="false"
+  class="group flex flex-row items-center justify-between py-2 lg:py-3 relative"
   role="banner"
 >
   {/*- Element for animated background behind mobile navigation menu -*/}
@@ -60,6 +71,12 @@ const { path } = Astro.props
     aria-hidden="true"
     data-testid="mobile-splash-backdrop"
   >
+    <div
+      id="mobile-splash-backdrop"
+      class="mobile-splash-backdrop"
+      aria-hidden="true"
+    >
+    </div>
   </div>
   {/* Logo and wordmark */}
   <span
@@ -73,8 +90,16 @@ const { path } = Astro.props
   {/* Theme picker toggle button to show modal */}
   <span
     id="header__theme-icon"
-    class="ml-2 shrink-0 w-(--header-icon-size) relative z-(--z-content-overlay)"
+    class="order-3 lg:order-4 ml-2 mr-2 block shrink-0 w-(--header-icon-size) h-(--header-icon-size) relative z-(--z-content-overlay)"
   >
     <ThemeButton />
+  </span>
+
+  {/* Header search icon that expands left into a search panel */}
+  <span
+    id="header__search-icon"
+    class="order-4 lg:order-5 mr-2 lg:mr-0 block shrink-0 w-(--header-icon-size) h-(--header-icon-size) relative z-(--z-content-overlay) group-data-[header-search-open=true]:z-(--z-modal) lg:z-(--z-nav)"
+  >
+    <SearchBar variant="header" />
   </span>
 </header>

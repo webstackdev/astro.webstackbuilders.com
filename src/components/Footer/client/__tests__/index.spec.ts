@@ -45,9 +45,9 @@ describe('FooterElement web component', () => {
       const hireMeAnchor = element.querySelector<HTMLAnchorElement>('#page-footer__hire-me-anchor')
 
       expect(hireMeAnchor).toBeInstanceOf(HTMLAnchorElement)
-      expect(hireMeAnchor?.innerHTML).toBe('Available September, 2024. Hire Me Now')
+      expect(hireMeAnchor?.innerHTML).toBe('Available October, 2024. Hire Me Now')
       expect(hireMeAnchor?.getAttribute('aria-label')).toBe(
-        'Available September, 2024. Hire Me Now'
+        'Available October, 2024. Hire Me Now'
       )
       expect(hireMeAnchor?.style.display).toBe('inline-block')
     })

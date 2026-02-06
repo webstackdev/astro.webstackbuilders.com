@@ -1,0 +1,109 @@
+---
+title: "The Scream Test: How to Turn Off Services Nobody Remembers"
+description: "A systematic approach to discovering unknown consumers before you decommission services. Four phases of controlled failure that surface dependencies without causing lasting damage."
+cover: "./cover.jpg"
+coverAlt: "Industrial control panel with switches in off position and red indicators, steam in background showing controlled machinery shutdown"
+author: "kevin-brown"
+publishDate: 2024-06-02
+tags: ["system-modernization"]
+featured: true
+---
+
+Creating a new service has bounded risk—it either works or it doesn't. Deleting one has unbounded risk—you won't know what breaks until it breaks. This asymmetry explains why every organization accumulates zombie services that nobody's sure about. They _might_ be dead. They receive occasional traffic that could be health checks or could be production workloads. The owning team dissolved in a reorg, but surely someone took over.
+
+The default is always "leave it running" because turning something off requires courage and knowledge that leaving it alone doesn't. And everyone remembers the one time someone deleted a "dead" service that turned out to power a VP's quarterly dashboard. The scream test is how you get that knowledge: degrade a service in controlled phases, wait for someone to scream, and by the time you flip the switch you've already discovered every consumer that matters.
+
+## The Scream Test
+
+A well-designed scream test has four phases, each lasting about a week. The goal is progressive degradation that surfaces dependencies without causing lasting damage.
+
+_Phase 1: Soft degradation._ Add latency to every request—start at 100ms, increase to 500ms, then 1 second. Services that depend on you in their critical path will start seeing timeouts and SLA violations. Their monitoring should catch it. If nobody notices 1 second of added latency, that's a strong signal the dependency isn't critical.
+
+_Phase 2: Intermittent failures._ Start failing a percentage of requests with 503 Service Unavailable and a Retry-After header. Begin at 1%, move to 5%, then 10%. Well-behaved clients will retry and succeed. Poorly-behaved clients will surface as consumer error rates spike. Either way, you learn who's calling you.
+
+_Phase 3: Hard shutdown._ Return 410 Gone for all requests. This is HTTP's way of saying "this resource existed but doesn't anymore, and it's not coming back." Log every caller at this stage—anyone still hitting you after weeks of deprecation warnings either isn't paying attention or has an integration nobody knew about.
+
+_Phase 4: Complete removal._ After a quiet period of two weeks, remove the service from the load balancer and delete the compute resources. Keep data archives for now—you're not done until you're sure nobody's screaming.
+
+<Callout type="info">
+Send deprecation notices across every communication channel 2-4 weeks before starting Phase 1. Email, Slack, team standups—anywhere consumers might see it. Some will self-identify, reducing surprises during the test.
+</Callout>
+
+Throughout all phases, add deprecation headers to every response. The `Deprecation` and `Sunset` headers are standardized (RFC 8594), and good HTTP clients will log warnings when they see them. Include a link to your migration guide and a contact email for questions.
+
+### Automatic Rollback Triggers
+
+The scream test needs guardrails. Set up automatic rollback triggers that fire on clear signals: error rate in dependent services exceeding a threshold, critical alerts firing, or explicit rollback requests from on-call.
+
+Don't auto-rollback on every minor anomaly—you'll never finish decommissioning anything. But if consumer error rates spike above 5% or a P1 alert fires, pause the test and investigate. The goal is discovery, not damage.
+
+## Before the Scream Test: Traffic Analysis
+
+You don't want to go into a scream test blind. Spending a few weeks on passive discovery—analyzing traffic patterns and tracing requests—reduces surprises and identifies consumers you can notify directly.
+
+### Identifying Callers
+
+Your access logs and service mesh telemetry already contain the information you need. The identification method depends on your infrastructure: IP addresses work for internal services with stable IPs, service name headers work if your mesh requires them, mTLS client certificates are ideal when available, and API keys identify external consumers.
+
+For each caller, classify the traffic pattern. This tells you what kind of dependency you're dealing with:
+
+| Pattern | Characteristics | Implication |
+|---------|-----------------|-------------|
+| Scheduled | Very regular intervals (±10% variance) | Batch job, can probably tolerate downtime windows |
+| Batch processing | Bursts followed by silence | ETL pipeline, may only run monthly |
+| Real-time dependency | Consistent throughout the day | Critical path, needs careful migration |
+| Irregular | No discernible pattern | Often human-triggered or debug traffic |
+
+Table: Traffic patterns reveal the nature of consumer dependencies.
+
+Skip callers with fewer than one request per day—those are usually health checks, monitoring probes, or one-off debugging sessions. Focus your energy on high-volume consumers and those with real-time patterns.
+
+### Distributed Tracing for Hidden Dependencies
+
+If you have distributed tracing (Jaeger, Zipkin, or AWS X-Ray), you can discover dependencies you'd never find through traffic analysis alone. Traces show you _who calls you_ (upstream) and _who you call_ (downstream).
+
+Query any traces that include your service over a 30-day window. Walk the trace tree in both directions. The parent span tells you who initiated the call. This matters because your service might be a transitive dependency—ServiceA calls ServiceB calls your service—and ServiceA's team has no idea they depend on you.
+
+<Callout type="warning">
+Trace sampling can miss low-volume callers. If you sample at 1%, a consumer that calls you 50 times per day might not appear in your trace data at all. Supplement tracing with access logs for complete coverage.
+</Callout>
+
+## Executing the Shutdown
+
+With consumers identified and the scream test complete, you're ready for the actual shutdown. A checklist prevents the "oh no, we forgot to revoke the service account credentials" moment three weeks later.
+
+_Pre-shutdown:_ Confirm all known consumers migrated. Verify data backup completed. Document and test the rollback plan. Silence monitoring alerts.
+
+_Shutdown:_ Remove from load balancer. Scale deployment to zero. Update DNS if applicable. Stop scheduled jobs. Revoke service account credentials.
+
+_Post-shutdown:_ Monitor for 24 hours for unexpected errors in dependent services. Confirm no traffic attempts in logs. Update service catalog to show decommissioned status.
+
+_Cleanup (after 30-day grace period):_ Delete Kubernetes resources. Archive or delete database per retention policy. Remove CI/CD pipelines. Archive source code repository—don't delete it, you might need to reference how something worked later.
+
+Always run shutdown scripts with dry-run mode first. The few minutes this adds is worth it compared to the hours you'd spend fixing a botched shutdown.
+
+### Common Shutdown Mistakes
+
+The checklist exists because every item on it has bitten someone. The most common mistakes I've seen:
+
+- _Forgetting cron jobs._ The deployment scales to zero, the load balancer routes to nothing, but the nightly ETL job keeps trying to connect and fills up error logs—or worse, silently fails and breaks downstream reports.
+- _Leaving DNS records._ Three months later, someone provisions new infrastructure that happens to get the old IP address. Traffic meant for the decommissioned service starts hitting the new one. Debugging this is not fun.
+- _Not revoking service accounts._ The credentials still work. If they leak or get reused, you've created a security hole to infrastructure that no longer exists to monitor.
+
+<Callout type="warning">
+The 30-day grace period before cleanup isn't optional. It's the window where you discover the monthly batch job, the quarterly report, or the integration that only runs during end-of-year processing. Skip it at your peril.
+</Callout>
+
+### If Things Go Wrong
+
+If you need to rollback, reverse the shutdown steps in order. Don't call it done until you've confirmed error rates in dependent services have returned to baseline and latency metrics look normal—health checks alone won't catch all problems.
+
+## Why This Matters
+
+The scream test transforms unknown risk into known risk. By the time you actually remove a service, you've already discovered every consumer that matters and given them time to migrate. The alternative—guessing, or leaving zombie services running forever—costs more in the long run.
+
+The organization that gets good at turning things off is the organization that can move quickly when building new things. Every zombie service you eliminate is one less thing to patch, one less entry in your compliance scope, and one less box on the architecture diagram confusing new engineers.
+
+---
+
+This article covers the core scream test methodology. The complete guide includes detailed communication templates, stakeholder escalation handling, data retention strategies by compliance requirement, database archival workflows, post-decommissioning cost validation, and lessons learned documentation. Download the full PDF for the complete playbook on decommissioning services safely.

@@ -215,7 +215,7 @@ async function analyzeContentEntry(
         ctaComponents.push(component.name)
 
         // Determine if it's primary or secondary based on component name
-        if (['Contact', 'Featured'].includes(component.name)) {
+        if (component.name === 'Contact') {
           hasPrimaryCta = true
         } else if (['Download', 'Newsletter'].includes(component.name)) {
           hasSecondaryCta = true
@@ -329,7 +329,7 @@ export async function analyzePageCtas(
       ctaComponents.push(component.name)
 
       // Determine if it's primary or secondary based on component name
-      if (['Contact', 'Featured'].includes(component.name)) {
+      if (component.name === 'Contact') {
         hasPrimaryCta = true
       } else if (['Download', 'Newsletter'].includes(component.name)) {
         hasSecondaryCta = true

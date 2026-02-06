@@ -106,6 +106,19 @@ export {
   type EmbedCacheState,
 } from './socialEmbeds'
 
+// Re-export header search state
+export {
+  $headerSearchExpanded, // only allowed to use in tests
+  __resetHeaderSearchForTests,
+  closeHeaderSearch,
+  getHeaderSearchExpanded,
+  initHeaderSearchSideEffects,
+  openHeaderSearch,
+  setHeaderSearchExpanded,
+  subscribeHeaderSearchExpanded,
+  toggleHeaderSearch,
+} from './search'
+
 /**
  * Expose a limited set of store actions during Playwright runs so E2E tests
  * can seed state without relying on private internals or DOM-only flows.

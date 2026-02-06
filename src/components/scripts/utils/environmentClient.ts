@@ -30,7 +30,7 @@ export const isE2eTest = () => {
  * This is the same logic as the environmentServer isE2eTest()
  * method, for use in API endpoint serverless functions.
  */
-export const isE2eTestLambda = () => {
+export const isE2eTestServer = () => {
   return typeof process !== 'undefined' && process.env['PLAYWRIGHT'] === 'true'
 }
 
@@ -38,7 +38,7 @@ export const isE2eTestLambda = () => {
  * Correctly handle checking for e2e test mode in API endpoint serverless functions
  */
 export const isTest = () => {
-  return isUnitTest() || isE2eTest() || isE2eTestLambda()
+  return isUnitTest() || isE2eTest() || isE2eTestServer()
 }
 
 /**

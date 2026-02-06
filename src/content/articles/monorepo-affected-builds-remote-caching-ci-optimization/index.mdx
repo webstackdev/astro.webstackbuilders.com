@@ -1,0 +1,122 @@
+---
+title: "Monorepo Release Engineering: Affected Builds"
+description: "Building only what changed with affected-based builds and remote caching that actually speeds up CI."
+cover: "./cover.jpg"
+coverAlt: "Assembly line showing build process with cached components pre-made at most stations, workers handling custom work, displaying 78% cache hit rate"
+author: "kevin-brown"
+publishDate: 2025-05-17
+tags: ["build-and-deploy"]
+featured: true
+---
+
+*[PR]: Pull Request
+*[CI]: Continuous Integration
+
+Every growing monorepo eventually faces the same problem: CI that started fast becomes unbearably slow. The repository that began with 10 packages and a 5-minute pipeline has grown to 150 packages, and now every PR takes 45 minutes to validate. Developers stack PRs to avoid waiting. The CI queue backs up. Engineers context-switch while waiting for feedback. The monorepo that was supposed to simplify collaboration has become a productivity drain.
+
+The instinct is to throw hardware at it—faster runners, more parallelism, bigger machines. That helps, but it's treating the symptom. A 200-package monorepo that builds everything on every commit will always be slow, no matter how fast your runners are.
+
+The real solution is building less.
+
+Two techniques make this possible. _Affected-based builds_ analyze the dependency graph to identify which packages need to rebuild when specific files change. _Remote caching_ stores build outputs so identical work never runs twice, regardless of which developer or CI runner needs it. Together, they transform CI from a bottleneck into a fast feedback loop—turning that 45-minute build into a 4-minute one.
+
+<Callout type="warning">
+The biggest monorepo CI mistake: trying to make full builds faster instead of building less. Parallelization and faster machines provide linear improvements. Affected builds with caching provide order-of-magnitude improvements.
+</Callout>
+
+## How Affected Builds Work
+
+Affected builds work by analyzing the dependency graph—the directed acyclic graph that captures which packages depend on which other packages. When a file changes, the build system maps that file to its package, then walks the graph to find everything that depends on that package, transitively.
+
+A monorepo typically contains applications (deployable artifacts) and libraries (shared code). The dependency relationships form a hierarchy: applications depend on libraries, libraries depend on other libraries. At the bottom are leaf libraries with no internal dependencies.
+
+The impact of a change depends on where it lands in the graph. Change a widely-used utility library, and most of the monorepo rebuilds. Change a library that only one application uses, and only that application rebuilds. This is why dependency graph design matters—poorly structured dependencies create "rebuild everything" scenarios even for small changes.
+
+The key insight for calculating affected packages is that you need to _reverse_ the dependency graph. Instead of asking "what does this package depend on," you ask "what depends on this package." The algorithm is straightforward:
+
+1. Map each changed file to its containing package
+2. Build a reversed dependency graph (dependents instead of dependencies)
+3. Walk the graph from each changed package, collecting everything reachable
+4. Everything not in the affected set can be skipped
+
+Both Nx and Turborepo implement this algorithm automatically. The concepts also apply beyond JavaScript—Bazel, Pants, and Gradle offer similar capabilities for polyglot monorepos.
+
+### Base Reference Selection
+
+Affected calculation compares the current state against a _base reference_—a git commit representing "what we already built." The choice of base reference dramatically affects what gets marked as affected.
+
+A PR that branched from main two weeks ago will have many more affected packages than one that branched yesterday, simply because main has moved. Long-lived feature branches accumulate affected packages. This is one reason teams prefer short-lived branches and frequent rebasing—it keeps the affected set small.
+
+| Scenario | Base Reference | What Gets Rebuilt |
+|----------|---------------|-------------------|
+| PR to main | `origin/main` | All changes in the PR |
+| Push to main | `HEAD~1` or last successful CI | Just the pushed commit(s) |
+| Release build | Last release tag | Everything since previous release |
+| Nightly build | Last successful CI | Minimal (only failures to retry) |
+
+Table: Base reference strategies by CI scenario.
+
+## Remote Caching
+
+Affected builds reduce what needs to run, but remote caching eliminates redundant work entirely. The idea is simple: if someone already built a package with identical inputs, download their output instead of rebuilding. This works across developers, CI runners, and even different branches—anyone who's built the same code contributes to and benefits from the shared cache.
+
+A build cache works by hashing all inputs to a task—source files, configuration, dependency outputs, environment variables, runtime versions—into a single cache key. Before executing a task, the build system checks whether outputs for that cache key exist. Cache hit means download and skip; cache miss means run and upload.
+
+The cache key composition matters. It must include everything that affects the output: task name, package name, input file hashes, dependency output hashes, relevant environment variables, runtime versions, and command arguments. Miss any of these, and you risk cache poisoning—returning outputs that don't match what a fresh build would produce. Include too much, and you get unnecessary cache misses.
+
+### Setting Up Remote Caching
+
+Both Nx and Turborepo offer straightforward remote caching setup.
+
+For Nx, run `npx nx connect-to-nx-cloud` to add a managed cache. For CI, pass the token via environment variable:
+
+```yaml title=".github/workflows/ci.yml"
+- name: Run affected builds
+  run: npx nx affected -t build,test,lint --base=origin/main
+  env:
+    NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_TOKEN }}
+```
+Code: Nx Cloud configuration in GitHub Actions.
+
+For Turborepo, authenticate with `npx turbo login` and link with `npx turbo link`. Enable signature verification to prevent cache tampering:
+
+```json title="turbo.json"
+{
+  "remoteCache": {
+    "signature": true
+  }
+}
+```
+Code: Turborepo remote cache with signature verification.
+
+Both tools offer self-hosted options for organizations that can't use external services. Nx Cloud supports Docker/Kubernetes deployment with S3, Azure Blob, or GCS backends. Turborepo works with the community-maintained `ducktors/turborepo-remote-cache` Docker image.
+
+| Provider | Setup Complexity | Cost | Self-Hosted Option |
+|----------|------------------|------|-------------------|
+| Nx Cloud | Low | Free tier, paid for teams | Yes (enterprise) |
+| Vercel (Turbo) | Low | Free tier, paid for teams | Yes (community) |
+| Custom S3 | High | S3 costs only | Yes
+
+Table: Remote caching provider comparison.
+
+<Callout type="warning">
+Remote cache without authentication is a security risk. Anyone with cache access could inject malicious outputs that get downloaded and executed by other developers or CI. Always use signed caches or authenticated endpoints with proper access controls.
+</Callout>
+
+## Getting Started
+
+The implementation path is straightforward. For an existing repo, run `npx nx init` (Nx) or `npx turbo init` (Turborepo) to add affected build support. Then add remote caching to share results across your team. Tune your input specifications to maximize cache hit rates. If CI is still slower than you'd like, introduce parallelization and distribution.
+
+Each optimization level compounds the previous. Skip unaffected packages entirely. Cache affected but unchanged packages. Parallelize the remaining work within each runner. Distribute across multiple runners.
+
+The goal isn't the fastest possible full build—it's the fastest possible feedback for typical changes. Optimize for the common case (small, focused changes) while ensuring full builds remain tractable for major changes.
+
+<Callout type="info">
+CI optimization pays dividends every day. A team of 10 developers running 20 builds each saves 140 hours per week going from 45-minute to 4-minute builds. Start before it becomes urgent.
+</Callout>
+
+---
+
+**CTA Title:** Go Deeper: The Complete Guide to Monorepo CI Optimization
+
+**CTA Body:** This article covers the fundamentals of affected builds and remote caching. The complete guide includes CI pipeline patterns for GitHub Actions, distributed task execution strategies, cache invalidation and input configuration for maximum hit rates, performance baselines, and metrics dashboards for monitoring. Download the comprehensive PDF to implement a full optimization stack for your monorepo.

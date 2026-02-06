@@ -1,0 +1,209 @@
+---
+title: "Structured Logging for Distributed Systems"
+description: "How consistent log schemas and correlation IDs transform debugging from multi-service guesswork into single-query answers."
+cover: "./cover.jpg"
+coverAlt: "DNA helix with field names and values as base pairs representing log data schema structure"
+author: "kevin-brown"
+publishDate: 2022-05-15
+tags: ["observability-and-telemetry"]
+featured: true
+---
+
+It's 3 AM. A payment is stuck somewhere between your API gateway, order service, and payment processor. You start searching logs.
+
+You try `grep 'userId'`. Nothing. Maybe it's `grep 'user_id'`? A few hits, but not from the payment service. `grep 'user.id'`? Different results again. Five queries later, you've pieced together _most_ of the request path, but you're still not sure if you've found everything.
+
+Now imagine a different scenario: `user.id:12345 AND event.action:payment_initiated`. One query. Every service. Every log. Complete picture in seconds.
+
+The difference isn't better tooling. It's discipline in how you emit logs. Structured logging with consistent schemas and correlation IDs transforms distributed debugging from archaeology into routine work. Here's how to implement it.
+
+## Why Schema Matters
+
+One service logs `userId`, another logs `user_id`, a third logs `user.id`. Without standards, every developer who adds logging invents their own conventions. Queries become guesswork, and the worst part is you don't know what you're missing—false negatives are invisible.
+
+The fix isn't documentation that nobody reads. It's adopting a schema that makes the right choice obvious.
+
+### Adopt ECS, Don't Invent
+
+The [Elastic Common Schema](https://www.elastic.co/guide/en/ecs/current/ecs-reference.html) (ECS) provides 800+ pre-defined fields covering users, errors, HTTP requests, network events, and more. It works with any log backend—Elasticsearch, DataDog, Splunk, CloudWatch Logs—because the schema is about field naming, not storage format.
+
+Here's what an ECS-compliant log entry looks like:
+
+```json
+{
+  "@timestamp": "2024-01-15T14:32:01.234Z",
+  "log.level": "error",
+  "message": "Payment processing failed",
+  "service.name": "payment-service",
+  "trace.id": "4bf92f3577b34da6a3ce929d0e0e4736",
+  "user.id": "usr_12345",
+  "error.type": "PaymentDeclinedException",
+  "error.message": "Card declined: insufficient funds"
+}
+```
+
+Code: ECS-compliant log entry. Field names like `user.id` and `error.type` are standardized, making cross-service queries predictable.
+
+The key field groups to adopt immediately:
+
+- `service.*` — which service emitted the log (`service.name`, `service.version`)
+- `trace.*` — correlation context (`trace.id`, `span.id`)
+- `event.*` — what happened (`event.action`, `event.outcome`)
+- `error.*` — failure details (`error.type`, `error.message`, `error.stack_trace`)
+
+You don't need to adopt all 800 fields. Start with these four groups and expand as needed.
+
+<Callout type="info">
+If you're already using an observability platform, check whether it has ECS mappings. DataDog, Splunk, and others can normalize ECS fields automatically, giving you consistent querying across tools.
+</Callout>
+
+## Correlation IDs That Actually Work
+
+A consistent schema lets you query individual services reliably. Correlation IDs let you follow a request _across_ services. Without them, you're reduced to timestamp proximity searches—"this log happened around the same time as that log, so maybe they're related."
+
+### The ID Hierarchy
+
+Not all correlation IDs serve the same purpose. Here's the hierarchy you need:
+
+| ID Type | Scope | Purpose | Example |
+|---------|-------|---------|---------|
+| Trace ID | Entire request tree | Connect all services in a request | `4bf92f3577b34da6a...` |
+| Span ID | Single service hop | Distinguish parent/child operations | `00f067aa0ba902b7` |
+| Request ID | Single HTTP request | Correlate with load balancer logs | `req_abc123` |
+| Transaction ID | Business operation | Group related requests (e.g., checkout flow) | `order-12345` |
+
+_Table: Correlation ID types and their scopes. Trace ID is the most important—it stays constant across all services._
+
+The key insight: _trace ID stays constant_ across every service that handles the request. When you query `trace.id:4bf92f3577b34da6a`, you get logs from the API gateway, order service, payment service, inventory service, and notification service—everything involved in that single user action.
+
+### Propagation Is Everything
+
+Correlation IDs are useless if they don't travel with requests. Every service-to-service call must carry the correlation context forward.
+
+For HTTP, use the W3C Trace Context standard. The `traceparent` header carries trace and span IDs in a single string:
+
+```text
+traceparent: 00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01
+```
+
+The format is `version-traceId-spanId-flags`. Most APM tools (OpenTelemetry, Jaeger, Zipkin) support this natively.
+
+Async messaging requires a different approach since there are no HTTP headers. Instead, embed correlation context directly in the message envelope. Include a `causationId` to track which message or request triggered this one—essential for debugging event-driven architectures:
+
+```json
+{
+  "messageId": "msg_xyz789",
+  "correlation": {
+    "traceId": "4bf92f3577b34da6a3ce929d0e0e4736",
+    "causationId": "msg_abc456",
+    "originRequestId": "req_abc123"
+  },
+  "payload": { ... }
+}
+```
+
+_Code: Message envelope with correlation context. The `causationId` creates an audit trail of what triggered what._
+
+### AsyncLocalStorage for Automatic Context
+
+The challenge with correlation is making context available everywhere without threading IDs through every function signature. Node.js's `AsyncLocalStorage` solves this elegantly:
+
+```typescript title="src/correlation/middleware.ts"
+import { AsyncLocalStorage } from 'async_hooks'
+
+const contextStorage = new AsyncLocalStorage<RequestContext>()
+
+// Middleware: extract IDs from headers, run request in context
+function correlationMiddleware(req: Request, res: Response, next: NextFunction) {
+  const { traceId, spanId } = parseTraceParent(req.headers['traceparent'])
+    || { traceId: generateTraceId(), spanId: generateSpanId() }
+
+  const context = { traceId, spanId, requestId: req.headers['x-request-id'] || generateRequestId() }
+
+  contextStorage.run(context, () => next())
+}
+
+// Anywhere in your code: get current context
+function getCorrelationContext() {
+  return contextStorage.getStore()
+}
+
+// Outbound requests: inject context automatically
+async function fetchWithCorrelation(url: string, options: RequestInit = {}) {
+  const context = getCorrelationContext()
+  const headers = new Headers(options.headers)
+
+  if (context) {
+    headers.set('traceparent', formatTraceParent(context.traceId, generateSpanId()))
+    headers.set('x-request-id', context.requestId)
+  }
+
+  return fetch(url, { ...options, headers })
+}
+```
+
+_Code: AsyncLocalStorage pattern for correlation context. Extract in middleware, access anywhere via `getCorrelationContext()`, inject automatically in outbound calls._
+
+With this pattern, your logger can call `getCorrelationContext()` and automatically include trace IDs in every log—no explicit ID passing required.
+
+<Callout type="warning">
+Every HTTP client in your codebase must propagate correlation headers. A single direct `fetch()` call breaks the trace chain. Wrap your HTTP clients or use OpenTelemetry auto-instrumentation to ensure consistency.
+</Callout>
+
+### Common Correlation Breaks
+
+These patterns break correlation in production. Each creates gaps in your trace data:
+
+- _Generating new trace IDs per service_ — Logs can't be joined. Extract the incoming `traceparent`; only generate if missing.
+- _Direct HTTP client usage_ — Outbound calls don't propagate headers. Use `fetchWithCorrelation()` or instrumented clients.
+- _Fire-and-forget async_ — Background work loses context. Capture context before spawning; restore in the async handler.
+- _Batched message processing_ — All messages share one correlation. Process each message in its own `contextStorage.run()` scope.
+
+## Making It Stick
+
+Schema decisions and correlation patterns only help if they're followed consistently. Relying on code review catches maybe 60% of violations. CI automation catches 99%.
+
+### Enforce in CI
+
+Use JSON Schema with Ajv to validate log output in unit tests:
+
+```typescript title="src/logging/__tests__/schema.spec.ts"
+it('emits valid ECS-compliant logs', () => {
+  logger.info('Test message', { 'user.id': 'usr_123' })
+  const entry = JSON.parse(logOutput[0])
+
+  expect(validate(entry)).toBe(true)  // Ajv schema validation
+  expect(entry['trace.id']).toMatch(/^[a-f0-9]{32}$/)
+})
+```
+
+_Code: Schema compliance test. Ajv validates the log structure; the regex assertion ensures trace IDs are present and correctly formatted._
+
+In production, Prometheus metrics can track correlation coverage. Set a target—99% of logs should have trace IDs—and alert when it drops. Missing correlation usually indicates logging from outside request context: background jobs, startup code, or uninstrumented libraries.
+
+<Callout type="success">
+A 99% correlation target is achievable within weeks. The remaining 1% is typically startup logs and health checks—events that don't need request context anyway.
+</Callout>
+
+### Start Small
+
+You don't need to fix every service at once. A practical rollout:
+
+1. _Week 1_: Adopt ECS field names for new logs in one service
+2. _Week 2_: Add correlation middleware to that service
+3. _Week 3_: Query for logs missing `trace.id` and fix the gaps—usually background jobs or uninstrumented libraries
+4. _Week 4_: Expand to the next service in your critical path
+
+Within a month, your most important request paths will be fully correlated. The rest can follow incrementally.
+
+## The Payoff
+
+The investment is upfront: schema decisions, correlation middleware, CI tests. But the payoff compounds with every incident. Instead of five queries and an hour of uncertainty, you type one query and see the complete picture in seconds. Every service's logs connect. Debugging takes minutes instead of hours.
+
+The next time it's 3 AM and you're chasing a stuck payment, you won't be guessing at field names. You'll type `user.id:12345 AND event.action:payment_initiated`—one query, every service, complete picture—and know exactly what happened.
+
+---
+
+**CTA Title:** Go Deeper: The Complete Guide to Production Logging
+
+**CTA Body:** This article covers the essentials of structured logging and correlation IDs. The full guide dives into sensitive data handling (redaction, encryption, compliance), collector-side noise reduction, schema governance processes, and complete implementation code for Node.js services. Download the PDF for production-ready patterns you can implement this week.

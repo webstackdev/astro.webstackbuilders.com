@@ -13,7 +13,9 @@ describe('prepareItems', () => {
     const result = prepareItems(createItems(), 'featured', 'article-bravo')
 
     expect(result.map(item => item.id)).toEqual(['article-delta', 'article-alpha'])
-    expect(result.every(item => item.data.featured)).toBe(true)
+    expect(result.every(item => ('featured' in item.data ? item.data.featured : false))).toBe(
+      true
+    )
     expect(result).toHaveLength(2)
   })
 
@@ -44,5 +46,10 @@ describe('prepareItems', () => {
     expect(mathSpy).toHaveBeenCalled()
     expect(randomItems).toHaveLength(3)
     expect(randomItems.find(item => item.id === 'article-charlie')).toBeUndefined()
+  })
+
+  it('does not filter when currentSlug is undefined', () => {
+    const result = prepareItems(createItems(), 'suggested')
+    expect(result).toHaveLength(4)
   })
 })

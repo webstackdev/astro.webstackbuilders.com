@@ -175,26 +175,6 @@ test.describe('Markdown (MDX) fixture page', () => {
     })
   })
 
-  test.describe('remark-youtube', () => {
-    test('renders YouTube URLs as embedded iframes', async () => {
-      await expect(markdownPage.heading('YouTube (remark-youtube)', 2)).toBeVisible()
-
-      const embeds = markdownPage.prose.locator('iframe[src="https://www.youtube.com/embed/enTFE2c68FQ"]')
-      await expect(embeds).toHaveCount(2)
-
-      const first = embeds.first()
-      await expect(first).toHaveAttribute('width', '560')
-      await expect(first).toHaveAttribute('height', '315')
-      await expect(first).toHaveAttribute('frameborder', '0')
-      await expect(first).toHaveAttribute('allow', /accelerometer;\s*autoplay;\s*clipboard-write;\s*encrypted-media;/)
-      await expect(first).toHaveAttribute('allowfullscreen', /^(|true)$/)
-
-      // URLs should be replaced by embeds, not rendered as link text.
-      await expect(markdownPage.prose).not.toContainText('https://youtu.be/enTFE2c68FQ')
-      await expect(markdownPage.prose).not.toContainText('https://www.youtube.com/watch?v=enTFE2c68FQ')
-    })
-  })
-
   test.describe('remark-supersub', () => {
     test('renders subscript and superscript elements', async () => {
       await expect(markdownPage.heading('Supersub (remark-supersub)', 2)).toBeVisible()

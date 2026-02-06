@@ -20,6 +20,17 @@ export interface Props {
 
 const { class: className, name, size = 24, variant = 'default' as IconVariant, title } = Astro.props
 
+function normalizeIconSize(value: number | string): string {
+  if (typeof value === 'number') return `${value}px`
+
+  const trimmed = String(value).trim()
+  if (/^\d+(?:\.\d+)?$/.test(trimmed)) return `${trimmed}px`
+
+  return trimmed
+}
+
+const iconSize = normalizeIconSize(size)
+
 const a11yProps = title
   ? { title, 'aria-label': title }
   : { 'aria-hidden': 'true' as const }
@@ -29,6 +40,7 @@ const a11yProps = title
   name={name}
   class:list={['inline-block align-middle', colorClasses[variant], `icon--${name}`, className]}
   size={size}
+  style={`--icon-size: ${iconSize};`}
   {...a11yProps}
   focusable="false"
 />

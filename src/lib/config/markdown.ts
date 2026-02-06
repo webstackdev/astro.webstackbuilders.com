@@ -8,8 +8,7 @@
  * self referential compile error
  */
 import type { MdxOptions } from '@astrojs/mdx'
-import type { ShikiConfig } from 'astro/'
-// import { transformerNotationDiff } from '@shiki/transformers'
+import { shikiConfigOptions, shikiTransformers } from './shiki'
 
 import { rehypeHeadingIds } from '@astrojs/markdown-remark'
 Object.defineProperty(rehypeHeadingIds, 'name', { value: 'rehypeHeadingIds' })
@@ -86,9 +85,6 @@ Object.defineProperty(remarkDirective, 'name', { value: 'remarkDirective' })
 import remarkVideo, { type Config as RemarkVideoConfig } from 'remark-video'
 Object.defineProperty(remarkVideo, 'name', { value: 'remarkVideo' })
 
-import remarkYoutube from 'remark-youtube'
-Object.defineProperty(remarkYoutube, 'name', { value: 'remarkYoutube' })
-
 import remarkMarkPlus from '../markdown/plugins/remark-mark-plus'
 Object.defineProperty(remarkMarkPlus, 'name', { value: 'remarkMarkPlus' })
 
@@ -116,14 +112,17 @@ Object.defineProperty(remarkAbbreviations, 'name', { value: 'remarkAbbreviations
 import remarkAttributes from '../markdown/plugins/remark-attributes'
 Object.defineProperty(remarkAttributes, 'name', { value: 'remarkAttributes' })
 
-import remarkAttribution from '../markdown/plugins/remark-attribution'
-Object.defineProperty(remarkAttribution, 'name', { value: 'remarkAttribution' })
+import remarkBlockquote from '../markdown/plugins/remark-blockquote'
+Object.defineProperty(remarkBlockquote, 'name', { value: 'remarkBlockquote' })
 
 import remarkAlign from '../markdown/plugins/remark-align'
 Object.defineProperty(remarkAlign, 'name', { value: 'remarkAlign' })
 
 import remarkCodeTabs from '../markdown/plugins/remark-code-tabs'
 Object.defineProperty(remarkCodeTabs, 'name', { value: 'remarkCodeTabs' })
+
+import remarkShikiMeta from '../markdown/plugins/remark-shiki-meta'
+Object.defineProperty(remarkShikiMeta, 'name', { value: 'remarkShikiMeta' })
 
 import remarkReplacements from '../markdown/plugins/remark-replacements'
 Object.defineProperty(remarkReplacements, 'name', { value: 'remarkReplacements' })
@@ -185,11 +184,26 @@ export const rehypeMermaidConfig = {
 
 /** rehype-autolink-headings plugin */
 export const rehypeAutolinkHeadingsConfig: RehypeAutolinkHeadingsOptions = {
+  behavior: 'append',
+  /**
+   * Set explicit classes on the injected <a> so we can style heading anchors
+   * independently from the generic <a> handling in rehypeTailwindClasses.
+   */
+  properties: {
+    className: [
+      'heading-anchor',
+      'no-underline',
+      'hover:no-underline',
+      'focus-visible:no-underline',
+      'transition-colors',
+    ],
+    ariaLabel: 'Link to this section',
+  },
   content: {
     type: 'element',
     tagName: 'span',
     properties: {
-      className: 'anchor-link',
+      className: ['anchor-link', 'text-md', 'sm:text-lg'],
       ariaHidden: 'true',
     },
     children: [
@@ -263,15 +277,23 @@ export const remarkCustomBlocksConfig = {
   },
 } as const
 
-/** remark-captions plugin (explicit defaults from upstream README) */
+/**
+ * remark-captions plugin
+ *
+ * NOTE: This plugin's options are `external` and `internal`.
+ * We intentionally disable its built-in blockquote handling so our
+ * `remarkBlockquote` plugin owns blockquote caption/attribution semantics.
+ */
 export const remarkCaptionsConfig = {
   external: {
-    table: 'Table:',
     code: 'Code:',
+    table: 'Table:',
   },
   internal: {
-    blockquote: 'Source:',
     image: 'Figure:',
+    // Prevent remark-captions from wrapping blockquotes (default is 'Source:').
+    // Blockquotes are handled by `remarkBlockquote` instead.
+    blockquote: '__BLOCKQUOTE_CAPTIONS_DISABLED__',
   },
 } as const
 
@@ -289,33 +311,6 @@ export const remarkGfmConfig = {
 /** remark-math plugin (parse TeX math; avoid $...$ to prevent accidental currency parsing) */
 export const remarkMathConfig = { singleDollarTextMath: false } as const
 
-export const shikiConfigOptions: ShikiConfig = {
-  // Alternatively, provide multiple themes
-  // See note below for using dual light/dark themes
-  themes: {
-    light: 'github-light',
-    dark: 'github-dark',
-  },
-  // Disable the default colors
-  // https://shiki.style/guide/dual-themes#without-default-color
-  // (Added in v4.12.0)
-  defaultColor: 'light',
-  // Add custom aliases for languages
-  // Map an alias to a Shiki language ID: https://shiki.style/languages#bundled-languages
-  // https://shiki.style/guide/load-lang#custom-language-aliases
-  langAlias: {
-    js: 'javascript',
-    ts: 'typescript',
-    md: 'markdown',
-  },
-  // Enable word wrap to prevent horizontal scrolling
-  wrap: true,
-  // Add custom transformers: https://shiki.style/guide/transformers
-  // Find common transformers: https://shiki.style/packages/transformers
-  // transformers: [
-  //   transformerNotationDiff,
-  // ],
-}
 
 /** remark-rehype plugin (conversion from markdown to HTML AST) */
 export const remarkRehypeConfig: RemarkRehypeOptions = {
@@ -326,7 +321,7 @@ export const remarkRehypeConfig: RemarkRehypeOptions = {
   /** Convert GridTables mdast nodes to standard HTML table output */
   handlers: {
     [TYPE_TABLE]: mdast2hastGridTablesHandler(),
-    // remark-captions + remark-attribution emit mdast nodes with type "figure"/"figcaption".
+    // remark-captions + remark-blockquote emit mdast nodes with type "figure"/"figcaption".
     // Without explicit handlers, mdast-util-to-hast may flatten block children (notably `code`) and drop captions.
     figure: (state: MdastToHastState, node: unknown) => {
       return {
@@ -381,7 +376,7 @@ export const markdownConfig: Partial<MdxOptions> = {
     remarkSupersub,
     /** Highlights via ==marked== */
     remarkMarkPlus,
-    /** Captions for code, images, tables, and blockquotes */
+    /** Captions for code, images, and tables */
     [remarkCaptions, remarkCaptionsConfig],
     /** Definition lists (PHP Markdown Extra style) */
     remarkDeflist,
@@ -389,14 +384,16 @@ export const markdownConfig: Partial<MdxOptions> = {
     remarkGridTables,
     /** Tab groups via fenced code meta: ```lang [group:Tab Name] */
     remarkCodeTabs,
+    /** Preserve remaining fenced-code meta for Shiki transformers (e.g. {1,3}, /word/, ins={...}) */
+    remarkShikiMeta,
     /**
      * Add HTML attributes to elements using {.class #id key=value} syntax
      * Supports: headings, links, images, code blocks, lists, and bracketed spans
      * Example: [text content]{.class #id attr=value} creates <span> with attributes
      */
     [remarkAttributes, remarkAttributesConfig],
-    /** Wrap blockquotes with attribution in semantic figure/figcaption markup */
-    remarkAttribution,
+    /** Wrap blockquotes with caption/attribution in semantic figure markup */
+    remarkBlockquote,
     /** Convert emoji syntax like :heart: to emoji images */
     remarkEmoji,
     /** Support generic directive syntax (required by remark-video) */
@@ -411,8 +408,6 @@ export const markdownConfig: Partial<MdxOptions> = {
      * Converts: -->, <--, <=>, 1/2, 2 x 4, +-, etc.
      */
     remarkReplacements,
-    /** Convert YouTube URLs into embedded iframes */
-    remarkYoutube,
     /** Smart quotes, dashes, and ellipsis */
     [remarkSmartypants, remarkSmartypantsConfig],
   ],
@@ -447,11 +442,12 @@ export const markdownConfig: Partial<MdxOptions> = {
     [
       rehypeShiki,
       {
-        themes: shikiConfigOptions.themes,
-        defaultColor: shikiConfigOptions.defaultColor,
+        theme: shikiConfigOptions.theme,
+        themeRegistrations: shikiConfigOptions.themeRegistrations,
         langAlias: shikiConfigOptions.langAlias,
-        wrap: false,
-        excludeLangs: ['mermaid', 'math'],
+        wrap: true,
+        transformers: shikiTransformers,
+        excludeLangs: ['text', 'mermaid', 'math'],
       },
     ],
     /**

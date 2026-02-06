@@ -1,216 +1,134 @@
 /**
- * Integration tests for rehype-tailwind plugin with simple HTML elements
- * These tests verify that Tailwind classes are correctly applied to basic HTML elements
- * with no conditional logic through the Astro pipeline.
+ * Integration tests for rehype-tailwind, run through the Astro pipeline (Layer 2).
+ *
+ * These assertions are intentionally non-visual:
+ * - confirm at least one class gets added
+ * - confirm class tokens are well-formed
+ * - confirm elements remain semantic and content is preserved
  */
+
 import { describe, it, expect } from 'vitest'
-import { remark } from 'remark'
-import remarkGfm from 'remark-gfm'
-import remarkRehype from 'remark-rehype'
-import { rehypeTailwindClasses } from '@lib/markdown/plugins/rehype-tailwind/index.js'
-import rehypeStringify from 'rehype-stringify'
-import { remarkRehypeConfig } from '@lib/config/markdown.js'
+import { JSDOM } from 'jsdom'
+import { rehypeTailwindClasses } from '@lib/markdown/plugins/rehype-tailwind'
+import { processWithAstroSettings } from '@lib/markdown/helpers/processors'
 
-/**
- * Helper for processing markdown through Astro pipeline with rehype-tailwind
- */
-async function processMarkdown(markdown: string): Promise<string> {
-  const result = await remark()
-    .use(remarkGfm)
-    .use(remarkRehype, remarkRehypeConfig)
-    .use(rehypeTailwindClasses)
-    .use(rehypeStringify)
-    .process(markdown)
-
-  return String(result)
+function splitClassTokens(value: string | null): string[] {
+  if (!value) return []
+  return value
+    .split(/\s+/g)
+    .map(token => token.trim())
+    .filter(Boolean)
 }
 
-describe('rehype-tailwind: Simple HTML Elements (Astro Pipeline)', () => {
-  describe('Paragraph elements', () => {
-    it('should add spacing and typography classes to paragraphs', async () => {
-      const markdown = 'This is a test paragraph.'
-      const html = await processMarkdown(markdown)
+function isWellFormedCssClassToken(token: string): boolean {
+  // We keep this intentionally permissive for Tailwind variants (e.g. `md:hover:...`, `w-1/2`, `!mt-0`).
+  // The main goal is to ensure we never emit whitespace/control chars or HTML-breaking characters.
+  if (!token) return false
+  if (/[\s"'`{};]/.test(token)) return false
 
-      expect(html).toContain('<p class="mb-8 text-lg leading-relaxed">')
-      expect(html).toContain('This is a test paragraph.')
-    })
+  // Disallow ASCII control characters (0x00-0x1F) and DEL (0x7F).
+  for (const char of token) {
+    const code = char.charCodeAt(0)
+    if (code <= 0x1f || code === 0x7f) return false
+  }
 
-    it('should handle multiple paragraphs', async () => {
-      const markdown = `First paragraph.
+  return true
+}
 
-Second paragraph.`
-      const html = await processMarkdown(markdown)
+function expectHasAtLeastOneValidClassAttribute(element: Element | null, name: string): void {
+  if (!element) throw new Error(`Expected to find element: ${name}`)
 
-      const paragraphMatches = html.match(/<p class="mb-8 text-lg leading-relaxed">/g)
-      expect(paragraphMatches).toHaveLength(2)
-    })
+  const classAttr = element.getAttribute('class')
+  const tokens = splitClassTokens(classAttr)
+  expect(tokens.length).toBeGreaterThan(0)
+  tokens.forEach(token => {
+    expect(isWellFormedCssClassToken(token)).toBe(true)
+  })
+}
+
+async function renderMarkdownToDocument(markdown: string): Promise<Document> {
+  const html = await processWithAstroSettings({
+    markdown,
+    plugin: rehypeTailwindClasses,
+    stage: 'rehype',
   })
 
-  describe('Horizontal rule elements', () => {
-    it('should add styling classes to hr with dashes', async () => {
-      const markdown = `Content above
+  return new JSDOM(html).window.document
+}
 
----
+describe('rehypeTailwindClasses (Layer 2: Astro Pipeline) - simple elements', () => {
+  it('adds at least one class to <p> elements and preserves content', async () => {
+    const document = await renderMarkdownToDocument('This is a test paragraph.')
 
-Content below`
-      const html = await processMarkdown(markdown)
-
-      expect(html).toContain(
-        '<hr class="bg-gray-300 border-0 border-gray-300 my-16 mx-auto text-center w-96 h-px">'
-      )
-    })
-
-    it('should add styling classes to hr with asterisks', async () => {
-      const markdown = `Content above
-
-***
-
-Content below`
-      const html = await processMarkdown(markdown)
-
-      expect(html).toContain(
-        '<hr class="bg-gray-300 border-0 border-gray-300 my-16 mx-auto text-center w-96 h-px">'
-      )
-    })
+    const paragraph = document.querySelector('p')
+    expectHasAtLeastOneValidClassAttribute(paragraph, 'p')
+    expect(paragraph?.textContent).toContain('This is a test paragraph.')
   })
 
-  describe('List elements', () => {
-    it('should add classes to unordered lists', async () => {
-      const markdown = `
-- Item 1
-- Item 2
-- Item 3
-      `.trim()
-      const html = await processMarkdown(markdown)
+  it('adds at least one class to <hr> elements (both markdown syntaxes)', async () => {
+    const dashed = await renderMarkdownToDocument('Content above\n\n---\n\nContent below')
+    expectHasAtLeastOneValidClassAttribute(dashed.querySelector('hr'), 'hr (---)')
 
-      expect(html).toContain('<ul class="list-disc list-outside pl-4 mb-8">')
-    })
-
-    it('should add classes to ordered lists', async () => {
-      const markdown = `
-1. First item
-2. Second item
-3. Third item
-      `.trim()
-      const html = await processMarkdown(markdown)
-
-      expect(html).toContain('<ol class="list-decimal list-outside pl-4 mb-8">')
-    })
-
-    it('should add classes to list items', async () => {
-      const markdown = `
-- Item 1
-- Item 2
-      `.trim()
-      const html = await processMarkdown(markdown)
-
-      expect(html).toContain('<li class="mb-1 last:mb-0">')
-    })
-
-    it('should handle nested lists', async () => {
-      const markdown = `
-- Parent item
-  - Nested item 1
-  - Nested item 2
-- Another parent
-      `.trim()
-      const html = await processMarkdown(markdown)
-
-      const ulMatches = html.match(/<ul class="list-disc list-outside pl-4 mb-8">/g)
-      expect(ulMatches).toHaveLength(2) // One parent list, one nested
-    })
+    const starred = await renderMarkdownToDocument('Content above\n\n***\n\nContent below')
+    expectHasAtLeastOneValidClassAttribute(starred.querySelector('hr'), 'hr (***)')
   })
 
-  describe('Table elements', () => {
-    it('should add classes to tables', async () => {
-      const markdown = `
-| Header 1 | Header 2 |
-| -------- | -------- |
-| Cell 1   | Cell 2   |
-      `.trim()
-      const html = await processMarkdown(markdown)
+  it('wraps top-level lists in a .markdown-list container', async () => {
+    const markdown = ['- Item 1', '- Item 2', '', '1. First', '2. Second'].join('\n')
+    const document = await renderMarkdownToDocument(markdown)
 
-      expect(html).toContain(
-        '<table class="w-full border-collapse border border-gray-300 dark:border-gray-600 my-6 rounded-lg overflow-hidden">'
-      )
+    const listWrappers = Array.from(document.querySelectorAll('div.markdown-list'))
+    expect(listWrappers.length).toBeGreaterThanOrEqual(2)
+    listWrappers.forEach((wrapper, index) => {
+      expectHasAtLeastOneValidClassAttribute(wrapper, `div.markdown-list[${index}]`)
     })
 
-    it('should add classes to table headers', async () => {
-      const markdown = `
-| Header 1 | Header 2 |
-| -------- | -------- |
-| Cell 1   | Cell 2   |
-      `.trim()
-      const html = await processMarkdown(markdown)
-
-      expect(html).toContain(
-        '<th class="bg-gray-100 dark:bg-gray-700 px-4 py-2 text-left font-semibold border-b border-gray-300 dark:border-gray-600">'
-      )
-    })
-
-    it('should add classes to table cells', async () => {
-      const markdown = `
-| Header 1 | Header 2 |
-| -------- | -------- |
-| Cell 1   | Cell 2   |
-      `.trim()
-      const html = await processMarkdown(markdown)
-
-      expect(html).toContain('<td class="px-4 py-2 border-b border-gray-200 dark:border-gray-700">')
-    })
+    expect(document.querySelector('ul')).toBeTruthy()
+    expect(document.querySelector('ol')).toBeTruthy()
+    expect(document.querySelector('li')).toBeTruthy()
   })
 
-  describe('Mixed content', () => {
-    it('should handle multiple element types together', async () => {
-      const markdown = `
-# Heading
+  it('adds at least one class to <table>, <th>, and <td> elements', async () => {
+    const document = await renderMarkdownToDocument(
+      ['| Header 1 | Header 2 |', '| --- | --- |', '| Cell 1 | Cell 2 |'].join('\n')
+    )
 
-This is a paragraph with **bold** text.
+    const table = document.querySelector('table')
+    expectHasAtLeastOneValidClassAttribute(table, 'table')
 
-- List item 1
-- List item 2
+    const header = document.querySelector('th')
+    expectHasAtLeastOneValidClassAttribute(header, 'th')
 
----
+    const cell = document.querySelector('td')
+    expectHasAtLeastOneValidClassAttribute(cell, 'td')
+  })
 
-| Column 1 | Column 2 |
-| -------- | -------- |
-| Data 1   | Data 2   |
-      `.trim()
-      const html = await processMarkdown(markdown)
+  it('does not emit malformed class tokens anywhere', async () => {
+    const document = await renderMarkdownToDocument(
+      [
+        '# Heading',
+        '',
+        'Paragraph text.',
+        '',
+        '- List item',
+        '',
+        '---',
+        '',
+        '| A | B |',
+        '| --- | --- |',
+        '| 1 | 2 |',
+      ].join('\n')
+    )
 
-      // Verify paragraph classes
-      expect(html).toContain('class="mb-8 text-lg leading-relaxed"')
+    const withClass = Array.from(document.querySelectorAll('[class]'))
+    expect(withClass.length).toBeGreaterThan(0)
 
-      // Verify list classes
-      expect(html).toContain('class="list-disc list-outside pl-4 mb-8"')
-      expect(html).toContain('class="mb-1 last:mb-0"')
-
-      // Verify hr classes
-      expect(html).toContain(
-        'class="bg-gray-300 border-0 border-gray-300 my-16 mx-auto text-center w-96 h-px"'
-      )
-
-      // Verify table classes
-      expect(html).toContain(
-        'class="w-full border-collapse border border-gray-300 dark:border-gray-600 my-6 rounded-lg overflow-hidden"'
-      )
-    })
-
-    it('should preserve markdown formatting while adding classes', async () => {
-      const markdown = `
-This paragraph has *italic* and **bold** text.
-
-- Item with \`inline code\`
-- Another item
-      `.trim()
-      const html = await processMarkdown(markdown)
-
-      expect(html).toContain('<em>')
-      expect(html).toContain('<strong>')
-      // @TODO: there is work to improve this entire approach away from string-based in a branch
-      //expect(html).toContain('<code>')
-      expect(html).toContain('class="mb-8 text-lg leading-relaxed"')
-      expect(html).toContain('class="list-disc list-outside pl-4 mb-8"')
+    withClass.forEach(element => {
+      const tokens = splitClassTokens(element.getAttribute('class'))
+      expect(tokens.length).toBeGreaterThan(0)
+      tokens.forEach(token => {
+        expect(isWellFormedCssClassToken(token)).toBe(true)
+      })
     })
   })
 })

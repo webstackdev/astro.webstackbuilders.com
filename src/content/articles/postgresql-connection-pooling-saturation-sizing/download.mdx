@@ -1,0 +1,31 @@
+---
+title: "PostgreSQL Connections: Pooling and Saturation"
+description: "Connection pool sizing, timeout configuration, and the saturation signals that predict database problems."
+author: "kevin-brown"
+cover: "./cover.jpg"
+coverAlt: "Traffic intersection with controller (PgBouncer) efficiently managing many cars (app connections) crossing through limited lanes (database connections)"
+publishDate: 2023-11-05
+isDraft: false
+fileType: "PDF"
+fileSize: "1.2 MB"
+pages: 25
+fileName: "postgresql-connection-pooling-saturation-sizing.pdf"
+---
+
+Every PostgreSQL connection costs 5-10MB of memory and requires a dedicated backend process. A database configured for 200 max connections isn't safe at 199—it's already under strain well before the hard limit. Connection exhaustion doesn't announce itself; it manifests as slow queries, timeouts, and cascading failures. A team ran PostgreSQL with 200 max connections, comfortable at 50 typical usage. Traffic spiked, instances autoscaled from 5 to 20, each with a pool of 20. Four hundred connections hit the 200 limit, rejections cascaded, threads blocked, health checks failed. After adding PgBouncer, properly sizing pools, and implementing backpressure, the next traffic spike queued requests appropriately and degraded gracefully instead of failing.
+
+Connection limits enable graceful degradation under load, not just avoiding hard limits.
+
+This complete guide teaches you:
+
+- PostgreSQL process-per-connection model and its overhead
+- Connection establishment overhead: TCP, forking, authentication, TLS
+- max_connections tuning: sizing for your hardware profile
+- Connection poolers: PgBouncer, pgpool-II, and connection pool architecture
+- Pool sizing: balancing application concurrency against database capacity
+- Timeout configuration: statement timeout, idle session timeout, and lock timeout
+- Saturation signals: monitoring metrics that predict connection exhaustion
+- Backpressure and graceful degradation: queuing under load
+- Connection state analysis: identifying idle, waiting, and transaction-blocking connections
+
+Download Your PostgreSQL Connection Pooling Guide now to size connections that scale gracefully under load.

@@ -1,0 +1,30 @@
+---
+title: "Rate Limiting Done Right: Protecting Users From Yourself"
+description: "How to implement rate limits that prevent abuse without accidentally blocking legitimate traffic during spikes."
+author: "kevin-brown"
+cover: "./cover.jpg"
+coverAlt: "Sliding window visualization showing window frame moving across timeline counting request dots, comparing fixed versus sliding window boundaries"
+publishDate: 2026-01-18
+isDraft: false
+fileType: "PDF"
+fileSize: "1.2 MB"
+pages: 23
+fileName: "rate-limiting-token-bucket-leaky-bucket-implementation.pdf"
+---
+
+Rate limiting is a double-edged sword. Done right, it protects systems from overload and abuse. Done wrong, it becomes a self-inflicted outage. A company implemented per-IP rate limiting at 100 requests per minute to prevent scraping, but five hundred employees behind corporate NAT couldn't use the service. After switching to per-key quotas, a viral traffic spike triggered fixed-window boundary problems—90% of requests rejected at minute boundaries. They switched to sliding window counters with token bucket for burst handling. Same spike, smooth distribution, full service capacity.
+
+Rate limiting isn't about saying "no." It's about saying "not yet" while maintaining quality for everyone.
+
+This complete guide teaches you:
+
+- Rate limiting purposes: resource protection, fairness, abuse prevention, and cost control
+- Fixed window, sliding window, token bucket, and leaky bucket algorithms
+- Burst handling: why fixed windows fail during traffic spikes
+- Implementation patterns: per-IP, per-key, per-user, and tiered rate limits
+- Where to limit: API gateway, application layer, and database query throttling
+- Communicating limits: headers, status codes, and retry-after guidance
+- Distributed rate limiting: coordinating limits across multiple servers
+- Testing and tuning: finding limits that protect without rejecting legitimate traffic
+
+Download Your Rate Limiting Implementation Guide now to protect your systems while handling legitimate traffic bursts.

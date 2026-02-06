@@ -12,7 +12,7 @@ export class TestWebComponent extends LitElement {
   static override styles = css`
     :host {
       display: block;
-      border: 1px dashed var(--color-border, #888);
+      border: 1px dashed var(--color-trim, #888);
       padding: 0.5rem;
     }
   `

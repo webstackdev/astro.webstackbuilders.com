@@ -1,0 +1,120 @@
+---
+title: "Golden Paths Without Golden Handcuffs"
+description: "Balancing standardization with team autonomy so the right thing is easy but not the only option."
+cover: "./cover.jpg"
+coverAlt: "Transit hub showing highlighted recommended route alongside alternative paths, representing golden path choice architecture for developers"
+author: "kevin-brown"
+publishDate: 2024-04-21
+tags: ["platform-engineering"]
+featured: true
+---
+
+*[CLI]: Command Line Interface
+*[SLA]: Service Level Agreement
+
+Here's the scenario I've seen play out too many times: a platform team mandates a specific deployment pipeline. Everyone must use it. No exceptions.
+
+Then reality hits. The ML team needs GPU nodes that the standard pipeline doesn't support. The compliance team requires deployment isolation that breaks the shared runner model. The trading platform can't tolerate the standard rollout strategy's latency during canary deployments.
+
+These teams face impossible choices. They can fight for exceptions—a slow, political process that rarely succeeds. They can shoe-horn their use case into an ill-fitting solution, creating technical debt and operational risk. Or they can work around the mandate entirely, building shadow infrastructure that the platform team doesn't know about.
+
+Morale drops. Shadow platforms proliferate. The "standard" becomes optional in practice because enough teams have found workarounds that enforcement is impossible.
+
+The mandate failed not because standardization is wrong, but because _mandatory_ standardization is wrong. The platform team built golden handcuffs, not a golden path.
+
+<Callout type="warning">
+Mandates breed workarounds. When developers can't use the standard path for legitimate reasons and have no sanctioned escape hatch, they'll build shadow infrastructure. You end up with _less_ standardization than if you'd designed for autonomy from the start.
+</Callout>
+
+There's a better way. Golden paths offer curated, supported ways to accomplish common tasks where the platform makes the "right" thing easy, but doesn't forbid alternatives. Paved roads, not walled gardens.
+
+## What Makes a Path Golden
+
+A golden path is a supported, well-documented way to accomplish a common task that the platform team actively maintains and improves. That definition has important implications:
+
+_Opinionated but not mandatory_: The path has strong defaults, but usage is optional. Your default CI template uses standard runners, but teams can bring their own if they have a reason.
+
+_Optimized for the common case_: The 80/20 rule applies. Your REST API template covers 80% of services; gRPC teams use an escape hatch. You're not trying to solve every problem—you're making the common case trivial.
+
+_Actively maintained_: The platform team owns updates, security patches, and improvements. Teams on the path get those updates automatically. This is the value proposition: stay on the path and maintenance is someone else's problem.
+
+_Well documented_: Clear docs, tutorials, examples, and troubleshooting guides. A getting-started guide that works, and a decision tree for when to use (and not use) the path.
+
+_Measurably better_: The path has demonstrable advantages over alternatives—50% faster deployments, 3x fewer security incidents, whatever the metrics are for your context. If you can't show the path is better, why should teams use it?
+
+The difference between a golden path and golden handcuffs comes down to choice:
+
+| Golden Path | Golden Handcuffs |
+|-------------|------------------|
+| Opinionated defaults, optional usage | Mandatory compliance, no exceptions |
+| Escape hatches for edge cases | Edge cases forced into ill-fitting solutions |
+| Adoption driven by value | Adoption driven by enforcement |
+| Teams choose it because it's better | Teams resent it because they have no choice |
+
+Table: Golden paths vs. golden handcuffs.
+
+But having the right philosophy isn't enough. The mechanism that makes golden paths work in practice is the escape hatch.
+
+## Escape Hatches as First-Class Features
+
+Escape hatches are how teams leave the golden path when they have a legitimate reason. Done well, they're a first-class feature of the platform. Done poorly, they're either so hidden that teams work around them anyway, or so easy that everyone uses them and the path becomes meaningless.
+
+_Escape hatches should be documented, not hidden_. They're part of the platform, not loopholes. The alternative deployment guide lives in the main docs, not on a hidden wiki page. If teams have to discover escape hatches through word of mouth, you've created a two-tier system where connected teams have options and everyone else doesn't.
+
+_Friction should be proportional to risk_. Not all deviations are equal. A custom Dockerfile might need only a self-review and a note in the README—that's a minor override. Custom network configuration needs a security review—that's a significant exception. An entirely separate infrastructure stack needs VP approval and a convergence plan—that's off-platform. The process should match the risk, not be uniformly heavy or uniformly light.
+
+_A path back should exist_. Teams should be able to return to the golden path later. If taking an escape hatch is a one-way door, teams will be reluctant to use it even when appropriate, and you'll accumulate permanent exceptions. Provide migration guides from custom to standard.
+
+_Support levels should be clear_. Teams know what support they'll get (or won't). Escape hatch means best-effort support, not SLA. This isn't punitive—it's honest about where the platform team's expertise and tooling apply.
+
+<Callout type="info">
+Escape hatches without tracking become invisible technical debt. If you don't know who's using alternatives and why, you can't plan path improvements, estimate migration costs, or sunset deprecated options. Every escape hatch usage should be registered.
+</Callout>
+
+The escape hatch mechanism is what distinguishes a golden path from a mandate. Without it, you're not offering a better way—you're demanding compliance. And compliance without capability creates the shadow systems you were trying to prevent.
+
+## Getting Started: A Prioritized Approach
+
+If you're building your first golden path—or trying to fix one that isn't working—here's where to focus. These five priorities are ordered: start at the top and don't skip ahead.
+
+### Start with One High-Value Path
+
+Don't try to pave every road at once. Pick the path with the highest combination of frequency (how often teams need it) and pain (how much friction exists today). Service creation is often a good starting point: every team needs it, it's done repeatedly, and the manual process usually involves copying from other repos, missing steps, and inconsistent results.
+
+Build a minimal viable path that covers the 80% case. A CLI that scaffolds a service with CI/CD, basic observability, and deployment to dev is more valuable than a comprehensive platform that takes six months to build. Ship something useful in weeks, not quarters.
+
+### Prove the Value Before Promoting
+
+Once you have early adopters, measure everything. How long does path-based service creation take versus manual setup? How many support tickets do path users generate versus others? What's the deployment frequency and failure rate comparison?
+
+If your path isn't measurably better, fix it before promoting it. The worst outcome is mandating adoption of something that makes developers' lives harder. That destroys trust and makes future paths harder to sell.
+
+### Design Extension Points Based on Real Requests
+
+Don't guess what teams will want to customize. Wait for requests. When three teams ask for the same customization, that's a signal to build an extension point. When one team has a truly unique requirement, that's what escape hatches are for.
+
+This approach prevents over-engineering. Early paths often have too many configuration options because the platform team anticipated needs that never materialized. Start simple, extend based on evidence.
+
+### Build Feedback Loops Early
+
+Weekly office hours, a dedicated Slack channel, and quarterly surveys should exist from day one. The platform team needs to hear friction points before they become workarounds. A developer who complains in Slack is giving you a gift—they're telling you how to improve. A developer who silently builds a shadow system is a failure you won't discover until it's too late.
+
+### Treat Adoption as a Product Problem
+
+You're not deploying infrastructure; you're launching a product to internal customers. That means user research (what do developers actually need?), competitive analysis (what's the alternative to your path?), marketing (how do developers discover the path?), and customer success (how do you help struggling adopters?).
+
+Platform teams with a product mindset build paths that developers love. Platform teams with an infrastructure mindset build paths that developers tolerate—until something better comes along.
+
+## Making Standardization the Path of Least Resistance
+
+The platform team's job is to make standardization the path of least resistance. When you succeed, shadow infrastructure disappears because there's no reason to build it. Teams adopt standards voluntarily because the alternative is more work. Maintenance burden shifts from every team to the platform team, who can invest deeply in getting it right.
+
+This approach requires more upfront investment than mandates. You have to build something worth using, not just declare what's required. You have to listen to feedback and iterate, not just enforce compliance. You have to prove value with data, not just assert it with authority.
+
+But the payoff is a platform that developers trust and willingly adopt. A successful golden path doesn't need enforcement. When developers choose your path because it's faster, easier, and better supported, you've built something valuable. That willing adoption is sustainable in a way that mandates never are.
+
+---
+
+CTA Title: Go Deeper: The Complete Golden Paths Guide
+
+CTA Body: This article covers the core philosophy and getting-started priorities for golden paths. The full guide goes much further: detailed path design patterns with real examples, escape hatch tier frameworks, adoption incentive strategies (and coercive tactics to avoid), metrics for measuring path health, lifecycle management from incubation through deprecation, and organizational patterns for platform team structure and governance. Download the complete guide to build golden paths that developers actually want to use.

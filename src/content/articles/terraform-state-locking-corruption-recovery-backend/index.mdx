@@ -1,0 +1,186 @@
+---
+title: "Terraform State Breaks: Diagnose and Recover Corruption"
+description: "Recognize state corruption symptoms and apply the right recovery procedure: force-unlock for stuck locks, import for orphaned resources, backup restoration for severe corruption."
+cover: "./cover.jpg"
+coverAlt: "CI platform and cloud provider exchanging trust tokens through secure channels for workload identity federation"
+author: "kevin-brown"
+publishDate: 2023-04-22
+tags: ["cloud-platforms"]
+featured: true
+---
+
+*[DynamoDB]: Amazon DynamoDB
+*[GCS]: Google Cloud Storage
+*[HCL]: HashiCorp Configuration Language
+*[S3]: Amazon Simple Storage Service
+
+It's 2 AM and you're staring at a `terraform plan` that wants to destroy half your production infrastructure. Or you get a lock error claiming someone else is running Terraform, but your team is asleep. Or the state file is just... gone.
+
+State corruption is a when, not an if. Every Terraform practitioner eventually experiences that moment of panic when state diverges from reality. The state file is Terraform's memory — it maps your HCL configuration to actual cloud resources. When that mapping breaks, Terraform loses its ability to reason about your infrastructure. The results range from orphaned resources you have to clean up manually to unintended destruction of production systems.
+
+The good news: state problems fall into predictable patterns, and each pattern has a specific recovery procedure. The question isn't whether you'll face state corruption, but whether you'll recover in minutes with practiced procedures or spend days reconstructing through imports and manual investigation.
+
+## Recognizing What's Wrong
+
+State corruption isn't always obvious. Sometimes Terraform tells you directly with a parse error. More often, you notice something's wrong when `terraform plan` shows changes you didn't make, or when it wants to destroy resources that definitely shouldn't be destroyed.
+
+The most common causes, roughly in order of frequency:
+
+__Interrupted applies__ happen when someone hits Ctrl+C during an apply, a network failure kills the connection, or CI times out. The cloud resource might be partially created, fully created, or not created at all — but state reflects whatever Terraform believed at the moment of interruption. You'll see plan showing unexpected changes, or attempting to create resources that already exist.
+
+__Concurrent modifications__ occur despite locking, usually because someone ran Terraform locally while CI was running, or two CI jobs targeted the same state due to misconfigured triggers. Look for "state serial mismatch" errors, or changes from one apply silently missing after another completes.
+
+__Manual state edits__ are tempting when you need to fix something quickly, but JSON is unforgiving. A missing comma, wrong type, or malformed resource address can corrupt the entire file. Any Terraform command will fail with parse errors.
+
+__Provider version mismatches__ happen when you upgrade providers without considering state compatibility. The provider's internal schema version might change, and state written by the old provider might not be readable by the new one. Watch for warnings about schema versions or unexpected replacement plans.
+
+When something seems wrong, start by ruling out configuration problems. Run `terraform validate` first — it checks HCL syntax and provider schema without touching state or making API calls. If validate passes but plan fails, you're dealing with a state issue, not a config issue.
+
+For state-specific diagnostics:
+
+```bash title="state-diagnostics.sh"
+# Pull state locally for inspection
+terraform state pull > state_backup.json
+
+# Refresh-only plan shows drift without proposing changes
+terraform plan -refresh-only
+
+# Check state structure
+cat state_backup.json | jq '{serial, lineage, terraform_version}'
+```
+
+Code: Commands for diagnosing state-specific issues.
+
+The refresh-only plan is particularly useful: it compares state to reality without considering your configuration changes. If it shows drift, you know the problem is state-vs-reality divergence.
+
+## Recovery Procedures
+
+The right recovery procedure depends on what's broken. Here's how to handle each scenario.
+
+### Force Unlock
+
+The most common recovery: you try to run Terraform and get a lock error, but nobody else is running Terraform. This usually means a previous operation crashed without releasing its lock.
+
+Before force-unlocking, verify the lock holder is actually dead. Check your CI system for running jobs. Check with teammates. The lock message tells you who holds it and when it was acquired — if it's from hours ago and you're confident nothing is running, it's safe to proceed.
+
+```bash title="force-unlock.sh"
+# The lock error message includes the lock ID you need
+terraform force-unlock 550e8400-e29b-41d4-a716-446655440000
+```
+
+Code: Releasing an orphaned state lock.
+
+If `force-unlock` doesn't work, you can delete the lock directly as a last resort:
+
+```bash title="emergency-lock-deletion.sh"
+# AWS S3 + DynamoDB backend
+aws dynamodb delete-item \
+  --table-name terraform-state-locks \
+  --key '{"LockID": {"S": "mycompany-terraform-state/prod/terraform.tfstate-md5"}}'
+
+# Azure Blob Storage backend
+az storage blob lease break \
+  --account-name tfstateaccount \
+  --container-name tfstate \
+  --blob-name prod.terraform.tfstate
+
+# GCS backend (path varies based on prefix setting)
+gsutil rm gs://mycompany-terraform-state/terraform/state/default.tflock
+```
+
+Code: Emergency lock deletion for different backends.
+
+### Import Orphaned Resources
+
+When resources exist in your cloud account but not in state — either because they were created outside Terraform or because state lost track of them — you need to import them.
+
+```bash title="import-resource.sh"
+terraform import aws_vpc.main vpc-0123456789abcdef0
+```
+
+Code: Import command mapping a VPC resource address to its cloud ID.
+
+For multiple resources, Terraform 1.5+ supports import blocks:
+
+```hcl title="imports.tf"
+import {
+  to = aws_vpc.main
+  id = "vpc-0123456789abcdef0"
+}
+
+import {
+  to = aws_subnet.private[0]
+  id = "subnet-111111111"
+}
+```
+
+Code: Import blocks for bulk resource import.
+
+Run `terraform plan` to preview, then `terraform apply` to execute. If you don't have configuration for the resources yet, generate it with `terraform plan -generate-config-out=generated.tf`.
+
+### State Surgery
+
+Import handles resources missing from state. But sometimes resources are _in_ state and just need reorganizing — you're refactoring modules, renaming resources, or handing off a resource to a different team. State surgery lets you restructure the state file without affecting the actual cloud infrastructure.
+
+```bash title="state-surgery.sh"
+# Remove resource from state (keeps actual cloud resource)
+terraform state rm aws_instance.legacy_server
+
+# Rename a resource (refactoring)
+terraform state mv aws_instance.web aws_instance.application
+
+# Move resource between modules
+terraform state mv module.old.aws_vpc.main module.new.aws_vpc.main
+```
+
+Code: Common state manipulation operations.
+
+Always run `terraform plan` after state surgery. A successful operation should show no changes. If plan shows unexpected creates or destroys, restore from backup and try again.
+
+### Backup Recovery
+
+When state is severely corrupted, restore from backup. This is why S3 versioning matters.
+
+```bash title="state-recovery.sh"
+# List available versions
+aws s3api list-object-versions \
+  --bucket mycompany-terraform-state \
+  --prefix prod/terraform.tfstate \
+  --max-items 10
+
+# Download a specific version
+aws s3api get-object \
+  --bucket mycompany-terraform-state \
+  --key prod/terraform.tfstate \
+  --version-id "abc123versionid" \
+  recovered-state.json
+
+# Push recovered state
+terraform state push recovered-state.json
+
+# Verify recovery
+terraform plan
+```
+
+Code: Recovering state from S3 version history.
+
+A successful recovery should result in a plan showing no changes, or minimal drift from whatever happened between the backup and now.
+
+## Prevention Checklist
+
+Most state problems are preventable. These practices eliminate the patterns that cause corruption:
+
+- _Enable S3 versioning with DynamoDB locking._ This is your recovery safety net and your concurrency protection.
+- _Use CI/CD concurrency controls._ Set `cancel-in-progress: false` in GitHub Actions — never cancel a running apply.
+- _Pin provider and Terraform versions._ Upgrade deliberately with testing, not accidentally.
+- _Save plans to files._ Run `terraform plan -out=tfplan`, then `terraform apply tfplan`. This prevents drift between plan and apply.
+- _Never edit state manually._ Use `terraform state` commands instead. Manual JSON edits bypass validation and corrupt checksums.
+- _Practice recovery quarterly._ Restore from backup in a test environment. Import a throwaway resource. Force-unlock a test state. When the incident happens, these commands should be muscle memory.
+
+The failure modes are well-documented, and so are the fixes. With the right backend configuration and practiced recovery procedures, you can turn a potential multi-day outage into a 15-minute recovery.
+
+---
+
+__Get the Complete Guide__
+
+This article covers the essentials of state recovery, but there's more to production-ready Terraform state management. The full guide includes detailed backend comparison tables, a complete production-ready S3 backend module with KMS encryption and lifecycle policies, state organization patterns for multi-environment setups, and automated backup scripts for cross-region redundancy. Download the deep-dive PDF for the complete implementation details.

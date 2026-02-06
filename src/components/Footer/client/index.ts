@@ -54,9 +54,7 @@ export class FooterElement extends LitElement {
   }
 
   private static getMonthName(date: Date): string {
-    const monthDate = new Date(date)
-    monthDate.setMonth(monthDate.getMonth() - 1)
-    return monthDate.toLocaleString('en-US', { month: 'long' })
+    return date.toLocaleString('en-US', { month: 'long' })
   }
 }
 

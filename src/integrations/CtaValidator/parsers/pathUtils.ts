@@ -4,6 +4,17 @@
 
 import type { ValidatedContentType, CallToActionComponent } from '@integrations/CtaValidator/@types'
 
+const CTA_VALIDATION_IGNORED_PATH_SUFFIXES = ['src/content/articles/demo/index.mdx'] as const
+
+/**
+ * Pages that are intentionally allowed to contain multiple CTAs.
+ * This is currently used for the internal component demo page at `/articles/demo`.
+ */
+export function shouldIgnoreCtaValidation(pagePath: string): boolean {
+  const normalizedPath = pagePath.replace(/\\/g, '/').trim()
+  return CTA_VALIDATION_IGNORED_PATH_SUFFIXES.some(suffix => normalizedPath.endsWith(suffix))
+}
+
 /**
  * Determine content type from file path
  *

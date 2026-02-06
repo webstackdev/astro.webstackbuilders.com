@@ -1,0 +1,31 @@
+---
+title: "mTLS for Service-to-Service Communication"
+description: "Certificate rotation, trust hierarchies, and the operational footguns that make mTLS harder than it looks."
+author: "kevin-brown"
+cover: "./cover.jpg"
+coverAlt: "Robotic hands exchanging glowing certificates forming encrypted tunnel with automatic certificate rotation, representing mTLS mutual authentication"
+publishDate: 2025-09-20
+isDraft: false
+fileType: "PDF"
+fileSize: "1.2 MB"
+pages: 24
+fileName: "mtls-certificate-rotation-service-mesh-authentication.pdf"
+---
+
+Enabling mutual TLS between services is a single configuration flag in most service meshes. Operating it reliably is where teams struggle. A team enabled Istio mTLS across 50 services, but the intermediate CA certificate—with a forgotten 90-day default TTL—expired at 2:47 AM, killing all inter-service communication simultaneously. Recovery took four hours because the runbook didn't exist. The lesson: mTLS without lifecycle automation is a time bomb.
+
+The mTLS system has multiple certificate layers (workload, issuing CA, intermediate CA, root CA), each with different TTLs. An outage can originate at any layer, but most teams monitor only workload certificates.
+
+This complete guide teaches you:
+
+- One-way versus mutual TLS: identity verification at the network layer
+- Certificate anatomy: Subject, SANs, validity periods, and Extended Key Usage
+- Trust hierarchies: root CA, intermediate CAs, and workload certificate chains
+- Workload identity: SPIFFE SVIDs and cryptographic identity binding
+- Rotation strategies: short-lived certificates and automated renewal
+- Multi-cluster trust: federated identities and cross-cluster mTLS
+- Debugging handshake failures: certificate validation, key mismatches, and SAN issues
+- Monitoring certificate expiration across the entire hierarchy
+- Integration with service meshes: Istio, Linkerd, and platform-specific mTLS
+
+Download Your mTLS Certificate Rotation and Trust Guide now to build reliable service-to-service authentication.

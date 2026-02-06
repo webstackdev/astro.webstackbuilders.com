@@ -1,0 +1,139 @@
+---
+title: "Why Your Well-Behaved Pods Die First"
+description: "The counterintuitive eviction behavior that catches teams off guard, and the resource patterns that actually protect your workloads."
+cover: "./cover.jpg"
+coverAlt: "Airplane seating classes showing first class (Guaranteed), business (Burstable), and economy (BestEffort) with priority boarding representing Kubernetes QoS resource tiering"
+author: "kevin-brown"
+publishDate: 2022-10-02
+tags: ["cloud-platforms"]
+featured: true
+---
+
+*[K8s]: Kubernetes
+*[QoS]: Quality of Service
+*[OOM]: Out of Memory
+*[OOMKilled]: Out of Memory Killed
+
+It's 3 AM and your pager goes off. A production cluster with 10 nodes is experiencing random pod evictions. Investigation reveals memory pressure on several nodes—60% of pods have no memory limits, so a few memory-hungry pods consumed all available RAM. But here's the twist: the pods being evicted aren't the resource hogs. They're the well-behaved ones that set requests but no limits.
+
+Those pods followed what seemed like best practice—they declared what they needed. Yet Kubernetes marked them as "Burstable" QoS, and the eviction algorithm measures Burstable pods against their own declared requests. The pods with no resource specs? They're "BestEffort"—technically lower priority, but with no declared baseline, there's nothing to measure them against. The well-behaved pods created a measuring stick that was used against them.
+
+The lesson most teams learn too late: QoS class determines eviction order, and you don't realize what class your pods belong to until you're debugging an outage. The answer lies in a system most teams don't know exists.
+
+## The QoS Contract You Didn't Know You Signed
+
+Every pod in Kubernetes gets assigned a Quality of Service class automatically. You don't set it directly—it's derived from how you configure requests and limits. This class determines who dies first when nodes run low on resources.
+
+**Guaranteed** is the highest priority. Every container must have requests _and_ limits set for both CPU and memory, and requests must equal limits. These pods are evicted last.
+
+**Burstable** is the middle tier. Any pod with at least one resource request or limit that doesn't qualify for Guaranteed lands here. This includes pods with requests only, limits only, or requests that don't match limits. Most production workloads end up Burstable.
+
+**BestEffort** is the lowest priority. Pods with no resource specifications at all—no requests, no limits on any container—get this class. They're evicted first under pressure.
+
+The rules are straightforward, but the implications aren't. A pod with carefully tuned requests and limits is Burstable. A pod with only a CPU request and nothing else is also Burstable. Same QoS class, very different behavior.
+
+| QoS Class  | Eviction Priority | Configuration                       |
+| ---------- | ----------------- | ----------------------------------- |
+| BestEffort | First (highest)   | No resources specified              |
+| Burstable  | Middle            | Some resources, but not Guaranteed  |
+| Guaranteed | Last (lowest)     | All resources set, requests = limits|
+
+Table: QoS class eviction priority.
+
+Here's the counterintuitive part: within each QoS class, the kubelet prioritizes eviction based on resource usage _relative to requests_. For Burstable pods, it essentially calculates how much you're exceeding your stated need. A pod using 200% of its memory request gets evicted before one using 110%.
+
+This means a Burstable pod that set a low request but is using a lot of memory can be evicted before a BestEffort pod that happens to use less. The pods that tried to be good citizens—declaring requests—created a measuring stick that's now used against them.
+
+<Callout type="warning">
+Burstable pods with requests but no limits can be evicted before BestEffort pods that happen to use less memory. The eviction algorithm considers actual usage relative to requests, not just QoS class. Size your requests accurately.
+</Callout>
+
+## The Configurations That Kill Your Pods
+
+I've seen the same resource misconfigurations across dozens of clusters. Here are the patterns that cause the most operational pain.
+
+**Requests only, no limits** is what killed those 3 AM pods. It creates Burstable pods that can consume unbounded memory or CPU. A memory leak in one pod can starve its neighbors or trigger node-level OOM. The pod gets scheduled based on its request, but nothing stops it from using 10x that amount—and when eviction starts, usage relative to request determines who dies first.
+
+**No resources at all** is the default trap. Pods without any resource specs get BestEffort QoS—first to be evicted by class priority, no scheduling guarantees, and they can consume unlimited node resources. This is what happens if you don't specify anything, which is why so many teams accidentally run BestEffort pods in production.
+
+**Limits only, no requests** seems harmless, but Kubernetes helpfully sets requests equal to limits when you only specify limits. The result is Guaranteed QoS, but you're probably over-reserving. The pod reserves its peak capacity even when it only needs a fraction of it, wasting cluster capacity and increasing costs.
+
+The correct patterns depend on your workload type:
+
+```yaml title="pattern-guaranteed.yaml"
+# Guaranteed QoS for critical services
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-processor
+spec:
+  template:
+    spec:
+      containers:
+        - name: app
+          image: payment-processor:v2.1.0
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"      # Same as request
+              memory: "512Mi"  # Same as request
+```
+
+Code: Guaranteed QoS—requests equal limits for maximum eviction protection.
+
+For critical services, use Guaranteed QoS by setting requests equal to limits. You get predictable performance and maximum eviction protection. The tradeoff is that you can't burst—if you need 2x CPU during traffic spikes, you have to request 2x all the time.
+
+```yaml title="pattern-burstable.yaml"
+# Burstable with headroom for web services
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+spec:
+  template:
+    spec:
+      containers:
+        - name: app
+          image: api-gateway:v3.0.0
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "1000m"     # 4x burst for traffic spikes
+              memory: "512Mi"  # 2x headroom for safety
+```
+
+Code: Burstable QoS with headroom—limits higher than requests for burst capacity.
+
+For variable workloads like web servers, use Burstable with headroom. Set limits higher than requests to allow bursting during traffic spikes while keeping baseline reservation efficient. One gotcha: for multi-container pods, the QoS is determined by _all_ containers. If your main container has requests equal to limits but your sidecar doesn't, the whole pod is Burstable. Size sidecars explicitly.
+
+<Callout type="success">
+The rule of thumb: set CPU limits 2-4x requests (allows bursting), set memory limits 1.5-2x requests (headroom without waste). Monitor actual usage for two weeks, then right-size based on P95 metrics.
+</Callout>
+
+## The Minimum Viable Resource Strategy
+
+If you do nothing else, do these three things:
+
+**Set both requests and limits on every container.** Not one or the other—both. This ensures you get Burstable QoS at minimum, with defined boundaries. For critical workloads, make requests equal limits for Guaranteed QoS.
+
+**Check your QoS classes.** Run `kubectl get pods -o custom-columns="NAME:.metadata.name,QOS:.status.qosClass"` across your namespaces. If you see BestEffort on anything that matters, you have work to do.
+
+**Size memory limits with 50% headroom above peak.** Memory is incompressible—exceed your limit and the kernel's OOM killer terminates your process immediately. No graceful shutdown, no warning. CPU throttling is recoverable; OOM kills are not.
+
+## Write Good Contracts
+
+Remember those 3 AM evictions? The fix is understanding the contract.
+
+Pod resource configuration comes down to two promises: _requests_ tell the scheduler what you need, _limits_ tell the kernel what you'll never exceed. QoS class—derived from how you set these—determines who dies first when nodes run low. The full resource management story includes right-sizing with Prometheus metrics, VPA recommendations, namespace guardrails, and alerting on memory pressure. But the three actions above address the most common failure modes.
+
+Get the contract right, and your pods survive node pressure. Get it wrong, and the well-behaved ones die first.
+
+---
+
+**Go Deeper: The Complete Pod Sizing Guide**
+
+This article covers the essentials, but production Kubernetes resource management involves more: right-sizing with Prometheus queries and VPA recommendations, namespace-level guardrails with LimitRange and ResourceQuota, alerting on memory pressure and CPU throttling, and cost attribution for infrastructure efficiency. Download the complete guide for the full operational playbook, including ready-to-use configurations and queries.

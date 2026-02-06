@@ -1,0 +1,122 @@
+---
+title: "Kubernetes Upgrades: Making Them Boring"
+description: "A playbook for cluster upgrades that minimizes risk through preparation, proper sequencing, and tested rollback procedures."
+cover: "./cover.jpg"
+coverAlt: "Kubernetes cluster upgrade assembly line with quality control stations from pre-check through validation, with rollback lane and certification"
+author: "kevin-brown"
+publishDate: 2025-08-03
+tags: ["cloud-platforms"]
+featured: true
+---
+
+*[K8s]: Kubernetes
+*[API]: Application Programming Interface
+*[CRD]: Custom Resource Definition
+*[CNI]: Container Network Interface
+*[CSI]: Container Storage Interface
+*[etcd]: Distributed key-value store used by Kubernetes
+
+I watched a company avoid Kubernetes upgrades for 18 months. When they finally _had_ to upgrade for security compliance, they faced a five-version jump. Deprecated APIs were everywhere. Custom controllers broke. Workloads failed in ways nobody expected. What should have been four routine 2-hour maintenance windows became a three-week crisis involving weekend war rooms and executive escalations.
+
+The lesson is counterintuitive but consistent: frequent, incremental upgrades are _less_ risky than infrequent large jumps. Kubernetes releases new versions roughly every four months, so each version you skip accumulates deprecated APIs, changed behaviors, and incompatible add-ons. A cluster three or more versions behind isn't technical debt - it's an emergency waiting to happen. The goal of this playbook is to make upgrades boring: predictable procedures that happen quarterly without drama.
+
+## The Pre-Upgrade Checklist
+
+Most upgrade failures trace back to skipped preparation. Before touching the cluster, work through four categories of readiness checks.
+
+_Timing and planning_ comes first. Review the release notes for your target version - not just the highlights, but the deprecations and breaking changes. Kubernetes only supports upgrading one minor version at a time (1.28 to 1.29 is fine, 1.28 to 1.30 isn't), so verify your upgrade path. Schedule a maintenance window with buffer time.
+
+_Cluster health_ establishes your baseline. All nodes should show Ready status. There shouldn't be unexpected pending pods. Control plane components and etcd should be healthy. Resource utilization should be below 70% - upgrades temporarily reduce capacity as nodes drain and restart.
+
+_Backup and recovery_ is your safety net. Take an etcd snapshot before starting. Document current cluster state. Most importantly, document and _test_ your rollback procedure in a non-production environment before you need it.
+
+_Compatibility verification_ catches the issues that break workloads. Check that your add-ons - CNI plugin, CSI drivers, ingress controller, cert-manager, monitoring stack - are compatible with the target version. Validate workload manifests for deprecated APIs.
+
+| Category | Key Checks | Abort If |
+|----------|-----------|----------|
+| Timing | Release notes reviewed, one-version jump | Multi-version jump required |
+| Health | Nodes Ready, pods running, etcd healthy | Unhealthy components |
+| Backup | etcd snapshot taken, rollback tested | Backup failed |
+| Compatibility | Add-ons verified, deprecated APIs addressed | Incompatible add-ons |
+
+Table: Pre-upgrade checklist summary.
+
+Deprecated APIs are the most common source of upgrade failures. An API that works today returns 404 after upgrade, breaking deployments, controllers, and CI pipelines. The API server tracks which deprecated APIs are being called - query the metrics endpoint to see what's at risk:
+
+```bash
+kubectl get --raw /metrics | grep apiserver_requested_deprecated_apis
+```
+Code: Check which deprecated APIs are being called in your cluster.
+
+You can also catch deprecated APIs before they reach the cluster. Tools like Pluto scan manifests and Helm releases against a target Kubernetes version. Run deprecated API detection continuously in CI, not just before upgrades - the best time to fix a deprecated API is when the PR is open.
+
+## Upgrade Ordering and Execution
+
+Kubernetes components have strict version compatibility requirements. The API server can be at most one minor version ahead of the controller-manager and scheduler, which can be at most one minor version ahead of the kubelet. This means you can't upgrade everything simultaneously - there's a required sequence.
+
+This is by design. Kubernetes explicitly allows version skew during upgrades. If you're upgrading from 1.28 to 1.29, you'll temporarily have 1.29 API servers serving requests alongside 1.28 kubelets - and that's fine.
+
+_Phase 1: Preparation_ (30 minutes). Run final health checks. Take a fresh etcd backup. Notify on-call, update the status page, and pause non-critical deployments.
+
+_Phase 2: Control plane_ (30-60 minutes). This is the highest-risk phase. For self-managed HA clusters, upgrade one control plane node at a time. For single control plane clusters, the API server is unavailable during upgrade - existing workloads continue running, but nothing can deploy or scale. For managed Kubernetes (EKS, GKE, AKS), the cloud provider handles the mechanics, typically over 10-30 minutes.
+
+_Phase 3: Add-ons_ (15-30 minutes). Upgrade cluster add-ons to versions compatible with the new control plane. CNI plugin first - it must be compatible with the new kubelet version you're about to deploy. Then CoreDNS, metrics-server, cert-manager, ingress controller. Verify each one works before proceeding.
+
+_Phase 4: Worker nodes_ (10-15 minutes per node). For each worker: cordon it (prevent new pod scheduling), drain it (evict existing pods), upgrade the kubelet, then uncordon it. Verify the node shows Ready before moving to the next one.
+
+_Phase 5: Validation_ (15-30 minutes). Run comprehensive health checks: all nodes Ready, all system pods Running. Run application smoke tests: API calls, ingress routing, DNS resolution, storage access.
+
+| Phase | Duration | Risk Level | Rollback Difficulty |
+|-------|----------|------------|---------------------|
+| Preparation | 30 min | Low | N/A |
+| Control Plane | 30-60 min | High | Hard (restore from backup) |
+| Add-ons | 15-30 min | Medium | Medium (reinstall previous) |
+| Workers | 10-15 min/node | Low | Easy (don't uncordon) |
+| Validation | 15-30 min | Low | N/A |
+
+Table: Upgrade phases with risk assessment.
+
+<Callout type="warning">
+Control plane upgrades are the highest-risk phase. API server downtime affects all kubectl operations, controllers, and workloads trying to update. Have your rollback procedure ready and tested before touching the control plane.
+</Callout>
+
+## Rollback: Your Safety Net
+
+When things go wrong, speed matters. Define your rollback triggers in advance and know exactly what to do for each scenario.
+
+_Control plane rollback_ is the nuclear option. For self-managed clusters, rollback means restoring from the etcd backup you took before upgrading - this is why that backup isn't optional. Restoring resets cluster state to the backup time, so any changes made after the backup will be lost.
+
+Managed Kubernetes rollback options are limited:
+
+- _EKS_ doesn't support control plane downgrades - your options are restoring from Terraform state or creating a new cluster
+- _GKE_ supports rollback within the maintenance window
+- _AKS_ doesn't support downgrades either
+
+If you're on managed Kubernetes, test what "rollback" actually means for your provider _before_ you need it.
+
+_Worker node rollback_ is much simpler. If a node is misbehaving after upgrade, you can downgrade its kubelet without affecting the rest of the cluster: cordon, drain, downgrade, uncordon. Some teams use a blue-green node pool strategy - creating new nodes at the target version, then draining old nodes. With this approach, rollback is trivial: uncordon the old pool and delete the new one.
+
+| Rollback Scenario | Complexity | Data Loss Risk | Recovery Time |
+|-------------------|------------|----------------|---------------|
+| Single worker node | Low | None | Minutes |
+| All worker nodes | Medium | None | Rolling |
+| Control plane (kubeadm) | High | Possible | 15-30 min |
+| Control plane (managed) | Very High | Possible | Hours |
+
+Table: Rollback scenario risk assessment.
+
+<Callout type="danger">
+Managed Kubernetes services (EKS, GKE, AKS) often don't support control plane downgrades. Your "rollback" may be creating a new cluster and migrating workloads. Test this procedure before you need it.
+</Callout>
+
+## Making Upgrades Routine
+
+The teams that handle upgrades well share common practices: they prepare thoroughly with deprecated API detection and compatibility checks; they follow strict upgrade ordering; they have tested rollback procedures ready _before_ they start; and they validate comprehensively after each phase.
+
+Making upgrades boring requires investing in the infrastructure around them. Automated API scanning catches deprecated APIs in CI before they reach the cluster. Practiced rollback procedures mean you can recover quickly when things go wrong. Comprehensive validation gives you confidence that the upgrade succeeded.
+
+The goal isn't to eliminate risk - it's to make risk manageable and predictable. Quarterly upgrades, practiced procedures, and quick rollback capability transform upgrades from scary events into regular maintenance.
+
+---
+
+This article covers the pre-upgrade checklist, upgrade sequencing, and rollback procedures. The complete guide goes deeper on canary cluster patterns and staged rollout schedules across multiple clusters, blue-green node pool strategies with detailed scripts, post-upgrade validation suites covering infrastructure, networking, storage, and observability, and complete etcd backup and restore procedures. Download the PDF for the full implementation playbook.

@@ -1,0 +1,185 @@
+---
+title: "Why Your E2E Tests Are Flaky (And How to Fix Them)"
+description: "Race conditions and environment issues cause 85% of flaky tests. Here are concrete patterns to diagnose and eliminate both."
+cover: "./cover.jpg"
+coverAlt: "Radio operator tuning between real failures and flaky noise signals, filtering static to find true test failure signal"
+author: "kevin-brown"
+publishDate: 2025-11-02
+tags: ["reliability-and-testing"]
+featured: true
+---
+
+*[E2E]: End-to-End
+*[CI]: Continuous Integration
+*[DOM]: Document Object Model
+*[API]: Application Programming Interface
+*[SPA]: Single Page Application
+
+A single test with a 5% flake rate will block CI once every 20 runs. That sounds manageable. But a suite of 100 tests where each has just a 1% flake rate? That suite will fail 63% of builds. The probability compounds: $(1 - 0.01)^{100} \approx 0.37$, meaning only 37% of builds pass cleanly.
+
+I've watched this pattern destroy teams' ability to ship. A few random failures appear. The first response is always the same: "just retry and merge." Within a few months, nobody trusts red builds anymore. Developers stop investigating failures because it's faster to retry than debug. Then a real regression ships because the failure was dismissed as "probably flaky." That's when teams lose the ability to distinguish signal from noise.
+
+The good news: this is fixable. In my experience, 85% of flaky tests come from just two root causes—race conditions and environment issues. Both have systematic solutions. This article covers the concrete patterns that eliminate the most common flake sources.
+
+## Race Conditions: The Dominant Cause
+
+The core problem is always the same: the test is asserting before the application has finished doing something. The test and application are competing for timing, and the test sometimes wins (passes) and sometimes loses (fails).
+
+The telltale symptoms: the test passes locally but fails in CI, passes when you attach a debugger (which slows things down), or behaves inconsistently across different machines. These are signs that timing is involved.
+
+### The Form Submission Race
+
+The most common race is clicking a button and immediately checking the result before the async handler completes:
+
+```typescript title="form-submission-race.ts"
+// ❌ FLAKY: Asserting before async handler completes
+await page.click('button[type="submit"]');
+await expect(page.locator('.success-message')).toBeVisible();
+
+// ✅ STABLE: Wait for specific response event
+const responsePromise = page.waitForResponse('/api/submit');
+await page.click('button[type="submit"]');
+await responsePromise;
+await expect(page.locator('.success-message')).toBeVisible();
+```
+Code: Form submission race—wait for the API response before asserting.
+
+The flaky version assumes the success message will appear immediately after click. The stable version explicitly waits for the API response, _then_ checks the DOM. The key insight: wait for the _event_ that causes the state change, not the state change itself.
+
+### The Debounced Search Race
+
+Another common pattern is testing debounced inputs with fixed timeouts:
+
+```typescript title="search-race.ts"
+// ❌ FLAKY: Fixed timeout that may be too short or too long
+await page.fill('.search-input', 'test query');
+await page.waitForTimeout(500);
+await expect(page.locator('.search-results')).toBeVisible();
+
+// ✅ STABLE: Wait for the actual search results
+await page.fill('.search-input', 'test query');
+await expect(page.locator('.search-results')).toBeVisible({ timeout: 5000 });
+```
+Code: Search race—let the assertion wait for results instead of using fixed delays.
+
+The 500ms timeout is a guess. On a fast machine, the results might appear in 200ms and the test wastes time. On a slow CI runner, 500ms might not be enough. The stable version lets the assertion handle the waiting—it will succeed as soon as results appear, up to the timeout limit.
+
+### The Navigation Race
+
+Navigation timing is particularly tricky because clicking a link doesn't guarantee the new page has loaded:
+
+```typescript title="navigation-race.ts"
+// ❌ FLAKY: Race between click and navigation
+await page.click('a[href="/dashboard"]');
+await expect(page.locator('h1')).toHaveText('Dashboard');
+
+// ✅ STABLE: Wait for both click and navigation
+await Promise.all([
+  page.waitForURL('/dashboard'),
+  page.click('a[href="/dashboard"]')
+]);
+await expect(page.locator('h1')).toHaveText('Dashboard');
+```
+Code: Navigation race—use `Promise.all` to wait for URL change and click simultaneously.
+
+The `Promise.all` pattern starts waiting for the URL change _before_ clicking, so you catch the navigation regardless of timing.
+
+<Callout type="warning">
+`waitForTimeout()` is almost never the right answer. It either waits too long (slow tests) or not long enough (flaky tests). Wait for the specific condition you need: network response, DOM element, URL change.
+</Callout>
+
+Race conditions are the biggest category, but they're not the only one. The second major cause is environmental.
+
+## Environment Isolation
+
+Environment issues cause roughly 25% of flakes. The test itself is often correct—it's the environment that's unstable. Tests depend on external state that varies between runs: cookies from previous tests, database records that weren't cleaned up, system time that behaves differently in different timezones.
+
+The solution is isolation: each test should run in a pristine environment with no pollution from previous tests or external factors.
+
+### Browser State and Animations
+
+Cookies, localStorage, and session data can leak between tests if you're reusing browser contexts. Modern SPAs also introduce animation timing issues—clicking an element mid-transition causes flakes. The cleanest approach is fresh contexts for each test with animations disabled:
+
+```typescript title="browser-isolation.ts"
+// Fresh browser state with no leakage from previous tests
+test.use({
+  storageState: { cookies: [], origins: [] }
+});
+
+// Disable animations to eliminate timing variability
+test.beforeEach(async ({ page }) => {
+  await page.addStyleTag({
+    content: `
+      *, *::before, *::after {
+        animation-duration: 0s !important;
+        transition-duration: 0s !important;
+      }
+    `
+  });
+});
+```
+Code: Browser isolation—fresh state and disabled animations.
+
+Starting fresh is more reliable than cleaning up. Cleanup can fail silently (a cookie doesn't get deleted, localStorage.clear() throws in certain contexts), and you won't know until the next test fails mysteriously. Fresh contexts are deterministic—there's nothing to clean up because nothing was there to begin with.
+
+### Database State
+
+Database pollution is trickier. Three common approaches, each with tradeoffs:
+
+_Transaction rollback_: Wrap each test in a database transaction and roll back after. Fast and clean, but doesn't work if your test needs to verify committed data, test triggers, or observe behavior across transaction boundaries. Best for most unit and integration tests.
+
+_Database per test_: Create an isolated database for each test with a unique name. Slower but provides complete isolation. Works well with containerized databases. Best when you need to test committed data or database-level behavior.
+
+_Seeded snapshots_: Reset to a known state before each test using database snapshots or seed scripts. Good balance of isolation and speed. Best for E2E tests where you need realistic data without per-test database overhead.
+
+```typescript title="database-isolation.ts"
+// Transaction rollback approach
+test.beforeEach(async () => {
+  await db.query('BEGIN');
+});
+
+test.afterEach(async () => {
+  await db.query('ROLLBACK');
+});
+
+// Seeded snapshot approach
+test.beforeEach(async () => {
+  await db.query('TRUNCATE users, orders, products CASCADE');
+  await db.query(seedData);
+});
+```
+Code: Database isolation—transaction rollback vs. seeded snapshots.
+
+### Time and Timezone
+
+Tests that work on your machine but fail in CI at specific hours often have timezone assumptions baked in. The fix is either to freeze time or to make assertions timezone-agnostic.
+
+For unit and integration tests, use your test framework's built-in time mocking. Vitest provides `vi.useFakeTimers()` which lets you control Date.now(), setTimeout, and other time-dependent APIs. For E2E tests running in the browser, you'll need to inject a fixed date via `page.addInitScript()` or use a library that patches the browser's Date object.
+
+The simpler alternative is making assertions timezone-agnostic: compare timestamps rather than formatted date strings, and avoid assertions that depend on "today" or "this month."
+
+<Callout type="info">
+If your test fails at midnight UTC, around month boundaries, or in different timezones, you have a time-dependent test. Either freeze time or make assertions timezone-agnostic.
+</Callout>
+
+## The Path Forward
+
+Race conditions and environment issues cause 85% of flakes. Fixing these two categories transforms your test suite from a liability into an asset.
+
+The approach is systematic:
+
+1. For race conditions, find every place your test uses `waitForTimeout()` or assumes immediate state changes after actions. Replace them with waits for specific conditions—network responses, DOM elements, URL changes.
+
+2. For environment issues, audit your test setup. Clear browser state between tests. Isolate database state through transactions, per-test databases, or seed scripts. Freeze time or use timezone-agnostic assertions. Disable animations.
+
+The deeper lesson is that flaky tests are symptoms. They reveal race conditions in your tests, instability in your application, or inconsistency in your environments. Fixing flakes often uncovers real bugs—an API that's slower under load, a component that renders before its data arrives, a cleanup process that doesn't handle edge cases.
+
+<Callout type="success">
+Start small: pick your three worst flakes (highest impact, not necessarily highest flake rate), fix them this sprint, and measure CI pass rate before and after. A 10% improvement in CI reliability often translates to hours saved per week across the team.
+</Callout>
+
+---
+
+**Go Deeper: The Complete Guide to Flaky Test Diagnosis**
+
+This article covers the two biggest flake categories, but there's more to building a stable test suite. The complete guide includes building flake detection infrastructure that tracks patterns over time, implementing quarantine systems that prevent flakes from blocking CI while holding them accountable, triage frameworks for prioritizing which flakes to fix first, and CI debugging workflows for reproducing flakes that only happen in CI. Download the PDF for the full systematic approach to eliminating flaky tests.

@@ -1,0 +1,110 @@
+---
+title: "The Friday Cleanup That Broke 40 Pipelines"
+description: "Why internal APIs deserve more versioning discipline than external ones, and how to identify breaking changes before they break your colleagues."
+cover: "./cover.jpg"
+coverAlt: "Migration toolkit with codemod wrench, compatibility adapter, validation scanner, and documentation guide for platform API version upgrades"
+author: "kevin-brown"
+publishDate: 2023-04-08
+tags: ["platform-engineering"]
+featured: true
+---
+
+*[API]: Application Programming Interface
+*[CI]: Continuous Integration
+
+Last week, a platform team I know shipped what they called a "small cleanup" to their deployment API. They renamed a field from `service_id` to `serviceId`, removed an endpoint that was "barely used," and updated the response format to match their new schema. No version bump. No deprecation notice. Just a Friday afternoon deploy and a Slack message in `#platform-updates` that nobody read.
+
+Monday morning, 40 CI pipelines failed. Three teams scrambled to update their deployment scripts. A critical security hotfix got blocked because the team couldn't deploy. The platform team spent the entire week doing emergency migrations instead of planned work. And the trust they'd built over the previous year? Gone.
+
+This happens constantly with internal APIs. There's a temptation to treat them differently than external ones: "we can just tell people to update," "everyone's in the same building," "we'll coordinate in Slack." But internal APIs deserve _more_ versioning discipline than external ones, not less.
+
+Internal customers are captive customers. They can't switch to a competitor's platform. This makes breaking their workflows worse, not better - they have no recourse except escalating to leadership or building workarounds that create tech debt.
+
+The same practices that make external APIs predictable - semantic versioning, deprecation policies, migration support - apply to internal platform APIs. The difference is that internal teams have higher expectations because they're colleagues, and lower patience because they have their own roadmaps that don't include "emergency migration of the deployment API."
+
+## What Actually Breaks
+
+_Will existing client code still work?_ That's the question that determines whether a change is breaking. If no, it's breaking. If yes, you need to dig deeper: is the behavior meaningfully different? Will consumers notice or care?
+
+Some changes are obviously breaking - removing endpoints, changing HTTP methods, adding required fields. These require full deprecation process, no exceptions. Other changes are obviously safe - adding optional fields, new endpoints, loosening validation. The table below draws the line.
+
+| Change | Breaking? | Why |
+|--------|-----------|-----|
+| Remove endpoint | Yes | Returns 404 to existing callers |
+| Change HTTP method | Yes | Returns 405 to existing callers |
+| Add required request field | Yes | Existing requests fail validation |
+| Change field type | Yes | Deserialization fails |
+| Add optional request field | No | Existing requests still valid |
+| Add response field | No | Clients should ignore unknown fields |
+| Add new endpoint | No | Existing endpoints unchanged |
+| Loosen validation | No | Previously valid requests still work |
+
+Table: Breaking vs safe changes.
+
+The tricky cases fall in between - changes that are technically compatible but break consumer assumptions:
+
+- _Error code changes_ (400 → 422): Technically correct, but breaks error handling logic
+- _Default value changes_: Clients that assumed a specific page size or timeout
+- _Semantic changes_: Making `count` include deleted items when it previously didn't - breaking even though the field name stays the same
+
+<Callout type="warning">
+When you're unsure whether a change breaks existing clients, treat it as breaking. Nobody complains about unnecessary deprecation warnings. They complain loudly about broken pipelines.
+</Callout>
+
+## The Deprecation Process
+
+Once you've identified a breaking change, follow a structured process that gives consumers time to adapt. Skipping steps is how you end up with 40 broken pipelines and a week of emergency migrations.
+
+_Step 1: Identify affected consumers._ Before announcing anything, know who's using the affected endpoints. API gateway logs tell you which services call which endpoints. Service mesh telemetry shows call patterns. SDK analytics reveal version distribution. Query the last 30 days of traffic - this catches regular callers and weekly batch jobs.
+
+_Step 2: Create a proposal document._ Write down what's changing, why it's changing, which endpoints are affected, estimated migration effort, and the proposed timeline. This becomes the single source of truth for the deprecation.
+
+_Step 3: Open a feedback period._ Give affected teams 30 days to review the proposal and raise concerns. Maybe you're missing a use case. Maybe the timeline is too aggressive for their roadmap. Maybe there's a simpler migration path you hadn't considered. Listen to the feedback - internal customers have context you don't.
+
+_Step 4: Notify affected teams directly._ Broadcast announcements get ignored. Target the teams you identified in step 1. Send to their Slack channels. Email their tech leads. Make it impossible to miss. The notification should include what's changing, why, the timeline, the migration guide, and where to ask questions.
+
+_Step 5: Schedule the timeline with milestones._ Set dates for feedback deadline, new version release, 90-day warning, 30-day warning, and sunset date. Put them in the team calendar. Configure automated reminders. Don't rely on anyone remembering.
+
+The key insight is that urgency should escalate as the deadline approaches. Early communication is broad and informational - changelog updates, Slack posts, email announcements. As sunset nears, communication becomes targeted and direct.
+
+| Timeline | Channel | Consumer Response |
+|----------|---------|-------------------|
+| Announcement | Changelog, Slack, email | Read and acknowledge |
+| 90 days out | Slack reminder, dashboard | Create migration ticket |
+| 30 days out | Direct email, Slack DM | Begin migration work |
+| 7 days out | Personal outreach | Emergency completion |
+| Sunset day | Final notice | Migration complete |
+
+Table: Deprecation communication timeline.
+
+Your API should also warn consumers programmatically. HTTP headers provide machine-readable deprecation signals that consumers can build automation around:
+
+```http
+HTTP/1.1 200 OK
+Deprecation: true
+Sunset: Sat, 15 Aug 2024 00:00:00 GMT
+Link: </docs/migration/v1-to-v2>; rel="deprecation"
+```
+Code: Standard HTTP deprecation headers.
+
+## Making Migration Easy
+
+The faster consumers migrate, the sooner you can sunset the old version. Every friction point in migration extends the deprecation timeline.
+
+A good migration guide answers questions in the order developers ask them. Start with the overview: what's changing, why, and the timeline. Then provide a quick start - the minimal changes for basic migration, ideally with copy-paste code snippets. Include a mapping table showing v1 endpoints/fields alongside their v2 equivalents. End with troubleshooting for common errors.
+
+Tier your support by consumer need. Most migrations should be self-service with docs and validators. For stuck teams, offer office hours and PR reviews. For critical consumers or complex cases, the platform team writes the migration PRs directly.
+
+Automation pays for itself quickly. A codemod that handles 80% of cases automatically and flags the remaining 20% for manual review dramatically reduces the burden on consuming teams. Compatibility adapters that translate v1 requests to v2 internally buy time for slow migrators without extending your maintenance window.
+
+## The Invisible Success
+
+Good API versioning is invisible. Consumers barely notice migrations because they're well-communicated, well-supported, and well-timed. The new version shows up with deprecation warnings months in advance. The migration guide makes the change trivial. By the time sunset arrives, everyone's already moved on.
+
+Bad API versioning is very visible: broken pipelines, blocked deployments, emergency all-hands, and trust that takes months to rebuild. The difference between them isn't technical complexity - it's discipline.
+
+Internal customers deserve predictable, well-communicated changes - arguably more so than external customers, because they can't switch providers when you break them. When in doubt, treat it as breaking. Give more notice than you think necessary. Make migration easier than seems reasonable. The payoff is trust with internal teams that makes future changes easier, faster adoption of new versions, and platform team time spent on planned work instead of emergency migrations.
+
+---
+
+This article covers identifying breaking changes and the deprecation communication process. The complete guide goes deeper on versioning strategies (URL path vs header vs date-based), semantic versioning for APIs, tiered migration support, automated migration tools including codemods and compatibility adapters, and metrics for tracking migration progress through the adoption funnel. Download the PDF for the full implementation details.

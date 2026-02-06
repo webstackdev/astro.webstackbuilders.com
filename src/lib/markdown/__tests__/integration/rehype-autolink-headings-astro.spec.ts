@@ -23,7 +23,8 @@ describe('rehype-autolink-headings (Layer 2: With Astro Pipeline)', () => {
 
       expect(html).toContain('<h2')
       expect(html).toContain('🔗')
-      expect(html).toContain('class="anchor-link"')
+      expect(html).toContain('class="anchor-link')
+      expect(html).toContain('class="heading-anchor')
       expect(html).toContain('<table')
     })
 
@@ -118,7 +119,7 @@ Content[^1]
         stage: 'rehype',
       })
 
-      const anchorCount = (html.match(/class="anchor-link"/g) || []).length
+      const anchorCount = (html.match(/class="anchor-link\b/g) || []).length
       expect(anchorCount).toBe(4) // All 4 headings should have anchors
     })
 

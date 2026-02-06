@@ -69,3 +69,34 @@ export function queryMetaDescription(root: ParentNode = document): HTMLMetaEleme
 
   return candidate
 }
+
+/**
+ * Optional icon bank element rendered by the Astro wrapper.
+ * Returns null when not present.
+ */
+export function querySocialShareIconMarkup(params: {
+  iconBankId: string
+  iconName: string
+  root?: Document
+}): string | null {
+  const { iconBankId, iconName, root = document } = params
+
+  if (!iconBankId || !iconName) {
+    return null
+  }
+
+  const iconBankCandidate = root.getElementById(iconBankId)
+  if (!isDivElement(iconBankCandidate)) {
+    return null
+  }
+
+  const iconHostCandidate = iconBankCandidate.querySelector(
+    `[data-social-share-icon="${iconName}"]`
+  )
+  if (!isSpanElement(iconHostCandidate)) {
+    return null
+  }
+
+  const markup = iconHostCandidate.innerHTML.trim()
+  return markup ? markup : null
+}

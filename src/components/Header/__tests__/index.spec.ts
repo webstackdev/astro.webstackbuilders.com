@@ -29,7 +29,7 @@ describe('Header (Astro)', () => {
 
       const menu = window.document.querySelector('ul.main-nav-menu')
       expect(menu).toBeTruthy()
-      expect(menu?.getAttribute('aria-label')).toBeNull()
+      expect(menu?.getAttribute('aria-label')).toBe('main navigation')
 
       const activeLink = window.document.querySelector('a[href="/about"]')
       expect(activeLink?.getAttribute('aria-current')).toBe('page')
@@ -50,6 +50,11 @@ describe('Header (Astro)', () => {
       expect(themeSvg?.getAttribute('aria-hidden')).toBe('true')
       expect(themeSvg?.getAttribute('focusable')).toBe('false')
       expect(themeSvg?.querySelector('title')).toBeNull()
+
+      const searchToggleButton = window.document.querySelector('button[data-search-toggle]')
+      expect(searchToggleButton).toBeTruthy()
+      expect(searchToggleButton?.getAttribute('aria-label')).toBe('Search')
+      expect(searchToggleButton?.getAttribute('aria-expanded')).toBe('false')
     })
   })
 })

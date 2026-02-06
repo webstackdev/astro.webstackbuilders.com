@@ -3,9 +3,11 @@ import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
 import {
   assertHasEmbedPlaceholder,
+  hasScriptWithSrc,
   queryFirstIframe,
   queryIframes,
   queryScripts,
+  queryStylesheetLinkByHref,
   queryUnmanagedEmbedElements,
   queryVideos,
   removeEmbedLoadingStatusNode,
@@ -19,10 +21,23 @@ export type EmbedPlatform =
   | 'linkedin'
   | 'bluesky'
   | 'mastodon'
-  | 'reddit'
   | 'youtube'
   | 'github-gist'
   | 'codepen'
+
+const embedPlatforms: EmbedPlatform[] = [
+  'x',
+  'linkedin',
+  'bluesky',
+  'mastodon',
+  'youtube',
+  'github-gist',
+  'codepen',
+]
+
+const isEmbedPlatform = (value: unknown): value is EmbedPlatform => {
+  return typeof value === 'string' && embedPlatforms.includes(value as EmbedPlatform)
+}
 
 /**
  * oEmbed response structure
@@ -100,9 +115,6 @@ export const detectEmbedPlatform = (url: string): EmbedPlatform => {
   if (isMastodonStatusUrl(url)) {
     return 'mastodon'
   }
-  if (isUrlOnAllowedDomains(url, ['reddit.com'])) {
-    return 'reddit'
-  }
   if (isUrlOnAllowedDomains(url, ['youtube.com', 'youtu.be'])) {
     return 'youtube'
   }
@@ -174,7 +186,8 @@ export class EmbedManager {
 
       embedElements.forEach((element, index) => {
         try {
-          const platform = element.dataset['embedPlatform'] as EmbedPlatform | undefined
+          const rawPlatform = element.dataset['embedPlatform']
+          const platform = isEmbedPlatform(rawPlatform) ? rawPlatform : undefined
           const url = element.dataset['embedUrl']
 
           if (!url) {
@@ -290,6 +303,9 @@ class EmbedInstance {
   private loaded = false
   private paused = false
 
+  private embedWidth?: number
+  private embedHeight?: number
+
   // Cache settings
   private static readonly CACHE_PREFIX = 'embed_cache_'
   private static readonly DEFAULT_TTL = 24 * 60 * 60 * 1000 // 24 hours
@@ -303,6 +319,30 @@ class EmbedInstance {
     this.container = container
     this.url = url
     this.platform = platform || this.detectPlatform(url)
+
+    const width = Number.parseInt(container.dataset['embedWidth'] ?? '', 10)
+    const height = Number.parseInt(container.dataset['embedHeight'] ?? '', 10)
+    if (Number.isFinite(width) && width > 0) this.embedWidth = width
+    if (Number.isFinite(height) && height > 0) this.embedHeight = height
+  }
+
+  private getYouTubeDimensions(): { width: number; height: number } {
+    const defaultWidth = 560
+    const defaultHeight = 315
+
+    if (this.embedWidth && this.embedHeight) {
+      return { width: this.embedWidth, height: this.embedHeight }
+    }
+
+    if (this.embedWidth && !this.embedHeight) {
+      return { width: this.embedWidth, height: Math.round((this.embedWidth * 9) / 16) }
+    }
+
+    if (!this.embedWidth && this.embedHeight) {
+      return { width: Math.round((this.embedHeight * 16) / 9), height: this.embedHeight }
+    }
+
+    return { width: defaultWidth, height: defaultHeight }
   }
 
   private setAriaBusy(isBusy: boolean): void {
@@ -403,6 +443,16 @@ class EmbedInstance {
 
       this.loaded = true
 
+      if (this.platform === 'github-gist') {
+        await this.loadGitHubGistEmbed()
+        return
+      }
+
+      if (this.platform === 'codepen') {
+        this.loadCodePenEmbed()
+        return
+      }
+
       try {
         // Check cache first
         const cached = this.getCachedData()
@@ -471,18 +521,21 @@ class EmbedInstance {
       case 'mastodon':
         return this.getMastodonOEmbedEndpoint()
 
-      case 'reddit':
-        return `https://www.reddit.com/oembed?url=${encodedUrl}`
-
       case 'youtube':
-        return `https://www.youtube.com/oembed?url=${encodedUrl}&format=json`
+        {
+          const { width, height } = this.getYouTubeDimensions()
+          const maxwidth = encodeURIComponent(String(width))
+          const maxheight = encodeURIComponent(String(height))
+          return `https://www.youtube.com/oembed?url=${encodedUrl}&format=json&maxwidth=${maxwidth}&maxheight=${maxheight}`
+        }
 
       case 'github-gist':
-        // GitHub Gist doesn't have official oEmbed, we'll handle this differently
+        // GitHub Gist doesn't have oEmbed and is loaded via JSONP
         return null
 
       case 'codepen':
-        return `https://codepen.io/api/oembed?url=${encodedUrl}&format=json`
+        // CodePen oEmbed is commonly blocked by CORS; load via the official embed script instead
+        return null
 
       case 'linkedin':
         // LinkedIn doesn't use oEmbed, handled separately
@@ -527,12 +580,6 @@ class EmbedInstance {
       const iframeFallbackTitle = (data.title ?? '').trim() || 'Embedded content'
       this.ensureIframeTitles(wrapper, iframeFallbackTitle)
 
-      // Handle GitHub Gist specially (no oEmbed support)
-      if (this.platform === 'github-gist') {
-        this.renderGitHubGist(wrapper)
-        return
-      }
-
       // Replace placeholder with actual embed
       placeholder.replaceWith(wrapper)
 
@@ -546,21 +593,169 @@ class EmbedInstance {
     }
   }
 
-  private renderGitHubGist(wrapper: HTMLElement): void {
-    if (!isUrlOnAllowedDomains(this.url, ['gist.github.com'])) {
-      console.warn('GitHub Gist embed blocked: URL host not allowed')
+  private getGitHubGistJsonpUrl(): string | null {
+    const parsed = safeParseAbsoluteHttpUrl(this.url)
+    if (!parsed) return null
+
+    if (!hostMatchesDomain(parsed.hostname, 'gist.github.com')) {
+      return null
+    }
+
+    // Expected: /:owner/:gistId
+    const parts = parsed.pathname.split('/').filter(Boolean)
+    if (parts.length < 2) {
+      return null
+    }
+
+    const owner = parts[0]
+    const gistId = parts[1]
+
+    return `https://gist.github.com/${owner}/${gistId}.json`
+  }
+
+  private async loadGitHubGistEmbed(): Promise<void> {
+    const context = { scriptName: 'EmbedInstance', operation: 'loadGitHubGistEmbed' }
+    addScriptBreadcrumb(context)
+
+    try {
+      const jsonUrl = this.getGitHubGistJsonpUrl()
+      if (!jsonUrl) {
+        console.warn('GitHub Gist embed blocked: invalid or unsupported URL')
+        return
+      }
+
+      type GistJsonpResponse = { div?: string; stylesheet?: string }
+
+      const callbackName = `__gistEmbedCb_${Math.random().toString(36).slice(2)}`
+      const cleanup = (script: HTMLScriptElement): void => {
+        delete (globalThis as unknown as Record<string, unknown>)[callbackName]
+        script.remove()
+      }
+
+      const payload = await new Promise<GistJsonpResponse>((resolve, reject) => {
+        const script = document.createElement('script')
+        ;(globalThis as unknown as Record<string, unknown>)[callbackName] = (data: unknown) => {
+          cleanup(script)
+          resolve(data as GistJsonpResponse)
+        }
+
+        const jsonpUrl = `${jsonUrl}?callback=${encodeURIComponent(callbackName)}`
+        script.src = jsonpUrl
+        script.async = true
+        script.onerror = () => {
+          cleanup(script)
+          reject(new Error(`Failed to load gist JSONP: ${jsonpUrl}`))
+        }
+
+        document.head.appendChild(script)
+      })
+
+      if (!payload.div) {
+        console.error('GitHub Gist JSONP response missing `div`')
+        return
+      }
+
+      if (payload.stylesheet) {
+        const existing = queryStylesheetLinkByHref(payload.stylesheet)
+        if (!existing) {
+          const link = document.createElement('link')
+          link.rel = 'stylesheet'
+          link.href = payload.stylesheet
+          document.head.appendChild(link)
+        }
+      }
+
+      const placeholder = assertHasEmbedPlaceholder(this.container)
+      const wrapper = document.createElement('div')
+      wrapper.className = 'embed-content'
+      wrapper.innerHTML = payload.div
+
+      placeholder.replaceWith(wrapper)
+      this.removeLoadingStatusNode()
+      this.setAriaBusy(false)
+    } catch (error) {
+      handleScriptError(error, context)
+    }
+  }
+
+  private getCodePenMetadata(): { user: string; slugHash: string } | null {
+    const parsed = safeParseAbsoluteHttpUrl(this.url)
+    if (!parsed) return null
+
+    if (!hostMatchesDomain(parsed.hostname, 'codepen.io')) {
+      return null
+    }
+
+    // Common formats:
+    // - /:user/pen/:hash
+    // - /pen/:hash (less common)
+    const parts = parsed.pathname.split('/').filter(Boolean)
+    const penIndex = parts.indexOf('pen')
+    if (penIndex === -1 || penIndex + 1 >= parts.length) return null
+
+    const slugHash = parts[penIndex + 1]
+    if (!slugHash) return null
+    const user = penIndex > 0 ? parts[penIndex - 1] : ''
+    if (!user) return null
+
+    return { user, slugHash }
+  }
+
+  private ensureCodePenEmbedScript(): void {
+    const src = 'https://cpwebassets.codepen.io/assets/embed/ei.js'
+    const alreadyLoaded = hasScriptWithSrc(src)
+
+    if (alreadyLoaded) {
+      const maybeEmbedFn = (globalThis as unknown as { __CPEmbed?: () => void }).__CPEmbed
+      if (typeof maybeEmbedFn === 'function') {
+        maybeEmbedFn()
+      }
       return
     }
 
-    // For GitHub Gist, we create a script tag that loads the gist
     const script = document.createElement('script')
-    script.src = `${this.url}.js`
-    wrapper.appendChild(script)
+    script.src = src
+    script.async = true
+    document.head.appendChild(script)
+  }
 
-    const placeholder = assertHasEmbedPlaceholder(this.container)
-    placeholder.replaceWith(wrapper)
-    this.removeLoadingStatusNode()
-    this.setAriaBusy(false)
+  private loadCodePenEmbed(): void {
+    const context = { scriptName: 'EmbedInstance', operation: 'loadCodePenEmbed' }
+    addScriptBreadcrumb(context)
+
+    try {
+      const meta = this.getCodePenMetadata()
+      if (!meta) {
+        console.warn('CodePen embed blocked: invalid or unsupported URL')
+        return
+      }
+
+      const placeholder = assertHasEmbedPlaceholder(this.container)
+      const wrapper = document.createElement('div')
+      wrapper.className = 'embed-content'
+
+      const height = this.embedHeight && this.embedHeight > 0 ? this.embedHeight : 600
+
+      const p = document.createElement('p')
+      p.className = 'codepen'
+      p.setAttribute('data-height', String(height))
+      p.setAttribute('data-default-tab', 'result')
+      p.setAttribute('data-slug-hash', meta.slugHash)
+      p.setAttribute('data-user', meta.user)
+
+      // Assistive + fallback text (shown if CodePen script can't run)
+      p.textContent = `See the Pen on CodePen.`
+
+      wrapper.appendChild(p)
+
+      placeholder.replaceWith(wrapper)
+      this.removeLoadingStatusNode()
+      this.setAriaBusy(false)
+
+      this.ensureCodePenEmbedScript()
+    } catch (error) {
+      handleScriptError(error, context)
+    }
   }
 
   private executeScripts(container: HTMLElement): void {

@@ -150,17 +150,17 @@ export class NewsletterFormElement extends LitElement {
 
       this.message.textContent = text
       this.message.classList.remove(
-        'text-[var(--color-text-offset)]',
-        'text-[var(--color-success)]',
-        'text-[var(--color-danger)]'
+        'text-content-active',
+        'text-success',
+        'text-danger'
       )
 
       if (type === 'success') {
-        this.message.classList.add('text-[var(--color-success)]')
+        this.message.classList.add('text-success')
       } else if (type === 'error') {
-        this.message.classList.add('text-[var(--color-danger)]')
+        this.message.classList.add('text-danger')
       } else {
-        this.message.classList.add('text-[var(--color-text-offset)]')
+        this.message.classList.add('text-content-active')
       }
     } catch (error) {
       handleScriptError(error, context)

@@ -38,7 +38,8 @@ test.describe('Core Web Vitals', () => {
 
   test.skip('@blocked Total Blocking Time under 200ms', async () => {
     // Wait for page to fully load
-    await coreWebVitalsPage.waitForLoadState('networkidle')
+    // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
+    await coreWebVitalsPage.waitForNetworkIdleBestEffort()
     await coreWebVitalsPage.expectTBTUnder(200)
   })
 

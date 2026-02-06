@@ -11,9 +11,23 @@ type ShikiThemes =
     }
 
 export type RehypeShikiOptions = {
-  themes: ShikiThemes
+  /**
+   * Single theme name.
+   * Prefer this when using a CSS variables theme so the site theme system owns colors.
+   */
+  theme?: string
+  /**
+   * Multi-theme config (e.g. light/dark). This lets Shiki emit per-token theme variables.
+   */
+  themes?: ShikiThemes
+  /**
+   * Custom theme registrations to load into Shiki's highlighter (e.g. createCssVariablesTheme()).
+   */
+  themeRegistrations?: unknown[]
   defaultColor?: 'light' | 'dark' | false
   langAlias?: Record<string, string>
+  /** Shiki transformers to apply (e.g. meta-based highlighting). */
+  transformers?: unknown[]
   /**
    * Use Tailwind for wrapping instead of Shiki inline wrap styles.
    * Defaults to false (no wrap).
@@ -26,21 +40,32 @@ export type RehypeShikiOptions = {
 type HighlighterLike = {
   codeToHast: (
     _code: string,
-    _options: {
-      lang: string
-      themes: ShikiThemes
-      defaultColor?: 'light' | 'dark' | false
-      wrap?: boolean
-    }
+    // Keep the options permissive; Shiki option shapes evolve across versions.
+    // We only rely on a few keys (lang, themes, meta, transformers, defaultColor, tabindex).
+    _options: Record<string, unknown>
   ) => Root | Element
   loadLanguage: (_lang: string) => Promise<void>
 }
 
-function getThemeNames(themes: ShikiThemes): string[] {
+function getThemeNames(themes: ShikiThemes | undefined): string[] {
+  if (!themes) return []
   if (typeof themes === 'string') return [themes]
 
   const names = [themes.light, themes.dark].filter(Boolean)
   return Array.from(new Set(names))
+}
+
+function getHighlighterThemes(options: RehypeShikiOptions): unknown[] {
+  if (Array.isArray(options.themeRegistrations) && options.themeRegistrations.length > 0) {
+    return options.themeRegistrations
+  }
+
+  const fromThemes = getThemeNames(options.themes)
+  if (fromThemes.length > 0) return fromThemes
+
+  if (typeof options.theme === 'string' && options.theme.trim()) return [options.theme.trim()]
+
+  throw new Error('rehype-shiki: expected theme, themes, or themeRegistrations')
 }
 
 function toStringArray(value: unknown): string[] {
@@ -73,6 +98,17 @@ function getText(node: unknown): string {
 
   if (!Array.isArray(typed.children)) return ''
   return typed.children.map(getText).join('')
+}
+
+function stripTrailingFenceNewline(codeText: string): string {
+  // Markdown fenced code blocks typically include a trailing newline due to the closing fence being
+  // on the next line. Shiki turns a trailing newline into an extra empty `.line`.
+  // Remove exactly one trailing newline (supports both \n and \r\n) so that:
+  // - regular code blocks don't gain an extra blank line
+  // - intentional trailing blank lines are preserved (e.g., code ending in "\n\n" keeps one)
+  if (codeText.endsWith('\r\n')) return codeText.slice(0, -2)
+  if (codeText.endsWith('\n')) return codeText.slice(0, -1)
+  return codeText
 }
 
 function parseLanguageFromCode(code: Element): string | null {
@@ -190,7 +226,7 @@ const rehypeShiki: Plugin<[RehypeShikiOptions], Root> = (options: RehypeShikiOpt
     highlighterPromise = (async () => {
       // Shiki requires themes to be loaded before use.
       const highlighter = await createHighlighter({
-        themes: getThemeNames(options.themes),
+        themes: getHighlighterThemes(options) as never,
         langs: [],
       })
 
@@ -217,6 +253,7 @@ const rehypeShiki: Plugin<[RehypeShikiOptions], Root> = (options: RehypeShikiOpt
       original: Element
       lang: string
       codeText: string
+      metaRaw: string | undefined
     }> = []
 
     visit(
@@ -240,7 +277,20 @@ const rehypeShiki: Plugin<[RehypeShikiOptions], Root> = (options: RehypeShikiOpt
         const codeText = getText(codeChild)
         if (!codeText.trim()) return
 
-        replacements.push({ parent, index, original: node, lang, codeText })
+        const metaValue =
+          getDataPropValue(node, 'data-shiki-meta') ??
+          getDataPropValue(codeChild, 'data-shiki-meta')
+
+        const metaRaw = typeof metaValue === 'string' && metaValue.trim() ? metaValue.trim() : undefined
+
+        replacements.push({
+          parent,
+          index,
+          original: node,
+          lang,
+          codeText: stripTrailingFenceNewline(codeText),
+          metaRaw,
+        })
       }
     )
 
@@ -252,19 +302,26 @@ const rehypeShiki: Plugin<[RehypeShikiOptions], Root> = (options: RehypeShikiOpt
         continue
       }
 
-      const shikiOptions: {
-        lang: string
-        themes: ShikiThemes
-        defaultColor?: 'light' | 'dark' | false
-        wrap?: boolean
-      } = {
+      const shikiOptions: Record<string, unknown> = {
         lang: replacement.lang,
-        themes: options.themes,
+        ...(options.themes ? { themes: options.themes } : {}),
+        ...(options.themes ? {} : options.theme ? { theme: options.theme } : {}),
+        // We manage wrapping via Tailwind classes on the output, not via Shiki.
         wrap: false,
+        // Keep code blocks out of keyboard tab order.
+        tabindex: false,
       }
 
       if (options.defaultColor !== undefined) {
-        shikiOptions.defaultColor = options.defaultColor
+        shikiOptions['defaultColor'] = options.defaultColor
+      }
+
+      if (options.transformers && Array.isArray(options.transformers) && options.transformers.length > 0) {
+        shikiOptions['transformers'] = options.transformers
+      }
+
+      if (replacement.metaRaw) {
+        shikiOptions['meta'] = { __raw: replacement.metaRaw }
       }
 
       const highlighted = highlighter.codeToHast(replacement.codeText, shikiOptions)
@@ -290,15 +347,21 @@ const rehypeShiki: Plugin<[RehypeShikiOptions], Root> = (options: RehypeShikiOpt
       for (const [key, value] of Object.entries(existingProps)) {
         if (key === 'className' || key === 'class') continue
         if (key === 'data-code-tabs-group' || key === 'data-code-tabs-tab') continue
+        if (key === 'data-shiki-meta') continue
         highlightedPre.properties[key] = value as never
       }
 
-      highlightedPre.properties['tabIndex'] = 0
+      delete (highlightedPre.properties as Record<string, unknown>)['data-shiki-meta']
+
       highlightedPre.properties['data-language'] = replacement.lang
 
       highlightedPre.properties['className'] = mergeClassNames(
         highlightedPre.properties['className'],
-        ['overflow-x-auto', wrap ? 'whitespace-pre-wrap' : 'whitespace-pre']
+        [
+          wrap ? 'overflow-x-hidden' : 'overflow-x-auto',
+          wrap ? 'whitespace-pre-wrap' : 'whitespace-pre',
+          wrap ? 'break-words' : '',
+        ]
       )
 
       replacement.parent.children[replacement.index] = highlightedPre

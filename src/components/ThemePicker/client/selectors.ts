@@ -5,6 +5,7 @@ import {
   isButtonElement,
   isDivElement,
   isMetaElement,
+  isType1Element,
 } from '@components/scripts/assertions/elements'
 import { ClientScriptError } from '@components/scripts/errors'
 
@@ -13,11 +14,24 @@ export const SELECTORS = {
   toggleBtn: '[data-theme-toggle]',
   closeBtn: '[data-theme-close]',
   themeBtn: '[data-theme]',
+  themeTooltipSource: '[data-theme-tooltip]',
   emblaViewport: '[data-theme-embla-viewport]',
   emblaPrevBtn: '[data-theme-embla-prev]',
   emblaNextBtn: '[data-theme-embla-next]',
   metaThemeColor: 'meta[name="theme-color"]',
 } as const
+
+/**
+ * Returns the tooltip source element for a given theme button, if present.
+ */
+export const queryThemeButtonTooltipSource = (button: HTMLButtonElement): Element | null => {
+  const tooltipSource = button.querySelector(SELECTORS.themeTooltipSource)
+  if (!isType1Element(tooltipSource)) {
+    return null
+  }
+
+  return tooltipSource
+}
 
 /**
  * Gets the theme picker modal element

@@ -53,6 +53,24 @@ describe('Time (Astro)', () => {
     })
   })
 
+  test('defaults to datetime format and renders fallback text when format is omitted', async () => {
+    const Time = (await import('@components/Time/index.astro')).default
+
+    const renderedHtml = await container.renderToString(Time, {
+      props: {
+        datetime: '2026-01-01T00:00:00.000Z',
+      },
+    })
+
+    await withJsdomEnvironment(async ({ window }) => {
+      window.document.body.innerHTML = renderedHtml
+
+      const element = window.document.querySelector('relative-time')
+      expect(element?.getAttribute('format')).toBe('datetime')
+      expect((element?.textContent ?? '').trim().length).toBeGreaterThan(0)
+    })
+  })
+
   test('uses current time when now=true and datetime is omitted', async () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2030-01-02T03:04:05.000Z'))
@@ -96,6 +114,26 @@ describe('Time (Astro)', () => {
       const element = window.document.querySelector('relative-time')
       expect(element?.getAttribute('format-style')).toBe('short')
       expect(element?.getAttribute('time-zone-name')).toBe('shortOffset')
+    })
+  })
+
+  test('forces a timeZone when provided and appends it in parentheses', async () => {
+    const Time = (await import('@components/Time/index.astro')).default
+
+    const renderedHtml = await container.renderToString(Time, {
+      props: {
+        format: 'datetime',
+        datetime: '2020-01-01T00:00:00Z',
+        timeZone: 'America/New_York',
+      },
+    })
+
+    await withJsdomEnvironment(async ({ window }) => {
+      window.document.body.innerHTML = renderedHtml
+
+      const element = window.document.querySelector('relative-time')
+      expect(element?.getAttribute('time-zone')).toBe('America/New_York')
+      expect(window.document.body.textContent).toContain('(America/New_York)')
     })
   })
 

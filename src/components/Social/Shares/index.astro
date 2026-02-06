@@ -3,6 +3,8 @@
  * Social media sharing component powered by Lit web component
  */
 
+import Icon from '@components/Icon/index.astro'
+
 export interface Props {
   /** Page URL to share */
   url: string
@@ -17,7 +19,7 @@ export interface Props {
   /** Show as horizontal or vertical layout */
   layout?: 'horizontal' | 'vertical'
   /** Which social networks to show */
-  socialNetworks?: ('twitter' | 'linkedin' | 'bluesky' | 'reddit' | 'mastodon')[]
+  socialNetworks?: ('x' | 'linkedin' | 'bluesky' | 'reddit' | 'mastodon')[]
 }
 
 const {
@@ -26,14 +28,24 @@ const {
   description = '',
   class: additionalClasses = '',
   layout = 'horizontal',
-  socialNetworks = ['twitter', 'linkedin', 'bluesky', 'reddit', 'mastodon'],
+  socialNetworks = ['x', 'linkedin', 'bluesky', 'reddit', 'mastodon'],
 } = Astro.props
 
 // Create share data
 const shareDescription = description ?? ''
 const containerClassAttr = additionalClasses ?? ''
 const socialNetworksAttr = socialNetworks.join(',')
+
+const iconBankId = `social-share-icon-bank-${Math.random().toString(36).slice(2)}`
 ---
+
+<div id={iconBankId} hidden aria-hidden="true">
+  <span data-social-share-icon="x"><Icon name="x" size={24} variant="inherit" /></span>
+  <span data-social-share-icon="linkedin"><Icon name="linkedin" size={24} variant="inherit" /></span>
+  <span data-social-share-icon="bluesky"><Icon name="bluesky" size={24} variant="inherit" /></span>
+  <span data-social-share-icon="reddit"><Icon name="reddit" size={24} variant="inherit" /></span>
+  <span data-social-share-icon="mastodon"><Icon name="mastodon" size={24} variant="inherit" /></span>
+</div>
 
 <social-share-element
   data-social-shares
@@ -43,9 +55,12 @@ const socialNetworksAttr = socialNetworks.join(',')
   layout={layout}
   social-networks={socialNetworksAttr}
   container-class={containerClassAttr}
-  label-text="Share:"></social-share-element>
+  icon-bank-id={iconBankId}
+  label-text="Share:"
+>
+</social-share-element>
 
 <script>
-  import { registerSocialShareElement } from './client'
-  registerSocialShareElement()
+  import { registerSocialShareWebComponent } from '@components/Social/Shares/client'
+  registerSocialShareWebComponent()
 </script>

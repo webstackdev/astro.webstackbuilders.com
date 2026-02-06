@@ -1,0 +1,31 @@
+---
+title: "Download Your Circuit Breakers and Retry Budgets Guide"
+description: "Get the e-book: Protecting downstream services from cascade failures without hiding real problems behind open circuits."
+author: "kevin-brown"
+cover: "./cover.jpg"
+coverAlt: "Retry budget gauge showing partial depletion with replenishment pipe from successful requests feeding back into the meter"
+publishDate: 2024-09-15
+isDraft: false
+fileType: "Whitepaper"
+fileSize: "2.3 MB"
+pages: 24
+fileName: "*.pdf"
+---
+
+A payment service starts responding slowly due to database connection pool exhaustion. Response times climb from 50ms to 2 seconds. Every upstream service has a 1-second timeout configured, so requests start timing out. Each caller retries 3 times. The payment service, already struggling with connection issues, now receives 4x the normal traffic. Its request queue grows to thousands. What started as a 30-second database blip becomes a 2-hour cascading outage across your entire platform.
+
+The root cause wasn't the database. It was the retry behavior. Retries without limits are a distributed denial-of-service attack against your own infrastructure. When a downstream service fails, uncoordinated retries exponentially amplify the load, turning minor issues into catastrophic outages. With 3 services in a chain, each retrying 3 times, you get 64x load amplification. With 4 services and 5 retries? 1,296x amplification.
+
+This complete guide teaches you how to implement circuit breakers and retry budgets to break the cascade failure cycle.
+
+Read this e-book to understand:
+
+- Retry amplification math: how exponential growth turns minor failures into catastrophic outages
+- The three states of circuit breakers: closed, open, half-open, and when to transition
+- Distinguishing transient vs. permanent failures: when to retry and when to circuit break
+- Retry budgets and global quotas: limiting total retry traffic across service chains
+- Bulkheads and timeout configuration: preventing cascade failures across service boundaries
+- Observability and monitoring: detecting overload conditions before they cause outages
+- Production patterns and framework support: implementing patterns in Resilience4j, Polly, and others
+
+Download Your Circuit Breakers and Retry Budgets Guide now to prevent the cascade failures that turn minor issues into multi-hour outages.

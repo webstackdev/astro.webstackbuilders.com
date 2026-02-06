@@ -1,0 +1,207 @@
+---
+title: "Terraform Module Defaults That Won't Break Your Consumers"
+description: "Design module interfaces with sensible defaults, clear breaking-change boundaries, and early validation to create modules teams actually want to use."
+cover: "./cover.jpg"
+coverAlt: "Technical blueprint with version numbers, revision marks, and change annotations documenting interface evolution over time"
+author: "kevin-brown"
+publishDate: 2025-12-07
+tags: ["cloud-platforms"]
+featured: true
+---
+
+*[HCL]: HashiCorp Configuration Language
+*[IaC]: Infrastructure as Code
+*[VPC]: Virtual Private Cloud
+
+I've seen production modules with 47 required variables — modules where using them meant copying a wall of configuration from the README and hoping you didn't miss anything. I've also inherited the opposite: modules with opaque defaults that worked great until someone deployed to production and discovered deletion protection was off by default.
+
+The difference between modules that teams love and modules that teams fork-and-forget comes down to interface design. Specifically, how you handle defaults and what you consider a breaking change. Get these right, and your module becomes the obvious choice. Get them wrong, and you'll spend more time fielding support questions than writing infrastructure.
+
+## Required vs Optional: The 80% Rule
+
+Most variables should have defaults. Required variables should be reserved for values the module genuinely cannot guess — your VPC ID, your environment name, your account-specific settings.
+
+Think of it this way: if 80% of your consumers will use the same value, make it the default. They can override it if needed, but they shouldn't have to specify it just to get started.
+
+### Three Categories of Variables
+
+I organize variables into three categories based on what consumers need to provide:
+
+_Required variables_ have no default. The module cannot function without them. VPC ID is a classic example — the module has no way to know which VPC you want to deploy into. Environment is another; defaulting to "development" when someone actually wanted production would be a disaster.
+
+_Optional with sensible default_ covers most settings. Instance type defaults to t3.medium because it works for most workloads. Backup retention defaults to 7 days because some retention is almost always better than none. Consumers can override these, but they don't have to think about them on day one.
+
+_Opt-in with null_ handles features that most consumers don't need. Custom KMS keys, custom domains, advanced monitoring — these use `null` as the default, signaling "skip this feature" or "use platform defaults."
+
+```hcl title="modules/database/variables.tf"
+# Required: module cannot safely guess
+variable "environment" {
+  description = "Deployment environment (production, staging, development)"
+  type        = string
+}
+
+variable "vpc_id" {
+  description = "ID of the VPC where resources will be created"
+  type        = string
+}
+
+# Optional with sensible default
+variable "instance_type" {
+  description = "RDS instance type"
+  type        = string
+  default     = "db.t3.medium"
+}
+
+variable "backup_retention_days" {
+  description = "Number of days to retain automated backups"
+  type        = number
+  default     = 7
+}
+
+# Opt-in feature (null means skip)
+variable "custom_kms_key_arn" {
+  description = "ARN of a custom KMS key for encryption (optional)"
+  type        = string
+  default     = null
+}
+```
+
+Code: Three categories of variables — required, optional with default, and opt-in with null.
+
+When you apply this pattern consistently, consumers get module calls that look like this:
+
+```hcl title="environments/production/main.tf"
+module "database" {
+  source      = "company/rds/aws"
+  version     = "~> 2.0"
+  environment = "production"
+  vpc_id      = module.network.vpc_id
+}
+```
+
+Code: Minimal module call with only truly required variables.
+
+Everything else — instance type, storage size, backup retention, encryption settings — uses sensible defaults. Consumers can override them when needed, but they don't have to think about them on day one.
+
+### Default to the Safer Option
+
+When a setting affects data durability or security, default to the more protective choice. Deletion protection should default to `true`. Encryption should default to enabled. Multi-AZ for production databases should probably be on by default.
+
+```hcl title="modules/database/variables.tf"
+variable "deletion_protection" {
+  description = "Prevent accidental database deletion"
+  type        = bool
+  default     = true  # Safe by default; opt out for dev
+}
+
+variable "storage_encrypted" {
+  description = "Enable encryption at rest"
+  type        = bool
+  default     = true  # Always encrypt; no reason not to
+}
+```
+
+Code: Security-sensitive settings default to the protective option.
+
+Users can opt out for development environments; they shouldn't have to opt _in_ for production safety. The module should make the secure path the easy path.
+
+## What You Can Change Without Breaking Consumers
+
+Here's where module maintenance gets tricky. You want to improve your module — fix bugs, add features, clean up technical debt. But every change risks breaking someone's deployment. Understanding which changes are safe and which require a major version bump saves you from angry Slack messages.
+
+| Change Type | Breaking? | Migration Action |
+|-------------|-----------|------------------|
+| Add optional input with default | No | Ship it |
+| Remove input variable | Yes | Deprecate in prior version; document in changelog |
+| Change input type | Yes | Document migration steps in changelog |
+| Add new output | No | Ship it |
+| Remove output | Yes | Deprecate in prior version; document replacement |
+| Rename resource | Yes | Add `moved` block to preserve state |
+
+Table: Common module changes and whether they break consumers.
+
+The key insight: _outputs are promises_. Even if you think nobody uses a particular output, removing it is a breaking change. Someone, somewhere, has wired it into their Terragrunt wrapper or their CI pipeline. Deprecate outputs for at least one major version before removal — add a description that says "DEPRECATED: Use xyz instead. Will be removed in v3.0" and give consumers time to migrate.
+
+<Callout type="warning">
+Resource renames are particularly dangerous. If you rename `aws_instance.main` to `aws_instance.primary` without a `moved` block, Terraform will destroy and recreate the resource. For a database, that means data loss. Always include moved blocks when renaming:
+
+```hcl
+moved {
+  from = aws_instance.main
+  to   = aws_instance.primary
+}
+```
+</Callout>
+
+### How Semantic Versioning Applies
+
+Semantic versioning tells consumers what to expect:
+
+- _Major version_ (2.0.0 → 3.0.0): Breaking changes. Consumers should read the changelog before upgrading.
+- _Minor version_ (2.1.0 → 2.2.0): New features, backward compatible. Safe to upgrade.
+- _Patch version_ (2.1.1 → 2.1.2): Bug fixes only. Always safe.
+
+The discipline is in classifying correctly. Renaming an output feels like cleanup, but it's a breaking change. Adding a new resource with side effects (like a CloudWatch alarm that pages someone) might technically be backward compatible, but it'll still surprise your consumers.
+
+When in doubt, it's a breaking change. Your consumers will thank you for the predictability.
+
+Versioning handles changes over time. But what about catching mistakes before they ship?
+
+## Catch Errors at Plan Time
+
+Good validation saves hours of debugging. When a consumer passes an invalid CIDR block, you want them to discover it in seconds — not twenty minutes into `terraform apply` when the VPC creation fails with a cryptic AWS error.
+
+```hcl title="modules/vpc/variables.tf"
+variable "vpc_cidr" {
+  description = "CIDR block for the VPC"
+  type        = string
+
+  validation {
+    condition     = can(cidrhost(var.vpc_cidr, 0))
+    error_message = "VPC CIDR must be a valid IPv4 CIDR block."
+  }
+
+  validation {
+    condition = (
+      tonumber(split("/", var.vpc_cidr)[1]) >= 16 &&
+      tonumber(split("/", var.vpc_cidr)[1]) <= 28
+    )
+    error_message = "VPC CIDR must have a prefix between /16 and /28."
+  }
+}
+```
+
+Code: Validation blocks that catch CIDR errors at plan time.
+
+Validation blocks run during `terraform plan`, before any API calls. They're your first line of defense against misconfiguration. Validate CIDR blocks, ARN formats, naming conventions — anything that has a known-good pattern.
+
+For conditional requirements, use `precondition` blocks in resource lifecycles:
+
+```hcl title="modules/load-balancer/main.tf"
+resource "aws_lb_listener" "https" {
+  count = var.enable_https ? 1 : 0
+
+  lifecycle {
+    precondition {
+      condition     = var.certificate_arn != null
+      error_message = "certificate_arn is required when enable_https is true."
+    }
+  }
+}
+```
+
+Code: Precondition enforcing that HTTPS listeners require a certificate.
+
+This catches the case where someone enables HTTPS but forgets to provide a certificate — before Terraform tries to create a broken listener.
+
+## What Makes Modules Worth Using
+
+The patterns here aren't complicated: default to safe values, validate inputs early, and version changes honestly. The discipline is applying them consistently.
+
+Every required variable you add is friction. Every breaking change without a migration path is trust eroded. Every validation you skip is a support ticket waiting to happen.
+
+Your module's interface is the only part most consumers will ever see. When it's thoughtfully designed — easy to start with, hard to misconfigure, predictable to upgrade — it becomes infrastructure that teams reach for instead of work around.
+
+---
+
+This article covers the essentials of module interface design: defaults, breaking changes, and validation. The complete guide goes deeper into output design patterns, module composition strategies, version constraint selection, and contract testing with Terraform's native test framework. Download the PDF for the full treatment of building modules that scale across teams.

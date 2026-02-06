@@ -7,6 +7,7 @@ export const SELECTORS = {
   emblaRoot: '.testimonials-embla',
   viewport: '.embla__viewport',
   slides: '.embla__slide',
+  focusVisibleSlide: '[data-testimonials-slide] :focus-visible',
   dotsContainer: '.embla__dots',
   prevBtn: '.embla__button--prev',
   nextBtn: '.embla__button--next',
@@ -80,6 +81,14 @@ export const queryTestimonialsAutoplayPauseIcon = (toggleBtn: ParentNode): Eleme
 
 export const queryTestimonialsAutoplayPlayIcon = (toggleBtn: ParentNode): Element | null =>
   toggleBtn.querySelector(SELECTORS.autoplayPlayIcon)
+
+export const hasTestimonialsFocusVisibleSlide = (scope: ParentNode): boolean => {
+  try {
+    return scope.querySelector(SELECTORS.focusVisibleSlide) instanceof HTMLElement
+  } catch {
+    return false
+  }
+}
 
 /**
  * Required DOM nodes needed to initialize Embla.

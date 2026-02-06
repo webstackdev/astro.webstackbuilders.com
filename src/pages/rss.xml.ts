@@ -1,6 +1,15 @@
 import rss from '@astrojs/rss'
 import { getCollection } from 'astro:content'
 
+const toCategory = (tag: unknown) => {
+  if (typeof tag === 'string') return tag
+  if (tag && typeof tag === 'object' && 'id' in tag) {
+    const id = (tag as { id?: unknown }).id
+    if (typeof id === 'string') return id
+  }
+  return undefined
+}
+
 export async function GET() {
   const now = new Date()
   const articles = await getCollection(
@@ -26,7 +35,7 @@ export async function GET() {
       pubDate: article.data.publishDate,
       description: article.data.description,
       link: `/articles/${article.id}`,
-      categories: article.data.tags,
+      categories: (article.data.tags ?? []).map(toCategory).filter((c): c is string => Boolean(c)),
     })),
     customData: `<language>en-us</language>`,
   })

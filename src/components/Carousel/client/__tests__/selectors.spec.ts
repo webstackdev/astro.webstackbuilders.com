@@ -21,6 +21,7 @@ vi.mock('@components/scripts/store', () => ({
   createAnimationController: vi.fn(() => ({
     requestPlay: vi.fn(),
     requestPause: vi.fn(),
+    setInstancePauseState: vi.fn(),
     clearUserPreference: vi.fn(),
     destroy: vi.fn(),
   })),
@@ -76,9 +77,7 @@ vi.mock('embla-carousel-autoplay', () => ({
 
 type CarouselModule = WebComponentModule<CarouselElement>
 
-type ConcreteCarouselProps = Required<CarouselProps<'articles'>>
-
-const defaultCarouselProps: ConcreteCarouselProps = {
+const defaultCarouselProps: CarouselProps = {
   title: 'Featured Articles',
   limit: 3,
   variant: 'featured',
@@ -88,7 +87,7 @@ const defaultCarouselProps: ConcreteCarouselProps = {
 
 const renderCarousel = async (
   assert: (_context: { root: CarouselElement }) => Promise<void> | void,
-  props: Partial<ConcreteCarouselProps> = {}
+  props: Partial<CarouselProps> = {}
 ) => {
   const container = await AstroContainer.create()
 

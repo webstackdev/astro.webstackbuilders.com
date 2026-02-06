@@ -17,6 +17,7 @@
  * <Highlighter ariaLabel="Share this insight">important insight</Highlighter>
  * ```
  */
+import './index.css'
 
 export interface Props {
   /**
@@ -34,8 +35,10 @@ export interface Props {
 const { ariaLabel, class: className } = Astro.props
 ---
 
-<highlighter-element aria-label={ariaLabel} class={className ?? undefined}>
-  <slot />
+<highlighter-element aria-label={ariaLabel}>
+  <span class:list={['bg-spotlight', 'rounded', 'px-1', 'py-0.5', className]}>
+    <slot />
+  </span>
 </highlighter-element>
 
 <script>

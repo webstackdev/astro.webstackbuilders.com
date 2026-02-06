@@ -41,12 +41,12 @@ const hasInteractions = likes.length > 0 || reposts.length > 0
 {
   (hasMentions || hasInteractions) && (
     <section
-      class="mt-12 pt-8 border-t border-border"
+      class="mt-12 pt-8 border-t border-trim"
       id="webmentions"
       aria-labelledby="webmentions-heading"
     >
       <header class="flex items-start justify-between mb-6 flex-wrap gap-4 flex-col sm:flex-row sm:items-center">
-        <h3 class="text-2xl font-bold text-text m-0" id="webmentions-heading">
+        <h3 class="text-2xl font-bold m-0" id="webmentions-heading">
           Webmentions
         </h3>
 
@@ -54,12 +54,12 @@ const hasInteractions = likes.length > 0 || reposts.length > 0
           <div class="flex gap-6 items-center w-full sm:w-auto justify-start">
             {likes.length > 0 && (
               <span
-                class="inline-flex items-center gap-1.5 text-text-offset text-sm font-medium"
+                class="inline-flex items-center gap-1.5 text-content-active text-sm font-medium"
                 title={`${likes.length} like${likes.length !== 1 ? 's' : ''}`}
                 aria-label={`${likes.length} like${likes.length !== 1 ? 's' : ''}`}
               >
                 <svg
-                  class="w-5 h-5 text-text-lighter"
+                  class="w-5 h-5 text-content-lighter"
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
                   fill="currentColor"
@@ -73,12 +73,12 @@ const hasInteractions = likes.length > 0 || reposts.length > 0
             )}
             {reposts.length > 0 && (
               <span
-                class="inline-flex items-center gap-1.5 text-text-offset text-sm font-medium"
+                class="inline-flex items-center gap-1.5 text-content-active text-sm font-medium"
                 title={`${reposts.length} repost${reposts.length !== 1 ? 's' : ''}`}
                 aria-label={`${reposts.length} repost${reposts.length !== 1 ? 's' : ''}`}
               >
                 <svg
-                  class="w-5 h-5 text-text-lighter"
+                  class="w-5 h-5 text-content-lighter"
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
                   fill="currentColor"
@@ -98,7 +98,7 @@ const hasInteractions = likes.length > 0 || reposts.length > 0
         <>
           {showFacepile && displayMentions.length > 0 && (
             <div
-              class="flex items-center gap-2 mb-6 p-4 bg-bg-offset rounded-lg"
+              class="flex items-center gap-2 mb-6 p-4 bg-page-base-offset rounded-lg"
               role="group"
               aria-label={`Recent mentions: ${displayMentions.length}`}
             >
@@ -111,14 +111,14 @@ const hasInteractions = likes.length > 0 || reposts.length > 0
                     alt={mention.author?.name || 'Anonymous'}
                     title={mention.author?.name || 'Anonymous'}
                     aria-hidden="true"
-                    class="w-10 h-10 rounded-full border-2 border-bg object-cover transition-transform hover:scale-110 hover:z-10"
+                    class="w-10 h-10 rounded-full border-2 border-bg object-cover transition-transform hover:scale-110 hover:z-(--z-raised)"
                     loading="lazy"
                     decoding="async"
                   />
                 ))}
               {displayMentions.length > facepileLimit && (
                 <span
-                  class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-text-lighter text-bg text-xs font-semibold"
+                  class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-gray-offset text-content-inverse text-xs font-semibold"
                   aria-label={`${displayMentions.length - facepileLimit} more mention${
                     displayMentions.length - facepileLimit !== 1 ? 's' : ''
                   }`}
@@ -138,7 +138,7 @@ const hasInteractions = likes.length > 0 || reposts.length > 0
           </ol>
         </>
       ) : (
-        <p class="text-text-offset italic my-8">No mentions yet.</p>
+        <p class="text-content-active italic my-8">No mentions yet.</p>
       )}
     </section>
   )

@@ -50,8 +50,8 @@ test.describe('Theme Switching Visuals', () => {
     const lightColors = await page.evaluate(() => {
       const styles = window.getComputedStyle(document.documentElement)
       return {
-        bg: styles.getPropertyValue('--color-bg') || styles.backgroundColor,
-        text: styles.getPropertyValue('--color-text') || styles.color,
+        bg: styles.getPropertyValue('--color-page-base') || styles.backgroundColor,
+        text: styles.getPropertyValue('--color-content') || styles.color,
       }
     })
 
@@ -69,8 +69,8 @@ test.describe('Theme Switching Visuals', () => {
     const darkColors = await page.evaluate(() => {
       const styles = window.getComputedStyle(document.documentElement)
       return {
-        bg: styles.getPropertyValue('--color-bg') || styles.backgroundColor,
-        text: styles.getPropertyValue('--color-text') || styles.color,
+        bg: styles.getPropertyValue('--color-page-base') || styles.backgroundColor,
+        text: styles.getPropertyValue('--color-content') || styles.color,
       }
     })
 
@@ -142,7 +142,8 @@ test.describe('Theme Switching Visuals', () => {
     await page.goto("/articles")
     const firstArticle = page.locator('a[href*="/articles/"]').first()
     await firstArticle.click()
-    await page.waitForLoadState('networkidle')
+    // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
+    await page.waitForNetworkIdleBestEffort()
 
     // Light
     await setTheme(page, 'light')

@@ -76,7 +76,8 @@ export class BreadCrumbPage extends BasePage {
     )
     await this.click(`a[href="${targetHref}"]`)
     await navigationPromise
-    await this.waitForLoadState('networkidle')
+    // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
+    await this.waitForNetworkIdleBestEffort()
   }
 
   async openFirstArticleDetail(options?: { navigationMode?: 'client' | 'fresh' }): Promise<void> {

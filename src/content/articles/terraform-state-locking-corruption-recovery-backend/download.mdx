@@ -1,0 +1,29 @@
+---
+title: "Terraform State: Failure Modes and Recovery"
+description: "State locking, backend configuration, and recovery strategies for when state corruption happens."
+author: "kevin-brown"
+cover: "./cover.jpg"
+coverAlt: "CI platform and cloud provider exchanging trust tokens through secure channels for workload identity federation"
+publishDate: 2023-04-22
+isDraft: false
+fileType: "PDF"
+fileSize: "1.3 MB"
+pages: 21
+fileName: "terraform-state-locking-corruption-recovery-backend.pdf"
+---
+
+Every Terraform practitioner eventually experiences it: `terraform plan` shows it wants to destroy half your production infrastructure, or you get a state lock error at 2 AM when nobody else should be running Terraform. State corruption is a when, not an if.
+
+The state file is Terraform's memory—it maps your configuration to actual cloud resources. When that mapping breaks through interrupted applies, concurrent modifications, or manual edits gone wrong, Terraform loses the ability to reason about your infrastructure. Results range from inconvenient (orphaned resources) to catastrophic (unintended production destruction).
+
+This complete guide teaches you:
+
+- State file structure: version, serial, lineage, and the resource-to-cloud mapping that drives planning
+- State locking mechanisms: how to prevent concurrent modifications that corrupt state
+- S3 + DynamoDB backend configuration with encryption and point-in-time recovery
+- Backend locking comparison: DynamoDB vs Azure Blob vs GCS vs PostgreSQL vs Terraform Cloud
+- Common corruption causes: interrupted applies, concurrent modifications, manual edits, provider mismatches
+- Detecting state issues: refresh-only plans, state list/show commands, and jq inspection techniques
+- Recovery procedures: backup restoration, state repair, orphaned resource cleanup, and backend migration rollback
+
+Download Your Terraform State Guide now to protect against corruption and recover when it happens.

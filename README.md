@@ -218,33 +218,6 @@ Each theme object supports these properties:
 - **`category`** (optional): Used for grouping themes ('core', 'seasonal', etc.)
 - **`seasonal`** (optional): Boolean flag marking temporary/seasonal themes
 
-### CSS Variable Reference
-
-The theme system provides these CSS custom properties:
-
-#### Core Variables
-
-- `--color-bg` / `--color-bg-offset` - Background colors
-- `--color-text` / `--color-text-offset` - Text colors
-- `--color-border` - Border color
-
-#### Brand Variables
-
-- `--color-primary` / `--color-primary-offset` - Primary brand colors
-- `--color-secondary` / `--color-secondary-offset` - Secondary colors
-
-#### Status Variables
-
-- `--color-success` / `--color-danger` / `--color-warning` / `--color-info` - Status colors
-- Background variants available with `-bg` suffix
-
-#### Special Variables
-
-- `--color-accent` - Purple accent color for highlights
-- `--color-twitter` - Twitter brand color
-- `--color-modal-background` - Modal overlay background
-- `--shiki-theme` - Syntax highlighting theme name
-
 ### Theme Switching
 
 Themes are applied by setting the `data-theme` attribute on the document element:

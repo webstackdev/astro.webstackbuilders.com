@@ -4,7 +4,7 @@ import { TestError } from '@test/errors'
 import HighlighterFixture from '@components/Social/Highlighter/client/__fixtures__/index.fixture.astro'
 import type { HighlighterElement } from '@components/Social/Highlighter/client/index'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
-import { copyToClipboard, nativeShare } from '@components/Social/common'
+import { nativeShare } from '@components/Social/common'
 import { MastodonModal } from '@components/Social/Mastodon/client'
 import * as elementUtils from '@components/scripts/utils'
 import { executeRender, withJsdomEnvironment } from '@test/unit/helpers/litRuntime'
@@ -19,11 +19,11 @@ type MockPlatform = {
 // Use vi.hoisted so the mock data exists before mocked modules evaluate
 const mockPlatforms = vi.hoisted<MockPlatform[]>(() => [
   {
-    id: 'twitter',
-    ariaLabel: 'Share on Twitter',
-    icon: 'twitter',
+    id: 'x',
+    ariaLabel: 'Share on X',
+    icon: 'x',
     getShareUrl: ({ text, url }) =>
-      `https://social.example/twitter?text=${encodeURIComponent(text ?? '')}&url=${encodeURIComponent(url ?? '')}`,
+      `https://social.example/x?text=${encodeURIComponent(text ?? '')}&url=${encodeURIComponent(url ?? '')}`,
   },
   {
     id: 'linkedin',
@@ -55,7 +55,6 @@ vi.mock('@components/scripts/errors', () => ({
 
 vi.mock('@components/Social/common', () => ({
   platforms: mockPlatforms,
-  copyToClipboard: vi.fn().mockResolvedValue(true),
   nativeShare: vi.fn().mockResolvedValue(false),
 }))
 
@@ -66,7 +65,6 @@ vi.mock('@components/Social/Mastodon/client', () => ({
 }))
 
 type HighlighterModule = WebComponentModule<HighlighterElement>
-const mockCopyToClipboard = vi.mocked(copyToClipboard)
 const mockNativeShare = vi.mocked(nativeShare)
 const mockMastodonModal = vi.mocked(MastodonModal)
 const originalDefineCustomElement = elementUtils.defineCustomElement
@@ -158,7 +156,7 @@ describe('HighlighterElement', () => {
     await renderHighlighter(async ({ element }) => {
       expect(element.shadowRoot).toBeNull()
       expect(element.querySelector('.share-dialog')).not.toBeNull()
-      expect(element.querySelectorAll('.share-button')).toHaveLength(mockPlatforms.length + 1)
+      expect(element.querySelectorAll('.share-button')).toHaveLength(mockPlatforms.length)
       expect(element.getAttribute('aria-label')).toBe(defaultProps.ariaLabel)
 
       const trigger = element.querySelector('.highlighter__trigger') as HTMLButtonElement | null
@@ -199,42 +197,45 @@ describe('HighlighterElement', () => {
     })
   })
 
-  const getLastShareEvent = (listener: ReturnType<typeof vi.fn>) =>
-    listener.mock.calls.at(-1)?.[0] as CustomEvent<{ platform: string }> | undefined
-
-  test('copy button copies highlighted text and emits event', async () => {
+  test('shows dialog when trigger receives focus-visible', async () => {
     await renderHighlighter(async ({ element, window }) => {
-      const shareListener = vi.fn()
-      element.addEventListener('highlighter:share', shareListener)
+      const dialog = element.querySelector('.share-dialog') as HTMLElement | null
+      expect(dialog?.getAttribute('aria-hidden')).toBe('true')
 
-      mockCopyToClipboard.mockResolvedValueOnce(true)
-      getShareButton(element, 'copy').click()
+      const trigger = element.querySelector('.highlighter__trigger') as HTMLButtonElement | null
+      expect(trigger).toBeTruthy()
 
-      await flushMicrotasks()
+      if (!trigger) {
+        return
+      }
 
-      expect(mockCopyToClipboard).toHaveBeenCalledWith(
-        `"${defaultProps.content}" ${window.location.href}`
-      )
-      expect(shareListener).toHaveBeenCalledTimes(1)
-      expect(getLastShareEvent(shareListener)?.detail.platform).toBe('copy')
+      const originalMatches = trigger.matches.bind(trigger)
+      trigger.matches = (selector: string) => {
+        if (selector === ':focus-visible') {
+          return true
+        }
+        return originalMatches(selector)
+      }
 
-      const status = element.querySelector('[data-highlighter-status]') as HTMLElement | null
-      expect(status?.textContent).toContain('Link copied')
-
-      element.removeEventListener('highlighter:share', shareListener)
+      trigger.dispatchEvent(new window.FocusEvent('focusin', { bubbles: true }))
+      expect(dialog?.getAttribute('aria-hidden')).toBe('false')
+      expect(trigger.getAttribute('aria-expanded')).toBe('true')
     })
   })
+
+  const getLastShareEvent = (listener: ReturnType<typeof vi.fn>) =>
+    listener.mock.calls.at(-1)?.[0] as CustomEvent<{ platform: string }> | undefined
 
   test('opens share URL when native share is unavailable', async () => {
     await renderHighlighter(async ({ element, window }) => {
       mockNativeShare.mockResolvedValueOnce(false)
       const openSpy = vi.spyOn(window, 'open').mockReturnValue(null)
 
-      getShareButton(element, 'twitter').click()
+      getShareButton(element, 'x').click()
       await flushMicrotasks()
 
       expect(openSpy).toHaveBeenCalledWith(
-        expect.stringContaining('https://social.example/twitter'),
+        expect.stringContaining('https://social.example/x'),
         '_blank',
         'noopener,noreferrer'
       )

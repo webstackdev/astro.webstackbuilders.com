@@ -1,0 +1,211 @@
+---
+title: "When Documentation Lies: Truth from Legacy Code"
+description: "Your codebase contains more reliable documentation than any wiki page. Git history, characterization tests, and targeted interviews reveal what prose documentation gets wrong."
+cover: "./cover.jpg"
+coverAlt: "X-ray view of mechanical device showing internal gears, springs, and linkages with layered transparency revealing hidden architecture"
+author: "kevin-brown"
+publishDate: 2023-12-17
+tags: ["system-modernization"]
+featured: true
+---
+
+*[ADR]: Architecture Decision Record
+*[API]: Application Programming Interface
+
+You've inherited a system with a README that was last updated three years ago. The architecture diagrams reference services that no longer exist. The wiki has seventeen conflicting pages about deployment, and no one's sure which ones are current. The original architects left two reorganizations ago.
+
+Here's the uncomfortable truth: outdated documentation isn't just unhelpful—it's actively harmful. When a new team member reads that architecture diagram and forms a mental model of how the system works, they're building on outdated assumptions that will take months to unlearn. When an on-call engineer follows a runbook during an incident, they might make things worse by following steps that no longer apply.
+
+But there's good news. The codebase itself contains more reliable documentation than any wiki page ever will. Git history records what changed, when, and often why. Tests that pass demonstrate working behavior that prose documentation might get wrong. And the engineers who've kept the system alive hold knowledge that's never been written down.
+
+The trick is knowing how to extract it.
+
+## Code Archaeology: Mining Version History
+
+Every commit in your repository is a documentation artifact. Unlike wiki pages that silently become wrong, git history is immutable. It tells you not just what changed, but when, by whom, and—if commit messages are decent—why.
+
+Start with the most-changed files. This single command reveals the heartbeat of your codebase:
+
+```bash
+# Find the most-changed files (likely core business logic or problem areas)
+git log --pretty=format: --name-only | sort | uniq -c | sort -rg | head -20
+```
+
+Code: Identifying the most frequently modified files in a repository.
+
+The files at the top of this list deserve your attention. They're either core business logic that everyone touches, or poorly designed modules that require constant patching. Either way, understanding them is essential.
+
+Once you've identified a critical file, find out who has the deepest knowledge of it:
+
+```bash
+# Find who knows the most about a specific file
+git shortlog -sn -- path/to/critical/file.ts
+```
+
+Code: Finding the engineers with the most commits to a specific file.
+
+That person is your first interview target. They may have moved to another team or even left the company, but they're often reachable and willing to help explain their past work.
+
+<Callout type="info">
+`git blame` tells you who wrote each line, but the commit message tells you _why_. A message like "fix prod issue #1234" points you to a ticket with context. Follow those breadcrumbs.
+</Callout>
+
+The pickaxe search is invaluable for tracing how specific logic evolved:
+
+```bash
+# Trace the history of a specific function through refactors and file moves
+git log -p -S "calculateDiscount" -- "*.ts"
+```
+
+Code: Using pickaxe search to trace function history.
+
+This finds every commit that added or removed the string "calculateDiscount"—letting you see how the discount calculation evolved, who changed it, and what tickets or discussions prompted those changes. When the current implementation seems weird, this history often explains why.
+
+I also extract ticket references from commit messages. If your team uses Jira, GitHub issues, or similar tools, those tickets contain requirements discussions, bug reports, and context that never made it into code comments:
+
+```bash
+# Extract Jira ticket references from a file's commit history
+git log --format="%s" -- src/billing/invoice.ts | grep -oE '[A-Z]+-[0-9]+' | sort -u
+```
+
+Code: Extracting issue tracker references from git history.
+
+Reading through a dozen related tickets often teaches you more about a module than reading the code itself.
+
+## Tests That Never Lie
+
+Documentation rots silently. Tests break loudly. That asymmetry makes tests the most reliable form of documentation for system behavior.
+
+When you're inheriting code and don't know whether observed behavior is intentional or accidental, _characterization tests_ capture the truth. The pattern is simple: poke the system with inputs, record the outputs, assert that future runs produce the same outputs. You're not testing that the code is correct—you're testing that it hasn't changed.
+
+```typescript
+// Characterization tests for OrderProcessor
+// These document discovered behavior, not requirements
+describe('OrderProcessor characterization', () => {
+  describe('discount calculation (discovered behavior)', () => {
+    it('applies 10% discount for orders over $100', async () => {
+      // NOTE: Requirements doc says 15%, but code does 10%
+      // Verified with product team - code is correct, docs are stale
+      const order = createOrder({ subtotal: 150 })
+      const result = await orderProcessor.calculateTotal(order)
+
+      expect(result.discount).toBe(15)  // 10% of 150
+      expect(result.total).toBe(135)
+    })
+
+    it('does not apply discount for exactly $100', async () => {
+      // Edge case: threshold is > 100, not >= 100
+      const order = createOrder({ subtotal: 100 })
+      const result = await orderProcessor.calculateTotal(order)
+
+      expect(result.discount).toBe(0)
+    })
+  })
+})
+```
+
+Code: Characterization tests documenting discovered discount behavior.
+
+Notice the comments. When I discovered that the code applies a 10% discount while the requirements doc claims 15%, I noted it. When I found that the threshold is strictly greater than $100 (not greater-than-or-equal), I documented that edge case. These comments matter as much as the assertions.
+
+<Callout type="success">
+Run characterization tests against production data snapshots when possible. Synthetic test data often misses the edge cases that real data reveals—the customer with a null address, the order with negative quantity from a bug three years ago, the account that predates a schema migration.
+</Callout>
+
+Well-written tests also serve as executable API examples. Unlike documentation that might be wrong, tests that pass demonstrate working code. I organize these around use cases:
+
+```typescript
+// Tests structured as API usage examples
+describe('PaymentClient usage examples', () => {
+  describe('basic charge', () => {
+    it('charges a card with minimum required parameters', async () => {
+      const client = new PaymentClient({ apiKey: process.env.STRIPE_TEST_KEY })
+
+      const result = await client.charge({
+        amount: 1000,        // Amount in cents
+        currency: 'usd',
+        source: 'tok_visa'   // Test token for Visa
+      })
+
+      expect(result.status).toBe('succeeded')
+    })
+  })
+
+  describe('error handling', () => {
+    it('throws CardDeclinedError for declined cards', async () => {
+      const client = new PaymentClient({ apiKey: process.env.STRIPE_TEST_KEY })
+
+      await expect(
+        client.charge({
+          amount: 1000,
+          currency: 'usd',
+          source: 'tok_chargeDeclined'
+        })
+      ).rejects.toThrow(CardDeclinedError)
+    })
+  })
+})
+```
+
+Code: Tests structured as API usage documentation.
+
+The test names read like a table of contents: "basic charge," "error handling." Someone integrating with this API can scan the test file and find exactly what they need—with working code they can copy.
+
+## Before They Leave
+
+Code analysis gets you far, but some knowledge exists only in people's heads. The engineer who remembers why the cron job runs at 3:47 AM instead of midnight. The architect who knows about the constraint that was never documented. The on-call engineer who's seen failure modes that aren't in any runbook.
+
+This knowledge has an expiration date: when the person leaves. Extracting it requires targeted questions organized by what you're trying to learn.
+
+For _architectural knowledge_:
+
+- "What happens when a user places an order?"
+- "What breaks if the payment service goes down?"
+- "What's the scariest part of this codebase to change?"
+
+For _operational knowledge_:
+
+- "What pages you most often at night?"
+- "What manual steps do deployments require?"
+- "Where do you look first when API responses slow down?"
+
+For _business rules encoded in code_:
+
+- "What business rules live in code but not in any document?"
+- "What edge cases have special handling?"
+- "What compliance requirements shaped this code?"
+
+| Interview Focus | Best Participants | Knowledge Domain |
+|-----------------|-------------------|------------------|
+| Architecture | Original architects, senior engineers | How components connect and why |
+| Operations | SREs, on-call engineers | Failure modes and recovery procedures |
+| Business Logic | Product managers, business analysts | Rules encoded in code but not in docs |
+| History | Long-tenured engineers | Why weird things exist |
+
+Table: Interview types matched to knowledge domains.
+
+The questions about fear are particularly revealing. "What's the scariest part of this codebase to change?" surfaces the areas with the most hidden complexity, the fewest tests, and the highest consequences for mistakes—exactly where documentation gaps hurt most.
+
+<Callout type="warning">
+Capture tribal knowledge _before_ someone announces they're leaving. By the time there's a departure date, they're focused on transition tasks and their memory is already fading. Build documentation interviews into onboarding: new hires ask the questions, tenured engineers answer, and you get written artifacts from the exchange.
+</Callout>
+
+## Where to Start
+
+With git history mined, tests written, and interviews conducted, the question becomes: what do you document first? You can't cover everything, and you shouldn't try. Focus on three categories:
+
+_The dangerous parts_: Code that everyone's afraid to change. Mistakes here have outsized consequences, so documentation provides essential guardrails.
+
+_The confusing parts_: Code that requires explanation to understand. If every new team member asks the same questions, write down the answers once.
+
+_The business-critical parts_: Code where mistakes cost money or trigger compliance violations. The stakes justify the documentation investment.
+
+Tests as documentation have an advantage that prose never will: they break when behavior changes. A characterization test that fails is more valuable than a wiki page that silently becomes wrong. Where possible, encode knowledge in tests rather than documents.
+
+The documentation you create today will decay. Accept that reality. Choose formats that break visibly when they become stale—tests, generated diagrams, validated specs—and reserve prose documentation for the knowledge that can't be captured any other way.
+
+---
+
+CTA Title: Go Deeper: The Complete Guide to Documenting Undocumented Systems
+
+CTA Body: This article covers the fundamentals, but there's much more to systematic documentation recovery. The complete guide includes runtime observation techniques for understanding system behavior under real traffic, automated diagram generation from code and infrastructure, creating living documentation that stays current through CI validation, and detailed interview frameworks for extracting tribal knowledge. Download the PDF for the full methodology.

@@ -1,0 +1,131 @@
+---
+title: "PostgreSQL Connection Pooling: Sizing and Saturation"
+description: "How to size connection pools using Little's Law, and the saturation signals that predict database problems before they cascade."
+cover: "./cover.jpg"
+coverAlt: "Traffic intersection with controller (PgBouncer) efficiently managing many cars (app connections) crossing through limited lanes (database connections)"
+author: "kevin-brown"
+publishDate: 2023-11-05
+tags: ["systems-and-development"]
+featured: true
+---
+
+Traffic spike hits. Your application autoscales from 5 instances to 20. Each instance maintains a connection pool of 20. Suddenly, four hundred connections slam into a database configured for 200. Rejections cascade—threads block waiting, health checks fail, the orchestrator kills pods and spins up replacements that immediately try to connect. You're now in a connection exhaustion spiral, and it's 3am.
+
+I've watched this exact scenario play out multiple times. The frustrating part? It's entirely preventable with basic math and the right monitoring. Most teams set `max_connections=200` and call it done, never thinking about what happens when horizontal scaling multiplies their connection count.
+
+## Why Connections Are Expensive
+
+PostgreSQL uses a process-per-connection model. When a client connects, the main postgres process forks a new backend process dedicated to that session. Each backend consumes 5-10MB of memory just by existing, plus additional `work_mem` allocation when executing queries. More backend processes means more OS scheduler overhead—context switching between hundreds of processes burns CPU even when most are idle.
+
+The counterintuitive truth: fewer connections often means _better_ performance. A database with 50 active connections will outperform one with 500, even at the same query volume, because there's less contention for shared resources and less scheduler thrashing.
+
+The conventional formula: `max_connections = CPU cores × 4` for SSDs. But staying conservative (50-100) with an external connection pooler like PgBouncer in front is usually the better approach. External poolers sit between your applications and the database, multiplexing many application connections onto fewer database connections. This decouples horizontal scaling from connection limits—your app can scale to 100 instances while the database sees a fixed 50 connections.
+
+| max_connections | Use Case | Memory Overhead |
+|-----------------|----------|-----------------|
+| 50-100 | Small deployments with pooler | ~500MB-1GB |
+| 100-300 | Medium deployments | ~1-3GB |
+| 500-1000 | Large deployments | ~5-10GB (usually wrong—use a pooler) |
+
+Table: max_connections settings and their implications.
+
+Setting `max_connections` high "just in case" backfires. The database reserves memory for all potential backends even when only a fraction are connected. You're paying the overhead without the benefit.
+
+## Sizing Pools with Math
+
+Pool sizing isn't guesswork—it's queuing theory. Little's Law provides the foundation: $L = \lambda \times W$, where $L$ is the average number of connections in use, $\lambda$ is the request arrival rate (queries per second), and $W$ is the average time per query.
+
+If your application handles 100 queries per second with an average query time of 50ms, you need $100 \times 0.05 = 5$ connections on average. Simple, right?
+
+Here's where it gets tricky: Little's Law uses averages, but averages hide variance. Query times vary. Traffic spikes. A pool sized for average load will saturate during peaks. This is why the practical formula substitutes P99 query time for average—you want enough connections to handle 99% of queries without queueing. Then multiply by a _burst factor_ (typically 2-3× for web traffic) to handle traffic spikes above your measured peak.
+
+The practical formula:
+
+```text
+pool_size = ceil(peak_qps × p99_query_time × burst_factor)
+```
+
+For an application instance handling 50 queries per second at peak, with P99 query time of 100ms and a 2× burst factor: `ceil(50 × 0.1 × 2) = 10` connections per instance.
+
+| Factor | What to Measure | Impact |
+|--------|-----------------|--------|
+| Query duration | P99 latency, not average | Longer queries need more connections |
+| Request rate | Peak QPS, not average | Higher rate needs more connections |
+| Variance | Standard deviation / mean | High variance needs more headroom |
+| Burst factor | Peak / baseline ratio | Typically 2-3× for web traffic |
+
+Table: Pool sizing factors.
+
+Here's what a properly configured pool looks like in practice:
+
+```typescript title="pool-config.ts"
+import { Pool } from 'pg'
+
+const pool = new Pool({
+  max: 20,                         // Based on Little's Law calculation
+  min: 5,                          // Keep pool warm
+  connectionTimeoutMillis: 10000,  // Fail fast if pool exhausted
+  idleTimeoutMillis: 30000,        // Reclaim idle connections
+  // Note: pg-pool lacks maxLifetime; implement recycling manually
+})
+
+pool.on('connect', (client) => {
+  client.query('SET statement_timeout = 30000')
+})
+```
+
+Code: Node.js pg-pool configuration with key settings.
+
+Even with correct calculations, common mistakes undermine pool sizing:
+
+- __Oversized pools__: Setting `pool_size = 100` "just in case" means 10 instances create 1000 connections. Size based on actual need, not fear.
+- __No max lifetime__: Connections held forever accumulate memory leaks and stale state. Recycle every 30 minutes.
+- __No idle timeout__: Idle connections waste resources and hide leaks. Timeout after 10 minutes of inactivity.
+
+## Saturation Signals
+
+Connection saturation doesn't announce itself with a single metric. It's a constellation of signals that, together, tell you whether your system has headroom or is approaching collapse. The goal is catching saturation early—before "too many connections" errors appear in logs.
+
+__Connection utilization__ is the primary signal. Compare current connections against `max_connections`. Alert at 70% utilization, investigate at 85%. By 95%, you're one slow query away from exhaustion.
+
+```sql title="connection-utilization.sql"
+SELECT
+  count(*) AS current_connections,
+  current_setting('max_connections')::int AS max_connections,
+  round(100.0 * count(*) / current_setting('max_connections')::int, 1) AS utilization_pct
+FROM pg_stat_activity
+WHERE backend_type = 'client backend';
+```
+
+Code: Connection utilization query.
+
+__Pool wait time__ measures how long requests wait for an available connection from the application pool. This metric comes from your pool library (HikariCP, pg-pool), not PostgreSQL. P99 wait time above 100ms indicates the pool is undersized; above 1 second means requests are timing out.
+
+__Queue depth__ counts requests waiting for connections. In PgBouncer, check `cl_waiting`. In application pools, check `waitingCount` or equivalent. Any sustained queue indicates saturation—the pool can't keep up with demand.
+
+__Idle in transaction__ connections are the silent killers. They hold connections hostage without doing work. These are usually application bugs—missing commits, unclosed transactions in error paths. Set `idle_in_transaction_session_timeout` to kill them automatically.
+
+| Metric | Warning | Critical | Response |
+|--------|---------|----------|----------|
+| Connection utilization | > 70% | > 85% | Add pooler or reduce pool sizes |
+| Pool wait time (P99) | > 100ms | > 1s | Increase pool size or optimize queries |
+| Queue depth | > 10 | > 50 | Pool undersized or query bottleneck |
+| Idle in transaction | > 5 | > 20 | Find and fix leaking transactions |
+
+Table: Saturation metric thresholds.
+
+If you're using PgBouncer (and at scale, you should be), it exposes its own saturation signals via the `SHOW POOLS` admin command. The key metrics: `cl_waiting` shows clients waiting for a server connection—any sustained value above zero means your pool can't keep up. `sv_idle` counts available server connections; when this hits zero, every new request queues. `maxwait` reports the longest current wait time in seconds—this is your canary. If `maxwait` climbs while `sv_idle` sits at zero, you're saturated and need to either increase `default_pool_size` or optimize the queries holding connections.
+
+## Before the 3am Call
+
+Connection management comes down to three principles: connections are expensive so keep them minimal, size pools with math instead of guesswork, and monitor saturation before it becomes exhaustion.
+
+But knowing _what_ to monitor is only half the battle. When saturation does hit—and it will—you need to understand the cascade that follows and have recovery strategies ready. Connection exhaustion doesn't fail gracefully. It cascades through retry storms, health check failures, and orchestrator restarts that compound the problem.
+
+The difference between a slow day and a multi-hour outage often comes down to whether you've implemented circuit breakers and retry budgets before you needed them.
+
+---
+
+__CTA Title:__ The Complete PostgreSQL Connection Management Guide
+
+__CTA Body:__ This article covers the essentials of pool sizing and saturation monitoring. The full guide goes deeper: PgBouncer configuration and pooling modes, the five stages of connection exhaustion cascade, circuit breaker and retry budget implementations with code samples, step-by-step recovery procedures for total connection collapse, and reference SQL queries for incident response. Get the complete technical deep-dive delivered to your inbox.

@@ -15,25 +15,25 @@ describe('getSocialImageLink', () => {
   })
 
   it('falls back to the home slug when no usable path is provided', () => {
-    expect(getSocialImageLink()).toBe('https://site.test/og/home.png')
-    expect(getSocialImageLink('   ')).toBe('https://site.test/og/home.png')
+      expect(getSocialImageLink()).toBe('https://site.test/api/social-card?slug=home')
+      expect(getSocialImageLink('   ')).toBe('https://site.test/api/social-card?slug=home')
     expect(mockedGetSiteUrl).toHaveBeenCalledTimes(2)
   })
 
   it('normalizes relative paths with redundant separators and whitespace', () => {
     const url = getSocialImageLink('  /Articles//My  Feature / ')
-    expect(url).toBe('https://site.test/og/Articles/My-Feature.png')
+      expect(url).toBe('https://site.test/api/social-card?slug=Articles%2FMy-Feature')
   })
 
   it('parses absolute URLs and decodes their path segments', () => {
     const url = getSocialImageLink('https://preview.example.com/services/Launch%20Plan///?src=home')
-    expect(url).toBe('https://site.test/og/services/Launch-Plan.png')
+      expect(url).toBe('https://site.test/api/social-card?slug=services%2FLaunch-Plan')
   })
 
   it('uses the site url value returned at call time', () => {
     mockedGetSiteUrl.mockReturnValueOnce('https://custom.test')
     const url = getSocialImageLink('about/company')
-    expect(url).toBe('https://custom.test/og/about/company.png')
+      expect(url).toBe('https://custom.test/api/social-card?slug=about%2Fcompany')
     expect(mockedGetSiteUrl).toHaveBeenCalledTimes(1)
   })
 })

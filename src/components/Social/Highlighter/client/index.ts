@@ -5,7 +5,7 @@
  */
 
 import type { ShareData } from '@components/Social/common'
-import { platforms, copyToClipboard, nativeShare } from '@components/Social/common'
+import { platforms, nativeShare } from '@components/Social/common'
 import { MastodonModal } from '@components/Social/Mastodon/client'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
@@ -14,19 +14,46 @@ import {
   addWrapperEventListeners,
 } from '@components/scripts/elementListeners'
 import { LitElement, html } from 'lit'
+import { unsafeSVG } from 'lit/directives/unsafe-svg.js'
 import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import {
-  queryCopyButton,
-  queryHighlighterStatus,
   queryHighlighterTrigger,
   queryHighlighterWrapper,
+  queryXIconGlyphPaths,
+  queryXIconTilePath,
+  queryShareDialogArrow,
   queryShareButtons,
   queryShareDialog,
+  queryShareIcon,
 } from './selectors'
+
+import xIconRaw from '@icons/x.svg?raw'
+import linkedinIconRaw from '@icons/linkedin.svg?raw'
+import blueskyIconRaw from '@icons/bluesky.svg?raw'
+import redditIconRaw from '@icons/reddit.svg?raw'
+import mastodonIconRaw from '@icons/mastodon.svg?raw'
 
 const SCRIPT_NAME = 'Highlighter'
 const COMPONENT_TAG_NAME = 'highlighter-element'
+
+const stripSvgWrapper = (svg: string): string => {
+  const match = svg.match(/<svg[^>]*>([\s\S]*?)<\/svg>/i)
+  const innerMarkup = match?.[1] ?? svg
+  return innerMarkup.replace(/<title>[\s\S]*?<\/title>/gi, '').trim()
+}
+
+const platformIconMarkupById: Record<string, string> = {
+  x: stripSvgWrapper(xIconRaw),
+  linkedin: stripSvgWrapper(linkedinIconRaw),
+  bluesky: stripSvgWrapper(blueskyIconRaw),
+  reddit: stripSvgWrapper(redditIconRaw),
+  mastodon: stripSvgWrapper(mastodonIconRaw),
+}
+
+const getPlatformIconMarkup = (platformId: string): string => {
+  return platformIconMarkupById[platformId] ?? ''
+}
 
 let highlighterInstanceCounter = 0
 
@@ -53,11 +80,17 @@ export class HighlighterElement extends LitElement {
   private readonly statusId: string
 
   private handleMouseEnter = () => this.showDialog()
-  private handleFocusIn = () => this.showDialog()
+  private handleFocusIn = (event: FocusEvent) => {
+    if (this.isFocusVisibleTarget(event.target)) {
+      this.applyFocusVisibleStyles()
+      this.showDialog()
+    }
+  }
   private handleMouseLeave = () => this.hideDialog()
   private handleFocusOut = (event: FocusEvent) => {
     const nextTarget = event.relatedTarget as Node | null
     if (!nextTarget || !this.contains(nextTarget)) {
+      this.removeFocusVisibleStyles()
       this.hideDialog()
     }
   }
@@ -93,12 +126,14 @@ export class HighlighterElement extends LitElement {
     this.bindTriggerButton()
     this.bindWrapperListeners()
     this.bindShareButtons()
+    this.applyThemeStyles()
   }
 
   protected override updated(): void {
     this.bindTriggerButton()
     this.bindWrapperListeners()
     this.bindShareButtons()
+    this.applyThemeStyles()
   }
 
   private captureInitialContent(): void {
@@ -143,23 +178,17 @@ export class HighlighterElement extends LitElement {
                   aria-label="${platform.ariaLabel}"
                   title="${platform.ariaLabel}"
                 >
-                  <svg class="share-icon" aria-hidden="true" focusable="false">
-                    <use href="/assets/images/sprite.svg#${platform.icon}"></use>
+                  <svg
+                    class="share-icon"
+                    aria-hidden="true"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    ${unsafeSVG(getPlatformIconMarkup(platform.id))}
                   </svg>
                 </button>
               `
             )}
-            <button
-              type="button"
-              class="share-button copy-button"
-              data-platform="copy"
-              aria-label="Copy link"
-              title="Copy link"
-            >
-              <svg class="share-icon" aria-hidden="true" focusable="false">
-                <use href="/assets/images/sprite.svg#link"></use>
-              </svg>
-            </button>
           </div>
           <div class="share-dialog__arrow"></div>
         </div>
@@ -215,6 +244,7 @@ export class HighlighterElement extends LitElement {
     const trigger = queryHighlighterTrigger(this)
     if (!trigger || trigger === this.triggerButton) return
     this.triggerButton = trigger
+    this.triggerButton.style.cursor = 'pointer'
     addButtonEventListeners(
       trigger,
       event => {
@@ -223,6 +253,106 @@ export class HighlighterElement extends LitElement {
       },
       this
     )
+  }
+
+  private applyThemeStyles(): void {
+    this.applyDialogThemeStyles()
+    this.applyShareButtonThemeStyles()
+  }
+
+  private applyDialogThemeStyles(): void {
+    const dialog = this.getShareDialogElement()
+    if (!dialog) {
+      return
+    }
+
+    dialog.style.backgroundColor = 'var(--color-page-base-offset)'
+
+    const arrow = queryShareDialogArrow(dialog)
+    if (arrow) {
+      arrow.style.borderTopColor = 'var(--color-page-base-offset)'
+    }
+  }
+
+  private applyShareButtonThemeStyles(): void {
+    const buttons = queryShareButtons(this)
+    buttons.forEach(button => {
+      const platformId = button.dataset['platform']
+      const icon = queryShareIcon(button)
+      if (icon && platformId === 'x') {
+        const tilePath = queryXIconTilePath(icon)
+        const glyphPaths = queryXIconGlyphPaths(icon)
+
+        if (tilePath) {
+          tilePath.setAttribute('fill', 'var(--color-x)')
+          tilePath.setAttribute('stroke', 'none')
+        }
+
+        glyphPaths.forEach((path: SVGPathElement) => {
+          path.setAttribute('fill', 'var(--color-content-inverse)')
+          path.setAttribute('stroke', 'none')
+        })
+      } else if (icon) {
+        icon.style.fill = 'currentColor'
+        icon.style.stroke = 'currentColor'
+      }
+
+      const token = this.getPlatformColorToken(platformId)
+      if (!token) {
+        return
+      }
+
+      if (platformId !== 'x') {
+        button.style.color = `var(${token})`
+      }
+    })
+  }
+
+  private getPlatformColorToken(platformId: string | undefined): string | null {
+    switch (platformId) {
+      case 'x':
+        return '--color-x'
+      case 'linkedin':
+        return '--color-linkedin'
+      case 'bluesky':
+        return '--color-bluesky'
+      case 'reddit':
+        return '--color-reddit'
+      case 'mastodon':
+        return '--color-mastodon'
+      default:
+        return null
+    }
+  }
+
+  private applyFocusVisibleStyles(): void {
+    if (!this.triggerButton) {
+      return
+    }
+
+    this.triggerButton.style.outline = '2px solid var(--color-spotlight)'
+    this.triggerButton.style.outlineOffset = '2px'
+  }
+
+  private removeFocusVisibleStyles(): void {
+    if (!this.triggerButton) {
+      return
+    }
+
+    this.triggerButton.style.outline = ''
+    this.triggerButton.style.outlineOffset = ''
+  }
+
+  private isFocusVisibleTarget(target: EventTarget | null): boolean {
+    if (!(target instanceof HTMLElement)) {
+      return false
+    }
+
+    try {
+      return target.matches(':focus-visible')
+    } catch {
+      return true
+    }
   }
 
   private bindWrapperListeners(): void {
@@ -249,21 +379,6 @@ export class HighlighterElement extends LitElement {
 
   private getShareDialogElement(): HTMLElement | null {
     return queryShareDialog(this)
-  }
-
-  private getStatusElement(): HTMLElement | null {
-    return queryHighlighterStatus(this)
-  }
-
-  private announceStatus(message: string): void {
-    const status = this.getStatusElement()
-    if (!status) {
-      return
-    }
-
-    // Clear first so subsequent identical messages still announce.
-    status.textContent = ''
-    status.textContent = message
   }
 
   /**
@@ -323,15 +438,6 @@ export class HighlighterElement extends LitElement {
     try {
       const data = this.getShareData()
 
-      if (platformId === 'copy') {
-        const success = await copyToClipboard(`${data.text} ${data.url}`)
-        if (success) {
-          this.showCopyFeedback()
-          this.emitShareEvent(platformId, data)
-        }
-        return
-      }
-
       // Handle Mastodon modal
       if (platformId === 'mastodon') {
         MastodonModal.openModal(`${data.text} ${data.url}`)
@@ -358,26 +464,6 @@ export class HighlighterElement extends LitElement {
       }
     } catch (error) {
       handleScriptError(error, context)
-    }
-  }
-
-  /**
-   * Show visual feedback for copy action
-   */
-  private showCopyFeedback(): void {
-    const copyButton = queryCopyButton(this)
-    if (copyButton) {
-      const originalHTML = copyButton.innerHTML
-      copyButton.innerHTML = `
-        <svg class="share-icon" aria-hidden="true" focusable="false">
-          <use href="/assets/images/sprite.svg#check"></use>
-        </svg>
-      `
-
-      this.announceStatus('Link copied')
-      setTimeout(() => {
-        copyButton.innerHTML = originalHTML
-      }, 2000)
     }
   }
 

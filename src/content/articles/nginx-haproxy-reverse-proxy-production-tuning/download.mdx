@@ -1,0 +1,31 @@
+---
+title: "Reverse Proxy Hardening: Timeouts, Buffers, Defaults"
+description: "Why default nginx and HAProxy configurations fail under load and how to tune them for production."
+author: "kevin-brown"
+cover: "./cover.jpg"
+coverAlt: "Control room with proxy metrics dashboards showing connection counts, latency, and error rates, engineer adjusting timeout and buffer settings"
+publishDate: 2024-08-17
+isDraft: false
+fileType: "PDF"
+fileSize: "1.8 MB"
+pages: 38
+fileName: "nginx-haproxy-reverse-proxy-production-tuning.pdf"
+---
+
+Nginx and HAProxy ship with defaults optimized for getting started, not handling production traffic. A team's API behind Nginx with default configuration saw intermittent 502 errors at 5,000 RPS. The backend looked healthy, but `proxy_read_timeout` defaulted to 60 seconds—slow endpoints taking 65 seconds exceeded it. Meanwhile, `worker_connections` was 1024, and keep-alives holding connections open caused connection starvation during traffic spikes. After tuning timeouts and increasing worker connections, the 502s disappeared. Proxy configuration is where traffic patterns meet system limits.
+
+Production tuning isn't optional optimization—it's the difference between graceful handling and dropped connections under load.
+
+This complete guide teaches you:
+
+- Proxy architecture: request flow through six phases and their timeout implications
+- Connection multiplexing: event-driven workers, connection slots, and keep-alive pools
+- Timeout tuning: client, backend, and response delivery timeouts
+- Buffer sizing: request/response buffers, chunked encoding, and streaming
+- Load balancing algorithms: round-robin, least connections, and weighted strategies
+- Backend health checks: passive detection and active probing
+- Connection reuse: keep-alive pools, pipelining, and session persistence
+- Monitoring and observability: tracking timeouts, buffer overflows, and connection limits
+- Nginx versus HAProxy: architecture differences and when to choose each
+
+Download Your Reverse Proxy Production Tuning Guide now to handle traffic patterns that expose untuned defaults.

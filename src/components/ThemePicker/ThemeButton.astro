@@ -1,61 +1,21 @@
 ---
 // Theme Picker Toggle Button
+import styles from './themeButton.module.css'
 ---
 
-<style>
-  /* Theme picker button styles */
-  .theme-toggle-btn {
-    background-color: var(--color-primary-offset);
-    border-radius: 50%;
-    border-width: 0;
-    height: var(--header-icon-size);
-    position: relative;
-    transition: 0.15s linear;
-    width: var(--header-icon-size);
-    z-index: var(--z-content-overlay);
-  }
-
-  .theme-toggle-btn:hover,
-  .theme-toggle-btn:focus {
-    background-color: var(--color-primary);
-    outline-width: 0;
-  }
-
-  .theme-toggle-svg {
-    height: var(--header-icon-size);
-    position: relative;
-    transform: rotate(0deg);
-    transition: 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
-    width: var(--header-icon-size);
-    z-index: inherit;
-  }
-
-  .theme-toggle-path {
-    fill: var(--color-bg);
-  }
-
-  .theme-toggle-circle {
-    fill: none;
-    stroke-dasharray: var(--circle-stroke);
-    stroke-dashoffset: var(--circle-stroke);
-    stroke-linecap: round;
-    stroke-width: 0.3rem;
-    transition: stroke-dashoffset 0.3s linear 0.1s;
-  }
-
-  /* Animation for theme picker active state */
-  .theme-toggle-btn[aria-expanded='true'] .theme-toggle-svg {
-    fill: var(--color-bg);
-    transform: rotate(90deg);
-  }
-
-  .theme-toggle-btn[aria-expanded='true'] .theme-toggle-circle {
-    stroke-dashoffset: 0;
-  }
-</style>
-
 <button
-  class="theme-toggle-btn themepicker-toggle__toggle-btn"
+  class:list={[
+    'theme-toggle-btn themepicker-toggle__toggle-btn',
+    'relative inline-flex items-center justify-center',
+    'w-(--header-icon-size) h-(--header-icon-size)',
+    'rounded-full border-0',
+    'bg-primary hover:bg-primary-offset',
+    'focus:bg-primary-offset focus-visible:bg-primary-offset',
+    "focus-visible:outline-none after:pointer-events-none after:absolute after:content-[''] after:inset-0 after:rounded-none after:border-2 after:border-transparent after:opacity-0 after:transition-opacity after:duration-150 after:ease-out focus-visible:after:opacity-100 focus-visible:after:-inset-1.5 focus-visible:after:border-spotlight",
+    'transition-colors duration-150 ease-linear',
+    'z-(--z-content-overlay)',
+    styles.toggleBtn,
+  ]}
   type="button"
   aria-expanded="false"
   aria-controls="theme-picker-panel"
@@ -65,17 +25,22 @@
 >
   <svg
     viewBox="0 0 50 50"
-    class="theme-toggle-svg"
+    class:list={[
+      'w-(--header-icon-size) h-(--header-icon-size)',
+      'relative',
+      'transition-transform duration-300 ease-[cubic-bezier(0.165,0.84,0.44,1)]',
+      styles.toggleSvg,
+    ]}
     xmlns="http://www.w3.org/2000/svg"
     aria-hidden="true"
     focusable="false"
   >
     <g>
       <path
-        class="theme-toggle-path"
+        class:list={['fill-page-base']}
         d="M 31.6,15.4 V 14.2 C 31.6,13.54 31.06,13 30.4,13 H 16 c -0.66,0 -1.2,0.54 -1.2,1.2 V 19 c 0,0.66 0.54,1.2 1.2,1.2 h 14.4 c 0.66,0 1.2,-0.54 1.2,-1.2 v -1.2 h 1.2 v 4.8 h -12 v 13.2 c 0,0.66 0.54,1.2 1.2,1.2 h 2.4 c 0.66,0 1.2,-0.54 1.2,-1.2 V 25 h 9.6 v -9.6 z"
       ></path>
-      <circle class="theme-toggle-circle" r="23" cx="25" cy="25"></circle>
+      <circle class={styles.toggleCircle} r="23" cx="25" cy="25"></circle>
     </g>
   </svg>
 </button>

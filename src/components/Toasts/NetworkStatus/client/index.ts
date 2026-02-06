@@ -105,7 +105,7 @@ export class NetworkStatusToastElement extends LitElement {
 
   private get toastClasses(): string {
     const baseClasses =
-      'fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300'
+      'fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-(--z-content-floating) transition-all duration-300'
     return this.visible ? baseClasses : `${baseClasses} hidden`
   }
 

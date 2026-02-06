@@ -115,7 +115,7 @@ test.describe('Testimonials Component', () => {
     const page = await BasePage.init(playwrightPage)
     // Expected: Should show author's company or job title
     const testimonials = page.locator('.testimonials-embla')
-    const company = testimonials.locator('.text-sm.text-text-offset').first()
+    const company = testimonials.locator('.text-sm.text-content-active').first()
 
     await expect(company).toBeVisible()
 

@@ -1,0 +1,31 @@
+---
+title: "Kubernetes Secrets: ESO vs CSI vs Init Containers"
+description: "Comparing secret injection patterns and their failure modes when connecting Vault or cloud secret managers."
+author: "kevin-brown"
+cover: "./cover.jpg"
+coverAlt: "Bank vault with three secret access methods: scheduled escort (ESO periodic sync), direct access (CSI at pod start), and custom robot retrieval (init container)"
+publishDate: 2022-10-16
+isDraft: false
+fileType: "PDF"
+fileSize: "1.4 MB"
+pages: 28
+fileName: "kubernetes-secrets-external-secrets-operator-csi-vault.pdf"
+---
+
+Kubernetes Secrets are base64-encoded, not encrypted, sitting in etcd readable by anyone with RBAC access. External secret managers like Vault, AWS Secrets Manager, and Azure Key Vault keep secrets outside the cluster. But now pods depend on an external service, and that dependency has failure modes. During a 30-minute Vault outage, different injection patterns fail differently: External Secrets Operator cached pods keep running while new pods start successfully, CSI Driver blocks new pods, and Init containers depend on custom retry logic. Choosing the right pattern requires understanding these tradeoffs.
+
+Three secret injection patterns dominate: External Secrets Operator, Secrets Store CSI Driver, and Init containers. Each caches differently, fails differently, and recovers differently.
+
+This complete guide teaches you:
+
+- Native Kubernetes Secrets: how they work and why they're insufficient
+- External Secrets Operator: scheduling, caching, and resilience
+- Secrets Store CSI Driver: on-demand injection and pod startup blocking
+- Init container pattern: control and custom failure handling
+- Failure modes: what happens when Vault goes down
+- Vault authentication: ServiceAccount, JWT, and IAM bindings
+- AWS Secrets Manager and Azure Key Vault integration patterns
+- Secret rotation without pod restarts
+- Audit logging and compliance requirements
+
+Download Your Kubernetes Secrets Management Guide now to choose a pattern that survives infrastructure failures.

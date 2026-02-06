@@ -47,6 +47,9 @@ const Anticipate = {
 export class ComputersAnimationElement extends LitElement {
   private timeline: Timeline | null = null
   private initialized = false
+  private animationReady = false
+  private deferredInitRafId: number | null = null
+  private deferredInitFrames = 0
   private animationController: AnimationControllerHandle | undefined
   private toggleButton: HTMLButtonElement | null = null
   private intersectionObserver: IntersectionObserver | undefined
@@ -100,36 +103,101 @@ export class ComputersAnimationElement extends LitElement {
     addScriptBreadcrumb(context)
 
     try {
-      this.startAnimation()
       this.toggleButton = queryAnimationToggleButton(this)
 
       if (this.toggleButton) {
         addButtonEventListeners(this.toggleButton, this.toggleClickHandler, this)
       }
 
-      const defaultState = this.getDefaultAnimationState()
-      this.setAnimationState(defaultState)
-      if (defaultState === 'paused') {
-        this.timeline?.pause(0)
+      // The component is `hidden lg:flex` in production markup.
+      // Avoid starting the animation (and registering lifecycle listeners) when the viewport
+      // is below the `lg` breakpoint, because it is not shown.
+      if (this.isHiddenOnThisViewport()) {
+        this.setAnimationState('paused')
+        this.scheduleDeferredInitialization()
+        this.initialized = true
+        return
       }
 
-      this.animationController = createAnimationController({
-        animationId: 'computers-animation',
-        debugLabel: SCRIPT_NAME,
-        defaultState,
-        onPause: () => {
-          this.pause()
-        },
-        onPlay: () => {
-          this.resume()
-        },
-      })
-
-      this.setupVisibilityHandlers()
-      this.syncPlaybackWithVisibility()
+      this.setupAnimationAndController()
       this.initialized = true
     } catch (error) {
       handleScriptError(error, context)
+    }
+  }
+
+  private scheduleDeferredInitialization(): void {
+    if (typeof window === 'undefined') return
+    if (this.deferredInitRafId !== null) return
+
+    const tick = () => {
+      this.deferredInitRafId = null
+
+      if (this.animationReady) {
+        return
+      }
+
+      if (!this.isHiddenOnThisViewport()) {
+        this.setupAnimationAndController()
+        return
+      }
+
+      this.deferredInitFrames += 1
+      if (this.deferredInitFrames >= 60) {
+        return
+      }
+
+      this.deferredInitRafId = window.requestAnimationFrame(tick)
+    }
+
+    this.deferredInitRafId = window.requestAnimationFrame(tick)
+  }
+
+  private setupAnimationAndController(): void {
+    if (this.animationReady) return
+    if (this.isHiddenOnThisViewport()) return
+
+    this.startAnimation()
+    if (!this.timeline) return
+
+    // Start from a known baseline and let the global lifecycle store decide what happens next.
+    // The store may immediately pause (reduced motion / persisted preference / overlays).
+    this.timeline.play(0)
+    this.setAnimationState('playing')
+
+    this.setupVisibilityHandlers()
+
+    this.animationController = createAnimationController({
+      animationId: 'computers-animation',
+      debugLabel: SCRIPT_NAME,
+      defaultState: 'playing',
+      initialState: 'playing',
+      onPause: () => {
+        this.pause()
+      },
+      onPlay: () => {
+        this.resume()
+      },
+    })
+
+    // Ensure visibility rules (viewport/document) take effect even if the store chooses 'playing'.
+    this.syncPlaybackWithVisibility()
+    this.animationReady = true
+  }
+
+  private isHiddenOnThisViewport(): boolean {
+    try {
+      if (typeof window === 'undefined') {
+        return false
+      }
+
+      if (typeof window.getComputedStyle !== 'function') {
+        return false
+      }
+
+      return window.getComputedStyle(this).display === 'none'
+    } catch {
+      return false
     }
   }
 
@@ -175,13 +243,12 @@ export class ComputersAnimationElement extends LitElement {
       this.intersectionObserver = new IntersectionObserverCtor(
         entries => {
           const entry = entries[0]
-          const ratio = entry?.intersectionRatio ?? 0
-          // Pause as soon as the element is even partially out of view.
-          // Only consider it "in viewport" when it is fully visible.
-          this.isInViewport = Boolean(entry?.isIntersecting && ratio >= 0.999)
+          // Auto-play as long as *any* part of the animation is visible.
+          // This avoids the hero animation being paused on load due to minor clipping.
+          this.isInViewport = Boolean(entry?.isIntersecting)
           this.syncPlaybackWithVisibility()
         },
-        { threshold: [0, 0.999] }
+        { threshold: [0] }
       )
 
       this.intersectionObserver.observe(this)
@@ -241,6 +308,12 @@ export class ComputersAnimationElement extends LitElement {
       this.resetToggleButton()
       this.removeAttribute('data-animation-state')
       this.initialized = false
+      this.animationReady = false
+      this.deferredInitFrames = 0
+      if (this.deferredInitRafId !== null && typeof window !== 'undefined') {
+        window.cancelAnimationFrame(this.deferredInitRafId)
+      }
+      this.deferredInitRafId = null
     } catch (error) {
       handleScriptError(error, context)
     }
@@ -289,6 +362,8 @@ export class ComputersAnimationElement extends LitElement {
 
     if (!this.toggleButton) return
 
+    this.setupAnimationAndController()
+
     const state = this.getAnimationState()
 
     if (state === 'playing') {
@@ -311,25 +386,6 @@ export class ComputersAnimationElement extends LitElement {
   private getAnimationState(): AnimationPlayState {
     const state = this.getAttribute('data-animation-state') as AnimationPlayState | null
     return state ?? 'playing'
-  }
-
-  private getDefaultAnimationState(): AnimationPlayState {
-    if (typeof window === 'undefined') {
-      return 'playing'
-    }
-
-    try {
-      if (typeof window.matchMedia === 'function') {
-        const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
-        if (mediaQuery.matches) {
-          return 'paused'
-        }
-      }
-    } catch {
-      // Best effort only; fall through to playing
-    }
-
-    return 'playing'
   }
 
   private startAnimation() {

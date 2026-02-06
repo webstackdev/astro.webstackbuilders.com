@@ -24,26 +24,34 @@ const activeMenuItem = (url: string) => {
       'w-full font-heading text-[0.85rem] uppercase tracking-[0.22em] text-primary',
       'lg:relative lg:text-[0.8rem] lg:tracking-[0.12em]',
     ]}
+    aria-label="main navigation"
     tabindex="-1"
   >
     {
-      navigationItems.map(navItem => {
+      navigationItems.map((navItem, index) => {
         const isActive = isActiveMenuItem(navItem.url)
+        const delaySeconds = 0.15 + index * 0.05
         return (
           <li
             class:list={[
               'main-nav-item',
               styles.mainNavItem,
               'lg:relative',
+              'group-data-[header-search-open=true]:lg:hidden',
               ...activeMenuItem(navItem.url),
             ]}
+            style={`--nav-item-delay: ${delaySeconds}s`}
           >
             <a
               href={navItem.url}
               aria-current={isActive ? 'page' : undefined}
               class:list={[
-                'block text-primary text-xl font-bold tracking-[5px] uppercase no-underline text-center p-4 focus:outline-0',
-                'lg:text-lg lg:lowercase lg:tracking-normal lg:px-5 lg:py-3 lg:flex lg:items-center lg:relative lg:whitespace-nowrap lg:z-10',
+                'block text-primary text-xl font-bold tracking-[5px] uppercase no-underline text-center p-4 lg:flex lg:items-center lg:relative lg:whitespace-nowrap lg:z-(--z-raised)',
+                'lg:text-lg lg:lowercase lg:tracking-normal lg:px-5 lg:py-3',
+                'lg:text-primary-offset lg:underline lg:decoration-dotted lg:decoration-2 lg:decoration-primary-offset lg:underline-offset-8',
+                'lg:hover:text-primary lg:hover:decoration-transparent',
+                'lg:focus-visible:text-primary lg:focus-visible:decoration-primary',
+                'lg:focus-visible:outline-2 lg:focus-visible:outline-spotlight lg:focus-visible:outline-offset-4',
                 styles.mainNavLink,
               ]}
             >

@@ -53,8 +53,8 @@ export class CoreWebVitalsPage extends BasePage {
    * FID measures interactivity - should be under 100ms for good UX
    */
   async measureFID(): Promise<number> {
-    // Wait for page to be fully interactive
-    await this.page.waitForLoadState('networkidle')
+    // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
+    await this.waitForNetworkIdleBestEffort()
 
     // Find a safe clickable element (not the cookie modal)
     const clickTarget = await this.page.evaluate(() => {

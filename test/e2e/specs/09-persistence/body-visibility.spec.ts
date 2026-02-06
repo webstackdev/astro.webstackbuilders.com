@@ -17,7 +17,8 @@ test.describe('View Transitions - body visibility reset', () => {
     const page = await BasePage.init(playwrightPage)
 
     await page.goto('/')
-    await page.waitForLoadState('networkidle')
+    // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
+    await page.waitForNetworkIdleBestEffort()
     await page.waitForHeaderComponents()
 
     const astroBeforeSwapLog = page.consoleMssgPromise('Theme init on "astro:before-swap" executed')

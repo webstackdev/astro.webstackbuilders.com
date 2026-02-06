@@ -1,4 +1,4 @@
-export type ButtonVariant = 'primary' | 'secondary' | 'twitter' | 'success' | 'warning' | 'icon'
+export type ButtonVariant = 'primary' | 'secondary' | 'twitter' | 'success' | 'warning' | 'spotlight' | 'icon'
 export type ButtonSize = 'small' | 'medium' | 'large'
 export type ButtonType = 'button' | 'submit' | 'reset'
 export type IconPosition = 'left' | 'right' | 'only'
@@ -19,65 +19,98 @@ export interface ButtonProps {
   iconSize?: number | string
 }
 
-export interface ButtonStyleModule {
-  button: string
-  sizeSmall: string
-  sizeMedium: string
-  sizeLarge: string
-  variantPrimary: string
-  variantSecondary: string
-  variantTwitter: string
-  variantSuccess: string
-  variantWarning: string
-  variantIcon: string
-}
-
-const sizeClassLookup: Record<ButtonSize, keyof ButtonStyleModule> = {
-  small: 'sizeSmall',
-  medium: 'sizeMedium',
-  large: 'sizeLarge',
-}
-
-const variantClassLookup: Record<ButtonVariant, keyof ButtonStyleModule> = {
-  primary: 'variantPrimary',
-  secondary: 'variantSecondary',
-  twitter: 'variantTwitter',
-  success: 'variantSuccess',
-  warning: 'variantWarning',
-  icon: 'variantIcon',
-}
-
 const ICON_ONLY_POSITION: IconPosition = 'only'
 
+type ClassList = Record<string, boolean>
+
+function addClassNames(classList: ClassList, classNames: string) {
+  classNames
+    .split(/\s+/)
+    .filter(Boolean)
+    .forEach(className => {
+      classList[className] = true
+    })
+}
+
+const baseButtonClasses =
+  'inline-flex items-center justify-center text-center align-middle whitespace-nowrap select-none ' +
+  'no-underline ' +
+  'relative focus-visible:outline-none ' +
+  "after:pointer-events-none after:absolute after:content-[''] after:inset-0 after:rounded-none after:border-2 after:border-transparent after:opacity-0 after:transition-opacity after:duration-150 after:ease-out " +
+  'focus-visible:after:opacity-100 focus-visible:after:[inset:-6px] focus-visible:after:border-spotlight ' +
+  'border-2 border-solid border-transparent rounded-md ' +
+  'font-bold uppercase tracking-[0.08em] ' +
+  'text-sm leading-5 ' +
+  '[box-shadow:var(--shadow-sm)] [text-shadow:var(--shadow-text)] ' +
+  'transition-[color,background-color,border-color,box-shadow,transform] duration-200 ease-in-out ' +
+  'disabled:cursor-not-allowed disabled:opacity-[0.65] disabled:pointer-events-none ' +
+  'aria-disabled:cursor-not-allowed aria-disabled:opacity-[0.65] aria-disabled:pointer-events-none'
+
+const sizeClasses: Record<ButtonSize, string> = {
+  small:
+    'text-xs leading-4 py-1.5 px-3 sm:py-2 sm:px-4',
+  medium:
+    'text-xs leading-4 py-1.5 px-4 sm:py-3 sm:px-6 lg:px-5',
+  large:
+    'text-sm sm:text-base leading-5 sm:leading-6 py-3 px-7 sm:py-4 sm:px-8',
+}
+
+const variantClasses: Record<ButtonVariant, string> = {
+  primary:
+    'bg-primary text-content ' +
+    'hover:bg-primary-offset hover:[box-shadow:var(--shadow-hover)] hover:-translate-y-px ' +
+    'focus-visible:bg-primary-offset focus-visible:[box-shadow:var(--shadow-hover)] focus-visible:-translate-y-px ' +
+    'active:bg-primary-offset active:[box-shadow:var(--shadow-active)] active:translate-y-px',
+  secondary:
+    'bg-secondary text-content ' +
+    'hover:bg-secondary-offset hover:[box-shadow:var(--shadow-hover)] hover:-translate-y-px ' +
+    'focus-visible:bg-secondary-offset focus-visible:[box-shadow:var(--shadow-hover)] focus-visible:-translate-y-px ' +
+    'active:bg-secondary-offset active:[box-shadow:var(--shadow-active)] active:translate-y-px',
+  twitter: 'bg-x border-x text-content hover:bg-transparent hover:text-x focus-visible:bg-transparent focus-visible:text-x',
+  success:
+    'bg-success text-white ' +
+    'hover:bg-success-offset hover:[box-shadow:var(--shadow-hover)] hover:-translate-y-px ' +
+    'focus-visible:bg-success-offset focus-visible:[box-shadow:var(--shadow-hover)] focus-visible:-translate-y-px ' +
+    'active:bg-success-offset active:[box-shadow:var(--shadow-active)] active:translate-y-px',
+  warning:
+    'bg-warning text-content ' +
+    'hover:bg-warning-offset hover:[box-shadow:var(--shadow-hover)] hover:-translate-y-px ' +
+    'focus-visible:bg-warning-offset focus-visible:[box-shadow:var(--shadow-hover)] focus-visible:-translate-y-px ' +
+    'active:bg-warning-offset active:[box-shadow:var(--shadow-active)] active:translate-y-px',
+  spotlight:
+    'bg-spotlight text-black ' +
+    'hover:bg-spotlight-offset hover:[box-shadow:var(--shadow-hover)] hover:-translate-y-px ' +
+    'focus-visible:bg-spotlight-offset focus-visible:[box-shadow:var(--shadow-hover)] focus-visible:-translate-y-px ' +
+    'active:bg-spotlight-offset active:[box-shadow:var(--shadow-active)] active:translate-y-px',
+  icon:
+    'aspect-square bg-transparent text-content p-2 ![box-shadow:none] ' +
+    'hover:bg-page-base-offset hover:text-primary ' +
+    'focus-visible:bg-page-base-offset focus-visible:text-primary ' +
+    'active:bg-page-base-offset',
+}
+
 export interface ButtonClassOptions {
-  styles: ButtonStyleModule
   variant?: ButtonVariant
   size?: ButtonSize
   additionalClasses?: string
 }
 
 export function buildButtonClassList({
-  styles,
   variant = 'primary',
   size = 'medium',
   additionalClasses,
 }: ButtonClassOptions) {
-  const classes = {
-    [styles.button]: true,
-    [styles[sizeClassLookup[size]]]: true,
-    [styles[variantClassLookup[variant]]]: true,
-  }
+  const classList: ClassList = {}
+
+  addClassNames(classList, baseButtonClasses)
+  addClassNames(classList, sizeClasses[size])
+  addClassNames(classList, variantClasses[variant])
 
   if (additionalClasses?.trim()) {
-    additionalClasses
-      .split(/\s+/)
-      .filter(Boolean)
-      .forEach(className => {
-        classes[className] = true
-      })
+    addClassNames(classList, additionalClasses)
   }
 
-  return classes
+  return classList
 }
 
 export interface ButtonLabelOptions {

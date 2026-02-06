@@ -1,0 +1,177 @@
+---
+title: "Keyless Container Signing in 15 Minutes"
+description: "Implement meaningful supply chain security without managing keys or paying for tooling. Learn keyless signing with Cosign and enforce verification at deployment time."
+cover: "./cover.jpg"
+coverAlt: "Manufacturing assembly line with products being scanned with QR codes and digital tags for provenance tracking through production"
+author: "kevin-brown"
+publishDate: 2024-03-16
+tags: ["build-and-deploy"]
+featured: true
+---
+
+*[CA]: Certificate Authority
+*[CI]: Continuous Integration
+*[CD]: Continuous Deployment
+*[CVE]: Common Vulnerabilities and Exposures
+*[GPG]: GNU Privacy Guard
+*[HSM]: Hardware Security Module
+*[KMS]: Key Management Service
+*[OCI]: Open Container Initiative
+*[OIDC]: OpenID Connect
+*[PGP]: Pretty Good Privacy
+*[SBOM]: Software Bill of Materials
+*[SLSA]: Supply-chain Levels for Software Artifacts
+*[TOFU]: Trust On First Use
+
+In December 2020, attackers compromised SolarWinds' build process and shipped malicious code to over 18,000 customers, including multiple US government agencies. Four months later, Codecov disclosed that their bash uploader script had been modified, causing thousands of CI pipelines to silently exfiltrate credentials to attacker-controlled servers.
+
+These weren't exotic zero-days. They exploited a fundamental assumption: that code, builds, and artifacts are what they claim to be. When that assumption breaks down, the blast radius is enormous.
+
+Here's the good news: you can implement practical supply chain protection _today_ without managing keys, standing up infrastructure, or paying for expensive tooling. The barrier has dropped dramatically in the past few years, and the core protection—cryptographic signing with identity-based verification—is now free. If you're already comfortable with GitHub Actions, you can add signing to an existing pipeline in about 15 minutes. If you're newer to these tools, budget an hour to understand the OIDC flow and test your configuration.
+
+## What You're Actually Protecting Against
+
+Before investing in countermeasures, it helps to understand the attack surface. Supply chain attacks can happen at any transition point: compromised developer credentials pushing malicious commits, dependency confusion pulling poisoned packages, tampered build systems injecting backdoors, or modified artifacts swapped in registries after the build completes.
+
+[SLSA](https://slsa.dev) (Supply-chain Levels for Software Artifacts, pronounced "salsa") is a framework that addresses a specific slice of this problem. It focuses on _provenance_—proving that an artifact came from a specific source through a specific build process. This matters because it lets you verify that what you're deploying matches what you reviewed.
+
+| SLSA Addresses | SLSA Does NOT Address |
+|----------------|----------------------|
+| Unauthorized source changes | Bugs in legitimate code |
+| Build tampering | Vulnerabilities in dependencies |
+| Missing provenance | Social engineering |
+| Non-reproducible builds | Compromised developer machines |
+| Unsigned artifacts | Insider threats with legitimate access |
+
+_Table: SLSA's protection scope. The framework proves provenance and build integrity, not code quality or dependency safety._
+
+SLSA defines four levels of increasing rigor, but most teams should target Level 2. It provides authenticated provenance—the build service signs an attestation linking your artifact to a specific commit—without requiring significant process changes. An attacker who compromises your source repository can't forge provenance claiming the artifact came from a different commit. That's a meaningful security improvement for a few hours of configuration work.
+
+<Callout type="info">
+SLSA proves that an artifact came from a specific source through a specific build process. It doesn't prove the source is free of vulnerabilities. You still need code review, dependency scanning, and vulnerability management.
+</Callout>
+
+## Keyless Signing with Cosign
+
+Traditional artifact signing with GPG or PGP creates an operational burden that most teams can't sustain. You generate a keypair, guard the private key carefully, distribute the public key somehow, and hope everyone verifies. Key rotation is painful, key compromise is catastrophic (affecting all past signatures), and the Trust On First Use (TOFU) problem means first-time verifiers have no good way to know if they have the right public key.
+
+Keyless signing flips this model entirely. Instead of managing keys, you prove your identity through OIDC—the same system that powers "Sign in with GitHub." Sigstore (which provides the Cosign tool) issues a short-lived certificate tied to that identity, you sign with it, and the signature is recorded in a public transparency log called Rekor. Verification checks the log rather than a distributed public key.
+
+The result: no keys to manage, no rotation headaches, and signatures tied to specific identities at specific times. Sigstore is a free, open-source, public-good service operated by the Open Source Security Foundation. There's no vendor lock-in or subscription cost—it exists to make supply chain security accessible to everyone.
+
+Here's a complete GitHub Actions workflow that builds a container image and signs it with keyless Cosign:
+
+```yaml
+# .github/workflows/build-and-sign.yml
+name: Build and Sign Container
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write  # Required for OIDC token
+
+jobs:
+  build-sign:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ github.repository }}:${{ github.ref_name }}
+
+      - name: Sign container image
+        run: |
+          cosign sign --yes ghcr.io/${{ github.repository }}@${{ steps.build.outputs.digest }}
+
+      - name: Verify signature (catch config issues early)
+        run: |
+          cosign verify \
+            --certificate-identity "${{ github.server_url }}/${{ github.repository }}/.github/workflows/build-and-sign.yml@${{ github.ref }}" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            ghcr.io/${{ github.repository }}@${{ steps.build.outputs.digest }}
+```
+_Code: GitHub Actions workflow for building and keyless-signing a container image. The `id-token: write` permission enables OIDC authentication with Sigstore._
+
+That's it—about 15 minutes of configuration for cryptographic signing on every release. The `--yes` flag confirms you want keyless signing. The signature includes the workflow identity—anyone verifying can see exactly which GitHub Actions workflow signed the image, down to the specific workflow file and git ref.
+
+To verify a signed image, you specify the expected identity and OIDC issuer:
+
+```bash
+# Verify by workflow identity
+cosign verify ghcr.io/myorg/myapp:v1.0.0 \
+  --certificate-identity-regexp "https://github.com/myorg/myapp/.github/workflows/.*@refs/tags/v.*" \
+  --certificate-oidc-issuer "https://token.actions.githubusercontent.com"
+```
+_Code: Verifying a container signature with Cosign. The identity regexp matches any workflow in the repository running on a version tag._
+
+If the signature doesn't exist or the identity doesn't match, verification fails with a clear error message.
+
+## Making It Mandatory
+
+Signing without verification is security theater. The whole point is to make unsigned or tampered artifacts impossible to deploy—and that requires automated enforcement, not human discipline.
+
+For Kubernetes deployments, the Sigstore Policy Controller intercepts pod creation requests and verifies container signatures before allowing the workload to start. If an image doesn't meet your policy, the pod never runs.
+
+For CI/CD pipelines, add a verification gate before any deployment step. The pattern is simple: verify immediately after signing (to catch configuration problems) and verify again before deploying (to catch tampering or policy drift).
+
+```yaml
+# Add to your deployment workflow (assumes workflow_dispatch with image_tag input)
+- name: Verify before deploy
+  run: |
+    cosign verify \
+      --certificate-identity-regexp "https://github.com/${{ github.repository }}/.github/workflows/.*" \
+      --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+      ghcr.io/${{ github.repository }}:${{ inputs.image_tag }}
+```
+_Code: Verification gate in a deployment workflow. This blocks promotion if the signature is missing or from an unexpected identity._
+
+The self-verification pattern—verifying your own signature immediately after signing—catches configuration problems early. If your signing workflow can't verify its own output, no one else can either.
+
+<Callout type="warning">
+Start enforcement in staging before production. Track verification success rates and fix any signing gaps before making verification mandatory in your production pipeline.
+</Callout>
+
+## Where to Go from Here
+
+What I've covered here—keyless signing with Cosign and basic verification gates—is Phase 2 of a broader supply chain security journey. It blocks most external attackers without changing how developers work.
+
+From here, you can layer in additional protections. Here's what each provides:
+
+- _SLSA provenance generators_ create cryptographically-signed attestations linking artifacts to specific commits and build configurations. The [`slsa-framework`](https://github.com/slsa-framework/slsa-github-generator) organization provides official generators for GitHub Actions.
+
+- _SBOM integration_ adds a Software Bill of Materials to your images, listing every dependency. When a new CVE drops, you can answer "are we affected?" in minutes.
+
+- _Kubernetes admission control_ with the Sigstore Policy Controller makes verification automatic and mandatory at the cluster level—no deployment workflow changes needed.
+
+- _Level 3 hardening_ introduces two-person review requirements and isolated build environments for your most security-critical components.
+
+Each step provides incremental improvement. A signed artifact with basic provenance is infinitely more secure than an unsigned one. Don't let perfect be the enemy of good.
+
+---
+
+__CTA Title:__ Get the Complete Implementation Guide
+
+__CTA Body:__ This article covers keyless signing—the fastest path to meaningful supply chain security. The full guide goes deeper: SLSA provenance workflows with GitHub's official generators, KMS-backed signing for compliance scenarios, Kubernetes admission policies with the Sigstore Policy Controller, SBOM generation and vulnerability scanning, and a phased implementation checklist with troubleshooting for common issues. Download the PDF for everything you need to implement a practical supply chain security baseline.

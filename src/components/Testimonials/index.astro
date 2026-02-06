@@ -2,163 +2,190 @@
 // Testimonials component for displaying client testimonials
 // Refactored to use Embla Carousel for consistency with other carousel components
 import { getCollection } from 'astro:content'
-import Avatar from '@components/Avatar/index.astro'
 import Icon from '@components/Icon/index.astro'
+import Card from './Card.astro'
 import type { TestimonialsProps } from './props'
 
 export type { TestimonialsProps as Props } from './props'
 
-const { title = 'Testimonials', limit } = Astro.props as TestimonialsProps
+const {
+  title = 'Testimonials',
+  leadText,
+  limit,
+  count,
+  organization,
+} = Astro.props as TestimonialsProps
 
 // Get all testimonials from content collection
 const allTestimonials = await getCollection('testimonials')
 
-// Sort by publishDate (newest first) and apply limit if specified
-const testimonials = allTestimonials
-  .sort((a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime())
-  .slice(0, limit || allTestimonials.length)
+const normalizeOrganization = (value: unknown): string =>
+  String(value ?? '')
+    .trim()
+    .toLowerCase()
+
+const organizationFilter = normalizeOrganization(organization)
+
+const filteredTestimonials = organizationFilter
+  ? allTestimonials.filter(entry => normalizeOrganization(entry.data.organization) === organizationFilter)
+  : allTestimonials
+
+const sortByOrganizationThenDate = (a: (typeof allTestimonials)[number], b: (typeof allTestimonials)[number]) => {
+  const orgA = String(a.data.organization ?? '')
+  const orgB = String(b.data.organization ?? '')
+
+  const organizationCompare = orgA.localeCompare(orgB, undefined, { sensitivity: 'base' })
+  if (organizationCompare !== 0) {
+    return organizationCompare
+  }
+
+  return new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime()
+}
+
+const resolvedLimit = limit ?? count
+
+// Sort by organization (stable grouping), then newest first. Apply optional limit.
+const testimonials = filteredTestimonials
+  .sort(sortByOrganizationThenDate)
+  .slice(0, resolvedLimit || filteredTestimonials.length)
+
+const shouldRenderSingle = Boolean(organizationFilter) && testimonials.length === 1
+const headingId = `testimonials-${organizationFilter ? organizationFilter.replace(/[^a-z0-9]+/g, '-') : 'all'}-title`
+const singleTestimonial = shouldRenderSingle ? testimonials.at(0) : undefined
 ---
 
 {
-  testimonials.length > 0 && (
-    <testimonials-carousel
-      data-carousel
-      class="block"
-      role="region"
-      aria-roledescription="carousel"
-      aria-label={title}
-    >
-      <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <header class="text-center mb-12">
-          <h2 class="text-3xl md:text-4xl font-bold text-text">{title}</h2>
-        </header>
+  testimonials.length > 0 &&
+    (shouldRenderSingle ? (
+      <section class="bg-page-base-offset py-8" aria-labelledby={headingId}>
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <header class="text-center mb-6">
+            <h2 id={headingId} class="text-3xl md:text-4xl font-bold mb-4">{title}</h2>
+            {leadText && (
+              <p class="text-xl text-content-active max-w-3xl mx-auto">{leadText}</p>
+            )}
+          </header>
 
-        {/* Embla Carousel for Testimonials */}
-        <div class="testimonials-embla relative">
-          <div class="embla__viewport overflow-hidden">
-            <div class="embla__container flex">
-              {testimonials.map((testimonial, index) => (
-                <div
-                  class="embla__slide flex-[0_0_100%] min-w-0 px-4"
-                  role="group"
-                  aria-roledescription="slide"
-                  aria-label={`Testimonial ${index + 1} of ${testimonials.length}`}
-                >
-                  <article class="bg-bg-offset rounded-xl p-8 shadow-lg border border-border h-full flex flex-col">
-                    {/* Quote Icon */}
-                    <div class="text-primary mb-4">
-                      <svg
-                        class="w-8 h-8"
-                        fill="currentColor"
-                        viewBox="0 0 24 24"
-                        aria-hidden="true"
-                        focusable="false"
-                      >
-                        <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h4v10h-10z" />
-                      </svg>
-                    </div>
-
-                    {/* Testimonial Content */}
-                    <div class="flex-1 mb-6">
-                      <blockquote class="text-lg leading-relaxed text-text italic">
-                        {testimonial.body}
-                      </blockquote>
-                    </div>
-
-                    {/* Author Info */}
-                    <div class="flex items-center gap-4">
-                      <Avatar name={testimonial.data.name} class="shrink-0" />
-                      <div>
-                        <div class="font-semibold text-text">{testimonial.data.name}</div>
-                        <div class="text-sm text-text-offset capitalize">
-                          {testimonial.data.organization}
-                        </div>
-                      </div>
-                    </div>
-                  </article>
-                </div>
-              ))}
-            </div>
+          <div class="max-w-4xl mx-auto">
+            {singleTestimonial && <Card testimonial={singleTestimonial} />}
           </div>
-
-          {/* Navigation Buttons */}
-          {testimonials.length > 1 && (
-            <>
-              <button
-                type="button"
-                class="embla__button embla__button--prev absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-12 h-12 rounded-full bg-bg border-2 border-border shadow-lg hover:bg-primary hover:border-primary hover:text-white transition-all duration-300 flex items-center justify-center z-10 disabled:opacity-30 disabled:cursor-not-allowed"
-                aria-label="Previous testimonial"
-              >
-                <svg
-                  class="w-6 h-6 text-text"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                  focusable="false"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M15 19l-7-7 7-7"
-                  />
-                </svg>
-              </button>
-
-              <button
-                type="button"
-                class="embla__button embla__button--next absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-12 h-12 rounded-full bg-bg border-2 border-border shadow-lg hover:bg-primary hover:border-primary hover:text-white transition-all duration-300 flex items-center justify-center z-10 disabled:opacity-30 disabled:cursor-not-allowed"
-                aria-label="Next testimonial"
-              >
-                <svg
-                  class="w-6 h-6 text-text"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                  focusable="false"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
-              </button>
-
-              {/* Dots Navigation */}
-              <div class="mt-8 flex items-center justify-center gap-3">
-                <div
-                  class="embla__dots flex gap-2 justify-center"
-                  role="group"
-                  aria-label="Testimonial navigation"
-                />
-                <button
-                  type="button"
-                  class="flex items-center justify-center rounded-full border border-border bg-bg p-1 text-text shadow-lg transition-colors hover:bg-bg-offset"
-                  data-testimonials-autoplay-toggle
-                  aria-label="Pause testimonials"
-                  aria-pressed="false"
-                >
-                  <span data-testimonials-icon="pause">
-                    <Icon name="pause" size={20} />
-                  </span>
-                  <span data-testimonials-icon="play" class="hidden">
-                    <Icon name="play" size={20} />
-                  </span>
-                </button>
-              </div>
-            </>
-          )}
         </div>
       </section>
-    </testimonials-carousel>
-  )
+    ) : (
+      <testimonials-carousel
+        data-carousel
+        class="block"
+        role="region"
+        aria-roledescription="carousel"
+        aria-label={title}
+      >
+        <section class="bg-page-base-offset py-8" aria-labelledby={headingId}>
+          <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <header class="text-center mb-6">
+              <h2 id={headingId} class="text-3xl md:text-4xl font-bold mb-4">{title}</h2>
+              {leadText && (
+                <p class="text-xl text-content-active max-w-3xl mx-auto">{leadText}</p>
+              )}
+            </header>
+
+            {/* Embla Carousel for Testimonials */}
+            <div class="testimonials-embla relative">
+              <div class="embla__viewport overflow-hidden">
+                <div class="embla__container flex">
+                  {testimonials.map((testimonial, index) => (
+                    <div
+                      class="embla__slide flex-[0_0_100%] min-w-0 px-4"
+                      data-testimonials-slide
+                      role="group"
+                      aria-roledescription="slide"
+                      aria-label={`Testimonial ${index + 1} of ${testimonials.length}`}
+                    >
+                      <Card testimonial={testimonial} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Navigation Buttons */}
+              {testimonials.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    class="embla__button embla__button--prev absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-12 h-12 rounded-full bg-content-inverse border-2 border-trim shadow-lg hover:bg-gray-200 hover:border-gray-200 transition-all duration-300 flex items-center justify-center z-(--z-raised) disabled:opacity-30 disabled:cursor-not-allowed focus-visible:outline-none after:pointer-events-none after:absolute after:-inset-0.5 after:rounded-none after:content-[''] focus-visible:after:border-2 focus-visible:after:border-spotlight"
+                    aria-label="Previous testimonial"
+                  >
+                    <svg
+                      class="w-6 h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                      focusable="false"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15 19l-7-7 7-7"
+                      />
+                    </svg>
+                  </button>
+
+                  <button
+                    type="button"
+                    class="embla__button embla__button--next absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-12 h-12 rounded-full bg-content-inverse border-2 border-trim shadow-lg hover:bg-gray-200 hover:border-gray-200 transition-all duration-300 flex items-center justify-center z-(--z-raised) disabled:opacity-30 disabled:cursor-not-allowed focus-visible:outline-none after:pointer-events-none after:absolute after:-inset-0.5 after:rounded-none after:content-[''] focus-visible:after:border-2 focus-visible:after:border-spotlight"
+                    aria-label="Next testimonial"
+                  >
+                    <svg
+                      class="w-6 h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                      focusable="false"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                  </button>
+
+                  <div class="mt-8 flex items-center justify-center gap-3">
+                    <div
+                      class="embla__dots flex gap-2 justify-center"
+                      role="group"
+                      aria-label="Testimonial navigation"
+                    />
+                    <button
+                      type="button"
+                      class="relative flex items-center justify-center rounded-full border border-trim bg-content-inverse p-1 shadow-lg transition-colors hover:bg-page-base-offset focus-visible:outline-none after:pointer-events-none after:absolute after:-inset-0.5 after:rounded-none after:content-[''] focus-visible:after:border-2 focus-visible:after:border-spotlight"
+                      data-testimonials-autoplay-toggle
+                      aria-label="Pause testimonials"
+                      aria-pressed="false"
+                    >
+                      <span data-testimonials-icon="pause">
+                        <Icon name="pause" size={20} />
+                      </span>
+                      <span data-testimonials-icon="play" class="hidden">
+                        <Icon name="play" size={20} />
+                      </span>
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </section>
+      </testimonials-carousel>
+    ))
 }
 
-<script>
-  import { registerTestimonialsWebComponent } from '@components/Testimonials/client'
-  registerTestimonialsWebComponent()
-</script>
+{!shouldRenderSingle && (
+  <script>
+    import { registerTestimonialsWebComponent } from '@components/Testimonials/client'
+    registerTestimonialsWebComponent()
+  </script>
+)}

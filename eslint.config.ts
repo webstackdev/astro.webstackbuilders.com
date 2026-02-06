@@ -15,7 +15,7 @@ import noHtmlElementAssertionsRule from './test/eslint/no-html-element-assertion
 import noQuerySelectorOutsideSelectorsRule from './test/eslint/no-query-selector-outside-selectors-rule'
 
 const level: Linter.StringSeverity = 'error'
-const astroParser = (astroPlugin as unknown as { parser: typeof tsPlugin.parser }).parser
+const astroParser = (astroPlugin as unknown as { parser: Linter.Parser }).parser
 const tsconfigRootDir = path.dirname(fileURLToPath(import.meta.url))
 
 export default [
@@ -351,6 +351,7 @@ export default [
         project: './tsconfig.json',
         tsconfigRootDir,
         extraFileExtensions: ['.astro'],
+        programs: undefined,
       },
     },
     rules: {
@@ -460,6 +461,7 @@ export default [
       'test/e2e/db/libsqlClient.ts',
       'test/e2e/helpers/pageObjectModels/**/*',
       'test/e2e/helpers/mockServices.ts',
+      'test/e2e/specs/05-api/cron.spec.ts',
     ],
     rules: {
       'no-process-env': 'off',

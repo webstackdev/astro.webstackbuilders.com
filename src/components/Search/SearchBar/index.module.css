@@ -1,0 +1,42 @@
+.searchBar button[data-search-toggle][data-state='open'] .icon--search {
+  color: var(--color-primary);
+  fill: var(--color-primary);
+}
+
+/* Keep behavior consistent across browsers by disabling the native search clear control.
+   We'll render our own clear button instead. */
+.searchBar[data-search-variant='header'] input[type='search']::-webkit-search-cancel-button {
+  display: none;
+}
+
+.searchBar button[data-search-clear] svg {
+  display: block;
+  fill: currentcolor;
+  height: calc(var(--header-icon-svg-size) * 0.75);
+  width: calc(var(--header-icon-svg-size) * 0.75);
+}
+
+.searchBar button[data-search-mic] svg {
+  display: block;
+  fill: currentcolor;
+  height: calc(var(--header-icon-svg-size) * 0.75);
+  width: calc(var(--header-icon-svg-size) * 0.75);
+}
+
+.searchBar button:not([hidden]) + button[data-search-clear] {
+  margin-left: -12px;
+}
+
+.searchBar form[data-search-form][data-state='open'] {
+  box-shadow:
+    var(--shadow-elevated, 0 0 0 0 transparent),
+    inset 0 0 0 2px var(--color-spotlight);
+}
+
+.searchBar [data-search-results] {
+  border-radius: calc(0.5rem + 2px);
+}
+
+.searchBar [data-search-results-list] a {
+  text-decoration: none;
+}

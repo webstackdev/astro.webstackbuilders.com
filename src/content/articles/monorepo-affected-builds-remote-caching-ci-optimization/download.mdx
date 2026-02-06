@@ -1,0 +1,31 @@
+---
+title: "Monorepo Release Engineering: Affected Builds"
+description: "Building only what changed with affected-based builds and remote caching that actually speeds up CI."
+author: "kevin-brown"
+cover: "./cover.jpg"
+coverAlt: "Assembly line showing build process with cached components pre-made at most stations, workers handling custom work, displaying 78% cache hit rate"
+publishDate: 2025-05-17
+isDraft: false
+fileType: "PDF"
+fileSize: "1.3 MB"
+pages: 27
+fileName: "monorepo-affected-builds-remote-caching-ci-optimization.pdf"
+---
+
+Every monorepo reaches a breaking point: a repository that started with 10 packages and a 5-minute CI pipeline grows to 150 packages with 45-minute PR validation. The instinct is to throw hardware at the problem, but a 200-package monorepo building everything on every commit will always be slow. The real solution is building less—figure out what changed, determine what depends on it, skip everything else. Affected-based builds analyze dependency graphs to identify which packages need rebuilding. Remote caching stores build outputs so identical work never runs twice. Together, they provide order-of-magnitude improvements instead of linear parallelization gains.
+
+Cache hit rates reach 85%, build times drop dramatically, and developers iterate in small increments rather than batching changes.
+
+This complete guide teaches you:
+
+- Dependency graphs: package dependencies, transitive relationships, and rebuild impact
+- Affected calculation algorithm: mapping changed files and reverse graph traversal
+- Remote caching: shared build artifacts across machines and CI runs
+- Cache invalidation: when to rebuild despite existing cache
+- Tool comparison: NX, Turborepo, Bazel, and language-specific build systems
+- Implementing affected builds: minimum configuration and quick wins
+- Cache hit optimization: file hashing, content addressing, and TTL strategies
+- Debugging cache misses and unexpected rebuilds
+- Security: controlling cache access and artifact validation
+
+Download Your Monorepo Build Optimization Guide now to eliminate wasted CI time and accelerate feedback loops.

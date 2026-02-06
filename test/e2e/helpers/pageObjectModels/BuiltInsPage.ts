@@ -22,6 +22,14 @@ export interface BuiltInsReloadOptions {
 export class BuiltInsPage {
   readonly page: Page
 
+  private getBrowserTypeName(): string | undefined {
+    return this._page.context().browser()?.browserType().name()
+  }
+
+  private isWebkit(): boolean {
+    return this.getBrowserTypeName() === 'webkit'
+  }
+
   protected constructor(protected readonly _page: Page) {
     this.page = _page
   }
@@ -227,6 +235,31 @@ export class BuiltInsPage {
    */
   async waitForLoadState(state?: Parameters<Page['waitForLoadState']>[0]): Promise<void> {
     await this._page.waitForLoadState(state)
+  }
+
+  /**
+   * Best-effort wait for "networkidle".
+   *
+   * NOTE: On WebKit/mobile-safari, Playwright's strict "networkidle" can hang due to long-lived
+   * connections/background activity. This helper caps the wait so tests don't stall forever.
+   *
+   * Prefer deterministic DOM gating (e.g. specific selectors, app-ready attributes, or
+   * `waitForPageLoad()` for View Transitions) when possible.
+   */
+  async waitForNetworkIdleBestEffort(options?: { timeout?: number }): Promise<void> {
+    if (!this.isWebkit()) {
+      await this._page.waitForLoadState('networkidle')
+      return
+    }
+
+    const timeout = options?.timeout ?? wait.quickAssert
+
+    await Promise.race([
+      this._page.waitForLoadState('networkidle'),
+      new Promise<void>((resolve) => {
+        setTimeout(resolve, timeout)
+      }),
+    ])
   }
 
   /**

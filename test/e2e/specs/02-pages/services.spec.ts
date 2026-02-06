@@ -50,7 +50,8 @@ test.describe('Services List Page', () => {
     const href = await page.getAttribute('.service-item a', 'href')
 
     await page.click('.service-item a')
-    await page.waitForLoadState('networkidle')
+    // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
+    await page.waitForNetworkIdleBestEffort()
     await page.expectUrlContains(href!)
   })
 

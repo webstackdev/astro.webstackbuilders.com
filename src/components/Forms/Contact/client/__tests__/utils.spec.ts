@@ -21,7 +21,7 @@ describe('ContactForm utils', () => {
       elements.messageTextarea.value = 'a'.repeat(100)
       elements.messageTextarea.dispatchEvent(new window.Event('input'))
       expect(elements.charCount.textContent).toBe('100')
-      expect(elements.charCount.style.color).toBe('var(--color-text-offset)')
+      expect(elements.charCount.style.color).toBe('var(--color-content-active)')
 
       elements.messageTextarea.value = 'a'.repeat(baseConfig.warningThreshold + 1)
       elements.messageTextarea.dispatchEvent(new window.Event('input'))

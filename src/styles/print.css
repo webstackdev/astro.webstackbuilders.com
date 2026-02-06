@@ -1,54 +1,37 @@
-@media print {
-  html {
-    --theme-color-accent: #111827;
-    --theme-color-accent-bg: #e5e7eb;
-    --theme-color-bg: #fff;
-    --theme-color-bg-inverse: #000;
-    --theme-color-bg-offset: #f3f4f6;
-    --theme-color-border: #111827;
-    --theme-color-danger: #111827;
-    --theme-color-danger-bg: #e5e7eb;
-    --theme-color-info: #111827;
-    --theme-color-info-bg: #e5e7eb;
-    --theme-color-link-shadow: #000;
-    --theme-color-primary: #000;
-    --theme-color-primary-bg: #e5e7eb;
-    --theme-color-primary-bg-hover: #d1d5db;
-    --theme-color-primary-hover: #000;
-    --theme-color-primary-offset: #111827;
-    --theme-color-secondary: #374151;
-    --theme-color-secondary-bg: #e5e7eb;
-    --theme-color-secondary-offset: #111827;
-    --theme-color-share-highlight-bg: #e5e7eb;
-    --theme-color-share-highlight-bg-active: #000;
-    --theme-color-share-highlight-text: #000;
-    --theme-color-share-highlight-text-active: #fff;
-    --theme-color-share-highlight-tooltip-bg: #000;
-    --theme-color-share-highlight-tooltip-text: #fff;
-    --theme-color-success: #111827;
-    --theme-color-success-bg: #e5e7eb;
-    --theme-color-success-offset: #000;
-    --theme-color-text: #000;
-    --theme-color-text-offset: #374151;
-    --theme-color-twitter: #111827;
-    --theme-color-warning: #111827;
-    --theme-color-warning-bg: #e5e7eb;
-    --theme-color-warning-offset: #000;
-    --theme-shadow-active: 0 3px 12px -2px inset #0000004d;
-    --theme-shadow-hover: 0 7px 14px #0000001f, 0 3px 6px #0003;
-    --theme-shadow-md: 0 4px 6px #0000002b, 0 1px 3px #0003;
-    --theme-shadow-sm: 0 2px 16px #00000040;
-    --theme-shadow-text: 0 1px 3px #00000040;
-    --theme-shiki-theme: 'github-light';
+/** Print colors on color-capable printers */
+@media print and (color) {
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
+}
 
+/*
+To make it so that 3 lines will always carry over to the next page if text is split, we can apply orphans: 3 to an element. widows are similar to orphans, but they are the lines of text at the top, rather than those at the bottom.
+
+Element borders can look a tad broken when fragmented across pages. We can use box-decoration-break to make it look a bit nicer. By default, it is assigned slice which looks poorly, however, we can make things look a tad more cohesive with box-decoration-break: clone;
+
+Take care with content housed within a scrolling container. It can be worth applying some print-specific CSS to set overflow: visible or to extend the size of a container.
+
+Add borders to containers in print that are identified by color contrast with no border for web.
+
+Hide web mentions, social shares, any interactive elements
+
+Things to do on Playwright for printing to PDF:
+
+- Change scaling in print dialogue to get something close to an 11pt font in Microsoft Word
+- Turn off Headers & Footers in print dialogue
+*/
+
+@media print {
   body {
-    color: #222;
+    color: var(--color-content);
     display: block;
     margin: 0 0.6cm;
     padding: 3mm 0;
   }
 
+  /** Don't print pseudo-element images for any on printed page */
   img::after,
   img::before {
     display: none !important;
@@ -63,38 +46,161 @@
     visibility: hidden;
   }
 
-  .featured-cta {
+  /** Ensure that articles always start on a fresh page */
+  article {
+    break-before: always;
+  }
+
+  /** We're expanding external links in articles, no other links need styling */
+  a {
+    text-decoration: none;
+  }
+
+  /** Expand only outbound links in articles, and suppress internal ones */
+  a[href^="http"]::after,
+  a[href^="https"]::after {
+    content:" <" attr(href) "> ";
+  }
+
+  /** Suppress internal links (relative paths, anchors) */
+  article a[href^="/"], /** Relative internal links */
+  article a[href^="#"] { /** Anchor links */
+    content: ""; /** Remove any added content */
+  }
+
+  /** Don't expand links that contain images */
+  a:has(img)::after {
+    content: "";
+  }
+
+  /** Print abbreviation definitions in parantheses */
+  abbr[title]::after {
+    content: " (" attr(title) ")";
+  }
+
+  /** Make sure a header isn't the last element on a printed page */
+  h2, h3, h4 {
+    break-after: avoid;
+  }
+
+  /** Prevent images from bleeding over the edge of the printed page */
+  img {
+    max-width: 100% !important;
+  }
+
+  /** Prevent large elements from being split across multiple pages. */
+  ul, img {
+    break-inside: avoid;
+  }
+
+  /** Hide Call to Actions */
+  .cta {
     display: none;
   }
 
-  a[href] {
-    text-decoration: underline !important;
+
+  /** Don't print the header and footer */
+  .header,
+  .footer {
+    display: none;
   }
 
-  a {
-    background: 0 0 !important;
-    text-shadow: none !important;
-  }
-
+  /** Applied to the main layout wrapper */
   .layout {
-    background-color: white !important;
+    background-color: var(--color-page-base) !important;
     margin: 0 !important; /* page containing everything will get margin */
     padding: 0 !important;
     width: 100% !important;
   }
 
-  /** Display links for print with the URL in parentheses */
-  .layout a::after {
-    content: "("attr(href)")" !important;
+  /** Applied to individual printed pages */
+  @page {
+    /** Margin in physical units for printed pages */
+    margin: 2cm;
   }
 
-  .layout .header,
-  .layout .footer {
-    display: none;
-  }
-}
+  html {
+    --theme-color-primary: var(--a11y-theme-color-primary);
+    --theme-color-primary-offset: var(--a11y-theme-color-primary-offset);
+    --theme-color-primary-inverse: var(--a11y-theme-color-primary-inverse);
+    --theme-color-secondary: var(--a11y-theme-color-secondary);
+    --theme-color-secondary-offset: var(--a11y-theme-color-secondary-offset);
+    --theme-color-secondary-inverse: var(--a11y-theme-color-secondary-inverse);
+    --theme-color-accent: var(--a11y-theme-color-accent);
+    --theme-color-accent-offset: var(--a11y-theme-color-accent-offset);
+    --theme-color-page-base: var(--a11y-theme-color-page-base);
+    --theme-color-page-active: var(--a11y-theme-color-page-active);
+    --theme-color-page-base-offset: var(--a11y-theme-color-page-base-offset);
+    --theme-color-content: var(--a11y-theme-color-content);
+    --theme-color-content-offset: var(--a11y-theme-color-content-active);
+    --theme-color-content-active: var(--a11y-theme-color-content-active);
+    --theme-color-content-inverse: var(--a11y-theme-color-content-inverse);
+    --theme-color-content-inverse-active: var(--a11y-theme-color-content-inverse-active);
+    --theme-color-trim: var(--a11y-theme-color-trim);
+    --theme-color-spotlight: var(--a11y-theme-color-spotlight);
+    --theme-color-spotlight-offset: var(--a11y-theme-color-spotlight-offset);
+    --theme-color-success: var(--a11y-theme-color-success);
+    --theme-color-success-offset: var(--a11y-theme-color-success-offset);
+    --theme-color-success-inverse: var(--a11y-theme-color-success-inverse);
+    --theme-color-info: var(--a11y-theme-color-info);
+    --theme-color-info-offset: var(--a11y-theme-color-info-offset);
+    --theme-color-info-inverse: var(--a11y-theme-color-info-inverse);
+    --theme-color-note: var(--a11y-theme-color-note);
+    --theme-color-note-offset: var(--a11y-theme-color-note-offset);
+    --theme-color-note-inverse: var(--a11y-theme-color-note-inverse);
+    --theme-color-warning: var(--a11y-theme-color-warning);
+    --theme-color-warning-offset: var(--a11y-theme-color-warning-offset);
+    --theme-color-warning-inverse: var(--a11y-theme-color-warning-inverse);
+    --theme-color-danger: var(--a11y-theme-color-danger);
+    --theme-color-danger-offset: var(--a11y-theme-color-danger-offset);
+    --theme-color-danger-inverse: var(--a11y-theme-color-danger-inverse);
+    --theme-color-icons: var(--a11y-theme-color-icons);
+    --theme-color-icons-active: var(--a11y-theme-color-icons-active);
+    --theme-color-black: var(--a11y-theme-color-black);
+    --theme-color-white: var(--a11y-theme-color-white);
+    --theme-color-blue-100: var(--a11y-theme-color-blue-100);
+    --theme-color-blue-600: var(--a11y-theme-color-blue-600);
+    --theme-color-blue-900: var(--a11y-theme-color-blue-900);
+    --theme-color-gray-50: var(--a11y-theme-color-gray-50);
+    --theme-color-gray-200: var(--a11y-theme-color-gray-200);
+    --theme-color-gray-300: var(--a11y-theme-color-gray-300);
+    --theme-color-gray-600: var(--a11y-theme-color-gray-600);
+    --theme-color-gray-700: var(--a11y-theme-color-gray-700);
+    --theme-color-gray-800: var(--a11y-theme-color-gray-800);
+    --theme-color-gray-offset: var(--a11y-theme-color-gray-offset);
+    --theme-color-green-100: var(--a11y-theme-color-green-100);
+    --theme-color-green-900: var(--a11y-theme-color-green-900);
 
-/** Applied to individual printed pages */
-@page {
-  margin: 2cm;
+    /** Shiki code highlighting colors **/
+    --shiki-foreground: var(--a11y-theme-shiki-foreground);
+    --shiki-background: var(--a11y-theme-shiki-background);
+    --shiki-token-constant: var(--a11y-theme-shiki-token-constant);
+    --shiki-token-string: var(--a11y-theme-shiki-token-string);
+    --shiki-token-comment: var(--a11y-theme-shiki-token-comment);
+    --shiki-token-keyword: var(--a11y-theme-shiki-token-keyword);
+    --shiki-token-parameter: var(--a11y-theme-shiki-token-parameter);
+    --shiki-token-function: var(--a11y-theme-shiki-token-function);
+    --shiki-token-string-expression: var(--a11y-theme-shiki-token-string-expression);
+    --shiki-token-punctuation: var(--a11y-theme-shiki-token-punctuation);
+    --shiki-token-link: var(--a11y-theme-shiki-token-link);
+    --shiki-token-inserted: var(--a11y-theme-shiki-token-inserted);
+    --shiki-token-deleted: var(--a11y-theme-shiki-token-deleted);
+    --shiki-token-changed: var(--a11y-theme-shiki-token-changed);
+    --shiki-ansi-black: var(--a11y-theme-shiki-ansi-black);
+    --shiki-ansi-red: var(--a11y-theme-shiki-ansi-red);
+    --shiki-ansi-green: var(--a11y-theme-shiki-ansi-green);
+    --shiki-ansi-yellow: var(--a11y-theme-shiki-ansi-yellow);
+    --shiki-ansi-blue: var(--a11y-theme-shiki-ansi-blue);
+    --shiki-ansi-magenta: var(--a11y-theme-shiki-ansi-magenta);
+    --shiki-ansi-cyan: var(--a11y-theme-shiki-ansi-cyan);
+    --shiki-ansi-white: var(--a11y-theme-shiki-ansi-white);
+    --shiki-ansi-bright-black: var(--a11y-theme-shiki-ansi-bright-black);
+    --shiki-ansi-bright-red: var(--a11y-theme-shiki-ansi-bright-red);
+    --shiki-ansi-bright-green: var(--a11y-theme-shiki-ansi-bright-green);
+    --shiki-ansi-bright-yellow: var(--a11y-theme-shiki-ansi-bright-yellow);
+    --shiki-ansi-bright-blue: var(--a11y-theme-shiki-ansi-bright-blue);
+    --shiki-ansi-bright-magenta: var(--a11y-theme-shiki-ansi-bright-magenta);
+    --shiki-ansi-bright-cyan: var(--a11y-theme-shiki-ansi-bright-cyan);
+    --shiki-ansi-bright-white: var(--a11y-theme-shiki-ansi-bright-white);
+  }
 }

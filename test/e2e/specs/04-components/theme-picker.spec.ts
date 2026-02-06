@@ -212,7 +212,8 @@ test.describe('Theme Picker Component', () => {
 
       // Navigate to another page
       await page.goto('/about')
-      await page.waitForLoadState('networkidle')
+      // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
+      await page.waitForNetworkIdleBestEffort()
 
       // Verify dark theme persisted
       const htmlElement = page.locator('html')

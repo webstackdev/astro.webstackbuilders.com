@@ -1,6 +1,38 @@
 import { describe, it, expect } from 'vitest'
+import { JSDOM } from 'jsdom'
 import { rehypeTailwindClasses } from '@lib/markdown/plugins/rehype-tailwind'
-import { processWithAstroSettings } from '@lib/markdown/helpers/processors'
+import { processWithAstroSettings, processWithFullPipeline } from '@lib/markdown/helpers/processors'
+
+function splitClassTokens(value: string | null): string[] {
+  if (!value) return []
+  return value
+    .split(/\s+/g)
+    .map(token => token.trim())
+    .filter(Boolean)
+}
+
+function isWellFormedCssClassToken(token: string): boolean {
+  if (!token) return false
+  if (/[\s"'`{};]/.test(token)) return false
+
+  for (const char of token) {
+    const code = char.charCodeAt(0)
+    if (code <= 0x1f || code === 0x7f) return false
+  }
+
+  return true
+}
+
+function expectHasAtLeastOneValidClassAttribute(element: Element | null, name: string): void {
+  if (!element) throw new Error(`Expected to find element: ${name}`)
+
+  const classAttr = element.getAttribute('class')
+  const tokens = splitClassTokens(classAttr)
+  expect(tokens.length).toBeGreaterThan(0)
+  tokens.forEach(token => {
+    expect(isWellFormedCssClassToken(token)).toBe(true)
+  })
+}
 
 describe('rehype-tailwind-classes (Layer 2: With Astro Pipeline)', () => {
   describe('Tailwind classes with GFM', () => {
@@ -63,6 +95,8 @@ describe('rehype-tailwind-classes (Layer 2: With Astro Pipeline)', () => {
 
       expect(html).toContain('<a')
       expect(html).toContain('https://example.com')
+      expect(html).toContain('hover:decoration-content-active')
+      expect(html).toContain('focus-visible:outline-none')
     })
   })
 
@@ -133,6 +167,11 @@ const x = 1;
       expect(html).toContain('<code')
       expect(html).toContain('<blockquote')
       expect(html).toContain('<ul')
+
+      const document = new JSDOM(html).window.document
+      expectHasAtLeastOneValidClassAttribute(document.querySelector('blockquote'), 'blockquote')
+      expectHasAtLeastOneValidClassAttribute(document.querySelector('table'), 'table')
+      expectHasAtLeastOneValidClassAttribute(document.querySelector('pre'), 'pre')
     })
 
     it('should preserve existing classes through pipeline', async () => {
@@ -150,6 +189,22 @@ Content text
 
       expect(html).toContain('<h1')
       expect(html).toContain('Content text')
+    })
+
+    it('should not apply generic link classes to heading anchors', async () => {
+      const markdown = `
+## Components
+
+Paragraph with a [regular link](https://example.com)
+      `.trim()
+
+      const html = await processWithFullPipeline(markdown)
+
+      // Heading anchors are created by rehype-autolink-headings and should be styled via its config.
+      expect(html).toContain('class="heading-anchor')
+      // Regular links should not be marked as heading anchors.
+      expect(html).toContain('href="https://example.com"')
+      expect(html).not.toMatch(/href="https:\/\/example\.com"[^>]*class="[^"]*heading-anchor/)
     })
   })
 })

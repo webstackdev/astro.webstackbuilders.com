@@ -1,0 +1,107 @@
+---
+title: "Alert Fatigue: The Audit That Cut Our Noise by 80%"
+description: "A practical three-step framework to audit your alerts, classify them by usefulness, and delete the noise that's hiding real incidents."
+cover: "./cover.jpg"
+coverAlt: "Radar screen showing single bright alert ping surrounded by faded noise halo, representing critical actionable cloud monitoring alert"
+author: "kevin-brown"
+publishDate: 2025-10-05
+tags: ["reliability-and-testing"]
+featured: true
+---
+
+*[SLO]: Service Level Objective
+*[MTTA]: Mean Time To Acknowledge
+*[PagerDuty]: Incident management platform
+
+## The Problem Nobody Wants to Admit
+
+I inherited a monitoring setup where the on-call engineer averaged 47 alerts per day. Forty-four of those required no action — thresholds set too aggressively, alerts for non-problems, duplicate notifications for the same underlying issue. The forty-fifth was a memory leak that had been slowly building for three hours. By the time anyone noticed it in the noise, the service had already crashed and restarted twice.
+
+That's the core problem: comprehensive monitoring and actionable alerting are often at odds. Teams add alerts because something _might_ go wrong, and removing an alert feels like removing a safety net. But the math works against you—an engineer who has acknowledged thirty false positives is not in the right headspace to notice the thirty-first is real.
+
+<Callout type="warning">Every alert you keep dilutes the ones that matter. An alert that fires but requires no action is worse than no alert at all—it trains engineers to ignore pages.</Callout>
+
+This article walks through the audit process that took us from 47 alerts per day to about 5 meaningful pages, with an action rate above 90%.
+
+## Why Alert Noise Compounds
+
+The most visible symptom of alert fatigue is MTTA drift—mean time to acknowledge. When engineers expect noise, acknowledgment slows. I've watched MTTA drift from under two minutes to over fifteen as alert volume increased, because the on-call engineer stopped keeping their phone nearby.
+
+There's solid research on this from healthcare, where alarm fatigue kills patients. Studies in ICUs found that 72-99% of alarms required no clinical intervention[^1], and staff developed coping mechanisms—turning down volume, disabling non-critical alarms, or simply not rushing to respond. Software operations is no different.
+
+[^1]: Sendelbach S, Funk M. "Alarm fatigue: a patient safety concern." AACN Adv Crit Care. 2013 Oct-Dec;24(4):378-86.
+
+The feedback loop makes it worse. After an incident caused by a missed alert, the instinct is to add more alerts. But if the alert was missed because of volume, adding more alerts makes the next miss more likely, not less. You can't fix what you haven't measured—and most teams have never actually measured their alert usefulness.
+
+## The Three-Step Audit
+
+### Step 1: Inventory Everything
+
+Before you can fix alert noise, you need to know what you have. Most teams can't answer "how many alerts do we have?" without digging.
+
+Export your alert definitions and firing history. Prometheus/Alertmanager stores this in rules files and the `ALERTS` metric. Datadog and PagerDuty have API endpoints for historical data. You want at least 90 days of history to capture weekly and monthly patterns.
+
+For each alert, capture: alert name, firing frequency over the last 90 days, action rate (percentage of firings that required human intervention), owning team, and whether a runbook exists. The action rate column is the most important and the hardest to populate—you'll need to cross-reference alert firings with incident tickets or on-call logs.
+
+### Step 2: Classify by Action Rate
+
+Once you have the inventory, sort by action rate. This single metric tells you more about alert usefulness than anything else.
+
+The question to answer: when this alert fired, did someone _do_ something? Not "acknowledge and close"—that's not action. Did someone SSH into a box, restart a service, page another team, roll back a deployment, or otherwise intervene?
+
+I use four buckets:
+
+| Classification | Criteria | What To Do |
+|----------------|-------------|------------|
+| Actionable | ≥ 80% | Keep, improve runbook |
+| Noisy | 20-80% | Investigate thresholds, consider aggregation |
+| Useless | &lt; 20% | Delete or convert to dashboard metric |
+| Stale | Not fired in 3+ months | Review for deletion |
+
+Table: Alert classification buckets based on action rate.
+
+The "noisy" bucket is where most of the work happens. These alerts fire for real issues, but the threshold is wrong or multiple alerts fire for the same underlying problem. Fixing them requires understanding _why_ action wasn't taken—was the alert a false positive, or did the problem resolve itself before anyone could respond?
+
+### Step 3: Delete the Noise
+
+Deleting alerts is politically difficult. Someone created that alert for a reason. Maybe there was an incident, and the alert was the action item from the postmortem. Deleting it feels like ignoring the lessons learned.
+
+But an alert that fires constantly and gets ignored isn't a lesson learned—it's a lesson forgotten. The incident that created it is no longer prevented by the alert; the alert just adds to the noise that makes the _next_ incident harder to catch.
+
+The talking points that work:
+
+- "This alert fired 47 times last quarter. How many of those were real problems?" (Usually: zero or one.)
+- "Would you notice if this alert stopped firing tomorrow?" (Usually: no.)
+- "If we delete this, what's the worst case?" (Usually: we'd notice the problem some other way, slightly later.)
+
+<Callout type="danger">An alert with a 5% action rate is not "coverage"—it is noise that makes your 95% action-rate alerts harder to notice. Delete it or fix it.</Callout>
+
+## One Key Technique: Alert on Symptoms
+
+Most alert configurations work backwards. They alert on causes—CPU spikes, memory pressure, disk I/O, connection pool exhaustion—hoping to catch problems before users notice. The result is dozens of alerts for a single incident, each describing a different aspect of the same failure.
+
+Flip this around. Alert on symptoms instead: what users actually experience. A single "checkout latency exceeds SLO" alert replaces the CPU alert, the database alert, the cache alert, and the memory alert. They're all symptoms of the same underlying problem, and the responder doesn't need to be told about each one separately.
+
+Cause-based alerts still have a place—as diagnostic information in dashboards and runbooks, not as paging conditions. When the symptom alert fires, the responder can check the cause metrics to understand _why_. But the page itself should describe the user impact, not the infrastructure state.
+
+This principle extends to alert grouping and dependency suppression. If the database is down, you don't need six "connection refused" alerts from downstream services—you need one "database down" alert. Map your dependencies and configure your alerting system to suppress the noise.
+
+## Maintaining the Gains
+
+Alert counts grow naturally. Someone adds an alert during an incident, another gets added during a deployment, a third comes from a vendor integration. Rarely does anyone go back and remove alerts. Without discipline, the count ratchets upward.
+
+Establish a cadence: monthly reviews of which alerts fired most and what their action rates were, quarterly reviews of whether alerts still make sense given how your system has evolved. Every alert needs an owner—encode it in a label. Orphaned alerts are the first candidates for deletion.
+
+Counter the growth with a deletion budget: every quarter, each team must delete or significantly improve 10% of their alerts. It's aggressive enough to force real decisions, but sustainable enough that teams don't feel like they're dismantling their monitoring.
+
+## The Results
+
+Remember the system I inherited? Forty-seven alerts per day, forty-four requiring no action—a 6% action rate. MTTA had drifted to 12 minutes. On-call satisfaction was 4/10.
+
+After six months of systematic auditing, classification, and deletion: 5 meaningful pages per day, 90% action rate, 3-minute MTTA, on-call satisfaction at 8/10. That's an 80% reduction in volume with fifteen times the signal quality.
+
+The alerts that remain are genuinely important. When something pages, it means something. Engineers trust the system again.
+
+---
+
+Want the complete framework? Download our [Alert Fatigue Reduction Guide](/) for detailed coverage of SLO-based alerting, multi-window burn rate thresholds, runbook templates, alert testing checklists, and maintenance schedules.

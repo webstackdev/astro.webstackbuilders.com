@@ -4,7 +4,7 @@ Multi-platform social media embed component with lazy loading, oEmbed integratio
 
 ## Features
 
-- **8 Supported Platforms**: X (Twitter), LinkedIn, Bluesky, Mastodon, Reddit, YouTube, GitHub Gist, CodePen
+- **7 Supported Platforms**: X (Twitter), LinkedIn, Bluesky, Mastodon, YouTube, GitHub Gist, CodePen
 - **Hybrid Platform Detection**: Auto-detection with manual override support
 - **Lazy Loading**: Uses Intersection Observer API (500px preload margin)
 - **Smart Caching**: localStorage with configurable TTL from oEmbed response
@@ -17,7 +17,6 @@ Multi-platform social media embed component with lazy loading, oEmbed integratio
 
 ```mdx
 <Embed url="https://twitter.com/user/status/123456789" />
-<Embed url="https://reddit.com/r/programming/comments/abc123" />
 <Embed url="https://youtube.com/watch?v=dQw4w9WgXcQ" />
 <Embed url="https://codepen.io/username/pen/abcdef" />
 <Embed url="https://gist.github.com/username/1234567890" />
@@ -88,11 +87,6 @@ LinkedIn embeds require the iframe code from the post's "Embed this post" menu o
 - Runtime fetching with localStorage caching (TTL from oEmbed response)
 - Falls back to placeholder on fetch failure
 
-### Reddit
-
-- **oEmbed Endpoint**: `https://www.reddit.com/oembed`
-- **Auto-detection**: URLs containing `reddit.com`
-
 ### YouTube
 
 - **oEmbed Endpoint**: `https://www.youtube.com/oembed`
@@ -103,12 +97,13 @@ LinkedIn embeds require the iframe code from the post's "Embed this post" menu o
 
 - **oEmbed**: Not supported (custom implementation)
 - **Auto-detection**: URLs containing `gist.github.com`
-- **Implementation**: Loads gist using script tag: `{url}.js`
+- **Implementation**: JSONP (`.json?callback=...`) to avoid CORS + injects returned stylesheet once
 
 ### CodePen
 
-- **oEmbed Endpoint**: `https://codepen.io/api/oembed`
+- **oEmbed**: Not used (custom implementation)
 - **Auto-detection**: URLs containing `codepen.io`
+- **Implementation**: Official embed script `https://cpwebassets.codepen.io/assets/embed/ei.js`
 - **Placeholder**: Includes media preview area
 
 ## Architecture
@@ -149,15 +144,9 @@ Matches the scripts/loader 'visible' event settings:
 
 Theme-aware placeholders that approximate each platform's layout:
 
-- **Standard Social** (X, Mastodon, Reddit): Header (avatar, name, handle), text content, action buttons
+- **Standard Social** (X, Mastodon): Header (avatar, name, handle), text content, action buttons
 - **Media Platforms** (YouTube, CodePen): Above + media preview area
 - **Code Platforms** (GitHub Gist): Monospace font family
-
-Colors use CSS custom properties from theme system:
-
-- Background: `var(--color-bg)`
-- Border: `var(--color-border)`
-- Skeleton elements: `var(--color-text-offset)`
 
 Includes pulse animation for loading state.
 
@@ -201,7 +190,7 @@ embed_cache_{platform}_{base64(url).substring(0, 50)}
 
 - **Modern Browsers**: Full support with Intersection Observer
 - **IE11/Legacy**: Graceful degradation (immediate loading without lazy-loading)
-- **Minimum oEmbed Support**: All platforms provide JSON responses
+- **oEmbed**: Most platforms provide JSON responses; GitHub Gist and CodePen use custom loaders
 
 ## Files
 

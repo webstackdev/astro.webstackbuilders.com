@@ -63,4 +63,30 @@ describe('Avatar (Astro)', () => {
       expect(initials?.getAttribute('aria-hidden')).toBe('true')
     })
   })
+
+  test('renders a lead avatar at 40x40 when lead=true', async () => {
+    const Avatar = (await import('@components/Avatar/index.astro')).default
+
+    const renderedHtml = await container.renderToString(Avatar, {
+      props: {
+        name: 'Jane Doe',
+        lead: true,
+      },
+    })
+
+    await withJsdomEnvironment(async ({ window }) => {
+      window.document.body.innerHTML = renderedHtml
+
+      const containerEl = window.document.querySelector('.avatar-container')
+      expect(containerEl).toBeTruthy()
+      expect(containerEl?.getAttribute('class')).toContain('w-10')
+      expect(containerEl?.getAttribute('class')).toContain('h-10')
+      expect(containerEl?.getAttribute('class')).toContain('rounded-full')
+
+      const placeholder = window.document.querySelector('.avatar-placeholder')
+      expect(placeholder).toBeTruthy()
+      expect(placeholder?.getAttribute('class')).toContain('w-10')
+      expect(placeholder?.getAttribute('class')).toContain('h-10')
+    })
+  })
 })

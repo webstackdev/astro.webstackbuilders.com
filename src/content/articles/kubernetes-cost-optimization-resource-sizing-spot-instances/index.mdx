@@ -1,0 +1,144 @@
+---
+title: "Kubernetes Cost Drivers: What Moves the Bill"
+description: "The boring resource decisions that actually determine your cloud spend on Kubernetes clusters."
+cover: "./cover.jpg"
+coverAlt: "Tetris-style pod packing visualization showing efficient resource allocation in Kubernetes nodes with cost savings scoreboard and highlighted waste"
+author: "kevin-brown"
+publishDate: 2025-06-01
+tags: ["cloud-platforms"]
+featured: true
+---
+
+*[K8s]: Kubernetes
+*[VPA]: Vertical Pod Autoscaler
+*[QoS]: Quality of Service
+*[OOM]: Out of Memory
+
+I worked with a team running 50 nodes who'd never looked at their actual resource utilization. When we finally checked, average CPU usage was 15% and memory was 25%. Resource requests were 3-4x what workloads actually used. Right-sizing those requests and enabling the cluster autoscaler dropped them to 20 nodes - a 60% cost reduction with zero performance impact.
+
+This isn't unusual. Compute is typically 60-80% of Kubernetes spend, yet most teams have no visibility into whether their resource requests match actual usage. The default behavior - developers requesting "enough" resources with generous padding - leads to clusters running at 20-30% utilization while paying for 100%.
+
+The good news: Kubernetes cost optimization has three levers, and two of them deliver 80% of the savings. Use cheaper compute (spot instances), use less compute (right-sizing), and use compute more efficiently (bin packing). This article focuses on right-sizing and spot - the changes you can make this week that will actually move your bill.
+
+## The Resource Model That Costs You Money
+
+The Kubernetes resource model trips up a lot of teams because _requests_ and _limits_ sound similar but do completely different things.
+
+_Requests_ are what the scheduler uses for placement decisions. When you set `cpu: 500m` as a request, you're telling Kubernetes "this container needs half a CPU core guaranteed." The scheduler won't place your pod on a node unless that capacity is available. Requests are promises - the node reserves that capacity for your container whether you use it or not.
+
+_Limits_ are enforcement boundaries. CPU limits throttle - if your container tries to use more than its limit, it gets slowed down but keeps running. Memory limits kill - exceed your memory limit and the kernel OOM-kills your container.
+
+This distinction matters for cost because _requests determine how many nodes you need_. If every pod requests 1 CPU but only uses 0.1, you're paying for 10x the capacity you need. The scheduler sees the cluster as full when it's actually 90% idle. Here's how they compare:
+
+| Aspect | Request | Limit |
+|--------|---------|-------|
+| Scheduling | Used for placement decisions | Not considered |
+| CPU behavior | Guaranteed minimum | Throttled if exceeded |
+| Memory behavior | Guaranteed minimum | OOM killed if exceeded |
+| Cluster capacity | Sum of requests = schedulable capacity | Sum of limits can exceed node capacity |
+| Cost impact | Directly determines node count | Indirectly affects density |
+
+Table: Requests vs limits comparison.
+
+Over-provisioning happens organically. A developer sets resource requests during initial deployment, picks numbers that seem reasonable with some safety margin, and never revisits them. The service works fine, so the requests stay. Multiply this across hundreds of services and you end up with a cluster that's 30% utilized but "full" according to the scheduler.
+
+<Callout type="warning">
+Setting requests too high wastes money (nodes appear full but aren't). Setting requests too low causes scheduling failures or performance issues. The goal is requests that match actual usage with a small buffer.
+</Callout>
+
+## Right-Sizing with the Vertical Pod Autoscaler
+
+Right-sizing requires historical usage data - what containers _actually_ use, not what developers guessed they'd need. The key metric is P99 usage over at least 7 days, plus a 20% buffer. If a container's P99 CPU usage is 200m, a reasonable request is 240m. If the current request is 1000m, you're wasting 760m on that single container.
+
+The efficiency ratio query tells you where to focus:
+
+```promql
+# CPU efficiency ratio (usage / request) - lower is more wasteful
+sum by (namespace, pod, container) (
+  rate(container_cpu_usage_seconds_total{container!=""}[5m])
+)
+/
+sum by (namespace, pod, container) (
+  kube_pod_container_resource_requests{resource="cpu"}
+)
+```
+Code: Prometheus query for finding over-provisioned containers.
+
+A ratio of 0.2 means the container uses 20% of what it requests - the other 80% is blocked capacity that nothing else can use. Sort by this ratio to find your worst offenders.
+
+The Vertical Pod Autoscaler automates this analysis for both CPU and memory. I recommend starting in "Off" mode, which gives you recommendations without automatic changes:
+
+```yaml title="vpa-recommendation-mode.yaml"
+# VPA in recommendation-only mode
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: api-server-vpa
+  namespace: production
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: api-server
+  updatePolicy:
+    updateMode: "Off"  # Recommendations only, no automatic changes
+  resourcePolicy:
+    containerPolicies:
+      - containerName: api
+        minAllowed:
+          cpu: "100m"
+          memory: "128Mi"
+        maxAllowed:
+          cpu: "4"
+          memory: "8Gi"
+```
+Code: VPA configuration for right-sizing recommendations.
+
+Deploy VPAs across your workloads and let them collect data for a week. Then check recommendations with `kubectl describe vpa <name>`. The output shows a target recommendation plus lower and upper bounds that account for variance.
+
+The workflow I use:
+
+1. Deploy VPAs in recommendation mode for all deployments
+2. Review recommendations weekly
+3. Apply changes through the normal deployment process (not via VPA auto-apply)
+4. Validate that workloads remain healthy after the change
+
+This keeps humans in the loop while automating the tedious analysis.
+
+<Callout type="success">
+Start VPA in "Off" mode to get recommendations without automatic changes. Review recommendations weekly, apply them through your normal deployment process, and validate that workloads remain healthy. Automatic modes work but remove the human verification step.
+</Callout>
+
+## Spot Instances for Stateless Workloads
+
+Spot instances are spare cloud capacity sold at steep discounts - typically 50-90% off on-demand pricing. The catch: they can be reclaimed with short notice when the cloud provider needs that capacity back. AWS gives you a 2-minute warning, GCP and Azure give you 30 seconds.
+
+Spot works well for _stateless workloads_ (web servers, API servers, workers), _batch processing_ (data pipelines, ML training), _development environments_, and _CI/CD runners_. It's a poor fit for _databases_, _stateful services without replication_, _long-running jobs that can't checkpoint_, and _single-replica critical services_. The rule of thumb: if your workload can survive losing a node at any moment, it's a spot candidate.
+
+How often do interruptions happen? It varies by instance type and region, but in my experience, a diversified spot pool sees 1-3 interruptions per week. Popular instance types in busy regions get interrupted more frequently. The savings still outweigh the operational overhead for suitable workloads - you just need to design for it.
+
+A workload needs three things to run safely on spot: multiple replicas spread across availability zones, tolerations for the spot node taint, and graceful shutdown handling to drain cleanly when interrupted. The typical pattern is multiple node pools - on-demand for critical workloads, spot for everything else - with taints preventing pods from accidentally landing on the wrong pool.
+
+Diversifying across similar instance types (same vCPU and memory, different generations or processor families) dramatically improves availability. If you only request one instance type, you're competing with everyone else who wants that exact type, and you'll see more interruptions.
+
+When a spot instance is about to be reclaimed, you need something to cordon the node and drain existing pods. On AWS, deploy the `aws-node-termination-handler` as a DaemonSet. GKE has built-in handling. The 2-minute warning on AWS is usually enough to drain most pods - GCP's 30-second warning is tighter, so workloads need to shut down fast.
+
+<Callout type="info">
+The three requirements for spot success: multiple replicas spread across availability zones, tolerations for the spot node taint, and graceful shutdown handling. If your workload meets all three, it's a spot candidate.
+</Callout>
+
+## Getting Started
+
+Kubernetes cost optimization comes down to a few straightforward practices: measure what you're actually using, right-size resources to match that usage, and run stateless workloads on spot instances. Teams that invest in this typically reduce spend by 40-60% without any architectural changes - just better numbers in existing deployment manifests.
+
+Start with visibility. Deploy VPA in recommendation mode and let it collect data for a week. Query efficiency ratios to find your worst offenders - the deployments running at 20% efficiency or lower - and fix those first. The Pareto principle applies: 20% of your workloads probably account for 80% of your waste.
+
+Then look at spot instances. Any workload that can tolerate losing a node is a candidate. With proper interruption handling, spot delivers 50-70% savings on compute with minimal operational overhead.
+
+<Callout type="warning">
+Cost optimization is continuous, not a one-time project. Usage patterns change, new services deploy with default resources, and spot savings vary. Build cost review into your regular operations to keep savings compounding.
+</Callout>
+
+---
+
+This article covers the two highest-impact cost optimization techniques. The complete guide goes deeper on cluster autoscaler tuning - including priority expanders that automatically prefer spot capacity - cost visibility dashboards with Prometheus queries for tracking waste by team and namespace, and namespace-level resource quotas for budget enforcement. Download the PDF for the full implementation details.

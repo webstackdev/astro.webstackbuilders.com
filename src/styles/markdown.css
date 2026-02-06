@@ -1,41 +1,285 @@
-/* Global styles for prose content - keep responsive and accessible */
+/**
+ * Global styles for content in Markdown layout
+ */
+
+/**
+ * Ensure components have proper spacing
+ */
+.markdown-content__prose .callout,
+.markdown-content__prose .carousel,
+.markdown-content__prose .testimonials {
+  margin-block: var(--space-lg);
+}
+
+/**
+ * Footnote reference numbers should not have dotted underlines (normal or hover).
+ */
+.markdown-content__prose sup a[data-footnote-ref],
+.markdown-content__prose sup a.footnote-ref,
+.markdown-content__prose sup a[data-footnote-ref]:hover,
+.markdown-content__prose sup a.footnote-ref:hover {
+  text-decoration: none;
+}
+
+/**
+ * Details and Summary stylings
+ */
+.markdown-content__prose details {
+  border-block-end: 1px solid var(--theme-color-content);
+  interpolate-size: allow-keywords;
+  margin-block: .5rem;
+  padding-block: .5rem;
+}
+
+/** Details closed state */
+.markdown-content__prose details::details-content {
+  block-size: 0;
+  overflow: hidden;
+  transition: content-visibility, block-size;
+  transition-behavior: allow-discrete;
+  transition-duration: 750ms;
+}
+
+/** Details open state */
+.markdown-content__prose details[open]::details-content {
+  block-size: auto;
+}
+
+.markdown-content__prose summary {
+  /** Register summary as an anchor element */
+  anchor-name: --summary;
+
+  /** Pin the custom marker to the container */
+  position: relative;
+
+  &::marker {
+    content: "";
+  }
+
+  &::before,
+  &::after {
+    border-block-start: 3px solid var(--theme-color-content-active);
+
+    /** Custom marker dimensions */
+    content: "";
+    height: 0;
+
+    /** Positions the lines */
+    inset-block-start: 50%;
+    inset-inline-end: 0;
+
+    /** Anchor the shape to the summary */
+    position: absolute;
+    position-anchor: --summary;
+    width: 1rem;
+  }
+
+  /** Rotate just the ::after line to create a "+"" shape */
+  &::after {
+    transform: rotate(90deg);
+    transform-origin: 50%;
+  }
+}
+
+/** Rotate the line when open */
+.markdown-content__prose details[open] summary::after {
+  transform: rotate(0deg);
+}
+
+@media (prefers-reduced-motion) {
+  .markdown-content__prose details::details-content {
+     /** slower speed */
+    transition-duration: 0.8s;
+  }
+}
+
+/**
+ * Image styling
+ */
 .markdown-content__prose img {
-  border-radius: var(--radius-md);
   height: auto;
   max-width: 100%;
 }
 
-.markdown-content__prose pre {
-  border-radius: var(--radius-md);
-  overflow-x: auto;
+/**
+ * Space subscript slightly off content
+ */
+.markdown-content__prose sub {
+  margin-left: 0.15rem;
 }
 
-.markdown-content__prose code-tabs {
-  display: block;
-  max-width: 100%;
-  min-width: 0;
-  overflow: hidden;
-  width: 100%;
+/**
+ * Math - Tailwind preflight makes all svg elements `display: block`,
+ * which breaks inline MathJax SVGs
+ */
+.markdown-content__prose mjx-container svg {
+  display: inline-block;
 }
 
-.markdown-content__prose code-tabs pre {
-  max-width: 100%;
-}
-
+/**
+ * Tables
+ */
 .markdown-content__prose table {
   display: block;
   overflow-x: auto;
   width: 100%;
 }
 
-/* Tailwind preflight makes all svg elements `display: block`, which breaks inline MathJax SVGs */
-.markdown-content__prose mjx-container svg {
-  display: inline-block;
+/**
+ * Lists
+ */
+.markdown-list ul,
+.markdown-list ol {
+  margin-bottom: var(--space-lg);
+  margin-left: 1rem;
 }
 
-/* Ensure components have proper spacing */
-.markdown-content__prose .callout,
-.markdown-content__prose .carousel,
-.markdown-content__prose .testimonials {
-  margin-block: var(--space-lg);
+/**
+ * Ordered list "steps" styling (markdown <ol>)
+ */
+.markdown-list ol {
+  counter-reset: olSteps;
+  list-style: none;
+  padding-left: 0;
+}
+
+.markdown-list ol > li {
+  counter-increment: olSteps;
+  padding-left: calc(1.2em + 0.5rem);
+  position: relative;
+}
+
+.markdown-list ol > li::before {
+  background-color: var(--color-content);
+  border-radius: 9999px;
+  color: var(--color-content-inverse);
+  content: counter(olSteps);
+  display: inline-grid;
+  height: 1.2em;
+  left: 0;
+  line-height: 1.2em;
+  place-items: center;
+  position: absolute;
+  top: 0.15em;
+  width: 1.2em;
+}
+
+.markdown-list ol ol {
+  margin-top: 0.5rem;
+}
+
+/**
+ * Unordered lists
+ * Replace bullets with a checkmark marker (sized to match the ordered-list circles).
+ */
+.markdown-list ul:not(.contains-task-list) {
+  list-style: none;
+  padding-left: 0;
+}
+
+.markdown-list ol > li,
+.markdown-list ul > li {
+  margin-bottom: 0.25rem;
+}
+
+.markdown-list ul:not(.contains-task-list) > li {
+  display: block;
+  min-width: 0;
+  padding-left: calc(1.2em + 0.5rem);
+  position: relative;
+}
+
+.markdown-list ul:not(.contains-task-list) > li::before {
+  background-color: var(--color-content);
+  border-radius: 9999px;
+  content: '';
+  height: 1.2em;
+  left: 0;
+  position: absolute;
+  top: 0.15em;
+  width: 1.2em;
+}
+
+.markdown-list ul:not(.contains-task-list) > li::after {
+  --ul-check-mask: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M9.999%2013.587L7.7%2011.292l-1.412%201.416%203.713%203.705%207.206-7.206-1.414-1.414z%22/%3E%3C/svg%3E");
+
+  background-color: var(--color-content-inverse);
+  content: '';
+  height: 1.2em;
+  left: 0;
+  mask-image: var(--ul-check-mask);
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: 1em 1em;
+  position: absolute;
+  top: 0.15em;
+  width: 1.2em;
+}
+
+.markdown-list ul:not(.contains-task-list) ul:not(.contains-task-list) {
+  margin-top: 0.5rem;
+}
+
+.markdown-list ol > li:last-child,
+.markdown-list ul > li:last-child {
+  margin-bottom: 0;
+}
+
+/**
+ * Task lists (remark-gfm)
+ * Keep task lists free of custom markers.
+ */
+.markdown-list ul.contains-task-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+.markdown-list li.task-list-item {
+  align-items: flex-start;
+  display: flex;
+  gap: 0.6rem;
+  list-style: none;
+}
+
+.markdown-list li.task-list-item > input[type='checkbox'] {
+  appearance: none;
+  background-color: var(--color-page-base-offset);
+  border: 2px solid var(--color-content-offset);
+  border-radius: var(--radius-sm, 0.25rem);
+  box-sizing: border-box;
+  display: inline-grid;
+  flex: 0 0 auto;
+  height: 1.15em;
+  margin-top: 0.25em;
+  place-content: center;
+  width: 1.15em;
+}
+
+.markdown-list li.task-list-item > input[type='checkbox']::before {
+  border-bottom: 0.18em solid var(--color-success-inverse);
+  border-right: 0.18em solid var(--color-success-inverse);
+  content: '';
+  height: 0.55em;
+  opacity: 0;
+  transform: rotate(45deg);
+  width: 0.35em;
+}
+
+.markdown-list li.task-list-item > input[type='checkbox']:checked {
+  background-color: var(--color-success);
+  border-color: var(--color-success);
+}
+
+.markdown-list li.task-list-item > input[type='checkbox']:checked::before {
+  opacity: 1;
+}
+
+.markdown-list li.task-list-item > input[type='checkbox']:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+.markdown-list li.task-list-item > input[type='checkbox']:focus-visible {
+  outline: 2px solid var(--color-spotlight);
+  outline-offset: 2px;
 }

@@ -1,0 +1,99 @@
+---
+title: "Measuring Platform Success: Metrics That Matter"
+description: "Lead time, onboarding time, and ticket deflection metrics that show whether your platform reduces friction."
+cover: "./cover.jpg"
+coverAlt: "Developer friction gauge showing needle moving from red painful zone to green smooth zone after platform improvements"
+author: "kevin-brown"
+publishDate: 2025-02-16
+tags: ["platform-engineering"]
+featured: true
+---
+
+*[DORA]: DevOps Research and Assessment
+*[NPS]: Net Promoter Score
+
+How do you prove an internal platform creates value? Product teams measure revenue or user growth. Platform teams serve internal customers and enable outcomes rather than producing them directly. This creates a measurement gap—platform work is easy to fund when it's novel and hard to justify when it's mature.
+
+I've watched this play out. A platform team builds an internal developer portal with self-service infrastructure provisioning. Six months in, leadership asks for success metrics. The team reports: 500 developers onboarded, 10,000 API calls per month, 99.9% uptime. Leadership responds: "That's nice, but did we save money? Are developers faster?" The team can't answer because they measured what the platform _does_, not what it _enables_.
+
+The pivot is simple but fundamental: friction-focused metrics. Time to first deployment dropped from 2 weeks to 2 hours. Infrastructure tickets per developer dropped 80%. Developer NPS rose from -20 to +45. Now the narrative is clear: "Developers are 10x faster to get started and need 80% less support." That story justifies continued investment.
+
+<Callout type="warning">
+The most common platform metrics mistake: measuring platform activity (requests served, uptime) instead of developer outcomes (time saved, friction reduced). A platform can be highly available and completely useless.
+</Callout>
+
+Let's look at the metrics that actually demonstrate platform value.
+
+## Core Platform Metrics
+
+### Lead Time Metrics
+
+Lead time metrics measure how long things take. They're the clearest indicators of platform friction because they directly answer "how fast can developers move?"
+
+__Time to first deployment__ is the single most revealing onboarding metric. Measure from a developer's start date (HR system) to their first production deployment (deployment system). This captures everything: account provisioning, access requests, documentation quality, tooling complexity. If it takes two weeks, something is broken. If it's under a day, your platform is doing its job.
+
+__Time to new service__ measures self-service effectiveness. From service creation request (portal submission or ticket) to first successful health check in production—how much of this is automated versus waiting on humans? Anything over a week suggests manual provisioning steps. Under an hour means your automation is mature.
+
+__Time to new environment__ measures infrastructure automation maturity. If developers wait days for a staging environment, your Terraform modules or Crossplane claims need work. Under 15 minutes means your infrastructure-as-code is doing its job.
+
+__Deployment lead time__ tracks CI/CD efficiency: from code commit to running in production. This exposes approval bottlenecks, slow builds, and deployment friction. Elite teams hit under 15 minutes; struggling teams measure in days.
+
+| Metric | Poor | Acceptable | Excellent |
+|--------|------|------------|-----------|
+| Time to first deployment | > 2 weeks | 1-5 days | < 1 day |
+| Time to new service | > 1 week | 1-24 hours | < 1 hour |
+| Time to new environment | > 3 days | 1-4 hours | < 15 minutes |
+| Deployment lead time | > 1 day | 1-4 hours | < 15 minutes |
+
+Table: Lead time targets by maturity level, aligned with DORA's research-backed framework.
+
+### Developer Friction Metrics
+
+Lead time tells you _how long_. Friction metrics tell you _how hard_. They measure the cognitive and operational burden the platform imposes.
+
+__Ticket volume per developer__ is the baseline friction indicator. More than 2 tickets per developer per month means developers are stuck regularly. Under 0.5 means the platform is largely self-service. But raw numbers don't tell the whole story—segment by ticket type. "How do I" tickets indicate documentation gaps. "Access request" tickets indicate poor provisioning automation. "It's broken" tickets indicate reliability problems.
+
+__Self-service rate__ measures what percentage of common tasks developers complete without human intervention. Track portal completions against tickets for the same task types. If developers can provision an environment through the portal but 40% still file tickets, something's wrong with the self-service experience.
+
+__Cognitive load__ is harder to quantify but equally important. Count the config files developers must understand to deploy a service, the distinct tools in the deployment path, the context switches between systems for a single workflow. A platform that requires understanding Kubernetes manifests, Helm values, Terraform variables, CI workflow configs, Dockerfile, and secrets references—each with different syntax—isn't self-service. It's a maze.
+
+<Callout type="info">
+Ticket volume is a lagging indicator—it tells you friction exists but not why. Combine with ticket categorization to identify which platform areas cause the most pain.
+</Callout>
+
+## Vanity Metrics vs Actionable Metrics
+
+Some metrics exist primarily to impress stakeholders. They show activity without indicating impact—and they're dangerously easy to optimize for while missing actual value.
+
+The test for a good metric: does it tell you what to do? "We have 1000 users" tells you nothing. "50% of users struggle with authentication" tells you to improve the auth flow. Here's how common platform metrics break down:
+
+| Vanity Metric | Why It's Misleading | Actionable Alternative |
+|---------------|---------------------|------------------------|
+| "500 developers use the platform" | Doesn't indicate if they're productive | Time to first deployment for new developers |
+| "10 million API calls/month" | Could be inefficient polling or errors | Successful self-service completions |
+| "99.99% uptime" | Available but unusable is still failure | Successful deployment rate, P99 latency |
+| "1000 deployments this month" | Includes failures, rollbacks, test envs | Production deployment success rate |
+| "500 documentation pages" | Quantity ≠ quality or findability | Search success rate, ticket deflection |
+
+Table: Vanity metrics and their actionable alternatives.
+
+__Goodhart's Law__ is the biggest trap: when a measure becomes a target, it ceases to be a good measure. Target ticket reduction and support becomes harder to access. Target deployment frequency and teams artificially split deployments to hit the number. Target NPS and only the happy teams get surveyed. The antidote is measuring outcomes (developer productivity) rather than activities (ticket counts).
+
+Beyond gaming, there's a more fundamental problem: you can't show improvement without knowing your starting point. The most common mistake is launching a platform, then asking "how much did we improve?" Measure before changes, even if the measurement is imperfect. Document your methodology. Accept that baselines may be incomplete. Track consistently over time. If you can't say "before the platform, X took Y time," you can't prove the platform helped.
+
+## Getting Started
+
+If you're starting from scratch, don't try to build everything at once. Start with four baseline metrics you can measure today, even imperfectly:
+
+1. __Time to first deployment__ — ask new hires how long it took
+2. __Tickets per developer__ — query your ticketing system
+3. __Deployment frequency__ — check your CI logs
+4. __Quarterly NPS survey__ — a simple "How likely are you to recommend this platform?" question
+
+Instrument as you go, automate what you can, and add sophistication over time. A spreadsheet tracking the right metrics beats a sophisticated dashboard tracking the wrong ones.
+
+The ultimate goal is a clear narrative: "Before the platform, onboarding took two weeks. After, it takes two hours. We saved 200 developer-hours this quarter." That story, backed by data, justifies continued investment and guides roadmap decisions. Remember: metrics are a means to an end. The goal isn't impressive dashboards—it's understanding whether the platform reduces friction and enabling decisions about where to invest next. If metrics don't change behavior, they're not worth collecting.
+
+---
+
+__Want the complete implementation guide?__ Our deep-dive PDF covers data collection architecture with code examples, developer experience survey design (onboarding, pulse, and feature feedback surveys), NPS implementation and calculation, dashboard design for executives and platform teams, alerting thresholds, and reporting cadence by audience. Everything you need to build a comprehensive platform metrics program.

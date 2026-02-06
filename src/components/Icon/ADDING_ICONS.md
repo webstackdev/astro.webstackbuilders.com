@@ -47,7 +47,7 @@ Icons integrate with the site's theming system via CSS custom properties:
 ```css
 /* In src/styles/icons.css */
 [astro-icon] {
-  color: var(--color-theme-sprites);
+  color: var(--color-icons);
   fill: currentColor;
 }
 ```

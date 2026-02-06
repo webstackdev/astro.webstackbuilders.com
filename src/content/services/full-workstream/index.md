@@ -1,0 +1,27 @@
+---
+title: "Full Workstream"
+description: "Dedicated platform engineering capacity for teams building or stabilizing infrastructure. I embed with your team during business hours to ship CI/CD pipelines, Kubernetes deployments, observability stacks, and reliability improvements."
+order: 1
+---
+
+## What You Get
+
+Full-time engineering capacity focused on your platform and infrastructure needs. I work EST business hours, attend standups and planning sessions, and operate as a member of your team rather than an external consultant dropping in for status meetings.
+
+## Good Fit For
+
+- CI/CD pipeline design and implementation
+- Kubernetes cluster setup, migration, or stabilization
+- Infrastructure-as-code buildout (Terraform, Pulumi, CloudFormation)
+- Observability and monitoring (metrics, logs, traces, alerting)
+- Incident response process improvements
+- Cloud architecture reviews and cost optimization
+- Legacy application containerization and migration
+
+## How It Works
+
+We start with a kickoff to assess your current state, identify priorities, and establish communication patterns. From there, I pick up work from your backlog or drive initiatives we scope together. You get steady progress without the overhead of hiring, onboarding, and managing a full-time employee.
+
+## Pricing
+
+$19,500 per month. No long-term commitment required—engagements run month-to-month with 30 days notice to wind down.

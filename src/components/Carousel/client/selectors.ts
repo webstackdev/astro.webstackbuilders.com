@@ -12,6 +12,7 @@ export const SELECTORS = {
   prevBtn: '.embla__button--prev',
   nextBtn: '.embla__button--next',
   slides: '[data-carousel-slide]',
+  focusVisibleSlide: '[data-carousel-slide] :focus-visible',
 } as const
 
 const isHtmlElement = (element: unknown): element is HTMLElement =>
@@ -91,5 +92,13 @@ export const queryCarouselNextBtn = (scope: ParentNode): HTMLButtonElement | nul
 
 export const queryCarouselSlides = (scope: ParentNode): Element[] =>
   Array.from(scope.querySelectorAll(SELECTORS.slides))
+
+export const hasCarouselFocusVisibleSlide = (scope: ParentNode): boolean => {
+  try {
+    return scope.querySelector(SELECTORS.focusVisibleSlide) instanceof HTMLElement
+  } catch {
+    return false
+  }
+}
 
 export type { CarouselEmblaRootElement }

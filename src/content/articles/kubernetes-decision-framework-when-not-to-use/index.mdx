@@ -1,0 +1,102 @@
+---
+title: "When Not to Use Kubernetes: A Decision Framework"
+description: "A practical framework for evaluating whether Kubernetes fits your organization's needs, including hidden costs, team requirements, and a decision scorecard."
+cover: "./cover.jpg"
+coverAlt: "Tool shed showing oversized Kubernetes machine alongside simpler alternatives like VMs, PaaS, and Serverless for straightforward tasks"
+author: "kevin-brown"
+publishDate: 2022-11-06
+tags: ["cloud-platforms"]
+featured: true
+abbreviations:
+  - K8s
+  - VM
+  - PaaS
+  - IaaS
+  - FaaS
+  - CI/CD
+  - SLA
+  - TCO
+  - FTE
+---
+
+A startup I advised last year had a familiar story. They'd spent three months migrating their Node.js monolith to Kubernetes because "that's what serious companies use." Three months of learning curves, failed deployments, and configuration rabbit holes later, their deployment went from a simple `git push` to a complex dance of Helm charts, ingress configurations, and persistent volume claims. Their two-person team was now spending 40% of their engineering time on infrastructure instead of building features.
+
+The kicker? Their traffic was 50 requests per minute. A $20/month VM could have handled their load with room to spare.
+
+This isn't an indictment of Kubernetes. It's a recognition that K8s solves specific problems at specific scales, and choosing it prematurely creates problems you wouldn't otherwise have. The goal isn't to use the most powerful tool available. It's to use the _right_ tool for where you are today.
+
+## The Kubernetes Complexity Tax
+
+Every technology choice comes with trade-offs, but Kubernetes front-loads its costs in ways that catch teams off guard. Before evaluating whether K8s fits your needs, you need to understand what you're actually signing up for.
+
+### What You're Actually Signing Up For
+
+The Kubernetes learning curve isn't a weekend project. Your team needs to understand containers, networking (including service meshes and ingress), storage orchestration, RBAC, and the YAML configuration that ties it all together. That's before you touch observability, GitOps workflows, or multi-cluster management.
+
+From day one, someone on your team needs to understand pod networking, service discovery, and why your containers can't reach each other. Within the first month, you'll need expertise in persistent volumes, secrets management, and debugging why deployments aren't rolling out correctly. By month three, you're dealing with resource quotas, horizontal pod autoscaling, and the inevitable "why is this pod in CrashLoopBackOff" investigations.
+
+This isn't optional learning. It's the baseline for keeping production running.
+
+### The Hidden Costs
+
+The managed Kubernetes pricing page shows the control plane cost. It doesn't show the full picture.
+
+| Cost Category | What the Pricing Page Shows | What You'll Actually Pay |
+|--------------|----------------------------|-------------------------|
+| Compute | Node instance costs | 20-30% overhead for system pods, monitoring, logging |
+| Operations | Control plane fee ($72/month on most clouds) | 0.5-1.0 FTE for cluster operations at minimum |
+| Networking | Load balancer costs | Cross-AZ data transfer, NAT gateway charges, ingress controller resources |
+| Storage | Persistent volume pricing | Snapshot costs, backup solutions, storage class management |
+
+Table: Hidden Cost Comparison for Kubernetes Deployments
+
+The operational overhead is where most teams underestimate. Even with managed Kubernetes, someone needs to handle upgrades, security patches, capacity planning, and incident response. A small team running K8s is a team with less time for product development.
+
+## The Decision Scorecard
+
+Rather than relying on gut feeling or industry trends, use a structured evaluation. Score each factor honestly based on your current situation, not where you hope to be in two years.
+
+### When Kubernetes Fits
+
+K8s earns its complexity when you have genuine scaling requirements, operational maturity, and workloads that benefit from container orchestration. You likely need Kubernetes if you're running multiple services that scale independently, deploying across multiple availability zones or regions, or managing workloads with complex resource requirements.
+
+Consider a fintech company processing payment transactions. Their traffic spikes 10x during market hours, they run fifteen microservices that need to scale independently, and they have strict compliance requirements around workload isolation. For them, Kubernetes isn't overhead - it's the only sane way to manage that complexity. The declarative configuration, automated scaling, and namespace isolation directly address their business requirements.
+
+The platform shines when you have a team capable of operating it. That means dedicated infrastructure engineers or a platform team of at least two people, established monitoring and incident response processes, and capacity for ongoing learning as the ecosystem evolves. Organizations with 25+ engineers typically have enough specialization to absorb the operational load without it becoming a bottleneck.
+
+### When It Doesn't
+
+K8s is probably wrong if you're running a single application with predictable traffic, if your team has fewer than 15 engineers total, or if your deployment frequency is measured in weeks rather than hours. Startups in particular fall into the trap of adopting enterprise tooling before they have enterprise problems.
+These guidelines give you a starting point, but every situation has nuance. The following scorecard helps you weigh multiple factors together.
+### Score Your Situation
+
+Evaluate each factor on a 1-5 scale, where 1 strongly favors simpler alternatives and 5 strongly favors Kubernetes.
+
+| Factor | 1 (Simpler is Better) | 5 (K8s Fits) |
+|--------|----------------------|--------------|
+| Traffic variability | Steady, predictable load | 10x+ traffic spikes, unpredictable patterns |
+| Service count | Monolith or 2-3 services | 10+ independently deployable services |
+| Team size | Under 15 engineers | 25+ engineers across multiple teams |
+| Deployment frequency | Weekly or less | Multiple times daily |
+| Multi-cloud/hybrid needs | Single cloud provider | Active multi-cloud or hybrid requirements |
+| Existing expertise | No container experience | Team has K8s production experience |
+
+Table: Kubernetes Decision Scorecard
+
+**Interpreting your score:** If you're scoring below 18, you'll likely get more value from simpler alternatives like managed VMs, serverless functions, or platform-as-a-service offerings. Scores between 18-24 suggest evaluating both paths carefully. Above 24, Kubernetes probably makes sense, assuming you can staff the operational requirements.
+
+## Choosing the Right Tool
+
+The best infrastructure choice is the one that lets your team ship features instead of fighting configuration. For many organizations, that's not Kubernetes.
+
+A VM with a straightforward deployment script might feel less sophisticated than a Kubernetes cluster, but sophistication isn't the goal. Shipping reliable software is the goal. If a simpler architecture gets you there with less overhead, that's a win.
+
+This doesn't mean Kubernetes is wrong. It means Kubernetes is _contextual_. The organizations that get the most value from K8s are the ones who adopted it because they needed its specific capabilities, not because it seemed like the professional choice.
+
+<Callout type="info" title="Start with the Scorecard">
+Before your next infrastructure decision, run through the scorecard with your team. Be honest about your current state, not your aspirations. The right tool for today might not be the right tool for next year, and that's fine. You can always migrate later when the complexity becomes worth it.
+</Callout>
+
+---
+
+**Want the complete picture?** This article covers the decision framework, but there's more to explore. Our comprehensive guide dives deep into specific alternatives for different use cases, including when VMs outperform containers, where serverless shines, and how platform-as-a-service offerings have evolved. You'll also find migration considerations for teams already running Kubernetes, plus hybrid patterns that let you get the best of multiple approaches. Download the full guide to make a fully informed infrastructure decision.

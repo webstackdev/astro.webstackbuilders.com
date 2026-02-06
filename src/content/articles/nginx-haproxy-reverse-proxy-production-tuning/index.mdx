@@ -1,0 +1,177 @@
+---
+title: "Why Your Reverse Proxy Keeps Timing Out (And How to Fix It)"
+description: "The two most common causes of mysterious 502 and 400 errors in Nginx and HAProxy, and how to tune timeouts and buffers for production traffic."
+cover: "./cover.jpg"
+coverAlt: "Control room with proxy metrics dashboards showing connection counts, latency, and error rates, engineer adjusting timeout and buffer settings"
+author: "kevin-brown"
+publishDate: 2024-08-17
+tags: ["apis-and-gateways"]
+featured: true
+---
+
+*[HTTP/2]: Hypertext Transfer Protocol Version 2
+*[OCSP]: Online Certificate Status Protocol
+*[P99]: 99th Percentile
+*[RPS]: Requests Per Second
+*[SSE]: Server-Sent Events
+*[SSL]: Secure Sockets Layer
+*[TCP]: Transmission Control Protocol
+*[TLS]: Transport Layer Security
+
+Here's a scenario I've seen play out more times than I'd like. A team deploys their API behind Nginx with the default configuration. Traffic grows to 5,000 RPS. Intermittent 502 errors start appearing. The backend looks healthy—response times are fine, no errors in application logs. The problem is invisible until someone digs into Nginx's internals.
+
+It turns out `proxy_read_timeout` defaults to 60 seconds, which sounds generous until you realize a few slow endpoints occasionally take 65 seconds. Database queries, external API calls, report generation—any of these can push response times past that threshold. Meanwhile, the team is chasing ghosts in their application code.
+
+Nginx and HAProxy ship with defaults optimized for getting started quickly, not for handling production traffic. Default timeouts assume fast backends. Default buffer sizes assume small requests. When real load arrives—slow clients on mobile networks, large authentication headers, backends that occasionally need extra time—these defaults fail in ways that are hard to diagnose.
+
+The good news: two configuration areas account for most proxy-related outages. Fix your timeouts and buffers, and you'll eliminate the majority of mysterious 502s and 400s. Let's start with the more common culprit.
+
+## Timeout Configuration
+
+Timeouts are the most common source of proxy-related outages, and the defaults are almost never right for production. Nginx's defaults will work until they don't—that 60-second `proxy_read_timeout` hides problems until traffic patterns shift. HAProxy is worse: many timeouts have _no default_, meaning connections can hang indefinitely if you don't configure them.
+
+The key insight is that timeouts should match your traffic patterns, not arbitrary round numbers. A health check endpoint should respond in milliseconds; a report generation endpoint might legitimately take 5 minutes. Using the same timeout for both means either your health checks are too slow to detect failures, or your reports timeout prematurely.
+
+### Nginx Timeout Hierarchy
+
+Nginx organizes timeouts into client-side (receiving requests) and proxy-side (communicating with backends). Most timeouts are _per-operation_, meaning they reset when data flows—a client uploading a large file won't timeout as long as chunks keep arriving.
+
+```nginx title="nginx-timeouts.conf"
+# Client-side timeouts
+client_header_timeout 10s;   # Wait for request headers (default: 60s)
+client_body_timeout 30s;     # Wait for request body, per-read (default: 60s)
+send_timeout 30s;            # Wait between writes to client (default: 60s)
+keepalive_timeout 65s;       # Keep idle connections open (default: 75s)
+
+# Proxy/backend timeouts
+proxy_connect_timeout 5s;    # Establish backend connection (default: 60s)
+proxy_send_timeout 30s;      # Wait between writes to backend (default: 60s)
+proxy_read_timeout 60s;      # Wait for backend response, per-read (default: 60s)
+
+# Per-location overrides
+location /api/reports {
+    proxy_read_timeout 300s;  # Long-running operations
+}
+
+location /health {
+    proxy_connect_timeout 2s;
+    proxy_read_timeout 5s;    # Health checks should be fast
+}
+```
+
+The per-location overrides are essential. A monolithic timeout configuration forces you to set everything to accommodate the slowest endpoint, which masks problems elsewhere. By setting aggressive defaults (5-second connect, 60-second read) and overriding for specific slow paths, you get fast failure detection for most endpoints while still supporting legitimate long-running operations.
+
+### HAProxy's Total-Time Semantics
+
+HAProxy's timeout model differs in one critical way: `timeout client` and `timeout server` cover the _entire_ request or response, not per-read operations. If you set `timeout server 60s` and the backend takes 30 seconds to send the first byte, then another 35 seconds to send the body, the connection times out—even though data was flowing the whole time.
+
+```haproxy title="haproxy-timeouts.cfg"
+defaults
+    mode http
+    timeout connect 5s      # TCP connection to backend (no default!)
+    timeout client 30s      # Entire client request (no default!)
+    timeout server 60s      # Entire backend response (no default!)
+    timeout http-request 10s   # Complete HTTP request (protects against slowloris)
+    timeout http-keep-alive 10s
+    timeout queue 30s       # Wait in queue when backends are at maxconn
+
+backend slow_api
+    timeout server 300s
+    timeout queue 60s
+```
+
+The `timeout queue` setting deserves attention. When all backend servers reach their connection limit, HAProxy queues incoming requests rather than rejecting them immediately. This is usually what you want—a brief spike shouldn't return errors if backends will be available in a few seconds. But if the queue timeout is too long, users wait forever for requests that will eventually fail anyway.
+
+When translating configurations between Nginx and HAProxy, the following table maps the key timeout settings. They're not exact equivalents—Nginx's per-read semantics differ from HAProxy's total-time semantics—but this helps when translating configurations.
+
+| Phase | Nginx | HAProxy | Recommended |
+|-------|-------|---------|-------------|
+| Client request | client_header_timeout | timeout http-request | 10-30s |
+| Client body | client_body_timeout | timeout client | 30-120s |
+| Backend connect | proxy_connect_timeout | timeout connect | 3-10s |
+| Backend response | proxy_read_timeout | timeout server | 30-300s |
+| Keep-alive idle | keepalive_timeout | timeout http-keep-alive | 30-120s |
+
+Table: Nginx and HAProxy timeout comparison with recommended production values.
+
+<Callout type="warning">
+The most common timeout mistake: setting `proxy_read_timeout` too short. Know your P99 backend latency and add 20-30% headroom. If your slowest endpoint takes 45 seconds at P99, set the timeout to at least 60 seconds.
+</Callout>
+
+## Buffer Tuning
+
+Buffers determine how much data your proxy can hold in memory between clients and backends. Get them wrong and you'll see one of two problems: undersized buffers cause 400 Bad Request errors (headers too large) or force disk spillover that kills performance; oversized buffers waste memory and can exhaust available memory on a high-traffic proxy.
+
+The most common buffer-related issue is authentication headers exceeding the default buffer size. Nginx's `client_header_buffer_size` defaults to 1KB, but a request with OAuth tokens, cookies, and correlation headers can easily hit 4-8KB. When headers exceed the primary buffer, Nginx falls back to `large_client_header_buffers`—if that's also too small, the client gets a 400 Bad Request with no useful error message.
+
+### Nginx Buffer Configuration
+
+Nginx separates client-side buffers (receiving requests) from proxy-side buffers (receiving responses from backends). The proxy buffers are where most tuning happens because response sizes vary wildly.
+
+```nginx title="nginx-buffers.conf"
+# Client request buffers
+client_header_buffer_size 4k;       # Default 1k - often too small
+large_client_header_buffers 8 16k;  # Fallback for oversized headers
+client_body_buffer_size 128k;       # Buffer request body in memory
+client_max_body_size 100m;          # Maximum upload size
+
+# Proxy response buffers
+proxy_buffer_size 8k;               # Buffer for response headers
+proxy_buffers 16 32k;               # Buffers for response body
+proxy_busy_buffers_size 64k;        # Can send while reading more
+
+# Buffering behavior
+proxy_buffering on;                 # Buffer entire response (default)
+
+location /api/streaming {
+    proxy_buffering off;            # Disable for SSE, WebSockets
+    proxy_read_timeout 3600s;
+}
+```
+
+The `proxy_buffering` directive controls whether Nginx buffers the entire backend response before sending to the client. With buffering on, a backend can finish quickly and move on to the next request even if the client is slow—the proxy holds the response. With buffering off, the backend connection stays open until the client receives everything. For typical APIs, keep buffering on. For Server-Sent Events, WebSockets, or streaming responses, turn it off.
+
+### HAProxy's Simpler Model
+
+HAProxy uses a simpler buffer model: `tune.bufsize` controls the buffer size for both requests and responses. Unlike Nginx's array of buffers, HAProxy uses a single buffer per direction. This makes tuning simpler but less flexible.
+
+```haproxy title="haproxy-buffers.cfg"
+global
+    tune.bufsize 32768              # 32k buffer (default: 16k)
+    tune.http.maxhdr 128            # Maximum headers (default: 101)
+
+frontend main
+    # Reject oversized requests before buffering them
+    http-request deny if { req.body_size gt 104857600 }
+```
+
+The `http-request deny` rule is worth noting: it rejects oversized requests _before_ buffering them. Without this, HAProxy would accept a 10GB upload attempt before rejecting it—wasting bandwidth and potentially filling disk.
+
+If you're seeing 400 errors in HAProxy specifically, check whether `tune.bufsize` is large enough for your headers. The default 16KB is usually sufficient, but authentication-heavy requests with multiple OAuth tokens may need 32KB or more.
+
+The following table summarizes buffer settings by scenario. Note that the directive names are Nginx-specific; for HAProxy, adjust `tune.bufsize` to accommodate larger headers or bodies.
+
+| Scenario | Nginx Setting | Recommendation |
+|----------|-------------------|----------------|
+| Large cookies/auth headers | client_header_buffer_size | 4k-16k |
+| File uploads | client_body_buffer_size | 128k-1m |
+| Large API responses | proxy_buffers | 16-32 × 32k-64k |
+| Streaming/SSE | proxy_buffering | off |
+
+Table: Buffer sizing recommendations by scenario.
+
+<Callout type="info">
+Quick decision guide: If you're seeing 400 Bad Request errors, increase `client_header_buffer_size`. If backends complain about slow clients, turn `proxy_buffering` on. If you're proxying Server-Sent Events or WebSockets, turn `proxy_buffering` off.
+</Callout>
+
+## Beyond Timeouts and Buffers
+
+Timeouts and buffers are where traffic patterns meet system limits—they're the highest-impact tuning you can do. But production proxy configuration goes deeper. Connection pooling dramatically reduces backend latency by reusing TCP connections. SSL/TLS optimization (session caching, OCSP stapling) cuts handshake time. Rate limiting protects backends from abuse. Monitoring with upstream timing metrics makes problems visible before they become outages.
+
+The pattern is the same across all these areas: establish baseline metrics, identify bottlenecks, adjust configuration, measure again. Test under failure conditions—simulate slow backends, connection storms, oversized payloads. The problems you find in testing won't page you at 3 AM.
+
+---
+
+**Want the complete picture?**
+
+This article covers the two most impactful areas of reverse proxy tuning, but there's much more to production hardening. Our comprehensive guide dives deep into connection pooling and keep-alive optimization, SSL/TLS performance tuning, load balancing algorithms and health checks, monitoring with Prometheus metrics and alerting rules, and complete production configurations for both Nginx and HAProxy. Download the full guide to get production-ready configurations you can adapt to your infrastructure.

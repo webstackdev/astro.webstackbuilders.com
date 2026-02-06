@@ -1,13 +1,13 @@
 import type { Parent } from 'unist'
 
 declare module 'mdast' {
-  /** Custom node emitted by remark-captions / remark-attribution */
+  /** Custom node emitted by remark-captions / remark-blockquote */
   interface Figure extends Parent {
     type: 'figure'
     children: Array<RootContent>
   }
 
-  /** Custom node emitted by remark-captions / remark-attribution */
+  /** Custom node emitted by remark-captions / remark-blockquote */
   interface Figcaption extends Parent {
     type: 'figcaption'
     children: Array<PhrasingContent>

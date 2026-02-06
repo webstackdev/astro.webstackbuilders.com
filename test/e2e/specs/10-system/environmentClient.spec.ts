@@ -19,7 +19,8 @@ type EnvironmentSnapshot = {
 
 const navigateToDiagnosticsPage = async (page: BasePage) => {
   await page.goto('/testing/environment-client', { skipCookieDismiss: true })
-  await page.waitForLoadState('networkidle')
+  // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
+  await page.waitForNetworkIdleBestEffort()
   await page.waitForFunction(() => Boolean(window.environmentClientSnapshot))
 }
 

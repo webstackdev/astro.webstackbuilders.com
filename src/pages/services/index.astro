@@ -1,18 +1,29 @@
 ---
 import { getCollection } from 'astro:content'
-import { Picture } from 'astro:assets'
 import PageLayout from '@layouts/PageLayout.astro'
 
 /** Get all services from content collection */
 const allServices = await getCollection('services')
 
 /** Filter and sort services */
-const services = allServices.sort(
-  (a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime()
-)
+const services = allServices
+  .filter(service => !service.data.isDraft)
+  .sort((a, b) => a.data.order - b.data.order)
+
+const splitH2Sections = (html: string): string[] => {
+  if (!html.trim()) {
+    return []
+  }
+
+  return html
+    .split(/(?=<h2\b)/g)
+    .map(section => section.trim())
+    .filter(Boolean)
+}
+
 
 const pageDescription = 'Webstack Builders Services List'
-const pageTitle = 'All Services'
+const pageTitle = 'Our Services'
 const path = '/services/'
 const section = 'Services'
 ---
@@ -31,66 +42,33 @@ const section = 'Services'
         aria-labelledby="services-list-title"
       >
         <header class="text-center mb-12">
-          <h2 class="text-3xl md:text-4xl font-bold text-text" id="services-list-title">
+          <h2 class="text-3xl md:text-4xl font-bold" id="services-list-title">
             Our Services
           </h2>
         </header>
-        <ul class="space-y-12 md:space-y-20 lg:space-y-20">
+        <div class="grid gap-6">
           {services.map(service => {
+            const sections = splitH2Sections(service.rendered?.html ?? '')
+            const leftSections = sections.slice(0, 2).join('')
+            const rightSections = sections.slice(2, 4).join('')
+
             return (
-              <li class="service-item">
-                <a
-                  href={`/services/${service.id}`}
-                  class="block group hover:bg-bg-offset rounded-lg p-6 transition-colors duration-200 border border-transparent hover:border-border"
-                >
-                  <div class="flex items-start space-x-6">
-                    {service.data.cover && (
-                      <div class="relative shrink-0 w-16 h-16 bg-primary-bg rounded-lg overflow-hidden group-hover:bg-primary-bg-hover transition-colors">
-                        <Picture
-                          src={service.data.cover}
-                          alt={service.data.coverAlt}
-                          widths={[64, 96, 128, 192]}
-                          sizes="64px"
-                          formats={['avif', 'webp', 'png']}
-                          layout="fixed"
-                          fit="cover"
-                          position="center"
-                          class="absolute inset-0 h-full w-full object-cover"
-                          loading="lazy"
-                        />
-                      </div>
-                    )}
-                    <div class="flex-1 min-w-0">
-                      <h3 class="text-xl md:text-2xl font-semibold text-text mb-3 group-hover:text-primary transition-colors">
-                        {service.data.title}
-                      </h3>
-                      {service.data.description && (
-                        <p class="text-text-muted leading-relaxed">{service.data.description}</p>
-                      )}
-                    </div>
-                    <div class="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <svg
-                        class="w-5 h-5 text-primary"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        aria-hidden="true"
-                        focusable="false"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M17 8l4 4m0 0l-4 4m4-4H3"
-                        />
-                      </svg>
-                    </div>
+              <article class="h-full rounded-lg border border-trim p-6">
+                <h3 class="text-xl md:text-2xl font-semibold mb-3">
+                  {service.data.title}
+                </h3>
+                <div class="mt-4 grid gap-6 md:grid-cols-2">
+                  <div class="space-y-6">
+                    <Fragment set:html={leftSections} />
                   </div>
-                </a>
-              </li>
+                  <div class="space-y-6">
+                    <Fragment set:html={rightSections} />
+                  </div>
+                </div>
+              </article>
             )
           })}
-        </ul>
+        </div>
       </section>
     )
   }

@@ -1,0 +1,209 @@
+---
+title: "Stopping Multi-Cluster Drift: ArgoCD vs Flux"
+description: "How to choose between ArgoCD ApplicationSets and Flux for multi-cluster Kubernetes, plus practical drift detection strategies."
+cover: "./cover.jpg"
+coverAlt: "Orchestra with sections playing from same sheet music with conductor ensuring synchronization, highlighting musicians drifting off tempo representing cluster drift detection"
+author: "kevin-brown"
+publishDate: 2025-02-02
+tags: ["cloud-platforms"]
+featured: true
+---
+
+*[K8s]: Kubernetes
+*[GitOps]: Git Operations
+*[CRD]: Custom Resource Definition
+
+A platform team I worked with managed 15 Kubernetes clusters across dev, staging, and three production regions. They'd started with infrastructure-as-code, consistent tooling, and documented architecture. Two years later, hotfixes had been applied to some clusters and not others. "Temporary" manual changes became permanent. Someone upgraded the service mesh in US-East but forgot US-West. The clusters that started identical had become 15 unique configurations—and nobody could confidently say what was _intentionally_ different versus what had _accidentally_ drifted.
+
+This is the core multi-cluster problem: not deployment (that's straightforward), but _consistency_. How do you know what's supposed to be the same across clusters? How do you detect when drift occurs? The answer is GitOps-based fleet management with automated drift detection. The practical questions are which tools to use—and how to prevent drift once you've deployed them.
+
+## ArgoCD vs Flux: Two Models for Multi-Cluster
+
+The two dominant GitOps tools for multi-cluster management are ArgoCD (with ApplicationSets) and Flux. Both store desired state in Git and reconcile clusters toward that state. They differ fundamentally in _how_ they handle multi-cluster targeting. Let's start with ArgoCD's centralized approach, then contrast it with Flux's distributed model.
+
+### ArgoCD ApplicationSets: Centralized Generation
+
+ArgoCD ApplicationSets use a centralized model. A single ApplicationSet controller generates multiple ArgoCD Applications—one per target cluster—from a template. The _generator_ produces parameters (cluster names, environments, regions), and the _template_ stamps out Applications using those parameters.
+
+The cluster generator is the most common pattern. It queries ArgoCD's registered clusters, filters by labels, and creates one Application per matching cluster:
+
+```yaml title="argocd-applicationset.yaml"
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: platform-services
+  namespace: argocd
+spec:
+  generators:
+    - clusters:
+        selector:
+          matchLabels:
+            env: production
+        values:
+          revision: main
+  template:
+    metadata:
+      name: "platform-services-{{name}}"
+    spec:
+      project: platform
+      source:
+        repoURL: https://github.com/org/platform-config
+        targetRevision: "{{values.revision}}"
+        path: "clusters/{{name}}/platform-services"
+      destination:
+        server: "{{server}}"
+        namespace: platform-services
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+```
+
+Code: ApplicationSet generating one Application per production cluster.
+
+The power is in cluster labels. ArgoCD stores cluster connection details as Kubernetes Secrets with custom labels. You can embed cluster-specific values (replica counts, feature flags) directly in labels, so the same ApplicationSet template works across all clusters without modification.
+
+ArgoCD's model works well when you think in terms of "deploy this application to these clusters." The UI provides centralized visibility—you see all Applications across all clusters in one place. The limitation is scale: beyond ~500 clusters, the ApplicationSet controller can struggle.
+
+### Flux: Distributed Pull
+
+Flux takes the opposite approach. Instead of a central controller generating Applications, each cluster runs its own Flux controllers that pull configuration from Git independently. Multi-cluster management emerges from how you structure your repository.
+
+The typical pattern uses three layers: base configurations (shared across all clusters), environment overlays (dev/staging/production), and cluster-specific directories. Each cluster's Flux installation points to its own path in the repo:
+
+```text
+platform-config/
+├── base/
+│   └── platform/
+│       ├── kustomization.yaml
+│       ├── deployment.yaml
+│       └── service.yaml
+├── overlays/
+│   ├── development/
+│   ├── staging/
+│   └── production/
+│       └── kustomization.yaml
+└── clusters/
+    ├── us-east-prod/
+    ├── us-west-prod/
+    └── eu-west-prod/
+        └── kustomization.yaml
+```
+
+Figure: Repository structure for Flux multi-cluster configuration.
+
+Flux Kustomizations (not to be confused with Kustomize's kustomization.yaml) define dependencies between layers. Base configs apply first, then environment overlays, then cluster-specific configs:
+
+```yaml title="flux-kustomization.yaml"
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: platform-services
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./clusters/us-east-prod/platform-services
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: platform-config
+  postBuild:
+    substituteFrom:
+      - kind: ConfigMap
+        name: cluster-values
+```
+
+Code: Flux Kustomization with cluster-specific value substitution.
+
+The `postBuild.substituteFrom` feature injects cluster-specific values from ConfigMaps at reconciliation time—each cluster maintains its own `cluster-values` ConfigMap with region, replica counts, and other parameters.
+
+Flux's model works well when you think in terms of "configuration layers that build on each other." It scales better than ArgoCD for very large fleets (1000+ clusters) because there's no central controller bottleneck. The trade-off is less centralized visibility—there's no built-in UI showing fleet-wide status.
+
+### Which to Choose?
+
+The decision isn't about features—both tools can handle most multi-cluster scenarios. It's primarily about mental model. If you think "deploy this app to these clusters," ArgoCD ApplicationSets match that framing. If you think "base config plus environment overlay plus cluster tweaks," Flux's Kustomization hierarchy fits better.
+
+Practical constraints matter too: ArgoCD provides a central UI for fleet-wide visibility, while Flux scales better beyond 500 clusters since there's no central controller bottleneck.
+
+<Callout type="info">
+The "best" tool is the one your team will use correctly. Don't fight your team's mental model—it leads to workarounds that undermine the system.
+</Callout>
+
+## Drift Detection and Prevention
+
+Choosing a fleet tool solves deployment. The harder problem is keeping clusters consistent over time. Drift—the divergence between desired state in Git and actual state in clusters—happens gradually. A hotfix here, a debugging change there, an operator who "just needed to bump the replica count." Each change seems harmless, but they accumulate.
+
+### Built-in Detection
+
+Both ArgoCD and Flux provide drift detection out of the box. ArgoCD compares rendered manifests from Git against live cluster state every sync interval (default 3 minutes). When they differ, the Application shows as "OutOfSync." Flux does the same through its reconciliation loop, surfacing drift through the `Ready` condition on Kustomization resources.
+
+The key configuration choice is whether to _detect_ drift or _auto-remediate_ it. ArgoCD's `selfHeal: true` setting automatically reverts manual changes:
+
+```yaml title="argocd-auto-remediation.yaml"
+syncPolicy:
+  automated:
+    prune: true      # Delete resources removed from Git
+    selfHeal: true   # Revert manual changes automatically
+```
+
+Code: ArgoCD sync policy with auto-remediation.
+
+Auto-remediation is powerful but dangerous. If someone made a legitimate emergency change, selfHeal will revert it. A safer approach: enable auto-remediation in dev and staging, but use alert-and-review in production.
+
+### Prevention with Admission Control
+
+Detection tells you _that_ drift happens. Prevention stops it from happening. Kubernetes admission controllers can intercept API requests before resources are created or modified, rejecting changes that violate fleet policies.
+
+The two main policy engines are OPA/Gatekeeper[^opa-gatekeeper] and Kyverno[^kyverno]. Here's a Kyverno policy that rejects changes to production resources without GitOps annotations:
+
+```yaml title="kyverno-gitops-only.yaml"
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-gitops-annotation
+spec:
+  validationFailureAction: Enforce
+  rules:
+    - name: check-gitops-source
+      match:
+        any:
+          - resources:
+              kinds: ["Deployment", "Service", "ConfigMap"]
+              namespaces: ["production"]
+      validate:
+        message: "Production resources must be managed by GitOps."
+        pattern:
+          metadata:
+            annotations:
+              argocd.argoproj.io/tracking-id: "*"
+```
+
+Code: Kyverno policy enforcing GitOps-only changes in production.
+
+This policy covers Deployments, Services, and ConfigMaps—you'd extend the `kinds` list for Secrets, Ingresses, and other resource types. It also only validates the presence of the annotation, not _who_ applied the change. A more complete solution combines admission control with RBAC restrictions on direct API access.
+
+<Callout type="warning">
+Drift prevention through admission control is powerful but can block emergency changes. Always maintain a break-glass procedure—a way for authorized users to make manual changes in emergencies, with automatic detection and follow-up.
+</Callout>
+
+## Making It Work
+
+The tools only work if you've done the organizational groundwork:
+
+_Document your fleet topology first._ Before choosing tools, map out which clusters exist, what purpose each serves, and what configuration should be shared versus different. Explicitly categorize each configuration element: fleet-wide (security policies, monitoring), environment-specific (replica counts, feature flags), or cluster-specific (regional endpoints, compliance settings).
+
+_Start drift detection on day one._ It's far easier to maintain consistency than to restore it after clusters have diverged for months. Don't wait until you have "time to set it up properly"—basic detection with alerting is better than nothing.
+
+_Match auto-remediation to risk tolerance._ Auto-heal everything in dev and staging where the cost of mistakes is low. In production, alert and review. The goal is catching drift quickly, not necessarily fixing it automatically.
+
+Fleet management maturity isn't about which tool you use—ArgoCD and Flux both work. It's measured by how confidently you can answer: "What's different between these clusters, and is that difference intentional?"
+
+[^opa-gatekeeper]: OPA (Open Policy Agent) is an open-source, general-purpose policy engine that unifies policy enforcement across the stack, using a declarative language called Rego to define complex rules. Gatekeeper is a specialized project that integrates OPA into Kubernetes—it acts as a validating admission controller, intercepting requests to the Kubernetes API and checking them against OPA policies before resources are created or modified.
+
+[^kyverno]: Kyverno is a Kubernetes-native policy engine. Unlike Gatekeeper, it doesn't require learning Rego; policies are written in standard YAML. It can validate, mutate (modify), and generate resources, as well as verify container image signatures.
+
+---
+
+**Go Deeper: The Complete Multi-Cluster Guide**
+
+This article covers the essential ArgoCD vs Flux decision and drift detection fundamentals. The complete guide includes progressive rollout strategies for deploying changes across clusters in waves, detailed Kustomize vs Helm templating patterns for configuration management, policy engine deep-dives with Gatekeeper and Kyverno examples, and fleet-wide operational patterns for emergency patching and coordinated upgrades.

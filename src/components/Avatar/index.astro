@@ -21,11 +21,13 @@ import {
 export interface Props {
   /** The person's name (will be normalized for filename lookup) */
   name: string
+  /** When true, renders a 40x40 lead avatar */
+  lead?: boolean
   /** Optional: Additional CSS classes */
   class?: string
 }
 
-const { name, class: className = '' } = Astro.props
+const { name, lead = false, class: className = '' } = Astro.props
 
 const normalizedFilename = normalizeNameToFilename(name)
 
@@ -38,22 +40,31 @@ if (!avatarImage && !name) {
 }
 
 const avatarAlt = name
+
+const avatarSizeClass = lead ? 'w-10 h-10 text-xl' : 'w-16 h-16 text-2xl'
 ---
 
-<div class:list={['avatar-container', className]}>
+<div class:list={['avatar-container', avatarSizeClass, 'rounded-full overflow-hidden', className]}>
   {
     avatarImage ? (
       <Image
         src={avatarImage}
         alt={avatarAlt}
         loading="lazy"
-        class="avatar-image"
+        class="avatar-image w-full h-full object-cover"
         width={avatarImage.width}
         height={avatarImage.height}
       />
     ) : (
       <div
-        class="avatar-placeholder bg-primary w-16 h-16 rounded-full flex items-center justify-center text-offset"
+        class:list={[
+          'avatar-placeholder',
+          'bg-secondary',
+          avatarSizeClass,
+          'rounded-full',
+          'flex items-center justify-center',
+          'font-bold tracking-widest text-content-inverse',
+        ]}
         role="img"
         aria-label={name}
       >

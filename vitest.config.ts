@@ -2,9 +2,10 @@
 import { getViteConfig } from 'astro/config'
 import { config as loadEnv } from 'dotenv'
 import { resolve } from 'path'
+import { createLogger, type LogOptions } from 'vite'
 import { getSiteUrl } from './src/lib/config'
 
-loadEnv({ path: resolve(process.cwd(), '.env.development'), override: false })
+loadEnv({ path: resolve(process.cwd(), '.env.development'), override: false, quiet: true } as never)
 
 /**
  * Needed to be able to skip running integrations in astro.config.ts
@@ -12,7 +13,64 @@ loadEnv({ path: resolve(process.cwd(), '.env.development'), override: false })
  */
 process.env['VITEST'] = 'true'
 
+const shouldShowVitestLogs = Boolean(process.env['VITEST_SHOW_LOGS'])
+
+const stripAnsi = (value: string): string => value
+
+const shouldSuppressEarlyVitestOutput = (value: string): boolean => {
+  const cleanValue = stripAnsi(value)
+  return (
+    /\[astro-icon\]\s*Loaded icons/i.test(cleanValue) ||
+    /Loaded icons from/i.test(cleanValue) ||
+    /Local icons changed, reloading/i.test(cleanValue)
+  )
+}
+
+const wrapWriteWithEarlyVitestFilter = (write: typeof process.stdout.write): typeof process.stdout.write => {
+  return ((chunk: unknown, encoding?: unknown, cb?: unknown) => {
+    try {
+      const bufferEncoding: BufferEncoding =
+        typeof encoding === 'string' && Buffer.isEncoding(encoding) ? encoding : 'utf8'
+
+      const text =
+        typeof chunk === 'string'
+          ? chunk
+          : Buffer.isBuffer(chunk)
+            ? chunk.toString(bufferEncoding)
+            : String(chunk)
+
+      if (text && shouldSuppressEarlyVitestOutput(text)) {
+        if (typeof cb === 'function') cb()
+        return true
+      }
+    } catch {
+      // If something goes sideways, never block writes.
+    }
+
+    return (write as unknown as (_value: unknown, _enc?: unknown, _callback?: unknown) => boolean)(
+      chunk as never,
+      encoding as never,
+      cb as never
+    )
+  }) as typeof process.stdout.write
+}
+
+if (!shouldShowVitestLogs) {
+  process.stdout.write = wrapWriteWithEarlyVitestFilter(process.stdout.write.bind(process.stdout))
+  process.stderr.write = wrapWriteWithEarlyVitestFilter(process.stderr.write.bind(process.stderr))
+}
+
+const viteLogger = createLogger('error', { allowClearScreen: false })
+
 export default getViteConfig({
+  logLevel: 'error',
+  customLogger: {
+    ...viteLogger,
+    info: (message: string, options?: LogOptions) => {
+      if (/\[astro-icon\] Loaded icons/i.test(message) || /Loaded icons from/i.test(message)) return
+      viteLogger.info(message, options)
+    },
+  },
   define: {
     'import.meta.env.SITE': JSON.stringify(getSiteUrl()),
   },

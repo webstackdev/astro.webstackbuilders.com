@@ -29,3 +29,11 @@ export function queryCheckIconElement(scope: ParentNode): HTMLElement | null {
   const element = scope.querySelector(SELECTORS.checkIcon)
   return isSpanElement(element) ? element : null
 }
+
+export function hasHighlighterElement(scope: ParentNode = document): boolean {
+  return scope.querySelector('highlighter-element') !== null
+}
+
+export function hasMastodonModalElement(scope: ParentNode = document): boolean {
+  return scope.querySelector('mastodon-modal-element') !== null
+}

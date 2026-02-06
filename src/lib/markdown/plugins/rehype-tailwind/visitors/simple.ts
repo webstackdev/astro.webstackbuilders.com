@@ -5,7 +5,7 @@
 import type { Element } from 'hast'
 import type { ElementConfig } from '@lib/markdown/plugins/rehype-tailwind/@types'
 // path alias for utilities folder causes self referential error
-import { applyClasses } from '../utilities'
+import { applyClasses } from '../utils'
 
 /**
  * Simple HTML elements configuration
@@ -13,15 +13,28 @@ import { applyClasses } from '../utilities'
  */
 export const htmlElements: ElementConfig[] = [
   {
-    tagName: 'p',
-    classes: ['mb-8', 'text-lg', 'leading-relaxed'],
+    tagName: 'details',
+    classes: ['[&>*:not(summary)]:pl-5'],
+  },
+  {
+    tagName: 'hr',
+    classes: [
+      'bg-gray-300',
+      'border-0',
+      'border-gray-300',
+      'my-4',
+      'mx-auto',
+      'text-center',
+      'w-96',
+      'h-px',
+    ],
   },
   {
     tagName: 'img',
     classes: [
       'block',
       'mx-auto',
-      'mb-8',
+      'mb-6',
       'max-w-full',
       'h-auto',
       'rounded-lg',
@@ -29,6 +42,47 @@ export const htmlElements: ElementConfig[] = [
       'text-gray-500',
       'italic',
       'text-center',
+    ],
+  },
+  {
+    tagName: 'mark',
+    classes: [
+      'bg-content',
+      'px-1',
+      'text-content-inverse',
+    ],
+  },
+  {
+    tagName: 'summary',
+    classes: ['outline-none', 'select-none', 'cursor-pointer', 'list-none', 'marker:hidden'],
+  },
+  {
+    tagName: 'table',
+    classes: [
+      'border-collapse',
+      'mx-auto',
+      'mb-6',
+      'overflow-hidden',
+      'max-w-full',
+      'w-fit',
+    ],
+  },
+  {
+    tagName: 'th',
+    classes: [
+      'bg-page-base-offset',
+      'px-4',
+      'py-2',
+      'text-left',
+      'font-semibold',
+    ],
+  },
+  {
+    tagName: 'td',
+    classes: [
+      'px-4',
+      'py-2',
+      'bg-[var(--shiki-background)]',
     ],
   },
   {
@@ -45,82 +99,6 @@ export const htmlElements: ElementConfig[] = [
       'italic',
       'text-center',
     ],
-  },
-  {
-    tagName: 'figure',
-    classes: ['my-8', 'mx-auto', 'max-w-none', 'text-center'],
-  },
-  {
-    tagName: 'figcaption',
-    classes: ['text-base', 'italic', 'pt-3'],
-  },
-  {
-    tagName: 'hr',
-    classes: [
-      'bg-gray-300',
-      'border-0',
-      'border-gray-300',
-      'my-16',
-      'mx-auto',
-      'text-center',
-      'w-96',
-      'h-px',
-    ],
-  },
-  {
-    tagName: 'ul',
-    classes: ['list-disc', 'list-outside', 'pl-4', 'mb-8'],
-  },
-  {
-    tagName: 'ol',
-    classes: ['list-decimal', 'list-outside', 'pl-4', 'mb-8'],
-  },
-  {
-    tagName: 'li',
-    classes: ['mb-1', 'last:mb-0'],
-  },
-  {
-    tagName: 'mark',
-    classes: ['bg-gray-300', 'text-gray-900'],
-  },
-  {
-    tagName: 'table',
-    classes: [
-      'w-full',
-      'border-collapse',
-      'border',
-      'border-gray-300',
-      'dark:border-gray-600',
-      'my-6',
-      'rounded-lg',
-      'overflow-hidden',
-    ],
-  },
-  {
-    tagName: 'th',
-    classes: [
-      'bg-gray-100',
-      'dark:bg-gray-700',
-      'px-4',
-      'py-2',
-      'text-left',
-      'font-semibold',
-      'border-b',
-      'border-gray-300',
-      'dark:border-gray-600',
-    ],
-  },
-  {
-    tagName: 'td',
-    classes: ['px-4', 'py-2', 'border-b', 'border-gray-200', 'dark:border-gray-700'],
-  },
-  {
-    tagName: 'summary',
-    classes: ['outline-none', 'select-none', 'cursor-pointer', 'list-none', 'marker:hidden'],
-  },
-  {
-    tagName: 'details',
-    classes: ['[&>*:not(summary)]:pl-5'],
   },
 ]
 

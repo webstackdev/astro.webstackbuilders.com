@@ -1,0 +1,90 @@
+/**
+ * Stylings for Shiki Textmate-based Code Highlighter using VS Code templates
+ *
+ * Supports dual themes configured in astro.config.mjs:
+ * - github-light for light mode
+ * - github-dark for dark mode
+ */
+
+/**
+ * Shiki emits each line as <span class="line">…</span>.
+ * We keep line numbers in a fixed gutter so wrapped lines align under the code,
+ * not under the line number column.
+ */
+pre.shiki code {
+  counter-increment: step calc(var(--start, 1) - 1);
+  counter-reset: step;
+  white-space: normal;
+}
+
+/* Prevent Shiki's inter-line text nodes ("\n") from becoming visual blank lines. */
+pre.shiki code .line {
+  display: block;
+  min-height: 1.25em;
+  overflow-wrap: anywhere;
+  padding-left: 3rem;
+  position: relative;
+  white-space: pre-wrap;
+}
+
+pre.shiki code .line::before {
+  color: rgb(from var(--color-content-active) r g b / 40%);
+  content: counter(step);
+  counter-increment: step;
+  left: 0;
+  position: absolute;
+  text-align: right;
+  top: 0;
+  width: 1.5rem;
+}
+
+/* Meta-based highlights (e.g. ```js {1,3} and ```sh /word/) */
+
+pre.shiki code .line.highlighted {
+  background-color: rgb(from var(--color-spotlight) r g b / 25%);
+}
+
+/* Notation/meta error & warning highlights (e.g. [!code error], error={1,2}) */
+
+pre.shiki code .line.line-error {
+  background-color: rgb(from var(--color-danger) r g b / 18%);
+}
+
+pre.shiki code .line.line-warning {
+  background-color: rgb(from var(--color-warning) r g b / 18%);
+}
+
+pre.shiki code .highlighted-word {
+  background-color: rgb(from var(--color-spotlight) r g b / 35%);
+  padding: 0 0.15rem;
+}
+
+/* Meta-based diff markers (e.g. ```sh ins={3,4} del={5,6}) */
+
+pre.shiki code .line.diff-ins {
+  color: var(--color-success);
+}
+
+pre.shiki code .line.diff-del {
+  color: var(--color-danger);
+}
+
+.shiki .line.diff-ins::after {
+  color: var(--color-success);
+  content: '+';
+  left: 1.75rem;
+  position: absolute;
+  text-align: center;
+  top: 0;
+  width: 0.75rem;
+}
+
+.shiki .line.diff-del::after {
+  color: var(--color-danger);
+  content: '-';
+  left: 1.75rem;
+  position: absolute;
+  text-align: center;
+  top: 0;
+  width: 0.75rem;
+}

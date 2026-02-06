@@ -9,7 +9,7 @@ test.describe('Tags Index Page', () => {
     const page = await BasePage.init(playwrightPage)
     await page.goto('/tags')
     await page.expectHeading()
-    await page.expectTextContains('h1', /Browse by Tag/)
+    await page.expectTextContains('h1', /Technical Index/)
   })
 
   test('@ready tag list displays', async ({ page: playwrightPage }) => {
@@ -22,8 +22,8 @@ test.describe('Tags Index Page', () => {
   test('@ready tag counts display', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     await page.goto('/tags')
-    // Each tag should show count like "5 items"
-    await page.expectTextVisible(/\d+ item/)
+    // Each tag carousel should render at least one article card link
+    await page.expectElementVisible('a[href^="/articles/"]')
   })
 
   test('@ready responsive: mobile view renders correctly', async ({ page: playwrightPage }) => {

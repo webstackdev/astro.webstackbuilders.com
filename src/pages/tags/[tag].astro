@@ -8,49 +8,21 @@ export interface Params {
   tag: string
 }
 
-type ContentItem =
-  | (CollectionEntry<'articles'> & { type: 'article' })
-  | (CollectionEntry<'caseStudies'> & { type: 'case-study' })
-  | (CollectionEntry<'services'> & { type: 'service' })
-  | (CollectionEntry<'downloads'> & { type: 'download' })
-
 export interface Props {
-  content: ContentItem[]
+  content: Array<CollectionEntry<'articles'>>
 }
 
 export async function getStaticPaths() {
   const allTags = await getCollection('tags')
+  const allArticles = await getCollection('articles', ({ data }) => isDev() || data.isDraft !== true)
 
-  // Get all content collections with tags
-  const allArticles = await getCollection('articles', ({ data }) => {
-    return isDev() || data.isDraft !== true
-  })
-
-  const allCaseStudies = await getCollection('caseStudies', ({ data }) => {
-    return isDev() || data.isDraft !== true
-  })
-  const allServices = await getCollection('services', ({ data }) => {
-    return isDev() || data.isDraft !== true
-  })
-  const allDownloads = await getCollection('downloads', ({ data }) => {
-    return isDev() || data.isDraft !== true
-  })
-
-  // Combine all content and extract unique tags
-  const allContent = [
-    ...allArticles.map(item => ({ ...item, type: 'article' })),
-    ...allCaseStudies.map(item => ({ ...item, type: 'case-study' })),
-    ...allServices.map(item => ({ ...item, type: 'service' })),
-    ...allDownloads.map(item => ({ ...item, type: 'download' })),
-  ]
-
-  const uniqueTags = [...new Set(allContent.map(item => item.data.tags).flat())]
+  const articleHasTag = (article: CollectionEntry<'articles'>, tagEntry: CollectionEntry<'tags'>) => {
+    return article.data.tags.some(tagRef => tagRef.id === tagEntry.id)
+  }
 
   return allTags.map(tagEntry => {
     const tag = tagEntry.data.slug
-    const filteredContent = uniqueTags.includes(tag)
-      ? allContent.filter(item => item.data.tags.includes(tag))
-      : []
+    const filteredContent = allArticles.filter(article => articleHasTag(article, tagEntry))
 
     return {
       params: { tag },
@@ -66,9 +38,6 @@ const [tagEntry] = await getCollection('tags', ({ data }) => data.slug === tag)
 if (!tagEntry) {
   throw new Error(`Unknown tag: ${tag}`)
 }
-
-const allTags = await getCollection('tags')
-const tagDisplayNameBySlug = Object.fromEntries(allTags.map(t => [t.data.slug, t.data.displayName]))
 
 const { Content: TagContent } = await render(tagEntry)
 
@@ -86,69 +55,54 @@ const sortedContent = allTagContent.sort(
 )
 
 const paginatedContent = sortedContent.slice(startIndex, endIndex)
-
-const getTagDisplayName = (tagSlug: string) => {
-  return tagDisplayNameBySlug[tagSlug] || tagSlug
-}
-
-const typeMetadata = {
-  article: { label: 'Article', badgeClass: 'bg-primary', hrefBase: 'articles' },
-  'case-study': { label: 'Case Study', badgeClass: 'bg-success', hrefBase: 'case-studies' },
-  service: { label: 'Service', badgeClass: 'bg-accent', hrefBase: 'services' },
-  download: { label: 'Download', badgeClass: 'bg-secondary', hrefBase: 'downloads' },
-} as const
-
-const displayName = tagEntry.data.displayName
-const path = `/tags/${tag}`
-const pageDescription = tagEntry.data.description
-const pageTitle = `${displayName} - Tag`
-const breadcrumbTitle = displayName
-const section = 'Tags'
 ---
 
 <BaseLayout
-  pageTitle={pageTitle}
-  path={path}
-  description={pageDescription}
-  breadcrumbTitle={breadcrumbTitle}
-  section={section}
+  pageTitle={`${tagEntry.data.displayName} - Tag`}
+  path={`/tags/${tag}`}
+  description={tagEntry.data.description}
+  breadcrumbTitle={tagEntry.data.displayName}
+  section="Tags"
 >
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <header class="mb-12">
       <div class="flex flex-col gap-6 sm:flex-row sm:items-start">
         <div class="shrink-0">
           <div
-            class="relative w-28 sm:w-32 md:w-40 aspect-square overflow-hidden rounded-2xl bg-bg-offset"
+            class="relative w-28 sm:w-32 md:w-40 aspect-square overflow-hidden rounded-2xl bg-page-base-offset"
           >
-            <img
-              src={tagEntry.data.cover.src}
-              width={tagEntry.data.cover.width}
-              height={tagEntry.data.cover.height}
+            <Picture
+              src={tagEntry.data.cover}
               alt={tagEntry.data.coverAlt}
+              widths={[112, 128, 160]}
+              sizes="(min-width: 768px) 160px, (min-width: 640px) 128px, 112px"
+              formats={['avif', 'webp', 'png']}
+              layout="constrained"
+              fit="contain"
+              position="center"
               class="absolute inset-0 h-full w-full object-contain"
               loading="eager"
-              decoding="async"
             />
           </div>
         </div>
 
         <div class="min-w-0 flex-1">
-          <h1 class="text-4xl md:text-5xl font-bold text-text mb-4">
-            {displayName}
+          <h1 class="text-4xl md:text-5xl font-bold mb-4">
+            {tagEntry.data.displayName}
           </h1>
-          <p class="text-xl text-text-muted">
-            {totalItems} item{totalItems !== 1 ? 's' : ''} tagged with {displayName.toLowerCase()}
+          <p class="text-xl">
+            {totalItems} item{totalItems !== 1 ? 's' : ''} tagged with {tagEntry.data.displayName.toLowerCase()}
           </p>
-          <div class="mt-6 prose prose-invert max-w-none">
-            <TagContent />
-          </div>
-
           <nav class="mt-6">
             <a href="/tags" class="text-primary hover:underline"> ← Browse all tags </a>
           </nav>
         </div>
       </div>
     </header>
+
+    <section class="prose prose-invert max-w-none mb-12" aria-label="Tag description">
+      <TagContent />
+    </section>
 
     {
       paginatedContent.length > 0 ? (
@@ -161,11 +115,10 @@ const section = 'Tags'
               Tagged content
             </h2>
             {paginatedContent.map(item => {
-              const typeMeta = typeMetadata[item.type]
-              const href = `/${typeMeta.hrefBase}/${item.id}`
+              const href = `/articles/${item.id}`
 
               return (
-                <article class="bg-bg rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
+                <article class="bg-content-inverse rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
                   {item.data.cover && (
                     <a href={href} class="block">
                       <div class="relative aspect-video overflow-hidden">
@@ -188,11 +141,11 @@ const section = 'Tags'
                   <div class="p-6 space-y-4">
                     <div class="flex items-center gap-3 text-sm">
                       <span
-                        class={`px-3 py-1 rounded-full text-white font-medium ${typeMeta.badgeClass}`}
+                        class="px-3 py-1 rounded-full text-white font-medium bg-primary"
                       >
-                        {typeMeta.label}
+                        Article
                       </span>
-                      <time class="text-text-muted" datetime={item.data.publishDate.toISOString()}>
+                      <time datetime={item.data.publishDate.toISOString()}>
                         {item.data.publishDate.toLocaleDateString('en-US', {
                           year: 'numeric',
                           month: 'long',
@@ -201,7 +154,7 @@ const section = 'Tags'
                       </time>
                     </div>
 
-                    <h2 class="text-xl font-semibold text-text leading-tight">
+                    <h2 class="text-xl font-semibold leading-tight">
                       <a
                         href={href}
                         class="group-hover:text-primary transition-colors duration-300"
@@ -211,41 +164,10 @@ const section = 'Tags'
                     </h2>
 
                     {item.data.description && (
-                      <p class="text-text-muted text-sm leading-relaxed line-clamp-3">
+                      <p class="text-sm leading-relaxed line-clamp-3">
                         {item.data.description}
                       </p>
                     )}
-
-                    <div class="space-y-3 pt-2">
-                      {/* Client or Author info */}
-                      {'client' in item.data && item.data.client && (
-                        <span class="inline-block text-sm font-medium text-primary bg-primary-bg px-3 py-1 rounded-full">
-                          Client: {item.data.client}
-                        </span>
-                      )}
-
-                      {/* Additional tags */}
-                      {item.data.tags && item.data.tags.length > 1 && (
-                        <ul
-                          class="flex flex-wrap gap-2 list-none p-0 m-0"
-                          aria-label="Related tags"
-                        >
-                          {item.data.tags
-                            .filter((t: string) => t !== tag)
-                            .slice(0, 3)
-                            .map((relatedTag: string) => (
-                              <li>
-                                <a
-                                  href={`/tags/${relatedTag}`}
-                                  class="text-xs font-medium text-text-muted bg-bg-offset hover:bg-border px-2 py-1 rounded-full transition-colors duration-200"
-                                >
-                                  {getTagDisplayName(relatedTag)}
-                                </a>
-                              </li>
-                            ))}
-                        </ul>
-                      )}
-                    </div>
                   </div>
                 </article>
               )
@@ -257,8 +179,8 @@ const section = 'Tags'
             <nav class="flex flex-wrap justify-center items-center gap-2" aria-label="Pagination">
               {currentPage > 1 && (
                 <a
-                  href={currentPage === 2 ? path : `${path}?page=${currentPage - 1}`}
-                  class="px-4 py-2 text-sm font-medium text-text bg-bg border border-border rounded-lg hover:bg-bg-offset transition-colors duration-200"
+                  href={currentPage === 2 ? `/tags/${tag}` : `/tags/${tag}?page=${currentPage - 1}`}
+                  class="px-4 py-2 text-sm font-medium bg-content-inverse border border-trim rounded-lg hover:bg-page-base-offset transition-colors duration-200"
                 >
                   ← Previous
                 </a>
@@ -268,12 +190,12 @@ const section = 'Tags'
               {currentPage > 3 && (
                 <>
                   <a
-                    href={path}
-                    class="px-3 py-2 text-sm font-medium text-text bg-bg border border-border rounded-lg hover:bg-bg-offset transition-colors duration-200"
+                    href={`/tags/${tag}`}
+                    class="px-3 py-2 text-sm font-medium bg-content-inverse border border-trim rounded-lg hover:bg-page-base-offset transition-colors duration-200"
                   >
                     1
                   </a>
-                  {currentPage > 4 && <span class="px-3 py-2 text-sm text-text-muted">…</span>}
+                  {currentPage > 4 && <span class="px-3 py-2 text-sm">…</span>}
                 </>
               )}
 
@@ -286,11 +208,11 @@ const section = 'Tags'
                 const isCurrentPage = page === currentPage
                 return (
                   <a
-                    href={page === 1 ? path : `${path}?page=${page}`}
+                    href={page === 1 ? `/tags/${tag}` : `/tags/${tag}?page=${page}`}
                     class={`px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 ${
                       isCurrentPage
-                        ? 'bg-primary text-white'
-                        : 'text-text bg-bg border border-border hover:bg-bg-offset'
+                        ? 'bg-spotlight text-white'
+                        : 'bg-content-inverse border border-trim hover:bg-page-base-offset'
                     }`}
                     aria-current={isCurrentPage ? 'page' : undefined}
                   >
@@ -303,11 +225,11 @@ const section = 'Tags'
               {currentPage < totalPages - 2 && (
                 <>
                   {currentPage < totalPages - 3 && (
-                    <span class="px-3 py-2 text-sm text-text-muted">…</span>
+                    <span class="px-3 py-2 text-sm">…</span>
                   )}
                   <a
-                    href={`${path}?page=${totalPages}`}
-                    class="px-3 py-2 text-sm font-medium text-text bg-bg border border-border rounded-lg hover:bg-bg-offset transition-colors duration-200"
+                    href={`/tags/${tag}?page=${totalPages}`}
+                    class="px-3 py-2 text-sm font-medium bg-content-inverse border border-trim rounded-lg hover:bg-page-base-offset transition-colors duration-200"
                   >
                     {totalPages}
                   </a>
@@ -316,8 +238,8 @@ const section = 'Tags'
 
               {currentPage < totalPages && (
                 <a
-                  href={`${path}?page=${currentPage + 1}`}
-                  class="px-4 py-2 text-sm font-medium text-text bg-bg border border-border rounded-lg hover:bg-bg-offset transition-colors duration-200"
+                  href={`/tags/${tag}?page=${currentPage + 1}`}
+                  class="px-4 py-2 text-sm font-medium bg-content-inverse border border-trim rounded-lg hover:bg-page-base-offset transition-colors duration-200"
                 >
                   Next →
                 </a>
@@ -327,7 +249,7 @@ const section = 'Tags'
         </>
       ) : (
         <div class="text-center py-12">
-          <p class="text-xl text-text-muted mb-4">No content found for this tag.</p>
+          <p class="text-xl mb-4">No content found for this tag.</p>
           <a href="/tags" class="text-primary hover:underline">
             Browse other tags
           </a>

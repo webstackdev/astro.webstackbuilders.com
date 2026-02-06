@@ -1,0 +1,147 @@
+---
+title: "Tracing Span Design: How Many Is Too Many"
+description: "Balancing trace granularity against overhead, storage, and the ability to actually read trace waterfalls."
+cover: "./cover.jpg"
+coverAlt: "Two city maps comparison: over-detailed map with every feature marked versus clear map showing major roads and landmarks for easy navigation"
+author: "kevin-brown"
+publishDate: 2026-01-04
+tags: ["observability-and-telemetry"]
+featured: true
+---
+
+*[OTel]: OpenTelemetry
+
+A team I worked with instrumented a new service with spans for every function call, database query, cache lookup, and external request. Thorough, right? A typical request generated 200+ spans. The trace backend showed a waterfall of solid color—no gaps, no obvious structure. Finding the slow operation meant scrolling through hundreds of spans, mentally filtering out the noise. Storage costs tripled in a month.
+
+They refactored to instrument only service boundaries, significant I/O operations, and error paths. Instrumented service boundaries, significant I/O operations, and error paths. Span count dropped to 15-20 per request. Traces became readable. The critical path was obvious at a glance. Storage costs dropped 90%. Debugging time went from minutes to seconds.
+
+The lesson: granularity without readability is noise, not observability. More spans don't mean better visibility—they often mean worse. The goal is _enough_ spans to debug problems, not so many that you create new ones.
+
+## What to Instrument
+
+The question "should this operation have a span?" comes up constantly. Here's how I think about it.
+
+_Always instrument service boundaries._ Incoming HTTP/gRPC requests, outgoing HTTP/gRPC calls, message queue publish/consume—these are the spans that stitch your distributed trace together. Without them, your trace stops at service boundaries and you lose visibility into cross-service latency.
+
+_Always instrument I/O operations._ Database queries, cache reads/writes, file system operations. I/O is where latency lives. A trace that doesn't show database time is a trace that can't explain why a request was slow.
+
+_Always instrument external dependencies._ Third-party APIs, payment processors, cloud service SDKs. External services are the leading cause of incidents. When Stripe is slow or an S3 call times out, you want that visible in your traces.
+
+_Instrument significant business operations._ Order processing, payment validation, user authentication—operations that matter to your business and that you might need to debug. The keyword is "significant." Not every function, just the ones you'd want to see in a trace when something goes wrong.
+
+Some operations need judgment. For loops with external calls, wrap the loop, not each iteration—a batch that processes 100 items should create one span for the batch, not 100 spans. For retry logic, one span per attempt can be useful for debugging retry storms, but link them together so you can see the full retry sequence. And on the other end of the spectrum, there are operations you should actively avoid instrumenting.
+
+_Avoid instrumenting pure computation._ JSON parsing, field validation, data transformation—these are CPU-bound operations that rarely need their own spans. If you need timing, add it as an attribute on the parent span.
+
+_Avoid instrumenting every function call._ This is the trap that creates unreadable traces. Instrument boundaries and I/O, not internal implementation details.
+
+| Operation | Span? | Alternative | Why |
+|-----------|-------|-------------|-----|
+| HTTP request handler | Yes | - | Service boundary; stitches distributed trace together |
+| Database query | Yes | - | I/O operation; where latency typically lives |
+| JSON parsing | No | Attribute | Pure computation; no I/O involved |
+| Each loop iteration | No | Wrap loop | Creates overhead; one span for batch is sufficient |
+| External API call | Yes | - | Dependency visibility; external services cause most incidents |
+| Field validation | No | Attribute | Too granular; timing rarely needed |
+| Error handling | No | Event | Within parent span; events capture error context |
+
+Table: Span decision matrix.
+
+## Span vs Event vs Attribute
+
+Once you've decided something deserves visibility in a trace, you have three options: span, event, or attribute. Each has different costs and use cases.
+
+_Spans_ represent operations with duration. They have start and end times, can have child spans, and appear as bars in your waterfall. Use them for I/O operations and significant boundaries. Cost: highest (memory allocation, context propagation, serialization).
+
+_Events_ are timestamped points within a span's lifetime. They don't have duration—they mark moments. Use them for milestones: "validation started," "cache miss," "retry attempted." Cost: moderate (stored with parent span, but no separate context).
+
+_Attributes_ are key-value metadata attached to a span. They describe the operation: IDs, counts, flags, outcomes. Use them for context that helps you understand the span. Cost: lowest (just map entries).
+
+Here's the pattern in practice:
+
+```typescript title="span-event-attribute.ts"
+import { trace, SpanKind, SpanStatusCode } from '@opentelemetry/api';
+
+const tracer = trace.getTracer('order-service');
+
+async function processOrder(order: Order) {
+  return tracer.startActiveSpan('processOrder', async (span) => {
+    span.setAttribute('order.id', order.id);
+    span.setAttribute('order.item_count', order.items.length);
+
+    span.addEvent('validation.started');
+    const validationResult = validateOrder(order);
+    span.addEvent('validation.completed', { 'validation.passed': validationResult.valid });
+
+    if (!validationResult.valid) {
+      span.setAttribute('validation.error', validationResult.error);
+      span.setStatus({ code: SpanStatusCode.ERROR });
+      span.end();
+      return;
+    }
+
+    await tracer.startActiveSpan('db.insertOrder', async (dbSpan) => {
+      dbSpan.setAttribute('db.system', 'postgresql');
+      await db.insert(order);
+      dbSpan.end();
+    });
+
+    span.addEvent('order.persisted');
+    span.setStatus({ code: SpanStatusCode.OK });
+    span.end();
+  });
+}
+```
+Code: Using spans for I/O, events for milestones, attributes for metadata.
+
+Notice that `validateOrder()` doesn't get a span—it's pure computation. The validation timing is captured as events if you need it. The database insert _does_ get a span because it's I/O where latency matters.
+
+<Callout type="success">
+Rule of thumb: if it involves I/O (network, disk, database), make it a span. If it's a milestone within an operation, make it an event. If it's metadata about the operation, make it an attribute. Spans are expensive; events and attributes are cheap.
+</Callout>
+
+## Trace Readability
+
+A trace is only useful if you can read it. I've seen traces that technically contain all the information needed to debug a problem, but the information is buried in noise.
+
+Most readability problems fall into a few common anti-patterns:
+
+_Wall of spans._ The waterfall is solid color—no gaps, no white space. You can't see the structure because there's a span for everything. Every function call, every loop iteration, every trivial operation. The fix is reducing span count and using events for milestones instead of child spans.
+
+_Flat hierarchy._ All spans at the same level, no nesting. You can't tell which operations are contained within others, or whether operations ran sequentially or in parallel. The fix is ensuring child spans inherit from their parents using `startActiveSpan`.
+
+_Missing gaps._ Spans account for 100% of request time—no uninstrumented periods visible. This sounds good but actually hides information. The gaps in a trace show where time went to uninstrumented code. If there are no gaps, you can't distinguish "the database was slow" from "the instrumentation overhead was high."
+
+_Cryptic names._ Span names like "span," "operation," "handler," or "process" that don't explain what's happening. Auto-instrumentation often produces these. The fix is customizing span names to follow the pattern "operation resource" (`HTTP GET /api/orders`, `db.query orders`).
+
+_Attribute explosion._ Hundreds of attributes per span because someone dumped all available context. The trace viewer loads slowly, important attributes are buried in noise, and storage costs balloon. The fix is selecting relevant attributes deliberately.
+
+A good trace has 10-30 spans per request, 3-5 levels of nesting, clear names that explain each operation, and visible gaps that show where uninstrumented time went. You should be able to identify the critical path at a glance.
+
+Naming is particularly important for quick scanning. Span names should answer "what operation on what resource?" without requiring you to read the code. The OpenTelemetry semantic conventions provide a good starting point, and the table below shows common patterns and pitfalls.
+
+| Context | Good Name | Bad Name | Problem with Bad Name |
+|---------|-----------|----------|----------------------|
+| HTTP handler | `HTTP GET /api/orders/{id}` | `handler` | No indication of method or resource |
+| Database | `db.query orders` | `SELECT * FROM...` | SQL syntax noise, potential sensitive data |
+| Cache | `cache.get` | `redis` | Technology not operation—what did you do? |
+| Business logic | `order.validate` | `validateOrder` | Function name leaks implementation detail |
+| External API | `HTTP POST` | `API call` | No method, no way to distinguish calls |
+
+Table: Span naming patterns.
+
+## Conclusion
+
+Span design is an engineering tradeoff: visibility versus overhead, granularity versus readability, detail versus cost. The goal isn't maximum spans—it's enough spans to debug problems efficiently.
+
+Instrument service boundaries, I/O operations, and significant business logic. Use events for milestones within spans. Use attributes for metadata that helps filtering and debugging. The best traces answer three questions: what happened, where time was spent, and what failed.
+
+Audit your current traces: pick a typical request, count the spans, and ask whether you could identify the slow operation in under 10 seconds. If not, you've found your first refactoring target.
+
+<Callout type="info">
+Start with minimal instrumentation—auto-instrumentation plus key business operations—then add spans only when you can't debug a specific problem. You can always add granularity; removing it requires code changes. Let debugging needs drive instrumentation, not the quest for "complete" visibility.
+</Callout>
+
+---
+
+This article covers the essentials of span design—what to instrument, how to choose between spans, events, and attributes, and how to keep traces readable. The complete guide goes deeper: span anatomy and context propagation, performance overhead measurements, sampling strategies (head vs tail), attribute cardinality patterns, and full code examples for request lifecycle and batch processing instrumentation. Download the PDF for the complete reference.

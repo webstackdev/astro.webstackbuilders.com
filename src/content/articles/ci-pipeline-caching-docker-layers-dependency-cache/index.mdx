@@ -1,0 +1,213 @@
+---
+title: "CI Pipeline Caching: Strategies That Actually Work"
+description: "Cache keys, Docker layer ordering, and the pitfalls that turn caching from a speedup into a source of production bugs."
+cover: "./cover.jpg"
+coverAlt: "CI pipeline racing track with builds as cars, showing cached fast lanes with motion blur versus slower uncached sections and reduced build time at finish"
+author: "kevin-brown"
+publishDate: 2025-09-06
+tags: ["build-and-deploy"]
+featured: true
+---
+
+*[CHR]: Cache Hit Ratio
+
+CI caching is one of those optimizations that looks straightforward until it isn't. The pitch is simple: cache dependencies and build artifacts so you don't re-download and re-compile the same code on every build. Teams routinely cut 45-minute builds down to 8 minutes. That's real productivity—more deploys per day, faster feedback loops, happier engineers.
+
+But here's what nobody mentions in the "speed up your CI" blog posts: incorrect caching produces builds that pass CI and fail in production.
+
+I've seen this pattern more than once. A team aggressively caches everything, build times plummet, everyone celebrates. Three weeks later, a security patch lands in a transitive dependency. The team runs `npm audit fix`, but they're caching `node_modules` with a key that only hashes `package-lock.json`. The lockfile didn't change (the patch was already in the allowed semver range), so the cache hits and the old, vulnerable version keeps getting restored. The vulnerability makes it to production. The rollback takes longer than all the time they saved.
+
+Every cache hit assumes the cached artifact is _identical_ to what a fresh build would produce. When that assumption is wrong—and it's surprisingly easy to get wrong—you're shipping artifacts that don't match your source code.
+
+<Callout type="warning">
+A fast build that produces incorrect artifacts is worse than a slow build. Before optimizing cache hit ratio, ensure your cache keys capture everything that affects build output.
+</Callout>
+
+## Cache Keys: The Foundation
+
+A cache key is a string that uniquely identifies a cached artifact. When your build requests a cache, the CI system looks for an exact match on the key. If found, you get a cache hit. If not, you get a miss and rebuild.
+
+The key to effective caching is designing keys that change when (and only when) the cached content should change. A good cache key has three components:
+
+- A _static prefix_ for namespacing and manual invalidation (e.g., `v1-deps-`)
+- _Dynamic components_ that capture everything affecting the cached content (e.g., lockfile hash)
+- Optionally, a _version or OS component_ for environment-specific caches (e.g., `runner.os`)
+
+Here's how this looks in GitHub Actions:
+
+```yaml title=".github/workflows/build.yml"
+# The "v1-" prefix enables manual cache invalidation—bump to "v2-" to force
+# all builds to miss, useful when cache contents become corrupted or stale.
+- uses: actions/cache@v4
+  with:
+    path: node_modules
+    key: v1-deps-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+    restore-keys: |
+      v1-deps-${{ runner.os }}-
+      v1-deps-
+```
+Code: GitHub Actions cache key with lockfile hash and restore key fallbacks.
+
+The `hashFiles()` function computes a hash of the specified files—when `package-lock.json` changes, the hash changes, and you get a new cache key. The `restore-keys` provide fallbacks: if the exact key doesn't match, the CI system looks for keys starting with those prefixes (in order). For each prefix, it finds all cache entries that start with that string and returns the most recently created one.
+
+Three principles determine whether a cache is safe to use:
+
+_Completeness_ means the cache key includes everything that affects the output. If your compiled artifact depends on the compiler version, the compiler version must be in the cache key. Miss something, and you'll serve stale artifacts.
+
+_Determinism_ means the same inputs always produce the same outputs. If your build embeds timestamps or downloads "latest" versions of tools, caching becomes unsafe—the cached artifact won't match what a fresh build would produce.
+
+_Isolation_ means caches don't leak between unrelated builds. PR builds shouldn't pollute the main branch cache. Without isolation, one build's experimental changes can corrupt another build's cache.
+
+## Docker Layer Caching: Where the Big Wins Are
+
+Docker layer caching is both the biggest opportunity and the most common source of confusion in CI caching. Understanding how it works—and how it breaks—is essential for fast, correct builds.
+
+Docker builds images as a stack of layers. Build instructions like FROM, COPY, and RUN each create a new layer. When you rebuild, Docker checks each layer in order: if the instruction and all its inputs are identical to a previous build, Docker reuses the cached layer. If anything differs, Docker rebuilds that layer _and every layer after it_.
+
+That last part is critical: layer caching is sequential, so once a layer is invalidated, everything downstream rebuilds. This domino effect determines whether your build takes 30 seconds or 10 minutes.
+
+Here's a common mistake:
+
+```dockerfile title="Dockerfile"
+# Inefficient: any source change invalidates npm ci
+FROM node:20-alpine
+WORKDIR /app
+COPY . .
+RUN npm ci
+RUN npm run build
+```
+Code: Inefficient Dockerfile that invalidates dependency cache on any source change.
+
+The problem is `COPY . .` before `npm ci`. Every time any file changes—even a README edit—the COPY layer is invalidated, which invalidates npm ci, which means re-downloading all dependencies. On a project with hundreds of dependencies, that's 5+ minutes wasted.
+
+The fix is layer ordering: copy dependency files first, install dependencies, then copy source:
+
+```dockerfile title="Dockerfile"
+# Optimized: dependency layer is stable
+FROM node:20-alpine
+WORKDIR /app
+
+# Copy dependency files first
+COPY package.json package-lock.json ./
+
+# Install dependencies (cached unless package files change)
+RUN npm ci
+
+# Copy source after dependencies
+COPY . .
+
+# Build (must rebuild when source changes)
+RUN npm run build
+```
+Code: Optimized Dockerfile with dependency layer before source copy.
+
+Now the npm ci layer only rebuilds when package.json or package-lock.json changes. Source code changes only invalidate the final two layers.
+
+Multi-stage builds take this further by separating concerns into distinct phases:
+
+```dockerfile title="Dockerfile"
+# Stage 1: Dependencies (highly cacheable)
+FROM node:20-alpine AS deps
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+
+# Stage 2: Build (depends on source)
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+RUN npm run build
+
+# Stage 3: Production (minimal image)
+# Note: This example assumes the build bundles all code into dist/.
+# If you have runtime dependencies, add: COPY --from=deps /app/node_modules ./node_modules
+FROM node:20-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+COPY --from=builder /app/dist ./dist
+COPY package.json ./
+CMD ["node", "dist/index.js"]
+```
+Code: Multi-stage Dockerfile optimized for layer caching.
+
+The `deps` stage is highly cacheable—it only changes when dependencies change. The `builder` stage rebuilds on source changes but starts from cached dependencies. The `runner` stage produces a minimal production image without build tools or dev dependencies.
+
+<Callout type="info">
+BuildKit, Docker's modern build engine (default since Docker Engine 23.0), adds cache mounts that persist across builds even when a layer is invalidated. Use `RUN --mount=type=cache,target=/root/.npm npm ci` to keep npm's download cache between builds.
+</Callout>
+
+## The Four Pitfalls That Break Caching
+
+Caching bugs are particularly nasty because they're often invisible—builds pass, tests pass, but the artifacts are wrong. Here are the patterns I see most often.
+
+### Over-Caching: Key Too Broad
+
+Over-caching happens when your cache key doesn't include something that affects the cached content. The classic example is a static cache key:
+
+```yaml title=".github/workflows/build.yml"
+# BAD: Cache key never changes
+- uses: actions/cache@v4
+  with:
+    path: node_modules
+    key: deps-v1  # This key is static!
+```
+Code: Over-caching with a static key that never invalidates.
+
+When `package-lock.json` changes, the cache key stays the same, so you keep getting the old dependencies. Security patches don't get applied. New packages don't get installed. Builds pass but artifacts are stale.
+
+### Under-Caching: Key Too Specific
+
+The opposite problem: your cache key changes too often, so you never get cache hits:
+
+```yaml title=".github/workflows/build.yml"
+# BAD: Cache key changes every commit
+- uses: actions/cache@v4
+  with:
+    path: node_modules
+    key: deps-${{ github.sha }}  # Different every commit!
+```
+Code: Under-caching where the key changes on every build.
+
+Every build is a cache miss. You've added caching overhead without any benefit. Cache keys should change when the _cached content_ should change, not when the _build_ changes.
+
+### Cache Pollution
+
+Cache pollution happens when one build writes incorrect content to a cache that other builds use. The most common cause is shared caches between branches.
+
+Here's the scenario: a PR modifies a postinstall script that changes what ends up in `node_modules`, but the lockfile hash stays the same. The build runs and writes the modified `node_modules` to the cache. Now every build with that lockfile hash—including main branch builds—restores the PR's experimental changes.
+
+The fix is branch isolation with restore key fallbacks:
+
+```yaml title=".github/workflows/build.yml"
+# GOOD: Branch writes to its own namespace, restores from main
+key: deps-${{ github.ref }}-${{ hashFiles('**/package-lock.json') }}
+restore-keys: |
+  deps-refs/heads/main-${{ hashFiles('**/package-lock.json') }}
+  deps-refs/heads/main-
+```
+Code: Branch-isolated cache key with fallback to main branch.
+
+Each branch writes to its own cache namespace, but PRs can still restore from the main branch cache for efficiency. Main branch builds never read from PR caches.
+
+### Non-Determinism
+
+Caching assumes determinism: the same inputs produce the same outputs. Common violations include using `npm install` instead of `npm ci` (which allows version resolution to vary), embedding timestamps in artifacts, downloading "latest" versions of tools, and using unpinned system packages like `RUN apt-get install python3` without specifying a version.
+
+The test for non-determinism: run the same build twice with a clean cache. If the outputs differ, you have a non-determinism bug that will eventually cause caching problems.
+
+<Callout type="danger">
+Cache pollution and non-determinism are insidious—builds pass but artifacts are incorrect. When debugging mysterious production failures, always test with a clean cache first.
+</Callout>
+
+## Making It Work
+
+CI caching can reduce build times by 70-90%, but only if done correctly. Design your cache keys to capture everything that affects build output. Order your Dockerfile layers from stable to volatile. Measure your CHR continuously—if it drops below 80%, investigate. And when something breaks in production that worked in CI, check whether a stale cache might be the cause.
+
+The goal isn't just fast builds. It's fast builds that produce correct artifacts. Get the cache keys right, and you get both.
+
+---
+
+**CTA Title**: The Complete Guide to CI Pipeline Caching
+
+**CTA Body**: This article covers the fundamentals, but there's more to master. The complete guide includes dependency caching patterns for Node.js, Python, Ruby, Go, and Rust; BuildKit cache mounts and remote cache backends; advanced patterns like cache warming and distributed caching; platform-specific workflows for GitHub Actions and GitLab CI; and metrics for measuring cache effectiveness. Download the PDF for the full deep-dive.

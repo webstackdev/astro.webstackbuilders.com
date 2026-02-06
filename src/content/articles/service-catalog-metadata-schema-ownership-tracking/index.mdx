@@ -1,0 +1,226 @@
+---
+title: "Why Your Service Catalog Is Failing (And How to Fix It)"
+description: "Service catalogs decay because they rely on human memory. Fix yours with ownership modeling, CI/CD enforcement, and automated drift detection."
+cover: "./cover.jpg"
+coverAlt: "Three-dimensional network topology diagram with illuminated node spheres connected by glowing lines of varying thickness representing traffic importance"
+author: "kevin-brown"
+publishDate: 2022-06-19
+tags: ["platform-engineering"]
+featured: true
+---
+
+*[CMDB]: Configuration Management Database
+*[IDP]: Internal Developer Platform
+*[MTTR]: Mean Time To Recovery
+*[SLO]: Service Level Objective
+
+Service catalogs follow a depressingly predictable arc. At launch, you've got 90% coverage and 95% accuracy—teams are entering their services because the initiative has leadership attention. By year two, coverage has dropped to 45%, accuracy to 30%, and the catalog has become a punchline in onboarding jokes. Engineers ask in Slack instead of checking the catalog because they've learned they can't trust it.
+
+Here's what makes this worse: a catalog with 80% accurate data is more dangerous than no catalog at all. It gives you false confidence. You page the listed owner at 3 AM, confident you've got the right team, and waste twenty minutes before discovering they handed off the service six months ago. Every minute spent paging the wrong team is a minute your users are affected.
+
+The fix isn't discipline or better training—it's ownership modeling that captures how teams actually work, combined with enforcement automation that keeps data accurate without relying on anyone remembering to update it.
+
+## The Ownership Problem
+
+If I had to pick one field that determines whether a catalog succeeds or fails, it's ownership. Every use case—incident routing, cost attribution, security scanning—depends on knowing who's responsible. Get ownership wrong and you've built an expensive spreadsheet.
+
+But "ownership" is deceptively simple. A service might have a development team that writes the code, an SRE team that handles production incidents, a security contact for vulnerability disclosures, and a cost owner for budget decisions. Flattening all of that into a single `owner` field creates ambiguity during incidents—when a critical CVE drops, do you page the dev team listed as owner, or does someone else handle security?
+
+### Primary Owner Plus Role Contacts
+
+The ownership model that works distinguishes between different types of responsibility: a _primary owner_ who's responsible for the service's existence and development, plus _role-specific contacts_ for specialized functions.
+
+| Role | Responsibility | When contacted |
+|------|----------------|----------------|
+| Primary owner | Development, roadmap, architecture | Default for anything not covered by a specific role |
+| Oncall | Incident response, production issues | Automated alerts, P1/P2 incidents |
+| Security contact | Vulnerability remediation, security reviews | CVE notifications, penetration test findings |
+| Change approver | Production deployment approval | Release management workflows |
+| Cost owner | Budget decisions, optimization | FinOps alerts, capacity planning |
+
+Table: Ownership roles and their triggers.
+
+For most services, the primary owner handles all roles. You only need role-specific contacts when there's a reason to route differently—a shared SRE oncall rotation, a dedicated security champion, or a manager who approves production changes.
+
+Here's how this looks in a Backstage catalog entry:
+
+```yaml title="catalog-info.yaml"
+# Service ownership with role-specific contacts
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: payment-processor
+  annotations:
+    pagerduty.com/service-id: P123ABC
+spec:
+  type: service
+  lifecycle: production
+  owner: team-payments
+  # Role-specific contacts via custom extension
+  x-contacts:
+    oncall: payments-oncall-schedule
+    security: alice.chen
+    change-approver: team-payments-leads
+```
+
+Code: Backstage entry with primary owner and role-specific contacts.
+
+### Services Change Hands
+
+Services become orphaned when their owning team dissolves, empties out, or goes inactive. This happens more than you'd think—reorgs, layoffs, and attrition all create orphans. A tier-1 service with no valid owner is a ticking time bomb.
+
+Run orphan detection weekly. The rules should catch dissolved teams, empty teams, inactive teams, and missing oncall schedules:
+
+```yaml title=".github/workflows/orphan-detection.yaml"
+# Weekly orphan detection for service ownership
+name: Orphan Detection
+on:
+  schedule:
+    - cron: '0 9 * * 1'  # Every Monday at 9 AM
+jobs:
+  detect-orphans:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for orphaned services
+        run: |
+          # Fetch all tier-1 and tier-2 services
+          SERVICES=$(curl -s "$CATALOG_API/services?tier=1,2")
+          NAMES=$(echo "$SERVICES" | jq -r '
+            .[].metadata.name
+          ')
+
+          for svc in $NAMES; do
+            OWNER=$(echo "$SERVICES" | jq -r --arg SVC "$svc" '
+              .[] | select(.metadata.name == $SVC) | .spec.owner
+            ')
+
+            # Check if team exists and has members
+            TEAM_URL="$IDP_API/teams/$OWNER/members"
+            TEAM_SIZE=$(curl -s "$TEAM_URL" | jq 'length')
+
+            if [ "$TEAM_SIZE" -eq 0 ]; then
+              echo "::error::Service $svc orphaned: $OWNER (0 members)"
+            fi
+          done
+```
+
+Code: GitHub Action for weekly orphan detection.
+
+<Callout type="danger">
+A tier-1 service without a valid owner means the next incident has no one to page. Treat orphan detection failures for critical services as a P1 issue.
+</Callout>
+
+For critical services, consider auto-escalation. When a tier-1 service is orphaned, automatically assign it to the domain owner or a catch-all platform team until proper ownership is established. This ensures someone gets paged even when the original team no longer exists.
+
+## Making Catalogs Self-Sustaining
+
+Good ownership modeling gives you the right fields to capture. But even perfect schema design fails if engineers have to remember to update it. The catalogs that survive are the ones where accuracy is enforced automatically. If updating the catalog is a manual step that happens after deployment, it won't happen consistently. The only way to maintain accuracy is to make the catalog part of the deployment path.
+
+### Catalog-as-Code
+
+Store service definitions in the same repository as the service code. This gives you version control, code review, and the ability to enforce changes through CI/CD. When the catalog entry lives next to the code, updating it becomes part of the normal development workflow rather than a separate chore.
+
+The Backstage `catalog-info.yaml` pattern works well here. Each service repository contains its own catalog entry, and a central catalog aggregates entries from all repositories. Changes to catalog metadata go through the same PR process as code changes.
+
+The benefits add up: Git history shows who changed what and when, catalog changes get the same scrutiny as code changes, code and catalog changes ship together atomically, and teams maintain their own entries rather than relying on a central team.
+
+### CI/CD Validation
+
+Validate catalog entries on every PR. This catches issues before they reach production: missing required fields, references to teams that don't exist, dependencies on services that aren't in the catalog.
+
+```yaml title=".github/workflows/catalog-validation.yaml"
+# GitHub Action for catalog validation
+# Requires CATALOG_API secret configured in repository settings
+name: Catalog Validation
+on:
+  pull_request:
+    paths:
+      - 'catalog-info.yaml'
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate schema
+        run: npx @backstage/cli catalog:validate catalog-info.yaml
+      - name: Check owner exists
+        run: |
+          OWNER=$(yq '.spec.owner // ""' catalog-info.yaml)
+
+          if [ -z "$OWNER" ]; then
+            echo "Error: .spec.owner is missing in catalog-info.yaml"
+            exit 1
+          fi
+
+          curl -sf "$CATALOG_API/teams/$OWNER" || {
+            echo "Owner team '$OWNER' not found in IDP"
+            exit 1
+          }
+```
+
+Code: GitHub Action for catalog validation on PRs.
+
+For tier-1 and tier-2 services, make validation failures blocking. For tier-3 and tier-4, warn but allow the PR to merge—you want to reduce friction for less critical services while maintaining strict standards for critical ones.
+
+| Service tier | Missing owner | Missing runbook | Missing dependencies |
+|--------------|---------------|-----------------|----------------------|
+| tier-1 | Block | Block | Block |
+| tier-2 | Block | Block | Warn |
+| tier-3 | Block | Warn | Warn |
+| tier-4 | Warn | — | — |
+
+Table: Validation enforcement by tier.
+
+### Drift Detection
+
+Even with CI validation, catalog entries go stale. Drift detection compares catalog declarations against actual system state. It catches discrepancies that validation can't: a service running in Kubernetes but not in the catalog, a team that was deleted from the identity provider, an oncall schedule that was removed from PagerDuty.
+
+A typical drift check queries your runtime environment and compares against catalog records:
+
+```bash title="drift-detection.sh"
+# Compare running Kubernetes deployments against catalog
+kubectl get namespaces \
+  -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' | \
+  while read -r ns; do
+    # Get deployments for this specific namespace
+    kubectl get deployments -n "$ns" \
+      -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' | \
+      while read -r deploy; do
+        # Check if deployment exists in catalog
+        if ! curl -sf "$CATALOG_API/components/$deploy" > /dev/null; then
+          echo "DRIFT: Deployment $ns/$deploy not in catalog"
+        fi
+      done
+  done
+```
+
+Code: Basic drift detection comparing Kubernetes deployments to catalog entries.
+
+Run drift detection daily. For critical drift—invalid owner on tier-1 service, missing oncall—alert immediately. For less critical drift like undeclared dependencies on tier-3 services, batch into a weekly report.
+
+<Callout type="warning">
+Drift detection requires API access to your identity provider, oncall system, and runtime infrastructure. Expect 2-4 weeks of integration work per system—PagerDuty and Okta have good APIs, but some legacy CMDBs will fight you.
+</Callout>
+
+## Measuring Success
+
+A catalog without health metrics will silently decay. Measuring catalog health requires tracking three dimensions: coverage (what percentage is cataloged), accuracy (does the data reflect reality), and freshness (when was it last updated).
+
+| Metric | Formula | Target |
+|--------|---------|--------|
+| Coverage ratio | Cataloged / Total | > 95% |
+| Owner completeness | With valid owner / Cataloged | 100% |
+| Oncall completeness (tier-1) | With oncall / tier-1 services | 100% |
+| Freshness (30-day) | Updated within last 30 days / Cataloged | > 70% |
+
+Table: Core catalog health metrics.
+
+Don't set coverage targets at 100% on day one. A realistic progression: tier-1 services at 100% coverage and accuracy in month one, tier-2 at 95% by month three, full estate at 90% by month six. Start with what matters most for incident response, then expand.
+
+When catalog health becomes visible—tracked on a dashboard, reviewed weekly by the platform team, summarized monthly for leadership—it gets attention. Treat catalog coverage like any other SLO (if you'd alert on 99.9% availability dropping, alert on catalog accuracy dropping below target too).
+
+---
+
+**CTA Title:** Get the Complete Service Catalog Implementation Guide
+
+**CTA Body:** This article covers the essentials of ownership modeling and enforcement automation. The full guide goes deeper: schema design principles for adoption, dependency tracking with automated discovery from service mesh telemetry, catalog API patterns for PagerDuty and Datadog integration, complete Prometheus alerting rules for catalog health, and production-ready code examples you can adapt to your infrastructure.

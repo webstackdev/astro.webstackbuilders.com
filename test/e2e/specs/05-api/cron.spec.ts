@@ -1,10 +1,5 @@
 import { expect, test } from '@test/e2e/helpers'
 import { ensureCronDependenciesHealthy } from '@test/e2e/helpers/cronHealth'
-/**
- * These env helpers are safe to use in E2E test as they call process.env
- * directly. Must use "npm run dev:env" for this test case to pass.
- */
-import { getCronSecret } from '@pages/api/_utils/environment/environmentApi'
 import {
   deleteDsarRequestById,
   deleteNewsletterConfirmationById,
@@ -14,16 +9,12 @@ import {
   insertNewsletterConfirmation,
 } from '@test/e2e/db'
 
-const CRON_SECRET = getCronSecret()
+const cronSecretEnvHelp =
+  "CRON_SECRET must be configured to call cron endpoints. " +
+  "Are you running in a local environment and forgot to use 'npm run dev:local'?"
 
-const skipReason = (() => {
-  if (!CRON_SECRET) {
-    return 'CRON_SECRET must be configured to call cron endpoints'
-  }
-  return null
-})()
-
-const cronAuthHeader = CRON_SECRET ? `Bearer ${CRON_SECRET}` : null
+const cronSecret = process.env['CRON_SECRET']?.trim()
+const cronAuthHeader = cronSecret ? `Bearer ${cronSecret}` : null
 const dayInMs = 24 * 60 * 60 * 1000
 const createdConfirmationIds: string[] = []
 const createdDsarIds: string[] = []
@@ -80,81 +71,85 @@ const expectDsarMissing = async (id: string) => {
 test.describe('Cron API endpoints @ready', () => {
   test.describe.configure({ mode: 'serial' })
 
-  if (skipReason) {
-    test.skip(true, skipReason)
-  } else {
+  test('@ready CRON_SECRET is configured', async () => {
+    expect(cronSecret, cronSecretEnvHelp).toBeTruthy()
+  })
+
+  if (cronSecret && cronAuthHeader) {
     test.beforeAll(async () => {
       await ensureCronDependenciesHealthy()
     })
+
+    test.afterEach(async () => {
+      await cleanupConfirmations()
+      await cleanupDsarRequests()
+    })
+
+    test('@ready cleanup-confirmations removes expired and stale rows', async ({ request }) => {
+
+      const now = Date.now()
+      const expiredId = await seedNewsletterConfirmation({
+        expiresAt: new Date(now - 60 * 60 * 1000),
+      })
+      const staleId = await seedNewsletterConfirmation({
+        expiresAt: new Date(now + dayInMs),
+        confirmedAt: new Date(now - 8 * dayInMs),
+        createdAt: new Date(now - 8 * dayInMs),
+      })
+
+      const response = await request.get('/api/cron/cleanup-confirmations', {
+        headers: {
+          authorization: cronAuthHeader,
+        },
+      })
+
+      const status = response.status()
+      const rawBody = await response.text()
+      expect(response.ok(), `Cron request failed: ${status} ${rawBody}`).toBeTruthy()
+
+      const body = JSON.parse(rawBody) as {
+        deleted: { expired: number; oldConfirmed: number; total: number }
+      }
+
+      expect(body.deleted.expired).toBeGreaterThanOrEqual(1)
+      expect(body.deleted.oldConfirmed).toBeGreaterThanOrEqual(1)
+
+      await expectNewsletterMissing(expiredId)
+      await expectNewsletterMissing(staleId)
+    })
+
+    test('@ready cleanup-dsar-requests prunes fulfilled and expired items', async ({ request }) => {
+
+      const now = Date.now()
+      const fulfilledId = await seedDsarRequest({
+        fulfilledAt: new Date(now - 31 * dayInMs),
+        createdAt: new Date(now - 31 * dayInMs),
+      })
+      const expiredPendingId = await seedDsarRequest({
+        fulfilledAt: null,
+        createdAt: new Date(now - 8 * dayInMs),
+      })
+
+      const response = await request.get('/api/cron/cleanup-dsar-requests', {
+        headers: {
+          authorization: cronAuthHeader,
+        },
+      })
+
+      const status = response.status()
+      const rawBody = await response.text()
+      expect(response.ok(), `Cron request failed: ${status} ${rawBody}`).toBeTruthy()
+
+      const body = JSON.parse(rawBody) as {
+        deleted: { fulfilled: number; expired: number; total: number }
+      }
+
+      expect(body.deleted.fulfilled).toBeGreaterThanOrEqual(1)
+      expect(body.deleted.expired).toBeGreaterThanOrEqual(1)
+
+      await expectDsarMissing(fulfilledId)
+      await expectDsarMissing(expiredPendingId)
+    })
   }
-
-  test.afterEach(async () => {
-    await cleanupConfirmations()
-    await cleanupDsarRequests()
-  })
-
-  test('@ready cleanup-confirmations removes expired and stale rows', async ({ request }) => {
-    const now = Date.now()
-    const expiredId = await seedNewsletterConfirmation({
-      expiresAt: new Date(now - 60 * 60 * 1000),
-    })
-    const staleId = await seedNewsletterConfirmation({
-      expiresAt: new Date(now + dayInMs),
-      confirmedAt: new Date(now - 8 * dayInMs),
-      createdAt: new Date(now - 8 * dayInMs),
-    })
-
-    const response = await request.get('/api/cron/cleanup-confirmations', {
-      headers: {
-        authorization: cronAuthHeader!,
-      },
-    })
-
-    const status = response.status()
-    const rawBody = await response.text()
-    expect(response.ok(), `Cron request failed: ${status} ${rawBody}`).toBeTruthy()
-
-    const body = JSON.parse(rawBody) as {
-      deleted: { expired: number; oldConfirmed: number; total: number }
-    }
-
-    expect(body.deleted.expired).toBeGreaterThanOrEqual(1)
-    expect(body.deleted.oldConfirmed).toBeGreaterThanOrEqual(1)
-
-    await expectNewsletterMissing(expiredId)
-    await expectNewsletterMissing(staleId)
-  })
-
-  test('@ready cleanup-dsar-requests prunes fulfilled and expired items', async ({ request }) => {
-    const now = Date.now()
-    const fulfilledId = await seedDsarRequest({
-      fulfilledAt: new Date(now - 31 * dayInMs),
-      createdAt: new Date(now - 31 * dayInMs),
-    })
-    const expiredPendingId = await seedDsarRequest({
-      fulfilledAt: null,
-      createdAt: new Date(now - 8 * dayInMs),
-    })
-
-    const response = await request.get('/api/cron/cleanup-dsar-requests', {
-      headers: {
-        authorization: cronAuthHeader!,
-      },
-    })
-
-    const status = response.status()
-    const rawBody = await response.text()
-    expect(response.ok(), `Cron request failed: ${status} ${rawBody}`).toBeTruthy()
-
-    const body = JSON.parse(rawBody) as {
-      deleted: { fulfilled: number; expired: number; total: number }
-    }
-
-    expect(body.deleted.fulfilled).toBeGreaterThanOrEqual(1)
-    expect(body.deleted.expired).toBeGreaterThanOrEqual(1)
-
-    await expectDsarMissing(fulfilledId)
-    await expectDsarMissing(expiredPendingId)
-  })
 
 })

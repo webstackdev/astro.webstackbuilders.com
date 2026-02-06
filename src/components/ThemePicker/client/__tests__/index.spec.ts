@@ -201,7 +201,7 @@ describe('ThemePicker Component', () => {
     it('should have Tailwind utility classes on modal', async () => {
       await renderThemePickerDom(({ element }) => {
         const modal = getThemeModal(element)
-        expect(modal.classList.contains('bg-bg-offset')).toBe(true)
+        expect(modal.classList.contains('bg-page-base-offset')).toBe(true)
         expect(modal.classList.contains('block')).toBe(true)
         expect(modal.classList.contains('overflow-hidden')).toBe(true)
         expect(modal.classList.contains('relative')).toBe(true)
@@ -292,11 +292,11 @@ describe('ThemePicker Component', () => {
 
         const hues = Array.from(firstItem.querySelectorAll('.themepicker__hue')) as HTMLElement[]
         const expectedClasses = [
-          'bg-primary',
           'bg-secondary',
-          'bg-border',
-          'bg-text-offset',
-          'bg-text',
+          'bg-spotlight',
+          'bg-content-inverse',
+          'bg-content-offset',
+          'bg-content',
         ]
 
         expectedClasses.forEach((className, index) => {
@@ -322,8 +322,7 @@ describe('ThemePicker Component', () => {
     it('should have proper styling classes on close button', async () => {
       await renderThemePickerDom(({ element }) => {
         const closeBtn = getThemeCloseButton(element)
-        expect(closeBtn.classList.contains('bg-secondary')).toBe(true)
-        expect(closeBtn.classList.contains('text-text')).toBe(true)
+        expect(closeBtn.classList.contains('bg-spotlight')).toBe(true)
         expect(closeBtn.classList.contains('absolute')).toBe(true)
       })
     })

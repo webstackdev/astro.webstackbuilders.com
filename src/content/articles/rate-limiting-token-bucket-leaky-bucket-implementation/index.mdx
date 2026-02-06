@@ -1,0 +1,118 @@
+---
+title: "Rate Limiting Done Right: Protecting Users From Yourself"
+description: "Why your rate limiter might be your biggest outage risk—and how to fix it with the right algorithms and architecture."
+cover: "./cover.jpg"
+coverAlt: "Sliding window visualization showing window frame moving across timeline counting request dots, comparing fixed versus sliding window boundaries"
+author: "kevin-brown"
+publishDate: 2026-01-18
+tags: ["apis-and-gateways"]
+featured: true
+---
+
+*[DDoS]: Distributed Denial of Service
+*[RPS]: Requests Per Second
+
+Rate limiting is a double-edged sword. Done right, it protects your systems from overload and abuse. Done wrong, it becomes a self-inflicted outage—your own infrastructure rejecting legitimate users during the moments you need capacity most.
+
+I watched this play out at a company that implemented per-IP rate limiting at 100 requests per minute to prevent scraping. Seemed reasonable. Then a customer behind corporate NAT reported they couldn't use the service. Five hundred employees sharing one public IP meant each person got 0.2 requests per minute. They switched to API key-based limiting with per-key quotas. Problem solved—until a viral moment hit and legitimate traffic spiked 10x. Their fixed-window rate limiting rejected 90% of requests at minute boundaries. Users hammering refresh made it worse.
+
+The fix? They combined _sliding window counter_ (to eliminate the boundary problem) with _token bucket_ for burst control. Same traffic spike: requests distributed smoothly, everyone got served, the backend hummed along at capacity without falling over.
+
+The naive approach—"block anything over N requests"—fails because it treats rate limiting as a wall instead of a valve. The algorithms matter, but _where_ you limit and _how_ you identify clients matter more.
+
+## Where to Rate Limit
+
+Most rate limiting articles jump straight to algorithms. But the strategic question—where in your stack to enforce limits—often matters more than which algorithm you choose.
+
+| Layer | Tools | Granularity | Best For |
+| ------- | ------- | ------------- | ---------- |
+| Edge/CDN | Cloudflare, CloudFront, Fastly | IP, geography | DDoS, bot protection |
+| API Gateway | AWS API Gateway, Kong, nginx | API key, route | API quotas, tiered plans |
+| Service Mesh | Istio, Envoy, Linkerd | Service identity | Service-to-service limits |
+| Application | Custom middleware | User, action, context | Fine-grained business logic |
+
+Table: Rate limiting layers comparison.
+
+_Edge rate limiting_ stops bad traffic before it reaches your infrastructure. Cloudflare, Amazon CloudFront, and similar CDNs can reject requests milliseconds from the client, before your servers even see them. But edge limiting is coarse-grained—typically by IP or region. It's your first line of defense against volumetric attacks, not your primary quota enforcement.
+
+_API gateway limiting_ is where most teams should implement their primary rate limits. AWS API Gateway, Kong, and nginx all support token bucket or similar algorithms out of the box. Gateway-level limiting handles per-API-key quotas, tiered rate limits, and route-specific throttling without touching application code.
+
+_Application-level limiting_ gives you the finest control—you can limit by user, by action, by context, or any combination. But it comes with complexity: you're responsible for state management (usually Redis), failure handling, and the actual algorithm implementation. Use it when gateway-level limits aren't granular enough: per-user action limits, variable-cost operations, or business-logic-driven throttling.
+
+<Callout type="warning">
+Don't implement rate limiting _only_ at the application layer. By the time requests reach your app, they've already consumed network bandwidth, TLS handshakes, and load balancer capacity. Use defense in depth: coarse limits at the edge, refined limits at the gateway, fine-grained limits in the app.
+</Callout>
+
+## Token Bucket: The Algorithm You Need to Know
+
+Token bucket is the workhorse of API rate limiting. Most production rate limiters—including the gateway tools mentioned above—use it because it elegantly handles the tension between burst tolerance and sustained rate enforcement.
+
+The mental model: imagine a bucket that holds N tokens (your burst capacity). Tokens are added at rate R (your sustained RPS). Each request consumes a token if available; otherwise it's rejected. This naturally allows bursts—a client can use their full bucket immediately—while maintaining a sustained rate over time.
+
+```python
+# Token bucket pseudocode
+def check_request(bucket, cost):
+    elapsed = now() - bucket.last_update
+    bucket.tokens = min(bucket.tokens + elapsed * refill_rate, capacity)
+    bucket.last_update = now()
+
+    if bucket.tokens >= cost:
+        bucket.tokens -= cost
+        return "ALLOW"
+    else:
+        retry_after = (cost - bucket.tokens) / refill_rate
+        return ("REJECT", retry_after)
+```
+
+Code: Token bucket core logic.
+
+Here's how traffic patterns play out with a 10-token bucket refilling at 1 token per second:
+
+| Traffic Pattern | What Happens |
+| ----------------- | -------------- |
+| Steady 1 RPS | Every request allowed—token regenerates before next |
+| Burst of 10 | All 10 served instantly, then 1 RPS until refilled |
+| Sustained 2 RPS | 10 initial + 5 refilled over 10s = 15 of 20 allowed; then 50% rejected |
+| Variable cost (GET=1, POST=5) | Heavy operations consume quota faster |
+
+Table: Token bucket behavior under different traffic patterns.
+
+The key insight: token bucket allows bursts (good for user experience) while maintaining a sustained rate that protects your backend. Compare this to _leaky bucket_, which queues requests up to capacity and serves them at a constant rate—rejecting new arrivals when the queue is full. Leaky bucket produces perfectly smooth output but adds latency as requests wait in the queue. Use it when you need constant output rate to a downstream service that can't handle any bursts, like a payment processor with strict per-second limits.
+
+For distributed systems, you need atomic operations. The standard pattern is a Redis Lua script that reads state, calculates refill, checks tokens, and updates—all in one atomic operation. Without atomicity, concurrent requests can race past your limits.
+
+## The Client Identification Trap
+
+The rate limiting key—how you identify who's making requests—is as important as the algorithm. Choose wrong, and you'll either punish legitimate users or fail to stop abuse.
+
+_IP address_ seems obvious but has a fatal flaw: corporate NAT. Hundreds of employees behind a single public IP will exhaust per-IP quotas almost instantly. IP-based limiting works for anonymous endpoints and anti-bot protection, but it punishes shared networks.
+
+<Callout type="warning">
+Header spoofing is trivial: `curl -H "X-Forwarded-For: 1.2.3.4" your-api.com`. If your rate limiter trusts that header without validation, attackers can rotate through fake IPs indefinitely. Always validate that requests actually came through your proxy before trusting forwarded headers.
+</Callout>
+
+_API key_ is the standard for B2B APIs. Per-customer limits, usage tracking, revocation—all straightforward. The risk: customers distributing keys to multiple applications, or keys getting stolen and abused.
+
+_User ID_ gives you true per-user limits that work across IPs and devices. The tradeoff is authentication overhead and the fact that it doesn't help with anonymous endpoints.
+
+_Composite keys_ (user + action, IP + endpoint) give you fine-grained control at the cost of complexity. Useful when different operations need different limits.
+
+Production systems often combine multiple strategies: global IP limits as a DDoS backstop, API key limits for quota enforcement, and user + action limits for abuse prevention. All must pass for a request to proceed.
+
+## Key Takeaways
+
+Rate limiting is a valve, not a wall. The best rate limiters are invisible to normal users—they only activate during abuse or overload.
+
+Three takeaways:
+
+- _Layer appropriately_: Edge for DDoS, gateway for API quotas, application for business logic
+- _Use token bucket for APIs_: It allows bursts (good UX) while enforcing sustained rates (protects backend)
+- _Identify clients carefully_: IP addresses lie, corporate NAT punishes legitimate users, and composite keys add complexity
+
+The goal isn't to reject requests—it's to shape traffic so rejection becomes rare. Design for legitimate bursts, communicate limits clearly through response headers, and monitor rejection rates. Rate limiting done right protects your service without punishing your users.
+
+---
+
+__CTA Heading:__ Get the Complete Implementation Guide
+
+__CTA Body:__ This article covers the strategic decisions—where to rate limit and which algorithm to choose. The complete guide goes deeper: full TypeScript implementations of token bucket, leaky bucket, and sliding window algorithms with Redis support. You'll also get HTTP response design patterns (the right headers and status codes), testing strategies for concurrent load, and failure handling policies for when Redis goes down. Everything you need to implement production-ready rate limiting.

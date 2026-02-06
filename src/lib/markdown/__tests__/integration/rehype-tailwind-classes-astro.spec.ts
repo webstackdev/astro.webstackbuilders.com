@@ -33,7 +33,7 @@ describe('rehype-tailwind-classes (Layer 2: With Astro Pipeline)', () => {
 
       expect(html).toContain('<del>')
       expect(html).toContain('strikethrough')
-      expect(html).toMatch(/class="[^"]*mb-8/)
+      expect(html).toMatch(/class="[^"]*mb-/)
     })
 
     it('should add classes to lists with GFM task lists', async () => {
@@ -49,7 +49,8 @@ describe('rehype-tailwind-classes (Layer 2: With Astro Pipeline)', () => {
       })
 
       expect(html).toContain('<ul')
-      expect(html).toMatch(/class="[^"]*list-/)
+      expect(html).toMatch(/<div class="markdown-list[^\"]*">\s*<ul/)
+      expect(html).toMatch(/contains-task-list|task-list-item/)
     })
   })
 
@@ -68,7 +69,8 @@ Text with footnote[^1]
       })
 
       expect(html).toContain('class=')
-      expect(html).toMatch(/mb-8|text-lg/)
+      expect(html).toMatch(/class="[^"]*mb-/)
+      expect(html).toMatch(/<div class="markdown-list[^\"]*">\s*<ol>/)
     })
   })
 

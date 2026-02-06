@@ -2,7 +2,7 @@ import type { ContactFormConfig, ContactFormElements } from './@types'
 
 const WARNING_COLOR = 'var(--color-warning)'
 const ERROR_COLOR = 'var(--color-danger)'
-const DEFAULT_COLOR = 'var(--color-text-offset)'
+const DEFAULT_COLOR = 'var(--color-content-active)'
 
 export const initCharacterCounter = (
   elements: ContactFormElements,

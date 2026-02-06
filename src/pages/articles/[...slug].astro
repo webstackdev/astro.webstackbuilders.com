@@ -2,6 +2,7 @@
 import { type CollectionEntry, getCollection, getEntry } from 'astro:content'
 import { Picture } from 'astro:assets'
 import { isDev } from '@lib/config/environmentServer'
+import { getReadingTimeLabel } from '@lib/markdown/utils/readingTime'
 import MarkdownLayout from '@layouts/MarkdownLayout.astro'
 import Shares from '@components/Social/Shares/index.astro'
 import Carousel from '@components/Carousel/index.astro'
@@ -25,6 +26,9 @@ export async function getStaticPaths() {
 const { article } = Astro.props
 const author = await getEntry(article.data.author)
 
+const articleBody = article.body ?? ''
+const readingTime = article.data.readingTime ?? getReadingTimeLabel(articleBody)
+
 const path = `/articles/${article.id}`
 const section = `Articles`
 ---
@@ -34,26 +38,29 @@ const section = `Articles`
   collectionItem={article}
   contentType="article"
   description={article.data.description}
+  hideBreadcrumbsOnMobile={true}
   pageTitle={article.data.title}
   path={path}
   publishDate={article.data.publishDate}
+  {...article.data.modifiedDate && { modifiedDate: article.data.modifiedDate }}
   section={section}
   showToc={article.data.showToc ?? true}
-  tags={article.data.tags}
-  {...article.data.readingTime && { readingTime: article.data.readingTime }}
+  tags={article.data.tags?.map(t => (typeof t === 'string' ? t : t.id)) ?? []}
+  {...readingTime && { readingTime }}
 >
   {/** SLOT: hero-image */}
   {
     article.data.cover && (
       <div
-        class="relative aspect-video max-w-3xl mx-auto rounded-2xl overflow-hidden shadow-lg mb-8"
+        class="relative w-full overflow-hidden mb-8"
+        style="aspect-ratio: 1564 / 670;"
         slot="hero-image"
       >
         <Picture
           src={article.data.cover}
           alt={article.data.coverAlt}
-          widths={[320, 640, 960, 1280]}
-          sizes="(min-width: 1024px) 66vw, 100vw"
+          widths={[480, 768, 1024, 1280, 1564]}
+          sizes="100vw"
           formats={['avif', 'webp', 'jpeg']}
           layout="constrained"
           fit="cover"
@@ -66,16 +73,16 @@ const section = `Articles`
 
   {/** SLOT: after-content */}
   <section
-    class="border-t border-border pt-8 mt-12"
+    class="border-t border-trim pt-8 mt-12"
     aria-labelledby="article-share-title"
     slot="after-content"
   >
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
       <div>
-        <h2 class="text-lg font-semibold text-text mb-2" id="article-share-title">
+        <h2 class="text-lg font-semibold mb-2" id="article-share-title">
           Share this article
         </h2>
-        <p class="text-text-offset text-sm">
+        <p class="text-content-active text-sm">
           Found this helpful? Share it with others who might benefit.
         </p>
       </div>
@@ -91,12 +98,12 @@ const section = `Articles`
 
   {/** SLOT: related-content */}
   <section
-    class="border-t border-border pt-8 mt-12"
+    class="border-t border-trim pt-8 mt-12"
     aria-labelledby="article-related-title"
     slot="related-content"
   >
     <header class="mb-8">
-      <h2 class="text-2xl font-bold text-text" id="article-related-title">
+      <h2 class="text-2xl font-bold" id="article-related-title">
         Other things I've written
       </h2>
     </header>

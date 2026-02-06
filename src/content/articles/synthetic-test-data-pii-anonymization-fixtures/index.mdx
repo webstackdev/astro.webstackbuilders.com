@@ -1,0 +1,175 @@
+---
+title: "Test Data Without PII Leaks"
+description: "Generate realistic test fixtures without copying production data or risking compliance violations."
+cover: "./cover.jpg"
+coverAlt: "Data points transforming as they pass through anonymization barrier, changing color and shape to represent data anonymization process"
+author: "kevin-brown"
+publishDate: 2024-12-14
+tags: ["reliability-and-testing"]
+featured: true
+---
+
+*[GDPR]: General Data Protection Regulation
+*[PII]: Personally Identifiable Information
+
+Three weeks into a new engagement, I found 47,000 real customer records in the staging database. Names, emails, phone numbers, addresses—everything. The dev team's rationale was familiar: "We needed realistic data for testing." When I asked about their data retention policy for non-production environments, the room went quiet.
+
+That staging database had been copied from production eighteen months ago and never refreshed. It had survived three contractor rotations, two security group misconfigurations, and one laptop theft. Nobody knew where copies of it lived.
+
+This is the production data trap. Copying real data feels like the path of least resistance, but it creates legal liability that compounds silently until an auditor or attacker finds it. GDPR fines can reach €20 million or 4% of global revenue. HIPAA penalties can exceed $50,000 per violation. And beyond fines, there's the breach notification process: legal fees, customer communication, credit monitoring services, and the reputational damage that follows.
+
+The escape route is synthetic data—but it's harder than the blog posts make it look.
+
+## The Schema Relationship Problem
+
+Most tutorials show you how to create a fake user: `fake.name()`, `fake.email()`, done. But real databases don't have isolated tables. They have foreign keys, check constraints, and business rules that span entities. Generate data that violates those relationships and your tests fail for reasons that have nothing to do with what you're testing.
+
+Consider an e-commerce schema where orders reference customers, order items reference both orders and products, and payments reference orders. You can't insert an order without a valid customer. You can't insert a payment without a valid order. The generation order matters.
+
+The solution is to extract this dependency graph from your database and generate data in topological order—parents before children:
+
+```python title="schema_discovery.py"
+# Extract foreign key relationships from PostgreSQL
+def get_foreign_keys(conn) -> dict[str, list[str]]:
+    """Returns {child_table: [parent_tables]} mapping."""
+    query = """
+        SELECT tc.table_name AS child,
+               ccu.table_name AS parent
+        FROM information_schema.table_constraints tc
+        JOIN information_schema.constraint_column_usage ccu
+          ON tc.constraint_name = ccu.constraint_name
+        WHERE tc.constraint_type = 'FOREIGN KEY'
+    """
+    rows = conn.execute(query).fetchall()
+    deps = {}
+    for child, parent in rows:
+        deps.setdefault(child, []).append(parent)
+    return deps
+```
+
+Code: Extracting foreign key dependencies from PostgreSQL
+
+This query returns a dictionary mapping each child table to its parent dependencies. For the e-commerce schema, you'd get something like `{"orders": ["customers"], "order_items": ["orders", "products"], "payments": ["orders"]}`.
+
+Once you have the dependency graph, a topological sort gives you the safe generation order. Topological sorting arranges nodes so that every parent appears before its children—exactly what we need for insert ordering. For the e-commerce example, the sort might produce: `["customers", "products", "orders", "order_items", "payments"]`. Generate data in that sequence, and foreign key constraints never complain.
+
+```python title="generation_order.py"
+from graphlib import TopologicalSorter
+
+def get_generation_order(deps: dict[str, list[str]]) -> list[str]:
+    """Return tables in dependency-safe insertion order."""
+    ts = TopologicalSorter(deps)
+    return list(ts.static_order())
+
+# With the e-commerce schema:
+# get_generation_order(deps) -> ["customers", "products", "orders", ...]
+```
+
+Code: Python's graphlib handles topological sorting
+
+With the generation order in hand, iterate through tables and generate rows. For each child table, randomly select valid parent IDs from the rows you've already inserted. This approach scales to schemas with dozens of tables and complex constraint chains. The database already knows its own structure—you just need to ask it.
+
+## Deterministic Anonymization
+
+Synthetic generation is the right choice for most test scenarios: unit tests, integration tests, and new feature development. But sometimes you genuinely need production data patterns. You're debugging a bug that only manifests with certain data distributions, reproducing a customer-reported issue, or running analytics tests that need realistic statistical properties. In these cases, synthetic generation won't cut it.
+
+The answer is deterministic anonymization: transform real values into fake ones using a hash-based seed. The same input always produces the same output, so relationships survive the transformation. Customer #12345 becomes "Jennifer Martinez" in every table, every time. Foreign keys still work because the IDs don't change—only the PII fields do.
+
+```python title="deterministic_anonymizer.py"
+from faker import Faker
+import hashlib
+
+class DeterministicAnonymizer:
+    """Anonymize PII with consistent, reproducible fake values."""
+
+    def __init__(self, salt: str):
+        self.salt = salt
+
+    def _seeded_faker(self, value: str) -> Faker:
+        """Create a Faker instance seeded by the input value."""
+        hash_input = f"{self.salt}:{value}".encode()
+        seed = int(hashlib.sha256(hash_input).hexdigest()[:8], 16)
+        return Faker()._set_seed(seed)
+
+    def anonymize_email(self, real_email: str) -> str:
+        fake = self._seeded_faker(real_email)
+        return fake.email()
+
+    def anonymize_name(self, real_name: str) -> str:
+        fake = self._seeded_faker(real_name)
+        return fake.name()
+```
+
+Code: Hash-seeded Faker produces consistent fake values
+
+The salt parameter is critical. It ensures that even if someone knows your anonymization technique, they can't reverse-engineer the mapping without the salt. Store it separately from the anonymized data—ideally in a secrets manager that test environments can't access.
+
+:::info
+For fields like SSNs, credit card numbers, and other regulatory-sensitive identifiers, don't anonymize—generate fresh fake values. This includes HIPAA-protected health identifiers (medical record numbers, health plan IDs), financial account numbers, and passport or driver's license numbers. These identifiers are too sensitive for any transformation that preserves a deterministic link to the original. Use Faker's `ssn()` and `credit_card_number()` methods to create syntactically valid but completely fictional values.
+:::
+
+You can also push anonymization into the database itself using PostgreSQL immutable functions, creating anonymized views that never expose raw PII to application code. The deep-dive PDF walks through this approach in detail.
+
+## Automated Compliance Scanning
+
+Even with proper generation and anonymization pipelines, PII sneaks in. A developer hardcodes a test email that happens to be real. An error message logs a customer name. A debug statement dumps a request body. You need automated scanning to catch what process misses.
+
+Build scanning into your CI pipeline so it runs on every commit:
+
+```python title="pii_scanner.py"
+import re
+
+PII_PATTERNS = {
+    "email": re.compile(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z]{2,}"),
+    "ssn": re.compile(r"\b\d{3}-\d{2}-\d{4}\b"),
+    "phone": re.compile(r"\b\d{3}[-.]?\d{3}[-.]?\d{4}\b"),
+}
+
+def scan_for_pii(content: str) -> list[dict]:
+    """Scan content for potential PII patterns."""
+    findings = []
+    for pii_type, pattern in PII_PATTERNS.items():
+        for match in pattern.finditer(content):
+            findings.append({
+                "type": pii_type,
+                "value": match.group()[:20] + "...",  # Truncate for safety
+                "position": match.start()
+            })
+    return findings
+```
+
+Code: Basic PII pattern scanner for CI integration
+
+For credit cards specifically, regex alone produces too many false positives—any 16-digit number matches. Add Luhn validation to distinguish real card numbers from random digits:
+
+```python title="luhn_check.py"
+def is_valid_card(number: str) -> bool:
+    """Luhn algorithm validates credit card checksums."""
+    digits = [int(d) for d in number if d.isdigit()]
+    checksum = 0
+    for i, d in enumerate(reversed(digits)):
+        if i % 2 == 1:
+            d *= 2
+            if d > 9:
+                d -= 9
+        checksum += d
+    return checksum % 10 == 0
+```
+
+Code: Luhn validation distinguishes real card numbers from random digits
+
+The scanner won't catch everything—you'll need allowlists for legitimate test fixtures. For example, `test@example.com` is a valid email pattern but not real PII. Maintain an allowlist of known-safe values and exclude them from findings. You'll also need domain-specific patterns for your business data that regex can't detect.
+
+Run scans in multiple places: CI pipelines on every commit, scheduled jobs against database dumps, and log aggregation pipelines before data reaches third-party services. Flag findings as CI failures so they block deployment. The goal isn't perfect detection; it's making PII leaks harder than doing it right.
+
+## Getting It Right
+
+Escaping the production data trap requires three capabilities: synthetic generation that respects schema relationships, deterministic anonymization for when you need production patterns, and automated scanning to catch what slips through.
+
+The upfront investment pays off quickly. You stop worrying about which environments have real data. Compliance audits become routine instead of panic-inducing. New developers can work with test data on day one without signing additional agreements.
+
+Here's how to start: pick a leaf table in your schema—one that nothing else depends on, like `audit_logs` or `email_templates`. Write a generator for it using Faker, create one test that uses the generated data, and verify it works. Then pick a table that references your leaf table and repeat. Work backward through the dependency graph until you've covered the tables that actually contain PII. You don't need to convert everything at once. Every table you move to synthetic data is one less liability waiting to surface.
+
+---
+
+Want the complete implementation? The deep-dive PDF covers the full fixture management system including factory patterns, database-level anonymization functions, k-anonymity techniques, and audit logging for compliance documentation. Download it to get production-ready code you can adapt to your schema.

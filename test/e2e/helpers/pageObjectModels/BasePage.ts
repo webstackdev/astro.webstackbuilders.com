@@ -115,9 +115,6 @@ export class BasePage extends BuiltInsPage {
   protected static async setupPlaywrightGlobals(page: Page): Promise<void> {
     await page.addInitScript(() => {
       window.isPlaywrightControlled = true
-      if (typeof window.__disableServiceWorkerForE2E === 'undefined') {
-        window.__disableServiceWorkerForE2E = true
-      }
 
       // Establish a deterministic consent baseline before any app scripts run.
       // GDPR form consent uses the `functional` consent store.
@@ -661,11 +658,27 @@ export class BasePage extends BuiltInsPage {
   /**
    * Returns up to (currently) 200 last uncaught exceptions from this page
    */
-  async expectNoErrors(): Promise<Array<Error>> {
+  async getFilteredPageErrors(): Promise<Array<Error>> {
     await this.waitForPageComplete()
     const errors = await this._page.pageErrors()
-    const filteredErrors = errors.filter((error) => !this.isIgnorablePageError(error))
-    expect(filteredErrors).toHaveLength(0)
+    return errors.filter((error) => !this.isIgnorablePageError(error))
+  }
+
+  async expectNoErrors(): Promise<Array<Error>> {
+    const filteredErrors = await this.getFilteredPageErrors()
+
+    const formattedErrors = filteredErrors
+      .map((error, index) => {
+        const header = `[${index + 1}] ${error.name}: ${error.message}`
+        const stack = error.stack ? `\n${error.stack}` : ''
+        return `${header}${stack}`
+      })
+      .join('\n\n')
+
+    expect(
+      filteredErrors,
+      formattedErrors.length > 0 ? `Unexpected page errors:\n\n${formattedErrors}` : undefined
+    ).toHaveLength(0)
     return filteredErrors
   }
 

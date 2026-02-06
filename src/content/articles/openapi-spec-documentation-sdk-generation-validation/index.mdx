@@ -1,0 +1,139 @@
+---
+title: "Your OpenAPI Spec Should Drive Your Code, Not Document It"
+description: "Most teams generate specs from existing code and call it documentation. The real value emerges when the spec becomes the source of truth that drives validation and catches drift before production."
+cover: "./cover.jpg"
+coverAlt: "Central glowing OpenAPI spec document with streams flowing to documentation pages, SDK code in multiple languages, and validation shields"
+author: "kevin-brown"
+publishDate: 2023-12-03
+tags: ["apis-and-gateways"]
+featured: true
+---
+
+*[SDK]: Software Development Kit
+
+Most teams I work with treat OpenAPI specs as _output_—something you generate from existing code and call "documentation." That's archaeology, not specification. Meanwhile, their hand-written docs in Confluence are perpetually out of date, their manually coded SDKs break when the API changes, and validation logic differs between the gateway and the backend.
+
+The real value of OpenAPI emerges when you flip the relationship. The spec becomes the source of truth that drives your code, not the other way around. When the spec drives everything—validation middleware, CI checks, generated clients—consistency becomes automatic. The spec can't disagree with your validation because your validation _reads_ the spec. Documentation can't drift because it's generated from the same source.
+
+That's the theory. Here's how it works in practice, starting with the two areas that pay off immediately: request validation and CI automation.
+
+## Request Validation: Where the Spec Earns Its Keep
+
+Validation is where OpenAPI specs prove their worth. Instead of writing validation logic by hand—checking types, verifying formats, ensuring required fields exist—you derive it directly from the spec. The same schema that defines your API contract also enforces it at runtime.
+
+The key is understanding what schema validation actually does. It handles _structural_ correctness: rejecting requests where `quantity` is a string instead of an integer, where `email` doesn't match email format, where required fields are missing. It won't reject a request where `customerId` is a valid UUID that doesn't exist in your database. That's business validation, and you still need it.
+
+In Node.js/Express, `express-openapi-validator` is the standard choice. Point it at your spec file, and it automatically validates request bodies, query parameters, path parameters, and headers against your schemas:
+
+```typescript title="express-validation.ts"
+// Express.js with OpenAPI request validation
+import express from 'express';
+import * as OpenApiValidator from 'express-openapi-validator';
+
+const app = express();
+app.use(express.json());
+
+// Validates all requests against your OpenAPI spec
+app.use(
+  OpenApiValidator.middleware({
+    apiSpec: './openapi.yaml',
+    validateRequests: true,
+    validateResponses: true,  // Catches drift in development
+  })
+);
+
+// Route handlers only receive validated requests
+app.post('/orders', async (req, res) => {
+  // req.body already validated against CreateOrderRequest schema
+  // Invalid requests never reach this handler
+  const order = await createOrder(req.body);
+  res.status(201).json(order);
+});
+```
+Code: Express middleware that validates requests against your OpenAPI spec.
+
+The `validateResponses: true` option deserves attention. Enable it in development and staging—it catches cases where your implementation returns data that doesn't match your spec. That's an early warning that spec and code have drifted apart. You might disable it in production for performance, but keeping it on during development catches bugs before you ship.
+
+Other frameworks have equivalent solutions. If you're in Python, FastAPI handles this automatically—your Pydantic type hints _are_ your validation schema, and FastAPI generates an OpenAPI spec from them. You get validation and documentation from the same source without any additional configuration. Rails has `committee` (Rack middleware that validates against a spec file), Laravel has `spectator`, Go has `kin-openapi` for Echo, Chi, and Gin. The pattern is the same across all of them: point middleware at your spec, let it reject malformed requests before they hit your business logic.
+
+| Framework | Library | Approach |
+| --------- | ------- | -------- |
+| Express/Node | `express-openapi-validator` | Middleware validates against spec file |
+| FastAPI/Python | Built-in with Pydantic | Type hints become validation schema |
+| Rails | `committee` | Rack middleware validates against spec |
+| Go | `kin-openapi` | Middleware for Echo, Chi, Gin |
+
+Table: OpenAPI validation libraries across frameworks.
+
+One detail that's easy to overlook: raw validation errors are developer-friendly but user-hostile. You'll get JSON Pointer paths like `/body/items/0/quantity` and messages like `must be >= 1`. Transform these into something API consumers can actually use—`/body/items/0/quantity` becomes `items[0].quantity must be at least 1`. Your error handler becomes the translation layer between spec-level validation and user-facing errors.
+
+<Callout type="warning">
+Don't confuse schema validation with authorization or business rules. A structurally valid request isn't an authorized request. Always layer permission checks and business validation on top of schema validation.
+</Callout>
+
+## CI/CD: Making It Sustainable
+
+Everything I've described becomes reliable only when it's automated. If generating docs requires someone to remember to run a command, docs will fall out of date. If validation isn't enforced in CI, someone will bypass it "just this once." Automation is what turns OpenAPI from "nice to have" into "always accurate."
+
+A solid OpenAPI pipeline has three stages: lint the spec for quality issues, check for breaking changes against the main branch, and run contract tests that verify your implementation matches the spec.
+
+Spectral handles the linting stage. The built-in ruleset catches structural issues—invalid syntax, missing required fields, unreferenced schemas. Add custom rules to enforce your organization's conventions like requiring descriptions on all operations or enforcing kebab-case paths.
+
+The `breaking-changes` check is where things get interesting. Run it only on pull requests, comparing the PR's spec against the base branch. Removed endpoints, new required fields, type changes—these all surface during code review, not after deployment. When breaking changes are intentional (major version bumps), you can override the check. But at least it's a conscious decision visible in the PR, not an accident discovered in production.
+
+Contract testing closes the loop. Dredd reads your spec, generates requests for each endpoint, hits your running server, and validates responses against the schema. Schemathesis takes a property-based approach, generating random valid inputs to find edge cases. I typically use Dredd in CI for fast feedback and Schemathesis periodically for deeper testing.
+
+Here's how these pieces fit together:
+
+```yaml title=".github/workflows/api.yml"
+name: API Pipeline
+on: [push, pull_request]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npx @stoplight/spectral-cli lint openapi.yaml
+
+  breaking-changes:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: |
+          git show origin/${{ github.base_ref }}:openapi.yaml > base.yaml
+          npx openapi-diff base.yaml openapi.yaml --fail-on-incompatible
+
+  contract-test:
+    runs-on: ubuntu-latest
+    needs: [lint]
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci && npm start &  # Start server in background
+      - run: sleep 10               # Wait for server to be ready
+      - run: npx dredd openapi.yaml http://localhost:3000
+```
+Code: GitHub Actions pipeline with linting, breaking change detection, and contract tests.
+
+<Callout type="success">
+The combination of Spectral (spec quality), openapi-diff (breaking change detection), and Dredd (contract verification) catches most API issues before production. If you only automate one thing, automate this.
+</Callout>
+
+## The Mindset Shift
+
+The difference between OpenAPI that delivers value and OpenAPI that becomes shelfware comes down to one question: is the spec the source of truth, or is it an artifact you generate and forget?
+
+When the spec drives validation, your middleware can't miss edge cases the spec covers. When the spec is checked in CI, breaking changes surface in pull requests. When contract tests verify implementation against spec, drift gets caught before deployment.
+
+The setup cost is real—choosing tools, configuring linters, wiring up pipelines. But that cost is paid once. The alternative—manually maintaining docs, hand-coding validation, discovering breaking changes in production—is paid continuously, and it compounds as your API grows.
+
+Treat your OpenAPI spec as infrastructure, not documentation. The spec isn't describing your API—it _is_ your API contract, and everything else flows from that.
+
+---
+
+__CTA Heading:__ Get the Complete OpenAPI Implementation Guide
+
+__CTA Body:__ This article covers validation and CI automation—the foundation for spec-driven development. The complete guide goes deeper: documentation generation with Redoc and Swagger UI, SDK generation with post-processing pipelines, schema composition patterns using allOf and oneOf with discriminators, and the full GitHub Actions pipeline with artifact generation. Get the comprehensive reference for making OpenAPI the source of truth across your entire API lifecycle.

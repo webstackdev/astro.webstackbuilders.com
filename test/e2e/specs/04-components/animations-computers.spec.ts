@@ -8,17 +8,25 @@ const selectors = {
   toggle: '[data-animation-toggle]',
 }
 
-const overlaySource = 'e2e-computers-animation'
+// Matches the source used by the Navigation component when opening/closing the mobile menu.
+const overlaySource = 'navigation'
 
 interface FixtureOptions {
   reducedMotion?: 'no-preference' | 'reduce'
+}
+
+const isMobileProject = (projectName: string): boolean => {
+  return projectName.startsWith('mobile-')
 }
 
 async function loadComputersFixture(playwrightPage: Page, options: FixtureOptions = {}): Promise<BasePage> {
   const page = await BasePage.init(playwrightPage)
   await page.page.emulateMedia({ reducedMotion: options.reducedMotion ?? 'no-preference' })
   await page.goto('/testing/animations-computers')
-  await page.waitForSelector(selectors.host)
+  // NOTE: The component is intentionally `hidden lg:flex` in production markup.
+  // On mobile projects it will remain hidden, so waiting for "visible" will hang.
+  await page.waitForSelector(selectors.host, { state: 'attached' })
+  await page.waitForSelector(selectors.toggle, { state: 'attached' })
   return page
 }
 
@@ -49,28 +57,61 @@ async function setOverlayPause(page: BasePage, isPaused: boolean): Promise<void>
 }
 
 test.describe('Computers Animation Component', () => {
-  test('plays by default when no pause sources exist', async ({ page: playwrightPage }) => {
+  test('plays by default when no pause sources exist', async ({ page: playwrightPage }, testInfo) => {
     const page = await loadComputersFixture(playwrightPage)
-
-    await waitForAnimationState(page, 'playing')
-
+    const host = page.locator(selectors.host)
     const toggle = page.locator(selectors.toggle)
+
+    if (isMobileProject(testInfo.project.name)) {
+      await expect(host).toBeHidden()
+      await waitForAnimationState(page, 'paused')
+      await expect(toggle).toHaveAttribute('aria-label', 'Play animation')
+      await expect(toggle).toHaveAttribute('aria-pressed', 'true')
+      return
+    }
+
+    await expect(host).toBeVisible()
+    await waitForAnimationState(page, 'playing')
     await expect(toggle).toHaveAttribute('aria-label', 'Pause animation')
     await expect(toggle).toHaveAttribute('aria-pressed', 'false')
   })
 
-  test('honors prefers-reduced-motion by starting paused', async ({ page: playwrightPage }) => {
+  test('honors prefers-reduced-motion by starting paused', async ({ page: playwrightPage }, testInfo) => {
     const page = await loadComputersFixture(playwrightPage, { reducedMotion: 'reduce' })
+    const host = page.locator(selectors.host)
 
     await waitForAnimationState(page, 'paused')
+
+    if (isMobileProject(testInfo.project.name)) {
+      await expect(host).toBeHidden()
+    } else {
+      await expect(host).toBeVisible()
+    }
 
     const toggleAttributes = await getToggleAttributes(page)
     expect(toggleAttributes.label).toBe('Play animation')
     expect(toggleAttributes.pressed).toBe('true')
   })
 
-  test('responds to overlay pause and resume actions from the animation store', async ({ page: playwrightPage }) => {
+  test(
+    'responds to overlay pause and resume actions from the animation store',
+    async ({ page: playwrightPage }, testInfo) => {
     const page = await loadComputersFixture(playwrightPage)
+    const host = page.locator(selectors.host)
+
+    // On mobile projects the component is intentionally `hidden lg:flex` and must not start.
+    // The lifecycle controller is irrelevant when the component is not shown.
+    if (isMobileProject(testInfo.project.name)) {
+      await expect(host).toBeHidden()
+      await waitForAnimationState(page, 'paused')
+
+      await setOverlayPause(page, true)
+      await waitForAnimationState(page, 'paused')
+
+      await setOverlayPause(page, false)
+      await waitForAnimationState(page, 'paused')
+      return
+    }
 
     await waitForAnimationState(page, 'playing')
 
@@ -87,5 +128,6 @@ test.describe('Computers Animation Component', () => {
     toggleAttributes = await getToggleAttributes(page)
     expect(toggleAttributes.label).toBe('Pause animation')
     expect(toggleAttributes.pressed).toBe('false')
-  })
+    }
+  )
 })

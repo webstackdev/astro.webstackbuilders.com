@@ -1,4 +1,6 @@
 ---
+import { ClientRouter } from 'astro:transitions'
+import { isProd } from '@lib/config/environmentServer'
 import Analytics from '@components/Analytics/index.astro'
 import Breadcrumbs from '@components/Breadcrumbs/index.astro'
 import Container from '@components/Layout/Container/index.astro'
@@ -12,7 +14,6 @@ import PwaTitleBar from '@components/Pwa/TitleBar/index.astro'
 import RegisterServiceWorker from '@components/Pwa/ServiceWorker/index.astro'
 import Skip from '@components/Layout/Skip/index.astro'
 import ThemePicker from '@components/ThemePicker/index.astro'
-import { ClientRouter } from 'astro:transitions'
 //import VtBotDebug from 'astro-vtbot/components/VtBotDebug.astro'
 //import Linter from 'astro-vtbot/components/Linter.astro'
 
@@ -23,6 +24,8 @@ export interface Props {
   author?: string
   /** Optional title override for the breadcrumbs UI */
   breadcrumbTitle?: string
+  /** Hide breadcrumbs on mobile viewports (sm and below) */
+  hideBreadcrumbsOnMobile?: boolean
   /** Enforce that child is passed to slot */
   children: unknown
   /** Optional metadata for articles */
@@ -53,6 +56,7 @@ const {
   breadcrumbTitle,
   contentType,
   description,
+  hideBreadcrumbsOnMobile = false,
   modifiedDate,
   noindex,
   pageTitle,
@@ -100,19 +104,22 @@ const {
       <Container id="main-content">
         <ThemePicker />
         <Header path={path} />
-        <Breadcrumbs path={path} pageTitle={breadcrumbTitle ?? pageTitle} />
+        <div class:list={[hideBreadcrumbsOnMobile ? 'hidden sm:block' : 'block']}>
+          <Breadcrumbs path={path} pageTitle={breadcrumbTitle ?? pageTitle} />
+        </div>
         {/* SLOT: default (unnamed) - Main page content */}
         <Content>
           <slot />
         </Content>
         <Footer />
       </Container>
-      {/** Vercel Analytics */}
-      <Analytics />
-      {/* Register the service worker via @vite-pwa/astro virtual module */}
-      <RegisterServiceWorker />
-      {/* Prefetch offline page during idle time for service worker */}
-      <PrefetchOfflinePage />
+      {isProd() && (
+        <>
+          <Analytics />
+          <RegisterServiceWorker />
+          <PrefetchOfflinePage />
+        </>
+      )}
     </body>
   </>
 </html>

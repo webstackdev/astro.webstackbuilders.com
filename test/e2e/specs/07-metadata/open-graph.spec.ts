@@ -38,7 +38,8 @@ test.describe('Open Graph Metadata', () => {
 
     // Navigate directly to the article page
     await page.goto(articleUrl!)
-    await page.waitForLoadState('networkidle')
+    // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
+    await page.waitForNetworkIdleBestEffort()
 
     const content = await page.getAttribute('meta[property="og:type"]', 'content')
     expect(content).toBe('article')
@@ -155,7 +156,8 @@ test.describe('Open Graph Metadata', () => {
 
     // Navigate directly to the article page
     await page.goto(articleUrl!)
-    await page.waitForLoadState('networkidle')
+    // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
+    await page.waitForNetworkIdleBestEffort()
 
     const publishedTimeCount = await page.countElements('meta[property="article:published_time"]')
     const authorCount = await page.countElements('meta[property="article:author"]')

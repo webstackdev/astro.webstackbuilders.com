@@ -1,0 +1,183 @@
+---
+title: "Why Your Helm Rollback Failed at 3 AM"
+description: "Learn why Helm releases drift from their desired state, how to detect drift before it causes incidents, and what to do when rollbacks fail unexpectedly."
+cover: "./cover.jpg"
+coverAlt: "Factory assembly line showing Helm charts progressing through quality control stations from lint to verify, with rejected releases diverted to repair"
+author: "kevin-brown"
+publishDate: 2023-03-05
+tags: ["cloud-platforms"]
+featured: true
+---
+
+It's 3 AM. Your pager goes off. A critical service is down, and you need to roll back to the previous version. You run `helm rollback myapp 42` with confidence - Helm keeps track of every release, so this should be straightforward. But instead of a clean rollback, you get cryptic errors about resources that don't match, conflicts with existing objects, and a rollback that makes things _worse_.
+
+I've been in this situation more times than I'd like to admit. What I learned is that the rollback wasn't the problem - the problem started days or weeks earlier when the cluster state quietly drifted away from what Helm thought it was managing.
+
+This article explains where that drift comes from, how to catch it before it becomes an incident, and what to do when you're staring at a failed release at 3 AM.
+
+## Where Drift Comes From
+
+To understand drift, you first need to understand how Helm tracks state. Unlike tools that store their state externally (like Terraform with its state files), Helm stores release information directly in your Kubernetes cluster as Secrets.
+
+When you run `helm install`, Helm creates a Secret in the release namespace containing the complete release manifest, chart metadata, and computed values. Each subsequent upgrade creates a new Secret with an incremented revision number. When you run `helm rollback`, Helm retrieves the manifest from a previous revision's Secret and applies it.
+
+Here's what one of these Secrets looks like:
+
+```yaml title="helm-release-secret.yaml"
+# Helm release state stored as a Kubernetes Secret
+apiVersion: v1
+kind: Secret
+metadata:
+  name: sh.helm.release.v1.myapp.v42
+  namespace: production
+  labels:
+    owner: helm
+    status: deployed
+type: helm.sh/release.v1
+data:
+  release: <base64-encoded-gzipped-release-data>
+```
+
+The problem is that Helm only knows about changes made _through Helm_. Any modification made directly to the cluster - whether through `kubectl`, another operator, or even a well-meaning colleague fixing something urgently - creates a gap between what Helm thinks exists and what actually exists.
+
+### Common Drift Patterns
+
+Drift doesn't usually happen through malice. It happens through the normal operations of running production systems:
+
+**Manual patches** are the most common source. Someone runs `kubectl edit deployment` to bump memory limits during a traffic spike, or patches a ConfigMap to fix a typo. The fix works, everyone forgets about it, and the next Helm upgrade either reverts the change or fails because of conflicts.
+
+**Partial failures** occur when Helm upgrades don't complete cleanly. A deployment might succeed while a service account creation fails. Helm records the release as failed, but some resources now exist in a state that doesn't match any revision.
+
+**Hook failures** are particularly tricky. Helm hooks run Jobs for tasks like database migrations. If a hook fails, Helm may mark the release as failed while leaving hook-created resources behind, creating orphaned objects that confuse future releases.
+
+**Three-way merge conflicts** happen when Helm's three-way strategic merge encounters resources that have been modified outside of Helm. Helm compares the previous manifest, the new manifest, and the live state - and when all three differ, the merge behavior can be unpredictable.
+
+## Catching Drift Before Incidents
+
+The best time to discover drift is during business hours, not during an incident. The `helm-diff` plugin is the essential tool here - it shows you exactly what would change before you run an upgrade.
+
+Install it and run it against your releases:
+
+```bash title="drift-check.sh"
+# Install the helm-diff plugin
+helm plugin install https://github.com/databus23/helm-diff
+
+# Compare current cluster state against what Helm would apply
+helm diff upgrade myapp ./chart -f values.yaml --namespace production
+```
+
+But checking manually doesn't scale. For production clusters, you want automated drift detection that runs on a schedule and alerts you when something has changed.
+
+Here's a Python script that checks all releases across namespaces and reports any drift:
+
+```python title="scheduled-drift-check.py"
+# Scheduled drift detector for Helm releases.
+import subprocess
+import json
+import sys
+from datetime import datetime
+
+def get_all_releases():
+    """Fetch all Helm releases across all namespaces."""
+    result = subprocess.run(
+        ["helm", "list", "--all-namespaces", "--output", "json"],
+        capture_output=True,
+        text=True,
+        check=True
+    )
+    return json.loads(result.stdout) if result.stdout.strip() else []
+
+def check_drift(release_name, namespace, chart_path, values_file=None):
+    """Run helm diff and return any detected changes."""
+    cmd = [
+        "helm", "diff", "upgrade", release_name, chart_path,
+        "--namespace", namespace,
+        "--suppress-secrets",
+        "--no-color"
+    ]
+    if values_file:
+        cmd.extend(["-f", values_file])
+
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    return result.stdout.strip() if result.returncode == 0 else None
+
+def main():
+    releases = get_all_releases()
+    drift_detected = []
+
+    for release in releases:
+        name = release["name"]
+        namespace = release["namespace"]
+        # In practice, map releases to their chart paths and values files
+        diff_output = check_drift(name, namespace, f"./charts/{name}")
+
+        if diff_output:
+            drift_detected.append({
+                "release": name,
+                "namespace": namespace,
+                "diff": diff_output
+            })
+
+    if drift_detected:
+        print(f"[{datetime.now().isoformat()}] Drift detected in {len(drift_detected)} release(s)")
+        for item in drift_detected:
+            print(f"\n--- {item['release']} ({item['namespace']}) ---")
+            print(item["diff"][:500])  # Truncate for brevity
+        sys.exit(1)
+
+    print(f"[{datetime.now().isoformat()}] No drift detected")
+    sys.exit(0)
+
+if __name__ == "__main__":
+    main()
+```
+
+Run this as a Kubernetes CronJob that executes hourly or daily. When it detects drift, you can send alerts to Slack, PagerDuty, or your monitoring system. Catching drift early gives you time to investigate and remediate during normal hours instead of discovering it during an incident.
+
+## When Things Go Wrong
+
+Despite your best efforts, sometimes you'll still face a failed release at 3 AM. When that happens, having a systematic diagnosis approach saves precious time.
+
+Start with the release history to understand what Helm thinks happened:
+
+```bash
+helm history myapp --namespace production
+```
+Code: Check Helm release history for diagnosis.
+
+This shows you the revision history, status of each release, and when failures occurred. Look for patterns - did the last successful release happen before a certain date? Are failures happening consistently?
+
+Once you understand the release timeline, compare what Helm expects against what actually exists in the cluster:
+
+```bash
+helm get manifest myapp --namespace production | kubectl diff -f -
+```
+Code: Compare Helm's expected state against live cluster.
+
+This command retrieves what Helm thinks it deployed and compares it against the live cluster state. Any differences here are your drift.
+
+### The Three Most Common Failure Patterns
+
+**Resource conflicts** happen when you see errors like "resource already exists" or "cannot patch resource." This usually means something created the resource outside of Helm, or a previous partial failure left orphaned resources. The fix is usually to either import the existing resource into Helm's management or delete it and let Helm recreate it.
+
+**Schema validation failures** occur when CRDs have been updated and your chart's resources no longer match the expected schema. Check if CRD versions have changed and update your chart accordingly.
+
+**Hook timeouts** are common with database migration hooks. The Job runs longer than Helm's timeout, Helm marks the release as failed, but the migration is still running. Check the Job's pod logs before taking any action - you might just need to wait.
+
+<Callout type="warning">
+Before deleting any resources to fix a failed release, always check if there are finalizers that might block deletion or trigger cascading deletes. Run `kubectl get <resource> -o yaml` and look for the `finalizers` field.
+</Callout>
+
+## Moving Forward
+
+Drift is inevitable in any cluster where humans and automation coexist. The goal isn't to eliminate it entirely but to detect it early and have clear remediation procedures when it causes problems.
+
+The key practices are straightforward: run `helm diff` before every upgrade (automate this in CI), schedule regular drift detection across your fleet, and when failures happen, follow a systematic diagnosis workflow instead of making changes blindly.
+
+For teams running dozens or hundreds of Helm releases, GitOps tools like Flux and Argo CD can enforce desired state continuously, but they come with their own complexity. The fundamentals of understanding Helm state and detecting drift remain essential regardless of what tooling you use.
+
+---
+
+CTA_TITLE: Get the Complete Helm Operations Guide
+
+CTA_BODY: This article covers the essentials of Helm drift detection and debugging. The full guide includes detailed sections on release inventory management with Prometheus metrics, upgrade strategies including atomic and canary deployments, a complete debugging flowchart for failed releases, and GitOps integration patterns with Flux and Argo CD. Download the complete PDF to get the full operational playbook for managing Helm releases at scale.

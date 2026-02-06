@@ -1,18 +1,17 @@
 ---
 title: "Demo Article - Markdown Showcase"
 description: "This is a demonstration article showcasing all available markdown components. Feel free to explore the various components and their usage patterns."
-cover: "./cover.jpg"
+cover: "./cover.png"
 coverAlt: "Hero image for Markdown page test fixture"
 author: "kevin-brown"
 publishDate: 2024-01-01
-tags: ["typescript"]
+modifiedDate: 2025-06-29
+tags: []
 isDraft: true
 ---
 import Demo from '@components/Test/Demo.mdx'
 
-## Components
-
-### Includes from other Markdown files
+Includes from [other Markdown]('/articles/demo') files.
 
 ```markdown
 import Demo from '@components/Test/Demo.mdx'
@@ -22,13 +21,129 @@ import Demo from '@components/Test/Demo.mdx'
 
 <Demo />
 
-### Search
+## Basic Markdown Formatting
 
-import SearchBar from '@components/Search/SearchBar/index.astro'
+Subscript and superscript text is from `remark-supersub`.
 
-<SearchBar />
+| Style | Syntax | Keyboard shortcut | Example | Output |
+| --- | --- | --- | --- | --- |
+| Bold | `** **` | Command+B (Mac) or Ctrl+B (Windows/Linux) | `**This is bold text**` | **This is bold text** |
+| Italic | `_ _` | Command+I (Mac) or Ctrl+B (Windows/Linux) | `_This text is italicized_` | _This text is italicized_ |
+| Strikethrough | `~~ ~~` | None | `~~This was mistaken text~~` | ~~This was mistaken text~~ |
+| Bold and nested italic | `** **` and `_ _` | None | `**This text is _extremely_ important**` | **This text is \*extremely\* important** |
+| All bold and italic | `*** ***` | None | `**_All this text is important_**` | **_All this text is important_** |
+| Subscript | `~subscript~` | None | `This is a ~subscript~ text` | This is a ~subscript~ |
+| Superscript | `^superscript^` | None | `This is a ^superscript^ text` | This is a ^superscript^ text |
+| Underline | Avoid | None | Avoid underlining text | Avoid underlining text |
 
-### Avatar Component
+## Abbreviations
+
+Provided by the `remark-abbreviations` plugin.
+
+```markdown
+*[MDAST]: Markdown Abstract Syntax Tree.
+*[AST]: Abstract syntax tree
+```
+
+*[MDAST]: Markdown Abstract Syntax Tree.
+*[AST]: Abstract syntax tree
+
+Should compile to the following HTML:
+
+```html
+<p>This plugin works on <abbr title="Markdown Abstract Syntax Tree.">MDAST</abbr>, a Markdown <abbr title="Abstract syntax tree">AST</abbr>
+implemented by <a href="https://github.com/remarkjs/remark">remark</a></p>
+```
+## Align
+
+This custom plugin parses custom Markdown syntax to center- or right-align elements. Alignment is done by wrapping something in shortcode-style tags, applying Tailwind `text-right` or `text-center` classes. Provided by the `remark-align` plugin.
+
+```markdown
+[center]paragraph[/center]
+```
+
+[center]A centered paragraph[/center]
+
+```markdown
+[right]paragraph[/right]
+```
+
+[right]A right-aligned paragraph[/right]
+
+```markdown
+[center]
+
+> My blockquote
+
+[/center]
+```
+
+[center]
+
+> My blockquote
+
+[/center]
+
+```markdown
+[center]
+
+- a
+- b
+
+[/center]
+```
+
+[center]
+
+- a
+- b
+
+[/center]
+
+```markdown
+[right]
+
+> My blockquote
+
+[/right]
+```
+
+[right]
+
+> My blockquote
+
+[/right]
+
+```markdown
+[right]
+
+- a
+- b
+
+[/right]
+```
+
+[right]
+
+- a
+- b
+
+[/right]
+
+## Attributes
+
+Add HTML attributes to supported Markdown elements using an MDX-safe doubled-square-bracket postfix syntax. Provided by the `remark-attributes` plugin.
+
+```markdown
+![Image](/assets/images/shiprock.svg) [[width=300 .centered]]
+
+[Link](/articles/demo) [[color=pink target=_blank .centered]]
+```
+
+![Image](/assets/images/shiprock.svg) [[width=300 .centered]]
+[Link Example](/articles/demo) [[.btn target=_blank]]
+
+## Avatars
 
 ```markdown
 <Avatar name="User Name" />
@@ -42,21 +157,147 @@ Avatar fallback if no image found:
 
 <Avatar name="Kevin Thomas" />
 
-### Calendar
+## Blockquotes
+
+Quotation marks are added by CSS, so should not be included on the blockquote text.
+
+> This is a blockquote. Use it for quotes, citations, or to highlight important statements from external sources.
+
+Nested blockquotes:
+
+```markdown
+> Dorothy followed her through many of the beautiful rooms in her castle.
+>
+>> The Witch bade her clean the pots and kettles and sweep the floor and keep the fire fed with wood.
+```
+
+> Dorothy followed her through many of the beautiful rooms in her castle.
+>
+>> The Witch bade her clean the pots and kettles and sweep the floor and keep the fire fed with wood.
+
+__Blockquotes with attribution__
+
+The pluginwill provide an attribution for a quotation if it is prefixed with an em dash. To include a date, put them in trailing parentheses:
+
+```markdown
+> That's one small step for [a] man, one giant leap for mankind.
+> — Neil Armstrong (1969, July 21)
+```
+
+> That's one small step for [a] man, one giant leap for mankind.
+> — Neil Armstrong (1969, July 21)
+
+```markdown
+> That's one small step for [a] man, one giant leap for mankind.
+> — Neil Armstrong
+```
+
+> Nothing inspires forgiveness quite like revenge.
+> — Scott Adams
+
+Compiles to the following HTML:
+
+```html
+<figure class="blockquote">
+  <blockquote>
+    <p>
+      That's one small step for [a] man, one giant leap for mankind.
+    </p>
+  </blockquote>
+  <figcaption class="blockquote-attribution">
+    Neil Armstrong (1969, July 21)
+  </figcaption>
+</figure>
+```
+
+__Blockquotes with captions__
+
+For blockquotes, captions are handled by the internal `remark-blockquote` plugin so they can be combined with an attribution.
+
+**Blockquote caption**
+
+```markdown
+> Some blockquote text that will have a caption
+> Source: The caption text that will appear under the blockquote
+```
+
+> Some blockquote text that will have a caption
+> Source: The caption text that will appear under the blockquote
+
+Compiles to the following HTML (ignoring styles):
+
+```html
+<figure class="blockquote-figure">
+  <blockquote>
+    <p>
+      Some blockquote text that will have a caption
+    </p>
+  </blockquote>
+  <figcaption class="blockquote-caption">
+    The caption text that will appear under the blockquote
+  </figcaption>
+</figure>
+```
+
+__Blockquotes with both attribution and caption__
+
+```markdown
+> That's one small step for [a] man, one giant leap for mankind.
+> — Neil Armstrong (1969, July 21)
+> Source: The caption text that will appear under the blockquote
+```
+
+> That's one small step for [a] man, one giant leap for mankind.
+> — Neil Armstrong (1969, July 21)
+> Source: The caption text that will appear under the blockquote
+
+Should compile to the following HTML:
+
+```html
+<figure class="blockquote-figure">
+  <blockquote>
+    <p>
+      That's one small step for [a] man, one giant leap for mankind.
+    </p>
+  </blockquote>
+  <div class="blockquote-attribution">
+    Neil Armstrong (1969, July 21)
+  </div>
+  <figcaption class="blockquote-caption">
+    The caption text that will appear under the blockquote
+  </figcaption>
+</figure>
+```
+
+## Bold and Nested Strikethrough
+
+```markdown
+**This text is _extremely_ important**
+```
+
+**This text is _extremely_ important**
+
+## Calendar
 
 import Calendar from '@components/Calendar/index.astro'
 
+```markdown
+<Calendar />
+```
+
 <Calendar />
 
-### Callout Component
+## Callouts
 
-The Callout component highlights important information:
+The Callout component highlights important information.
 
 ```markdown
 <Callout type="info">
 This is an informational callout. Use it to draw attention to helpful tips or additional context.
 </Callout>
 ```
+
+Text to show spacing from paragraph element to callout:
 
 <Callout type="info">
 This is an informational callout. Use it to draw attention to helpful tips or additional context.
@@ -92,60 +333,359 @@ This is a danger callout. Use it for critical warnings or errors that need immed
 This is a danger callout. Use it for critical warnings or errors that need immediate attention.
 </Callout>
 
-### Carousel Component
+```markdown
+<Callout type="note">
+This is a note callout.
+</Callout>
+```
+
+<Callout type="note">
+This is a note callout.
+</Callout>
+
+## Captions
+
+By default it wraps the elements code, image, and table in a `<figure>` element, and adds a `<figcaption>` block as the last child. You can configure it to work on other elements by changing the keywords. Provided by teh `remark-captions` plugin.
+
+**Code caption**
+
+The caption line is prefixed with `Code:` and added below the code block with no blank line:
+
+```ts
+export const answer = 42
+```
+Code: This caption appears under the code block
+
+**Table caption**
+
+Note: a blank line is required before tje `Table:` prefixed line so it parses as a paragraph after the table.
+
+```markdown
+| a | b |
+| - | - |
+| 1 | 2 |
+
+Table: This caption appears under the table
+```
+
+| a | b |
+| - | - |
+| 1 | 2 |
+
+Table: This caption appears under the table
+
+**Image caption**
+
+Note: the `Figure:` prefixed line must be in the same paragraph as the image (no blank line).
+
+```markdown
+![Wordmark](/assets/images/branding/wordmark.svg)
+Figure: This caption appears under the image
+```
+
+![Wordmark](/assets/images/branding/wordmark.svg)
+Figure: This caption appears under the image
+
+## Carousels
 
 Showcase related articles using the production carousel component:
 
 ```markdown
 <Carousel
-  title="Featured articles"
+  title="My Title"
+  titleHref="/articles"
   type="articles"
   variant="suggested"
   currentSlug="demo/index"
-  limit={3}
+  limit={6}
 />
 ```
 
 <Carousel
-  title="Featured articles"
+  title="With Title Link"
+  titleHref="/articles"
   type="articles"
   variant="suggested"
   currentSlug="demo/index"
-  limit={3}
+  limit={6}
 />
 
-### CodeTabs Component
+<Carousel
+  title="Without Title Link and in Bounded Mode"
+  type="articles"
+  variant="suggested"
+  currentSlug="demo/index"
+  limit={6}
+  navigationMode="bounded"
+/>
+
+## Code
+
+The project contains the full bundle of Shiki languages. They are dynamically loaded individually. Some common languages: `asm` for Assembly, `astro`, `awk`, `blade`, `clojure`, `cmake`, `cpp` for C++, `csharp` for C#, `css`, `diff`, `docker` for Dockerfiles, `dotenv`, `erlang`, `go`, `graphql`, `haskell`, `html`, `http`, `ini`, `java`, `javascript` / `js`, `json`, `json5`, `jsx`, `kotlin`, `log`, `lua`, `make`, `markdown`, `mdx`, `php`, `powershell`, `puppet`, `python`, `r`, `regexp`, `ruby`, `rust`, `scala`, `scss`, `sql`, `svelte`, `swift`, `systemd`, `terraform`, `toml`, `tsx`, `typescript` / `ts`, `vue`, `xml`, `yaml`. `promql` is aliased to `go` for now.
+
+This `console.log("hello, world!")` statement is inline code.
 
 ```typescript
   console.log("hello, world!")
 ```
 
-#### Grouped Code Tabs
+```bash [g8:BASH]
+#!/bin/bash
+
+LOG_DIR="/var/log/myapp"
+
+# This is a super long line to make sure that text wrapping works, and doesn't result in a new numbered line. Rather, when a super long line is wider than the available area in a code block, the next line number should be pushed down and the super long line should should wrap onto an un-numbered line below the numbered line that it is originally on.
+cleanup_old_files() {
+    local target_dir=$1
+    local days=$2
+
+    if [[ ! -d "$target_dir" ]]; then
+        log_error "Directory not found: $target_dir"
+        return 1
+    fi
+
+    log_info "Starting cleanup in: $target_dir (keeping files less than $days days old)"
+
+    find "$target_dir" -type f -mtime +$days -print0 | while IFS= read -r -d '' file; do
+        if $DRY_RUN; then
+            echo "[DRY RUN] Would delete: $file"
+        else
+            echo "[DELETING] $file"
+            rm "$file"
+            if [[ $? -ne 0 ]]; then # Check the exit status of the last command
+                log_error "Failed to delete $file"
+            fi
+        fi
+    done
+
+    log_info "Cleanup finished for $target_dir"
+    return 0
+}
+```
+
+```text
+A text code block
+```
+
+### Grouped Code Tabs
 
 The following examples substitute apostrophes for backticks so that they're not rendered to code blocks.
 
-There can only be white space between two code blocks. Display name is set by `tabName` and can only contain characters in `[A-Za-z0-9_]`. Syntax for the language block on the first line of the code block is `language [group:tabName]`
+There can only be white space between two code blocks. Syntax for the language block on the first line of the code block is `language [group:tabName]`. Display name is set by `tabName` and can only contain characters in `[A-Za-z0-9_]`.
 
 ```javascript [g1:Javascript]
-  console.log('Hello World')
+function fetchUserData(userId) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      if (userId === 123) {
+        resolve({ id: 123, name: 'John Doe', postId: 456 })
+      } else {
+        reject(new Error('User not found'))
+      }
+    }, 500) // Simulate network delay
+  })
+}
+
 ```
 ```typescript [g1:Typescript]
-  type myType = "hello, world!"
+class TypedEventEmitter<T extends Record<keyof T, any>> implements EventEmitter<T> {
+  // Use a Mapped Type to create a structure for handlers
+  private handlers: {
+    [K in keyof T]?: Array<(payload: T[K]) => void>;
+  } = {};
+
+  subscribe<K extends keyof T>(eventName: K, handler: (payload: T[K]) => void): () => void {
+    if (!this.handlers[eventName]) {
+      this.handlers[eventName] = [];
+    }
+    // Type safety is maintained within the array
+    this.handlers[eventName]!.push(handler);
+
+    // Return an unsubscribe function (cleanup)
+    return () => {
+      const index = this.handlers[eventName]!.indexOf(handler);
+      if (index > -1) {
+        this.handlers[eventName]!.splice(index, 1);
+      }
+    };
+  }
+}
 ```
 
-#### Add a title to the code block
+```ruby [g2:Ruby]
+class Tree
+  def initialize(*d)
+    @d = d[0] # The current node's data
+  end
 
-You can add a title to the code block by adding a `title` prop to the code block like `js title="script.js"`:
+  # A custom string representation of the tree
+  def to_s
+    @l || @r ? "< #{@d},<#{@l}>,<#{@r}>>" : @d
+  end
 
-```js title="script.js"
+  # Recursively calculates the total sum of all numeric nodes
+  def total
+    # Add current node if numeric, otherwise 0
+    (@d.is_a?(Numeric) ? @d : 0) +
+    # Recursively call total on left and right children if they exist
+    (@l ? @l.total : 0) +
+    (@r ? @r.total : 0)
+  end
+end
+```
+```python [g2:Python]
+import functools
+from typing import Generator, Optional
+
+class UniqueIDGenerator:
+    """A generator for creating unique, hashed identifiers."""
+
+    def __init__(self, salt: str = "default_salt"):
+        self.salt = salt
+        self._generated_ids = set() # Store generated IDs to check for uniqueness
+
+    @staticmethod
+    def _hash_data(data: str) -> str:
+        """Static method to create an MD5 hash."""
+        return hashlib.md5(data.encode('utf-8')).hexdigest()
+```
+```go [g2:Go]
+package main
+
+import (
+  "fmt"
+  "sync"
+  "time"
+)
+
+// Job represents the work to be done.
+type Job struct {
+  ID      int
+  Payload string
+}
+
+// Worker processes jobs from a channel and sends results to another channel.
+func Worker(id int, jobs <-chan Job, results chan<- string, wg *sync.WaitGroup) {
+  defer wg.Done() // Signal the WaitGroup that this worker is done when the function returns
+  for job := range jobs {
+    fmt.Printf("Worker %d starting job %d\n", id, job.ID)
+    // Simulate a time-consuming task
+    time.Sleep(time.Millisecond * 500)
+    result := fmt.Sprintf("Worker %d finished job %d with payload: %s", id, job.ID, job.Payload)
+    fmt.Println(result)
+    results <- result // Send the result to the results channel
+  }
+}
+```
+
+```markdown [g3:Markdown]
+# Complex Markdown Example
+
+This is a paragraph with **bold text**, *italic text*, and ~~strikethrough text~~. You can also use `inline code` for small snippets.
+
+---
+
+## Unordered List of Features
+
+*   **Headers:** Use `#` symbols.
+*   **Lists:** Both ordered and unordered are simple to create.
+*   **Links & Images:** Embed web content easily.
+    *   [Visit Google](https://www.google.com) for more information.
+
+## Ordered List (Checklist)
+
+1.  [x] Complete basic formatting.
+2.  [ ] Add a table.
+3.  [x] Include a code block.
+```
+```yaml [g3:Yaml]
+app_name: "OrderProcessingService"
+
+# --- Microservice Features & Settings ---
+features:
+  - name: "PaymentGateway"
+    enabled: true
+    config:
+      provider: "Stripe"
+      api_key_secret: "stripe-prod-key"
+  - name: "InventoryCheck"
+    enabled: true
+    config:
+      redis_host: "cache.prod.example.com"
+      timeout_ms: 500
+  - name: "EmailNotifications"
+    enabled: false # Disabled feature
+```
+```json [g3:JSON]
+{
+  "organization_details": {
+    "name": "TechCorp Solutions Inc.",
+    "industry": "Software Development",
+    "established_year": 2005,
+    "ceo": null,
+    "is_publicly_traded": false,
+    "address": {
+      "street": "456 Innovation Drive",
+      "city": "Menlo Park",
+      "state": "CA",
+      "postalCode": "94025",
+      "country": "USA"
+    },
+    "contacts": {
+      "email": "info@techcorp.com",
+      "phone": "+1-555-1234",
+      "support_url": "techcorp.com"
+    }
+  }
+}
+```
+```html [g3:HTML]
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+</head>
+<body style="margin: 0 auto; max-width: 520px;">
+  <h1>Hi there!</h1>
+  <div>I'm your cool new webpage! Use the toggle in the <dark-mode style="border: 2px solid blue"></dark-mode> 👈  button to switch my theme.</div>
+  Github: <a href="https://github.com/jaywcjlove/dark-mode.git" target="__blank">@jaywcjlove/dark-mode</a>
+  <script>
+    const toggle = document.querySelector('dark-mode');
+    const button = document.createElement('button');
+    button.textContent = 'Change Theme';
+    button.style = 'line-height: 16px';
+    button.onclick = () => {
+      const theme = document.documentElement.dataset.colorMode;
+      toggle.mode = theme === 'light' ? 'dark' : 'light';
+      // document.documentElement.setAttribute('data-color-mode', theme === 'light' ? 'dark' : 'light');
+    }
+    document.body.appendChild(button);
+    document.addEventListener('colorschemechange', (e) => {
+      console.log(`colorschemechange: Color scheme changed to "${e.detail.colorScheme}" or .`);
+      button.textContent = toggle.mode === 'dark' ? 'Change Theme 🌞' : 'Change Theme 🌒';
+    });
+    document.addEventListener('permanentcolorscheme', (e) => {
+      console.log(`~permanentcolorscheme: Color scheme changed to "${e.detail.colorScheme}" or .`);
+    });
+    const removePermanent = () => document.querySelectorAll('dark-mode').forEach((item) => item.removeAttribute('permanent'));
+  </script>
+</body>
+</html>
+```
+
+### Code Block Filenames
+
+You can add a filename to the code block by using it for the name in the group block like `[g7:/src/script.js]`. It replaces the language name on the assumption that the file extension makes it clear what the language is.
+
+```js [g7:/src/script.js]
   console.log('Hello World')
 ```
 
 Note: the `title` prop is optional. If you don't add it, the code block will not have a title.
 
-#### Highlight lines
+### Code Block Highlight lines
 
-You can highlight lines in the code block by adding a prop to the code blocks as a list of comma separated numbers in curly brackets like `js {1,3,5}`:
+You can highlight lines in the code block by adding a prop to the code blocks as a list of comma separated numbers in curly brackets like `js {1,3,5}`.
 
 `{1}` will highlight line 1
 
@@ -161,7 +701,20 @@ You can highlight lines in the code block by adding a prop to the code blocks as
   console.log('Hello World')
 ```
 
-#### Highlight strings
+### Code Block Error highlights
+
+Use `warning={5,6}` and `error={3,4}` to mark a line with an error and warning levels.
+
+```ts error={3,4} warning={5,6}
+  # Using NPM
+  npx astro add @thewebforge/astro-code-blocks
+  # Using Yarn
+  yarn astro add @thewebforge/astro-code-blocks
+  # Using PNPM
+  pnpm astro add @thewebforge/astro-code-blocks
+```
+
+### Code Block Highlight strings
 
 You can highlight strings in the code block by adding a prop to the code blocks as a regular expression. The following example will highlight all occurrences of "astro" using a language string like `sh /astro/`:
 
@@ -177,7 +730,7 @@ You can highlight strings in the code block by adding a prop to the code blocks 
   pnpm astro add @thewebforge/astro-code-blocks
 ```
 
-#### Insertions and Deletions
+### Code Block Insertions and Deletions
 
 You can highlight insertions and deletions in the code block by adding `ins` and / or `del` props to the code blocks as a list of lines in curly brackets with a language string like `sh ins={3,4} del={5,6}`:
 
@@ -190,15 +743,40 @@ You can highlight insertions and deletions in the code block by adding `ins` and
   pnpm astro add @thewebforge/astro-code-blocks
 ```
 
-### Contact Callout Component
+### Code Block Language Aliases
 
-Invite readers to get in touch:
+We have the following aliases. They should have special handling of the language name.
 
-<Contact />
+- js: 'javascript',
+- ts: 'typescript',
+- md: 'markdown',
+- promql: 'go',
 
-### Copy To Clipboard Component
+```promql
+some promql code
+```
 
-#### Attribute
+## Comments
+
+Comments are not available, because it requires using Astro layout syntax (jsdoc-style comment inside squiggly brackets), which triggers Markdownlint rule requiring no spaces inside emphasis markers like asterisk.
+
+## Colors
+
+In single backtick code markers, applies a GitHub-like color dot:
+
+```markdown
+The background color is `#ffffff` for light mode and `#000000` for dark mode.
+
+In RGB `rgb(9, 105, 218)`, RGBA `rgba(255, 99, 71, 0.5)` in HSL `hsl(212, 92%, 45%)`, and in HSLA `hsla(240, 100%, 50%, 0.7)`.
+```
+
+The background color is `#ffffff` for light mode and `#000000` for dark mode.
+
+In RGB `rgb(9, 105, 218)`, RGBA `rgba(255, 99, 71, 0.5)` in HSL `hsl(212, 92%, 45%)`, and in HSLA `hsla(240, 100%, 50%, 0.7)`.
+
+## Copy To Clipboard Component
+
+### Attribute
 
 ```markdown
 <Copy value="src/index.js">Copy</Copy>
@@ -206,7 +784,7 @@ Invite readers to get in touch:
 
 <Copy value="src/index.js">Copy</Copy>
 
-Float mode:
+### Attribute - Float mode
 
 ```markdown
 <Copy value="src/index.js" mode="float">Copy</Copy>
@@ -214,7 +792,7 @@ Float mode:
 
 <Copy value="src/index.js" mode="float">Copy</Copy>
 
-#### Element content
+### Element content
 
 ```markdown
 <Copy for="blob-path"><div id="blob-path">Copy</div></Copy>
@@ -222,7 +800,7 @@ Float mode:
 
 <Copy for="blob-path"><div id="blob-path">Copy</div></Copy>
 
-Float mode:
+### Element content - Float mode
 
 ```markdown
 <Copy for="blob-path" mode="float"><div id="blob-path">Copy</div></Copy>
@@ -230,7 +808,7 @@ Float mode:
 
 <Copy for="blob-path" mode="float"><div id="blob-path">Copy</div></Copy>
 
-#### Form input
+### Form input
 
 ```markdown
 <Copy for="blob-path"><input id="blob-path" value="src/index.js" /></Copy>
@@ -238,7 +816,7 @@ Float mode:
 
 <Copy for="blob-path"><input id="blob-path" value="src/index.js" /></Copy>
 
-Float mode:
+### Form input - Float mode
 
 ```markdown
 <Copy for="blob-path" mode="float"><input id="blob-path" value="src/index.js" /></Copy>
@@ -246,7 +824,7 @@ Float mode:
 
 <Copy for="blob-path" mode="float"><input id="blob-path" value="src/index.js" /></Copy>
 
-#### Hyperlink href
+### Hyperlink href
 
 ```markdown
 <Copy for="blob-path"><a id="blob-path" href="/path/to#my-blob">Link text will not be copied</a></Copy>
@@ -254,7 +832,7 @@ Float mode:
 
 <Copy for="blob-path"><a id="blob-path" href="/path/to#my-blob">Link text will not be copied</a></Copy>
 
-Float mode:
+### Hyperlink href - Float mode
 
 ```markdown
 <Copy for="blob-path" mode="float"><a id="blob-path" href="/path/to#my-blob">Link text will not be copied</a></Copy>
@@ -262,115 +840,73 @@ Float mode:
 
 <Copy for="blob-path" mode="float"><a id="blob-path" href="/path/to#my-blob">Link text will not be copied</a></Copy>
 
-### Featured Content Component
+## Definition Lists
 
-Highlight featured articles or services:
-
-<Featured
-  title="Featured Content"
-  description="Discover more articles and resources."
-  link={{ href: "/articles", text: "Browse Articles" }}
-/>
-
-### Highlighter Component
-
-The Highlighter component allows you to <Highlighter>emphasize specific text</Highlighter> wit
-
-### Icon Component
-
-Use SVG sprites for icons throughout your content:
+Definitions under definition header, stringified as `dl`, `dt`, and `dd`. Provided by the `remark-deflist` plugin.
 
 ```markdown
-<Icon name="check" class="w-6 h-6 text-success" />
-<Icon name="warning" class="w-6 h-6 text-warning" />
-<Icon name="info" class="w-6 h-6 text-info" />
+Term 1
+
+: Definition 1
 ```
 
-<Icon name="check" class="w-6 h-6 text-success" />
-<Icon name="warning" class="w-6 h-6 text-warning" />
-<Icon name="info" class="w-6 h-6 text-info" />
+Term 1
 
-### Social Embeds Component
+: Definition 1
 
-#### YouTube Embed
+## Detail and Summary
 
 ```markdown
-<Embed
-  type="youtube"
-  url="https://www.youtube.com/watch?v=lSk-DWAJPbA"
-/>
+<details>
+  <summary>Details</summary>
+  Something small enough to escape casual notice.
+</details>
 ```
 
-<Embed
-  type="youtube"
-  url="https://www.youtube.com/watch?v=lSk-DWAJPbA"
-/>
+<details>
+  <summary>Details</summary>
+  Something small enough to escape casual notice.
+</details>
 
-#### X (Twitter) Embed
+The `remark-custom-blocks` plugin parses custom Markdown syntax to create new custom blocks. It takes a config object with a name for the block, CSS classes to apply to it, and whether a title is required, optional, or the block does not have a title. An initial block is defined for HTML `<details>` and `<summary>` elements.
 
 ```markdown
-<Embed
-  type="x"
-  url="https://x.com/WebstackDev/status/1717481221549445419"
-/>
+[[details | My summary for a `<details>` and `<summary>` block]]
+| Some content for the detail
 ```
 
-<Embed
-  type="x"
-  url="https://x.com/WebstackDev/status/1717481221549445419"
-/>
+[[details | My summary for a `<details>` and `<summary>` block]]
+| Some content for the detail
 
-#### GitHub Gist Embed
+## Emojis
+
+There is a doc listing all available emojis in the /docs directory. Provided by the `rehype-accessible-emojis` plugin.
 
 ```markdown
-<Embed
-  type="gist"
-  url="https://gist.github.com/webstackdev/455fb0b4e0d2332a8aaa02309563fb54"
-/>
+:rocket:
 ```
 
-<Embed
-  type="gist"
-  url="https://gist.github.com/webstackdev/455fb0b4e0d2332a8aaa02309563fb54"
-/>
+:rocket:
 
-### Newsletter Signup Component
+## Escape Markup
 
-Encourage readers to subscribe to your newsletter:
+Unified uses the backslash character to treat special Markdown symbols as literal text, preventing them from being interpreted as formatting instructions.
 
-<Newsletter />
-
-### Social Sharing Component
-
-Add social sharing buttons for the article:
-
-```markdown
-<Shares />
+```text
+\\ (backslash): To display a literal backslash
+\* (asterisk): Used for emphasis (italics or bold) or lists
+\_ (underscore): Also used for emphasis
+\# (hash symbol): Used for headings
+\[ and \] (square brackets): Used for links
+\( and \) (parentheses): Used in links or for other extensions like superscripts
+\+, \-, \. (plus, minus, period): Used for lists
+\! (exclamation mark): Used for images (![Alt Text]())
+\` (backtick): Used for inline code blocks
+\> (greater-than sign): Used for blockquotes
+\| (pipe): Used for tables in extended Markdown syntax
 ```
 
-<Shares />
-
-### Testimonials Component
-
-Display customer feedback and testimonials:
-
-```markdown
-<Testimonials count={3} />
-```
-
-<Testimonials count={3} />
-
-### Time Component
-
-```markdown
-Let's go to the disco <Time datetime="2026-01-01T00:00:00.000Z" />.
-```
-
-Let's go to the disco <Time datetime="2026-01-01T00:00:00.000Z" />.
-
-## GFM
-
-### Footnote
+## Footnote
 
 ```markdown
 Here is a simple footnote[^1].
@@ -402,118 +938,25 @@ The references can be anywhere in the document, before or after their use:
 
 [^named]: My reference.
 
-### Strikethrough
+## Heading ID links
 
-`~one~` or `~~two~~` tildes: ~one~ ~~two~~
-
-### Table
+Generated by Astro internally.
 
 ```markdown
-| a | b  |  c |  d  |
-| - | :- | -: | :-: |
-
-| Feature | Supported | Notes |
-|---------|-----------|-------|
-| Callouts | ✅ | Multiple types available |
-| Avatars | ✅ | Configurable sizes |
-| Carousels | ✅ | Auto-play optional |
-| Embeds | ✅ | Multiple platforms |
+I can link internally to [Markdown Features](#unified-plugins) on the same page when writing Markdown.
 ```
 
-| a | b  |  c |  d  |
-| - | :- | -: | :-: |
+I can link internally to [Markdown Features](#unified-plugins) on the same page when writing Markdown.
 
-| Feature | Supported | Notes |
-|---------|-----------|-------|
-| Callouts | ✅ | Multiple types available |
-| Avatars | ✅ | Configurable sizes |
-| Carousels | ✅ | Auto-play optional |
-| Embeds | ✅ | Multiple platforms |
+## Highlighter Component
 
-### Grid (Adobe) table
-
-```markdown
-+-------------------+------+
-| Table Headings    | Here |
-+--------+----------+------+
-| Sub    | Headings | Too  |
-+========+=================+
-| cell   | column spanning |
-| spans  +---------:+------+
-| rows   |   normal | cell |
-+---v----+:---------------:+
-|        | cells can be    |
-|        | *formatted*     |
-|        | **paragraphs**  |
-|        | ```             |
-| multi  | and             |
-| line   | `contain`       |
-| cells  | blocks          |
-+========+=========:+======+
-| footer |    cells |      |
-+--------+----------+------+
+```text
+A shareable text <Highlighter ariaLabel="Share this insight">highlighter component</Highlighter> for MDX that displays a hover dialog with social sharing options. The custom label is optional.
 ```
 
-+-------------------+------+
-| Table Headings    | Here |
-+--------+----------+------+
-| Sub    | Headings | Too  |
-+========+=================+
-| cell   | column spanning |
-| spans  +---------:+------+
-| rows   |   normal | cell |
-+---v----+:---------------:+
-|        | cells can be    |
-|        | _formatted_     |
-|        | **paragraphs**  |
-|        | ```             |
-| multi  | and             |
-| line   | `contain`       |
-| cells  | blocks          |
-+========+=========:+======+
-| footer |    cells |      |
-+--------+----------+------+
+A shareable text <Highlighter ariaLabel="Share this insight">highlighter component</Highlighter> for MDX that displays a hover dialog with social sharing options. The custom label is optional.
 
-### Tasklist
-
-```markdown
-* [ ] to do
-* [x] done
-```
-
-* [ ] to do
-* [x] done
-
-## Core Markdown
-
-| Style                  | Syntax             | Keyboard shortcut                         | Example                                  | Output                                   |
-| ---------------------- | ------------------ | ----------------------------------------- | ---------------------------------------- | ---------------------------------------- |
-| Bold                   | `** **`       | Command+B (Mac) or Ctrl+B (Windows/Linux) | `**This is bold text**`                  | **This is bold text**                    |
-| Italic                 | `_ _`         | Command+I (Mac) or Ctrl+I (Windows/Linux) | `_This text is italicized_`              | _This text is italicized_                |
-| Strikethrough          | `~~ ~~` or `~ ~`   | None                                      | `~~This was mistaken text~~`             | ~~This was mistaken text~~               |
-| Bold and nested italic | `** **` and `_ _`  | None                                      | `**This text is _extremely_ important**` | **This text is \*extremely\* important** |
-| All bold and italic    | `*** ***`          | None                                      | `**_All this text is important_**`       | **_All this text is important_**         |
-| Subscript              | `<sub> </sub>`     | None                                      | `This is a <sub>subscript</sub> text`    | This is a <sub>subscript</sub>           |
-| Superscript            | `<sup> </sup>`     | None                                      | `This is a <sup>superscript</sup> text`  | This is a <sup>superscript</sup> text    |
-| Underline              | `<ins> </ins>`     | None                                      | `This is an <ins>underlined</ins> text`  | This is an <ins>underlined</ins> text    |
-
-### Blockquotes
-
-> This is a blockquote. Use it for quotes, citations, or to highlight important statements from external sources.
-
-Nested blockquotes:
-
-```markdown
-> Dorothy followed her through many of the beautiful rooms in her castle.
->
->> The Witch bade her clean the pots and kettles and sweep the floor and keep the fire fed with wood.
-```
-
-> Dorothy followed her through many of the beautiful rooms in her castle.
->
->> The Witch bade her clean the pots and kettles and sweep the floor and keep the fire fed with wood.
-
-### Horizontal Rules
+## Horizontal Rules
 
 Asterisks (`***`):
 
@@ -527,19 +970,39 @@ Underscores ()`___`):
 
 _________________
 
-### Images
+## Icon Component
+
+Use SVG sprites for icons throughout your content:
 
 ```markdown
-![Octocat](https://myoctocat.com/assets/images/base-octocat.svg)
+<Icon name="check" size="36" class="text-success" />
+<Icon name="warning" size="36" class="text-warning" />
+<Icon name="info" size="36" class="text-info" />
 ```
 
-![Octocat](https://myoctocat.com/assets/images/base-octocat.svg)
+<Icon name="check" size="36" class="text-success" />
+<Icon name="warning" size="36" class="text-warning" />
+<Icon name="info" size="36" class="text-info" />
+
+## Images
+
+Use a relative path from the folder if the image is in src/assets (e.g. `../../../assets/images/typescript-downloadable-icon.png`) and will be optimized in the build. Images in the public folder are not optimized and can be referenced with an absolute path like `shiprock.svg` below.
+
+```markdown
+![Shiprock](/assets/images/shiprock.svg)
+```
+
+![Shiprock](/assets/images/shiprock.svg)
 
 Linked image:
 
-[![An old rock in the desert](/assets/images/shiprock.svg "Shiprock placeholder")](https://www.flickr.com/photos/beaurogers/31833779864/in/photolist-Qv3rFw-34mt9F-a9Cmfy-5Ha3Zi-9msKdv-o3hgjr-hWpUte-4WMsJ1-KUQ8N-deshUb-vssBD-6CQci6-8AFCiD-zsJWT-nNfsgB-dPDwZJ-bn9JGn-5HtSXY-6CUhAL-a4UTXB-ugPum-KUPSo-fBLNm-6CUmpy-4WMsc9-8a7D3T-83KJev-6CQ2bK-nNusHJ-a78rQH-nw3NvT-7aq2qf-8wwBso-3nNceh-ugSKP-4mh4kh-bbeeqH-a7biME-q3PtTf-brFpgb-cg38zw-bXMZc-nJPELD-f58Lmo-bXMYG-bz8AAi-bxNtNT-bXMYi-bXMY6-bXMYv)
+```markdown
+[![Shiprock](/assets/images/shiprock.svg "Shiprock placeholder")](/contact)
+```
 
-### `kbd`
+[![Shiprock](/assets/images/shiprock.svg "Shiprock placeholder")](/contact)
+
+## `kbd`
 
 This is a default HTML markup, just adding it here to not forget to use it when needed:
 
@@ -555,7 +1018,7 @@ This is a default HTML markup, just adding it here to not forget to use it when 
   <kbd><kbd>Ctrl</kbd>+<kbd>N</kbd></kbd> shortcut.
 </p>
 
-### Links
+## Links
 
 ```markdown
 My favorite search engine is [Duck Duck Go](https://duckduckgo.com).
@@ -567,7 +1030,7 @@ My favorite search engine is [Duck Duck Go](https://duckduckgo.com).
 
 Visit our [homepage](/) or read more [articles](/articles) to explore additional content.
 
-### Lists
+## Lists
 
 Unordered lists:
 
@@ -613,84 +1076,37 @@ Nested lists:
    - First nested list item
      - Second nested list item
 
-### Bold and Nested Strikethrough
+## Marks
+
+Inserts indicated text in a pair of `<mark>` elements. Provided by the `remark-mark-plus` plugin.
 
 ```markdown
-**This text is _extremely_ important**
+my ==marked== text
 ```
 
-**This text is _extremely_ important**
+my ==marked== text
 
-### Escape Markup
+## Math
 
-Unified uses the backslash character to treat special Markdown symbols as literal text, preventing them from being interpreted as formatting instructions.
-
-\\ (backslash): To display a literal backslash
-\* (asterisk): Used for emphasis (italics or bold) or lists
-\_ (underscore): Also used for emphasis
-\# (hash symbol): Used for headings
-\[ and \] (square brackets): Used for links
-\( and \) (parentheses): Used in links or for other extensions like superscripts
-\+, \-, \. (plus, minus, period): Used for lists
-\! (exclamation mark): Used for images (![Alt Text]())
-\` (backtick): Used for inline code blocks
-\> (greater-than sign): Used for blockquotes
-\| (pipe): Used for tables in extended Markdown syntax
-
-## Comments
-
-Comments are not available, because it requires using Astro layout syntax (jsdoc-style comment inside squiggly brackets), which triggers Markdownlint rule requiring no spaces inside emphasis markers like asterisk.
-
-## Colors
-
-In single backtick code markers, applies a GitHub-like color dot:
+Provided by the `rehype-mathjax` and `remark-math` plugins.
 
 ```markdown
-The background color is `#ffffff` for light mode and `#000000` for dark mode. In RGB `rgb(9, 105, 218)`, RGBA `rgba(255, 99, 71, 0.5)` in HSL `hsl(212, 92%, 45%)`, and in HSLA `hsla(240, 100%, 50%, 0.7)`.
+Lift($$L$$) can be determined by Lift Coefficient ($$C_L$$) like the following
+equation.
 ```
 
-The background color is `#ffffff` for light mode and `#000000` for dark mode. In RGB `rgb(9, 105, 218)`, RGBA `rgba(255, 99, 71, 0.5)` in HSL `hsl(212, 92%, 45%)`, and in HSLA `hsla(240, 100%, 50%, 0.7)`.
+Lift($$L$$) can be determined by Lift Coefficient ($$C_L$$) like the following
+equation.
 
-## Astro-generated heading ID links
+The string `L = \frac{1}{2} \rho v^2 S C_L` within a fenced code black set to language `math`:
 
-```markdown
-I can link internally to [Markdown Features](#unified-plugins) on the same page when writing Markdown.
+```math
+L = \frac{1}{2} \rho v^2 S C_L
 ```
 
-I can link internally to [Markdown Features](#unified-plugins) on the same page when writing Markdown.
+## Mermaid
 
-## Unified Plugins
-
-### remark-abbreviations
-
-```markdown
-*[MDAST]: Markdown Abstract Syntax Tree.
-*[AST]: Abstract syntax tree
-```
-
-*[MDAST]: Markdown Abstract Syntax Tree.
-*[AST]: Abstract syntax tree
-
-Should compile to the following HTML:
-
-```html
-<p>This plugin works on <abbr title="Markdown Abstract Syntax Tree.">MDAST</abbr>, a Markdown <abbr title="Abstract syntax tree">AST</abbr>
-implemented by <a href="https://github.com/remarkjs/remark">remark</a></p>
-```
-
-### rehype-accessible-emojis
-
-There is a doc listing all available emojis in the /docs directory.
-
-```markdown
-:rocket:
-```
-
-:rocket:
-
-### rehype-mermaid
-
-With Mermaid markup like this in a code block with "mermaid" set as the language:
+With Mermaid markup like this in a code block with "mermaid" set as the language. Provided by the `rehype-mermaid` plugin.
 
 ```text
 graph TD
@@ -708,210 +1124,201 @@ graph TD
     D --> B
 ```
 
-### remark-align
+## Social Embeds
 
-This custom plugin parses custom Markdown syntax to center- or right-align elements. Alignment is done by wrapping something in shortcode-style tags, applying Tailwind `text-right` or `text-center` classes:
-
-```markdown
-[center]paragraph[/center]
-
-[right]paragraph[/right]
-```
-
-[center]A centered paragraph[/center]
-
-[right]A right-aligned paragraph[/right]
-
-Block elements can be wrapped with their own tags to apply `flex flex-col items-end` or `flex flex-col items-center` classes:
+### YouTube Embed
 
 ```markdown
-[center]
-> My blockquote
-[/center]
+<Embed
+  type="youtube"
+  url="https://www.youtube.com/watch?v=lSk-DWAJPbA"
+/>
 ```
 
-[center]
+<Embed
+  type="youtube"
+  url="https://www.youtube.com/watch?v=lSk-DWAJPbA"
+/>
 
-> My blockquote
-
-- a
-- b
-
-[/center]
-
-[right]
-
-> My blockquote
-
-- a
-- b
-
-[/right]
-
-### remark-attributes
-
-Add HTML attributes to supported Markdown elements using a MDX-safe doubled-square-bracket postfix syntax:
+### X (Twitter) Embed
 
 ```markdown
-### Heading [[.my-class #my-id]]
-![Image](/assets/images/shiprock.svg) [[width=300 .centered]]
-[Link](url) [[.btn target=_blank]]
+<Embed
+  type="x"
+  url="https://x.com/WebstackDev/status/1717481221549445419"
+/>
 ```
 
-![Image](/assets/images/shiprock.svg) [[width=300 .centered]]
-[Link Example](/testing/markdown) [[.btn target=_blank]]
+<Embed
+  type="x"
+  url="https://x.com/WebstackDev/status/1717481221549445419"
+/>
 
-### remark-attribution
-
-The plugin allows to provide an attribution for a quotation:
+### GitHub Gist Embed
 
 ```markdown
-> That's one small step for [a] man, one giant leap for mankind.
-> — Neil Armstrong (1969, July 21)
+<Embed
+  type="gist"
+  url="https://gist.github.com/webstackdev/455fb0b4e0d2332a8aaa02309563fb54"
+/>
 ```
 
-> That's one small step for [a] man, one giant leap for mankind.
-> — Neil Armstrong (1969, July 21)
+<Embed
+  type="gist"
+  url="https://gist.github.com/webstackdev/455fb0b4e0d2332a8aaa02309563fb54"
+/>
 
-Should compile to the following HTML:
-
-```html
-The generated markup is not only accessible for screen readers but allows you to style the attribution line however you like:
-
-<figure class="c-blockquote">
-  <blockquote>
-    <p>
-      That's one small step for [a] man, one giant leap for mankind.
-    </p>
-  </blockquote>
-  <figcaption class="c-blockquote__attribution">
-    Neil Armstrong (1969, July 21)
-  </figcaption>
-</figure>
-```
-
-### remark-captions
-
-By default it wraps the elements code, image, table and blockquote in a `<figure>` element, and adds a `<figcaption>` block as the last child. You can configure it to work on other elements by changing the keywords.
-
-**Blockquote caption**
+### Codepen Embed
 
 ```markdown
-> Some blockquote text that will have a caption
-> Source: The caption text that will appear under the blockquote
+<Embed
+  type="codepen"
+  url="https://codepen.io/webstackdev/pen/JaEgxM"
+/>
 ```
 
-> Some blockquote text that will have a caption
-> Source: The caption text that will appear under the blockquote
+<Embed
+  type="codepen"
+  url="https://codepen.io/webstackdev/pen/JaEgxM"
+/>
 
-**Code caption**
+## Social Shares
 
-```ts
-export const answer = 42
-```
-Code: This caption appears under the code block
-
-**Table caption**
-
-Note: a blank line is required before `Table:` so it parses as a paragraph after the table.
+Add social sharing buttons for the article. The social image is auto-generated, and can be passed as an optional param to override the generated version.
 
 ```markdown
-| a | b |
-| - | - |
-| 1 | 2 |
-
-Table: This caption appears under the table
+<Shares
+  title="Demo Page"
+  description="This is just a demo page to show how things work on the site"
+  url="/articles/demo"
+/>
 ```
 
-| a | b |
-| - | - |
-| 1 | 2 |
+<Shares
+  title="Demo Page"
+  description="This is just a demo page to show how things work on the site"
+  url="/articles/demo"
+/>
 
-Table: This caption appears under the table
-
-**Image caption**
-
-Note: the `Figure:` caption must be in the same paragraph as the image (no blank line).
+## Table
 
 ```markdown
-![Wordmark](/assets/images/branding/wordmark.svg)
-Figure: This caption appears under the image
+| a | b  |  c |  d  |
+| - | :- | -: | :-: |
+
+| Feature | Supported | Notes |
+| ------- | --------- | ----- |
+| Callouts | ✅ | Multiple types available |
+| Avatars | ✅ | Configurable sizes |
+| Carousels | ✅ | Auto-play optional |
+| Embeds | ✅ | Multiple platforms |
 ```
 
-![Wordmark](/assets/images/branding/wordmark.svg)
-Figure: This caption appears under the image
+| a | b  |  c |  d  |
+| - | :- | -: | :-: |
 
-### remark-custom-blocks
+| Feature | Supported | Notes |
+| ------- | --------- | ----- |
+| Callouts | ✅ | Multiple types available |
+| Avatars | ✅ | Configurable sizes |
+| Carousels | ✅ | Auto-play optional |
+| Embeds | ✅ | Multiple platforms |
 
-This plugin parses custom Markdown syntax to create new custom blocks. It takes a config object with a name for the block, CSS classes to apply to it, and whether a title is required, optional, or the block does not have a title. An initial block is defined for HTML `<details>` and `<summary>` elements.
+__Grid (Adobe) table__
 
 ```markdown
-[[details | My summary for a `<details>` and `<summary>` block]]
-| Some content for the detail
++-------------------+------+
+| Table Headings    | Here |
++--------+----------+------+
+| Sub    | Headings | Too  |
++========+=================+
+| cell   | column spanning |
+| spans  +---------:+------+
+| rows   |   normal | cell |
++---v----+:---------------:+
+| multi  | cells can be    |
+| line   | _formatted_     |
+|        | **paragraphs**  |
+| cells  | blocks          |
++========+=========:+======+
+| footer |    cells |      |
++--------+----------+------+
 ```
 
-[[details | My summary]]
-| Some content for the detail
++-------------------+------+
+| Table Headings    | Here |
++--------+----------+------+
+| Sub    | Headings | Too  |
++========+=================+
+| cell   | column spanning |
+| spans  +---------:+------+
+| rows   |   normal | cell |
++---v----+:---------------:+
+| multi  | cells can be    |
+| line   | _formatted_     |
+|        | **paragraphs**  |
+| cells  | blocks          |
++========+=========:+======+
+| footer |    cells |      |
++--------+----------+------+
 
-### remark-deflist
-
-Definitions under definition header, stringified as `dl`, `dt`, and `dd`
+## Tasklist
 
 ```markdown
-Term 1
-
-: Definition 1
+* [ ] to do
+* [x] done
 ```
 
-Term 1
+* [ ] to do
+* [x] done
 
-: Definition 1
-
-### remark-mark-plus
-
-Inserts indicated text in a pair of `<mark>` elements
+## Time Component
 
 ```markdown
-my ==marked== text
+Let's go to the disco <Time datetime="2026-01-01T00:00:00.000Z" />.
 ```
 
-my ==marked== text
-
-### rehype-mathjax and remark-math
-
-- `rehype-katex` is alternative but lacks accessibility
+Let's go to the disco <Time datetime="2026-01-01T00:00:00.000Z" />.
 
 ```markdown
-Lift($$L$$) can be determined by Lift Coefficient ($$C_L$$) like the following
-equation.
+This demonstrates `format="datetime"` explicitly (same as the default): <Time format="datetime" datetime="2026-01-01T00:00:00.000Z" />.
 ```
 
-Lift($$L$$) can be determined by Lift Coefficient ($$C_L$$) like the following
-equation.
-
-The string `L = \frac{1}{2} \rho v^2 S C_L` within a fenced code black set to language `math`:
-
-```math
-L = \frac{1}{2} \rho v^2 S C_L
-```
-
-### remark-supersub
-
-Subscript and superscript text
+This demonstrates `format="datetime"` explicitly (same as the default): <Time format="datetime" datetime="2026-01-01T00:00:00.000Z" />.
 
 ```markdown
-~subscript~, e.g. a~i~
-
-^superscript^, e.g. e^x^
+This demonstrates `formatStyle="short"` for a compact date: <Time format="datetime" formatStyle="short" datetime="2026-01-01T00:00:00.000Z" />.
 ```
 
-Subscript: a~i~
+This demonstrates `formatStyle="short"` for a compact date: <Time format="datetime" formatStyle="short" datetime="2026-01-01T00:00:00.000Z" />.
 
-Superscript: e^x^
+```markdown
+This demonstrates showing a time and time zone name: <Time format="datetime" hour="2-digit" minute="2-digit" datetime="2026-01-01T00:00:00.000Z" />.
+```
 
-### remark-video
+This demostrates showing a time that should adjust to user's local timezone: <Time format="datetime" hour="2-digit" minute="2-digit" datetime="2026-01-01T00:00:00.000Z" />.
 
-Embed videos in HTML5 markup that are in the `/public` folder
+```markdown
+This demonstrates showing a time and time zone name: <Time format="datetime" hour="2-digit" minute="2-digit" timeZoneName="short" datetime="2026-01-01T00:00:00.000Z" />.
+```
+
+This demostrates showing a time and time zone name: <Time format="datetime" hour="2-digit" minute="2-digit" timeZoneName="short" datetime="2026-01-01T00:00:00.000Z" />.
+
+```markdown
+This demonstrates `format="relative"` with `tense="past"` and `precision="day"`: <Time format="relative" tense="past" precision="day" datetime="2020-01-01T00:00:00Z" />.
+```
+
+This demonstrates `format="relative"` with `tense="past"` and `precision="day"`: <Time format="relative" tense="past" precision="day" datetime="2020-01-01T00:00:00Z" />.
+
+```markdown
+This demonstrates `now` (uses the current time at render): <Time format="datetime" now />.
+```
+
+This demonstrates `now` (uses the current time at render): <Time format="datetime" now />.
+
+## Video
+
+Embed videos in HTML5 markup that are in the `/public` folder. Provided by the `remark-video` plugin.
 
 ```markdown
 :::video
@@ -922,15 +1329,64 @@ Embed videos in HTML5 markup that are in the `/public` folder
 :::video
 /videos/sample-video-1.mp4
 :::
+## Call To Action Components
 
-### remark-youtube
+There is an integration that verifies that each CTA component is used at most one time on a page, and also that each content page (articles, case studies, and services) has at least one CTA component.
+
+### Contact Callout CTA Component
+
+Invite readers to get in touch.
 
 ```markdown
-[Example Video 1](https://youtu.be/enTFE2c68FQ)
-
-[Example Video 2](https://www.youtube.com/watch?v=enTFE2c68FQ)
+<Contact />
 ```
 
-[Example Video 1](https://youtu.be/enTFE2c68FQ)
+<Contact />
 
-[Example Video 2](https://www.youtube.com/watch?v=enTFE2c68FQ)
+### Download Component
+
+Download PDF files
+
+```markdown
+<Download
+  resource="lakehouse-analytics-guide"
+  title="Master Lakehouse Analytics"
+  description="Learn how to build modern data architectures that combine the best of data lakes and warehouses."
+  buttonText="Download the Guide"
+  secondaryLink={{
+    href: "/services/consulting",
+    text: "Learn More"
+  }}
+/>
+```
+
+<Download
+  resource="lakehouse-analytics-guide"
+  title="Master Lakehouse Analytics"
+  description="Learn how to build modern data architectures that combine the best of data lakes and warehouses."
+  buttonText="Download the Guide"
+  secondaryLink={{
+    href: "/services/consulting",
+    text: "Learn More"
+  }}
+/>
+
+#### Newsletter Signup Component
+
+Encourage readers to subscribe to the newsletter.
+
+```markdown
+<Newsletter />
+```
+
+<Newsletter />
+
+### Testimonials Component
+
+Display customer feedback and testimonials:
+
+```markdown
+<Testimonials count={3} />
+```
+
+<Testimonials count={3} />

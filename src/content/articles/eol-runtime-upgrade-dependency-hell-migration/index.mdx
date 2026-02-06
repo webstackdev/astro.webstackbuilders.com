@@ -1,0 +1,112 @@
+---
+title: "Why Your EOL Upgrade Is Stuck (And How to Unblock It)"
+description: "EOL runtime upgrades stall on dependencies you don't own. Here's how to identify blockers, handle abandoned packages, and force version resolution when you're stuck."
+cover: "./cover.jpg"
+coverAlt: "Application breaking free from old runtimes (Node 16, .NET Framework, CentOS 7) with cut chains, moving upward toward newer runtime versions"
+author: "kevin-brown"
+publishDate: 2025-01-04
+tags: ["system-modernization", "platform-engineering"]
+featured: true
+---
+
+*[EOL]: End of Life
+*[API]: Application Programming Interface
+*[CI]: Continuous Integration
+
+## Introduction
+
+The runtime hits EOL, the calendar says upgrade now, and you try to bump the version. Then it starts: a dependency fails to install, a native module won't compile, a transitive package you've never heard of throws cryptic errors. Welcome to dependency hell.
+
+Here's the uncomfortable truth: the blocker is almost never your code. It's the packages you don't call directly—three or four levels deep in the dependency tree—that stall your upgrade. Your direct dependencies all claim Node 20 support, but somewhere in that transitive graph, a package ships a native binary compiled against Node 16 headers. You're blocked by code you don't own and have never looked at.
+
+An EOL runtime upgrade isn't a version bump. It's a forced audit of your entire dependency graph. The longer the gap between your current runtime and the supported version, the more compounding breakage you inherit: abandoned libraries, renamed packages, removed APIs, and binaries that no longer compile. Every day past EOL is a day your runtime won't receive security patches. The question isn't _whether_ to upgrade, but how fast you can safely do it.
+
+This article is about finding the real blockers, dealing with packages no one maintains anymore, and forcing resolution when upstream can't help you.
+
+## Mapping the Dependency Graph
+
+Before touching any code, you need to understand what you're actually upgrading. Most teams dramatically underestimate their dependency surface. They look at their package.json and see maybe twenty direct dependencies. That's the visible part. The iceberg below the waterline is the transitive graph—the dependencies of your dependencies, often numbering in the hundreds.
+
+This matters because a single incompatible package anywhere in that tree blocks the entire upgrade. You can have perfect compatibility in your code and in every package you directly reference. But if one of those packages depends on something that depends on something else that ships a binary compiled against an old runtime, you're stuck.
+
+Your first step is making this hidden graph visible. Every package manager provides tooling to dump the full tree: `npm ls --all`, `dotnet list package --include-transitive`, or `pipdeptree` for Python. The `npm explain <package-name>` command is particularly useful when you've already identified a problematic package—it shows the full path from your application to the blocker, telling you which direct dependency you need to upgrade or replace.
+
+Once you have visibility, classify blockers by type. Not all incompatibilities are equal. Native modules that ship compiled binaries are usually the most painful—the classic example is `node-sass`, which bundles LibSass compiled for a specific Node version. Deprecated packages often have well-documented replacements. Internal packages maintained by your organization become coordination problems across teams. Abandoned packages with no updates in years are the hardest: no one is coming to fix them for you.
+
+### Sequencing the Work
+
+The order matters. The general pattern I follow:
+
+1. __Unblock first.__ Eliminate packages that have no path forward on the new runtime. If you're stuck on Node 16 because of `node-sass`, replacing it with Dart Sass is the first step—not because it's the most important change, but because everything else depends on it. These blockers sit at the bottom of your dependency graph, and until they're gone, you cannot move.
+
+2. __Upgrade core dependencies.__ These are the major libraries that define your application's architecture: your ORM, your web framework, your authentication library. They often have breaking changes between major versions, but they're also well-documented, with migration guides and changelogs. Do these upgrades _while you're still on the old runtime_. That way, if something breaks, you know it's the library upgrade, not the runtime change.
+
+3. __Change the runtime last.__ By the time you change the Node version or .NET target framework, every dependency should already be compatible. The runtime switch itself should be anticlimactic—a container base image change and a CI configuration update. If you've done the preparation correctly, your tests pass on the first try.
+
+<Callout type="warning">
+Don't skip intermediate versions when the gap is large. Jumping from Node 14 to Node 20 means debugging breakage from three major versions simultaneously. Go 14 → 16 → 18 → 20, validating at each step. The extra time is worth the clarity.
+</Callout>
+
+## Handling Abandoned Dependencies
+
+Eventually you'll encounter a dependency that has no path forward: no version compatible with your target runtime, no maintained fork, no drop-in replacement. The maintainer has moved on, the repository is archived, and your upgrade is blocked by code that no one owns.
+
+Not every old package is abandoned. Some packages are simply stable—they do one thing well, they're done, and they don't need updates. The signal isn't age alone; it's the combination of age, unresponsiveness, and incompatibility. Red flags include: no releases in two or more years, open issues with no maintainer response, and—most relevant to EOL upgrades—failure to work on current runtime versions.
+
+Your options, roughly in order of preference:
+
+__Find a replacement.__ Many abandoned packages have actively maintained alternatives. The `request` library, which powered half the Node ecosystem for years, was deprecated in 2020. Its replacements—`node-fetch`, `axios`, `got`—are well documented and widely adopted. Search for "[package name] alternative" or check the npm deprecation notice for suggestions.
+
+__Upgrade to a compatible version.__ Sometimes the package isn't abandoned; you're just on an old version. Check whether a newer major version exists that supports your target runtime.
+
+__Fork and patch.__ If the package is abandoned and has no replacement, fork it to your organization, apply the minimal fixes needed for runtime compatibility, and publish it under your own scope. The `npm:` prefix lets you alias the fork to the original package name, so you don't need to update import statements throughout your codebase.
+
+__Vendor the code.__ For small packages with simple functionality, copying the source into your repository may be simpler than maintaining a fork. Put it in a `vendor/` directory and apply whatever patches you need.
+
+__Rewrite.__ If the package's functionality is narrow and well-defined, writing a replacement yourself may be faster than maintaining someone else's code. Many utility packages are just a few functions you could implement in an afternoon.
+
+<Callout type="warning">
+Forking means you own it. Before forking, calculate the true cost: security monitoring, compatibility testing, responding to issues. Sometimes paying for a commercial alternative is cheaper than maintaining a fork.
+</Callout>
+
+## Forcing Version Resolution
+
+Replacements and forks solve the long-term problem, but sometimes you need a fix today. A transitive dependency has a vulnerability, a package deep in your tree is incompatible with your target runtime, or you need to substitute a fork for an abandoned package. Every modern package manager provides mechanisms to override dependency resolution.
+
+In npm, use the `overrides` field in package.json:
+
+```json title="package.json"
+{
+  "overrides": {
+    "vulnerable-package": "^2.1.0",
+    "parent-package": {
+      "nested-vulnerable-package": "^3.0.0"
+    }
+  }
+}
+```
+Code: Global override vs. parent-scoped override patterns.
+
+The first pattern forces that version everywhere it appears in the tree. The second pattern forces the version only when it's required by a specific parent package—useful when different parts of your tree need different versions. Yarn uses `"resolutions"` with similar syntax.
+
+When you need to change the code itself—not just which version is installed—the `patch-package` tool makes this practical. Edit the problematic file directly in node_modules, run `npx patch-package <package-name>`, and the tool creates a diff file in a `patches/` directory. These patches are applied automatically after every `npm install`, so your fixes persist across reinstalls and work for your entire team.
+
+<Callout type="info">
+Overrides and patches are temporary measures, not permanent solutions. Track patched packages in your backlog and set calendar reminders to check quarterly. When the upstream fix is released, remove the patch and upgrade properly.
+</Callout>
+
+## Conclusion
+
+The teams that struggle with EOL upgrades wait until the deadline is imminent, then try to do everything at once. The teams that handle them smoothly treat upgrades as continuous maintenance—small, frequent updates rather than multi-year gaps that accumulate compounding breakage.
+
+The approach that works: map the dependency graph before you start writing code. Identify and classify blockers by type. Sequence the work so that unblocking changes come first, core library upgrades come second, and the runtime change itself comes last. Test against both old and new runtimes in CI throughout the project.
+
+The overrides, patches, and forks described in this article are stopgaps, not destinations. They buy time for a proper fix while keeping you off EOL runtimes. If you find yourself maintaining patched dependencies for months, that's a signal to invest in proper replacement or contribute the fix upstream.
+
+Remember: the blocker is almost never your code. Once you accept that and start looking three or four levels deep in the dependency tree, the path forward becomes clear.
+
+---
+
+__Go Deeper: The Complete EOL Upgrade Playbook__
+
+This article covers the core strategies for unblocking stuck upgrades. The full guide includes detailed coverage of .NET Framework to .NET Core migration, Node.js version-specific breaking changes, Linux distribution upgrades and the glibc problem, CI matrix testing for compatibility validation, and a complete upgrade runbook template with pre-flight checklists and rollback procedures. Download the PDF for the complete methodology.

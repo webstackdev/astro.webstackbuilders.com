@@ -24,6 +24,7 @@ vi.mock('@components/scripts/errors', async () => {
 vi.mock('@components/scripts/store', () => ({
   initConsentFromCookies: vi.fn(),
   initConsentSideEffects: vi.fn(),
+  initHeaderSearchSideEffects: vi.fn(),
   initAnimationLifecycle: vi.fn(),
   exposeStoreActionsForTesting: vi.fn(),
   $hasFunctionalConsent: {
@@ -53,6 +54,7 @@ vi.mock('@components/scripts/utils/environmentClient', () => mockEnvironmentClie
 import {
   initConsentFromCookies,
   initConsentSideEffects,
+  initHeaderSearchSideEffects,
   initAnimationLifecycle,
   exposeStoreActionsForTesting,
 } from '@components/scripts/store'
@@ -77,6 +79,7 @@ const consoleInfoSpy = vi.spyOn(console, 'info').mockImplementation(() => {})
 const mockSuccessfulInit = () => {
   vi.mocked(initConsentFromCookies).mockReturnValue(undefined)
   vi.mocked(initConsentSideEffects).mockReturnValue(undefined)
+  vi.mocked(initHeaderSearchSideEffects).mockReturnValue(undefined)
   vi.mocked(initAnimationLifecycle).mockReturnValue(undefined)
   vi.mocked(exposeStoreActionsForTesting).mockReturnValue(undefined)
 }

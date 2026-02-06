@@ -25,7 +25,7 @@ describe('SocialShareElement selectors', () => {
           url: 'https://example.com/article',
           title: 'Demo article',
           description: 'Example summary',
-          socialNetworks: ['twitter', 'linkedin'],
+          socialNetworks: ['x', 'linkedin'],
         },
       },
       waitForReady: async (element: SocialShareElementInstance) => {
@@ -55,7 +55,7 @@ describe('SocialShareElement selectors', () => {
         expect(
           shareIds,
           'SocialShareElement should render [data-share] attributes for each network'
-        ).toEqual(expect.arrayContaining(['twitter', 'linkedin']))
+        ).toEqual(expect.arrayContaining(['x', 'linkedin']))
       },
     })
   })

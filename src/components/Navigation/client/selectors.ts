@@ -26,6 +26,8 @@ export const SELECTORS = {
   toggleBtn: '.nav-toggle-btn',
   /** Mobile splash <div> */
   splash: '#mobile-splash',
+  /** Mobile splash backdrop <div> */
+  splashBackdrop: '#mobile-splash-backdrop',
   /** Focus trap container for mobile navigation */
   focusContainer: '#mobile-nav-focus-container',
   /** All navigation links */
@@ -63,6 +65,19 @@ export const getMobileSplashElement = (): HTMLDivElement => {
     })
   }
   return splash
+}
+
+/**
+ * Getter for the mobile splash backdrop <div> HTML element
+ */
+export const getMobileSplashBackdropElement = (): HTMLDivElement => {
+  const backdrop = document.querySelector(SELECTORS.splashBackdrop)
+  if (!isDivElement(backdrop)) {
+    throw new ClientScriptError({
+      message: `Mobile nav splash backdrop <div> is missing in document, selector: ${SELECTORS.splashBackdrop}`,
+    })
+  }
+  return backdrop
 }
 
 /**

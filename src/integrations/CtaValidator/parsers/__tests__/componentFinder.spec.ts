@@ -20,7 +20,7 @@ describe('generateImportPatterns', () => {
   })
 
   it('should not include import statement patterns', () => {
-    const patterns = generateImportPatterns('Featured', 'src/components/CallToAction')
+    const patterns = generateImportPatterns('Download', 'src/components/CallToAction')
 
     // Should only have component tags, not import patterns
     expect(patterns).not.toContain('import')

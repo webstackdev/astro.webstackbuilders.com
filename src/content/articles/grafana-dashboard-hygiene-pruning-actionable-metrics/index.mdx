@@ -1,0 +1,119 @@
+---
+title: "Dashboard Rot: Why Grafana Has 500 Unused Dashboards"
+description: "A data-driven framework for identifying which dashboards to keep, archive, or delete—and how to make cleanup stick."
+cover: "./cover.jpg"
+coverAlt: "Library with organized and neglected sections, librarian curating books into archive and discard piles, representing dashboard hygiene and metric pruning"
+author: "kevin-brown"
+publishDate: 2025-03-02
+tags: ["observability-and-telemetry"]
+featured: true
+---
+
+*[SLO]: Service Level Objective
+*[MTTR]: Mean Time To Recovery
+*[API]: Application Programming Interface
+
+It's 3 AM and the payments service is down. The on-call engineer opens Grafana, searches for "payments," and finds 47 results. Some are personal experiments from an engineer who left two years ago. Some are labeled "Copy of Copy of Payments Dashboard." Some show metrics from a version of the service that was deprecated in 2022. Ten minutes into the incident, they still haven't found the authoritative payments dashboard.
+
+This scenario plays out constantly. Grafana makes it trivially easy to create dashboards—as it should—but nobody deletes them. Over time, organizations accumulate hundreds of dashboards: unowned, outdated, or unused. Engineers waste time searching through noise, critical dashboards get buried in clutter, and stale dashboards actively mislead. That "Payments Health" dashboard showing all green? It's pulling from a datasource that was decommissioned six months ago.
+
+The proliferation that seemed harmless has now extended your MTTR. You need a data-driven approach to identify which dashboards to keep—and the cultural changes to make cleanup stick.
+
+<Callout type="warning">
+Every dashboard you create is a promise to maintain it. Dashboards without owners become misleading artifacts—they show stale data, use deprecated metrics, and waste time during incidents when accuracy matters most.
+</Callout>
+
+## Why Dashboards Accumulate
+
+Dashboard accumulation isn't anyone's fault—it's a natural consequence of how teams work. Every dashboard enters your inventory through a legitimate path, and almost none ever leave.
+
+_New services get dashboards_. When a team launches a service, they create a dashboard for it. But when the service is deprecated or merged into another, the dashboard stays. Nobody thinks to delete it because nobody's tracking which dashboards map to which services.
+
+_Incidents spawn debug dashboards_. During an outage, someone creates "DEBUG - payment latency investigation" to correlate metrics. The incident gets resolved. The dashboard sits there forever because deleting it feels like destroying evidence. Six months later, there are forty "DEBUG-" dashboards, and nobody remembers what any of them were investigating.
+
+_Cloning is easier than customizing_. An engineer wants the payments dashboard but with their team's specific filters. They clone it. Now there are two dashboards. The original gets updated; the clone diverges. Next quarter, there are seven variants, all slightly different, none clearly authoritative.
+
+_Teams reorganize but dashboards don't_. When Platform Team A splits into Platform Infra and Platform Services, nobody updates dashboard ownership. The dashboards from the old team become orphans. People are reluctant to touch them because "Platform Team A" might still need them—even though that team no longer exists.
+
+_Nobody deletes anything_. Deletion feels risky. What if someone needs it? The safe choice is always to keep it. Multiply this instinct across an organization and you guarantee accumulation.
+
+| Dashboard Type | Creation Frequency | Typical Lifespan | Deletion Rate |
+|----------------|-------------------|------------------|---------------|
+| Service overview | Once per service | Years | < 5% ever deleted |
+| Incident debug | Every incident | Should be days | < 1% deleted |
+| Feature launch | Per feature | Should be weeks | < 10% deleted |
+| Personal exploration | Frequently | Should be hours | < 5% deleted |
+| Team clones | Per team | Forever (diverges) | Never |
+
+Table: Dashboard types and their lifecycle patterns.
+
+The asymmetry is stark: creating a dashboard takes minutes, deciding to delete one feels like it requires a committee.
+
+Beyond the clutter, dashboards aren't free. Every panel issues queries to your backend—Prometheus, InfluxDB, your SQL warehouse. A dashboard with 20 panels viewed by 50 people triggers 1,000 queries every refresh cycle. Grafana-managed alerts linked to dashboard panels run continuously, checking for firing conditions even when nobody's watching. That DEBUG dashboard from last quarter? Its alert rules are still querying your metrics database every minute.
+
+## Measuring Dashboard Health
+
+You can't make evidence-based decisions about what to keep or delete without usage data. The first step in any hygiene program is instrumenting your Grafana instance to track who's looking at what.
+
+For each dashboard, you need four categories of metrics:
+
+_View metrics_ tell you whether anyone actually looks at this dashboard. Track views in the last 30 days, unique viewers (one person looking 50 times is different from 50 people looking once), and the last viewed date. A dashboard that hasn't been viewed in 90 days is a strong deletion candidate.
+
+_Edit metrics_ indicate maintenance activity. Track the last edit date, total edit count (the version number), and who made the last edit. A dashboard that was created two years ago and never edited is likely stale—either it's perfect (unlikely) or it's been abandoned.
+
+_Ownership metadata_ identifies who's responsible. Look for owner tags, team assignments, and the original creator. Dashboards without clear ownership are the hardest to make decisions about because nobody feels empowered to delete them.
+
+_Quality indicators_ flag technical problems. Count broken panels (those referencing deleted datasources), total panel count (excessive complexity suggests the dashboard should be split), and check for common naming anti-patterns like "Copy of" or "test" in the title.
+
+Grafana Enterprise includes usage statistics out of the box. For Grafana OSS, you can track views through API audit logs, a reverse proxy that logs dashboard access, or custom middleware. The implementation details matter less than having _some_ data to work with.
+
+## Calculating Health Scores
+
+Raw metrics are useful but overwhelming when you have hundreds of dashboards. A composite health score (0-100) lets you quickly identify candidates for review.
+
+A reasonable weighting:
+
+- _Usage score (35%)_: Based on views and unique viewers in the last 30 days. Zero views scores zero; 100+ views with 10+ unique viewers scores full marks.
+- _Freshness score (25%)_: Based on time since last edit. Edited in the last 30 days scores 100; over a year without edits scores 0.
+- _Ownership score (25%)_: Has an assigned owner? Has a team tag? Has any tags at all? Each adds points.
+- _Quality score (15%)_: Penalize broken panels heavily (they actively mislead), excessive complexity (30+ panels), and suspiciously simple dashboards (fewer than 3 panels might be incomplete).
+
+Beyond the numeric score, flag dashboards with specific problems: "no-recent-views," "stale," "no-owner," "broken-panels," "unmaintained," "likely-clone" (title contains "copy"), or "incident-artifact" (title contains "debug").
+
+These flags help prioritize review. A dashboard scoring 40 with "broken-panels" needs immediate attention—it's actively misleading anyone who looks at it. A dashboard scoring 40 with "no-recent-views" can wait for the next cleanup cycle.
+
+<Callout type="success">
+Automate usage tracking from day one. Without data, hygiene decisions become political debates instead of evidence-based choices. "Nobody uses this dashboard" is much more persuasive when you can prove it with numbers.
+</Callout>
+
+## Making Cleanup Stick
+
+Process alone won't fix dashboard rot. People hoard dashboards because deletion feels risky and there's no reward for tidiness. You need to change the incentives—and have responses ready for the inevitable objections.
+
+_"I might need it someday."_ Archive, don't delete. Keep the JSON export for 90 days. If you need it, you can restore it. In three years of cleanups, most organizations see fewer than 1% of archived dashboards ever requested back.
+
+_"It's not hurting anyone."_ It is. During incidents, engineers waste time finding the right dashboard among dozens of stale results. Document your own incident data to make this argument concrete—if your last outage included 8 minutes searching for the right dashboard, that's 8 minutes of extended downtime.
+
+_"I don't have time."_ The hygiene automation handles 80% of cases. Dashboard owners only need to review dashboards flagged for their attention—usually 5-10 per quarter. Most reviews take under a minute each.
+
+_"Someone else might use it."_ Usage data shows nobody has viewed this in 6 months. If someone needs it, they'll create their own—which they'd do anyway since this one is outdated.
+
+_"It's my personal dashboard."_ Great! Move it to your Personal folder. Personal dashboards are exempt from cleanup but won't clutter team search results.
+
+The cultural shift matters more than the tooling. Celebrate deletion—a monthly "cleanest team" recognition creates positive peer pressure. Track dashboard count as a negative metric (lower is better). Make templates so easy to use that people stop clinging to old dashboards "just in case" they can't recreate them. When people leave teams, include dashboard ownership in offboarding checklists so their dashboards get flagged for review within a week, not discovered during the next cleanup campaign.
+
+<Callout type="warning">
+The biggest obstacle to dashboard hygiene isn't technical—it's cultural. People hoard dashboards because deletion feels risky and there's no reward for tidiness. Address the incentives, not just the process.
+</Callout>
+
+## Getting Started
+
+Dashboard hygiene isn't a one-time project. It's ongoing maintenance, like any other operational practice.
+
+If you do nothing else: implement usage tracking and run one cleanup campaign. Those two actions will give you the data to make informed decisions and the momentum to build a sustainable hygiene practice.
+
+The goal isn't the smallest possible dashboard count. It's ensuring that every dashboard that exists is accurate, maintained, and serves a clear purpose. When an engineer searches for "payments" during an incident, they should find 3 relevant dashboards, not 30 stale ones.
+
+---
+
+Want the complete implementation playbook? The full guide covers governance policies, dashboards-as-code patterns, a step-by-step pruning decision tree, cleanup campaign timelines with expected results, and responses to every objection you'll encounter. Download the PDF to get started.

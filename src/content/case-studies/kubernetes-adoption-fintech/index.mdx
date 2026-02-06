@@ -1,0 +1,125 @@
+---
+title: "Kubernetes Adoption for a High-Volume Payment Processor"
+description: "Migrating 40+ microservices from EC2 instances to EKS while maintaining PCI compliance and sub-100ms latency requirements"
+cover: "./cover.jpg"
+coverAlt: "Kubernetes helm steering through financial data streams with security shields and compliance checkmarks"
+client: "Payment Processing Fintech"
+duration: "9 months"
+industry: "Financial Services"
+projectType: "Kubernetes Adoption"
+publishDate: 2024-07-10
+isDraft: true
+---
+
+## Overview
+
+A payment processing fintech needed to modernize their deployment infrastructure without compromising on PCI compliance or their sub-100ms latency SLAs. Over nine months, we migrated 40+ microservices from EC2 instances to Amazon EKS, reducing deployment cycles from two weeks to multiple times daily while passing their PCI-DSS audit with the new architecture.
+
+## The Challenge
+
+The client processed over 10 million payment transactions daily through a microservices architecture running on EC2 instances. Each service had its own deployment pipeline, its own scaling rules, and its own operational quirks. What had started as a clean architecture had become a sprawling estate of 40+ services that nobody fully understood.
+
+Deployments were painful. A two-week release cycle was the norm—not because they wanted to ship slowly, but because coordinating deployments across services, managing configuration drift, and handling rollbacks manually consumed enormous amounts of engineering time. Teams were afraid to deploy because rolling back meant SSH-ing into instances and manually reverting changes.
+
+The on-call burden was crushing. Engineers were getting paged for issues that container orchestration handles automatically: instance failures, scaling events, health check flapping. Senior engineers were burning out. Two had left in the past six months, citing on-call fatigue.
+
+The constraints made this harder than a typical Kubernetes adoption. PCI-DSS compliance meant we needed network segmentation, encryption in transit, comprehensive audit logging, and strict access controls. The payment processing SLA required sub-100ms P99 latency—we couldn't introduce overhead that would breach that. And the business couldn't tolerate payment failures during migration. Every transaction mattered.
+
+## The Approach
+
+We started with a month of assessment work. I mapped service dependencies, analyzed traffic patterns, and worked with their compliance team to understand exactly what PCI-DSS required in the new architecture. We also evaluated team readiness—Kubernetes has a learning curve, and I needed to know where the gaps were.
+
+The key architectural decisions came out of that assessment:
+
+__EKS over self-managed Kubernetes.__ The team didn't have the capacity to manage control plane operations alongside their regular work. EKS shifted that burden to AWS and gave us a clear compliance story for the control plane.
+
+__Istio for service mesh.__ We needed mTLS between all services for PCI compliance. Istio also gave us traffic management capabilities that would make the migration safer—we could shift traffic gradually between old and new deployments.
+
+__ArgoCD for GitOps.__ Every configuration change would go through Git. This gave us audit trails for compliance, easy rollbacks, and a deployment model the team could understand and trust.
+
+__Karpenter over Cluster Autoscaler.__ Payment traffic has spiky patterns. Karpenter's faster provisioning and bin-packing would handle those spikes better and reduce costs.
+
+The migration happened in four phases over nine months:
+
+| Phase | Months | Focus | Risk Level |
+|-------|--------|-------|------------|
+| Platform foundation | 1-3 | EKS cluster, networking, Istio, observability, CI/CD | Low |
+| Pilot services | 4-5 | Three low-risk internal services | Low-Medium |
+| Batch migration | 6-8 | Remaining services, prioritized by risk and dependency | Medium-High |
+| Compliance certification | 9 | QSA validation, documentation, evidence collection | Low |
+
+Table: Migration phase timeline
+
+Phase 1 built the platform with no production traffic. Phase 2 validated the platform and built team familiarity. Phase 3 migrated services with parallel running and gradual traffic shifting—payment-critical services went last. Phase 4 worked with the QSA to certify the new architecture.
+
+The biggest obstacle was service discovery. Many services had hard-coded IP addresses or relied on EC2 instance metadata. We had to refactor these to use Kubernetes DNS and service abstractions before they could migrate.
+
+## The Solution
+
+The final architecture reflected the tradeoffs between operational simplicity, compliance requirements, and performance:
+
+### Cluster Architecture
+
+We deployed a multi-AZ EKS cluster in us-east-1 with node groups spread across three availability zones. The cluster ran Kubernetes 1.28 with managed add-ons for CoreDNS, kube-proxy, and the VPC CNI.
+
+Karpenter handled node provisioning with provisioners tuned for different workload types. Payment processing services ran on dedicated node pools with instance types selected for consistent performance (no burstable instances). Batch processing and internal tools shared a separate pool that could use spot instances.
+
+### Service Mesh and Security
+
+Istio provided the service mesh layer. Every service-to-service call used mTLS with certificates rotated automatically via Istio's certificate management. This satisfied the PCI requirement for encryption in transit without requiring application changes.
+
+Network policies enforced segmentation. The cardholder data environment (CDE) services could only communicate with explicitly allowed services. Default-deny policies meant new services were isolated until explicitly permitted.
+
+We chose Istio over Linkerd despite Linkerd's simpler operational model. The deciding factors were Istio's more mature authorization policies and its integration with external authorization systems—we needed to enforce fine-grained access controls that Linkerd couldn't support at the time.
+
+### GitOps and Deployment
+
+ArgoCD managed all deployments from a central Git repository. Each service had its own directory with Kubernetes manifests and Kustomize overlays for environment-specific configuration. Deployments happened by merging to the main branch—ArgoCD detected changes and reconciled the cluster state.
+
+We configured ArgoCD with automated sync for staging and manual sync for production. Production deployments required explicit approval in the ArgoCD UI, creating a clear audit trail of who deployed what and when.
+
+The choice of ArgoCD over Flux came down to the UI. The team needed visibility into deployment status without kubectl access. ArgoCD's dashboard let product managers and compliance officers see deployment history without needing cluster credentials.
+
+### Secrets and Configuration
+
+HashiCorp Vault stored all secrets with the Vault Secrets Operator (HashiCorp's official Kubernetes operator) injecting them into pods. This replaced a fragile system of EC2 parameter store lookups and hardcoded credentials in deployment scripts. Vault's audit logging met PCI requirements for tracking access to sensitive configuration.
+
+### Observability
+
+Datadog provided unified metrics, logs, and traces. We instrumented all services with the Datadog agent and configured distributed tracing to follow requests across service boundaries. Custom dashboards showed payment processing latency, error rates, and transaction volumes. Alerts tied into PagerDuty with severity-based routing.
+
+### Tradeoffs We Made
+
+__Istio's overhead.__ Istio adds roughly 2-3ms of latency per hop. For payment processing with a 100ms SLA, this mattered. We accepted it because the security and traffic management benefits outweighed the cost, and the services still met SLA comfortably.
+
+__Managed node groups vs. Karpenter.__ We started with managed node groups for simplicity, then migrated to Karpenter in month 4 when we understood our workload patterns better. Karpenter's flexibility was worth the additional operational complexity.
+
+__Single cluster vs. multi-cluster.__ We considered separate clusters for CDE and non-CDE workloads. The compliance team ultimately accepted namespace-level isolation with network policies, which reduced operational overhead significantly.
+
+## The Results
+
+Nine months after starting, the migration was complete and certified:
+
+| Metric | Before | After | Change |
+|--------|--------|-------|--------|
+| Deployment frequency | Bi-weekly | 15+ daily | 30x improvement |
+| Mean time to recovery | 45 minutes | 8 minutes | 82% reduction |
+| Infrastructure costs | Baseline | -30% | $X00K annual savings |
+| PCI-DSS audit findings | N/A | Zero | Passed |
+| On-call pages | Baseline | -60% | Reduced |
+| P99 latency | 85ms | 72ms | 15% improvement |
+
+Table: Migration outcomes summary
+
+- __Deployment frequency increased from bi-weekly to 15+ times daily.__ Teams now deployed independently without coordinating release windows. Most deployments were fully automated with manual approval only for production.
+- __Mean time to recovery dropped from 45 minutes to 8 minutes.__ Kubernetes self-healing, combined with proper health checks and Istio's traffic management, meant most issues resolved automatically. When human intervention was needed, rollback was a single click in ArgoCD.
+- __Infrastructure costs reduced by 30%.__ Better bin-packing from Karpenter, automatic scaling that actually worked, and elimination of over-provisioned EC2 instances drove the savings.
+- __PCI-DSS audit passed with zero findings.__ The QSA specifically called out the mTLS implementation and audit logging as exemplary.
+- __On-call pages reduced by 60%.__ The self-healing capabilities and improved observability meant engineers weren't woken up for issues the platform could handle itself.
+- __P99 latency improved from 85ms to 72ms.__ Despite Istio's overhead, the consistent performance from dedicated node pools and better resource allocation actually improved latency.
+
+## Key Takeaways
+
+- __Compliance constraints can drive better architecture.__ The PCI requirements forced us to implement mTLS, network segmentation, and comprehensive audit logging. These practices made the system more secure and more observable than it would have been otherwise.
+- __Migrate incrementally with traffic shifting.__ Running old and new systems in parallel with gradual traffic migration eliminated big-bang risk. When we found issues, we shifted traffic back. No customer ever noticed a migration-related problem.
+- __Invest in the platform before migrating workloads.__ The three months we spent building the platform foundation—observability, CI/CD, security controls—before migrating any production traffic paid off. Teams trusted the platform because it was proven before they depended on it.

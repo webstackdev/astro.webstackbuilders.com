@@ -35,8 +35,6 @@ const section = 'Downloads'
   publishDate={download.data.publishDate}
   section={section}
   showToc={false}
-  tags={download.data.tags}
-  {...download.data.readingTime && { readingTime: download.data.readingTime }}
 >
   {
     download.data.cover && (
@@ -62,14 +60,14 @@ const section = 'Downloads'
 
   <!-- Resource Meta Information -->
   <section
-    class="mb-8 p-4 bg-bg-offset rounded-xl border border-border"
+    class="mb-8 p-4 bg-page-base-offset rounded-xl border border-trim"
     slot="content-prefix"
     aria-label="Resource details"
   >
     <dl class="flex flex-wrap gap-4">
       <div class="flex items-center gap-2">
         <svg
-          class="w-5 h-5 text-text-offset"
+          class="w-5 h-5 text-content-active"
           aria-hidden="true"
           focusable="false"
           fill="none"
@@ -84,13 +82,13 @@ const section = 'Downloads'
           ></path>
         </svg>
         <dt class="sr-only">File type</dt>
-        <dd class="text-sm font-medium text-text">{download.data.fileType}</dd>
+        <dd class="text-sm font-medium">{download.data.fileType}</dd>
       </div>
       {
         download.data.fileSize && (
           <div class="flex items-center gap-2">
             <svg
-              class="w-5 h-5 text-text-offset"
+              class="w-5 h-5 text-content-active"
               aria-hidden="true"
               focusable="false"
               fill="none"
@@ -105,7 +103,7 @@ const section = 'Downloads'
               />
             </svg>
             <dt class="sr-only">File size</dt>
-            <dd class="text-sm text-text-offset">{download.data.fileSize}</dd>
+            <dd class="text-sm text-content-active">{download.data.fileSize}</dd>
           </div>
         )
       }
@@ -113,7 +111,7 @@ const section = 'Downloads'
         download.data.pages && (
           <div class="flex items-center gap-2">
             <svg
-              class="w-5 h-5 text-text-offset"
+              class="w-5 h-5 text-content-active"
               aria-hidden="true"
               focusable="false"
               fill="none"
@@ -128,30 +126,7 @@ const section = 'Downloads'
               />
             </svg>
             <dt class="sr-only">Pages</dt>
-            <dd class="text-sm text-text-offset">{download.data.pages} pages</dd>
-          </div>
-        )
-      }
-      {
-        download.data.readingTime && (
-          <div class="flex items-center gap-2">
-            <svg
-              class="w-5 h-5 text-text-offset"
-              aria-hidden="true"
-              focusable="false"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <dt class="sr-only">Reading time</dt>
-            <dd class="text-sm text-text-offset">{download.data.readingTime}</dd>
+            <dd class="text-sm text-content-active">{download.data.pages} pages</dd>
           </div>
         )
       }
@@ -159,7 +134,7 @@ const section = 'Downloads'
   </section>
 
   <!-- Download Form -->
-  <section class="border-t border-border pt-12 mt-12" slot="after-content" aria-label="Download">
+  <section class="border-t border-trim pt-12 mt-12" slot="after-content" aria-label="Download">
     <DownloadForm
       title={download.data.title}
       fileName={download.data.fileName}

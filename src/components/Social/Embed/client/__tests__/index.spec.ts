@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import SocialEmbed from '@components/Social/Embed/index.astro'
 import LinkedInFixture from '@components/Social/Embed/client/__fixtures__/linkedin.fixture.astro'
-import type { SocialEmbedElement } from '@components/Social/Embed/webComponent'
+import type { SocialEmbedElement } from '@components/Social/Embed/client/webComponent'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { executeRender } from '@test/unit/helpers/litRuntime'
 
@@ -83,11 +83,11 @@ describe('SocialEmbed component', () => {
   })
 
   test('syncs dataset attributes when url or platform change after render', async () => {
-    const url = 'https://reddit.com/r/webdev/comments/abc123'
-    const updatedUrl = 'https://reddit.com/r/webdev/comments/xyz789'
+    const url = 'https://codepen.io/webstackdev/pen/JaEgxM'
+    const updatedUrl = 'https://codepen.io/webstackdev/pen/0OEqyQ'
 
-    await renderComponent({ url, platform: 'reddit' }, async ({ element }) => {
-      expect(element.dataset['embedPlatform']).toBe('reddit')
+    await renderComponent({ url, platform: 'codepen' }, async ({ element }) => {
+      expect(element.dataset['embedPlatform']).toBe('codepen')
       expect(element.dataset['embedUrl']).toBe(url)
 
       element.url = updatedUrl

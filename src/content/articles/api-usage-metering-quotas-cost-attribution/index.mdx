@@ -1,0 +1,254 @@
+---
+title: "Stop Flying Blind: How to Meter and Control API Usage"
+description: "You can't manage API costs you don't measure. Here's how to build the metering and quota foundation most teams skip."
+cover: "./cover.jpg"
+coverAlt: "Data flowing through metering pipeline with API requests passing through measurement gates and aggregating into usage buckets for cost calculations"
+author: "kevin-brown"
+publishDate: 2023-08-06
+tags: ["apis-and-gateways"]
+featured: true
+---
+
+import Callout from '@components/Callout/index.astro'
+
+*[API]: Application Programming Interface
+*[SaaS]: Software as a Service
+*[QPS]: Queries Per Second
+
+## Introduction
+
+Last year I watched a finance director lose his mind during a quarterly budget review. His team's infrastructure costs had doubled, but when he asked engineering why, nobody could answer. The problem wasn't capacity—it was one internal team consuming 80% of an API's capacity while costs were split evenly across six teams. The heavy user's budget allocation: $15,000. Their actual cost: $120,000. The other five teams were subsidizing them, and nobody knew.
+
+This isn't a billing problem—it's a visibility problem. Without measurement, you're guessing at capacity planning, pricing decisions become political negotiations, and cost allocation is fiction. APIs aren't free to operate. Every request costs compute time, network transfer, and storage. Usage patterns vary wildly: one consumer might make 100 requests per day, another 10 million.
+
+The pattern I've seen repeatedly: teams build APIs focused on functionality, ship them, then realize months later they can't answer basic questions. Which team is driving costs? Which endpoints are expensive? Should we charge for this feature? By then, changing the contract is organizational surgery.
+
+Here's the foundation you need: usage metering and quota enforcement. Get these right and everything else—billing, cost attribution, pricing models—becomes straightforward. Skip them and you're flying blind.
+
+## Building the Metering Pipeline
+
+### What to Meter
+
+The dimensions you capture become your billable units and cost attribution keys. Start with six essential dimensions:
+
+1. **Request count** - Basic usage tracking, quota enforcement
+2. **Endpoint/route** - Cost per feature, optimization targets
+3. **Compute time** - Processing-intensive API pricing
+4. **Data transfer** - Bandwidth costs, egress pricing
+5. **Consumer ID** - Per-team/customer attribution
+6. **Response status** - Error rate tracking, retry detection
+
+You don't need all six on day one. Start with request count and consumer ID—that gets you 80% of the value. Add compute time and data transfer once you understand usage patterns. The endpoint dimension becomes critical when you realize one route costs 10x more than others.
+
+I've seen teams overthink this and try to meter everything: request payload size, database query count, cache hit rates, memory usage. Don't. More dimensions mean more storage, more complex aggregation, and harder-to-explain bills. Meter what you'll actually use for pricing or optimization decisions.
+
+### Architecture: Async Metering
+
+The critical architectural decision: meter asynchronously. Don't block API responses waiting for usage events to be written. Emit events to a message queue, process them in the background, aggregate them into time-series storage.
+
+```yaml title="metering-architecture.yaml"
+# Example architecture using AWS services
+api_gateway:
+  on_request_complete:
+    - emit_usage_event_to_sqs
+
+metering_pipeline:
+  event_source: sqs_queue
+  processor: lambda_function
+  aggregator:
+    schedule: every_5_minutes
+    writes_to: timestream
+  storage:
+    time_series: timestream  # or TimescaleDB, ClickHouse
+    retention: 90_days
+```
+
+Code: Async metering architecture with AWS SQS and Timestream.
+
+The flow: API Gateway emits usage events → SQS queues them → Lambda processes and validates events → aggregator runs every 5 minutes to roll up counts → Timestream stores the time-series data for 90 days. This architecture keeps the API fast while ensuring usage data is eventually consistent.
+
+Why async matters: if your metering database goes down, your API stays up. Usage events queue up and get processed when the database recovers. The alternative—synchronous metering—means every API request waits for a database write. That's 20-50ms of added latency and a single point of failure.
+
+The tradeoff: slight delay in quota enforcement. If you're aggregating usage every 5 minutes, a consumer could exceed their quota by up to 5 minutes of usage before you catch it. For most use cases, that's acceptable. If you need real-time enforcement, use a separate quota counter (covered in the next section) that's independent of your metering pipeline.
+
+<Callout type="warning">
+Synchronous metering blocks every API request on a database write. Use async metering with a message queue to keep your API fast and resilient.
+</Callout>
+
+### The Event Schema
+
+Your usage event schema needs enough detail to answer questions without storing everything. Here's a working schema:
+
+```json title="usage-event-schema.json"
+{
+  "event_id": "evt_1a2b3c4d5e6f",
+  "consumer_id": "team-data-platform",
+  "timestamp": "2024-02-01T14:32:15.423Z",
+  "request": {
+    "method": "POST",
+    "endpoint": "/v2/users/search",
+    "status_code": 200,
+    "duration_ms": 142
+  },
+  "usage": {
+    "compute_seconds": 0.142,
+    "response_bytes": 8192,
+    "request_bytes": 512
+  },
+  "metadata": {
+    "region": "us-east-1",
+    "api_version": "v2"
+  }
+}
+```
+
+Code: Usage event schema with request details and billable dimensions.
+
+The `event_id` is critical for deduplication. If your queue consumer retries processing an event, the ID prevents double-counting. Store events in a time-series database with an index on `(consumer_id, timestamp)` for fast aggregation queries.
+
+### Handling Deduplication
+
+That `event_id` field isn't optional—it's your defense against the most common metering bug I've seen: double-counting usage due to retries. A consumer's client library retries a failed request. Your API processes both attempts. Without deduplication, you bill twice.
+
+Two approaches work:
+
+**Idempotency keys**: Use the `event_id` as a unique constraint. When inserting usage events, PostgreSQL's `ON CONFLICT DO NOTHING` prevents duplicates:
+
+```sql title="idempotent-insert.sql"
+INSERT INTO usage_events (
+    event_id, consumer_id, timestamp,
+    endpoint, compute_seconds, response_bytes
+)
+VALUES (
+    'evt_1a2b3c4d5e', 'team-analytics',
+    '2024-02-01T14:32:15.423Z', '/v2/search',
+    0.142, 8192
+)
+ON CONFLICT (event_id) DO NOTHING;
+```
+
+Code: Idempotent insertion using unique constraint on event_id.
+
+**Time-window deduplication**: Check if the same event appeared in the last 24 hours before inserting. Simpler for time-series databases without unique constraints, but less precise. If a retry crosses the window boundary, you count it twice.
+
+Pick idempotency keys if you're using PostgreSQL or TimescaleDB—they support unique constraints natively and give you exact deduplication. Use time-window deduplication if you're on ClickHouse or Prometheus where unique constraints aren't available. The storage cost of keeping event IDs is negligible compared to the cost of billing disputes.
+
+## Enforcing Quotas Before Costs Explode
+
+### Rate Limits vs Quotas
+
+Most teams conflate rate limiting and quota enforcement. They're different tools for different problems:
+
+| Mechanism | Time Window | Purpose |
+|-----------|-------------|---------|
+| Rate limiting | Per-second/minute | Protect infrastructure |
+| Quota enforcement | Per-day/month | Control costs |
+
+Table: Rate limiting protects infrastructure; quotas control costs.
+
+A consumer might have a rate limit of 100 requests per second (prevents overwhelming your API with bursts) and a monthly quota of 10 million requests (prevents consuming resources beyond their plan tier). You need both. The rate limit is infrastructure protection. The quota is cost control.
+
+I've seen APIs with aggressive rate limits (10 rps) but no monthly quotas. Result: consumers hit rate limits constantly but never exceed their plan tier. Frustrating for developers who can't understand why their requests fail. The inverse—monthly quotas with no rate limits—lets a single consumer's retry storm take down your entire API. Balance them.
+
+### The Quota Counter Implementation
+
+The quota counter runs separately from your metering pipeline. It needs to be fast (< 5ms response time) and atomic (no race conditions in distributed systems). Redis with Lua scripts is a proven pattern that handles these requirements well.
+
+Why Lua? Redis executes Lua scripts atomically—no other operations can interleave. Without atomicity, you get race conditions: two requests check quota simultaneously, both see 9,999,999 usage when the limit is 10,000,000, both increment, and the consumer exceeds their quota. The Lua script prevents this.
+
+```python title="quota-counter.py"
+from typing import Dict, Union
+
+def check_and_increment_quota(consumer_id: str, quota_limit: int) -> Dict[str, Union[bool, int]]:
+    """
+    Atomically check quota and increment usage counter in Redis.
+    Lua script runs server-side for atomic execution.
+    """
+    period = "2024-02"  # Current billing period
+    key = f"quota:{consumer_id}:{period}"
+
+    # Lua script runs atomically on Redis server
+    lua_script = """
+    local current = tonumber(redis.call('GET', KEYS[1]) or '0')
+    local limit = tonumber(ARGV[1])
+
+    if current >= limit then
+        return {0, current}  -- Deny, return current usage
+    end
+
+    redis.call('INCR', KEYS[1])
+    redis.call('EXPIRE', KEYS[1], 2678400)  -- 31 days
+    return {1, current + 1}  -- Allow, return new usage
+    """
+    # End Lua script
+
+    result = redis_client.eval(lua_script, 1, key, quota_limit)
+    allowed = result[0] == 1
+    current_usage = result[1]
+
+    return {
+        "allowed": allowed,
+        "current_usage": current_usage,
+        "quota_limit": quota_limit,
+        "remaining": quota_limit - current_usage
+    }
+```
+
+Code: Atomic quota counter using Redis with embedded Lua script.
+
+The `EXPIRE` command sets a 31-day TTL on the quota key. When the billing period ends, the key automatically expires and resets to zero. No cron job needed.
+
+### Communicating Quota Status
+
+Consumers need visibility into their quota before they hit limits. Use HTTP headers in every API response:
+
+```http title="quota-response-headers.http"
+HTTP/1.1 200 OK
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 87
+X-RateLimit-Reset: 1705320000
+X-Quota-Limit: 10000000
+X-Quota-Used: 4523891
+X-Quota-Remaining: 5476109
+X-Quota-Reset: 2024-03-01T00:00:00Z
+```
+
+Code: Response headers showing both rate limit and quota status.
+
+Note: This example includes both rate limit headers (X-RateLimit-*) for short-term throttling and quota headers (X-Quota-*) for longer-term cost control. You'd implement both systems in production.
+
+This pattern is borrowed from GitHub's API. Every response includes quota headers. Consumers check their status without making a separate API call. The reset timestamp is critical—it tells them when the quota refreshes.
+
+Send proactive alerts at 50%, 75%, and 90% of quota usage. At 90%, a consumer has time to optimize their code, upgrade their plan, or at least know throttling is coming. Discovering you're rate-limited in production is a terrible user experience.
+
+### When Quotas Reset
+
+When the billing period ends and quotas reset to zero, requests immediately succeed again. The Redis key expires and the counter starts fresh. But watch for clock skew in distributed systems—use a grace period (2-5 minutes) where requests near the reset boundary are allowed even if the counter hasn't fully reset.
+
+Implement this in your application logic: if a request is denied due to quota but the timestamp is within 5 minutes of the period boundary, check if the next period has started. If so, allow the request and count it against the new period. This prevents frustrating "429 errors at midnight" support tickets.
+
+## Getting Started: Your First 30 Days
+
+You don't need to implement everything at once. Here's the path that works:
+
+**Week 1**: Pick your highest-traffic API. Add request count metering only. Emit events to SQS, write to TimescaleDB. Don't enforce anything yet—just capture data.
+
+**Week 2-3**: Deploy a read-only dashboard showing usage by consumer. Sort by request count descending. You'll immediately see patterns: one team making 10x more requests than others, endpoints with unexpected traffic, retry storms from misconfigured clients.
+
+**Week 4**: Identify the obvious problems. That team making 5 million requests per day when everyone else makes 50,000? Talk to them. That endpoint showing 2 million requests but only 100 unique consumers? Investigate why.
+
+Also set up monitoring for the metering pipeline itself: track SQS queue depth, Lambda error rates, and aggregation job success. If events get stuck or aggregation fails, you lose billing data. The metering stack (SQS + Lambda + Timestream) typically costs less than 5% of what you're measuring—a worthwhile investment for visibility.
+
+After 30 days of data, add soft quotas—warnings at 80% and 90% usage. Give teams 2-3 months to optimize before turning on hard enforcement. Skip this gradual rollout and teams feel blindsided.
+
+<Callout type="success">
+Start small: one API, request count only, read-only dashboard. Learn from 30 days of data before adding quotas or other dimensions.
+</Callout>
+
+The mistake I've seen repeatedly: teams try to implement metering, quotas, cost attribution, billing integration, and organizational rollout simultaneously. It's too much. Build the metering foundation first. Everything else becomes easier once you have usage data.
+
+---
+
+**Want the complete implementation guide?** This article covers the foundation—metering and quotas. The full deep-dive includes cost attribution models, billing platform integration (Stripe, AWS Marketplace), organizational rollout strategies, pricing model evolution, dispute handling, and a complete implementation checklist with 20+ code examples.
+
+Download the complete guide: API Cost Management: Metering, Quotas, and Chargebacks

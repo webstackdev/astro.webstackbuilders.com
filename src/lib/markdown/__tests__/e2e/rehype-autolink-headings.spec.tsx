@@ -102,10 +102,12 @@ describe('Layer 3: E2E - rehypeAutolinkHeadings', () => {
   it('should add accessible attributes to anchor links', () => {
     const { container } = render(<MarkdownOutput html={html} />)
 
-    // Anchor links should have aria-hidden or similar for accessibility
-    expect(html).toMatch(/aria-hidden=["']true["']/)
+    // Heading anchor links should have an accessible name (axe: link-name)
+    const headingAnchor = container.querySelector('h1 a,h2 a,h3 a,h4 a,h5 a,h6 a')
+    expect(headingAnchor).toBeTruthy()
+    expect(headingAnchor?.getAttribute('aria-label')).toBeTruthy()
 
-    const ariaHiddenLink = container.querySelector('a[aria-hidden="true"]')
-    expect(ariaHiddenLink).toBeTruthy()
+    // The icon itself should remain hidden from screen readers
+    expect(html).toMatch(/class=["'][^"']*anchor-link[^"']*["'][^>]*aria-hidden=["']true["']/)
   })
 })
