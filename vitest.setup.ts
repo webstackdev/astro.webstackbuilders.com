@@ -117,7 +117,7 @@ const wrapStreamWrite = (stream: NodeJS.WriteStream): void => {
   const isHappyDomYouTubeNoiseStart = (line: string): boolean => {
     const plainLine = stripAnsi(line)
     return (
-      /^.*youtube\.com\/embed\//i.test(plainLine) &&
+      /(^|\b)https?:\/\/(www\.)?youtube\.com\/embed\//i.test(plainLine) &&
       (/Failed to execute "fetch\(\)" on "Window"/i.test(plainLine) ||
         /DOMException \[(AbortError|NetworkError)\]/i.test(plainLine))
     )
