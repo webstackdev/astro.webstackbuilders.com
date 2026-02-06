@@ -8,7 +8,7 @@ order: 2
 
 Consistent engineering capacity at roughly half the intensity of a full workstream. Work happens weekday evenings (EST), which means your full-time team gets uninterrupted focus during business hours while infrastructure improvements still move forward.
 
-This works well for:
+## Good Fit For
 
 - Ongoing platform maintenance and incremental improvements
 - CI/CD pipeline hardening and optimization

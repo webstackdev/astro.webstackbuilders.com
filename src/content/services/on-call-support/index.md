@@ -8,7 +8,7 @@ order: 4
 
 An experienced platform engineer in your on-call rotation. When alerts fire, I respond with the context to triage infrastructure issues quickly—whether it's Kubernetes pod failures, database connection exhaustion, CI/CD pipeline breaks, or cloud service degradation.
 
-This works well when:
+## Good Fit For
 
 - Your team lacks infrastructure depth for after-hours incidents
 - On-call burden is burning out your developers
@@ -25,6 +25,8 @@ This works well when:
 
 ## Pricing
 
-- **Onboarding**: $500 one-time setup fee
-- **Retainer**: $1,500 per week for on-call availability
-- **Active Response**: $150 per hour when responding to incidents (1-hour minimum per incident)
+**Onboarding**: $500 one-time setup fee
+
+**Retainer**: $1,500 per week for on-call availability
+
+**Active Response**: $150 per hour when responding to incidents (1-hour minimum per incident)

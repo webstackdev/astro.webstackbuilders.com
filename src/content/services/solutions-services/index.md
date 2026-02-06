@@ -8,7 +8,7 @@ order: 3
 
 Focused engagements for infrastructure work that has a clear start and end. Unlike ongoing workstreams, these are deliverable-driven: you get a specific output (an architecture document, a migration plan, a security assessment) rather than continuous capacity.
 
-Examples:
+## Good Fit For
 
 - Infrastructure architecture review with recommendations
 - CI/CD pipeline audit and improvement roadmap

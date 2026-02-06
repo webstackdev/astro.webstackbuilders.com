@@ -1,126 +1,33 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro'
-import Hero from '@components/Animations/Hero/index.astro'
+import Backstage from '@components/Home/Backstage/index.astro'
 import Carousel from '@components/Carousel/index.astro'
-import Testimonials from '@components/Testimonials/index.astro'
 import Contact from '@components/CallToAction/Contact/index.astro'
+import Hero from '@components/Animations/Hero/index.astro'
+import Intro from '@components/Home/Intro/index.astro'
 import Newsletter from '@components/CallToAction/Newsletter/index.astro'
+import Skills from '@components/Home/Skills/index.astro'
+import Testimonials from '@components/Testimonials/index.astro'
 
 const pageDescription = 'Webstack Builders, Inc. Home Page'
 const pageTitle = 'Web Development & Digital Solutions - Webstack Builders, Inc.'
-const path = '/'
 ---
 
-<BaseLayout description={pageDescription} pageTitle={pageTitle} path={path}>
+<BaseLayout description={pageDescription} pageTitle={pageTitle} path={'/'}>
   <!-- Hero Section -->
   <Hero
     pretitle="I turn deployment nightmares into one-click operations. Legacy migrations, CI/CD pipelines, observability stacks—built to survive production."
     benefits={["Zero-downtime migrations", "Self-healing infrastructure", "Developer-friendly golden paths"]}
   />
 
-  <!-- About Preview Section -->
-  <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6" aria-labelledby="home-about-title">
-    <div class="text-center space-y-8">
-      <div class="max-w-3xl mx-auto">
-        <h2 id="home-about-title" class="text-3xl md:text-4xl font-bold mb-6">
-          Building the Future of Software Development
-        </h2>
-        <p class="text-xl text-content-active leading-relaxed mb-8">
-          I'm a solo software development agency specializing in platform engineering, cloud
-          architecture, and developer experience optimization. With deep expertise in modern
-          technologies and a focus on scalable solutions, I help businesses transform their
-          technical infrastructure and accelerate development workflows. SOC-2 ready
-        </p>
-      </div>
-
-      <ul class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12 list-none p-0 m-0">
-        <li class="text-center">
-          <div
-            class="w-16 h-16 bg-spotlight bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4"
-          >
-            <svg
-              class="w-8 h-8 text-primary"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-              focusable="false"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-          </div>
-          <h3 class="text-lg font-semibold mb-2">Platform Engineering</h3>
-          <p class="text-content-active text-sm">
-            Scalable infrastructure and developer-first platforms
-          </p>
-        </li>
-
-        <li class="text-center">
-          <div
-            class="w-16 h-16 bg-spotlight bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4"
-          >
-            <svg
-              class="w-8 h-8 text-primary"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-              focusable="false"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-            </svg>
-          </div>
-          <h3 class="text-lg font-semibold mb-2">Cloud Architecture</h3>
-          <p class="text-content-active text-sm">
-            Azure-focused solutions that scale with your business
-          </p>
-        </li>
-
-        <li class="text-center">
-          <div
-            class="w-16 h-16 bg-spotlight bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4"
-          >
-            <svg
-              class="w-8 h-8 stroke-primary text-content"
-              fill="none"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-              focusable="false"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
-            </svg>
-          </div>
-          <h3 class="text-lg font-semibold mb-2">Developer Experience</h3>
-          <p class="text-content-active text-sm">Tools and workflows that empower development teams</p>
-        </li>
-      </ul>
-    </div>
-  </section>
+  <!-- Intro Section -->
+  <Intro />
 
   <!-- Turn-Key Backstage IDP Implementation -->
-  <h2>Turn-Key Backstage IDP Implementation</h2>
-  <div>Some information about turn-key backstage deploys</div>
+  <Backstage />
 
-  <!-- Testimonials Section -->
-  <Testimonials
-    title="What Clients Say"
-    leadText={
-      `Don't just take my word for it - hear from the businesses I've helped ` +
-      `transform their technical infrastructure.`
-    }
-  />
+  <!-- Skills/Technologies Preview -->
+  <Skills />
 
   <!-- Latest Articles Section -->
   <section class="py-16" aria-labelledby="home-latest-insights-title">
@@ -165,8 +72,17 @@ const path = '/'
     </div>
   </section>
 
+  <!-- Testimonials Section -->
+  <Testimonials
+    title="What Clients Say"
+    leadText={
+      `Don't just take my word for it - hear from the businesses I've helped ` +
+      `transform their technical infrastructure.`
+    }
+  />
+
   <!-- Primary CTA Section -->
-  <div class="py-16">
+  <section class="py-16">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
       <Contact
         title="Ready to Transform Your Development Process?"
@@ -175,7 +91,7 @@ const path = '/'
         secondaryLink={{ href: '/services', text: 'Explore Services' }}
       />
     </div>
-  </div>
+  </section>
 
   <!-- Newsletter Signup Section -->
   <section class="bg-page-base-offset py-16">
@@ -186,65 +102,6 @@ const path = '/'
         placeholder="Enter your email address"
         buttonText="Subscribe"
       />
-    </div>
-  </section>
-
-  <!-- Skills/Technologies Preview -->
-  <section class="py-16" aria-labelledby="home-technologies-title">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-      <h2 id="home-technologies-title" class="text-2xl md:text-3xl font-bold mb-8">
-        Technologies & Expertise
-      </h2>
-      <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8">
-        <div class="flex flex-col items-center">
-          <div
-            class="w-12 h-12 bg-spotlight bg-opacity-10 rounded-lg flex items-center justify-center mb-2"
-          >
-            <span class="text-primary font-bold text-sm">Go</span>
-          </div>
-          <span class="text-sm font-medium">Go</span>
-        </div>
-        <div class="flex flex-col items-center">
-          <div
-            class="w-12 h-12 bg-spotlight bg-opacity-10 rounded-lg flex items-center justify-center mb-2"
-          >
-            <span class="text-primary font-bold text-sm">TS</span>
-          </div>
-          <span class="text-sm font-medium">TypeScript</span>
-        </div>
-        <div class="flex flex-col items-center">
-          <div
-            class="w-12 h-12 bg-spotlight bg-opacity-10 rounded-lg flex items-center justify-center mb-2"
-          >
-            <span class="text-primary font-bold text-sm">TF</span>
-          </div>
-          <span class="text-sm font-medium">Terraform</span>
-        </div>
-        <div class="flex flex-col items-center">
-          <div
-            class="w-12 h-12 bg-spotlight bg-opacity-10 rounded-lg flex items-center justify-center mb-2"
-          >
-            <span class="text-primary font-bold text-sm">Az</span>
-          </div>
-          <span class="text-sm font-medium">Azure</span>
-        </div>
-        <div class="flex flex-col items-center">
-          <div
-            class="w-12 h-12 bg-spotlight bg-opacity-10 rounded-lg flex items-center justify-center mb-2"
-          >
-            <span class="text-primary font-bold text-sm">K8s</span>
-          </div>
-          <span class="text-sm font-medium">Kubernetes</span>
-        </div>
-        <div class="flex flex-col items-center">
-          <div
-            class="w-12 h-12 bg-spotlight bg-opacity-10 rounded-lg flex items-center justify-center mb-2"
-          >
-            <span class="text-primary font-bold text-sm">Py</span>
-          </div>
-          <span class="text-sm font-medium">Python</span>
-        </div>
-      </div>
     </div>
   </section>
 </BaseLayout>

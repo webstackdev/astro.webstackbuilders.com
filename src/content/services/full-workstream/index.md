@@ -8,7 +8,7 @@ order: 1
 
 Full-time engineering capacity focused on your platform and infrastructure needs. I work EST business hours, attend standups and planning sessions, and operate as a member of your team rather than an external consultant dropping in for status meetings.
 
-Typical engagements include:
+## Good Fit For
 
 - CI/CD pipeline design and implementation
 - Kubernetes cluster setup, migration, or stabilization

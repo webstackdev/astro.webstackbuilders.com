@@ -10,9 +10,20 @@ const services = allServices
   .filter(service => !service.data.isDraft)
   .sort((a, b) => a.data.order - b.data.order)
 
+const splitH2Sections = (html: string): string[] => {
+  if (!html.trim()) {
+    return []
+  }
+
+  return html
+    .split(/(?=<h2\b)/g)
+    .map(section => section.trim())
+    .filter(Boolean)
+}
+
 
 const pageDescription = 'Webstack Builders Services List'
-const pageTitle = 'All Services'
+const pageTitle = 'Our Services'
 const path = '/services/'
 const section = 'Services'
 ---
@@ -35,17 +46,28 @@ const section = 'Services'
             Our Services
           </h2>
         </header>
-        <div class="grid gap-6 md:grid-cols-2 items-stretch">
-          {services.map(service => (
-            <article class="h-full rounded-lg border border-trim p-6">
-              <h3 class="text-xl md:text-2xl font-semibold mb-3">
-                {service.data.title}
-              </h3>
-              <div class="mt-4">
-                <Fragment set:html={service.rendered?.html ?? ''} />
-              </div>
-            </article>
-          ))}
+        <div class="grid gap-6">
+          {services.map(service => {
+            const sections = splitH2Sections(service.rendered?.html ?? '')
+            const leftSections = sections.slice(0, 2).join('')
+            const rightSections = sections.slice(2, 4).join('')
+
+            return (
+              <article class="h-full rounded-lg border border-trim p-6">
+                <h3 class="text-xl md:text-2xl font-semibold mb-3">
+                  {service.data.title}
+                </h3>
+                <div class="mt-4 grid gap-6 md:grid-cols-2">
+                  <div class="space-y-6">
+                    <Fragment set:html={leftSections} />
+                  </div>
+                  <div class="space-y-6">
+                    <Fragment set:html={rightSections} />
+                  </div>
+                </div>
+              </article>
+            )
+          })}
         </div>
       </section>
     )

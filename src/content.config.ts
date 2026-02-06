@@ -81,7 +81,7 @@ const caseStudiesCollection = defineCollection({
         duration: z.string().optional(),
         industry: z.string().optional(),
         projectType: z.string().optional(),
-        showToc: z.boolean().default(false),
+        showToc: z.boolean().default(true),
       }),
       'caseStudies'
     ),
@@ -103,6 +103,8 @@ const downloadsCollection = defineCollection({
         fileSize: z.string().optional(),
         fileType: z.enum(['PDF', 'eBook', 'Whitepaper', 'Guide', 'Report', 'Template']),
         pages: z.number().optional(),
+        readingTime: z.string().optional(),
+        showToc: z.boolean().default(false),
       }),
       'downloads'
     ),

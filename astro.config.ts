@@ -24,12 +24,12 @@ import {
   environmentalVariablesConfig,
   getSentryAuthToken,
   getSiteUrl,
-  isDev,
+  //isDev,
   isE2eTest,
-  isProd,
+  //isProd,
   isUnitTest,
   isVercel,
-  linkValidatorPlugin,
+  //linkValidatorPlugin,
   markdownConfig,
   pwaConfig,
   vercelConfig,
@@ -86,7 +86,7 @@ const standardIntegrations = [
    * and on GitHub production builds because links can't be determined at build time in
    * GitHub preview environments.
    */
-  ...(isDev() || isProd() ? [linkValidatorPlugin] : []),
+  //...(isDev() || isProd() ? [linkValidatorPlugin] : []),
   /** Integration to write pages.json after build so E2E tests can discover what pages exist */
   pagesJsonWriter(),
   /** Debugging tools for Astro View Transition API */

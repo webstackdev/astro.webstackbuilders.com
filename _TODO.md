@@ -21,6 +21,10 @@ Cons: Browser rendering can be inconsistent across different operating systems a
 
 Axe accessibility (2) - axe-core integration
 
+## Youtube video for Backstage IDP hero on Home page
+
+Discuss agentic AI integrations to add to Backstage
+
 ## Performance
 
 Implement mitigations in test/e2e/specs/07-performance/PERFORMANCE.md
@@ -97,23 +101,9 @@ Maybe change the "ready..." in the hero to "get in touch..."
 
 - Show article titles only in drop-down search result box, and dedupe results
 
-## Header
-
-Title box - need to squish to 75% and have it absolute in place as you scroll down, go back to 100% when you scroll back up
-
-[example](https://thenewstack.io/)
-
 ## Mobile Table of Contents
 
 There are six examples of TOC drawers on mobile. We have an implementation currently, but it's not very good. We should improve the component to use one of the patterns show in the examples.
-
-## Lead on Hero for Articles
-
-There's an [example screen shot](src/components/Layout/Markdown/Lead/lead-on-hero-example.png) from CSS-Tricks showing a layout of the author avatar, author name, published date, and title overlaid on the cover image. It would save space on the page. Probably should have it above the image on mobile to avoid visibility issues.
-
-## Themepicker
-
-Need to tweak 1px border for non-active theme cards
 
 ## ToolTips
 
@@ -124,6 +114,8 @@ Need a tooltip component for consistency. List to add tooltips to:
 - Abbreviations in markdown
 - "Report a Bug" in footer
 - RSS feed icon in footer
+
+## Theming and improving Mermaid diagrams
 
 [rerender diagrams when I switched color-scheme](https://github.com/mermaid-js/mermaid/issues/1945)
 [mermaid init](https://github.com/hbstack/mermaid/blob/main/assets/hb/modules/mermaid/init.ts)
@@ -151,7 +143,9 @@ Need a tooltip component for consistency. List to add tooltips to:
 - Should header links be in the tab order?
 - Does the total page tab order make sense?
 
-## Text on Images
+## Lead on Hero for Articles
+
+There's an [example screen shot](src/components/Layout/Markdown/Lead/lead-on-hero-example.png) from CSS-Tricks showing a layout of the author avatar, author name, published date, and title overlaid on the cover image. It would save space on the page. Probably should have it above the image on mobile to avoid visibility issues.
 
 A scrim is an elliptical gradient from translucent black (center) to transparent black (edges), strategically placed behind white text. The scrim is probably the most subtle way of reliably overlaying text on images out there, and very few designs use this technique.
 
@@ -170,7 +164,9 @@ To overlay an article title and published date on a cover image, use CSS positio
 
 ## Project Stuff
 
+- Re-enable link validator in astro.config.ts when pdf / downloads sorted out
 - Need to allow escaping a code fence inside a markdown code fence, see src/content/articles/api-gateway-metrics-traces-logs-debugging/index.mdx "Latency Spike Investigation" section and the demo article.
+- Themepicker: need to tweak 1px border for non-active theme cards
 - I aliased 'promql' to 'go'. When a code fence using the alias is rendered with the language set to 'promql', it shows as 'go' incorrectly because of the alias. Also we need custom handling for all language names that are displayed: html should be uppercase, typescript as TypeScript, etc. Also we don't want all aliased names to show the alias - for example using the aliases 'ts', 'js', and 'md' would be better to show the full language names.
 - The "go" language code block in src/content/articles/api-versioning-deprecation-sunset-headers-migration/index.mdx is not being combined with the "typescript", "python", and "ruby" tabbed code block. Same with "python" block in "### Admission Control Strategies" section of src/content/articles/backpressure-load-shedding-admission-control-overload/index.mdx, plus the line numbering is weird in the code block.
 - Add people who sign up for newsletter, download, or fill out contact form to Hubspot tracking. Need to configure it to remove them if they do the GDPR remove me. Also remove them from the newsletter.
@@ -197,6 +193,14 @@ To overlay an article title and published date on a cover image, use CSS positio
 - Remove the dynamic Services page, and show it all on a single page. Three services: full time workflow, part time workflow, on-call support + onboarding fee.
 - add "cel" language to code blocks
 - hovering menu items should cause the dots to disappear immediately and then the animation slide to start
+- Update EXIF data on all AI generated JPGs
+- See if there's any code in common between Carousel and Testimonials. We have another one to add that uses the carousel code - for Skills.
+
+## Header
+
+Title box - need to squish to 75% and have it absolute in place as you scroll down, go back to 100% when you scroll back up
+
+[example](https://thenewstack.io/)
 
 ## Reading position indicator
 
@@ -227,25 +231,6 @@ Remove the `content/downloads` folder, and point the content collection to look 
 - The PDF downloads are going to be gated - the user has to sign up for them and give an email address. How do we handle the keywords in these from a search perspective?
 - We need a gating system, where the user gets a token to be able to download a PDF and the token is checked before downloading.
 
-## Services
-
-These are the services I specialize in and offer as package deals.
-
-There are four pricing variants:
-- part-time stream out of hours evening weekdays
-- full-time stream in hours weekdays
-- on call rotation
-- ad-hoc projects on time available
-
-Ad hoc:
-
-- Backstage implementation. How to do this so I'm delivering platforms, not portals? What's the scope - pipeline design, etc.?
-- Refactoring legacy code bases, "lift and shifts"
-
-On-call rates:
-
-$2500 onboarding + $500 just for being on call for the week + hours paid for actually being called : 150% hourly rate on week nights or 200% hourly rate on weekends/holidays, for each call I received (1 call = 1 hour paid, even if I worked 10minutes on the problem). RCAs (root cause analysis) done after calls, to identify the underlying issue.
-
 ## Content Issues
 
 - "### Geographic/Currency Mismatches" in src/content/articles/cdn-edge-caching-cache-keys-vary-headers/index.mdx
@@ -254,5 +239,3 @@ $2500 onboarding + $500 just for being on call for the week + hours paid for act
 ## Errors
 
 [WARN] [glob-loader] Duplicate id "systems-and-development" found in /home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/src/content/tags/systems-and-development/index.md. Later items with the same id will overwrite earlier ones.
-
-
