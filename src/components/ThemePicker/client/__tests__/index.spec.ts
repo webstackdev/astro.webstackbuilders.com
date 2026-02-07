@@ -178,30 +178,11 @@ describe('ThemePicker Component', () => {
     })
   })
 
-  describe('Component Props', () => {
-    it('should accept custom label prop', async () => {
-      await renderThemePickerDom(
-        ({ element }) => {
-          const heading = queryElement<HTMLHeadingElement>(element, '.themepicker h3')
-          expect(heading.textContent?.trim()).toBe('Custom Theme Label')
-        },
-        { label: 'Custom Theme Label' }
-      )
-    })
-
-    it('should use default label when not provided', async () => {
-      await renderThemePickerDom(({ element }) => {
-        const heading = queryElement<HTMLHeadingElement>(element, '.themepicker h3')
-        expect(heading.textContent?.trim()).toBe('Select theme')
-      })
-    })
-  })
-
   describe('CSS Classes', () => {
     it('should have Tailwind utility classes on modal', async () => {
       await renderThemePickerDom(({ element }) => {
         const modal = getThemeModal(element)
-        expect(modal.classList.contains('bg-page-base-offset')).toBe(true)
+        expect(modal.classList.contains('bg-page-offset')).toBe(true)
         expect(modal.classList.contains('block')).toBe(true)
         expect(modal.classList.contains('overflow-hidden')).toBe(true)
         expect(modal.classList.contains('relative')).toBe(true)

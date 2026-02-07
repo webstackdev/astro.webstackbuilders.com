@@ -10,10 +10,9 @@ import styles from './themePicker.module.css'
 
 export interface Props {
   closeComponent?: string
-  label?: string
 }
 
-const { closeComponent = 'close', label = 'Select theme' } = Astro.props
+const { closeComponent = 'close' } = Astro.props
 ---
 
 <theme-picker transition:name="theme-picker-island" transition:persist>
@@ -21,7 +20,7 @@ const { closeComponent = 'close', label = 'Select theme' } = Astro.props
     class:list={[
       styles.themePicker,
       'themepicker',
-      'bg-page-base-offset block overflow-hidden relative w-full',
+      'bg-page-offset block overflow-hidden relative w-full',
     ]}
     data-theme-modal
     data-nosnippet
@@ -30,34 +29,44 @@ const { closeComponent = 'close', label = 'Select theme' } = Astro.props
     aria-labelledby="theme-picker-label"
     hidden
   >
-    <h3
-      id="theme-picker-label"
-      class="font-sans text-base font-bold tracking-tight leading-[calc(2+0.6)] text-center uppercase"
-    >
-      {label}
-    </h3>
-
     <div class="embla relative" role="region" aria-labelledby="theme-picker-label" data-theme-embla>
       <div class="embla__viewport overflow-hidden" data-theme-embla-viewport>
         <ul
           id="theme-menu"
           class:list={[
-            styles.list,
+            styles.ul,
             'themepicker__list',
-            'embla__container flex gap-4 justify-center py-4 px-6 pb-8 w-full',
+            'embla__container',
+            'w-full flex gap-4 justify-center py-4 px-6 pb-8',
           ]}
         >
           {
             themes.map(theme => (
               <li
                 class:list={[
-                  styles.item,
+                  styles.li,
                   'themepicker__item',
-                  'embla__slide flex-[0_0_auto] min-w-0 relative rounded-lg scale-100 hover:shadow-md hover:scale-105 hover:z-(--z-raised)',
+                  'embla__slide',
+                  'relative scale-100 flex-[0_0_auto] min-w-0 rounded-lg',
+                  'hover:shadow-md hover:scale-105 hover:z-(--z-raised)',
                 ]}
               >
                 <button
-                  class="themepicker__selectBtn group block p-4 rounded-lg border-2 border-secondary w-full text-center bg-page-base-offset relative focus-visible:outline-none after:pointer-events-none after:absolute after:content-[''] after:inset-0 after:rounded-none after:border-2 after:border-transparent after:opacity-0 after:transition-opacity after:duration-150 after:ease-out focus-visible:after:opacity-100 focus-visible:after:-inset-1.5 focus-visible:after:border-spotlight"
+                  class:list={[
+                    'themepicker__selectBtn',
+                    [
+                      'group', 'block', 'relative', 'w-full', 'bg-page-offset', 'text-center', 'p-4'
+                    ],
+                    [
+                      'border-3', 'border-page-inverse', 'rounded-lg'
+                    ],
+                    [
+                      'after:pointer-events-none', 'after:absolute', 'after:content-[""]', 'after:inset-0', 'after:rounded-none', 'after:border-2', 'after:border-transparent', 'after:opacity-0',   'after:transition-opacity', 'after:duration-150', 'after:ease-out'
+                    ],
+                    [
+                      'focus-visible:outline-none', 'focus-visible:after:opacity-100', 'focus-visible:after:-inset-1.5', 'focus-visible:after:border-spotlight'
+                    ],
+                  ]}
                   aria-label={`select color theme ${theme.name}`}
                   data-theme={theme.id}
                 >

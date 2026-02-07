@@ -51,6 +51,7 @@ class VercelClient:
         # Always deploy from the prebuilt Vercel output and skip Vercel's build cache.
         args.append("--prebuilt")
         args.append("--force")
+        args.append("--archive=tgz")
 
         if commit is not None:
             commit_message = commit.get("commitMessage", "")

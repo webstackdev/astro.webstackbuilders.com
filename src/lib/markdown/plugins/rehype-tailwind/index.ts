@@ -225,7 +225,7 @@ export function rehypeTailwindClasses() {
       if (node.tagName === 'code' && isCodeInline(node, getParent)) {
         node.properties = node.properties || {}
         node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          'bg-page-base-offset',
+          'bg-page-offset',
           'inline-block',
           'font-mono',
           'mx-1',
@@ -276,7 +276,7 @@ export function rehypeTailwindClasses() {
         /** Outer code-tabs custom web component container */
         node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
           'block',
-          'border-page-base-offset',
+          'border-page-offset',
           'border',
           'max-w-full',
           'mb-4',
@@ -338,7 +338,7 @@ export function rehypeTailwindClasses() {
         node.properties = node.properties || {}
         node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
           'block',
-          'bg-page-base-offset',
+          'bg-page-offset',
           'max-w-full',
           'pr-3',
           'py-3',
