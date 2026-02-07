@@ -39,6 +39,7 @@ import { faviconGenerator } from './src/integrations/FaviconGenerator'
 import { packageRelease } from './src/integrations/PackageRelease'
 import { privacyPolicyVersion } from './src/integrations/PrivacyPolicyVersion'
 import { testimonialsLengthWarning } from './src/integrations/TestimonialsLengthWarning'
+import { fixContentAssetPropagation } from './src/lib/plugins/fixContentAssetPropagation'
 import { pwaDevAssetServer } from './src/lib/plugins/pwaDevAssetServer'
 import { createSerializeFunction, pagesJsonWriter } from './src/integrations/sitemapSerialize'
 
@@ -155,6 +156,7 @@ export default defineConfig({
     },
     /* @ts-expect-error - tailwindcss plugin type compatibility */
     plugins: [
+      fixContentAssetPropagation(),
       tailwindcss(),
       pwaDevAssetServer(),
     ] as PluginOption[],

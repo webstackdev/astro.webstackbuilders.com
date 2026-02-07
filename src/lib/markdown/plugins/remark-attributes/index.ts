@@ -467,7 +467,7 @@ function processCodeBlock(node: Code, config: InternalConfig): void {
   }
 
   // Parse attributes from meta string
-  let parsedAttr: ParsedAttribute | null = null
+  let parsedAttr: ParsedAttribute | null
 
   try {
     parsedAttr = parseAttr(node.meta, 0, config.mdAttrConfig) as ParsedAttribute

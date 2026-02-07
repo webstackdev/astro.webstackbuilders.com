@@ -156,9 +156,22 @@ export default [
       'prefer-object-spread': level,
       'prefer-spread': level,
       'security/detect-non-literal-fs-filename': 'off',
+      'security/detect-no-csrf-before-method-override': 'off',
       'security/detect-object-injection': 'off',
       'security/detect-unsafe-regex': 'off',
       'semi': ['error', 'never'],
+    },
+  },
+  {
+    files: ['**/*.astro'],
+    rules: {
+      'import/extensions': 'off',
+    },
+  },
+  {
+    files: ['**/*.astro/*.js', '**/*.astro/*.ts', '**/*.astro/*.tsx'],
+    rules: {
+      'import/extensions': 'off',
     },
   },
 
@@ -836,6 +849,12 @@ export default [
       'test/e2e/specs/14-system/package-release.spec.ts',
       'test/e2e/specs/14-system/privacy-policy-version.spec.ts',
     ],
+    rules: {
+      'import/extensions': 'off',
+    },
+  },
+  {
+    files: ['**/*.astro'],
     rules: {
       'import/extensions': 'off',
     },
