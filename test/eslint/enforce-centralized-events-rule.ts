@@ -19,7 +19,6 @@ const enforceCentralizedEventsRule: Rule.RuleModule = {
     docs: {
       description:
         'Enforce centralized event handling for click, keyup, touchend, and Escape events',
-      category: 'Best Practices',
       recommended: true,
     },
     messages: {

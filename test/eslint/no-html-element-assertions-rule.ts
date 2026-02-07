@@ -11,7 +11,6 @@ const noHtmlElementAssertionsRule: Rule.RuleModule = {
     docs: {
       description:
         'Prevent unsafe HTML element type assertions (e.g., "as HTMLInputElement"). Use type guards from @components/scripts/assertions/elements instead.',
-      category: 'Best Practices',
       recommended: true,
     },
     messages: {

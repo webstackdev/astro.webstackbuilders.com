@@ -27,7 +27,6 @@ const noQuerySelectorOutsideSelectorsRule: Rule.RuleModule = {
     docs: {
       description:
         'Prevent querySelector/querySelectorAll usage outside of selectors.ts files. Centralize DOM queries in dedicated selectors files for better maintainability.',
-      category: 'Best Practices',
       recommended: true,
     },
     messages: {

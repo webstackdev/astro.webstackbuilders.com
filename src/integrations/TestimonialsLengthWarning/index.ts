@@ -116,7 +116,7 @@ export function testimonialsLengthWarning(
         const contentRoot = fileURLToPath(new URL('./src/content', astroConfig.root))
         const { min, max } = resolvedOptions
 
-        let testimonialFiles: string[] = []
+        let testimonialFiles: string[]
         try {
           testimonialFiles = await getTestimonialContentFiles(contentRoot)
         } catch (error) {

@@ -58,7 +58,7 @@ export class BuiltInsPage {
       })
     }
 
-    let response: null | Response = null
+    let response: null | Response
 
     try {
       response = await navigate(requestedTimeout)

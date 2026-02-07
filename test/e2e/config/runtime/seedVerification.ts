@@ -14,7 +14,7 @@ const ensureDatabaseFileExists = async () => {
   } catch (error) {
     throw new Error(
       `Astro DB seed verification failed: expected database file at ${testDatabaseFile} is missing.`,
-      { cause: error instanceof Error ? error : undefined },
+      { cause: error },
     )
   }
 }
