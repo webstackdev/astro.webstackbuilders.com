@@ -70,7 +70,7 @@ export const htmlElements: ElementConfig[] = [
   {
     tagName: 'th',
     classes: [
-      'bg-page-base-offset',
+      'bg-page-offset',
       'px-4',
       'py-2',
       'text-left',

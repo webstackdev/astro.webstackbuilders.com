@@ -84,9 +84,9 @@ const variantClasses: Record<ButtonVariant, string> = {
     'active:bg-spotlight-offset active:[box-shadow:var(--shadow-active)] active:translate-y-px',
   icon:
     'aspect-square bg-transparent text-content p-2 ![box-shadow:none] ' +
-    'hover:bg-page-base-offset hover:text-primary ' +
-    'focus-visible:bg-page-base-offset focus-visible:text-primary ' +
-    'active:bg-page-base-offset',
+    'hover:bg-page-offset hover:text-primary ' +
+    'focus-visible:bg-page-offset focus-visible:text-primary ' +
+    'active:bg-page-offset',
 }
 
 export interface ButtonClassOptions {

@@ -10,10 +10,9 @@ import styles from './themePicker.module.css'
 
 export interface Props {
   closeComponent?: string
-  label?: string
 }
 
-const { closeComponent = 'close', label = 'Select theme' } = Astro.props
+const { closeComponent = 'close' } = Astro.props
 ---
 
 <theme-picker transition:name="theme-picker-island" transition:persist>
@@ -21,7 +20,7 @@ const { closeComponent = 'close', label = 'Select theme' } = Astro.props
     class:list={[
       styles.themePicker,
       'themepicker',
-      'bg-page-base-offset block overflow-hidden relative w-full',
+      'bg-page-offset block overflow-hidden relative w-full',
     ]}
     data-theme-modal
     data-nosnippet
@@ -30,13 +29,6 @@ const { closeComponent = 'close', label = 'Select theme' } = Astro.props
     aria-labelledby="theme-picker-label"
     hidden
   >
-    <h3
-      id="theme-picker-label"
-      class="font-sans text-base font-bold tracking-tight leading-[calc(2+0.6)] text-center uppercase"
-    >
-      {label}
-    </h3>
-
     <div class="embla relative" role="region" aria-labelledby="theme-picker-label" data-theme-embla>
       <div class="embla__viewport overflow-hidden" data-theme-embla-viewport>
         <ul
@@ -63,10 +55,10 @@ const { closeComponent = 'close', label = 'Select theme' } = Astro.props
                   class:list={[
                     'themepicker__selectBtn',
                     [
-                      'group', 'block', 'relative', 'w-full', 'bg-page-base-offset', 'text-center', 'p-4'
+                      'group', 'block', 'relative', 'w-full', 'bg-page-offset', 'text-center', 'p-4'
                     ],
                     [
-                      'border-3', 'border-page-base', 'rounded-lg'
+                      'border-3', 'border-page-inverse', 'rounded-lg'
                     ],
                     [
                       'after:pointer-events-none', 'after:absolute', 'after:content-[""]', 'after:inset-0', 'after:rounded-none', 'after:border-2', 'after:border-transparent', 'after:opacity-0',   'after:transition-opacity', 'after:duration-150', 'after:ease-out'

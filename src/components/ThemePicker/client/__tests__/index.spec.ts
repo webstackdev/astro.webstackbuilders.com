@@ -201,7 +201,7 @@ describe('ThemePicker Component', () => {
     it('should have Tailwind utility classes on modal', async () => {
       await renderThemePickerDom(({ element }) => {
         const modal = getThemeModal(element)
-        expect(modal.classList.contains('bg-page-base-offset')).toBe(true)
+        expect(modal.classList.contains('bg-page-offset')).toBe(true)
         expect(modal.classList.contains('block')).toBe(true)
         expect(modal.classList.contains('overflow-hidden')).toBe(true)
         expect(modal.classList.contains('relative')).toBe(true)

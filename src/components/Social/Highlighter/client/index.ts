@@ -266,11 +266,11 @@ export class HighlighterElement extends LitElement {
       return
     }
 
-    dialog.style.backgroundColor = 'var(--color-page-base-offset)'
+    dialog.style.backgroundColor = 'var(--color-page-offset)'
 
     const arrow = queryShareDialogArrow(dialog)
     if (arrow) {
-      arrow.style.borderTopColor = 'var(--color-page-base-offset)'
+      arrow.style.borderTopColor = 'var(--color-page-offset)'
     }
   }
 

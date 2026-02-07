@@ -194,7 +194,7 @@ To overlay an article title and published date on a cover image, use CSS positio
 - add "cel" language to code blocks
 - hovering menu items should cause the dots to disappear immediately and then the animation slide to start
 - Update EXIF data on all AI generated JPGs
-- See if there's any code in common between Carousel and Testimonials. We have another one to add that uses the carousel code - for Skills.
+- See if there's any code in common between Carousel, Testimonials, and Themepicker. We have another one to add that uses the carousel code - for Skills.
 
 ## Header
 
