@@ -239,3 +239,22 @@ Remove the `content/downloads` folder, and point the content collection to look 
 ## Errors
 
 [WARN] [glob-loader] Duplicate id "systems-and-development" found in /home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/src/content/tags/systems-and-development/index.md. Later items with the same id will overwrite earlier ones.
+
+## Flaky build error
+
+The key: the components prop works at render time (through the layout), but the astro:content-asset-propagation plugin evaluates MDX modules standalone (outside the layout context) to scan for assets. During that evaluation, undefined component references cause the TDZ error.
+
+node_modules/astro/dist/runtime/server/index.js imports ./render/index.js twice — the second import (line 36) gives Renderer2, which is __vite_ssr_import_8__. Let me trace the circular dependency chain.
+
+I have a strong theory: @astrojs/db creates a temporary Vite server during astro:build:setup, which calls configureServer on the shared astro:content-asset-propagation plugin, setting its devModuleLoader and causing it to attempt standalone MDX evaluation with wrong SSR settings. Let me verify by building without DB.
+
+Confirmed: removing @astrojs/db eliminates the content-asset-propagation error (it only fails because API routes need astro:db). The DB integration's getTempViteServer() creates a Vite server with ssr: { external: [] } that calls configureServer on the shared plugin objects, setting devModuleLoader on the content-asset-propagation plugin during build.
+
+Let me check exactly how the circular dependency manifests in the SSR module runner:
+
+I understand the full chain now. The @astrojs/db integration's getTempViteServer() creates a Vite server during astro:build:setup, which calls configureServer on the shared astro:content-asset-propagation plugin object, setting its devModuleLoader. Then during the main build's transform, the plugin tries to evaluate MDX through that temp server (which has ssr: { external: [] }), and the circular dependency between server/index.js ↔ jsx.js causes the TDZ error.
+
+The fix: add a Vite plugin that removes configureServer from the content-asset-propagation plugin during build mode, preventing the temp server from contaminating it.
+
+Managed and tracked todo items for planning
+Now let me create the fix plugin and add it to the Vite config:
