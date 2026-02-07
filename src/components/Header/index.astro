@@ -10,51 +10,9 @@ export interface Props {
 }
 
 const { path } = Astro.props
+
+import './index.css'
 ---
-
-<!-- CSS Custom Properties for Header Icons -->
-<style>
-  :root {
-    --header-icon-size: calc(3.5em * 0.75);
-    --header-icon-svg-size: calc(var(--header-icon-size) * 0.7);
-    --circle-stroke: calc(var(--header-icon-size) * 2 * 3.1416);
-    --header-search-panel-width: calc(18rem - 45px);
-    --header-search-panel-overhang: calc(var(--header-icon-size) + 0.5rem);
-    --header-search-panel-width-open: calc(var(--header-search-panel-width) + var(--header-search-panel-overhang) + 1px);
-    --header-search-panel-right: calc(-1 * var(--header-search-panel-overhang) - 1px);
-  }
-
-  @media (width >= 40em) {
-    :root {
-      --header-icon-size: calc(3.5em * 0.85);
-      --header-search-panel-width: 20rem;
-    }
-  }
-
-  @media (width >= 64em) {
-    :root {
-      --header-icon-size: calc(3.5em);
-      --header-search-panel-width: 24rem;
-      --header-search-panel-overhang: 0px;
-      --header-search-panel-width-open: var(--header-search-panel-width);
-      --header-search-panel-right: 0px;
-    }
-  }
-
-  #header::after {
-    background-color: var(--color-page-offset);
-    box-sizing: border-box;
-    content: '';
-    display: block;
-    height: 100%;
-    left: 52%;
-    position: absolute;
-    top: 0;
-    transform: translateX(-52%);
-    width: 102vw;
-    z-index: var(--z-underlay);
-  }
-</style>
 
 {/* Hidden modal shown when theme picker icon selected - moved to BaseLayout for persistence */}
 {/* Header for all pages */}
