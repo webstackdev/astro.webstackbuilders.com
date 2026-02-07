@@ -1,7 +1,7 @@
 declare const styles: {
   readonly themePicker: string
-  readonly item: string
-  readonly list: string
+  readonly li: string
+  readonly ul: string
   readonly hue: string
 }
 
