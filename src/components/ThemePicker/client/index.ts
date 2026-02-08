@@ -521,7 +521,7 @@ export class ThemePickerElement extends LitElement {
       portal.setAttribute('id', this.tooltipId)
       portal.setAttribute('role', 'tooltip')
       portal.className =
-        'fixed left-0 top-0 z-(--z-modal) pointer-events-none opacity-0 transition-opacity duration-150 ease-out'
+        'fixed left-0 top-0 z-(--z-theme-picker) pointer-events-none opacity-0 transition-opacity duration-150 ease-out'
 
       const content = document.createElement('div')
       content.className =
