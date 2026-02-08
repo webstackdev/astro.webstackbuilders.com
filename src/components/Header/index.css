@@ -1,0 +1,112 @@
+/**
+ * Header component styles.
+ *
+ * This file defines CSS custom properties for the header icons and search panel,
+ * as well as responsive adjustments for different screen widths.
+ */
+:root {
+  --header-icon-size-base: calc(3.5em * 0.75);
+  --header-icon-size: var(--header-icon-size-base);
+  --header-icon-size-collapsed: calc(var(--header-icon-size-base) * 0.75);
+  --header-icon-svg-size: calc(var(--header-icon-size) * 0.7);
+  --circle-stroke: calc(var(--header-icon-size) * 2 * 3.1416);
+  --header-search-panel-width: calc(18rem - 45px);
+  --header-search-panel-overhang: calc(var(--header-icon-size) + 0.5rem);
+  --header-search-panel-width-open: calc(var(--header-search-panel-width) + var(--header-search-panel-overhang) + 1px);
+  --header-search-panel-right: calc(-1 * var(--header-search-panel-overhang) - 1px);
+  --header-padding-y: 0.5rem;
+  --header-padding-y-collapsed: 0.25rem;
+  --header-footprint-height: calc(var(--header-icon-size) + (var(--header-padding-y) * 2));
+  --header-footprint-height-collapsed: calc(var(--header-icon-size) + (var(--header-padding-y-collapsed) * 2));
+  --header-brand-scale: 1;
+  --header-brand-scale-collapsed: 0.75;
+  --header-nav-font-size: 1rem;
+  --header-nav-font-size-collapsed: 0.9rem;
+}
+
+@media (width >= 40em) {
+  :root {
+    --header-icon-size-base: calc(3.5em * 0.85);
+    --header-icon-size: var(--header-icon-size-base);
+    --header-icon-size-collapsed: calc(var(--header-icon-size-base) * 0.8);
+    --header-search-panel-width: 20rem;
+  }
+}
+
+@media (width >= 64em) {
+  :root {
+    --header-icon-size-base: calc(3.5em);
+    --header-icon-size: var(--header-icon-size-base);
+    --header-icon-size-collapsed: calc(var(--header-icon-size-base) * 0.8);
+    --header-search-panel-width: 24rem;
+    --header-search-panel-overhang: 0px;
+    --header-search-panel-width-open: var(--header-search-panel-width);
+    --header-search-panel-right: 0px;
+    --header-padding-y: 0.75rem;
+    --header-padding-y-collapsed: 0.35rem;
+  }
+}
+
+.header-shell {
+  --header-padding-current: var(--header-padding-y);
+  --header-footprint-height-current: var(--header-footprint-height);
+  --header-brand-scale-current: var(--header-brand-scale);
+  --header-nav-font-size-current: var(--header-nav-font-size);
+
+  position: relative;
+}
+
+.header-shell.is-collapsed {
+  --header-padding-current: var(--header-padding-y-collapsed);
+  --header-footprint-height-current: var(--header-footprint-height-collapsed);
+  --header-brand-scale-current: var(--header-brand-scale-collapsed);
+  --header-icon-size: var(--header-icon-size-collapsed);
+  --header-nav-font-size-current: var(--header-nav-font-size-collapsed);
+}
+
+.header-footprint {
+  height: var(--header-footprint-height-current);
+  transition: height 320ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  width: 100%;
+}
+
+.header-fixed {
+  left: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+  transform: translateY(var(--theme-picker-offset, 0));
+  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  width: 100%;
+  z-index: var(--z-nav);
+}
+
+.site-header {
+  padding-block: var(--header-padding-current);
+  transition: padding 320ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.header-brand {
+  transform: scale(var(--header-brand-scale-current));
+  transform-origin: left center;
+  transition: transform 320ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.header-icon {
+  transition: height 320ms cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    width 320ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.site-header::after {
+  background-color: var(--color-page-offset);
+  box-sizing: border-box;
+  content: '';
+  display: block;
+  height: 100%;
+  left: 52%;
+  position: absolute;
+  top: 0;
+  transform: translateX(-52%);
+  width: 102vw;
+  z-index: var(--z-underlay);
+}

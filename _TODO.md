@@ -166,7 +166,6 @@ To overlay an article title and published date on a cover image, use CSS positio
 
 - Re-enable link validator in astro.config.ts when pdf / downloads sorted out
 - Need to allow escaping a code fence inside a markdown code fence, see src/content/articles/api-gateway-metrics-traces-logs-debugging/index.mdx "Latency Spike Investigation" section and the demo article.
-- Themepicker: need to tweak 1px border for non-active theme cards
 - I aliased 'promql' to 'go'. When a code fence using the alias is rendered with the language set to 'promql', it shows as 'go' incorrectly because of the alias. Also we need custom handling for all language names that are displayed: html should be uppercase, typescript as TypeScript, etc. Also we don't want all aliased names to show the alias - for example using the aliases 'ts', 'js', and 'md' would be better to show the full language names.
 - The "go" language code block in src/content/articles/api-versioning-deprecation-sunset-headers-migration/index.mdx is not being combined with the "typescript", "python", and "ruby" tabbed code block. Same with "python" block in "### Admission Control Strategies" section of src/content/articles/backpressure-load-shedding-admission-control-overload/index.mdx, plus the line numbering is weird in the code block.
 - Add people who sign up for newsletter, download, or fill out contact form to Hubspot tracking. Need to configure it to remove them if they do the GDPR remove me. Also remove them from the newsletter.
@@ -198,7 +197,13 @@ To overlay an article title and published date on a cover image, use CSS positio
 
 ## Header
 
-Title box - need to squish to 75% and have it absolute in place as you scroll down, go back to 100% when you scroll back up
+Need to improve the "squish" animation where the header reduces in size on scroll down, and returns to full size on scroll up. Maybe reduce and expand the text and search / themepicker / hamburger menu sizes in place, and then slide them horizontally. The relevant CSS classes:
+
+src/components/Header/index.css
+.header-fixed, .header-footprint, .site-header, .header-brand
+
+src/components/Navigation/menu.module.css
+.mainNavLink
 
 [example](https://thenewstack.io/)
 

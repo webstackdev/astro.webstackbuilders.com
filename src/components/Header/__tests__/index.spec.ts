@@ -2,14 +2,14 @@ import { beforeEach, describe, expect, test } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import { withJsdomEnvironment } from '@test/unit/helpers/litRuntime'
 
-describe('Header (Astro)', () => {
+describe('Guard against regressions in screen reader behavior and button semantics when Header/Navigation/Theme/Search components change', () => {
   let container: AstroContainer
 
   beforeEach(async () => {
     container = await AstroContainer.create()
   })
 
-  test('polishes navigation and toggle button semantics', async () => {
+  test('Validate navigation and toggle button accessibility semantics', async () => {
     const Header = (await import('@components/Header/index.astro')).default
 
     const renderedHtml = await container.renderToString(Header, {

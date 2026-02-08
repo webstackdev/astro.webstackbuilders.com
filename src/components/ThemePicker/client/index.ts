@@ -87,6 +87,21 @@ export class ThemePickerElement extends LitElement {
   private isInitialized = false
   private isTogglingViaButton = false
 
+  private updateHeaderOffset(isOpen: boolean): void {
+    if (typeof document === 'undefined') {
+      return
+    }
+
+    const offset = isOpen ? this.getThemePickerOffset() : 0
+    document.documentElement.style.setProperty('--theme-picker-offset', `${offset}px`)
+  }
+
+  private getThemePickerOffset(): number {
+    const scrollHeight = this.pickerModal.scrollHeight
+    const boundingHeight = this.pickerModal.getBoundingClientRect().height
+    return Math.max(scrollHeight, boundingHeight)
+  }
+
   /**
    * Lit lifecycle: called when element is connected
    */
@@ -642,6 +657,7 @@ export class ThemePickerElement extends LitElement {
           this.pickerModal.removeAttribute('hidden')
           this.pickerModal.classList.add(CLASSES.isOpen)
           this.toggleBtn.setAttribute('aria-expanded', 'true')
+          this.updateHeaderOffset(true)
         }
 
         // Force Lit to update with new DOM references
@@ -660,6 +676,7 @@ export class ThemePickerElement extends LitElement {
       // Remove hidden first, then add class after browser paints
       this.pickerModal.removeAttribute('hidden')
       this.toggleBtn.setAttribute('aria-expanded', 'true')
+      this.updateHeaderOffset(true)
 
       // Wait for next frame so browser processes max-height: 0 before animating to 14em
       if (typeof requestAnimationFrame === 'function') {
@@ -671,6 +688,7 @@ export class ThemePickerElement extends LitElement {
       }
     } else {
       this.pickerModal.classList.remove(CLASSES.isOpen)
+      this.updateHeaderOffset(false)
 
       // Wait for animation before hiding
       const transitionHandler = () => {
