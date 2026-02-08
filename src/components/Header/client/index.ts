@@ -8,16 +8,19 @@ import { isType1Element } from '@components/scripts/assertions/elements'
 import { getHeaderElement, getHeaderShellElement } from './selectors'
 
 const COLLAPSED_CLASS = 'is-collapsed'
+
 /**
  * Minimum scroll delta (in pixels) required before we treat movement as intentional,
  * preventing tiny scroll jitter from toggling the header state.
  */
 const SCROLL_TOLERANCE = 4
+
 /**
  * Scroll position (in pixels from the top) beyond which the header may collapse
  * while scrolling downward. This keeps the header full-size near the top.
  */
 const COLLAPSE_THRESHOLD = 48
+
 /**
  * Scroll position (in pixels from the top) below which the header always expands,
  * regardless of scroll direction, so the header is restored as you return upward.
