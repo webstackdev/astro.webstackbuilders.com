@@ -239,7 +239,7 @@ describe('AppBootstrap', () => {
       AppBootstrap.init()
 
       expect(SentryBootstrap.init).toHaveBeenCalledTimes(1)
-      expect(consoleInfoSpy).not.toHaveBeenCalled()
+      expect(consoleInfoSpy).toHaveBeenCalledWith('🏁 Bootstrap completed')
     })
 
     it('should log when Sentry stays disabled outside production', () => {
@@ -249,6 +249,7 @@ describe('AppBootstrap', () => {
 
       expect(SentryBootstrap.init).not.toHaveBeenCalled()
       expect(consoleInfoSpy).toHaveBeenCalledWith('🔧 Sentry disabled in development mode')
+      expect(consoleInfoSpy).toHaveBeenCalledWith('🏁 Bootstrap completed')
     })
   })
 })

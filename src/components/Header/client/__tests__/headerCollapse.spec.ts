@@ -3,7 +3,7 @@
  * Unit tests for header collapse side effects
  */
 
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   __resetHeaderCollapseForTests,
   initHeaderCollapseSideEffects,
@@ -36,10 +36,30 @@ const setupHeaderFixture = (): { headerShell: HTMLElement; header: HTMLElement }
 }
 
 describe('Header collapse side effects', () => {
+  let rafSpy: ReturnType<typeof vi.spyOn> | null = null
+
   beforeEach(() => {
     document.body.innerHTML = ''
     setScrollY(0)
     __resetHeaderCollapseForTests()
+    if (!window.requestAnimationFrame) {
+      window.requestAnimationFrame = callback => {
+        callback(0)
+        return 0
+      }
+    }
+
+    rafSpy = vi
+      .spyOn(window, 'requestAnimationFrame')
+      .mockImplementation(callback => {
+        callback(0)
+        return 0
+      })
+  })
+
+  afterEach(() => {
+    rafSpy?.mockRestore()
+    rafSpy = null
   })
 
   it('collapses when scrolling down past the threshold', () => {

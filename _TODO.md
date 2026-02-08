@@ -197,7 +197,13 @@ To overlay an article title and published date on a cover image, use CSS positio
 
 ## Header
 
-Title box - need to squish to 75% and have it absolute in place as you scroll down, go back to 100% when you scroll back up
+Need to improve the "squish" animation where the header reduces in size on scroll down, and returns to full size on scroll up. Maybe reduce and expand the text and search / themepicker / hamburger menu sizes in place, and then slide them horizontally. The relevant CSS classes:
+
+src/components/Header/index.css
+.header-fixed, .header-footprint, .site-header, .header-brand
+
+src/components/Navigation/menu.module.css
+.mainNavLink
 
 [example](https://thenewstack.io/)
 
