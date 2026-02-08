@@ -16,48 +16,58 @@ import './index.css'
 
 {/* Hidden modal shown when theme picker icon selected - moved to BaseLayout for persistence */}
 {/* Header for all pages */}
-<header
-  id="header"
-  data-header-search-open="false"
-  class="group flex flex-row items-center justify-between py-2 lg:py-3 relative"
-  role="banner"
->
-  {/*- Element for animated background behind mobile navigation menu -*/}
-  <div
-    id="mobile-splash"
-    class="mobile-splash"
-    aria-hidden="true"
-    data-testid="mobile-splash-backdrop"
-  >
-    <div
-      id="mobile-splash-backdrop"
-      class="mobile-splash-backdrop"
-      aria-hidden="true"
+<div class="header-shell">
+  <div class="header-footprint" aria-hidden="true"></div>
+  <div class="header-fixed">
+    <header
+      id="header"
+      data-header-search-open="false"
+      class="site-header group flex flex-row items-center justify-between relative"
+      role="banner"
     >
-    </div>
-  </div>
-  {/* Logo and wordmark */}
-  <span
-    id="header__brand"
-    class="flex items-center justify-between relative z-(--z-content-overlay)"
-  >
-    <Brand />
-  </span>
-  {/* Focus trap container for mobile navigation - invisible wrapper for accessibility */}
-  <Navigation path={path} />
-  {/* Theme picker toggle button to show modal */}
-  <span
-    id="header__theme-icon"
-    class="order-3 lg:order-4 ml-2 mr-2 block shrink-0 w-(--header-icon-size) h-(--header-icon-size) relative z-(--z-content-overlay)"
-  >
-    <ThemeButton />
-  </span>
+      {/*- Element for animated background behind mobile navigation menu -*/}
+      <div
+        id="mobile-splash"
+        class="mobile-splash"
+        aria-hidden="true"
+        data-testid="mobile-splash-backdrop"
+      >
+        <div
+          id="mobile-splash-backdrop"
+          class="mobile-splash-backdrop"
+          aria-hidden="true"
+        >
+        </div>
+      </div>
+      {/* Logo and wordmark */}
+      <span
+        id="header__brand"
+        class="header-brand flex items-center justify-between relative z-(--z-content-overlay)"
+      >
+        <Brand />
+      </span>
+      {/* Focus trap container for mobile navigation - invisible wrapper for accessibility */}
+      <Navigation path={path} />
+      {/* Theme picker toggle button to show modal */}
+      <span
+        id="header__theme-icon"
+        class="header-icon order-3 lg:order-4 ml-2 mr-2 block shrink-0 w-(--header-icon-size) h-(--header-icon-size) relative z-(--z-content-overlay)"
+      >
+        <ThemeButton />
+      </span>
 
-  {/* Header search icon that expands left into a search panel */}
-  <span
-    id="header__search-icon"
-    class="order-4 lg:order-5 mr-2 lg:mr-0 block shrink-0 w-(--header-icon-size) h-(--header-icon-size) relative z-(--z-content-overlay) group-data-[header-search-open=true]:z-(--z-modal) lg:z-(--z-nav)"
-  >
-    <SearchBar variant="header" />
-  </span>
-</header>
+      {/* Header search icon that expands left into a search panel */}
+      <span
+        id="header__search-icon"
+        class="header-icon order-4 lg:order-5 mr-2 lg:mr-0 block shrink-0 w-(--header-icon-size) h-(--header-icon-size) relative z-(--z-content-overlay) group-data-[header-search-open=true]:z-(--z-modal) lg:z-(--z-nav)"
+      >
+        <SearchBar variant="header" />
+      </span>
+    </header>
+  </div>
+</div>
+
+<script>
+  import { initHeaderCollapseSideEffects } from '@components/Header/client'
+  initHeaderCollapseSideEffects()
+</script>

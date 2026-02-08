@@ -64,8 +64,11 @@ export class AppBootstrap {
 
       // 4. Expose limited store actions for Playwright-driven E2E tests
       exposeStoreActionsForTesting()
+
+      console.info('🏁 Bootstrap completed')
     } catch (error: unknown) {
       const scriptError = new ClientScriptError(error)
+      console.info('⛔ Bootstrap errored:', scriptError)
       throw scriptError
     }
   }
