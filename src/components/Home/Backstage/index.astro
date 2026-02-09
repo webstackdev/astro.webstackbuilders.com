@@ -2,26 +2,56 @@
 /**
  * Backstage IDP Implementation section of the homepage
  */
+import { Image } from 'astro:assets'
+import backstageBackground from '@assets/images/backstage-background.jpg'
+
+type IconKey = keyof typeof svgPath
+export interface Props {
+  pretitle: string
+  description: string
+  benefits: {
+    title: string
+    quantifier: string
+  }[]
+  features: {
+    title: string
+    description: string
+    icon: IconKey
+  }[]
+}
+
+const { pretitle, title, description, benefits, features } = Astro.props as Props
+
+const svgPath = {
+  'left-justified': 'M4 6h16M4 12h16M4 18h7',
+  'clipboard': 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2',
+  'lightning-bolt': 'M13 10V3L4 14h7v7l9-11h-7z',
+  'graph': 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
+} as const
+
+const visibleBenefits = benefits.slice(0, 3)
+const visibleFeatures = features.slice(0, 4)
 ---
 
 <section class="container mx-auto px-4 sm:px-6 lg:px-8 py-16" aria-labelledby="backstage-title">
-  <div class="space-y-6">
-    <p class="text-xs font-bold text-primary uppercase tracking-widest">Backstage IDP Implementation</p>
+  <div class="mb-8 space-y-2">
+    <p class="text-md font-bold text-primary uppercase tracking-widest">{pretitle}</p>
+    <h2 id="backstage-title" class="text-3xl md:text-4xl font-black text-content leading-tight">
+      Give your developers <span class="text-primary">superpowers</span>
+    </h2>
   </div>
   <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
     <!-- Left column: headline + image -->
     <div class="lg:col-span-2 space-y-6">
-      <h2 id="backstage-title" class="text-3xl md:text-4xl font-black text-content leading-tight">
-        Give your developers <span class="text-primary">superpowers</span>
-      </h2>
-      <p class="text-lg text-content-offset leading-relaxed">
-        Backstage is Spotify's open-source internal developer portal. I customize and deploy it
-        for your team—starting small, proving value fast, then scaling across your organization.
-      </p>
+      <p class="text-lg text-content-offset leading-relaxed">{description}</p>
 
-      <!-- Image placeholder -->
-      <div class="aspect-square bg-page-offset rounded-2xl border-2 border-dashed border-trim flex items-center justify-center">
-        <span class="text-content-offset text-sm">Image Placeholder</span>
+      <!-- Image -->
+      <div class="aspect-square bg-page-offset rounded-2xl border-2 border-dashed border-trim overflow-hidden">
+        <Image
+          src={backstageBackground}
+          alt="Backstage interface preview"
+          class="h-full w-full object-cover"
+        />
       </div>
     </div>
 
@@ -29,53 +59,40 @@
     <div class="lg:col-span-3 space-y-6">
       <!-- Stats row -->
       <div class="grid grid-cols-3 gap-4">
-        <div class="bg-content text-page-base rounded-xl p-4 text-center">
-          <p class="text-3xl font-black">70%</p>
-          <p class="text-xs text-page-base/70">Less time to first deploy</p>
-        </div>
-        <div class="bg-content text-page-base rounded-xl p-4 text-center">
-          <p class="text-3xl font-black">4 wks</p>
-          <p class="text-xs text-page-base/70">Pilot app live</p>
-        </div>
-        <div class="bg-content text-page-base rounded-xl p-4 text-center">
-          <p class="text-3xl font-black">0</p>
-          <p class="text-xs text-page-base/70">Ops tickets for deploys</p>
-        </div>
+        {visibleBenefits.map((benefit) => (
+          <div class="bg-content text-page-base rounded-xl p-4 text-center">
+            <p class="text-3xl font-black">{benefit.quantifier}</p>
+            <p class="text-xs text-page-base/70">{benefit.title}</p>
+          </div>
+        ))}
       </div>
 
       <!-- Feature cards -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div class="bg-page-offset p-6 rounded-xl border border-trim">
-          <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-            <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg>
+        {visibleFeatures.map((feature) => (
+          <div class="bg-page-offset p-6 rounded-xl border border-trim">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                <svg
+                  class="w-5 h-5 text-primary"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d={svgPath[feature.icon]}
+                  ></path>
+                </svg>
+              </div>
+              <span class="font-bold text-content-active">{feature.title}</span>
+            </div>
+            <p class="text-sm text-content">{feature.description}</p>
           </div>
-          <p class="font-bold text-content mb-1">Service Catalog</p>
-          <p class="text-sm text-content-offset">One place to find every service, API, and resource—with owners and docs attached.</p>
-        </div>
-
-        <div class="bg-page-offset p-6 rounded-xl border border-trim">
-          <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-            <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
-          </div>
-          <p class="font-bold text-content mb-1">Software Templates</p>
-          <p class="text-sm text-content-offset">Scaffold new projects with CI/CD, tests, and cloud infra baked in from day one.</p>
-        </div>
-
-        <div class="bg-page-offset p-6 rounded-xl border border-trim">
-          <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-            <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-          </div>
-          <p class="font-bold text-content mb-1">CI/CD & Cloud Migration</p>
-          <p class="text-sm text-content-offset">Lift-and-shift or re-architect—either way, your pipelines will be rock solid.</p>
-        </div>
-
-        <div class="bg-page-offset p-6 rounded-xl border border-trim">
-          <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-            <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-          </div>
-          <p class="font-bold text-content mb-1">Observability Plug-ins</p>
-          <p class="text-sm text-content-offset">Surface logs, metrics, and traces right inside the portal—no context switching.</p>
-        </div>
+        ))}
       </div>
 
       <!-- CTA -->
