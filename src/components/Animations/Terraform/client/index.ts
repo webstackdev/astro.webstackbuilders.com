@@ -301,11 +301,11 @@ export class TerraformAnimationElement extends LitElement {
     )
     this.toggleButton.dataset['animationState'] = state
 
-    const pauseIcon = queryAnimationTogglePauseIcon(this.toggleButton)
-    const playIcon = queryAnimationTogglePlayIcon(this.toggleButton)
+    const pauseIcon = queryAnimationTogglePauseIcon(this.toggleButton) as HTMLElement | null
+    const playIcon = queryAnimationTogglePlayIcon(this.toggleButton) as HTMLElement | null
 
-    pauseIcon?.classList.toggle('hidden', state === 'paused')
-    playIcon?.classList.toggle('hidden', state === 'playing')
+    if (pauseIcon) pauseIcon.style.display = state === 'paused' ? 'none' : 'flex'
+    if (playIcon) playIcon.style.display = state === 'playing' ? 'none' : 'flex'
   }
 
   private resetToggleButton(): void {
@@ -315,11 +315,11 @@ export class TerraformAnimationElement extends LitElement {
     this.toggleButton.setAttribute('aria-label', 'Pause animation')
     this.toggleButton.setAttribute('aria-pressed', 'false')
 
-    const pauseIcon = queryAnimationTogglePauseIcon(this.toggleButton)
-    const playIcon = queryAnimationTogglePlayIcon(this.toggleButton)
+    const pauseIcon = queryAnimationTogglePauseIcon(this.toggleButton) as HTMLElement | null
+    const playIcon = queryAnimationTogglePlayIcon(this.toggleButton) as HTMLElement | null
 
-    pauseIcon?.classList.remove('hidden')
-    playIcon?.classList.add('hidden')
+    if (pauseIcon) pauseIcon.style.display = 'flex'
+    if (playIcon) playIcon.style.display = 'none'
 
     this.toggleButton = null
   }
