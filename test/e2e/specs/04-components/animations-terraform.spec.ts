@@ -4,7 +4,7 @@ import type { Page } from '@playwright/test'
 type AnimationPlayState = 'playing' | 'paused' | null
 
 const selectors = {
-  host: 'computers-animation',
+  host: 'terraform-animation',
   toggle: '[data-animation-toggle]',
 }
 
@@ -19,10 +19,10 @@ const isMobileProject = (projectName: string): boolean => {
   return projectName.startsWith('mobile-')
 }
 
-async function loadComputersFixture(playwrightPage: Page, options: FixtureOptions = {}): Promise<BasePage> {
+async function loadTerraformFixture(playwrightPage: Page, options: FixtureOptions = {}): Promise<BasePage> {
   const page = await BasePage.init(playwrightPage)
   await page.page.emulateMedia({ reducedMotion: options.reducedMotion ?? 'no-preference' })
-  await page.goto('/testing/animations-computers')
+  await page.goto('/testing/animations-terraform')
   // NOTE: The component is intentionally `hidden lg:flex` in production markup.
   // On mobile projects it will remain hidden, so waiting for "visible" will hang.
   await page.waitForSelector(selectors.host, { state: 'attached' })
@@ -32,7 +32,7 @@ async function loadComputersFixture(playwrightPage: Page, options: FixtureOption
 
 async function getAnimationState(page: BasePage): Promise<AnimationPlayState> {
   return await page.evaluate(() => {
-    return document.querySelector('computers-animation')?.getAttribute('data-animation-state') as AnimationPlayState
+    return document.querySelector('terraform-animation')?.getAttribute('data-animation-state') as AnimationPlayState
   })
 }
 
@@ -56,9 +56,9 @@ async function setOverlayPause(page: BasePage, isPaused: boolean): Promise<void>
   }, { paused: isPaused, source: overlaySource })
 }
 
-test.describe('Computers Animation Component', () => {
+test.describe('Terraform Animation Component', () => {
   test('plays by default when no pause sources exist', async ({ page: playwrightPage }, testInfo) => {
-    const page = await loadComputersFixture(playwrightPage)
+    const page = await loadTerraformFixture(playwrightPage)
     const host = page.locator(selectors.host)
     const toggle = page.locator(selectors.toggle)
 
@@ -77,7 +77,7 @@ test.describe('Computers Animation Component', () => {
   })
 
   test('honors prefers-reduced-motion by starting paused', async ({ page: playwrightPage }, testInfo) => {
-    const page = await loadComputersFixture(playwrightPage, { reducedMotion: 'reduce' })
+    const page = await loadTerraformFixture(playwrightPage, { reducedMotion: 'reduce' })
     const host = page.locator(selectors.host)
 
     await waitForAnimationState(page, 'paused')
@@ -96,7 +96,7 @@ test.describe('Computers Animation Component', () => {
   test(
     'responds to overlay pause and resume actions from the animation store',
     async ({ page: playwrightPage }, testInfo) => {
-    const page = await loadComputersFixture(playwrightPage)
+    const page = await loadTerraformFixture(playwrightPage)
     const host = page.locator(selectors.host)
 
     // On mobile projects the component is intentionally `hidden lg:flex` and must not start.
