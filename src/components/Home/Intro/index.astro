@@ -6,6 +6,8 @@
 type IconKey = keyof typeof svgPath
 export interface Props {
   pretitle: string
+  title: string
+  description: string
   benefits: {
     title: string
     description: string
@@ -13,7 +15,7 @@ export interface Props {
   }[]
 }
 
-const { pretitle, benefits } = Astro.props as Props
+const { description, benefits, pretitle, title } = Astro.props as Props
 
 const svgPath = {
   'check-circled': 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
@@ -24,42 +26,49 @@ const svgPath = {
 const visibleBenefits = benefits.slice(0, 3)
 ---
 
-<div class="text-center space-y-8 bg-page-offset p-8 rounded-xl">
-  <div class="max-w-3xl mx-auto">
-    <h2 id="home-about-title" class="text-3xl md:text-4xl font-bold mb-6">
-      Building the Future of Software Development
-    </h2>
-    <p class="text-xl text-content-active leading-relaxed mb-8">
-      {pretitle}
-    </p>
-  </div>
+<section class="bg-content rounded-2xl p-8 md:p-12 overflow-hidden relative" aria-labelledby="home-about-title">
+  <div class="absolute -top-32 -right-32 w-64 h-64 border border-page-base/10 rounded-full" aria-hidden="true"></div>
+  <div class="absolute -bottom-20 -left-20 w-48 h-48 border border-page-base/10 rounded-full" aria-hidden="true"></div>
 
-  <ul class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12 list-none p-0 m-0">
-    {visibleBenefits.map((benefit) => (
-      <li class="text-center">
-        <div
-          class="w-16 h-16 bg-spotlight bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4"
-        >
-          <svg
-            class="w-8 h-8 text-primary"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-            focusable="false"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d={svgPath[benefit.icon]}></path>
-          </svg>
-        </div>
-        <h3 class="mb-2 text-content-active">{benefit.title}</h3>
-        <p class="text-content">
-          {benefit.description}
-        </p>
-      </li>
-    ))}
-  </ul>
-</div>
+  <div class="relative">
+    <div class="text-center max-w-2xl mx-auto mb-10">
+      <p class="text-xs font-bold text-spotlight uppercase tracking-widest mb-3">{pretitle}</p>
+      <h2 id="home-about-title" class="text-3xl md:text-4xl font-black text-page-base leading-tight mb-4">
+        {title}
+      </h2>
+      <p class="text-base text-page-base/70 leading-relaxed">
+        {description}
+      </p>
+    </div>
+
+    <ul class="grid grid-cols-1 md:grid-cols-3 gap-6 list-none p-0 m-0">
+      {visibleBenefits.map((benefit) => (
+        <li class="border border-page-base/15 rounded-xl p-6 hover:border-spotlight/40 transition-colors group">
+          <div class="flex items-center gap-3 mb-4">
+            <div
+              class="w-10 h-10 rounded-lg bg-spotlight/20 flex items-center justify-center group-hover:bg-spotlight/30 transition-colors"
+            >
+              <svg
+                class="w-5 h-5 text-spotlight"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d={svgPath[benefit.icon]}
+                ></path>
+              </svg>
+            </div>
+            <h3 class="text-base font-bold text-page-base">{benefit.title}</h3>
+          </div>
+          <p class="text-sm text-page-base/60 leading-relaxed">{benefit.description}</p>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
