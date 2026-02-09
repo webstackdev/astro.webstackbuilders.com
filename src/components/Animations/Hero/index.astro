@@ -11,84 +11,79 @@ const { pretitle, benefits } = Astro.props as Props
 ---
 
 <home-hero class="block" data-testid="home-hero">
-  <section
-    class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8 lg:py-12"
-    aria-labelledby="home-hero-title"
-  >
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-      <div class="hidden lg:block lg:order-2">
-        <ComputersAnimation />
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+    <div class="hidden lg:block lg:order-2">
+      <ComputersAnimation />
+    </div>
+
+    <div class="order-2 lg:order-1 space-y-4 font-mono">
+      <div class="text-primary ml-1 mb-1">$ whoami</div>
+
+      <h1
+        id="home-hero-title"
+        class="text-4xl md:text-5xl lg:text-7xl font-bold text-content-active leading-none"
+      >
+        Senior<br />
+        Platform<br />
+        <span class="text-content-offset">Authority.</span>
+      </h1>
+
+      <p class="text-base md:text-lg text-content font-sans max-w-xl">{pretitle}</p>
+
+      <div
+        class="bg-content text-page-base p-6 rounded-lg transition-transform duration-200 ease-out will-change-transform hover:scale-[1.02] hover:-translate-y-px"
+      >
+        <div class="text-xs text-page-base/60 mb-3">// What I deliver</div>
+        <ul class="space-y-2 text-sm">
+          {benefits.map(benefit => (
+            <li class="flex items-center gap-2">
+              <span class="text-success">✓</span>
+              <span>{benefit}</span>
+            </li>
+          ))}
+
+          <li class="flex items-center gap-2">
+            <span class="text-success">$</span>
+            <a
+              href="/contact"
+              class="inline-flex items-center gap-1 no-underline text-success transition-colors hover:text-success-offset focus-visible:text-success-offset"
+              data-hero-ready-link
+              aria-label="ready"
+            >
+              <span aria-hidden="true"> </span>
+              <span data-hero-ready-text aria-hidden="true"></span>
+            </a>
+          </li>
+        </ul>
       </div>
 
-      <div class="order-2 lg:order-1 space-y-4 font-mono">
-        <div class="text-primary ml-1 mb-1">$ whoami</div>
-
-        <h1
-          id="home-hero-title"
-          class="text-4xl md:text-5xl lg:text-7xl font-bold text-content-active leading-none"
+      <div class="flex items-center gap-4 ml-1">
+        <Button href="/about" variant="success" text="Read My Story" />
+        <a
+          href="/contact"
+          class:list={[
+            [
+              'py-3', 'sm:ml-6', 'transition-colors',
+            ],
+            [
+              'text-content', 'font-bold',
+            ],
+            [
+              'underline', 'underline-offset-4', 'decoration-2', 'decoration-dotted', 'decoration-content',
+            ],
+            [
+              'hover:text-content-offset', 'hover:decoration-content-offset',
+            ],
+            [
+              'focus-visible:text-content-offset', 'focus-visible:underline', 'focus-visible:decoration-2', 'focus-visible:decoration-dotted', 'focus-visible:decoration-content-offset',
+            ],
+          ]}
         >
-          Senior<br />
-          Platform<br />
-          <span class="text-content-offset">Authority.</span>
-        </h1>
-
-        <p class="text-base md:text-lg text-content font-sans max-w-xl">{pretitle}</p>
-
-        <div
-          class="bg-content text-page-base p-6 rounded-lg transition-transform duration-200 ease-out will-change-transform hover:scale-[1.02] hover:-translate-y-px"
-        >
-          <div class="text-xs text-page-base/60 mb-3">// What I deliver</div>
-          <ul class="space-y-2 text-sm">
-            {benefits.map(benefit => (
-              <li class="flex items-center gap-2">
-                <span class="text-success">✓</span>
-                <span>{benefit}</span>
-              </li>
-            ))}
-
-            <li class="flex items-center gap-2">
-              <span class="text-success">$</span>
-              <a
-                href="/contact"
-                class="inline-flex items-center gap-1 no-underline text-success transition-colors hover:text-success-offset focus-visible:text-success-offset"
-                data-hero-ready-link
-                aria-label="ready"
-              >
-                <span aria-hidden="true"> </span>
-                <span data-hero-ready-text aria-hidden="true"></span>
-              </a>
-            </li>
-          </ul>
-        </div>
-
-        <div class="flex items-center gap-4 ml-1">
-          <Button href="/about" variant="success" text="Read My Story" />
-          <a
-            href="/contact"
-            class:list={[
-              [
-                'py-3', 'sm:ml-6', 'transition-colors',
-              ],
-              [
-                'text-content', 'font-bold',
-              ],
-              [
-                'underline', 'underline-offset-4', 'decoration-2', 'decoration-dotted', 'decoration-content',
-              ],
-              [
-                'hover:text-content-offset', 'hover:decoration-content-offset',
-              ],
-              [
-                'focus-visible:text-content-offset', 'focus-visible:underline', 'focus-visible:decoration-2', 'focus-visible:decoration-dotted', 'focus-visible:decoration-content-offset',
-              ],
-            ]}
-          >
-            Get in Touch <span aria-hidden="true" class="md:text-3xl">→</span>
-          </a>
-        </div>
+          Get in Touch <span aria-hidden="true" class="md:text-3xl">→</span>
+        </a>
       </div>
     </div>
-  </section>
+  </div>
 </home-hero>
 
 <script>

@@ -3,96 +3,61 @@
  * The Intro component serves as the welcoming section of the homepage, providing
  * a concise overview of Webstack Builders' mission and value proposition
  */
+export interface Props {
+  pretitle: string
+  benefits: {
+    title: string
+    description: string
+  }[]
+}
+
+const { pretitle, benefits } = Astro.props as Props
+
+const svgPath = [
+  'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
+  'M13 10V3L4 14h7v7l9-11h-7z',
+  'M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4',
+]
+
+const visibleBenefits = benefits.slice(0, 3)
 ---
 
-<section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6" aria-labelledby="home-about-title">
-  <div class="text-center space-y-8">
-    <div class="max-w-3xl mx-auto">
-      <h2 id="home-about-title" class="text-3xl md:text-4xl font-bold mb-6">
-        Building the Future of Software Development
-      </h2>
-      <p class="text-xl text-content-active leading-relaxed mb-8">
-        I'm a freelance software engineer specializing in platform engineering, cloud
-        architecture, and developer experience optimization. With deep expertise in modern
-        technologies and a focus on scalable solutions, I help businesses transform their
-        technical infrastructure and accelerate development workflows. SOC-2 ready.
-      </p>
-    </div>
-
-    <ul class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12 list-none p-0 m-0">
-      <li class="text-center">
-        <div
-          class="w-16 h-16 bg-spotlight bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4"
-        >
-          <svg
-            class="w-8 h-8 text-primary"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-            focusable="false"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-        </div>
-        <h3 class="mb-2 font-semibold text-content-active">Platform Engineering</h3>
-        <p class="text-content">
-          Scalable infrastructure, internal developer platforms, and CI/CD pipelines built for rapid, reliable iteration
-        </p>
-      </li>
-
-      <li class="text-center">
-        <div
-          class="w-16 h-16 bg-spotlight bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4"
-        >
-          <svg
-            class="w-8 h-8 text-primary"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-            focusable="false"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-          </svg>
-        </div>
-        <h3 class="mb-2 font-semibold text-content-active">Cloud Architecture</h3>
-        <p class="text-content">
-          Cloud-native architectures across AWS, Azure, GCP, and beyond that scale with your business and budget
-        </p>
-      </li>
-
-      <li class="text-center">
-        <div
-          class="w-16 h-16 bg-spotlight bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4"
-        >
-          <svg
-            class="w-8 h-8 stroke-primary text-content"
-            fill="none"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-            focusable="false"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
-          </svg>
-        </div>
-        <h3 class="mb-2 font-semibold text-content-active">Developer Experience</h3>
-        <p class="text-content">
-          Purpose-built toolchains, automated workflows, and developer documentation that remove friction and boost velocity
-        </p>
-      </li>
-    </ul>
+<div class="text-center space-y-8 bg-page-offset p-8 rounded-xl">
+  <div class="max-w-3xl mx-auto">
+    <h2 id="home-about-title" class="text-3xl md:text-4xl font-bold mb-6">
+      Building the Future of Software Development
+    </h2>
+    <p class="text-xl text-content-active leading-relaxed mb-8">
+      {pretitle}
+    </p>
   </div>
-</section>
+
+  <ul class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12 list-none p-0 m-0">
+    {visibleBenefits.map((benefit, index) => (
+      <li class="text-center">
+        <div
+          class="w-16 h-16 bg-spotlight bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4"
+        >
+          <svg
+            class="w-8 h-8 text-primary"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d={svgPath[index]}></path>
+          </svg>
+        </div>
+        <h3 class="mb-2 text-content-active">{benefit.title}</h3>
+        <p class="text-content">
+          {benefit.description}
+        </p>
+      </li>
+    ))}
+  </ul>
+</div>
