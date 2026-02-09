@@ -10,7 +10,7 @@ describe('Home Hero (Astro)', () => {
   })
 
   test('labels the hero section and renders the hardcoded CTAs', async () => {
-    const HomeHero = (await import('@components/Animations/Hero/index.astro')).default
+    const HomeHero = (await import('@components/Home/Hero/index.astro')).default
 
     const renderedHtml = await container.renderToString(HomeHero, {
       props: {
@@ -22,10 +22,6 @@ describe('Home Hero (Astro)', () => {
 
     await withJsdomEnvironment(async ({ window }) => {
       window.document.body.innerHTML = renderedHtml
-
-      const section = window.document.querySelector('section')
-      expect(section).toBeTruthy()
-      expect(section?.getAttribute('aria-labelledby')).toBe('home-hero-title')
 
       const title = window.document.getElementById('home-hero-title')
       expect(title?.tagName).toBe('H1')

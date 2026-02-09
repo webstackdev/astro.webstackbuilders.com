@@ -23,7 +23,7 @@ describe('HomeHeroElement (Lit)', () => {
   })
 
   const renderHero = async (): Promise<string> => {
-    const Hero = (await import('@components/Animations/Hero/index.astro')).default
+    const Hero = (await import('@components/Home/Hero/index.astro')).default
 
     return container.renderToString(Hero, {
       props: {
@@ -44,7 +44,7 @@ describe('HomeHeroElement (Lit)', () => {
           removeEventListener: () => undefined,
         }) as unknown as MediaQueryList) as unknown as typeof window.matchMedia
 
-      const { registerHomeHeroWebComponent } = await import('@components/Animations/Hero/client')
+      const { registerHomeHeroWebComponent } = await import('@components/Home/Hero/client')
       await registerHomeHeroWebComponent()
 
       window.document.body.innerHTML = await renderHero()
@@ -80,7 +80,7 @@ describe('HomeHeroElement (Lit)', () => {
           removeEventListener: () => undefined,
         }) as unknown as MediaQueryList) as unknown as typeof window.matchMedia
 
-      const { registerHomeHeroWebComponent } = await import('@components/Animations/Hero/client')
+      const { registerHomeHeroWebComponent } = await import('@components/Home/Hero/client')
       await registerHomeHeroWebComponent()
 
       window.document.body.innerHTML = await renderHero()
