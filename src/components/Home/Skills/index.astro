@@ -1,68 +1,40 @@
 ---
 /**
- * "Technologies and Skills" section for the homepage
+ * "Technologies and Skills" section for the homepage.
+ * Renders a dark strip with icon + label links for each technology.
  */
 export interface Props {
-  technologies: {
-    name: string
-  }[]
+  technologies: string[]
 }
 
 const { technologies } = Astro.props as Props
+
+/** Convert a display name like "Argo CD" to a URL slug like "argo-cd" */
+function toTagSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+}
 ---
 
-<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-  <h2 id="home-technologies-title" class="text-2xl md:text-3xl font-bold mb-8">
-    Technologies & Expertise
-  </h2>
-  <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8">
-    <div class="flex flex-col items-center">
-      <div
-        class="w-12 h-12 bg-spotlight bg-opacity-10 rounded-lg flex items-center justify-center mb-2"
+<div class="bg-content rounded-2xl py-8 px-6 overflow-hidden" aria-labelledby="home-technologies-title">
+  <h2 id="home-technologies-title" class="sr-only">Technologies &amp; Expertise</h2>
+
+  <div class="flex items-center justify-center gap-12 flex-wrap">
+    {technologies.map((tech) => (
+      <a
+        href={`/tags/${toTagSlug(tech)}`}
+        class="group flex items-center gap-3 text-page-base/60 hover:text-spotlight transition-colors"
       >
-        <span class="text-primary font-bold text-sm">Go</span>
-      </div>
-      <span class="text-sm font-medium">Go</span>
-    </div>
-    <div class="flex flex-col items-center">
-      <div
-        class="w-12 h-12 bg-spotlight bg-opacity-10 rounded-lg flex items-center justify-center mb-2"
-      >
-        <span class="text-primary font-bold text-sm">TS</span>
-      </div>
-      <span class="text-sm font-medium">TypeScript</span>
-    </div>
-    <div class="flex flex-col items-center">
-      <div
-        class="w-12 h-12 bg-spotlight bg-opacity-10 rounded-lg flex items-center justify-center mb-2"
-      >
-        <span class="text-primary font-bold text-sm">TF</span>
-      </div>
-      <span class="text-sm font-medium">Terraform</span>
-    </div>
-    <div class="flex flex-col items-center">
-      <div
-        class="w-12 h-12 bg-spotlight bg-opacity-10 rounded-lg flex items-center justify-center mb-2"
-      >
-        <span class="text-primary font-bold text-sm">Az</span>
-      </div>
-      <span class="text-sm font-medium">Azure</span>
-    </div>
-    <div class="flex flex-col items-center">
-      <div
-        class="w-12 h-12 bg-spotlight bg-opacity-10 rounded-lg flex items-center justify-center mb-2"
-      >
-        <span class="text-primary font-bold text-sm">K8s</span>
-      </div>
-      <span class="text-sm font-medium">Kubernetes</span>
-    </div>
-    <div class="flex flex-col items-center">
-      <div
-        class="w-12 h-12 bg-spotlight bg-opacity-10 rounded-lg flex items-center justify-center mb-2"
-      >
-        <span class="text-primary font-bold text-sm">Py</span>
-      </div>
-      <span class="text-sm font-medium">Python</span>
-    </div>
+        <div class="w-10 h-10 rounded-lg bg-page-base/10 flex items-center justify-center group-hover:bg-page-base/20 transition-colors">
+          <div class="w-7 h-7 rounded bg-page-base/5 border border-page-base/20 flex items-center justify-center text-[9px] text-page-base/40">
+            img
+          </div>
+        </div>
+        <span class="text-sm font-semibold">{tech}</span>
+      </a>
+    ))}
   </div>
 </div>

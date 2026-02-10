@@ -240,3 +240,23 @@ Remove the `content/downloads` folder, and point the content collection to look 
 
 - "### Geographic/Currency Mismatches" in src/content/articles/cdn-edge-caching-cache-keys-vary-headers/index.mdx
 - cover.jpg for reliability-and-testing needs touch up in GIMP
+
+## Non-featured tags
+
+argo-cd
+aws
+azure
+backstage
+crossplane
+docker
+dotnet
+go
+grafana
+helm
+kubernetes
+openstack
+prometheus
+python
+ruby
+terraform
+typescript
