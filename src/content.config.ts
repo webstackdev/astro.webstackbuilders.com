@@ -204,6 +204,8 @@ const tagsCollection = defineCollection({
       cover: image(),
       coverAlt: z.string(),
       featured: z.boolean().default(false),
+      logo: image().optional(),
+      isSkill: z.boolean().default(false),
     }),
 })
 

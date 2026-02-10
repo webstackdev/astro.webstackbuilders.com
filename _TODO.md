@@ -43,6 +43,8 @@ https://vercel.com/kevin-browns-projects-dd474f73/astro-webstackbuilders-com/ai-
 
 We have E2E errors again testimonials slide on mobile chrome and safari. I think the problem is that we are pausing carousels when part of the carousel is outside of the viewport, and the testimonials are too large to display on mobile without being off viewport.
 
+See if there's any code in common between Carousel, Testimonials, and Themepicker. We have another one to add that uses the carousel code - for Skills.
+
 `test/e2e/specs/04-components/testimonials.spec.ts`:244:3 › Testimonials Component › @ready testimonials auto-rotate changes slide index
 
 ## Move containers to dev server from Playwright
@@ -82,20 +84,6 @@ if (window.matchMedia) {
     });
 }
 ```
-
-## Home Page Ordering
-
-- Hero
-- About Preview ("Building the Future of Software Development")
-- Featured Services
-- (Todo) Turn-Key Backstage IDP Implementation
-- Testimonials
-- Latest Articles
-- Primary CTA ("Ready to Transform Your Development Process?") with links to /contact and /services
-- Newsletter Signup
-- Skills/Technologies Preview (__move to after "About Preview"__)
-
-Maybe change the "ready..." in the hero to "get in touch..."
 
 ## Search Box
 
@@ -143,23 +131,43 @@ Need a tooltip component for consistency. List to add tooltips to:
 - Should header links be in the tab order?
 - Does the total page tab order make sense?
 
-## Lead on Hero for Articles
 
-There's an [example screen shot](src/components/Layout/Markdown/Lead/lead-on-hero-example.png) from CSS-Tricks showing a layout of the author avatar, author name, published date, and title overlaid on the cover image. It would save space on the page. Probably should have it above the image on mobile to avoid visibility issues.
+## Non-featured tags
 
-A scrim is an elliptical gradient from translucent black (center) to transparent black (edges), strategically placed behind white text. The scrim is probably the most subtle way of reliably overlaying text on images out there, and very few designs use this technique.
+Update the skills and technologies tags pages:
 
-To overlay an article title and published date on a cover image, use CSS positioning, specifically position: relative on the container and position: absolute on the text elements, combined with design techniques to ensure readability such as a semi-transparent overlay or text shadows.
+argo-cd
+aws
+azure
+backstage
+crossplane
+docker
+dotnet
+go
+grafana
+helm
+kubernetes
+openstack
+prometheus / promql
+python
+ruby
+terraform
+typescript
 
 ## Stylings
 
 - Add 'featured' to tags to filter, and move tags page to articles
+
 - Need to make tables responsive on mobile
-- Investigate why we're getting hyphenate breaks within words across lines, like or- ders and us- age
+
 - Need to remove automatic abbr handling when the abbreviation is used in a header, also the abbr presentation needs improved - right now it gives a question mark pointer and long delay to appear
+
 - When adding backticks in a callout, it gets the standard grey background for a code block in light theme. But it should get an offset of the callout color, like "info-offset".
+
 - Inline code blocks are not wrapping. They're breaking to a new line. An example is in the "Scenario: CRD Sync Order Problem" section of argocd-sync-failures-gitops-debugging-troubleshooting#specific-failure-scenarios.
+
 - The spacing on unordered task lists nested in an ordered list is wrong, see "Questions to Ask Before Setting Targets" in src/content/articles/availability-targets-five-nines-cost-benefit-analysis/index.mdx
+
 - There's too much space at the bottom of callouts, a full line of extra space in the colored background area.
 
 ## Project Stuff
@@ -193,19 +201,10 @@ To overlay an article title and published date on a cover image, use CSS positio
 - add "cel" language to code blocks
 - hovering menu items should cause the dots to disappear immediately and then the animation slide to start
 - Update EXIF data on all AI generated JPGs
-- See if there's any code in common between Carousel, Testimonials, and Themepicker. We have another one to add that uses the carousel code - for Skills.
 
 ## Header
 
 Need to improve the "squish" animation where the header reduces in size on scroll down, and returns to full size on scroll up. Maybe reduce and expand the text and search / themepicker / hamburger menu sizes in place, and then slide them horizontally. The relevant CSS classes:
-
-src/components/Header/index.css
-.header-fixed, .header-footprint, .site-header, .header-brand
-
-src/components/Navigation/menu.module.css
-.mainNavLink
-
-[example](https://thenewstack.io/)
 
 ## Reading position indicator
 
@@ -227,9 +226,6 @@ src/components/Navigation/menu.module.css
 
 This article has different approaches to [print pagination](https://www.customjs.space/blog/html-print-pagination-footer/). One approach overlaps with PagedJS's approach.
 
-## Downloads Collection
-
-Remove the `content/downloads` folder, and point the content collection to look for a `download.astro` file in the `contents/articles` folder. Exclude the `pdf.astro` file from the Articles collection. Generated PDFs go into the public directory maybe? See the note on gating below.
 
 ## Downloads / Gated Content
 
@@ -242,23 +238,3 @@ Remove the `content/downloads` folder, and point the content collection to look 
 - cover.jpg for reliability-and-testing needs touch up in GIMP
 - We need to check for short form and deep article articles where the deep-dive index.pdf has a non-featured tag lik "argo-cd" only in the pdf.mdx. In those cases, we should make sure the callout for the deep dive includes the name of that non-featured (technology) tag and add the name to the tags: frontmatter key in the index.mdx
 - Need an article on OpenStack
-
-## Non-featured tags
-
-argo-cd
-aws
-azure
-backstage
-crossplane
-docker
-dotnet
-go
-grafana
-helm
-kubernetes
-openstack
-prometheus / promql
-python
-ruby
-terraform
-typescript

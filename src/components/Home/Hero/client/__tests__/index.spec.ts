@@ -7,7 +7,7 @@ import {
   getAnimationPreference,
 } from '@components/scripts/store'
 
-const READY_TEXT = 'ready...'
+import { READY_TEXT } from '../index'
 const STEP_MS = 500
 
 describe('HomeHeroElement (Lit)', () => {

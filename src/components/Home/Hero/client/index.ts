@@ -12,7 +12,7 @@ import { queryHeroReadyTextElement } from './selectors'
 
 const SCRIPT_NAME = 'HomeHeroElement'
 
-const READY_TEXT = 'ready...'
+export const READY_TEXT = "heck yes, let's talk..."
 const READY_DELAY_MS = 500
 
 export class HomeHeroElement extends LitElement {
