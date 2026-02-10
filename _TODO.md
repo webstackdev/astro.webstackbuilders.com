@@ -240,6 +240,8 @@ Remove the `content/downloads` folder, and point the content collection to look 
 
 - "### Geographic/Currency Mismatches" in src/content/articles/cdn-edge-caching-cache-keys-vary-headers/index.mdx
 - cover.jpg for reliability-and-testing needs touch up in GIMP
+- We need to check for short form and deep article articles where the deep-dive index.pdf has a non-featured tag lik "argo-cd" only in the pdf.mdx. In those cases, we should make sure the callout for the deep dive includes the name of that non-featured (technology) tag and add the name to the tags: frontmatter key in the index.mdx
+- Need an article on OpenStack
 
 ## Non-featured tags
 
@@ -255,7 +257,7 @@ grafana
 helm
 kubernetes
 openstack
-prometheus
+prometheus / promql
 python
 ruby
 terraform

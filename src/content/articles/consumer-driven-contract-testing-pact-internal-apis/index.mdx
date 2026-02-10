@@ -5,7 +5,7 @@ cover: "./cover.jpg"
 coverAlt: "Consumer and provider services separated by two-way mirror with glowing contract showing mutual expectations between them"
 author: "kevin-brown"
 publishDate: 2024-04-07
-tags: ["apis-and-gateways"]
+tags: ["apis-and-gateways", "docker", "kubernetes", "typescript", "python", "go", "ruby", "dotnet"]
 featured: true
 ---
 
@@ -67,16 +67,14 @@ sequenceDiagram
     P->>P: Replay against real API
     P->>B: Publish verification results
     B->>B: Track compatibility matrix
-```
 Figure: Contract testing workflow showing consumer-first approach.
 
 Here's what this looks like in practice. A consumer test defines the expected request and response for an API call:
 
 ```typescript title="user-api.pact.spec.ts"
 import { PactV3, MatchersV3 } from '@pact-foundation/pact';
-
+tags: ["apis-and-gateways", "docker", "kubernetes", "typescript", "python", "go", "ruby", "dotnet"]
 // like() matches type/structure, not exact values—keeps contracts flexible
-const { like } = MatchersV3;
 
 const provider = new PactV3({
   consumer: 'OrderService',
