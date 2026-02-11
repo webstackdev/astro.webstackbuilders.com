@@ -181,6 +181,7 @@ export abstract class EmblaCarouselBase extends LitElement {
   private _requestedAutoplayState: AnimationPlayState = 'paused'
   private _focusVisibleCheckRafId: number | null = null
   private _animationInstanceId = ''
+  private _viewportId: string | null = null
 
   private _config!: EmblaCarouselConfig
   private _logForE2E!: ReturnType<typeof createE2ELogger>
@@ -243,6 +244,8 @@ export abstract class EmblaCarouselBase extends LitElement {
       this._dotsContainer = handles.dotsContainer ?? null
       this._prevBtn = handles.prevBtn ?? null
       this._nextBtn = handles.nextBtn ?? null
+
+      this.ensureViewportId()
 
       const viewport = handles.viewport
       const slideCount = handles.slideCount
@@ -339,6 +342,7 @@ export abstract class EmblaCarouselBase extends LitElement {
     this._emblaApi = null
     this._autoplayPlugin = null
     this._viewport = null
+    this._viewportId = null
     this._initialized = false
     this.removeAttribute('data-carousel-ready')
     this.removeAttribute('data-carousel-autoplay')
@@ -410,6 +414,7 @@ export abstract class EmblaCarouselBase extends LitElement {
     if (!this._emblaApi || !this._prevBtn || !this._nextBtn) return
 
     const scriptName = this._config.scriptName
+    const viewportId = this.getResolvedViewportId()
 
     const updateButtonStates = () => {
       if (!this._emblaApi || !this._prevBtn || !this._nextBtn) return
@@ -443,6 +448,11 @@ export abstract class EmblaCarouselBase extends LitElement {
       this
     )
 
+    if (viewportId) {
+      this._prevBtn.setAttribute('aria-controls', viewportId)
+      this._nextBtn.setAttribute('aria-controls', viewportId)
+    }
+
     addButtonEventListeners(
       this._nextBtn,
       () => {
@@ -475,6 +485,8 @@ export abstract class EmblaCarouselBase extends LitElement {
       dotsContainer.innerHTML = ''
       dots = []
 
+      const viewportId = this.getResolvedViewportId()
+
       this._emblaApi.scrollSnapList().forEach((_, index) => {
         const dot = ownerDocument.createElement('button')
         dot.type = 'button'
@@ -484,6 +496,9 @@ export abstract class EmblaCarouselBase extends LitElement {
         dot.className =
           'embla__dot w-3 h-3 rounded-full bg-content-active transition-all duration-300 hover:bg-primary'
         dot.setAttribute('aria-label', this.getDotAriaLabel(index))
+        if (viewportId) {
+          dot.setAttribute('aria-controls', viewportId)
+        }
 
         addButtonEventListeners(
           dot,
@@ -675,5 +690,31 @@ export abstract class EmblaCarouselBase extends LitElement {
     }
 
     this._autoplayReadyTimer = window.setTimeout(markReady, 0)
+  }
+
+  private ensureViewportId(): void {
+    if (!this._viewport || this._viewportId) return
+
+    const existingId = this._viewport.getAttribute('id')
+    const nextId =
+      existingId && existingId.length > 0
+        ? existingId
+        : `${this._animationInstanceId}-viewport`
+
+    this._viewport.setAttribute('id', nextId)
+    this._viewportId = nextId
+  }
+
+  private getResolvedViewportId(): string | null {
+    if (this._viewportId) return this._viewportId
+    if (!this._viewport) return null
+
+    const existingId = this._viewport.getAttribute('id')
+    if (existingId && existingId.length > 0) {
+      this._viewportId = existingId
+      return existingId
+    }
+
+    return null
   }
 }

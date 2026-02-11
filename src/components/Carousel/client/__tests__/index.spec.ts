@@ -201,6 +201,25 @@ describe('Carousel component (server output)', () => {
     )
   })
 
+  it('assigns aria-controls to pagination dots and navigation buttons', async () => {
+    await renderCarousel(({ root }) => {
+      const viewport = root.querySelector('.embla__viewport')
+      const viewportId = viewport?.getAttribute('id')
+      const dots = root.querySelectorAll('.embla__dot')
+      const prevBtn = root.querySelector('.embla__button--prev')
+      const nextBtn = root.querySelector('.embla__button--next')
+
+      expect(viewportId).toMatch(/^carousel-\d+-viewport$/)
+      expect(dots.length).toBeGreaterThan(0)
+
+      dots.forEach(dot => {
+        expect(dot.getAttribute('aria-controls')).toBe(viewportId)
+      })
+      expect(prevBtn?.getAttribute('aria-controls')).toBe(viewportId)
+      expect(nextBtn?.getAttribute('aria-controls')).toBe(viewportId)
+    })
+  })
+
   it('excludes the current slug from rendered cards', async () => {
     await renderCarousel(
       ({ root }) => {
@@ -349,8 +368,8 @@ describe('Carousel component (server output)', () => {
       const keyboardEventCtor = root.ownerDocument.defaultView?.KeyboardEvent
       expect(keyboardEventCtor).toBeDefined()
 
-      root.dispatchEvent(new keyboardEventCtor!('keydown', { key: 'ArrowLeft', bubbles: true }))
-      root.dispatchEvent(new keyboardEventCtor!('keydown', { key: 'ArrowRight', bubbles: true }))
+      root.dispatchEvent(new keyboardEventCtor!('keyup', { key: 'ArrowLeft', bubbles: true }))
+      root.dispatchEvent(new keyboardEventCtor!('keyup', { key: 'ArrowRight', bubbles: true }))
 
       expect(emblaApi?.scrollPrev).toHaveBeenCalledTimes(1)
       expect(emblaApi?.scrollNext).toHaveBeenCalledTimes(1)

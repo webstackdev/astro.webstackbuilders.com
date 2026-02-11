@@ -1,4 +1,5 @@
 import { handleScriptError } from '@components/scripts/errors/handler'
+import { addWrapperEventListeners } from '@components/scripts/elementListeners'
 import { defineCustomElement } from '@components/scripts/utils'
 import { createE2ELogger, EmblaCarouselBase } from '@components/scripts/embla'
 import type { EmblaCarouselConfig, EmblaElementHandles } from '@components/scripts/embla'
@@ -19,7 +20,7 @@ const logForE2E = createE2ELogger('carousel')
 
 export class CarouselElement extends EmblaCarouselBase {
   private statusRegion: HTMLElement | null = null
-  private readonly keydownHandler = (event: KeyboardEvent) => this.handleKeydown(event)
+  private readonly keyupHandler = (event: Event) => this.handleKeyup(event)
 
   // ────────────────────── Base class abstract implementations ──────────────────────
 
@@ -67,22 +68,27 @@ export class CarouselElement extends EmblaCarouselBase {
   protected override onInitialized(): void {
     this.statusRegion = queryCarouselStatusRegion(this)
     this.setupStatusRegion()
-    this.addEventListener('keydown', this.keydownHandler)
+    if (!this.dataset['carouselKeyListener']) {
+      addWrapperEventListeners(this, this.keyupHandler, this, {
+        allowedKeys: ['ArrowLeft', 'ArrowRight'],
+      })
+      this.dataset['carouselKeyListener'] = 'true'
+    }
   }
 
-  protected override onTeardown(): void {
-    this.removeEventListener('keydown', this.keydownHandler)
-  }
-
-  private handleKeydown(event: KeyboardEvent): void {
+  private handleKeyup(event: Event): void {
     if (!this.emblaApi) return
-    if (event.defaultPrevented) return
-    if (event.metaKey || event.ctrlKey || event.altKey) return
+    if (!(typeof (event as KeyboardEvent).key === 'string')) return
 
-    const key = event.key
+    const keyboardEvent = event as KeyboardEvent
+
+    if (keyboardEvent.defaultPrevented) return
+    if (keyboardEvent.metaKey || keyboardEvent.ctrlKey || keyboardEvent.altKey) return
+
+    const key = keyboardEvent.key
     if (key !== 'ArrowLeft' && key !== 'ArrowRight') return
 
-    const target = event.target
+    const target = keyboardEvent.target
     if (target instanceof HTMLElement) {
       const tag = target.tagName.toLowerCase()
       if (tag === 'input' || tag === 'textarea' || tag === 'select' || target.isContentEditable)
@@ -95,9 +101,9 @@ export class CarouselElement extends EmblaCarouselBase {
       } else {
         this.emblaApi.scrollNext()
       }
-      event.preventDefault()
+      keyboardEvent.preventDefault()
     } catch (error) {
-      handleScriptError(error, { scriptName: SCRIPT_NAME, operation: 'handleKeydown' })
+      handleScriptError(error, { scriptName: SCRIPT_NAME, operation: 'handleKeyup' })
     }
   }
 
