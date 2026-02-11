@@ -274,8 +274,6 @@ This article has different approaches to [print pagination](https://www.customjs
 
 A bunch of our web components extend directly from HTMLElement instead of following the instructions to extend LitElement.
 
-- Code/CodeBlock
-- Code/CodeTabs
 - Consent/Banner
 - Consent/Checkbox
 - Consent/Preferences

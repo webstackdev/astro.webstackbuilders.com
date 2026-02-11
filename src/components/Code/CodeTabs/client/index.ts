@@ -1,19 +1,6 @@
-export function registerCodeTabsWebComponent(): void {
-  const globalRef = globalThis as unknown as {
-    customElements?: CustomElementRegistry
-    window?: Window
-  }
-  const registry = globalRef.customElements ?? globalRef.window?.customElements
-  if (!registry) return
-
-  try {
-    if (registry.get('code-tabs')) return
-    registry.define('code-tabs', CodeTabsElement)
-  } catch {
-    // Best effort only.
-  }
-}
-
+import { LitElement } from 'lit'
+import { defineCustomElement } from '@components/scripts/utils'
+import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { addButtonEventListeners } from '@components/scripts/elementListeners'
 import copyIcon from '../../../../icons/copy.svg?raw'
 import checkIcon from '../../../../icons/check.svg?raw'
@@ -83,14 +70,21 @@ async function writeToClipboard(text: string): Promise<boolean> {
   return false
 }
 
-class CodeTabsElement extends HTMLElement {
+export class CodeTabsElement extends LitElement {
+  static registeredName = 'code-tabs'
+
   private tabButtons: HTMLButtonElement[] = []
   private codeBlocks: HTMLPreElement[] = []
   private activeIndex = 0
   private copyTimer: number | null = null
   private isInteractiveTabs = false
 
-  connectedCallback(): void {
+  protected override createRenderRoot(): HTMLElement {
+    return this
+  }
+
+  override connectedCallback(): void {
+    super.connectedCallback()
     if (this.dataset['enhanced'] === 'true') return
     this.dataset['enhanced'] = 'true'
 
@@ -110,7 +104,8 @@ class CodeTabsElement extends HTMLElement {
     if (shouldRenderTabs) this.setActive(0)
   }
 
-  disconnectedCallback(): void {
+  override disconnectedCallback(): void {
+    super.disconnectedCallback()
     if (this.copyTimer !== null) {
       window.clearTimeout(this.copyTimer)
       this.copyTimer = null
@@ -245,4 +240,19 @@ class CodeTabsElement extends HTMLElement {
     copy?.classList.toggle('hidden', copied)
     check?.classList.toggle('hidden', !copied)
   }
+}
+
+export const registerWebComponent = async (
+  tagName = CodeTabsElement.registeredName
+): Promise<void> => {
+  if (typeof window === 'undefined') return
+  defineCustomElement(tagName, CodeTabsElement)
+}
+
+export const registerCodeTabsWebComponent = registerWebComponent
+
+export const webComponentModule: WebComponentModule<CodeTabsElement> = {
+  registeredName: CodeTabsElement.registeredName,
+  componentCtor: CodeTabsElement,
+  registerWebComponent,
 }
