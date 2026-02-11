@@ -34,20 +34,23 @@ const waitForPreferencesReady = async (element: ConsentPreferencesElement) => {
   })
 }
 
+let container: AstroContainer
+
 const renderConsentPreferences = async (
   assertion: (_context: {
     element: ConsentPreferencesElement
     window: JsdomWindow
   }) => Promise<void> | void
 ) => {
-  const container = await AstroContainer.create()
-
   await executeRender<ConsentPreferencesModule>({
     container,
     component: ConsentPreferencesComponent,
     moduleSpecifier: '@components/Consent/Preferences/client/index',
     selector: 'consent-preferences',
-    waitForReady: waitForPreferencesReady,
+    waitForReady: async (element: ConsentPreferencesElement) => {
+      await waitForPreferencesReady(element)
+      await element.updateComplete
+    },
     assert: async ({ element, window }) => {
       if (!window) {
         throw new TestError('Consent preferences tests require a window instance')
@@ -117,6 +120,7 @@ vi.mock('@components/scripts/store', () => {
 
 describe('ConsentPreferencesElement', () => {
   beforeEach(async () => {
+    container = await AstroContainer.create()
     consentMockHelpers.reset()
     vi.clearAllMocks()
 
