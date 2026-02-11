@@ -4,4 +4,5 @@ export interface TestimonialsProps {
   limit?: number
   count?: number
   organization?: string
+  showControls: boolean
 }

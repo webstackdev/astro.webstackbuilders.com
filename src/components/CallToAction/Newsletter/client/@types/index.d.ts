@@ -7,4 +7,6 @@ export interface NewsletterProps {
   placeholder?: string
   /** Submit button text */
   buttonText?: string
+  /** Choose which variant to show */
+  variant: 'article' | 'home'
 }

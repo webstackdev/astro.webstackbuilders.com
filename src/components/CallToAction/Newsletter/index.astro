@@ -15,9 +15,9 @@
  * ```
  */
 
-import GDPRConsent from '@components/Consent/Checkbox/index.astro'
-import Confetti from '@components/Animations/Confetti/index.astro'
-import type { NewsletterProps } from './props'
+import type { NewsletterProps } from './client/@types'
+import ArticleNewsletter from './article.astro'
+import HomeNewsletter from './home.astro'
 
 export type Props = NewsletterProps
 
@@ -26,138 +26,27 @@ const {
   description = 'Subscribe to our newsletter for the latest insights on web development and digital solutions.',
   placeholder = 'Enter your email address',
   buttonText = 'Subscribe',
+  variant = 'article',
 } = Astro.props
 ---
 
 <newsletter-form class="cta block">
-  <section class="py-12 md:py-16 bg-page-offset">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="max-w-4xl mx-auto">
-        <div class="bg-content-inverse rounded-2xl shadow-lg p-8 md:p-12 border border-trim">
-          <div class="text-center mb-8">
-            <div
-              class="inline-flex items-center justify-center w-16 h-16 bg-linear-to-br from-primary to-accent rounded-full mb-6"
-            >
-              <svg
-                class="w-8 h-8 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-                focusable="false"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                ></path>
-              </svg>
-            </div>
-            <h2 class="text-2xl md:text-3xl lg:text-4xl font-bold mb-4">
-              {title}
-            </h2>
-            <p class="text-base md:text-lg text-content-active max-w-2xl mx-auto leading-relaxed">
-              {description}
-            </p>
-          </div>
-
-          <form id="newsletter-form" class="max-w-xl mx-auto">
-            <div class="space-y-4">
-              <!-- Email Input -->
-              <div class="flex flex-col sm:flex-row gap-3">
-                <div class="flex flex-col gap-2 flex-1">
-                  <label
-                    id="newsletter-email-label"
-                    for="newsletter-email"
-                    class="text-sm font-medium"
-                  >
-                    Email address
-                  </label>
-                  <input
-                    type="email"
-                    id="newsletter-email"
-                    name="email"
-                    placeholder={placeholder}
-                    class="w-full px-6 py-4 border-2 border-trim rounded-xl bg-content-inverse placeholder:text-content-active focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200"
-                    required
-                    aria-describedby="newsletter-message"
-                  />
-                </div>
-                <Confetti>
-                  <button
-                    type="submit"
-                    id="newsletter-submit"
-                    data-e2e-state="idle"
-                    class="px-8 py-4 bg-spotlight hover:bg-spotlight-offset text-white font-semibold rounded-xl transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-                  >
-                    <span id="button-text">{buttonText}</span>
-                    <svg
-                      id="button-arrow"
-                      class="inline-block w-5 h-5 ml-2"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                      focusable="false"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-                    </svg>
-                    <svg
-                      id="button-spinner"
-                      class="hidden w-5 h-5 ml-2 animate-spin"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                      focusable="false"
-                    >
-                      <circle
-                        class="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        stroke-width="4"></circle>
-                      <path
-                        class="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                  </button>
-                </Confetti>
-              </div>
-
-              <!-- GDPR Consent -->
-              <div class="px-2">
-                <GDPRConsent
-                  purpose="marketing communications (unsubscribe anytime)"
-                  id="newsletter-gdpr-consent"
-                  name="consent"
-                  formId="newsletter_form"
-                />
-              </div>
-
-              <!-- Status Message -->
-              <p
-                id="newsletter-message"
-                class="text-sm text-content-active text-center"
-                role="status"
-                aria-live="polite"
-                aria-atomic="true"
-              >
-                You'll receive a confirmation email. Click the link to complete your subscription.
-              </p>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  </section>
+  {variant === 'article' && (
+    <ArticleNewsletter
+      title={title}
+      description={description}
+      placeholder={placeholder}
+      buttonText={buttonText}
+    />
+  )}
+  {variant === 'home' && (
+    <HomeNewsletter
+      title={title}
+      description={description}
+      placeholder={placeholder}
+      buttonText={buttonText}
+    />
+  )}
 </newsletter-form>
 
 <script>
