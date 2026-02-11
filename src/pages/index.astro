@@ -1,5 +1,4 @@
 ---
-import { getCollection } from 'astro:content'
 import BaseLayout from '@layouts/BaseLayout.astro'
 import Backstage from '@components/Home/Backstage/index.astro'
 import Carousel from '@components/Carousel/index.astro'
@@ -13,7 +12,7 @@ import Testimonials from '@components/Testimonials/index.astro'
 const pageDescription = 'Webstack Builders, Inc. Home Page'
 const pageTitle = 'Web Development & Digital Solutions - Webstack Builders, Inc.'
 const sectionClasses = 'container mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8 lg:py-12'
-const skills = await getCollection('tags', ({ data }) => data.isSkill === true)
+
 ---
 
 <BaseLayout description={pageDescription} pageTitle={pageTitle} path={'/'}>
@@ -103,10 +102,10 @@ const skills = await getCollection('tags', ({ data }) => data.isSkill === true)
 
   <!-- Skills/Technologies Preview -->
   <section
-    class:list={[sectionClasses, 'hidden md:block']}
+    class:list={[sectionClasses, 'hidden md:block -mb-12']}
     aria-labelledby="home-technologies-title"
   >
-    <Skills skills={skills} title="Technologies & Expertise" />
+    <Skills title="Technologies & Expertise" />
   </section>
 
   <!-- Latest Articles Section -->
@@ -116,15 +115,16 @@ const skills = await getCollection('tags', ({ data }) => data.isSkill === true)
   >
     <h2
       id="carousel-articles-suggested-all-title"
-      class="font-sans text-lg font-bold text-primary uppercase tracking-widest mb-4"
+      class="font-sans text-lg font-bold text-primary uppercase tracking-widest -mb-6"
     >
       Latest Insights
     </h2>
+
     <Carousel
       titleHref="/articles"
       variant="suggested"
+      limit={7}
       type="articles"
-      classes="md:px-16"
       showReadMore={true}
     />
   </section>
