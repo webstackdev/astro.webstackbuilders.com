@@ -1,10 +1,16 @@
 ---
 slug: "crossplane"
 displayName: "Crossplane"
-description: ""
+description: "Kubernetes-native cloud infrastructure provisioning using custom resources, compositions, and provider integrations for self-service platform engineering workflows."
 cover: "./cover.jpg"
-coverAlt: ""
+coverAlt: "Abstract Kubernetes control plane diagram branching into multi-cloud resource nodes"
 featured: false
 logo: "./crossplane.svg"
 isSkill: true
 ---
+
+Crossplane extends the Kubernetes API to manage cloud infrastructure the same way you manage workloads&mdash;through declarative YAML and the reconciliation loop. Instead of writing Terraform modules that run in a separate pipeline, platform teams define Composite Resource Definitions (XRDs) and Compositions that let application developers request databases, queues, and storage buckets through familiar kubectl commands. The infrastructure becomes a native part of the cluster's desired-state model.
+
+This approach shines in platform engineering because it enables genuine self-service without giving developers direct cloud console access. A platform team publishes an opinionated XRD for a PostgreSQL instance, encoding VPC placement, backup schedules, and encryption defaults into the Composition. Developers claim one with a short manifest, and the Crossplane controller handles provisioning through AWS, Azure, or GCP providers. Drift detection and remediation happen continuously, just like any other Kubernetes resource.
+
+The operational cost is real. Crossplane providers generate hundreds of CRDs that increase API server memory pressure, and debugging failed reconciliations requires understanding both the Crossplane machinery and the underlying cloud API. Teams that invest in solid composition testing and provider version pinning get a powerful infrastructure abstraction layer; those that skip that discipline get a different flavor of infrastructure sprawl.

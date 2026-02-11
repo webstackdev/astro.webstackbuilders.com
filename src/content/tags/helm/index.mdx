@@ -1,10 +1,16 @@
 ---
 slug: "helm"
 displayName: "Helm"
-description: ""
+description: "Helm charts for Kubernetes application packaging, templated deployments, release management, and standardized service delivery across platform engineering workflows."
 cover: "./cover.jpg"
-coverAlt: ""
+coverAlt: "Ship's helm wheel with spokes connecting to Kubernetes resource manifest icons"
 featured: false
 logo: "./helm.svg"
 isSkill: true
 ---
+
+Helm is the package manager for Kubernetes, and for platform engineers it serves as the primary abstraction layer between raw manifests and repeatable deployments. A well-structured Helm chart encapsulates an application's Deployments, Services, ConfigMaps, and RBAC rules into a versioned, configurable artifact. Teams install the same chart across development, staging, and production by swapping values files&mdash;keeping the manifest logic consistent while varying environment-specific configuration.
+
+Platform teams use Helm to publish opinionated chart libraries that enforce organizational standards. A base chart might set resource limits, pod disruption budgets, security contexts, and standard labels that every service inherits. Argo CD and Flux both natively understand Helm charts, so GitOps pipelines can reference chart versions in Git and let the controller handle rendering and deployment. OCI-compatible registries now store charts alongside container images, simplifying artifact management.
+
+The friction comes from Helm's Go templating engine. Complex conditionals, nested loops, and sprig functions produce templates that are difficult to read and harder to debug when rendering fails. Teams that keep charts simple&mdash;thin value layers over well-tested base charts&mdash;avoid the worst of the templating complexity. Those that try to encode every edge case into a single chart end up with unmaintainable YAML generation logic that nobody wants to touch.

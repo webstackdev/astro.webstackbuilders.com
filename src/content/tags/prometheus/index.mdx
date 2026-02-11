@@ -1,10 +1,16 @@
 ---
 slug: "prometheus"
 displayName: "Prometheus"
-description: ""
+description: "Prometheus metrics collection, PromQL querying, and Alertmanager routing for infrastructure monitoring, SLO tracking, and reliability engineering in Kubernetes environments."
 cover: "./cover.jpg"
-coverAlt: ""
+coverAlt: "Flame-inspired gauge dial surrounded by radiating time-series metric lines"
 featured: false
 logo: "./prometheus.svg"
 isSkill: true
 ---
+
+Prometheus is the metrics backbone of most Kubernetes-native observability stacks. Its pull-based scraping model, dimensional data model with labels, and powerful PromQL query language give platform teams the foundation for monitoring infrastructure health, tracking service-level objectives, and powering alerting pipelines. As a CNCF graduated project, it defines the standard that exporters, client libraries, and compatible systems like Thanos and Mimir build against.
+
+For platform engineers, Prometheus work centers on designing a metrics architecture that scales. That means configuring ServiceMonitors and PodMonitors through the Prometheus Operator, setting up federation or remote-write for multi-cluster aggregation, and tuning retention and storage to balance query performance against disk costs. PromQL fluency is essential&mdash;writing recording rules that pre-aggregate expensive queries, defining multi-window burn-rate alerts for SLO monitoring, and building dashboards that surface actionable signals instead of vanity metrics.
+
+The operational challenge is cardinality. Every unique combination of metric name and label values creates a time series, and unbounded labels from request paths, user IDs, or pod names can explode storage and query latency. Platform teams that enforce labeling conventions, set per-tenant series limits, and instrument cardinality dashboards keep Prometheus healthy. Those that skip cardinality governance learn about it during their next outage investigation when queries time out.

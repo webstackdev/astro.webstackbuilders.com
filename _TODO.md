@@ -165,7 +165,7 @@ Need a tooltip component for consistency. List to add tooltips to:
 
 ## Non-featured tags
 
-Update the skills and technologies tags pages:
+Generate cover images for the skills and technologies tags pages:
 
 argo-cd
 aws

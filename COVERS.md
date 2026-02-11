@@ -1717,3 +1717,175 @@ Medical photograph of surgical instruments during a precise operation—the care
 4. Technical diagram of a typical platform stack: TypeScript tooling layer at top, application services in middle, backing services (databases, queues, caches) at bottom, all running on Linux hosts. Blueprint aesthetic, dark navy background, layers rendered as translucent panels with glowing connection lines.
 
 5. Stylized 3D render of interconnected technology logos arranged as nodes in a network: TypeScript, Linux (Tux), PostgreSQL, RabbitMQ, Kafka. Each node glowing with its brand color, connected by data flow ribbons. Dark background, vibrant but professional color palette, foundational technology aesthetic.
+
+## Tags for new Skills tags
+
+### src/content/tags/argo-cd/index.mdx
+
+1. An octopus with translucent tentacles wrapping around floating Kubernetes pods, each tentacle tip holding a glowing Git commit hash, dark navy background with cyan circuit-board traces, minimal flat illustration style
+
+2. A compass rose made from intertwined Git branches and Kubernetes wheel spokes, the cardinal points replaced by sync status icons (green checkmark, yellow spinner, red X, blue arrow), matte paper texture, vector art
+
+3. A mechanical clock face where the gears are Kubernetes logos and the hands are Git merge arrows, the clock reads "in sync", steampunk-meets-tech aesthetic, muted teal and copper tones
+
+4. Split composition: left half shows a Git repository tree with glowing branches, right half shows a Kubernetes cluster diagram with matching pods, a translucent sync wave connects them across the divide, dark background with electric blue and orange accents
+
+### src/content/tags/aws/index.mdx
+
+1. Isometric cloud city floating above a circuit-board landscape, miniature buildings shaped like AWS service icons connected by glowing orange data streams, cool blue sky background, technical illustration style
+
+2. Abstract network topology map with a bold orange arrow logo at the center radiating connection lines outward to geometric nodes representing compute, storage, and database services, dark navy background, flat vector art
+
+3. Mechanical pocket watch with cloud-shaped gears inside, each gear etched with tiny infrastructure symbols like servers and databases, warm amber and steel tones, detailed technical drawing
+
+4. Bird's-eye view of a shipping port with containers labeled as cloud services being loaded onto platforms by automated cranes, sunset orange and industrial grey palette, clean line art style
+
+### src/content/tags/azure/index.mdx
+
+1. Isometric crystal fortress built from translucent blue diamond shapes, each facet reflecting tiny infrastructure symbols like servers and databases, floating on a cloud layer, cool azure and white palette, technical illustration style
+
+2. Abstract stained glass window pattern with a central diamond motif radiating geometric panels representing identity, compute, networking, and storage services, rich blues and teals on dark background, flat vector art
+
+3. Mechanical blueprint of interlocking gears shaped like hexagonal tiles, each engraved with cloud service glyphs, steel blue and white technical drawing on navy background, precise engineering illustration
+
+4. Aerial view of a modern city grid where each building block is a different shade of blue, connected by luminous data highways forming a diamond pattern at the center, clean minimalist line art style
+
+### src/content/tags/backstage-idp/index.mdx
+
+1. Isometric control room with a central glowing dashboard screen surrounded by floating plugin cards showing catalog entries, each card connected by thin luminous wires, teal and purple palette, technical illustration style
+
+2. Abstract blueprint of an open book whose pages unfold into a branching tree of service tiles and documentation nodes, clean lines on dark indigo background, flat vector art with accent highlights
+
+3. Mechanical switchboard with labeled toggle switches and patch cables connecting service icons to a central portal display, warm copper and cool steel tones, vintage engineering diagram style
+
+4. Top-down view of a mosaic floor pattern where each tile represents a different developer tool icon, all converging toward a central compass rose, muted teals and greys, clean geometric line art
+
+### src/content/tags/crossplane/index.mdx
+
+1. Isometric Kubernetes wheel at center with extending bridges connecting to floating cloud provider islands (AWS, Azure, GCP), each island holding miniature infrastructure icons, cool blue and teal palette, technical illustration style
+
+2. Abstract circuit board pattern where traces flow from a central hub outward to modular resource blocks labeled with database, storage, and network symbols, dark background with glowing cyan pathways, flat vector art
+
+3. Mechanical loom weaving threads of different colors (orange, blue, green representing cloud providers) into a single unified fabric, detailed technical drawing with steel and copper tones
+
+4. Top-down view of a crossroads intersection where four roads converge, each road carrying stylized infrastructure symbols toward the center meeting point, clean geometric line art on slate background
+
+### src/content/tags/docker/index.mdx
+
+1. Isometric shipping dock scene with neatly stacked colorful containers on a platform, a small crane organizing them into rows, ocean-blue background fading to white, clean technical illustration style
+
+2. Abstract cross-section of a container showing layered horizontal strata in different blue tones, each layer labeled with tiny dependency symbols, dark navy background, flat vector art with clean edges
+
+3. Mechanical conveyor belt carrying sealed boxes through stages labeled build, scan, sign, and deploy, industrial steel and blue palette, detailed technical drawing style
+
+4. Top-down view of a warehouse floor plan with modular storage units arranged in a perfect grid, pathways connecting them to a central dispatch hub, cool blue and grey geometric line art
+
+### src/content/tags/dotnet/index.mdx
+
+1. Isometric purple crystal structure with faceted surfaces, each face etched with code symbols and curly braces, floating above a grid of microservice nodes connected by glowing lines, deep purple and white palette, technical illustration style
+
+2. Abstract molecular model with interconnected spheres forming the shape of a hexagonal lattice, each node containing a tiny gear or API symbol, violet and silver tones on dark background, flat vector art
+
+3. Mechanical typewriter with keys shaped like code blocks, a sheet of paper emerging with structured log output, purple ribbon and steel frame, detailed vintage technical drawing style
+
+4. Bird's-eye view of a railway switching yard where tracks branch and merge, each track carrying cargo labeled with service names, purple and grey industrial palette, clean geometric line art
+
+### src/content/tags/go/index.mdx
+
+1. Isometric scene of a small gopher character operating a control panel with levers and switches connected to floating infrastructure cubes representing services, light blue and white palette, playful technical illustration style
+
+2. Abstract speed lines radiating from a central compiled binary icon, surrounded by orbiting symbols for containers, APIs, and CLIs, teal and cyan on dark background, flat vector art with motion emphasis
+
+3. Mechanical assembly line where identical toolboxes roll off a conveyor belt, each stamped with a different infrastructure icon, clean steel and sky-blue tones, precise engineering diagram style
+
+4. Top-down view of a river delta splitting into clean parallel channels, each channel carrying data packets toward different infrastructure endpoints, natural blue-green palette rendered in geometric line art
+
+### src/content/tags/grafana/index.mdx
+
+1. Isometric control room with multiple floating holographic screens showing time-series graphs, heatmaps, and gauges, warm orange and amber glow against a dark background, technical illustration style
+
+2. Abstract sundial face with concentric rings representing metric thresholds, the shadow hand pointing to an alert zone, burnt orange and charcoal palette, flat vector art with geometric precision
+
+3. Mechanical gauge cluster like a vintage airplane instrument panel, each dial showing a different observability signal (latency, errors, throughput), copper and amber tones, detailed technical drawing
+
+4. Top-down view of a mosaic pattern made from interlocking dashboard tiles of varying sizes, each containing miniature chart patterns, warm gradient from orange to gold on dark slate, clean geometric line art
+
+### src/content/tags/helm/index.mdx
+
+1. Isometric ship's wheel mounted on a platform, each spoke ending in a floating Kubernetes resource icon (pod, service, configmap), nautical blue and white palette, technical illustration style
+
+2. Abstract blueprint of a package being unwrapped to reveal layered manifest sheets stacked neatly inside, each sheet showing YAML-like grid patterns, navy and silver tones on dark background, flat vector art
+
+3. Mechanical compass rose with an anchor at center, cardinal points labeled with deployment lifecycle stages (template, install, upgrade, rollback), brass and ocean blue tones, detailed nautical engineering drawing
+
+4. Top-down view of a harbor with docked vessels arranged in versioned rows, cargo cranes loading configuration crates onto each ship, cool blue-grey maritime palette, clean geometric line art
+
+### src/content/tags/kubernetes/index.mdx
+
+1. Isometric seven-spoke ship's wheel floating above a sea of hexagonal pod cells, each cell glowing with a tiny container icon, deep blue and white palette, technical illustration style
+
+2. Abstract orbital diagram with a central control-plane nucleus orbited by worker-node rings, each ring carrying workload particles along defined paths, navy and electric blue on dark background, flat vector art
+
+3. Mechanical clockwork mechanism with interlocking gears labeled schedule, reconcile, and scale, a central flywheel bearing the seven-spoke wheel emblem, steel blue and silver tones, detailed engineering drawing
+
+4. Bird's-eye view of a hexagonal honeycomb grid where each cell contains a different workload symbol, pathways between cells forming a network mesh, cool blue gradient on slate background, clean geometric line art
+
+### src/content/tags/openstack/index.mdx
+
+1. Isometric data center building cross-section showing stacked infrastructure layers (compute, network, storage) in red and white, tiny server racks visible inside each layer, clean technical illustration style
+
+2. Abstract layered cake diagram with each tier a different shade of red, connected by vertical data pipes, the top tier radiating API endpoint symbols, dark background with warm red accents, flat vector art
+
+3. Mechanical elevator shaft cross-section with platforms at different levels carrying infrastructure components (VMs, switches, disks), industrial red and steel grey tones, detailed engineering drawing style
+
+4. Top-down view of a modular floor plan with color-coded rooms for compute, networking, and storage, hallways connecting all rooms to a central identity hub, warm red and white palette, clean geometric line art
+
+### src/content/tags/prometheus/index.mdx
+
+1. Isometric torch or flame beacon on a stone pedestal, radiating concentric rings of time-series data waves outward, warm orange and ember tones against dark background, technical illustration style
+
+2. Abstract circular gauge with a flame icon at center, needle arcs showing metric thresholds from green through amber to red, surrounded by floating label tag chips, dark background with warm accents, flat vector art
+
+3. Mechanical seismograph with a pen drawing continuous waveforms on scrolling paper, each waveform in a different warm tone representing different metric types, copper and flame-orange palette, detailed technical drawing
+
+4. Top-down view of a radar screen with concentric range rings, blips representing scraped targets arranged in clusters, warm amber glow on dark navy background, clean geometric line art
+
+### src/content/tags/python/index.mdx
+
+1. Isometric workshop bench with two intertwined snake sculptures made of coiled cable, surrounded by miniature tools representing cloud SDKs and CLI utilities, blue and gold palette, technical illustration style
+
+2. Abstract double helix formed from two serpentine ribbons weaving through automation pipeline stages (script, test, deploy, monitor), blue and yellow on dark background, flat vector art
+
+3. Mechanical telegraph machine with Python-blue keys and golden connectors, ticker tape emerging with infrastructure command output, warm brass and blue tones, detailed vintage technical drawing
+
+4. Top-down view of a branching river system where two streams intertwine and split repeatedly, carrying automation task icons downstream through a landscape of infrastructure nodes, blue and gold watercolor rendered as geometric line art
+
+### src/content/tags/ruby/index.mdx
+
+1. Isometric cut gemstone with faceted surfaces, each facet reflecting miniature infrastructure code blocks, deep red and crimson palette with white highlights, technical illustration style
+
+2. Abstract crystalline structure with hexagonal faces arranged in a gem formation, internal light refracting into configuration management symbols, rich ruby red on dark background, flat vector art
+
+3. Mechanical jeweler's workbench with a magnifying loupe over a gemstone being polished, tiny automation script engravings visible on the gem surface, warm red and brass tones, detailed vintage technical drawing
+
+4. Top-down view of a gem mine cross-section showing layered strata, each layer containing embedded tool icons (chef's hat, puppet strings, vagrant box), deep red and earth tones, clean geometric line art
+
+### src/content/tags/terraform/index.mdx
+
+1. Isometric landscape of interlocking purple hexagonal platforms at different heights, each platform holding miniature cloud infrastructure icons, connected by bridges and pathways, violet and white palette, technical illustration style
+
+2. Abstract tessellation of hexagons in varying purple shades, each containing a provider logo silhouette (cloud, database, network), forming a cohesive mosaic on dark background, flat vector art
+
+3. Mechanical drafting table with a hexagonal grid ruler and compass, infrastructure blueprints being drawn in precise purple ink, showing plan and apply annotations, detailed technical drawing style
+
+4. Top-down view of a terraced hillside farm where each terrace is a hexagonal plot containing different infrastructure crops, connected by irrigation channels representing state flow, purple and lavender palette, clean geometric line art
+
+### src/content/tags/typescript/index.mdx
+
+1. Isometric shield badge with the TypeScript "TS" monogram embossed at center, surrounded by floating type definition cards showing interface and type annotations, blue and white palette, technical illustration style
+
+2. Abstract circuit board where traces form curly-brace and angle-bracket patterns, key junction points marked with type symbols (string, number, interface), deep blue on dark background, flat vector art with glowing traces
+
+3. Mechanical typesetting press with movable type blocks arranged to spell out interface definitions, each block precisely machined in steel blue metal, detailed vintage technical drawing style
+
+4. Top-down view of an architectural floor plan where rooms are shaped like nested type brackets, each room containing miniature infrastructure tool icons, clean blue and white palette, precise geometric line art
