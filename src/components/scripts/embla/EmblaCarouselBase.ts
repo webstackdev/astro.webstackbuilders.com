@@ -4,8 +4,8 @@
  * Encapsulates the shared behaviour that was previously duplicated across the
  * Carousel and Testimonials components:
  *
- * - Embla initialisation / teardown (with optional Autoplay plugin)
- * - Animation-lifecycle store integration (reduced-motion, visibility, user prefs)
+ * - Embla initialization / teardown (with optional Autoplay plugin)
+ * - Animation-lifecycle store integration (reduced-motion, visibility, user preferences)
  * - IntersectionObserver viewport gating (pause when off-screen)
  * - Focus-visible pause management
  * - Previous / Next navigation button wiring
@@ -51,7 +51,7 @@ export abstract class EmblaCarouselBase extends LitElement {
   protected abstract queryElements(): EmblaElementHandles
 
   /**
-   * Hook called after successful base initialisation.
+   * Hook called after successful base initialization.
    * Subclasses can wire up component-specific behaviour here
    * (keyboard handling, autoplay toggle buttons, status regions, etc.).
    */
@@ -125,12 +125,12 @@ export abstract class EmblaCarouselBase extends LitElement {
 
   // ────────────────────── Protected read-only accessors ──────────────────────
 
-  /** The live Embla API instance, or `null` before initialisation. */
+  /** The live Embla API instance, or `null` before initialization. */
   protected get emblaApi(): EmblaCarouselType | null {
     return this._emblaApi
   }
 
-  /** Whether the carousel was successfully initialised. */
+  /** Whether the carousel was successfully initialized. */
   protected get isInitialized(): boolean {
     return this._initialized
   }
@@ -145,7 +145,7 @@ export abstract class EmblaCarouselBase extends LitElement {
     return this._animationInstanceId
   }
 
-  /** The Embla viewport element, or `null` before initialisation. */
+  /** The Embla viewport element, or `null` before initialization. */
   protected get viewport(): HTMLElement | null {
     return this._viewport
   }
@@ -225,7 +225,7 @@ export abstract class EmblaCarouselBase extends LitElement {
     this.teardown()
   }
 
-  // ────────────────────── Initialisation ──────────────────────
+  // ────────────────────── initialization ──────────────────────
 
   private initialize(): void {
     if (this._initialized) return
