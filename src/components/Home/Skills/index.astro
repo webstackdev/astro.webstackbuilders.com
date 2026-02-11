@@ -3,37 +3,36 @@
  * "Technologies and Skills" section for the homepage.
  * Renders a dark strip with icon + label links for each technology.
  */
+import { type CollectionEntry } from 'astro:content'
+import { Image } from 'astro:assets'
+
 export interface Props {
-  technologies: string[]
+  skills: Array<CollectionEntry<'tags'>>
 }
 
-const { technologies } = Astro.props as Props
-
-/** Convert a display name like "Argo CD" to a URL slug like "argo-cd" */
-function toTagSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/\s+/g, '-')
-}
+const { skills } = Astro.props as Props
 ---
 
-<div class="bg-content rounded-2xl py-8 px-6 overflow-hidden" aria-labelledby="home-technologies-title">
+<div class="bg-content rounded-2xl py-6 px-6" aria-labelledby="home-technologies-title">
   <h2 id="home-technologies-title" class="sr-only">Technologies &amp; Expertise</h2>
 
-  <div class="flex items-center justify-center gap-12 flex-wrap">
-    {technologies.map((tech) => (
+  <div class="flex items-center gap-10 flex-nowrap overflow-x-auto h-10">
+    {skills.map((skill) => (
       <a
-        href={`/tags/${toTagSlug(tech)}`}
-        class="group flex items-center gap-3 text-page-base/60 hover:text-spotlight transition-colors"
+        href={`/tags/${skill.data.slug}`}
+        class="group flex items-center gap-3 text-page-base/60 hover:text-spotlight transition-colors h-10 shrink-0"
       >
-        <div class="w-10 h-10 rounded-lg bg-page-base/10 flex items-center justify-center group-hover:bg-page-base/20 transition-colors">
-          <div class="w-7 h-7 rounded bg-page-base/5 border border-page-base/20 flex items-center justify-center text-[9px] text-page-base/40">
-            img
-          </div>
-        </div>
-        <span class="text-sm font-semibold">{tech}</span>
+        {skill.data.logo && (
+          <Image
+            src={skill.data.logo}
+            alt={skill.data.displayName}
+            width={skill.data.logo.width}
+            height={skill.data.logo.height}
+            loading="lazy"
+            class="h-8 w-8 object-contain"
+          />
+        )}
+        <span class="text-sm font-semibold">{skill.data.displayName}</span>
       </a>
     ))}
   </div>

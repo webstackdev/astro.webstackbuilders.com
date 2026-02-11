@@ -1,4 +1,5 @@
 ---
+import { getCollection } from 'astro:content'
 import BaseLayout from '@layouts/BaseLayout.astro'
 import Backstage from '@components/Home/Backstage/index.astro'
 import Carousel from '@components/Carousel/index.astro'
@@ -12,6 +13,7 @@ import Testimonials from '@components/Testimonials/index.astro'
 const pageDescription = 'Webstack Builders, Inc. Home Page'
 const pageTitle = 'Web Development & Digital Solutions - Webstack Builders, Inc.'
 const sectionClasses = 'container mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8 lg:py-12'
+const skills = await getCollection('tags', ({ data }) => data.isSkill === true)
 ---
 
 <BaseLayout description={pageDescription} pageTitle={pageTitle} path={'/'}>
@@ -101,11 +103,7 @@ const sectionClasses = 'container mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8 lg:p
 
   <!-- Skills/Technologies Preview -->
   <section class={sectionClasses} aria-labelledby="home-technologies-title">
-    <Skills
-      technologies={[
-        ".NET", "AWS", "Azure", "OpenStack", "Go", "TypeScript", "Terraform", "Kubernetes", "Python", "Docker", "Helm", "Argo CD", "Prometheus", "Grafana", "Ruby", "Backstage IDP", "Crossplane"
-      ]}
-    />
+    <Skills skills={skills} />
   </section>
 
   <!-- Latest Articles Section -->

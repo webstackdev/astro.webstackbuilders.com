@@ -21,6 +21,45 @@ Cons: Browser rendering can be inconsistent across different operating systems a
 
 Axe accessibility (2) - axe-core integration
 
+## Missing E2E Component Tests
+
+- Code/CodeBlock
+- Code/CodeTabs
+- Consent/Checkbox
+
+## Testimonials on mobile
+
+We have E2E errors again testimonials slide on mobile chrome and safari. I think the problem is that we are pausing carousels when part of the carousel is outside of the viewport, and the testimonials are too large to display on mobile without being off viewport.
+
+`test/e2e/specs/04-components/testimonials.spec.ts`:244:3 › Testimonials Component › @ready testimonials auto-rotate changes slide index
+
+## Refactor of Common Code in Carousel related components
+
+See if there's any code in common between Carousel, Testimonials, and Themepicker. We have another one to add that uses the carousel code - for Skills.
+
+Issue identified with refactoring Testimonial and Carousel to Lit custom web components:
+
+The only thing to watch: the `transition:persist` directive must remain on the HTML custom element tag itself, not on an Astro component wrapper. That's already a project rule and isn't affected by `LitElement` vs `HTMLElement`.
+
+#### Selector files
+
+Carousel/client/selectors.ts and Testimonials/client/selectors.ts follow an identical pattern — only the CSS selectors and data-attribute names differ. The query/get function pairs are structurally identical.
+
+### What's genuinely different
+
+| Concern                          | Carousel                                                     | Testimonials                                                 | ThemePicker                                                  |
+| -------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| Embla options                    | [align: 'start'](vscode-file://vscode-app/usr/share/code/resources/app/out/vs/code/electron-browser/workbench/workbench.html) | [align: 'center'](vscode-file://vscode-app/usr/share/code/resources/app/out/vs/code/electron-browser/workbench/workbench.html) | [align: 'center'](vscode-file://vscode-app/usr/share/code/resources/app/out/vs/code/electron-browser/workbench/workbench.html), [containScroll](vscode-file://vscode-app/usr/share/code/resources/app/out/vs/code/electron-browser/workbench/workbench.html), no loop |
+| Autoplay delay                   | 4000ms                                                       | 6000ms                                                       | None                                                         |
+| Autoplay toggle button           | ❌                                                            | ✅ (play/pause icon swap)                                     | ❌                                                            |
+| Keyboard nav (ArrowLeft/Right)   | ✅                                                            | ❌                                                            | ❌                                                            |
+| Status region (`"Slide X of Y"`) | ✅                                                            | ❌                                                            | ❌                                                            |
+| Dot styling                      | [is-active](vscode-file://vscode-app/usr/share/code/resources/app/out/vs/code/electron-browser/workbench/workbench.html) class | width-based (`w-3` → `w-6`)                                  | None                                                         |
+| Viewport ID / `aria-controls`    | ❌                                                            | ✅                                                            | ❌                                                            |
+| View Transitions integration     | ❌                                                            | ❌                                                            | ✅ (Lit + `astro:after-swap`)                                 |
+| Tooltip portal                   | ❌                                                            | ❌                                                            | ✅                                                            |
+| Base class                       | [HTMLElement](vscode-file://vscode-app/usr/share/code/resources/app/out/vs/code/electron-browser/workbench/workbench.html) | [HTMLElement](vscode-file://vscode-app/usr/share/code/resources/app/out/vs/code/electron-browser/workbench/workbench.html) | [LitElement](vscode-file://vscode-app/usr/share/code/resources/app/out/vs/code/electron-browser/workbench/workbench.html) |
+
 ## Youtube video for Backstage IDP hero on Home page
 
 Discuss agentic AI integrations to add to Backstage
@@ -38,14 +77,6 @@ Right now we're using string literals to define HTML email templates for site ma
 Vercel AI Gateway, maybe could use for a chatbot:
 
 https://vercel.com/kevin-browns-projects-dd474f73/astro-webstackbuilders-com/ai-gateway
-
-## Testimonials on mobile
-
-We have E2E errors again testimonials slide on mobile chrome and safari. I think the problem is that we are pausing carousels when part of the carousel is outside of the viewport, and the testimonials are too large to display on mobile without being off viewport.
-
-See if there's any code in common between Carousel, Testimonials, and Themepicker. We have another one to add that uses the carousel code - for Skills.
-
-`test/e2e/specs/04-components/testimonials.spec.ts`:244:3 › Testimonials Component › @ready testimonials auto-rotate changes slide index
 
 ## Move containers to dev server from Playwright
 
@@ -238,3 +269,107 @@ This article has different approaches to [print pagination](https://www.customjs
 - cover.jpg for reliability-and-testing needs touch up in GIMP
 - We need to check for short form and deep article articles where the deep-dive index.pdf has a non-featured tag lik "argo-cd" only in the pdf.mdx. In those cases, we should make sure the callout for the deep dive includes the name of that non-featured (technology) tag and add the name to the tags: frontmatter key in the index.mdx
 - Need an article on OpenStack
+
+## HTMLElement vs. extends HTMLElement
+
+A bunch of our web components extend directly from HTMLElement instead of following the instructions to extend LitElement.
+
+- Code/CodeBlock
+- Code/CodeTabs
+- Consent/Banner
+- Consent/Checkbox
+- Consent/Preferences
+
+And the embla components: Carousel and Testimonials
+
+The WebComponentModule type in this file is used throughout component scripts:
+
+`src/components/scripts/@types/webComponentModule.ts`
+
+There are testing fixtures that might be targeting HTMLElement instead of LitElement:
+
+`isLikelyWebComponent()` in `test/eslint/enforce-centralized-events-rule.ts`
+line 113 in `test/eslint/__tests__/enforce-centralized-events-rule.spec.ts`
+
+interface `ElementWithTestProperties` in `test/e2e/assertions/index.ts`
+
+/home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/src/components/Carousel/client/index.ts
+  70:5  error  Use `keyup with addButtonEventListeners or addWrapperEventListeners` from `elementListeners` for keyboard events (use keyup instead of keydown for better accessibility) instead of direct addEventListener. This ensures consistent accessibility support (isComposing check, repeat prevention, Enter/Escape key handling)  custom-rules/enforce-centralized-events
+
+✖ 1 problem (1 error, 0 warnings)
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/components/Testimonials/client/__tests__/index.spec.ts > Testimonials component > registers the web component and generates pagination dots
+AssertionError: expected null to be 'testimonials-3-viewport' // Object.is equality
+
+- Expected:
+"testimonials-3-viewport"
+
++ Received:
+null
+
+ ❯ src/components/Testimonials/client/__tests__/index.spec.ts:198:51
+    196|
+    197|       dots.forEach(dot => {
+    198|         expect(dot.getAttribute('aria-controls')).toBe(viewportId)
+       |                                                   ^
+    199|       })
+    200|       expect(prevBtn?.getAttribute('aria-controls')).toBe(viewportId)
+ ❯ src/components/Testimonials/client/__tests__/index.spec.ts:197:12
+ ❯ assert src/components/Testimonials/client/__tests__/index.spec.ts:114:13
+ ❯ assert test/unit/helpers/litRuntime.ts:308:10
+ ❯ test/unit/helpers/litRuntime.ts:246:9
+ ❯ withJsdomEnvironment test/unit/helpers/litRuntime.ts:147:10
+ ❯ renderInJsdom test/unit/helpers/litRuntime.ts:218:2
+ ❯ Module.executeRender test/unit/helpers/litRuntime.ts:320:2
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  src/components/Home/Hero/client/__tests__/index.spec.ts > HomeHeroElement (Lit) > types the ready prompt one character every 500ms and stops when complete
+AssertionError: expected '' to be 'r' // Object.is equality
+
+- Expected
++ Received
+
+- r
+
+ ❯ src/components/Home/Hero/client/__tests__/index.spec.ts:57:38
+     55|
+     56|       vi.advanceTimersByTime(STEP_MS)
+     57|       expect(readyText?.textContent).toBe('r')
+       |                                      ^
+     58|
+     59|       vi.advanceTimersByTime(STEP_MS)
+ ❯ withJsdomEnvironment test/unit/helpers/litRuntime.ts:147:10
+ ❯ src/components/Home/Hero/client/__tests__/index.spec.ts:39:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  src/components/Home/Hero/client/__tests__/index.spec.ts > HomeHeroElement (Lit) > skips animation and shows final text when reduced motion is preferred
+AssertionError: expected '' to be 'heck yes, let\'s talk...' // Object.is equality
+
+- Expected
++ Received
+
+- heck yes, let's talk...
+
+ ❯ src/components/Home/Hero/client/__tests__/index.spec.ts:90:38
+     88|       const readyText = window.document.querySelector<HTMLElement>('[data-hero-ready-text]')
+     89|       expect(readyText).toBeTruthy()
+     90|       expect(readyText?.textContent).toBe(READY_TEXT)
+       |                                      ^
+     91|
+     92|       vi.advanceTimersByTime(STEP_MS * READY_TEXT.length)
+ ❯ withJsdomEnvironment test/unit/helpers/litRuntime.ts:147:10
+ ❯ src/components/Home/Hero/client/__tests__/index.spec.ts:75:5
+
+
+02:58:50 [ERROR] [vite] ✗ Build failed in 4.72s
+[@mdx-js/rollup] Cannot assign to read only property 'name' of object 'BuildError: Mermaid couldn't graph this diagram.'
+file: /home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/src/content/articles/consumer-driven-contract-testing-pact-internal-apis/index.mdx
+  Stack trace:
+    at Object.transform (file:///home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/node_modules/@astrojs/mdx/dist/vite-plugin-mdx.js:60:18)
+    at process.processImmediate (node:internal/timers:473:9)
+    at async ModuleLoader.addModuleSource (file:///home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/node_modules/rollup/dist/es/shared/node-entry.js:21363:36)
