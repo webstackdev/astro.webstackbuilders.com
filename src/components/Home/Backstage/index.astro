@@ -33,76 +33,74 @@ const visibleBenefits = benefits.slice(0, 3)
 const visibleFeatures = features.slice(0, 4)
 ---
 
-<section class="container mx-auto px-4 sm:px-6 lg:px-8 py-16" aria-labelledby="backstage-title">
-  <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
-    <!-- Left column: headline + image -->
-    <div class="lg:col-span-2 space-y-4">
-      <p class="font-bold text-primary uppercase tracking-widest">{pretitle}</p>
-      <h2 id="backstage-title" class="text-3xl md:text-4xl font-black text-content leading-tight">
-        Give your developers <span class="text-primary">superpowers</span>
-      </h2>
-      <p class="text-lg text-content-offset leading-relaxed">{description}</p>
-      <!-- Image -->
-      <div class="mt-8">
-        <Image
-          src={backstageBackground}
-          alt="Backstage interface preview"
-          class="h-auto w-full object-contain"
-        />
-      </div>
-    </div>
-
-    <!-- Right column: feature cards + stats -->
-    <div class="lg:col-span-3 space-y-6">
-      <!-- Stats row -->
-      <div class="grid grid-cols-3 gap-4">
-        {visibleBenefits.map((benefit) => (
-          <div class="bg-content text-page-base rounded-xl p-4 text-center">
-            <p class="text-3xl font-black">{benefit.quantifier}</p>
-            <p class="text-xs text-page-base/70">{benefit.title}</p>
-          </div>
-        ))}
-      </div>
-
-      <!-- Feature cards -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {visibleFeatures.map((feature) => (
-          <div class="bg-page-offset p-6 rounded-xl border border-trim">
-            <div class="flex items-center gap-3 mb-4">
-              <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                <svg
-                  class="w-5 h-5 text-primary"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d={svgPath[feature.icon]}
-                  ></path>
-                </svg>
-              </div>
-              <span class="font-bold text-content-active">{feature.title}</span>
-            </div>
-            <p class="text-sm text-content">{feature.description}</p>
-          </div>
-        ))}
-      </div>
-
-      <!-- CTA -->
-      <div class="bg-primary/5 border border-primary/20 rounded-xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <p class="text-content font-medium">Ready to see what Backstage can do for your team?</p>
-        <a
-          href="/contact"
-          class="relative inline-flex items-center gap-2 bg-primary hover:bg-primary-offset text-page-base font-bold px-6 py-3 rounded-full transition-colors whitespace-nowrap focus-visible:outline-none after:pointer-events-none after:absolute after:-inset-1 after:rounded-none after:content-[''] focus-visible:after:border-2 focus-visible:after:border-spotlight"
-        >
-          Let's talk
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
-        </a>
-      </div>
+<div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+  <!-- Left column: headline + image -->
+  <div class="lg:col-span-2 space-y-4">
+    <p class="font-bold text-primary uppercase tracking-widest">{pretitle}</p>
+    <h2 id="backstage-title" class="text-3xl md:text-4xl font-black text-content leading-tight">
+      Give your developers <span class="text-primary">superpowers</span>
+    </h2>
+    <p class="text-lg text-content-offset leading-relaxed">{description}</p>
+    <!-- Image -->
+    <div class="mt-8">
+      <Image
+        src={backstageBackground}
+        alt="Backstage interface preview"
+        class="h-auto w-full object-contain"
+      />
     </div>
   </div>
-</section>
+
+  <!-- Right column: feature cards + stats -->
+  <div class="lg:col-span-3 space-y-6">
+    <!-- Stats row -->
+    <div class="grid grid-cols-3 gap-4">
+      {visibleBenefits.map((benefit) => (
+        <div class="bg-content text-page-base rounded-xl p-4 text-center">
+          <p class="text-3xl font-black">{benefit.quantifier}</p>
+          <p class="text-xs text-page-base/70">{benefit.title}</p>
+        </div>
+      ))}
+    </div>
+
+    <!-- Feature cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {visibleFeatures.map((feature) => (
+        <div class="bg-page-offset p-6 rounded-xl border border-trim">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+              <svg
+                class="w-5 h-5 text-primary"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d={svgPath[feature.icon]}
+                ></path>
+              </svg>
+            </div>
+            <span class="font-bold text-content-active">{feature.title}</span>
+          </div>
+          <p class="text-sm text-content">{feature.description}</p>
+        </div>
+      ))}
+    </div>
+
+    <!-- CTA -->
+    <div class="bg-primary/5 border border-primary/20 rounded-xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <p class="text-content font-medium">Ready to see what Backstage can do for your team?</p>
+      <a
+        href="/contact"
+        class="relative inline-flex items-center gap-2 bg-primary hover:bg-primary-offset text-page-base font-bold px-6 py-3 rounded-full transition-colors whitespace-nowrap focus-visible:outline-none after:pointer-events-none after:absolute after:-inset-1 after:rounded-none after:content-[''] focus-visible:after:border-2 focus-visible:after:border-spotlight"
+      >
+        Let's talk
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+      </a>
+    </div>
+  </div>
+</div>

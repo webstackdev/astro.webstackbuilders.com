@@ -19,7 +19,7 @@ const skills = await getCollection('tags', ({ data }) => data.isSkill === true)
 <BaseLayout description={pageDescription} pageTitle={pageTitle} path={'/'}>
   <!-- Hero Section -->
   <section
-    class={sectionClasses}
+    class:list={[sectionClasses]}
     aria-labelledby="home-hero-title"
   >
     <Hero
@@ -30,7 +30,7 @@ const skills = await getCollection('tags', ({ data }) => data.isSkill === true)
 
   <!-- Intro Section -->
   <section
-    class={sectionClasses}
+    class:list={[sectionClasses]}
     aria-labelledby="home-about-title"
   >
     <Intro
@@ -58,7 +58,7 @@ const skills = await getCollection('tags', ({ data }) => data.isSkill === true)
   </section>
 
   <!-- Turn-Key Backstage IDP Implementation -->
-  <section class={sectionClasses} aria-labelledby="backstage-title">
+  <section class:list={[sectionClasses]} aria-labelledby="backstage-title">
     <Backstage
       pretitle="Backstage IDP Implementation"
       description="Backstage is Spotify's open-source internal developer portal. I customize and deploy it for your team—starting small, proving value fast, then scaling across your organization."
@@ -102,51 +102,31 @@ const skills = await getCollection('tags', ({ data }) => data.isSkill === true)
   </section>
 
   <!-- Skills/Technologies Preview -->
-  <section class:list={[sectionClasses, 'hidden md:block']} aria-labelledby="home-technologies-title">
+  <section
+    class:list={[sectionClasses, 'hidden md:block']}
+    aria-labelledby="home-technologies-title"
+  >
     <Skills skills={skills} title="Technologies & Expertise" />
   </section>
 
   <!-- Latest Articles Section -->
-  <section class={sectionClasses} aria-labelledby="home-latest-insights-title">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-      <header class="text-center mb-12">
-        <h2 id="home-latest-insights-title" class="text-3xl md:text-4xl font-bold mb-4">
-          Latest Insights
-        </h2>
-        <p class="text-xl text-content-active max-w-3xl mx-auto">
-          Stay up-to-date with the latest trends, best practices, and insights in software
-          development and platform engineering.
-        </p>
-      </header>
-
-      <Carousel
-        title="Latest Insights"
-        titleHref="/articles"
-        variant="suggested"
-        limit={3}
-        type="articles"
-      />
-
-      <div class="text-center mt-10">
-        <a
-          href="/articles"
-          class="inline-flex items-center px-6 py-3 border border-primary text-primary font-semibold rounded-lg hover:bg-spotlight hover:text-white transition-all duration-200"
-        >
-          Read More Articles
-          <svg
-            class="ml-2 w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-            focusable="false"
-          >
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"
-            ></path>
-          </svg>
-        </a>
-      </div>
-    </div>
+  <section
+    class:list={[sectionClasses]}
+    aria-labelledby="carousel-articles-suggested-all-title"
+  >
+    <h2
+      id="carousel-articles-suggested-all-title"
+      class="font-sans text-lg font-bold text-primary uppercase tracking-widest mb-4"
+    >
+      Latest Insights
+    </h2>
+    <Carousel
+      titleHref="/articles"
+      variant="suggested"
+      type="articles"
+      classes="md:px-16"
+      showReadMore={true}
+    />
   </section>
 
   <!-- Testimonials Section -->
@@ -159,26 +139,22 @@ const skills = await getCollection('tags', ({ data }) => data.isSkill === true)
   />
 
   <!-- Primary CTA Section -->
-  <section class={sectionClasses}>
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-      <Contact
-        title="Ready to Transform Your Development Process?"
-        description="Let's discuss how platform engineering and modern cloud architecture can accelerate your team's productivity and scale your business. I'd love to hear about your challenges and explore how we can solve them together."
-        primaryLink={{ href: '/contact', text: 'Start a Conversation' }}
-        secondaryLink={{ href: '/services', text: 'Explore Services' }}
-      />
-    </div>
+  <section class:list={[sectionClasses]}>
+    <Contact
+      title="Ready to Transform Your Development Process?"
+      description="Let's discuss how platform engineering and modern cloud architecture can accelerate your team's productivity and scale your business. I'd love to hear about your challenges and explore how we can solve them together."
+      primaryLink={{ href: '/contact', text: 'Start a Conversation' }}
+      secondaryLink={{ href: '/services', text: 'Explore Services' }}
+    />
   </section>
 
   <!-- Newsletter Signup Section -->
-  <section class={sectionClasses}>
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-      <Newsletter
-        title="Stay Connected"
-        description="Get the latest insights on platform engineering, cloud architecture, and developer productivity delivered to your inbox. No spam, just valuable content for technical leaders."
-        placeholder="Enter your email address"
-        buttonText="Subscribe"
-      />
-    </div>
+  <section class:list={[sectionClasses]}>
+    <Newsletter
+      title="Stay Connected"
+      description="Get the latest insights on platform engineering, cloud architecture, and developer productivity delivered to your inbox. No spam, just valuable content for technical leaders."
+      placeholder="Enter your email address"
+      buttonText="Subscribe"
+    />
   </section>
 </BaseLayout>
