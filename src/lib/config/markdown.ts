@@ -203,7 +203,7 @@ export const rehypeAutolinkHeadingsConfig: RehypeAutolinkHeadingsOptions = {
     type: 'element',
     tagName: 'span',
     properties: {
-      className: ['anchor-link', 'text-md', 'sm:text-lg'],
+      className: ['anchor-link', 'text-base', 'sm:text-lg'],
       ariaHidden: 'true',
     },
     children: [
