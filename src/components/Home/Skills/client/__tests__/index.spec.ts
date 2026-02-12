@@ -26,6 +26,42 @@ const createAutoplayPluginMock = vi.fn(() => {
   return instance
 })
 
+vi.mock('astro:content', () => {
+  const skills = [
+    {
+      data: {
+        slug: 'aws',
+        displayName: 'AWS',
+        logo: undefined,
+        isSkill: true,
+      },
+    },
+    {
+      data: {
+        slug: 'kubernetes',
+        displayName: 'Kubernetes',
+        logo: undefined,
+        isSkill: true,
+      },
+    },
+    {
+      data: {
+        slug: 'terraform',
+        displayName: 'Terraform',
+        logo: undefined,
+        isSkill: true,
+      },
+    },
+  ]
+
+  return {
+    getCollection: vi.fn(async (_collection: string, filter?: (_entry: unknown) => boolean) => {
+      if (!filter) return skills
+      return skills.filter(entry => filter(entry))
+    }),
+  }
+})
+
 vi.mock('@components/scripts/store', () => ({
   createAnimationController: createAnimationControllerMock,
 }))
