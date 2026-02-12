@@ -25,7 +25,7 @@ export class TestimonialsCarouselElement extends EmblaCarouselBase {
 
   // ────────────────────── Base class abstract implementations ──────────────────────
 
-  protected getConfig(): EmblaCarouselConfig {
+  protected override getConfig(): EmblaCarouselConfig {
     return {
       emblaOptions: {
         loop: true,
@@ -45,7 +45,7 @@ export class TestimonialsCarouselElement extends EmblaCarouselBase {
     }
   }
 
-  protected queryElements(): EmblaElementHandles {
+  protected override queryElements(): EmblaElementHandles {
     const { emblaRoot, viewport } = getTestimonialsEmblaSetupElements(this)
     return {
       emblaRoot: emblaRoot as EmblaElementHandles['emblaRoot'],
@@ -69,7 +69,7 @@ export class TestimonialsCarouselElement extends EmblaCarouselBase {
 
   protected override onInitialized(): void {
     this.autoplayToggleBtn = queryTestimonialsAutoplayToggleBtn(this)
-    this.ensureViewportId()
+    this.ensureTestimonialsViewportId()
     this.setupAriaControls()
     this.setupAutoplayToggle()
   }
@@ -103,7 +103,7 @@ export class TestimonialsCarouselElement extends EmblaCarouselBase {
 
   // ────────────────────── Private helpers ──────────────────────
 
-  private ensureViewportId(): void {
+  private ensureTestimonialsViewportId(): void {
     const vp = this.viewport
     if (!vp || this.viewportId) return
 

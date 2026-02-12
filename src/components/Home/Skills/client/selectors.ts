@@ -1,7 +1,6 @@
 import type { EmblaCarouselType } from 'embla-carousel'
 import {
   isButtonElement,
-  isDivElement,
   isType1Element,
 } from '@components/scripts/assertions/elements'
 import { ClientScriptError } from '@components/scripts/errors'

@@ -22,6 +22,7 @@ const defaultNewsletterProps: NewsletterProps = {
   description: 'Ensures selector utilities receive accurate markup',
   placeholder: 'user@example.com',
   buttonText: 'Subscribe',
+  variant: 'article',
 }
 
 describe('Newsletter selector utilities', () => {

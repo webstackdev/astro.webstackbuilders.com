@@ -92,6 +92,7 @@ vi.mock('embla-carousel-autoplay', () => ({
 
 const defaultProps: TestimonialsProps = {
   title: 'Client Praise',
+  showControls: true,
 }
 
 const renderTestimonials = async (

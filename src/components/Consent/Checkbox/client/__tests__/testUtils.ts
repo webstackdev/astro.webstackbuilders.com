@@ -37,6 +37,7 @@ const defaultProps: CheckboxFixtureProps = {
   id: 'gdpr-consent',
   formId: 'contact-form',
   purpose: 'Responding to your inquiry',
+  variant: 'default',
   wrapInForm: true,
 }
 
