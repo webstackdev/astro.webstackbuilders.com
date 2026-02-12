@@ -4,9 +4,9 @@
 import { getCollection } from 'astro:content'
 import Icon from '@components/Icon/index.astro'
 import Card from './Card.astro'
-import type { TestimonialsProps } from './props'
+import type { TestimonialsProps } from './@types'
 
-export type { TestimonialsProps as Props } from './props'
+export type { TestimonialsProps as Props } from './@types'
 
 const {
   title = 'Testimonials',
@@ -14,6 +14,7 @@ const {
   limit,
   count,
   organization,
+  showControls = true,
 } = Astro.props as TestimonialsProps
 
 // Get all testimonials from content collection
@@ -57,20 +58,18 @@ const singleTestimonial = shouldRenderSingle ? testimonials.at(0) : undefined
 {
   testimonials.length > 0 &&
     (shouldRenderSingle ? (
-      <section class="bg-page-offset py-8" aria-labelledby={headingId}>
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <header class="text-center mb-6">
-            <h2 id={headingId} class="text-3xl md:text-4xl font-bold mb-4">{title}</h2>
-            {leadText && (
-              <p class="text-xl text-content-active max-w-3xl mx-auto">{leadText}</p>
-            )}
-          </header>
+      <div class="bg-page-offset max-w-6xl mx-auto px-4 sm:px-6 lg:px-8" aria-labelledby={headingId}>
+        <header class="text-center mb-6">
+          <h2 id={headingId} class="text-3xl md:text-4xl font-bold mb-4">{title}</h2>
+          {leadText && (
+            <p class="text-xl text-content-active max-w-3xl mx-auto">{leadText}</p>
+          )}
+        </header>
 
-          <div class="max-w-4xl mx-auto">
-            {singleTestimonial && <Card testimonial={singleTestimonial} />}
-          </div>
+        <div class="max-w-4xl mx-auto">
+          {singleTestimonial && <Card testimonial={singleTestimonial} />}
         </div>
-      </section>
+      </div>
     ) : (
       <testimonials-carousel
         data-carousel
@@ -78,107 +77,110 @@ const singleTestimonial = shouldRenderSingle ? testimonials.at(0) : undefined
         role="region"
         aria-roledescription="carousel"
         aria-label={title}
+        aria-labelledby={headingId}
       >
-        <section class="bg-page-offset py-8" aria-labelledby={headingId}>
-          <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <header class="text-center mb-6">
-              <h2 id={headingId} class="text-3xl md:text-4xl font-bold mb-4">{title}</h2>
-              {leadText && (
-                <p class="text-xl text-content-active max-w-3xl mx-auto">{leadText}</p>
-              )}
-            </header>
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-4 md:pb-6 lg:pb-8">
+          <header class="mb-6">
+            <h2 id={headingId} class="font-sans text-lg font-bold text-primary uppercase tracking-widest">
+              {title}
+            </h2>
+            {leadText && (
+              <p class="text-center text-xl text-content-active max-w-3xl mx-auto">{leadText}</p>
+            )}
+          </header>
 
-            {/* Embla Carousel for Testimonials */}
-            <div class="testimonials-embla relative">
-              <div class="embla__viewport overflow-hidden">
-                <div class="embla__container flex">
-                  {testimonials.map((testimonial, index) => (
-                    <div
-                      class="embla__slide flex-[0_0_100%] min-w-0 px-4"
-                      data-testimonials-slide
-                      role="group"
-                      aria-roledescription="slide"
-                      aria-label={`Testimonial ${index + 1} of ${testimonials.length}`}
-                    >
-                      <Card testimonial={testimonial} />
-                    </div>
-                  ))}
-                </div>
+          {/* Embla Carousel for Testimonials */}
+          <div class="testimonials-embla relative">
+            <div class="embla__viewport overflow-hidden">
+              <div class="embla__container flex">
+                {testimonials.map((testimonial, index) => (
+                  <div
+                    class="embla__slide flex-[0_0_100%] min-w-0 px-4"
+                    data-testimonials-slide
+                    role="group"
+                    aria-roledescription="slide"
+                    aria-label={`Testimonial ${index + 1} of ${testimonials.length}`}
+                  >
+                    <Card testimonial={testimonial} />
+                  </div>
+                ))}
               </div>
+            </div>
 
-              {/* Navigation Buttons */}
-              {testimonials.length > 1 && (
-                <>
-                  <button
-                    type="button"
-                    class="embla__button embla__button--prev absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-12 h-12 rounded-full bg-content-inverse border-2 border-trim shadow-lg hover:bg-gray-200 hover:border-gray-200 transition-all duration-300 flex items-center justify-center z-(--z-raised) disabled:opacity-30 disabled:cursor-not-allowed focus-visible:outline-none after:pointer-events-none after:absolute after:-inset-0.5 after:rounded-none after:content-[''] focus-visible:after:border-2 focus-visible:after:border-spotlight"
-                    aria-label="Previous testimonial"
+            {/* Navigation Buttons */}
+            {testimonials.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  class="embla__button embla__button--prev absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-12 h-12 rounded-full bg-content-inverse border-2 border-trim shadow-lg hover:bg-gray-200 hover:border-gray-200 transition-all duration-300 flex items-center justify-center z-(--z-raised) disabled:opacity-30 disabled:cursor-not-allowed focus-visible:outline-none after:pointer-events-none after:absolute after:-inset-0.5 after:rounded-none after:content-[''] focus-visible:after:border-2 focus-visible:after:border-spotlight"
+                  aria-label="Previous testimonial"
+                >
+                  <svg
+                    class="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    focusable="false"
                   >
-                    <svg
-                      class="w-6 h-6"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                      focusable="false"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M15 19l-7-7 7-7"
-                      />
-                    </svg>
-                  </button>
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15 19l-7-7 7-7"
+                    />
+                  </svg>
+                </button>
 
-                  <button
-                    type="button"
-                    class="embla__button embla__button--next absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-12 h-12 rounded-full bg-content-inverse border-2 border-trim shadow-lg hover:bg-gray-200 hover:border-gray-200 transition-all duration-300 flex items-center justify-center z-(--z-raised) disabled:opacity-30 disabled:cursor-not-allowed focus-visible:outline-none after:pointer-events-none after:absolute after:-inset-0.5 after:rounded-none after:content-[''] focus-visible:after:border-2 focus-visible:after:border-spotlight"
-                    aria-label="Next testimonial"
+                <button
+                  type="button"
+                  class="embla__button embla__button--next absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-12 h-12 rounded-full bg-content-inverse border-2 border-trim shadow-lg hover:bg-gray-200 hover:border-gray-200 transition-all duration-300 flex items-center justify-center z-(--z-raised) disabled:opacity-30 disabled:cursor-not-allowed focus-visible:outline-none after:pointer-events-none after:absolute after:-inset-0.5 after:rounded-none after:content-[''] focus-visible:after:border-2 focus-visible:after:border-spotlight"
+                  aria-label="Next testimonial"
+                >
+                  <svg
+                    class="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    focusable="false"
                   >
-                    <svg
-                      class="w-6 h-6"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                      focusable="false"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
-                  </button>
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </button>
 
+                {showControls && (
                   <div class="mt-8 flex items-center justify-center gap-3">
                     <div
                       class="embla__dots flex gap-2 justify-center"
                       role="group"
                       aria-label="Testimonial navigation"
                     />
-                    <button
-                      type="button"
-                      class="relative flex items-center justify-center rounded-full border border-trim bg-content-inverse p-1 shadow-lg transition-colors hover:bg-page-offset focus-visible:outline-none after:pointer-events-none after:absolute after:-inset-0.5 after:rounded-none after:content-[''] focus-visible:after:border-2 focus-visible:after:border-spotlight"
-                      data-testimonials-autoplay-toggle
-                      aria-label="Pause testimonials"
-                      aria-pressed="false"
-                    >
-                      <span data-testimonials-icon="pause">
-                        <Icon name="pause" size={20} />
-                      </span>
-                      <span data-testimonials-icon="play" class="hidden">
-                        <Icon name="play" size={20} />
-                      </span>
-                    </button>
+                      <button
+                        type="button"
+                        class="relative flex items-center justify-center rounded-full border border-trim bg-content-inverse p-1 shadow-lg transition-colors hover:bg-page-offset focus-visible:outline-none after:pointer-events-none after:absolute after:-inset-0.5 after:rounded-none after:content-[''] focus-visible:after:border-2 focus-visible:after:border-spotlight"
+                        data-testimonials-autoplay-toggle
+                        aria-label="Pause testimonials"
+                        aria-pressed="false"
+                      >
+                        <span data-testimonials-icon="pause">
+                          <Icon name="pause" size={20} />
+                        </span>
+                        <span data-testimonials-icon="play" class="hidden">
+                          <Icon name="play" size={20} />
+                        </span>
+                      </button>
                   </div>
-                </>
-              )}
-            </div>
+                )}
+              </>
+            )}
           </div>
-        </section>
+        </div>
       </testimonials-carousel>
     ))
 }

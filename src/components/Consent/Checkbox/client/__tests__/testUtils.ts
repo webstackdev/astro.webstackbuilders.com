@@ -37,6 +37,7 @@ const defaultProps: CheckboxFixtureProps = {
   id: 'gdpr-consent',
   formId: 'contact-form',
   purpose: 'Responding to your inquiry',
+  variant: 'default',
   wrapInForm: true,
 }
 
@@ -62,7 +63,10 @@ export const renderConsentCheckbox = async (
     moduleSpecifier: '@components/Consent/Checkbox/client/index',
     args: { props: { ...defaultProps, ...props } },
     selector: 'consent-checkbox',
-    waitForReady: waitForConsentReady,
+    waitForReady: async (element: ConsentCheckboxElement) => {
+      await waitForConsentReady(element)
+      await element.updateComplete
+    },
     assert: async ({ element, window, module, renderResult }) => {
       if (!window) {
         throw new TestError('Consent checkbox tests require a browser-like window environment')

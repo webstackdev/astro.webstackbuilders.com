@@ -7,6 +7,10 @@
 import { LitElement } from 'lit'
 import EmblaCarousel, { type EmblaCarouselType, type EmblaOptionsType } from 'embla-carousel'
 import {
+  createEmblaNavStateUpdater,
+  type EmblaNavButtonHandle,
+} from '@components/scripts/embla'
+import {
   setTheme,
   toggleThemePicker,
   closeThemePicker,
@@ -69,6 +73,7 @@ export class ThemePickerElement extends LitElement {
   private emblaPrevBtn!: HTMLButtonElement
   private emblaNextBtn!: HTMLButtonElement
   private emblaApi: EmblaCarouselType | null = null
+  private emblaNavHandle: EmblaNavButtonHandle | null = null
   private emblaControlsBound = false
   private lastIsOpen: boolean | null = null
   private lastTheme: ThemeId | null = null
@@ -80,7 +85,7 @@ export class ThemePickerElement extends LitElement {
 
   private readonly tooltipId = 'theme-picker-tooltip'
 
-  private readonly emblaUpdateHandler = () => this.updateEmblaNavState()
+  private readonly emblaUpdateHandler = () => this.updateEmblaOverflowVisibility()
 
   // Track View Transitions
   private isTransitioning = false
@@ -231,7 +236,7 @@ export class ThemePickerElement extends LitElement {
       scheduleNextFrame(() => {
         try {
           this.emblaApi?.reInit()
-          this.updateEmblaNavState()
+          this.updateEmblaOverflowVisibility()
           this.scrollThemeIntoView(currentTheme)
         } catch (error) {
           handleScriptError(error, { scriptName: 'ThemePickerElement', operation: 'embla:reInit' })
@@ -250,7 +255,16 @@ export class ThemePickerElement extends LitElement {
 
     try {
       this.emblaApi = EmblaCarousel(this.emblaViewport, THEME_PICKER_EMBLA_OPTIONS)
-      this.updateEmblaNavState()
+
+      // Disabled-state tracking via shared utility (re-binds Embla events each setup)
+      this.emblaNavHandle = createEmblaNavStateUpdater(
+        this.emblaApi,
+        this.emblaPrevBtn,
+        this.emblaNextBtn
+      )
+
+      // ThemePicker-specific: hide buttons when no overflow
+      this.updateEmblaOverflowVisibility()
 
       const emblaWithEvents = this.emblaApi as EmblaCarouselType & {
         on: (_event: string, _handler: () => void) => EmblaCarouselType
@@ -259,6 +273,7 @@ export class ThemePickerElement extends LitElement {
       emblaWithEvents.on('select', this.emblaUpdateHandler)
       emblaWithEvents.on('reInit', this.emblaUpdateHandler)
 
+      // Click handlers bound only once (Embla instances are recreated on open/close)
       if (!this.emblaControlsBound) {
         addButtonEventListeners(
           this.emblaPrevBtn,
@@ -301,13 +316,18 @@ export class ThemePickerElement extends LitElement {
   }
 
   private teardownEmbla(): void {
+    this.emblaNavHandle = null
     if (this.emblaApi) {
       this.emblaApi.destroy()
       this.emblaApi = null
     }
   }
 
-  private updateEmblaNavState(): void {
+  /**
+   * ThemePicker-specific: hide nav buttons entirely when the carousel
+   * has no overflow (all themes visible without scrolling).
+   */
+  private updateEmblaOverflowVisibility(): void {
     if (!this.emblaApi || !this.emblaPrevBtn || !this.emblaNextBtn) return
 
     const hasOverflow = this.emblaApi.scrollSnapList().length > 1
@@ -322,17 +342,8 @@ export class ThemePickerElement extends LitElement {
     this.emblaPrevBtn.removeAttribute('hidden')
     this.emblaNextBtn.removeAttribute('hidden')
 
-    if (this.emblaApi.canScrollPrev()) {
-      this.emblaPrevBtn.removeAttribute('disabled')
-    } else {
-      this.emblaPrevBtn.setAttribute('disabled', 'true')
-    }
-
-    if (this.emblaApi.canScrollNext()) {
-      this.emblaNextBtn.removeAttribute('disabled')
-    } else {
-      this.emblaNextBtn.setAttribute('disabled', 'true')
-    }
+    // Delegate disabled state to the shared nav handle
+    this.emblaNavHandle?.update()
   }
 
   private scrollThemeIntoView(themeId: ThemeId): void {
@@ -344,7 +355,7 @@ export class ThemePickerElement extends LitElement {
 
     try {
       this.emblaApi.scrollTo(index, true)
-      this.updateEmblaNavState()
+      this.updateEmblaOverflowVisibility()
     } catch (error) {
       handleScriptError(error, {
         scriptName: 'ThemePickerElement',
@@ -521,7 +532,7 @@ export class ThemePickerElement extends LitElement {
       portal.setAttribute('id', this.tooltipId)
       portal.setAttribute('role', 'tooltip')
       portal.className =
-        'fixed left-0 top-0 z-(--z-modal) pointer-events-none opacity-0 transition-opacity duration-150 ease-out'
+        'fixed left-0 top-0 z-(--z-theme-picker) pointer-events-none opacity-0 transition-opacity duration-150 ease-out'
 
       const content = document.createElement('div')
       content.className =

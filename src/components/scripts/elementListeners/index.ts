@@ -50,9 +50,17 @@ const getTouchendEventListener = (handler: eventHandler, context?: unknown) => {
   return touchendEventHandler
 }
 
-const getEscapeKeyEventListener = (handler: eventHandler, context?: unknown) => {
+type WrapperKeyupOptions = {
+  allowedKeys?: string[]
+}
+
+const getKeyupEventListener = (
+  handler: eventHandler,
+  context?: unknown,
+  options?: WrapperKeyupOptions
+) => {
   /**
-   * Escape key event listener wrapper
+   * Keyup event listener wrapper
    * @param event - Keyboard event
    */
   function keypressListener(event: KeyboardEvent) {
@@ -63,7 +71,12 @@ const getEscapeKeyEventListener = (handler: eventHandler, context?: unknown) => 
      * `keydown` event and a key being held down.
      */
     if (event.isComposing || event.repeat) return
-    if (event.key === `Escape`) handler.call(context, event)
+
+    if (options?.allowedKeys?.length && !options.allowedKeys.includes(event.key)) {
+      return
+    }
+
+    handler.call(context, event)
   }
   return keypressListener
 }
@@ -96,9 +109,13 @@ export const addLinkEventListeners = (
 export const addWrapperEventListeners = (
   element: HTMLElement,
   handler: eventHandler,
-  context?: unknown
+  context?: unknown,
+  options?: WrapperKeyupOptions
 ) => {
-  element.addEventListener(`keyup`, getEscapeKeyEventListener(handler, context))
+  const fallbackOptions: WrapperKeyupOptions = { allowedKeys: ['Escape'] }
+  const resolvedOptions = options?.allowedKeys?.length ? options : fallbackOptions
+
+  element.addEventListener(`keyup`, getKeyupEventListener(handler, context, resolvedOptions))
 }
 
 // Export the type for external use

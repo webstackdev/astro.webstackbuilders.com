@@ -453,7 +453,7 @@ has navigateToDiagnosticsPage and getSnapshot:
 
 - test/e2e/specs/01-smoke/dynamic-pages.spec.ts
 - test/e2e/specs/02-pages/services.spec.ts
-- test/e2e/specs/04-components/animations-computers.spec.ts
+- test/e2e/specs/04-components/animations-terraform.spec.ts
 - test/e2e/specs/04-components/carousel.spec.ts
 - test/e2e/specs/04-components/consentBanner.spec.ts
 - test/e2e/specs/04-components/footer.spec.ts

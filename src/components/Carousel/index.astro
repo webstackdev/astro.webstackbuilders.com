@@ -26,6 +26,8 @@ type BaseProps = {
   currentSlug?: string
   /** Controls whether navigation wraps around */
   navigationMode?: CarouselNavigationMode
+  /** Whether to show the "Read More" link */
+  showReadMore: boolean
 }
 
 export type Props =
@@ -42,7 +44,7 @@ export type Props =
     })
 
 const {
-  title = 'Featured Content',
+  title,
   titleHref,
   limit = 3,
   variant = 'featured',
@@ -50,6 +52,7 @@ const {
   type,
   items: itemsOverride,
   navigationMode = 'wrap',
+  showReadMore = false,
 } = Astro.props
 
 const allItems: ItemType[] = itemsOverride
@@ -73,17 +76,19 @@ const carouselId = `carousel-${type}-${variant}-${currentSlug ?? 'all'}`
       class="block"
     >
       <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <header class="text-center mb-6">
-          <h2 id={`${carouselId}-title`} class="font-bold">
-            {titleHref ? (
-              <a href={titleHref} class="hover:text-primary transition-colors duration-200 no-underline">
-                {title}
-              </a>
-            ) : (
-              title
-            )}
-          </h2>
-        </header>
+        {title && (
+          <header class="text-center mb-6">
+            <h2 id={`${carouselId}-title`} class="font-bold">
+              {titleHref ? (
+                <a href={titleHref} class="hover:text-primary transition-colors duration-200 no-underline">
+                  {title}
+                </a>
+              ) : (
+                title
+              )}
+            </h2>
+          </header>
+        )}
 
         {/* Embla Carousel */}
         <div class="embla relative" role="region" aria-labelledby={`${carouselId}-title`}>
@@ -196,12 +201,39 @@ const carouselId = `carousel-${type}-${variant}-${currentSlug ?? 'all'}`
           </button>
 
           {/* Dots Navigation */}
-          <div
-            class="embla__dots flex gap-2 justify-center mt-8"
-            role="group"
-            aria-label={`${title} slide navigation`}
-            data-carousel-pagination
-          />
+          <div class="mt-8 grid grid-cols-[1fr_auto_1fr] items-center">
+            <span aria-hidden="true" />
+            <span
+              class="embla__dots flex gap-2 justify-center"
+              role="group"
+              aria-label={`${title} slide navigation`}
+              data-carousel-pagination
+            />
+
+            {showReadMore ? (
+              <span class="flex justify-end mr-4">
+                <a
+                  href="/articles"
+                  class="relative inline-flex items-center px-6 py-3 bg-content-active text-content-inverse font-semibold rounded-lg hover:bg-content no-underline hover:no-underline transition-all duration-200 focus-visible:outline-none after:pointer-events-none after:absolute after:content-[''] after:inset-0 after:rounded-none after:border-2 after:border-transparent focus-visible:after:-inset-0.5 focus-visible:after:border-spotlight"
+                >
+                  Read More Articles
+                  <svg
+                    class="ml-2 w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"
+                    ></path>
+                  </svg>
+                </a>
+              </span>
+            ) : (
+              <span aria-hidden="true" />
+            )}
+          </div>
 
           <p
             class="sr-only"

@@ -60,20 +60,23 @@ const waitForBannerReady = async (element: ConsentBannerElement) => {
 
 type JsdomWindow = Window & typeof globalThis
 
+let container: AstroContainer
+
 const renderConsentBanner = async (
   assertion: (_context: {
     element: ConsentBannerElement
     window: JsdomWindow
   }) => Promise<void> | void
 ) => {
-  const container = await AstroContainer.create()
-
   await executeRender<ConsentBannerModule>({
     container,
     component: ConsentBanner,
     moduleSpecifier: '@components/Consent/Banner/client/index',
     selector: 'consent-banner',
-    waitForReady: waitForBannerReady,
+    waitForReady: async (element: ConsentBannerElement) => {
+      await waitForBannerReady(element)
+      await element.updateComplete
+    },
     assert: async ({ element, window }) => {
       if (!window) {
         throw new TestError('JSDOM window is not available for consent banner tests')
@@ -85,6 +88,7 @@ const renderConsentBanner = async (
 }
 
 beforeEach(async () => {
+  container = await AstroContainer.create()
   initConsentCookiesMock.mockReturnValue(true)
   showConsentBannerMock.mockClear()
   hideConsentBannerMock.mockClear()
@@ -191,6 +195,30 @@ describe('ConsentBannerElement', () => {
       } finally {
         navigateSpy.mockRestore()
       }
+    })
+  })
+
+  it('records visibility before Astro view transitions', async () => {
+    await renderConsentBanner(({ window }) => {
+      const wrapper = window.document.getElementById('consent-modal-id') as HTMLDivElement | null
+      expect(wrapper).not.toBeNull()
+      wrapper!.style.display = 'block'
+
+      window.document.dispatchEvent(new window.CustomEvent('astro:before-swap'))
+
+      expect(showConsentBannerMock).toHaveBeenCalled()
+    })
+  })
+
+  it('clears visibility when the banner is hidden before Astro view transitions', async () => {
+    await renderConsentBanner(({ window }) => {
+      const wrapper = window.document.getElementById('consent-modal-id') as HTMLDivElement | null
+      expect(wrapper).not.toBeNull()
+      wrapper!.style.display = 'none'
+
+      window.document.dispatchEvent(new window.CustomEvent('astro:before-swap'))
+
+      expect(hideConsentBannerMock).toHaveBeenCalled()
     })
   })
 })

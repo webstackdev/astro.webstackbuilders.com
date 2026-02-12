@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import TestimonialsComponent from '@components/Testimonials/index.astro'
-import type { TestimonialsProps } from '@components/Testimonials/props'
+import type { TestimonialsProps } from '@components/Testimonials/@types'
 import type { TestimonialsCarouselElement } from '@components/Testimonials/client'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { executeRender } from '@test/unit/helpers/litRuntime'
@@ -92,6 +92,7 @@ vi.mock('embla-carousel-autoplay', () => ({
 
 const defaultProps: TestimonialsProps = {
   title: 'Client Praise',
+  showControls: true,
 }
 
 const renderTestimonials = async (

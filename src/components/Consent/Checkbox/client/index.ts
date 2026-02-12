@@ -3,6 +3,7 @@
  *
  * Handles validation and state management for GDPR consent checkboxes in forms
  */
+import { LitElement } from 'lit'
 import { addScriptBreadcrumb, ClientScriptError } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { defineCustomElement } from '@components/scripts/utils'
@@ -26,7 +27,9 @@ const COMPONENT_TAG_NAME = 'consent-checkbox' as const
 const READY_EVENT = 'consent-checkbox:ready'
 const COMPONENT_SCRIPT_NAME = 'ConsentCheckboxElement'
 
-export class ConsentCheckboxElement extends HTMLElement {
+export class ConsentCheckboxElement extends LitElement {
+  static registeredName = COMPONENT_TAG_NAME
+
   private domReadyHandler: (() => void) | null = null
   private checkbox: HTMLInputElement | null = null
   private container: HTMLDivElement | null = null
@@ -42,7 +45,12 @@ export class ConsentCheckboxElement extends HTMLElement {
 
   public isInitialized = false
 
-  connectedCallback(): void {
+  protected override createRenderRoot(): HTMLElement {
+    return this
+  }
+
+  override connectedCallback(): void {
+    super.connectedCallback()
     if (typeof document === 'undefined' || this.isInitialized) {
       return
     }
@@ -60,7 +68,8 @@ export class ConsentCheckboxElement extends HTMLElement {
     this.initialize()
   }
 
-  disconnectedCallback(): void {
+  override disconnectedCallback(): void {
+    super.disconnectedCallback()
     this.cleanupDomReadyHandler()
     this.cleanupListeners()
     this.isInitialized = false
@@ -363,8 +372,10 @@ export const registerConsentCheckboxWebComponent = (tagName: string = COMPONENT_
   defineCustomElement(tagName, ConsentCheckboxElement)
 }
 
+export const registerWebComponent = registerConsentCheckboxWebComponent
+
 export const webComponentModule: WebComponentModule<ConsentCheckboxElement> = {
   registeredName: COMPONENT_TAG_NAME,
   componentCtor: ConsentCheckboxElement,
-  registerWebComponent: registerConsentCheckboxWebComponent,
+  registerWebComponent,
 }

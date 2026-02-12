@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import Testimonials from '@components/Testimonials/index.astro'
-import type { TestimonialsProps } from '@components/Testimonials/props'
+import type { TestimonialsProps } from '@components/Testimonials/@types'
 import type { TestimonialsCarouselElement as TestimonialsCarouselElementInstance } from '../index'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { executeRender } from '@test/unit/helpers/litRuntime'

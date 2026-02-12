@@ -119,6 +119,24 @@ describe('enforce-centralized-events', () => {
       `,
           filename: 'src/components/MyComponent/index.ts',
         },
+
+        // ========================================
+        // Valid: LitElement web components
+        // ========================================
+        {
+          code: `
+        import { LitElement } from 'lit';
+
+        class MyComponent extends LitElement {
+          connectedCallback() {
+            super.connectedCallback();
+            this.addEventListener('click', this.handleClick);
+            this.addEventListener('keyup', this.handleKeyUp);
+          }
+        }
+      `,
+          filename: 'src/components/MyComponent/index.ts',
+        },
       ],
 
       invalid: [

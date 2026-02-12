@@ -3,7 +3,7 @@ import BaseLayout from '@layouts/BaseLayout.astro'
 import Backstage from '@components/Home/Backstage/index.astro'
 import Carousel from '@components/Carousel/index.astro'
 import Contact from '@components/CallToAction/Contact/index.astro'
-import Hero from '@components/Animations/Hero/index.astro'
+import Hero from '@components/Home/Hero/index.astro'
 import Intro from '@components/Home/Intro/index.astro'
 import Newsletter from '@components/CallToAction/Newsletter/index.astro'
 import Skills from '@components/Home/Skills/index.astro'
@@ -11,97 +11,147 @@ import Testimonials from '@components/Testimonials/index.astro'
 
 const pageDescription = 'Webstack Builders, Inc. Home Page'
 const pageTitle = 'Web Development & Digital Solutions - Webstack Builders, Inc.'
+const sectionClasses = 'container mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8 lg:py-12'
+
 ---
 
 <BaseLayout description={pageDescription} pageTitle={pageTitle} path={'/'}>
   <!-- Hero Section -->
-  <Hero
-    pretitle="I turn deployment nightmares into one-click operations. Legacy migrations, CI/CD pipelines, observability stacks—built to survive production."
-    benefits={["Zero-downtime migrations", "Self-healing infrastructure", "Developer-friendly golden paths"]}
-  />
+  <section
+    class:list={[sectionClasses]}
+    aria-labelledby="home-hero-title"
+  >
+    <Hero
+      pretitle="I turn deployment nightmares into one-click operations. Legacy migrations, CI/CD pipelines, observability stacks—built to survive production."
+      benefits={["Zero-downtime migrations", "Self-healing infrastructure", "Developer-friendly golden paths"]}
+    />
+  </section>
 
   <!-- Intro Section -->
-  <Intro />
+  <section
+    class:list={[sectionClasses]}
+    aria-labelledby="home-about-title"
+  >
+    <Intro
+      pretitle="What I Do"
+      title="Building the Future of Software Development"
+      description="I'm a freelance software engineer specializing in platform engineering, cloud architecture, and developer experience optimization. With deep expertise in modern technologies and a focus on scalable solutions, I help businesses transform their technical infrastructure and accelerate development workflows. SOC-2 ready."
+      benefits={[
+        {
+          title: "Platform Engineering",
+          description: "Scalable infrastructure, internal developer platforms, and CI/CD pipelines built for rapid, reliable iteration",
+          icon: "check-circled",
+        },
+        {
+          title: "Cloud Architecture",
+          description: "Modern cloud-native architectures designed for scalability, resilience, and cost-efficiency",
+          icon: "lightning-bolt",
+        },
+        {
+          title: "Developer Experience",
+          description: "Optimized workflows, tools, and documentation to boost development team productivity",
+          icon: "html",
+        },
+      ]}
+    />
+  </section>
 
   <!-- Turn-Key Backstage IDP Implementation -->
-  <Backstage />
+  <section class:list={[sectionClasses]} aria-labelledby="backstage-title">
+    <Backstage
+      pretitle="Backstage IDP Implementation"
+      description="Backstage is Spotify's open-source internal developer portal. I customize and deploy it for your team—starting small, proving value fast, then scaling across your organization."
+      benefits={[
+        {
+          title: "Less time to first deploy",
+          quantifier: "70%",
+        },
+        {
+          title: "Pilot app live",
+          quantifier: "4 wks",
+        },
+        {
+          title: "Ops tickets for deploys",
+          quantifier: "0",
+        },
+      ]}
+      features={[
+        {
+          title: "Service Catalog",
+          description: "One place to find every service, API, and resource—with owners and docs attached.",
+          icon: "left-justified",
+        },
+        {
+          title: "Software Templates",
+          description: "Scaffold new projects with CI/CD, tests, and cloud infra baked in from day one.",
+          icon: "clipboard",
+        },
+        {
+          title: "CI/CD & Cloud Migration",
+          description: "Lift-and-shift or re-architect—either way, your pipelines will be rock solid.",
+          icon: "lightning-bolt",
+        },
+        {
+          title: "Observability Plug-ins",
+          description: "Surface logs, metrics, and traces right inside the portal—no context switching.",
+          icon: "graph",
+        },
+      ]}
+    />
+  </section>
 
   <!-- Skills/Technologies Preview -->
-  <Skills />
+  <section
+    class:list={[sectionClasses, 'hidden md:block -mb-12']}
+    aria-labelledby="home-technologies-title"
+  >
+    <Skills title="Technologies & Expertise" />
+  </section>
 
   <!-- Latest Articles Section -->
-  <section class="py-16" aria-labelledby="home-latest-insights-title">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-      <header class="text-center mb-12">
-        <h2 id="home-latest-insights-title" class="text-3xl md:text-4xl font-bold mb-4">
-          Latest Insights
-        </h2>
-        <p class="text-xl text-content-active max-w-3xl mx-auto">
-          Stay up-to-date with the latest trends, best practices, and insights in software
-          development and platform engineering.
-        </p>
-      </header>
+  <section
+    class:list={[sectionClasses]}
+    aria-labelledby="carousel-articles-suggested-all-title"
+  >
+    <h2
+      id="carousel-articles-suggested-all-title"
+      class="font-sans text-lg font-bold text-primary uppercase tracking-widest -mb-6"
+    >
+      Latest Insights
+    </h2>
 
-      <Carousel
-        title="Latest Insights"
-        titleHref="/articles"
-        variant="suggested"
-        limit={3}
-        type="articles"
-      />
-
-      <div class="text-center mt-10">
-        <a
-          href="/articles"
-          class="inline-flex items-center px-6 py-3 border border-primary text-primary font-semibold rounded-lg hover:bg-spotlight hover:text-white transition-all duration-200"
-        >
-          Read More Articles
-          <svg
-            class="ml-2 w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-            focusable="false"
-          >
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"
-            ></path>
-          </svg>
-        </a>
-      </div>
-    </div>
+    <Carousel
+      titleHref="/articles"
+      variant="suggested"
+      limit={7}
+      type="articles"
+      showReadMore={true}
+    />
   </section>
 
   <!-- Testimonials Section -->
-  <Testimonials
-    title="What Clients Say"
-    leadText={
-      `Don't just take my word for it - hear from the businesses I've helped ` +
-      `transform their technical infrastructure.`
-    }
-  />
-
-  <!-- Primary CTA Section -->
-  <section class="py-16">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-      <Contact
-        title="Ready to Transform Your Development Process?"
-        description="Let's discuss how platform engineering and modern cloud architecture can accelerate your team's productivity and scale your business. I'd love to hear about your challenges and explore how we can solve them together."
-        primaryLink={{ href: '/contact', text: 'Start a Conversation' }}
-        secondaryLink={{ href: '/services', text: 'Explore Services' }}
-      />
-    </div>
+  <section class:list={['container mx-auto px-4 sm:px-6 lg:px-8']}>
+    <Testimonials title="What Clients Say" showControls={false} />
   </section>
 
   <!-- Newsletter Signup Section -->
-  <section class="bg-page-offset py-16">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-      <Newsletter
-        title="Stay Connected"
-        description="Get the latest insights on platform engineering, cloud architecture, and developer productivity delivered to your inbox. No spam, just valuable content for technical leaders."
-        placeholder="Enter your email address"
-        buttonText="Subscribe"
-      />
-    </div>
+  <section class:list={[sectionClasses]}>
+    <Newsletter
+      title="Stay Connected"
+      description="Get the latest insights on platform engineering, cloud architecture, and developer productivity delivered to your inbox. No spam, just valuable content for technical leaders."
+      placeholder="Enter your email address"
+      buttonText="Subscribe"
+      variant="home"
+    />
+  </section>
+
+  <!-- Primary CTA Section -->
+  <section class:list={[sectionClasses]}>
+    <Contact
+      title="Ready to Level Up Your Platform?"
+      description="Let's discuss how platform engineering and modern cloud architecture can accelerate your team's productivity and scale your business. I'd love to hear about your challenges and explore how we can solve them together."
+      primaryLink={{ href: '/contact', text: 'Get in Touch' }}
+      secondaryLink={{ href: '/services', text: 'See Services' }}
+    />
   </section>
 </BaseLayout>

@@ -78,7 +78,7 @@ const enforceCentralizedEventsRule: Rule.RuleModule = {
       let foundWebComponent = false
       const visitorKeys = sourceCode.visitorKeys ?? {}
 
-      const isHTMLElementSubclass = (node: Node): boolean => {
+      const isWebComponentSubclass = (node: Node): boolean => {
         if (node.type !== 'ClassDeclaration' && node.type !== 'ClassExpression') {
           return false
         }
@@ -87,14 +87,14 @@ const enforceCentralizedEventsRule: Rule.RuleModule = {
         return Boolean(
           superClass &&
           superClass.type === 'Identifier' &&
-          superClass.name === 'HTMLElement',
+          (superClass.name === 'HTMLElement' || superClass.name === 'LitElement'),
         )
       }
 
       const checkNode = (astNode: Node | null | undefined): void => {
         if (!astNode || foundWebComponent) return
 
-        if (isHTMLElementSubclass(astNode)) {
+        if (isWebComponentSubclass(astNode)) {
           foundWebComponent = true
           return
         }

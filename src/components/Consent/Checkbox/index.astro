@@ -13,8 +13,12 @@
  * ```
  */
 
-import type { ConsentCheckboxProps } from './props'
-export type { ConsentCheckboxProps as Props } from './props'
+import type { ConsentCheckboxProps } from './@types'
+export type Props = ConsentCheckboxProps
+
+import DefaultCheckbox from './default.astro'
+import NewsletterCtaArticleCheckbox from './newsletter-cta-article.astro'
+import NewsletterCtaHomeCheckbox from './newsletter-cta-home.astro'
 
 const {
   purpose,
@@ -24,85 +28,46 @@ const {
   name = 'consent',
   id = 'gdpr-consent',
   formId,
-} = Astro.props as ConsentCheckboxProps
+  variant = 'default',
+} = Astro.props as Props
+
+const optionalProps = {
+  ...(customText !== undefined ? { customText } : {}),
+  ...(formId !== undefined ? { formId } : {}),
+}
 ---
 
 <consent-checkbox data-purpose={purpose} data-form-id={formId ?? undefined}>
-  <div
-    class="bg-page-offset border border-trim rounded-lg my-6 p-4"
-    id={`${id}-container`}
-    data-component="gdpr-consent"
-    data-purpose={purpose}
-    data-form-id={formId}
-  >
-    <label class="flex items-start gap-3 cursor-pointer">
-      <input
-        type="checkbox"
-        name={name}
-        id={id}
-        value="true"
-        aria-labelledby={`${id}-label`}
-        aria-describedby={`${id}-description`}
-        aria-invalid="false"
-        class="border-2 border-trim rounded mt-0.5 h-5 w-5 shrink-0 cursor-pointer focus:outline-2 focus:outline-offset-2 focus:outline-primary checked:bg-spotlight checked:border-primary"
-      />
-      <span id={`${id}-label`} class="sr-only">Consent to data processing</span>
-      <span id={`${id}-description`} class="flex-1 text-sm leading-relaxed">
-        {
-          customText ? (
-            <Fragment set:html={customText} />
-          ) : (
-            <>
-              I consent to Webstack Builders processing my personal data for {purpose}. See our{' '}
-              <a
-                href={privacyPolicyUrl}
-                class="text-primary underline hover:text-primary-hover"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Privacy Policy
-              </a>{' '}
-              and{' '}
-              <a
-                href={cookiePolicyUrl}
-                class="text-primary underline hover:text-primary-hover"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Cookie Policy
-              </a>
-              .
-            </>
-          )
-        }
-      </span>
-    </label>
-    <div
-      class="bg-danger-offset text-danger text-sm rounded mt-2 p-2 hidden"
-      id={`${id}-error`}
-      role="alert"
-      aria-live="assertive"
-    >
-    </div>
-  </div>
-
-  <input
-    type="hidden"
-    name={name}
-    value="true"
-    id={`${id}-hidden`}
-    data-consent-hidden="true"
-    disabled
-  />
-
-  <input
-    type="hidden"
-    name="DataSubjectId"
-    value=""
-    id={`${id}-data-subject-id`}
-    data-consent-data-subject-id="true"
-    disabled
-  />
+  {variant === 'newsletter-cta-article' && (
+    <NewsletterCtaArticleCheckbox
+      purpose={purpose}
+      privacyPolicyUrl={privacyPolicyUrl}
+      cookiePolicyUrl={cookiePolicyUrl}
+      name={name}
+      id={id}
+      {...optionalProps}
+    />
+  )}
+  {variant === 'newsletter-cta-home' && (
+    <NewsletterCtaHomeCheckbox
+      purpose={purpose}
+      privacyPolicyUrl={privacyPolicyUrl}
+      cookiePolicyUrl={cookiePolicyUrl}
+      name={name}
+      id={id}
+      {...optionalProps}
+    />
+  )}
+  {variant === 'default' && (
+    <DefaultCheckbox
+      purpose={purpose}
+      privacyPolicyUrl={privacyPolicyUrl}
+      cookiePolicyUrl={cookiePolicyUrl}
+      name={name}
+      id={id}
+      {...optionalProps}
+    />
+  )}
 </consent-checkbox>
 
 <script>

@@ -21,6 +21,45 @@ Cons: Browser rendering can be inconsistent across different operating systems a
 
 Axe accessibility (2) - axe-core integration
 
+## Missing E2E Component Tests
+
+- Code/CodeBlock
+- Code/CodeTabs
+- Consent/Checkbox
+
+## Testimonials on mobile
+
+We have E2E errors again testimonials slide on mobile chrome and safari. I think the problem is that we are pausing carousels when part of the carousel is outside of the viewport, and the testimonials are too large to display on mobile without being off viewport.
+
+`test/e2e/specs/04-components/testimonials.spec.ts`:244:3 › Testimonials Component › @ready testimonials auto-rotate changes slide index
+
+## Refactor of Common Code in Carousel related components
+
+See if there's any code in common between Carousel, Testimonials, and Themepicker. We have another one to add that uses the carousel code - for Skills.
+
+Issue identified with refactoring Testimonial and Carousel to Lit custom web components:
+
+The only thing to watch: the `transition:persist` directive must remain on the HTML custom element tag itself, not on an Astro component wrapper. That's already a project rule and isn't affected by `LitElement` vs `HTMLElement`.
+
+#### Selector files
+
+Carousel/client/selectors.ts and Testimonials/client/selectors.ts follow an identical pattern — only the CSS selectors and data-attribute names differ. The query/get function pairs are structurally identical.
+
+### What's genuinely different
+
+| Concern                          | Carousel                                                     | Testimonials                                                 | ThemePicker                                                  |
+| -------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| Embla options                    | [align: 'start'](vscode-file://vscode-app/usr/share/code/resources/app/out/vs/code/electron-browser/workbench/workbench.html) | [align: 'center'](vscode-file://vscode-app/usr/share/code/resources/app/out/vs/code/electron-browser/workbench/workbench.html) | [align: 'center'](vscode-file://vscode-app/usr/share/code/resources/app/out/vs/code/electron-browser/workbench/workbench.html), [containScroll](vscode-file://vscode-app/usr/share/code/resources/app/out/vs/code/electron-browser/workbench/workbench.html), no loop |
+| Autoplay delay                   | 4000ms                                                       | 6000ms                                                       | None                                                         |
+| Autoplay toggle button           | ❌                                                            | ✅ (play/pause icon swap)                                     | ❌                                                            |
+| Keyboard nav (ArrowLeft/Right)   | ✅                                                            | ❌                                                            | ❌                                                            |
+| Status region (`"Slide X of Y"`) | ✅                                                            | ❌                                                            | ❌                                                            |
+| Dot styling                      | [is-active](vscode-file://vscode-app/usr/share/code/resources/app/out/vs/code/electron-browser/workbench/workbench.html) class | width-based (`w-3` → `w-6`)                                  | None                                                         |
+| Viewport ID / `aria-controls`    | ❌                                                            | ✅                                                            | ❌                                                            |
+| View Transitions integration     | ❌                                                            | ❌                                                            | ✅ (Lit + `astro:after-swap`)                                 |
+| Tooltip portal                   | ❌                                                            | ❌                                                            | ✅                                                            |
+| Base class                       | [HTMLElement](vscode-file://vscode-app/usr/share/code/resources/app/out/vs/code/electron-browser/workbench/workbench.html) | [HTMLElement](vscode-file://vscode-app/usr/share/code/resources/app/out/vs/code/electron-browser/workbench/workbench.html) | [LitElement](vscode-file://vscode-app/usr/share/code/resources/app/out/vs/code/electron-browser/workbench/workbench.html) |
+
 ## Youtube video for Backstage IDP hero on Home page
 
 Discuss agentic AI integrations to add to Backstage
@@ -38,12 +77,6 @@ Right now we're using string literals to define HTML email templates for site ma
 Vercel AI Gateway, maybe could use for a chatbot:
 
 https://vercel.com/kevin-browns-projects-dd474f73/astro-webstackbuilders-com/ai-gateway
-
-## Testimonials on mobile
-
-We have E2E errors again testimonials slide on mobile chrome and safari. I think the problem is that we are pausing carousels when part of the carousel is outside of the viewport, and the testimonials are too large to display on mobile without being off viewport.
-
-`test/e2e/specs/04-components/testimonials.spec.ts`:244:3 › Testimonials Component › @ready testimonials auto-rotate changes slide index
 
 ## Move containers to dev server from Playwright
 
@@ -82,20 +115,6 @@ if (window.matchMedia) {
     });
 }
 ```
-
-## Home Page Ordering
-
-- Hero
-- About Preview ("Building the Future of Software Development")
-- Featured Services
-- (Todo) Turn-Key Backstage IDP Implementation
-- Testimonials
-- Latest Articles
-- Primary CTA ("Ready to Transform Your Development Process?") with links to /contact and /services
-- Newsletter Signup
-- Skills/Technologies Preview (__move to after "About Preview"__)
-
-Maybe change the "ready..." in the hero to "get in touch..."
 
 ## Search Box
 
@@ -143,23 +162,43 @@ Need a tooltip component for consistency. List to add tooltips to:
 - Should header links be in the tab order?
 - Does the total page tab order make sense?
 
-## Lead on Hero for Articles
 
-There's an [example screen shot](src/components/Layout/Markdown/Lead/lead-on-hero-example.png) from CSS-Tricks showing a layout of the author avatar, author name, published date, and title overlaid on the cover image. It would save space on the page. Probably should have it above the image on mobile to avoid visibility issues.
+## Non-featured tags
 
-A scrim is an elliptical gradient from translucent black (center) to transparent black (edges), strategically placed behind white text. The scrim is probably the most subtle way of reliably overlaying text on images out there, and very few designs use this technique.
+Generate cover images for the skills and technologies tags pages:
 
-To overlay an article title and published date on a cover image, use CSS positioning, specifically position: relative on the container and position: absolute on the text elements, combined with design techniques to ensure readability such as a semi-transparent overlay or text shadows.
+argo-cd
+aws
+azure
+backstage
+crossplane
+docker
+dotnet
+go
+grafana
+helm
+kubernetes
+openstack
+prometheus / promql
+python
+ruby
+terraform
+typescript
 
 ## Stylings
 
 - Add 'featured' to tags to filter, and move tags page to articles
+
 - Need to make tables responsive on mobile
-- Investigate why we're getting hyphenate breaks within words across lines, like or- ders and us- age
+
 - Need to remove automatic abbr handling when the abbreviation is used in a header, also the abbr presentation needs improved - right now it gives a question mark pointer and long delay to appear
+
 - When adding backticks in a callout, it gets the standard grey background for a code block in light theme. But it should get an offset of the callout color, like "info-offset".
+
 - Inline code blocks are not wrapping. They're breaking to a new line. An example is in the "Scenario: CRD Sync Order Problem" section of argocd-sync-failures-gitops-debugging-troubleshooting#specific-failure-scenarios.
+
 - The spacing on unordered task lists nested in an ordered list is wrong, see "Questions to Ask Before Setting Targets" in src/content/articles/availability-targets-five-nines-cost-benefit-analysis/index.mdx
+
 - There's too much space at the bottom of callouts, a full line of extra space in the colored background area.
 
 ## Project Stuff
@@ -193,19 +232,10 @@ To overlay an article title and published date on a cover image, use CSS positio
 - add "cel" language to code blocks
 - hovering menu items should cause the dots to disappear immediately and then the animation slide to start
 - Update EXIF data on all AI generated JPGs
-- See if there's any code in common between Carousel, Testimonials, and Themepicker. We have another one to add that uses the carousel code - for Skills.
 
 ## Header
 
 Need to improve the "squish" animation where the header reduces in size on scroll down, and returns to full size on scroll up. Maybe reduce and expand the text and search / themepicker / hamburger menu sizes in place, and then slide them horizontally. The relevant CSS classes:
-
-src/components/Header/index.css
-.header-fixed, .header-footprint, .site-header, .header-brand
-
-src/components/Navigation/menu.module.css
-.mainNavLink
-
-[example](https://thenewstack.io/)
 
 ## Reading position indicator
 
@@ -227,9 +257,6 @@ src/components/Navigation/menu.module.css
 
 This article has different approaches to [print pagination](https://www.customjs.space/blog/html-print-pagination-footer/). One approach overlaps with PagedJS's approach.
 
-## Downloads Collection
-
-Remove the `content/downloads` folder, and point the content collection to look for a `download.astro` file in the `contents/articles` folder. Exclude the `pdf.astro` file from the Articles collection. Generated PDFs go into the public directory maybe? See the note on gating below.
 
 ## Downloads / Gated Content
 
@@ -240,3 +267,10 @@ Remove the `content/downloads` folder, and point the content collection to look 
 
 - "### Geographic/Currency Mismatches" in src/content/articles/cdn-edge-caching-cache-keys-vary-headers/index.mdx
 - cover.jpg for reliability-and-testing needs touch up in GIMP
+- We need to check for short form and deep article articles where the deep-dive index.pdf has a non-featured tag lik "argo-cd" only in the pdf.mdx. In those cases, we should make sure the callout for the deep dive includes the name of that non-featured (technology) tag and add the name to the tags: frontmatter key in the index.mdx
+- Need an article on OpenStack
+
+## focus-visible
+
+- yellow outline on "Let's talk ->" in backstage component is rounded like the button
+- yellow outlines on icon cards in skills + technologies are clipped at the top, and rounded on the play/pause button

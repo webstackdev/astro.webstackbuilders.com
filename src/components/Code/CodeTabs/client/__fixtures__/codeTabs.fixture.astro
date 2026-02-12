@@ -1,0 +1,32 @@
+---
+import CodeTabsRegister from '@components/Code/CodeTabs/index.astro'
+
+export interface Props {
+  variant?: 'single' | 'multi' | 'excluded'
+}
+
+const { variant = 'multi' } = Astro.props as Props
+---
+
+<CodeTabsRegister />
+
+<code-tabs>
+  {variant === 'multi' ? (
+    <>
+      <pre data-code-tabs-tab="A" data-language="javascript">
+        <code>console.log('A')</code>
+      </pre>
+      <pre data-code-tabs-tab="B" data-language="typescript">
+        <code>console.log('B')</code>
+      </pre>
+    </>
+  ) : variant === 'excluded' ? (
+    <pre data-language="text">
+      <code>plain text</code>
+    </pre>
+  ) : (
+    <pre data-language="typescript">
+      <code>const x: number = 1</code>
+    </pre>
+  )}
+</code-tabs>

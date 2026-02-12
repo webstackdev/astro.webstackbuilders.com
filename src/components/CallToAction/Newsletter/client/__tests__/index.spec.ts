@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import { TestError } from '@test/errors'
 import Newsletter from '@components/CallToAction/Newsletter/index.astro'
-import type { NewsletterProps } from '@components/CallToAction/Newsletter/props'
+import type { NewsletterProps } from '@components/CallToAction/Newsletter/client/@types'
 import type { NewsletterFormElement } from '@components/CallToAction/Newsletter/client'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { executeRender } from '@test/unit/helpers/litRuntime'
@@ -29,7 +29,10 @@ const defaultNewsletterProps: NewsletterProps = {
   description: 'Test description for newsletter signup',
   placeholder: 'test@example.com',
   buttonText: 'Subscribe',
+  variant: 'article',
 }
+
+const newsletterVariants: NewsletterProps['variant'][] = ['article', 'home']
 
 const getElements = (root: NewsletterFormElement) => {
   const selectElement = <T extends Element>(selector: string): T => {
@@ -53,7 +56,7 @@ const getElements = (root: NewsletterFormElement) => {
   }
 }
 
-describe('NewsletterFormElement web component', () => {
+describe.each(newsletterVariants)('NewsletterFormElement web component (%s)', variant => {
   let container: AstroContainer
 
   beforeEach(async () => {
@@ -79,6 +82,7 @@ describe('NewsletterFormElement web component', () => {
       args: {
         props: {
           ...defaultNewsletterProps,
+          variant,
           ...props,
         },
       },

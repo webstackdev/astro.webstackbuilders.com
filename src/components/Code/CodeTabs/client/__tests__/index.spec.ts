@@ -1,7 +1,42 @@
-import { describe, expect, it, vi } from 'vitest'
-import { withJsdomEnvironment } from '@test/unit/helpers/litRuntime'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { experimental_AstroContainer as AstroContainer } from 'astro/container'
+import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
+import { executeRender, withJsdomEnvironment } from '@test/unit/helpers/litRuntime'
+import CodeTabsFixture from '@components/Code/CodeTabs/client/__fixtures__/codeTabs.fixture.astro'
+import type { CodeTabsElement } from '../index'
+
+type CodeTabsModule = WebComponentModule<CodeTabsElement>
 
 describe('CodeTabs web component', () => {
+  let container: AstroContainer
+
+  beforeEach(async () => {
+    container = await AstroContainer.create()
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  const renderCodeTabs = async (
+    props: { variant?: 'single' | 'multi' | 'excluded' },
+    assertion: (_context: { element: CodeTabsElement; window: Window }) => Promise<void> | void
+  ): Promise<void> => {
+    await executeRender<CodeTabsModule>({
+      container,
+      component: CodeTabsFixture,
+      moduleSpecifier: '@components/Code/CodeTabs/client/index',
+      args: { props },
+      selector: 'code-tabs',
+      waitForReady: async (element: CodeTabsElement) => {
+        await element.updateComplete
+      },
+      assert: async ({ element, window }) => {
+        await assertion({ element, window: window ?? globalThis.window })
+      },
+    })
+  }
+
   it('skips registration when customElements is unavailable', async () => {
     await withJsdomEnvironment(async () => {
       const globalRef = globalThis as unknown as { customElements?: CustomElementRegistry }
@@ -28,7 +63,7 @@ describe('CodeTabs web component', () => {
   })
 
   it('copies the active code block when clipboard is available', async () => {
-    await withJsdomEnvironment(async ({ window }) => {
+    await renderCodeTabs({ variant: 'single' }, async ({ element, window }) => {
       const globalRef = globalThis as unknown as { navigator?: Navigator }
       const originalNavigator = globalRef.navigator
 
@@ -45,18 +80,6 @@ describe('CodeTabs web component', () => {
       })
 
       try {
-        const { registerCodeTabsWebComponent } =
-          await import('@components/Code/CodeTabs/client/index')
-        registerCodeTabsWebComponent()
-
-        const element = window.document.createElement('code-tabs')
-        const pre = window.document.createElement('pre')
-        const code = window.document.createElement('code')
-        code.textContent = 'console.log("hello")'
-        pre.appendChild(code)
-        element.appendChild(pre)
-        window.document.body.appendChild(element)
-
         const copyButton = element.querySelector(
           'button[aria-label="Copy"]'
         ) as HTMLButtonElement | null
@@ -65,7 +88,7 @@ describe('CodeTabs web component', () => {
         copyButton?.click()
 
         await vi.waitFor(() => {
-          expect(writeText).toHaveBeenCalledWith('console.log("hello")')
+          expect(writeText).toHaveBeenCalledWith('const x: number = 1')
         })
       } finally {
         Object.defineProperty(globalThis, 'navigator', {
@@ -78,48 +101,40 @@ describe('CodeTabs web component', () => {
   })
 
   it('does not throw when clipboard is unavailable', async () => {
-    await withJsdomEnvironment(async ({ window }) => {
+    await renderCodeTabs({ variant: 'single' }, ({ element, window }) => {
+      const globalRef = globalThis as unknown as { navigator?: Navigator }
+      const originalNavigator = globalRef.navigator
+
+      Object.defineProperty(globalThis, 'navigator', {
+        configurable: true,
+        writable: true,
+        value: window.navigator,
+      })
+
       Object.defineProperty(window.navigator, 'clipboard', {
         configurable: true,
         value: undefined,
       })
 
-      const { registerCodeTabsWebComponent } =
-        await import('@components/Code/CodeTabs/client/index')
-      registerCodeTabsWebComponent()
+      try {
+        const copyButton = element.querySelector(
+          'button[aria-label="Copy"]'
+        ) as HTMLButtonElement | null
+        expect(copyButton, 'CodeTabs should render a copy button').toBeTruthy()
 
-      const element = window.document.createElement('code-tabs')
-      const pre = window.document.createElement('pre')
-      pre.textContent = 'no clipboard'
-      element.appendChild(pre)
-      window.document.body.appendChild(element)
-
-      const copyButton = element.querySelector(
-        'button[aria-label="Copy"]'
-      ) as HTMLButtonElement | null
-      expect(copyButton, 'CodeTabs should render a copy button').toBeTruthy()
-
-      expect(() => copyButton?.click()).not.toThrow()
+        expect(() => copyButton?.click()).not.toThrow()
+      } finally {
+        Object.defineProperty(globalThis, 'navigator', {
+          configurable: true,
+          writable: true,
+          value: originalNavigator,
+        })
+      }
     })
   })
 
   it('renders a single tab label for a single named code block', async () => {
-    await withJsdomEnvironment(async ({ window }) => {
-      const { registerCodeTabsWebComponent } =
-        await import('@components/Code/CodeTabs/client/index')
-      registerCodeTabsWebComponent()
-
-      const element = window.document.createElement('code-tabs')
-      const pre = window.document.createElement('pre')
-      pre.setAttribute('data-language', 'typescript')
-
-      const code = window.document.createElement('code')
-      code.textContent = 'const x: number = 1'
-      pre.appendChild(code)
-
-      element.appendChild(pre)
-      window.document.body.appendChild(element)
-
+    await renderCodeTabs({ variant: 'single' }, ({ element }) => {
       const tabButton = element.querySelector('button[data-code-tabs-button="0"]')
       expect(tabButton, 'CodeTabs should render a tab button for a single named code block').toBeTruthy()
       expect(tabButton?.textContent).toBe('TypeScript')
@@ -131,27 +146,7 @@ describe('CodeTabs web component', () => {
   })
 
   it('does not apply hover color change to the active tab when multiple tabs exist', async () => {
-    await withJsdomEnvironment(async ({ window }) => {
-      const { registerCodeTabsWebComponent } =
-        await import('@components/Code/CodeTabs/client/index')
-      registerCodeTabsWebComponent()
-
-      const element = window.document.createElement('code-tabs')
-
-      const preA = window.document.createElement('pre')
-      preA.setAttribute('data-code-tabs-tab', 'A')
-      preA.setAttribute('data-language', 'javascript')
-      preA.appendChild(window.document.createElement('code'))
-
-      const preB = window.document.createElement('pre')
-      preB.setAttribute('data-code-tabs-tab', 'B')
-      preB.setAttribute('data-language', 'typescript')
-      preB.appendChild(window.document.createElement('code'))
-
-      element.appendChild(preA)
-      element.appendChild(preB)
-      window.document.body.appendChild(element)
-
+    await renderCodeTabs({ variant: 'multi' }, ({ element }) => {
       const activeButton = element.querySelector('button[data-code-tabs-button="0"]')
       const inactiveButton = element.querySelector('button[data-code-tabs-button="1"]')
 
@@ -171,18 +166,7 @@ describe('CodeTabs web component', () => {
   })
 
   it('does not render tabs for excluded single-language blocks', async () => {
-    await withJsdomEnvironment(async ({ window }) => {
-      const { registerCodeTabsWebComponent } =
-        await import('@components/Code/CodeTabs/client/index')
-      registerCodeTabsWebComponent()
-
-      const element = window.document.createElement('code-tabs')
-      const pre = window.document.createElement('pre')
-      pre.setAttribute('data-language', 'text')
-      pre.textContent = 'plain text'
-      element.appendChild(pre)
-      window.document.body.appendChild(element)
-
+    await renderCodeTabs({ variant: 'excluded' }, ({ element }) => {
       const anyTabButton = element.querySelector('button[data-code-tabs-button]')
       expect(anyTabButton, 'CodeTabs should not render tab buttons for excluded languages').toBeFalsy()
     })

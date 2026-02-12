@@ -4,6 +4,7 @@
  * Uses Light DOM (no Shadow DOM) with Astro-rendered templates
  */
 
+import { LitElement } from 'lit'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import {
   addButtonEventListeners,
@@ -32,7 +33,9 @@ const COMPONENT_TAG_NAME = 'consent-banner' as const
 const COMPONENT_SCRIPT_NAME = 'ConsentBannerElement'
 export const CONSENT_BANNER_READY_EVENT = 'consent-banner:ready'
 
-export class ConsentBannerElement extends HTMLElement {
+export class ConsentBannerElement extends LitElement {
+  static registeredName = COMPONENT_TAG_NAME
+
   private wrapper!: HTMLDivElement
   private closeBtn!: HTMLButtonElement
   private allowBtn!: HTMLButtonElement
@@ -51,7 +54,12 @@ export class ConsentBannerElement extends HTMLElement {
     window.location.assign(url)
   }
 
-  connectedCallback(): void {
+  protected override createRenderRoot(): HTMLElement {
+    return this
+  }
+
+  override connectedCallback(): void {
+    super.connectedCallback()
     if (this.isInitialized || typeof document === 'undefined') {
       return
     }
@@ -76,7 +84,8 @@ export class ConsentBannerElement extends HTMLElement {
     }
   }
 
-  disconnectedCallback(): void {
+  override disconnectedCallback(): void {
+    super.disconnectedCallback()
     if (this.domReadyHandler) {
       document.removeEventListener('DOMContentLoaded', this.domReadyHandler)
       this.domReadyHandler = null
@@ -377,8 +386,10 @@ export const registerConsentBannerWebComponent = (tagName: string = COMPONENT_TA
   defineCustomElement(tagName, ConsentBannerElement)
 }
 
+export const registerWebComponent = registerConsentBannerWebComponent
+
 export const webComponentModule: WebComponentModule<ConsentBannerElement> = {
   registeredName: COMPONENT_TAG_NAME,
   componentCtor: ConsentBannerElement,
-  registerWebComponent: registerConsentBannerWebComponent,
+  registerWebComponent,
 }

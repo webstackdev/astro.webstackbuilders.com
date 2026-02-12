@@ -4,6 +4,7 @@
  * Uses centralized state management from scripts/store
  */
 
+import { LitElement } from 'lit'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { isInputElement } from '@components/scripts/assertions/elements'
 import { addButtonEventListeners } from '@components/scripts/elementListeners'
@@ -28,7 +29,9 @@ const COMPONENT_TAG_NAME = 'consent-preferences' as const
 const COMPONENT_SCRIPT_NAME = 'ConsentPreferencesElement'
 export const CONSENT_PREFERENCES_READY_EVENT = 'consent-preferences:ready'
 
-export class ConsentPreferencesElement extends HTMLElement {
+export class ConsentPreferencesElement extends LitElement {
+  static registeredName = COMPONENT_TAG_NAME
+
   private allowAllBtn!: HTMLButtonElement
   private denyAllBtn!: HTMLButtonElement
   private saveBtn!: HTMLButtonElement
@@ -38,7 +41,12 @@ export class ConsentPreferencesElement extends HTMLElement {
   private unsubscribeConsent: (() => void) | null = null
   private isInitialized = false
 
-  connectedCallback(): void {
+  protected override createRenderRoot(): HTMLElement {
+    return this
+  }
+
+  override connectedCallback(): void {
+    super.connectedCallback()
     if (typeof document === 'undefined' || this.isInitialized) {
       return
     }
@@ -63,7 +71,8 @@ export class ConsentPreferencesElement extends HTMLElement {
     }
   }
 
-  disconnectedCallback(): void {
+  override disconnectedCallback(): void {
+    super.disconnectedCallback()
     if (this.domReadyHandler) {
       document.removeEventListener('DOMContentLoaded', this.domReadyHandler)
       this.domReadyHandler = null
@@ -283,8 +292,10 @@ export const registerConsentPreferencesWebComponent = (tagName: string = COMPONE
   defineCustomElement(tagName, ConsentPreferencesElement)
 }
 
+export const registerWebComponent = registerConsentPreferencesWebComponent
+
 export const webComponentModule: WebComponentModule<ConsentPreferencesElement> = {
   registeredName: COMPONENT_TAG_NAME,
   componentCtor: ConsentPreferencesElement,
-  registerWebComponent: registerConsentPreferencesWebComponent,
+  registerWebComponent,
 }
