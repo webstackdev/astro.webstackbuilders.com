@@ -9,6 +9,7 @@ import NumberedWithBackgroundList from '@components/List/layouts/NumberedWithBac
 import PlainIconList from '@components/List/layouts/PlainIconList.astro'
 import SideBySideList from '@components/List/layouts/SideBySideList.astro'
 import TimelineList from '@components/List/layouts/TimelineList.astro'
+import TwoColumnCheckIconsList from '@components/List/layouts/TwoColumnCheckIconsList.astro'
 import ZebraList from '@components/List/layouts/ZebraList.astro'
 
 export type Props = {
@@ -17,7 +18,7 @@ export type Props = {
     lead?: string
     text: string
     icon?: string
-    color: string
+    color?: string
   }[]
   classes?: {
     ol?: string
@@ -30,16 +31,19 @@ export type Props = {
 }
 
 const { items, size, variant = 'default', classes } = Astro.props
+const classesProps = classes ? { classes } : {}
+const sizeProps = size !== undefined ? { size } : {}
 ---
 
-{variant === 'accent-border-left-list' && <AccentBorderLeftList items={items} classes={classes} />}
-{variant === 'badge-list' && <BadgeList items={items} classes={classes} />}
-{variant === 'card-grid-list' && <CardGridList items={items} classes={classes} />}
-{variant === 'check-icons-list' && <CheckIconsList items={items} classes={classes} />}
-{variant === 'chevron-list' && <ChevronList items={items} classes={classes} />}
-{variant === 'colored-marker-list' && <ColoredMarkerList items={items} classes={classes} size={size} />}
-{variant === 'numbered-with-background-list' && <NumberedWithBackgroundList items={items} classes={classes} />}
-{variant === 'plain-icon-list' && <PlainIconList items={items} classes={classes} size={size} />}
-{variant === 'side-by-side-list' && <SideBySideList items={items} classes={classes} />}
-{variant === 'timeline-list' && <TimelineList items={items} classes={classes} />}
-{variant === 'zebra-list' && <ZebraList items={items} classes={classes} />}
+{variant === 'accent-border-left-list' && <AccentBorderLeftList items={items} {...classesProps} />}
+{variant === 'badge-list' && <BadgeList items={items} {...classesProps} />}
+{variant === 'card-grid-list' && <CardGridList items={items} {...classesProps} />}
+{variant === 'check-icons-list' && <CheckIconsList items={items} {...classesProps} />}
+{variant === 'chevron-list' && <ChevronList items={items} {...classesProps} />}
+{variant === 'colored-marker-list' && <ColoredMarkerList items={items} {...classesProps} {...sizeProps} />}
+{variant === 'numbered-with-background-list' && <NumberedWithBackgroundList items={items} {...classesProps} />}
+{variant === 'plain-icon-list' && <PlainIconList items={items} {...classesProps} {...sizeProps} />}
+{variant === 'side-by-side-list' && <SideBySideList items={items} {...classesProps} />}
+{variant === 'timeline-list' && <TimelineList items={items} {...classesProps} />}
+{variant === 'two-column-check-icons-list' && <TwoColumnCheckIconsList items={items} {...classesProps} {...sizeProps} />}
+{variant === 'zebra-list' && <ZebraList items={items} {...classesProps} />}

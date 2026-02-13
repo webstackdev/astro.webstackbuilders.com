@@ -4,6 +4,8 @@
  * download page, which is implemented by Forms/Download.
  */
 import { BuildError } from '@lib/errors/BuildError'
+import List from '@components/List/index.astro'
+import Marker from '@components/List/marker.astro'
 
 export interface Props {
   /** Optional base id for internal aria relationships */
@@ -14,6 +16,10 @@ export interface Props {
   title?: string
   /** Supporting description text */
   description?: string
+  /** Optional List */
+  listItems?: {
+    text: string
+  }[]
   /** Download button text */
   buttonText?: string
   /** Optional secondary action button */
@@ -28,8 +34,12 @@ const {
   resource,
   title = 'Download Our Free Resource',
   description = 'Get instant access to expert insights and actionable strategies.',
+  listItems,
   buttonText = 'Download Now',
-  secondaryLink,
+  secondaryLink = {
+    href: "/services/consulting",
+    text: "Learn More"
+  },
 } = Astro.props
 
 const normalizedResource = typeof resource === 'string' ? resource.trim() : ''
@@ -45,147 +55,79 @@ const downloadUrl = `/downloads/${normalizedResource}`
 ---
 
 <section
-  class="cta py-16 md:py-24 bg-linear-to-br from-(--color-primary) to-(--color-accent) relative overflow-hidden"
+  class="bg-linear-to-br from-primary/5 to-accent/5 border border-primary/20 rounded-2xl p-6 md:p-8"
   aria-labelledby={titleId}
   aria-describedby={descriptionId}
 >
-  <!-- Decorative background elements -->
-  <div class="absolute inset-0 opacity-10">
-    <div
-      class="absolute top-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"
-    >
-    </div>
-    <div
-      class="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl translate-x-1/2 translate-y-1/2"
-    >
-    </div>
-  </div>
-
-  <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-(--z-raised)">
-    <div class="max-w-4xl mx-auto text-center">
-      <!-- Icon -->
-      <div
-        class="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full mb-8"
-      >
-        <svg
-          class="w-10 h-10 text-white"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-          focusable="false"
+  <div class="flex flex-col lg:flex-row gap-8">
+    <div class="lg:flex-1">
+      <div class="flex items-center gap-2 mb-3">
+        <span
+          class="inline-flex items-center gap-1 text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full"
         >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-          ></path>
-        </svg>
+          <Marker
+            icon={"download-document"}
+            size={3.5}
+          />
+          Free PDF Guide
+        </span>
       </div>
 
-      <h2
-        id={titleId}
-        class="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight"
-      >
+      <h2 id={titleId} class="text-2xl md:text-3xl font-bold text-content mb-3">
         {title}
       </h2>
-      <p
-        id={descriptionId}
-        class="text-lg md:text-xl text-white/90 mb-10 max-w-2xl mx-auto leading-relaxed"
-      >
+      <p id={descriptionId} class="text-base text-content-offset mb-6 max-w-xl">
         {description}
       </p>
 
-      <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-        <a
-          href={downloadUrl}
-          class="inline-flex items-center justify-center px-8 py-4 bg-white text-primary font-semibold rounded-xl hover:bg-white/90 transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5 min-w-50 text-center group"
-        >
-          <svg
-            class="w-5 h-5 mr-2 transition-transform duration-200 group-hover:translate-y-0.5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-            focusable="false"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-            ></path>
-          </svg>
-          {buttonText}
-        </a>
-        {
-          secondaryLink && (
-            <a
-              href={secondaryLink.href}
-              class="inline-flex items-center justify-center px-8 py-4 bg-transparent border-2 border-white text-white font-semibold rounded-xl hover:bg-white hover:text-primary transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5 min-w-50 text-center"
-            >
-              {secondaryLink.text}
-            </a>
-          )
-        }
-      </div>
+      <p class="text-sm font-semibold text-content mb-3">What you'll get:</p>
+      {
+        listItems && (
+          <List
+            variant="two-column-check-icons-list"
+            items={listItems}
+          />
+        )
+      }
+    </div>
 
-      <!-- Trust indicators -->
-      <div class="mt-12 flex flex-wrap items-center justify-center gap-6 text-white/80 text-sm">
-        <div class="flex items-center gap-2">
-          <svg
-            class="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-            focusable="false"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-          <span>Instant Access</span>
+    <div class="lg:w-72 lg:shrink-0">
+      <div class="bg-content-inverse rounded-xl border border-trim p-5 shadow-sm">
+        <div class="text-center mb-4">
+          <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
+            <Marker
+              icon={"document"}
+              size={8}
+              color={"text-primary"}
+            />
+          </div>
+          <p class="text-xs text-content-offset">Free resource · Instant access</p>
         </div>
-        <div class="flex items-center gap-2">
-          <svg
-            class="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-            focusable="false"
+
+        <div class="space-y-3">
+          <a
+            href={downloadUrl}
+            class="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-spotlight hover:bg-spotlight-offset text-white font-semibold rounded-lg text-sm transition-colors no-underline hover:no-underline focus:no-underline focus-visible:no-underline decoration-transparent hover:decoration-transparent focus:decoration-transparent focus-visible:decoration-transparent"
           >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-            ></path>
-          </svg>
-          <span>No Credit Card Required</span>
+            <Marker
+              icon={"download"}
+              size={5}
+            />
+            {buttonText}
+          </a>
+          {
+            secondaryLink && (
+              <a
+                href={secondaryLink.href}
+                class="w-full inline-flex items-center justify-center px-6 py-3 border border-trim text-content font-semibold rounded-lg text-sm hover:bg-page-offset transition-colors"
+              >
+                {secondaryLink.text}
+              </a>
+            )
+          }
         </div>
-        <div class="flex items-center gap-2">
-          <svg
-            class="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-            focusable="false"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
-            ></path>
-          </svg>
-          <span>Expert Insights</span>
-        </div>
+
+        <p class="text-xs text-content-offset text-center mt-4">No credit card required.</p>
       </div>
     </div>
   </div>
