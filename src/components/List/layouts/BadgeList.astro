@@ -1,6 +1,7 @@
 ---
 export type Props = {
   items: {
+    title?: string
     lead?: string
     text: string
     color?: string
@@ -15,47 +16,22 @@ export type Props = {
 const { items, classes }: Props = Astro.props
 
 const ulClass = ["space-y-4", classes?.ul]
-const liClass = ["border-l-4 pl-4 py-2", classes?.li]
+const liClass = ["flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-4", classes?.li]
+const titleClass = "shrink-0 px-2 py-1 rounded bg-content text-page-base font-mono text-xs font-bold"
+const emClass = ["text-content font-bold not-italic mr-2", classes?.em]
 ---
 
 <ul class:list={ulClass}>
   {
     items.map((item) => (
       <li class:list={liClass}>
-        <em class={classes?.em}>{item.lead}</em>
-        <span>{item.text}</span>
+        <span class:list={titleClass}>{item.title}</span>
+        <span>
+          <em class:list={emClass}>{item.lead}</em>
+          <span class="text-content-offset">{item.text}</span>
+        </span>
       </li>
     ))
   }
 </ul>
 
-<ul class="space-y-4">
-  <li class="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-4">
-    <span class="shrink-0 px-2 py-1 rounded bg-content text-page-base font-mono text-xs font-bold">Query</span>
-    <span>
-      <em class="text-content font-bold not-italic mr-2">Is the gateway healthy?</em>
-      <span class="text-content-offset">Request rate, error rate, and latency percentiles answer this instantly.</span>
-    </span>
-  </li>
-  <li class="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-4">
-    <span class="shrink-0 px-2 py-1 rounded bg-content text-page-base font-mono text-xs font-bold">Query</span>
-    <span>
-      <em class="text-content font-bold not-italic mr-2">Is a specific backend unhealthy?</em>
-      <span class="text-content-offset">Per-upstream metrics and circuit breaker state tell you.</span>
-    </span>
-  </li>
-  <li class="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-4">
-    <span class="shrink-0 px-2 py-1 rounded bg-content text-page-base font-mono text-xs font-bold">Query</span>
-    <span>
-      <em class="text-content font-bold not-italic mr-2">Is a specific consumer affected?</em>
-      <span class="text-content-offset">Consumer-specific labels let you slice the data.</span>
-    </span>
-  </li>
-  <li class="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-4">
-    <span class="shrink-0 px-2 py-1 rounded bg-content text-page-base font-mono text-xs font-bold">Query</span>
-    <span>
-      <em class="text-content font-bold not-italic mr-2">What happened to this specific request?</em>
-      <span class="text-content-offset">Trace ID and request ID correlation connect all the pieces.</span>
-    </span>
-  </li>
-</ul>

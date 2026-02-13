@@ -1,4 +1,6 @@
 ---
+import Marker from "@components/List/marker.astro"
+
 export type Props = {
   items: {
     lead?: string
@@ -14,64 +16,31 @@ export type Props = {
 
 const { items, classes }: Props = Astro.props
 
-const ulClass = ["space-y-4", classes?.ul]
-const liClass = ["border-l-4 pl-4 py-2", classes?.li]
+const ulClass = ["space-y-3", classes?.ul]
+const liClass = ["group", classes?.li]
+const emClass = ["text-content font-semibold not-italic", classes?.em]
+const textClass = "block text-content-offset text-sm mt-0.5"
 ---
 
 <ul class:list={ulClass}>
   {
     items.map((item) => (
       <li class:list={liClass}>
-        <em class={classes?.em}>{item.lead}</em>
-        <span>{item.text}</span>
+        <div class="flex items-start gap-3">
+          <span class="mt-1.5 shrink-0">
+            <Marker
+              icon={"chevron"}
+              color={item.color ?? "text-primary"}
+              size={4}
+              classes="transform group-hover:translate-x-1 transition-transform"
+            />
+          </span>
+          <div>
+            <em class:list={emClass}>{item.lead}</em>
+            <span class:list={textClass}>{item.text}</span>
+          </div>
+        </div>
       </li>
     ))
   }
-</ul>
-
-<ul class="space-y-3">
-  <li class="group">
-    <div class="flex items-baseline gap-3">
-      <svg class="w-3 h-3 text-primary shrink-0 transform group-hover:translate-x-1 transition-transform" viewBox="0 0 10 16" fill="currentColor">
-        <path d="M2.07102 0.929008L9.14209 8.00008L2.07102 15.0711L0.656807 13.6569L6.31366 8.00008L0.656807 2.34322L2.07102 0.929008Z"/>
-      </svg>
-      <div>
-        <em class="text-content font-semibold not-italic">Is the gateway healthy?</em>
-        <span class="block text-content-offset text-sm mt-0.5">Request rate, error rate, and latency percentiles answer this instantly.</span>
-      </div>
-    </div>
-  </li>
-  <li class="group">
-    <div class="flex items-baseline gap-3">
-      <svg class="w-3 h-3 text-primary shrink-0 transform group-hover:translate-x-1 transition-transform" viewBox="0 0 10 16" fill="currentColor">
-        <path d="M2.07102 0.929008L9.14209 8.00008L2.07102 15.0711L0.656807 13.6569L6.31366 8.00008L0.656807 2.34322L2.07102 0.929008Z"/>
-      </svg>
-      <div>
-        <em class="text-content font-semibold not-italic">Is a specific backend unhealthy?</em>
-        <span class="block text-content-offset text-sm mt-0.5">Per-upstream metrics and circuit breaker state tell you.</span>
-      </div>
-    </div>
-  </li>
-  <li class="group">
-    <div class="flex items-baseline gap-3">
-      <svg class="w-3 h-3 text-primary shrink-0 transform group-hover:translate-x-1 transition-transform" viewBox="0 0 10 16" fill="currentColor">
-        <path d="M2.07102 0.929008L9.14209 8.00008L2.07102 15.0711L0.656807 13.6569L6.31366 8.00008L0.656807 2.34322L2.07102 0.929008Z"/>
-      </svg>
-      <div>
-        <em class="text-content font-semibold not-italic">Is a specific consumer affected?</em>
-        <span class="block text-content-offset text-sm mt-0.5">Consumer-specific labels let you slice the data.</span>
-      </div>
-    </div>
-  </li>
-  <li class="group">
-    <div class="flex items-baseline gap-3">
-      <svg class="w-3 h-3 text-primary shrink-0 transform group-hover:translate-x-1 transition-transform" viewBox="0 0 10 16" fill="currentColor">
-        <path d="M2.07102 0.929008L9.14209 8.00008L2.07102 15.0711L0.656807 13.6569L6.31366 8.00008L0.656807 2.34322L2.07102 0.929008Z"/>
-      </svg>
-      <div>
-        <em class="text-content font-semibold not-italic">What happened to this specific request?</em>
-        <span class="block text-content-offset text-sm mt-0.5">Trace ID and request ID correlation connect all the pieces.</span>
-      </div>
-    </div>
-  </li>
 </ul>
