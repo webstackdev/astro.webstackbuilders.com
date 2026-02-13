@@ -1,0 +1,73 @@
+---
+export type Props = {
+  items: {
+    lead?: string
+    text: string
+    color?: string
+  }[]
+  classes?: {
+    ul?: string
+    li?: string
+    em?: string
+  }
+}
+
+const { items, classes }: Props = Astro.props
+
+const ulClass = ["space-y-4", classes?.ul]
+const liClass = ["border-l-4 pl-4 py-2", classes?.li]
+---
+
+<ul class:list={ulClass}>
+  {
+    items.map((item) => (
+      <li class:list={liClass}>
+        <em class={classes?.em}>{item.lead}</em>
+        <span>{item.text}</span>
+      </li>
+    ))
+  }
+</ul>
+
+<ul class="space-y-3">
+  <li class="flex items-start gap-3">
+    <svg class="w-5 h-5 text-success shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+    </svg>
+    <span>
+      <em class="text-content font-semibold not-italic">Is the gateway healthy?</em>
+      <span class="text-content-offset/60 mx-2">—</span>
+      <span class="text-content-offset">Request rate, error rate, and latency percentiles answer this instantly.</span>
+    </span>
+  </li>
+  <li class="flex items-start gap-3">
+    <svg class="w-5 h-5 text-success shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+    </svg>
+    <span>
+      <em class="text-content font-semibold not-italic">Is a specific backend unhealthy?</em>
+      <span class="text-content-offset/60 mx-2">—</span>
+      <span class="text-content-offset">Per-upstream metrics and circuit breaker state tell you.</span>
+    </span>
+  </li>
+  <li class="flex items-start gap-3">
+    <svg class="w-5 h-5 text-success shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+    </svg>
+    <span>
+      <em class="text-content font-semibold not-italic">Is a specific consumer affected?</em>
+      <span class="text-content-offset/60 mx-2">—</span>
+      <span class="text-content-offset">Consumer-specific labels let you slice the data.</span>
+    </span>
+  </li>
+  <li class="flex items-start gap-3">
+    <svg class="w-5 h-5 text-success shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+    </svg>
+    <span>
+      <em class="text-content font-semibold not-italic">What happened to this specific request?</em>
+      <span class="text-content-offset/60 mx-2">—</span>
+      <span class="text-content-offset">Trace ID and request ID correlation connect all the pieces.</span>
+    </span>
+  </li>
+</ul>

@@ -1,0 +1,44 @@
+---
+import AccentBorderLeftList from '@components/List/layouts/AccentBorderLeftList.astro'
+import BadgeList from '@components/List/layouts/BadgeList.astro'
+import CardGridList from '@components/List/layouts/CardGridList.astro'
+import CheckIconsList from '@components/List/layouts/CheckIconsList.astro'
+import ChevronList from '@components/List/layouts/ChevronList.astro'
+import ColoredMarkerList from '@components/List/layouts/ColoredMarkerList.astro'
+import NumberedWithBackgroundList from '@components/List/layouts/NumberedWithBackgroundList.astro'
+import PlainIconList from '@components/List/layouts/PlainIconList.astro'
+import SideBySideList from '@components/List/layouts/SideBySideList.astro'
+import TimelineList from '@components/List/layouts/TimelineList.astro'
+import ZebraList from '@components/List/layouts/ZebraList.astro'
+
+export type Props = {
+  items: {
+    lead?: string
+    text: string
+    icon?: string
+    color: string
+  }[]
+  classes?: {
+    ol?: string
+    ul?: string
+    li?: string
+    em?: string
+  }
+  size?: number
+  variant: string
+}
+
+const { items, size, variant = 'default', classes } = Astro.props
+---
+
+{variant === 'accent-border-left-list' && <AccentBorderLeftList items={items} classes={classes} />}
+{variant === 'badge-list' && <BadgeList items={items} classes={classes} size={size} />}
+{variant === 'card-grid-list' && <CardGridList items={items} classes={classes} size={size} />}
+{variant === 'check-icons-list' && <CheckIconsList items={items} classes={classes} size={size} />}
+{variant === 'chevron-list' && <ChevronList items={items} classes={classes} size={size} />}
+{variant === 'colored-marker-list' && <ColoredMarkerList items={items} classes={classes} size={size} />}
+{variant === 'numbered-with-background-list' && <NumberedWithBackgroundList items={items} classes={classes} size={size} />}
+{variant === 'plain-icon-list' && <PlainIconList items={items} classes={classes} size={size} />}
+{variant === 'side-by-side-list' && <SideBySideList items={items} classes={classes} size={size} />}
+{variant === 'timeline-list' && <TimelineList items={items} classes={classes} size={size} />}
+{variant === 'zebra-list' && <ZebraList items={items} classes={classes} size={size} />}

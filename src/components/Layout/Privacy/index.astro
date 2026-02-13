@@ -1,0 +1,204 @@
+---
+import List from "@components/List/index.astro"
+import Marker from "@components/List/marker.astro"
+
+const lastUpdatedDate = new Date()
+const lastUpdatedIso = lastUpdatedDate.toISOString()
+const lastUpdatedText = lastUpdatedDate.toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+})
+
+export type Props = {
+  content: {
+    header: {
+      title: string
+      description: string
+    }
+    nav: {
+      title: string
+      items: {
+        label: string
+        href: string
+      }[]
+    }
+    collection: {
+      title: string
+      cards: {
+        title: string
+        description: string
+        listItems: {
+          text: string
+          icon: string
+          color: string
+        }[]
+        listMarkerSize?: number
+        trailer?: string
+      }[]
+    }
+    usage: {
+      title: string
+      description: string
+      listItems: {
+        title: string
+        description: string
+        icon: string
+        color: string
+        background: string
+      }[]
+      listMarkerSize?: number
+    }
+    sharing: {
+      title: string
+      subtitle: string
+      description: string
+      listItems: {
+        text: string
+        color: string
+      }[]
+    }
+  }
+}
+
+type NavItem = Props['content']['nav']['items'][number]
+type CollectionCard = Props['content']['collection']['cards'][number]
+
+const { content }: Props = Astro.props
+
+const navItems: Array<NavItem & { showSeparator: boolean }> = []
+
+for (const [index, item] of content.nav.items.entries()) {
+  navItems.push({
+    ...item,
+    showSeparator: index < content.nav.items.length - 1,
+  })
+}
+---
+
+    <header class="text-center max-w-2xl mx-auto mb-8">
+      <div class="inline-flex items-center justify-center w-18 h-18 rounded-full bg-primary/10 mb-5">
+        <svg class="w-12 h-12" fill="none" stroke="var(--theme-color-page-inverse)" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+        </svg>
+      </div>
+      <h1 class="text-4xl md:text-5xl font-bold text-page-inverse mb-4">{content.header.title}</h1>
+      <p class="text-lg text-content-offset leading-relaxed mb-4">
+        {content.header.description}
+      </p>
+      <p class="text-sm text-page-inverse italic">
+        Last updated: <time datetime={lastUpdatedIso}>{lastUpdatedText}</time>
+      </p>
+    </header>
+
+    <nav aria-label="Privacy policy sections" class="bg-content-active rounded-xl p-6 mb-8">
+      <p class="text-md font-semibold text-content-inverse mb-3">{content.nav.title}</p>
+      <div class="flex flex-wrap items-center gap-y-2 md:gap-x-2 text-md md:ml-6">
+        {
+          navItems.map(({ href, label, showSeparator }) => (
+            <>
+              <a
+                href={href}
+                class="text-content-inverse hover:text-content-offset transition-colors no-underline"
+              >
+                {label}
+              </a>
+              {showSeparator && (
+                <span class="mx-2 text-trim" aria-hidden="true">·</span>
+              )}
+            </>
+          ))
+        }
+      </div>
+    </nav>
+
+    <div class="prose prose-lg max-w-none text-content">
+      <section class="mb-12" aria-labelledby="privacy-information-we-collect-title">
+        <h2 class="text-2xl md:text-3xl font-bold mb-6" id="privacy-information-we-collect-title">
+          {content.collection.title}
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {
+            content.collection.cards.map((card: CollectionCard) => (
+              <div class="text-content-active bg-page-offset rounded-xl px-8 pt-8 pb-4 shadow-md">
+                <h3 class="text-2xl font-semibold mb-4 mt-0">
+                  {card.title}
+                </h3>
+                <p class="mb-2">
+                  {card.description}
+                </p>
+                <List
+                  variant="plain-icon-list"
+                  items={card.listItems}
+                />
+                {card.trailer && (
+                  <p class="mt-6 mb-0 text-sm italic text-center text-content-offset">
+                    {card.trailer}
+                  </p>
+                )}
+              </div>
+            ))
+          }
+        </div>
+      </section>
+
+      <section class="mb-12" aria-labelledby="privacy-how-we-use-title">
+        <h2 class="text-2xl md:text-3xl font-bold mb-6" id="privacy-how-we-use-title">
+          {content.usage.title}
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {
+            content.usage.listItems.map((item) => (
+              <div class="text-content-active bg-primary-inverse rounded-xl px-8 pt-8 pb-4 shadow-md">
+                <div class="flex items-center mb-4">
+                  <div
+                    class:list={["w-12 h-12 rounded-lg flex items-center justify-center mr-4", item.background]}
+                  >
+                    <Marker
+                      icon={item.icon}
+                      color={item.color}
+                      size={content.usage.listMarkerSize}
+                    />
+                  </div>
+                  <h3 class="text-xl font-semibold mt-0 mb-0">{item.title}</h3>
+                </div>
+                <p class="text-content">
+                  {item.description}
+                </p>
+              </div>
+            ))
+          }
+        </div>
+      </section>
+
+      <section class="mb-12" aria-labelledby="privacy-information-sharing-title">
+        <h2
+          class="text-2xl md:text-3xl font-bold text-content-active mb-6"
+          id="privacy-information-sharing-title"
+        >
+          {content.sharing.title}
+        </h2>
+        <div
+          class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl px-8 pt-8 pb-4"
+        >
+          <div class="flex items-start">
+            <div class="shrink-0">
+              <Marker
+                icon="warning"
+                color="text-yellow-600 dark:text-yellow-400"
+                size={8}
+              />
+            </div>
+            <div class="text-content-active ml-4">
+              <h3 class="text-xl font-semibold mb-2 mt-1.5">{content.sharing.subtitle}</h3>
+              <p class="text-content">{content.sharing.description}</p>
+              <List
+                variant="colored-marker-list"
+                items={content.sharing.listItems}
+              />
+            </div>
+          </div>
+        </div>
+      </section>

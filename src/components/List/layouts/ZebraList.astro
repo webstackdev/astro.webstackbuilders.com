@@ -1,0 +1,61 @@
+---
+export type Props = {
+  items: {
+    lead?: string
+    text: string
+    color?: string
+  }[]
+  classes?: {
+    ul?: string
+    li?: string
+    em?: string
+  }
+}
+
+const { items, classes }: Props = Astro.props
+
+const ulClass = ["space-y-4", classes?.ul]
+const liClass = ["border-l-4 pl-4 py-2", classes?.li]
+---
+
+<ul class:list={ulClass}>
+  {
+    items.map((item) => (
+      <li class:list={liClass}>
+        <em class={classes?.em}>{item.lead}</em>
+        <span>{item.text}</span>
+      </li>
+    ))
+  }
+</ul>
+
+<ul class="border border-trim rounded-lg overflow-hidden divide-y divide-trim">
+  <li class="p-4 bg-page-base flex items-center justify-between group hover:bg-page-offset transition-colors">
+    <div class="pr-4">
+      <em class="text-content font-bold not-italic block mb-0.5">Is the gateway healthy?</em>
+      <span class="text-sm text-content-offset">Request rate, error rate, and latency percentiles answer this instantly.</span>
+    </div>
+    <svg class="w-5 h-5 text-trim group-hover:text-primary transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+  </li>
+  <li class="p-4 bg-page-offset/30 flex items-center justify-between group hover:bg-page-offset transition-colors">
+    <div class="pr-4">
+      <em class="text-content font-bold not-italic block mb-0.5">Is a specific backend unhealthy?</em>
+      <span class="text-sm text-content-offset">Per-upstream metrics and circuit breaker state tell you.</span>
+    </div>
+    <svg class="w-5 h-5 text-trim group-hover:text-primary transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+  </li>
+  <li class="p-4 bg-page-base flex items-center justify-between group hover:bg-page-offset transition-colors">
+    <div class="pr-4">
+      <em class="text-content font-bold not-italic block mb-0.5">Is a specific consumer affected?</em>
+      <span class="text-sm text-content-offset">Consumer-specific labels let you slice the data.</span>
+    </div>
+    <svg class="w-5 h-5 text-trim group-hover:text-primary transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+  </li>
+  <li class="p-4 bg-page-offset/30 flex items-center justify-between group hover:bg-page-offset transition-colors">
+    <div class="pr-4">
+      <em class="text-content font-bold not-italic block mb-0.5">What happened to this specific request?</em>
+      <span class="text-sm text-content-offset">Trace ID and request ID correlation connect all the pieces.</span>
+    </div>
+    <svg class="w-5 h-5 text-trim group-hover:text-primary transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+  </li>
+</ul>
