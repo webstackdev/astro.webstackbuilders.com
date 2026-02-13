@@ -3,7 +3,6 @@ export type Props = {
   items: {
     lead?: string
     text: string
-    color?: string
   }[]
   classes?: {
     ul?: string
@@ -14,40 +13,34 @@ export type Props = {
 
 const { items, classes }: Props = Astro.props
 
-const ulClass = ["space-y-4", classes?.ul]
-const liClass = ["border-l-4 pl-4 py-2", classes?.li]
+type TimelineItem = Props['items'][number]
+
+const timelineItems = items.map((item: TimelineItem, index: number) => ({
+  ...item,
+  showConnector: index < items.length - 1,
+}))
+
+const ulClass = ["space-y-0", classes?.ul]
+const liClass = ["relative grid grid-cols-[1.5rem_1fr] gap-4", classes?.li]
+const emClass = ["block text-content font-bold not-italic mb-1", classes?.em]
+const wrapperClass = "mb-4"
+const iconClass = ["relative h-5 w-5 mt-0.5 rounded-full border-2 border-primary bg-page-base z-10"]
+const connectorClass = ["absolute left-1/2 top-[1.375rem] -bottom-1 -translate-x-1/2 w-0.5 bg-content-offset"]
 ---
 
 <ul class:list={ulClass}>
   {
-    items.map((item) => (
+    timelineItems.map((item) => (
       <li class:list={liClass}>
-        <em class={classes?.em}>{item.lead}</em>
-        <span>{item.text}</span>
+        <div class="relative flex h-full justify-center">
+          {item.showConnector && <span class:list={connectorClass} aria-hidden="true"></span>}
+          <span class:list={iconClass}></span>
+        </div>
+        <div class:list={[wrapperClass, !item.showConnector && "mb-0"]}>
+          <em class:list={emClass}>{item.lead}</em>
+          <span class="text-content-offset">{item.text}</span>
+        </div>
       </li>
     ))
   }
-</ul>
-
-<ul class="space-y-0 relative border-l-2 border-trim ml-3 pl-8 pb-2">
-  <li class="relative pb-8 last:pb-0">
-    <span class="absolute -left-9.75 top-1 h-5 w-5 rounded-full border-2 border-primary bg-page-base"></span>
-    <em class="block text-content font-bold not-italic mb-1">Is the gateway healthy?</em>
-    <span class="text-content-offset">Request rate, error rate, and latency percentiles answer this instantly.</span>
-  </li>
-  <li class="relative pb-8 last:pb-0">
-    <span class="absolute -left-9.75 top-1 h-5 w-5 rounded-full border-2 border-primary bg-page-base"></span>
-    <em class="block text-content font-bold not-italic mb-1">Is a specific backend unhealthy?</em>
-    <span class="text-content-offset">Per-upstream metrics and circuit breaker state tell you.</span>
-  </li>
-  <li class="relative pb-8 last:pb-0">
-    <span class="absolute -left-9.75 top-1 h-5 w-5 rounded-full border-2 border-primary bg-page-base"></span>
-    <em class="block text-content font-bold not-italic mb-1">Is a specific consumer affected?</em>
-    <span class="text-content-offset">Consumer-specific labels let you slice the data.</span>
-  </li>
-  <li class="relative pb-8 last:pb-0">
-    <span class="absolute -left-9.75 top-1 h-5 w-5 rounded-full border-2 border-primary bg-page-base"></span>
-    <em class="block text-content font-bold not-italic mb-1">What happened to this specific request?</em>
-    <span class="text-content-offset">Trace ID and request ID correlation connect all the pieces.</span>
-  </li>
 </ul>
