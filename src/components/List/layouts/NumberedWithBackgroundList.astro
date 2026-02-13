@@ -3,10 +3,9 @@ export type Props = {
   items: {
     lead?: string
     text: string
-    color?: string
   }[]
   classes?: {
-    ul?: string
+    ol?: string
     li?: string
     em?: string
   }
@@ -14,48 +13,21 @@ export type Props = {
 
 const { items, classes }: Props = Astro.props
 
-const ulClass = ["space-y-4", classes?.ul]
-const liClass = ["border-l-4 pl-4 py-2", classes?.li]
+const olClass = ["space-y-3", classes?.ol]
+const liClass = ["flex items-start gap-4 bg-page-offset/50 rounded-lg p-4", classes?.li]
+const emClass = ["text-content font-semibold not-italic", classes?.em]
 ---
 
-<ul class:list={ulClass}>
+<ol class:list={olClass}>
   {
     items.map((item) => (
       <li class:list={liClass}>
-        <em class={classes?.em}>{item.lead}</em>
-        <span>{item.text}</span>
+        <span class="mt-2 shrink-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-bold">1</span>
+        <div class="pt-1">
+          <em class:list={emClass}>{item.lead}</em>
+          <div>{item.text}</div>
+        </div>
       </li>
     ))
   }
-</ul>
-
-<ol class="space-y-3">
-  <li class="flex items-start gap-4 bg-page-offset/50 rounded-lg p-4">
-    <span class="shrink-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-bold">1</span>
-    <div class="pt-1">
-      <em class="text-content font-semibold not-italic">Is the gateway healthy?</em>
-      <p class="text-content-offset text-sm mt-1">Request rate, error rate, and latency percentiles answer this instantly.</p>
-    </div>
-  </li>
-  <li class="flex items-start gap-4 bg-page-offset/50 rounded-lg p-4">
-    <span class="shrink-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-bold">2</span>
-    <div class="pt-1">
-      <em class="text-content font-semibold not-italic">Is a specific backend unhealthy?</em>
-      <p class="text-content-offset text-sm mt-1">Per-upstream metrics and circuit breaker state tell you.</p>
-    </div>
-  </li>
-  <li class="flex items-start gap-4 bg-page-offset/50 rounded-lg p-4">
-    <span class="shrink-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-bold">3</span>
-    <div class="pt-1">
-      <em class="text-content font-semibold not-italic">Is a specific consumer affected?</em>
-      <p class="text-content-offset text-sm mt-1">Consumer-specific labels let you slice the data.</p>
-    </div>
-  </li>
-  <li class="flex items-start gap-4 bg-page-offset/50 rounded-lg p-4">
-    <span class="shrink-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-bold">4</span>
-    <div class="pt-1">
-      <em class="text-content font-semibold not-italic">What happened to this specific request?</em>
-      <p class="text-content-offset text-sm mt-1">Trace ID and request ID correlation connect all the pieces.</p>
-    </div>
-  </li>
 </ol>

@@ -15,7 +15,7 @@ const { items, classes }: Props = Astro.props
 
 const dlClass = ["grid sm:grid-cols-[1fr_2fr] gap-x-8 gap-y-6", classes?.ul]
 const dtClass = ["font-bold text-right pt-0.5 border-r border-trim pr-8", classes?.em]
-const ddClass = [classes?.li]
+const ddClass = ["text-content-offset", classes?.li]
 ---
 
 <dl class:list={dlClass}>
@@ -25,18 +25,4 @@ const ddClass = [classes?.li]
       <dd class:list={[ddClass, classes?.li]}>{item.text}</dd>
     ))
   }
-</dl>
-
-<dl class="grid sm:grid-cols-[1fr_2fr] gap-x-8 gap-y-6">
-  <dt class="text-content font-bold text-right pt-0.5 border-r border-trim pr-8">Is the gateway healthy?</dt>
-  <dd class="text-content-offset">Request rate, error rate, and latency percentiles answer this instantly.</dd>
-
-  <dt class="text-content font-bold text-right pt-0.5 border-r border-trim pr-8">Is a specific backend unhealthy?</dt>
-  <dd class="text-content-offset">Per-upstream metrics and circuit breaker state tell you.</dd>
-
-  <dt class="text-content font-bold text-right pt-0.5 border-r border-trim pr-8">Is a specific consumer affected?</dt>
-  <dd class="text-content-offset">Consumer-specific labels let you slice the data.</dd>
-
-  <dt class="text-content font-bold text-right pt-0.5 border-r border-trim pr-8">What happened to this specific request?</dt>
-  <dd class="text-content-offset">Trace ID and request ID correlation connect all the pieces.</dd>
 </dl>
