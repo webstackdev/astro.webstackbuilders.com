@@ -2,8 +2,14 @@
 import { getMarkerComponent } from '@components/Marker/server'
 
 export type Props = {
+  /** The name of the icon file in the icons directory to display without its file extension. */
   icon: string
+  /**
+   * The name of a Tailwind theme color CSS variable without the `--theme-color-` prefix.
+   * Example: 'primary', 'text-content', 'green-500'
+   */
   color?: string
+  /** Defaults to 24 on Icon. Otherwise varies a good bit. */
   size?: number
   classes?: string
   accessible?: boolean
@@ -11,7 +17,7 @@ export type Props = {
   isListMarker?: boolean
 }
 
-const { icon, color, size, classes, accessible = false, focusable = false, isListMarker = false }: Props = Astro.props
+const { icon, color, size, classes, accessible = false, focusable = false, isListMarker = true }: Props = Astro.props
 
 const MarkerComponent = getMarkerComponent(icon) as unknown as (_props: {
   color?: string

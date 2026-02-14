@@ -6,9 +6,10 @@ export type Props = {
   accessible: boolean
   focusable: boolean
   isListMarker?: boolean
+  title?: string
 }
 
-const { color, classes, size, accessible, focusable, isListMarker } = Astro.props
+const { color, classes, size, accessible, focusable, isListMarker, title } = Astro.props
 ---
 
 <svg
@@ -20,7 +21,7 @@ const { color, classes, size, accessible, focusable, isListMarker } = Astro.prop
   aria-hidden={accessible ? "false" : "true"}
   focusable={focusable ? "true" : "false"}
 >
-  <title>Info Icon</title>
+  {title && <title>{title}</title>}
   <path
     stroke-linecap="round"
     stroke-linejoin="round"

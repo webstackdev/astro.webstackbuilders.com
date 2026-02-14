@@ -5,26 +5,26 @@ export type Props = {
   size: number
   accessible: boolean
   focusable: boolean
-  isListMarker?: boolean
+  title?: string
 }
 
-const { color, classes, size, accessible, focusable, isListMarker } = Astro.props
+const { color, classes, size, accessible, focusable, title } = Astro.props
 ---
 
 <svg
   xmlns="http://www.w3.org/2000/svg"
-  class:list={["shrink-0", `w-${size} h-${size}`, color, classes, isListMarker ? "mt-0.5" : ""]}
+  class:list={["shrink-0", `w-${size} h-${size}`, color, classes]}
   fill="none"
   stroke="currentColor"
   viewBox="0 0 24 24"
   aria-hidden={accessible ? "false" : "true"}
   focusable={focusable ? "true" : "false"}
 >
-  <title>Email Envelope Icon</title>
+  {title && <title>{title}</title>}
   <path
     stroke-linecap="round"
     stroke-linejoin="round"
     stroke-width="2"
-    d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
   ></path>
 </svg>

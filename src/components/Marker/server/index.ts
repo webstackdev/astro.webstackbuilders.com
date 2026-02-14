@@ -6,13 +6,13 @@ type MarkerModule = {
 
 export type MarkerComponentMap = Record<string, MarkerModule>
 
-const defaultMarkerComponents = import.meta.glob('../markers/*.astro', {
+const defaultMarkerComponents = import.meta.glob('../icons/*.astro', {
   eager: true,
 }) as MarkerComponentMap
 
 const formatAvailableMarkers = (markerComponents: MarkerComponentMap): string => {
   return Object.keys(markerComponents)
-    .map((path) => path.replace('../markers/', ''))
+    .map((path) => path.replace('../icons/', ''))
     .sort()
     .join(', ')
 }
@@ -32,14 +32,14 @@ export const getMarkerComponent = (
   }
 
   const iconFileName = `${icon}.astro`
-  const iconPath = `../markers/${iconFileName}`
+  const iconPath = `../icons/${iconFileName}`
   const markerModule = markerComponents[iconPath]
 
   if (!markerModule?.default) {
     const availableMarkers = formatAvailableMarkers(markerComponents)
 
     throw new Error(
-      `PlainIconList: marker file "${iconFileName}" was not found in src/components/List/markers/. ` +
+      `PlainIconList: marker file "${iconFileName}" was not found in src/components/List/icons/. ` +
       `Requested icon path: "${iconPath}". Available markers: ${availableMarkers || '(none)'}`
     )
   }

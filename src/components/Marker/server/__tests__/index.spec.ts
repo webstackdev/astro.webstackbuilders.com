@@ -9,7 +9,7 @@ const companyMarker = (() => null) as unknown as AstroComponentFactory
 describe('getMarkerComponent', () => {
   it('returns marker component when icon exists', () => {
     const markerComponents = {
-      '../markers/download.astro': { default: downloadMarker },
+      '../icons/download.astro': { default: downloadMarker },
     }
 
     const markerComponent = getMarkerComponent('download', markerComponents)
@@ -25,12 +25,12 @@ describe('getMarkerComponent', () => {
 
   it('throws a descriptive error when marker file is not found', () => {
     const markerComponents = {
-      '../markers/avatar.astro': { default: avatarMarker },
-      '../markers/company.astro': { default: companyMarker },
+      '../icons/avatar.astro': { default: avatarMarker },
+      '../icons/company.astro': { default: companyMarker },
     }
 
     expect(() => getMarkerComponent('download', markerComponents)).toThrowError(
-      'PlainIconList: marker file "download.astro" was not found in src/components/List/markers/. Requested icon path: "../markers/download.astro". Available markers: avatar.astro, company.astro'
+      'PlainIconList: marker file "download.astro" was not found in src/components/List/icons/. Requested icon path: "../icons/download.astro". Available markers: avatar.astro, company.astro'
     )
   })
 })
