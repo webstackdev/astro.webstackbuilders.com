@@ -3,19 +3,22 @@ export type Props = {
   color: string
   classes?: string
   size: number
+  accessible: boolean
+  focusable: boolean
+  isListMarker?: boolean
 }
 
-const { color, classes, size } = Astro.props
+const { color, classes, size, accessible, focusable, isListMarker } = Astro.props
 ---
 
 <svg
   xmlns="http://www.w3.org/2000/svg"
-  class:list={["shrink-0 mt-0.5", `w-${size} h-${size}`, color, classes]}
+  class:list={["shrink-0", `w-${size} h-${size}`, color, classes, isListMarker ? "mt-0.5" : ""]}
   fill="none"
   stroke="currentColor"
   viewBox="0 0 24 24"
-  aria-hidden="true"
-  focusable="false"
+  aria-hidden={accessible ? "false" : "true"}
+  focusable={focusable ? "true" : "false"}
 >
   <title>Power Button Icon</title>
   <path
