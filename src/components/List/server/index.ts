@@ -1,5 +1,7 @@
+import type { AstroComponentFactory } from 'astro/runtime/server/index.js'
+
 type MarkerModule = {
-  default: unknown
+  default: AstroComponentFactory
 }
 
 export type MarkerComponentMap = Record<string, MarkerModule>
@@ -22,7 +24,7 @@ const formatAvailableMarkers = (markerComponents: MarkerComponentMap): string =>
 export const getMarkerComponent = (
   icon?: string,
   markerComponents: MarkerComponentMap = defaultMarkerComponents
-): unknown => {
+): AstroComponentFactory => {
   if (!icon) {
     throw new Error(
       'PlainIconList: missing icon value for list item. Expected an icon name that maps to src/components/List/markers/<icon>.astro'

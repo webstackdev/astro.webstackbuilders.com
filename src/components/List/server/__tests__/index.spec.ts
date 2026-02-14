@@ -1,15 +1,20 @@
 import { describe, expect, it } from 'vitest'
+import type { AstroComponentFactory } from 'astro/runtime/server/index.js'
 import { getMarkerComponent } from '@components/List/server'
+
+const downloadMarker = (() => null) as unknown as AstroComponentFactory
+const avatarMarker = (() => null) as unknown as AstroComponentFactory
+const companyMarker = (() => null) as unknown as AstroComponentFactory
 
 describe('getMarkerComponent', () => {
   it('returns marker component when icon exists', () => {
     const markerComponents = {
-      '../markers/download.astro': { default: 'DownloadMarker' },
+      '../markers/download.astro': { default: downloadMarker },
     }
 
     const markerComponent = getMarkerComponent('download', markerComponents)
 
-    expect(markerComponent).toBe('DownloadMarker')
+    expect(markerComponent).toBe(downloadMarker)
   })
 
   it('throws a descriptive error when icon is missing', () => {
@@ -20,8 +25,8 @@ describe('getMarkerComponent', () => {
 
   it('throws a descriptive error when marker file is not found', () => {
     const markerComponents = {
-      '../markers/avatar.astro': { default: 'AvatarMarker' },
-      '../markers/company.astro': { default: 'CompanyMarker' },
+      '../markers/avatar.astro': { default: avatarMarker },
+      '../markers/company.astro': { default: companyMarker },
     }
 
     expect(() => getMarkerComponent('download', markerComponents)).toThrowError(
