@@ -6,20 +6,26 @@ export type Props = {
   color?: string
   size?: number
   classes?: string
+  accessible?: boolean
+  focusable?: boolean
 }
 
-const { icon, color, size, classes }: Props = Astro.props
+const { icon, color, size, classes, accessible = false, focusable = false }: Props = Astro.props
 
 const MarkerComponent = getMarkerComponent(icon) as unknown as (_props: {
   color?: string
   size?: number
   classes?: string
+  accessible?: boolean
+  focusable?: boolean
 }) => unknown
 
 const markerProps = {
   ...(color ? { color } : {}),
   ...(size !== undefined ? { size } : {}),
   ...(classes ? { classes } : {}),
+  ...(accessible ? { accessible } : {}),
+  ...(focusable ? { focusable } : {}),
 }
 ---
 

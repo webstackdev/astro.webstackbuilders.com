@@ -3,9 +3,11 @@ export type Props = {
   color: string
   classes?: string
   size: number
+  accessible: boolean
+  focusable: boolean
 }
 
-const { color, classes, size } = Astro.props
+const { color, classes, size, accessible, focusable } = Astro.props
 ---
 
 <svg
@@ -14,8 +16,8 @@ const { color, classes, size } = Astro.props
   fill="none"
   stroke="currentColor"
   viewBox="0 0 24 24"
-  aria-hidden="true"
-  focusable="false"
+  aria-hidden={accessible ? "false" : "true"}
+  focusable={focusable ? "true" : "false"}
 >
   <title>Info Icon</title>
   <path
