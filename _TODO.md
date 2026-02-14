@@ -191,6 +191,7 @@ Generate cover images for the skills and technologies tags pages
 - The articles list page should show tags at top for quick navigation. There's another note about this. Show the count of articles per tag unless they're all the same on the tag.
 - 404 page should show search results based on query
 - Update EXIF data on all AI generated JPGs
+- When you click a link to a heading anchor, the heading is hidden by the page header now that it's stickied to the page
 
 ## Header
 
@@ -240,7 +241,3 @@ This article has different approaches to [print pagination](https://www.customjs
 - We need to check for short form and deep article articles where the deep-dive index.pdf has a non-featured tag lik "argo-cd" only in the pdf.mdx. In those cases, we should make sure the callout for the deep dive includes the name of that non-featured (technology) tag and add the name to the tags: frontmatter key in the index.mdx
 
 - Need an article on OpenStack
-
-## Privacy Page
-
-- Need to add header links to H2s for internal navigation
