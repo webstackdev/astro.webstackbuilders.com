@@ -1,0 +1,30 @@
+---
+export type Props = {
+  items: {
+    lead?: string
+    text: string
+  }[]
+  classes?: {
+    ul?: string
+    li?: string
+    em?: string
+  }
+}
+
+const { items, classes }: Props = Astro.props
+
+const ulClass = ["grid grid-cols-1 md:grid-cols-2 gap-4", classes?.ul]
+const liClass = ["bg-page-offset border border-trim rounded-lg p-5 hover:border-primary transition-colors", classes?.li]
+const emClass = ["block text-content font-semibold not-italic mb-2", classes?.em]
+---
+
+<ul class:list={ulClass}>
+  {
+    items.map((item) => (
+      <li class:list={liClass}>
+        <em class:list={emClass}>{item.lead}</em>
+        <span class="text-sm text-content-offset">{item.text}</span>
+      </li>
+    ))
+  }
+</ul>

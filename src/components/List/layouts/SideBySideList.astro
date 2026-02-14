@@ -1,0 +1,28 @@
+---
+export type Props = {
+  items: {
+    lead?: string
+    text: string
+  }[]
+  classes?: {
+    ul?: string
+    li?: string
+    em?: string
+  }
+}
+
+const { items, classes }: Props = Astro.props
+
+const dlClass = ["grid sm:grid-cols-[1fr_2fr] gap-x-8 gap-y-6", classes?.ul]
+const dtClass = ["font-bold text-right pt-0.5 border-r border-trim pr-8", classes?.em]
+const ddClass = ["text-content-offset", classes?.li]
+---
+
+<dl class:list={dlClass}>
+  {
+    items.map((item) => (
+      <dt class:list={[dtClass, classes?.em]}>{item.lead}</dt>
+      <dd class:list={[ddClass, classes?.li]}>{item.text}</dd>
+    ))
+  }
+</dl>

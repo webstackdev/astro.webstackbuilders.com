@@ -1,0 +1,46 @@
+---
+import Marker from "@components/List/marker.astro"
+
+export type Props = {
+  items: {
+    lead?: string
+    text: string
+    color?: string
+  }[]
+  classes?: {
+    ul?: string
+    li?: string
+    em?: string
+  }
+}
+
+const { items, classes }: Props = Astro.props
+
+const ulClass = ["space-y-3", classes?.ul]
+const liClass = ["flex items-start gap-3", classes?.li]
+const emClass = ["text-content font-semibold not-italic", classes?.em]
+---
+
+<ul class:list={ulClass}>
+  {
+    items.map((item) => (
+      <li class:list={liClass}>
+        <Marker
+          icon="check"
+          color={"text-success"}
+          size={5}
+          classes={"mt-1"}
+        />
+        <span>
+          {item.lead && (
+            <>
+              <em class:list={emClass}>{item.lead}</em>
+              <span class="text-content-offset/60 mx-2">—</span>
+            </>
+          )}
+          <span class={`text-content-offset${item.lead ? " mx-6" : ""}`}>{item.text}</span>
+        </span>
+      </li>
+    ))
+  }
+</ul>

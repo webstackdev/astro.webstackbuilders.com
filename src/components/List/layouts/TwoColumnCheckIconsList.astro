@@ -1,0 +1,38 @@
+---
+import Marker from "@components/List/marker.astro"
+
+export type Props = {
+  items: {
+    text: string
+    color?: string
+  }[]
+  classes?: {
+    ul?: string
+    li?: string
+    em?: string
+  }
+  size?: number
+}
+
+const { items, classes, size }: Props = Astro.props
+
+const ulClass = ["grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-content-offset mb-1", classes?.ul]
+const liClass = ["flex items-center gap-2", classes?.li]
+---
+
+<ul class:list={ulClass}>
+  {
+    items.map((item) => (
+      <li class:list={liClass}>
+        <Marker
+          icon="check"
+          color={"text-success"}
+          size={size ?? 5}
+        />
+        <span>
+          <span class="text-content-offset">{item.text}</span>
+        </span>
+      </li>
+    ))
+  }
+</ul>

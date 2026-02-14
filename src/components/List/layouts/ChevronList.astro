@@ -1,0 +1,46 @@
+---
+import Marker from "@components/List/marker.astro"
+
+export type Props = {
+  items: {
+    lead?: string
+    text: string
+    color?: string
+  }[]
+  classes?: {
+    ul?: string
+    li?: string
+    em?: string
+  }
+}
+
+const { items, classes }: Props = Astro.props
+
+const ulClass = ["space-y-3", classes?.ul]
+const liClass = ["group", classes?.li]
+const emClass = ["text-content font-semibold not-italic", classes?.em]
+const textClass = "block text-content-offset text-sm mt-0.5"
+---
+
+<ul class:list={ulClass}>
+  {
+    items.map((item) => (
+      <li class:list={liClass}>
+        <div class="flex items-start gap-3">
+          <span class="mt-1.5 shrink-0">
+            <Marker
+              icon={"chevron"}
+              color={item.color ?? "text-primary"}
+              size={4}
+              classes="transform group-hover:translate-x-1 transition-transform"
+            />
+          </span>
+          <div>
+            <em class:list={emClass}>{item.lead}</em>
+            <span class:list={textClass}>{item.text}</span>
+          </div>
+        </div>
+      </li>
+    ))
+  }
+</ul>

@@ -1,866 +1,356 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro'
-import contactData from '@content/contact.json'
+import PrivacyLayout from '@components/Layout/Privacy/index.astro'
 
 const pageTitle = 'Privacy Policy'
 const path = '/privacy'
 const description =
   'Learn how Webstack Builders collects, uses, and protects your personal information.'
-const lastUpdatedDate = new Date()
-const lastUpdatedIso = lastUpdatedDate.toISOString()
-const lastUpdatedText = lastUpdatedDate.toLocaleDateString('en-US', {
-  year: 'numeric',
-  month: 'long',
-  day: 'numeric',
-})
 ---
 
 <BaseLayout pageTitle={pageTitle} path={path} description={description}>
-  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <header class="text-center mb-16">
-      <h1 class="text-4xl md:text-5xl font-bold mb-6">Privacy Policy</h1>
-      <p class="text-xl max-w-3xl mx-auto">
-        Your privacy is important to us. This policy explains how we collect, use, and protect your
-        information.
-      </p>
-    </header>
-
-    <div class="prose prose-lg max-w-none text-content">
-      <p class="mb-8">
-        <em>Last updated: <time datetime={lastUpdatedIso}>{lastUpdatedText}</time></em>
-      </p>
-
-      <section class="mb-12" aria-labelledby="privacy-information-we-collect-title">
-        <h2
-          class="text-2xl md:text-3xl font-bold mb-6"
-          id="privacy-information-we-collect-title"
-        >
-          Information We Collect
-        </h2>
-        <div class="bg-page-offset rounded-xl p-6 mb-6">
-          <h3 class="text-xl font-semibold mb-4">Personal Information</h3>
-          <p class="mb-4">
-            When you contact us through our website, we may collect:
-          </p>
-          <ul class="list-disc pl-6 space-y-2">
-            <li>Your name and email address</li>
-            <li>Company name and contact information</li>
-            <li>Project details and requirements you share with us</li>
-            <li>Any files or documents you upload through our contact form</li>
-          </ul>
-        </div>
-
-        <div class="bg-blue-100 rounded-xl p-6">
-          <h3 class="text-xl font-semibold mb-4">Automatically Collected Information</h3>
-          <p class="mb-4">
-            We automatically collect certain information when you visit our website:
-          </p>
-          <ul class="list-disc pl-6 space-y-2">
-            <li>Browser type and version (user agent)</li>
-            <li>Pages visited and time spent on our site</li>
-            <li>Referring website information</li>
-          </ul>
-          <p class="mt-4 text-sm italic">
-            Note: We do not collect or store IP addresses.
-          </p>
-        </div>
-      </section>
-
-      <section class="mb-12" aria-labelledby="privacy-how-we-use-title">
-        <h2 class="text-2xl md:text-3xl font-bold mb-6" id="privacy-how-we-use-title">
-          How We Use Your Information
-        </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div class="bg-content-inverse rounded-xl p-6 shadow-md">
-            <div class="flex items-center mb-4">
-              <div class="w-12 h-12 bg-success-inverse  rounded-lg flex items-center justify-center mr-4">
-                <svg
-                  class="w-6 h-6 text-success"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                  focusable="false"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                  ></path>
-                </svg>
-              </div>
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Communication</h3>
-            </div>
-            <p class="text-gray-600 dark:text-gray-300">
-              To respond to your inquiries, provide project quotes, and communicate about potential
-              services.
-            </p>
-          </div>
-
-          <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md">
-            <div class="flex items-center mb-4">
-              <div
-                class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mr-4"
-              >
-                <svg
-                  class="w-6 h-6 text-blue-600 dark:text-blue-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                  focusable="false"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                  ></path>
-                </svg>
-              </div>
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Analytics</h3>
-            </div>
-            <p class="text-gray-600 dark:text-gray-300">
-              To analyze website usage patterns and improve our site's functionality and user
-              experience.
-            </p>
-          </div>
-
-          <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md">
-            <div class="flex items-center mb-4">
-              <div
-                class="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center mr-4"
-              >
-                <svg
-                  class="w-6 h-6 text-purple-600 dark:text-purple-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                  focusable="false"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                  ></path>
-                </svg>
-              </div>
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Security</h3>
-            </div>
-            <p class="text-gray-600 dark:text-gray-300">
-              To protect our website and services from fraud, abuse, and unauthorized access.
-            </p>
-          </div>
-
-          <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md">
-            <div class="flex items-center mb-4">
-              <div
-                class="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center mr-4"
-              >
-                <svg
-                  class="w-6 h-6 text-orange-600 dark:text-orange-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                  focusable="false"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-              </div>
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Legal Compliance</h3>
-            </div>
-            <p class="text-gray-600 dark:text-gray-300">
-              To comply with applicable laws, regulations, and legal processes.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section class="mb-12" aria-labelledby="privacy-information-sharing-title">
-        <h2
-          class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6"
-          id="privacy-information-sharing-title"
-        >
-          Information Sharing
-        </h2>
-        <div
-          class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-6"
-        >
-          <div class="flex items-start">
-            <div class="shrink-0">
-              <svg
-                class="w-6 h-6 text-yellow-600 dark:text-yellow-400 mt-1"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-                focusable="false"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
-                ></path>
-              </svg>
-            </div>
-            <div class="ml-4">
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                We Do Not Sell Your Information
-              </h3>
-              <p class="text-gray-600 dark:text-gray-300">
-                We do not sell, trade, or otherwise transfer your personal information to third
-                parties. We may share information only in the following limited circumstances:
-              </p>
-              <ul class="list-disc pl-6 text-gray-600 dark:text-gray-300 mt-4 space-y-2">
-                <li>With trusted service providers who assist in operating our website</li>
-                <li>When required by law or to protect our legal rights</li>
-                <li>In connection with a business transfer or merger</li>
-                <li>With your explicit consent</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="mb-12" aria-labelledby="privacy-data-security-title">
-        <h2
-          class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6"
-          id="privacy-data-security-title"
-        >
-          Data Security
-        </h2>
-        <p class="text-gray-600 dark:text-gray-300 mb-6">
-          We implement appropriate technical and organizational security measures to protect your
-          personal information against unauthorized access, alteration, disclosure, or destruction.
-        </p>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div class="text-center">
-            <div
-              class="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4"
-            >
-              <svg
-                class="w-8 h-8 text-green-600 dark:text-green-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-                focusable="false"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                ></path>
-              </svg>
-            </div>
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">SSL Encryption</h3>
-            <p class="text-gray-600 dark:text-gray-300 text-sm">
-              All data transmitted between your browser and our servers is encrypted
-            </p>
-          </div>
-          <div class="text-center">
-            <div
-              class="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-4"
-            >
-              <svg
-                class="w-8 h-8 text-blue-600 dark:text-blue-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-                focusable="false"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M5 12h14l-5-5m0 0v10m0-10l5 5"></path>
-              </svg>
-            </div>
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              Access Controls
-            </h3>
-            <p class="text-gray-600 dark:text-gray-300 text-sm">
-              Limited access to personal information on a need-to-know basis
-            </p>
-          </div>
-          <div class="text-center">
-            <div
-              class="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-4"
-            >
-              <svg
-                class="w-8 h-8 text-purple-600 dark:text-purple-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-                focusable="false"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                ></path>
-              </svg>
-            </div>
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              Regular Updates
-            </h3>
-            <p class="text-gray-600 dark:text-gray-300 text-sm">
-              Regular security audits and updates to protect against threats
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section class="mb-12" aria-labelledby="privacy-your-rights-title">
-        <h2
-          class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6"
-          id="privacy-your-rights-title"
-        >
-          Your Rights
-        </h2>
-        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md">
-          <p class="text-gray-600 dark:text-gray-300 mb-6">
-            You have the following rights regarding your personal information:
-          </p>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="flex items-start">
-              <div class="w-6 h-6 text-blue-600 dark:text-blue-400 mt-1 mr-3 shrink-0">
-                <svg
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                  focusable="false"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                  ></path>
-                </svg>
-              </div>
-              <div>
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Access</h3>
-                <p class="text-gray-600 dark:text-gray-300 text-sm">
-                  Request a copy of the personal information we hold about you
-                </p>
-              </div>
-            </div>
-            <div class="flex items-start">
-              <div class="w-6 h-6 text-green-600 dark:text-green-400 mt-1 mr-3 shrink-0">
-                <svg
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                  focusable="false"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                  ></path>
-                </svg>
-              </div>
-              <div>
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Correction</h3>
-                <p class="text-gray-600 dark:text-gray-300 text-sm">
-                  Request correction of inaccurate or incomplete information
-                </p>
-              </div>
-            </div>
-            <div class="flex items-start">
-              <div class="w-6 h-6 text-red-600 dark:text-red-400 mt-1 mr-3 shrink-0">
-                <svg
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                  focusable="false"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                  ></path>
-                </svg>
-              </div>
-              <div>
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Deletion</h3>
-                <p class="text-gray-600 dark:text-gray-300 text-sm">
-                  Request deletion of your personal information
-                </p>
-              </div>
-            </div>
-            <div class="flex items-start">
-              <div class="w-6 h-6 text-purple-600 dark:text-purple-400 mt-1 mr-3 shrink-0">
-                <svg
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                  focusable="false"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728"
-                  ></path>
-                </svg>
-              </div>
-              <div>
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Opt-out</h3>
-                <p class="text-gray-600 dark:text-gray-300 text-sm">
-                  Withdraw consent for processing your information
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="mb-12" aria-labelledby="privacy-cookies-and-tracking-title">
-        <h2
-          class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6"
-          id="privacy-cookies-and-tracking-title"
-        >
-          Cookies and Tracking
-        </h2>
-        <p class="text-gray-600 dark:text-gray-300 mb-6">
-          Our website uses cookies and similar tracking technologies to enhance your browsing
-          experience. You can control cookie settings through your browser preferences.
-        </p>
-        <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-6">
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Types of Cookies We Use:
-          </h3>
-          <ul class="space-y-3">
-            <li class="flex items-start">
-              <span class="w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full mt-2 mr-3 shrink-0"
-              ></span>
-              <div>
-                <strong class="text-gray-900 dark:text-white">Essential Cookies:</strong>
-                <span class="text-gray-600 dark:text-gray-300">
-                  Required for basic website functionality</span
-                >
-              </div>
-            </li>
-            <li class="flex items-start">
-              <span class="w-2 h-2 bg-green-600 dark:bg-green-400 rounded-full mt-2 mr-3 shrink-0"
-              ></span>
-              <div>
-                <strong class="text-gray-900 dark:text-white">Analytics Cookies:</strong>
-                <span class="text-gray-600 dark:text-gray-300">
-                  Help us understand how visitors use our website</span
-                >
-              </div>
-            </li>
-            <li class="flex items-start">
-              <span class="w-2 h-2 bg-purple-600 dark:bg-purple-400 rounded-full mt-2 mr-3 shrink-0"
-              ></span>
-              <div>
-                <strong class="text-gray-900 dark:text-white">Preference Cookies:</strong>
-                <span class="text-gray-600 dark:text-gray-300">
-                  Remember your settings and preferences</span
-                >
-              </div>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <section class="mb-12" aria-labelledby="privacy-strictly-necessary-storage-title">
-        <h2
-          class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6"
-          id="privacy-strictly-necessary-storage-title"
-        >
-          Strictly Necessary Storage
-        </h2>
-        <p class="text-gray-600 dark:text-gray-300 mb-6">
-          In addition to cookies, we use browser localStorage to store certain information that is
-          essential for our website to function properly and provide you with a better user
-          experience. Under GDPR Article 6(1)(f), we process this data based on our legitimate
-          interest to provide a functional and accessible website. You retain the right to opt out
-          of optional features, though this may impact your experience.
-        </p>
-        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md">
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            What We Store Locally:
-          </h3>
-          <div class="space-y-4">
-            <div class="border-l-4 border-blue-500 pl-4">
-              <h4 class="font-semibold text-gray-900 dark:text-white mb-2">
-                Cookie Consent Preferences
-              </h4>
-              <p class="text-sm text-gray-600 dark:text-gray-300">
-                We remember your cookie consent choices (analytics, marketing, functional) so we
-                don't repeatedly ask you. This prevents consent banner fatigue and respects your
-                initial decision.
-              </p>
-            </div>
-            <div class="border-l-4 border-purple-500 pl-4">
-              <h4 class="font-semibold text-gray-900 dark:text-white mb-2">
-                Theme Preference (Accessibility Feature)
-              </h4>
-              <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">
-                Your selected visual theme (light, dark, holiday, or A11y high-contrast) is stored
-                to maintain visual consistency across pages and visits. This prevents jarring theme
-                changes during navigation and ensures accessibility for users with visual
-                impairments.
-              </p>
-              <p class="text-sm text-gray-600 dark:text-gray-300">
-                <strong>Accessibility Justification:</strong> Our A11y theme meets WCAG 1.4.6 Level AAA
-                standards (Contrast Enhanced), requiring a contrast ratio of at least 7:1 for normal text.
-                Users with low vision or color blindness depend on this high-contrast theme for legible
-                content. Storing the theme preference is necessary to deliver an accessible experience
-                consistently across your browsing session, as required by accessibility regulations including
-                the European Accessibility Act and WCAG guidelines. This constitutes a legitimate interest
-                under GDPR Article 6(1)(f) and requires no consent.
-              </p>
-            </div>
-            <div class="border-l-4 border-green-500 pl-4">
-              <h4 class="font-semibold text-gray-900 dark:text-white mb-2">
-                Social Media Embed Cache
-              </h4>
-              <p class="text-sm text-gray-600 dark:text-gray-300">
-                When you load social media embeds (Twitter, YouTube, etc.), we cache the public API
-                responses locally to reduce repeated network requests. This improves page load times
-                and reduces bandwidth usage for both you and the third-party services. No personal
-                data is stored—only publicly available embed content.
-              </p>
-            </div>
-            <div class="border-l-4 border-orange-500 pl-4">
-              <h4 class="font-semibold text-gray-900 dark:text-white mb-2">
-                Mastodon Instances (Requires Consent)
-              </h4>
-              <p class="text-sm text-gray-600 dark:text-gray-300">
-                If you interact with Mastodon social sharing features and provide consent, we
-                remember your preferred Mastodon instance(s) to streamline future interactions. We
-                store up to 5 instances using a first-in-first-out approach. <strong
-                  >This feature requires explicit opt-in consent</strong
-                > because your Mastodon instance choice can identify you and constitutes personal data
-                under GDPR Article 4(1).
-              </p>
-            </div>
-            <div class="border-l-4 border-red-500 pl-4">
-              <h4 class="font-semibold text-gray-900 dark:text-white mb-2">
-                Error Logging (Sentry)
-              </h4>
-              <p class="text-sm text-gray-600 dark:text-gray-300">
-                We use Sentry for error monitoring to identify and fix bugs quickly. Sentry may
-                store session information locally to track errors across page loads. We configure
-                Sentry to avoid collecting personally identifiable information (no emails,
-                usernames, or IP addresses).
-              </p>
-            </div>
-          </div>
-          <div
-            class="mt-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4"
-          >
-            <p class="text-sm text-blue-800 dark:text-blue-200 leading-relaxed">
-              <strong>Your Choice:</strong> Theme preference, consent tracking, social embed caching,
-              and error monitoring are classified as strictly necessary for providing a functional and
-              accessible website. These features do not require consent. Optional features like Mastodon
-              instance storage require opt-in consent through our Cookie Preference Center. Disabling
-              optional storage will prevent the website from remembering your Mastodon preferences but
-              will not affect core functionality or accessibility features.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section class="mb-12" aria-labelledby="privacy-error-monitoring-title">
-        <h2
-          class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6"
-          id="privacy-error-monitoring-title"
-        >
-          Error Monitoring and Diagnostics
-        </h2>
-        <p class="text-gray-600 dark:text-gray-300 mb-6">
-          We use Sentry, a third-party error monitoring service, to help us identify and fix
-          technical issues on our website. This helps us maintain a high-quality user experience and
-          quickly resolve bugs.
-        </p>
-
-        <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6 mb-6">
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            What We Collect for Error Monitoring:
-          </h3>
-          <ul class="space-y-3">
-            <li class="flex items-start">
-              <span class="w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full mt-2 mr-3 shrink-0"
-              ></span>
-              <div>
-                <strong class="text-gray-900 dark:text-white">Browser Information:</strong>
-                <span class="text-gray-600 dark:text-gray-300">
-                  User agent (browser type and version) to help diagnose browser-specific issues
-                </span>
-              </div>
-            </li>
-            <li class="flex items-start">
-              <span class="w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full mt-2 mr-3 shrink-0"
-              ></span>
-              <div>
-                <strong class="text-gray-900 dark:text-white">Error Details:</strong>
-                <span class="text-gray-600 dark:text-gray-300">
-                  Technical error messages, stack traces, and the sequence of actions leading to
-                  errors
-                </span>
-              </div>
-            </li>
-            <li class="flex items-start">
-              <span class="w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full mt-2 mr-3 shrink-0"
-              ></span>
-              <div>
-                <strong class="text-gray-900 dark:text-white">Page Information:</strong>
-                <span class="text-gray-600 dark:text-gray-300">
-                  URLs visited and navigation history when errors occur
-                </span>
-              </div>
-            </li>
-          </ul>
-        </div>
-
-        <div class="bg-green-50 dark:bg-green-900/20 rounded-xl p-6 mb-6">
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-            <svg
-              class="w-6 h-6 text-green-600 dark:text-green-400 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-              focusable="false"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-              ></path>
-            </svg>
-            Privacy Protections:
-          </h3>
-          <ul class="space-y-2 text-gray-600 dark:text-gray-300">
-            <li class="flex items-start">
-              <svg
-                class="w-5 h-5 text-green-600 dark:text-green-400 mr-2 mt-0.5 shrink-0"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-                focusable="false"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M5 13l4 4L19 7"></path>
-              </svg>
-              <span><strong>No IP addresses collected or stored</strong></span>
-            </li>
-            <li class="flex items-start">
-              <svg
-                class="w-5 h-5 text-green-600 dark:text-green-400 mr-2 mt-0.5 shrink-0"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-                focusable="false"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M5 13l4 4L19 7"></path>
-              </svg>
-              <span><strong>No session replay or screen recording</strong></span>
-            </li>
-            <li class="flex items-start">
-              <svg
-                class="w-5 h-5 text-green-600 dark:text-green-400 mr-2 mt-0.5 shrink-0"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-                focusable="false"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M5 13l4 4L19 7"></path>
-              </svg>
-              <span><strong>No performance tracking or monitoring</strong></span>
-            </li>
-            <li class="flex items-start">
-              <svg
-                class="w-5 h-5 text-green-600 dark:text-green-400 mr-2 mt-0.5 shrink-0"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-                focusable="false"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M5 13l4 4L19 7"></path>
-              </svg>
-              <span>Data is used solely for technical troubleshooting and bug fixes</span>
-            </li>
-          </ul>
-        </div>
-
-        <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-6">
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-            Data Processing Agreement
-          </h3>
-          <p class="text-gray-600 dark:text-gray-300">
-            Webstack Builders has signed a Data Processing Agreement (DPA) with Sentry to ensure
-            that all error monitoring data is processed in compliance with GDPR and other data
-            protection regulations. This agreement ensures that Sentry acts as a data processor on
-            our behalf and implements appropriate security measures to protect your information.
-          </p>
-        </div>
-      </section>
-
-      <section class="mb-12" aria-labelledby="privacy-contact-us-title">
-        <h2
-          class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6"
-          id="privacy-contact-us-title"
-        >
-          Contact Us
-        </h2>
-        <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6">
-          <p class="text-gray-600 dark:text-gray-300 mb-6">
-            If you have any questions about this Privacy Policy or would like to exercise your
-            rights, please contact us:
-          </p>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="flex items-start">
-              <div
-                class="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mr-4 shrink-0"
-              >
-                <svg
-                  class="w-4 h-4 text-blue-600 dark:text-blue-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                  focusable="false"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                  ></path>
-                </svg>
-              </div>
-              <div>
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">Email</h3>
-                <a href="/contact/" class="text-blue-600 dark:text-blue-400 hover:underline">
-                  Contact Us
-                </a>
-              </div>
-            </div>
-            <div class="flex items-start">
-              <div
-                class="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mr-4 shrink-0"
-              >
-                <svg
-                  class="w-4 h-4 text-blue-600 dark:text-blue-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                  focusable="false"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                  ></path>
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                </svg>
-              </div>
-              <div>
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-                  Response Time
-                </h3>
-                <p class="text-gray-600 dark:text-gray-300">
-                  We respond to privacy requests within 30 days
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div class="mt-6 pt-6 border-t border-blue-200 dark:border-blue-800">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-              Data Protection Officer
-            </h3>
-            <p class="text-gray-600 dark:text-gray-300 mb-2">
-              For questions specifically related to data protection and privacy compliance:
-            </p>
-            <div class="bg-white dark:bg-gray-800 rounded-lg p-4">
-              <p class="text-gray-900 dark:text-white font-medium">
-                {contactData.company.dataProtectionOfficer.name}
-              </p>
-              <a
-                href={`mailto:${contactData.company.dataProtectionOfficer.email}`}
-                class="text-blue-600 dark:text-blue-400 hover:underline"
-              >
-                {contactData.company.dataProtectionOfficer.email}
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section aria-labelledby="privacy-changes-to-policy-title">
-        <h2
-          class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6"
-          id="privacy-changes-to-policy-title"
-        >
-          Changes to This Policy
-        </h2>
-        <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-6">
-          <p class="text-gray-600 dark:text-gray-300">
-            We may update this Privacy Policy from time to time to reflect changes in our practices
-            or applicable laws. We will notify you of any material changes by posting the updated
-            policy on this page and updating the "Last updated" date at the top of this policy. We
-            encourage you to review this policy periodically.
-          </p>
-        </div>
-      </section>
-    </div>
-  </div>
+  <PrivacyLayout
+    content={{
+      header: {
+        title: pageTitle,
+        description:
+          "Your privacy is important to us. This policy explains how we collect, use, and protect your information.",
+      },
+      nav: {
+        title: "Jump to:",
+        items: [
+          {
+            label: "Collection",
+            href: "#privacy-information-we-collect-title",
+          },
+          {
+            label: "Usage",
+            href: "#privacy-how-we-use-title",
+          },
+          {
+            label: "Sharing",
+            href: "#privacy-how-we-share-title",
+          },
+          {
+            label: "Security",
+            href: "#privacy-data-security-title",
+          },
+          {
+            label: "Your Rights",
+            href: "#privacy-your-rights-title",
+          },
+          {
+            label: "Cookies",
+            href: "#privacy-cookies-and-tracking-title",
+          },
+          {
+            label: "Storage",
+            href: "#privacy-storage-title",
+          },
+          {
+            label: "Monitoring",
+            href: "#privacy-error-monitoring-title",
+          },
+          {
+            label: "Contact",
+            href: "#privacy-contact-us-title",
+          },
+          {
+            label: "Changes",
+            href: "#privacy-changes-to-policy-title",
+          },
+        ],
+      },
+      collection: {
+        title: "Information We Collect",
+        cards: [
+          {
+            title: "Personal Information",
+            description: "When you contact us through our website, we may collect:",
+            listItems: [
+              {
+                text: "Your name and email address",
+                icon: "avatar",
+                color: "text-blue-600",
+              },
+              {
+                text: "Company name and contact information",
+                icon: "company",
+                color: "text-purple-600",
+              },
+              {
+                text: "Project details and requirements you share with us",
+                icon: "clipboard",
+                color: "text-green-600",
+              },
+              {
+                text: "Any files or documents you upload through our contact form",
+                icon: "upload",
+                color: "text-secondary",
+              },
+            ],
+          },
+          {
+            title: "Automatically Collected Information",
+            description: "We automatically collect certain information when you visit our website:",
+            listItems: [
+              {
+                text: "Browser type and version (user agent)",
+                icon: "globe",
+                color: "text-blue-600",
+              },
+              {
+                text: "Pages visited and time spent on our site",
+                icon: "document",
+                color: "text-green-600",
+              },
+              {
+                text: "Referring website information",
+                icon: "paperclip",
+                color: "text-purple-600",
+              },
+            ],
+            trailer: "Note: We do not collect or store IP addresses.",
+          },
+        ],
+      },
+      usage: {
+        title: "How We Use Your Information",
+        description:
+          "We use the information we collect for the following purposes:",
+        listItems: [
+          {
+            title: "Communication",
+            description: "To respond to your inquiries, provide project quotes, and communicate about potential services",
+            icon: "conversation",
+            color: "text-success",
+            background: "bg-success-inverse",
+          },
+          {
+            title: "Analytics",
+            description: "To analyze website usage patterns and improve our site's functionality and user experience",
+            icon: "chart",
+            color: "text-blue-600 dark:text-blue-400",
+            background: "bg-blue-100 dark:bg-blue-900/30",
+          },
+          {
+            title: "Security",
+            description: "To protect our website and services from fraud, abuse, and unauthorized access",
+            icon: "lock",
+            color: "text-purple-600 dark:text-purple-400",
+            background: "bg-purple-100 dark:bg-purple-900/30",
+          },
+          {
+            title: "Legal Compliance",
+            description: "To comply with applicable laws, regulations, and legal processes",
+            icon: "info",
+            color: "text-orange-600 dark:text-orange-400",
+            background: "bg-orange-100 dark:bg-orange-900/30",
+          },
+        ],
+        listMarkerSize: 6,
+      },
+      sharing: {
+        title: "Information Sharing",
+        subtitle: "We Do Not Sell Your Information",
+        description: "We do not sell, trade, or otherwise transfer your personal information to third parties. We may share information only in the following limited circumstances:",
+        listItems: [
+          {
+            text: "With trusted service providers who assist in operating our website",
+            color: "bg-blue-600 dark:bg-blue-400",
+          },
+          {
+            text: "When required by law or to protect our legal rights",
+            color: "bg-green-600 dark:bg-green-400",
+          },
+          {
+            text: "In connection with a business transfer or merger",
+            color: "bg-purple-600 dark:bg-purple-400",
+          },
+          {
+            text: "With your explicit consent",
+            color: "bg-orange-500 dark:bg-orange-400",
+          },
+        ],
+      },
+      security: {
+        title: "Data Security",
+        description: "We implement appropriate technical and organizational security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction.",
+        cards: [
+          {
+            lead: "SSL Encryption",
+            text: "All data transmitted between your browser and our servers is encrypted",
+            icon: "shield",
+            color: "text-green-600 dark:text-green-400",
+            background: "bg-green-100 dark:bg-green-900/30",
+          },
+          {
+            lead: "Access Controls",
+            text: "Limited access to personal information on a need-to-know basis",
+            icon: "key",
+            color: "text-blue-600 dark:text-blue-400",
+            background: "bg-blue-100 dark:bg-blue-900/30",
+          },
+          {
+            lead: "Regular Updates",
+            text: "Regular security audits and updates to protect against threats",
+            icon: "lock",
+            color: "text-purple-600 dark:text-purple-400",
+            background: "bg-purple-100 dark:bg-purple-900/30",
+          },
+        ],
+      },
+      rights: {
+        title: "Your Rights",
+        description: "You have the following rights regarding your personal information:",
+        cards: [
+          {
+            lead: "Access",
+            text: "Request a copy of the personal information we hold about you",
+            icon: "eye",
+            color: "text-blue-600 dark:text-blue-400",
+          },
+          {
+            lead: "Correction",
+            text: "Request corrections to your personal information if it is inaccurate or incomplete",
+            icon: "paper-and-pen",
+            color: "text-green-600 dark:text-green-400",
+          },
+          {
+            lead: "Deletion",
+            text: "Request deletion of your personal information",
+            icon: "trash",
+            color: "text-red-600 dark:text-red-400",
+          },
+          {
+            lead: "Opt-out",
+            text: "Withdraw consent for processing your information",
+            icon: "power",
+            color: "text-orange-600 dark:text-orange-400",
+          },
+        ],
+      },
+      cookies: {
+        title: "Cookies and Tracking",
+        description: "Our website uses cookies and similar tracking technologies to enhance your browsing experience. You can control cookie settings through your browser preferences.",
+        subtitle: "Types of Cookies We Use:",
+        listItems: [
+          {
+            lead: "Essential Cookies:",
+            text: "Required for basic website functionality",
+            color: "bg-blue-600 dark:bg-blue-400",
+          },
+          {
+            lead: "Analytics Cookies:",
+            text: "Help us understand how visitors use our website",
+            color: "bg-green-600 dark:bg-green-400",
+          },
+          {
+            lead: "Preference Cookies:",
+            text: "Remember your settings and preferences",
+            color: "bg-purple-600 dark:bg-purple-400",
+          },
+        ],
+      },
+      storage: {
+        title: "Strictly Necessary Storage",
+        description: "In addition to cookies, we use browser localStorage to store certain information that is essential for our website to function properly and provide you with a better user experience. Under GDPR Article 6(1)(f), we process this data based on our legitimate interest to provide a functional and accessible website. You retain the right to opt out of optional features, though this may impact your experience.",
+        subtitle: "What We Store Locally:",
+        listItems: [
+          {
+            lead: "Cookie Consent Preferences",
+            text: "We remember your cookie consent choices (analytics, marketing, functional) so we don't repeatedly ask you. This prevents consent banner fatigue and respects your initial decision.",
+            color: "border-blue-500",
+          },
+          {
+            lead: "Theme Preference (Accessibility Feature)",
+            text: [
+              "Your selected visual theme (light, dark, holiday, or A11y high-contrast) is stored to maintain visual consistency across pages and visits. This prevents jarring theme changes during navigation and ensures accessibility for users with visual impairments.",
+              "<strong>Accessibility Justification:</strong> Our A11y theme meets WCAG 1.4.6 Level AAA standards (Contrast Enhanced), requiring a contrast ratio of at least 7:1 for normal text. Users with low vision or color blindness depend on this high-contrast theme for legible content. Storing the theme preference is necessary to deliver an accessible experience consistently across your browsing session, as required by accessibility regulations including the European Accessibility Act and WCAG guidelines. This constitutes a legitimate interest under GDPR Article 6(1)(f) and requires no consent.",
+            ],
+            color: "border-purple-500",
+          },
+          {
+            lead: "Social Media Embed Cache",
+            text: "When you load social media embeds (Twitter, YouTube, etc.), we cache the public API responses locally to reduce repeated network requests. This improves page load times and reduces bandwidth usage for both you and the third-party services. No personal data is stored—only publicly available embed content.",
+            color: "border-green-500",
+          },
+          {
+            lead: "Mastodon Instances (Requires Consent)",
+            text: "If you interact with Mastodon social sharing features and provide consent, we remember your preferred Mastodon instance(s) to streamline future interactions. We store up to 5 instances using a first-in-first-out approach. <strong>This feature requires explicit opt-in consent</strong> because your Mastodon instance choice can identify you and constitutes personal data under GDPR Article 4(1).",
+            color: "border-orange-500",
+          },
+          {
+            lead: "Error Logging (Sentry)",
+            text: "We use Sentry for error monitoring to identify and fix bugs quickly. Sentry may store session information locally to track errors across page loads. We configure Sentry to avoid collecting personally identifiable information (no emails, usernames, or IP addresses).",
+            color: "border-red-500",
+          },
+        ],
+        trailer: "<strong>Your Choice:</strong> Theme preference, consent tracking, social embed caching, and error monitoring are classified as strictly necessary for providing a functional and accessible website. These features do not require consent. Optional features like Mastodon instance storage require opt-in consent through our Cookie Preference Center. Disabling optional storage will prevent the website from remembering your Mastodon preferences but will not affect core functionality or accessibility features.",
+      },
+      monitoring: {
+        title: "Error Monitoring and Diagnostics",
+        description: "We use Sentry, a third-party error monitoring service, to help us identify and fix technical issues on our website. This helps us maintain a high-quality user experience and quickly resolve bugs.",
+        list1: {
+          lead: "What We Collect for Error Monitoring:",
+          listItems: [
+            {
+              heading: "Browser Information:",
+              text: "User agent (browser type and version) to help diagnose browser-specific issues",
+            },
+            {
+              heading: "Error Details:",
+              text: "Technical error messages, stack traces, and the sequence of actions leading to errors",
+            },
+            {
+              heading: "Page Information:",
+              text: "URLs visited and navigation history when errors occur",
+            },
+          ],
+        },
+        list2: {
+          lead: "Privacy Protections:",
+          listItems: [
+            {
+              text: "No IP addresses collected or stored",
+            },
+            {
+              text: "No session replay or screen recording",
+            },
+            {
+              text: "No performance tracking or monitoring",
+            },
+            {
+              text: "Data is used solely for technical troubleshooting and bug fixes",
+            },
+          ],
+        },
+        close: {
+          heading: "Data Processing Agreement",
+          text: "Webstack Builders has signed a Data Processing Agreement (DPA) with Sentry to ensure that all error monitoring data is processed in compliance with GDPR and other data protection regulations. This agreement ensures that Sentry acts as a data processor on our behalf and implements appropriate security measures to protect your information.",
+        }
+      },
+      contact: {
+        title: "Contact Us",
+        description: "If you have any questions about this Privacy Policy or would like to exercise your rights, please contact us:",
+        card1: {
+          lead: "Contact Us",
+          text: "Email",
+          link: "/contact/",
+        },
+        card2: {
+          lead: "Response Time",
+          text: "We respond to privacy requests within 30 days",
+        },
+        card3: {
+          lead: "Data Protection Officer",
+          text: "For questions specifically related to data protection and privacy compliance:",
+        },
+      },
+      changes: {
+        title: "Changes to This Policy",
+        description: "We may update this Privacy Policy from time to time to reflect changes in our practices or applicable laws. We will notify you of any material changes by posting the updated policy on this page and updating the \"Last updated\" date at the top of this policy. We encourage you to review this policy periodically.",
+      },
+    }}
+  />
 </BaseLayout>

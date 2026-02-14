@@ -1,0 +1,40 @@
+---
+export type Props = {
+  items: {
+    lead?: string
+    text: string
+    color: string
+  }[]
+  classes?: {
+    ul?: string
+    li?: string
+    em?: string
+  }
+  size?: number
+}
+
+type ColoredMarkerListItem = Props['items'][number]
+
+const { items, classes, size = 2 }: Props = Astro.props
+const coloredItems: ColoredMarkerListItem[] = items.map((item: ColoredMarkerListItem) => ({
+  text: item.text,
+  color: item.color,
+  ...(item.lead ? { lead: item.lead } : {}),
+}))
+
+const ulClass = ["list-none pl-0 text-content mt-4 mb-2 space-y-2", classes?.ul]
+const liClass = ["flex items-start", classes?.li]
+const emClass = ["mr-2 not-italic font-bold", classes?.em]
+---
+
+<ul class:list={ulClass}>
+  {
+    coloredItems.map((item) => (
+      <li class:list={liClass}>
+        <span class:list={[`w-${size} h-${size} rounded-full mt-3 mr-3 shrink-0`, item.color]} />
+        <em class:list={emClass}>{item.lead}</em>
+        <span>{item.text}</span>
+      </li>
+    ))
+  }
+</ul>

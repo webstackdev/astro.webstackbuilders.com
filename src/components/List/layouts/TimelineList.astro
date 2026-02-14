@@ -1,0 +1,46 @@
+---
+export type Props = {
+  items: {
+    lead?: string
+    text: string
+  }[]
+  classes?: {
+    ul?: string
+    li?: string
+    em?: string
+  }
+}
+
+const { items, classes }: Props = Astro.props
+
+type TimelineItem = Props['items'][number]
+
+const timelineItems = items.map((item: TimelineItem, index: number) => ({
+  ...item,
+  showConnector: index < items.length - 1,
+}))
+
+const ulClass = ["space-y-0", classes?.ul]
+const liClass = ["relative grid grid-cols-[1.5rem_1fr] gap-4", classes?.li]
+const emClass = ["block text-content font-bold not-italic mb-1", classes?.em]
+const wrapperClass = "mb-4"
+const iconClass = ["relative h-5 w-5 mt-0.5 rounded-full border-2 border-primary bg-page-base z-10"]
+const connectorClass = ["absolute left-1/2 top-[1.375rem] -bottom-1 -translate-x-1/2 w-0.5 bg-content-offset"]
+---
+
+<ul class:list={ulClass}>
+  {
+    timelineItems.map((item) => (
+      <li class:list={liClass}>
+        <div class="relative flex h-full justify-center">
+          {item.showConnector && <span class:list={connectorClass} aria-hidden="true"></span>}
+          <span class:list={iconClass}></span>
+        </div>
+        <div class:list={[wrapperClass, !item.showConnector && "mb-0"]}>
+          <em class:list={emClass}>{item.lead}</em>
+          <span class="text-content-offset">{item.text}</span>
+        </div>
+      </li>
+    ))
+  }
+</ul>

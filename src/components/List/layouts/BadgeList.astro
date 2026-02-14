@@ -1,0 +1,37 @@
+---
+export type Props = {
+  items: {
+    title?: string
+    lead?: string
+    text: string
+    color?: string
+  }[]
+  classes?: {
+    ul?: string
+    li?: string
+    em?: string
+  }
+}
+
+const { items, classes }: Props = Astro.props
+
+const ulClass = ["space-y-4", classes?.ul]
+const liClass = ["flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-4", classes?.li]
+const titleClass = "shrink-0 px-2 py-1 rounded bg-content text-page-base font-mono text-xs font-bold"
+const emClass = ["text-content font-bold not-italic mr-2", classes?.em]
+---
+
+<ul class:list={ulClass}>
+  {
+    items.map((item) => (
+      <li class:list={liClass}>
+        <span class:list={titleClass}>{item.title}</span>
+        <span>
+          <em class:list={emClass}>{item.lead}</em>
+          <span class="text-content-offset">{item.text}</span>
+        </span>
+      </li>
+    ))
+  }
+</ul>
+

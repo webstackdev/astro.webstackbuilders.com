@@ -43,6 +43,8 @@ export type Props =
       items: ItemType[]
     })
 
+const props: Props = Astro.props
+
 const {
   title,
   titleHref,
@@ -53,11 +55,13 @@ const {
   items: itemsOverride,
   navigationMode = 'wrap',
   showReadMore = false,
-} = Astro.props
+} = props
+
+const isKnownCollectionSlug = (slug: Props['type']): slug is KnownCollectionSlug => slug !== 'unknown'
 
 const allItems: ItemType[] = itemsOverride
   ? itemsOverride
-  : type === 'unknown'
+  : !isKnownCollectionSlug(type)
     ? (() => {
         throw new Error('Carousel: type="unknown" requires `items` to be provided')
       })()

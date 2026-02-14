@@ -1,0 +1,42 @@
+---
+import Marker from "@components/List/marker.astro"
+
+export type Props = {
+  items: {
+    lead?: string
+    text: string
+    color?: string
+  }[]
+  classes?: {
+    ul?: string
+    li?: string
+    em?: string
+  }
+}
+
+const { items, classes }: Props = Astro.props
+
+const ulClass = ["border border-trim rounded-lg overflow-hidden divide-y divide-trim", classes?.ul]
+const liClass = ["p-4 bg-page-base flex items-center justify-between group hover:bg-page-offset transition-colors", classes?.li]
+const emClass = ["text-content font-bold not-italic block mb-0.5", classes?.em]
+const textClass = ["text-sm text-content-offset"]
+---
+
+<ul class:list={ulClass}>
+  {
+    items.map((item) => (
+      <li class:list={liClass}>
+        <div class="pr-4">
+          <em class:list={emClass}>{item.lead}</em>
+          <span class:list={textClass}>{item.text}</span>
+        </div>
+        <Marker
+          icon={"info-circled"}
+          color={"text-trim"}
+          size={4}
+          classes={`group-hover:${item.color ?? "text-primary"} transition-colors`}
+        />
+      </li>
+    ))
+  }
+</ul>
