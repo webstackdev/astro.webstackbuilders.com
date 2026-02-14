@@ -29,11 +29,16 @@ const emClass = ["text-content font-semibold not-italic", classes?.em]
           icon="check"
           color={"text-success"}
           size={5}
+          classes={"mt-1"}
         />
         <span>
-          <em class:list={emClass}>{item.lead}</em>
-          <span class="text-content-offset/60 mx-2">—</span>
-          <span class="text-content-offset">{item.text}</span>
+          {item.lead && (
+            <>
+              <em class:list={emClass}>{item.lead}</em>
+              <span class="text-content-offset/60 mx-2">—</span>
+            </>
+          )}
+          <span class={`text-content-offset${item.lead ? " mx-6" : ""}`}>{item.text}</span>
         </span>
       </li>
     ))
