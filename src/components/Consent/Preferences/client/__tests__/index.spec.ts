@@ -242,6 +242,7 @@ describe('ConsentPreferencesElement', () => {
       analyticsCheckbox!.checked = true
       functionalCheckbox!.checked = false
       marketingCheckbox!.checked = true
+      marketingCheckbox!.dispatchEvent(new window.Event('change', { bubbles: true }))
 
       const saveBtn = window.document.getElementById(
         'consent-save-preferences'
@@ -253,6 +254,28 @@ describe('ConsentPreferencesElement', () => {
       expect(updateConsent).toHaveBeenCalledWith('analytics', true)
       expect(updateConsent).toHaveBeenCalledWith('functional', false)
       expect(updateConsent).toHaveBeenCalledWith('marketing', true)
+    })
+  })
+
+  it('enables save button only when preferences differ from saved consent', async () => {
+    await renderConsentPreferences(({ window }) => {
+      const saveBtn = window.document.getElementById(
+        'consent-save-preferences'
+      ) as HTMLButtonElement | null
+      const functionalCheckbox = window.document.getElementById(
+        'functional-cookies'
+      ) as HTMLInputElement | null
+
+      expect(saveBtn).not.toBeNull()
+      expect(functionalCheckbox).not.toBeNull()
+      expect(saveBtn!.disabled).toBe(true)
+
+      functionalCheckbox!.checked = true
+      functionalCheckbox!.dispatchEvent(new window.Event('change', { bubbles: true }))
+      expect(saveBtn!.disabled).toBe(false)
+
+      saveBtn!.dispatchEvent(new window.MouseEvent('click', { bubbles: true }))
+      expect(saveBtn!.disabled).toBe(true)
     })
   })
 })

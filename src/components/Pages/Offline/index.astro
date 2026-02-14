@@ -1,0 +1,207 @@
+---
+/**
+ * Offline Page Layout
+ *
+ * @TODO: Wire hero animation into window.location.reload() to go to the page that brought the user to this page
+ */
+import contactData from '@content/contact.json'
+import Marker from '@components/Marker/index.astro'
+---
+
+<div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-2 md:py-4">
+  <!-- Header (follows privacy page pattern) -->
+  <header class="text-center max-w-2xl mx-auto mb-12">
+    <div class="inline-flex items-center justify-center w-18 h-18 rounded-full bg-primary/10 mb-5">
+      <svg
+        class="w-12 h-12"
+        viewBox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <g class="offline-spinner-bars" stroke="var(--theme-color-page-inverse)" stroke-width="1.5" stroke-linecap="round">
+          <line x1="12" y1="2" x2="12" y2="6" opacity="0.14"></line>
+          <line x1="19.07" y1="4.93" x2="16.24" y2="7.76" opacity="0.27"></line>
+          <line x1="22" y1="12" x2="18" y2="12" opacity="0.40"></line>
+          <line x1="19.07" y1="19.07" x2="16.24" y2="16.24" opacity="0.53"></line>
+          <line x1="12" y1="22" x2="12" y2="18" opacity="0.66"></line>
+          <line x1="4.93" y1="19.07" x2="7.76" y2="16.24" opacity="0.79"></line>
+          <line x1="2" y1="12" x2="6" y2="12" opacity="0.92"></line>
+          <line x1="4.93" y1="4.93" x2="7.76" y2="7.76" opacity="1"></line>
+        </g>
+      </svg>
+      <Marker
+        icon="shield"
+        color="text-page-inverse"
+        size={12}
+      />
+    </div>
+    <h1 class="text-4xl md:text-5xl font-bold text-page-inverse mb-4">You're Offline</h1>
+    <p class="text-lg text-content-offset leading-relaxed">
+      It looks like your connection dropped. While you're offline, use this time to gather your thoughts—we'll be here when you're back.
+    </p>
+  </header>
+
+  <!-- What You Can Do Section -->
+  <section
+    class="bg-content-inverse rounded-xl shadow-md p-8 mb-8"
+    aria-labelledby="offline-actions-title"
+  >
+    <h2 class="text-2xl font-semibold text-page-inverse mb-6" id="offline-actions-title">
+      What You Can Do While Offline
+    </h2>
+
+    <div class="grid md:grid-cols-2 gap-6">
+      <!-- Outline Your Project -->
+      <div class="flex items-start gap-4">
+        <div class="shrink-0 w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+          <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+        </div>
+        <div>
+          <h3 class="font-semibold text-page-inverse mb-1">Outline Your Project</h3>
+          <p class="text-sm text-content-offset">
+            Think through your platform goals, infrastructure needs, and engineering priorities.
+          </p>
+        </div>
+      </div>
+
+      <!-- Define Your Requirements -->
+      <div class="flex items-start gap-4">
+        <div class="shrink-0 w-12 h-12 bg-success-inverse rounded-lg flex items-center justify-center">
+          <svg class="w-6 h-6 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+          </svg>
+        </div>
+        <div>
+          <h3 class="font-semibold text-page-inverse mb-1">Define Your Requirements</h3>
+          <p class="text-sm text-content-offset">
+            Document your reliability targets, CI/CD pipeline needs, and developer enablement goals.
+          </p>
+        </div>
+      </div>
+
+      <!-- Map Your Architecture -->
+      <div class="flex items-start gap-4">
+        <div class="shrink-0 w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+          <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path>
+          </svg>
+        </div>
+        <div>
+          <h3 class="font-semibold text-page-inverse mb-1">Map Your Architecture</h3>
+          <p class="text-sm text-content-offset">
+            Sketch your system topology, service dependencies, and deployment strategy on paper.
+          </p>
+        </div>
+      </div>
+
+      <!-- Prepare Your Questions -->
+      <div class="flex items-start gap-4">
+        <div class="shrink-0 w-12 h-12 bg-warning-inverse rounded-lg flex items-center justify-center">
+          <svg class="w-6 h-6 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <div>
+          <h3 class="font-semibold text-page-inverse mb-1">Prepare Your Questions</h3>
+          <p class="text-sm text-content-offset">
+            Jot down questions about testing frameworks, cloud migrations, or incident response for our team.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- About Webstack Builders -->
+  <section
+    class="bg-content-active rounded-xl p-8 mb-8"
+    aria-labelledby="offline-company-title"
+  >
+    <h2 class="text-2xl font-semibold text-content-inverse mb-3" id="offline-company-title">
+      About Webstack Builders
+    </h2>
+    <p class="text-content-inverse/70 leading-relaxed mb-6">
+      {contactData.company.description}
+    </p>
+    <div class="grid grid-cols-3 gap-6 text-center">
+      <div>
+        <div class="text-3xl font-bold text-secondary-offset">10+</div>
+        <div class="text-sm text-content-inverse/60">Years Experience</div>
+      </div>
+      <div>
+        <div class="text-3xl font-bold text-secondary-offset">100%</div>
+        <div class="text-sm text-content-inverse/60">IaC &amp; CI/CD</div>
+      </div>
+      <div>
+        <div class="text-3xl font-bold text-secondary-offset">24/7</div>
+        <div class="text-sm text-content-inverse/60">Support Available</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Get In Touch -->
+  <section
+    class="bg-blue-50 rounded-xl p-8 mb-10"
+    aria-labelledby="offline-contact-title"
+  >
+    <h2 class="text-xl font-semibold text-page-inverse mb-5" id="offline-contact-title">
+      Get In Touch When You're Back Online
+    </h2>
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div class="flex items-center gap-3 bg-content-inverse rounded-lg p-4 shadow-sm">
+        <div class="shrink-0 w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+          <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+          </svg>
+        </div>
+        <div>
+          <div class="text-xs text-content-offset font-medium uppercase tracking-wide">Email</div>
+          <div class="text-sm text-page-inverse font-semibold">{contactData.company.email}</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-3 bg-content-inverse rounded-lg p-4 shadow-sm">
+        <div class="shrink-0 w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+          <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path>
+          </svg>
+        </div>
+        <div>
+          <div class="text-xs text-content-offset font-medium uppercase tracking-wide">Website</div>
+          <div class="text-sm text-page-inverse font-semibold">{contactData.company.url.replace('https://', '')}</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Retry Button -->
+  <section class="text-center" aria-labelledby="offline-retry-title">
+    <h2 class="sr-only" id="offline-retry-title">Try again</h2>
+    <button
+      onclick="window.location.reload()"
+      class="inline-flex items-center bg-spotlight hover:bg-spotlight-offset text-primary font-semibold py-3 px-8 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg"
+    >
+      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+      </svg>
+      Try Again
+    </button>
+  </section>
+</div>
+
+<style>
+  @keyframes offline-spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .offline-spinner-bars {
+    transform-origin: center;
+    animation: offline-spin 0.8s steps(8, end) infinite;
+  }
+</style>

@@ -1,0 +1,26 @@
+---
+import { getMarkerComponent } from '@components/Marker/server'
+
+export type Props = {
+  icon: string
+  color?: string
+  size?: number
+  classes?: string
+}
+
+const { icon, color, size, classes }: Props = Astro.props
+
+const MarkerComponent = getMarkerComponent(icon) as unknown as (_props: {
+  color?: string
+  size?: number
+  classes?: string
+}) => unknown
+
+const markerProps = {
+  ...(color ? { color } : {}),
+  ...(size !== undefined ? { size } : {}),
+  ...(classes ? { classes } : {}),
+}
+---
+
+<MarkerComponent {...markerProps} />
