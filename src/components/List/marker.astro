@@ -9,11 +9,13 @@ export type Props = {
 }
 
 const { icon, color, size, classes }: Props = Astro.props
-const MarkerComponent = getMarkerComponent(icon) as unknown as (props: {
+
+const MarkerComponent = getMarkerComponent(icon) as unknown as (_props: {
   color?: string
   size?: number
   classes?: string
 }) => unknown
+
 const markerProps = {
   ...(color ? { color } : {}),
   ...(size !== undefined ? { size } : {}),
