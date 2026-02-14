@@ -6,18 +6,26 @@ export type Props = {
   icon: string
   /**
    * The name of a Tailwind theme color CSS variable without the `--theme-color-` prefix.
-   * Example: 'primary', 'text-content', 'green-500'
+   * Example: 'primary', 'text-content', 'green-500'. Defaults to "inherit". Icon files
+   * apply the value to their stroke and fill attributes as appropriate for the image.
    */
   color?: string
-  /** Defaults to 24 on Icon. Otherwise varies a good bit. */
+  /** Defaults to 24. */
   size?: number
+  /** Any additional CSS classes to apply to the SVG element. */
   classes?: string
+  /**
+   * Whether the icon has a <title> element and aria-hidden=false attribute (if true),
+   * or aria-hidden=true without a <title> (if false). Defaults to false.
+   */
   accessible?: boolean
+  /** Whether the icon can receive focus. Defaults to false. */
   focusable?: boolean
+  /** Whether the icon is used as a list marker. If true, applies a "mt-0.5" class. Defaults to true. */
   isListMarker?: boolean
 }
 
-const { icon, color, size, classes, accessible = false, focusable = false, isListMarker = true }: Props = Astro.props
+const { icon, color = 'inherit', size = 24, classes, accessible = false, focusable = false, isListMarker = true }: Props = Astro.props
 
 const MarkerComponent = getMarkerComponent(icon) as unknown as (_props: {
   color?: string
