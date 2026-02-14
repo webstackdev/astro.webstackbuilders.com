@@ -123,7 +123,6 @@ Need a tooltip component for consistency. List to add tooltips to:
 - /downloads/[slug]
 - /newsletter/confirm/[token]
 - /offline
-- /privacy
 - /privacy/my-data
 - /search
 - /tags/[tag]

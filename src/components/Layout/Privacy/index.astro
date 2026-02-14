@@ -161,382 +161,399 @@ for (const [index, item] of content.nav.items.entries()) {
 }
 ---
 
-    <header class="text-center max-w-2xl mx-auto mb-8">
-      <div class="inline-flex items-center justify-center w-18 h-18 rounded-full bg-primary/10 mb-5">
-        <svg class="w-12 h-12" fill="none" stroke="var(--theme-color-page-inverse)" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-        </svg>
-      </div>
-      <h1 class="text-4xl md:text-5xl font-bold text-page-inverse mb-4">{content.header.title}</h1>
-      <p class="text-lg text-content-offset leading-relaxed mb-4">
-        {content.header.description}
-      </p>
-      <p class="text-sm text-page-inverse italic">
-        Last updated: <time datetime={lastUpdatedIso}>{lastUpdatedText}</time>
-      </p>
-    </header>
+<div class="mx-auto px-4 sm:px-6 lg:px-8 py-2 md:py-4">
+  <header class="text-center max-w-2xl mx-auto mb-8">
+    <div class="inline-flex items-center justify-center w-18 h-18 rounded-full bg-primary/10 mb-5">
+      <svg class="w-12 h-12" fill="none" stroke="var(--theme-color-page-inverse)" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+      </svg>
+    </div>
+    <h1 class="text-4xl md:text-5xl font-bold text-page-inverse mb-4">{content.header.title}</h1>
+    <p class="text-lg text-content-offset leading-relaxed mb-4">
+      {content.header.description}
+    </p>
+    <p class="text-sm text-page-inverse italic">
+      Last updated: <time datetime={lastUpdatedIso}>{lastUpdatedText}</time>
+    </p>
+  </header>
 
-    <nav aria-label="Privacy policy sections" class="bg-content-active rounded-xl p-6 mb-8">
-      <p class="text-md font-semibold text-content-inverse mb-3">{content.nav.title}</p>
-      <div class="flex flex-wrap items-center gap-y-2 md:gap-x-2 text-md md:ml-6">
+  <nav aria-label="Privacy policy sections" class="bg-content-active rounded-xl p-6 mb-8">
+    <p class="text-md font-semibold text-content-inverse ml-2 mb-3">{content.nav.title}</p>
+    <div class="flex flex-wrap items-center gap-y-2 md:gap-x-2 text-md md:ml-6">
+      {
+        navItems.map(({ href, label, showSeparator }) => (
+          <>
+            <a
+              href={href}
+              class="text-content-inverse hover:text-content-offset transition-colors no-underline"
+            >
+              {label}
+            </a>
+            {showSeparator && (
+              <span class="mx-2 text-trim" aria-hidden="true">·</span>
+            )}
+          </>
+        ))
+      }
+    </div>
+  </nav>
+
+  <div class="prose prose-lg max-w-none text-content">
+    <section class="mb-12" aria-labelledby="privacy-information-we-collect-title">
+      <h2 class="text-2xl md:text-3xl font-bold mb-6" id="privacy-information-we-collect-title">
+        {content.collection.title}
+      </h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         {
-          navItems.map(({ href, label, showSeparator }) => (
-            <>
-              <a
-                href={href}
-                class="text-content-inverse hover:text-content-offset transition-colors no-underline"
-              >
-                {label}
-              </a>
-              {showSeparator && (
-                <span class="mx-2 text-trim" aria-hidden="true">·</span>
+          content.collection.cards.map((card: CollectionCard) => (
+            <div class="text-content-active bg-page-offset rounded-xl px-8 pt-8 pb-4 shadow-md">
+              <h3 class="text-2xl font-semibold mb-4 mt-0">
+                {card.title}
+              </h3>
+              <p class="mb-2">
+                {card.description}
+              </p>
+              <List
+                variant="plain-icon-list"
+                items={card.listItems}
+              />
+              {card.trailer && (
+                <p class="mt-6 mb-0 text-sm italic text-center text-content-offset">
+                  {card.trailer}
+                </p>
               )}
-            </>
+            </div>
           ))
         }
       </div>
-    </nav>
+    </section>
 
-    <div class="prose prose-lg max-w-none text-content">
-      <section class="mb-12" aria-labelledby="privacy-information-we-collect-title">
-        <h2 class="text-2xl md:text-3xl font-bold mb-6" id="privacy-information-we-collect-title">
-          {content.collection.title}
-        </h2>
+    <section class="mb-12" aria-labelledby="privacy-how-we-use-title">
+      <h2 class="text-2xl md:text-3xl font-bold mb-6" id="privacy-how-we-use-title">
+        {content.usage.title}
+      </h2>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {
-            content.collection.cards.map((card: CollectionCard) => (
-              <div class="text-content-active bg-page-offset rounded-xl px-8 pt-8 pb-4 shadow-md">
-                <h3 class="text-2xl font-semibold mb-4 mt-0">
-                  {card.title}
-                </h3>
-                <p class="mb-2">
-                  {card.description}
-                </p>
-                <List
-                  variant="plain-icon-list"
-                  items={card.listItems}
-                />
-                {card.trailer && (
-                  <p class="mt-6 mb-0 text-sm italic text-center text-content-offset">
-                    {card.trailer}
-                  </p>
-                )}
-              </div>
-            ))
-          }
-        </div>
-      </section>
-
-      <section class="mb-12" aria-labelledby="privacy-how-we-use-title">
-        <h2 class="text-2xl md:text-3xl font-bold mb-6" id="privacy-how-we-use-title">
-          {content.usage.title}
-        </h2>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {
-            content.usage.listItems.map((item) => (
-              <div class="text-content-active bg-primary-inverse rounded-xl px-8 pt-8 pb-4 shadow-md">
-                <div class="flex items-center mb-4">
-                  <div
-                    class:list={["w-12 h-12 rounded-lg flex items-center justify-center mr-4", item.background]}
-                  >
-                    <Marker
-                      icon={item.icon}
-                      color={item.color}
-                      size={content.usage.listMarkerSize ?? 6}
-                    />
-                  </div>
-                  <h3 class="text-xl font-semibold mt-0 mb-0">{item.title}</h3>
-                </div>
-                <p class="text-content">
-                  {item.description}
-                </p>
-              </div>
-            ))
-          }
-        </div>
-      </section>
-
-      <section class="mb-12" aria-labelledby="privacy-information-sharing-title">
-        <h2
-          class="text-2xl md:text-3xl font-bold text-content-active mb-6"
-          id="privacy-information-sharing-title"
-        >
-          {content.sharing.title}
-        </h2>
-        <div
-          class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl px-8 pt-8 pb-4"
-        >
-          <div class="flex items-start">
-            <div class="shrink-0">
-              <Marker
-                icon="warning"
-                color="text-yellow-600 dark:text-yellow-400"
-                size={8}
-              />
-            </div>
-            <div class="text-content-active ml-4">
-              <h3 class="text-xl font-semibold mb-2 mt-1.5">{content.sharing.subtitle}</h3>
-              <p class="text-content">{content.sharing.description}</p>
-              <List
-                variant="colored-marker-list"
-                items={content.sharing.listItems}
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="mb-12" aria-labelledby="privacy-data-security-title">
-        <h2
-          class="text-2xl md:text-3xl font-bold text-content-active mb-6"
-          id="privacy-data-security-title"
-        >
-          {content.security.title}
-        </h2>
-        <p class="text-content mb-6">
-          {content.security.description}
-        </p>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {
-            content.security.cards.map((item) => (
-              <div class="text-center">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {
+          content.usage.listItems.map((item) => (
+            <div class="text-content-active bg-primary-inverse rounded-xl px-8 pt-8 pb-4 shadow-md">
+              <div class="flex items-center mb-4">
                 <div
-                  class:list={["w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4", item.background]}
+                  class:list={["w-12 h-12 rounded-lg flex items-center justify-center mr-4", item.background]}
                 >
                   <Marker
                     icon={item.icon}
                     color={item.color}
-                    size={8}
+                    size={content.usage.listMarkerSize ?? 6}
                   />
                 </div>
-                <h3 class="text-xl font-semibold mb-2">{item.lead}</h3>
-                <p class="text-content text-sm">
-                  {item.text}
-                </p>
+                <h3 class="text-xl font-semibold mt-0 mb-0">{item.title}</h3>
+              </div>
+              <p class="text-content">
+                {item.description}
+              </p>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="mb-12" aria-labelledby="privacy-information-sharing-title">
+      <h2
+        class="text-2xl md:text-3xl font-bold text-content-active mb-6"
+        id="privacy-information-sharing-title"
+      >
+        {content.sharing.title}
+      </h2>
+      <div
+        class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl px-8 pt-8 pb-4"
+      >
+        <div class="flex items-start">
+          <div class="shrink-0">
+            <Marker
+              icon="warning"
+              color="text-yellow-600 dark:text-yellow-400"
+              size={8}
+            />
+          </div>
+          <div class="text-content-active ml-4">
+            <h3 class="text-xl font-semibold mb-2 mt-1.5">{content.sharing.subtitle}</h3>
+            <p class="text-content">{content.sharing.description}</p>
+            <List
+              variant="colored-marker-list"
+              items={content.sharing.listItems}
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="mb-12" aria-labelledby="privacy-data-security-title">
+      <h2
+        class="text-2xl md:text-3xl font-bold text-content-active mb-6"
+        id="privacy-data-security-title"
+      >
+        {content.security.title}
+      </h2>
+      <p class="text-content mb-6">
+        {content.security.description}
+      </p>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {
+          content.security.cards.map((item) => (
+            <div class="text-center">
+              <div
+                class:list={["w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4", item.background]}
+              >
+                <Marker
+                  icon={item.icon}
+                  color={item.color}
+                  size={8}
+                />
+              </div>
+              <h3 class="text-xl font-semibold mb-2">{item.lead}</h3>
+              <p class="text-content text-sm">
+                {item.text}
+              </p>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="mb-12" aria-labelledby="privacy-your-rights-title">
+      <h2
+        class="text-2xl md:text-3xl font-bold text-content-active mb-6"
+        id="privacy-your-rights-title"
+      >
+        {content.rights.title}
+      </h2>
+      <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md">
+        <p class="text-content mb-6 mt-2">
+          {content.rights.description}
+        </p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {
+            content.rights.cards.map((item) => (
+              <div class="flex items-start">
+                <div class="mt-1 mr-3 shrink-0">
+                  <Marker
+                    icon={item.icon}
+                    color={item.color}
+                    size={6}
+                  />
+                </div>
+                <div class="pl-1">
+                  <h3 class="text-lg font-semibold mb-2 mt-0.5">{item.lead}</h3>
+                  <p class="text-content text-sm">{item.text}</p>
+                </div>
               </div>
             ))
           }
         </div>
-      </section>
+      </div>
+    </section>
 
-      <section class="mb-12" aria-labelledby="privacy-your-rights-title">
-        <h2
-          class="text-2xl md:text-3xl font-bold text-content-active mb-6"
-          id="privacy-your-rights-title"
-        >
-          {content.rights.title}
-        </h2>
-        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md">
-          <p class="text-content mb-6 mt-2">
-            {content.rights.description}
-          </p>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {
-              content.security.cards.map((item) => (
-                <div class="flex items-start">
-                  <div class="mt-1 mr-3 shrink-0">
-                    <Marker
-                      icon={item.icon}
-                      color={item.color}
-                      size={6}
-                    />
-                  </div>
-                  <div class="pl-1">
-                    <h3 class="text-lg font-semibold mb-2 mt-0.5">{item.lead}</h3>
-                    <p class="text-content text-sm">{item.text}</p>
-                  </div>
-                </div>
-              ))
-            }
-          </div>
-        </div>
-      </section>
+    <section class="mb-12" aria-labelledby="privacy-cookies-and-tracking-title">
+      <h2
+        class="text-2xl md:text-3xl font-bold text-content-active mb-6"
+        id="privacy-cookies-and-tracking-title"
+      >
+        {content.cookies.title}
+      </h2>
+      <p class="text-content mb-6">
+        {content.cookies.description}
+      </p>
+      <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-6">
+        <h3 class="text-lg font-semibold text-content-active mb-4 mt-2">
+          {content.cookies.subtitle}
+        </h3>
+        <List
+          variant="colored-marker-list"
+          items={content.cookies.listItems}
+          classes={{
+            li: "[&_span]:text-content-offset",
+            ul: "pl-6",
+          }}
+        />
+      </div>
+    </section>
 
-      <section class="mb-12" aria-labelledby="privacy-cookies-and-tracking-title">
-        <h2
-          class="text-2xl md:text-3xl font-bold text-content-active mb-6"
-          id="privacy-cookies-and-tracking-title"
-        >
-          {content.cookies.title}
-        </h2>
-        <p class="text-content mb-6">
-          {content.cookies.description}
-        </p>
-        <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-6">
-          <h3 class="text-lg font-semibold text-content-active mb-4 mt-2">
-            {content.cookies.subtitle}
-          </h3>
+    <section class="mb-12" aria-labelledby="privacy-strictly-necessary-storage-title">
+      <h2
+        class="text-2xl md:text-3xl font-bold text-content-active mb-6"
+        id="privacy-strictly-necessary-storage-title"
+      >
+        {content.storage.title}
+      </h2>
+      <p class="text-content mb-6">
+        {content.storage.description}
+      </p>
+      <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md">
+        <h3 class="text-lg font-semibold text-content-active mb-4 mt-0">
+          {content.storage.subtitle}
+        </h3>
+        <div class="space-y-4">
           <List
-            variant="colored-marker-list"
-            items={content.cookies.listItems}
-            classes={{
-              li: "[&_span]:text-content-offset",
-              ul: "pl-6",
-            }}
+            variant="accent-border-left-list"
+            items={content.storage.listItems as unknown as {
+              title?: string
+              lead?: string
+              text: string
+              icon?: string
+              color?: string
+            }[]}
           />
         </div>
-      </section>
-
-      <section class="mb-12" aria-labelledby="privacy-strictly-necessary-storage-title">
-        <h2
-          class="text-2xl md:text-3xl font-bold text-content-active mb-6"
-          id="privacy-strictly-necessary-storage-title"
+        <div
+          class="mt-8 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg px-4 pt-0 pb-0"
         >
-          {content.storage.title}
-        </h2>
-        <p class="text-content mb-6">
-          {content.storage.description}
-        </p>
-        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md">
-          <h3 class="text-lg font-semibold text-content-active mb-4">
-            {content.storage.subtitle}
-          </h3>
-          <div class="space-y-4">
-            <List
-              variant="accent-border-left-list"
-              items={content.storage.listItems as unknown as {
-                title?: string
-                lead?: string
-                text: string
-                icon?: string
-                color?: string
-              }[]}
-            />
-          </div>
-          <div
-            class="mt-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4"
-          >
-            <p class="text-sm text-content-offset leading-relaxed" set:html={content.storage.trailer}></p>
-          </div>
+          <p class="text-sm text-content-offset leading-relaxed" set:html={content.storage.trailer}></p>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <section class="mb-12" aria-labelledby="privacy-error-monitoring-title">
-        <h2
-          class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6"
-          id="privacy-error-monitoring-title"
-        >
-          {content.monitoring.title}
-        </h2>
-        <p class="text-content-offset mb-6">
-          {content.monitoring.description}
-        </p>
-        <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6 mb-6">
-          <h3 class="text-lg font-semibold text-content-active mb-4">
-            {content.monitoring.list1.lead}
-          </h3>
-          <List
-            variant="colored-marker-list"
-            items={content.monitoring.list1.listItems.map((item) => ({
-              lead: item.heading,
-              text: item.text,
-              color: "bg-blue-600 dark:bg-blue-400",
-            }))}
-            classes={{
-              ul: "pl-9",
-            }}
+    <section class="mb-12" aria-labelledby="privacy-error-monitoring-title">
+      <h2
+        class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6"
+        id="privacy-error-monitoring-title"
+      >
+        {content.monitoring.title}
+      </h2>
+      <p class="text-content-offset mb-6">
+        {content.monitoring.description}
+      </p>
+      <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl px-8 py-6 mb-6">
+        <h3 class="text-lg font-semibold text-content-active mb-4 mt-0">
+          {content.monitoring.list1.lead}
+        </h3>
+        <List
+          variant="colored-marker-list"
+          items={content.monitoring.list1.listItems.map((item) => ({
+            lead: item.heading,
+            text: item.text,
+            color: "bg-blue-600 dark:bg-blue-400",
+          }))}
+          classes={{
+            ul: "pl-9",
+          }}
+        />
+      </div>
+      <div class="bg-green-50 dark:bg-green-900/20 rounded-xl px-8 py-6 mb-6">
+        <h3 class="text-lg font-semibold text-content-active mb-4 mt-0 flex items-center">
+          <Marker
+            icon={"shield"}
+            color={"text-green-600 dark:text-green-400"}
+            size={6}
+            classes={"mr-3"}
           />
-        </div>
-        <div class="bg-green-50 dark:bg-green-900/20 rounded-xl p-6 mb-6">
-          <h3 class="text-lg font-semibold text-content-active mb-4 flex items-center">
-            <Marker
-              icon={"shield"}
-              color={"text-green-600 dark:text-green-400"}
-              size={6}
-              classes={"mr-3"}
-            />
-            {content.monitoring.list2.lead}
-          </h3>
-          <List
-            variant="check-icons-list"
-            items={content.monitoring.list2.listItems}
-          />
-        </div>
-        <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-6">
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-            {content.monitoring.close.heading}
-          </h3>
-          <p class="text-gray-600 dark:text-gray-300">
-            {content.monitoring.close.text}
-          </p>
-        </div>
-      </section>
+          {content.monitoring.list2.lead}
+        </h3>
+        <List
+          variant="check-icons-list"
+          items={content.monitoring.list2.listItems}
+        />
+      </div>
+      <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-6">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3 mt-0">
+          {content.monitoring.close.heading}
+        </h3>
+        <p class="text-gray-600 dark:text-gray-300 mb-0">
+          {content.monitoring.close.text}
+        </p>
+      </div>
+    </section>
 
-      <section class="mb-12" aria-labelledby="privacy-contact-us-title">
-        <h2
-          class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6"
-          id="privacy-contact-us-title"
-        >
-          {content.contact.title}
-        </h2>
-        <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6">
-          <p class="text-gray-600 dark:text-gray-300 mb-6">
-            {content.contact.description}
-          </p>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="flex items-start">
-              <div
-                class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mr-4 shrink-0"
-              >
-                <Marker
-                  icon={"email"}
-                  color={"text-blue-600 dark:text-blue-400"}
-                  size={8}
-                />
-              </div>
-              <div>
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mt-0 mb-1">
-                  {content.contact.card1.lead}
-                </h3>
-                <a
-                  href={content.contact.card1.link}
-                  class="text-blue-600 dark:text-blue-400 underline decoration-dotted decoration-current underline-offset-2 transition-colors hover:text-blue-500 dark:hover:text-blue-300 focus-visible:text-blue-500 dark:focus-visible:text-blue-300"
-                >
-                  {content.contact.card1.text}
-                </a>
-              </div>
+    <section class="mb-12" aria-labelledby="privacy-contact-us-title">
+      <h2
+        class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6"
+        id="privacy-contact-us-title"
+      >
+        {content.contact.title}
+      </h2>
+      <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6">
+        <p class="text-gray-600 dark:text-gray-300 mt-0 mb-6">
+          {content.contact.description}
+        </p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:mx-12">
+          <div class="flex items-start">
+            <div
+              class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center ml-6 mt-1 shrink-0"
+            >
+              <Marker
+                icon={"email"}
+                color={"text-blue-600 dark:text-blue-400"}
+                size={8}
+              />
             </div>
-            <div class="flex items-start">
-              <div
-                class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mr-4 shrink-0"
-              >
-                <Marker
-                  icon={"location"}
-                  color={"text-blue-600 dark:text-blue-400"}
-                  size={8}
-                />
-              </div>
-              <div>
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mt-0 mb-1">
-                  {content.contact.card2.lead}
-                </h3>
-                <p class="text-gray-600 dark:text-gray-300">
-                  {content.contact.card2.text}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div class="mt-6 pt-6 border-t border-blue-200 dark:border-blue-800">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-              {content.contact.card3.lead}
-            </h3>
-            <p class="text-gray-600 dark:text-gray-300 mb-2">
-              {content.contact.card3.text}
-            </p>
-            <div class="bg-white dark:bg-gray-800 rounded-lg p-4">
-              <p class="text-gray-900 dark:text-white font-medium">
-                {contactData.company.dataProtectionOfficer.name}
-              </p>
+            <div class="ml-6">
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white mt-0 mb-1">
+                {content.contact.card1.lead}
+              </h3>
               <a
-                href={`mailto:${contactData.company.dataProtectionOfficer.email}`}
-                class="text-blue-600 dark:text-blue-400 hover:underline"
+                href={content.contact.card1.link}
+                class="text-blue-600 dark:text-blue-400 underline decoration-dotted decoration-current underline-offset-2 transition-colors hover:text-blue-500 dark:hover:text-blue-300 focus-visible:text-blue-500 dark:focus-visible:text-blue-300"
               >
-                {contactData.company.dataProtectionOfficer.email}
+                {content.contact.card1.text}
               </a>
             </div>
           </div>
+          <div class="flex items-start">
+            <div
+              class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center ml-6 mt-1 shrink-0"
+            >
+              <Marker
+                icon={"location"}
+                color={"text-blue-600 dark:text-blue-400"}
+                size={8}
+              />
+            </div>
+            <div class="ml-6">
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white mt-0 mb-1">
+                {content.contact.card2.lead}
+              </h3>
+              <p class="text-gray-600 dark:text-gray-300">
+                {content.contact.card2.text}
+              </p>
+            </div>
+          </div>
         </div>
-      </section>
+
+        <div class="border-t border-blue-200 dark:border-blue-800">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+            {content.contact.card3.lead}
+          </h3>
+          <p class="text-gray-600 dark:text-gray-300 mb-4">
+            {content.contact.card3.text}
+          </p>
+          <div class="inline-block bg-white dark:bg-gray-800 rounded-lg px-8 py-4">
+            <p class="text-gray-900 dark:text-white font-medium mt-0 mb-0">
+              {contactData.company.dataProtectionOfficer.name}
+            </p>
+            <a
+              href={`mailto:${contactData.company.dataProtectionOfficer.email}`}
+              class="text-blue-600 dark:text-blue-400 underline decoration-dotted decoration-current underline-offset-2 transition-colors hover:text-blue-500 dark:hover:text-blue-300 focus-visible:text-blue-500 dark:focus-visible:text-blue-300"
+            >
+              {contactData.company.dataProtectionOfficer.email}
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="privacy-changes-to-policy-title">
+      <h2
+        class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6"
+        id="privacy-changes-to-policy-title"
+      >
+        {content.changes.title}
+      </h2>
+      <div class="bg-gray-50 dark:bg-gray-800 rounded-xl px-8 py-2">
+        <p class="text-gray-600 dark:text-gray-300">
+          {content.changes.description}
+        </p>
+      </div>
+    </section>
+  </div>
+</div>
