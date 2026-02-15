@@ -22,7 +22,11 @@ const shouldSuppressEarlyVitestOutput = (value: string): boolean => {
   return (
     /\[astro-icon\]\s*Loaded icons/i.test(cleanValue) ||
     /Loaded icons from/i.test(cleanValue) ||
-    /Local icons changed, reloading/i.test(cleanValue)
+    /Local icons changed, reloading/i.test(cleanValue) ||
+    // Vite SSR module runner teardown noise: the transport between the test
+    // worker and Vite closes before astro:db / db/seed.ts finish evaluating.
+    // Harmless — tests have already passed at this point.
+    /transport was disconnected/i.test(cleanValue)
   )
 }
 
@@ -69,6 +73,10 @@ export default getViteConfig({
     info: (message: string, options?: LogOptions) => {
       if (/\[astro-icon\] Loaded icons/i.test(message) || /Loaded icons from/i.test(message)) return
       viteLogger.info(message, options)
+    },
+    error: (message: string, options?: LogOptions) => {
+      if (/transport was disconnected/i.test(message)) return
+      viteLogger.error(message, options)
     },
   },
   define: {
