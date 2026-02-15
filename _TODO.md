@@ -241,7 +241,3 @@ This article has different approaches to [print pagination](https://www.customjs
 - We need to check for short form and deep article articles where the deep-dive index.pdf has a non-featured tag lik "argo-cd" only in the pdf.mdx. In those cases, we should make sure the callout for the deep dive includes the name of that non-featured (technology) tag and add the name to the tags: frontmatter key in the index.mdx
 
 - Need an article on OpenStack
-
-## Instructions to avoid missing files with GPT-4.1
-
-- Perform the instruction on all files in the `src/components/Marker/icons` directory. Use `file_search` for *.astro in the target directory before every batch operation. The operation should be repeated until all files in the directory are confirmed processed, not just those found in the first search. Provide a final report listing all files in the directory and which ones were updated, to catch any omissions.
