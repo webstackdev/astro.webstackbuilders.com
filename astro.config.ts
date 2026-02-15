@@ -1,6 +1,5 @@
 import AstroPWA from '@vite-pwa/astro'
 import db from '@astrojs/db'
-import icon from 'astro-icon'
 import lit from '@semantic-ui/astro-lit'
 import mdx from '@astrojs/mdx'
 import sentry from '@sentry/astro'
@@ -24,12 +23,8 @@ import {
   environmentalVariablesConfig,
   getSentryAuthToken,
   getSiteUrl,
-  //isDev,
   isE2eTest,
-  //isProd,
-  isUnitTest,
   isVercel,
-  //linkValidatorPlugin,
   markdownConfig,
   pwaConfig,
   vercelConfig,
@@ -46,15 +41,10 @@ import { createSerializeFunction, pagesJsonWriter } from './src/integrations/sit
 // Ensure Vite's HMR websocket connects through the same exposed dev server port used by Astro.
 const devServerPort = Number(process.env['DEV_SERVER_PORT'] ?? 4321)
 
-const sharedTestIntegrations = [
-  icon(),
-]
-
 const standardIntegrations = [
   AstroPWA(pwaConfig),
   /** Astro DB - uses Tursa for backing store in production */
   db(),
-  ...sharedTestIntegrations,
   mdx(markdownConfig),
   /** Generate favicons and PWA icons from source SVG */
   faviconGenerator(),
@@ -108,7 +98,7 @@ export default defineConfig({
    * can change config, they're ran when the helper's called. This causes problems for
    * unit testing integrations.
    */
-  integrations: isUnitTest() ? sharedTestIntegrations : standardIntegrations,
+  integrations: standardIntegrations,
   /** API routes are marked in their files for SSR */
   output: 'static',
   prefetch: true,
