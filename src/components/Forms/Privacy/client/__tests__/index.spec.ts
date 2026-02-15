@@ -51,11 +51,7 @@ describe('PrivacyForm behavior', () => {
       container,
       component: PrivacyForm,
       moduleSpecifier: '@components/Forms/Privacy/client/index',
-      args: {
-        props: {
-          status: undefined,
-        },
-      },
+      args: {},
       waitForReady: async (element: PrivacyFormElementInstance) => {
         window.history.replaceState({}, '', 'http://localhost/privacy/my-data')
         element.initialize()
@@ -83,11 +79,7 @@ describe('PrivacyForm behavior', () => {
       container,
       component: PrivacyForm,
       moduleSpecifier: '@components/Forms/Privacy/client/index',
-      args: {
-        props: {
-          status: undefined,
-        },
-      },
+      args: {},
       waitForReady: async (element: PrivacyFormElementInstance) => {
         window.history.replaceState({}, '', 'http://localhost/privacy/my-data')
         element.initialize()
@@ -119,11 +111,7 @@ describe('PrivacyForm behavior', () => {
       container,
       component: PrivacyForm,
       moduleSpecifier: '@components/Forms/Privacy/client/index',
-      args: {
-        props: {
-          status: undefined,
-        },
-      },
+      args: {},
       waitForReady: async (element: PrivacyFormElementInstance) => {
         window.history.replaceState({}, '', 'http://localhost/privacy/my-data?token=unit-test-token')
         ;(element as unknown as { downloadJson: typeof downloadJsonSpy }).downloadJson = downloadJsonSpy

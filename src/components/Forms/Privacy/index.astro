@@ -1,15 +1,7 @@
 ---
-import { statusMessages } from '@components/Forms/Privacy/server'
-
-export interface Props {
-  status?: string | null
-}
-
-const { status } = Astro.props
-const statusMessage = status ? statusMessages[status] : undefined
 ---
 
-<privacy-form class="block" status={status ?? undefined}>
+<privacy-form class="block">
   <div class="container mx-auto px-4 py-16 max-w-5xl space-y-10">
     <header class="space-y-3">
       <h1 class="text-3xl md:text-4xl font-bold">My Data &amp; Privacy Rights</h1>
@@ -18,25 +10,14 @@ const statusMessage = status ? statusMessages[status] : undefined
       </p>
     </header>
 
-    {
-      statusMessage && (
-        <div
-          id="status-message"
-          tabindex="-1"
-          role={statusMessage.type === 'error' ? 'alert' : 'status'}
-          aria-live={statusMessage.type === 'error' ? 'assertive' : 'polite'}
-          aria-atomic="true"
-          class:list={[
-            'rounded-xl border px-4 py-3 text-sm',
-            statusMessage.type === 'success' && 'border-success bg-success-inverse  text-success',
-            statusMessage.type === 'error' && 'border-danger bg-danger-offset text-danger',
-            statusMessage.type === 'info' && 'border-info bg-info-inverse text-info',
-          ]}
-        >
-          {statusMessage.message}
-        </div>
-      )
-    }
+    <div
+      id="status-message"
+      tabindex="-1"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      class="hidden rounded-xl border px-4 py-3 text-sm"
+    ></div>
 
     <section class="bg-page-offset border border-trim rounded-2xl p-6" aria-labelledby="my-data-intro-title">
       <h2 class="sr-only" id="my-data-intro-title">Overview</h2>

@@ -16,6 +16,28 @@ type DsarVerifyResult =
 
 type RequestDataResult = { message: string }
 
+const statusMessages: Record<string, { type: MessageType; message: string }> = {
+  sent: {
+    type: 'success',
+    message:
+      'Verification email sent! Please check your inbox and click the link to complete your request.',
+  },
+  invalid: {
+    type: 'error',
+    message: 'Invalid or expired verification link. Please submit a new request.',
+  },
+  expired: {
+    type: 'error',
+    message: 'This verification link has expired. Please submit a new request.',
+  },
+  'already-completed': { type: 'info', message: 'This request has already been completed.' },
+  deleted: {
+    type: 'success',
+    message: 'Your data has been successfully deleted from our systems.',
+  },
+  error: { type: 'error', message: 'An error occurred. Please try again or contact support.' },
+}
+
 export class PrivacyFormElement extends LitElement {
   static readonly registeredName = 'privacy-form'
 
@@ -67,7 +89,7 @@ export class PrivacyFormElement extends LitElement {
       this.bindEvents()
       this.isInitialized = true
 
-      this.focusStatusMessage()
+      this.renderStatusFromQueryString()
       void this.handleVerificationToken()
     } catch (error) {
       handleScriptError(error, context)
@@ -114,12 +136,6 @@ export class PrivacyFormElement extends LitElement {
     })
   }
 
-  private focusStatusMessage(): void {
-    if (this.statusMessage) {
-      this.statusMessage.focus()
-    }
-  }
-
   private setMessage(target: HTMLElement, message: string, type: MessageType): void {
     target.setAttribute('role', type === 'error' ? 'alert' : 'status')
     target.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite')
@@ -152,6 +168,18 @@ export class PrivacyFormElement extends LitElement {
     }
 
     target.focus()
+  }
+
+  private renderStatusFromQueryString(): void {
+    if (!this.statusMessage) return
+
+    const status = new URLSearchParams(window.location.search).get('status')
+    if (!status) return
+
+    const statusMessage = statusMessages[status]
+    if (!statusMessage) return
+
+    this.setMessage(this.statusMessage, statusMessage.message, statusMessage.type)
   }
 
   private resolveTokenFromQueryString(): string {
