@@ -1,46 +1,53 @@
 ---
-/**
- * Icon component using astro-icon. SVG files are in `src/icons/` directory.
- * Refactored to use Tailwind classes instead of CSS classes.
- */
-import { Icon } from 'astro-icon/components'
-import { colorClasses, type IconVariant } from './constants'
+import { getIconComponent } from '@components/Icon/server'
 
-export { colorClasses, type IconVariant } from './constants'
-
-export interface Props {
-  class?: string
-  name: string
-  size?: number | string
-  /** Color variant for the icon */
-  variant?: IconVariant
-  /** Optional accessible title for the rendered SVG */
-  title?: string
+export type Props = {
+  /** The name of the icon file in the icons directory to display without its file extension. */
+  icon: string
+  /**
+   * The name of a Tailwind theme color CSS variable without the `--theme-color-` prefix.
+   * Example: 'primary', 'text-content', 'green-500'. Defaults to "inherit". Icon files
+   * apply the value to their stroke and fill attributes as appropriate for the image.
+   */
+  color?: string
+  /** A color for the icon to use for internal fill areas */
+  inverseColor?: string
+  /** Defaults to 24. */
+  size?: number
+  /** Any additional CSS classes to apply to the SVG element. */
+  classes?: string
+  /**
+   * Whether the icon has a <title> element and aria-hidden=false attribute (if true),
+   * or aria-hidden=true without a <title> (if false). Defaults to false.
+   */
+  accessible?: boolean
+  /** Whether the icon can receive focus. Defaults to false. */
+  focusable?: boolean
+  /** Whether the icon is used as a list marker. If true, applies a "mt-0.5" class. Defaults to true. */
+  isListMarker?: boolean
 }
 
-const { class: className, name, size = 24, variant = 'default' as IconVariant, title } = Astro.props
+const { icon, color = 'inherit', inverseColor, size = 14, classes, accessible = false, focusable = false, isListMarker = true }: Props = Astro.props
 
-function normalizeIconSize(value: number | string): string {
-  if (typeof value === 'number') return `${value}px`
+const IconComponent = getIconComponent(icon) as unknown as (_props: {
+  color?: string
+  inverseColor?: string
+  size?: number
+  classes?: string
+  accessible?: boolean
+  focusable?: boolean
+  isListMarker?: boolean
+}) => unknown
 
-  const trimmed = String(value).trim()
-  if (/^\d+(?:\.\d+)?$/.test(trimmed)) return `${trimmed}px`
-
-  return trimmed
+const markerProps = {
+  ...(color ? { color } : {}),
+  ...(inverseColor ? { inverseColor } : {}),
+  ...(size !== undefined ? { size } : {}),
+  ...(classes ? { classes } : {}),
+  ...(accessible ? { accessible } : {}),
+  ...(focusable ? { focusable } : {}),
+  ...(isListMarker ? { isListMarker } : {}),
 }
-
-const iconSize = normalizeIconSize(size)
-
-const a11yProps = title
-  ? { title, 'aria-label': title }
-  : { 'aria-hidden': 'true' as const }
 ---
 
-<Icon
-  name={name}
-  class:list={['inline-block align-middle', colorClasses[variant], `icon--${name}`, className]}
-  size={size}
-  style={`--icon-size: ${iconSize};`}
-  {...a11yProps}
-  focusable="false"
-/>
+<IconComponent {...markerProps} />

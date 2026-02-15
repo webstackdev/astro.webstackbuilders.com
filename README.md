@@ -371,29 +371,6 @@ losst.pro has a modal that pops up for fixing mistakes:
 
 *Found a mistake in the text? Let me know about that. Highlight the text with the mistake and press Ctrl+Enter.*
 
-## Astro Plugins
-
-- astro-auto-import
-- astro-navigation
-- astro-webfinger (Mastodon)
-
-## Icons
-
-Icons are managed through the `astro-icon` system with SVG files stored in `src/icons/`.
-
-**Adding a new icon:**
-
-See [docs](src/icons/README.md).
-
-**Usage:**
-
-```typescript
----
- import Icon from 'components/Icon.astro'
----
-<Icon name="fileName" class="customClassName"/>
-```
-
 ## Pages
 
 Any `.astro`, `.md`, or `.mdx` file anywhere within the `src/pages/` folder automatically became a page on your site.

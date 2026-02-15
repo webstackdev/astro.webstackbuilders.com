@@ -1,7 +1,7 @@
 ---
 import contactData from '@content/contact.json'
 import List from '@components/List/index.astro'
-import Marker from '@components/Marker/index.astro'
+import Icon from '@components/Icon/index.astro'
 import HeadingAnchor from '@components/Layout/HeadingAnchor/index.astro'
 
 const lastUpdatedDate = new Date()
@@ -35,7 +35,7 @@ export type Props = {
           icon: string
           color: string
         }[]
-        listMarkerSize?: number
+        listIconSize?: number
         trailer?: string
       }[]
     }
@@ -49,7 +49,7 @@ export type Props = {
         color: string
         background: string
       }[]
-      listMarkerSize?: number
+      listIconSize?: number
     }
     sharing: {
       title: string
@@ -165,7 +165,7 @@ for (const [index, item] of content.nav.items.entries()) {
 <div class="mx-auto px-4 sm:px-6 lg:px-8 py-2 md:py-4">
   <header class="text-center max-w-2xl mx-auto mb-8">
     <div class="inline-flex items-center justify-center w-18 h-18 rounded-full bg-primary/10 mb-5">
-      <Marker
+      <Icon
         icon="shield"
         color="page-inverse"
         size={12}
@@ -247,10 +247,10 @@ for (const [index, item] of content.nav.items.entries()) {
                 <div
                   class:list={["w-12 h-12 rounded-lg flex items-center justify-center mr-4", item.background]}
                 >
-                  <Marker
+                  <Icon
                     icon={item.icon}
                     color={item.color}
-                    size={content.usage.listMarkerSize ?? 6}
+                    size={content.usage.listIconSize ?? 6}
                   />
                 </div>
                 <h3 class="text-xl font-semibold mt-0 mb-0">{item.title}</h3>
@@ -277,7 +277,7 @@ for (const [index, item] of content.nav.items.entries()) {
       >
         <div class="flex items-start">
           <div class="shrink-0">
-            <Marker
+            <Icon
               icon="warning"
               color="text-yellow-600 dark:text-yellow-400"
               classes="mt-1"
@@ -314,7 +314,7 @@ for (const [index, item] of content.nav.items.entries()) {
               <div
                 class:list={["w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4", item.background]}
               >
-                <Marker
+                <Icon
                   icon={item.icon}
                   color={item.color}
                   size={8}
@@ -347,7 +347,7 @@ for (const [index, item] of content.nav.items.entries()) {
             content.rights.cards.map((item) => (
               <div class="flex items-start">
                 <div class="mt-1 mr-3 shrink-0">
-                  <Marker
+                  <Icon
                     icon={item.icon}
                     color={item.color}
                     size={6}
@@ -454,7 +454,7 @@ for (const [index, item] of content.nav.items.entries()) {
       </div>
       <div class="bg-green-50 dark:bg-green-900/20 rounded-xl px-8 py-6 mb-6">
         <h3 class="text-lg font-semibold text-content-active mb-4 mt-0 flex items-center">
-          <Marker
+          <Icon
             icon={"shield"}
             color={"text-green-600 dark:text-green-400"}
             size={6}
@@ -494,7 +494,7 @@ for (const [index, item] of content.nav.items.entries()) {
             <div
               class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center ml-6 mt-1 shrink-0"
             >
-              <Marker
+              <Icon
                 icon={"email"}
                 color={"text-blue-600 dark:text-blue-400"}
                 size={8}
@@ -516,7 +516,7 @@ for (const [index, item] of content.nav.items.entries()) {
             <div
               class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center ml-6 mt-1 shrink-0"
             >
-              <Marker
+              <Icon
                 icon={"location"}
                 color={"text-blue-600 dark:text-blue-400"}
                 size={8}

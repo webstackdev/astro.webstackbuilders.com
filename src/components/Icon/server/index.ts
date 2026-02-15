@@ -1,16 +1,16 @@
 import type { AstroComponentFactory } from 'astro/runtime/server/index.js'
 
-type MarkerModule = {
+type IconModule = {
   default: AstroComponentFactory
 }
 
-export type MarkerComponentMap = Record<string, MarkerModule>
+export type IconComponentMap = Record<string, IconModule>
 
-const defaultMarkerComponents = import.meta.glob('../icons/*.astro', {
+const defaultIconComponents = import.meta.glob('../icons/*.astro', {
   eager: true,
-}) as MarkerComponentMap
+}) as IconComponentMap
 
-const formatAvailableMarkers = (markerComponents: MarkerComponentMap): string => {
+const formatAvailableIcons = (markerComponents: IconComponentMap): string => {
   return Object.keys(markerComponents)
     .map((path) => path.replace('../icons/', ''))
     .sort()
@@ -21,9 +21,9 @@ const formatAvailableMarkers = (markerComponents: MarkerComponentMap): string =>
  * Resolve marker component by icon name.
  * Throws a descriptive error when icon is missing or marker file is not found.
  */
-export const getMarkerComponent = (
+export const getIconComponent = (
   icon?: string,
-  markerComponents: MarkerComponentMap = defaultMarkerComponents
+  markerComponents: IconComponentMap = defaultIconComponents
 ): AstroComponentFactory => {
   if (!icon) {
     throw new Error(
@@ -36,11 +36,11 @@ export const getMarkerComponent = (
   const markerModule = markerComponents[iconPath]
 
   if (!markerModule?.default) {
-    const availableMarkers = formatAvailableMarkers(markerComponents)
+    const availableIcons = formatAvailableIcons(markerComponents)
 
     throw new Error(
       `PlainIconList: marker file "${iconFileName}" was not found in src/components/List/icons/. ` +
-      `Requested icon path: "${iconPath}". Available markers: ${availableMarkers || '(none)'}`
+      `Requested icon path: "${iconPath}". Available markers: ${availableIcons || '(none)'}`
     )
   }
 

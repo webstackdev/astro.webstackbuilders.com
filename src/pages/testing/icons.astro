@@ -1,58 +1,46 @@
 ---
-import Icon, { colorClasses } from '@components/Icon/index.astro'
-import type { IconVariant } from '@components/Icon/index.astro'
+import Icon from '@components/Icon/index.astro'
 import BaseLayout from '@layouts/BaseLayout.astro'
 
-const variantNames = Object.keys(colorClasses) as IconVariant[]
-const iconModules = import.meta.glob('../../icons/*.svg')
+const iconModules = import.meta.glob('../../components/Icon/icons/*.astro')
 const iconNames = Object.keys(iconModules)
-  .map(path => path.split('/').pop()?.replace('.svg', ''))
+  .map(path => path.split('/').pop()?.replace('.astro', ''))
   .filter((name): name is string => Boolean(name))
   .sort()
 
-const pageTitle = 'Icon Variant Gallery'
-const description =
-  'Preview every icon across each color variant to verify styling and availability.'
+const pageTitle = 'Icon Gallery'
+const description = 'Preview every marker icon to verify styling and availability.'
 ---
 
-<BaseLayout pageTitle={pageTitle} path="/testing/icons" description={description}>
+<BaseLayout pageTitle={pageTitle} path="/testing/markers" description={description}>
   <main class="mx-auto flex max-w-7xl flex-col gap-12 px-6 py-12">
     <header class="text-center">
       <p class="text-sm uppercase tracking-wide">Design System</p>
       <h1 class="mt-2 text-4xl font-bold">{pageTitle}</h1>
       <p class="mt-4">
-        Every icon from <code class="rounded bg-page-offset px-1 py-0.5 text-sm">src/icons</code> rendered
-        across each color variant.
+        Every marker from <code class="rounded bg-page-offset px-1 py-0.5 text-sm">src/components/Icon/icons</code>
+        rendered with color <code class="rounded bg-page-offset px-1 py-0.5 text-sm">primary</code>.
       </p>
     </header>
 
-    {
-      variantNames.map(variant => (
-        <section class="space-y-6" aria-labelledby={`icon-variant-${variant}`}>
-          <div class="flex items-baseline justify-between flex-wrap gap-3">
-            <div>
-              <p class="text-sm uppercase tracking-wide">Variant</p>
-              <h2
-                id={`icon-variant-${variant}`}
-                class="text-2xl font-semibold capitalize"
-              >
-                {variant}
-              </h2>
-            </div>
-            <p class="text-sm">{iconNames.length} icons</p>
+    <section class="space-y-6" aria-labelledby="marker-gallery">
+      <div class="flex items-baseline justify-between flex-wrap gap-3">
+        <div>
+          <p class="text-sm uppercase tracking-wide">Color</p>
+          <h2 id="marker-gallery" class="text-2xl font-semibold capitalize">primary</h2>
+        </div>
+        <p class="text-sm">{iconNames.length} icons</p>
+      </div>
+      <div class="flex flex-wrap gap-6">
+        {iconNames.map(iconName => (
+          <div class="flex min-w-50 flex-1 basis-55 flex-col items-center justify-between rounded-xl border border-trim bg-content-inverse p-8 text-center">
+            <Icon icon={iconName} color="primary" isListMarker={false} />
+            <span class="mt-6 w-full border-t border-dashed border-trim pt-4 text-sm font-mono">
+              {iconName}
+            </span>
           </div>
-          <div class="flex flex-wrap gap-6">
-            {iconNames.map(iconName => (
-              <div class="flex min-w-50 flex-1 basis-55 flex-col items-center justify-between rounded-xl border border-trim bg-content-inverse p-8 text-center">
-                <Icon name={iconName} variant={variant} size={56} />
-                <span class="mt-6 w-full border-t border-dashed border-trim pt-4 text-sm font-mono">
-                  {iconName}
-                </span>
-              </div>
-            ))}
-          </div>
-        </section>
-      ))
-    }
+        ))}
+      </div>
+    </section>
   </main>
 </BaseLayout>
