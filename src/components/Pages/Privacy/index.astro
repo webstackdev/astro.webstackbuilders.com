@@ -1,0 +1,573 @@
+---
+import contactData from '@content/contact.json'
+import List from '@components/List/index.astro'
+import Icon from '@components/Icon/index.astro'
+import HeadingAnchor from '@components/Layout/HeadingAnchor/index.astro'
+
+const lastUpdatedDate = new Date()
+const lastUpdatedIso = lastUpdatedDate.toISOString()
+const lastUpdatedText = lastUpdatedDate.toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+})
+
+export type Props = {
+  content: {
+    header: {
+      title: string
+      description: string
+    }
+    nav: {
+      title: string
+      items: {
+        label: string
+        href: string
+      }[]
+    }
+    collection: {
+      title: string
+      cards: {
+        title: string
+        description: string
+        listItems: {
+          text: string
+          icon: string
+          color: string
+        }[]
+        listIconSize?: number
+        trailer?: string
+      }[]
+    }
+    usage: {
+      title: string
+      description: string
+      listItems: {
+        title: string
+        description: string
+        icon: string
+        color: string
+        background: string
+      }[]
+      listIconSize?: number
+    }
+    sharing: {
+      title: string
+      subtitle: string
+      description: string
+      listItems: {
+        text: string
+        color: string
+      }[]
+    }
+    security: {
+      title: string
+      description: string
+      cards: {
+        lead: string
+        text: string
+        icon: string
+        color: string
+        background: string
+      }[]
+    }
+    rights: {
+      title: string
+      description: string
+      cards: {
+        lead: string
+        text: string
+        icon: string
+        color: string
+      }[]
+    }
+    cookies: {
+      title: string
+      description: string
+      subtitle: string
+      listItems: {
+        lead: string
+        text: string
+        color: string
+      }[]
+    }
+    storage: {
+      title: string
+      description: string
+      subtitle: string
+      listItems: {
+        lead: string
+        text: string | string[]
+        color: string
+      }[]
+      trailer: string
+    }
+    monitoring: {
+      title: string
+      description: string
+      list1: {
+        lead: string
+        listItems: {
+          heading: string
+          text: string
+        }[]
+      }
+      list2: {
+        lead: string
+        listItems: {
+          text: string
+        }[]
+      }
+      close: {
+        heading: string
+        text: string
+      }
+    }
+    contact: {
+      title: string
+      description: string
+      card1: {
+        lead: string
+        text: string
+        link: string
+      },
+      card2: {
+        lead: string
+        text: string
+      }
+      card3: {
+        lead: string
+        text: string
+      }
+    }
+    changes: {
+      title: string
+      description: string
+    }
+  }
+}
+
+type NavItem = Props['content']['nav']['items'][number]
+type CollectionCard = Props['content']['collection']['cards'][number]
+
+const { content }: Props = Astro.props
+
+const navItems: Array<NavItem & { showSeparator: boolean }> = []
+
+for (const [index, item] of content.nav.items.entries()) {
+  navItems.push({
+    ...item,
+    showSeparator: index < content.nav.items.length - 1,
+  })
+}
+---
+
+<div class="mx-auto px-4 sm:px-6 lg:px-8 py-2 md:py-4">
+  <header class="text-center max-w-2xl mx-auto mb-8">
+    <div class="inline-flex items-center justify-center w-18 h-18 rounded-full bg-primary/10 mb-5">
+      <Icon
+        icon="shield"
+        color="page-inverse"
+        size={12}
+      />
+    </div>
+    <h1 class="text-4xl md:text-5xl font-bold text-page-inverse mb-4">{content.header.title}</h1>
+    <p class="text-lg text-content-offset leading-relaxed mb-4">
+      {content.header.description}
+    </p>
+    <p class="text-sm text-page-inverse italic">
+      Last updated: <time datetime={lastUpdatedIso}>{lastUpdatedText}</time>
+    </p>
+  </header>
+
+  <nav aria-label="Privacy policy sections" class="bg-content-active rounded-xl p-6 mb-8">
+    <p class="text-md font-semibold text-content-inverse ml-2 mb-3">{content.nav.title}</p>
+    <div class="flex flex-wrap items-center gap-y-2 md:gap-x-2 text-md md:ml-6">
+      {
+        navItems.map(({ href, label, showSeparator }) => (
+          <>
+            <a
+              href={href}
+              class="text-content-inverse hover:text-content-offset transition-colors no-underline"
+            >
+              {label}
+            </a>
+            {showSeparator && (
+              <span class="mx-2 text-trim" aria-hidden="true">·</span>
+            )}
+          </>
+        ))
+      }
+    </div>
+  </nav>
+
+  <div class="prose prose-lg max-w-none text-content">
+    <section class="mb-12" aria-labelledby="privacy-information-we-collect-title">
+      <h2 class="text-2xl md:text-3xl font-bold mb-6" id="privacy-information-we-collect-title">
+        {content.collection.title}
+        <HeadingAnchor href={"#privacy-information-we-collect-title"} />
+      </h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {
+          content.collection.cards.map((card: CollectionCard) => (
+            <div class="text-content-active bg-page-offset rounded-xl px-8 pt-8 pb-4 shadow-md">
+              <h3 class="text-2xl font-semibold mb-4 mt-0">
+                {card.title}
+              </h3>
+              <p class="mb-2">
+                {card.description}
+              </p>
+              <List
+                variant="plain-icon-list"
+                items={card.listItems}
+              />
+              {card.trailer && (
+                <p class="mt-6 mb-0 text-sm italic text-center text-content-offset">
+                  {card.trailer}
+                </p>
+              )}
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="mb-12" aria-labelledby="privacy-how-we-use-title">
+      <h2 class="text-2xl md:text-3xl font-bold mb-6" id="privacy-how-we-use-title">
+        {content.usage.title}
+        <HeadingAnchor href={"#privacy-how-we-use-title"} />
+      </h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {
+          content.usage.listItems.map((item) => (
+            <div class="text-content-active bg-primary-inverse rounded-xl px-8 pt-8 pb-4 shadow-md">
+              <div class="flex items-center mb-4">
+                <div
+                  class:list={["w-12 h-12 rounded-lg flex items-center justify-center mr-4", item.background]}
+                >
+                  <Icon
+                    icon={item.icon}
+                    color={item.color}
+                    size={content.usage.listIconSize ?? 6}
+                  />
+                </div>
+                <h3 class="text-xl font-semibold mt-0 mb-0">{item.title}</h3>
+              </div>
+              <p class="text-content">
+                {item.description}
+              </p>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="mb-12" aria-labelledby="privacy-how-we-share-title">
+      <h2
+        class="text-2xl md:text-3xl font-bold text-content-active mb-6"
+        id="privacy-how-we-share-title"
+      >
+        {content.sharing.title}
+        <HeadingAnchor href={"#privacy-how-we-share-title"} />
+      </h2>
+      <div
+        class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl px-8 pt-8 pb-4"
+      >
+        <div class="flex items-start">
+          <div class="shrink-0">
+            <Icon
+              icon="warning"
+              color="text-yellow-600 dark:text-yellow-400"
+              classes="mt-1"
+              size={8}
+            />
+          </div>
+          <div class="text-content-active ml-4">
+            <h3 class="text-xl font-semibold mb-2 mt-1.5">{content.sharing.subtitle}</h3>
+            <p class="text-content">{content.sharing.description}</p>
+            <List
+              variant="colored-marker-list"
+              items={content.sharing.listItems}
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="mb-12" aria-labelledby="privacy-data-security-title">
+      <h2
+        class="text-2xl md:text-3xl font-bold text-content-active mb-6"
+        id="privacy-data-security-title"
+      >
+        {content.security.title}
+        <HeadingAnchor href={"#privacy-data-security-title"} />
+      </h2>
+      <p class="text-content mb-6">
+        {content.security.description}
+      </p>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {
+          content.security.cards.map((item) => (
+            <div class="text-center">
+              <div
+                class:list={["w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4", item.background]}
+              >
+                <Icon
+                  icon={item.icon}
+                  color={item.color}
+                  size={8}
+                />
+              </div>
+              <h3 class="text-xl font-semibold mb-2">{item.lead}</h3>
+              <p class="text-content text-sm">
+                {item.text}
+              </p>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="mb-12" aria-labelledby="privacy-your-rights-title">
+      <h2
+        class="text-2xl md:text-3xl font-bold text-content-active mb-6"
+        id="privacy-your-rights-title"
+      >
+        {content.rights.title}
+        <HeadingAnchor href={"#privacy-your-rights-title"} />
+      </h2>
+      <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md">
+        <p class="text-content mb-6 mt-2">
+          {content.rights.description}
+        </p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {
+            content.rights.cards.map((item) => (
+              <div class="flex items-start">
+                <div class="mt-1 mr-3 shrink-0">
+                  <Icon
+                    icon={item.icon}
+                    color={item.color}
+                    size={6}
+                  />
+                </div>
+                <div class="pl-1">
+                  <h3 class="text-lg font-semibold mb-2 mt-0.5">{item.lead}</h3>
+                  <p class="text-content text-sm">{item.text}</p>
+                </div>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    <section class="mb-12" aria-labelledby="privacy-cookies-and-tracking-title">
+      <h2
+        class="text-2xl md:text-3xl font-bold text-content-active mb-6"
+        id="privacy-cookies-and-tracking-title"
+      >
+        {content.cookies.title}
+        <HeadingAnchor href={"#privacy-cookies-and-tracking-title"} />
+      </h2>
+      <p class="text-content mb-6">
+        {content.cookies.description}
+      </p>
+      <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-6">
+        <h3 class="text-lg font-semibold text-content-active mb-4 mt-2">
+          {content.cookies.subtitle}
+        </h3>
+        <List
+          variant="colored-marker-list"
+          items={content.cookies.listItems}
+          classes={{
+            li: "[&_span]:text-content-offset",
+            ul: "pl-6",
+          }}
+        />
+      </div>
+    </section>
+
+    <section class="mb-12" aria-labelledby="privacy-storage-title">
+      <h2
+        class="text-2xl md:text-3xl font-bold text-content-active mb-6"
+        id="privacy-storage-title"
+      >
+        {content.storage.title}
+        <HeadingAnchor href={"#privacy-storage-title"} />
+      </h2>
+      <p class="text-content mb-6">
+        {content.storage.description}
+      </p>
+      <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md">
+        <h3 class="text-lg font-semibold text-content-active mb-4 mt-0">
+          {content.storage.subtitle}
+        </h3>
+        <div class="space-y-4">
+          <List
+            variant="accent-border-left-list"
+            items={content.storage.listItems as unknown as {
+              title?: string
+              lead?: string
+              text: string
+              icon?: string
+              color?: string
+            }[]}
+          />
+        </div>
+        <div
+          class="mt-8 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg px-4 pt-0 pb-0"
+        >
+          <p class="text-sm text-content-offset leading-relaxed" set:html={content.storage.trailer}></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="mb-12" aria-labelledby="privacy-error-monitoring-title">
+      <h2
+        class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6"
+        id="privacy-error-monitoring-title"
+      >
+        {content.monitoring.title}
+        <HeadingAnchor href={"#privacy-error-monitoring-title"} />
+      </h2>
+      <p class="text-content-offset mb-6">
+        {content.monitoring.description}
+      </p>
+      <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl px-8 py-6 mb-6">
+        <h3 class="text-lg font-semibold text-content-active mb-4 mt-0">
+          {content.monitoring.list1.lead}
+        </h3>
+        <List
+          variant="colored-marker-list"
+          items={content.monitoring.list1.listItems.map((item) => ({
+            lead: item.heading,
+            text: item.text,
+            color: "bg-blue-600 dark:bg-blue-400",
+          }))}
+          classes={{
+            ul: "pl-9",
+          }}
+        />
+      </div>
+      <div class="bg-green-50 dark:bg-green-900/20 rounded-xl px-8 py-6 mb-6">
+        <h3 class="text-lg font-semibold text-content-active mb-4 mt-0 flex items-center">
+          <Icon
+            icon={"shield"}
+            color={"text-green-600 dark:text-green-400"}
+            size={6}
+            classes={"mr-3"}
+          />
+          {content.monitoring.list2.lead}
+        </h3>
+        <List
+          variant="check-icons-list"
+          items={content.monitoring.list2.listItems}
+        />
+      </div>
+      <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-6">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3 mt-0">
+          {content.monitoring.close.heading}
+        </h3>
+        <p class="text-gray-600 dark:text-gray-300 mb-0">
+          {content.monitoring.close.text}
+        </p>
+      </div>
+    </section>
+
+    <section class="mb-12" aria-labelledby="privacy-contact-us-title">
+      <h2
+        class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6"
+        id="privacy-contact-us-title"
+      >
+        {content.contact.title}
+        <HeadingAnchor href={"#privacy-contact-us-title"} />
+      </h2>
+      <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6">
+        <p class="text-gray-600 dark:text-gray-300 mt-0 mb-6">
+          {content.contact.description}
+        </p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:mx-12">
+          <div class="flex items-start">
+            <div
+              class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center ml-6 mt-1 shrink-0"
+            >
+              <Icon
+                icon={"email"}
+                color={"text-blue-600 dark:text-blue-400"}
+                size={8}
+              />
+            </div>
+            <div class="ml-6">
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white mt-0 mb-1">
+                {content.contact.card1.lead}
+              </h3>
+              <a
+                href={content.contact.card1.link}
+                class="text-blue-600 dark:text-blue-400 underline decoration-dotted decoration-current underline-offset-2 transition-colors hover:text-blue-500 dark:hover:text-blue-300 focus-visible:text-blue-500 dark:focus-visible:text-blue-300"
+              >
+                {content.contact.card1.text}
+              </a>
+            </div>
+          </div>
+          <div class="flex items-start">
+            <div
+              class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center ml-6 mt-1 shrink-0"
+            >
+              <Icon
+                icon={"location"}
+                color={"text-blue-600 dark:text-blue-400"}
+                size={8}
+              />
+            </div>
+            <div class="ml-6">
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white mt-0 mb-1">
+                {content.contact.card2.lead}
+              </h3>
+              <p class="text-gray-600 dark:text-gray-300">
+                {content.contact.card2.text}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="border-t border-blue-200 dark:border-blue-800">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+            {content.contact.card3.lead}
+          </h3>
+          <p class="text-gray-600 dark:text-gray-300 mb-4">
+            {content.contact.card3.text}
+          </p>
+          <div class="inline-block bg-white dark:bg-gray-800 rounded-lg px-8 py-4">
+            <p class="text-gray-900 dark:text-white font-medium mt-0 mb-0">
+              {contactData.company.dataProtectionOfficer.name}
+            </p>
+            <a
+              href={`mailto:${contactData.company.dataProtectionOfficer.email}`}
+              class="text-blue-600 dark:text-blue-400 underline decoration-dotted decoration-current underline-offset-2 transition-colors hover:text-blue-500 dark:hover:text-blue-300 focus-visible:text-blue-500 dark:focus-visible:text-blue-300"
+            >
+              {contactData.company.dataProtectionOfficer.email}
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="privacy-changes-to-policy-title">
+      <h2
+        class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6"
+        id="privacy-changes-to-policy-title"
+      >
+        {content.changes.title}
+        <HeadingAnchor href={"#privacy-changes-to-policy-title"} />
+      </h2>
+      <div class="bg-gray-50 dark:bg-gray-800 rounded-xl px-8 py-2">
+        <p class="text-gray-600 dark:text-gray-300">
+          {content.changes.description}
+        </p>
+      </div>
+    </section>
+  </div>
+</div>

@@ -32,9 +32,18 @@ export const CONSENT_PREFERENCES_READY_EVENT = 'consent-preferences:ready'
 export class ConsentPreferencesElement extends LitElement {
   static registeredName = COMPONENT_TAG_NAME
 
+  private static readonly saveButtonDisabledClasses = [
+    'bg-gray-300',
+    'cursor-not-allowed',
+    'hover:bg-gray-300',
+  ]
+
+  private static readonly saveButtonEnabledClasses = ['bg-spotlight', 'hover:bg-spotlight-offset']
+
   private allowAllBtn!: HTMLButtonElement
   private denyAllBtn!: HTMLButtonElement
   private saveBtn!: HTMLButtonElement
+  private toggleChangeHandler: (() => void) | null = null
   private domReadyHandler: (() => void) | null = null
   private beforePreparationHandler: (() => void) | null = null
   private afterSwapHandler: (() => void) | null = null
@@ -84,6 +93,8 @@ export class ConsentPreferencesElement extends LitElement {
       this.unsubscribeConsent()
       this.unsubscribeConsent = null
     }
+
+    this.removePreferenceToggleListeners()
 
     this.isInitialized = false
     delete this.dataset['consentPreferencesReady']
@@ -135,6 +146,7 @@ export class ConsentPreferencesElement extends LitElement {
 
   private syncConsentState(consent: ConsentState): void {
     this.updateCheckboxes(consent)
+    this.updateSaveButtonState()
   }
 
   private setViewTransitionsHandlers(): void {
@@ -182,6 +194,83 @@ export class ConsentPreferencesElement extends LitElement {
     addButtonEventListeners(this.allowAllBtn, () => this.allowAll())
     addButtonEventListeners(this.denyAllBtn, () => this.denyAll())
     addButtonEventListeners(this.saveBtn, () => this.savePreferences())
+
+    if (!this.toggleChangeHandler) {
+      this.toggleChangeHandler = () => this.updateSaveButtonState()
+    }
+
+    this.bindPreferenceToggleListeners()
+  }
+
+  private bindPreferenceToggleListeners(): void {
+    this.removePreferenceToggleListeners()
+
+    const analyticsCheckbox = document.getElementById('analytics-cookies')
+    const functionalCheckbox = document.getElementById('functional-cookies')
+    const marketingCheckbox = document.getElementById('marketing-cookies')
+
+    if (!this.toggleChangeHandler) {
+      return
+    }
+
+    if (isInputElement(analyticsCheckbox)) {
+      analyticsCheckbox.addEventListener('change', this.toggleChangeHandler)
+    }
+
+    if (isInputElement(functionalCheckbox)) {
+      functionalCheckbox.addEventListener('change', this.toggleChangeHandler)
+    }
+
+    if (isInputElement(marketingCheckbox)) {
+      marketingCheckbox.addEventListener('change', this.toggleChangeHandler)
+    }
+  }
+
+  private removePreferenceToggleListeners(): void {
+    const analyticsCheckbox = document.getElementById('analytics-cookies')
+    const functionalCheckbox = document.getElementById('functional-cookies')
+    const marketingCheckbox = document.getElementById('marketing-cookies')
+
+    if (!this.toggleChangeHandler) {
+      return
+    }
+
+    if (isInputElement(analyticsCheckbox)) {
+      analyticsCheckbox.removeEventListener('change', this.toggleChangeHandler)
+    }
+
+    if (isInputElement(functionalCheckbox)) {
+      functionalCheckbox.removeEventListener('change', this.toggleChangeHandler)
+    }
+
+    if (isInputElement(marketingCheckbox)) {
+      marketingCheckbox.removeEventListener('change', this.toggleChangeHandler)
+    }
+  }
+
+  private updateSaveButtonState(): void {
+    const currentPreferences = this.getCurrentPreferences()
+    const savedPreferences = getConsentSnapshot()
+
+    const hasUnsavedChanges =
+      (currentPreferences.analytics ?? false) !== (savedPreferences.analytics ?? false) ||
+      (currentPreferences.functional ?? false) !== (savedPreferences.functional ?? false) ||
+      (currentPreferences.marketing ?? false) !== (savedPreferences.marketing ?? false)
+
+    this.saveBtn.disabled = !hasUnsavedChanges
+    this.saveBtn.setAttribute('aria-disabled', String(!hasUnsavedChanges))
+
+    const disabledClasses = ConsentPreferencesElement.saveButtonDisabledClasses
+    const enabledClasses = ConsentPreferencesElement.saveButtonEnabledClasses
+
+    this.saveBtn.classList.remove(...disabledClasses, ...enabledClasses)
+
+    if (hasUnsavedChanges) {
+      this.saveBtn.classList.add(...enabledClasses)
+      return
+    }
+
+    this.saveBtn.classList.add(...disabledClasses)
   }
 
   private updateCheckboxes(preferences: ConsentState): void {
@@ -201,6 +290,10 @@ export class ConsentPreferencesElement extends LitElement {
   }
 
   private savePreferences(): void {
+    if (this.saveBtn.disabled) {
+      return
+    }
+
     const preferences = this.getCurrentPreferences()
 
     updateConsent('analytics', preferences.analytics ?? false)

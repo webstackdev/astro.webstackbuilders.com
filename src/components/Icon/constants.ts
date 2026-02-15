@@ -2,6 +2,7 @@ export const colorClasses = {
   default: 'text-content fill-content',
   muted: 'text-content-active fill-content-active',
   primary: 'text-primary fill-primary',
+  'primary-inverse': 'text-primary-inverse fill-primary-inverse',
   accent: 'text-accent fill-accent',
   info: 'text-info fill-info',
   success: 'text-success fill-success',

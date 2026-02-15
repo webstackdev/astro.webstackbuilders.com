@@ -16,7 +16,7 @@ export interface ButtonProps {
   href?: string
   icon?: string
   iconPosition?: IconPosition
-  iconSize?: number | string
+  iconSize?: number
 }
 
 const ICON_ONLY_POSITION: IconPosition = 'only'

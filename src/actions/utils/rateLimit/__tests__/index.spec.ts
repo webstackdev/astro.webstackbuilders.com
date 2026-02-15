@@ -1,19 +1,22 @@
 import { describe, expect, it, vi } from 'vitest'
 
+const mockIsDbError = vi.hoisted(() => vi.fn(() => false))
+
+vi.mock('astro:db', () => ({
+  isDbError: mockIsDbError,
+}))
+
 describe('rateLimit utilities', () => {
   it('checkRateLimit returns limiter result', async () => {
     vi.resetModules()
+    mockIsDbError.mockReturnValue(false)
 
     vi.doMock('@actions/utils/environment/environmentActions', () => ({
       isProd: () => false,
     }))
-    vi.doMock('@actions/utils/rateLimit/store', () => ({
+    vi.doMock('../store', () => ({
       withRateLimitWindow: vi.fn(),
     }))
-    vi.doMock('astro:db', () => ({
-      isDbError: () => false,
-    }))
-
     const { checkRateLimit } = await import('..')
 
     const limiter = {
@@ -26,19 +29,16 @@ describe('rateLimit utilities', () => {
 
   it('rateLimiters bypass in non-prod (success, reset = now + window)', async () => {
     vi.resetModules()
+    mockIsDbError.mockReturnValue(false)
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2025-01-01T00:00:00.000Z'))
 
     vi.doMock('@actions/utils/environment/environmentActions', () => ({
       isProd: () => false,
     }))
-    vi.doMock('@actions/utils/rateLimit/store', () => ({
+    vi.doMock('../store', () => ({
       withRateLimitWindow: vi.fn(),
     }))
-    vi.doMock('astro:db', () => ({
-      isDbError: () => false,
-    }))
-
     const { rateLimiters } = await import('..')
 
     const result = await rateLimiters.export.limit('abc')
@@ -53,6 +53,7 @@ describe('rateLimit utilities', () => {
 
   it('prod: empty identifier is treated as allowed without hitting store', async () => {
     vi.resetModules()
+    mockIsDbError.mockReturnValue(false)
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2025-01-01T00:00:00.000Z'))
 
@@ -61,13 +62,9 @@ describe('rateLimit utilities', () => {
     vi.doMock('@actions/utils/environment/environmentActions', () => ({
       isProd: () => true,
     }))
-    vi.doMock('@actions/utils/rateLimit/store', () => ({
+    vi.doMock('../store', () => ({
       withRateLimitWindow,
     }))
-    vi.doMock('astro:db', () => ({
-      isDbError: () => false,
-    }))
-
     const { rateLimiters } = await import('..')
 
     const result = await rateLimiters.export.limit('')
@@ -80,6 +77,7 @@ describe('rateLimit utilities', () => {
 
   it('prod: initializes a window when missing/expired', async () => {
     vi.resetModules()
+    mockIsDbError.mockReturnValue(false)
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2025-01-01T00:00:00.000Z'))
 
@@ -105,13 +103,9 @@ describe('rateLimit utilities', () => {
     vi.doMock('@actions/utils/environment/environmentActions', () => ({
       isProd: () => true,
     }))
-    vi.doMock('@actions/utils/rateLimit/store', () => ({
+    vi.doMock('../store', () => ({
       withRateLimitWindow,
     }))
-    vi.doMock('astro:db', () => ({
-      isDbError: () => false,
-    }))
-
     const { rateLimiters } = await import('..')
 
     const result = await rateLimiters.delete.limit('user-1')
@@ -130,6 +124,7 @@ describe('rateLimit utilities', () => {
 
   it('prod: increments hits when under limit', async () => {
     vi.resetModules()
+    mockIsDbError.mockReturnValue(false)
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2025-01-01T00:00:00.000Z'))
 
@@ -152,13 +147,9 @@ describe('rateLimit utilities', () => {
     vi.doMock('@actions/utils/environment/environmentActions', () => ({
       isProd: () => true,
     }))
-    vi.doMock('@actions/utils/rateLimit/store', () => ({
+    vi.doMock('../store', () => ({
       withRateLimitWindow,
     }))
-    vi.doMock('astro:db', () => ({
-      isDbError: () => false,
-    }))
-
     const { rateLimiters } = await import('..')
 
     const result = await rateLimiters.contact.limit('user-2')
@@ -171,6 +162,7 @@ describe('rateLimit utilities', () => {
 
   it('prod: denies when at/over limit', async () => {
     vi.resetModules()
+    mockIsDbError.mockReturnValue(false)
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2025-01-01T00:00:00.000Z'))
 
@@ -186,13 +178,9 @@ describe('rateLimit utilities', () => {
     vi.doMock('@actions/utils/environment/environmentActions', () => ({
       isProd: () => true,
     }))
-    vi.doMock('@actions/utils/rateLimit/store', () => ({
+    vi.doMock('../store', () => ({
       withRateLimitWindow,
     }))
-    vi.doMock('astro:db', () => ({
-      isDbError: () => false,
-    }))
-
     const { rateLimiters } = await import('..')
 
     await expect(rateLimiters.consent.limit('user-3')).resolves.toEqual({
@@ -205,21 +193,19 @@ describe('rateLimit utilities', () => {
 
   it('prod: returns failure on db error', async () => {
     vi.resetModules()
+    mockIsDbError.mockReturnValue(true)
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2025-01-01T00:00:00.000Z'))
 
-    const dbErr = new Error('db')
-
+    const dbErr = Object.assign(new Error('db'), { libsqlError: true as const })
+    const withRateLimitWindow = vi.fn(async () => {
+      throw dbErr
+    })
     vi.doMock('@actions/utils/environment/environmentActions', () => ({
       isProd: () => true,
     }))
-    vi.doMock('@actions/utils/rateLimit/store', () => ({
-      withRateLimitWindow: vi.fn(async () => {
-        throw dbErr
-      }),
-    }))
-    vi.doMock('astro:db', () => ({
-      isDbError: (err: unknown) => err === dbErr,
+    vi.doMock('../store', () => ({
+      withRateLimitWindow,
     }))
 
     const { rateLimiters } = await import('..')
@@ -227,27 +213,26 @@ describe('rateLimit utilities', () => {
     const result = await rateLimiters.export.limit('user-4')
 
     expect(result).toEqual({ success: false, reset: Date.now() + 60_000 })
+    expect(withRateLimitWindow).toHaveBeenCalledTimes(1)
+    expect(mockIsDbError).toHaveBeenCalledTimes(1)
 
     vi.useRealTimers()
   })
 
   it('prod: rethrows non-db errors', async () => {
     vi.resetModules()
+    mockIsDbError.mockReturnValue(false)
 
     const nonDbErr = new Error('boom')
 
     vi.doMock('@actions/utils/environment/environmentActions', () => ({
       isProd: () => true,
     }))
-    vi.doMock('@actions/utils/rateLimit/store', () => ({
+    vi.doMock('../store', () => ({
       withRateLimitWindow: vi.fn(async () => {
         throw nonDbErr
       }),
     }))
-    vi.doMock('astro:db', () => ({
-      isDbError: () => false,
-    }))
-
     const { rateLimiters } = await import('..')
 
     await expect(rateLimiters.export.limit('user-5')).rejects.toThrow('boom')
@@ -255,17 +240,14 @@ describe('rateLimit utilities', () => {
 
   it('checkContactRateLimit always allows in non-prod', async () => {
     vi.resetModules()
+    mockIsDbError.mockReturnValue(false)
 
     vi.doMock('@actions/utils/environment/environmentActions', () => ({
       isProd: () => false,
     }))
-    vi.doMock('@actions/utils/rateLimit/store', () => ({
+    vi.doMock('../store', () => ({
       withRateLimitWindow: vi.fn(),
     }))
-    vi.doMock('astro:db', () => ({
-      isDbError: () => false,
-    }))
-
     const { checkContactRateLimit } = await import('..')
 
     for (let i = 0; i < 20; i += 1) {
@@ -275,19 +257,16 @@ describe('rateLimit utilities', () => {
 
   it('checkContactRateLimit enforces limits in prod', async () => {
     vi.resetModules()
+    mockIsDbError.mockReturnValue(false)
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2025-01-01T00:00:00.000Z'))
 
     vi.doMock('@actions/utils/environment/environmentActions', () => ({
       isProd: () => true,
     }))
-    vi.doMock('@actions/utils/rateLimit/store', () => ({
+    vi.doMock('../store', () => ({
       withRateLimitWindow: vi.fn(),
     }))
-    vi.doMock('astro:db', () => ({
-      isDbError: () => false,
-    }))
-
     const { checkContactRateLimit } = await import('..')
 
     for (let i = 0; i < 5; i += 1) {
@@ -300,18 +279,15 @@ describe('rateLimit utilities', () => {
 
   it('checkContactRateLimit resets after window passes in prod', async () => {
     vi.resetModules()
+    mockIsDbError.mockReturnValue(false)
     vi.useFakeTimers()
 
     vi.doMock('@actions/utils/environment/environmentActions', () => ({
       isProd: () => true,
     }))
-    vi.doMock('@actions/utils/rateLimit/store', () => ({
+    vi.doMock('../store', () => ({
       withRateLimitWindow: vi.fn(),
     }))
-    vi.doMock('astro:db', () => ({
-      isDbError: () => false,
-    }))
-
     const { checkContactRateLimit } = await import('..')
 
     vi.setSystemTime(new Date('2025-01-01T00:00:00.000Z'))

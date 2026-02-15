@@ -1,0 +1,168 @@
+---
+/**
+ * Offline Page Layout
+ */
+import contactData from '@content/contact.json'
+import HeadingAnchor from '@components/Layout/HeadingAnchor/index.astro'
+import List from '@components/List/index.astro'
+import Icon from '@components/Icon/index.astro'
+
+export type Props = {
+  content: {
+    title: string
+    message: string
+    items: {
+      label: string
+      cards: {
+        title: string
+        description: string
+        icon: string
+        color: string
+        inverseColor: string
+      }[]
+    }
+    about: {
+      heading: string
+      items: {
+        stat: string
+        area: string
+      }[]
+    }
+    close: string
+    retryText: string
+  }
+}
+
+const { content } = Astro.props
+
+const actionCards = content.items.cards.map((card) => {
+  return {
+    title: card.title,
+    text: card.description,
+    icon: card.icon,
+    color: card.color,
+    inverseColor: card.inverseColor
+  }
+})
+---
+
+<div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-2 md:py-4">
+  <!-- Header (follows privacy page pattern) -->
+  <header class="text-center max-w-2xl mx-auto mb-12">
+    <div class="inline-flex items-center justify-center w-18 h-18 rounded-full bg-primary/10 mb-5">
+      <Icon
+        icon="waiting"
+        color="primary-offset"
+        size={12}
+      />
+    </div>
+    <h1 class="text-4xl md:text-5xl font-bold text-page-inverse mb-4">{content.title}</h1>
+    <p class="text-lg text-content-offset leading-relaxed">{content.message}</p>
+  </header>
+
+  <!-- What You Can Do Offline Section -->
+  <section
+    class="bg-page-offset rounded-xl shadow-md p-8 mb-8"
+    aria-labelledby="offline-actions-title"
+  >
+    <h2 class="text-2xl font-semibold text-page-inverse mb-6" id="offline-actions-title">
+      {content.items.label}
+      <HeadingAnchor href={"#offline-actions-title"} />
+    </h2>
+    <List
+      variant="two-column-icon-list"
+      items={actionCards}
+      classes={{
+        ul: "text-page-inverse",
+        em: "page-inverse"
+      }}
+    />
+  </section>
+
+  <!-- About Webstack Builders -->
+  <section
+    class="bg-content-active rounded-xl p-8 mb-8"
+    aria-labelledby="offline-company-title"
+  >
+    <h2 class="text-2xl font-semibold text-content-inverse mb-3" id="offline-company-title">
+      {content.about.heading}
+      <HeadingAnchor href={"#offline-company-title"} />
+    </h2>
+    <p class="text-content-inverse/70 leading-relaxed mb-6">
+      {contactData.company.description}
+    </p>
+    <div class="grid grid-cols-3 gap-6 text-center">
+      {content.about.items.map((item) => {
+        return (
+          <div>
+            <div class="text-3xl font-bold text-secondary-offset">{item.stat}</div>
+            <div class="text-sm text-content-inverse/60">{item.area}</div>
+          </div>
+        )
+      })}
+    </div>
+  </section>
+
+  <!-- Get In Touch -->
+  <section
+    class="bg-content-inverse-active rounded-xl p-8 mb-10"
+    aria-labelledby="offline-contact-title"
+  >
+    <h2 class="text-xl font-semibold text-page-inverse mb-5" id="offline-contact-title">
+      {content.close}
+      <HeadingAnchor href={"#offline-contact-title"} />
+    </h2>
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div class="flex items-center gap-3 bg-content-inverse rounded-lg p-4 shadow-sm">
+        <div class="shrink-0 w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mr-2">
+          <Icon
+            icon="email"
+            color="primary-offset"
+            size={6}
+          />
+        </div>
+        <div>
+          <div class="text-sm text-content-offset font-medium uppercase tracking-wide">Email</div>
+          <div class="text-md text-page-inverse font-semibold">{contactData.company.email}</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-3 bg-content-inverse rounded-lg p-4 shadow-sm">
+        <div class="shrink-0 w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mr-2">
+          <Icon
+            icon="globe"
+            color="primary-offset"
+            size={6}
+          />
+        </div>
+        <div>
+          <div class="text-sm text-content-offset font-medium uppercase tracking-wide">Website</div>
+          <div class="text-md text-page-inverse font-semibold">{contactData.company.url.replace('https://', '')}</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Retry Button -->
+  <section class="text-center mb-8" aria-labelledby="offline-retry-title">
+    <h2 class="sr-only" id="offline-retry-title">Try again</h2>
+    <button
+      data-offline-retry
+      id="offline-retry-button"
+      class="inline-flex items-center bg-spotlight hover:bg-spotlight-offset text-primary font-semibold py-3 px-8 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg"
+    >
+      <Icon
+        icon="reload"
+        color="primary-offset"
+        size={5}
+      />
+      <span class="ml-1">{content.retryText}</span>
+    </button>
+  </section>
+
+  <offline-page-client data-testid="offline-page-client"></offline-page-client>
+</div>
+
+<script>
+  import { registerOfflinePageClient } from '@components/Pages/Offline/client/webComponent'
+  registerOfflinePageClient()
+</script>

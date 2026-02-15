@@ -1,0 +1,51 @@
+---
+import Icon from "@components/Icon/index.astro"
+
+export type Props = {
+  items: {
+    title?: string
+    text: string
+    icon?: string
+    color: string
+    inverseColor?: string
+  }[]
+  classes?: {
+    ul?: string
+    li?: string
+    em?: string
+  }
+  size?: number
+}
+
+const { items, classes, size }: Props = Astro.props
+
+const ulClass = ["grid md:grid-cols-2 gap-6", classes?.ul].filter(Boolean).join(" ")
+const liClass = ["flex items-start gap-2", classes?.li].filter(Boolean).join(" ")
+const iconWrapper = "shrink-0 w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mt-1"
+const contentWrapper = ["text-page-inverse mb-1 ml-2", classes?.em].filter(Boolean).join(" ")
+const textClass = "text-sm"
+---
+
+<ul class={ulClass}>
+  {
+    items.map((item) => {
+      const icon = item.icon ?? "check"
+
+      return (
+        <li class={liClass}>
+          <div class={iconWrapper}>
+            <Icon
+              icon={icon}
+              color={item.color}
+              size={size ?? 6}
+            />
+          </div>
+          <div class={contentWrapper}>
+            <h3 class="font-sans text-xl">{item.title}</h3>
+            <p class={textClass}>{item.text}</p>
+          </div>
+        </li>
+      )
+    })
+  }
+</ul>

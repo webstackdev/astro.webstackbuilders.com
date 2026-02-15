@@ -1,0 +1,25 @@
+---
+export type Props = {
+  color: string
+  classes?: string
+  size: number
+  accessible: boolean
+  focusable: boolean
+  isListMarker?: boolean
+}
+
+const { color, classes, size, accessible, focusable, isListMarker } = Astro.props
+---
+
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  class:list={["shrink-0", `w-${size} h-${size}`, `text-${color}`, classes, isListMarker ? "mt-0.5" : ""]}
+  fill="currentColor"
+  stroke="currentColor"
+  viewBox="0 0 24 24"
+  aria-hidden={accessible ? "false" : "true"}
+  focusable={focusable ? "true" : "false"}
+>
+  {accessible && <title>play icon</title>}
+  <path d="M8 5v14l11-7z" />
+</svg>

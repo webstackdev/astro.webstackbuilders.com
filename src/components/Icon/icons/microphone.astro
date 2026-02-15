@@ -1,0 +1,25 @@
+---
+export type Props = {
+  color: string
+  classes?: string
+  size: number
+  accessible: boolean
+  focusable: boolean
+  isListMarker?: boolean
+}
+
+const { color, classes, size, accessible, focusable, isListMarker } = Astro.props
+---
+
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  class:list={["shrink-0", `w-${size} h-${size}`, `text-${color}`, classes, isListMarker ? "mt-0.5" : ""]}
+  fill="currentColor"
+  stroke="currentColor"
+  viewBox="0 0 24 24"
+  aria-hidden={accessible ? "false" : "true"}
+  focusable={focusable ? "true" : "false"}
+>
+  {accessible && <title>microphone icon</title>}
+  <path d="M18.628 9.633v1.885a7.57 7.57 0 0 1-2.179 5.315 7.45 7.45 0 0 1-2.361 1.62 7.3 7.3 0 0 1-2.095.553v2.733h3.327a.797.797 0 0 1 0 1.594H7.07a.797.797 0 0 1 0-1.594h3.327v-2.733a7.3 7.3 0 0 1-2.095-.552 7.45 7.45 0 0 1-2.361-1.62 7.57 7.57 0 0 1-2.179-5.318V9.631a.798.798 0 1 1 1.596 0v1.885a5.95 5.95 0 0 0 1.72 4.198 5.74 5.74 0 0 0 8.233 0 5.95 5.95 0 0 0 1.72-4.198V9.631a.798.798 0 1 1 1.596 0zM7.267 13.165a4.1 4.1 0 0 1-.335-1.649V5.061a4.2 4.2 0 0 1 .335-1.666 4.32 4.32 0 0 1 2.288-2.288A4.2 4.2 0 0 1 11.221.77a4.1 4.1 0 0 1 1.658.336 4.28 4.28 0 0 1 2.58 3.954l-.017 6.457a4.26 4.26 0 0 1-1.232 3.007 4.4 4.4 0 0 1-1.348.913 4.1 4.1 0 0 1-1.658.335 4.2 4.2 0 0 1-1.666-.335 4.26 4.26 0 0 1-2.271-2.273"/>
+</svg>
