@@ -3,12 +3,12 @@ import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import { TestError } from '@test/errors'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import ConsentPreferencesComponent from '@components/Consent/Preferences/index.astro'
-import type { ConsentPreferencesElement } from '@components/Consent/Preferences/client'
+import type { ConsentPreferencesElement } from '@components/Pages/Preferences/client'
 import {
   getAllowAllBtn,
   getSavePreferencesBtn,
   getDenyAllBtn,
-} from '@components/Consent/Preferences/client/selectors'
+} from '@components/Pages/Preferences/client/selectors'
 import { executeRender, withJsdomEnvironment } from '@test/unit/helpers/litRuntime'
 
 type ConsentPreferencesModule = WebComponentModule<ConsentPreferencesElement>

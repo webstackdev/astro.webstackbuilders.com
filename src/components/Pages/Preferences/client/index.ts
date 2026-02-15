@@ -20,7 +20,7 @@ import {
   getAllowAllBtn,
   getSavePreferencesBtn,
   getDenyAllBtn,
-} from '@components/Consent/Preferences/client/selectors'
+} from '@components/Pages/Preferences/client/selectors'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { defineCustomElement } from '@components/scripts/utils'
