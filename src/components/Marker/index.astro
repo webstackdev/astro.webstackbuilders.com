@@ -10,6 +10,8 @@ export type Props = {
    * apply the value to their stroke and fill attributes as appropriate for the image.
    */
   color?: string
+  /** A color for the icon to use for internal fill areas */
+  inverseColor?: string
   /** Defaults to 24. */
   size?: number
   /** Any additional CSS classes to apply to the SVG element. */
@@ -25,10 +27,11 @@ export type Props = {
   isListMarker?: boolean
 }
 
-const { icon, color = 'inherit', size = 14, classes, accessible = false, focusable = false, isListMarker = true }: Props = Astro.props
+const { icon, color = 'inherit', inverseColor, size = 14, classes, accessible = false, focusable = false, isListMarker = true }: Props = Astro.props
 
 const MarkerComponent = getMarkerComponent(icon) as unknown as (_props: {
   color?: string
+  inverseColor?: string
   size?: number
   classes?: string
   accessible?: boolean
@@ -38,6 +41,7 @@ const MarkerComponent = getMarkerComponent(icon) as unknown as (_props: {
 
 const markerProps = {
   ...(color ? { color } : {}),
+  ...(inverseColor ? { inverseColor } : {}),
   ...(size !== undefined ? { size } : {}),
   ...(classes ? { classes } : {}),
   ...(accessible ? { accessible } : {}),

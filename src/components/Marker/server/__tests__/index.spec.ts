@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { AstroComponentFactory } from 'astro/runtime/server/index.js'
-import { getMarkerComponent } from '@components/List/server'
+import { getMarkerComponent } from '@components/Marker/server'
 
 const downloadMarker = (() => null) as unknown as AstroComponentFactory
 const avatarMarker = (() => null) as unknown as AstroComponentFactory

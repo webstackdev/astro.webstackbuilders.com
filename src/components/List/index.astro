@@ -10,6 +10,7 @@ import PlainIconList from '@components/List/layouts/PlainIconList.astro'
 import SideBySideList from '@components/List/layouts/SideBySideList.astro'
 import TimelineList from '@components/List/layouts/TimelineList.astro'
 import TwoColumnCheckIconsList from '@components/List/layouts/TwoColumnCheckIconsList.astro'
+import TwoColumnIconList from '@components/List/layouts/TwoColumnIconList.astro'
 import ZebraList from '@components/List/layouts/ZebraList.astro'
 
 export type Props = {
@@ -19,6 +20,7 @@ export type Props = {
     text: string
     icon?: string
     color?: string
+    inverseColor?: string
   }[]
   classes?: {
     ol?: string
@@ -39,11 +41,13 @@ const itemsWithColor = items as Array<{
   text: string
   icon?: string
   color: string
+  inverseColor?: string
 }>
 const itemsWithIconAndColor = items as Array<{
   text: string
   icon: string
   color: string
+  inverseColor?: string
 }>
 ---
 
@@ -58,4 +62,5 @@ const itemsWithIconAndColor = items as Array<{
 {variant === 'side-by-side-list' && <SideBySideList items={items} {...classesProps} />}
 {variant === 'timeline-list' && <TimelineList items={items} {...classesProps} />}
 {variant === 'two-column-check-icons-list' && <TwoColumnCheckIconsList items={items} {...classesProps} {...sizeProps} />}
+{variant === 'two-column-icon-list' && <TwoColumnIconList items={itemsWithIconAndColor} {...classesProps} {...sizeProps} />}
 {variant === 'zebra-list' && <ZebraList items={items} {...classesProps} />}
