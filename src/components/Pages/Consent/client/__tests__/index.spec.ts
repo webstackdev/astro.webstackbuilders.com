@@ -27,6 +27,10 @@ const consentContent = {
     description: 'Manage your cookie preferences.',
   },
   intro: 'Intro content',
+  introLinks: {
+    privacyPolicyText: 'Privacy Policy',
+    myDataText: 'My Data',
+  },
   essential: {
     heading: 'Essential Data',
     subheading: 'Always active',
@@ -68,7 +72,7 @@ const consentContent = {
   questions: {
     heading: 'Questions',
     subheading: 'Questions subheading',
-    metods: [],
+    methods: [],
   },
 }
 
@@ -352,18 +356,20 @@ describe('ConsentPreferencesElement', () => {
       const functionalCheckbox = window.document.getElementById(
         'functional-cookies'
       ) as HTMLInputElement | null
-      const contactLink = window.document.querySelector('a[href="/contact/"]') as HTMLAnchorElement | null
+      const contactLink = window.document.createElement('a')
+      contactLink.href = '/contact/'
+      contactLink.textContent = 'Contact'
+      window.document.body.append(contactLink)
       const dialog = window.document.getElementById('consent-unsaved-dialog') as HTMLElement | null
 
       expect(functionalCheckbox).not.toBeNull()
-      expect(contactLink).not.toBeNull()
       expect(dialog).not.toBeNull()
 
       functionalCheckbox!.checked = true
       functionalCheckbox!.dispatchEvent(new window.Event('change', { bubbles: true }))
 
       const navigationEvent = new window.MouseEvent('click', { bubbles: true, cancelable: true })
-      contactLink!.dispatchEvent(navigationEvent)
+      contactLink.dispatchEvent(navigationEvent)
 
       expect(navigationEvent.defaultPrevented).toBe(true)
       expect(dialog!.hasAttribute('open')).toBe(true)
@@ -375,19 +381,21 @@ describe('ConsentPreferencesElement', () => {
       const functionalCheckbox = window.document.getElementById(
         'functional-cookies'
       ) as HTMLInputElement | null
-      const contactLink = window.document.querySelector('a[href="/contact/"]') as HTMLAnchorElement | null
+      const contactLink = window.document.createElement('a')
+      contactLink.href = '/contact/'
+      contactLink.textContent = 'Contact'
+      window.document.body.append(contactLink)
       const discardBtn = window.document.getElementById('consent-unsaved-discard') as HTMLButtonElement | null
       const dialog = window.document.getElementById('consent-unsaved-dialog') as HTMLElement | null
 
       expect(functionalCheckbox).not.toBeNull()
-      expect(contactLink).not.toBeNull()
       expect(discardBtn).not.toBeNull()
       expect(dialog).not.toBeNull()
 
       functionalCheckbox!.checked = true
       functionalCheckbox!.dispatchEvent(new window.Event('change', { bubbles: true }))
 
-      contactLink!.dispatchEvent(new window.MouseEvent('click', { bubbles: true, cancelable: true }))
+      contactLink.dispatchEvent(new window.MouseEvent('click', { bubbles: true, cancelable: true }))
       expect(dialog!.hasAttribute('open')).toBe(true)
 
       discardBtn!.dispatchEvent(new window.MouseEvent('click', { bubbles: true }))

@@ -41,6 +41,12 @@ export class ConsentPreferencesElement extends LitElement {
 
   private static readonly saveButtonEnabledClasses = ['bg-page-inverse', 'hover:bg-secondary-offset']
 
+  private static readonly saveButtonSavingClasses = [
+    'bg-secondary-offset',
+    'hover:bg-secondary-offset',
+    'cursor-progress',
+  ]
+
   private allowAllBtn!: HTMLButtonElement
   private denyAllBtn!: HTMLButtonElement
   private saveBtn!: HTMLButtonElement
@@ -249,7 +255,8 @@ export class ConsentPreferencesElement extends LitElement {
       async () => {
         const saved = await this.savePreferencesWithDelay()
         if (saved) {
-          this.navigateToPendingUrl()
+          this.closeUnsavedDialog()
+          this.pendingNavigationUrl = null
         }
       },
       this
@@ -301,13 +308,13 @@ export class ConsentPreferencesElement extends LitElement {
       }
     }
 
-    document.addEventListener('click', this.documentClickHandler, true)
+    window.addEventListener('click', this.documentClickHandler, true)
     window.addEventListener('beforeunload', this.beforeUnloadHandler)
   }
 
   private removeUnsavedChangesProtection(): void {
     if (this.documentClickHandler) {
-      document.removeEventListener('click', this.documentClickHandler, true)
+      window.removeEventListener('click', this.documentClickHandler, true)
       this.documentClickHandler = null
     }
 
@@ -353,6 +360,8 @@ export class ConsentPreferencesElement extends LitElement {
     }
 
     event.preventDefault()
+    event.stopPropagation()
+    event.stopImmediatePropagation()
     this.pendingNavigationUrl = destination.toString()
     this.openUnsavedDialog()
   }
@@ -457,8 +466,14 @@ export class ConsentPreferencesElement extends LitElement {
 
     const disabledClasses = ConsentPreferencesElement.saveButtonDisabledClasses
     const enabledClasses = ConsentPreferencesElement.saveButtonEnabledClasses
+    const savingClasses = ConsentPreferencesElement.saveButtonSavingClasses
 
-    this.saveBtn.classList.remove(...disabledClasses, ...enabledClasses)
+    this.saveBtn.classList.remove(...disabledClasses, ...enabledClasses, ...savingClasses)
+
+    if (this.isSavingPreferences) {
+      this.saveBtn.classList.add(...savingClasses)
+      return
+    }
 
     if (!isSaveDisabled) {
       this.saveBtn.classList.add(...enabledClasses)

@@ -23,6 +23,10 @@ const consentContent = {
     description: 'Manage your cookie preferences.',
   },
   intro: 'Intro content',
+  introLinks: {
+    privacyPolicyText: 'Privacy Policy',
+    myDataText: 'My Data',
+  },
   essential: {
     heading: 'Essential Data',
     subheading: 'Always active',
@@ -64,7 +68,7 @@ const consentContent = {
   questions: {
     heading: 'Questions',
     subheading: 'Questions subheading',
-    metods: [],
+    methods: [],
   },
 }
 
