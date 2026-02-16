@@ -7,23 +7,29 @@ export type Props = {
     text: string
     icon?: string
     color: string
+    bgColor?: string
     inverseColor?: string
   }[]
   classes?: {
     ul?: string
     li?: string
+    icon?: string
+    header?: string
+    content?: string
     em?: string
+    text?: string
   }
   size?: number
 }
 
 const { items, classes, size }: Props = Astro.props
 
-const ulClass = ["grid md:grid-cols-2 gap-6", classes?.ul].filter(Boolean).join(" ")
+const ulClass = ["grid grid-cols-1 md:grid-cols-2 gap-6", classes?.ul].filter(Boolean).join(" ")
 const liClass = ["flex items-start gap-2", classes?.li].filter(Boolean).join(" ")
-const iconWrapper = "shrink-0 w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mt-1"
-const contentWrapper = ["text-page-inverse mb-1 ml-2", classes?.em].filter(Boolean).join(" ")
-const textClass = "text-sm"
+const iconWrapper = ["shrink-0 rounded-lg flex items-center justify-center mt-1", classes?.icon].filter(Boolean).join(" ")
+const contentWrapper = ["text-page-inverse mb-1 ml-2", classes?.content].filter(Boolean).join(" ")
+const headerClass = ["font-sans text-xl text-content", classes?.header].filter(Boolean).join(" ")
+const textClass = ["text-sm text-content-offset", classes?.text].filter(Boolean).join(" ")
 ---
 
 <ul class={ulClass}>
@@ -33,7 +39,7 @@ const textClass = "text-sm"
 
       return (
         <li class={liClass}>
-          <div class={iconWrapper}>
+          <div class={[iconWrapper, item.bgColor ? `bg-${item.bgColor}` : ""].filter(Boolean).join(" ")}>
             <Icon
               icon={icon}
               color={item.color}
@@ -41,7 +47,7 @@ const textClass = "text-sm"
             />
           </div>
           <div class={contentWrapper}>
-            <h3 class="font-sans text-xl">{item.title}</h3>
+            <h3 class={headerClass}>{item.title}</h3>
             <p class={textClass}>{item.text}</p>
           </div>
         </li>

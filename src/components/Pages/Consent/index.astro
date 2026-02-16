@@ -1,241 +1,446 @@
 ---
-import { Image } from 'astro:assets'
-import logoSvg from '@assets/images/site/logo.svg'
+import Icon from '@components/Icon/index.astro'
+import List from '@components/List/index.astro'
+import UnsavedConsentDialog from '@components/Pages/Consent/unsaved.astro'
+import HeadingAnchor from '@components/Layout/HeadingAnchor/index.astro'
 
 export type Props = {
   content: {
-    title: string
-    message: string
+    header: {
+      title: string
+      description: string
+    }
+    intro: string
+    essential: {
+      heading: string
+      subheading: string
+      buttonText: string
+      description: string
+    }
+    analytics: {
+      heading: string
+      subheading: string
+      description: string
+    }
+    functional: {
+      heading: string
+      subheading: string
+      description: string
+      trailer: string
+    }
+    marketing: {
+      heading: string
+      subheading: string
+      description: string
+    }
+    buttons: {
+      save: string
+      acceptAll: string
+      rejectAll: string
+    },
+    cookies: {
+      heading: string
+      subheading: string
+      description: string
+      types: {
+        title: string
+        text: string
+        icon: string
+        color: string
+        bgColor?: string
+      }[]
+    }
+    management: {
+      heading: string
+      subheading: string
+      types: {
+        name: string
+        description: string
+        icon: string
+      }[]
+    }
+    questions: {
+      heading: string
+      subheading: string
+      methods: {
+        lead: string
+        description: string
+        link: string
+        icon: string
+      }[]
+    }
   }
 }
 
 const { content } = Astro.props
 ---
 
-<consent-preferences class="block w-full">
-  <section
-    class="bg-content-inverse rounded-2xl shadow-2xl max-w-4xl w-full"
-    aria-labelledby="consent-preferences__title"
-    aria-describedby="consent-preferences__settings-desc"
-  >
-    <div class="px-6 py-4 flex items-center justify-between border-b border-page-offset">
-      <div class="flex items-center gap-4">
-        <Image src={logoSvg} alt="Webstack Builders corporate logo." class="h-8 w-auto" />
-        <h2 id="consent-preferences__title" class="text-2xl font-bold">
-          Privacy Preference Center
-        </h2>
-      </div>
+<div class="mx-auto px-4 sm:px-6 lg:px-8 py-2 md:py-4">
+  <header class="text-center max-w-2xl mx-auto mb-8">
+    <div class="inline-flex items-center justify-center w-18 h-18 rounded-full bg-primary/10 mb-5">
+      <Icon
+        icon="avatar"
+        color="page-inverse"
+        size={12}
+      />
     </div>
+    <h1 class="text-4xl md:text-5xl font-bold text-page-inverse mb-4">{content.header.title}</h1>
+    <p class="text-lg text-content-offset leading-relaxed mb-4">
+      {content.header.description}
+    </p>
+  </header>
 
-    <div class="px-6 py-8">
-      {/* Introduction */}
-      <div class="mb-8">
-        <p id="consent-preferences__settings-desc" class="leading-relaxed">
-          When you visit our website, we may store information in your browser or device to make the
-          site work and provide a better experience. This includes both cookies and local storage.
-          The information we collect might relate to you, your preferences, or your device. You can
-          choose which types of data storage to allow, though some choices may affect how the site
-          works. Click on the different categories below to learn more and customize your
-          preferences.
-        </p>
-      </div>
-
-      {/* Data Storage Categories */}
-      <div class="space-y-6">
-        {/* Strictly Necessary */}
-        <div class="border border-gray-200 dark:border-gray-700 rounded-xl p-6">
-          <div class="flex items-center justify-between mb-4">
-            <div>
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Essential Data</h3>
-              <p class="text-sm text-gray-600 dark:text-gray-400">
-                Always Active - Required for the website to work
-              </p>
-            </div>
-            <div class="flex items-center">
-              <span
-                class="text-sm text-green-600 dark:text-green-400 font-medium bg-green-100 dark:bg-green-900/30 px-3 py-1 rounded-full"
-              >
-                Always Active
-              </span>
-            </div>
-          </div>
-          <p class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
-            We need to store some information for our website to work properly. This includes things
-            like your privacy preferences, login status, and form data. We can't turn this off, as
-            the site wouldn't function without it. This data doesn't identify you personally and is
-            only used to make the site work as you'd expect.
+  <consent-preferences class="block w-full mb-12">
+    <section
+      class="bg-content-inverse rounded-2xl shadow-2xl max-w-4xl mx-auto w-full"
+      aria-labelledby="consent-preferences__title"
+      aria-describedby="consent-preferences__settings-desc"
+    >
+      <div class="px-6 py-8">
+        {/* Introduction */}
+        <div class="mb-8">
+          <p id="consent-preferences__settings-desc" class="leading-relaxed">
+            {content.intro}
           </p>
         </div>
 
-        {/* Performance and Analytics */}
-        <div class="border border-gray-200 dark:border-gray-700 rounded-xl p-6">
-          <div class="flex items-center justify-between mb-4">
-            <div>
-              <h3
-                id="consent-preferences__analytics-title"
-                class="text-lg font-semibold text-gray-900 dark:text-white"
-              >
-                Performance and Analytics
-              </h3>
-              <p
-                id="consent-preferences__analytics-desc"
-                class="text-sm text-gray-600 dark:text-gray-400"
-              >
-                Helps us understand how visitors use our website
-              </p>
-            </div>
-            <label
-              class="relative inline-flex items-center cursor-pointer"
-              data-consent-toggle="analytics-cookies"
-            >
-              <input
-                type="checkbox"
-                id="analytics-cookies"
-                class="sr-only peer"
-                role="switch"
-                aria-labelledby="consent-preferences__analytics-title"
-                aria-describedby="consent-preferences__analytics-desc"
-                checked
-              />
-              <div
-                class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
-              >
+        {/* Data Storage Categories */}
+        <div class="space-y-6">
+          {/* Essential Data */}
+          <div class="border border-gray-200 dark:border-gray-700 rounded-xl p-6">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3
+                  class="text-lg font-semibold text-gray-900 dark:text-white"
+                  id="consent-preferences__essential-title"
+                >
+                  {content.essential.heading}
+                  <HeadingAnchor href={"#consent-preferences__essential-title"} />
+                </h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400">{content.essential.subheading}</p>
               </div>
-            </label>
+              <div class="flex items-center">
+                <span
+                  class="text-sm text-green-600 dark:text-green-400 font-medium bg-green-100 dark:bg-green-900/30 px-3 py-1 rounded-full"
+                >
+                  {content.essential.buttonText}
+                </span>
+              </div>
+            </div>
+            <p class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+              {content.essential.description}
+            </p>
           </div>
-          <p class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
-            These tools, including Google Analytics, help us count visits and understand where
-            traffic comes from so we can improve our site. They show us which pages are popular and
-            how people navigate around. All the information collected is anonymous - we see trends,
-            not individuals. If you opt out, we won't know when you've visited and can't measure how
-            well the site is working.
-          </p>
-        </div>
 
-        {/* Functional */}
-        <div class="border border-gray-200 dark:border-gray-700 rounded-xl p-6">
-          <div class="flex items-center justify-between mb-4">
-            <div>
-              <h3
-                id="consent-preferences__functional-title"
-                class="text-lg font-semibold text-gray-900 dark:text-white"
-              >
-                Enhanced Features
-              </h3>
-              <p
-                id="consent-preferences__functional-desc"
-                class="text-sm text-gray-600 dark:text-gray-400"
-              >
-                Remembers your social media preferences
-              </p>
-            </div>
-            <label
-              class="relative inline-flex items-center cursor-pointer"
-              data-consent-toggle="functional-cookies"
-            >
-              <input
-                type="checkbox"
-                id="functional-cookies"
-                class="sr-only peer"
-                role="switch"
-                aria-labelledby="consent-preferences__functional-title"
-                aria-describedby="consent-preferences__functional-desc"
-              />
-              <div
-                class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
-              >
+          {/* Performance and Analytics */}
+          <div class="border border-gray-200 dark:border-gray-700 rounded-xl p-6">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3
+                  id="consent-preferences__analytics-title"
+                  class="text-lg font-semibold text-gray-900 dark:text-white"
+                >
+                  {content.analytics.heading}
+                  <HeadingAnchor href={"#consent-preferences__analytics-title"} />
+                </h3>
+                <p
+                  id="consent-preferences__analytics-desc"
+                  class="text-sm text-gray-600 dark:text-gray-400"
+                >
+                  {content.analytics.subheading}
+                </p>
               </div>
-            </label>
+              <label
+                class="relative inline-flex items-center cursor-pointer"
+                data-consent-toggle="analytics-cookies"
+              >
+                <input
+                  type="checkbox"
+                  id="analytics-cookies"
+                  class="sr-only peer"
+                  role="switch"
+                  aria-labelledby="consent-preferences__analytics-title"
+                  aria-describedby="consent-preferences__analytics-desc"
+                  checked
+                />
+                <div
+                  class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
+                >
+                </div>
+              </label>
+            </div>
+            <p class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+              {content.analytics.description}
+            </p>
           </div>
-          <p class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed mb-3">
-            This feature remembers your Mastodon instance when you use the "Share to Mastodon"
-            button. It's completely optional and requires your permission because it stores
-            information about which Mastodon server you use, which could identify you.
-          </p>
-          <div
-            class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4"
-          >
-            <p class="text-sm text-blue-800 dark:text-blue-200 leading-relaxed">
-              <strong>Note:</strong> Your theme preference and social media embed caching are classified
-              as "essential" and work without requiring consent. Enhanced features are only for optional
-              conveniences like remembering your Mastodon instance. You can opt in to enable these extras.
+
+          {/* Functional */}
+          <div class="border border-gray-200 dark:border-gray-700 rounded-xl p-6">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3
+                  id="consent-preferences__functional-title"
+                  class="text-lg font-semibold text-gray-900 dark:text-white"
+                >
+                  {content.functional.heading}
+                  <HeadingAnchor href={"#consent-preferences__functional-title"} />
+                </h3>
+                <p
+                  id="consent-preferences__functional-desc"
+                  class="text-sm text-gray-600 dark:text-gray-400"
+                >
+                  {content.functional.subheading}
+                </p>
+              </div>
+              <label
+                class="relative inline-flex items-center cursor-pointer"
+                data-consent-toggle="functional-cookies"
+              >
+                <input
+                  type="checkbox"
+                  id="functional-cookies"
+                  class="sr-only peer"
+                  role="switch"
+                  aria-labelledby="consent-preferences__functional-title"
+                  aria-describedby="consent-preferences__functional-desc"
+                />
+                <div
+                  class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
+                >
+                </div>
+              </label>
+            </div>
+            <p class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed mb-3">
+              {content.functional.description}
+            </p>
+            <div
+              class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4"
+            >
+              <p class="text-sm text-blue-800 dark:text-blue-200 leading-relaxed" set:html={content.functional.trailer}></p>
+            </div>
+          </div>
+
+          {/* Marketing */}
+          <div class="border border-gray-200 dark:border-gray-700 rounded-xl p-6">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3
+                  id="consent-preferences__marketing-title"
+                  class="text-lg font-semibold text-gray-900 dark:text-white"
+                >
+                  {content.marketing.heading}
+                  <HeadingAnchor href={"#consent-preferences__marketing-title"} />
+                </h3>
+                <p
+                  id="consent-preferences__marketing-desc"
+                  class="text-sm text-gray-600 dark:text-gray-400"
+                >
+                  {content.marketing.subheading}
+                </p>
+              </div>
+              <label
+                class="relative inline-flex items-center cursor-pointer"
+                data-consent-toggle="marketing-cookies"
+              >
+                <input
+                  type="checkbox"
+                  id="marketing-cookies"
+                  class="sr-only peer"
+                  role="switch"
+                  aria-labelledby="consent-preferences__marketing-title"
+                  aria-describedby="consent-preferences__marketing-desc"
+                />
+                <div
+                  class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
+                >
+                </div>
+              </label>
+            </div>
+            <p class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+              {content.marketing.description}
             </p>
           </div>
         </div>
+      </div>
 
-        {/* Marketing */}
-        <div class="border border-gray-200 dark:border-gray-700 rounded-xl p-6">
-          <div class="flex items-center justify-between mb-4">
-            <div>
-              <h3
-                id="consent-preferences__marketing-title"
-                class="text-lg font-semibold text-gray-900 dark:text-white"
+      <div class="bg-content-inverse border-t border-page-offset px-6 py-4 flex gap-3 justify-end flex-wrap">
+        <button
+          id="consent-deny-all"
+          class="px-6 py-2 bg-spotlight rounded-lg hover:bg-spotlight-offset transition-colors duration-200 font-medium"
+        >
+          {content.buttons.rejectAll}
+        </button>
+        <button
+          id="consent-save-preferences"
+          class="px-6 py-2 bg-gray-300 text-white rounded-lg hover:bg-gray-300 cursor-not-allowed transition-colors duration-200 font-medium"
+          disabled
+          aria-disabled="true"
+        >
+          {content.buttons.save}
+        </button>
+        <button
+          id="consent-allow-all"
+          class="px-6 py-2 bg-spotlight text-white rounded-lg hover:bg-spotlight-offset transition-colors duration-200 font-medium"
+        >
+          {content.buttons.acceptAll}
+        </button>
+      </div>
+    </section>
+  </consent-preferences>
+
+  <!-- Cookie Information -->
+  <div class="prose prose-lg dark:prose-invert max-w-none">
+    <section class="mb-12" aria-labelledby="consent-what-are-cookies-title">
+      <h2
+        id="consent-what-are-cookies-title"
+        class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6"
+      >
+        {content.cookies.heading}
+        <HeadingAnchor href={"#consent-what-are-cookies-title"} />
+      </h2>
+      <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6">
+        <p class="text-gray-600 dark:text-gray-300 mb-4">
+          {content.cookies.description}
+        </p>
+        <List
+          variant="two-column-icon-list"
+          items={content.cookies.types}
+          size={4}
+          classes={{
+            ul: "mt-6",
+            icon: "w-8 h-8 bg-blue-100 mr-4",
+          }}
+        />
+      </div>
+    </section>
+
+    <section class="mb-12" aria-labelledby="consent-managing-cookies-title">
+      <h2
+        id="consent-managing-cookies-title"
+        class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6"
+      >
+        {content.management.heading}
+        <HeadingAnchor href={"#consent-managing-cookies-title"} />
+      </h2>
+      <p class="text-gray-600 dark:text-gray-300 mb-6">
+        {content.management.subheading}
+      </p>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {content.management.types.map((item) => {
+          return (
+            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md">
+              <div
+                class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mb-4"
               >
-                Marketing and Advertising
-              </h3>
-              <p
-                id="consent-preferences__marketing-desc"
-                class="text-sm text-gray-600 dark:text-gray-400"
-              >
-                Used to deliver relevant advertisements
+                <Icon
+                  icon={item.icon}
+                  color="blue-600"
+                  size={6}
+                />
+              </div>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">{item.name}</h3>
+              <p class="text-gray-600 dark:text-gray-300 text-sm">
+                {item.description}
               </p>
             </div>
-            <label
-              class="relative inline-flex items-center cursor-pointer"
-              data-consent-toggle="marketing-cookies"
+          )
+        })}
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md">
+          <div
+            class="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center mb-4"
+          >
+            <svg
+              class="w-6 h-6 text-orange-600 dark:text-orange-400"
+              aria-hidden="true"
+              focusable="false"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              <input
-                type="checkbox"
-                id="marketing-cookies"
-                class="sr-only peer"
-                role="switch"
-                aria-labelledby="consent-preferences__marketing-title"
-                aria-describedby="consent-preferences__marketing-desc"
-              />
-              <div
-                class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
-              >
-              </div>
-            </label>
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3s-4.5 4.03-4.5 9 2.015 9 4.5 9z"
+              ></path>
+            </svg>
           </div>
-          <p class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
-            These tools help identify unique browsing sessions to show generic ads. We don't collect
-            information to show you targeted ads based on your behavior. However, advertising
-            partners may use these tools to build a profile of your interests and show you relevant
-            ads on other sites. They don't store personal information directly, but identify your
-            browser and device. If you opt out, you may see less relevant advertising.
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Firefox</h3>
+          <p class="text-gray-600 dark:text-gray-300 text-sm">
+            Options → Privacy & Security → Cookies and Site Data
+          </p>
+        </div>
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md">
+          <div
+            class="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center mb-4"
+          >
+            <svg
+              class="w-6 h-6 text-gray-600 dark:text-gray-400"
+              aria-hidden="true"
+              focusable="false"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+              ></path>
+            </svg>
+          </div>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Safari</h3>
+          <p class="text-gray-600 dark:text-gray-300 text-sm">
+            Preferences → Privacy → Manage Website Data
           </p>
         </div>
       </div>
-    </div>
+    </section>
 
-    <div class="bg-content-inverse border-t border-page-offset px-6 py-4 flex gap-3 justify-end flex-wrap">
-      <button
-        id="consent-deny-all"
-        class="px-6 py-2 bg-spotlight rounded-lg hover:bg-spotlight-offset transition-colors duration-200 font-medium"
+    <section class="mb-12" aria-labelledby="consent-contact-title">
+      <h2
+        id="consent-contact-title"
+        class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6"
       >
-        Decline All
-      </button>
-      <button
-        id="consent-save-preferences"
-        class="px-6 py-2 bg-gray-300 text-white rounded-lg hover:bg-gray-300 cursor-not-allowed transition-colors duration-200 font-medium"
-        disabled
-        aria-disabled="true"
-      >
-        Save My Preferences
-      </button>
-      <button
-        id="consent-allow-all"
-        class="px-6 py-2 bg-spotlight text-white rounded-lg hover:bg-spotlight-offset transition-colors duration-200 font-medium"
-      >
-        Allow All
-      </button>
-    </div>
-  </section>
-</consent-preferences>
+        {content.questions.heading}
+        <HeadingAnchor href={"#consent-contact-title"} />
+      </h2>
+      <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-6">
+        <p class="text-gray-600 dark:text-gray-300 mb-4">
+          {content.questions.subheading}
+        </p>
+        <div class="flex items-start">
+          {content.questions.methods.map((item) => {
+            return (
+              <div
+                class="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mr-4 shrink-0"
+              >
+                <Icon
+                  icon={item.icon}
+                  color="blue-600"
+                  size={4}
+                />
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">{item.lead}</h3>
+                <a href={item.link} class="text-blue-600 dark:text-blue-400 hover:underline">
+                  {item.description}
+                </a>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<UnsavedConsentDialog />
 
 <!-- Privacy Preferences Management Script -->
 <script>
-  import { registerConsentPreferencesWebComponent } from '@components/Consent/Preferences/client'
+  import { registerConsentPreferencesWebComponent } from '@components/Pages/Consent/client'
   registerConsentPreferencesWebComponent()
 </script>

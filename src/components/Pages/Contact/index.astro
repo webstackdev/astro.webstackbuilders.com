@@ -1,38 +1,36 @@
 ---
+// import List from '@components/List/index.astro'
+import Icon from '@components/Icon/index.astro'
+// import HeadingAnchor from '@components/Layout/HeadingAnchor/index.astro'
 import ContactForm from '@components/Forms/Contact/index.astro'
 import Map from '@components/Map/index.astro'
 
 export type Props = {
   content: {
-    title: string
-    message: string
+    header: {
+      title: string
+      description: string
+    }
   }
 }
-
 const { content } = Astro.props
 ---
 
 <div class="min-h-screen">
   <!-- Contact Hero Section -->
-  <section
-    class="py-16 md:py-20 bg-linear-to-br from-blue-600 to-purple-600 text-white text-center"
-    aria-labelledby="contact-hero-title"
-  >
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="space-y-6">
-        <h1
-          id="contact-hero-title"
-          class="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight"
-        >
-          Let's Build Something Amazing
-        </h1>
-        <p class="text-lg md:text-xl opacity-90 max-w-2xl mx-auto leading-relaxed">
-          Ready to transform your digital presence? Share your project details and let's create
-          something extraordinary together.
-        </p>
-      </div>
+  <header class="text-center max-w-2xl mx-auto mb-8">
+    <div class="inline-flex items-center justify-center w-18 h-18 rounded-full bg-primary/10 mb-5">
+      <Icon
+        icon="map"
+        color="page-inverse"
+        size={12}
+      />
     </div>
-  </section>
+    <h1 class="text-4xl md:text-5xl font-bold text-page-inverse mb-4">{content.header.title}</h1>
+    <p class="text-lg text-content-offset leading-relaxed mb-4">
+      {content.header.description}
+    </p>
+  </header>
 
   <!-- Google Maps embed -->
   <Map />

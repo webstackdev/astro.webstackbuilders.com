@@ -3,6 +3,11 @@
 
 Clear All Workspace Chats
 
+## Case Study page layout example
+
+https://www.meteorops.com/case-studies/deploy-identical-development-and-production-environments-using-terraform
+https://www.meteorops.com/case-studies
+
 ## E2E Files with Skipped Tests
 
 Blocked Categories (44 tests):
@@ -50,6 +55,7 @@ Right now we're using string literals to define HTML email templates for site ma
 Vercel AI Gateway, maybe could use for a chatbot:
 
 https://vercel.com/kevin-browns-projects-dd474f73/astro-webstackbuilders-com/ai-gateway
+https://aws.plainenglish.io/how-to-build-a-chatbot-using-aws-lex-and-lambda-in-2026-aeeff5e13f4a
 
 ## Move containers to dev server from Playwright
 
@@ -113,6 +119,9 @@ Need a tooltip component for consistency. List to add tooltips to:
 [mermaid init](https://github.com/hbstack/mermaid/blob/main/assets/hb/modules/mermaid/init.ts)
 [theming](https://mermaid.ai/open-source/config/theming.html)
 
+https://mermaid.js.org/config/theming.html
+https://mermaid.js.org/config/directives.html
+
 ## Support Pages to Style
 
 - /
@@ -121,6 +130,7 @@ Need a tooltip component for consistency. List to add tooltips to:
 - /consent
 - /contact
 - /downloads/[slug]
+- /newsletter
 - /newsletter/confirm/[token]
 - /offline
 - /privacy/my-data
@@ -128,6 +138,10 @@ Need a tooltip component for consistency. List to add tooltips to:
 - /tags/[tag]
 - Bug reporter modal
 - Email templates
+
+## Breadcrumb visual improvements
+
+See comp images in Breadcrumbs component directory
 
 ## Keyboard Navigation
 
