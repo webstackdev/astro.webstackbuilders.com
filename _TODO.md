@@ -255,3 +255,5 @@ This article has different approaches to [print pagination](https://www.customjs
 - We need to check for short form and deep article articles where the deep-dive index.pdf has a non-featured tag lik "argo-cd" only in the pdf.mdx. In those cases, we should make sure the callout for the deep dive includes the name of that non-featured (technology) tag and add the name to the tags: frontmatter key in the index.mdx
 
 - Need an article on OpenStack
+
+- Add links to the privacy policy page to go to preferences and my-data
