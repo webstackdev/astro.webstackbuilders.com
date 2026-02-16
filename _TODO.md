@@ -257,3 +257,5 @@ This article has different approaches to [print pagination](https://www.customjs
 - Need an article on OpenStack
 
 - Add links to the privacy policy page to go to preferences and my-data
+
+- The four service offerings should be clickable links that take you to the Contact page and pre-fill in the form with the service the person is interested in. The Contact project scopes could have the four services offerings and a "general questions" option.
