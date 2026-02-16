@@ -58,9 +58,11 @@ export type Props = {
       heading: string
       subheading: string
       types: {
-        name: string
-        description: string
+        title: string
+        text: string
         icon: string
+        color: string
+        bgColor: string
       }[]
     }
     questions: {
@@ -68,7 +70,7 @@ export type Props = {
       subheading: string
       methods: {
         lead: string
-        description: string
+        text: string
         link: string
         icon: string
       }[]
@@ -94,7 +96,7 @@ const { content } = Astro.props
     </p>
   </header>
 
-  <consent-preferences class="mb-2">
+  <consent-preferences>
     <section
       aria-labelledby="consent-preferences__title"
       aria-describedby="consent-preferences__settings-desc"
@@ -135,7 +137,7 @@ const { content } = Astro.props
                 </span>
               </div>
             </div>
-            <p class="text-sm text-content-offset mb-3">{content.essential.subheading}</p>
+            <p class="text-sm text-note-offset mb-3">{content.essential.subheading}</p>
             <p class="text-content text-md leading-relaxed">{content.essential.description}</p>
           </div>
 
@@ -164,7 +166,7 @@ const { content } = Astro.props
                 </div>
               </label>
             </div>
-            <p class="text-sm text-content-offset mb-3">{content.analytics.subheading}</p>
+            <p class="text-sm text-note-offset mb-3">{content.analytics.subheading}</p>
             <p class="text-content text-md leading-relaxed">{content.analytics.description}</p>
           </div>
 
@@ -192,7 +194,7 @@ const { content } = Astro.props
                 </div>
               </label>
             </div>
-            <p class="text-sm text-content-offset mb-3">{content.functional.subheading}</p>
+            <p class="text-sm text-note-offset mb-3">{content.functional.subheading}</p>
             <p class="text-content text-md leading-relaxed">{content.functional.description}</p>
             <div class="bg-content-inverse-active rounded-lg p-4 mt-4 -mx-1">
               <p class="text-sm text-secondary leading-relaxed" set:html={content.functional.trailer}></p>
@@ -223,7 +225,7 @@ const { content } = Astro.props
                 </div>
               </label>
             </div>
-            <p class="text-sm text-content-offset mb-3">{content.marketing.subheading}</p>
+            <p class="text-sm text-note-offset mb-3">{content.marketing.subheading}</p>
             <p class="text-content text-md leading-relaxed">{content.marketing.description}</p>
           </div>
         </div>
@@ -232,19 +234,19 @@ const { content } = Astro.props
       <div class="px-6 py-4 flex gap-3 justify-end flex-wrap">
         <button
           id="consent-allow-all"
-          class="px-6 py-2 bg-spotlight text-white rounded-lg hover:bg-spotlight-offset transition-colors duration-200 font-medium"
+          class="px-6 py-2 bg-success-offset text-content-inverse rounded-lg hover:bg-success transition-colors duration-200 font-medium"
         >
           {content.buttons.acceptAll}
         </button>
         <button
           id="consent-deny-all"
-          class="px-6 py-2 bg-spotlight rounded-lg hover:bg-spotlight-offset transition-colors duration-200 font-medium"
+          class="px-6 py-2 bg-warning-offset text-content-inverse rounded-lg hover:bg-warning transition-colors duration-200 font-medium"
         >
           {content.buttons.rejectAll}
         </button>
         <button
           id="consent-save-preferences"
-          class="px-6 py-2 bg-gray-300 text-white rounded-lg hover:bg-gray-300 cursor-not-allowed transition-colors duration-200 font-medium"
+          class="px-6 py-2 text-content-inverse rounded-lg cursor-not-allowed transition-colors duration-200 font-medium"
           disabled
           aria-disabled="true"
         >
@@ -256,144 +258,88 @@ const { content } = Astro.props
 
   <!-- Cookie Information -->
   <div class="prose prose-lg dark:prose-invert max-w-none">
-    <section class="mb-12" aria-labelledby="consent-what-are-cookies-title">
+    <section aria-labelledby="consent-what-are-cookies-title">
       <h2
         id="consent-what-are-cookies-title"
-        class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6"
+        class="text-2xl md:text-3xl font-bold text-primary-offset mb-2"
       >
         {content.cookies.heading}
         <HeadingAnchor href={"#consent-what-are-cookies-title"} />
       </h2>
-      <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6">
-        <p class="text-gray-600 dark:text-gray-300 mb-4">
+      <div class="py-1">
+        <p class="text-gray-600 dark:text-gray-300 mb-4 mt-0">
           {content.cookies.description}
         </p>
         <List
           variant="two-column-icon-list"
           items={content.cookies.types}
-          size={4}
+          size={6}
           classes={{
-            ul: "mt-6",
-            icon: "w-8 h-8 bg-blue-100 mr-4",
+            ul: "mt-6 mb-0 pl-0",
+            icon: "w-12 h-12 bg-blue-100 mr-2",
+            li: "border-2 border-page-offset p-4 rounded-xl",
+            text: "mb-0",
           }}
         />
       </div>
     </section>
 
-    <section class="mb-12" aria-labelledby="consent-managing-cookies-title">
+    <section class="mb-6" aria-labelledby="consent-managing-cookies-title">
       <h2
         id="consent-managing-cookies-title"
-        class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6"
+        class="text-2xl md:text-3xl font-bold text-primary-offset mb-4"
       >
         {content.management.heading}
         <HeadingAnchor href={"#consent-managing-cookies-title"} />
       </h2>
-      <p class="text-gray-600 dark:text-gray-300 mb-6">
+      <p class="text-gray-600 dark:text-gray-300 mb-6 mt-0">
         {content.management.subheading}
       </p>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {content.management.types.map((item) => {
-          return (
-            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md">
-              <div
-                class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mb-4"
-              >
-                <Icon
-                  icon={item.icon}
-                  color="blue-600"
-                  size={6}
-                />
-              </div>
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">{item.name}</h3>
-              <p class="text-gray-600 dark:text-gray-300 text-sm">
-                {item.description}
-              </p>
-            </div>
-          )
-        })}
-        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md">
-          <div
-            class="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center mb-4"
-          >
-            <svg
-              class="w-6 h-6 text-orange-600 dark:text-orange-400"
-              aria-hidden="true"
-              focusable="false"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3s-4.5 4.03-4.5 9 2.015 9 4.5 9z"
-              ></path>
-            </svg>
-          </div>
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Firefox</h3>
-          <p class="text-gray-600 dark:text-gray-300 text-sm">
-            Options → Privacy & Security → Cookies and Site Data
-          </p>
-        </div>
-        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md">
-          <div
-            class="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center mb-4"
-          >
-            <svg
-              class="w-6 h-6 text-gray-600 dark:text-gray-400"
-              aria-hidden="true"
-              focusable="false"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-              ></path>
-            </svg>
-          </div>
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Safari</h3>
-          <p class="text-gray-600 dark:text-gray-300 text-sm">
-            Preferences → Privacy → Manage Website Data
-          </p>
-        </div>
-      </div>
+      <List
+        variant="three-column-icon-list"
+        items={content.management.types}
+        size={6}
+        classes={{
+          ul: "mt-6 mb-0 pl-0",
+          icon: "w-12 h-12 bg-blue-100 mr-2",
+          li: "border-2 border-page-offset p-4 rounded-xl",
+          text: "mb-0",
+        }}
+      />
     </section>
 
     <section class="mb-12" aria-labelledby="consent-contact-title">
       <h2
         id="consent-contact-title"
-        class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6"
+        class="text-2xl md:text-3xl font-bold text-primary-offset mb-4"
       >
         {content.questions.heading}
         <HeadingAnchor href={"#consent-contact-title"} />
       </h2>
       <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-6">
-        <p class="text-gray-600 dark:text-gray-300 mb-4">
-          {content.questions.subheading}
-        </p>
-        <div class="flex items-start">
+        <p class="text-gray-600 dark:text-gray-300 mb-4 mt-0">{content.questions.subheading}</p>
+        <div class="flex items-start ml-4">
           {content.questions.methods.map((item) => {
             return (
-              <div
-                class="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mr-4 shrink-0"
-              >
-                <Icon
-                  icon={item.icon}
-                  color="blue-600"
-                  size={4}
-                />
-              </div>
-              <div>
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">{item.lead}</h3>
-                <a href={item.link} class="text-blue-600 dark:text-blue-400 hover:underline">
-                  {item.description}
-                </a>
+              <div class="flex items-start gap-4">
+                <div
+                  class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center shrink-0 mt-1"
+                >
+                  <Icon
+                    icon={item.icon}
+                    color="blue-600"
+                    size={6}
+                  />
+                </div>
+                <div class="ml-2">
+                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1 mt-0">{item.lead}</h3>
+                  <a
+                    href={item.link}
+                    class="text-page-inverse underline decoration-page-inverse decoration-dotted underline-offset-4 hover:text-content-active hover:decoration-content-active focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2"
+                  >
+                    {item.text}
+                  </a>
+                </div>
               </div>
             )
           })}

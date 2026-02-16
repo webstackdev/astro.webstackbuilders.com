@@ -34,12 +34,12 @@ export class ConsentPreferencesElement extends LitElement {
   static registeredName = COMPONENT_TAG_NAME
 
   private static readonly saveButtonDisabledClasses = [
-    'bg-gray-300',
+    'bg-secondary',
     'cursor-not-allowed',
-    'hover:bg-gray-300',
+    'hover:bg-secondary',
   ]
 
-  private static readonly saveButtonEnabledClasses = ['bg-spotlight', 'hover:bg-spotlight-offset']
+  private static readonly saveButtonEnabledClasses = ['bg-page-inverse', 'hover:bg-secondary-offset']
 
   private allowAllBtn!: HTMLButtonElement
   private denyAllBtn!: HTMLButtonElement
