@@ -35,7 +35,7 @@ This distinction matters for cost because _requests determine how many nodes you
 | Scheduling | Used for placement decisions | Not considered |
 | CPU behavior | Guaranteed minimum | Throttled if exceeded |
 | Memory behavior | Guaranteed minimum | OOM killed if exceeded |
-| Cluster capacity | Sum of requests = schedulable capacity | Sum of limits can exceed node capacity |
+| Cluster capacity | Sum of requests = scheduleable capacity | Sum of limits can exceed node capacity |
 | Cost impact | Directly determines node count | Indirectly affects density |
 
 Table: Requests vs limits comparison.
@@ -65,6 +65,8 @@ sum by (namespace, pod, container) (
 Code: Prometheus query for finding over-provisioned containers.
 
 A ratio of 0.2 means the container uses 20% of what it requests - the other 80% is blocked capacity that nothing else can use. Sort by this ratio to find your worst offenders.
+
+<Newsletter />
 
 The Vertical Pod Autoscaler automates this analysis for both CPU and memory. I recommend starting in "Off" mode, which gives you recommendations without automatic changes:
 
@@ -131,6 +133,26 @@ The three requirements for spot success: multiple replicas spread across availab
 
 Kubernetes cost optimization comes down to a few straightforward practices: measure what you're actually using, right-size resources to match that usage, and run stateless workloads on spot instances. Teams that invest in this typically reduce spend by 40-60% without any architectural changes - just better numbers in existing deployment manifests.
 
+<Download
+resource="kubernetes-cost-optimization-resource-sizing-spot-instances"
+title="Download the Kubernetes Cost Optimization Guide"
+description="Get the complete cost-efficiency playbook for right-sizing workloads, leveraging spot capacity, and sustaining savings over time."
+listItems={[
+  {
+    text: "Resource right-sizing workflow guide",
+  },
+  {
+    text: "Spot adoption readiness checklist",
+  },
+  {
+    text: "Autoscaler tuning strategy matrix",
+  },
+  {
+    text: "Cost visibility dashboard templates",
+  },
+]}
+/>
+
 Start with visibility. Deploy VPA in recommendation mode and let it collect data for a week. Query efficiency ratios to find your worst offenders - the deployments running at 20% efficiency or lower - and fix those first. The Pareto principle applies: 20% of your workloads probably account for 80% of your waste.
 
 Then look at spot instances. Any workload that can tolerate losing a node is a candidate. With proper interruption handling, spot delivers 50-70% savings on compute with minimal operational overhead.
@@ -138,7 +160,3 @@ Then look at spot instances. Any workload that can tolerate losing a node is a c
 <Callout type="warning">
 Cost optimization is continuous, not a one-time project. Usage patterns change, new services deploy with default resources, and spot savings vary. Build cost review into your regular operations to keep savings compounding.
 </Callout>
-
----
-
-This article covers the two highest-impact cost optimization techniques. The complete guide goes deeper on cluster autoscaler tuning - including priority expanders that automatically prefer spot capacity - cost visibility dashboards with Prometheus queries for tracking waste by team and namespace, and namespace-level resource quotas for budget enforcement. Download the PDF for the full implementation details.

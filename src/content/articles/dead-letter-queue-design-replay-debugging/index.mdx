@@ -65,6 +65,8 @@ The critical insight is timing. Once a message is in the DLQ, the processing con
 
 This means the DLQ write path needs to be synchronous with failure handling, not an afterthought. When a message fails its final retry, capture the context and write to the DLQ in the same call stack. If you push enrichment to a background job or separate service, you'll lose the error object, the stack trace, and any request-scoped context.
 
+<Newsletter />
+
 Store every attempt, not just the last one. A message might fail three times for three different reasons - connection timeout, rate limit, then validation error. If you only store the last error, you miss the pattern. The full history often reveals the root cause: maybe the first two failures were transient, but the third exposed a real data problem.
 
 Track operational state alongside the message. Messages in your DLQ have a lifecycle: new, under investigation, ready for replay, replayed, discarded. Track that state. Track who's looking at what. Add notes. Without this, you'll have multiple engineers independently debugging the same failure, or messages that sit untouched for weeks because nobody knows if someone else is already handling them.
@@ -95,12 +97,26 @@ The remaining 10,000 messages split into clear categories. Some are validation f
 
 Instead of a week of debate followed by a mass deletion, the team resolves the backlog in a day with confidence. They know exactly what failed, why it failed, and whether replay is safe. The DLQ did its job.
 
+<Download
+resource="dead-letter-queue-design-replay-debugging"
+title="Download the DLQ Design Guide"
+description="Get the complete dead-letter handling playbook for failure classification, replay safety, and query-driven triage workflows."
+listItems={[
+  {
+    text: "Failure taxonomy decision matrix",
+  },
+  {
+    text: "Context capture field checklist",
+  },
+  {
+    text: "Replay safety validation runbook",
+  },
+  {
+    text: "DLQ triage workflow templates",
+  },
+]}
+/>
+
 The investment required isn't enormous. Enrich messages at failure time with the context you'll need later. Store them somewhere queryable. Classify failures so transient issues auto-resolve and permanent failures get human attention. Most of this work is one-time infrastructure that pays dividends every time something goes wrong.
 
 That 50,000-message deletion? It didn't have to happen. The cost of getting DLQ design right is a few days of infrastructure work. The cost of getting it wrong is data loss dressed up as operational hygiene.
-
----
-
-**Go Deeper: The Complete DLQ Design Guide**
-
-This article covers the three foundational decisions that transform a DLQ from a message graveyard into an operational tool. But there's more to building a production-ready DLQ system: operational workflows for triage and escalation, platform-specific implementation details for AWS SQS, RabbitMQ, and Kafka, metrics and alerting thresholds, schema design patterns with full code examples, and build-vs-buy analysis for tooling. Download the complete guide for the full picture.

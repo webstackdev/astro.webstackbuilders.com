@@ -71,6 +71,8 @@ Figure: Control plane pushes desired state to data plane; data plane reports act
 
 Control plane and data plane separation exists to serve multi-tenancy. Without multiple teams sharing the platform, you don't need the complexity—a single team can tolerate tighter coupling. But once you're building for multiple tenants, the separation enables isolation patterns that would be impossible otherwise.
 
+<Newsletter />
+
 The fundamental question: how much isolation do tenants need, and what are you willing to pay for it?
 
 __Namespace per tenant__ is the simplest approach. All tenants share a single cluster. Isolation comes from Kubernetes namespaces, RBAC, resource quotas, and network policies. The control plane is shared—same API server, same controllers, same etcd. This pattern is resource-efficient and operationally simple, but the isolation is logical, not physical. A noisy neighbor—a tenant whose workloads consume excessive CPU, memory, or I/O—can exhaust shared resources despite quotas, affecting other tenants on the same nodes.
@@ -127,10 +129,16 @@ Assume the control plane will be unavailable sometimes. Build data plane compone
 
 Not every platform needs this separation. A single team running their own Kubernetes cluster? Keep it simple—the overhead of separate planes isn't worth it. But once you're serving multiple teams with different requirements, the investment pays off as adoption grows. Multi-tenancy becomes manageable because you've designed isolation boundaries from the start. Scaling becomes predictable when you understand what drives load in each plane—the control plane scales with managed resources and API requests, the data plane scales with traffic and workload count. Failures stay contained because blast radius is built into the architecture.
 
+<Download
+  resource="platform-architecture-control-plane-data-plane-separation"
+  title="Platform Architecture: Control Plane vs Data Plane"
+  description="Separating platform control surfaces from runtime infrastructure for multi-team boundaries and scaling."
+  listItems={[
+      { text: "Plane separation design checklist" },
+      { text: "Tenant isolation pattern matrix" },
+      { text: "Control plane failure runbook" },
+      { text: "Platform cost modeling worksheet" }
+  ]}
+/>
+
 The key insight: separation is about abstractions, not just deployment topology. You can deploy everything together initially, but APIs, resource boundaries, and tenancy models need to support eventual separation. A namespace-per-tenant model with clear RBAC boundaries can evolve into virtual clusters or dedicated clusters. A monolithic control plane can split into federated regional control planes. But an architecture that treats control and data as one undifferentiated blob? That requires a rewrite.
-
----
-
-__CTA Title:__ Get the Complete Guide
-
-__CTA Body:__ This article covers the core patterns, but there's more to implementing control plane and data plane separation effectively. The complete guide includes upgrade strategies for both planes, observability patterns for troubleshooting across plane boundaries, developer interface options (custom Kubernetes controllers vs. Backstage), detailed tenant onboarding automation with Terraform examples, and cost modeling for different tenancy patterns at scale.

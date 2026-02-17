@@ -64,6 +64,8 @@ Table: Scaling metrics by response type.
 
 CPU works well for compute-bound workloads where processing time scales linearly with CPU. But for I/O-bound services—anything waiting on databases, external APIs, or message queues—CPU stays low while requests pile up. By the time CPU rises, you're already degraded.
 
+<Newsletter />
+
 Requests per second scales based on incoming traffic regardless of how much work each request requires. It's a direct measure of load, and it increases immediately when traffic arrives. The tradeoff is that it requires custom metrics setup through the Prometheus Adapter[^1] or KEDA[^2], but the improved responsiveness is worth the effort for most web services.
 
 Queue depth is ideal for async workers. If your service pulls from a message queue, scale on how many messages are waiting. A growing backlog means you need more consumers—don't wait for CPU to tell you what the queue already knows.
@@ -130,6 +132,26 @@ Over-provisioning costs money. Under-provisioning loses customers. The asymmetri
 
 HPA tuning comes down to three things: understanding delays so you know what's realistic, choosing metrics that respond to incoming load rather than existing damage, and configuring asymmetric behavior that prioritizes availability over cost optimization.
 
+<Download
+  resource="kubernetes-hpa-autoscaling-metrics-tuning-latency"
+  title="Download the HPA Tuning Guide"
+  description="Get the complete autoscaling playbook for latency-aware metrics, behavior tuning, and resilient traffic-response strategies."
+  listItems={[
+    {
+      text: "HPA delay budget worksheet",
+    },
+    {
+      text: "Metric selection decision matrix",
+    },
+    {
+      text: "Scale behavior tuning templates",
+    },
+    {
+      text: "Traffic profile response playbook",
+    },
+  ]}
+/>
+
 If your traffic is predictable—business hours, scheduled events, marketing campaigns—don't rely on HPA to catch up. Pre-scale ahead of time using KEDA cron triggers or simple CronJobs. HPA's job is handling _unexpected_ variance around your baseline, not scrambling to meet traffic you knew was coming.
 
 Start with defaults, observe behavior under real load, and tune based on what you see. If you're scaling too slowly, reduce stabilization windows and increase policy percentages. If you're oscillating, increase stabilization and lower your target utilization. There's no universal "best" configuration—only the configuration that matches your traffic pattern.
@@ -137,9 +159,3 @@ Start with defaults, observe behavior under real load, and tune based on what yo
 [^1]: The Prometheus Adapter is a Kubernetes component that queries Prometheus for metrics and exposes them through the Kubernetes custom metrics API, allowing HPA to scale on any metric Prometheus collects.
 
 [^2]: KEDA (Kubernetes Event-driven Autoscaling) extends HPA with scalers for dozens of event sources—message queues, databases, HTTP traffic, cron schedules—and enables scale-to-zero for event-driven workloads.
-
----
-
-**Go Deeper: The Complete HPA Tuning Guide**
-
-This article covers the essentials, but there's more to HPA tuning than delays, metrics, and behavior configuration. The complete guide includes debugging decision trees for when HPA won't scale, multi-metric configurations that respond to any bottleneck, KEDA setup for scale-to-zero and event-driven workloads, and traffic pattern analysis for matching your configuration to your specific load characteristics. Download the full guide to get the complete picture.

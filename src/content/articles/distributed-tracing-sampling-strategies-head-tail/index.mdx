@@ -56,6 +56,8 @@ approach gives you powerful guarantees:
 - You can keep all slow traces tied to an SLO breach.
 - You can filter by business events and keep only the valuable transactions.
 
+<Newsletter />
+
 The cost is operational complexity. Tail sampling requires a stateful collector tier, buffer memory, and
 trace‑ID routing so that all spans for the same trace arrive at the same collector. It also adds delay:
 the traces you want are visible only after the decision wait window expires.
@@ -97,7 +99,7 @@ Here is the workflow I recommend in teams that sample aggressively:
 - Always log trace IDs for every request, sampled or not.
 - Correlate logs, metrics, and traces. Metrics with exemplars can point to traces that were sampled.
 - Use on-demand sampling for reproducible issues so you can force a trace when it matters. A simple
-	header like `X-Force-Trace: true` is often enough.
+  header like `X-Force-Trace: true` is often enough.
 
 The key mindset shift is this: tracing is one signal, not the only signal. If your logging and metrics are
 structured for correlation, you can still debug effectively even when a specific trace is missing.
@@ -113,10 +115,25 @@ Sampling is not about throwing data away. It is about selecting the right data s
 with head sampling because it is simple and predictable. Move to tail sampling when you need outcome‑based
 guarantees and have the operational headroom. If you need both, use a hybrid approach.
 
+<Download
+  resource="distributed-tracing-sampling-strategies-head-tail"
+  title="Download the Tracing Sampling Guide"
+  description="Get the complete sampling playbook for cost control, error capture, and practical trace-debug workflows at scale."
+  listItems={[
+    {
+      text: "Head sampler configuration guide",
+    },
+    {
+      text: "Tail policy tuning matrix",
+    },
+    {
+      text: "Hybrid rollout decision framework",
+    },
+    {
+      text: "Missing trace debugging runbook",
+    },
+  ]}
+/>
+
 The end goal is not 100% trace coverage. It is reliable insight at a cost you can sustain. Aim for enough
 traces to answer real questions, not every trace you can store.
-
----
-
-If this shorter guide was useful, download the full deep‑dive PDF for detailed architectures, policy
-examples, and a complete debugging runbook your team can adopt.

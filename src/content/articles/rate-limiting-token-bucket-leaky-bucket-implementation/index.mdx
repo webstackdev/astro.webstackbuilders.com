@@ -47,6 +47,8 @@ Don't implement rate limiting _only_ at the application layer. By the time reque
 
 Token bucket is the workhorse of API rate limiting. Most production rate limiters—including the gateway tools mentioned above—use it because it elegantly handles the tension between burst tolerance and sustained rate enforcement.
 
+<Newsletter />
+
 The mental model: imagine a bucket that holds N tokens (your burst capacity). Tokens are added at rate R (your sustained RPS). Each request consumes a token if available; otherwise it's rejected. This naturally allows bursts—a client can use their full bucket immediately—while maintaining a sustained rate over time.
 
 ```python
@@ -99,6 +101,18 @@ _Composite keys_ (user + action, IP + endpoint) give you fine-grained control at
 
 Production systems often combine multiple strategies: global IP limits as a DDoS backstop, API key limits for quota enforcement, and user + action limits for abuse prevention. All must pass for a request to proceed.
 
+<Download
+  resource="rate-limiting-token-bucket-leaky-bucket-implementation"
+  title="Rate Limiting Done Right: Protecting Users From Yourself"
+  description="How to implement rate limits that prevent abuse without accidentally blocking legitimate traffic during spikes."
+  listItems={[
+      { text: "Algorithm selection decision tree" },
+      { text: "Redis limiter implementation patterns" },
+      { text: "Rate-limit header response guide" },
+      { text: "Traffic spike test scenarios" }
+  ]}
+/>
+
 ## Key Takeaways
 
 Rate limiting is a valve, not a wall. The best rate limiters are invisible to normal users—they only activate during abuse or overload.
@@ -110,9 +124,3 @@ Three takeaways:
 - _Identify clients carefully_: IP addresses lie, corporate NAT punishes legitimate users, and composite keys add complexity
 
 The goal isn't to reject requests—it's to shape traffic so rejection becomes rare. Design for legitimate bursts, communicate limits clearly through response headers, and monitor rejection rates. Rate limiting done right protects your service without punishing your users.
-
----
-
-__CTA Heading:__ Get the Complete Implementation Guide
-
-__CTA Body:__ This article covers the strategic decisions—where to rate limit and which algorithm to choose. The complete guide goes deeper: full TypeScript implementations of token bucket, leaky bucket, and sliding window algorithms with Redis support. You'll also get HTTP response design patterns (the right headers and status codes), testing strategies for concurrent load, and failure handling policies for when Redis goes down. Everything you need to implement production-ready rate limiting.

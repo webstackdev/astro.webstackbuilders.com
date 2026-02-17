@@ -57,6 +57,8 @@ A dedicated idempotency store sits between your handler and your business logic.
 
 Redis works well for high-throughput scenarios where you need sub-millisecond latency. The critical detail is the `NX` flag on the SET command - it only sets the key if it doesn't already exist, making the check-and-lock operation atomic.
 
+<Newsletter />
+
 ### Database-Level Deduplication
 
 For financial operations or anywhere you need transactional consistency, database-level deduplication is often better than a separate store. The idempotency key becomes a unique constraint on your business table.
@@ -131,10 +133,24 @@ Table: Idempotency store options comparison.
 
 These two patterns - key design and storage strategy - form the foundation of idempotent message handling. But production systems often need more: handler templates that separate idempotency concerns from business logic, transactional outbox patterns for reliable event publishing, saga state machines for multi-step workflows, and queue-specific patterns for SQS FIFO and Kafka. Testing idempotency explicitly - including chaos testing under random failures - catches bugs that only appear in production.
 
+<Download
+  resource="idempotent-message-handlers-deduplication-retries"
+  title="Download the Idempotency Playbook"
+  description="Get the complete message-consumer guide for deduplication, retry safety, and side-effect-safe processing in distributed systems."
+  listItems={[
+      {
+          text: "Idempotency key design templates",
+      },
+      {
+          text: "Deduplication store decision matrix",
+      },
+      {
+          text: "Handler implementation pattern catalog",
+      },
+      {
+          text: "Retry and replay test plan",
+      },
+  ]}
+/>
+
 The safest assumption: every message will be delivered twice. Design for that, test for that, and duplicates become a non-event.
-
----
-
-**Go Deeper: The Complete Idempotency Playbook**
-
-This article covers the essentials, but building bulletproof message handlers requires more. The full guide includes handler template patterns that cleanly separate deduplication from business logic, the transactional outbox pattern for atomic state changes and event publishing, saga state machines for coordinating multi-step workflows across services, queue-specific patterns for SQS FIFO and Kafka consumers, and comprehensive testing strategies including chaos testing. Download the complete guide to implement production-ready idempotent handlers.

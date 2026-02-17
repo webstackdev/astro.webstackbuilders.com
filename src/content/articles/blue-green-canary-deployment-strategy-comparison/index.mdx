@@ -63,6 +63,8 @@ _Phase 2 (Migrate)_: Deploy application code that writes to both old and new str
 
 _Phase 3 (Contract)_: Once all code uses the new structure, remove the old columns, constraints, or tables in a separate deployment.
 
+<Newsletter />
+
 This pattern works with both strategies, but it's _mandatory_ for canary deployments. Blue/green can sometimes shortcut this with careful timing and instant cutover, but you're accepting more risk.
 
 ```sql
@@ -114,6 +116,26 @@ Many mature organizations don't choose one strategy—they use both. Schema migr
 
 The key insight is that the database constraint drives the decision _per deployment_, not as a blanket policy. A team might deploy three canary releases in a row, then switch to blue/green for a migration, then back to canary. The tooling supports both; the deployment contents determine which to use.
 
+<Download
+  resource="blue-green-canary-deployment-strategy-comparison"
+  title="Download the Deployment Strategies Guide"
+  description="Get the complete comparison framework for blue/green and canary rollouts, including migration-safe patterns and hybrid decision rules."
+  listItems={[
+    {
+      text: "Blue-green cutover checklist",
+    },
+    {
+      text: "Canary traffic ramp templates",
+    },
+    {
+      text: "Expand-contract migration playbook",
+    },
+    {
+      text: "Hybrid strategy decision matrix",
+    },
+  ]}
+/>
+
 ## Conclusion
 
 The deployment strategy debate often focuses on the wrong things—rollback speed, blast radius, tooling sophistication. These matter, but they're secondary to the fundamental question: what are you actually deploying?
@@ -121,9 +143,3 @@ The deployment strategy debate often focuses on the wrong things—rollback spee
 For database schema changes, blue/green's instant cutover is often the only safe option. For application logic changes, canary's gradual rollout provides better production validation with limited risk. Most real-world systems need both approaches, selected based on what each specific deployment contains.
 
 The best deployment strategy isn't the most technically impressive one. It's the one your team can operate reliably, that matches your database change patterns, and that you'll actually use consistently. Start with the simpler option that works for your constraints, and add sophistication only when you have specific problems that require it.
-
----
-
-CTA Headline: Get the Complete Deployment Strategy Guide
-
-CTA Body: This article covers the critical database constraint that most teams miss. The complete guide includes Kubernetes manifests for both strategies, Istio traffic splitting configurations, a Python AWS Lambda for automated canary analysis, Argo Rollouts configurations, detailed implementation checklists, and hybrid strategy patterns for organizations that need both approaches. Download the full technical reference to implement production-ready deployment pipelines.

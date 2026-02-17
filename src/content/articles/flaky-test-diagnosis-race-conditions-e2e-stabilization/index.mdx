@@ -96,6 +96,8 @@ Environment issues cause roughly 25% of flakes. The test itself is often correct
 
 The solution is isolation: each test should run in a pristine environment with no pollution from previous tests or external factors.
 
+<Newsletter />
+
 ### Browser State and Animations
 
 Cookies, localStorage, and session data can leak between tests if you're reusing browser contexts. Modern SPAs also introduce animation timing issues—clicking an element mid-transition causes flakes. The cleanest approach is fresh contexts for each test with animations disabled:
@@ -166,6 +168,26 @@ If your test fails at midnight UTC, around month boundaries, or in different tim
 
 Race conditions and environment issues cause 85% of flakes. Fixing these two categories transforms your test suite from a liability into an asset.
 
+<Download
+  resource="flaky-test-diagnosis-race-conditions-e2e-stabilization"
+  title="Download the Flaky Test Diagnosis Guide"
+  description="Get the complete stabilization playbook for race conditions, environment isolation, and reliable CI test execution."
+  listItems={[
+    {
+      text: "Race condition detection checklist",
+    },
+    {
+      text: "Environment isolation setup guide",
+    },
+    {
+      text: "Flake triage prioritization matrix",
+    },
+    {
+      text: "CI reproduction workflow runbook",
+    },
+  ]}
+/>
+
 The approach is systematic:
 
 1. For race conditions, find every place your test uses `waitForTimeout()` or assumes immediate state changes after actions. Replace them with waits for specific conditions—network responses, DOM elements, URL changes.
@@ -177,9 +199,3 @@ The deeper lesson is that flaky tests are symptoms. They reveal race conditions 
 <Callout type="success">
 Start small: pick your three worst flakes (highest impact, not necessarily highest flake rate), fix them this sprint, and measure CI pass rate before and after. A 10% improvement in CI reliability often translates to hours saved per week across the team.
 </Callout>
-
----
-
-**Go Deeper: The Complete Guide to Flaky Test Diagnosis**
-
-This article covers the two biggest flake categories, but there's more to building a stable test suite. The complete guide includes building flake detection infrastructure that tracks patterns over time, implementing quarantine systems that prevent flakes from blocking CI while holding them accountable, triage frameworks for prioritizing which flakes to fix first, and CI debugging workflows for reproducing flakes that only happen in CI. Download the PDF for the full systematic approach to eliminating flaky tests.

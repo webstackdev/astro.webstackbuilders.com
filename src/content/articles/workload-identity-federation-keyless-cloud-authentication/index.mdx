@@ -75,6 +75,8 @@ The critical claims in a GitHub Actions token look like this:
 
 The entire exchange happens in milliseconds. Your workflow never sees a long-lived credential — just a token that expires in an hour and gets automatically refreshed if needed. There's nothing to rotate, nothing to leak, nothing to forget about in a CI variable.
 
+<Newsletter />
+
 ## What Implementation Looks Like
 
 Let's make this concrete with Azure. You need three things: a managed identity for your workload, a federated credential that trusts your CI platform, and a workflow that requests the token exchange.
@@ -157,14 +159,18 @@ If you're convinced but wondering where to begin, start with your highest-risk c
 
 The migration doesn't have to be disruptive. Configure federation alongside your existing keys, verify it works in a non-production environment, then switch production workflows over. Keep the old keys disabled (not deleted) for a week or two in case something breaks, then remove them entirely.
 
+<Download
+  resource="workload-identity-federation-keyless-cloud-authentication"
+  title="Workload Identity: Eliminating Long-Lived Keys"
+  description="Replacing service account keys with workload identity federation for secure, keyless cloud access."
+  listItems={[
+    { text: "OIDC federation setup blueprint" },
+    { text: "Cloud trust policy templates" },
+    { text: "Keyless migration rollout checklist" },
+    { text: "Token exchange debug playbook" }
+  ]}
+/>
+
 The configuration is well-documented, the failure modes are debuggable (usually a mismatch between token claims and trust policy), and the security improvement is substantial. You're eliminating an entire category of credential that can be stolen, leaked, or forgotten.
 
 This is also where infrastructure security is heading more broadly. Projects like SPIFFE and SPIRE are extending these patterns beyond cloud providers to service-to-service authentication across heterogeneous environments. As infrastructure becomes more dynamic — more containers, more serverless, more cross-cloud — the case for ephemeral, identity-based credentials only gets stronger. The investments you make now in federation infrastructure will pay dividends as these patterns mature.
-
----
-
-## CTA
-
-_Title:_ Get the Complete Implementation Guide
-
-_Body:_ This article covers the fundamentals of workload identity federation. The full guide goes deeper: complete Terraform configurations for AWS, GCP, and Azure, Kubernetes workload identity setup for EKS, GKE, and AKS, migration strategies for existing infrastructure, and a troubleshooting reference for common failure modes. Download it to start eliminating long-lived credentials from your infrastructure.

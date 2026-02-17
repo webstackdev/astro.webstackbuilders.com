@@ -69,6 +69,8 @@ Code: Python's graphlib handles topological sorting
 
 With the generation order in hand, iterate through tables and generate rows. For each child table, randomly select valid parent IDs from the rows you've already inserted. This approach scales to schemas with dozens of tables and complex constraint chains. The database already knows its own structure—you just need to ask it.
 
+<Newsletter />
+
 ## Deterministic Anonymization
 
 Synthetic generation is the right choice for most test scenarios: unit tests, integration tests, and new feature development. But sometimes you genuinely need production data patterns. You're debugging a bug that only manifests with certain data distributions, reproducing a customer-reported issue, or running analytics tests that need realistic statistical properties. In these cases, synthetic generation won't cut it.
@@ -162,6 +164,18 @@ The scanner won't catch everything—you'll need allowlists for legitimate test 
 
 Run scans in multiple places: CI pipelines on every commit, scheduled jobs against database dumps, and log aggregation pipelines before data reaches third-party services. Flag findings as CI failures so they block deployment. The goal isn't perfect detection; it's making PII leaks harder than doing it right.
 
+<Download
+  resource="synthetic-test-data-pii-anonymization-fixtures"
+  title="Test Data Without PII Leaks"
+  description="Realistic fixtures for ephemeral environments that do not expose production data or violate privacy."
+  listItems={[
+    { text: "Schema-aware fixture generation workflow" },
+    { text: "Deterministic anonymization implementation guide" },
+    { text: "PII scanning CI policy pack" },
+    { text: "Compliance audit evidence checklist" }
+  ]}
+/>
+
 ## Getting It Right
 
 Escaping the production data trap requires three capabilities: synthetic generation that respects schema relationships, deterministic anonymization for when you need production patterns, and automated scanning to catch what slips through.
@@ -169,7 +183,3 @@ Escaping the production data trap requires three capabilities: synthetic generat
 The upfront investment pays off quickly. You stop worrying about which environments have real data. Compliance audits become routine instead of panic-inducing. New developers can work with test data on day one without signing additional agreements.
 
 Here's how to start: pick a leaf table in your schema—one that nothing else depends on, like `audit_logs` or `email_templates`. Write a generator for it using Faker, create one test that uses the generated data, and verify it works. Then pick a table that references your leaf table and repeat. Work backward through the dependency graph until you've covered the tables that actually contain PII. You don't need to convert everything at once. Every table you move to synthetic data is one less liability waiting to surface.
-
----
-
-Want the complete implementation? The deep-dive PDF covers the full fixture management system including factory patterns, database-level anonymization functions, k-anonymity techniques, and audit logging for compliance documentation. Download it to get production-ready code you can adapt to your schema.

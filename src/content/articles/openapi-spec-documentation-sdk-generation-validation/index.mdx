@@ -77,6 +77,8 @@ Everything I've described becomes reliable only when it's automated. If generati
 
 A solid OpenAPI pipeline has three stages: lint the spec for quality issues, check for breaking changes against the main branch, and run contract tests that verify your implementation matches the spec.
 
+<Newsletter />
+
 Spectral handles the linting stage. The built-in ruleset catches structural issues—invalid syntax, missing required fields, unreferenced schemas. Add custom rules to enforce your organization's conventions like requiring descriptions on all operations or enforcing kebab-case paths.
 
 The `breaking-changes` check is where things get interesting. Run it only on pull requests, comparing the PR's spec against the base branch. Removed endpoints, new required fields, type changes—these all surface during code review, not after deployment. When breaking changes are intentional (major version bumps), you can override the check. But at least it's a conscious decision visible in the PR, not an accident discovered in production.
@@ -128,12 +130,18 @@ The difference between OpenAPI that delivers value and OpenAPI that becomes shel
 
 When the spec drives validation, your middleware can't miss edge cases the spec covers. When the spec is checked in CI, breaking changes surface in pull requests. When contract tests verify implementation against spec, drift gets caught before deployment.
 
+<Download
+  resource="openapi-spec-documentation-sdk-generation-validation"
+  title="OpenAPI in Practice: Docs, Clients, and Validation"
+  description="Generating documentation, client SDKs, and request validation from OpenAPI specs without sprawling toolchains."
+  listItems={[
+    { text: "Spec-first rollout checklist" },
+    { text: "Validation middleware integration guide" },
+    { text: "SDK generation pipeline template" },
+    { text: "Breaking-change CI enforcement rules" }
+  ]}
+/>
+
 The setup cost is real—choosing tools, configuring linters, wiring up pipelines. But that cost is paid once. The alternative—manually maintaining docs, hand-coding validation, discovering breaking changes in production—is paid continuously, and it compounds as your API grows.
 
 Treat your OpenAPI spec as infrastructure, not documentation. The spec isn't describing your API—it _is_ your API contract, and everything else flows from that.
-
----
-
-__CTA Heading:__ Get the Complete OpenAPI Implementation Guide
-
-__CTA Body:__ This article covers validation and CI automation—the foundation for spec-driven development. The complete guide goes deeper: documentation generation with Redoc and Swagger UI, SDK generation with post-processing pipelines, schema composition patterns using allOf and oneOf with discriminators, and the full GitHub Actions pipeline with artifact generation. Get the comprehensive reference for making OpenAPI the source of truth across your entire API lifecycle.

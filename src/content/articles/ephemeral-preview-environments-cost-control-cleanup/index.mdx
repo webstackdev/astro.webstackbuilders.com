@@ -102,6 +102,8 @@ Figure: Shared vs dedicated resource cost comparison.
 
 For PostgreSQL, schema isolation provides strong separation. Each preview environment gets its own schema with a dedicated role that can only access that schema. Provisioning is fast—no instance startup time, just a `CREATE SCHEMA` command. Cleanup is equally simple: `DROP SCHEMA CASCADE` removes everything in one operation.
 
+<Newsletter />
+
 The same pattern applies to Redis (use key prefixes like `pr-123:`) and other stateful services. The goal is to share the expensive infrastructure—compute, memory, network endpoints—while maintaining logical isolation between environments.
 
 The tradeoff is blast radius. If your shared preview database goes down, all preview environments are affected. In practice, this is acceptable for preview environments—they're not production, and the cost savings are substantial. Size the shared instance appropriately and monitor it like any other piece of infrastructure, but don't over-engineer redundancy for environments that are explicitly disposable.
@@ -142,8 +144,24 @@ These three strategies address the biggest cost drivers without requiring comple
 - **Shared infrastructure** turns per-environment database costs into marginal schema costs. The savings compound as your PR volume grows.
 - **Hibernation** eliminates idle compute costs while preserving developer experience. Wake-on-access makes the cost savings invisible to users.
 
+<Download
+  resource="ephemeral-preview-environments-cost-control-cleanup"
+  title="Download the Ephemeral Environments Guide"
+  description="Get the complete cost-control playbook for preview environments, including cleanup automation and infrastructure-sharing strategies."
+  listItems={[
+    {
+      text: "TTL policy implementation templates",
+    },
+    {
+      text: "Shared infrastructure isolation patterns",
+    },
+    {
+      text: "Hibernation and wake workflows",
+    },
+    {
+      text: "Preview cost dashboard blueprint",
+    },
+  ]}
+/>
+
 The goal isn't to minimize preview environment spending—it's to stop paying for environments that deliver no value. An environment that catches a bug before production is worth far more than the compute cost. An environment for an abandoned PR is pure waste. These strategies automate the distinction.
-
----
-
-**Want the complete playbook?** This article covers the three highest-impact strategies, but there's more to sustainable preview environments. Our comprehensive guide includes orphan detection patterns that catch resources your cleanup jobs miss, automatic resource sizing based on PR file changes, CI/CD integration with GitHub Actions and GitLab CI examples, and cost visibility dashboards that change developer behavior. Download the full guide to implement a complete preview environment cost management system.
