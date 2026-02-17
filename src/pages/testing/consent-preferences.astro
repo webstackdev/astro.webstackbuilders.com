@@ -1,11 +1,87 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro'
-import ConsentPreferencesComponent from '@components/Consent/Preferences/index.astro'
+import ConsentPreferencesComponent from '@components/Pages/Consent/index.astro'
 
 const pageTitle = 'Consent Preferences Testing Ground'
 const pageDescription =
   'Isolated render of the consent preferences modal for QA and automation coverage.'
 const pagePath = '/testing/consent-preferences'
+const consentContent = {
+  header: {
+    title: 'Privacy Preference Center',
+    description: 'Manage your cookie preferences and learn how we use cookies.',
+  },
+  intro: 'Configure what storage categories you allow on this site.',
+  introLinks: {
+    privacyPolicyText: 'Privacy Policy',
+    myDataText: 'My Data Rights',
+  },
+  essential: {
+    heading: 'Essential Data',
+    subheading: 'Always active',
+    buttonText: 'Always Active',
+    description: 'Required for core site functionality.',
+  },
+  analytics: {
+    heading: 'Performance and Analytics',
+    subheading: 'Helps us improve the site',
+    description: 'Anonymous metrics for reliability and usability improvements.',
+  },
+  functional: {
+    heading: 'Enhanced Features',
+    subheading: 'Optional convenience features',
+    description: 'Additional features that improve your experience.',
+    trailer: '<strong>Note:</strong> Essential functionality remains enabled.',
+  },
+  marketing: {
+    heading: 'Marketing and Advertising',
+    subheading: 'Advertising related preferences',
+    description: 'Controls optional marketing and advertising storage.',
+  },
+  buttons: {
+    save: 'Save',
+    acceptAll: 'Accept All',
+    rejectAll: 'Decline All',
+  },
+  cookies: {
+    heading: 'What Are Cookies?',
+    subheading: 'Cookies and local storage overview',
+    description: 'Cookies are small pieces of data stored in your browser.',
+    types: [
+      {
+        title: 'Session Cookies',
+        text: 'Temporary data that expires after session end.',
+        icon: 'clock',
+        color: 'blue-600',
+      },
+    ],
+  },
+  management: {
+    heading: 'Managing Cookies in Your Browser',
+    subheading: 'Use browser settings to review and remove cookies.',
+    types: [
+      {
+        title: 'Chrome',
+        text: 'Settings → Privacy and security → Cookies and other site data',
+        icon: 'chrome',
+        color: 'blue-600',
+        bgColor: 'blue-100',
+      },
+    ],
+  },
+  questions: {
+    heading: 'Contact Us',
+    subheading: 'Questions about privacy and consent settings.',
+    methods: [
+      {
+        lead: 'Get in Touch',
+        text: 'Contact Us About Privacy & Cookies',
+        link: '/contact/',
+        icon: 'email',
+      },
+    ],
+  },
+}
 ---
 
 <BaseLayout pageTitle={pageTitle} path={pagePath} description={pageDescription} noindex>
@@ -21,5 +97,5 @@ const pagePath = '/testing/consent-preferences'
     </p>
   </section>
 
-  <ConsentPreferencesComponent />
+  <ConsentPreferencesComponent content={consentContent} />
 </BaseLayout>

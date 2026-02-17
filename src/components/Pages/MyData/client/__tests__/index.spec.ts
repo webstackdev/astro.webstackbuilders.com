@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
-import PrivacyForm from '@components/Forms/Privacy/index.astro'
+import PrivacyForm from '@components/Pages/MyData/index.astro'
 import type { PrivacyFormElement as PrivacyFormElementInstance } from '../index'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { executeRender } from '@test/unit/helpers/litRuntime'
@@ -20,6 +20,17 @@ const requestDataMock = vi.fn<
 >()
 
 const verifyDsarMock = vi.fn<(_input: { token: string }) => Promise<ActionResult<VerifyResult>>>()
+
+const myDataContent = {
+  header: {
+    title: 'My Data & Privacy Rights',
+    description: 'Under GDPR, you have the right to access and control your personal data.',
+  },
+  introLinks: {
+    privacyPolicyText: 'Privacy Policy',
+    consentPreferencesText: 'Consent Preferences',
+  },
+}
 
 vi.mock('astro:actions', () => ({
   actions: {
@@ -50,10 +61,10 @@ describe('PrivacyForm behavior', () => {
     await executeRender<PrivacyFormModule>({
       container,
       component: PrivacyForm,
-      moduleSpecifier: '@components/Forms/Privacy/client/index',
+      moduleSpecifier: '@components/Pages/MyData/client/index',
       args: {
         props: {
-          status: undefined,
+          content: myDataContent,
         },
       },
       waitForReady: async (element: PrivacyFormElementInstance) => {
@@ -82,10 +93,10 @@ describe('PrivacyForm behavior', () => {
     await executeRender<PrivacyFormModule>({
       container,
       component: PrivacyForm,
-      moduleSpecifier: '@components/Forms/Privacy/client/index',
+      moduleSpecifier: '@components/Pages/MyData/client/index',
       args: {
         props: {
-          status: undefined,
+          content: myDataContent,
         },
       },
       waitForReady: async (element: PrivacyFormElementInstance) => {
@@ -118,10 +129,10 @@ describe('PrivacyForm behavior', () => {
     await executeRender<PrivacyFormModule>({
       container,
       component: PrivacyForm,
-      moduleSpecifier: '@components/Forms/Privacy/client/index',
+      moduleSpecifier: '@components/Pages/MyData/client/index',
       args: {
         props: {
-          status: undefined,
+          content: myDataContent,
         },
       },
       waitForReady: async (element: PrivacyFormElementInstance) => {

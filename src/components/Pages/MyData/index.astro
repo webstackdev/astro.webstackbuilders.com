@@ -1,49 +1,68 @@
 ---
-import { statusMessages } from '@components/Forms/Privacy/server'
-import styles from '../forms.module.css'
+// import List from '@components/List/index.astro'
+import Icon from '@components/Icon/index.astro'
+// import HeadingAnchor from '@components/Layout/HeadingAnchor/index.astro'
 
-export interface Props {
-  status?: string | null
+export type Props = {
+  content: {
+    header: {
+      title: string
+      description: string
+    }
+    introLinks: {
+      privacyPolicyText: string
+      consentPreferencesText: string
+    }
+  }
 }
 
-const { status } = Astro.props
-const statusMessage = status ? statusMessages[status] : undefined
+const { content } = Astro.props
 ---
 
-<privacy-form class="block" status={status ?? undefined}>
+<privacy-form class="block">
   <div class="container mx-auto px-4 py-16 max-w-5xl space-y-10">
-    <header class="space-y-3">
-      <h1 class="text-3xl md:text-4xl font-bold">My Data &amp; Privacy Rights</h1>
-      <p class="text-content-active max-w-2xl">
-        Under GDPR, you have the right to access and control your personal data.
+    <header class="text-center max-w-2xl mx-auto mb-8">
+      <div class="inline-flex items-center justify-center w-18 h-18 rounded-full bg-primary/10 mb-5">
+        <Icon
+          icon="avatar"
+          color="page-inverse"
+          size={12}
+        />
+      </div>
+      <h1 class="text-4xl md:text-5xl font-bold text-page-inverse mb-4">{content.header.title}</h1>
+      <p class="text-lg text-content-offset leading-relaxed mb-4">
+        {content.header.description}
       </p>
     </header>
 
-    {
-      statusMessage && (
-        <div
-          id="status-message"
-          tabindex="-1"
-          role={statusMessage.type === 'error' ? 'alert' : 'status'}
-          aria-live={statusMessage.type === 'error' ? 'assertive' : 'polite'}
-          aria-atomic="true"
-          class:list={[
-            'rounded-xl border px-4 py-3 text-sm',
-            statusMessage.type === 'success' && 'border-success bg-success-inverse  text-success',
-            statusMessage.type === 'error' && 'border-danger bg-danger-offset text-danger',
-            statusMessage.type === 'info' && 'border-info bg-info-inverse text-info',
-          ]}
-        >
-          {statusMessage.message}
-        </div>
-      )
-    }
+    <div
+      id="status-message"
+      tabindex="-1"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      class="hidden rounded-xl border px-4 py-3 text-sm"
+    ></div>
 
     <section class="bg-page-offset border border-trim rounded-2xl p-6" aria-labelledby="my-data-intro-title">
       <h2 class="sr-only" id="my-data-intro-title">Overview</h2>
       <p class="text-content-active">
         Use the forms below to request a copy of your data or request its deletion.
       </p>
+      <div class="mt-4 flex justify-evenly">
+        <a
+          href="/privacy"
+          class="text-page-inverse underline decoration-page-inverse decoration-dotted underline-offset-4 hover:text-secondary hover:decoration-secondary focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2"
+        >
+          {content.introLinks.privacyPolicyText}
+        </a>
+        <a
+          href="/consent"
+          class="text-page-inverse underline decoration-page-inverse decoration-dotted underline-offset-4 hover:text-secondary hover:decoration-secondary focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2"
+        >
+          {content.introLinks.consentPreferencesText}
+        </a>
+      </div>
     </section>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -55,9 +74,9 @@ const statusMessage = status ? statusMessages[status] : undefined
           Request a copy of personal data we have about you, including consent records and newsletter subscriptions.
         </p>
 
-        <form id="access-form" class:list={[styles.formScope, 'mt-6 space-y-4']} novalidate>
+        <form id="access-form" class="mt-6 space-y-4" novalidate>
           <div class="space-y-2">
-            <label for="access-email" class="block">Email Address</label>
+            <label for="access-email" class="block text-content-active text-sm font-medium">Email Address</label>
             <input
               type="email"
               id="access-email"
@@ -96,9 +115,9 @@ const statusMessage = status ? statusMessages[status] : undefined
           This action cannot be undone.
         </div>
 
-        <form id="delete-form" class:list={[styles.formScope, 'mt-6 space-y-4']} novalidate>
+        <form id="delete-form" class="mt-6 space-y-4" novalidate>
           <div class="space-y-2">
-            <label for="delete-email" class="block">Email Address</label>
+            <label for="delete-email" class="block text-content-active text-sm font-medium">Email Address</label>
             <input
               type="email"
               id="delete-email"
@@ -154,6 +173,6 @@ const statusMessage = status ? statusMessages[status] : undefined
 </privacy-form>
 
 <script>
-  import { registerPrivacyForm } from '@components/Forms/Privacy/client/index'
+  import { registerPrivacyForm } from '@components/Pages/MyData/client/index'
   registerPrivacyForm()
 </script>

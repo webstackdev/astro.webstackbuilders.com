@@ -1,0 +1,361 @@
+---
+import Icon from '@components/Icon/index.astro'
+import List from '@components/List/index.astro'
+import UnsavedConsentDialog from '@components/Pages/Consent/unsaved.astro'
+import HeadingAnchor from '@components/Layout/HeadingAnchor/index.astro'
+
+export type Props = {
+  content: {
+    header: {
+      title: string
+      description: string
+    }
+    intro: string
+    introLinks: {
+      privacyPolicyText: string
+      myDataText: string
+    }
+    essential: {
+      heading: string
+      subheading: string
+      buttonText: string
+      description: string
+    }
+    analytics: {
+      heading: string
+      subheading: string
+      description: string
+    }
+    functional: {
+      heading: string
+      subheading: string
+      description: string
+      trailer: string
+    }
+    marketing: {
+      heading: string
+      subheading: string
+      description: string
+    }
+    buttons: {
+      save: string
+      acceptAll: string
+      rejectAll: string
+    },
+    cookies: {
+      heading: string
+      subheading: string
+      description: string
+      types: {
+        title: string
+        text: string
+        icon: string
+        color: string
+        bgColor?: string
+      }[]
+    }
+    management: {
+      heading: string
+      subheading: string
+      types: {
+        title: string
+        text: string
+        icon: string
+        color: string
+        bgColor: string
+      }[]
+    }
+    questions: {
+      heading: string
+      subheading: string
+      methods: {
+        lead: string
+        text: string
+        link: string
+        icon: string
+      }[]
+    }
+  }
+}
+
+const { content } = Astro.props
+---
+
+<div class="max-w-4xl mx-auto w-full block py-2 md:py-4">
+  <header class="text-center max-w-2xl mx-auto mb-2">
+    <div class="inline-flex items-center justify-center w-18 h-18 rounded-full bg-primary/10 mb-5">
+      <Icon
+        icon="lock"
+        color="page-inverse"
+        size={12}
+      />
+    </div>
+    <h1 class="font-bold text-page-inverse mb-4">{content.header.title}</h1>
+    <p class="text-lg text-content-offset leading-relaxed">
+      {content.header.description}
+    </p>
+  </header>
+
+  <consent-preferences>
+    <section
+      aria-labelledby="consent-preferences__title"
+      aria-describedby="consent-preferences__settings-desc"
+    >
+      <p id="consent-preferences__settings-desc" class="sr-only">
+        Adjust your consent settings using the options below.
+      </p>
+      <div class="px-6 pt-8 pb-2">
+        {/* Introduction */}
+        <div class="bg-page-offset rounded-xl p-6 mb-4">
+          <p class="leading-relaxed text-md">{content.intro}</p>
+          <div class="mt-4 flex justify-evenly">
+            <a
+              href="/privacy"
+              class="text-page-inverse underline decoration-page-inverse decoration-dotted underline-offset-4 hover:text-secondary hover:decoration-secondary focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2"
+            >
+              {content.introLinks.privacyPolicyText}
+            </a>
+            <a
+              href="/privacy/my-data"
+              class="text-page-inverse underline decoration-page-inverse decoration-dotted underline-offset-4 hover:text-secondary hover:decoration-secondary focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2"
+            >
+              {content.introLinks.myDataText}
+            </a>
+          </div>
+        </div>
+
+        {/* Data Storage Categories */}
+        <div class="space-y-6">
+          {/* Essential Data */}
+          <div class="bg-page-offset rounded-xl p-6">
+            <div class="flex items-center justify-between mb-1">
+              <div>
+                <h3 class="text-xl font-semibold text-primary-offset">{content.essential.heading}</h3>
+              </div>
+              <div class="flex items-center">
+                <span
+                  class="text-sm text-green-600 dark:text-green-400 font-medium bg-green-100 dark:bg-green-900/30 px-3 py-1 rounded-full"
+                >
+                  {content.essential.buttonText}
+                </span>
+              </div>
+            </div>
+            <p class="text-sm text-note-offset mb-3">{content.essential.subheading}</p>
+            <p class="text-content text-md leading-relaxed">{content.essential.description}</p>
+          </div>
+
+          {/* Performance and Analytics */}
+          <div class="bg-page-offset rounded-xl p-6">
+            <div class="flex items-center justify-between mb-1">
+              <div>
+                <h3 class="text-xl font-semibold text-primary-offset">{content.analytics.heading}</h3>
+              </div>
+              <label
+                class="relative inline-flex items-center cursor-pointer"
+                data-consent-toggle="analytics-cookies"
+              >
+                <input
+                  type="checkbox"
+                  id="analytics-cookies"
+                  class="sr-only peer"
+                  role="switch"
+                  aria-labelledby="consent-preferences__analytics-title"
+                  aria-describedby="consent-preferences__analytics-desc"
+                  checked
+                />
+                <div
+                  class="w-11 h-6 bg-content rounded-full peer dark:bg-gray-700 peer-focus-visible:outline-2 peer-focus-visible:outline-spotlight peer-focus-visible:outline-offset-2 peer-focus-visible:rounded-none peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
+                >
+                </div>
+              </label>
+            </div>
+            <p class="text-sm text-note-offset mb-3">{content.analytics.subheading}</p>
+            <p class="text-content text-md leading-relaxed">{content.analytics.description}</p>
+          </div>
+
+          {/* Functional */}
+          <div class="bg-page-offset rounded-xl p-6">
+            <div class="flex items-center justify-between mb-1">
+              <div>
+                <h3 class="text-xl font-semibold text-primary-offset">{content.functional.heading}</h3>
+              </div>
+              <label
+                class="relative inline-flex items-center cursor-pointer"
+                data-consent-toggle="functional-cookies"
+              >
+                <input
+                  type="checkbox"
+                  id="functional-cookies"
+                  class="sr-only peer"
+                  role="switch"
+                  aria-labelledby="consent-preferences__functional-title"
+                  aria-describedby="consent-preferences__functional-desc"
+                />
+                <div
+                  class="w-11 h-6 bg-content rounded-full peer dark:bg-gray-700 peer-focus-visible:outline-2 peer-focus-visible:outline-spotlight peer-focus-visible:outline-offset-2 peer-focus-visible:rounded-none peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
+                >
+                </div>
+              </label>
+            </div>
+            <p class="text-sm text-note-offset mb-3">{content.functional.subheading}</p>
+            <p class="text-content text-md leading-relaxed">{content.functional.description}</p>
+            <div class="bg-content-inverse-active rounded-lg p-4 mt-4 -mx-1">
+              <p class="text-sm text-secondary leading-relaxed" set:html={content.functional.trailer}></p>
+            </div>
+          </div>
+
+          {/* Marketing */}
+          <div class="bg-page-offset rounded-xl p-6">
+            <div class="flex items-center justify-between mb-1">
+              <div>
+                <h3 class="text-xl font-semibold text-primary-offset">{content.marketing.heading}</h3>
+              </div>
+              <label
+                class="relative inline-flex items-center cursor-pointer"
+                data-consent-toggle="marketing-cookies"
+              >
+                <input
+                  type="checkbox"
+                  id="marketing-cookies"
+                  class="sr-only peer"
+                  role="switch"
+                  aria-labelledby="consent-preferences__marketing-title"
+                  aria-describedby="consent-preferences__marketing-desc"
+                />
+                <div
+                  class="w-11 h-6 bg-content rounded-full peer dark:bg-gray-700 peer-focus-visible:outline-2 peer-focus-visible:outline-spotlight peer-focus-visible:outline-offset-2 peer-focus-visible:rounded-none peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
+                >
+                </div>
+              </label>
+            </div>
+            <p class="text-sm text-note-offset mb-3">{content.marketing.subheading}</p>
+            <p class="text-content text-md leading-relaxed">{content.marketing.description}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="px-6 py-4 flex gap-3 justify-end flex-wrap">
+        <button
+          id="consent-allow-all"
+          class="px-6 py-2 bg-success-offset text-content-inverse rounded-lg hover:bg-success transition-colors duration-200 font-medium focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 focus-visible:rounded-none"
+        >
+          {content.buttons.acceptAll}
+        </button>
+        <button
+          id="consent-deny-all"
+          class="px-6 py-2 bg-warning-offset text-content-inverse rounded-lg hover:bg-warning transition-colors duration-200 font-medium focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 focus-visible:rounded-none"
+        >
+          {content.buttons.rejectAll}
+        </button>
+        <button
+          id="consent-save-preferences"
+          class="px-6 py-2 text-content-inverse rounded-lg cursor-not-allowed transition-colors duration-200 font-medium focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 focus-visible:rounded-none"
+          disabled
+          aria-disabled="true"
+        >
+          {content.buttons.save}
+        </button>
+      </div>
+    </section>
+  </consent-preferences>
+
+  <!-- Cookie Information -->
+  <div class="prose prose-lg dark:prose-invert max-w-none">
+    <section aria-labelledby="consent-what-are-cookies-title">
+      <h2
+        id="consent-what-are-cookies-title"
+        class="text-2xl md:text-3xl font-bold text-primary-offset mb-2"
+      >
+        {content.cookies.heading}
+        <HeadingAnchor href={"#consent-what-are-cookies-title"} />
+      </h2>
+      <div class="py-1">
+        <p class="text-gray-600 dark:text-gray-300 mb-4 mt-0">
+          {content.cookies.description}
+        </p>
+        <List
+          variant="two-column-icon-list"
+          items={content.cookies.types}
+          size={6}
+          classes={{
+            ul: "mt-6 mb-0 pl-0",
+            icon: "w-12 h-12 bg-blue-100 mr-2",
+            li: "border-2 border-page-offset p-4 rounded-xl",
+            text: "mb-0",
+          }}
+        />
+      </div>
+    </section>
+
+    <section class="mb-6" aria-labelledby="consent-managing-cookies-title">
+      <h2
+        id="consent-managing-cookies-title"
+        class="text-2xl md:text-3xl font-bold text-primary-offset mb-4"
+      >
+        {content.management.heading}
+        <HeadingAnchor href={"#consent-managing-cookies-title"} />
+      </h2>
+      <p class="text-gray-600 dark:text-gray-300 mb-6 mt-0">
+        {content.management.subheading}
+      </p>
+      <List
+        variant="three-column-icon-list"
+        items={content.management.types}
+        size={6}
+        classes={{
+          ul: "mt-6 mb-0 pl-0",
+          icon: "w-12 h-12 bg-blue-100 mr-2",
+          li: "border-2 border-page-offset p-4 rounded-xl",
+          text: "mb-0",
+        }}
+      />
+    </section>
+
+    <section class="mb-12" aria-labelledby="consent-contact-title">
+      <h2
+        id="consent-contact-title"
+        class="text-2xl md:text-3xl font-bold text-primary-offset mb-4"
+      >
+        {content.questions.heading}
+        <HeadingAnchor href={"#consent-contact-title"} />
+      </h2>
+      <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-6">
+        <p class="text-gray-600 dark:text-gray-300 mb-4 mt-0">{content.questions.subheading}</p>
+        <div class="flex items-start ml-4">
+          {content.questions.methods.map((item) => {
+            return (
+              <div class="flex items-start gap-4">
+                <div
+                  class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center shrink-0 mt-1"
+                >
+                  <Icon
+                    icon={item.icon}
+                    color="blue-600"
+                    size={6}
+                  />
+                </div>
+                <div class="ml-2">
+                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1 mt-0">{item.lead}</h3>
+                  <a
+                    href={item.link}
+                    class="text-page-inverse underline decoration-page-inverse decoration-dotted underline-offset-4 hover:text-content-active hover:decoration-content-active focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2"
+                  >
+                    {item.text}
+                  </a>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<UnsavedConsentDialog />
+
+<!-- Privacy Preferences Management Script -->
+<script>
+  import { registerConsentPreferencesWebComponent } from '@components/Pages/Consent/client'
+  registerConsentPreferencesWebComponent()
+</script>

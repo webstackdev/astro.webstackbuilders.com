@@ -1,0 +1,207 @@
+---
+// import List from '@components/List/index.astro'
+import Icon from '@components/Icon/index.astro'
+// import HeadingAnchor from '@components/Layout/HeadingAnchor/index.astro'
+import ContactForm from '@components/Forms/Contact/index.astro'
+import Map from '@components/Map/index.astro'
+
+export type Props = {
+  content: {
+    header: {
+      title: string
+      description: string
+    }
+  }
+}
+const { content } = Astro.props
+---
+
+<div class="min-h-screen">
+  <!-- Contact Hero Section -->
+  <header class="text-center max-w-2xl mx-auto mb-8">
+    <div class="inline-flex items-center justify-center w-18 h-18 rounded-full bg-primary/10 mb-5">
+      <Icon
+        icon="email"
+        color="page-inverse"
+        size={12}
+      />
+    </div>
+    <h1 class="text-4xl md:text-5xl font-bold text-page-inverse mb-4">{content.header.title}</h1>
+    <p class="text-lg text-content-offset leading-relaxed mb-4">
+      {content.header.description}
+    </p>
+  </header>
+
+  <!-- Google Maps embed -->
+  <Map />
+
+  <!-- Contact Form Section -->
+  <section class="py-16 bg-page-offset" aria-label="Contact form">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <ContactForm>
+        <!-- Contact FormHeader -->
+        <div slot="contact-form-header" class="mb-8">
+          <h2 class="text-2xl md:text-3xl font-semibold mb-3">
+            Tell us about your project
+          </h2>
+          <p class="text-content-active text-lg">
+            We'll get back to you within 24 hours with a detailed proposal.
+          </p>
+        </div>
+
+        <!-- Contact Information -->
+        <div slot="contact-information"  class="bg-content-inverse p-6 md:p-8 rounded-2xl shadow-lg h-fit sticky top-8">
+          <div class="space-y-8">
+            <div>
+              <h3 class="text-xl font-semibold mb-6">Get In Touch</h3>
+
+              <div class="space-y-6">
+                <div class="flex items-start gap-4">
+                  <div
+                    class="shrink-0 w-11 h-11 bg-linear-to-br from-primary to-accent text-white rounded-xl flex items-center justify-center"
+                  >
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      aria-hidden="true"
+                      focusable="false"
+                    >
+                      <path
+                        d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+                      ></path>
+                      <polyline points="22,6 12,13 2,6"></polyline>
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold mb-1">Email</h4>
+                    <p class="text-content-active">kevin@webstackbuilders.com</p>
+                  </div>
+                </div>
+
+                <div class="flex items-start gap-4">
+                  <div
+                    class="shrink-0 w-11 h-11 bg-linear-to-br from-primary to-accent text-white rounded-xl flex items-center justify-center"
+                  >
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      aria-hidden="true"
+                      focusable="false"
+                    >
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                      <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold mb-1">Location</h4>
+                    <p class="text-content-active">Remote • Worldwide</p>
+                  </div>
+                </div>
+
+                <div class="flex items-start gap-4">
+                  <div
+                    class="shrink-0 w-11 h-11 bg-linear-to-br from-primary to-accent text-white rounded-xl flex items-center justify-center"
+                  >
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      aria-hidden="true"
+                      focusable="false"
+                    >
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <polyline points="12,6 12,12 16,14"></polyline>
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold mb-1">Response Time</h4>
+                    <p class="text-content-active">Within 24 hours</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-xl font-semibold mb-6">Our Expertise</h3>
+              <ul class="space-y-3">
+                <li class="flex items-center text-content-active pl-4 relative">
+                  <span class="absolute left-0 w-2 h-2 bg-spotlight rounded-full"></span>
+                  Custom Web Development
+                </li>
+                <li class="flex items-center text-content-active pl-4 relative">
+                  <span class="absolute left-0 w-2 h-2 bg-spotlight rounded-full"></span>
+                  E-commerce Solutions
+                </li>
+                <li class="flex items-center text-content-active pl-4 relative">
+                  <span class="absolute left-0 w-2 h-2 bg-spotlight rounded-full"></span>
+                  Progressive Web Apps
+                </li>
+                <li class="flex items-center text-content-active pl-4 relative">
+                  <span class="absolute left-0 w-2 h-2 bg-spotlight rounded-full"></span>
+                  API Development & Integration
+                </li>
+                <li class="flex items-center text-content-active pl-4 relative">
+                  <span class="absolute left-0 w-2 h-2 bg-spotlight rounded-full"></span>
+                  Database Design & Optimization
+                </li>
+                <li class="flex items-center text-content-active pl-4 relative">
+                  <span class="absolute left-0 w-2 h-2 bg-spotlight rounded-full"></span>
+                  Performance & SEO Optimization
+                </li>
+                <li class="flex items-center text-content-active pl-4 relative">
+                  <span class="absolute left-0 w-2 h-2 bg-spotlight rounded-full"></span>
+                  Maintenance & Support
+                </li>
+                <li class="flex items-center text-content-active pl-4 relative">
+                  <span class="absolute left-0 w-2 h-2 bg-spotlight rounded-full"></span>
+                  Technical Consulting
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 class="text-xl font-semibold mb-6">Why Choose Us?</h3>
+              <ul class="space-y-3">
+                <li class="flex items-center text-content-active pl-4 relative">
+                  <span class="absolute left-0 w-2 h-2 bg-spotlight rounded-full"></span>
+                  15+ years of experience
+                </li>
+                <li class="flex items-center text-content-active pl-4 relative">
+                  <span class="absolute left-0 w-2 h-2 bg-spotlight rounded-full"></span>
+                  Modern tech stack
+                </li>
+                <li class="flex items-center text-content-active pl-4 relative">
+                  <span class="absolute left-0 w-2 h-2 bg-spotlight rounded-full"></span>
+                  Performance-focused
+                </li>
+                <li class="flex items-center text-content-active pl-4 relative">
+                  <span class="absolute left-0 w-2 h-2 bg-spotlight rounded-full"></span>
+                  SEO optimized
+                </li>
+                <li class="flex items-center text-content-active pl-4 relative">
+                  <span class="absolute left-0 w-2 h-2 bg-spotlight rounded-full"></span>
+                  Mobile-first approach
+                </li>
+                <li class="flex items-center text-content-active pl-4 relative">
+                  <span class="absolute left-0 w-2 h-2 bg-spotlight rounded-full"></span>
+                  Ongoing support
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </ContactForm>
+    </div>
+  </section>
+</div>

@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import { TestError } from '@test/errors'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
-import ConsentPreferencesComponent from '@components/Consent/Preferences/index.astro'
-import type { ConsentPreferencesElement } from '@components/Consent/Preferences/client'
+import ConsentPreferencesComponent from '@components/Pages/Consent/index.astro'
+import type { ConsentPreferencesElement } from '@components/Pages/Consent/client'
 import type { ConsentCategory, ConsentState } from '@components/scripts/store'
 import { allowAllConsent, updateConsent, revokeAllConsent } from '@components/scripts/store'
 import { executeRender, withJsdomEnvironment } from '@test/unit/helpers/litRuntime'
@@ -13,6 +13,68 @@ type JsdomWindow = Window & typeof globalThis
 
 const CONSENT_READY_TIMEOUT_MS = 2_000
 const CONSENT_PREFERENCES_READY_EVENT = 'consent-preferences:ready'
+const SAVE_DELAY_SETTLE_MS = 450
+
+const waitForSaveDelay = async () => {
+  await new Promise<void>((resolve) => {
+    setTimeout(resolve, SAVE_DELAY_SETTLE_MS)
+  })
+}
+
+const consentContent = {
+  header: {
+    title: 'Privacy Preference Center',
+    description: 'Manage your cookie preferences.',
+  },
+  intro: 'Intro content',
+  introLinks: {
+    privacyPolicyText: 'Privacy Policy',
+    myDataText: 'My Data',
+  },
+  essential: {
+    heading: 'Essential Data',
+    subheading: 'Always active',
+    buttonText: 'Always Active',
+    description: 'Essential description',
+  },
+  analytics: {
+    heading: 'Performance and Analytics',
+    subheading: 'Analytics description',
+    description: 'Analytics details',
+  },
+  functional: {
+    heading: 'Enhanced Features',
+    subheading: 'Functional description',
+    description: 'Functional details',
+    trailer: 'Functional trailer',
+  },
+  marketing: {
+    heading: 'Marketing and Advertising',
+    subheading: 'Marketing description',
+    description: 'Marketing details',
+  },
+  buttons: {
+    save: 'Save My Preferences',
+    acceptAll: 'Allow All',
+    rejectAll: 'Decline All',
+  },
+  cookies: {
+    heading: 'What Are Cookies?',
+    subheading: 'Cookies subheading',
+    description: 'Cookies description',
+    types: [],
+  },
+  management: {
+    heading: 'Managing Cookies',
+    subheading: 'Management subheading',
+    types: [],
+  },
+  questions: {
+    heading: 'Questions',
+    subheading: 'Questions subheading',
+    methods: [],
+  },
+}
 
 const waitForPreferencesReady = async (element: ConsentPreferencesElement) => {
   if (element.dataset['consentPreferencesReady'] === 'true') {
@@ -45,7 +107,12 @@ const renderConsentPreferences = async (
   await executeRender<ConsentPreferencesModule>({
     container,
     component: ConsentPreferencesComponent,
-    moduleSpecifier: '@components/Consent/Preferences/client/index',
+    moduleSpecifier: '@components/Pages/Consent/client/index',
+    args: {
+      props: {
+        content: consentContent,
+      },
+    },
     selector: 'consent-preferences',
     waitForReady: async (element: ConsentPreferencesElement) => {
       await waitForPreferencesReady(element)
@@ -138,7 +205,7 @@ describe('ConsentPreferencesElement', () => {
       expect(section!.getAttribute('aria-labelledby')).toBe('consent-preferences__title')
       expect(section!.getAttribute('aria-describedby')).toBe('consent-preferences__settings-desc')
 
-      const pageTitle = window.document.getElementById('consent-preferences__title')
+      const pageTitle = window.document.querySelector('h1')
       expect(pageTitle?.textContent).toContain('Privacy Preference Center')
 
       const settingsDesc = window.document.getElementById('consent-preferences__settings-desc')
@@ -225,7 +292,7 @@ describe('ConsentPreferencesElement', () => {
   })
 
   it('saves consent preferences when Save button is clicked', async () => {
-    await renderConsentPreferences(({ window }) => {
+    await renderConsentPreferences(async ({ window }) => {
       const analyticsCheckbox = window.document.getElementById(
         'analytics-cookies'
       ) as HTMLInputElement | null
@@ -251,6 +318,8 @@ describe('ConsentPreferencesElement', () => {
 
       saveBtn!.dispatchEvent(new window.MouseEvent('click', { bubbles: true }))
 
+      await waitForSaveDelay()
+
       expect(updateConsent).toHaveBeenCalledWith('analytics', true)
       expect(updateConsent).toHaveBeenCalledWith('functional', false)
       expect(updateConsent).toHaveBeenCalledWith('marketing', true)
@@ -258,7 +327,7 @@ describe('ConsentPreferencesElement', () => {
   })
 
   it('enables save button only when preferences differ from saved consent', async () => {
-    await renderConsentPreferences(({ window }) => {
+    await renderConsentPreferences(async ({ window }) => {
       const saveBtn = window.document.getElementById(
         'consent-save-preferences'
       ) as HTMLButtonElement | null
@@ -275,7 +344,63 @@ describe('ConsentPreferencesElement', () => {
       expect(saveBtn!.disabled).toBe(false)
 
       saveBtn!.dispatchEvent(new window.MouseEvent('click', { bubbles: true }))
+
+      await waitForSaveDelay()
+
       expect(saveBtn!.disabled).toBe(true)
+    })
+  })
+
+  it('opens unsaved dialog and blocks navigation when preferences are dirty', async () => {
+    await renderConsentPreferences(({ window }) => {
+      const functionalCheckbox = window.document.getElementById(
+        'functional-cookies'
+      ) as HTMLInputElement | null
+      const contactLink = window.document.createElement('a')
+      contactLink.href = '/contact/'
+      contactLink.textContent = 'Contact'
+      window.document.body.append(contactLink)
+      const dialog = window.document.getElementById('consent-unsaved-dialog') as HTMLElement | null
+
+      expect(functionalCheckbox).not.toBeNull()
+      expect(dialog).not.toBeNull()
+
+      functionalCheckbox!.checked = true
+      functionalCheckbox!.dispatchEvent(new window.Event('change', { bubbles: true }))
+
+      const navigationEvent = new window.MouseEvent('click', { bubbles: true, cancelable: true })
+      contactLink.dispatchEvent(navigationEvent)
+
+      expect(navigationEvent.defaultPrevented).toBe(true)
+      expect(dialog!.hasAttribute('open')).toBe(true)
+    })
+  })
+
+  it('closes unsaved dialog when discard changes is clicked', async () => {
+    await renderConsentPreferences(({ window }) => {
+      const functionalCheckbox = window.document.getElementById(
+        'functional-cookies'
+      ) as HTMLInputElement | null
+      const contactLink = window.document.createElement('a')
+      contactLink.href = '/contact/'
+      contactLink.textContent = 'Contact'
+      window.document.body.append(contactLink)
+      const discardBtn = window.document.getElementById('consent-unsaved-discard') as HTMLButtonElement | null
+      const dialog = window.document.getElementById('consent-unsaved-dialog') as HTMLElement | null
+
+      expect(functionalCheckbox).not.toBeNull()
+      expect(discardBtn).not.toBeNull()
+      expect(dialog).not.toBeNull()
+
+      functionalCheckbox!.checked = true
+      functionalCheckbox!.dispatchEvent(new window.Event('change', { bubbles: true }))
+
+      contactLink.dispatchEvent(new window.MouseEvent('click', { bubbles: true, cancelable: true }))
+      expect(dialog!.hasAttribute('open')).toBe(true)
+
+      discardBtn!.dispatchEvent(new window.MouseEvent('click', { bubbles: true }))
+
+      expect(dialog!.hasAttribute('open')).toBe(false)
     })
   })
 })

@@ -1,0 +1,30 @@
+---
+export type Props = {
+  color: string
+  classes?: string
+  size: number
+  accessible: boolean
+  focusable: boolean
+  isListMarker?: boolean
+}
+
+const { color, classes, size, accessible, focusable, isListMarker } = Astro.props
+---
+
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 24 24"
+  class:list={["shrink-0", `w-${size} h-${size}`, `text-${color}`, classes, isListMarker ? "mt-0.5" : ""]}
+  fill="none"
+  stroke="currentColor"
+  aria-hidden={accessible ? "false" : "true"}
+  focusable={focusable ? "true" : "false"}
+  role="img"
+>
+  {accessible && <title>database icon</title>}
+  <path stroke-width="1.67442" stroke-linecap="round" d="M 0.83720999,18.697674 V 5.302326" />
+  <path stroke-width="1.67442" stroke-linecap="round" d="M 18.697674,5.302326 V 18.697674" />
+  <path stroke-width="1.67442" d="m 9.767442,9.767442 c 4.932056,0 8.930232,-1.9991 8.930232,-4.465116 0,-2.4660167 -3.998176,-4.46511601 -8.930232,-4.46511601 -4.9320333,0 -8.93023201,1.99909931 -8.93023201,4.46511601 0,2.4660166 3.99819871,4.465116 8.93023201,4.465116 z" />
+  <path stroke-width="1.67442" d="m 18.697674,12 c 0,2.465973 -3.998176,4.465116 -8.930232,4.465116 -4.9320333,0 -8.93023201,-1.999143 -8.93023201,-4.465116" />
+  <path stroke-width="1.67442" d="m 18.697674,18.697674 c 0,2.465973 -3.998176,4.465116 -8.930232,4.465116 -4.9320333,0 -8.93023201,-1.999143 -8.93023201,-4.465116" />
+</svg>

@@ -20,6 +20,10 @@ export type Props = {
     }
     nav: {
       title: string
+      links: {
+        consentPreferencesText: string
+        myDataText: string
+      }
       items: {
         label: string
         href: string
@@ -181,7 +185,23 @@ for (const [index, item] of content.nav.items.entries()) {
   </header>
 
   <nav aria-label="Privacy policy sections" class="bg-content-active rounded-xl p-6 mb-8">
-    <p class="text-md font-semibold text-content-inverse ml-2 mb-3">{content.nav.title}</p>
+    <div class="mb-3 flex flex-col items-start gap-3 pl-2 md:flex-row md:items-center md:justify-between">
+      <p class="text-md font-semibold text-content-inverse mb-0">{content.nav.title}</p>
+      <div class="flex w-full items-center justify-center gap-3 md:w-auto md:justify-end">
+        <a
+          href="/consent"
+          class="text-content-inverse underline decoration-content-inverse decoration-dotted underline-offset-4 hover:text-content-offset hover:decoration-content-offset focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 md:mr-8"
+        >
+          {content.nav.links.consentPreferencesText}
+        </a>
+        <a
+          href="/privacy/my-data"
+          class="text-content-inverse underline decoration-content-inverse decoration-dotted underline-offset-4 hover:text-content-offset hover:decoration-content-offset focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 md:mr-16"
+        >
+          {content.nav.links.myDataText}
+        </a>
+      </div>
+    </div>
     <div class="flex flex-wrap items-center gap-y-2 md:gap-x-2 text-md md:ml-6">
       {
         navItems.map(({ href, label, showSeparator }) => (
